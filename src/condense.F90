@@ -147,7 +147,7 @@ contains
   !> including updating the environment to account for the lost
   !> water vapor.
   subroutine condense_particles(env_state, env_data, aero_data, &
-       aero_weight, aero_state, del_t)
+       aero_state, del_t)
 
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
@@ -155,8 +155,6 @@ contains
     type(env_data_t), intent(in) :: env_data
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Total time to integrate.
@@ -200,7 +198,7 @@ contains
     water_vol_initial = 0d0
     do i_part = 1,aero_state%p%n_part
        aero_particle => aero_state%p%particle(i_part)
-       weight = aero_weight_value(aero_weight, &
+       weight = aero_weight_value(aero_state%aero_weight, &
             aero_particle_radius(aero_particle))
        water_vol_initial = water_vol_initial &
             + aero_particle%vol(aero_data%i_water) * weight
@@ -235,7 +233,8 @@ contains
             = aero_particle_solute_kappa(aero_particle, aero_data)
        condense_saved_D_dry(i_part) = vol2diam(&
             aero_particle_solute_volume(aero_particle, aero_data))
-       condense_saved_weight(i_part) = aero_weight_value(aero_weight, &
+       condense_saved_weight(i_part) &
+            = aero_weight_value(aero_state%aero_weight, &
             aero_particle_radius(aero_particle))
        state(i_part) = aero_particle_diameter(aero_particle)
        abs_tol_vector(i_part) = max(1d-30, &
@@ -282,7 +281,7 @@ contains
     ! particles that we've already dealt with
     do i_part = aero_state%p%n_part,1,-1
        aero_particle => aero_state%p%particle(i_part)
-       old_weight = aero_weight_value(aero_weight, &
+       old_weight = aero_weight_value(aero_state%aero_weight, &
             aero_particle_radius(aero_particle))
        
        ! translate output back to particle
@@ -298,8 +297,7 @@ contains
             + aero_particle%vol(aero_data%i_water) * old_weight
        
        ! adjust particle number to account for weight changes
-       call aero_state_reweight_particle(aero_state, aero_weight, i_part, &
-            old_weight)
+       call aero_state_reweight_particle(aero_state, i_part, old_weight)
     end do
     
     ! Check that water removed from particles equals water added to
@@ -778,69 +776,34 @@ contains
   !> Call condense_equilib_particle() on each particle in the aerosol
   !> to ensure that every particle has its water content in
   !> equilibrium.
-  subroutine condense_equilib_particles(env_state, aero_data, aero_weight, &
-       aero_state)
+  subroutine condense_equilib_particles(env_state, aero_data, aero_state)
 
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
 
     integer :: i_part
-    type(aero_particle_t), pointer :: aero_particle
-    real(kind=dp) :: old_weight, new_weight
-    type(aero_particle_t) :: new_aero_particle
-    type(aero_info_t) :: aero_info
-    integer :: n_copies, i_dup
+    real(kind=dp) :: old_weight
  
     ! We're modifying particle diameters, so bin sorting is now invalid
     aero_state%valid_sort = .false.
-    call aero_particle_allocate(new_aero_particle)
-    call aero_info_allocate(aero_info)
+
     ! work backwards so any additions and removals will only affect
     ! particles that we've already dealt with
     do i_part = aero_state%p%n_part,1,-1
-       aero_particle => aero_state%p%particle(i_part)
-       old_weight = aero_weight_value(aero_weight, &
-            aero_particle_radius(aero_particle))
+       old_weight = aero_weight_value(aero_state%aero_weight, &
+            aero_particle_radius(aero_state%p%particle(i_part)))
        
        ! equilibriate the particle by adjusting its water content
        call condense_equilib_particle(env_state, aero_data, &
             aero_state%p%particle(i_part))
        
        ! adjust particle number to account for weight changes
-       if (aero_weight%type /= AERO_WEIGHT_TYPE_NONE) then
-          new_weight = aero_weight_value(aero_weight, &
-               aero_particle_radius(aero_particle))
-          n_copies = prob_round(old_weight / new_weight)
-          if (n_copies == 0) then
-             aero_info%id = aero_particle%id
-             aero_info%action = AERO_INFO_WEIGHT
-             aero_info%other_id = 0
-             call aero_state_remove_particle_with_info(aero_state, &
-                  i_part, aero_info)
-          elseif (n_copies > 1) then
-             do i_dup = 1,(n_copies - 1)
-                call aero_particle_copy(aero_particle, new_aero_particle)
-                call aero_particle_new_id(new_aero_particle)
-                ! this might be adding into the wrong bin, but
-                ! that's necessary as we might not have processed
-                ! the correct bin yet.
-                call aero_state_add_particle(aero_state, new_aero_particle)
-                ! re-get the particle pointer, which may have
-                ! changed due to reallocations caused by adding
-                aero_particle => aero_state%p%particle(i_part)
-             end do
-          end if
-       end if
+       call aero_state_reweight_particle(aero_state, i_part, old_weight)
     end do
-
-    call aero_particle_deallocate(new_aero_particle)
-    call aero_info_deallocate(aero_info)
 
   end subroutine condense_equilib_particles
 

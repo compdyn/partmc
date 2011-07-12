@@ -138,7 +138,7 @@ contains
 
   !> Map all data PartMC -> MOSAIC.
   subroutine mosaic_from_partmc(env_state, aero_data, &
-       aero_weight, aero_state, gas_data, gas_state)
+       aero_state, gas_data, gas_state)
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
@@ -153,8 +153,6 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
     !> Gas data.
@@ -231,7 +229,7 @@ contains
     ! has specific ordering requirements
     do i_part = aero_state%p%n_part,1,-1
        particle => aero_state%p%particle(i_part)
-       weight = aero_weight_value(aero_weight, &
+       weight = aero_weight_value(aero_state%aero_weight, &
             aero_particle_radius(particle))
        do i_spec = 1,aero_data%n_spec
           i_spec_mosaic = aero_data%mosaic_index(i_spec)
@@ -267,8 +265,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   !> Map all data MOSAIC -> PartMC.
-  subroutine mosaic_to_partmc(env_state, aero_data, &
-       aero_weight, aero_state, gas_data, gas_state)
+  subroutine mosaic_to_partmc(env_state, aero_data, aero_state, gas_data, &
+       gas_state)
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
@@ -283,8 +281,6 @@ contains
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas data.
@@ -325,7 +321,7 @@ contains
     ! particles that we've already dealt with
     do i_part = aero_state%p%n_part,1,-1
        particle => aero_state%p%particle(i_part)
-       old_weight = aero_weight_value(aero_weight, &
+       old_weight = aero_weight_value(aero_state%aero_weight, &
             aero_particle_radius(particle))
        do i_spec = 1,aero_data%n_spec
           i_spec_mosaic = aero_data%mosaic_index(i_spec)
@@ -344,8 +340,7 @@ contains
             * (aero_state%comp_vol / old_weight)
        
        ! adjust particle number to account for weight changes
-       call aero_state_reweight_particle(aero_state, aero_weight, i_part, &
-            old_weight)
+       call aero_state_reweight_particle(aero_state, i_part, old_weight)
     end do
 
     ! gas chemistry: map MOSAIC -> PartMC
@@ -369,8 +364,8 @@ contains
   !! time, rather than inside the timestepper. It's not clear if this
   !! really matters, however. Because of this mosaic_aero_optical() is
   !! currently disabled.
-  subroutine mosaic_timestep(env_state, aero_data, &
-       aero_weight, aero_state, gas_data, gas_state, do_optical)
+  subroutine mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
+       gas_state, do_optical)
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_main, only: msolar
@@ -380,8 +375,6 @@ contains
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas data.
@@ -403,8 +396,8 @@ contains
     end interface
     
     ! map PartMC -> MOSAIC
-    call mosaic_from_partmc(env_state, aero_data, aero_weight, &
-         aero_state, gas_data, gas_state)
+    call mosaic_from_partmc(env_state, aero_data, aero_state, gas_data, &
+         gas_state)
 
     if (msolar == 1) then
       call SolarZenithAngle
@@ -421,8 +414,8 @@ contains
             aero_state, gas_data, gas_state)
     end if
 
-    call mosaic_to_partmc(env_state, aero_data, aero_weight, &
-         aero_state, gas_data, gas_state)
+    call mosaic_to_partmc(env_state, aero_data, aero_state, gas_data, &
+         gas_state)
 #endif
 
   end subroutine mosaic_timestep

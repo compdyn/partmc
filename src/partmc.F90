@@ -138,7 +138,6 @@ program partmc
   use pmc_aero_binned
   use pmc_coag_kernel
   use pmc_aero_data
-  use pmc_aero_weight
   use pmc_env_data
   use pmc_env_state
   use pmc_run_part
@@ -232,7 +231,6 @@ contains
     type(gas_state_t) :: gas_state
     type(gas_state_t) :: gas_state_init
     type(aero_data_t) :: aero_data
-    type(aero_weight_t) :: aero_weight
     type(aero_dist_t) :: aero_dist_init
     type(aero_state_t) :: aero_state
     type(aero_state_t) :: aero_state_init
@@ -276,8 +274,6 @@ contains
     !!   output data to disk (see \ref output_format)
     !! - \b t_progress (real, unit s): the interval on which to
     !!   write summary information to the screen while running
-    !! - \subpage input_format_aero_weight (only provide if
-    !!   \c restart is \c no)
     !! - \b gas_data (string): name of file from which to read the gas
     !!   material data (only provide if \c restart is \c no) --- the
     !!   file format should be \subpage input_format_gas_data
@@ -354,7 +350,6 @@ contains
     call gas_state_allocate(gas_state)
     call gas_state_allocate(gas_state_init)
     call aero_data_allocate(aero_data)
-    call aero_weight_allocate(aero_weight)
     call aero_dist_allocate(aero_dist_init)
     call aero_state_allocate(aero_state)
     call aero_state_allocate(aero_state_init)
@@ -379,15 +374,11 @@ contains
        call spec_file_read_real(file, 't_output', run_part_opt%t_output)
        call spec_file_read_real(file, 't_progress', run_part_opt%t_progress)
 
-       if (.not. do_restart) then
-          call spec_file_read_aero_weight(file, aero_weight)
-       end if
-
        if (do_restart) then
           call input_state(restart_filename, aero_data, &
-               aero_weight, aero_state_init, gas_data, gas_state_init, &
-               env_state_init, dummy_index, dummy_time, dummy_del_t, &
-               dummy_i_repeat, run_part_opt%uuid)
+               aero_state_init, gas_data, gas_state_init, env_state_init, &
+               dummy_index, dummy_time, dummy_del_t, dummy_i_repeat, &
+               run_part_opt%uuid)
        end if
 
        if (.not. do_restart) then
@@ -520,8 +511,6 @@ contains
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_aero_data(aero_data)
        max_buffer_size = max_buffer_size &
-            + pmc_mpi_pack_size_aero_weight(aero_weight)
-       max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_aero_dist(aero_dist_init)
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_env_data(env_data)
@@ -543,7 +532,6 @@ contains
        call pmc_mpi_pack_gas_data(buffer, position, gas_data)
        call pmc_mpi_pack_gas_state(buffer, position, gas_state_init)
        call pmc_mpi_pack_aero_data(buffer, position, aero_data)
-       call pmc_mpi_pack_aero_weight(buffer, position, aero_weight)
        call pmc_mpi_pack_aero_dist(buffer, position, aero_dist_init)
        call pmc_mpi_pack_env_data(buffer, position, env_data)
        call pmc_mpi_pack_env_state(buffer, position, env_state_init)
@@ -573,7 +561,6 @@ contains
        call pmc_mpi_unpack_gas_data(buffer, position, gas_data)
        call pmc_mpi_unpack_gas_state(buffer, position, gas_state_init)
        call pmc_mpi_unpack_aero_data(buffer, position, aero_data)
-       call pmc_mpi_unpack_aero_weight(buffer, position, aero_weight)
        call pmc_mpi_unpack_aero_dist(buffer, position, aero_dist_init)
        call pmc_mpi_unpack_env_data(buffer, position, env_data)
        call pmc_mpi_unpack_env_state(buffer, position, env_state_init)
@@ -606,9 +593,10 @@ contains
           call aero_state_deallocate(aero_state)
           call aero_state_allocate_size(aero_state, aero_data)
           aero_state%comp_vol = real(run_part_opt%n_part_ideal, kind=dp) / &
-               aero_dist_weighted_num_conc(aero_dist_init, aero_weight)
+               aero_dist_weighted_num_conc(aero_dist_init, &
+               aero_state%aero_weight)
           call aero_state_add_aero_dist_sample(aero_state, aero_data, &
-               aero_weight, aero_dist_init, 1d0, 0d0)
+               aero_dist_init, 1d0, 0d0)
        end if
        call env_state_copy(env_state_init, env_state)
        call env_data_init_state(env_data, env_state, &
@@ -616,13 +604,12 @@ contains
 
 #ifdef PMC_USE_SUNDIALS
        if (do_init_equilibriate) then
-          call condense_equilib_particles(env_state, aero_data, &
-               aero_weight, aero_state)
+          call condense_equilib_particles(env_state, aero_data, aero_state)
        end if
 #endif
        
-       call run_part(env_data, env_state, aero_data, aero_weight, &
-            aero_state, gas_data, gas_state, run_part_opt)
+       call run_part(env_data, env_state, aero_data, aero_state, gas_data, &
+            gas_state, run_part_opt)
 
     end do
 
@@ -630,7 +617,6 @@ contains
     call gas_state_deallocate(gas_state)
     call gas_state_deallocate(gas_state_init)
     call aero_data_deallocate(aero_data)
-    call aero_weight_deallocate(aero_weight)
     call aero_dist_deallocate(aero_dist_init)
     call aero_state_deallocate(aero_state)
     call aero_state_deallocate(aero_state_init)

@@ -103,7 +103,7 @@ contains
 
   !> Do coagulation for time del_t.
   subroutine mc_coag_dist(coag_kernel_type, env_state, aero_data, &
-       aero_weight, aero_state, del_t, tot_n_samp, tot_n_coag)
+       aero_state, del_t, tot_n_samp, tot_n_coag)
 
     !> Coagulation kernel type.
     integer, intent(in) :: coag_kernel_type
@@ -111,8 +111,6 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Timestep.
@@ -143,7 +141,7 @@ contains
     call aero_state_sort(aero_state, all_procs_same=.true.)
     if (.not. aero_state%aero_sorted%coag_kernel_bounds_valid) then
        call est_k_minmax_binned(aero_state%aero_sorted%bin_grid, &
-            coag_kernel_type, aero_data, aero_weight, env_state, &
+            coag_kernel_type, aero_data, aero_state%aero_weight, env_state, &
             aero_state%aero_sorted%coag_kernel_min, &
             aero_state%aero_sorted%coag_kernel_max)
        aero_state%aero_sorted%coag_kernel_bounds_valid = .true.
@@ -192,9 +190,9 @@ contains
        end if
 
        ! receive exactly one message
-       call coag_dist_recv(requests, env_state, aero_data, aero_weight, &
-            aero_state, accept_factors, coag_kernel_type, tot_n_coag, &
-            comp_vols, procs_done)
+       call coag_dist_recv(requests, env_state, aero_data, aero_state, &
+            accept_factors, coag_kernel_type, tot_n_coag, comp_vols, &
+            procs_done)
     end do
 
     do i_req = 1,COAG_DIST_MAX_REQUESTS
@@ -217,9 +215,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine coag_dist_recv(requests, env_state, aero_data, aero_weight, &
-       aero_state, accept_factors, coag_kernel_type, tot_n_coag, comp_vols, &
-       procs_done)
+  subroutine coag_dist_recv(requests, env_state, aero_data, aero_state, &
+       accept_factors, coag_kernel_type, tot_n_coag, comp_vols, procs_done)
 
     !> Array of outstanding requests.
     type(request_t), intent(inout) :: requests(COAG_DIST_MAX_REQUESTS)
@@ -227,8 +224,6 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Accept scale factors per bin pair (1).
@@ -252,8 +247,8 @@ contains
        call recv_request_particle(aero_state)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_REQ_PARTICLE) then
        call recv_return_req_particle(requests, env_state, aero_data, &
-            aero_weight, aero_state, accept_factors, coag_kernel_type, &
-            tot_n_coag, comp_vols)
+            aero_state, accept_factors, coag_kernel_type, tot_n_coag, &
+            comp_vols)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_UNREQ_PARTICLE) then
        call recv_return_unreq_particle(aero_state)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_NO_PARTICLE) then
@@ -583,15 +578,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine recv_return_req_particle(requests, env_state, aero_data, &
-       aero_weight, aero_state, accept_factors, coag_kernel_type, &
-       tot_n_coag, comp_vols)
+       aero_state, accept_factors, coag_kernel_type, tot_n_coag, comp_vols)
 
     !> Array of outstanding requests.
     type(request_t), intent(inout) :: requests(COAG_DIST_MAX_REQUESTS)
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
@@ -646,13 +638,13 @@ contains
     ! maybe do coagulation
     call weighted_kernel(coag_kernel_type, &
          requests(i_req)%local_aero_particle, &
-         sent_aero_particle, aero_data, aero_weight, env_state, k)
+         sent_aero_particle, aero_data, aero_state%aero_weight, env_state, k)
     p = k * accept_factors(requests(i_req)%local_bin, sent_bin)
 
     if (pmc_random() .lt. p) then
        ! coagulation happened, do it
        tot_n_coag = tot_n_coag + 1
-       call coagulate_dist(aero_data, aero_weight, aero_state, &
+       call coagulate_dist(aero_data, aero_state, &
             requests(i_req)%local_aero_particle, sent_aero_particle, &
             sent_proc, comp_vols, remove_1, remove_2)
     else
@@ -880,14 +872,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine coagulate_dist(aero_data, aero_weight, aero_state, &
-       aero_particle_1, aero_particle_2, remote_proc, comp_vols, &
-       remove_1, remove_2)
+  subroutine coagulate_dist(aero_data, aero_state, aero_particle_1, &
+       aero_particle_2, remote_proc, comp_vols, remove_1, remove_2)
 
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> First particle to coagulate.
@@ -913,8 +902,8 @@ contains
     call aero_info_allocate(aero_info_2)
 
     call coagulate_weighting(aero_particle_1, aero_particle_2, &
-         aero_particle_new, aero_data, aero_weight, remove_1, remove_2, &
-         create_new, id_1_lost, id_2_lost, aero_info_1, aero_info_2)
+         aero_particle_new, aero_data, aero_state%aero_weight, remove_1, &
+         remove_2, create_new, id_1_lost, id_2_lost, aero_info_1, aero_info_2)
 
     if (id_1_lost) then
        call aero_info_array_add_aero_info(aero_state%aero_info_array, &

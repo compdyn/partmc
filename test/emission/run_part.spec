@@ -9,9 +9,6 @@ del_t 60                        # timestep (s)
 t_output 1200                   # output interval (0 disables) (s)
 t_progress 3600                 # progress printing interval (0 disables) (s)
 
-weight power                    # weighting function
-exponent 1                      # weighting exponent
-
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios
 

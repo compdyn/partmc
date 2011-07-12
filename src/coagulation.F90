@@ -33,8 +33,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do coagulation for time del_t.
-  subroutine mc_coag(coag_kernel_type, env_state, aero_data, aero_weight, &
-       aero_state, del_t, tot_n_samp, tot_n_coag)
+  subroutine mc_coag(coag_kernel_type, env_state, aero_data, aero_state, &
+       del_t, tot_n_samp, tot_n_coag)
 
     !> Coagulation kernel type.
     integer, intent(in) :: coag_kernel_type
@@ -42,8 +42,6 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Timestep for coagulation.
@@ -62,7 +60,7 @@ contains
     call aero_state_sort(aero_state)
     if (.not. aero_state%aero_sorted%coag_kernel_bounds_valid) then
        call est_k_minmax_binned(aero_state%aero_sorted%bin_grid, &
-            coag_kernel_type, aero_data, aero_weight, env_state, &
+            coag_kernel_type, aero_data, aero_state%aero_weight, env_state, &
             aero_state%aero_sorted%coag_kernel_min, &
             aero_state%aero_sorted%coag_kernel_max)
        aero_state%aero_sorted%coag_kernel_bounds_valid = .true.
@@ -77,8 +75,8 @@ contains
        do j_bin = i_bin,aero_state%aero_sorted%bin_grid%n_bin
           do_accel_coag = .false.
           if ((j_bin > i_bin) &
-               .and. (aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
-               .and. (aero_weight%exponent < 0d0)) then
+               .and. (aero_state%aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
+               .and. (aero_state%aero_weight%exponent < 0d0)) then
              ! FIXME: we don't really need exp < 0, do we?
              call compute_n_partners( &
                   aero_state%aero_sorted%bin(i_bin)%n_entry, &
@@ -97,13 +95,13 @@ contains
                 ! may be rearranged due to removals
                 call aero_particle_copy(aero_state%p%particle(j_part), &
                      coag_particle)
-                call sample_coag_partners(aero_state, aero_data, &
-                     aero_weight, env_state, coag_kernel_type, i_bin, &
-                     coag_particle, n_samp_per_j_part, accept_factor, &
-                     n_samp, n_coag, n_remove, sampled_partner)
+                call sample_coag_partners(aero_state, aero_data, env_state, &
+                     coag_kernel_type, i_bin, coag_particle, &
+                     n_samp_per_j_part, accept_factor, n_samp, n_coag, &
+                     n_remove, sampled_partner)
                 if (n_coag > 0) then
-                   call coag_with_partner(aero_state, aero_weight, j_bin, &
-                        j_entry, sampled_partner)
+                   call coag_with_partner(aero_state, j_bin, j_entry, &
+                        sampled_partner)
                 end if
                 tot_n_samp = tot_n_samp + n_samp
                 tot_n_coag = tot_n_coag + n_coag
@@ -124,9 +122,8 @@ contains
                      then
                    exit
                 end if
-                call maybe_coag_pair(env_state, aero_data, aero_weight, &
-                     aero_state, i_bin, j_bin, coag_kernel_type, &
-                     accept_factor, did_coag)
+                call maybe_coag_pair(env_state, aero_data, aero_state, &
+                     i_bin, j_bin, coag_kernel_type, accept_factor, did_coag)
                 if (did_coag) tot_n_coag = tot_n_coag + 1
              end do
           end if
@@ -164,16 +161,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Sample coagulation partners for a single coagulation event.
-  subroutine sample_coag_partners(aero_state, aero_data, aero_weight, &
-       env_state, coag_kernel_type, i_bin, coag_particle, n_samp_mean, &
-       accept_factor, n_samp, n_coag, n_remove, sampled_partner)
+  subroutine sample_coag_partners(aero_state, aero_data, env_state, &
+       coag_kernel_type, i_bin, coag_particle, n_samp_mean, accept_factor, &
+       n_samp, n_coag, n_remove, sampled_partner)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Coagulation kernel type.
@@ -212,11 +207,11 @@ contains
        return
     end if
 
-    weight_j = aero_weight_value(aero_weight, &
+    weight_j = aero_weight_value(aero_state%aero_weight, &
          aero_particle_radius(coag_particle))
     j_id = coag_particle%id
 
-    weight_i_min = aero_weight_value(aero_weight, &
+    weight_i_min = aero_weight_value(aero_state%aero_weight, &
          aero_state%aero_sorted%bin_grid%edge_radius(i_bin))
     prob_remove_i_max = weight_j / weight_i_min
     call assert(653606684, prob_remove_i_max <= 1d0)
@@ -256,7 +251,7 @@ contains
        i_particle => aero_state%p%particle(i_part)
        ! re-get j_part as particle ordering may be changing
        call weighted_kernel(coag_kernel_type, i_particle, coag_particle, &
-            aero_data, aero_weight, env_state, k)
+            aero_data, aero_state%aero_weight, env_state, k)
        prob_coag = k * accept_factor
        prob_coag_tot = prob_coag_tot + prob_coag
        if (pmc_random() < prob_coag) then
@@ -265,7 +260,7 @@ contains
                sampled_partner)
           vol_sq = vol_sq + i_particle%vol**2
           if (i_samp <= n_samp_remove) then
-             weight_i = aero_weight_value(aero_weight, &
+             weight_i = aero_weight_value(aero_state%aero_weight, &
                   aero_particle_radius(i_particle))
              prob_remove_i = weight_j / weight_i
              if (pmc_random() < prob_remove_i / prob_remove_i_max) then
@@ -297,13 +292,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Coagulate a sampled partner with a particle.
-  subroutine coag_with_partner(aero_state, aero_weight, j_bin, j_entry, &
-       sampled_partner)
+  subroutine coag_with_partner(aero_state, j_bin, j_entry, sampled_partner)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
     !> Bin of coagulating particle.
     integer, intent(in) :: j_bin
     !> Entry-in-bin of coagulating particle.
@@ -316,7 +308,7 @@ contains
 
     j_part = aero_state%aero_sorted%bin(j_bin)%entry(j_entry)
     j_id = aero_state%p%particle(j_part)%id
-    weight_j = aero_weight_value(aero_weight, &
+    weight_j = aero_weight_value(aero_state%aero_weight, &
          aero_particle_radius(aero_state%p%particle(j_part)))
     call aero_particle_coagulate(aero_state%p%particle(j_part), &
          sampled_partner, aero_state%p%particle(j_part))
@@ -336,8 +328,7 @@ contains
     end if
     ! now j_bin/j_entry are invalid, but j_part is still good
     ! adjust particle number to account for weight changes
-    call aero_state_reweight_particle(aero_state, aero_weight, j_part, &
-         weight_j)
+    call aero_state_reweight_particle(aero_state, j_part, weight_j)
     ! we should only be doing this for decreasing weights
     call assert(654300924, aero_state%p%particle(j_part)%id == j_id)
 
@@ -413,15 +404,13 @@ contains
   !!
   !! The probability of a coagulation will be taken as <tt>(kernel /
   !! k_max)</tt>.
-  subroutine maybe_coag_pair(env_state, aero_data, aero_weight, aero_state, &
-       b1, b2, coag_kernel_type, accept_factor, did_coag)
+  subroutine maybe_coag_pair(env_state, aero_data, aero_state, b1, b2, &
+       coag_kernel_type, accept_factor, did_coag)
 
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Bin of first particle.
@@ -451,12 +440,12 @@ contains
     p1 = aero_state%aero_sorted%bin(b1)%entry(s1)
     p2 = aero_state%aero_sorted%bin(b2)%entry(s2)
     call weighted_kernel(coag_kernel_type, aero_state%p%particle(p1), &
-         aero_state%p%particle(p2), aero_data, aero_weight, &
+         aero_state%p%particle(p2), aero_data, aero_state%aero_weight, &
          env_state, k)
     p = k * accept_factor
 
     if (pmc_random() .lt. p) then
-       call coagulate(aero_data, aero_weight, aero_state, p1, p2)
+       call coagulate(aero_data, aero_state, p1, p2)
        did_coag = .true.
     end if
     
@@ -635,12 +624,10 @@ contains
 
   !> Join together particles (b1, s1) and (b2, s2), updating all
   !> particle and bin structures to reflect the change.
-  subroutine coagulate(aero_data, aero_weight, aero_state, p1, p2)
+  subroutine coagulate(aero_data, aero_state, p1, p2)
  
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> First particle index.
@@ -662,7 +649,7 @@ contains
     particle_2 => aero_state%p%particle(p2)
 
     call coagulate_weighting(particle_1, particle_2, particle_new, &
-         aero_data, aero_weight, remove_1, remove_2, create_new, &
+         aero_data, aero_state%aero_weight, remove_1, remove_2, create_new, &
          id_1_lost, id_2_lost, aero_info_1, aero_info_2)
 
     ! remove old particles

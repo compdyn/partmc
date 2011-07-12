@@ -97,8 +97,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do a particle-resolved Monte Carlo simulation.
-  subroutine run_part(env_data, env_state, aero_data, aero_weight, &
-       aero_state, gas_data, gas_state, run_part_opt)
+  subroutine run_part(env_data, env_state, aero_data, aero_state, gas_data, &
+       gas_state, run_part_opt)
     
     !> Environment state.
     type(env_data_t), intent(in) :: env_data
@@ -106,8 +106,6 @@ contains
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas data.
@@ -166,11 +164,10 @@ contains
 
     if (run_part_opt%t_output > 0d0) then
        call output_state(run_part_opt%output_prefix, &
-            run_part_opt%output_type, aero_data, aero_weight, &
-            aero_state, gas_data, gas_state, env_state, i_state, time, &
-            run_part_opt%del_t, run_part_opt%i_repeat, &
-            run_part_opt%record_removals, run_part_opt%do_optical, &
-            run_part_opt%uuid)
+            run_part_opt%output_type, aero_data, aero_state, gas_data, &
+            gas_state, env_state, i_state, time, run_part_opt%del_t, &
+            run_part_opt%i_repeat, run_part_opt%record_removals, &
+            run_part_opt%do_optical, run_part_opt%uuid)
        call aero_info_array_zero(aero_state%aero_info_array)
     end if
     
@@ -230,8 +227,7 @@ contains
        if (run_part_opt%do_nucleation) then
           n_part_before = aero_state_total_particles(aero_state)
           call nucleate(run_part_opt%nucleate_type, env_state, &
-               gas_data, aero_data, aero_weight, aero_state, gas_state, &
-               run_part_opt%del_t)
+               gas_data, aero_data, aero_state, gas_state, run_part_opt%del_t)
           n_nuc = aero_state_total_particles(aero_state) &
                - n_part_before
           progress_n_nuc = progress_n_nuc + n_nuc
@@ -241,13 +237,11 @@ contains
           if (run_part_opt%parallel_coag_type &
                == PARALLEL_COAG_TYPE_LOCAL) then
              call mc_coag(run_part_opt%coag_kernel_type, env_state, &
-                  aero_data, aero_weight, aero_state, run_part_opt%del_t, &
-                  n_samp, n_coag)
+                  aero_data, aero_state, run_part_opt%del_t, n_samp, n_coag)
           elseif (run_part_opt%parallel_coag_type &
                == PARALLEL_COAG_TYPE_DIST) then
              call mc_coag_dist(run_part_opt%coag_kernel_type, env_state, &
-                  aero_data, aero_weight, aero_state, run_part_opt%del_t, &
-                  n_samp, n_coag)
+                  aero_data, aero_state, run_part_opt%del_t, n_samp, n_coag)
           else
              call die_msg(323011762, "unknown parallel coagulation type: " &
                   // trim(integer_to_string(run_part_opt%parallel_coag_type)))
@@ -259,8 +253,7 @@ contains
        call env_state_update_gas_state(env_state, run_part_opt%del_t, &
             old_env_state, gas_data, gas_state)
        call env_state_update_aero_state(env_state, run_part_opt%del_t, &
-            old_env_state, aero_data, aero_weight, aero_state, &
-            n_emit, n_dil_in, n_dil_out)
+            old_env_state, aero_data, aero_state, n_emit, n_dil_in, n_dil_out)
        progress_n_emit = progress_n_emit + n_emit
        progress_n_dil_in = progress_n_dil_in + n_dil_in
        progress_n_dil_out = progress_n_dil_out + n_dil_out
@@ -268,13 +261,13 @@ contains
 #ifdef PMC_USE_SUNDIALS
        if (run_part_opt%do_condensation) then
           call condense_particles(env_state, env_data, aero_data, &
-               aero_weight, aero_state, run_part_opt%del_t)
+               aero_state, run_part_opt%del_t)
        end if
 #endif
 
        if (run_part_opt%do_mosaic) then
-          call mosaic_timestep(env_state, aero_data, aero_weight, &
-               aero_state, gas_data, gas_state, run_part_opt%do_optical)
+          call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
+               gas_state, run_part_opt%do_optical)
        end if
 
        if (run_part_opt%mix_timescale > 0d0) then
@@ -317,11 +310,10 @@ contains
           if (do_output) then
              i_output = i_output + 1
              call output_state(run_part_opt%output_prefix, &
-                  run_part_opt%output_type, aero_data, aero_weight, &
-                  aero_state, gas_data, gas_state, env_state, i_output, &
-                  time, run_part_opt%del_t, run_part_opt%i_repeat, &
-                  run_part_opt%record_removals, run_part_opt%do_optical, &
-                  run_part_opt%uuid)
+                  run_part_opt%output_type, aero_data, aero_state, gas_data, &
+                  gas_state, env_state, i_output, time, run_part_opt%del_t, &
+                  run_part_opt%i_repeat, run_part_opt%record_removals, &
+                  run_part_opt%do_optical, run_part_opt%uuid)
              call aero_info_array_zero(aero_state%aero_info_array)
           end if
        end if

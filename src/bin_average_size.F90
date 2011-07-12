@@ -14,7 +14,6 @@ program bin_average_size
   use pmc_gas_state
   use pmc_env_state
   use pmc_aero_data
-  use pmc_aero_weight
   use pmc_bin_grid
   use pmc_output
   use netcdf
@@ -22,7 +21,6 @@ program bin_average_size
   character(len=1000) :: in_filename, out_prefix
   type(bin_grid_t) :: bin_grid
   type(aero_data_t) :: aero_data
-  type(aero_weight_t) :: aero_weight
   type(aero_state_t) :: aero_state
   type(gas_data_t) :: gas_data
   type(gas_state_t) :: gas_state
@@ -95,7 +93,6 @@ program bin_average_size
 
   call bin_grid_allocate(bin_grid)
   call aero_data_allocate(aero_data)
-  call aero_weight_allocate(aero_weight)
   call aero_state_allocate(aero_state)
   call gas_data_allocate(gas_data)
   call gas_state_allocate(gas_state)
@@ -103,26 +100,25 @@ program bin_average_size
 
   call bin_grid_make(bin_grid, n_bin, diam2rad(d_min), diam2rad(d_max))
   
-  call input_state(in_filename, aero_data, aero_weight, aero_state, &
-       gas_data, gas_state, env_state, index, time, del_t, i_repeat, uuid)
+  call input_state(in_filename, aero_data, aero_state, gas_data, gas_state, &
+       env_state, index, time, del_t, i_repeat, uuid)
 
   if (dry_volume) then
      call aero_state_make_dry(aero_state, aero_data)
   end if
 
   call aero_state_bin_average_size(aero_state, bin_grid, aero_data, &
-       aero_weight, dry_volume, bin_center, preserve_number)
+       dry_volume, bin_center, preserve_number)
 
   output_type = OUTPUT_TYPE_SINGLE
   record_removals = .false.
   record_optical = .true.
-  call output_state(out_prefix, output_type, aero_data, aero_weight, &
-       aero_state, gas_data, gas_state, env_state, index, time, del_t, &
-       i_repeat, record_removals, record_optical, uuid)
+  call output_state(out_prefix, output_type, aero_data, aero_state, &
+       gas_data, gas_state, env_state, index, time, del_t, i_repeat, &
+       record_removals, record_optical, uuid)
 
   call bin_grid_deallocate(bin_grid)
   call aero_data_deallocate(aero_data)
-  call aero_weight_deallocate(aero_weight)
   call aero_state_deallocate(aero_state)
   call gas_data_deallocate(gas_data)
   call gas_state_deallocate(gas_state)

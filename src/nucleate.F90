@@ -25,7 +25,7 @@ contains
 
   !> Do nucleation of the type given by the first argument.
   subroutine nucleate(nucleate_type, env_state, gas_data, &
-       aero_data, aero_weight, aero_state, gas_state, del_t)
+       aero_data, aero_state, gas_state, del_t)
 
     !> Type of nucleation.
     integer, intent(in) :: nucleate_type
@@ -35,8 +35,6 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas state.
@@ -46,7 +44,7 @@ contains
 
     if (nucleate_type == NUCLEATE_TYPE_SULF_ACID) then
        call nucleate_sulf_acid(env_state, gas_data, aero_data, &
-            aero_weight, aero_state, gas_state, del_t)
+            aero_state, gas_state, del_t)
     else
        call die_msg(983831728, &
             "unknown nucleation type: " &
@@ -72,7 +70,7 @@ contains
   !! <i>J. Geophys. Res.</i>, 113, D10209, doi:<a
   !! href="http://dx.doi.org/10.1029/2007JD009253">10.1029/2007JD009253</a>.
   subroutine nucleate_sulf_acid(env_state, gas_data, aero_data, &
-       aero_weight, aero_state, gas_state, del_t)
+       aero_state, gas_state, del_t)
 
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
@@ -80,8 +78,6 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Gas state.
@@ -117,7 +113,7 @@ contains
     ! computational volume at the size of nucleated particles (only
     ! valid for mono-disperse nucleation)
     nucleate_comp_vol = aero_state%comp_vol &
-         / aero_weight_value(aero_weight, nucleate_diam / 2d0)
+         / aero_weight_value(aero_state%aero_weight, nucleate_diam / 2d0)
 
     ! determine number of nucleated particles
     n_samp_avg = nucleate_rate * nucleate_comp_vol * del_t
@@ -159,7 +155,7 @@ contains
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
-    !> Aerosol weight.
+    !> Nucleate type.
     integer, intent(out) :: nucleate_type
 
     character(len=SPEC_LINE_MAX_VAR_LEN) :: nucleate_type_name

@@ -10,8 +10,6 @@ del_t 1                         # timestep (s)
 t_output 1                      # output interval (0 disables) (s)
 t_progress 1                    # progress printing interval (0 disables) (s)
 
-weight none                     # unweighted particles
-
 gas_data gas_data.dat           # file containing gas data
 
 aerosol_data aero_data.dat      # file containing aerosol data

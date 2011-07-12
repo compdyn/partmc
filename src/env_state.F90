@@ -12,7 +12,6 @@ module pmc_env_state
   use pmc_aero_dist
   use pmc_constants
   use pmc_aero_data
-  use pmc_aero_weight
   use pmc_aero_particle
   use pmc_aero_binned
   use pmc_util
@@ -425,8 +424,7 @@ contains
   !> Do emissions and background dilution from the environment for a
   !> particle aerosol distribution.
   subroutine env_state_update_aero_state(env_state, delta_t, &
-       old_env_state, aero_data, aero_weight, aero_state, &
-       n_emit, n_dil_in, n_dil_out)
+       old_env_state, aero_data, aero_state, n_emit, n_dil_in, n_dil_out)
 
     !> Current environment.
     type(env_state_t), intent(in) :: env_state
@@ -436,8 +434,6 @@ contains
     type(env_state_t), intent(in) :: old_env_state
     !> Aero data values.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aero weight.
-    type(aero_weight_t), intent(in) :: aero_weight
     !> Aero state to update.
     type(aero_state_t), intent(inout) :: aero_state
     !> Number of emitted particles.
@@ -474,8 +470,7 @@ contains
     call aero_state_zero(aero_state_delta)
     aero_state_delta%comp_vol = aero_state%comp_vol
     call aero_state_add_aero_dist_sample(aero_state_delta, aero_data, &
-         aero_weight, env_state%aero_background, sample_prop, &
-         env_state%elapsed_time)
+         env_state%aero_background, sample_prop, env_state%elapsed_time)
     n_dil_in = aero_state_total_particles(aero_state_delta)
     call aero_state_add_particles(aero_state, aero_state_delta)
     
@@ -485,8 +480,7 @@ contains
     call aero_state_zero(aero_state_delta)
     aero_state_delta%comp_vol = aero_state%comp_vol
     call aero_state_add_aero_dist_sample(aero_state_delta, aero_data, &
-         aero_weight, env_state%aero_emissions, sample_prop, &
-         env_state%elapsed_time)
+         env_state%aero_emissions, sample_prop, env_state%elapsed_time)
     n_emit = aero_state_total_particles(aero_state_delta)
     call aero_state_add_particles(aero_state, aero_state_delta)
 

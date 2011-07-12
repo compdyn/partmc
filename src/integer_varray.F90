@@ -44,7 +44,7 @@ contains
 
     !> Structure to initialize.
     type(integer_varray_t), intent(out) :: integer_varray
-    !> Number of entires.
+    !> Number of entries.
     integer, intent(in) :: n_entry
 
     integer_varray%n_entry = n_entry
@@ -227,7 +227,7 @@ contains
     !> Value to pack.
     type(integer_varray_t), intent(in) :: val
 
-    integer :: i, total_size
+    integer :: total_size
 
     total_size = 0
     total_size = total_size &
@@ -249,7 +249,7 @@ contains
     type(integer_varray_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, i
+    integer :: prev_position
 
     prev_position = position
     call pmc_mpi_pack_integer_array(buffer, position, &
@@ -273,7 +273,7 @@ contains
     type(integer_varray_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, i, n
+    integer :: prev_position
     ! FIXME: should switch to allocatable arrays in pmc_mpi_unpack_*()
     integer, pointer, dimension(:) :: tmp_entry
 

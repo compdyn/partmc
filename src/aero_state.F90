@@ -405,41 +405,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Add copies or remove a particle, due to a change in its number
-  !> concentration. Do not call this directly - use aero_state_reweight().
-  !!
-  !! The particle number \c i_part is either removed, or zero or more
-  !! copies are added, to account from the change from \c old_num_conc
-  !! to its current number concentration. If \c new_num_conc is the
-  !! current number concentration of the particle and <tt>p =
-  !! old_num_conc / new_num_conc</tt>, then the total number of
-  !! particles is either <tt>floor(p)</tt> or <tt>ceiling(p)</tt>,
-  !! chosen randomly so the mean is \c p.
-  !!
-  !! The \c old_num_conc must be computed by
-  !! aero_weight_array_single_num_conc() or equivalent.
-  subroutine aero_state_reweight_particle(aero_state, i_part, old_num_conc)
-
-    !> Aerosol state.
-    type(aero_state_t), intent(inout) :: aero_state
-    !> Particle number.
-    integer, intent(in) :: i_part
-    !> Old number concentration of particle (m^{-3}).
-    real(kind=dp), intent(in) :: old_num_conc
-
-    real(kind=dp) :: new_num_conc, n_part_mean
-    type(aero_particle_t), pointer :: aero_particle
-
-    aero_particle => aero_state%p%particle(i_part)
-    new_num_conc = aero_weight_array_single_num_conc(aero_state%aero_weight, &
-         aero_particle)
-    n_part_mean = old_num_conc / new_num_conc
-    call aero_state_dup_particle(aero_state, i_part, n_part_mean)
-
-  end subroutine aero_state_reweight_particle
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Save the correct number concentrations for later use by
   !> aero_state_reweight().
   subroutine aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
@@ -478,13 +443,49 @@ contains
     !> aero_state_num_conc_for_reweight().
     real(kind=dp), intent(in) :: reweight_num_conc(aero_state%p%n_part)
 
-    integer :: i_part
+    integer :: i_part, i_group
+    real(kind=dp) :: n_part_old(size(aero_state%aero_weight))
+    real(kind=dp) :: n_part_new(size(aero_state%aero_weight))
+    real(kind=dp) :: old_num_conc, new_num_conc, n_part_mean
+    type(aero_particle_t), pointer :: aero_particle
+
+    ! find average number of new particles in each weight group, if
+    ! comp_vol is not changed
+    n_part_old = 0d0
+    n_part_new = 0d0
+    do i_part = 1,aero_state%p%n_part
+       aero_particle => aero_state%p%particle(i_part)
+       old_num_conc = reweight_num_conc(i_part)
+       new_num_conc &
+            = aero_weight_array_single_num_conc(aero_state%aero_weight, &
+            aero_particle)
+       n_part_mean = old_num_conc / new_num_conc
+       n_part_new(aero_particle%weight_group) &
+            = n_part_new(aero_particle%weight_group) &
+            + n_part_mean
+       n_part_old(aero_particle%weight_group) &
+            = n_part_old(aero_particle%weight_group) + 1d0
+    end do
+
+    ! alter comp_vol to leave the number of computational particles
+    ! per weight bin unchanged
+    do i_group = 1,size(aero_state%aero_weight)
+       if (n_part_old(i_group) == 0d0) cycle
+       aero_state%aero_weight(i_group)%comp_vol &
+            = aero_state%aero_weight(i_group)%comp_vol &
+            * n_part_old(i_group) / n_part_new(i_group)
+    end do
 
     ! work backwards so any additions and removals will only affect
     ! particles that we've already dealt with
     do i_part = aero_state%p%n_part,1,-1
-       call aero_state_reweight_particle(aero_state, i_part, &
-            reweight_num_conc(i_part))
+       aero_particle => aero_state%p%particle(i_part)
+       old_num_conc = reweight_num_conc(i_part)
+       new_num_conc &
+            = aero_weight_array_single_num_conc(aero_state%aero_weight, &
+            aero_particle)
+       n_part_mean = old_num_conc / new_num_conc
+       call aero_state_dup_particle(aero_state, i_part, n_part_mean)
     end do
 
   end subroutine aero_state_reweight

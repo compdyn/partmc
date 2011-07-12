@@ -379,6 +379,9 @@ contains
        ! bin_grid if we are allowed
        if (present(allow_resort)) then
           if (.not. allow_resort) then
+             ! FIXME: this could be avoided if the new bin_grid was an
+             ! extension of the old one (only added bins, first bins
+             ! are the same)
              call die_msg(134572570, "particle outside of bin_grid: " &
                   // "try reducing the timestep del_t")
           end if

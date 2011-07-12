@@ -290,7 +290,7 @@ contains
     real(kind=dp) :: conv_fac(aero_data%n_spec), dum_var
     integer :: i_part, i_spec, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
-    real(kind=dp) :: old_num_conc
+    real(kind=dp) :: old_num_conc, old_single_num_conc
 
     ! compute aerosol conversion factors
     do i_spec = 1,aero_data%n_spec
@@ -318,8 +318,10 @@ contains
     ! particles that we've already dealt with
     do i_part = aero_state%p%n_part,1,-1
        particle => aero_state%p%particle(i_part)
-       old_num_conc &
-            = aero_weight_array_num_conc(aero_state%aero_weight, particle)
+       old_num_conc = aero_weight_array_num_conc( &
+            aero_state%aero_weight, particle)
+       old_single_num_conc = aero_weight_array_single_num_conc( &
+            aero_state%aero_weight, particle)
        do i_spec = 1,aero_data%n_spec
           i_spec_mosaic = aero_data%mosaic_index(i_spec)
           if (i_spec_mosaic > 0) then
@@ -336,7 +338,8 @@ contains
             / aero_data%density(aero_data%i_water) / old_num_conc
        
        ! adjust particle number to account for weight changes
-       call aero_state_reweight_particle(aero_state, i_part, old_num_conc)
+       call aero_state_reweight_particle(aero_state, i_part, &
+            old_single_num_conc)
     end do
 
     ! gas chemistry: map MOSAIC -> PartMC

@@ -403,6 +403,9 @@ contains
   !! old_num_conc / new_num_conc</tt>, then the total number of
   !! particles is either <tt>floor(p)</tt> or <tt>ceiling(p)</tt>,
   !! chosen randomly so the mean is \c p.
+  !!
+  !! The \c old_num_conc must be computed by
+  !! aero_weight_array_single_num_conc() or equivalent.
   subroutine aero_state_reweight_particle(aero_state, i_part, old_num_conc)
 
     !> Aerosol state.
@@ -416,7 +419,7 @@ contains
     type(aero_particle_t), pointer :: aero_particle
 
     aero_particle => aero_state%p%particle(i_part)
-    new_num_conc = aero_weight_array_num_conc(aero_state%aero_weight, &
+    new_num_conc = aero_weight_array_single_num_conc(aero_state%aero_weight, &
          aero_particle)
     n_part_mean = old_num_conc / new_num_conc
     call aero_state_dup_particle(aero_state, i_part, n_part_mean)

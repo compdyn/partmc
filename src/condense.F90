@@ -161,7 +161,7 @@ contains
     type(aero_particle_t), pointer :: aero_particle
     real(kind=dp) :: state(aero_state%p%n_part + 1), init_time, final_time
     real(kind=dp) :: abs_tol_vector(aero_state%p%n_part + 1)
-    real(kind=dp) :: num_conc, old_num_conc
+    real(kind=dp) :: num_conc, old_single_num_conc
     type(env_state_t) :: env_state_final
     real(kind=dp) :: water_vol_conc_initial, water_vol_conc_final
     real(kind=dp) :: vapor_vol_conc_initial, vapor_vol_conc_final
@@ -277,7 +277,8 @@ contains
     ! particles that we've already dealt with
     do i_part = aero_state%p%n_part,1,-1
        aero_particle => aero_state%p%particle(i_part)
-       old_num_conc = aero_weight_array_num_conc(aero_state%aero_weight, &
+       old_single_num_conc &
+            = aero_weight_array_single_num_conc(aero_state%aero_weight, &
             aero_particle)
        
        ! translate output back to particle
@@ -290,10 +291,11 @@ contains
        
        ! add up total water volume, using old number concentrations
        water_vol_conc_final = water_vol_conc_final &
-            + aero_particle%vol(aero_data%i_water) * old_num_conc
+            + aero_particle%vol(aero_data%i_water) * old_single_num_conc
        
        ! adjust particle number to account for weight changes
-       call aero_state_reweight_particle(aero_state, i_part, old_num_conc)
+       call aero_state_reweight_particle(aero_state, i_part, &
+            old_single_num_conc)
     end do
     
     ! Check that water removed from particles equals water added to
@@ -781,7 +783,7 @@ contains
     type(aero_state_t), intent(inout) :: aero_state
 
     integer :: i_part
-    real(kind=dp) :: old_num_conc
+    real(kind=dp) :: old_single_num_conc
  
     ! We're modifying particle diameters, so bin sorting is now invalid
     aero_state%valid_sort = .false.
@@ -789,7 +791,8 @@ contains
     ! work backwards so any additions and removals will only affect
     ! particles that we've already dealt with
     do i_part = aero_state%p%n_part,1,-1
-       old_num_conc = aero_weight_array_num_conc(aero_state%aero_weight, &
+       old_single_num_conc &
+            = aero_weight_array_single_num_conc(aero_state%aero_weight, &
             aero_state%p%particle(i_part))
        
        ! equilibriate the particle by adjusting its water content
@@ -797,7 +800,8 @@ contains
             aero_state%p%particle(i_part))
        
        ! adjust particle number to account for weight changes
-       call aero_state_reweight_particle(aero_state, i_part, old_num_conc)
+       call aero_state_reweight_particle(aero_state, i_part, &
+            old_single_num_conc)
     end do
 
   end subroutine condense_equilib_particles

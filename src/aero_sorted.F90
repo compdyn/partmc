@@ -664,7 +664,7 @@ contains
                val%bin(i_bin, i_group))
        end do
     end do
-    do i_bin = 1,size(val%bin)
+    do i_bin = 1,size(val%unif_bin)
        call pmc_mpi_pack_integer_varray(buffer, position, &
             val%unif_bin(i_bin))
     end do

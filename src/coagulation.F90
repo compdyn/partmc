@@ -58,7 +58,7 @@ contains
     type(aero_particle_t) :: coag_particle, sampled_partner
     !>DEBUG
     real(kind=dp), allocatable :: plain_k_max(:,:), plain_k_min(:,:)
-    real(kind=dp) :: k_max, f_min, f_max
+    real(kind=dp) :: k_max, f_min, f_max, rel_err, min_rel_err, max_rel_err
     !<DEBUG
 
     call aero_state_sort(aero_state)
@@ -79,18 +79,27 @@ contains
          plain_k_min, plain_k_max)
     do i_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
        do j_bin = i_bin,aero_state%aero_sorted%bin_grid%n_bin
-          call minmax_coag_num_conc_factor_better(aero_state%aero_weight, &
+          call minmax_coag_num_conc_factor_simple(aero_state%aero_weight, &
                aero_state%aero_sorted%bin_grid, i_bin, j_bin, f_min, f_max)
           k_max = plain_k_max(i_bin, j_bin) * f_max &
                * aero_state%aero_weight%comp_vol
-          write(*,*) i_bin, j_bin, k_max, &
-               aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin), &
-               abs(k_max - aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin)) &
+          rel_err = (k_max - aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin)) &
                / aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin)
+          write(*,*) i_bin, j_bin, k_max, &
+               aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin), rel_err
+          if ((i_bin == 1) .and. (j_bin == 1)) then
+             min_rel_err = rel_err
+             max_rel_err = rel_err
+          else
+             min_rel_err = min(min_rel_err, rel_err)
+             max_rel_err = max(max_rel_err, rel_err)
+          end if
        end do
     end do
     deallocate(plain_k_max)
     deallocate(plain_k_min)
+    write(*,*) 'min_rel_err', min_rel_err
+    write(*,*) 'max_rel_err', max_rel_err
     stop
     !<DEBUG
 

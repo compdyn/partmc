@@ -530,9 +530,8 @@ contains
 
     integer, parameter :: n_ind = 4
 
-    real(kind=dp) :: i_r_min, i_r_max, j_r_min, j_r_max, ij_r_min, ij_r_max
+    real(kind=dp) :: i_r_min, i_r_max, j_r_min, j_r_max
     real(kind=dp) :: i_r, j_r, ij_r, f
-    real(kind=dp) :: i_num_conc, j_num_conc, ij_num_conc, min_num_conc
     integer :: i_ind, j_ind
 
     i_r_min = bin_grid%edge_radius(i_bin)
@@ -544,12 +543,7 @@ contains
        do j_ind = 1,n_ind
           i_r = interp_linear_disc(i_r_min, i_r_max, n_ind, i_ind)
           j_r = interp_linear_disc(j_r_min, j_r_max, n_ind, j_ind)
-          ij_r = vol2rad(rad2vol(i_r) + rad2vol(j_r))
-          i_num_conc = aero_weight_num_conc_at_radius(aero_weight, i_r)
-          j_num_conc = aero_weight_num_conc_at_radius(aero_weight, j_r)
-          ij_num_conc = aero_weight_num_conc_at_radius(aero_weight, ij_r)
-          min_num_conc = min(i_num_conc, j_num_conc, ij_num_conc)
-          f = i_num_conc * j_num_conc / min_num_conc
+          f = coag_num_conc_factor(aero_weight, i_r, j_r)
           if ((i_ind == 1) .and. (j_ind == 1)) then
              f_min = f
              f_max = f
@@ -561,6 +555,75 @@ contains
     end do
 
   end subroutine minmax_coag_num_conc_factor_better
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Coagulation scale factor due to number concentrations.
+  real(kind=dp) function coag_num_conc_factor(aero_weight, r_1, r_2)
+
+    !> Aerosol weighting.
+    type(aero_weight_t), intent(in) :: aero_weight
+    !> Radius of first particle.
+    real(kind=dp), intent(in) :: r_1
+    !> Radius of second particle.
+    real(kind=dp), intent(in) :: r_2
+
+    real(kind=dp) :: r_12, nc_1, nc_2, nc_12, nc_min
+
+    r_12 = vol2rad(rad2vol(r_1) + rad2vol(r_2))
+    nc_1 = aero_weight_num_conc_at_radius(aero_weight, r_1)
+    nc_2 = aero_weight_num_conc_at_radius(aero_weight, r_2)
+    nc_12 = aero_weight_num_conc_at_radius(aero_weight, r_12)
+    nc_min = min(nc_1, nc_2, nc_12)
+    coag_num_conc_factor = nc_1 * nc_2 / nc_min
+
+  end function coag_num_conc_factor
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determine the minimum and maximum number concentration factors
+  !> for coagulation.
+  subroutine minmax_coag_num_conc_factor_simple(aero_weight, bin_grid, i_bin, &
+       j_bin, f_min, f_max)
+
+    !> Aerosol weighting.
+    type(aero_weight_t), intent(in) :: aero_weight
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> First bin number.
+    integer, intent(in) :: i_bin
+    !> Second bin number.
+    integer, intent(in) :: j_bin
+    !> Minimum coagulation factor.
+    real(kind=dp), intent(out) :: f_min
+    !> Maximum coagulation factor.
+    real(kind=dp), intent(out) :: f_max
+
+    real(kind=dp) :: i_r_min, i_r_max, j_r_min, j_r_max
+
+    i_r_min = bin_grid%edge_radius(i_bin)
+    i_r_max = bin_grid%edge_radius(i_bin + 1)
+    j_r_min = bin_grid%edge_radius(j_bin)
+    j_r_max = bin_grid%edge_radius(j_bin + 1)
+
+    if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
+       f_min = coag_num_conc_factor(aero_weight, i_r_min, j_r_min)
+       f_max = f_min
+    elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
+         .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
+       if (aero_weight%exponent > 0d0) then
+          f_min = coag_num_conc_factor(aero_weight, i_r_min, j_r_min)
+          f_max = coag_num_conc_factor(aero_weight, i_r_max, j_r_max)
+       else
+          f_min = coag_num_conc_factor(aero_weight, i_r_max, j_r_max)
+          f_max = coag_num_conc_factor(aero_weight, i_r_min, j_r_min)
+       end if
+    else
+       call die_msg(153816644, "unknown aero_weight type: " &
+            // trim(integer_to_string(aero_weight%type)))
+    end if
+
+  end subroutine minmax_coag_num_conc_factor_simple
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

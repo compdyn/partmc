@@ -229,7 +229,7 @@ contains
     ! has specific ordering requirements
     do i_part = aero_state%p%n_part,1,-1
        particle => aero_state%p%particle(i_part)
-       num_conc = aero_weight_num_conc(aero_state%aero_weight, particle)
+       num_conc = aero_weight_array_num_conc(aero_state%aero_weight, particle)
        do i_spec = 1,aero_data%n_spec
           i_spec_mosaic = aero_data%mosaic_index(i_spec)
           if (i_spec_mosaic > 0) then
@@ -318,7 +318,8 @@ contains
     ! particles that we've already dealt with
     do i_part = aero_state%p%n_part,1,-1
        particle => aero_state%p%particle(i_part)
-       old_num_conc = aero_weight_num_conc(aero_state%aero_weight, particle)
+       old_num_conc &
+            = aero_weight_array_num_conc(aero_state%aero_weight, particle)
        do i_spec = 1,aero_data%n_spec
           i_spec_mosaic = aero_data%mosaic_index(i_spec)
           if (i_spec_mosaic > 0) then

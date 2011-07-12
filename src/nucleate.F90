@@ -89,7 +89,7 @@ contains
     real(kind=dp), parameter :: nucleate_diam = 1d-9   ! diameter of new
                                                        ! particles (m)
 
-    integer :: i_gas_h2so4, i_aero_so4, n_samp, i_samp, i_bin
+    integer :: i_gas_h2so4, i_aero_so4, n_samp, i_samp, i_bin, i_group, n_group
     real(kind=dp) :: sulf_acid_conc, nucleate_rate, n_samp_avg
     real(kind=dp) :: total_so4_vol, vol, h2so4_removed_conc
     real(kind=dp) :: nucleate_comp_vol
@@ -110,29 +110,33 @@ contains
     ! particle nucleation rate in (particles m^{-3} s^{-1})
     nucleate_rate = nucleate_coeff * sulf_acid_conc**2
 
-    ! computational volume at the size of nucleated particles (only
-    ! valid for mono-disperse nucleation)
-    nucleate_comp_vol = 1d0 &
-         / aero_weight_num_conc_at_radius(aero_state%aero_weight, &
-         nucleate_diam / 2d0)
-
-    ! determine number of nucleated particles
-    n_samp_avg = nucleate_rate * nucleate_comp_vol * del_t
-    n_samp = rand_poisson(n_samp_avg)
-
-    ! create the particles
+    ! add particles to each weight group
+    total_so4_vol = 0d0
     call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
          aero_data%n_source)
-    total_so4_vol = 0d0
-    do i_samp = 1,n_samp
-       vol = diam2vol(nucleate_diam)
-       total_so4_vol = total_so4_vol + vol
+    n_group = size(aero_state%aero_weight)
+    do i_group = 1,n_group
+       ! computational volume at the size of nucleated particles (only
+       ! valid for mono-disperse nucleation)
+       nucleate_comp_vol = real(n_group, kind=dp) &
+            / aero_weight_num_conc_at_radius(aero_state%aero_weight(i_group), &
+            nucleate_diam / 2d0)
 
-       aero_particle%vol(i_aero_so4) = vol
-       call aero_particle_new_id(aero_particle)
-       call aero_particle_set_create_time(aero_particle, &
-            env_state%elapsed_time)
-       call aero_state_add_particle(aero_state, aero_particle)
+       ! determine number of nucleated particles
+       n_samp_avg = nucleate_rate * nucleate_comp_vol * del_t
+       n_samp = rand_poisson(n_samp_avg)
+
+       ! create the particles
+       do i_samp = 1,n_samp
+          vol = diam2vol(nucleate_diam)
+          total_so4_vol = total_so4_vol + vol
+
+          aero_particle%vol(i_aero_so4) = vol
+          call aero_particle_new_id(aero_particle)
+          call aero_particle_set_create_time(aero_particle, &
+               env_state%elapsed_time)
+          call aero_state_add_particle(aero_state, aero_particle)
+       end do
     end do
     call aero_particle_deallocate(aero_particle)
 

@@ -238,7 +238,7 @@ contains
     type(env_state_t) :: env_state
     type(env_state_t) :: env_state_init
     type(run_part_opt_t) :: run_part_opt
-    integer :: i_repeat
+    integer :: i_repeat, i_group
     integer :: rand_init
     character, allocatable :: buffer(:)
     integer :: buffer_size, max_buffer_size
@@ -593,9 +593,12 @@ contains
           call aero_state_deallocate(aero_state)
           call aero_state_allocate_size(aero_state, aero_data)
           aero_state%aero_weight%comp_vol = 1d0
-          aero_state%aero_weight%comp_vol &
-               = real(run_part_opt%n_part_ideal, kind=dp) / &
-               aero_dist_number(aero_dist_init, aero_state%aero_weight)
+          do i_group = 1,size(aero_state%aero_weight)
+             aero_state%aero_weight(i_group)%comp_vol &
+                  = real(run_part_opt%n_part_ideal, kind=dp) &
+                  / aero_dist_number(aero_dist_init, &
+                  aero_state%aero_weight(i_group))
+          end do
           call aero_state_add_aero_dist_sample(aero_state, aero_data, &
                aero_dist_init, 1d0, 0d0)
        end if

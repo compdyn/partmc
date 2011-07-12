@@ -284,30 +284,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Doubles the number of particles by making a duplicate of each
-  !> one.
-  subroutine aero_particle_array_double(aero_particle_array)
-
-    !> Array to double.
-    type(aero_particle_array_t), intent(inout) :: aero_particle_array
-
-    integer :: n, i
-
-    n = aero_particle_array%n_part
-    call aero_particle_array_enlarge_to(aero_particle_array, 2 * n)
-    do i = 1,n
-       call aero_particle_allocate_size(aero_particle_array%particle(i + n), &
-            aero_particle_array%n_spec, aero_particle_array%n_source)
-       call aero_particle_copy(aero_particle_array%particle(i), &
-            aero_particle_array%particle(i + n))
-       call aero_particle_new_id(aero_particle_array%particle(i + n))
-    end do
-    aero_particle_array%n_part = 2 * n
-
-  end subroutine aero_particle_array_double
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_apa(val)
 

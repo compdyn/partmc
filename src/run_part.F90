@@ -173,23 +173,9 @@ contains
     
     ! Do an initial double/halve test. This shouldn't happen (except
     ! for restart with inconsistent number) so issue a warning.
-    if (run_part_opt%allow_doubling) then
-       global_n_part = aero_state_total_particles_all_procs(aero_state)
-       do while ((global_n_part &
-            < run_part_opt%n_part_ideal * pmc_mpi_size() / 2) &
-            .and. (global_n_part > 0))
-          call warn_msg(716882783, "doubling particles in initial condition")
-          call aero_state_double(aero_state)
-          global_n_part = aero_state_total_particles_all_procs(aero_state)
-       end do
-    end if
-    if (run_part_opt%allow_halving) then
-       do while (aero_state_total_particles_all_procs(aero_state) &
-            > run_part_opt%n_part_ideal * pmc_mpi_size() * 2)
-          call warn_msg(661936373, "halving particles in initial condition")
-          call aero_state_halve(aero_state)
-       end do
-    end if
+    call aero_state_maintain_n_ideal(aero_state, &
+         run_part_opt%n_part_ideal, run_part_opt%allow_doubling, &
+         run_part_opt%allow_halving, warn=.true.)
 
     t_start = env_state%elapsed_time
     last_output_time = time
@@ -281,24 +267,9 @@ contains
           call env_state_mix(env_state)
        end if
 
-       ! if we have less than half the maximum number of particles then
-       ! double until we fill up the array
-       if (run_part_opt%allow_doubling) then
-          global_n_part = aero_state_total_particles_all_procs(aero_state)
-          do while ((global_n_part &
-               < run_part_opt%n_part_ideal * pmc_mpi_size() / 2) &
-               .and. (global_n_part > 0))
-             call aero_state_double(aero_state)
-             global_n_part = aero_state_total_particles_all_procs(aero_state)
-          end do
-       end if
-       ! same for halving if we have too many particles
-       if (run_part_opt%allow_halving) then
-          do while (aero_state_total_particles_all_procs(aero_state) &
-               > run_part_opt%n_part_ideal * pmc_mpi_size() * 2)
-             call aero_state_halve(aero_state)
-          end do
-       end if
+       call aero_state_maintain_n_ideal(aero_state, &
+            run_part_opt%n_part_ideal, run_part_opt%allow_doubling, &
+            run_part_opt%allow_halving)
     
        ! DEBUG: enable to check array handling
        ! call aero_state_check_sort(aero_state)

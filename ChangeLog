@@ -10,6 +10,9 @@
   * Parallel `n_part` is now total computational particles over all
     processors, not per-processor.
 
+  * No longer need to specify weight for particle simulations (a mixed
+    number/mass weighting is always used).
+
 2.1.3 - 2011-07-02
 
   * Fix `n_source` bug in `aero_data` (broke `condense` test).

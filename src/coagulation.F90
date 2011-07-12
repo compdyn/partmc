@@ -62,25 +62,6 @@ contains
        aero_state%aero_sorted%coag_kernel_bounds_valid = .true.
     end if
 
-    !>DEBUG
-    !write(*,*) ''
-    !write(*,*) ''
-    !write(*,*) ''
-    !write(*,*) ''
-    !write(*,*) ''
-    !write(*,*) ''
-    !do i_group = 1,size(aero_state%aero_sorted%bin, 2)
-    !   do i_bin = 1,size(aero_state%aero_sorted%bin, 1)
-    !      if (aero_state%aero_sorted%bin(i_bin, i_group)%n_entry == 0) &
-    !           cycle
-    !      write(*,*) 'i_group, i_bin, n_entry, num_conc', &
-    !           i_group, i_bin, &
-    !           aero_state%aero_sorted%bin(i_bin, i_group)%n_entry, &
-    !           aero_weight_num_conc_at_radius(aero_state%aero_weight(i_group), &
-    !           aero_state%aero_sorted%bin_grid%center_radius(i_bin))
-    !   end do
-    !end do
-    !<DEBUG
     tot_n_samp = 0
     tot_n_coag = 0
     do i_group = 1,size(aero_state%aero_sorted%bin, 2)
@@ -139,13 +120,6 @@ contains
     logical :: per_particle_coag_succeeded
     real(kind=dp) :: f_max, k_max
 
-    !>DEBUG
-    !write(*,*) '***********************************************************************************************************'
-    !write(*,*) 'i_group, i_bin, j_group, j_bin, i_n, j_n', &
-    !     i_group, i_bin, j_group, j_bin, &
-    !     aero_state%aero_sorted%bin(i_bin, i_group)%n_entry, &
-    !     aero_state%aero_sorted%bin(j_bin, j_group)%n_entry
-    !<DEBUG
     call max_coag_num_conc_factor(aero_state%aero_weight(i_group), &
          aero_state%aero_weight(j_group), aero_state%aero_sorted%bin_grid, &
          i_bin, j_bin, f_max)
@@ -158,7 +132,6 @@ contains
     call try_per_particle_coag(coag_kernel_type, k_max, env_state, aero_data, &
          aero_state, del_t, tot_n_samp, tot_n_coag, i_bin, i_group, j_bin, &
          j_group, per_particle_coag_succeeded)
-    !>DEBUG
     if (per_particle_coag_succeeded) return
 
     call per_set_coag(coag_kernel_type, k_max, env_state, aero_data, &
@@ -254,9 +227,6 @@ contains
     integer :: target_group, target_bin, source_group, source_bin
     real(kind=dp) :: n_source_per_target, accept_factor
     type(aero_particle_t) :: target_particle, source_particle
-    !>DEBUG
-    integer :: old_n_samp, old_n_coag, tot_n_remove
-    !<DEBUG
 
     call determine_target_and_source(aero_state%aero_weight, &
          aero_state%aero_sorted%bin_grid, i_group, i_bin, j_group, j_bin, &
@@ -278,13 +248,6 @@ contains
     call aero_particle_allocate(target_particle)
     call aero_particle_allocate(source_particle)
 
-    !>DEBUG
-    !write(*,*) 'per-particle: source_group, source_bin, target_group, target_bin', &
-    !     source_group, source_bin, target_group, target_bin
-    old_n_samp = tot_n_samp
-    old_n_coag = tot_n_coag
-    tot_n_remove = 0
-    !<DEBUG
     ! work backwards to avoid particle movement issues
     do target_entry &
          = aero_state%aero_sorted%bin(target_bin, target_group)%n_entry,1,-1
@@ -305,19 +268,10 @@ contains
        tot_n_samp = tot_n_samp + n_samp
        tot_n_coag = tot_n_coag + n_coag
        ! we discard n_remove information at present
-       !>DEBUG
-       tot_n_remove = tot_n_remove + n_remove
-       !write(*,*) 'per-particle: target_entry, n_source_per_target, n_samp, n_coag, n_remove', &
-       !     target_entry, n_source_per_target, n_samp, n_coag, n_remove
-       !<DEBUG
     end do
 
     call aero_particle_deallocate(target_particle)
     call aero_particle_deallocate(source_particle)
-    !>DEBUG
-    !write(*,*) 'per-particle: n_samp, n_coag, n_remove', &
-    !     tot_n_samp - old_n_samp, tot_n_coag - old_n_coag, tot_n_remove
-    !<DEBUG
 
     per_particle_coag_succeeded = .true.
 
@@ -417,10 +371,6 @@ contains
 
     n_source_per_target = k_max * del_t * real(n_part, kind=dp)
     accept_factor = 1d0 / k_max
-    !>DEBUG
-    !write(*,*) 'per-particle: k_max, del_t, n_part, n_source_per_target', &
-    !     k_max, del_t, n_part, n_source_per_target
-    !<DEBUG
 
   end subroutine compute_n_source
 
@@ -651,18 +601,7 @@ contains
     real(kind=dp) :: n_samp_mean, accept_factor
     integer :: i_samp, n_samp
     logical :: did_coag
-    !>DEBUG
-    integer :: old_n_coag, n_remove_1, n_remove_2
-    logical :: remove_1, remove_2
-    !<DEBUG
 
-    !>DEBUG
-    !write(*,*) 'per-set: i_group, i_bin, j_group, j_bin', &
-    !     i_group, i_bin, j_group, j_bin
-    old_n_coag = tot_n_coag
-    n_remove_1 = 0
-    n_remove_2 = 0
-    !<DEBUG
     call compute_n_samp( &
          aero_state%aero_sorted%bin(i_bin, i_group)%n_entry, &
          aero_state%aero_sorted%bin(j_bin, j_group)%n_entry, &
@@ -679,18 +618,9 @@ contains
             exit
        call maybe_coag_pair(env_state, aero_data, aero_state, i_bin, &
             j_bin, i_group, j_group, coag_kernel_type, accept_factor, &
-            did_coag, &
-            !>DEBUG
-            remove_1, remove_2)
-       if (remove_1) n_remove_1 = n_remove_1 + 1
-       if (remove_2) n_remove_2 = n_remove_2 + 1
-       !<DEBUG
+            did_coag)
        if (did_coag) tot_n_coag = tot_n_coag + 1
     end do
-    !>DEBUG
-    !write(*,*) 'per-set: n_samp, n_coag, n_remove_1, n_remove_2', &
-    !     n_samp, tot_n_coag - old_n_coag, n_remove_1, n_remove_2
-    !<DEBUG
 
   end subroutine per_set_coag
 
@@ -735,10 +665,6 @@ contains
     n_samp_mean = r_samp * n_possible
     n_samp = rand_poisson(n_samp_mean)
     accept_factor = 1d0 / k_max
-    !>DEBUG
-    !write(*,*) 'per-set: n_possible, k_max, del_t, r_samp, n_samp_mean', &
-    !     n_possible, k_max, del_t, r_samp, n_samp_mean
-    !<DEBUG
 
     ! possible variants:
     ! A: accept_factor = 1d0 / k_max
@@ -767,10 +693,7 @@ contains
   !! The probability of a coagulation will be taken as <tt>(kernel /
   !! k_max)</tt>.
   subroutine maybe_coag_pair(env_state, aero_data, aero_state, b1, b2, &
-       g1, g2, coag_kernel_type, accept_factor, did_coag, &
-       !>DEBUG
-       remove_1, remove_2)
-    !<DEBUG
+       g1, g2, coag_kernel_type, accept_factor, did_coag)
 
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
@@ -793,10 +716,6 @@ contains
     !> Whether a coagulation occured.
     logical, intent(out) :: did_coag
 
-    !>DEBUG
-    logical :: remove_1, remove_2
-    !<DEBUG
-    
     integer :: s1, s2
     integer :: p1, p2
     real(kind=dp) :: p, k
@@ -808,24 +727,12 @@ contains
          aero_state%p%particle(p1), aero_state%p%particle(p2), aero_data, &
          aero_state%aero_weight, env_state, k)
     p = k * accept_factor
-    !>DEBUG
-    !write(*,*) 'p', p
-    !<DEBUG
-    ! FIXME
-    !call assert(938562517, p <= 1d0)
     call warn_assert_msg(532446093, p <= 1d0, &
          "kernel upper bound estimation is too tight")
 
     did_coag = .false.
-    !>DEBUG
-    remove_1 = .false.
-    remove_2 = .false.
-    !<DEBUG
     if (pmc_random() .lt. p) then
-       call coagulate(aero_data, aero_state, p1, p2, &
-            !>DEBUG
-            remove_1, remove_2)
-       !<DEBUG
+       call coagulate(aero_data, aero_state, p1, p2)
        did_coag = .true.
     end if
     
@@ -934,12 +841,6 @@ contains
     prob_remove_1 = num_conc_min / num_conc_1
     prob_remove_2 = num_conc_min / num_conc_2
     prob_create_new = num_conc_min / num_conc_new
-    !>DEBUG
-    !write(*,*) 'num_conc_1, num_conc_2, num_conc_new', &
-    !     num_conc_1, num_conc_2, num_conc_new
-    !write(*,*) 'p_remove_1, p_remove_2, p_create', &
-    !     prob_remove_1, prob_remove_2, prob_create_new
-    !<DEBUG
     remove_1 = (pmc_random() < prob_remove_1)
     ! FIXME
     !if (aero_weight%type == AERO_WEIGHT_TYPE_MFA) then
@@ -1005,10 +906,7 @@ contains
 
   !> Join together particles (b1, s1) and (b2, s2), updating all
   !> particle and bin structures to reflect the change.
-  subroutine coagulate(aero_data, aero_state, p1, p2, &
-       !>DEBUG
-       remove_1, remove_2)
-    !<DEBUG
+  subroutine coagulate(aero_data, aero_state, p1, p2)
  
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
@@ -1019,16 +917,11 @@ contains
     !> Second particle index.
     integer, intent(in) :: p2
 
-    !>DEBUG
-    logical :: remove_1, remove_2
-    !<DEBUG
-
     type(aero_particle_t), pointer :: particle_1, particle_2
     type(aero_particle_t) :: particle_new
     integer :: bn
     type(aero_info_t) :: aero_info_1, aero_info_2
-    !logical :: remove_1, remove_2, 
-    logical :: create_new, id_1_lost, id_2_lost
+    logical :: remove_1, remove_2, create_new, id_1_lost, id_2_lost
 
     call aero_particle_allocate(particle_new)
     call aero_info_allocate(aero_info_1)

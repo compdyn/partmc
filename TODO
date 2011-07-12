@@ -155,3 +155,5 @@ Change kind=dp to kind=wp for "working precision".
 Fix aero_state%p naming.
 
 Document aero_state%p and aero_state%aero_sorted in aero_state_t.
+
+Change aero_weight to aero_weight_array where appropriate.

@@ -2470,10 +2470,34 @@ contains
        end do
     end do
 
+    call aero_sorted_check_base("size", &
+         n_domain=aero_state%apa%n_part, &
+         n_range=aero_state%aero_sorted%bin_grid%n_bin, &
+         rmap=aero_state%aero_sorted%unif_bin, &
+         map=aero_state%aero_sorted%reverse_bin, &
+         index=aero_state%aero_sorted%reverse_unif_entry)
+    do i_part = 1,aero_state%apa%n_part
+       i_bin = aero_sorted_particle_in_bin(aero_state%aero_sorted, &
+            aero_state%apa%particle(i_part))
+       if (i_bin /= aero_state%aero_sorted%reverse_bin%entry(i_part)) then
+          write(0,*) 'SORT OUT-CHECK ERROR A:', "size"
+          write(0,*) 'i_part', i_part
+          write(0,*) 'i_bin', i_bin
+          write(0,*) 'aero_state%aero_sorted%reverse_bin%entry(i_part)', &
+               aero_state%aero_sorted%reverse_bin%entry(i_part)
+       end if
+    end do
+
+    call aero_sorted_check_base("group", &
+         n_domain=aero_state%apa%n_part, &
+         n_range=size(aero_state%aero_weight), &
+         rmap=aero_state%aero_sorted%group, &
+         map=aero_state%aero_sorted%reverse_group, &
+         index=aero_state%aero_sorted%reverse_group_entry)
     do i_part = 1,aero_state%apa%n_part
        if (aero_state%apa%particle(i_part)%weight_group &
             /= aero_state%aero_sorted%reverse_group%entry(i_part)) then
-          write(0,*) 'SORT PRE-CHECK ERROR A:', "group"
+          write(0,*) 'SORT OUT-CHECK ERROR B:', "group"
           write(0,*) 'i_part', i_part
           write(0,*) 'aero_state%apa%particle(i_part)%weight_group', &
                aero_state%apa%particle(i_part)%weight_group
@@ -2481,12 +2505,6 @@ contains
                aero_state%aero_sorted%reverse_group%entry(i_part)
        end if
     end do
-    call aero_sorted_check_base("group", &
-         n_domain=aero_state%apa%n_part, &
-         n_range=size(aero_state%aero_weight), &
-         rmap=aero_state%aero_sorted%group, &
-         map=aero_state%aero_sorted%reverse_group, &
-         index=aero_state%aero_sorted%reverse_group_entry)
 
   end subroutine aero_state_check_sort
   

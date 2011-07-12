@@ -302,6 +302,40 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Estimate an array of minimum and maximum kernel values. Given
+  !> particles v1 in bin b1 and v2 in bin b2, it is probably true that
+  !> <tt>k_min(b1,b2) <= kernel(v1,v2) <= k_max(b1,b2)</tt>.
+  subroutine est_k_minmax_binned_unweighted(bin_grid, coag_kernel_type, aero_data, &
+       aero_weight, env_state, k_min, k_max)
+
+    !> Bin_grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Coagulation kernel type.
+    integer, intent(in) :: coag_kernel_type
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Minimum kernel vals.
+    real(kind=dp), intent(out) :: k_min(bin_grid%n_bin,bin_grid%n_bin)
+    !> Maximum kernel vals.
+    real(kind=dp), intent(out) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
+    
+    integer i, j
+    
+    do i = 1,bin_grid%n_bin
+       do j = 1,bin_grid%n_bin
+          call est_k_minmax_for_bin_unweighted(bin_grid, coag_kernel_type, i, j, &
+               aero_data, aero_weight, env_state, k_min(i,j), k_max(i,j))
+       end do
+    end do
+    
+  end subroutine est_k_minmax_binned_unweighted
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Samples within bins b1 and b2 to find the minimum and maximum
   !> value of the kernel between particles from the two bins.
   subroutine est_k_minmax_for_bin(bin_grid, coag_kernel_type, b1, b2, &
@@ -363,6 +397,171 @@ contains
     
   end subroutine est_k_minmax_for_bin
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Samples within bins b1 and b2 to find the minimum and maximum
+  !> value of the kernel between particles from the two bins.
+  subroutine est_k_minmax_for_bin_unweighted(bin_grid, coag_kernel_type, b1, b2, &
+       aero_data, aero_weight, env_state, k_min, k_max)
+   
+    !> Bin_grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Coagulation kernel type.
+    integer, intent(in) :: coag_kernel_type
+    !> First bin.
+    integer, intent(in) :: b1
+    !> Second bin.
+    integer, intent(in) :: b2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Minimum kernel value.
+    real(kind=dp), intent(out) :: k_min
+    !> Maximum kernel value.
+    real(kind=dp), intent(out) :: k_max
+    
+    !> Number of sample points per bin.
+    integer, parameter :: n_sample = 3
+    !> Over-estimation scale factor parameter.
+    real(kind=dp), parameter :: over_scale = 1.1d0
+    
+    real(kind=dp) :: v1, v2, v1_high, v1_low, v2_high, v2_low
+    real(kind=dp) :: new_k_min, new_k_max
+    integer :: i, j
+    
+    ! v1_low < bin_v(b1) < v1_high
+    v1_low = rad2vol(bin_grid%edge_radius(b1))
+    v1_high = rad2vol(bin_grid%edge_radius(b1 + 1))
+    
+    ! v2_low < bin_v(b2) < v2_high
+    v2_low = rad2vol(bin_grid%edge_radius(b2))
+    v2_high = rad2vol(bin_grid%edge_radius(b2 + 1))
+    
+    do i = 1,n_sample
+       do j = 1,n_sample
+          v1 = interp_linear_disc(v1_low, v1_high, n_sample, i)
+          v2 = interp_linear_disc(v2_low, v2_high, n_sample, j)
+          call kernel_minmax(coag_kernel_type, v1, v2, aero_data, &
+               env_state, new_k_min, new_k_max)
+          if ((i == 1) .and. (j == 1)) then
+             k_min = new_k_min
+             k_max = new_k_max
+          else
+             k_min = min(k_min, new_k_min)
+             k_max = max(k_max, new_k_max)
+          end if
+       end do
+    end do
+    
+    k_max = k_max * over_scale
+    
+  end subroutine est_k_minmax_for_bin_unweighted
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determine the minimum and maximum number concentration factors
+  !> for coagulation.
+  subroutine minmax_coag_num_conc_factor(aero_weight, bin_grid, i_bin, &
+       j_bin, f_min, f_max)
+
+    !> Aerosol weighting.
+    type(aero_weight_t), intent(in) :: aero_weight
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> First bin number.
+    integer, intent(in) :: i_bin
+    !> Second bin number.
+    integer, intent(in) :: j_bin
+    !> Minimum coagulation factor.
+    real(kind=dp), intent(out) :: f_min
+    !> Maximum coagulation factor.
+    real(kind=dp), intent(out) :: f_max
+
+    real(kind=dp) :: i_r_min, i_r_max, j_r_min, j_r_max, ij_r_min, ij_r_max
+    real(kind=dp) :: i_num_conc_min, i_num_conc_max
+    real(kind=dp) :: j_num_conc_min, j_num_conc_max
+    real(kind=dp) :: ij_num_conc_min, ij_num_conc_max
+    real(kind=dp) :: min_num_conc_min, min_num_conc_max
+
+    i_r_min = bin_grid%edge_radius(i_bin)
+    i_r_max = bin_grid%edge_radius(i_bin + 1)
+    j_r_min = bin_grid%edge_radius(j_bin)
+    j_r_max = bin_grid%edge_radius(j_bin + 1)
+    ij_r_min = vol2rad(rad2vol(i_r_min) + rad2vol(j_r_min))
+    ij_r_max = vol2rad(rad2vol(i_r_max) + rad2vol(j_r_max))
+
+    call aero_weight_minmax_num_conc(aero_weight, i_r_min, i_r_max, &
+         i_num_conc_min, i_num_conc_max)
+    call aero_weight_minmax_num_conc(aero_weight, j_r_min, j_r_max, &
+         j_num_conc_min, j_num_conc_max)
+    call aero_weight_minmax_num_conc(aero_weight, ij_r_min, ij_r_max, &
+         ij_num_conc_min, ij_num_conc_max)
+
+    min_num_conc_min = min(i_num_conc_min, j_num_conc_min, ij_num_conc_min)
+    min_num_conc_max = max(i_num_conc_max, j_num_conc_max, ij_num_conc_max)
+
+    f_min = i_num_conc_min * j_num_conc_min / min_num_conc_max
+    f_max = i_num_conc_max * j_num_conc_max / min_num_conc_min
+
+  end subroutine minmax_coag_num_conc_factor
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determine the minimum and maximum number concentration factors
+  !> for coagulation.
+  subroutine minmax_coag_num_conc_factor_better(aero_weight, bin_grid, i_bin, &
+       j_bin, f_min, f_max)
+
+    !> Aerosol weighting.
+    type(aero_weight_t), intent(in) :: aero_weight
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> First bin number.
+    integer, intent(in) :: i_bin
+    !> Second bin number.
+    integer, intent(in) :: j_bin
+    !> Minimum coagulation factor.
+    real(kind=dp), intent(out) :: f_min
+    !> Maximum coagulation factor.
+    real(kind=dp), intent(out) :: f_max
+
+    integer, parameter :: n_ind = 4
+
+    real(kind=dp) :: i_r_min, i_r_max, j_r_min, j_r_max, ij_r_min, ij_r_max
+    real(kind=dp) :: i_r, j_r, ij_r, f
+    real(kind=dp) :: i_num_conc, j_num_conc, ij_num_conc, min_num_conc
+    integer :: i_ind, j_ind
+
+    i_r_min = bin_grid%edge_radius(i_bin)
+    i_r_max = bin_grid%edge_radius(i_bin + 1)
+    j_r_min = bin_grid%edge_radius(j_bin)
+    j_r_max = bin_grid%edge_radius(j_bin + 1)
+
+    do i_ind = 1,n_ind
+       do j_ind = 1,n_ind
+          i_r = interp_linear_disc(i_r_min, i_r_max, n_ind, i_ind)
+          j_r = interp_linear_disc(j_r_min, j_r_max, n_ind, j_ind)
+          ij_r = vol2rad(rad2vol(i_r) + rad2vol(j_r))
+          i_num_conc = aero_weight_num_conc_at_radius(aero_weight, i_r)
+          j_num_conc = aero_weight_num_conc_at_radius(aero_weight, j_r)
+          ij_num_conc = aero_weight_num_conc_at_radius(aero_weight, ij_r)
+          min_num_conc = min(i_num_conc, j_num_conc, ij_num_conc)
+          f = i_num_conc * j_num_conc / min_num_conc
+          if ((i_ind == 1) .and. (j_ind == 1)) then
+             f_min = f
+             f_max = f
+          else
+             f_min = min(f_min, f)
+             f_max = max(f_max, f)
+          end if
+       end do
+    end do
+
+  end subroutine minmax_coag_num_conc_factor_better
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read the specification for a kernel type from a spec file and

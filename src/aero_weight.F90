@@ -179,6 +179,35 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Compute the maximum and minimum number concentrations between the
+  !> given radii.
+  subroutine aero_weight_minmax_num_conc(aero_weight, radius_1, radius_2, &
+       num_conc_min, num_conc_max)
+
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
+    !> First radius.
+    real(kind=dp), intent(in) :: radius_1
+    !> Second radius.
+    real(kind=dp), intent(in) :: radius_2
+    !> Minimum number concentration.
+    real(kind=dp), intent(out) :: num_conc_min
+    !> Maximum number concentration.
+    real(kind=dp), intent(out) :: num_conc_max
+
+    real(kind=dp) :: num_conc_1, num_conc_2
+
+    ! this works if the weighting functions are monotone (which they
+    ! currently are)
+    num_conc_1 = aero_weight_num_conc_at_radius(aero_weight, radius_1)
+    num_conc_2 = aero_weight_num_conc_at_radius(aero_weight, radius_2)
+    num_conc_min = min(num_conc_1, num_conc_2)
+    num_conc_max = max(num_conc_1, num_conc_2)
+
+  end subroutine aero_weight_minmax_num_conc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Read an aero_weight from a spec file.
   subroutine spec_file_read_aero_weight(file, aero_weight)
 

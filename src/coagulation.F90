@@ -56,6 +56,10 @@ contains
     integer :: i_samp, j_entry, j_part, new_bin
     real(kind=dp) :: accept_factor, n_samp_mean, n_samp_per_j_part
     type(aero_particle_t) :: coag_particle, sampled_partner
+    !>DEBUG
+    real(kind=dp), allocatable :: plain_k_max(:,:), plain_k_min(:,:)
+    real(kind=dp) :: k_max, f_min, f_max
+    !<DEBUG
 
     call aero_state_sort(aero_state)
     if (.not. aero_state%aero_sorted%coag_kernel_bounds_valid) then
@@ -65,6 +69,30 @@ contains
             aero_state%aero_sorted%coag_kernel_max)
        aero_state%aero_sorted%coag_kernel_bounds_valid = .true.
     end if
+    !>DEBUG
+    allocate(plain_k_max(aero_state%aero_sorted%bin_grid%n_bin, &
+         aero_state%aero_sorted%bin_grid%n_bin))
+    allocate(plain_k_min(aero_state%aero_sorted%bin_grid%n_bin, &
+         aero_state%aero_sorted%bin_grid%n_bin))
+    call est_k_minmax_binned_unweighted(aero_state%aero_sorted%bin_grid, &
+         coag_kernel_type, aero_data, aero_state%aero_weight, env_state, &
+         plain_k_min, plain_k_max)
+    do i_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
+       do j_bin = i_bin,aero_state%aero_sorted%bin_grid%n_bin
+          call minmax_coag_num_conc_factor_better(aero_state%aero_weight, &
+               aero_state%aero_sorted%bin_grid, i_bin, j_bin, f_min, f_max)
+          k_max = plain_k_max(i_bin, j_bin) * f_max &
+               * aero_state%aero_weight%comp_vol
+          write(*,*) i_bin, j_bin, k_max, &
+               aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin), &
+               abs(k_max - aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin)) &
+               / aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin)
+       end do
+    end do
+    deallocate(plain_k_max)
+    deallocate(plain_k_min)
+    stop
+    !<DEBUG
 
     call aero_particle_allocate(coag_particle)
     call aero_particle_allocate(sampled_partner)

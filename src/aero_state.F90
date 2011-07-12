@@ -92,7 +92,9 @@ contains
     aero_state%valid_sort = .false.
     call aero_weight_allocate(aero_state%aero_weight)
     !>FIXME
-    aero_state%aero_weight%type = AERO_WEIGHT_TYPE_NONE
+    aero_state%aero_weight%type = AERO_WEIGHT_TYPE_POWER
+    aero_state%aero_weight%ref_radius = 1d0
+    aero_state%aero_weight%exponent = -3d0
     !<FIXME
     call aero_info_array_allocate(aero_state%aero_info_array)
 
@@ -114,7 +116,9 @@ contains
     aero_state%valid_sort = .false.
     call aero_weight_allocate(aero_state%aero_weight)
     !>FIXME
-    aero_state%aero_weight%type = AERO_WEIGHT_TYPE_NONE
+    aero_state%aero_weight%type = AERO_WEIGHT_TYPE_POWER
+    aero_state%aero_weight%ref_radius = 1d0
+    aero_state%aero_weight%exponent = -3d0
     !<FIXME
     call aero_info_array_allocate(aero_state%aero_info_array)
 

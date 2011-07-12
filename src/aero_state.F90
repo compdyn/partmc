@@ -2049,6 +2049,7 @@ contains
     real(kind=dp), allocatable :: aero_refract_core_imag(:)
     real(kind=dp), allocatable :: aero_core_vol(:)
     integer, allocatable :: aero_water_hyst_leg(:)
+    real(kind=dp), allocatable :: aero_comp_vol(:)
     integer, allocatable :: aero_id(:)
     real(kind=dp), allocatable :: aero_least_create_time(:)
     real(kind=dp), allocatable :: aero_greatest_create_time(:)
@@ -2080,6 +2081,7 @@ contains
     allocate(aero_refract_core_imag(n_part))
     allocate(aero_core_vol(n_part))
     allocate(aero_water_hyst_leg(n_part))
+    allocate(aero_comp_vol(n_part))
     allocate(aero_id(n_part))
     allocate(aero_least_create_time(n_part))
     allocate(aero_greatest_create_time(n_part))
@@ -2108,6 +2110,8 @@ contains
          "aero_core_vol", must_be_present=.false.)
     call pmc_nc_read_integer_1d(ncid, aero_water_hyst_leg, &
          "aero_water_hyst_leg")
+    call pmc_nc_read_real_1d(ncid, aero_comp_vol, &
+         "aero_comp_vol")
     call pmc_nc_read_integer_1d(ncid, aero_id, &
          "aero_id")
     call pmc_nc_read_real_1d(ncid, aero_least_create_time, &
@@ -2141,6 +2145,10 @@ contains
        aero_particle%least_create_time = aero_least_create_time(i_part)
        aero_particle%greatest_create_time = aero_greatest_create_time(i_part)
 
+       call assert(314368871, almost_equal(aero_comp_vol(i_part), &
+            1d0 / aero_weight_array_num_conc(aero_state%aero_weight, &
+            aero_particle)))
+
        call aero_state_add_particle(aero_state, aero_particle)
     end do
     call aero_particle_deallocate(aero_particle)
@@ -2157,6 +2165,7 @@ contains
     deallocate(aero_refract_core_imag)
     deallocate(aero_core_vol)
     deallocate(aero_water_hyst_leg)
+    deallocate(aero_comp_vol)
     deallocate(aero_id)
     deallocate(aero_least_create_time)
     deallocate(aero_greatest_create_time)

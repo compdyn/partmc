@@ -124,10 +124,6 @@ contains
          aero_state%aero_weight(j_group), aero_state%aero_sorted%bin_grid, &
          i_bin, j_bin, f_max)
     k_max = aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin) * f_max
-    !>DEBUG
-    !call debug_check_k_max(coag_kernel_type, k_max, env_state, aero_data, &
-    !     aero_state, i_bin, i_group, j_bin, j_group)
-    !<DEBUG
 
     call try_per_particle_coag(coag_kernel_type, k_max, env_state, aero_data, &
          aero_state, del_t, tot_n_samp, tot_n_coag, i_bin, i_group, j_bin, &
@@ -139,54 +135,6 @@ contains
          j_group)
 
   end subroutine mc_coag_for_bin
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Check that k_max is really an upper bound for the kernel.
-  subroutine debug_check_k_max(coag_kernel_type, k_max, env_state, aero_data, &
-       aero_state, i_bin, i_group, j_bin, j_group)
-
-    !> Coagulation kernel type.
-    integer, intent(in) :: coag_kernel_type
-    !> Maximum coagulation kernel (s^{-1} m^3).
-    real(kind=dp), intent(in) :: k_max
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol state.
-    type(aero_state_t), intent(inout) :: aero_state
-    !> First bin number.
-    integer, intent(in) :: i_bin
-    !> First weight group number.
-    integer, intent(in) :: i_group
-    !> Second bin number.
-    integer, intent(in) :: j_bin
-    !> Second weight group number.
-    integer, intent(in) :: j_group
-
-    integer :: i_entry, j_entry, i_part, j_part
-    real(kind=dp) :: k
-
-    do i_entry = 1,aero_state%aero_sorted%bin(i_bin, i_group)%n_entry
-       do j_entry = 1,aero_state%aero_sorted%bin(j_bin, j_group)%n_entry
-          i_part = aero_state%aero_sorted%bin(i_bin, i_group)%entry(i_entry)
-          j_part = aero_state%aero_sorted%bin(j_bin, j_group)%entry(j_entry)
-          call kernel(coag_kernel_type, aero_state%p%particle(i_part), &
-               aero_state%p%particle(j_part), aero_data, env_state, k)
-          call warn_assert_msg(221595887, k <= k_max, &
-               "kernel bound exceeded: (" // trim(integer_to_string(i_group)) &
-               // "," // trim(integer_to_string(i_bin)) // "," &
-               // trim(integer_to_string(i_entry)) // ")-(" &
-               // trim(integer_to_string(i_group)) // "," &
-               // trim(integer_to_string(i_bin)) // "," &
-               // trim(integer_to_string(i_entry)) // "): " &
-               // trim(real_to_string(k_max)) // " < " &
-               // trim(real_to_string(k)))
-       end do
-    end do
-
-  end subroutine debug_check_k_max
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

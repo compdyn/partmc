@@ -161,3 +161,7 @@ Fix aero_state%p naming.
 Document aero_state%p and aero_state%aero_sorted in aero_state_t.
 
 Change aero_weight to aero_weight_array where appropriate.
+
+Add sorting check code for unif_bin.
+
+Add a just-sorted-by-group sorting.

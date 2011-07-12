@@ -213,4 +213,19 @@ Note that if $\alpha_1 \le 0$ then $f_3 \ge f_1$ (and the reverse if
 $\alpha_1 \ge 0$), so we could just compute $f_3$ and $f_4$ if we know
 $\alpha_1,\alpha_2 \le 0$.
 
+\section{Accelerated coagulation}
+
+Event probabilities are
+\begin{align}
+  p_{\text{remove},1} &= \frac{W_1}{W_{\rm min}} \\
+  p_{\text{remove},2} &= \frac{W_2}{W_{\rm min}} \\
+  p_{\text{create}} &= \frac{W_{\rm c}}{W_{\rm min}}
+\end{align}
+The target particle should be the one with the lowest
+$p_{\text{remove}}$, and the other one should be the sampled
+partner. Assume WLOG that the target particle is $1$ and the sampled
+partner is $2$.
+
+Assume that $p_{\text{create}} = 1$.
+
 \end{document}

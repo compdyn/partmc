@@ -31,14 +31,10 @@ module pmc_aero_sorted
   type aero_sorted_t
      !> Bin grid for sorting.
      type(bin_grid_t) :: bin_grid
-     !> Array of integer arrays, one per size bin and weight group.
-     type(integer_varray_t), allocatable, dimension(:,:) :: bin
      !> Reverse index array to bin numbers.
      type(integer_varray_t) :: reverse_bin
      !> Reverse index array to group numbers.
      type(integer_varray_t) :: reverse_group
-     !> Reverse index array to particle entry-in-bin numbers.
-     type(integer_varray_t) :: reverse_entry
      !> Array of integer arrays, one per size.
      type(integer_varray_t), allocatable, dimension(:) :: unif_bin
      !> Reverse index array to particle entry-in-unif_bin numbers.
@@ -73,10 +69,8 @@ contains
     type(aero_sorted_t), intent(out) :: aero_sorted
 
     call bin_grid_allocate(aero_sorted%bin_grid)
-    allocate(aero_sorted%bin(0,0))
     call integer_varray_allocate(aero_sorted%reverse_bin)
     call integer_varray_allocate(aero_sorted%reverse_group)
-    call integer_varray_allocate(aero_sorted%reverse_entry)
     allocate(aero_sorted%unif_bin(0))
     call integer_varray_allocate(aero_sorted%reverse_unif_entry)
     allocate(aero_sorted%group(0))
@@ -100,11 +94,8 @@ contains
     integer, intent(in) :: n_group
 
     call bin_grid_allocate_size(aero_sorted%bin_grid, n_bin)
-    allocate(aero_sorted%bin(n_bin, n_group))
-    call integer_varray_allocate(aero_sorted%bin)
     call integer_varray_allocate(aero_sorted%reverse_bin)
     call integer_varray_allocate(aero_sorted%reverse_group)
-    call integer_varray_allocate(aero_sorted%reverse_entry)
     allocate(aero_sorted%unif_bin(n_bin))
     call integer_varray_allocate(aero_sorted%unif_bin)
     call integer_varray_allocate(aero_sorted%reverse_unif_entry)
@@ -126,11 +117,8 @@ contains
     type(aero_sorted_t), intent(inout) :: aero_sorted
 
     call bin_grid_deallocate(aero_sorted%bin_grid)
-    call integer_varray_deallocate(aero_sorted%bin)
-    deallocate(aero_sorted%bin)
     call integer_varray_deallocate(aero_sorted%reverse_bin)
     call integer_varray_deallocate(aero_sorted%reverse_group)
-    call integer_varray_deallocate(aero_sorted%reverse_entry)
     call integer_varray_deallocate(aero_sorted%unif_bin)
     deallocate(aero_sorted%unif_bin)
     call integer_varray_deallocate(aero_sorted%reverse_unif_entry)
@@ -151,10 +139,8 @@ contains
     !> Structure to zero.
     type(aero_sorted_t), intent(inout) :: aero_sorted
     
-    call integer_varray_zero(aero_sorted%bin)
     call integer_varray_zero(aero_sorted%reverse_bin)
     call integer_varray_zero(aero_sorted%reverse_group)
-    call integer_varray_zero(aero_sorted%reverse_entry)
     call integer_varray_zero(aero_sorted%unif_bin)
     call integer_varray_zero(aero_sorted%reverse_unif_entry)
     call integer_varray_zero(aero_sorted%group)
@@ -232,10 +218,8 @@ contains
 
     integer :: i_part, i_bin, i_group
 
-    call integer_varray_zero(aero_sorted%bin)
     call integer_varray_zero(aero_sorted%reverse_bin)
     call integer_varray_zero(aero_sorted%reverse_group)
-    call integer_varray_zero(aero_sorted%reverse_entry)
     call integer_varray_zero(aero_sorted%unif_bin)
     call integer_varray_zero(aero_sorted%reverse_unif_entry)
     call integer_varray_zero(aero_sorted%group)
@@ -253,14 +237,9 @@ contains
        call assert(288643748, i_group >= 1)
        call assert(882759457, i_group <= size(aero_sorted%group))
 
-       ! fill in forward index for size/group bins
-       call integer_varray_append(aero_sorted%bin(i_bin, i_group), i_part)
-       
        ! fill in reverse index for size/group bins
        call integer_varray_append(aero_sorted%reverse_bin, i_bin)
        call integer_varray_append(aero_sorted%reverse_group, i_group)
-       call integer_varray_append(aero_sorted%reverse_entry, &
-            aero_sorted%bin(i_bin, i_group)%n_entry)
 
        ! fill in forward index for size-only bins
        call integer_varray_append(aero_sorted%unif_bin(i_bin), i_part)
@@ -479,15 +458,9 @@ contains
     else
        ! particle fits in the current bin_grid
 
-       ! update the forward index for size/group bins
-       call integer_varray_append(aero_sorted%bin(i_bin, i_group), &
-            aero_particle_array%n_part)
-       
        ! update the reverse index for size/group bins
        call integer_varray_append(aero_sorted%reverse_bin, i_bin)
        call integer_varray_append(aero_sorted%reverse_group, i_group)
-       call integer_varray_append(aero_sorted%reverse_entry, &
-            aero_sorted%bin(i_bin, i_group)%n_entry)
 
        ! update the forward index for size-only bins
        call integer_varray_append(aero_sorted%unif_bin(i_bin), &
@@ -522,7 +495,7 @@ contains
     !> Index of particle to remove.
     integer, intent(in) :: i_part
 
-    integer :: i_bin, i_group, i_entry, i_part_shifted
+    integer :: i_bin, i_group, i_part_shifted
     integer :: i_bin_fix, i_group_fix, i_part_fix, i_entry_fix
     integer :: i_unif_entry, i_unif_entry_fix, i_unif_part_fix
     integer :: i_group_entry, i_group_entry_fix, i_group_part_fix
@@ -534,7 +507,6 @@ contains
 
     i_bin = aero_sorted%reverse_bin%entry(i_part)
     i_group = aero_sorted%reverse_group%entry(i_part)
-    i_entry = aero_sorted%reverse_entry%entry(i_part)
     i_unif_entry = aero_sorted%reverse_unif_entry%entry(i_part)
     i_group_entry = aero_sorted%reverse_group_entry%entry(i_part)
 
@@ -546,8 +518,6 @@ contains
        ! fix up the forward index for the shifted particle
        i_bin_fix = aero_sorted%reverse_bin%entry(i_part_shifted)
        i_group_fix = aero_sorted%reverse_group%entry(i_part_shifted)
-       i_entry_fix = aero_sorted%reverse_entry%entry(i_part_shifted)
-       aero_sorted%bin(i_bin_fix, i_group_fix)%entry(i_entry_fix) = i_part
 
        ! fix up indices for size-only bins
        i_unif_entry_fix = aero_sorted%reverse_unif_entry%entry(i_part_shifted)
@@ -563,19 +533,8 @@ contains
     ! of fixing the reverse map for the shifted particle)
     call integer_varray_remove_entry(aero_sorted%reverse_bin, i_part)
     call integer_varray_remove_entry(aero_sorted%reverse_group, i_part)
-    call integer_varray_remove_entry(aero_sorted%reverse_entry, i_part)
     call integer_varray_remove_entry(aero_sorted%reverse_unif_entry, i_part)
     call integer_varray_remove_entry(aero_sorted%reverse_group_entry, i_part)
-
-    ! remove the forward index entry
-    i_entry_fix = aero_sorted%bin(i_bin, i_group)%n_entry
-    i_part_fix = aero_sorted%bin(i_bin, i_group)%entry(i_entry_fix)
-    call integer_varray_remove_entry(aero_sorted%bin(i_bin, i_group), i_entry)
-
-    if (i_entry_fix /= i_entry) then
-       ! fix reverse index
-       aero_sorted%reverse_entry%entry(i_part_fix) = i_entry
-    end if
 
     ! remove the forward index entry for size-only bins
     i_unif_entry_fix = aero_sorted%unif_bin(i_bin)%n_entry
@@ -613,27 +572,21 @@ contains
     !> New group to move particle to.
     integer, intent(in) :: new_group
 
-    integer :: i_bin, i_group, i_entry, new_entry, i_part_shifted
+    integer :: i_bin, i_group
     integer :: i_unif_entry, i_unif_part_shifted, new_unif_entry
     integer :: i_group_entry, i_group_part_shifted, new_group_entry
 
     i_bin = aero_sorted%reverse_bin%entry(i_part)
     i_group = aero_sorted%reverse_group%entry(i_part)
-    i_entry = aero_sorted%reverse_entry%entry(i_part)
     i_unif_entry = aero_sorted%reverse_unif_entry%entry(i_part)
     i_group_entry = aero_sorted%reverse_group_entry%entry(i_part)
     if ((i_bin == new_bin) .and. (i_group == new_group)) return
 
     ! remove the old forward maps
-    call integer_varray_remove_entry(aero_sorted%bin(i_bin, i_group), i_entry)
     call integer_varray_remove_entry(aero_sorted%unif_bin(i_bin), i_unif_entry)
     call integer_varray_remove_entry(aero_sorted%group(i_group), i_group_entry)
 
     ! fix the reverse entry map for the last entry moved into the new slot
-    if (i_entry <= aero_sorted%bin(i_bin, i_group)%n_entry) then
-       i_part_shifted = aero_sorted%bin(i_bin, i_group)%entry(i_entry)
-       aero_sorted%reverse_entry%entry(i_part_shifted) = i_entry
-    end if
     if (i_unif_entry <= aero_sorted%unif_bin(i_bin)%n_entry) then
        i_unif_part_shifted = aero_sorted%unif_bin(i_bin)%entry(i_unif_entry)
        aero_sorted%reverse_unif_entry%entry(i_unif_part_shifted) = i_unif_entry
@@ -645,8 +598,6 @@ contains
     end if
 
     ! add the new forward map
-    call integer_varray_append(aero_sorted%bin(new_bin, new_group), i_part)
-    new_entry = aero_sorted%bin(new_bin, new_group)%n_entry
     call integer_varray_append(aero_sorted%unif_bin(new_bin), i_part)
     new_unif_entry = aero_sorted%unif_bin(new_bin)%n_entry
     call integer_varray_append(aero_sorted%group(new_group), i_part)
@@ -655,7 +606,6 @@ contains
     ! fix the reverse maps
     aero_sorted%reverse_bin%entry(i_part) = new_bin
     aero_sorted%reverse_group%entry(i_part) = new_group
-    aero_sorted%reverse_entry%entry(i_part) = new_entry
     aero_sorted%reverse_unif_entry%entry(i_part) = new_unif_entry
     aero_sorted%reverse_group_entry%entry(i_part) = new_group_entry
 
@@ -766,12 +716,6 @@ contains
     total_size = total_size + pmc_mpi_pack_size_integer(size(val%unif_bin))
     total_size = total_size + pmc_mpi_pack_size_integer(size(val%group))
     total_size = total_size + pmc_mpi_pack_size_bin_grid(val%bin_grid)
-    do i_bin = 1,size(val%bin, 1)
-       do i_group = 1,size(val%bin, 2)
-          total_size = total_size &
-               + pmc_mpi_pack_size_integer_varray(val%bin(i_bin, i_group))
-       end do
-    end do
     do i_bin = 1,size(val%unif_bin)
        total_size = total_size &
             + pmc_mpi_pack_size_integer_varray(val%unif_bin(i_bin))
@@ -784,8 +728,6 @@ contains
          + pmc_mpi_pack_size_integer_varray(val%reverse_bin)
     total_size = total_size &
          + pmc_mpi_pack_size_integer_varray(val%reverse_group)
-    total_size = total_size &
-         + pmc_mpi_pack_size_integer_varray(val%reverse_entry)
     total_size = total_size &
          + pmc_mpi_pack_size_integer_varray(val%reverse_unif_entry)
     total_size = total_size &
@@ -813,12 +755,6 @@ contains
     call pmc_mpi_pack_integer(buffer, position, size(val%unif_bin))
     call pmc_mpi_pack_integer(buffer, position, size(val%group))
     call pmc_mpi_pack_bin_grid(buffer, position, val%bin_grid)
-    do i_bin = 1,size(val%bin, 1)
-       do i_group = 1,size(val%bin, 2)
-          call pmc_mpi_pack_integer_varray(buffer, position, &
-               val%bin(i_bin, i_group))
-       end do
-    end do
     do i_bin = 1,size(val%unif_bin)
        call pmc_mpi_pack_integer_varray(buffer, position, &
             val%unif_bin(i_bin))
@@ -829,7 +765,6 @@ contains
     end do
     call pmc_mpi_pack_integer_varray(buffer, position, val%reverse_bin)
     call pmc_mpi_pack_integer_varray(buffer, position, val%reverse_group)
-    call pmc_mpi_pack_integer_varray(buffer, position, val%reverse_entry)
     call pmc_mpi_pack_integer_varray(buffer, position, val%reverse_unif_entry)
     call pmc_mpi_pack_integer_varray(buffer, position, val%reverse_group_entry)
     call assert(178297816, &
@@ -859,12 +794,6 @@ contains
     call aero_sorted_deallocate(val)
     call aero_sorted_allocate_size(val, n_bin, n_group)
     call pmc_mpi_unpack_bin_grid(buffer, position, val%bin_grid)
-    do i_bin = 1,size(val%bin, 1)
-       do i_group = 1,size(val%bin, 2)
-          call pmc_mpi_unpack_integer_varray(buffer, position, &
-               val%bin(i_bin, i_group))
-       end do
-    end do
     do i_bin = 1,size(val%unif_bin)
        call pmc_mpi_unpack_integer_varray(buffer, position, &
             val%unif_bin(i_bin))
@@ -875,7 +804,6 @@ contains
     end do
     call pmc_mpi_unpack_integer_varray(buffer, position, val%reverse_bin)
     call pmc_mpi_unpack_integer_varray(buffer, position, val%reverse_group)
-    call pmc_mpi_unpack_integer_varray(buffer, position, val%reverse_entry)
     call pmc_mpi_unpack_integer_varray(buffer, position, &
          val%reverse_unif_entry)
     call pmc_mpi_unpack_integer_varray(buffer, position, &

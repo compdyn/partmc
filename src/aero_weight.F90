@@ -587,8 +587,20 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
 
+    integer :: dimid_aero_weight, n_weight
+    character(len=1000) :: name
     real(kind=dp), allocatable :: comp_vol(:), exponent(:)
     integer, allocatable :: type(:)
+
+    call pmc_nc_check(nf90_inq_dimid(ncid, "aero_weight", &
+         dimid_aero_weight))
+    call pmc_nc_check(nf90_Inquire_Dimension(ncid, &
+         dimid_aero_weight, name, n_weight))
+    call assert(719221386, n_weight < 1000)
+
+    allocate(comp_vol(n_weight))
+    allocate(type(n_weight))
+    allocate(exponent(n_weight))
 
     call pmc_nc_read_real_1d(ncid, comp_vol, "weight_comp_vol")
     call pmc_nc_read_integer_1d(ncid, type, "weight_type")
@@ -606,6 +618,10 @@ contains
     aero_weight_array%type = type
     aero_weight_array%ref_radius = 1d0
     aero_weight_array%exponent = exponent
+
+    deallocate(comp_vol)
+    deallocate(type)
+    deallocate(exponent)
 
   end subroutine aero_weight_array_input_netcdf
 

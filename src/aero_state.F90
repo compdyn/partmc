@@ -73,6 +73,8 @@ module pmc_aero_state
      logical :: valid_sort
      !> Weighting functions.
      type(aero_weight_t), allocatable :: aero_weight(:)
+     !> Ideal number of computational particles.
+     real(kind=dp) :: n_part_ideal
      !> Information on removed particles.
      type(aero_info_array_t) :: aero_info_array
   end type aero_state_t
@@ -161,6 +163,7 @@ contains
     allocate(aero_state_to%aero_weight(size(aero_state_from%aero_weight)))
     call aero_weight_copy(aero_state_from%aero_weight, &
          aero_state_to%aero_weight)
+    aero_state_to%n_part_ideal = aero_state_from%n_part_ideal
     call aero_info_array_copy(aero_state_from%aero_info_array, &
          aero_state_to%aero_info_array)
 
@@ -717,19 +720,17 @@ contains
   !> Double or halve the particle population in each weight group to
   !> maintain close to \c n_part_ideal particles per process,
   !> allocated equally amongst the weight groups.
-  subroutine aero_state_maintain_n_ideal(aero_state, n_part_ideal, &
-       allow_doubling, allow_halving, warn)
+  subroutine aero_state_rebalance(aero_state, allow_doubling, allow_halving, &
+       initial_state_warning)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Ideal number of computational particles per process.
-    integer, intent(in) :: n_part_ideal
     !> Whether to allow doubling of the population.
     logical, intent(in) :: allow_doubling
     !> Whether to allow halving of the population.
     logical, intent(in) :: allow_halving
-    !> Whether to warn on double/halve.
-    logical, optional, intent(in) :: warn
+    !> Whether to warn due to initial state doubling/halving.
+    logical, intent(in) :: initial_state_warning
 
     integer :: i_group, n_group, global_n_part
 
@@ -741,13 +742,12 @@ contains
        do i_group = 1,size(aero_state%aero_weight)
           global_n_part &
                = aero_state_total_particles_all_procs(aero_state, i_group)
-          do while ((global_n_part &
-               < n_part_ideal / n_group * pmc_mpi_size() / 2) &
+          do while ((real(global_n_part, kind=dp) &
+               < aero_state%n_part_ideal / real(n_group, kind=dp) / 2d0) &
                .and. (global_n_part > 0))
-             if (present(warn)) then
-                if (warn) then
-                   call warn_msg(602648532, "doubling particle population")
-                end if
+             if (initial_state_warning) then
+                call warn_msg(716882783, "doubling particles in initial " &
+                     // "condition")
              end if
              call aero_state_double(aero_state, i_group)
              global_n_part &
@@ -759,19 +759,19 @@ contains
     ! same for halving if we have too many particles
     if (allow_halving) then
        do i_group = 1,size(aero_state%aero_weight)
-          do while (aero_state_total_particles_all_procs(aero_state, i_group) &
-               > n_part_ideal / n_group * pmc_mpi_size() * 2)
-             if (present(warn)) then
-                if (warn) then
-                   call warn_msg(602648532, "halving particle population")
-                end if
+          do while (real(aero_state_total_particles_all_procs(aero_state, &
+               i_group), kind=dp) &
+               > aero_state%n_part_ideal / real(n_group, kind=dp) * 2d0)
+             if (initial_state_warning) then
+                call warn_msg(661936373, &
+                     "halving particles in initial condition")
              end if
              call aero_state_halve(aero_state, i_group)
           end do
        end do
     end if
 
-  end subroutine aero_state_maintain_n_ideal
+  end subroutine aero_state_rebalance
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1234,6 +1234,7 @@ contains
        total_size = total_size &
             + pmc_mpi_pack_size_aero_weight(val%aero_weight(i_group))
     end do
+    total_size = total_size + pmc_mpi_pack_size_real(val%n_part_ideal)
     total_size = total_size + pmc_mpi_pack_size_aia(val%aero_info_array)
     pmc_mpi_pack_size_aero_state = total_size
 
@@ -1261,6 +1262,7 @@ contains
        call pmc_mpi_pack_aero_weight(buffer, position, &
             val%aero_weight(i_group))
     end do
+    call pmc_mpi_pack_real(buffer, position, val%n_part_ideal)
     call pmc_mpi_pack_aero_info_array(buffer, position, val%aero_info_array)
     call assert(850997402, &
          position - prev_position <= pmc_mpi_pack_size_aero_state(val))
@@ -1294,6 +1296,7 @@ contains
     do i_group = 1,n_group
        call pmc_mpi_unpack_aero_weight(buffer, position, val%aero_weight)
     end do
+    call pmc_mpi_unpack_real(buffer, position, val%n_part_ideal)
     call pmc_mpi_unpack_aero_info_array(buffer, position, val%aero_info_array)
     call assert(132104747, &
          position - prev_position <= pmc_mpi_pack_size_aero_state(val))
@@ -1991,6 +1994,7 @@ contains
     call aero_state_allocate_size(aero_state, aero_data)
     
     call aero_weight_array_input_netcdf(aero_state%aero_weight, ncid)
+    aero_state%n_part_ideal = 0d0
 
     call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
          aero_data%n_source)

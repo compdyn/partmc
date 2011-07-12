@@ -38,8 +38,6 @@ module pmc_run_part
 
   !> Options controlling the execution of run_part().
   type run_part_opt_t
-     !> Preferred number of particles.
-     integer :: n_part_ideal
      !> Final time (s).
      real(kind=dp) :: t_max
      !> Output interval (0 disables) (s).
@@ -171,11 +169,8 @@ contains
        call aero_info_array_zero(aero_state%aero_info_array)
     end if
     
-    ! Do an initial double/halve test. This shouldn't happen (except
-    ! for restart with inconsistent number) so issue a warning.
-    call aero_state_maintain_n_ideal(aero_state, &
-         run_part_opt%n_part_ideal, run_part_opt%allow_doubling, &
-         run_part_opt%allow_halving, warn=.true.)
+    call aero_state_rebalance(aero_state, run_part_opt%allow_doubling, &
+         run_part_opt%allow_halving, initial_state_warning=.true.)
 
     t_start = env_state%elapsed_time
     last_output_time = time
@@ -267,10 +262,9 @@ contains
           call env_state_mix(env_state)
        end if
 
-       call aero_state_maintain_n_ideal(aero_state, &
-            run_part_opt%n_part_ideal, run_part_opt%allow_doubling, &
-            run_part_opt%allow_halving)
-    
+       call aero_state_rebalance(aero_state, run_part_opt%allow_doubling, &
+            run_part_opt%allow_halving, initial_state_warning=.false.)
+
        ! DEBUG: enable to check array handling
        ! call aero_state_check_sort(aero_state)
        ! DEBUG: end
@@ -398,8 +392,7 @@ contains
     type(run_part_opt_t), intent(in) :: val
 
     pmc_mpi_pack_size_run_part_opt = &
-         pmc_mpi_pack_size_integer(val%n_part_ideal) &
-         + pmc_mpi_pack_size_real(val%t_max) &
+         pmc_mpi_pack_size_real(val%t_max) &
          + pmc_mpi_pack_size_real(val%t_output) &
          + pmc_mpi_pack_size_real(val%t_progress) &
          + pmc_mpi_pack_size_real(val%del_t) &
@@ -443,7 +436,6 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_pack_integer(buffer, position, val%n_part_ideal)
     call pmc_mpi_pack_real(buffer, position, val%t_max)
     call pmc_mpi_pack_real(buffer, position, val%t_output)
     call pmc_mpi_pack_real(buffer, position, val%t_progress)
@@ -491,7 +483,6 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_unpack_integer(buffer, position, val%n_part_ideal)
     call pmc_mpi_unpack_real(buffer, position, val%t_max)
     call pmc_mpi_unpack_real(buffer, position, val%t_output)
     call pmc_mpi_unpack_real(buffer, position, val%t_progress)

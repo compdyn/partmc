@@ -246,7 +246,7 @@ contains
     logical :: do_restart, do_init_equilibriate
     character(len=PMC_MAX_FILENAME_LEN) :: restart_filename
     integer :: dummy_index, dummy_i_repeat
-    real(kind=dp) :: dummy_time, dummy_del_t
+    real(kind=dp) :: dummy_time, dummy_del_t, n_part_ideal
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
 
@@ -363,7 +363,7 @@ contains
        call spec_file_read_string(file, 'output_prefix', &
             run_part_opt%output_prefix)
        call spec_file_read_integer(file, 'n_repeat', run_part_opt%n_repeat)
-       call spec_file_read_integer(file, 'n_part', run_part_opt%n_part_ideal)
+       call spec_file_read_real(file, 'n_part', n_part_ideal)
        call spec_file_read_logical(file, 'restart', do_restart)
        if (do_restart) then
           call spec_file_read_string(file, 'restart_file', restart_filename)
@@ -589,13 +589,15 @@ contains
        call gas_state_copy(gas_state_init, gas_state)
        if (do_restart) then
           call aero_state_copy(aero_state_init, aero_state)
+          aero_state%n_part_ideal = n_part_ideal
        else
           call aero_state_deallocate(aero_state)
           call aero_state_allocate_size(aero_state, aero_data)
+          aero_state%n_part_ideal = n_part_ideal
           aero_state%aero_weight%comp_vol = 1d0
           do i_group = 1,size(aero_state%aero_weight)
              aero_state%aero_weight(i_group)%comp_vol &
-                  = real(run_part_opt%n_part_ideal, kind=dp) &
+                  = aero_state%n_part_ideal / real(pmc_mpi_size(), kind=dp) &
                   / aero_dist_number(aero_dist_init, &
                   aero_state%aero_weight(i_group))
           end do

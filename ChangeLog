@@ -7,6 +7,9 @@
 
   * Added sampled input mode type.
 
+  * Parallel `n_part` is now total computational particles over all
+    processors, not per-processor.
+
 2.1.3 - 2011-07-02
 
   * Fix `n_source` bug in `aero_data` (broke `condense` test).

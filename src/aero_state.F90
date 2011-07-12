@@ -2322,54 +2322,6 @@ contains
        return
     end if
 
-    call aero_sorted_check_base("size", &
-         n_domain=aero_state%apa%n_part, &
-         n_range=aero_state%aero_sorted%bin_grid%n_bin, &
-         rmap=aero_state%aero_sorted%unif_bin, &
-         map=aero_state%aero_sorted%reverse_bin, &
-         index=aero_state%aero_sorted%reverse_unif_entry, &
-         continue_on_error=continue_on_error)
-    do i_part = 1,aero_state%apa%n_part
-       i_bin = aero_sorted_particle_in_bin(aero_state%aero_sorted, &
-            aero_state%apa%particle(i_part))
-       if (i_bin /= aero_state%aero_sorted%reverse_bin%entry(i_part)) then
-          write(0,*) 'SORT OUT-CHECK ERROR A:', "size"
-          write(0,*) 'i_part', i_part
-          write(0,*) 'i_bin', i_bin
-          write(0,*) 'aero_state%aero_sorted%reverse_bin%entry(i_part)', &
-               aero_state%aero_sorted%reverse_bin%entry(i_part)
-          call assert(553067208, continue_on_error)
-       end if
-    end do
-    call aero_sorted_check_rmap(aero_state%aero_sorted%size, "size", &
-         rmap=aero_state%aero_sorted%unif_bin, &
-         map=aero_state%aero_sorted%reverse_bin, &
-         index=aero_state%aero_sorted%reverse_unif_entry)
-
-    call aero_sorted_check_base("group", &
-         n_domain=aero_state%apa%n_part, &
-         n_range=size(aero_state%aero_weight), &
-         rmap=aero_state%aero_sorted%group, &
-         map=aero_state%aero_sorted%reverse_group, &
-         index=aero_state%aero_sorted%reverse_group_entry, &
-         continue_on_error=continue_on_error)
-    do i_part = 1,aero_state%apa%n_part
-       if (aero_state%apa%particle(i_part)%weight_group &
-            /= aero_state%aero_sorted%reverse_group%entry(i_part)) then
-          write(0,*) 'SORT OUT-CHECK ERROR B:', "group"
-          write(0,*) 'i_part', i_part
-          write(0,*) 'aero_state%apa%particle(i_part)%weight_group', &
-               aero_state%apa%particle(i_part)%weight_group
-          write(0,*) 'aero_state%aero_sorted%reverse_group%entry(i_part)', &
-               aero_state%aero_sorted%reverse_group%entry(i_part)
-          call assert(389482223, continue_on_error)
-       end if
-    end do
-    call aero_sorted_check_rmap(aero_state%aero_sorted%weight, "group", &
-         rmap=aero_state%aero_sorted%group, &
-         map=aero_state%aero_sorted%reverse_group, &
-         index=aero_state%aero_sorted%reverse_group_entry)
-
     call aero_sorted_check(aero_state%aero_sorted, aero_state%apa, &
          size(aero_state%aero_weight), continue_on_error)
 

@@ -318,14 +318,12 @@ contains
   !> Remove a randomly chosen particle from the given bin and return
   !> it.
   subroutine aero_state_remove_rand_particle_from_bin(aero_state, &
-       i_bin, i_group, aero_particle)
+       i_bin, aero_particle)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Bin number to remove particle from.
     integer, intent(in) :: i_bin
-    !> Group number to remove particle from.
-    integer, intent(in) :: i_group
     !> Removed particle.
     type(aero_particle_t), intent(inout) :: aero_particle
 
@@ -333,9 +331,9 @@ contains
 
     call assert(742996300, aero_state%valid_sort)
     call assert(392182617, &
-         aero_state%aero_sorted%bin(i_bin, i_group)%n_entry > 0)
-    i_entry = pmc_rand_int(aero_state%aero_sorted%bin(i_bin, i_group)%n_entry)
-    i_part = aero_state%aero_sorted%bin(i_bin, i_group)%entry(i_entry)
+         aero_state%aero_sorted%unif_bin(i_bin)%n_entry > 0)
+    i_entry = pmc_rand_int(aero_state%aero_sorted%unif_bin(i_bin)%n_entry)
+    i_part = aero_state%aero_sorted%unif_bin(i_bin)%entry(i_entry)
     call aero_particle_copy(aero_state%p%particle(i_part), aero_particle)
     call aero_state_remove_particle_no_info(aero_state, i_part)
 
@@ -465,7 +463,7 @@ contains
     do i_mode = 1,aero_dist%n_mode
        aero_mode => aero_dist%mode(i_mode)
        do i_group = 1,n_group
-          n_samp_avg = sample_prop / real(n_group, kind=dp) &
+          n_samp_avg = sample_prop &
                * aero_mode_number(aero_mode, aero_state%aero_weight(i_group))
           n_samp = rand_poisson(n_samp_avg)
           do i_samp = 1,n_samp

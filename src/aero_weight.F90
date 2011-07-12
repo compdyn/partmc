@@ -164,18 +164,56 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Compute the number concentration for a particle (m^{-3}).
-  real(kind=dp) function aero_weight_num_conc(aero_weight, aero_particle)
+  !> Compute the computational volume at a given radius (m^3).
+  real(kind=dp) function aero_weight_comp_vol_at_radius(aero_weight, radius)
 
     !> Aerosol weight.
     type(aero_weight_t), intent(in) :: aero_weight
-    !> Aerosol particle to compute number concentration for.
-    type(aero_particle_t), intent(in) :: aero_particle
+    !> Radius to compute computational volume at (m).
+    real(kind=dp), intent(in) :: radius
 
-    aero_weight_num_conc = aero_weight_num_conc_at_radius(aero_weight, &
-         aero_particle_radius(aero_particle))
+    aero_weight_comp_vol_at_radius &
+         = 1d0 / aero_weight_num_conc_at_radius(aero_weight, radius)
 
-  end function aero_weight_num_conc
+  end function aero_weight_comp_vol_at_radius
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute the total computational volume at a given radius (m^3).
+  real(kind=dp) function aero_weight_array_comp_vol_at_radius( &
+       aero_weight_array, radius)
+
+    !> Aerosol weight array.
+    type(aero_weight_t), intent(in) :: aero_weight_array(:)
+    !> Radius to compute computational volume at (m).
+    real(kind=dp), intent(in) :: radius
+
+    integer :: i
+
+    aero_weight_array_comp_vol_at_radius = 0d0
+    do i = 1,size(aero_weight_array)
+       aero_weight_array_comp_vol_at_radius &
+            = aero_weight_array_comp_vol_at_radius &
+            + aero_weight_comp_vol_at_radius(aero_weight_array(i), radius)
+    end do
+
+  end function aero_weight_array_comp_vol_at_radius
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute the total number concentration at a given radius (m^3).
+  real(kind=dp) function aero_weight_array_num_conc_at_radius( &
+       aero_weight_array, radius)
+
+    !> Aerosol weight array.
+    type(aero_weight_t), intent(in) :: aero_weight_array(:)
+    !> Radius to compute number concentration at (m).
+    real(kind=dp), intent(in) :: radius
+
+    aero_weight_array_num_conc_at_radius = 1d0 &
+         / aero_weight_array_comp_vol_at_radius(aero_weight_array, radius)
+
+  end function aero_weight_array_num_conc_at_radius
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -188,8 +226,8 @@ contains
     !> Aerosol particle to compute number concentration for.
     type(aero_particle_t), intent(in) :: aero_particle
 
-    aero_weight_array_num_conc = aero_weight_num_conc( &
-         aero_weight_array(aero_particle%weight_group), aero_particle)
+    aero_weight_array_num_conc = aero_weight_array_num_conc_at_radius( &
+         aero_weight_array, aero_particle_radius(aero_particle))
 
   end function aero_weight_array_num_conc
 
@@ -221,13 +259,52 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determine whether all weight functions in an array are monotone
+  !> increasing, monotone decreasing, or neither.
+  subroutine aero_weight_array_check_monotonicity(aero_weight_array, &
+       monotone_increasing, monotone_decreasing)
+
+    !> Aerosol weight array.
+    type(aero_weight_t), intent(in) :: aero_weight_array(:)
+    !> Whether all weights are monotone increasing.
+    logical, intent(out) :: monotone_increasing
+    !> Whether all weights are monotone decreasing.
+    logical, intent(out) :: monotone_decreasing
+
+    integer :: i_group
+
+    monotone_increasing = .true.
+    monotone_decreasing = .true.
+    do i_group = 1,size(aero_weight_array)
+       ! check we know about all the weight types
+       call assert(610698264, &
+            (aero_weight_array(i_group)%type == AERO_WEIGHT_TYPE_NONE) &
+            .or. (aero_weight_array(i_group)%type == AERO_WEIGHT_TYPE_POWER) &
+            .or. (aero_weight_array(i_group)%type == AERO_WEIGHT_TYPE_MFA))
+       if (aero_weight_array(i_group)%type == AERO_WEIGHT_TYPE_POWER) then
+          if (aero_weight_array(i_group)%exponent < 0d0) then
+             monotone_increasing = .false.
+          end if
+          if (aero_weight_array(i_group)%exponent > 0d0) then
+             monotone_decreasing = .false.
+          end if
+       end if
+       if (aero_weight_array(i_group)%type == AERO_WEIGHT_TYPE_MFA) then
+          monotone_increasing = .false.
+       end if
+    end do
+
+  end subroutine aero_weight_array_check_monotonicity
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Compute the maximum and minimum number concentrations between the
   !> given radii.
-  subroutine aero_weight_minmax_num_conc(aero_weight, radius_1, radius_2, &
-       num_conc_min, num_conc_max)
+  subroutine aero_weight_array_minmax_num_conc(aero_weight_array, radius_1, &
+       radius_2, num_conc_min, num_conc_max)
 
     !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
+    type(aero_weight_t), intent(in) :: aero_weight_array(:)
     !> First radius.
     real(kind=dp), intent(in) :: radius_1
     !> Second radius.
@@ -238,15 +315,42 @@ contains
     real(kind=dp), intent(out) :: num_conc_max
 
     real(kind=dp) :: num_conc_1, num_conc_2
+    logical :: monotone_increasing, monotone_decreasing
 
-    ! this works if the weighting functions are monotone (which they
-    ! currently are)
-    num_conc_1 = aero_weight_num_conc_at_radius(aero_weight, radius_1)
-    num_conc_2 = aero_weight_num_conc_at_radius(aero_weight, radius_2)
+    call aero_weight_array_check_monotonicity(aero_weight_array, &
+         monotone_increasing, monotone_decreasing)
+    call assert(857727714, monotone_increasing .or. monotone_decreasing)
+
+    num_conc_1 = aero_weight_array_num_conc_at_radius(aero_weight_array, &
+         radius_1)
+    num_conc_2 = aero_weight_array_num_conc_at_radius(aero_weight_array, &
+         radius_2)
     num_conc_min = min(num_conc_1, num_conc_2)
     num_conc_max = max(num_conc_1, num_conc_2)
 
-  end subroutine aero_weight_minmax_num_conc
+  end subroutine aero_weight_array_minmax_num_conc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Choose a random group at the given radius, with probability
+  !> proportional to group volume at that radius.
+  integer function aero_weight_array_rand_group(aero_weight_array, radius)
+
+    !> Aerosol weight array.
+    type(aero_weight_t), intent(in) :: aero_weight_array(:)
+    !> Radius to sample group at (m).
+    real(kind=dp), intent(in) :: radius
+
+    real(kind=dp) :: comp_vols(size(aero_weight_array))
+    integer :: i
+
+    do i = 1,size(aero_weight_array)
+       comp_vols(i) = aero_weight_comp_vol_at_radius(aero_weight_array(i), &
+            radius)
+    end do
+    aero_weight_array_rand_group = sample_cts_pdf(comp_vols)
+
+  end function aero_weight_array_rand_group
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

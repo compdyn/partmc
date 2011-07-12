@@ -64,26 +64,26 @@ contains
 
     tot_n_samp = 0
     tot_n_coag = 0
-    do i_group = 1,size(aero_state%aero_sorted%bin, 2)
-       do j_group = 1,i_group
-          do i_bin = 1,size(aero_state%aero_sorted%bin, 1)
-             if (aero_state%aero_sorted%bin(i_bin, i_group)%n_entry == 0) &
-                  cycle
-             if (i_group == j_group) then
-                j_bin_start = i_bin
-             else
-                j_bin_start = 1
-             end if
-             do j_bin = j_bin_start,size(aero_state%aero_sorted%bin, 1)
-                if (aero_state%aero_sorted%bin(j_bin, j_group)%n_entry == 0) &
-                     cycle
-                call mc_coag_for_bin(coag_kernel_type, env_state, aero_data, &
-                     aero_state, del_t, tot_n_samp, tot_n_coag, &
-                     i_bin, i_group, j_bin, j_group)
-             end do
-          end do
+    !do i_group = 1,size(aero_state%aero_sorted%bin, 2)
+    !do j_group = 1,i_group
+    do i_bin = 1,size(aero_state%aero_sorted%bin, 1)
+       if (aero_state%aero_sorted%unif_bin(i_bin)%n_entry == 0) &
+            cycle
+       !if (i_group == j_group) then
+       !   j_bin_start = i_bin
+       !else
+       !   j_bin_start = 1
+       !end if
+       do j_bin = i_bin,size(aero_state%aero_sorted%bin, 1)
+          if (aero_state%aero_sorted%unif_bin(j_bin)%n_entry == 0) &
+               cycle
+          call mc_coag_for_bin(coag_kernel_type, env_state, aero_data, &
+               aero_state, del_t, tot_n_samp, tot_n_coag, &
+               i_bin, j_bin)
        end do
     end do
+    !end do
+    !end do
 
   end subroutine mc_coag
 
@@ -91,8 +91,7 @@ contains
 
   !> Do coagulation for time del_t for the given bins.
   subroutine mc_coag_for_bin(coag_kernel_type, env_state, aero_data, &
-       aero_state, del_t, tot_n_samp, tot_n_coag, i_bin, i_group, j_bin, &
-       j_group)
+       aero_state, del_t, tot_n_samp, tot_n_coag, i_bin, j_bin)
 
     !> Coagulation kernel type.
     integer, intent(in) :: coag_kernel_type
@@ -111,28 +110,26 @@ contains
     !> First bin number.
     integer, intent(in) :: i_bin
     !> First weight group number.
-    integer, intent(in) :: i_group
+    !integer, intent(in) :: i_group
     !> Second bin number.
     integer, intent(in) :: j_bin
     !> Second weight group number.
-    integer, intent(in) :: j_group
+    !integer, intent(in) :: j_group
 
     logical :: per_particle_coag_succeeded
     real(kind=dp) :: f_max, k_max
 
-    call max_coag_num_conc_factor(aero_state%aero_weight(i_group), &
-         aero_state%aero_weight(j_group), aero_state%aero_sorted%bin_grid, &
-         i_bin, j_bin, f_max)
+    call max_coag_num_conc_factor(aero_state%aero_weight, &
+         aero_state%aero_sorted%bin_grid, i_bin, j_bin, f_max)
     k_max = aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin) * f_max
 
     call try_per_particle_coag(coag_kernel_type, k_max, env_state, aero_data, &
-         aero_state, del_t, tot_n_samp, tot_n_coag, i_bin, i_group, j_bin, &
-         j_group, per_particle_coag_succeeded)
+         aero_state, del_t, tot_n_samp, tot_n_coag, i_bin, j_bin, &
+         per_particle_coag_succeeded)
     if (per_particle_coag_succeeded) return
 
     call per_set_coag(coag_kernel_type, k_max, env_state, aero_data, &
-         aero_state, del_t, tot_n_samp, tot_n_coag, i_bin, i_group, j_bin, &
-         j_group)
+         aero_state, del_t, tot_n_samp, tot_n_coag, i_bin, j_bin)
 
   end subroutine mc_coag_for_bin
 
@@ -140,8 +137,8 @@ contains
 
   !> Attempt per-particle coagulation.
   subroutine try_per_particle_coag(coag_kernel_type, k_max, env_state, &
-       aero_data, aero_state, del_t, tot_n_samp, tot_n_coag, i_bin, i_group, &
-       j_bin, j_group, per_particle_coag_succeeded)
+       aero_data, aero_state, del_t, tot_n_samp, tot_n_coag, i_bin, j_bin, &
+       per_particle_coag_succeeded)
 
     !> Coagulation kernel type.
     integer, intent(in) :: coag_kernel_type
@@ -162,31 +159,30 @@ contains
     !> First bin number.
     integer, intent(in) :: i_bin
     !> First weight group number.
-    integer, intent(in) :: i_group
+    !integer, intent(in) :: i_group
     !> Second bin number.
     integer, intent(in) :: j_bin
     !> Second weight group number.
-    integer, intent(in) :: j_group
+    !integer, intent(in) :: j_group
     !> Whether we succeeded in doing per-particle coag.
     logical, intent(inout) :: per_particle_coag_succeeded
 
     logical :: correct_weight_ordering
-    integer :: target_entry, target_part, n_samp, n_coag, n_remove
-    integer :: target_group, target_bin, source_group, source_bin
+    integer :: target_unif_entry, target_part, n_samp, n_coag, n_remove
+    integer :: target_bin, source_bin
     real(kind=dp) :: n_source_per_target, accept_factor
     type(aero_particle_t) :: target_particle, source_particle
 
     call determine_target_and_source(aero_state%aero_weight, &
-         aero_state%aero_sorted%bin_grid, i_group, i_bin, j_group, j_bin, &
-         target_group, target_bin, source_group, source_bin, &
-         correct_weight_ordering)
+         aero_state%aero_sorted%bin_grid, i_bin, j_bin, target_bin, &
+         source_bin, correct_weight_ordering)
     if (.not. correct_weight_ordering) then
        per_particle_coag_succeeded = .false.
        return
     end if
 
     call compute_n_source( &
-         aero_state%aero_sorted%bin(source_bin, source_group)%n_entry, &
+         aero_state%aero_sorted%unif_bin(source_bin)%n_entry, &
          k_max, del_t, n_source_per_target, accept_factor)
     if (n_source_per_target < COAG_ACCEL_N_EVENT) then
        per_particle_coag_succeeded = .false.
@@ -197,21 +193,21 @@ contains
     call aero_particle_allocate(source_particle)
 
     ! work backwards to avoid particle movement issues
-    do target_entry &
-         = aero_state%aero_sorted%bin(target_bin, target_group)%n_entry,1,-1
-       target_part = aero_state%aero_sorted%bin(target_bin, &
-            target_group)%entry(target_entry)
+    do target_unif_entry &
+         = aero_state%aero_sorted%unif_bin(target_bin)%n_entry,1,-1
+       target_part &
+            = aero_state%aero_sorted%unif_bin(target_bin)%entry(target_unif_entry)
        ! need to copy coag_particle as the underlying storage may be
        ! rearranged due to removals
        call aero_particle_copy(aero_state%p%particle(target_part), &
             target_particle)
        call sample_source_particle(aero_state, aero_data, env_state, &
-            coag_kernel_type, source_bin, source_group, target_particle, &
+            coag_kernel_type, source_bin, target_particle, &
             n_source_per_target, accept_factor, n_samp, n_coag, n_remove, &
             source_particle)
        if (n_coag > 0) then
-          call coag_target_with_source(aero_state, target_bin, target_group, &
-               target_entry, source_particle)
+          call coag_target_with_source(aero_state, target_bin, &
+               target_unif_entry, source_particle)
        end if
        tot_n_samp = tot_n_samp + n_samp
        tot_n_coag = tot_n_coag + n_coag
@@ -229,73 +225,51 @@ contains
 
   !> Determine the source and target particle bin/group for
   !> per-particle coagulation, if possible.
-  subroutine determine_target_and_source(aero_weight, bin_grid, i_group, &
-       i_bin, j_group, j_bin, target_group, target_bin, source_group, &
-       source_bin, correct_weight_ordering)
+  subroutine determine_target_and_source(aero_weight_array, bin_grid, i_bin, &
+       j_bin, target_bin, source_bin, correct_weight_ordering)
 
     !> Aero weight array.
-    type(aero_weight_t), intent(in) :: aero_weight(:)
+    type(aero_weight_t), intent(in) :: aero_weight_array(:)
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
-    !> First weight group number.
-    integer, intent(in) :: i_group
     !> First bin number.
     integer, intent(in) :: i_bin
-    !> Second weight group number.
-    integer, intent(in) :: j_group
     !> Second bin number.
     integer, intent(in) :: j_bin
-    !> Target weight group number.
-    integer, intent(out) :: target_group
     !> Target bin number.
     integer, intent(out) :: target_bin
-    !> Source weight group number.
-    integer, intent(out) :: source_group
     !> Source bin number.
     integer, intent(out) :: source_bin
     !> Whether the weight ordering is correct for per-particle coagulation.
     logical, intent(out) :: correct_weight_ordering
 
     real(kind=dp) :: i_nc_min, i_nc_max, j_nc_min, j_nc_max
+    logical :: monotone_increasing, monotone_decreasing
 
-    call aero_weight_minmax_num_conc(aero_weight(i_group), &
+    call aero_weight_array_check_monotonicity(aero_weight_array, &
+         monotone_increasing, monotone_decreasing)
+    if (.not. monotone_decreasing) then
+       correct_weight_ordering = .false.
+       return
+    end if
+
+    call aero_weight_array_minmax_num_conc(aero_weight_array, &
          bin_grid%edge_radius(i_bin), bin_grid%edge_radius(i_bin + 1), &
          i_nc_min, i_nc_max)
-    call aero_weight_minmax_num_conc(aero_weight(j_group), &
+    call aero_weight_array_minmax_num_conc(aero_weight_array, &
          bin_grid%edge_radius(j_bin), bin_grid%edge_radius(j_bin + 1), &
          j_nc_min, j_nc_max)
 
-    if (aero_weight(i_group)%type == AERO_WEIGHT_TYPE_NONE) then
-       call assert(993805948, aero_weight(i_group)%exponent == 0d0)
-    end if
-    if (aero_weight(j_group)%type == AERO_WEIGHT_TYPE_NONE) then
-       call assert(900192810, aero_weight(j_group)%exponent == 0d0)
-    end if
-
-    call assert(610698264, &
-         (aero_weight(i_group)%type == AERO_WEIGHT_TYPE_NONE) &
-         .or. (aero_weight(i_group)%type == AERO_WEIGHT_TYPE_POWER) &
-         .or. (aero_weight(i_group)%type == AERO_WEIGHT_TYPE_MFA))
-    call assert(291059821, &
-         (aero_weight(j_group)%type == AERO_WEIGHT_TYPE_NONE) &
-         .or. (aero_weight(j_group)%type == AERO_WEIGHT_TYPE_POWER) &
-         .or. (aero_weight(j_group)%type == AERO_WEIGHT_TYPE_MFA))
-
+    ! we have already confirmed monotone_decreasing weights above
     correct_weight_ordering = .false.
-    if ((i_nc_max < j_nc_min) &
-         .and. (aero_weight(i_group)%exponent <= 0d0)) then
+    if (i_nc_max < j_nc_min) then
        target_bin = i_bin
-       target_group = i_group
        source_bin = j_bin
-       source_group = j_group
        correct_weight_ordering = .true.
     end if
-    if ((j_nc_max < i_nc_min) &
-         .and. (aero_weight(j_group)%exponent <= 0d0)) then
+    if (j_nc_max < i_nc_min) then
        target_bin = j_bin
-       target_group = j_group
        source_bin = i_bin
-       source_group = i_group
        correct_weight_ordering = .true.
     end if
 
@@ -326,8 +300,8 @@ contains
 
   !> Sample coagulation partners for a single coagulation event.
   subroutine sample_source_particle(aero_state, aero_data, env_state, &
-       coag_kernel_type, source_bin, source_group, coag_particle, &
-       n_samp_mean, accept_factor, n_samp, n_coag, n_remove, source_particle)
+       coag_kernel_type, source_bin, coag_particle, n_samp_mean, &
+       accept_factor, n_samp, n_coag, n_remove, source_particle)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -339,8 +313,6 @@ contains
     integer, intent(in) :: coag_kernel_type
     !> Bin to sample particles from.
     integer, intent(in) :: source_bin
-    !> Weight group to sample particles from.
-    integer, intent(in) :: source_group
     !> Aerosol particle that coagulation will be with.
     type(aero_particle_t), intent(in) :: coag_particle
     !> Mean number of samples to use.
@@ -362,23 +334,23 @@ contains
     real(kind=dp) :: vol_sq(aero_data%n_spec), vol_mean(aero_data%n_spec)
     real(kind=dp) :: vol_cv(aero_data%n_spec), vol_cv_max, mean_95_conf_cv
     integer :: n_samp_remove, n_samp_extra, n_samp_total, n_avg, i_samp
-    integer :: i_entry, i_part, target_id, new_bin
+    integer :: i_unif_entry, i_part, target_id, new_bin
     type(aero_particle_t), pointer :: i_particle
     type(aero_info_t) :: aero_info
 
-    if (aero_state%aero_sorted%bin(source_bin, source_group)%n_entry == 0) then
+    if (aero_state%aero_sorted%unif_bin(source_bin)%n_entry == 0) then
        n_samp = 0
        n_remove = 0
        n_coag = 0
        return
     end if
 
-    num_conc_target = aero_weight_num_conc( &
-         aero_state%aero_weight(coag_particle%weight_group), coag_particle)
+    num_conc_target = aero_weight_array_num_conc( &
+         aero_state%aero_weight, coag_particle)
     target_id = coag_particle%id
 
-    num_conc_source_min = aero_weight_num_conc_at_radius( &
-         aero_state%aero_weight(source_group), &
+    num_conc_source_min = aero_weight_array_num_conc_at_radius( &
+         aero_state%aero_weight, &
          aero_state%aero_sorted%bin_grid%edge_radius(source_bin))
     prob_remove_source_max = num_conc_target / num_conc_source_min
     call assert(653606684, prob_remove_source_max <= 1d0)
@@ -398,7 +370,7 @@ contains
     ! FIXME: Can't we just do n_samp = 1,n_samp_total and shift tests
     ! to the end?
     do i_samp = 1,n_samp_total
-       if (aero_state%aero_sorted%bin(source_bin, source_group)%n_entry == 0) &
+       if (aero_state%aero_sorted%unif_bin(source_bin)%n_entry == 0) &
             exit
        if ((n_samp > n_samp_remove) .and. (n_avg >= 2)) then
           vol_mean = source_particle%vol / real(n_avg, kind=dp)
@@ -414,10 +386,9 @@ contains
        end if
        n_samp = n_samp + 1
        ! FIXME: We are sampling with replacement. Is this a problem?
-       i_entry = pmc_rand_int(aero_state%aero_sorted%bin(source_bin, &
-            source_group)%n_entry)
-       i_part = aero_state%aero_sorted%bin(source_bin, &
-            source_group)%entry(i_entry)
+       i_unif_entry &
+            = pmc_rand_int(aero_state%aero_sorted%unif_bin(source_bin)%n_entry)
+       i_part = aero_state%aero_sorted%unif_bin(source_bin)%entry(i_unif_entry)
        i_particle => aero_state%p%particle(i_part)
        ! re-get j_part as particle ordering may be changing
        call num_conc_weighted_kernel(coag_kernel_type, i_particle, &
@@ -464,47 +435,44 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Coagulate a sampled source particle with a target particle.
-  subroutine coag_target_with_source(aero_state, target_bin, target_group, &
-       target_entry, source_particle)
+  subroutine coag_target_with_source(aero_state, target_bin, &
+       target_unif_entry, source_particle)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Bin of coagulating particle.
     integer, intent(in) :: target_bin
-    !> Weight group of coagulating particle.
-    integer, intent(in) :: target_group
     !> Entry-in-bin of coagulating particle.
-    integer, intent(in) :: target_entry
+    integer, intent(in) :: target_unif_entry
     !> Sampled particle to coagulate with.
     type(aero_particle_t), intent(in) :: source_particle
 
-    integer :: target_part, target_id, new_bin
+    integer :: target_part, target_id, new_bin, new_group
     real(kind=dp) :: num_conc_target
 
-    target_part = aero_state%aero_sorted%bin(target_bin, &
-         target_group)%entry(target_entry)
+    target_part &
+         = aero_state%aero_sorted%unif_bin(target_bin)%entry(target_unif_entry)
     target_id = aero_state%p%particle(target_part)%id
     num_conc_target &
-         = aero_weight_num_conc(aero_state%aero_weight(target_group), &
+         = aero_weight_array_num_conc(aero_state%aero_weight, &
          aero_state%p%particle(target_part))
     call aero_particle_coagulate(aero_state%p%particle(target_part), &
          source_particle, aero_state%p%particle(target_part))
     aero_state%p%particle(target_part)%id = target_id
-    call aero_particle_set_group(aero_state%p%particle(target_part), &
-         target_group)
+    ! assign to a randomly chosen group
+    new_group = aero_weight_array_rand_group(aero_state%aero_weight, &
+         aero_particle_radius(aero_state%p%particle(target_part)))
+    call aero_particle_set_group(aero_state%p%particle(target_part), new_group)
     ! fix bin due to composition changes
-    new_bin &
-         = aero_sorted_particle_in_bin(aero_state%aero_sorted, &
+    new_bin = aero_sorted_particle_in_bin(aero_state%aero_sorted, &
          aero_state%p%particle(target_part))
     if ((new_bin < 1) &
          .or. (new_bin > aero_state%aero_sorted%bin_grid%n_bin)) then
        call die_msg(765620746, "particle outside of bin_grid: " &
             // "try reducing the timestep del_t")
     end if
-    if (new_bin /= target_bin) then
-       call aero_sorted_move_particle(aero_state%aero_sorted, &
-            target_part, new_bin)
-    end if
+    call aero_sorted_move_particle(aero_state%aero_sorted, target_part, &
+         new_bin, new_group)
     ! adjust particle number to account for weight changes
     ! target_bin/target_group/target_entry are invalid,
     ! but target_part is still good
@@ -518,8 +486,7 @@ contains
 
   !> Do set-wise coagulation.
   subroutine per_set_coag(coag_kernel_type, k_max, env_state, aero_data, &
-       aero_state, del_t, tot_n_samp, tot_n_coag, i_bin, i_group, j_bin, &
-       j_group)
+       aero_state, del_t, tot_n_samp, tot_n_coag, i_bin, j_bin)
 
     !> Coagulation kernel type.
     integer, intent(in) :: coag_kernel_type
@@ -539,34 +506,28 @@ contains
     integer, intent(inout) :: tot_n_coag
     !> First bin number.
     integer, intent(in) :: i_bin
-    !> First weight group number.
-    integer, intent(in) :: i_group
     !> Second bin number.
     integer, intent(in) :: j_bin
-    !> Second weight group number.
-    integer, intent(in) :: j_group
 
     real(kind=dp) :: n_samp_mean, accept_factor
     integer :: i_samp, n_samp
     logical :: did_coag
 
     call compute_n_samp( &
-         aero_state%aero_sorted%bin(i_bin, i_group)%n_entry, &
-         aero_state%aero_sorted%bin(j_bin, j_group)%n_entry, &
-         (i_bin == j_bin) .and. (i_group == j_group), k_max, del_t, &
-         n_samp_mean, n_samp, accept_factor)
+         aero_state%aero_sorted%unif_bin(i_bin)%n_entry, &
+         aero_state%aero_sorted%unif_bin(j_bin)%n_entry, &
+         (i_bin == j_bin), k_max, del_t, n_samp_mean, n_samp, accept_factor)
     tot_n_samp = tot_n_samp + n_samp
 
     do i_samp = 1,n_samp
        ! check we still have enough particles to coagulate
-       if (((aero_state%aero_sorted%bin(i_bin, i_group)%n_entry < 2) &
-            .and. (i_bin == j_bin) .and. (i_group == j_group)) &
-            .or. (aero_state%aero_sorted%bin(i_bin, i_group)%n_entry < 1) &
-            .or. (aero_state%aero_sorted%bin(j_bin, j_group)%n_entry < 1)) &
+       if (((aero_state%aero_sorted%unif_bin(i_bin)%n_entry < 2) &
+            .and. (i_bin == j_bin)) &
+            .or. (aero_state%aero_sorted%unif_bin(i_bin)%n_entry < 1) &
+            .or. (aero_state%aero_sorted%unif_bin(j_bin)%n_entry < 1)) &
             exit
-       call maybe_coag_pair(env_state, aero_data, aero_state, i_bin, &
-            j_bin, i_group, j_group, coag_kernel_type, accept_factor, &
-            did_coag)
+       call maybe_coag_pair(env_state, aero_data, aero_state, i_bin, j_bin, &
+            coag_kernel_type, accept_factor, did_coag)
        if (did_coag) tot_n_coag = tot_n_coag + 1
     end do
 
@@ -641,7 +602,7 @@ contains
   !! The probability of a coagulation will be taken as <tt>(kernel /
   !! k_max)</tt>.
   subroutine maybe_coag_pair(env_state, aero_data, aero_state, b1, b2, &
-       g1, g2, coag_kernel_type, accept_factor, did_coag)
+       coag_kernel_type, accept_factor, did_coag)
 
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
@@ -653,10 +614,6 @@ contains
     integer, intent(in) :: b1
     !> Bin of second particle.
     integer, intent(in) :: b2
-    !> Weight group of first particle.
-    integer, intent(in) :: g1
-    !> Weight group of second particle.
-    integer, intent(in) :: g2
     !> Coagulation kernel type.
     integer, intent(in) :: coag_kernel_type
     !> Scale factor for accept probability (1).
@@ -668,9 +625,9 @@ contains
     integer :: p1, p2
     real(kind=dp) :: p, k
     
-    call find_rand_pair(aero_state%aero_sorted, b1, b2, g1, g2, s1, s2)
-    p1 = aero_state%aero_sorted%bin(b1, g1)%entry(s1)
-    p2 = aero_state%aero_sorted%bin(b2, g2)%entry(s2)
+    call find_rand_pair(aero_state%aero_sorted, b1, b2, s1, s2)
+    p1 = aero_state%aero_sorted%unif_bin(b1)%entry(s1)
+    p2 = aero_state%aero_sorted%unif_bin(b2)%entry(s2)
     call num_conc_weighted_kernel(coag_kernel_type, &
          aero_state%p%particle(p1), aero_state%p%particle(p2), aero_data, &
          aero_state%aero_weight, env_state, k)
@@ -691,7 +648,7 @@ contains
   !> Given bins b1 and b2, find a random pair of particles (b1, s1)
   !> and (b2, s2) that are not the same particle particle as each
   !> other.
-  subroutine find_rand_pair(aero_sorted, b1, b2, g1, g2, s1, s2)
+  subroutine find_rand_pair(aero_sorted, b1, b2, s1, s2)
     
     !> Aerosol sorted data.
     type(aero_sorted_t), intent(in) :: aero_sorted
@@ -699,27 +656,23 @@ contains
     integer, intent(in) :: b1
     !> Bin number of second particle.
     integer, intent(in) :: b2
-    !> Weight group of first particle.
-    integer, intent(in) :: g1
-    !> Weight group of second particle.
-    integer, intent(in) :: g2
     !> First rand particle.
     integer, intent(out) :: s1
     !> Second rand particle.
     integer, intent(out) :: s2
 
-    call assert(619608562, aero_sorted%bin(b1, g1)%n_entry >= 1)
-    s1 = pmc_rand_int(aero_sorted%bin(b1, g1)%n_entry)
+    call assert(619608562, aero_sorted%unif_bin(b1)%n_entry >= 1)
+    s1 = pmc_rand_int(aero_sorted%unif_bin(b1)%n_entry)
 
-    if ((b1 == b2) .and. (g1 == g2)) then
-       call assert(956184336, aero_sorted%bin(b2, g2)%n_entry >= 2)
-       s2 = pmc_rand_int(aero_sorted%bin(b2, g2)%n_entry - 1)
+    if (b1 == b2) then
+       call assert(956184336, aero_sorted%unif_bin(b2)%n_entry >= 2)
+       s2 = pmc_rand_int(aero_sorted%unif_bin(b2)%n_entry - 1)
        if (s2 == s1) then
-          s2 = aero_sorted%bin(b2, g2)%n_entry
+          s2 = aero_sorted%unif_bin(b2)%n_entry
        end if
     else
-       call assert(271635751, aero_sorted%bin(b2, g2)%n_entry >= 1)
-       s2 = pmc_rand_int(aero_sorted%bin(b2, g2)%n_entry)
+       call assert(271635751, aero_sorted%unif_bin(b2)%n_entry >= 1)
+       s2 = pmc_rand_int(aero_sorted%unif_bin(b2)%n_entry)
     end if
     
   end subroutine find_rand_pair
@@ -730,8 +683,8 @@ contains
   !> and compute weighting effects, including which particles should
   !> be lost and which gained.
   subroutine coagulate_weighting(particle_1, particle_2, particle_new, &
-       aero_data, aero_weight_1, aero_weight_2, remove_1, &
-       remove_2, create_new, id_1_lost, id_2_lost, aero_info_1, aero_info_2)
+       aero_data, aero_weight_array, remove_1, remove_2, create_new, &
+       id_1_lost, id_2_lost, aero_info_1, aero_info_2)
 
     !> First coagulating aerosol particle.
     type(aero_particle_t), intent(in) :: particle_1
@@ -742,10 +695,8 @@ contains
     type(aero_particle_t), intent(inout) :: particle_new
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight for first particle.
-    type(aero_weight_t), intent(in) :: aero_weight_1
-    !> Aerosol weight for second particle.
-    type(aero_weight_t), intent(in) :: aero_weight_2
+    !> Aerosol weight array.
+    type(aero_weight_t), intent(in) :: aero_weight_array(:)
     !> Whether to remove particle_1.
     logical, intent(out) :: remove_1
     !> Whether to remove particle_2.
@@ -763,7 +714,7 @@ contains
 
     real(kind=dp) :: radius_1, radius_2, radius_new
     real(kind=dp) :: num_conc_min, num_conc_1, num_conc_2
-    real(kind=dp) :: num_conc_new, num_conc_new_1, num_conc_new_2
+    real(kind=dp) :: num_conc_new
     real(kind=dp) :: prob_remove_1, prob_remove_2, prob_create_new
     integer :: info_other_id, new_group
 
@@ -774,17 +725,13 @@ contains
     radius_1 = aero_particle_radius(particle_1)
     radius_2 = aero_particle_radius(particle_2)
     radius_new = vol2rad(rad2vol(radius_1) + rad2vol(radius_2))
-    num_conc_1 = aero_weight_num_conc_at_radius(aero_weight_1, radius_1)
-    num_conc_2 = aero_weight_num_conc_at_radius(aero_weight_2, radius_2)
-    num_conc_new_1 = aero_weight_num_conc_at_radius(aero_weight_1, radius_new)
-    num_conc_new_2 = aero_weight_num_conc_at_radius(aero_weight_2, radius_new)
-    if (num_conc_new_1 <= num_conc_new_2) then
-       num_conc_new = num_conc_new_1
-       new_group = particle_1%weight_group
-    else
-       num_conc_new = num_conc_new_2
-       new_group = particle_2%weight_group
-    end if
+    num_conc_1 = aero_weight_array_num_conc_at_radius(aero_weight_array, &
+         radius_1)
+    num_conc_2 = aero_weight_array_num_conc_at_radius(aero_weight_array, &
+         radius_2)
+    num_conc_new = aero_weight_array_num_conc_at_radius(aero_weight_array, &
+         radius_new)
+    new_group = aero_weight_array_rand_group(aero_weight_array, radius_new)
     num_conc_min = min(num_conc_1, num_conc_2, num_conc_new)
     prob_remove_1 = num_conc_min / num_conc_1
     prob_remove_2 = num_conc_min / num_conc_2
@@ -852,7 +799,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Join together particles (b1, s1) and (b2, s2), updating all
+  !> Join together particles \c p1 and \c p2, updating all
   !> particle and bin structures to reflect the change.
   subroutine coagulate(aero_data, aero_state, p1, p2)
  
@@ -879,8 +826,7 @@ contains
     particle_2 => aero_state%p%particle(p2)
 
     call coagulate_weighting(particle_1, particle_2, particle_new, &
-         aero_data, aero_state%aero_weight(particle_1%weight_group), &
-         aero_state%aero_weight(particle_2%weight_group), remove_1, remove_2, &
+         aero_data, aero_state%aero_weight, remove_1, remove_2, &
          create_new, id_1_lost, id_2_lost, aero_info_1, aero_info_2)
 
     ! remove old particles

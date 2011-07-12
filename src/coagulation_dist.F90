@@ -53,12 +53,8 @@ module pmc_coagulation_dist
      integer :: remote_proc
      !> Local bin number from which we took \c local_aero_particle.
      integer :: local_bin
-     !> Local weight group from which we took \c local_aero_particle.
-     integer :: local_group
      !> Remote bin number from which we requested an \c aero_particle.
      integer :: remote_bin
-     !> Remote weight group from which we requested an \c aero_particle.
-     integer :: remote_group
      !> Whether this request is currently active
      logical :: active
   end type request_t
@@ -129,11 +125,11 @@ contains
     integer :: i, j, n_samp, i_samp, i_proc, n_proc, i_bin
     integer :: ierr, status(MPI_STATUS_SIZE), current_i, current_j, i_req
     real(kind=dp) :: n_samp_real
-    integer, allocatable :: n_parts(:,:)
+    integer, allocatable :: n_parts(:)
     real(kind=dp), allocatable :: comp_vols(:)
     type(request_t) :: requests(COAG_DIST_MAX_REQUESTS)
-    integer, allocatable :: n_samps(:,:,:,:)
-    real(kind=dp), allocatable :: accept_factors(:,:,:,:)
+    integer, allocatable :: n_samps(:,:)
+    real(kind=dp), allocatable :: accept_factors(:,:)
     logical, allocatable :: procs_done(:)
     integer :: outgoing_buffer(COAG_DIST_OUTGOING_BUFFER_SIZE)
     integer :: outgoing_buffer_size_check
@@ -290,25 +286,20 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine add_coagulation_requests(aero_state, requests, n_parts, &
-       local_bin, local_group, remote_bin, remote_group, n_samps, &
-       samps_remaining)
+       local_bin, remote_bin, n_samps, samps_remaining)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Array of outstanding requests.
     type(request_t), intent(inout) :: requests(COAG_DIST_MAX_REQUESTS)
     !> Number of particles per bin per process.
-    integer, intent(in) :: n_parts(:,:,:)
+    integer, intent(in) :: n_parts(:,:)
     !> Bin index of first particle we need to coagulate.
     integer, intent(inout) :: local_bin
-    !> Weight group of first particle we need to coagulate.
-    integer, intent(inout) :: local_group
     !> Bin index of second particle we need to coagulate.
     integer, intent(inout) :: remote_bin
-    !> Weight group of second particle we need to coagulate.
-    integer, intent(inout) :: remote_group
     !> Number of samples remaining per bin pair
-    integer, intent(inout) :: n_samps(:,:,:,:)
+    integer, intent(inout) :: n_samps(:,:)
     !> Whether there are still coagulation samples that need to be done.
     logical, intent(inout) :: samps_remaining
 
@@ -319,23 +310,19 @@ contains
     outer: do i_req = 1,COAG_DIST_MAX_REQUESTS
        if (.not. request_is_active(requests(i_req))) then
           inner: do
-             call update_n_samps(n_samps, local_bin, local_group, remote_bin, &
-                  remote_group, samps_remaining)
+             call update_n_samps(n_samps, local_bin, remote_bin, &
+                  samps_remaining)
              if (.not. samps_remaining) exit outer
-             if (aero_state%aero_sorted%bin(local_bin, local_group)%n_entry &
-                  > 0) then
-                call find_rand_remote_proc(n_parts, remote_bin, remote_group, &
+             if (aero_state%aero_sorted%unif_bin(local_bin)%n_entry > 0) then
+                call find_rand_remote_proc(n_parts, remote_bin, &
                      requests(i_req)%remote_proc)
                 requests(i_req)%active = .true.
                 requests(i_req)%local_bin = local_bin
-                requests(i_req)%local_group = local_group
                 requests(i_req)%remote_bin = remote_bin
-                requests(i_req)%remote_group = remote_group
                 call aero_state_remove_rand_particle_from_bin(aero_state, &
-                     local_bin, local_group, &
-                     requests(i_req)%local_aero_particle)
+                     local_bin, requests(i_req)%local_aero_particle)
                 call send_request_particle(requests(i_req)%remote_proc, &
-                     requests(i_req)%remote_bin, requests(i_req)%remote_group)
+                     requests(i_req)%remote_bin)
                 exit inner
              end if
           end do inner
@@ -367,87 +354,67 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine find_rand_remote_proc(n_parts, remote_bin, remote_group, &
-       remote_proc)
+  subroutine find_rand_remote_proc(n_parts, remote_bin, remote_proc)
 
     !> Number of particles per bin per process.
-    integer, intent(in) :: n_parts(:,:,:)
+    integer, intent(in) :: n_parts(:,:)
     !> Remote bin number.
     integer, intent(in) :: remote_bin
-    !> Remote weight group number.
-    integer, intent(in) :: remote_group
     !> Remote process number chosen at random.
     integer, intent(out) :: remote_proc
 
 #ifdef PMC_USE_MPI
     call assert(770964285, size(n_parts, 3) == pmc_mpi_size())
-    remote_proc = sample_disc_pdf(n_parts(remote_bin, remote_group, :)) - 1
+    remote_proc = sample_disc_pdf(n_parts(remote_bin, :)) - 1
 #endif
 
   end subroutine find_rand_remote_proc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine update_n_samps(n_samps, local_bin, local_group, remote_bin, &
-       remote_group, samps_remaining)
+  subroutine update_n_samps(n_samps, local_bin, remote_bin, samps_remaining)
 
     !> Number of samples remaining per bin pair
-    integer, intent(inout) :: n_samps(:,:,:,:)
+    integer, intent(inout) :: n_samps(:,:)
     !> Bin index of first particle we need to coagulate.
     integer, intent(inout) :: local_bin
-    !> Weight group of first particle we need to coagulate.
-    integer, intent(inout) :: local_group
     !> Bin index of second particle we need to coagulate.
     integer, intent(inout) :: remote_bin
-    !> Weight group of second particle we need to coagulate.
-    integer, intent(inout) :: remote_group
     !> Whether there are still coagulation samples that need to be done.
     logical, intent(inout) :: samps_remaining
 
-    integer :: n_bin, n_group
+    integer :: n_bin
 
     if (.not. samps_remaining) return
 
     n_bin = size(n_samps, 1)
-    n_group = size(n_samps, 2)
     do
-       if (n_samps(local_bin, local_group, remote_bin, remote_group) > 0) exit
+       if (n_samps(local_bin, remote_bin) > 0) exit
 
-       remote_group = remote_group + 1
-       if (remote_group > n_group) then
-          remote_group = 1
-          remote_bin = remote_bin + 1
-          if (remote_bin > n_bin) then
-             remote_bin = 1
-             local_group = local_group + 1
-             if (local_group > n_group) then
-                local_group = 1
-                local_bin = local_bin + 1
-                if (local_bin > n_bin) exit
-             end if
-          end if
+       remote_bin = remote_bin + 1
+       if (remote_bin > n_bin) then
+          remote_bin = 1
+          local_bin = local_bin + 1
        end if
+       if (local_bin > n_bin) exit
     end do
     
     if (local_bin > n_bin) then
        samps_remaining = .false.
     else
-       n_samps(local_bin, local_group, remote_bin, remote_group) &
-            = n_samps(local_bin, local_group, remote_bin, remote_group) - 1
+       n_samps(local_bin, remote_bin) = n_samps(local_bin, remote_bin) - 1
     end if
 
   end subroutine update_n_samps
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine send_request_particle(remote_proc, remote_bin, remote_group)
+  subroutine send_request_particle(remote_proc, remote_bin)
 
     !> Remote process number.
     integer, intent(in) :: remote_proc
     !> Remote bin number.
     integer, intent(in) :: remote_bin
-    !> Remote weight group number.
-    integer, intent(in) :: remote_group
 
 #ifdef PMC_USE_MPI
     character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
@@ -455,11 +422,9 @@ contains
 
     max_buffer_size = 0
     max_buffer_size = max_buffer_size + pmc_mpi_pack_size_integer(remote_bin)
-    max_buffer_size = max_buffer_size + pmc_mpi_pack_size_integer(remote_group)
     call assert(893545122, max_buffer_size <= COAG_DIST_MAX_BUFFER_SIZE)
     position = 0
     call pmc_mpi_pack_integer(buffer, position, remote_bin)
-    call pmc_mpi_pack_integer(buffer, position, remote_group)
     call assert(610314213, position <= max_buffer_size)
     buffer_size = position
     call mpi_bsend(buffer, buffer_size, MPI_CHARACTER, remote_proc, &
@@ -477,7 +442,7 @@ contains
     type(aero_state_t), intent(inout) :: aero_state
 
 #ifdef PMC_USE_MPI
-    integer :: buffer_size, position, request_bin, request_group, sent_proc
+    integer :: buffer_size, position, request_bin, sent_proc
     integer :: ierr, remote_proc, status(MPI_STATUS_SIZE)
     character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
     type(aero_particle_t) :: aero_particle
@@ -497,19 +462,18 @@ contains
     ! unpack it
     position = 0
     call pmc_mpi_unpack_integer(buffer, position, request_bin)
-    call pmc_mpi_unpack_integer(buffer, position, request_group)
     call assert(895128380, position == buffer_size)
 
     ! send the particle back if we have one
-    if (aero_state%aero_sorted%bin(request_bin, request_group)%n_entry == 0) &
+    if (aero_state%aero_sorted%bin_unif(request_bin)%n_entry == 0) &
          then
-       call send_return_no_particle(remote_proc, request_bin, request_group)
+       call send_return_no_particle(remote_proc, request_bin)
     else
        call aero_particle_allocate(aero_particle)
        call aero_state_remove_rand_particle_from_bin(aero_state, &
-            request_bin, request_group, aero_particle)
+            request_bin, aero_particle)
        call send_return_req_particle(aero_particle, request_bin, &
-            request_group, remote_proc)
+            remote_proc)
        call aero_particle_deallocate(aero_particle)
     end if
 #endif
@@ -518,14 +482,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine send_return_no_particle(dest_proc, i_bin, i_group)
+  subroutine send_return_no_particle(dest_proc, i_bin)
 
     !> Process number to send message to.
     integer, intent(in) :: dest_proc
     !> Bin number where there was no particle.
     integer, intent(in) :: i_bin
-    !> Weight group where there was no particle.
-    integer, intent(in) :: i_group
 
 #ifdef PMC_USE_MPI
     character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
@@ -533,11 +495,9 @@ contains
 
     max_buffer_size = 0
     max_buffer_size = max_buffer_size + pmc_mpi_pack_size_integer(i_bin)
-    max_buffer_size = max_buffer_size + pmc_mpi_pack_size_integer(i_group)
     call assert(744787119, max_buffer_size <= COAG_DIST_MAX_BUFFER_SIZE)
     position = 0
     call pmc_mpi_pack_integer(buffer, position, i_bin)
-    call pmc_mpi_pack_integer(buffer, position, i_group)
     call assert(445960340, position <= max_buffer_size)
     buffer_size = position
     call mpi_bsend(buffer, buffer_size, MPI_CHARACTER, dest_proc, &
@@ -560,7 +520,7 @@ contains
 
 #ifdef PMC_USE_MPI
     logical :: found_request
-    integer :: buffer_size, position, sent_bin, sent_group, sent_proc, i_req
+    integer :: buffer_size, position, sent_bin, sent_proc, i_req
     integer :: ierr, status(MPI_STATUS_SIZE)
     character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
 
@@ -579,15 +539,13 @@ contains
     ! unpack it
     position = 0
     call pmc_mpi_unpack_integer(buffer, position, sent_bin)
-    call pmc_mpi_unpack_integer(buffer, position, sent_group)
     call assert(518172999, position == buffer_size)
 
     ! find the matching request
     found_request = .false.
     do i_req = 1,COAG_DIST_MAX_REQUESTS
        if ((requests(i_req)%remote_proc == sent_proc) &
-            .and. (requests(i_req)%remote_bin == sent_bin) &
-            .and. (requests(i_req)%remote_group == sent_group)) then
+            .and. (requests(i_req)%remote_bin == sent_bin)) then
           found_request = .true.
           exit
        end if
@@ -607,14 +565,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine send_return_req_particle(aero_particle, i_bin, i_group, dest_proc)
+  subroutine send_return_req_particle(aero_particle, i_bin, dest_proc)
 
     !> Aero particle to send.
     type(aero_particle_t), intent(in) :: aero_particle
     !> Bin that the particle is in.
     integer, intent(in) :: i_bin
-    !> Weight group that the particle is in.
-    integer, intent(in) :: i_group
     !> Process number to send particle to.
     integer, intent(in) :: dest_proc
 
@@ -624,13 +580,11 @@ contains
 
     max_buffer_size = 0
     max_buffer_size = max_buffer_size + pmc_mpi_pack_size_integer(i_bin)
-    max_buffer_size = max_buffer_size + pmc_mpi_pack_size_integer(i_group)
     max_buffer_size = max_buffer_size &
          + pmc_mpi_pack_size_aero_particle(aero_particle)
     call assert(496283814, max_buffer_size <= COAG_DIST_MAX_BUFFER_SIZE)
     position = 0
     call pmc_mpi_pack_integer(buffer, position, i_bin)
-    call pmc_mpi_pack_integer(buffer, position, i_group)
     call pmc_mpi_pack_aero_particle(buffer, position, aero_particle)
     call assert(263666386, position <= max_buffer_size)
     buffer_size = position
@@ -668,7 +622,7 @@ contains
 
 #ifdef PMC_USE_MPI
     logical :: found_request, remove_1, remove_2
-    integer :: buffer_size, position, sent_bin, sent_group, sent_proc, i_req
+    integer :: buffer_size, position, sent_bin, sent_proc, i_req
     integer :: ierr, status(MPI_STATUS_SIZE)
     character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
     type(aero_particle_t) :: sent_aero_particle
@@ -689,7 +643,6 @@ contains
     ! unpack it
     position = 0
     call pmc_mpi_unpack_integer(buffer, position, sent_bin)
-    call pmc_mpi_unpack_integer(buffer, position, sent_group)
     call aero_particle_allocate(sent_aero_particle)
     call pmc_mpi_unpack_aero_particle(buffer, position, sent_aero_particle)
     call assert(753356021, position == buffer_size)
@@ -698,8 +651,7 @@ contains
     found_request = .false.
     do i_req = 1,COAG_DIST_MAX_REQUESTS
        if ((requests(i_req)%remote_proc == sent_proc) &
-            .and. (requests(i_req)%remote_bin == sent_bin) &
-            .and. (requests(i_req)%remote_group == sent_group)) then
+            .and. (requests(i_req)%remote_bin == sent_bin)) then
           found_request = .true.
           exit
        end if
@@ -710,8 +662,7 @@ contains
     call num_conc_weighted_kernel(coag_kernel_type, &
          requests(i_req)%local_aero_particle, sent_aero_particle, &
          aero_data, aero_weight_total, env_state, k)
-    p = k * accept_factors(requests(i_req)%local_bin, &
-         requests(i_req)%local_group, sent_bin, sent_group)
+    p = k * accept_factors(requests(i_req)%local_bin, sent_bin)
 
     if (pmc_random() .lt. p) then
        ! coagulation happened, do it
@@ -870,11 +821,11 @@ contains
        global_n_parts, global_comp_vols)
 
     !> Number of particles per bin on the local process.
-    integer, intent(in) :: local_n_parts(:,:)
+    integer, intent(in) :: local_n_parts(:)
     !> Computational volume on the local process.
     real(kind=dp), intent(in) :: local_comp_vol
     !> Number of particles per bin on all processes.
-    integer, intent(out) :: global_n_parts(:,:,:)
+    integer, intent(out) :: global_n_parts(:,:)
     !> Computational volumes on all processes (m^3).
     real(kind=dp), intent(out) :: global_comp_vols(:)
 
@@ -883,20 +834,19 @@ contains
     integer, allocatable :: send_buf(:), recv_buf(:)
 
     n_bin = size(local_n_parts, 1)
-    n_group = size(local_n_parts, 2)
     n_proc = pmc_mpi_size()
     call assert(816230609, all(shape(global_n_parts) &
-         == (/n_bin, n_group, n_proc/)))
+         == (/n_bin, n_proc/)))
     call assert(883861456, all(shape(global_comp_vols) == (/n_proc/)))
 
     ! use a new send_buf to make sure the memory is contiguous
-    allocate(send_buf(n_bin * n_group))
-    allocate(recv_buf(n_bin * n_group * n_proc))
-    send_buf = reshape(local_n_parts, (/n_bin * n_group/))
-    call mpi_allgather(send_buf, n_bin * n_group, MPI_INTEGER, &
-         recv_buf, n_bin * n_group, MPI_INTEGER, MPI_COMM_WORLD, ierr)
+    allocate(send_buf(n_bin))
+    allocate(recv_buf(n_bin * n_proc))
+    send_buf = local_n_parts
+    call mpi_allgather(send_buf, n_bin, MPI_INTEGER, &
+         recv_buf, n_bin, MPI_INTEGER, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    global_n_parts = reshape(recv_buf, (/n_bin, n_group, n_proc/))
+    global_n_parts = reshape(recv_buf, (/n_bin, n_proc/))
     deallocate(send_buf)
     deallocate(recv_buf)
 
@@ -911,47 +861,40 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> generate the number of samples to do per bin pair.
-  subroutine generate_n_samps(n_parts, del_t, bin_grid, aero_weight, k_max, &
-       n_samps, accept_factors)
+  subroutine generate_n_samps(n_parts, del_t, bin_grid, aero_weight_array, &
+       k_max, n_samps, accept_factors)
     
     !> Number of particles per bin on all processes.
-    integer, intent(in) :: n_parts(:,:,:)
+    integer, intent(in) :: n_parts(:,:)
     !> Timestep.
     real(kind=dp), intent(in) :: del_t
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Weighting function array.
-    type(aero_weight_t), intent(in) :: aero_weight(:)
+    type(aero_weight_t), intent(in) :: aero_weight_array(:)
     !> Maximum kernel.
     real(kind=dp), intent(in) :: k_max(:,:)
     !> Number of samples to do per bin pair.
-    integer, intent(out) :: n_samps(:,:,:,:)
+    integer, intent(out) :: n_samps(:,:)
     !> Accept scale factors per bin pair (1).
-    real(kind=dp), intent(out) :: accept_factors(:,:,:,:)
+    real(kind=dp), intent(out) :: accept_factors(:,:)
 
-    integer :: i_bin, i_group, j_bin, j_group, rank, n_bin, n_group
+    integer :: i_bin, j_bin, rank, n_bin
     real(kind=dp) :: n_samp_mean, f_max
 
     n_bin = size(k_max, 1)
-    n_group = size(aero_weight)
     rank = pmc_mpi_rank()
     n_samps = 0
     do i_bin = 1,n_bin
-       do i_group = 1,n_group
-          if (n_parts(i_bin, i_group, rank + 1) == 0) &
-               cycle
-          do j_bin = i_bin,n_bin
-             do j_group = 1,n_group
-                call max_coag_num_conc_factor(aero_weight(i_group), &
-                     aero_weight(j_group), bin_grid, i_bin, j_bin, f_max)
-                call compute_n_samp(n_parts(i_bin, i_group, rank + 1), &
-                     sum(n_parts(j_bin, j_group, :)), &
-                     (i_bin == j_bin) .and. (i_group == j_group), &
-                     k_max(i_bin, j_bin) * f_max, del_t, n_samp_mean, &
-                     n_samps(i_bin, i_group, j_bin, j_group), &
-                     accept_factors(i_bin, i_group, j_bin, j_group))
-             end do
-          end do
+       if (n_parts(i_bin, rank + 1) == 0) &
+            cycle
+       do j_bin = i_bin,n_bin
+          call max_coag_num_conc_factor(aero_weight_array, &
+               bin_grid, i_bin, j_bin, f_max)
+          call compute_n_samp(n_parts(i_bin, rank + 1), &
+               sum(n_parts(j_bin, :)), (i_bin == j_bin), &
+               k_max(i_bin, j_bin) * f_max, del_t, n_samp_mean, &
+               n_samps(i_bin, j_bin), accept_factors(i_bin, j_bin))
        end do
     end do
 
@@ -989,9 +932,7 @@ contains
     call aero_info_allocate(aero_info_2)
 
     call coagulate_weighting(aero_particle_1, aero_particle_2, &
-         aero_particle_new, aero_data, &
-         aero_state%aero_weight(aero_particle_1%weight_group), &
-         aero_state%aero_weight(aero_particle_2%weight_group), &
+         aero_particle_new, aero_data, aero_state%aero_weight, &
          remove_1, remove_2, create_new, id_1_lost, id_2_lost, &
          aero_info_1, aero_info_2)
 

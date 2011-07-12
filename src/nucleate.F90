@@ -118,7 +118,7 @@ contains
     do i_group = 1,n_group
        ! computational volume at the size of nucleated particles (only
        ! valid for mono-disperse nucleation)
-       nucleate_comp_vol = real(n_group, kind=dp) &
+       nucleate_comp_vol = 1d0 &
             / aero_weight_num_conc_at_radius(aero_state%aero_weight(i_group), &
             nucleate_diam / 2d0)
 

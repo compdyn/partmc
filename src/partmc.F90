@@ -600,10 +600,9 @@ contains
           if (aero_mode_type_exp_present) then
              call warn_msg(245301880, "using flat weighting only due to " &
                   // "presence of exp aerosol mode")
-             call aero_state_allocate_size(aero_state, aero_data, &
-                  AERO_STATE_WEIGHT_FLAT)
+             call aero_state_allocate_size(aero_state, AERO_STATE_WEIGHT_FLAT)
           else
-             call aero_state_allocate_size(aero_state, aero_data, &
+             call aero_state_allocate_size(aero_state, &
                   AERO_STATE_WEIGHT_NUMMASS)
           end if
           aero_state%n_part_ideal = n_part_ideal

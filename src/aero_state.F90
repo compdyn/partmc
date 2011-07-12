@@ -107,17 +107,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates aerosol arrays with the given sizes.
-  subroutine aero_state_allocate_size(aero_state, aero_data, weight_type)
+  subroutine aero_state_allocate_size(aero_state, weight_type)
 
     !> Aerosol to initialize.
     type(aero_state_t), intent(out) :: aero_state
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
     !> Type of weighting scheme to use.
     integer, intent(in) :: weight_type
 
-    call aero_particle_array_allocate_size(aero_state%apa, 0, &
-         aero_data%n_spec, aero_data%n_source)
+    call aero_particle_array_allocate(aero_state%apa)
     call aero_sorted_allocate(aero_state%aero_sorted)
     aero_state%valid_sort = .false.
     if (weight_type == AERO_STATE_WEIGHT_NONE) then
@@ -1013,8 +1010,7 @@ contains
     prob_not_transferred = 1d0
     do dest_proc = 0,(n_proc - 1)
        if (dest_proc /= rank) then
-          call aero_state_allocate_size(aero_state_sends(dest_proc + 1), &
-               aero_data)
+          call aero_state_allocate_size(aero_state_sends(dest_proc + 1))
           aero_state_sends(dest_proc + 1)%comp_vol = aero_state%comp_vol
           prob_transfer = (1d0 - exp(- del_t / mix_timescale)) &
                / real(n_proc, kind=dp) &
@@ -1616,8 +1612,7 @@ contains
        ! assign particles at random to other processes
        allocate(aero_state_transfers(n_proc))
        do i_proc = 1,n_proc
-          call aero_state_allocate_size(aero_state_transfers(i_proc), &
-               aero_data)
+          call aero_state_allocate_size(aero_state_transfers(i_proc))
           aero_state_transfers(i_proc)%comp_vol = &
                aero_state_total%comp_vol / real(n_proc, kind=dp)
        end do
@@ -2148,8 +2143,7 @@ contains
     if (status == NF90_EBADDIM) then
        ! no aero_particle dimension means no particles present
        call aero_state_deallocate(aero_state)
-       call aero_state_allocate_size(aero_state, aero_data, &
-            AERO_STATE_WEIGHT_NUMMASS)
+       call aero_state_allocate_size(aero_state, AERO_STATE_WEIGHT_NUMMASS)
        call aero_weight_array_input_netcdf(aero_state%aero_weight, ncid)
        return
     end if
@@ -2208,8 +2202,7 @@ contains
          "aero_greatest_create_time")
 
     call aero_state_deallocate(aero_state)
-    call aero_state_allocate_size(aero_state, aero_data, &
-         AERO_STATE_WEIGHT_NONE)
+    call aero_state_allocate_size(aero_state, AERO_STATE_WEIGHT_NONE)
     
     call aero_weight_array_input_netcdf(aero_state%aero_weight, ncid)
     aero_state%n_part_ideal = 0d0

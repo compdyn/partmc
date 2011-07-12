@@ -40,10 +40,6 @@ module pmc_aero_particle_array
   type aero_particle_array_t
      !> Number of particles.
      integer :: n_part
-     !> Number of species.
-     integer :: n_spec
-     !> Number of sources.
-     integer :: n_source
      !> Particle array.
      type(aero_particle_t), pointer :: particle(:)
   end type aero_particle_array_t
@@ -59,8 +55,6 @@ contains
     type(aero_particle_array_t), intent(out) :: aero_particle_array
 
     aero_particle_array%n_part = 0
-    aero_particle_array%n_spec = 0
-    aero_particle_array%n_source = 0
     allocate(aero_particle_array%particle(0))
 
   end subroutine aero_particle_array_allocate
@@ -68,27 +62,19 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates and initializes to the given size.
-  subroutine aero_particle_array_allocate_size(aero_particle_array, &
-       n_part, n_spec, n_source)
+  subroutine aero_particle_array_allocate_size(aero_particle_array, n_part)
 
     !> Result.
     type(aero_particle_array_t), intent(out) :: aero_particle_array
     !> Number of particles.
     integer, intent(in) :: n_part
-    !> Number of species.
-    integer, intent(in) :: n_spec
-    !> Number of sources.
-    integer, intent(in) :: n_source
 
     integer :: i
 
     aero_particle_array%n_part = n_part
-    aero_particle_array%n_spec = n_spec
-    aero_particle_array%n_source = n_source
     allocate(aero_particle_array%particle(n_part))
     do i = 1,n_part
-       call aero_particle_allocate_size(aero_particle_array%particle(i), &
-            n_spec, n_source)
+       call aero_particle_allocate(aero_particle_array%particle(i))
     end do
 
   end subroutine aero_particle_array_allocate_size
@@ -126,8 +112,7 @@ contains
     
     call aero_particle_array_deallocate(aero_particle_array_to)
     call aero_particle_array_allocate_size(aero_particle_array_to, &
-         aero_particle_array_from%n_part, aero_particle_array_from%n_spec, &
-         aero_particle_array_from%n_source)
+         aero_particle_array_from%n_part)
     do i = 1,aero_particle_array_from%n_part
        call aero_particle_copy(aero_particle_array_from%particle(i), &
             aero_particle_array_to%particle(i))
@@ -294,8 +279,6 @@ contains
 
     total_size = 0
     total_size = total_size + pmc_mpi_pack_size_integer(val%n_part)
-    total_size = total_size + pmc_mpi_pack_size_integer(val%n_spec)
-    total_size = total_size + pmc_mpi_pack_size_integer(val%n_source)
     do i = 1,val%n_part
        total_size = total_size &
             + pmc_mpi_pack_size_aero_particle(val%particle(i))
@@ -321,8 +304,6 @@ contains
 
     prev_position = position
     call pmc_mpi_pack_integer(buffer, position, val%n_part)
-    call pmc_mpi_pack_integer(buffer, position, val%n_spec)
-    call pmc_mpi_pack_integer(buffer, position, val%n_source)
     do i = 1,val%n_part
        call pmc_mpi_pack_aero_particle(buffer, position, val%particle(i))
     end do
@@ -350,8 +331,6 @@ contains
     call aero_particle_array_deallocate(val)
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, val%n_part)
-    call pmc_mpi_unpack_integer(buffer, position, val%n_spec)
-    call pmc_mpi_unpack_integer(buffer, position, val%n_source)
     allocate(val%particle(val%n_part))
     do i = 1,val%n_part
        call aero_particle_allocate(val%particle(i))

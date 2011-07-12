@@ -1,4 +1,4 @@
-! Copyright (C) 2009 Matthew West
+! Copyright (C) 2009, 2011 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -146,7 +146,7 @@ program extract_summary
           time, small_num_conc, large_mass_conc
 
      ! check we only ever have one large particle
-     if (large_number /= 1) then
+     if (large_number < 1) then
         bad_large_num = .true.
      end if
 

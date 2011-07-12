@@ -1,7 +1,7 @@
 run_type particle               # particle-resolved run
 output_prefix out/bidisperse_part # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
-n_part 10001                    # number of Monte Carlo particles
+n_part 100                      # number of Monte Carlo particles
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 600                       # total simulation time (s)
@@ -37,7 +37,7 @@ do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
 
 rand_init 0                     # random initialization (0 to auto-generate)
-allow_doubling no               # whether to allow doubling (yes/no)
-allow_halving no                # whether to allow halving (yes/no)
+allow_doubling yes              # whether to allow doubling (yes/no)
+allow_halving yes               # whether to allow halving (yes/no)
 record_removals no              # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)

@@ -568,9 +568,47 @@ contains
        f_max = nc_i_max * nc_j_max / nc_min
     end if
 
-    ! FIXME: maybe sampling would be better?
-
   end subroutine max_coag_num_conc_factor
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determine the minimum and maximum number concentration factors
+  !> for coagulation.
+  subroutine max_coag_num_conc_factor_better(aero_weight_array, bin_grid, i_bin, &
+       j_bin, f_max)
+
+    !> Aerosol weight array.
+    type(aero_weight_t), intent(in) :: aero_weight_array(:)
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> First bin number.
+    integer, intent(in) :: i_bin
+    !> Second bin number.
+    integer, intent(in) :: j_bin
+    !> Maximum coagulation factor.
+    real(kind=dp), intent(out) :: f_max
+
+    integer, parameter :: n_sample = 5
+
+    real(kind=dp) :: i_r_min, i_r_max, j_r_min, j_r_max, i_r, j_r, f
+    integer :: i_sample, j_sample
+
+    i_r_min = bin_grid%edge_radius(i_bin)
+    i_r_max = bin_grid%edge_radius(i_bin + 1)
+    j_r_min = bin_grid%edge_radius(j_bin)
+    j_r_max = bin_grid%edge_radius(j_bin + 1)
+
+    f_max = 0d0
+    do i_sample = 1,n_sample
+       do j_sample = 1,n_sample
+          i_r = interp_linear_disc(i_r_min, i_r_max, n_sample, i_sample)
+          j_r = interp_linear_disc(j_r_min, j_r_max, n_sample, j_sample)
+          f = coag_num_conc_factor(aero_weight_array, i_r, j_r)
+          f_max = max(f_max, f)
+       end do
+    end do
+
+  end subroutine max_coag_num_conc_factor_better
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

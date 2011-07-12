@@ -138,10 +138,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the total weighted number concentration of a
-  !> distribution. (#/m^3)
-  real(kind=dp) function aero_dist_weighted_num_conc(aero_dist, &
-       aero_weight)
+  !> Returns the total number of particles of a distribution.
+  real(kind=dp) function aero_dist_number(aero_dist, aero_weight)
 
     !> Aerosol distribution.
     type(aero_dist_t), intent(in) :: aero_dist
@@ -150,14 +148,13 @@ contains
 
     integer :: i_mode
 
-    aero_dist_weighted_num_conc = 0d0
+    aero_dist_number = 0d0
     do i_mode = 1,aero_dist%n_mode
-       aero_dist_weighted_num_conc = aero_dist_weighted_num_conc &
-            + aero_mode_weighted_num_conc(aero_dist%mode(i_mode), &
-            aero_weight)
+       aero_dist_number = aero_dist_number &
+            + aero_mode_number(aero_dist%mode(i_mode), aero_weight)
     end do
 
-  end function aero_dist_weighted_num_conc
+  end function aero_dist_number
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

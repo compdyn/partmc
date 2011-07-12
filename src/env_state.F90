@@ -460,7 +460,8 @@ contains
     ! loss to background
     sample_prop = 1d0 - exp(- delta_t * effective_dilution_rate)
     call aero_state_zero(aero_state_delta)
-    aero_state_delta%comp_vol = aero_state%comp_vol
+    call aero_weight_copy(aero_state%aero_weight, &
+         aero_state_delta%aero_weight)
     call aero_state_sample(aero_state, aero_state_delta, sample_prop, &
          AERO_INFO_DILUTION)
     n_dil_out = aero_state_total_particles(aero_state_delta)
@@ -468,7 +469,8 @@ contains
     ! addition from background
     sample_prop = 1d0 - exp(- delta_t * effective_dilution_rate)
     call aero_state_zero(aero_state_delta)
-    aero_state_delta%comp_vol = aero_state%comp_vol
+    call aero_weight_copy(aero_state%aero_weight, &
+         aero_state_delta%aero_weight)
     call aero_state_add_aero_dist_sample(aero_state_delta, aero_data, &
          env_state%aero_background, sample_prop, env_state%elapsed_time)
     n_dil_in = aero_state_total_particles(aero_state_delta)
@@ -478,15 +480,16 @@ contains
     sample_prop = 1d0 &
          - exp(- delta_t * env_state%aero_emission_rate / env_state%height)
     call aero_state_zero(aero_state_delta)
-    aero_state_delta%comp_vol = aero_state%comp_vol
+    call aero_weight_copy(aero_state%aero_weight, &
+         aero_state_delta%aero_weight)
     call aero_state_add_aero_dist_sample(aero_state_delta, aero_data, &
          env_state%aero_emissions, sample_prop, env_state%elapsed_time)
     n_emit = aero_state_total_particles(aero_state_delta)
     call aero_state_add_particles(aero_state, aero_state_delta)
 
     ! update computational volume
-    aero_state%comp_vol = aero_state%comp_vol * env_state%temp &
-         / old_env_state%temp
+    call aero_weight_scale_comp_vol(aero_state%aero_weight, &
+         env_state%temp / old_env_state%temp)
 
     call aero_state_deallocate(aero_state_delta)
 

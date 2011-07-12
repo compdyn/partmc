@@ -81,12 +81,15 @@ contains
              call compute_n_partners( &
                   aero_state%aero_sorted%bin(i_bin)%n_entry, &
                   aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin), &
-                  aero_state%comp_vol, del_t, n_samp_per_j_part, &
+                  aero_state%aero_weight%comp_vol, del_t, n_samp_per_j_part, &
                   accept_factor)
              if (n_samp_per_j_part > COAG_ACCEL_N_EVENT) then
                 do_accel_coag = .true.
              end if
           end if
+          !>DEBUG
+          do_accel_coag = .false.
+          !<DEBUG
           if (do_accel_coag) then
              ! work backwards to avoid particle movement issues
              do j_entry = aero_state%aero_sorted%bin(j_bin)%n_entry,1,-1
@@ -110,8 +113,8 @@ contains
              call compute_n_samp(aero_state%aero_sorted%bin(i_bin)%n_entry, &
                   aero_state%aero_sorted%bin(j_bin)%n_entry, i_bin == j_bin, &
                   aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin), &
-                  aero_state%comp_vol, del_t, n_samp_mean, n_samp, &
-                  accept_factor)
+                  aero_state%aero_weight%comp_vol, del_t, n_samp_mean, &
+                  n_samp, accept_factor)
              tot_n_samp = tot_n_samp + n_samp
              do i_samp = 1,n_samp
                 ! check we still have enough particles to coagulate
@@ -192,7 +195,7 @@ contains
 
     real(kind=dp) :: prob_remove_i, prob_remove_i_max
     real(kind=dp) :: prob_coag, prob_coag_tot, prob_coag_mean
-    real(kind=dp) :: weight_i, weight_i_min, weight_j, k
+    real(kind=dp) :: num_conc_i, num_conc_i_min, num_conc_j, k
     real(kind=dp) :: vol_sq(aero_data%n_spec), vol_mean(aero_data%n_spec)
     real(kind=dp) :: vol_cv(aero_data%n_spec), vol_cv_max, mean_95_conf_cv
     integer :: n_samp_remove, n_samp_extra, n_samp_total, n_avg, i_samp
@@ -207,13 +210,12 @@ contains
        return
     end if
 
-    weight_j = aero_weight_value(aero_state%aero_weight, &
-         aero_particle_radius(coag_particle))
+    num_conc_j = aero_weight_num_conc(aero_state%aero_weight, coag_particle)
     j_id = coag_particle%id
 
-    weight_i_min = aero_weight_value(aero_state%aero_weight, &
+    num_conc_i_min = aero_weight_num_conc_at_radius(aero_state%aero_weight, &
          aero_state%aero_sorted%bin_grid%edge_radius(i_bin))
-    prob_remove_i_max = weight_j / weight_i_min
+    prob_remove_i_max = num_conc_j / num_conc_i_min
     call assert(653606684, prob_remove_i_max <= 1d0)
 
     n_samp_remove = rand_poisson(prob_remove_i_max * n_samp_mean)
@@ -260,9 +262,9 @@ contains
                sampled_partner)
           vol_sq = vol_sq + i_particle%vol**2
           if (i_samp <= n_samp_remove) then
-             weight_i = aero_weight_value(aero_state%aero_weight, &
-                  aero_particle_radius(i_particle))
-             prob_remove_i = weight_j / weight_i
+             num_conc_i = aero_weight_num_conc(aero_state%aero_weight, &
+                  i_particle)
+             prob_remove_i = num_conc_j / num_conc_i
              if (pmc_random() < prob_remove_i / prob_remove_i_max) then
                 n_remove = n_remove + 1
                 call aero_info_allocate(aero_info)
@@ -304,12 +306,12 @@ contains
     type(aero_particle_t), intent(in) :: sampled_partner
 
     integer :: j_part, j_id, new_bin
-    real(kind=dp) :: weight_j
+    real(kind=dp) :: num_conc_j
 
     j_part = aero_state%aero_sorted%bin(j_bin)%entry(j_entry)
     j_id = aero_state%p%particle(j_part)%id
-    weight_j = aero_weight_value(aero_state%aero_weight, &
-         aero_particle_radius(aero_state%p%particle(j_part)))
+    num_conc_j = aero_weight_num_conc(aero_state%aero_weight, &
+         aero_state%p%particle(j_part))
     call aero_particle_coagulate(aero_state%p%particle(j_part), &
          sampled_partner, aero_state%p%particle(j_part))
     aero_state%p%particle(j_part)%id = j_id
@@ -328,7 +330,7 @@ contains
     end if
     ! now j_bin/j_entry are invalid, but j_part is still good
     ! adjust particle number to account for weight changes
-    call aero_state_reweight_particle(aero_state, j_part, weight_j)
+    call aero_state_reweight_particle(aero_state, j_part, num_conc_j)
     ! we should only be doing this for decreasing weights
     call assert(654300924, aero_state%p%particle(j_part)%id == j_id)
 
@@ -533,7 +535,7 @@ contains
     type(aero_info_t), intent(inout) :: aero_info_2
 
     real(kind=dp) :: radius_1, radius_2, radius_new
-    real(kind=dp) :: weight_1, weight_2, weight_new, weight_min
+    real(kind=dp) :: num_conc_1, num_conc_2, num_conc_new, num_conc_min
     real(kind=dp) :: prob_remove_1, prob_remove_2, prob_create_new
     integer :: info_other_id
 
@@ -550,13 +552,13 @@ contains
        radius_1 = aero_particle_radius(particle_1)
        radius_2 = aero_particle_radius(particle_2)
        radius_new = vol2rad(rad2vol(radius_1) + rad2vol(radius_2))
-       weight_1 = aero_weight_value(aero_weight, radius_1)
-       weight_2 = aero_weight_value(aero_weight, radius_2)
-       weight_new = aero_weight_value(aero_weight, radius_new)
-       weight_min = min(weight_1, weight_2, weight_new)
-       prob_remove_1 = weight_min / weight_1
-       prob_remove_2 = weight_min / weight_2
-       prob_create_new = weight_min / weight_new
+       num_conc_1 = aero_weight_num_conc_at_radius(aero_weight, radius_1)
+       num_conc_2 = aero_weight_num_conc_at_radius(aero_weight, radius_2)
+       num_conc_new = aero_weight_num_conc_at_radius(aero_weight, radius_new)
+       num_conc_min = min(num_conc_1, num_conc_2, num_conc_new)
+       prob_remove_1 = num_conc_min / num_conc_1
+       prob_remove_2 = num_conc_min / num_conc_2
+       prob_create_new = num_conc_min / num_conc_new
        remove_1 = (pmc_random() < prob_remove_1)
        if (aero_weight%type == AERO_WEIGHT_TYPE_MFA) then
           remove_2 = .not. remove_1

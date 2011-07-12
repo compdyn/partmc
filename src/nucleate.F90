@@ -112,8 +112,9 @@ contains
 
     ! computational volume at the size of nucleated particles (only
     ! valid for mono-disperse nucleation)
-    nucleate_comp_vol = aero_state%comp_vol &
-         / aero_weight_value(aero_state%aero_weight, nucleate_diam / 2d0)
+    nucleate_comp_vol = 1d0 &
+         / aero_weight_num_conc_at_radius(aero_state%aero_weight, &
+         nucleate_diam / 2d0)
 
     ! determine number of nucleated particles
     n_samp_avg = nucleate_rate * nucleate_comp_vol * del_t

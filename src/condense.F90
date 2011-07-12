@@ -116,9 +116,6 @@ module pmc_condense
   !> Internal-use variable for storing the initial environment state
   !> during calls to the ODE solver.
   type(env_state_t) :: condense_saved_env_state_initial
-  !> Internal-use variable for storing the inital computational volume
-  !> during calls to the ODE solver.
-  real(kind=dp) :: condense_saved_V_comp_initial
   !> Internal-use variable for storing the rate of change of the
   !> temperature during calls to the ODE solver.
   real(kind=dp) :: condense_saved_Tdot
@@ -128,9 +125,9 @@ module pmc_condense
   !> Internal-use variable for storing the per-particle dry diameters
   !> during calls to the ODE solver.
   real(kind=dp), allocatable :: condense_saved_D_dry(:)
-  !> Internal-use variable for storing the per-particle weights during
-  !> calls to the ODE solver.
-  real(kind=dp), allocatable :: condense_saved_weight(:)
+  !> Internal-use variable for storing the per-particle number
+  !> concentrations during calls to the ODE solver.
+  real(kind=dp), allocatable :: condense_saved_num_conc(:)
 
   !> Internal-use variable for counting calls to the vector field
   !> subroutine.
@@ -164,11 +161,12 @@ contains
     type(aero_particle_t), pointer :: aero_particle
     real(kind=dp) :: state(aero_state%p%n_part + 1), init_time, final_time
     real(kind=dp) :: abs_tol_vector(aero_state%p%n_part + 1)
-    real(kind=dp) :: weight, old_weight
+    real(kind=dp) :: num_conc, old_num_conc
     type(env_state_t) :: env_state_final
-    real(kind=dp) :: water_vol_initial, water_vol_final, d_water_vol
-    real(kind=dp) :: vapor_vol_initial, vapor_vol_final, d_vapor_vol
-    real(kind=dp) :: V_comp_final, water_rel_error
+    real(kind=dp) :: water_vol_conc_initial, water_vol_conc_final
+    real(kind=dp) :: vapor_vol_conc_initial, vapor_vol_conc_final
+    real(kind=dp) :: d_water_vol_conc, d_vapor_vol_conc
+    real(kind=dp) :: V_comp_ratio, water_rel_error
 #ifdef PMC_USE_SUNDIALS
     real(kind=c_double), target :: state_f(aero_state%p%n_part + 1)
     real(kind=c_double), target :: abstol_f(aero_state%p%n_part + 1)
@@ -195,13 +193,12 @@ contains
 #endif
 
     ! initial water volume in the aerosol particles in volume V_comp
-    water_vol_initial = 0d0
+    water_vol_conc_initial = 0d0
     do i_part = 1,aero_state%p%n_part
        aero_particle => aero_state%p%particle(i_part)
-       weight = aero_weight_value(aero_state%aero_weight, &
-            aero_particle_radius(aero_particle))
-       water_vol_initial = water_vol_initial &
-            + aero_particle%vol(aero_data%i_water) * weight
+       num_conc = aero_weight_num_conc(aero_state%aero_weight, aero_particle)
+       water_vol_conc_initial = water_vol_conc_initial &
+            + aero_particle%vol(aero_data%i_water) * num_conc
     end do
 
     ! save data for use within the timestepper
@@ -213,8 +210,6 @@ contains
     call env_data_copy(env_data, condense_saved_env_data)
     call env_state_copy(env_state, condense_saved_env_state_initial)
 
-    condense_saved_V_comp_initial = aero_state%comp_vol
-    
     call env_state_allocate(env_state_final)
     call env_state_copy(env_state, env_state_final)
     call env_data_update_state(env_data, env_state_final, &
@@ -224,18 +219,18 @@ contains
     ! construct initial state vector from aero_state and env_state
     allocate(condense_saved_kappa(aero_state%p%n_part))
     allocate(condense_saved_D_dry(aero_state%p%n_part))
-    allocate(condense_saved_weight(aero_state%p%n_part))
-    ! work backwards for consistency with the later weight
-    ! adjustment, which has specific ordering requirements
+    allocate(condense_saved_num_conc(aero_state%p%n_part))
+    ! work backwards for consistency with the later number
+    ! concentration adjustment, which has specific ordering
+    ! requirements
     do i_part = aero_state%p%n_part,1,-1
        aero_particle => aero_state%p%particle(i_part)
        condense_saved_kappa(i_part) &
             = aero_particle_solute_kappa(aero_particle, aero_data)
        condense_saved_D_dry(i_part) = vol2diam(&
             aero_particle_solute_volume(aero_particle, aero_data))
-       condense_saved_weight(i_part) &
-            = aero_weight_value(aero_state%aero_weight, &
-            aero_particle_radius(aero_particle))
+       condense_saved_num_conc(i_part) &
+            = aero_weight_num_conc(aero_state%aero_weight, aero_particle)
        state(i_part) = aero_particle_diameter(aero_particle)
        abs_tol_vector(i_part) = max(1d-30, &
             1d-8 * (state(i_part) - condense_saved_D_dry(i_part)))
@@ -274,15 +269,15 @@ contains
     env_state%rel_humid = state(aero_state%p%n_part + 1)
 
     ! unpack result state vector into aero_state, compute the final
-    ! water volume in the aerosol particles in volume V_comp, and
-    ! adjust particle number to account for weight changes
-    water_vol_final = 0d0
+    ! water volume concentration, and adjust particle number to
+    ! account for number concentration changes
+    water_vol_conc_final = 0d0
     ! work backwards so any additions and removals will only affect
     ! particles that we've already dealt with
     do i_part = aero_state%p%n_part,1,-1
        aero_particle => aero_state%p%particle(i_part)
-       old_weight = aero_weight_value(aero_state%aero_weight, &
-            aero_particle_radius(aero_particle))
+       old_num_conc = aero_weight_num_conc(aero_state%aero_weight, &
+            aero_particle)
        
        ! translate output back to particle
        aero_particle%vol(aero_data%i_water) = diam2vol(state(i_part)) &
@@ -292,42 +287,41 @@ contains
        aero_particle%vol(aero_data%i_water) = max(0d0, &
             aero_particle%vol(aero_data%i_water))
        
-       ! add up total water volume, using old weights
-       water_vol_final = water_vol_final &
-            + aero_particle%vol(aero_data%i_water) * old_weight
+       ! add up total water volume, using old number concentrations
+       water_vol_conc_final = water_vol_conc_final &
+            + aero_particle%vol(aero_data%i_water) * old_num_conc
        
        ! adjust particle number to account for weight changes
-       call aero_state_reweight_particle(aero_state, i_part, old_weight)
+       call aero_state_reweight_particle(aero_state, i_part, old_num_conc)
     end do
     
     ! Check that water removed from particles equals water added to
     ! vapor. Note that water concentration is not conserved (due to
     ! V_comp changes), and we need to consider particle weightings
     ! correctly.
-    V_comp_final = condense_saved_V_comp_initial &
-         * env_state_final%temp / condense_saved_env_state_initial%temp
-    vapor_vol_initial = aero_data%molec_weight(aero_data%i_water) &
+    V_comp_ratio = env_state_final%temp &
+         / condense_saved_env_state_initial%temp
+    vapor_vol_conc_initial = aero_data%molec_weight(aero_data%i_water) &
          / (const%univ_gas_const * condense_saved_env_state_initial%temp) &
          * env_state_sat_vapor_pressure(condense_saved_env_state_initial) &
          * condense_saved_env_state_initial%rel_humid &
-         * condense_saved_V_comp_initial &
          / aero_particle_water_density(aero_data)
-    vapor_vol_final = aero_data%molec_weight(aero_data%i_water) &
+    vapor_vol_conc_final = aero_data%molec_weight(aero_data%i_water) &
          / (const%univ_gas_const * env_state_final%temp) &
          * env_state_sat_vapor_pressure(env_state_final) &
          * env_state%rel_humid &
-         * V_comp_final / aero_particle_water_density(aero_data)
-    d_vapor_vol = vapor_vol_final - vapor_vol_initial
-    d_water_vol = water_vol_final - water_vol_initial
-    water_rel_error = (d_vapor_vol + d_water_vol) &
-         / (vapor_vol_final + water_vol_final)
+         * V_comp_ratio / aero_particle_water_density(aero_data)
+    d_vapor_vol_conc = vapor_vol_conc_final - vapor_vol_conc_initial
+    d_water_vol_conc = water_vol_conc_final - water_vol_conc_initial
+    water_rel_error = (d_vapor_vol_conc + d_water_vol_conc) &
+         / (vapor_vol_conc_final + water_vol_conc_final)
     call warn_assert_msg(477865387, abs(water_rel_error) < 1d-6, &
          "condensation water imbalance too high: " &
          // trim(real_to_string(water_rel_error)))
 
     deallocate(condense_saved_kappa)
     deallocate(condense_saved_D_dry)
-    deallocate(condense_saved_weight)
+    deallocate(condense_saved_num_conc)
     call env_state_deallocate(env_state_final)
     call aero_data_deallocate(condense_saved_aero_data)
     call env_data_deallocate(condense_saved_env_data)
@@ -574,9 +568,9 @@ contains
     do i_part = 1,(n_eqn - 1)
        inputs%D = state(i_part)
        inputs%D_dry = condense_saved_D_dry(i_part)
-       inputs%V_comp = condense_saved_V_comp_initial &
-            * env_state%temp / condense_saved_env_state_initial%temp &
-            / condense_saved_weight(i_part)
+       inputs%V_comp = env_state%temp &
+            / condense_saved_env_state_initial%temp &
+            / condense_saved_num_conc(i_part)
        inputs%kappa = condense_saved_kappa(i_part)
        call condense_rates(inputs, outputs)
        state_dot(i_part) = outputs%Ddot
@@ -635,9 +629,9 @@ contains
     do i_part = 1,(n_eqn - 1)
        inputs%D = state(i_part)
        inputs%D_dry = condense_saved_D_dry(i_part)
-       inputs%V_comp = condense_saved_V_comp_initial &
-            * env_state%temp / condense_saved_env_state_initial%temp &
-            / condense_saved_weight(i_part)
+       inputs%V_comp = env_state%temp &
+            / condense_saved_env_state_initial%temp &
+            / condense_saved_num_conc(i_part)
        inputs%kappa = condense_saved_kappa(i_part)
        call condense_rates(inputs, outputs)
        dDdot_dD(i_part) = outputs%dDdot_dD
@@ -786,7 +780,7 @@ contains
     type(aero_state_t), intent(inout) :: aero_state
 
     integer :: i_part
-    real(kind=dp) :: old_weight
+    real(kind=dp) :: old_num_conc
  
     ! We're modifying particle diameters, so bin sorting is now invalid
     aero_state%valid_sort = .false.
@@ -794,15 +788,15 @@ contains
     ! work backwards so any additions and removals will only affect
     ! particles that we've already dealt with
     do i_part = aero_state%p%n_part,1,-1
-       old_weight = aero_weight_value(aero_state%aero_weight, &
-            aero_particle_radius(aero_state%p%particle(i_part)))
+       old_num_conc = aero_weight_num_conc(aero_state%aero_weight, &
+            aero_state%p%particle(i_part))
        
        ! equilibriate the particle by adjusting its water content
        call condense_equilib_particle(env_state, aero_data, &
             aero_state%p%particle(i_part))
        
        ! adjust particle number to account for weight changes
-       call aero_state_reweight_particle(aero_state, i_part, old_weight)
+       call aero_state_reweight_particle(aero_state, i_part, old_num_conc)
     end do
 
   end subroutine condense_equilib_particles

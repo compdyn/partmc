@@ -173,9 +173,12 @@ contains
     radius_1 = aero_particle_radius(aero_particle_1)
     radius_2 = aero_particle_radius(aero_particle_2)
     radius_1_plus_2 = vol2rad(rad2vol(radius_1) + rad2vol(radius_2))
-    weight_1 = aero_weight_value(aero_weight, radius_1)
-    weight_2 = aero_weight_value(aero_weight, radius_2)
-    weight_1_plus_2 = aero_weight_value(aero_weight, radius_1_plus_2)
+    weight_1 = aero_weight_num_conc_at_radius(aero_weight, radius_1) &
+         * aero_weight%comp_vol
+    weight_2 = aero_weight_num_conc_at_radius(aero_weight, radius_2) &
+         * aero_weight%comp_vol
+    weight_1_plus_2 = aero_weight_num_conc_at_radius(aero_weight, &
+         radius_1_plus_2) * aero_weight%comp_vol
     weight_min = min(weight_1, weight_2, weight_1_plus_2)
     k = unweighted_k * weight_1 * weight_2 / weight_min
     
@@ -210,9 +213,12 @@ contains
     call kernel_minmax(coag_kernel_type, v1, v2, aero_data, env_state, &
          unweighted_k_min, unweighted_k_max)
 
-    weight_1 = aero_weight_value(aero_weight, vol2rad(v1))
-    weight_2 = aero_weight_value(aero_weight, vol2rad(v2))
-    weight_1_plus_2 = aero_weight_value(aero_weight, vol2rad(v1 + v2))
+    weight_1 = aero_weight_num_conc_at_radius(aero_weight, vol2rad(v1)) &
+         * aero_weight%comp_vol
+    weight_2 = aero_weight_num_conc_at_radius(aero_weight, vol2rad(v2)) &
+         * aero_weight%comp_vol
+    weight_1_plus_2 = aero_weight_num_conc_at_radius(aero_weight, &
+         vol2rad(v1 + v2)) * aero_weight%comp_vol
     weight_min = min(weight_1, weight_2, weight_1_plus_2)
     k_min = unweighted_k_min * weight_1 * weight_2 / weight_min
     k_max = unweighted_k_max * weight_1 * weight_2 / weight_min

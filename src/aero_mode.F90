@@ -536,8 +536,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Return the weighted number concentration for an \c aero_mode.
-  real(kind=dp) function aero_mode_weighted_num_conc(aero_mode, aero_weight)
+  !> Return the total number of computational particles for an \c aero_mode.
+  real(kind=dp) function aero_mode_number(aero_mode, aero_weight)
 
     !> Aero_mode to sample radius from.
     type(aero_mode_t), intent(in) :: aero_mode
@@ -549,13 +549,13 @@ contains
 
     if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
        if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
-          aero_mode_weighted_num_conc = aero_mode%num_conc
+          aero_mode_number = aero_mode%num_conc * aero_weight%comp_vol
        elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
             .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
             x_mean_prime = log10(aero_mode%char_radius) &
             - aero_weight%exponent * aero_mode%log10_std_dev_radius**2 &
             * log(10d0)
-          aero_mode_weighted_num_conc = aero_mode%num_conc &
+          aero_mode_number = aero_mode%num_conc * aero_weight%comp_vol &
                * aero_weight%ref_radius**aero_weight%exponent &
                * exp((x_mean_prime**2 - log10(aero_mode%char_radius)**2) &
                / (2d0 * aero_mode%log10_std_dev_radius**2))
@@ -565,26 +565,28 @@ contains
        end if
     elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
        if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
-          aero_mode_weighted_num_conc = aero_mode%num_conc
+          aero_mode_number = aero_mode%num_conc * aero_weight%comp_vol
        else
           call die_msg(822252601, &
                "cannot use exponential modes with weighting")
        end if
     elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
-       aero_mode_weighted_num_conc = aero_mode%num_conc &
-            / aero_weight_value(aero_weight, aero_mode%char_radius)
+       aero_mode_number = aero_mode%num_conc &
+            / aero_weight_num_conc_at_radius(aero_weight, &
+            aero_mode%char_radius)
     elseif (aero_mode%type == AERO_MODE_TYPE_SAMPLED) then
        allocate(weighted_num_conc(size(aero_mode%sample_num_conc)))
        call aero_mode_weighted_sampled_num_conc(aero_mode, aero_weight, &
             weighted_num_conc)
-       aero_mode_weighted_num_conc = sum(weighted_num_conc)
+       aero_mode_weighted_num_conc = sum(weighted_num_conc) &
+            * aero_weight%comp_vol
        deallocate(weighted_num_conc)
     else
        call die_msg(901140225, "unknown aero_mode type: " &
             // trim(integer_to_string(aero_mode%type)))
     end if
 
-  end function aero_mode_weighted_num_conc
+  end function aero_mode_number
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

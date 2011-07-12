@@ -167,7 +167,7 @@ contains
     real(kind=dp) :: conv_fac(aero_data%n_spec), dum_var
     integer :: i_part, i_spec, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
-    real(kind=dp) :: weight
+    real(kind=dp) :: num_conc
 
     ! MOSAIC function interfaces
     interface
@@ -206,7 +206,7 @@ contains
     do i_spec = 1,aero_data%n_spec
        ! converts m^3(species) to nmol(species)/m^3(air)
        conv_fac(i_spec) = 1.D9 * aero_data%density(i_spec) &
-            / (aero_data%molec_weight(i_spec) * aero_state%comp_vol)
+            / aero_data%molec_weight(i_spec)
     enddo
 
     ! environmental parameters: map PartMC -> MOSAIC
@@ -229,23 +229,20 @@ contains
     ! has specific ordering requirements
     do i_part = aero_state%p%n_part,1,-1
        particle => aero_state%p%particle(i_part)
-       weight = aero_weight_value(aero_state%aero_weight, &
-            aero_particle_radius(particle))
+       num_conc = aero_weight_num_conc(aero_state%aero_weight, particle)
        do i_spec = 1,aero_data%n_spec
           i_spec_mosaic = aero_data%mosaic_index(i_spec)
           if (i_spec_mosaic > 0) then
              ! convert m^3(species) to nmol(species)/m^3(air)
              aer(i_spec_mosaic, 3, i_part) &   ! nmol/m^3(air)
-                  = particle%vol(i_spec) * conv_fac(i_spec) * weight
+                  = particle%vol(i_spec) * conv_fac(i_spec) * num_conc
           end if
        end do
        ! handle water specially
        ! convert m^3(water) to kg(water)/m^3(air)
        water_a(i_part) = particle%vol(aero_data%i_water) &
-            * aero_data%density(aero_data%i_water) &
-            / (aero_state%comp_vol / weight)
-       num_a(i_part) = 1d-6 &
-            / (aero_state%comp_vol / weight) ! num conc (#/cc(air))
+            * aero_data%density(aero_data%i_water) * num_conc
+       num_a(i_part) = 1d-6 * num_conc ! num conc (#/cc(air))
        jhyst_leg(i_part) = particle%water_hyst_leg
     end do
 
@@ -293,13 +290,13 @@ contains
     real(kind=dp) :: conv_fac(aero_data%n_spec), dum_var
     integer :: i_part, i_spec, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
-    real(kind=dp) :: old_weight
+    real(kind=dp) :: old_num_conc
 
     ! compute aerosol conversion factors
     do i_spec = 1,aero_data%n_spec
        ! converts m^3(species) to nmol(species)/m^3(air)
-       conv_fac(i_spec) = 1.D9 * aero_data%density(i_spec) &
-            / (aero_data%molec_weight(i_spec) * aero_state%comp_vol)
+       conv_fac(i_spec) = 1d9 * aero_data%density(i_spec) &
+            / aero_data%molec_weight(i_spec)
     enddo
 
     ! environmental parameters: map MOSAIC -> PartMC
@@ -321,26 +318,24 @@ contains
     ! particles that we've already dealt with
     do i_part = aero_state%p%n_part,1,-1
        particle => aero_state%p%particle(i_part)
-       old_weight = aero_weight_value(aero_state%aero_weight, &
-            aero_particle_radius(particle))
+       old_num_conc = aero_weight_num_conc(aero_state%aero_weight, particle)
        do i_spec = 1,aero_data%n_spec
           i_spec_mosaic = aero_data%mosaic_index(i_spec)
           if (i_spec_mosaic > 0) then
              particle%vol(i_spec) = &
                   ! convert nmol(species)/m^3(air) to m^3(species)
                   aer(i_spec_mosaic, 3, i_part) &
-                  / (conv_fac(i_spec) * old_weight)
+                  / (conv_fac(i_spec) * old_num_conc)
           end if
        end do
        particle%water_hyst_leg = jhyst_leg(i_part)
        ! handle water specially
        ! convert kg(water)/m^3(air) to m^3(water)
        particle%vol(aero_data%i_water) = water_a(i_part) &
-            / aero_data%density(aero_data%i_water) &
-            * (aero_state%comp_vol / old_weight)
+            / aero_data%density(aero_data%i_water) / old_num_conc
        
        ! adjust particle number to account for weight changes
-       call aero_state_reweight_particle(aero_state, i_part, old_weight)
+       call aero_state_reweight_particle(aero_state, i_part, old_num_conc)
     end do
 
     ! gas chemistry: map MOSAIC -> PartMC

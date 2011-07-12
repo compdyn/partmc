@@ -1,7 +1,7 @@
 run_type particle               # particle-resolved run
 output_prefix out/bidisperse_part # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
-n_part 100                      # number of Monte Carlo particles
+n_part 1000                     # number of Monte Carlo particles
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 600                       # total simulation time (s)

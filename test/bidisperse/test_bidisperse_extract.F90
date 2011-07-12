@@ -38,9 +38,6 @@ program extract_summary
   real(kind=dp) :: val, large_init_num_conc, small_init_num_conc
   real(kind=dp) :: large_mass_conc, small_num_conc
   real(kind=dp) :: radius, volume
-  integer :: large_number
-  real(kind=dp) :: large_rel_error, small_rel_error
-  logical :: bad_large_num
 
   ! open output
   open(unit=out_unit, file=out_filename, iostat=ios)
@@ -52,7 +49,6 @@ program extract_summary
 
   ! process NetCDF files
   i_time = 0
-  bad_large_num = .false.
   do while (.true.)
      i_time = i_time + 1
      write(in_filename,'(a,i8.8,a)') trim(in_prefix), i_time, ".nc"
@@ -123,7 +119,6 @@ program extract_summary
      ! compute information
      small_num_conc = 0d0
      large_mass_conc = 0d0
-     large_number = 0
      do i_part = 1,n_aero_particle
         volume = sum(aero_particle_mass(i_part,:) / aero_density)
         radius = (volume / (4d0 / 3d0 &
@@ -131,7 +126,6 @@ program extract_summary
         if (radius < radius_cutoff) then
            small_num_conc = small_num_conc + 1d0 / aero_comp_vol(i_part)
         else
-           large_number = large_number + 1
            large_mass_conc = large_mass_conc &
                 + sum(aero_particle_mass(i_part,:)) / aero_comp_vol(i_part)
         end if
@@ -144,21 +138,9 @@ program extract_summary
      ! write output
      write(out_unit,'(e20.10,e20.10,e20.10)') &
           time, small_num_conc, large_mass_conc
-
-     ! check we only ever have one large particle
-     if (large_number < 1) then
-        bad_large_num = .true.
-     end if
-
   end do
 
   close(out_unit)
-
-  if (bad_large_num) then
-     write(*,*) "WARNING: other than one large particle found,", &
-          " so results will be bad."
-     stop 1
-  end if
 
 contains
 

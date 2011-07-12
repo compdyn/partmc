@@ -800,7 +800,7 @@ contains
     ! if we have less than half the maximum number of particles then
     ! double until we fill up the array
     if (allow_doubling) then
-       do i_group = 1,size(aero_state%aero_weight)
+       do i_group = 1,n_group
           global_n_part &
                = aero_state_total_particles_all_procs(aero_state, i_group)
           do while ((real(global_n_part, kind=dp) &
@@ -819,7 +819,7 @@ contains
 
     ! same for halving if we have too many particles
     if (allow_halving) then
-       do i_group = 1,size(aero_state%aero_weight)
+       do i_group = 1,n_group
           do while (real(aero_state_total_particles_all_procs(aero_state, &
                i_group), kind=dp) &
                > aero_state%n_part_ideal / real(n_group, kind=dp) * 2d0)

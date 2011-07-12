@@ -259,6 +259,39 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Check whether a given aero_weight array is flat in total.
+  logical function aero_weight_array_check_flat(aero_weight_array)
+
+    !> Aerosol weight array.
+    type(aero_weight_t), intent(in) :: aero_weight_array(:)
+
+    integer :: i_group
+
+    ! check we know about all the weight types
+    do i_group = 1,size(aero_weight_array)
+       call assert(269952052, &
+            (aero_weight_array(i_group)%type == AERO_WEIGHT_TYPE_NONE) &
+            .or. (aero_weight_array(i_group)%type == AERO_WEIGHT_TYPE_POWER) &
+            .or. (aero_weight_array(i_group)%type == AERO_WEIGHT_TYPE_MFA))
+       if (aero_weight_array(i_group)%type == AERO_WEIGHT_TYPE_NONE) then
+          call assert(829651126, aero_weight_array(i_group)%exponent == 0d0)
+       end if
+       if (aero_weight_array(i_group)%type == AERO_WEIGHT_TYPE_MFA) then
+          call assert(829651126, aero_weight_array(i_group)%exponent == -3d0)
+       end if
+    end do
+
+    if (abs(sum(aero_weight_array%exponent)) &
+         < 1d-20 * sum(abs(aero_weight_array%exponent))) then
+       aero_weight_array_check_flat = .true.
+    else
+       aero_weight_array_check_flat = .false.
+    end if
+
+  end function aero_weight_array_check_flat
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Determine whether all weight functions in an array are monotone
   !> increasing, monotone decreasing, or neither.
   subroutine aero_weight_array_check_monotonicity(aero_weight_array, &

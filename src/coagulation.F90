@@ -66,16 +66,16 @@ contains
     tot_n_coag = 0
     !do i_group = 1,size(aero_state%aero_sorted%group)
     !do j_group = 1,i_group
-    do i_bin = 1,size(aero_state%aero_sorted%unif_bin)
-       if (aero_state%aero_sorted%unif_bin(i_bin)%n_entry == 0) &
+    do i_bin = 1,size(aero_state%aero_sorted%size%inverse)
+       if (aero_state%aero_sorted%size%inverse(i_bin)%n_entry == 0) &
             cycle
        !if (i_group == j_group) then
        !   j_bin_start = i_bin
        !else
        !   j_bin_start = 1
        !end if
-       do j_bin = i_bin,size(aero_state%aero_sorted%unif_bin)
-          if (aero_state%aero_sorted%unif_bin(j_bin)%n_entry == 0) &
+       do j_bin = i_bin,size(aero_state%aero_sorted%size%inverse)
+          if (aero_state%aero_sorted%size%inverse(j_bin)%n_entry == 0) &
                cycle
           call mc_coag_for_bin(coag_kernel_type, env_state, aero_data, &
                aero_state, del_t, tot_n_samp, tot_n_coag, &
@@ -182,7 +182,7 @@ contains
     end if
 
     call compute_n_source( &
-         aero_state%aero_sorted%unif_bin(source_bin)%n_entry, &
+         aero_state%aero_sorted%size%inverse(source_bin)%n_entry, &
          k_max, del_t, n_source_per_target, accept_factor)
     if (n_source_per_target < COAG_ACCEL_N_EVENT) then
        per_particle_coag_succeeded = .false.
@@ -194,9 +194,9 @@ contains
 
     ! work backwards to avoid particle movement issues
     do target_unif_entry &
-         = aero_state%aero_sorted%unif_bin(target_bin)%n_entry,1,-1
+         = aero_state%aero_sorted%size%inverse(target_bin)%n_entry,1,-1
        target_part &
-            = aero_state%aero_sorted%unif_bin(target_bin)%entry(target_unif_entry)
+            = aero_state%aero_sorted%size%inverse(target_bin)%entry(target_unif_entry)
        ! need to copy coag_particle as the underlying storage may be
        ! rearranged due to removals
        call aero_particle_copy(aero_state%apa%particle(target_part), &
@@ -338,7 +338,7 @@ contains
     type(aero_particle_t), pointer :: i_particle
     type(aero_info_t) :: aero_info
 
-    if (aero_state%aero_sorted%unif_bin(source_bin)%n_entry == 0) then
+    if (aero_state%aero_sorted%size%inverse(source_bin)%n_entry == 0) then
        n_samp = 0
        n_remove = 0
        n_coag = 0
@@ -370,7 +370,7 @@ contains
     ! FIXME: Can't we just do n_samp = 1,n_samp_total and shift tests
     ! to the end?
     do i_samp = 1,n_samp_total
-       if (aero_state%aero_sorted%unif_bin(source_bin)%n_entry == 0) &
+       if (aero_state%aero_sorted%size%inverse(source_bin)%n_entry == 0) &
             exit
        if ((n_samp > n_samp_remove) .and. (n_avg >= 2)) then
           vol_mean = source_particle%vol / real(n_avg, kind=dp)
@@ -387,8 +387,8 @@ contains
        n_samp = n_samp + 1
        ! FIXME: We are sampling with replacement. Is this a problem?
        i_unif_entry &
-            = pmc_rand_int(aero_state%aero_sorted%unif_bin(source_bin)%n_entry)
-       i_part = aero_state%aero_sorted%unif_bin(source_bin)%entry(i_unif_entry)
+            = pmc_rand_int(aero_state%aero_sorted%size%inverse(source_bin)%n_entry)
+       i_part = aero_state%aero_sorted%size%inverse(source_bin)%entry(i_unif_entry)
        i_particle => aero_state%apa%particle(i_part)
        ! re-get j_part as particle ordering may be changing
        call num_conc_weighted_kernel(coag_kernel_type, i_particle, &
@@ -451,7 +451,7 @@ contains
     real(kind=dp) :: old_num_conc_target, new_num_conc_target
 
     target_part &
-         = aero_state%aero_sorted%unif_bin(target_bin)%entry(target_unif_entry)
+         = aero_state%aero_sorted%size%inverse(target_bin)%entry(target_unif_entry)
     target_id = aero_state%apa%particle(target_part)%id
     old_num_conc_target &
          = aero_weight_array_num_conc(aero_state%aero_weight, &
@@ -521,17 +521,17 @@ contains
     logical :: did_coag
 
     call compute_n_samp( &
-         aero_state%aero_sorted%unif_bin(i_bin)%n_entry, &
-         aero_state%aero_sorted%unif_bin(j_bin)%n_entry, &
+         aero_state%aero_sorted%size%inverse(i_bin)%n_entry, &
+         aero_state%aero_sorted%size%inverse(j_bin)%n_entry, &
          (i_bin == j_bin), k_max, del_t, n_samp_mean, n_samp, accept_factor)
     tot_n_samp = tot_n_samp + n_samp
 
     do i_samp = 1,n_samp
        ! check we still have enough particles to coagulate
-       if (((aero_state%aero_sorted%unif_bin(i_bin)%n_entry < 2) &
+       if (((aero_state%aero_sorted%size%inverse(i_bin)%n_entry < 2) &
             .and. (i_bin == j_bin)) &
-            .or. (aero_state%aero_sorted%unif_bin(i_bin)%n_entry < 1) &
-            .or. (aero_state%aero_sorted%unif_bin(j_bin)%n_entry < 1)) &
+            .or. (aero_state%aero_sorted%size%inverse(i_bin)%n_entry < 1) &
+            .or. (aero_state%aero_sorted%size%inverse(j_bin)%n_entry < 1)) &
             exit
        call maybe_coag_pair(env_state, aero_data, aero_state, i_bin, j_bin, &
             coag_kernel_type, accept_factor, did_coag)
@@ -633,8 +633,8 @@ contains
     real(kind=dp) :: p, k
     
     call find_rand_pair(aero_state%aero_sorted, b1, b2, s1, s2)
-    p1 = aero_state%aero_sorted%unif_bin(b1)%entry(s1)
-    p2 = aero_state%aero_sorted%unif_bin(b2)%entry(s2)
+    p1 = aero_state%aero_sorted%size%inverse(b1)%entry(s1)
+    p2 = aero_state%aero_sorted%size%inverse(b2)%entry(s2)
     call num_conc_weighted_kernel(coag_kernel_type, &
          aero_state%apa%particle(p1), aero_state%apa%particle(p2), aero_data, &
          aero_state%aero_weight, env_state, k)
@@ -668,18 +668,18 @@ contains
     !> Second rand particle.
     integer, intent(out) :: s2
 
-    call assert(619608562, aero_sorted%unif_bin(b1)%n_entry >= 1)
-    s1 = pmc_rand_int(aero_sorted%unif_bin(b1)%n_entry)
+    call assert(619608562, aero_sorted%size%inverse(b1)%n_entry >= 1)
+    s1 = pmc_rand_int(aero_sorted%size%inverse(b1)%n_entry)
 
     if (b1 == b2) then
-       call assert(956184336, aero_sorted%unif_bin(b2)%n_entry >= 2)
-       s2 = pmc_rand_int(aero_sorted%unif_bin(b2)%n_entry - 1)
+       call assert(956184336, aero_sorted%size%inverse(b2)%n_entry >= 2)
+       s2 = pmc_rand_int(aero_sorted%size%inverse(b2)%n_entry - 1)
        if (s2 == s1) then
-          s2 = aero_sorted%unif_bin(b2)%n_entry
+          s2 = aero_sorted%size%inverse(b2)%n_entry
        end if
     else
-       call assert(271635751, aero_sorted%unif_bin(b2)%n_entry >= 1)
-       s2 = pmc_rand_int(aero_sorted%unif_bin(b2)%n_entry)
+       call assert(271635751, aero_sorted%size%inverse(b2)%n_entry >= 1)
+       s2 = pmc_rand_int(aero_sorted%size%inverse(b2)%n_entry)
     end if
     
   end subroutine find_rand_pair

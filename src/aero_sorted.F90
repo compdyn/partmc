@@ -333,7 +333,7 @@ contains
        i_bin_min = 0
        i_bin_max = 0
        do i_bin = 1,aero_sorted%bin_grid%n_bin
-          if (aero_sorted%unif_bin(i_bin)%n_entry > 0) then
+          if (aero_sorted%size%inverse(i_bin)%n_entry > 0) then
              if (i_bin_min == 0) then
                 i_bin_min = i_bin
              end if

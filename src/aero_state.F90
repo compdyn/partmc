@@ -201,7 +201,7 @@ contains
     if (present(i_group)) then
        if (aero_state%valid_sort) then
           aero_state_total_particles &
-               = aero_state%aero_sorted%group(i_group)%n_entry
+               = aero_state%aero_sorted%weight%inverse(i_group)%n_entry
        else
           ! FIXME: should we just sort?
           aero_state_total_particles = 0
@@ -352,9 +352,9 @@ contains
 
     call assert(742996300, aero_state%valid_sort)
     call assert(392182617, &
-         aero_state%aero_sorted%unif_bin(i_bin)%n_entry > 0)
-    i_entry = pmc_rand_int(aero_state%aero_sorted%unif_bin(i_bin)%n_entry)
-    i_part = aero_state%aero_sorted%unif_bin(i_bin)%entry(i_entry)
+         aero_state%aero_sorted%size%inverse(i_bin)%n_entry > 0)
+    i_entry = pmc_rand_int(aero_state%aero_sorted%size%inverse(i_bin)%n_entry)
+    i_part = aero_state%aero_sorted%size%inverse(i_bin)%entry(i_entry)
     call aero_particle_copy(aero_state%apa%particle(i_part), aero_particle)
     call aero_state_remove_particle_no_info(aero_state, i_part)
 
@@ -944,10 +944,10 @@ contains
 
     if (comp_vol_ratio < 1d0) then
        n_remove = prob_round(comp_vol_ratio &
-            * real(aero_state%aero_sorted%group(i_group)%n_entry, kind=dp))
+            * real(aero_state%aero_sorted%weight%inverse(i_group)%n_entry, kind=dp))
        do i_remove = 1,n_remove
-          i_entry = pmc_rand_int(aero_state%aero_sorted%group(i_group)%n_entry)
-          i_part = aero_state%aero_sorted%group(i_group)%entry(i_entry)
+          i_entry = pmc_rand_int(aero_state%aero_sorted%weight%inverse(i_group)%n_entry)
+          i_part = aero_state%aero_sorted%weight%inverse(i_group)%entry(i_entry)
           call aero_info_allocate(aero_info)
           aero_info%id = aero_state%apa%particle(i_part)%id
           aero_info%action = AERO_INFO_HALVED
@@ -956,8 +956,8 @@ contains
           call aero_info_deallocate(aero_info)
        end do
     elseif (comp_vol_ratio > 1d0) then
-       do i_entry = aero_state%aero_sorted%group(i_group)%n_entry,1,-1
-          i_part = aero_state%aero_sorted%group(i_group)%entry(i_entry)
+       do i_entry = aero_state%aero_sorted%weight%inverse(i_group)%n_entry,1,-1
+          i_part = aero_state%aero_sorted%weight%inverse(i_group)%entry(i_entry)
           call aero_state_dup_particle(aero_state, i_part, comp_vol_ratio)
        end do
     end if
@@ -1166,8 +1166,8 @@ contains
     do i_bin = 1,bin_grid%n_bin
        species_volume_conc = 0d0
        total_volume_conc = 0d0
-       do i_entry = 1,aero_state%aero_sorted%unif_bin(i_bin)%n_entry
-          i_part = aero_state%aero_sorted%unif_bin(i_bin)%entry(i_entry)
+       do i_entry = 1,aero_state%aero_sorted%size%inverse(i_bin)%n_entry
+          i_part = aero_state%aero_sorted%size%inverse(i_bin)%entry(i_entry)
           aero_particle => aero_state%apa%particle(i_part)
           num_conc = aero_weight_array_num_conc(aero_state%aero_weight, &
                aero_particle)
@@ -1177,8 +1177,8 @@ contains
                + num_conc * aero_particle%vol
           total_volume_conc = total_volume_conc + num_conc * particle_volume
        end do
-       do i_entry = 1,aero_state%aero_sorted%unif_bin(i_bin)%n_entry
-          i_part = aero_state%aero_sorted%unif_bin(i_bin)%entry(i_entry)
+       do i_entry = 1,aero_state%aero_sorted%size%inverse(i_bin)%n_entry
+          i_part = aero_state%aero_sorted%size%inverse(i_bin)%entry(i_entry)
           aero_particle => aero_state%apa%particle(i_part)
           particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
                aero_data, dry_volume)
@@ -1239,15 +1239,15 @@ contains
     call aero_state_sort(aero_state, bin_grid)
 
     do i_bin = 1,bin_grid%n_bin
-       if (aero_state%aero_sorted%unif_bin(i_bin)%n_entry == 0) then
+       if (aero_state%aero_sorted%size%inverse(i_bin)%n_entry == 0) then
           cycle
        end if
 
-       n_part = aero_state%aero_sorted%unif_bin(i_bin)%n_entry
+       n_part = aero_state%aero_sorted%size%inverse(i_bin)%n_entry
        total_num_conc = 0d0
        total_volume_conc = 0d0
-       do i_entry = 1,aero_state%aero_sorted%unif_bin(i_bin)%n_entry
-          i_part = aero_state%aero_sorted%unif_bin(i_bin)%entry(i_entry)
+       do i_entry = 1,aero_state%aero_sorted%size%inverse(i_bin)%n_entry
+          i_part = aero_state%aero_sorted%size%inverse(i_bin)%entry(i_entry)
           aero_particle => aero_state%apa%particle(i_part)
           num_conc = aero_weight_array_num_conc(aero_state%aero_weight, &
                aero_particle)
@@ -1266,7 +1266,7 @@ contains
                = aero_weight_array_num_conc_at_radius(aero_state%aero_weight, &
                1d0)
           new_particle_volume = total_volume_conc / num_conc &
-               / real(aero_state%aero_sorted%unif_bin(i_bin)%n_entry, kind=dp)
+               / real(aero_state%aero_sorted%size%inverse(i_bin)%n_entry, kind=dp)
        elseif (preserve_number) then
           ! number-preserving scheme: Solve the implicit equation:
           ! n_part * W(new_vol) = total_num_conc
@@ -1285,7 +1285,7 @@ contains
 
           ! initialize to min and max particle volumes
           do i_entry = 1,n_part
-             i_part = aero_state%aero_sorted%unif_bin(i_bin)%entry(i_entry)
+             i_part = aero_state%aero_sorted%size%inverse(i_bin)%entry(i_entry)
              aero_particle => aero_state%apa%particle(i_part)
              particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
                   aero_data, dry_volume)
@@ -1341,7 +1341,7 @@ contains
 
           ! initialize to min and max particle volumes
           do i_entry = 1,n_part
-             i_part = aero_state%aero_sorted%unif_bin(i_bin)%entry(i_entry)
+             i_part = aero_state%aero_sorted%size%inverse(i_bin)%entry(i_entry)
              aero_particle => aero_state%apa%particle(i_part)
              particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
                   aero_data, dry_volume)
@@ -1384,7 +1384,7 @@ contains
        end if
 
        do i_entry = 1,n_part
-          i_part = aero_state%aero_sorted%unif_bin(i_bin)%entry(i_entry)
+          i_part = aero_state%aero_sorted%size%inverse(i_bin)%entry(i_entry)
           aero_particle => aero_state%apa%particle(i_part)
           particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
                aero_data, dry_volume)

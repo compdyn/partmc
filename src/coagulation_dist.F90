@@ -158,7 +158,7 @@ contains
          size(aero_state%aero_weight))
     allocate(n_parts(aero_state%aero_sorted%bin_grid%n_bin, n_proc))
     allocate(comp_vols(n_proc))
-    call sync_info(aero_state%aero_sorted%unif_bin(:)%n_entry, &
+    call sync_info(aero_state%aero_sorted%size%inverse(:)%n_entry, &
          aero_state%comp_vol, n_parts, comp_vols)
 
     call aero_weight_allocate(aero_weight_total)
@@ -313,7 +313,7 @@ contains
              call update_n_samps(n_samps, local_bin, remote_bin, &
                   samps_remaining)
              if (.not. samps_remaining) exit outer
-             if (aero_state%aero_sorted%unif_bin(local_bin)%n_entry > 0) then
+             if (aero_state%aero_sorted%size%inverse(local_bin)%n_entry > 0) then
                 call find_rand_remote_proc(n_parts, remote_bin, &
                      requests(i_req)%remote_proc)
                 requests(i_req)%active = .true.

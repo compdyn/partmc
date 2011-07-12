@@ -184,5 +184,33 @@ Assume $c = 1$ or $c = 2$ so that $W_c$ is minimized. Then
       \frac{1}{V_2} \left(\frac{v_1 + v_2}{v_0}\right)^{\alpha_2}}
   \right\}
 \end{align}
+Let $f_i$ for $i = 1,\ldots,4$ be the four terms above. Handling $f_1$
+and $f_2$ is easy, as they are obviously increasing or decreasing in
+$v_1$ and $v_2$.
+
+For $f_3$ we have
+\begin{align}
+  f_3 &= \frac{\frac{1}{V_1} \left(\frac{v_1}{v_0}\right)^{\alpha_1}
+      \frac{1}{V_2} \left(\frac{v_2}{v_0}\right)^{\alpha_2}}{
+      \frac{1}{V_1} \left(\frac{v_1 + v_2}{v_0}\right)^{\alpha_1}} \\
+    &= \frac{1}{V_2} \left(\frac{v_2}{v_0}\right)^{\alpha_2}
+    \left(\frac{v_1}{v_1 + v_2}\right)^{\alpha_1}
+\end{align}
+This is increasing in $v_1$ (if $\alpha_1 > 0$) or decreasing in $v_1$
+(if $\alpha_1 < 0$). To see the behavior in $v_2$ we compute
+\begin{align}
+  \frac{\partial f_3}{\partial v_2}
+  &= f_3 \left(\frac{\alpha_2 v_1 + (\alpha_2 - \alpha_1) v_2}{
+      v_2 (v_1 + v_2)}\right)
+\end{align}
+If $\alpha_2 \ge 0$ then $f_3$ is strictly increasing in $v_2$. If
+$\alpha_2 < \alpha_1$ then we define
+\begin{align}
+  v_2^* &= \frac{\alpha_2}{\alpha_1 - \alpha_2} v_1 \\
+  v_2^{\rm max} &= \min(v_2^+, \max(v_2^-, v_2^*))
+\end{align}
+Note that if $\alpha_1 \le 0$ then $f_3 \ge f_1$ (and the reverse if
+$\alpha_1 \ge 0$), so we could just compute $f_3$ and $f_4$ if we know
+$\alpha_1,\alpha_2 \le 0$.
 
 \end{document}

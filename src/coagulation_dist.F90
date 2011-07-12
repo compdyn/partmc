@@ -942,9 +942,8 @@ contains
                cycle
           do j_bin = i_bin,n_bin
              do j_group = 1,n_group
-                call max_coag_num_conc_factor_simple(aero_weight(i_group), &
-                     aero_weight(j_group), aero_weight(i_group), bin_grid, &
-                     i_bin, j_bin, f_max)
+                call max_coag_num_conc_factor(aero_weight(i_group), &
+                     aero_weight(j_group), bin_grid, i_bin, j_bin, f_max)
                 call compute_n_samp(n_parts(i_bin, i_group, rank + 1), &
                      sum(n_parts(j_bin, j_group, :)), &
                      (i_bin == j_bin) .and. (i_group == j_group), &
@@ -993,7 +992,6 @@ contains
          aero_particle_new, aero_data, &
          aero_state%aero_weight(aero_particle_1%weight_group), &
          aero_state%aero_weight(aero_particle_2%weight_group), &
-         aero_state%aero_weight(aero_particle_1%weight_group), &
          remove_1, remove_2, create_new, id_1_lost, id_2_lost, &
          aero_info_1, aero_info_2)
 

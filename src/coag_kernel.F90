@@ -216,8 +216,7 @@ contains
     group_1 = aero_particle_1%weight_group
     group_2 = aero_particle_2%weight_group
     k = unweighted_k * coag_num_conc_factor(aero_weight_array(group_1), &
-         aero_weight_array(group_2), aero_weight_array(group_1), &
-         radius_1, radius_2)
+         aero_weight_array(group_2), radius_1, radius_2)
 
   end subroutine num_conc_weighted_kernel
 
@@ -497,67 +496,13 @@ contains
 
   !> Determine the minimum and maximum number concentration factors
   !> for coagulation.
-  subroutine minmax_coag_num_conc_factor(aero_weight_i, aero_weight_j, &
-       aero_weight_ij, bin_grid, i_bin, j_bin, f_min, f_max)
-
-    !> Aerosol weighting of first particle.
-    type(aero_weight_t), intent(in) :: aero_weight_i
-    !> Aerosol weighting of second particle.
-    type(aero_weight_t), intent(in) :: aero_weight_j
-    !> Aerosol weighting of coagulated particle.
-    type(aero_weight_t), intent(in) :: aero_weight_ij
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
-    !> First bin number.
-    integer, intent(in) :: i_bin
-    !> Second bin number.
-    integer, intent(in) :: j_bin
-    !> Minimum coagulation factor.
-    real(kind=dp), intent(out) :: f_min
-    !> Maximum coagulation factor.
-    real(kind=dp), intent(out) :: f_max
-
-    real(kind=dp) :: i_r_min, i_r_max, j_r_min, j_r_max, ij_r_min, ij_r_max
-    real(kind=dp) :: i_num_conc_min, i_num_conc_max
-    real(kind=dp) :: j_num_conc_min, j_num_conc_max
-    real(kind=dp) :: ij_num_conc_min, ij_num_conc_max
-    real(kind=dp) :: min_num_conc_min, min_num_conc_max
-
-    i_r_min = bin_grid%edge_radius(i_bin)
-    i_r_max = bin_grid%edge_radius(i_bin + 1)
-    j_r_min = bin_grid%edge_radius(j_bin)
-    j_r_max = bin_grid%edge_radius(j_bin + 1)
-    ij_r_min = vol2rad(rad2vol(i_r_min) + rad2vol(j_r_min))
-    ij_r_max = vol2rad(rad2vol(i_r_max) + rad2vol(j_r_max))
-
-    call aero_weight_minmax_num_conc(aero_weight_i, i_r_min, i_r_max, &
-         i_num_conc_min, i_num_conc_max)
-    call aero_weight_minmax_num_conc(aero_weight_j, j_r_min, j_r_max, &
-         j_num_conc_min, j_num_conc_max)
-    call aero_weight_minmax_num_conc(aero_weight_ij, ij_r_min, ij_r_max, &
-         ij_num_conc_min, ij_num_conc_max)
-
-    min_num_conc_min = min(i_num_conc_min, j_num_conc_min, ij_num_conc_min)
-    min_num_conc_max = max(i_num_conc_max, j_num_conc_max, ij_num_conc_max)
-
-    f_min = i_num_conc_min * j_num_conc_min / min_num_conc_max
-    f_max = i_num_conc_max * j_num_conc_max / min_num_conc_min
-
-  end subroutine minmax_coag_num_conc_factor
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Determine the minimum and maximum number concentration factors
-  !> for coagulation.
   subroutine minmax_coag_num_conc_factor_better(aero_weight_i, aero_weight_j, &
-       aero_weight_ij, bin_grid, i_bin, j_bin, f_min, f_max)
+       bin_grid, i_bin, j_bin, f_min, f_max)
 
     !> Aerosol weighting of first particle.
     type(aero_weight_t), intent(in) :: aero_weight_i
     !> Aerosol weighting of second particle.
     type(aero_weight_t), intent(in) :: aero_weight_j
-    !> Aerosol weighting of coagulated particle.
-    type(aero_weight_t), intent(in) :: aero_weight_ij
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> First bin number.
@@ -584,8 +529,7 @@ contains
        do j_ind = 1,n_ind
           i_r = interp_linear_disc(i_r_min, i_r_max, n_ind, i_ind)
           j_r = interp_linear_disc(j_r_min, j_r_max, n_ind, j_ind)
-          f = coag_num_conc_factor(aero_weight_i, aero_weight_j, &
-               aero_weight_ij, i_r, j_r)
+          f = coag_num_conc_factor(aero_weight_i, aero_weight_j, i_r, j_r)
           if ((i_ind == 1) .and. (j_ind == 1)) then
              f_min = f
              f_max = f
@@ -602,26 +546,25 @@ contains
 
   !> Coagulation scale factor due to number concentrations.
   real(kind=dp) function coag_num_conc_factor(aero_weight_1, aero_weight_2, &
-       aero_weight_12, r_1, r_2)
+       r_1, r_2)
 
     !> Aerosol weighting of first particle.
     type(aero_weight_t), intent(in) :: aero_weight_1
     !> Aerosol weighting of second particle.
     type(aero_weight_t), intent(in) :: aero_weight_2
-    !> Aerosol weighting of coagulated particle.
-    type(aero_weight_t), intent(in) :: aero_weight_12
     !> Radius of first particle.
     real(kind=dp), intent(in) :: r_1
     !> Radius of second particle.
     real(kind=dp), intent(in) :: r_2
 
-    real(kind=dp) :: r_12, nc_1, nc_2, nc_12, nc_min
+    real(kind=dp) :: r_12, nc_1, nc_2, nc_12_1, nc_12_2, nc_min
 
     r_12 = vol2rad(rad2vol(r_1) + rad2vol(r_2))
     nc_1 = aero_weight_num_conc_at_radius(aero_weight_1, r_1)
     nc_2 = aero_weight_num_conc_at_radius(aero_weight_2, r_2)
-    nc_12 = aero_weight_num_conc_at_radius(aero_weight_12, r_12)
-    nc_min = min(nc_1, nc_2, nc_12)
+    nc_12_1 = aero_weight_num_conc_at_radius(aero_weight_1, r_12)
+    nc_12_2 = aero_weight_num_conc_at_radius(aero_weight_2, r_12)
+    nc_min = min(nc_1, nc_2, nc_12_1, nc_12_2)
     coag_num_conc_factor = nc_1 * nc_2 / nc_min
 
   end function coag_num_conc_factor
@@ -630,15 +573,13 @@ contains
 
   !> Determine the minimum and maximum number concentration factors
   !> for coagulation.
-  subroutine max_coag_num_conc_factor_simple(aero_weight_i, aero_weight_j, &
-       aero_weight_ij, bin_grid, i_bin, j_bin, f_max)
+  subroutine max_coag_num_conc_factor(aero_weight_i, aero_weight_j, bin_grid, &
+       i_bin, j_bin, f_max)
 
     !> Aerosol weighting of first particle.
     type(aero_weight_t), intent(in) :: aero_weight_i
     !> Aerosol weighting of second particle.
     type(aero_weight_t), intent(in) :: aero_weight_j
-    !> Aerosol weighting of coagulated particle.
-    type(aero_weight_t), intent(in) :: aero_weight_ij
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> First bin number.
@@ -649,8 +590,8 @@ contains
     real(kind=dp), intent(out) :: f_max
 
     real(kind=dp) :: i_r_min, i_r_max, j_r_min, j_r_max
-    real(kind=dp) :: i_r, j_r, i_r_opt, j_r_opt
-    real(kind=dp) :: f1_max, f2_max, f3_max
+    real(kind=dp) :: i_r, j_r, ij_r, i_r_opt, j_r_opt
+    real(kind=dp) :: f1_max, f2_max, f3_max, f4_max
     !>DEBUG
     real(kind=dp) :: f_min_test, f_max_test
     !<DEBUG
@@ -666,9 +607,6 @@ contains
     if (aero_weight_j%type == AERO_WEIGHT_TYPE_NONE) then
        call assert(734008571, aero_weight_j%exponent == 0d0)
     end if
-    if (aero_weight_ij%type == AERO_WEIGHT_TYPE_NONE) then
-       call assert(294098774, aero_weight_ij%exponent == 0d0)
-    end if
 
     call assert(124977151, &
          (aero_weight_i%type == AERO_WEIGHT_TYPE_NONE) &
@@ -678,64 +616,75 @@ contains
          (aero_weight_j%type == AERO_WEIGHT_TYPE_NONE) &
          .or. (aero_weight_j%type == AERO_WEIGHT_TYPE_POWER) &
          .or. (aero_weight_j%type == AERO_WEIGHT_TYPE_MFA))
-    call assert(289649349, &
-         (aero_weight_ij%type == AERO_WEIGHT_TYPE_NONE) &
-         .or. (aero_weight_ij%type == AERO_WEIGHT_TYPE_POWER) &
-         .or. (aero_weight_ij%type == AERO_WEIGHT_TYPE_MFA))
 
+    ! maximize f1
     if (aero_weight_i%exponent >= 0d0) then
-       f1_max = coag_num_conc_factor(aero_weight_i, aero_weight_j, &
-            aero_weight_ij, i_r_max, j_r_max)
-    else
-       f1_max = coag_num_conc_factor(aero_weight_i, aero_weight_j, &
-            aero_weight_ij, i_r_min, j_r_min)
-    end if
-
-    if (aero_weight_j%exponent >= 0d0) then
-       f2_max = coag_num_conc_factor(aero_weight_i, aero_weight_j, &
-            aero_weight_ij, i_r_max, j_r_max)
-    else
-       f2_max = coag_num_conc_factor(aero_weight_i, aero_weight_j, &
-            aero_weight_ij, i_r_min, j_r_min)
-    end if
-
-    if (aero_weight_i%exponent >= aero_weight_ij%exponent) then
        i_r = i_r_max
-       if (aero_weight_j%exponent >= aero_weight_ij%exponent) then
-          j_r = j_r_max
-       else
-          j_r_opt = vol2rad(aero_weight_j%exponent &
-               / (aero_weight_ij%exponent - aero_weight_j%exponent) &
-               * rad2vol(i_r))
-          j_r = min(j_r_max, max(j_r_min, j_r_opt))
-       end if
     else
-       if (aero_weight_j%exponent >= aero_weight_ij%exponent) then
-          j_r = j_r_max
-          i_r_opt = vol2rad(aero_weight_i%exponent &
-               / (aero_weight_ij%exponent - aero_weight_i%exponent) &
-               * rad2vol(j_r))
-          i_r = min(i_r_max, max(i_r_min, i_r_opt))
-       else
-          call die_msg(888741347, "cannot have aero_weight_ij%exponent less " &
-               // "than both aero_weight_i%exponent and " &
-               // "aero_weight_j%exponent")
-       end if
+       i_r = i_r_min
     end if
-    f3_max = coag_num_conc_factor(aero_weight_i, aero_weight_j, &
-         aero_weight_ij, i_r, j_r)
+    f1_max = aero_weight_num_conc_at_radius(aero_weight_i, i_r)
 
-    f_max = max(f1_max, f2_max, f3_max)
+    ! maximize f2
+    if (aero_weight_j%exponent >= 0d0) then
+       j_r = j_r_max
+    else
+       j_r = j_r_min
+    end if
+    f2_max = aero_weight_num_conc_at_radius(aero_weight_j, j_r)
+
+    ! maximize f3
+    if (aero_weight_i%exponent >= 0d0) then
+       j_r = j_r_max
+    else
+       j_r = j_r_min
+    end if
+    i_r_opt = vol2rad(aero_weight_i%exponent &
+         / (aero_weight_j%exponent - aero_weight_i%exponent) * rad2vol(j_r))
+    i_r = min(i_r_max, max(i_r_min, i_r))
+    ij_r = vol2rad(rad2vol(i_r) + rad2vol(j_r))
+    f3_max = aero_weight_num_conc_at_radius(aero_weight_i, i_r) &
+         * (j_r / ij_r)**aero_weight_j%exponent
+
+    ! maximize f4
+    if (aero_weight_i%exponent >= 0d0) then
+       i_r = i_r_max
+    else
+       i_r = i_r_min
+    end if
+    j_r_opt = vol2rad(aero_weight_j%exponent &
+         / (aero_weight_i%exponent - aero_weight_j%exponent) * rad2vol(i_r))
+    j_r = min(j_r_max, max(j_r_min, j_r))
+    ij_r = vol2rad(rad2vol(i_r) + rad2vol(j_r))
+    f4_max = aero_weight_num_conc_at_radius(aero_weight_j, j_r) &
+         * (i_r / ij_r)**aero_weight_i%exponent
+
+    ! we could just compute one of these (even just assert at the
+    ! start that alpha_1 <= 0)
+    if (aero_weight_i%exponent <= 0d0) then
+       call assert(570415997, f3_max >= f1_max)
+    else
+       call assert(570415997, f3_max <= f1_max)
+    end if
+
+    ! same with these
+    if (aero_weight_j%exponent <= 0d0) then
+       call assert(570415997, f4_max >= f2_max)
+    else
+       call assert(570415997, f4_max <= f2_max)
+    end if
+
+    f_max = max(f1_max, f2_max, f3_max, f4_max)
     !>DEBUG
     call minmax_coag_num_conc_factor_better(aero_weight_i, aero_weight_j, &
-         aero_weight_ij, bin_grid, i_bin, j_bin, f_min_test, f_max_test)
-    if (f_max_test < f_max) then
+         bin_grid, i_bin, j_bin, f_min_test, f_max_test)
+    if (f_max_test < 0.99d0 * f_max) then
        write(*,*) 'WARNING: i_bin, j_bin, f_max_test, f_max', &
             i_bin, j_bin, f_max_test, f_max
     end if
     !<DEBUG
 
-  end subroutine max_coag_num_conc_factor_simple
+  end subroutine max_coag_num_conc_factor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

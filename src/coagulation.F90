@@ -125,9 +125,9 @@ contains
     type(aero_particle_t) :: coag_particle, sampled_partner
 
 
-    call max_coag_num_conc_factor_simple(aero_state%aero_weight(i_group), &
-         aero_state%aero_weight(j_group), aero_state%aero_weight(i_group), &
-         aero_state%aero_sorted%bin_grid, i_bin, j_bin, f_max)
+    call max_coag_num_conc_factor(aero_state%aero_weight(i_group), &
+         aero_state%aero_weight(j_group), aero_state%aero_sorted%bin_grid, &
+         i_bin, j_bin, f_max)
     call compute_n_partners( &
          aero_state%aero_sorted%bin(i_bin, i_group)%n_entry, &
          aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin) &
@@ -550,7 +550,7 @@ contains
   !> and compute weighting effects, including which particles should
   !> be lost and which gained.
   subroutine coagulate_weighting(particle_1, particle_2, particle_new, &
-       aero_data, aero_weight_1, aero_weight_2, aero_weight_12, remove_1, &
+       aero_data, aero_weight_1, aero_weight_2, remove_1, &
        remove_2, create_new, id_1_lost, id_2_lost, aero_info_1, aero_info_2)
 
     !> First coagulating aerosol particle.
@@ -566,8 +566,6 @@ contains
     type(aero_weight_t), intent(in) :: aero_weight_1
     !> Aerosol weight for second particle.
     type(aero_weight_t), intent(in) :: aero_weight_2
-    !> Aerosol weight for coagulated particle.
-    type(aero_weight_t), intent(in) :: aero_weight_12
     !> Whether to remove particle_1.
     logical, intent(out) :: remove_1
     !> Whether to remove particle_2.
@@ -584,9 +582,10 @@ contains
     type(aero_info_t), intent(inout) :: aero_info_2
 
     real(kind=dp) :: radius_1, radius_2, radius_new
-    real(kind=dp) :: num_conc_1, num_conc_2, num_conc_new, num_conc_min
+    real(kind=dp) :: num_conc_min, num_conc_1, num_conc_2
+    real(kind=dp) :: num_conc_new, num_conc_new_1, num_conc_new_2
     real(kind=dp) :: prob_remove_1, prob_remove_2, prob_create_new
-    integer :: info_other_id
+    integer :: info_other_id, new_group
 
     call assert(371947172, particle_1%id /= particle_2%id)
 
@@ -597,7 +596,15 @@ contains
     radius_new = vol2rad(rad2vol(radius_1) + rad2vol(radius_2))
     num_conc_1 = aero_weight_num_conc_at_radius(aero_weight_1, radius_1)
     num_conc_2 = aero_weight_num_conc_at_radius(aero_weight_2, radius_2)
-    num_conc_new = aero_weight_num_conc_at_radius(aero_weight_12, radius_new)
+    num_conc_new_1 = aero_weight_num_conc_at_radius(aero_weight_1, radius_new)
+    num_conc_new_2 = aero_weight_num_conc_at_radius(aero_weight_2, radius_new)
+    if (num_conc_new_1 <= num_conc_new_2) then
+       num_conc_new = num_conc_new_1
+       new_group = particle_1%weight_group
+    else
+       num_conc_new = num_conc_new_2
+       new_group = particle_2%weight_group
+    end if
     num_conc_min = min(num_conc_1, num_conc_2, num_conc_new)
     prob_remove_1 = num_conc_min / num_conc_1
     prob_remove_2 = num_conc_min / num_conc_2
@@ -642,7 +649,7 @@ contains
        call aero_particle_allocate_size(particle_new, aero_data%n_spec, &
             aero_data%n_source)
        call aero_particle_coagulate(particle_1, particle_2, particle_new)
-       particle_new%weight_group = particle_1%weight_group
+       particle_new%weight_group = new_group
        if (remove_1 .and. (.not. id_1_lost)) then
           particle_new%id = particle_1%id
           call assert(975059559, id_2_lost .eqv. remove_2)
@@ -699,8 +706,7 @@ contains
 
     call coagulate_weighting(particle_1, particle_2, particle_new, &
          aero_data, aero_state%aero_weight(particle_1%weight_group), &
-         aero_state%aero_weight(particle_2%weight_group), &
-         aero_state%aero_weight(particle_1%weight_group), remove_1, remove_2, &
+         aero_state%aero_weight(particle_2%weight_group), remove_1, remove_2, &
          create_new, id_1_lost, id_2_lost, aero_info_1, aero_info_2)
 
     ! remove old particles

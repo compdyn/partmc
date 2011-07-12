@@ -418,7 +418,7 @@ contains
   !> Add a new particle to both an aero_sorted and the corresponding
   !> aero_particle_array.
   subroutine aero_sorted_add_particle(aero_sorted, aero_particle_array, &
-       aero_particle, allow_resort)
+       aero_particle, n_group, allow_resort)
 
     !> Sorted particle structure.
     type(aero_sorted_t), intent(inout) :: aero_sorted
@@ -426,6 +426,8 @@ contains
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
     !> Particle to add.
     type(aero_particle_t), intent(in) :: aero_particle
+    !> Number of weight groups.
+    integer, intent(in) :: n_group
     !> Whether to allow a resort due to the add.
     logical, optional, intent(in) :: allow_resort
 
@@ -453,7 +455,7 @@ contains
           end if
        end if
        call aero_sorted_remake_if_needed(aero_sorted, aero_particle_array, &
-            valid_sort=.false.)
+            valid_sort=.false., n_group=n_group)
     else
        ! particle fits in the current bin_grid
 

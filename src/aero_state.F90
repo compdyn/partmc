@@ -247,7 +247,7 @@ contains
 
     if (aero_state%valid_sort) then
        call aero_sorted_add_particle(aero_state%aero_sorted, aero_state%p, &
-            aero_particle, allow_resort)
+            aero_particle, size(aero_state%aero_weight), allow_resort)
     else
        call aero_particle_array_add_particle(aero_state%p, aero_particle)
     end if

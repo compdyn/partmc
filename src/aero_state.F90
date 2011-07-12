@@ -486,7 +486,7 @@ contains
     integer, intent(out), optional :: n_part_add
 
     real(kind=dp) :: n_samp_avg, radius, vol, mean_n_part, n_part_new
-    real(kind=dp) :: comp_vol_ratio
+    real(kind=dp) :: comp_vol_ratio, n_part_ideal_local_group
     integer :: n_samp, i_mode, i_samp, i_group, n_group, global_n_part
     type(aero_mode_t), pointer :: aero_mode
     type(aero_particle_t) :: aero_particle
@@ -511,12 +511,12 @@ contains
             * aero_dist_number(aero_dist, aero_state%aero_weight(i_group))
        n_part_new = mean_n_part + n_samp_avg
        if (n_part_new == 0d0) cycle
-       if ((n_part_new < aero_state%n_part_ideal &
-            / real(pmc_mpi_size(), kind=dp) / 2d0) &
-            .or. (n_part_new > aero_state%n_part_ideal &
-            / real(pmc_mpi_size(), kind=dp) * 2d0)) then
-          comp_vol_ratio = (aero_state%n_part_ideal &
-               / real(pmc_mpi_size(), kind=dp)) / n_part_new
+       n_part_ideal_local_group = aero_state%n_part_ideal &
+            / real(pmc_mpi_size(), kind=dp) / real(n_group, kind=dp)
+       if ((n_part_new <  n_part_ideal_local_group / 2d0) &
+            .or. (n_part_new > n_part_ideal_local_group * 2d0)) &
+            then
+          comp_vol_ratio = n_part_ideal_local_group / n_part_new
           call aero_state_scale_comp_vol(aero_state, i_group, comp_vol_ratio)
        end if
        do i_mode = 1,aero_dist%n_mode

@@ -133,6 +133,7 @@ contains
 
           aero_particle%vol(i_aero_so4) = vol
           call aero_particle_new_id(aero_particle)
+          call aero_particle_set_group(aero_particle, i_group)
           call aero_particle_set_create_time(aero_particle, &
                env_state%elapsed_time)
           call aero_state_add_particle(aero_state, aero_particle)

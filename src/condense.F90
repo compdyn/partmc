@@ -277,8 +277,7 @@ contains
     call aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
     do i_part = 1,aero_state%apa%n_part
        aero_particle => aero_state%apa%particle(i_part)
-       num_conc &
-            = aero_weight_array_single_num_conc(aero_state%aero_weight, &
+       num_conc = aero_weight_array_num_conc(aero_state%aero_weight, &
             aero_particle)
        
        ! translate output back to particle

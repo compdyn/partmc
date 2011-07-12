@@ -322,6 +322,25 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Whether any of the contained aerosol modes are of the given type.
+  elemental logical function env_data_contains_aero_mode_type(env_data, &
+       aero_mode_type)
+
+    !> Environment data.
+    type(env_data_t), intent(in) :: env_data
+    !> Aerosol mode type to test for.
+    integer, intent(in) :: aero_mode_type
+
+    env_data_contains_aero_mode_type &
+         = any(aero_dist_contains_aero_mode_type(env_data%aero_emission, &
+         aero_mode_type)) &
+         .or. any(aero_dist_contains_aero_mode_type(env_data%aero_background, &
+         aero_mode_type))
+
+  end function env_data_contains_aero_mode_type
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Read environment data from an spec file.
   subroutine spec_file_read_env_data(file, gas_data, aero_data, env_data)
 

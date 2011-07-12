@@ -110,6 +110,27 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Copy an aero_weight array.
+  subroutine aero_weight_array_copy(aero_weight_array_from, &
+       aero_weight_array_to)
+
+    !> Aerosol weight array original.
+    type(aero_weight_t), intent(in) :: aero_weight_array_from(:)
+    !> Aerosol weight array copy.
+    type(aero_weight_t), allocatable, intent(inout) :: aero_weight_array_to(:)
+
+    if (size(aero_weight_array_to) /= size(aero_weight_array_from)) then
+       call aero_weight_deallocate(aero_weight_array_to)
+       deallocate(aero_weight_array_to)
+       allocate(aero_weight_array_to(size(aero_weight_array_from)))
+       call aero_weight_allocate(aero_weight_array_to)
+    end if
+    call aero_weight_copy(aero_weight_array_from, aero_weight_array_to)
+
+  end subroutine aero_weight_array_copy
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Scale the computational volume by the given fraction, so
   !> <tt>new_comp_vol = old_comp_vol * fraction</tt>.
   elemental subroutine aero_weight_scale_comp_vol(aero_weight, fraction)

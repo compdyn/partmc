@@ -213,6 +213,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Whether any of the modes are of the given type.
+  elemental logical function aero_dist_contains_aero_mode_type(aero_dist, &
+       aero_mode_type)
+
+    !> Aerosol distribution.
+    type(aero_dist_t), intent(in) :: aero_dist
+    !> Aerosol mode type to test for.
+    integer, intent(in) :: aero_mode_type
+
+    aero_dist_contains_aero_mode_type &
+         = any(aero_dist%mode%type == aero_mode_type)
+
+  end function aero_dist_contains_aero_mode_type
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Determine the current aero_dist and rate by interpolating at the
   !> current time with the lists of aero_dists and rates.
   subroutine aero_dist_interp_1d(aero_dist_list, time_list, &

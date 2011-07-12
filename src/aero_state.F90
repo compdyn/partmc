@@ -34,6 +34,13 @@ module pmc_aero_state
   !> MPI tag for scattering between processes.
   integer, parameter :: AERO_STATE_TAG_SCATTER = 4989
 
+  !> Single flat weighting scheme.
+  integer, parameter :: AERO_STATE_WEIGHT_NONE = 1
+  !> Single flat weighting scheme.
+  integer, parameter :: AERO_STATE_WEIGHT_FLAT = 2
+  !> Coupled number/mass weighting scheme.
+  integer, parameter :: AERO_STATE_WEIGHT_NUMMASS = 3
+
   !> The current collection of aerosol particles.
   !!
   !! The particles in aero_state_t are stored sorted per-bin, to
@@ -100,28 +107,41 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates aerosol arrays with the given sizes.
-  subroutine aero_state_allocate_size(aero_state, aero_data)
+  subroutine aero_state_allocate_size(aero_state, aero_data, weight_type)
 
     !> Aerosol to initialize.
     type(aero_state_t), intent(out) :: aero_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Type of weighting scheme to use.
+    integer, intent(in) :: weight_type
 
     call aero_particle_array_allocate_size(aero_state%p, 0, &
          aero_data%n_spec, aero_data%n_source)
     call aero_sorted_allocate(aero_state%aero_sorted)
     aero_state%valid_sort = .false.
-    !>FIXME
-    allocate(aero_state%aero_weight(2))
-    call aero_weight_allocate(aero_state%aero_weight(1))
-    aero_state%aero_weight(1)%type = AERO_WEIGHT_TYPE_NONE
-    aero_state%aero_weight(1)%ref_radius = 1d0
-    aero_state%aero_weight(1)%exponent = 0d0
-    call aero_weight_allocate(aero_state%aero_weight(2))
-    aero_state%aero_weight(2)%type = AERO_WEIGHT_TYPE_POWER
-    aero_state%aero_weight(2)%ref_radius = 1d0
-    aero_state%aero_weight(2)%exponent = -3d0
-    !<FIXME
+    if (weight_type == AERO_STATE_WEIGHT_NONE) then
+       allocate(aero_state%aero_weight(0))
+    elseif (weight_type == AERO_STATE_WEIGHT_FLAT) then
+       allocate(aero_state%aero_weight(1))
+       call aero_weight_allocate(aero_state%aero_weight(1))
+       aero_state%aero_weight(1)%type = AERO_WEIGHT_TYPE_NONE
+       aero_state%aero_weight(1)%ref_radius = 1d0
+       aero_state%aero_weight(1)%exponent = 0d0
+    elseif (weight_type == AERO_STATE_WEIGHT_NUMMASS) then
+       allocate(aero_state%aero_weight(2))
+       call aero_weight_allocate(aero_state%aero_weight(1))
+       aero_state%aero_weight(1)%type = AERO_WEIGHT_TYPE_NONE
+       aero_state%aero_weight(1)%ref_radius = 1d0
+       aero_state%aero_weight(1)%exponent = 0d0
+       call aero_weight_allocate(aero_state%aero_weight(2))
+       aero_state%aero_weight(2)%type = AERO_WEIGHT_TYPE_POWER
+       aero_state%aero_weight(2)%ref_radius = 1d0
+       aero_state%aero_weight(2)%exponent = -3d0
+    else
+       call die_msg(969076992, "unknown weight_type: " &
+            // trim(integer_to_string(weight_type)))
+    end if
     call aero_info_array_allocate(aero_state%aero_info_array)
 
   end subroutine aero_state_allocate_size
@@ -2128,7 +2148,8 @@ contains
     if (status == NF90_EBADDIM) then
        ! no aero_particle dimension means no particles present
        call aero_state_deallocate(aero_state)
-       call aero_state_allocate_size(aero_state, aero_data)
+       call aero_state_allocate_size(aero_state, aero_data, &
+            AERO_STATE_WEIGHT_NUMMASS)
        call aero_weight_array_input_netcdf(aero_state%aero_weight, ncid)
        return
     end if
@@ -2187,7 +2208,8 @@ contains
          "aero_greatest_create_time")
 
     call aero_state_deallocate(aero_state)
-    call aero_state_allocate_size(aero_state, aero_data)
+    call aero_state_allocate_size(aero_state, aero_data, &
+         AERO_STATE_WEIGHT_NONE)
     
     call aero_weight_array_input_netcdf(aero_state%aero_weight, ncid)
     aero_state%n_part_ideal = 0d0

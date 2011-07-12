@@ -352,7 +352,8 @@ contains
   !! mean \c n_part_mean.  The final number of particles is either
   !! <tt>floor(n_part_mean)</tt> or <tt>ceiling(n_part_mean)</tt>,
   !! chosen randomly so the mean is \c n_part_mean.
-  subroutine aero_state_dup_particle(aero_state, i_part, n_part_mean)
+  subroutine aero_state_dup_particle(aero_state, i_part, n_part_mean, &
+       random_weight_group)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -360,8 +361,11 @@ contains
     integer, intent(in) :: i_part
     !> Mean number of resulting particles.
     real(kind=dp), intent(in) :: n_part_mean
+    !> Whether particle copies should be placed in a randomly chosen
+    !> weight group.
+    logical, optional, intent(in) :: random_weight_group
 
-    integer :: n_copies, i_dup
+    integer :: n_copies, i_dup, new_group
     type(aero_particle_t), pointer :: aero_particle
     type(aero_particle_t) :: new_aero_particle
     type(aero_info_t) :: aero_info
@@ -381,6 +385,14 @@ contains
        do i_dup = 1,(n_copies - 1)
           call aero_particle_copy(aero_particle, new_aero_particle)
           call aero_particle_new_id(new_aero_particle)
+          if (present(random_weight_group)) then
+             if (random_weight_group) then
+                new_group &
+                     = aero_weight_array_rand_group(aero_state%aero_weight, &
+                     aero_particle_radius(aero_particle))
+                call aero_particle_set_group(new_aero_particle, new_group)
+             end if
+          end if
           call aero_state_add_particle(aero_state, new_aero_particle)
           ! re-get the particle pointer, which may have
           ! changed due to reallocations caused by adding

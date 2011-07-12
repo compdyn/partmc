@@ -448,13 +448,13 @@ contains
     type(aero_particle_t), intent(in) :: source_particle
 
     integer :: target_part, target_id, new_bin, new_group
-    real(kind=dp) :: single_num_conc_target
+    real(kind=dp) :: old_num_conc_target, new_num_conc_target
 
     target_part &
          = aero_state%aero_sorted%unif_bin(target_bin)%entry(target_unif_entry)
     target_id = aero_state%p%particle(target_part)%id
-    single_num_conc_target &
-         = aero_weight_array_single_num_conc(aero_state%aero_weight, &
+    old_num_conc_target &
+         = aero_weight_array_num_conc(aero_state%aero_weight, &
          aero_state%p%particle(target_part))
     call aero_particle_coagulate(aero_state%p%particle(target_part), &
          source_particle, aero_state%p%particle(target_part))
@@ -473,11 +473,17 @@ contains
     end if
     call aero_sorted_move_particle(aero_state%aero_sorted, target_part, &
          new_bin, new_group)
-    ! adjust particle number to account for weight changes
-    ! target_bin/target_group/target_entry are invalid,
-    ! but target_part is still good
-    call aero_state_reweight_particle(aero_state, target_part, &
-         single_num_conc_target)
+    ! Adjust particle number to account for weight changes
+    ! target_bin/target_group/target_entry are invalid, but
+    ! target_part is still good. We are treating all particles in all
+    ! groups together, and randomly reassigning between groups above,
+    ! so here we can't use aero_state_reweight_particle(), as that
+    ! assumes we are staying in the same weight group.
+    new_num_conc_target &
+         = aero_weight_array_num_conc(aero_state%aero_weight, &
+         aero_state%p%particle(target_part))
+    call aero_state_dup_particle(aero_state, target_part, &
+         old_num_conc_target / new_num_conc_target, random_weight_group=.true.)
     ! we should only be doing this for decreasing weights
     call assert(654300924, aero_state%p%particle(target_part)%id == target_id)
 

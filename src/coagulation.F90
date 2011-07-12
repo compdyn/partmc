@@ -51,7 +51,7 @@ contains
     !> Number of coagulation events.
     integer, intent(out) :: tot_n_coag
 
-    integer :: i_bin, j_bin, i_group, j_group
+    integer :: i_bin, j_bin, i_group, j_group, j_bin_start
 
     call aero_state_sort(aero_state)
     if (.not. aero_state%aero_sorted%coag_kernel_bounds_valid) then
@@ -64,19 +64,17 @@ contains
 
     tot_n_samp = 0
     tot_n_coag = 0
-    do i_bin = 1,size(aero_state%aero_sorted%bin, 1)
-       !DEBUG
-       !do i_group = 2,2
-       do i_group = 1,size(aero_state%aero_sorted%bin, 2)
-          !<DEBUG
-          if (aero_state%aero_sorted%bin(i_bin, i_group)%n_entry == 0) &
-               cycle
-          do j_bin = i_bin,size(aero_state%aero_sorted%bin, 1)
-             !>DEBUG
-             !do j_group = 1,size(aero_state%aero_sorted%bin, 2)
-             do j_group = 1,i_group
-             !do j_group = i_group,i_group
-                !<DEBUG
+    do i_group = 1,size(aero_state%aero_sorted%bin, 2)
+       do j_group = 1,i_group
+          do i_bin = 1,size(aero_state%aero_sorted%bin, 1)
+             if (aero_state%aero_sorted%bin(i_bin, i_group)%n_entry == 0) &
+                  cycle
+             if (i_group == j_group) then
+                j_bin_start = i_bin
+             else
+                j_bin_start = 1
+             end if
+             do j_bin = j_bin_start,size(aero_state%aero_sorted%bin, 1)
                 if (aero_state%aero_sorted%bin(j_bin, j_group)%n_entry == 0) &
                      cycle
                 call mc_coag_for_bin(coag_kernel_type, env_state, aero_data, &

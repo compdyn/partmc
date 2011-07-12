@@ -179,6 +179,32 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Compute the radius at a given number concentration (m). Inverse
+  !> of aero_weight_num_conc_at_radius().
+  real(kind=dp) function aero_weight_radius_at_num_conc(aero_weight, num_conc)
+
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
+    !> Number concentration to compute the radius at (m^{-3}).
+    real(kind=dp), intent(in) :: num_conc
+
+    if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
+       call die_msg(902242996, "cannot invert weight type 'none'")
+    elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
+         .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
+       call assert_msg(902242996, aero_weight%exponent /= 0d0, &
+            "cannot invert weight with zero exponent")
+       aero_weight_radius_at_num_conc = exp(log(aero_weight%ref_radius) &
+            + log(num_conc * aero_weight%comp_vol) / aero_weight%exponent)
+    else
+       call die_msg(307766845, "unknown aero_weight type: " &
+            // trim(integer_to_string(aero_weight%type)))
+    end if
+
+  end function aero_weight_radius_at_num_conc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Compute the maximum and minimum number concentrations between the
   !> given radii.
   subroutine aero_weight_minmax_num_conc(aero_weight, radius_1, radius_2, &

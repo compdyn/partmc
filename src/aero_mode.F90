@@ -578,8 +578,7 @@ contains
        allocate(weighted_num_conc(size(aero_mode%sample_num_conc)))
        call aero_mode_weighted_sampled_num_conc(aero_mode, aero_weight, &
             weighted_num_conc)
-       aero_mode_weighted_num_conc = sum(weighted_num_conc) &
-            * aero_weight%comp_vol
+       aero_mode_number = sum(weighted_num_conc) * aero_weight%comp_vol
        deallocate(weighted_num_conc)
     else
        call die_msg(901140225, "unknown aero_mode type: " &
@@ -600,7 +599,7 @@ contains
     !> Sampled radius (m).
     real(kind=dp), intent(out) :: radius
 
-    real(kind=dp) :: x_mean_prime, x0, x1, x, r, inv_w0, inv_w1
+    real(kind=dp) :: x_mean_prime, x0, x1, x, r, inv_nc0, inv_nc1, inv_nc
     integer :: i_sample
     real(kind=dp), allocatable :: weighted_num_conc(:)
 
@@ -624,7 +623,10 @@ contains
             weighted_num_conc)
        i_sample = sample_cts_pdf(weighted_num_conc)
        deallocate(weighted_num_conc)
-       if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
+       if ((aero_weight%type == AERO_WEIGHT_TYPE_NONE) &
+            .or. (((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
+            .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) &
+            .and. (aero_weight%exponent == 0d0))) then
           x0 = log(aero_mode%sample_radius(i_sample))
           x1 = log(aero_mode%sample_radius(i_sample + 1))
           r = pmc_random()
@@ -632,14 +634,13 @@ contains
           radius = exp(x)
        elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
             .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
-          inv_w0 = 1d0 / aero_weight_value(aero_weight, &
+          inv_nc0 = 1d0 / aero_weight_num_conc_at_radius(aero_weight, &
                aero_mode%sample_radius(i_sample))
-          inv_w1 = 1d0 / aero_weight_value(aero_weight, &
+          inv_nc1 = 1d0 / aero_weight_num_conc_at_radius(aero_weight, &
                aero_mode%sample_radius(i_sample + 1))
           r = pmc_random()
-          x = log(aero_weight%ref_radius) &
-               - log((1d0 - r) * inv_w0 + r * inv_w1) / aero_weight%exponent
-          radius = exp(x)
+          inv_nc = (1d0 - r) * inv_nc0 + r * inv_nc1
+          radius = aero_weight_radius_at_num_conc(aero_weight, 1d0 / inv_nc)
        else
           call die_msg(769131141, "unknown aero_weight type: " &
                // trim(integer_to_string(aero_weight%type)))

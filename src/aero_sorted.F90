@@ -293,9 +293,22 @@ contains
        return
     end if
 
+    if (aero_particle_array%n_part == 0) then
+       call assert(274242189, pmc_mpi_size() == 1)
+       ! FIXME: this breaks on MPI: what if some procs have no
+       ! particles and some do?
+       call bin_grid_allocate(new_bin_grid)
+       call bin_grid_make(new_bin_grid, n_bin=0, r_min=0d0, r_max=0d0)
+       call aero_sorted_set_bin_grid(aero_sorted, new_bin_grid, n_group)
+       call bin_grid_deallocate(new_bin_grid)
+       return
+    end if
+
     need_new_bin_grid = .false.
 
     ! determine r_min and r_max
+    r_min = 0d0
+    r_max = 0d0
     if (valid_sort) then
        ! use bin data to avoid looping over all particles
        i_bin_min = 0
@@ -338,6 +351,8 @@ contains
           ! take global min/max
           local_r_min = r_min
           local_r_max = r_max
+          call assert(539388373, r_min > 0d0) ! FIXME: not true if some
+          call assert(539388373, r_max > 0d0) ! procs have no particles
           call pmc_mpi_allreduce_min_real(local_r_min, r_min)
           call pmc_mpi_allreduce_max_real(local_r_max, r_max)
           

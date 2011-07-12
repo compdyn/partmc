@@ -344,34 +344,30 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Replaces a particle with zero or more duplicates, due to a change
-  !> in its weight.
+  !> Add copies or remove a particle, with a given mean number of
+  !> resulting particles.
   !!
   !! The particle number \c i_part is either removed, or zero or more
-  !! copies are added, to account from the change from \c old_weight
-  !! to its current weight. If \c new_weight is the current weight of
-  !! the particle and <tt>p = old_weight / current_weight</tt>, then
-  !! the total number of particles is either <tt>floor(p)</tt> or
-  !! <tt>ceiling(p)</tt>, chosen randomly so the mean is \c p.
-  subroutine aero_state_reweight_particle(aero_state, i_part, old_num_conc)
+  !! copies are added, with a random number of copies with the given
+  !! mean \c n_part_mean.  The final number of particles is either
+  !! <tt>floor(n_part_mean)</tt> or <tt>ceiling(n_part_mean)</tt>,
+  !! chosen randomly so the mean is \c n_part_mean.
+  subroutine aero_state_dup_particle(aero_state, i_part, n_part_mean)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Particle number.
     integer, intent(in) :: i_part
-    !> Old number concentration of particle (m^{-3}).
-    real(kind=dp), intent(in) :: old_num_conc
+    !> Mean number of resulting particles.
+    real(kind=dp), intent(in) :: n_part_mean
 
-    real(kind=dp) :: new_num_conc
     integer :: n_copies, i_dup
     type(aero_particle_t), pointer :: aero_particle
     type(aero_particle_t) :: new_aero_particle
     type(aero_info_t) :: aero_info
 
     aero_particle => aero_state%p%particle(i_part)
-    new_num_conc = aero_weight_array_num_conc(aero_state%aero_weight, &
-         aero_particle)
-    n_copies = prob_round(old_num_conc / new_num_conc)
+    n_copies = prob_round(n_part_mean)
     if (n_copies == 0) then
        call aero_info_allocate(aero_info)
        aero_info%id = aero_particle%id
@@ -392,6 +388,38 @@ contains
        end do
        call aero_particle_deallocate(new_aero_particle)
     end if
+
+  end subroutine aero_state_dup_particle
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Add copies or remove a particle, due to a change in its number
+  !> concentration.
+  !!
+  !! The particle number \c i_part is either removed, or zero or more
+  !! copies are added, to account from the change from \c old_num_conc
+  !! to its current number concentration. If \c new_num_conc is the
+  !! current number concentration of the particle and <tt>p =
+  !! old_num_conc / new_num_conc</tt>, then the total number of
+  !! particles is either <tt>floor(p)</tt> or <tt>ceiling(p)</tt>,
+  !! chosen randomly so the mean is \c p.
+  subroutine aero_state_reweight_particle(aero_state, i_part, old_num_conc)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Particle number.
+    integer, intent(in) :: i_part
+    !> Old number concentration of particle (m^{-3}).
+    real(kind=dp), intent(in) :: old_num_conc
+
+    real(kind=dp) :: new_num_conc, n_part_mean
+    type(aero_particle_t), pointer :: aero_particle
+
+    aero_particle => aero_state%p%particle(i_part)
+    new_num_conc = aero_weight_array_num_conc(aero_state%aero_weight, &
+         aero_particle)
+    n_part_mean = old_num_conc / new_num_conc
+    call aero_state_dup_particle(aero_state, i_part, n_part_mean)
 
   end subroutine aero_state_reweight_particle
 
@@ -442,7 +470,7 @@ contains
   !> aero_state. The sampled amount is <tt>sample_prop *
   !> aero_state%comp_vol</tt>.
   subroutine aero_state_add_aero_dist_sample(aero_state, aero_data, &
-       aero_dist, sample_prop, create_time)
+       aero_dist, sample_prop, create_time, n_part_add)
 
     !> Aero state to add to.
     type(aero_state_t), intent(inout) :: aero_state
@@ -454,27 +482,51 @@ contains
     real(kind=dp), intent(in) :: sample_prop
     !> Creation time for new particles (s).
     real(kind=dp), intent(in) :: create_time
+    !> Number of particles added.
+    integer, intent(out), optional :: n_part_add
 
-    real(kind=dp) :: n_samp_avg, radius, vol
-    integer :: n_samp, i_mode, i_samp, i_group, n_group
+    real(kind=dp) :: n_samp_avg, radius, vol, mean_n_part, n_part_new
+    real(kind=dp) :: comp_vol_ratio
+    integer :: n_samp, i_mode, i_samp, i_group, n_group, global_n_part
     type(aero_mode_t), pointer :: aero_mode
     type(aero_particle_t) :: aero_particle
 
     call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
          aero_data%n_source)
+
     n_group = size(aero_state%aero_weight)
+    if (present(n_part_add)) then
+       n_part_add = 0
+    end if
     do i_group = 1,n_group
+       global_n_part &
+            = aero_state_total_particles_all_procs(aero_state, i_group)
+       mean_n_part = real(global_n_part, kind=dp) &
+            / real(pmc_mpi_size(), kind=dp)
        if (aero_state%aero_weight(i_group)%comp_vol == 0d0) then
+          ! FIXME: assert that n_part in this weight group is zero
           aero_state%aero_weight(i_group)%comp_vol = 1d0
-          aero_state%aero_weight(i_group)%comp_vol = (aero_state%n_part_ideal &
-               / real(n_group, kind=dp) / real(pmc_mpi_size(), kind=dp)) / &
-               aero_dist_number(aero_dist, aero_state%aero_weight(i_group))
+       end if
+       n_samp_avg = sample_prop &
+            * aero_dist_number(aero_dist, aero_state%aero_weight(i_group))
+       n_part_new = mean_n_part + n_samp_avg
+       if (n_part_new == 0d0) cycle
+       if ((n_part_new < aero_state%n_part_ideal &
+            / real(pmc_mpi_size(), kind=dp) / 2d0) &
+            .or. (n_part_new > aero_state%n_part_ideal &
+            / real(pmc_mpi_size(), kind=dp) * 2d0)) then
+          comp_vol_ratio = (aero_state%n_part_ideal &
+               / real(pmc_mpi_size(), kind=dp)) / n_part_new
+          call aero_state_scale_comp_vol(aero_state, i_group, comp_vol_ratio)
        end if
        do i_mode = 1,aero_dist%n_mode
           aero_mode => aero_dist%mode(i_mode)
           n_samp_avg = sample_prop &
                * aero_mode_number(aero_mode, aero_state%aero_weight(i_group))
           n_samp = rand_poisson(n_samp_avg)
+          if (present(n_part_add)) then
+             n_part_add = n_part_add + n_samp
+          end if
           do i_samp = 1,n_samp
              call aero_mode_sample_radius(aero_mode, &
                   aero_state%aero_weight(i_group), radius)
@@ -778,6 +830,60 @@ contains
     end if
 
   end subroutine aero_state_rebalance
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_state_scale_comp_vol(aero_state, i_group, comp_vol_ratio)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Group number.
+    integer, intent(in) :: i_group
+    !> Ratio of <tt>new_comp_vol / old_comp_vol</tt>.
+    real(kind=dp), intent(in) :: comp_vol_ratio
+
+    real(kind=dp) :: ratio
+    integer :: i_part, i_remove, n_remove, i_bin, i_entry
+    type(aero_info_t) :: aero_info
+
+    ! We could use the ratio > 1 case unconditionally, but that would
+    ! have higher variance for the ratio < 1 case than the current
+    ! scheme.
+
+    call aero_weight_scale_comp_vol(aero_state%aero_weight(i_group), &
+         comp_vol_ratio)
+
+    if (aero_state%p%n_part == 0) return
+
+    call aero_state_sort(aero_state)
+
+    if (comp_vol_ratio < 1d0) then
+       do i_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
+          n_remove = prob_round(comp_vol_ratio &
+               * real(aero_state%aero_sorted%bin(i_bin, i_group)%n_entry, &
+               kind=dp))
+          do i_remove = 1,n_remove
+             i_entry = pmc_rand_int(aero_state%aero_sorted%bin(i_bin, &
+                  i_group)%n_entry)
+             i_part = aero_state%aero_sorted%bin(i_bin, i_group)%entry(i_entry)
+             call aero_info_allocate(aero_info)
+             aero_info%id = aero_state%p%particle(i_part)%id
+             aero_info%action = AERO_INFO_HALVED
+             call aero_state_remove_particle(aero_state, i_part, .true., &
+                  aero_info)
+             call aero_info_deallocate(aero_info)
+          end do
+       end do
+    elseif (comp_vol_ratio > 1d0) then
+       do i_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
+          do i_entry = aero_state%aero_sorted%bin(i_bin, i_group)%n_entry,1,-1
+             i_part = aero_state%aero_sorted%bin(i_bin, i_group)%entry(i_entry)
+             call aero_state_dup_particle(aero_state, i_part, comp_vol_ratio)
+          end do
+       end do
+    end if
+
+  end subroutine aero_state_scale_comp_vol
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

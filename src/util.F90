@@ -425,6 +425,7 @@ contains
     real(kind=dp) :: log_x(size(x))
 
     n = size(x)
+    call assert(585043176, n > 0)
     call assert(548290438, min_x > 0d0)
     call assert(805259035, max_x > 0d0)
     call linspace(log(min_x), log(max_x), log_x)

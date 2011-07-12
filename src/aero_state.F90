@@ -406,7 +406,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Add copies or remove a particle, due to a change in its number
-  !> concentration.
+  !> concentration. Do not call this directly - use aero_state_reweight().
   !!
   !! The particle number \c i_part is either removed, or zero or more
   !! copies are added, to account from the change from \c old_num_conc
@@ -437,6 +437,57 @@ contains
     call aero_state_dup_particle(aero_state, i_part, n_part_mean)
 
   end subroutine aero_state_reweight_particle
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Save the correct number concentrations for later use by
+  !> aero_state_reweight().
+  subroutine aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Number concentrations for later use by aero_state_reweight().
+    real(kind=dp), intent(out) :: reweight_num_conc(aero_state%p%n_part)
+
+    integer :: i_part
+
+    do i_part = 1,aero_state%p%n_part
+       reweight_num_conc(i_part) &
+            = aero_weight_array_single_num_conc(aero_state%aero_weight, &
+            aero_state%p%particle(i_part))
+    end do
+
+  end subroutine aero_state_num_conc_for_reweight
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Reweight all particles after their constituent volumes have been
+  !> altered.
+  !!
+  !! The pattern for use should be like:
+  !! <pre>
+  !! call aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
+  !! ... alter particle species volumes in aero_state ...
+  !! call aero_state_reweight(aero_state, reweight_num_conc)
+  !! </pre>
+  subroutine aero_state_reweight(aero_state, reweight_num_conc)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Number concentrations previously computed by
+    !> aero_state_num_conc_for_reweight().
+    real(kind=dp), intent(in) :: reweight_num_conc(aero_state%p%n_part)
+
+    integer :: i_part
+
+    ! work backwards so any additions and removals will only affect
+    ! particles that we've already dealt with
+    do i_part = aero_state%p%n_part,1,-1
+       call aero_state_reweight_particle(aero_state, i_part, &
+            reweight_num_conc(i_part))
+    end do
+
+  end subroutine aero_state_reweight
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -287,10 +287,10 @@ contains
 
 #ifdef PMC_USE_MOSAIC
     ! local variables
-    real(kind=dp) :: conv_fac(aero_data%n_spec), dum_var
+    real(kind=dp) :: conv_fac(aero_data%n_spec), dum_var, num_conc
     integer :: i_part, i_spec, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
-    real(kind=dp) :: old_num_conc, old_single_num_conc
+    real(kind=dp) :: reweight_num_conc(aero_state%p%n_part)
 
     ! compute aerosol conversion factors
     do i_spec = 1,aero_data%n_spec
@@ -314,13 +314,10 @@ contains
     aero_state%valid_sort = .false.
 
     ! aerosol data: map MOSAIC -> PartMC
-    ! work backwards so any additions and removals will only affect
-    ! particles that we've already dealt with
-    do i_part = aero_state%p%n_part,1,-1
+    call aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
+    do i_part = 1,aero_state%p%n_part,1
        particle => aero_state%p%particle(i_part)
-       old_num_conc = aero_weight_array_num_conc( &
-            aero_state%aero_weight, particle)
-       old_single_num_conc = aero_weight_array_single_num_conc( &
+       num_conc = aero_weight_array_num_conc( &
             aero_state%aero_weight, particle)
        do i_spec = 1,aero_data%n_spec
           i_spec_mosaic = aero_data%mosaic_index(i_spec)
@@ -328,19 +325,17 @@ contains
              particle%vol(i_spec) = &
                   ! convert nmol(species)/m^3(air) to m^3(species)
                   aer(i_spec_mosaic, 3, i_part) &
-                  / (conv_fac(i_spec) * old_num_conc)
+                  / (conv_fac(i_spec) * num_conc)
           end if
        end do
        particle%water_hyst_leg = jhyst_leg(i_part)
        ! handle water specially
        ! convert kg(water)/m^3(air) to m^3(water)
        particle%vol(aero_data%i_water) = water_a(i_part) &
-            / aero_data%density(aero_data%i_water) / old_num_conc
-       
-       ! adjust particle number to account for weight changes
-       call aero_state_reweight_particle(aero_state, i_part, &
-            old_single_num_conc)
+            / aero_data%density(aero_data%i_water) / num_conc
     end do
+    ! adjust particles to account for weight changes
+    call aero_state_reweight(aero_state, reweight_num_conc)
 
     ! gas chemistry: map MOSAIC -> PartMC
     do i_spec = 1,gas_data%n_spec

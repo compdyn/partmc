@@ -387,7 +387,6 @@ contains
        call bin_grid_allocate(new_bin_grid)
        call bin_grid_make(new_bin_grid, n_bin, grid_r_min, grid_r_max)
        call aero_sorted_set_bin_grid(aero_sorted, new_bin_grid, n_group)
-       call aero_sorted_sort_particles(aero_sorted, aero_particle_array)
        call bin_grid_deallocate(new_bin_grid)
        call aero_sorted_sort_particles(aero_sorted, aero_particle_array)
     else

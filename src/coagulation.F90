@@ -55,53 +55,17 @@ contains
     integer :: i_bin, j_bin, n_samp, n_coag, n_remove
     integer :: i_samp, j_entry, j_part, new_bin
     real(kind=dp) :: accept_factor, n_samp_mean, n_samp_per_j_part
+    real(kind=dp) :: f_min, f_max
     type(aero_particle_t) :: coag_particle, sampled_partner
-    !>DEBUG
-    real(kind=dp), allocatable :: plain_k_max(:,:), plain_k_min(:,:)
-    real(kind=dp) :: k_max, f_min, f_max, rel_err, min_rel_err, max_rel_err
-    !<DEBUG
 
     call aero_state_sort(aero_state)
     if (.not. aero_state%aero_sorted%coag_kernel_bounds_valid) then
-       call est_k_minmax_binned(aero_state%aero_sorted%bin_grid, &
+       call est_k_minmax_binned_unweighted(aero_state%aero_sorted%bin_grid, &
             coag_kernel_type, aero_data, aero_state%aero_weight, env_state, &
             aero_state%aero_sorted%coag_kernel_min, &
             aero_state%aero_sorted%coag_kernel_max)
        aero_state%aero_sorted%coag_kernel_bounds_valid = .true.
     end if
-    !>DEBUG
-    allocate(plain_k_max(aero_state%aero_sorted%bin_grid%n_bin, &
-         aero_state%aero_sorted%bin_grid%n_bin))
-    allocate(plain_k_min(aero_state%aero_sorted%bin_grid%n_bin, &
-         aero_state%aero_sorted%bin_grid%n_bin))
-    call est_k_minmax_binned_unweighted(aero_state%aero_sorted%bin_grid, &
-         coag_kernel_type, aero_data, aero_state%aero_weight, env_state, &
-         plain_k_min, plain_k_max)
-    do i_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
-       do j_bin = i_bin,aero_state%aero_sorted%bin_grid%n_bin
-          call minmax_coag_num_conc_factor_simple(aero_state%aero_weight, &
-               aero_state%aero_sorted%bin_grid, i_bin, j_bin, f_min, f_max)
-          k_max = plain_k_max(i_bin, j_bin) * f_max &
-               * aero_state%aero_weight%comp_vol
-          rel_err = (k_max - aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin)) &
-               / aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin)
-          write(*,*) i_bin, j_bin, k_max, &
-               aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin), rel_err
-          if ((i_bin == 1) .and. (j_bin == 1)) then
-             min_rel_err = rel_err
-             max_rel_err = rel_err
-          else
-             min_rel_err = min(min_rel_err, rel_err)
-             max_rel_err = max(max_rel_err, rel_err)
-          end if
-       end do
-    end do
-    deallocate(plain_k_max)
-    deallocate(plain_k_min)
-    write(*,*) 'min_rel_err', min_rel_err
-    write(*,*) 'max_rel_err', max_rel_err
-    stop
-    !<DEBUG
 
     call aero_particle_allocate(coag_particle)
     call aero_particle_allocate(sampled_partner)
@@ -109,7 +73,11 @@ contains
     tot_n_samp = 0
     tot_n_coag = 0
     do i_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
+       if (aero_state%aero_sorted%bin(i_bin)%n_entry == 0) cycle
        do j_bin = i_bin,aero_state%aero_sorted%bin_grid%n_bin
+          if (aero_state%aero_sorted%bin(j_bin)%n_entry == 0) cycle
+          call minmax_coag_num_conc_factor_simple(aero_state%aero_weight, &
+               aero_state%aero_sorted%bin_grid, i_bin, j_bin, f_min, f_max)
           do_accel_coag = .false.
           if ((j_bin > i_bin) &
                .and. (aero_state%aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
@@ -117,16 +85,12 @@ contains
              ! FIXME: we don't really need exp < 0, do we?
              call compute_n_partners( &
                   aero_state%aero_sorted%bin(i_bin)%n_entry, &
-                  aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin), &
-                  aero_state%aero_weight%comp_vol, del_t, n_samp_per_j_part, &
-                  accept_factor)
+                  aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin) * f_max, &
+                  del_t, n_samp_per_j_part, accept_factor)
              if (n_samp_per_j_part > COAG_ACCEL_N_EVENT) then
                 do_accel_coag = .true.
              end if
           end if
-          !>DEBUG
-          do_accel_coag = .false.
-          !<DEBUG
           if (do_accel_coag) then
              ! work backwards to avoid particle movement issues
              do j_entry = aero_state%aero_sorted%bin(j_bin)%n_entry,1,-1
@@ -149,9 +113,8 @@ contains
           else
              call compute_n_samp(aero_state%aero_sorted%bin(i_bin)%n_entry, &
                   aero_state%aero_sorted%bin(j_bin)%n_entry, i_bin == j_bin, &
-                  aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin), &
-                  aero_state%aero_weight%comp_vol, del_t, n_samp_mean, &
-                  n_samp, accept_factor)
+                  aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin) * f_max, &
+                  del_t, n_samp_mean, n_samp, accept_factor)
              tot_n_samp = tot_n_samp + n_samp
              do i_samp = 1,n_samp
                 ! check we still have enough particles to coagulate
@@ -177,15 +140,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine compute_n_partners(n_part, k_max, comp_vol, del_t, n_partners, &
+  subroutine compute_n_partners(n_part, k_max, del_t, n_partners, &
        accept_factor)
 
     !> Number of particles available as partners.
     integer, intent(in) :: n_part
     !> Maximum coagulation kernel (s^{-1} m^3).
     real(kind=dp), intent(in) :: k_max
-    !> Computational volume (m^3).
-    real(kind=dp), intent(in) :: comp_vol
     !> Timestep (s).
     real(kind=dp), intent(in) :: del_t
     !> Mean number of coagulation partners.
@@ -193,7 +154,7 @@ contains
     !> Accept factor for samples.
     real(kind=dp), intent(out) :: accept_factor
 
-    n_partners = k_max / comp_vol * del_t * real(n_part, kind=dp)
+    n_partners = k_max * del_t * real(n_part, kind=dp)
     accept_factor = 1d0 / k_max
 
   end subroutine compute_n_partners
@@ -289,8 +250,8 @@ contains
        i_part = aero_state%aero_sorted%bin(i_bin)%entry(i_entry)
        i_particle => aero_state%p%particle(i_part)
        ! re-get j_part as particle ordering may be changing
-       call weighted_kernel(coag_kernel_type, i_particle, coag_particle, &
-            aero_data, aero_state%aero_weight, env_state, k)
+       call num_conc_weighted_kernel(coag_kernel_type, i_particle, &
+            coag_particle, aero_data, aero_state%aero_weight, env_state, k)
        prob_coag = k * accept_factor
        prob_coag_tot = prob_coag_tot + prob_coag
        if (pmc_random() < prob_coag) then
@@ -376,8 +337,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute the number of samples required for the pair of bins.
-  subroutine compute_n_samp(ni, nj, same_bin, k_max, comp_vol, &
-       del_t, n_samp_mean, n_samp, accept_factor)
+  subroutine compute_n_samp(ni, nj, same_bin, k_max, del_t, n_samp_mean, &
+       n_samp, accept_factor)
 
     !> Number particles in first bin.
     integer, intent(in) :: ni
@@ -387,8 +348,6 @@ contains
     logical, intent(in) :: same_bin
     !> Maximum kernel value (s^{-1} m^3).
     real(kind=dp), intent(in) :: k_max
-    !> Computational volume (m^3).
-    real(kind=dp), intent(in) :: comp_vol
     !> Timestep (s).
     real(kind=dp), intent(in) :: del_t
     !> Mean number of samples per timestep.
@@ -412,7 +371,7 @@ contains
        n_possible = real(ni, kind=dp) * real(nj, kind=dp)
     end if
     
-    r_samp = k_max / comp_vol * del_t
+    r_samp = k_max * del_t
     n_samp_mean = r_samp * n_possible
     n_samp = rand_poisson(n_samp_mean)
     accept_factor = 1d0 / k_max
@@ -478,9 +437,9 @@ contains
     call find_rand_pair(aero_state%aero_sorted, b1, b2, s1, s2)
     p1 = aero_state%aero_sorted%bin(b1)%entry(s1)
     p2 = aero_state%aero_sorted%bin(b2)%entry(s2)
-    call weighted_kernel(coag_kernel_type, aero_state%p%particle(p1), &
-         aero_state%p%particle(p2), aero_data, aero_state%aero_weight, &
-         env_state, k)
+    call num_conc_weighted_kernel(coag_kernel_type, &
+         aero_state%p%particle(p1), aero_state%p%particle(p2), aero_data, &
+         aero_state%aero_weight, env_state, k)
     p = k * accept_factor
 
     if (pmc_random() .lt. p) then

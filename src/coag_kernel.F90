@@ -186,6 +186,38 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Compute the kernel value with the given number concentration
+  !> weighting.
+  subroutine num_conc_weighted_kernel(coag_kernel_type, aero_particle_1, &
+       aero_particle_2, aero_data, aero_weight, env_state, k)
+
+    !> Coagulation kernel type.
+    integer, intent(in) :: coag_kernel_type
+    !> First particle.
+    type(aero_particle_t), intent(in) :: aero_particle_1
+    !> Second particle.
+    type(aero_particle_t), intent(in) :: aero_particle_2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol weight.
+    type(aero_weight_t), intent(in) :: aero_weight
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Coagulation kernel.
+    real(kind=dp), intent(out) :: k
+
+    real(kind=dp) :: unweighted_k, radius_1, radius_2
+
+    call kernel(coag_kernel_type, aero_particle_1, aero_particle_2, &
+         aero_data, env_state, unweighted_k)
+    radius_1 = aero_particle_radius(aero_particle_1)
+    radius_2 = aero_particle_radius(aero_particle_2)
+    k = unweighted_k * coag_num_conc_factor(aero_weight, radius_1, radius_2)
+
+  end subroutine num_conc_weighted_kernel
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Compute the minimum and maximum kernel value with the given weight.
   subroutine weighted_kernel_minmax(coag_kernel_type, v1, v2, aero_data, &
        aero_weight, env_state, k_min, k_max)

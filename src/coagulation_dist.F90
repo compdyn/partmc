@@ -133,6 +133,7 @@ contains
     logical, allocatable :: procs_done(:)
     integer :: outgoing_buffer(COAG_DIST_OUTGOING_BUFFER_SIZE)
     integer :: outgoing_buffer_size_check
+    type(aero_weight_t) :: aero_weight_total
     
     n_proc = pmc_mpi_size()
 
@@ -140,7 +141,7 @@ contains
 
     call aero_state_sort(aero_state, all_procs_same=.true.)
     if (.not. aero_state%aero_sorted%coag_kernel_bounds_valid) then
-       call est_k_minmax_binned(aero_state%aero_sorted%bin_grid, &
+       call est_k_minmax_binned_unweighted(aero_state%aero_sorted%bin_grid, &
             coag_kernel_type, aero_data, aero_state%aero_weight, env_state, &
             aero_state%aero_sorted%coag_kernel_min, &
             aero_state%aero_sorted%coag_kernel_max)
@@ -156,8 +157,20 @@ contains
     call sync_info(aero_state%aero_sorted%bin(:)%n_entry, &
          aero_state%comp_vol, n_parts, comp_vols)
 
-    call generate_n_samps(n_parts, comp_vols, del_t, &
-         aero_state%aero_sorted%coag_kernel_max, n_samps, accept_factors)
+    call aero_weight_allocate(aero_weight_total)
+    call aero_weight_copy(aero_weight, aero_weight_total)
+    aero_weight_total%comp_vol = sum(comp_vols)
+
+    do i_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
+       do j_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
+          call minmax_coag_num_conc_factor_simple(aero_weight_total, &
+               aero_state%aero_sorted%bin_grid, i_bin, j_bin, f_min, f_max)
+          k_max = aero_state%aero_sorted%coag_kernel_max * f_max
+       end do
+    end do
+
+    call generate_n_samps(n_parts, comp_vols, del_t, k_max, n_samps, &
+         accept_factors)
     tot_n_samp = sum(n_samps)
     tot_n_coag = 0
 
@@ -190,9 +203,9 @@ contains
        end if
 
        ! receive exactly one message
-       call coag_dist_recv(requests, env_state, aero_data, aero_state, &
-            accept_factors, coag_kernel_type, tot_n_coag, comp_vols, &
-            procs_done)
+       call coag_dist_recv(requests, env_state, aero_weight_total, aero_data, &
+            aero_state, accept_factors, coag_kernel_type, tot_n_coag, &
+            comp_vols, procs_done)
     end do
 
     do i_req = 1,COAG_DIST_MAX_REQUESTS
@@ -215,13 +228,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine coag_dist_recv(requests, env_state, aero_data, aero_state, &
-       accept_factors, coag_kernel_type, tot_n_coag, comp_vols, procs_done)
+  subroutine coag_dist_recv(requests, env_state, aero_weight_total, &
+       aero_data, aero_state, accept_factors, coag_kernel_type, tot_n_coag, &
+       comp_vols, procs_done)
 
     !> Array of outstanding requests.
     type(request_t), intent(inout) :: requests(COAG_DIST_MAX_REQUESTS)
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Total weighting function.
+    type(aero_weight_t), intent(in) :: aero_weight_total
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
@@ -246,9 +262,9 @@ contains
     if (status(MPI_TAG) == COAG_DIST_TAG_REQUEST_PARTICLE) then
        call recv_request_particle(aero_state)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_REQ_PARTICLE) then
-       call recv_return_req_particle(requests, env_state, aero_data, &
-            aero_state, accept_factors, coag_kernel_type, tot_n_coag, &
-            comp_vols)
+       call recv_return_req_particle(requests, env_state, aero_weight_total, &
+            aero_data, aero_state, accept_factors, coag_kernel_type, &
+            tot_n_coag, comp_vols)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_UNREQ_PARTICLE) then
        call recv_return_unreq_particle(aero_state)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_NO_PARTICLE) then
@@ -577,13 +593,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine recv_return_req_particle(requests, env_state, aero_data, &
-       aero_state, accept_factors, coag_kernel_type, tot_n_coag, comp_vols)
+  subroutine recv_return_req_particle(requests, env_state, aero_weight_total, &
+       aero_data, aero_state, accept_factors, coag_kernel_type, tot_n_coag, &
+       comp_vols)
 
     !> Array of outstanding requests.
     type(request_t), intent(inout) :: requests(COAG_DIST_MAX_REQUESTS)
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Total weighting function.
+    type(aero_weight_t), intent(in) :: aero_weight_total
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
@@ -636,9 +655,9 @@ contains
     call assert(579308475, found_request)
     
     ! maybe do coagulation
-    call weighted_kernel(coag_kernel_type, &
-         requests(i_req)%local_aero_particle, &
-         sent_aero_particle, aero_data, aero_state%aero_weight, env_state, k)
+    call num_conc_weighted_kernel(coag_kernel_type, &
+         requests(i_req)%local_aero_particle, sent_aero_particle, &
+         aero_data, aero_weight_total, env_state, k)
     p = k * accept_factors(requests(i_req)%local_bin, sent_bin)
 
     if (pmc_random() .lt. p) then
@@ -837,13 +856,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> generate the number of samples to do per bin pair.
-  subroutine generate_n_samps(n_parts, comp_vols, del_t, k_max, n_samps, &
-       accept_factors)
+  subroutine generate_n_samps(n_parts, del_t, k_max, n_samps, accept_factors)
     
     !> Number of particles per bin on all processes.
     integer, intent(in) :: n_parts(:,:)
-    !> Computational volumes on all processes..
-    real(kind=dp), intent(in) :: comp_vols(:)
     !> Timestep.
     real(kind=dp), intent(in) :: del_t
     !> Maximum kernel.
@@ -863,8 +879,7 @@ contains
        do j = i,n_bin
           call compute_n_samp(n_parts(i, rank + 1), &
                sum(n_parts(j,:)), i == j, k_max(i,j), &
-               sum(comp_vols), del_t, n_samp_mean, n_samps(i,j), &
-               accept_factors(i,j))
+               del_t, n_samp_mean, n_samps(i,j), accept_factors(i,j))
        end do
     end do
 

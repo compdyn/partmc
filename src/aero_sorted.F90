@@ -182,7 +182,7 @@ contains
     if (present(n_group)) then
        use_n_group = n_group
     else
-       use_n_group = size(aero_sorted%bin, 2)
+       use_n_group = size(aero_sorted%group)
     end if
     call aero_sorted_deallocate(aero_sorted)
     call aero_sorted_allocate_size(aero_sorted, bin_grid%n_bin, use_n_group)
@@ -241,8 +241,6 @@ contains
     call integer_varray_zero(aero_sorted%group)
 
     call assert(427582120, &
-         size(aero_sorted%bin, 1) == aero_sorted%bin_grid%n_bin)
-    call assert(427582120, &
          size(aero_sorted%unif_bin) == aero_sorted%bin_grid%n_bin)
 
     do i_part = 1,aero_particle_array%n_part
@@ -253,7 +251,6 @@ contains
 
        i_group = aero_particle_array%particle(i_part)%weight_group
        call assert(288643748, i_group >= 1)
-       call assert(822618256, i_group <= size(aero_sorted%bin, 2))
        call assert(882759457, i_group <= size(aero_sorted%group))
 
        ! fill in forward index for size/group bins
@@ -460,7 +457,7 @@ contains
     i_group = aero_particle%weight_group
 
     call assert(894889664, i_group >= 1)
-    call assert(517084587, i_group <= size(aero_sorted%bin, 2))
+    call assert(517084587, i_group <= size(aero_sorted%group))
 
     ! add the particle to the aero_particle_array
     call aero_particle_array_add_particle(aero_particle_array, aero_particle)
@@ -667,7 +664,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check that the sorted data is consistent.
-  subroutine aero_sorted_check_base(name, n_domain, n_range, rmap, map, index)
+  subroutine aero_sorted_check_base(name, n_domain, n_range, rmap, map, &
+       index, continue_on_error)
 
     !> Check name.
     character(len=*), intent(in) :: name
@@ -681,6 +679,8 @@ contains
     type(integer_varray_t), intent(in) :: map
     !> Forward map from domain to indexes (single valued).
     type(integer_varray_t), intent(in) :: index
+    !> Whether to continue despite error.
+    logical, intent(in) :: continue_on_error
 
     integer :: i_domain, i_range, i_index
 
@@ -693,6 +693,7 @@ contains
        write(0,*) 'map%n_entry', map%n_entry
        write(0,*) 'index%n_entry', index%n_entry
        write(0,*) 'size(rmap)', size(rmap)
+       call assert(973643016, continue_on_error)
     end if
 
     do i_domain = 1,n_domain
@@ -702,6 +703,7 @@ contains
           write(0,*) 'i_domain', i_domain
           write(0,*) 'i_range', i_range
           write(0,*) 'n_range', n_range
+          call assert(798857945, continue_on_error)
        end if
 
        i_index = index%entry(i_domain)
@@ -711,6 +713,7 @@ contains
           write(0,*) 'i_range', i_range
           write(0,*) 'i_index', i_index
           write(0,*) 'rmap(i_range)%n_entry', rmap(i_range)%n_entry
+          call assert(823748734, continue_on_error)
        end if
        if (i_domain /= rmap(i_range)%entry(i_index)) then
           write(0,*) 'SORT CHECK ERROR D:', name
@@ -719,6 +722,7 @@ contains
           write(0,*) 'i_index', i_index
           write(0,*) 'rmap(i_range)%entry(i_index)', &
                rmap(i_range)%entry(i_index)
+          call assert(735205557, continue_on_error)
        end if
     end do
 
@@ -731,6 +735,7 @@ contains
              write(0,*) 'i_index', i_index
              write(0,*) 'i_domain', i_domain
              write(0,*) 'n_domain', n_domain
+             call assert(502643520, continue_on_error)
           end if
           if ((i_range /= map%entry(i_domain)) &
                .or. (i_index /= index%entry(i_domain))) then
@@ -740,6 +745,7 @@ contains
              write(0,*) 'map%entry(i_domain)', map%entry(i_domain)
              write(0,*) 'i_index', i_index
              write(0,*) 'index%entry(i_domain)', index%entry(i_domain)
+             call assert(544747928, continue_on_error)
           end if
        end do
     end do
@@ -757,8 +763,8 @@ contains
     integer :: i_bin, i_group, total_size
 
     total_size = 0
-    total_size = total_size + pmc_mpi_pack_size_integer(size(val%bin, 1))
-    total_size = total_size + pmc_mpi_pack_size_integer(size(val%bin, 2))
+    total_size = total_size + pmc_mpi_pack_size_integer(size(val%unif_bin))
+    total_size = total_size + pmc_mpi_pack_size_integer(size(val%group))
     total_size = total_size + pmc_mpi_pack_size_bin_grid(val%bin_grid)
     do i_bin = 1,size(val%bin, 1)
        do i_group = 1,size(val%bin, 2)
@@ -804,8 +810,8 @@ contains
     integer :: prev_position, i_bin, i_group
 
     prev_position = position
-    call pmc_mpi_pack_integer(buffer, position, size(val%bin, 1))
-    call pmc_mpi_pack_integer(buffer, position, size(val%bin, 2))
+    call pmc_mpi_pack_integer(buffer, position, size(val%unif_bin))
+    call pmc_mpi_pack_integer(buffer, position, size(val%group))
     call pmc_mpi_pack_bin_grid(buffer, position, val%bin_grid)
     do i_bin = 1,size(val%bin, 1)
        do i_group = 1,size(val%bin, 2)
@@ -859,11 +865,11 @@ contains
                val%bin(i_bin, i_group))
        end do
     end do
-    do i_bin = 1,size(val%bin, 1)
+    do i_bin = 1,size(val%unif_bin)
        call pmc_mpi_unpack_integer_varray(buffer, position, &
             val%unif_bin(i_bin))
     end do
-    do i_group = 1,size(val%group, 1)
+    do i_group = 1,size(val%group)
        call pmc_mpi_unpack_integer_varray(buffer, position, &
             val%group(i_group))
     end do

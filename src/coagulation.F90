@@ -64,9 +64,9 @@ contains
 
     tot_n_samp = 0
     tot_n_coag = 0
-    !do i_group = 1,size(aero_state%aero_sorted%bin, 2)
+    !do i_group = 1,size(aero_state%aero_sorted%group)
     !do j_group = 1,i_group
-    do i_bin = 1,size(aero_state%aero_sorted%bin, 1)
+    do i_bin = 1,size(aero_state%aero_sorted%unif_bin)
        if (aero_state%aero_sorted%unif_bin(i_bin)%n_entry == 0) &
             cycle
        !if (i_group == j_group) then
@@ -74,7 +74,7 @@ contains
        !else
        !   j_bin_start = 1
        !end if
-       do j_bin = i_bin,size(aero_state%aero_sorted%bin, 1)
+       do j_bin = i_bin,size(aero_state%aero_sorted%unif_bin)
           if (aero_state%aero_sorted%unif_bin(j_bin)%n_entry == 0) &
                cycle
           call mc_coag_for_bin(coag_kernel_type, env_state, aero_data, &

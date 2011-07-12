@@ -158,7 +158,7 @@ contains
          size(aero_state%aero_weight))
     allocate(n_parts(aero_state%aero_sorted%bin_grid%n_bin, n_proc))
     allocate(comp_vols(n_proc))
-    call sync_info(aero_state%aero_sorted%bin(:)%n_entry, &
+    call sync_info(aero_state%aero_sorted%unif_bin(:)%n_entry, &
          aero_state%comp_vol, n_parts, comp_vols)
 
     call aero_weight_allocate(aero_weight_total)

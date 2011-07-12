@@ -201,8 +201,9 @@ contains
     if (present(i_group)) then
        if (aero_state%valid_sort) then
           aero_state_total_particles &
-               = sum(aero_state%aero_sorted%bin(:,i_group)%n_entry)
+               = aero_state%aero_sorted%group(i_group)%n_entry
        else
+          ! FIXME: should we just sort?
           aero_state_total_particles = 0
           do i_part = 1,aero_state%apa%n_part
              if (aero_state%apa%particle(i_part)%weight_group == i_group) then
@@ -927,7 +928,7 @@ contains
     real(kind=dp), intent(in) :: comp_vol_ratio
 
     real(kind=dp) :: ratio
-    integer :: i_part, i_remove, n_remove, i_bin, i_entry
+    integer :: i_part, i_remove, n_remove, i_entry
     type(aero_info_t) :: aero_info
 
     ! We could use the ratio > 1 case unconditionally, but that would
@@ -942,28 +943,22 @@ contains
     call aero_state_sort(aero_state)
 
     if (comp_vol_ratio < 1d0) then
-       do i_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
-          n_remove = prob_round(comp_vol_ratio &
-               * real(aero_state%aero_sorted%bin(i_bin, i_group)%n_entry, &
-               kind=dp))
-          do i_remove = 1,n_remove
-             i_entry = pmc_rand_int(aero_state%aero_sorted%bin(i_bin, &
-                  i_group)%n_entry)
-             i_part = aero_state%aero_sorted%bin(i_bin, i_group)%entry(i_entry)
-             call aero_info_allocate(aero_info)
-             aero_info%id = aero_state%apa%particle(i_part)%id
-             aero_info%action = AERO_INFO_HALVED
-             call aero_state_remove_particle(aero_state, i_part, .true., &
-                  aero_info)
-             call aero_info_deallocate(aero_info)
-          end do
+       n_remove = prob_round(comp_vol_ratio &
+            * real(aero_state%aero_sorted%group(i_group)%n_entry, kind=dp))
+       do i_remove = 1,n_remove
+          i_entry = pmc_rand_int(aero_state%aero_sorted%group(i_group)%n_entry)
+          i_part = aero_state%aero_sorted%group(i_group)%entry(i_entry)
+          call aero_info_allocate(aero_info)
+          aero_info%id = aero_state%apa%particle(i_part)%id
+          aero_info%action = AERO_INFO_HALVED
+          call aero_state_remove_particle(aero_state, i_part, .true., &
+               aero_info)
+          call aero_info_deallocate(aero_info)
        end do
     elseif (comp_vol_ratio > 1d0) then
-       do i_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
-          do i_entry = aero_state%aero_sorted%bin(i_bin, i_group)%n_entry,1,-1
-             i_part = aero_state%aero_sorted%bin(i_bin, i_group)%entry(i_entry)
-             call aero_state_dup_particle(aero_state, i_part, comp_vol_ratio)
-          end do
+       do i_entry = aero_state%aero_sorted%group(i_group)%n_entry,1,-1
+          i_part = aero_state%aero_sorted%group(i_group)%entry(i_entry)
+          call aero_state_dup_particle(aero_state, i_part, comp_vol_ratio)
        end do
     end if
 
@@ -2318,10 +2313,12 @@ contains
     !> Aerosol state to check.
     type(aero_state_t), intent(in) :: aero_state
 
+    logical, parameter :: continue_on_error = .false.
+
     integer :: i_part, i_bin, i_group, i_entry
 
     if (.not. aero_state%valid_sort) then
-       write(0,*) 'SORTED CHECK ERORR: SORT NOT VALID'
+       write(0,*) 'SORTED CHECK ERROR: SORT NOT VALID'
        return
     end if
 
@@ -2475,7 +2472,8 @@ contains
          n_range=aero_state%aero_sorted%bin_grid%n_bin, &
          rmap=aero_state%aero_sorted%unif_bin, &
          map=aero_state%aero_sorted%reverse_bin, &
-         index=aero_state%aero_sorted%reverse_unif_entry)
+         index=aero_state%aero_sorted%reverse_unif_entry, &
+         continue_on_error=continue_on_error)
     do i_part = 1,aero_state%apa%n_part
        i_bin = aero_sorted_particle_in_bin(aero_state%aero_sorted, &
             aero_state%apa%particle(i_part))
@@ -2485,6 +2483,7 @@ contains
           write(0,*) 'i_bin', i_bin
           write(0,*) 'aero_state%aero_sorted%reverse_bin%entry(i_part)', &
                aero_state%aero_sorted%reverse_bin%entry(i_part)
+          call assert(553067208, continue_on_error)
        end if
     end do
 
@@ -2493,7 +2492,8 @@ contains
          n_range=size(aero_state%aero_weight), &
          rmap=aero_state%aero_sorted%group, &
          map=aero_state%aero_sorted%reverse_group, &
-         index=aero_state%aero_sorted%reverse_group_entry)
+         index=aero_state%aero_sorted%reverse_group_entry, &
+         continue_on_error=continue_on_error)
     do i_part = 1,aero_state%apa%n_part
        if (aero_state%apa%particle(i_part)%weight_group &
             /= aero_state%aero_sorted%reverse_group%entry(i_part)) then
@@ -2503,6 +2503,7 @@ contains
                aero_state%apa%particle(i_part)%weight_group
           write(0,*) 'aero_state%aero_sorted%reverse_group%entry(i_part)', &
                aero_state%aero_sorted%reverse_group%entry(i_part)
+          call assert(389482223, continue_on_error)
        end if
     end do
 

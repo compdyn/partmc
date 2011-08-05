@@ -1071,6 +1071,8 @@ class aero_removed_info_t(object):
         coagulated with is given in the other_ids array.
     aero_removed_info_t.AERO_INFO_HALVED - The particle was removed
         due to a halving of the particle population.
+    aero_removed_info_t.AERO_INFO_WEIGHT - The particle was removed
+        due to re-weighting.
 
     To obtain the number of removed particles we can use, for example:
     >>> n_removed_particles = len(aero_removed_info.ids)
@@ -1091,8 +1093,10 @@ class aero_removed_info_t(object):
     >>>         print '    removed due to coagulation' \\
     >>>             ' with particle id %d' \\
     >>>             % aero_removed_info.other_ids[i]
-    >>>     elif action == aero_removed_info.AERO_INFO_HALVING:
+    >>>     elif action == aero_removed_info.AERO_INFO_HALVED:
     >>>         print '    removed due to halving'
+    >>>     elif action == aero_removed_info.AERO_INFO_WEIGHT:
+    >>>         print '    removed due to re-weighting'
 
     """
     
@@ -1100,6 +1104,7 @@ class aero_removed_info_t(object):
     AERO_INFO_DILUTION = 1
     AERO_INFO_COAG = 2
     AERO_INFO_HALVED = 3
+    AERO_INFO_WEIGHT = 4
 
     def __init__(self, ncf):
         """Creates an aero_remove_info_t object by reading data from a

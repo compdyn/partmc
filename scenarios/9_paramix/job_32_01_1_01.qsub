@@ -12,7 +12,7 @@
 #PBS -A TG-ATM100036
 # specify your project allocation code (ie. TG-ABC123456)
 #
-#PBS -l nodes=2:ppn=8
+#PBS -l nodes=1:ppn=1
 # number of nodes and number of processors on each node to be used.
 # Do NOT use ppn = 1. Note that there are 8 processors on each Queen Bee node.
 #

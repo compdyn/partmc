@@ -1,7 +1,7 @@
 run_type particle               # particle-resolved run
-output_prefix %%OUTPUT_PREFIX%% # prefix of output files
+output_prefix data              # prefix of output files
 n_loop 1                        # number of Monte Carlo loops
-n_part %%N_PART%%               # total number of particles
+n_part 32                       # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 86400                     # total simulation time (s)
@@ -49,7 +49,7 @@ allow_halving yes               # whether to allow halving (yes/no)
 record_removals yes             # whether to record particle removals (yes/no)
 do_parallel yes                 # whether to run in parallel (yes/no)
 output_type dist                # parallel output type (central/dist/single)
-mix_timescale %%MIX_TIMESCALE%% # mixing timescale between processors (s)
+mix_timescale 3600              # mixing timescale between processors (s)
 gas_average yes                 # whether to average gases each timestep
 env_average yes                 # whether to average environment each timestep
 coag_method local               # parallel method (local/collect/central/dist)

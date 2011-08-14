@@ -1,0 +1,80 @@
+#!/bin/bash
+#
+#PBS -q workq
+# the queue to be used.
+#
+#PBS -M mwest@illinois.edu
+# your notification email address
+#
+#PBS -m bea
+# send mail on job begin/end/abort
+#
+#PBS -A TG-ATM100036
+# specify your project allocation code (ie. TG-ABC123456)
+#
+#PBS -l nodes=2:ppn=8
+# number of nodes and number of processors on each node to be used.
+# Do NOT use ppn = 1. Note that there are 8 processors on each Queen Bee node.
+#
+#PBS -l walltime=1:00:00
+# requested Wall-clock time. SUs will be #hours x #cores
+#
+#PBS -V
+# export all my environment variables to the job
+#
+#PBS -o output_32_01_1_01
+# name of the standard out file to be "output-file".
+#
+#PBS -j oe
+# standard error output merge to the standard output file.
+#
+#PBS -N p_32_01_1_01
+# name of the job (that will appear on executing the qstat command).
+#
+# Following are non PBS commands. PLEASE ADOPT THE SAME EXECUTION SCHEME
+# i.e. execute the job by copying the necessary files from your home directpory
+# to the scratch space, execute in the scratch space, and copy back
+# the necessary files to your home directory.
+#
+
+set -v # turn on command echoing
+
+echo 'starting script'
+date
+env
+pwd
+
+export WORK_DIR=/work/${USER}/run_32_01_1_01
+echo ${WORK_DIR}
+export RESULTS_DIR=${HOME}/results/run_32_01_1_01
+echo ${RESULTS_DIR}
+export CODE_DIR=${HOME}/svn/partmc/branches/paramix
+echo ${CODE_DIR}
+export DATA_DIR=${CODE_DIR}/scenarios/9_paramix
+
+rm -rf ${WORK_DIR}
+mkdir ${WORK_DIR}
+cp ${CODE_DIR}/build/partmc ${WORK_DIR}
+cp ${DATA_DIR}/run.spec ${WORK_DIR}
+cp ${DATA_DIR}/*.dat ${WORK_DIR}
+
+# changing to your working directory (we recommend you to use work volume for batch job run)
+#
+export NPROCS=`wc -l $PBS_NODEFILE |gawk '//{print $1}'`
+echo ${NPROCS}
+
+echo $PBS_NODEFILE
+cat ${PBS_NODEFILE}
+
+cd ${WORK_DIR}
+pwd
+mkdir -p out
+ls -l
+date
+mpirun -np ${NPROCS} -machinefile ${PBS_NODEFILE} ${WORK_DIR}/partmc run.spec
+date
+
+rm -rf ${RESULTS_DIR}
+cp -r ${WORK_DIR} ${RESULTS_DIR}
+
+# timing your job

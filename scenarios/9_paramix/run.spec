@@ -52,4 +52,4 @@ output_type dist                # parallel output type (central/dist/single)
 mix_timescale 3600              # mixing timescale between processors (s)
 gas_average yes                 # whether to average gases each timestep
 env_average yes                 # whether to average environment each timestep
-coag_method local               # parallel method (local/collect/central/dist)
+parallel_coag local             # parallel method (local/collect/central/dist)

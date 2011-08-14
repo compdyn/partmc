@@ -44,13 +44,16 @@ date
 env
 pwd
 
-export WORK_DIR=/work/$USER/run_32_02_8_01
-echo $WORK_DIR
+export WORK_DIR=/work/${USER}/run_32_02_8_01
+echo ${WORK_DIR}
 export RESULTS_DIR=${HOME}/results/run_32_02_8_01
+echo ${RESULTS_DIR}
 export CODE_DIR=${HOME}/svn/partmc/branches/paramix
-echo $CODE_DIR
+echo ${CODE_DIR}
 export DATA_DIR=${CODE_DIR}/scenarios/9_paramix
 
+rm -rf ${WORK_DIR}
+mkdir ${WORK_DIR}
 cp ${CODE_DIR}/build/partmc ${WORK_DIR}
 cp ${DATA_DIR}/run.spec ${WORK_DIR}
 cp ${DATA_DIR}/*.dat ${WORK_DIR}
@@ -58,19 +61,20 @@ cp ${DATA_DIR}/*.dat ${WORK_DIR}
 # changing to your working directory (we recommend you to use work volume for batch job run)
 #
 export NPROCS=`wc -l $PBS_NODEFILE |gawk '//{print $1}'`
-echo $NPROCS
+echo ${NPROCS}
 
 echo $PBS_NODEFILE
-cat $PBS_NODEFILE
+cat ${PBS_NODEFILE}
 
-cd $WORK_DIR
+cd ${WORK_DIR}
 pwd
 mkdir -p out
 ls -l
 date
-mpirun -np $NPROCS -machinefile $PBS_NODEFILE $WORK_DIR/partmc run.spec
+mpirun -np ${NPROCS} -machinefile ${PBS_NODEFILE} ${WORK_DIR}/partmc run.spec
 date
 
+rm -rf ${RESULTS_DIR}
 cp -r ${WORK_DIR} ${RESULTS_DIR}
 
 # timing your job

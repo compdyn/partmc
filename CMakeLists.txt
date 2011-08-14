@@ -234,21 +234,21 @@ if(ENABLE_MPI)
   set_tests_properties(test_parallel_4 PROPERTIES DEPENDS test_parallel_3)
 endif()
 
-add_test(test_rand_1 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_1.sh)
-add_test(test_rand_2 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_2.sh)
-set_tests_properties(test_rand_2 PROPERTIES DEPENDS test_rand_1)
-add_test(test_rand_3 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_3.sh)
-set_tests_properties(test_rand_3 PROPERTIES DEPENDS test_rand_2)
-add_test(test_rand_4 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_4.sh)
-set_tests_properties(test_rand_4 PROPERTIES DEPENDS test_rand_3)
-add_test(test_rand_5 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_5.sh)
-set_tests_properties(test_rand_5 PROPERTIES DEPENDS test_rand_4)
-add_test(test_rand_6 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_6.sh)
-set_tests_properties(test_rand_6 PROPERTIES DEPENDS test_rand_5)
-add_test(test_rand_7 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_7.sh)
-set_tests_properties(test_rand_7 PROPERTIES DEPENDS test_rand_6)
-add_test(test_rand_8 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_8.sh)
-set_tests_properties(test_rand_8 PROPERTIES DEPENDS test_rand_7)
+#add_test(test_rand_1 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_1.sh)
+#add_test(test_rand_2 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_2.sh)
+#set_tests_properties(test_rand_2 PROPERTIES DEPENDS test_rand_1)
+#add_test(test_rand_3 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_3.sh)
+#set_tests_properties(test_rand_3 PROPERTIES DEPENDS test_rand_2)
+#add_test(test_rand_4 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_4.sh)
+#set_tests_properties(test_rand_4 PROPERTIES DEPENDS test_rand_3)
+#add_test(test_rand_5 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_5.sh)
+#set_tests_properties(test_rand_5 PROPERTIES DEPENDS test_rand_4)
+#add_test(test_rand_6 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_6.sh)
+#set_tests_properties(test_rand_6 PROPERTIES DEPENDS test_rand_5)
+#add_test(test_rand_7 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_7.sh)
+#set_tests_properties(test_rand_7 PROPERTIES DEPENDS test_rand_6)
+#add_test(test_rand_8 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_8.sh)
+#set_tests_properties(test_rand_8 PROPERTIES DEPENDS test_rand_7)
 
 add_test(test_sedi_1 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_1.sh)
 add_test(test_sedi_2 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_2.sh)
@@ -308,18 +308,18 @@ add_executable(test_nucleate_ode ${TEST_NUCLEATE_ODE_SRC})
 ######################################################################
 # test_poisson_sample
 
-add_executable(test_poisson_sample test/rand/test_poisson_sample.F90
-  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 ${GSL_SRC})
+#add_executable(test_poisson_sample test/rand/test_poisson_sample.F90
+#  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 ${GSL_SRC})
 
-target_link_libraries(test_poisson_sample ${GSL_LIBS})
+#target_link_libraries(test_poisson_sample ${GSL_LIBS})
 
 ######################################################################
 # test_binomial_sample
 
-add_executable(test_binomial_sample test/rand/test_binomial_sample.F90
-  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 ${GSL_SRC})
+#add_executable(test_binomial_sample test/rand/test_binomial_sample.F90
+#  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 ${GSL_SRC})
 
-target_link_libraries(test_binomial_sample ${GSL_LIBS})
+#target_link_libraries(test_binomial_sample ${GSL_LIBS})
 
 ######################################################################
 # bin_average_comp

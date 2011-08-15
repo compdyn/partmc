@@ -4,8 +4,8 @@ PartMC
 
 PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
-Version 2.1.3  
-Released 2011-07-02
+Version 2.1.4  
+Released 2011-08-15
 
 <http://lagrange.mechse.illinois.edu/mwest/partmc/>
 
@@ -77,12 +77,12 @@ mainly been under Linux and OS X. The quick-start instructions are:
 
 2. Unpack PartMC:
 
-        tar xzvf partmc-2.1.3.tar.gz
+        tar xzvf partmc-2.1.4.tar.gz
 
 3. Change into the main PartMC directory (where this README file is
    located):
 
-        cd partmc-2.1.3
+        cd partmc-2.1.4
 
 4. Make a directory called `build` and change into it:
 
@@ -163,6 +163,10 @@ used for sectional and exact model output).
 
 ChangeLog
 =========
+
+2.1.4 - 2011-08-15
+
+  * Error if running in parallel with do_parallel false.
 
 2.1.3 - 2011-07-02
 

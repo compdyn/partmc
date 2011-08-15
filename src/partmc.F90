@@ -495,6 +495,12 @@ contains
           call spec_file_read_parallel_coag_type(file, &
                run_part_opt%parallel_coag_type)
        else
+#ifdef PMC_USE_MPI
+          if (pmc_mpi_size() > 1) then
+             call spec_file_die_msg(800768865, file, &
+                  'running in parallel, but do_parallel is false')
+          end if
+#endif
           run_part_opt%output_type = OUTPUT_TYPE_SINGLE
           run_part_opt%mix_timescale = 0d0
           run_part_opt%gas_average = .false.

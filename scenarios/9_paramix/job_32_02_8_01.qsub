@@ -16,7 +16,7 @@
 # number of nodes and number of processors on each node to be used.
 # Do NOT use ppn = 1. Note that there are 8 processors on each Queen Bee node.
 #
-#PBS -l walltime=1:00:00
+#PBS -l walltime=0:05:00
 # requested Wall-clock time. SUs will be #hours x #cores
 #
 #PBS -V
@@ -68,12 +68,12 @@ cat ${PBS_NODEFILE}
 
 cd ${WORK_DIR}
 pwd
-mkdir -p out
 ls -l
 date
 mpirun -np ${NPROCS} -machinefile ${PBS_NODEFILE} ${WORK_DIR}/partmc run.spec
 date
 
+rm ${WORK_DIR}/partmc
 rm -rf ${RESULTS_DIR}
 cp -r ${WORK_DIR} ${RESULTS_DIR}
 

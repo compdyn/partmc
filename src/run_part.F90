@@ -121,7 +121,7 @@ contains
     type(run_part_opt_t), intent(in) :: run_part_opt
 
     real(kind=dp) :: time, pre_time, pre_del_t, prop_done
-    real(kind=dp) :: last_output_time, last_progress_time
+    real(kind=dp) :: last_output_time, last_progress_time, last_mix_time
     real(kind=dp) :: k_max(bin_grid%n_bin, bin_grid%n_bin)
     integer :: rank, n_proc, pre_index, ncid
     integer :: pre_i_repeat
@@ -133,7 +133,7 @@ contains
     integer :: global_n_emit, global_n_dil_in, global_n_dil_out
     integer :: global_n_nuc
     logical :: do_output, do_state, do_state_netcdf, do_progress, did_coag
-    logical :: update_rel_humid
+    logical :: update_rel_humid, do_mix
     real(kind=dp) :: t_start, t_wall_now, t_wall_elapsed, t_wall_remain
     type(env_state_t) :: old_env_state
     integer :: n_time, i_time, i_time_start, pre_i_time
@@ -198,6 +198,7 @@ contains
 
     t_start = env_state%elapsed_time
     last_output_time = time
+    last_mix_time = time
     last_progress_time = time
     n_time = nint(run_part_opt%t_max / run_part_opt%del_t)
     i_time_start = nint(time / run_part_opt%del_t) + 1
@@ -281,14 +282,24 @@ contains
        end if
 
        if (run_part_opt%mix_timescale > 0d0) then
-          call aero_state_mix(aero_state, run_part_opt%del_t, &
-               run_part_opt%mix_timescale, aero_data, bin_grid)
-       end if
-       if (run_part_opt%gas_average) then
-          call gas_state_mix(gas_state)
-       end if
-       if (run_part_opt%gas_average) then
-          call env_state_mix(env_state)
+          call check_event(time, run_part_opt%del_t, &
+               run_part_opt%mix_timescale, last_mix_time, do_mix)
+          if (do_mix) then
+             !>DEBUG
+             if (pmc_rank() == 0) then
+                write(*,*) 'mixing with p = 1'
+             end if
+             !<DEBUG
+             call aero_state_mix(aero_state, run_part_opt%del_t, &
+                  run_part_opt%mix_timescale, aero_data, bin_grid, &
+                  specify_prob_transfer=1d0)
+             if (run_part_opt%gas_average) then
+                call gas_state_mix(gas_state)
+             end if
+             if (run_part_opt%gas_average) then
+                call env_state_mix(env_state)
+             end if
+          end if
        end if
 
        ! if we have less than half the maximum number of particles then

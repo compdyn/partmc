@@ -700,7 +700,7 @@ contains
   !> Mix the aero_states between all processes. Currently uses a
   !> simple all-to-all diffusion.
   subroutine aero_state_mix(aero_state, del_t, mix_timescale, &
-       aero_data, bin_grid)
+       aero_data, bin_grid, specify_prob_transfer)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -712,6 +712,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
+    !> Transfer probability of each particle.
+    real(kind=dp), optional, intent(in) :: specify_prob_transfer
 
 #ifdef PMC_USE_MPI
     integer :: rank, n_proc, dest_proc, ierr
@@ -742,9 +744,14 @@ contains
           call aero_state_allocate_size(aero_state_sends(dest_proc + 1), &
                bin_grid%n_bin, aero_data%n_spec, aero_data%n_source)
           aero_state_sends(dest_proc + 1)%comp_vol = aero_state%comp_vol
-          prob_transfer = (1d0 - exp(- del_t / mix_timescale)) &
-               / real(n_proc, kind=dp) &
-               * min(1d0, comp_vols(dest_proc + 1) / comp_vols(rank + 1))
+          if (present(specify_prob_transfer)) then
+             prob_transfer = specify_prob_transfer / real(n_proc, kind=dp) &
+                  * min(1d0, comp_vols(dest_proc + 1) / comp_vols(rank + 1))
+          else
+             prob_transfer = (1d0 - exp(- del_t / mix_timescale)) &
+                  / real(n_proc, kind=dp) &
+                  * min(1d0, comp_vols(dest_proc + 1) / comp_vols(rank + 1))
+          end if
           ! because we are doing sequential sampling from the aero_state
           ! we need to scale up the later transfer probabilities, because
           ! the later particles are being transferred conditioned on the

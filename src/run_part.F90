@@ -286,7 +286,7 @@ contains
                run_part_opt%mix_timescale, last_mix_time, do_mix)
           if (do_mix) then
              !>DEBUG
-             if (pmc_rank() == 0) then
+             if (pmc_mpi_rank() == 0) then
                 write(*,*) 'mixing with p = 1'
              end if
              !<DEBUG

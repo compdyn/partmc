@@ -56,15 +56,13 @@ def make_plot(filename_in_080, filename_in_100, filename_in_130, filename_in_150
 
     maximum_ss = (max(rh) - 1) * 100.
     print 'maximum ss ', maximum_ss
-    final_ss = (rh[-1] - 1) * 100.  # takes the last value of the time series
-    final_rh = rh[-1]
-    print 'final ss ', final_ss
+    rh_final = rh[-1]
  
 ## calculate time series for each particle
     print dir_cloud, in_file_pattern
     time_filename_list = partmc.get_time_filename_list(dir_cloud, in_file_pattern)
     rh_c = np.zeros((len(dry_diameters),len(time_filename_list)))
-    final_rh_c = np.zeros(len(dry_diameters))
+    rh_c_final = np.zeros(len(dry_diameters))
     d_c = np.zeros((len(dry_diameters),len(time_filename_list)))
     d = np.zeros((len(dry_diameters),len(time_filename_list)))
     rh_eq = np.zeros((len(dry_diameters),len(time_filename_list)))
@@ -94,7 +92,9 @@ def make_plot(filename_in_080, filename_in_100, filename_in_130, filename_in_150
         i_count = i_count + 1
 
     d_max = d.max(axis = 1)
-    final_rh_c[:] = rh_c[:,-1]
+    rh_c_final = rh_c[:,-1]
+    d_final = d[:,-1]
+    d_c_final = d_c[:,-1]
 
 ## find the particles in the four categories
 ## 1. particles that do not activate
@@ -126,7 +126,7 @@ def make_plot(filename_in_080, filename_in_100, filename_in_130, filename_in_150
 
 ## 2. evaporation type     
   
-    evaporation = np.logical_and(np.logical_and(np.any(rh > rh_c, axis=1), np.all(d < d_c, axis=1)), (final_rh < final_rh_c))
+    evaporation = np.logical_and(np.logical_and(np.any(rh > rh_c, axis=1), np.all(d < d_c, axis=1)), (rh_final < rh_c_final))
 
     id_list_evaporation = particles.ids[evaporation]
     print "id_list_evaporation ", id_list_evaporation
@@ -134,9 +134,9 @@ def make_plot(filename_in_080, filename_in_100, filename_in_130, filename_in_150
 #    plot_id = id_list_evaporation[0]
     rh_c_init = rh_c[:,0]
     rh_c_init_evaporation = np.ma.masked_where(np.logical_not(evaporation), rh_c_init)
-    plot_id = rh_c_init_evaporation.argmax()
+    plot_index = rh_c_init_evaporation.argmin()
 
-    plot_index = partmc.find_nearest_index(particles.ids, plot_id)
+#    plot_index = partmc.find_nearest_index(particles.ids, plot_id)
     diam_evaporation = d[plot_index,:]
     ids_evaporation = ids[plot_index,:]
     rh_eq_evaporation = rh_eq[plot_index,:]
@@ -158,7 +158,7 @@ def make_plot(filename_in_080, filename_in_100, filename_in_130, filename_in_150
 
 ## 3. deactivation type
 
-    deactivation = np.logical_and(np.any(rh > rh_c, axis=1), np.any(d > d_c, axis=1))
+    deactivation = np.logical_and(np.logical_and(np.any(rh > rh_c, axis=1), np.any(d > d_c, axis=1)), (d_final < d_c_final))
 
     id_list_deactivation = particles.ids[deactivation]
     print "id_list_deactivation ", id_list_deactivation
@@ -167,9 +167,9 @@ def make_plot(filename_in_080, filename_in_100, filename_in_130, filename_in_150
 
     rh_c_init = rh_c[:,0]
     rh_c_init_deactivation = np.ma.masked_where(np.logical_not(deactivation), rh_c_init)
-    plot_id = rh_c_init_deactivation.argmax()
+    plot_index = rh_c_init_deactivation.argmin()
 
-    plot_index = partmc.find_nearest_index(particles.ids, plot_id)
+#    plot_index = partmc.find_nearest_index(particles.ids, plot_id)
     diam_deactivation = d[plot_index,:]
     ids_deactivation = ids[plot_index,:]
     rh_eq_deactivation = rh_eq[plot_index,:]
@@ -191,7 +191,7 @@ def make_plot(filename_in_080, filename_in_100, filename_in_130, filename_in_150
 
 ## 4. inertial type
 
-    inertial = np.logical_and(np.logical_and(np.any(rh > rh_c, axis=1), np.all(d < d_c, axis=1)), (final_rh > final_rh_c))
+    inertial = np.logical_and(np.logical_and(np.any(rh > rh_c, axis=1), np.all(d < d_c, axis=1)), (rh_final > rh_c_final))
 
     id_list_inertial = particles.ids[inertial] 
     print "id_list_inertial ", id_list_inertial

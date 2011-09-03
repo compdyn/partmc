@@ -633,7 +633,7 @@ contains
     elseif (trim(output_type_name) == 'single') then
        output_type = OUTPUT_TYPE_SINGLE
     else
-       call spec_file_die_msg(494684716, file, &
+       call spec_file_die_msg(392313600, file, &
             "Unknown output type: " // trim(output_type_name))
     end if
 

@@ -647,7 +647,7 @@ contains
     elseif (trim(kernel_name) == 'zero') then
        coag_kernel_type = COAG_KERNEL_TYPE_ZERO
     else
-       call spec_file_die_msg(494684716, file, &
+       call spec_file_die_msg(920761229, file, &
             "Unknown coagulation kernel type: " // trim(kernel_name))
     end if
 

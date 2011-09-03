@@ -350,7 +350,7 @@ contains
                "input H2O density not equal to const%water_density (" &
                // trim(real_to_string(aero_data%density(i))) // " /= " &
                // trim(real_to_string(const%water_density)) // ")")
-          call warn_assert_msg(945800387, &
+          call warn_assert_msg(233517437, &
                aero_data%molec_weight(i) == const%water_molec_weight, &
                "input H2O molec_weight not equal " &
                // "to const%water_molec_weight (" &
@@ -678,7 +678,7 @@ contains
          dimid_aero_species))
     call pmc_nc_check(nf90_Inquire_Dimension(ncid, &
          dimid_aero_species, name, n_spec))
-    call assert(739238793, n_spec < 1000)
+    call assert(141013948, n_spec < 1000)
 
     call pmc_nc_check(nf90_inq_dimid(ncid, "aero_source", &
          dimid_aero_source))

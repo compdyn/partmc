@@ -377,11 +377,11 @@ contains
             // trim(file%name))
     end if
     if (trim(species_name(1)) /= 'time') then
-       call die_msg(398532628, 'row 1 in file ' &
+       call die_msg(525127793, 'row 1 in file ' &
             // trim(file%name) // ' must start with: time')
     end if
     if (trim(species_name(2)) /= 'rate') then
-       call die_msg(398532628, 'row 2 in file ' &
+       call die_msg(506981322, 'row 2 in file ' &
             // trim(file%name) // ' must start with: rate')
     end if
     n_time = size(species_data, 2)

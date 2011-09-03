@@ -637,7 +637,7 @@ contains
          == COAG_DIST_TAG_RETURN_REQ_PARTICLE)
     call mpi_get_count(status, MPI_CHARACTER, buffer_size, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(461111487, buffer_size <= COAG_DIST_MAX_BUFFER_SIZE)
+    call assert(563012836, buffer_size <= COAG_DIST_MAX_BUFFER_SIZE)
     sent_proc = status(MPI_SOURCE)
 
     ! unpack it

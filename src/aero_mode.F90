@@ -445,7 +445,7 @@ contains
        call num_conc_sampled(aero_mode%sample_radius, &
             aero_mode%sample_num_conc, bin_grid, num_conc)
     else
-       call die_msg(719625922, "unknown aero_mode type: " &
+       call die_msg(223903246, "unknown aero_mode type: " &
             // trim(integer_to_string(aero_mode%type)))
     end if
 
@@ -718,7 +718,7 @@ contains
     ! check the data size
     n_species = size(species_data, 1)
     if (n_species < 1) then
-       call die_msg(427666881, 'file ' // trim(file%name) &
+       call die_msg(628123166, 'file ' // trim(file%name) &
             // ' must contain at least one line of data')
     end if
     if (size(species_data, 2) /= 1) then
@@ -1035,7 +1035,7 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%num_conc)
     call pmc_mpi_pack_real_array(buffer, position, val%vol_frac)
     call pmc_mpi_pack_integer(buffer, position, val%source)
-    call assert(579699255, &
+    call assert(497092471, &
          position - prev_position <= pmc_mpi_pack_size_aero_mode(val))
 #endif
 

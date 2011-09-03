@@ -744,7 +744,7 @@ contains
             // trim(file%name))
     end if
     if (trim(read_names(1)) /= "time") then
-       call die_msg(692842968, 'first data line in ' // trim(file%name) &
+       call die_msg(407039398, 'first data line in ' // trim(file%name) &
             // ' must start with: time not: ' // trim(read_names(1)))
     end if
     if (trim(read_names(2)) /= name) then

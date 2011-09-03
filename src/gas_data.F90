@@ -418,7 +418,7 @@ contains
        gas_data%name(i_spec) = gas_species_names(1:(i-1))
        gas_species_names = gas_species_names((i+1):)
     end do
-    call assert(729138192, gas_species_names == "")
+    call assert(469721220, gas_species_names == "")
 
   end subroutine gas_data_input_netcdf
 

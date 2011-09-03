@@ -267,7 +267,7 @@ contains
     real(kind=dp), intent(in) :: num_conc
 
     if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
-       call die_msg(902242996, "cannot invert weight type 'none'")
+       call die_msg(545688537, "cannot invert weight type 'none'")
     elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
          .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
        call assert_msg(902242996, aero_weight%exponent /= 0d0, &
@@ -298,7 +298,7 @@ contains
             .or. (aero_weight_array(i_group)%type == AERO_WEIGHT_TYPE_POWER) &
             .or. (aero_weight_array(i_group)%type == AERO_WEIGHT_TYPE_MFA))
        if (aero_weight_array(i_group)%type == AERO_WEIGHT_TYPE_NONE) then
-          call assert(829651126, aero_weight_array(i_group)%exponent == 0d0)
+          call assert(853998284, aero_weight_array(i_group)%exponent == 0d0)
        end if
        if (aero_weight_array(i_group)%type == AERO_WEIGHT_TYPE_MFA) then
           call assert(829651126, aero_weight_array(i_group)%exponent == -3d0)
@@ -534,7 +534,7 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%type)
     call pmc_mpi_unpack_real(buffer, position, val%ref_radius)
     call pmc_mpi_unpack_real(buffer, position, val%exponent)
-    call assert(874467577, &
+    call assert(639056899, &
          position - prev_position <= pmc_mpi_pack_size_aero_weight(val))
 #endif
 

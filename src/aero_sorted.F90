@@ -297,7 +297,7 @@ contains
           ! take global min/max
           local_r_min = r_min
           local_r_max = r_max
-          call assert(539388373, r_min > 0d0) ! FIXME: not true if some
+          call assert(146323278, r_min > 0d0) ! FIXME: not true if some
           call assert(539388373, r_max > 0d0) ! procs have no particles
           call pmc_mpi_allreduce_min_real(local_r_min, r_min)
           call pmc_mpi_allreduce_max_real(local_r_max, r_max)

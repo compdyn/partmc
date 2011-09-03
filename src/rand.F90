@@ -280,7 +280,7 @@ contains
 #ifdef PMC_USE_GSL
     mean_c = real(mean, kind=c_double)
     harvest_ptr = c_loc(harvest)
-    call rand_check_gsl(208869397, &
+    call rand_check_gsl(353483140, &
          pmc_rand_poisson_gsl(mean_c, harvest_ptr))
     rand_poisson = int(harvest)
 #else

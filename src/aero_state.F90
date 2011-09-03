@@ -1335,7 +1335,7 @@ contains
 
           call aero_weight_array_check_monotonicity(aero_state%aero_weight, &
                monotone_increasing, monotone_decreasing)
-          call assert_msg(214077200, &
+          call assert_msg(483078128, &
                monotone_increasing .or. monotone_decreasing, &
                "monotone weight function required for averaging")
 

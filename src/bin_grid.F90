@@ -139,7 +139,7 @@ contains
     call assert_msg(966541762, r_min > 0d0, &
          "bin_grid requires a positive r_min, not: " &
          // trim(real_to_string(r_min)))
-    call assert_msg(966541762, r_min < r_max, &
+    call assert_msg(711537859, r_min < r_max, &
          "bin_grid requires r_min < r_max, not: " &
          // trim(real_to_string(r_min)) // " and " &
          // trim(real_to_string(r_max)))

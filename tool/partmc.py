@@ -1515,10 +1515,13 @@ class log_grid(grid):
         return log_grid(min=self.min, max=self.max,
                             n_bin=self.n_bin / 2)
 
-def histogram_1d(x_values, x_grid, weights=None):
+def histogram_1d(x_values, x_grid, weighted=True, weights=None):
     """Make a 1D histogram.
 
     The histogram is of points at positions x_values[i] for each i.
+
+    By default, the values are weighted by the inverse of the grid
+    sizes. If weighted=False then no weighting is performed.
 
     Example:
     >>> x_grid = partmc.log_grid(min=1e-8, max=1e-5, n_bin=70)
@@ -1530,20 +1533,29 @@ def histogram_1d(x_values, x_grid, weights=None):
         if len(x_values) != len(weights):
             raise Exception("x_values and weights have different lengths")
     x_bins = x_grid.find(x_values)
-    hist = numpy.zeros([x_grid.n_bin])
+    if weighted:
+        hist = numpy.zeros([x_grid.n_bin])
+    else:
+        hist = numpy.zeros([x_grid.n_bin], dtype=int)
     for i in range(len(x_values)):
         if x_grid.valid_bin(x_bins[i]):
-            value = 1.0 / x_grid.grid_size(x_bins[i])
-            if weights is not None:
-                value *= weights[i]
+            if weighted:
+                value = 1.0 / x_grid.grid_size(x_bins[i])
+                if weights is not None:
+                    value *= weights[i]
+            else:
+                value = 1
             hist[x_bins[i]] += value
     return hist
 
-def histogram_2d(x_values, y_values, x_grid, y_grid, weights=None, only_positive=True):
+def histogram_2d(x_values, y_values, x_grid, y_grid, weighted=True, weights=None, only_positive=True):
     """Make a 2D histogram.
 
     The histogram is of points at positions (x_values[i], y_values[i])
     for each i.
+
+    By default, the values are weighted by the inverse of the grid
+    sizes. If weighted=False then no weighting is performed.
 
     Example:
     >>> x_grid = partmc.log_grid(min=1e-8, max=1e-5, n_bin=70)
@@ -1560,15 +1572,21 @@ def histogram_2d(x_values, y_values, x_grid, y_grid, weights=None, only_positive
             raise Exception("x_values and weights have different lengths")
     x_bins = x_grid.find(x_values)
     y_bins = y_grid.find(y_values)
-    hist = numpy.zeros([x_grid.n_bin, y_grid.n_bin])
+    if weighted:
+        hist = numpy.zeros([x_grid.n_bin, y_grid.n_bin])
+    else:
+        hist = numpy.zeros([x_grid.n_bin, y_grid.n_bin], dtype=int)
     for i in range(len(x_values)):
         if x_grid.valid_bin(x_bins[i]) and y_grid.valid_bin(y_bins[i]):
-            value = 1.0 / (x_grid.grid_size(x_bins[i]) * y_grid.grid_size(y_bins[i]))
-            if weights is not None:
-                value *= weights[i]
+            if weighted:
+                value = 1.0 / (x_grid.grid_size(x_bins[i]) * y_grid.grid_size(y_bins[i]))
+                if weights is not None:
+                    value *= weights[i]
+            else:
+                value = 1
             hist[x_bins[i], y_bins[i]] += value
     if only_positive:
-        hist = numpy.ma.masked_less_equal(hist, 0.0)
+        hist = numpy.ma.masked_less_equal(hist, 0)
     return hist
 
 def multival_2d(x_values, y_values, z_values, x_grid, y_grid, rand_arrange=True):

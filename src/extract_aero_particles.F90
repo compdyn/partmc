@@ -57,9 +57,10 @@ program extract_aero_particles
   if (out_filename == "") then
      i_char = scan(in_filename, '.', back=.true.)
      if (i_char == 0) then
-        out_filename = trim(in_filename) // "_particles.txt"
+        out_filename = trim(in_filename) // "_aero_particles.txt"
      else
-        out_filename = trim(in_filename(1:(i_char - 1))) // "_particles.txt"
+        out_filename = trim(in_filename(1:(i_char - 1))) &
+             // "_aero_particles.txt"
      end if
   end if
 

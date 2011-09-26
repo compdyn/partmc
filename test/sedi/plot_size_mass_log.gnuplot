@@ -9,7 +9,7 @@ set ylabel "mass concentration / (kg/m^3)"
 
 set key left top
 
-set xrange [1e-7:1e-2]
+set xrange [1e-7:1e-1]
 set yrange [1e-13:1e0]
 
 plot "out/sedi_part_0001_size_mass.txt" using 1:2 title "particle t = 0 hours"

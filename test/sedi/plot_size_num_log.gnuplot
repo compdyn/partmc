@@ -7,7 +7,7 @@ set logscale
 set xlabel "diameter / m"
 set ylabel "number concentration / (1/m^3)"
 
-set xrange [1e-7:1e-2]
+set xrange [1e-7:1e-1]
 set yrange [1e-3:1e10]
 
 plot "out/sedi_part_0001_size_num.txt" using 1:2 title "particle t = 0 hours"

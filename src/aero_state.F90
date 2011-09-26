@@ -779,6 +779,44 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the diameters of all particles. The \c diameters array
+  !> will be reallocated if necessary.
+  subroutine aero_state_diameters(aero_state, diameters)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Diameter array (m).
+    real(kind=dp), intent(inout), allocatable :: diameters(:)
+
+    call ensure_real_array_size(diameters, aero_state%apa%n_part)
+    diameters = aero_particle_diameter( &
+         aero_state%apa%particle(1:aero_state%apa%n_part))
+
+  end subroutine aero_state_diameters
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the number concentrations of all particles. The \c
+  !> num_concs array will be reallocated if necessary.
+  subroutine aero_state_num_concs(aero_state, num_concs)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Number concentration array (m^{-3}).
+    real(kind=dp), intent(inout), allocatable :: num_concs(:)
+
+    integer :: i_part
+
+    call ensure_real_array_size(num_concs, aero_state%apa%n_part)
+    do i_part = 1,aero_state%apa%n_part
+       num_concs(i_part) = aero_state_particle_num_conc(aero_state, &
+            aero_state%apa%particle(i_part))
+    end do
+
+  end subroutine aero_state_num_concs
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Does the same thing as aero_state_to_bin() but based on dry radius.
   subroutine aero_state_to_binned_dry(bin_grid, aero_data, aero_state, &
        aero_binned)

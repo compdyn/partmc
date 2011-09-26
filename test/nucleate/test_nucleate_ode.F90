@@ -50,26 +50,22 @@ program test_nucleate_ode
   !> Output unit number for gas mixing ratio.
   integer, parameter :: unit_gas = 33
   !> Output unit number for aerosol number.
-  integer, parameter :: unit_aero_number = 34
-  !> Output unit number for aerosol mass.
-  integer, parameter :: unit_aero_mass = 35
+  integer, parameter :: unit_aero_time = 34
   !> Output filename for gas mixing ratio.
   character(len=*), parameter :: name_gas = "out/nucleate_ode_gas.txt"
   !> Output filename for aerosol number.
-  character(len=*), parameter :: name_aero_number &
-       = "out/nucleate_ode_aero_number.txt"
+  character(len=*), parameter :: name_aero_time &
+       = "out/nucleate_ode_aero_time.txt"
   !> Output filename for aerosol mass.
-  character(len=*), parameter :: name_aero_mass &
-       = "out/nucleate_ode_aero_mass.txt"
 
   real(kind=dp) :: init_h2so4_conc ! molecules / m^3
   real(kind=dp) :: nucleate_vol    ! m^3
   real(kind=dp) :: time            ! s
   real(kind=dp) :: h2so4_conc      ! molecules / m^3
   real(kind=dp) :: h2so4_mix_rat   ! ppb
-  real(kind=dp) :: aero_conc       ! particles / m^3
+  real(kind=dp) :: aero_num_conc   ! particles / m^3
   real(kind=dp) :: aero_mass_conc  ! kg / m^3
-  real(kind=dp) :: so4_molec_dens  ! molecules m^{-3}
+  real(kind=dp) :: so4_molec_dens  ! molecules / m^3
   integer :: n_step, i_step
 
   init_h2so4_conc = init_h2so4_mix_rat / conc_to_ppb
@@ -77,33 +73,30 @@ program test_nucleate_ode
   so4_molec_dens = so4_dens / so4_molar_weight * const%avagadro
 
   open(unit=unit_gas, file=name_gas)
-  open(unit=unit_aero_number, file=name_aero_number)
-  open(unit=unit_aero_mass, file=name_aero_mass)
+  open(unit=unit_aero_time, file=name_aero_time)
   time = 0d0
   h2so4_conc = init_h2so4_conc
   n_step = nint(t_max / del_t) + 1
-  aero_conc = 0d0
+  aero_num_conc = 0d0
 
   h2so4_mix_rat = h2so4_conc * conc_to_ppb
-  aero_mass_conc = aero_conc * nucleate_vol * so4_dens
+  aero_mass_conc = aero_num_conc * nucleate_vol * so4_dens
   write(*,'(a20,a20,a20)') &
        'time', 'aero_mass_conc', 'h2so4_mix_rat'
   write(*,'(e20.10,e20.10,e20.10)') &
        time, aero_mass_conc, h2so4_mix_rat
   write(unit_gas,'(e20.10,e20.10)') &
        time, h2so4_mix_rat
-  write(unit_aero_number,'(e20.10,e20.10,e20.10)') &
-       time, aero_conc, 0d0
-  write(unit_aero_mass,'(e20.10,e20.10,e20.10)') &
-       time, aero_mass_conc, 0d0
+  write(unit_aero_time,'(e20.10,e20.10,e20.10,e20.10,e20.10)') &
+       time, aero_num_conc, aero_mass_conc, 0d0, 0d0
 
   do i_step = 2,n_step
      time = dble(i_step - 1) * del_t
      call nucleate_step(h2so4_conc, del_t)
-     aero_conc = (init_h2so4_conc - h2so4_conc) / nucleate_vol &
+     aero_num_conc = (init_h2so4_conc - h2so4_conc) / nucleate_vol &
           / so4_molec_dens
      h2so4_mix_rat = h2so4_conc * conc_to_ppb
-     aero_mass_conc = aero_conc * nucleate_vol * so4_dens
+     aero_mass_conc = aero_num_conc * nucleate_vol * so4_dens
      if (mod(i_step - 1, nint(t_progress / del_t)) .eq. 0) then
         write(*,'(a20,a20,a20)') &
              'time', 'aero_mass_conc', 'h2so4_mix_rat'
@@ -113,16 +106,13 @@ program test_nucleate_ode
      if (mod(i_step - 1, nint(t_output / del_t)) .eq. 0) then
         write(unit_gas,'(e20.10,e20.10)') &
              time, h2so4_mix_rat
-        write(unit_aero_number,'(e20.10,e20.10,e20.10)') &
-             time, aero_conc, 0d0
-        write(unit_aero_mass,'(e20.10,e20.10,e20.10)') &
-             time, aero_mass_conc, 0d0
+        write(unit_aero_time,'(e20.10,e20.10,e20.10,e20.10,e20.10)') &
+             time, aero_num_conc, aero_mass_conc, 0d0, 0d0
      end if
   end do
 
   close(unit_gas)
-  close(unit_aero_number)
-  close(unit_aero_mass)
+  close(unit_aero_time)
   
 contains
   

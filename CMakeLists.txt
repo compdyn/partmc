@@ -363,14 +363,6 @@ add_executable(extract_aero_time src/extract_aero_time.F90
   src/getopt.F90)
 target_link_libraries(extract_aero_time partmclib)
 
-add_executable(extract_aero_species
-  src/extract_aero_species.F90)
-target_link_libraries(extract_aero_species ${NETCDF_LIBS})
-
-add_executable(extract_aero_total
-  src/extract_aero_total.F90)
-target_link_libraries(extract_aero_total ${NETCDF_LIBS})
-
 add_executable(extract_gas src/extract_gas.F90 src/getopt.F90)
 target_link_libraries(extract_gas partmclib)
 
@@ -387,14 +379,6 @@ target_link_libraries(extract_sectional_aero_size partmclib)
 add_executable(extract_sectional_aero_time
   src/extract_sectional_aero_time.F90 src/getopt.F90)
 target_link_libraries(extract_sectional_aero_time partmclib)
-
-add_executable(extract_sectional_aero_species
-  src/extract_sectional_aero_species.F90)
-target_link_libraries(extract_sectional_aero_species ${NETCDF_LIBS})
-
-add_executable(extract_sectional_aero_total
-  src/extract_sectional_aero_total.F90)
-target_link_libraries(extract_sectional_aero_total ${NETCDF_LIBS})
 
 ######################################################################
 # numeric_*

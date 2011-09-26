@@ -10,9 +10,6 @@ cd ${0%/*}
 mkdir -p out
 
 ../../partmc run_part.spec
-
-../../extract_aero_total out/nucleate_part_0001_ out/aero_total.txt
-
+../../extract_aero_time out/nucleate_part_0001
 ../../test_nucleate_ode
-
-../../numeric_diff out/aero_total.txt out/nucleate_ode_aero_number.txt 0 5e-2 0 0 2 0
+../../numeric_diff out/nucleate_part_0001_aero_time.txt out/nucleate_ode_aero_time.txt 0 5e-2 0 0 2 2

@@ -165,3 +165,5 @@ Change aero_weight to aero_weight_array where appropriate.
 Add sorting check code for unif_bin.
 
 Add a just-sorted-by-group sorting.
+
+Make numeric_diff work even with extra spaces at the end of lines.

@@ -7,6 +7,6 @@ set -v
 # make sure that the current directory is the one where this script is
 cd ${0%/*}
 
-../../extract_aero_species out/average_0001_ out/average_species.txt
-../../extract_aero_species out/average_comp_0001_ out/average_comp_species.txt
-../../numeric_diff out/average_species.txt out/average_comp_species.txt 0 1e-12 0 0 2 0
+../../extract_aero_time out/average_0001
+../../extract_aero_time out/average_comp_0001
+../../numeric_diff out/average_0001_time.txt out/average_comp_0001_time.txt 0 1e-12 0 0 2 0

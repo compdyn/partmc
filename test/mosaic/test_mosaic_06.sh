@@ -9,7 +9,7 @@ cd ${0%/*}
 
 ../../partmc run_part_restarted.spec
 
-../../extract_aero_species out/mosaic_restarted_0001_ out/mosaic_aero_species_restarted.txt
-tail -n +13 out/mosaic_aero_species.txt > out/mosaic_aero_species_tail.txt
+../../extract_aero_time out/mosaic_restarted_0001
+tail -n +13 out/mosaic_0001_time.txt > out/mosaic_0001_time_tail.txt
 
-../../numeric_diff out/mosaic_aero_species_restarted.txt out/mosaic_aero_species_tail.txt 0 0.1 0 0 2 0
+../../numeric_diff out/mosaic_restarted_0001_time.txt out/mosaic_0001_time_tail.txt 0 0.1 0 0 2 0

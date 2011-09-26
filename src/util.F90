@@ -171,6 +171,40 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Open a file for writing with an automatically assigned unit and
+  !> test that it succeeds. The file should be closed with
+  !> close_file().
+  subroutine open_file_write(filename, unit)
+
+    !> Filename to open.
+    character(len=*), intent(in) :: filename
+    !> Unit assigned to file.
+    integer, intent(out) :: unit
+
+    integer :: ios
+
+    unit = get_unit()
+    open(unit=unit, file=filename, status='replace', iostat=ios)
+    call assert_msg(609624199, ios == 0, 'unable to open file ' &
+         // trim(filename) // ' for writing:' // integer_to_string(ios))
+
+  end subroutine open_file_write
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Close a file and de-assign the unit.
+  subroutine close_file(unit)
+
+    !> Unit to close.
+    integer, intent(in) :: unit
+
+    close(unit)
+    call free_unit(unit)
+
+  end subroutine close_file
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Convert volume (m^3) to radius (m).
   real(kind=dp) elemental function vol2rad(v)
 

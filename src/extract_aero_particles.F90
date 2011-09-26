@@ -3,11 +3,11 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The extract_aero_particle_mass program.
+!> The extract_aero_particles program.
 
 !> Read NetCDF output files and write out the individual particle
 !> masses.
-program extract_aero_particle_mass
+program extract_aero_particles
 
   use pmc_aero_state
   use pmc_aero_particle
@@ -116,7 +116,7 @@ contains
 
   subroutine print_help()
 
-    write(*,'(a)') 'Usage: extract_aero_particle_mass [options] <netcdf_prefix>'
+    write(*,'(a)') 'Usage: extract_aero_particles [options] <netcdf_prefix>'
     write(*,'(a)') ''
     write(*,'(a)') 'options are:'
     write(*,'(a)') '  -h, --help        Print this help message.'
@@ -128,4 +128,4 @@ contains
 
   end subroutine print_help
 
-end program extract_aero_particle_mass
+end program extract_aero_particles

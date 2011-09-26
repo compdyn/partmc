@@ -10,4 +10,4 @@ cd ${0%/*}
 ../../extract_aero_size --mass --dmin 1e-8 --dmax 1e-3 --nbin 160 out/additive_part_0001
 ../../extract_sectional_aero_size --mass out/additive_exact
 
-../../numeric_diff out/additive_part_0001_size_mass.txt out/additive_exact_aero_size_mass.txt 0 1e-1
+../../numeric_diff --by col --rel-tol 0.2 out/additive_exact_aero_size_mass.txt out/additive_part_0001_size_mass.txt

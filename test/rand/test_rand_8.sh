@@ -11,4 +11,4 @@ mkdir -p out
 
 ../../test_binomial_sample 30 0.5 10000000 > out/binomial_3_approx.dat
 ../../test_binomial_sample 30 0.5 0        > out/binomial_3_exact.dat
-../../numeric_diff out/binomial_3_approx.dat out/binomial_3_exact.dat 0 1e-3 0 0 0 2
+../../numeric_diff --by col --rel-tol 3e-3 out/binomial_3_exact.dat out/binomial_3_approx.dat

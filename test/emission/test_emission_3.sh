@@ -10,4 +10,4 @@ cd ${0%/*}
 ../../extract_aero_time out/emission_part_0001
 ../../extract_sectional_aero_time out/emission_exact
 
-../../numeric_diff out/emission_part_0001_aero_time.txt out/emission_exact_aero_time.txt 0 5e-2 0 0 4 0
+../../numeric_diff --by col --rel-tol 0.05 out/emission_exact_aero_time.txt out/emission_part_0001_aero_time.txt

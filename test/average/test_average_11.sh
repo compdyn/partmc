@@ -8,4 +8,4 @@ set -v
 cd ${0%/*}
 
 ../../extract_aero_time out/average_sizevol_0001
-../../numeric_diff out/average_0001_aero_time.txt out/average_sizevol_0001_aero_time.txt 0 0.1 0 0 2 0
+../../numeric_diff --rel-tol 1e-10 out/average_0001_aero_time.txt out/average_sizevol_0001_aero_time.txt

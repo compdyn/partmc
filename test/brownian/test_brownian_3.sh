@@ -12,4 +12,4 @@ for f in out/brownian_part_????_00000001.nc ; do
 done
 ../../numeric_average out/brownian_part_size_num_average.txt out/brownian_part_????_size_num.txt
 ../../extract_sectional_aero_size --num out/brownian_sect
-../../numeric_diff out/brownian_part_size_num_average.txt out/brownian_sect_aero_size_num.txt 0 0.1 0 0 2 0
+../../numeric_diff --by col --rel-tol 0.2 out/brownian_sect_aero_size_num.txt out/brownian_part_size_num_average.txt

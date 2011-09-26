@@ -12,4 +12,4 @@ mkdir -p out
 ../../partmc run_part.spec
 ../../extract_aero_time out/nucleate_part_0001
 ../../test_nucleate_ode
-../../numeric_diff out/nucleate_part_0001_aero_time.txt out/nucleate_ode_aero_time.txt 0 5e-2 0 0 2 2
+../../numeric_diff --by col --min-col 1 --max-col 3 --rel-tol 0.15 out/nucleate_ode_aero_time.txt out/nucleate_part_0001_aero_time.txt

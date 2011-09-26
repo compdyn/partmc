@@ -7,4 +7,5 @@ set -v
 # make sure that the current directory is the one where this script is
 cd ${0%/*}
 
-../../numeric_diff out/emission_part_0001_aero_time.txt out/emission_exact_aero_time.txt 0 5e-2 0 0 2 2
+../../extract_env out/mosaic_0001
+../../numeric_diff --by elem --rel-tol 1e-12 ref_env.txt out/mosaic_0001_env.txt

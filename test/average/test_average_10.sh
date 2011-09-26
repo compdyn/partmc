@@ -8,4 +8,4 @@ set -v
 cd ${0%/*}
 
 ../../extract_aero_size --mass --dmin 1e-10 --dmax 1e-4 --nbin 24 out/average_sizevol_0001
-../../numeric_diff out/average_0001_size_mass.txt out/average_sizevol_0001_size_mass.txt 0 0.1 0 0 2 0
+../../numeric_diff --by col --rel-tol 0.1 out/average_0001_size_mass.txt out/average_sizevol_0001_size_mass.txt

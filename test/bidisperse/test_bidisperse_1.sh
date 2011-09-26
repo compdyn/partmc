@@ -17,4 +17,4 @@ mkdir -p out
 # extract size distributions for plotting
 ../../extract_aero_size --num --dmin 1e-5 --dmax 1e-3 --nbin 255 out/bidisperse_part_0001
 
-../../numeric_diff out/bidisperse_part_data.txt out/bidisperse_ode_data.txt 0 1e-5 0 0 1 1
+../../numeric_diff --by col --rel-tol 0.2 out/bidisperse_ode_data.txt out/bidisperse_part_data.txt

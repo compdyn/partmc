@@ -171,6 +171,27 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Open a file for reading with an automatically assigned unit and
+  !> test that it succeeds. The file should be closed with
+  !> close_file().
+  subroutine open_file_read(filename, unit)
+
+    !> Filename to open.
+    character(len=*), intent(in) :: filename
+    !> Unit assigned to file.
+    integer, intent(out) :: unit
+
+    integer :: ios
+
+    unit = get_unit()
+    open(unit=unit, file=filename, status='old', action='read', iostat=ios)
+    call assert_msg(609624199, ios == 0, 'unable to open file ' &
+         // trim(filename) // ' for reading: ' // integer_to_string(ios))
+
+  end subroutine open_file_read
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Open a file for writing with an automatically assigned unit and
   !> test that it succeeds. The file should be closed with
   !> close_file().
@@ -184,9 +205,10 @@ contains
     integer :: ios
 
     unit = get_unit()
-    open(unit=unit, file=filename, status='replace', iostat=ios)
+    open(unit=unit, file=filename, status='replace', action='write', &
+         iostat=ios)
     call assert_msg(609624199, ios == 0, 'unable to open file ' &
-         // trim(filename) // ' for writing:' // integer_to_string(ios))
+         // trim(filename) // ' for writing: ' // integer_to_string(ios))
 
   end subroutine open_file_write
 
@@ -637,6 +659,9 @@ contains
     integer :: ios
     character(len=len(string)+300) :: error_msg
 
+    call assert_msg(447772570, len_trim(string) <= 20, &
+         'error converting "' // trim(string) &
+         // '" to integer: string too long')
     read(string, '(i20)', iostat=ios) val
     call assert_msg(895881873, ios == 0, &
          'error converting "' // trim(string) &
@@ -657,7 +682,9 @@ contains
     integer :: ios
     character(len=len(string)+300) :: error_msg
 
-    read(string, '(f20.0)', iostat=ios) val
+    call assert_msg(733728030, len_trim(string) <= 30, &
+         'error converting "' // trim(string) // '" to real: string too long')
+    read(string, '(f30.0)', iostat=ios) val
     call assert_msg(727430097, ios == 0, &
          'error converting "' // trim(string) &
          // '" to real: IOSTAT = ' // trim(integer_to_string(ios)))
@@ -1120,6 +1147,204 @@ contains
 #endif
 
   end subroutine integer_sort
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Load a real array from a text file.
+  subroutine loadtxt(filename, data)
+
+    !> Filename to read from.
+    character(len=*), intent(in) :: filename
+    !> Array to store data in.
+    real(kind=dp), intent(inout), allocatable :: data(:,:)
+
+    integer :: unit, row, col
+    logical :: eol, eof
+    character(len=1000) :: word
+
+    deallocate(data)
+    allocate(data(1,0))
+    call open_file_read(filename, unit)
+
+    eof = .false.
+    row = 1
+    col = 1
+    do while (.not. eof)
+       call read_word_raw(unit, word, eol, eof)
+       if (len_trim(word) > 0) then
+          if (row == 1) then
+             if (col > size(data, 2)) then
+                call reallocate_real_array2d(data, 1, 2 * col)
+             end if
+          else
+             if (col > size(data, 2)) then
+                call assert_msg(516120334, col <= size(data, 2), &
+                     trim(filename) // ": line " &
+                     // trim(integer_to_string(row)) // " too long")
+             end if
+          end if
+          if (row > size(data, 1)) then
+             call reallocate_real_array2d(data, 2 * row, size(data, 2))
+          end if
+          data(row, col) = string_to_real(word)
+          col = col + 1
+       end if
+       if (eol .or. eof) then
+          if (row == 1) then
+             call reallocate_real_array2d(data, 1, col - 1)
+          else
+             call assert_msg(266924956, &
+                  (col == 1) .or. (col == size(data, 2) + 1), &
+                  trim(filename) // ": line " &
+                  // trim(integer_to_string(row)) // " too short")
+          end if
+       end if
+       if (eol) then
+          row = row + 1
+          col = 1
+       end if
+    end do
+
+    if (col == 1) then
+       call reallocate_real_array2d(data, row - 1, size(data, 2))
+    end if
+    call close_file(unit)
+
+  end subroutine loadtxt
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Reallocate a 2D real array to the given size, preserving the contents.
+  subroutine reallocate_real_array2d(data, rows, cols)
+
+    !> Array to reallocate.
+    real(kind=dp), allocatable, intent(inout) :: data(:,:)
+    !> New leading dimension.
+    integer, intent(in) :: rows
+    !> New trailing dimension.
+    integer, intent(in) :: cols
+
+    real(kind=dp) :: tmp_data(rows, cols)
+    integer :: data_rows, data_cols
+
+    data_rows = min(rows, size(data, 1))
+    data_cols = min(cols, size(data, 2))
+    tmp_data(1:data_rows, 1:data_cols) = data(1:data_rows, 1:data_cols)
+    deallocate(data)
+    allocate(data(rows, cols))
+    data(1:data_rows, 1:data_cols) = tmp_data(1:data_rows, 1:data_cols)
+   
+  end subroutine reallocate_real_array2d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read a single character from a file, signaling if we have hit
+  !> end-of-line (EOL) or end-of-file (EOF). If EOL or EOF are true
+  !> then the character value should be ignored.
+  !!
+  !! Testing with gfortran 4.5.3 and different length files shows:
+  !!
+  !! Empty file (total file length 0):
+  !! * eol = .false., eof = .true.
+  !! * subsequent calls error
+  !!
+  !! File containing a single 'A' character (total file length 1):
+  !! * char = 'A', eol = .false., eof = .false.
+  !! * eol = .false., eof = .true.
+  !! * subsequent calls error
+  !!
+  !! File containing a single newline '\n' (total file length 1):
+  !! * eol = .true., eof = .false.
+  !! * eol = .false., eof = .true.
+  !! * subsequent calls error
+  !!
+  !! File containing a character and newline 'A\n' (total file length 2):
+  !! * char = 'A', eol = .false., eof = .false.
+  !! * eol = .true., eof = .false.
+  !! * eol = .false., eof = .true.
+  !! * subsequent calls error
+  subroutine read_char_raw(unit, char, eol, eof)
+
+    !> Unit number to read from.
+    integer, intent(in) :: unit
+    !> Character read.
+    character, intent(out) :: char
+    !> True if at EOL (end of line).
+    logical, intent(out) :: eol
+    !> True if at EOF (end of file).
+    logical, intent(out) :: eof
+
+    integer :: ios, n_read
+    character(len=1) :: read_char
+
+    eol = .false.
+    eof = .false.
+    char = " " ! shut up uninitialized variable warnings
+    read_char = "" ! needed for pgf95 for reading blank lines
+    read(unit=unit, fmt='(a)', advance='no', end=100, eor=110, &
+         iostat=ios) read_char
+    if (ios /= 0) then
+       write(0,*) 'ERROR: reading file: IOSTAT = ', ios
+       stop 2
+    end if
+    ! only reach here if we didn't hit end-of-record (end-of-line) in
+    ! the above read
+    char = read_char
+    goto 120
+
+100 eof = .true. ! goto here if end-of-file was encountered immediately
+    goto 120
+
+110 eol = .true. ! goto here if end-of-record, meaning end-of-line
+
+120 return
+    
+  end subroutine read_char_raw
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read a white-space delimited word from a file, signaling if we
+  !> have EOL or EOF. If EOL or EOF are true then the word will still
+  !> be meaningful data. If there was no data to be read then
+  !> len(word) will be 0.
+  subroutine read_word_raw(unit, word, eol, eof)
+
+    !> Unit number to read from.
+    integer, intent(in) :: unit
+    !> Word read.
+    character(len=*), intent(out) :: word
+    !> True if at EOL (end of line).
+    logical, intent(out) :: eol
+    !> True if at EOF (end of file).
+    logical, intent(out) :: eof
+
+    integer :: i
+    character :: char
+
+    word = ""
+
+    ! skip over spaces
+    call read_char_raw(unit, char, eol, eof)
+    do while (((ichar(char) == 9) .or. (ichar(char) == 32)) &
+         .and. (.not. eol) .and. (.not. eof))
+       call read_char_raw(unit, char, eol, eof)
+    end do
+    if (eol .or. eof) return
+    
+    ! char is now the first word character
+    i = 1
+    word(i:i) = char
+    call read_char_raw(unit, char, eol, eof)
+    do while ((ichar(char) /= 9) .and. (ichar(char) /= 32) &
+         .and. (.not. eol) .and. (.not. eof) .and. (i < len(word)))
+       i = i + 1
+       word(i:i) = char
+       if (i < len(word)) then
+          call read_char_raw(unit, char, eol, eof)
+       end if
+    end do
+
+  end subroutine read_word_raw
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -11,4 +11,4 @@ cd ${0%/*}
 sort out/average_particles_unsorted.txt > out/average_particles.txt
 ../../extract_aero_particles -o out/average_comp_particles_unsorted.txt out/average_comp_0001_00000001.nc
 sort out/average_comp_particles_unsorted.txt > out/average_comp_particles.txt
-../../numeric_diff out/average_particles.txt out/average_comp_particles.txt 0 1e-12 0 0 3 3
+../../numeric_diff --by elem --min-col 3 --max-col 4 --rel-tol 3 out/average_particles.txt out/average_comp_particles.txt

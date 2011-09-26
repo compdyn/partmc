@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2010 Matthew West
+! Copyright (C) 2009-2011 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -9,32 +9,21 @@
 !> masses.
 program extract_aero_particle_mass
 
-  use netcdf
-
-  integer, parameter :: out_unit = 64
-  integer, parameter :: dp = kind(0.d0)
+  use pmc_aero_state
+  use pmc_aero_particle
+  use pmc_output
 
   character(len=1000) :: in_filename, out_filename
-  integer :: ncid
-  integer :: dimid_aero_species, dimid_aero_particle
-  integer :: varid_time, varid_aero_species
-  integer :: varid_aero_particle_mass, varid_aero_density
-  integer :: varid_aero_comp_vol, varid_aero_id
-  integer :: n_aero_species, n_aero_particle
-  character(len=1000) :: tmp_str, aero_species_names
-  character(len=1000) :: remaining_species
-  real(kind=dp) :: time
-  real(kind=dp), allocatable :: aero_particle_mass(:,:)
-  real(kind=dp), allocatable :: aero_density(:)
-  real(kind=dp), allocatable :: aero_comp_vol(:)
-  integer, allocatable :: aero_id(:)
-  integer :: xtype, ndims, nAtts
-  integer, dimension(nf90_max_var_dims) :: dimids
-  integer :: ios, i_time, i_spec, i_part, status
-  integer :: n_bin, i_bin, n_time, i
-  real(kind=dp) :: diameter, volume
+  type(aero_data_t) :: aero_data
+  type(aero_state_t) :: aero_state
+  type(gas_data_t) :: gas_data
+  type(gas_state_t) :: gas_state
+  type(env_state_t) :: env_state
+  integer :: index, i_repeat, i_part, i_spec, out_unit
+  real(kind=dp) :: time, del_t
+  character(len=PMC_UUID_LEN) :: uuid
+  type(aero_particle_t), pointer :: aero_particle
 
-  ! process commandline arguments
   if (command_argument_count() .ne. 2) then
      write(6,*) 'Usage: extract_aero_particle_mass ' &
           // '<netcdf_state_file> <output_filename>'
@@ -43,186 +32,52 @@ program extract_aero_particle_mass
   call get_command_argument(1, in_filename)
   call get_command_argument(2, out_filename)
 
-  ! open NetCDF file
-  call nc_check_msg(nf90_open(in_filename, NF90_NOWRITE, ncid), &
-       "opening " // trim(in_filename))
-  
-  ! read time
-  call nc_check_msg(nf90_inq_varid(ncid, "time", varid_time), &
-       "getting variable ID for 'time'")
-  call nc_check_msg(nf90_get_var(ncid, varid_time, time), &
-       "getting variable 'time'")
-  
-  ! read aero_species
-  call nc_check_msg(nf90_inq_dimid(ncid, "aero_species", &
-       dimid_aero_species), "getting dimension ID for 'aero_species'")
-  call nc_check_msg(nf90_Inquire_Dimension(ncid, dimid_aero_species, &
-       tmp_str, n_aero_species), "inquiring dimension 'aero_species'")
-  call nc_check_msg(nf90_inq_varid(ncid, "aero_species", &
-       varid_aero_species), "getting variable ID for 'aero_species'")
-  call nc_check_msg(nf90_get_att(ncid, varid_aero_species, &
-       "names", aero_species_names), &
-       "getting attribute 'names' for variable 'aero_species'")
-  
-  ! read aero_particle dimension
-  status = nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle)
-  if (status == NF90_EBADDIM) then
-     ! dimension missing ==> no particles, so skip this time
-     write(0,*) 'ERROR: no particles found'
-     stop 1
-  end if
-  call nc_check_msg(status, "getting dimension ID for 'aero_particle'")
-  call nc_check_msg(nf90_Inquire_Dimension(ncid, dimid_aero_particle, &
-       tmp_str, n_aero_particle), "inquiring dimension 'aero_species'")
-  
-  ! read aero_particle_mass
-  call nc_check_msg(nf90_inq_varid(ncid, "aero_particle_mass", &
-       varid_aero_particle_mass), &
-       "getting variable ID for 'aero_particle_mass'")
-  call nc_check_msg(nf90_Inquire_Variable(ncid, varid_aero_particle_mass, &
-       tmp_str, xtype, ndims, dimids, nAtts), &
-       "inquiring variable 'aero_particle_mass'")
-  if ((ndims /= 2) &
-       .or. (dimids(1) /= dimid_aero_particle) &
-       .or. (dimids(2) /= dimid_aero_species)) then
-     write(0,*) "ERROR: unexpected aero_particle_mass dimids"
-     stop 1
-  end if
-  allocate(aero_particle_mass(n_aero_particle, n_aero_species))
-  call nc_check_msg(nf90_get_var(ncid, varid_aero_particle_mass, &
-       aero_particle_mass), "getting variable 'aero_particle_mass'")
-  
-  ! read aero_density
-  call nc_check_msg(nf90_inq_varid(ncid, "aero_density", &
-       varid_aero_density), "getting variable ID for 'aero_density'")
-  call nc_check_msg(nf90_Inquire_Variable(ncid, varid_aero_density, &
-       tmp_str, xtype, ndims, dimids, nAtts), &
-       "inquiring variable 'aero_density'")
-  if ((ndims /= 1) &
-       .or. (dimids(1) /= dimid_aero_species)) then
-     write(0,*) "ERROR: unexpected aero_density dimids"
-     stop 1
-  end if
-  allocate(aero_density(n_aero_species))
-  call nc_check_msg(nf90_get_var(ncid, varid_aero_density, &
-       aero_density), "getting variable 'aero_density'")
-  
-  ! read aero_comp_vol
-  call nc_check_msg(nf90_inq_varid(ncid, "aero_comp_vol", &
-       varid_aero_comp_vol), "getting variable ID for 'aero_comp_vol'")
-  call nc_check_msg(nf90_Inquire_Variable(ncid, varid_aero_comp_vol, &
-       tmp_str, xtype, ndims, dimids, nAtts), &
-       "inquiring variable 'aero_comp_vol'")
-  if ((ndims /= 1) &
-       .or. (dimids(1) /= dimid_aero_particle)) then
-     write(0,*) "ERROR: unexpected aero_comp_vol dimids"
-     stop 1
-  end if
-  allocate(aero_comp_vol(n_aero_particle))
-  call nc_check_msg(nf90_get_var(ncid, varid_aero_comp_vol, &
-       aero_comp_vol), "getting variable 'aero_comp_vol'")
-  
-  ! read aero_id
-  call nc_check_msg(nf90_inq_varid(ncid, "aero_id", &
-       varid_aero_id), "getting variable ID for 'aero_id'")
-  call nc_check_msg(nf90_Inquire_Variable(ncid, varid_aero_id, &
-       tmp_str, xtype, ndims, dimids, nAtts), &
-       "inquiring variable 'aero_id'")
-  if ((ndims /= 1) &
-       .or. (dimids(1) /= dimid_aero_particle)) then
-     write(0,*) "ERROR: unexpected aero_id dimids"
-     stop 1
-  end if
-  allocate(aero_id(n_aero_particle))
-  call nc_check_msg(nf90_get_var(ncid, varid_aero_id, &
-       aero_id), "getting variable 'aero_id'")
-  
-  call nc_check_msg(nf90_close(ncid), &
-       "closing file " // trim(in_filename))
-  
-  ! write information
-  write(*,'(a,a)') "Output file: ", trim(out_filename)
-  write(*,'(a,e10.3,a)') "  Output data is for time = ", time, " (s)"
+  call aero_data_allocate(aero_data)
+  call aero_state_allocate(aero_state)
+  call gas_data_allocate(gas_data)
+  call gas_state_allocate(gas_state)
+  call env_state_allocate(env_state)
+
+  call input_state(in_filename, aero_data, aero_state, gas_data, gas_state, &
+       env_state, index, time, del_t, i_repeat, uuid)
+
+  write(*,'(a)') "Output file: " // trim(out_filename)
+  write(*,'(a)') "  Output data is for time = " &
+       // trim(real_to_string(time)) // " (s)"
   write(*,'(a)') "  Each row of output is one particle."
   write(*,'(a)') "  The columns of output are:"
   write(*,'(a)') "    column  1: particle ID number"
-  write(*,'(a)') "    column  2: computational volume (m^3)"
+  write(*,'(a)') "    column  2: number concentration (m^{-3})"
   write(*,'(a)') "    column  3: particle diameter (m)"
   write(*,'(a)') "    column  4: particle total mass (kg)"
-  remaining_species = aero_species_names
-  do i_spec = 1,n_aero_species
-     if (i_spec < n_aero_species) then
-        i = index(remaining_species, ',')
-     else
-        i = index(remaining_species, ' ')
-     end if
-     write(*,'(a,i2,a,a,a,e10.4,a)') '    column ', i_spec + 4, &
-          ': ', remaining_species(1:(i-1)), &
-          ' mass (kg) - density = ', aero_density(i_spec), ' (kg/m^3)'
-     remaining_species = remaining_species((i+1):)
+  do i_spec = 1,aero_data%n_spec
+     write(*,'(a,i2,a,a,a,e10.4,a)') '    column ', i_spec + 4, ': ', &
+          trim(aero_data%name(i_spec)), ' mass (kg) - density = ', &
+          aero_data%density(i_spec), ' (kg/m^3)'
   end do
 
-  ! open output file
-  open(unit=out_unit, file=out_filename, status='replace', iostat=ios)
-  if (ios /= 0) then
-     write(0,'(a,a,a,i4)') 'ERROR: unable to open file ', &
-          trim(out_filename), ' for writing: ', ios
-     stop 1
-  end if
-
-  ! output data
-  do i_part = 1,n_aero_particle
-     write(out_unit, '(i15)', advance='no') aero_id(i_part)
+  call open_file_write(out_filename, out_unit)
+  do i_part = 1,aero_state%apa%n_part
+     aero_particle => aero_state%apa%particle(i_part)
+     write(out_unit, '(i15)', advance='no') aero_particle%id
      write(out_unit, '(e30.15e3)', advance='no') &
-          aero_comp_vol(i_part)
-     volume = sum(aero_particle_mass(i_part,:) / aero_density)
-     diameter = (volume / (3.14159265358979323846d0 / 6d0))**(1d0/3d0)
-     write(out_unit, '(e30.15e3)', advance='no') diameter
+          aero_state_particle_num_conc(aero_state, aero_particle)
      write(out_unit, '(e30.15e3)', advance='no') &
-          sum(aero_particle_mass(i_part,:))
-     do i_spec = 1,n_aero_species
+          aero_particle_diameter(aero_particle)
+     write(out_unit, '(e30.15e3)', advance='no') &
+          aero_particle_mass(aero_particle, aero_data)
+     do i_spec = 1,aero_data%n_spec
         write(out_unit, '(e30.15e3)', advance='no') &
-             aero_particle_mass(i_part, i_spec)
+             aero_particle_species_mass(aero_particle, i_spec, aero_data)
      end do
      write(out_unit, *) ''
   end do
+  call close_file(out_unit)
 
-  close(out_unit)
+  call aero_data_deallocate(aero_data)
+  call aero_state_deallocate(aero_state)
+  call gas_data_deallocate(gas_data)
+  call gas_state_deallocate(gas_state)
+  call env_state_deallocate(env_state)
 
-  deallocate(aero_particle_mass)
-  deallocate(aero_density)
-  deallocate(aero_comp_vol)
-
-contains
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Check return status of NetCDF function calls.
-  subroutine nc_check_msg(status, error_msg)
-
-    !> Status return value.
-    integer, intent(in) :: status
-    !> Error message in case of failure.
-    character(len=*), intent(in) :: error_msg
-
-    if (status /= NF90_NOERR) then
-       write(0,*) trim(error_msg) // " : " // trim(nf90_strerror(status))
-       stop 1
-    end if
-
-  end subroutine nc_check_msg
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-#ifdef DEFINE_LOCAL_COMMAND_ARGUMENT
-  integer function command_argument_count()
-    command_argument_count = iargc()
-  end function command_argument_count
-  subroutine get_command_argument(i, arg)
-    integer, intent(in) :: i
-    character(len=*), intent(out) :: arg
-    call getarg(i, arg)
-  end subroutine get_command_argument
-#endif
-  
 end program extract_aero_particle_mass

@@ -353,7 +353,7 @@ target_link_libraries(bin_average_size partmclib)
 
 add_executable(extract_aero_particle_mass
   src/extract_aero_particle_mass.F90)
-target_link_libraries(extract_aero_particle_mass ${NETCDF_LIBS})
+target_link_libraries(extract_aero_particle_mass partmclib)
 
 add_executable(extract_aero_size_num
   src/extract_aero_size_num.F90)

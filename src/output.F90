@@ -565,7 +565,7 @@ contains
     done = .false.
     unit = get_unit()
     do while (.not. done)
-       write(filename, '(a,i8.8,a)') trim(prefix), index, '.nc'
+       write(filename, '(a,a,i8.8,a)') trim(prefix), '_', index, '.nc'
        open(unit=unit, file=filename, status='old', iostat=ios)
        if (ios /= 0) then
           done = .true.
@@ -583,7 +583,7 @@ contains
     end if
 
     do index = 1,n_file
-       write(filename, '(a,i8.8,a)') trim(prefix), index, '.nc'
+       write(filename, '(a,a,i8.8,a)') trim(prefix), '_', index, '.nc'
        filename_list(index) = filename
     end do
 

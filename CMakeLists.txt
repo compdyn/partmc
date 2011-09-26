@@ -355,13 +355,9 @@ add_executable(extract_aero_particle_mass
   src/extract_aero_particle_mass.F90)
 target_link_libraries(extract_aero_particle_mass partmclib)
 
-add_executable(extract_aero_size_num
-  src/extract_aero_size_num.F90)
-target_link_libraries(extract_aero_size_num partmclib)
-
-add_executable(extract_aero_size_mass
-  src/extract_aero_size_mass.F90)
-target_link_libraries(extract_aero_size_mass ${NETCDF_LIBS})
+add_executable(extract_aero_size src/extract_aero_size.F90
+  src/getopt.F90)
+target_link_libraries(extract_aero_size partmclib)
 
 add_executable(extract_aero_species
   src/extract_aero_species.F90)

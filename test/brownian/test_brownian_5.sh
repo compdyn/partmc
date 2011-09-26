@@ -8,15 +8,12 @@ set -v
 cd ${0%/*}
 
 for f in out/brownian_part_????_00000001.nc ; do
-    f1=${f/_00000001.nc/}
-    f2=${f1/_part_/_part_size_num_}.txt
-    ../../extract_aero_size_num 1e-10 1e-4 220 ${f1}_ $f2
-    f3=${f2/_part_size_num_/_part_size_num_error_}
-    ../../numeric_diff $f2 out/brownian_sect_size_num.txt 0 0 0 0 2 0 > $f3
+    ../../extract_aero_size --num --dmin 1e-10 --dmax 1e-4 --nbin 220 ${f/_00000001.nc/}
+    ../../numeric_diff ${f/00000001.nc/size_num.txt} out/brownian_sect_size_num.txt 0 0 0 0 2 0 > ${f/00000001.nc/size_num_error.txt}
 done
-../../numeric_average out/brownian_part_average_num_error.txt out/brownian_part_size_num_error_????.txt
+../../numeric_average out/brownian_part_average_num_error.txt out/brownian_part_????_size_num_error.txt
 
-../../numeric_average out/brownian_part_size_num_average.txt out/brownian_part_size_num_????.txt
+../../numeric_average out/brownian_part_size_num_average.txt out/brownian_part_????_size_num.txt
 ../../extract_sectional_aero_size_num out/brownian_sect_ out/brownian_sect_size_num.txt
 ../../numeric_diff out/brownian_part_size_num_average.txt out/brownian_sect_size_num.txt 0 0 0 0 2 0 >> out/brownian_part_average_num_error.txt
 

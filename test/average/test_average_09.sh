@@ -9,5 +9,5 @@ cd ${0%/*}
 
 ../../bin_average_size 1e-10 1e-4 24 wet average volume out/average_0001_00000001.nc out/average_sizevol
 
-../../extract_aero_size_num 1e-10 1e-4 24 out/average_sizevol_0001_ out/average_sizevol_size_num.txt
-../../numeric_diff out/average_size_num.txt out/average_sizevol_size_num.txt 0 0.1 0 0 2 0
+../../extract_aero_size --num --dmin 1e-10 --dmax 1e-4 --nbin 24 out/average_sizevol_0001
+../../numeric_diff out/average_0001_size_num.txt out/average_sizevol_0001_size_num.txt 0 0.1 0 0 2 0

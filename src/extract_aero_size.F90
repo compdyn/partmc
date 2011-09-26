@@ -96,7 +96,7 @@ program extract_aero_size
 
   if (dist_type == DIST_TYPE_NONE) then
      call print_help()
-     call die_msg(540839314, 'must select distribution type')
+     call die_msg(540839314, 'must select distribution type (--num or --mass)')
   end if
 
   if (out_filename == "") then
@@ -204,7 +204,7 @@ contains
     write(*,'(a)') '  -m, --mass        Output mass distribution.'
     write(*,'(a)') '  -N, --dmin <D>    Minimum diameter (m).'
     write(*,'(a)') '  -X, --dmax <D>    Maximum diameter (m).'
-    write(*,'(a)') '  -b, --nbin <N>    Maximum diameter (m).'
+    write(*,'(a)') '  -b, --nbin <N>    Number of size bins.'
     write(*,'(a)') '  -o, --out <file>  Output filename.'
     write(*,'(a)') ''
     write(*,'(a)') 'Examples:'

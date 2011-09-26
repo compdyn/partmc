@@ -98,9 +98,9 @@ program extract_aero_size
 
   if (out_filename == "") then
      if (dist_type == DIST_TYPE_NUM) then
-        out_filename = trim(in_prefix) // "_size_num.txt"
+        out_filename = trim(in_prefix) // "_aero_size_num.txt"
      elseif (dist_type == DIST_TYPE_MASS) then
-        out_filename = trim(in_prefix) // "_size_mass.txt"
+        out_filename = trim(in_prefix) // "_aero_size_mass.txt"
      else
         call die(545030852)
      end if

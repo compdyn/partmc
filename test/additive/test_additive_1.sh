@@ -15,4 +15,4 @@ mkdir -p out
 ../../extract_aero_size --num --dmin 1e-8 --dmax 1e-3 --nbin 160 out/additive_part_0001
 ../../extract_sectional_aero_size --num out/additive_exact
 
-../../numeric_diff --by col --rel-tol 0.05 out/additive_exact_aero_size_num.txt out/additive_part_0001_size_num.txt
+../../numeric_diff --by col --rel-tol 0.05 out/additive_exact_aero_size_num.txt out/additive_part_0001_aero_size_num.txt

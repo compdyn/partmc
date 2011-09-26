@@ -14,4 +14,4 @@ mkdir -p out
 
 ../../extract_aero_size --num --dmin 1e-10 --dmax 1e-4 --nbin 24 out/average_0001
 ../../extract_aero_size --num --dmin 1e-10 --dmax 1e-4 --nbin 24 out/average_comp_0001
-../../numeric_diff --by col --rel-tol 1e-12 out/average_0001_size_num.txt out/average_comp_0001_size_num.txt
+../../numeric_diff --by col --rel-tol 1e-12 out/average_0001_aero_size_num.txt out/average_comp_0001_aero_size_num.txt

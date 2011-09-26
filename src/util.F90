@@ -957,6 +957,23 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Reallocate the given array to ensure it is of the given size.
+  subroutine ensure_real_array_size(x, n)
+
+    !> Array of real numbers.
+    real(kind=dp), intent(inout), allocatable :: x(:)
+    !> Desired size of array.
+    integer, intent(in) :: n
+
+    if (size(x) /= n) then
+       deallocate(x)
+       allocate(x(n))
+    end if
+
+  end subroutine ensure_real_array_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Strip the extension to find the basename.
   !!
   !! The filename is assumed to be of the form basename.extension,

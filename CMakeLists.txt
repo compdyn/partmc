@@ -264,13 +264,13 @@ add_test(test_sedi_2 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_2.sh)
 set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 
 ######################################################################
-# partmc
+# partmc library
 
-add_executable(partmc src/partmc.F90 src/aero_state.F90
-  src/integer_varray.F90 src/integer_rmap.F90 src/aero_sorted.F90
-  src/aero_binned.F90 src/bin_grid.F90 src/constants.F90
-  src/env_data.F90 src/env_state.F90 src/aero_mode.F90
-  src/aero_dist.F90 src/aero_weight.F90 src/coag_kernel_additive.F90
+add_library(partmclib src/aero_state.F90 src/integer_varray.F90
+  src/integer_rmap.F90 src/aero_sorted.F90 src/aero_binned.F90
+  src/bin_grid.F90 src/constants.F90 src/env_data.F90
+  src/env_state.F90 src/aero_mode.F90 src/aero_dist.F90
+  src/aero_weight.F90 src/coag_kernel_additive.F90
   src/coag_kernel_sedi.F90 src/coag_kernel_constant.F90
   src/coag_kernel_brown.F90 src/coag_kernel_zero.F90 src/aero_data.F90
   src/run_exact.F90 src/run_part.F90 src/util.F90 src/run_sect.F90
@@ -282,25 +282,25 @@ add_executable(partmc src/partmc.F90 src/aero_state.F90
   src/nucleate.F90 src/condense.F90 ${SUNDIALS_SRC} ${GSL_SRC}
   ${C_SORT_SRC})
 
-target_link_libraries(partmc ${NETCDF_LIBS} ${SUNDIALS_LIBS}
+target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
   ${MOSAIC_LIB} ${GSL_LIBS})
+
+set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
+
+######################################################################
+# partmc executable
+
+add_executable(partmc src/partmc.F90)
+
+target_link_libraries(partmc partmclib)
 
 ######################################################################
 # test_bidisperse_ode
 
 add_executable(test_bidisperse_ode
-  test/bidisperse/test_bidisperse_ode.F90 src/coag_kernel_sedi.F90
-  src/env_data.F90 src/env_state.F90 src/constants.F90
-  src/aero_data.F90 src/util.F90 src/gas_data.F90 src/gas_state.F90
-  src/aero_state.F90 src/integer_varray.F90 src/integer_rmap.F90
-  src/aero_sorted.F90 src/output.F90 src/bin_grid.F90
-  src/spec_line.F90 src/spec_file.F90 src/aero_mode.F90
-  src/aero_dist.F90 src/aero_weight.F90 src/aero_binned.F90
-  src/rand.F90 src/aero_particle.F90 src/aero_particle_array.F90
-  src/mpi.F90 src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
-  ${GSL_SRC} ${C_SORT_SRC})
+  test/bidisperse/test_bidisperse_ode.F90)
 
-target_link_libraries(test_bidisperse_ode ${NETCDF_LIBS} ${GSL_LIBS})
+target_link_libraries(test_bidisperse_ode partmclib)
 
 ######################################################################
 # test_bidisperse_extract
@@ -313,10 +313,8 @@ target_link_libraries(test_bidisperse_extract ${NETCDF_LIBS})
 ######################################################################
 # test_nucleate_ode
 
-set(TEST_NUCLEATE_ODE_SRC test/nucleate/test_nucleate_ode.F90
+add_executable(test_nucleate_ode test/nucleate/test_nucleate_ode.F90
   src/util.F90 src/constants.F90 ${C_SORT_SRC})
-
-add_executable(test_nucleate_ode ${TEST_NUCLEATE_ODE_SRC})
 
 ######################################################################
 # test_poisson_sample
@@ -339,34 +337,16 @@ target_link_libraries(test_binomial_sample ${GSL_LIBS})
 ######################################################################
 # bin_average_comp
 
-add_executable(bin_average_comp src/bin_average_comp.F90
-  src/bin_grid.F90 src/gas_state.F90 src/gas_data.F90 src/util.F90
-  src/env_state.F90 src/output.F90 src/aero_state.F90
-  src/integer_varray.F90 src/integer_rmap.F90 src/aero_sorted.F90
-  src/aero_data.F90 src/netcdf.F90 src/mpi.F90 src/spec_file.F90
-  src/aero_binned.F90 src/aero_particle.F90
-  src/aero_particle_array.F90 src/aero_info.F90
-  src/aero_info_array.F90 src/aero_dist.F90 src/constants.F90
-  src/spec_line.F90 src/aero_mode.F90 src/aero_weight.F90 src/rand.F90
-  ${GSL_SRC} ${C_SORT_SRC})
+add_executable(bin_average_comp src/bin_average_comp.F90)
 
-target_link_libraries(bin_average_comp ${NETCDF_LIBS} ${GSL_LIBS})
+target_link_libraries(bin_average_comp partmclib)
 
 ######################################################################
 # bin_average_size
 
-add_executable(bin_average_size src/bin_average_size.F90
-  src/bin_grid.F90 src/gas_state.F90 src/gas_data.F90 src/util.F90
-  src/env_state.F90 src/output.F90 src/aero_state.F90
-  src/integer_varray.F90 src/integer_rmap.F90 src/aero_sorted.F90
-  src/aero_data.F90 src/netcdf.F90 src/mpi.F90 src/spec_file.F90
-  src/aero_binned.F90 src/aero_particle.F90
-  src/aero_particle_array.F90 src/aero_info.F90
-  src/aero_info_array.F90 src/aero_dist.F90 src/constants.F90
-  src/spec_line.F90 src/aero_mode.F90 src/aero_weight.F90 src/rand.F90
-  ${GSL_SRC} ${C_SORT_SRC})
+add_executable(bin_average_size src/bin_average_size.F90)
 
-target_link_libraries(bin_average_size ${NETCDF_LIBS} ${GSL_LIBS})
+target_link_libraries(bin_average_size partmclib)
 
 ######################################################################
 # extract_aero_*

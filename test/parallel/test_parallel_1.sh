@@ -10,8 +10,8 @@ cd ${0%/*}
 mkdir -p out
 
 mpirun -v -np 1 ../../partmc run_sect.spec
-../../extract_sectional_aero_size_num out/sect_ out/sect_aero_size_num.txt
-../../extract_sectional_aero_size_mass out/sect_ out/sect_aero_size_mass.txt
+../../extract_sectional_aero_size --num out/sect
+../../extract_sectional_aero_size --mass out/sect
 ../../extract_sectional_aero_total out/sect_ out/sect_aero_total.txt
 
 mpirun -v -np 1 ../../partmc run_part_serial.spec

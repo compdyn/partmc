@@ -17,9 +17,6 @@ program extract_aero_particles
   character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename
   type(aero_data_t) :: aero_data
   type(aero_state_t) :: aero_state
-  type(gas_data_t) :: gas_data
-  type(gas_state_t) :: gas_state
-  type(env_state_t) :: env_state
   integer :: index, i_repeat, i_part, i_spec, out_unit, i_char
   real(kind=dp) :: time, del_t
   character(len=PMC_UUID_LEN) :: uuid
@@ -68,12 +65,9 @@ program extract_aero_particles
 
   call aero_data_allocate(aero_data)
   call aero_state_allocate(aero_state)
-  call gas_data_allocate(gas_data)
-  call gas_state_allocate(gas_state)
-  call env_state_allocate(env_state)
 
   call input_state(in_filename, index, time, del_t, i_repeat, uuid, &
-       aero_data, aero_state, gas_data, gas_state, env_state)
+       aero_data=aero_data, aero_state=aero_state)
 
   write(*,'(a)') "Output file: " // trim(out_filename)
   write(*,'(a)') "  Output data is for time = " &
@@ -108,9 +102,6 @@ program extract_aero_particles
 
   call aero_data_deallocate(aero_data)
   call aero_state_deallocate(aero_state)
-  call gas_data_deallocate(gas_data)
-  call gas_state_deallocate(gas_state)
-  call env_state_deallocate(env_state)
 
 contains
 

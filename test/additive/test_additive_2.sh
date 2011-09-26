@@ -8,6 +8,6 @@ set -v
 cd ${0%/*}
 
 ../../extract_aero_size --mass --dmin 1e-8 --dmax 1e-3 --nbin 160 out/additive_part_0001
-../../extract_sectional_aero_size_mass out/additive_exact_ out/additive_exact_size_mass.txt
+../../extract_sectional_aero_size --mass out/additive_exact
 
-../../numeric_diff out/additive_part_0001_size_mass.txt out/additive_exact_size_mass.txt 0 1e-1
+../../numeric_diff out/additive_part_0001_size_mass.txt out/additive_exact_aero_size_mass.txt 0 1e-1

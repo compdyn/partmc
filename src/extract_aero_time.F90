@@ -19,9 +19,6 @@ program extract_aero_size
   character(len=1000) :: tmp_str
   type(aero_data_t) :: aero_data
   type(aero_state_t) :: aero_state
-  type(gas_data_t) :: gas_data
-  type(gas_state_t) :: gas_state
-  type(env_state_t) :: env_state
   integer :: index, i_repeat, i_spec, out_unit
   integer :: i_file, n_file
   real(kind=dp) :: time, del_t
@@ -67,9 +64,6 @@ program extract_aero_size
 
   call aero_data_allocate(aero_data)
   call aero_state_allocate(aero_state)
-  call gas_data_allocate(gas_data)
-  call gas_state_allocate(gas_state)
-  call env_state_allocate(env_state)
 
   allocate(filename_list(0))
   call input_filename_list(in_prefix, filename_list)
@@ -78,7 +72,7 @@ program extract_aero_size
        "no NetCDF files found with prefix: " // trim(in_prefix))
 
   call input_state(filename_list(1), index, time, del_t, i_repeat, uuid, &
-       aero_data, aero_state, gas_data, gas_state, env_state)
+       aero_data=aero_data, aero_state=aero_state)
   run_uuid = uuid
 
   allocate(times(n_file))
@@ -91,7 +85,7 @@ program extract_aero_size
 
   do i_file = 1,n_file
      call input_state(filename_list(i_file), index, time, del_t, i_repeat, &
-          uuid, aero_data, aero_state, gas_data, gas_state, env_state)
+          uuid, aero_data=aero_data, aero_state=aero_state)
 
      call assert_msg(397906326, uuid == run_uuid, &
           "UUID mismatch between " // trim(filename_list(1)) // " and " &
@@ -142,9 +136,6 @@ program extract_aero_size
   deallocate(particle_masses)
   call aero_data_deallocate(aero_data)
   call aero_state_deallocate(aero_state)
-  call gas_data_deallocate(gas_data)
-  call gas_state_deallocate(gas_state)
-  call env_state_deallocate(env_state)
 
 contains
 

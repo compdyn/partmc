@@ -380,13 +380,9 @@ target_link_libraries(extract_env partmclib)
 ######################################################################
 # extract_sectional_*
 
-add_executable(extract_sectional_aero_size_num
-  src/extract_sectional_aero_size_num.F90)
-target_link_libraries(extract_sectional_aero_size_num ${NETCDF_LIBS})
-
-add_executable(extract_sectional_aero_size_mass
-  src/extract_sectional_aero_size_mass.F90)
-target_link_libraries(extract_sectional_aero_size_mass ${NETCDF_LIBS})
+add_executable(extract_sectional_aero_size
+  src/extract_sectional_aero_size.F90 src/getopt.F90)
+target_link_libraries(extract_sectional_aero_size partmclib)
 
 add_executable(extract_sectional_aero_species
   src/extract_sectional_aero_species.F90)

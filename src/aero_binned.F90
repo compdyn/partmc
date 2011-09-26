@@ -375,6 +375,10 @@ contains
     real(kind=dp) :: mass_den(bin_grid%n_bin, aero_data%n_spec)
     integer :: i_bin
 
+    call aero_binned_deallocate(aero_binned)
+    call aero_binned_allocate_size(aero_binned, bin_grid%n_bin, &
+         aero_data%n_spec)
+
     call pmc_nc_read_real_1d(ncid, aero_binned%num_conc, &
          "aero_number_concentration")
     call pmc_nc_read_real_2d(ncid, mass_den, &

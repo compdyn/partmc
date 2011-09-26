@@ -170,3 +170,8 @@ Make numeric_diff work even with extra spaces at the end of lines.
 
 Shift aero_data inside aero_state, like in partmc.py, to avoid having
 to remember when to pass it around.
+
+Suffix for extract_aero_size should be _aero_size_num, not _size_num,
+etc.
+
+Unify extract_* programs further (maybe into just partmc executable?).

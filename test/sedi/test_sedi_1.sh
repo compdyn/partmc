@@ -13,6 +13,6 @@ mkdir -p out
 ../../partmc run_sect.spec
 
 ../../extract_aero_size --num --dmin 1e-8 --dmax 1e-2 --nbin 100 out/sedi_part_0001
-../../extract_sectional_aero_size_num out/sedi_sect_ out/sedi_sect_size_num.txt
+../../extract_sectional_aero_size --num out/sedi_sect
 
-../../numeric_diff out/sedi_part_0001_size_num.txt out/sedi_sect_size_num.txt 0 0.2 0 0 2 0
+../../numeric_diff out/sedi_part_0001_size_num.txt out/sedi_sect_aero_size_num.txt 0 0.2 0 0 2 0

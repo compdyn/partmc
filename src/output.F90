@@ -549,7 +549,7 @@ contains
              call gas_state_input_netcdf(gas_state, ncid, gas_data)
           end if
        else
-          call assert_msg(874298496, present(aero_state) .eqv. .false., &
+          call assert_msg(874298496, present(gas_state) .eqv. .false., &
                "cannot input gas_state without gas_data")
        end if
 
@@ -663,6 +663,80 @@ contains
 
   end subroutine output_sectional
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Input sectional data.
+  subroutine input_sectional(filename, index, time, del_t, uuid, bin_grid, &
+       aero_data, aero_binned, gas_data, gas_state, env_state)
+
+    !> Filename to read.
+    character(len=*), intent(in) :: filename
+    !> Filename index.
+    integer, intent(out) :: index
+    !> Current time (s).
+    real(kind=dp), intent(out) :: time
+    !> Current output time-step (s).
+    real(kind=dp), intent(out) :: del_t
+    !> UUID of the simulation.
+    character(len=PMC_UUID_LEN), intent(out) :: uuid
+    !> Bin grid.
+    type(bin_grid_t), optional, intent(inout) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), optional, intent(inout) :: aero_data
+    !> Binned aerosol data.
+    type(aero_binned_t), optional, intent(inout) :: aero_binned
+    !> Gas data.
+    type(gas_data_t), optional, intent(inout) :: gas_data
+    !> Gas state.
+    type(gas_state_t), optional, intent(inout) :: gas_state
+    !> Environment state.
+    type(env_state_t), optional, intent(inout) :: env_state
+
+    integer :: ncid
+
+    ! only root process actually reads from the file
+    if (pmc_mpi_rank() == 0) then
+       call pmc_nc_open_read(filename, ncid)
+
+       call pmc_nc_check(nf90_get_att(ncid, NF90_GLOBAL, "UUID", uuid))
+
+       call pmc_nc_read_real(ncid, time, "time")
+       call pmc_nc_read_real(ncid, del_t, "timestep")
+       call pmc_nc_read_integer(ncid, index, "timestep_index")
+
+       if (present(bin_grid)) then
+          call bin_grid_input_netcdf(bin_grid, ncid)
+       end if
+       if (present(aero_data)) then
+          call aero_data_input_netcdf(aero_data, ncid)
+       end if
+       if (present(aero_binned)) then
+          call assert_msg(585353528, &
+               present(bin_grid) .and. present(aero_data), &
+               "cannot input aero_binned without bin_grid and aero_data")
+          call aero_binned_input_netcdf(aero_binned, ncid, bin_grid, &
+               aero_data)
+       end if
+
+       if (present(gas_data)) then
+          call gas_data_input_netcdf(gas_data, ncid)
+          if (present(gas_state)) then
+             call gas_state_input_netcdf(gas_state, ncid, gas_data)
+          end if
+       else
+          call assert_msg(214545112, present(gas_state) .eqv. .false., &
+               "cannot input gas_state without gas_data")
+       end if
+
+       if (present(env_state)) then
+          call env_state_input_netcdf(env_state, ncid)
+       end if
+
+       call pmc_nc_close(ncid)
+    end if
+
+  end subroutine input_sectional
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read the specification for an output type from a spec file and

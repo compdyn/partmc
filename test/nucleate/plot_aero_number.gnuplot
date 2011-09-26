@@ -7,5 +7,5 @@ set xlabel "time / s"
 set ylabel "aerosol number concentration / (1/m^3)"
 set key right bottom
 
-plot "out/aero_total.txt" using 1:2 title "particle", \
-     "out/nucleate_ode_aero_number.txt" using 1:2 w l title "ODE"
+plot "out/nucleate_part_0001_aero_time.txt" using 1:2 title "particle", \
+     "out/nucleate_ode_aero_time.txt" using 1:2 w l title "ODE"

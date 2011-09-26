@@ -9,4 +9,4 @@ cd ${0%/*}
 
 ../../extract_aero_time out/condense_0001
 
-../../numeric_diff --min-col 23 --max-col 23 --rel-tol 0.01 ref_condense_0001_aero_time.txt out/condense_0001_aero_time.txt
+../../numeric_diff --min-col 23 --max-col 23 --rel-tol 0.05 ref_condense_0001_aero_time.txt out/condense_0001_aero_time.txt

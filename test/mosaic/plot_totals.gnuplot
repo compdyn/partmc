@@ -15,7 +15,7 @@ set y2tics
 set yrange [0:*]
 set y2range [0:*]
 
-plot "out/mosaic_aero_total.txt" using 1:2 axes x1y1 with lines title "number", \
-     "out/mosaic_aero_total.txt" using 1:3 axes x1y2 with lines title "mass", \
-     "ref_aero_total.txt" using 1:2 axes x1y1 with points title "ref number", \
-     "ref_aero_total.txt" using 1:3 axes x1y2 with points title "ref mass"
+plot "out/mosaic_0001_aero_time.txt" using 1:2 axes x1y1 with lines title "number", \
+     "out/mosaic_0001_aero_time.txt" using 1:3 axes x1y2 with lines title "mass", \
+     "ref_mosaic_0001_aero_time.txt" using 1:2 axes x1y1 with points title "ref number", \
+     "ref_mosaic_0001_aero_time.txt" using 1:3 axes x1y2 with points title "ref mass"

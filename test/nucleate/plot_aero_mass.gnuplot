@@ -7,5 +7,5 @@ set xlabel "time / s"
 set ylabel "aerosol SO4 mass concentration / (kg/m^3)"
 set key right bottom
 
-plot "out/aero_species.txt" using 1:2 title "particle", \
-     "out/nucleate_ode_aero_mass.txt" using 1:2 w l title "ODE"
+plot "out/nucleate_part_0001_aero_time.txt" using 1:4 title "particle", \
+     "out/nucleate_ode_aero_time.txt" using 1:3 w l title "ODE"

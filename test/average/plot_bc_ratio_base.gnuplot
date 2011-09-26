@@ -7,4 +7,4 @@ set logscale x
 set xlabel "diameter / m"
 set ylabel "BC ratio"
 
-plot "out/average_particles.txt" using 3:($15/($15+$14)) with points
+plot "out/average_0001_00000001_aero_particles.txt" using 3:($15/($15+$14)) with points

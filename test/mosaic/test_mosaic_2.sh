@@ -8,4 +8,4 @@ set -v
 cd ${0%/*}
 
 ../../extract_env out/mosaic_0001
-../../numeric_diff --by elem --rel-tol 1e-12 ref_env.txt out/mosaic_0001_env.txt
+../../numeric_diff --by elem --rel-tol 1e-12 ref_mosaic_0001_env.txt out/mosaic_0001_env.txt

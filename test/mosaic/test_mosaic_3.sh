@@ -8,4 +8,4 @@ set -v
 cd ${0%/*}
 
 ../../extract_gas out/mosaic_0001
-../../numeric_diff --by row --rel-tol 1e-4 ref_gas.txt out/mosaic_0001_gas.txt
+../../numeric_diff --by row --rel-tol 1e-4 ref_mosaic_0001_gas.txt out/mosaic_0001_gas.txt

@@ -546,6 +546,51 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Find all NetCDF (.nc) filenames that match the given prefix.
+  subroutine input_filename_list(prefix, filename_list)
+
+    !> Filename prefix to search for.
+    character(len=*), intent(in) :: prefix
+    !> Filename list.
+    character(len=*), intent(inout), allocatable :: filename_list(:)
+
+    integer :: n_file, index, unit, ios
+    character(len=len(prefix)+100) :: filename
+    logical :: done
+
+#ifdef PMC_USE_MPI
+    call die_msg(541548465, "FIXME: not implemented")
+#endif
+    index = 1
+    done = .false.
+    unit = get_unit()
+    do while (.not. done)
+       write(filename, '(a,i8.8,a)') trim(prefix), index, '.nc'
+       open(unit=unit, file=filename, status='old', iostat=ios)
+       if (ios /= 0) then
+          done = .true.
+       else
+          index = index + 1
+          close(unit)
+       end if
+    end do
+    call free_unit(unit)
+
+    n_file = index - 1
+    if (size(filename_list) /= n_file) then
+       deallocate(filename_list)
+       allocate(filename_list(n_file))
+    end if
+
+    do index = 1,n_file
+       write(filename, '(a,i8.8,a)') trim(prefix), index, '.nc'
+       filename_list(index) = filename
+    end do
+
+  end subroutine input_filename_list
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Write the current sectional data.
   subroutine output_sectional(prefix, bin_grid, aero_data, aero_binned, &
        gas_data, gas_state, env_state, index, time, del_t, uuid)

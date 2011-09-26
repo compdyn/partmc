@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2010 Matthew West
+! Copyright (C) 2009-2011 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -9,36 +9,89 @@
 !> text format.
 program extract_env
 
-  use netcdf
+  use pmc_env_state
+  use pmc_output
+  use getopt_m
 
-  integer, parameter :: dp = kind(0.d0)
-  integer, parameter :: out_unit = 64
+  character(len=PMC_MAX_FILENAME_LEN) :: in_prefix, out_filename
+  character(len=PMC_MAX_FILENAME_LEN), allocatable :: filename_list(:)
+  character(len=1000) :: tmp_str
+  type(env_state_t) :: env_state
+  integer :: index, i_repeat, i_spec, out_unit
+  integer :: i_file, n_file
+  real(kind=dp) :: time, del_t
+  character(len=PMC_UUID_LEN) :: uuid, run_uuid
+  real(kind=dp), allocatable :: times(:), temps(:), rel_humids(:)
+  real(kind=dp), allocatable :: pressures(:), mix_heights(:)
+  type(option_s) :: opts(2)
 
-  character(len=1000) :: in_prefix, in_filename, out_filename
-  integer :: ncid
-  integer :: varid_time, varid_temp, varid_rh
-  integer :: varid_pres, varid_height
-  real(kind=dp) :: time, temp, rh, pres, height
-  integer :: ios, i_time, status, n_time
-  character(len=36) :: uuid, run_uuid
+  opts(1) = option_s("help", .false., 'h')
+  opts(2) = option_s("output", .true., 'o')
 
-  ! process commandline arguments
-  if (command_argument_count() .ne. 2) then
-     write(6,*) 'Usage: extract_env <netcdf_state_prefix> <output_filename>'
-     stop 2
-  endif
-  call get_command_argument(1, in_prefix)
-  call get_command_argument(2, out_filename)
+  out_filename = ""
 
-  ! open output file
-  open(unit=out_unit, file=out_filename, status='replace', iostat=ios)
-  if (ios /= 0) then
-     write(0,'(a,a,a,i4)') 'ERROR: unable to open file ', &
-          trim(out_filename), ' for writing: ', ios
-     stop 1
+  do
+     select case(getopt("ho:", opts))
+     case(char(0))
+        exit
+     case('h')
+        call print_help()
+        stop
+     case('o')
+        out_filename = optarg
+     case( '?' )
+        call print_help()
+        call die_msg(909107230, 'unknown option: ' // trim(optopt))
+     case default
+        call print_help()
+        call die_msg(368158543, 'unhandled option: ' // trim(optopt))
+     end select
+  end do
+
+  if (optind /= command_argument_count()) then
+     call print_help()
+     call die_msg(410427558, 'expected exactly one non-option prefix argument')
   end if
 
-  ! write information
+  call get_command_argument(optind, in_prefix)
+
+  if (out_filename == "") then
+     out_filename = trim(in_prefix) // "_env.txt"
+  end if
+
+  call env_state_allocate(env_state)
+
+  allocate(filename_list(0))
+  call input_filename_list(in_prefix, filename_list)
+  n_file = size(filename_list)
+  call assert_msg(399220907, n_file > 0, &
+       "no NetCDF files found with prefix: " // trim(in_prefix))
+
+  call input_state(filename_list(1), index, time, del_t, i_repeat, uuid, &
+       env_state=env_state)
+  run_uuid = uuid
+
+  allocate(times(n_file))
+  allocate(temps(n_file))
+  allocate(rel_humids(n_file))
+  allocate(pressures(n_file))
+  allocate(mix_heights(n_file))
+
+  do i_file = 1,n_file
+     call input_state(filename_list(i_file), index, time, del_t, i_repeat, &
+          uuid, env_state=env_state)
+
+     call assert_msg(390171757, uuid == run_uuid, &
+          "UUID mismatch between " // trim(filename_list(1)) // " and " &
+          // trim(filename_list(i_file)))
+
+     times(i_file) = time
+     temps(i_file) = env_state%temp
+     rel_humids(i_file) = env_state%rel_humid
+     pressures(i_file) = env_state%pressure
+     mix_heights(i_file) = env_state%height
+  end do
+
   write(*,'(a,a)') "Output file: ", trim(out_filename)
   write(*,'(a)') "  Each row of output is one time."
   write(*,'(a)') "  The columns of output are:"
@@ -48,100 +101,38 @@ program extract_env
   write(*,'(a)') "    column 4: pressure (Pa)"
   write(*,'(a)') "    column 5: mixing height (m)"
 
-  ! read NetCDF files
-  i_time = 0
-  n_time = 0
-  do while (.true.)
-     i_time = i_time + 1
-     write(in_filename,'(a,i8.8,a)') trim(in_prefix), i_time, ".nc"
-     status = nf90_open(in_filename, NF90_NOWRITE, ncid)
-     if (status /= NF90_NOERR) then
-        exit
-     end if
-     n_time = i_time
-
-     ! read and check uuid
-     call nc_check_msg(nf90_get_att(ncid, NF90_GLOBAL, "UUID", uuid), &
-          "getting global attribute 'UUID'")
-     if (i_time == 1) then
-        run_uuid = uuid
-     else
-        if (run_uuid /= uuid) then
-           write(0,*) 'ERROR: UUID mismatch at: ' // trim(in_filename)
-           stop 1
-        end if
-     end if
-
-     call nc_check_msg(nf90_inq_varid(ncid, "time", varid_time), &
-          "getting variable ID for 'time'")
-     call nc_check_msg(nf90_get_var(ncid, varid_time, time), &
-          "getting variable 'time'")
-
-     call nc_check_msg(nf90_inq_varid(ncid, "temperature", varid_temp), &
-          "getting variable ID for 'temperature'")
-     call nc_check_msg(nf90_get_var(ncid, varid_temp, temp), &
-          "getting variable 'temperature'")
-
-     call nc_check_msg(nf90_inq_varid(ncid, "relative_humidity", &
-          varid_rh), "getting variable ID for 'relative_humidity'")
-     call nc_check_msg(nf90_get_var(ncid, varid_rh, rh), &
-          "getting variable 'relative_humidity'")
-
-     call nc_check_msg(nf90_inq_varid(ncid, "pressure", varid_pres), &
-          "getting variable ID for 'pressure'")
-     call nc_check_msg(nf90_get_var(ncid, varid_pres, pres), &
-          "getting variable 'pressure'")
-
-     call nc_check_msg(nf90_inq_varid(ncid, "height", varid_height), &
-          "getting variable ID for 'height'")
-     call nc_check_msg(nf90_get_var(ncid, varid_height, height), &
-          "getting variable 'height'")
-
-        call nc_check_msg(nf90_close(ncid), &
-             "closing file " // trim(in_filename))
-
-     ! output data
-     write(out_unit, '(5e30.15e3)') time, temp, rh, pres, height
+  call open_file_write(out_filename, out_unit)
+  do i_file = 1,n_file
+     write(out_unit, '(e30.15e3)', advance='no') times(i_file)
+     write(out_unit, '(e30.15e3)', advance='no') temps(i_file)
+     write(out_unit, '(e30.15e3)', advance='no') rel_humids(i_file)
+     write(out_unit, '(e30.15e3)', advance='no') pressures(i_file)
+     write(out_unit, '(e30.15e3)', advance='no') mix_heights(i_file)
+     write(out_unit, '(a)') ''
   end do
+  call close_file(out_unit)
 
-  if (n_time == 0) then
-     write(*,'(a,a)') 'ERROR: no input file found matching: ', &
-          trim(in_filename)
-     stop 1
-  end if
-
-  close(out_unit)
+  deallocate(times)
+  deallocate(temps)
+  deallocate(rel_humids)
+  deallocate(pressures)
+  deallocate(mix_heights)
+  call env_state_deallocate(env_state)
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  subroutine print_help()
 
-  !> Check return status of NetCDF function calls.
-  subroutine nc_check_msg(status, error_msg)
+    write(*,'(a)') 'Usage: extract_env [options] <netcdf_prefix>'
+    write(*,'(a)') ''
+    write(*,'(a)') 'options are:'
+    write(*,'(a)') '  -h, --help        Print this help message.'
+    write(*,'(a)') '  -o, --out <file>  Output filename.'
+    write(*,'(a)') ''
+    write(*,'(a)') 'Examples:'
+    write(*,'(a)') '  extract_env data_0001'
+    write(*,'(a)') ''
 
-    !> Status return value.
-    integer, intent(in) :: status
-    !> Error message in case of failure.
-    character(len=*), intent(in) :: error_msg
+  end subroutine print_help
 
-    if (status /= NF90_NOERR) then
-       write(0,*) trim(error_msg) // " : " // trim(nf90_strerror(status))
-       stop 1
-    end if
-
-  end subroutine nc_check_msg
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-#ifdef DEFINE_LOCAL_COMMAND_ARGUMENT
-  integer function command_argument_count()
-    command_argument_count = iargc()
-  end function command_argument_count
-  subroutine get_command_argument(i, arg)
-    integer, intent(in) :: i
-    character(len=*), intent(out) :: arg
-    call getarg(i, arg)
-  end subroutine get_command_argument
-#endif
-  
 end program extract_env

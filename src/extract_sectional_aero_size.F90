@@ -140,7 +140,8 @@ program extract_sectional_aero_size
 
   call open_file_write(out_filename, out_unit)
   do i_bin = 1,bin_grid%n_bin
-     write(out_unit, '(e30.15e3)', advance='no') bin_grid%center_radius(i_bin)
+     write(out_unit, '(e30.15e3)', advance='no') &
+          rad2diam(bin_grid%center_radius(i_bin))
      do i_file = 1,n_file
         write(out_unit, '(e30.15e3)', advance='no') aero_dist(i_bin, i_file)
      end do

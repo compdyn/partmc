@@ -12,6 +12,7 @@ program extract_aero_particle_mass
   use pmc_aero_state
   use pmc_aero_particle
   use pmc_output
+  use getopt_m
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename
   type(aero_data_t) :: aero_data
@@ -19,18 +20,51 @@ program extract_aero_particle_mass
   type(gas_data_t) :: gas_data
   type(gas_state_t) :: gas_state
   type(env_state_t) :: env_state
-  integer :: index, i_repeat, i_part, i_spec, out_unit
+  integer :: index, i_repeat, i_part, i_spec, out_unit, i_char
   real(kind=dp) :: time, del_t
   character(len=PMC_UUID_LEN) :: uuid
   type(aero_particle_t), pointer :: aero_particle
+  type(option_s) :: opts(2)
 
-  if (command_argument_count() .ne. 2) then
-     write(6,*) 'Usage: extract_aero_particle_mass ' &
-          // '<netcdf_state_file> <output_filename>'
-     stop 2
-  endif
-  call get_command_argument(1, in_filename)
-  call get_command_argument(2, out_filename)
+  opts(1) = option_s("help", .false., 'h')
+  opts(2) = option_s("output", .true., 'o')
+
+  out_filename = ""
+
+  do
+     select case(getopt("ho:", opts))
+     case(char(0))
+        exit
+     case('h')
+        call print_help()
+        stop
+     case('o')
+        out_filename = optarg
+     case( '?' )
+        call print_help()
+        call die_msg(885067714, 'unknown option: ' // trim(optopt))
+     case default
+        call print_help()
+        call die_msg(516704561, 'unhandled option: ' // trim(optopt))
+     end select
+  end do
+
+  if (optind /= command_argument_count()) then
+     call print_help()
+     call die_msg(605963222, &
+          'expected exactly one non-option filename argument')
+  end if
+
+  call get_command_argument(optind, in_filename)
+
+  if (out_filename == "") then
+     i_char = scan(in_filename, '.', back=.true.)
+     if (i_char == 0) then
+        out_filename = trim(in_filename) // "_particles.txt"
+     else
+        out_filename = trim(in_filename(1:(i_char - 1))) // "_particles.txt"
+     end if
+  end if
 
   call aero_data_allocate(aero_data)
   call aero_state_allocate(aero_state)
@@ -77,5 +111,21 @@ program extract_aero_particle_mass
   call gas_data_deallocate(gas_data)
   call gas_state_deallocate(gas_state)
   call env_state_deallocate(env_state)
+
+contains
+
+  subroutine print_help()
+
+    write(*,'(a)') 'Usage: extract_aero_particle_mass [options] <netcdf_prefix>'
+    write(*,'(a)') ''
+    write(*,'(a)') 'options are:'
+    write(*,'(a)') '  -h, --help        Print this help message.'
+    write(*,'(a)') '  -o, --out <file>  Output filename.'
+    write(*,'(a)') ''
+    write(*,'(a)') 'Examples:'
+    write(*,'(a)') '  extract_aero_particles data_0001_00000001.nc'
+    write(*,'(a)') ''
+
+  end subroutine print_help
 
 end program extract_aero_particle_mass

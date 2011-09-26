@@ -352,7 +352,7 @@ target_link_libraries(bin_average_size partmclib)
 # extract_aero_*
 
 add_executable(extract_aero_particle_mass
-  src/extract_aero_particle_mass.F90)
+  src/extract_aero_particle_mass.F90 src/getopt.F90)
 target_link_libraries(extract_aero_particle_mass partmclib)
 
 add_executable(extract_aero_size src/extract_aero_size.F90

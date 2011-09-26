@@ -785,7 +785,7 @@ contains
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
-    !> Diameter array (m).
+    !> Diameters array (m).
     real(kind=dp), intent(inout), allocatable :: diameters(:)
 
     call ensure_real_array_size(diameters, aero_state%apa%n_part)
@@ -796,13 +796,75 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the masses of all particles. The \c masses array
+  !> will be reallocated if necessary.
+  !!
+  !! If \c include is specified then only those species are included
+  !! in computing the masses. If \c exclude is specified then all
+  !! species except those species are included. If both \c include and
+  !! \c exclude arguments are specified then only those species in \c
+  !! include but not in \c exclude are included.
+  subroutine aero_state_masses(aero_state, aero_data, masses, include, exclude)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Masses array (kg).
+    real(kind=dp), intent(inout), allocatable :: masses(:)
+    !> Species names to include in the mass.
+    character(len=*), optional :: include(:)
+    !> Species names to exclude in the mass.
+    character(len=*), optional :: exclude(:)
+
+    logical :: use_species(aero_data%n_spec)
+    integer :: i_name, i_spec
+
+    call ensure_real_array_size(masses, aero_state%apa%n_part)
+    if ((.not. present(include)) .and. (.not. present(exclude))) then
+       masses = aero_particle_mass( &
+            aero_state%apa%particle(1:aero_state%apa%n_part), aero_data)
+    else
+       if (present(include)) then
+          use_species = .false.
+          do i_name = 1, size(include)
+             i_spec = aero_data_spec_by_name(aero_data, include(i_name))
+             call assert_msg(963163690, i_spec > 0, &
+                  "unknown species: " // trim(include(i_name)))
+             use_species(i_spec) = .true.
+          end do
+       else
+          use_species = .true.
+       end if
+       if (present(exclude)) then
+          do i_name = 1, size(exclude)
+             i_spec = aero_data_spec_by_name(aero_data, exclude(i_name))
+             call assert_msg(950847713, i_spec > 0, &
+                  "unknown species: " // trim(exclude(i_name)))
+             use_species(i_spec) = .false.
+          end do
+       end if
+       masses = 0d0
+       do i_spec = 1,aero_data%n_spec
+          if (use_species(i_spec)) then
+             masses = masses + aero_particle_species_mass( &
+                  aero_state%apa%particle(1:aero_state%apa%n_part), &
+                  i_spec, aero_data)
+          end if
+       end do
+    end if
+
+  end subroutine aero_state_masses
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Returns the number concentrations of all particles. The \c
   !> num_concs array will be reallocated if necessary.
   subroutine aero_state_num_concs(aero_state, num_concs)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
-    !> Number concentration array (m^{-3}).
+    !> Number concentrations array (m^{-3}).
     real(kind=dp), intent(inout), allocatable :: num_concs(:)
 
     integer :: i_part

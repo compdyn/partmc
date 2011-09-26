@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2010 Matthew West
+! Copyright (C) 2009-2011 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -9,33 +9,28 @@
 !> distributions in text format.
 program extract_aero_size_num
 
-  use netcdf
+  use pmc_aero_state
+  use pmc_aero_particle
+  use pmc_output
 
-  integer, parameter :: dp = kind(0.d0)
-  integer, parameter :: MAX_N_TIME = 10000
-  integer, parameter :: out_unit = 64
-
-  character(len=1000) :: in_prefix, in_filename, out_filename
-  integer :: ncid
-  integer :: dimid_aero_species, dimid_aero_particle
-  integer :: varid_time, varid_aero_species
-  integer :: varid_aero_particle_mass, varid_aero_density
-  integer :: varid_aero_comp_vol
-  integer :: n_aero_species, n_aero_particle
-  character(len=1000) :: tmp_str, aero_species_names
-  real(kind=dp) :: time
-  real(kind=dp), allocatable :: aero_particle_mass(:,:)
-  real(kind=dp), allocatable :: aero_density(:)
-  real(kind=dp), allocatable :: aero_comp_vol(:)
-  real(kind=dp), allocatable :: aero_dist(:,:)
-  integer :: xtype, ndims, nAtts
-  integer, dimension(nf90_max_var_dims) :: dimids
-  integer :: ios, i_time, i_spec, i_part, status
-  integer :: n_bin, i_bin, n_time
+  character(len=PMC_MAX_FILENAME_LEN) :: in_prefix, out_filename
+  character(len=PMC_MAX_FILENAME_LEN), allocatable :: filename_list(:)
+  character(len=1000) :: tmp_str
+  type(bin_grid_t) :: diam_grid
+  type(aero_data_t) :: aero_data
+  type(aero_state_t) :: aero_state
+  type(gas_data_t) :: gas_data
+  type(gas_state_t) :: gas_state
+  type(env_state_t) :: env_state
+  integer :: index, i_repeat, i_part, i_spec, out_unit
+  integer :: i_file, n_file, i_bin, n_bin
+  real(kind=dp) :: time, del_t
+  type(aero_particle_t), pointer :: aero_particle
   real(kind=dp) :: d_min, d_max, diam, volume, log_width
-  character(len=36) :: uuid, run_uuid
+  character(len=PMC_UUID_LEN) :: uuid, run_uuid
+  real(kind=dp), allocatable :: diameters(:), num_concs(:), hist(:)
+  real(kind=dp), allocatable :: aero_dist(:,:)
 
-  ! process commandline arguments
   if (command_argument_count() .ne. 5) then
      write(6,*) 'Usage: extract_aero_size_num <d_min> <d_max> <n_bin> ' &
           // '<netcdf_state_prefix> <output_filename>'
@@ -50,241 +45,73 @@ program extract_aero_size_num
   call get_command_argument(4, in_prefix)
   call get_command_argument(5, out_filename)
 
-  ! process NetCDF files
-  allocate(aero_dist(n_bin, MAX_N_TIME))
-  aero_dist = 0d0
-  i_time = 0
-  n_time = 0
-  do while (.true.)
-     i_time = i_time + 1
-     write(in_filename,'(a,i8.8,a)') trim(in_prefix), i_time, ".nc"
-     status = nf90_open(in_filename, NF90_NOWRITE, ncid)
-     if (status /= NF90_NOERR) then
-        exit
-     end if
-     n_time = i_time
-     if (n_time >= MAX_N_TIME) then
-        write(0,*) 'ERROR: can only process up to MAX_N_TIME times: ', &
-             MAX_N_TIME
-        stop 1
-     end if
+  call bin_grid_allocate(diam_grid)
+  call aero_data_allocate(aero_data)
+  call aero_state_allocate(aero_state)
+  call gas_data_allocate(gas_data)
+  call gas_state_allocate(gas_state)
+  call env_state_allocate(env_state)
 
-     ! read and check uuid
-     call nc_check_msg(nf90_get_att(ncid, NF90_GLOBAL, "UUID", uuid), &
-          "getting global attribute 'UUID'")
-     if (i_time == 1) then
+  allocate(filename_list(0))
+  call input_filename_list(in_prefix, filename_list)
+  n_file = size(filename_list)
+  call assert_msg(875939143, n_file > 0, &
+       "no NetCDF files found with prefix: " // trim(in_prefix))
+
+  call bin_grid_make(diam_grid, n_bin, d_min, d_max)
+  allocate(aero_dist(n_bin, n_file))
+  allocate(hist(n_bin))
+  allocate(diameters(0))
+  allocate(num_concs(0))
+
+  do i_file = 1,n_file
+     call input_state(filename_list(i_file), aero_data, aero_state, gas_data, &
+          gas_state, env_state, index, time, del_t, i_repeat, uuid)
+
+     if (i_file == 1) then
         run_uuid = uuid
      else
-        if (run_uuid /= uuid) then
-           write(0,*) 'ERROR: UUID mismatch at: ' // trim(in_filename)
-           stop 1
-        end if
+        call assert_msg(657993562, uuid == run_uuid, &
+             "UUID mismatch between " // trim(filename_list(1)) // " and " &
+             // trim(filename_list(i_file)))
      end if
 
-     ! read time
-     call nc_check_msg(nf90_inq_varid(ncid, "time", varid_time), &
-          "getting variable ID for 'time'")
-     call nc_check_msg(nf90_get_var(ncid, varid_time, time), &
-          "getting variable 'time'")
-
-     ! read aero_species
-     call nc_check_msg(nf90_inq_dimid(ncid, "aero_species", &
-          dimid_aero_species), "getting dimension ID for 'aero_species'")
-     call nc_check_msg(nf90_Inquire_Dimension(ncid, dimid_aero_species, &
-          tmp_str, n_aero_species), "inquiring dimension 'aero_species'")
-     call nc_check_msg(nf90_inq_varid(ncid, "aero_species", &
-          varid_aero_species), "getting variable ID for 'aero_species'")
-     call nc_check_msg(nf90_get_att(ncid, varid_aero_species, &
-          "names", aero_species_names), &
-          "getting attribute 'names' for variable 'aero_species'")
-     
-     ! read aero_particle dimension
-     status = nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle)
-     if (status == NF90_EBADDIM) then
-        ! dimension missing ==> no particles, so skip this time
-        cycle
-     end if
-     call nc_check_msg(status, "getting dimension ID for 'aero_particle'")
-     call nc_check_msg(nf90_Inquire_Dimension(ncid, dimid_aero_particle, &
-          tmp_str, n_aero_particle), "inquiring dimension 'aero_species'")
-     
-     ! read aero_particle_mass
-     call nc_check_msg(nf90_inq_varid(ncid, "aero_particle_mass", &
-          varid_aero_particle_mass), &
-          "getting variable ID for 'aero_particle_mass'")
-     call nc_check_msg(nf90_Inquire_Variable(ncid, varid_aero_particle_mass, &
-          tmp_str, xtype, ndims, dimids, nAtts), &
-          "inquiring variable 'aero_particle_mass'")
-     if ((ndims /= 2) &
-          .or. (dimids(1) /= dimid_aero_particle) &
-          .or. (dimids(2) /= dimid_aero_species)) then
-        write(0,*) "ERROR: unexpected aero_particle_mass dimids"
-        stop 1
-     end if
-     allocate(aero_particle_mass(n_aero_particle, n_aero_species))
-     call nc_check_msg(nf90_get_var(ncid, varid_aero_particle_mass, &
-          aero_particle_mass), "getting variable 'aero_particle_mass'")
-     
-     ! read aero_density
-     call nc_check_msg(nf90_inq_varid(ncid, "aero_density", &
-          varid_aero_density), "getting variable ID for 'aero_density'")
-     call nc_check_msg(nf90_Inquire_Variable(ncid, varid_aero_density, &
-          tmp_str, xtype, ndims, dimids, nAtts), &
-          "inquiring variable 'aero_density'")
-     if ((ndims /= 1) &
-          .or. (dimids(1) /= dimid_aero_species)) then
-        write(0,*) "ERROR: unexpected aero_density dimids"
-        stop 1
-     end if
-     allocate(aero_density(n_aero_species))
-     call nc_check_msg(nf90_get_var(ncid, varid_aero_density, &
-          aero_density), "getting variable 'aero_density'")
-     
-     ! read aero_comp_vol
-     call nc_check_msg(nf90_inq_varid(ncid, "aero_comp_vol", &
-          varid_aero_comp_vol), "getting variable ID for 'aero_comp_vol'")
-     call nc_check_msg(nf90_Inquire_Variable(ncid, varid_aero_comp_vol, &
-          tmp_str, xtype, ndims, dimids, nAtts), &
-          "inquiring variable 'aero_comp_vol'")
-     if ((ndims /= 1) &
-          .or. (dimids(1) /= dimid_aero_particle)) then
-        write(0,*) "ERROR: unexpected aero_comp_vol dimids"
-        stop 1
-     end if
-     allocate(aero_comp_vol(n_aero_particle))
-     call nc_check_msg(nf90_get_var(ncid, varid_aero_comp_vol, &
-          aero_comp_vol), "getting variable 'aero_comp_vol'")
-     
-     call nc_check_msg(nf90_close(ncid), &
-          "closing file " // trim(in_filename))
-
-     ! compute distribution
-     log_width = (log(d_max) - log(d_min)) / real(n_bin, kind=dp)
-     do i_part = 1,n_aero_particle
-        volume = sum(aero_particle_mass(i_part,:) / aero_density)
-        diam = (volume / (3.14159265358979323846d0 / 6d0))**(1d0/3d0)
-        i_bin = ceiling((log(diam) - log(d_min)) / log_width)
-        i_bin = max(1, i_bin)
-        i_bin = min(n_bin, i_bin)
-        aero_dist(i_bin, i_time) = aero_dist(i_bin, i_time) &
-             + 1d0 / aero_comp_vol(i_part) / log_width
-     end do
-
-     deallocate(aero_particle_mass)
-     deallocate(aero_density)
-     deallocate(aero_comp_vol)
+     call aero_state_diameters(aero_state, diameters)
+     call aero_state_num_concs(aero_state, num_concs)
+     call bin_grid_histogram_1d(diam_grid, diameters, num_concs, hist)
+     aero_dist(:, i_file) = hist
   end do
 
-  if (n_time == 0) then
-     write(*,'(a,a)') 'ERROR: no input file found matching: ', &
-          trim(in_filename)
-     stop 1
-  end if
-
-  ! write information
-  write(*,'(a,a)') "Output file: ", trim(out_filename)
+  write(*,'(a)') "Output file: " // trim(out_filename)
   write(*,'(a)') "  Each row of output is one size bin."
   write(*,'(a)') "  The columns of output are:"
   write(*,'(a)') "    column   1: bin center diameter (m)"
   write(*,'(a)') "    column j+1: number concentration at time(j) (#/m^3)"
   write(*,'(a)') "  Diameter bins have logarithmic width:"
   write(*,'(a,e20.10)') "    log_width = ln(diam(i+1)) - ln(diam(i)) =", &
-       log_width
+       diam_grid%log_width
 
-  ! open output file
-  open(unit=out_unit, file=out_filename, status='replace', iostat=ios)
-  if (ios /= 0) then
-     write(0,'(a,a,a,i4)') 'ERROR: unable to open file ', &
-          trim(out_filename), ' for writing: ', ios
-     stop 1
-  end if
-
-  ! output data
+  call open_file_write(out_filename, out_unit)
   do i_bin = 1,n_bin
-     diam = exp((real(i_bin, kind=dp) - 0.5d0) * log_width + log(d_min))
-     write(out_unit, '(e30.15e3)', advance='no') diam
-     do i_time = 1,n_time
-        write(out_unit, '(e30.15e3)', advance='no') &
-             aero_dist(i_bin, i_time)
+     write(out_unit, '(e30.15e3)', advance='no') &
+          diam_grid%center_radius(i_bin)
+     do i_file = 1,n_file
+        write(out_unit, '(e30.15e3)', advance='no') aero_dist(i_bin, i_file)
      end do
      write(out_unit, '(a)') ''
   end do
+  call close_file(out_unit)
 
-  close(out_unit)
+  deallocate(filename_list)
   deallocate(aero_dist)
+  deallocate(hist)
+  deallocate(diameters)
+  deallocate(num_concs)
+  call bin_grid_allocate(diam_grid)
+  call aero_data_deallocate(aero_data)
+  call aero_state_deallocate(aero_state)
+  call gas_data_deallocate(gas_data)
+  call gas_state_deallocate(gas_state)
+  call env_state_deallocate(env_state)
 
-contains
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Check return status of NetCDF function calls.
-  subroutine nc_check_msg(status, error_msg)
-
-    !> Status return value.
-    integer, intent(in) :: status
-    !> Error message in case of failure.
-    character(len=*), intent(in) :: error_msg
-
-    if (status /= NF90_NOERR) then
-       write(0,*) trim(error_msg) // " : " // trim(nf90_strerror(status))
-       stop 1
-    end if
-
-  end subroutine nc_check_msg
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Convert a string to a real.
-  real(kind=dp) function string_to_real(string)
-
-    !> String to convert.
-    character(len=*), intent(in) :: string
-    
-    real(kind=dp) :: val
-    integer :: ios
-
-    read(string, '(e40.0)', iostat=ios) val
-    if (ios /= 0) then
-       write(0,'(a,a,a,i3)') 'Error converting ', trim(string), &
-            ' to real: IOSTAT = ', ios
-       stop 2
-    end if
-    string_to_real = val
-
-  end function string_to_real
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Convert a string to an integer.
-  integer function string_to_integer(string)
-
-    !> String to convert.
-    character(len=*), intent(in) :: string
-    
-    integer :: val
-    integer :: ios
-
-    read(string, '(i20)', iostat=ios) val
-    if (ios /= 0) then
-       write(0,'(a,a,a,i3)') 'Error converting ', trim(string), &
-            ' to integer: IOSTAT = ', ios
-       stop 1
-    end if
-    string_to_integer = val
-
-  end function string_to_integer
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-#ifdef DEFINE_LOCAL_COMMAND_ARGUMENT
-  integer function command_argument_count()
-    command_argument_count = iargc()
-  end function command_argument_count
-  subroutine get_command_argument(i, arg)
-    integer, intent(in) :: i
-    character(len=*), intent(out) :: arg
-    call getarg(i, arg)
-  end subroutine get_command_argument
-#endif
-  
 end program extract_aero_size_num

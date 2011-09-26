@@ -357,7 +357,7 @@ target_link_libraries(extract_aero_particle_mass partmclib)
 
 add_executable(extract_aero_size_num
   src/extract_aero_size_num.F90)
-target_link_libraries(extract_aero_size_num ${NETCDF_LIBS})
+target_link_libraries(extract_aero_size_num partmclib)
 
 add_executable(extract_aero_size_mass
   src/extract_aero_size_mass.F90)

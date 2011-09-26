@@ -102,6 +102,20 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the size of a bin in a grid.
+  real(kind=dp) function bin_grid_bin_size(bin_grid, i_bin)
+
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Bin number to return size of.
+    integer, intent(in) :: i_bin
+
+    bin_grid_bin_size = bin_grid%log_width
+
+  end function bin_grid_bin_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Convert a concentration f(vol)d(vol) to f(ln(r))d(ln(r))
   !> where vol = 4/3 pi r^3.
   subroutine vol_to_lnr(r, f_vol, f_lnr)
@@ -176,6 +190,34 @@ contains
 
   end function bin_grid_particle_in_bin
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Make a histogram with of the given weighted data, scaled by the
+  !> bin sizes.
+  subroutine bin_grid_histogram_1d(x_bin_grid, x_data, weight_data, hist)
+
+    !> x-axis bin grid.
+    type(bin_grid_t), intent(in) :: x_bin_grid
+    !> Data values on the x-axis.
+    real(kind=dp), intent(in) :: x_data(:)
+    !> Data value weights.
+    real(kind=dp), intent(in) :: weight_data(size(x_data))
+    !> Histogram to compute.
+    real(kind=dp), intent(out) :: hist(x_bin_grid%n_bin)
+
+    integer :: i_data, i_bin
+
+    hist = 0d0
+    do i_data = 1,size(x_data)
+       i_bin = bin_grid_particle_in_bin(x_bin_grid, x_data(i_data))
+       if ((i_bin >= 1) .and. (i_bin <= x_bin_grid%n_bin)) then
+          hist(i_bin) = hist(i_bin) &
+               + weight_data(i_data) / bin_grid_bin_size(x_bin_grid, i_bin)
+       end if
+    end do
+
+  end subroutine bin_grid_histogram_1d
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read the specification for a bin_grid from a spec file and

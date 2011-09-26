@@ -494,21 +494,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read the current state.
-  subroutine input_state(filename, aero_data, aero_state, gas_data, &
-       gas_state, env_state, index, time, del_t, i_repeat, uuid)
+  subroutine input_state(filename, index, time, del_t, i_repeat, uuid, &
+       aero_data, aero_state, gas_data, gas_state, env_state)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: filename
-    !> Aerosol data.
-    type(aero_data_t), intent(inout) :: aero_data
-    !> Aerosol state.
-    type(aero_state_t), intent(inout) :: aero_state
-    !> Gas data.
-    type(gas_data_t), intent(inout) :: gas_data
-    !> Gas state.
-    type(gas_state_t), intent(inout) :: gas_state
-    !> Environment state.
-    type(env_state_t), intent(inout) :: env_state
     !> Filename index.
     integer, intent(out) :: index
     !> Current time (s).
@@ -519,6 +509,16 @@ contains
     integer, intent(out) :: i_repeat
     !> UUID of the simulation.
     character(len=PMC_UUID_LEN), intent(out) :: uuid
+    !> Aerosol data.
+    type(aero_data_t), optional, intent(inout) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), optional, intent(inout) :: aero_state
+    !> Gas data.
+    type(gas_data_t), optional, intent(inout) :: gas_data
+    !> Gas state.
+    type(gas_state_t), optional, intent(inout) :: gas_state
+    !> Environment state.
+    type(env_state_t), optional, intent(inout) :: env_state
     
     integer :: ncid
 
@@ -533,11 +533,29 @@ contains
        call pmc_nc_read_integer(ncid, i_repeat, "repeat")
        call pmc_nc_read_integer(ncid, index, "timestep_index")
 
-       call env_state_input_netcdf(env_state, ncid)
-       call gas_data_input_netcdf(gas_data, ncid)
-       call gas_state_input_netcdf(gas_state, ncid, gas_data)
-       call aero_data_input_netcdf(aero_data, ncid)
-       call aero_state_input_netcdf(aero_state, ncid, aero_data)
+       if (present(aero_data)) then
+          call aero_data_input_netcdf(aero_data, ncid)
+          if (present(aero_state)) then
+             call aero_state_input_netcdf(aero_state, ncid, aero_data)
+          end if
+       else
+          call assert_msg(289621231, present(aero_state) .eqv. .false., &
+               "cannot input aero_state without aero_data")
+       end if
+
+       if (present(gas_data)) then
+          call gas_data_input_netcdf(gas_data, ncid)
+          if (present(gas_state)) then
+             call gas_state_input_netcdf(gas_state, ncid, gas_data)
+          end if
+       else
+          call assert_msg(874298496, present(aero_state) .eqv. .false., &
+               "cannot input gas_state without gas_data")
+       end if
+
+       if (present(env_state)) then
+          call env_state_input_netcdf(env_state, ncid)
+       end if
 
        call pmc_nc_close(ncid)
     end if

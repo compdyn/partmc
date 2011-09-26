@@ -371,8 +371,8 @@ add_executable(extract_aero_total
   src/extract_aero_total.F90)
 target_link_libraries(extract_aero_total ${NETCDF_LIBS})
 
-add_executable(extract_gas src/extract_gas.F90)
-target_link_libraries(extract_gas ${NETCDF_LIBS})
+add_executable(extract_gas src/extract_gas.F90 src/getopt.F90)
+target_link_libraries(extract_gas partmclib)
 
 add_executable(extract_env src/extract_env.F90)
 target_link_libraries(extract_env ${NETCDF_LIBS})

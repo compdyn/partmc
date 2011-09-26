@@ -130,8 +130,8 @@ program extract_aero_size
   allocate(masses(0))
 
   do i_file = 1,n_file
-     call input_state(filename_list(i_file), aero_data, aero_state, gas_data, &
-          gas_state, env_state, index, time, del_t, i_repeat, uuid)
+     call input_state(filename_list(i_file), index, time, del_t, i_repeat, &
+          uuid, aero_data, aero_state, gas_data, gas_state, env_state)
 
      if (i_file == 1) then
         run_uuid = uuid

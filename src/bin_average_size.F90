@@ -100,8 +100,8 @@ program bin_average_size
 
   call bin_grid_make(bin_grid, n_bin, diam2rad(d_min), diam2rad(d_max))
   
-  call input_state(in_filename, aero_data, aero_state, gas_data, gas_state, &
-       env_state, index, time, del_t, i_repeat, uuid)
+  call input_state(in_filename, index, time, del_t, i_repeat, uuid, &
+       aero_data, aero_state, gas_data, gas_state, env_state)
 
   if (dry_volume) then
      call aero_state_make_dry(aero_state, aero_data)

@@ -37,7 +37,7 @@ program extract_aero_size
   out_filename = ""
 
   do
-     select case(getopt("hnmN:X:b:o:", opts))
+     select case(getopt("ho:", opts))
      case(char(0))
         exit
      case('h')
@@ -77,8 +77,8 @@ program extract_aero_size
   call assert_msg(323514871, n_file > 0, &
        "no NetCDF files found with prefix: " // trim(in_prefix))
 
-  call input_state(filename_list(1), aero_data, aero_state, gas_data, &
-       gas_state, env_state, index, time, del_t, i_repeat, uuid)
+  call input_state(filename_list(1), index, time, del_t, i_repeat, uuid, &
+       aero_data, aero_state, gas_data, gas_state, env_state)
   run_uuid = uuid
 
   allocate(times(n_file))
@@ -90,8 +90,8 @@ program extract_aero_size
   allocate(particle_masses(0))
 
   do i_file = 1,n_file
-     call input_state(filename_list(i_file), aero_data, aero_state, gas_data, &
-          gas_state, env_state, index, time, del_t, i_repeat, uuid)
+     call input_state(filename_list(i_file), index, time, del_t, i_repeat, &
+          uuid, aero_data, aero_state, gas_data, gas_state, env_state)
 
      call assert_msg(397906326, uuid == run_uuid, &
           "UUID mismatch between " // trim(filename_list(1)) // " and " &

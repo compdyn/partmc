@@ -72,8 +72,8 @@ program extract_aero_particles
   call gas_state_allocate(gas_state)
   call env_state_allocate(env_state)
 
-  call input_state(in_filename, aero_data, aero_state, gas_data, gas_state, &
-       env_state, index, time, del_t, i_repeat, uuid)
+  call input_state(in_filename, index, time, del_t, i_repeat, uuid, &
+       aero_data, aero_state, gas_data, gas_state, env_state)
 
   write(*,'(a)') "Output file: " // trim(out_filename)
   write(*,'(a)') "  Output data is for time = " &

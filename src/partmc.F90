@@ -375,10 +375,9 @@ contains
        call spec_file_read_real(file, 't_progress', run_part_opt%t_progress)
 
        if (do_restart) then
-          call input_state(restart_filename, aero_data, &
-               aero_state_init, gas_data, gas_state_init, env_state_init, &
-               dummy_index, dummy_time, dummy_del_t, dummy_i_repeat, &
-               run_part_opt%uuid)
+          call input_state(restart_filename, dummy_index, dummy_time, &
+               dummy_del_t, dummy_i_repeat, run_part_opt%uuid, aero_data, &
+               aero_state_init, gas_data, gas_state_init, env_state_init)
        end if
 
        if (.not. do_restart) then

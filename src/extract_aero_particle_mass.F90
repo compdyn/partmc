@@ -13,7 +13,7 @@ program extract_aero_particle_mass
   use pmc_aero_particle
   use pmc_output
 
-  character(len=1000) :: in_filename, out_filename
+  character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename
   type(aero_data_t) :: aero_data
   type(aero_state_t) :: aero_state
   type(gas_data_t) :: gas_data
@@ -59,12 +59,10 @@ program extract_aero_particle_mass
   call open_file_write(out_filename, out_unit)
   do i_part = 1,aero_state%apa%n_part
      aero_particle => aero_state%apa%particle(i_part)
-     write(out_unit, '(i15)', advance='no') aero_particle%id
-     write(out_unit, '(e30.15e3)', advance='no') &
-          aero_state_particle_num_conc(aero_state, aero_particle)
-     write(out_unit, '(e30.15e3)', advance='no') &
-          aero_particle_diameter(aero_particle)
-     write(out_unit, '(e30.15e3)', advance='no') &
+     write(out_unit, '(i15,e30.15e3,e30.15e3,e30.15e3)', advance='no') &
+          aero_particle%id, &
+          aero_state_particle_num_conc(aero_state, aero_particle), &
+          aero_particle_diameter(aero_particle), &
           aero_particle_mass(aero_particle, aero_data)
      do i_spec = 1,aero_data%n_spec
         write(out_unit, '(e30.15e3)', advance='no') &

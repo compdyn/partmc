@@ -10,6 +10,6 @@ cd ${0%/*}
 ../../partmc run_part_restarted.spec
 
 ../../extract_aero_time out/mosaic_restarted_0001
-tail -n +13 out/mosaic_0001_time.txt > out/mosaic_0001_time_tail.txt
+tail -n +13 out/mosaic_0001_aero_time.txt > out/mosaic_0001_aero_time_tail.txt
 
-../../numeric_diff out/mosaic_restarted_0001_time.txt out/mosaic_0001_time_tail.txt 0 0.1 0 0 2 0
+../../numeric_diff out/mosaic_restarted_0001_aero_time.txt out/mosaic_0001_aero_time_tail.txt 0 0.1 0 0 2 0

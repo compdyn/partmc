@@ -159,7 +159,7 @@ contains
 
   subroutine print_help()
 
-    write(*,'(a)') 'Usage: extract_aero_size [options] <netcdf_prefix>'
+    write(*,'(a)') 'Usage: extract_sectional_aero_size [options] <netcdf_prefix>'
     write(*,'(a)') ''
     write(*,'(a)') 'options are:'
     write(*,'(a)') '  -h, --help        Print this help message.'
@@ -168,7 +168,7 @@ contains
     write(*,'(a)') '  -o, --out <file>  Output filename.'
     write(*,'(a)') ''
     write(*,'(a)') 'Examples:'
-    write(*,'(a)') '  extract_aero_size --num data_0001'
+    write(*,'(a)') '  extract_sectional_aero_size --num data_0001'
     write(*,'(a)') ''
 
   end subroutine print_help

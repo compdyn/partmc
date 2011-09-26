@@ -9,4 +9,4 @@ cd ${0%/*}
 
 ../../extract_aero_time out/condense_0001
 
-../../numeric_diff ref_condense_0001_time.txt out/condense_0001_time.txt 0 1e-6
+../../numeric_diff ref_condense_0001_aero_time.txt out/condense_0001_aero_time.txt 0 1e-6

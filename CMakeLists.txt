@@ -384,6 +384,10 @@ add_executable(extract_sectional_aero_size
   src/extract_sectional_aero_size.F90 src/getopt.F90)
 target_link_libraries(extract_sectional_aero_size partmclib)
 
+add_executable(extract_sectional_aero_time
+  src/extract_sectional_aero_time.F90 src/getopt.F90)
+target_link_libraries(extract_sectional_aero_time partmclib)
+
 add_executable(extract_sectional_aero_species
   src/extract_sectional_aero_species.F90)
 target_link_libraries(extract_sectional_aero_species ${NETCDF_LIBS})

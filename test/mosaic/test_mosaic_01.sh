@@ -11,4 +11,4 @@ mkdir -p out
 
 ../../partmc run_part.spec
 ../../extract_aero_time out/mosaic_0001
-../../numeric_diff ref_mosaic_0001_time.txt out/mosaic_0001_time.txt 0 0.1 0 0 4 0
+../../numeric_diff ref_mosaic_0001_aero_time.txt out/mosaic_0001_aero_time.txt 0 0.1 0 0 4 0

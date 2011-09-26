@@ -3,27 +3,25 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The extract_aero_size program.
+!> The extract_sectional_aero_size program.
 
-!> Read NetCDF output files and write out the aerosol number or mass
-!> size distributions in text format.
-program extract_aero_size
+!> Read NetCDF sectional output files and write out the aerosol size
+!> distribution in text format.
+program extract_sectional_aero_size
 
-  use pmc_aero_state
-  use pmc_aero_particle
+  use pmc_aero_binned
   use pmc_output
   use getopt_m
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_prefix, out_filename
   character(len=PMC_MAX_FILENAME_LEN), allocatable :: filename_list(:)
-  character(len=1000) :: tmp_str
+  type(bin_grid_t) :: bin_grid
   type(aero_data_t) :: aero_data
-  type(aero_state_t) :: aero_state
-  integer :: index, i_repeat, i_spec, out_unit
-  integer :: i_file, n_file
+  type(aero_binned_t) :: aero_binned
+  integer :: index, out_unit
+  integer :: i_file, n_file, i_spec
   real(kind=dp) :: time, del_t
   character(len=PMC_UUID_LEN) :: uuid, run_uuid
-  real(kind=dp), allocatable :: particle_num_concs(:), particle_masses(:)
   real(kind=dp), allocatable :: times(:), time_num_concs(:), time_mass_concs(:)
   real(kind=dp), allocatable :: time_species_concs(:,:)
   type(option_s) :: opts(2)
@@ -44,16 +42,16 @@ program extract_aero_size
         out_filename = optarg
      case( '?' )
         call print_help()
-        call die_msg(514364550, 'unknown option: ' // trim(optopt))
+        call die_msg(559277549, 'unknown option: ' // trim(optopt))
      case default
         call print_help()
-        call die_msg(603100341, 'unhandled option: ' // trim(optopt))
+        call die_msg(247146202, 'unhandled option: ' // trim(optopt))
      end select
   end do
 
   if (optind /= command_argument_count()) then
      call print_help()
-     call die_msg(967032896, 'expected exactly one non-option prefix argument')
+     call die_msg(959981535, 'expected exactly one non-option prefix argument')
   end if
 
   call get_command_argument(optind, in_prefix)
@@ -62,17 +60,18 @@ program extract_aero_size
      out_filename = trim(in_prefix) // "_aero_time.txt"
   end if
 
+  call bin_grid_allocate(bin_grid)
   call aero_data_allocate(aero_data)
-  call aero_state_allocate(aero_state)
+  call aero_binned_allocate(aero_binned)
 
   allocate(filename_list(0))
   call input_filename_list(in_prefix, filename_list)
   n_file = size(filename_list)
-  call assert_msg(323514871, n_file > 0, &
+  call assert_msg(875939143, n_file > 0, &
        "no NetCDF files found with prefix: " // trim(in_prefix))
 
-  call input_state(filename_list(1), index, time, del_t, i_repeat, uuid, &
-       aero_data=aero_data, aero_state=aero_state)
+  call input_sectional(filename_list(1), index, time, del_t, uuid, &
+       bin_grid=bin_grid, aero_data=aero_data, aero_binned=aero_binned)
   run_uuid = uuid
 
   allocate(times(n_file))
@@ -80,28 +79,19 @@ program extract_aero_size
   allocate(time_mass_concs(n_file))
   allocate(time_species_concs(n_file, aero_data%n_spec))
 
-  allocate(particle_num_concs(0))
-  allocate(particle_masses(0))
-
   do i_file = 1,n_file
-     call input_state(filename_list(i_file), index, time, del_t, i_repeat, &
-          uuid, aero_data=aero_data, aero_state=aero_state)
+     call input_sectional(filename_list(i_file), index, time, del_t, uuid, &
+          bin_grid=bin_grid, aero_data=aero_data, aero_binned=aero_binned)
 
-     call assert_msg(397906326, uuid == run_uuid, &
+     call assert_msg(865522513, uuid == run_uuid, &
           "UUID mismatch between " // trim(filename_list(1)) // " and " &
           // trim(filename_list(i_file)))
 
      times(i_file) = time
-     call aero_state_num_concs(aero_state, particle_num_concs)
-     time_num_concs(i_file) = sum(particle_num_concs)
-     call aero_state_masses(aero_state, aero_data, particle_masses)
-     time_mass_concs(i_file) = sum(particle_masses * particle_num_concs)
-     do i_spec = 1,aero_data%n_spec
-        call aero_state_masses(aero_state, aero_data, particle_masses, &
-             include=(/aero_data%name(i_spec)/))
-        time_species_concs(i_file, i_spec) &
-             = sum(particle_masses * particle_num_concs)
-     end do
+     time_num_concs(i_file) = sum(aero_binned%num_conc * bin_grid%log_width)
+     time_species_concs(i_file, :) = sum(aero_binned%vol_conc &
+          * bin_grid%log_width, 1) * aero_data%density
+     time_mass_concs(i_file) = sum(time_species_concs(i_file, :))
   end do
 
   write(*,'(a,a)') "Output file: ", trim(out_filename)
@@ -132,26 +122,27 @@ program extract_aero_size
   deallocate(time_num_concs)
   deallocate(time_mass_concs)
   deallocate(time_species_concs)
-  deallocate(particle_num_concs)
-  deallocate(particle_masses)
   deallocate(filename_list)
+  call bin_grid_allocate(bin_grid)
   call aero_data_deallocate(aero_data)
-  call aero_state_deallocate(aero_state)
+  call aero_binned_deallocate(aero_binned)
 
 contains
 
   subroutine print_help()
 
-    write(*,'(a)') 'Usage: extract_aero_time [options] <netcdf_prefix>'
+    write(*,'(a)') 'Usage: extract_sectional_aero_time [options] <netcdf_prefix>'
     write(*,'(a)') ''
     write(*,'(a)') 'options are:'
     write(*,'(a)') '  -h, --help        Print this help message.'
+    write(*,'(a)') '  -n, --num         Output number distribution.'
+    write(*,'(a)') '  -m, --mass        Output mass distribution.'
     write(*,'(a)') '  -o, --out <file>  Output filename.'
     write(*,'(a)') ''
     write(*,'(a)') 'Examples:'
-    write(*,'(a)') '  extract_aero_time data_0001'
+    write(*,'(a)') '  extract_sectional_aero_time --num data_0001'
     write(*,'(a)') ''
 
   end subroutine print_help
 
-end program extract_aero_size
+end program extract_sectional_aero_size

@@ -167,3 +167,6 @@ Add sorting check code for unif_bin.
 Add a just-sorted-by-group sorting.
 
 Make numeric_diff work even with extra spaces at the end of lines.
+
+Shift aero_data inside aero_state, like in partmc.py, to avoid having
+to remember when to pass it around.

@@ -423,6 +423,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> The number concentration of a single particle (m^{-3}).
+  real(kind=dp) function aero_state_particle_num_conc(aero_state, &
+       aero_particle)
+
+    !> Aerosol state containing the particle.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+
+    aero_state_particle_num_conc &
+         = aero_weight_array_num_conc(aero_state%aero_weight, aero_particle)
+
+  end function aero_state_particle_num_conc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Save the correct number concentrations for later use by
   !> aero_state_reweight().
   subroutine aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
@@ -1904,8 +1920,8 @@ contains
           aero_n_orig_part(i_part, :) = particle%n_orig_part
           aero_weight_group(i_part) = particle%weight_group
           aero_water_hyst_leg(i_part) = particle%water_hyst_leg
-          aero_comp_vol(i_part) = 1d0 &
-               / aero_weight_array_num_conc(aero_state%aero_weight, particle)
+          aero_comp_vol(i_part) &
+               = 1d0 / aero_state_particle_num_conc(aero_state, particle)
           aero_id(i_part) = particle%id
           aero_least_create_time(i_part) = particle%least_create_time
           aero_greatest_create_time(i_part) = particle%greatest_create_time

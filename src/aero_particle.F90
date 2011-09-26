@@ -275,7 +275,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total mass of the particle (kg).
-  real(kind=dp) function aero_particle_mass(aero_particle, aero_data)
+  elemental real(kind=dp) function aero_particle_mass(aero_particle, aero_data)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
@@ -289,8 +289,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Mass of a single species in the particle (kg).
-  real(kind=dp) function aero_particle_species_mass(aero_particle, i_spec, &
-       aero_data)
+  elemental real(kind=dp) function aero_particle_species_mass(aero_particle, &
+       i_spec, aero_data)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
@@ -307,7 +307,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total moles in the particle (1).
-  real(kind=dp) function aero_particle_moles(aero_particle, aero_data)
+  elemental real(kind=dp) function aero_particle_moles(aero_particle, aero_data)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
@@ -322,7 +322,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total volume of the particle (m^3).
-  real(kind=dp) function aero_particle_volume(aero_particle)
+  elemental real(kind=dp) function aero_particle_volume(aero_particle)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
@@ -334,7 +334,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total dry volume of the particle (m^3).
-  real(kind=dp) function aero_particle_dry_volume(aero_particle, aero_data)
+  elemental real(kind=dp) function aero_particle_dry_volume(aero_particle, &
+       aero_data)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
@@ -356,8 +357,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total volume (dry or wet) of the particle (m^3).
-  real(kind=dp) function aero_particle_volume_maybe_dry(aero_particle, &
-       aero_data, dry_volume)
+  elemental real(kind=dp) function aero_particle_volume_maybe_dry( &
+       aero_particle, aero_data, dry_volume)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
@@ -378,7 +379,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total radius of the particle (m).
-  real(kind=dp) function aero_particle_radius(aero_particle)
+  elemental real(kind=dp) function aero_particle_radius(aero_particle)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
@@ -390,7 +391,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total dry radius of the particle (m).
-  real(kind=dp) function aero_particle_dry_radius(aero_particle, aero_data)
+  elemental real(kind=dp) function aero_particle_dry_radius(aero_particle, &
+       aero_data)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
@@ -405,7 +407,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total diameter of the particle (m).
-  real(kind=dp) function aero_particle_diameter(aero_particle)
+  elemental real(kind=dp) function aero_particle_diameter(aero_particle)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
@@ -417,7 +419,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total dry diameter of the particle (m).
-  real(kind=dp) function aero_particle_dry_diameter(aero_particle, aero_data)
+  elemental real(kind=dp) function aero_particle_dry_diameter(aero_particle, &
+       aero_data)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle

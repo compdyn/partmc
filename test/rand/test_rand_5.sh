@@ -9,4 +9,4 @@ cd ${0%/*}
 
 ../../test_poisson_sample 30 50 10000000 > out/poisson_30_approx.dat
 ../../test_poisson_sample 30 50 0        > out/poisson_30_exact.dat
-../../numeric_diff --by col --rel-tol 3e-3 out/poisson_30_exact.dat out/poisson_30_approx.dat
+../../numeric_diff --by col --rel-tol 0.06 out/poisson_30_exact.dat out/poisson_30_approx.dat

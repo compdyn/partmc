@@ -38,8 +38,10 @@ module pmc_aero_state
   integer, parameter :: AERO_STATE_WEIGHT_NONE = 1
   !> Single flat weighting scheme.
   integer, parameter :: AERO_STATE_WEIGHT_FLAT = 2
+  !> Power-law weighting scheme.
+  integer, parameter :: AERO_STATE_WEIGHT_POWER = 3
   !> Coupled number/mass weighting scheme.
-  integer, parameter :: AERO_STATE_WEIGHT_NUMMASS = 3
+  integer, parameter :: AERO_STATE_WEIGHT_NUMMASS = 4
 
   !> The current collection of aerosol particles.
   !!
@@ -107,12 +109,15 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates aerosol arrays with the given sizes.
-  subroutine aero_state_allocate_size(aero_state, weight_type)
+  subroutine aero_state_allocate_size(aero_state, weight_type, exponent)
 
     !> Aerosol to initialize.
     type(aero_state_t), intent(out) :: aero_state
     !> Type of weighting scheme to use.
     integer, intent(in) :: weight_type
+    !> Exponent for power-law weighting (only used if \c weight_type
+    !> is \c AERO_STATE_WEIGHT_POWER).
+    real(kind=dp), intent(in), optional :: exponent
 
     call aero_particle_array_allocate(aero_state%apa)
     call aero_sorted_allocate(aero_state%aero_sorted)
@@ -125,6 +130,14 @@ contains
        aero_state%aero_weight(1)%type = AERO_WEIGHT_TYPE_NONE
        aero_state%aero_weight(1)%ref_radius = 1d0
        aero_state%aero_weight(1)%exponent = 0d0
+    elseif (weight_type == AERO_STATE_WEIGHT_POWER) then
+       call assert_msg(656670336, present(exponent), &
+            "exponent parameter required for AERO_STATE_WEIGHT_POWER")
+       allocate(aero_state%aero_weight(1))
+       call aero_weight_allocate(aero_state%aero_weight(1))
+       aero_state%aero_weight(1)%type = AERO_WEIGHT_TYPE_POWER
+       aero_state%aero_weight(1)%ref_radius = 1d0
+       aero_state%aero_weight(1)%exponent = exponent
     elseif (weight_type == AERO_STATE_WEIGHT_NUMMASS) then
        allocate(aero_state%aero_weight(2))
        call aero_weight_allocate(aero_state%aero_weight(1))

@@ -178,3 +178,6 @@ Unify extract_* programs further (maybe into just partmc executable?).
 
 numeric_diff should take proper commandline args, including
 --rel-per-col to do relative errors column-wise.
+
+Use a better Poisson generator method for the non-GSL case (just use
+the GSL method, that seems to be approximate anyway?).

@@ -2267,7 +2267,7 @@ contains
     if (status == NF90_EBADDIM) then
        ! no aero_particle dimension means no particles present
        call aero_state_deallocate(aero_state)
-       call aero_state_allocate_size(aero_state, AERO_STATE_WEIGHT_NUMMASS)
+       call aero_state_allocate(aero_state)
        call aero_weight_array_input_netcdf(aero_state%aero_weight, ncid)
        return
     end if
@@ -2326,7 +2326,7 @@ contains
          "aero_greatest_create_time")
 
     call aero_state_deallocate(aero_state)
-    call aero_state_allocate_size(aero_state, AERO_STATE_WEIGHT_NONE)
+    call aero_state_allocate(aero_state)
     
     call aero_weight_array_input_netcdf(aero_state%aero_weight, ncid)
     aero_state%n_part_ideal = 0d0

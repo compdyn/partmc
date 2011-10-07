@@ -156,7 +156,7 @@ contains
     call env_state_allocate(old_env_state)
 
     if (run_part_opt%do_mosaic) then
-       call mosaic_init(env_state, run_part_opt%del_t, &
+       call mosaic_init(env_state, aero_data, run_part_opt%del_t, &
             run_part_opt%do_optical)
     end if
 

@@ -34,7 +34,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize all MOSAIC data-structures.
-  subroutine mosaic_init(env_state, del_t, do_optical)
+  subroutine mosaic_init(env_state, aero_data, del_t, do_optical)
     
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: alpha_ASTEM, rtol_eqb_ASTEM, &
@@ -48,6 +48,8 @@ contains
     
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Timestep for coagulation.
     real(kind=dp), intent(in) :: del_t
     !> Whether to compute optical properties.
@@ -112,6 +114,10 @@ contains
     
     ! get unit for aerosol optical output
     if (lun_aeroptic <= 0 ) lun_aeroptic = get_unit()
+
+    ! ensure H2O is a valid species
+    call assert_msg(111041803, aero_data%i_water > 0, &
+         "MOSAIC requires H2O as an aerosol species")
 
 #endif
     

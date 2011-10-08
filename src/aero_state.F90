@@ -1116,6 +1116,7 @@ contains
     integer :: buffer_size, buffer_size_check
     character, allocatable :: buffer(:)
     type(aero_state_t), allocatable :: aero_state_sends(:)
+    type(aero_state_t), allocatable :: aero_state_recvs(:)
     real(kind=dp) :: prob_transfer, prob_not_transferred
     real(kind=dp) :: prob_transfer_given_not_transferred
     real(kind=dp), allocatable :: comp_vols(:)
@@ -1171,7 +1172,7 @@ contains
     end do
 
     ! exchange the particles
-    call pmc_mpi_alltoall_aero_state(aero_state_sends, aero_state_recvs)
+    call aero_state_mpi_alltoall(aero_state_sends, aero_state_recvs)
 
     ! process the received particles
     do i_proc = 0,(n_proc - 1)

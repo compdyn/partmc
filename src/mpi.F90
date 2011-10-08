@@ -1402,4 +1402,26 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Does an all-to-all transfer of integers.
+  subroutine pmc_mpi_alltoall_integer(send, recv)
+
+    !> Values to send (must be one per process).
+    integer, intent(in) :: send(:)
+    !> Values to receive (must be one per process).
+    integer, intent(out) :: recv(size(send))
+
+#ifdef PMC_USE_MPI
+    integer :: ierr
+
+    call mpi_alltoall(send, 1, MPI_INTEGER, recv, 1, MPI_INTEGER, &
+         MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+#else
+    recv = send
+#endif
+
+  end subroutine pmc_mpi_alltoall_integer
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_mpi

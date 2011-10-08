@@ -1112,7 +1112,7 @@ contains
     real(kind=dp), optional, intent(in) :: specify_prob_transfer
 
 #ifdef PMC_USE_MPI
-    integer :: rank, n_proc, dest_proc, ierr
+    integer :: rank, n_proc, i_proc, ierr
     integer :: buffer_size, buffer_size_check
     character, allocatable :: buffer(:)
     type(aero_state_t), allocatable :: aero_state_sends(:)
@@ -1128,24 +1128,34 @@ contains
        ! so bail out early (nothing to mix anyway)
        return
     end if
+
+    ! allocate aero_state arrays
+    allocate(aero_state_sends(n_proc))
+    allocate(aero_state_recvs(n_proc))
+    do i_proc = 0,(n_proc - 1)
+       call aero_state_allocate_size(aero_state_sends(i_proc + 1), &
+            bin_grid%n_bin, aero_data%n_spec, aero_data%n_source)
+       call aero_state_allocate_size(aero_state_recvs(i_proc + 1), &
+            bin_grid%n_bin, aero_data%n_spec, aero_data%n_source)
+    end do
+
+    ! share all comp_vols
     allocate(comp_vols(n_proc))
     call mpi_allgather(aero_state%comp_vol, 1, MPI_REAL8, &
          comp_vols, 1, MPI_REAL8, MPI_COMM_WORLD, ierr)
 
     ! extract particles to send
-    allocate(aero_state_sends(n_proc))
     prob_not_transferred = 1d0
-    do dest_proc = 0,(n_proc - 1)
-       if (dest_proc /= rank) then
-          call aero_state_allocate_size(aero_state_sends(dest_proc + 1))
-          aero_state_sends(dest_proc + 1)%comp_vol = aero_state%comp_vol
+    do i_proc = 0,(n_proc - 1)
+       if (i_proc /= rank) then
+          aero_state_sends(i_proc + 1)%comp_vol = aero_state%comp_vol
           if (present(specify_prob_transfer)) then
              prob_transfer = specify_prob_transfer / real(n_proc, kind=dp) &
-                  * min(1d0, comp_vols(dest_proc + 1) / comp_vols(rank + 1))
+                  * min(1d0, comp_vols(i_proc + 1) / comp_vols(rank + 1))
           else
              prob_transfer = (1d0 - exp(- del_t / mix_timescale)) &
                   / real(n_proc, kind=dp) &
-                  * min(1d0, comp_vols(dest_proc + 1) / comp_vols(rank + 1))
+                  * min(1d0, comp_vols(i_proc + 1) / comp_vols(rank + 1))
           end if
           ! because we are doing sequential sampling from the aero_state
           ! we need to scale up the later transfer probabilities, because
@@ -1154,48 +1164,100 @@ contains
           prob_transfer_given_not_transferred = prob_transfer &
                / prob_not_transferred
           call aero_state_sample(aero_state, &
-               aero_state_sends(dest_proc + 1), &
+               aero_state_sends(i_proc + 1), &
                prob_transfer_given_not_transferred, AERO_INFO_NONE)
           prob_not_transferred = prob_not_transferred - prob_transfer
        end if
     end do
 
-    ! send the particles
-    buffer_size = 0
-    do dest_proc = 0,(n_proc - 1)
-       if (dest_proc /= rank) then
-          buffer_size = buffer_size &
-               + pmc_mpi_pack_size_aero_state(aero_state_sends(dest_proc + 1))
-          buffer_size = buffer_size + MPI_BSEND_OVERHEAD + 1024
+    ! exchange the particles
+    call pmc_mpi_alltoall_aero_state(aero_state_sends, aero_state_recvs)
+
+    ! process the received particles
+    do i_proc = 0,(n_proc - 1)
+       if (i_proc /= rank) then
+          call aero_state_add_particles(aero_state, aero_state_recvs(i_proc))
        end if
     end do
-    allocate(buffer(buffer_size))
-    call mpi_buffer_attach(buffer, buffer_size, ierr)
-    call pmc_mpi_check_ierr(ierr)
-    do dest_proc = 0,(n_proc - 1)
-       if (dest_proc /= rank) then
-          call send_aero_state_mix(dest_proc, aero_state_sends(dest_proc + 1))
-          call aero_state_deallocate(aero_state_sends(dest_proc + 1))
-       end if
+
+    ! cleanup
+    do i_proc = 0,(n_proc - 1)
+          call aero_state_deallocate(aero_state_sends(i_proc + 1))
+          call aero_state_deallocate(aero_state_recvs(i_proc + 1))
     end do
     deallocate(aero_state_sends)
-
-    ! receive the particles
-    do dest_proc = 0,(n_proc - 1)
-       if (dest_proc /= rank) then
-          call recv_aero_state_mix(aero_state)
-       end if
-    end do
-
-    ! clean up
-    call pmc_mpi_barrier() ! syncronize to make sure all buffers are done
-    call mpi_buffer_detach(buffer, buffer_size_check, ierr)
-    call pmc_mpi_check_ierr(ierr)
-    call assert(995066222, buffer_size == buffer_size_check)
     deallocate(comp_vols)
 #endif
 
   end subroutine aero_state_mix
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Do an MPI all-to-all transfer of aerosol states.
+  !!
+  !! States without particles are not sent.
+  subroutine aero_state_mpi_alltoall(send, recv)
+
+    !> Array of aero_states to send (one per process).
+    type(aero_state_t), intent(in) :: send(:)
+    !> Array of aero_states to receives (one per process).
+    type(aero_state_t), intent(inout) :: recv(size(send))
+
+#ifdef PMC_USE_MPI
+    character, allocatable :: sendbuf(:), recvbuf(:)
+    integer :: sendcounts(size(send)), sdispls(size(send))
+    integer :: recvcounts(size(send)), rdispls(size(send))
+    integer :: i_proc, position, old_position, max_sendbuf_size, ierr
+
+    call assert(978709842, size(send) == pmc_mpi_size())
+
+    max_sendbuf_size = 0
+    do i_proc = 1,pmc_mpi_size()
+       if (send(i_proc)%n_part > 0) then
+          max_sendbuf_size = max_sendbuf_size &
+               + pmc_mpi_pack_size_aero_state(send(i_proc))
+       end if
+    end do
+
+    allocate(sendbuf(max_sendbuf_size))
+
+    position = 0
+    do i_proc = 1,pmc_mpi_size()
+       old_position = position
+       if (send(i_proc)%n_part > 0) then
+          call pmc_mpi_pack_aero_state(sendbuf, position, send(i_proc))
+       end if
+       sendcounts(i_proc) = old_position - position
+    end do
+    call assert(393267406, position <= max_sendbuf_size)
+
+    call pmc_mpi_alltoall_integer(sendcounts, recvcounts)
+    allocate(recvbuf(sum(recvcounts)))
+
+    sdispls(1) = 0
+    rdispls(1) = 0
+    do i_proc = 2,pmc_mpi_size()
+       sdispls(i_proc) = sdispls(i_proc - 1) + sendcounts(i_proc - 1)
+       rdispls(i_proc) = rdispls(i_proc - 1) + recvcounts(i_proc - 1)
+    end do
+
+    call mpi_alltoallv(sendbuf, sendcounts, sdispls, MPI_CHARACTER, recvbuf, &
+         recvcounts, rdispls, MPI_CHARACTER, MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+
+    position = 0
+    do i_proc = 1,pmc_mpi_size()
+       call assert(189739257, position == rdispls(i_proc))
+       if (recvcounts(i_proc) > 0) then
+          call pmc_mpi_unpack_aero_state(recvbuf, position, recv(i_proc))
+       end if
+    end do
+
+    deallocate(sendbuf)
+    deallocate(recvbuf)
+#endif
+
+  end subroutine aero_state_mpi_alltoall
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

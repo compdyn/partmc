@@ -461,8 +461,8 @@ contains
     call aero_state_zero(aero_state_delta)
     call aero_weight_array_copy(aero_state%aero_weight, &
          aero_state_delta%aero_weight)
-    call aero_state_sample(aero_state, aero_state_delta, sample_prop, &
-         AERO_INFO_DILUTION)
+    call aero_state_sample_particles(aero_state, aero_state_delta, &
+         sample_prop, AERO_INFO_DILUTION)
     n_dil_out = aero_state_total_particles(aero_state_delta)
     call aero_state_deallocate(aero_state_delta)
 

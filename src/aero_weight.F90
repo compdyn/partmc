@@ -160,6 +160,28 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Transfer the computational volume from \c aero_weight_from to \c
+  !> aero_weight_to, weighted by \c sample_prop.
+  elemental subroutine aero_weight_transfer_comp_vol(aero_weight_from, &
+       aero_weight_to, sample_prop)
+
+    !> Aerosol weight to take volume from.
+    type(aero_weight_t), intent(inout) :: aero_weight_from
+    !> Aerosol weight to add volume to.
+    type(aero_weight_t), intent(inout) :: aero_weight_to
+    !> Proportion of from volume to transfer.
+    real(kind=dp), intent(in) :: sample_prop
+
+    real(kind=dp) :: transfer_comp_vol
+
+    transfer_comp_vol = sample_prop * aero_weight_from%comp_vol
+    aero_weight_to%comp_vol = aero_weight_to%comp_vol + transfer_comp_vol
+    aero_weight_from%comp_vol = aero_weight_from%comp_vol - transfer_comp_vol
+
+  end subroutine aero_weight_transfer_comp_vol
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Compute the number concentration at a given radius (m^{-3}).
   real(kind=dp) function aero_weight_num_conc_at_radius(aero_weight, radius)
 

@@ -679,7 +679,10 @@ contains
   !> Generates a random sample by removing particles from
   !> aero_state_from and adding them to aero_state_to, which must
   !> be already allocated (and should have its comp_vol set).
-  subroutine aero_state_sample(aero_state_from, aero_state_to, &
+  !!
+  !! None of the computational volumes are altered by this sampling,
+  !! making this the equivalent of aero_state_add_particles().
+  subroutine aero_state_sample_particles(aero_state_from, aero_state_to, &
        sample_prob, removal_action)
 
     !> Original state.
@@ -747,6 +750,55 @@ contains
        end if
     end do
     
+  end subroutine aero_state_sample_particles
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Generates a random sample by removing particles from
+  !> aero_state_from and adding them to aero_state_to, transfering
+  !> computational volume as well. This is the equivalent of aero_state_add().
+  subroutine aero_state_sample(aero_state_from, aero_state_to, &
+       sample_prob, removal_action)
+
+    !> Original state.
+    type(aero_state_t), intent(inout) :: aero_state_from
+    !> Destination state.
+    type(aero_state_t), intent(inout) :: aero_state_to
+    !> Probability of sampling each particle.
+    real(kind=dp), intent(in) :: sample_prob
+    !> Action for removal (see pmc_aero_info module for action
+    !> parameters). Set to AERO_INFO_NONE to not log removal.
+    integer, intent(in) :: removal_action
+
+    integer :: n_transfer, i_transfer, i_part
+    logical :: do_add, do_remove
+    real(kind=dp) :: num_conc_from, num_conc_to
+    type(aero_info_t) :: aero_info
+
+    call assert(721006962, (sample_prob >= 0d0) .and. (sample_prob <= 1d0))
+    n_transfer = rand_binomial(aero_state_total_particles(aero_state_from), &
+         sample_prob)
+    do i_transfer = 1,n_transfer
+       if (aero_state_total_particles(aero_state_from) <= 0) exit
+       call aero_state_rand_particle(aero_state_from, i_part)
+
+       call aero_state_add_particle(aero_state_to, &
+            aero_state_from%apa%particle(i_part))
+       if (removal_action /= AERO_INFO_NONE) then
+          call aero_info_allocate(aero_info)
+          aero_info%id = aero_state_from%apa%particle(i_part)%id
+          aero_info%action = removal_action
+          call aero_state_remove_particle_with_info(aero_state_from, &
+               i_part, aero_info)
+          call aero_info_deallocate(aero_info)
+       else
+          call aero_state_remove_particle_no_info(aero_state_from, &
+               i_part)
+       end if
+    end do
+    call aero_weight_transfer_comp_vol(aero_state_from%aero_weight, &
+         aero_state_to%aero_weight, sample_prob)
+
   end subroutine aero_state_sample
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1142,7 +1194,7 @@ contains
 
     ! share all comp_vols
     allocate(comp_vols(n_proc))
-    call mpi_allgather(aero_state%comp_vol, 1, MPI_REAL8, &
+    call mpi_allgather(aero_state%aero_weight%comp_vol, 1, MPI_REAL8, &
          comp_vols, 1, MPI_REAL8, MPI_COMM_WORLD, ierr)
 
     ! extract particles to send

@@ -362,7 +362,7 @@ contains
     call pmc_mpi_pack_integer(buffer, position, size(val%inverse))
     call pmc_mpi_pack_integer_varray(buffer, position, val%forward)
     do i = 1,size(val%inverse)
-       call pmc_mpi_pack_integer_varray(val%inverse(i))
+       call pmc_mpi_pack_integer_varray(buffer, position, val%inverse(i))
     end do
     call pmc_mpi_pack_integer_varray(buffer, position, val%index)
     call assert(533568488, &
@@ -392,7 +392,7 @@ contains
     call integer_rmap_allocate_size(val, n)
     call pmc_mpi_unpack_integer_varray(buffer, position, val%forward)
     do i = 1,size(val%inverse)
-       call pmc_mpi_unpack_integer_varray(val%inverse(i))
+       call pmc_mpi_unpack_integer_varray(buffer, position, val%inverse(i))
     end do
     call pmc_mpi_unpack_integer_varray(buffer, position, val%index)
     call assert(663161025, &

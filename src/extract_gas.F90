@@ -11,6 +11,7 @@ program extract_gas
 
   use pmc_gas_state
   use pmc_output
+  use pmc_mpi
   use getopt_m
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_prefix, out_filename
@@ -24,6 +25,8 @@ program extract_gas
   character(len=PMC_UUID_LEN) :: uuid, run_uuid
   real(kind=dp), allocatable :: times(:), gas_mixing_ratios(:,:)
   type(option_s) :: opts(2)
+
+  call pmc_mpi_init()
 
   opts(1) = option_s("help", .false., 'h')
   opts(2) = option_s("output", .true., 'o')
@@ -111,6 +114,8 @@ program extract_gas
   deallocate(gas_mixing_ratios)
   call gas_data_deallocate(gas_data)
   call gas_state_deallocate(gas_state)
+
+  call pmc_mpi_finalize()
 
 contains
 

@@ -183,7 +183,7 @@ contains
           call gas_state_copy(gas_state, gas_state_write)
           call env_state_reduce_avg(env_state_write)
           call gas_state_reduce_avg(gas_state_write)
-          call aero_state_allocate_size(aero_state_write, aero_data)
+          call aero_state_allocate(aero_state_write)
           call aero_state_mpi_gather(aero_state, aero_state_write)
           if (rank == 0) then
              call output_state_to_file(prefix, aero_data, aero_state_write, &
@@ -522,43 +522,43 @@ contains
     
     integer :: ncid
 
-    ! only root process actually reads from the file
-    if (pmc_mpi_rank() == 0) then
-       call pmc_nc_open_read(filename, ncid)
+    call assert_msg(819739354, pmc_mpi_rank() == 0, &
+         "can only call from process 0")
 
-       call pmc_nc_check(nf90_get_att(ncid, NF90_GLOBAL, "UUID", uuid))
+    call pmc_nc_open_read(filename, ncid)
 
-       call pmc_nc_read_real(ncid, time, "time")
-       call pmc_nc_read_real(ncid, del_t, "timestep")
-       call pmc_nc_read_integer(ncid, i_repeat, "repeat")
-       call pmc_nc_read_integer(ncid, index, "timestep_index")
+    call pmc_nc_check(nf90_get_att(ncid, NF90_GLOBAL, "UUID", uuid))
 
-       if (present(aero_data)) then
-          call aero_data_input_netcdf(aero_data, ncid)
-          if (present(aero_state)) then
-             call aero_state_input_netcdf(aero_state, ncid, aero_data)
-          end if
-       else
-          call assert_msg(289621231, present(aero_state) .eqv. .false., &
-               "cannot input aero_state without aero_data")
+    call pmc_nc_read_real(ncid, time, "time")
+    call pmc_nc_read_real(ncid, del_t, "timestep")
+    call pmc_nc_read_integer(ncid, i_repeat, "repeat")
+    call pmc_nc_read_integer(ncid, index, "timestep_index")
+
+    if (present(aero_data)) then
+       call aero_data_input_netcdf(aero_data, ncid)
+       if (present(aero_state)) then
+          call aero_state_input_netcdf(aero_state, ncid, aero_data)
        end if
-
-       if (present(gas_data)) then
-          call gas_data_input_netcdf(gas_data, ncid)
-          if (present(gas_state)) then
-             call gas_state_input_netcdf(gas_state, ncid, gas_data)
-          end if
-       else
-          call assert_msg(874298496, present(gas_state) .eqv. .false., &
-               "cannot input gas_state without gas_data")
-       end if
-
-       if (present(env_state)) then
-          call env_state_input_netcdf(env_state, ncid)
-       end if
-
-       call pmc_nc_close(ncid)
+    else
+       call assert_msg(289621231, present(aero_state) .eqv. .false., &
+            "cannot input aero_state without aero_data")
     end if
+
+    if (present(gas_data)) then
+       call gas_data_input_netcdf(gas_data, ncid)
+       if (present(gas_state)) then
+          call gas_state_input_netcdf(gas_state, ncid, gas_data)
+       end if
+    else
+       call assert_msg(874298496, present(gas_state) .eqv. .false., &
+            "cannot input gas_state without gas_data")
+    end if
+
+    if (present(env_state)) then
+       call env_state_input_netcdf(env_state, ncid)
+    end if
+
+    call pmc_nc_close(ncid)
     
   end subroutine input_state
   
@@ -576,9 +576,9 @@ contains
     character(len=len(prefix)+100) :: filename
     logical :: done
 
-#ifdef PMC_USE_MPI
-    call die_msg(541548465, "FIXME: not implemented")
-#endif
+    call assert_msg(277193351, pmc_mpi_rank() == 0, &
+         "can only call from process 0")
+
     index = 1
     done = .false.
     unit = get_unit()
@@ -694,46 +694,46 @@ contains
 
     integer :: ncid
 
-    ! only root process actually reads from the file
-    if (pmc_mpi_rank() == 0) then
-       call pmc_nc_open_read(filename, ncid)
+    call assert_msg(559676785, pmc_mpi_rank() == 0, &
+         "can only call from process 0")
 
-       call pmc_nc_check(nf90_get_att(ncid, NF90_GLOBAL, "UUID", uuid))
+    call pmc_nc_open_read(filename, ncid)
 
-       call pmc_nc_read_real(ncid, time, "time")
-       call pmc_nc_read_real(ncid, del_t, "timestep")
-       call pmc_nc_read_integer(ncid, index, "timestep_index")
+    call pmc_nc_check(nf90_get_att(ncid, NF90_GLOBAL, "UUID", uuid))
 
-       if (present(bin_grid)) then
-          call bin_grid_input_netcdf(bin_grid, ncid)
-       end if
-       if (present(aero_data)) then
-          call aero_data_input_netcdf(aero_data, ncid)
-       end if
-       if (present(aero_binned)) then
-          call assert_msg(585353528, &
-               present(bin_grid) .and. present(aero_data), &
-               "cannot input aero_binned without bin_grid and aero_data")
-          call aero_binned_input_netcdf(aero_binned, ncid, bin_grid, &
-               aero_data)
-       end if
+    call pmc_nc_read_real(ncid, time, "time")
+    call pmc_nc_read_real(ncid, del_t, "timestep")
+    call pmc_nc_read_integer(ncid, index, "timestep_index")
 
-       if (present(gas_data)) then
-          call gas_data_input_netcdf(gas_data, ncid)
-          if (present(gas_state)) then
-             call gas_state_input_netcdf(gas_state, ncid, gas_data)
-          end if
-       else
-          call assert_msg(214545112, present(gas_state) .eqv. .false., &
-               "cannot input gas_state without gas_data")
-       end if
-
-       if (present(env_state)) then
-          call env_state_input_netcdf(env_state, ncid)
-       end if
-
-       call pmc_nc_close(ncid)
+    if (present(bin_grid)) then
+       call bin_grid_input_netcdf(bin_grid, ncid)
     end if
+    if (present(aero_data)) then
+       call aero_data_input_netcdf(aero_data, ncid)
+    end if
+    if (present(aero_binned)) then
+       call assert_msg(585353528, &
+            present(bin_grid) .and. present(aero_data), &
+            "cannot input aero_binned without bin_grid and aero_data")
+       call aero_binned_input_netcdf(aero_binned, ncid, bin_grid, &
+            aero_data)
+    end if
+
+    if (present(gas_data)) then
+       call gas_data_input_netcdf(gas_data, ncid)
+       if (present(gas_state)) then
+          call gas_state_input_netcdf(gas_state, ncid, gas_data)
+       end if
+    else
+       call assert_msg(214545112, present(gas_state) .eqv. .false., &
+            "cannot input gas_state without gas_data")
+    end if
+
+    if (present(env_state)) then
+       call env_state_input_netcdf(env_state, ncid)
+    end if
+
+    call pmc_nc_close(ncid)
 
   end subroutine input_sectional
 

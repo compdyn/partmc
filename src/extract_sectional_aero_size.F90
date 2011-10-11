@@ -11,6 +11,7 @@ program extract_sectional_aero_size
 
   use pmc_aero_binned
   use pmc_output
+  use pmc_mpi
   use getopt_m
 
   integer, parameter :: DIST_TYPE_NONE = 0
@@ -28,6 +29,8 @@ program extract_sectional_aero_size
   character(len=PMC_UUID_LEN) :: uuid, run_uuid
   real(kind=dp), allocatable :: aero_dist(:,:)
   type(option_s) :: opts(4)
+
+  call pmc_mpi_init()
 
   opts(1) = option_s("help", .false., 'h')
   opts(2) = option_s("num", .false., 'n')
@@ -154,6 +157,8 @@ program extract_sectional_aero_size
   call bin_grid_allocate(bin_grid)
   call aero_data_deallocate(aero_data)
   call aero_binned_deallocate(aero_binned)
+
+  call pmc_mpi_finalize()
 
 contains
 

@@ -590,7 +590,7 @@ contains
           call aero_state_copy(aero_state_init, aero_state)
           aero_state%n_part_ideal = n_part_ideal
        else
-          call aero_state_deallocate(aero_state)
+          call aero_state_reset(aero_state)
           aero_mode_type_exp_present &
                = aero_dist_contains_aero_mode_type(aero_dist_init, &
                AERO_MODE_TYPE_EXP) &
@@ -599,10 +599,9 @@ contains
           if (aero_mode_type_exp_present) then
              call warn_msg(245301880, "using flat weighting only due to " &
                   // "presence of exp aerosol mode")
-             call aero_state_allocate_size(aero_state, AERO_STATE_WEIGHT_FLAT)
+             call aero_state_set_weight(aero_state, AERO_STATE_WEIGHT_FLAT)
           else
-             call aero_state_allocate_size(aero_state, &
-                  AERO_STATE_WEIGHT_NUMMASS)
+             call aero_state_set_weight(aero_state, AERO_STATE_WEIGHT_NUMMASS)
           end if
           aero_state%n_part_ideal = n_part_ideal
           call aero_state_add_aero_dist_sample(aero_state, aero_data, &

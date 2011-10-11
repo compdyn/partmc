@@ -457,10 +457,7 @@ contains
 
     ! loss to background
     sample_prop = 1d0 - exp(- delta_t * effective_dilution_rate)
-    call aero_state_allocate_size(aero_state_delta, AERO_STATE_WEIGHT_NONE)
-    call aero_state_zero(aero_state_delta)
-    call aero_weight_array_copy(aero_state%aero_weight, &
-         aero_state_delta%aero_weight)
+    call aero_state_allocate(aero_state_delta)
     call aero_state_sample_particles(aero_state, aero_state_delta, &
          sample_prop, AERO_INFO_DILUTION)
     n_dil_out = aero_state_total_particles(aero_state_delta)

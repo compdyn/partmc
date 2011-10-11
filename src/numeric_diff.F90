@@ -33,6 +33,7 @@
 program numeric_diff
 
   use pmc_util
+  use pmc_mpi
   use getopt_m
 
   integer, parameter :: BY_ARRAY = 1
@@ -51,6 +52,8 @@ program numeric_diff
   real(kind=dp), allocatable, dimension(:,:) :: diff, norm1, abs_err, rel_err
   real(kind=dp), pointer, dimension(:,:)  :: use_data1, use_data2
   type(option_s) :: opts(9)
+
+  call pmc_mpi_init()
 
   opts(1) = option_s("help", .false., 'h')
   opts(2) = option_s("abs-tol", .true., 't')
@@ -253,6 +256,8 @@ program numeric_diff
   deallocate(norm1)
   deallocate(abs_err)
   deallocate(rel_err)
+
+  call pmc_mpi_finalize()
 
 contains
 

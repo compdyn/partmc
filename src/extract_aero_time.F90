@@ -12,6 +12,7 @@ program extract_aero_size
   use pmc_aero_state
   use pmc_aero_particle
   use pmc_output
+  use pmc_mpi
   use getopt_m
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_prefix, out_filename
@@ -27,6 +28,8 @@ program extract_aero_size
   real(kind=dp), allocatable :: times(:), time_num_concs(:), time_mass_concs(:)
   real(kind=dp), allocatable :: time_species_concs(:,:)
   type(option_s) :: opts(2)
+
+  call pmc_mpi_init()
 
   opts(1) = option_s("help", .false., 'h')
   opts(2) = option_s("output", .true., 'o')
@@ -137,6 +140,8 @@ program extract_aero_size
   deallocate(filename_list)
   call aero_data_deallocate(aero_data)
   call aero_state_deallocate(aero_state)
+
+  call pmc_mpi_finalize()
 
 contains
 

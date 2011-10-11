@@ -11,6 +11,7 @@ program extract_env
 
   use pmc_env_state
   use pmc_output
+  use pmc_mpi
   use getopt_m
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_prefix, out_filename
@@ -24,6 +25,8 @@ program extract_env
   real(kind=dp), allocatable :: times(:), temps(:), rel_humids(:)
   real(kind=dp), allocatable :: pressures(:), mix_heights(:)
   type(option_s) :: opts(2)
+
+  call pmc_mpi_init()
 
   opts(1) = option_s("help", .false., 'h')
   opts(2) = option_s("output", .true., 'o')
@@ -118,6 +121,8 @@ program extract_env
   deallocate(pressures)
   deallocate(mix_heights)
   call env_state_deallocate(env_state)
+
+  call pmc_mpi_finalize()
 
 contains
 

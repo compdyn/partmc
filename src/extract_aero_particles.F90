@@ -12,6 +12,7 @@ program extract_aero_particles
   use pmc_aero_state
   use pmc_aero_particle
   use pmc_output
+  use pmc_mpi
   use getopt_m
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename
@@ -22,6 +23,8 @@ program extract_aero_particles
   character(len=PMC_UUID_LEN) :: uuid
   type(aero_particle_t), pointer :: aero_particle
   type(option_s) :: opts(2)
+
+  call pmc_mpi_init()
 
   opts(1) = option_s("help", .false., 'h')
   opts(2) = option_s("output", .true., 'o')
@@ -103,6 +106,8 @@ program extract_aero_particles
 
   call aero_data_deallocate(aero_data)
   call aero_state_deallocate(aero_state)
+
+  call pmc_mpi_finalize()
 
 contains
 

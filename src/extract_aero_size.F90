@@ -12,6 +12,7 @@ program extract_aero_size
   use pmc_aero_state
   use pmc_aero_particle
   use pmc_output
+  use pmc_mpi
   use getopt_m
 
   integer, parameter :: DIST_TYPE_NONE = 0
@@ -33,6 +34,8 @@ program extract_aero_size
   real(kind=dp), allocatable :: diameters(:), num_concs(:), masses(:), hist(:)
   real(kind=dp), allocatable :: aero_dist(:,:)
   type(option_s) :: opts(7)
+
+  call pmc_mpi_init()
 
   opts(1) = option_s("help", .false., 'h')
   opts(2) = option_s("num", .false., 'n')
@@ -182,6 +185,8 @@ program extract_aero_size
   call bin_grid_allocate(diam_grid)
   call aero_data_deallocate(aero_data)
   call aero_state_deallocate(aero_state)
+
+  call pmc_mpi_finalize()
 
 contains
 

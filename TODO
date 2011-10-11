@@ -181,3 +181,5 @@ numeric_diff should take proper commandline args, including
 
 Use a better Poisson generator method for the non-GSL case (just use
 the GSL method, that seems to be approximate anyway?).
+
+Parallel input_state(), input_filename_list(), and input_sectional().

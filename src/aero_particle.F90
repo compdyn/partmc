@@ -698,9 +698,8 @@ contains
     rho_w = aero_particle_water_density(aero_data)
     do i_spec = 1,aero_data%n_spec
        if (i_spec == aero_data%i_water) then
-          continue
-       end if
-       if (aero_data%num_ions(i_spec) > 0) then
+          kappa(i_spec) = 0d0
+       elseif (aero_data%num_ions(i_spec) > 0) then
           call assert_msg(123681459, aero_data%kappa(i_spec) == 0d0, &
                "species has nonzero num_ions and kappa: " &
                // trim(aero_data%name(i_spec)))

@@ -19,7 +19,6 @@ mpirun -v -np 1 ../../partmc run_part_serial.spec
 ../../extract_aero_size --mass --dmin 1e-10 --dmax 1e-4 --nbin 220 out/serial_0001
 ../../extract_aero_time out/serial_0001
 
-../../numeric_diff out/sect_aero_size_num.txt out/serial_0001_size_num.txt 0 0.3 0 0 2 0
-../../numeric_diff out/sect_aero_size_mass.txt out/serial_0001_size_mass.txt 0 0.3 0 0 2 0
-../../numeric_diff out/sect_aero_time.txt out/serial_0001_aero_time.txt 0 0.3 0 0 2 2
-../../numeric_diff out/sect_aero_time.txt out/serial_0001_aero_time.txt 0 0.3 0 0 3 3
+../../numeric_diff --by col --rel-tol 0.2 out/sect_aero_size_num.txt out/serial_0001_aero_size_num.txt
+../../numeric_diff --by col --rel-tol 0.2 out/sect_aero_size_mass.txt out/serial_0001_aero_size_mass.txt
+../../numeric_diff --by col --rel-tol 0.1 out/sect_aero_time.txt out/serial_0001_aero_time.txt

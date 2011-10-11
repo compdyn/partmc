@@ -1424,4 +1424,74 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Does an allgather of integer arrays (must be the same size on all
+  !> processes).
+  subroutine pmc_mpi_allgather_integer_array(send, recv)
+
+    !> Values to send on each process.
+    integer, intent(in) :: send(:)
+    !> Values to receive (will be the same on all processes.
+    integer, intent(out) :: recv(:,:)
+
+#ifdef PMC_USE_MPI
+    integer :: n_proc, n_bin, n_data, ierr
+    integer, allocatable :: send_buf(:), recv_buf(:)
+
+    n_proc = pmc_mpi_size()
+    n_data = size(send, 1)
+    call assert(291000580, all(shape(recv) == (/n_data, n_proc/)))
+    
+    ! use a new send_buf to make sure the memory is contiguous
+    allocate(send_buf(n_data))
+    allocate(recv_buf(n_data * n_proc))
+    send_buf = send
+    call mpi_allgather(send_buf, n_data, MPI_INTEGER, &
+         recv_buf, n_data, MPI_INTEGER, MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    recv = reshape(recv_buf, (/n_data, n_proc/))
+    deallocate(send_buf)
+    deallocate(recv_buf)
+#else
+    recv(:, 1) = send
+#endif
+
+  end subroutine pmc_mpi_allgather_integer_array
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Does an allgather of real arrays (must be the same size on all
+  !> processes).
+  subroutine pmc_mpi_allgather_real_array(send, recv)
+
+    !> Values to send on each process.
+    real(kind=dp), intent(in) :: send(:)
+    !> Values to receive (will be the same on all processes.
+    real(kind=dp), intent(out) :: recv(:,:)
+
+#ifdef PMC_USE_MPI
+    integer :: n_proc, n_bin, n_data, ierr
+    real(kind=dp), allocatable :: send_buf(:), recv_buf(:)
+
+    n_proc = pmc_mpi_size()
+    n_data = size(send, 1)
+    call assert(291000580, all(shape(recv) == (/n_data, n_proc/)))
+    
+    ! use a new send_buf to make sure the memory is contiguous
+    allocate(send_buf(n_data))
+    allocate(recv_buf(n_data * n_proc))
+    send_buf = send
+    call mpi_allgather(send_buf, n_data, MPI_DOUBLE_PRECISION, &
+         recv_buf, n_data, MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    recv = reshape(recv_buf, (/n_data, n_proc/))
+    deallocate(send_buf)
+    deallocate(recv_buf)
+#else
+    recv(:, 1) = send
+#endif
+
+  end subroutine pmc_mpi_allgather_real_array
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_mpi

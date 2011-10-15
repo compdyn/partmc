@@ -1248,7 +1248,8 @@ contains
     ! process the received particles
     do i_proc = 0,(n_proc - 1)
        if (i_proc /= rank) then
-          call aero_state_add_particles(aero_state, aero_state_recvs(i_proc))
+          call aero_state_add_particles(aero_state, &
+               aero_state_recvs(i_proc + 1))
        end if
     end do
 
@@ -1299,7 +1300,7 @@ contains
        if (aero_state_total_particles(send(i_proc)) > 0) then
           call pmc_mpi_pack_aero_state(sendbuf, position, send(i_proc))
        end if
-       sendcounts(i_proc) = old_position - position
+       sendcounts(i_proc) = position - old_position
     end do
     call assert(393267406, position <= max_sendbuf_size)
 

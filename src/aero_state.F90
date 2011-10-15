@@ -803,6 +803,7 @@ contains
     call assert(721006962, (sample_prob >= 0d0) .and. (sample_prob <= 1d0))
     call aero_state_reset(aero_state_to)
     call aero_state_copy_weight(aero_state_from, aero_state_to)
+    call aero_weight_zero_comp_vol(aero_state_to%aero_weight)
     n_transfer = rand_binomial(aero_state_total_particles(aero_state_from), &
          sample_prob)
     do i_transfer = 1,n_transfer
@@ -1248,8 +1249,7 @@ contains
     ! process the received particles
     do i_proc = 0,(n_proc - 1)
        if (i_proc /= rank) then
-          call aero_state_add_particles(aero_state, &
-               aero_state_recvs(i_proc + 1))
+          call aero_state_add(aero_state, aero_state_recvs(i_proc + 1))
        end if
     end do
 

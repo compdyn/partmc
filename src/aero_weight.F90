@@ -93,6 +93,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Zeros the \c aero_weight computational volume.
+  elemental subroutine aero_weight_zero_comp_vol(aero_weight)
+
+    !> Aerosol weight.
+    type(aero_weight_t), intent(inout) :: aero_weight
+
+    aero_weight%comp_vol = 0d0
+
+  end subroutine aero_weight_zero_comp_vol
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Copy an aero_weight.
   elemental subroutine aero_weight_copy(aero_weight_from, aero_weight_to)
 

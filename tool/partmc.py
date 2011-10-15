@@ -167,8 +167,8 @@ class aero_data_t(object):
         }
 
     def __init__(self, ncf=None, n_species=None, n_sources=None):
-        """ Creates an aero_data_t object. If the ncf parameter is
-        passed a NetCDFFile object output from PartMC then the
+        """Creates an aero_data_t object. If the ncf parameter is
+        passed a netcdf_file object output from PartMC then the
         aero_data information will be loaded from the file. Otherwise
         the n_species parameter must be passed and an empty
         aero_data_t object will be created. For example:
@@ -247,8 +247,8 @@ class env_state_t(object):
     """
     
     def __init__(self, ncf=None):
-        """ Creates an env_state_t object. If the ncf parameter is
-        passed a NetCDFFile object output from PartMC then the
+        """Creates an env_state_t object. If the ncf parameter is
+        passed a netcdf_file object output from PartMC then the
         env_state information will be loaded from the file. Otherwise
         an empty env_state_t object will be created. For example:
 
@@ -291,7 +291,7 @@ class env_state_t(object):
             self.height = 0.0
 
     def A(self):
-        """ Computes the A parameter (for condensation
+        """Computes the A parameter (for condensation
         calculations). For example:
 
         >>> A = env_state.A()
@@ -408,8 +408,8 @@ class gas_data_t(object):
         }
     
     def __init__(self, ncf=None, n_species=None):
-        """ Creates a gas_data_t object. If the ncf parameter is
-        passed a NetCDFFile object output from PartMC then the
+        """Creates a gas_data_t object. If the ncf parameter is
+        passed a netcdf_file object output from PartMC then the
         gas_data information will be loaded from the file. Otherwise
         the n_species parameter must be passed and an empty gas_data_t
         object will be created. For example:
@@ -464,7 +464,7 @@ class gas_state_t(object):
     
     def __init__(self, ncf=None, gas_data=None):
         """Creates a gas_state_t object. If the ncf parameter is
-        passed a NetCDFFile object output from PartMC then the
+        passed a netcdf_file object output from PartMC then the
         gas_state information will be loaded from the file. Otherwise
         the gas_data parameter must be passed and an empty gas_state
         will be created with the appropriate number of species. For
@@ -499,7 +499,7 @@ class gas_state_t(object):
 
         >>> ozone = gas_state.mixing_ratio('O3')
 
-        """        
+        """
         if species not in self.gas_data.names:
             raise Exception("unknown species: %s" % species)
         index = self.gas_data.names.index(species)
@@ -555,7 +555,7 @@ class aero_particle_array_t(object):
     def __init__(self, ncf=None, n_particles=None, aero_data=None,
                  include_ids=None, exclude_ids=None):
         """Creates an aero_particle_array_t object. If the ncf
-        parameter is passed a NetCDFFile object output from PartMC
+        parameter is passed a netcdf_file object output from PartMC
         then the aero_particle_array information will be loaded from
         the file. The include_ids and exclude_ids parameters can be
         given lists of particle IDs to include or exclude when loading

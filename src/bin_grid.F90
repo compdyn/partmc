@@ -400,19 +400,19 @@ contains
 
     call pmc_nc_write_real_1d(ncid, aero_diam_centers, &
          "aero_diam", (/ dimid_aero_diam /), unit="m", &
-         long_name="aerosol radius axis bin centers", &
-         description="logarithmically spaced centers of radius axis grid, " &
+         long_name="aerosol diameter axis bin centers", &
+         description="logarithmically spaced centers of diameter axis grid, " &
          // "so that aero_diam(i) / aero_diam_edges(i) = " &
          // "0.5 * aero_diam_edges(i+1) / aero_diam_edges(i)")
     call pmc_nc_write_real_1d(ncid, aero_diam_edges, &
          "aero_diam_edges", (/ dimid_aero_diam_edges /), unit="m", &
-         long_name="aerosol radius axis bin edges", &
-         description="logarithmically spaced edges of radius axis grid, " &
+         long_name="aerosol diameter axis bin edges", &
+         description="logarithmically spaced edges of diameter axis grid, " &
          // "with one more edge than center")
     call pmc_nc_write_real_1d(ncid, aero_diam_widths, &
          "aero_diam_widths", (/ dimid_aero_diam /), unit="m", &
-         long_name="aerosol radius axis bin widths", &
-         description="base-e logarithmic widths of radius axis grid, " &
+         long_name="aerosol diameter axis bin widths", &
+         description="base-e logarithmic widths of diameter axis grid, " &
          // "so that aero_diam_widths(i)" &
          // "= ln(aero_diam_edges(i+1) / aero_diam_edges(i)) and " &
          // "all bins have the same width")

@@ -344,14 +344,14 @@ contains
          unit="1/m^3", &
          long_name="aerosol number size concentration distribution", &
          description="logarithmic number size concentration, " &
-         // "d N(r)/d ln r --- multiply by aero_diam_widths(i) " &
+         // "d N(r)/d ln D --- multiply by aero_diam_widths(i) " &
          // "and sum over i to compute the total number concentration")
     call pmc_nc_write_real_2d(ncid, mass_den, &
          "aero_mass_concentration", &
          (/ dimid_aero_diam, dimid_aero_species /), unit="kg/m^3", &
          long_name="aerosol number size concentration distribution", &
          description="logarithmic mass size concentration per species, " &
-         // "d M(r,s)/d ln r --- multiply by aero_diam_widths(i) " &
+         // "d M(r,s)/d ln D --- multiply by aero_diam_widths(i) " &
          // "and sum over i to compute the total mass concentration of " &
          // "species s")
 

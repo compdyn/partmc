@@ -224,6 +224,46 @@ class aero_data_t(object):
         if ncf is None and n_species is None:
             raise Exception("either ncf or n_species parameter must be specified")
 
+    def index_list(self, include=None, exclude=None):
+        """Find the indices of the species specified by the given
+        optional include and exclude lists.
+
+        aero_data.index_list() uses all species.
+        aero_data.index_list(include=...) uses all species in the include list.
+        aero_data.index_list(exclude=...) uses all species not in the exclude list.
+        aero_data.index_list(include=..., exclude=...) uses all species in the
+        include list that are not in the exclude list.
+
+        Example:
+        >>> aero_data.names
+        ['SO4', 'NO3', 'BC', 'OC', 'H2O']
+        >>> aero_data.index_list()
+        [0, 1, 2, 3, 4]
+        >>> aero_data.index_list(include=['BC', 'OC'])
+        [2, 3]
+        >>> aero_data.index_list(exclude=['NO3', 'H2O'])
+        [0, 2, 3]
+        >>> aero_data.index_list(include=['NO3', 'BC', 'OC'], exclude=['BC'])
+        [1, 3]
+        """
+        if include != None:
+            for species in include:
+                if species not in self.names:
+                    raise Exception("unknown species: %s" % species)
+            species_list = set(include)
+        else:
+            species_list = set(self.names)
+        if exclude != None:
+            for species in exclude:
+                if species not in self.names:
+                    raise Exception("unknown species: %s" % species)
+            species_list -= set(exclude)
+        species_list = list(species_list)
+        if len(species_list) == 0:
+            raise Exception("no species in list")
+        index_list = [self.names.index(s) for s in species_list]
+        return index_list
+
 class env_state_t(object):
 
     """Stores the environment state. All data attributes are scalars,
@@ -720,28 +760,9 @@ class aero_particle_array_t(object):
                 species_weights=1 / aero_particle_array.aero_data.densities)
 
         """
-        if include != None:
-            for species in include:
-                if species not in self.aero_data.names:
-                    raise Exception("unknown species: %s" % species)
-            species_list = set(include)
-        else:
-            species_list = set(self.aero_data.names)
-        if exclude != None:
-            for species in exclude:
-                if species not in self.aero_data.names:
-                    raise Exception("unknown species: %s" % species)
-            species_list -= set(exclude)
-        species_list = list(species_list)
-        if len(species_list) == 0:
-            raise Exception("no species left to sum over")
-        index = self.aero_data.names.index(species_list[0])
-        if species_weights != None:
-            val = self.raw_masses[index,:].copy() * species_weights[index]
-        else:
-            val = self.raw_masses[index,:].copy()
-        for i in range(len(species_list) - 1):
-            index = self.aero_data.names.index(species_list[i + 1])
+        index_list = self.aero_data.index_list(include, exclude)
+        val = numpy.zeros_like(self.raw_masses[0,:])
+        for index in index_list:
             if species_weights != None:
                 val += self.raw_masses[index,:] * species_weights[index]
             else:

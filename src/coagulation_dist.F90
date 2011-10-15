@@ -178,7 +178,7 @@ contains
     end do
 
     call generate_n_samps(n_parts, del_t, aero_state%aero_sorted%bin_grid, &
-         aero_state%aero_weight, k_max, n_samps, accept_factors)
+         aero_weight_total, k_max, n_samps, accept_factors)
     tot_n_samp = sum(n_samps)
     tot_n_coag = 0
 
@@ -839,7 +839,7 @@ contains
     real(kind=dp), intent(out) :: accept_factors(:,:)
 
     integer :: i_bin, j_bin, rank, n_bin
-    real(kind=dp) :: n_samp_mean, f_max
+    real(kind=dp) :: n_samp_mean
 
     n_bin = size(k_max, 1)
     rank = pmc_mpi_rank()
@@ -848,11 +848,9 @@ contains
        if (n_parts(i_bin, rank + 1) == 0) &
             cycle
        do j_bin = i_bin,n_bin
-          call max_coag_num_conc_factor(aero_weight_array, &
-               bin_grid, i_bin, j_bin, f_max)
           call compute_n_samp(n_parts(i_bin, rank + 1), &
                sum(n_parts(j_bin, :)), (i_bin == j_bin), &
-               k_max(i_bin, j_bin) * f_max, del_t, n_samp_mean, &
+               k_max(i_bin, j_bin), del_t, n_samp_mean, &
                n_samps(i_bin, j_bin), accept_factors(i_bin, j_bin))
        end do
     end do

@@ -1430,16 +1430,11 @@ class log_grid(grid):
 
     """
     
-    def __init__(self, *args):
+    def __init__(self, min, max, n_bin):
         """Create a logarithmically spaced grid.
 
-        log_grid() creates an empty grid.
-
-        log_grid(min, max, n_bin) creates a grid with the minimum and
-        maximum edges at min and max and n_bin grid bins.
-
-        log_grid(ncf) creates a grid from the diameter grid in a
-        NetCDF file containing a PartMC sectional output.
+        The minimum and maximum edges are at min and max and the grid
+        will have n_bin grid bins.
 
         Example:
         >>> x_grid = partmc.log_grid(1, 16, 2)
@@ -1448,27 +1443,7 @@ class log_grid(grid):
         >>> x_grid.centers():
         array([2.0, 8.0])
 
-        Example:
-        >>> ncf = scipy.io.netcdf.netcdf_file('filename.nc', 'r')
-        >>> diam_grid = partmc.log_grid(ncf)
-
         """
-        if len(args) == 0:
-            min = 0.0
-            max = 0.0
-            n_bin = 1
-        elif len(args) == 1:
-            ncf = args[0]
-            if type(ncf) != scipy.io.netcdf.netcdf_file:
-                raise Exception("single argument must be a NetCDF file")
-            aero_diam_edges = _get_netcdf_variable_data(ncf.variables["aero_diam_edges"])
-            min = aero_diam_edges[0]
-            max = aero_diam_edges[-1]
-            n_bin = len(aero_diam_edges) - 1
-        elif len(args) == 3:
-            (min, max, n_bin) = args
-        else:
-            raise Exception("invalid number of arguments for log_grid() constructor")
         if min <= 0 or max <= 0:
             raise Exception("min and max must both be positive for log_grid")
         self.min = float(min)

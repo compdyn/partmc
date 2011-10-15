@@ -12,6 +12,6 @@ mpirun -v -np 4 ../../partmc run_part_parallel_dist_single.spec
 ../../extract_aero_size --mass --dmin 1e-10 --dmax 1e-4 --nbin 220 out/parallel_dist_single_0001
 ../../extract_aero_time out/parallel_dist_single_0001
 
-../../numeric_diff --by col --rel-tol 0.2 out/sect_aero_size_num.txt out/parallel_dist_single_0001_size_num.txt
-../../numeric_diff --by col --rel-tol 0.2 out/sect_aero_size_mass.txt out/parallel_dist_single_0001_size_mass.txt
+../../numeric_diff --by col --rel-tol 0.2 out/sect_aero_size_num.txt out/parallel_dist_single_0001_aero_size_num.txt
+../../numeric_diff --by col --rel-tol 0.2 out/sect_aero_size_mass.txt out/parallel_dist_single_0001_aero_size_mass.txt
 ../../numeric_diff --by col --rel-tol 0.1 out/sect_aero_time.txt out/parallel_dist_single_0001_aero_time.txt

@@ -1173,7 +1173,8 @@ class aero_binned_t(object):
 
         """
         self.aero_data = aero_data_t(ncf)
-        self.diam_grid = log_grid(ncf)
+        self.diam_grid = log_grid()
+        self.diam_grid.load_ncf_diam(ncf)
 
         for (ncf_var, self_var) in [
             ("aero_number_concentration", "num_conc"),
@@ -1430,7 +1431,7 @@ class log_grid(grid):
 
     """
     
-    def __init__(self, min, max, n_bin):
+    def __init__(self, min=1, max=1, n_bin=1):
         """Create a logarithmically spaced grid.
 
         The minimum and maximum edges are at min and max and the grid
@@ -1451,6 +1452,21 @@ class log_grid(grid):
         if n_bin <= 0:
             raise Exception("n_bin must be positive for log_grid")
         self.n_bin = n_bin
+
+    def load_ncf_diam(self, ncf):
+        """Load the grid specification from the diameter grid in a
+        NetCDF file containing a PartMC sectional output.
+
+        Example:
+        >>> ncf = scipy.io.netcdf.netcdf_file('filename.nc', 'r')
+        >>> diam_grid = partmc.log_grid()
+        >>> diam_grid.load_ncf_diam(ncf)
+
+        """
+        aero_diam_edges = _get_netcdf_variable_data(ncf.variables["aero_diam_edges"])
+        self.min = aero_diam_edges[0]
+        self.max = aero_diam_edges[-1]
+        self.n_bin = len(aero_diam_edges) - 1
 
     def scale(self, factor):
         """Scale the grid by the given factor.

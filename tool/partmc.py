@@ -1793,7 +1793,6 @@ def get_filename_list(directory, filename_pattern):
     for filename in filenames:
         match = file_re.search(filename)
         if match:
-            output_key = match.group(1)
             full_filename = os.path.join(directory, filename)
             filename_list.append(full_filename)
     filename_list.sort()

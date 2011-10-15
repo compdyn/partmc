@@ -16,8 +16,8 @@ set y2range [0:*]
 set key right center
 
 plot "out/sect_aero_time.txt" using ($1/3600):2 axes x1y1 with lines title "num sect", \
-     "out/parallel_dist_single_aero_time.txt" using ($1/3600):2 axes x1y1 with lines title "num parallel", \
+     "out/parallel_dist_single_0001_aero_time.txt" using ($1/3600):2 axes x1y1 with lines title "num parallel", \
      "out/serial_0001_aero_time.txt" using ($1/3600):2 axes x1y1 with lines title "num serial", \
      "out/sect_aero_time.txt" using ($1/3600):3 axes x1y2 with lines title "mass sect", \
-     "out/parallel_dist_single_aero_time.txt" using ($1/3600):3 axes x1y2 with lines title "mass parallel", \
+     "out/parallel_dist_single_0001_aero_time.txt" using ($1/3600):3 axes x1y2 with lines title "mass parallel", \
      "out/serial_0001_aero_time.txt" using ($1/3600):3 axes x1y2 with lines title "mass serial"

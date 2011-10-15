@@ -15,13 +15,13 @@ set y2range [0:*]
 
 set key right center
 
-plot "out/sect_aero_total.txt" using ($1/3600):2 axes x1y1 with lines linewidth 5 title "num sect", \
-     "out/parallel_mix_0001_0001_aero_total.txt" using ($1/3600):2 axes x1y1 with lines notitle, \
-     "out/parallel_mix_0001_0002_aero_total.txt" using ($1/3600):2 axes x1y1 with lines notitle, \
-     "out/parallel_mix_0001_0003_aero_total.txt" using ($1/3600):2 axes x1y1 with lines notitle, \
-     "out/parallel_mix_0001_0004_aero_total.txt" using ($1/3600):2 axes x1y1 with lines notitle, \
-     "out/sect_aero_total.txt" using ($1/3600):3 axes x1y2 with lines linewidth 5 title "mass sect", \
-     "out/parallel_mix_0001_0001_aero_total.txt" using ($1/3600):3 axes x1y2 with lines notitle, \
-     "out/parallel_mix_0001_0002_aero_total.txt" using ($1/3600):3 axes x1y2 with lines notitle, \
-     "out/parallel_mix_0001_0003_aero_total.txt" using ($1/3600):3 axes x1y2 with lines notitle, \
-     "out/parallel_mix_0001_0004_aero_total.txt" using ($1/3600):3 axes x1y2 with lines notitle
+plot "out/sect_aero_time.txt" using ($1/3600):2 axes x1y1 with lines linewidth 5 title "num sect", \
+     "out/parallel_mix_0001_0001_aero_time.txt" using ($1/3600):2 axes x1y1 with lines notitle, \
+     "out/parallel_mix_0001_0002_aero_time.txt" using ($1/3600):2 axes x1y1 with lines notitle, \
+     "out/parallel_mix_0001_0003_aero_time.txt" using ($1/3600):2 axes x1y1 with lines notitle, \
+     "out/parallel_mix_0001_0004_aero_time.txt" using ($1/3600):2 axes x1y1 with lines notitle, \
+     "out/sect_aero_time.txt" using ($1/3600):3 axes x1y2 with lines linewidth 5 title "mass sect", \
+     "out/parallel_mix_0001_0001_aero_time.txt" using ($1/3600):3 axes x1y2 with lines notitle, \
+     "out/parallel_mix_0001_0002_aero_time.txt" using ($1/3600):3 axes x1y2 with lines notitle, \
+     "out/parallel_mix_0001_0003_aero_time.txt" using ($1/3600):3 axes x1y2 with lines notitle, \
+     "out/parallel_mix_0001_0004_aero_time.txt" using ($1/3600):3 axes x1y2 with lines notitle

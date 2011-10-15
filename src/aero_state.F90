@@ -972,6 +972,25 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the total number concentration.
+  real(kind=dp) function aero_state_total_num_conc(aero_state)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+
+    integer :: i_part
+
+    aero_state_total_num_conc = 0d0
+    do i_part = 1,aero_state%apa%n_part
+       aero_state_total_num_conc = aero_state_total_num_conc &
+            + aero_state_particle_num_conc(aero_state, &
+            aero_state%apa%particle(i_part))
+    end do
+
+  end function aero_state_total_num_conc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Does the same thing as aero_state_to_bin() but based on dry radius.
   subroutine aero_state_to_binned_dry(bin_grid, aero_data, aero_state, &
        aero_binned)

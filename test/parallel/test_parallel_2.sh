@@ -15,14 +15,13 @@ for f in out/parallel_${parallel_type}_0001_????_00000001.nc ; do
     echo "####################################################################"
     echo $f
     prefix=${f/_00000001.nc/}
-    ../../extract_aero_size_num 1e-10 1e-4 220 ${prefix}
-    ../../extract_aero_size_mass 1e-10 1e-4 220 ${prefix}
+    ../../extract_aero_size --num --dmin 1e-10 --dmax 1e-4 --nbin 220 ${prefix}
+    ../../extract_aero_size --mass --dmin 1e-10 --dmax 1e-4 --nbin 220 ${prefix}
     ../../extract_aero_time ${prefix}
     
-    ../../numeric_diff out/sect_aero_size_num.txt ${prefix}_aero_size_num.txt 0 0.3 0 0 2 0
-    ../../numeric_diff out/sect_aero_size_mass.txt ${prefix}_aero_size_mass.txt 0 0.5 0 0 2 0
-    ../../numeric_diff out/sect_aero_total.txt ${prefix}_aero_time.txt 0 0.1 0 0 2 2
-    ../../numeric_diff out/sect_aero_total.txt ${prefix}_aero_time.txt 0 0.3 0 0 3 3
+    ../../numeric_diff --by col --rel-tol 0.2 out/sect_aero_size_num.txt ${prefix}_aero_size_num.txt
+    ../../numeric_diff --by col --rel-tol 0.2 out/sect_aero_size_mass.txt ${prefix}_aero_size_mass.txt
+    ../../numeric_diff --by col --rel-tol 0.1 out/sect_aero_total.txt ${prefix}_aero_time.txt
 done
 
 # #######################################################################
@@ -33,7 +32,6 @@ done
 ../../numeric_average out/parallel_${parallel_type}_aero_size_mass.txt out/parallel_${parallel_type}_0001_????_aero_size_mass.txt
 ../../numeric_average out/parallel_${parallel_type}_aero_total.txt out/parallel_${parallel_type}_0001_????_aero_total.txt
 
-../../numeric_diff out/sect_aero_size_num.txt out/parallel_${parallel_type}_aero_size_num.txt 0 0.1 0 0 2 0
-../../numeric_diff out/sect_aero_size_mass.txt out/parallel_${parallel_type}_aero_size_mass.txt 0 0.3 0 0 2 0
-../../numeric_diff out/sect_aero_total.txt out/parallel_${parallel_type}_aero_total.txt 0 0.05 0 0 2 2
-../../numeric_diff out/sect_aero_total.txt out/parallel_${parallel_type}_aero_total.txt 0 0.1 0 0 3 3
+../../numeric_diff --by col --rel-tol 0.2 out/sect_aero_size_num.txt out/parallel_${parallel_type}_aero_size_num.txt
+../../numeric_diff --by col --rel-tol 0.2 out/sect_aero_size_mass.txt out/parallel_${parallel_type}_aero_size_mass.txt
+../../numeric_diff --by col --rel-tol 0.1 out/sect_aero_total.txt out/parallel_${parallel_type}_aero_total.txt

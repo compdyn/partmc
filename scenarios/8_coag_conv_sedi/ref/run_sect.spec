@@ -1,5 +1,5 @@
 run_type sectional              # sectional code run
-output_prefix out/sedi_sect     # prefix of output files
+output_prefix sect              # prefix of output files
 
 t_max 600                       # total simulation time (s)
 del_t 1                         # timestep (s)

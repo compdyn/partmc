@@ -1,7 +1,7 @@
 run_type particle               # particle-resolved run
-output_prefix out/sedi_part     # prefix of output files
-n_repeat 1                      # number of Monte Carlo repeats
-n_part 1000                     # total number of particles
+output_prefix part              # prefix of output files
+n_repeat 10                     # number of Monte Carlo repeats
+n_part %%N_PART%%                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 600                       # total simulation time (s)

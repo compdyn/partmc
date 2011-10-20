@@ -6,8 +6,8 @@ run_dirname = "runs"
 def all_runs():
     for (n_part, n_part_name) in [
         ("1000", "1k"),
-        ("10000", "10k"),
-        ("100000", "100k"),
+#        ("10000", "10k"),
+#        ("100000", "100k"),
         ]:
         for (weight_type, exponent) in [
             ("power", "0"),

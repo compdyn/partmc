@@ -1,0 +1,68 @@
+#!/bin/bash
+#PBS -q workq
+# the queue to be used.
+#PBS -M mwest@illinois.edu
+# your notification email address
+#PBS -m bea
+# send mail on job begin/end/abort
+#PBS -A TG-ATM100036 
+# the project allocation
+#
+#PBS -l nodes=16:ppn=8
+#
+# number of nodes and number of processors on each node to be used.
+# Do NOT use ppn = 1 except for serial job submitting to single queue.
+#
+#PBS -l walltime=01:00:00
+# requested Wall-clock time.
+#
+#PBS -V
+#
+#PBS -j oe
+# standard error output merge to the standard output file.
+#
+#PBS -N partmc_%%JOB_NAME%%
+# name of the job (that will appear on executing the qstat command) to be "syschk".
+#
+# Following are non PBS commands. PLEASE ADOPT THE SAME EXECUTION SCHEME
+# i.e. execute the job by copying the necessary files from your home directory
+# to the scratch space, execute in the scratch space, and copy back
+# the necessary files to your home directory.
+#
+
+export JOB_NAME=%%JOB_NAME%%
+
+echo 'starting script'
+date
+echo 'job_name: ' $JOB_NAME
+
+export WORK_DIR=/work/$USER
+echo 'work dir: ' $WORK_DIR
+export RUN_DIR=$WORK_DIR/$JOB_NAME
+echo 'run_dir: ' $RUN_DIR
+
+export NPROCS=`wc -l $PBS_NODEFILE |gawk '//{print $1}'`
+echo 'nprocs: ' $NPROCS
+echo 'nodefile: ' $PBS_NODEFILE
+
+cp $HOME/subversion/partmc/branches/coag_conv2/build/partmc $RUN_DIR
+cp -r $HOME/subversion/partmc/branches/coag_conv2/scenarios/8_coag_conv_sedi/runs/${JOB_NAME}_* $RUN_DIR
+
+cd $RUN_DIR
+echo 'pwd:'
+pwd
+ls -l
+
+env
+
+echo 'starting partmc'
+date
+
+for d in ${JOB_NAME}_* ; do
+    cd $d
+    pwd
+    mpirun -machinefile $PBS_NODEFILE -np $NPROCS $RUN_DIR/partmc run_part.spec
+done
+
+echo 'finished script'
+date

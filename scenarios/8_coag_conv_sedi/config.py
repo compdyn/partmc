@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import os
+
 ref_dirname = "ref"
 run_dirname = "runs"
 
@@ -22,6 +24,7 @@ def all_runs():
                 name = "%s_%s" % (n_part_name, weight_type)
             run = {"name": name,
                    "n_part": n_part,
+                   "n_part_name": n_part_name,
                    "weight_type": weight_type,
                    "exponent": exponent,
                    }

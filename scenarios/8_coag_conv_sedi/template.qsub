@@ -8,7 +8,7 @@
 #PBS -A TG-ATM100036 
 # the project allocation
 #
-#PBS -l nodes=16:ppn=8
+#PBS -l nodes=2:ppn=8
 #
 # number of nodes and number of processors on each node to be used.
 # Do NOT use ppn = 1 except for serial job submitting to single queue.

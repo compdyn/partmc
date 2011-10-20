@@ -238,6 +238,9 @@ contains
     type(env_state_t) :: env_state
     type(env_state_t) :: env_state_init
     type(run_part_opt_t) :: run_part_opt
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: weight_type
+    integer :: aero_state_weight
+    real(kind=dp) :: aero_weight_exponent
     integer :: i_repeat, i_group
     integer :: rand_init
     character, allocatable :: buffer(:)
@@ -374,6 +377,22 @@ contains
        call spec_file_read_real(file, 't_output', run_part_opt%t_output)
        call spec_file_read_real(file, 't_progress', run_part_opt%t_progress)
 
+       aero_weight_exponent = 0d0
+       call spec_file_read_string(file, 'weight', weight_type)
+       if (trim(weight_type) == 'none') then
+          aero_state_weight = AERO_STATE_WEIGHT_NONE
+       elseif (trim(weight_type) == 'flat') then
+          aero_state_weight = AERO_STATE_WEIGHT_FLAT
+       elseif (trim(weight_type) == 'power') then
+          aero_state_weight = AERO_STATE_WEIGHT_POWER
+          call spec_file_read_real(file, 'exponent', aero_weight_exponent)
+       elseif (trim(weight_type) == 'nummass') then
+          aero_state_weight = AERO_STATE_WEIGHT_NUMMASS
+       else
+          call spec_file_die_msg(365227532, file, "unknown weight_type: " &
+               // trim(weight_type))
+       end if
+
        if (do_restart) then
           call input_state(restart_filename, dummy_index, dummy_time, &
                dummy_del_t, dummy_i_repeat, run_part_opt%uuid, aero_data, &
@@ -507,6 +526,8 @@ contains
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_real(n_part_ideal)
        max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_integer(aero_state_weight)
+       max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_gas_data(gas_data)
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_gas_state(gas_state_init)
@@ -532,6 +553,7 @@ contains
        position = 0
        call pmc_mpi_pack_run_part_opt(buffer, position, run_part_opt)
        call pmc_mpi_pack_real(buffer, position, n_part_ideal)
+       call pmc_mpi_pack_integer(buffer, position, aero_state_weight)
        call pmc_mpi_pack_gas_data(buffer, position, gas_data)
        call pmc_mpi_pack_gas_state(buffer, position, gas_state_init)
        call pmc_mpi_pack_aero_data(buffer, position, aero_data)
@@ -562,6 +584,7 @@ contains
        position = 0
        call pmc_mpi_unpack_run_part_opt(buffer, position, run_part_opt)
        call pmc_mpi_unpack_real(buffer, position, n_part_ideal)
+       call pmc_mpi_unpack_integer(buffer, position, aero_state_weight)
        call pmc_mpi_unpack_gas_data(buffer, position, gas_data)
        call pmc_mpi_unpack_gas_state(buffer, position, gas_state_init)
        call pmc_mpi_unpack_aero_data(buffer, position, aero_data)
@@ -608,7 +631,7 @@ contains
                   AERO_STATE_WEIGHT_FLAT)
           else
              call aero_state_set_weight(aero_state, aero_data, &
-                  AERO_STATE_WEIGHT_NUMMASS_SOURCE)
+                  aero_state_weight, aero_weight_exponent)
           end if
           aero_state%n_part_ideal = n_part_ideal
           call aero_state_add_aero_dist_sample(aero_state, aero_data, &

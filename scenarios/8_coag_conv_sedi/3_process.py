@@ -34,15 +34,23 @@ for run in config.all_runs():
         mass_err[i] = numpy.linalg.norm(mass_dist - aero_binned.mass_conc())
 
     num_err_mean = num_err.mean()
-    num_err_rel_ci = 2 * num_err.std() / numpy.sqrt(len(num_err)) / num_err.mean()
+    num_err_ci = 2 * num_err.std() / numpy.sqrt(len(num_err))
+    print "num_err", num_err
+    print "num_mean", num_err.mean()
+    print "num_std", num_err.std()
+    print "num_ci", num_err_ci
     mass_err_mean = mass_err.mean()
-    mass_err_rel_ci = 2 * mass_err.std() / numpy.sqrt(len(mass_err)) / mass_err.mean()
+    mass_err_ci = 2 * mass_err.std() / numpy.sqrt(len(mass_err))
+    print "mass_err", mass_err
+    print "mass_mean", mass_err.mean()
+    print "mass_std", mass_err.std()
+    print "mass_ci", mass_err_ci
 
     stats = numpy.zeros(4)
     stats[0] = num_err_mean
-    stats[1] = num_err_rel_ci
+    stats[1] = num_err_ci
     stats[2] = mass_err_mean
-    stats[3] = mass_err_rel_ci
+    stats[3] = mass_err_ci
 
     stats_filename = os.path.join(dirname, "stats.txt")
     numpy.savetxt(stats_filename, stats)

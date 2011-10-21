@@ -59,9 +59,10 @@ echo 'starting partmc'
 date
 
 for d in ${JOB_NAME}_* ; do
-    cd $d
+    cd $RUN_DIR/$d
     pwd
     mpirun -machinefile $PBS_NODEFILE -np $NPROCS $RUN_DIR/partmc run_part.spec
+    cd $RUN_DIR
 done
 
 echo 'finished script'

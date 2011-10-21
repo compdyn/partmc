@@ -40,6 +40,7 @@ export WORK_DIR=/work/$USER
 echo 'work dir: ' $WORK_DIR
 export RUN_DIR=$WORK_DIR/$JOB_NAME
 echo 'run_dir: ' $RUN_DIR
+mkdir $RUN_DIR
 
 export NPROCS=`wc -l $PBS_NODEFILE |gawk '//{print $1}'`
 echo 'nprocs: ' $NPROCS

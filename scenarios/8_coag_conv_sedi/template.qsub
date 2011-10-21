@@ -45,8 +45,8 @@ export NPROCS=`wc -l $PBS_NODEFILE |gawk '//{print $1}'`
 echo 'nprocs: ' $NPROCS
 echo 'nodefile: ' $PBS_NODEFILE
 
-cp $HOME/subversion/partmc/branches/coag_conv2/build/partmc $RUN_DIR
-cp -r $HOME/subversion/partmc/branches/coag_conv2/scenarios/8_coag_conv_sedi/runs/${JOB_NAME}_* $RUN_DIR
+cp $HOME/svn/partmc/branches/coag_conv2/build/partmc $RUN_DIR
+cp -r $HOME/svn/partmc/branches/coag_conv2/scenarios/8_coag_conv_sedi/runs/${JOB_NAME}_* $RUN_DIR
 
 cd $RUN_DIR
 echo 'pwd:'

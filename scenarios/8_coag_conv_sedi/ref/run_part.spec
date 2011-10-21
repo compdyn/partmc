@@ -44,7 +44,7 @@ allow_halving yes               # whether to allow halving (yes/no)
 record_removals no              # whether to record particle removals (yes/no)
 
 do_parallel yes                 # whether to run in parallel (yes/no)
-output_type single              # parallel output type (central/dist/single)
+output_type dist                # parallel output type (central/dist/single)
 mix_timescale 0                 # mixing timescale between processors (s)
 gas_average no                  # whether to average gases each timestep
 env_average no                  # whether to average environment each timestep

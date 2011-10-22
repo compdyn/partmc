@@ -1,22 +1,20 @@
 #!/bin/bash
-#PBS -q workq
+#PBS -q cse
 # the queue to be used.
 #PBS -M mwest@illinois.edu
 # your notification email address
 #PBS -m bea
 # send mail on job begin/end/abort
-#PBS -A TG-ATM100036 
-# the project allocation
 #
-#PBS -l nodes=2:ppn=8
+#PBS -l nodes=2:ppn=12
 #
 # number of nodes and number of processors on each node to be used.
-# Do NOT use ppn = 1 except for serial job submitting to single queue.
 #
 #PBS -l walltime=01:00:00
 # requested Wall-clock time.
 #
 #PBS -V
+# copy execute environment from launch environment
 #
 #PBS -j oe
 # standard error output merge to the standard output file.
@@ -36,7 +34,7 @@ echo 'starting script'
 date
 echo 'job_name: ' $JOB_NAME
 
-export WORK_DIR=/work/$USER
+export WORK_DIR=$HOME/scratch
 echo 'work dir: ' $WORK_DIR
 export RUN_DIR=$WORK_DIR/$JOB_NAME
 echo 'run_dir: ' $RUN_DIR
@@ -62,6 +60,8 @@ date
 for d in ${JOB_NAME}_* ; do
     cd $RUN_DIR/$d
     pwd
+    date
+    mpirun -machinefile $PBS_NODEFILE -np 1 $RUN_DIR/partmc run_sect.spec
     mpirun -machinefile $PBS_NODEFILE -np $NPROCS $RUN_DIR/partmc run_part.spec
     cd $RUN_DIR
 done

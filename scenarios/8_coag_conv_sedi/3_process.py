@@ -16,7 +16,7 @@ for run in config.all_runs():
     aero_binned = partmc.aero_binned_t(ncf)
     ncf.close()
 
-    part_filenames = partmc.get_filename_list(dirname, r"part_[0-9]*_00000002\.nc")
+    part_filenames = partmc.get_filename_list(dirname, r"part_0001_[0-9]*_00000002\.nc")
     num_err = numpy.zeros(len(part_filenames))
     mass_err = numpy.zeros(len(part_filenames))
     for (i, part_filename) in enumerate(part_filenames):
@@ -36,16 +36,8 @@ for run in config.all_runs():
 
     num_err_mean = num_err.mean()
     num_err_ci = 2 * num_err.std() / numpy.sqrt(len(num_err))
-    print "num_err", num_err
-    print "num_mean", num_err.mean()
-    print "num_std", num_err.std()
-    print "num_ci", num_err_ci
     mass_err_mean = mass_err.mean()
     mass_err_ci = 2 * mass_err.std() / numpy.sqrt(len(mass_err))
-    print "mass_err", mass_err
-    print "mass_mean", mass_err.mean()
-    print "mass_std", mass_err.std()
-    print "mass_ci", mass_err_ci
 
     stats = numpy.zeros(4)
     stats[0] = num_err_mean

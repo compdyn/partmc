@@ -11,7 +11,8 @@ for run in config.all_runs():
 
     sect_filename = os.path.join(dirname, "sect_00000002.nc")
     ncf = scipy.io.netcdf.netcdf_file(sect_filename, 'r')
-    diam_grid = partmc.log_grid(ncf)
+    diam_grid = partmc.log_grid()
+    diam_grid.load_ncf_diam(ncf)
     aero_binned = partmc.aero_binned_t(ncf)
     ncf.close()
 

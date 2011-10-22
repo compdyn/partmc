@@ -1103,7 +1103,7 @@ contains
     !> Whether to warn due to initial state doubling/halving.
     logical, intent(in) :: initial_state_warning
 
-    integer :: i_group, n_group, global_n_part
+    integer :: i_group, n_group, local_n_part
 
     n_group = size(aero_state%aero_weight)
 
@@ -1111,18 +1111,19 @@ contains
     ! double until we fill up the array
     if (allow_doubling) then
        do i_group = 1,n_group
-          global_n_part &
-               = aero_state_total_particles_all_procs(aero_state, i_group)
-          do while ((real(global_n_part, kind=dp) &
-               < aero_state%n_part_ideal / real(n_group, kind=dp) / 2d0) &
-               .and. (global_n_part > 0))
+          local_n_part &
+               = aero_state_total_particles(aero_state, i_group)
+          do while ((real(local_n_part, kind=dp) &
+               < aero_state%n_part_ideal / real(n_group, kind=dp) / 2d0 &
+               / real(pmc_mpi_size(), kind=dp)) &
+               .and. (local_n_part > 0))
              if (initial_state_warning) then
                 call warn_msg(716882783, "doubling particles in initial " &
                      // "condition")
              end if
              call aero_state_double(aero_state, i_group)
-             global_n_part &
-                  = aero_state_total_particles_all_procs(aero_state, i_group)
+             local_n_part &
+                  = aero_state_total_particles(aero_state, i_group)
           end do
        end do
     end if
@@ -1130,9 +1131,10 @@ contains
     ! same for halving if we have too many particles
     if (allow_halving) then
        do i_group = 1,n_group
-          do while (real(aero_state_total_particles_all_procs(aero_state, &
+          do while (real(aero_state_total_particles(aero_state, &
                i_group), kind=dp) &
-               > aero_state%n_part_ideal / real(n_group, kind=dp) * 2d0)
+               > aero_state%n_part_ideal / real(n_group, kind=dp) * 2d0 &
+               / real(pmc_mpi_size(), kind=dp))
              if (initial_state_warning) then
                 call warn_msg(661936373, &
                      "halving particles in initial condition")

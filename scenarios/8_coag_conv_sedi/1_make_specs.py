@@ -8,7 +8,7 @@ def copy_template_file(filename_in, filename_out, run):
     f_in = open(filename_in, 'r')
     f_out = open(filename_out, 'w')
     for line in f_in:
-        line = line.replace('%%N_PART%%', run["n_part"])
+        line = line.replace('%%N_PART%%', str(int(run["n_part"]) * config.n_nodes * config.n_procs_per_node))
         if run["weight_type"] == "power":
             line = line.replace('%%WEIGHT_TYPE%%', run["weight_type"] + "\nexponent " + run["exponent"])
         else:

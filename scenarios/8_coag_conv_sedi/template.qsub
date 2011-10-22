@@ -6,7 +6,7 @@
 #PBS -m bea
 # send mail on job begin/end/abort
 #
-#PBS -l nodes=2:ppn=12
+#PBS -l nodes=%%N_NODES%%:ppn=%%N_PROCS_PER_NODE%%
 #
 # number of nodes and number of processors on each node to be used.
 #

@@ -1157,7 +1157,7 @@ contains
     !> Whether to warn due to initial state doubling/halving.
     logical, intent(in) :: initial_state_warning
 
-    integer :: i_group, i_set, n_group, n_set, global_n_part
+    integer :: i_group, i_set, n_group, n_set, local_n_part
 
     n_group = size(aero_state%awa%weight, 1)
     n_set = size(aero_state%awa%weight, 2)
@@ -1167,21 +1167,20 @@ contains
     if (allow_doubling) then
        do i_group = 1,n_group
           do i_set = 1,n_set
-             global_n_part &
-                  = aero_state_total_particles_all_procs(aero_state, i_group, &
-                  i_set)
-             do while ((real(global_n_part, kind=dp) &
+             local_n_part &
+                  = aero_state_total_particles(aero_state, i_group, i_set)
+             do while ((real(local_n_part, kind=dp) &
                   < aero_state%n_part_ideal &
+                  / real(pmc_mpi_size(), kind=dp) &
                   / real(n_group * n_set, kind=dp) / 2d0) &
-                  .and. (global_n_part > 0))
+                  .and. (local_n_part > 0))
                 if (initial_state_warning) then
                    call warn_msg(716882783, "doubling particles in initial " &
                         // "condition")
                 end if
                 call aero_state_double(aero_state, i_group, i_set)
-                global_n_part &
-                     = aero_state_total_particles_all_procs(aero_state, &
-                     i_group, i_set)
+                local_n_part &
+                     = aero_state_total_particles(aero_state, i_group, i_set)
              end do
           end do
        end do
@@ -1191,8 +1190,9 @@ contains
     if (allow_halving) then
        do i_group = 1,n_group
           do i_set = 1,n_set
-             do while (real(aero_state_total_particles_all_procs(aero_state, &
+             do while (real(aero_state_total_particles(aero_state, &
                   i_group, i_set), kind=dp) > aero_state%n_part_ideal &
+                  / real(pmc_mpi_size(), kind=dp) &
                   / real(n_group * n_set, kind=dp) * 2d0)
                 if (initial_state_warning) then
                    call warn_msg(661936373, &

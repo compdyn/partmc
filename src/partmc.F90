@@ -528,6 +528,8 @@ contains
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_integer(aero_state_weight)
        max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_real(aero_weight_exponent)
+       max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_gas_data(gas_data)
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_gas_state(gas_state_init)
@@ -554,6 +556,7 @@ contains
        call pmc_mpi_pack_run_part_opt(buffer, position, run_part_opt)
        call pmc_mpi_pack_real(buffer, position, n_part_ideal)
        call pmc_mpi_pack_integer(buffer, position, aero_state_weight)
+       call pmc_mpi_pack_real(buffer, position, aero_weight_exponent)
        call pmc_mpi_pack_gas_data(buffer, position, gas_data)
        call pmc_mpi_pack_gas_state(buffer, position, gas_state_init)
        call pmc_mpi_pack_aero_data(buffer, position, aero_data)
@@ -585,6 +588,7 @@ contains
        call pmc_mpi_unpack_run_part_opt(buffer, position, run_part_opt)
        call pmc_mpi_unpack_real(buffer, position, n_part_ideal)
        call pmc_mpi_unpack_integer(buffer, position, aero_state_weight)
+       call pmc_mpi_unpack_real(buffer, position, aero_weight_exponent)
        call pmc_mpi_unpack_gas_data(buffer, position, gas_data)
        call pmc_mpi_unpack_gas_state(buffer, position, gas_state_init)
        call pmc_mpi_unpack_aero_data(buffer, position, aero_data)

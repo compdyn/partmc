@@ -5,13 +5,13 @@ import os
 ref_dirname = "ref"
 run_dirname = "runs"
 
-n_nodes = 2
+n_nodes = 10
 n_procs_per_node = 12
 
 def all_runs():
     for (n_part, n_part_name) in [
         ("1000", "1k"),
-#        ("10000", "10k"),
+        ("10000", "10k"),
 #        ("100000", "100k"),
         ]:
         for (weight_type, exponent) in [

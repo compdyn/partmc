@@ -10,7 +10,7 @@
 #
 # number of nodes and number of processors on each node to be used.
 #
-#PBS -l walltime=01:00:00
+#PBS -l walltime=02:00:00
 # requested Wall-clock time.
 #
 #PBS -V

@@ -12,11 +12,11 @@ def copy_template_file(filename_in, filename_out, job_name):
         line = line.replace('%%N_NODES%%', str(config.n_nodes))
         line = line.replace('%%N_PROCS_PER_NODE%%', str(config.n_procs_per_node))
         if job_name == "1k":
-            line = line.replace('%%WALL_TIME%%', "02:00:00")
+            line = line.replace('%%WALL_TIME%%', "03:00:00")
         elif job_name == "10k":
             line = line.replace('%%WALL_TIME%%', "30:00:00")
         elif job_name == "100k":
-            line = line.replace('%%WALL_TIME%%', "200:00:00")
+            line = line.replace('%%WALL_TIME%%', "300:00:00")
         f_out.write(line)
     f_out.close()
     f_in.close()

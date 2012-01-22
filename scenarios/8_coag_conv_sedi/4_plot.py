@@ -22,27 +22,32 @@ for run in config.all_runs():
     num_err_ci = stats[1]
     mass_err_mean = stats[2]
     mass_err_ci = stats[3]
+    num_var = stats[4]
+    mass_var = stats[5]
 
     if run["weight_type"] == "power":
         if run["n_part"] not in single.keys():
-            single[run["n_part"]] = ([], [], [], [])
+            single[run["n_part"]] = ([], [], [], [], [], [])
         single[run["n_part"]][0].append(num_err_mean)
         single[run["n_part"]][1].append(num_err_ci)
         single[run["n_part"]][2].append(mass_err_mean)
         single[run["n_part"]][3].append(mass_err_ci)
+        single[run["n_part"]][4].append(num_var)
+        single[run["n_part"]][5].append(mass_var)
     elif run["weight_type"] == "nummass":
-        multi[run["n_part"]] = (num_err_mean, num_err_ci, mass_err_mean, mass_err_ci)
+        multi[run["n_part"]] = (num_err_mean, num_err_ci, mass_err_mean, mass_err_ci, num_var, mass_var)
 
 (figure, axes) = mpl_helper.make_fig(right_margin=1.8)
 
 handles = []
 labels = []
 for (i, n_part) in enumerate(single.keys()):
-    #handles.append(axes.plot(single[n_part][0], single[n_part][2], colors[i] + 'x-'))
+    #handles.append(axes.plot(single[n_part][4], single[n_part][5], colors[i] + 'x-'))
     handles.append(axes.errorbar(single[n_part][0], single[n_part][2], fmt=colors[i] + 'x-',
                                  xerr=single[n_part][1], yerr=single[n_part][3]))
     labels.append(r'$N = %s$ single' % n_part)
 
+    #handles.append(axes.plot(multi[n_part][4], multi[n_part][5], colors[i] + 'o'))
     handles.append(axes.errorbar(multi[n_part][0], multi[n_part][2], fmt=colors[i] + 'o',
                                  xerr=multi[n_part][1], yerr=multi[n_part][3]))
     labels.append(r'$N = %s$ multi' % n_part)

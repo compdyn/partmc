@@ -43,20 +43,23 @@ handles = []
 labels = []
 for (i, n_part) in enumerate(single.keys()):
     #handles.append(axes.plot(single[n_part][4], single[n_part][5], colors[i] + 'x-'))
-    handles.append(axes.errorbar(single[n_part][0], single[n_part][2], fmt=colors[i] + 'x-',
-                                 xerr=single[n_part][1], yerr=single[n_part][3]))
-    labels.append(r'$N = %s$ single' % n_part)
+    handles.append(axes.plot(single[n_part][0], single[n_part][2], colors[i] + 'x-'))
+    axes.errorbar(single[n_part][0], single[n_part][2], fmt=None, ecolor='k',
+                  xerr=single[n_part][1], yerr=single[n_part][3])
+    labels.append(r'$N = 10^%d$ single' % int(numpy.log10(int(n_part))))
 
     #handles.append(axes.plot(multi[n_part][4], multi[n_part][5], colors[i] + 'o'))
-    handles.append(axes.errorbar(multi[n_part][0], multi[n_part][2], fmt=colors[i] + 'o',
-                                 xerr=multi[n_part][1], yerr=multi[n_part][3]))
-    labels.append(r'$N = %s$ multi' % n_part)
+    handles.append(axes.plot(multi[n_part][0], multi[n_part][2], colors[i] + 'o'))
+    axes.errorbar(multi[n_part][0], multi[n_part][2], fmt=None, ecolor='k',
+                  xerr=multi[n_part][1], yerr=multi[n_part][3])
+    labels.append(r'$N = 10^%d$ multi' % int(numpy.log10(int(n_part))))
 
 axes.set_xscale('log')
 axes.set_yscale('log')
 axes.set_xlabel(r'mean number error $E[\|n - n_{\rm s}\|_2]$')
 axes.set_ylabel(r'mean mass error $E[\|m - m_{\rm s}\|_2]$')
 figure.legend(handles, labels, loc='center right')
+axes.grid(True)
 
-filename = "boomerang.pdf"
+filename = "sedi_boomerang.pdf"
 figure.savefig(filename)

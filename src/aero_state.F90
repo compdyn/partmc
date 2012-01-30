@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -664,6 +664,7 @@ contains
              n_part_add = n_part_add + n_samp
           end if
           do i_samp = 1,n_samp
+             call aero_particle_zero(aero_particle)
              call aero_mode_sample_radius(aero_mode, &
                   aero_state%aero_weight(i_group), radius)
              vol = rad2vol(radius)

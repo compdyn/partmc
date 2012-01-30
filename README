@@ -4,8 +4,8 @@ PartMC
 
 PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
-Version 2.1.4  
-Released 2011-08-15
+Version 2.1.5  
+Released 2012-01-30
 
 <http://lagrange.mechse.illinois.edu/mwest/partmc/>
 
@@ -26,7 +26,7 @@ References:
      plume, J. Geophys. Res. 115(D17210),
      <http://dx.doi.org/10.1029/2009JD013616>.
 
-Copyright (C) 2005-2011 Nicole Riemer and Matthew West  
+Copyright (C) 2005-2012 Nicole Riemer and Matthew West  
 Portions copyright (C) Andreas Bott and Richard Easter  
 Licensed under the GNU General Public License version 2 or (at your
 option) any later version.  
@@ -46,7 +46,7 @@ Required dependencies:
 
 Optional dependencies:
 
-   * MOSAIC chemistry code version 2011-01-10 - Available from Rahul
+   * MOSAIC chemistry code version 2012-01-25 - Available from Rahul
      Zaveri - <Rahul.Zaveri@pnl.gov>
    * MPI parallel support - <http://www.open-mpi.org/>
    * GSL for random number generators -
@@ -77,12 +77,12 @@ mainly been under Linux and OS X. The quick-start instructions are:
 
 2. Unpack PartMC:
 
-        tar xzvf partmc-2.1.4.tar.gz
+        tar xzvf partmc-2.1.5.tar.gz
 
 3. Change into the main PartMC directory (where this README file is
    located):
 
-        cd partmc-2.1.4
+        cd partmc-2.1.5
 
 4. Make a directory called `build` and change into it:
 
@@ -164,9 +164,13 @@ used for sectional and exact model output).
 ChangeLog
 =========
 
+2.1.5 - 2012-01-30
+
+  * Fix bug causing erroneous `n_orig_part` entries.
+
 2.1.4 - 2011-08-15
 
-  * Error if running in parallel with do_parallel false.
+  * Error if running in parallel with `do_parallel` false.
 
 2.1.3 - 2011-07-02
 

@@ -23,6 +23,7 @@ module pmc_aero_state
   use pmc_aero_info
   use pmc_aero_info_array
   use pmc_aero_weight
+  use pmc_fractal
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -643,7 +644,11 @@ contains
              call aero_particle_zero(aero_particle)
              call aero_mode_sample_radius(aero_mode, &
                   aero_state%aero_weight(i_group), radius)
-             vol = rad2vol(radius)
+             if (fractal%do_fractal) then
+                vol = Rme2vol(radius)
+             else
+                vol = rad2vol(radius)
+             end if
              call aero_particle_set_vols(aero_particle, &
                   aero_mode%vol_frac * vol)
              call aero_particle_new_id(aero_particle)

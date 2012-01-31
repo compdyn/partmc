@@ -13,7 +13,8 @@ module pmc_coag_kernel_brown
   use pmc_constants
   use pmc_util
   use pmc_aero_particle
-  
+  use pmc_fractal
+ 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -131,7 +132,7 @@ contains
          deltasq_j, den_i, den_j, diffus_i, diffus_j, diffus_sum, &
          freepath, gasfreepath, gasspeed, knud, mwair, rad_i, rad_j, &
          rad_sum, rgas, rhoair, speedsq_i, speedsq_j, tmp1, tmp2, &
-         viscosd, viscosk, vol_i, vol_j
+         viscosd, viscosk, vol_i, vol_j, Rme_i, Rme_j
 
     ! boltz   = boltzmann's constant (erg/K = g*cm^2/s/K)
     ! avogad  = avogadro's number (molecules/mol)
@@ -168,10 +169,17 @@ contains
     den_i     = d1 * 1.0d-3   ! particle wet density (g/cm3)
     vol_i     = v1 * 1.0d+6   ! particle wet volume (cm3)
     rad_i     = vol2rad(vol_i)       ! particle wet radius (cm)
-    
-    knud      = gasfreepath/rad_i  
-    cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
-    diffus_i  = boltz*tk*cunning/(6d0*const%pi*rad_i*viscosd)
+    Rme_i     = vol2Rme(vol_i/1.0d+6)*1.0d+2       ! particle mobility equivalent radius (cm)
+  
+    if (fractal%do_fractal) then
+       knud   = gasfreepath/Rme_i
+       cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
+       diffus_i  = boltz*tk*cunning/(6d0*const%pi*Rme_i*viscosd)
+    else
+       knud   = gasfreepath/rad_i
+       cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
+       diffus_i  = boltz*tk*cunning/(6d0*const%pi*rad_i*viscosd)
+    end if  
     speedsq_i = 8d0*boltz*tk/(const%pi*den_i*vol_i)
     freepath  = 8d0*diffus_i/(const%pi*sqrt(speedsq_i))
     tmp1      = (2d0*rad_i + freepath)**3
@@ -181,10 +189,17 @@ contains
     den_j     = d2 * 1.0d-3
     vol_j     = v2 * 1.0d+6
     rad_j     = vol2rad(vol_j)
-    
-    knud      = gasfreepath/rad_j  
-    cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
-    diffus_j  = boltz*tk*cunning/(6d0*const%pi*rad_j*viscosd)
+    Rme_j     = vol2Rme(vol_j/1.0d+6)*1.0d+2
+
+    if (fractal%do_fractal) then
+       knud   = gasfreepath/Rme_j
+       cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
+       diffus_j  = boltz*tk*cunning/(6d0*const%pi*Rme_j*viscosd)
+    else
+       knud   = gasfreepath/rad_j   
+       cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
+       diffus_j  = boltz*tk*cunning/(6d0*const%pi*rad_j*viscosd)
+    end if
     speedsq_j = 8d0*boltz*tk/(const%pi*den_j*vol_j)
     freepath  = 8d0*diffus_j/(const%pi*sqrt(speedsq_j))
     tmp1      = (2d0*rad_j + freepath)**3

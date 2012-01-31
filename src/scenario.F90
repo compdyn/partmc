@@ -410,6 +410,12 @@ contains
     type(aero_dist_t) :: emissions, background
     type(aero_state_t) :: aero_state_delta
 
+    ! account for wall loss and sedimentation in chamber
+    if (env_state%chamber%do_chamber) then
+       call env_state_aero_chamber(env_state, delta_t, &
+            aero_data, aero_state)
+    end if
+
     ! emissions
     call aero_dist_allocate(emissions)
     call aero_dist_interp_1d(scenario%aero_emission, &

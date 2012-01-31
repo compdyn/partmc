@@ -147,6 +147,7 @@ program partmc
   use pmc_gas_data
   use pmc_gas_state
   use pmc_util
+  use pmc_chamber
 #ifdef PMC_USE_SUNDIALS
   use pmc_condense
 #endif
@@ -484,7 +485,10 @@ contains
           run_part_opt%env_average = .false.
           run_part_opt%parallel_coag_type = PARALLEL_COAG_TYPE_LOCAL
        end if
-       
+      
+       call spec_file_read_chamber(file, env_state%chamber)
+       call spec_file_read_fractal(file, aero_data%fractal)
+ 
        call spec_file_close(file)
     end if
 

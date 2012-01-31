@@ -11,6 +11,7 @@ module pmc_env_state
   use pmc_constants
   use pmc_util
   use pmc_spec_file
+  use pmc_chamber
   use pmc_mpi
   use pmc_netcdf
 #ifdef PMC_USE_MPI
@@ -46,6 +47,8 @@ module pmc_env_state
      real(kind=dp) :: solar_zenith_angle
      !> Box height (m).
      real(kind=dp) :: height
+     !> Chamber parameters for wall loss and sedimentation.
+     type(chamber_t) :: chamber
   end type env_state_t
   
 contains
@@ -255,6 +258,54 @@ contains
          / const%avagadro
 
   end function env_state_conc_to_ppb
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Remove particles due to wall diffusion and sedimentation for a 
+  !> particle distribution in chamber study.
+  subroutine env_state_aero_chamber(env_state, delta_t, &
+       aero_data, aero_state)
+
+    !> Current environment.
+    type(env_state_t), intent(in) :: env_state
+    !> Time increment to update over.
+    real(kind=dp), intent(in) :: delta_t
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+
+    ! Particle.
+    type(aero_particle_t), pointer :: aero_particle
+    ! Loss probability.
+    real(kind=dp) :: p
+    ! Total loss rate (s^{-1}).
+    real(kind=dp) :: lossrate
+    ! Total particle mass (kg).
+    real(kind=dp) :: m_Rgeo
+
+    type(aero_info_t) :: aero_info
+    integer :: i_part
+
+    do i_part = aero_state%apa%n_part,1,-1
+         aero_particle => aero_state%apa%particle(i_part)
+         m_Rgeo = aero_particle_mass(aero_particle, aero_data)
+         lossrate = chamber_loss_wall(aero_particle, fractal, &
+              env_state%temp, env_state%pressure) &
+              + chamber_loss_sedi(aero_particle, aero_data, fractal, &
+              env_state%temp, env_state%pressure)
+         p = lossrate * delta_t
+         if (pmc_random() < p) then
+            call aero_info_allocate(aero_info)
+            aero_info%id = aero_particle%id
+            aero_info%action = AERO_INFO_DILUTION
+            aero_info%other_id = 0
+            call aero_state_remove_particle_with_info(aero_state,i_part,aero_info)
+            call aero_info_deallocate(aero_info)
+         end if
+    end do
+
+  end subroutine env_state_aero_chamber
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

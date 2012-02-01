@@ -13,6 +13,10 @@
   * No longer need to specify weight for particle simulations (a mixed
     number/mass weighting is always used).
 
+2.1.5 - 2012-01-30
+
+  * Fix bug causing erroneous `n_orig_part` entries.
+
 2.1.4 - 2011-08-15
 
   * Error if running in parallel with `do_parallel` false.

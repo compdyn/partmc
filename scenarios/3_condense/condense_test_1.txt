@@ -1,0 +1,32 @@
+* CONSTANTS ****************************************
+water density rho_w =     0.10000000000000000000E+04
+water molecular weight M_w =     0.17999999999999998640E-01
+water equilibrium vapor pressure =     0.61100000000000000000E+03
+water freezing temperature =     0.27314999999999997726E+03
+air molecular weight =     0.28964400000000001256E-01
+universal gas constant =     0.83144720000000003068E+01
+air standard pressure =     0.10132500000000000000E+06
+water latent heat =     0.22720000000000000000E+07
+water surface energy =     0.72999999999999995448E-01
+accomodation coefficient =     0.10000000000000000000E+01
+air specific heat =     0.10050000000000000000E+04
+pi =     0.31415926535897931160E+01
+* INPUTS *******************************************
+Temperature T (K) =     0.28924159872394449167E+03
+Rate of change of temperature Tdot (K s^{-1}) =    -0.83333333333825976297E-02
+Relative humidity H (1) =     0.99629980403435003389E+00
+Pressure p (Pa) =     0.10000000000000000000E+06
+Computational volume V_comp (m^3) =     0.82853653523385331316E-08
+Particle diameter D (m) =     0.11366238928449243707E-06
+Particle dry diameter D_dry (m) =     0.54391578703988384973E-07
+Kappa parameter kappa (1) =     0.18852287735966860582E+00
+* OUTPUTS ******************************************
+Ddot (m s^{-1}) =     0.10153959072807053693E-08
+Hdot_i (s^{-1}) =    -0.18125876614932693641E-09
+Hdot_env (s^{-1}) =     0.53056994718483690629E-03
+partial Ddot / partial D (m s^{-1} m^{-1}) =    -0.53960346082631383524E+03
+partial Ddot / partial H (m s^{-1}) =     0.10767981075438914484E-02
+partial Hdot_i / partial D (s^{-1} m^{-1}) =     0.96321659650287173804E+02
+partial Hdot_i / partial D (s^{-1}) =    -0.19221969969136277513E-03
+partial Hdot_env / partial D (s^{-1} m^{-1}) =     0.00000000000000000000E+00
+partial Hdot_env / partial D (s^{-1}) =     0.53254045121396427053E-03

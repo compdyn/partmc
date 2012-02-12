@@ -16,7 +16,7 @@
 \hline \endhead
 $a$                    & \rr species index                                                      & index         & discrete                              &                                                    \tn
 $\alpha$               & \rr thermal accommodation coefficient                                  & constant      & $1$                                   & \rr \verb+const%accom_coeff+, S\&P 15.76           \tn
-$a_{\rm w}$            & \rr water activity                                                     & function      & $1$                                   & \rr eq.~\ref{eq:aw}                                \tn
+$a_{{\rm w},i}$        & \rr water activity of particle $i$                                     & function      & $1$                                   & \rr eq.~\ref{eq:aw}                                \tn
 $c_{\rm p}$            & \rr specific heat capacity of air at constant pressure                 & constant      & $\rm J \, kg^{-1}$                    & \rr \verb+const%air_spec_heat+                     \tn
 $D_{\rm v}$            & \rr diffusivity coefficient                                            & function      & $\rm m^2 \, s^{-1}$                   & \rr eq.~\ref{eq:diff_ko}, S\&P 15.65               \tn
 $D_{\rm v}'$           & \rr corrected diffusivity coefficient                                  & function      & $\rm m^2 \, s^{-1}$                   & \rr eq.~\ref{eq:diff_ko_corr}, S\&P 15.66          \tn
@@ -223,7 +223,7 @@ with~(\ref{eq:solve_x}).
 Note that $A - B D^{-1} C$ is $N \times N$ and dense,
 so~(\ref{eq:reduced_x}) is not a good choice. Although because $B
 D^{-1} C$ is rank-one, we could cheaply invert it using the
-Sherman–Morrison formula. If we have extra environment variables so it
+Sherman-Morrison formula. If we have extra environment variables so it
 is rank-2 or rank-3 then we would use the more general Woodbury
 identity.
 
@@ -245,7 +245,7 @@ advantages of having $H$ be an independent dynamic variable are:
   that the dense terms in $J_{ij}$ would be $(\partial \dot{D}_i
   / \partial H) (\partial H / \partial D_j)$, so it's only
   rank-one. $J$ itself would then be the sum of a diagonal matrix with
-  this rank-one matrix, so we could use the Sherman–Morrison formula
+  this rank-one matrix, so we could use the Sherman-Morrison formula
   to solve the system cheaply.
 \item At some point in the future we might want to treat temperature
   as a dynamic variable as well (condensation lowers the temperature,

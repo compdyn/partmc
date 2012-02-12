@@ -610,9 +610,9 @@ contains
     write(*,'(a,e30.20)') "partial Ddot / partial D (m s^{-1} m^{-1}) = ", outputs%dDdot_dD
     write(*,'(a,e30.20)') "partial Ddot / partial H (m s^{-1}) = ", outputs%dDdot_dH
     write(*,'(a,e30.20)') "partial Hdot_i / partial D (s^{-1} m^{-1}) = ", outputs%dHdoti_dD
-    write(*,'(a,e30.20)') "partial Hdot_i / partial D (s^{-1}) = ", outputs%dHdoti_dH
+    write(*,'(a,e30.20)') "partial Hdot_i / partial H (s^{-1}) = ", outputs%dHdoti_dH
     write(*,'(a,e30.20)') "partial Hdot_env / partial D (s^{-1} m^{-1}) = ", outputs%dHdotenv_dD
-    write(*,'(a,e30.20)') "partial Hdot_env / partial D (s^{-1}) = ", outputs%dHdotenv_dH
+    write(*,'(a,e30.20)') "partial Hdot_env / partial H (s^{-1}) = ", outputs%dHdotenv_dH
 
   end subroutine condense_rates
 

@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Copyright (C) 2009 Joseph Ching
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
@@ -463,6 +463,30 @@ contains
     real(kind=dp) :: dh_dH, ddeltastar_dD, ddeltastar_dH
     integer :: newton_step
 
+    write(*,'(a)') "********************************************************"
+    write(*,'(a)') "* CONSTANTS ****************************************"
+    write(*,'(a,e30.20)') "water density rho_w = ", const%water_density
+    write(*,'(a,e30.20)') "water molecular weight M_w = ", const%water_molec_weight
+    write(*,'(a,e30.20)') "water equilibrium vapor pressure = ", const%water_eq_vap_press
+    write(*,'(a,e30.20)') "water freezing temperature = ", const%water_freeze_temp
+    write(*,'(a,e30.20)') "air molecular weight = ", const%air_molec_weight
+    write(*,'(a,e30.20)') "universal gas constant = ", const%univ_gas_const
+    write(*,'(a,e30.20)') "air standard pressure = ", const%air_std_press
+    write(*,'(a,e30.20)') "water latent heat = ", const%water_latent_heat
+    write(*,'(a,e30.20)') "water surface energy = ", const%water_surf_eng
+    write(*,'(a,e30.20)') "accomodation coefficient = ", const%accom_coeff
+    write(*,'(a,e30.20)') "air specific heat = ", const%air_spec_heat
+    write(*,'(a,e30.20)') "pi = ", const%pi
+    write(*,'(a)') "* INPUTS *******************************************"
+    write(*,'(a,e30.20)') "Temperature T (K) = ", inputs%T
+    write(*,'(a,e30.20)') "Rate of change of temperature Tdot (K s^{-1}) = ", inputs%Tdot
+    write(*,'(a,e30.20)') "Relative humidity H (1) = ", inputs%H
+    write(*,'(a,e30.20)') "Pressure p (Pa) = ", inputs%p
+    write(*,'(a,e30.20)') "Computational volume V_comp (m^3) = ", inputs%V_comp
+    write(*,'(a,e30.20)') "Particle diameter D (m) = ", inputs%D
+    write(*,'(a,e30.20)') "Particle dry diameter D_dry (m) = ", inputs%D_dry
+    write(*,'(a,e30.20)') "Kappa parameter kappa (1) = ", inputs%kappa
+
     rho_w = const%water_density
     M_w = const%water_molec_weight
     P_0 = const%water_eq_vap_press &
@@ -578,6 +602,17 @@ contains
          * (2d0 * inputs%D * outputs%Ddot + inputs%D**2 * outputs%dDdot_dD)
     outputs%dHdoti_dH = - 2d0 * const%pi / (V * inputs%V_comp) &
          * inputs%D**2 * outputs%dDdot_dH
+
+    write(*,'(a)') "* OUTPUTS ******************************************"
+    write(*,'(a,e30.20)') "Ddot (m s^{-1}) = ", outputs%Ddot
+    write(*,'(a,e30.20)') "Hdot_i (s^{-1}) = ", outputs%Hdot_i
+    write(*,'(a,e30.20)') "Hdot_env (s^{-1}) = ", outputs%Hdot_env
+    write(*,'(a,e30.20)') "partial Ddot / partial D (m s^{-1} m^{-1}) = ", outputs%dDdot_dD
+    write(*,'(a,e30.20)') "partial Ddot / partial H (m s^{-1}) = ", outputs%dDdot_dH
+    write(*,'(a,e30.20)') "partial Hdot_i / partial D (s^{-1} m^{-1}) = ", outputs%dHdoti_dD
+    write(*,'(a,e30.20)') "partial Hdot_i / partial D (s^{-1}) = ", outputs%dHdoti_dH
+    write(*,'(a,e30.20)') "partial Hdot_env / partial D (s^{-1} m^{-1}) = ", outputs%dHdotenv_dD
+    write(*,'(a,e30.20)') "partial Hdot_env / partial D (s^{-1}) = ", outputs%dHdotenv_dH
 
   end subroutine condense_rates
 

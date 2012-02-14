@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -366,6 +366,7 @@ contains
     call aero_particle_deallocate(source_particle)
     call aero_particle_allocate_size(source_particle, &
          aero_data%n_spec, aero_data%n_source)
+    vol_sq = 0d0
 
     ! FIXME: Can't we just do n_samp = 1,n_samp_total and shift tests
     ! to the end?

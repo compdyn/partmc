@@ -874,7 +874,7 @@ contains
     !> Remote process that the particle came from.
     integer, intent(in) :: remote_proc
     !> Total weight across all processes.
-    type(aero_weight_t), intent(in) :: aero_weight_total(:)
+    type(aero_weight_array_t), intent(in) :: aero_weight_total
     !> Computational volumes on all processes (m^3).
     real(kind=dp), intent(in) :: comp_vols(:,:)
     !> Whether to remove aero_particle_1 after the coagulation.
@@ -892,7 +892,7 @@ contains
     call aero_info_allocate(aero_info_2)
 
     call coagulate_weighting(aero_particle_1, aero_particle_2, &
-         aero_particle_new, aero_data, aero_state%aero_weight, &
+         aero_particle_new, aero_data, aero_state%awa, &
          remove_1, remove_2, create_new, id_1_lost, id_2_lost, &
          aero_info_1, aero_info_2)
 

@@ -14,6 +14,7 @@ module pmc_coagulation
   use pmc_env_state
   use pmc_aero_state
   use pmc_aero_weight
+  use pmc_aero_weight_array
   use pmc_mpi
   use pmc_coag_kernel
   use pmc_aero_sorted
@@ -119,7 +120,7 @@ contains
     logical :: per_particle_coag_succeeded
     real(kind=dp) :: f_max, k_max
 
-    call max_coag_num_conc_factor_better(aero_state%aero_weight, &
+    call max_coag_num_conc_factor_better(aero_state%awa, &
          aero_state%aero_sorted%bin_grid, i_bin, j_bin, f_max)
     k_max = aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin) * f_max
 
@@ -173,7 +174,7 @@ contains
     real(kind=dp) :: n_source_per_target, accept_factor
     type(aero_particle_t) :: target_particle, source_particle
 
-    call determine_target_and_source(aero_state%aero_weight, &
+    call determine_target_and_source(aero_state%awa, &
          aero_state%aero_sorted%bin_grid, i_bin, j_bin, target_bin, &
          source_bin, correct_weight_ordering)
     if (.not. correct_weight_ordering) then
@@ -230,7 +231,7 @@ contains
        j_bin, target_bin, source_bin, correct_weight_ordering)
 
     !> Aero weight array.
-    type(aero_weight_t), intent(in) :: aero_weight_array(:)
+    type(aero_weight_array_t), intent(in) :: aero_weight_array
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> First bin number.
@@ -247,7 +248,7 @@ contains
     real(kind=dp) :: i_nc_min, i_nc_max, j_nc_min, j_nc_max
     logical :: monotone_increasing, monotone_decreasing
 
-    call aero_weight_array_check_monotonicity(aero_weight_array, &
+    call aero_weight_array_check_monotonicity(aero_weight_array%aero_weight, &
          monotone_increasing, monotone_decreasing)
     if (.not. monotone_decreasing) then
        correct_weight_ordering = .false.
@@ -347,11 +348,11 @@ contains
     end if
 
     num_conc_target = aero_weight_array_num_conc( &
-         aero_state%aero_weight, coag_particle)
+         aero_state%awa, coag_particle)
     target_id = coag_particle%id
 
     num_conc_source_min = aero_weight_array_num_conc_at_radius( &
-         aero_state%aero_weight, &
+         aero_state%awa, &
          aero_state%aero_sorted%bin_grid%edge_radius(source_bin))
     prob_remove_source_max = num_conc_target / num_conc_source_min
     call assert(653606684, prob_remove_source_max <= 1d0)
@@ -396,7 +397,7 @@ contains
        i_particle => aero_state%apa%particle(i_part)
        ! re-get j_part as particle ordering may be changing
        call num_conc_weighted_kernel(coag_kernel_type, i_particle, &
-            coag_particle, aero_data, aero_state%aero_weight, env_state, k)
+            coag_particle, aero_data, aero_state%awa, env_state, k)
        prob_coag = k * accept_factor
        prob_coag_tot = prob_coag_tot + prob_coag
        if (pmc_random() < prob_coag) then
@@ -405,7 +406,7 @@ contains
                source_particle)
           vol_sq = vol_sq + i_particle%vol**2
           if (i_samp <= n_samp_remove) then
-             num_conc_i = aero_weight_array_num_conc(aero_state%aero_weight, &
+             num_conc_i = aero_weight_array_num_conc(aero_state%awa, &
                   i_particle)
              prob_remove_i = num_conc_target / num_conc_i
              if (pmc_random() < prob_remove_i / prob_remove_source_max) then
@@ -459,13 +460,13 @@ contains
          target_unif_entry)
     target_id = aero_state%apa%particle(target_part)%id
     old_num_conc_target &
-         = aero_weight_array_num_conc(aero_state%aero_weight, &
+         = aero_weight_array_num_conc(aero_state%awa, &
          aero_state%apa%particle(target_part))
     call aero_particle_coagulate(aero_state%apa%particle(target_part), &
          source_particle, aero_state%apa%particle(target_part))
     aero_state%apa%particle(target_part)%id = target_id
     ! assign to a randomly chosen group
-    new_group = aero_weight_array_rand_group(aero_state%aero_weight, &
+    new_group = aero_weight_array_rand_group(aero_state%awa, &
          aero_particle_radius(aero_state%apa%particle(target_part)))
     call aero_particle_set_group(aero_state%apa%particle(target_part), &
          new_group)
@@ -486,7 +487,7 @@ contains
     ! so here we can't use aero_state_reweight_particle(), as that
     ! assumes we are staying in the same weight group.
     new_num_conc_target &
-         = aero_weight_array_num_conc(aero_state%aero_weight, &
+         = aero_weight_array_num_conc(aero_state%awa, &
          aero_state%apa%particle(target_part))
     call aero_state_dup_particle(aero_state, target_part, &
          old_num_conc_target / new_num_conc_target, random_weight_group=.true.)
@@ -644,7 +645,7 @@ contains
     p2 = aero_state%aero_sorted%size%inverse(b2)%entry(s2)
     call num_conc_weighted_kernel(coag_kernel_type, &
          aero_state%apa%particle(p1), aero_state%apa%particle(p2), aero_data, &
-         aero_state%aero_weight, env_state, k)
+         aero_state%awa, env_state, k)
     p = k * accept_factor
     call warn_assert_msg(532446093, p <= 1d0, &
          "kernel upper bound estimation is too tight, " &
@@ -711,7 +712,7 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol weight array.
-    type(aero_weight_t), intent(in) :: aero_weight_array(:)
+    type(aero_weight_array_t), intent(in) :: aero_weight_array
     !> Whether to remove particle_1.
     logical, intent(out) :: remove_1
     !> Whether to remove particle_2.
@@ -746,7 +747,8 @@ contains
          radius_2)
     num_conc_new = aero_weight_array_num_conc_at_radius(aero_weight_array, &
          radius_new)
-    new_group = aero_weight_array_rand_group(aero_weight_array, radius_new)
+    new_group = aero_weight_array_rand_group(aero_weight_array, &
+         radius_new)
     num_conc_min = min(num_conc_1, num_conc_2, num_conc_new)
     prob_remove_1 = num_conc_min / num_conc_1
     prob_remove_2 = num_conc_min / num_conc_2
@@ -841,7 +843,7 @@ contains
     particle_2 => aero_state%apa%particle(p2)
 
     call coagulate_weighting(particle_1, particle_2, particle_new, &
-         aero_data, aero_state%aero_weight, remove_1, remove_2, &
+         aero_data, aero_state%awa, remove_1, remove_2, &
          create_new, id_1_lost, id_2_lost, aero_info_1, aero_info_2)
 
     ! remove old particles

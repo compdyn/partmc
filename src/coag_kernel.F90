@@ -13,6 +13,7 @@ module pmc_coag_kernel
   use pmc_aero_particle
   use pmc_aero_data
   use pmc_aero_weight
+  use pmc_aero_weight_array
   use pmc_coag_kernel_sedi
   use pmc_coag_kernel_additive
   use pmc_coag_kernel_constant
@@ -200,7 +201,7 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol weight array.
-    type(aero_weight_t), intent(in) :: aero_weight_array(:)
+    type(aero_weight_array_t), intent(in) :: aero_weight_array
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Coagulation kernel.
@@ -496,7 +497,7 @@ contains
        r_1, r_2)
 
     !> Aerosol weight array.
-    type(aero_weight_t), intent(in) :: aero_weight_array(:)
+    type(aero_weight_array_t), intent(in) :: aero_weight_array
     !> Radius of first particle.
     real(kind=dp), intent(in) :: r_1
     !> Radius of second particle.
@@ -521,7 +522,7 @@ contains
        j_bin, f_max)
 
     !> Aerosol weight array.
-    type(aero_weight_t), intent(in) :: aero_weight_array(:)
+    type(aero_weight_array_t), intent(in) :: aero_weight_array
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> First bin number.
@@ -535,7 +536,7 @@ contains
     real(kind=dp) :: nc_i_max, nc_j_max, nc_i_min, nc_j_min, nc_min
     logical :: monotone_increasing, monotone_decreasing
 
-    call aero_weight_array_check_monotonicity(aero_weight_array, &
+    call aero_weight_array_check_monotonicity(aero_weight_array%aero_weight, &
          monotone_increasing, monotone_decreasing)
     call assert(121527417, monotone_increasing .or. monotone_decreasing)
 
@@ -578,7 +579,7 @@ contains
        i_bin, j_bin, f_max)
 
     !> Aerosol weight array.
-    type(aero_weight_t), intent(in) :: aero_weight_array(:)
+    type(aero_weight_array_t), intent(in) :: aero_weight_array
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> First bin number.

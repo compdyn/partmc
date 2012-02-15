@@ -641,7 +641,8 @@ contains
          aero_state%aero_weight, env_state, k)
     p = k * accept_factor
     call warn_assert_msg(532446093, p <= 1d0, &
-         "kernel upper bound estimation is too tight")
+         "kernel upper bound estimation is too tight, " &
+         // "could be caused by changing env_state")
 
     did_coag = .false.
     if (pmc_random() .lt. p) then

@@ -1,7 +1,7 @@
 run_type particle               # particle-resolved run
 output_prefix out/mosaic        # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
-n_part 20                       # total number of particles
+n_part 40                       # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 86400                     # total simulation time (s)

@@ -1,7 +1,7 @@
 run_type particle               # particle-resolved run
 output_prefix out/mosaic_restarted # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
-n_part 20                       # total number of particles
+n_part 40                       # total number of particles
 restart yes                     # whether to restart from saved state (yes/no)
 restart_file out/mosaic_0001_00000013.nc # saved state file to restart from
 

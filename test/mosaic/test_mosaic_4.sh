@@ -12,4 +12,4 @@ cd ${0%/*}
 ../../extract_aero_time out/mosaic_restarted_0001
 tail -n +13 out/mosaic_0001_aero_time.txt > out/mosaic_0001_aero_time_tail.txt
 
-../../numeric_diff --by elem --min-col 2 --rel-tol 1e-10 out/mosaic_0001_aero_time_tail.txt out/mosaic_restarted_0001_aero_time.txt
+../../numeric_diff --by elem --min-col 2 --rel-tol 1e-4 out/mosaic_0001_aero_time_tail.txt out/mosaic_restarted_0001_aero_time.txt

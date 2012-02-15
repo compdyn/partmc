@@ -70,11 +70,6 @@ rank).
 Change sample_disc_pdf() and sample_cts_pdf() to use cumulative
 distributions.
 
-Don't store paricles as ragged array, but just as a flat list. For
-coagulation, pre-compute the bin structures as needed on every
-timestep, which we have to do if we are using chemistry or
-condensation anyway.
-
 Store all events (particle loss, creation, coagulation, etc) in the
 output file, to allow detailed post-processing. Record full
 information for each event, including the complete state of all
@@ -113,19 +108,8 @@ structures.
 
 Fix sources to work with MPI.
 
-Integrate aero_particle_array into aero_state? Rename aero_state%p in
-any case. Probably best to rename aero_state%p to aero_state%particle
-and aero_particle_array%n_part to n_entry and
-aero_particle_array%particle to entry.
-
-Don't specify a bin grid in the spec file; work it out automatically
-in run_part.
-
 Change check_event() to always return false if the t_freq is 0, so
 run_part can change to not testing this itself.
-
-Brownian kernel depends on pressure, temperature, etc. Does this hurt
-k_max?
 
 Rename aero_sorted to aero_sort.
 
@@ -133,9 +117,6 @@ Parallel method should just generate n_samp for all pairs, then
 request these as blocks, not one-by-one. Also, don't bother sending
 coagulation products to other processors, just keep them. Can we
 analyze how expensive this is, compared to mixing?
-
-In bin_grid_particle_in_bin, warn if a particle is beyond r_min,
-r_max.
 
 We could ensure that bin_grids are always aligned to same base grid,
 so that when we extend the bin_grid, we don't need to recompute the
@@ -147,18 +128,12 @@ work well for large n_part/proc.
 
 Rename valid_sort -> sort_valid.
 
-Fix aero_state structure documentation.
-
 Change aero_particle_allocate_size() to just take aero_data, not
 individual n_*.
 
 Change constants to use format 3_dp rather than 3d0.
 
 Change kind=dp to kind=wp for "working precision".
-
-Fix aero_state%p naming.
-
-Document aero_state%p and aero_state%aero_sorted in aero_state_t.
 
 Change aero_weight to aero_weight_array where appropriate.
 
@@ -171,13 +146,7 @@ Make numeric_diff work even with extra spaces at the end of lines.
 Shift aero_data inside aero_state, like in partmc.py, to avoid having
 to remember when to pass it around.
 
-Suffix for extract_aero_size should be _aero_size_num, not _size_num,
-etc.
-
 Unify extract_* programs further (maybe into just partmc executable?).
-
-numeric_diff should take proper commandline args, including
---rel-per-col to do relative errors column-wise.
 
 Use a better Poisson generator method for the non-GSL case (just use
 the GSL method, that seems to be approximate anyway?).
@@ -185,3 +154,6 @@ the GSL method, that seems to be approximate anyway?).
 Parallel input_state(), input_filename_list(), and input_sectional().
 
 Parallel_dist does not do accelerated coagulation yet.
+
+partmc.py can have histogram_1d() and histogram_2d() replaced by
+numpy.histogram() and numpy.histogram2d().

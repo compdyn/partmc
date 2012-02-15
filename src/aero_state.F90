@@ -45,33 +45,9 @@ module pmc_aero_state
 
   !> The current collection of aerosol particles.
   !!
-  !! The particles in aero_state_t are stored sorted per-bin, to
-  !! improve efficiency of access and sampling. If a particle has
-  !! total radius \c r then calling <tt> i_bin =
-  !! bin_grid_particle_in_bin(bin_grid, r)</tt> finds the bin number
-  !! i_bin where that particle should go. That particle is then stored
-  !! as \c aero_state%%bin(i_bin)%%particle(i_part), where \c i_part
-  !! is the index within the bin. \c
-  !! aero_state%%v(i_bin)%%apa(i_part)%%vol(i_spec) is thus the volume
-  !! of the \c i_spec-th species in the \c i_part-th particle in the
-  !! \c i_bin-th bin.
-  !!
-  !! Typically most of the bins have only a few particles, while a
-  !! small number of bins have many particles. To avoid having too
-  !! much storage allocated for the bins with only a few particles, we
-  !! do dynamic allocation and deallocation of the storage
-  !! per-bin. With Fortran 90 we can't have arrays of arrays, so we
-  !! have to use an array of pointers, and then allocate each pointer.
-  !!
-  !! To avoid doing allocation and deallocation every time we add or
-  !! remove a particle to a bin, we always double or halve the bin
-  !! storage as necessary. The actual number of particles stored in a
-  !! bin will generally be less than the actual memory allocated for
-  !! that bin, so we store the current number of particles in a bin in
-  !! \c aero_state%%bin(i_bin)%%n_part. The allocated size of bin
-  !! storage in \c aero_state%%bin(i_bin)%%particle is not stored
-  !! explicitly, but can be obtained with the Fortran 90 SIZE()
-  !! intrinsic function.
+  !! The particles in \c aero_state_t are stored in a single flat
+  !! array (the \c apa data member), with a sorting into bins possibly
+  !! stored in the \c aero_sorted data member.
   !!
   !! Every time we remove particles we keep track of the particle ID
   !! and the action performed in the aero_info_array_t structure. This

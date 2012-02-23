@@ -202,7 +202,7 @@ contains
 
        call env_state_copy(env_state, old_env_state)
        update_rel_humid = .not. run_part_opt%do_condensation
-       call scenario_update_state(scenario, env_state, time + t_start, &
+       call scenario_update_env_state(scenario, env_state, time + t_start, &
             update_rel_humid)
 
        if (run_part_opt%do_nucleation) then

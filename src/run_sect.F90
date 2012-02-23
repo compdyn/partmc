@@ -173,7 +173,7 @@ contains
             / real(num_t, kind=dp)
 
        call env_state_copy(env_state, old_env_state)
-       call scenario_update_state(scenario, env_state, time, &
+       call scenario_update_env_state(scenario, env_state, time, &
             update_rel_humid = .true.)
        call env_state_update_gas_state(env_state, run_sect_opt%del_t, &
             old_env_state, gas_data, gas_state)

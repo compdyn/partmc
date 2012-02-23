@@ -612,7 +612,7 @@ contains
                aero_dist_init, 1d0, 0d0)
        end if
        call env_state_copy(env_state_init, env_state)
-       call scenario_init_state(scenario, env_state, &
+       call scenario_init_env_state(scenario, env_state, &
             env_state_init%elapsed_time)
 
 #ifdef PMC_USE_SUNDIALS
@@ -795,7 +795,7 @@ contains
 
     call uuid4_str(run_exact_opt%uuid)
 
-    call scenario_init_state(scenario, env_state, 0d0)
+    call scenario_init_env_state(scenario, env_state, 0d0)
 
     call run_exact(bin_grid, scenario, env_state, aero_data, &
          aero_dist_init, run_exact_opt)
@@ -955,7 +955,7 @@ contains
 
     call uuid4_str(run_sect_opt%uuid)
 
-    call scenario_init_state(scenario, env_state, 0d0)
+    call scenario_init_env_state(scenario, env_state, 0d0)
 
     call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, scenario, &
          env_state, run_sect_opt)

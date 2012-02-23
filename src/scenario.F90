@@ -242,8 +242,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize the time-dependent contents of the
-  !> environment. Thereafter scenario_update_state() should be used.
-  subroutine scenario_init_state(scenario, env_state, time)
+  !> environment. Thereafter scenario_update_env_state() should be used.
+  subroutine scenario_init_env_state(scenario, env_state, time)
 
     !> Environment data.
     type(scenario_t), intent(in) :: scenario
@@ -270,13 +270,13 @@ contains
          scenario%aero_dilution_time, scenario%aero_dilution_rate, &
          time, env_state%aero_background, env_state%aero_dilution_rate)
     
-  end subroutine scenario_init_state
+  end subroutine scenario_init_env_state
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update time-dependent contents of the environment.
-  !> scenario_init_state() should have been called at the start.
-  subroutine scenario_update_state(scenario, env_state, time, &
+  !> scenario_init_env_state() should have been called at the start.
+  subroutine scenario_update_env_state(scenario, env_state, time, &
        update_rel_humid)
 
     !> Environment data.
@@ -318,7 +318,7 @@ contains
          scenario%aero_dilution_time, scenario%aero_dilution_rate, &
          time, env_state%aero_background, env_state%aero_dilution_rate)
 
-  end subroutine scenario_update_state
+  end subroutine scenario_update_env_state
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

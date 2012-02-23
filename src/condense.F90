@@ -214,7 +214,7 @@ contains
 
     call env_state_allocate(env_state_final)
     call env_state_copy(env_state, env_state_final)
-    call scenario_update_state(scenario, env_state_final, &
+    call scenario_update_env_state(scenario, env_state_final, &
          env_state_final%elapsed_time + del_t, update_rel_humid = .false.)
     condense_saved_Tdot = (env_state_final%temp - env_state%temp) / del_t
 
@@ -384,7 +384,7 @@ contains
     type(env_state_t), intent(inout) :: env_state
 
     call env_state_copy(condense_saved_env_state_initial, env_state)
-    call scenario_update_state(condense_saved_scenario, &
+    call scenario_update_env_state(condense_saved_scenario, &
          env_state, env_state%elapsed_time + time, &
          update_rel_humid = .false.)
     env_state%rel_humid = state(n_eqn)

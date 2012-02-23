@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright (C) 2006-2008, 2011 Matthew West
+# Copyright (C) 2006-2012 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -145,7 +145,7 @@ def write_deps_graphviz(outf, filename, all_deps, has_mods):
         for dep in all_deps[mod]:
             outf.write("    %s -> %s\n" % (mod, dep))
 
-def propagrate_deps(full_deps, opts):
+def propagate_deps(full_deps, opts):
     if opts.verbose:
         sys.stderr.write("propagating full dependencies...\n")
     changes_made = False
@@ -153,6 +153,7 @@ def propagrate_deps(full_deps, opts):
         sys.stderr.write("for modules: %s\n" % " ".join(full_deps.keys()))
     for mod in full_deps.keys():
         new_deps = set()
+        new_deps |= full_deps[mod]
         for dep in full_deps[mod]:
             new_deps |= full_deps[dep]
         if opts.verbose:
@@ -177,7 +178,7 @@ def remove_with_indirect(all_deps, opts):
     full_deps = {}
     for mod in all_deps.keys():
         full_deps[mod] = set(all_deps[mod])
-    while propagrate_deps(full_deps, opts):
+    while propagate_deps(full_deps, opts):
         pass
     if opts.verbose:
         sys.stderr.write("computing minimal dependencies...\n")
@@ -276,7 +277,7 @@ def main():
             filebase, fileext = os.path.splitext(file)
             if opts.verbose:
                 sys.stderr.write("adding deps to hash: ")
-                sys.stderr.write("%s: %s\n" % (mod, " ".join(deps)))
+                sys.stderr.write("%s: %s\n" % (filebase, " ".join(deps)))
             all_deps[filebase] = deps
             if mods:
                 has_mods[filebase] = True

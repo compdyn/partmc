@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -11,7 +11,7 @@ module pmc_run_exact
   use pmc_aero_dist
   use pmc_bin_grid
   use pmc_aero_state
-  use pmc_env_data
+  use pmc_scenario
   use pmc_env_state
   use pmc_aero_data
   use pmc_output
@@ -41,13 +41,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Run an exact simulation.
-  subroutine run_exact(bin_grid, env_data, env_state, aero_data, &
+  subroutine run_exact(bin_grid, scenario, env_state, aero_data, &
        aero_dist_init, run_exact_opt)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Environment data.
-    type(env_data_t), intent(in) :: env_data
+    type(scenario_t), intent(in) :: scenario
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
@@ -75,10 +75,10 @@ contains
     do i_time = 0,n_time
        time = real(i_time, kind=dp) / real(n_time, kind=dp) &
             * run_exact_opt%t_max
-       call env_data_update_state(env_data, env_state, time, &
+       call scenario_update_state(scenario, env_state, time, &
             update_rel_humid = .true.)
        call exact_soln(bin_grid, aero_data, run_exact_opt%do_coagulation, &
-            run_exact_opt%coag_kernel_type, aero_dist_init, env_data, &
+            run_exact_opt%coag_kernel_type, aero_dist_init, scenario, &
             env_state, time, aero_binned)
        call output_sectional(run_exact_opt%prefix, bin_grid, aero_data, &
             aero_binned, gas_data, gas_state, env_state, i_time + 1, &

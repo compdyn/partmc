@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2009 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2009, 2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -16,7 +16,7 @@ module pmc_constants
   !> Physical constants.
   !!
   !! These are all absolute constants. Environment parameters that in
-  !! principle could change should go in env_data.f90.
+  !! principle could change should go in scenario.f90.
   !!
   !! To access a constant in a subroutine you should <tt>use
   !! pmc_constants</tt> and then the constant value is accessed with

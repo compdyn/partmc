@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -30,7 +30,7 @@ module pmc_env_state
   !! All quantities are instantaneous, describing the state at a
   !! particular instant of time. Constant data and other data not
   !! associated with the current environment state is store in
-  !! env_data_t.
+  !! scenario_t.
   !!
   !! The emissions and dilution are both described by pairs of a state
   !! and a rate. The product of these gives the actual emissions or
@@ -554,7 +554,7 @@ contains
     !! computed for the rest of the simulation, and those parameters
     !! given as prescribed profiles for the entire simulation
     !! duration. The variables below are for the first type --- for
-    !! the prescribed profiles see \ref input_format_env_data.
+    !! the prescribed profiles see \ref input_format_scenario.
     !!
     !! The environment state is specified by the parameters:
     !! - \b rel_humidity (real, dimensionless): the relative humidity
@@ -575,7 +575,7 @@ contains
     !!   - \ref spec_file_format --- the input file text format
     !!   - \ref output_format_env_state --- the corresponding output
     !!     format
-    !!   - \ref input_format_env_data --- the prescribed profiles of
+    !!   - \ref input_format_scenario --- the prescribed profiles of
     !!     other environment data
 
     call spec_file_read_real(file, 'rel_humidity', env_state%rel_humid)
@@ -799,7 +799,7 @@ contains
     !!   - \b height (unit m): current boundary layer mixing height
     !!
     !! See also:
-    !!   - \ref input_format_env_state and \ref input_format_env_data
+    !!   - \ref input_format_env_state and \ref input_format_scenario
     !!     --- the corresponding input formats
 
     call pmc_nc_write_real(ncid, env_state%temp, "temperature", unit="K", &

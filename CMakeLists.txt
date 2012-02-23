@@ -246,7 +246,7 @@ set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 
 add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/integer_rmap.F90 src/aero_sorted.F90 src/aero_binned.F90
-  src/bin_grid.F90 src/constants.F90 src/env_data.F90
+  src/bin_grid.F90 src/constants.F90 src/scenario.F90
   src/env_state.F90 src/aero_mode.F90 src/aero_dist.F90
   src/aero_weight.F90 src/coag_kernel_additive.F90
   src/coag_kernel_sedi.F90 src/coag_kernel_constant.F90

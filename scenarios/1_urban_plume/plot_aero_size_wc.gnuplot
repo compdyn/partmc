@@ -10,7 +10,7 @@ set title "Aerosol size distributions (with coag)"
 set logscale
 
 set xlabel "diameter / um"
-set xrange [0.01:1]
+set xrange [0.01:10]
 
 set ytics nomirror
 set y2tics

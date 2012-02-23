@@ -10,8 +10,8 @@ set -v
 ../../build/extract_env out/urban_plume2_wc_0001
 ../../build/extract_gas out/urban_plume2_wc_0001
 ../../build/extract_aero_time out/urban_plume2_wc_0001
-../../build/extract_aero_size --num --dmin 1e-9 --dmax 1e-6 --nbin 100 out/urban_plume2_wc_0001
-../../build/extract_aero_size --mass --dmin 1e-9 --dmax 1e-6 --nbin 100 out/urban_plume2_wc_0001
+../../build/extract_aero_size --num --dmin 1e-9 --dmax 1e-5 --nbin 100 out/urban_plume2_wc_0001
+../../build/extract_aero_size --mass --dmin 1e-9 --dmax 1e-5 --nbin 100 out/urban_plume2_wc_0001
 
 ../../build/extract_aero_particles out/urban_plume2_wc_0001_00000001.nc
 ../../build/extract_aero_particles out/urban_plume2_wc_0001_00000006.nc
@@ -21,8 +21,8 @@ set -v
 ../../build/extract_env out/urban_plume2_nc_0001
 ../../build/extract_gas out/urban_plume2_nc_0001
 ../../build/extract_aero_time out/urban_plume2_nc_0001
-../../build/extract_aero_size --num --dmin 1e-9 --dmax 1e-6 --nbin 100 out/urban_plume2_nc_0001
-../../build/extract_aero_size --mass --dmin 1e-9 --dmax 1e-6 --nbin 100 out/urban_plume2_nc_0001
+../../build/extract_aero_size --num --dmin 1e-9 --dmax 1e-5 --nbin 100 out/urban_plume2_nc_0001
+../../build/extract_aero_size --mass --dmin 1e-9 --dmax 1e-5 --nbin 100 out/urban_plume2_nc_0001
 
 ../../build/extract_aero_particles out/urban_plume2_nc_0001_00000001.nc
 ../../build/extract_aero_particles out/urban_plume2_nc_0001_00000006.nc

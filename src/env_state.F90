@@ -29,14 +29,8 @@ module pmc_env_state
   !!
   !! All quantities are instantaneous, describing the state at a
   !! particular instant of time. Constant data and other data not
-  !! associated with the current environment state is store in
+  !! associated with the current environment state is stored in
   !! scenario_t.
-  !!
-  !! The emissions and dilution are both described by pairs of a state
-  !! and a rate. The product of these gives the actual emissions or
-  !! dilution with units quantity per time. One way to think about
-  !! this is to set the rate to 1/3600 and then regard the state as an
-  !! amount per hour, etc.
   type env_state_t
      !> Temperature (K).
      real(kind=dp) :: temp
@@ -60,22 +54,6 @@ module pmc_env_state
      real(kind=dp) :: solar_zenith_angle
      !> Box height (m).
      real(kind=dp) :: height
-     !> Gas emissions.
-     type(gas_state_t) :: gas_emissions
-     !> Gas emisssion rate (s^{-1}).
-     real(kind=dp) :: gas_emission_rate
-     !> Background gas mixing ratios.
-     type(gas_state_t) :: gas_background
-     !> Gas-background dilution rate (s^{-1}).
-     real(kind=dp) :: gas_dilution_rate
-     !> Aerosol emissions.
-     type(aero_dist_t) :: aero_emissions
-     !> Aerosol emisssion rate (s^{-1}).
-     real(kind=dp) :: aero_emission_rate
-     !> Aerosol background.
-     type(aero_dist_t) :: aero_background
-     !> Aero-background dilute rate (s^{-1}).
-     real(kind=dp) :: aero_dilution_rate
   end type env_state_t
   
 contains
@@ -100,15 +78,6 @@ contains
     env_state%solar_zenith_angle = 0d0
     env_state%height = 0d0
 
-    call gas_state_allocate(env_state%gas_emissions)
-    call gas_state_allocate(env_state%gas_background)
-    env_state%gas_emission_rate = 0d0
-    env_state%gas_dilution_rate = 0d0
-    call aero_dist_allocate(env_state%aero_emissions)
-    call aero_dist_allocate(env_state%aero_background)
-    env_state%aero_emission_rate = 0d0
-    env_state%aero_dilution_rate = 0d0
-
   end subroutine env_state_allocate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -118,11 +87,6 @@ contains
 
     !> Environment.
     type(env_state_t), intent(inout) :: env_state
-
-    call gas_state_deallocate(env_state%gas_emissions)
-    call gas_state_deallocate(env_state%gas_background)
-    call aero_dist_deallocate(env_state%aero_emissions)
-    call aero_dist_deallocate(env_state%aero_background)
 
   end subroutine env_state_deallocate
 
@@ -149,17 +113,6 @@ contains
     env_state%solar_zenith_angle = env_state%solar_zenith_angle &
          + env_state_delta%solar_zenith_angle
     env_state%height = env_state%height + env_state_delta%height
-    call gas_state_add(env_state%gas_emissions, env_state_delta%gas_emissions)
-    env_state%gas_emission_rate = env_state%gas_emission_rate &
-         + env_state_delta%gas_emission_rate
-    call gas_state_add(env_state%gas_background, &
-         env_state_delta%gas_background)
-    env_state%gas_dilution_rate = env_state%gas_dilution_rate &
-         + env_state_delta%gas_dilution_rate
-    env_state%aero_emission_rate = env_state%aero_emission_rate &
-         + env_state_delta%aero_emission_rate
-    env_state%aero_dilution_rate = env_state%aero_dilution_rate &
-         + env_state_delta%aero_dilution_rate
     
   end subroutine env_state_add
   
@@ -184,10 +137,6 @@ contains
     env_state%elapsed_time = env_state%elapsed_time * alpha
     env_state%solar_zenith_angle = env_state%solar_zenith_angle * alpha
     env_state%height = env_state%height * alpha
-    call gas_state_scale(env_state%gas_emissions, alpha)
-    env_state%gas_emission_rate = env_state%gas_emission_rate * alpha
-    call gas_state_scale(env_state%gas_background, alpha)
-    env_state%gas_dilution_rate = env_state%gas_dilution_rate * alpha
     
   end subroutine env_state_scale
   
@@ -212,14 +161,6 @@ contains
     env_to%elapsed_time = env_from%elapsed_time
     env_to%solar_zenith_angle = env_from%solar_zenith_angle
     env_to%height = env_from%height
-    call gas_state_copy(env_from%gas_emissions, env_to%gas_emissions)
-    env_to%gas_emission_rate = env_from%gas_emission_rate
-    call gas_state_copy(env_from%gas_background, env_to%gas_background)
-    env_to%gas_dilution_rate = env_from%gas_dilution_rate
-    call aero_dist_copy(env_from%aero_emissions, env_to%aero_emissions)
-    env_to%aero_emission_rate = env_from%aero_emission_rate
-    call aero_dist_copy(env_from%aero_background, env_to%aero_background)
-    env_to%aero_dilution_rate = env_from%aero_dilution_rate
     
   end subroutine env_state_copy
   
@@ -367,178 +308,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Do emissions and background dilution from the environment.
-  subroutine env_state_update_gas_state(env_state, delta_t, &
-       old_env_state, &
-       gas_data, gas_state)
-
-    !> Current environment.
-    type(env_state_t), intent(in) :: env_state
-    !> Time increment to update over.
-    real(kind=dp), intent(in) :: delta_t
-    !> Previous environment.
-    type(env_state_t), intent(in) :: old_env_state
-    !> Gas data values.
-    type(gas_data_t), intent(in) :: gas_data
-    !> Gas state to update.
-    type(gas_state_t), intent(inout) :: gas_state
-
-    real(kind=dp) :: effective_dilution_rate
-    type(gas_state_t) :: emission, dilution
-
-    call gas_state_allocate_size(emission, gas_data%n_spec)
-    call gas_state_allocate_size(dilution, gas_data%n_spec)
-
-    ! account for height changes
-    effective_dilution_rate = env_state%gas_dilution_rate
-    if (env_state%height > old_env_state%height) then
-       effective_dilution_rate = effective_dilution_rate &
-            + (env_state%height - old_env_state%height) / delta_t / &
-            old_env_state%height
-    end if
-
-    ! emission = delta_t * gas_emission_rate * gas_emissions
-    ! but emissions are in (mol m^{-2} s^{-1})
-    call gas_state_copy(env_state%gas_emissions, emission)
-    call gas_state_scale(emission, 1d0 / env_state%height)
-    call gas_state_mole_dens_to_ppb(emission, env_state)
-    call gas_state_scale(emission, delta_t * env_state%gas_emission_rate)
-
-    ! dilution = delta_t * gas_dilution_rate * (gas_background - gas_state)
-    call gas_state_copy(env_state%gas_background, dilution)
-    call gas_state_sub(dilution, gas_state)
-    call gas_state_scale(dilution, delta_t * effective_dilution_rate)
-
-    call gas_state_add(gas_state, emission)
-    call gas_state_add(gas_state, dilution)
-
-    call gas_state_ensure_nonnegative(gas_state)
-
-    call gas_state_deallocate(emission)
-    call gas_state_deallocate(dilution)
-
-  end subroutine env_state_update_gas_state
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Do emissions and background dilution from the environment for a
-  !> particle aerosol distribution.
-  subroutine env_state_update_aero_state(env_state, delta_t, &
-       old_env_state, aero_data, aero_state, n_emit, n_dil_in, n_dil_out)
-
-    !> Current environment.
-    type(env_state_t), intent(in) :: env_state
-    !> Time increment to update over.
-    real(kind=dp), intent(in) :: delta_t
-    !> Previous environment.
-    type(env_state_t), intent(in) :: old_env_state
-    !> Aero data values.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Aero state to update.
-    type(aero_state_t), intent(inout) :: aero_state
-    !> Number of emitted particles.
-    integer, intent(out) :: n_emit
-    !> Number of diluted-in particles.
-    integer, intent(out) :: n_dil_in
-    !> Number of diluted-out particles.
-    integer, intent(out) :: n_dil_out
-
-    integer :: i
-    real(kind=dp) :: sample_prop, effective_dilution_rate
-    type(aero_state_t) :: aero_state_delta
-
-    ! account for height changes
-    effective_dilution_rate = env_state%aero_dilution_rate
-    if (env_state%height > old_env_state%height) then
-       effective_dilution_rate = effective_dilution_rate &
-            + (env_state%height - old_env_state%height) / delta_t / &
-            old_env_state%height
-    end if
-
-    ! loss to background
-    sample_prop = 1d0 - exp(- delta_t * effective_dilution_rate)
-    call aero_state_allocate(aero_state_delta)
-    call aero_state_sample_particles(aero_state, aero_state_delta, &
-         sample_prop, AERO_INFO_DILUTION)
-    n_dil_out = aero_state_total_particles(aero_state_delta)
-    call aero_state_deallocate(aero_state_delta)
-
-    ! addition from background
-    sample_prop = 1d0 - exp(- delta_t * effective_dilution_rate)
-    call aero_state_add_aero_dist_sample(aero_state, aero_data, &
-         env_state%aero_background, sample_prop, env_state%elapsed_time, &
-         n_dil_in)
-    
-    ! emissions
-    sample_prop = 1d0 &
-         - exp(- delta_t * env_state%aero_emission_rate / env_state%height)
-    call aero_state_add_aero_dist_sample(aero_state, aero_data, &
-         env_state%aero_emissions, sample_prop, env_state%elapsed_time, n_emit)
-
-    ! update computational volume
-    call aero_weight_scale_comp_vol(aero_state%aero_weight, &
-         env_state%temp / old_env_state%temp)
-
-  end subroutine env_state_update_aero_state
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Do emissions and background dilution from the environment for a
-  !> binned aerosol distribution.
-  subroutine env_state_update_aero_binned(env_state, delta_t, & 
-       old_env_state, bin_grid, aero_data, aero_binned)
-
-    !> Current environment.
-    type(env_state_t), intent(in) :: env_state
-    !> Time increment to update over.
-    real(kind=dp), intent(in) :: delta_t
-    !> Previous environment.
-    type(env_state_t), intent(in) :: old_env_state
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
-    !> Aero data values.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Aero binned to update.
-    type(aero_binned_t), intent(inout) :: aero_binned
-
-    type(aero_binned_t) :: emission, dilution
-    real(kind=dp) :: effective_dilution_rate
-
-    call aero_binned_allocate_size(emission, bin_grid%n_bin, aero_data%n_spec)
-    call aero_binned_allocate_size(dilution, bin_grid%n_bin, aero_data%n_spec)
-
-    ! account for height changes
-    effective_dilution_rate = env_state%aero_dilution_rate
-    if (env_state%height > old_env_state%height) then
-       effective_dilution_rate = effective_dilution_rate &
-            + (env_state%height - old_env_state%height) / delta_t / &
-            old_env_state%height
-    end if
-
-    ! emission = delta_t * aero_emission_rate * aero_emissions
-    ! but emissions are #/m^2 so we need to divide by height
-    call aero_binned_add_aero_dist(emission, bin_grid, aero_data, &
-         env_state%aero_emissions)
-    call aero_binned_scale(emission, &
-         delta_t * env_state%aero_emission_rate / env_state%height)
-
-    ! dilution = delta_t * aero_dilution_rate
-    !            * (aero_background - aero_binned)
-    call aero_binned_add_aero_dist(dilution, bin_grid, aero_data, &
-         env_state%aero_background)
-    call aero_binned_sub(dilution, aero_binned)
-    call aero_binned_scale(dilution, delta_t * effective_dilution_rate)
-
-    call aero_binned_add(aero_binned, emission)
-    call aero_binned_add(aero_binned, dilution)
-
-    call aero_binned_deallocate(emission)
-    call aero_binned_deallocate(dilution)
-
-  end subroutine env_state_update_aero_binned
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Read environment specification from a spec file.
   subroutine spec_file_read_env_state(file, env_state)
 
@@ -656,15 +425,7 @@ contains
          + pmc_mpi_pack_size_integer(val%start_day) &
          + pmc_mpi_pack_size_real(val%elapsed_time) &
          + pmc_mpi_pack_size_real(val%solar_zenith_angle) &
-         + pmc_mpi_pack_size_real(val%height) &
-         + pmc_mpi_pack_size_gas_state(val%gas_emissions) &
-         + pmc_mpi_pack_size_real(val%gas_emission_rate) &
-         + pmc_mpi_pack_size_gas_state(val%gas_background) &
-         + pmc_mpi_pack_size_real(val%gas_dilution_rate) &
-         + pmc_mpi_pack_size_aero_dist(val%aero_emissions) &
-         + pmc_mpi_pack_size_real(val%aero_emission_rate) &
-         + pmc_mpi_pack_size_aero_dist(val%aero_background) &
-         + pmc_mpi_pack_size_real(val%aero_dilution_rate)
+         + pmc_mpi_pack_size_real(val%height)
 
   end function pmc_mpi_pack_size_env_state
 
@@ -695,14 +456,6 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%elapsed_time)
     call pmc_mpi_pack_real(buffer, position, val%solar_zenith_angle)
     call pmc_mpi_pack_real(buffer, position, val%height)
-    call pmc_mpi_pack_gas_state(buffer, position, val%gas_emissions)
-    call pmc_mpi_pack_real(buffer, position, val%gas_emission_rate)
-    call pmc_mpi_pack_gas_state(buffer, position, val%gas_background)
-    call pmc_mpi_pack_real(buffer, position, val%gas_dilution_rate)
-    call pmc_mpi_pack_aero_dist(buffer, position, val%aero_emissions)
-    call pmc_mpi_pack_real(buffer, position, val%aero_emission_rate)
-    call pmc_mpi_pack_aero_dist(buffer, position, val%aero_background)
-    call pmc_mpi_pack_real(buffer, position, val%aero_dilution_rate)
     call assert(464101191, &
          position - prev_position <= pmc_mpi_pack_size_env_state(val))
 #endif
@@ -736,14 +489,6 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%elapsed_time)
     call pmc_mpi_unpack_real(buffer, position, val%solar_zenith_angle)
     call pmc_mpi_unpack_real(buffer, position, val%height)
-    call pmc_mpi_unpack_gas_state(buffer, position, val%gas_emissions)
-    call pmc_mpi_unpack_real(buffer, position, val%gas_emission_rate)
-    call pmc_mpi_unpack_gas_state(buffer, position, val%gas_background)
-    call pmc_mpi_unpack_real(buffer, position, val%gas_dilution_rate)
-    call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_emissions)
-    call pmc_mpi_unpack_real(buffer, position, val%aero_emission_rate)
-    call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_background)
-    call pmc_mpi_unpack_real(buffer, position, val%aero_dilution_rate)
     call assert(205696745, &
          position - prev_position <= pmc_mpi_pack_size_env_state(val))
 #endif

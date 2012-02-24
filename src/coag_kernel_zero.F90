@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2011 Matthew West
+! Copyright (C) 2007-2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -13,11 +13,11 @@
 module pmc_coag_kernel_zero
 
   use pmc_bin_grid
+  use pmc_scenario
   use pmc_env_state
   use pmc_util
   use pmc_aero_binned
   use pmc_aero_dist
-  use pmc_aero_data
   use pmc_aero_data
   use pmc_aero_particle
   
@@ -99,7 +99,7 @@ contains
   !!                     + \frac{k_{\rm emit}}{k_{\rm dilute}} n_{\rm emit}(D)
   !! \f]
   subroutine soln_zero(bin_grid, aero_data, time, aero_dist_init, &
-       env_state, aero_binned)
+       scenario, env_state, aero_binned)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -109,30 +109,47 @@ contains
     real(kind=dp), intent(in) :: time
     !> Initial distribution.
     type(aero_dist_t), intent(in) :: aero_dist_init
+    !> Scenario.
+    type(scenario_t), intent(in) :: scenario
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Output state.
     type(aero_binned_t), intent(inout) :: aero_binned
 
-    type(aero_binned_t) :: aero_binned_limit
+    real(kind=dp) :: emission_rate_scale, dilution_rate, p
+    type(aero_dist_t) :: emissions, background
+    type(aero_binned_t) :: background_binned, aero_binned_limit
 
-    if (env_state%aero_dilution_rate == 0d0) then
+    call aero_dist_allocate(emissions)
+    call aero_dist_allocate(background)
+    call aero_binned_allocate_size(background_binned, bin_grid%n_bin, &
+         aero_data%n_spec)
+
+    call aero_dist_interp_1d(scenario%aero_emission, &
+         scenario%aero_emission_time, scenario%aero_emission_rate_scale, &
+         env_state%elapsed_time, emissions, emission_rate_scale)
+    call aero_dist_interp_1d(scenario%aero_background, &
+         scenario%aero_dilution_time, scenario%aero_dilution_rate, 0d0, &
+         background, dilution_rate)
+    call aero_binned_add_aero_dist(background_binned, bin_grid, aero_data, &
+         background)
+
+    if (dilution_rate == 0d0) then
        call aero_binned_zero(aero_binned)
        call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_data, &
-            env_state%aero_emissions)
+            emissions)
        call aero_binned_scale(aero_binned, &
-            env_state%aero_emission_rate * time / env_state%height)
+            emission_rate_scale * time / env_state%height)
     else
        ! calculate the limit steady state distribution
        call aero_binned_allocate_size(aero_binned_limit, bin_grid%n_bin, &
             aero_data%n_spec)
        call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, &
-            aero_data, env_state%aero_emissions)
+            aero_data, emissions)
        call aero_binned_scale(aero_binned_limit, &
-            env_state%aero_emission_rate / env_state%height &
-            / env_state%aero_dilution_rate)
+            emission_rate_scale / env_state%height / dilution_rate)
        call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, &
-            aero_data, env_state%aero_background)
+            aero_data, background)
 
        ! calculate the current state
        call aero_binned_zero(aero_binned)
@@ -140,11 +157,15 @@ contains
             aero_dist_init)
        call aero_binned_sub(aero_binned, aero_binned_limit)
        call aero_binned_scale(aero_binned, &
-            exp(-env_state%aero_dilution_rate * time))
+            exp(-dilution_rate * time))
        call aero_binned_add(aero_binned, aero_binned_limit)
 
        call aero_binned_deallocate(aero_binned_limit)
     end if
+
+    call aero_dist_deallocate(emissions)
+    call aero_dist_deallocate(background)
+    call aero_binned_deallocate(background_binned)
 
   end subroutine soln_zero
 

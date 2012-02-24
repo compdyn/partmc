@@ -175,10 +175,10 @@ contains
        call env_state_copy(env_state, old_env_state)
        call scenario_update_env_state(scenario, env_state, time, &
             update_rel_humid = .true.)
-       call env_state_update_gas_state(env_state, run_sect_opt%del_t, &
-            old_env_state, gas_data, gas_state)
-       call env_state_update_aero_binned(env_state, run_sect_opt%del_t, &
-            old_env_state, bin_grid, aero_data, aero_binned)
+       call scenario_update_gas_state(scenario, run_sect_opt%del_t, &
+            env_state, old_env_state, gas_data, gas_state)
+       call scenario_update_aero_binned(scenario, run_sect_opt%del_t, &
+            env_state, old_env_state, bin_grid, aero_data, aero_binned)
        
        ! print output
        call check_event(time, run_sect_opt%del_t, run_sect_opt%t_output, &

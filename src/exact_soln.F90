@@ -88,7 +88,7 @@ contains
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_ZERO) then
        ! FIXME: check scenario has constant emissions and constant dilution
        call soln_zero(bin_grid, aero_data, time, aero_dist_init, &
-            env_state, aero_binned)
+            scenario, env_state, aero_binned)
     else
        call die_msg(932981721, "No exact solutions with " &
             // "coagulation kernel type " &

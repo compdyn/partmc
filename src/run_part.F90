@@ -231,10 +231,11 @@ contains
           progress_n_coag = progress_n_coag + n_coag
        end if
 
-       call env_state_update_gas_state(env_state, run_part_opt%del_t, &
-            old_env_state, gas_data, gas_state)
-       call env_state_update_aero_state(env_state, run_part_opt%del_t, &
-            old_env_state, aero_data, aero_state, n_emit, n_dil_in, n_dil_out)
+       call scenario_update_gas_state(scenario, run_part_opt%del_t, &
+            env_state, old_env_state, gas_data, gas_state)
+       call scenario_update_aero_state(scenario, run_part_opt%del_t, &
+            env_state, old_env_state, aero_data, aero_state, n_emit, &
+            n_dil_in, n_dil_out)
        progress_n_emit = progress_n_emit + n_emit
        progress_n_dil_in = progress_n_dil_in + n_dil_in
        progress_n_dil_out = progress_n_dil_out + n_dil_out

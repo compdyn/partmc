@@ -8,16 +8,8 @@
 !> The env_state_t structure and associated subroutines.
 module pmc_env_state
 
-  use pmc_gas_state
-  use pmc_aero_dist
   use pmc_constants
-  use pmc_aero_data
-  use pmc_aero_particle
-  use pmc_aero_binned
   use pmc_util
-  use pmc_gas_data
-  use pmc_bin_grid
-  use pmc_aero_state
   use pmc_spec_file
   use pmc_mpi
   use pmc_netcdf
@@ -168,12 +160,10 @@ contains
 
   !> Adds the given water volume to the water vapor and updates all
   !> environment quantities.
-  subroutine env_state_change_water_volume(env_state, aero_data, dv)
+  subroutine env_state_change_water_volume(env_state, dv)
     
     !> Environment state to update.
     type(env_state_t), intent(inout) :: env_state
-    !> Aero_data constants.
-    type(aero_data_t), intent(in) :: aero_data
     !> Volume concentration of water added (m^3/m^3).
     real(kind=dp), intent(in) :: dv
     
@@ -182,17 +172,16 @@ contains
                    ! pmv and mv are related by the factor molec_weight/(R*T)
     real(kind=dp) dmv     ! change of water density (kg m^{-3})
     
-    dmv = dv * aero_data%density(aero_data%i_water)
+    dmv = dv * const%water_density
     pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
-    mv = aero_data%molec_weight(aero_data%i_water) &
-         / (const%univ_gas_const*env_state%temp) * pmv
+    mv = const%water_molec_weight / (const%univ_gas_const*env_state%temp) * pmv
     mv = mv - dmv
     if (mv < 0d0) then
        call warn_msg(980320483, "relative humidity tried to go negative")
        mv = 0d0
     end if
     env_state%rel_humid = const%univ_gas_const * env_state%temp &
-         / aero_data%molec_weight(aero_data%i_water) * mv &
+         / const%water_molec_weight * mv &
          / env_state_sat_vapor_pressure(env_state)
     
   end subroutine env_state_change_water_volume
@@ -211,30 +200,6 @@ contains
     
   end function env_state_sat_vapor_pressure
   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Returns the critical relative humidity from the kappa value (1).
-  real(kind=dp) function aero_particle_kappa_rh(aero_particle, aero_data, &
-       env_state)
-
-    !> Aerosol particle.
-    type(aero_particle_t), intent(in) :: aero_particle
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-
-    real(kind=dp) :: kappa, diam, C, A
-    
-    kappa = aero_particle_solute_kappa(aero_particle, aero_data)
-    A = 4d0 * const%water_surf_eng * const%water_molec_weight &
-         / (const%univ_gas_const * env_state%temp * const%water_density)
-    C = sqrt(4d0 * A**3 / 27d0)
-    diam = vol2diam(aero_particle_volume(aero_particle))
-    aero_particle_kappa_rh = C / sqrt(kappa * diam**3) + 1d0
-
-  end function aero_particle_kappa_rh
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Air density (kg m^{-3}).
@@ -260,21 +225,6 @@ contains
          / (const%univ_gas_const * env_state%temp)
 
   end function env_state_air_molar_den
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Convert (mol m^{-3}) to (ppb).
-  subroutine gas_state_mole_dens_to_ppb(gas_state, env_state)
-
-    !> Gas state.
-    type(gas_state_t), intent(inout) :: gas_state
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-    
-    gas_state%mix_rat = gas_state%mix_rat &
-         / env_state_air_molar_den(env_state) * 1d9
-    
-  end subroutine gas_state_mole_dens_to_ppb
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

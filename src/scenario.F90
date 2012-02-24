@@ -12,6 +12,7 @@ module pmc_scenario
   use pmc_aero_dist
   use pmc_util
   use pmc_env_state
+  use pmc_aero_state
   use pmc_spec_file
   use pmc_aero_data
   use pmc_gas_data

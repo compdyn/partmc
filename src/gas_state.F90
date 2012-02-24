@@ -11,6 +11,7 @@ module pmc_gas_state
   use pmc_util
   use pmc_spec_file
   use pmc_gas_data
+  use pmc_env_state
   use pmc_mpi
   use pmc_netcdf
 #ifdef PMC_USE_MPI
@@ -186,6 +187,21 @@ contains
     gas_state%mix_rat = max(gas_state%mix_rat, 0d0)
 
   end subroutine gas_state_ensure_nonnegative
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert (mol m^{-3}) to (ppb).
+  subroutine gas_state_mole_dens_to_ppb(gas_state, env_state)
+
+    !> Gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    gas_state%mix_rat = gas_state%mix_rat &
+         / env_state_air_molar_den(env_state) * 1d9
+
+  end subroutine gas_state_mole_dens_to_ppb
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

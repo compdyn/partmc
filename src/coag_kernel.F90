@@ -536,7 +536,7 @@ contains
     real(kind=dp) :: nc_i_max, nc_j_max, nc_i_min, nc_j_min, nc_min
     logical :: monotone_increasing, monotone_decreasing
 
-    call aero_weight_array_check_monotonicity(aero_weight_array%aero_weight, &
+    call aero_weight_array_check_monotonicity(aero_weight_array, &
          monotone_increasing, monotone_decreasing)
     call assert(121527417, monotone_increasing .or. monotone_decreasing)
 

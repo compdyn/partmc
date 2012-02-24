@@ -248,7 +248,7 @@ contains
     real(kind=dp) :: i_nc_min, i_nc_max, j_nc_min, j_nc_max
     logical :: monotone_increasing, monotone_decreasing
 
-    call aero_weight_array_check_monotonicity(aero_weight_array%aero_weight, &
+    call aero_weight_array_check_monotonicity(aero_weight_array, &
          monotone_increasing, monotone_decreasing)
     if (.not. monotone_decreasing) then
        correct_weight_ordering = .false.

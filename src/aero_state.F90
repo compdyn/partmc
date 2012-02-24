@@ -168,26 +168,22 @@ contains
     if (weight_type == AERO_STATE_WEIGHT_NONE) then
        allocate(aero_state%awa%aero_weight(0))
     elseif (weight_type == AERO_STATE_WEIGHT_FLAT) then
-       allocate(aero_state%awa%aero_weight(1))
-       call aero_weight_allocate(aero_state%awa%aero_weight(1))
+       call aero_weight_array_allocate_size(aero_state%awa,1)
        aero_state%awa%aero_weight(1)%type = AERO_WEIGHT_TYPE_NONE
        aero_state%awa%aero_weight(1)%ref_radius = 1d0
        aero_state%awa%aero_weight(1)%exponent = 0d0
     elseif (weight_type == AERO_STATE_WEIGHT_POWER) then
        call assert_msg(656670336, present(exponent), &
             "exponent parameter required for AERO_STATE_WEIGHT_POWER")
-       allocate(aero_state%awa%aero_weight(1))
-       call aero_weight_allocate(aero_state%awa%aero_weight(1))
+       call aero_weight_array_allocate_size(aero_state%awa,1)
        aero_state%awa%aero_weight(1)%type = AERO_WEIGHT_TYPE_POWER
        aero_state%awa%aero_weight(1)%ref_radius = 1d0
        aero_state%awa%aero_weight(1)%exponent = exponent
     elseif (weight_type == AERO_STATE_WEIGHT_NUMMASS) then
-       allocate(aero_state%awa%aero_weight(2))
-       call aero_weight_allocate(aero_state%awa%aero_weight(1))
+       call aero_weight_array_allocate_size(aero_state%awa,2)
        aero_state%awa%aero_weight(1)%type = AERO_WEIGHT_TYPE_NONE
        aero_state%awa%aero_weight(1)%ref_radius = 1d0
        aero_state%awa%aero_weight(1)%exponent = 0d0
-       call aero_weight_allocate(aero_state%awa%aero_weight(2))
        aero_state%awa%aero_weight(2)%type = AERO_WEIGHT_TYPE_POWER
        aero_state%awa%aero_weight(2)%ref_radius = 1d0
        aero_state%awa%aero_weight(2)%exponent = -3d0
@@ -1458,7 +1454,7 @@ contains
        ! determine the new_particle_volume for all particles in this bin
        if (bin_center) then
           new_particle_volume = rad2vol(bin_grid%center_radius(i_bin))
-       elseif (aero_weight_array_check_flat(aero_state%awa%aero_weight)) then
+       elseif (aero_weight_array_check_flat(aero_state%awa)) then
           num_conc & ! any radius will have the same num_conc
                = aero_weight_array_num_conc_at_radius(aero_state%awa, &
                1d0)
@@ -1475,7 +1471,7 @@ contains
           ! bisection as this doesn't really need to be fast, just
           ! robust.
 
-          call aero_weight_array_check_monotonicity(aero_state%awa%aero_weight, &
+          call aero_weight_array_check_monotonicity(aero_state%awa, &
                monotone_increasing, monotone_decreasing)
           call assert_msg(214077200, &
                monotone_increasing .or. monotone_decreasing, &
@@ -1531,7 +1527,7 @@ contains
           ! bisection as this doesn't really need to be fast, just
           ! robust.
 
-          call aero_weight_array_check_monotonicity(aero_state%awa%aero_weight, &
+          call aero_weight_array_check_monotonicity(aero_state%awa, &
                monotone_increasing, monotone_decreasing)
           call assert_msg(483078128, &
                monotone_increasing .or. monotone_decreasing, &

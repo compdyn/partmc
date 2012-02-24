@@ -230,7 +230,7 @@ contains
   end function aero_weight_array_num_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+!FIXME: Delete this as it is in aero_weight.F90
   !> Compute the radius at a given number concentration (m). Inverse
   !> of aero_weight_num_conc_at_radius().
 !  real(kind=dp) function aero_weight_radius_at_num_conc(aero_weight, num_conc)
@@ -256,60 +256,78 @@ contains
 !  end function aero_weight_radius_at_num_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+!FIXME: What should I do here? It is a mess?  Should I have an
+! aero_weight_check_flat?
   !> Check whether a given aero_weight array is flat in total.
-!  logical function aero_weight_array_check_flat_new(aero_weight_array)
+  logical function aero_weight_array_check_flat(aero_weight_array)
 
     !> Aerosol weight array.
-!    type(aero_weight_array_t), intent(in) :: aero_weight_array
-!
-!    integer :: i_group
-!
-!    ! check we know about all the weight types
-!    do i_group = 1,size(aero_weight_array%aero_weight)
-!       call aero_weight_array_check_flat(aero_weight_array%aero_weight(i))
-!!    end do
-!
-!  end function aero_weight_array_check_flat_new
+    type(aero_weight_array_t), intent(in) :: aero_weight_array
+
+    integer :: i_group
+
+    ! check we know about all the weight types
+    do i_group = 1,size(aero_weight_array%aero_weight)
+       call assert(269952052, &
+            (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_NONE) &
+            .or. (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_POWER) &
+            .or. (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_MFA))
+       if (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_NONE) then
+          call assert(853998284, aero_weight_array%aero_weight(i_group)%exponent == 0d0)
+       end if
+       if (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_MFA) then
+          call assert(829651126, aero_weight_array%aero_weight(i_group)%exponent == -3d0)
+       end if
+    end do
+
+    if (abs(sum(aero_weight_array%aero_weight%exponent)) &
+         < 1d-20 * sum(abs(aero_weight_array%aero_weight%exponent))) then
+       aero_weight_array_check_flat = .true.
+    else
+       aero_weight_array_check_flat = .false.
+    end if
+
+  end function aero_weight_array_check_flat
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+!FIXME: Similar to check_flat.  Should there be a aero_weight subroutine to
+! check monotonicity
   !> Determine whether all weight functions in an array are monotone
   !> increasing, monotone decreasing, or neither.
-!  subroutine aero_weight_array_check_monotonicity(aero_weight_array, &
-!       monotone_increasing, monotone_decreasing)
-!
-!    !> Aerosol weight array.
-!    type(aero_weight_t), intent(in) :: aero_weight_array(:)
-!    !> Whether all weights are monotone increasing.
-!    logical, intent(out) :: monotone_increasing
-!    !> Whether all weights are monotone decreasing.
-!    logical, intent(out) :: monotone_decreasing
-!
-!    integer :: i_group
-!
-!    monotone_increasing = .true.
-!    monotone_decreasing = .true.
-!    do i_group = 1,size(aero_weight_array)
-!       ! check we know about all the weight types
-!       call assert(610698264, &
-!            (aero_weight_array(i_group)%type == AERO_WEIGHT_TYPE_NONE) &
-!            .or. (aero_weight_array(i_group)%type == AERO_WEIGHT_TYPE_POWER) &
-!            .or. (aero_weight_array(i_group)%type == AERO_WEIGHT_TYPE_MFA))
-!       if (aero_weight_array(i_group)%type == AERO_WEIGHT_TYPE_POWER) then
-!          if (aero_weight_array(i_group)%exponent < 0d0) then
-!             monotone_increasing = .false.
-!          end if
-!          if (aero_weight_array(i_group)%exponent > 0d0) then
-!             monotone_decreasing = .false.
-!          end if
-!       end if
-!       if (aero_weight_array(i_group)%type == AERO_WEIGHT_TYPE_MFA) then
-!          monotone_increasing = .false.
-!       end if
-!    end do
+  subroutine aero_weight_array_check_monotonicity(aero_weight_array, &
+       monotone_increasing, monotone_decreasing)
 
-!  end subroutine aero_weight_array_check_monotonicity
+    !> Aerosol weight array.
+    type(aero_weight_array_t), intent(in) :: aero_weight_array
+    !> Whether all weights are monotone increasing.
+    logical, intent(out) :: monotone_increasing
+    !> Whether all weights are monotone decreasing.
+    logical, intent(out) :: monotone_decreasing
+
+    integer :: i_group
+
+    monotone_increasing = .true.
+    monotone_decreasing = .true.
+    do i_group = 1,size(aero_weight_array%aero_weight)
+       ! check we know about all the weight types
+       call assert(610698264, &
+            (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_NONE) &
+            .or. (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_POWER) &
+            .or. (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_MFA))
+       if (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_POWER) then
+          if (aero_weight_array%aero_weight(i_group)%exponent < 0d0) then
+             monotone_increasing = .false.
+          end if
+          if (aero_weight_array%aero_weight(i_group)%exponent > 0d0) then
+             monotone_decreasing = .false.
+          end if
+       end if
+       if (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_MFA) then
+          monotone_increasing = .false.
+       end if
+    end do
+
+  end subroutine aero_weight_array_check_monotonicity
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -332,7 +350,7 @@ contains
     real(kind=dp) :: num_conc_1, num_conc_2
     logical :: monotone_increasing, monotone_decreasing
 
-    call aero_weight_array_check_monotonicity(aero_weight_array%aero_weight, &
+    call aero_weight_array_check_monotonicity(aero_weight_array, &
          monotone_increasing, monotone_decreasing)
     call assert(857727714, monotone_increasing .or. monotone_decreasing)
 

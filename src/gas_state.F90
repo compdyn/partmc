@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2011 Matthew West
+! Copyright (C) 2007-2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -126,6 +126,24 @@ contains
     gas_state%mix_rat = gas_state%mix_rat + gas_state_delta%mix_rat
 
   end subroutine gas_state_add
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Adds the given \c gas_state_delta scaled by \c alpha.
+  !!
+  !! Does gas_state += alpha * gas_state_delta.
+  subroutine gas_state_add_scaled(gas_state, gas_state_delta, alpha)
+
+    !> Existing gas state.
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Incremental state.
+    type(gas_state_t), intent(in) :: gas_state_delta
+    !> Scale factor.
+    real(kind=dp), intent(in) :: alpha
+
+    gas_state%mix_rat = gas_state%mix_rat + alpha * gas_state_delta%mix_rat
+
+  end subroutine gas_state_add_scaled
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

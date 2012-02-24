@@ -328,26 +328,26 @@ contains
     !!   points --- the times must be in increasing order
     !! - the second line must begin with \c rate and should be
     !!   followed by \f$N\f$ space-separated real scalars, giving the
-    !!   scalings (dimensionless) at the corresponding times
+    !!   values at the corresponding times
     !! - the third and subsequent lines specify gas species, one
     !!   species per line, with each line beginning with the species
     !!   name and followed by \f$N\f$ space-separated scalars giving
     !!   the gas state of that species at the corresponding times
     !!
-    !! The units of the species lines depends on the type of gas
-    !! profile:
-    !! - emissions gas profiles have units of mol/(m^2 s) --- the
-    !!   emission rate is divided by the current mixing layer
-    !!   height to give a per-volume emission rate
-    !! - background gas profiles have units of ppb (parts per billion)
+    !! The units and meanings of the rate and species lines depends on
+    !! the type of gas profile:
+    !! - emissions gas profiles have dimensionless rates that are used
+    !!   to scale the species rates and species giving emission rates
+    !!   with units of mol/(m^2 s) --- the emission rate is divided by
+    !!   the current mixing layer height to give a per-volume emission
+    !!   rate
+    !! - background gas profiles have rates with units s^{-1} that are
+    !!   dilution rates and species with units of ppb (parts per
+    !!   billion) that are the background mixing ratios
     !!
     !! The species names must be those specified by the \ref
     !! input_format_gas_data. Any species not listed are taken to be
     !! zero.
-    !!
-    !! The scaling parameter is used to multiply all the gas state
-    !! values at the corresponding time, giving a simple way of
-    !! scaling the overall gas state.
     !!
     !! Between the specified times the gas profile is interpolated
     !! step-wise and kept constant at its last value. That is, if the

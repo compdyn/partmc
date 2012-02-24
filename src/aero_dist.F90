@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -359,7 +359,7 @@ contains
     !!   order
     !! - the second line must begin with \c rate and should be
     !!   followed by \f$N\f$ space-separated real scalars, giving the
-    !!   scalings at the corresponding times
+    !!   values at the corresponding times
     !! - the third line must begin with \c dist and should be followed
     !!   by \f$N\f$ space-separated filenames, each specifying an
     !!   aerosol distribution in the format \ref input_format_aero_dist

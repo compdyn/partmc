@@ -1,4 +1,4 @@
-! Copyright (C) 2011 Matthew West
+! Copyright (C) 2011-2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -28,7 +28,7 @@ module pmc_integer_rmap
   !! the forward and reverse maps are as follows.
   !!
   !! Given \f$i\f$, let:
-  !! </pre>
+  !! <pre>
   !! j = integer_rmap%forward%entry(i)
   !! k = integer_rmap%index%entry(i)
   !! </pre>

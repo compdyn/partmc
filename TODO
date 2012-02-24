@@ -159,3 +159,6 @@ partmc.py can have histogram_1d() and histogram_2d() replaced by
 numpy.histogram() and numpy.histogram2d().
 
 Change output comp_vol to num_conc per particle.
+
+gas_state_axpy() and gas_state_add_scaled() are the same. Remove
+one. Also aero_binned_add_scaled()?

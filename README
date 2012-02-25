@@ -4,8 +4,8 @@ PartMC
 
 PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
-Version 2.1.0  
-Released 2011-05-17
+Version 2.2.0  
+Released 2012-02-25
 
 <http://lagrange.mechse.illinois.edu/mwest/partmc/>
 
@@ -26,7 +26,7 @@ References:
      plume, J. Geophys. Res. 115(D17210),
      <http://dx.doi.org/10.1029/2009JD013616>.
 
-Copyright (C) 2005-2011 Nicole Riemer and Matthew West  
+Copyright (C) 2005-2012 Nicole Riemer and Matthew West  
 Portions copyright (C) Andreas Bott and Richard Easter  
 Licensed under the GNU General Public License version 2 or (at your
 option) any later version.  
@@ -42,11 +42,11 @@ Required dependencies:
    * Fortran 95 compiler (Fortran 2003 `ISO_C_BINDING` support
      required for SUNDIALS or GSL)
    * cmake version 2.6.4 or higher - <http://www.cmake.org/>
-   * NetCDF - <http://www.unidata.ucar.edu/software/netcdf/>
+   * NetCDF - <http://www.unidata.ucar.edu/software/netcdf/> (note that NetCDF 4.1.3 is buggy, so use 4.1.2 or earlier, or 
 
 Optional dependencies:
 
-   * MOSAIC chemistry code version 2011-01-10 - Available from Rahul
+   * MOSAIC chemistry code version 2012-01-25 - Available from Rahul
      Zaveri - <Rahul.Zaveri@pnl.gov>
    * MPI parallel support - <http://www.open-mpi.org/>
    * GSL for random number generators -
@@ -55,20 +55,18 @@ Optional dependencies:
      <http://www.llnl.gov/casc/sundials/>
    * gnuplot for testcase plotting - <http://www.gnuplot.info/>
 
-PartMC can be compiled out-of-the-box on Linux if the following
-packages are installed:
+PartMC has beeen tested on the platforms:
 
-   * Fedora 14: `gcc-gfortran`, `cmake`, `netcdf-devel`, `gnuplot`
-   * Ubuntu 10.10: `gfortran`, `cmake-curses-gui`, `libnetcdf-dev`, `gnuplot`
-   * openSUSE 11.3: `gcc-fortran`, `cmake`, `libnetcdf-devel`, `gnuplot`
-   * Debian 5.0: `gfortran`, `make`, `cmake`, `libnetcdf-dev`, `gnuplot`
+   * OS X 10.7 with MacPorts 2.0.3 and installed ports: `gcc46`,
+     `cmake`; manually compiled: `netcdf-4.1.2`
+   * Fedora 16 with installed packages: `gcc-gfortran`, `cmake`;
+     manually compiled: `netcdf-4.1.2`
 
 
 Installation
 ============
 
-In principle PartMC should compile under any modern OS. Testing has
-mainly been under Linux and OS X. The quick-start instructions are:
+The quick-start instructions are:
 
 1. Install cmake and NetCDF (see above). The NetCDF libraries are
    required to compile PartMC. The `netcdf.mod` Fortran 90 module file
@@ -77,12 +75,12 @@ mainly been under Linux and OS X. The quick-start instructions are:
 
 2. Unpack PartMC:
 
-        tar xzvf partmc-2.1.0.tar.gz
+        tar xzvf partmc-2.2.0.tar.gz
 
 3. Change into the main PartMC directory (where this README file is
    located):
 
-        cd partmc-2.1.0
+        cd partmc-2.2.0
 
 4. Make a directory called `build` and change into it:
 
@@ -95,7 +93,7 @@ mainly been under Linux and OS X. The quick-start instructions are:
    like:
 
         export NETCDF_HOME=/
-        export MOSAIC_HOME=${HOME}/mosaic-2011-01-10
+        export MOSAIC_HOME=${HOME}/mosaic-2012-01-25
         export SUNDIALS_HOME=${HOME}/opt
         export GSL_HOME=${HOME}/opt
 

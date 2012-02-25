@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -10,7 +10,7 @@ module pmc_run_part
 
   use pmc_util
   use pmc_aero_state
-  use pmc_env_data
+  use pmc_scenario
   use pmc_env_state
   use pmc_aero_data
   use pmc_gas_data
@@ -95,11 +95,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do a particle-resolved Monte Carlo simulation.
-  subroutine run_part(env_data, env_state, aero_data, aero_state, gas_data, &
+  subroutine run_part(scenario, env_state, aero_data, aero_state, gas_data, &
        gas_state, run_part_opt)
     
     !> Environment state.
-    type(env_data_t), intent(in) :: env_data
+    type(scenario_t), intent(in) :: scenario
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
@@ -202,7 +202,7 @@ contains
 
        call env_state_copy(env_state, old_env_state)
        update_rel_humid = .not. run_part_opt%do_condensation
-       call env_data_update_state(env_data, env_state, time + t_start, &
+       call scenario_update_env_state(scenario, env_state, time + t_start, &
             update_rel_humid)
 
        if (run_part_opt%do_nucleation) then
@@ -231,17 +231,18 @@ contains
           progress_n_coag = progress_n_coag + n_coag
        end if
 
-       call env_state_update_gas_state(env_state, run_part_opt%del_t, &
-            old_env_state, gas_data, gas_state)
-       call env_state_update_aero_state(env_state, run_part_opt%del_t, &
-            old_env_state, aero_data, aero_state, n_emit, n_dil_in, n_dil_out)
+       call scenario_update_gas_state(scenario, run_part_opt%del_t, &
+            env_state, old_env_state, gas_data, gas_state)
+       call scenario_update_aero_state(scenario, run_part_opt%del_t, &
+            env_state, old_env_state, aero_data, aero_state, n_emit, &
+            n_dil_in, n_dil_out)
        progress_n_emit = progress_n_emit + n_emit
        progress_n_dil_in = progress_n_dil_in + n_dil_in
        progress_n_dil_out = progress_n_dil_out + n_dil_out
 
 #ifdef PMC_USE_SUNDIALS
        if (run_part_opt%do_condensation) then
-          call condense_particles(env_state, env_data, aero_data, &
+          call condense_particles(env_state, scenario, aero_data, &
                aero_state, run_part_opt%del_t)
        end if
 #endif

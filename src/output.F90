@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -72,6 +72,7 @@ module pmc_output
   use pmc_aero_state
   use pmc_aero_binned
   use pmc_netcdf
+  use pmc_gas_state
   use pmc_env_state
   use pmc_util
   use pmc_gas_data

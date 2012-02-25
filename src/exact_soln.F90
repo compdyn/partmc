@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -18,7 +18,7 @@ module pmc_exact_soln
   use pmc_coag_kernel_additive
   use pmc_coag_kernel_constant
   use pmc_env_state
-  use pmc_env_data
+  use pmc_scenario
   use pmc_aero_binned
 
 contains
@@ -26,7 +26,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine exact_soln(bin_grid, aero_data, do_coagulation, &
-       coag_kernel_type, aero_dist_init, env_data, env_state, time, &
+       coag_kernel_type, aero_dist_init, scenario, env_state, time, &
        aero_binned)
 
     !> Bin grid.
@@ -40,7 +40,7 @@ contains
     !> Initial distribution.
     type(aero_dist_t), intent(in) :: aero_dist_init
     !> Environment data.
-    type(env_data_t), intent(in) :: env_data
+    type(scenario_t), intent(in) :: scenario
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Current time (s).
@@ -54,7 +54,7 @@ contains
     end if
 
     if (coag_kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
-       ! FIXME: check env_data has no emissions or dilution
+       ! FIXME: check scenario has no emissions or dilution
        if (aero_dist_init%n_mode /= 1) then
           call die_msg(285407619, "Exact solution with additive kernel " &
                // "requires exactly 1 initial distribution mode, not: " &
@@ -70,7 +70,7 @@ contains
             aero_dist_init%mode(1)%num_conc, &
             aero_dist_init%mode(1)%char_radius, env_state, aero_binned)
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_CONSTANT) then
-       ! FIXME: check env_data has no emissions or dilution
+       ! FIXME: check scenario has no emissions or dilution
        if (aero_dist_init%n_mode /= 1) then
           call die_msg(827813758, "Exact solution with constant kernel " &
                // "requires exactly 1 initial distribution mode, not: " &
@@ -86,9 +86,9 @@ contains
             aero_dist_init%mode(1)%num_conc, &
             aero_dist_init%mode(1)%char_radius, env_state, aero_binned)
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_ZERO) then
-       ! FIXME: check env_data has constant emissions and constant dilution
+       ! FIXME: check scenario has constant emissions and constant dilution
        call soln_zero(bin_grid, aero_data, time, aero_dist_init, &
-            env_state, aero_binned)
+            scenario, env_state, aero_binned)
     else
        call die_msg(932981721, "No exact solutions with " &
             // "coagulation kernel type " &

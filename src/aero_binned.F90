@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for the.
 
@@ -115,6 +115,27 @@ contains
     aero_binned%vol_conc = aero_binned%vol_conc + aero_binned_delta%vol_conc
 
   end subroutine aero_binned_add
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Add a scaled \c aero_binned_t structure to an existing one.
+  !!
+  !! Symbolically does aero_binned = aero_binned + alpha * aero_binned_delta.
+  subroutine aero_binned_add_scaled(aero_binned, aero_binned_delta, alpha)
+
+    !> Base aero_binned_t structure that will be added to.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Structure to add to aero_binned.
+    type(aero_binned_t), intent(in) :: aero_binned_delta
+    !> Scale factor.
+    real(kind=dp), intent(in) :: alpha
+
+    aero_binned%num_conc = aero_binned%num_conc &
+         + alpha * aero_binned_delta%num_conc
+    aero_binned%vol_conc = aero_binned%vol_conc &
+         + alpha * aero_binned_delta%vol_conc
+
+  end subroutine aero_binned_add_scaled
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

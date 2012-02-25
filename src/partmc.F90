@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -138,7 +138,7 @@ program partmc
   use pmc_aero_binned
   use pmc_coag_kernel
   use pmc_aero_data
-  use pmc_env_data
+  use pmc_scenario
   use pmc_env_state
   use pmc_run_part
   use pmc_run_exact
@@ -234,7 +234,7 @@ contains
     type(aero_dist_t) :: aero_dist_init
     type(aero_state_t) :: aero_state
     type(aero_state_t) :: aero_state_init
-    type(env_data_t) :: env_data
+    type(scenario_t) :: scenario
     type(env_state_t) :: env_state
     type(env_state_t) :: env_state_init
     type(run_part_opt_t) :: run_part_opt
@@ -288,7 +288,7 @@ contains
     !!   aerosol state at the start of the simulation (only provide
     !!   option if \c restart is \c no) --- the file format should
     !!   be \subpage input_format_aero_dist
-    !! - \subpage input_format_env_data
+    !! - \subpage input_format_scenario
     !! - \subpage input_format_env_state
     !! - \b do_coagulation (logical): whether to perform particle
     !!   coagulation. If \c do_coagulation is \c yes, then the
@@ -353,7 +353,7 @@ contains
     call aero_dist_allocate(aero_dist_init)
     call aero_state_allocate(aero_state)
     call aero_state_allocate(aero_state_init)
-    call env_data_allocate(env_data)
+    call scenario_allocate(scenario)
     call env_state_allocate(env_state)
     call env_state_allocate(env_state_init)
     
@@ -403,7 +403,7 @@ contains
           call spec_file_close(sub_file)
        end if
        
-       call spec_file_read_env_data(file, gas_data, aero_data, env_data)
+       call spec_file_read_scenario(file, gas_data, aero_data, scenario)
        call spec_file_read_env_state(file, env_state_init)
        
        call spec_file_read_logical(file, 'do_coagulation', &
@@ -514,7 +514,7 @@ contains
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_aero_dist(aero_dist_init)
        max_buffer_size = max_buffer_size &
-            + pmc_mpi_pack_size_env_data(env_data)
+            + pmc_mpi_pack_size_scenario(scenario)
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_env_state(env_state_init)
        max_buffer_size = max_buffer_size &
@@ -535,7 +535,7 @@ contains
        call pmc_mpi_pack_gas_state(buffer, position, gas_state_init)
        call pmc_mpi_pack_aero_data(buffer, position, aero_data)
        call pmc_mpi_pack_aero_dist(buffer, position, aero_dist_init)
-       call pmc_mpi_pack_env_data(buffer, position, env_data)
+       call pmc_mpi_pack_scenario(buffer, position, scenario)
        call pmc_mpi_pack_env_state(buffer, position, env_state_init)
        call pmc_mpi_pack_integer(buffer, position, rand_init)
        call pmc_mpi_pack_logical(buffer, position, do_restart)
@@ -565,7 +565,7 @@ contains
        call pmc_mpi_unpack_gas_state(buffer, position, gas_state_init)
        call pmc_mpi_unpack_aero_data(buffer, position, aero_data)
        call pmc_mpi_unpack_aero_dist(buffer, position, aero_dist_init)
-       call pmc_mpi_unpack_env_data(buffer, position, env_data)
+       call pmc_mpi_unpack_scenario(buffer, position, scenario)
        call pmc_mpi_unpack_env_state(buffer, position, env_state_init)
        call pmc_mpi_unpack_integer(buffer, position, rand_init)
        call pmc_mpi_unpack_logical(buffer, position, do_restart)
@@ -598,7 +598,7 @@ contains
           aero_mode_type_exp_present &
                = aero_dist_contains_aero_mode_type(aero_dist_init, &
                AERO_MODE_TYPE_EXP) &
-               .or. env_data_contains_aero_mode_type(env_data, &
+               .or. scenario_contains_aero_mode_type(scenario, &
                AERO_MODE_TYPE_EXP)
           if (aero_mode_type_exp_present) then
              call warn_msg(245301880, "using flat weighting only due to " &
@@ -612,7 +612,7 @@ contains
                aero_dist_init, 1d0, 0d0)
        end if
        call env_state_copy(env_state_init, env_state)
-       call env_data_init_state(env_data, env_state, &
+       call scenario_init_env_state(scenario, env_state, &
             env_state_init%elapsed_time)
 
 #ifdef PMC_USE_SUNDIALS
@@ -621,7 +621,7 @@ contains
        end if
 #endif
        
-       call run_part(env_data, env_state, aero_data, aero_state, gas_data, &
+       call run_part(scenario, env_state, aero_data, aero_state, gas_data, &
             gas_state, run_part_opt)
 
     end do
@@ -633,7 +633,7 @@ contains
     call aero_dist_deallocate(aero_dist_init)
     call aero_state_deallocate(aero_state)
     call aero_state_deallocate(aero_state_init)
-    call env_data_deallocate(env_data)
+    call scenario_deallocate(scenario)
     call env_state_deallocate(env_state)
     call env_state_deallocate(env_state_init)
 
@@ -651,7 +651,7 @@ contains
 
     character(len=100) :: soln_name
     type(aero_data_t) :: aero_data
-    type(env_data_t) :: env_data
+    type(scenario_t) :: scenario
     type(env_state_t) :: env_state
     type(aero_dist_t) :: aero_dist_init
     type(run_exact_opt_t) :: run_exact_opt
@@ -698,7 +698,7 @@ contains
     !! - \b aerosol_init (string): filename containing the initial
     !!   aerosol state at the start of the simulation --- the file
     !!   format should be \subpage input_format_aero_dist
-    !! - \subpage input_format_env_data
+    !! - \subpage input_format_scenario
     !! - \subpage input_format_env_state
     !! - \b do_coagulation (logical): whether to perform particle
     !!   coagulation.  If \c do_coagulation is \c yes, then the
@@ -749,7 +749,7 @@ contains
     call bin_grid_allocate(bin_grid)
     call gas_data_allocate(gas_data)
     call aero_data_allocate(aero_data)
-    call env_data_allocate(env_data)
+    call scenario_allocate(scenario)
     call env_state_allocate(env_state)
     call aero_dist_allocate(aero_dist_init)
 
@@ -775,7 +775,7 @@ contains
     call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
     call spec_file_close(sub_file)
 
-    call spec_file_read_env_data(file, gas_data, aero_data, env_data)
+    call spec_file_read_scenario(file, gas_data, aero_data, scenario)
     call spec_file_read_env_state(file, env_state)
 
     call spec_file_read_logical(file, 'do_coagulation', &
@@ -795,13 +795,13 @@ contains
 
     call uuid4_str(run_exact_opt%uuid)
 
-    call env_data_init_state(env_data, env_state, 0d0)
+    call scenario_init_env_state(scenario, env_state, 0d0)
 
-    call run_exact(bin_grid, env_data, env_state, aero_data, &
+    call run_exact(bin_grid, scenario, env_state, aero_data, &
          aero_dist_init, run_exact_opt)
 
     call aero_data_deallocate(aero_data)
-    call env_data_deallocate(env_data)
+    call scenario_deallocate(scenario)
     call env_state_deallocate(env_state)
     call bin_grid_deallocate(bin_grid)
     call gas_data_deallocate(gas_data)
@@ -823,7 +823,7 @@ contains
     type(aero_data_t) :: aero_data
     type(aero_dist_t) :: aero_dist_init
     type(aero_state_t) :: aero_init
-    type(env_data_t) :: env_data
+    type(scenario_t) :: scenario
     type(env_state_t) :: env_state
     type(bin_grid_t) :: bin_grid
     type(gas_data_t) :: gas_data
@@ -855,7 +855,7 @@ contains
     !! - \b aerosol_init (string): filename containing the initial
     !!   aerosol state at the start of the simulation --- the file
     !!   format should be \subpage input_format_aero_dist
-    !! - \subpage input_format_env_data
+    !! - \subpage input_format_scenario
     !! - \subpage input_format_env_state
     !! - \b do_coagulation (logical): whether to perform particle
     !!   coagulation.  If \c do_coagulation is \c yes, then the
@@ -907,7 +907,7 @@ contains
     call aero_data_allocate(aero_data)
     call aero_dist_allocate(aero_dist_init)
     call env_state_allocate(env_state)
-    call env_data_allocate(env_data)
+    call scenario_allocate(scenario)
     call bin_grid_allocate(bin_grid)
     call gas_data_allocate(gas_data)
 
@@ -935,7 +935,7 @@ contains
     call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
     call spec_file_close(sub_file)
 
-    call spec_file_read_env_data(file, gas_data, aero_data, env_data)
+    call spec_file_read_scenario(file, gas_data, aero_data, scenario)
     call spec_file_read_env_state(file, env_state)
 
     call spec_file_read_logical(file, 'do_coagulation', &
@@ -955,15 +955,15 @@ contains
 
     call uuid4_str(run_sect_opt%uuid)
 
-    call env_data_init_state(env_data, env_state, 0d0)
+    call scenario_init_env_state(scenario, env_state, 0d0)
 
-    call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, env_data, &
+    call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, scenario, &
          env_state, run_sect_opt)
 
     call aero_data_deallocate(aero_data)
     call aero_dist_deallocate(aero_dist_init)
     call env_state_deallocate(env_state)
-    call env_data_deallocate(env_data)
+    call scenario_deallocate(scenario)
     call bin_grid_deallocate(bin_grid)
     call gas_data_deallocate(gas_data)
 

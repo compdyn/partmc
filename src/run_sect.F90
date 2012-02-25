@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Copyright (C) Andreas Bott
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
@@ -20,7 +20,7 @@ module pmc_run_sect
   use pmc_aero_binned
   use pmc_util
   use pmc_aero_dist
-  use pmc_env_data
+  use pmc_scenario
   use pmc_env_state
   use pmc_aero_data
   use pmc_coag_kernel
@@ -54,7 +54,7 @@ contains
 
   !> Run a sectional simulation.
   subroutine run_sect(bin_grid, gas_data, aero_data, aero_dist, &
-       env_data, env_state, run_sect_opt)
+       scenario, env_state, run_sect_opt)
   
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -65,7 +65,7 @@ contains
     !> Aerosol distribution.
     type(aero_dist_t), intent(inout) :: aero_dist
     !> Environment data.
-    type(env_data_t), intent(inout) :: env_data
+    type(scenario_t), intent(inout) :: scenario
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Options.
@@ -173,12 +173,12 @@ contains
             / real(num_t, kind=dp)
 
        call env_state_copy(env_state, old_env_state)
-       call env_data_update_state(env_data, env_state, time, &
+       call scenario_update_env_state(scenario, env_state, time, &
             update_rel_humid = .true.)
-       call env_state_update_gas_state(env_state, run_sect_opt%del_t, &
-            old_env_state, gas_data, gas_state)
-       call env_state_update_aero_binned(env_state, run_sect_opt%del_t, &
-            old_env_state, bin_grid, aero_data, aero_binned)
+       call scenario_update_gas_state(scenario, run_sect_opt%del_t, &
+            env_state, old_env_state, gas_data, gas_state)
+       call scenario_update_aero_binned(scenario, run_sect_opt%del_t, &
+            env_state, old_env_state, bin_grid, aero_data, aero_binned)
        
        ! print output
        call check_event(time, run_sect_opt%del_t, run_sect_opt%t_output, &

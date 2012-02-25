@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Copyright (C) 2009 Joseph Ching
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
@@ -29,7 +29,7 @@
 module pmc_condense
 
   use pmc_aero_state
-  use pmc_env_data
+  use pmc_scenario
   use pmc_env_state
   use pmc_aero_data
   use pmc_util
@@ -112,7 +112,7 @@ module pmc_condense
   type(aero_data_t) :: condense_saved_aero_data
   !> Internal-use variable for storing the environment data during
   !> calls to the ODE solver.
-  type(env_data_t) :: condense_saved_env_data
+  type(scenario_t) :: condense_saved_scenario
   !> Internal-use variable for storing the initial environment state
   !> during calls to the ODE solver.
   type(env_state_t) :: condense_saved_env_state_initial
@@ -143,13 +143,13 @@ contains
   !> Do condensation to all the particles for a given time interval,
   !> including updating the environment to account for the lost
   !> water vapor.
-  subroutine condense_particles(env_state, env_data, aero_data, &
+  subroutine condense_particles(env_state, scenario, aero_data, &
        aero_state, del_t)
 
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Environment data.
-    type(env_data_t), intent(in) :: env_data
+    type(scenario_t), intent(in) :: scenario
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
@@ -205,16 +205,16 @@ contains
 
     ! save data for use within the timestepper
     call aero_data_allocate(condense_saved_aero_data)
-    call env_data_allocate(condense_saved_env_data)
+    call scenario_allocate(condense_saved_scenario)
     call env_state_allocate(condense_saved_env_state_initial)
 
     call aero_data_copy(aero_data, condense_saved_aero_data)
-    call env_data_copy(env_data, condense_saved_env_data)
+    call scenario_copy(scenario, condense_saved_scenario)
     call env_state_copy(env_state, condense_saved_env_state_initial)
 
     call env_state_allocate(env_state_final)
     call env_state_copy(env_state, env_state_final)
-    call env_data_update_state(env_data, env_state_final, &
+    call scenario_update_env_state(scenario, env_state_final, &
          env_state_final%elapsed_time + del_t, update_rel_humid = .false.)
     condense_saved_Tdot = (env_state_final%temp - env_state%temp) / del_t
 
@@ -324,7 +324,7 @@ contains
     deallocate(condense_saved_num_conc)
     call env_state_deallocate(env_state_final)
     call aero_data_deallocate(condense_saved_aero_data)
-    call env_data_deallocate(condense_saved_env_data)
+    call scenario_deallocate(condense_saved_scenario)
     call env_state_deallocate(condense_saved_env_state_initial)
 
   end subroutine condense_particles
@@ -384,7 +384,7 @@ contains
     type(env_state_t), intent(inout) :: env_state
 
     call env_state_copy(condense_saved_env_state_initial, env_state)
-    call env_data_update_state(condense_saved_env_data, &
+    call scenario_update_env_state(condense_saved_scenario, &
          env_state, env_state%elapsed_time + time, &
          update_rel_humid = .false.)
     env_state%rel_humid = state(n_eqn)

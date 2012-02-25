@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -11,6 +11,7 @@ module pmc_aero_particle
   use pmc_util
   use pmc_aero_data
   use pmc_spec_file
+  use pmc_env_state
   use pmc_mpi
 #ifdef PMC_USE_MPI
   use mpi
@@ -716,6 +717,30 @@ contains
          aero_data, kappa)
     
   end function aero_particle_solute_kappa
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the critical relative humidity from the kappa value (1).
+  real(kind=dp) function aero_particle_kappa_rh(aero_particle, aero_data, &
+       env_state)
+
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    real(kind=dp) :: kappa, diam, C, A
+
+    kappa = aero_particle_solute_kappa(aero_particle, aero_data)
+    A = 4d0 * const%water_surf_eng * const%water_molec_weight &
+         / (const%univ_gas_const * env_state%temp * const%water_density)
+    C = sqrt(4d0 * A**3 / 27d0)
+    diam = vol2diam(aero_particle_volume(aero_particle))
+    aero_particle_kappa_rh = C / sqrt(kappa * diam**3) + 1d0
+
+  end function aero_particle_kappa_rh
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

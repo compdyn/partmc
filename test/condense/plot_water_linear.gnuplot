@@ -11,6 +11,7 @@ set key bottom right
 
 set ytics nomirror
 set y2tics
+set y2range [0:*]
 
 plot "ref_condense_0001_env.txt" using 1:3 axes x1y1 with lines title "ref relative humidity", \
      "out/condense_0001_env.txt" using 1:3 axes x1y1 with points title "relative humidity", \

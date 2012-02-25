@@ -1123,6 +1123,9 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Scale the computational volume of the given group by the given
+  !> ratio, altering particle number as necessary to preserve the
+  !> number concentration.
   subroutine aero_state_scale_comp_vol(aero_state, i_group, comp_vol_ratio)
 
     !> Aerosol state.

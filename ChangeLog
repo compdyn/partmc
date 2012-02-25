@@ -1,7 +1,8 @@
 
-2.2.0 - ???
+2.2.0 - 2012-02-25
 
-  * No longer need to specify size bins for particle simulations.
+  * No longer need to specify size bins for particle simulations
+    (adaptive binning occurs automatically).
 
   * Coagulation with negative weightings is accelerated.
 

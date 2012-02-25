@@ -9,7 +9,7 @@ ALL_FSRC = $(wildcard ../src/*.F90)
 ALL_CSRC = $(wildcard ../src/*.c)
 ALL_SRC = $(ALL_FSRC) $(ALL_CSRC)
 
-PARTMC_FSRC = $(filter-out ../src/extract_% ../src/numeric_%,$(ALL_FSRC))
+PARTMC_FSRC = $(filter-out ../src/extract_% ../src/numeric_% ../src/bin_average_% ../src/getopt.%,$(ALL_FSRC))
 PARTMC_CSRC = $(ALL_CSRC)
 PARTMC_SRC = $(PARTMC_FSRC) $(PARTMC_CSRC)
 

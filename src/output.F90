@@ -53,7 +53,7 @@
 !! \subpage output_format_aero_removed "Aerosol Particle Removal Information"
 !! (only for particle-resolved simulations, if \c record_removals is \c yes)
 !!
-!! \subpage output_format_aero_weight "Aerosol Weighting Function"
+!! \subpage output_format_aero_weight_array "Aerosol Weighting Function"
 !! (only for particle-resolved simulations)
 !!
 !! \subpage output_format_bin_grid "Bin Grid Data"

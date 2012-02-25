@@ -19,8 +19,9 @@ git tag 2.1.0
 
 cd ~/t
 git clone ~/git/partmc
-
 cd ~/t/partmc/doc
+git checkout 2.1
+
 make
 check README.html, ChangeLog.html and html/index.html look ok
 check module diagram page

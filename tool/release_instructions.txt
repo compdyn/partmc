@@ -1,4 +1,8 @@
 
+Use:
+  tool/find_repeated_error_codes.py
+  tool/find_long_lines.py
+
 Make sure files are up to date:
 
 README:

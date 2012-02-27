@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2011 Matthew West
+! Copyright (C) 2009-2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -116,7 +116,7 @@ program extract_aero_size
   allocate(filename_list(0))
   call input_filename_list(in_prefix, filename_list)
   n_file = size(filename_list)
-  call assert_msg(875939143, n_file > 0, &
+  call assert_msg(554271458, n_file > 0, &
        "no NetCDF files found with prefix: " // trim(in_prefix))
 
   call bin_grid_make(diam_grid, n_bin, d_min, d_max)

@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -185,7 +185,7 @@ contains
 
     unit = get_unit()
     open(unit=unit, file=filename, status='old', action='read', iostat=ios)
-    call assert_msg(609624199, ios == 0, 'unable to open file ' &
+    call assert_msg(544344918, ios == 0, 'unable to open file ' &
          // trim(filename) // ' for reading: ' // integer_to_string(ios))
 
   end subroutine open_file_read

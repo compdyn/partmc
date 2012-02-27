@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2011 Matthew West
+! Copyright (C) 2007-2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -1439,7 +1439,7 @@ contains
 
     n_proc = pmc_mpi_size()
     n_data = size(send, 1)
-    call assert(291000580, all(shape(recv) == (/n_data, n_proc/)))
+    call assert(353005542, all(shape(recv) == (/n_data, n_proc/)))
     
     ! use a new send_buf to make sure the memory is contiguous
     allocate(send_buf(n_data))

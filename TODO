@@ -163,6 +163,3 @@ Change output comp_vol to num_conc per particle.
 Rename env_state%start_time to start_time_of_day.
 
 Fix "use only" in f90_mod_deps or doc/Makefile or wherever.
-
-gas_state_axpy() and gas_state_add_scaled() are the same. Remove
-one. Also aero_binned_add_scaled()?

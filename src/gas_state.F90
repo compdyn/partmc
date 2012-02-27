@@ -162,22 +162,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Sets y = a * x + y.
-  subroutine gas_state_axpy(alpha, gas_state_x, gas_state_y)
-
-    !> Coefficient.
-    real(kind=dp), intent(in) :: alpha
-    !> Incremental state.
-    type(gas_state_t), intent(in) :: gas_state_x
-    !> Existing gas state.
-    type(gas_state_t), intent(inout) :: gas_state_y
-
-    gas_state_y%mix_rat = alpha * gas_state_x%mix_rat + gas_state_y%mix_rat
-
-  end subroutine gas_state_axpy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Set any negative values to zero.
   subroutine gas_state_ensure_nonnegative(gas_state)
 

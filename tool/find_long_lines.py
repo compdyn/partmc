@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-import sys
+import sys, re
+
+long_comment_re = re.compile("^ *!>")
 
 for filename in sys.argv:
     f = open(filename)
@@ -8,5 +10,6 @@ for filename in sys.argv:
     for line in f:
 	linenum += 1
 	if len(line) > 80:
-	    print "%s:%d" % (filename, linenum)
+            if not long_comment_re.search(line):
+                print "%s:%d" % (filename, linenum)
     f.close()

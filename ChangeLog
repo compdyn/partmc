@@ -1,4 +1,8 @@
 
+2.2.1 - XXXX-XX-XX
+
+  * De-duplicate error codes.
+
 2.2.0 - 2012-02-25
 
   * No longer need to specify size bins for particle simulations

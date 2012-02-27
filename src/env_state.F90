@@ -13,7 +13,6 @@ module pmc_env_state
   use pmc_spec_file
   use pmc_mpi
   use pmc_netcdf
-  use pmc_aero_weight_array
 #ifdef PMC_USE_MPI
   use mpi
 #endif

@@ -23,7 +23,7 @@ module pmc_aero_weight_array
   !> An array of aerosol size distribution weighting functions.
   type aero_weight_array_t
      !> Aero weight array.
-     type(aero_weight_t), pointer :: aero_weight(:)
+     type(aero_weight_t), pointer :: weight(:)
   end type aero_weight_array_t
 
 contains
@@ -36,7 +36,7 @@ contains
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(out) :: aero_weight_array
 
-    allocate(aero_weight_array%aero_weight(0))
+    allocate(aero_weight_array%weight(0))
 
   end subroutine aero_weight_array_allocate
 
@@ -50,10 +50,10 @@ contains
     type(aero_weight_array_t), intent(out) :: aero_weight_array
     !> Number of weights.
     integer,intent(in) :: n_weight
-    
-    allocate(aero_weight_array%aero_weight(n_weight))
 
-    call aero_weight_allocate(aero_weight_array%aero_weight)
+    allocate(aero_weight_array%weight(n_weight))
+
+    call aero_weight_allocate(aero_weight_array%weight)
 
   end subroutine aero_weight_array_allocate_size
 
@@ -65,9 +65,9 @@ contains
     !> Structure to deallocate.
     type(aero_weight_array_t), intent(inout) :: aero_weight_array
 
-!    call aero_weight_deallocate(aero_weight_array%aero_weight)
+    call aero_weight_deallocate(aero_weight_array%weight)
 
-!    deallocate(aero_weight_array%aero_weight)
+    deallocate(aero_weight_array%weight)
 
   end subroutine aero_weight_array_deallocate
 
@@ -79,7 +79,7 @@ contains
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(inout) :: aero_weight_array
 
-    call aero_weight_zero(aero_weight_array%aero_weight)
+    call aero_weight_zero(aero_weight_array%weight)
 
   end subroutine aero_weight_array_zero
 
@@ -90,14 +90,14 @@ contains
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(inout) :: aero_weight_array
-    
-    call aero_weight_zero_comp_vol(aero_weight_array%aero_weight)
+
+    call aero_weight_zero_comp_vol(aero_weight_array%weight)
 
   end subroutine aero_weight_array_zero_comp_vol
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Copy an aero_weight array.
+  !> Copy an \c aero_weight_array.
   subroutine aero_weight_array_copy(aero_weight_array_from, &
        aero_weight_array_to)
 
@@ -106,14 +106,14 @@ contains
     !> Destination aerosol weight array.
     type(aero_weight_array_t), intent(inout) :: aero_weight_array_to
 
-    if (size(aero_weight_array_to%aero_weight)  &
-         /= size(aero_weight_array_from%aero_weight)) then
-       deallocate(aero_weight_array_to%aero_weight)
+    if (size(aero_weight_array_to%weight)  &
+         /= size(aero_weight_array_from%weight)) then
+       deallocate(aero_weight_array_to%weight)
        call aero_weight_array_allocate_size(aero_weight_array_to, &
-            size(aero_weight_array_from%aero_weight))
+            size(aero_weight_array_from%weight))
     end if
-    call aero_weight_copy(aero_weight_array_from%aero_weight, &
-         aero_weight_array_to%aero_weight)
+    call aero_weight_copy(aero_weight_array_from%weight, &
+         aero_weight_array_to%weight)
 
   end subroutine aero_weight_array_copy
 
@@ -131,24 +131,25 @@ contains
 
     integer :: i
 
-    call aero_weight_scale_comp_vol(aero_weight_array%aero_weight, &
+    call aero_weight_scale_comp_vol(aero_weight_array%weight, &
          fraction)
 
   end subroutine aero_weight_array_scale_comp_vol
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Add the computational volume of \c aero_weight_delta to \c aero_weight.
+  !> Add the computational volume of \c aero_weight_array_delta to
+  !> \c aero_weight_array.
   subroutine aero_weight_array_add_comp_vol(aero_weight_array, &
       aero_weight_array_delta)
 
-    !> Aerosol weight to add volume to.
+    !> Aerosol weight array to add volume to.
     type(aero_weight_array_t), intent(inout) :: aero_weight_array
-    !> Aerosol weight to add volume from.
+    !> Aerosol weight array to add volume from.
     type(aero_weight_array_t), intent(in) :: aero_weight_array_delta
 
-    call aero_weight_add_comp_vol(aero_weight_array%aero_weight, &
-            aero_weight_array_delta%aero_weight)
+    call aero_weight_add_comp_vol(aero_weight_array%weight, &
+            aero_weight_array_delta%weight)
 
   end subroutine aero_weight_array_add_comp_vol
 
@@ -168,8 +169,8 @@ contains
 
     real(kind=dp) :: transfer_comp_vol
 
-    call aero_weight_transfer_comp_vol(aero_weight_array_from%aero_weight, &
-         aero_weight_array_to%aero_weight,sample_prop)
+    call aero_weight_transfer_comp_vol(aero_weight_array_from%weight, &
+         aero_weight_array_to%weight,sample_prop)
 
   end subroutine aero_weight_array_transfer_comp_vol
 
@@ -185,7 +186,7 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle
 
     aero_weight_array_single_num_conc = aero_weight_num_conc( &
-         aero_weight_array%aero_weight(aero_particle%weight_group), aero_particle)
+         aero_weight_array%weight(aero_particle%weight_group), aero_particle)
 
   end function aero_weight_array_single_num_conc
 
@@ -201,12 +202,12 @@ contains
     real(kind=dp), intent(in) :: radius
 
     integer :: i_group
-    real(kind=dp) :: num_conc(size(aero_weight_array%aero_weight))
+    real(kind=dp) :: num_conc(size(aero_weight_array%weight))
 
-    do i_group = 1,size(aero_weight_array%aero_weight)
+    do i_group = 1,size(aero_weight_array%weight)
        num_conc(i_group) &
-            = aero_weight_num_conc_at_radius(aero_weight_array%aero_weight(i_group), &
-            radius)
+            = aero_weight_num_conc_at_radius( & 
+                 aero_weight_array%weight(i_group), radius)
     end do
     ! harmonic mean (same as summing the computational volumes)
     aero_weight_array_num_conc_at_radius = 1d0 / sum(1d0 / num_conc)
@@ -230,34 +231,7 @@ contains
   end function aero_weight_array_num_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!FIXME: Delete this as it is in aero_weight.F90
-  !> Compute the radius at a given number concentration (m). Inverse
-  !> of aero_weight_num_conc_at_radius().
-!  real(kind=dp) function aero_weight_radius_at_num_conc(aero_weight, num_conc)
 
-    !> Aerosol weight.
-!    type(aero_weight_t), intent(in) :: aero_weight
-!    !> Number concentration to compute the radius at (m^{-3}).
-!    real(kind=dp), intent(in) :: num_conc
-!
-!    if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
-!       call die_msg(545688537, "cannot invert weight type 'none'")
-!    elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
-!         .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
-!       call assert_msg(902242996, aero_weight%exponent /= 0d0, &
-!            "cannot invert weight with zero exponent")
-!       aero_weight_radius_at_num_conc = exp(log(aero_weight%ref_radius) &
-!            + log(num_conc * aero_weight%comp_vol) / aero_weight%exponent)
-!    else
-!       call die_msg(307766845, "unknown aero_weight type: " &
-!            // trim(integer_to_string(aero_weight%type)))
-!    end if
-!
-!  end function aero_weight_radius_at_num_conc
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!FIXME: What should I do here? It is a mess?  Should I have an
-! aero_weight_check_flat?
   !> Check whether a given aero_weight array is flat in total.
   logical function aero_weight_array_check_flat(aero_weight_array)
 
@@ -267,21 +241,21 @@ contains
     integer :: i_group
 
     ! check we know about all the weight types
-    do i_group = 1,size(aero_weight_array%aero_weight)
+    do i_group = 1,size(aero_weight_array%weight)
        call assert(269952052, &
-            (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_NONE) &
-            .or. (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_POWER) &
-            .or. (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_MFA))
-       if (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_NONE) then
-          call assert(853998284, aero_weight_array%aero_weight(i_group)%exponent == 0d0)
+            (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_NONE) &
+            .or. (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_POWER) &
+            .or. (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_MFA))
+       if (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_NONE) then
+          call assert(853998284, aero_weight_array%weight(i_group)%exponent == 0d0)
        end if
-       if (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_MFA) then
-          call assert(829651126, aero_weight_array%aero_weight(i_group)%exponent == -3d0)
+       if (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_MFA) then
+          call assert(829651126, aero_weight_array%weight(i_group)%exponent == -3d0)
        end if
     end do
 
-    if (abs(sum(aero_weight_array%aero_weight%exponent)) &
-         < 1d-20 * sum(abs(aero_weight_array%aero_weight%exponent))) then
+    if (abs(sum(aero_weight_array%weight%exponent)) &
+         < 1d-20 * sum(abs(aero_weight_array%weight%exponent))) then
        aero_weight_array_check_flat = .true.
     else
        aero_weight_array_check_flat = .false.
@@ -308,21 +282,21 @@ contains
 
     monotone_increasing = .true.
     monotone_decreasing = .true.
-    do i_group = 1,size(aero_weight_array%aero_weight)
+    do i_group = 1,size(aero_weight_array%weight)
        ! check we know about all the weight types
        call assert(610698264, &
-            (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_NONE) &
-            .or. (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_POWER) &
-            .or. (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_MFA))
-       if (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_POWER) then
-          if (aero_weight_array%aero_weight(i_group)%exponent < 0d0) then
+            (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_NONE) &
+            .or. (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_POWER) &
+            .or. (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_MFA))
+       if (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_POWER) then
+          if (aero_weight_array%weight(i_group)%exponent < 0d0) then
              monotone_increasing = .false.
           end if
-          if (aero_weight_array%aero_weight(i_group)%exponent > 0d0) then
+          if (aero_weight_array%weight(i_group)%exponent > 0d0) then
              monotone_decreasing = .false.
           end if
        end if
-       if (aero_weight_array%aero_weight(i_group)%type == AERO_WEIGHT_TYPE_MFA) then
+       if (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_MFA) then
           monotone_increasing = .false.
        end if
     end do
@@ -336,7 +310,7 @@ contains
   subroutine aero_weight_array_minmax_num_conc(aero_weight_array, radius_1, &
        radius_2, num_conc_min, num_conc_max)
 
-    !> Aerosol weight.
+    !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
     !> First radius.
     real(kind=dp), intent(in) :: radius_1
@@ -374,13 +348,13 @@ contains
     !> Radius to sample group at (m).
     real(kind=dp), intent(in) :: radius
 
-    real(kind=dp) :: comp_vols(size(aero_weight_array%aero_weight))
+    real(kind=dp) :: comp_vols(size(aero_weight_array%weight))
     integer :: i
 
-    do i = 1,size(aero_weight_array%aero_weight)
+    do i = 1,size(aero_weight_array%weight)
        comp_vols(i) &
             = 1d0 / aero_weight_num_conc_at_radius( &
-            aero_weight_array%aero_weight(i), radius) 
+            aero_weight_array%weight(i), radius)
     end do
     aero_weight_array_rand_group = sample_cts_pdf(comp_vols)
 
@@ -388,63 +362,19 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Read an aero_weight from a spec file.
-  subroutine spec_file_read_aero_weight_array(file, aero_weight)
+  !> Read an aero_weight_array from a spec file.
+  subroutine spec_file_read_aero_weight_array(file, aero_weight_array)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
-    !> Aerosol weight.
-    type(aero_weight_t), intent(inout) :: aero_weight
+    !> Aerosol weight array.
+    type(aero_weight_array_t), intent(inout) :: aero_weight_array
 
-    character(len=SPEC_LINE_MAX_VAR_LEN) :: weight_type
+    integer :: i
 
-    !> \page input_format_aero_weight Input File Format: Aerosol Weighting Function
-    !!
-    !! For efficiency the aerosol population can be weighted so that
-    !! the true number distribution \f$n(D)\f$ is given by
-    !! \f[ n(D) = w(D) c(D) \f]
-    !! where \f$w(D)\f$ is a fixed weighting function, \f$c(D)\f$ is
-    !! the computational (simulated) number distribution, and \f$D\f$
-    !! is the diameter. Thus a large value of \f$w(D)\f$ means that
-    !! relatively few computational particles are used at diameter
-    !! \f$D\f$, while a small value of \f$w(D)\f$ means that
-    !! relatively many computational particles will be used at that
-    !! diameter.
-    !!
-    !! The aerosol weighting function is specified by the parameters:
-    !!   - \b weight (string): the type of weighting function --- must
-    !!     be one of: "none" for no weighting (\f$w(D) = 1\f$);
-    !!     "power" for a power-law weighting (\f$w(D) = D^\alpha\f$),
-    !!     or "mfa" for the mass flow algorithm weighting (\f$w(D) =
-    !!     D^{-3}\f$ with dependent coagulation particle removal)
-    !!   - if the \c weight is \c power then the next parameter is:
-    !!     - \b exponent (real, dimensionless): the exponent
-    !!       \f$\alpha\f$ in the power law relationship --- setting
-    !!       the \c exponent to 0 is equivalent to no weighting, while
-    !!       setting the exponent negative uses more computational
-    !!       particles at larger diameters and setting the exponent
-    !!       positive uses more computational particles at smaller
-    !!       diameters; in practice exponents between 0 and -3 are
-    !!       most useful
-    !!
-    !! See also:
-    !!   - \ref spec_file_format --- the input file text format
-
-    call spec_file_read_string(file, 'weight', weight_type)
-    if (trim(weight_type) == 'none') then
-       aero_weight%type = AERO_WEIGHT_TYPE_NONE
-    elseif (trim(weight_type) == 'power') then
-       aero_weight%type = AERO_WEIGHT_TYPE_POWER
-       aero_weight%ref_radius = 1d0
-       call spec_file_read_real(file, 'exponent', aero_weight%exponent)
-    elseif (trim(weight_type) == 'mfa') then
-       aero_weight%type = AERO_WEIGHT_TYPE_MFA
-       aero_weight%ref_radius = 1d0
-       aero_weight%exponent = -3d0
-    else
-       call spec_file_die_msg(456342050, file, "unknown weight_type: " &
-            // trim(weight_type))
-    end if
+    do i = 1,size(aero_weight_array%weight)
+       call spec_file_read_aero_weight(file,aero_weight_array%weight(i))
+    end do
 
   end subroutine spec_file_read_aero_weight_array
 
@@ -459,12 +389,12 @@ contains
     integer :: i
 
     pmc_mpi_pack_size_aero_weight_array = &
-         pmc_mpi_pack_size_integer(size(val%aero_weight))
+         pmc_mpi_pack_size_integer(size(val%weight))
 
-    do i = 1, size(val%aero_weight)
+    do i = 1, size(val%weight)
        pmc_mpi_pack_size_aero_weight_array = &
             pmc_mpi_pack_size_aero_weight_array  &
-            + pmc_mpi_pack_size_aero_weight(val%aero_weight(i))
+            + pmc_mpi_pack_size_aero_weight(val%weight(i))
     end do
 
   end function pmc_mpi_pack_size_aero_weight_array
@@ -485,18 +415,18 @@ contains
     integer :: prev_position,i
 
     prev_position = position
-    call pmc_mpi_pack_integer(buffer, position, size(val%aero_weight))
-    do i = 1, size(val%aero_weight)
-       call pmc_mpi_pack_aero_weight(buffer,position,val%aero_weight(i))
+    call pmc_mpi_pack_integer(buffer, position, size(val%weight))
+    do i = 1, size(val%weight)
+       call pmc_mpi_pack_aero_weight(buffer,position,val%weight(i))
     end do
-! FIXME: Need a new number
-    call assert(579699255, &
+    call assert(84068036, &
          position - prev_position <= pmc_mpi_pack_size_aero_weight_array(val))
 #endif
 
   end subroutine pmc_mpi_pack_aero_weight_array
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_aero_weight_array(buffer, position, val)
 
@@ -513,12 +443,11 @@ contains
     call aero_weight_array_deallocate(val)
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, array_size)
-    call aero_weight_array_allocate_size(val,array_size)
-    do i = 1, size(val%aero_weight)
-       call pmc_mpi_unpack_aero_weight(buffer, position, val%aero_weight(i)) 
+    call aero_weight_array_allocate_size(val, array_size)
+    do i = 1, size(val%weight)
+       call pmc_mpi_unpack_aero_weight(buffer, position, val%weight(i))
     end do
-! FIXME: need a new number
-    call assert(639056899, &
+    call assert(321022868, &
          position - prev_position <= pmc_mpi_pack_size_aero_weight_array(val))
 #endif
 
@@ -541,7 +470,7 @@ contains
 
     integer :: status, i_weight, n_weight
     integer :: varid_aero_weight
-    integer :: aero_weight_centers(size(aero_weight_array%aero_weight))
+    integer :: aero_weight_centers(size(aero_weight_array%weight))
 
     ! try to get the dimension ID
     status = nf90_inq_dimid(ncid, "aero_weight", dimid_aero_weight)
@@ -551,7 +480,7 @@ contains
     ! dimension not defined, so define now define it
     call pmc_nc_check(nf90_redef(ncid))
 
-    n_weight = size(aero_weight_array%aero_weight)
+    n_weight = size(aero_weight_array%weight)
 
     call pmc_nc_check(nf90_def_dim(ncid, "aero_weight", n_weight, &
          dimid_aero_weight))
@@ -572,18 +501,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write full state.
+  !> Write full aero_weight_array.
   subroutine aero_weight_array_output_netcdf(aero_weight_array, ncid)
 
-    !> Aero weight to write.
+    !> Aero weight array to write.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
 
-    integer :: dimid_aero_weight,n_weight
-
-    real(kind=dp), allocatable :: comp_vols(:), exponents(:)
-    integer, allocatable :: types(:)
+    integer :: dimid_aero_weight
 
     !> \page output_format_aero_weight_array Output File Format: Aerosol Weighting Functions
     !!
@@ -607,38 +533,15 @@ contains
     call aero_weight_netcdf_dim_aero_weight(aero_weight_array, ncid, &
          dimid_aero_weight)
 
-    ! Allocate local arrays
-    n_weight = size(aero_weight_array%aero_weight)
-    allocate(comp_vols(n_weight))
-    allocate(types(n_weight))
-    allocate(exponents(n_weight))
-    do i = 1, size(aero_weight_array%aero_weight)
-       comp_vols(i) = aero_weight_array%aero_weight(i)%comp_vol
-       types(i) = aero_weight_array%aero_weight(i)%type
-       exponents(i) = aero_weight_array%aero_weight(i)%exponent
-    end do
-
-!    call pmc_nc_write_real_1d(ncid, aero_weight_array%comp_vol, &
-!         "weight_comp_vol", (/ dimid_aero_weight /), unit="m^3", &
-!         description="computational volume for each weighting function")
-!    call pmc_nc_write_integer_1d(ncid, aero_weight_array%type, "weight_type", &
-!         (/ dimid_aero_weight /), &
-!         description="type of each aerosol weighting function: 0 = invalid, " &
-!         // "1 = none (w(D) = 1), 2 = power (w(D) = (D/D_0)^alpha), " &
-!         // "3 = MFA (mass flow) (w(D) = (D/D_0)^(-3))")
-!    call pmc_nc_write_real_1d(ncid, aero_weight_array%exponent, &
-!         "weight_exponent", (/ dimid_aero_weight /), unit="1", &
-!         description="exponent alpha for the power weight_type, " &
-!         // "set to -3 for MFA, and zero otherwise")
-    call pmc_nc_write_real_1d(ncid, comp_vols, &
+    call pmc_nc_write_real_1d(ncid, aero_weight_array%weight%comp_vol, &
          "weight_comp_vol", (/ dimid_aero_weight /), unit="m^3", &
          description="computational volume for each weighting function")
-    call pmc_nc_write_integer_1d(ncid, types, "weight_type", &
-         (/ dimid_aero_weight /), &
+    call pmc_nc_write_integer_1d(ncid, aero_weight_array%weight%type, &
+         "weight_type", (/ dimid_aero_weight /), &
          description="type of each aerosol weighting function: 0 = invalid, " &
          // "1 = none (w(D) = 1), 2 = power (w(D) = (D/D_0)^alpha), " &
          // "3 = MFA (mass flow) (w(D) = (D/D_0)^(-3))")
-    call pmc_nc_write_real_1d(ncid, exponents, &
+    call pmc_nc_write_real_1d(ncid, aero_weight_array%weight%exponent, &
          "weight_exponent", (/ dimid_aero_weight /), unit="1", &
          description="exponent alpha for the power weight_type, " &
          // "set to -3 for MFA, and zero otherwise")
@@ -648,10 +551,10 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Read full state.
+  !> Read full aero_weight_array.
   subroutine aero_weight_array_input_netcdf(aero_weight_array, ncid)
 
-    !> Environment state to read.
+    !> Aero weight array to read.
     type(aero_weight_array_t), intent(inout) :: aero_weight_array
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -679,16 +582,13 @@ contains
     call assert(588649520, size(comp_vol) == size(exponent))
 
     call aero_weight_array_deallocate(aero_weight_array)
-    call aero_weight_array_allocate_size(aero_weight_array,size(comp_vol))
-! FIXME:
-!    allocate(aero_weight_array(size(comp_vol)))
-!    call aero_weight_allocate(aero_weight_array)
+    call aero_weight_array_allocate_size(aero_weight_array, size(comp_vol))
 
-    do i = 1,size(aero_weight_array%aero_weight)
-    aero_weight_array%aero_weight(i)%comp_vol = comp_vol(i)
-    aero_weight_array%aero_weight(i)%type = type(i)
-    aero_weight_array%aero_weight(i)%ref_radius = 1d0
-    aero_weight_array%aero_weight(i)%exponent = exponent(i)
+    do i = 1,size(aero_weight_array%weight)
+       aero_weight_array%weight(i)%comp_vol = comp_vol(i)
+       aero_weight_array%weight(i)%type = type(i)
+       aero_weight_array%weight(i)%ref_radius = 1d0
+       aero_weight_array%weight(i)%exponent = exponent(i)
     end do
 
     deallocate(comp_vol)

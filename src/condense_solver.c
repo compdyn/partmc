@@ -1,4 +1,4 @@
-/* Copyright (C) 2009-2011 Matthew West
+/* Copyright (C) 2009-2012 Matthew West
  * Licensed under the GNU General Public License version 2 or (at your
  * option) any later version. See the file COPYING for details.
  */
@@ -221,7 +221,8 @@ static int condense_check_flag(void *flagvalue, char *funcname, int opt)
 
   /* Check if SUNDIALS function returned NULL pointer - no memory allocated */
   if (opt == 0 && flagvalue == NULL) {
-    fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed - returned NULL pointer\n\n",
+    fprintf(stderr,
+            "\nSUNDIALS_ERROR: %s() failed - returned NULL pointer\n\n",
 	    funcname);
     return(1); }
 

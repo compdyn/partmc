@@ -308,7 +308,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total moles in the particle (1).
-  elemental real(kind=dp) function aero_particle_moles(aero_particle, aero_data)
+  elemental real(kind=dp) function aero_particle_moles(aero_particle, &
+       aero_data)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle

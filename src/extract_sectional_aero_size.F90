@@ -164,7 +164,8 @@ contains
 
   subroutine print_help()
 
-    write(*,'(a)') 'Usage: extract_sectional_aero_size [options] <netcdf_prefix>'
+    write(*,'(a)') 'Usage: extract_sectional_aero_size [options] ' &
+         // '<netcdf_prefix>'
     write(*,'(a)') ''
     write(*,'(a)') 'options are:'
     write(*,'(a)') '  -h, --help        Print this help message.'

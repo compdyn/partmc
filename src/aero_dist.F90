@@ -391,7 +391,7 @@ contains
     !!
     !! Example: an emissions aerosol profile could be:
     !! <pre>
-    !! time  0          600        1800       # time (in s) after simulation start
+    !! time  0          600        1800       # time (in s) after sim start
     !! rate  1          0.5        1          # scaling factor in m/s
     !! dist  dist1.dat  dist2.dat  dist3.dat  # aerosol distribution files
     !! </pre>

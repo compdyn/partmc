@@ -196,7 +196,8 @@ contains
     do target_unif_entry &
          = aero_state%aero_sorted%size%inverse(target_bin)%n_entry,1,-1
        target_part &
-            = aero_state%aero_sorted%size%inverse(target_bin)%entry(target_unif_entry)
+            = aero_state%aero_sorted%size%inverse(target_bin)%entry( &
+            target_unif_entry)
        ! need to copy coag_particle as the underlying storage may be
        ! rearranged due to removals
        call aero_particle_copy(aero_state%apa%particle(target_part), &
@@ -388,8 +389,10 @@ contains
        n_samp = n_samp + 1
        ! FIXME: We are sampling with replacement. Is this a problem?
        i_unif_entry &
-            = pmc_rand_int(aero_state%aero_sorted%size%inverse(source_bin)%n_entry)
-       i_part = aero_state%aero_sorted%size%inverse(source_bin)%entry(i_unif_entry)
+            = pmc_rand_int(aero_state%aero_sorted%size%inverse( &
+            source_bin)%n_entry)
+       i_part = aero_state%aero_sorted%size%inverse(source_bin)%entry( &
+            i_unif_entry)
        i_particle => aero_state%apa%particle(i_part)
        ! re-get j_part as particle ordering may be changing
        call num_conc_weighted_kernel(coag_kernel_type, i_particle, &
@@ -452,7 +455,8 @@ contains
     real(kind=dp) :: old_num_conc_target, new_num_conc_target
 
     target_part &
-         = aero_state%aero_sorted%size%inverse(target_bin)%entry(target_unif_entry)
+         = aero_state%aero_sorted%size%inverse(target_bin)%entry( &
+         target_unif_entry)
     target_id = aero_state%apa%particle(target_part)%id
     old_num_conc_target &
          = aero_weight_array_num_conc(aero_state%aero_weight, &
@@ -463,7 +467,8 @@ contains
     ! assign to a randomly chosen group
     new_group = aero_weight_array_rand_group(aero_state%aero_weight, &
          aero_particle_radius(aero_state%apa%particle(target_part)))
-    call aero_particle_set_group(aero_state%apa%particle(target_part), new_group)
+    call aero_particle_set_group(aero_state%apa%particle(target_part), &
+         new_group)
     ! fix bin due to composition changes
     new_bin = aero_sorted_particle_in_bin(aero_state%aero_sorted, &
          aero_state%apa%particle(target_part))
@@ -486,7 +491,8 @@ contains
     call aero_state_dup_particle(aero_state, target_part, &
          old_num_conc_target / new_num_conc_target, random_weight_group=.true.)
     ! we should only be doing this for decreasing weights
-    call assert(654300924, aero_state%apa%particle(target_part)%id == target_id)
+    call assert(654300924, aero_state%apa%particle(target_part)%id &
+         == target_id)
 
   end subroutine coag_target_with_source
 

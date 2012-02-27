@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -574,8 +574,8 @@ contains
 
   !> Determine the minimum and maximum number concentration factors
   !> for coagulation.
-  subroutine max_coag_num_conc_factor_better(aero_weight_array, bin_grid, i_bin, &
-       j_bin, f_max)
+  subroutine max_coag_num_conc_factor_better(aero_weight_array, bin_grid, &
+       i_bin, j_bin, f_max)
 
     !> Aerosol weight array.
     type(aero_weight_t), intent(in) :: aero_weight_array(:)

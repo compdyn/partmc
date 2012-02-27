@@ -1023,7 +1023,8 @@ contains
     call aero_particle_allocate(aero_particle)
     do i_part = 1,aero_state%apa%n_part
        if (aero_state%apa%particle(i_part)%weight_group == i_group) then
-          call aero_particle_copy(aero_state%apa%particle(i_part), aero_particle)
+          call aero_particle_copy(aero_state%apa%particle(i_part), &
+               aero_particle)
           call aero_particle_new_id(aero_particle)
           call aero_state_add_particle(aero_state, aero_particle)
        end if
@@ -1152,10 +1153,13 @@ contains
 
     if (comp_vol_ratio < 1d0) then
        n_remove = prob_round(comp_vol_ratio &
-            * real(aero_state%aero_sorted%weight%inverse(i_group)%n_entry, kind=dp))
+            * real(aero_state%aero_sorted%weight%inverse(i_group)%n_entry, &
+            kind=dp))
        do i_remove = 1,n_remove
-          i_entry = pmc_rand_int(aero_state%aero_sorted%weight%inverse(i_group)%n_entry)
-          i_part = aero_state%aero_sorted%weight%inverse(i_group)%entry(i_entry)
+          i_entry = pmc_rand_int(aero_state%aero_sorted%weight%inverse( &
+               i_group)%n_entry)
+          i_part = aero_state%aero_sorted%weight%inverse(i_group)%entry( &
+               i_entry)
           call aero_info_allocate(aero_info)
           aero_info%id = aero_state%apa%particle(i_part)%id
           aero_info%action = AERO_INFO_HALVED
@@ -1165,7 +1169,8 @@ contains
        end do
     elseif (comp_vol_ratio > 1d0) then
        do i_entry = aero_state%aero_sorted%weight%inverse(i_group)%n_entry,1,-1
-          i_part = aero_state%aero_sorted%weight%inverse(i_group)%entry(i_entry)
+          i_part = aero_state%aero_sorted%weight%inverse(i_group)%entry( &
+               i_entry)
           call aero_state_dup_particle(aero_state, i_part, comp_vol_ratio)
        end do
     end if
@@ -1459,7 +1464,8 @@ contains
                = aero_weight_array_num_conc_at_radius(aero_state%aero_weight, &
                1d0)
           new_particle_volume = total_volume_conc / num_conc &
-               / real(aero_state%aero_sorted%size%inverse(i_bin)%n_entry, kind=dp)
+               / real(aero_state%aero_sorted%size%inverse(i_bin)%n_entry, &
+               kind=dp)
        elseif (preserve_number) then
           ! number-preserving scheme: Solve the implicit equation:
           ! n_part * W(new_vol) = total_num_conc
@@ -1876,7 +1882,8 @@ contains
     integer :: dimid_aero_removed
     integer :: i_part, i_remove
     type(aero_particle_t), pointer :: particle
-    real(kind=dp) :: aero_particle_mass(aero_state%apa%n_part, aero_data%n_spec)
+    real(kind=dp) :: aero_particle_mass(aero_state%apa%n_part, &
+         aero_data%n_spec)
     integer :: aero_n_orig_part(aero_state%apa%n_part, aero_data%n_source)
     integer :: aero_weight_group(aero_state%apa%n_part)
     real(kind=dp) :: aero_absorb_cross_sect(aero_state%apa%n_part)

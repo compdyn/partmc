@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2011 Matthew West
+! Copyright (C) 2009-2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -273,16 +273,21 @@ contains
     write(*,'(a)') '  -T, --rel-tol <N>   Relative error tolerance.'
     write(*,'(a)') '  -r, --min-row <N>   Minimum row number of data to use.'
     write(*,'(a)') '  -R, --max-row <N>   Maximum row number of data to use.'
-    write(*,'(a)') '  -c, --min-col <N>   Minimum column number of data to use.'
-    write(*,'(a)') '  -C, --max-col <N>   Maximum column number of data to use.'
-    write(*,'(a)') '  -b, --by <S>        Compute error by <S>. <S> is one of "array", "row",'
+    write(*,'(a)') '  -c, --min-col <N>   Minimum column number of data to ' &
+         // 'use.'
+    write(*,'(a)') '  -C, --max-col <N>   Maximum column number of data to ' &
+         // 'use.'
+    write(*,'(a)') '  -b, --by <S>        Compute error by <S>. <S> is one ' &
+         // 'of "array", "row",'
     write(*,'(a)') '                      "col", or "elem". Default: "array".'
-    write(*,'(a)') '  -n, --norm <S>      Compute error with norm <S>. <S> is one of "one",'
+    write(*,'(a)') '  -n, --norm <S>      Compute error with norm <S>. <S> ' &
+         // 'is one of "one",'
     write(*,'(a)') '                      "two", or "sup". Default: "two".'
     write(*,'(a)') ''
     write(*,'(a)') 'Examples:'
     write(*,'(a)') '  numeric_diff --rel-tol 1e-3 ref_data.txt test_data.txt'
-    write(*,'(a)') '  numeric_diff --by col --rel-tol 1e-6 --min-col 2 ref_data.txt test_data.txt'
+    write(*,'(a)') '  numeric_diff --by col --rel-tol 1e-6 --min-col 2 ' &
+         // 'ref_data.txt test_data.txt'
     write(*,'(a)') ''
 
   end subroutine print_help

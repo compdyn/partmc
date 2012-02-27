@@ -777,7 +777,7 @@ contains
     real(kind=dp) :: num_conc_from, num_conc_to
     type(aero_info_t) :: aero_info
 
-    call assert(721006962, (sample_prob >= 0d0) .and. (sample_prob <= 1d0))
+    call assert(393205561, (sample_prob >= 0d0) .and. (sample_prob <= 1d0))
     call aero_state_reset(aero_state_to)
     call aero_state_copy_weight(aero_state_from, aero_state_to)
     call aero_weight_zero_comp_vol(aero_state_to%aero_weight)

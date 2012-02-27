@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2011 Matthew West
+! Copyright (C) 2009-2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -84,7 +84,7 @@ program extract_env
      call input_state(filename_list(i_file), index, time, del_t, i_repeat, &
           uuid, env_state=env_state)
 
-     call assert_msg(390171757, uuid == run_uuid, &
+     call assert_msg(276800431, uuid == run_uuid, &
           "UUID mismatch between " // trim(filename_list(1)) // " and " &
           // trim(filename_list(i_file)))
 

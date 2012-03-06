@@ -644,10 +644,10 @@ contains
              call aero_particle_zero(aero_particle)
              call aero_mode_sample_radius(aero_mode, &
                   aero_state%aero_weight(i_group), radius)
-             if (fractal%do_fractal) then
-                vol = Rme2vol(radius)
+             if (aero_data%fractal%do_fractal) then
+                vol = Rme2vol(radius, aero_data%fractal)
              else
-                vol = rad2vol(radius)
+                vol = rad2vol(radius, aero_data%fractal)
              end if
              call aero_particle_set_vols(aero_particle, &
                   aero_mode%vol_frac * vol)

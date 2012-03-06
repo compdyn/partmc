@@ -9,7 +9,6 @@
 module pmc_util
 
   use pmc_constants
-  use pmc_fractal
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -225,94 +224,6 @@ contains
     call free_unit(unit)
 
   end subroutine close_file
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Convert volume (m^3) to radius (m).
-  real(kind=dp) elemental function vol2rad(v, fractal)
-
-    !> Volume (m^3).
-    real(kind=dp), intent(in) :: v
-    !> Fractal parameters. 
-    type(fractal_t), intent(in) :: fractal
-   
-    if (fractal%do_fractal) then 
-       vol2rad = vol2Rgeo(v, fractal) 
-    else    
-       vol2rad = (v / (4d0 / 3d0 * const%pi))**(1d0/3d0)
-    end if    
-
-  end function vol2rad
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Convert volume (m^3) to diameter (m).
-  real(kind=dp) elemental function vol2diam(v, fractal)
-
-    !> Volume (m^3).
-    real(kind=dp), intent(in) :: v
-    !> Fractal parameters. 
-    type(fractal_t), intent(in) :: fractal
-    
-    vol2diam = 2d0 * vol2rad(v, fractal)
-    
-  end function vol2diam
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Convert radius (m) to diameter (m).
-  real(kind=dp) elemental function rad2diam(r)
-
-    !> Radius (m).
-    real(kind=dp), intent(in) :: r
-    
-    rad2diam = 2d0 * r
-    
-  end function rad2diam
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Convert radius (m) to volume (m^3).
-  real(kind=dp) elemental function rad2vol(r, fractal)
-
-    !> Radius (m).
-    real(kind=dp), intent(in) :: r
-    !> Fractal parameters. 
-    type(fractal_t), intent(in) :: fractal
-    
-    if (fractal%do_fractal) then
-       rad2vol = 4d0 * const%pi * fractal%prime_radius**3d0 * (r &
-            / fractal%prime_radius)**fractal%frac_dim / 3d0 &
-            / fractal%vol_fill_factor
-    else
-       rad2vol = 4d0 / 3d0 * const%pi * r**3d0
-    end if
-
-  end function rad2vol
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Convert diameter (m) to radius (m).
-  real(kind=dp) elemental function diam2rad(d)
-
-    !> Diameter (m).
-    real(kind=dp), intent(in) :: d
-    
-    diam2rad = d / 2d0
-    
-  end function diam2rad
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Convert diameter (m) to volume (m^3).
-  real(kind=dp) elemental function diam2vol(d, fractal)
-
-    !> Diameter (m).
-    real(kind=dp), intent(in) :: d
-
-    diam2vol = rad2vol(diam2rad(d), fractal)
- 
-  end function diam2vol
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

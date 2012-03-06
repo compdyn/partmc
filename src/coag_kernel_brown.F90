@@ -13,7 +13,6 @@ module pmc_coag_kernel_brown
   use pmc_constants
   use pmc_util
   use pmc_aero_particle
-  use pmc_fractal
  
 contains
 
@@ -45,7 +44,7 @@ contains
     d2 = aero_particle_density(aero_particle_2, aero_data)
 
     call kernel_brown_helper(v1, d1, v2, d2, env_state%temp, &
-         env_state%pressure, k)
+         env_state%pressure, k, aero_data%fractal)
 
   end subroutine kernel_brown
 
@@ -86,7 +85,7 @@ contains
           d1 = interp_linear_disc(d_min, d_max, n_sample, i)
           d2 = interp_linear_disc(d_min, d_max, n_sample, j)
           call kernel_brown_helper(v1, d1, v2, d2, &
-               env_state%temp, env_state%pressure, k)
+               env_state%temp, env_state%pressure, k, aero_data%fractal)
           if (first) then
              first = .false.
              k_min = k
@@ -108,7 +107,7 @@ contains
   !!
   !! Uses equation (16.28) of M. Z. Jacobson, Fundamentals of
   !! Atmospheric Modeling, Cambridge University Press, 1999.
-  subroutine kernel_brown_helper(v1, d1, v2, d2, tk, press, bckernel)
+  subroutine kernel_brown_helper(v1, d1, v2, d2, tk, press, bckernel, fractal)
 
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
@@ -124,6 +123,8 @@ contains
     real(kind=dp), intent(in) :: press
     !> Kernel k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: bckernel
+    !> Fractal parameters. 
+    type(fractal_t), intent(in) :: fractal
 
     integer, parameter :: nbin_maxd = 1000
     integer, save :: nbin = 0

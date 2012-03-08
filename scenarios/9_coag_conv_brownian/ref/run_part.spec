@@ -4,10 +4,10 @@ n_repeat 1                      # number of Monte Carlo repeats
 n_part %%N_PART%%               # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
-t_max 600                       # total simulation time (s)
-del_t 5                         # timestep (s)
-t_output 600                    # output interval (0 disables) (s)
-t_progress 60                   # progress printing interval (0 disables) (s)
+t_max 86400                     # total simulation time (s)
+del_t 600                       # timestep (s)
+t_output 3600                   # output interval (0 disables) (s)
+t_progress 3600                 # progress printing interval (0 disables) (s)
 
 weight %%WEIGHT_TYPE%%
 
@@ -33,7 +33,7 @@ start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
 do_coagulation yes              # whether to do coagulation (yes/no)
-coag_kernel sedi                # coagulation kernel
+coag_kernel brown               # coagulation kernel
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)

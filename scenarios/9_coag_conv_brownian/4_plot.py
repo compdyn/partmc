@@ -61,5 +61,5 @@ axes.set_ylabel(r'mean mass error $E[\|m - m_{\rm s}\|_2]$')
 figure.legend(handles, labels, loc='center right')
 axes.grid(True)
 
-filename = "sedi_boomerang.pdf"
+filename = "brownian_boomerang.pdf"
 figure.savefig(filename)

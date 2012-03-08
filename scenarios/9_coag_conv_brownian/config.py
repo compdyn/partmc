@@ -5,8 +5,8 @@ import os
 ref_dirname = "ref"
 run_dirname = "runs"
 
-n_nodes = 10
-n_procs_per_node = 12
+n_nodes = 1
+n_procs_per_node = 10
 
 def all_runs():
     for (n_part, n_part_name) in [

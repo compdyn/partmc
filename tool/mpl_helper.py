@@ -21,6 +21,7 @@ matplotlib.rc('patch', linewidth = 0.5)
 matplotlib.rc('axes', linewidth = 0.5)
 
 def make_fig(figure_width=5,
+             proj3d=False,
              axis_ratio=(1 + math.sqrt(5)) / 2, # golden ratio
              left_margin=0.8,
              right_margin=0.2,
@@ -41,10 +42,13 @@ def make_fig(figure_width=5,
     figure = plt.figure()
     figure.set_figwidth(figure_width)
     figure.set_figheight(figure_height)
+    kwargs = {}
+    if proj3d:
+        kwargs["projection"] = "3d"
     axes = figure.add_axes([left_margin_fraction,
                             bottom_margin_fraction,
                             axis_width_fraction,
-                            axis_height_fraction])
+                            axis_height_fraction], **kwargs)
     if colorbar:
         cb_left_fraction = (left_margin + axis_width + colorbar_offset) / figure_width
         cb_bottom_fraction = (bottom_margin + axis_height * (1.0 - colorbar_height_fraction) / 2.0) / figure_height

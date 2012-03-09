@@ -312,6 +312,14 @@ def axes_boxed_text(axes, label_text, loc,
                   }
         offset_x_val = offset_x
         offset_y_val = - offset_y
+    elif loc == "upper center":
+        label_x = 0.5
+        label_y = 1
+        kwargs = {"horizontalalignment": "center",
+                  "verticalalignment": "top",
+                  }
+        offset_x_val = 0
+        offset_y_val = - offset_y
     elif loc == "upper right":
         label_x = 1
         label_y = 1

@@ -4,6 +4,7 @@ import os
 
 ref_dirname = "ref"
 run_dirname = "runs"
+fig_dirname = "figs"
 
 n_nodes = 10
 n_procs_per_node = 12

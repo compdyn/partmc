@@ -76,9 +76,21 @@ def make_plot(sect_num_file, sect_mass_file, part_num_file, part_mass_file, colo
 if not os.path.exists(config.fig_dirname):
     os.mkdir(config.fig_dirname)
 
-make_plot("runs/1k_power0/sect_aero_size_num.txt", "runs/1k_power0/sect_aero_size_mass.txt",
-          "runs/1k_power0/part_0001_0001_aero_size_num.txt", "runs/1k_power0/part_0001_0001_aero_size_mass.txt",
-          "g", os.path.join(config.fig_dirname, "sedi_1k_power0.pdf"), r"$10^3$ particles")
+for run in config.all_runs():
+    print run["name"]
+    dirname = os.path.join(config.run_dirname, run["name"])
+    figname = os.path.join(config.fig_dirname, run["name"] + ".pdf")
+
+    make_plot(os.path.join(dirname, "sect_aero_size_num.txt"),
+              os.path.join(dirname, "sect_aero_size_mass.txt"),
+              os.path.join(dirname, "part_0001_0001_aero_size_num.txt"),
+              os.path.join(dirname, "part_0001_0001_aero_size_mass.txt"),
+              "b", figname, run["n_part_tex"] + " particles")
+
+
+#make_plot("runs/1k_power0/sect_aero_size_num.txt", "runs/1k_power0/sect_aero_size_mass.txt",
+#          "runs/1k_power0/part_0001_0001_aero_size_num.txt", "runs/1k_power0/part_0001_0001_aero_size_mass.txt",
+#          "g", os.path.join(config.fig_dirname, "sedi_1k_power0.pdf"), r"$10^3$ particles")
 #make_plot("out_old_1e6/sedi_sect_size_num.txt", "out_old_1e6/sedi_sect_size_mass.txt",
 #          "out_old_1e6/sedi_part_size_num.txt", "out_old_1e6/sedi_part_size_mass.txt",
 #          "b", "figs/sedi_old_1e6.pdf", r"$10^6$ particles")

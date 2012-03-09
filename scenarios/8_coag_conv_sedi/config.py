@@ -10,10 +10,10 @@ n_nodes = 10
 n_procs_per_node = 12
 
 def all_runs():
-    for (n_part, n_part_name) in [
-        ("1000", "1k"),
-        ("10000", "10k"),
-#        ("100000", "100k"),
+    for (n_part, n_part_name, n_part_tex) in [
+        ("1000", "1k", r"$10^3$"),
+        ("10000", "10k", r"$10^4$"),
+#        ("100000", "100k", r"$10^5$"),
         ]:
         for (weight_type, exponent) in [
             ("power", "0"),
@@ -29,6 +29,7 @@ def all_runs():
             run = {"name": name,
                    "n_part": n_part,
                    "n_part_name": n_part_name,
+                   "n_part_tex": n_part_tex,
                    "weight_type": weight_type,
                    "exponent": exponent,
                    }

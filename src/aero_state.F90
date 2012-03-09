@@ -1623,8 +1623,7 @@ contains
 
     total_size = 0
     total_size = total_size + pmc_mpi_pack_size_apa(val%apa)
-    total_size = total_size + pmc_mpi_pack_size_aero_weight_array( &
-       val%awa)
+    total_size = total_size + pmc_mpi_pack_size_aero_weight_array(val%awa) 
     total_size = total_size + pmc_mpi_pack_size_real(val%n_part_ideal)
     total_size = total_size + pmc_mpi_pack_size_aia(val%aero_info_array)
     pmc_mpi_pack_size_aero_state = total_size

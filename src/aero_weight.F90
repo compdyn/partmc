@@ -199,8 +199,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute the number concentration for a particle (m^{-3}).
-  real(kind=dp) function aero_weight_num_conc(aero_weight, &
-       aero_particle)
+  real(kind=dp) function aero_weight_num_conc(aero_weight, aero_particle)
 
     !> Aerosol weight.
     type(aero_weight_t), intent(in) :: aero_weight
@@ -237,6 +236,59 @@ contains
     end if
 
   end function aero_weight_radius_at_num_conc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Check whether a given aero_weight is flat.
+  subroutine aero_weight_check_flat(aero_weight)
+
+    !> Aerosol weight array.
+    type(aero_weight_t), intent(in) :: aero_weight
+
+    ! check we know about all the weight type
+    call assert(269952052, (aero_weight%type == AERO_WEIGHT_TYPE_NONE) &
+         .or. (aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
+         .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA))
+    if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
+       call assert(853998284, aero_weight%exponent == 0d0)
+    end if
+    if (aero_weight%type == AERO_WEIGHT_TYPE_MFA) then
+       call assert(829651126, aero_weight%exponent == -3d0)
+    end if
+
+  end subroutine aero_weight_check_flat
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determine whether a weight function is monotone increasing,
+  !> monotone decreasing, or neither.
+  subroutine aero_weight_check_monotonicity(aero_weight, &
+       monotone_increasing, monotone_decreasing)
+
+    !> Aerosol weight array.
+    type(aero_weight_t), intent(in) :: aero_weight
+    !> Whether all weights are monotone increasing.
+    logical, intent(out) :: monotone_increasing
+    !> Whether all weights are monotone decreasing.
+    logical, intent(out) :: monotone_decreasing
+
+    ! check we know about all the weight types
+    call assert(610698264, (aero_weight%type == AERO_WEIGHT_TYPE_NONE) &
+         .or. (aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
+         .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA))
+    if (aero_weight%type == AERO_WEIGHT_TYPE_POWER) then
+       if (aero_weight%exponent < 0d0) then
+          monotone_increasing = .false.
+       end if
+       if (aero_weight%exponent > 0d0) then
+          monotone_decreasing = .false.
+       end if
+    end if
+    if (aero_weight%type == AERO_WEIGHT_TYPE_MFA) then
+       monotone_increasing = .false.
+    end if
+
+  end subroutine aero_weight_check_monotonicity
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -308,10 +360,9 @@ contains
     !> Value to pack.
     type(aero_weight_t), intent(in) :: val
 
-    pmc_mpi_pack_size_aero_weight = &
-         pmc_mpi_pack_size_real(val%comp_vol) &
+    pmc_mpi_pack_size_aero_weight = pmc_mpi_pack_size_real(val%comp_vol) &
          + pmc_mpi_pack_size_integer(val%type) &
-         + pmc_mpi_pack_size_real(val%ref_radius) &
+         + pmc_mpi_pack_size_real(val%ref_radius)
          + pmc_mpi_pack_size_real(val%exponent)
 
   end function pmc_mpi_pack_size_aero_weight

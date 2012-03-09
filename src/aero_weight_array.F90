@@ -43,8 +43,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates an aero_weight_array to the given size.
-  subroutine aero_weight_array_allocate_size(aero_weight_array, &
-       n_weight)
+  subroutine aero_weight_array_allocate_size(aero_weight_array, n_weight)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(out) :: aero_weight_array
@@ -121,8 +120,7 @@ contains
 
   !> Scale the computational volume by the given fraction, so
   !> <tt>new_comp_vol = old_comp_vol * fraction</tt>.
-  subroutine aero_weight_array_scale_comp_vol(aero_weight_array, &
-       fraction)
+  subroutine aero_weight_array_scale_comp_vol(aero_weight_array, fraction)
 
     !> Aerosol weight array to halve.
     type(aero_weight_array_t), intent(inout) :: aero_weight_array
@@ -131,8 +129,7 @@ contains
 
     integer :: i
 
-    call aero_weight_scale_comp_vol(aero_weight_array%weight, &
-         fraction)
+    call aero_weight_scale_comp_vol(aero_weight_array%weight, fraction)
 
   end subroutine aero_weight_array_scale_comp_vol
 
@@ -205,9 +202,8 @@ contains
     real(kind=dp) :: num_conc(size(aero_weight_array%weight))
 
     do i_group = 1,size(aero_weight_array%weight)
-       num_conc(i_group) &
-            = aero_weight_num_conc_at_radius( & 
-                 aero_weight_array%weight(i_group), radius)
+       num_conc(i_group) = aero_weight_num_conc_at_radius( &
+            aero_weight_array%weight(i_group), radius)
     end do
     ! harmonic mean (same as summing the computational volumes)
     aero_weight_array_num_conc_at_radius = 1d0 / sum(1d0 / num_conc)
@@ -242,16 +238,7 @@ contains
 
     ! check we know about all the weight types
     do i_group = 1,size(aero_weight_array%weight)
-       call assert(269952052, &
-            (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_NONE) &
-            .or. (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_POWER) &
-            .or. (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_MFA))
-       if (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_NONE) then
-          call assert(853998284, aero_weight_array%weight(i_group)%exponent == 0d0)
-       end if
-       if (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_MFA) then
-          call assert(829651126, aero_weight_array%weight(i_group)%exponent == -3d0)
-       end if
+       call aero_weight_check_flat(aero_weight_array%weight(i_group))
     end do
 
     if (abs(sum(aero_weight_array%weight%exponent)) &
@@ -264,8 +251,7 @@ contains
   end function aero_weight_array_check_flat
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!FIXME: Similar to check_flat.  Should there be a aero_weight subroutine to
-! check monotonicity
+
   !> Determine whether all weight functions in an array are monotone
   !> increasing, monotone decreasing, or neither.
   subroutine aero_weight_array_check_monotonicity(aero_weight_array, &
@@ -283,22 +269,8 @@ contains
     monotone_increasing = .true.
     monotone_decreasing = .true.
     do i_group = 1,size(aero_weight_array%weight)
-       ! check we know about all the weight types
-       call assert(610698264, &
-            (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_NONE) &
-            .or. (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_POWER) &
-            .or. (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_MFA))
-       if (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_POWER) then
-          if (aero_weight_array%weight(i_group)%exponent < 0d0) then
-             monotone_increasing = .false.
-          end if
-          if (aero_weight_array%weight(i_group)%exponent > 0d0) then
-             monotone_decreasing = .false.
-          end if
-       end if
-       if (aero_weight_array%weight(i_group)%type == AERO_WEIGHT_TYPE_MFA) then
-          monotone_increasing = .false.
-       end if
+       call aero_weight_check_monotonicity(aero_weight_array%weight(i_group), &
+            monotone_increasing, monotone_decreasing)
     end do
 
   end subroutine aero_weight_array_check_monotonicity
@@ -352,8 +324,7 @@ contains
     integer :: i
 
     do i = 1,size(aero_weight_array%weight)
-       comp_vols(i) &
-            = 1d0 / aero_weight_num_conc_at_radius( &
+       comp_vols(i) = 1d0 / aero_weight_num_conc_at_radius( &
             aero_weight_array%weight(i), radius)
     end do
     aero_weight_array_rand_group = sample_cts_pdf(comp_vols)
@@ -412,7 +383,7 @@ contains
     type(aero_weight_array_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position,i
+    integer :: prev_position, i
 
     prev_position = position
     call pmc_mpi_pack_integer(buffer, position, size(val%weight))
@@ -438,7 +409,7 @@ contains
     type(aero_weight_array_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position,array_size
+    integer :: prev_position, array_size
 
     call aero_weight_array_deallocate(val)
     prev_position = position
@@ -477,7 +448,7 @@ contains
     if (status == NF90_NOERR) return
     if (status /= NF90_EBADDIM) call pmc_nc_check(status)
 
-    ! dimension not defined, so define now define it
+    ! dimension not defined, so define it
     call pmc_nc_check(nf90_redef(ncid))
 
     n_weight = size(aero_weight_array%weight)
@@ -546,7 +517,6 @@ contains
          description="exponent alpha for the power weight_type, " &
          // "set to -3 for MFA, and zero otherwise")
 
-
  end subroutine aero_weight_array_output_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -564,8 +534,7 @@ contains
     real(kind=dp), allocatable :: comp_vol(:), exponent(:)
     integer, allocatable :: type(:)
 
-    call pmc_nc_check(nf90_inq_dimid(ncid, "aero_weight", &
-         dimid_aero_weight))
+    call pmc_nc_check(nf90_inq_dimid(ncid, "aero_weight", dimid_aero_weight))
     call pmc_nc_check(nf90_Inquire_Dimension(ncid, &
          dimid_aero_weight, name, n_weight))
     call assert(719221386, n_weight < 1000)

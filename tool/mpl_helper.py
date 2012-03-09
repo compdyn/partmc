@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007-2010 Matthew West
+# Copyright (C) 2007-2011 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -297,6 +297,55 @@ def label_plot_line(axes, x_data, y_data, label_x, label_text,
                   xy=(label_x, label_y),
                   xycoords='data',
                   xytext=(offset_x, offset_y),
+                  textcoords='offset points',
+                  **kwargs)
+
+def axes_boxed_text(axes, label_text, loc,
+                    offset_x=15,
+                    offset_y=15,
+                    box_padding=0.6):
+    if loc == "upper left":
+        label_x = 0
+        label_y = 1
+        kwargs = {"horizontalalignment": "left",
+                  "verticalalignment": "top",
+                  }
+        offset_x_val = offset_x
+        offset_y_val = - offset_y
+    elif loc == "upper right":
+        label_x = 1
+        label_y = 1
+        kwargs = {"horizontalalignment": "right",
+                  "verticalalignment": "top",
+                  }
+        offset_x_val = - offset_x
+        offset_y_val = - offset_y
+    elif loc == "lower right":
+        label_x = 1
+        label_y = 0
+        kwargs = {"horizontalalignment": "right",
+                  "verticalalignment": "bottom",
+                  }
+        offset_x_val = - offset_x
+        offset_y_val = offset_y
+    elif loc == "lower left":
+        label_x = 0
+        label_y = 0
+        kwargs = {"horizontalalignment": "left",
+                  "verticalalignment": "bottom",
+                  }
+        offset_x_val = offset_x
+        offset_y_val = offset_y
+    else:
+        raise Exception("Unknown loc " + str(loc))
+
+    kwargs["bbox"] = dict(facecolor='white',
+                          edgecolor='black',
+                          boxstyle=("square,pad=%f" % box_padding))
+    axes.annotate(label_text,
+                  xy=(label_x, label_y),
+                  xycoords='axes fraction',
+                  xytext=(offset_x_val, offset_y_val),
                   textcoords='offset points',
                   **kwargs)
 

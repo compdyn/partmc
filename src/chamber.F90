@@ -23,7 +23,7 @@ module pmc_chamber
      real(kind=dp) :: A_diffuse
      !> Sedimentational deposition area (m^2).
      real(kind=dp) :: A_sedi
-     !> Prefactor in dissusive boundary layer thickness.
+     !> Prefactor in dissusive boundary layer thickness (m).
      real(kind=dp) :: prefactor_BL
      !> Exponent in dissusive boundary layer thickness.
      real(kind=dp) :: exponent_BL

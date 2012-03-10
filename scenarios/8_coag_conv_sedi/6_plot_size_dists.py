@@ -35,8 +35,8 @@ def make_plot(sect_num_file, sect_mass_file, part_num_file, part_mass_file, colo
     axes.set_ylabel(r'$dN/d\ln D\ /\ {\rm m^{-3}}$')
     axes.grid(True)
     axes.set_yticks([1e-4, 1e-2, 1e0, 1e2, 1e4, 1e6, 1e8, 1e10])
-    #mpl_helper.axes_boxed_text(axes, "num", "upper left")
-    #mpl_helper.axes_boxed_text(axes, title, "upper center", offset_y=-25)
+    mpl_helper.axes_boxed_text(axes, "num", "upper left")
+    mpl_helper.axes_boxed_text(axes, title, "upper center", offset_y=-25)
 
     ########################################
 
@@ -65,7 +65,7 @@ def make_plot(sect_num_file, sect_mass_file, part_num_file, part_mass_file, colo
     axes.set_ylabel(r'$dM/d\ln D\ /\ ({\rm kg\ m^{-3}})$')
     axes.grid(True)
     axes.set_yticks([1e-12, 1e-10, 1e-8, 1e-6, 1e-4, 1e-2, 1e0])
-    #mpl_helper.axes_boxed_text(axes, "mass", "upper left")
+    mpl_helper.axes_boxed_text(axes, "mass", "upper left")
 
     ########################################
 

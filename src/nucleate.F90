@@ -126,7 +126,7 @@ contains
 
     ! create the particles
     do i_samp = 1,n_samp
-       vol = diam2vol(nucleate_diam)
+       vol = diam2vol(nucleate_diam, aero_data%fractal)
        total_so4_vol = total_so4_vol + vol
 
        aero_particle%vol(i_aero_so4) = vol

@@ -216,7 +216,7 @@ contains
     !> Aerosol particles to sort.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
     !> Aerosol data.
-    type(aero_data_t), intent(out) :: aero_data
+    type(aero_data_t), intent(in) :: aero_data
     !> Whether the given aero_sorted is valid.
     logical, intent(in) :: valid_sort
     !> Number of weight groups.
@@ -356,7 +356,7 @@ contains
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
     !> Aerosol data.
-    type(aero_data_t), intent(out) :: aero_data
+    type(aero_data_t), intent(in) :: aero_data
      
     aero_sorted_particle_in_bin &
          = bin_grid_particle_in_bin(aero_sorted%bin_grid, &

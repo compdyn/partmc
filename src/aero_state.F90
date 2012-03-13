@@ -382,11 +382,13 @@ contains
   !! mean \c n_part_mean.  The final number of particles is either
   !! <tt>floor(n_part_mean)</tt> or <tt>ceiling(n_part_mean)</tt>,
   !! chosen randomly so the mean is \c n_part_mean.
-  subroutine aero_state_dup_particle(aero_state, i_part, n_part_mean, &
+  subroutine aero_state_dup_particle(aero_state, aero_data, i_part, n_part_mean, &
        random_weight_group)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Particle number.
     integer, intent(in) :: i_part
     !> Mean number of resulting particles.
@@ -419,7 +421,7 @@ contains
              if (random_weight_group) then
                 new_group &
                      = aero_weight_array_rand_group(aero_state%aero_weight, &
-                     aero_particle_radius(aero_particle))
+                     aero_particle_radius(aero_particle), aero_data)
                 call aero_particle_set_group(new_aero_particle, new_group)
              end if
           end if
@@ -437,15 +439,18 @@ contains
 
   !> The number concentration of a single particle (m^{-3}).
   real(kind=dp) function aero_state_particle_num_conc(aero_state, &
-       aero_particle)
+       aero_particle, aero_data)
 
     !> Aerosol state containing the particle.
     type(aero_state_t), intent(in) :: aero_state
     !> Aerosol particle.
     type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
 
     aero_state_particle_num_conc &
-         = aero_weight_array_num_conc(aero_state%aero_weight, aero_particle)
+         = aero_weight_array_num_conc(aero_state%aero_weight, aero_particle, &
+         aero_data)
 
   end function aero_state_particle_num_conc
 
@@ -453,10 +458,13 @@ contains
 
   !> Save the correct number concentrations for later use by
   !> aero_state_reweight().
-  subroutine aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
+  subroutine aero_state_num_conc_for_reweight(aero_state, aero_data, &
+       reweight_num_conc)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Number concentrations for later use by aero_state_reweight().
     real(kind=dp), intent(out) :: reweight_num_conc(aero_state%apa%n_part)
 
@@ -465,7 +473,7 @@ contains
     do i_part = 1,aero_state%apa%n_part
        reweight_num_conc(i_part) &
             = aero_weight_array_single_num_conc(aero_state%aero_weight, &
-            aero_state%apa%particle(i_part))
+            aero_state%apa%particle(i_part), aero_data)
     end do
 
   end subroutine aero_state_num_conc_for_reweight
@@ -481,10 +489,12 @@ contains
   !! ... alter particle species volumes in aero_state ...
   !! call aero_state_reweight(aero_state, reweight_num_conc)
   !! </pre>
-  subroutine aero_state_reweight(aero_state, reweight_num_conc)
+  subroutine aero_state_reweight(aero_state, aero_data, reweight_num_conc)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Number concentrations previously computed by
     !> aero_state_num_conc_for_reweight().
     real(kind=dp), intent(in) :: reweight_num_conc(aero_state%apa%n_part)
@@ -504,7 +514,7 @@ contains
        old_num_conc = reweight_num_conc(i_part)
        new_num_conc &
             = aero_weight_array_single_num_conc(aero_state%aero_weight, &
-            aero_particle)
+            aero_particle, aero_data)
        n_part_mean = old_num_conc / new_num_conc
        n_part_new(aero_particle%weight_group) &
             = n_part_new(aero_particle%weight_group) &
@@ -529,7 +539,7 @@ contains
        old_num_conc = reweight_num_conc(i_part)
        new_num_conc &
             = aero_weight_array_single_num_conc(aero_state%aero_weight, &
-            aero_particle)
+            aero_particle, aero_data)
        n_part_mean = old_num_conc / new_num_conc
        call aero_state_dup_particle(aero_state, i_part, n_part_mean)
     end do
@@ -642,7 +652,7 @@ contains
           end if
           do i_samp = 1,n_samp
              call aero_particle_zero(aero_particle)
-             call aero_mode_sample_radius(aero_mode, &
+             call aero_mode_sample_radius(aero_data, aero_mode, &
                   aero_state%aero_weight(i_group), radius)
              if (aero_data%fractal%do_fractal) then
                 vol = Rme2vol(radius, aero_data%fractal)
@@ -834,7 +844,7 @@ contains
     do i_part = 1,aero_state%apa%n_part
        aero_particle => aero_state%apa%particle(i_part)
        i_bin = bin_grid_particle_in_bin(bin_grid, &
-            aero_particle_radius(aero_particle))
+            aero_particle_radius(aero_particle), aero_data)
        if ((i_bin < 1) .or. (i_bin > bin_grid%n_bin)) then
           call warn_msg(980232449, "particle ID " &
                // trim(integer_to_string(aero_particle%id)) &
@@ -1463,7 +1473,8 @@ contains
 
        ! determine the new_particle_volume for all particles in this bin
        if (bin_center) then
-          new_particle_volume = rad2vol(bin_grid%center_radius(i_bin))
+          new_particle_volume = rad2vol(bin_grid%center_radius(i_bin), &
+                aero_data%fractal)
        elseif (aero_weight_array_check_flat(aero_state%aero_weight)) then
           num_conc & ! any radius will have the same num_conc
                = aero_weight_array_num_conc_at_radius(aero_state%aero_weight, &
@@ -1503,17 +1514,19 @@ contains
 
           lower_function = real(n_part, kind=dp) &
                * aero_weight_array_num_conc_at_radius( &
-               aero_state%aero_weight, vol2rad(lower_volume)) - total_num_conc
+               aero_state%aero_weight, vol2rad(lower_volume, aero_data%fractal)) &
+                     - total_num_conc
           upper_function = real(n_part, kind=dp) &
                * aero_weight_array_num_conc_at_radius(&
-               aero_state%aero_weight, vol2rad(upper_volume)) - total_num_conc
+               aero_state%aero_weight, vol2rad(upper_volume, aero_data%fractal)) &
+               - total_num_conc
 
           ! do 50 rounds of bisection (2^50 = 10^15)
           do i_bisect = 1,50
              center_volume = (lower_volume + upper_volume) / 2d0
              center_function = real(n_part, kind=dp) &
                   * aero_weight_array_num_conc_at_radius(&
-                  aero_state%aero_weight, vol2rad(center_volume)) &
+                  aero_state%aero_weight, vol2rad(center_volume), aero_data%fractal) &
                   - total_num_conc
              if ((lower_function > 0d0 .and. center_function > 0d0) &
                   .or. (lower_function < 0d0 .and. center_function < 0d0)) &
@@ -1559,11 +1572,11 @@ contains
 
           lower_function = real(n_part, kind=dp) &
                * aero_weight_array_num_conc_at_radius( &
-               aero_state%aero_weight, vol2rad(lower_volume)) &
+               aero_state%aero_weight, vol2rad(lower_volume, aero_data%fractal)) &
                * lower_volume - total_volume_conc
           upper_function = real(n_part, kind=dp) &
                * aero_weight_array_num_conc_at_radius( &
-               aero_state%aero_weight, vol2rad(upper_volume)) &
+               aero_state%aero_weight, vol2rad(upper_volume, aero_data%fractal)) &
                * upper_volume - total_volume_conc
 
           ! do 50 rounds of bisection (2^50 = 10^15)
@@ -1571,7 +1584,7 @@ contains
              center_volume = (lower_volume + upper_volume) / 2d0
              center_function = real(n_part, kind=dp) &
                   * aero_weight_array_num_conc_at_radius( &
-                  aero_state%aero_weight, vol2rad(center_volume)) &
+                  aero_state%aero_weight, vol2rad(center_volume, aero_data%fractal)) &
                   * center_volume - total_volume_conc
              if ((lower_function > 0d0 .and. center_function > 0d0) &
                   .or. (lower_function < 0d0 .and. center_function < 0d0)) &

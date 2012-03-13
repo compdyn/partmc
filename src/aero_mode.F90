@@ -226,7 +226,7 @@ contains
        log10_sigma_g, bin_grid, vol_conc)
    
     !> Aerosol data.
-    type(aero_data_t), intent(out) :: aero_data 
+    type(aero_data_t), intent(in) :: aero_data 
     !> Total number concentration of the mode (m^{-3}).
     real(kind=dp), intent(in) :: total_num_conc
     !> Geometric mean radius (m).
@@ -256,7 +256,7 @@ contains
        bin_grid, num_conc)
     
     !> Aerosol data.
-    type(aero_data_t), intent(out) :: aero_data
+    type(aero_data_t), intent(in) :: aero_data
     !> Total number concentration of the mode (m^{-3}).
     real(kind=dp), intent(in) :: total_num_conc
     !> Radius at mean volume (m).
@@ -286,7 +286,7 @@ contains
        bin_grid, vol_conc)
    
     !> Aerosol data.
-    type(aero_data_t), intent(out) :: aero_data 
+    type(aero_data_t), intent(in) :: aero_data 
     !> Total number concentration of the mode (m^{-3}).
     real(kind=dp), intent(in) :: total_num_conc
     !> Radius at mean volume (m).
@@ -338,7 +338,7 @@ contains
        bin_grid, vol_conc)
     
     !> Aerosol data.
-    type(aero_data_t), intent(out) :: aero_data
+    type(aero_data_t), intent(in) :: aero_data
     !> Total number concentration of the mode (m^{-3}).
     real(kind=dp), intent(in) :: total_num_conc
     !> Radius of each particle (m^3).
@@ -414,7 +414,7 @@ contains
        bin_grid, vol_conc)
     
     !> Aerosol data.
-    type(aero_data_t), intent(out) :: aero_data
+    type(aero_data_t), intent(in) :: aero_data
     !> Sampled radius bin edges (m).
     real(kind=dp), intent(in) :: sample_radius(:)
     !> Sampled number concentrations (m^{-3}).

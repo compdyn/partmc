@@ -497,7 +497,7 @@ contains
        r_1, r_2)
 
     !> Aerosol data.
-    type(aero_data_t), intent(out) :: aero_data
+    type(aero_data_t), intent(in) :: aero_data
     !> Aerosol weight array.
     type(aero_weight_t), intent(in) :: aero_weight_array(:)
     !> Radius of first particle.
@@ -582,7 +582,7 @@ contains
        bin_grid, i_bin, j_bin, f_max)
 
     !> Aerosol data.
-    type(aero_data_t), intent(out) :: aero_data
+    type(aero_data_t), intent(in) :: aero_data
     !> Aerosol weight array.
     type(aero_weight_t), intent(in) :: aero_weight_array(:)
     !> Bin grid.

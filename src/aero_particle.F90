@@ -381,12 +381,15 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total radius of the particle (m).
-  elemental real(kind=dp) function aero_particle_radius(aero_particle)
+  elemental real(kind=dp) function aero_particle_radius(aero_particle, aero_data)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(out) :: aero_data
 
-    aero_particle_radius = vol2rad(aero_particle_volume(aero_particle))
+    aero_particle_radius = vol2rad(aero_particle_volume(aero_particle), &
+         aero_data%fractal)
 
   end function aero_particle_radius
 
@@ -402,7 +405,7 @@ contains
     type(aero_data_t), intent(in) :: aero_data
 
     aero_particle_dry_radius = vol2rad( &
-         aero_particle_dry_volume(aero_particle, aero_data))
+         aero_particle_dry_volume(aero_particle, aero_data), aero_data%fractal)
 
   end function aero_particle_dry_radius
 
@@ -430,7 +433,7 @@ contains
     type(aero_data_t), intent(in) :: aero_data
 
     aero_particle_dry_diameter &
-         = 2d0 * aero_particle_dry_radius(aero_particle, aero_data)
+         = 2d0 * aero_particle_dry_radius(aero_particle, aero_data%fractal)
 
   end function aero_particle_dry_diameter
 
@@ -679,7 +682,7 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle
 
     aero_particle_solute_radius &
-         = vol2rad(aero_particle_solute_volume(aero_particle, aero_data))
+         = vol2rad(aero_particle_solute_volume(aero_particle), aero_data%fractal)
 
   end function aero_particle_solute_radius
 

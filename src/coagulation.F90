@@ -119,7 +119,7 @@ contains
     logical :: per_particle_coag_succeeded
     real(kind=dp) :: f_max, k_max
 
-    call max_coag_num_conc_factor_better(aero_state%aero_weight, &
+    call max_coag_num_conc_factor_better(aero_data, aero_state%aero_weight, &
          aero_state%aero_sorted%bin_grid, i_bin, j_bin, f_max)
     k_max = aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin) * f_max
 
@@ -439,11 +439,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Coagulate a sampled source particle with a target particle.
-  subroutine coag_target_with_source(aero_state, target_bin, &
+  subroutine coag_target_with_source(aero_state, aero_data, target_bin, &
        target_unif_entry, source_particle)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(out) :: aero_data
     !> Bin of coagulating particle.
     integer, intent(in) :: target_bin
     !> Entry-in-bin of coagulating particle.
@@ -466,7 +468,8 @@ contains
     aero_state%apa%particle(target_part)%id = target_id
     ! assign to a randomly chosen group
     new_group = aero_weight_array_rand_group(aero_state%aero_weight, &
-         aero_particle_radius(aero_state%apa%particle(target_part)))
+         aero_particle_radius(aero_state%apa%particle(target_part), &
+         aero_data%fractal))
     call aero_particle_set_group(aero_state%apa%particle(target_part), &
          new_group)
     ! fix bin due to composition changes
@@ -737,9 +740,10 @@ contains
 
     ! decide which old particles are to be removed and whether to
     ! create the resulting coagulated particle
-    radius_1 = aero_particle_radius(particle_1)
-    radius_2 = aero_particle_radius(particle_2)
-    radius_new = vol2rad(rad2vol(radius_1) + rad2vol(radius_2))
+    radius_1 = aero_particle_radius(particle_1, aero_data%fractal)
+    radius_2 = aero_particle_radius(particle_2, aero_data%fractal)
+    radius_new = vol2rad((rad2vol(radius_1, aero_data%fractal) &
+         + rad2vol(radius_2), aero_data%fractal), aero_data%fractal)
     num_conc_1 = aero_weight_array_num_conc_at_radius(aero_weight_array, &
          radius_1)
     num_conc_2 = aero_weight_array_num_conc_at_radius(aero_weight_array, &

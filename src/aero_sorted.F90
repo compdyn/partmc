@@ -209,12 +209,14 @@ contains
 
   !> Remake a sorting if particles are getting too close to the edges.
   subroutine aero_sorted_remake_if_needed(aero_sorted, aero_particle_array, &
-       valid_sort, n_group, bin_grid, all_procs_same)
+       aero_data, valid_sort, n_group, bin_grid, all_procs_same)
 
     !> Aerosol sorted to (possibly) remake.
     type(aero_sorted_t), intent(inout) :: aero_sorted
     !> Aerosol particles to sort.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
+    !> Aerosol data.
+    type(aero_data_t), intent(out) :: aero_data
     !> Whether the given aero_sorted is valid.
     logical, intent(in) :: valid_sort
     !> Number of weight groups.
@@ -281,7 +283,7 @@ contains
     else
        ! no bin data, need to loop over all particles
        do i_part = 1,aero_particle_array%n_part
-          r = aero_particle_radius(aero_particle_array%particle(i_part))
+          r = aero_particle_radius(aero_particle_array%particle(i_part), aero_data)
           if (i_part == 1) then
              r_min = r
              r_max = r
@@ -346,16 +348,19 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Find the bin number that contains a given particle.
-  integer function aero_sorted_particle_in_bin(aero_sorted, aero_particle)
+  integer function aero_sorted_particle_in_bin(aero_sorted, aero_particlei, &
+       aero_data)
 
     !> Aerosol sort.
     type(aero_sorted_t), intent(in) :: aero_sorted
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
-    
+    !> Aerosol data.
+    type(aero_data_t), intent(out) :: aero_data
+     
     aero_sorted_particle_in_bin &
          = bin_grid_particle_in_bin(aero_sorted%bin_grid, &
-         aero_particle_radius(aero_particle))
+         aero_particle_radius(aero_particle, aero_data))
     
   end function aero_sorted_particle_in_bin
   

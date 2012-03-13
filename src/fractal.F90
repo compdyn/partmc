@@ -267,7 +267,7 @@ module pmc_fractal
     do
       !print *, 'The solution for Rme is ', x
       x = x - f_Rme(x,v) / df_Rme(x,v)
-      if (iter>MAX_ITERATIONS) then
+      if (iter > MAX_ITERATIONS) then
          exit
       end if
       iter= iter + 1
@@ -280,6 +280,7 @@ module pmc_fractal
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   function f_Rme(x, v, tk, press, fractal) result (y)
+    
     real(kind=dp), intent(in) :: x
     real(kind=dp), intent(in) :: v
     !> Temperature (K).
@@ -304,6 +305,7 @@ module pmc_fractal
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   function df_Rme(x,v, tk, press, fractal) result (y)
+    
     real(kind=dp), intent(in) :: x
     real(kind=dp), intent(in) :: v
     !> Temperature (K).
@@ -339,7 +341,7 @@ module pmc_fractal
     do
       !print *, 'The solution for Rme_c is ', x
       x = x - f_Rmec(x,r) / df_Rmec(x,r)
-      if(iter>MAX_ITERATIONS) then
+      if(iter > MAX_ITERATIONS) then
          exit
       end if
       iter = iter + 1
@@ -367,6 +369,7 @@ module pmc_fractal
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   function f_Rmec(x, r, tk, press, fractal) result (y)
+    
     real(kind=dp), intent(in) :: x
     real(kind=dp), intent(in) :: r
     !> Temperature (K).
@@ -494,7 +497,7 @@ module pmc_fractal
 
     call spec_file_read_logical(file, 'do_fractal', &
          fractal%do_fractal)
-    if (do_fractal) then
+    if (fractal%do_fractal) then
        call spec_file_read_real(file, 'frac_dim', &
             fractal%frac_dim)
        call spec_file_read_real(file, 'prime_radius', &

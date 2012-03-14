@@ -13,6 +13,7 @@ module pmc_coagulation_dist
   use pmc_util
   use pmc_env_state
   use pmc_aero_state
+  use pmc_aero_weight_array
   use pmc_coagulation
   use pmc_mpi
 #ifdef PMC_USE_MPI
@@ -133,7 +134,7 @@ contains
     logical, allocatable :: procs_done(:)
     integer :: outgoing_buffer(COAG_DIST_OUTGOING_BUFFER_SIZE)
     integer :: outgoing_buffer_size_check
-    type(aero_weight_t), allocatable :: aero_weight_total(:)
+    type(aero_weight_array_t) :: aero_weight_total
     
     n_proc = pmc_mpi_size()
 
@@ -157,14 +158,14 @@ contains
     call pmc_mpi_allgather_integer_array( &
          aero_state%aero_sorted%size%inverse(:)%n_entry, n_parts)
 
-    allocate(comp_vols(size(aero_state%aero_weight), n_proc))
-    call pmc_mpi_allgather_real_array(aero_state%aero_weight%comp_vol, &
+    allocate(comp_vols(size(aero_state%awa%weight), n_proc))
+    call pmc_mpi_allgather_real_array(aero_state%awa%weight%comp_vol, &
          comp_vols)
 
-    allocate(aero_weight_total(size(aero_state%aero_weight)))
-    call aero_weight_allocate(aero_weight_total)
-    call aero_weight_array_copy(aero_state%aero_weight, aero_weight_total)
-    aero_weight_total%comp_vol = sum(comp_vols, 2)
+    call aero_weight_array_allocate_size(aero_weight_total, &
+         size(aero_state%awa%weight))
+    call aero_weight_array_copy(aero_state%awa, aero_weight_total)
+    aero_weight_total%weight%comp_vol = sum(comp_vols, 2)
 
     allocate(k_max(aero_state%aero_sorted%bin_grid%n_bin, &
          aero_state%aero_sorted%bin_grid%n_bin))
@@ -245,7 +246,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Total weighting functions.
-    type(aero_weight_t), intent(in) :: aero_weight_total(:)
+    type(aero_weight_array_t), intent(in) :: aero_weight_total
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
@@ -610,7 +611,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Total weighting array.
-    type(aero_weight_t), intent(in) :: aero_weight_total(:)
+    type(aero_weight_array_t), intent(in) :: aero_weight_total
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
@@ -830,7 +831,7 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Weighting function array.
-    type(aero_weight_t), intent(in) :: aero_weight_array(:)
+    type(aero_weight_array_t), intent(in) :: aero_weight_array
     !> Maximum kernel.
     real(kind=dp), intent(in) :: k_max(:,:)
     !> Number of samples to do per bin pair.
@@ -874,7 +875,7 @@ contains
     !> Remote process that the particle came from.
     integer, intent(in) :: remote_proc
     !> Total weight across all processes.
-    type(aero_weight_t), intent(in) :: aero_weight_total(:)
+    type(aero_weight_array_t), intent(in) :: aero_weight_total
     !> Computational volumes on all processes (m^3).
     real(kind=dp), intent(in) :: comp_vols(:,:)
     !> Whether to remove aero_particle_1 after the coagulation.
@@ -892,7 +893,7 @@ contains
     call aero_info_allocate(aero_info_2)
 
     call coagulate_weighting(aero_particle_1, aero_particle_2, &
-         aero_particle_new, aero_data, aero_state%aero_weight, &
+         aero_particle_new, aero_data, aero_state%awa, &
          remove_1, remove_2, create_new, id_1_lost, id_2_lost, &
          aero_info_1, aero_info_2)
 

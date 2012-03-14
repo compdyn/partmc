@@ -117,7 +117,7 @@ contains
     ! computational volume at the size of nucleated particles (only
     ! valid for mono-disperse nucleation)
     nucleate_comp_vol = 1d0 &
-         / aero_weight_array_num_conc_at_radius(aero_state%aero_weight, &
+         / aero_weight_array_num_conc_at_radius(aero_state%awa, &
          diam2rad(nucleate_diam))
 
     ! determine number of nucleated particles
@@ -131,7 +131,7 @@ contains
 
        aero_particle%vol(i_aero_so4) = vol
        call aero_particle_new_id(aero_particle)
-       i_group = aero_weight_array_rand_group(aero_state%aero_weight, &
+       i_group = aero_weight_array_rand_group(aero_state%awa, &
             diam2rad(nucleate_diam))
        call aero_particle_set_group(aero_particle, i_group)
        call aero_particle_set_create_time(aero_particle, &

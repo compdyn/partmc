@@ -235,7 +235,7 @@ contains
     ! has specific ordering requirements
     do i_part = aero_state%apa%n_part,1,-1
        particle => aero_state%apa%particle(i_part)
-       num_conc = aero_weight_array_num_conc(aero_state%aero_weight, particle)
+       num_conc = aero_weight_array_num_conc(aero_state%awa, particle)
        do i_spec = 1,aero_data%n_spec
           i_spec_mosaic = aero_data%mosaic_index(i_spec)
           if (i_spec_mosaic > 0) then
@@ -323,8 +323,7 @@ contains
     call aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
     do i_part = 1,aero_state%apa%n_part,1
        particle => aero_state%apa%particle(i_part)
-       num_conc = aero_weight_array_num_conc( &
-            aero_state%aero_weight, particle)
+       num_conc = aero_weight_array_num_conc(aero_state%awa, particle)
        do i_spec = 1,aero_data%n_spec
           i_spec_mosaic = aero_data%mosaic_index(i_spec)
           if (i_spec_mosaic > 0) then

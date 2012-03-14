@@ -197,8 +197,7 @@ contains
     water_vol_conc_initial = 0d0
     do i_part = 1,aero_state%apa%n_part
        aero_particle => aero_state%apa%particle(i_part)
-       num_conc = aero_weight_array_num_conc(aero_state%aero_weight, &
-            aero_particle)
+       num_conc = aero_weight_array_num_conc(aero_state%awa, aero_particle)
        water_vol_conc_initial = water_vol_conc_initial &
             + aero_particle%vol(aero_data%i_water) * num_conc
     end do
@@ -232,7 +231,7 @@ contains
        condense_saved_D_dry(i_part) = vol2diam(&
             aero_particle_solute_volume(aero_particle, aero_data))
        condense_saved_num_conc(i_part) &
-            = aero_weight_array_num_conc(aero_state%aero_weight, aero_particle)
+            = aero_weight_array_num_conc(aero_state%awa, aero_particle)
        state(i_part) = aero_particle_diameter(aero_particle)
        abs_tol_vector(i_part) = max(1d-30, &
             1d-8 * (state(i_part) - condense_saved_D_dry(i_part)))
@@ -277,8 +276,7 @@ contains
     call aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
     do i_part = 1,aero_state%apa%n_part
        aero_particle => aero_state%apa%particle(i_part)
-       num_conc = aero_weight_array_num_conc(aero_state%aero_weight, &
-            aero_particle)
+       num_conc = aero_weight_array_num_conc(aero_state%awa, aero_particle)
        
        ! translate output back to particle
        aero_particle%vol(aero_data%i_water) = diam2vol(state(i_part)) &

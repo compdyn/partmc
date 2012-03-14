@@ -441,7 +441,7 @@ contains
     call aero_dist_deallocate(background)
 
     ! update computational volume
-    call aero_weight_scale_comp_vol(aero_state%aero_weight, &
+    call aero_weight_array_scale_comp_vol(aero_state%awa, &
          env_state%temp / old_env_state%temp)
 
   end subroutine scenario_update_aero_state

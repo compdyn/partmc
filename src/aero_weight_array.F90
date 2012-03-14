@@ -236,9 +236,9 @@ contains
 
     integer :: i_group
 
-    ! check we know about all the weight types
+    ! check that all weights have correctly set exponents
     do i_group = 1,size(aero_weight_array%weight)
-       call aero_weight_check_flat(aero_weight_array%weight(i_group))
+       call aero_weight_check_valid_exponent(aero_weight_array%weight(i_group))
     end do
 
     if (abs(sum(aero_weight_array%weight%exponent)) &
@@ -265,13 +265,16 @@ contains
     logical, intent(out) :: monotone_decreasing
 
     integer :: i_group
+    logical :: mono_increasing_array(size(aero_weight_array%weight))
+    logical :: mono_decreasing_array(size(aero_weight_array%weight))
 
-    monotone_increasing = .true.
-    monotone_decreasing = .true.
     do i_group = 1,size(aero_weight_array%weight)
        call aero_weight_check_monotonicity(aero_weight_array%weight(i_group), &
-            monotone_increasing, monotone_decreasing)
+            mono_increasing_array(i_group), mono_decreasing_array(i_group))
     end do
+
+    monotone_increasing = all(mono_increasing_array)
+    monotone_decreasing = all(mono_decreasing_array)
 
   end subroutine aero_weight_array_check_monotonicity
 

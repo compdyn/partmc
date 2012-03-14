@@ -197,8 +197,7 @@ contains
     water_vol_conc_initial = 0d0
     do i_part = 1,aero_state%apa%n_part
        aero_particle => aero_state%apa%particle(i_part)
-       num_conc = aero_weight_array_num_conc(aero_state%awa, &
-            aero_particle)
+       num_conc = aero_weight_array_num_conc(aero_state%awa, aero_particle)
        water_vol_conc_initial = water_vol_conc_initial &
             + aero_particle%vol(aero_data%i_water) * num_conc
     end do
@@ -277,8 +276,7 @@ contains
     call aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
     do i_part = 1,aero_state%apa%n_part
        aero_particle => aero_state%apa%particle(i_part)
-       num_conc = aero_weight_array_num_conc(aero_state%awa, &
-            aero_particle)
+       num_conc = aero_weight_array_num_conc(aero_state%awa, aero_particle)
        
        ! translate output back to particle
        aero_particle%vol(aero_data%i_water) = diam2vol(state(i_part)) &

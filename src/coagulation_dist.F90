@@ -674,7 +674,7 @@ contains
        tot_n_coag = tot_n_coag + 1
        call coagulate_dist(aero_data, aero_state, &
             requests(i_req)%local_aero_particle, sent_aero_particle, &
-            sent_proc, aero_weight_total, comp_vols, remove_1, remove_2) 
+            sent_proc, aero_weight_total, comp_vols, remove_1, remove_2)
     else
        remove_1 = .false.
        remove_2 = .false.

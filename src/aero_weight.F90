@@ -239,8 +239,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Check whether a given aero_weight is flat.
-  subroutine aero_weight_check_flat(aero_weight)
+  !> Ensures that a weight function exponent is valid.
+  subroutine aero_weight_check_valid_exponent(aero_weight)
 
     !> Aerosol weight array.
     type(aero_weight_t), intent(in) :: aero_weight
@@ -256,7 +256,7 @@ contains
        call assert(829651126, aero_weight%exponent == -3d0)
     end if
 
-  end subroutine aero_weight_check_flat
+  end subroutine aero_weight_check_valid_exponent
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -276,6 +276,8 @@ contains
     call assert(610698264, (aero_weight%type == AERO_WEIGHT_TYPE_NONE) &
          .or. (aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
          .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA))
+    monotone_increasing = .true.
+    monotone_decreasing = .true.
     if (aero_weight%type == AERO_WEIGHT_TYPE_POWER) then
        if (aero_weight%exponent < 0d0) then
           monotone_increasing = .false.
@@ -360,9 +362,10 @@ contains
     !> Value to pack.
     type(aero_weight_t), intent(in) :: val
 
-    pmc_mpi_pack_size_aero_weight = pmc_mpi_pack_size_real(val%comp_vol) &
+    pmc_mpi_pack_size_aero_weight = &
+         pmc_mpi_pack_size_real(val%comp_vol) &
          + pmc_mpi_pack_size_integer(val%type) &
-         + pmc_mpi_pack_size_real(val%ref_radius)
+         + pmc_mpi_pack_size_real(val%ref_radius) &
          + pmc_mpi_pack_size_real(val%exponent)
 
   end function pmc_mpi_pack_size_aero_weight

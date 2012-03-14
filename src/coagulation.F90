@@ -347,8 +347,7 @@ contains
        return
     end if
 
-    num_conc_target = aero_weight_array_num_conc( &
-         aero_state%awa, coag_particle)
+    num_conc_target = aero_weight_array_num_conc(aero_state%awa, coag_particle)
     target_id = coag_particle%id
 
     num_conc_source_min = aero_weight_array_num_conc_at_radius( &
@@ -459,8 +458,7 @@ contains
          = aero_state%aero_sorted%size%inverse(target_bin)%entry( &
          target_unif_entry)
     target_id = aero_state%apa%particle(target_part)%id
-    old_num_conc_target &
-         = aero_weight_array_num_conc(aero_state%awa, &
+    old_num_conc_target = aero_weight_array_num_conc(aero_state%awa, &
          aero_state%apa%particle(target_part))
     call aero_particle_coagulate(aero_state%apa%particle(target_part), &
          source_particle, aero_state%apa%particle(target_part))
@@ -747,8 +745,7 @@ contains
          radius_2)
     num_conc_new = aero_weight_array_num_conc_at_radius(aero_weight_array, &
          radius_new)
-    new_group = aero_weight_array_rand_group(aero_weight_array, &
-         radius_new)
+    new_group = aero_weight_array_rand_group(aero_weight_array, radius_new)
     num_conc_min = min(num_conc_1, num_conc_2, num_conc_new)
     prob_remove_1 = num_conc_min / num_conc_1
     prob_remove_2 = num_conc_min / num_conc_2

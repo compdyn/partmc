@@ -209,14 +209,12 @@ contains
 
   !> Remake a sorting if particles are getting too close to the edges.
   subroutine aero_sorted_remake_if_needed(aero_sorted, aero_particle_array, &
-       aero_data, valid_sort, n_group, bin_grid, all_procs_same)
+       valid_sort, n_group, bin_grid, all_procs_same)
 
     !> Aerosol sorted to (possibly) remake.
     type(aero_sorted_t), intent(inout) :: aero_sorted
     !> Aerosol particles to sort.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
     !> Whether the given aero_sorted is valid.
     logical, intent(in) :: valid_sort
     !> Number of weight groups.
@@ -354,7 +352,7 @@ contains
     type(aero_sorted_t), intent(in) :: aero_sorted
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
-     
+ 
     aero_sorted_particle_in_bin &
          = bin_grid_particle_in_bin(aero_sorted%bin_grid, &
          aero_particle_radius(aero_particle))

@@ -20,8 +20,6 @@ module pmc_coag_kernel_sedi
   use pmc_constants
   use pmc_aero_data
   use pmc_aero_particle
-  use pmc_fractal
- 
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -42,7 +40,7 @@ contains
     real(kind=dp), intent(out) :: k
 
     call kernel_sedi_helper(aero_particle_volume(aero_particle_1), &
-         aero_particle_volume(aero_particle_2), k, aero_data%fractal)
+         aero_particle_volume(aero_particle_2), k)
 
   end subroutine kernel_sedi
   
@@ -64,7 +62,7 @@ contains
     !> Maximum kernel \c k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: k_max
 
-    call kernel_sedi_helper(v1, v2, k_min, aero_data%fractal)
+    call kernel_sedi_helper(v1, v2, k_min)
     k_max = k_min
 
   end subroutine kernel_sedi_minmax
@@ -74,7 +72,7 @@ contains
   !> Helper function that does the actual sedimentation kernel computation.
   !!
   !! Helper function. Do not call directly. Instead use kernel_sedi().
-  subroutine kernel_sedi_helper(v1, v2, k, fractal)
+  subroutine kernel_sedi_helper(v1, v2, k)
 
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
@@ -82,17 +80,16 @@ contains
     real(kind=dp), intent(in) :: v2
     !> Kernel k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: k
-    !> Fractal parameters. 
-    type(fractal_t), intent(in) :: fractal
 
+    type(aero_data_t) :: aero_data
     real(kind=dp) r1, r2, winf1, winf2, ec
     
-    if (fractal%do_fractal) then
-       r1 = vol2Rme(v1, fractal)
-       r2 = vol2Rme(v2, fractal)
+    if (aero_data%fractal%do_fractal) then
+       r1 = vol2Rme(v1, aero_data%fractal)
+       r2 = vol2Rme(v2, aero_data%fractal)
     else
-       r1 = vol2rad(v1, fractal) ! m
-       r2 = vol2rad(v2, fractal) ! m
+       r1 = vol2rad(v1, aero_data%fractal) ! m
+       r2 = vol2rad(v2, aero_data%fractal) ! m
     endif
     call fall_g(r1, winf1) ! winf1 in m/s
     call fall_g(r2, winf2) ! winf2 in m/s

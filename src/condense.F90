@@ -274,8 +274,7 @@ contains
     ! water volume concentration, and adjust particle number to
     ! account for number concentration changes
     water_vol_conc_final = 0d0
-    call aero_state_num_conc_for_reweight(aero_state, aero_data, &
-         reweight_num_conc)
+    call aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
     do i_part = 1,aero_state%apa%n_part
        aero_particle => aero_state%apa%particle(i_part)
        num_conc = aero_weight_array_num_conc(aero_state%aero_weight, &
@@ -295,7 +294,7 @@ contains
             + aero_particle%vol(aero_data%i_water) * num_conc
     end do
     ! adjust particles to account for weight changes
-    call aero_state_reweight(aero_state, aero_data, reweight_num_conc)
+    call aero_state_reweight(aero_state, reweight_num_conc)
 
     ! Check that water removed from particles equals water added to
     ! vapor. Note that water concentration is not conserved (due to
@@ -788,8 +787,7 @@ contains
     ! We're modifying particle diameters, so bin sorting is now invalid
     aero_state%valid_sort = .false.
 
-    call aero_state_num_conc_for_reweight(aero_state, aero_data, &
-         reweight_num_conc)
+    call aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
     do i_part = aero_state%apa%n_part,1,-1
        call condense_equilib_particle(env_state, aero_data, &
             aero_state%apa%particle(i_part))

@@ -213,7 +213,7 @@ contains
          aero_data, env_state, unweighted_k)
     radius_1 = aero_particle_radius(aero_particle_1)
     radius_2 = aero_particle_radius(aero_particle_2)
-    k = unweighted_k * coag_num_conc_factor(aero_data, aero_weight_array, &
+    k = unweighted_k * coag_num_conc_factor(aero_weight_array, &
          radius_1, radius_2)
 
   end subroutine num_conc_weighted_kernel

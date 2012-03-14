@@ -224,7 +224,7 @@ contains
   !> Compute a log-normal distribution in volume.
   subroutine vol_conc_log_normal(total_num_conc, geom_mean_radius, &
        log10_sigma_g, bin_grid, vol_conc)
-   
+
     !> Total number concentration of the mode (m^{-3}).
     real(kind=dp), intent(in) :: total_num_conc
     !> Geometric mean radius (m).
@@ -266,7 +266,7 @@ contains
     integer :: k
     real(kind=dp) :: mean_vol, num_conc_vol
     type(aero_data_t) :: aero_data
-  
+    
     mean_vol = rad2vol(radius_at_mean_vol, aero_data%fractal)
     do k = 1,bin_grid%n_bin
        num_conc_vol = total_num_conc / mean_vol &
@@ -282,7 +282,7 @@ contains
   !> Exponential distribution in volume.
   subroutine vol_conc_exp(total_num_conc, radius_at_mean_vol, &
        bin_grid, vol_conc)
-   
+ 
     !> Total number concentration of the mode (m^{-3}).
     real(kind=dp), intent(in) :: total_num_conc
     !> Radius at mean volume (m).
@@ -343,7 +343,7 @@ contains
     !> Volume concentration (V(ln(r))d(ln(r))).
     real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
 
-    type(aero_data_t) :: aero_data    
+    type(aero_data_t) :: aero_data 
     integer :: k
 
     vol_conc = 0d0
@@ -418,7 +418,7 @@ contains
     !> Volume concentration (V(ln(r))d(ln(r))).
     real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
 
-    type(aero_data_t) :: aero_data 
+    type(aero_data_t) :: aero_data
     real(kind=dp) :: num_conc(bin_grid%n_bin)
 
     call num_conc_sampled(sample_radius, sample_num_conc, bin_grid, num_conc)
@@ -480,8 +480,7 @@ contains
     real(kind=dp) :: vol_conc_total(bin_grid%n_bin)
 
     if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
-       call vol_conc_log_normal(aero_mode%num_conc, aero_mode%num_conc, &
-            aero_mode%char_radius, &
+       call vol_conc_log_normal(aero_mode%num_conc, aero_mode%char_radius, &
             aero_mode%log10_std_dev_radius, bin_grid, vol_conc_total)
     elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
        call vol_conc_exp(aero_mode%num_conc, &
@@ -601,7 +600,7 @@ contains
 
   !> Return a radius randomly sampled from the mode distribution.
   subroutine aero_mode_sample_radius(aero_mode, aero_weight, radius)
-    
+ 
     !> Aero_mode to sample radius from.
     type(aero_mode_t), intent(in) :: aero_mode
     !> Aero weight.

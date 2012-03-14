@@ -13,7 +13,7 @@ module pmc_coag_kernel_brown
   use pmc_constants
   use pmc_util
   use pmc_aero_particle
-  use pmc_fractal
+  use pmc_aero_data
  
 contains
 
@@ -45,7 +45,7 @@ contains
     d2 = aero_particle_density(aero_particle_2, aero_data)
 
     call kernel_brown_helper(v1, d1, v2, d2, env_state%temp, &
-         env_state%pressure, k, aero_data%fractal)
+         env_state%pressure, k)
 
   end subroutine kernel_brown
 
@@ -86,7 +86,7 @@ contains
           d1 = interp_linear_disc(d_min, d_max, n_sample, i)
           d2 = interp_linear_disc(d_min, d_max, n_sample, j)
           call kernel_brown_helper(v1, d1, v2, d2, &
-               env_state%temp, env_state%pressure, k, aero_data%fractal)
+               env_state%temp, env_state%pressure, k)
           if (first) then
              first = .false.
              k_min = k
@@ -108,7 +108,7 @@ contains
   !!
   !! Uses equation (16.28) of M. Z. Jacobson, Fundamentals of
   !! Atmospheric Modeling, Cambridge University Press, 1999.
-  subroutine kernel_brown_helper(v1, d1, v2, d2, tk, press, bckernel, fractal)
+  subroutine kernel_brown_helper(v1, d1, v2, d2, tk, press, bckernel)
 
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
@@ -124,9 +124,8 @@ contains
     real(kind=dp), intent(in) :: press
     !> Kernel k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: bckernel
-    !> Fractal parameters. 
-    type(fractal_t), intent(in) :: fractal
 
+    type(aero_data_t) :: aero_data
     integer, parameter :: nbin_maxd = 1000
     integer, save :: nbin = 0
     real(kind=dp), save :: rad_sv(nbin_maxd)
@@ -172,8 +171,8 @@ contains
     vol_i     = v1 * 1.0d+6   ! particle wet volume (cm3)
     rad_i     = vol2rad(vol_i, fractal)       ! particle wet radius (cm)
     Rme_i     = vol2Rme(vol_i/1.0d+6, fractal)*1.0d+2       ! particle mobility equivalent radius (cm)
-  
-    if (fractal%do_fractal) then
+
+    if (aero_data%fractal%do_fractal) then
        knud   = gasfreepath/Rme_i
        cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
        diffus_i  = boltz*tk*cunning/(6d0*const%pi*Rme_i*viscosd)
@@ -181,7 +180,7 @@ contains
        knud   = gasfreepath/rad_i
        cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
        diffus_i  = boltz*tk*cunning/(6d0*const%pi*rad_i*viscosd)
-    end if  
+    end if
     speedsq_i = 8d0*boltz*tk/(const%pi*den_i*vol_i)
     freepath  = 8d0*diffus_i/(const%pi*sqrt(speedsq_i))
     tmp1      = (2d0*rad_i + freepath)**3
@@ -193,12 +192,12 @@ contains
     rad_j     = vol2rad(vol_j, fractal)
     Rme_j     = vol2Rme(vol_j/1.0d+6, fractal)*1.0d+2
 
-    if (fractal%do_fractal) then
+    if (aero_data%fractal%do_fractal) then
        knud   = gasfreepath/Rme_j
        cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
        diffus_j  = boltz*tk*cunning/(6d0*const%pi*Rme_j*viscosd)
     else
-       knud   = gasfreepath/rad_j   
+       knud   = gasfreepath/rad_j
        cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
        diffus_j  = boltz*tk*cunning/(6d0*const%pi*rad_j*viscosd)
     end if

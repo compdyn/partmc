@@ -23,7 +23,6 @@ module pmc_aero_state
   use pmc_aero_info
   use pmc_aero_info_array
   use pmc_aero_weight
-  use pmc_fractal
 #ifdef PMC_USE_MPI
   use mpi
 #endif

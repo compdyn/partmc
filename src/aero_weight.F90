@@ -237,7 +237,7 @@ contains
 
   !> Compute the number concentration for a particle (m^{-3}).
   real(kind=dp) function aero_weight_array_single_num_conc(aero_weight_array, &
-       aero_particle, aero_data)
+       aero_particle)
 
     !> Aerosol weight array.
     type(aero_weight_t), intent(in) :: aero_weight_array(:)

@@ -170,7 +170,7 @@ contains
          aero_state%aero_sorted%bin_grid%n_bin))
     do i_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
        do j_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
-          call max_coag_num_conc_factor_better(aero_data, aero_weight_total, &
+          call max_coag_num_conc_factor_better(aero_weight_total, &
                aero_state%aero_sorted%bin_grid, i_bin, j_bin, f_max)
           k_max(i_bin, j_bin) &
                = aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin) * f_max

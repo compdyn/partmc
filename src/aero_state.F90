@@ -421,7 +421,7 @@ contains
              if (random_weight_group) then
                 new_group &
                      = aero_weight_array_rand_group(aero_state%aero_weight, &
-                     aero_particle_radius(aero_particle), aero_data)
+                     aero_particle_radius(aero_particle))
                 call aero_particle_set_group(new_aero_particle, new_group)
              end if
           end if
@@ -844,7 +844,7 @@ contains
     do i_part = 1,aero_state%apa%n_part
        aero_particle => aero_state%apa%particle(i_part)
        i_bin = bin_grid_particle_in_bin(bin_grid, &
-            aero_particle_radius(aero_particle), aero_data)
+            aero_particle_radius(aero_particle))
        if ((i_bin < 1) .or. (i_bin > bin_grid%n_bin)) then
           call warn_msg(980232449, "particle ID " &
                // trim(integer_to_string(aero_particle%id)) &

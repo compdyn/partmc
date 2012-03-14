@@ -283,7 +283,7 @@ contains
     else
        ! no bin data, need to loop over all particles
        do i_part = 1,aero_particle_array%n_part
-          r = aero_particle_radius(aero_particle_array%particle(i_part), aero_data)
+          r = aero_particle_radius(aero_particle_array%particle(i_part))
           if (i_part == 1) then
              r_min = r
              r_max = r
@@ -348,19 +348,16 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Find the bin number that contains a given particle.
-  integer function aero_sorted_particle_in_bin(aero_sorted, aero_particlei, &
-       aero_data)
+  integer function aero_sorted_particle_in_bin(aero_sorted, aero_particle)
 
     !> Aerosol sort.
     type(aero_sorted_t), intent(in) :: aero_sorted
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
      
     aero_sorted_particle_in_bin &
          = bin_grid_particle_in_bin(aero_sorted%bin_grid, &
-         aero_particle_radius(aero_particle, aero_data))
+         aero_particle_radius(aero_particle))
     
   end function aero_sorted_particle_in_bin
   

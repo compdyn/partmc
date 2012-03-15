@@ -190,7 +190,8 @@ contains
   !> Compute the kernel value with the given number concentration
   !> weighting.
   subroutine num_conc_weighted_kernel(coag_kernel_type, aero_particle_1, &
-       aero_particle_2, aero_data, aero_weight_array, env_state, k)
+       aero_particle_2, i_set, j_set, ij_set, aero_data, aero_weight_array, &
+       env_state, k)
 
     !> Coagulation kernel type.
     integer, intent(in) :: coag_kernel_type
@@ -198,6 +199,12 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle_1
     !> Second particle.
     type(aero_particle_t), intent(in) :: aero_particle_2
+    !> Weight set of first particle.
+    integer, intent(in) :: i_set
+    !> Weight set of second particle.
+    integer, intent(in) :: j_set
+    !> Weight set of combined particle.
+    integer, intent(in) :: ij_set
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol weight array.
@@ -207,14 +214,14 @@ contains
     !> Coagulation kernel.
     real(kind=dp), intent(out) :: k
 
-    real(kind=dp) :: unweighted_k, radius_1, radius_2
+    real(kind=dp) :: unweighted_k, i_r, j_r
 
     call kernel(coag_kernel_type, aero_particle_1, aero_particle_2, &
          aero_data, env_state, unweighted_k)
-    radius_1 = aero_particle_radius(aero_particle_1)
-    radius_2 = aero_particle_radius(aero_particle_2)
-    k = unweighted_k * coag_num_conc_factor(aero_weight_array, &
-         radius_1, radius_2)
+    i_r = aero_particle_radius(aero_particle_1)
+    j_r = aero_particle_radius(aero_particle_2)
+    k = unweighted_k * coag_num_conc_factor(aero_weight_array, i_r, j_r, &
+         i_set, j_set, ij_set)
 
   end subroutine num_conc_weighted_kernel
 
@@ -494,23 +501,30 @@ contains
 
   !> Coagulation scale factor due to number concentrations.
   real(kind=dp) function coag_num_conc_factor(aero_weight_array, &
-       r_1, r_2)
+       i_r, j_r, i_set, j_set, ij_set)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
     !> Radius of first particle.
-    real(kind=dp), intent(in) :: r_1
+    real(kind=dp), intent(in) :: i_r
     !> Radius of second particle.
-    real(kind=dp), intent(in) :: r_2
+    real(kind=dp), intent(in) :: j_r
+    !> Weight set of first particle.
+    integer, intent(in) :: i_set
+    !> Weight set of second particle.
+    integer, intent(in) :: j_set
+    !> Weight set of combined particle.
+    integer, intent(in) :: ij_set
 
-    real(kind=dp) :: r_12, nc_1, nc_2, nc_12, nc_min
+    real(kind=dp) :: ij_r, i_nc, j_nc, ij_nc, nc_min
 
-    r_12 = vol2rad(rad2vol(r_1) + rad2vol(r_2))
-    nc_1 = aero_weight_array_num_conc_at_radius(aero_weight_array, r_1)
-    nc_2 = aero_weight_array_num_conc_at_radius(aero_weight_array, r_2)
-    nc_12 = aero_weight_array_num_conc_at_radius(aero_weight_array, r_12)
-    nc_min = min(nc_1, nc_2, nc_12)
-    coag_num_conc_factor = nc_1 * nc_2 / nc_min
+    ij_r = vol2rad(rad2vol(i_r) + rad2vol(j_r))
+    i_nc = aero_weight_array_num_conc_at_radius(aero_weight_array, i_set, i_r)
+    j_nc = aero_weight_array_num_conc_at_radius(aero_weight_array, j_set, j_r)
+    ij_nc = aero_weight_array_num_conc_at_radius(aero_weight_array, ij_set, &
+         ij_r)
+    nc_min = min(i_nc, j_nc, ij_nc)
+    coag_num_conc_factor = i_nc * j_nc / nc_min
 
   end function coag_num_conc_factor
 
@@ -519,7 +533,7 @@ contains
   !> Determine the minimum and maximum number concentration factors
   !> for coagulation.
   subroutine max_coag_num_conc_factor(aero_weight_array, bin_grid, &
-       i_bin, j_bin, f_max)
+       i_bin, j_bin, i_set, j_set, ij_set, f_max)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
@@ -529,6 +543,12 @@ contains
     integer, intent(in) :: i_bin
     !> Second bin number.
     integer, intent(in) :: j_bin
+    !> Weight set of first particle.
+    integer, intent(in) :: i_set
+    !> Weight set of second particle.
+    integer, intent(in) :: j_set
+    !> Weight set of combined particle.
+    integer, intent(in) :: ij_set
     !> Maximum coagulation factor.
     real(kind=dp), intent(out) :: f_max
 
@@ -547,7 +567,8 @@ contains
        do j_sample = 1,n_sample
           i_r = interp_linear_disc(i_r_min, i_r_max, n_sample, i_sample)
           j_r = interp_linear_disc(j_r_min, j_r_max, n_sample, j_sample)
-          f = coag_num_conc_factor(aero_weight_array, i_r, j_r)
+          f = coag_num_conc_factor(aero_weight_array, i_r, j_r, i_set, j_set, &
+               ij_set)
           f_max = max(f_max, f)
        end do
     end do

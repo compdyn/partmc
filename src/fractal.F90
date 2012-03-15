@@ -113,6 +113,8 @@ module pmc_fractal
 
     !> Diameter (m).
     real(kind=dp), intent(in) :: d
+    !> Fractal parameters. 
+    type(fractal_t), intent(in) :: fractal
 
     diam2vol = rad2vol(diam2rad(d), fractal)
 

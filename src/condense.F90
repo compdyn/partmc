@@ -230,7 +230,8 @@ contains
        condense_saved_kappa(i_part) &
             = aero_particle_solute_kappa(aero_particle, aero_data)
        condense_saved_D_dry(i_part) = vol2diam(&
-            aero_particle_solute_volume(aero_particle, aero_data))
+            aero_particle_solute_volume(aero_particle, aero_data), &
+            aero_data%fractal)
        condense_saved_num_conc(i_part) &
             = aero_weight_array_num_conc(aero_state%aero_weight, aero_particle)
        state(i_part) = aero_particle_diameter(aero_particle)
@@ -746,7 +747,8 @@ contains
          / (const%univ_gas_const * env_state%temp &
          * const%water_density)
     kappa = aero_particle_solute_kappa(aero_particle, aero_data)
-    D_dry = vol2diam(aero_particle_solute_volume(aero_particle, aero_data))
+    D_dry = vol2diam(aero_particle_solute_volume(aero_particle, aero_data), &
+         aero_data%fractal)
 
     D = D_dry
     g = 0d0

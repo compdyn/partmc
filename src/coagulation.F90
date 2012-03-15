@@ -740,7 +740,7 @@ contains
     radius_1 = aero_particle_radius(particle_1)
     radius_2 = aero_particle_radius(particle_2)
     radius_new = vol2rad((rad2vol(radius_1, aero_data%fractal) &
-         + rad2vol(radius_2), aero_data%fractal), aero_data%fractal)
+         + rad2vol(radius_2, aero_data%fractal), aero_data%fractal)
     num_conc_1 = aero_weight_array_num_conc_at_radius(aero_weight_array, &
          radius_1)
     num_conc_2 = aero_weight_array_num_conc_at_radius(aero_weight_array, &

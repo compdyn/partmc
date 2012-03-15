@@ -551,11 +551,11 @@ contains
        nc_i_max = aero_weight_array_num_conc_at_radius(aero_weight_array, &
             i_r_max)
        nc_j_max = aero_weight_array_num_conc_at_radius(aero_weight_array, &
-            i_r_max)
+            j_r_max)
        nc_i_min = aero_weight_array_num_conc_at_radius(aero_weight_array, &
             i_r_min)
        nc_j_min = aero_weight_array_num_conc_at_radius(aero_weight_array, &
-            i_r_min)
+            j_r_min)
        nc_min = min(nc_i_min, nc_j_min)
        f_max = nc_i_max * nc_j_max / nc_min
     else

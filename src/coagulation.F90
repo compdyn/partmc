@@ -120,7 +120,7 @@ contains
     logical :: per_particle_coag_succeeded
     real(kind=dp) :: f_max, k_max
 
-    call max_coag_num_conc_factor_better(aero_state%awa, &
+    call max_coag_num_conc_factor(aero_state%awa, &
          aero_state%aero_sorted%bin_grid, i_bin, j_bin, f_max)
     k_max = aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin) * f_max
 

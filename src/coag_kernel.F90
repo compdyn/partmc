@@ -518,7 +518,7 @@ contains
 
   !> Determine the minimum and maximum number concentration factors
   !> for coagulation.
-  subroutine max_coag_num_conc_factor_better(aero_weight_array, bin_grid, &
+  subroutine max_coag_num_conc_factor(aero_weight_array, bin_grid, &
        i_bin, j_bin, f_max)
 
     !> Aerosol weight array.
@@ -552,7 +552,7 @@ contains
        end do
     end do
 
-  end subroutine max_coag_num_conc_factor_better
+  end subroutine max_coag_num_conc_factor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

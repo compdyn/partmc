@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -171,7 +171,7 @@ contains
          aero_state%aero_sorted%bin_grid%n_bin))
     do i_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
        do j_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
-          call max_coag_num_conc_factor_better(aero_weight_total, &
+          call max_coag_num_conc_factor(aero_weight_total, &
                aero_state%aero_sorted%bin_grid, i_bin, j_bin, f_max)
           k_max(i_bin, j_bin) &
                = aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin) * f_max

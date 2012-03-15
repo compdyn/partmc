@@ -498,7 +498,7 @@ contains
     type(aero_weight_array_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, n_group, n_set
+    integer :: prev_position, n_group, n_set, i_group, i_set
 
     call aero_weight_array_deallocate(val)
     prev_position = position

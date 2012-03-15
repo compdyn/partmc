@@ -518,63 +518,6 @@ contains
 
   !> Determine the minimum and maximum number concentration factors
   !> for coagulation.
-  subroutine max_coag_num_conc_factor(aero_weight_array, bin_grid, i_bin, &
-       j_bin, f_max)
-
-    !> Aerosol weight array.
-    type(aero_weight_array_t), intent(in) :: aero_weight_array
-    !> Bin grid.
-    type(bin_grid_t), intent(in) :: bin_grid
-    !> First bin number.
-    integer, intent(in) :: i_bin
-    !> Second bin number.
-    integer, intent(in) :: j_bin
-    !> Maximum coagulation factor.
-    real(kind=dp), intent(out) :: f_max
-
-    real(kind=dp) :: i_r_min, i_r_max, j_r_min, j_r_max, ij_r_min, ij_r_max
-    real(kind=dp) :: nc_i_max, nc_j_max, nc_i_min, nc_j_min, nc_min
-    logical :: monotone_increasing, monotone_decreasing
-
-    call aero_weight_array_check_monotonicity(aero_weight_array, &
-         monotone_increasing, monotone_decreasing)
-    call assert(121527417, monotone_increasing .or. monotone_decreasing)
-
-    i_r_min = bin_grid%edge_radius(i_bin)
-    i_r_max = bin_grid%edge_radius(i_bin + 1)
-    j_r_min = bin_grid%edge_radius(j_bin)
-    j_r_max = bin_grid%edge_radius(j_bin + 1)
-    ij_r_min = i_r_min + j_r_min
-    ij_r_max = i_r_max + j_r_max
-
-    if (monotone_increasing) then
-       nc_i_max = aero_weight_array_num_conc_at_radius(aero_weight_array, &
-            i_r_max)
-       nc_j_max = aero_weight_array_num_conc_at_radius(aero_weight_array, &
-            j_r_max)
-       nc_i_min = aero_weight_array_num_conc_at_radius(aero_weight_array, &
-            i_r_min)
-       nc_j_min = aero_weight_array_num_conc_at_radius(aero_weight_array, &
-            j_r_min)
-       nc_min = min(nc_i_min, nc_j_min)
-       f_max = nc_i_max * nc_j_max / nc_min
-    else
-       call assert(990892385, monotone_decreasing)
-       nc_i_max = aero_weight_array_num_conc_at_radius(aero_weight_array, &
-            i_r_min)
-       nc_j_max = aero_weight_array_num_conc_at_radius(aero_weight_array, &
-            i_r_min)
-       nc_min = aero_weight_array_num_conc_at_radius(aero_weight_array, &
-            ij_r_max)
-       f_max = nc_i_max * nc_j_max / nc_min
-    end if
-
-  end subroutine max_coag_num_conc_factor
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Determine the minimum and maximum number concentration factors
-  !> for coagulation.
   subroutine max_coag_num_conc_factor_better(aero_weight_array, bin_grid, &
        i_bin, j_bin, f_max)
 

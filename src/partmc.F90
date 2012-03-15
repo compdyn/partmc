@@ -487,7 +487,8 @@ contains
        end if
  
        call spec_file_read_chamber(file, scenario%chamber)
-       call spec_file_read_fractal(file, aero_data%fractal)
+       call spec_file_read_fractal(file, env_state%temp, env_state%pressure, &
+            aero_data%fractal)
 
        call spec_file_close(file)
     end if

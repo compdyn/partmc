@@ -384,17 +384,19 @@ contains
 
   !> Remove particles due to wall diffusion and sedimentation for a 
   !> particle distribution in chamber study.
-  subroutine scenario_aero_chamber(env_state, delta_t, &
-       aero_data, aero_state)
+  subroutine scenario_aero_chamber(chamber, delta_t, aero_data, &
+       aero_state, temp)
 
-    !> Current environment.
-    type(env_state_t), intent(in) :: env_state
+    !> Chamber parameters.
+    type(chamber_t) :: chamber
     !> Time increment to update over.
     real(kind=dp), intent(in) :: delta_t
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: temp
 
     ! Particle.
     type(aero_particle_t), pointer :: aero_particle
@@ -411,17 +413,17 @@ contains
     do i_part = aero_state%apa%n_part,1,-1
          aero_particle => aero_state%apa%particle(i_part)
          m_Rgeo = aero_particle_mass(aero_particle, aero_data)
-         lossrate = chamber_loss_wall(aero_particle, fractal, &
-              env_state%temp, env_state%pressure) &
-              + chamber_loss_sedi(aero_particle, aero_data, fractal, &
-              env_state%temp, env_state%pressure)
+         lossrate = chamber_loss_wall(chamber, aero_particle, &
+              aero_data%fractal, temp) &
+              + chamber_loss_sedi(chamber, aero_particle, aero_data, temp)
          p = lossrate * delta_t
          if (pmc_random() < p) then
             call aero_info_allocate(aero_info)
             aero_info%id = aero_particle%id
             aero_info%action = AERO_INFO_DILUTION
             aero_info%other_id = 0
-            call aero_state_remove_particle_with_info(aero_state,i_part,aero_info)
+            call aero_state_remove_particle_with_info(aero_state, &
+                 i_part,aero_info)
             call aero_info_deallocate(aero_info)
          end if
     end do
@@ -464,8 +466,8 @@ contains
 
     ! account for wall loss and sedimentation in chamber
     if (scenario%chamber%do_chamber) then
-       call scenario_aero_chamber(env_state, delta_t, &
-            aero_data, aero_state)
+       call scenario_aero_chamber(scenario%chamber, delta_t, &
+            aero_data, aero_state, env_state%temp)
     end if
 
     ! emissions

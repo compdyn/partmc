@@ -7,6 +7,7 @@
 
 module pmc_fractal
 
+  use pmc_spec_file
   use pmc_constants
 
   type fractal_t
@@ -29,6 +30,8 @@ module pmc_fractal
      !> Air molecule mean free path.
      real(kind=dp) :: airfreepath
   end type fractal_t
+
+contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -124,7 +127,7 @@ module pmc_fractal
 
   !> Calculate the number of monomers in a fractal particle cluster.
   !> Based on Eq. 5 in Naumann 2003 J. Aerosol. Sci.
-  real(kind=dp) function vol2N(v, fractal)
+  real(kind=dp) elemental function vol2N(v, fractal)
    
     !> Volume (m^3)
     real(kind=dp), intent(in) :: v
@@ -133,12 +136,12 @@ module pmc_fractal
 
     vol2N = 3d0 * v / 4d0 / const%pi / (fractal%prime_radius**3)
 
-  end function fractal_number_monomer
+  end function vol2N
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert volume (m^3) to geometric radius (m) for fractal particles
-  real(kind=dp) function vol2Rgeo(v, fractal)
+  real(kind=dp) elemental function vol2Rgeo(v, fractal)
 
     !> Volume (m^3).
     real(kind=dp), intent(in) :: v
@@ -154,7 +157,7 @@ module pmc_fractal
 
   !> Calculate the accessible particle surface.
   !> Based on Eq. 26 in Naumann 2003 J. Aerosol. Sci.
-  real(kind=dp) function vol2S_acc(v, fractal)
+  real(kind=dp) elemental function vol2S_acc(v, fractal)
 
     !> Volume (m^3)
     real(kind=dp), intent(in) :: v
@@ -180,8 +183,8 @@ module pmc_fractal
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> JT Convert volume (m^3) to continuum regime mobility equivalent radius
-  real(kind=dp) function vol2R_me_c(v, fractal)
+  !> Convert volume (m^3) to continuum regime mobility equivalent radius
+  real(kind=dp) elemental function vol2R_me_c(v, fractal)
 
     !> Volume (m^3).
     real(kind=dp), intent(in) :: v
@@ -201,7 +204,7 @@ module pmc_fractal
 
   !> Calculate effective radius.
   !> Based on Eq. 28 in Naumann 2003 J. Aerosol. Sci.
-  real(kind=dp) function vol2R_eff(v, fractal)
+  real(kind=dp) elemental function vol2R_eff(v, fractal)
 
     !> Volume (m^3)
     real(kind=dp), intent(in) :: v
@@ -216,19 +219,13 @@ module pmc_fractal
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Slip correction function from continuum to free molecular regime
-  real(kind=dp) function Slip_correct(r, tk, press, fractal)
+  real(kind=dp) elemental function Slip_correct(r, fractal)
 
     !> Radius (m).
     real(kind=dp), intent(in) :: r
-    !> Temperature (K).
-    real(kind=dp), intent(in) :: tk
-    !> Pressure (Pa).
-    real(kind=dp), intent(in) :: press
     !> Fractal parameters. 
     type(fractal_t), intent(in) :: fractal
 
-    call air_mean_free_path(tk, press, fractal)
-    
     Slip_correct = 1d0 + fractal%A_slip * fractal%airfreepath / r &
          + fractal%Q_slip * fractal%airfreepath / r &
          * exp(-fractal%b_slip * r / fractal%airfreepath)
@@ -239,7 +236,7 @@ module pmc_fractal
 
   !> Calculate particle mass equivalent radius.
   !> Based on Eq. 3 in Naumann 2003 J. Aerosol. Sci.
-  real(kind=dp) function vol2R_m(v)
+  real(kind=dp) elemental function vol2R_m(v)
 
     !> Volume (m^3).
     real(kind=dp), intent(in) :: v    
@@ -251,7 +248,7 @@ module pmc_fractal
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert volume (m^3) to mobility equivalent radius (m)
-  real(kind=dp) function vol2Rme(v, fractal)
+  real(kind=dp) elemental function vol2Rme(v, fractal)
 
     !> Volume (m^3)
     real(kind=dp), intent(in) :: v
@@ -268,7 +265,8 @@ module pmc_fractal
     !print *, 'numerical is ', (f_Rme(x,v)-f_Rme(x-1d-10,v))/1d-10
     do
       !print *, 'The solution for Rme is ', x
-      x = x - f_Rme(x,v) / df_Rme(x,v)
+      x = x - f_Rme(x, v, fractal) &
+           / df_Rme(x, v, fractal)
       if (iter > MAX_ITERATIONS) then
          exit
       end if
@@ -281,14 +279,10 @@ module pmc_fractal
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  function f_Rme(x, v, tk, press, fractal) result (y)
+  elemental function f_Rme(x, v, fractal) result (y)
     
     real(kind=dp), intent(in) :: x
     real(kind=dp), intent(in) :: v
-    !> Temperature (K).
-    real(kind=dp), intent(in) :: tk
-    !> Pressure (Pa).
-    real(kind=dp), intent(in) :: press
     !> Fractal parameters. 
     type(fractal_t), intent(in) :: fractal
     real(kind=dp) :: y
@@ -296,30 +290,28 @@ module pmc_fractal
     real(kind=dp) :: R_me_c, R_eff, C_Reff
     R_me_c = vol2R_me_c(v, fractal)
     R_eff = vol2R_eff(v, fractal)
-    C_Reff = Slip_correct(R_eff, tk, press, fractal)
+    C_Reff = Slip_correct(R_eff, fractal)
 
     y = C_Reff * x**2 - R_me_c * x - R_me_c * fractal%Q_slip &
          * fractal%airfreepath * exp(-fractal%b_slip * x     &
          / fractal%airfreepath) - R_me_c * fractal%A_slip    &
-         * fractal%airfreepah
+         * fractal%airfreepath
   end function f_Rme
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  function df_Rme(x,v, tk, press, fractal) result (y)
+  elemental function df_Rme(x, v, fractal) result (y)
     
     real(kind=dp), intent(in) :: x
     real(kind=dp), intent(in) :: v
-    !> Temperature (K).
-    real(kind=dp), intent(in) :: tk
-    !> Pressure (Pa).
-    real(kind=dp), intent(in) :: press
+    !> Fractal parameters. 
+    type(fractal_t), intent(in) :: fractal
     real(kind=dp) :: y
 
     real(kind=dp) :: R_me_c, R_eff, C_Reff
     R_me_c = vol2R_me_c(v, fractal)
     R_eff = vol2R_eff(v, fractal)
-    C_Reff = Slip_correct(R_eff, tk, press, fractal)
+    C_Reff = Slip_correct(R_eff, fractal)
 
     y = 2d0 * C_Reff * x - R_me_c + R_me_c * fractal%Q_slip * fractal%b_slip &
          * exp(-fractal%b_slip * x / fractal%airfreepath)
@@ -328,10 +320,12 @@ module pmc_fractal
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert mobility equivalent radius to that in the continuum regime
-  real(kind=dp) function Rme2R_me_c(r)
+  real(kind=dp) elemental function Rme2R_me_c(r, fractal)
 
     !> Radius (m)
     real(kind=dp), intent(in) :: r
+    !> Fractal parameters.
+    type(fractal_t), intent(in) :: fractal
     real(kind=dp) :: x
     integer, parameter :: MAX_ITERATIONS = 10
     integer :: iter
@@ -342,7 +336,8 @@ module pmc_fractal
     !print *, 'numerical is ', (f_Rmec(x,r)-f_Rmec(x-1d-10,r))/1d-10
     do
       !print *, 'The solution for Rme_c is ', x
-      x = x - f_Rmec(x,r) / df_Rmec(x,r)
+      x = x - f_Rmec(x, r, fractal) &
+           / df_Rmec(x, r, fractal)
       if(iter > MAX_ITERATIONS) then
          exit
       end if
@@ -355,7 +350,7 @@ module pmc_fractal
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   !> Convert fractal geometric radius (m) to volume (m^3).
-  real(kind=dp) function Rgeo2vol(r, fractal)
+  real(kind=dp) elemental function Rgeo2vol(r, fractal)
 
     !> Radius (m).
     real(kind=dp), intent(in) :: r
@@ -370,20 +365,16 @@ module pmc_fractal
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  function f_Rmec(x, r, tk, press, fractal) result (y)
+  elemental function f_Rmec(x, r, fractal) result (y)
     
     real(kind=dp), intent(in) :: x
     real(kind=dp), intent(in) :: r
-    !> Temperature (K).
-    real(kind=dp), intent(in) :: tk
-    !> Pressure (Pa).
-    real(kind=dp), intent(in) :: press
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
     real(kind=dp) :: y
 
     real(kind=dp) :: C_Rme, phi, h_KR
-    C_Rme = Slip_correct(r, tk, press, fractal)
+    C_Rme = Slip_correct(r, fractal)
     h_KR = -0.06483d0 * fractal%frac_dim**2 + 0.6353d0 * &
          fractal%frac_dim - 0.4898d0
     phi = fractal%prime_radius**(2d0 - fractal%frac_dim &
@@ -402,20 +393,16 @@ module pmc_fractal
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  function df_Rmec(x, r, tk, press, fractal) result (y)
+  elemental function df_Rmec(x, r, fractal) result (y)
  
     real(kind=dp), intent(in) :: x
     real(kind=dp), intent(in) :: r
-    !> Temperature (K).
-    real(kind=dp), intent(in) :: tk
-    !> Pressure (Pa).
-    real(kind=dp), intent(in) :: press
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
     real(kind=dp) :: y
 
     real(kind=dp) :: C_Rme, phi, h_KR
-    C_Rme = Slip_correct(r, tk, press, fractal)
+    C_Rme = Slip_correct(r, fractal)
     h_KR = -0.06483d0 * fractal%frac_dim**2 + 0.6353d0 * &
          fractal%frac_dim - 0.4898d0
     phi = fractal%prime_radius**(2d0 - fractal%frac_dim           &
@@ -438,8 +425,8 @@ module pmc_fractal
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!> JT Convert mobility equivalent radius (m) to volume (m^3)
-  real(kind=dp) function Rme2vol(r, fractal)
+!> Convert mobility equivalent radius (m) to volume (m^3)
+  real(kind=dp) elemental function Rme2vol(r, fractal)
     
     !> Radius (m).
     real(kind=dp), intent(in) :: r
@@ -447,7 +434,7 @@ module pmc_fractal
     type(fractal_t), intent(in) :: fractal
 
     real(kind=dp) :: R_me_c, Rgeo
-    R_me_c = Rme2R_me_c(r)
+    R_me_c = Rme2R_me_c(r, fractal)
     Rgeo = R_me_c / (-0.06483d0 * fractal%frac_dim**2 &
          + 0.6353d0 * fractal%frac_dim - 0.4898d0)
     Rme2vol = rad2vol(Rgeo, fractal)
@@ -456,34 +443,21 @@ module pmc_fractal
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!> JT Convert mobility equivalent diameter (m) to volume (m^3)
-  real(kind=dp) function Dme2vol(d, fractal)
-    
-    !> Diameter (m).
-    real(kind=dp), intent(in) :: d
-    !> Fractal parameters.
-    type(fractal_t), intent(in) :: fractal
-
-    real(kind=dp) :: Rme
-    Rme = d / 2d0
-    Dme2vol = Rme2vol(Rme, fractal)
-
-  end function Dme2vol
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Read environment specification from a spec file.
-  subroutine spec_file_read_fractal(file, fractal)
+  subroutine spec_file_read_fractal(file, tk, press, fractal)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: tk
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: press
     !> Fractal parameters.
     type(fractal_t), intent(inout) :: fractal
 
     !> \page input_format_fractal Input File Format: Fractal State
     !!
     !! The fractal parameters are divided into those specified at
-    !! the start of the simulation and then either held constant or
     !! computed for the rest of the simulation.
     !!
     !! The fractal state is specified by the parameters:
@@ -511,6 +485,8 @@ module pmc_fractal
        fractal%prime_radius = 1d-8 ! Can be set to any value
        fractal%vol_fill_factor = 1d0
     end if
+
+    call air_mean_free_path(tk, press, fractal)
 
   end subroutine spec_file_read_fractal
 
@@ -553,5 +529,7 @@ module pmc_fractal
     fractal%airfreepath = 2d0 * viscosk / gasspeed * 1d-02
   
   end subroutine air_mean_free_path  
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_fractal

@@ -14,6 +14,7 @@ module pmc_coag_kernel_brown
   use pmc_util
   use pmc_aero_particle
   use pmc_aero_data
+  use pmc_fractal
  
 contains
 
@@ -169,8 +170,8 @@ contains
 
     den_i     = d1 * 1.0d-3   ! particle wet density (g/cm3)
     vol_i     = v1 * 1.0d+6   ! particle wet volume (cm3)
-    rad_i     = vol2rad(vol_i, fractal)       ! particle wet radius (cm)
-    Rme_i     = vol2Rme(vol_i/1.0d+6, fractal)*1.0d+2       ! particle mobility equivalent radius (cm)
+    rad_i     = vol2rad(vol_i, aero_data%fractal)       ! particle wet radius (cm)
+    Rme_i     = vol2Rme(vol_i/1.0d+6, aero_data%fractal)*1.0d+2       ! particle mobility equivalent radius (cm)
 
     if (aero_data%fractal%do_fractal) then
        knud   = gasfreepath/Rme_i
@@ -189,8 +190,8 @@ contains
     
     den_j     = d2 * 1.0d-3
     vol_j     = v2 * 1.0d+6
-    rad_j     = vol2rad(vol_j, fractal)
-    Rme_j     = vol2Rme(vol_j/1.0d+6, fractal)*1.0d+2
+    rad_j     = vol2rad(vol_j, aero_data%fractal)
+    Rme_j     = vol2Rme(vol_j/1.0d+6, aero_data%fractal)*1.0d+2
 
     if (aero_data%fractal%do_fractal) then
        knud   = gasfreepath/Rme_j

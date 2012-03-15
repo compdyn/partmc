@@ -23,6 +23,8 @@ module pmc_aero_state
   use pmc_aero_info
   use pmc_aero_info_array
   use pmc_aero_weight
+  use pmc_env_state
+  use pmc_fractal
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -641,7 +643,7 @@ contains
           end if
           do i_samp = 1,n_samp
              call aero_particle_zero(aero_particle)
-             call aero_mode_sample_radius(aero_data, aero_mode, &
+             call aero_mode_sample_radius(aero_mode, &
                   aero_state%aero_weight(i_group), radius)
              if (aero_data%fractal%do_fractal) then
                 vol = Rme2vol(radius, aero_data%fractal)
@@ -1515,7 +1517,7 @@ contains
              center_volume = (lower_volume + upper_volume) / 2d0
              center_function = real(n_part, kind=dp) &
                   * aero_weight_array_num_conc_at_radius(&
-                  aero_state%aero_weight, vol2rad(center_volume), aero_data%fractal) &
+                  aero_state%aero_weight, vol2rad(center_volume, aero_data%fractal)) &
                   - total_num_conc
              if ((lower_function > 0d0 .and. center_function > 0d0) &
                   .or. (lower_function < 0d0 .and. center_function < 0d0)) &

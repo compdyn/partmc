@@ -795,7 +795,7 @@ contains
             aero_state%apa%particle(i_part))
     end do
     ! adjust particles to account for weight changes
-    call aero_state_reweight(aero_state, aero_data, reweight_num_conc)
+    call aero_state_reweight(aero_state, reweight_num_conc)
 
   end subroutine condense_equilib_particles
 

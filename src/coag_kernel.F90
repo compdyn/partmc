@@ -290,7 +290,7 @@ contains
     do i = 1,n_bin
        do j = 1,n_bin
           aero_particle_1%vol(1) = rad2vol(bin_r(i), aero_data%fractal)
-          aero_particle_2%vol(1) = rad2vol(bin_r(j), aerp_data%fractal)
+          aero_particle_2%vol(1) = rad2vol(bin_r(j), aero_data%fractal)
           call kernel(coag_kernel_type, aero_particle_1, aero_particle_2, &
                aero_data, env_state, k(i,j))
        end do
@@ -505,8 +505,8 @@ contains
     type(aero_data_t) :: aero_data
     real(kind=dp) :: r_12, nc_1, nc_2, nc_12, nc_min
 
-    r_12 = vol2rad((rad2vol(r_1, aero_data%fractal) + rad2vol(r_2, &
-         aero_data%fractal), aero_data%fractal), aero_data%fractal)
+    r_12 = vol2rad(rad2vol(r_1, aero_data%fractal) + rad2vol(r_2, &
+         aero_data%fractal), aero_data%fractal)
     nc_1 = aero_weight_array_num_conc_at_radius(aero_weight_array, r_1)
     nc_2 = aero_weight_array_num_conc_at_radius(aero_weight_array, r_2)
     nc_12 = aero_weight_array_num_conc_at_radius(aero_weight_array, r_12)

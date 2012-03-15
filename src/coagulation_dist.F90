@@ -908,7 +908,7 @@ contains
     ! add new particle
     if (create_new) then
        new_group = aero_weight_array_rand_group(aero_weight_total, &
-            aero_particle_radius(aero_particle_new, aero_data%fractal))
+            aero_particle_radius(aero_particle_new))
        aero_particle_new%weight_group = new_group
        new_proc = sample_cts_pdf(comp_vols(new_group, :)) - 1
        call send_return_unreq_particle(aero_particle_new, new_proc)

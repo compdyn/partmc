@@ -611,6 +611,7 @@ contains
     real(kind=dp) :: x_mean_prime, x0, x1, x, r, inv_nc0, inv_nc1, inv_nc
     integer :: i_sample
     real(kind=dp), allocatable :: weighted_num_conc(:)
+    type(aero_data_t) :: aero_data
 
     if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
        if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then

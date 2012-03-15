@@ -131,6 +131,7 @@ contains
     aero_particle_to%vol = aero_particle_from%vol
     aero_particle_to%n_orig_part = aero_particle_from%n_orig_part
     aero_particle_to%weight_group = aero_particle_from%weight_group
+    aero_particle_to%weight_set = aero_particle_from%weight_set
     aero_particle_to%absorb_cross_sect = aero_particle_from%absorb_cross_sect
     aero_particle_to%scatter_cross_sect = &
          aero_particle_from%scatter_cross_sect
@@ -166,6 +167,7 @@ contains
     aero_particle_to%n_orig_part => aero_particle_from%n_orig_part
     nullify(aero_particle_from%n_orig_part)
     aero_particle_to%weight_group = aero_particle_from%weight_group
+    aero_particle_to%weight_set = aero_particle_from%weight_set
     aero_particle_to%absorb_cross_sect = aero_particle_from%absorb_cross_sect
     aero_particle_to%scatter_cross_sect = &
          aero_particle_from%scatter_cross_sect
@@ -192,6 +194,7 @@ contains
     aero_particle%vol = 0d0
     aero_particle%n_orig_part = 0
     aero_particle%weight_group = 0
+    aero_particle%weight_set = 0
     aero_particle%absorb_cross_sect = 0d0
     aero_particle%scatter_cross_sect = 0d0
     aero_particle%asymmetry = 0d0
@@ -771,6 +774,7 @@ contains
     aero_particle_new%n_orig_part = aero_particle_1%n_orig_part &
          + aero_particle_2%n_orig_part
     aero_particle_new%weight_group = 0
+    aero_particle_new%weight_set = 0
     aero_particle_new%absorb_cross_sect = 0d0
     aero_particle_new%scatter_cross_sect = 0d0
     aero_particle_new%asymmetry = 0d0
@@ -805,6 +809,7 @@ contains
          pmc_mpi_pack_size_real_array(val%vol) &
          + pmc_mpi_pack_size_integer_array(val%n_orig_part) &
          + pmc_mpi_pack_size_integer(val%weight_group) &
+         + pmc_mpi_pack_size_integer(val%weight_set) &
          + pmc_mpi_pack_size_real(val%absorb_cross_sect) &
          + pmc_mpi_pack_size_real(val%scatter_cross_sect) &
          + pmc_mpi_pack_size_real(val%asymmetry) &
@@ -837,6 +842,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%vol)
     call pmc_mpi_pack_integer_array(buffer, position, val%n_orig_part)
     call pmc_mpi_pack_integer(buffer, position, val%weight_group)
+    call pmc_mpi_pack_integer(buffer, position, val%weight_set)
     call pmc_mpi_pack_real(buffer, position, val%absorb_cross_sect)
     call pmc_mpi_pack_real(buffer, position, val%scatter_cross_sect)
     call pmc_mpi_pack_real(buffer, position, val%asymmetry)
@@ -872,6 +878,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%vol)
     call pmc_mpi_unpack_integer_array(buffer, position, val%n_orig_part)
     call pmc_mpi_unpack_integer(buffer, position, val%weight_group)
+    call pmc_mpi_unpack_integer(buffer, position, val%weight_set)
     call pmc_mpi_unpack_real(buffer, position, val%absorb_cross_sect)
     call pmc_mpi_unpack_real(buffer, position, val%scatter_cross_sect)
     call pmc_mpi_unpack_real(buffer, position, val%asymmetry)

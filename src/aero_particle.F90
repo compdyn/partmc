@@ -31,6 +31,8 @@ module pmc_aero_particle
      integer, pointer :: n_orig_part(:)
      !> Weighting function group number.
      integer :: weight_group
+     !> Weighting function set number.
+     integer :: weight_set
      !> Absorption cross-section (m^2).
      real(kind=dp) :: absorb_cross_sect
      !> Scattering cross-section (m^2).

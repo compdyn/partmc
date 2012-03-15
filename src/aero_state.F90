@@ -43,6 +43,12 @@ module pmc_aero_state
   integer, parameter :: AERO_STATE_WEIGHT_POWER = 3
   !> Coupled number/mass weighting scheme.
   integer, parameter :: AERO_STATE_WEIGHT_NUMMASS = 4
+  !> Flat weighting by source.
+  integer, parameter :: AERO_STATE_WEIGHT_FLAT_SOURCE = 5
+  !> Power-law weighting by source.
+  integer, parameter :: AERO_STATE_WEIGHT_POWER_SOURCE = 6
+  !> Coupled number/mass weighting by source.
+  integer, parameter :: AERO_STATE_WEIGHT_NUMMASS_SOURCE = 7
 
   !> The current collection of aerosol particles.
   !!
@@ -150,10 +156,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Sets the weighting functions for an \c aero_state.
-  subroutine aero_state_set_weight(aero_state, weight_type, exponent)
+  subroutine aero_state_set_weight(aero_state, aero_data, weight_type, &
+       exponent)
 
     !> Aerosol to set the weights on.
     type(aero_state_t), intent(inout) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Type of weighting scheme to use.
     integer, intent(in) :: weight_type
     !> Exponent for power-law weighting (only used if \c weight_type
@@ -162,32 +171,31 @@ contains
 
     aero_state%valid_sort = .false.
     call aero_weight_array_deallocate(aero_state%awa)
-    if (weight_type == AERO_STATE_WEIGHT_NONE) then
+    select case(weight_type)
+    case(AERO_STATE_WEIGHT_NONE)
        call aero_weight_array_allocate(aero_state%awa)
-    elseif (weight_type == AERO_STATE_WEIGHT_FLAT) then
-       call aero_weight_array_allocate_size(aero_state%awa, 1)
-       aero_state%awa%weight(1)%type = AERO_WEIGHT_TYPE_NONE
-       aero_state%awa%weight(1)%ref_radius = 1d0
-       aero_state%awa%weight(1)%exponent = 0d0
-    elseif (weight_type == AERO_STATE_WEIGHT_POWER) then
+    case(AERO_STATE_WEIGHT_FLAT)
+       call aero_weight_array_allocate_flat(aero_state%awa, 1)
+    case(AERO_STATE_WEIGHT_POWER)
        call assert_msg(656670336, present(exponent), &
             "exponent parameter required for AERO_STATE_WEIGHT_POWER")
-       call aero_weight_array_allocate_size(aero_state%awa, 1)
-       aero_state%awa%weight(1)%type = AERO_WEIGHT_TYPE_POWER
-       aero_state%awa%weight(1)%ref_radius = 1d0
-       aero_state%awa%weight(1)%exponent = exponent
-    elseif (weight_type == AERO_STATE_WEIGHT_NUMMASS) then
-       call aero_weight_array_allocate_size(aero_state%awa, 2)
-       aero_state%awa%weight(1)%type = AERO_WEIGHT_TYPE_NONE
-       aero_state%awa%weight(1)%ref_radius = 1d0
-       aero_state%awa%weight(1)%exponent = 0d0
-       aero_state%awa%weight(2)%type = AERO_WEIGHT_TYPE_POWER
-       aero_state%awa%weight(2)%ref_radius = 1d0
-       aero_state%awa%weight(2)%exponent = -3d0
-    else
+       call aero_weight_array_allocate_power(aero_state%awa, 1, exponent)
+    case(AERO_STATE_WEIGHT_NUMMASS)
+       call aero_weight_array_allocate_nummass(aero_state%awa, 1)
+    case(AERO_STATE_WEIGHT_FLAT_SOURCE)
+       call aero_weight_array_allocate_flat(aero_state%awa, aero_data%n_source)
+    case(AERO_STATE_WEIGHT_POWER_SOURCE)
+       call assert_msg(656670336, present(exponent), &
+            "exponent parameter required for AERO_STATE_WEIGHT_POWER")
+       call aero_weight_array_allocate_power(aero_state%awa, &
+            aero_data%n_source, exponent)
+    case(AERO_STATE_WEIGHT_NUMMASS_SOURCE)
+       call aero_weight_array_allocate_nummass(aero_state%awa, &
+            aero_data%n_source)
+    case default
        call die_msg(969076992, "unknown weight_type: " &
             // trim(integer_to_string(weight_type)))
-    end if
+    end select
 
   end subroutine aero_state_set_weight
   

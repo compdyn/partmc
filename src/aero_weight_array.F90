@@ -42,7 +42,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocates an aero_weight_array to the given size.
+  !> Allocates an \c aero_weight_array to the given size.
   subroutine aero_weight_array_allocate_size(aero_weight_array, n_group, n_set)
 
     !> Aerosol weight array.
@@ -53,10 +53,66 @@ contains
     integer,intent(in) :: n_set
 
     allocate(aero_weight_array%weight(n_group, n_set))
-
     call aero_weight_allocate(aero_weight_array%weight)
 
   end subroutine aero_weight_array_allocate_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocates an \c aero_weight_array as flat weightings.
+  subroutine aero_weight_array_allocate_flat(aero_weight_array, n_set)
+
+    !> Aerosol weight array.
+    type(aero_weight_array_t), intent(out) :: aero_weight_array
+    !> Number of weight sets.
+    integer,intent(in) :: n_set
+
+    call aero_weight_array_allocate_size(aero_weight_array, 1, n_set)
+    aero_weight_array%weight%type = AERO_WEIGHT_TYPE_NONE
+    aero_weight_array%weight%ref_radius = 1d0
+    aero_weight_array%weight%exponent = 0d0
+
+  end subroutine aero_weight_array_allocate_flat
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocates an \c aero_weight_array as power weightings.
+  subroutine aero_weight_array_allocate_power(aero_weight_array, n_set, &
+       exponent)
+
+    !> Aerosol weight array.
+    type(aero_weight_array_t), intent(out) :: aero_weight_array
+    !> Number of weight sets.
+    integer,intent(in) :: n_set
+    !> Exponent for power-law.
+    real(kind=dp), intent(in) :: exponent
+
+    call aero_weight_array_allocate_size(aero_weight_array, 1, n_set)
+    aero_weight_array%weight%type = AERO_WEIGHT_TYPE_POWER
+    aero_weight_array%weight%ref_radius = 1d0
+    aero_weight_array%weight%exponent = exponent
+
+  end subroutine aero_weight_array_allocate_power
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocates an \c aero_weight_array as joint flat/power-3 weightings..
+  subroutine aero_weight_array_allocate_nummass(aero_weight_array, n_set)
+
+    !> Aerosol weight array.
+    type(aero_weight_array_t), intent(out) :: aero_weight_array
+    !> Number of weight sets.
+    integer,intent(in) :: n_set
+
+    call aero_weight_array_allocate_size(aero_weight_array, 2, n_set)
+    aero_weight_array%weight(1, :)%type = AERO_WEIGHT_TYPE_NONE
+    aero_weight_array%weight(1, :)%ref_radius = 1d0
+    aero_weight_array%weight(1, :)%exponent = 0d0
+    aero_weight_array%weight(2, :)%type = AERO_WEIGHT_TYPE_POWER
+    aero_weight_array%weight(2, :)%ref_radius = 1d0
+    aero_weight_array%weight(2, :)%exponent = -3d0
+
+  end subroutine aero_weight_array_allocate_nummass
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -67,7 +123,6 @@ contains
     type(aero_weight_array_t), intent(inout) :: aero_weight_array
 
     call aero_weight_deallocate(aero_weight_array%weight)
-
     deallocate(aero_weight_array%weight)
 
   end subroutine aero_weight_array_deallocate

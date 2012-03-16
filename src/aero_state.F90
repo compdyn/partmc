@@ -217,7 +217,8 @@ contains
        call assert(908743823, present(i_set))
        if (aero_state%valid_sort) then
           aero_state_total_particles &
-               = aero_state%aero_sorted%weight%inverse(i_group)%n_entry
+               = aero_state%aero_sorted%group_set%inverse(i_group, &
+               i_set)%n_entry
        else
           ! FIXME: should we just sort?
           aero_state_total_particles = 0
@@ -286,7 +287,7 @@ contains
 
     if (aero_state%valid_sort) then
        call aero_sorted_add_particle(aero_state%aero_sorted, aero_state%apa, &
-            aero_particle, size(aero_state%awa%weight), allow_resort)
+            aero_particle, allow_resort)
     else
        call aero_particle_array_add_particle(aero_state%apa, aero_particle)
     end if
@@ -360,12 +361,14 @@ contains
   !> Remove a randomly chosen particle from the given bin and return
   !> it.
   subroutine aero_state_remove_rand_particle_from_bin(aero_state, &
-       i_bin, aero_particle)
+       i_bin, i_set, aero_particle)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Bin number to remove particle from.
     integer, intent(in) :: i_bin
+    !> Weight set to remove particle from.
+    integer, intent(in) :: i_set
     !> Removed particle.
     type(aero_particle_t), intent(inout) :: aero_particle
 
@@ -373,9 +376,11 @@ contains
 
     call assert(742996300, aero_state%valid_sort)
     call assert(392182617, &
-         aero_state%aero_sorted%size%inverse(i_bin)%n_entry > 0)
-    i_entry = pmc_rand_int(aero_state%aero_sorted%size%inverse(i_bin)%n_entry)
-    i_part = aero_state%aero_sorted%size%inverse(i_bin)%entry(i_entry)
+         aero_state%aero_sorted%size_set%inverse(i_bin, i_set)%n_entry > 0)
+    i_entry = pmc_rand_int(aero_state%aero_sorted%size_set%inverse(i_bin, &
+         i_set)%n_entry)
+    i_part = aero_state%aero_sorted%size_set%inverse(i_bin, &
+         i_set)%entry(i_entry)
     call aero_particle_copy(aero_state%apa%particle(i_part), aero_particle)
     call aero_state_remove_particle_no_info(aero_state, i_part)
 
@@ -1156,7 +1161,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Scale the computational volume of the given group by the given
+  !> Scale the computational volume of the given group/set by the given
   !> ratio, altering particle number as necessary to preserve the
   !> number concentration.
   subroutine aero_state_scale_comp_vol(aero_state, i_group, i_set, &
@@ -1188,13 +1193,13 @@ contains
 
     if (comp_vol_ratio < 1d0) then
        n_remove = prob_round(comp_vol_ratio &
-            * real(aero_state%aero_sorted%weight%inverse(i_group)%n_entry, &
-            kind=dp))
+            * real(aero_state%aero_sorted%group_set%inverse(i_group, &
+            i_set)%n_entry, kind=dp))
        do i_remove = 1,n_remove
-          i_entry = pmc_rand_int(aero_state%aero_sorted%weight%inverse( &
-               i_group)%n_entry)
-          i_part = aero_state%aero_sorted%weight%inverse(i_group)%entry( &
-               i_entry)
+          i_entry = pmc_rand_int(aero_state%aero_sorted%group_set%inverse( &
+               i_group, i_set)%n_entry)
+          i_part = aero_state%aero_sorted%group_set%inverse(i_group, &
+               i_set)%entry(i_entry)
           call aero_info_allocate(aero_info)
           aero_info%id = aero_state%apa%particle(i_part)%id
           aero_info%action = AERO_INFO_HALVED
@@ -1203,9 +1208,10 @@ contains
           call aero_info_deallocate(aero_info)
        end do
     elseif (comp_vol_ratio > 1d0) then
-       do i_entry = aero_state%aero_sorted%weight%inverse(i_group)%n_entry,1,-1
-          i_part = aero_state%aero_sorted%weight%inverse(i_group)%entry( &
-               i_entry)
+       do i_entry = aero_state%aero_sorted%group_set%inverse(i_group, &
+            i_set)%n_entry,1,-1
+          i_part = aero_state%aero_sorted%group_set%inverse(i_group, &
+               i_set)%entry(i_entry)
           call aero_state_dup_particle(aero_state, i_part, comp_vol_ratio)
        end do
     end if
@@ -1391,35 +1397,42 @@ contains
 
     real(kind=dp) :: species_volume_conc(aero_data%n_spec)
     real(kind=dp) :: total_volume_conc, particle_volume, num_conc
-    integer :: i_bin, i_entry, i_part, i_spec
+    integer :: i_bin, i_set, i_entry, i_part, i_spec
     type(aero_particle_t), pointer :: aero_particle
 
     call aero_state_sort(aero_state, bin_grid)
 
     do i_bin = 1,bin_grid%n_bin
-       species_volume_conc = 0d0
-       total_volume_conc = 0d0
-       do i_entry = 1,aero_state%aero_sorted%size%inverse(i_bin)%n_entry
-          i_part = aero_state%aero_sorted%size%inverse(i_bin)%entry(i_entry)
-          aero_particle => aero_state%apa%particle(i_part)
-          num_conc = aero_weight_array_num_conc(aero_state%awa, aero_particle)
-          particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
-               aero_data, dry_volume)
-          species_volume_conc = species_volume_conc &
-               + num_conc * aero_particle%vol
-          total_volume_conc = total_volume_conc + num_conc * particle_volume
-       end do
-       do i_entry = 1,aero_state%aero_sorted%size%inverse(i_bin)%n_entry
-          i_part = aero_state%aero_sorted%size%inverse(i_bin)%entry(i_entry)
-          aero_particle => aero_state%apa%particle(i_part)
-          particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
-               aero_data, dry_volume)
-          aero_particle%vol = particle_volume * species_volume_conc &
-               / total_volume_conc
-          if (dry_volume .and. (aero_data%i_water > 0)) then
-             ! set water to zero if we are doing dry volume averaging
-             aero_particle%vol(aero_data%i_water) = 0d0
-          end if
+       do i_set = 1,size(aero_state%awa%weight, 2)
+          species_volume_conc = 0d0
+          total_volume_conc = 0d0
+          do i_entry = 1,aero_state%aero_sorted%size_set%inverse(i_bin, &
+               i_set)%n_entry
+             i_part = aero_state%aero_sorted%size_set%inverse(i_bin, &
+                  i_set)%entry(i_entry)
+             aero_particle => aero_state%apa%particle(i_part)
+             num_conc = aero_weight_array_num_conc(aero_state%awa, &
+                  aero_particle)
+             particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
+                  aero_data, dry_volume)
+             species_volume_conc = species_volume_conc &
+                  + num_conc * aero_particle%vol
+             total_volume_conc = total_volume_conc + num_conc * particle_volume
+          end do
+          do i_entry = 1,aero_state%aero_sorted%size_set%inverse(i_bin, &
+               i_set)%n_entry
+             i_part = aero_state%aero_sorted%size_set%inverse(i_bin, &
+                  i_set)%entry(i_entry)
+             aero_particle => aero_state%apa%particle(i_part)
+             particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
+                  aero_data, dry_volume)
+             aero_particle%vol = particle_volume * species_volume_conc &
+                  / total_volume_conc
+             if (dry_volume .and. (aero_data%i_water > 0)) then
+                ! set water to zero if we are doing dry volume averaging
+                aero_particle%vol(aero_data%i_water) = 0d0
+             end if
+          end do
        end do
     end do
 
@@ -1464,167 +1477,177 @@ contains
     real(kind=dp) :: new_particle_volume, num_conc, total_num_conc
     real(kind=dp) :: lower_volume, upper_volume, center_volume
     real(kind=dp) :: lower_function, upper_function, center_function
-    integer :: i_bin, i_entry, i_part, i_bisect, n_part
+    integer :: i_bin, i_set, i_entry, i_part, i_bisect, n_part
     logical :: monotone_increasing, monotone_decreasing
     type(aero_particle_t), pointer :: aero_particle
 
     call aero_state_sort(aero_state, bin_grid)
 
-    call die_msg(324563039, "FIXME: i_set is not used correctly here")
     do i_bin = 1,bin_grid%n_bin
-       if (aero_state%aero_sorted%size%inverse(i_bin)%n_entry == 0) then
-          cycle
-       end if
-
-       n_part = aero_state%aero_sorted%size%inverse(i_bin)%n_entry
-       total_num_conc = 0d0
-       total_volume_conc = 0d0
-       do i_entry = 1,aero_state%aero_sorted%size%inverse(i_bin)%n_entry
-          i_part = aero_state%aero_sorted%size%inverse(i_bin)%entry(i_entry)
-          aero_particle => aero_state%apa%particle(i_part)
-          num_conc = aero_weight_array_num_conc(aero_state%awa, aero_particle)
-          total_num_conc = total_num_conc + num_conc
-          particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
-               aero_data, dry_volume)
-          total_volume_conc = total_volume_conc &
-               + num_conc * particle_volume
-       end do
-
-       ! determine the new_particle_volume for all particles in this bin
-       if (bin_center) then
-          new_particle_volume = rad2vol(bin_grid%center_radius(i_bin))
-       elseif (aero_weight_array_check_flat(aero_state%awa)) then
-          num_conc & ! any radius will have the same num_conc
-               = aero_weight_array_num_conc_at_radius(aero_state%awa, 1, 1d0)
-          new_particle_volume = total_volume_conc / num_conc &
-               / real(aero_state%aero_sorted%size%inverse(i_bin)%n_entry, &
-               kind=dp)
-       elseif (preserve_number) then
-          ! number-preserving scheme: Solve the implicit equation:
-          ! n_part * W(new_vol) = total_num_conc
-          !
-          ! We assume that the weighting function is strictly monotone
-          ! so this equation has a unique solution and the solution
-          ! lies between the min and max particle volumes. We use
-          ! bisection as this doesn't really need to be fast, just
-          ! robust.
-
-          call aero_weight_array_check_monotonicity(aero_state%awa, &
-               monotone_increasing, monotone_decreasing)
-          call assert_msg(214077200, &
-               monotone_increasing .or. monotone_decreasing, &
-               "monotone weight function required for averaging")
-
-          ! initialize to min and max particle volumes
-          do i_entry = 1,n_part
-             i_part = aero_state%aero_sorted%size%inverse(i_bin)%entry(i_entry)
-             aero_particle => aero_state%apa%particle(i_part)
-             particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
-                  aero_data, dry_volume)
-             if (i_part == 1) then
-                lower_volume = particle_volume
-                upper_volume = particle_volume
-             end if
-             lower_volume = min(lower_volume, particle_volume)
-             upper_volume = max(upper_volume, particle_volume)
-          end do
-
-          lower_function = real(n_part, kind=dp) &
-               * aero_weight_array_num_conc_at_radius( &
-               aero_state%awa, 1, vol2rad(lower_volume)) - total_num_conc
-          upper_function = real(n_part, kind=dp) &
-               * aero_weight_array_num_conc_at_radius(&
-               aero_state%awa, 1, vol2rad(upper_volume)) - total_num_conc
-
-          ! do 50 rounds of bisection (2^50 = 10^15)
-          do i_bisect = 1,50
-             center_volume = (lower_volume + upper_volume) / 2d0
-             center_function = real(n_part, kind=dp) &
-                  * aero_weight_array_num_conc_at_radius(aero_state%awa, 1, &
-                  vol2rad(center_volume)) - total_num_conc
-             if ((lower_function > 0d0 .and. center_function > 0d0) &
-                  .or. (lower_function < 0d0 .and. center_function < 0d0)) &
-                  then
-                lower_volume = center_volume
-                lower_function = center_function
-             else
-                upper_volume = center_volume
-                upper_function = center_function
-             end if
-          end do
-
-          new_particle_volume = center_volume
-       else
-          ! volume-preserving scheme: Solve the implicit equation:
-          ! n_part * W(new_vol) * new_vol = total_volume_conc
-          !
-          ! We assume that the weighting function is strictly monotone
-          ! so this equation has a unique solution and the solution
-          ! lies between the min and max particle volumes. We use
-          ! bisection as this doesn't really need to be fast, just
-          ! robust.
-
-          call aero_weight_array_check_monotonicity(aero_state%awa, &
-               monotone_increasing, monotone_decreasing)
-          call assert_msg(483078128, &
-               monotone_increasing .or. monotone_decreasing, &
-               "monotone weight function required for averaging")
-
-          ! initialize to min and max particle volumes
-          do i_entry = 1,n_part
-             i_part = aero_state%aero_sorted%size%inverse(i_bin)%entry(i_entry)
-             aero_particle => aero_state%apa%particle(i_part)
-             particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
-                  aero_data, dry_volume)
-             if (i_part == 1) then
-                lower_volume = particle_volume
-                upper_volume = particle_volume
-             end if
-             lower_volume = min(lower_volume, particle_volume)
-             upper_volume = max(upper_volume, particle_volume)
-          end do
-
-          lower_function = real(n_part, kind=dp) &
-               * aero_weight_array_num_conc_at_radius( &
-               aero_state%awa, 1, vol2rad(lower_volume)) &
-               * lower_volume - total_volume_conc
-          upper_function = real(n_part, kind=dp) &
-               * aero_weight_array_num_conc_at_radius( &
-               aero_state%awa, 1, vol2rad(upper_volume)) &
-               * upper_volume - total_volume_conc
-
-          ! do 50 rounds of bisection (2^50 = 10^15)
-          do i_bisect = 1,50
-             center_volume = (lower_volume + upper_volume) / 2d0
-             center_function = real(n_part, kind=dp) &
-                  * aero_weight_array_num_conc_at_radius( &
-                  aero_state%awa, 1, vol2rad(center_volume)) &
-                  * center_volume - total_volume_conc
-             if ((lower_function > 0d0 .and. center_function > 0d0) &
-                  .or. (lower_function < 0d0 .and. center_function < 0d0)) &
-                  then
-                lower_volume = center_volume
-                lower_function = center_function
-             else
-                upper_volume = center_volume
-                upper_function = center_function
-             end if
-          end do
-
-          new_particle_volume = center_volume
-       end if
-
-       do i_entry = 1,n_part
-          i_part = aero_state%aero_sorted%size%inverse(i_bin)%entry(i_entry)
-          aero_particle => aero_state%apa%particle(i_part)
-          particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
-               aero_data, dry_volume)
-          aero_particle%vol = aero_particle%vol / particle_volume &
-               * new_particle_volume
-          if (dry_volume .and. (aero_data%i_water > 0)) then
-             ! set water to zero if we are doing dry volume averaging
-             aero_particle%vol(aero_data%i_water) = 0d0
+       do i_set = 1,size(aero_state%awa%weight, 2)
+          if (aero_state%aero_sorted%size_set%inverse(i_bin, &
+               i_set)%n_entry == 0) then
+             cycle
           end if
+
+          n_part = aero_state%aero_sorted%size_set%inverse(i_bin, &
+               i_set)%n_entry
+          total_num_conc = 0d0
+          total_volume_conc = 0d0
+          do i_entry = 1,aero_state%aero_sorted%size_set%inverse(i_bin, &
+               i_set)%n_entry
+             i_part = aero_state%aero_sorted%size_set%inverse(i_bin, &
+                  i_set)%entry(i_entry)
+             aero_particle => aero_state%apa%particle(i_part)
+             num_conc = aero_weight_array_num_conc(aero_state%awa, &
+                  aero_particle)
+             total_num_conc = total_num_conc + num_conc
+             particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
+                  aero_data, dry_volume)
+             total_volume_conc = total_volume_conc &
+                  + num_conc * particle_volume
+          end do
+
+          ! determine the new_particle_volume for all particles in this bin
+          if (bin_center) then
+             new_particle_volume = rad2vol(bin_grid%center_radius(i_bin))
+          elseif (aero_weight_array_check_flat(aero_state%awa)) then
+             num_conc & ! any radius will have the same num_conc
+                  = aero_weight_array_num_conc_at_radius(aero_state%awa, &
+                  i_set, 1d0)
+             new_particle_volume = total_volume_conc / num_conc &
+                  / real(aero_state%aero_sorted%size_set%inverse(i_bin, &
+                  i_set)%n_entry, kind=dp)
+          elseif (preserve_number) then
+             ! number-preserving scheme: Solve the implicit equation:
+             ! n_part * W(new_vol) = total_num_conc
+             !
+             ! We assume that the weighting function is strictly monotone
+             ! so this equation has a unique solution and the solution
+             ! lies between the min and max particle volumes. We use
+             ! bisection as this doesn't really need to be fast, just
+             ! robust.
+
+             call aero_weight_array_check_monotonicity(aero_state%awa, &
+                  monotone_increasing, monotone_decreasing)
+             call assert_msg(214077200, &
+                  monotone_increasing .or. monotone_decreasing, &
+                  "monotone weight function required for averaging")
+
+             ! initialize to min and max particle volumes
+             do i_entry = 1,n_part
+                i_part = aero_state%aero_sorted%size_set%inverse(i_bin, &
+                     i_set)%entry(i_entry)
+                aero_particle => aero_state%apa%particle(i_part)
+                particle_volume = aero_particle_volume_maybe_dry( &
+                     aero_particle, aero_data, dry_volume)
+                if (i_part == 1) then
+                   lower_volume = particle_volume
+                   upper_volume = particle_volume
+                end if
+                lower_volume = min(lower_volume, particle_volume)
+                upper_volume = max(upper_volume, particle_volume)
+             end do
+
+             lower_function = real(n_part, kind=dp) &
+                  * aero_weight_array_num_conc_at_radius(aero_state%awa, &
+                  i_set, vol2rad(lower_volume)) - total_num_conc
+             upper_function = real(n_part, kind=dp) &
+                  * aero_weight_array_num_conc_at_radius(aero_state%awa, &
+                  i_set, vol2rad(upper_volume)) - total_num_conc
+
+             ! do 50 rounds of bisection (2^50 = 10^15)
+             do i_bisect = 1,50
+                center_volume = (lower_volume + upper_volume) / 2d0
+                center_function = real(n_part, kind=dp) &
+                     * aero_weight_array_num_conc_at_radius(aero_state%awa, &
+                     i_set, vol2rad(center_volume)) - total_num_conc
+                if ((lower_function > 0d0 .and. center_function > 0d0) &
+                     .or. (lower_function < 0d0 .and. center_function < 0d0)) &
+                     then
+                   lower_volume = center_volume
+                   lower_function = center_function
+                else
+                   upper_volume = center_volume
+                   upper_function = center_function
+                end if
+             end do
+
+             new_particle_volume = center_volume
+          else
+             ! volume-preserving scheme: Solve the implicit equation:
+             ! n_part * W(new_vol) * new_vol = total_volume_conc
+             !
+             ! We assume that the weighting function is strictly monotone
+             ! so this equation has a unique solution and the solution
+             ! lies between the min and max particle volumes. We use
+             ! bisection as this doesn't really need to be fast, just
+             ! robust.
+
+             call aero_weight_array_check_monotonicity(aero_state%awa, &
+                  monotone_increasing, monotone_decreasing)
+             call assert_msg(483078128, &
+                  monotone_increasing .or. monotone_decreasing, &
+                  "monotone weight function required for averaging")
+
+             ! initialize to min and max particle volumes
+             do i_entry = 1,n_part
+                i_part = aero_state%aero_sorted%size_set%inverse(i_bin, &
+                     i_set)%entry(i_entry)
+                aero_particle => aero_state%apa%particle(i_part)
+                particle_volume = aero_particle_volume_maybe_dry( &
+                     aero_particle, aero_data, dry_volume)
+                if (i_part == 1) then
+                   lower_volume = particle_volume
+                   upper_volume = particle_volume
+                end if
+                lower_volume = min(lower_volume, particle_volume)
+                upper_volume = max(upper_volume, particle_volume)
+             end do
+
+             lower_function = real(n_part, kind=dp) &
+                  * aero_weight_array_num_conc_at_radius( &
+                  aero_state%awa, i_set, vol2rad(lower_volume)) &
+                  * lower_volume - total_volume_conc
+             upper_function = real(n_part, kind=dp) &
+                  * aero_weight_array_num_conc_at_radius( &
+                  aero_state%awa, i_set, vol2rad(upper_volume)) &
+                  * upper_volume - total_volume_conc
+
+             ! do 50 rounds of bisection (2^50 = 10^15)
+             do i_bisect = 1,50
+                center_volume = (lower_volume + upper_volume) / 2d0
+                center_function = real(n_part, kind=dp) &
+                     * aero_weight_array_num_conc_at_radius( &
+                     aero_state%awa, i_set, vol2rad(center_volume)) &
+                     * center_volume - total_volume_conc
+                if ((lower_function > 0d0 .and. center_function > 0d0) &
+                     .or. (lower_function < 0d0 .and. center_function < 0d0)) &
+                     then
+                   lower_volume = center_volume
+                   lower_function = center_function
+                else
+                   upper_volume = center_volume
+                   upper_function = center_function
+                end if
+             end do
+
+             new_particle_volume = center_volume
+          end if
+
+          do i_entry = 1,n_part
+             i_part = aero_state%aero_sorted%size_set%inverse(i_bin, &
+                  i_set)%entry(i_entry)
+             aero_particle => aero_state%apa%particle(i_part)
+             particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
+                  aero_data, dry_volume)
+             aero_particle%vol = aero_particle%vol / particle_volume &
+                  * new_particle_volume
+             if (dry_volume .and. (aero_data%i_water > 0)) then
+                ! set water to zero if we are doing dry volume averaging
+                aero_particle%vol(aero_data%i_water) = 0d0
+             end if
+          end do
        end do
     end do
 
@@ -2422,8 +2445,8 @@ contains
     logical, optional, intent(in) :: all_procs_same
 
     call aero_sorted_remake_if_needed(aero_state%aero_sorted, aero_state%apa, &
-         aero_state%valid_sort, size(aero_state%awa%weight), bin_grid, &
-         all_procs_same)
+         aero_state%valid_sort, size(aero_state%awa%weight, 1), &
+         size(aero_state%awa%weight, 2), bin_grid, all_procs_same)
     aero_state%valid_sort = .true.
 
   end subroutine aero_state_sort
@@ -2446,7 +2469,8 @@ contains
     end if
 
     call aero_sorted_check(aero_state%aero_sorted, aero_state%apa, &
-         size(aero_state%awa%weight), continue_on_error)
+         size(aero_state%awa%weight, 1), size(aero_state%awa%weight, 2), &
+         continue_on_error)
 
   end subroutine aero_state_check_sort
   

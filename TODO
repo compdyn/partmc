@@ -169,3 +169,7 @@ Use find_unnecessary_link_breaks and fix them.
 Add accessor functions for finding dimensions, rather than storing
 them directly. E.g., aero_state.n_part(), aero_weight_array.n_set(),
 etc.
+
+Make nucleation look just like another emission, but of a
+mono-disperse aero_dist with a rate that is computed from the
+gas_state and env_state.

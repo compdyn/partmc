@@ -435,7 +435,7 @@ contains
                      = aero_weight_array_rand_group(aero_state%awa, &
                      aero_particle%weight_set, &
                      aero_particle_radius(aero_particle))
-                call aero_particle_set_group(new_aero_particle, new_group)
+                call aero_particle_set_weight(new_aero_particle, new_group)
              end if
           end if
           call aero_state_add_particle(aero_state, new_aero_particle)
@@ -671,7 +671,7 @@ contains
              call aero_particle_set_vols(aero_particle, &
                   aero_mode%vol_frac * vol)
              call aero_particle_new_id(aero_particle)
-             call aero_particle_set_group(aero_particle, i_group)
+             call aero_particle_set_weight(aero_particle, i_group, i_set)
              call aero_particle_set_create_time(aero_particle, create_time)
              call aero_particle_set_source(aero_particle, aero_mode%source)
              call aero_state_add_particle(aero_state, aero_particle)

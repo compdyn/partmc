@@ -267,16 +267,19 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Sets the aerosol particle weight group.
-  subroutine aero_particle_set_group(aero_particle, i_group)
+  subroutine aero_particle_set_weight(aero_particle, i_group, i_set)
 
     !> Particle.
     type(aero_particle_t), intent(inout) :: aero_particle
     !> Weight group number for the particle.
-    integer, intent(in) :: i_group
+    integer, intent(in), optional :: i_group
+    !> Weight set number for the particle.
+    integer, intent(in), optional :: i_set
 
-    aero_particle%weight_group = i_group
+    if (present(i_group)) aero_particle%weight_group = i_group
+    if (present(i_set)) aero_particle%weight_set = i_set
 
-  end subroutine aero_particle_set_group
+  end subroutine aero_particle_set_weight
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

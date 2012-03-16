@@ -351,15 +351,13 @@ contains
 
   !> Compute the maximum and minimum number concentrations between the
   !> given radii.
-  subroutine aero_weight_array_minmax_num_conc(aero_weight_array, i_set_1, &
-       i_set_2, radius_1, radius_2, num_conc_min, num_conc_max)
+  subroutine aero_weight_array_minmax_num_conc(aero_weight_array, i_set, &
+       radius_1, radius_2, num_conc_min, num_conc_max)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
-    !> First weight set.
-    integer, intent(in) :: i_set_1
-    !> Second weight set.
-    integer, intent(in) :: i_set_2
+    !> Weight set.
+    integer, intent(in) :: i_set
     !> First radius.
     real(kind=dp), intent(in) :: radius_1
     !> Second radius.
@@ -377,9 +375,9 @@ contains
     call assert(857727714, monotone_increasing .or. monotone_decreasing)
 
     num_conc_1 = aero_weight_array_num_conc_at_radius(aero_weight_array, &
-         i_set_1, radius_1)
+         i_set, radius_1)
     num_conc_2 = aero_weight_array_num_conc_at_radius(aero_weight_array, &
-         i_set_2, radius_2)
+         i_set, radius_2)
     num_conc_min = min(num_conc_1, num_conc_2)
     num_conc_max = max(num_conc_1, num_conc_2)
 

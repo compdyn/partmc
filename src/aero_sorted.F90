@@ -41,10 +41,10 @@ module pmc_aero_sorted
      type(integer_rmap2_t) :: group_set
      !> Whether coagulation kernel bounds are valid.
      logical :: coag_kernel_bounds_valid
-     !> Coagulation kernel lower bound per weight set pair.
-     real(kind=dp), allocatable, dimension(:,:,:,:) :: coag_kernel_min
+     !> Coagulation kernel lower bound.
+     real(kind=dp), allocatable, dimension(:,:) :: coag_kernel_min
      !> Coagulation kernel upper bound.
-     real(kind=dp), allocatable, dimension(:,:,:,:) :: coag_kernel_max
+     real(kind=dp), allocatable, dimension(:,:) :: coag_kernel_max
   end type aero_sorted_t
 
   !> How many size bins to use per decade of particle radius.
@@ -68,8 +68,8 @@ contains
     call integer_rmap2_allocate(aero_sorted%size_set)
     call integer_rmap2_allocate(aero_sorted%group_set)
     aero_sorted%coag_kernel_bounds_valid = .false.
-    allocate(aero_sorted%coag_kernel_min(0, 0, 0, 0))
-    allocate(aero_sorted%coag_kernel_max(0, 0, 0, 0))
+    allocate(aero_sorted%coag_kernel_min(0, 0))
+    allocate(aero_sorted%coag_kernel_max(0, 0))
 
   end subroutine aero_sorted_allocate
   
@@ -91,8 +91,8 @@ contains
     call integer_rmap2_allocate_size(aero_sorted%size_set, n_bin, n_set)
     call integer_rmap2_allocate_size(aero_sorted%group_set, n_group, n_set)
     aero_sorted%coag_kernel_bounds_valid = .false.
-    allocate(aero_sorted%coag_kernel_min(n_set, n_set, n_bin, n_bin))
-    allocate(aero_sorted%coag_kernel_max(n_set, n_set, n_bin, n_bin))
+    allocate(aero_sorted%coag_kernel_min(n_bin, n_bin))
+    allocate(aero_sorted%coag_kernel_max(n_bin, n_bin))
 
   end subroutine aero_sorted_allocate_size
   
@@ -245,7 +245,7 @@ contains
     type(bin_grid_t) :: new_bin_grid
 
     if (present(n_group)) then
-       call assert(178909370, present(n_set))
+       call assert(267881270, present(n_set))
        use_n_group = n_group
        use_n_set = n_set
     else

@@ -530,6 +530,42 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determine the weight set in which coagulated particles will be placed.
+  integer function coag_dest_set(aero_weight_array, bin_grid, i_bin, j_bin, &
+       i_set, j_set)
+
+    !> Aerosol weight array.
+    type(aero_weight_array_t), intent(in) :: aero_weight_array
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> First bin number.
+    integer, intent(in) :: i_bin
+    !> Second bin number.
+    integer, intent(in) :: j_bin
+    !> Weight set of first particle.
+    integer, intent(in) :: i_set
+    !> Weight set of second particle.
+    integer, intent(in) :: j_set
+
+    real(kind=dp) :: i_r, j_r, ij_r, ij_nc_i, ij_nc_j
+
+    i_r = bin_grid%center_radius(i_bin)
+    j_r = bin_grid%center_radius(i_bin)
+    ij_r = vol2rad(rad2vol(i_r) + rad2vol(j_r))
+    ij_nc_i = aero_weight_array_num_conc_at_radius(aero_weight_array, i_set, &
+         ij_r)
+    ij_nc_j = aero_weight_array_num_conc_at_radius(aero_weight_array, i_set, &
+         ij_r)
+    if (ij_nc_i < ij_nc_j) then
+       coag_dest_set = i_set
+    else
+       coag_dest_set = j_set
+    end if
+
+  end function coag_dest_set
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Determine the minimum and maximum number concentration factors
   !> for coagulation.
   subroutine max_coag_num_conc_factor(aero_weight_array, bin_grid, &
@@ -547,7 +583,7 @@ contains
     integer, intent(in) :: i_set
     !> Weight set of second particle.
     integer, intent(in) :: j_set
-    !> Weight set of combined particle.
+    !> Weight set of coagulated particle.
     integer, intent(in) :: ij_set
     !> Maximum coagulation factor.
     real(kind=dp), intent(out) :: f_max

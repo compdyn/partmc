@@ -176,6 +176,30 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Return the number of weight groups.
+  integer function aero_weight_array_n_group(aero_weight_array)
+
+    !> Aerosol weight array.
+    type(aero_weight_array_t), intent(in) :: aero_weight_array
+
+    aero_weight_array_n_group = size(aero_weight_array%weight, 1)
+
+  end function aero_weight_array_n_group
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Return the number of weight sets.
+  integer function aero_weight_array_n_set(aero_weight_array)
+
+    !> Aerosol weight array.
+    type(aero_weight_array_t), intent(in) :: aero_weight_array
+
+    aero_weight_array_n_set = size(aero_weight_array%weight, 2)
+
+  end function aero_weight_array_n_set
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Scale the computational volume by the given fraction, so
   !> <tt>new_comp_vol = old_comp_vol * fraction</tt>.
   subroutine aero_weight_array_scale_comp_vol(aero_weight_array, fraction)

@@ -594,6 +594,51 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Change the computational volume if necessary to ensure that the
+  !> addition of about \c n_add particles will give the correct final
+  !> particle number.
+  subroutine aero_state_prepare_comp_vol_for_add(aero_state, i_group, i_set, &
+       n_add)
+
+    !> Aero state to add to.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Weight group number to add to.
+    integer, intent(in) :: i_group
+    !> Weight set number to add to.
+    integer, intent(in) :: i_set
+    !> Approximate number of particles to be added at current weighting.
+    real(kind=dp), intent(in) :: n_add
+
+    integer :: global_n_part, n_group, n_set
+    real(kind=dp) :: mean_n_part, n_part_new, comp_vol_ratio
+    real(kind=dp) :: n_part_ideal_local_group
+
+    n_group = aero_weight_array_n_group(aero_state%awa)
+    n_set = aero_weight_array_n_set(aero_state%awa)
+    global_n_part = aero_state_total_particles_all_procs(aero_state, &
+         i_group, i_set)
+    mean_n_part = real(global_n_part, kind=dp) &
+         / real(pmc_mpi_size(), kind=dp)
+    if (aero_state%awa%weight(i_group, i_set)%comp_vol == 0d0) then
+       ! FIXME: assert that n_part in this weight group is zero
+       aero_state%awa%weight(i_group, i_set)%comp_vol = 1d0
+    end if
+    n_part_new = mean_n_part + n_add
+    if (n_part_new == 0d0) return
+    n_part_ideal_local_group = aero_state%n_part_ideal &
+         / real(pmc_mpi_size(), kind=dp) / real(n_group * n_set, kind=dp)
+    if ((n_part_new <  n_part_ideal_local_group / 2d0) &
+         .or. (n_part_new > n_part_ideal_local_group * 2d0)) &
+         then
+       comp_vol_ratio = n_part_ideal_local_group / n_part_new
+       call aero_state_scale_comp_vol(aero_state, i_group, i_set, &
+            comp_vol_ratio)
+    end if
+
+  end subroutine aero_state_prepare_comp_vol_for_add
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Generates a Poisson sample of an \c aero_dist, adding to \c
   !> aero_state. The sampled amount is <tt>sample_prop *
   !> aero_state%comp_vol</tt>.
@@ -613,10 +658,8 @@ contains
     !> Number of particles added.
     integer, intent(out), optional :: n_part_add
 
-    real(kind=dp) :: n_samp_avg, radius, vol, mean_n_part, n_part_new
-    real(kind=dp) :: comp_vol_ratio, n_part_ideal_local_group
+    real(kind=dp) :: n_samp_avg, radius, vol
     integer :: n_samp, i_mode, i_samp, i_group, i_set, n_group, n_set
-    integer :: global_n_part
     type(aero_mode_t), pointer :: aero_mode
     type(aero_particle_t) :: aero_particle
 
@@ -634,27 +677,11 @@ contains
           i_set = aero_mode%source
 
           ! adjust comp_vol if necessary
-          global_n_part = aero_state_total_particles_all_procs(aero_state, &
-               i_group, i_set)
-          mean_n_part = real(global_n_part, kind=dp) &
-               / real(pmc_mpi_size(), kind=dp)
-          if (aero_state%awa%weight(i_group, i_set)%comp_vol == 0d0) then
-             ! FIXME: assert that n_part in this weight group is zero
-             aero_state%awa%weight(i_group, i_set)%comp_vol = 1d0
-          end if
           n_samp_avg = sample_prop * aero_dist_number(aero_dist, &
                aero_state%awa%weight(i_group, i_set))
-          n_part_new = mean_n_part + n_samp_avg
-          if (n_part_new == 0d0) cycle
-          n_part_ideal_local_group = aero_state%n_part_ideal &
-               / real(pmc_mpi_size(), kind=dp) / real(n_group * n_set, kind=dp)
-          if ((n_part_new <  n_part_ideal_local_group / 2d0) &
-               .or. (n_part_new > n_part_ideal_local_group * 2d0)) &
-               then
-             comp_vol_ratio = n_part_ideal_local_group / n_part_new
-             call aero_state_scale_comp_vol(aero_state, i_group, i_set, &
-                  comp_vol_ratio)
-          end if
+          call aero_state_prepare_comp_vol_for_add(aero_state, i_group, &
+               i_set, n_samp_avg)
+          if (n_samp_avg == 0d0) cycle
 
           ! sample particles
           n_samp_avg = sample_prop * aero_mode_number(aero_mode, &

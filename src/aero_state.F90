@@ -201,6 +201,29 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determine the appropriate weight set for a source.
+  integer function aero_state_weight_set_for_source(aero_state, source)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Source to find the set for.
+    integer, intent(in) :: source
+
+    integer :: n_set
+
+    n_set = aero_weight_array_n_set(aero_state%awa)
+    ! we are either using i_set = i_source or always i_set = n_set = 1
+    if (n_set > 1) then
+       call assert(932390238, source <= n_set)
+       aero_state_weight_set_for_source = source
+    else
+       aero_state_weight_set_for_source = 1
+    end if
+
+  end function aero_state_weight_set_for_source
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Returns the total number of particles in an aerosol distribution.
   integer function aero_state_total_particles(aero_state, i_group, i_set)
 
@@ -670,7 +693,8 @@ contains
     do i_group = 1,n_group
        do i_mode = 1,aero_dist%n_mode
           aero_mode => aero_dist%mode(i_mode)
-          i_set = aero_mode%source
+          i_set = aero_state_weight_set_for_source(aero_state, &
+               aero_mode%source)
 
           ! adjust comp_vol if necessary
           n_samp_avg = sample_prop * aero_dist_number(aero_dist, &

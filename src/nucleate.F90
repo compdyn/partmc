@@ -119,7 +119,7 @@ contains
     nucleate_rate = nucleate_coeff * sulf_acid_conc**2
 
     ! weight set to nucleate into
-    i_set = nucleate_source
+    i_set = aero_state_weight_set_for_source(aero_state, nucleate_source)
 
     ! add particles to each weight group
     total_so4_vol = 0d0

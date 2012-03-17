@@ -108,6 +108,8 @@ contains
     allocate(scenario%aero_dilution_rate(0))
     allocate(scenario%aero_background(0))
 
+    call chamber_allocate(scenario%chamber)
+
   end subroutine scenario_allocate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -153,6 +155,8 @@ contains
     deallocate(scenario%aero_dilution_time)
     deallocate(scenario%aero_dilution_rate)
     deallocate(scenario%aero_background)
+
+    call chamber_deallocate(scenario%chamber)
 
   end subroutine scenario_deallocate
 

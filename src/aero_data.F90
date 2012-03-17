@@ -85,6 +85,8 @@ contains
     allocate(aero_data%source_name(0))
     aero_data%i_water = 0
 
+    call fractal_allocate(aero_data%fractal)
+
   end subroutine aero_data_allocate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -128,6 +130,8 @@ contains
     deallocate(aero_data%molec_weight)
     deallocate(aero_data%kappa)
     deallocate(aero_data%source_name)
+
+    call fractal_deallocate(aero_data%fractal)
 
   end subroutine aero_data_deallocate
 

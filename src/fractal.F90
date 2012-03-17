@@ -14,13 +14,13 @@ module pmc_fractal
      !> Whether to do fractal radii conversion.
      logical :: do_fractal 
      !> Constants in slip correction formula.
-     real(kind=dp) :: A_slip = 1.142d0
-     real(kind=dp) :: Q_slip = 0.588d0
-     real(kind=dp) :: b_slip = 0.999d0
+     real(kind=dp) :: A_slip
+     real(kind=dp) :: Q_slip
+     real(kind=dp) :: b_slip
      !> Scaling factor in calculating accessible particle surface.
-     real(kind=dp) :: scale_factor_S_acc = 1d0
+     real(kind=dp) :: scale_factor_S_acc
      !> Scaling exponent in calculating accessible particle surface.
-     real(kind=dp) :: scale_exponent_S_acc = 0.86d0
+     real(kind=dp) :: scale_exponent_S_acc
      !> Volume fractal dimension.
      real(kind=dp) :: frac_dim
      !> Radius of primary particles (m).
@@ -32,6 +32,39 @@ module pmc_fractal
   end type fractal_t
 
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocate fractal parameters.
+  subroutine fractal_allocate(fractal)
+
+    !> Fractal parameters.
+    type(fractal_t), intent(out) :: fractal
+
+    fractal%do_fractal = .false.
+    fractal%A_slip = 1.142d0
+    fractal%Q_slip = 0.588d0
+    fractal%b_slip = 0.999d0
+    fractal%scale_factor_S_acc = 1d0
+    fractal%scale_exponent_S_acc = 0.86d0
+    fractal%frac_dim = 0d0
+    fractal%prime_radius = 0d0
+    fractal%vol_fill_factor = 0d0
+    fractal%airfreepath = 0d0
+
+  end subroutine fractal_allocate
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Free all storage.
+  subroutine fractal_deallocate(fractal)
+
+    !> Fractal parameters.
+    type(fractal_t), intent(inout) :: fractal
+
+    fractal%do_fractal = .false.
+
+  end subroutine fractal_deallocate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -461,8 +494,8 @@ contains
     !! computed for the rest of the simulation.
     !!
     !! The fractal state is specified by the parameters:
-    !! - \b rel_humidity (real, dimensionless): the relative humidity
-    !!   (0 is completely unsaturated and 1 is fully saturated)
+    !! - \b frac_dim (real, dimensionless): the fractal dimension
+    !!   (3 is spherical and less than 3 is agglomerate)
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format

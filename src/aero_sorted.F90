@@ -251,7 +251,7 @@ contains
     else
        call assert(352582858, valid_sort)
        use_n_group = size(aero_sorted%group_set%inverse, 1)
-       use_n_group = size(aero_sorted%group_set%inverse, 2)
+       use_n_set = size(aero_sorted%group_set%inverse, 2)
     end if
 
     if (present(bin_grid)) then

@@ -262,19 +262,6 @@ contains
        return
     end if
 
-    if (aero_particle_array%n_part == 0) then
-       if (valid_sort) return
-       call assert(821977400, pmc_mpi_size() == 1)
-       ! FIXME: this breaks on MPI: what if some procs have no
-       ! particles and some do?
-       call bin_grid_allocate(new_bin_grid)
-       call bin_grid_make(new_bin_grid, n_bin=0, r_min=0d0, r_max=0d0)
-       call aero_sorted_set_bin_grid(aero_sorted, new_bin_grid, use_n_group, &
-            use_n_set)
-       call bin_grid_deallocate(new_bin_grid)
-       return
-    end if
-
     need_new_bin_grid = .false.
 
     ! determine r_min and r_max
@@ -294,11 +281,14 @@ contains
        end do
 
        if (i_bin_min == 0) then
-          ! there are't any particles, take r_min = upper edge, etc.
+          ! there aren't any particles
           call assert(333430891, i_bin_max == 0)
-          r_min = aero_sorted%bin_grid%edge_radius( &
-               aero_sorted%bin_grid%n_bin + 1)
-          r_max = aero_sorted%bin_grid%edge_radius(1)
+          if (aero_sorted%bin_grid%n_bin > 0) then
+             ! take r_min = upper edge, etc.
+             r_min = aero_sorted%bin_grid%edge_radius( &
+                  aero_sorted%bin_grid%n_bin + 1)
+             r_max = aero_sorted%bin_grid%edge_radius(1)
+          end if
        else
           r_min = aero_sorted%bin_grid%edge_radius(i_bin_min)
           r_max = aero_sorted%bin_grid%edge_radius(i_bin_max + 1)
@@ -320,18 +310,32 @@ contains
     if (present(all_procs_same)) then
        if (all_procs_same) then
           ! take global min/max
-          local_r_min = r_min
           local_r_max = r_max
-          call assert(935236409, r_min > 0d0) ! FIXME: not true if some
-          call assert(138151167, r_max > 0d0) ! procs have no particles
-          call pmc_mpi_allreduce_min_real(local_r_min, r_min)
           call pmc_mpi_allreduce_max_real(local_r_max, r_max)
+          ! don't contaminate global min with zeros
+          if (r_min == 0d0) then
+             local_r_min = r_max
+          else
+             local_r_min = r_min
+          end if
+          call pmc_mpi_allreduce_min_real(local_r_min, r_min)
           
           ! check that all the bin grids are really the same
           if (.not. pmc_mpi_allequal_bin_grid(aero_sorted%bin_grid)) then
              need_new_bin_grid = .true.
           end if
        end if
+    end if
+
+    ! no particles and no existing useful bin_grid
+    if (r_max == 0d0) then
+       if (valid_sort) return
+       call bin_grid_allocate(new_bin_grid)
+       call bin_grid_make(new_bin_grid, n_bin=0, r_min=0d0, r_max=0d0)
+       call aero_sorted_set_bin_grid(aero_sorted, new_bin_grid, use_n_group, &
+            use_n_set)
+       call bin_grid_deallocate(new_bin_grid)
+       return
     end if
 
     if (aero_sorted%bin_grid%n_bin < 1) then
@@ -349,7 +353,7 @@ contains
           need_new_bin_grid = .true.
        end if
     end if
-       
+
     if (need_new_bin_grid) then
        grid_r_min = r_min / AERO_SORTED_BIN_OVER_FACTOR
        grid_r_max = r_max * AERO_SORTED_BIN_OVER_FACTOR

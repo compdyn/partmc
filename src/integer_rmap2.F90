@@ -145,8 +145,8 @@ contains
 
     call assert(708651144, i_range_1 >= 1)
     call assert(779828769, i_range_1 <= size(integer_rmap2%inverse, 1))
-    call assert(978259336, i_range_1 >= 1)
-    call assert(238981205, i_range_1 <= size(integer_rmap2%inverse, 2))
+    call assert(978259336, i_range_2 >= 1)
+    call assert(238981205, i_range_2 <= size(integer_rmap2%inverse, 2))
 
     ! grow map by one element
     call integer_varray_append(integer_rmap2%forward1, i_range_1)

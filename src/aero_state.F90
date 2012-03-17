@@ -185,7 +185,7 @@ contains
     case(AERO_STATE_WEIGHT_FLAT_SOURCE)
        call aero_weight_array_allocate_flat(aero_state%awa, aero_data%n_source)
     case(AERO_STATE_WEIGHT_POWER_SOURCE)
-       call assert_msg(656670336, present(exponent), &
+       call assert_msg(102143848, present(exponent), &
             "exponent parameter required for AERO_STATE_WEIGHT_POWER")
        call aero_weight_array_allocate_power(aero_state%awa, &
             aero_data%n_source, exponent)

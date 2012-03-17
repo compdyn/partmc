@@ -602,7 +602,7 @@ contains
 
     integer :: status, i_set, n_set
     integer :: varid_aero_weight_set
-    integer :: aero_weight_set_centers(size(aero_weight_array%weight, 1))
+    integer :: aero_weight_set_centers(size(aero_weight_array%weight, 2))
 
     ! try to get the dimension ID
     status = nf90_inq_dimid(ncid, "aero_weight", dimid_aero_weight_set)

@@ -1947,7 +1947,8 @@ contains
     real(kind=dp) :: aero_particle_mass(aero_state%apa%n_part, &
          aero_data%n_spec)
     integer :: aero_n_orig_part(aero_state%apa%n_part, aero_data%n_source)
-    integer :: aero_weight_group(aero_state%apa%n_part)
+    integer :: aero_particle_weight_group(aero_state%apa%n_part)
+    integer :: aero_particle_weight_set(aero_state%apa%n_part)
     real(kind=dp) :: aero_absorb_cross_sect(aero_state%apa%n_part)
     real(kind=dp) :: aero_scatter_cross_sect(aero_state%apa%n_part)
     real(kind=dp) :: aero_asymmetry(aero_state%apa%n_part)
@@ -2013,9 +2014,12 @@ contains
     !!     aero_n_orig_part are added (the number of coagulation
     !!     events that formed each particle is thus
     !!     <tt>sum(aero_n_orig_part(i,:)) - 1</tt>)
-    !!   - \b aero_weight_group (dim <tt>aero_particle</tt>): weight
-    !!     group number (1 to <tt>aero_weight</tt>) of each aerosol
-    !!     particle
+    !!   - \b aero_particle_weight_group (dim <tt>aero_particle</tt>):
+    !!     weight group number (1 to <tt>aero_weight_group</tt>) of
+    !!     each aerosol particle
+    !!   - \b aero_particle_weight_set (dim <tt>aero_particle</tt>):
+    !!     weight set number (1 to <tt>aero_weight_set</tt>) of each
+    !!     aerosol particle
     !!   - \b aero_absorb_cross_sect (unit m^2, dim \c aero_particle):
     !!     optical absorption cross sections of each aerosol particle
     !!   - \b aero_scatter_cross_sect (unit m^2, dim \c aero_particle):
@@ -2072,7 +2076,8 @@ contains
           particle => aero_state%apa%particle(i_part)
           aero_particle_mass(i_part, :) = particle%vol * aero_data%density
           aero_n_orig_part(i_part, :) = particle%n_orig_part
-          aero_weight_group(i_part) = particle%weight_group
+          aero_particle_weight_group(i_part) = particle%weight_group
+          aero_particle_weight_set(i_part) = particle%weight_set
           aero_water_hyst_leg(i_part) = particle%water_hyst_leg
           aero_comp_vol(i_part) &
                = 1d0 / aero_state_particle_num_conc(aero_state, particle)
@@ -2099,9 +2104,12 @@ contains
             dimid_aero_source /), &
             long_name="number of original constituent particles from " &
             // "each source that coagulated to form each aerosol particle")
-       call pmc_nc_write_integer_1d(ncid, aero_weight_group, &
-            "aero_weight_group", (/ dimid_aero_particle /), &
+       call pmc_nc_write_integer_1d(ncid, aero_particle_weight_group, &
+            "aero_particle_weight_group", (/ dimid_aero_particle /), &
             long_name="weight group number of each aerosol particle")
+       call pmc_nc_write_integer_1d(ncid, aero_particle_weight_set, &
+            "aero_particle_weight_set", (/ dimid_aero_particle /), &
+            long_name="weight set number of each aerosol particle")
        call pmc_nc_write_integer_1d(ncid, aero_water_hyst_leg, &
             "aero_water_hyst_leg", (/ dimid_aero_particle /), &
             long_name="leg of the water hysteresis curve leg of each "&
@@ -2286,7 +2294,8 @@ contains
 
     real(kind=dp), allocatable :: aero_particle_mass(:,:)
     integer, allocatable :: aero_n_orig_part(:,:)
-    integer, allocatable :: aero_weight_group(:)
+    integer, allocatable :: aero_particle_weight_group(:)
+    integer, allocatable :: aero_particle_weight_set(:)
     real(kind=dp), allocatable :: aero_absorb_cross_sect(:)
     real(kind=dp), allocatable :: aero_scatter_cross_sect(:)
     real(kind=dp), allocatable :: aero_asymmetry(:)
@@ -2318,7 +2327,8 @@ contains
 
     allocate(aero_particle_mass(n_part, aero_data%n_spec))
     allocate(aero_n_orig_part(n_part, aero_data%n_source))
-    allocate(aero_weight_group(n_part))
+    allocate(aero_particle_weight_group(n_part))
+    allocate(aero_particle_weight_set(n_part))
     allocate(aero_absorb_cross_sect(n_part))
     allocate(aero_scatter_cross_sect(n_part))
     allocate(aero_asymmetry(n_part))
@@ -2337,8 +2347,10 @@ contains
          "aero_particle_mass")
     call pmc_nc_read_integer_2d(ncid, aero_n_orig_part, &
          "aero_n_orig_part")
-    call pmc_nc_read_integer_1d(ncid, aero_weight_group, &
-         "aero_weight_group")
+    call pmc_nc_read_integer_1d(ncid, aero_particle_weight_group, &
+         "aero_particle_weight_group")
+    call pmc_nc_read_integer_1d(ncid, aero_particle_weight_set, &
+         "aero_particle_weight_set")
     call pmc_nc_read_real_1d(ncid, aero_absorb_cross_sect, &
          "aero_absorb_cross_sect", must_be_present=.false.)
     call pmc_nc_read_real_1d(ncid, aero_scatter_cross_sect, &
@@ -2377,7 +2389,8 @@ contains
     do i_part = 1,n_part
        aero_particle%vol = aero_particle_mass(i_part, :) / aero_data%density
        aero_particle%n_orig_part = aero_n_orig_part(i_part, :)
-       aero_particle%weight_group = aero_weight_group(i_part)
+       aero_particle%weight_group = aero_particle_weight_group(i_part)
+       aero_particle%weight_set = aero_particle_weight_set(i_part)
        aero_particle%absorb_cross_sect = aero_absorb_cross_sect(i_part)
        aero_particle%scatter_cross_sect = aero_scatter_cross_sect(i_part)
        aero_particle%asymmetry = aero_asymmetry(i_part)
@@ -2401,7 +2414,8 @@ contains
 
     deallocate(aero_particle_mass)
     deallocate(aero_n_orig_part)
-    deallocate(aero_weight_group)
+    deallocate(aero_particle_weight_group)
+    deallocate(aero_particle_weight_set)
     deallocate(aero_absorb_cross_sect)
     deallocate(aero_scatter_cross_sect)
     deallocate(aero_asymmetry)

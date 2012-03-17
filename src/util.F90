@@ -481,17 +481,15 @@ contains
     real(kind=dp) :: log_x(size(x))
 
     n = size(x)
-    call assert(585043176, n > 0)
+    if (n == 0) return
     call assert(548290438, min_x > 0d0)
     call assert(805259035, max_x > 0d0)
     call linspace(log(min_x), log(max_x), log_x)
     x = exp(log_x)
-    if (n > 0) then
-       ! make sure these values are exact
-       x(1) = min_x
-       x(n) = max_x
-    end if
-    
+    ! make sure these values are exact
+    x(1) = min_x
+    x(n) = max_x
+
   end subroutine logspace
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

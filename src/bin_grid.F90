@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -147,25 +147,33 @@ contains
 
     integer :: i_bin
 
-    call assert_msg(538534122, n_bin > 0, &
-         "bin_grid requires a positive n_bin, not: " &
+    call assert_msg(538534122, n_bin >= 0, &
+         "bin_grid requires a non-negative n_bin, not: " &
          // trim(integer_to_string(n_bin)))
-    call assert_msg(966541762, r_min > 0d0, &
-         "bin_grid requires a positive r_min, not: " &
-         // trim(real_to_string(r_min)))
-    call assert_msg(711537859, r_min < r_max, &
-         "bin_grid requires r_min < r_max, not: " &
-         // trim(real_to_string(r_min)) // " and " &
-         // trim(real_to_string(r_max)))
+    if (n_bin > 0) then
+       call assert_msg(966541762, r_min > 0d0, &
+            "bin_grid requires a positive r_min, not: " &
+            // trim(real_to_string(r_min)))
+       call assert_msg(711537859, r_min < r_max, &
+            "bin_grid requires r_min < r_max, not: " &
+            // trim(real_to_string(r_min)) // " and " &
+            // trim(real_to_string(r_max)))
+    end if
     call bin_grid_deallocate(bin_grid)
     call bin_grid_allocate_size(bin_grid, n_bin)
-    call logspace(r_min, r_max, bin_grid%edge_radius)
+    if (n_bin > 0) then
+       call logspace(r_min, r_max, bin_grid%edge_radius)
+    else
+       bin_grid%edge_radius = 0d0
+    end if
     do i_bin = 1,n_bin
        bin_grid%center_radius(i_bin) &
             = exp(0.5d0 * log(bin_grid%edge_radius(i_bin)) &
             + 0.5d0 * log(bin_grid%edge_radius(i_bin + 1)))
     end do
-    bin_grid%log_width = (log(r_max) - log(r_min)) / real(n_bin, kind=dp)
+    if (n_bin > 0) then
+       bin_grid%log_width = (log(r_max) - log(r_min)) / real(n_bin, kind=dp)
+    end if
 
   end subroutine bin_grid_make
 
@@ -183,10 +191,14 @@ contains
     !> Radius of particle.
     real(kind=dp), intent(in) :: radius
 
-    call assert(448215689, bin_grid%n_bin >= 1)
-    bin_grid_particle_in_bin = logspace_find(bin_grid%edge_radius(1), &
-         bin_grid%edge_radius(bin_grid%n_bin + 1), bin_grid%n_bin + 1, &
-         radius)
+    call assert(448215689, bin_grid%n_bin >= 0)
+    if (bin_grid%n_bin == 0) then
+       bin_grid_particle_in_bin = 0
+    else
+       bin_grid_particle_in_bin = logspace_find(bin_grid%edge_radius(1), &
+            bin_grid%edge_radius(bin_grid%n_bin + 1), bin_grid%n_bin + 1, &
+            radius)
+    end if
 
   end function bin_grid_particle_in_bin
   

@@ -619,10 +619,6 @@ contains
          i_group, i_set)
     mean_n_part = real(global_n_part, kind=dp) &
          / real(pmc_mpi_size(), kind=dp)
-    if (aero_state%awa%weight(i_group, i_set)%comp_vol == 0d0) then
-       ! FIXME: assert that n_part in this weight group is zero
-       aero_state%awa%weight(i_group, i_set)%comp_vol = 1d0
-    end if
     n_part_new = mean_n_part + n_add
     if (n_part_new == 0d0) return
     n_part_ideal_local_group = aero_state%n_part_ideal &

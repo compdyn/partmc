@@ -1,4 +1,4 @@
-! Copyright (C) 2010-2011 Matthew West
+! Copyright (C) 2010-2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -84,7 +84,7 @@ contains
     !> Aerosol weight.
     type(aero_weight_t), intent(inout) :: aero_weight
 
-    aero_weight%comp_vol = 0d0
+    aero_weight%comp_vol = 1d0
     aero_weight%type = AERO_WEIGHT_TYPE_INVALID
     aero_weight%ref_radius = 0d0
     aero_weight%exponent = 0d0
@@ -99,7 +99,7 @@ contains
     !> Aerosol weight.
     type(aero_weight_t), intent(inout) :: aero_weight
 
-    aero_weight%comp_vol = 0d0
+    aero_weight%comp_vol = 1d0
 
   end subroutine aero_weight_zero_comp_vol
 

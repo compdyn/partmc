@@ -20,7 +20,8 @@ module pmc_nucleate
   integer, parameter :: NUCLEATE_TYPE_SULF_ACID = 1
 
   !> Source name for nucleated particles.
-  character(len=AERO_SOURCE_NAME_LEN), parameter :: NUCLEATE_SOURCE_NAME = "nucleate"
+  character(len=AERO_SOURCE_NAME_LEN), parameter :: NUCLEATE_SOURCE_NAME &
+       = "nucleate"
   
 contains
 

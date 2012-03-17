@@ -1,4 +1,4 @@
-! Copyright (C) 2010, 2011, 2012 Matthew West
+! Copyright (C) 2010-2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -135,6 +135,10 @@ contains
        n_samp_avg = nucleate_rate * nucleate_comp_vol * del_t
        call aero_state_prepare_comp_vol_for_add(aero_state, i_group, i_set, &
             n_samp_avg)
+       nucleate_comp_vol = 1d0 &
+            / aero_weight_num_conc_at_radius( &
+            aero_state%awa%weight(i_group, i_set), diam2rad(nucleate_diam))
+       n_samp_avg = nucleate_rate * nucleate_comp_vol * del_t
        n_samp = rand_poisson(n_samp_avg)
 
        ! create the particles

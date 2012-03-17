@@ -640,13 +640,12 @@ contains
     n_set = aero_weight_array_n_set(aero_state%awa)
     global_n_part = aero_state_total_particles_all_procs(aero_state, &
          i_group, i_set)
-    mean_n_part = real(global_n_part, kind=dp) &
-         / real(pmc_mpi_size(), kind=dp)
+    mean_n_part = real(global_n_part, kind=dp) / real(pmc_mpi_size(), kind=dp)
     n_part_new = mean_n_part + n_add
     if (n_part_new == 0d0) return
     n_part_ideal_local_group = aero_state%n_part_ideal &
          / real(pmc_mpi_size(), kind=dp) / real(n_group * n_set, kind=dp)
-    if ((n_part_new <  n_part_ideal_local_group / 2d0) &
+    if ((n_part_new < n_part_ideal_local_group / 2d0) &
          .or. (n_part_new > n_part_ideal_local_group * 2d0)) &
          then
        comp_vol_ratio = n_part_ideal_local_group / n_part_new

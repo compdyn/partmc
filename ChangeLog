@@ -1,4 +1,9 @@
 
+2.3.0 - XXXX-XX-XX
+
+  * Each particle source is now resolved with equal computational
+    computational particles.
+
 2.2.0 - 2012-02-25
 
   * No longer need to specify size bins for particle simulations

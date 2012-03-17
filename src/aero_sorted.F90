@@ -414,7 +414,6 @@ contains
     n_bin = aero_sorted%bin_grid%n_bin
     n_group = size(aero_sorted%group_set%inverse, 1)
     n_set = size(aero_sorted%group_set%inverse, 2)
-    call assert(536603947, (i_bin >= 1) .and. (i_bin <= n_bin))
     call assert(417177855, (i_group >= 1) .and. (i_group <= n_group))
     call assert(233133947, (i_set >= 1) .and. (i_set <= n_set))
 

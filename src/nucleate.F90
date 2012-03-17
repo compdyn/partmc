@@ -100,7 +100,7 @@ contains
     integer :: i_gas_h2so4, i_aero_so4, n_samp, i_samp, i_bin, i_group, n_group
     integer :: i_set
     real(kind=dp) :: sulf_acid_conc, nucleate_rate, n_samp_avg
-    real(kind=dp) :: total_so4_vol, vol, h2so4_removed_conc
+    real(kind=dp) :: total_so4_vol, so4_vol, h2so4_removed_conc
     real(kind=dp) :: nucleate_comp_vol
     type(aero_particle_t) :: aero_particle
 
@@ -125,32 +125,27 @@ contains
     ! add particles to each weight group
     total_so4_vol = 0d0
     do i_group = 1,aero_weight_array_n_group(aero_state%awa)
-       ! computational volume at the size of nucleated particles (only
-       ! valid for mono-disperse nucleation)
-       nucleate_comp_vol = 1d0 &
-            / aero_weight_num_conc_at_radius( &
+       ! adjust comp_vol if necessary
+       n_samp_avg = nucleate_rate * del_t / aero_weight_num_conc_at_radius( &
             aero_state%awa%weight(i_group, i_set), diam2rad(nucleate_diam))
-
-       ! determine number of nucleated particles
-       n_samp_avg = nucleate_rate * nucleate_comp_vol * del_t
        call aero_state_prepare_comp_vol_for_add(aero_state, i_group, i_set, &
             n_samp_avg)
-       nucleate_comp_vol = 1d0 &
-            / aero_weight_num_conc_at_radius( &
+
+       ! determine number of nucleated particles
+       n_samp_avg = nucleate_rate * del_t / aero_weight_num_conc_at_radius( &
             aero_state%awa%weight(i_group, i_set), diam2rad(nucleate_diam))
-       n_samp_avg = nucleate_rate * nucleate_comp_vol * del_t
        n_samp = rand_poisson(n_samp_avg)
 
        ! create the particles
        do i_samp = 1,n_samp
-          vol = diam2vol(nucleate_diam)
-          total_so4_vol = total_so4_vol + vol
+          so4_vol = diam2vol(nucleate_diam)
+          total_so4_vol = total_so4_vol + so4_vol
 
           call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
                aero_data%n_source)
           call aero_particle_set_create_time(aero_particle, &
                env_state%elapsed_time)
-          aero_particle%vol(i_aero_so4) = vol
+          aero_particle%vol(i_aero_so4) = so4_vol
           call aero_particle_new_id(aero_particle)
           call aero_particle_set_weight(aero_particle, i_group, i_set)
           call aero_state_add_particle(aero_state, aero_particle)
@@ -160,10 +155,12 @@ contains
 
     ! remove gases that formed new particles
     h2so4_removed_conc = &
-         total_so4_vol * aero_data%density(i_aero_so4) &
-         / aero_data%molec_weight(i_aero_so4) & ! moles of SO4
-         * const%avagadro &                     ! molecules of SO4
-         / nucleate_comp_vol                    ! molecules / m^3
+         total_so4_vol &                        ! volume of SO4
+         * aero_weight_array_num_conc_at_radius(aero_state%awa, i_set, &
+         diam2rad(nucleate_diam)) &             ! volume conc of SO4
+         * aero_data%density(i_aero_so4) &      ! mass conc of SO4
+         / aero_data%molec_weight(i_aero_so4) & ! mole conc of SO4
+         * const%avagadro                       ! molecule conc of SO4
     gas_state%mix_rat(i_gas_h2so4) = gas_state%mix_rat(i_gas_h2so4) &
          - env_state_conc_to_ppb(env_state, h2so4_removed_conc)
     if (gas_state%mix_rat(i_gas_h2so4) < 0d0) then

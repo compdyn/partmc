@@ -549,19 +549,21 @@ contains
     integer, intent(in) :: sc
 
     real(kind=dp) :: n_samp_mean, accept_factor
-    integer :: i_samp, n_samp, n_entry
+    integer :: i_samp, n_samp, n1, n2
     logical :: did_coag
 
-    n_entry = aero_state%aero_sorted%size_set%inverse(b1, s1)%n_entry
-    call compute_n_samp(n_entry, n_entry, ((b1 == b2) .and. (s1 == s2)), &
-         k_max, del_t, n_samp_mean, n_samp, accept_factor)
+    n1 = aero_state%aero_sorted%size_set%inverse(b1, s1)%n_entry
+    n2 = aero_state%aero_sorted%size_set%inverse(b2, s2)%n_entry
+    call compute_n_samp(n1, n2, ((b1 == b2) .and. (s1 == s2)), k_max, del_t, &
+         n_samp_mean, n_samp, accept_factor)
     tot_n_samp = tot_n_samp + n_samp
 
     do i_samp = 1,n_samp
        ! check we still have enough particles to coagulate
-       n_entry = aero_state%aero_sorted%size_set%inverse(b1, s1)%n_entry
-       if (((n_entry < 2) .and. (b1 == b2) .and. (s1 == s2)) &
-            .or. (n_entry < 1) .or. (n_entry < 1)) &
+       n1 = aero_state%aero_sorted%size_set%inverse(b1, s1)%n_entry
+       n2 = aero_state%aero_sorted%size_set%inverse(b2, s2)%n_entry
+       if (((n1 < 2) .and. (b1 == b2) .and. (s1 == s2)) &
+            .or. (n1 < 1) .or. (n2 < 1)) &
             exit
        call maybe_coag_pair(env_state, aero_data, aero_state, b1, b2, s1, s2, &
             sc, coag_kernel_type, accept_factor, did_coag)

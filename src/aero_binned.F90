@@ -303,7 +303,7 @@ contains
     type(aero_data_t), intent(in) :: aero_data
 
     integer :: dimid_aero_diam, dimid_aero_species
-    real(kind=dp) :: mass_den(bin_grid%n_bin, aero_data%n_spec)
+    real(kind=dp) :: mass_conc(bin_grid%n_bin, aero_data%n_spec)
     integer :: i_bin
     
     !> \page output_format_aero_binned Output File Format: Aerosol Binned Sectional State
@@ -330,14 +330,11 @@ contains
     !!     \f$ dM(r,s)/d\ln r \f$, per bin and per species
     
     do i_bin = 1,bin_grid%n_bin
-       mass_den(i_bin,:) = aero_binned%vol_conc(i_bin,:) &
-            * aero_data%density
+       mass_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) * aero_data%density
     end do
 
-    call bin_grid_netcdf_dim_aero_diam(bin_grid, ncid, &
-         dimid_aero_diam)
-    call aero_data_netcdf_dim_aero_species(aero_data, ncid, &
-         dimid_aero_species)
+    call bin_grid_netcdf_dim_aero_diam(bin_grid, ncid, dimid_aero_diam)
+    call aero_data_netcdf_dim_aero_species(aero_data, ncid, dimid_aero_species)
 
     call pmc_nc_write_real_1d(ncid, aero_binned%num_conc, &
          "aero_number_concentration", (/ dimid_aero_diam /), &
@@ -346,10 +343,10 @@ contains
          description="logarithmic number size concentration, " &
          // "d N(r)/d ln D --- multiply by aero_diam_widths(i) " &
          // "and sum over i to compute the total number concentration")
-    call pmc_nc_write_real_2d(ncid, mass_den, &
+    call pmc_nc_write_real_2d(ncid, mass_conc, &
          "aero_mass_concentration", &
          (/ dimid_aero_diam, dimid_aero_species /), unit="kg/m^3", &
-         long_name="aerosol number size concentration distribution", &
+         long_name="aerosol mass size concentration distribution", &
          description="logarithmic mass size concentration per species, " &
          // "d M(r,s)/d ln D --- multiply by aero_diam_widths(i) " &
          // "and sum over i to compute the total mass concentration of " &
@@ -372,7 +369,7 @@ contains
     !> aero_data structure.
     type(aero_data_t), intent(in) :: aero_data
 
-    real(kind=dp) :: mass_den(bin_grid%n_bin, aero_data%n_spec)
+    real(kind=dp) :: mass_conc(bin_grid%n_bin, aero_data%n_spec)
     integer :: i_bin
 
     call aero_binned_deallocate(aero_binned)
@@ -381,12 +378,10 @@ contains
 
     call pmc_nc_read_real_1d(ncid, aero_binned%num_conc, &
          "aero_number_concentration")
-    call pmc_nc_read_real_2d(ncid, mass_den, &
-         "aero_mass_concentration")
+    call pmc_nc_read_real_2d(ncid, mass_conc, "aero_mass_concentration")
 
     do i_bin = 1,bin_grid%n_bin
-       aero_binned%vol_conc(i_bin,:) = mass_den(i_bin,:) &
-            / aero_data%density
+       aero_binned%vol_conc(i_bin,:) = mass_conc(i_bin,:) / aero_data%density
     end do
 
   end subroutine aero_binned_input_netcdf

@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2010 Matthew West
+! Copyright (C) 2007-2010, 2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -535,6 +535,44 @@ contains
          start = start, count = count))
     
   end subroutine pmc_nc_write_integer_2d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write a simple real 3D array to a NetCDF file.
+  subroutine pmc_nc_write_real_3d(ncid, var, name, dimids, unit, long_name, &
+       standard_name, description)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Data to write.
+    real(kind=dp), intent(in) :: var(:,:,:)
+    !> Variable name in NetCDF file.
+    character(len=*), intent(in) :: name
+    !> NetCDF dimension IDs of the variable
+    integer, intent(in) :: dimids(3)
+    !> Unit of variable.
+    character(len=*), optional, intent(in) :: unit
+    !> Long name of variable.
+    character(len=*), optional, intent(in) :: long_name
+    !> Standard name of variable.
+    character(len=*), optional, intent(in) :: standard_name
+    !> Description of variable.
+    character(len=*), optional, intent(in) :: description
+
+    integer :: varid, start(3), count(3)
+
+    call pmc_nc_check(nf90_redef(ncid))
+    call pmc_nc_check(nf90_def_var(ncid, name, NF90_DOUBLE, dimids, varid))
+    call pmc_nc_write_atts(ncid, varid, unit, long_name, standard_name, &
+         description)
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    start = (/ 1, 1, 1 /)
+    count = (/ size(var, 1), size(var, 2), size(var, 3) /)
+    call pmc_nc_check(nf90_put_var(ncid, varid, var, &
+         start = start, count = count))
+
+  end subroutine pmc_nc_write_real_3d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

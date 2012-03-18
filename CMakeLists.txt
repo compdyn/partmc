@@ -293,13 +293,13 @@ target_link_libraries(test_bidisperse_extract ${NETCDF_LIBS})
 # test_nucleate_ode
 
 add_executable(test_nucleate_ode test/nucleate/test_nucleate_ode.F90
-  src/util.F90 src/fractal.F90 src/constants.F90 ${C_SORT_SRC})
+  src/util.F90 src/constants.F90 ${C_SORT_SRC})
 
 ######################################################################
 # test_poisson_sample
 
 add_executable(test_poisson_sample test/rand/test_poisson_sample.F90
-  src/util.F90 src/fractal.F90 src/rand.F90 src/constants.F90 src/mpi.F90 
+  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 
   ${GSL_SRC} ${C_SORT_SRC})
 
 target_link_libraries(test_poisson_sample ${GSL_LIBS})
@@ -308,7 +308,7 @@ target_link_libraries(test_poisson_sample ${GSL_LIBS})
 # test_binomial_sample
 
 add_executable(test_binomial_sample test/rand/test_binomial_sample.F90
-  src/util.F90 src/fractal.F90 src/rand.F90 src/constants.F90 src/mpi.F90 
+  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 
   ${GSL_SRC} ${C_SORT_SRC})
 
 target_link_libraries(test_binomial_sample ${GSL_LIBS})

@@ -3,6 +3,8 @@
 
   * De-duplicate error codes.
 
+  * Correct long name of NetCDF variable aero_mass_concentration.
+
 2.2.0 - 2012-02-25
 
   * No longer need to specify size bins for particle simulations

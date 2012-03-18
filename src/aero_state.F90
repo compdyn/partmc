@@ -211,6 +211,7 @@ contains
 
     integer :: n_set
 
+    call assert(932390238, source >= 1)
     n_set = aero_weight_array_n_set(aero_state%awa)
     ! we are either using i_set = i_source or always i_set = n_set = 1
     if (n_set > 1) then

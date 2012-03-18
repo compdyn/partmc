@@ -57,7 +57,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate an aero_binned_t of the given size.
-  subroutine aero_binned_allocate_size(aero_binned, n_bin, n_spec)
+  elemental subroutine aero_binned_allocate_size(aero_binned, n_bin, n_spec)
 
     !> Structure to be allocated.
     type(aero_binned_t), intent(out) :: aero_binned
@@ -76,7 +76,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Free internal memory in an aero_binned_t structure.
-  subroutine aero_binned_deallocate(aero_binned)
+  elemental subroutine aero_binned_deallocate(aero_binned)
 
     !> Structure to free.
     type(aero_binned_t), intent(inout) :: aero_binned
@@ -89,7 +89,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Set all internal data in an aero_binned_t structure to zero.
-  subroutine aero_binned_zero(aero_binned)
+  elemental subroutine aero_binned_zero(aero_binned)
 
     !> Structure to zero.
     type(aero_binned_t), intent(inout) :: aero_binned
@@ -104,7 +104,7 @@ contains
   !> Add two aero_binned_t structures together.
   !!
   !! Symbolically does aero_binned = aero_binned + aero_binned_delta.
-  subroutine aero_binned_add(aero_binned, aero_binned_delta)
+  elemental subroutine aero_binned_add(aero_binned, aero_binned_delta)
 
     !> Base aero_binned_t structure that will be added to.
     type(aero_binned_t), intent(inout) :: aero_binned
@@ -121,7 +121,8 @@ contains
   !> Add a scaled \c aero_binned_t structure to an existing one.
   !!
   !! Symbolically does aero_binned = aero_binned + alpha * aero_binned_delta.
-  subroutine aero_binned_add_scaled(aero_binned, aero_binned_delta, alpha)
+  elemental subroutine aero_binned_add_scaled(aero_binned, aero_binned_delta, &
+       alpha)
 
     !> Base aero_binned_t structure that will be added to.
     type(aero_binned_t), intent(inout) :: aero_binned
@@ -159,7 +160,7 @@ contains
   !> Scale an aero_binned_t by a real number.
   !!
   !! Symbolically does aero_binned = aero_binned * alpha.
-  subroutine aero_binned_scale(aero_binned, alpha)
+  elemental subroutine aero_binned_scale(aero_binned, alpha)
 
     !> Base aero_binned to scale.
     type(aero_binned_t), intent(inout) :: aero_binned

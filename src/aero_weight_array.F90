@@ -559,7 +559,7 @@ contains
     integer :: aero_weight_group_centers(size(aero_weight_array%weight, 1))
 
     ! try to get the dimension ID
-    status = nf90_inq_dimid(ncid, "aero_weight", dimid_aero_weight_group)
+    status = nf90_inq_dimid(ncid, "aero_weight_group", dimid_aero_weight_group)
     if (status == NF90_NOERR) return
     if (status /= NF90_EBADDIM) call pmc_nc_check(status)
 
@@ -605,7 +605,7 @@ contains
     integer :: aero_weight_set_centers(size(aero_weight_array%weight, 2))
 
     ! try to get the dimension ID
-    status = nf90_inq_dimid(ncid, "aero_weight", dimid_aero_weight_set)
+    status = nf90_inq_dimid(ncid, "aero_weight_set", dimid_aero_weight_set)
     if (status == NF90_NOERR) return
     if (status /= NF90_EBADDIM) call pmc_nc_check(status)
 

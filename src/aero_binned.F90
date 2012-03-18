@@ -227,6 +227,69 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determine the appropriate set for a source.
+  integer function aero_binned_array_set_for_source(aero_binned_array, source)
+
+    !> Base aero_binned_t array.
+    type(aero_binned_t), intent(in) :: aero_binned_array(:)
+    !> Source to find the set for.
+    integer, intent(in) :: source
+
+    integer :: n_set
+
+    call assert(317271901, source >= 1)
+    n_set = size(aero_binned_array)
+    ! we are either using i_set = i_source or always i_set = n_set = 1
+    if (n_set > 1) then
+       call assert(694378458, source <= n_set)
+       aero_binned_array_set_for_source = source
+    else
+       aero_binned_array_set_for_source = 1
+    end if
+
+  end function aero_binned_array_set_for_source
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Add an aero_dist_t to an array of aero_binned_t.
+  !!
+  !! Symbolically does aero_binned = aero_binned + aero_dist, but puts
+  !! sources into distinct sets.
+  subroutine aero_binned_array_add_aero_dist(aero_binned_array, bin_grid, &
+       aero_data, aero_dist)
+
+    !> Base aero_binned_t array to add to.
+    type(aero_binned_t), intent(inout) :: aero_binned_array(:)
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> The aero_dist_t structure to add.
+    type(aero_dist_t), intent(in) :: aero_dist
+
+    integer :: n_set, i_mode, i_set
+    real(kind=dp) :: mode_num_conc(size(aero_binned_array(1)%num_conc, 1))
+    real(kind=dp) :: mode_vol_conc(size(aero_binned_array(1)%vol_conc, 1), &
+         size(aero_binned_array(1)%vol_conc, 2))
+    type(aero_mode_t), pointer :: aero_mode
+
+    n_set = size(aero_binned_array)
+    do i_mode = 1,aero_dist%n_mode
+       aero_mode => aero_dist%mode(i_mode)
+       i_set = aero_binned_array_set_for_source(aero_binned_array, &
+            aero_mode%source)
+       call aero_mode_num_conc(aero_mode, bin_grid, aero_data, mode_num_conc)
+       call aero_mode_vol_conc(aero_mode, bin_grid, aero_data, mode_vol_conc)
+       aero_binned_array(i_set)%num_conc = aero_binned_array(i_set)%num_conc &
+            + mode_num_conc
+       aero_binned_array(i_set)%vol_conc = aero_binned_array(i_set)%vol_conc &
+            + mode_vol_conc
+    end do
+
+  end subroutine aero_binned_array_add_aero_dist
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Determine the number of bytes required to pack the structure.
   !!
   !! See pmc_mpi for usage details.
@@ -375,6 +438,103 @@ contains
          // "species s")
 
   end subroutine aero_binned_output_netcdf
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write the \c set dimension to the given NetCDF file if it is not
+  !> already present and in any case return the associated dimid.
+  subroutine aero_binned_array_netcdf_dim_set(aero_binned_array, ncid, &
+       dimid_set)
+
+    !> Aero_binned structure array.
+    type(aero_binned_t), intent(in) :: aero_binned_array(:)
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Dimid of the species dimension.
+    integer, intent(out) :: dimid_set
+
+    integer :: status, i_set, n_set
+    integer :: varid_set
+    integer :: set_centers(size(aero_binned_array))
+
+    ! try to get the dimension ID
+    status = nf90_inq_dimid(ncid, "set", dimid_set)
+    if (status == NF90_NOERR) return
+    if (status /= NF90_EBADDIM) call pmc_nc_check(status)
+
+    ! dimension not defined, so define it
+    call pmc_nc_check(nf90_redef(ncid))
+
+    n_set = size(aero_binned_array)
+
+    call pmc_nc_check(nf90_def_dim(ncid, "set", n_set, dimid_set))
+    call pmc_nc_check(nf90_def_var(ncid, "set", NF90_INT, &
+         dimid_set, varid_set))
+    call pmc_nc_check(nf90_put_att(ncid, varid_set, &
+         "description", "dummy dimension variable (no useful value)"))
+
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    do i_set = 1,n_set
+       set_centers(i_set) = i_set
+    end do
+    call pmc_nc_check(nf90_put_var(ncid, varid_set, set_centers))
+
+  end subroutine aero_binned_array_netcdf_dim_set
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write full state for an array of aero_binned.
+  subroutine aero_binned_array_output_netcdf(aero_binned_array, ncid, &
+       bin_grid, aero_data)
+
+    !> Aero_binned array to write.
+    type(aero_binned_t), intent(in) :: aero_binned_array(:)
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> bin_grid structure.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> aero_data structure.
+    type(aero_data_t), intent(in) :: aero_data
+
+    integer :: dimid_aero_diam, dimid_aero_species, dimid_set
+    real(kind=dp) :: num_conc(bin_grid%n_bin, size(aero_binned_array))
+    real(kind=dp) :: mass_conc(bin_grid%n_bin, aero_data%n_spec, &
+         size(aero_binned_array))
+    integer :: i_bin, n_set, i_set
+
+    n_set = size(aero_binned_array)
+    do i_set = 1,n_set
+       do i_bin = 1,bin_grid%n_bin
+          num_conc(i_bin, i_set) = aero_binned_array(i_set)%num_conc(i_bin)
+          mass_conc(i_bin, :, i_set) &
+               = aero_binned_array(i_set)%vol_conc(i_bin, :) &
+               * aero_data%density
+       end do
+    end do
+
+    call bin_grid_netcdf_dim_aero_diam(bin_grid, ncid, dimid_aero_diam)
+    call aero_data_netcdf_dim_aero_species(aero_data, ncid, dimid_aero_species)
+    call aero_binned_array_netcdf_dim_set(aero_binned_array, ncid, dimid_set)
+
+    call pmc_nc_write_real_2d(ncid, num_conc, &
+         "aero_number_concentration_by_set", &
+         (/ dimid_aero_diam, dimid_set /), unit="1/m^3", &
+         long_name="aerosol number size concentration distribution by set", &
+         description="logarithmic number size concentration by set, " &
+         // "d N(r,k)/d ln D --- multiply by aero_diam_widths(i) " &
+         // "and sum over i to compute the total number concentration " &
+         // "in set k")
+    call pmc_nc_write_real_3d(ncid, mass_conc, &
+         "aero_mass_concentration_by_set", &
+         (/ dimid_aero_diam, dimid_aero_species, dimid_set /), unit="kg/m^3", &
+         long_name="aerosol number size concentration distribution by set", &
+         description="logarithmic mass size concentration per species and " &
+         // "set, d M(r,s,k)/d ln D --- multiply by aero_diam_widths(i) " &
+         // "and sum over i to compute the total mass concentration of " &
+         // "species s in set k")
+
+  end subroutine aero_binned_array_output_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

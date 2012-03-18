@@ -73,20 +73,18 @@ contains
     
     real(kind=dp) c(bin_grid%n_bin,bin_grid%n_bin)
     integer ima(bin_grid%n_bin,bin_grid%n_bin)
-    real(kind=dp) g(bin_grid%n_bin), r(bin_grid%n_bin), e(bin_grid%n_bin)
+    real(kind=dp), allocatable :: g(:, :)
+    real(kind=dp) r(bin_grid%n_bin), e(bin_grid%n_bin)
     real(kind=dp) k_bin(bin_grid%n_bin,bin_grid%n_bin)
     real(kind=dp) ck(bin_grid%n_bin,bin_grid%n_bin)
     real(kind=dp) ec(bin_grid%n_bin,bin_grid%n_bin)
-    real(kind=dp) taug(bin_grid%n_bin), taup(bin_grid%n_bin)
-    real(kind=dp) taul(bin_grid%n_bin), tauu(bin_grid%n_bin)
-    real(kind=dp) prod(bin_grid%n_bin), ploss(bin_grid%n_bin)
     real(kind=dp) time, last_output_time, last_progress_time
     type(env_state_t) :: old_env_state
-    type(aero_binned_t) :: aero_binned
+    type(aero_binned_t), allocatable :: aero_binned_array(:)
     type(gas_state_t) :: gas_state
     
-    integer i, j, i_time, num_t, i_summary
-    logical do_output, do_progress
+    integer :: i, j, i_time, num_t, i_summary, n_set, s, s1, s2, sc
+    logical :: do_output, do_progress
   
     call check_time_multiple("t_max", run_sect_opt%t_max, &
          "del_t", run_sect_opt%del_t)
@@ -105,10 +103,15 @@ contains
             'run_sect() can only use one aerosol species')
     end if
 
-    ! output data structure
-    call aero_binned_allocate_size(aero_binned, bin_grid%n_bin, &
+    ! allocate data structure
+    n_set = 1
+    allocate(g(bin_grid%n_bin, n_set))
+    allocate(aero_binned_array(n_set))
+    call aero_binned_allocate_size(aero_binned_array, bin_grid%n_bin, &
          aero_data%n_spec)
-    aero_binned%vol_conc = 0d0
+    do s = 1,n_set
+       aero_binned_array(s)%vol_conc = 0d0
+    end do
     call gas_state_allocate_size(gas_state, gas_data%n_spec)
     
     ! mass and radius grid
@@ -119,8 +122,8 @@ contains
     end do
     
     ! initial mass distribution
-    call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_data, &
-         aero_dist)
+    call aero_binned_array_add_aero_dist(aero_binned_array, bin_grid, &
+         aero_data, aero_dist)
     
     call courant(bin_grid%n_bin, bin_grid%log_width, e, ima, c)
     
@@ -150,8 +153,8 @@ contains
     call check_event(time, run_sect_opt%del_t, run_sect_opt%t_output, &
          last_output_time, do_output)
     if (do_output) then
-       call output_sectional(run_sect_opt%prefix, bin_grid, aero_data, &
-            aero_binned, gas_data, gas_state, env_state, i_summary, &
+       call output_sectional_array(run_sect_opt%prefix, bin_grid, aero_data, &
+            aero_binned_array, gas_data, gas_state, env_state, i_summary, &
             time, run_sect_opt%t_output, run_sect_opt%uuid)
     end if
     
@@ -161,12 +164,26 @@ contains
     do i_time = 1, num_t
 
        if (run_sect_opt%do_coagulation) then
-          g = aero_binned%vol_conc(:,1) * aero_data%density(1)
-          call coad(bin_grid%n_bin, run_sect_opt%del_t, taug, taup, taul, &
-               tauu, prod, ploss, c, ima, g, r, e, ck, ec)
-          aero_binned%vol_conc(:,1) = g / aero_data%density(1)
-          aero_binned%num_conc = aero_binned%vol_conc(:,1) &
-               / rad2vol(bin_grid%center_radius)
+          do s = 1,n_set
+             g(:,s) = aero_binned_array(s)%vol_conc(:,1) * aero_data%density(1)
+          end do
+          do s1 = 1,n_set
+             do s2 = 1,s1
+                   if (sum(g(:,s1)) < sum(g(:,s2))) then
+                      sc = s1
+                   else
+                      sc = s2
+                   end if
+                   call coad(bin_grid%n_bin, n_set, run_sect_opt%del_t, &
+                        c, ima, g, s1, s2, sc, r, e, ck, ec)
+             end do
+          end do
+          do s = 1,n_set
+             aero_binned_array(s)%vol_conc(:,1) = g(:,s) / aero_data%density(1)
+             aero_binned_array(s)%num_conc &
+                  = aero_binned_array(s)%vol_conc(:,1) &
+                  / rad2vol(bin_grid%center_radius)
+          end do
        end if
 
        time = run_sect_opt%t_max * real(i_time, kind=dp) &
@@ -177,17 +194,17 @@ contains
             update_rel_humid = .true.)
        call scenario_update_gas_state(scenario, run_sect_opt%del_t, &
             env_state, old_env_state, gas_data, gas_state)
-       call scenario_update_aero_binned(scenario, run_sect_opt%del_t, &
-            env_state, old_env_state, bin_grid, aero_data, aero_binned)
+       call scenario_update_aero_binned_array(scenario, run_sect_opt%del_t, &
+            env_state, old_env_state, bin_grid, aero_data, aero_binned_array)
        
        ! print output
        call check_event(time, run_sect_opt%del_t, run_sect_opt%t_output, &
             last_output_time, do_output)
        if (do_output) then
           i_summary = i_summary + 1
-          call output_sectional(run_sect_opt%prefix, bin_grid, aero_data, &
-               aero_binned, gas_data, gas_state, env_state, i_summary, &
-               time, run_sect_opt%t_output, run_sect_opt%uuid)
+          call output_sectional_array(run_sect_opt%prefix, bin_grid, &
+               aero_data, aero_binned_array, gas_data, gas_state, env_state, &
+               i_summary, time, run_sect_opt%t_output, run_sect_opt%uuid)
        end if
        
        ! print progress to stdout
@@ -200,7 +217,7 @@ contains
     end do
 
     call env_state_deallocate(old_env_state)
-    call aero_binned_deallocate(aero_binned)
+    call aero_binned_deallocate(aero_binned_array)
     call gas_state_deallocate(gas_state)
 
   end subroutine run_sect
@@ -208,77 +225,69 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Collision subroutine, exponential approach.
-  subroutine coad(n_bin, dt, taug, taup, taul, tauu, prod, ploss, &
-       c, ima, g, r, e, ck, ec)
+  subroutine coad(n_bin, n_set, dt, c, ima, g, s1, s2, sc, r, e, ck, ec)
     
-    integer n_bin
-    real(kind=dp) dt
-    real(kind=dp) taug(n_bin)
-    real(kind=dp) taup(n_bin)
-    real(kind=dp) taul(n_bin)
-    real(kind=dp) tauu(n_bin)
-    real(kind=dp) prod(n_bin)
-    real(kind=dp) ploss(n_bin)
-    real(kind=dp) c(n_bin,n_bin)
-    integer ima(n_bin,n_bin)
-    real(kind=dp) g(n_bin)
-    real(kind=dp) r(n_bin)
-    real(kind=dp) e(n_bin)
-    real(kind=dp) ck(n_bin,n_bin)
-    real(kind=dp) ec(n_bin,n_bin)
+    integer, intent(in) :: n_bin
+    integer, intent(in) :: n_set
+    real(kind=dp), intent(in) :: dt
+    real(kind=dp), intent(in) :: c(n_bin,n_bin)
+    integer, intent(in) :: ima(n_bin,n_bin)
+    real(kind=dp), intent(inout) :: g(n_bin, n_set)
+    integer, intent(in) :: s1 ! first set to coagulate from
+    integer, intent(in) :: s2 ! second set to coagulate from
+    integer, intent(in) :: sc ! set to coagulate into
+    real(kind=dp), intent(in) :: r(n_bin)
+    real(kind=dp), intent(in) :: e(n_bin)
+    real(kind=dp), intent(in) :: ck(n_bin,n_bin)
+    real(kind=dp), intent(in) :: ec(n_bin,n_bin)
     
     real(kind=dp), parameter :: gmin = 1d-60
-    
-    integer i, i0, i1, j, k, kp
-    real(kind=dp) x0, gsi, gsj, gsk, gk, x1, flux
 
-    do i = 1,n_bin
-       prod(i) = 0d0
-       ploss(i) = 0d0
-    end do
-    
+    integer :: i, i0, i1, j, k, kp, j0, j1
+    real(kind=dp) :: x0, gsi, gsj, gsk, gk, x1, flux
+
     ! lower and upper integration limit i0,i1
     do i0 = 1,(n_bin - 1)
-       if (g(i0) .gt. gmin) goto 2000
+       if (g(i0,s1) .gt. gmin) exit
     end do
-2000 continue
     do i1 = (n_bin - 1),1,-1
-       if (g(i1) .gt. gmin) goto 2010
+       if (g(i1,s1) .gt. gmin) exit
     end do
-2010 continue
+    do j0 = 1,(n_bin - 1)
+       if (g(j0,s2) .gt. gmin) exit
+    end do
+    do j1 = (n_bin - 1),1,-1
+       if (g(j1,s2) .gt. gmin) exit
+    end do
     
     do i = i0,i1
-       do j = i,i1
+       do j = j0,j1
           k = ima(i,j) ! k = 0 means that i + j goes nowhere
           kp = k + 1
           
-          x0 = ck(i,j) * g(i) * g(j)
-          x0 = min(x0, g(i) * e(j))
+          x0 = ck(i,j) * g(i,s1) * g(j,s2)
+          x0 = min(x0, g(i,s1) * e(j))
           
-          if (j .ne. k) x0 = min(x0, g(j) * e(i))
+          if (j .ne. k) x0 = min(x0, g(j,s2) * e(i))
           gsi = x0 / e(j)
           gsj = x0 / e(i)
           gsk = gsi + gsj
              
           ! loss from positions i, j
-          ploss(i) = ploss(i) + gsi
-          ploss(j) = ploss(j) + gsj
-          g(i) = g(i) - gsi
-          g(j) = g(j) - gsj
+          g(i,s1) = g(i,s1) - gsi
+          g(j,s2) = g(j,s2) - gsj
 
           if (k > 0) then ! do we have a valid bin for the coagulation result?
-             gk = g(k) + gsk
+             gk = g(k,sc) + gsk
              
              if (gk .gt. gmin) then
-                x1 = log(g(kp) / gk + 1d-60)
+                x1 = log(g(kp,sc) / gk + 1d-60)
                 flux = gsk / x1 * (exp(0.5d0 * x1) &
                      - exp(x1 * (0.5d0 - c(i,j))))
                 flux = min(flux, gk)
-                g(k) = gk - flux
-                g(kp) = g(kp) + flux
                 ! gain for positions i, j
-                prod(k) =  prod(k) + gsk - flux           
-                prod(kp) = prod(kp) + flux
+                g(k,sc) = gk - flux
+                g(kp,sc) = g(kp,sc) + flux
              end if
           end if
        end do
@@ -338,7 +347,8 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Smooths kernel values for bin pairs, and halves the self-rate.
+  !> Smooths kernel values for bin pairs, and halves the self-rate and
+  !> all other rates (due to symmetric interactions).
   subroutine smooth_bin_kernel(n_bin, k, k_smooth)
     
     !> Number of bins.
@@ -359,9 +369,9 @@ contains
           k_smooth(i,j) = 0.125d0 * (k(i,jm) + k(im,j) &
                + k(ip,j) + k(i,jp)) &
                + 0.5d0 * k(i,j)
-          if (i .eq. j) then
-             k_smooth(i,j) = 0.5d0 * k_smooth(i,j)
-          end if
+          !if (i .eq. j) then
+          k_smooth(i,j) = 0.5d0 * k_smooth(i,j)
+          !end if
        end do
     end do
     

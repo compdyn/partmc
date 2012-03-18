@@ -666,6 +666,72 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the current sectional data.
+  subroutine output_sectional_array(prefix, bin_grid, aero_data, &
+       aero_binned_array, gas_data, gas_state, env_state, index, time, del_t, &
+       uuid)
+
+    !> Prefix of filename to write
+    character(len=*), intent(in) :: prefix
+    !> Bin grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Binned aerosol data.
+    type(aero_binned_t), intent(in) :: aero_binned_array(:)
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(in) :: gas_state
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Filename index.
+    integer, intent(in) :: index
+    !> Current time (s).
+    real(kind=dp), intent(in) :: time
+    !> Current output time-step (s).
+    real(kind=dp), intent(in) :: del_t
+    !> UUID of the simulation.
+    character(len=PMC_UUID_LEN), intent(in) :: uuid
+
+    integer :: ncid, i_set
+    character(len=len(prefix)+100) :: filename
+    type(aero_binned_t) :: aero_binned
+
+    write(filename, '(a,a,i8.8,a)') trim(prefix), &
+         '_', index, '.nc'
+    call pmc_nc_check_msg(nf90_create(filename, NF90_CLOBBER, ncid), &
+         "opening " // trim(filename))
+
+    ! write header attributes
+    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "title", &
+         "PartMC sectional output file"))
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    call write_header_and_time(ncid, time, del_t, index, uuid)
+
+    ! write data
+    call env_state_output_netcdf(env_state, ncid)
+    call gas_data_output_netcdf(gas_data, ncid)
+    call gas_state_output_netcdf(gas_state, ncid, gas_data)
+    call aero_data_output_netcdf(aero_data, ncid)
+    call aero_binned_allocate_size(aero_binned, &
+         size(aero_binned_array(1)%vol_conc, 1), &
+         size(aero_binned_array(1)%vol_conc, 2))
+    do i_set = 1,size(aero_binned_array)
+       call aero_binned_add(aero_binned, aero_binned_array(i_set))
+    end do
+    call aero_binned_output_netcdf(aero_binned, ncid, bin_grid, aero_data)
+    call aero_binned_deallocate(aero_binned)
+    call aero_binned_array_output_netcdf(aero_binned_array, ncid, bin_grid, &
+         aero_data)
+
+    call pmc_nc_check(nf90_close(ncid))
+
+  end subroutine output_sectional_array
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Input sectional data.
   subroutine input_sectional(filename, index, time, del_t, uuid, bin_grid, &
        aero_data, aero_binned, gas_data, gas_state, env_state)

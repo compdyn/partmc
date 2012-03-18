@@ -104,7 +104,7 @@ contains
     end if
 
     ! allocate data structure
-    n_set = 1
+    n_set = aero_data%n_source
     allocate(g(bin_grid%n_bin, n_set))
     allocate(aero_binned_array(n_set))
     call aero_binned_allocate_size(aero_binned_array, bin_grid%n_bin, &

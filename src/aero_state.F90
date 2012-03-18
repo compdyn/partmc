@@ -697,7 +697,7 @@ contains
                aero_mode%source)
 
           ! adjust comp_vol if necessary
-          n_samp_avg = sample_prop * aero_dist_number(aero_dist, &
+          n_samp_avg = sample_prop * aero_mode_number(aero_mode, &
                aero_state%awa%weight(i_group, i_set))
           call aero_state_prepare_comp_vol_for_add(aero_state, i_group, &
                i_set, n_samp_avg)

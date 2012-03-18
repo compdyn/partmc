@@ -6,7 +6,7 @@ restart no                      # whether to restart from saved state (yes/no)
 
 t_max 86400                     # total simulation time (s)
 del_t 600                       # timestep (s)
-t_output 3600                   # output interval (0 disables) (s)
+t_output 86400                  # output interval (0 disables) (s)
 t_progress 3600                 # progress printing interval (0 disables) (s)
 
 weight %%WEIGHT_TYPE%%

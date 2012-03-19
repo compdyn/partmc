@@ -388,6 +388,13 @@ contains
           call spec_file_read_real(file, 'exponent', aero_weight_exponent)
        elseif (trim(weight_type) == 'nummass') then
           aero_state_weight = AERO_STATE_WEIGHT_NUMMASS
+       elseif (trim(weight_type) == 'flat_source') then
+          aero_state_weight = AERO_STATE_WEIGHT_FLAT_SOURCE
+       elseif (trim(weight_type) == 'power_source') then
+          aero_state_weight = AERO_STATE_WEIGHT_POWER_SOURCE
+          call spec_file_read_real(file, 'exponent', aero_weight_exponent)
+       elseif (trim(weight_type) == 'nummass_source') then
+          aero_state_weight = AERO_STATE_WEIGHT_NUMMASS_SOURCE
        else
           call spec_file_die_msg(365227532, file, "unknown weight_type: " &
                // trim(weight_type))

@@ -44,7 +44,7 @@ for run in config.all_runs():
         species2 = (masses2 > 0)
 
         num_1_dist = partmc.histogram_1d(diameters[species1], diam_grid, weights=1 / comp_vols[species1])
-        num_2_dist = partmc.histogram_1d(diameters[species2], diam_grid, weights=2 / comp_vols[species2])
+        num_2_dist = partmc.histogram_1d(diameters[species2], diam_grid, weights=1 / comp_vols[species2])
         mass_1_dist = partmc.histogram_1d(diameters[species1], diam_grid, weights=masses[species1] / comp_vols[species1])
         mass_2_dist = partmc.histogram_1d(diameters[species2], diam_grid, weights=masses[species2] / comp_vols[species2])
 

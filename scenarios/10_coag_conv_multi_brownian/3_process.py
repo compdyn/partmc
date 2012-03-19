@@ -5,18 +5,23 @@ sys.path.append("../../tool")
 import partmc
 import config
 
-sect_filename = os.path.join(config.run_dirname, "1k_flat_source", "sect_00000002.nc")
+sect_filename = os.path.join(config.run_dirname, "1k_flat_source", "sect_00000001.nc")
 ncf = scipy.io.netcdf.netcdf_file(sect_filename, 'r')
 diam_grid = partmc.log_grid()
 diam_grid.load_ncf_diam(ncf)
 aero_binned_array = partmc.aero_binned_array_t(ncf)
 ncf.close()
 
+sect_filename = os.path.join(config.run_dirname, "1k_flat", "sect_00000001.nc")
+ncf = scipy.io.netcdf.netcdf_file(sect_filename, 'r')
+aero_binned_single = partmc.aero_binned_t(ncf)
+ncf.close()
+
 for run in config.all_runs():
     dirname = os.path.join(config.run_dirname, run["name"])
     print dirname
 
-    part_filenames = partmc.get_filename_list(dirname, r"part_[0-9]{4}_00000002\.nc")
+    part_filenames = partmc.get_filename_list(dirname, r"part_[0-9]{4}_00000001\.nc")
     num_1_err = numpy.zeros(len(part_filenames))
     num_2_err = numpy.zeros(len(part_filenames))
     mass_1_err = numpy.zeros(len(part_filenames))
@@ -87,10 +92,16 @@ for run in config.all_runs():
 
     numpy.savetxt(os.path.join(dirname, "diam.txt"), diam_grid.centers())
 
+    numpy.savetxt(os.path.join(dirname, "num_sect.txt"), aero_binned_single.num_conc)
+    numpy.savetxt(os.path.join(dirname, "mass_sect.txt"), aero_binned_single.mass_conc())
+
     numpy.savetxt(os.path.join(dirname, "num_1_sect.txt"), aero_binned_array.num_conc[0,:])
     numpy.savetxt(os.path.join(dirname, "num_2_sect.txt"), aero_binned_array.num_conc[1,:])
     numpy.savetxt(os.path.join(dirname, "mass_1_sect.txt"), aero_binned_array.mass_conc()[0,:])
     numpy.savetxt(os.path.join(dirname, "mass_2_sect.txt"), aero_binned_array.mass_conc()[1,:])
+
+    numpy.savetxt(os.path.join(dirname, "num_dist_mean.txt"), num_1_dist_mean + num_2_dist_mean)
+    numpy.savetxt(os.path.join(dirname, "mass_dist_mean.txt"), mass_1_dist_mean + mass_2_dist_mean)
 
     numpy.savetxt(os.path.join(dirname, "num_1_dist_mean.txt"), num_1_dist_mean)
     numpy.savetxt(os.path.join(dirname, "num_1_dist_ci.txt"), num_1_dist_ci)

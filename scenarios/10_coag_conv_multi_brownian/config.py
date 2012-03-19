@@ -6,8 +6,7 @@ ref_dirname = "ref"
 run_dirname = "runs"
 fig_dirname = "figs"
 
-n_nodes = 10
-n_procs_per_node = 12
+n_repeat = 1
 
 n_part_list = [
     ("1000", "1k", r"$10^3$"),

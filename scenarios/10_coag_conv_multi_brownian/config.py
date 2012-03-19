@@ -15,11 +15,8 @@ n_part_list = [
     ]
 
 weight_list = [
-    ("power", "0"),
-    ("power", "-1"),
-    ("power", "-2"),
-    ("power", "-3"),
-    ("nummass", None),
+    ("flat", None),
+    ("flat_source", None)
     ]
 
 def all_runs():

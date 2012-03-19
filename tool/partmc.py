@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007-2011 Matthew West
+# Copyright (C) 2007-2012 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -1192,6 +1192,50 @@ class aero_binned_t(object):
         val = numpy.zeros_like(self.raw_mass_conc[0,:])
         for index in index_list:
             val += self.raw_mass_conc[index,:]
+        return val
+
+class aero_binned_array_t(object):
+
+    """Stores number and mass distributions from a sectional PartMC
+    run by set. The data attributes are:
+
+    aero_data - object of type aero_data_t with per-species physical data
+    diam_grid - object of type log_grid with diameter grid data
+    number_conc - number concentration distribution (log_10)
+    raw_mass_conc - mass concentration distribution per species (log_10)
+
+    """
+
+    def __init__(self, ncf):
+        """Creates an aero_binned_t object. The ncf parameter must be
+        a netcdf_file object output from PartMC.
+
+        For example:
+
+        >>> ncf = scipy.io.netcdf.netcdf_file('filename.nc', 'r')
+        >>> aero_binned = partmc.aero_binned_t(ncf)
+
+        """
+        self.aero_data = aero_data_t(ncf)
+        self.diam_grid = log_grid()
+        self.diam_grid.load_ncf_diam(ncf)
+
+        for (ncf_var, self_var) in [
+            ("aero_number_concentration_by_set", "num_conc"),
+            ("aero_mass_concentration_by_set", "raw_mass_conc"),
+            ]:
+            if ncf_var in ncf.variables.keys():
+                # convert (d/d ln D) to (d/d log10 D)
+                self.__dict__[self_var] = numpy.log(10) \
+                    * _get_netcdf_variable_data(ncf.variables[ncf_var])
+            else:
+                raise Exception("%s variable not found in NetCDF file" % ncf_var)
+
+    def mass_conc(self, include=None, exclude=None):
+        index_list = self.aero_data.index_list(include, exclude)
+        val = numpy.zeros_like(self.raw_mass_conc[:,0,:])
+        for index in index_list:
+            val += self.raw_mass_conc[:,index,:]
         return val
 
 class grid(object):

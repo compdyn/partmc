@@ -30,6 +30,8 @@ for run in config.all_runs():
     num_2_dists = numpy.zeros((len(part_filenames), diam_grid.n_bin))
     mass_1_dists = numpy.zeros((len(part_filenames), diam_grid.n_bin))
     mass_2_dists = numpy.zeros((len(part_filenames), diam_grid.n_bin))
+    num_dists = numpy.zeros((len(part_filenames), diam_grid.n_bin))
+    mass_dists = numpy.zeros((len(part_filenames), diam_grid.n_bin))
     for (i, part_filename) in enumerate(part_filenames):
         ncf = scipy.io.netcdf.netcdf_file(part_filename, 'r')
         aero_particle_array = partmc.aero_particle_array_t(ncf)
@@ -43,6 +45,9 @@ for run in config.all_runs():
         species1 = (masses2 == 0)
         species2 = (masses2 > 0)
 
+        num_dist = partmc.histogram_1d(diameters, diam_grid, weights=1 / comp_vols)
+        mass_dist = partmc.histogram_1d(diameters, diam_grid, weights=masses / comp_vols)
+
         num_1_dist = partmc.histogram_1d(diameters[species1], diam_grid, weights=1 / comp_vols[species1])
         num_2_dist = partmc.histogram_1d(diameters[species2], diam_grid, weights=1 / comp_vols[species2])
         mass_1_dist = partmc.histogram_1d(diameters[species1], diam_grid, weights=masses[species1] / comp_vols[species1])
@@ -52,6 +57,9 @@ for run in config.all_runs():
         num_2_err[i] = numpy.linalg.norm(num_2_dist - aero_binned_array.num_conc[1,:])
         mass_1_err[i] = numpy.linalg.norm(mass_1_dist - aero_binned_array.mass_conc()[0,:])
         mass_2_err[i] = numpy.linalg.norm(mass_2_dist - aero_binned_array.mass_conc()[1,:])
+
+        num_dists[i,:] = num_dist
+        mass_dists[i,:] = mass_dist
 
         num_1_dists[i,:] = num_1_dist
         num_2_dists[i,:] = num_2_dist
@@ -77,6 +85,9 @@ for run in config.all_runs():
     mass_2_dist_mean = mass_2_dists.mean(axis=0)
     mass_2_dist_ci = 2 * mass_2_dists.std(axis=0) / numpy.sqrt(numpy.size(mass_2_dists, 0))
 
+    num_dist_mean = num_dists.mean(axis=0)
+    mass_dist_mean = mass_dists.mean(axis=0)
+
     stats = numpy.zeros(8)
     stats[0] = num_1_err_mean
     stats[1] = num_1_err_ci
@@ -100,8 +111,8 @@ for run in config.all_runs():
     numpy.savetxt(os.path.join(dirname, "mass_1_sect.txt"), aero_binned_array.mass_conc()[0,:])
     numpy.savetxt(os.path.join(dirname, "mass_2_sect.txt"), aero_binned_array.mass_conc()[1,:])
 
-    numpy.savetxt(os.path.join(dirname, "num_dist_mean.txt"), num_1_dist_mean + num_2_dist_mean)
-    numpy.savetxt(os.path.join(dirname, "mass_dist_mean.txt"), mass_1_dist_mean + mass_2_dist_mean)
+    numpy.savetxt(os.path.join(dirname, "num_dist_mean.txt"), num_dist_mean)
+    numpy.savetxt(os.path.join(dirname, "mass_dist_mean.txt"), mass_dist_mean)
 
     numpy.savetxt(os.path.join(dirname, "num_1_dist_mean.txt"), num_1_dist_mean)
     numpy.savetxt(os.path.join(dirname, "num_1_dist_ci.txt"), num_1_dist_ci)

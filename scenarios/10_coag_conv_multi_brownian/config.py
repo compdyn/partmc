@@ -20,8 +20,8 @@ weight_list = [
     ]
 
 def all_runs():
-    for (n_part, n_part_name, n_part_tex) in n_part_list:
-        for (weight_type, exponent) in weight_list:
+    for (i_part, (n_part, n_part_name, n_part_tex)) in enumerate(n_part_list):
+        for (i_weight, (weight_type, exponent)) in enumerate(weight_list):
             if weight_type == "power":
                 name = "%s_%s%s" % (n_part_name, weight_type, exponent)
             else:
@@ -32,6 +32,8 @@ def all_runs():
                    "n_part_tex": n_part_tex,
                    "weight_type": weight_type,
                    "exponent": exponent,
+                   "i_part": i_part,
+                   "i_weight": i_weight,
                    }
             yield run
 

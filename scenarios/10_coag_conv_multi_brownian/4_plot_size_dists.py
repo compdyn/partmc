@@ -39,7 +39,7 @@ def make_plot(dirname, out_file, title):
 
     axes.set_xscale('log')
     axes.set_yscale('log')
-    axes.set_ylim(bottom=1e8, top=1e12)
+    axes.set_ylim(bottom=1e4, top=1e12)
     axes.set_ylabel(r'$dN/d\ln D\ /\ {\rm m^{-3}}$')
     axes.grid(True)
     #axes.set_yticks([1e-4, 1e-2, 1e0, 1e2, 1e4, 1e6, 1e8, 1e10])
@@ -76,7 +76,7 @@ def make_plot(dirname, out_file, title):
     axes.set_xscale('log')
     axes.set_yscale('log')
     axes.set_xlim(left=1e-2, right=1e0)
-    axes.set_ylim(bottom=1e-12, top=1e-6)
+    axes.set_ylim(bottom=1e-17, top=1e-6)
     axes.set_xlabel(r'diameter $D\ /\ {\rm \mu m}$')
     axes.set_ylabel(r'$dM/d\ln D\ /\ ({\rm kg\ m^{-3}})$')
     axes.grid(True)

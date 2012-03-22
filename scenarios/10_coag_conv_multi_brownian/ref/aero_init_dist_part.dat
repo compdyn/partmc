@@ -1,13 +1,13 @@
 mode_name init_many              # name of mode source
 mass_frac aero_init_comp_s1.dat  # species mass fractions
 mode_type log_normal             # type of distribution
-num_conc 5e10                    # particle number concentration (#/m^3)
+num_conc 1e11                    # particle number concentration (#/m^3)
 geom_mean_diam 5e-8              # geometric mean diameter (m)
 log10_geom_std_dev 0.24          # log_10 of geometric std dev of diameter
 
 mode_name init_few               # name of mode source
 mass_frac aero_init_comp_s2.dat  # species mass fractions
 mode_type log_normal             # type of distribution
-num_conc 5e10                    # particle number concentration (#/m^3)
+num_conc 1e8                     # particle number concentration (#/m^3)
 geom_mean_diam 5e-8              # geometric mean diameter (m)
 log10_geom_std_dev 0.24          # log_10 of geometric std dev of diameter

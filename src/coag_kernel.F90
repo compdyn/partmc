@@ -561,7 +561,6 @@ contains
     else
        coag_dest_set = j_set
     end if
-    coag_dest_set = max(i_set, j_set)
 
   end function coag_dest_set
 

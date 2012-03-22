@@ -5,14 +5,14 @@ sys.path.append("../../tool")
 import partmc
 import config
 
-sect_filename = os.path.join(config.run_dirname, "1k_flat_source", "sect_00000001.nc")
+sect_filename = os.path.join(config.run_dirname, "1k_flat_source", "sect_00000002.nc")
 ncf = scipy.io.netcdf.netcdf_file(sect_filename, 'r')
 diam_grid = partmc.log_grid()
 diam_grid.load_ncf_diam(ncf)
 aero_binned_array = partmc.aero_binned_array_t(ncf)
 ncf.close()
 
-sect_filename = os.path.join(config.run_dirname, "1k_flat", "sect_00000001.nc")
+sect_filename = os.path.join(config.run_dirname, "1k_flat", "sect_00000002.nc")
 ncf = scipy.io.netcdf.netcdf_file(sect_filename, 'r')
 aero_binned_single = partmc.aero_binned_t(ncf)
 ncf.close()
@@ -21,7 +21,7 @@ for run in config.all_runs():
     dirname = os.path.join(config.run_dirname, run["name"])
     print dirname
 
-    part_filenames = partmc.get_filename_list(dirname, r"part_[0-9]{4}_00000001\.nc")
+    part_filenames = partmc.get_filename_list(dirname, r"part_[0-9]{4}_00000002\.nc")
     num_1_err = numpy.zeros(len(part_filenames))
     num_2_err = numpy.zeros(len(part_filenames))
     mass_1_err = numpy.zeros(len(part_filenames))

@@ -39,8 +39,8 @@ do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
 
 rand_init 0                     # random initialization (0 to auto-generate)
-allow_doubling yes              # whether to allow doubling (yes/no)
-allow_halving yes               # whether to allow halving (yes/no)
+allow_doubling no               # whether to allow doubling (yes/no)
+allow_halving no                # whether to allow halving (yes/no)
 record_removals no              # whether to record particle removals (yes/no)
 
 do_parallel no                  # whether to run in parallel (yes/no)

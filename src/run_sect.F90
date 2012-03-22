@@ -168,7 +168,7 @@ contains
              g(:,s) = aero_binned_array(s)%vol_conc(:,1) * aero_data%density(1)
           end do
           do s1 = 1,n_set
-             do s2 = 1,s1
+             do s2 = 1,n_set
                 if (sum(g(:,s1)) < sum(g(:,s2))) then
                    sc = s1
                 else

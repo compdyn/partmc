@@ -169,13 +169,13 @@ contains
           end do
           do s1 = 1,n_set
              do s2 = 1,s1
-                   if (sum(g(:,s1)) < sum(g(:,s2))) then
-                      sc = s1
-                   else
-                      sc = s2
-                   end if
-                   call coad(bin_grid%n_bin, n_set, run_sect_opt%del_t, &
-                        c, ima, g, s1, s2, sc, r, e, ck, ec)
+                if (sum(g(:,s1)) < sum(g(:,s2))) then
+                   sc = s1
+                else
+                   sc = s2
+                end if
+                call coad(bin_grid%n_bin, n_set, run_sect_opt%del_t, &
+                     c, ima, g, s1, s2, sc, r, e, ck, ec)
              end do
           end do
           do s = 1,n_set

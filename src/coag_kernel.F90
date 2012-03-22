@@ -554,7 +554,7 @@ contains
     ij_r = vol2rad(rad2vol(i_r) + rad2vol(j_r))
     ij_nc_i = aero_weight_array_num_conc_at_radius(aero_weight_array, i_set, &
          ij_r)
-    ij_nc_j = aero_weight_array_num_conc_at_radius(aero_weight_array, i_set, &
+    ij_nc_j = aero_weight_array_num_conc_at_radius(aero_weight_array, j_set, &
          ij_r)
     if (ij_nc_i < ij_nc_j) then
        coag_dest_set = i_set

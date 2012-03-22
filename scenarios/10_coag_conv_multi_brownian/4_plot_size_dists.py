@@ -20,13 +20,13 @@ def make_plot(dirname, out_file, title):
     part_1_num = numpy.loadtxt(os.path.join(dirname, "num_1_dist_mean.txt"))
     part_2_num = numpy.loadtxt(os.path.join(dirname, "num_2_dist_mean.txt"))
     axes = axes_array[1][0]
-    axes.plot(diam * 1e6, sect_num, 'k--')
-    axes.plot(diam * 1e6, part_num, 'k+')
-    axes.plot(diam * 1e6, sect_1_num + sect_2_num, 'g:')
-    axes.plot(diam * 1e6, sect_1_num, 'b:')
-    axes.plot(diam * 1e6, part_1_num, 'bx')
-    axes.plot(diam * 1e6, sect_2_num, 'r--')
-    axes.plot(diam * 1e6, part_2_num, 'rx')
+    #axes.plot(diam * 1e6, sect_num, 'k--')
+    #axes.plot(diam * 1e6, part_num, 'k+')
+    #axes.plot(diam * 1e6, sect_1_num + sect_2_num, 'g:')
+    axes.plot(diam * 1e6, sect_1_num, 'b-')
+    axes.plot(diam * 1e6, part_1_num, 'bo')
+    axes.plot(diam * 1e6, sect_2_num, 'r-')
+    axes.plot(diam * 1e6, part_2_num, 'ro')
 
     #mpl_helper.label_plot_line(axes, sect_num[:,0] * 1e3, sect_num[:,1],
     #                           0.1, r"$t = 0\rm\ min$",
@@ -56,13 +56,13 @@ def make_plot(dirname, out_file, title):
     part_1_mass = numpy.loadtxt(os.path.join(dirname, "mass_1_dist_mean.txt"))
     part_2_mass = numpy.loadtxt(os.path.join(dirname, "mass_2_dist_mean.txt"))
     axes = axes_array[0][0]
-    axes.plot(diam * 1e6, sect_mass, 'k--')
-    axes.plot(diam * 1e6, part_mass, 'k+')
-    axes.plot(diam * 1e6, sect_1_mass + sect_2_mass, 'g:')
-    axes.plot(diam * 1e6, sect_1_mass, 'b:')
-    axes.plot(diam * 1e6, part_1_mass, 'bx')
-    axes.plot(diam * 1e6, sect_2_mass, 'r--')
-    axes.plot(diam * 1e6, part_2_mass, 'rx')
+    #axes.plot(diam * 1e6, sect_mass, 'k--')
+    #axes.plot(diam * 1e6, part_mass, 'k+')
+    #axes.plot(diam * 1e6, sect_1_mass + sect_2_mass, 'g:')
+    axes.plot(diam * 1e6, sect_1_mass, 'b-')
+    axes.plot(diam * 1e6, part_1_mass, 'bo')
+    axes.plot(diam * 1e6, sect_2_mass, 'r-')
+    axes.plot(diam * 1e6, part_2_mass, 'ro')
 
     #mpl_helper.label_plot_line(axes, sect_mass[:,0] * 1e3, sect_mass[:,1],
     #                           0.1, r"$t = 0\rm\ min$",

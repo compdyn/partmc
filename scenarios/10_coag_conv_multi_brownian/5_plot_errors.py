@@ -7,10 +7,12 @@ import mpl_helper
 import config
 
 colors = ['b', 'r', 'g']
-shapes = ['x', 'o', '+']
+shapes = ['x', '.', '+']
 
 (figure, axes) = mpl_helper.make_fig(right_margin=2)
 
+handles = []
+labels = []
 for run in config.all_runs():
     dirname = os.path.join(config.run_dirname, run["name"])
     print dirname
@@ -27,14 +29,15 @@ for run in config.all_runs():
     mass_2_err_mean = stats[6]
     mass_2_err_ci = stats[7]
 
-    axes.plot([num_1_err_mean], [num_2_err_mean], colors[run["i_part"]] + shapes[run["i_weight"]],
-              label="%s, %s" % (run["n_part_tex"], run["weight_type"].replace("_", "-")))
+    (plotline, caplines, barlinecols) = axes.errorbar([num_1_err_mean], [num_2_err_mean], [num_2_err_ci], [num_1_err_ci],
+                                                      fmt=(colors[run["i_part"]] + shapes[run["i_weight"]]))
+    handles.append(plotline)
+    labels.append("%s, %s" % (run["n_part_tex"], run["weight_type"].replace("_", "-")))
 
 axes.set_xscale('log')
 axes.set_yscale('log')
 axes.set_xlabel(r'mean number 1 error $E[\|n_1 - n_{1, \rm s}\|_2]$')
 axes.set_ylabel(r'mean number 2 error $E[\|n_2 - n_{2, \rm s}\|_2]$')
-(handles, labels) = axes.get_legend_handles_labels()
 figure.legend(handles, labels, loc='center right', numpoints=1)
 axes.grid(True)
 

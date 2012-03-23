@@ -77,13 +77,13 @@ for run in config.all_runs():
     mass_2_err_ci = 2 * mass_2_err.std() / numpy.sqrt(len(mass_2_err))
 
     num_1_dist_mean = num_1_dists.mean(axis=0)
-    num_1_dist_ci = 2 * num_1_dists.std(axis=0) / numpy.sqrt(numpy.size(num_1_dists, 0))
+    num_1_dist_ci = 2 * num_1_dists.std(axis=0)
     num_2_dist_mean = num_2_dists.mean(axis=0)
-    num_2_dist_ci = 2 * num_2_dists.std(axis=0) / numpy.sqrt(numpy.size(num_2_dists, 0))
+    num_2_dist_ci = 2 * num_2_dists.std(axis=0)
     mass_1_dist_mean = mass_1_dists.mean(axis=0)
-    mass_1_dist_ci = 2 * mass_1_dists.std(axis=0) / numpy.sqrt(numpy.size(mass_1_dists, 0))
+    mass_1_dist_ci = 2 * mass_1_dists.std(axis=0)
     mass_2_dist_mean = mass_2_dists.mean(axis=0)
-    mass_2_dist_ci = 2 * mass_2_dists.std(axis=0) / numpy.sqrt(numpy.size(mass_2_dists, 0))
+    mass_2_dist_ci = 2 * mass_2_dists.std(axis=0)
 
     num_dist_mean = num_dists.mean(axis=0)
     mass_dist_mean = mass_dists.mean(axis=0)

@@ -18,7 +18,10 @@ def make_plot(dirname, out_file, title):
     sect_2_num = numpy.loadtxt(os.path.join(dirname, "num_2_sect.txt"))
     part_num = numpy.loadtxt(os.path.join(dirname, "num_dist_mean.txt"))
     part_1_num = numpy.loadtxt(os.path.join(dirname, "num_1_dist_mean.txt"))
+    part_1_num_ci = numpy.loadtxt(os.path.join(dirname, "num_1_dist_ci.txt"))
     part_2_num = numpy.loadtxt(os.path.join(dirname, "num_2_dist_mean.txt"))
+    part_2_num_ci = numpy.loadtxt(os.path.join(dirname, "num_2_dist_ci.txt"))
+
     axes = axes_array[1][0]
     #axes.plot(diam * 1e6, sect_num, 'k--')
     #axes.plot(diam * 1e6, part_num, 'k+')

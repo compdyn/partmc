@@ -249,7 +249,7 @@ contains
     logical :: do_restart, do_init_equilibriate, aero_mode_type_exp_present
     character(len=PMC_MAX_FILENAME_LEN) :: restart_filename
     integer :: dummy_index, dummy_i_repeat
-    real(kind=dp) :: dummy_time, dummy_del_t, n_part
+    real(kind=dp) :: dummy_time, dummy_del_t, n_part, n_part_ratio
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
 
@@ -367,6 +367,7 @@ contains
             run_part_opt%output_prefix)
        call spec_file_read_integer(file, 'n_repeat', run_part_opt%n_repeat)
        call spec_file_read_real(file, 'n_part', n_part)
+       call spec_file_read_real(file, 'n_part_ratio', n_part_ratio)
        call spec_file_read_logical(file, 'restart', do_restart)
        if (do_restart) then
           call spec_file_read_string(file, 'restart_file', restart_filename)
@@ -533,6 +534,8 @@ contains
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_real(n_part)
        max_buffer_size = max_buffer_size &
+            + pmc_mpi_pack_size_real(n_part_ratio)
+       max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_integer(aero_state_weight)
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_real(aero_weight_exponent)
@@ -562,6 +565,7 @@ contains
        position = 0
        call pmc_mpi_pack_run_part_opt(buffer, position, run_part_opt)
        call pmc_mpi_pack_real(buffer, position, n_part)
+       call pmc_mpi_pack_real(buffer, position, n_part_ratio)
        call pmc_mpi_pack_integer(buffer, position, aero_state_weight)
        call pmc_mpi_pack_real(buffer, position, aero_weight_exponent)
        call pmc_mpi_pack_gas_data(buffer, position, gas_data)
@@ -594,6 +598,7 @@ contains
        position = 0
        call pmc_mpi_unpack_run_part_opt(buffer, position, run_part_opt)
        call pmc_mpi_unpack_real(buffer, position, n_part)
+       call pmc_mpi_unpack_real(buffer, position, n_part_ratio)
        call pmc_mpi_unpack_integer(buffer, position, aero_state_weight)
        call pmc_mpi_unpack_real(buffer, position, aero_weight_exponent)
        call pmc_mpi_unpack_gas_data(buffer, position, gas_data)
@@ -627,7 +632,7 @@ contains
        call gas_state_copy(gas_state_init, gas_state)
        if (do_restart) then
           call aero_state_copy(aero_state_init, aero_state)
-          call aero_state_set_n_part_ideal(aero_state, n_part)
+          call aero_state_set_n_part_ideal(aero_state, n_part, n_part_ratio)
        else
           call aero_state_reset(aero_state)
           aero_mode_type_exp_present &
@@ -644,7 +649,7 @@ contains
              call aero_state_set_weight(aero_state, aero_data, &
                   aero_state_weight, aero_weight_exponent)
           end if
-          call aero_state_set_n_part_ideal(aero_state, n_part)
+          call aero_state_set_n_part_ideal(aero_state, n_part, n_part_ratio)
           call aero_state_add_aero_dist_sample(aero_state, aero_data, &
                aero_dist_init, 1d0, 0d0)
        end if

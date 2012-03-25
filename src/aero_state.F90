@@ -204,12 +204,14 @@ contains
 
   !> Set the ideal number of particles to the given value. The \c
   !> aero_state%awa must be already set correctly.
-  subroutine aero_state_set_n_part_ideal(aero_state, n_part)
+  subroutine aero_state_set_n_part_ideal(aero_state, n_part, n_part_ratio)
 
     !> Aerosol state (with \c aero_state%awa set).
     type(aero_state_t), intent(inout) :: aero_state
     !> Ideal total number of particles.
     real(kind=dp), intent(in) :: n_part
+    !> Ratio of particles in weight set 1.
+    real(kind=dp), intent(in) :: n_part_ratio
 
     integer :: n_group, n_set
 
@@ -217,7 +219,12 @@ contains
     n_set = aero_weight_array_n_set(aero_state%awa)
     deallocate(aero_state%n_part_ideal)
     allocate(aero_state%n_part_ideal(n_group, n_set))
-    aero_state%n_part_ideal = n_part / real(n_group * n_set, kind=dp)
+    aero_state%n_part_ideal(:, 1) = n_part / real(n_group, kind=dp) &
+         * n_part_ratio
+    if (n_set > 1) then
+       aero_state%n_part_ideal(:, 2:) = n_part / real(n_group, kind=dp) &
+            * (1d0 - n_part_ratio)
+    end if
 
   end subroutine aero_state_set_n_part_ideal
 
@@ -2427,7 +2434,7 @@ contains
     call aero_state_allocate(aero_state)
     
     call aero_weight_array_input_netcdf(aero_state%awa, ncid)
-    call aero_state_set_n_part_ideal(aero_state, 0d0)
+    call aero_state_set_n_part_ideal(aero_state, 0d0, 0.5d0)
 
     call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
          aero_data%n_source)

@@ -22,7 +22,7 @@ module pmc_aero_weight_array
 
   !> An array of aerosol size distribution weighting functions.
   type aero_weight_array_t
-     !> Aero weight array.
+     !> Aero weight array, <tt> n_group x n_set</tt>.
      type(aero_weight_t), pointer :: weight(:, :)
   end type aero_weight_array_t
 

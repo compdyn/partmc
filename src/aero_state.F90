@@ -65,8 +65,8 @@ module pmc_aero_state
      logical :: valid_sort
      !> Weighting functions.
      type(aero_weight_array_t) :: awa
-     !> Ideal number of computational particles.
-     real(kind=dp) :: n_part_ideal
+     !> Ideal number of computational particles, per weight group and set.
+     real(kind=dp), pointer :: n_part_ideal(:, :)
      !> Information on removed particles.
      type(aero_info_array_t) :: aero_info_array
   end type aero_state_t
@@ -85,7 +85,7 @@ contains
     call aero_sorted_allocate(aero_state%aero_sorted)
     aero_state%valid_sort = .false.
     call aero_weight_array_allocate(aero_state%awa)
-    aero_state%n_part_ideal = 0d0
+    allocate(aero_state%n_part_ideal(0, 0))
     call aero_info_array_allocate(aero_state%aero_info_array)
 
   end subroutine aero_state_allocate
@@ -102,6 +102,7 @@ contains
     call aero_sorted_deallocate(aero_state%aero_sorted)
     aero_state%valid_sort = .false.
     call aero_weight_array_deallocate(aero_state%awa)
+    deallocate(aero_state%n_part_ideal)
     call aero_info_array_deallocate(aero_state%aero_info_array)
 
   end subroutine aero_state_deallocate
@@ -133,7 +134,7 @@ contains
     call aero_particle_array_copy(aero_state_from%apa, aero_state_to%apa)
     aero_state_to%valid_sort = .false.
     call aero_state_copy_weight(aero_state_from, aero_state_to)
-    aero_state_to%n_part_ideal = aero_state_from%n_part_ideal
+    call copy_real_2d(aero_state_from%n_part_ideal, aero_state_to%n_part_ideal)
     call aero_info_array_copy(aero_state_from%aero_info_array, &
          aero_state_to%aero_info_array)
 
@@ -199,6 +200,27 @@ contains
 
   end subroutine aero_state_set_weight
   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Set the ideal number of particles to the given value. The \c
+  !> aero_state%awa must be already set correctly.
+  subroutine aero_state_set_n_part_ideal(aero_state, n_part)
+
+    !> Aerosol state (with \c aero_state%awa set).
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Ideal total number of particles.
+    real(kind=dp), intent(in) :: n_part
+
+    integer :: n_group, n_set
+
+    n_group = aero_weight_array_n_group(aero_state%awa)
+    n_set = aero_weight_array_n_set(aero_state%awa)
+    deallocate(aero_state%n_part_ideal)
+    allocate(aero_state%n_part_ideal(n_group, n_set))
+    aero_state%n_part_ideal = n_part / real(n_group * n_set, kind=dp)
+
+  end subroutine aero_state_set_n_part_ideal
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the appropriate weight set for a source.
@@ -644,8 +666,8 @@ contains
     mean_n_part = real(global_n_part, kind=dp) / real(pmc_mpi_size(), kind=dp)
     n_part_new = mean_n_part + n_add
     if (n_part_new == 0d0) return
-    n_part_ideal_local_group = aero_state%n_part_ideal &
-         / real(pmc_mpi_size(), kind=dp) / real(n_group * n_set, kind=dp)
+    n_part_ideal_local_group = aero_state%n_part_ideal(i_group, i_set) &
+         / real(pmc_mpi_size(), kind=dp)
     if ((n_part_new < n_part_ideal_local_group / 2d0) &
          .or. (n_part_new > n_part_ideal_local_group * 2d0)) &
          then
@@ -1170,9 +1192,8 @@ contains
              local_n_part &
                   = aero_state_total_particles(aero_state, i_group, i_set)
              do while ((real(local_n_part, kind=dp) &
-                  < aero_state%n_part_ideal &
-                  / real(pmc_mpi_size(), kind=dp) &
-                  / real(n_group * n_set, kind=dp) / 2d0) &
+                  < aero_state%n_part_ideal(i_group, i_set) / 2d0 &
+                  / real(pmc_mpi_size(), kind=dp)) &
                   .and. (local_n_part > 0))
                 if (initial_state_warning) then
                    call warn_msg(716882783, "doubling particles in initial " &
@@ -1191,9 +1212,9 @@ contains
        do i_group = 1,n_group
           do i_set = 1,n_set
              do while (real(aero_state_total_particles(aero_state, &
-                  i_group, i_set), kind=dp) > aero_state%n_part_ideal &
-                  / real(pmc_mpi_size(), kind=dp) &
-                  / real(n_group * n_set, kind=dp) * 2d0)
+                  i_group, i_set), kind=dp) &
+                  > aero_state%n_part_ideal(i_group, i_set) * 2d0 &
+                  / real(pmc_mpi_size(), kind=dp))
                 if (initial_state_warning) then
                    call warn_msg(661936373, &
                         "halving particles in initial condition")
@@ -1734,7 +1755,7 @@ contains
     total_size = 0
     total_size = total_size + pmc_mpi_pack_size_apa(val%apa)
     total_size = total_size + pmc_mpi_pack_size_aero_weight_array(val%awa)
-    total_size = total_size + pmc_mpi_pack_size_real(val%n_part_ideal)
+    total_size = total_size + pmc_mpi_pack_size_real_array_2d(val%n_part_ideal)
     total_size = total_size + pmc_mpi_pack_size_aia(val%aero_info_array)
     pmc_mpi_pack_size_aero_state = total_size
 
@@ -1758,7 +1779,7 @@ contains
     prev_position = position
     call pmc_mpi_pack_aero_particle_array(buffer, position, val%apa)
     call pmc_mpi_pack_aero_weight_array(buffer,position,val%awa)
-    call pmc_mpi_pack_real(buffer, position, val%n_part_ideal)
+    call pmc_mpi_pack_real_array_2d(buffer, position, val%n_part_ideal)
     call pmc_mpi_pack_aero_info_array(buffer, position, val%aero_info_array)
     call assert(850997402, &
          position - prev_position <= pmc_mpi_pack_size_aero_state(val))
@@ -1785,7 +1806,7 @@ contains
     prev_position = position
     call pmc_mpi_unpack_aero_particle_array(buffer, position, val%apa)
     call pmc_mpi_unpack_aero_weight_array(buffer,position,val%awa)
-    call pmc_mpi_unpack_real(buffer, position, val%n_part_ideal)
+    call pmc_mpi_unpack_real_array_2d(buffer, position, val%n_part_ideal)
     call pmc_mpi_unpack_aero_info_array(buffer, position, val%aero_info_array)
     call assert(132104747, &
          position - prev_position <= pmc_mpi_pack_size_aero_state(val))
@@ -2406,7 +2427,7 @@ contains
     call aero_state_allocate(aero_state)
     
     call aero_weight_array_input_netcdf(aero_state%awa, ncid)
-    aero_state%n_part_ideal = 0d0
+    call aero_state_set_n_part_ideal(aero_state, 0d0)
 
     call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
          aero_data%n_source)

@@ -82,4 +82,4 @@ figure.legend(handles, labels, loc='upper right', numpoints=3)
 figure.legend(shape_handles, shape_labels, loc='lower right', numpoints=1)
 axes.grid(True)
 
-figure.savefig(os.path.join(config.fig_dirname, "errors.pdf"))
+figure.savefig(os.path.join(config.fig_dirname, "multi_errors.pdf"))

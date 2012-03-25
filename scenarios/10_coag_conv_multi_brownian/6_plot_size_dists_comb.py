@@ -64,4 +64,4 @@ dirname = os.path.join(config.run_dirname, run_name)
 make_plot(axes, dirname, "source", do_ylabel=False)
 
 mpl_helper.remove_fig_array_axes(axes_array)
-figure.savefig(os.path.join(config.fig_dirname, "size_dist_comb.pdf"))
+figure.savefig(os.path.join(config.fig_dirname, "multi_size_dist_comb.pdf"))

@@ -10,7 +10,7 @@ import config
 colors = ['b', 'r', 'g']
 shapes = ['x', '.', '+']
 
-(figure, axes) = mpl_helper.make_fig(right_margin=2)
+(figure, axes) = mpl_helper.make_fig(figure_width=6, right_margin=2)
 
 handles = []
 labels = []

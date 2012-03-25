@@ -13,26 +13,39 @@ shapes = ['x', '.', '+']
 
 handles = []
 labels = []
-for run in config.all_runs():
-    dirname = os.path.join(config.run_dirname, run["name"])
-    print dirname
+for (i_part, (n_part, n_part_name, n_part_tex)) in enumerate(config.n_part_list):
+    line_x = []
+    err_x = []
+    line_y = []
+    err_y = []
+    for (i_ratio, (ratio_type, ratio)) in enumerate(config.ratio_list):
+        weight_type = "flat_source"
+        name = "%s_%s_%s" % (n_part_name, ratio_type, weight_type)
+        dirname = os.path.join(config.run_dirname, name)
+        print dirname
 
-    stats_filename = os.path.join(dirname, "stats.txt")
-    stats = numpy.loadtxt(stats_filename)
+        stats_filename = os.path.join(dirname, "stats.txt")
+        stats = numpy.loadtxt(stats_filename)
 
-    num_1_err_mean = stats[0]
-    num_1_err_ci = stats[1]
-    num_2_err_mean = stats[2]
-    num_2_err_ci = stats[3]
-    mass_1_err_mean = stats[4]
-    mass_1_err_ci = stats[5]
-    mass_2_err_mean = stats[6]
-    mass_2_err_ci = stats[7]
+        num_1_err_mean = stats[0]
+        num_1_err_ci = stats[1]
+        num_2_err_mean = stats[2]
+        num_2_err_ci = stats[3]
+        mass_1_err_mean = stats[4]
+        mass_1_err_ci = stats[5]
+        mass_2_err_mean = stats[6]
+        mass_2_err_ci = stats[7]
 
-    (plotline, caplines, barlinecols) = axes.errorbar([num_1_err_mean], [num_2_err_mean], [num_2_err_ci], [num_1_err_ci],
-                                                      fmt=(colors[run["i_part"]] + shapes[run["i_weight"]]))
+        line_x.append(num_1_err_mean)
+        line_y.append(num_2_err_mean)
+
+        err_x.append(num_1_err_ci)
+        err_y.append(num_2_err_ci)
+
+    (plotline, caplines, barlinecols) = axes.errorbar(line_x, line_y, err_y, err_x,
+                                                      fmt=(colors[i_part]))
     handles.append(plotline)
-    labels.append("%s, %s" % (run["n_part_tex"], run["weight_type"].replace("_", "-")))
+    labels.append("%s" % n_part_tex)
 
 axes.set_xscale('log')
 axes.set_yscale('log')

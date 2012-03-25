@@ -15,13 +15,20 @@ n_part_list = [
     ]
 
 weight_list = [
-    ("flat", None),
+    #("flat", None),
     ("flat_source", None)
     ]
 
 ratio_list = [
-    ("conc", "0.999"),
-    ("equal", "0.5"),
+    #("conc", "0.999"),
+    #("equal", "0.5"),
+    ("w1-1e-3", "0.999"),
+    ("w1-1e-2", "0.99"),
+    ("w1-1e-1", "0.9"),
+    ("w1-w2", "0.5"),
+    ("w2-1e-1", "0.1"),
+    ("w2-1e-2", "0.01"),
+    ("w2-1e-3", "0.001"),
     ]
 
 def all_runs():

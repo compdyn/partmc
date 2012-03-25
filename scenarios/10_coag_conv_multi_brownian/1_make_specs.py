@@ -10,6 +10,7 @@ def copy_template_file(filename_in, filename_out, run):
     for line in f_in:
         line = line.replace('%%N_REPEAT%%', str(config.n_repeat))
         line = line.replace('%%N_PART%%', run["n_part"])
+        line = line.replace('%%N_PART_RATIO%%', run["ratio"])
         if run["weight_type"] == "power":
             line = line.replace('%%WEIGHT_TYPE%%', run["weight_type"] + "\nexponent " + run["exponent"])
         else:

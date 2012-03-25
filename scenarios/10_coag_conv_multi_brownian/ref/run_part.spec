@@ -2,6 +2,7 @@ run_type particle               # particle-resolved run
 output_prefix part              # prefix of output files
 n_repeat %%N_REPEAT%%           # number of Monte Carlo repeats
 n_part %%N_PART%%               # total number of particles
+n_part_ratio %%N_PART_RATIO%%   # ratio of particles in first weight set
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 86400                     # total simulation time (s)

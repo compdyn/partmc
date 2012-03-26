@@ -23,6 +23,12 @@ weight_list = [
     ("nummass", None),
     ]
 
+plot_weight_list = [
+    ("power", "0"),
+    ("power", "-3"),
+    ("nummass", None),
+    ]
+
 def all_runs():
     for (n_part, n_part_name, n_part_tex) in n_part_list:
         for (weight_type, exponent) in weight_list:

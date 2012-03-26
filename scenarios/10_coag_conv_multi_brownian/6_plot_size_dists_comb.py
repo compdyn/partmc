@@ -47,7 +47,7 @@ def make_plot(axes, dirname, title, do_xlabel):
     axes.set_ylabel(r'$dN/d\ln D\ /\ {\rm m^{-3}}$')
     axes.grid(True)
     #axes.set_yticks([1e-4, 1e-2, 1e0, 1e2, 1e4, 1e6, 1e8, 1e10])
-    mpl_helper.axes_boxed_text(axes, title, "upper left")
+    mpl_helper.axes_boxed_text(axes, title, "upper left", box_padding=0.3, offset_x=7, offset_y=7)
 
 
 if not os.path.exists(config.fig_dirname):
@@ -58,12 +58,12 @@ if not os.path.exists(config.fig_dirname):
 run_name = "1k_flat"
 axes = axes_array[1][0]
 dirname = os.path.join(config.run_dirname, run_name)
-make_plot(axes, dirname, "equal weight", do_xlabel=False)
+make_plot(axes, dirname, r"equal weight, $r = 1$", do_xlabel=False)
 
 run_name = "1k_flat_source"
 axes = axes_array[0][0]
 dirname = os.path.join(config.run_dirname, run_name)
-make_plot(axes, dirname, "equal number", do_xlabel=True)
+make_plot(axes, dirname, r"equal number, $r = 10^3$", do_xlabel=True)
 
 mpl_helper.remove_fig_array_axes(axes_array)
 figure.savefig(os.path.join(config.fig_dirname, "multi_size_dist_comb.pdf"))

@@ -17,6 +17,8 @@ labels = []
 saved_shapes = []
 shape_handles = []
 shape_labels = []
+pop_2_improvements = []
+pop_1_degradations = []
 for (i_part, (n_part, n_part_name, n_part_tex)) in enumerate(config.n_part_list):
     line_x = []
     err_x = []
@@ -51,10 +53,20 @@ for (i_part, (n_part, n_part_name, n_part_tex)) in enumerate(config.n_part_list)
             plot_extra = True
             shape = 'o'
             shape_labels.append("equal weight")
+            num_1_err_equal_weight = num_1_err_mean
+            num_2_err_equal_weight = num_2_err_mean
         if ratio == "0.5":
             plot_extra = True
             shape = 's'
             shape_labels.append("equal number")
+            num_1_err_equal_number = num_1_err_mean
+            num_2_err_equal_number = num_2_err_mean
+            pop_2_improvement = num_2_err_equal_weight / num_2_err_equal_number
+            pop_1_degradation = num_1_err_equal_number / num_1_err_equal_weight
+            print "pop 2 improvement factor: %f" % pop_2_improvement
+            print "pop 1 degradation factor: %f" % pop_1_degradation
+            pop_2_improvements.append(pop_2_improvement)
+            pop_1_degradations.append(pop_1_degradation)
         if plot_extra:
             plotline = axes.plot([num_1_err_mean], [num_2_err_mean],
                                  color=colors[i_part], marker=shape, markerfacecolor='w',
@@ -73,6 +85,9 @@ for (i_part, (n_part, n_part_name, n_part_tex)) in enumerate(config.n_part_list)
     plotline = axes.plot(line_x, line_y, colors[i_part] + ".-")
     handles.append(plotline)
     labels.append("%s" % n_part_tex)
+
+print "mean pop 2 improvement factor: %f" % numpy.array(pop_2_improvements).mean()
+print "mean pop 1 degradation factor: %f" % numpy.array(pop_1_degradations).mean()
 
 axes.set_xscale('log')
 axes.set_yscale('log')

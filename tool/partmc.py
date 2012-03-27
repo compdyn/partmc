@@ -558,6 +558,7 @@ class aero_particle_array_t(object):
         from source i that now compose particle j
     weight_groups - length N array with weight group numbers of each
         particle
+    weight_sets - length N array with weight set numbers of each particle
     absorb_cross_sects - length N array with absorbion cross section (m^2
         of each particle
     scatter_cross_sects - length N array with scattering cross section
@@ -639,6 +640,7 @@ class aero_particle_array_t(object):
             self.raw_masses = zeros([len(aero_data.names), n_particles])
             self.n_orig_parts = zeros([len(aero_data.source_names), n_particles], int)
             self.weight_groups = zeros(n_particles, int)
+            self.weight_sets = zeros(n_particles, int)
             self.absorb_cross_sects = zeros(n_particles)
             self.scatter_cross_sects = zeros(n_particles)
             self.asymmetries = zeros(n_particles)
@@ -664,7 +666,8 @@ class aero_particle_array_t(object):
         for (ncf_var, self_var, required) in [
             ("aero_particle_mass", "raw_masses", True),
             ("aero_n_orig_part", "n_orig_parts", True),
-            ("aero_weight_group", "weight_groups", False),
+            ("aero_particle_weight_group", "weight_groups", False),
+            ("aero_particle_weight_set", "weight_sets", False),
             ("aero_absorb_cross_sect", "absorb_cross_sects", False),
             ("aero_scatter_cross_sect", "scatter_cross_sects", False),
             ("aero_asymmetry", "asymmetries", False),
@@ -694,6 +697,8 @@ class aero_particle_array_t(object):
             self.n_orig_parts = self.n_orig_parts[:, keep_indexes]
             if self.weight_groups is not None:
                 self.weight_groups = self.weight_groups[keep_indexes]
+            if self.weight_sets is not None:
+                self.weight_sets = self.weight_sets[keep_indexes]
             if self.absorb_cross_sects is not None:
                 self.absorb_cross_sects = self.absorb_cross_sects[keep_indexes]
             if self.scatter_cross_sects is not None:
@@ -724,6 +729,8 @@ class aero_particle_array_t(object):
         self.n_orig_parts = self.n_orig_parts[:, i]
         if self.weight_groups is not None:
             self.weight_groups = self.weight_groups[i]
+        if self.weight_sets is not None:
+            self.weight_sets = self.weight_sets[i]
         if self.absorb_cross_sects is not None:
             self.absorb_cross_sects = self.absorb_cross_sects[i]
         if self.scatter_cross_sects is not None:

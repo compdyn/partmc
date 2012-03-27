@@ -604,6 +604,7 @@ contains
     integer :: n_samp, i_mode, i_samp, i_group, n_group, global_n_part
     type(aero_mode_t), pointer :: aero_mode
     type(aero_particle_t) :: aero_particle
+    type(env_state_t) :: env_state
 
     call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
          aero_data%n_source)
@@ -646,7 +647,9 @@ contains
              call aero_mode_sample_radius(aero_mode, &
                   aero_state%aero_weight(i_group), radius)
              if (aero_data%fractal%do_fractal) then
-                vol = Rme2vol(radius, aero_data%fractal)
+                vol = Rme2vol(radius, env_state%temp, env_state%pressure, &
+                     aero_data%fractal)
+                write(*,'(A,E15.6,A,E15.6)') 'R_me = ', radius, '  V = ', vol
              else
                 vol = rad2vol(radius, aero_data%fractal)
              end if

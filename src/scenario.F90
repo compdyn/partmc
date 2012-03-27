@@ -389,7 +389,7 @@ contains
   !> Remove particles due to wall diffusion and sedimentation for a 
   !> particle distribution in chamber study.
   subroutine scenario_aero_chamber(chamber, delta_t, aero_data, &
-       aero_state, temp)
+       aero_state, temp, press)
 
     !> Chamber parameters.
     type(chamber_t) :: chamber
@@ -401,6 +401,8 @@ contains
     type(aero_state_t), intent(inout) :: aero_state
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: press
 
     ! Particle.
     type(aero_particle_t), pointer :: aero_particle
@@ -418,8 +420,9 @@ contains
          aero_particle => aero_state%apa%particle(i_part)
          m_Rgeo = aero_particle_mass(aero_particle, aero_data)
          lossrate = chamber_loss_wall(chamber, aero_particle, &
-              aero_data%fractal, temp) &
-              + chamber_loss_sedi(chamber, aero_particle, aero_data, temp)
+              aero_data%fractal, temp, press) &
+              + chamber_loss_sedi(chamber, aero_particle, aero_data, &
+              temp, press)
          p = lossrate * delta_t
          if (pmc_random() < p) then
             call aero_info_allocate(aero_info)
@@ -471,7 +474,7 @@ contains
     ! account for wall loss and sedimentation in chamber
     if (scenario%chamber%do_chamber) then
        call scenario_aero_chamber(scenario%chamber, delta_t, &
-            aero_data, aero_state, env_state%temp)
+            aero_data, aero_state, env_state%temp, env_state%pressure)
     end if
 
     ! emissions

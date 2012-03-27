@@ -27,8 +27,6 @@ module pmc_fractal
      real(kind=dp) :: prime_radius
      !> Volume filling factor.
      real(kind=dp) :: vol_fill_factor
-     !> Air molecule mean free path.
-     real(kind=dp) :: airfreepath
   end type fractal_t
 
 contains
@@ -50,7 +48,6 @@ contains
     fractal%frac_dim = 0d0
     fractal%prime_radius = 0d0
     fractal%vol_fill_factor = 0d0
-    fractal%airfreepath = 0d0
 
   end subroutine fractal_allocate
 
@@ -252,16 +249,21 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Slip correction function from continuum to free molecular regime
-  real(kind=dp) elemental function Slip_correct(r, fractal)
+  real(kind=dp) elemental function Slip_correct(r, tk, press, fractal)
 
     !> Radius (m).
     real(kind=dp), intent(in) :: r
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: tk
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: press
     !> Fractal parameters. 
     type(fractal_t), intent(in) :: fractal
 
-    Slip_correct = 1d0 + fractal%A_slip * fractal%airfreepath / r &
-         + fractal%Q_slip * fractal%airfreepath / r &
-         * exp(-fractal%b_slip * r / fractal%airfreepath)
+    Slip_correct = 1d0 + fractal%A_slip &
+         * air_mean_free_path(tk, press) &
+         / r + fractal%Q_slip * air_mean_free_path(tk, press) / r &
+         * exp(-fractal%b_slip * r / air_mean_free_path(tk, press))
 
   end function Slip_correct
 
@@ -281,10 +283,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert volume (m^3) to mobility equivalent radius (m)
-  real(kind=dp) elemental function vol2Rme(v, fractal)
+  real(kind=dp) elemental function vol2Rme(v, tk, press, fractal)
 
     !> Volume (m^3)
     real(kind=dp), intent(in) :: v
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: tk
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: press
     !> Fractal parameters. 
     type(fractal_t), intent(in) :: fractal
     
@@ -298,8 +304,8 @@ contains
     !print *, 'numerical is ', (f_Rme(x,v)-f_Rme(x-1d-10,v))/1d-10
     do
       !print *, 'The solution for Rme is ', x
-      x = x - f_Rme(x, v, fractal) &
-           / df_Rme(x, v, fractal)
+      x = x - f_Rme(x, v, tk, press, fractal) &
+           / df_Rme(x, v, tk, press, fractal)
       if (iter > MAX_ITERATIONS) then
          exit
       end if
@@ -312,10 +318,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  elemental function f_Rme(x, v, fractal) result (y)
+  elemental function f_Rme(x, v, tk, press, fractal) result (y)
     
     real(kind=dp), intent(in) :: x
     real(kind=dp), intent(in) :: v
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: tk
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: press
     !> Fractal parameters. 
     type(fractal_t), intent(in) :: fractal
     real(kind=dp) :: y
@@ -323,20 +333,24 @@ contains
     real(kind=dp) :: R_me_c, R_eff, C_Reff
     R_me_c = vol2R_me_c(v, fractal)
     R_eff = vol2R_eff(v, fractal)
-    C_Reff = Slip_correct(R_eff, fractal)
+    C_Reff = Slip_correct(R_eff, tk, press, fractal)
 
     y = C_Reff * x**2 - R_me_c * x - R_me_c * fractal%Q_slip &
-         * fractal%airfreepath * exp(-fractal%b_slip * x     &
-         / fractal%airfreepath) - R_me_c * fractal%A_slip    &
-         * fractal%airfreepath
+         * air_mean_free_path(tk, press) * exp(-fractal%b_slip * x &
+         / air_mean_free_path(tk, press)) - R_me_c * fractal%A_slip &
+         * air_mean_free_path(tk, press)
   end function f_Rme
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  elemental function df_Rme(x, v, fractal) result (y)
+  elemental function df_Rme(x, v, tk, press, fractal) result (y)
     
     real(kind=dp), intent(in) :: x
     real(kind=dp), intent(in) :: v
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: tk
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: press
     !> Fractal parameters. 
     type(fractal_t), intent(in) :: fractal
     real(kind=dp) :: y
@@ -344,19 +358,23 @@ contains
     real(kind=dp) :: R_me_c, R_eff, C_Reff
     R_me_c = vol2R_me_c(v, fractal)
     R_eff = vol2R_eff(v, fractal)
-    C_Reff = Slip_correct(R_eff, fractal)
+    C_Reff = Slip_correct(R_eff, tk, press, fractal)
 
     y = 2d0 * C_Reff * x - R_me_c + R_me_c * fractal%Q_slip * fractal%b_slip &
-         * exp(-fractal%b_slip * x / fractal%airfreepath)
+         * exp(-fractal%b_slip * x / air_mean_free_path(tk, press))
   end function df_Rme
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert mobility equivalent radius to that in the continuum regime
-  real(kind=dp) elemental function Rme2R_me_c(r, fractal)
+  real(kind=dp) elemental function Rme2R_me_c(r, tk, press, fractal)
 
     !> Radius (m)
     real(kind=dp), intent(in) :: r
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: tk
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: press
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
     real(kind=dp) :: x
@@ -369,8 +387,8 @@ contains
     !print *, 'numerical is ', (f_Rmec(x,r)-f_Rmec(x-1d-10,r))/1d-10
     do
       !print *, 'The solution for Rme_c is ', x
-      x = x - f_Rmec(x, r, fractal) &
-           / df_Rmec(x, r, fractal)
+      x = x - f_Rmec(x, r, tk, press, fractal) &
+           / df_Rmec(x, r, tk, press, fractal)
       if(iter > MAX_ITERATIONS) then
          exit
       end if
@@ -378,6 +396,7 @@ contains
     end do
 
     Rme2R_me_c = x
+
   end function Rme2R_me_c
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -398,16 +417,20 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  elemental function f_Rmec(x, r, fractal) result (y)
+  elemental function f_Rmec(x, r, tk, press, fractal) result (y)
     
     real(kind=dp), intent(in) :: x
     real(kind=dp), intent(in) :: r
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: tk
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: press
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
     real(kind=dp) :: y
 
     real(kind=dp) :: C_Rme, phi, h_KR
-    C_Rme = Slip_correct(r, fractal)
+    C_Rme = Slip_correct(r, tk, press, fractal)
     h_KR = -0.06483d0 * fractal%frac_dim**2 + 0.6353d0 * &
          fractal%frac_dim - 0.4898d0
     phi = fractal%prime_radius**(2d0 - fractal%frac_dim &
@@ -415,27 +438,34 @@ contains
          / (fractal%vol_fill_factor**fractal%scale_exponent_S_acc &
          * h_KR**(fractal%frac_dim * fractal%scale_exponent_S_acc))
 
-    y = C_Rme * x - fractal%A_slip * fractal%airfreepath * r / phi     &
-         * x**(1d0 - fractal%frac_dim * fractal%scale_exponent_S_acc)  &
-         - fractal%Q_slip * fractal%airfreepath * r / phi * x**(1d0    &
-         - fractal%frac_dim * fractal%scale_exponent_S_acc)            &
-         * exp(-fractal%b_slip * phi / fractal%airfreepath             &
+    y = C_Rme * x - fractal%A_slip * air_mean_free_path(tk, press) &
+         * r / phi * x**(1d0 - fractal%frac_dim                    &
+         * fractal%scale_exponent_S_acc)                           &
+         - fractal%Q_slip * air_mean_free_path(tk, press) * r      &
+         / phi * x**(1d0                                           &   
+         - fractal%frac_dim * fractal%scale_exponent_S_acc)        &
+         * exp(-fractal%b_slip * phi                               &
+         / air_mean_free_path(tk, press)                           &
          * x**(fractal%frac_dim * fractal%scale_exponent_S_acc - 1d0)) - r
 
   end function f_Rmec
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  elemental function df_Rmec(x, r, fractal) result (y)
+  elemental function df_Rmec(x, r, tk, press, fractal) result (y)
  
     real(kind=dp), intent(in) :: x
     real(kind=dp), intent(in) :: r
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: tk
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: press
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
     real(kind=dp) :: y
 
     real(kind=dp) :: C_Rme, phi, h_KR
-    C_Rme = Slip_correct(r, fractal)
+    C_Rme = Slip_correct(r, tk, press, fractal)
     h_KR = -0.06483d0 * fractal%frac_dim**2 + 0.6353d0 * &
          fractal%frac_dim - 0.4898d0
     phi = fractal%prime_radius**(2d0 - fractal%frac_dim           &
@@ -443,31 +473,35 @@ contains
          / (fractal%vol_fill_factor**fractal%scale_exponent_S_acc &
          * h_KR**(fractal%frac_dim * fractal%scale_exponent_S_acc))
 
-    y = C_Rme - fractal%airfreepath * r / phi * (1d0 - fractal%frac_dim &
-         * fractal%scale_exponent_S_acc) * x**(-fractal%frac_dim        &
-         * fractal%scale_exponent_S_acc) * (fractal%A_slip              &
-         + fractal%Q_slip * exp(-fractal%b_slip * phi                   &
-         / fractal%airfreepath * x**(fractal%frac_dim                   &
+    y = C_Rme - air_mean_free_path(tk, press) * r / phi                 &
+         * (1d0 - fractal%frac_dim * fractal%scale_exponent_S_acc)      &
+         * x**(-fractal%frac_dim * fractal%scale_exponent_S_acc)        &
+         * (fractal%A_slip + fractal%Q_slip * exp(-fractal%b_slip * phi &
+         / air_mean_free_path(tk, press) * x**(fractal%frac_dim         &
          * fractal%scale_exponent_S_acc - 1d0))) - fractal%Q_slip       &
          * fractal%b_slip * r * (1d0 - fractal%frac_dim                 &
          * fractal%scale_exponent_S_acc) / x * exp(-fractal%b_slip      &
-         * phi / fractal%airfreepath * x**(fractal%frac_dim             &
-         * fractal%scale_exponent_S_acc - 1d0))
+         * phi / air_mean_free_path(tk, press)                          &
+         * x**(fractal%frac_dim * fractal%scale_exponent_S_acc - 1d0))
 
   end function df_Rmec
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !> Convert mobility equivalent radius (m) to volume (m^3)
-  real(kind=dp) elemental function Rme2vol(r, fractal)
+  real(kind=dp) elemental function Rme2vol(r, tk, press, fractal)
     
     !> Radius (m).
     real(kind=dp), intent(in) :: r
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: tk
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: press
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
     real(kind=dp) :: R_me_c, Rgeo
-    R_me_c = Rme2R_me_c(r, fractal)
+    R_me_c = Rme2R_me_c(r, tk, press, fractal)
     Rgeo = R_me_c / (-0.06483d0 * fractal%frac_dim**2 &
          + 0.6353d0 * fractal%frac_dim - 0.4898d0)
     Rme2vol = rad2vol(Rgeo, fractal)
@@ -477,14 +511,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read environment specification from a spec file.
-  subroutine spec_file_read_fractal(file, tk, press, fractal)
+  subroutine spec_file_read_fractal(file, fractal)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
-    !> Temperature (K).
-    real(kind=dp), intent(in) :: tk
-    !> Pressure (Pa).
-    real(kind=dp), intent(in) :: press
     !> Fractal parameters.
     type(fractal_t), intent(inout) :: fractal
 
@@ -519,22 +549,18 @@ contains
        fractal%vol_fill_factor = 1d0
     end if
 
-    call air_mean_free_path(tk, press, fractal)
-
   end subroutine spec_file_read_fractal
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Calculate air molecular mean free path (m).
-  subroutine air_mean_free_path(tk, press, fractal)
+  real(kind=dp) elemental function air_mean_free_path(tk, press)
 
     !> Temperature (K).
     real(kind=dp), intent(in) :: tk
     !> Pressure (Pa).
     real(kind=dp), intent(in) :: press
-    !> Fractal parameters.
-    type(fractal_t), intent(inout) :: fractal
-    
+
     real(kind=dp) :: boltz, avogad, mwair, rgas, rhoair, viscosd, &
          viscosk, gasspeed
     
@@ -546,7 +572,7 @@ contains
     ! viscosd = air dynamic viscosity (g/cm/s)
     ! viscosk = air kinematic viscosity (cm^2/s)
     ! gasspeed    = air molecule mean thermal velocity (cm/s)
-    ! fractal%airfreepath = air molecule mean free path (m)
+    ! air_mean_free_path = air molecule mean free path (m)
     
     boltz = const%boltzmann * 1d7 ! J/K to erg/K
     avogad = const%avagadro
@@ -559,9 +585,9 @@ contains
          / 296.16d0)**1.5d0
     viscosk = viscosd / rhoair
     gasspeed = sqrt(8d0 * boltz * tk * avogad / (const%pi * mwair))
-    fractal%airfreepath = 2d0 * viscosk / gasspeed * 1d-02
+    air_mean_free_path = 2d0 * viscosk / gasspeed * 1d-02
   
-  end subroutine air_mean_free_path  
+  end function air_mean_free_path  
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

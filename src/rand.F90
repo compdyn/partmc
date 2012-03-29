@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2011 Matthew West
+! Copyright (C) 2007-2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -457,6 +457,28 @@ contains
 #endif
 
   end function rand_normal
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Generates a vector of normally distributed random numbers with
+  !> the given means and standard deviations. This is a set of
+  !> normally distributed scalars, not a normally distributed vector.
+  subroutine rand_normal_array_1d(mean, stddev, val)
+
+    !> Array of means.
+    real(kind=dp), intent(in) :: mean(:)
+    !> Array of standard deviations.
+    real(kind=dp), intent(in) :: stddev(size(mean))
+    !> Array of sampled normal random variables.
+    real(kind=dp), intent(out) :: val(size(mean))
+
+    integer :: i
+
+    do i = 1,size(mean)
+       val(i) = rand_normal(mean(i), stddev(i))
+    end do
+
+  end subroutine rand_normal_array_1d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

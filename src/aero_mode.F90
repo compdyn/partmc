@@ -676,6 +676,23 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Return an array of volumes randomly sampled from the volume fractions.
+  subroutine aero_mode_sample_vols(aero_mode, total_vol, vols)
+
+    !> Aero_mode to sample from.
+    type(aero_mode_t), intent(in) :: aero_mode
+    !> Total volume (m^3).
+    real(kind=dp), intent(in) :: total_vol
+    !> Sampled volumes (m^3).
+    real(kind=dp), intent(out) :: vols(size(aero_mode%vol_frac))
+
+    call rand_normal_array_1d(aero_mode%vol_frac, aero_mode%vol_frac_std, vols)
+    vols = vols / sum(vols) * total_vol
+
+  end subroutine aero_mode_sample_vols
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Read volume fractions from a data file.
   subroutine spec_file_read_vol_frac(file, aero_data, vol_frac, vol_frac_std)
 

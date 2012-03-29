@@ -587,8 +587,9 @@ contains
     !> Number of particles added.
     integer, intent(out), optional :: n_part_add
 
-    real(kind=dp) :: n_samp_avg, radius, vol, mean_n_part, n_part_new
+    real(kind=dp) :: n_samp_avg, radius, total_vol, mean_n_part, n_part_new
     real(kind=dp) :: comp_vol_ratio, n_part_ideal_local_group
+    real(kind=dp) :: vols(aero_data%n_spec)
     integer :: n_samp, i_mode, i_samp, i_group, n_group, global_n_part
     type(aero_mode_t), pointer :: aero_mode
     type(aero_particle_t) :: aero_particle
@@ -633,9 +634,9 @@ contains
              call aero_particle_zero(aero_particle)
              call aero_mode_sample_radius(aero_mode, &
                   aero_state%awa%weight(i_group), radius)
-             vol = rad2vol(radius)
-             call aero_particle_set_vols(aero_particle, &
-                  aero_mode%vol_frac * vol)
+             total_vol = rad2vol(radius)
+             call aero_mode_sample_vols(aero_mode, total_vol, vols)
+             call aero_particle_set_vols(aero_particle, vols)
              call aero_particle_new_id(aero_particle)
              call aero_particle_set_group(aero_particle, i_group)
              call aero_particle_set_create_time(aero_particle, create_time)

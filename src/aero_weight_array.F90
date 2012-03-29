@@ -556,12 +556,10 @@ contains
     call aero_weight_array_deallocate(aero_weight_array)
     call aero_weight_array_allocate_size(aero_weight_array, size(comp_vol))
 
-    do i = 1,size(aero_weight_array%weight)
-       aero_weight_array%weight(i)%comp_vol = comp_vol(i)
-       aero_weight_array%weight(i)%type = type(i)
-       aero_weight_array%weight(i)%ref_radius = 1d0
-       aero_weight_array%weight(i)%exponent = exponent(i)
-    end do
+    aero_weight_array%weight%comp_vol = comp_vol
+    aero_weight_array%weight%type = type
+    aero_weight_array%weight%ref_radius = 1d0
+    aero_weight_array%weight%exponent = exponent
 
     deallocate(comp_vol)
     deallocate(type)

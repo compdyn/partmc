@@ -687,6 +687,7 @@ contains
     real(kind=dp), intent(out) :: vols(size(aero_mode%vol_frac))
 
     call rand_normal_array_1d(aero_mode%vol_frac, aero_mode%vol_frac_std, vols)
+    vols = max(vols, 0d0)
     vols = vols / sum(vols) * total_vol
 
   end subroutine aero_mode_sample_vols

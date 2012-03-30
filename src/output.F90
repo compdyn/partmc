@@ -225,7 +225,7 @@ contains
     call pmc_nc_check(nf90_redef(ncid))
 
     call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "source", &
-         "PartMC version 2.2.0"))
+         "PartMC version 2.2.1"))
     call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "UUID", uuid))
     call iso8601_date_and_time(history)
     history((len_trim(history)+1):) = " created by PartMC"

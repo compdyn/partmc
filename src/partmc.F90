@@ -102,6 +102,11 @@
 
 !> \page publications PartMC Publications
 !!
+!!   - R.&nbsp;E.&nbsp;L.&nbsp;DeVille, N.&nbsp;Riemer, and
+!!     M.&nbsp;West (2011) Weighted Flow Algorithms (WFA) for
+!!     stochastic particle coagulation, <i>Journal of Computational
+!!     Physics</i> 230(23), 8427-8451, DOI: <a
+!!     href="http://dx.doi.org/10.1016/j.jcp.2011.07.027">10.1016/j.jcp.2011.07.027</a>.
 !!   - R.&nbsp;A.&nbsp;Zaveri, J.&nbsp;C.&nbsp;Barnard,
 !!     R.&nbsp;C.&nbsp;Easter, N.&nbsp;Riemer, and M.&nbsp;West (2010)
 !!     Particle-resolved simulation of aerosol size, composition,

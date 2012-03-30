@@ -5,6 +5,9 @@
 
   * Correct long name of NetCDF variable aero_mass_concentration.
 
+  * Weighted Flow Algorithm (WFA) reference added to paper
+    <http://dx.doi.org/10.1016/j.jcp.2011.07.027>.
+
 2.2.0 - 2012-02-25
 
   * No longer need to specify size bins for particle simulations

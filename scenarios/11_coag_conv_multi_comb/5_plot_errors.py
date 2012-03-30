@@ -25,7 +25,7 @@ for (i_part, (n_part, n_part_name, n_part_tex)) in enumerate(config.n_part_list)
     line_y = []
     err_y = []
     for (i_ratio, (ratio_type, ratio, ratio_tex)) in enumerate(config.ratio_list):
-        weight_type = "flat_source"
+        weight_type = "nummass_source"
         name = "%s_%s_%s" % (n_part_name, ratio_type, weight_type)
         dirname = os.path.join(config.run_dirname, name)
         print dirname

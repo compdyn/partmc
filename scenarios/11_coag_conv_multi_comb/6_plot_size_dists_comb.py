@@ -55,15 +55,15 @@ if not os.path.exists(config.fig_dirname):
 
 (figure, axes_array) = mpl_helper.make_fig_array(2, 1, figure_width=4, vert_sep=0.2)
 
-run_name = "1k_flat"
+run_name = "1k_nummass"
 axes = axes_array[1][0]
 dirname = os.path.join(config.run_dirname, run_name)
 make_plot(axes, dirname, r"equal weight, $r = 1$", do_xlabel=False)
 
-run_name = "1k_flat_source"
+run_name = "1k_nummass_source"
 axes = axes_array[0][0]
 dirname = os.path.join(config.run_dirname, run_name)
 make_plot(axes, dirname, r"equal number, $r = 10^3$", do_xlabel=True)
 
 mpl_helper.remove_fig_array_axes(axes_array)
-figure.savefig(os.path.join(config.fig_dirname, "multi_size_dist_comb.pdf"))
+figure.savefig(os.path.join(config.fig_dirname, "multi_size_dist_comb_nummass.pdf"))

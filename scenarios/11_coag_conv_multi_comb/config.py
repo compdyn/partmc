@@ -10,13 +10,13 @@ n_repeat = 100
 
 n_part_list = [
     ("1000", "1k", r"$N_{\rm p} = 10^3$"),
-    ("10000", "10k", r"$N_{\rm p} = 10^4$"),
-    ("100000", "100k", r"$N_{\rm p} = 10^5$"),
+    #("10000", "10k", r"$N_{\rm p} = 10^4$"),
+    #("100000", "100k", r"$N_{\rm p} = 10^5$"),
     ]
 
 weight_list = [
-    #("flat", None),
-    ("flat_source", None)
+    ("nummass", None),
+    #("nummass_source", None)
     ]
 
 ratio_list = [

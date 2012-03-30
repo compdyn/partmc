@@ -84,7 +84,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert volume (m^3) to diameter (m).
-  real(kind=dp) elemental function vol2diam(v, fractal)
+  real(kind=dp) function vol2diam(v, fractal)
 
     !> Volume (m^3).
     real(kind=dp), intent(in) :: v
@@ -142,7 +142,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert diameter (m) to volume (m^3).
-  real(kind=dp) elemental function diam2vol(d, fractal)
+  real(kind=dp) function diam2vol(d, fractal)
 
     !> Diameter (m).
     real(kind=dp), intent(in) :: d
@@ -187,7 +187,7 @@ contains
 
   !> Calculate the accessible particle surface.
   !> Based on Eq. 26 in Naumann 2003 J. Aerosol. Sci.
-  real(kind=dp) elemental function vol2S_acc(v, fractal)
+  real(kind=dp) function vol2S_acc(v, fractal)
 
     !> Volume (m^3)
     real(kind=dp), intent(in) :: v
@@ -214,7 +214,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert volume (m^3) to continuum regime mobility equivalent radius
-  real(kind=dp) elemental function vol2R_me_c(v, fractal)
+  real(kind=dp) function vol2R_me_c(v, fractal)
 
     !> Volume (m^3).
     real(kind=dp), intent(in) :: v
@@ -234,7 +234,7 @@ contains
 
   !> Calculate effective radius.
   !> Based on Eq. 28 in Naumann 2003 J. Aerosol. Sci.
-  real(kind=dp) elemental function vol2R_eff(v, fractal)
+  real(kind=dp) function vol2R_eff(v, fractal)
 
     !> Volume (m^3)
     real(kind=dp), intent(in) :: v
@@ -249,7 +249,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Slip correction function from continuum to free molecular regime
-  real(kind=dp) elemental function Slip_correct(r, tk, press, fractal)
+  real(kind=dp) function Slip_correct(r, tk, press, fractal)
 
     !> Radius (m).
     real(kind=dp), intent(in) :: r
@@ -271,7 +271,7 @@ contains
 
   !> Calculate particle mass equivalent radius.
   !> Based on Eq. 3 in Naumann 2003 J. Aerosol. Sci.
-  real(kind=dp) elemental function vol2R_m(v)
+  real(kind=dp) function vol2R_m(v)
 
     !> Volume (m^3).
     real(kind=dp), intent(in) :: v    
@@ -283,7 +283,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert volume (m^3) to mobility equivalent radius (m)
-  real(kind=dp) elemental function vol2Rme(v, tk, press, fractal)
+  real(kind=dp) function vol2Rme(v, tk, press, fractal)
 
     !> Volume (m^3)
     real(kind=dp), intent(in) :: v
@@ -300,8 +300,9 @@ contains
     iter = 1
     x = vol2R_me_c(v, fractal)
 
-    !print *, 'analytical is ', df_Rme(x,v)
-    !print *, 'numerical is ', (f_Rme(x,v)-f_Rme(x-1d-10,v))/1d-10
+    !print *, 'analytical is ', df_Rme(x, v, tk, press, fractal)
+    !print *, 'numerical is ', (f_Rme(x, v, tk, press, fractal) &
+    !     - f_Rme(x-1d-10, v, tk, press, fractal)) / 1d-10
     do
       !print *, 'The solution for Rme is ', x
       x = x - f_Rme(x, v, tk, press, fractal) &
@@ -318,7 +319,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  elemental function f_Rme(x, v, tk, press, fractal) result (y)
+  function f_Rme(x, v, tk, press, fractal) result (y)
     
     real(kind=dp), intent(in) :: x
     real(kind=dp), intent(in) :: v
@@ -343,7 +344,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  elemental function df_Rme(x, v, tk, press, fractal) result (y)
+  function df_Rme(x, v, tk, press, fractal) result (y)
     
     real(kind=dp), intent(in) :: x
     real(kind=dp), intent(in) :: v
@@ -367,7 +368,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert mobility equivalent radius to that in the continuum regime
-  real(kind=dp) elemental function Rme2R_me_c(r, tk, press, fractal)
+  real(kind=dp) function Rme2R_me_c(r, tk, press, fractal)
 
     !> Radius (m)
     real(kind=dp), intent(in) :: r
@@ -383,10 +384,11 @@ contains
     iter = 1
     x = r
 
-    !print *, 'analytical is ', df_Rmec(x,r)
-    !print *, 'numerical is ', (f_Rmec(x,r)-f_Rmec(x-1d-10,r))/1d-10
+    !print *, 'analytical is ', df_Rmec(x,r,tk,press,fractal)
+    !print *, 'numerical is ', (f_Rmec(x,r,tk,press,fractal) &
+    !     - f_Rmec(x-1d-10, r, tk, press, fractal))/1d-10
     do
-      !print *, 'The solution for Rme_c is ', x
+    !  print *, 'The solution for Rme_c is ', x
       x = x - f_Rmec(x, r, tk, press, fractal) &
            / df_Rmec(x, r, tk, press, fractal)
       if(iter > MAX_ITERATIONS) then
@@ -402,7 +404,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   !> Convert fractal geometric radius (m) to volume (m^3).
-  real(kind=dp) elemental function Rgeo2vol(r, fractal)
+  real(kind=dp) function Rgeo2vol(r, fractal)
 
     !> Radius (m).
     real(kind=dp), intent(in) :: r
@@ -417,7 +419,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  elemental function f_Rmec(x, r, tk, press, fractal) result (y)
+  function f_Rmec(x, r, tk, press, fractal) result (y)
     
     real(kind=dp), intent(in) :: x
     real(kind=dp), intent(in) :: r
@@ -437,7 +439,7 @@ contains
          * fractal%scale_exponent_S_acc) &
          / (fractal%vol_fill_factor**fractal%scale_exponent_S_acc &
          * h_KR**(fractal%frac_dim * fractal%scale_exponent_S_acc))
-
+    
     y = C_Rme * x - fractal%A_slip * air_mean_free_path(tk, press) &
          * r / phi * x**(1d0 - fractal%frac_dim                    &
          * fractal%scale_exponent_S_acc)                           &
@@ -447,12 +449,12 @@ contains
          * exp(-fractal%b_slip * phi                               &
          / air_mean_free_path(tk, press)                           &
          * x**(fractal%frac_dim * fractal%scale_exponent_S_acc - 1d0)) - r
-
+  
   end function f_Rmec
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  elemental function df_Rmec(x, r, tk, press, fractal) result (y)
+  function df_Rmec(x, r, tk, press, fractal) result (y)
  
     real(kind=dp), intent(in) :: x
     real(kind=dp), intent(in) :: r
@@ -489,7 +491,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !> Convert mobility equivalent radius (m) to volume (m^3)
-  real(kind=dp) elemental function Rme2vol(r, tk, press, fractal)
+  real(kind=dp) function Rme2vol(r, tk, press, fractal)
     
     !> Radius (m).
     real(kind=dp), intent(in) :: r
@@ -554,7 +556,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Calculate air molecular mean free path (m).
-  real(kind=dp) elemental function air_mean_free_path(tk, press)
+  real(kind=dp) function air_mean_free_path(tk, press)
 
     !> Temperature (K).
     real(kind=dp), intent(in) :: tk

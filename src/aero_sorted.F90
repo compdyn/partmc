@@ -1,4 +1,4 @@
-! Copyright (C) 2011 Nicole Riemer and Matthew West
+! Copyright (C) 2011, 2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -10,37 +10,51 @@ module pmc_aero_sorted
 
   use pmc_integer_varray
   use pmc_integer_rmap
+  use pmc_integer_rmap2
   use pmc_aero_particle
   use pmc_aero_particle_array
   use pmc_bin_grid
   use pmc_mpi
 
-  !> Bin index for particles sorted into bins.
+  !> Sorting of particles into bins.
   !!
-  !! Both forward and reverse indexes are maintained. Particles are
-  !! stored with both a linear index \c i_part, and binned indexes
-  !! <tt>(i_bin, i_entry)</tt>, indicating that the particle is number
-  !! \c i_entry in bin number \c i_bin. The forward index satisfies
-  !! \code
-  !! i_part = aero_sorted%bin(i_bin)%entry(i_part)
-  !! \endcode
-  !! while the reverse index satisfies
-  !! \code
-  !! i_bin = aero_sorted%reverse_bin%entry(i_part)
-  !! i_entry = aero_sorted%reverse_entry%entry(i_part)
-  !! \endcode
+  !! Two different bin-sortings are maintained, one per size bin and
+  !! weight class, and the other per weight group and weight class.
+  !!
+  !! A particle can thus be identified by its position \c i_part in an
+  !! \c aero_particle_array_t, or by an entry in one of the two
+  !! sortings.
+  !!
+  !! For example, for size bin \c i_bin and weight class \c i_class,
+  !! the number of particles with this size and class are
+  !! <pre>
+  !! n = aero_sorted%size_class%inverse(i_bin, i_class)%n_entry
+  !! </pre>
+  !! For particle number \c i_entry in this size/class bin, the
+  !! particle number is
+  !! <pre>
+  !! i_part = aero_sorted%size_class%inverse(i_bin, i_class)%entry(i_entry)
+  !! </pre>
+  !! For particle number \c i_part, the size bin and weight class are
+  !! <pre>
+  !! i_bin = aero_sorted%size_class%forward1%entry(i_part)
+  !! i_class = aero_sorted%size_class%forward2%entry(i_part)
+  !! </pre>
+  !!
+  !! Similar relationships hold for \c aero_sorted%group_class which
+  !! sorts particles per weight group/class.
   type aero_sorted_t
      !> Bin grid for sorting.
      type(bin_grid_t) :: bin_grid
-     !> Map of size bin numbers.
-     type(integer_rmap_t) :: size
-     !> Map of weight group numbers.
-     type(integer_rmap_t) :: weight
+     !> Map of size bin and weight class numbers.
+     type(integer_rmap2_t) :: size_class
+     !> Map of weight group and weight class numbers.
+     type(integer_rmap2_t) :: group_class
      !> Whether coagulation kernel bounds are valid.
      logical :: coag_kernel_bounds_valid
-     !> Coagulation kernel lower bound.
+     !> Coagulation kernel lower bound [<tt>n_bin x n_bin</tt>].
      real(kind=dp), allocatable, dimension(:,:) :: coag_kernel_min
-     !> Coagulation kernel upper bound.
+     !> Coagulation kernel upper bound [<tt>n_bin x n_bin</tt>].
      real(kind=dp), allocatable, dimension(:,:) :: coag_kernel_max
   end type aero_sorted_t
 
@@ -62,18 +76,18 @@ contains
     type(aero_sorted_t), intent(out) :: aero_sorted
 
     call bin_grid_allocate(aero_sorted%bin_grid)
-    call integer_rmap_allocate(aero_sorted%size)
-    call integer_rmap_allocate(aero_sorted%weight)
+    call integer_rmap2_allocate(aero_sorted%size_class)
+    call integer_rmap2_allocate(aero_sorted%group_class)
     aero_sorted%coag_kernel_bounds_valid = .false.
-    allocate(aero_sorted%coag_kernel_min(0,0))
-    allocate(aero_sorted%coag_kernel_max(0,0))
+    allocate(aero_sorted%coag_kernel_min(0, 0))
+    allocate(aero_sorted%coag_kernel_max(0, 0))
 
   end subroutine aero_sorted_allocate
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate a strcture with the given size.
-  subroutine aero_sorted_allocate_size(aero_sorted, n_bin, n_group)
+  subroutine aero_sorted_allocate_size(aero_sorted, n_bin, n_group, n_class)
 
     !> Structure to initialize.
     type(aero_sorted_t), intent(out) :: aero_sorted
@@ -81,10 +95,12 @@ contains
     integer, intent(in) :: n_bin
     !> Number of weight groups.
     integer, intent(in) :: n_group
+    !> Number of weight classes.
+    integer, intent(in) :: n_class
 
     call bin_grid_allocate_size(aero_sorted%bin_grid, n_bin)
-    call integer_rmap_allocate_size(aero_sorted%size, n_bin)
-    call integer_rmap_allocate_size(aero_sorted%weight, n_group)
+    call integer_rmap2_allocate_size(aero_sorted%size_class, n_bin, n_class)
+    call integer_rmap2_allocate_size(aero_sorted%group_class, n_group, n_class)
     aero_sorted%coag_kernel_bounds_valid = .false.
     allocate(aero_sorted%coag_kernel_min(n_bin, n_bin))
     allocate(aero_sorted%coag_kernel_max(n_bin, n_bin))
@@ -100,8 +116,8 @@ contains
     type(aero_sorted_t), intent(inout) :: aero_sorted
 
     call bin_grid_deallocate(aero_sorted%bin_grid)
-    call integer_rmap_deallocate(aero_sorted%size)
-    call integer_rmap_deallocate(aero_sorted%weight)
+    call integer_rmap2_deallocate(aero_sorted%size_class)
+    call integer_rmap2_deallocate(aero_sorted%group_class)
     aero_sorted%coag_kernel_bounds_valid = .false.
     deallocate(aero_sorted%coag_kernel_min)
     deallocate(aero_sorted%coag_kernel_max)
@@ -116,8 +132,8 @@ contains
     !> Structure to zero.
     type(aero_sorted_t), intent(inout) :: aero_sorted
 
-    call integer_rmap_zero(aero_sorted%size)
-    call integer_rmap_zero(aero_sorted%weight)
+    call integer_rmap2_zero(aero_sorted%size_class)
+    call integer_rmap2_zero(aero_sorted%group_class)
     aero_sorted%coag_kernel_bounds_valid = .false.
     aero_sorted%coag_kernel_min = 0d0
     aero_sorted%coag_kernel_max = 0d0
@@ -126,25 +142,57 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the number of size bins.
+  integer function aero_sorted_n_bin(aero_sorted)
+
+    !> Aerosol sorting to use.
+    type(aero_sorted_t), intent(in) :: aero_sorted
+
+    aero_sorted_n_bin = size(aero_sorted%size_class%inverse, 1)
+
+  end function aero_sorted_n_bin
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the number of weight groups.
+  integer function aero_sorted_n_group(aero_sorted)
+
+    !> Aerosol sorting to use.
+    type(aero_sorted_t), intent(in) :: aero_sorted
+
+    aero_sorted_n_group = size(aero_sorted%group_class%inverse, 1)
+
+  end function aero_sorted_n_group
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the number of weight classes.
+  integer function aero_sorted_n_class(aero_sorted)
+
+    !> Aerosol sorting to use.
+    type(aero_sorted_t), intent(in) :: aero_sorted
+
+    aero_sorted_n_class = size(aero_sorted%size_class%inverse, 2)
+
+  end function aero_sorted_n_class
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Do a sorting of a set of aerosol particles.
-  subroutine aero_sorted_set_bin_grid(aero_sorted, bin_grid, n_group)
+  subroutine aero_sorted_set_bin_grid(aero_sorted, bin_grid, n_group, n_class)
 
     !> Aerosol sorted.
     type(aero_sorted_t), intent(inout) :: aero_sorted
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Number of weight groups.
-    integer, optional, intent(in) :: n_group
+    integer, intent(in) :: n_group
+    !> Number of weight classes.
+    integer, intent(in) :: n_class
 
-    integer :: use_n_group
-
-    if (present(n_group)) then
-       use_n_group = n_group
-    else
-       use_n_group = size(aero_sorted%weight%inverse)
-    end if
     call aero_sorted_deallocate(aero_sorted)
-    call aero_sorted_allocate_size(aero_sorted, bin_grid%n_bin, use_n_group)
+    call aero_sorted_allocate_size(aero_sorted, bin_grid%n_bin, n_group, &
+         n_class)
     call bin_grid_copy(bin_grid, aero_sorted%bin_grid)
 
   end subroutine aero_sorted_set_bin_grid
@@ -189,18 +237,18 @@ contains
     !> Aerosol particles to sort.
     type(aero_particle_array_t), intent(in) :: aero_particle_array
 
-    integer :: i_part, i_bin, i_group
+    integer :: i_part, i_bin, i_group, i_class
 
-    call integer_rmap_zero(aero_sorted%size)
-    call integer_rmap_zero(aero_sorted%weight)
+    call integer_rmap2_zero(aero_sorted%size_class)
+    call integer_rmap2_zero(aero_sorted%group_class)
 
     do i_part = 1,aero_particle_array%n_part
        i_bin = aero_sorted_particle_in_bin(aero_sorted, &
             aero_particle_array%particle(i_part))
-       call integer_rmap_append(aero_sorted%size, i_bin)
-
        i_group = aero_particle_array%particle(i_part)%weight_group
-       call integer_rmap_append(aero_sorted%weight, i_group)
+       i_class = aero_particle_array%particle(i_part)%weight_class
+       call integer_rmap2_append(aero_sorted%size_class, i_bin, i_class)
+       call integer_rmap2_append(aero_sorted%group_class, i_group, i_class)
     end do
 
   end subroutine aero_sorted_sort_particles
@@ -209,7 +257,7 @@ contains
 
   !> Remake a sorting if particles are getting too close to the edges.
   subroutine aero_sorted_remake_if_needed(aero_sorted, aero_particle_array, &
-       valid_sort, n_group, bin_grid, all_procs_same)
+       valid_sort, n_group, n_class, bin_grid, all_procs_same)
 
     !> Aerosol sorted to (possibly) remake.
     type(aero_sorted_t), intent(inout) :: aero_sorted
@@ -219,34 +267,35 @@ contains
     logical, intent(in) :: valid_sort
     !> Number of weight groups.
     integer, optional, intent(in) :: n_group
+    !> Number of weight classes.
+    integer, optional, intent(in) :: n_class
     !> An optional bin_grid to use for the sort.
     type(bin_grid_t), optional, intent(in) :: bin_grid
     !> Whether all processors should use the same bin grid.
     logical, optional, intent(in) :: all_procs_same
 
-    integer :: i_bin, i_bin_min, i_bin_max, i_part, n_bin
+    integer :: i_bin, i_bin_min, i_bin_max, i_part, n_bin, use_n_group
+    integer :: use_n_class
     real(kind=dp) :: r, r_min, r_max, grid_r_min, grid_r_max
     real(kind=dp) :: local_r_min, local_r_max
     logical :: need_new_bin_grid
     type(bin_grid_t) :: new_bin_grid
 
-    call assert(886415045, present(n_group) .or. valid_sort)
-
-    if (present(bin_grid)) then
-       call aero_sorted_set_bin_grid(aero_sorted, bin_grid, n_group)
-       call aero_sorted_discard_outside_grid(aero_sorted, aero_particle_array)
-       call aero_sorted_sort_particles(aero_sorted, aero_particle_array)
-       return
+    if (present(n_group)) then
+       call assert(267881270, present(n_class))
+       use_n_group = n_group
+       use_n_class = n_class
+    else
+       call assert(352582858, valid_sort)
+       use_n_group = aero_sorted_n_group(aero_sorted)
+       use_n_class = aero_sorted_n_class(aero_sorted)
     end if
 
-    if (aero_particle_array%n_part == 0) then
-       call assert(274242189, pmc_mpi_size() == 1)
-       ! FIXME: this breaks on MPI: what if some procs have no
-       ! particles and some do?
-       call bin_grid_allocate(new_bin_grid)
-       call bin_grid_make(new_bin_grid, n_bin=0, r_min=0d0, r_max=0d0)
-       call aero_sorted_set_bin_grid(aero_sorted, new_bin_grid, n_group)
-       call bin_grid_deallocate(new_bin_grid)
+    if (present(bin_grid)) then
+       call aero_sorted_set_bin_grid(aero_sorted, bin_grid, use_n_group, &
+            use_n_class)
+       call aero_sorted_discard_outside_grid(aero_sorted, aero_particle_array)
+       call aero_sorted_sort_particles(aero_sorted, aero_particle_array)
        return
     end if
 
@@ -260,7 +309,7 @@ contains
        i_bin_min = 0
        i_bin_max = 0
        do i_bin = 1,aero_sorted%bin_grid%n_bin
-          if (aero_sorted%size%inverse(i_bin)%n_entry > 0) then
+          if (sum(aero_sorted%size_class%inverse(i_bin, :)%n_entry) > 0) then
              if (i_bin_min == 0) then
                 i_bin_min = i_bin
              end if
@@ -269,11 +318,14 @@ contains
        end do
 
        if (i_bin_min == 0) then
-          ! there are't any particles, take r_min = upper edge, etc.
+          ! there aren't any particles
           call assert(333430891, i_bin_max == 0)
-          r_min = aero_sorted%bin_grid%edge_radius( &
-               aero_sorted%bin_grid%n_bin + 1)
-          r_max = aero_sorted%bin_grid%edge_radius(1)
+          if (aero_sorted%bin_grid%n_bin > 0) then
+             ! take r_min = upper edge, etc.
+             r_min = aero_sorted%bin_grid%edge_radius( &
+                  aero_sorted%bin_grid%n_bin + 1)
+             r_max = aero_sorted%bin_grid%edge_radius(1)
+          end if
        else
           r_min = aero_sorted%bin_grid%edge_radius(i_bin_min)
           r_max = aero_sorted%bin_grid%edge_radius(i_bin_max + 1)
@@ -295,18 +347,32 @@ contains
     if (present(all_procs_same)) then
        if (all_procs_same) then
           ! take global min/max
-          local_r_min = r_min
           local_r_max = r_max
-          call assert(146323278, r_min > 0d0) ! FIXME: not true if some
-          call assert(539388373, r_max > 0d0) ! procs have no particles
-          call pmc_mpi_allreduce_min_real(local_r_min, r_min)
           call pmc_mpi_allreduce_max_real(local_r_max, r_max)
+          ! don't contaminate global min with zeros
+          if (r_min == 0d0) then
+             local_r_min = r_max
+          else
+             local_r_min = r_min
+          end if
+          call pmc_mpi_allreduce_min_real(local_r_min, r_min)
           
           ! check that all the bin grids are really the same
           if (.not. pmc_mpi_allequal_bin_grid(aero_sorted%bin_grid)) then
              need_new_bin_grid = .true.
           end if
        end if
+    end if
+
+    ! no particles and no existing useful bin_grid
+    if (r_max == 0d0) then
+       if (valid_sort) return
+       call bin_grid_allocate(new_bin_grid)
+       call bin_grid_make(new_bin_grid, n_bin=0, r_min=0d0, r_max=0d0)
+       call aero_sorted_set_bin_grid(aero_sorted, new_bin_grid, use_n_group, &
+            use_n_class)
+       call bin_grid_deallocate(new_bin_grid)
+       return
     end if
 
     if (aero_sorted%bin_grid%n_bin < 1) then
@@ -324,7 +390,7 @@ contains
           need_new_bin_grid = .true.
        end if
     end if
-       
+
     if (need_new_bin_grid) then
        grid_r_min = r_min / AERO_SORTED_BIN_OVER_FACTOR
        grid_r_max = r_max * AERO_SORTED_BIN_OVER_FACTOR
@@ -332,7 +398,8 @@ contains
             * AERO_SORTED_BINS_PER_DECADE)
        call bin_grid_allocate(new_bin_grid)
        call bin_grid_make(new_bin_grid, n_bin, grid_r_min, grid_r_max)
-       call aero_sorted_set_bin_grid(aero_sorted, new_bin_grid, n_group)
+       call aero_sorted_set_bin_grid(aero_sorted, new_bin_grid, use_n_group, &
+            use_n_class)
        call bin_grid_deallocate(new_bin_grid)
        call aero_sorted_sort_particles(aero_sorted, aero_particle_array)
     else
@@ -364,7 +431,7 @@ contains
   !> Add a new particle to both an aero_sorted and the corresponding
   !> aero_particle_array.
   subroutine aero_sorted_add_particle(aero_sorted, aero_particle_array, &
-       aero_particle, n_group, allow_resort)
+       aero_particle, allow_resort)
 
     !> Sorted particle structure.
     type(aero_sorted_t), intent(inout) :: aero_sorted
@@ -372,23 +439,25 @@ contains
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
     !> Particle to add.
     type(aero_particle_t), intent(in) :: aero_particle
-    !> Number of weight groups.
-    integer, intent(in) :: n_group
     !> Whether to allow a resort due to the add.
     logical, optional, intent(in) :: allow_resort
 
-    integer :: i_bin, i_group
+    integer :: i_bin, i_group, i_class, n_bin, n_group, n_class
 
     i_bin = aero_sorted_particle_in_bin(aero_sorted, aero_particle)
     i_group = aero_particle%weight_group
+    i_class = aero_particle%weight_class
 
-    call assert(894889664, i_group >= 1)
-    call assert(517084587, i_group <= size(aero_sorted%weight%inverse))
+    n_bin = aero_sorted%bin_grid%n_bin
+    n_group = aero_sorted_n_group(aero_sorted)
+    n_class = aero_sorted_n_class(aero_sorted)
+    call assert(417177855, (i_group >= 1) .and. (i_group <= n_group))
+    call assert(233133947, (i_class >= 1) .and. (i_class <= n_class))
 
     ! add the particle to the aero_particle_array
     call aero_particle_array_add_particle(aero_particle_array, aero_particle)
 
-    if ((i_bin < 1) .or. (i_bin > aero_sorted%bin_grid%n_bin)) then
+    if ((i_bin < 1) .or. (i_bin > n_bin)) then
        ! particle doesn't fit in the current bin_grid, so remake the
        ! bin_grid if we are allowed
        if (present(allow_resort)) then
@@ -401,11 +470,11 @@ contains
           end if
        end if
        call aero_sorted_remake_if_needed(aero_sorted, aero_particle_array, &
-            valid_sort=.false., n_group=n_group)
+            valid_sort=.false., n_group=n_group, n_class=n_class)
     else
        ! particle fits in the current bin_grid
-       call integer_rmap_append(aero_sorted%size, i_bin)
-       call integer_rmap_append(aero_sorted%weight, i_group)
+       call integer_rmap2_append(aero_sorted%size_class, i_bin, i_class)
+       call integer_rmap2_append(aero_sorted%group_class, i_group, i_class)
     end if
 
   end subroutine aero_sorted_add_particle
@@ -426,15 +495,16 @@ contains
 
     ! all of these shift the last item into the newly-empty slot
     call aero_particle_array_remove_particle(aero_particle_array, i_part)
-    call integer_rmap_remove(aero_sorted%size, i_part)
-    call integer_rmap_remove(aero_sorted%weight, i_part)
+    call integer_rmap2_remove(aero_sorted%size_class, i_part)
+    call integer_rmap2_remove(aero_sorted%group_class, i_part)
 
   end subroutine aero_sorted_remove_particle
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Move a particle to a different bin and group.
-  subroutine aero_sorted_move_particle(aero_sorted, i_part, new_bin, new_group)
+  subroutine aero_sorted_move_particle(aero_sorted, i_part, new_bin, &
+       new_group, new_class)
 
     !> Aerosol sorted.
     type(aero_sorted_t), intent(inout) :: aero_sorted
@@ -442,11 +512,15 @@ contains
     integer, intent(in) :: i_part
     !> New bin to move particle to.
     integer, intent(in) :: new_bin
-    !> New group to move particle to.
+    !> New weight group to move particle to.
     integer, intent(in) :: new_group
+    !> New weight class to move particle to.
+    integer, intent(in) :: new_class
 
-    call integer_rmap_change(aero_sorted%size, i_part, new_bin)
-    call integer_rmap_change(aero_sorted%weight, i_part, new_group)
+    call integer_rmap2_change(aero_sorted%size_class, i_part, new_bin, &
+         new_class)
+    call integer_rmap2_change(aero_sorted%group_class, i_part, new_group, &
+         new_class)
 
   end subroutine aero_sorted_move_particle
 
@@ -454,7 +528,7 @@ contains
 
   !> Check sorting.
   subroutine aero_sorted_check(aero_sorted, aero_particle_array, &
-       n_group, continue_on_error)
+       n_group, n_class, continue_on_error)
 
     !> Aerosol sorted to check.
     type(aero_sorted_t), intent(in) :: aero_sorted
@@ -462,42 +536,53 @@ contains
     type(aero_particle_array_t), intent(in) :: aero_particle_array
     !> Number of weight groups.
     integer, optional, intent(in) :: n_group
+    !> Number of weight classes.
+    integer, optional, intent(in) :: n_class
     !> Whether to continue despite error.
     logical, intent(in) :: continue_on_error
 
     integer :: i_part, i_bin
 
-    call integer_rmap_check(aero_sorted%size, "size", &
+    call integer_rmap2_check(aero_sorted%size_class, "size_class", &
          n_domain=aero_particle_array%n_part, &
-         n_range=aero_sorted%bin_grid%n_bin, &
+         n_range_1=aero_sorted%bin_grid%n_bin, n_range_2=n_class, &
          continue_on_error=continue_on_error)
     do i_part = 1,aero_particle_array%n_part
        i_bin = aero_sorted_particle_in_bin(aero_sorted, &
             aero_particle_array%particle(i_part))
-       if (i_bin /= aero_sorted%size%forward%entry(i_part)) then
-          write(0,*) 'ERROR aero_sorted A: ', "size"
+       if ((i_bin /= aero_sorted%size_class%forward1%entry(i_part)) &
+            .or. (i_bin /= aero_sorted%size_class%forward1%entry(i_part))) then
+          write(0,*) 'ERROR aero_sorted A: ', "size_class"
           write(0,*) 'i_part', i_part
           write(0,*) 'i_bin', i_bin
-          write(0,*) 'aero_sorted%size%forward%entry(i_part)', &
-               aero_sorted%size%forward%entry(i_part)
-          call assert(553067208, continue_on_error)
+          write(0,*) 'aero_sorted%size_class%forward1%entry(i_part)', &
+               aero_sorted%size_class%forward1%entry(i_part)
+          write(0,*) 'aero_sorted%size_class%forward2%entry(i_part)', &
+               aero_sorted%size_class%forward2%entry(i_part)
+          call assert(565030916, continue_on_error)
        end if
     end do
 
-    call integer_rmap_check(aero_sorted%weight, "weight", &
+    call integer_rmap2_check(aero_sorted%group_class, "group_class", &
          n_domain=aero_particle_array%n_part, &
-         n_range=n_group, &
+         n_range_1=n_group, n_range_2=n_class, &
          continue_on_error=continue_on_error)
     do i_part = 1,aero_particle_array%n_part
-       if (aero_particle_array%particle(i_part)%weight_group &
-            /= aero_sorted%weight%forward%entry(i_part)) then
-          write(0,*) 'ERROR aero_sorted B: ', "group"
+       if ((aero_particle_array%particle(i_part)%weight_group &
+            /= aero_sorted%group_class%forward1%entry(i_part)) &
+            .or. (aero_particle_array%particle(i_part)%weight_class &
+            /= aero_sorted%group_class%forward2%entry(i_part))) then
+          write(0,*) 'ERROR aero_sorted B: ', "group_class"
           write(0,*) 'i_part', i_part
           write(0,*) 'aero_particle_array%particle(i_part)%weight_group', &
                aero_particle_array%particle(i_part)%weight_group
-          write(0,*) 'aero_sorted%weight%forward%entry(i_part)', &
-               aero_sorted%weight%forward%entry(i_part)
-          call assert(389482223, continue_on_error)
+          write(0,*) 'aero_particle_array%particle(i_part)%weight_class', &
+               aero_particle_array%particle(i_part)%weight_class
+          write(0,*) 'aero_sorted%group_class%forward1%entry(i_part)', &
+               aero_sorted%group_class%forward1%entry(i_part)
+          write(0,*) 'aero_sorted%group_class%forward2%entry(i_part)', &
+               aero_sorted%group_class%forward2%entry(i_part)
+          call assert(803595412, continue_on_error)
        end if
     end do
 
@@ -514,13 +599,14 @@ contains
     integer :: total_size
 
     total_size = 0
+    total_size = total_size + pmc_mpi_pack_size_integer(aero_sorted_n_bin(val))
     total_size = total_size &
-         + pmc_mpi_pack_size_integer(size(val%size%inverse))
+         + pmc_mpi_pack_size_integer(aero_sorted_n_group(val))
     total_size = total_size &
-         + pmc_mpi_pack_size_integer(size(val%weight%inverse))
+         + pmc_mpi_pack_size_integer(aero_sorted_n_class(val))
     total_size = total_size + pmc_mpi_pack_size_bin_grid(val%bin_grid)
-    total_size = total_size + pmc_mpi_pack_size_integer_rmap(val%size)
-    total_size = total_size + pmc_mpi_pack_size_integer_rmap(val%weight)
+    total_size = total_size + pmc_mpi_pack_size_integer_rmap2(val%size_class)
+    total_size = total_size + pmc_mpi_pack_size_integer_rmap2(val%group_class)
     pmc_mpi_pack_size_aero_sorted = total_size
 
   end function pmc_mpi_pack_size_aero_sorted
@@ -541,12 +627,13 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_pack_integer(buffer, position, size(val%size%inverse))
-    call pmc_mpi_pack_integer(buffer, position, size(val%weight%inverse))
+    call pmc_mpi_pack_integer(buffer, position, aero_sorted_n_bin(val))
+    call pmc_mpi_pack_integer(buffer, position, aero_sorted_n_group(val))
+    call pmc_mpi_pack_integer(buffer, position, aero_sorted_n_class(val))
     call pmc_mpi_pack_bin_grid(buffer, position, val%bin_grid)
-    call pmc_mpi_pack_integer_rmap(buffer, position, val%size)
-    call pmc_mpi_pack_integer_rmap(buffer, position, val%weight)
-    call assert(178297816, &
+    call pmc_mpi_pack_integer_rmap2(buffer, position, val%size_class)
+    call pmc_mpi_pack_integer_rmap2(buffer, position, val%group_class)
+    call assert(786981367, &
          position - prev_position <= pmc_mpi_pack_size_aero_sorted(val))
 #endif
 
@@ -565,17 +652,18 @@ contains
     type(aero_sorted_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, n_bin, n_group
+    integer :: prev_position, n_bin, n_group, n_class
 
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, n_bin)
     call pmc_mpi_unpack_integer(buffer, position, n_group)
+    call pmc_mpi_unpack_integer(buffer, position, n_class)
     call aero_sorted_deallocate(val)
-    call aero_sorted_allocate_size(val, n_bin, n_group)
+    call aero_sorted_allocate_size(val, n_bin, n_group, n_class)
     call pmc_mpi_unpack_bin_grid(buffer, position, val%bin_grid)
-    call pmc_mpi_unpack_integer_rmap(buffer, position, val%size)
-    call pmc_mpi_unpack_integer_rmap(buffer, position, val%weight)
-    call assert(364064630, &
+    call pmc_mpi_unpack_integer_rmap2(buffer, position, val%size_class)
+    call pmc_mpi_unpack_integer_rmap2(buffer, position, val%group_class)
+    call assert(703866072, &
          position - prev_position <= pmc_mpi_pack_size_aero_sorted(val))
 #endif
 

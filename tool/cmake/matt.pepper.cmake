@@ -1,4 +1,3 @@
-#set(CMAKE_Fortran_FLAGS "-g -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-unused -fbounds-check" CACHE STRING "")
 set(NETCDF_INCLUDE_DIR "/Users/mwest/opt/netcdf-4.1.2/include" CACHE STRING "")
 set(NETCDF_C_LIB "/Users/mwest/opt/netcdf-4.1.2/lib/libnetcdf.dylib" CACHE STRING "")
 set(NETCDF_FORTRAN_LIB "/Users/mwest/opt/netcdf-4.1.2/lib/libnetcdff.dylib" CACHE STRING "")

@@ -560,9 +560,9 @@ contains
           aero_mode_number = aero_mode%num_conc * aero_weight%comp_vol
        elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
             .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
-            x_mean_prime = log10(aero_mode%char_radius) &
-            - aero_weight%exponent * aero_mode%log10_std_dev_radius**2 &
-            * log(10d0)
+          x_mean_prime = log10(aero_mode%char_radius) &
+               - aero_weight%exponent * aero_mode%log10_std_dev_radius**2 &
+               * log(10d0)
           aero_mode_number = aero_mode%num_conc * aero_weight%comp_vol &
                * aero_weight%ref_radius**aero_weight%exponent &
                * exp((x_mean_prime**2 - log10(aero_mode%char_radius)**2) &

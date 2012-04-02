@@ -21,9 +21,18 @@ module pmc_aero_weight_array
 #endif
 
   !> An array of aerosol size distribution weighting functions.
+  !!
+  !! Each particle has a weight group and a weight class, which
+  !! defines the weighting function associated with it. To determine
+  !! the actual weight for a particle, the harmonic mean of the weight
+  !! from each group is computed (for the given class). All particles
+  !! of a given size within a weight class will thus have the same
+  !! weight, irrespective of which group they are in. The group is
+  !! only important when doubling or halving occurs, which takes place
+  !! for a specific group and class.
   type aero_weight_array_t
-     !> Aero weight array.
-     type(aero_weight_t), pointer :: weight(:)
+     !> Aero weight array, <tt>n_group x n_class</tt>.
+     type(aero_weight_t), pointer :: weight(:, :)
   end type aero_weight_array_t
 
 contains
@@ -36,25 +45,84 @@ contains
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(out) :: aero_weight_array
 
-    allocate(aero_weight_array%weight(0))
+    allocate(aero_weight_array%weight(0, 0))
 
   end subroutine aero_weight_array_allocate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocates an aero_weight_array to the given size.
-  subroutine aero_weight_array_allocate_size(aero_weight_array, n_weight)
+  !> Allocates an \c aero_weight_array to the given size.
+  subroutine aero_weight_array_allocate_size(aero_weight_array, n_group, &
+       n_class)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(out) :: aero_weight_array
-    !> Number of weights.
-    integer,intent(in) :: n_weight
+    !> Number of weight groups.
+    integer,intent(in) :: n_group
+    !> Number of weight classes.
+    integer,intent(in) :: n_class
 
-    allocate(aero_weight_array%weight(n_weight))
-
+    allocate(aero_weight_array%weight(n_group, n_class))
     call aero_weight_allocate(aero_weight_array%weight)
 
   end subroutine aero_weight_array_allocate_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocates an \c aero_weight_array as flat weightings.
+  subroutine aero_weight_array_allocate_flat(aero_weight_array, n_class)
+
+    !> Aerosol weight array.
+    type(aero_weight_array_t), intent(out) :: aero_weight_array
+    !> Number of weight classes.
+    integer,intent(in) :: n_class
+
+    call aero_weight_array_allocate_size(aero_weight_array, 1, n_class)
+    aero_weight_array%weight%type = AERO_WEIGHT_TYPE_NONE
+    aero_weight_array%weight%ref_radius = 1d0
+    aero_weight_array%weight%exponent = 0d0
+
+  end subroutine aero_weight_array_allocate_flat
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocates an \c aero_weight_array as power weightings.
+  subroutine aero_weight_array_allocate_power(aero_weight_array, n_class, &
+       exponent)
+
+    !> Aerosol weight array.
+    type(aero_weight_array_t), intent(out) :: aero_weight_array
+    !> Number of weight classes.
+    integer,intent(in) :: n_class
+    !> Exponent for power-law.
+    real(kind=dp), intent(in) :: exponent
+
+    call aero_weight_array_allocate_size(aero_weight_array, 1, n_class)
+    aero_weight_array%weight%type = AERO_WEIGHT_TYPE_POWER
+    aero_weight_array%weight%ref_radius = 1d0
+    aero_weight_array%weight%exponent = exponent
+
+  end subroutine aero_weight_array_allocate_power
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocates an \c aero_weight_array as joint flat/power-3 weightings..
+  subroutine aero_weight_array_allocate_nummass(aero_weight_array, n_class)
+
+    !> Aerosol weight array.
+    type(aero_weight_array_t), intent(out) :: aero_weight_array
+    !> Number of weight classes.
+    integer,intent(in) :: n_class
+
+    call aero_weight_array_allocate_size(aero_weight_array, 2, n_class)
+    aero_weight_array%weight(1, :)%type = AERO_WEIGHT_TYPE_NONE
+    aero_weight_array%weight(1, :)%ref_radius = 1d0
+    aero_weight_array%weight(1, :)%exponent = 0d0
+    aero_weight_array%weight(2, :)%type = AERO_WEIGHT_TYPE_POWER
+    aero_weight_array%weight(2, :)%ref_radius = 1d0
+    aero_weight_array%weight(2, :)%exponent = -3d0
+
+  end subroutine aero_weight_array_allocate_nummass
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -65,7 +133,6 @@ contains
     type(aero_weight_array_t), intent(inout) :: aero_weight_array
 
     call aero_weight_deallocate(aero_weight_array%weight)
-
     deallocate(aero_weight_array%weight)
 
   end subroutine aero_weight_array_deallocate
@@ -105,16 +172,41 @@ contains
     !> Destination aerosol weight array.
     type(aero_weight_array_t), intent(inout) :: aero_weight_array_to
 
-    if (size(aero_weight_array_to%weight)  &
-         /= size(aero_weight_array_from%weight)) then
+    if (any(shape(aero_weight_array_to%weight) &
+         /= shape(aero_weight_array_from%weight))) then
        deallocate(aero_weight_array_to%weight)
        call aero_weight_array_allocate_size(aero_weight_array_to, &
-            size(aero_weight_array_from%weight))
+            size(aero_weight_array_from%weight, 1), &
+            size(aero_weight_array_from%weight, 2))
     end if
     call aero_weight_copy(aero_weight_array_from%weight, &
          aero_weight_array_to%weight)
 
   end subroutine aero_weight_array_copy
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Return the number of weight groups.
+  integer function aero_weight_array_n_group(aero_weight_array)
+
+    !> Aerosol weight array.
+    type(aero_weight_array_t), intent(in) :: aero_weight_array
+
+    aero_weight_array_n_group = size(aero_weight_array%weight, 1)
+
+  end function aero_weight_array_n_group
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Return the number of weight classes.
+  integer function aero_weight_array_n_class(aero_weight_array)
+
+    !> Aerosol weight array.
+    type(aero_weight_array_t), intent(in) :: aero_weight_array
+
+    aero_weight_array_n_class = size(aero_weight_array%weight, 2)
+
+  end function aero_weight_array_n_class
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -126,8 +218,6 @@ contains
     type(aero_weight_array_t), intent(inout) :: aero_weight_array
     !> Fraction to scale computational volume by.
     real(kind=dp), intent(in) :: fraction
-
-    integer :: i
 
     call aero_weight_scale_comp_vol(aero_weight_array%weight, fraction)
 
@@ -183,7 +273,8 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle
 
     aero_weight_array_single_num_conc = aero_weight_num_conc( &
-         aero_weight_array%weight(aero_particle%weight_group), aero_particle)
+         aero_weight_array%weight(aero_particle%weight_group, &
+         aero_particle%weight_class), aero_particle)
 
   end function aero_weight_array_single_num_conc
 
@@ -191,19 +282,21 @@ contains
 
   !> Compute the total number concentration at a given radius (m^3).
   real(kind=dp) function aero_weight_array_num_conc_at_radius( &
-       aero_weight_array, radius)
+       aero_weight_array, i_class, radius)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
+    !> Weight class number.
+    integer, intent(in) :: i_class
     !> Radius to compute number concentration at (m).
     real(kind=dp), intent(in) :: radius
 
     integer :: i_group
-    real(kind=dp) :: num_conc(size(aero_weight_array%weight))
+    real(kind=dp) :: num_conc(size(aero_weight_array%weight, 1))
 
-    do i_group = 1,size(aero_weight_array%weight)
+    do i_group = 1,size(aero_weight_array%weight, 1)
        num_conc(i_group) = aero_weight_num_conc_at_radius( &
-            aero_weight_array%weight(i_group), radius)
+            aero_weight_array%weight(i_group, i_class), radius)
     end do
     ! harmonic mean (same as summing the computational volumes)
     aero_weight_array_num_conc_at_radius = 1d0 / sum(1d0 / num_conc)
@@ -222,7 +315,8 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle
 
     aero_weight_array_num_conc = aero_weight_array_num_conc_at_radius( &
-         aero_weight_array, aero_particle_radius(aero_particle))
+         aero_weight_array, aero_particle%weight_class, &
+         aero_particle_radius(aero_particle))
 
   end function aero_weight_array_num_conc
 
@@ -234,15 +328,18 @@ contains
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
 
-    integer :: i_group
+    integer :: i_group, i_class
 
     ! check that all weights have correctly set exponents
-    do i_group = 1,size(aero_weight_array%weight)
-       call aero_weight_check_valid_exponent(aero_weight_array%weight(i_group))
+    do i_group = 1,size(aero_weight_array%weight, 1)
+       do i_class = 1,size(aero_weight_array%weight, 2)
+          call aero_weight_check_valid_exponent( &
+               aero_weight_array%weight(i_group, i_class))
+       end do
     end do
 
-    if (abs(sum(aero_weight_array%weight%exponent)) &
-         < 1d-20 * sum(abs(aero_weight_array%weight%exponent))) then
+    if (all(abs(sum(aero_weight_array%weight%exponent, 1)) &
+         < 1d-20 * sum(abs(aero_weight_array%weight%exponent), 1))) then
        aero_weight_array_check_flat = .true.
     else
        aero_weight_array_check_flat = .false.
@@ -264,13 +361,19 @@ contains
     !> Whether all weights are monotone decreasing.
     logical, intent(out) :: monotone_decreasing
 
-    integer :: i_group
-    logical :: mono_increasing_array(size(aero_weight_array%weight))
-    logical :: mono_decreasing_array(size(aero_weight_array%weight))
+    integer :: i_group, i_class
+    logical :: mono_increasing_array(size(aero_weight_array%weight, 1), &
+         size(aero_weight_array%weight, 2))
+    logical :: mono_decreasing_array(size(aero_weight_array%weight, 1), &
+         size(aero_weight_array%weight, 2))
 
-    do i_group = 1,size(aero_weight_array%weight)
-       call aero_weight_check_monotonicity(aero_weight_array%weight(i_group), &
-            mono_increasing_array(i_group), mono_decreasing_array(i_group))
+    do i_group = 1,size(aero_weight_array%weight, 1)
+       do i_class = 1,size(aero_weight_array%weight, 2)
+          call aero_weight_check_monotonicity( &
+               aero_weight_array%weight(i_group, i_class), &
+               mono_increasing_array(i_group, i_class), &
+               mono_decreasing_array(i_group, i_class))
+       end do
     end do
 
     monotone_increasing = all(mono_increasing_array)
@@ -282,11 +385,13 @@ contains
 
   !> Compute the maximum and minimum number concentrations between the
   !> given radii.
-  subroutine aero_weight_array_minmax_num_conc(aero_weight_array, radius_1, &
-       radius_2, num_conc_min, num_conc_max)
+  subroutine aero_weight_array_minmax_num_conc(aero_weight_array, i_class, &
+       radius_1, radius_2, num_conc_min, num_conc_max)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
+    !> Weight class.
+    integer, intent(in) :: i_class
     !> First radius.
     real(kind=dp), intent(in) :: radius_1
     !> Second radius.
@@ -304,9 +409,9 @@ contains
     call assert(857727714, monotone_increasing .or. monotone_decreasing)
 
     num_conc_1 = aero_weight_array_num_conc_at_radius(aero_weight_array, &
-         radius_1)
+         i_class, radius_1)
     num_conc_2 = aero_weight_array_num_conc_at_radius(aero_weight_array, &
-         radius_2)
+         i_class, radius_2)
     num_conc_min = min(num_conc_1, num_conc_2)
     num_conc_max = max(num_conc_1, num_conc_2)
 
@@ -316,19 +421,22 @@ contains
 
   !> Choose a random group at the given radius, with probability
   !> proportional to group volume at that radius.
-  integer function aero_weight_array_rand_group(aero_weight_array, radius)
+  integer function aero_weight_array_rand_group(aero_weight_array, i_class, &
+       radius)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
+    !> Weight class to select from.
+    integer, intent(in) :: i_class
     !> Radius to sample group at (m).
     real(kind=dp), intent(in) :: radius
 
-    real(kind=dp) :: comp_vols(size(aero_weight_array%weight))
-    integer :: i
+    real(kind=dp) :: comp_vols(size(aero_weight_array%weight, 1))
+    integer :: i_group
 
-    do i = 1,size(aero_weight_array%weight)
-       comp_vols(i) = 1d0 / aero_weight_num_conc_at_radius( &
-            aero_weight_array%weight(i), radius)
+    do i_group = 1,size(aero_weight_array%weight, 1)
+       comp_vols(i_group) = 1d0 / aero_weight_num_conc_at_radius( &
+            aero_weight_array%weight(i_group, i_class), radius)
     end do
     aero_weight_array_rand_group = sample_cts_pdf(comp_vols)
 
@@ -344,10 +452,13 @@ contains
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(inout) :: aero_weight_array
 
-    integer :: i
+    integer :: i_group, i_class
 
-    do i = 1,size(aero_weight_array%weight)
-       call spec_file_read_aero_weight(file,aero_weight_array%weight(i))
+    do i_group = 1,size(aero_weight_array%weight, 1)
+       do i_class = 1,size(aero_weight_array%weight, 2)
+          call spec_file_read_aero_weight(file, &
+               aero_weight_array%weight(i_group, i_class))
+       end do
     end do
 
   end subroutine spec_file_read_aero_weight_array
@@ -360,15 +471,18 @@ contains
     !> Value to pack.
     type(aero_weight_array_t), intent(in) :: val
 
-    integer :: i
+    integer :: i_group, i_class
 
     pmc_mpi_pack_size_aero_weight_array = &
-         pmc_mpi_pack_size_integer(size(val%weight))
+         pmc_mpi_pack_size_integer(size(val%weight, 1)) &
+         + pmc_mpi_pack_size_integer(size(val%weight, 2))
 
-    do i = 1, size(val%weight)
-       pmc_mpi_pack_size_aero_weight_array = &
-            pmc_mpi_pack_size_aero_weight_array  &
-            + pmc_mpi_pack_size_aero_weight(val%weight(i))
+    do i_group = 1,size(val%weight, 1)
+       do i_class = 1,size(val%weight, 2)
+          pmc_mpi_pack_size_aero_weight_array = &
+               pmc_mpi_pack_size_aero_weight_array &
+               + pmc_mpi_pack_size_aero_weight(val%weight(i_group, i_class))
+       end do
     end do
 
   end function pmc_mpi_pack_size_aero_weight_array
@@ -386,12 +500,16 @@ contains
     type(aero_weight_array_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, i
+    integer :: prev_position, i_group, i_class
 
     prev_position = position
-    call pmc_mpi_pack_integer(buffer, position, size(val%weight))
-    do i = 1, size(val%weight)
-       call pmc_mpi_pack_aero_weight(buffer,position,val%weight(i))
+    call pmc_mpi_pack_integer(buffer, position, size(val%weight, 1))
+    call pmc_mpi_pack_integer(buffer, position, size(val%weight, 2))
+    do i_group = 1,size(val%weight, 1)
+       do i_class = 1,size(val%weight, 2)
+          call pmc_mpi_pack_aero_weight(buffer, position, &
+               val%weight(i_group, i_class))
+       end do
     end do
     call assert(84068036, &
          position - prev_position <= pmc_mpi_pack_size_aero_weight_array(val))
@@ -412,14 +530,18 @@ contains
     type(aero_weight_array_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, array_size
+    integer :: prev_position, n_group, n_class, i_group, i_class
 
     call aero_weight_array_deallocate(val)
     prev_position = position
-    call pmc_mpi_unpack_integer(buffer, position, array_size)
-    call aero_weight_array_allocate_size(val, array_size)
-    do i = 1, size(val%weight)
-       call pmc_mpi_unpack_aero_weight(buffer, position, val%weight(i))
+    call pmc_mpi_unpack_integer(buffer, position, n_group)
+    call pmc_mpi_unpack_integer(buffer, position, n_class)
+    call aero_weight_array_allocate_size(val, n_group, n_class)
+    do i_group = 1,size(val%weight, 1)
+       do i_class = 1,size(val%weight, 2)
+          call pmc_mpi_unpack_aero_weight(buffer, position, &
+               val%weight(i_group, i_class))
+       end do
     end do
     call assert(321022868, &
          position - prev_position <= pmc_mpi_pack_size_aero_weight_array(val))
@@ -429,49 +551,95 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Write the \c aero_weight dimension to the given NetCDF file if it
-  !> is not already present and in any case return the associated
-  !> dimid.
-  subroutine aero_weight_netcdf_dim_aero_weight(aero_weight_array, ncid, &
-       dimid_aero_weight)
+  !> Write the \c aero_weight_group dimension to the given NetCDF file
+  !> if it is not already present and in any case return the
+  !> associated dimid.
+  subroutine aero_weight_netcdf_dim_aero_weight_group(aero_weight_array, &
+       ncid, dimid_aero_weight_group)
 
     !> Aero_weight structure array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
     !> Dimid of the species dimension.
-    integer, intent(out) :: dimid_aero_weight
+    integer, intent(out) :: dimid_aero_weight_group
 
-    integer :: status, i_weight, n_weight
-    integer :: varid_aero_weight
-    integer :: aero_weight_centers(size(aero_weight_array%weight))
+    integer :: status, i_group, n_group
+    integer :: varid_aero_weight_group
+    integer :: aero_weight_group_centers(size(aero_weight_array%weight, 1))
 
     ! try to get the dimension ID
-    status = nf90_inq_dimid(ncid, "aero_weight", dimid_aero_weight)
+    status = nf90_inq_dimid(ncid, "aero_weight_group", dimid_aero_weight_group)
     if (status == NF90_NOERR) return
     if (status /= NF90_EBADDIM) call pmc_nc_check(status)
 
     ! dimension not defined, so define it
     call pmc_nc_check(nf90_redef(ncid))
 
-    n_weight = size(aero_weight_array%weight)
+    n_group = size(aero_weight_array%weight, 1)
 
-    call pmc_nc_check(nf90_def_dim(ncid, "aero_weight", n_weight, &
-         dimid_aero_weight))
-    call pmc_nc_check(nf90_def_var(ncid, "aero_weight", NF90_INT, &
-         dimid_aero_weight, varid_aero_weight))
-    call pmc_nc_check(nf90_put_att(ncid, varid_aero_weight, "description", &
-         "dummy dimension variable (no useful value)"))
+    call pmc_nc_check(nf90_def_dim(ncid, "aero_weight_group", n_group, &
+         dimid_aero_weight_group))
+    call pmc_nc_check(nf90_def_var(ncid, "aero_weight_group", NF90_INT, &
+         dimid_aero_weight_group, varid_aero_weight_group))
+    call pmc_nc_check(nf90_put_att(ncid, varid_aero_weight_group, &
+         "description", "dummy dimension variable (no useful value)"))
 
     call pmc_nc_check(nf90_enddef(ncid))
 
-    do i_weight = 1,n_weight
-       aero_weight_centers(i_weight) = i_weight
+    do i_group = 1,n_group
+       aero_weight_group_centers(i_group) = i_group
     end do
-    call pmc_nc_check(nf90_put_var(ncid, varid_aero_weight, &
-         aero_weight_centers))
+    call pmc_nc_check(nf90_put_var(ncid, varid_aero_weight_group, &
+         aero_weight_group_centers))
 
-  end subroutine aero_weight_netcdf_dim_aero_weight
+  end subroutine aero_weight_netcdf_dim_aero_weight_group
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write the \c aero_weight_class dimension to the given NetCDF file
+  !> if it is not already present and in any case return the
+  !> associated dimid.
+  subroutine aero_weight_netcdf_dim_aero_weight_class(aero_weight_array, &
+       ncid, dimid_aero_weight_class)
+
+    !> Aero_weight structure array.
+    type(aero_weight_array_t), intent(in) :: aero_weight_array
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Dimid of the species dimension.
+    integer, intent(out) :: dimid_aero_weight_class
+
+    integer :: status, i_class, n_class
+    integer :: varid_aero_weight_class
+    integer :: aero_weight_class_centers(size(aero_weight_array%weight, 2))
+
+    ! try to get the dimension ID
+    status = nf90_inq_dimid(ncid, "aero_weight_class", dimid_aero_weight_class)
+    if (status == NF90_NOERR) return
+    if (status /= NF90_EBADDIM) call pmc_nc_check(status)
+
+    ! dimension not defined, so define it
+    call pmc_nc_check(nf90_redef(ncid))
+
+    n_class = size(aero_weight_array%weight, 2)
+
+    call pmc_nc_check(nf90_def_dim(ncid, "aero_weight_class", n_class, &
+         dimid_aero_weight_class))
+    call pmc_nc_check(nf90_def_var(ncid, "aero_weight_class", NF90_INT, &
+         dimid_aero_weight_class, varid_aero_weight_class))
+    call pmc_nc_check(nf90_put_att(ncid, varid_aero_weight_class, &
+         "description", "dummy dimension variable (no useful value)"))
+
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    do i_class = 1,n_class
+       aero_weight_class_centers(i_class) = i_class
+    end do
+    call pmc_nc_check(nf90_put_var(ncid, varid_aero_weight_class, &
+         aero_weight_class_centers))
+
+  end subroutine aero_weight_netcdf_dim_aero_weight_class
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -483,12 +651,13 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
 
-    integer :: dimid_aero_weight
+    integer :: dimid_aero_weight_group, dimid_aero_weight_class
 
     !> \page output_format_aero_weight_array Output File Format: Aerosol Weighting Functions
     !!
     !! The aerosol weighting function NetCDF dimensions are:
-    !!   - \b aero_weight: number of aerosol weighting functions
+    !!   - \b aero_weight_group: number of aerosol weighting groups
+    !!   - \b aero_weight_class: number of aerosol weighting classes
     !!
     !! The aerosol weighting function NetCDF variables are:
     !!   - \b weight_comp_vol (unit m^3, dim \c aero_weight): the
@@ -504,19 +673,24 @@ contains
     !!     the power \c weight_type, the value -3 for the MFA \c
     !!     weight_type, and zero for any other \c weight_type
 
-    call aero_weight_netcdf_dim_aero_weight(aero_weight_array, ncid, &
-         dimid_aero_weight)
+    call aero_weight_netcdf_dim_aero_weight_group(aero_weight_array, ncid, &
+         dimid_aero_weight_group)
+    call aero_weight_netcdf_dim_aero_weight_class(aero_weight_array, ncid, &
+         dimid_aero_weight_class)
 
-    call pmc_nc_write_real_1d(ncid, aero_weight_array%weight%comp_vol, &
-         "weight_comp_vol", (/ dimid_aero_weight /), unit="m^3", &
+    call pmc_nc_write_real_2d(ncid, aero_weight_array%weight%comp_vol, &
+         "weight_comp_vol", &
+         (/ dimid_aero_weight_group, dimid_aero_weight_class /), unit="m^3", &
          description="computational volume for each weighting function")
-    call pmc_nc_write_integer_1d(ncid, aero_weight_array%weight%type, &
-         "weight_type", (/ dimid_aero_weight /), &
+    call pmc_nc_write_integer_2d(ncid, aero_weight_array%weight%type, &
+         "weight_type", &
+         (/ dimid_aero_weight_group, dimid_aero_weight_class /), &
          description="type of each aerosol weighting function: 0 = invalid, " &
          // "1 = none (w(D) = 1), 2 = power (w(D) = (D/D_0)^alpha), " &
          // "3 = MFA (mass flow) (w(D) = (D/D_0)^(-3))")
-    call pmc_nc_write_real_1d(ncid, aero_weight_array%weight%exponent, &
-         "weight_exponent", (/ dimid_aero_weight /), unit="1", &
+    call pmc_nc_write_real_2d(ncid, aero_weight_array%weight%exponent, &
+         "weight_exponent", &
+         (/ dimid_aero_weight_group, dimid_aero_weight_class /), unit="1", &
          description="exponent alpha for the power weight_type, " &
          // "set to -3 for MFA, and zero otherwise")
 
@@ -532,35 +706,42 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
 
-    integer :: dimid_aero_weight, n_weight
+    integer :: dimid_aero_weight_group, dimid_aero_weight_class, n_group
+    integer :: n_class
     character(len=1000) :: name
-    real(kind=dp), allocatable :: comp_vol(:), exponent(:)
-    integer, allocatable :: type(:)
+    real(kind=dp), allocatable :: comp_vol(:, :), exponent(:, :)
+    integer, allocatable :: type(:, :)
 
-    call pmc_nc_check(nf90_inq_dimid(ncid, "aero_weight", dimid_aero_weight))
+    call pmc_nc_check(nf90_inq_dimid(ncid, "aero_weight_group", &
+         dimid_aero_weight_group))
+    call pmc_nc_check(nf90_inq_dimid(ncid, "aero_weight_class", &
+         dimid_aero_weight_class))
     call pmc_nc_check(nf90_Inquire_Dimension(ncid, &
-         dimid_aero_weight, name, n_weight))
-    call assert(719221386, n_weight < 1000)
+         dimid_aero_weight_group, name, n_group))
+    call pmc_nc_check(nf90_Inquire_Dimension(ncid, &
+         dimid_aero_weight_class, name, n_class))
+    call assert(719221386, n_group < 1000)
+    call assert(520105999, n_class < 1000)
 
-    allocate(comp_vol(n_weight))
-    allocate(type(n_weight))
-    allocate(exponent(n_weight))
+    allocate(comp_vol(n_group, n_class))
+    allocate(type(n_group, n_class))
+    allocate(exponent(n_group, n_class))
 
-    call pmc_nc_read_real_1d(ncid, comp_vol, "weight_comp_vol")
-    call pmc_nc_read_integer_1d(ncid, type, "weight_type")
-    call pmc_nc_read_real_1d(ncid, exponent, "weight_exponent")
+    call pmc_nc_read_real_2d(ncid, comp_vol, "weight_comp_vol")
+    call pmc_nc_read_integer_2d(ncid, type, "weight_type")
+    call pmc_nc_read_real_2d(ncid, exponent, "weight_exponent")
 
     call assert(309191498, size(comp_vol) == size(type))
     call assert(588649520, size(comp_vol) == size(exponent))
 
     call aero_weight_array_deallocate(aero_weight_array)
-    call aero_weight_array_allocate_size(aero_weight_array, size(comp_vol))
+    call aero_weight_array_allocate_size(aero_weight_array, n_group, n_class)
 
     aero_weight_array%weight%comp_vol = comp_vol
     aero_weight_array%weight%type = type
     aero_weight_array%weight%ref_radius = 1d0
     aero_weight_array%weight%exponent = exponent
-
+    
     deallocate(comp_vol)
     deallocate(type)
     deallocate(exponent)

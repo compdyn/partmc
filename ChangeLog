@@ -4,6 +4,9 @@
   * Add variable-composition aerosol distributions with a mean and
     standard deviation per species.
 
+  * Each particle source is now resolved with equal number of
+    computational particles.
+
 2.2.1 - 2012-03-30
 
   * De-duplicate error codes.

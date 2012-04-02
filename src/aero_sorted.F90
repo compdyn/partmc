@@ -151,7 +151,7 @@ contains
        use_n_class = n_class
     else
        use_n_group = size(aero_sorted%group_class%inverse, 1)
-       use_n_group = size(aero_sorted%group_class%inverse, 2)
+       use_n_class = size(aero_sorted%group_class%inverse, 2)
     end if
     call aero_sorted_deallocate(aero_sorted)
     call aero_sorted_allocate_size(aero_sorted, bin_grid%n_bin, use_n_group, &

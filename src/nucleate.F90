@@ -98,7 +98,7 @@ contains
                                                        ! particles (m)
 
     integer :: i_gas_h2so4, i_aero_so4, n_samp, i_samp, i_bin, i_group, n_group
-    integer :: i_set
+    integer :: i_class
     real(kind=dp) :: sulf_acid_conc, nucleate_rate, n_samp_avg
     real(kind=dp) :: total_so4_vol, so4_vol, h2so4_removed_conc
     real(kind=dp) :: nucleate_comp_vol
@@ -119,21 +119,21 @@ contains
     ! particle nucleation rate in (particles m^{-3} s^{-1})
     nucleate_rate = nucleate_coeff * sulf_acid_conc**2
 
-    ! weight set to nucleate into
-    i_set = aero_state_weight_set_for_source(aero_state, nucleate_source)
+    ! weight class to nucleate into
+    i_class = aero_state_weight_class_for_source(aero_state, nucleate_source)
 
     ! add particles to each weight group
     total_so4_vol = 0d0
     do i_group = 1,aero_weight_array_n_group(aero_state%awa)
        ! adjust comp_vol if necessary
        n_samp_avg = nucleate_rate * del_t / aero_weight_num_conc_at_radius( &
-            aero_state%awa%weight(i_group, i_set), diam2rad(nucleate_diam))
-       call aero_state_prepare_comp_vol_for_add(aero_state, i_group, i_set, &
+            aero_state%awa%weight(i_group, i_class), diam2rad(nucleate_diam))
+       call aero_state_prepare_comp_vol_for_add(aero_state, i_group, i_class, &
             n_samp_avg)
 
        ! determine number of nucleated particles
        n_samp_avg = nucleate_rate * del_t / aero_weight_num_conc_at_radius( &
-            aero_state%awa%weight(i_group, i_set), diam2rad(nucleate_diam))
+            aero_state%awa%weight(i_group, i_class), diam2rad(nucleate_diam))
        n_samp = rand_poisson(n_samp_avg)
 
        ! create the particles
@@ -147,7 +147,7 @@ contains
                env_state%elapsed_time)
           aero_particle%vol(i_aero_so4) = so4_vol
           call aero_particle_new_id(aero_particle)
-          call aero_particle_set_weight(aero_particle, i_group, i_set)
+          call aero_particle_set_weight(aero_particle, i_group, i_class)
           call aero_state_add_particle(aero_state, aero_particle)
           call aero_particle_deallocate(aero_particle)
        end do
@@ -156,7 +156,7 @@ contains
     ! remove gases that formed new particles
     h2so4_removed_conc = &
          total_so4_vol &                        ! volume of SO4
-         * aero_weight_array_num_conc_at_radius(aero_state%awa, i_set, &
+         * aero_weight_array_num_conc_at_radius(aero_state%awa, i_class, &
          diam2rad(nucleate_diam)) &             ! volume conc of SO4
          * aero_data%density(i_aero_so4) &      ! mass conc of SO4
          / aero_data%molec_weight(i_aero_so4) & ! mole conc of SO4

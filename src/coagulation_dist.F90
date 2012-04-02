@@ -141,8 +141,8 @@ contains
     type(aero_weight_array_t) :: aero_weight_total
 
     call assert_msg(667898741, &
-         size(aero_state%aero_sorted%size_set%inverse, 2) == 1, &
-         "FIXME: mc_coag_dist() can only handle one weight set")
+         size(aero_state%aero_sorted%size_class%inverse, 2) == 1, &
+         "FIXME: mc_coag_dist() can only handle one weight class")
     
     n_proc = pmc_mpi_size()
 
@@ -164,7 +164,7 @@ contains
 
     allocate(n_parts(aero_state%aero_sorted%bin_grid%n_bin, n_proc))
     call pmc_mpi_allgather_integer_array( &
-         aero_state%aero_sorted%size_set%inverse(:, s1)%n_entry, n_parts)
+         aero_state%aero_sorted%size_class%inverse(:, s1)%n_entry, n_parts)
 
     allocate(comp_vols(size(aero_state%awa%weight), n_proc))
     call pmc_mpi_allgather_real_array(aero_state%awa%weight(:, s1)%comp_vol, &
@@ -330,7 +330,7 @@ contains
              call update_n_samps(n_samps, local_bin, remote_bin, &
                   samps_remaining)
              if (.not. samps_remaining) exit outer
-             if (aero_state%aero_sorted%size_set%inverse(local_bin, &
+             if (aero_state%aero_sorted%size_class%inverse(local_bin, &
                   s2)%n_entry > 0) then
                 call find_rand_remote_proc(n_parts, remote_bin, &
                      requests(i_req)%remote_proc)
@@ -487,7 +487,7 @@ contains
     call assert(895128380, position == buffer_size)
 
     ! send the particle back if we have one
-    if (aero_state%aero_sorted%size_set%inverse(request_bin, &
+    if (aero_state%aero_sorted%size_class%inverse(request_bin, &
          s1)%n_entry == 0) then
        call send_return_no_particle(remote_proc, request_bin)
     else

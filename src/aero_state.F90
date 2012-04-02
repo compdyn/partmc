@@ -65,7 +65,7 @@ module pmc_aero_state
      logical :: valid_sort
      !> Weighting functions.
      type(aero_weight_array_t) :: awa
-     !> Ideal number of computational particles, per weight group and set.
+     !> Ideal number of computational particles, per weight group and class.
      real(kind=dp), pointer :: n_part_ideal(:, :)
      !> Information on removed particles.
      type(aero_info_array_t) :: aero_info_array
@@ -211,67 +211,68 @@ contains
     !> Ideal total number of particles.
     real(kind=dp), intent(in) :: n_part
 
-    integer :: n_group, n_set
+    integer :: n_group, n_class
 
     n_group = aero_weight_array_n_group(aero_state%awa)
-    n_set = aero_weight_array_n_set(aero_state%awa)
+    n_class = aero_weight_array_n_class(aero_state%awa)
     deallocate(aero_state%n_part_ideal)
-    allocate(aero_state%n_part_ideal(n_group, n_set))
-    aero_state%n_part_ideal = n_part / real(n_group * n_set, kind=dp)
+    allocate(aero_state%n_part_ideal(n_group, n_class))
+    aero_state%n_part_ideal = n_part / real(n_group * n_class, kind=dp)
 
   end subroutine aero_state_set_n_part_ideal
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Determine the appropriate weight set for a source.
-  integer function aero_state_weight_set_for_source(aero_state, source)
+  !> Determine the appropriate weight class for a source.
+  integer function aero_state_weight_class_for_source(aero_state, source)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
-    !> Source to find the set for.
+    !> Source to find the class for.
     integer, intent(in) :: source
 
-    integer :: n_set
+    integer :: n_class
 
     call assert(932390238, source >= 1)
-    n_set = aero_weight_array_n_set(aero_state%awa)
-    ! we are either using i_set = i_source or always i_set = n_set = 1
-    if (n_set > 1) then
-       call assert(932390238, source <= n_set)
-       aero_state_weight_set_for_source = source
+    n_class = aero_weight_array_n_class(aero_state%awa)
+    ! we are either using i_class = i_source or always i_class = n_class = 1
+    if (n_class > 1) then
+       call assert(932390238, source <= n_class)
+       aero_state_weight_class_for_source = source
     else
-       aero_state_weight_set_for_source = 1
+       aero_state_weight_class_for_source = 1
     end if
 
-  end function aero_state_weight_set_for_source
+  end function aero_state_weight_class_for_source
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the total number of particles in an aerosol distribution.
-  integer function aero_state_total_particles(aero_state, i_group, i_set)
+  integer function aero_state_total_particles(aero_state, i_group, i_class)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
     !> Weight group.
     integer, optional, intent(in) :: i_group
-    !> Weight set.
-    integer, optional, intent(in) :: i_set
+    !> Weight class.
+    integer, optional, intent(in) :: i_class
 
     integer :: i_part
 
     if (present(i_group)) then
-       call assert(908743823, present(i_set))
+       call assert(908743823, present(i_class))
        if (aero_state%valid_sort) then
           aero_state_total_particles &
-               = aero_state%aero_sorted%group_set%inverse(i_group, &
-               i_set)%n_entry
+               = aero_state%aero_sorted%group_class%inverse(i_group, &
+               i_class)%n_entry
        else
           ! FIXME: should we just sort?
           aero_state_total_particles = 0
           do i_part = 1,aero_state%apa%n_part
              if ((aero_state%apa%particle(i_part)%weight_group == i_group) &
                   .and. &
-                  (aero_state%apa%particle(i_part)%weight_set == i_set)) then
+                  (aero_state%apa%particle(i_part)%weight_class == i_class)) &
+                  then
                 aero_state_total_particles = aero_state_total_particles + 1
              end if
           end do
@@ -286,17 +287,17 @@ contains
 
   !> Returns the total number of particles across all processes.
   integer function aero_state_total_particles_all_procs(aero_state, i_group, &
-       i_set)
+       i_class)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
     !> Weight group.
     integer, optional, intent(in) :: i_group
-    !> Weight set.
-    integer, optional, intent(in) :: i_set
+    !> Weight class.
+    integer, optional, intent(in) :: i_class
 
     call pmc_mpi_allreduce_sum_integer(&
-         aero_state_total_particles(aero_state, i_group, i_set), &
+         aero_state_total_particles(aero_state, i_group, i_class), &
          aero_state_total_particles_all_procs)
 
   end function aero_state_total_particles_all_procs
@@ -407,14 +408,14 @@ contains
   !> Remove a randomly chosen particle from the given bin and return
   !> it.
   subroutine aero_state_remove_rand_particle_from_bin(aero_state, &
-       i_bin, i_set, aero_particle)
+       i_bin, i_class, aero_particle)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Bin number to remove particle from.
     integer, intent(in) :: i_bin
-    !> Weight set to remove particle from.
-    integer, intent(in) :: i_set
+    !> Weight class to remove particle from.
+    integer, intent(in) :: i_class
     !> Removed particle.
     type(aero_particle_t), intent(inout) :: aero_particle
 
@@ -422,11 +423,11 @@ contains
 
     call assert(742996300, aero_state%valid_sort)
     call assert(392182617, &
-         aero_state%aero_sorted%size_set%inverse(i_bin, i_set)%n_entry > 0)
-    i_entry = pmc_rand_int(aero_state%aero_sorted%size_set%inverse(i_bin, &
-         i_set)%n_entry)
-    i_part = aero_state%aero_sorted%size_set%inverse(i_bin, &
-         i_set)%entry(i_entry)
+         aero_state%aero_sorted%size_class%inverse(i_bin, i_class)%n_entry > 0)
+    i_entry = pmc_rand_int(aero_state%aero_sorted%size_class%inverse(i_bin, &
+         i_class)%n_entry)
+    i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
+         i_class)%entry(i_entry)
     call aero_particle_copy(aero_state%apa%particle(i_part), aero_particle)
     call aero_state_remove_particle_no_info(aero_state, i_part)
 
@@ -479,7 +480,7 @@ contains
              if (random_weight_group) then
                 new_group &
                      = aero_weight_array_rand_group(aero_state%awa, &
-                     aero_particle%weight_set, &
+                     aero_particle%weight_class, &
                      aero_particle_radius(aero_particle))
                 call aero_particle_set_weight(new_aero_particle, new_group)
              end if
@@ -550,7 +551,7 @@ contains
     !> aero_state_num_conc_for_reweight().
     real(kind=dp), intent(in) :: reweight_num_conc(aero_state%apa%n_part)
 
-    integer :: i_part, i_group, i_set
+    integer :: i_part, i_group, i_class
     real(kind=dp) :: n_part_old(size(aero_state%awa%weight, 1), &
          size(aero_state%awa%weight, 2))
     real(kind=dp) :: n_part_new(size(aero_state%awa%weight, 1), &
@@ -569,19 +570,20 @@ contains
             aero_particle)
        n_part_mean = old_num_conc / new_num_conc
        i_group = aero_particle%weight_group
-       i_set = aero_particle%weight_set
-       n_part_new(i_group, i_set) = n_part_new(i_group, i_set) + n_part_mean
-       n_part_old(i_group, i_set) = n_part_old(i_group, i_set) + 1d0
+       i_class = aero_particle%weight_class
+       n_part_new(i_group, i_class) = n_part_new(i_group, i_class) &
+            + n_part_mean
+       n_part_old(i_group, i_class) = n_part_old(i_group, i_class) + 1d0
     end do
 
     ! alter comp_vol to leave the number of computational particles
     ! per weight bin unchanged
     do i_group = 1,size(aero_state%awa%weight, 1)
-       do i_set = 1,size(aero_state%awa%weight, 2)
-          if (n_part_old(i_group, i_set) == 0d0) cycle
+       do i_class = 1,size(aero_state%awa%weight, 2)
+          if (n_part_old(i_group, i_class) == 0d0) cycle
           call aero_weight_scale_comp_vol( &
-               aero_state%awa%weight(i_group, i_set), &
-               n_part_old(i_group, i_set) / n_part_new(i_group, i_set))
+               aero_state%awa%weight(i_group, i_class), &
+               n_part_old(i_group, i_class) / n_part_new(i_group, i_class))
        end do
     end do
 
@@ -643,36 +645,36 @@ contains
   !> Change the computational volume if necessary to ensure that the
   !> addition of about \c n_add particles will give the correct final
   !> particle number.
-  subroutine aero_state_prepare_comp_vol_for_add(aero_state, i_group, i_set, &
-       n_add)
+  subroutine aero_state_prepare_comp_vol_for_add(aero_state, i_group, &
+       i_class, n_add)
 
     !> Aero state to add to.
     type(aero_state_t), intent(inout) :: aero_state
     !> Weight group number to add to.
     integer, intent(in) :: i_group
-    !> Weight set number to add to.
-    integer, intent(in) :: i_set
+    !> Weight class number to add to.
+    integer, intent(in) :: i_class
     !> Approximate number of particles to be added at current weighting.
     real(kind=dp), intent(in) :: n_add
 
-    integer :: global_n_part, n_group, n_set
+    integer :: global_n_part, n_group, n_class
     real(kind=dp) :: mean_n_part, n_part_new, comp_vol_ratio
     real(kind=dp) :: n_part_ideal_local_group
 
     n_group = aero_weight_array_n_group(aero_state%awa)
-    n_set = aero_weight_array_n_set(aero_state%awa)
+    n_class = aero_weight_array_n_class(aero_state%awa)
     global_n_part = aero_state_total_particles_all_procs(aero_state, &
-         i_group, i_set)
+         i_group, i_class)
     mean_n_part = real(global_n_part, kind=dp) / real(pmc_mpi_size(), kind=dp)
     n_part_new = mean_n_part + n_add
     if (n_part_new == 0d0) return
-    n_part_ideal_local_group = aero_state%n_part_ideal(i_group, i_set) &
+    n_part_ideal_local_group = aero_state%n_part_ideal(i_group, i_class) &
          / real(pmc_mpi_size(), kind=dp)
     if ((n_part_new < n_part_ideal_local_group / 2d0) &
          .or. (n_part_new > n_part_ideal_local_group * 2d0)) &
          then
        comp_vol_ratio = n_part_ideal_local_group / n_part_new
-       call aero_state_scale_comp_vol(aero_state, i_group, i_set, &
+       call aero_state_scale_comp_vol(aero_state, i_group, i_class, &
             comp_vol_ratio)
     end if
 
@@ -700,7 +702,7 @@ contains
     integer, intent(out), optional :: n_part_add
 
     real(kind=dp) :: n_samp_avg, radius, vol
-    integer :: n_samp, i_mode, i_samp, i_group, i_set, n_group, n_set
+    integer :: n_samp, i_mode, i_samp, i_group, i_class, n_group, n_class
     type(aero_mode_t), pointer :: aero_mode
     type(aero_particle_t) :: aero_particle
 
@@ -708,26 +710,26 @@ contains
          aero_data%n_source)
 
     n_group = size(aero_state%awa%weight, 1)
-    n_set = size(aero_state%awa%weight, 2)
+    n_class = size(aero_state%awa%weight, 2)
     if (present(n_part_add)) then
        n_part_add = 0
     end if
     do i_group = 1,n_group
        do i_mode = 1,aero_dist%n_mode
           aero_mode => aero_dist%mode(i_mode)
-          i_set = aero_state_weight_set_for_source(aero_state, &
+          i_class = aero_state_weight_class_for_source(aero_state, &
                aero_mode%source)
 
           ! adjust comp_vol if necessary
           n_samp_avg = sample_prop * aero_mode_number(aero_mode, &
-               aero_state%awa%weight(i_group, i_set))
+               aero_state%awa%weight(i_group, i_class))
           call aero_state_prepare_comp_vol_for_add(aero_state, i_group, &
-               i_set, n_samp_avg)
+               i_class, n_samp_avg)
           if (n_samp_avg == 0d0) cycle
 
           ! sample particles
           n_samp_avg = sample_prop * aero_mode_number(aero_mode, &
-               aero_state%awa%weight(i_group, i_set))
+               aero_state%awa%weight(i_group, i_class))
           n_samp = rand_poisson(n_samp_avg)
           if (present(n_part_add)) then
              n_part_add = n_part_add + n_samp
@@ -735,12 +737,12 @@ contains
           do i_samp = 1,n_samp
              call aero_particle_zero(aero_particle)
              call aero_mode_sample_radius(aero_mode, &
-                  aero_state%awa%weight(i_group, i_set), radius)
+                  aero_state%awa%weight(i_group, i_class), radius)
              vol = rad2vol(radius)
              call aero_particle_set_vols(aero_particle, &
                   aero_mode%vol_frac * vol)
              call aero_particle_new_id(aero_particle)
-             call aero_particle_set_weight(aero_particle, i_group, i_set)
+             call aero_particle_set_weight(aero_particle, i_group, i_class)
              call aero_particle_set_create_time(aero_particle, create_time)
              call aero_particle_set_source(aero_particle, aero_mode%source)
              call aero_state_add_particle(aero_state, aero_particle)
@@ -1101,14 +1103,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Doubles number of particles in the given weight group.
-  subroutine aero_state_double(aero_state, i_group, i_set)
+  subroutine aero_state_double(aero_state, i_group, i_class)
     
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Weight group to double.
     integer, intent(in) :: i_group
-    !> Weight set to double.
-    integer, intent(in) :: i_set
+    !> Weight class to double.
+    integer, intent(in) :: i_class
 
     integer :: i_part
     type(aero_particle_t) :: aero_particle
@@ -1116,7 +1118,8 @@ contains
     call aero_particle_allocate(aero_particle)
     do i_part = 1,aero_state%apa%n_part
        if ((aero_state%apa%particle(i_part)%weight_group == i_group) &
-            .and. (aero_state%apa%particle(i_part)%weight_set == i_set)) then
+            .and. (aero_state%apa%particle(i_part)%weight_class == i_class)) &
+            then
           call aero_particle_copy(aero_state%apa%particle(i_part), &
                aero_particle)
           call aero_particle_new_id(aero_particle)
@@ -1125,21 +1128,22 @@ contains
     end do
     call aero_particle_deallocate(aero_particle)
     aero_state%valid_sort = .false.
-    call aero_weight_scale_comp_vol(aero_state%awa%weight(i_group, i_set), 2d0)
+    call aero_weight_scale_comp_vol(aero_state%awa%weight(i_group, i_class), &
+         2d0)
 
   end subroutine aero_state_double
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Remove approximately half of the particles in the given weight group.
-  subroutine aero_state_halve(aero_state, i_group, i_set)
+  subroutine aero_state_halve(aero_state, i_group, i_class)
     
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Weight group to halve.
     integer, intent(in) :: i_group
-    !> Weight set to halve.
-    integer, intent(in) :: i_set
+    !> Weight class to halve.
+    integer, intent(in) :: i_class
     
     integer :: i_part
     type(aero_info_t) :: aero_info
@@ -1147,7 +1151,8 @@ contains
     call aero_info_allocate(aero_info)
     do i_part = aero_state%apa%n_part,1,-1
        if ((aero_state%apa%particle(i_part)%weight_group == i_group) &
-            .and. (aero_state%apa%particle(i_part)%weight_set == i_set)) then
+            .and. (aero_state%apa%particle(i_part)%weight_class == i_class)) &
+            then
           if (pmc_random() < 0.5d0) then
              aero_info%id = aero_state%apa%particle(i_part)%id
              aero_info%action = AERO_INFO_HALVED
@@ -1157,7 +1162,7 @@ contains
        end if
     end do
     call aero_info_deallocate(aero_info)
-    call aero_weight_scale_comp_vol(aero_state%awa%weight(i_group, i_set), &
+    call aero_weight_scale_comp_vol(aero_state%awa%weight(i_group, i_class), &
          0.5d0)
 
   end subroutine aero_state_halve
@@ -1179,30 +1184,30 @@ contains
     !> Whether to warn due to initial state doubling/halving.
     logical, intent(in) :: initial_state_warning
 
-    integer :: i_group, i_set, n_group, n_set, global_n_part
+    integer :: i_group, i_class, n_group, n_class, global_n_part
 
     n_group = size(aero_state%awa%weight, 1)
-    n_set = size(aero_state%awa%weight, 2)
+    n_class = size(aero_state%awa%weight, 2)
 
     ! if we have less than half the maximum number of particles then
     ! double until we fill up the array
     if (allow_doubling) then
        do i_group = 1,n_group
-          do i_set = 1,n_set
+          do i_class = 1,n_class
              global_n_part &
                   = aero_state_total_particles_all_procs(aero_state, i_group, &
-                  i_set)
+                  i_class)
              do while ((real(global_n_part, kind=dp) &
-                  < aero_state%n_part_ideal(i_group, i_set) / 2d0) &
+                  < aero_state%n_part_ideal(i_group, i_class) / 2d0) &
                   .and. (global_n_part > 0))
                 if (initial_state_warning) then
                    call warn_msg(716882783, "doubling particles in initial " &
                         // "condition")
                 end if
-                call aero_state_double(aero_state, i_group, i_set)
+                call aero_state_double(aero_state, i_group, i_class)
                 global_n_part &
                      = aero_state_total_particles_all_procs(aero_state, &
-                     i_group, i_set)
+                     i_group, i_class)
              end do
           end do
        end do
@@ -1211,15 +1216,15 @@ contains
     ! same for halving if we have too many particles
     if (allow_halving) then
        do i_group = 1,n_group
-          do i_set = 1,n_set
+          do i_class = 1,n_class
              do while (real(aero_state_total_particles_all_procs(aero_state, &
-                  i_group, i_set), kind=dp) &
-                  > aero_state%n_part_ideal(i_group, i_set) * 2d0)
+                  i_group, i_class), kind=dp) &
+                  > aero_state%n_part_ideal(i_group, i_class) * 2d0)
                 if (initial_state_warning) then
                    call warn_msg(661936373, &
                         "halving particles in initial condition")
                 end if
-                call aero_state_halve(aero_state, i_group, i_set)
+                call aero_state_halve(aero_state, i_group, i_class)
              end do
           end do
        end do
@@ -1229,18 +1234,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Scale the computational volume of the given group/set by the given
+  !> Scale the computational volume of the given group/class by the given
   !> ratio, altering particle number as necessary to preserve the
   !> number concentration.
-  subroutine aero_state_scale_comp_vol(aero_state, i_group, i_set, &
+  subroutine aero_state_scale_comp_vol(aero_state, i_group, i_class, &
        comp_vol_ratio)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Weight group number.
     integer, intent(in) :: i_group
-    !> Weight set number.
-    integer, intent(in) :: i_set
+    !> Weight class number.
+    integer, intent(in) :: i_class
     !> Ratio of <tt>new_comp_vol / old_comp_vol</tt>.
     real(kind=dp), intent(in) :: comp_vol_ratio
 
@@ -1252,7 +1257,7 @@ contains
     ! have higher variance for the ratio < 1 case than the current
     ! scheme.
 
-    call aero_weight_scale_comp_vol(aero_state%awa%weight(i_group, i_set), &
+    call aero_weight_scale_comp_vol(aero_state%awa%weight(i_group, i_class), &
          comp_vol_ratio)
 
     if (aero_state%apa%n_part == 0) return
@@ -1261,13 +1266,13 @@ contains
 
     if (comp_vol_ratio < 1d0) then
        n_remove = prob_round(comp_vol_ratio &
-            * real(aero_state%aero_sorted%group_set%inverse(i_group, &
-            i_set)%n_entry, kind=dp))
+            * real(aero_state%aero_sorted%group_class%inverse(i_group, &
+            i_class)%n_entry, kind=dp))
        do i_remove = 1,n_remove
-          i_entry = pmc_rand_int(aero_state%aero_sorted%group_set%inverse( &
-               i_group, i_set)%n_entry)
-          i_part = aero_state%aero_sorted%group_set%inverse(i_group, &
-               i_set)%entry(i_entry)
+          i_entry = pmc_rand_int(aero_state%aero_sorted%group_class%inverse( &
+               i_group, i_class)%n_entry)
+          i_part = aero_state%aero_sorted%group_class%inverse(i_group, &
+               i_class)%entry(i_entry)
           call aero_info_allocate(aero_info)
           aero_info%id = aero_state%apa%particle(i_part)%id
           aero_info%action = AERO_INFO_HALVED
@@ -1276,10 +1281,10 @@ contains
           call aero_info_deallocate(aero_info)
        end do
     elseif (comp_vol_ratio > 1d0) then
-       do i_entry = aero_state%aero_sorted%group_set%inverse(i_group, &
-            i_set)%n_entry,1,-1
-          i_part = aero_state%aero_sorted%group_set%inverse(i_group, &
-               i_set)%entry(i_entry)
+       do i_entry = aero_state%aero_sorted%group_class%inverse(i_group, &
+            i_class)%n_entry,1,-1
+          i_part = aero_state%aero_sorted%group_class%inverse(i_group, &
+               i_class)%entry(i_entry)
           call aero_state_dup_particle(aero_state, i_part, comp_vol_ratio)
        end do
     end if
@@ -1465,19 +1470,19 @@ contains
 
     real(kind=dp) :: species_volume_conc(aero_data%n_spec)
     real(kind=dp) :: total_volume_conc, particle_volume, num_conc
-    integer :: i_bin, i_set, i_entry, i_part, i_spec
+    integer :: i_bin, i_class, i_entry, i_part, i_spec
     type(aero_particle_t), pointer :: aero_particle
 
     call aero_state_sort(aero_state, bin_grid)
 
     do i_bin = 1,bin_grid%n_bin
-       do i_set = 1,size(aero_state%awa%weight, 2)
+       do i_class = 1,size(aero_state%awa%weight, 2)
           species_volume_conc = 0d0
           total_volume_conc = 0d0
-          do i_entry = 1,aero_state%aero_sorted%size_set%inverse(i_bin, &
-               i_set)%n_entry
-             i_part = aero_state%aero_sorted%size_set%inverse(i_bin, &
-                  i_set)%entry(i_entry)
+          do i_entry = 1,aero_state%aero_sorted%size_class%inverse(i_bin, &
+               i_class)%n_entry
+             i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
+                  i_class)%entry(i_entry)
              aero_particle => aero_state%apa%particle(i_part)
              num_conc = aero_weight_array_num_conc(aero_state%awa, &
                   aero_particle)
@@ -1487,10 +1492,10 @@ contains
                   + num_conc * aero_particle%vol
              total_volume_conc = total_volume_conc + num_conc * particle_volume
           end do
-          do i_entry = 1,aero_state%aero_sorted%size_set%inverse(i_bin, &
-               i_set)%n_entry
-             i_part = aero_state%aero_sorted%size_set%inverse(i_bin, &
-                  i_set)%entry(i_entry)
+          do i_entry = 1,aero_state%aero_sorted%size_class%inverse(i_bin, &
+               i_class)%n_entry
+             i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
+                  i_class)%entry(i_entry)
              aero_particle => aero_state%apa%particle(i_part)
              particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
                   aero_data, dry_volume)
@@ -1545,27 +1550,27 @@ contains
     real(kind=dp) :: new_particle_volume, num_conc, total_num_conc
     real(kind=dp) :: lower_volume, upper_volume, center_volume
     real(kind=dp) :: lower_function, upper_function, center_function
-    integer :: i_bin, i_set, i_entry, i_part, i_bisect, n_part
+    integer :: i_bin, i_class, i_entry, i_part, i_bisect, n_part
     logical :: monotone_increasing, monotone_decreasing
     type(aero_particle_t), pointer :: aero_particle
 
     call aero_state_sort(aero_state, bin_grid)
 
     do i_bin = 1,bin_grid%n_bin
-       do i_set = 1,size(aero_state%awa%weight, 2)
-          if (aero_state%aero_sorted%size_set%inverse(i_bin, &
-               i_set)%n_entry == 0) then
+       do i_class = 1,size(aero_state%awa%weight, 2)
+          if (aero_state%aero_sorted%size_class%inverse(i_bin, &
+               i_class)%n_entry == 0) then
              cycle
           end if
 
-          n_part = aero_state%aero_sorted%size_set%inverse(i_bin, &
-               i_set)%n_entry
+          n_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
+               i_class)%n_entry
           total_num_conc = 0d0
           total_volume_conc = 0d0
-          do i_entry = 1,aero_state%aero_sorted%size_set%inverse(i_bin, &
-               i_set)%n_entry
-             i_part = aero_state%aero_sorted%size_set%inverse(i_bin, &
-                  i_set)%entry(i_entry)
+          do i_entry = 1,aero_state%aero_sorted%size_class%inverse(i_bin, &
+               i_class)%n_entry
+             i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
+                  i_class)%entry(i_entry)
              aero_particle => aero_state%apa%particle(i_part)
              num_conc = aero_weight_array_num_conc(aero_state%awa, &
                   aero_particle)
@@ -1582,10 +1587,10 @@ contains
           elseif (aero_weight_array_check_flat(aero_state%awa)) then
              num_conc & ! any radius will have the same num_conc
                   = aero_weight_array_num_conc_at_radius(aero_state%awa, &
-                  i_set, 1d0)
+                  i_class, 1d0)
              new_particle_volume = total_volume_conc / num_conc &
-                  / real(aero_state%aero_sorted%size_set%inverse(i_bin, &
-                  i_set)%n_entry, kind=dp)
+                  / real(aero_state%aero_sorted%size_class%inverse(i_bin, &
+                  i_class)%n_entry, kind=dp)
           elseif (preserve_number) then
              ! number-preserving scheme: Solve the implicit equation:
              ! n_part * W(new_vol) = total_num_conc
@@ -1604,8 +1609,8 @@ contains
 
              ! initialize to min and max particle volumes
              do i_entry = 1,n_part
-                i_part = aero_state%aero_sorted%size_set%inverse(i_bin, &
-                     i_set)%entry(i_entry)
+                i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
+                     i_class)%entry(i_entry)
                 aero_particle => aero_state%apa%particle(i_part)
                 particle_volume = aero_particle_volume_maybe_dry( &
                      aero_particle, aero_data, dry_volume)
@@ -1619,17 +1624,17 @@ contains
 
              lower_function = real(n_part, kind=dp) &
                   * aero_weight_array_num_conc_at_radius(aero_state%awa, &
-                  i_set, vol2rad(lower_volume)) - total_num_conc
+                  i_class, vol2rad(lower_volume)) - total_num_conc
              upper_function = real(n_part, kind=dp) &
                   * aero_weight_array_num_conc_at_radius(aero_state%awa, &
-                  i_set, vol2rad(upper_volume)) - total_num_conc
+                  i_class, vol2rad(upper_volume)) - total_num_conc
 
              ! do 50 rounds of bisection (2^50 = 10^15)
              do i_bisect = 1,50
                 center_volume = (lower_volume + upper_volume) / 2d0
                 center_function = real(n_part, kind=dp) &
                      * aero_weight_array_num_conc_at_radius(aero_state%awa, &
-                     i_set, vol2rad(center_volume)) - total_num_conc
+                     i_class, vol2rad(center_volume)) - total_num_conc
                 if ((lower_function > 0d0 .and. center_function > 0d0) &
                      .or. (lower_function < 0d0 .and. center_function < 0d0)) &
                      then
@@ -1660,8 +1665,8 @@ contains
 
              ! initialize to min and max particle volumes
              do i_entry = 1,n_part
-                i_part = aero_state%aero_sorted%size_set%inverse(i_bin, &
-                     i_set)%entry(i_entry)
+                i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
+                     i_class)%entry(i_entry)
                 aero_particle => aero_state%apa%particle(i_part)
                 particle_volume = aero_particle_volume_maybe_dry( &
                      aero_particle, aero_data, dry_volume)
@@ -1675,11 +1680,11 @@ contains
 
              lower_function = real(n_part, kind=dp) &
                   * aero_weight_array_num_conc_at_radius( &
-                  aero_state%awa, i_set, vol2rad(lower_volume)) &
+                  aero_state%awa, i_class, vol2rad(lower_volume)) &
                   * lower_volume - total_volume_conc
              upper_function = real(n_part, kind=dp) &
                   * aero_weight_array_num_conc_at_radius( &
-                  aero_state%awa, i_set, vol2rad(upper_volume)) &
+                  aero_state%awa, i_class, vol2rad(upper_volume)) &
                   * upper_volume - total_volume_conc
 
              ! do 50 rounds of bisection (2^50 = 10^15)
@@ -1687,7 +1692,7 @@ contains
                 center_volume = (lower_volume + upper_volume) / 2d0
                 center_function = real(n_part, kind=dp) &
                      * aero_weight_array_num_conc_at_radius( &
-                     aero_state%awa, i_set, vol2rad(center_volume)) &
+                     aero_state%awa, i_class, vol2rad(center_volume)) &
                      * center_volume - total_volume_conc
                 if ((lower_function > 0d0 .and. center_function > 0d0) &
                      .or. (lower_function < 0d0 .and. center_function < 0d0)) &
@@ -1704,8 +1709,8 @@ contains
           end if
 
           do i_entry = 1,n_part
-             i_part = aero_state%aero_sorted%size_set%inverse(i_bin, &
-                  i_set)%entry(i_entry)
+             i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
+                  i_class)%entry(i_entry)
              aero_particle => aero_state%apa%particle(i_part)
              particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
                   aero_data, dry_volume)
@@ -1993,7 +1998,7 @@ contains
          aero_data%n_spec)
     integer :: aero_n_orig_part(aero_state%apa%n_part, aero_data%n_source)
     integer :: aero_particle_weight_group(aero_state%apa%n_part)
-    integer :: aero_particle_weight_set(aero_state%apa%n_part)
+    integer :: aero_particle_weight_class(aero_state%apa%n_part)
     real(kind=dp) :: aero_absorb_cross_sect(aero_state%apa%n_part)
     real(kind=dp) :: aero_scatter_cross_sect(aero_state%apa%n_part)
     real(kind=dp) :: aero_asymmetry(aero_state%apa%n_part)
@@ -2062,8 +2067,8 @@ contains
     !!   - \b aero_particle_weight_group (dim <tt>aero_particle</tt>):
     !!     weight group number (1 to <tt>aero_weight_group</tt>) of
     !!     each aerosol particle
-    !!   - \b aero_particle_weight_set (dim <tt>aero_particle</tt>):
-    !!     weight set number (1 to <tt>aero_weight_set</tt>) of each
+    !!   - \b aero_particle_weight_class (dim <tt>aero_particle</tt>):
+    !!     weight class number (1 to <tt>aero_weight_class</tt>) of each
     !!     aerosol particle
     !!   - \b aero_absorb_cross_sect (unit m^2, dim \c aero_particle):
     !!     optical absorption cross sections of each aerosol particle
@@ -2122,7 +2127,7 @@ contains
           aero_particle_mass(i_part, :) = particle%vol * aero_data%density
           aero_n_orig_part(i_part, :) = particle%n_orig_part
           aero_particle_weight_group(i_part) = particle%weight_group
-          aero_particle_weight_set(i_part) = particle%weight_set
+          aero_particle_weight_class(i_part) = particle%weight_class
           aero_water_hyst_leg(i_part) = particle%water_hyst_leg
           aero_comp_vol(i_part) &
                = 1d0 / aero_state_particle_num_conc(aero_state, particle)
@@ -2152,9 +2157,9 @@ contains
        call pmc_nc_write_integer_1d(ncid, aero_particle_weight_group, &
             "aero_particle_weight_group", (/ dimid_aero_particle /), &
             long_name="weight group number of each aerosol particle")
-       call pmc_nc_write_integer_1d(ncid, aero_particle_weight_set, &
-            "aero_particle_weight_set", (/ dimid_aero_particle /), &
-            long_name="weight set number of each aerosol particle")
+       call pmc_nc_write_integer_1d(ncid, aero_particle_weight_class, &
+            "aero_particle_weight_class", (/ dimid_aero_particle /), &
+            long_name="weight class number of each aerosol particle")
        call pmc_nc_write_integer_1d(ncid, aero_water_hyst_leg, &
             "aero_water_hyst_leg", (/ dimid_aero_particle /), &
             long_name="leg of the water hysteresis curve leg of each "&
@@ -2340,7 +2345,7 @@ contains
     real(kind=dp), allocatable :: aero_particle_mass(:,:)
     integer, allocatable :: aero_n_orig_part(:,:)
     integer, allocatable :: aero_particle_weight_group(:)
-    integer, allocatable :: aero_particle_weight_set(:)
+    integer, allocatable :: aero_particle_weight_class(:)
     real(kind=dp), allocatable :: aero_absorb_cross_sect(:)
     real(kind=dp), allocatable :: aero_scatter_cross_sect(:)
     real(kind=dp), allocatable :: aero_asymmetry(:)
@@ -2373,7 +2378,7 @@ contains
     allocate(aero_particle_mass(n_part, aero_data%n_spec))
     allocate(aero_n_orig_part(n_part, aero_data%n_source))
     allocate(aero_particle_weight_group(n_part))
-    allocate(aero_particle_weight_set(n_part))
+    allocate(aero_particle_weight_class(n_part))
     allocate(aero_absorb_cross_sect(n_part))
     allocate(aero_scatter_cross_sect(n_part))
     allocate(aero_asymmetry(n_part))
@@ -2394,8 +2399,8 @@ contains
          "aero_n_orig_part")
     call pmc_nc_read_integer_1d(ncid, aero_particle_weight_group, &
          "aero_particle_weight_group")
-    call pmc_nc_read_integer_1d(ncid, aero_particle_weight_set, &
-         "aero_particle_weight_set")
+    call pmc_nc_read_integer_1d(ncid, aero_particle_weight_class, &
+         "aero_particle_weight_class")
     call pmc_nc_read_real_1d(ncid, aero_absorb_cross_sect, &
          "aero_absorb_cross_sect", must_be_present=.false.)
     call pmc_nc_read_real_1d(ncid, aero_scatter_cross_sect, &
@@ -2435,7 +2440,7 @@ contains
        aero_particle%vol = aero_particle_mass(i_part, :) / aero_data%density
        aero_particle%n_orig_part = aero_n_orig_part(i_part, :)
        aero_particle%weight_group = aero_particle_weight_group(i_part)
-       aero_particle%weight_set = aero_particle_weight_set(i_part)
+       aero_particle%weight_class = aero_particle_weight_class(i_part)
        aero_particle%absorb_cross_sect = aero_absorb_cross_sect(i_part)
        aero_particle%scatter_cross_sect = aero_scatter_cross_sect(i_part)
        aero_particle%asymmetry = aero_asymmetry(i_part)
@@ -2460,7 +2465,7 @@ contains
     deallocate(aero_particle_mass)
     deallocate(aero_n_orig_part)
     deallocate(aero_particle_weight_group)
-    deallocate(aero_particle_weight_set)
+    deallocate(aero_particle_weight_class)
     deallocate(aero_absorb_cross_sect)
     deallocate(aero_scatter_cross_sect)
     deallocate(aero_asymmetry)

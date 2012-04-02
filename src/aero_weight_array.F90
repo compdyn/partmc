@@ -21,6 +21,15 @@ module pmc_aero_weight_array
 #endif
 
   !> An array of aerosol size distribution weighting functions.
+  !!
+  !! Each particle has a weight group and a weight class, which
+  !! defines the weighting function associated with it. To determine
+  !! the actual weight for a particle, the harmonic mean of the weight
+  !! from each group is computed (for the given class). All particles
+  !! of a given size within a weight class will thus have the same
+  !! weight, irrespective of which group they are in. The group is
+  !! only important when doubling or halving occurs, which takes place
+  !! for a specific group and class.
   type aero_weight_array_t
      !> Aero weight array, <tt>n_group x n_class</tt>.
      type(aero_weight_t), pointer :: weight(:, :)

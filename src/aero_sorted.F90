@@ -16,22 +16,33 @@ module pmc_aero_sorted
   use pmc_bin_grid
   use pmc_mpi
 
-  !> Bin index for particles sorted into bins.
+  !> Sorting of particles into bins.
   !!
-  !! Both forward and reverse indexes are maintained. Particles are
-  !! stored with both a linear index \c i_part, and binned indexes
-  !! <tt>(i_class, i_bin, i_entry)</tt>, indicating that the particle is
-  !! number \c i_entry in bin number <tt>(i_class, i_bin)</tt>. The
-  !! forward index satisfies
-  !! \code
-  !! i_part = aero_sorted%bin(i_class, i_bin)%entry(i_part)
-  !! \endcode
-  !! while the reverse index satisfies
-  !! \code
-  !! i_class = aero_sorted%reverse_class%entry(i_part)
-  !! i_bin = aero_sorted%reverse_bin%entry(i_part)
-  !! i_entry = aero_sorted%reverse_entry%entry(i_part)
-  !! \endcode
+  !! Two different bin-sortings are maintained, one per size bin and
+  !! weight class, and the other per weight group and weight class.
+  !!
+  !! A particle can thus be identified by its position \c i_part in an
+  !! \c aero_particle_array_t, or by an entry in one of the two
+  !! sortings.
+  !!
+  !! For example, for size bin \c i_bin and weight class \c i_class,
+  !! the number of particles with this size and class are
+  !! <pre>
+  !! n = aero_sorted%size_class%inverse(i_bin, i_class)%n_entry
+  !! </pre>
+  !! For particle number \c i_entry in this size/class bin, the
+  !! particle number is
+  !! <pre>
+  !! i_part = aero_sorted%size_class%inverse(i_bin, i_class)%entry(i_entry)
+  !! </pre>
+  !! For particle number \c i_part, the size bin and weight class are
+  !! <pre>
+  !! i_bin = aero_sorted%size_class%forward1%entry(i_part)
+  !! i_class = aero_sorted%size_class%forward2%entry(i_part)
+  !! </pre>
+  !!
+  !! Similar relationships hold for \c aero_sorted%group_class which
+  !! sorts particles per weight group/class.
   type aero_sorted_t
      !> Bin grid for sorting.
      type(bin_grid_t) :: bin_grid
@@ -41,9 +52,9 @@ module pmc_aero_sorted
      type(integer_rmap2_t) :: group_class
      !> Whether coagulation kernel bounds are valid.
      logical :: coag_kernel_bounds_valid
-     !> Coagulation kernel lower bound.
+     !> Coagulation kernel lower bound [<tt>n_bin x n_bin</tt>].
      real(kind=dp), allocatable, dimension(:,:) :: coag_kernel_min
-     !> Coagulation kernel upper bound.
+     !> Coagulation kernel upper bound [<tt>n_bin x n_bin</tt>].
      real(kind=dp), allocatable, dimension(:,:) :: coag_kernel_max
   end type aero_sorted_t
 

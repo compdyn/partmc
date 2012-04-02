@@ -29,9 +29,9 @@ module pmc_aero_particle
      !> Number of original particles from each source that coagulated
      !> to form this one [length aero_data%%n_source].
      integer, pointer :: n_orig_part(:)
-     !> Weighting function group number.
+     !> Weighting function group number (see \c aero_weight_array_t).
      integer :: weight_group
-     !> Weighting function class number.
+     !> Weighting function class number (see \c aero_weight_array_t).
      integer :: weight_class
      !> Absorption cross-section (m^2).
      real(kind=dp) :: absorb_cross_sect

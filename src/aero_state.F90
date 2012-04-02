@@ -53,15 +53,19 @@ module pmc_aero_state
   !> The current collection of aerosol particles.
   !!
   !! The particles in \c aero_state_t are stored in a single flat
-  !! array (the \c apa data member), with a sorting into bins possibly
-  !! stored in the \c aero_sorted data member.
+  !! array (the \c apa data member), with a sorting into size bins and
+  !! weight groups/classes possibly stored in the \c aero_sorted data
+  !! member (if \c valid_sort is true).
   !!
   !! Every time we remove particles we keep track of the particle ID
   !! and the action performed in the aero_info_array_t structure. This
   !! is typically cleared each time we output data to disk.
   type aero_state_t
+     !> Linear array of particles.
      type(aero_particle_array_t) :: apa
+     !> Sorting of particles into size bins and weight groups/classes.
      type(aero_sorted_t) :: aero_sorted
+     !> Whether the \c aero_sorted is a correct sorting.
      logical :: valid_sort
      !> Weighting functions.
      type(aero_weight_array_t) :: awa

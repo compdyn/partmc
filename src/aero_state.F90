@@ -649,7 +649,7 @@ contains
              if (aero_data%fractal%do_fractal) then
                 vol = Rme2vol(radius, env_state%temp, env_state%pressure, &
                      aero_data%fractal)
-                write(*,'(A,E15.6,A,E15.6)') 'R_me = ', radius, '  V = ', vol
+                !write(*,'(A,E15.6,A,E15.6)') 'R_me = ', radius, '  V = ', vol
              else
                 vol = rad2vol(radius, aero_data%fractal)
              end if

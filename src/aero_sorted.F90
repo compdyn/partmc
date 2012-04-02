@@ -139,23 +139,13 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Number of weight groups.
-    integer, optional, intent(in) :: n_group
+    integer, intent(in) :: n_group
     !> Number of weight classes.
-    integer, optional, intent(in) :: n_class
+    integer, intent(in) :: n_class
 
-    integer :: use_n_group, use_n_class
-
-    if (present(n_group)) then
-       call assert(708728924, present(n_class))
-       use_n_group = n_group
-       use_n_class = n_class
-    else
-       use_n_group = size(aero_sorted%group_class%inverse, 1)
-       use_n_class = size(aero_sorted%group_class%inverse, 2)
-    end if
     call aero_sorted_deallocate(aero_sorted)
-    call aero_sorted_allocate_size(aero_sorted, bin_grid%n_bin, use_n_group, &
-         use_n_class)
+    call aero_sorted_allocate_size(aero_sorted, bin_grid%n_bin, n_group, &
+         n_class)
     call bin_grid_copy(bin_grid, aero_sorted%bin_grid)
 
   end subroutine aero_sorted_set_bin_grid

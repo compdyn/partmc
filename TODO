@@ -178,3 +178,7 @@ What should we be doing instead of "new_source_name(i) =
 name(1:AERO_SOURCE_NAME_LEN)" and similar. This dies at runtime if
 "name" has length less than AERO_SOURCE_NAME_LEN, which it might have
 because we only say "character(len=*), intent(in) :: name".
+
+Eliminate aero_weight%comp_vol and aero_weight%ref_radius and add
+aero_weight%magnitude as an overall scale factor (inverse of the
+current comp_vol).

@@ -131,6 +131,42 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the number of size bins.
+  integer function aero_sorted_n_bin(aero_sorted)
+
+    !> Aerosol sorting to use.
+    type(aero_sorted_t), intent(in) :: aero_sorted
+
+    aero_sorted_n_bin = size(aero_sorted%size_class%inverse, 1)
+
+  end function aero_sorted_n_bin
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the number of weight groups.
+  integer function aero_sorted_n_group(aero_sorted)
+
+    !> Aerosol sorting to use.
+    type(aero_sorted_t), intent(in) :: aero_sorted
+
+    aero_sorted_n_group = size(aero_sorted%group_class%inverse, 1)
+
+  end function aero_sorted_n_group
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the number of weight classes.
+  integer function aero_sorted_n_class(aero_sorted)
+
+    !> Aerosol sorting to use.
+    type(aero_sorted_t), intent(in) :: aero_sorted
+
+    aero_sorted_n_class = size(aero_sorted%size_class%inverse, 2)
+
+  end function aero_sorted_n_class
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Do a sorting of a set of aerosol particles.
   subroutine aero_sorted_set_bin_grid(aero_sorted, bin_grid, n_group, n_class)
 
@@ -240,8 +276,8 @@ contains
        use_n_class = n_class
     else
        call assert(352582858, valid_sort)
-       use_n_group = size(aero_sorted%group_class%inverse, 1)
-       use_n_class = size(aero_sorted%group_class%inverse, 2)
+       use_n_group = aero_sorted_n_group(aero_sorted)
+       use_n_class = aero_sorted_n_class(aero_sorted)
     end if
 
     if (present(bin_grid)) then
@@ -402,8 +438,8 @@ contains
     i_class = aero_particle%weight_class
 
     n_bin = aero_sorted%bin_grid%n_bin
-    n_group = size(aero_sorted%group_class%inverse, 1)
-    n_class = size(aero_sorted%group_class%inverse, 2)
+    n_group = aero_sorted_n_group(aero_sorted)
+    n_class = aero_sorted_n_class(aero_sorted)
     call assert(417177855, (i_group >= 1) .and. (i_group <= n_group))
     call assert(233133947, (i_class >= 1) .and. (i_class <= n_class))
 
@@ -552,12 +588,11 @@ contains
     integer :: total_size
 
     total_size = 0
+    total_size = total_size + pmc_mpi_pack_size_integer(aero_sorted_n_bin(val))
     total_size = total_size &
-         + pmc_mpi_pack_size_integer(size(val%size_class%inverse, 1))
+         + pmc_mpi_pack_size_integer(aero_sorted_n_group(val))
     total_size = total_size &
-         + pmc_mpi_pack_size_integer(size(val%group_class%inverse, 1))
-    total_size = total_size &
-         + pmc_mpi_pack_size_integer(size(val%group_class%inverse, 2))
+         + pmc_mpi_pack_size_integer(aero_sorted_n_class(val))
     total_size = total_size + pmc_mpi_pack_size_bin_grid(val%bin_grid)
     total_size = total_size + pmc_mpi_pack_size_integer_rmap2(val%size_class)
     total_size = total_size + pmc_mpi_pack_size_integer_rmap2(val%group_class)
@@ -581,12 +616,9 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_pack_integer(buffer, position, size(val%size_class%inverse, &
-         1))
-    call pmc_mpi_pack_integer(buffer, position, size(val%group_class%inverse, &
-         1))
-    call pmc_mpi_pack_integer(buffer, position, size(val%group_class%inverse, &
-         2))
+    call pmc_mpi_pack_integer(buffer, position, aero_sorted_n_bin(val))
+    call pmc_mpi_pack_integer(buffer, position, aero_sorted_n_group(val))
+    call pmc_mpi_pack_integer(buffer, position, aero_sorted_n_class(val))
     call pmc_mpi_pack_bin_grid(buffer, position, val%bin_grid)
     call pmc_mpi_pack_integer_rmap2(buffer, position, val%size_class)
     call pmc_mpi_pack_integer_rmap2(buffer, position, val%group_class)

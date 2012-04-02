@@ -65,9 +65,9 @@ contains
 
     tot_n_samp = 0
     tot_n_coag = 0
-    do c1 = 1,size(aero_state%aero_sorted%size_class%inverse, 2)
+    do c1 = 1,aero_sorted_n_class(aero_state%aero_sorted)
        do c2 = 1,c1
-          do b1 = 1,size(aero_state%aero_sorted%size_class%inverse, 1)
+          do b1 = 1,aero_sorted_n_bin(aero_state%aero_sorted)
              if (aero_state%aero_sorted%size_class%inverse(b1, &
                   c1)%n_entry == 0) &
                   cycle
@@ -76,7 +76,7 @@ contains
              else
                 b2_start = 1
              end if
-             do b2 = b2_start,size(aero_state%aero_sorted%size_class%inverse, 1)
+             do b2 = b2_start,aero_sorted_n_bin(aero_state%aero_sorted)
                 if (aero_state%aero_sorted%size_class%inverse(b2, &
                      c2)%n_entry == 0) &
                      cycle

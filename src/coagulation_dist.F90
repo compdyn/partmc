@@ -141,7 +141,7 @@ contains
     type(aero_weight_array_t) :: aero_weight_total
 
     call assert_msg(667898741, &
-         size(aero_state%aero_sorted%size_class%inverse, 2) == 1, &
+         aero_sorted_n_class(aero_state%aero_sorted) == 1, &
          "FIXME: mc_coag_dist() can only handle one weight class")
     
     n_proc = pmc_mpi_size()

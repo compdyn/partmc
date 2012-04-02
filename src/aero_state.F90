@@ -2013,7 +2013,7 @@ contains
     real(kind=dp) :: aero_refract_core_imag(aero_state%apa%n_part)
     real(kind=dp) :: aero_core_vol(aero_state%apa%n_part)
     integer :: aero_water_hyst_leg(aero_state%apa%n_part)
-    real(kind=dp) :: aero_comp_vol(aero_state%apa%n_part)
+    real(kind=dp) :: aero_num_conc(aero_state%apa%n_part)
     integer :: aero_id(aero_state%apa%n_part)
     real(kind=dp) :: aero_least_create_time(aero_state%apa%n_part)
     real(kind=dp) :: aero_greatest_create_time(aero_state%apa%n_part)
@@ -2032,16 +2032,16 @@ contains
     !! in particle \c i. The aerosol species are described in \ref
     !! output_format_aero_data.
     !!
-    !! Each aerosol particle \c i represents a volume of space known
-    !! as the computational volume and given by
-    !! <tt>aero_comp_vol(i)</tt>. Dividing a per-particle quantity by
-    !! the respective computational volume gives the concentration of
-    !! that quantity contributed by the particle. For example, summing
-    !! <tt>aero_particle_mass(i,s) / aero_comp_vol(i)</tt> over all \c
-    !! i gives the total concentration of species \c s in
-    !! kg/m^3. Similarly, summing <tt>aero_absorb_cross_sect(i) /
-    !! aero_comp_vol(i)</tt> over all \c i will give the concentration
-    !! of scattering cross section in m^2/m^3.
+    !! Each aerosol particle \c i represents a number concentration
+    !! given by <tt>aero_num_conc(i)</tt>. Multiplying a per-particle
+    !! quantity by the respective number concentration gives the
+    !! concentration of that quantity contributed by the particle. For
+    !! example, summing <tt>aero_particle_mass(i,s) *
+    !! aero_num_conc(i)</tt> over all \c i gives the total mass
+    !! concentration of species \c s in kg/m^3. Similarly, summing
+    !! <tt>aero_absorb_cross_sect(i) * aero_num_conc(i)</tt> over all
+    !! \c i will give the concentration of scattering cross section in
+    !! m^2/m^3.
     !!
     !! FIXME: the aero_weight is also output
     !!
@@ -2098,8 +2098,8 @@ contains
     !!   - \b aero_water_hyst_leg (dim \c aero_particle): integers
     !!     specifying which leg of the water hysteresis curve each
     !!     particle is on, using the MOSAIC numbering convention
-    !!   - \b aero_comp_vol (unit m^3, dim \c aero_particle): computational
-    !!     volume containing each particle
+    !!   - \b aero_num_conc (unit m^{-3}, dim \c aero_particle): number
+    !!     concentration associated with each particle
     !!   - \b aero_id (dim \c aero_particle): unique ID number of each
     !!     aerosol particle
     !!   - \b aero_least_create_time (unit s, dim \c aero_particle): least
@@ -2134,8 +2134,8 @@ contains
           aero_particle_weight_group(i_part) = particle%weight_group
           aero_particle_weight_class(i_part) = particle%weight_class
           aero_water_hyst_leg(i_part) = particle%water_hyst_leg
-          aero_comp_vol(i_part) &
-               = 1d0 / aero_state_particle_num_conc(aero_state, particle)
+          aero_num_conc(i_part) &
+               = aero_state_particle_num_conc(aero_state, particle)
           aero_id(i_part) = particle%id
           aero_least_create_time(i_part) = particle%least_create_time
           aero_greatest_create_time(i_part) = particle%greatest_create_time
@@ -2169,9 +2169,9 @@ contains
             "aero_water_hyst_leg", (/ dimid_aero_particle /), &
             long_name="leg of the water hysteresis curve leg of each "&
             // "aerosol particle")
-       call pmc_nc_write_real_1d(ncid, aero_comp_vol, &
-            "aero_comp_vol", (/ dimid_aero_particle /), unit="m^3", &
-            long_name="computational volume containing each particle")
+       call pmc_nc_write_real_1d(ncid, aero_num_conc, &
+            "aero_num_conc", (/ dimid_aero_particle /), unit="m^{-3}", &
+            long_name="number concentration for each particle")
        call pmc_nc_write_integer_1d(ncid, aero_id, &
             "aero_id", (/ dimid_aero_particle /), &
             long_name="unique ID number of each aerosol particle")
@@ -2360,7 +2360,7 @@ contains
     real(kind=dp), allocatable :: aero_refract_core_imag(:)
     real(kind=dp), allocatable :: aero_core_vol(:)
     integer, allocatable :: aero_water_hyst_leg(:)
-    real(kind=dp), allocatable :: aero_comp_vol(:)
+    real(kind=dp), allocatable :: aero_num_conc(:)
     integer, allocatable :: aero_id(:)
     real(kind=dp), allocatable :: aero_least_create_time(:)
     real(kind=dp), allocatable :: aero_greatest_create_time(:)
@@ -2393,7 +2393,7 @@ contains
     allocate(aero_refract_core_imag(n_part))
     allocate(aero_core_vol(n_part))
     allocate(aero_water_hyst_leg(n_part))
-    allocate(aero_comp_vol(n_part))
+    allocate(aero_num_conc(n_part))
     allocate(aero_id(n_part))
     allocate(aero_least_create_time(n_part))
     allocate(aero_greatest_create_time(n_part))
@@ -2424,8 +2424,8 @@ contains
          "aero_core_vol", must_be_present=.false.)
     call pmc_nc_read_integer_1d(ncid, aero_water_hyst_leg, &
          "aero_water_hyst_leg")
-    call pmc_nc_read_real_1d(ncid, aero_comp_vol, &
-         "aero_comp_vol")
+    call pmc_nc_read_real_1d(ncid, aero_num_conc, &
+         "aero_num_conc")
     call pmc_nc_read_integer_1d(ncid, aero_id, &
          "aero_id")
     call pmc_nc_read_real_1d(ncid, aero_least_create_time, &
@@ -2460,8 +2460,8 @@ contains
        aero_particle%least_create_time = aero_least_create_time(i_part)
        aero_particle%greatest_create_time = aero_greatest_create_time(i_part)
 
-       call assert(314368871, almost_equal(aero_comp_vol(i_part), &
-            1d0 / aero_weight_array_num_conc(aero_state%awa, aero_particle)))
+       call assert(314368871, almost_equal(aero_num_conc(i_part), &
+            aero_weight_array_num_conc(aero_state%awa, aero_particle)))
 
        call aero_state_add_particle(aero_state, aero_particle)
     end do
@@ -2480,7 +2480,7 @@ contains
     deallocate(aero_refract_core_imag)
     deallocate(aero_core_vol)
     deallocate(aero_water_hyst_leg)
-    deallocate(aero_comp_vol)
+    deallocate(aero_num_conc)
     deallocate(aero_id)
     deallocate(aero_least_create_time)
     deallocate(aero_greatest_create_time)

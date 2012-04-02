@@ -7,6 +7,10 @@
   * Each particle source is now resolved with equal number of
     computational particles.
 
+  * Output NetCDF files now store per-particle number concentration in
+    `aero_num_conc`, which is the inverse of the previous
+    `aero_comp_vol` variable.
+
 2.2.1 - 2012-03-30
 
   * De-duplicate error codes.

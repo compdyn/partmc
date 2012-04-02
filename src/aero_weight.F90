@@ -30,12 +30,10 @@ module pmc_aero_weight
 
   !> An aerosol size distribution weighting function.
   type aero_weight_t
-     !> Computational volume (m^3).
-     real(kind=dp) :: comp_vol
      !> Weight type (given by module constants).
      integer :: type
-     !> Reference radius at which the weight is 1 (hard-coded at present).
-     real(kind=dp) :: ref_radius
+     !> Overall weight magnitude (m^{-3}).
+     real(kind=dp) :: magnitude
      !> Exponent for "power" weight.
      real(kind=dp) :: exponent
   end type aero_weight_t
@@ -84,24 +82,23 @@ contains
     !> Aerosol weight.
     type(aero_weight_t), intent(inout) :: aero_weight
 
-    aero_weight%comp_vol = 1d0
     aero_weight%type = AERO_WEIGHT_TYPE_INVALID
-    aero_weight%ref_radius = 0d0
+    aero_weight%magnitude = 1d0
     aero_weight%exponent = 0d0
 
   end subroutine aero_weight_zero
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Zeros the \c aero_weight computational volume.
-  elemental subroutine aero_weight_zero_comp_vol(aero_weight)
+  !> Sets the \c aero_weight to a non-zero normalized value.
+  elemental subroutine aero_weight_normalize(aero_weight)
 
     !> Aerosol weight.
     type(aero_weight_t), intent(inout) :: aero_weight
 
-    aero_weight%comp_vol = 1d0
+    aero_weight%magnitude = 1d0
 
-  end subroutine aero_weight_zero_comp_vol
+  end subroutine aero_weight_normalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -113,27 +110,26 @@ contains
     !> Aerosol weight copy.
     type(aero_weight_t), intent(inout) :: aero_weight_to
 
-    aero_weight_to%comp_vol = aero_weight_from%comp_vol
     aero_weight_to%type = aero_weight_from%type
-    aero_weight_to%ref_radius = aero_weight_from%ref_radius
+    aero_weight_to%magnitude = aero_weight_from%magnitude
     aero_weight_to%exponent = aero_weight_from%exponent
 
   end subroutine aero_weight_copy
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Scale the computational volume by the given fraction, so
-  !> <tt>new_comp_vol = old_comp_vol * fraction</tt>.
-  elemental subroutine aero_weight_scale_comp_vol(aero_weight, fraction)
+  !> Scale the weight by the given fraction, so <tt>new_weight =
+  !> old_weight * factor</tt>.
+  elemental subroutine aero_weight_scale(aero_weight, factor)
 
-    !> Aerosol weight to halve.
+    !> Aerosol weight to scale.
     type(aero_weight_t), intent(inout) :: aero_weight
-    !> Fraction to scale computational volume by.
-    real(kind=dp), intent(in) :: fraction
+    !> Factor to scale by.
+    real(kind=dp), intent(in) :: factor
 
-    aero_weight%comp_vol = aero_weight%comp_vol * fraction
+    aero_weight%magnitude = aero_weight%magnitude * factor
 
-  end subroutine aero_weight_scale_comp_vol
+  end subroutine aero_weight_scale
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -145,7 +141,8 @@ contains
     !> Aerosol weight to add volume from.
     type(aero_weight_t), intent(in) :: aero_weight_delta
 
-    aero_weight%comp_vol = aero_weight%comp_vol + aero_weight_delta%comp_vol
+    aero_weight%magnitude = harmonic_mean(aero_weight%magnitude, &
+         aero_weight_delta%magnitude)
 
   end subroutine aero_weight_add_comp_vol
 
@@ -163,11 +160,15 @@ contains
     !> Proportion of from volume to transfer.
     real(kind=dp), intent(in) :: sample_prop
 
-    real(kind=dp) :: transfer_comp_vol
+    real(kind=dp) :: comp_vol_from, comp_vol_to, comp_vol_transfer
 
-    transfer_comp_vol = sample_prop * aero_weight_from%comp_vol
-    aero_weight_to%comp_vol = aero_weight_to%comp_vol + transfer_comp_vol
-    aero_weight_from%comp_vol = aero_weight_from%comp_vol - transfer_comp_vol
+    comp_vol_from = 1d0 / aero_weight_from%magnitude
+    comp_vol_to = 1d0 / aero_weight_to%magnitude
+    comp_vol_transfer = sample_prop * comp_vol_from
+    comp_vol_from = comp_vol_from - comp_vol_transfer
+    comp_vol_to = comp_vol_to + comp_vol_transfer
+    aero_weight_from%magnitude = 1d0 / comp_vol_from
+    aero_weight_to%magnitude = 1d0 / comp_vol_to
 
   end subroutine aero_weight_transfer_comp_vol
 
@@ -182,17 +183,15 @@ contains
     real(kind=dp), intent(in) :: radius
 
     if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
-       aero_weight_num_conc_at_radius = 1d0
+       aero_weight_num_conc_at_radius = aero_weight%magnitude
     elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
          .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
-       aero_weight_num_conc_at_radius &
-            = (radius / aero_weight%ref_radius)**aero_weight%exponent
+       aero_weight_num_conc_at_radius = aero_weight%magnitude &
+            * radius**aero_weight%exponent
     else
        call die_msg(700421478, "unknown aero_weight type: " &
             // trim(integer_to_string(aero_weight%type)))
     end if
-    aero_weight_num_conc_at_radius &
-         = aero_weight_num_conc_at_radius / aero_weight%comp_vol
 
   end function aero_weight_num_conc_at_radius
 
@@ -228,8 +227,8 @@ contains
          .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
        call assert_msg(902242996, aero_weight%exponent /= 0d0, &
             "cannot invert weight with zero exponent")
-       aero_weight_radius_at_num_conc = exp(log(aero_weight%ref_radius) &
-            + log(num_conc * aero_weight%comp_vol) / aero_weight%exponent)
+       aero_weight_radius_at_num_conc &
+            = exp(log(num_conc / aero_weight%magnitude) / aero_weight%exponent)
     else
        call die_msg(307766845, "unknown aero_weight type: " &
             // trim(integer_to_string(aero_weight%type)))
@@ -337,15 +336,14 @@ contains
     !!   - \ref spec_file_format --- the input file text format
 
     call spec_file_read_string(file, 'weight', weight_type)
+    aero_weight%magnitude = 0d0
     if (trim(weight_type) == 'none') then
        aero_weight%type = AERO_WEIGHT_TYPE_NONE
     elseif (trim(weight_type) == 'power') then
        aero_weight%type = AERO_WEIGHT_TYPE_POWER
-       aero_weight%ref_radius = 1d0
        call spec_file_read_real(file, 'exponent', aero_weight%exponent)
     elseif (trim(weight_type) == 'mfa') then
        aero_weight%type = AERO_WEIGHT_TYPE_MFA
-       aero_weight%ref_radius = 1d0
        aero_weight%exponent = -3d0
     else
        call spec_file_die_msg(456342050, file, "unknown weight_type: " &
@@ -363,9 +361,8 @@ contains
     type(aero_weight_t), intent(in) :: val
 
     pmc_mpi_pack_size_aero_weight = &
-         pmc_mpi_pack_size_real(val%comp_vol) &
-         + pmc_mpi_pack_size_integer(val%type) &
-         + pmc_mpi_pack_size_real(val%ref_radius) &
+         pmc_mpi_pack_size_integer(val%type) &
+         + pmc_mpi_pack_size_real(val%magnitude) &
          + pmc_mpi_pack_size_real(val%exponent)
 
   end function pmc_mpi_pack_size_aero_weight
@@ -386,9 +383,8 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_pack_real(buffer, position, val%comp_vol)
     call pmc_mpi_pack_integer(buffer, position, val%type)
-    call pmc_mpi_pack_real(buffer, position, val%ref_radius)
+    call pmc_mpi_pack_real(buffer, position, val%magnitude)
     call pmc_mpi_pack_real(buffer, position, val%exponent)
     call assert(579699255, &
          position - prev_position <= pmc_mpi_pack_size_aero_weight(val))
@@ -412,9 +408,8 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_unpack_real(buffer, position, val%comp_vol)
     call pmc_mpi_unpack_integer(buffer, position, val%type)
-    call pmc_mpi_unpack_real(buffer, position, val%ref_radius)
+    call pmc_mpi_unpack_real(buffer, position, val%magnitude)
     call pmc_mpi_unpack_real(buffer, position, val%exponent)
     call assert(639056899, &
          position - prev_position <= pmc_mpi_pack_size_aero_weight(val))

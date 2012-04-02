@@ -79,7 +79,7 @@ contains
 
     call aero_weight_array_allocate_size(aero_weight_array, 1, n_class)
     aero_weight_array%weight%type = AERO_WEIGHT_TYPE_NONE
-    aero_weight_array%weight%ref_radius = 1d0
+    aero_weight_array%weight%magnitude = 1d0
     aero_weight_array%weight%exponent = 0d0
 
   end subroutine aero_weight_array_allocate_flat
@@ -99,7 +99,7 @@ contains
 
     call aero_weight_array_allocate_size(aero_weight_array, 1, n_class)
     aero_weight_array%weight%type = AERO_WEIGHT_TYPE_POWER
-    aero_weight_array%weight%ref_radius = 1d0
+    aero_weight_array%weight%magnitude = 1d0
     aero_weight_array%weight%exponent = exponent
 
   end subroutine aero_weight_array_allocate_power
@@ -116,10 +116,10 @@ contains
 
     call aero_weight_array_allocate_size(aero_weight_array, 2, n_class)
     aero_weight_array%weight(1, :)%type = AERO_WEIGHT_TYPE_NONE
-    aero_weight_array%weight(1, :)%ref_radius = 1d0
+    aero_weight_array%weight(1, :)%magnitude = 1d0
     aero_weight_array%weight(1, :)%exponent = 0d0
     aero_weight_array%weight(2, :)%type = AERO_WEIGHT_TYPE_POWER
-    aero_weight_array%weight(2, :)%ref_radius = 1d0
+    aero_weight_array%weight(2, :)%magnitude = 1d0
     aero_weight_array%weight(2, :)%exponent = -3d0
 
   end subroutine aero_weight_array_allocate_nummass
@@ -151,15 +151,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Zeros the \c aero_weight_array computational volume.
-  elemental subroutine aero_weight_array_zero_comp_vol(aero_weight_array)
+  !> Normalizes the \c aero_weight_array to a non-zero value.
+  elemental subroutine aero_weight_array_normalize(aero_weight_array)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(inout) :: aero_weight_array
 
-    call aero_weight_zero_comp_vol(aero_weight_array%weight)
+    call aero_weight_normalize(aero_weight_array%weight)
 
-  end subroutine aero_weight_array_zero_comp_vol
+  end subroutine aero_weight_array_normalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -210,18 +210,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Scale the computational volume by the given fraction, so
-  !> <tt>new_comp_vol = old_comp_vol * fraction</tt>.
-  subroutine aero_weight_array_scale_comp_vol(aero_weight_array, fraction)
+  !> Scale the weights by the given factor, so
+  !> <tt>new_weight = old_weight * factor</tt>.
+  subroutine aero_weight_array_scale(aero_weight_array, factor)
 
-    !> Aerosol weight array to halve.
+    !> Aerosol weight array to scale.
     type(aero_weight_array_t), intent(inout) :: aero_weight_array
-    !> Fraction to scale computational volume by.
-    real(kind=dp), intent(in) :: fraction
+    !> Factor to scale by.
+    real(kind=dp), intent(in) :: factor
 
-    call aero_weight_scale_comp_vol(aero_weight_array%weight, fraction)
+    call aero_weight_scale(aero_weight_array%weight, factor)
 
-  end subroutine aero_weight_array_scale_comp_vol
+  end subroutine aero_weight_array_scale
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -420,7 +420,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Choose a random group at the given radius, with probability
-  !> proportional to group volume at that radius.
+  !> inversely proportional to group weight at that radius.
   integer function aero_weight_array_rand_group(aero_weight_array, i_class, &
        radius)
 
@@ -660,14 +660,14 @@ contains
     !!   - \b aero_weight_class: number of aerosol weighting classes
     !!
     !! The aerosol weighting function NetCDF variables are:
-    !!   - \b weight_comp_vol (unit m^3, dim \c aero_weight): the
-    !!     computational volume associated with each weighting
-    !!     function
     !!   - \b weight_type (no unit, dim \c aero_weight): the type of
     !!     each weighting function, with 0 = invalid weight, 1 = no
     !!     weight (\f$w(D) = 1\f$), 2 = power weight (\f$w(D) =
     !!     (D/D_0)^\alpha\f$), 3 = MFA weight (\f$w(D) =
     !!     (D/D_0)^{-3}\f$)
+    !!   - \b weight_magnitude (unit m^{-3}, dim \c aero_weight): the
+    !!     number concentration magnitude associated with each
+    !!     weighting function
     !!   - \b weight_exponent (no unit, dim \c aero_weight): for each
     !!     weighting function, specifies the exponent \f$\alpha\f$ for
     !!     the power \c weight_type, the value -3 for the MFA \c
@@ -678,16 +678,17 @@ contains
     call aero_weight_netcdf_dim_aero_weight_class(aero_weight_array, ncid, &
          dimid_aero_weight_class)
 
-    call pmc_nc_write_real_2d(ncid, aero_weight_array%weight%comp_vol, &
-         "weight_comp_vol", &
-         (/ dimid_aero_weight_group, dimid_aero_weight_class /), unit="m^3", &
-         description="computational volume for each weighting function")
     call pmc_nc_write_integer_2d(ncid, aero_weight_array%weight%type, &
          "weight_type", &
          (/ dimid_aero_weight_group, dimid_aero_weight_class /), &
          description="type of each aerosol weighting function: 0 = invalid, " &
          // "1 = none (w(D) = 1), 2 = power (w(D) = (D/D_0)^alpha), " &
          // "3 = MFA (mass flow) (w(D) = (D/D_0)^(-3))")
+    call pmc_nc_write_real_2d(ncid, aero_weight_array%weight%magnitude, &
+         "weight_magnitude", &
+         (/ dimid_aero_weight_group, dimid_aero_weight_class /), &
+         unit="m^{-3}", &
+         description="magnitude for each weighting function")
     call pmc_nc_write_real_2d(ncid, aero_weight_array%weight%exponent, &
          "weight_exponent", &
          (/ dimid_aero_weight_group, dimid_aero_weight_class /), unit="1", &
@@ -709,8 +710,8 @@ contains
     integer :: dimid_aero_weight_group, dimid_aero_weight_class, n_group
     integer :: n_class
     character(len=1000) :: name
-    real(kind=dp), allocatable :: comp_vol(:, :), exponent(:, :)
     integer, allocatable :: type(:, :)
+    real(kind=dp), allocatable :: magnitude(:, :), exponent(:, :)
 
     call pmc_nc_check(nf90_inq_dimid(ncid, "aero_weight_group", &
          dimid_aero_weight_group))
@@ -723,27 +724,26 @@ contains
     call assert(719221386, n_group < 1000)
     call assert(520105999, n_class < 1000)
 
-    allocate(comp_vol(n_group, n_class))
     allocate(type(n_group, n_class))
+    allocate(magnitude(n_group, n_class))
     allocate(exponent(n_group, n_class))
 
-    call pmc_nc_read_real_2d(ncid, comp_vol, "weight_comp_vol")
     call pmc_nc_read_integer_2d(ncid, type, "weight_type")
+    call pmc_nc_read_real_2d(ncid, magnitude, "weight_magnitude")
     call pmc_nc_read_real_2d(ncid, exponent, "weight_exponent")
 
-    call assert(309191498, size(comp_vol) == size(type))
-    call assert(588649520, size(comp_vol) == size(exponent))
+    call assert(309191498, size(magnitude) == size(type))
+    call assert(588649520, size(magnitude) == size(exponent))
 
     call aero_weight_array_deallocate(aero_weight_array)
     call aero_weight_array_allocate_size(aero_weight_array, n_group, n_class)
 
-    aero_weight_array%weight%comp_vol = comp_vol
     aero_weight_array%weight%type = type
-    aero_weight_array%weight%ref_radius = 1d0
+    aero_weight_array%weight%magnitude = magnitude
     aero_weight_array%weight%exponent = exponent
     
-    deallocate(comp_vol)
     deallocate(type)
+    deallocate(magnitude)
     deallocate(exponent)
 
   end subroutine aero_weight_array_input_netcdf

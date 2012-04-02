@@ -564,7 +564,7 @@ contains
     type(aero_particle_t), pointer :: aero_particle
 
     ! find average number of new particles in each weight group, if
-    ! comp_vol is not changed
+    ! weight is not changed
     n_part_old = 0d0
     n_part_new = 0d0
     do i_part = 1,aero_state%apa%n_part
@@ -580,14 +580,13 @@ contains
        n_part_old(i_group, i_class) = n_part_old(i_group, i_class) + 1d0
     end do
 
-    ! alter comp_vol to leave the number of computational particles
+    ! alter weight to leave the number of computational particles
     ! per weight bin unchanged
     do i_group = 1,size(aero_state%awa%weight, 1)
        do i_class = 1,size(aero_state%awa%weight, 2)
           if (n_part_old(i_group, i_class) == 0d0) cycle
-          call aero_weight_scale_comp_vol( &
-               aero_state%awa%weight(i_group, i_class), &
-               n_part_old(i_group, i_class) / n_part_new(i_group, i_class))
+          call aero_weight_scale(aero_state%awa%weight(i_group, i_class), &
+               n_part_new(i_group, i_class) / n_part_old(i_group, i_class))
        end do
     end do
 
@@ -623,9 +622,9 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> <tt>aero_state += aero_state_delta</tt>, with the computational
-  !> volume of \c aero_state left unchanged, so the new concentration is the
-  !> sum of the two concentrations, computed with \c aero_state%comp_vol.
+  !> <tt>aero_state += aero_state_delta</tt>, with the weight
+  !> of \c aero_state left unchanged, so the new concentration is the
+  !> sum of the two concentrations, computed with \c aero_state%awa.
   subroutine aero_state_add_particles(aero_state, aero_state_delta)
 
     !> Aerosol state.
@@ -646,10 +645,10 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Change the computational volume if necessary to ensure that the
-  !> addition of about \c n_add particles will give the correct final
-  !> particle number.
-  subroutine aero_state_prepare_comp_vol_for_add(aero_state, i_group, &
+  !> Change the weight if necessary to ensure that the addition of
+  !> about \c n_add computational particles will give the correct
+  !> final particle number.
+  subroutine aero_state_prepare_weight_for_add(aero_state, i_group, &
        i_class, n_add)
 
     !> Aero state to add to.
@@ -662,7 +661,7 @@ contains
     real(kind=dp), intent(in) :: n_add
 
     integer :: global_n_part, n_group, n_class
-    real(kind=dp) :: mean_n_part, n_part_new, comp_vol_ratio
+    real(kind=dp) :: mean_n_part, n_part_new, weight_ratio
     real(kind=dp) :: n_part_ideal_local_group
 
     n_group = aero_weight_array_n_group(aero_state%awa)
@@ -677,18 +676,16 @@ contains
     if ((n_part_new < n_part_ideal_local_group / 2d0) &
          .or. (n_part_new > n_part_ideal_local_group * 2d0)) &
          then
-       comp_vol_ratio = n_part_ideal_local_group / n_part_new
-       call aero_state_scale_comp_vol(aero_state, i_group, i_class, &
-            comp_vol_ratio)
+       weight_ratio = n_part_new / n_part_ideal_local_group
+       call aero_state_scale_weight(aero_state, i_group, i_class, weight_ratio)
     end if
 
-  end subroutine aero_state_prepare_comp_vol_for_add
+  end subroutine aero_state_prepare_weight_for_add
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Generates a Poisson sample of an \c aero_dist, adding to \c
-  !> aero_state. The sampled amount is <tt>sample_prop *
-  !> aero_state%comp_vol</tt>.
+  !> aero_state, with the given sample proportion.
   subroutine aero_state_add_aero_dist_sample(aero_state, aero_data, &
        aero_dist, sample_prop, create_time, n_part_add)
 
@@ -725,10 +722,10 @@ contains
           i_class = aero_state_weight_class_for_source(aero_state, &
                aero_mode%source)
 
-          ! adjust comp_vol if necessary
+          ! adjust weight if necessary
           n_samp_avg = sample_prop * aero_mode_number(aero_mode, &
                aero_state%awa%weight(i_group, i_class))
-          call aero_state_prepare_comp_vol_for_add(aero_state, i_group, &
+          call aero_state_prepare_weight_for_add(aero_state, i_group, &
                i_class, n_samp_avg)
           if (n_samp_avg == 0d0) cycle
 
@@ -777,7 +774,7 @@ contains
 
   !> Generates a random sample by removing particles from
   !> aero_state_from and adding them to aero_state_to, which must
-  !> be already allocated (and should have its comp_vol set).
+  !> be already allocated (and should have its weight set).
   !!
   !! None of the computational volumes are altered by this sampling,
   !! making this the equivalent of aero_state_add_particles().
@@ -878,7 +875,7 @@ contains
     call assert(393205561, (sample_prob >= 0d0) .and. (sample_prob <= 1d0))
     call aero_state_reset(aero_state_to)
     call aero_state_copy_weight(aero_state_from, aero_state_to)
-    call aero_weight_array_zero_comp_vol(aero_state_to%awa)
+    call aero_weight_array_normalize(aero_state_to%awa)
     n_transfer = rand_binomial(aero_state_total_particles(aero_state_from), &
          sample_prob)
     do i_transfer = 1,n_transfer
@@ -1133,8 +1130,7 @@ contains
     end do
     call aero_particle_deallocate(aero_particle)
     aero_state%valid_sort = .false.
-    call aero_weight_scale_comp_vol(aero_state%awa%weight(i_group, i_class), &
-         2d0)
+    call aero_weight_scale(aero_state%awa%weight(i_group, i_class), 0.5d0)
 
   end subroutine aero_state_double
   
@@ -1167,8 +1163,7 @@ contains
        end if
     end do
     call aero_info_deallocate(aero_info)
-    call aero_weight_scale_comp_vol(aero_state%awa%weight(i_group, i_class), &
-         0.5d0)
+    call aero_weight_scale(aero_state%awa%weight(i_group, i_class), 2d0)
 
   end subroutine aero_state_halve
   
@@ -1242,8 +1237,8 @@ contains
   !> Scale the computational volume of the given group/class by the given
   !> ratio, altering particle number as necessary to preserve the
   !> number concentration.
-  subroutine aero_state_scale_comp_vol(aero_state, i_group, i_class, &
-       comp_vol_ratio)
+  subroutine aero_state_scale_weight(aero_state, i_group, i_class, &
+       weight_ratio)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -1251,28 +1246,28 @@ contains
     integer, intent(in) :: i_group
     !> Weight class number.
     integer, intent(in) :: i_class
-    !> Ratio of <tt>new_comp_vol / old_comp_vol</tt>.
-    real(kind=dp), intent(in) :: comp_vol_ratio
+    !> Ratio of <tt>new_weight / old_weight</tt>.
+    real(kind=dp), intent(in) :: weight_ratio
 
     real(kind=dp) :: ratio
     integer :: i_part, i_remove, n_remove, i_entry
     type(aero_info_t) :: aero_info
 
-    ! We could use the ratio > 1 case unconditionally, but that would
-    ! have higher variance for the ratio < 1 case than the current
+    ! We could use the ratio < 1 case unconditionally, but that would
+    ! have higher variance for the ratio > 1 case than the current
     ! scheme.
 
-    call aero_weight_scale_comp_vol(aero_state%awa%weight(i_group, i_class), &
-         comp_vol_ratio)
+    call aero_weight_scale(aero_state%awa%weight(i_group, i_class), &
+         weight_ratio)
 
     if (aero_state%apa%n_part == 0) return
 
     call aero_state_sort(aero_state)
 
-    if (comp_vol_ratio < 1d0) then
-       n_remove = prob_round(comp_vol_ratio &
-            * real(aero_state%aero_sorted%group_class%inverse(i_group, &
-            i_class)%n_entry, kind=dp))
+    if (weight_ratio > 1d0) then
+       n_remove = prob_round( &
+            real(aero_state%aero_sorted%group_class%inverse(i_group, &
+            i_class)%n_entry, kind=dp) / weight_ratio)
        do i_remove = 1,n_remove
           i_entry = pmc_rand_int(aero_state%aero_sorted%group_class%inverse( &
                i_group, i_class)%n_entry)
@@ -1285,16 +1280,16 @@ contains
                aero_info)
           call aero_info_deallocate(aero_info)
        end do
-    elseif (comp_vol_ratio > 1d0) then
+    elseif (weight_ratio < 1d0) then
        do i_entry = aero_state%aero_sorted%group_class%inverse(i_group, &
             i_class)%n_entry,1,-1
           i_part = aero_state%aero_sorted%group_class%inverse(i_group, &
                i_class)%entry(i_entry)
-          call aero_state_dup_particle(aero_state, i_part, comp_vol_ratio)
+          call aero_state_dup_particle(aero_state, i_part, 1d0 / weight_ratio)
        end do
     end if
 
-  end subroutine aero_state_scale_comp_vol
+  end subroutine aero_state_scale_weight
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

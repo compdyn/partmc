@@ -1383,4 +1383,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Compute the harmonic mean of two numbers.
+  elemental real(kind=dp) function harmonic_mean(x1, x2)
+
+    !> First number to average.
+    real(kind=dp), intent(in) :: x1
+    !> Second number to average.
+    real(kind=dp), intent(in) :: x2
+
+    harmonic_mean = 1d0 / (1d0 / x1 + 1d0 / x2)
+
+  end function harmonic_mean
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_util

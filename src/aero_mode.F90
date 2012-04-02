@@ -515,7 +515,7 @@ contains
     real(kind=dp), intent(out) :: weighted_num_conc(:)
 
     integer :: i_sample
-    real(kind=dp) :: x0, x1, xr
+    real(kind=dp) :: x0, x1
 
     call assert(256667423, aero_mode%type == AERO_MODE_TYPE_SAMPLED)
     call assert(878731017, &
@@ -528,12 +528,9 @@ contains
        do i_sample = 1,size(aero_mode%sample_num_conc)
           x0 = log(aero_mode%sample_radius(i_sample))
           x1 = log(aero_mode%sample_radius(i_sample + 1))
-          xr = log(aero_weight%ref_radius)
           weighted_num_conc(i_sample) = aero_mode%sample_num_conc(i_sample) &
-               / aero_weight%exponent &
-               * (exp(- aero_weight%exponent * (x0 - xr)) &
-               - exp(- aero_weight%exponent * (x1 - xr))) &
-               / (x1 - x0)
+               / aero_weight%exponent * (exp(- aero_weight%exponent * x0) &
+               - exp(- aero_weight%exponent * x1)) / (x1 - x0)
        end do
     else
        call die_msg(576124393, "unknown aero_weight type: " &
@@ -557,14 +554,13 @@ contains
 
     if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
        if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
-          aero_mode_number = aero_mode%num_conc * aero_weight%comp_vol
+          aero_mode_number = aero_mode%num_conc / aero_weight%magnitude
        elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
             .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
           x_mean_prime = log10(aero_mode%char_radius) &
                - aero_weight%exponent * aero_mode%log10_std_dev_radius**2 &
                * log(10d0)
-          aero_mode_number = aero_mode%num_conc * aero_weight%comp_vol &
-               * aero_weight%ref_radius**aero_weight%exponent &
+          aero_mode_number = aero_mode%num_conc / aero_weight%magnitude &
                * exp((x_mean_prime**2 - log10(aero_mode%char_radius)**2) &
                / (2d0 * aero_mode%log10_std_dev_radius**2))
        else
@@ -573,7 +569,7 @@ contains
        end if
     elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
        if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
-          aero_mode_number = aero_mode%num_conc * aero_weight%comp_vol
+          aero_mode_number = aero_mode%num_conc / aero_weight%magnitude
        else
           call die_msg(822252601, &
                "cannot use exponential modes with weighting")
@@ -586,7 +582,7 @@ contains
        allocate(weighted_num_conc(size(aero_mode%sample_num_conc)))
        call aero_mode_weighted_sampled_num_conc(aero_mode, aero_weight, &
             weighted_num_conc)
-       aero_mode_number = sum(weighted_num_conc) * aero_weight%comp_vol
+       aero_mode_number = sum(weighted_num_conc) / aero_weight%magnitude
        deallocate(weighted_num_conc)
     else
        call die_msg(901140225, "unknown aero_mode type: " &

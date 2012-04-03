@@ -507,7 +507,6 @@ contains
     Rgeo = R_me_c / (-0.06483d0 * fractal%frac_dim**2 &
          + 0.6353d0 * fractal%frac_dim - 0.4898d0)
     Rme2vol = rad2vol(Rgeo, fractal)
-
   end function Rme2vol
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

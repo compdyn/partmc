@@ -584,7 +584,7 @@ contains
   !> aero_state. The sampled amount is <tt>sample_prop *
   !> aero_state%comp_vol</tt>.
   subroutine aero_state_add_aero_dist_sample(aero_state, aero_data, &
-       aero_dist, sample_prop, create_time, n_part_add)
+       aero_dist, env_state, sample_prop, create_time, n_part_add)
 
     !> Aero state to add to.
     type(aero_state_t), intent(inout) :: aero_state
@@ -592,6 +592,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Distribution to sample.
     type(aero_dist_t), intent(in) :: aero_dist
+    !> Environment.
+    type(env_state_t), intent(in) :: env_state
     !> Volume fraction to sample (1).
     real(kind=dp), intent(in) :: sample_prop
     !> Creation time for new particles (s).
@@ -604,7 +606,6 @@ contains
     integer :: n_samp, i_mode, i_samp, i_group, n_group, global_n_part
     type(aero_mode_t), pointer :: aero_mode
     type(aero_particle_t) :: aero_particle
-    type(env_state_t) :: env_state
 
     call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
          aero_data%n_source)

@@ -484,7 +484,7 @@ contains
          env_state%elapsed_time, emissions, emission_rate_scale)
     p = emission_rate_scale * delta_t / env_state%height
     call aero_state_add_aero_dist_sample(aero_state, aero_data, &
-         emissions, p, env_state%elapsed_time, n_emit)
+         emissions, env_state, p, env_state%elapsed_time, n_emit)
     call aero_dist_deallocate(emissions)
 
     ! dilution
@@ -504,7 +504,7 @@ contains
     call aero_state_deallocate(aero_state_delta)
     ! addition from background
     call aero_state_add_aero_dist_sample(aero_state, aero_data, &
-         background, 1d0 - p, env_state%elapsed_time, n_dil_in)
+         background, env_state, 1d0 - p, env_state%elapsed_time, n_dil_in)
     call aero_dist_deallocate(background)
 
     ! update computational volume

@@ -616,7 +616,7 @@ contains
           end if
           aero_state%n_part_ideal = n_part_ideal
           call aero_state_add_aero_dist_sample(aero_state, aero_data, &
-               aero_dist_init, 1d0, 0d0)
+               aero_dist_init, env_state, 1d0, 0d0)
        end if
 
 #ifdef PMC_USE_SUNDIALS

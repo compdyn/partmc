@@ -225,41 +225,39 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Add the computational volume of \c aero_weight_array_delta to
-  !> \c aero_weight_array.
-  subroutine aero_weight_array_add_comp_vol(aero_weight_array, &
+  !> Combine \c aero_weight_array_delta into \c aero_weight_array
+  !> with a harmonic mean.
+  subroutine aero_weight_array_combine(aero_weight_array, &
       aero_weight_array_delta)
 
-    !> Aerosol weight array to add volume to.
+    !> Aerosol weight array to combine into.
     type(aero_weight_array_t), intent(inout) :: aero_weight_array
-    !> Aerosol weight array to add volume from.
+    !> Aerosol weight array to combine from.
     type(aero_weight_array_t), intent(in) :: aero_weight_array_delta
 
-    call aero_weight_add_comp_vol(aero_weight_array%weight, &
+    call aero_weight_combine(aero_weight_array%weight, &
             aero_weight_array_delta%weight)
 
-  end subroutine aero_weight_array_add_comp_vol
+  end subroutine aero_weight_array_combine
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Transfer the computational volume from \c aero_weight_from to \c
-  !> aero_weight_to, weighted by \c sample_prop.
-  subroutine aero_weight_array_transfer_comp_vol( &
-       aero_weight_array_from,aero_weight_array_to, sample_prop)
+  !> Adjust \c aero_weight_array_from to reflect moving \c sample_prop
+  !> proportion of particles to \c aero_weight_array_to.
+  subroutine aero_weight_array_shift(aero_weight_array_from, &
+       aero_weight_array_to, sample_prop)
 
-    !> Aerosol weight array to take volume from.
+    !> Aerosol weight array to shift from.
     type(aero_weight_array_t), intent(inout) :: aero_weight_array_from
-    !> Aerosol weight array to add volume to.
+    !> Aerosol weight array to shift to.
     type(aero_weight_array_t), intent(inout) :: aero_weight_array_to
-    !> Proportion of from volume to transfer.
+    !> Proportion of particles being transfered.
     real(kind=dp), intent(in) :: sample_prop
 
-    real(kind=dp) :: transfer_comp_vol
+    call aero_weight_shift(aero_weight_array_from%weight, &
+         aero_weight_array_to%weight, sample_prop)
 
-    call aero_weight_transfer_comp_vol(aero_weight_array_from%weight, &
-         aero_weight_array_to%weight,sample_prop)
-
-  end subroutine aero_weight_array_transfer_comp_vol
+  end subroutine aero_weight_array_shift
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

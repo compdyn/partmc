@@ -133,8 +133,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Add the computational volume of \c aero_weight_delta to \c aero_weight.
-  elemental subroutine aero_weight_add_comp_vol(aero_weight, aero_weight_delta)
+  !> Combine \c aero_weight_delta into \c aero_weight with a harmonic mean.
+  elemental subroutine aero_weight_combine(aero_weight, aero_weight_delta)
 
     !> Aerosol weight to add volume to.
     type(aero_weight_t), intent(inout) :: aero_weight
@@ -144,33 +144,31 @@ contains
     aero_weight%magnitude = harmonic_mean(aero_weight%magnitude, &
          aero_weight_delta%magnitude)
 
-  end subroutine aero_weight_add_comp_vol
+  end subroutine aero_weight_combine
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Transfer the computational volume from \c aero_weight_from to \c
-  !> aero_weight_to, weighted by \c sample_prop.
-  elemental subroutine aero_weight_transfer_comp_vol(aero_weight_from, &
+  !> Adjust \c aero_weight_from to reflect moving \c sample_prop
+  !> proportion of particles to \c aero_weight_to.
+  elemental subroutine aero_weight_shift(aero_weight_from, &
        aero_weight_to, sample_prop)
 
-    !> Aerosol weight to take volume from.
+    !> Aerosol weight to shift from.
     type(aero_weight_t), intent(inout) :: aero_weight_from
-    !> Aerosol weight to add volume to.
+    !> Aerosol weight to shift to.
     type(aero_weight_t), intent(inout) :: aero_weight_to
-    !> Proportion of from volume to transfer.
+    !> Proportion of particles being transfered.
     real(kind=dp), intent(in) :: sample_prop
 
-    real(kind=dp) :: comp_vol_from, comp_vol_to, comp_vol_transfer
+    real(kind=dp) :: magnitude_transfer
 
-    comp_vol_from = 1d0 / aero_weight_from%magnitude
-    comp_vol_to = 1d0 / aero_weight_to%magnitude
-    comp_vol_transfer = sample_prop * comp_vol_from
-    comp_vol_from = comp_vol_from - comp_vol_transfer
-    comp_vol_to = comp_vol_to + comp_vol_transfer
-    aero_weight_from%magnitude = 1d0 / comp_vol_from
-    aero_weight_to%magnitude = 1d0 / comp_vol_to
+    magnitude_transfer = aero_weight_from%magnitude / sample_prop
+    aero_weight_from%magnitude = harmonic_mean(aero_weight_from%magnitude, &
+         - magnitude_transfer)
+    aero_weight_to%magnitude = harmonic_mean(aero_weight_to%magnitude, &
+         magnitude_transfer)
 
-  end subroutine aero_weight_transfer_comp_vol
+  end subroutine aero_weight_shift
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -616,7 +616,7 @@ contains
     type(aero_state_t), intent(in) :: aero_state_delta
 
     call aero_state_add_particles(aero_state, aero_state_delta)
-    call aero_weight_array_add_comp_vol(aero_state%awa, aero_state_delta%awa)
+    call aero_weight_array_combine(aero_state%awa, aero_state_delta%awa)
 
   end subroutine aero_state_add
 
@@ -896,8 +896,8 @@ contains
                i_part)
        end if
     end do
-    call aero_weight_array_transfer_comp_vol(aero_state_from%awa, &
-         aero_state_to%awa, sample_prob)
+    call aero_weight_array_shift(aero_state_from%awa, aero_state_to%awa, &
+         sample_prob)
 
   end subroutine aero_state_sample
   

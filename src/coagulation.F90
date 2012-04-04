@@ -616,8 +616,7 @@ contains
 
     ! possible variants:
     ! A: accept_factor = 1d0 / k_max
-    ! B: accept_factor = del_t * n_possible &
-    !                    / (real(n_samp, kind=dp) * comp_vol)
+    ! B: accept_factor = del_t * n_possible / (n_samp * V)
     ! timings of test suite as of 2010-12-22T17:12:14-0600:
     !   A with n_samp = prob_round(n_samp_mean):
     !       159.82 162.18 156.28

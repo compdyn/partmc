@@ -101,7 +101,6 @@ contains
     integer :: i_class
     real(kind=dp) :: sulf_acid_conc, nucleate_rate, n_samp_avg
     real(kind=dp) :: total_so4_vol, so4_vol, h2so4_removed_conc
-    real(kind=dp) :: nucleate_comp_vol
     type(aero_particle_t) :: aero_particle
 
     ! look up the species numbers
@@ -125,10 +124,10 @@ contains
     ! add particles to each weight group
     total_so4_vol = 0d0
     do i_group = 1,aero_weight_array_n_group(aero_state%awa)
-       ! adjust comp_vol if necessary
+       ! adjust weight if necessary
        n_samp_avg = nucleate_rate * del_t / aero_weight_num_conc_at_radius( &
             aero_state%awa%weight(i_group, i_class), diam2rad(nucleate_diam))
-       call aero_state_prepare_comp_vol_for_add(aero_state, i_group, i_class, &
+       call aero_state_prepare_weight_for_add(aero_state, i_group, i_class, &
             n_samp_avg)
 
        ! determine number of nucleated particles

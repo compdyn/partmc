@@ -131,7 +131,7 @@ contains
     integer :: ierr, status(MPI_STATUS_SIZE), current_i, current_j, i_req
     real(kind=dp) :: n_samp_real, f_max
     integer, allocatable :: n_parts(:,:)
-    real(kind=dp), allocatable :: comp_vols(:,:)
+    real(kind=dp), allocatable :: magnitudes(:,:)
     type(request_t) :: requests(COAG_DIST_MAX_REQUESTS)
     integer, allocatable :: n_samps(:,:)
     real(kind=dp), allocatable :: accept_factors(:,:), k_max(:,:)
@@ -166,13 +166,13 @@ contains
     call pmc_mpi_allgather_integer_array( &
          aero_state%aero_sorted%size_class%inverse(:, s1)%n_entry, n_parts)
 
-    allocate(comp_vols(size(aero_state%awa%weight), n_proc))
-    call pmc_mpi_allgather_real_array(aero_state%awa%weight(:, s1)%comp_vol, &
-         comp_vols)
+    allocate(magnitudes(size(aero_state%awa%weight), n_proc))
+    call pmc_mpi_allgather_real_array(aero_state%awa%weight(:, s1)%magnitude, &
+         magnitudes)
 
     call aero_weight_array_allocate(aero_weight_total)
     call aero_weight_array_copy(aero_state%awa, aero_weight_total)
-    aero_weight_total%weight(:, s1)%comp_vol = sum(comp_vols, 2)
+    aero_weight_total%weight(:, s1)%magnitude = 1d0 / sum(1d0 / magnitudes, 2)
 
     allocate(k_max(aero_state%aero_sorted%bin_grid%n_bin, &
          aero_state%aero_sorted%bin_grid%n_bin))
@@ -222,7 +222,7 @@ contains
        ! receive exactly one message
        call coag_dist_recv(requests, env_state, aero_weight_total, aero_data, &
             aero_state, accept_factors, coag_kernel_type, tot_n_coag, &
-            comp_vols, procs_done)
+            magnitudes, procs_done)
     end do
 
     do i_req = 1,COAG_DIST_MAX_REQUESTS
@@ -233,7 +233,7 @@ contains
     deallocate(n_samps)
     deallocate(accept_factors)
     deallocate(n_parts)
-    deallocate(comp_vols)
+    deallocate(magnitudes)
     call mpi_buffer_detach(outgoing_buffer, &
          outgoing_buffer_size_check, ierr)
     call pmc_mpi_check_ierr(ierr)
@@ -247,7 +247,7 @@ contains
 
   subroutine coag_dist_recv(requests, env_state, aero_weight_total, &
        aero_data, aero_state, accept_factors, coag_kernel_type, tot_n_coag, &
-       comp_vols, procs_done)
+       magnitudes, procs_done)
 
     !> Array of outstanding requests.
     type(request_t), intent(inout) :: requests(COAG_DIST_MAX_REQUESTS)
@@ -266,7 +266,7 @@ contains
     !> Number of coagulation events.
     integer, intent(inout) :: tot_n_coag
     !> Computational volumes on all processes.
-    real(kind=dp), intent(in) :: comp_vols(:,:)
+    real(kind=dp), intent(in) :: magnitudes(:,:)
     !> Which processes are finished with coagulation.
     logical, intent(inout) :: procs_done(:)
 
@@ -281,7 +281,7 @@ contains
     elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_REQ_PARTICLE) then
        call recv_return_req_particle(requests, env_state, aero_weight_total, &
             aero_data, aero_state, accept_factors, coag_kernel_type, &
-            tot_n_coag, comp_vols)
+            tot_n_coag, magnitudes)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_UNREQ_PARTICLE) then
        call recv_return_unreq_particle(aero_state)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_NO_PARTICLE) then
@@ -621,7 +621,7 @@ contains
 
   subroutine recv_return_req_particle(requests, env_state, aero_weight_total, &
        aero_data, aero_state, accept_factors, coag_kernel_type, tot_n_coag, &
-       comp_vols)
+       magnitudes)
 
     !> Array of outstanding requests.
     type(request_t), intent(inout) :: requests(COAG_DIST_MAX_REQUESTS)
@@ -640,7 +640,7 @@ contains
     !> Number of coagulation events.
     integer, intent(inout) :: tot_n_coag
     !> Computational volumes on all processes.
-    real(kind=dp), intent(in) :: comp_vols(:,:)
+    real(kind=dp), intent(in) :: magnitudes(:,:)
 
     integer, parameter :: s1 = 1
     integer, parameter :: s2 = 1
@@ -695,7 +695,7 @@ contains
        tot_n_coag = tot_n_coag + 1
        call coagulate_dist(aero_data, aero_state, &
             requests(i_req)%local_aero_particle, sent_aero_particle, &
-            sent_proc, aero_weight_total, comp_vols, remove_1, remove_2)
+            sent_proc, aero_weight_total, magnitudes, remove_1, remove_2)
     else
        remove_1 = .false.
        remove_2 = .false.
@@ -882,7 +882,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine coagulate_dist(aero_data, aero_state, aero_particle_1, &
-       aero_particle_2, remote_proc, aero_weight_total, comp_vols, &
+       aero_particle_2, remote_proc, aero_weight_total, magnitudes, &
        remove_1, remove_2)
 
     !> Aerosol data.
@@ -898,7 +898,7 @@ contains
     !> Total weight across all processes.
     type(aero_weight_array_t), intent(in) :: aero_weight_total
     !> Computational volumes on all processes (m^3).
-    real(kind=dp), intent(in) :: comp_vols(:,:)
+    real(kind=dp), intent(in) :: magnitudes(:,:)
     !> Whether to remove aero_particle_1 after the coagulation.
     logical, intent(out) :: remove_1
     !> Whether to remove aero_particle_2 after the coagulation.
@@ -936,7 +936,7 @@ contains
        new_group = aero_weight_array_rand_group(aero_weight_total, sc, &
             aero_particle_radius(aero_particle_new))
        aero_particle_new%weight_group = new_group
-       new_proc = sample_cts_pdf(comp_vols(new_group, :)) - 1
+       new_proc = sample_cts_pdf(1d0 / magnitudes(new_group, :)) - 1
        call send_return_unreq_particle(aero_particle_new, new_proc)
     end if
 

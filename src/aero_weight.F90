@@ -136,9 +136,9 @@ contains
   !> Combine \c aero_weight_delta into \c aero_weight with a harmonic mean.
   elemental subroutine aero_weight_combine(aero_weight, aero_weight_delta)
 
-    !> Aerosol weight to add volume to.
+    !> Aerosol weight to add into.
     type(aero_weight_t), intent(inout) :: aero_weight
-    !> Aerosol weight to add volume from.
+    !> Aerosol weight to add from.
     type(aero_weight_t), intent(in) :: aero_weight_delta
 
     aero_weight%magnitude = harmonic_mean(aero_weight%magnitude, &

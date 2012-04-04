@@ -605,9 +605,9 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> <tt>aero_state += aero_state_delta</tt>, with adding the computational
-  !> volumes, so the new concentration is the (volume-weighted)
-  !> average of the two concentration.
+  !> <tt>aero_state += aero_state_delta</tt>, including combining the
+  !> weights, so the new concentration is the weighted average of the
+  !> two concentrations.
   subroutine aero_state_add(aero_state, aero_state_delta)
 
     !> Aerosol state.
@@ -695,7 +695,7 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Distribution to sample.
     type(aero_dist_t), intent(in) :: aero_dist
-    !> Volume fraction to sample (1).
+    !> Fraction to sample (1).
     real(kind=dp), intent(in) :: sample_prop
     !> Creation time for new particles (s).
     real(kind=dp), intent(in) :: create_time
@@ -773,11 +773,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Generates a random sample by removing particles from
-  !> aero_state_from and adding them to aero_state_to, which must
-  !> be already allocated (and should have its weight set).
+  !> aero_state_from and adding them to aero_state_to, which must be
+  !> already allocated (and should have its weight set).
   !!
-  !! None of the computational volumes are altered by this sampling,
-  !! making this the equivalent of aero_state_add_particles().
+  !! None of the weights are altered by this sampling, making this the
+  !! equivalent of aero_state_add_particles().
   subroutine aero_state_sample_particles(aero_state_from, aero_state_to, &
        sample_prob, removal_action)
 
@@ -852,8 +852,7 @@ contains
 
   !> Generates a random sample by removing particles from
   !> aero_state_from and adding them to aero_state_to, transfering
-  !> computational volume as well. This is the equivalent of
-  !> aero_state_add().
+  !> weight as well. This is the equivalent of aero_state_add().
   subroutine aero_state_sample(aero_state_from, aero_state_to, &
        sample_prob, removal_action)
 
@@ -1234,9 +1233,9 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Scale the computational volume of the given group/class by the given
-  !> ratio, altering particle number as necessary to preserve the
-  !> number concentration.
+  !> Scale the weighting of the given group/class by the given ratio,
+  !> altering particle number as necessary to preserve the number
+  !> concentration.
   subroutine aero_state_scale_weight(aero_state, i_group, i_class, &
        weight_ratio)
 

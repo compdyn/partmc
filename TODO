@@ -135,12 +135,6 @@ Change constants to use format 3_dp rather than 3d0.
 
 Change kind=dp to kind=wp for "working precision".
 
-Change aero_weight to aero_weight_array where appropriate.
-
-Add sorting check code for unif_bin.
-
-Add a just-sorted-by-group sorting.
-
 Make numeric_diff work even with extra spaces at the end of lines.
 
 Shift aero_data inside aero_state, like in partmc.py, to avoid having
@@ -162,7 +156,7 @@ Rename env_state%start_time to start_time_of_day.
 
 Fix "use only" in f90_mod_deps or doc/Makefile or wherever.
 
-Use find_unnecessary_link_breaks and fix them.
+Use find_unnecessary_line_breaks and fix them.
 
 Add accessor functions for finding dimensions, rather than storing
 them directly. E.g., aero_state.n_part(), aero_weight_array.n_set(),

@@ -922,8 +922,7 @@ contains
     aero_binned%vol_conc = 0d0
     do i_part = 1,aero_state%apa%n_part
        aero_particle => aero_state%apa%particle(i_part)
-       i_bin = bin_grid_particle_in_bin(bin_grid, &
-            aero_particle_radius(aero_particle))
+       i_bin = bin_grid_find(bin_grid, aero_particle_radius(aero_particle))
        if ((i_bin < 1) .or. (i_bin > bin_grid%n_bin)) then
           call warn_msg(980232449, "particle ID " &
                // trim(integer_to_string(aero_particle%id)) &
@@ -932,10 +931,10 @@ contains
           aero_binned%vol_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) &
                + aero_particle%vol &
                * aero_weight_array_num_conc(aero_state%awa, &
-               aero_particle) / bin_grid%log_width
+               aero_particle) / bin_grid_width(bin_grid, i_bin)
           aero_binned%num_conc(i_bin) = aero_binned%num_conc(i_bin) &
                + aero_weight_array_num_conc(aero_state%awa, &
-               aero_particle) / bin_grid%log_width
+               aero_particle) / bin_grid_width(bin_grid, i_bin)
        end if
     end do
     
@@ -1082,7 +1081,7 @@ contains
     aero_binned%vol_conc = 0d0
     do i_part = 1,aero_state%apa%n_part
        aero_particle => aero_state%apa%particle(i_part)
-       i_bin = bin_grid_particle_in_bin(bin_grid, &
+       i_bin = bin_grid_find(bin_grid, &
             aero_particle_solute_radius(aero_particle, aero_data))
        if ((i_bin < 1) .or. (i_bin > bin_grid%n_bin)) then
           call warn_msg(503871022, "particle ID " &
@@ -1092,10 +1091,10 @@ contains
           aero_binned%vol_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) &
                + aero_particle%vol &
                * aero_weight_array_num_conc(aero_state%awa, &
-               aero_particle) / bin_grid%log_width
+               aero_particle) / bin_grid_width(bin_grid, i_bin)
           aero_binned%num_conc(i_bin) = aero_binned%num_conc(i_bin) &
                + aero_weight_array_num_conc(aero_state%awa, &
-               aero_particle) / bin_grid%log_width
+               aero_particle) / bin_grid_width(bin_grid, i_bin)
        end if
     end do
     
@@ -1582,7 +1581,7 @@ contains
 
           ! determine the new_particle_volume for all particles in this bin
           if (bin_center) then
-             new_particle_volume = rad2vol(bin_grid%center_radius(i_bin))
+             new_particle_volume = rad2vol(bin_grid_center(bin_grid, i_bin))
           elseif (aero_weight_array_check_flat(aero_state%awa)) then
              num_conc & ! any radius will have the same num_conc
                   = aero_weight_array_num_conc_at_radius(aero_state%awa, &

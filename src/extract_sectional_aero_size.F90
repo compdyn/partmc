@@ -139,12 +139,12 @@ program extract_sectional_aero_size
   end if
   write(*,'(a)') "  Diameter bins have logarithmic width:"
   write(*,'(a,e20.10)') "    log_width = ln(diam(i+1)) - ln(diam(i)) =", &
-       bin_grid%log_width
+       bin_grid_width(bin_grid, 1)
 
   call open_file_write(out_filename, out_unit)
   do i_bin = 1,bin_grid%n_bin
      write(out_unit, '(e30.15e3)', advance='no') &
-          rad2diam(bin_grid%center_radius(i_bin))
+          rad2diam(bin_grid_center(bin_grid, i_bin))
      do i_file = 1,n_file
         write(out_unit, '(e30.15e3)', advance='no') aero_dist(i_bin, i_file)
      end do

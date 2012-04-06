@@ -707,7 +707,7 @@ contains
     call pmc_nc_read_integer(ncid, index, "timestep_index")
 
     if (present(bin_grid)) then
-       call bin_grid_input_netcdf(bin_grid, ncid)
+       call bin_grid_input_netcdf(bin_grid, ncid, "aero_diam", scale=0.5d0)
     end if
     if (present(aero_data)) then
        call aero_data_input_netcdf(aero_data, ncid)

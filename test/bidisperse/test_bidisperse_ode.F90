@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -66,7 +66,8 @@ program test_bidisperse_ode
   num_conc = num_conc_small * (n_small_init + 1d0) / n_small_init
   comp_vol = (n_small_init + 1d0) / num_conc
   call bin_grid_allocate(bin_grid)
-  call bin_grid_make(bin_grid, n_bin, rad2vol(bin_r_min), rad2vol(bin_r_max))
+  call bin_grid_make(bin_grid, BIN_GRID_TYPE_LOG, n_bin, rad2vol(bin_r_min), &
+       rad2vol(bin_r_max))
 
   open(unit=out_unit, file=out_name)
   time = 0d0

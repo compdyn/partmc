@@ -1346,6 +1346,31 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Checks whether a string starts with a given other string.
+  !!
+  !! <tt>starts_with(A, B)</tt> returns \c true if string \c A starts
+  !! with string \c B.
+  logical function starts_with(string, start_string)
+
+    !> String to test.
+    character(len=*), intent(in) :: string
+    !> Starting string.
+    character(len=*), intent(in) :: start_string
+
+    if (len(string) < len(start_string)) then
+       starts_with = .false.
+       return
+    end if
+    if (string(1:len(start_string)) == start_string) then
+       starts_with = .true.
+    else
+       starts_with = .false.
+    end if
+
+  end function starts_with
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Copy a 1D array of reals, reallocating if necessary.
   subroutine copy_real_1d(source, dest)
 

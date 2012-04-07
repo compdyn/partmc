@@ -113,8 +113,8 @@ contains
     
     ! mass and radius grid
     do i = 1,bin_grid%n_bin
-       r(i) = bin_grid_center(bin_grid, i) * 1d6 ! radius in m to um
-       e(i) = rad2vol(bin_grid_center(bin_grid, i)) &
+       r(i) = bin_grid%centers(i) * 1d6 ! radius in m to um
+       e(i) = rad2vol(bin_grid%centers(i)) &
             * aero_data%density(1) * 1d6 ! vol in m^3 to mass in mg
     end do
     
@@ -122,7 +122,7 @@ contains
     call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_data, &
          aero_dist)
     
-    call courant(bin_grid%n_bin, bin_grid_width(bin_grid, 1), e, ima, c)
+    call courant(bin_grid%n_bin, bin_grid%widths(1), e, ima, c)
     
     ! initialize time
     last_progress_time = 0d0
@@ -130,8 +130,8 @@ contains
     i_summary = 1
     
     ! precompute kernel values for all pairs of bins
-    call bin_kernel(bin_grid%n_bin, bin_grid_center_array(bin_grid), &
-         aero_data, run_sect_opt%coag_kernel_type, env_state, k_bin)
+    call bin_kernel(bin_grid%n_bin, bin_grid%centers, aero_data, &
+         run_sect_opt%coag_kernel_type, env_state, k_bin)
     call smooth_bin_kernel(bin_grid%n_bin, k_bin, ck)
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin
@@ -142,7 +142,7 @@ contains
     ! multiply kernel with constant timestep and logarithmic grid distance
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin
-          ck(i,j) = ck(i,j) * run_sect_opt%del_t * bin_grid_width(bin_grid, i)
+          ck(i,j) = ck(i,j) * run_sect_opt%del_t * bin_grid%widths(i)
        end do
     end do
     
@@ -166,7 +166,7 @@ contains
                tauu, prod, ploss, c, ima, g, r, e, ck, ec)
           aero_binned%vol_conc(:,1) = g / aero_data%density(1)
           aero_binned%num_conc = aero_binned%vol_conc(:,1) &
-               / rad2vol(bin_grid_center_array(bin_grid))
+               / rad2vol(bin_grid%centers)
        end if
 
        time = run_sect_opt%t_max * real(i_time, kind=dp) &

@@ -322,13 +322,12 @@ contains
           call assert(333430891, i_bin_max == 0)
           if (aero_sorted%bin_grid%n_bin > 0) then
              ! take r_min = upper edge, etc.
-             r_min = bin_grid_edge(aero_sorted%bin_grid, &
-                  aero_sorted%bin_grid%n_bin + 1)
-             r_max = bin_grid_edge(aero_sorted%bin_grid, 1)
+             r_min = aero_sorted%bin_grid%edges(aero_sorted%bin_grid%n_bin + 1)
+             r_max = aero_sorted%bin_grid%edges(1)
           end if
        else
-          r_min = bin_grid_edge(aero_sorted%bin_grid, i_bin_min)
-          r_max = bin_grid_edge(aero_sorted%bin_grid, i_bin_max + 1)
+          r_min = aero_sorted%bin_grid%edges(i_bin_min)
+          r_max = aero_sorted%bin_grid%edges(i_bin_max + 1)
        end if
     else
        ! no bin data, need to loop over all particles
@@ -368,7 +367,8 @@ contains
     if (r_max == 0d0) then
        if (valid_sort) return
        call bin_grid_allocate(new_bin_grid)
-       call bin_grid_make(new_bin_grid, BIN_GRID_TYPE_LOG, n_bin=0, min=0d0, max=0d0)
+       call bin_grid_make(new_bin_grid, BIN_GRID_TYPE_LOG, n_bin=0, min=0d0, &
+            max=0d0)
        call aero_sorted_set_bin_grid(aero_sorted, new_bin_grid, use_n_group, &
             use_n_class)
        call bin_grid_deallocate(new_bin_grid)
@@ -378,9 +378,8 @@ contains
     if (aero_sorted%bin_grid%n_bin < 1) then
        need_new_bin_grid = .true.
     else
-       grid_r_min = bin_grid_edge(aero_sorted%bin_grid, 1)
-       grid_r_max = bin_grid_edge(aero_sorted%bin_grid, &
-            aero_sorted%bin_grid%n_bin + 1)
+       grid_r_min = aero_sorted%bin_grid%edges(1)
+       grid_r_max = aero_sorted%bin_grid%edges(aero_sorted%bin_grid%n_bin + 1)
        
        ! We don't check to see whether we could make the bin grid
        ! smaller, as there doesn't seem much point. It would be easy

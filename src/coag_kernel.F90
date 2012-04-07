@@ -291,12 +291,12 @@ contains
     integer :: i, j
     
     ! v1_low < bin_v(b1) < v1_high
-    v1_low = rad2vol(bin_grid_edge(bin_grid, b1))
-    v1_high = rad2vol(bin_grid_edge(bin_grid, b1 + 1))
+    v1_low = rad2vol(bin_grid%edges(b1))
+    v1_high = rad2vol(bin_grid%edges(b1 + 1))
     
     ! v2_low < bin_v(b2) < v2_high
-    v2_low = rad2vol(bin_grid_edge(bin_grid, b2))
-    v2_high = rad2vol(bin_grid_edge(bin_grid, b2 + 1))
+    v2_low = rad2vol(bin_grid%edges(b2))
+    v2_high = rad2vol(bin_grid%edges(b2 + 1))
     
     do i = 1,n_sample
        do j = 1,n_sample
@@ -372,8 +372,8 @@ contains
 
     real(kind=dp) :: i_r, j_r, ij_r, ij_nc_i, ij_nc_j
 
-    i_r = bin_grid_center(bin_grid, i_bin)
-    j_r = bin_grid_center(bin_grid, i_bin)
+    i_r = bin_grid%centers(i_bin)
+    j_r = bin_grid%centers(i_bin)
     ij_r = vol2rad(rad2vol(i_r) + rad2vol(j_r))
     ij_nc_i = aero_weight_array_num_conc_at_radius(aero_weight_array, &
          i_class, ij_r)
@@ -416,10 +416,10 @@ contains
     real(kind=dp) :: i_r_min, i_r_max, j_r_min, j_r_max, i_r, j_r, f
     integer :: i_sample, j_sample
 
-    i_r_min = bin_grid_edge(bin_grid, i_bin)
-    i_r_max = bin_grid_edge(bin_grid, i_bin + 1)
-    j_r_min = bin_grid_edge(bin_grid, j_bin)
-    j_r_max = bin_grid_edge(bin_grid, j_bin + 1)
+    i_r_min = bin_grid%edges(i_bin)
+    i_r_max = bin_grid%edges(i_bin + 1)
+    j_r_min = bin_grid%edges(j_bin)
+    j_r_max = bin_grid%edges(j_bin + 1)
 
     f_max = 0d0
     do i_sample = 1,n_sample

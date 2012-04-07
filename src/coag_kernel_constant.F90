@@ -116,23 +116,23 @@ contains
     if (time .eq. 0d0) then
        do k = 1,bin_grid%n_bin
           aero_binned%num_conc(k) = const%pi / 2d0 &
-               * (2d0 * bin_grid_center(bin_grid, k))**3 * num_conc / mean_vol &
-               * exp(-(rad2vol(bin_grid_center(bin_grid, k)) / mean_vol))
+               * (2d0 * bin_grid%centers(k))**3 * num_conc / mean_vol &
+               * exp(-(rad2vol(bin_grid%centers(k)) / mean_vol))
        end do
     else
        tau = num_conc * beta_0 * time
        do k = 1,bin_grid%n_bin
-          rat_v = rad2vol(bin_grid_center(bin_grid, k)) / mean_vol
+          rat_v = rad2vol(bin_grid%centers(k)) / mean_vol
           nn = 4d0 * num_conc / (mean_vol * ( tau + 2d0 ) ** 2d0) &
                * exp(-2d0*rat_v/(tau+2d0)*exp(-lambda*tau)-lambda*tau)
           aero_binned%num_conc(k) = const%pi / 2d0 &
-               * (2d0 * bin_grid_center(bin_grid, k))**3d0 * nn
+               * (2d0 * bin_grid%centers(k))**3d0 * nn
        end do
     end if
     
     aero_binned%vol_conc = 0d0
     do k = 1,bin_grid%n_bin
-       aero_binned%vol_conc(k,1) = rad2vol(bin_grid_center(bin_grid, k)) &
+       aero_binned%vol_conc(k,1) = rad2vol(bin_grid%centers(k)) &
             * aero_binned%num_conc(k)
     end do
     

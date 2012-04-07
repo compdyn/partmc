@@ -269,11 +269,9 @@ contains
     end if
 
     call aero_weight_array_minmax_num_conc(aero_weight_array, c1, &
-         bin_grid_edge(bin_grid, b1), bin_grid_edge(bin_grid, b1 + 1), &
-         nc1_min, nc1_max)
+         bin_grid%edges(b1), bin_grid%edges(b1 + 1), nc1_min, nc1_max)
     call aero_weight_array_minmax_num_conc(aero_weight_array, c2, &
-         bin_grid_edge(bin_grid, b2), bin_grid_edge(bin_grid, b2 + 1), &
-         nc2_min, nc2_max)
+         bin_grid%edges(b2), bin_grid%edges(b2 + 1), nc2_min, nc2_max)
 
     ! we have already confirmed monotone_decreasing weights above
     correct_weight_ordering = .false.
@@ -371,8 +369,7 @@ contains
     ct = coag_particle%weight_class
 
     num_conc_source_min = aero_weight_array_num_conc_at_radius( &
-         aero_state%awa, cs, bin_grid_edge(aero_state%aero_sorted%bin_grid, &
-         bs))
+         aero_state%awa, cs, aero_state%aero_sorted%bin_grid%edges(bs))
     prob_remove_source_max = num_conc_target / num_conc_source_min
     call assert(653606684, prob_remove_source_max <= 1d0)
 

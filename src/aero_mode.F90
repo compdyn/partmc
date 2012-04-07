@@ -212,7 +212,7 @@ contains
     
     do k = 1,bin_grid%n_bin
        num_conc(k) = total_num_conc / (sqrt(2d0 * const%pi) &
-            * log10_sigma_g) * dexp(-(dlog10(bin_grid_center(bin_grid, k)) &
+            * log10_sigma_g) * dexp(-(dlog10(bin_grid%centers(k)) &
             - dlog10(geom_mean_radius))**2d0 &
             / (2d0 * log10_sigma_g**2d0)) / dlog(10d0)
     end do
@@ -246,7 +246,7 @@ contains
 
     call num_conc_log_normal(total_num_conc, geom_mean_radius, &
          log10_sigma_g, bin_grid, num_conc)
-    vol_conc = num_conc * rad2vol(bin_grid_center_array(bin_grid))
+    vol_conc = num_conc * rad2vol(bin_grid%centers)
     
   end subroutine vol_conc_log_normal
   
@@ -274,8 +274,8 @@ contains
     mean_vol = rad2vol(radius_at_mean_vol)
     do k = 1,bin_grid%n_bin
        num_conc_vol = total_num_conc / mean_vol &
-            * exp(-(rad2vol(bin_grid_center(bin_grid, k)) / mean_vol))
-       call vol_to_lnr(bin_grid_center(bin_grid, k), num_conc_vol, num_conc(k))
+            * exp(-(rad2vol(bin_grid%centers(k)) / mean_vol))
+       call vol_to_lnr(bin_grid%centers(k), num_conc_vol, num_conc(k))
     end do
     
   end subroutine num_conc_exp
@@ -298,7 +298,7 @@ contains
     real(kind=dp) :: num_conc(bin_grid%n_bin)
 
     call num_conc_exp(total_num_conc, radius_at_mean_vol, bin_grid, num_conc)
-    vol_conc = num_conc * rad2vol(bin_grid_center_array(bin_grid))
+    vol_conc = num_conc * rad2vol(bin_grid%centers)
     
   end subroutine vol_conc_exp
   
@@ -324,7 +324,7 @@ contains
     if ((k < 1) .or. (k > bin_grid%n_bin)) then
        call warn_msg(825666877, "monodisperse radius outside of bin_grid")
     else
-       num_conc(k) = total_num_conc / bin_grid_width(bin_grid, k)
+       num_conc(k) = total_num_conc / bin_grid%widths(k)
     end if
     
   end subroutine num_conc_mono
@@ -350,7 +350,7 @@ contains
     if ((k < 1) .or. (k > bin_grid%n_bin)) then
        call warn_msg(420930707, "monodisperse radius outside of bin_grid")
     else
-       vol_conc(k) = total_num_conc / bin_grid_width(bin_grid, k) &
+       vol_conc(k) = total_num_conc / bin_grid%widths(k) &
             * rad2vol(radius)
     end if
     
@@ -390,13 +390,13 @@ contains
        i_lower = max(1, i_lower)
        i_upper = min(bin_grid%n_bin, i_upper)
        do i_bin = i_lower,i_upper
-          r_bin_lower = bin_grid_edge(bin_grid, i_bin)
-          r_bin_upper = bin_grid_edge(bin_grid, i_bin + 1)
+          r_bin_lower = bin_grid%edges(i_bin)
+          r_bin_upper = bin_grid%edges(i_bin + 1)
           r1 = max(r_lower, r_bin_lower)
           r2 = min(r_upper, r_bin_upper)
           ratio = (log(r2) - log(r1)) / (log(r_upper) - log(r_lower))
           num_conc(i_bin) = num_conc(i_bin) + ratio &
-               * sample_num_conc(i_sample) / bin_grid_width(bin_grid, i_bin)
+               * sample_num_conc(i_sample) / bin_grid%widths(i_bin)
        end do
     end do
     
@@ -420,7 +420,7 @@ contains
     real(kind=dp) :: num_conc(bin_grid%n_bin)
 
     call num_conc_sampled(sample_radius, sample_num_conc, bin_grid, num_conc)
-    vol_conc = num_conc * rad2vol(bin_grid_center_array(bin_grid))
+    vol_conc = num_conc * rad2vol(bin_grid%centers)
     
   end subroutine vol_conc_sampled
   

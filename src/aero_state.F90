@@ -930,11 +930,11 @@ contains
        else
           aero_binned%vol_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) &
                + aero_particle%vol &
-               * aero_weight_array_num_conc(aero_state%awa, &
-               aero_particle) / bin_grid_width(bin_grid, i_bin)
+               * aero_weight_array_num_conc(aero_state%awa, aero_particle) &
+               / bin_grid%widths(i_bin)
           aero_binned%num_conc(i_bin) = aero_binned%num_conc(i_bin) &
-               + aero_weight_array_num_conc(aero_state%awa, &
-               aero_particle) / bin_grid_width(bin_grid, i_bin)
+               + aero_weight_array_num_conc(aero_state%awa, aero_particle) &
+               / bin_grid%widths(i_bin)
        end if
     end do
     
@@ -1090,11 +1090,11 @@ contains
        else
           aero_binned%vol_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) &
                + aero_particle%vol &
-               * aero_weight_array_num_conc(aero_state%awa, &
-               aero_particle) / bin_grid_width(bin_grid, i_bin)
+               * aero_weight_array_num_conc(aero_state%awa, aero_particle) &
+               / bin_grid%widths(i_bin)
           aero_binned%num_conc(i_bin) = aero_binned%num_conc(i_bin) &
-               + aero_weight_array_num_conc(aero_state%awa, &
-               aero_particle) / bin_grid_width(bin_grid, i_bin)
+               + aero_weight_array_num_conc(aero_state%awa, aero_particle) &
+               / bin_grid%widths(i_bin)
        end if
     end do
     
@@ -1581,7 +1581,7 @@ contains
 
           ! determine the new_particle_volume for all particles in this bin
           if (bin_center) then
-             new_particle_volume = rad2vol(bin_grid_center(bin_grid, i_bin))
+             new_particle_volume = rad2vol(bin_grid%centers(i_bin))
           elseif (aero_weight_array_check_flat(aero_state%awa)) then
              num_conc & ! any radius will have the same num_conc
                   = aero_weight_array_num_conc_at_radius(aero_state%awa, &

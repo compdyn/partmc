@@ -610,11 +610,7 @@ contains
     call free_unit(unit)
 
     n_file = index - 1
-    if (size(filename_list) /= n_file) then
-       deallocate(filename_list)
-       allocate(filename_list(n_file))
-    end if
-
+    call ensure_string_array_size(filename_list, n_file)
     do index = 1,n_file
        write(filename, '(a,a,i8.8,a)') trim(prefix), '_', index, '.nc'
        filename_list(index) = filename

@@ -959,6 +959,25 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the dry diameters of all particles. The \c dry diameters
+  !> array will be reallocated if necessary.
+  subroutine aero_state_dry_diameters(aero_state, aero_data, dry_diameters)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Dry diameters array (m).
+    real(kind=dp), intent(inout), allocatable :: dry_diameters(:)
+
+    call ensure_real_array_size(dry_diameters, aero_state%apa%n_part)
+    dry_diameters = aero_particle_dry_diameter( &
+         aero_state%apa%particle(1:aero_state%apa%n_part), aero_data)
+
+  end subroutine aero_state_dry_diameters
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Returns the masses of all particles. The \c masses array
   !> will be reallocated if necessary.
   !!

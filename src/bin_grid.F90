@@ -231,20 +231,57 @@ contains
     !> Data value weights.
     real(kind=dp), intent(in) :: weight_data(size(x_data))
     !> Histogram to compute.
-    real(kind=dp), intent(out) :: hist(x_bin_grid%n_bin)
+    real(kind=dp), intent(inout), allocatable :: hist(:)
 
-    integer :: i_data, i_bin
+    integer :: i_data, x_bin
 
+    call ensure_real_array_size(hist, x_bin_grid%n_bin)
     hist = 0d0
     do i_data = 1,size(x_data)
-       i_bin = bin_grid_find(x_bin_grid, x_data(i_data))
-       if ((i_bin >= 1) .and. (i_bin <= x_bin_grid%n_bin)) then
-          hist(i_bin) = hist(i_bin) &
-               + weight_data(i_data) / x_bin_grid%widths(i_bin)
+       x_bin = bin_grid_find(x_bin_grid, x_data(i_data))
+       if ((x_bin >= 1) .and. (x_bin <= x_bin_grid%n_bin)) then
+          hist(x_bin) = hist(x_bin) &
+               + weight_data(i_data) / x_bin_grid%widths(x_bin)
        end if
     end do
 
   end subroutine bin_grid_histogram_1d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Make a 2D histogram with of the given weighted data, scaled by
+  !> the bin sizes.
+  subroutine bin_grid_histogram_2d(x_bin_grid, x_data, y_bin_grid, y_data, &
+       weight_data, hist)
+
+    !> x-axis bin grid.
+    type(bin_grid_t), intent(in) :: x_bin_grid
+    !> Data values on the x-axis.
+    real(kind=dp), intent(in) :: x_data(:)
+    !> y-axis bin grid.
+    type(bin_grid_t), intent(in) :: y_bin_grid
+    !> Data values on the y-axis.
+    real(kind=dp), intent(in) :: y_data(size(x_data))
+    !> Data value weights.
+    real(kind=dp), intent(in) :: weight_data(size(x_data))
+    !> Histogram to compute.
+    real(kind=dp), intent(inout), allocatable :: hist(:, :)
+
+    integer :: i_data, x_bin, y_bin
+
+    call ensure_real_array_2d_size(hist, x_bin_grid%n_bin, y_bin_grid%n_bin)
+    hist = 0d0
+    do i_data = 1,size(x_data)
+       x_bin = bin_grid_find(x_bin_grid, x_data(i_data))
+       y_bin = bin_grid_find(y_bin_grid, y_data(i_data))
+       if ((x_bin >= 1) .and. (x_bin <= x_bin_grid%n_bin) &
+            .and. (y_bin >= 1) .and. (y_bin <= y_bin_grid%n_bin)) then
+          hist(x_bin, y_bin) = hist(x_bin, y_bin) + weight_data(i_data) &
+               / x_bin_grid%widths(x_bin) / y_bin_grid%widths(y_bin)
+       end if
+    end do
+
+  end subroutine bin_grid_histogram_2d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

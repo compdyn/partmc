@@ -982,7 +982,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Reallocate the given array to ensure it is of the given size.
+  !> Allocate or reallocate the given array to ensure it is of the given size.
   subroutine ensure_real_array_size(x, n)
 
     !> Array of real numbers.
@@ -990,12 +990,60 @@ contains
     !> Desired size of array.
     integer, intent(in) :: n
 
-    if (size(x) /= n) then
-       deallocate(x)
+    if (allocated(x)) then
+       if (size(x) /= n) then
+          deallocate(x)
+          allocate(x(n))
+       end if
+    else
        allocate(x(n))
     end if
 
   end subroutine ensure_real_array_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocate or reallocate the given array to ensure it is of the given size.
+  subroutine ensure_real_array_2d_size(x, n1, n2)
+
+    !> Array of real numbers.
+    real(kind=dp), intent(inout), allocatable :: x(:, :)
+    !> Desired first size of array.
+    integer, intent(in) :: n1
+    !> Desired second size of array.
+    integer, intent(in) :: n2
+
+    if (allocated(x)) then
+       if ((size(x, 1) /= n1) .or. (size(x, 2) /= n2)) then
+          deallocate(x)
+          allocate(x(n1, n2))
+       end if
+    else
+       allocate(x(n1, n2))
+    end if
+
+  end subroutine ensure_real_array_2d_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocate or reallocate the given array to ensure it is of the given size.
+  subroutine ensure_string_array_size(x, n)
+
+    !> Array of strings numbers.
+    character(len=*), intent(inout), allocatable :: x(:)
+    !> Desired size of array.
+    integer, intent(in) :: n
+
+    if (allocated(x)) then
+       if (size(x) /= n) then
+          deallocate(x)
+          allocate(x(n))
+       end if
+    else
+       allocate(x(n))
+    end if
+
+  end subroutine ensure_string_array_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

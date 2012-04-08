@@ -399,8 +399,8 @@ contains
 
   !> Write a bin grid dimension to the given NetCDF file if it is
   !> not already present and in any case return the associated dimid.
-  subroutine bin_grid_netcdf_dim(bin_grid, ncid, dim_name, long_name, &
-       unit_name, dimid, scale)
+  subroutine bin_grid_netcdf_dim(bin_grid, ncid, dim_name, unit, dimid, &
+       long_name, scale)
 
     !> Bin_grid structure.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -408,12 +408,12 @@ contains
     integer, intent(in) :: ncid
     !> Dimension name.
     character(len=*), intent(in) :: dim_name
-    !> Long dimension name to use.
-    character(len=*), intent(in) :: long_name
     !> Units for the grid.
-    character(len=*), intent(in) :: unit_name
+    character(len=*), intent(in) :: unit
     !> Dimid of the grid dimension.
     integer, intent(out) :: dimid
+    !> Long dimension name to use.
+    character(len=*), intent(in), optional :: long_name
     !> Factor to scale grid by before output.
     real(kind=dp), intent(in), optional :: scale
 
@@ -421,20 +421,31 @@ contains
     real(kind=dp) :: centers(bin_grid%n_bin), edges(bin_grid%n_bin + 1)
     real(kind=dp) :: widths(bin_grid%n_bin)
     character(len=(len_trim(dim_name)+10)) :: dim_name_edges
+    character(len=255) :: use_long_name
 
     status = nf90_inq_dimid(ncid, dim_name, dimid)
     if (status == NF90_NOERR) return
     if (status /= NF90_EBADDIM) call pmc_nc_check(status)
 
     ! dimension not defined, so define now define it
-    call pmc_nc_check(nf90_redef(ncid))
 
     dim_name_edges = trim(dim_name) // "_edges"
+    if (present(long_name)) then
+       call assert_msg(125084459, len_trim(long_name) <= len(use_long_name), &
+            "long_name is longer than " &
+            // trim(integer_to_string(len(use_long_name))))
+       use_long_name = trim(long_name)
+    else
+       call assert_msg(125084459, len_trim(dim_name) <= len(use_long_name), &
+            "dim_name is longer than " &
+            // trim(integer_to_string(len(use_long_name))))
+       use_long_name = trim(dim_name)
+    end if
 
+    call pmc_nc_check(nf90_redef(ncid))
     call pmc_nc_check(nf90_def_dim(ncid, dim_name, bin_grid%n_bin, dimid))
     call pmc_nc_check(nf90_def_dim(ncid, dim_name_edges, bin_grid%n_bin + 1, &
          dimid_edges))
-
     call pmc_nc_check(nf90_enddef(ncid))
 
     centers = bin_grid%centers
@@ -446,21 +457,21 @@ contains
           edges = edges * scale
        end if
        call pmc_nc_write_real_1d(ncid, centers, dim_name, (/ dimid /), &
-            unit=unit_name, long_name=(trim(long_name) // " grid centers"), &
+            unit=unit, long_name=(trim(use_long_name) // " grid centers"), &
             description=("logarithmically spaced centers of " &
-            // trim(long_name) // " grid, so that " // trim(dim_name) &
+            // trim(use_long_name) // " grid, so that " // trim(dim_name) &
             // "(i) is the geometric mean of " // trim(dim_name_edges) &
             // "(i) and " // trim(dim_name_edges) // "(i + 1)"))
        call pmc_nc_write_real_1d(ncid, edges, dim_name_edges, &
-            (/ dimid_edges /), unit=unit_name, &
-            long_name=(trim(long_name) // " grid edges"), &
+            (/ dimid_edges /), unit=unit, &
+            long_name=(trim(use_long_name) // " grid edges"), &
             description=("logarithmically spaced edges of " &
-            // trim(long_name) // " grid, with one more edge than center"))
+            // trim(use_long_name) // " grid, with one more edge than center"))
        call pmc_nc_write_real_1d(ncid, widths, trim(dim_name) // "_widths", &
             (/ dimid /), unit="1", &
-            long_name=(trim(long_name) // " grid widths"), &
+            long_name=(trim(use_long_name) // " grid widths"), &
             description=("base-e logarithmic widths of " &
-            // trim(long_name) // " grid, with " // trim(dim_name) &
+            // trim(use_long_name) // " grid, with " // trim(dim_name) &
             // "_widths(i) = ln(" // trim(dim_name_edges) // "(i + 1) / " &
             // trim(dim_name_edges) // "(i))"))
     elseif (bin_grid%type == BIN_GRID_TYPE_LINEAR) then
@@ -470,28 +481,55 @@ contains
           widths = widths * scale
        end if
        call pmc_nc_write_real_1d(ncid, centers, dim_name, (/ dimid /), &
-            unit=unit_name, long_name=(trim(long_name) // " grid centers"), &
-            description=("linearly spaced centers of " // trim(long_name) &
+            unit=unit, long_name=(trim(use_long_name) // " grid centers"), &
+            description=("linearly spaced centers of " // trim(use_long_name) &
             // " grid, so that " // trim(dim_name) // "(i) is the mean of " &
             // trim(dim_name_edges) // "(i) and " // trim(dim_name_edges) &
             // "(i + 1)"))
        call pmc_nc_write_real_1d(ncid, edges, dim_name_edges, &
-            (/ dimid_edges /), unit=unit_name, &
-            long_name=(trim(long_name) // " grid edges"), &
+            (/ dimid_edges /), unit=unit, &
+            long_name=(trim(use_long_name) // " grid edges"), &
             description=("linearly spaced edges of " &
-            // trim(long_name) // " grid, with one more edge than center"))
+            // trim(use_long_name) // " grid, with one more edge than center"))
        call pmc_nc_write_real_1d(ncid, widths, trim(dim_name) // "_widths", &
-            (/ dimid /), unit=unit_name, &
-            long_name=(trim(long_name) // " grid widths"), &
-            description=("widths of " // trim(long_name) // " grid, with " &
-            // trim(dim_name) // "_widths(i) = " // trim(dim_name_edges) &
-            // "(i + 1) - " // trim(dim_name_edges) // "(i)"))
+            (/ dimid /), unit=unit, &
+            long_name=(trim(use_long_name) // " grid widths"), &
+            description=("widths of " // trim(use_long_name) &
+            // " grid, with " // trim(dim_name) // "_widths(i) = " &
+            // trim(dim_name_edges) // "(i + 1) - " // trim(dim_name_edges) &
+            // "(i)"))
     else
        call die_msg(942560572, "unknown bin_grid type: " &
             // trim(integer_to_string(bin_grid%type)))
     end if
 
   end subroutine bin_grid_netcdf_dim
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write a bin grid to the given NetCDF file.
+  subroutine bin_grid_output_netcdf(bin_grid, ncid, dim_name, unit, &
+       long_name, scale)
+
+    !> Bin_grid structure.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Dimension name.
+    character(len=*), intent(in) :: dim_name
+    !> Units for the grid.
+    character(len=*), intent(in) :: unit
+    !> Long dimension name to use.
+    character(len=*), intent(in), optional :: long_name
+    !> Factor to scale grid by before output.
+    real(kind=dp), intent(in), optional :: scale
+
+    integer :: dimid
+
+    call bin_grid_netcdf_dim(bin_grid, ncid, dim_name, unit, dimid, &
+         long_name, scale)
+
+  end subroutine bin_grid_output_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

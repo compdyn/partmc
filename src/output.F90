@@ -81,6 +81,9 @@ module pmc_output
   use mpi
 #endif
 
+  !> PartMC verson number.
+  character(len=100), parameter :: PARTMC_VERSION = "2.2.0"
+
   !> Type code for undefined or invalid output.
   integer, parameter :: OUTPUT_TYPE_INVALID = 0
   !> Type code for centralized output (one file per process, all written
@@ -153,7 +156,7 @@ contains
        if (rank == 0) then
           call output_state_to_file(prefix, aero_data, aero_state, gas_data, &
                gas_state, env_state, index, time, del_t, i_repeat, &
-               record_removals, record_optical, rank, n_proc, uuid)
+               record_removals, record_optical, uuid, rank, n_proc)
 #ifdef PMC_USE_MPI
           do i_proc = 1,(n_proc - 1)
              call recv_output_state_central(prefix, aero_data, gas_data, &
@@ -168,12 +171,12 @@ contains
        ! have each process write its own data directly
        call output_state_to_file(prefix, aero_data, aero_state, gas_data, &
             gas_state, env_state, index, time, del_t, i_repeat, &
-            record_removals, record_optical, rank, n_proc, uuid)
+            record_removals, record_optical, uuid, rank, n_proc)
     elseif (output_type == OUTPUT_TYPE_SINGLE) then
        if (n_proc == 1) then
           call output_state_to_file(prefix, aero_data, aero_state, gas_data, &
                gas_state, env_state, index, time, del_t, i_repeat, &
-               record_removals, record_optical, rank, n_proc, uuid)
+               record_removals, record_optical, uuid, rank, n_proc)
        else
 #ifdef PMC_USE_MPI
           ! collect all data onto process 0 and then write it to a
@@ -189,8 +192,8 @@ contains
           if (rank == 0) then
              call output_state_to_file(prefix, aero_data, aero_state_write, &
                   gas_data, gas_state_write, env_state_write, index, time, &
-                  del_t, i_repeat, record_removals, record_optical, rank, 1, &
-                  uuid)
+                  del_t, i_repeat, record_removals, record_optical, uuid, &
+                  rank, 1)
           end if
           call aero_state_deallocate(aero_state_write)
           call env_state_deallocate(env_state_write)
@@ -206,9 +209,57 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Helper routine to write various global attributes. Do not call
-  !> directly.
-  subroutine write_header_and_time(ncid, time, del_t, index, uuid)
+  !> Make a filename from a given prefix and other information.
+  subroutine make_filename(filename, prefix, index, i_repeat, suffix, &
+       write_rank, write_n_proc)
+
+    !> Filename to create.
+    character(len=*), intent(out) :: filename
+    !> Filename prefix.
+    character(len=*), intent(in) :: prefix
+    !> Filename index.
+    integer, intent(in) :: index
+    !> Current repeat number.
+    integer, intent(in) :: i_repeat
+    !> Filename suffix.
+    character(len=*), intent(in) :: suffix
+    !> Rank to write into file.
+    integer, intent(in), optional :: write_rank
+    !> Number of processes to write into file.
+    integer, intent(in), optional :: write_n_proc
+
+    integer :: ncid, use_rank, use_n_proc
+
+    if (present(write_rank)) then
+       use_rank = write_rank
+    else
+       use_rank = pmc_mpi_rank()
+    end if
+    if (present(write_n_proc)) then
+       use_n_proc = write_n_proc
+    else
+       use_n_proc = pmc_mpi_size()
+    end if
+
+#ifdef PMC_USE_MPI
+    if (use_n_proc > 1) then
+       write(filename, '(a,a,i4.4,a,i4.4,a,i8.8,a)') trim(prefix), &
+            '_', i_repeat, '_', (use_rank + 1), '_', index, suffix
+    else
+       write(filename, '(a,a,i4.4,a,i8.8,a)') trim(prefix), &
+            '_', i_repeat, '_', index, suffix
+    end if
+#else
+    write(filename, '(a,a,i4.4,a,i8.8,a)') trim(prefix), &
+         '_', i_repeat, '_', index, suffix
+#endif
+
+  end subroutine make_filename
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Helper routine to write time variables. Do not call directly.
+  subroutine write_time(ncid, time, del_t, index)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -218,24 +269,7 @@ contains
     real(kind=dp), intent(in) :: del_t
     !> Filename index.
     integer, intent(in) :: index
-    !> UUID of the simulation.
-    character(len=PMC_UUID_LEN), intent(in) :: uuid
 
-    character(len=500) :: history
-
-    call pmc_nc_check(nf90_redef(ncid))
-
-    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "source", &
-         "PartMC version 2.2.0"))
-    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "UUID", uuid))
-    call iso8601_date_and_time(history)
-    history((len_trim(history)+1):) = " created by PartMC"
-    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "history", history))
-    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "Conventions", &
-         "CF-1.4"))
-    
-    call pmc_nc_check(nf90_enddef(ncid))
-    
     call pmc_nc_write_real(ncid, time, "time", unit="s", &
          description="time elapsed since simulation start")
     call pmc_nc_write_real(ncid, del_t, "timestep", unit="s", &
@@ -244,7 +278,7 @@ contains
          description="an integer that is 1 on the first timestep, " &
          // "2 on the second timestep, etc.")
 
-  end subroutine write_header_and_time
+  end subroutine write_time
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -252,7 +286,7 @@ contains
   !> subroutine directly, but rather call output_state().
   subroutine output_state_to_file(prefix, aero_data, aero_state, gas_data, &
        gas_state, env_state, index, time, del_t, i_repeat, record_removals, &
-       record_optical, write_rank, write_n_proc, uuid)
+       record_optical, uuid, write_rank, write_n_proc)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
@@ -278,37 +312,23 @@ contains
     logical, intent(in) :: record_removals
     !> Whether to output aerosol optical properties.
     logical, intent(in) :: record_optical
-    !> Rank to write into file.
-    integer, intent(in) :: write_rank
-    !> Number of processes to write into file.
-    integer, intent(in) :: write_n_proc
     !> UUID of the simulation.
     character(len=PMC_UUID_LEN), intent(in) :: uuid
+    !> Rank to write into file.
+    integer, intent(in), optional :: write_rank
+    !> Number of processes to write into file.
+    integer, intent(in), optional :: write_n_proc
     
     character(len=len(prefix)+100) :: filename
     integer :: ncid
 
-#ifdef PMC_USE_MPI
-    if (write_n_proc > 1) then
-       write(filename, '(a,a,i4.4,a,i4.4,a,i8.8,a)') trim(prefix), &
-            '_', i_repeat, '_', (write_rank + 1), '_', index, '.nc'
-    else
-       write(filename, '(a,a,i4.4,a,i8.8,a)') trim(prefix), &
-            '_', i_repeat, '_', index, '.nc'
-    end if
-#else
-    write(filename, '(a,a,i4.4,a,i8.8,a)') trim(prefix), &
-         '_', i_repeat, '_', index, '.nc'
-#endif
-    call pmc_nc_check_msg(nf90_create(filename, NF90_CLOBBER, ncid), &
-         "opening " // trim(filename))
-    
     !> \page output_format_general Output File Format: General Information
     !!
     !! The general information global NetCDF attributes are:
-    !!   - \b title: always set to the string "PartMC output file"
-    !!   - \b source: set to the string "PartMC version V.V.V" where V.V.V
-    !!     is the PartMC version that created the file
+    !!   - \b title: always set to the string "PartMC version V.V.V
+    !!     output file" where V.V.V is the PartMC version that created
+    !!     the file
+    !!   - \b source: set to the string "PartMC version V.V.V"
     !!   - \b UUID: a string of the form F47AC10B-58CC-4372-A567-0E02B2C3D479
     !!     which is the same for all files generated by a single call of
     !!     PartMC.
@@ -316,13 +336,14 @@ contains
     !!     compliance with the <a
     !!     href="http://cf-pcmdi.llnl.gov/documents/cf-conventions/1.4">CF
     !!     convention format</a>
-    !!   - \b history: set to the string
-    !!     "YYYY-MM-DDThh:mm:ss[+-]ZZ:zz created by PartMC" where the first
-    !!     term is the file creation time in the
-    !!     <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601
-    !!     format</a>. For example, noon Pacific Standard Time (PST) on
-    !!     February 1st, 2000 would be written 2000-02-01T12:00:00-08:00.
-    !!     The date and time variables are:
+    !!   - \b history: set to the string "YYYY-MM-DDThh:mm:ss[+-]ZZ:zz
+    !!     created by PartMC version V.V.V" where the first term is
+    !!     the file creation time in the <a
+    !!     href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601
+    !!     format</a>. For example, noon Pacific Standard Time (PST)
+    !!     on February 1st, 2000 would be written
+    !!     2000-02-01T12:00:00-08:00.  The date and time variables
+    !!     are:
     !!     - YYYY: four-digit year
     !!     - MM: two-digit month number
     !!     - DD: two-digit day within month
@@ -348,21 +369,14 @@ contains
     !!     involved in writing data (may be less than the total number of
     !!     processes that computed the data)
 
-    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "title", &
-         "PartMC output file"))
-    call pmc_nc_check(nf90_enddef(ncid))
-
-    call write_header_and_time(ncid, time, del_t, index, uuid)
+    call make_filename(filename, prefix, index, i_repeat, ".nc", write_rank, &
+         write_n_proc)
+    call pmc_nc_open_write(filename, ncid)
+    call pmc_nc_write_info(ncid, uuid, &
+         "PartMC version " // trim(PARTMC_VERSION), write_rank, write_n_proc)
+    call write_time(ncid, time, del_t, index)
     call pmc_nc_write_integer(ncid, i_repeat, "repeat", &
-         description="repeat repeat number of this simulation " &
-         // "(starting from 1)")
-#ifdef PMC_USE_MPI
-    call pmc_nc_write_integer(ncid, write_rank + 1, "process", &
-         description="the process number (starting from 1) " &
-         // "that output this data file")
-    call pmc_nc_write_integer(ncid, write_n_proc, "total_processes", &
-         description="total number of processes")
-#endif
+         description="repeat number of this simulation (starting from 1)")
 
     call env_state_output_netcdf(env_state, ncid)
     call gas_data_output_netcdf(gas_data, ncid)
@@ -642,15 +656,10 @@ contains
 
     write(filename, '(a,a,i8.8,a)') trim(prefix), &
          '_', index, '.nc'
-    call pmc_nc_check_msg(nf90_create(filename, NF90_CLOBBER, ncid), &
-         "opening " // trim(filename))
-
-    ! write header attributes
-    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "title", &
-         "PartMC sectional output file"))
-    call pmc_nc_check(nf90_enddef(ncid))
-
-    call write_header_and_time(ncid, time, del_t, index, uuid)
+    call pmc_nc_open_write(filename, ncid)
+    call pmc_nc_write_info(ncid, uuid, &
+         "PartMC version " // trim(PARTMC_VERSION))
+    call write_time(ncid, time, del_t, index)
 
     ! write data
     call env_state_output_netcdf(env_state, ncid)

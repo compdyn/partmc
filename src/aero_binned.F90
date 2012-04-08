@@ -378,8 +378,8 @@ contains
        mass_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) * aero_data%density
     end do
 
-    call bin_grid_netcdf_dim(bin_grid, ncid, "aero_diam", "aerosol diameter", &
-         "m", dimid_aero_diam, scale=2d0)
+    call bin_grid_netcdf_dim(bin_grid, ncid, "aero_diam", "m", &
+         dimid_aero_diam, "aerosol diameter", scale=2d0)
     call aero_data_netcdf_dim_aero_species(aero_data, ncid, dimid_aero_species)
 
     call pmc_nc_write_real_1d(ncid, aero_binned%num_conc, &

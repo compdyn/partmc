@@ -210,25 +210,26 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Make a filename from a given prefix and other information.
-  subroutine make_filename(filename, prefix, index, i_repeat, suffix, &
+  subroutine make_filename(filename, prefix, suffix, index, i_repeat, &
        write_rank, write_n_proc)
 
     !> Filename to create.
     character(len=*), intent(out) :: filename
     !> Filename prefix.
     character(len=*), intent(in) :: prefix
-    !> Filename index.
-    integer, intent(in) :: index
-    !> Current repeat number.
-    integer, intent(in) :: i_repeat
     !> Filename suffix.
     character(len=*), intent(in) :: suffix
+    !> Filename index.
+    integer, intent(in), optional :: index
+    !> Current repeat number.
+    integer, intent(in), optional :: i_repeat
     !> Rank to write into file.
     integer, intent(in), optional :: write_rank
     !> Number of processes to write into file.
     integer, intent(in), optional :: write_n_proc
 
     integer :: ncid, use_rank, use_n_proc
+    character(len=100) :: proc_string, index_string, repeat_string
 
     if (present(write_rank)) then
        use_rank = write_rank
@@ -241,18 +242,14 @@ contains
        use_n_proc = pmc_mpi_size()
     end if
 
-#ifdef PMC_USE_MPI
-    if (use_n_proc > 1) then
-       write(filename, '(a,a,i4.4,a,i4.4,a,i8.8,a)') trim(prefix), &
-            '_', i_repeat, '_', (use_rank + 1), '_', index, suffix
-    else
-       write(filename, '(a,a,i4.4,a,i8.8,a)') trim(prefix), &
-            '_', i_repeat, '_', index, suffix
-    end if
-#else
-    write(filename, '(a,a,i4.4,a,i8.8,a)') trim(prefix), &
-         '_', i_repeat, '_', index, suffix
-#endif
+    repeat_string = ""
+    proc_string = ""
+    index_string = ""
+    if (present(i_repeat)) write(repeat_string, '(a,i4.4)') '_', i_repeat
+    if (use_n_proc > 1) write(proc_string, '(a,i4.4)') '_', (use_rank + 1)
+    if (present(index)) write(index_string, '(a,i8.8)') '_', index
+    write(filename, '(a,a,a,a,a)') trim(prefix), trim(repeat_string), &
+         trim(proc_string), trim(index_string), trim(suffix)
 
   end subroutine make_filename
 
@@ -369,7 +366,7 @@ contains
     !!     involved in writing data (may be less than the total number of
     !!     processes that computed the data)
 
-    call make_filename(filename, prefix, index, i_repeat, ".nc", write_rank, &
+    call make_filename(filename, prefix, ".nc", index, i_repeat, write_rank, &
          write_n_proc)
     call pmc_nc_open_write(filename, ncid)
     call pmc_nc_write_info(ncid, uuid, &

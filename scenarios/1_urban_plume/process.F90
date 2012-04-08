@@ -66,7 +66,7 @@ program process
      call bin_grid_histogram_2d(diam_grid, dry_diameters, bc_grid, bc_fracs, &
           num_concs, diam_bc_dist)
 
-     call make_filename(out_filename, prefix, index, i_repeat, "_process.nc")
+     call make_filename(out_filename, prefix, "_process.nc", index)
      call pmc_nc_open_write(out_filename, ncid)
      call pmc_nc_write_info(ncid, uuid, "1_urban_plume process")
      call bin_grid_output_netcdf(diam_grid, ncid, "diam", unit="m")

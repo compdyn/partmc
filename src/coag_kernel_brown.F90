@@ -45,7 +45,7 @@ contains
     d1 = aero_particle_density(aero_particle_1, aero_data)
     d2 = aero_particle_density(aero_particle_2, aero_data)
 
-    call kernel_brown_helper(v1, d1, v2, d2, env_state%temp, &
+    call kernel_brown_helper(aero_data, v1, d1, v2, d2, env_state%temp, &
          env_state%pressure, k)
 
   end subroutine kernel_brown
@@ -86,7 +86,7 @@ contains
        do j = 1,n_sample
           d1 = interp_linear_disc(d_min, d_max, n_sample, i)
           d2 = interp_linear_disc(d_min, d_max, n_sample, j)
-          call kernel_brown_helper(v1, d1, v2, d2, &
+          call kernel_brown_helper(aero_data, v1, d1, v2, d2, &
                env_state%temp, env_state%pressure, k)
           if (first) then
              first = .false.
@@ -109,8 +109,10 @@ contains
   !!
   !! Uses equation (16.28) of M. Z. Jacobson, Fundamentals of
   !! Atmospheric Modeling, Cambridge University Press, 1999.
-  subroutine kernel_brown_helper(v1, d1, v2, d2, tk, press, bckernel)
+  subroutine kernel_brown_helper(aero_data, v1, d1, v2, d2, tk, press, bckernel)
 
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
     !> Density of first particle (kg/m^3).
@@ -126,7 +128,6 @@ contains
     !> Kernel k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: bckernel
 
-    type(aero_data_t) :: aero_data
     integer, parameter :: nbin_maxd = 1000
     integer, save :: nbin = 0
     real(kind=dp), save :: rad_sv(nbin_maxd)

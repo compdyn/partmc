@@ -39,7 +39,7 @@ contains
     !> Kernel \c k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: k
 
-    call kernel_sedi_helper(aero_particle_volume(aero_particle_1), &
+    call kernel_sedi_helper(aero_data, aero_particle_volume(aero_particle_1), &
          aero_particle_volume(aero_particle_2), env_state%temp, &
          env_state%pressure, k)
 
@@ -63,7 +63,8 @@ contains
     !> Maximum kernel \c k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: k_max
 
-    call kernel_sedi_helper(v1, v2, env_state%temp, env_state%pressure, k_min)
+    call kernel_sedi_helper(aero_data, v1, v2, env_state%temp, &
+         env_state%pressure, k_min)
     k_max = k_min
 
   end subroutine kernel_sedi_minmax
@@ -73,8 +74,10 @@ contains
   !> Helper function that does the actual sedimentation kernel computation.
   !!
   !! Helper function. Do not call directly. Instead use kernel_sedi().
-  subroutine kernel_sedi_helper(v1, v2, tk, press, k)
+  subroutine kernel_sedi_helper(aero_data, v1, v2, tk, press, k)
 
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
     !> Volume of second particle (m^3).
@@ -86,7 +89,6 @@ contains
     !> Kernel k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: k
 
-    type(aero_data_t) :: aero_data
     real(kind=dp) r1, r2, winf1, winf2, ec
     
     if (aero_data%fractal%do_fractal) then

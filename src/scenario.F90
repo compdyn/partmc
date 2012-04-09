@@ -499,7 +499,7 @@ contains
     ! loss to background
     call aero_state_allocate(aero_state_delta)
     call aero_state_sample_particles(aero_state, aero_state_delta, &
-         1d0 - p, AERO_INFO_DILUTION)
+         aero_data, 1d0 - p, AERO_INFO_DILUTION)
     n_dil_out = aero_state_total_particles(aero_state_delta)
     call aero_state_deallocate(aero_state_delta)
     ! addition from background

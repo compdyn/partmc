@@ -136,7 +136,7 @@ contains
        call aero_particle_set_group(aero_particle, i_group)
        call aero_particle_set_create_time(aero_particle, &
             env_state%elapsed_time)
-       call aero_state_add_particle(aero_state, aero_particle)
+       call aero_state_add_particle(aero_state, aero_particle, aero_data)
     end do
     call aero_particle_deallocate(aero_particle)
 

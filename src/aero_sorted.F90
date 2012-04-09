@@ -153,20 +153,22 @@ contains
 
   !> Discard particles that don't fit the bin grid.
   subroutine aero_sorted_discard_outside_grid(aero_sorted, &
-       aero_particle_array)
+       aero_particle_array, aero_data)
 
     !> Aerosol sorted.
     type(aero_sorted_t), intent(in) :: aero_sorted
     !> Aerosol particles to discard from.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
-  
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+
     integer :: i_part, i_bin
 
     ! Work backwards so we only shift particles that we've already
     ! tested.
     do i_part = aero_particle_array%n_part,1,-1
        i_bin = aero_sorted_particle_in_bin(aero_sorted, &
-            aero_particle_array%particle(i_part))
+            aero_particle_array%particle(i_part), aero_data)
        if ((i_bin < 1) .or. (i_bin > aero_sorted%bin_grid%n_bin)) then
           call warn_msg(954800836, "particle ID " &
                // trim(integer_to_string( &
@@ -182,12 +184,15 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !> Sort the particles.
-    subroutine aero_sorted_sort_particles(aero_sorted, aero_particle_array)
+    subroutine aero_sorted_sort_particles(aero_sorted, aero_particle_array, &
+         aero_data)
 
     !> Aerosol sorted.
     type(aero_sorted_t), intent(inout) :: aero_sorted
     !> Aerosol particles to sort.
     type(aero_particle_array_t), intent(in) :: aero_particle_array
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
 
     integer :: i_part, i_bin, i_group
 
@@ -196,7 +201,7 @@ contains
 
     do i_part = 1,aero_particle_array%n_part
        i_bin = aero_sorted_particle_in_bin(aero_sorted, &
-            aero_particle_array%particle(i_part))
+            aero_particle_array%particle(i_part), aero_data)
        call integer_rmap_append(aero_sorted%size, i_bin)
 
        i_group = aero_particle_array%particle(i_part)%weight_group
@@ -209,12 +214,14 @@ contains
 
   !> Remake a sorting if particles are getting too close to the edges.
   subroutine aero_sorted_remake_if_needed(aero_sorted, aero_particle_array, &
-       valid_sort, n_group, bin_grid, all_procs_same)
+       aero_data, valid_sort, n_group, bin_grid, all_procs_same)
 
     !> Aerosol sorted to (possibly) remake.
     type(aero_sorted_t), intent(inout) :: aero_sorted
     !> Aerosol particles to sort.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Whether the given aero_sorted is valid.
     logical, intent(in) :: valid_sort
     !> Number of weight groups.
@@ -234,8 +241,10 @@ contains
 
     if (present(bin_grid)) then
        call aero_sorted_set_bin_grid(aero_sorted, bin_grid, n_group)
-       call aero_sorted_discard_outside_grid(aero_sorted, aero_particle_array)
-       call aero_sorted_sort_particles(aero_sorted, aero_particle_array)
+       call aero_sorted_discard_outside_grid(aero_sorted, aero_particle_array, &
+            aero_data)
+       call aero_sorted_sort_particles(aero_sorted, aero_particle_array, &
+            aero_data)
        return
     end if
 
@@ -281,7 +290,8 @@ contains
     else
        ! no bin data, need to loop over all particles
        do i_part = 1,aero_particle_array%n_part
-          r = aero_particle_radius(aero_particle_array%particle(i_part))
+          r = aero_particle_radius(aero_particle_array%particle(i_part), &
+               aero_data)
           if (i_part == 1) then
              r_min = r
              r_max = r
@@ -334,10 +344,12 @@ contains
        call bin_grid_make(new_bin_grid, n_bin, grid_r_min, grid_r_max)
        call aero_sorted_set_bin_grid(aero_sorted, new_bin_grid, n_group)
        call bin_grid_deallocate(new_bin_grid)
-       call aero_sorted_sort_particles(aero_sorted, aero_particle_array)
+       call aero_sorted_sort_particles(aero_sorted, aero_particle_array, &
+            aero_data)
     else
        if (.not. valid_sort) then
-          call aero_sorted_sort_particles(aero_sorted, aero_particle_array)
+          call aero_sorted_sort_particles(aero_sorted, aero_particle_array, &
+               aero_data)
        end if
     end if
 
@@ -346,16 +358,19 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Find the bin number that contains a given particle.
-  integer function aero_sorted_particle_in_bin(aero_sorted, aero_particle)
+  integer function aero_sorted_particle_in_bin(aero_sorted, aero_particle, &
+       aero_data)
 
     !> Aerosol sort.
     type(aero_sorted_t), intent(in) :: aero_sorted
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
- 
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+
     aero_sorted_particle_in_bin &
          = bin_grid_particle_in_bin(aero_sorted%bin_grid, &
-         aero_particle_radius(aero_particle))
+         aero_particle_radius(aero_particle, aero_data))
     
   end function aero_sorted_particle_in_bin
   
@@ -364,7 +379,7 @@ contains
   !> Add a new particle to both an aero_sorted and the corresponding
   !> aero_particle_array.
   subroutine aero_sorted_add_particle(aero_sorted, aero_particle_array, &
-       aero_particle, n_group, allow_resort)
+       aero_particle, aero_data, n_group, allow_resort)
 
     !> Sorted particle structure.
     type(aero_sorted_t), intent(inout) :: aero_sorted
@@ -372,6 +387,8 @@ contains
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
     !> Particle to add.
     type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Number of weight groups.
     integer, intent(in) :: n_group
     !> Whether to allow a resort due to the add.
@@ -379,7 +396,7 @@ contains
 
     integer :: i_bin, i_group
 
-    i_bin = aero_sorted_particle_in_bin(aero_sorted, aero_particle)
+    i_bin = aero_sorted_particle_in_bin(aero_sorted, aero_particle, aero_data)
     i_group = aero_particle%weight_group
 
     call assert(894889664, i_group >= 1)
@@ -401,7 +418,7 @@ contains
           end if
        end if
        call aero_sorted_remake_if_needed(aero_sorted, aero_particle_array, &
-            valid_sort=.false., n_group=n_group)
+            aero_data, valid_sort=.false., n_group=n_group)
     else
        ! particle fits in the current bin_grid
        call integer_rmap_append(aero_sorted%size, i_bin)
@@ -454,12 +471,14 @@ contains
 
   !> Check sorting.
   subroutine aero_sorted_check(aero_sorted, aero_particle_array, &
-       n_group, continue_on_error)
+       aero_data, n_group, continue_on_error)
 
     !> Aerosol sorted to check.
     type(aero_sorted_t), intent(in) :: aero_sorted
     !> Aerosol particles.
     type(aero_particle_array_t), intent(in) :: aero_particle_array
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Number of weight groups.
     integer, optional, intent(in) :: n_group
     !> Whether to continue despite error.
@@ -473,7 +492,7 @@ contains
          continue_on_error=continue_on_error)
     do i_part = 1,aero_particle_array%n_part
        i_bin = aero_sorted_particle_in_bin(aero_sorted, &
-            aero_particle_array%particle(i_part))
+            aero_particle_array%particle(i_part), aero_data)
        if (i_bin /= aero_sorted%size%forward%entry(i_part)) then
           write(0,*) 'ERROR aero_sorted A: ', "size"
           write(0,*) 'i_part', i_part

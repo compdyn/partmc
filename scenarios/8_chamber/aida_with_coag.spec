@@ -50,6 +50,6 @@ prefactor_BL  0.005		# prefactor in dissusive boundary layer thickness (m)
 exponent_BL   0.274		# exponent in dissusive boundary layer thickness.
 
 do_fractal yes			# whether to do fractal treatment
-frac_dim   2			# volume fractal dimenstion
+frac_dim   2.05			# volume fractal dimenstion
 prime_radius 8.2e-9		# radius of primary particles (m)
 vol_fill_factor 1.43		# volume filling factor

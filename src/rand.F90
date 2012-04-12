@@ -692,4 +692,77 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> 95% confidence interval offset from mean.
+  !!
+  !! If \c mean and \c var are the sample mean and sample variance of
+  !! \c n data values, then
+  !! <pre>
+  !! call conf_95_offset(var, n, offset)
+  !! </pre>
+  !! means that the 95% confidence interval for the mean is <tt>[mean
+  !! - offset, mean + offset]</tt>.
+  subroutine conf_95_offset(var, n_sample, offset)
+
+    !> Sample variance of data.
+    real(kind=dp), intent(in) :: var
+    !> Number of samples.
+    integer, intent(in) :: n_sample
+    !> Offset from mean for the 95% confidence interval.
+    real(kind=dp), intent(out) :: offset
+
+    offset = student_t_95_coeff(n_sample) * sqrt(var) &
+         / sqrt(real(n_sample, kind=dp))
+
+  end subroutine conf_95_offset
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> 95% confidence interval offset from mean for a 1D array.
+  !!
+  !! See conf_95_offset() for details.
+  subroutine conf_95_offset_1d(var, n_sample, offset)
+
+    !> Sample variance of data.
+    real(kind=dp), intent(in) :: var(:)
+    !> Number of samples.
+    integer, intent(in) :: n_sample
+    !> Offset from mean for the 95% confidence interval.
+    real(kind=dp), intent(inout), allocatable :: offset(:)
+
+    integer :: i
+
+    call ensure_real_array_size(offset, size(var))
+    do i = 1,size(var)
+       call conf_95_offset(var(i), n_sample, offset(i))
+    end do
+
+  end subroutine conf_95_offset_1d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> 95% confidence interval offset from mean for a 2D array.
+  !!
+  !! See conf_95_offset() for details.
+  subroutine conf_95_offset_2d(var, n_sample, offset)
+
+    !> Sample variance of data.
+    real(kind=dp), intent(in) :: var(:,:)
+    !> Number of samples.
+    integer, intent(in) :: n_sample
+    !> Offset from mean for the 95% confidence interval.
+    real(kind=dp), intent(inout), allocatable :: offset(:,:)
+
+    integer :: i, j
+
+    call ensure_real_array_2d_size(offset, size(var, 1), size(var, 2))
+    do i = 1,size(var, 1)
+       do j = 1,size(var, 2)
+          call conf_95_offset(var(i, j), n_sample, offset(i, j))
+       end do
+    end do
+
+  end subroutine conf_95_offset_2d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_rand

@@ -617,6 +617,59 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Find the number of repeats and indices for the given prefix.
+  subroutine input_n_files(prefix, n_repeat, n_index)
+
+    !> Filename prefix to search for.
+    character(len=*), intent(in) :: prefix
+    !> Number of repeats found.
+    integer, intent(out) :: n_repeat
+    !> Number of indices found.
+    integer, intent(out) :: n_index
+
+    integer :: repeat, index, unit, ios
+    character(len=len(prefix)+100) :: filename
+    logical :: done
+
+    call assert_msg(277193351, pmc_mpi_rank() == 0, &
+         "can only call from process 0")
+
+    unit = get_unit()
+
+    repeat = 1
+    index = 1
+    done = .false.
+    do while (.not. done)
+       call make_filename(filename, prefix, ".nc", index, repeat)
+       open(unit=unit, file=filename, status='old', iostat=ios)
+       if (ios /= 0) then
+          done = .true.
+       else
+          repeat = repeat + 1
+          close(unit)
+       end if
+    end do
+    n_repeat = repeat - 1
+
+    repeat = 1
+    index = 1
+    done = .false.
+    do while (.not. done)
+       call make_filename(filename, prefix, ".nc", index, repeat)
+       open(unit=unit, file=filename, status='old', iostat=ios)
+       if (ios /= 0) then
+          done = .true.
+       else
+          index = index + 1
+          close(unit)
+       end if
+    end do
+    n_index = index - 1
+
+  end subroutine input_n_files
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Write the current sectional data.
   subroutine output_sectional(prefix, bin_grid, aero_data, aero_binned, &
        gas_data, gas_state, env_state, index, time, del_t, uuid)

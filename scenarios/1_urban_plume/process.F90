@@ -29,12 +29,11 @@ program process
   type(bin_grid_t) :: diam_grid, bc_grid, entropy_grid
   type(aero_data_t) :: aero_data
   type(aero_state_t) :: aero_state
-  integer :: ncid, index, repeat, i_index, i_repeat, n_index, n_repeat, i
+  integer :: ncid, index, repeat, i_index, i_repeat, n_index, n_repeat
   real(kind=dp) :: time, del_t, tot_num_conc, tot_mass_conc, tot_entropy
   character(len=PMC_UUID_LEN) :: uuid, run_uuid
   real(kind=dp), allocatable :: dry_diameters(:), num_concs(:), dry_masses(:)
   real(kind=dp), allocatable :: masses(:), bc_masses(:), bc_fracs(:)
-  real(kind=dp), allocatable :: c_masses(:), c_fracs(:)
   real(kind=dp), allocatable :: num_dist(:), num_dist_mean(:)
   real(kind=dp), allocatable :: num_dist_var(:), num_dist_ci_offset(:)
   real(kind=dp), allocatable :: diam_bc_dist(:,:), diam_bc_dist_mean(:,:)
@@ -89,13 +88,11 @@ program process
              exclude=(/"H2O"/))
         call aero_state_masses(aero_state, aero_data, bc_masses, &
              include=(/"BC"/))
-        call aero_state_masses(aero_state, aero_data, c_masses, &
-             include=(/"BC"/))
         bc_fracs = bc_masses / dry_masses
-        c_fracs = c_masses / dry_masses
         tot_num_conc = sum(num_concs)
         tot_mass_conc = sum(masses * num_concs)
-        entropies = nplogp(c_fracs) + nplogp(1d0 - c_fracs)
+        entropies = aero_state_mass_entropies(aero_state, aero_data, &
+             exclude=["H2O"], group=["BC"])
         tot_entropy = sum(entropies * dry_masses * num_concs) &
              / sum(dry_masses * num_concs)
 

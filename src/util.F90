@@ -1674,13 +1674,26 @@ contains
     !> Probability \f$p\f$.
     real(kind=dp), intent(in) :: p
 
-    if (p == 0d0) then
+    if (p <= 0d0) then
        nplogp = 0d0
     else
        nplogp = - p * log(p)
     end if
 
   end function nplogp
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute the entropy of a probability mass function (non
+  !> necessarily normalized).
+  real(kind=dp) function entropy(p)
+
+    !> Probability mass function, will be normalized before use.
+    real(kind=dp), intent(in) :: p(:)
+
+    entropy = sum(nplogp(p / sum(p)))
+
+  end function entropy
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

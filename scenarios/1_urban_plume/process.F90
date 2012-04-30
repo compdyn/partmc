@@ -95,17 +95,7 @@ program process
         c_fracs = c_masses / dry_masses
         tot_num_conc = sum(num_concs)
         tot_mass_conc = sum(masses * num_concs)
-        !entropies = - bc_fracs * log(bc_fracs) &
-        !     - (1d0 - bc_fracs) * log(1d0 - bc_fracs)
-        entropies = c_fracs
-        do i = 1,size(c_fracs)
-           if (c_fracs(i) > 0d0) then
-              entropies(i) = - c_fracs(i) * log(c_fracs(i)) &
-                   - (1d0 - c_fracs(i)) * log(1d0 - c_fracs(i))
-           else
-              entropies(i) = 0d0
-           end if
-        end do
+        entropies = nplogp(c_fracs) + nplogp(1d0 - c_fracs)
         tot_entropy = sum(entropies * dry_masses * num_concs) &
              / sum(dry_masses * num_concs)
 

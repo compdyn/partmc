@@ -1668,4 +1668,20 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Compute \f$ - p \ln p\f$ for computing entropy.
+  elemental real(kind=dp) function nplogp(p)
+
+    !> Probability \f$p\f$.
+    real(kind=dp), intent(in) :: p
+
+    if (p == 0d0) then
+       nplogp = 0d0
+    else
+       nplogp = - p * log(p)
+    end if
+
+  end function nplogp
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_util

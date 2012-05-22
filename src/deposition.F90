@@ -3,14 +3,10 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The partmc_dep_aero module.
+!> The deposition module.
 
-!> Aerosol particle deposition.
-!> FIXME: Kinematic and dynamic visc. are assumed constant.
-!> FIXME: A is hardcoded to be 2 mm, gamma is hardcoded (move to env_state?)
-!> FIXME: g should be made a const variable and used here
-!> FIXME: Give A and gamma descriptions
-module partmc_dep_aero
+!> Aerosol deposition.
+module deposition
 
   use pmc_aero_state
   use pmc_aero_data
@@ -20,46 +16,6 @@ module partmc_dep_aero
   use pmc_env_state
 
   contains
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Driver for aerosol dry deposition.
-  subroutine dry_dep_aero_driver(aero_states, aero_data, env_states, ustar, &
-       nx, ny, dt, aer_res_a)
-
-    !> Aerosol states.
-    type(aero_state_t), dimension(nx,ny) :: aero_states
-    !> Aerosol data.
-    type(aero_data_t), dimension(nx,ny) :: aero_data
-    !> Environment states.
-    type(env_state_t), dimension(nx,ny) :: env_states
-    !> Friction velocity (m/s).
-    real(kind=dp), dimension(nx,ny) :: ustar
-    !> East-west dimension.
-    integer :: nx
-    !> North-south dimension.
-    integer :: ny
-    !> Timestep (s).
-    real(kind=dp) :: dt
-    !> Aerodynamic resistance (s/m).
-    real(kind=dp), dimension(1:nx,1:ny) :: aer_res_a
-
-    integer :: i, j
-    real(kind=dp) :: gamma
-    real(kind=dp) :: A
-
-    ! FIXME: These should be somewhere - probably env_state or scenario?
-    gamma = .54
-    A = 2.0d0/1000.0
-
-    do i = 1,nx
-    do j = 1,ny
-       call dry_dep_aero_state(aero_states(i,j), aero_data(i,j), &
-            env_states(i,j), aer_res_a(i,j), ustar(i,j), gamma, A, dt)
-    end do
-    end do
-
-  end subroutine dry_dep_aero_driver
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -362,4 +318,4 @@ module partmc_dep_aero
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module partmc_dep_aero
+end module deposition

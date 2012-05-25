@@ -11,6 +11,7 @@ module pmc_aero_sorted
   use pmc_integer_varray
   use pmc_integer_rmap
   use pmc_aero_particle
+  use pmc_aero_data
   use pmc_aero_particle_array
   use pmc_bin_grid
   use pmc_mpi

@@ -488,7 +488,9 @@ contains
  
        call spec_file_read_chamber(file, scenario%chamber)
        call spec_file_read_fractal(file, aero_data%fractal)
-       
+
+       !print *, vol2rad(8.11d-22, aero_data%fractal)
+       !print *, vol2Rme(8.11d-22, 296d0, 1d-5, aero_data%fractal)
        call spec_file_close(file)
     end if
 

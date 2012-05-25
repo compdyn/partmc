@@ -76,7 +76,7 @@ contains
     if (fractal%do_fractal) then
        vol2rad = vol2Rgeo(v, fractal)
     else
-       vol2rad = (v / (4d0 / 3d0 * const%pi))**(1d0/3d0)
+       vol2rad = (v / (4d0 / 3d0 * const%pi))**(1d0 / 3d0)
     end if
 
   end function vol2rad

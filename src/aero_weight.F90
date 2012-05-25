@@ -13,6 +13,7 @@ module pmc_aero_weight
   use pmc_rand
   use pmc_spec_file
   use pmc_aero_particle
+  use pmc_aero_data
   use pmc_netcdf
   use pmc_mpi
 #ifdef PMC_USE_MPI

@@ -33,9 +33,9 @@ module deposition
     real(kind=dp), intent(in) :: aer_res_a
     !> Friction velocity (m/s).
     real(kind=dp), intent(in) :: ustar
-    !>
+    !> 
     real(kind=dp), intent(in) :: gamma
-    !>
+    !> Characteristic radius (mm).
     real(kind=dp), intent(in) :: A
     !> Timestep (s).
     real(kind=dp), intent(in) :: dt

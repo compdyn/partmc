@@ -1579,9 +1579,9 @@ contains
     call aero_state_sort(aero_state, bin_grid)
 
     do i_bin = 1,bin_grid%n_bin
+       species_volume_conc = 0d0
+       total_volume_conc = 0d0
        do i_class = 1,size(aero_state%awa%weight, 2)
-          species_volume_conc = 0d0
-          total_volume_conc = 0d0
           do i_entry = 1,aero_state%aero_sorted%size_class%inverse(i_bin, &
                i_class)%n_entry
              i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
@@ -1595,6 +1595,8 @@ contains
                   + num_conc * aero_particle%vol
              total_volume_conc = total_volume_conc + num_conc * particle_volume
           end do
+       end do
+       do i_class = 1,size(aero_state%awa%weight, 2)
           do i_entry = 1,aero_state%aero_sorted%size_class%inverse(i_bin, &
                i_class)%n_entry
              i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &

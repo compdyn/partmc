@@ -1,0 +1,60 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage[margin=2cm]{geometry}
+\usepackage{longtable}
+
+\begin{document}
+
+\section{Symbol list}
+\label{sec:symbol-list}
+
+\newcommand{\rr}{\raggedright}
+\newcommand{\tn}{\tabularnewline\hline}
+\renewcommand{\arraystretch}{1.5}
+\begin{longtable}{|l|p{5.5cm}|l|l|p{4.5cm}|}
+\hline \textbf{Symbol} & \textbf{Meaning}                                                       & \textbf{Type} & \textbf{Units}                        &  \textbf{Reference}                                \tn
+\hline \endhead
+$V_d$  & \rr collection efficiency from Brownian diffusion  & function         & ?    &                                                    \tn
+$V_g$  & \rr collection efficiency from Brownian diffusion  & function         & ?    &                                                    \tn
+$R_a$  & \rr collection efficiency from Brownian diffusion  & function         & ?    &                                                    \tn
+$R_s$  & \rr collection efficiency from Brownian diffusion  & function         & ?    &                                                    \tn
+
+$E_{\textrm{B}}$  & \rr collection efficiency from Brownian diffusion  & function         & ?    &                                                    \tn
+$E_{\textrm{IM}}$  & \rr collection efficiency from impaction  & function         & ?    &                                                    \tn
+$E_{\textrm{IN}}$  & \rr collection efficiency from interception & function         & ?    &                                                    \tn
+
+$R_1$  & \rr correction factor for bounce-off  & function         &  1    &                                                    \tn
+$\epsilon_0$  & \rr empirical constant  & constant         & 1   &                      \tn
+
+$ Sc $ & \rr Schmidt number & function & 1 & Ref \tn
+$ St$ & \rr Stokes number & function & 1 & Ref \tn
+$C_c$ & \rr slip correction factor & & & Ref \tn
+
+$u_*$ & \rr friction velocity & & & Ref \tn
+$ \kappa $ & \rr Von Karman constant & constant & 1 & Ref \tn
+$\lambda$ & mean free path of air molecules & function? &  \tn
+$A$ & characteristic radius of large collectors  &   & ?    &    Ref   \tn
+$\gamma$  &  &   & ?    &    Ref   \tn
+$\alpha$ &  &   & ?    &    Ref   \tn
+$\beta$ & & & ? & Ref \tn
+$T$ & current environmental temperature &  & K & \tn
+\end{longtable}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Equations}
+\label{sec:equations}
+
+\begin{align}
+V_d &= V_g + \frac{1}{R_a + R_s} \\
+V_g & = \\
+Sc &= \\
+St &= 
+E_{\textrm{B}} &= Sc^{-\gamma}  \\
+R_1 &= \exp(-St^{1/2}) \\
+E_{\textrm{IN}} &= \frac{1}{2} \left(\frac{d_p}{A}\right)^2 \\
+E_{\textrm{IM}} & = \left(\frac{St}{\alpha + St}\right)^{\beta} \\
+C_c & = 1 + \frac{2 \lambda}{d_p}\left(1.257 + 0.4\exp(-.55d_p/\lambda)\right)\\ 
+\end{align}
+
+\end{document}

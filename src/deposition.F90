@@ -21,7 +21,7 @@ module deposition
 
   !> Remove particles from an aero state by dry deposition.
   subroutine dry_dep_aero_state(aero_state, aero_data, env_state, aer_res_a, &
-       ustar, gamma, A, dt)
+       ustar, gamma, A, alpha, dt)
 
     !> Aerosol states.
     type(aero_state_t), intent(inout) :: aero_state
@@ -37,6 +37,8 @@ module deposition
     real(kind=dp), intent(in) :: gamma
     !> Characteristic radius (mm).
     real(kind=dp), intent(in) :: A
+    !>
+    real(kind=dp), intent(in) :: alpha
     !> Timestep (s).
     real(kind=dp), intent(in) :: dt
 
@@ -53,7 +55,7 @@ module deposition
 
     ! Compute deposition velocity array
     call compute_dep_vel(aero_state, aero_data, aer_res_a, ustar, &
-         env_state%temp, gamma, A, vd)
+         env_state%temp, gamma, A, alpha, vd)
     ! Compute the removal probability array
     call compute_dep_prob(vd, dt, env_state%height, remove_prob)
     ! Remove particles based on probabilities
@@ -68,7 +70,7 @@ module deposition
 
   !> Compute deposition velocities.
   subroutine compute_dep_vel(aero_state, aero_data, aer_res_a, ustar, temp, &
-       gamma, A, vd)
+       gamma, A, alpha, vd)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
@@ -80,12 +82,14 @@ module deposition
     real(kind=dp), intent(in) :: ustar
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp
-    !> Dry deposition velocity (m/s).
-    real(kind=dp), intent(inout) :: vd(:)
     !>
     real(kind=dp), intent(in) :: gamma
-    !>
+    !> Characteristic 
     real(kind=dp), intent(in) :: A
+    !>
+    real(kind=dp), intent(in) :: alpha
+    !> Dry deposition velocity (m/s).
+    real(kind=dp), intent(inout) :: vd(:)
 
     integer :: i_part
     real(kind=dp),allocatable :: diam(:)
@@ -104,7 +108,7 @@ module deposition
 
     do i_part = 1,aero_state%apa%n_part
        vs = calculate_vs(diam(i_part), dens(i_part))
-       rs = calculate_rs(diam(i_part), vs, temp, ustar, gamma, A)
+       rs = calculate_rs(diam(i_part), vs, temp, ustar, gamma, A, alpha)
        vd(i_part) = calculate_vd(aer_res_a, rs, vs)
     end do
 
@@ -146,11 +150,18 @@ module deposition
     !> Probabilities of each particle being removed.
     real(kind=dp), intent(in) :: remove_prob(:)
 
+    type(aero_info_t) :: aero_info
     integer :: i_part
 
     do i_part = aero_state%apa%n_part,1,-1
          if (pmc_random() < remove_prob(i_part)) then
-            call aero_state_remove_particle_no_info(aero_state, i_part)
+            call aero_info_allocate(aero_info)
+            aero_info%id = aero_state%apa%particle(i_part)%id
+            aero_info%action = AERO_INFO_DEPOSITION
+            aero_info%other_id = 0
+            call aero_state_remove_particle_with_info(aero_state, i_part, &
+                 aero_info)
+            call aero_info_deallocate(aero_info)
          end if
     end do
 
@@ -180,7 +191,7 @@ module deposition
 
   !> Calculate surface resistance of a given particle.
   real(kind=dp) function calculate_rs(diameter, vs, temperature, ustar, &
-       gamma, A)
+       gamma, A, alpha)
 
     !> Particle diameter (m).
     real(kind=dp) :: diameter
@@ -194,12 +205,13 @@ module deposition
     real(kind=dp) :: gamma
     !>
     real(kind=dp) :: A
+    !>
+    real(kind=dp) :: alpha
 
     real(kind=dp) :: eps_0
     real(kind=dp) :: diff
     real(kind=dp) :: nu
     real(kind=dp) :: EB,EIM,EIN,R1
-    real(kind=dp) :: alpha
     real(kind=dp) :: beta
     real(kind=dp) :: Sc
     real(kind=dp) :: st
@@ -218,7 +230,6 @@ module deposition
 
     ! EIM: Collection efficiency from impaction
     ! Equation 7b from Zhang et al. (2001)
-    alpha = 1.20
     beta = 2.0d0
     EIM = (St / (alpha + St))**(beta)
 

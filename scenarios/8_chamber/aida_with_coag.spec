@@ -42,13 +42,6 @@ allow_halving yes		# whether to allow halving (yes/no)
 record_removals yes		# whether to record particle removals (yes/no)
 do_parallel no			# whether to run in parallel (yes/no)
 
-do_chamber yes  		# whether to consider chamber wall/sedimentation loss
-V_chamber 84.3			# aerosol chamber volume (m^3)
-A_diffuse 103			# diffusional deposition area (m^2)
-A_sedi    12.6			# sedimentational deposition area (m^2)
-prefactor_BL  0.005		# prefactor in dissusive boundary layer thickness (m)
-exponent_BL   0.274		# exponent in dissusive boundary layer thickness.
-
 do_fractal yes			# whether to do fractal treatment
 frac_dim   2.05			# volume fractal dimenstion
 prime_radius 8.2e-9		# radius of primary particles (m)

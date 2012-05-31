@@ -325,7 +325,7 @@ contains
          reweight_num_conc)
     do i_part = 1,aero_state%apa%n_part,1
        particle => aero_state%apa%particle(i_part)
-       num_conc = aero_weight_array_num_conc(aero_state%awa, 
+       num_conc = aero_weight_array_num_conc(aero_state%awa, & 
             particle, aero_data)
        do i_spec = 1,aero_data%n_spec
           i_spec_mosaic = aero_data%mosaic_index(i_spec)

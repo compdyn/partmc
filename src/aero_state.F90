@@ -766,7 +766,7 @@ contains
              call aero_mode_sample_radius(aero_data, aero_mode, &
                   aero_state%awa%weight(i_group, i_class), radius)
              if (aero_data%fractal%do_fractal) then
-                 vol = Rme2vol(radius, env_state%temp, env_state%pressure, &
+                 total_vol = Rme2vol(radius, env_state%temp, env_state%pressure, &
                       aero_data%fractal)
              else
                  total_vol = rad2vol(radius, aero_data%fractal)

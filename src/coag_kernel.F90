@@ -146,51 +146,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-<<<<<<< HEAD
-  !> Compute the kernel value with the given weight.
-  subroutine weighted_kernel(coag_kernel_type, aero_particle_1, &
-       aero_particle_2, aero_data, aero_weight, env_state, k)
-
-    !> Coagulation kernel type.
-    integer, intent(in) :: coag_kernel_type
-    !> First particle.
-    type(aero_particle_t), intent(in) :: aero_particle_1
-    !> Second particle.
-    type(aero_particle_t), intent(in) :: aero_particle_2
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-    !> Coagulation kernel.
-    real(kind=dp), intent(out) :: k
-
-    real(kind=dp) :: unweighted_k
-    real(kind=dp) :: radius_1, radius_2, radius_1_plus_2
-    real(kind=dp) :: weight_1, weight_2, weight_1_plus_2, weight_min
-
-    call kernel(coag_kernel_type, aero_particle_1, aero_particle_2, &
-         aero_data, env_state, unweighted_k)
-    radius_1 = aero_particle_radius(aero_particle_1, aero_data)
-    radius_2 = aero_particle_radius(aero_particle_2, aero_data)
-    radius_1_plus_2 = vol2rad((rad2vol(radius_1, aero_data%fractal) &
-         + rad2vol(radius_2, aero_data%fractal)), aero_data%fractal)
-    weight_1 = aero_weight_num_conc_at_radius(aero_weight, radius_1) &
-         * aero_weight%comp_vol
-    weight_2 = aero_weight_num_conc_at_radius(aero_weight, radius_2) &
-         * aero_weight%comp_vol
-    weight_1_plus_2 = aero_weight_num_conc_at_radius(aero_weight, &
-         radius_1_plus_2) * aero_weight%comp_vol
-    weight_min = min(weight_1, weight_2, weight_1_plus_2)
-    k = unweighted_k * weight_1 * weight_2 / weight_min
-    
-  end subroutine weighted_kernel
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-=======
->>>>>>> origin/master
   !> Compute the kernel value with the given number concentration
   !> weighting.
   subroutine num_conc_weighted_kernel(coag_kernel_type, aero_particle_1, &
@@ -222,66 +177,15 @@ contains
 
     call kernel(coag_kernel_type, aero_particle_1, aero_particle_2, &
          aero_data, env_state, unweighted_k)
-<<<<<<< HEAD
-    radius_1 = aero_particle_radius(aero_particle_1, aero_data)
-    radius_2 = aero_particle_radius(aero_particle_2, aero_data)
-    k = unweighted_k * coag_num_conc_factor(aero_weight_array, &
-         aero_data, radius_1, radius_2)
-=======
-    i_r = aero_particle_radius(aero_particle_1)
-    j_r = aero_particle_radius(aero_particle_2)
-    k = unweighted_k * coag_num_conc_factor(aero_weight_array, i_r, j_r, &
-         i_class, j_class, ij_class)
->>>>>>> origin/master
+    i_r = aero_particle_radius(aero_particle_1, aero_data)
+    j_r = aero_particle_radius(aero_particle_2, aero_data)
+    k = unweighted_k * coag_num_conc_factor(aero_weight_array, aero_data, &
+         i_r, j_r, i_class, j_class, ij_class)
 
   end subroutine num_conc_weighted_kernel
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-<<<<<<< HEAD
-  !> Compute the minimum and maximum kernel value with the given weight.
-  subroutine weighted_kernel_minmax(coag_kernel_type, v1, v2, aero_data, &
-       aero_weight, env_state, k_min, k_max)
-
-    !> Coagulation kernel type.
-    integer, intent(in) :: coag_kernel_type
-    !> Volume of first particle.
-    real(kind=dp), intent(in) :: v1
-    !> Volume of second particle.
-    real(kind=dp), intent(in) :: v2
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-    !> Coagulation kernel minimum value.
-    real(kind=dp), intent(out) :: k_min
-    !> Coagulation kernel maximum value.
-    real(kind=dp), intent(out) :: k_max
-
-    real(kind=dp) :: unweighted_k_min, unweighted_k_max
-    real(kind=dp) :: weight_1, weight_2, weight_1_plus_2, weight_min
-
-    call kernel_minmax(coag_kernel_type, v1, v2, aero_data, env_state, &
-         unweighted_k_min, unweighted_k_max)
-
-    weight_1 = aero_weight_num_conc_at_radius(aero_weight, vol2rad(v1, &
-         aero_data%fractal)) * aero_weight%comp_vol
-    weight_2 = aero_weight_num_conc_at_radius(aero_weight, vol2rad(v2, &
-         aero_data%fractal)) * aero_weight%comp_vol
-    weight_1_plus_2 = aero_weight_num_conc_at_radius(aero_weight, &
-         vol2rad((v1 + v2), aero_data%fractal)) * aero_weight%comp_vol
-    weight_min = min(weight_1, weight_2, weight_1_plus_2)
-    k_min = unweighted_k_min * weight_1 * weight_2 / weight_min
-    k_max = unweighted_k_max * weight_1 * weight_2 / weight_min
-
-  end subroutine weighted_kernel_minmax
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-=======
->>>>>>> origin/master
   !> Computes an array of kernel values for each bin pair. k(i,j) is
   !> the kernel value at the centers of bins i and j. This assumes the
   !> kernel is only a function of the particle volumes.
@@ -357,72 +261,6 @@ contains
 
   !> Samples within bins b1 and b2 to find the minimum and maximum
   !> value of the kernel between particles from the two bins.
-<<<<<<< HEAD
-  subroutine est_k_minmax_for_bin(bin_grid, coag_kernel_type, b1, b2, &
-       aero_data, aero_weight, env_state, k_min, k_max)
-   
-    !> Bin_grid.
-    type(bin_grid_t), intent(in) :: bin_grid
-    !> Coagulation kernel type.
-    integer, intent(in) :: coag_kernel_type
-    !> First bin.
-    integer, intent(in) :: b1
-    !> Second bin.
-    integer, intent(in) :: b2
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
-    !> Environment state.
-    type(env_state_t), intent(in) :: env_state
-    !> Minimum kernel value.
-    real(kind=dp), intent(out) :: k_min
-    !> Maximum kernel value.
-    real(kind=dp), intent(out) :: k_max
-    
-    !> Number of sample points per bin.
-    integer, parameter :: n_sample = 3
-    !> Over-estimation scale factor parameter.
-    real(kind=dp), parameter :: over_scale = 1.5d0
-    
-    real(kind=dp) :: v1, v2, v1_high, v1_low, v2_high, v2_low
-    real(kind=dp) :: new_k_min, new_k_max
-    integer :: i, j
-    
-    ! v1_low < bin_v(b1) < v1_high
-    v1_low = rad2vol(bin_grid%edge_radius(b1), aero_data%fractal)
-    v1_high = rad2vol(bin_grid%edge_radius(b1 + 1), aero_data%fractal)
-    
-    ! v2_low < bin_v(b2) < v2_high
-    v2_low = rad2vol(bin_grid%edge_radius(b2), aero_data%fractal)
-    v2_high = rad2vol(bin_grid%edge_radius(b2 + 1), aero_data%fractal)
-    
-    do i = 1,n_sample
-       do j = 1,n_sample
-          v1 = interp_linear_disc(v1_low, v1_high, n_sample, i)
-          v2 = interp_linear_disc(v2_low, v2_high, n_sample, j)
-          call weighted_kernel_minmax(coag_kernel_type, v1, v2, aero_data, &
-               aero_weight, env_state, new_k_min, new_k_max)
-          if ((i == 1) .and. (j == 1)) then
-             k_min = new_k_min
-             k_max = new_k_max
-          else
-             k_min = min(k_min, new_k_min)
-             k_max = max(k_max, new_k_max)
-          end if
-       end do
-    end do
-    
-    k_max = k_max * over_scale
-    
-  end subroutine est_k_minmax_for_bin
-  
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Samples within bins b1 and b2 to find the minimum and maximum
-  !> value of the kernel between particles from the two bins.
-=======
->>>>>>> origin/master
   subroutine est_k_minmax_for_bin_unweighted(bin_grid, coag_kernel_type, &
        b1, b2, aero_data, env_state, k_min, k_max)
    
@@ -483,37 +321,16 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Coagulation scale factor due to number concentrations.
-<<<<<<< HEAD
   real(kind=dp) function coag_num_conc_factor(aero_weight_array, aero_data, &
-       r_1, r_2)
-
-    !> Aerosol weight array.
-    type(aero_weight_t), intent(in) :: aero_weight_array(:)
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-=======
-  real(kind=dp) function coag_num_conc_factor(aero_weight_array, &
        i_r, j_r, i_class, j_class, ij_class)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
->>>>>>> origin/master
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Radius of first particle.
     real(kind=dp), intent(in) :: i_r
     !> Radius of second particle.
-<<<<<<< HEAD
-    real(kind=dp), intent(in) :: r_2
-
-    real(kind=dp) :: r_12, nc_1, nc_2, nc_12, nc_min
-
-    r_12 = vol2rad(rad2vol(r_1, aero_data%fractal) + rad2vol(r_2, &
-         aero_data%fractal), aero_data%fractal)
-    nc_1 = aero_weight_array_num_conc_at_radius(aero_weight_array, r_1)
-    nc_2 = aero_weight_array_num_conc_at_radius(aero_weight_array, r_2)
-    nc_12 = aero_weight_array_num_conc_at_radius(aero_weight_array, r_12)
-    nc_min = min(nc_1, nc_2, nc_12)
-    coag_num_conc_factor = nc_1 * nc_2 / nc_min
-=======
     real(kind=dp), intent(in) :: j_r
     !> Weight class of first particle.
     integer, intent(in) :: i_class
@@ -524,7 +341,8 @@ contains
 
     real(kind=dp) :: ij_r, i_nc, j_nc, ij_nc, nc_min
 
-    ij_r = vol2rad(rad2vol(i_r) + rad2vol(j_r))
+    ij_r = vol2rad(rad2vol(i_r, aero_data%fractal) + rad2vol(j_r, &
+         aero_data%fractal), aero_data%fractal)
     i_nc = aero_weight_array_num_conc_at_radius(aero_weight_array, i_class, &
          i_r)
     j_nc = aero_weight_array_num_conc_at_radius(aero_weight_array, j_class, &
@@ -533,7 +351,6 @@ contains
          ij_r)
     nc_min = min(i_nc, j_nc, ij_nc)
     coag_num_conc_factor = i_nc * j_nc / nc_min
->>>>>>> origin/master
 
   end function coag_num_conc_factor
 
@@ -577,21 +394,13 @@ contains
 
   !> Determine the minimum and maximum number concentration factors
   !> for coagulation.
-<<<<<<< HEAD
-  subroutine max_coag_num_conc_factor_better(aero_weight_array, aero_data, &
-       bin_grid, i_bin, j_bin, f_max)
-
-    !> Aerosol weight array.
-    type(aero_weight_t), intent(in) :: aero_weight_array(:)
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-=======
-  subroutine max_coag_num_conc_factor(aero_weight_array, bin_grid, &
+  subroutine max_coag_num_conc_factor(aero_weight_array, aero_data, bin_grid, &
        i_bin, j_bin, i_class, j_class, ij_class, f_max)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
->>>>>>> origin/master
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> First bin number.
@@ -622,12 +431,8 @@ contains
        do j_sample = 1,n_sample
           i_r = interp_linear_disc(i_r_min, i_r_max, n_sample, i_sample)
           j_r = interp_linear_disc(j_r_min, j_r_max, n_sample, j_sample)
-<<<<<<< HEAD
-          f = coag_num_conc_factor(aero_weight_array, aero_data, i_r, j_r)
-=======
-          f = coag_num_conc_factor(aero_weight_array, i_r, j_r, i_class, &
-               j_class, ij_class)
->>>>>>> origin/master
+          f = coag_num_conc_factor(aero_weight_array, aero_data, i_r, j_r, &
+               i_class, j_class, ij_class)
           f_max = max(f_max, f)
        end do
     end do

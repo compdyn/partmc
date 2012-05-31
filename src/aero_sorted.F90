@@ -250,13 +250,7 @@ contains
 
     do i_part = 1,aero_particle_array%n_part
        i_bin = aero_sorted_particle_in_bin(aero_sorted, &
-<<<<<<< HEAD
             aero_particle_array%particle(i_part), aero_data)
-       call integer_rmap_append(aero_sorted%size, i_bin)
-
-=======
-            aero_particle_array%particle(i_part))
->>>>>>> origin/master
        i_group = aero_particle_array%particle(i_part)%weight_group
        i_class = aero_particle_array%particle(i_part)%weight_class
        call integer_rmap2_append(aero_sorted%size_class, i_bin, i_class)
@@ -269,11 +263,7 @@ contains
 
   !> Remake a sorting if particles are getting too close to the edges.
   subroutine aero_sorted_remake_if_needed(aero_sorted, aero_particle_array, &
-<<<<<<< HEAD
-       aero_data, valid_sort, n_group, bin_grid, all_procs_same)
-=======
-       valid_sort, n_group, n_class, bin_grid, all_procs_same)
->>>>>>> origin/master
+       aero_data, valid_sort, n_group, n_class, bin_grid, all_procs_same)
 
     !> Aerosol sorted to (possibly) remake.
     type(aero_sorted_t), intent(inout) :: aero_sorted
@@ -310,18 +300,12 @@ contains
     end if
 
     if (present(bin_grid)) then
-<<<<<<< HEAD
-       call aero_sorted_set_bin_grid(aero_sorted, bin_grid, n_group)
+       call aero_sorted_set_bin_grid(aero_sorted, bin_grid, use_n_group, &
+            use_n_class)
        call aero_sorted_discard_outside_grid(aero_sorted, aero_particle_array, &
             aero_data)
        call aero_sorted_sort_particles(aero_sorted, aero_particle_array, &
             aero_data)
-=======
-       call aero_sorted_set_bin_grid(aero_sorted, bin_grid, use_n_group, &
-            use_n_class)
-       call aero_sorted_discard_outside_grid(aero_sorted, aero_particle_array)
-       call aero_sorted_sort_particles(aero_sorted, aero_particle_array)
->>>>>>> origin/master
        return
     end if
 
@@ -463,11 +447,7 @@ contains
   !> Add a new particle to both an aero_sorted and the corresponding
   !> aero_particle_array.
   subroutine aero_sorted_add_particle(aero_sorted, aero_particle_array, &
-<<<<<<< HEAD
-       aero_particle, aero_data, n_group, allow_resort)
-=======
-       aero_particle, allow_resort)
->>>>>>> origin/master
+       aero_particle, aero_data, allow_resort)
 
     !> Sorted particle structure.
     type(aero_sorted_t), intent(inout) :: aero_sorted
@@ -475,13 +455,8 @@ contains
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
     !> Particle to add.
     type(aero_particle_t), intent(in) :: aero_particle
-<<<<<<< HEAD
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Number of weight groups.
-    integer, intent(in) :: n_group
-=======
->>>>>>> origin/master
     !> Whether to allow a resort due to the add.
     logical, optional, intent(in) :: allow_resort
 
@@ -513,11 +488,7 @@ contains
           end if
        end if
        call aero_sorted_remake_if_needed(aero_sorted, aero_particle_array, &
-<<<<<<< HEAD
-            aero_data, valid_sort=.false., n_group=n_group)
-=======
-            valid_sort=.false., n_group=n_group, n_class=n_class)
->>>>>>> origin/master
+            aero_data, valid_sort=.false., n_group=n_group, n_class=n_class)
     else
        ! particle fits in the current bin_grid
        call integer_rmap2_append(aero_sorted%size_class, i_bin, i_class)
@@ -575,11 +546,7 @@ contains
 
   !> Check sorting.
   subroutine aero_sorted_check(aero_sorted, aero_particle_array, &
-<<<<<<< HEAD
-       aero_data, n_group, continue_on_error)
-=======
-       n_group, n_class, continue_on_error)
->>>>>>> origin/master
+       aero_data, n_group, n_class, continue_on_error)
 
     !> Aerosol sorted to check.
     type(aero_sorted_t), intent(in) :: aero_sorted
@@ -602,16 +569,10 @@ contains
          continue_on_error=continue_on_error)
     do i_part = 1,aero_particle_array%n_part
        i_bin = aero_sorted_particle_in_bin(aero_sorted, &
-<<<<<<< HEAD
             aero_particle_array%particle(i_part), aero_data)
-       if (i_bin /= aero_sorted%size%forward%entry(i_part)) then
-          write(0,*) 'ERROR aero_sorted A: ', "size"
-=======
-            aero_particle_array%particle(i_part))
        if ((i_bin /= aero_sorted%size_class%forward1%entry(i_part)) &
             .or. (i_bin /= aero_sorted%size_class%forward1%entry(i_part))) then
           write(0,*) 'ERROR aero_sorted A: ', "size_class"
->>>>>>> origin/master
           write(0,*) 'i_part', i_part
           write(0,*) 'i_bin', i_bin
           write(0,*) 'aero_sorted%size_class%forward1%entry(i_part)', &

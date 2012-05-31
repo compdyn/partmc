@@ -178,14 +178,9 @@ contains
          aero_state%aero_sorted%bin_grid%n_bin))
     do i_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
        do j_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
-<<<<<<< HEAD
-          call max_coag_num_conc_factor_better(aero_weight_total, &
-               aero_data, aero_state%aero_sorted%bin_grid, i_bin, j_bin, f_max)
-=======
           call max_coag_num_conc_factor(aero_weight_total, &
-               aero_state%aero_sorted%bin_grid, i_bin, j_bin, s1, s2, sc, &
+               aero_data, aero_state%aero_sorted%bin_grid, i_bin, j_bin, s1, s2, sc, &
                f_max)
->>>>>>> origin/master
           k_max(i_bin, j_bin) &
                = aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin) * f_max
        end do
@@ -938,13 +933,8 @@ contains
 
     ! add new particle
     if (create_new) then
-<<<<<<< HEAD
-       new_group = aero_weight_array_rand_group(aero_weight_total, &
-            aero_particle_radius(aero_particle_new, aero_data))
-=======
        new_group = aero_weight_array_rand_group(aero_weight_total, sc, &
-            aero_particle_radius(aero_particle_new))
->>>>>>> origin/master
+            aero_particle_radius(aero_particle_new, aero_data))
        aero_particle_new%weight_group = new_group
        new_proc = sample_cts_pdf(1d0 / magnitudes(new_group, :)) - 1
        call send_return_unreq_particle(aero_particle_new, new_proc)

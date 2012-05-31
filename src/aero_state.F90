@@ -23,12 +23,9 @@ module pmc_aero_state
   use pmc_aero_info
   use pmc_aero_info_array
   use pmc_aero_weight
-<<<<<<< HEAD
   use pmc_env_state
   use pmc_fractal
-=======
   use pmc_aero_weight_array
->>>>>>> origin/master
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -346,11 +343,7 @@ contains
 
     if (aero_state%valid_sort) then
        call aero_sorted_add_particle(aero_state%aero_sorted, aero_state%apa, &
-<<<<<<< HEAD
-            aero_particle, aero_data, size(aero_state%aero_weight), allow_resort)
-=======
-            aero_particle, allow_resort)
->>>>>>> origin/master
+            aero_particle, aero_data, allow_resort)
     else
        call aero_particle_array_add_particle(aero_state%apa, aero_particle)
     end if
@@ -497,16 +490,10 @@ contains
           if (present(random_weight_group)) then
              if (random_weight_group) then
                 new_group &
-<<<<<<< HEAD
-                     = aero_weight_array_rand_group(aero_state%aero_weight, &
-                     aero_particle_radius(aero_particle, aero_data))
-                call aero_particle_set_group(new_aero_particle, new_group)
-=======
                      = aero_weight_array_rand_group(aero_state%awa, &
                      aero_particle%weight_class, &
-                     aero_particle_radius(aero_particle))
+                     aero_particle_radius(aero_particle, aero_data))
                 call aero_particle_set_weight(new_aero_particle, new_group)
->>>>>>> origin/master
              end if
           end if
           call aero_state_add_particle(aero_state, new_aero_particle, &
@@ -534,12 +521,7 @@ contains
     type(aero_data_t), intent(in) :: aero_data
 
     aero_state_particle_num_conc &
-<<<<<<< HEAD
-         = aero_weight_array_num_conc(aero_state%aero_weight, aero_particle, &
-              aero_data)
-=======
-         = aero_weight_array_num_conc(aero_state%awa, aero_particle)
->>>>>>> origin/master
+         = aero_weight_array_num_conc(aero_state%awa, aero_particle, aero_data)
 
   end function aero_state_particle_num_conc
 
@@ -561,13 +543,8 @@ contains
 
     do i_part = 1,aero_state%apa%n_part
        reweight_num_conc(i_part) &
-<<<<<<< HEAD
-            = aero_weight_array_single_num_conc(aero_state%aero_weight, &
-            aero_state%apa%particle(i_part), aero_data)
-=======
             = aero_weight_array_single_num_conc(aero_state%awa, &
-            aero_state%apa%particle(i_part))
->>>>>>> origin/master
+            aero_state%apa%particle(i_part), aero_data)
     end do
 
   end subroutine aero_state_num_conc_for_reweight
@@ -608,14 +585,8 @@ contains
     do i_part = 1,aero_state%apa%n_part
        aero_particle => aero_state%apa%particle(i_part)
        old_num_conc = reweight_num_conc(i_part)
-<<<<<<< HEAD
-       new_num_conc &
-            = aero_weight_array_single_num_conc(aero_state%aero_weight, &
-            aero_particle, aero_data)
-=======
        new_num_conc = aero_weight_array_single_num_conc(aero_state%awa, &
-            aero_particle)
->>>>>>> origin/master
+            aero_particle, aero_data)
        n_part_mean = old_num_conc / new_num_conc
        i_group = aero_particle%weight_group
        i_class = aero_particle%weight_class
@@ -640,12 +611,8 @@ contains
        aero_particle => aero_state%apa%particle(i_part)
        old_num_conc = reweight_num_conc(i_part)
        new_num_conc &
-<<<<<<< HEAD
-            = aero_weight_array_single_num_conc(aero_state%aero_weight, &
+            = aero_weight_array_single_num_conc(aero_state%awa, &
             aero_particle, aero_data)
-=======
-            = aero_weight_array_single_num_conc(aero_state%awa, aero_particle)
->>>>>>> origin/master
        n_part_mean = old_num_conc / new_num_conc
        call aero_state_dup_particle(aero_state, aero_data, i_part, n_part_mean)
     end do
@@ -654,17 +621,10 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-<<<<<<< HEAD
-  !> <tt>aero_state += aero_state_delta</tt>, with adding the computational
-  !> volumes, so the new concentration is the (volume-weighted)
-  !> average of the two concentration.
-  subroutine aero_state_add(aero_state, aero_state_delta, aero_data)
-=======
   !> <tt>aero_state += aero_state_delta</tt>, including combining the
   !> weights, so the new concentration is the weighted average of the
   !> two concentrations.
-  subroutine aero_state_add(aero_state, aero_state_delta)
->>>>>>> origin/master
+  subroutine aero_state_add(aero_state, aero_state_delta, aero_data)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -673,30 +633,17 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
 
-<<<<<<< HEAD
     call aero_state_add_particles(aero_state, aero_state_delta, aero_data)
-    call aero_weight_add_comp_vol(aero_state%aero_weight, &
-         aero_state_delta%aero_weight)
-=======
-    call aero_state_add_particles(aero_state, aero_state_delta)
     call aero_weight_array_combine(aero_state%awa, aero_state_delta%awa)
->>>>>>> origin/master
 
   end subroutine aero_state_add
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-<<<<<<< HEAD
-  !> <tt>aero_state += aero_state_delta</tt>, with the computational
-  !> volume of \c aero_state left unchanged, so the new concentration is the
-  !> sum of the two concentrations, computed with \c aero_state%comp_vol.
-  subroutine aero_state_add_particles(aero_state, aero_state_delta, aero_data)
-=======
   !> <tt>aero_state += aero_state_delta</tt>, with the weight
   !> of \c aero_state left unchanged, so the new concentration is the
   !> sum of the two concentrations, computed with \c aero_state%awa.
-  subroutine aero_state_add_particles(aero_state, aero_state_delta)
->>>>>>> origin/master
+  subroutine aero_state_add_particles(aero_state, aero_state_delta, aero_data)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -768,13 +715,9 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Distribution to sample.
     type(aero_dist_t), intent(in) :: aero_dist
-<<<<<<< HEAD
     !> Environment.
     type(env_state_t), intent(in) :: env_state
-    !> Volume fraction to sample (1).
-=======
     !> Fraction to sample (1).
->>>>>>> origin/master
     real(kind=dp), intent(in) :: sample_prop
     !> Creation time for new particles (s).
     real(kind=dp), intent(in) :: create_time
@@ -796,30 +739,6 @@ contains
        n_part_add = 0
     end if
     do i_group = 1,n_group
-<<<<<<< HEAD
-       global_n_part &
-            = aero_state_total_particles_all_procs(aero_state, i_group)
-       mean_n_part = real(global_n_part, kind=dp) &
-            / real(pmc_mpi_size(), kind=dp)
-       if (aero_state%aero_weight(i_group)%comp_vol == 0d0) then
-          ! FIXME: assert that n_part in this weight group is zero
-          aero_state%aero_weight(i_group)%comp_vol = 1d0
-       end if
-       n_samp_avg = sample_prop &
-            * aero_dist_number(aero_dist, aero_state%aero_weight(i_group))
-       n_part_new = mean_n_part + n_samp_avg
-       if (n_part_new == 0d0) cycle
-       n_part_ideal_local_group = aero_state%n_part_ideal &
-            / real(pmc_mpi_size(), kind=dp) / real(n_group, kind=dp)
-       if ((n_part_new <  n_part_ideal_local_group / 2d0) &
-            .or. (n_part_new > n_part_ideal_local_group * 2d0)) &
-            then
-          comp_vol_ratio = n_part_ideal_local_group / n_part_new
-          call aero_state_scale_comp_vol(aero_state, aero_data, i_group, &
-               comp_vol_ratio)
-       end if
-=======
->>>>>>> origin/master
        do i_mode = 1,aero_dist%n_mode
           aero_mode => aero_dist%mode(i_mode)
           i_class = aero_state_weight_class_for_source(aero_state, &
@@ -841,28 +760,16 @@ contains
           end if
           do i_samp = 1,n_samp
              call aero_particle_zero(aero_particle)
-<<<<<<< HEAD
              call aero_mode_sample_radius(aero_data, aero_mode, &
-                  aero_state%aero_weight(i_group), radius)
-             if (aero_data%fractal%do_fractal) then
-                vol = Rme2vol(radius, env_state%temp, env_state%pressure, &
-                      aero_data%fractal)
-                !write(*,'(A,E15.6,A,E15.6)') 'R_me = ', radius, '  V = ', vol
-                !R_me = vol2Rme(vol, env_state%temp, env_state%pressure, &
-                !     aero_data%fractal)
-                !write(*,'(A,E15.6,A,E15.6)') 'V = ', vol, '  R_me = ', R_me
-              else
-                vol = rad2vol(radius, aero_data%fractal)
-             end if
-             call aero_particle_set_vols(aero_particle, &
-                  aero_mode%vol_frac * vol)
-=======
-             call aero_mode_sample_radius(aero_mode, &
                   aero_state%awa%weight(i_group, i_class), radius)
-             total_vol = rad2vol(radius)
+             if (aero_data%fractal%do_fractal) then
+                 vol = Rme2vol(radius, env_state%temp, env_state%pressure, &
+                      aero_data%fractal)
+             else
+                 total_vol = rad2vol(radius, aero_data%fractal)
+             end if
              call aero_mode_sample_vols(aero_mode, total_vol, vols)
              call aero_particle_set_vols(aero_particle, vols)
->>>>>>> origin/master
              call aero_particle_new_id(aero_particle)
              call aero_particle_set_weight(aero_particle, i_group, i_class)
              call aero_particle_set_create_time(aero_particle, create_time)
@@ -927,19 +834,10 @@ contains
     do while (i_transfer < n_transfer)
        if (aero_state_total_particles(aero_state_from) <= 0) exit
        call aero_state_rand_particle(aero_state_from, i_part)
-<<<<<<< HEAD
-       num_conc_from = aero_weight_array_num_conc( &
-            aero_state_from%aero_weight, &
-            aero_state_from%apa%particle(i_part), aero_data)
-       num_conc_to = aero_weight_array_num_conc( &
-            aero_state_to%aero_weight, &
-            aero_state_from%apa%particle(i_part), aero_data)
-=======
        num_conc_from = aero_weight_array_num_conc(aero_state_from%awa, &
-            aero_state_from%apa%particle(i_part))
+            aero_state_from%apa%particle(i_part), aero_data)
        num_conc_to = aero_weight_array_num_conc(aero_state_to%awa, &
-            aero_state_from%apa%particle(i_part))
->>>>>>> origin/master
+            aero_state_from%apa%particle(i_part), aero_data)
 
        if (num_conc_to == num_conc_from) then ! add and remove
           do_add = .true.
@@ -1064,19 +962,11 @@ contains
        else
           aero_binned%vol_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) &
                + aero_particle%vol &
-<<<<<<< HEAD
-               * aero_weight_array_num_conc(aero_state%aero_weight, &
-               aero_particle, aero_data) / bin_grid%log_width
-          aero_binned%num_conc(i_bin) = aero_binned%num_conc(i_bin) &
-               + aero_weight_array_num_conc(aero_state%aero_weight, &
-               aero_particle, aero_data) / bin_grid%log_width
-=======
                * aero_weight_array_num_conc(aero_state%awa, &
-               aero_particle) / bin_grid%log_width
+               aero_particle, aero_data) / bin_grid%log_width
           aero_binned%num_conc(i_bin) = aero_binned%num_conc(i_bin) &
                + aero_weight_array_num_conc(aero_state%awa, &
-               aero_particle) / bin_grid%log_width
->>>>>>> origin/master
+               aero_particle, aero_data) / bin_grid%log_width
        end if
     end do
     
@@ -1238,19 +1128,11 @@ contains
        else
           aero_binned%vol_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) &
                + aero_particle%vol &
-<<<<<<< HEAD
-               * aero_weight_array_num_conc(aero_state%aero_weight, &
-               aero_particle, aero_data) / bin_grid%log_width
-          aero_binned%num_conc(i_bin) = aero_binned%num_conc(i_bin) &
-               + aero_weight_array_num_conc(aero_state%aero_weight, &
-               aero_particle, aero_data) / bin_grid%log_width
-=======
                * aero_weight_array_num_conc(aero_state%awa, &
-               aero_particle) / bin_grid%log_width
+               aero_particle, aero_data) / bin_grid%log_width
           aero_binned%num_conc(i_bin) = aero_binned%num_conc(i_bin) &
                + aero_weight_array_num_conc(aero_state%awa, &
-               aero_particle) / bin_grid%log_width
->>>>>>> origin/master
+               aero_particle, aero_data) / bin_grid%log_width
        end if
     end do
     
@@ -1259,11 +1141,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Doubles number of particles in the given weight group.
-<<<<<<< HEAD
-  subroutine aero_state_double(aero_state, aero_data, i_group)
-=======
-  subroutine aero_state_double(aero_state, i_group, i_class)
->>>>>>> origin/master
+  subroutine aero_state_double(aero_state, aero_data, i_group, i_class)
     
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -1355,20 +1233,7 @@ contains
     ! double until we fill up the array
     if (allow_doubling) then
        do i_group = 1,n_group
-<<<<<<< HEAD
-          global_n_part &
-               = aero_state_total_particles_all_procs(aero_state, i_group)
-          do while ((real(global_n_part, kind=dp) &
-               < aero_state%n_part_ideal / real(n_group, kind=dp) / 2d0) &
-               .and. (global_n_part > 0))
-             if (initial_state_warning) then
-                call warn_msg(716882783, "doubling particles in initial " &
-                     // "condition")
-             end if
-             call aero_state_double(aero_state, aero_data, i_group)
-=======
           do i_class = 1,n_class
->>>>>>> origin/master
              global_n_part &
                   = aero_state_total_particles_all_procs(aero_state, i_group, &
                   i_class)
@@ -1409,29 +1274,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-<<<<<<< HEAD
-  !> Scale the computational volume of the given group by the given
-  !> ratio, altering particle number as necessary to preserve the
-  !> number concentration.
-  subroutine aero_state_scale_comp_vol(aero_state, aero_data, i_group, &
-       comp_vol_ratio)
+  !> Scale the weighting of the given group/class by the given ratio,
+  !> altering particle number as necessary to preserve the number
+  !> concentration.
+  subroutine aero_state_scale_weight(aero_state, aero_data, i_group, i_class, &
+       weight_ratio)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Group number.
-=======
-  !> Scale the weighting of the given group/class by the given ratio,
-  !> altering particle number as necessary to preserve the number
-  !> concentration.
-  subroutine aero_state_scale_weight(aero_state, i_group, i_class, &
-       weight_ratio)
-
-    !> Aerosol state.
-    type(aero_state_t), intent(inout) :: aero_state
     !> Weight group number.
->>>>>>> origin/master
     integer, intent(in) :: i_group
     !> Weight class number.
     integer, intent(in) :: i_class
@@ -1469,21 +1322,13 @@ contains
                aero_info)
           call aero_info_deallocate(aero_info)
        end do
-<<<<<<< HEAD
-    elseif (comp_vol_ratio > 1d0) then
-       do i_entry = aero_state%aero_sorted%weight%inverse(i_group)%n_entry,1,-1
-          i_part = aero_state%aero_sorted%weight%inverse(i_group)%entry( &
-               i_entry)
-          call aero_state_dup_particle(aero_state, aero_data, i_part, &
-               comp_vol_ratio)
-=======
     elseif (weight_ratio < 1d0) then
        do i_entry = aero_state%aero_sorted%group_class%inverse(i_group, &
             i_class)%n_entry,1,-1
           i_part = aero_state%aero_sorted%group_class%inverse(i_group, &
                i_class)%entry(i_entry)
-          call aero_state_dup_particle(aero_state, i_part, 1d0 / weight_ratio)
->>>>>>> origin/master
+          call aero_state_dup_particle(aero_state, aero_data, i_part, 1d0 &
+               / weight_ratio)
        end do
     end if
 
@@ -1674,32 +1519,6 @@ contains
     call aero_state_sort(aero_state, aero_data, bin_grid)
 
     do i_bin = 1,bin_grid%n_bin
-<<<<<<< HEAD
-       species_volume_conc = 0d0
-       total_volume_conc = 0d0
-       do i_entry = 1,aero_state%aero_sorted%size%inverse(i_bin)%n_entry
-          i_part = aero_state%aero_sorted%size%inverse(i_bin)%entry(i_entry)
-          aero_particle => aero_state%apa%particle(i_part)
-          num_conc = aero_weight_array_num_conc(aero_state%aero_weight, &
-               aero_particle, aero_data)
-          particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
-               aero_data, dry_volume)
-          species_volume_conc = species_volume_conc &
-               + num_conc * aero_particle%vol
-          total_volume_conc = total_volume_conc + num_conc * particle_volume
-       end do
-       do i_entry = 1,aero_state%aero_sorted%size%inverse(i_bin)%n_entry
-          i_part = aero_state%aero_sorted%size%inverse(i_bin)%entry(i_entry)
-          aero_particle => aero_state%apa%particle(i_part)
-          particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
-               aero_data, dry_volume)
-          aero_particle%vol = particle_volume * species_volume_conc &
-               / total_volume_conc
-          if (dry_volume .and. (aero_data%i_water > 0)) then
-             ! set water to zero if we are doing dry volume averaging
-             aero_particle%vol(aero_data%i_water) = 0d0
-          end if
-=======
        do i_class = 1,size(aero_state%awa%weight, 2)
           species_volume_conc = 0d0
           total_volume_conc = 0d0
@@ -1709,7 +1528,7 @@ contains
                   i_class)%entry(i_entry)
              aero_particle => aero_state%apa%particle(i_part)
              num_conc = aero_weight_array_num_conc(aero_state%awa, &
-                  aero_particle)
+                  aero_particle, aero_data)
              particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
                   aero_data, dry_volume)
              species_volume_conc = species_volume_conc &
@@ -1730,7 +1549,6 @@ contains
                 aero_particle%vol(aero_data%i_water) = 0d0
              end if
           end do
->>>>>>> origin/master
        end do
     end do
 
@@ -1782,57 +1600,6 @@ contains
     call aero_state_sort(aero_state, aero_data, bin_grid)
 
     do i_bin = 1,bin_grid%n_bin
-<<<<<<< HEAD
-       if (aero_state%aero_sorted%size%inverse(i_bin)%n_entry == 0) then
-          cycle
-       end if
-
-       n_part = aero_state%aero_sorted%size%inverse(i_bin)%n_entry
-       total_num_conc = 0d0
-       total_volume_conc = 0d0
-       do i_entry = 1,aero_state%aero_sorted%size%inverse(i_bin)%n_entry
-          i_part = aero_state%aero_sorted%size%inverse(i_bin)%entry(i_entry)
-          aero_particle => aero_state%apa%particle(i_part)
-          num_conc = aero_weight_array_num_conc(aero_state%aero_weight, &
-               aero_particle, aero_data)
-          total_num_conc = total_num_conc + num_conc
-          particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
-               aero_data, dry_volume)
-          total_volume_conc = total_volume_conc &
-               + num_conc * particle_volume
-       end do
-
-       ! determine the new_particle_volume for all particles in this bin
-       if (bin_center) then
-          new_particle_volume = rad2vol(bin_grid%center_radius(i_bin), &
-               aero_data%fractal)
-       elseif (aero_weight_array_check_flat(aero_state%aero_weight)) then
-          num_conc & ! any radius will have the same num_conc
-               = aero_weight_array_num_conc_at_radius(aero_state%aero_weight, &
-               1d0)
-          new_particle_volume = total_volume_conc / num_conc &
-               / real(aero_state%aero_sorted%size%inverse(i_bin)%n_entry, &
-               kind=dp)
-       elseif (preserve_number) then
-          ! number-preserving scheme: Solve the implicit equation:
-          ! n_part * W(new_vol) = total_num_conc
-          !
-          ! We assume that the weighting function is strictly monotone
-          ! so this equation has a unique solution and the solution
-          ! lies between the min and max particle volumes. We use
-          ! bisection as this doesn't really need to be fast, just
-          ! robust.
-
-          call aero_weight_array_check_monotonicity(aero_state%aero_weight, &
-               monotone_increasing, monotone_decreasing)
-          call assert_msg(214077200, &
-               monotone_increasing .or. monotone_decreasing, &
-               "monotone weight function required for averaging")
-
-          ! initialize to min and max particle volumes
-          do i_entry = 1,n_part
-             i_part = aero_state%aero_sorted%size%inverse(i_bin)%entry(i_entry)
-=======
        do i_class = 1,size(aero_state%awa%weight, 2)
           if (aero_state%aero_sorted%size_class%inverse(i_bin, &
                i_class)%n_entry == 0) then
@@ -1847,10 +1614,9 @@ contains
                i_class)%n_entry
              i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
                   i_class)%entry(i_entry)
->>>>>>> origin/master
              aero_particle => aero_state%apa%particle(i_part)
              num_conc = aero_weight_array_num_conc(aero_state%awa, &
-                  aero_particle)
+                  aero_particle, aero_data)
              total_num_conc = total_num_conc + num_conc
              particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
                   aero_data, dry_volume)
@@ -1858,37 +1624,10 @@ contains
                   + num_conc * particle_volume
           end do
 
-<<<<<<< HEAD
-          lower_function = real(n_part, kind=dp) &
-               * aero_weight_array_num_conc_at_radius( &
-               aero_state%aero_weight, vol2rad(lower_volume, aero_data%fractal)) &
-                     - total_num_conc
-          upper_function = real(n_part, kind=dp) &
-               * aero_weight_array_num_conc_at_radius(&
-               aero_state%aero_weight, vol2rad(upper_volume, aero_data%fractal)) &
-               - total_num_conc
-
-          ! do 50 rounds of bisection (2^50 = 10^15)
-          do i_bisect = 1,50
-             center_volume = (lower_volume + upper_volume) / 2d0
-             center_function = real(n_part, kind=dp) &
-                  * aero_weight_array_num_conc_at_radius(&
-                  aero_state%aero_weight, vol2rad(center_volume, aero_data%fractal)) &
-                  - total_num_conc
-             if ((lower_function > 0d0 .and. center_function > 0d0) &
-                  .or. (lower_function < 0d0 .and. center_function < 0d0)) &
-                  then
-                lower_volume = center_volume
-                lower_function = center_function
-             else
-                upper_volume = center_volume
-                upper_function = center_function
-             end if
-          end do
-=======
           ! determine the new_particle_volume for all particles in this bin
           if (bin_center) then
-             new_particle_volume = rad2vol(bin_grid%center_radius(i_bin))
+             new_particle_volume = rad2vol(bin_grid%center_radius(i_bin), &
+                  aero_data%fractal)
           elseif (aero_weight_array_check_flat(aero_state%awa)) then
              num_conc & ! any radius will have the same num_conc
                   = aero_weight_array_num_conc_at_radius(aero_state%awa, &
@@ -2012,7 +1751,6 @@ contains
 
              new_particle_volume = center_volume
           end if
->>>>>>> origin/master
 
           do i_entry = 1,n_part
              i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
@@ -2020,46 +1758,11 @@ contains
              aero_particle => aero_state%apa%particle(i_part)
              particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
                   aero_data, dry_volume)
-<<<<<<< HEAD
-             if (i_part == 1) then
-                lower_volume = particle_volume
-                upper_volume = particle_volume
-             end if
-             lower_volume = min(lower_volume, particle_volume)
-             upper_volume = max(upper_volume, particle_volume)
-          end do
-
-          lower_function = real(n_part, kind=dp) &
-               * aero_weight_array_num_conc_at_radius( &
-               aero_state%aero_weight, vol2rad(lower_volume, aero_data%fractal)) &
-               * lower_volume - total_volume_conc
-          upper_function = real(n_part, kind=dp) &
-               * aero_weight_array_num_conc_at_radius( &
-               aero_state%aero_weight, vol2rad(upper_volume, aero_data%fractal)) &
-               * upper_volume - total_volume_conc
-
-          ! do 50 rounds of bisection (2^50 = 10^15)
-          do i_bisect = 1,50
-             center_volume = (lower_volume + upper_volume) / 2d0
-             center_function = real(n_part, kind=dp) &
-                  * aero_weight_array_num_conc_at_radius( &
-                  aero_state%aero_weight, vol2rad(center_volume, aero_data%fractal)) &
-                  * center_volume - total_volume_conc
-             if ((lower_function > 0d0 .and. center_function > 0d0) &
-                  .or. (lower_function < 0d0 .and. center_function < 0d0)) &
-                  then
-                lower_volume = center_volume
-                lower_function = center_function
-             else
-                upper_volume = center_volume
-                upper_function = center_function
-=======
              aero_particle%vol = aero_particle%vol / particle_volume &
                   * new_particle_volume
              if (dry_volume .and. (aero_data%i_water > 0)) then
                 ! set water to zero if we are doing dry volume averaging
                 aero_particle%vol(aero_data%i_water) = 0d0
->>>>>>> origin/master
              end if
           end do
        end do
@@ -2470,14 +2173,8 @@ contains
           aero_particle_weight_group(i_part) = particle%weight_group
           aero_particle_weight_class(i_part) = particle%weight_class
           aero_water_hyst_leg(i_part) = particle%water_hyst_leg
-<<<<<<< HEAD
-          aero_comp_vol(i_part) &
-               = 1d0 / aero_state_particle_num_conc(aero_state, particle, &
-                    aero_data)
-=======
           aero_num_conc(i_part) &
-               = aero_state_particle_num_conc(aero_state, particle)
->>>>>>> origin/master
+               = aero_state_particle_num_conc(aero_state, particle, aero_data)
           aero_id(i_part) = particle%id
           aero_least_create_time(i_part) = particle%least_create_time
           aero_greatest_create_time(i_part) = particle%greatest_create_time
@@ -2802,14 +2499,9 @@ contains
        aero_particle%least_create_time = aero_least_create_time(i_part)
        aero_particle%greatest_create_time = aero_greatest_create_time(i_part)
 
-<<<<<<< HEAD
-       call assert(314368871, almost_equal(aero_comp_vol(i_part), &
-            1d0 / aero_weight_array_num_conc(aero_state%aero_weight, &
-            aero_particle, aero_data)))
-=======
        call assert(314368871, almost_equal(aero_num_conc(i_part), &
-            aero_weight_array_num_conc(aero_state%awa, aero_particle)))
->>>>>>> origin/master
+            aero_weight_array_num_conc(aero_state%awa, aero_particle, &
+            aero_data)))
 
        call aero_state_add_particle(aero_state, aero_particle, aero_data)
     end do
@@ -2887,13 +2579,8 @@ contains
     logical, optional, intent(in) :: all_procs_same
 
     call aero_sorted_remake_if_needed(aero_state%aero_sorted, aero_state%apa, &
-<<<<<<< HEAD
-         aero_data, aero_state%valid_sort, size(aero_state%aero_weight), bin_grid, &
-         all_procs_same)
-=======
-         aero_state%valid_sort, size(aero_state%awa%weight, 1), &
+         aero_data, aero_state%valid_sort, size(aero_state%awa%weight, 1), &
          size(aero_state%awa%weight, 2), bin_grid, all_procs_same)
->>>>>>> origin/master
     aero_state%valid_sort = .true.
 
   end subroutine aero_state_sort
@@ -2918,12 +2605,8 @@ contains
     end if
 
     call aero_sorted_check(aero_state%aero_sorted, aero_state%apa, &
-<<<<<<< HEAD
-         aero_data, size(aero_state%aero_weight), continue_on_error)
-=======
-         size(aero_state%awa%weight, 1), size(aero_state%awa%weight, 2), &
+         aero_data, size(aero_state%awa%weight, 1), size(aero_state%awa%weight, 2), &
          continue_on_error)
->>>>>>> origin/master
 
   end subroutine aero_state_check_sort
   

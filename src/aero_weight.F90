@@ -197,12 +197,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute the number concentration for a particle (m^{-3}).
-<<<<<<< HEAD
   real(kind=dp) function aero_weight_num_conc(aero_weight, &
        aero_particle, aero_data)
-=======
-  real(kind=dp) function aero_weight_num_conc(aero_weight, aero_particle)
->>>>>>> origin/master
 
     !> Aerosol weight.
     type(aero_weight_t), intent(in) :: aero_weight
@@ -218,70 +214,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-<<<<<<< HEAD
-  !> Compute the number concentration for a particle (m^{-3}).
-  real(kind=dp) function aero_weight_array_single_num_conc(aero_weight_array, &
-       aero_particle, aero_data)
-
-    !> Aerosol weight array.
-    type(aero_weight_t), intent(in) :: aero_weight_array(:)
-    !> Aerosol particle to compute number concentration for.
-    type(aero_particle_t), intent(in) :: aero_particle
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-
-    aero_weight_array_single_num_conc = aero_weight_num_conc( &
-         aero_weight_array(aero_particle%weight_group), aero_particle, &
-         aero_data)
-
-  end function aero_weight_array_single_num_conc
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Compute the total number concentration at a given radius (m^3).
-  real(kind=dp) function aero_weight_array_num_conc_at_radius( &
-       aero_weight_array, radius)
-
-    !> Aerosol weight array.
-    type(aero_weight_t), intent(in) :: aero_weight_array(:)
-    !> Radius to compute number concentration at (m).
-    real(kind=dp), intent(in) :: radius
-
-    integer :: i_group
-    real(kind=dp) :: num_conc(size(aero_weight_array))
-
-    do i_group = 1,size(aero_weight_array)
-       num_conc(i_group) &
-            = aero_weight_num_conc_at_radius(aero_weight_array(i_group), &
-            radius)
-    end do
-    ! harmonic mean (same as summing the computational volumes)
-    aero_weight_array_num_conc_at_radius = 1d0 / sum(1d0 / num_conc)
-
-  end function aero_weight_array_num_conc_at_radius
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Compute the number concentration for a particle (m^{-3}).
-  real(kind=dp) function aero_weight_array_num_conc(aero_weight_array, &
-       aero_particle, aero_data)
-
-    !> Aerosol weight array.
-    type(aero_weight_t), intent(in) :: aero_weight_array(:)
-    !> Aerosol particle to compute number concentration for.
-    type(aero_particle_t), intent(in) :: aero_particle
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-
-    aero_weight_array_num_conc = aero_weight_array_num_conc_at_radius( &
-         aero_weight_array, aero_particle_radius(aero_particle, aero_data))
-
-  end function aero_weight_array_num_conc
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-=======
->>>>>>> origin/master
   !> Compute the radius at a given number concentration (m). Inverse
   !> of aero_weight_num_conc_at_radius().
   real(kind=dp) function aero_weight_radius_at_num_conc(aero_weight, num_conc)

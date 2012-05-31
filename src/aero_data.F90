@@ -11,6 +11,7 @@ module pmc_aero_data
   use pmc_spec_file
   use pmc_mpi
   use pmc_util
+  use pmc_fractal
   use pmc_netcdf
 #ifdef PMC_USE_MPI
   use mpi
@@ -59,6 +60,8 @@ module pmc_aero_data
      real(kind=dp), pointer :: kappa(:)
      !> Len n_source, source names.
      character(len=AERO_SOURCE_NAME_LEN), pointer :: source_name(:)
+     !> Fractal particle parameters.
+     type(fractal_t) :: fractal
   end type aero_data_t
 
 contains
@@ -81,6 +84,8 @@ contains
     allocate(aero_data%kappa(0))
     allocate(aero_data%source_name(0))
     aero_data%i_water = 0
+
+    call fractal_allocate(aero_data%fractal)
 
   end subroutine aero_data_allocate
 
@@ -125,6 +130,8 @@ contains
     deallocate(aero_data%molec_weight)
     deallocate(aero_data%kappa)
     deallocate(aero_data%source_name)
+
+    call fractal_deallocate(aero_data%fractal)
 
   end subroutine aero_data_deallocate
 

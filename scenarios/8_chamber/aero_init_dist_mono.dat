@@ -1,0 +1,5 @@
+mode_name init                     # name of mode source
+mass_frac aero_init_comp.dat       # species mass fractions
+mode_type mono                     # type of distribution
+num_conc 1.0e+22                   # the total number concentration of the mode
+diam 5e-7                        # the diameter D0 of the particles

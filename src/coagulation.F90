@@ -53,7 +53,7 @@ contains
 
     integer :: i_bin, j_bin, i_group, j_group, j_bin_start
 
-    call aero_state_sort(aero_state)
+    call aero_state_sort(aero_state, aero_data)
     if (.not. aero_state%aero_sorted%coag_kernel_bounds_valid) then
        call est_k_minmax_binned_unweighted(aero_state%aero_sorted%bin_grid, &
             coag_kernel_type, aero_data, env_state, &
@@ -120,7 +120,7 @@ contains
     real(kind=dp) :: f_max, k_max
 
     call max_coag_num_conc_factor_better(aero_state%aero_weight, &
-         aero_state%aero_sorted%bin_grid, i_bin, j_bin, f_max)
+         aero_data, aero_state%aero_sorted%bin_grid, i_bin, j_bin, f_max)
     k_max = aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin) * f_max
 
     call try_per_particle_coag(coag_kernel_type, k_max, env_state, aero_data, &
@@ -207,7 +207,7 @@ contains
             n_source_per_target, accept_factor, n_samp, n_coag, n_remove, &
             source_particle)
        if (n_coag > 0) then
-          call coag_target_with_source(aero_state, target_bin, &
+          call coag_target_with_source(aero_state, aero_data, target_bin, &
                target_unif_entry, source_particle)
        end if
        tot_n_samp = tot_n_samp + n_samp
@@ -347,7 +347,7 @@ contains
     end if
 
     num_conc_target = aero_weight_array_num_conc( &
-         aero_state%aero_weight, coag_particle)
+         aero_state%aero_weight, coag_particle, aero_data)
     target_id = coag_particle%id
 
     num_conc_source_min = aero_weight_array_num_conc_at_radius( &
@@ -406,7 +406,7 @@ contains
           vol_sq = vol_sq + i_particle%vol**2
           if (i_samp <= n_samp_remove) then
              num_conc_i = aero_weight_array_num_conc(aero_state%aero_weight, &
-                  i_particle)
+                  i_particle, aero_data)
              prob_remove_i = num_conc_target / num_conc_i
              if (pmc_random() < prob_remove_i / prob_remove_source_max) then
                 n_remove = n_remove + 1
@@ -439,11 +439,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Coagulate a sampled source particle with a target particle.
-  subroutine coag_target_with_source(aero_state, target_bin, &
+  subroutine coag_target_with_source(aero_state, aero_data, target_bin, &
        target_unif_entry, source_particle)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Bin of coagulating particle.
     integer, intent(in) :: target_bin
     !> Entry-in-bin of coagulating particle.
@@ -460,18 +462,18 @@ contains
     target_id = aero_state%apa%particle(target_part)%id
     old_num_conc_target &
          = aero_weight_array_num_conc(aero_state%aero_weight, &
-         aero_state%apa%particle(target_part))
+         aero_state%apa%particle(target_part), aero_data)
     call aero_particle_coagulate(aero_state%apa%particle(target_part), &
          source_particle, aero_state%apa%particle(target_part))
     aero_state%apa%particle(target_part)%id = target_id
     ! assign to a randomly chosen group
     new_group = aero_weight_array_rand_group(aero_state%aero_weight, &
-         aero_particle_radius(aero_state%apa%particle(target_part)))
+         aero_particle_radius(aero_state%apa%particle(target_part), aero_data))
     call aero_particle_set_group(aero_state%apa%particle(target_part), &
          new_group)
     ! fix bin due to composition changes
     new_bin = aero_sorted_particle_in_bin(aero_state%aero_sorted, &
-         aero_state%apa%particle(target_part))
+         aero_state%apa%particle(target_part), aero_data)
     if ((new_bin < 1) &
          .or. (new_bin > aero_state%aero_sorted%bin_grid%n_bin)) then
        call die_msg(765620746, "particle outside of bin_grid: " &
@@ -487,8 +489,8 @@ contains
     ! assumes we are staying in the same weight group.
     new_num_conc_target &
          = aero_weight_array_num_conc(aero_state%aero_weight, &
-         aero_state%apa%particle(target_part))
-    call aero_state_dup_particle(aero_state, target_part, &
+         aero_state%apa%particle(target_part), aero_data)
+    call aero_state_dup_particle(aero_state, aero_data, target_part, &
          old_num_conc_target / new_num_conc_target, random_weight_group=.true.)
     ! we should only be doing this for decreasing weights
     call assert(654300924, aero_state%apa%particle(target_part)%id &
@@ -737,9 +739,10 @@ contains
 
     ! decide which old particles are to be removed and whether to
     ! create the resulting coagulated particle
-    radius_1 = aero_particle_radius(particle_1)
-    radius_2 = aero_particle_radius(particle_2)
-    radius_new = vol2rad(rad2vol(radius_1) + rad2vol(radius_2))
+    radius_1 = aero_particle_radius(particle_1, aero_data)
+    radius_2 = aero_particle_radius(particle_2, aero_data)
+    radius_new = vol2rad(rad2vol(radius_1, aero_data%fractal) &
+         + rad2vol(radius_2, aero_data%fractal), aero_data%fractal)
     num_conc_1 = aero_weight_array_num_conc_at_radius(aero_weight_array, &
          radius_1)
     num_conc_2 = aero_weight_array_num_conc_at_radius(aero_weight_array, &
@@ -871,7 +874,7 @@ contains
     ! add new particle
     if (create_new) then
        call aero_state_add_particle(aero_state, particle_new, &
-            allow_resort=.false.)
+            aero_data, allow_resort=.false.)
     end if
 
     call aero_info_deallocate(aero_info_1)

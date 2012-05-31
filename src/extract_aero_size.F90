@@ -138,8 +138,8 @@ program extract_aero_size
              // trim(filename_list(i_file)))
      end if
 
-     call aero_state_diameters(aero_state, diameters)
-     call aero_state_num_concs(aero_state, num_concs)
+     call aero_state_diameters(aero_state, aero_data, diameters)
+     call aero_state_num_concs(aero_state, aero_data, num_concs)
      if (dist_type == DIST_TYPE_NUM) then
         call bin_grid_histogram_1d(diam_grid, diameters, num_concs, hist)
      elseif (dist_type == DIST_TYPE_MASS) then

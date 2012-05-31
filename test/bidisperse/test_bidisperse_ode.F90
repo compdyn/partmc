@@ -23,6 +23,8 @@ program test_bidisperse_ode
   use pmc_env_state
   use pmc_util
   use pmc_bin_grid
+  use pmc_aero_data
+  use pmc_fractal
 
   !> Radius of one small particle (m).
   real(kind=dp), parameter :: r_small = 1d-5
@@ -60,13 +62,15 @@ program test_bidisperse_ode
   real(kind=dp) :: comp_vol, n_small, time, v_big, num_conc
   real(kind=dp) :: v_small, v_big_init
   type(bin_grid_t) :: bin_grid
+  type(aero_data_t) :: aero_data
 
-  v_small = rad2vol(r_small)
-  v_big_init = rad2vol(r_big_init)
+  v_small = rad2vol(r_small, aero_data%fractal)
+  v_big_init = rad2vol(r_big_init, aero_data%fractal)
   num_conc = num_conc_small * (n_small_init + 1d0) / n_small_init
   comp_vol = (n_small_init + 1d0) / num_conc
   call bin_grid_allocate(bin_grid)
-  call bin_grid_make(bin_grid, n_bin, rad2vol(bin_r_min), rad2vol(bin_r_max))
+  call bin_grid_make(bin_grid, n_bin, rad2vol(bin_r_min, aero_data%fractal), &
+       rad2vol(bin_r_max, aero_data%fractal))
 
   open(unit=out_unit, file=out_name)
   time = 0d0

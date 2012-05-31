@@ -170,9 +170,10 @@ contains
 
     call kernel(coag_kernel_type, aero_particle_1, aero_particle_2, &
          aero_data, env_state, unweighted_k)
-    radius_1 = aero_particle_radius(aero_particle_1)
-    radius_2 = aero_particle_radius(aero_particle_2)
-    radius_1_plus_2 = vol2rad(rad2vol(radius_1) + rad2vol(radius_2))
+    radius_1 = aero_particle_radius(aero_particle_1, aero_data)
+    radius_2 = aero_particle_radius(aero_particle_2, aero_data)
+    radius_1_plus_2 = vol2rad((rad2vol(radius_1, aero_data%fractal) &
+         + rad2vol(radius_2, aero_data%fractal)), aero_data%fractal)
     weight_1 = aero_weight_num_conc_at_radius(aero_weight, radius_1) &
          * aero_weight%comp_vol
     weight_2 = aero_weight_num_conc_at_radius(aero_weight, radius_2) &
@@ -210,10 +211,10 @@ contains
 
     call kernel(coag_kernel_type, aero_particle_1, aero_particle_2, &
          aero_data, env_state, unweighted_k)
-    radius_1 = aero_particle_radius(aero_particle_1)
-    radius_2 = aero_particle_radius(aero_particle_2)
+    radius_1 = aero_particle_radius(aero_particle_1, aero_data)
+    radius_2 = aero_particle_radius(aero_particle_2, aero_data)
     k = unweighted_k * coag_num_conc_factor(aero_weight_array, &
-         radius_1, radius_2)
+         aero_data, radius_1, radius_2)
 
   end subroutine num_conc_weighted_kernel
 
@@ -246,12 +247,12 @@ contains
     call kernel_minmax(coag_kernel_type, v1, v2, aero_data, env_state, &
          unweighted_k_min, unweighted_k_max)
 
-    weight_1 = aero_weight_num_conc_at_radius(aero_weight, vol2rad(v1)) &
-         * aero_weight%comp_vol
-    weight_2 = aero_weight_num_conc_at_radius(aero_weight, vol2rad(v2)) &
-         * aero_weight%comp_vol
+    weight_1 = aero_weight_num_conc_at_radius(aero_weight, vol2rad(v1, &
+         aero_data%fractal)) * aero_weight%comp_vol
+    weight_2 = aero_weight_num_conc_at_radius(aero_weight, vol2rad(v2, &
+         aero_data%fractal)) * aero_weight%comp_vol
     weight_1_plus_2 = aero_weight_num_conc_at_radius(aero_weight, &
-         vol2rad(v1 + v2)) * aero_weight%comp_vol
+         vol2rad((v1 + v2), aero_data%fractal)) * aero_weight%comp_vol
     weight_min = min(weight_1, weight_2, weight_1_plus_2)
     k_min = unweighted_k_min * weight_1 * weight_2 / weight_min
     k_max = unweighted_k_max * weight_1 * weight_2 / weight_min
@@ -288,8 +289,8 @@ contains
          aero_data%n_source)
     do i = 1,n_bin
        do j = 1,n_bin
-          aero_particle_1%vol(1) = rad2vol(bin_r(i))
-          aero_particle_2%vol(1) = rad2vol(bin_r(j))
+          aero_particle_1%vol(1) = rad2vol(bin_r(i), aero_data%fractal)
+          aero_particle_2%vol(1) = rad2vol(bin_r(j), aero_data%fractal)
           call kernel(coag_kernel_type, aero_particle_1, aero_particle_2, &
                aero_data, env_state, k(i,j))
        end do
@@ -401,12 +402,12 @@ contains
     integer :: i, j
     
     ! v1_low < bin_v(b1) < v1_high
-    v1_low = rad2vol(bin_grid%edge_radius(b1))
-    v1_high = rad2vol(bin_grid%edge_radius(b1 + 1))
+    v1_low = rad2vol(bin_grid%edge_radius(b1), aero_data%fractal)
+    v1_high = rad2vol(bin_grid%edge_radius(b1 + 1), aero_data%fractal)
     
     ! v2_low < bin_v(b2) < v2_high
-    v2_low = rad2vol(bin_grid%edge_radius(b2))
-    v2_high = rad2vol(bin_grid%edge_radius(b2 + 1))
+    v2_low = rad2vol(bin_grid%edge_radius(b2), aero_data%fractal)
+    v2_high = rad2vol(bin_grid%edge_radius(b2 + 1), aero_data%fractal)
     
     do i = 1,n_sample
        do j = 1,n_sample
@@ -462,12 +463,12 @@ contains
     integer :: i, j
     
     ! v1_low < bin_v(b1) < v1_high
-    v1_low = rad2vol(bin_grid%edge_radius(b1))
-    v1_high = rad2vol(bin_grid%edge_radius(b1 + 1))
+    v1_low = rad2vol(bin_grid%edge_radius(b1), aero_data%fractal)
+    v1_high = rad2vol(bin_grid%edge_radius(b1 + 1), aero_data%fractal)
     
     ! v2_low < bin_v(b2) < v2_high
-    v2_low = rad2vol(bin_grid%edge_radius(b2))
-    v2_high = rad2vol(bin_grid%edge_radius(b2 + 1))
+    v2_low = rad2vol(bin_grid%edge_radius(b2), aero_data%fractal)
+    v2_high = rad2vol(bin_grid%edge_radius(b2 + 1), aero_data%fractal)
     
     do i = 1,n_sample
        do j = 1,n_sample
@@ -492,11 +493,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Coagulation scale factor due to number concentrations.
-  real(kind=dp) function coag_num_conc_factor(aero_weight_array, &
+  real(kind=dp) function coag_num_conc_factor(aero_weight_array, aero_data, &
        r_1, r_2)
 
     !> Aerosol weight array.
     type(aero_weight_t), intent(in) :: aero_weight_array(:)
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Radius of first particle.
     real(kind=dp), intent(in) :: r_1
     !> Radius of second particle.
@@ -504,7 +507,8 @@ contains
 
     real(kind=dp) :: r_12, nc_1, nc_2, nc_12, nc_min
 
-    r_12 = vol2rad(rad2vol(r_1) + rad2vol(r_2))
+    r_12 = vol2rad(rad2vol(r_1, aero_data%fractal) + rad2vol(r_2, &
+         aero_data%fractal), aero_data%fractal)
     nc_1 = aero_weight_array_num_conc_at_radius(aero_weight_array, r_1)
     nc_2 = aero_weight_array_num_conc_at_radius(aero_weight_array, r_2)
     nc_12 = aero_weight_array_num_conc_at_radius(aero_weight_array, r_12)
@@ -574,11 +578,13 @@ contains
 
   !> Determine the minimum and maximum number concentration factors
   !> for coagulation.
-  subroutine max_coag_num_conc_factor_better(aero_weight_array, bin_grid, &
-       i_bin, j_bin, f_max)
+  subroutine max_coag_num_conc_factor_better(aero_weight_array, aero_data, &
+       bin_grid, i_bin, j_bin, f_max)
 
     !> Aerosol weight array.
     type(aero_weight_t), intent(in) :: aero_weight_array(:)
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> First bin number.
@@ -603,7 +609,7 @@ contains
        do j_sample = 1,n_sample
           i_r = interp_linear_disc(i_r_min, i_r_max, n_sample, i_sample)
           j_r = interp_linear_disc(j_r_min, j_r_max, n_sample, j_sample)
-          f = coag_num_conc_factor(aero_weight_array, i_r, j_r)
+          f = coag_num_conc_factor(aero_weight_array, aero_data, i_r, j_r)
           f_max = max(f_max, f)
        end do
     end do

@@ -257,7 +257,8 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/coag_kernel.F90 src/spec_line.F90 src/spec_file.F90 src/rand.F90
   src/aero_particle.F90 src/aero_particle_array.F90 src/mpi.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
-  src/nucleate.F90 src/condense.F90 ${SUNDIALS_SRC} ${GSL_SRC}
+  src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
+  ${SUNDIALS_SRC} ${GSL_SRC}
   ${C_SORT_SRC})
 
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
@@ -298,8 +299,8 @@ add_executable(test_nucleate_ode test/nucleate/test_nucleate_ode.F90
 # test_poisson_sample
 
 add_executable(test_poisson_sample test/rand/test_poisson_sample.F90
-  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 ${GSL_SRC}
-  ${C_SORT_SRC})
+  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 
+  ${GSL_SRC} ${C_SORT_SRC})
 
 target_link_libraries(test_poisson_sample ${GSL_LIBS})
 
@@ -307,8 +308,8 @@ target_link_libraries(test_poisson_sample ${GSL_LIBS})
 # test_binomial_sample
 
 add_executable(test_binomial_sample test/rand/test_binomial_sample.F90
-  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 ${GSL_SRC}
-  ${C_SORT_SRC})
+  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 
+  ${GSL_SRC} ${C_SORT_SRC})
 
 target_link_libraries(test_binomial_sample ${GSL_LIBS})
 

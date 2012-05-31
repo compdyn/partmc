@@ -147,6 +147,7 @@ program partmc
   use pmc_gas_data
   use pmc_gas_state
   use pmc_util
+  use pmc_scenario
 #ifdef PMC_USE_SUNDIALS
   use pmc_condense
 #endif
@@ -484,7 +485,12 @@ contains
           run_part_opt%env_average = .false.
           run_part_opt%parallel_coag_type = PARALLEL_COAG_TYPE_LOCAL
        end if
-       
+ 
+       call spec_file_read_chamber(file, scenario%chamber)
+       call spec_file_read_fractal(file, aero_data%fractal)
+
+       !print *, vol2rad(8.11d-22, aero_data%fractal)
+       !print *, vol2Rme(8.11d-22, 296d0, 1d-5, aero_data%fractal)
        call spec_file_close(file)
     end if
 
@@ -588,7 +594,10 @@ contains
     
     do i_repeat = 1,run_part_opt%n_repeat
        run_part_opt%i_repeat = i_repeat
-       
+
+       call env_state_copy(env_state_init, env_state)
+       call scenario_init_env_state(scenario, env_state, &
+            env_state_init%elapsed_time)
        call gas_state_copy(gas_state_init, gas_state)
        if (do_restart) then
           call aero_state_copy(aero_state_init, aero_state)
@@ -606,14 +615,12 @@ contains
              call aero_state_set_weight(aero_state, AERO_STATE_WEIGHT_FLAT)
           else
              call aero_state_set_weight(aero_state, AERO_STATE_WEIGHT_NUMMASS)
+             !call aero_state_set_weight(aero_state, AERO_STATE_WEIGHT_FLAT)
           end if
           aero_state%n_part_ideal = n_part_ideal
           call aero_state_add_aero_dist_sample(aero_state, aero_data, &
-               aero_dist_init, 1d0, 0d0)
+               aero_dist_init, env_state, 1d0, 0d0)
        end if
-       call env_state_copy(env_state_init, env_state)
-       call scenario_init_env_state(scenario, env_state, &
-            env_state_init%elapsed_time)
 
 #ifdef PMC_USE_SUNDIALS
        if (do_init_equilibriate) then

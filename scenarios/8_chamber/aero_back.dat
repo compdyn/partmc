@@ -1,0 +1,6 @@
+# time (s)
+# rate (s^{-1})
+# aerosol distribution filename
+time  0	3600 7200 10800	14400 18000 25200 28800	32400 36000 39600 43200	46800 50400 54000 57600	61200 64800 68400 72000	79200	82800	86400	90000	93600	97200	100800	104400	108000	111600	115200
+rate 1.00E-05 7.09E-06 6.05E-06	5.53E-06 5.31E-06 4.59E-06 2.31E-05 1.48E-05 6.91E-06 6.52E-06	6.52E-05 9.87E-06 7.52E-06 5.79E-06 2.35E-05 6.48E-06 6.13E-06 6.94E-06	2.80E-06 5.87E-06 1.42E-05	1.09E-05 1.15E-05 7.71E-06 4.97E-06 4.95E-06 6.81E-06 5.71E-06	7.03E-06 6.01E-06 4.62E-06
+dist    aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat aero_back_dist.dat

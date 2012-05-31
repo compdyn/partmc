@@ -126,7 +126,7 @@ contains
 
     ! create the particles
     do i_samp = 1,n_samp
-       vol = diam2vol(nucleate_diam)
+       vol = diam2vol(nucleate_diam, aero_data%fractal)
        total_so4_vol = total_so4_vol + vol
 
        aero_particle%vol(i_aero_so4) = vol
@@ -136,7 +136,7 @@ contains
        call aero_particle_set_group(aero_particle, i_group)
        call aero_particle_set_create_time(aero_particle, &
             env_state%elapsed_time)
-       call aero_state_add_particle(aero_state, aero_particle)
+       call aero_state_add_particle(aero_state, aero_particle, aero_data)
     end do
     call aero_particle_deallocate(aero_particle)
 

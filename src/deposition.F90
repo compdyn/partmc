@@ -84,7 +84,7 @@ module deposition
     real(kind=dp), intent(in) :: temp
     !>
     real(kind=dp), intent(in) :: gamma
-    !> Characteristic 
+    !> Characteristic radius (mm).
     real(kind=dp), intent(in) :: A
     !>
     real(kind=dp), intent(in) :: alpha
@@ -178,11 +178,11 @@ module deposition
      !> Particle density.
      real(kind=dp) :: density
 
-     real(kind=dp) :: c_c
+     real(kind=dp) :: C_c
 
-     c_c = slip_correction_factor(diameter)
+     C_c = slip_correction_factor(diameter)
 
-     calculate_vs = ((diameter)**2.0d0 * density * const%grav * c_c) &
+     calculate_vs = ((diameter)**2.0d0 * density * const%grav * C_c) &
           / (18.0d0 * const%air_dyn_visc)
 
   end function calculate_vs
@@ -211,7 +211,7 @@ module deposition
     real(kind=dp) :: eps_0
     real(kind=dp) :: diff
     real(kind=dp) :: nu
-    real(kind=dp) :: EB,EIM,EIN,R1
+    real(kind=dp) :: EB, EIM, EIN, R1
     real(kind=dp) :: beta
     real(kind=dp) :: Sc
     real(kind=dp) :: st

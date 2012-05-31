@@ -102,6 +102,11 @@
 
 !> \page publications PartMC Publications
 !!
+!!   - R.&nbsp;E.&nbsp;L.&nbsp;DeVille, N.&nbsp;Riemer, and
+!!     M.&nbsp;West (2011) Weighted Flow Algorithms (WFA) for
+!!     stochastic particle coagulation, <i>Journal of Computational
+!!     Physics</i> 230(23), 8427-8451, DOI: <a
+!!     href="http://dx.doi.org/10.1016/j.jcp.2011.07.027">10.1016/j.jcp.2011.07.027</a>.
 !!   - R.&nbsp;A.&nbsp;Zaveri, J.&nbsp;C.&nbsp;Barnard,
 !!     R.&nbsp;C.&nbsp;Easter, N.&nbsp;Riemer, and M.&nbsp;West (2010)
 !!     Particle-resolved simulation of aerosol size, composition,
@@ -247,7 +252,7 @@ contains
     logical :: do_restart, do_init_equilibriate, aero_mode_type_exp_present
     character(len=PMC_MAX_FILENAME_LEN) :: restart_filename
     integer :: dummy_index, dummy_i_repeat
-    real(kind=dp) :: dummy_time, dummy_del_t, n_part_ideal
+    real(kind=dp) :: dummy_time, dummy_del_t, n_part
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
 
@@ -364,7 +369,7 @@ contains
        call spec_file_read_string(file, 'output_prefix', &
             run_part_opt%output_prefix)
        call spec_file_read_integer(file, 'n_repeat', run_part_opt%n_repeat)
-       call spec_file_read_real(file, 'n_part', n_part_ideal)
+       call spec_file_read_real(file, 'n_part', n_part)
        call spec_file_read_logical(file, 'restart', do_restart)
        if (do_restart) then
           call spec_file_read_string(file, 'restart_file', restart_filename)
@@ -449,7 +454,8 @@ contains
        call spec_file_read_logical(file, 'do_nucleation', &
             run_part_opt%do_nucleation)
        if (run_part_opt%do_nucleation) then
-          call spec_file_read_nucleate_type(file, run_part_opt%nucleate_type)
+          call spec_file_read_nucleate_type(file, aero_data, &
+               run_part_opt%nucleate_type, run_part_opt%nucleate_source)
        else
           run_part_opt%nucleate_type = NUCLEATE_TYPE_INVALID
        end if
@@ -509,7 +515,7 @@ contains
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_run_part_opt(run_part_opt)
        max_buffer_size = max_buffer_size &
-            + pmc_mpi_pack_size_real(n_part_ideal)
+            + pmc_mpi_pack_size_real(n_part)
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_gas_data(gas_data)
        max_buffer_size = max_buffer_size &
@@ -535,7 +541,7 @@ contains
 
        position = 0
        call pmc_mpi_pack_run_part_opt(buffer, position, run_part_opt)
-       call pmc_mpi_pack_real(buffer, position, n_part_ideal)
+       call pmc_mpi_pack_real(buffer, position, n_part)
        call pmc_mpi_pack_gas_data(buffer, position, gas_data)
        call pmc_mpi_pack_gas_state(buffer, position, gas_state_init)
        call pmc_mpi_pack_aero_data(buffer, position, aero_data)
@@ -565,7 +571,7 @@ contains
        ! non-root processes unpack data
        position = 0
        call pmc_mpi_unpack_run_part_opt(buffer, position, run_part_opt)
-       call pmc_mpi_unpack_real(buffer, position, n_part_ideal)
+       call pmc_mpi_unpack_real(buffer, position, n_part)
        call pmc_mpi_unpack_gas_data(buffer, position, gas_data)
        call pmc_mpi_unpack_gas_state(buffer, position, gas_state_init)
        call pmc_mpi_unpack_aero_data(buffer, position, aero_data)
@@ -600,7 +606,7 @@ contains
        call gas_state_copy(gas_state_init, gas_state)
        if (do_restart) then
           call aero_state_copy(aero_state_init, aero_state)
-          aero_state%n_part_ideal = n_part_ideal
+          call aero_state_set_n_part_ideal(aero_state, n_part)
        else
           call aero_state_reset(aero_state)
           aero_mode_type_exp_present &
@@ -611,12 +617,13 @@ contains
           if (aero_mode_type_exp_present) then
              call warn_msg(245301880, "using flat weighting only due to " &
                   // "presence of exp aerosol mode")
-             call aero_state_set_weight(aero_state, AERO_STATE_WEIGHT_FLAT)
+             call aero_state_set_weight(aero_state, aero_data, &
+                  AERO_STATE_WEIGHT_FLAT)
           else
-             call aero_state_set_weight(aero_state, AERO_STATE_WEIGHT_NUMMASS)
-             !call aero_state_set_weight(aero_state, AERO_STATE_WEIGHT_FLAT)
+             call aero_state_set_weight(aero_state, aero_data, &
+                  AERO_STATE_WEIGHT_NUMMASS_SOURCE)
           end if
-          aero_state%n_part_ideal = n_part_ideal
+          call aero_state_set_n_part_ideal(aero_state, n_part)
           call aero_state_add_aero_dist_sample(aero_state, aero_data, &
                aero_dist_init, env_state, 1d0, 0d0)
        end if

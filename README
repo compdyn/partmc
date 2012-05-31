@@ -25,6 +25,10 @@ References:
      condensation nuclei activation properties in an evolving urban
      plume, J. Geophys. Res. 115(D17210),
      <http://dx.doi.org/10.1029/2009JD013616>.
+   * R. E. L. DeVille, N. Riemer, and M. West, Weighted Flow
+     Algorithms (WFA) for stochastic particle coagulation,
+     J. Comp. Phys. 230(23), 8427-8451, 2011,
+     <http://dx.doi.org/10.1016/j.jcp.2011.07.027>
 
 Copyright (C) 2005-2012 Nicole Riemer and Matthew West  
 Portions copyright (C) Andreas Bott and Richard Easter  

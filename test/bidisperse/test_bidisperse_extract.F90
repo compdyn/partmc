@@ -1,4 +1,4 @@
-! Copyright (C) 2009, 2011 Matthew West
+! Copyright (C) 2009-2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 !
@@ -24,13 +24,13 @@ program extract_summary
   integer :: dimid_aero_species, dimid_aero_particle
   integer :: varid_time, varid_aero_species
   integer :: varid_aero_particle_mass, varid_aero_density
-  integer :: varid_aero_comp_vol
+  integer :: varid_aero_num_conc
   integer :: n_aero_species, n_aero_particle
   character(len=1000) :: tmp_str, aero_species_names
   real(kind=dp) :: time
   real(kind=dp), allocatable :: aero_particle_mass(:,:)
   real(kind=dp), allocatable :: aero_density(:)
-  real(kind=dp), allocatable :: aero_comp_vol(:)
+  real(kind=dp), allocatable :: aero_num_conc(:)
   real(kind=dp), allocatable :: aero_dist(:,:)
   integer :: xtype, ndims, nAtts
   integer, dimension(nf90_max_var_dims) :: dimids
@@ -100,19 +100,19 @@ program extract_summary
      call nc_check(nf90_get_var(ncid, varid_aero_density, &
           aero_density))
      
-     ! read aero_comp_vol
-     call nc_check(nf90_inq_varid(ncid, "aero_comp_vol", &
-          varid_aero_comp_vol))
-     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_comp_vol, &
+     ! read aero_num_conc
+     call nc_check(nf90_inq_varid(ncid, "aero_num_conc", &
+          varid_aero_num_conc))
+     call nc_check(nf90_Inquire_Variable(ncid, varid_aero_num_conc, &
           tmp_str, xtype, ndims, dimids, nAtts))
      if ((ndims /= 1) &
           .or. (dimids(1) /= dimid_aero_particle)) then
-        write(*,*) "ERROR: unexpected aero_comp_vol dimids"
+        write(*,*) "ERROR: unexpected aero_num_conc dimids"
         stop 1
      end if
-     allocate(aero_comp_vol(n_aero_particle))
-     call nc_check(nf90_get_var(ncid, varid_aero_comp_vol, &
-          aero_comp_vol))
+     allocate(aero_num_conc(n_aero_particle))
+     call nc_check(nf90_get_var(ncid, varid_aero_num_conc, &
+          aero_num_conc))
      
      call nc_check(nf90_close(ncid))
 
@@ -124,16 +124,16 @@ program extract_summary
         radius = (volume / (4d0 / 3d0 &
              * 3.14159265358979323846d0))**(1d0/3d0)
         if (radius < radius_cutoff) then
-           small_num_conc = small_num_conc + 1d0 / aero_comp_vol(i_part)
+           small_num_conc = small_num_conc + aero_num_conc(i_part)
         else
            large_mass_conc = large_mass_conc &
-                + sum(aero_particle_mass(i_part,:)) / aero_comp_vol(i_part)
+                + sum(aero_particle_mass(i_part,:)) * aero_num_conc(i_part)
         end if
      end do
 
      deallocate(aero_particle_mass)
      deallocate(aero_density)
-     deallocate(aero_comp_vol)
+     deallocate(aero_num_conc)
 
      ! write output
      write(out_unit,'(e20.10,e20.10,e20.10)') &

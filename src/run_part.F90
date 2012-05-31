@@ -52,6 +52,8 @@ module pmc_run_part
      integer :: coag_kernel_type
      !> Type of nucleation.
      integer :: nucleate_type
+     !> Source of nucleation.
+     integer :: nucleate_source
      !> Whether to do coagulation.
      logical :: do_coagulation
      !> Whether to do nucleation.
@@ -208,8 +210,9 @@ contains
 
        if (run_part_opt%do_nucleation) then
           n_part_before = aero_state_total_particles(aero_state)
-          call nucleate(run_part_opt%nucleate_type, env_state, &
-               gas_data, aero_data, aero_state, gas_state, run_part_opt%del_t)
+          call nucleate(run_part_opt%nucleate_type, &
+               run_part_opt%nucleate_source, env_state, gas_data, aero_data, &
+               aero_state, gas_state, run_part_opt%del_t)
           n_nuc = aero_state_total_particles(aero_state) &
                - n_part_before
           progress_n_nuc = progress_n_nuc + n_nuc
@@ -402,6 +405,7 @@ contains
          + pmc_mpi_pack_size_string(val%output_prefix) &
          + pmc_mpi_pack_size_integer(val%coag_kernel_type) &
          + pmc_mpi_pack_size_integer(val%nucleate_type) &
+         + pmc_mpi_pack_size_integer(val%nucleate_source) &
          + pmc_mpi_pack_size_logical(val%do_coagulation) &
          + pmc_mpi_pack_size_logical(val%do_nucleation) &
          + pmc_mpi_pack_size_logical(val%allow_doubling) &
@@ -446,6 +450,7 @@ contains
     call pmc_mpi_pack_string(buffer, position, val%output_prefix)
     call pmc_mpi_pack_integer(buffer, position, val%coag_kernel_type)
     call pmc_mpi_pack_integer(buffer, position, val%nucleate_type)
+    call pmc_mpi_pack_integer(buffer, position, val%nucleate_source)
     call pmc_mpi_pack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_pack_logical(buffer, position, val%do_nucleation)
     call pmc_mpi_pack_logical(buffer, position, val%allow_doubling)
@@ -493,6 +498,7 @@ contains
     call pmc_mpi_unpack_string(buffer, position, val%output_prefix)
     call pmc_mpi_unpack_integer(buffer, position, val%coag_kernel_type)
     call pmc_mpi_unpack_integer(buffer, position, val%nucleate_type)
+    call pmc_mpi_unpack_integer(buffer, position, val%nucleate_source)
     call pmc_mpi_unpack_logical(buffer, position, val%do_coagulation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_nucleation)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)

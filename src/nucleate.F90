@@ -1,4 +1,4 @@
-! Copyright (C) 2010, 2011 Matthew West
+! Copyright (C) 2010-2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -18,17 +18,23 @@ module pmc_nucleate
   integer, parameter :: NUCLEATE_TYPE_INVALID   = 0
   !> Type code for H2SO4 to SO4 nucleation with quadratic rate.
   integer, parameter :: NUCLEATE_TYPE_SULF_ACID = 1
+
+  !> Source name for nucleated particles.
+  character(len=AERO_SOURCE_NAME_LEN), parameter :: NUCLEATE_SOURCE_NAME &
+       = "nucleate"
   
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do nucleation of the type given by the first argument.
-  subroutine nucleate(nucleate_type, env_state, gas_data, &
+  subroutine nucleate(nucleate_type, nucleate_source, env_state, gas_data, &
        aero_data, aero_state, gas_state, del_t)
 
     !> Type of nucleation.
     integer, intent(in) :: nucleate_type
+    !> Nucleate source number.
+    integer, intent(in) :: nucleate_source
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Gas data.
@@ -43,8 +49,8 @@ contains
     real(kind=dp), intent(in) :: del_t
 
     if (nucleate_type == NUCLEATE_TYPE_SULF_ACID) then
-       call nucleate_sulf_acid(env_state, gas_data, aero_data, &
-            aero_state, gas_state, del_t)
+       call nucleate_sulf_acid(nucleate_source, env_state, gas_data, &
+            aero_data, aero_state, gas_state, del_t)
     else
        call die_msg(983831728, &
             "unknown nucleation type: " &
@@ -69,9 +75,11 @@ contains
   !! concentration in diverse atmospheric locations,
   !! <i>J. Geophys. Res.</i>, 113, D10209, doi:<a
   !! href="http://dx.doi.org/10.1029/2007JD009253">10.1029/2007JD009253</a>.
-  subroutine nucleate_sulf_acid(env_state, gas_data, aero_data, &
-       aero_state, gas_state, del_t)
+  subroutine nucleate_sulf_acid(nucleate_source, env_state, gas_data, &
+       aero_data, aero_state, gas_state, del_t)
 
+    !> Nucleate source number.
+    integer, intent(in) :: nucleate_source
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Gas data.
@@ -90,9 +98,9 @@ contains
                                                        ! particles (m)
 
     integer :: i_gas_h2so4, i_aero_so4, n_samp, i_samp, i_bin, i_group, n_group
+    integer :: i_class
     real(kind=dp) :: sulf_acid_conc, nucleate_rate, n_samp_avg
-    real(kind=dp) :: total_so4_vol, vol, h2so4_removed_conc
-    real(kind=dp) :: nucleate_comp_vol
+    real(kind=dp) :: total_so4_vol, so4_vol, h2so4_removed_conc
     type(aero_particle_t) :: aero_particle
 
     ! look up the species numbers
@@ -110,8 +118,12 @@ contains
     ! particle nucleation rate in (particles m^{-3} s^{-1})
     nucleate_rate = nucleate_coeff * sulf_acid_conc**2
 
+    ! weight class to nucleate into
+    i_class = aero_state_weight_class_for_source(aero_state, nucleate_source)
+
     ! add particles to each weight group
     total_so4_vol = 0d0
+<<<<<<< HEAD
     call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
          aero_data%n_source)
     ! computational volume at the size of nucleated particles (only
@@ -137,15 +149,45 @@ contains
        call aero_particle_set_create_time(aero_particle, &
             env_state%elapsed_time)
        call aero_state_add_particle(aero_state, aero_particle, aero_data)
+=======
+    do i_group = 1,aero_weight_array_n_group(aero_state%awa)
+       ! adjust weight if necessary
+       n_samp_avg = nucleate_rate * del_t / aero_weight_num_conc_at_radius( &
+            aero_state%awa%weight(i_group, i_class), diam2rad(nucleate_diam))
+       call aero_state_prepare_weight_for_add(aero_state, i_group, i_class, &
+            n_samp_avg)
+
+       ! determine number of nucleated particles
+       n_samp_avg = nucleate_rate * del_t / aero_weight_num_conc_at_radius( &
+            aero_state%awa%weight(i_group, i_class), diam2rad(nucleate_diam))
+       n_samp = rand_poisson(n_samp_avg)
+
+       ! create the particles
+       do i_samp = 1,n_samp
+          so4_vol = diam2vol(nucleate_diam)
+          total_so4_vol = total_so4_vol + so4_vol
+
+          call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
+               aero_data%n_source)
+          call aero_particle_set_create_time(aero_particle, &
+               env_state%elapsed_time)
+          aero_particle%vol(i_aero_so4) = so4_vol
+          call aero_particle_new_id(aero_particle)
+          call aero_particle_set_weight(aero_particle, i_group, i_class)
+          call aero_state_add_particle(aero_state, aero_particle)
+          call aero_particle_deallocate(aero_particle)
+       end do
+>>>>>>> origin/master
     end do
-    call aero_particle_deallocate(aero_particle)
 
     ! remove gases that formed new particles
     h2so4_removed_conc = &
-         total_so4_vol * aero_data%density(i_aero_so4) &
-         / aero_data%molec_weight(i_aero_so4) & ! moles of SO4
-         * const%avagadro &                     ! molecules of SO4
-         / nucleate_comp_vol                    ! molecules / m^3
+         total_so4_vol &                        ! volume of SO4
+         * aero_weight_array_num_conc_at_radius(aero_state%awa, i_class, &
+         diam2rad(nucleate_diam)) &             ! volume conc of SO4
+         * aero_data%density(i_aero_so4) &      ! mass conc of SO4
+         / aero_data%molec_weight(i_aero_so4) & ! mole conc of SO4
+         * const%avagadro                       ! molecule conc of SO4
     gas_state%mix_rat(i_gas_h2so4) = gas_state%mix_rat(i_gas_h2so4) &
          - env_state_conc_to_ppb(env_state, h2so4_removed_conc)
     if (gas_state%mix_rat(i_gas_h2so4) < 0d0) then
@@ -156,12 +198,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine spec_file_read_nucleate_type(file, nucleate_type)
+  subroutine spec_file_read_nucleate_type(file, aero_data, nucleate_type, &
+       nucleate_source)
 
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
+    !> Aerosol data.
+    type(aero_data_t), intent(inout) :: aero_data
     !> Nucleate type.
     integer, intent(out) :: nucleate_type
+    !> Nucleate source number.
+    integer, intent(out) :: nucleate_source
 
     character(len=SPEC_LINE_MAX_VAR_LEN) :: nucleate_type_name
 
@@ -179,6 +226,8 @@ contains
     call spec_file_read_string(file, 'nucleate', nucleate_type_name)
     if (nucleate_type_name == 'sulf_acid') then
        nucleate_type = NUCLEATE_TYPE_SULF_ACID
+       nucleate_source = aero_data_source_by_name(aero_data, &
+            NUCLEATE_SOURCE_NAME)
     else
        call spec_file_die_msg(707263678, file, "unknown nucleate type: " &
             // trim(nucleate_type_name))

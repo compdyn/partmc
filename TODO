@@ -135,12 +135,6 @@ Change constants to use format 3_dp rather than 3d0.
 
 Change kind=dp to kind=wp for "working precision".
 
-Change aero_weight to aero_weight_array where appropriate.
-
-Add sorting check code for unif_bin.
-
-Add a just-sorted-by-group sorting.
-
 Make numeric_diff work even with extra spaces at the end of lines.
 
 Shift aero_data inside aero_state, like in partmc.py, to avoid having
@@ -158,8 +152,24 @@ Parallel_dist does not do accelerated coagulation yet.
 partmc.py can have histogram_1d() and histogram_2d() replaced by
 numpy.histogram() and numpy.histogram2d().
 
-Change output comp_vol to num_conc per particle.
-
 Rename env_state%start_time to start_time_of_day.
 
 Fix "use only" in f90_mod_deps or doc/Makefile or wherever.
+
+Use find_unnecessary_line_breaks and fix them.
+
+Add accessor functions for finding dimensions, rather than storing
+them directly. E.g., aero_state.n_part(), aero_weight_array.n_set(),
+etc.
+
+Make nucleation look just like another emission, but of a
+mono-disperse aero_dist with a rate that is computed from the
+gas_state and env_state.
+
+What should we be doing instead of "new_source_name(i) =
+name(1:AERO_SOURCE_NAME_LEN)" and similar. This dies at runtime if
+"name" has length less than AERO_SOURCE_NAME_LEN, which it might have
+because we only say "character(len=*), intent(in) :: name".
+
+Fix % symbol not appearing in doxygen generated comments. E.g. the
+integer_rmap2_t type docs.

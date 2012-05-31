@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007-2011 Matthew West
+# Copyright (C) 2007-2012 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -558,6 +558,7 @@ class aero_particle_array_t(object):
         from source i that now compose particle j
     weight_groups - length N array with weight group numbers of each
         particle
+    weight_sets - length N array with weight set numbers of each particle
     absorb_cross_sects - length N array with absorbion cross section (m^2
         of each particle
     scatter_cross_sects - length N array with scattering cross section
@@ -575,7 +576,7 @@ class aero_particle_array_t(object):
         particle
     water_hyst_legs - length N array with which leg of the water
         hysteresis curve the particle is on
-    comp_vols - length N array with the computational volume (m^3)
+    num_concs - length N array with the number concentration (m^{-3})
         associated with each particle
     ids - length N array with the ID number of each particle
     least_create_times - length N array with the earliest creation
@@ -639,6 +640,7 @@ class aero_particle_array_t(object):
             self.raw_masses = zeros([len(aero_data.names), n_particles])
             self.n_orig_parts = zeros([len(aero_data.source_names), n_particles], int)
             self.weight_groups = zeros(n_particles, int)
+            self.weight_sets = zeros(n_particles, int)
             self.absorb_cross_sects = zeros(n_particles)
             self.scatter_cross_sects = zeros(n_particles)
             self.asymmetries = zeros(n_particles)
@@ -648,7 +650,7 @@ class aero_particle_array_t(object):
             self.refract_core_imags = zeros(n_particles)
             self.core_vols = zeros(n_particles)
             self.water_hyst_legs = zeros(n_particles, int)
-            self.comp_vols = zeros(n_particles)
+            self.num_concs = zeros(n_particles)
             self.ids = zeros(n_particles, int)
             self.least_create_times = zeros(n_particles)
             self.greatest_create_times = zeros(n_particles)
@@ -664,7 +666,8 @@ class aero_particle_array_t(object):
         for (ncf_var, self_var, required) in [
             ("aero_particle_mass", "raw_masses", True),
             ("aero_n_orig_part", "n_orig_parts", True),
-            ("aero_weight_group", "weight_groups", False),
+            ("aero_particle_weight_group", "weight_groups", False),
+            ("aero_particle_weight_set", "weight_sets", False),
             ("aero_absorb_cross_sect", "absorb_cross_sects", False),
             ("aero_scatter_cross_sect", "scatter_cross_sects", False),
             ("aero_asymmetry", "asymmetries", False),
@@ -674,7 +677,7 @@ class aero_particle_array_t(object):
             ("aero_refract_core_imag", "refract_core_imags", False),
             ("aero_core_vol", "core_vols", False),
             ("aero_water_hyst_leg", "water_hyst_legs", True),
-            ("aero_comp_vol", "comp_vols", True),
+            ("aero_num_conc", "num_concs", True),
             ("aero_id", "ids", True),
             ("aero_least_create_time", "least_create_times", True),
             ("aero_greatest_create_time", "greatest_create_times", True),
@@ -694,6 +697,8 @@ class aero_particle_array_t(object):
             self.n_orig_parts = self.n_orig_parts[:, keep_indexes]
             if self.weight_groups is not None:
                 self.weight_groups = self.weight_groups[keep_indexes]
+            if self.weight_sets is not None:
+                self.weight_sets = self.weight_sets[keep_indexes]
             if self.absorb_cross_sects is not None:
                 self.absorb_cross_sects = self.absorb_cross_sects[keep_indexes]
             if self.scatter_cross_sects is not None:
@@ -711,7 +716,7 @@ class aero_particle_array_t(object):
             if self.core_vols is not None:
                 self.core_vols = self.core_vols[keep_indexes]
             self.water_hyst_legs = self.water_hyst_legs[keep_indexes]
-            self.comp_vols = self.comp_vols[keep_indexes]
+            self.num_concs = self.num_concs[keep_indexes]
             self.ids = self.ids[keep_indexes]
             self.least_create_times = self.least_create_times[keep_indexes]
             self.greatest_create_times = self.greatest_create_times[keep_indexes]
@@ -724,6 +729,8 @@ class aero_particle_array_t(object):
         self.n_orig_parts = self.n_orig_parts[:, i]
         if self.weight_groups is not None:
             self.weight_groups = self.weight_groups[i]
+        if self.weight_sets is not None:
+            self.weight_sets = self.weight_sets[i]
         if self.absorb_cross_sects is not None:
             self.absorb_cross_sects = self.absorb_cross_sects[i]
         if self.scatter_cross_sects is not None:
@@ -741,7 +748,7 @@ class aero_particle_array_t(object):
         if self.core_vols is not None:
             self.core_vols = self.core_vols[i]
         self.water_hyst_legs = self.water_hyst_legs[i]
-        self.comp_vols = self.comp_vols[i]
+        self.num_concs = self.num_concs[i]
         self.ids = self.ids[i]
         self.least_create_times = self.least_create_times[i]
         self.greatest_create_times = self.greatest_create_times[i]
@@ -934,31 +941,6 @@ class aero_particle_array_t(object):
                                                 dry_diameters[i], 
                                                 numpy.array([wet_diameters[i]]))[0]
         return equilib_rhs
-
-    def bin_average(self, diameter_axis, dry_diameter=True):
-        """Return a new aero_particle_array_t object with one particle
-        per grid cell which is an average of all the original
-        particles within that grid cell (by diameter).
-
-        """
-        averaged_particles = aero_particle_array_t(n_particles=diameter_axis.n_bin,
-                                                   aero_data=self.aero_data)
-        if dry_diameter:
-            diameter = self.dry_diameter()
-        else:
-            diameter = self.diameter()
-        diameter_bin = diameter_axis.find(diameter)
-        num_conc = zeros(diameter_axis.n_bin)
-        masses_conc = zeros([self.masses.shape[0], diameter_axis.n_bin])
-        for i in range(self.n_particles):
-            b = diameter_bin[i]
-            if diameter_axis.valid_bin(b):
-                num_conc[b] += 1.0 / self.comp_vols[i]
-                masses_conc[:,b] += self.masses[:,i] / self.comp_vols[i]
-        for b in range(averaged_particles.n_particles):
-            averaged_particles.comp_vols[b] = 1.0 / num_conc[b]
-            averaged_particles.masses[:,b] = masses_conc[:,b] * averaged_particles.comp_vols[b]
-        return averaged_particles
 
 def equilib_rel_humids(env_state, kappa, dry_diameter, wet_diameters):
     """Compute the equilibrium relative humidity (dimensionless) for each
@@ -1605,7 +1587,7 @@ def histogram_1d(x_values, x_grid, weighted=True, weights=None):
 
     Example:
     >>> x_grid = partmc.log_grid(min=1e-8, max=1e-5, n_bin=70)
-    >>> hist = partmc.histogram_1d(diam, x_grid, weights=1 / particles.comp_vols)
+    >>> hist = partmc.histogram_1d(diam, x_grid, weights=particles.num_concs)
     >>> plt.semilogx(x_grid.centers(), hist)
     
     """
@@ -1640,7 +1622,7 @@ def histogram_2d(x_values, y_values, x_grid, y_grid, weighted=True, weights=None
     Example:
     >>> x_grid = partmc.log_grid(min=1e-8, max=1e-5, n_bin=70)
     >>> y_grid = partmc.linear_grid(min=0, max=1, n_bin=50)
-    >>> hist = partmc.histogram_2d(diam, bc_frac, x_grid, y_grid, weights=1 / particles.comp_vols)
+    >>> hist = partmc.histogram_2d(diam, bc_frac, x_grid, y_grid, weights=particles.num_concs)
     >>> plt.pcolor(x_grid.edges(), y_grid.edges(), hist.transpose(),
                    norm=matplotlib.colors.LogNorm(), linewidths=0.1)
 

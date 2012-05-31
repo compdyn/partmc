@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -13,6 +13,7 @@ module pmc_coagulation_dist
   use pmc_util
   use pmc_env_state
   use pmc_aero_state
+  use pmc_aero_weight_array
   use pmc_coagulation
   use pmc_mpi
 #ifdef PMC_USE_MPI
@@ -120,20 +121,28 @@ contains
     !> Number of coagulation events.
     integer, intent(out) :: tot_n_coag
 
+    integer, parameter :: s1 = 1
+    integer, parameter :: s2 = 1
+    integer, parameter :: sc = 1
+    
 #ifdef PMC_USE_MPI
     logical :: samps_remaining, sent_dones
     integer :: i_bin, j_bin, n_samp, i_samp, i_proc, n_proc
     integer :: ierr, status(MPI_STATUS_SIZE), current_i, current_j, i_req
     real(kind=dp) :: n_samp_real, f_max
     integer, allocatable :: n_parts(:,:)
-    real(kind=dp), allocatable :: comp_vols(:,:)
+    real(kind=dp), allocatable :: magnitudes(:,:)
     type(request_t) :: requests(COAG_DIST_MAX_REQUESTS)
     integer, allocatable :: n_samps(:,:)
     real(kind=dp), allocatable :: accept_factors(:,:), k_max(:,:)
     logical, allocatable :: procs_done(:)
     integer :: outgoing_buffer(COAG_DIST_OUTGOING_BUFFER_SIZE)
     integer :: outgoing_buffer_size_check
-    type(aero_weight_t), allocatable :: aero_weight_total(:)
+    type(aero_weight_array_t) :: aero_weight_total
+
+    call assert_msg(667898741, &
+         aero_sorted_n_class(aero_state%aero_sorted) == 1, &
+         "FIXME: mc_coag_dist() can only handle one weight class")
     
     n_proc = pmc_mpi_size()
 
@@ -155,23 +164,28 @@ contains
 
     allocate(n_parts(aero_state%aero_sorted%bin_grid%n_bin, n_proc))
     call pmc_mpi_allgather_integer_array( &
-         aero_state%aero_sorted%size%inverse(:)%n_entry, n_parts)
+         aero_state%aero_sorted%size_class%inverse(:, s1)%n_entry, n_parts)
 
-    allocate(comp_vols(size(aero_state%aero_weight), n_proc))
-    call pmc_mpi_allgather_real_array(aero_state%aero_weight%comp_vol, &
-         comp_vols)
+    allocate(magnitudes(size(aero_state%awa%weight), n_proc))
+    call pmc_mpi_allgather_real_array(aero_state%awa%weight(:, s1)%magnitude, &
+         magnitudes)
 
-    allocate(aero_weight_total(size(aero_state%aero_weight)))
-    call aero_weight_allocate(aero_weight_total)
-    call aero_weight_array_copy(aero_state%aero_weight, aero_weight_total)
-    aero_weight_total%comp_vol = sum(comp_vols, 2)
+    call aero_weight_array_allocate(aero_weight_total)
+    call aero_weight_array_copy(aero_state%awa, aero_weight_total)
+    aero_weight_total%weight(:, s1)%magnitude = 1d0 / sum(1d0 / magnitudes, 2)
 
     allocate(k_max(aero_state%aero_sorted%bin_grid%n_bin, &
          aero_state%aero_sorted%bin_grid%n_bin))
     do i_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
        do j_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
+<<<<<<< HEAD
           call max_coag_num_conc_factor_better(aero_weight_total, &
                aero_data, aero_state%aero_sorted%bin_grid, i_bin, j_bin, f_max)
+=======
+          call max_coag_num_conc_factor(aero_weight_total, &
+               aero_state%aero_sorted%bin_grid, i_bin, j_bin, s1, s2, sc, &
+               f_max)
+>>>>>>> origin/master
           k_max(i_bin, j_bin) &
                = aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin) * f_max
        end do
@@ -213,7 +227,7 @@ contains
        ! receive exactly one message
        call coag_dist_recv(requests, env_state, aero_weight_total, aero_data, &
             aero_state, accept_factors, coag_kernel_type, tot_n_coag, &
-            comp_vols, procs_done)
+            magnitudes, procs_done)
     end do
 
     do i_req = 1,COAG_DIST_MAX_REQUESTS
@@ -224,7 +238,7 @@ contains
     deallocate(n_samps)
     deallocate(accept_factors)
     deallocate(n_parts)
-    deallocate(comp_vols)
+    deallocate(magnitudes)
     call mpi_buffer_detach(outgoing_buffer, &
          outgoing_buffer_size_check, ierr)
     call pmc_mpi_check_ierr(ierr)
@@ -238,14 +252,14 @@ contains
 
   subroutine coag_dist_recv(requests, env_state, aero_weight_total, &
        aero_data, aero_state, accept_factors, coag_kernel_type, tot_n_coag, &
-       comp_vols, procs_done)
+       magnitudes, procs_done)
 
     !> Array of outstanding requests.
     type(request_t), intent(inout) :: requests(COAG_DIST_MAX_REQUESTS)
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Total weighting functions.
-    type(aero_weight_t), intent(in) :: aero_weight_total(:)
+    type(aero_weight_array_t), intent(in) :: aero_weight_total
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
@@ -257,7 +271,7 @@ contains
     !> Number of coagulation events.
     integer, intent(inout) :: tot_n_coag
     !> Computational volumes on all processes.
-    real(kind=dp), intent(in) :: comp_vols(:,:)
+    real(kind=dp), intent(in) :: magnitudes(:,:)
     !> Which processes are finished with coagulation.
     logical, intent(inout) :: procs_done(:)
 
@@ -272,7 +286,7 @@ contains
     elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_REQ_PARTICLE) then
        call recv_return_req_particle(requests, env_state, aero_weight_total, &
             aero_data, aero_state, accept_factors, coag_kernel_type, &
-            tot_n_coag, comp_vols)
+            tot_n_coag, magnitudes)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_UNREQ_PARTICLE) then
        call recv_return_unreq_particle(aero_state)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_NO_PARTICLE) then
@@ -307,6 +321,10 @@ contains
     !> Whether there are still coagulation samples that need to be done.
     logical, intent(inout) :: samps_remaining
 
+    integer, parameter :: s1 = 1
+    integer, parameter :: s2 = 1
+    integer, parameter :: sc = 1
+    
     integer :: i_req
 
     if (.not. samps_remaining) return
@@ -317,14 +335,15 @@ contains
              call update_n_samps(n_samps, local_bin, remote_bin, &
                   samps_remaining)
              if (.not. samps_remaining) exit outer
-             if (aero_state%aero_sorted%size%inverse(local_bin)%n_entry > 0) then
+             if (aero_state%aero_sorted%size_class%inverse(local_bin, &
+                  s2)%n_entry > 0) then
                 call find_rand_remote_proc(n_parts, remote_bin, &
                      requests(i_req)%remote_proc)
                 requests(i_req)%active = .true.
                 requests(i_req)%local_bin = local_bin
                 requests(i_req)%remote_bin = remote_bin
                 call aero_state_remove_rand_particle_from_bin(aero_state, &
-                     local_bin, requests(i_req)%local_aero_particle)
+                     local_bin, s2, requests(i_req)%local_aero_particle)
                 call send_request_particle(requests(i_req)%remote_proc, &
                      requests(i_req)%remote_bin)
                 exit inner
@@ -445,6 +464,10 @@ contains
     !> Aero state.
     type(aero_state_t), intent(inout) :: aero_state
 
+    integer, parameter :: s1 = 1
+    integer, parameter :: s2 = 1
+    integer, parameter :: sc = 1
+    
 #ifdef PMC_USE_MPI
     integer :: buffer_size, position, request_bin, sent_proc
     integer :: ierr, remote_proc, status(MPI_STATUS_SIZE)
@@ -469,13 +492,13 @@ contains
     call assert(895128380, position == buffer_size)
 
     ! send the particle back if we have one
-    if (aero_state%aero_sorted%size%inverse(request_bin)%n_entry == 0) &
-         then
+    if (aero_state%aero_sorted%size_class%inverse(request_bin, &
+         s1)%n_entry == 0) then
        call send_return_no_particle(remote_proc, request_bin)
     else
        call aero_particle_allocate(aero_particle)
        call aero_state_remove_rand_particle_from_bin(aero_state, &
-            request_bin, aero_particle)
+            request_bin, s1, aero_particle)
        call send_return_req_particle(aero_particle, request_bin, &
             remote_proc)
        call aero_particle_deallocate(aero_particle)
@@ -603,14 +626,14 @@ contains
 
   subroutine recv_return_req_particle(requests, env_state, aero_weight_total, &
        aero_data, aero_state, accept_factors, coag_kernel_type, tot_n_coag, &
-       comp_vols)
+       magnitudes)
 
     !> Array of outstanding requests.
     type(request_t), intent(inout) :: requests(COAG_DIST_MAX_REQUESTS)
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Total weighting array.
-    type(aero_weight_t), intent(in) :: aero_weight_total(:)
+    type(aero_weight_array_t), intent(in) :: aero_weight_total
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
@@ -622,8 +645,12 @@ contains
     !> Number of coagulation events.
     integer, intent(inout) :: tot_n_coag
     !> Computational volumes on all processes.
-    real(kind=dp), intent(in) :: comp_vols(:,:)
+    real(kind=dp), intent(in) :: magnitudes(:,:)
 
+    integer, parameter :: s1 = 1
+    integer, parameter :: s2 = 1
+    integer, parameter :: sc = 1
+    
 #ifdef PMC_USE_MPI
     logical :: found_request, remove_1, remove_2
     integer :: buffer_size, position, sent_bin, sent_proc, i_req
@@ -665,7 +692,7 @@ contains
     ! maybe do coagulation
     call num_conc_weighted_kernel(coag_kernel_type, &
          requests(i_req)%local_aero_particle, sent_aero_particle, &
-         aero_data, aero_weight_total, env_state, k)
+         s1, s2, sc, aero_data, aero_weight_total, env_state, k)
     p = k * accept_factors(requests(i_req)%local_bin, sent_bin)
 
     if (pmc_random() .lt. p) then
@@ -673,7 +700,7 @@ contains
        tot_n_coag = tot_n_coag + 1
        call coagulate_dist(aero_data, aero_state, &
             requests(i_req)%local_aero_particle, sent_aero_particle, &
-            sent_proc, aero_weight_total, comp_vols, remove_1, remove_2)
+            sent_proc, aero_weight_total, magnitudes, remove_1, remove_2)
     else
        remove_1 = .false.
        remove_2 = .false.
@@ -830,7 +857,7 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Weighting function array.
-    type(aero_weight_t), intent(in) :: aero_weight_array(:)
+    type(aero_weight_array_t), intent(in) :: aero_weight_array
     !> Maximum kernel.
     real(kind=dp), intent(in) :: k_max(:,:)
     !> Number of samples to do per bin pair.
@@ -860,7 +887,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine coagulate_dist(aero_data, aero_state, aero_particle_1, &
-       aero_particle_2, remote_proc, aero_weight_total, comp_vols, &
+       aero_particle_2, remote_proc, aero_weight_total, magnitudes, &
        remove_1, remove_2)
 
     !> Aerosol data.
@@ -874,13 +901,17 @@ contains
     !> Remote process that the particle came from.
     integer, intent(in) :: remote_proc
     !> Total weight across all processes.
-    type(aero_weight_t), intent(in) :: aero_weight_total(:)
+    type(aero_weight_array_t), intent(in) :: aero_weight_total
     !> Computational volumes on all processes (m^3).
-    real(kind=dp), intent(in) :: comp_vols(:,:)
+    real(kind=dp), intent(in) :: magnitudes(:,:)
     !> Whether to remove aero_particle_1 after the coagulation.
     logical, intent(out) :: remove_1
     !> Whether to remove aero_particle_2 after the coagulation.
     logical, intent(out) :: remove_2
+
+    integer, parameter :: s1 = 1
+    integer, parameter :: s2 = 1
+    integer, parameter :: sc = 1
     
     type(aero_particle_t) :: aero_particle_new
     integer :: new_proc, new_group
@@ -892,7 +923,7 @@ contains
     call aero_info_allocate(aero_info_2)
 
     call coagulate_weighting(aero_particle_1, aero_particle_2, &
-         aero_particle_new, aero_data, aero_state%aero_weight, &
+         aero_particle_new, s1, s2, sc, aero_data, aero_state%awa, &
          remove_1, remove_2, create_new, id_1_lost, id_2_lost, &
          aero_info_1, aero_info_2)
 
@@ -907,10 +938,15 @@ contains
 
     ! add new particle
     if (create_new) then
+<<<<<<< HEAD
        new_group = aero_weight_array_rand_group(aero_weight_total, &
             aero_particle_radius(aero_particle_new, aero_data))
+=======
+       new_group = aero_weight_array_rand_group(aero_weight_total, sc, &
+            aero_particle_radius(aero_particle_new))
+>>>>>>> origin/master
        aero_particle_new%weight_group = new_group
-       new_proc = sample_cts_pdf(comp_vols(new_group, :)) - 1
+       new_proc = sample_cts_pdf(1d0 / magnitudes(new_group, :)) - 1
        call send_return_unreq_particle(aero_particle_new, new_proc)
     end if
 

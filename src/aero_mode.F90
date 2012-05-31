@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -61,6 +61,8 @@ module pmc_aero_mode
      real(kind=dp) :: num_conc
      !> Species fractions by volume [length \c aero_data%%n_spec] (1).
      real(kind=dp), pointer :: vol_frac(:)
+     !> Species fraction standard deviation [length \c aero_data%%n_spec] (1).
+     real(kind=dp), pointer :: vol_frac_std(:)
      !> Source number.
      integer :: source
   end type aero_mode_t
@@ -100,6 +102,7 @@ contains
     type(aero_mode_t), intent(out) :: aero_mode
 
     allocate(aero_mode%vol_frac(0))
+    allocate(aero_mode%vol_frac_std(0))
     allocate(aero_mode%sample_radius(0))
     allocate(aero_mode%sample_num_conc(0))
 
@@ -116,6 +119,7 @@ contains
     integer, intent(in) :: n_spec
 
     allocate(aero_mode%vol_frac(n_spec))
+    allocate(aero_mode%vol_frac_std(n_spec))
     allocate(aero_mode%sample_radius(0))
     allocate(aero_mode%sample_num_conc(0))
 
@@ -130,6 +134,7 @@ contains
     type(aero_mode_t), intent(inout) :: aero_mode
 
     deallocate(aero_mode%vol_frac)
+    deallocate(aero_mode%vol_frac_std)
     deallocate(aero_mode%sample_radius)
     deallocate(aero_mode%sample_num_conc)
 
@@ -153,6 +158,7 @@ contains
     aero_mode_to%log10_std_dev_radius = aero_mode_from%log10_std_dev_radius
     aero_mode_to%num_conc = aero_mode_from%num_conc
     aero_mode_to%vol_frac = aero_mode_from%vol_frac
+    aero_mode_to%vol_frac_std = aero_mode_from%vol_frac_std
     aero_mode_to%source = aero_mode_from%source
     deallocate(aero_mode_to%sample_radius)
     deallocate(aero_mode_to%sample_num_conc)
@@ -501,9 +507,11 @@ contains
        call die_msg(314169653, "Unknown aero_mode type: " &
             // trim(integer_to_string(aero_mode%type)))
     end if
+    call assert_msg(756593082, sum(aero_mode%vol_frac_std) == 0d0, &
+         "cannot convert species fractions with non-zero standard deviation " &
+         // "to binned distributions")
     do i_spec = 1,aero_data%n_spec
-       vol_conc(:,i_spec) = vol_conc_total &
-            * aero_mode%vol_frac(i_spec)
+       vol_conc(:,i_spec) = vol_conc_total * aero_mode%vol_frac(i_spec)
     end do
 
   end subroutine aero_mode_vol_conc
@@ -522,7 +530,7 @@ contains
     real(kind=dp), intent(out) :: weighted_num_conc(:)
 
     integer :: i_sample
-    real(kind=dp) :: x0, x1, xr
+    real(kind=dp) :: x0, x1
 
     call assert(256667423, aero_mode%type == AERO_MODE_TYPE_SAMPLED)
     call assert(878731017, &
@@ -535,12 +543,9 @@ contains
        do i_sample = 1,size(aero_mode%sample_num_conc)
           x0 = log(aero_mode%sample_radius(i_sample))
           x1 = log(aero_mode%sample_radius(i_sample + 1))
-          xr = log(aero_weight%ref_radius)
           weighted_num_conc(i_sample) = aero_mode%sample_num_conc(i_sample) &
-               / aero_weight%exponent &
-               * (exp(- aero_weight%exponent * (x0 - xr)) &
-               - exp(- aero_weight%exponent * (x1 - xr))) &
-               / (x1 - x0)
+               / aero_weight%exponent * (exp(- aero_weight%exponent * x0) &
+               - exp(- aero_weight%exponent * x1)) / (x1 - x0)
        end do
     else
        call die_msg(576124393, "unknown aero_weight type: " &
@@ -564,14 +569,13 @@ contains
 
     if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
        if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
-          aero_mode_number = aero_mode%num_conc * aero_weight%comp_vol
+          aero_mode_number = aero_mode%num_conc / aero_weight%magnitude
        elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
             .or. (aero_weight%type == AERO_WEIGHT_TYPE_MFA)) then
-            x_mean_prime = log10(aero_mode%char_radius) &
-            - aero_weight%exponent * aero_mode%log10_std_dev_radius**2 &
-            * log(10d0)
-          aero_mode_number = aero_mode%num_conc * aero_weight%comp_vol &
-               * aero_weight%ref_radius**aero_weight%exponent &
+          x_mean_prime = log10(aero_mode%char_radius) &
+               - aero_weight%exponent * aero_mode%log10_std_dev_radius**2 &
+               * log(10d0)
+          aero_mode_number = aero_mode%num_conc / aero_weight%magnitude &
                * exp((x_mean_prime**2 - log10(aero_mode%char_radius)**2) &
                / (2d0 * aero_mode%log10_std_dev_radius**2))
        else
@@ -580,7 +584,7 @@ contains
        end if
     elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
        if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
-          aero_mode_number = aero_mode%num_conc * aero_weight%comp_vol
+          aero_mode_number = aero_mode%num_conc / aero_weight%magnitude
        else
           call die_msg(822252601, &
                "cannot use exponential modes with weighting")
@@ -593,7 +597,7 @@ contains
        allocate(weighted_num_conc(size(aero_mode%sample_num_conc)))
        call aero_mode_weighted_sampled_num_conc(aero_mode, aero_weight, &
             weighted_num_conc)
-       aero_mode_number = sum(weighted_num_conc) * aero_weight%comp_vol
+       aero_mode_number = sum(weighted_num_conc) / aero_weight%magnitude
        deallocate(weighted_num_conc)
     else
        call die_msg(901140225, "unknown aero_mode type: " &
@@ -685,8 +689,26 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Return an array of volumes randomly sampled from the volume fractions.
+  subroutine aero_mode_sample_vols(aero_mode, total_vol, vols)
+
+    !> Aero_mode to sample from.
+    type(aero_mode_t), intent(in) :: aero_mode
+    !> Total volume (m^3).
+    real(kind=dp), intent(in) :: total_vol
+    !> Sampled volumes (m^3).
+    real(kind=dp), intent(out) :: vols(size(aero_mode%vol_frac))
+
+    call rand_normal_array_1d(aero_mode%vol_frac, aero_mode%vol_frac_std, vols)
+    vols = max(vols, 0d0)
+    vols = vols / sum(vols) * total_vol
+
+  end subroutine aero_mode_sample_vols
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Read volume fractions from a data file.
-  subroutine spec_file_read_vol_frac(file, aero_data, vol_frac)
+  subroutine spec_file_read_vol_frac(file, aero_data, vol_frac, vol_frac_std)
 
     !> Spec file to read mass fractions from.
     type(spec_file_t), intent(inout) :: file
@@ -694,6 +716,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol species volume fractions.
     real(kind=dp), intent(inout) :: vol_frac(:)
+    !> Aerosol species volume fraction standard deviations.
+    real(kind=dp), intent(inout) :: vol_frac_std(:)
 
     integer :: n_species, species, i
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
@@ -716,8 +740,23 @@ contains
     !! OC          0.3
     !! BC          0.7
     !! </pre>
-    !! indicating that the diesel particles are 30% organic carbon and
-    !! 70% black carbon.
+    !! indicating that the particles are 30% organic carbon and 70%
+    !! black carbon.
+    !!
+    !! Optionally, the standard deviation can also be provided for
+    !! each species as a second number on each line. For example,
+    !! <pre>
+    !! # species   proportion std_dev
+    !! OC          0.3        0.1
+    !! BC          0.7        0.2
+    !! </pre>
+    !! indicates that the particles are on average 30% OC and 70% BC,
+    !! but may vary to have particles with 20% OC and 80% BC, or 40%
+    !! OC and 60% BC, for example. The standard deviations will be
+    !! normalized by the sum of the proportions.
+    !!
+    !! Either all species in a given file must have standard
+    !! deviations or none of them can.
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format
@@ -738,35 +777,44 @@ contains
        call die_msg(628123166, 'file ' // trim(file%name) &
             // ' must contain at least one line of data')
     end if
-    if (size(species_data, 2) /= 1) then
-       call die_msg(427666881, 'each line in file ' &
-            // trim(file%name) // ' must contain exactly one data value')
+    if ((size(species_data, 2) /= 1) .and. (size(species_data, 2) /= 2)) then
+       call die_msg(427666881, 'each line in file ' // trim(file%name) &
+            // ' must contain exactly one or two data values')
     end if
 
     ! copy over the data
     vol_frac = 0d0
+    vol_frac_std = 0d0
     do i = 1,n_species
        species = aero_data_spec_by_name(aero_data, species_name(i))
        if (species == 0) then
-          call die_msg(775942501, 'unknown species ' &
-               // trim(species_name(i)) // ' in file ' &
-               // trim(file%name))
+          call die_msg(775942501, 'unknown species ' // trim(species_name(i)) &
+               // ' in file ' // trim(file%name))
        end if
-       vol_frac(species) = species_data(i,1)
+       vol_frac(species) = species_data(i, 1)
+       if (size(species_data, 2) == 2) then
+          vol_frac_std(species) = species_data(i, 2)
+       end if
     end do
     deallocate(species_name)
     deallocate(species_data)
 
     ! convert mass fractions to volume fractions
     vol_frac = vol_frac / aero_data%density
+    vol_frac_std = vol_frac_std / aero_data%density
     
     ! normalize
     tot_vol_frac = sum(vol_frac)
     if ((minval(vol_frac) < 0d0) .or. (tot_vol_frac <= 0d0)) then
-       call die_msg(356648030, 'vol_frac in ' // trim(file%name) &
-            // ' is not positive')
+       call die_msg(356648030, 'fractions in ' // trim(file%name) &
+            // ' are not positive')
+    end if
+    if (minval(vol_frac_std) < 0d0) then
+       call die_msg(676576501, 'standard deviations in ' // trim(file%name) &
+            // ' are not positive')
     end if
     vol_frac = vol_frac / tot_vol_frac
+    vol_frac_std = vol_frac_std / tot_vol_frac
 
   end subroutine spec_file_read_vol_frac
 
@@ -970,7 +1018,7 @@ contains
        call spec_file_read_string(file, 'mass_frac', mass_frac_filename)
        call spec_file_open(mass_frac_filename, mass_frac_file)
        call spec_file_read_vol_frac(mass_frac_file, aero_data, &
-            aero_mode%vol_frac)
+            aero_mode%vol_frac, aero_mode%vol_frac_std)
        call spec_file_close(mass_frac_file)
        call spec_file_read_string(file, 'mode_type', mode_type)
        if (trim(mode_type) == 'log_normal') then
@@ -1023,6 +1071,7 @@ contains
          + pmc_mpi_pack_size_real_array(val%sample_num_conc) &
          + pmc_mpi_pack_size_real(val%num_conc) &
          + pmc_mpi_pack_size_real_array(val%vol_frac) &
+         + pmc_mpi_pack_size_real_array(val%vol_frac_std) &
          + pmc_mpi_pack_size_integer(val%source)
 
   end function pmc_mpi_pack_size_aero_mode
@@ -1051,6 +1100,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%sample_num_conc)
     call pmc_mpi_pack_real(buffer, position, val%num_conc)
     call pmc_mpi_pack_real_array(buffer, position, val%vol_frac)
+    call pmc_mpi_pack_real_array(buffer, position, val%vol_frac_std)
     call pmc_mpi_pack_integer(buffer, position, val%source)
     call assert(497092471, &
          position - prev_position <= pmc_mpi_pack_size_aero_mode(val))
@@ -1082,6 +1132,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%sample_num_conc)
     call pmc_mpi_unpack_real(buffer, position, val%num_conc)
     call pmc_mpi_unpack_real_array(buffer, position, val%vol_frac)
+    call pmc_mpi_unpack_real_array(buffer, position, val%vol_frac_std)
     call pmc_mpi_unpack_integer(buffer, position, val%source)
     call assert(874467577, &
          position - prev_position <= pmc_mpi_pack_size_aero_mode(val))

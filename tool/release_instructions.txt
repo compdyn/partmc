@@ -17,7 +17,7 @@ doc/Makefile: Version
 doc/Doxyfile: Version
 src/output.F90: Version
 
-git commit -m "updating info for 2.1.0 release"
+git commit -m "update info for 2.1.0 release"
 
 git tag 2.1.0
 

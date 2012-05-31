@@ -16,7 +16,6 @@ module pmc_scenario
   use pmc_spec_file
   use pmc_aero_data
   use pmc_gas_data
-  use pmc_chamber
   use pmc_mpi
 #ifdef PMC_USE_MPI
   use mpi
@@ -72,8 +71,6 @@ module pmc_scenario
      !> Aerosol background at set-points (# m^{-3}).
      type(aero_dist_t), pointer :: aero_background(:)
 
-     !> Chamber parameters for wall loss and sedimentation.
-     type(chamber_t) :: chamber
   end type scenario_t
   
 contains
@@ -107,8 +104,6 @@ contains
     allocate(scenario%aero_dilution_time(0))
     allocate(scenario%aero_dilution_rate(0))
     allocate(scenario%aero_background(0))
-
-    call chamber_allocate(scenario%chamber)
 
   end subroutine scenario_allocate
 
@@ -155,8 +150,6 @@ contains
     deallocate(scenario%aero_dilution_time)
     deallocate(scenario%aero_dilution_rate)
     deallocate(scenario%aero_background)
-
-    call chamber_deallocate(scenario%chamber)
 
   end subroutine scenario_deallocate
 
@@ -386,59 +379,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Remove particles due to wall diffusion and sedimentation for a 
-  !> particle distribution in chamber study.
-  subroutine scenario_aero_chamber(chamber, delta_t, aero_data, &
-       aero_state, temp, press)
-
-    !> Chamber parameters.
-    type(chamber_t) :: chamber
-    !> Time increment to update over.
-    real(kind=dp), intent(in) :: delta_t
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
-    !> Aerosol state.
-    type(aero_state_t), intent(inout) :: aero_state
-    !> Temperature (K).
-    real(kind=dp), intent(in) :: temp
-    !> Pressure (Pa).
-    real(kind=dp), intent(in) :: press
-
-    ! Particle.
-    type(aero_particle_t), pointer :: aero_particle
-    ! Loss probability.
-    real(kind=dp) :: p
-    ! Total loss rate (s^{-1}).
-    real(kind=dp) :: lossrate
-    ! Total particle mass (kg).
-    real(kind=dp) :: m_Rgeo
-
-    type(aero_info_t) :: aero_info
-    integer :: i_part
-
-    do i_part = aero_state%apa%n_part,1,-1
-         aero_particle => aero_state%apa%particle(i_part)
-         m_Rgeo = aero_particle_mass(aero_particle, aero_data)
-         lossrate = chamber_loss_wall(chamber, aero_particle, &
-              aero_data%fractal, temp, press) &
-              + chamber_loss_sedi(chamber, aero_particle, aero_data, &
-              temp, press)
-         p = lossrate * delta_t
-         if (pmc_random() < p) then
-            call aero_info_allocate(aero_info)
-            aero_info%id = aero_particle%id
-            aero_info%action = AERO_INFO_DILUTION
-            aero_info%other_id = 0
-            call aero_state_remove_particle_with_info(aero_state, &
-                 i_part,aero_info)
-            call aero_info_deallocate(aero_info)
-         end if
-    end do
-
-  end subroutine scenario_aero_chamber
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Do emissions and background dilution for a particle aerosol
   !> distribution.
   !!
@@ -470,12 +410,6 @@ contains
     real(kind=dp) :: emission_rate_scale, dilution_rate, p
     type(aero_dist_t) :: emissions, background
     type(aero_state_t) :: aero_state_delta
-
-    ! account for wall loss and sedimentation in chamber
-    if (scenario%chamber%do_chamber) then
-       call scenario_aero_chamber(scenario%chamber, delta_t, &
-            aero_data, aero_state, env_state%temp, env_state%pressure)
-    end if
 
     ! emissions
     call aero_dist_allocate(emissions)

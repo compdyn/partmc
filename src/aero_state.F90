@@ -386,13 +386,8 @@ contains
   !! mean \c n_part_mean.  The final number of particles is either
   !! <tt>floor(n_part_mean)</tt> or <tt>ceiling(n_part_mean)</tt>,
   !! chosen randomly so the mean is \c n_part_mean.
-<<<<<<< HEAD
   subroutine aero_state_dup_particle(aero_state, aero_data, i_part, &
        n_part_mean, random_weight_group)
-=======
-  subroutine aero_state_dup_particle(aero_state, aero_data, i_part, n_part_mean, &
-       random_weight_group)
->>>>>>> chamber
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -672,7 +667,6 @@ contains
              call aero_mode_sample_radius(aero_data, aero_mode, &
                   aero_state%aero_weight(i_group), radius)
              if (aero_data%fractal%do_fractal) then
-<<<<<<< HEAD
                 vol = Rme2vol(radius, env_state%temp, env_state%pressure, &
                       aero_data%fractal)
                 !write(*,'(A,E15.6,A,E15.6)') 'R_me = ', radius, '  V = ', vol
@@ -681,16 +675,6 @@ contains
                 !write(*,'(A,E15.6,A,E15.6)') 'V = ', vol, '  R_me = ', R_me
               else
                 vol = rad2vol(radius, aero_data%fractal)
-=======
-                vol = Rme2vol(radius, env_state%temp, env_state%pressure, &
-                     aero_data%fractal)
-                !write(*,'(A,E15.6,A,E15.6)') 'R_me = ', radius, '  V = ', vol
-                !R_me = vol2Rme(vol, env_state%temp, env_state%pressure, &
-                !     aero_data%fractal)
-                !write(*,'(A,E15.6,A,E15.6)') 'V = ', vol, '  R_me = ', R_me
-             else
-                vol = rad2vol(radius, aero_data%fractal)
->>>>>>> chamber
              end if
              call aero_particle_set_vols(aero_particle, &
                   aero_mode%vol_frac * vol)
@@ -881,11 +865,7 @@ contains
     do i_part = 1,aero_state%apa%n_part
        aero_particle => aero_state%apa%particle(i_part)
        i_bin = bin_grid_particle_in_bin(bin_grid, &
-<<<<<<< HEAD
             aero_particle_radius(aero_particle, aero_data))
-=======
-            aero_particle_radius(aero_particle, aero_data))
->>>>>>> chamber
        if ((i_bin < 1) .or. (i_bin > bin_grid%n_bin)) then
           call warn_msg(980232449, "particle ID " &
                // trim(integer_to_string(aero_particle%id)) &
@@ -1529,11 +1509,7 @@ contains
        ! determine the new_particle_volume for all particles in this bin
        if (bin_center) then
           new_particle_volume = rad2vol(bin_grid%center_radius(i_bin), &
-<<<<<<< HEAD
                aero_data%fractal)
-=======
-                aero_data%fractal)
->>>>>>> chamber
        elseif (aero_weight_array_check_flat(aero_state%aero_weight)) then
           num_conc & ! any radius will have the same num_conc
                = aero_weight_array_num_conc_at_radius(aero_state%aero_weight, &

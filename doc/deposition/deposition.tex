@@ -12,32 +12,36 @@
 \newcommand{\tn}{\tabularnewline\hline}
 \renewcommand{\arraystretch}{1.5}
 \begin{longtable}{|l|p{5.5cm}|l|l|p{4.5cm}|}
-\hline \textbf{Symbol} & \textbf{Meaning}                                                       & \textbf{Type} & \textbf{Units}                        &  \textbf{Reference}                                \tn
-\hline \endhead
-$V_d$  & \rr collection efficiency from Brownian diffusion  & function         & ?    &                                                    \tn
-$V_g$  & \rr collection efficiency from Brownian diffusion  & function         & ?    &                                                    \tn
-$R_a$  & \rr collection efficiency from Brownian diffusion  & function         & ?    &                                                    \tn
-$R_s$  & \rr collection efficiency from Brownian diffusion  & function         & ?    &                                                    \tn
-
-$E_{\textrm{B}}$  & \rr collection efficiency from Brownian diffusion  & function         & ?    &                                                    \tn
-$E_{\textrm{IM}}$  & \rr collection efficiency from impaction  & function         & ?    &                                                    \tn
-$E_{\textrm{IN}}$  & \rr collection efficiency from interception & function         & ?    &                                                    \tn
-
-$R_1$  & \rr correction factor for bounce-off  & function         &  1    &                                                    \tn
+\hline 
+\textbf{Symbol} & \textbf{Meaning}                                                       & \textbf{Type} & \textbf{Units}                        &  \textbf{Reference}                                \tn
+\endhead
+\hline 
+$\alpha$ & parameter &   & 1   &    Ref   \tn
+$A$ & characteristic radius of large collectors  &   &  m    &  \tn
+$\beta$ & parameter & & 1 & Ref \tn
+$\gamma$  & parameter &   & 1    &    Ref   \tn
+$C_c$ & \rr Cunningham slip correction factor & function & 1 &\rr  eq. \ref{eq:cc}, Zhang et al 2001 eq. 3\tn
+$D$ & Brownian diffusion & function & m$^2$ s$^{-1}$& eq. \ref{eq:brownian}, S\&P eq. 9.73\tn
+$D_p$ & particle diameter &  & m & \tn
+$E_{\textrm{B}}$  & \rr collection efficiency from Brownian diffusion  & function         & 1    &  \rr eq. \ref{eq:eb},  Zhang et al 2001 eq. 6 \tn
+$E_{\textrm{IM}}$  & \rr collection efficiency from impaction  & function         & 1    &   \rr eq. \ref{eq:eim},          Zhang et al 2001 eq. 7c \tn
+$E_{\textrm{IN}}$  & \rr collection efficiency from interception & function         & 1    &\rr   eq. \ref{eq:ein},      Zhang et al 2001 eq. 8 \tn
 $\epsilon_0$  & \rr empirical constant  & constant         & 1   &                      \tn
-
-$ Sc $ & \rr Schmidt number & function & 1 & Ref \tn
-$ St$ & \rr Stokes number & function & 1 & Ref \tn
-$C_c$ & \rr slip correction factor & & & Ref \tn
-
-$u_*$ & \rr friction velocity & & & Ref \tn
-$ \kappa $ & \rr Von Karman constant & constant & 1 & Ref \tn
-$\lambda$ & mean free path of air molecules & function? &  \tn
-$A$ & characteristic radius of large collectors  &   & ?    &    Ref   \tn
-$\gamma$  &  &   & ?    &    Ref   \tn
-$\alpha$ &  &   & ?    &    Ref   \tn
-$\beta$ & & & ? & Ref \tn
+$k$ & \rr Von Karman constant & constant & 1 & Ref \tn
+$\lambda$ & mean free path of air molecules & function & m & \tn
+$R_1$  & \rr correction factor for bounce-off  & function &  1    & \rr  eq. \ref{eq:R_1}, Zhang et al 2001 eq. 9 \tn
+$R_a$  & \rr aerodynamic resistance  & function & m$^{-1}$ s &  \tn
+$R_s$  & \rr surface resistance  & function & m$^{-1}$ s & Zhang et al 2001 eq. 5 \tn
+$\rho$ & density of particle & & kg m$^{-3}$ &  \tn
+$ Sc $ & \rr Schmidt number & function & 1 &\rr  eq. \ref{eq:sc}\tn
+$ St$ & \rr Stokes number for smooth surfaces & function & 1 &\rr  eq. \ref{eq:st_smooth}, S\&P 19.23 \tn
+$ St$ & \rr Stokes number for vegetated surfaces & function & 1 & \rr eq. \ref{eq:st_veg}, S\&P 19.24 \tn
 $T$ & current environmental temperature &  & K & \tn
+$u_*$ & \rr friction velocity & & m s$^{-1}$ & \tn
+$\mu$ & dynamic viscocity of air & function & kg m$^{-1}$ s$^{-1}$&\rr  eq. \ref{eq:dynamic_visc} \tn
+$\nu$ & kinematic viscocity of air & function & m$^2$ s$^{-1}$&\rr  eq. \ref{eq:kinematic_visc} \tn
+$V_d$  & \rr deposition velocity  & function & m s$^{-1}$ & eq. \ref{eq:vd}, Zhang et al 2001 eq. 1 \tn
+$V_s$  & \rr settling velocity  & function & m s$^{-1}$   &eq. \ref{eq:vs}, Zhang et al 2001 eq. 2 \tn
 \end{longtable}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -46,15 +50,20 @@ $T$ & current environmental temperature &  & K & \tn
 \label{sec:equations}
 
 \begin{align}
-V_d &= V_g + \frac{1}{R_a + R_s} \\
-V_g & = \\
-Sc &= \\
-St &= 
-E_{\textrm{B}} &= Sc^{-\gamma}  \\
-R_1 &= \exp(-St^{1/2}) \\
-E_{\textrm{IN}} &= \frac{1}{2} \left(\frac{d_p}{A}\right)^2 \\
-E_{\textrm{IM}} & = \left(\frac{St}{\alpha + St}\right)^{\beta} \\
-C_c & = 1 + \frac{2 \lambda}{d_p}\left(1.257 + 0.4\exp(-.55d_p/\lambda)\right)\\ 
+\mu & =  \label{eq:dynamic_visc}\\
+\nu & = \frac{\mu}{\rho}  \label{eq:kinematic_visc}\\
+V_d &= V_s + \frac{1}{R_a + R_s} \label{eq:vd}\\
+V_s & = \frac{\rho D_p^2gC_c}{18\mu } \label{eq:vs}\\
+Sc &= \frac{\nu}{D}   \label{eq:sc} \\
+St &= \frac{V_gu_*^2}{g \nu } \label{eq:st_smooth}\\
+St &= \frac{V_gu_*}{gA}  \label{eq:st_veg}\\
+R_1 &= \exp(-St^{1/2}) \label{eq:R_1}\\
+E_{\textrm{B}} &= Sc^{-\gamma}  \label{eq:eb}\\
+E_{\textrm{IM}} & = \left(\frac{St}{\alpha + St}\right)^{\beta} \label{eq:eim}\\
+E_{\textrm{IN}} &= \frac{1}{2} \left(\frac{D_p}{A}\right)^2 \label{eq:ein}\\
+C_c & = 1 + \frac{2 \lambda}{d_p}\left(1.257 + 0.4\exp(-.55 D_p/\lambda)\right)  \label{eq:cc}\\ 
+D & = \frac{kTC_c}{3 \pi \mu D_p}  \label{eq:brownian}\\
+\lambda & = 
 \end{align}
 
 \end{document}

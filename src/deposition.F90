@@ -33,11 +33,11 @@ module deposition
     real(kind=dp), intent(in) :: aer_res_a
     !> Friction velocity (m/s).
     real(kind=dp), intent(in) :: ustar
-    !> 
+    !> Parameter for collection efficiency from Brownian diffusion.
     real(kind=dp), intent(in) :: gamma
     !> Characteristic radius (mm).
     real(kind=dp), intent(in) :: A
-    !>
+    !> Parameter for collection efficiency from impaction.
     real(kind=dp), intent(in) :: alpha
     !> Timestep (s).
     real(kind=dp), intent(in) :: dt
@@ -82,18 +82,18 @@ module deposition
     real(kind=dp), intent(in) :: ustar
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp
-    !>
+    !> Parameter for collection efficiency from Brownian diffusion.
     real(kind=dp), intent(in) :: gamma
-    !> Characteristic radius (mm).
+    !> Characteristic radius of large collectors (m).
     real(kind=dp), intent(in) :: A
-    !>
+    !> Parameter for collection efficiency from impaction.
     real(kind=dp), intent(in) :: alpha
     !> Dry deposition velocity (m/s).
     real(kind=dp), intent(inout) :: vd(:)
 
     integer :: i_part
-    real(kind=dp),allocatable :: diam(:)
-    real(kind=dp),allocatable :: dens(:)
+    real(kind=dp), allocatable :: diam(:)
+    real(kind=dp), allocatable :: dens(:)
     real(kind=dp) :: rs, vs
 
     ! Compute properties of the aerosols
@@ -201,11 +201,11 @@ module deposition
     real(kind=dp) :: temperature
     !> Friction velocity (m/s).
     real(kind=dp) :: ustar
-    !>
+    !> Parameter for collection efficiency from Brownian diffusion.
     real(kind=dp) :: gamma
-    !>
+    !> Characteristic radius of large collectors (m).
     real(kind=dp) :: A
-    !>
+    !> Parameter for collection efficiency from impaction.
     real(kind=dp) :: alpha
 
     real(kind=dp) :: eps_0
@@ -281,7 +281,7 @@ module deposition
 
      real(kind=dp) :: lambda
 
-     ! Mean free path (m)
+     ! Mean free path of air (m)
      lambda = .065d-6
 
      slip_correction_factor = 1.0d0 + ((2.0d0 * lambda)/D_p) * ( 1.257 &
@@ -299,7 +299,7 @@ module deposition
    real(kind=dp) :: vs
    !> Friction velocity (m/s).
    real(kind=dp) :: ustar
-   !>
+   !> Characteristic radius of large collectors (m).
    real(kind=dp) :: A
 
    calculate_st = (vs * ustar) / (const%grav * A)

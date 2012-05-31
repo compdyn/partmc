@@ -92,28 +92,17 @@ module deposition
     real(kind=dp), intent(inout) :: vd(:)
 
     integer :: i_part
-    real(kind=dp), allocatable :: diam(:)
-    real(kind=dp), allocatable :: dens(:)
+    real(kind=dp) :: diam
+    real(kind=dp) :: dens
     real(kind=dp) :: rs, vs
 
-    ! Compute properties of the aerosols
-    allocate(diam(aero_state%apa%n_part))
-    allocate(dens(aero_state%apa%n_part))
-
-    do i_part = 1, aero_state%apa%n_part
-       diam(i_part) = aero_particle_diameter(aero_state%apa%particle(i_part))
-       dens(i_part) = aero_particle_density(aero_state%apa%particle(i_part), &
-          aero_data)
-    end do
-
     do i_part = 1,aero_state%apa%n_part
-       vs = calculate_vs(diam(i_part), dens(i_part))
-       rs = calculate_rs(diam(i_part), vs, temp, ustar, gamma, A, alpha)
+       diam = aero_particle_diameter(aero_state%apa%particle(i_part))
+       dens = aero_particle_density(aero_state%apa%particle(i_part))
+       vs = calculate_vs(diam, dens)
+       rs = calculate_rs(diam, vs, temp, ustar, gamma, A, alpha)
        vd(i_part) = calculate_vd(aer_res_a, rs, vs)
     end do
-
-    deallocate(diam)
-    deallocate(dens)
 
   end subroutine compute_dep_vel
 

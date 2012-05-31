@@ -357,11 +357,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the weight class in which coagulated particles will be placed.
-  integer function coag_dest_class(aero_weight_array, bin_grid, i_bin, j_bin, &
-       i_class, j_class)
+  integer function coag_dest_class(aero_weight_array, aero_data, &
+       bin_grid, i_bin, j_bin, i_class, j_class)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> First bin number.
@@ -377,7 +379,8 @@ contains
 
     i_r = bin_grid%center_radius(i_bin)
     j_r = bin_grid%center_radius(i_bin)
-    ij_r = vol2rad(rad2vol(i_r) + rad2vol(j_r))
+    ij_r = vol2rad(rad2vol(i_r, aero_data%fractal) + rad2vol(j_r, &
+         aero_data%fractal), aero_data%fractal)
     ij_nc_i = aero_weight_array_num_conc_at_radius(aero_weight_array, &
          i_class, ij_r)
     ij_nc_j = aero_weight_array_num_conc_at_radius(aero_weight_array, &

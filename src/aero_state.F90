@@ -668,11 +668,13 @@ contains
   !> Change the weight if necessary to ensure that the addition of
   !> about \c n_add computational particles will give the correct
   !> final particle number.
-  subroutine aero_state_prepare_weight_for_add(aero_state, i_group, &
+  subroutine aero_state_prepare_weight_for_add(aero_state, aero_data, i_group, &
        i_class, n_add)
 
     !> Aero state to add to.
     type(aero_state_t), intent(inout) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Weight group number to add to.
     integer, intent(in) :: i_group
     !> Weight class number to add to.
@@ -697,7 +699,8 @@ contains
          .or. (n_part_new > n_part_ideal_local_group * 2d0)) &
          then
        weight_ratio = n_part_new / n_part_ideal_local_group
-       call aero_state_scale_weight(aero_state, i_group, i_class, weight_ratio)
+       call aero_state_scale_weight(aero_state, aero_data, &
+            i_group, i_class, weight_ratio)
     end if
 
   end subroutine aero_state_prepare_weight_for_add
@@ -747,8 +750,8 @@ contains
           ! adjust weight if necessary
           n_samp_avg = sample_prop * aero_mode_number(aero_mode, &
                aero_state%awa%weight(i_group, i_class))
-          call aero_state_prepare_weight_for_add(aero_state, i_group, &
-               i_class, n_samp_avg)
+          call aero_state_prepare_weight_for_add(aero_state, aero_data, &
+               i_group, i_class, n_samp_avg)
           if (n_samp_avg == 0d0) cycle
 
           ! sample particles
@@ -1244,7 +1247,7 @@ contains
                    call warn_msg(716882783, "doubling particles in initial " &
                         // "condition")
                 end if
-                call aero_state_double(aero_state, i_group, i_class)
+                call aero_state_double(aero_state, aero_data, i_group, i_class)
                 global_n_part &
                      = aero_state_total_particles_all_procs(aero_state, &
                      i_group, i_class)
@@ -1668,17 +1671,17 @@ contains
 
              lower_function = real(n_part, kind=dp) &
                   * aero_weight_array_num_conc_at_radius(aero_state%awa, &
-                  i_class, vol2rad(lower_volume)) - total_num_conc
+                  i_class, vol2rad(lower_volume, aero_data%fractal)) - total_num_conc
              upper_function = real(n_part, kind=dp) &
                   * aero_weight_array_num_conc_at_radius(aero_state%awa, &
-                  i_class, vol2rad(upper_volume)) - total_num_conc
+                  i_class, vol2rad(upper_volume, aero_data%fractal)) - total_num_conc
 
              ! do 50 rounds of bisection (2^50 = 10^15)
              do i_bisect = 1,50
                 center_volume = (lower_volume + upper_volume) / 2d0
                 center_function = real(n_part, kind=dp) &
                      * aero_weight_array_num_conc_at_radius(aero_state%awa, &
-                     i_class, vol2rad(center_volume)) - total_num_conc
+                     i_class, vol2rad(center_volume, aero_data%fractal)) - total_num_conc
                 if ((lower_function > 0d0 .and. center_function > 0d0) &
                      .or. (lower_function < 0d0 .and. center_function < 0d0)) &
                      then
@@ -1724,11 +1727,11 @@ contains
 
              lower_function = real(n_part, kind=dp) &
                   * aero_weight_array_num_conc_at_radius( &
-                  aero_state%awa, i_class, vol2rad(lower_volume)) &
+                  aero_state%awa, i_class, vol2rad(lower_volume, aero_data%fractal)) &
                   * lower_volume - total_volume_conc
              upper_function = real(n_part, kind=dp) &
                   * aero_weight_array_num_conc_at_radius( &
-                  aero_state%awa, i_class, vol2rad(upper_volume)) &
+                  aero_state%awa, i_class, vol2rad(upper_volume, aero_data%fractal)) &
                   * upper_volume - total_volume_conc
 
              ! do 50 rounds of bisection (2^50 = 10^15)
@@ -1736,7 +1739,7 @@ contains
                 center_volume = (lower_volume + upper_volume) / 2d0
                 center_function = real(n_part, kind=dp) &
                      * aero_weight_array_num_conc_at_radius( &
-                     aero_state%awa, i_class, vol2rad(center_volume)) &
+                     aero_state%awa, i_class, vol2rad(center_volume, aero_data%fractal)) &
                      * center_volume - total_volume_conc
                 if ((lower_function > 0d0 .and. center_function > 0d0) &
                      .or. (lower_function < 0d0 .and. center_function < 0d0)) &

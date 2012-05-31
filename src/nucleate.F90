@@ -127,8 +127,8 @@ contains
        ! adjust weight if necessary
        n_samp_avg = nucleate_rate * del_t / aero_weight_num_conc_at_radius( &
             aero_state%awa%weight(i_group, i_class), diam2rad(nucleate_diam))
-       call aero_state_prepare_weight_for_add(aero_state, i_group, i_class, &
-            n_samp_avg)
+       call aero_state_prepare_weight_for_add(aero_state, aero_data, &
+            i_group, i_class, n_samp_avg)
 
        ! determine number of nucleated particles
        n_samp_avg = nucleate_rate * del_t / aero_weight_num_conc_at_radius( &

@@ -19,6 +19,10 @@ module pmc_coag_kernel
   use pmc_coag_kernel_constant
   use pmc_coag_kernel_brown
   use pmc_coag_kernel_zero
+  use pmc_coag_kernel_Vemury_free
+  use pmc_coag_kernel_Vemury_cont
+  use pmc_coag_kernel_Naumann_free
+  use pmc_coag_kernel_Naumann_cont
 
   !> Maximum length of a mode type.
   integer, parameter :: COAG_KERNEL_TYPE_LEN = 20
@@ -35,7 +39,19 @@ module pmc_coag_kernel
   integer, parameter :: COAG_KERNEL_TYPE_BROWN    = 4
   !> Type code for a zero kernel.
   integer, parameter :: COAG_KERNEL_TYPE_ZERO     = 5
-  
+  !> Type code for a Brownian kernel in free molecular regime from Vemury and
+  !> Pratsinis (1995).
+  integer, parameter :: COAG_KERNEL_TYPE_VEMURY_FREE = 6
+  !> Type code for a Brownian kernel in continuum regime from Vemury and
+  !> Pratsinis (1995).
+  integer, parameter :: COAG_KERNEL_TYPE_VEMURY_CONT = 7
+  !> Type code for a Brownian kernel in free molecular regime from Naumann 
+  !> (2003).
+  integer, parameter :: COAG_KERNEL_TYPE_NAUMANN_FREE = 8 
+  !> Type code for a Brownian kernel in continuum regime from Naumann 
+  !> (2003).
+  integer, parameter :: COAG_KERNEL_TYPE_NAUMANN_CONT = 9 
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -59,6 +75,14 @@ contains
        coag_kernel_type_to_string = "brown"
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_ZERO) then
        coag_kernel_type_to_string = "zero"
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_VEMURY_FREE) then
+       coag_kernel_type_to_string = "vemury_free"
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_VEMURY_CONT) then
+       coag_kernel_type_to_string = "vemury_cont"
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_NAUMANN_FREE) then
+       coag_kernel_type_to_string = "naumann_free"
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_NAUMANN_CONT) then
+       coag_kernel_type_to_string = "naumann_cont"
     else
        coag_kernel_type_to_string = "unknown"
     end if
@@ -99,6 +123,18 @@ contains
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_ZERO) then
        call kernel_zero(aero_particle_1, aero_particle_2, &
        aero_data, env_state, k)
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_VEMURY_FREE) then
+       call kernel_vemury_free(aero_particle_1, aero_particle_2, &
+       aero_data, env_state, k)
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_VEMURY_CONT) then
+       call kernel_vemury_cont(aero_particle_1, aero_particle_2, &
+       aero_data, env_state, k)
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_NAUMANN_FREE) then
+       call kernel_naumann_free(aero_particle_1, aero_particle_2, &
+       aero_data, env_state, k)
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_NAUMANN_CONT) then
+       call kernel_naumann_cont(aero_particle_1, aero_particle_2, &
+       aero_data, env_state, k)
     else
        call die_msg(200724934, "Unknown kernel type: " &
             // trim(integer_to_string(coag_kernel_type)))
@@ -137,6 +173,14 @@ contains
        call kernel_brown_minmax(v1, v2, aero_data, env_state, k_min, k_max)
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_ZERO) then
        call kernel_zero_minmax(v1, v2, aero_data, env_state, k_min, k_max)
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_VEMURY_FREE) then
+       call kernel_vemury_free_minmax(v1, v2, aero_data, env_state, k_min, k_max)
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_VEMURY_CONT) then
+       call kernel_vemury_cont_minmax(v1, v2, aero_data, env_state, k_min, k_max)
+elseif (coag_kernel_type == COAG_KERNEL_TYPE_NAUMANN_FREE) then
+       call kernel_naumann_free_minmax(v1, v2, aero_data, env_state, k_min, k_max)
+elseif (coag_kernel_type == COAG_KERNEL_TYPE_NAUMANN_CONT) then
+       call kernel_naumann_cont_minmax(v1, v2, aero_data, env_state, k_min, k_max)
     else
        call die_msg(330498208, "Unknown kernel type: " &
             // trim(integer_to_string(coag_kernel_type)))
@@ -478,6 +522,14 @@ contains
        coag_kernel_type = COAG_KERNEL_TYPE_BROWN
     elseif (trim(kernel_name) == 'zero') then
        coag_kernel_type = COAG_KERNEL_TYPE_ZERO
+    elseif (trim(kernel_name) == 'vemury_free') then
+       coag_kernel_type = COAG_KERNEL_TYPE_VEMURY_FREE
+    elseif (trim(kernel_name) == 'vemury_cont') then
+       coag_kernel_type = COAG_KERNEL_TYPE_VEMURY_CONT
+    elseif (trim(kernel_name) == 'naumann_free') then
+       coag_kernel_type = COAG_KERNEL_TYPE_NAUMANN_FREE
+    elseif (trim(kernel_name) == 'naumann_cont') then
+       coag_kernel_type = COAG_KERNEL_TYPE_NAUMANN_CONT
     else
        call spec_file_die_msg(920761229, file, &
             "Unknown coagulation kernel type: " // trim(kernel_name))

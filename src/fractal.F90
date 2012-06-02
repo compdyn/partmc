@@ -12,7 +12,10 @@ module pmc_fractal
 
   type fractal_t
      !> Whether to do fractal radii conversion.
-     logical :: do_fractal 
+     logical :: do_fractal
+     !> Whether to do testing cases of Brownian coag kernel,
+     !> based on Naumann (2003) and Vemury and Pratsinis (1995).
+     logical :: do_fractal_test
      !> Constants in slip correction formula.
      real(kind=dp) :: A_slip
      real(kind=dp) :: Q_slip
@@ -40,6 +43,7 @@ contains
     type(fractal_t), intent(out) :: fractal
 
     fractal%do_fractal = .false.
+    fractal%do_fractal_test = .false.
     fractal%A_slip = 1.142d0
     fractal%Q_slip = 0.588d0
     fractal%b_slip = 0.999d0
@@ -60,6 +64,7 @@ contains
     type(fractal_t), intent(inout) :: fractal
 
     fractal%do_fractal = .false.
+    fractal%do_fractal_test = .false.
 
   end subroutine fractal_deallocate
 
@@ -538,6 +543,8 @@ contains
     call spec_file_read_logical(file, 'do_fractal', &
          fractal%do_fractal)
     if (fractal%do_fractal) then
+       call spec_file_read_logical(file, 'do_fractal_test', &
+         fractal%do_fractal_test)
        call spec_file_read_real(file, 'frac_dim', &
             fractal%frac_dim)
        call spec_file_read_real(file, 'prime_radius', &

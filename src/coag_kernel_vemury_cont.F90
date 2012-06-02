@@ -4,10 +4,10 @@
 ! option) any later version. See the file COPYING for details.
     
 !> \file
-!> The pmc_coag_kernel_vemury_free module.
+!> The pmc_coag_kernel_vemury_cont module.
 
 !> Brownian coagulation kernel in continuum regime based on 
-!> Vemury and Pratsinis (1995).
+!> Vemury and Pratsinis (1995), eq (6).
 module pmc_coag_kernel_vemury_cont
 
   use pmc_env_state
@@ -57,7 +57,7 @@ contains
   !!
   !! Finds the minimum and maximum kernel values between particles of
   !! volumes v1 and v2, by sampling over possible densities.
-  subroutine kernel_vemury_free_minmax(v1, v2, aero_data, env_state, k_min, k_max)
+  subroutine kernel_vemury_cont_minmax(v1, v2, aero_data, env_state, k_min, k_max)
 
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
@@ -129,9 +129,7 @@ contains
     !> Kernel k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: bckernel
 
-    real(kind=dp) :: rho, N_i, N_j
-    ! Calculate volume weighted particle density.
-    rho = (v1 / (v1 + v2)) * d1 + (v2 / (v1 + v2)) * d2
+    real(kind=dp) :: N_i, N_j
     ! Number of monomers in particles i and j.
     N_i = 3d0 * v1 / 4d0 / const%pi / (aero_data%fractal%prime_radius**3d0)
     N_j = 3d0 * v2 / 4d0 / const%pi / (aero_data%fractal%prime_radius**3d0)
@@ -142,8 +140,8 @@ contains
          * (N_i**(1d0 / aero_data%fractal%frac_dim) &
          + N_j**(1d0 / aero_data%fractal%frac_dim))
  
-  end subroutine kernel_vemury_free_helper
+  end subroutine kernel_vemury_cont_helper
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-end module pmc_coag_kernel_vemury_free
+end module pmc_coag_kernel_vemury_cont

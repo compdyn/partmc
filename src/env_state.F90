@@ -285,8 +285,7 @@ contains
     !> Mass of a single molecule/particle.
     real(kind=dp), intent(in) :: mass
 
-    thermal_speed = sqrt((8.0d0 * const%boltzmann * tk) / (const%pi * mass)
-         (const%pi * mass))
+    thermal_speed = sqrt((8.0d0 * const%boltzmann * tk) / (const%pi * mass))
 
   end function thermal_speed
 

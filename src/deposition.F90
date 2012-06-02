@@ -175,13 +175,13 @@ module deposition
   real(kind=dp) function calculate_vs(diameter, density, viscod, lambda)
 
      !> Particle diameter.
-     real(kind=dp) :: diameter
+     real(kind=dp), intent(in) :: diameter
      !> Particle density.
-     real(kind=dp) :: density
+     real(kind=dp), intent(in) :: density
      !> 
-     real(kind=dp) :: viscod
+     real(kind=dp), intent(in) :: viscod
      !> Mean free path of air (m).
-     real(kind=dp) :: lambda
+     real(kind=dp), intent(in) :: lambda
 
      real(kind=dp) :: C_c
 
@@ -199,19 +199,19 @@ module deposition
        gamma, A, alpha, lambda)
 
     !> Particle diameter (m).
-    real(kind=dp) :: diameter
+    real(kind=dp), intent(in) :: diameter
     !> Settling velocity (m/s).
-    real(kind=dp) :: vs
+    real(kind=dp), intent(in) :: vs
     !> Temperature (K).
-    real(kind=dp) :: temperature
+    real(kind=dp), intent(in) :: temperature
     !> Friction velocity (m/s).
-    real(kind=dp) :: ustar
+    real(kind=dp), intent(in) :: ustar
     !> Parameter for collection efficiency from Brownian diffusion.
-    real(kind=dp) :: gamma
+    real(kind=dp), intent(in) :: gamma
     !> Characteristic radius of large collectors (m).
-    real(kind=dp) :: A
+    real(kind=dp), intent(in) :: A
     !> Parameter for collection efficiency from impaction.
-    real(kind=dp) :: alpha
+    real(kind=dp), intent(in) :: alpha
     !> Mean free path of air (m).
     real(kind=dp), intent(in) :: lambda
 
@@ -300,11 +300,11 @@ module deposition
   real(kind=dp) function calculate_st(vs, ustar, A)
 
    !> Settling velocity (m/s).
-   real(kind=dp) :: vs
+   real(kind=dp), intent(in) :: vs
    !> Friction velocity (m/s).
-   real(kind=dp) :: ustar
+   real(kind=dp), intent(in) :: ustar
    !> Characteristic radius of large collectors (m).
-   real(kind=dp) :: A
+   real(kind=dp), intent(in) :: A
 
    calculate_st = (vs * ustar) / (const%grav * A)
 
@@ -317,9 +317,9 @@ module deposition
   real(kind=dp) function compute_brownian_diff(diameter, temperature, lambda)
 
     !> Particle diameter (m).
-    real(kind=dp) :: diameter
+    real(kind=dp), intent(in) :: diameter
     !> Temperature (K).
-    real(kind=dp) :: temperature
+    real(kind=dp), intent(in) :: temperature
     !> Mean free path of air (m).
     real(kind=dp), intent(in) :: lambda
 

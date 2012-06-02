@@ -228,6 +228,70 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Calculate the dynamic viscosity of dry air (kg m-1 s-1).
+  !> Jacobson eq. 4.54
+  real(kind=dp) function env_state_air_dynamic_viscosity(env_state)
+
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    env_state_air_dynamic_viscosity = (1.8325d-05 * (296.16d0 + 120.0d0) &
+       / (env_state%temp + 120.0d0)) * (env_state%temp / 296.16d0)**1.5d0
+
+  end function env_state_air_dynamic_viscosity
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute the mean free path of an air molecule (m).
+  !> Jacobson eq. 15.24
+  real(kind=dp) function env_state_air_mean_free_path(env_state)
+
+     !> Environment state.
+     type(env_state_t), intent(in) :: env_state
+
+     real(kind=dp) :: viscosd
+     real(kind=dp) :: rho
+     real(kind=dp) :: thermal_speed
+
+     viscosd = env_state_air_dynamic_viscosity(env_state)
+     rho = env_state_air_den(env_state)
+     thermal_speed = air_thermal_speed(env_state%temp)
+
+     env_state_air_mean_free_path = (2.0d0 * viscosd) / (rho * thermal_speed)
+
+  end function env_state_air_mean_free_path
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute the thermal speed of an air molecule (m s-1).
+  real(kind=dp) function air_thermal_speed(tk)
+
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: tk
+
+    air_thermal_speed = thermal_speed(tk, const%air_molec_weight &
+         / const%avagadro)
+
+  end function air_thermal_speed
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute the thermal speed of a molecule/particle of a given mass (m s-1).
+  !> Jacobson 15.32
+  real(kind=dp) function thermal_speed(tk, mass)
+
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: tk
+    !> Mass of a single molecule/particle.
+    real(kind=dp), intent(in) :: mass
+
+    thermal_speed = sqrt((8.0d0 * const%boltzmann * tk) / (const%pi * mass)
+         (const%pi * mass))
+
+  end function thermal_speed
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Convert (ppb) to (molecules m^{-3}).
   real(kind=dp) function env_state_ppb_to_conc(env_state, ppb)
 

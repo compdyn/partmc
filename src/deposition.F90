@@ -55,7 +55,7 @@ module deposition
 
     ! Compute deposition velocity array
     call compute_dep_vel(aero_state, aero_data, aer_res_a, ustar, &
-         env_state%temp, gamma, A, alpha, vd)
+         env_state, gamma, A, alpha, vd)
     ! Compute the removal probability array
     call compute_dep_prob(vd, dt, env_state%height, remove_prob)
     ! Remove particles based on probabilities
@@ -70,7 +70,7 @@ module deposition
 
   !> Compute deposition velocities.
   subroutine compute_dep_vel(aero_state, aero_data, aer_res_a, ustar, &
-       temperature, gamma, A, alpha, vd)
+       env_state, gamma, A, alpha, vd)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
@@ -80,8 +80,8 @@ module deposition
     real(kind=dp), intent(in) :: aer_res_a
     !> Friction velocity (m/s).
     real(kind=dp), intent(in) :: ustar
-    !> Temperature (K).
-    real(kind=dp), intent(in) :: temperature
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
     !> Parameter for collection efficiency from Brownian diffusion.
     real(kind=dp), intent(in) :: gamma
     !> Characteristic radius of large collectors (m).
@@ -94,13 +94,25 @@ module deposition
     integer :: i_part
     real(kind=dp) :: diameter
     real(kind=dp) :: density
-    real(kind=dp) :: rs, vs
+    real(kind=dp) :: rs
+    real(kind=dp) :: vs
+    real(kind=dp) :: rho_air
+    real(kind=dp) :: viscosd
+    real(kind=dp) :: viscosk
+    real(kind=dp) :: lambda
+
+    ! Compute values that do not vary per particle
+    rho_air = env_state_air_den(env_state)
+    viscosd = env_state_air_dynamic_viscosity(env_state)
+    viscosk = viscosd / rho_air
+    lambda = env_state_air_mean_free_path(env_state)
 
     do i_part = 1,aero_state%apa%n_part
        diameter = aero_particle_diameter(aero_state%apa%particle(i_part))
        density = aero_particle_density(aero_state%apa%particle(i_part))
        vs = calculate_vs(diameter, density)
-       rs = calculate_rs(diameter, vs, temperature, ustar, gamma, A, alpha)
+       rs = calculate_rs(diameter, vs, env_state%temp, ustar, gamma, A, &
+           lambda, alpha)
        vd(i_part) = calculate_vd(aer_res_a, rs, vs)
     end do
 
@@ -160,16 +172,20 @@ module deposition
 
   !> Calculate the particle settling velocity.
   !> Seinfeld and Pandis eq. 19.18.
-  real(kind=dp) function calculate_vs(diameter, density)
+  real(kind=dp) function calculate_vs(diameter, density, viscod, lambda)
 
      !> Particle diameter.
      real(kind=dp) :: diameter
      !> Particle density.
      real(kind=dp) :: density
+     !> 
+     real(kind=dp) :: viscod
+     !> Mean free path of air (m).
+     real(kind=dp) :: lambda
 
      real(kind=dp) :: C_c
 
-     C_c = slip_correction_factor(diameter)
+     C_c = slip_correction_factor(diameter, lambda)
 
      calculate_vs = ((diameter)**2.0d0 * density * const%grav * C_c) &
           / (18.0d0 * const%air_dyn_visc)
@@ -180,7 +196,7 @@ module deposition
 
   !> Calculate surface resistance of a given particle.
   real(kind=dp) function calculate_rs(diameter, vs, temperature, ustar, &
-       gamma, A, alpha)
+       gamma, A, alpha, lambda)
 
     !> Particle diameter (m).
     real(kind=dp) :: diameter
@@ -196,6 +212,8 @@ module deposition
     real(kind=dp) :: A
     !> Parameter for collection efficiency from impaction.
     real(kind=dp) :: alpha
+    !> Mean free path of air (m).
+    real(kind=dp), intent(in) :: lambda
 
     real(kind=dp) :: eps_0
     real(kind=dp) :: diff
@@ -206,7 +224,7 @@ module deposition
     real(kind=dp) :: st
 
     ! Compute Schmidt number
-    diff = compute_brownian_diff(diameter, temperature)
+    diff = compute_brownian_diff(diameter, temperature, lambda)
     nu = 1.45d-5
     Sc = nu / diff
 
@@ -245,11 +263,11 @@ module deposition
   real(kind=dp) function calculate_vd(ra, rs, vs)
 
     !> Aerodynamic resistance (s/m)
-    real(kind=dp) :: ra
+    real(kind=dp), intent(in) :: ra
     !> Surface resistance (s/m).
-    real(kind=dp) :: rs
+    real(kind=dp), intent(in) :: rs
     !> Settling velocity (m/s).
-    real(kind=dp) :: vs
+    real(kind=dp), intent(in) :: vs
 
     real(kind=dp) :: tmp
 
@@ -263,15 +281,12 @@ module deposition
 
   !> Computes the Cunningham slip correction factor for a single particle.
   !> Seinfeld and Pandis eq. 9.34.
-  real(kind=dp) function slip_correction_factor(diameter)
+  real(kind=dp) function slip_correction_factor(diameter, lambda)
 
      !> Particle diameter (m).
-     real(kind=dp) :: diameter
-
-     real(kind=dp) :: lambda
-
-     ! Mean free path of air (m)
-     lambda = .065d-6
+     real(kind=dp), intent(in) :: diameter
+     !> Mean free path of air (m).
+     real(kind=dp), intent(in) :: lambda
 
      slip_correction_factor = 1.0d0 + ((2.0d0 * lambda) / diameter) * ( 1.257 &
          + .4 * exp(-(1.1 * diameter) / (2.0d0 * lambda)))
@@ -299,20 +314,21 @@ module deposition
 
   !> Computes the Brownian diffusivity of a particle.
   !> Seinfeld and Pandis eq. 9.73.
-  real(kind=dp) function compute_brownian_diff(diameter, temperature)
+  real(kind=dp) function compute_brownian_diff(diameter, temperature, lambda)
 
     !> Particle diameter (m).
     real(kind=dp) :: diameter
     !> Temperature (K).
     real(kind=dp) :: temperature
+    !> Mean free path of air (m).
+    real(kind=dp), intent(in) :: lambda
 
     real(kind=dp) :: C_c
 
-    C_c = slip_correction_factor(diameter)
+    C_c = slip_correction_factor(diameter, lambda)
 
     compute_brownian_diff = (const%boltzmann * temperature * C_c) / &
         (3.0d0 * const%pi * const%air_dyn_visc * diameter)
-
 
   end function compute_brownian_diff
 

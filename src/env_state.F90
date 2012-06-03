@@ -278,7 +278,6 @@ contains
     !! The environment state is specified by the parameters:
     !! - \b rel_humidity (real, dimensionless): the relative humidity
     !!   (0 is completely unsaturated and 1 is fully saturated)
-    !! - \b pressure (real, unit Pa): the atmospheric pressure
     !! - \b latitude (real, unit degrees_north): the latitude of the
     !!   simulation location
     !! - \b longitude (real, unit degrees_east): the longitude of the
@@ -298,7 +297,6 @@ contains
     !!     other environment data
 
     call spec_file_read_real(file, 'rel_humidity', env_state%rel_humid)
-    call spec_file_read_real(file, 'pressure', env_state%pressure)
     call spec_file_read_real(file, 'latitude', env_state%latitude)
     call spec_file_read_real(file, 'longitude', env_state%longitude)
     call spec_file_read_real(file, 'altitude', env_state%altitude)

@@ -25,10 +25,10 @@ module pmc_scenario
   !!
   !! This is everything needed to drive the scenario being simulated.
   !!
-  !! The temperature, emissions and background states are profiles
+  !! The temperature, pressure, emissions and background states are profiles
   !! prescribed as functions of time by giving a number of times and
-  !! the corresponding data. Simple data such as temperature is
-  !! linearly interpoloated between times, with constant interpolation
+  !! the corresponding data. Simple data such as temperature and pressure is
+  !! linearly interpolated between times, with constant interpolation
   !! outside of the range of times. Gases and aerosols are
   !! interpolated with gas_state_interp_1d() and
   !! aero_dist_interp_1d(), respectively.
@@ -37,6 +37,11 @@ module pmc_scenario
      real(kind=dp), pointer :: temp_time(:)
      !> Temperatures at set-points (K).
      real(kind=dp), pointer :: temp(:)
+
+     !> Pressure set-point times (s).
+     real(kind=dp), pointer :: pressure_time(:)
+     !> Pressures at set-points (Pa).
+     real(kind=dp), pointer :: pressure(:)
 
      !> Height set-point times (s).
      real(kind=dp), pointer :: height_time(:)
@@ -85,6 +90,9 @@ contains
     allocate(scenario%temp_time(0))
     allocate(scenario%temp(0))
 
+    allocate(scenario%pressure_time(0))
+    allocate(scenario%pressure(0))
+
     allocate(scenario%height_time(0))
     allocate(scenario%height(0))
 
@@ -118,6 +126,9 @@ contains
 
     deallocate(scenario%temp_time)
     deallocate(scenario%temp)
+
+    deallocate(scenario%pressure_time)
+    deallocate(scenario%pressure)
 
     deallocate(scenario%height_time)
     deallocate(scenario%height)
@@ -172,6 +183,13 @@ contains
     allocate(scenario_to%temp( &
          size(scenario_from%temp)))
     scenario_to%temp = scenario_from%temp
+
+    allocate(scenario_to%pressure_time( &
+         size(scenario_from%pressure_time)))
+    scenario_to%pressure_time = scenario_from%pressure_time
+    allocate(scenario_to%pressure( &
+         size(scenario_from%pressure)))
+    scenario_to%pressure = scenario_from%pressure
 
     allocate(scenario_to%height_time( &
          size(scenario_from%height_time)))
@@ -253,6 +271,7 @@ contains
     real(kind=dp), intent(in) :: time
 
     env_state%temp = interp_1d(scenario%temp_time, scenario%temp, time)
+    env_state%pressure = interp_1d(scenario%pressure_time, scenario%pressure, time)
     env_state%height = interp_1d(scenario%height_time, scenario%height, time)
     env_state%elapsed_time = time
 
@@ -275,16 +294,26 @@ contains
     logical, intent(in) :: update_rel_humid
     
     !> Ambient water vapor pressure (Pa).
-    real(kind=dp) :: pmv
+    real(kind=dp) :: pmv_old, pmv_new
+    !> Ambient pressure (Pa)
+    real(kind=dp) :: pressure_old
+    !> Ambient temperature (K)
+    real(kind=dp) :: temp_old
 
-    ! Update temperature and adjust relative humidity to maintain
-    ! water mixing ratio. This uses the fact that we keep the total
-    ! pressure constant, so ambient water vapor pressure is also
-    ! constant (whatever temperature and hence volume does).
-    pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
+    ! Update temperature and pressure and adjust relative humidity to maintain
+    ! water mixing ratio. 
+
+    pmv_old = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
+    pressure_old = env_state%pressure
+    temp_old = env_state%temp
+ 
     env_state%temp = interp_1d(scenario%temp_time, scenario%temp, time)
+    env_state%pressure = interp_1d(scenario%pressure_time, scenario%pressure, time)
+
+    pmv_new = pmv_old * env_state%pressure / pressure_old
+
     if (update_rel_humid) then
-       env_state%rel_humid = pmv / env_state_sat_vapor_pressure(env_state)
+       env_state%rel_humid = pmv_new / env_state_sat_vapor_pressure(env_state)
     end if
 
     env_state%height = interp_1d(scenario%height_time, scenario%height, time)
@@ -442,7 +471,7 @@ contains
 
     ! update computational volume
     call aero_weight_array_scale(aero_state%awa, &
-         old_env_state%temp / env_state%temp)
+         old_env_state%temp * env_state%pressure / (env_state%temp * old_env_state%pressure))
 
   end subroutine scenario_update_aero_state
 
@@ -553,6 +582,9 @@ contains
     !! <li> \b temp_profile (string): the name of the file from which to
     !!      read the temperature profile --- the file format should be
     !!      \subpage input_format_temp_profile
+    !! <li> \b pres_profile (string): the name of the file from which to
+    !!      read the pressure profile --- the file format should be
+    !!      \subpage input_format_pres_profile
     !! <li> \b height_profile (string): the name of the file from which
     !!      to read the mixing layer height profile --- the file format
     !!      should be \subpage input_format_height_profile
@@ -605,6 +637,38 @@ contains
     !!   - \ref input_format_scenario --- the environment data
     !!     containing the temperature profile
 
+    !> \page input_format_pres_profile Input File Format: Pressure Profile
+    !!
+    !! A pressure profile input file must consist of two lines:
+    !! - the first line must begin with \c time and should be followed
+    !!   by \f$N\f$ space-separated real scalars, giving the times (in
+    !!   s after the start of the simulation) of the pressure set
+    !!   points --- the times must be in increasing order
+    !! - the second line must begin with \c pres and should be followed
+    !!   by \f$N\f$ space-separated real scalars, giving the
+    !!   pressures (in Pa) at the corresponding times
+    !!
+    !! The pressure profile is linearly interpolated between the
+    !! specified times, while before the first time it takes the first
+    !! pressure value and after the last time it takes the last
+    !! pressure value.
+    !!
+    !! Example:
+    !! <pre>
+    !! time  0    600  1800  # time (in s) after simulation start
+    !! pres  1e5  9e4  7.5e4 # pressure (in Pa)
+    !! </pre>
+    !! Here the pressure starts at 1e5&nbsp;Pa at the start of the
+    !! simulation, decreases to 9e4&nbsp;Pa after 10&nbsp;min, and then
+    !! decreases further to 7.5e4&nbsp;Pa at 30&nbsp;min. Between these times
+    !! the pressure is linearly interpolated, while after
+    !! 30&nbsp;min it is held constant at 7.5e4&nbsp;Pa.
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+    !!   - \ref input_format_scenario --- the environment data
+    !!     containing the pressure profile
+
     !> \page input_format_height_profile Input File Format: Mixing Layer Height Profile
     !!
     !! A mixing layer height profile input file must consist of two
@@ -643,6 +707,13 @@ contains
     call spec_file_open(sub_filename, sub_file)
     call spec_file_read_timed_real_array(sub_file, "temp", &
          scenario%temp_time, scenario%temp)
+    call spec_file_close(sub_file)
+
+    ! pressure profile
+    call spec_file_read_string(file, "pres_profile", sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_timed_real_array(sub_file, "pres", &
+         scenario%pressure_time, scenario%pressure)
     call spec_file_close(sub_file)
 
     ! height profile
@@ -699,6 +770,8 @@ contains
     total_size = &
          pmc_mpi_pack_size_real_array(val%temp_time) &
          + pmc_mpi_pack_size_real_array(val%temp) &
+         + pmc_mpi_pack_size_real_array(val%pressure_time) &
+         + pmc_mpi_pack_size_real_array(val%pressure) &
          + pmc_mpi_pack_size_real_array(val%height_time) &
          + pmc_mpi_pack_size_real_array(val%height) &
          + pmc_mpi_pack_size_real_array(val%gas_emission_time) &
@@ -748,6 +821,8 @@ contains
     prev_position = position
     call pmc_mpi_pack_real_array(buffer, position, val%temp_time)
     call pmc_mpi_pack_real_array(buffer, position, val%temp)
+    call pmc_mpi_pack_real_array(buffer, position, val%pressure_time)
+    call pmc_mpi_pack_real_array(buffer, position, val%pressure)
     call pmc_mpi_pack_real_array(buffer, position, val%height_time)
     call pmc_mpi_pack_real_array(buffer, position, val%height)
     call pmc_mpi_pack_real_array(buffer, position, val%gas_emission_time)
@@ -797,6 +872,8 @@ contains
     prev_position = position
     call pmc_mpi_unpack_real_array(buffer, position, val%temp_time)
     call pmc_mpi_unpack_real_array(buffer, position, val%temp)
+    call pmc_mpi_unpack_real_array(buffer, position, val%pressure_time)
+    call pmc_mpi_unpack_real_array(buffer, position, val%pressure)
     call pmc_mpi_unpack_real_array(buffer, position, val%height_time)
     call pmc_mpi_unpack_real_array(buffer, position, val%height)
     call pmc_mpi_unpack_real_array(buffer, position, val%gas_emission_time)

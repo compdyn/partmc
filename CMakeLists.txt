@@ -251,9 +251,9 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/aero_dist.F90 src/aero_weight.F90 src/aero_weight_array.F90
   src/coag_kernel_additive.F90 src/coag_kernel_sedi.F90
   src/coag_kernel_constant.F90 src/coag_kernel_brown.F90
-  src/coag_kernel_zero.F90 coag_kernel_vemury_free.F90 
-  coag_kernel_vemury_cont.F90 coag_kernel_naumann_free.F90 
-  coag_kernel_naumann_cont.F90 src/aero_data.F90 src/run_exact.F90
+  src/coag_kernel_zero.F90 src/coag_kernel_vemury_free.F90 
+  src/coag_kernel_vemury_cont.F90 src/coag_kernel_naumann_free.F90 
+  src/coag_kernel_naumann_cont.F90 src/aero_data.F90 src/run_exact.F90
   src/run_part.F90 src/util.F90 src/run_sect.F90 src/output.F90
   src/mosaic.F90 src/gas_data.F90 src/gas_state.F90
   src/coagulation.F90 src/exact_soln.F90 src/coagulation_dist.F90

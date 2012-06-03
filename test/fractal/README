@@ -1,0 +1,15 @@
+
+Brownian coagulation with fractal treatment Test-case
+===================================
+
+The initial condition is a single species of particle with a
+log-normal distribution and the simulation uses the sedimentation
+kernel. No analytical solution is known for this case, so a sectional
+code is used as verification. By default this testcase uses 10^3
+particles, which is not enough to resolve the larger peak in the mass
+density. Increasing to 10^5 particles (or 10^7 with flat weighting)
+fixes this at the expense of a longer computation.
+
+This test-case demonstrates the use of the sectional model and
+comparison of sectional runs with particle-resolved runs.
+

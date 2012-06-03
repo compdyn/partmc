@@ -48,7 +48,7 @@ contains
     call kernel_naumann_free_helper(aero_data, v1, d1, v2, d2, env_state%temp, &
          env_state%pressure, k)
 
-  end subroutine kernel_vemury_free
+  end subroutine kernel_naumann_free
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

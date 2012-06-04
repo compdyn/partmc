@@ -1,15 +1,13 @@
 run_type particle                # particle-resolved run
-output_prefix out_self_preserve_ppt/aida_wc # prefix of output files
+output_prefix out/aida_wc # prefix of output files
 n_repeat 1                        # number of Monte Carlo repeats 
-n_part 100000                    # total number of particles
+n_part 1000                    # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 2                     # total simulation time (s)
-del_t 1e-7                        # timestep (s)
+del_t 1e-6                        # timestep (s)
 t_output 0.5                   # output interval (0 disables) (s)
-t_progress 0.5                   # progress printing interval (0 disables) (s)
-
-weight none                     # weighting function
+t_progress 1e-6                   # progress printing interval (0 disables) (s)
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas concentrations
@@ -43,3 +41,9 @@ allow_doubling yes		# whether to allow doubling (yes/no)
 allow_halving yes		# whether to allow halving (yes/no)
 record_removals yes		# whether to record particle removals (yes/no)
 do_parallel no			# whether to run in parallel (yes/no)
+
+do_fractal yes
+do_fractal_test no
+frac_dim  3
+prime_radius 5e-10
+vol_fill_factor 1

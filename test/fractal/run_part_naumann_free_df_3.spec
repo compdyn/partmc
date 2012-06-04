@@ -1,5 +1,5 @@
 run_type particle               # particle-resolved run
-output_prefix out/part_vemury_free_df_3     # prefix of output files
+output_prefix out/part_naumann_free_df_3     # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 10000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
@@ -31,7 +31,7 @@ start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
 do_coagulation yes              # whether to do coagulation (yes/no)
-coag_kernel vemury_free         # coagulation kernel
+coag_kernel naumann_free         # coagulation kernel
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)

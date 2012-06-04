@@ -12,7 +12,7 @@ mkdir -p out
 ../../partmc run_part_vemury_free_df_3.spec
 ../../partmc run_sect_vemury_free_df_3.spec
 
-../../extract_aero_size --num --dmin 1e-7 --dmax 1 --nbin 100 out/part_vemury_free_df_3
+../../extract_aero_size --num --dmin 1e-9 --dmax 1e-5 --nbin 100 out/part_vemury_free_df_3
 ../../extract_sectional_aero_size --num out/sect_vemury_free_df_3
 
-#../../numeric_diff --by col --rel-tol 0.7 out/sect_vemury_free_df_3_aero_size_num.txt out/part_vemury_free_df_3_aero_size_num.txt
+../../numeric_diff --by col --rel-tol 0.7 out/sect_vemury_free_df_3_aero_size_num.txt out/part_vemury_free_df_3_aero_size_num.txt

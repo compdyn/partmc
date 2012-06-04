@@ -1,19 +1,18 @@
-run_type particle               # particle-resolved run
-output_prefix out/part_vemury_free_df_3     # prefix of output files
-n_repeat 1                      # number of Monte Carlo repeats
-n_part 10000                     # total number of particles
-restart no                      # whether to restart from saved state (yes/no)
+run_type sectional              # sectional code run
+output_prefix out/sect_naumann_free_df_3     # prefix of output files
 
 t_max 2                       # total simulation time (s)
 del_t 1e-6                         # timestep (s)
 t_output 1                    # output interval (0 disables) (s)
 t_progress 1e-3                   # progress printing interval (0 disables) (s)
 
-gas_data gas_data.dat           # file containing gas data
-gas_init gas_init.dat           # initial gas mixing ratios
+n_bin 100                       # number of bins
+d_min 1e-9                      # minimum diameter (m)
+d_max 1e-5                         # maximum diameter (m)
 
+gas_data gas_data.dat           # file containing gas data
 aerosol_data aero_data.dat      # file containing aerosol data
-aerosol_init aero_init_dist.dat # aerosol initial condition file
+aerosol_init aero_init_dist.dat # initial aerosol distribution
 
 temp_profile temp.dat           # temperature profile file
 height_profile height.dat       # height profile file
@@ -22,7 +21,7 @@ gas_background gas_back.dat     # background gas mixing ratios file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
 
-rel_humidity 0.47               # initial relative humidity (1)
+rel_humidity 0.47              # initial relative humidity (1)
 pressure 1e5                    # initial pressure (Pa)
 latitude 40                     # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)
@@ -31,16 +30,7 @@ start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
 do_coagulation yes              # whether to do coagulation (yes/no)
-coag_kernel vemury_free         # coagulation kernel
-do_condensation no              # whether to do condensation (yes/no)
-do_mosaic no                    # whether to do MOSAIC (yes/no)
-do_nucleation no                # whether to do nucleation (yes/no)
-
-rand_init 0                     # random initialization (0 to auto-generate)
-allow_doubling yes              # whether to allow doubling (yes/no)
-allow_halving yes               # whether to allow halving (yes/no)
-record_removals yes             # whether to record particle removals (yes/no)
-do_parallel no                  # whether to run in parallel (yes/no)
+coag_kernel naumann_free                # coagulation kernel
 
 do_fractal yes                  # whether to do fractal treatment
 do_fractal_test yes             # whether to do fractal testing cases

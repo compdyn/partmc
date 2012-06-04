@@ -113,6 +113,8 @@ contains
     allocate(aero_data%source_name(n_source))
     aero_data%i_water = 0
 
+    call fractal_allocate(aero_data%fractal)
+
   end subroutine aero_data_allocate_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

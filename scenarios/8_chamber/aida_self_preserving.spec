@@ -5,7 +5,7 @@ n_part 1000                    # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 2                     # total simulation time (s)
-del_t 1e-6                        # timestep (s)
+del_t 1e-7                        # timestep (s)
 t_output 0.5                   # output interval (0 disables) (s)
 t_progress 1e-6                   # progress printing interval (0 disables) (s)
 
@@ -31,7 +31,7 @@ start_time 35539                # start time (s since 00:00 UTC)
 start_day 327                   # start day of year (UTC)
 
 do_coagulation yes              # whether to do coagulation (yes/no)
-coag_kernel brown		# coagulation kernel
+coag_kernel vemury_free		# coagulation kernel
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no			# whether to do MOSAIC (yes/no)
 do_nucleation no		# whether to do nucleation (yes/no)
@@ -43,7 +43,7 @@ record_removals yes		# whether to record particle removals (yes/no)
 do_parallel no			# whether to run in parallel (yes/no)
 
 do_fractal yes
-do_fractal_test no
+do_fractal_test yes
 frac_dim  3
 prime_radius 5e-10
 vol_fill_factor 1

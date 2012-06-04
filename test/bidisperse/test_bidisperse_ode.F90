@@ -64,6 +64,8 @@ program test_bidisperse_ode
   type(bin_grid_t) :: bin_grid
   type(aero_data_t) :: aero_data
 
+  call aero_data_allocate(aero_data)
+  
   v_small = rad2vol(r_small, aero_data%fractal)
   v_big_init = rad2vol(r_big_init, aero_data%fractal)
   num_conc = num_conc_small * (n_small_init + 1d0) / n_small_init
@@ -103,8 +105,9 @@ program test_bidisperse_ode
   end do
 
   close(out_unit)
-  call bin_grid_deallocate(bin_grid)
-  
+  call bin_grid_deallocate(bin_grid) 
+  call aero_data_deallocate(aero_data)
+ 
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -110,9 +110,9 @@ module deposition
     do i_part = 1,aero_state%apa%n_part
        diameter = aero_particle_diameter(aero_state%apa%particle(i_part))
        density = aero_particle_density(aero_state%apa%particle(i_part))
-       vs = calculate_vs(diameter, density)
+       vs = calculate_vs(diameter, density, viscosd, lambda)
        rs = calculate_rs(diameter, vs, env_state%temp, ustar, gamma, A, &
-           lambda, alpha)
+           alpha, lambda)
        vd(i_part) = calculate_vd(aer_res_a, rs, vs)
     end do
 
@@ -172,14 +172,14 @@ module deposition
 
   !> Calculate the particle settling velocity.
   !> Seinfeld and Pandis eq. 19.18.
-  real(kind=dp) function calculate_vs(diameter, density, viscod, lambda)
+  real(kind=dp) function calculate_vs(diameter, density, viscosd, lambda)
 
      !> Particle diameter.
      real(kind=dp), intent(in) :: diameter
      !> Particle density.
      real(kind=dp), intent(in) :: density
      !> 
-     real(kind=dp), intent(in) :: viscod
+     real(kind=dp), intent(in) :: viscosd
      !> Mean free path of air (m).
      real(kind=dp), intent(in) :: lambda
 
@@ -188,7 +188,7 @@ module deposition
      C_c = slip_correction_factor(diameter, lambda)
 
      calculate_vs = ((diameter)**2.0d0 * density * const%grav * C_c) &
-          / (18.0d0 * const%air_dyn_visc)
+          / (18.0d0 * viscosd)
 
   end function calculate_vs
 

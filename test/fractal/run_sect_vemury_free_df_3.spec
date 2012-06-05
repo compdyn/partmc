@@ -1,14 +1,14 @@
 run_type sectional              # sectional code run
 output_prefix out/sect_vemury_free_df_3     # prefix of output files
 
-t_max 2                       # total simulation time (s)
-del_t 1e-6                         # timestep (s)
-t_output 1                    # output interval (0 disables) (s)
-t_progress 1e-3                   # progress printing interval (0 disables) (s)
+t_max 1e+5                       # total simulation time (s)
+del_t 10                         # timestep (s)
+t_output 1e+4                    # output interval (0 disables) (s)
+t_progress 1e+3                   # progress printing interval (0 disables) (s)
 
 n_bin 100                       # number of bins
 d_min 1e-9                      # minimum diameter (m)
-d_max 1e-5                         # maximum diameter (m)
+d_max 1e-7                         # maximum diameter (m)
 
 gas_data gas_data.dat           # file containing gas data
 aerosol_data aero_data.dat      # file containing aerosol data

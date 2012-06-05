@@ -177,9 +177,9 @@ contains
        call kernel_vemury_free_minmax(v1, v2, aero_data, env_state, k_min, k_max)
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_VEMURY_CONT) then
        call kernel_vemury_cont_minmax(v1, v2, aero_data, env_state, k_min, k_max)
-elseif (coag_kernel_type == COAG_KERNEL_TYPE_NAUMANN_FREE) then
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_NAUMANN_FREE) then
        call kernel_naumann_free_minmax(v1, v2, aero_data, env_state, k_min, k_max)
-elseif (coag_kernel_type == COAG_KERNEL_TYPE_NAUMANN_CONT) then
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_NAUMANN_CONT) then
        call kernel_naumann_cont_minmax(v1, v2, aero_data, env_state, k_min, k_max)
     else
        call die_msg(330498208, "Unknown kernel type: " &

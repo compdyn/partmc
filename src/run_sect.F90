@@ -110,7 +110,7 @@ contains
          aero_data%n_spec)
     aero_binned%vol_conc = 0d0
     call gas_state_allocate_size(gas_state, gas_data%n_spec)
-    
+
     ! mass and radius grid
     do i = 1,bin_grid%n_bin
        r(i) = bin_grid%center_radius(i) * 1d6 ! radius in m to um
@@ -121,9 +121,8 @@ contains
     ! initial mass distribution
     call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_data, &
          aero_dist)
-    
     call courant(bin_grid%n_bin, bin_grid%log_width, e, ima, c)
-    
+
     ! initialize time
     last_progress_time = 0d0
     time = 0d0
@@ -168,10 +167,8 @@ contains
           aero_binned%num_conc = aero_binned%vol_conc(:,1) &
                / rad2vol(bin_grid%center_radius, aero_data%fractal)
        end if
-
        time = run_sect_opt%t_max * real(i_time, kind=dp) &
             / real(num_t, kind=dp)
-
        call env_state_copy(env_state, old_env_state)
        call scenario_update_env_state(scenario, env_state, time, &
             update_rel_humid = .true.)
@@ -179,7 +176,7 @@ contains
             env_state, old_env_state, gas_data, gas_state)
        call scenario_update_aero_binned(scenario, run_sect_opt%del_t, &
             env_state, old_env_state, bin_grid, aero_data, aero_binned)
-       
+
        ! print output
        call check_event(time, run_sect_opt%del_t, run_sect_opt%t_output, &
             last_output_time, do_output)
@@ -279,7 +276,7 @@ contains
                 ! gain for positions i, j
                 prod(k) =  prod(k) + gsk - flux           
                 prod(kp) = prod(kp) + flux
-             end if
+            end if
           end if
        end do
     end do

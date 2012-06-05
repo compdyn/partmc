@@ -16,6 +16,7 @@ module pmc_aero_weight_array
   use pmc_netcdf
   use pmc_mpi
   use pmc_aero_weight
+  use pmc_aero_data
 #ifdef PMC_USE_MPI
   use mpi
 #endif

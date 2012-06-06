@@ -321,6 +321,15 @@ add_executable(test_binomial_sample test/rand/test_binomial_sample.F90
 target_link_libraries(test_binomial_sample ${GSL_LIBS})
 
 ######################################################################
+# test_fractal_self_preserve
+
+add_executable(test_fractal_self_preserve 
+  test/fractal/test_fractal_self_preserve.F90
+  src/getopt.F90)
+
+target_link_libraries(test_fractal_self_preserve partmclib)
+
+######################################################################
 # bin_average_comp
 
 add_executable(bin_average_comp src/bin_average_comp.F90)

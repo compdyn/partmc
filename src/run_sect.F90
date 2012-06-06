@@ -176,7 +176,6 @@ contains
             env_state, old_env_state, gas_data, gas_state)
        call scenario_update_aero_binned(scenario, run_sect_opt%del_t, &
             env_state, old_env_state, bin_grid, aero_data, aero_binned)
-
        ! print output
        call check_event(time, run_sect_opt%del_t, run_sect_opt%t_output, &
             last_output_time, do_output)
@@ -276,7 +275,7 @@ contains
                 ! gain for positions i, j
                 prod(k) =  prod(k) + gsk - flux           
                 prod(kp) = prod(kp) + flux
-            end if
+             end if
           end if
        end do
     end do

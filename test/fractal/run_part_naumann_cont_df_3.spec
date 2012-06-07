@@ -44,6 +44,6 @@ do_parallel no                  # whether to run in parallel (yes/no)
 
 do_fractal yes                  # whether to do fractal treatment
 do_fractal_test yes             # whether to do fractal testing cases
-frac_dim 2.2                      # fractal dimension
+frac_dim 3                      # fractal dimension
 prime_radius 2.5e-7              # radius of monomer
 vol_fill_factor 1               # volume filling factor

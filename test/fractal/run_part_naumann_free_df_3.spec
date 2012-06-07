@@ -1,21 +1,21 @@
 run_type particle               # particle-resolved run
 output_prefix out/part_naumann_free_df_3     # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
-n_part 10000                     # total number of particles
+n_part 1000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
-t_max 2                       # total simulation time (s)
-del_t 1e-6                         # timestep (s)
-t_output 1                    # output interval (0 disables) (s)
-t_progress 1e-3                   # progress printing interval (0 disables) (s)
+t_max 1e+5                       # total simulation time (s)
+del_t 10                         # timestep (s)
+t_output 1e+4                    # output interval (0 disables) (s)
+t_progress 1e+3                   # progress printing interval (0 disables) (s)
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios
 
 aerosol_data aero_data.dat      # file containing aerosol data
-aerosol_init aero_init_dist.dat # aerosol initial condition file
+aerosol_init aero_init_dist_free.dat # aerosol initial condition file
 
-temp_profile temp.dat           # temperature profile file
+temp_profile temp_free.dat           # temperature profile file
 height_profile height.dat       # height profile file
 gas_emissions gas_emit.dat      # gas emissions file
 gas_background gas_back.dat     # background gas mixing ratios file
@@ -36,7 +36,7 @@ do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
 
-rand_init 0                     # random initialization (0 to auto-generate)
+rand_init 7                     # random initialization (0 to auto-generate)
 allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
 record_removals yes             # whether to record particle removals (yes/no)

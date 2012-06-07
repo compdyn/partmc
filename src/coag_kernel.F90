@@ -19,10 +19,10 @@ module pmc_coag_kernel
   use pmc_coag_kernel_constant
   use pmc_coag_kernel_brown
   use pmc_coag_kernel_zero
-  use pmc_coag_kernel_Vemury_free
-  use pmc_coag_kernel_Vemury_cont
-  use pmc_coag_kernel_Naumann_free
-  use pmc_coag_kernel_Naumann_cont
+  use pmc_coag_kernel_vemury_free
+  use pmc_coag_kernel_vemury_cont
+  use pmc_coag_kernel_naumann_free
+  use pmc_coag_kernel_naumann_cont
 
   !> Maximum length of a mode type.
   integer, parameter :: COAG_KERNEL_TYPE_LEN = 20

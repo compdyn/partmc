@@ -154,12 +154,12 @@ program test_fractal_self_preserve
           / total_vol_conc
      dimless_num_conc = num_concs * total_vol_conc / total_num_conc**2 
      if (dist_type == DIST_TYPE_NUM) then
-        call bin_grid_histogram_1d(dimless_vol_grid, dimless_vol, &
-             dimless_num_conc, hist)
+        call bin_grid_histogram_1d_SPSD(dimless_vol_grid, dimless_vol, &
+             dimless_num_conc, hist, total_vol_conc, total_num_conc)
      elseif (dist_type == DIST_TYPE_MASS) then
         call aero_state_masses(aero_state, aero_data, masses)
-        call bin_grid_histogram_1d(dimless_vol_grid, dimless_vol, num_concs * masses, &
-             hist)
+        call bin_grid_histogram_1d_SPSD(dimless_vol_grid, dimless_vol, num_concs * masses, &
+             hist, total_vol_conc, total_num_conc)
      else
         call die(123323238)
      end if
@@ -205,6 +205,36 @@ program test_fractal_self_preserve
   call pmc_mpi_finalize()
 
 contains
+
+  !> Make a histogram with of the given weighted data, scaled by the
+  !> non-logarithmic bin sizes.
+  subroutine bin_grid_histogram_1d_SPSD(x_bin_grid, x_data, weight_data, hist, &
+       c_v, c_n)
+
+    !> x-axis bin grid.
+    type(bin_grid_t), intent(in) :: x_bin_grid
+    !> Data values on the x-axis.
+    real(kind=dp), intent(in) :: x_data(:)
+    !> Data value weights.
+    real(kind=dp), intent(in) :: weight_data(size(x_data))
+    !> Histogram to compute.
+    real(kind=dp), intent(out) :: hist(x_bin_grid%n_bin)
+    !> Total volume and number concentration.
+    real(kind=dp), intent(in) :: c_v, c_n
+
+    integer :: i_data, i_bin
+
+    hist = 0d0
+    do i_data = 1,size(x_data)
+       i_bin = bin_grid_particle_in_bin(x_bin_grid, x_data(i_data))
+       if ((i_bin >= 1) .and. (i_bin <= x_bin_grid%n_bin)) then
+          hist(i_bin) = hist(i_bin) &
+               + weight_data(i_data) / (x_bin_grid%edge_radius(i_bin + 1) &
+               * c_v / c_n - x_bin_grid%edge_radius(i_bin) * c_v / c_n)
+       end if
+    end do
+
+  end subroutine bin_grid_histogram_1d_SPSD
 
   subroutine print_help()
 

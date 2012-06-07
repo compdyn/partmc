@@ -1,7 +1,7 @@
 run_type particle               # particle-resolved run
 output_prefix out/part_vemury_free_df_3     # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
-n_part 1000                     # total number of particles
+n_part 100000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 1e+5                       # total simulation time (s)

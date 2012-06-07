@@ -2506,7 +2506,6 @@ contains
        call assert(314368871, almost_equal(aero_num_conc(i_part), &
             aero_weight_array_num_conc(aero_state%awa, aero_particle, &
             aero_data)))
-
        call aero_state_add_particle(aero_state, aero_particle, aero_data)
     end do
     call aero_particle_deallocate(aero_particle)

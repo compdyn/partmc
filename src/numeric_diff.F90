@@ -241,8 +241,8 @@ program numeric_diff
 
   if ((abs_tol <= 0d0) .and. (rel_tol <= 0d0)) then
      call print_errors(abs_err, rel_err)
-  elseif (((abs_tol <= 0) .or. all(abs_err < abs_tol)) &
-       .and. ((rel_tol <= 0) .or. all(rel_err < rel_tol))) then
+  elseif (((abs_tol <= 0d0) .or. all(abs_err < abs_tol)) &
+       .and. ((rel_tol <= 0d0) .or. all(rel_err < rel_tol))) then
      write(*,'(a)') 'files match within the given relative tolerance'
   else
      write(*,'(a)') 'files differ'

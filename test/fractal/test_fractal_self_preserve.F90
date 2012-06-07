@@ -51,7 +51,7 @@ program test_fractal_self_preserve
 
   dist_type = DIST_TYPE_NONE
   dimless_vol_min = 1d-3
-  dimless_vol_max = 10
+  dimless_vol_max = 10d0
   n_bin = 100
   out_filename = ""
 
@@ -75,9 +75,9 @@ program test_fractal_self_preserve
         end if
         dist_type = DIST_TYPE_MASS
      case('N')
-        d_min = string_to_real(optarg)
+        dimless_vol_min = string_to_real(optarg)
      case('X')
-        d_max = string_to_real(optarg)
+        dimless_vol_max = string_to_real(optarg)
      case('b')
         n_bin = string_to_integer(optarg)
      case('o')

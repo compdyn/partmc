@@ -173,3 +173,5 @@ because we only say "character(len=*), intent(in) :: name".
 
 Fix % symbol not appearing in doxygen generated comments. E.g. the
 integer_rmap2_t type docs.
+
+Add check for height being <= 0.

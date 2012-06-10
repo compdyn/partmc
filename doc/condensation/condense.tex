@@ -55,9 +55,9 @@ $U$                    & \rr                                                    
 $V$                    & \rr                                                                    & function      & $\rm s^{-1}$                          & \rr eq.~\ref{eq:fcn_V}                             \tn
 $V_{i,\rm dry}^a$      & \rr dry volume of species $a$ in particle $i$                          & input         & $\rm m^3$                             & \rr \verb+aero_particle%vol(a)+                    \tn
 $V_{i,\rm dry}$        & \rr dry volume of particle $i$                                         & function      & $\rm m^3$                             & \rr eq.~\ref{eq:V_dry}                             \tn
-$V_{\rm comp,0}$       & \rr initial computational volume at temperature $T_0$                  & input         & $\rm m^3$                             & \rr \verb+env_state%comp_vol+                      \tn
+$V_{\rm comp,0}$       & \rr initial computational volume at temperature $T_0$ and pressure $p_0$  & input         & $\rm m^3$                             & \rr \verb+env_state%comp_vol+                      \tn
 $V_{\rm comp}$         & \rr current computational volume                                       & function      & $\rm m^3$                             & \rr eq.~\ref{eq:comp_vol}                          \tn
-$V_{i,\rm comp,0}$     & \rr initial computational volume for particle $i$ at temperature $T_0$ & input         & $\rm m^3$                             &                                                    \tn
+$V_{i,\rm comp,0}$     & \rr initial computational volume for particle $i$ at temperature $T_0$ and pressure $p_0$ & input         & $\rm m^3$                             &                                                    \tn
 $V_{i,\rm comp}$       & \rr current computational volume for particle $i$                      & function      & $\rm m^3$                             & \rr eq.~\ref{eq:comp_vol_i}                        \tn
 $W$                    & \rr                                                                    & function      & $1$                                   & \rr eq.~\ref{eq:fcn_W}                             \tn
 $X$                    & \rr                                                                    & function      & $\rm m$                               & \rr eq.~\ref{eq:fcn_X}                             \tn
@@ -71,19 +71,21 @@ $Z$                    & \rr                                                    
 \begin{align}
   P^0(T) &= 611.2 \exp\biggl(7.45 \ln(10)\frac{T-273.15}{T-38}\biggr) \label{eq:sat_vap} \displaybreak[0] \\
   \frac{\partial P^0}{\partial T}(T) &= P^0(T) 7.45 \ln(10)\frac{273.15 - 38}{(T-38)^2} \displaybreak[0] \\
-  \rho_{\rm  air} &= M_{\rm air} \frac{p}{R T} \label{eq:rho_air} \displaybreak[0] \\
+  \rho_{\rm  air}(T,p) &= M_{\rm air} \frac{p}{R T} \label{eq:rho_air} \displaybreak[0] \\
   U(T) &= \frac{\Delta H_{\rm v} \rho_{\rm w}}{4 T} \label{eq:fcn_U} \displaybreak[0] \\
   V(T) &= \frac{4 M_{\rm w} P^{\rm 0}(T)}{\rho_{\rm w} R T} \label{eq:fcn_V} \displaybreak[0] \\
   \frac{\partial V}{\partial T}(T) &= \biggl( \frac{1}{P^{\rm 0}(T)} \frac{\partial P^{\rm 0}}{\partial T}(T)
   - \frac{1}{T} \biggr) V(T) \displaybreak[0] \\
   W(T) &= \frac{\Delta H_{\rm v} M_{\rm w}}{R T} \label{eq:fcn_W} \displaybreak[0] \\
   X(T) &= \frac{4 M_{\rm w}\sigma_{\rm w}}{R T \rho_{\rm w}} \label{eq:fcn_X} \displaybreak[0] \\
-  Y(T) &= \frac{2 k_{\rm a}}{\alpha \rho_{\rm air} c_{\rm p}} \sqrt{\frac{2 \pi M_{\rm air}}{R T}} \label{eq:fcn_Y} \displaybreak[0] \\
-  Z(T) &= \frac{2 D_{\rm v}}{\alpha} \sqrt{\frac{2 \pi M_{\rm w}}{R T}} \label{eq:fcn_Z} \displaybreak[0] \\
-  V_{\rm comp}(T) &= \frac{T}{T_0} V_{\rm comp,0} \label{eq:comp_vol} \displaybreak[0] \\
-  \frac{\partial V_{\rm comp}}{\partial T}(T) &= \frac{V_{\rm comp,0}}{T_0} \displaybreak[0] \\
+  Y(T,p) &= \frac{2 k_{\rm a}}{\alpha \rho_{\rm air}(T,p) c_{\rm p}} \sqrt{\frac{2 \pi M_{\rm air}}{R T}} \label{eq:fcn_Y} \displaybreak[0] \\
+  Z(T,p) &= \frac{2 D_{\rm v}}{\alpha} \sqrt{\frac{2 \pi M_{\rm w}}{R T}} \label{eq:fcn_Z} \displaybreak[0] \\
+  V_{\rm comp}(T,p) &= \frac{T}{T_0} \frac{p_0}{p} V_{\rm comp,0} \label{eq:comp_vol} \displaybreak[0] \\
+  \frac{\partial V_{\rm comp}}{\partial T}(T,p) &= \frac{p_0}{p}\frac{V_{\rm comp,0}}{T_0} \displaybreak[0] \\
   &= \frac{V_{\rm comp}}{T} \displaybreak[0] \\
-  V_{i,\rm comp}(T) &= \frac{T}{T_0} V_{i,\rm comp,0} \label{eq:comp_vol_i} \displaybreak[0] \\
+  \frac{\partial V_{\rm comp}}{\partial p}(T,p) &= -\frac{T}{T_0}\frac{p_0 }{p^2} V_{\rm comp,0} \displaybreak[0] \\
+  &= -\frac{V_{\rm comp}}{p} \displaybreak[0] \\
+  V_{i,\rm comp}(T,p) &= \frac{T}{T_0} \frac{p_0}{p} V_{i,\rm comp,0} \label{eq:comp_vol_i} \displaybreak[0] \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   k_{\rm a} &= 10^{-3} (4.39 + 0.071  T) \label{eq:therm_cond} \displaybreak[0] \\
   k_{\rm a}'(D_i) &= \frac{k_{\rm a}}{1 + Y / D_i} \label{eq:therm_cond_corr} \displaybreak[0] \\
@@ -139,16 +141,16 @@ $Z$                    & \rr                                                    
   \frac{k_{\rm a}'(D_i)}{U D_i} 
   \frac{\partial \delta_i^*}{\partial H}(D_i, H) \displaybreak[0] \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \dot{H}_i(D_i,H) &= - \frac{2\pi}{V(T) V_{i,\rm comp}(T)} D_i^2 \dot{D}_i(D_i,H) \label{eq:Hdot_i} \displaybreak[0] \\
-  \frac{\partial \dot{H}_i}{\partial D_i}(D_i,H) &= - \frac{2\pi}{V(T) V_{i,\rm comp}(T)} \biggl(2 D_i \dot{D}_i(D_i,H) + D_i^2 \frac{\partial \dot{D}_i}{\partial D_i}(D_i,H)\biggr) \displaybreak[0] \\
-  \frac{\partial \dot{H}_i}{\partial H}(D_i,H) &= - \frac{2\pi}{V(T) V_{i,\rm comp}(T)} D_i^2 \frac{\partial \dot{D}_i}{\partial H}(D_i,H) \displaybreak[0] \\
+  \dot{H}_i(D_i,H) &= - \frac{2\pi}{V(T) V_{i,\rm comp}(T,p)} D_i^2 \dot{D}_i(D_i,H) \label{eq:Hdot_i} \displaybreak[0] \\
+  \frac{\partial \dot{H}_i}{\partial D_i}(D_i,H) &= - \frac{2\pi}{V(T) V_{i,\rm comp}(T,p)} \biggl(2 D_i \dot{D}_i(D_i,H) + D_i^2 \frac{\partial \dot{D}_i}{\partial D_i}(D_i,H)\biggr) \displaybreak[0] \\
+  \frac{\partial \dot{H}_i}{\partial H}(D_i,H) &= - \frac{2\pi}{V(T) V_{i,\rm comp}(T,p)} D_i^2 \frac{\partial \dot{D}_i}{\partial H}(D_i,H) \displaybreak[0] \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \dot{H}_{\rm env}(D_1,\ldots,D_N,H) &= - \frac{1}{V(T)} \frac{\partial V}{\partial T}(T) \dot{T} H - \frac{1}{V_{\rm comp}(T)} \frac{\partial V_{\rm comp}}{\partial T}(T) \dot{T} H \label{eq:Hdot_env} \displaybreak[0] \\
-  &= - \frac{1}{P^{\rm 0}(T)} \frac{\partial P^{\rm 0}}{\partial T}(T) \dot{T} H \displaybreak[0] \\
+ \dot{H}_{\rm env}(D_1,\ldots,D_N,H) &= - \frac{1}{V(T)} \frac{\partial V}{\partial T}(T) \dot{T} H - \frac{1}{V_{\rm comp}(T,p)} \frac{\partial V_{\rm comp}}{\partial T}(T,p) \dot{T} H - \frac{1}{V_{\rm comp}(T,p)} \frac{\partial V_{\rm comp}}{\partial p}(T,p) \dot{p} H\label{eq:Hdot_env} \displaybreak[0] \\
+  &= - \frac{1}{P^{\rm 0}(T)} \frac{\partial P^{\rm 0}}{\partial T}(T) \dot{T} H + \frac{H}{p} \dot{p}\displaybreak[0] \\
   \frac{\partial \dot{H}_{\rm env}}{\partial D_i}(D_1,\ldots,D_N,H) &= 0 \displaybreak[0] \\
-  \frac{\partial \dot{H}_{\rm env}}{\partial H}(D_1,\ldots,D_N,H) &= - \frac{1}{P^{\rm 0}(T)} \frac{\partial P^{\rm 0}}{\partial T}(T) \dot{T} \displaybreak[0] \\
+  \frac{\partial \dot{H}_{\rm env}}{\partial H}(D_1,\ldots,D_N,H) &= - \frac{1}{P^{\rm 0}(T)} \frac{\partial P^{\rm 0}}{\partial T}(T) \dot{T} + \frac{\dot{p}}{p}\displaybreak[0] \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  H &= \frac{4 m_{\rm w}}{\rho_{\rm w} V(T) V_{\rm comp}(T)} \label{eq:H_m_w} \displaybreak[0] \\
+  H &= \frac{4 m_{\rm w}}{\rho_{\rm w} V(T) V_{\rm comp}(T,p)} \label{eq:H_m_w} \displaybreak[0] \\
   \dot{H}(D_1,\ldots,D_N,H) &= \sum_{i=1}^N \dot{H}_i(D_i,H) + \dot{H}_{\rm env}(D_1,\ldots,D_N,H) \label{eq:Hdot} \displaybreak[0] \\
   \frac{\partial \dot{H}}{\partial D_i}(D_1,\ldots,D_N,H) &= \frac{\partial \dot{H}_i}{\partial D_i}(D_i,H) + \frac{\partial \dot{H}_{\rm env}}{\partial D_i}(D_1,\ldots,D_N,H) \displaybreak[0] \\
   \frac{\partial \dot{H}}{\partial H}(D_1,\ldots,D_N,H) &= \sum_{i=1}^N \frac{\partial \dot{H}_i}{\partial H}(D_i,H) + \frac{\partial \dot{H}_{\rm env}}{\partial H}(D_1,\ldots,D_N,H)
@@ -173,9 +175,9 @@ If $D_i < D_{i,\rm dry}$ then we take
   \frac{k_{\rm a}'(D_{i,\rm dry})}{U D_{i,\rm dry}}
   \frac{\partial \delta_i^*}{\partial H}(D_i, H) \displaybreak[0] \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \dot{H}_i(D_i,H) &= - \frac{2\pi}{V(T) V_{i,\rm comp}(T)} D_{i,\rm dry}^2 \dot{D}_i(D_i,H) \displaybreak[0] \\
-  \frac{\partial \dot{H}_i}{\partial D_i}(D_i,H) &= - \frac{2\pi}{V(T) V_{i,\rm comp}(T)} D_{i,\rm dry}^2 \frac{\partial \dot{D}_i}{\partial D_i}(D_i,H) \displaybreak[0] \\
-  \frac{\partial \dot{H}_i}{\partial H}(D_i,H) &= - \frac{2\pi}{V(T) V_{i,\rm comp}(T)} D_{i,\rm dry}^2 \frac{\partial \dot{D}_i}{\partial H}(D_i,H)
+  \dot{H}_i(D_i,H) &= - \frac{2\pi}{V(T) V_{i,\rm comp}(T,p)} D_{i,\rm dry}^2 \dot{D}_i(D_i,H) \displaybreak[0] \\
+  \frac{\partial \dot{H}_i}{\partial D_i}(D_i,H) &= - \frac{2\pi}{V(T) V_{i,\rm comp}(T,p)} D_{i,\rm dry}^2 \frac{\partial \dot{D}_i}{\partial D_i}(D_i,H) \displaybreak[0] \\
+  \frac{\partial \dot{H}_i}{\partial H}(D_i,H) &= - \frac{2\pi}{V(T) V_{i,\rm comp}(T,p)} D_{i,\rm dry}^2 \frac{\partial \dot{D}_i}{\partial H}(D_i,H)
 \end{align}
 
 For equilibriation:

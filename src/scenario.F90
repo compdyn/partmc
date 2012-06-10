@@ -302,12 +302,12 @@ contains
     real(kind=dp) :: temp_old
 
     ! Update temperature and pressure and adjust relative humidity to maintain
-    ! water mixing ratio. 
+    ! water mixing ratio.
 
     pmv_old = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
     pressure_old = env_state%pressure
     temp_old = env_state%temp
- 
+
     env_state%temp = interp_1d(scenario%temp_time, scenario%temp, time)
     env_state%pressure = interp_1d(scenario%pressure_time, &
          scenario%pressure, time)

@@ -1,5 +1,5 @@
 run_type particle               # particle-resolved run
-output_prefix out/bidisperse_part # prefix of output files
+output_prefix out/deposition    # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 1000                     # number of Monte Carlo particles
 restart no                      # whether to restart from saved state (yes/no)
@@ -30,8 +30,7 @@ altitude 0                      # altitude (m)
 start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
-do_coagulation yes              # whether to do coagulation (yes/no)
-coag_kernel sedi                # coagulation kernel
+do_coagulation no               # whether to do coagulation (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)

@@ -187,6 +187,8 @@ if(ENABLE_SUNDIALS)
   set_tests_properties(test_condense_2 PROPERTIES DEPENDS test_condense_1)
 endif()
 
+add_test(test_deposition_1 ${CMAKE_BINARY_DIR}/test_run/deposition/test_deposition_01.sh)
+
 add_test(test_emission_1 ${CMAKE_BINARY_DIR}/test_run/emission/test_emission_1.sh)
 add_test(test_emission_2 ${CMAKE_BINARY_DIR}/test_run/emission/test_emission_2.sh)
 set_tests_properties(test_emission_2 PROPERTIES DEPENDS test_emission_1)
@@ -258,8 +260,8 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/coag_kernel.F90 src/spec_line.F90 src/spec_file.F90 src/rand.F90
   src/aero_particle.F90 src/aero_particle_array.F90 src/mpi.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
-  src/nucleate.F90 src/condense.F90 ${SUNDIALS_SRC} ${GSL_SRC}
-  ${C_SORT_SRC})
+  src/nucleate.F90 src/condense.F90 src/deposition.F90
+  ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC})
 
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
   ${MOSAIC_LIB} ${GSL_LIBS})

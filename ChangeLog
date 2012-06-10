@@ -1,6 +1,8 @@
 
 2.3.0 - XXXX-XX-XX
 
+  * Pressure is now specified as a profile rather than a constant value.
+
   * Add variable-composition aerosol distributions with a mean and
     standard deviation per species.
 

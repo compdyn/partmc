@@ -90,9 +90,9 @@ $Z$                    & \rr                                                    
   k_{\rm a} &= 10^{-3} (4.39 + 0.071  T) \label{eq:therm_cond} \displaybreak[0] \\
   k_{\rm a}'(D_i) &= \frac{k_{\rm a}}{1 + Y / D_i} \label{eq:therm_cond_corr} \displaybreak[0] \\
   \frac{\partial k_{\rm a}'}{\partial D_i}(D_i) &= \frac{k_{\rm a} Y}{(D_i+Y)^2} \displaybreak[0] \\
-  D_{\rm v}(T,p) &= \frac{0.211 \times 10^{-4}}{p / p_0} \left(\frac{T}{273}\right)^{1.94} \label{eq:diff_ko} \displaybreak[0] \\
-  D_{\rm v}'(D_i,T,p) &= \frac{D_{\rm v}}{1 + Z / D_i} \label{eq:diff_ko_corr} \displaybreak[0] \\
-  \frac{\partial D_{\rm v}'}{\partial D_i}(D_i,T,p) &= \frac{D_{\rm v}(T,p) Z}{(D_i+Z)^2} \displaybreak[0] \\
+  D_{\rm v}&= \frac{0.211 \times 10^{-4}}{p / p_0} \left(\frac{T}{273}\right)^{1.94} \label{eq:diff_ko} \displaybreak[0] \\
+  D_{\rm v}'(D_i) &= \frac{D_{\rm v}}{1 + Z / D_i} \label{eq:diff_ko_corr} \displaybreak[0] \\
+  \frac{\partial D_{\rm v}'}{\partial D_i}(D_i) &= \frac{D_{\rm v} Z}{(D_i+Z)^2} \displaybreak[0] \\
   V_{i,\rm dry} &= \sum_a V_{i,\rm dry}^a \label{eq:V_dry} \displaybreak[0] \\
   D_{i,\rm dry} &= \left(\frac{6}{\pi} V_{i,\rm dry}\right)^{\frac{1}{3}} \label{eq:D_dry} \displaybreak[0] \\
    \kappa^a &= \frac{M_{\rm w} \rho_{a}}{M_{a}  \rho_{\rm w}} \qquad \text{assuming number of ions per dissociation is 1} \label{eq:kappa_indiv} \displaybreak[0] \\
@@ -146,7 +146,7 @@ $Z$                    & \rr                                                    
   \frac{\partial \dot{H}_i}{\partial H}(D_i,H) &= - \frac{2\pi}{V(T) V_{i,\rm comp}(T,p)} D_i^2 \frac{\partial \dot{D}_i}{\partial H}(D_i,H) \displaybreak[0] \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  \dot{H}_{\rm env}(D_1,\ldots,D_N,H) &= - \frac{1}{V(T)} \frac{\partial V}{\partial T}(T) \dot{T} H - \frac{1}{V_{\rm comp}(T,p)} \frac{\partial V_{\rm comp}}{\partial T}(T,p) \dot{T} H - \frac{1}{V_{\rm comp}(T,p)} \frac{\partial V_{\rm comp}}{\partial p}(T,p) \dot{p} H\label{eq:Hdot_env} \displaybreak[0] \\
-  &= - \frac{1}{P^{\rm 0}(T)} \frac{\partial P^{\rm 0}}{\partial T}(T) \dot{T} H + \frac{H}{p} \dot{p}\displaybreak[0] \\  
+  &= - \frac{1}{P^{\rm 0}(T)} \frac{\partial P^{\rm 0}}{\partial T}(T) \dot{T} H + \frac{H}{p} \dot{p}\displaybreak[0] \\
   \frac{\partial \dot{H}_{\rm env}}{\partial D_i}(D_1,\ldots,D_N,H) &= 0 \displaybreak[0] \\
   \frac{\partial \dot{H}_{\rm env}}{\partial H}(D_1,\ldots,D_N,H) &= - \frac{1}{P^{\rm 0}(T)} \frac{\partial P^{\rm 0}}{\partial T}(T) \dot{T} + \frac{\dot{p}}{p}\displaybreak[0] \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

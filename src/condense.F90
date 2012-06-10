@@ -75,7 +75,7 @@ module pmc_condense
      !> Pressure (Pa).
      real(kind=dp) :: p
      !> Rate of change of pressure (Pa s^{-1}).
-     real(kind=dp) :: pdot 
+     real(kind=dp) :: pdot
      !> Computational volume (m^3).
      real(kind=dp) :: V_comp
      !> Particle diameter (m).
@@ -221,7 +221,9 @@ contains
     call scenario_update_env_state(scenario, env_state_final, &
          env_state_final%elapsed_time + del_t, update_rel_humid = .false.)
     condense_saved_Tdot = (env_state_final%temp - env_state%temp) / del_t
-    condense_saved_pdot = (env_state_final%pressure - env_state%pressure) / del_t
+    condense_saved_pdot = (env_state_final%pressure - env_state%pressure) &
+         / del_t
+
     ! construct initial state vector from aero_state and env_state
     allocate(condense_saved_kappa(aero_state%apa%n_part))
     allocate(condense_saved_D_dry(aero_state%apa%n_part))
@@ -302,7 +304,8 @@ contains
     ! vapor. Note that water concentration is not conserved (due to
     ! V_comp changes), and we need to consider particle weightings
     ! correctly.
-    V_comp_ratio = env_state_final%temp * condense_saved_env_state_initial%pressure &
+    V_comp_ratio = env_state_final%temp &
+         * condense_saved_env_state_initial%pressure &
          / (condense_saved_env_state_initial%temp * env_state_final%pressure)
     vapor_vol_conc_initial = aero_data%molec_weight(aero_data%i_water) &
          / (const%univ_gas_const * condense_saved_env_state_initial%temp) &
@@ -437,9 +440,11 @@ contains
     Z = 2d0 * D_v / const%accom_coeff * sqrt(2d0 * const%pi * M_w &
          / (const%univ_gas_const * inputs%T))
 
-    outputs%Hdot_env = - dP0_dT_div_P0 * inputs%Tdot * inputs%H + inputs%H * inputs%pdot / inputs%p
+    outputs%Hdot_env = - dP0_dT_div_P0 * inputs%Tdot * inputs%H &
+         + inputs%H * inputs%pdot / inputs%p
     outputs%dHdotenv_dD = 0d0
-    outputs%dHdotenv_dH = - dP0_dT_div_P0 * inputs%Tdot + inputs%pdot / inputs%p
+    outputs%dHdotenv_dH = - dP0_dT_div_P0 * inputs%Tdot &
+         + inputs%pdot / inputs%p
 
     if (inputs%D <= inputs%D_dry) then
        k_ap = k_a / (1d0 + Y / inputs%D_dry)
@@ -572,7 +577,8 @@ contains
     do i_part = 1,(n_eqn - 1)
        inputs%D = state(i_part)
        inputs%D_dry = condense_saved_D_dry(i_part)
-       inputs%V_comp = (env_state%temp * condense_saved_env_state_initial%pressure) &
+       inputs%V_comp = (env_state%temp &
+            * condense_saved_env_state_initial%pressure) &
             / (condense_saved_env_state_initial%temp * env_state%pressure) &
             / condense_saved_num_conc(i_part)
        inputs%kappa = condense_saved_kappa(i_part)
@@ -634,7 +640,8 @@ contains
     do i_part = 1,(n_eqn - 1)
        inputs%D = state(i_part)
        inputs%D_dry = condense_saved_D_dry(i_part)
-       inputs%V_comp = (env_state%temp * condense_saved_env_state_initial%pressure) &
+       inputs%V_comp = (env_state%temp &
+            * condense_saved_env_state_initial%pressure) &
             / (condense_saved_env_state_initial%temp * env_state%pressure) &
             / condense_saved_num_conc(i_part)
        inputs%kappa = condense_saved_kappa(i_part)

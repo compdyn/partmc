@@ -109,7 +109,8 @@ module deposition
 
     do i_part = 1,aero_state%apa%n_part
        diameter = aero_particle_diameter(aero_state%apa%particle(i_part))
-       density = aero_particle_density(aero_state%apa%particle(i_part))
+       density = aero_particle_density(aero_state%apa%particle(i_part), &
+            aero_data)
        vs = calculate_vs(diameter, density, viscosd, lambda)
        rs = calculate_rs(diameter, vs, env_state%temp, ustar, gamma, A, &
            alpha, lambda)

@@ -33,7 +33,7 @@ program test_fractal_self_preserve
   type(aero_particle_t), pointer :: aero_particle
   real(kind=dp) :: dimless_vol_min, dimless_vol_max, log_width
   character(len=PMC_UUID_LEN) :: uuid, run_uuid
-  real(kind=dp), allocatable :: diameters(:), num_concs(:), masses(:), hist(:)
+  real(kind=dp), allocatable :: diameters(:), num_concs(:), vol_concs(:), masses(:), hist(:)
   real(kind=dp), allocatable :: dimless_vol(:), dimless_num_conc(:)
   real(kind=dp), allocatable :: aero_dist(:,:)
   real(kind=dp) :: total_num_conc, total_vol_conc
@@ -128,6 +128,7 @@ program test_fractal_self_preserve
   allocate(hist(n_bin))
   allocate(diameters(0))
   allocate(num_concs(0))
+  allocate(vol_concs(0))
   allocate(masses(0))
   allocate(dimless_vol(0))
   allocate(dimless_num_conc(0))
@@ -135,6 +136,8 @@ program test_fractal_self_preserve
   do i_file = 1,n_file
      call input_state(filename_list(i_file), index, time, del_t, i_repeat, &
           uuid, aero_data=aero_data, aero_state=aero_state)
+
+     aero_data%fractal%do_fractal = .true.
 
      if (i_file == 1) then
         run_uuid = uuid
@@ -146,12 +149,18 @@ program test_fractal_self_preserve
 
      call aero_state_diameters(aero_state, aero_data, diameters)
      call aero_state_num_concs(aero_state, aero_data, num_concs)
-     total_num_conc = sum(num_concs)
-     total_vol_conc = sum(num_concs * 4d0 / 3d0 * const%pi * diameters**3)
+     total_num_conc = aero_state_total_num_conc(aero_state, aero_data)
      call ensure_real_array_size(dimless_vol, aero_state%apa%n_part)
      call ensure_real_array_size(dimless_num_conc, aero_state%apa%n_part)
-     dimless_vol = 4d0 / 3d0 * const%pi * diameters**3 * total_num_conc &
-          / total_vol_conc
+     call ensure_real_array_size(vol_concs, aero_state%apa%n_part)
+     do i_part = 1, aero_state%apa%n_part
+        vol_concs(i_part) = num_concs(i_part) * diam2vol(diameters(i_part), aero_data%fractal)
+     end do
+     total_vol_conc = sum(vol_concs)
+     do i_part = 1, aero_state%apa%n_part
+        dimless_vol(i_part) = diam2vol(diameters(i_part), aero_data%fractal) * total_num_conc &
+             / total_vol_conc
+     end do
      dimless_num_conc = num_concs * total_vol_conc / total_num_conc**2 
      if (dist_type == DIST_TYPE_NUM) then
         call bin_grid_histogram_1d_SPSD(dimless_vol_grid, dimless_vol, &
@@ -196,6 +205,7 @@ program test_fractal_self_preserve
   deallocate(diameters)
   deallocate(num_concs)
   deallocate(masses)
+  deallocate(vol_concs)
   deallocate(dimless_vol)
   deallocate(dimless_num_conc)
   call bin_grid_allocate(dimless_vol_grid)

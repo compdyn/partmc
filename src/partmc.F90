@@ -492,10 +492,17 @@ contains
           run_part_opt%parallel_coag_type = PARALLEL_COAG_TYPE_LOCAL
        end if
  
-       call spec_file_read_fractal(file, aero_data%fractal)
+       if (do_restart) then
+          call spec_file_read_logical(file, 'do_fractal', &
+               aero_data%fractal%do_fractal)
+          if (aero_data%fractal%do_fractal) then
+             call spec_file_read_logical(file, 'do_fractal_test', &
+                  aero_data%fractal%do_fractal_test)
+          end if 
+       else
+          call spec_file_read_fractal(file, aero_data%fractal)
+       end if
 
-       !print *, vol2rad(8.11d-22, aero_data%fractal)
-       !print *, vol2Rme(8.11d-22, 296d0, 1d-5, aero_data%fractal)
        call spec_file_close(file)
     end if
 

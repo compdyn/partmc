@@ -665,6 +665,8 @@ contains
          "aero_kappa", (/ dimid_aero_species /), unit="1", &
          long_name="hygroscopicity parameters (kappas) of aerosol species")
 
+    call fractal_output_netcdf(aero_data%fractal, ncid)
+
   end subroutine aero_data_output_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -744,6 +746,8 @@ contains
     call assert(377166446, aero_source_names == "")
 
     call aero_data_set_water_index(aero_data)
+
+    call fractal_input_netcdf(aero_data%fractal, ncid)
 
   end subroutine aero_data_input_netcdf
 

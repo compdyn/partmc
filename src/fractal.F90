@@ -9,6 +9,7 @@ module pmc_fractal
 
   use pmc_spec_file
   use pmc_constants
+  use pmc_netcdf
 
   type fractal_t
      !> Whether to do fractal radii conversion.
@@ -596,6 +597,41 @@ contains
     air_mean_free_path = 2d0 * viscosk / gasspeed * 1d-02
   
   end function air_mean_free_path  
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write full state.
+  subroutine fractal_output_netcdf(fractal, ncid)
+
+    !> Fractal parameters to write.
+    type(fractal_t), intent(in) :: fractal
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    call pmc_nc_write_real(ncid, fractal%frac_dim, "fractal_dimension", &
+         unit="1", standard_name="fractal_dimension")
+    call pmc_nc_write_real(ncid, fractal%vol_fill_factor, &
+         "volume_filling_factor", unit="1", standard_name="volume_filling_factor")
+    call pmc_nc_write_real(ncid, fractal%prime_radius, "prime_radius", &
+         unit="m", standard_name="prime_radius")
+
+  end subroutine fractal_output_netcdf 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read full state.
+  subroutine fractal_input_netcdf(fractal, ncid)
+
+    !> Fractal parameters to read.
+    type(fractal_t), intent(inout) :: fractal
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    call pmc_nc_read_real(ncid, fractal%frac_dim, "fractal_dimension")
+    call pmc_nc_read_real(ncid, fractal%vol_fill_factor, "volume_filling_factor")
+    call pmc_nc_read_real(ncid, fractal%prime_radius, "prime_radius")
+
+  end subroutine fractal_input_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

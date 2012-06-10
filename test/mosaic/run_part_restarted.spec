@@ -11,7 +11,7 @@ t_output 3600                   # output interval (0 disables) (s)
 t_progress 3600                 # progress printing interval (0 disables) (s)
 
 temp_profile temp.dat           # temperature profile file
-pres_profile pres.dat           # pressure profile file
+pressure_profile pressure.dat   # pressure profile file
 height_profile height.dat       # height profile file
 gas_emissions gas_emit.dat      # gas emissions file
 gas_background gas_back.dat     # background gas mixing ratios file

@@ -271,7 +271,8 @@ contains
     real(kind=dp), intent(in) :: time
 
     env_state%temp = interp_1d(scenario%temp_time, scenario%temp, time)
-    env_state%pressure = interp_1d(scenario%pressure_time, scenario%pressure, time)
+    env_state%pressure = interp_1d(scenario%pressure_time, &
+         scenario%pressure, time)
     env_state%height = interp_1d(scenario%height_time, scenario%height, time)
     env_state%elapsed_time = time
 
@@ -308,7 +309,8 @@ contains
     temp_old = env_state%temp
  
     env_state%temp = interp_1d(scenario%temp_time, scenario%temp, time)
-    env_state%pressure = interp_1d(scenario%pressure_time, scenario%pressure, time)
+    env_state%pressure = interp_1d(scenario%pressure_time, &
+         scenario%pressure, time)
 
     pmv_new = pmv_old * env_state%pressure / pressure_old
 
@@ -471,7 +473,8 @@ contains
 
     ! update computational volume
     call aero_weight_array_scale(aero_state%awa, &
-         old_env_state%temp * env_state%pressure / (env_state%temp * old_env_state%pressure))
+         old_env_state%temp * env_state%pressure &
+         / (env_state%temp * old_env_state%pressure))
 
   end subroutine scenario_update_aero_state
 
@@ -582,9 +585,9 @@ contains
     !! <li> \b temp_profile (string): the name of the file from which to
     !!      read the temperature profile --- the file format should be
     !!      \subpage input_format_temp_profile
-    !! <li> \b pres_profile (string): the name of the file from which to
+    !! <li> \b pressure_profile (string): the name of the file from which to
     !!      read the pressure profile --- the file format should be
-    !!      \subpage input_format_pres_profile
+    !!      \subpage input_format_pressure_profile
     !! <li> \b height_profile (string): the name of the file from which
     !!      to read the mixing layer height profile --- the file format
     !!      should be \subpage input_format_height_profile
@@ -637,14 +640,14 @@ contains
     !!   - \ref input_format_scenario --- the environment data
     !!     containing the temperature profile
 
-    !> \page input_format_pres_profile Input File Format: Pressure Profile
+    !> \page input_format_pressure_profile Input File Format: Pressure Profile
     !!
     !! A pressure profile input file must consist of two lines:
     !! - the first line must begin with \c time and should be followed
     !!   by \f$N\f$ space-separated real scalars, giving the times (in
     !!   s after the start of the simulation) of the pressure set
     !!   points --- the times must be in increasing order
-    !! - the second line must begin with \c pres and should be followed
+    !! - the second line must begin with \c pressure and should be followed
     !!   by \f$N\f$ space-separated real scalars, giving the
     !!   pressures (in Pa) at the corresponding times
     !!
@@ -655,8 +658,8 @@ contains
     !!
     !! Example:
     !! <pre>
-    !! time  0    600  1800  # time (in s) after simulation start
-    !! pres  1e5  9e4  7.5e4 # pressure (in Pa)
+    !! time      0    600  1800  # time (in s) after simulation start
+    !! pressure  1e5  9e4  7.5e4 # pressure (in Pa)
     !! </pre>
     !! Here the pressure starts at 1e5&nbsp;Pa at the start of the
     !! simulation, decreases to 9e4&nbsp;Pa after 10&nbsp;min, and then
@@ -710,9 +713,9 @@ contains
     call spec_file_close(sub_file)
 
     ! pressure profile
-    call spec_file_read_string(file, "pres_profile", sub_filename)
+    call spec_file_read_string(file, "pressure_profile", sub_filename)
     call spec_file_open(sub_filename, sub_file)
-    call spec_file_read_timed_real_array(sub_file, "pres", &
+    call spec_file_read_timed_real_array(sub_file, "pressure", &
          scenario%pressure_time, scenario%pressure)
     call spec_file_close(sub_file)
 

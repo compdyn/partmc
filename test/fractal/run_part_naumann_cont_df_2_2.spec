@@ -1,5 +1,5 @@
 run_type particle               # particle-resolved run
-output_prefix out/part_vemury_cont_df_3     # prefix of output files
+output_prefix out/part_naumann_cont_df_3     # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 1000000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
@@ -31,7 +31,7 @@ start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
 do_coagulation yes              # whether to do coagulation (yes/no)
-coag_kernel vemury_cont         # coagulation kernel
+coag_kernel naumann_cont         # coagulation kernel
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
@@ -44,6 +44,6 @@ do_parallel no                  # whether to run in parallel (yes/no)
 
 do_fractal yes                  # whether to do fractal treatment
 do_fractal_test yes             # whether to do fractal testing cases
-frac_dim 3                      # fractal dimension
+frac_dim 2.2                      # fractal dimension
 prime_radius 2.5e-7              # radius of monomer
 vol_fill_factor 1               # volume filling factor

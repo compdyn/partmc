@@ -170,7 +170,7 @@ contains
             run_part_opt%do_optical, run_part_opt%uuid)
        call aero_info_array_zero(aero_state%aero_info_array)
     end if
-    
+
     call aero_state_rebalance(aero_state, aero_data, &
          run_part_opt%allow_doubling, &
          run_part_opt%allow_halving, initial_state_warning=.true.)

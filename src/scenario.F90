@@ -25,12 +25,12 @@ module pmc_scenario
   !!
   !! This is everything needed to drive the scenario being simulated.
   !!
-  !! The temperature, pressure, emissions and background states are profiles
-  !! prescribed as functions of time by giving a number of times and
-  !! the corresponding data. Simple data such as temperature and pressure is
-  !! linearly interpolated between times, with constant interpolation
-  !! outside of the range of times. Gases and aerosols are
-  !! interpolated with gas_state_interp_1d() and
+  !! The temperature, pressure, total water mixing ratio, emissions and 
+  !! background states are profiles prescribed as functions of time by 
+  !! giving a number of times and the corresponding data. Simple data 
+  !! such as temperature and pressure is linearly interpolated between times, 
+  !! with constant interpolation outside of the range of times. Gases and 
+  !! aerosols are interpolated with gas_state_interp_1d() and
   !! aero_dist_interp_1d(), respectively.
   type scenario_t
      !> Temperature set-point times (s).
@@ -42,6 +42,11 @@ module pmc_scenario
      real(kind=dp), pointer :: pressure_time(:)
      !> Pressures at set-points (Pa).
      real(kind=dp), pointer :: pressure(:)
+
+     !> Total water mixing ratio set-point times (s).
+     real(kind=dp), pointer :: q_tot_time(:)
+     !> Total water mixing ratio at set-points (kg/kg).
+     real(kind=dp), pointer :: q_tot(:)
 
      !> Height set-point times (s).
      real(kind=dp), pointer :: height_time(:)
@@ -93,6 +98,9 @@ contains
     allocate(scenario%pressure_time(0))
     allocate(scenario%pressure(0))
 
+    allocate(scenario%q_tot_time(0))
+    allocate(scenario%q_tot(0))
+
     allocate(scenario%height_time(0))
     allocate(scenario%height(0))
 
@@ -129,6 +137,9 @@ contains
 
     deallocate(scenario%pressure_time)
     deallocate(scenario%pressure)
+
+    deallocate(scenario%q_tot_time)
+    deallocate(scenario%q_tot)
 
     deallocate(scenario%height_time)
     deallocate(scenario%height)
@@ -190,6 +201,13 @@ contains
     allocate(scenario_to%pressure( &
          size(scenario_from%pressure)))
     scenario_to%pressure = scenario_from%pressure
+
+    allocate(scenario_to%q_tot_time( &
+         size(scenario_from%q_tot_time)))
+    scenario_to%q_tot_time = scenario_from%q_tot_time
+    allocate(scenario_to%q_tot( &
+         size(scenario_from%q_tot)))
+    scenario_to%q_tot = scenario_from%q_tot
 
     allocate(scenario_to%height_time( &
          size(scenario_from%height_time)))
@@ -273,6 +291,7 @@ contains
     env_state%temp = interp_1d(scenario%temp_time, scenario%temp, time)
     env_state%pressure = interp_1d(scenario%pressure_time, &
          scenario%pressure, time)
+    env_state%q_tot = interp_1d(scenario%q_tot_time, scenario%q_tot, time)
     env_state%height = interp_1d(scenario%height_time, scenario%height, time)
     env_state%elapsed_time = time
 
@@ -298,8 +317,8 @@ contains
     !> Ambient temperature (K)
     real(kind=dp) :: temp_old
 
-    ! Update temperature and pressure and adjust relative humidity to maintain
-    ! water mixing ratio.
+    ! Update temperature, pressure and total water mixing ratio and 
+    ! adjust relative humidity to maintain water mixing ratio.
 
     pmv_old = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
     pressure_old = env_state%pressure
@@ -308,6 +327,7 @@ contains
     env_state%temp = interp_1d(scenario%temp_time, scenario%temp, time)
     env_state%pressure = interp_1d(scenario%pressure_time, &
          scenario%pressure, time)
+    env_state%q_tot = interp_1d(scenario%q_tot_time, scenario%q_tot, time)    
 
     pmv_new = pmv_old * env_state%pressure / pressure_old
     env_state%rel_humid = pmv_new / env_state_sat_vapor_pressure(env_state)
@@ -386,6 +406,7 @@ contains
     call gas_state_deallocate(emissions)
 
     ! dilution
+    write(6,*)'gas dilution ', scenario%gas_dilution_rate
     call gas_state_allocate_size(background, gas_data%n_spec)
     call gas_state_interp_1d(scenario%gas_background, &
          scenario%gas_dilution_time, scenario%gas_dilution_rate, &
@@ -446,6 +467,7 @@ contains
     call aero_dist_deallocate(emissions)
 
     ! dilution
+    write(6,*)'aero dilution ', scenario%aero_dilution_rate
     call aero_dist_allocate(background)
     call aero_dist_interp_1d(scenario%aero_background, &
          scenario%aero_dilution_time, scenario%aero_dilution_rate, &
@@ -582,6 +604,9 @@ contains
     !! <li> \b pressure_profile (string): the name of the file from which to
     !!      read the pressure profile --- the file format should be
     !!      \subpage input_format_pressure_profile
+    !! <li> \b q_tot_profile (string): the name of the file from which to
+    !!      read the total water vapor mixing ratio profile --- the file 
+    !!      format should be \subpage input_format_q_tot_profile
     !! <li> \b height_profile (string): the name of the file from which
     !!      to read the mixing layer height profile --- the file format
     !!      should be \subpage input_format_height_profile
@@ -666,6 +691,38 @@ contains
     !!   - \ref input_format_scenario --- the environment data
     !!     containing the pressure profile
 
+    !> \page input_format_q_tot_profile Input File Format: Total Water Mixing Ratio Profile
+    !!
+    !! A total water mixing ratio profile input file must consist of two lines:
+    !! - the first line must begin with \c time and should be followed
+    !!   by \f$N\f$ space-separated real scalars, giving the times (in
+    !!   s after the start of the simulation) of the total water mixing ratio set
+    !!   points --- the times must be in increasing order
+    !! - the second line must begin with \c q_tot and should be followed
+    !!   by \f$N\f$ space-separated real scalars, giving the
+    !!   total water mixing ratio (in kg/kg) at the corresponding times
+    !!
+    !! The total water mixing ratio profile is linearly interpolated between the
+    !! specified times, while before the first time it takes the first
+    !! mixing ratio value and after the last time it takes the last
+    !! mixing ratio value.
+    !!
+    !! Example:
+    !! <pre>
+    !! time    0    600  1800  # time (in s) after simulation start
+    !! q_tot   0.01 0.02 0.15  # total water mixing ratio (in kg/kg)
+    !! </pre>
+    !! Here the total water mixing ratio starts at 0.01&nbsp;kg/kg at the start of the
+    !! simulation, increases to 0.02&nbsp;kg/kg after 10&nbsp;min, and then
+    !! decreases to 0.15&nbsp;kg/kg at 30&nbsp;min. Between these times
+    !! the total water mixing ratio is linearly interpolated, while after
+    !! 30&nbsp;min it is held constant at 0.15&nbsp;kg/kg.
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+    !!   - \ref input_format_scenario --- the environment data
+    !!     containing the total water mixing ratio profile
+
     !> \page input_format_height_profile Input File Format: Mixing Layer Height Profile
     !!
     !! A mixing layer height profile input file must consist of two
@@ -711,6 +768,13 @@ contains
     call spec_file_open(sub_filename, sub_file)
     call spec_file_read_timed_real_array(sub_file, "pressure", &
          scenario%pressure_time, scenario%pressure)
+    call spec_file_close(sub_file)
+
+    ! total water mixing ratio profile
+    call spec_file_read_string(file, "q_tot_profile", sub_filename)
+    call spec_file_open(sub_filename, sub_file)
+    call spec_file_read_timed_real_array(sub_file, "q_tot", &
+         scenario%q_tot_time, scenario%q_tot)
     call spec_file_close(sub_file)
 
     ! height profile
@@ -769,6 +833,8 @@ contains
          + pmc_mpi_pack_size_real_array(val%temp) &
          + pmc_mpi_pack_size_real_array(val%pressure_time) &
          + pmc_mpi_pack_size_real_array(val%pressure) &
+         + pmc_mpi_pack_size_real_array(val%q_tot_time) &
+         + pmc_mpi_pack_size_real_array(val%q_tot) &
          + pmc_mpi_pack_size_real_array(val%height_time) &
          + pmc_mpi_pack_size_real_array(val%height) &
          + pmc_mpi_pack_size_real_array(val%gas_emission_time) &
@@ -820,6 +886,8 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%temp)
     call pmc_mpi_pack_real_array(buffer, position, val%pressure_time)
     call pmc_mpi_pack_real_array(buffer, position, val%pressure)
+    call pmc_mpi_pack_real_array(buffer, position, val%q_tot_time)
+    call pmc_mpi_pack_real_array(buffer, position, val%q_tot)
     call pmc_mpi_pack_real_array(buffer, position, val%height_time)
     call pmc_mpi_pack_real_array(buffer, position, val%height)
     call pmc_mpi_pack_real_array(buffer, position, val%gas_emission_time)
@@ -871,6 +939,8 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%temp)
     call pmc_mpi_unpack_real_array(buffer, position, val%pressure_time)
     call pmc_mpi_unpack_real_array(buffer, position, val%pressure)
+    call pmc_mpi_unpack_real_array(buffer, position, val%q_tot_time)
+    call pmc_mpi_unpack_real_array(buffer, position, val%q_tot)
     call pmc_mpi_unpack_real_array(buffer, position, val%height_time)
     call pmc_mpi_unpack_real_array(buffer, position, val%height)
     call pmc_mpi_unpack_real_array(buffer, position, val%gas_emission_time)

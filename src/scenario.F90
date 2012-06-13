@@ -21,6 +21,13 @@ module pmc_scenario
   use mpi
 #endif
 
+  !> Type code for an undefined or invalid loss function.
+  integer, parameter :: SCENARIO_LOSS_FUNCTION_INVALID = 0
+  !> Type code for a zero loss function.
+  integer, parameter :: SCENARIO_LOSS_FUNCTION_ZERO    = 1
+  !> Type code for a loss rate fuction proportional to volume.
+  integer, parameter :: SCENARIO_LOSS_FUNCTION_VOLUME  = 2
+  
   !> Scenario data.
   !!
   !! This is everything needed to drive the scenario being simulated.
@@ -533,6 +540,35 @@ contains
     call aero_binned_deallocate(background_binned)
 
   end subroutine scenario_update_aero_binned
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real(kind=dp) function scenario_loss_rate(loss_function_id, vol, density, &
+       aero_data, temp, press)
+       
+    !> Id of loss rate function to be used
+    integer, intent(in) :: loss_function_id
+    !> Volume of particle.
+    real(kind=dp), intent(in) :: vol
+    !> Density of particle.
+    real(kind=dp), intent(in) :: density
+    !> Aerosol data. 
+    type(aero_data_t), intent(in) :: aero_data
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: temp
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: press
+    
+    if(loss_function_id == SCENARIO_LOSS_FUNCTION_ZERO) then
+      scenario_loss_rate = 0d0
+    elseif(loss_function_id == SCENARIO_LOSS_FUNCTION_VOL) then
+      scenario_loss_rate = vol
+    else
+       call die_msg(200724934, "Unknown loss function id: " &
+            // trim(integer_to_string(loss_function_id)))
+    end if
+    
+  end function 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

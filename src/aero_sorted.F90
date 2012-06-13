@@ -56,6 +56,10 @@ module pmc_aero_sorted
      real(kind=dp), allocatable, dimension(:,:) :: coag_kernel_min
      !> Coagulation kernel upper bound [<tt>n_bin x n_bin</tt>].
      real(kind=dp), allocatable, dimension(:,:) :: coag_kernel_max
+     !> Whether particle removal rate bounds are valid.
+     logical :: removal_rate_bounds_valid
+     !> Particle removal rate upper bound [<tt>n_bin x n_bin</tt>].
+     real(kind=dp), allocatable, dimension(:) :: removal_rate_max
   end type aero_sorted_t
 
   !> How many size bins to use per decade of particle radius.
@@ -81,6 +85,8 @@ contains
     aero_sorted%coag_kernel_bounds_valid = .false.
     allocate(aero_sorted%coag_kernel_min(0, 0))
     allocate(aero_sorted%coag_kernel_max(0, 0))
+    aero_sorted%removal_rate_bounds_valid = .false.
+    allocate(aero_sorted%removal_rate_max(0))
 
   end subroutine aero_sorted_allocate
 
@@ -104,6 +110,8 @@ contains
     aero_sorted%coag_kernel_bounds_valid = .false.
     allocate(aero_sorted%coag_kernel_min(n_bin, n_bin))
     allocate(aero_sorted%coag_kernel_max(n_bin, n_bin))
+    aero_sorted%removal_rate_bounds_valid = .false.
+    allocate(aero_sorted%removal_rate_max(n_bin))
 
   end subroutine aero_sorted_allocate_size
 
@@ -121,6 +129,8 @@ contains
     aero_sorted%coag_kernel_bounds_valid = .false.
     deallocate(aero_sorted%coag_kernel_min)
     deallocate(aero_sorted%coag_kernel_max)
+    aero_sorted%removal_rate_bounds_valid = .false.
+    deallocate(aero_sorted%removal_rate_max)
 
   end subroutine aero_sorted_deallocate
 
@@ -137,6 +147,8 @@ contains
     aero_sorted%coag_kernel_bounds_valid = .false.
     aero_sorted%coag_kernel_min = 0d0
     aero_sorted%coag_kernel_max = 0d0
+    aero_sorted%removal_rate_bounds_valid = .false.
+    aero_sorted%removal_rate_max = 0d0
 
   end subroutine aero_sorted_zero
 

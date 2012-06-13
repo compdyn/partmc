@@ -6,7 +6,7 @@
 !> The deposition module.
 
 !> Aerosol deposition.
-module deposition
+module pmc_deposition
 
   use pmc_aero_state
   use pmc_aero_data
@@ -335,4 +335,4 @@ module deposition
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module deposition
+end module pmc_deposition

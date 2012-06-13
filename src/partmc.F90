@@ -435,7 +435,7 @@ contains
        end if
 
        call spec_file_read_logical(file, 'do_dry_deposition', &
-            do_dry_deposition)
+            run_part_opt%do_dry_deposition)
 
        call spec_file_read_logical(file, 'do_mosaic', run_part_opt%do_mosaic)
        if (run_part_opt%do_mosaic .and. (.not. mosaic_support())) then

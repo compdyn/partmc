@@ -434,6 +434,9 @@ contains
           do_init_equilibriate = .false.
        end if
 
+       call spec_file_read_logical(file, 'do_dry_deposition', &
+            do_dry_deposition)
+
        call spec_file_read_logical(file, 'do_mosaic', run_part_opt%do_mosaic)
        if (run_part_opt%do_mosaic .and. (.not. mosaic_support())) then
           call spec_file_die_msg(230495365, file, &

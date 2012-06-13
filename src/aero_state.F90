@@ -727,7 +727,7 @@ contains
     !> Number of particles added.
     integer, intent(out), optional :: n_part_add
 
-    real(kind=dp) :: n_samp_avg, radius, total_vol
+    real(kind=dp) :: n_samp_avg, radius, total_vol, radius_test
     real(kind=dp) :: vols(aero_data%n_spec)
     integer :: n_samp, i_mode, i_samp, i_group, i_class, n_group, n_class
     type(aero_mode_t), pointer :: aero_mode

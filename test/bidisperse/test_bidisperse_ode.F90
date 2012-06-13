@@ -76,7 +76,7 @@ program test_bidisperse_ode
   call bin_grid_allocate(bin_grid)
   call bin_grid_make(bin_grid, n_bin, rad2vol(bin_r_min, aero_data%fractal), &
        rad2vol(bin_r_max, aero_data%fractal))
-  
+
   open(unit=out_unit, file=out_name)
   time = 0d0
   n_small = n_small_init

@@ -113,7 +113,7 @@ contains
     real(kind=dp), intent(in) :: r
     !> Fractal parameters. 
     type(fractal_t), intent(in) :: fractal
-   
+
     rad2vol = 4d0 * const%pi * fractal%prime_radius**3d0 * (r &
          / fractal%prime_radius)**fractal%frac_dim / 3d0 &
          / fractal%vol_fill_factor
@@ -197,7 +197,7 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
-    if (fractal%frac_dim == 3d0) then
+    if (almost_equal(fractal%frac_dim, 3d0)) then
        h_KR = 1d0
     else
        h_KR = -0.06483d0 * fractal%frac_dim**2 + 0.6353d0 * &
@@ -578,7 +578,7 @@ contains
        call check_frac_dim(fractal)
     else
        fractal%frac_dim = 3d0
-       fractal%prime_radius = 1d-8 ! Can be set to any value
+       fractal%prime_radius = 1d0 !1d-8 ! Can be set to any value
        fractal%vol_fill_factor = 1d0
     end if
 

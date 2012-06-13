@@ -91,10 +91,11 @@ contains
 
     real(kind=dp) r1, r2, winf1, winf2, ec
     
-    r1 = vol2Rme(v1, tk, press, aero_data%fractal) ! m
-    r2 = vol2Rme(v2, tk, press, aero_data%fractal) ! m
-    call fall_g(r1, winf1) ! winf1 in m/s
-    call fall_g(r2, winf2) ! winf2 in m/s
+    r1 = vol2rad(v1, aero_data%fractal) ! m
+    r2 = vol2rad(v2, aero_data%fractal) ! m
+    
+    call fall_g(vol2Rme(v1, tk, press, aero_data%fractal), winf1) ! winf1 in m/s
+    call fall_g(vol2Rme(v2, tk, press, aero_data%fractal), winf2) ! winf2 in m/s
     call effic(r1, r2, ec) ! ec is dimensionless
     k = ec * const%pi * (r1 + r2)**2 * abs(winf1 - winf2)
 

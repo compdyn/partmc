@@ -130,16 +130,13 @@ contains
     !> Kernel k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: bckernel
 
-    real(kind=dp) :: N_i, N_j, h_KR
+    real(kind=dp) :: N_i, N_j
     ! Number of monomers in particles i and j.
     N_i = 3d0 * v1 / 4d0 / const%pi / (aero_data%fractal%prime_radius**3d0)
     N_j = 3d0 * v2 / 4d0 / const%pi / (aero_data%fractal%prime_radius**3d0)
-    ! Calculate Kirkwood-Riseman ratio based on Eq (21) in Naumann (2003).
-    h_KR = -0.06483d0 * aero_data%fractal%frac_dim**2 &
-         + 0.6353d0 * aero_data%fractal%frac_dim -0.4898d0    
 
     bckernel = 2d0 * const%boltzmann * tk / 3d0 / const%air_dyn_visc &
-         / h_KR * (1d0 / N_i**(1d0 / aero_data%fractal%frac_dim) + 1d0 &
+         / h_KR(aero_data%fractal) * (1d0 / N_i**(1d0 / aero_data%fractal%frac_dim) + 1d0 &
          / N_j**(1d0 / aero_data%fractal%frac_dim)) &
          * (N_i**(1d0 / aero_data%fractal%frac_dim) &
          + N_j**(1d0 / aero_data%fractal%frac_dim))

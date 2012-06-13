@@ -137,7 +137,6 @@ program test_fractal_self_preserve
      call input_state(filename_list(i_file), index, time, del_t, i_repeat, &
           uuid, aero_data=aero_data, aero_state=aero_state)
 
-     aero_data%fractal%do_fractal = .true.
      if (i_file == 1) then
         run_uuid = uuid
      else

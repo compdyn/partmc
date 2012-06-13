@@ -42,8 +42,7 @@ allow_halving yes               # whether to allow halving (yes/no)
 record_removals yes             # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)
 
-do_fractal yes                  # whether to do fractal treatment
-do_fractal_test yes             # whether to do fractal testing cases
+do_fractal yes                   # whether to do fractal treatment
 frac_dim 3                      # fractal dimension
 prime_radius 5e-10              # radius of monomer
 vol_fill_factor 1               # volume filling factor

@@ -1,7 +1,7 @@
 run_type particle               # particle-resolved run
 output_prefix out/part_vemury_free_df_3     # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
-n_part 100000                     # total number of particles
+n_part 1000000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 1e+5                       # total simulation time (s)
@@ -42,8 +42,7 @@ allow_halving yes               # whether to allow halving (yes/no)
 record_removals yes             # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)
 
-do_fractal yes                  # whether to do fractal treatment
-do_fractal_test yes             # whether to do fractal testing cases
-frac_dim 3                      # fractal dimension
+do_fractal yes                   # whether to do fractal treatment
+frac_dim 3                     # fractal dimension
 prime_radius 5e-10              # radius of monomer
 vol_fill_factor 1               # volume filling factor

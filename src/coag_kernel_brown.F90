@@ -174,15 +174,9 @@ contains
     rad_i     = vol2rad(vol_i, aero_data%fractal)       ! particle wet radius (cm)
     Rme_i     = vol2Rme(vol_i/1.0d+6, tk, press, aero_data%fractal)*1.0d+2       ! particle mobility equivalent radius (cm)
 
-    if (aero_data%fractal%do_fractal) then
-       knud   = gasfreepath/Rme_i
-       cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
-       diffus_i  = boltz*tk*cunning/(6d0*const%pi*Rme_i*viscosd)
-    else
-       knud   = gasfreepath/rad_i
-       cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
-       diffus_i  = boltz*tk*cunning/(6d0*const%pi*rad_i*viscosd)
-    end if
+    knud   = gasfreepath/Rme_i
+    cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
+    diffus_i  = boltz*tk*cunning/(6d0*const%pi*Rme_i*viscosd)
     speedsq_i = 8d0*boltz*tk/(const%pi*den_i*vol_i)
     freepath  = 8d0*diffus_i/(const%pi*sqrt(speedsq_i))
     tmp1      = (2d0*rad_i + freepath)**3
@@ -194,15 +188,9 @@ contains
     rad_j     = vol2rad(vol_j, aero_data%fractal)
     Rme_j     = vol2Rme(vol_j/1.0d+6, tk, press, aero_data%fractal)*1.0d+2
 
-    if (aero_data%fractal%do_fractal) then
-       knud   = gasfreepath/Rme_j
-       cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
-       diffus_j  = boltz*tk*cunning/(6d0*const%pi*Rme_j*viscosd)
-    else
-       knud   = gasfreepath/rad_j
-       cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
-       diffus_j  = boltz*tk*cunning/(6d0*const%pi*rad_j*viscosd)
-    end if
+    knud   = gasfreepath/Rme_j
+    cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
+    diffus_j  = boltz*tk*cunning/(6d0*const%pi*Rme_j*viscosd)
     speedsq_j = 8d0*boltz*tk/(const%pi*den_j*vol_j)
     freepath  = 8d0*diffus_j/(const%pi*sqrt(speedsq_j))
     tmp1      = (2d0*rad_j + freepath)**3

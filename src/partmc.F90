@@ -492,14 +492,7 @@ contains
           run_part_opt%parallel_coag_type = PARALLEL_COAG_TYPE_LOCAL
        end if
  
-       if (do_restart) then
-          call spec_file_read_logical(file, 'do_fractal', &
-               aero_data%fractal%do_fractal)
-          if (aero_data%fractal%do_fractal) then
-             call spec_file_read_logical(file, 'do_fractal_test', &
-                  aero_data%fractal%do_fractal_test)
-          end if 
-       else
+       if (.not. do_restart) then
           call spec_file_read_fractal(file, aero_data%fractal)
        end if
 

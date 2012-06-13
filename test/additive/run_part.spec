@@ -43,4 +43,3 @@ record_removals no              # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)
 
 do_fractal no                   # whether to do fractal treatment
-

@@ -31,4 +31,4 @@ start_day 1                     # start day of year (UTC)
 do_coagulation yes              # whether to do coagulation (yes/no)
 coag_kernel additive            # coagulation kernel
 
-do_fractal no                   # whether to do fractal treatment
+do_fractal no			# whether to do fractal treatment

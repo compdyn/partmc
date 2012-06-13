@@ -12,11 +12,6 @@ module pmc_fractal
   use pmc_netcdf
 
   type fractal_t
-     !> Whether to do fractal radii conversion.
-     logical :: do_fractal
-     !> Whether to do testing cases of Brownian coag kernel,
-     !> based on Naumann (2003) and Vemury and Pratsinis (1995).
-     logical :: do_fractal_test
      !> Constants in slip correction formula.
      real(kind=dp) :: A_slip
      real(kind=dp) :: Q_slip
@@ -43,8 +38,6 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(out) :: fractal
 
-    fractal%do_fractal = .false.
-    fractal%do_fractal_test = .false.
     fractal%A_slip = 1.142d0
     fractal%Q_slip = 0.588d0
     fractal%b_slip = 0.999d0
@@ -64,8 +57,9 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(inout) :: fractal
 
-    fractal%do_fractal = .false.
-    fractal%do_fractal_test = .false.
+    fractal%frac_dim = 0d0
+    fractal%prime_radius = 0d0
+    fractal%vol_fill_factor = 0d0
 
   end subroutine fractal_deallocate
 
@@ -79,11 +73,8 @@ contains
     !> Fractal parameters. 
     type(fractal_t), intent(in) :: fractal
 
-    if (fractal%do_fractal) then
-       vol2rad = vol2Rgeo(v, fractal)
-    else
-       vol2rad = (v / (4d0 / 3d0 * const%pi))**(1d0 / 3d0)
-    end if
+    vol2rad = fractal%prime_radius * (vol2N(v, fractal) &
+         * fractal%vol_fill_factor)**(1d0 / fractal%frac_dim)
 
   end function vol2rad
 
@@ -123,13 +114,9 @@ contains
     !> Fractal parameters. 
     type(fractal_t), intent(in) :: fractal
    
-    if (fractal%do_fractal) then
-       rad2vol = 4d0 * const%pi * fractal%prime_radius**3d0 * (r &
-            / fractal%prime_radius)**fractal%frac_dim / 3d0 &
-            / fractal%vol_fill_factor
-    else
-       rad2vol = 4d0 / 3d0 * const%pi * r**3d0
-    end if
+    rad2vol = 4d0 * const%pi * fractal%prime_radius**3d0 * (r &
+         / fractal%prime_radius)**fractal%frac_dim / 3d0 &
+         / fractal%vol_fill_factor
 
   end function rad2vol
 
@@ -176,21 +163,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert volume (m^3) to geometric radius (m) for fractal particles
-  real(kind=dp) elemental function vol2Rgeo(v, fractal)
-
-    !> Volume (m^3).
-    real(kind=dp), intent(in) :: v
-    !> Fractal parameters. 
-    type(fractal_t), intent(in) :: fractal
-
-    vol2Rgeo = fractal%prime_radius * (vol2N(v, fractal) &
-         * fractal%vol_fill_factor)**(1d0 / fractal%frac_dim)
-
-  end function vol2Rgeo
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Calculate the accessible particle surface.
   !> Based on Eq. 26 in Naumann 2003 J. Aerosol. Sci.
   real(kind=dp) function vol2S_acc(v, fractal)
@@ -219,6 +191,23 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Kirkwood-Riseman ratio.
+  real(kind=dp) function h_KR(fractal)
+
+    !> Fractal parameters.
+    type(fractal_t), intent(in) :: fractal
+
+    if (fractal%frac_dim == 3d0) then
+       h_KR = 1d0
+    else
+       h_KR = -0.06483d0 * fractal%frac_dim**2 + 0.6353d0 * &
+         fractal%frac_dim - 0.4898d0
+    end if
+
+  end function h_KR
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Convert volume (m^3) to continuum regime mobility equivalent radius
   real(kind=dp) function vol2R_me_c(v, fractal)
 
@@ -227,12 +216,7 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
-    ! Geometric radius (m).
-    real(kind=dp) :: Rgeo
-
-    Rgeo = vol2Rgeo(v, fractal)
-    vol2R_me_c = (-0.06483d0 * fractal%frac_dim**2d0 + 0.6353d0 &
-         * fractal%frac_dim - 0.4898d0) * Rgeo
+    vol2R_me_c = h_KR(fractal) * vol2rad(v, fractal)
 
   end function vol2R_me_c
 
@@ -306,18 +290,20 @@ contains
     iter = 1
     x = vol2R_me_c(v, fractal)
 
-    !print *, 'analytical is ', df_Rme(x, v, tk, press, fractal)
-    !print *, 'numerical is ', (f_Rme(x, v, tk, press, fractal) &
-    !     - f_Rme(x-1d-10, v, tk, press, fractal)) / 1d-10
-    do
-      !print *, 'The solution for Rme is ', x
-      x = x - f_Rme(x, v, tk, press, fractal) &
-           / df_Rme(x, v, tk, press, fractal)
-      if (iter > MAX_ITERATIONS) then
-         exit
-      end if
-      iter= iter + 1
-    end do
+    if (fractal%frac_dim < 3d0) then
+       !print *, 'analytical is ', df_Rme(x, v, tk, press, fractal)
+       !print *, 'numerical is ', (f_Rme(x, v, tk, press, fractal) &
+       !     - f_Rme(x-1d-10, v, tk, press, fractal)) / 1d-10
+       do
+         !print *, 'The solution for Rme is ', x
+         x = x - f_Rme(x, v, tk, press, fractal) &
+              / df_Rme(x, v, tk, press, fractal)
+         if (iter > MAX_ITERATIONS) then
+            exit
+         end if
+         iter= iter + 1
+       end do
+    end if
 
     vol2Rme = x
 
@@ -346,6 +332,7 @@ contains
          * air_mean_free_path(tk, press) * exp(-fractal%b_slip * x &
          / air_mean_free_path(tk, press)) - R_me_c * fractal%A_slip &
          * air_mean_free_path(tk, press)
+  
   end function f_Rme
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -369,6 +356,7 @@ contains
 
     y = 2d0 * C_Reff * x - R_me_c + R_me_c * fractal%Q_slip * fractal%b_slip &
          * exp(-fractal%b_slip * x / air_mean_free_path(tk, press))
+  
   end function df_Rme
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -409,22 +397,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  !> Convert fractal geometric radius (m) to volume (m^3).
-  real(kind=dp) function Rgeo2vol(r, fractal)
-
-    !> Radius (m).
-    real(kind=dp), intent(in) :: r
-    !> Fractal parameters. 
-    type(fractal_t), intent(in) :: fractal
-
-    Rgeo2vol = 4d0 * const%pi * fractal%prime_radius**3d0 * (r &
-         / fractal%prime_radius)**fractal%frac_dim / 3d0 &
-         / fractal%vol_fill_factor
-
-  end function Rgeo2vol
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   function f_Rmec(x, r, tk, press, fractal) result (y)
     
     real(kind=dp), intent(in) :: x
@@ -437,14 +409,12 @@ contains
     type(fractal_t), intent(in) :: fractal
     real(kind=dp) :: y
 
-    real(kind=dp) :: C_Rme, phi, h_KR
+    real(kind=dp) :: C_Rme, phi
     C_Rme = Slip_correct(r, tk, press, fractal)
-    h_KR = -0.06483d0 * fractal%frac_dim**2 + 0.6353d0 * &
-         fractal%frac_dim - 0.4898d0
     phi = fractal%prime_radius**(2d0 - fractal%frac_dim &
          * fractal%scale_exponent_S_acc) &
          / (fractal%vol_fill_factor**fractal%scale_exponent_S_acc &
-         * h_KR**(fractal%frac_dim * fractal%scale_exponent_S_acc))
+         * h_KR(fractal)**(fractal%frac_dim * fractal%scale_exponent_S_acc))
     
     y = C_Rme * x - fractal%A_slip * air_mean_free_path(tk, press) &
          * r / phi * x**(1d0 - fractal%frac_dim                    &
@@ -472,14 +442,12 @@ contains
     type(fractal_t), intent(in) :: fractal
     real(kind=dp) :: y
 
-    real(kind=dp) :: C_Rme, phi, h_KR
+    real(kind=dp) :: C_Rme, phi
     C_Rme = Slip_correct(r, tk, press, fractal)
-    h_KR = -0.06483d0 * fractal%frac_dim**2 + 0.6353d0 * &
-         fractal%frac_dim - 0.4898d0
     phi = fractal%prime_radius**(2d0 - fractal%frac_dim           &
          * fractal%scale_exponent_S_acc)                          & 
          / (fractal%vol_fill_factor**fractal%scale_exponent_S_acc &
-         * h_KR**(fractal%frac_dim * fractal%scale_exponent_S_acc))
+         * h_KR(fractal)**(fractal%frac_dim * fractal%scale_exponent_S_acc))
 
     y = C_Rme - air_mean_free_path(tk, press) * r / phi                 &
          * (1d0 - fractal%frac_dim * fractal%scale_exponent_S_acc)      &
@@ -510,10 +478,65 @@ contains
 
     real(kind=dp) :: R_me_c, Rgeo
     R_me_c = Rme2R_me_c(r, tk, press, fractal)
-    Rgeo = R_me_c / (-0.06483d0 * fractal%frac_dim**2 &
-         + 0.6353d0 * fractal%frac_dim - 0.4898d0)
+    Rgeo = R_me_c / h_KR(fractal)
     Rme2vol = rad2vol(Rgeo, fractal)
+  
   end function Rme2vol
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Calculate air molecular mean free path (m).
+  real(kind=dp) function air_mean_free_path(tk, press)
+
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: tk
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: press
+
+    real(kind=dp) :: boltz, avogad, mwair, rgas, rhoair, viscosd, &
+         viscosk, gasspeed
+
+    ! boltz   = boltzmann's constant (erg/K = g*cm^2/s/K)
+    ! avogad  = avogadro's number (molecules/mol)
+    ! mwair   = molecular weight of air (g/mol)
+    ! rgas    = gas constant (atmos/(mol/liter)/K)
+    ! rhoair  = air density (g/cm^3)
+    ! viscosd = air dynamic viscosity (g/cm/s)
+    ! viscosk = air kinematic viscosity (cm^2/s)
+    ! gasspeed    = air molecule mean thermal velocity (cm/s)
+    ! air_mean_free_path = air molecule mean free path (m)
+
+    boltz = const%boltzmann * 1d7 ! J/K to erg/K
+    avogad = const%avagadro
+    mwair = const%air_molec_weight * 1d3 ! kg/mole to g/mole
+    rgas = const%univ_gas_const * 1d-2 ! J/mole/K to atmos/(mol/liter)/K
+
+    rhoair = 0.001d0 * ((press/1.01325d5) * mwair / (rgas * tk))
+
+    viscosd = (1.8325d-04 * (296.16d0 + 120d0) / (tk + 120d0)) * (tk &
+         / 296.16d0)**1.5d0
+    viscosk = viscosd / rhoair
+    gasspeed = sqrt(8d0 * boltz * tk * avogad / (const%pi * mwair))
+    air_mean_free_path = 2d0 * viscosk / gasspeed * 1d-02
+
+  end function air_mean_free_path
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Check the fractal dimension value. 
+  subroutine check_frac_dim(fractal)
+
+    !> Fractal parameters.
+    type(fractal_t), intent(inout) :: fractal
+
+    call assert_msg(801987241, fractal%frac_dim > 3d0, &
+         'fractal dimension greater than 3')
+                
+    if (fractal%frac_dim < 3d0 .and. fractal%frac_dim > 2.5d0) then 
+       call warn_msg(852246877, "Try using fractal dimension of 3")
+    end if
+
+  end subroutine check_frac_dim
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -524,6 +547,8 @@ contains
     type(spec_file_t), intent(inout) :: file
     !> Fractal parameters.
     type(fractal_t), intent(inout) :: fractal
+
+    logical :: do_fractal
 
     !> \page input_format_fractal Input File Format: Fractal State
     !!
@@ -542,16 +567,15 @@ contains
     !!     other environment data
 
     call spec_file_read_logical(file, 'do_fractal', &
-         fractal%do_fractal)
-    if (fractal%do_fractal) then
-       call spec_file_read_logical(file, 'do_fractal_test', &
-         fractal%do_fractal_test)
+         do_fractal)
+    if (do_fractal) then
        call spec_file_read_real(file, 'frac_dim', &
             fractal%frac_dim)
        call spec_file_read_real(file, 'prime_radius', &
             fractal%prime_radius)
        call spec_file_read_real(file, 'vol_fill_factor', &
             fractal%vol_fill_factor)
+       call check_frac_dim(fractal)
     else
        fractal%frac_dim = 3d0
        fractal%prime_radius = 1d-8 ! Can be set to any value
@@ -559,44 +583,6 @@ contains
     end if
 
   end subroutine spec_file_read_fractal
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Calculate air molecular mean free path (m).
-  real(kind=dp) function air_mean_free_path(tk, press)
-
-    !> Temperature (K).
-    real(kind=dp), intent(in) :: tk
-    !> Pressure (Pa).
-    real(kind=dp), intent(in) :: press
-
-    real(kind=dp) :: boltz, avogad, mwair, rgas, rhoair, viscosd, &
-         viscosk, gasspeed
-    
-    ! boltz   = boltzmann's constant (erg/K = g*cm^2/s/K)
-    ! avogad  = avogadro's number (molecules/mol)
-    ! mwair   = molecular weight of air (g/mol)
-    ! rgas    = gas constant (atmos/(mol/liter)/K)
-    ! rhoair  = air density (g/cm^3)
-    ! viscosd = air dynamic viscosity (g/cm/s)
-    ! viscosk = air kinematic viscosity (cm^2/s)
-    ! gasspeed    = air molecule mean thermal velocity (cm/s)
-    ! air_mean_free_path = air molecule mean free path (m)
-    
-    boltz = const%boltzmann * 1d7 ! J/K to erg/K
-    avogad = const%avagadro
-    mwair = const%air_molec_weight * 1d3 ! kg/mole to g/mole
-    rgas = const%univ_gas_const * 1d-2 ! J/mole/K to atmos/(mol/liter)/K
-
-    rhoair = 0.001d0 * ((press/1.01325d5) * mwair / (rgas * tk))
-
-    viscosd = (1.8325d-04 * (296.16d0 + 120d0) / (tk + 120d0)) * (tk &
-         / 296.16d0)**1.5d0
-    viscosk = viscosd / rhoair
-    gasspeed = sqrt(8d0 * boltz * tk * avogad / (const%pi * mwair))
-    air_mean_free_path = 2d0 * viscosk / gasspeed * 1d-02
-  
-  end function air_mean_free_path  
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

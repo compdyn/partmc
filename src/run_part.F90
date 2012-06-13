@@ -64,6 +64,8 @@ module pmc_run_part
      logical :: allow_halving
      !> Whether to do condensation.
      logical :: do_condensation
+     !> Whether to do particle dry deposition.
+     logical :: do_drydeposition
      !> Whether to do MOSAIC.
      logical :: do_mosaic
      !> Whether to compute optical properties.
@@ -250,6 +252,10 @@ contains
        end if
 #endif
 
+       if (run_part_opt%do_drydeposition) then
+
+       end if
+
        if (run_part_opt%do_mosaic) then
           call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
                gas_state, run_part_opt%do_optical)
@@ -409,6 +415,7 @@ contains
          + pmc_mpi_pack_size_logical(val%allow_doubling) &
          + pmc_mpi_pack_size_logical(val%allow_halving) &
          + pmc_mpi_pack_size_logical(val%do_condensation) &
+         + pmc_mpi_pack_size_logical(val%do_drydeposition) &
          + pmc_mpi_pack_size_logical(val%do_mosaic) &
          + pmc_mpi_pack_size_logical(val%do_optical) &
          + pmc_mpi_pack_size_integer(val%i_repeat) &
@@ -454,6 +461,7 @@ contains
     call pmc_mpi_pack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_pack_logical(buffer, position, val%allow_halving)
     call pmc_mpi_pack_logical(buffer, position, val%do_condensation)
+    call pmc_mpi_pack_logical(buffer, position, val%do_drydeposition)
     call pmc_mpi_pack_logical(buffer, position, val%do_mosaic)
     call pmc_mpi_pack_logical(buffer, position, val%do_optical)
     call pmc_mpi_pack_integer(buffer, position, val%i_repeat)
@@ -502,6 +510,7 @@ contains
     call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_halving)
     call pmc_mpi_unpack_logical(buffer, position, val%do_condensation)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_drydeposition)
     call pmc_mpi_unpack_logical(buffer, position, val%do_mosaic)
     call pmc_mpi_unpack_logical(buffer, position, val%do_optical)
     call pmc_mpi_unpack_integer(buffer, position, val%i_repeat)

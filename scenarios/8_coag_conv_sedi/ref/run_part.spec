@@ -1,6 +1,6 @@
 run_type particle               # particle-resolved run
 output_prefix part              # prefix of output files
-n_repeat 1                      # number of Monte Carlo repeats
+n_repeat 120                    # number of Monte Carlo repeats
 n_part %%N_PART%%               # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
@@ -43,9 +43,4 @@ allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
 record_removals no              # whether to record particle removals (yes/no)
 
-do_parallel yes                 # whether to run in parallel (yes/no)
-output_type dist                # parallel output type (central/dist/single)
-mix_timescale 0                 # mixing timescale between processors (s)
-gas_average no                  # whether to average gases each timestep
-env_average no                  # whether to average environment each timestep
-parallel_coag local             # parallel coagulation method (local/dist)
+do_parallel no                  # whether to run in parallel (yes/no)

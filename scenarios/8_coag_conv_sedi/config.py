@@ -6,21 +6,21 @@ ref_dirname = "ref"
 run_dirname = "runs"
 fig_dirname = "figs"
 
-n_nodes = 10
-n_procs_per_node = 12
+n_nodes = 1
+n_procs_per_node = 1
 
 n_part_list = [
-    ("1000", "1k", r"$10^3$"),
-    ("10000", "10k", r"$10^4$"),
-    #("100000", "100k", r"$10^5$"),
+    #("1000", "1k", r"$10^3$"),
+    #("10000", "10k", r"$10^4$"),
+    ("100000", "100k", r"$10^5$"),
     ]
 
 weight_list = [
-    ("power", "0"),
-    ("power", "-1"),
-    ("power", "-2"),
+    #("power", "0"),
+    #("power", "-1"),
+    #("power", "-2"),
     ("power", "-3"),
-    ("nummass", None),
+    #("nummass", None),
     ]
 
 plot_weight_list = [

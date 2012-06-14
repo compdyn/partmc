@@ -30,8 +30,6 @@ module pmc_env_state
      real(kind=dp) :: rel_humid
      !> Ambient pressure (Pa).
      real(kind=dp) :: pressure
-     !> Total water mixing ratio in parcel (kg/kg)
-     real(kind=dp) :: q_tot
      !> Longitude (degrees).
      real(kind=dp) :: longitude
      !> Latitude (degrees).

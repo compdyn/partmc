@@ -123,10 +123,10 @@ contains
          aero_state%aero_sorted%bin_grid, i_bin, j_bin, f_max)
     k_max = aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin) * f_max
 
-    !call try_per_particle_coag(coag_kernel_type, k_max, env_state, aero_data, &
-    !     aero_state, del_t, tot_n_samp, tot_n_coag, i_bin, j_bin, &
-    !     per_particle_coag_succeeded)
-    !if (per_particle_coag_succeeded) return
+    call try_per_particle_coag(coag_kernel_type, k_max, env_state, aero_data, &
+         aero_state, del_t, tot_n_samp, tot_n_coag, i_bin, j_bin, &
+         per_particle_coag_succeeded)
+    if (per_particle_coag_succeeded) return
 
     call per_set_coag(coag_kernel_type, k_max, env_state, aero_data, &
          aero_state, del_t, tot_n_samp, tot_n_coag, i_bin, j_bin)

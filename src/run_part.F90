@@ -10,6 +10,7 @@ module pmc_run_part
 
   use pmc_util
   use pmc_aero_state
+  use pmc_deposition
   use pmc_scenario
   use pmc_env_state
   use pmc_aero_data
@@ -134,7 +135,14 @@ contains
     type(env_state_t) :: old_env_state
     integer :: n_time, i_time, i_time_start, pre_i_time
     integer :: i_state, i_state_netcdf, i_output
-  
+ 
+    ! Temporary hack
+    real(kind=dp) :: aer_res_a 
+    real(kind=dp) :: ustar 
+    real(kind=dp) :: gamma
+    real(kind=dp) :: A 
+    real(kind=dp) :: alpha
+ 
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
 
@@ -253,7 +261,13 @@ contains
 #endif
 
        if (run_part_opt%do_dry_deposition) then
-
+          aer_res_a = .0d0
+          ustar = 5.0d0
+          gamma = .6d0
+          A = 2.0/1000.0
+          alpha =  .8d0
+          call dry_dep_aero_state(aero_state, aero_data, env_state, &
+               aer_res_a, ustar, gamma, A, alpha, run_part_opt%del_t) 
        end if
 
        if (run_part_opt%do_mosaic) then

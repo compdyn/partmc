@@ -3,7 +3,7 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The deposition module.
+!> The pmc_deposition module.
 
 !> Aerosol deposition.
 module pmc_deposition

@@ -53,10 +53,10 @@ for run in config.all_runs():
         mass_1_dist = partmc.histogram_1d(diameters[species1], diam_grid, weights=masses[species1] / comp_vols[species1])
         mass_2_dist = partmc.histogram_1d(diameters[species2], diam_grid, weights=masses[species2] / comp_vols[species2])
 
-        num_1_err[i] = numpy.linalg.norm(num_1_dist - aero_binned_array.num_conc[0,:])
-        num_2_err[i] = numpy.linalg.norm(num_2_dist - aero_binned_array.num_conc[1,:])
-        mass_1_err[i] = numpy.linalg.norm(mass_1_dist - aero_binned_array.mass_conc()[0,:])
-        mass_2_err[i] = numpy.linalg.norm(mass_2_dist - aero_binned_array.mass_conc()[1,:])
+        num_1_err[i] = numpy.linalg.norm(num_1_dist - aero_binned_array.num_conc[0,:]) / diam_grid.grid_size(0)
+        num_2_err[i] = numpy.linalg.norm(num_2_dist - aero_binned_array.num_conc[1,:]) / diam_grid.grid_size(0)
+        mass_1_err[i] = numpy.linalg.norm(mass_1_dist - aero_binned_array.mass_conc()[0,:]) / diam_grid.grid_size(0)
+        mass_2_err[i] = numpy.linalg.norm(mass_2_dist - aero_binned_array.mass_conc()[1,:]) / diam_grid.grid_size(0)
 
         num_dists[i,:] = num_dist
         mass_dists[i,:] = mass_dist

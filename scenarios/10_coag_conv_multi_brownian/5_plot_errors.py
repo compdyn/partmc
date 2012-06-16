@@ -10,7 +10,10 @@ import config
 colors = ['b', 'r', 'g']
 shapes = ['x', '.', '+']
 
-(figure, axes) = mpl_helper.make_fig(figure_width=5, right_margin=1.6, top_margin=0.4)
+(figure, axes) = mpl_helper.make_fig(figure_width=5,
+                                     left_margin=0.6, right_margin=1.6,
+                                     bottom_margin=0.5, top_margin=0.2,
+                                     axis_ratio = 4.0/3.0)
 
 handles = []
 labels = []
@@ -33,10 +36,10 @@ for (i_part, (n_part, n_part_name, n_part_tex)) in enumerate(config.n_part_list)
         stats_filename = os.path.join(dirname, "stats.txt")
         stats = numpy.loadtxt(stats_filename)
 
-        num_1_err_mean = stats[0]
-        num_1_err_ci = stats[1]
-        num_2_err_mean = stats[2]
-        num_2_err_ci = stats[3]
+        num_1_err_mean = stats[0] / 1e6
+        num_1_err_ci = stats[1] / 1e6
+        num_2_err_mean = stats[2] / 1e6
+        num_2_err_ci = stats[3] / 1e6
         mass_1_err_mean = stats[4]
         mass_1_err_ci = stats[5]
         mass_2_err_mean = stats[6]
@@ -91,8 +94,8 @@ print "mean pop 1 degradation factor: %f" % numpy.array(pop_1_degradations).mean
 
 axes.set_xscale('log')
 axes.set_yscale('log')
-axes.set_xlabel(r'population 1 error $E[\|n_1 - n_{1, \rm s}\|_2]$')
-axes.set_ylabel(r'population 2 error $E[\|n_2 - n_{2, \rm s}\|_2]$')
+axes.set_xlabel(r'sub-population 1 error $E[\|n_1 - n_{1, \rm s}\|_2]$')
+axes.set_ylabel(r'sub-population 2 error $E[\|n_2 - n_{2, \rm s}\|_2]$')
 axes.grid(True)
 
 (ax_x0, ax_y0) = axes.transAxes.transform_point((0, 0))

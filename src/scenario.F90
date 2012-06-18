@@ -20,16 +20,16 @@ module pmc_scenario
 #ifdef PMC_USE_MPI
   use mpi
 #endif
-  
+
   !> Scenario data.
   !!
   !! This is everything needed to drive the scenario being simulated.
   !!
-  !! The temperature, pressure, total water mixing ratio, emissions and 
-  !! background states are profiles prescribed as functions of time by 
-  !! giving a number of times and the corresponding data. Simple data 
-  !! such as temperature and pressure is linearly interpolated between times, 
-  !! with constant interpolation outside of the range of times. Gases and 
+  !! The temperature, pressure, total water mixing ratio, emissions and
+  !! background states are profiles prescribed as functions of time by
+  !! giving a number of times and the corresponding data. Simple data
+  !! such as temperature and pressure is linearly interpolated between times,
+  !! with constant interpolation outside of the range of times. Gases and
   !! aerosols are interpolated with gas_state_interp_1d() and
   !! aero_dist_interp_1d(), respectively.
   type scenario_t
@@ -86,9 +86,9 @@ module pmc_scenario
      !> Aerosol background at set-points (# m^{-3}).
      type(aero_dist_t), pointer :: aero_background(:)
   end type scenario_t
-  
+
 contains
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate an scenario.
@@ -326,7 +326,7 @@ contains
     type(env_state_t), intent(inout) :: env_state
     !> Current time (s).
     real(kind=dp), intent(in) :: time
-    
+
     !> Ambient water vapor pressure (Pa).
     real(kind=dp) :: pmv_old, pmv_new
     !> Ambient pressure (Pa)
@@ -334,7 +334,7 @@ contains
     !> Ambient temperature (K)
     real(kind=dp) :: temp_old
 
-    ! Update temperature, pressure and total water mixing ratio and 
+    ! Update temperature, pressure and total water mixing ratio and
     ! adjust relative humidity to maintain water mixing ratio.
 
     pmv_old = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
@@ -558,7 +558,7 @@ contains
     qdot = (q_tot_final - q_tot) / delta_t
 
     q_back = interp_1d(scenario%q_background_time, scenario%q_background, &
-        env_state%elapsed_time) 
+        env_state%elapsed_time)
 
     ! initial water volume in the aerosol particles in volume V_comp
     water_vol_conc_initial = 0d0
@@ -569,7 +569,7 @@ contains
        num_conc = aero_weight_array_num_conc(aero_state%awa, aero_particle)
        water_vol_conc_initial = water_vol_conc_initial &
             + aero_particle%vol(aero_data%i_water) * num_conc
-    end do    
+    end do
 
     ! specific liquid water in parcel
     rho_air = env_state%pressure * const%air_molec_weight &
@@ -581,7 +581,8 @@ contains
     epsilon = const%water_molec_weight / const%air_molec_weight
     q_v_parcel = epsilon * pmv / (env_state%pressure - (1 - epsilon) * pmv)
 
-    write(6,*)'before entrainment ', q_l_parcel, q_v_parcel, q_l_parcel+q_v_parcel, q_tot
+    write(6,*)'before entrainment ', q_l_parcel, q_v_parcel, &
+        q_l_parcel+q_v_parcel, q_tot
 
     ! entrainment rate
     entrain_rate = qdot / (q_back - q_l_parcel - q_v_parcel)
@@ -590,7 +591,8 @@ contains
     call gas_state_allocate_size(background_gas, gas_data%n_spec)
     call gas_state_interp_1d(scenario%gas_background, &
          scenario%gas_dilution_time, scenario%gas_dilution_rate, &
-         env_state%elapsed_time, background_gas, dilution_rate)    ! note that the dilution rate here is not used
+         env_state%elapsed_time, background_gas, dilution_rate)
+    ! note that the dilution rate here is not used
     p = exp(- entrain_rate * delta_t)
     call gas_state_scale(gas_state, p)
     call gas_state_add_scaled(gas_state, background_gas, 1d0 - p)
@@ -627,14 +629,15 @@ contains
        num_conc = aero_weight_array_num_conc(aero_state%awa, aero_particle)
        water_vol_conc_initial = water_vol_conc_initial &
             + aero_particle%vol(aero_data%i_water) * num_conc
-    end do    
+    end do
 
     ! specific liquid water in parcel
     rho_air = env_state%pressure * const%air_molec_weight &
          / (const%univ_gas_const * env_state%temp)
     q_l_parcel = water_vol_conc_initial * const%water_density / rho_air
 
-    write(6,*)'after entrainment  ', q_l_parcel, q_v_parcel, q_l_parcel+q_v_parcel, q_tot
+    write(6,*)'after entrainment  ', q_l_parcel, q_v_parcel, &
+        q_l_parcel+q_v_parcel, q_tot
 
     !adjust relative humidity so that q_tot is matched
     q_v_parcel_new = q_tot - q_l_parcel
@@ -642,7 +645,8 @@ contains
         / (epsilon + q_v_parcel_new * (1 - epsilon))
     env_state%rel_humid = pmv_new / env_state_sat_vapor_pressure(env_state)
 
-    write(6,*)'after adjusting   ',  q_l_parcel, q_v_parcel_new, q_l_parcel+q_v_parcel_new, q_tot
+    write(6,*)'after adjusting   ',  q_l_parcel, q_v_parcel_new, &
+        q_l_parcel+q_v_parcel_new, q_tot
 
   end subroutine scenario_update_cloud
 
@@ -757,7 +761,7 @@ contains
     !!      read the pressure profile --- the file format should be
     !!      \subpage input_format_pressure_profile
     !! <li> \b q_tot_profile (string): the name of the file from which to
-    !!      read the total water vapor mixing ratio profile --- the file 
+    !!      read the total water vapor mixing ratio profile --- the file
     !!      format should be \subpage input_format_q_tot_profile
     !! <li> \b q_background_profile (string): the name of the file from which
     !!      to read the background temperature profile --- the file format
@@ -1152,5 +1156,5 @@ contains
   end subroutine pmc_mpi_unpack_scenario
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_scenario

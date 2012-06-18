@@ -277,4 +277,39 @@ The ODE solution will satisfy $D_i \ge D_{i,\rm dry}$, but a numerical
 solution may violate this condition. In this case we use the alternate
 equations which force the system back towards the allowed region.
 
+\section{Adding entrainment of non-cloudy air}
+Given:
+\begin{enumerate}
+\item $q_{\rm back}(t_k)$: specific humidity of background air
+  (outside cloud) at times $t_k$. The background is subsaturated, so
+  most of the background water is in the vapor phase (liquid water
+  content of subsaturated aerosols is very small).
+\item $q_{\rm tot}(t_k)$: total specific humidity of the parcel
+  (liquid water ($q_{\rm l}$) and water vapor ($q_{\rm v}$)), which
+  changes with time, hence the total water content of the parcel is
+  not conserved.
+\end{enumerate}
+
+The entrainment rate $\lambda_{\rm entrain}$ is given by:
+\begin{equation}
+\lambda_{{\rm entrain}, k} = \frac{q_{{\rm tot}, k+1} - q_{{\rm tot}, k}}{(t_{k+1} - t_{k})(q_{{\rm back}, k} - q_{{\rm l}, k} - q_{{\rm v}, k})}.
+\end{equation}
+
+Using $\lambda_{\rm entrain}$ we do dilution of gases and dilution of
+particles. Dilution of particles from the parcel into the background
+will lead to change of liquid water content of the parcel, so $q_{{\rm
+    l}, k}$ needs to be updated to $q_{{\rm l, new}, k}$. Dilution of
+particles from the background means that the aerosol population in the
+parcel changes.
+
+The updated value $q_{{\rm l, new}, k}$ is then used to update the
+parcel relative humidity, so that the prescribed $q_{{\rm tot}, k}$ is
+matched.
+\begin{align}
+q_{{\rm v, new}, k} &= q_{{\rm tot}, k} - q_{{\rm l, new}, k} \\
+p_{{\rm v, new}, k} &= \frac{q_{{\rm v, new}, k} p_k}
+        {\epsilon + q_{{\rm v, new}, k} (1 - \epsilon)} \\
+H_{{\rm new}, k} &= \frac{p_{{\rm v, new}, k}}{P^0(T_k)}
+\end{align}
+where $\epsilon = \frac{M_{\rm w}}{M_{\rm air}}$.
 \end{document}

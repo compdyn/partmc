@@ -17,8 +17,9 @@ aerosol_init aero_init_dist.dat # aerosol initial condition file
 
 temp_profile temp.dat           # temperature profile file
 pressure_profile pres.dat       # pressure profile file
-q_tot_profile q_tot.dat         # total water mixing ratio profile file
-q_background q_back.dat         # background spec. humidity profile file
+do_entrain no                   # whether to do entrainment (yes/no)
+#q_tot_profile q_tot.dat         # total water mixing ratio profile file
+#q_background q_back.dat         # background spec. humidity profile file
 height_profile height.dat       # height profile file
 
 gas_emissions gas_emit.dat      # gas emissions file

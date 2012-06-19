@@ -43,6 +43,8 @@ module pmc_scenario
      !> Pressures at set-points (Pa).
      real(kind=dp), pointer :: pressure(:)
 
+     !> Whether to do entrainment
+     logical :: do_entrain
      !> Total specific water set-point times (s).
      real(kind=dp), pointer :: q_tot_time(:)
      !> Total specific water at set-points (kg/kg).
@@ -929,19 +931,21 @@ contains
          scenario%pressure_time, scenario%pressure)
     call spec_file_close(sub_file)
 
+    call spec_file_read_logical(file, "do_entrain", scenario%do_entrain)
     ! total water mixing ratio profile
-    call spec_file_read_string(file, "q_tot_profile", sub_filename)
-    call spec_file_open(sub_filename, sub_file)
-    call spec_file_read_timed_real_array(sub_file, "q_tot", &
-         scenario%q_tot_time, scenario%q_tot)
-    call spec_file_close(sub_file)
-
-    ! background specific humidity profile
-    call spec_file_read_string(file, "q_background", sub_filename)
-    call spec_file_open(sub_filename, sub_file)
-    call spec_file_read_timed_real_array(sub_file, "q_background", &
-         scenario%q_background_time, scenario%q_background)
-    call spec_file_close(sub_file)
+    if (scenario%do_entrain) then
+       call spec_file_read_string(file, "q_tot_profile", sub_filename)
+       call spec_file_open(sub_filename, sub_file)
+       call spec_file_read_timed_real_array(sub_file, "q_tot", &
+           scenario%q_tot_time, scenario%q_tot)
+       call spec_file_close(sub_file) 
+       ! background specific humidity profile
+       call spec_file_read_string(file, "q_background", sub_filename)
+       call spec_file_open(sub_filename, sub_file)
+       call spec_file_read_timed_real_array(sub_file, "q_background", &
+           scenario%q_background_time, scenario%q_background)
+       call spec_file_close(sub_file)
+    end if
 
     ! height profile
     call spec_file_read_string(file, "height_profile", sub_filename)

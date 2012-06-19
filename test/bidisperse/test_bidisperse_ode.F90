@@ -66,9 +66,6 @@ program test_bidisperse_ode
 
   call aero_data_allocate(aero_data)
 
-  aero_data%fractal%frac_dim = 3d0
-  aero_data%fractal%prime_radius = 1d-8
-  aero_data%fractal%vol_fill_factor = 1d0
   v_small = rad2vol(r_small, aero_data%fractal)
   v_big_init = rad2vol(r_big_init, aero_data%fractal)
   num_conc = num_conc_small * (n_small_init + 1d0) / n_small_init

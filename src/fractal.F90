@@ -43,9 +43,9 @@ contains
     fractal%b_slip = 0.999d0
     fractal%scale_factor_S_acc = 1d0
     fractal%scale_exponent_S_acc = 0.86d0
-    fractal%frac_dim = 0d0
-    fractal%prime_radius = 0d0
-    fractal%vol_fill_factor = 0d0
+    fractal%frac_dim = 3d0
+    fractal%prime_radius = 1d-8
+    fractal%vol_fill_factor = 1d0
 
   end subroutine fractal_allocate
 
@@ -75,6 +75,7 @@ contains
 
     vol2rad = fractal%prime_radius * (vol2N(v, fractal) &
          * fractal%vol_fill_factor)**(1d0 / fractal%frac_dim)
+    !vol2rad = (3d0 * v / 4d0 / const%pi)**(1d0/3d0) 
 
   end function vol2rad
 
@@ -561,10 +562,6 @@ contains
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format
-    !!   - \ref output_format_env_state --- the corresponding output
-    !!     format
-    !!   - \ref input_format_env_data --- the prescribed profiles of
-    !!     other environment data
 
     call spec_file_read_logical(file, 'do_fractal', &
          do_fractal)
@@ -578,7 +575,7 @@ contains
        call check_frac_dim(fractal)
     else
        fractal%frac_dim = 3d0
-       fractal%prime_radius = 1d0 !1d-8 ! Can be set to any value
+       fractal%prime_radius = 1d-8 ! Can be set to any value
        fractal%vol_fill_factor = 1d0
     end if
 

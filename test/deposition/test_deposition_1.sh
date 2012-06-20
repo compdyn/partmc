@@ -10,3 +10,4 @@ cd ${0%/*}
 mkdir -p out
 
 ../../partmc run_part.spec
+../../extract_aero_time out/deposition_0001

@@ -157,7 +157,7 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
-    vol2N = ((3d0 * v / 4d0 / const%pi)**(1d0 / 3d0) / fractal%prime_radius)**3
+    vol2N = (3d0 * v / 4d0 / const%pi) / (fractal%prime_radius)**3
 
   end function vol2N
 

@@ -187,11 +187,13 @@ program test_fractal_self_preserve
   do i_bin = 1,n_bin
      write(out_unit, '(e30.15e3)', advance='no') &
           dimless_vol_grid%center_radius(i_bin)
-     do i_file = 1,n_file
-        write(out_unit, '(e30.15e3)', advance='no') aero_dist(i_bin, i_file)
-     end do
+     !do i_file = 1,n_file
+     !   write(out_unit, '(e30.15e3)', advance='no') aero_dist(i_bin, i_file)
+     !end do
+     write(out_unit, '(e30.15e3)', advance='no') aero_dist(i_bin, n_file)
      write(out_unit, '(a)') ''
   end do
+
   call close_file(out_unit)
 
   deallocate(filename_list)

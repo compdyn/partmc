@@ -75,7 +75,6 @@ contains
 
     vol2rad = fractal%prime_radius * (vol2N(v, fractal) &
          * fractal%vol_fill_factor)**(1d0 / fractal%frac_dim)
-    !vol2rad = (3d0 * v / 4d0 / const%pi)**(1d0/3d0) 
 
   end function vol2rad
 
@@ -115,7 +114,7 @@ contains
     !> Fractal parameters. 
     type(fractal_t), intent(in) :: fractal
 
-    rad2vol = 4d0 * const%pi * fractal%prime_radius**3d0 * (r &
+    rad2vol = 4d0 * const%pi * fractal%prime_radius**3 * (r &
          / fractal%prime_radius)**fractal%frac_dim / 3d0 &
          / fractal%vol_fill_factor
 
@@ -158,7 +157,7 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
-    vol2N = 3d0 * v / 4d0 / const%pi / (fractal%prime_radius**3)
+    vol2N = ((3d0 * v / 4d0 / const%pi)**(1d0 / 3d0) / fractal%prime_radius)**3
 
   end function vol2N
 
@@ -257,19 +256,6 @@ contains
          * exp(-fractal%b_slip * r / air_mean_free_path(tk, press))
 
   end function Slip_correct
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Calculate particle mass equivalent radius.
-  !> Based on Eq. 3 in Naumann 2003 J. Aerosol. Sci.
-  real(kind=dp) function vol2R_m(v)
-
-    !> Volume (m^3).
-    real(kind=dp), intent(in) :: v    
-
-    vol2R_m = (3d0 * v / 4d0 / const%pi)**(1d0 / 3d0)
-
-  end function vol2R_m
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -529,8 +515,8 @@ contains
 
     !> Fractal parameters.
     type(fractal_t), intent(inout) :: fractal
-
-    call assert_msg(801987241, fractal%frac_dim > 3d0, &
+    
+    call assert_msg(801987241, fractal%frac_dim <= 3d0, &
          'fractal dimension greater than 3')
                 
     if (fractal%frac_dim < 3d0 .and. fractal%frac_dim > 2.5d0) then 

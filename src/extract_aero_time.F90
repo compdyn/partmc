@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2011 Matthew West
+! Copyright (C) 2009-2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -6,7 +6,7 @@
 !> The extract_aero_time program.
 
 !> Read NetCDF output files and write out the time evolution of
-!> aerosol number and mass concentrations in text format.  
+!> aerosol number and mass concentrations in text format.
 program extract_aero_time
 
   use pmc_aero_state

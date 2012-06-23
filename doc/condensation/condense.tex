@@ -278,53 +278,85 @@ solution may violate this condition. In this case we use the alternate
 equations which force the system back towards the allowed region.
 
 \section{Adding entrainment of non-cloudy air}
-Given:
+We have a volume $V_{\rm comp}$ of air. The proportion exchanged with
+background is $\gamma = \lambda\Delta T$. This happens
+instantaneously. We indicate the state before the exchange with
+``$-$'', and the state after the exchange with ``$+$''. Except for the
+variables that are modified due to this exchange, everything stays
+constant. Specifically $V_{\rm comp}$, $T$, $p$ of the parcel do not
+change. We assume that the outside air is sub-saturated,
+i.e. non-cloudy and for simplicity that it is at the same temperature
+and pressure as the parcel air.
+
+
 \begin{enumerate}
-\item $q_{\rm back}(t_k)$: specific humidity of background air
-  (outside cloud) at times $t_k$. For now we assume that the
-  background is subsaturated, so most of the background water is in
-  the vapor phase (liquid water content of subsaturated aerosols is
-  very small).
+\item $q_{\rm v, back}(t_k)$: specific humidity of background air
+  (outside cloud) at times $t_k$ (water vapor only).
 \item $q_{\rm tot}(t_k)$: total specific humidity of the parcel
   (liquid water ($q_{\rm l}$) and water vapor ($q_{\rm v}$)), which
   changes with time, hence the total water content of the parcel is
   not conserved.
 \end{enumerate}
 
-First step is to determine the entrainment rate $\lambda_{\rm entrain}$.
+First step is to determine the entrainment fraction $\gamma = \lambda \Delta t$.
 \begin{itemize}
-\item Change in total water mass (liquid and vapor) in the parcel due to entrainment:
+\item Change in total water mass (liquid and vapor) $m$ in the parcel due to entrainment:
 \begin{equation}
-\Delta m = \Delta_{\rm G}m -\Delta_{\rm L}m 
+\Delta m = m^+ - m^- = \Delta_{\rm G}m -\Delta_{\rm L}m 
 \end{equation}
-\item Loss of liquid water mass from parcel to background: 
+\item Gain total water mass from background to parcel (liquid mass,
+  $m_{\rm l,b}^-$, vapor mass, $m_{\rm v,b}^-$. The liquid water is
+  associated with the aerosols which can contain some water. From the
+  outside air we only know densities.):
 \begin{equation}
-\Delta_{\rm L}m_{\rm l} = \lambda_{\rm entrain} \Delta t m_{\rm l}
+\Delta_{\rm G}m = \Delta_{\rm G}m_{\rm l} + \Delta_{\rm G}m_{\rm v} = \gamma V_{\rm comp} \left(\rho_{\rm l,b}^- + \rho_{\rm v,b}^-\right)
 \end{equation}
-\item Loss of water vapor mass from parcel to background:
+\item Loss of total water mass from parcel to background (liquid mass,
+  $m_{\rm l}^-$, vapor mass, $m_{\rm v}^-$):
 \begin{equation}
-\Delta_{\rm L}m_{\rm w} = \lambda_{\rm entrain} \Delta t m_{\rm w}
-\end{equation}
-\item Loss of total water mass from parcel to background:
-\begin{equation}
-\Delta_{\rm L}m = \Delta_{\rm L}m_{\rm l} + \Delta_{\rm L}m_{\rm w}
-\end{equation}
-\item Gain in water vapor from background into parcel (at parcel conditions):
-\begin{equation}
-\Delta_{\rm G}m = \lambda_{\rm entrain} \Delta t V_{\rm comp} \frac{1}{4}\rho_{\rm w} H_{\rm back} V(T)
+\Delta_{\rm L}m = \Delta_{\rm L}m_{\rm l} + \Delta_{\rm L}m_{\rm v} = \gamma \left(m_{\rm l}^- + m_{\rm v}^-\right)
 \end{equation}
 \item This gives:
 \begin{align}
-\Delta m &= \lambda_{\rm entrain} \left(\Delta t V_{\rm comp}  \frac{1}{4}\rho_{\rm w} H_{\rm back} V(T) - \Delta t m_{\rm l} - \Delta t m_{\rm w} \right) \\
- \lambda_{\rm entrain} & = \frac{\Delta m }{\Delta t V_{\rm comp}  \frac{1}{4}\rho_{\rm w} H_{\rm back} V(T) - \Delta t m_{\rm l} - \Delta t m_{\rm w}}
+\Delta m &= m^+ - m^- = \gamma \left(V_{\rm comp} \left(\rho_{\rm l,b}^- + \rho_{\rm v,b}^-\right) - \left(m_{\rm l}^- + m_{\rm v}^-\right)\right)
+\end{align}
+\item Divide this equation by the mass of moist air of the parcel
+  before exchange, $m_{\rm air, wet}^- = V_{\rm comp}\rho_{\rm air,
+    wet}^-$, so that we express everything in terms of specific
+  quantities.
+\begin{align}
+\frac{\Delta m}{m_{\rm air, wet}^-} &= \frac{m^+}{m_{\rm air, wet}^-} - \frac{m^-}{m_{\rm air, wet}^-} = \gamma \left(\frac{\rho_{\rm l,b}^- + \rho_{\rm v,b}^-}{\rho_{\rm air, wet}^-} - \frac{m_{\rm l}^- + m_{\rm v}^-}{m_{\rm air, wet}^-}\right)\\
+\frac{m^+}{m_{\rm air, wet}^-} - q_{\rm tot}^- &= \gamma \left(q_{\rm l,b}^- + q_{\rm v,b}^- - q_{\rm tot}-\right)
+\end{align}
+\item Need to work out the first term of this equation:
+\begin{align}
+\frac{m^+}{m_{\rm air, wet}^-} & = \frac{m^+}{m_{\rm air, wet}^+} \frac{m_{\rm air, wet}^+}{m_{\rm air, wet}^-} = q_{\rm tot}^+ \frac{m_{\rm air, wet}^+}{m_{\rm air, wet}^-}\\
+m_{\rm air, wet}^+ &= m_{\rm air, wet}^- - \Delta_{\rm L} m_{\rm v} + \Delta_{\rm G} m_{\rm v} \\
+m_{\rm air, wet}^+ &= m_{\rm air, wet}^- + \gamma \left( V_{\rm comp}\rho_{\rm v,b}^- - m_{\rm v}^- \right)\\
+\frac{m^+}{m_{\rm air, wet}^-} & = 1 + \gamma \left(\frac{\rho_{\rm v,b}^-}{\rho_{\rm air, wet}^-} - q_{\rm v}^- \right)
+\end{align}
+\item Plugging everything in gives:
+\begin{align}
+q_{\rm tot}^+ \left(1+\gamma \left(\frac{\rho_{\rm v,b}^-}{\rho_{\rm air, wet}^-} - q_{\rm v}^- \right)\right) - q_{\rm tot}^- = \gamma \left(q_{\rm tot, b}^- - q_{\rm tot}^- \right) \\
+\gamma = \frac{q_{\rm tot}^+ - q_{\rm tot}^-}{q_{\rm tot, b}^- - q_{\rm tot}^- - q_{\rm tot}^+ \left(\frac{\rho_{\rm v,b}^-}{\rho_{\rm air, wet}^-} - q_{\rm v}^- \right)}
+\end{align}
+
+\end{itemize}
+\end{document}
+
+
+
+
+ \left(m_{\rm l, back} + V_{\rm comp}  \frac{1}{4}\rho_{\rm w} H_{\rm back} V(T) -  m_{\rm l} - m_{\rm w} \right) \\
+ \lambda_{\rm entrain} & = \frac{\Delta m }{\Delta t \left(m_{\rm l, back} + V_{\rm comp}  \frac{1}{4}\rho_{\rm w} H_{\rm back} V(T) - m_{\rm l} - m_{\rm w}\right)}
 \end{align}
 \item Divide numerator and denominator by $m_{air} = \rho_{\rm air} V_{\rm comp}$ (mass of air in parcel):
 \begin{align}
- \lambda_{\rm entrain} & = \frac{\Delta m \cdot \frac{1}{m_{\rm air}}}{\Delta t \cdot \frac{1}{m_{\rm air}}\left(V_{\rm comp}  \frac{1}{4}\rho_{\rm w} H_{\rm back} V(T) - \Delta t m_{\rm l} - \Delta t m_{\rm w}\right)} \\
- \lambda_{\rm entrain} & = \frac{\Delta q}{\Delta t \cdot \frac{1}{\rho_{\rm air}V_{\rm comp}}\left(V_{\rm comp}  \frac{1}{4}\rho_{\rm w} H_{\rm back} V(T) - m_{\rm l} - m_{\rm w}\right)}  \\
- \lambda_{\rm entrain} & = \frac{\Delta q}{\Delta t\left(\frac{1}{\rho_{\rm air}}\frac{1}{4}\rho_{\rm w} H_{\rm back} V(T) - \left(\frac{m_{\rm l}}{V_{\rm comp}\rho_{\rm air}} + q_{\rm w} \right) \right)} \\
- \lambda_{\rm entrain} & = \frac{\Delta q}{\Delta t\left(\frac{\rho_{\rm v, back}}{\rho_{\rm air}} - \left(\frac{\rho_{\rm l}}{\rho_{\rm air}} + q_{\rm w} \right) \right)} \\
- \lambda_{\rm entrain} & = \frac{\Delta q}{\Delta t \left(q_{\rm back} - q_{\rm l} - q_{\rm w} \right)}
+ \lambda_{\rm entrain} & = \frac{\Delta m \cdot \frac{1}{m_{\rm air}}}{\Delta t \cdot \frac{1}{m_{\rm air}}\left(m_{\rm l, back}+V_{\rm comp}  \frac{1}{4}\rho_{\rm w} H_{\rm back} V(T) - \Delta t m_{\rm l} - \Delta t m_{\rm w}\right)} \\
+ \lambda_{\rm entrain} & = \frac{\Delta q}{\Delta t \cdot \frac{1}{\rho_{\rm air}V_{\rm comp}}\left(m_{\rm l, back} + V_{\rm comp}  \frac{1}{4}\rho_{\rm w} H_{\rm back} V(T) - m_{\rm l} - m_{\rm w}\right)}  \\
+ \lambda_{\rm entrain} & = \frac{\Delta q}{\Delta t\left(q_{\rm l, back} + \frac{1}{\rho_{\rm air}}\frac{1}{4}\rho_{\rm w} H_{\rm back} V(T) - \left(q{\rm l} + q_{\rm w} \right) \right)} \\
+ \lambda_{\rm entrain} & = \frac{\Delta q}{\Delta t\left(q_{\rm l, back} + \frac{\rho_{\rm v, back}}{\rho_{\rm air}} - \left(q_{\rm l} + q_{\rm w} \right) \right)} \\
+ \lambda_{\rm entrain} & = \frac{\Delta q}{\Delta t \left(q_{\rm l, back} + q_{\rm back} - q_{\rm l} - q_{\rm w} \right)}
 \end{align}
 
 \end{itemize}
@@ -353,4 +385,4 @@ p_{{\rm v, new}, k} &= \frac{q_{{\rm v, new}, k} p_k}
 H_{{\rm new}, k} &= \frac{p_{{\rm v, new}, k}}{P^0(T_k)}
 \end{align}
 where $\epsilon = \frac{M_{\rm w}}{M_{\rm air}}$.
-\end{document}
+

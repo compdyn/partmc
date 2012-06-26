@@ -11,4 +11,4 @@ mkdir -p out
 
 ../../test_fractal_self_preserve --num --dimless_vol_min 1e-3 --dimless_vol_max 10 --nbin 100 out/part_vemury_free_df_3_0001
 
-../../numeric_diff --by col --rel-tol 0.1 ref_vemury_free_df_3_self_preserve_regrid.txt out/part_vemury_free_df_3_0001_self_preserve.txt
+../../numeric_diff --by col --rel-tol 0.1 ref_free_df_3_self_preserve_regrid.txt out/part_vemury_free_df_3_0001_self_preserve.txt

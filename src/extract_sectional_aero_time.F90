@@ -5,9 +5,9 @@
 !> \file
 !> The extract_sectional_aero_size program.
 
-!> Read NetCDF sectional output files and write out the aerosol size
-!> distribution in text format.
-program extract_sectional_aero_size
+!> Read NetCDF sectional output files and write out the time evolution of
+!> aerosol number and mass concentrations in text format.
+program extract_sectional_aero_time
 
   use pmc_aero_binned
   use pmc_output
@@ -151,4 +151,4 @@ contains
 
   end subroutine print_help
 
-end program extract_sectional_aero_size
+end program extract_sectional_aero_time

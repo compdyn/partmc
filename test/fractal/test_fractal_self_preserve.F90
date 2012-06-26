@@ -133,42 +133,37 @@ program test_fractal_self_preserve
   allocate(dimless_vol(0))
   allocate(dimless_num_conc(0))
 
-  do i_file = 1,n_file
-     call input_state(filename_list(i_file), index, time, del_t, i_repeat, &
-          uuid, aero_data=aero_data, aero_state=aero_state)
+  call input_state(filename_list(n_file), index, time, del_t, i_repeat, &
+       uuid, aero_data=aero_data, aero_state=aero_state)
 
-     if (i_file == 1) then
-        run_uuid = uuid
-     else
-        call assert_msg(657993562, uuid == run_uuid, &
-             "UUID mismatch between " // trim(filename_list(1)) // " and " &
-             // trim(filename_list(i_file)))
-     end if
+  run_uuid = uuid
+  call assert_msg(657993562, uuid == run_uuid, &
+       "UUID mismatch between " // trim(filename_list(1)) // " and " &
+       // trim(filename_list(n_file)))
 
-     call aero_state_num_concs(aero_state, aero_data, num_concs)
-     total_num_conc = aero_state_total_num_conc(aero_state, aero_data)
-     call ensure_real_array_size(dimless_vol, aero_state%apa%n_part)
-     call ensure_real_array_size(dimless_num_conc, aero_state%apa%n_part)
-     call ensure_real_array_size(vol_concs, aero_state%apa%n_part)
-     vol_concs = aero_particle_volume( &
-          aero_state%apa%particle(1:aero_state%apa%n_part)) * num_concs
-     total_vol_conc = sum(vol_concs)
-     dimless_vol = aero_particle_volume( &
-          aero_state%apa%particle(1:aero_state%apa%n_part)) * total_num_conc &
-          / total_vol_conc
-     dimless_num_conc = num_concs * total_vol_conc / total_num_conc**2 
-     if (dist_type == DIST_TYPE_NUM) then
-        call bin_grid_histogram_1d_SPSD(dimless_vol_grid, dimless_vol, &
-             dimless_num_conc, hist, total_vol_conc, total_num_conc)
-     elseif (dist_type == DIST_TYPE_MASS) then
-        call aero_state_masses(aero_state, aero_data, masses)
-        call bin_grid_histogram_1d_SPSD(dimless_vol_grid, dimless_vol, num_concs * masses, &
-             hist, total_vol_conc, total_num_conc)
-     else
-        call die(123323238)
-     end if
-     aero_dist(:, i_file) = hist
-  end do
+  call aero_state_num_concs(aero_state, aero_data, num_concs)
+  total_num_conc = aero_state_total_num_conc(aero_state, aero_data)
+  call ensure_real_array_size(dimless_vol, aero_state%apa%n_part)
+  call ensure_real_array_size(dimless_num_conc, aero_state%apa%n_part)
+  call ensure_real_array_size(vol_concs, aero_state%apa%n_part)
+  vol_concs = aero_particle_volume( &
+       aero_state%apa%particle(1:aero_state%apa%n_part)) * num_concs
+  total_vol_conc = sum(vol_concs)
+  dimless_vol = aero_particle_volume( &
+       aero_state%apa%particle(1:aero_state%apa%n_part)) * total_num_conc &
+       / total_vol_conc
+  dimless_num_conc = num_concs * total_vol_conc / total_num_conc**2 
+  if (dist_type == DIST_TYPE_NUM) then
+     call bin_grid_histogram_1d_SPSD(dimless_vol_grid, dimless_vol, &
+          dimless_num_conc, hist, total_vol_conc, total_num_conc)
+  elseif (dist_type == DIST_TYPE_MASS) then
+     call aero_state_masses(aero_state, aero_data, masses)
+     call bin_grid_histogram_1d_SPSD(dimless_vol_grid, dimless_vol, num_concs * masses, &
+          hist, total_vol_conc, total_num_conc)
+  else
+     call die(123323238)
+  end if
+  aero_dist(:, n_file) = hist
 
   write(*,'(a)') "Output file: " // trim(out_filename)
   write(*,'(a)') "  Each row of output is one size bin."

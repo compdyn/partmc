@@ -244,6 +244,16 @@ set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 add_test(test_fractal_1 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_1.sh)
 add_test(test_fractal_2 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_2.sh)
 set_tests_properties(test_fractal_2 PROPERTIES DEPENDS test_fractal_1)
+add_test(test_fractal_3 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_3.sh)
+set_tests_properties(test_fractal_3 PROPERTIES DEPENDS test_fractal_2)
+add_test(test_fractal_4 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_4.sh)
+set_tests_properties(test_fractal_4 PROPERTIES DEPENDS test_fractal_3)
+add_test(test_fractal_5 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_5.sh)
+set_tests_properties(test_fractal_5 PROPERTIES DEPENDS test_fractal_4)
+add_test(test_fractal_6 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_6.sh)
+set_tests_properties(test_fractal_6 PROPERTIES DEPENDS test_fractal_5)
+add_test(test_fractal_7 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_7.sh)
+set_tests_properties(test_fractal_7 PROPERTIES DEPENDS test_fractal_6)
 
 ######################################################################
 # partmc library
@@ -328,6 +338,15 @@ add_executable(test_fractal_self_preserve
   src/getopt.F90)
 
 target_link_libraries(test_fractal_self_preserve partmclib)
+
+######################################################################
+# test_fractal_dimless_time
+
+add_executable(test_fractal_dimless_time 
+  test/fractal/test_fractal_dimless_time.F90
+  src/getopt.F90)
+
+target_link_libraries(test_fractal_dimless_time partmclib)
 
 ######################################################################
 # bin_average_comp

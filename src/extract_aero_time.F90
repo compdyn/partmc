@@ -5,9 +5,9 @@
 !> \file
 !> The extract_aero_size program.
 
-!> Read NetCDF output files and write out the aerosol number or mass
-!> size distributions in text format.
-program extract_aero_size
+!> Read NetCDF output files and write out the time evolution of 
+!> aerosol number and mass concentration in text format.
+program extract_aero_time
 
   use pmc_aero_state
   use pmc_aero_particle
@@ -159,4 +159,4 @@ contains
 
   end subroutine print_help
 
-end program extract_aero_size
+end program extract_aero_time

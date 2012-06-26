@@ -6,7 +6,7 @@ restart no                      # whether to restart from saved state (yes/no)
 
 t_max 1e+5                       # total simulation time (s)
 del_t 10                         # timestep (s)
-t_output 1e+4                    # output interval (0 disables) (s)
+t_output 5e+3                    # output interval (0 disables) (s)
 t_progress 1e+3                   # progress printing interval (0 disables) (s)
 
 gas_data gas_data.dat           # file containing gas data

@@ -1,12 +1,12 @@
 run_type particle               # particle-resolved run
-output_prefix out/part_vemury_cont_df_2.2     # prefix of output files
+output_prefix out/part_vemury_cont_df_2_2     # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 1000000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 1e+5                       # total simulation time (s)
 del_t 10                         # timestep (s)
-t_output 1e+4                    # output interval (0 disables) (s)
+t_output 5e+3                    # output interval (0 disables) (s)
 t_progress 1e+3                   # progress printing interval (0 disables) (s)
 
 gas_data gas_data.dat           # file containing gas data

@@ -203,6 +203,10 @@ contains
 
        call env_state_copy(env_state, old_env_state)
        call scenario_update_env_state(scenario, env_state, time + t_start)
+            
+       call scenario_particle_loss(SCENARIO_LOSS_FUNCTION_VOLUME, &
+            run_part_opt%del_t, aero_data, aero_state, &
+            env_state%temp, env_state%pressure)
 
        if (run_part_opt%do_nucleation) then
           n_part_before = aero_state_total_particles(aero_state)

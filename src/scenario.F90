@@ -567,11 +567,12 @@ contains
     
     if(function_id == SCENARIO_LOSS_FUNCTION_ZERO) then
       scenario_loss_rate = 0d0
-    elseif(function_id == SCENARIO_LOSS_FUNCTION_VOL) then
-      scenario_loss_rate = vol
+    else if(function_id == SCENARIO_LOSS_FUNCTION_VOLUME) then
+      scenario_loss_rate = 0.01d0
+!      scenario_loss_rate = 0d0
     else
        call die_msg(200724934, "Unknown loss function id: " &
-            // trim(integer_to_string(loss_function_id)))
+            // trim(integer_to_string(function_id)))
     end if
     
   end function scenario_loss_rate
@@ -605,7 +606,7 @@ contains
     do i = 1,n_sample
       d = interp_linear_disc(d_min, d_max, n_sample, i)
       loss = scenario_loss_rate(function_id, vol, d, aero_data, temp, press)
-      scenario_loss_rate_max = max(chamber_loss_max, loss)
+      scenario_loss_rate_max = max(scenario_loss_rate_max, loss)
     end do
   end function scenario_loss_rate_max
 
@@ -688,18 +689,23 @@ contains
         if(init_size == 0) cycle
         over_rate = aero_state%aero_sorted%removal_rate_max(b)
         candidates = rand_poisson(over_rate * delta_t * init_size)
+        !TODO: make particle removal more efficient if rate is very large
+!        print *, candidates, " ", init_size
         do cand_iter = 1,candidates
           s = pmc_rand_int(init_size)
-          if (s >= aero_state%aero_sorted%size_class%inverse(b, c)%n_entry) &
+          if (s > aero_state%aero_sorted%size_class%inverse(b, c)%n_entry) &
                     cycle
+!          call warn_assert_msg(295846288, s >= 1 .and. s <= aero_state%aero_sorted%size_class%inverse(b, c)%n_entry, "HERE")
           p = aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
           aero_particle => aero_state%apa%particle(p)
           vol = aero_particle_volume(aero_particle)
           density = aero_particle_density(aero_particle, aero_data)
           rate = scenario_loss_rate(function_id, vol, density, aero_data, &
                   temp, press)
-          call warn_assert_msg(295846288, rate > over_rate, &
-              "chamber loss upper bound estimation is too tight")
+          call warn_assert_msg(295846288, rate <= over_rate, &
+              "chamber loss upper bound estimation is too tight:" &
+              // trim(real_to_string(rate)) // " > " &
+              // trim(real_to_string(over_rate)) )
           if (pmc_random() * over_rate > rate) cycle
           
           call aero_info_allocate(aero_info)
@@ -709,6 +715,7 @@ contains
           call aero_state_remove_particle_with_info(aero_state, p, aero_info)
           call aero_info_deallocate(aero_info)
         end do
+!        print *, "here"
       end do
     end do
     

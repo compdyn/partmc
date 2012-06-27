@@ -545,8 +545,9 @@ contains
     real(kind=dp) :: num_conc
     real(kind=dp) :: water_vol_conc_initial
     real(kind=dp) :: q_l_parcel, q_v_parcel, q_v_parcel_new
-    real(kind=dp) :: rho_air
+    real(kind=dp) :: rho_air_dry, rho_l
     real(kind=dp) :: pmv, pmv_new, epsilon
+    real(kind=dp) :: rho_b_over_rho_air_wet, K
     real(kind=dp) :: entrain_rate
     real(kind=dp) :: dilution_rate, p
     type(gas_state_t) :: background_gas
@@ -573,21 +574,26 @@ contains
             + aero_particle%vol(aero_data%i_water) * num_conc
     end do
 
-    ! specific liquid water in parcel
-    rho_air = env_state%pressure * const%air_molec_weight &
-         / (const%univ_gas_const * env_state%temp)
-    q_l_parcel = water_vol_conc_initial * const%water_density / rho_air
-
-    ! specific humidity in parcel
+    ! specific liquid water in parcel (mass of liquid water per mass of moist air)
     pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
+    rho_air_dry = (env_state%pressure - pmv) * const%air_molec_weight &
+         / (const%univ_gas_const * env_state%temp)
+    rho_l = water_vol_conc_initial * const%water_density
+    q_l_parcel = rho_l / (rho_air_dry + rho_l)
+
+    ! specific humidity in parcel (mass of water vapor per mass of moist air)
     epsilon = const%water_molec_weight / const%air_molec_weight
     q_v_parcel = epsilon * pmv / (env_state%pressure - (1 - epsilon) * pmv)
 
-    write(6,*)'before entrainment ', q_l_parcel, q_v_parcel, &
-        q_l_parcel+q_v_parcel, q_tot
+    !write(6,*)'before entrainment ', q_l_parcel, q_v_parcel, &
+    !    q_l_parcel+q_v_parcel, q_tot
 
     ! entrainment rate
-    entrain_rate = qdot / (q_back - q_l_parcel - q_v_parcel)
+    rho_b_over_rho_air_wet = (1 + (1 / epsilon - 1) * q_v_parcel) / (1 - q_back)
+    K = rho_b_over_rho_air_wet - q_v_parcel
+    !write(6,*)'K and extra term ', K, q_tot_final * K
+    entrain_rate = qdot / (q_back - q_l_parcel - q_v_parcel - q_tot_final * K)
+    write(6,*)'lambda * delta_t', entrain_rate, delta_t 
 
     ! gas dilution
     call gas_state_allocate_size(background_gas, gas_data%n_spec)
@@ -596,6 +602,7 @@ contains
          env_state%elapsed_time, background_gas, dilution_rate)
     ! note that the dilution rate here is not used
     p = exp(- entrain_rate * delta_t)
+    write(6,*)'p ', p
     call gas_state_scale(gas_state, p)
     call gas_state_add_scaled(gas_state, background_gas, 1d0 - p)
     call gas_state_ensure_nonnegative(gas_state)
@@ -618,11 +625,6 @@ contains
          background_aero, 1d0 - p, env_state%elapsed_time, n_dil_in)
     call aero_dist_deallocate(background_aero)
 
-    ! update computational volume
-    call aero_weight_array_scale(aero_state%awa, &
-         old_env_state%temp * env_state%pressure &
-         / (env_state%temp * old_env_state%pressure))
-
     ! new liquid water content
     water_vol_conc_initial = 0d0
 
@@ -633,13 +635,12 @@ contains
             + aero_particle%vol(aero_data%i_water) * num_conc
     end do
 
-    ! specific liquid water in parcel
-    rho_air = env_state%pressure * const%air_molec_weight &
-         / (const%univ_gas_const * env_state%temp)
-    q_l_parcel = water_vol_conc_initial * const%water_density / rho_air
+    ! new specific liquid water in parcel
+    rho_l = water_vol_conc_initial * const%water_density
+    q_l_parcel = rho_l / (rho_air_dry + rho_l)
 
-    write(6,*)'after entrainment  ', q_l_parcel, q_v_parcel, &
-        q_l_parcel+q_v_parcel, q_tot
+    !write(6,*)'after entrainment  ', q_l_parcel, q_v_parcel, &
+    !    q_l_parcel+q_v_parcel, q_tot
 
     !adjust relative humidity so that q_tot is matched
     q_v_parcel_new = q_tot - q_l_parcel
@@ -647,8 +648,8 @@ contains
         / (epsilon + q_v_parcel_new * (1 - epsilon))
     env_state%rel_humid = pmv_new / env_state_sat_vapor_pressure(env_state)
 
-    write(6,*)'after adjusting   ',  q_l_parcel, q_v_parcel_new, &
-        q_l_parcel+q_v_parcel_new, q_tot
+    !write(6,*)'after adjusting   ',  q_l_parcel, q_v_parcel_new, &
+    !    q_l_parcel+q_v_parcel_new, q_tot
 
   end subroutine scenario_update_cloud
 

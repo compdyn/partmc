@@ -549,11 +549,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  real(kind=dp) function scenario_loss_rate(loss_function_id, vol, density, &
+  real(kind=dp) function scenario_loss_rate(function_id, vol, density, &
        aero_data, temp, press)
        
     !> Id of loss rate function to be used
-    integer, intent(in) :: loss_function_id
+    integer, intent(in) :: function_id
     !> Volume of particle.
     real(kind=dp), intent(in) :: vol
     !> Density of particle.
@@ -565,16 +565,180 @@ contains
     !> Pressure (Pa).
     real(kind=dp), intent(in) :: press
     
-    if(loss_function_id == SCENARIO_LOSS_FUNCTION_ZERO) then
+    if(function_id == SCENARIO_LOSS_FUNCTION_ZERO) then
       scenario_loss_rate = 0d0
-    elseif(loss_function_id == SCENARIO_LOSS_FUNCTION_VOL) then
+    elseif(function_id == SCENARIO_LOSS_FUNCTION_VOL) then
       scenario_loss_rate = vol
     else
        call die_msg(200724934, "Unknown loss function id: " &
             // trim(integer_to_string(loss_function_id)))
     end if
     
-  end function 
+  end function scenario_loss_rate
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  real(kind=dp) function scenario_loss_rate_max(function_id, vol, &
+      aero_data, temp, press)
+
+    !> Id of loss rate function to be used
+    integer, intent(in) :: function_id
+    !> Particle volume.
+    real(kind=dp), intent(in) :: vol
+    !> Aerosol data. 
+    type(aero_data_t), intent(in) :: aero_data
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: temp
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: press
+
+    !> Number of density sample points.
+    integer, parameter :: n_sample = 3
+
+    real(kind=dp) :: d, d_min, d_max, loss
+    integer :: i
+    
+    d_min = minval(aero_data%density)
+    d_max = maxval(aero_data%density)
+
+    scenario_loss_rate_max = 0d0
+    do i = 1,n_sample
+      d = interp_linear_disc(d_min, d_max, n_sample, i)
+      loss = scenario_loss_rate(function_id, vol, d, aero_data, temp, press)
+      scenario_loss_rate_max = max(chamber_loss_max, loss)
+    end do
+  end function scenario_loss_rate_max
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine scenario_loss_rate_bin_max(function_id, bin_grid, &
+        aero_data, temp, press, loss_max)
+       
+    !> Id of loss rate function to be used
+    integer, intent(in) :: function_id
+    !> Bin_grid.
+    type(bin_grid_t), intent(in) :: bin_grid
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: temp
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: press
+    !> Maximum loss vals.
+    real(kind=dp), intent(out) :: loss_max(bin_grid%n_bin)
+    
+    !> Number of sample points per bin.
+    integer, parameter :: n_sample = 3
+    !> Over-estimation scale factor parameter.
+    real(kind=dp), parameter :: over_scale = 2d0
+    
+    real(kind=dp) :: v_low, v_high, vol, r, r_max
+    integer :: b, i
+    
+    do b = 1,bin_grid%n_bin
+      v_low = rad2vol(bin_grid%edge_radius(b))
+      v_high = rad2vol(bin_grid%edge_radius(b + 1))
+      r_max = 0d0
+      do i = 1,n_sample
+        vol = interp_linear_disc(v_low, v_high, n_sample, i)
+        r = scenario_loss_rate_max(function_id, vol, aero_data, temp, press)
+        r_max = max(r_max, r)
+      end do
+      loss_max(b) = r_max*over_scale
+    end do
+    
+  end subroutine scenario_loss_rate_bin_max
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine scenario_particle_loss(function_id, delta_t, aero_data, &
+       aero_state, temp, press)
+
+    !> Id of loss rate function to be used
+    integer, intent(in) :: function_id
+    !> Time increment to update over.
+    real(kind=dp), intent(in) :: delta_t
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: temp
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: press
+
+    type(aero_particle_t), pointer :: aero_particle
+    type(aero_info_t) :: aero_info
+    integer :: c, b, init_size, candidates, cand_iter, s, p
+    real(kind=dp) :: over_rate, rate, vol, density
+    
+    if(function_id == SCENARIO_LOSS_FUNCTION_ZERO .or. &
+        function_id == SCENARIO_LOSS_FUNCTION_INVALID) return
+    
+    if (.not. aero_state%aero_sorted%removal_rate_bounds_valid) then
+      call scenario_loss_rate_bin_max(function_id, &
+          aero_state%aero_sorted%bin_grid, aero_data, temp, press, &
+          aero_state%aero_sorted%removal_rate_max)
+      aero_state%aero_sorted%removal_rate_bounds_valid = .true.
+    end if
+    
+    do c = 1,aero_sorted_n_class(aero_state%aero_sorted)
+      do b = 1,aero_sorted_n_bin(aero_state%aero_sorted)
+        init_size = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry
+        if(init_size == 0) cycle
+        over_rate = aero_state%aero_sorted%removal_rate_max(b)
+        candidates = rand_poisson(over_rate * delta_t * init_size)
+        do cand_iter = 1,candidates
+          s = pmc_rand_int(init_size)
+          if (s >= aero_state%aero_sorted%size_class%inverse(b, c)%n_entry) &
+                    cycle
+          p = aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
+          aero_particle => aero_state%apa%particle(p)
+          vol = aero_particle_volume(aero_particle)
+          density = aero_particle_density(aero_particle, aero_data)
+          rate = scenario_loss_rate(function_id, vol, density, aero_data, &
+                  temp, press)
+          call warn_assert_msg(295846288, rate > over_rate, &
+              "chamber loss upper bound estimation is too tight")
+          if (pmc_random() * over_rate > rate) cycle
+          
+          call aero_info_allocate(aero_info)
+          aero_info%id = aero_particle%id
+          aero_info%action = AERO_INFO_DILUTION
+          aero_info%other_id = 0
+          call aero_state_remove_particle_with_info(aero_state, p, aero_info)
+          call aero_info_deallocate(aero_info)
+        end do
+      end do
+    end do
+    
+!    do b = 1,aero_state%aero_sorted%bin_grid%n_bin
+!      over_rate = aero_state%aero_sorted%removal_rate_max(b)
+!      init_size = aero_state%aero_sorted%size_class%inverse(b)%n_entry
+!      candidates = rand_poisson(over_rate * delta_t * init_size)
+!      do c = 1,candidates
+!        s = pmc_rand_int(init_size)
+!        if (s >= aero_state%aero_sorted%size_class%inverse(b)%n_entry) cycle
+!        p = aero_state%aero_sorted%size_class%inverse(b)%entry(s)
+!        aero_particle => aero_state%apa%particle(p)
+!        rate = scenario_loss_rate(function_id, aero_particle, aero_data, &
+!                temp, press)
+!        call warn_assert_msg(295846288, rate > over_rate, &
+!            "chamber loss upper bound estimation is too tight")
+!        if (pmc_random() * over_rate > rate) cycle
+!        
+!        call aero_info_allocate(aero_info)
+!        aero_info%id = aero_particle%id
+!        aero_info%action = AERO_INFO_DILUTION
+!        aero_info%other_id = 0
+!        call aero_state_remove_particle_with_info(aero_state, p, aero_info)
+!        call aero_info_deallocate(aero_info)
+!        
+!      end do
+!    end do
+
+
+  end subroutine scenario_particle_loss
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

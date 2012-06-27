@@ -206,6 +206,11 @@ contains
        update_rel_humid = .not. run_part_opt%do_condensation
        call scenario_update_env_state(scenario, env_state, time + t_start, &
             update_rel_humid)
+            
+       call scenario_particle_loss(SCENARIO_LOSS_FUNCTION_VOLUME, &
+            run_part_opt%del_t, aero_data, aero_state, &
+            env_state%temp, env_state%pressure)
+            
 
        if (run_part_opt%do_nucleation) then
           n_part_before = aero_state_total_particles(aero_state)

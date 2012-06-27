@@ -349,6 +349,15 @@ add_executable(test_fractal_dimless_time
 target_link_libraries(test_fractal_dimless_time partmclib)
 
 ######################################################################
+# test_fractal_sectional_dimless_time
+
+add_executable(test_fractal_sectional_dimless_time 
+  test/fractal/test_fractal_sectional_dimless_time.F90
+  src/getopt.F90)
+
+target_link_libraries(test_fractal_sectional_dimless_time partmclib)
+
+######################################################################
 # bin_average_comp
 
 add_executable(bin_average_comp src/bin_average_comp.F90)

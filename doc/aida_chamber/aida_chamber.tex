@@ -172,7 +172,8 @@ $R_{\rm me,c}$ in Eq. \ref{eq:f_Rme_c} and Eq. \ref{eq:df_Rme_c}.
      \label{eq:f_Rme_c} \displaybreak[0] \\
    f^ \prime (R_{\rm me,c}) &= C(R_{\rm me}) - \frac{l R_{\rm me}}{\phi} (1 - d_{\rm f} \gamma)
      R_{\rm me,c}^{\rm -d_{\rm f} \gamma} \left[A + Q \exp\biggl(- \frac{b \phi}{l} R_{\rm me,c}^{\rm d_{\rm f} \gamma - 1}
-     \biggr)\right] - Q b R_{\rm me} (1 - d_{\rm f} \gamma) R_{\rm me,c}^{\rm -1} 
+     \biggr)\right] \notag \\
+     &- Q b R_{\rm me} (1 - d_{\rm f} \gamma) R_{\rm me,c}^{\rm -1} 
      \exp\biggl(- \frac{b \phi}{l} R_{\rm me,c}^{\rm d_{\rm f} \gamma -1}\biggr)
      \label{eq:df_Rme_c} \displaybreak[0]
 \end{align}
@@ -180,6 +181,25 @@ $R_{\rm me,c}$ in Eq. \ref{eq:f_Rme_c} and Eq. \ref{eq:df_Rme_c}.
 Note that Eq. \ref{eq:f_Rme_c} and Eq. \ref{eq:df_Rme_c} are only available when $d_{\rm f} \leq 2$, $d_{\rm s} = 3$.
 When $d_{\rm f}$ is greater than 2, $d_{\rm s}$ will be $6/d_{\rm f}$, we will not be able to
 obtain a simplified equation for $R_{\rm eff}$ as shown in Eq. \ref{eq:R_eff_simplified_2}.
+
+\item For general formula to convert $R_{\rm me}$ to $R_{\rm me,c}$ for any given $\rm d_{\rm f}$, first we can define several constants as follows
+
+\begin{align}
+  \phi &= \frac{R_0^{2}}{(f h_{\rm KR}^{\rm d_{\rm f}} R_0^{\rm d_{\rm f}})^{\frac{d_{\rm s}}{3}}} \\
+  \psi &= \frac{1}{(f h_{\rm KR}^{\rm d_{\rm f}} R_0^{\rm d_{\rm f}})^{\gamma - 1}} \\
+  c_1 &= \frac{d_{\rm f} d_{\rm s}}{3} + \gamma d_{\rm f} - d_{\rm f} - 1 \\
+  c_2 &= \frac{d_{\rm f} d_{\rm s}}{3} - 1
+\end{align}
+
+Then we can write the original and first derivative forms of $R_{\rm me,c}$ as:
+
+\begin{align}
+  f(R_{\rm me,c}) &= \frac{C(R_{\rm me})}{R_{\rm me}} \phi \psi (d_{\rm s} -2) R_{\rm me,c}^{\rm c_1+1} + \frac{C(R_{\rm me})}{R_{\rm me}} \phi (3-d_{\rm s}) R_{\rm me,c}^{\rm c_2+1} - \phi \psi (d_{\rm s}-2) R_{\rm me,c}^{\rm c_1} \notag \\
+  &+ \phi (d_{\rm s} -3) R_{\rm me,c}^{\rm c_2} - Q l \exp\biggl(- \frac{b}{l} \left[\phi \psi (d_{\rm s}-2) R_{\rm me,c}^{\rm c_1} + \phi (3-d_{\rm s}) R_{\rm me,c}^{\rm c_2}\right]\biggr) - A l \\
+   f^ \prime (R_{\rm me,c}) &= \frac{C(R_{\rm me})}{R_{\rm me}} \phi \psi (d_{\rm s} -2) (c_1 +1) R_{\rm me,c}^{\rm c_1} + \frac{C(R_{\rm me})}{R_{\rm me}} \phi (3-d_{\rm s}) (c_2+1) R_{\rm me,c}^{\rm c_2} \notag \\
+   &- \phi \psi (d_{\rm s}-2) c_1 R_{\rm me,c}^{\rm c_1-1} + \phi (d_{\rm s} -3) c_2 R_{\rm me,c}^{\rm c_2-1} \notag - Q l \exp\biggl(- \frac{b}{l} \left[\phi \psi (d_{\rm s}-2) R_{\rm me,c}^{\rm c_1} + \phi (3-d_{\rm s}) R_{\rm me,c}^{\rm c_2} \right]\biggr) \notag \\
+   & \biggl(- \frac{b}{l} \left[\phi \psi (d_{\rm s}-2) c_1 R_{\rm me,c}^{\rm c_1-1} + \phi (3-d_{\rm s}) c_2 R_{\rm me,c}^{\rm c_2-1}\right]\biggr)
+\end{align}
 
 \end{itemize}
 \end{document}

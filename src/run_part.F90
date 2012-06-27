@@ -262,7 +262,7 @@ contains
 
        if (run_part_opt%do_dry_deposition) then
           aer_res_a = .0d0
-          ustar = 5.0d0
+          ustar = 1.0
           gamma = .6d0
           A = 2.0/1000.0
           alpha =  .8d0

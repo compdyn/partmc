@@ -11,3 +11,4 @@ mkdir -p out
 
 ../../partmc run_part.spec
 ../../extract_aero_time out/deposition_0001
+../../test_deposition_exact run_part.spec

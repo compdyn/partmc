@@ -292,6 +292,14 @@ add_executable(test_bidisperse_extract
 target_link_libraries(test_bidisperse_extract ${NETCDF_LIBS})
 
 ######################################################################
+# test_deposition_exact
+
+add_executable(test_deposition_exact
+  test/deposition/test_deposition_exact.F90)
+
+target_link_libraries(test_deposition_exact ${NETCDF_LIBS})
+
+######################################################################
 # test_nucleate_ode
 
 add_executable(test_nucleate_ode test/nucleate/test_nucleate_ode.F90

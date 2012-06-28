@@ -24,7 +24,7 @@ weight_list = [
     ]
 
 plot_weight_list = [
-    ("power", "0"),
+    ("power", "-1"),
     ("power", "-3"),
     ("nummass", None),
     ]

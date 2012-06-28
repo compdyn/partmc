@@ -94,8 +94,8 @@ print "mean pop 1 degradation factor: %f" % numpy.array(pop_1_degradations).mean
 
 axes.set_xscale('log')
 axes.set_yscale('log')
-axes.set_xlabel(r'sub-population 1 error $E[\|n_1 - n_{1, \rm s}\|_2]$')
-axes.set_ylabel(r'sub-population 2 error $E[\|n_2 - n_{2, \rm s}\|_2]$')
+axes.set_xlabel(r'sub-population 1 error $E[\|n_1 - n_{1, \rm fv}\|_2]$')
+axes.set_ylabel(r'sub-population 2 error $E[\|n_2 - n_{2, \rm fv}\|_2]$')
 axes.grid(True)
 
 (ax_x0, ax_y0) = axes.transAxes.transform_point((0, 0))

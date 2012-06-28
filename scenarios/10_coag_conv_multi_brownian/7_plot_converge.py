@@ -64,7 +64,7 @@ for (i_ratio, (ratio_type, ratio, ratio_tex)) in enumerate(reversed(config.ratio
 axes.set_xscale('log')
 axes.set_yscale('log')
 axes.set_xlabel(r'number of particles $N_{\rm p}$')
-axes.set_ylabel(r'error $E[\|n - n_{\rm s}\|_2]$')
+axes.set_ylabel(r'error $E[\|n - n_{\rm fv}\|_2]$')
 axes.grid(True)
 figure.legend(handles, labels, loc='center right', numpoints=2)
 

@@ -56,8 +56,8 @@ for (i, (n_part, n_part_name, n_part_tex)) in enumerate(config.n_part_list):
 
 axes.set_xscale('log')
 axes.set_yscale('log')
-axes.set_xlabel(r'number error $E[\|n - n_{\rm s}\|_2]$')
-axes.set_ylabel(r'mass error $E[\|m - m_{\rm s}\|_2]$')
+axes.set_xlabel(r'number error $E[\|n - n_{\rm fv}\|_2]$')
+axes.set_ylabel(r'mass error $E[\|m - m_{\rm fv}\|_2]$')
 figure.legend(handles, labels, loc='center right', numpoints=1)
 axes.grid(True)
 

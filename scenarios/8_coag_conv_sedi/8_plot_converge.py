@@ -64,8 +64,8 @@ axes.set_xscale('log')
 axes.set_yscale('log')
 axes2.set_yscale('log')
 axes.set_xlabel(r'number of particles $N_{\rm p}$')
-axes.set_ylabel(r'error $E[\|n - n_{\rm s}\|_2]$')
-axes2.set_ylabel(r'error $E[\|m - m_{\rm s}\|_2]$')
+axes.set_ylabel(r'error $E[\|n - n_{\rm fv}\|_2]$')
+axes2.set_ylabel(r'error $E[\|m - m_{\rm fv}\|_2]$')
 axes.grid(True)
 
 line_handles = [

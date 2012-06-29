@@ -765,12 +765,8 @@ contains
              call aero_particle_zero(aero_particle)
              call aero_mode_sample_radius(aero_data, aero_mode, &
                   aero_state%awa%weight(i_group, i_class), radius)
-             if (aero_data%fractal%frac_dim < 3d0) then
-                total_vol = Rme2vol(radius, env_state%temp, env_state%pressure, &
-                      aero_data%fractal)
-             else
-                total_vol = rad2vol(radius, aero_data%fractal)
-             end if
+             total_vol = Rme2vol(radius, env_state%temp, env_state%pressure, &
+                   aero_data%fractal)
              call aero_mode_sample_vols(aero_mode, total_vol, vols)
              call aero_particle_set_vols(aero_particle, vols)
              call aero_particle_new_id(aero_particle)

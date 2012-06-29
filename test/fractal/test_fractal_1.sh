@@ -15,4 +15,5 @@ mkdir -p out
 ../../extract_aero_size --num --dmin 1e-9 --dmax 1e-7 --nbin 100 out/part_vemury_free_df_3_0001
 ../../extract_sectional_aero_size --num out/sect_vemury_free_df_3
 
-../../numeric_diff --by col --rel-tol 0.2 out/sect_vemury_free_df_3_aero_size_num.txt out/part_vemury_free_df_3_0001_aero_size_num.txt
+../../numeric_diff --by col --rel-tol 0.1 out/sect_vemury_free_df_3_aero_size_num.txt out/part_vemury_free_df_3_0001_aero_size_num.txt
+../../test_fractal_radii_conversion

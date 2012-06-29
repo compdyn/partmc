@@ -358,6 +358,14 @@ add_executable(test_fractal_sectional_dimless_time
 target_link_libraries(test_fractal_sectional_dimless_time partmclib)
 
 ######################################################################
+# test_fractal_radii_conversion
+
+add_executable(test_fractal_radii_conversion 
+  test/fractal/test_fractal_radii_conversion.F90)
+
+target_link_libraries(test_fractal_radii_conversion partmclib)
+
+######################################################################
 # bin_average_comp
 
 add_executable(bin_average_comp src/bin_average_comp.F90)

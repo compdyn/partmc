@@ -3,7 +3,7 @@ output_prefix out/sect_vemury_free_df_3     # prefix of output files
 
 t_max 1e+5                       # total simulation time (s)
 del_t 10                         # timestep (s)
-t_output 1e+3                    # output interval (0 disables) (s)
+t_output 1e+4                    # output interval (0 disables) (s)
 t_progress 1e+3                   # progress printing interval (0 disables) (s)
 
 n_bin 100                       # number of bins

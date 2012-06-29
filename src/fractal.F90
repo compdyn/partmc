@@ -275,14 +275,12 @@ contains
     integer, parameter :: MAX_ITERATIONS = 10
     integer :: iter
     iter = 1
-    x = vol2R_me_c(v, fractal)
 
-    if (fractal%frac_dim < 3d0) then
-       !print *, 'analytical is ', df_Rme(x, v, tk, press, fractal)
-       !print *, 'numerical is ', (f_Rme(x, v, tk, press, fractal) &
-       !     - f_Rme(x-1d-10, v, tk, press, fractal)) / 1d-10
+    if (fractal%frac_dim == 3d0 .and. fractal%vol_fill_factor == 1d0) then
+       x = vol2rad(v, fractal) 
+    else
+       x = vol2R_me_c(v, fractal)   
        do
-         !print *, 'The solution for Rme is ', x
          x = x - f_Rme(x, v, tk, press, fractal) &
               / df_Rme(x, v, tk, press, fractal)
          if (iter > MAX_ITERATIONS) then
@@ -522,10 +520,14 @@ contains
     type(fractal_t), intent(in) :: fractal
 
     real(kind=dp) :: R_me_c, Rgeo
-    R_me_c = Rme2R_me_c(r, tk, press, fractal)
-    Rgeo = R_me_c / h_KR(fractal)
-    Rme2vol = rad2vol(Rgeo, fractal)
-  
+    if (fractal%frac_dim == 3d0 .and. fractal%vol_fill_factor == 1d0) then
+       Rme2vol = rad2vol(r, fractal)
+    else
+       R_me_c = Rme2R_me_c(r, tk, press, fractal)
+       Rgeo = R_me_c / h_KR(fractal)
+       Rme2vol = rad2vol(Rgeo, fractal)
+    end if 
+ 
   end function Rme2vol
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -577,10 +579,6 @@ contains
     call assert_msg(801987241, fractal%frac_dim <= 3d0, &
          'fractal dimension greater than 3')
                 
-    if (fractal%frac_dim < 3d0 .and. fractal%frac_dim > 2.5d0) then 
-       call warn_msg(852246877, "Try using fractal dimension of 3")
-    end if
-
   end subroutine check_frac_dim
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -197,7 +197,7 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
-    if (almost_equal(fractal%frac_dim, 3d0)) then
+    if (fractal%frac_dim == 3d0 .and. fractal%vol_fill_factor == 1d0) then
        h_KR = 1d0
     else
        h_KR = -0.06483d0 * fractal%frac_dim**2 + 0.6353d0 * &
@@ -363,11 +363,7 @@ contains
     iter = 1
     x = r
 
-    !print *, 'analytical is ', df_Rmec(x,r,tk,press,fractal)
-    !print *, 'numerical is ', (f_Rmec(x,r,tk,press,fractal) &
-    !     - f_Rmec(x-1d-10, r, tk, press, fractal))/1d-10
     do
-    !  print *, 'The solution for Rme_c is ', x
       x = x - f_Rmec(x, r, tk, press, fractal) &
            / df_Rmec(x, r, tk, press, fractal)
       if(iter > MAX_ITERATIONS) then
@@ -396,21 +392,6 @@ contains
 
     real(kind=dp) :: C_Rme, phi, ds, psi, c1, c2
     C_Rme = Slip_correct(r, tk, press, fractal)
-
-!    phi = fractal%prime_radius**(2d0 - fractal%frac_dim &
-!         * fractal%scale_exponent_S_acc) &
-!         / (fractal%vol_fill_factor**fractal%scale_exponent_S_acc &
-!         * h_KR(fractal)**(fractal%frac_dim * fractal%scale_exponent_S_acc))
-    
-!    y = C_Rme * x - fractal%A_slip * air_mean_free_path(tk, press) &
-!         * r / phi * x**(1d0 - fractal%frac_dim                    &
-!         * fractal%scale_exponent_S_acc)                           &
-!         - fractal%Q_slip * air_mean_free_path(tk, press) * r      &
-!         / phi * x**(1d0                                           &   
-!         - fractal%frac_dim * fractal%scale_exponent_S_acc)        &
-!         * exp(-fractal%b_slip * phi                               &
-!         / air_mean_free_path(tk, press)                           &
-!         * x**(fractal%frac_dim * fractal%scale_exponent_S_acc - 1d0)) - r
 
     if (fractal%frac_dim <= 2d0) then
        ds = 3d0
@@ -458,22 +439,6 @@ contains
     real(kind=dp) :: C_Rme, phi, ds, psi, c1, c2
     C_Rme = Slip_correct(r, tk, press, fractal)
     
-!    phi = fractal%prime_radius**(2d0 - fractal%frac_dim           &
-!         * fractal%scale_exponent_S_acc)                          & 
-!         / (fractal%vol_fill_factor**fractal%scale_exponent_S_acc &
-!         * h_KR(fractal)**(fractal%frac_dim * fractal%scale_exponent_S_acc))
-
-!    y = C_Rme - air_mean_free_path(tk, press) * r / phi                 &
-!         * (1d0 - fractal%frac_dim * fractal%scale_exponent_S_acc)      &
-!         * x**(-fractal%frac_dim * fractal%scale_exponent_S_acc)        &
-!         * (fractal%A_slip + fractal%Q_slip * exp(-fractal%b_slip * phi &
-!         / air_mean_free_path(tk, press) * x**(fractal%frac_dim         &
-!         * fractal%scale_exponent_S_acc - 1d0))) - fractal%Q_slip       &
-!         * fractal%b_slip * r * (1d0 - fractal%frac_dim                 &
-!         * fractal%scale_exponent_S_acc) / x * exp(-fractal%b_slip      &
-!         * phi / air_mean_free_path(tk, press)                          &
-!         * x**(fractal%frac_dim * fractal%scale_exponent_S_acc - 1d0))
-
     if (fractal%frac_dim <= 2d0) then
        ds = 3d0
     elseif ((fractal%frac_dim > 2d0) .and. (fractal%frac_dim <= 3d0)) then

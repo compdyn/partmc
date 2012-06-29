@@ -16,7 +16,7 @@ program test_radii_conversion
 
   type(fractal_t) :: fractal  
   real(kind=dp) :: d_f(7), f(2), R0(4), Rme(100), Rgeo(100), vol(100)
-  integer :: i, j, k, m, vcount_Rme, vcount_Rgeo
+  integer :: i_df, i_f, i_R0, i_part, vcount_Rme, vcount_Rgeo
   real(kind=dp), allocatable :: Rme_err(:), Rgeo_err(:)
   real(kind=dp), parameter :: tk = 300d0
   real(kind=dp), parameter :: press = 1d+5
@@ -29,27 +29,27 @@ program test_radii_conversion
   
   vcount_Rme = 0
   vcount_Rgeo = 0
-  do i = 1, size(R0)
-     fractal%prime_radius = R0(i)
+  do i_R0 = 1, size(R0)
+     fractal%prime_radius = R0(i_R0)
      call logspace(fractal%prime_radius, fractal%prime_radius*1d+3, Rme)
      call logspace(fractal%prime_radius, fractal%prime_radius*1d+3, Rgeo)
-     do j = 1, size(f)
-        fractal%vol_fill_factor = f(j)
-        do k = 1, size(d_f)
-           fractal%frac_dim = d_f(k)
-           do m = 1, size(Rme)
-              if (.not. almost_equal(Rme(m), vol2Rme(Rme2vol(Rme(m), tk, press, fractal) &
+     do i_f = 1, size(f)
+        fractal%vol_fill_factor = f(i_f)
+        do i_df = 1, size(d_f)
+           fractal%frac_dim = d_f(i_df)
+           do i_part = 1, size(Rme)
+              if (.not. almost_equal(Rme(i_part), vol2Rme(Rme2vol(Rme(i_part), tk, press, fractal) &
                    , tk, press, fractal))) then
                  vcount_Rme = vcount_Rme + 1
                  write(*, '(a, e12.3, 3x, a, f5.2, 3x, a, f5.2, 3x, a, e12.3)') &
                       'Mobility equivalent radius values mismatch at: Rme = ', &
-                      Rme(m), 'df = ', d_f(k), 'f = ', f(j), 'R0 = ', R0(i)
+                      Rme(i_part), 'df = ', d_f(i_df), 'f = ', f(i_f), 'R0 = ', R0(i_R0)
               end if
-              if (.not. almost_equal(Rgeo(m), vol2rad(rad2vol(Rgeo(m), fractal), fractal))) then
+              if (.not. almost_equal(Rgeo(i_part), vol2rad(rad2vol(Rgeo(i_part), fractal), fractal))) then
                  vcount_Rgeo = vcount_Rgeo + 1
                  write(*, '(a, e12.3, 3x, a, f5.2, 3x, a, f5.2, 3x, a, e12.3)') &
                       'Geometric radius values mismatch at: Rgeo = ', &
-                      Rgeo(m), 'df = ', d_f(k), 'f = ', f(j), 'R0 = ', R0(i)
+                      Rgeo(i_part), 'df = ', d_f(i_df), 'f = ', f(i_f), 'R0 = ', R0(i_R0)
               end if
            end do
         end do
@@ -59,14 +59,14 @@ program test_radii_conversion
   allocate (Rme_err(vcount_Rme))
   allocate (Rgeo_err(vcount_Rgeo))
 
-  if (size(Rme_err) == 0) then
-     write(*,'(a)') 'Mobility equivalent radius values match within the given relative tolerance.'
-  end if
+  call assert(435301873, size(Rme_err) == 0)
+  write(*,'(a)') 'Mobility equivalent radius values match within the given relative tolerance.'
 
-  if (size(Rgeo_err) == 0) then
-     write(*,'(a)') 'Geometric radius values match within the given relative tolerance.'
-  end if
+  call assert(435301884, size(Rgeo_err) == 0)
+  write(*,'(a)') 'Geometric radius values match within the given relative tolerance.'
 
+  deallocate (Rme_err)
+  deallocate (Rgeo_err)
   call fractal_deallocate(fractal)
 
 end program test_radii_conversion

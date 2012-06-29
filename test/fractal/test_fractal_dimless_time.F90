@@ -112,7 +112,7 @@ program extract_dimless_time
      if (regime == REGIME_FREE) then
         dimless_times(i_file) = (6d0 * const%boltzmann * env_state%temp &
              * aero_data%fractal%prime_radius / DENSITY)**(1d0 / 2d0)   &
-             * (3d0 / 4d0 / const%pi)**(1d0 / 6d0) * N_INIT * times(i_file)
+             * N_INIT * times(i_file)
      elseif (regime == REGIME_CONT) then
         dimless_times(i_file) = (2d0 * const%boltzmann * env_state%temp &
              / 3d0 / const%air_dyn_visc) * N_INIT * times(i_file)      

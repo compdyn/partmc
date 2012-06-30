@@ -570,7 +570,7 @@ contains
     inputs%T = env_state%temp
     inputs%Tdot = condense_saved_Tdot
     inputs%pdot = condense_saved_pdot
-    inputs%H = env_state%rel_humid
+    inputs%H = state(n_eqn)
     inputs%p = env_state%pressure
     
     Hdot = 0d0
@@ -629,12 +629,12 @@ contains
 
     call env_state_allocate(env_state)
     call condense_current_env_state(n_eqn, time, state, env_state)
-    
+
     inputs%T = env_state%temp
     inputs%Tdot = condense_saved_Tdot
-    inputs%H = env_state%rel_humid
-    inputs%p = env_state%pressure
     inputs%pdot = condense_saved_pdot
+    inputs%H = state(n_eqn)
+    inputs%p = env_state%pressure
     
     dHdot_dH = 0d0
     do i_part = 1,(n_eqn - 1)

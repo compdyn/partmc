@@ -175,3 +175,10 @@ Fix % symbol not appearing in doxygen generated comments. E.g. the
 integer_rmap2_t type docs.
 
 Add check for height being <= 0.
+
+Change aero_state_add_particles() to either check that
+aero_state_delta has identical weights to aero_state, or (perhaps
+better) to selectively sample based on the weight ratio. If we do the
+second of these, we could adjust the cloud parcel routine in
+scenario.F90 to allow equilib() to reweight, and thus remove the
+do_reweight argument to equilib().

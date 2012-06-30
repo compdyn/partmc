@@ -282,8 +282,7 @@ contains
 
   !> Update time-dependent contents of the environment.
   !> scenario_init_env_state() should have been called at the start.
-  subroutine scenario_update_env_state(scenario, env_state, time, &
-       update_rel_humid)
+  subroutine scenario_update_env_state(scenario, env_state, time)
 
     !> Environment data.
     type(scenario_t), intent(in) :: scenario
@@ -291,8 +290,6 @@ contains
     type(env_state_t), intent(inout) :: env_state
     !> Current time (s).
     real(kind=dp), intent(in) :: time
-    !> Whether to update the relative humidity.
-    logical, intent(in) :: update_rel_humid
     
     !> Ambient water vapor pressure (Pa).
     real(kind=dp) :: pmv_old, pmv_new
@@ -313,10 +310,7 @@ contains
          scenario%pressure, time)
 
     pmv_new = pmv_old * env_state%pressure / pressure_old
-
-    if (update_rel_humid) then
-       env_state%rel_humid = pmv_new / env_state_sat_vapor_pressure(env_state)
-    end if
+    env_state%rel_humid = pmv_new / env_state_sat_vapor_pressure(env_state)
 
     env_state%height = interp_1d(scenario%height_time, scenario%height, time)
     env_state%elapsed_time = time

@@ -75,8 +75,7 @@ contains
     do i_time = 0,n_time
        time = real(i_time, kind=dp) / real(n_time, kind=dp) &
             * run_exact_opt%t_max
-       call scenario_update_env_state(scenario, env_state, time, &
-            update_rel_humid = .true.)
+       call scenario_update_env_state(scenario, env_state, time)
        call exact_soln(bin_grid, aero_data, run_exact_opt%do_coagulation, &
             run_exact_opt%coag_kernel_type, aero_dist_init, scenario, &
             env_state, time, aero_binned)

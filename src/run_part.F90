@@ -127,7 +127,6 @@ contains
     integer :: global_n_emit, global_n_dil_in, global_n_dil_out
     integer :: global_n_nuc
     logical :: do_output, do_state, do_state_netcdf, do_progress, did_coag
-    logical :: update_rel_humid
     real(kind=dp) :: t_start, t_wall_now, t_wall_elapsed, t_wall_remain
     type(env_state_t) :: old_env_state
     integer :: n_time, i_time, i_time_start, pre_i_time
@@ -203,9 +202,7 @@ contains
        time = real(i_time, kind=dp) * run_part_opt%del_t
 
        call env_state_copy(env_state, old_env_state)
-       update_rel_humid = .not. run_part_opt%do_condensation
-       call scenario_update_env_state(scenario, env_state, time + t_start, &
-            update_rel_humid)
+       call scenario_update_env_state(scenario, env_state, time + t_start)
 
        if (run_part_opt%do_nucleation) then
           n_part_before = aero_state_total_particles(aero_state)
@@ -234,6 +231,13 @@ contains
           progress_n_coag = progress_n_coag + n_coag
        end if
 
+#ifdef PMC_USE_SUNDIALS
+       if (run_part_opt%do_condensation) then
+          call condense_particles(aero_state, aero_data, old_env_state, &
+               env_state, run_part_opt%del_t)
+       end if
+#endif
+
        call scenario_update_gas_state(scenario, run_part_opt%del_t, &
             env_state, old_env_state, gas_data, gas_state)
        call scenario_update_aero_state(scenario, run_part_opt%del_t, &
@@ -242,13 +246,6 @@ contains
        progress_n_emit = progress_n_emit + n_emit
        progress_n_dil_in = progress_n_dil_in + n_dil_in
        progress_n_dil_out = progress_n_dil_out + n_dil_out
-
-#ifdef PMC_USE_SUNDIALS
-       if (run_part_opt%do_condensation) then
-          call condense_particles(env_state, scenario, aero_data, &
-               aero_state, run_part_opt%del_t)
-       end if
-#endif
 
        if (run_part_opt%do_mosaic) then
           call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &

@@ -5,7 +5,7 @@ n_part 100                      # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 600                       # total simulation time (s)
-del_t 1                         # timestep (s)
+del_t 0.5                         # timestep (s)
 t_output 10                     # output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
 
@@ -15,10 +15,10 @@ gas_init gas_init.dat           # initial gas mixing ratios
 aerosol_data aero_data.dat      # file containing aerosol data
 aerosol_init aero_init_dist.dat # aerosol initial condition file
 
-temp_profile temp.dat           # temperature profile file
-pressure_profile pres.dat       # pressure profile file
+temp_profile temp_001.dat           # temperature profile file
+pressure_profile pres_001.dat       # pressure profile file
 do_entrain no                   # whether to do entrainment (yes/no)
-#q_tot_profile q_tot.dat         # total water mixing ratio profile file
+#q_tot_profile qtot_001.dat         # total water mixing ratio profile file
 #q_background q_back.dat         # background spec. humidity profile file
 height_profile height.dat       # height profile file
 

@@ -687,7 +687,7 @@ contains
   !> Generates a Poisson sample of an \c aero_dist, adding to \c
   !> aero_state, with the given sample proportion.
   subroutine aero_state_add_aero_dist_sample(aero_state, aero_data, &
-       aero_dist, sample_prop, create_time, n_part_add)
+       aero_dist, sample_prop, create_time, n_part_add, aero_state_add)
 
     !> Aero state to add to.
     type(aero_state_t), intent(inout) :: aero_state
@@ -701,6 +701,8 @@ contains
     real(kind=dp), intent(in) :: create_time
     !> Number of particles added.
     integer, intent(out), optional :: n_part_add
+    !> Separate aero state to add to
+    type(aero_state_t), intent(inout), optional :: aero_state_add
 
     real(kind=dp) :: n_samp_avg, radius, total_vol
     real(kind=dp) :: vols(aero_data%n_spec)
@@ -747,11 +749,19 @@ contains
              call aero_particle_set_weight(aero_particle, i_group, i_class)
              call aero_particle_set_create_time(aero_particle, create_time)
              call aero_particle_set_source(aero_particle, aero_mode%source)
-             call aero_state_add_particle(aero_state, aero_particle)
+             if (present(aero_state_add)) then
+                  call aero_state_add_particle(aero_state_add, aero_particle)
+             else
+                  call aero_state_add_particle(aero_state, aero_particle)
+             end if
           end do
        end do
     end do
     call aero_particle_deallocate(aero_particle)
+
+    if (present(aero_state_add)) then
+       call aero_state_copy_weight(aero_state, aero_state_add)
+    end if
 
   end subroutine aero_state_add_aero_dist_sample
   
@@ -2561,5 +2571,103 @@ contains
   end subroutine aero_state_check_sort
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
+  !> Calculate liquid water volume concentration
+  subroutine aero_state_water_vol_conc(aero_state, aero_data, water_vol_conc)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aero data values.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Water volume concentration.
+    real(kind=dp), intent(out) :: water_vol_conc
+
+    integer :: i_part
+    real(kind=dp) :: num_conc
+    type(aero_particle_t), pointer :: aero_particle
+
+    water_vol_conc = 0d0
+
+    do i_part = 1,aero_state%apa%n_part
+       aero_particle => aero_state%apa%particle(i_part)
+       num_conc = aero_weight_array_num_conc(aero_state%awa, aero_particle)
+       water_vol_conc = water_vol_conc &
+            + aero_particle%vol(aero_data%i_water) * num_conc
+    end do
+
+    end subroutine aero_state_water_vol_conc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Calculate specific liquid water from env state and aero_state
+  subroutine aero_state_spec_liquid_water(aero_state, env_state, aero_data, q_l)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Current environment
+    type(env_state_t), intent(in) :: env_state
+    ! Aero data values.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Specific liquid water
+    real(kind=dp), intent(out) :: q_l
+
+    real(kind=dp) :: pmv
+    real(kind=dp) :: rho_air_dry
+    real(kind=dp) :: water_vol_conc
+    real(kind=dp) :: rho_l
+
+    pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
+
+    rho_air_dry = (env_state%pressure - pmv) * const%air_molec_weight &
+         / (const%univ_gas_const * env_state%temp)
+
+    call aero_state_water_vol_conc(aero_state, aero_data, water_vol_conc)
+
+    rho_l = water_vol_conc * const%water_density
+
+    q_l = rho_l / (rho_air_dry + rho_l)
+
+    end subroutine aero_state_spec_liquid_water
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Calculate specific humidity from env state
+  subroutine aero_state_spec_humidity(env_state, q_v)
+
+    !> Current environment.
+    type(env_state_t), intent(in) :: env_state
+    !> Specific humidity.
+    real(kind=dp), intent(out) :: q_v
+
+    real(kind=dp) :: epsilon
+    real(kind=dp) :: pmv
+
+    epsilon = const%water_molec_weight / const%air_molec_weight
+
+    pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
+
+    q_v = epsilon * pmv / (env_state%pressure - (1 - epsilon) * pmv)
+
+    end subroutine aero_state_spec_humidity
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Calculate water vapor pressure from env state and specific humidity
+  subroutine aero_state_vapor_pressure(env_state, q_v, pmv)
+
+    !> Current environment.
+    type(env_state_t), intent(in) :: env_state
+    !> Current specific humidity
+    real(kind=dp), intent(in) :: q_v
+    !> Water vapor pressure.
+    real(kind=dp), intent(out) :: pmv
+
+    real(kind=dp) :: epsilon
+
+    epsilon = const%water_molec_weight / const%air_molec_weight
+
+    pmv = q_v * env_state%pressure / (epsilon + q_v * (1 - epsilon))
+
+    end subroutine aero_state_vapor_pressure
+
 end module pmc_aero_state

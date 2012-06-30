@@ -337,9 +337,30 @@ m_{\rm air, wet}^+ &= m_{\rm air, wet}^- + \gamma \left( V_{\rm comp}\rho_{\rm v
 \end{align}
 \item Plugging everything in gives:
 \begin{align}
-q_{\rm tot}^+ \left(1+\gamma \left(\frac{\rho_{\rm v,b}^-}{\rho_{\rm air, wet}^-} - q_{\rm v}^- \right)\right) - q_{\rm tot}^- = \gamma \left(q_{\rm tot, b}^- - q_{\rm tot}^- \right) \\
-\gamma = \frac{q_{\rm tot}^+ - q_{\rm tot}^-}{q_{\rm tot, b}^- - q_{\rm tot}^- - q_{\rm tot}^+ \left(\frac{\rho_{\rm v,b}^-}{\rho_{\rm air, wet}^-} - q_{\rm v}^- \right)}
+q_{\rm tot}^+ \left(1+\gamma \left(\frac{\rho_{\rm v,b}^-}{\rho_{\rm air, wet}^-} - q_{\rm v}^- \right)\right) - q_{\rm tot}^- & = \gamma \left(q_{\rm tot, b}^- - q_{\rm tot}^- \right) \\
+\gamma & = \frac{q_{\rm tot}^+ - q_{\rm tot}^-}{q_{\rm tot, b}^- - q_{\rm tot}^- - q_{\rm tot}^+ \left(\frac{\rho_{\rm v,b}^-}{\rho_{\rm air, wet}^-} - q_{\rm v}^- \right)}
 \end{align}
+\item If temperature and pressure of background and parcel are the same or not too different, we can approximate the fraction $\rho_{\rm v,b}^-/\rho_{\rm air, wet}^-$ by:
+\begin{align}
+\frac{\rho_{\rm v,b}^-}{\rho_{\rm air, wet}^-} & = \frac{p_b T \left(1 + \left(\frac{1}{\epsilon} - 1 \right) q_{\rm v}^-\right)}{p T_{\rm b} \left(1 - q_{\rm b}^-\right)} \approx  \frac{\left(1 + \left(\frac{1}{\epsilon} - 1 \right) q_{\rm v}^-\right)}{\left(1 - q_{\rm b}^-\right)} \\
+\epsilon & = \frac{M_{\rm w}}{M_{\rm air, dry}}
+\end{align}
+
+Using $\gamma$ we do dilution of gases and dilution of particles. This
+will change the aerosol population in the parcel and the liquid water
+content of the parcel, so $q_{\rm l}^-$ needs to be updated to
+$q_{\rm l, new}^-$.
+
+The updated value $q_{\rm l, new}^-$ is then used to update the
+parcel relative humidity, so that the prescribed $q_{\rm tot}^-$ is
+matched.
+\begin{align}
+q_{\rm v, new}^- &= q_{\rm tot}^- - q_{\rm l, new}^- \\
+p_{\rm v, new}^- &= \frac{q_{\rm v, new}^- p}
+        {\epsilon + q_{\rm v, new}^- (1 - \epsilon)} \\
+H_{{\rm new}^-} &= \frac{p_{\rm v, new}^-}{P^0(T)}
+\end{align}
+where $\epsilon = \frac{M_{\rm w}}{M_{\rm air}}$.
 
 \end{itemize}
 \end{document}
@@ -358,6 +379,24 @@ q_{\rm tot}^+ \left(1+\gamma \left(\frac{\rho_{\rm v,b}^-}{\rho_{\rm air, wet}^-
  \lambda_{\rm entrain} & = \frac{\Delta q}{\Delta t\left(q_{\rm l, back} + \frac{\rho_{\rm v, back}}{\rho_{\rm air}} - \left(q_{\rm l} + q_{\rm w} \right) \right)} \\
  \lambda_{\rm entrain} & = \frac{\Delta q}{\Delta t \left(q_{\rm l, back} + q_{\rm back} - q_{\rm l} - q_{\rm w} \right)}
 \end{align}
+
+Using $\lambda_{\rm entrain}$ we do dilution of gases and dilution of
+particles. Dilution of particles from the parcel into the background
+will lead to change of liquid water content of the parcel, so $q_{{\rm
+    l}, k}$ needs to be updated to $q_{{\rm l, new}, k}$. Dilution of
+particles from the background means that the aerosol population in the
+parcel changes.
+
+The updated value $q_{{\rm l, new}, k}$ is then used to update the
+parcel relative humidity, so that the prescribed $q_{{\rm tot}, k}$ is
+matched.
+\begin{align}
+q_{{\rm v, new}, k} &= q_{{\rm tot}, k} - q_{{\rm l, new}, k} \\
+p_{{\rm v, new}, k} &= \frac{q_{{\rm v, new}, k} p_k}
+        {\epsilon + q_{{\rm v, new}, k} (1 - \epsilon)} \\
+H_{{\rm new}, k} &= \frac{p_{{\rm v, new}, k}}{P^0(T_k)}
+\end{align}
+where $\epsilon = \frac{M_{\rm w}}{M_{\rm air}}$.
 
 \end{itemize}
 

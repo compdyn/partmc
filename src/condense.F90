@@ -738,7 +738,8 @@ contains
   !> Call condense_equilib_particle() on each particle in the aerosol
   !> to ensure that every particle has its water content in
   !> equilibrium.
-  subroutine condense_equilib_particles(env_state, aero_data, aero_state)
+  subroutine condense_equilib_particles(env_state, aero_data, aero_state, &
+       do_reweight)
 
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
@@ -746,6 +747,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
+    !> Whether to reweight. Default is true.
+    logical, intent(in), optional :: do_reweight
 
     integer :: i_part
     real(kind=dp) :: reweight_num_conc(aero_state%apa%n_part)
@@ -759,7 +762,13 @@ contains
             aero_state%apa%particle(i_part))
     end do
     ! adjust particles to account for weight changes
-    call aero_state_reweight(aero_state, reweight_num_conc)
+    if (.not. present(do_reweight)) then
+       call aero_state_reweight(aero_state, reweight_num_conc)
+    else if (present(do_reweight)) then
+       if (do_reweight .eqv. .true.) then
+          call aero_state_reweight(aero_state, reweight_num_conc)
+       end if
+    end if
 
   end subroutine condense_equilib_particles
 

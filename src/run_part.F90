@@ -200,7 +200,7 @@ contains
     do i_time = i_time_start,n_time
 
        time = real(i_time, kind=dp) * run_part_opt%del_t
-
+       write(6,*)"TIME***************", time
        call env_state_copy(env_state, old_env_state)
        call scenario_update_env_state(scenario, env_state, time + t_start)
 

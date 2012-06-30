@@ -29,7 +29,6 @@
 module pmc_condense
 
   use pmc_aero_state
-  use pmc_scenario
   use pmc_env_state
   use pmc_aero_data
   use pmc_util
@@ -112,9 +111,6 @@ module pmc_condense
   !> Internal-use variable for storing the aerosol data during calls
   !> to the ODE solver.
   type(aero_data_t) :: condense_saved_aero_data
-  !> Internal-use variable for storing the environment data during
-  !> calls to the ODE solver.
-  type(scenario_t) :: condense_saved_scenario
   !> Internal-use variable for storing the initial environment state
   !> during calls to the ODE solver.
   type(env_state_t) :: condense_saved_env_state_initial
@@ -148,17 +144,19 @@ contains
   !> Do condensation to all the particles for a given time interval,
   !> including updating the environment to account for the lost
   !> water vapor.
-  subroutine condense_particles(env_state, scenario, aero_data, &
-       aero_state, del_t)
+  subroutine condense_particles(aero_state, aero_data, env_state_initial, &
+       env_state_final, del_t)
 
-    !> Environment state.
-    type(env_state_t), intent(inout) :: env_state
-    !> Environment data.
-    type(scenario_t), intent(in) :: scenario
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state at the start of the timestep.
+    type(env_state_t), intent(in) :: env_state_initial
+    !> Environment state at the end of the timestep. The rel_humid
+    !> value will be ignored and overwritten with the
+    !> condensation-computed value.
+    type(env_state_t), intent(inout) :: env_state_final
     !> Total time to integrate.
     real(kind=dp), intent(in) :: del_t
     
@@ -168,7 +166,6 @@ contains
     real(kind=dp) :: abs_tol_vector(aero_state%apa%n_part + 1)
     real(kind=dp) :: num_conc
     real(kind=dp) :: reweight_num_conc(aero_state%apa%n_part)
-    type(env_state_t) :: env_state_final
     real(kind=dp) :: water_vol_conc_initial, water_vol_conc_final
     real(kind=dp) :: vapor_vol_conc_initial, vapor_vol_conc_final
     real(kind=dp) :: d_water_vol_conc, d_vapor_vol_conc
@@ -198,7 +195,7 @@ contains
 #endif
 #endif
 
-    ! initial water volume in the aerosol particles in volume V_comp
+    ! initial water concentration in the aerosol particles
     water_vol_conc_initial = 0d0
     do i_part = 1,aero_state%apa%n_part
        aero_particle => aero_state%apa%particle(i_part)
@@ -209,20 +206,13 @@ contains
 
     ! save data for use within the timestepper
     call aero_data_allocate(condense_saved_aero_data)
-    call scenario_allocate(condense_saved_scenario)
     call env_state_allocate(condense_saved_env_state_initial)
-
     call aero_data_copy(aero_data, condense_saved_aero_data)
-    call scenario_copy(scenario, condense_saved_scenario)
-    call env_state_copy(env_state, condense_saved_env_state_initial)
-
-    call env_state_allocate(env_state_final)
-    call env_state_copy(env_state, env_state_final)
-    call scenario_update_env_state(scenario, env_state_final, &
-         env_state_final%elapsed_time + del_t, update_rel_humid = .false.)
-    condense_saved_Tdot = (env_state_final%temp - env_state%temp) / del_t
-    condense_saved_pdot = (env_state_final%pressure - env_state%pressure) &
-         / del_t
+    call env_state_copy(env_state_initial, condense_saved_env_state_initial)
+    condense_saved_Tdot &
+         = (env_state_final%temp - env_state_initial%temp) / del_t
+    condense_saved_pdot &
+         = (env_state_final%pressure - env_state_initial%pressure) / del_t
 
     ! construct initial state vector from aero_state and env_state
     allocate(condense_saved_kappa(aero_state%apa%n_part))
@@ -243,7 +233,7 @@ contains
        abs_tol_vector(i_part) = max(1d-30, &
             1d-8 * (state(i_part) - condense_saved_D_dry(i_part)))
     end do
-    state(aero_state%apa%n_part + 1) = env_state%rel_humid
+    state(aero_state%apa%n_part + 1) = env_state_initial%rel_humid
     abs_tol_vector(aero_state%apa%n_part + 1) = 1d-10
 
 #ifdef PMC_USE_SUNDIALS
@@ -273,8 +263,8 @@ contains
     end do
 #endif
 
-    ! unpack result state vector into env_state
-    env_state%rel_humid = state(aero_state%apa%n_part + 1)
+    ! unpack result state vector into env_state_final
+    env_state_final%rel_humid = state(aero_state%apa%n_part + 1)
 
     ! unpack result state vector into aero_state, compute the final
     ! water volume concentration, and adjust particle number to
@@ -302,20 +292,19 @@ contains
 
     ! Check that water removed from particles equals water added to
     ! vapor. Note that water concentration is not conserved (due to
-    ! V_comp changes), and we need to consider particle weightings
-    ! correctly.
-    V_comp_ratio = env_state_final%temp &
-         * condense_saved_env_state_initial%pressure &
-         / (condense_saved_env_state_initial%temp * env_state_final%pressure)
+    ! computational volume changes), and we need to consider particle
+    ! weightings correctly.
+    V_comp_ratio = env_state_final%temp * env_state_initial%pressure &
+         / (env_state_initial%temp * env_state_final%pressure)
     vapor_vol_conc_initial = aero_data%molec_weight(aero_data%i_water) &
-         / (const%univ_gas_const * condense_saved_env_state_initial%temp) &
-         * env_state_sat_vapor_pressure(condense_saved_env_state_initial) &
-         * condense_saved_env_state_initial%rel_humid &
+         / (const%univ_gas_const * env_state_initial%temp) &
+         * env_state_sat_vapor_pressure(env_state_initial) &
+         * env_state_initial%rel_humid &
          / aero_particle_water_density(aero_data)
     vapor_vol_conc_final = aero_data%molec_weight(aero_data%i_water) &
          / (const%univ_gas_const * env_state_final%temp) &
          * env_state_sat_vapor_pressure(env_state_final) &
-         * env_state%rel_humid &
+         * env_state_final%rel_humid &
          * V_comp_ratio / aero_particle_water_density(aero_data)
     d_vapor_vol_conc = vapor_vol_conc_final - vapor_vol_conc_initial
     d_water_vol_conc = water_vol_conc_final - water_vol_conc_initial
@@ -328,9 +317,7 @@ contains
     deallocate(condense_saved_kappa)
     deallocate(condense_saved_D_dry)
     deallocate(condense_saved_num_conc)
-    call env_state_deallocate(env_state_final)
     call aero_data_deallocate(condense_saved_aero_data)
-    call scenario_deallocate(condense_saved_scenario)
     call env_state_deallocate(condense_saved_env_state_initial)
 
   end subroutine condense_particles
@@ -373,29 +360,6 @@ contains
 
   end subroutine condense_check_solve
 #endif
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Fills in the \c env_state with the current environment state,
-  !> taken from the \c state vector and from global variables.
-  subroutine condense_current_env_state(n_eqn, time, state, env_state)
-
-    !> Length of state vector.
-    integer, intent(in) :: n_eqn
-    !> Current time (s).
-    real(kind=dp), intent(in) :: time
-    !> Current state vector.
-    real(kind=dp), intent(in) :: state(n_eqn)
-    !> Current environment state.
-    type(env_state_t), intent(inout) :: env_state
-
-    call env_state_copy(condense_saved_env_state_initial, env_state)
-    call scenario_update_env_state(condense_saved_scenario, &
-         env_state, env_state%elapsed_time + time, &
-         update_rel_humid = .false.)
-    env_state%rel_humid = state(n_eqn)
-
-  end subroutine condense_current_env_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -555,7 +519,6 @@ contains
     real(kind=c_double), pointer :: state_dot(:)
     real(kind=dp) :: Hdot
     integer :: i_part
-    type(env_state_t) :: env_state
     type(condense_rates_inputs_t) :: inputs
     type(condense_rates_outputs_t) :: outputs
 
@@ -564,22 +527,21 @@ contains
     call c_f_pointer(state_p, state, (/ n_eqn /))
     call c_f_pointer(state_dot_p, state_dot, (/ n_eqn /))
     
-    call env_state_allocate(env_state)
-    call condense_current_env_state(n_eqn, time, state, env_state)
-
-    inputs%T = env_state%temp
+    inputs%T = condense_saved_env_state_initial%temp &
+         + time * condense_saved_Tdot
+    inputs%p = condense_saved_env_state_initial%pressure &
+         + time * condense_saved_pdot
     inputs%Tdot = condense_saved_Tdot
     inputs%pdot = condense_saved_pdot
-    inputs%H = env_state%rel_humid
-    inputs%p = env_state%pressure
+    inputs%H = state(n_eqn)
     
     Hdot = 0d0
     do i_part = 1,(n_eqn - 1)
        inputs%D = state(i_part)
        inputs%D_dry = condense_saved_D_dry(i_part)
-       inputs%V_comp = (env_state%temp &
+       inputs%V_comp = (inputs%T &
             * condense_saved_env_state_initial%pressure) &
-            / (condense_saved_env_state_initial%temp * env_state%pressure) &
+            / (condense_saved_env_state_initial%temp * inputs%p) &
             / condense_saved_num_conc(i_part)
        inputs%kappa = condense_saved_kappa(i_part)
        call condense_rates(inputs, outputs)
@@ -589,8 +551,6 @@ contains
     Hdot = Hdot + outputs%Hdot_env
     
     state_dot(n_eqn) = Hdot
-    
-    call env_state_deallocate(env_state)
     
   end subroutine condense_vf_f
 #endif
@@ -621,28 +581,26 @@ contains
 
     real(kind=c_double), pointer :: state(:)
     integer :: i_part
-    type(env_state_t) :: env_state
     type(condense_rates_inputs_t) :: inputs
     type(condense_rates_outputs_t) :: outputs
 
     call c_f_pointer(state_p, state, (/ n_eqn /))
 
-    call env_state_allocate(env_state)
-    call condense_current_env_state(n_eqn, time, state, env_state)
-    
-    inputs%T = env_state%temp
+    inputs%T = condense_saved_env_state_initial%temp &
+         + time * condense_saved_Tdot
+    inputs%p = condense_saved_env_state_initial%pressure &
+         + time * condense_saved_pdot
     inputs%Tdot = condense_saved_Tdot
-    inputs%H = env_state%rel_humid
-    inputs%p = env_state%pressure
     inputs%pdot = condense_saved_pdot
+    inputs%H = state(n_eqn)
     
     dHdot_dH = 0d0
     do i_part = 1,(n_eqn - 1)
        inputs%D = state(i_part)
        inputs%D_dry = condense_saved_D_dry(i_part)
-       inputs%V_comp = (env_state%temp &
+       inputs%V_comp = (inputs%T &
             * condense_saved_env_state_initial%pressure) &
-            / (condense_saved_env_state_initial%temp * env_state%pressure) &
+            / (condense_saved_env_state_initial%temp * inputs%p) &
             / condense_saved_num_conc(i_part)
        inputs%kappa = condense_saved_kappa(i_part)
        call condense_rates(inputs, outputs)
@@ -652,8 +610,6 @@ contains
        dHdot_dH = dHdot_dH + outputs%dHdoti_dH
     end do
     dHdot_dH = dHdot_dH + outputs%dHdotenv_dH
-    
-    call env_state_deallocate(env_state)
     
   end subroutine condense_jac
 #endif

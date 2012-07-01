@@ -374,6 +374,15 @@ add_executable(test_fractal_sectional_dimless_time
 target_link_libraries(test_fractal_sectional_dimless_time partmclib)
 
 ######################################################################
+# test_fractal_merge_files
+
+add_executable(test_fractal_merge_files 
+  test/fractal/test_fractal_merge_files.F90
+  src/getopt.F90)
+
+target_link_libraries(test_fractal_merge_files partmclib)
+
+######################################################################
 # test_fractal_radii_conversion
 
 add_executable(test_fractal_radii_conversion 

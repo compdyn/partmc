@@ -5,7 +5,7 @@ n_part 1000000                     # total number of particles
 restart yes                      # whether to restart from saved state (yes/no)
 restart_file out_dimless_t/part_vemury_free_df_3_0001_00000021.nc # saved state file to restart from
 
-t_max 1e+5                       # total simulation time (s)
+t_max 6.5e+4                       # total simulation time (s)
 del_t 10                         # timestep (s)
 t_output 5e+3                    # output interval (0 disables) (s)
 t_progress 1e+3                   # progress printing interval (0 disables) (s)

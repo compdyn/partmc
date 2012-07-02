@@ -9,6 +9,8 @@ cd ${0%/*}
 # make the output directory if it doesn't exist
 mkdir -p out
 
+../../test_fractal_radii_conversion
+
 ../../partmc run_part_vemury_free_df_3.spec
 ../../partmc run_sect_vemury_free_df_3.spec
 
@@ -16,4 +18,3 @@ mkdir -p out
 ../../extract_sectional_aero_size --num out/sect_vemury_free_df_3
 
 ../../numeric_diff --by col --rel-tol 0.1 out/sect_vemury_free_df_3_aero_size_num.txt out/part_vemury_free_df_3_0001_aero_size_num.txt
-../../test_fractal_radii_conversion

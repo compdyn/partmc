@@ -270,6 +270,20 @@ add_test(test_fractal_14 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_14.sh
 set_tests_properties(test_fractal_14 PROPERTIES DEPENDS test_fractal_13)
 add_test(test_fractal_15 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_15.sh)
 set_tests_properties(test_fractal_15 PROPERTIES DEPENDS test_fractal_14)
+add_test(test_fractal_16 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_16.sh)
+set_tests_properties(test_fractal_16 PROPERTIES DEPENDS test_fractal_15)
+add_test(test_fractal_17 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_17.sh)
+set_tests_properties(test_fractal_17 PROPERTIES DEPENDS test_fractal_16)
+add_test(test_fractal_18 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_18.sh)
+set_tests_properties(test_fractal_18 PROPERTIES DEPENDS test_fractal_17)
+add_test(test_fractal_19 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_19.sh)
+set_tests_properties(test_fractal_19 PROPERTIES DEPENDS test_fractal_18)
+add_test(test_fractal_20 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_20.sh)
+set_tests_properties(test_fractal_20 PROPERTIES DEPENDS test_fractal_19)
+add_test(test_fractal_21 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_21.sh)
+set_tests_properties(test_fractal_21 PROPERTIES DEPENDS test_fractal_20)
+add_test(test_fractal_22 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_22.sh)
+set_tests_properties(test_fractal_22 PROPERTIES DEPENDS test_fractal_21)
 
 ######################################################################
 # partmc library

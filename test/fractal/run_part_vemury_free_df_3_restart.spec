@@ -1,7 +1,7 @@
 run_type particle               # particle-resolved run
 output_prefix out_dimless_t/restart/part_vemury_free_df_3     # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
-n_part 1000000                     # total number of particles
+n_part 10000                     # total number of particles
 restart yes                      # whether to restart from saved state (yes/no)
 restart_file out_dimless_t/part_vemury_free_df_3_0001_00000021.nc # saved state file to restart from
 

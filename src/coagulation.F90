@@ -775,7 +775,7 @@ contains
     real(kind=dp) :: r1, r2, rc, nc_min, nc1, nc2, ncc
     real(kind=dp) :: prob_remove_1, prob_remove_2, prob_create_new
     integer :: info_other_id, new_group
-
+    
     call assert(371947172, pt1%id /= pt2%id)
 
     ! decide which old particles are to be removed and whether to

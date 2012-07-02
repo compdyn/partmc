@@ -515,8 +515,7 @@ contains
 
   !> Do dilution of cloud parcel
   subroutine scenario_update_cloud(scenario, delta_t, env_state, &
-      old_env_state, gas_data, gas_state, &
-      aero_data, aero_state, n_dil_in, n_dil_out)
+      gas_data, gas_state, aero_data, aero_state, n_dil_in, n_dil_out)
 
     !> Scenario.
     type(scenario_t), intent(in) :: scenario
@@ -524,8 +523,6 @@ contains
     real(kind=dp), intent(in) :: delta_t
     !> Current environment.
     type(env_state_t), intent(inout) :: env_state
-    !> Previous environment.
-    type(env_state_t), intent(in) :: old_env_state
     !> Gas data values.
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state to update.
@@ -542,7 +539,6 @@ contains
     integer :: i_part
     real(kind=dp) :: q_tot, q_tot_final, qdot
     real(kind=dp) :: q_back
-    real(kind=dp) :: water_vol_conc
     real(kind=dp) :: q_l_parcel, q_v_parcel, q_v_parcel_new
     real(kind=dp) :: rho_l
     real(kind=dp) :: pmv, pmv_new, pmv_back
@@ -554,7 +550,7 @@ contains
     type(aero_dist_t) :: background_aero
     type(aero_state_t) :: aero_state_delta, aero_state_add
     type(env_state_t) :: background_env_state
-
+ 
     q_tot = interp_1d(scenario%q_tot_time, scenario%q_tot, &
         env_state%elapsed_time)  ! current q_tot
     q_tot_final = interp_1d(scenario%q_tot_time, scenario%q_tot, &
@@ -564,16 +560,15 @@ contains
     q_back = interp_1d(scenario%q_background_time, scenario%q_background, &
         env_state%elapsed_time)
 
-    call aero_state_water_vol_conc(aero_state, aero_data, water_vol_conc)
-
     ! specific liquid water in parcel (mass of liquid water per mass of moist air)
     call aero_state_spec_liquid_water(aero_state, env_state, aero_data, &
          q_l_parcel)
 
     ! specific humidity in parcel (mass of water vapor per mass of moist air)
-    call aero_state_spec_humidity(env_state, q_v_parcel)
+    call env_state_spec_humidity(env_state, q_v_parcel)
 
     ! entrainment rate
+    epsilon = const%water_molec_weight / const%air_molec_weight
     rho_b_over_rho_air_wet = (1 + (1 / epsilon - 1) * q_v_parcel) &
          / (1 - q_back)
     K = rho_b_over_rho_air_wet - q_v_parcel
@@ -616,16 +611,11 @@ contains
 
     call env_state_allocate(background_env_state)
     call env_state_copy(env_state, background_env_state)
-    pmv_back = q_back * env_state%pressure / &
-         (q_back * (1 - epsilon) + epsilon)
-    background_env_state%rel_humid = pmv_back / &
-         env_state_sat_vapor_pressure(background_env_state)
-    call condense_equilib_particles(background_env_state, aero_data, &
-         aero_state_add)
-    call aero_state_add_particles(aero_state, aero_state_add)
+    call env_state_set_spec_humid(background_env_state, q_back)
 
-    ! new liquid water content
-    call aero_state_water_vol_conc(aero_state, aero_data, water_vol_conc)
+    call condense_equilib_particles(background_env_state, aero_data, &
+         aero_state_add, do_reweight=.false.)
+    call aero_state_add_particles(aero_state, aero_state_add)
 
     ! new specific liquid water in parcel
     call aero_state_spec_liquid_water(aero_state, env_state, aero_data, &
@@ -634,9 +624,7 @@ contains
     !adjust relative humidity so that q_tot is matched
     q_v_parcel_new = q_tot - q_l_parcel
 
-    call aero_state_vapor_pressure(env_state, q_v_parcel_new, pmv_new)
-
-    env_state%rel_humid = pmv_new / env_state_sat_vapor_pressure(env_state)
+    call env_state_set_spec_humid(env_state, q_v_parcel_new)
 
   end subroutine scenario_update_cloud
 

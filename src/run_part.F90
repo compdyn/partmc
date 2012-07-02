@@ -245,7 +245,7 @@ contains
             n_dil_in, n_dil_out)
        if (scenario%do_entrain) then
             call scenario_update_cloud(scenario, run_part_opt%del_t, &
-                 env_state, old_env_state, gas_data, gas_state, aero_data, &
+                 env_state, gas_data, gas_state, aero_data, &
                  aero_state, n_dil_in, n_dil_out)
        end if
        progress_n_emit = progress_n_emit + n_emit

@@ -202,6 +202,48 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Calculate specific humidity from env state
+  subroutine env_state_spec_humidity(env_state, q_v)
+
+    !> Current environment.
+    type(env_state_t), intent(in) :: env_state
+    !> Specific humidity.
+    real(kind=dp), intent(out) :: q_v
+
+    real(kind=dp) :: epsilon
+    real(kind=dp) :: pmv
+
+    epsilon = const%water_molec_weight / const%air_molec_weight
+
+    pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
+
+    q_v = epsilon * pmv / (env_state%pressure - (1 - epsilon) * pmv)
+
+    end subroutine env_state_spec_humidity
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Sets relative humidity in env_state based on specific humidity
+  subroutine env_state_set_spec_humid(env_state, q_v)
+
+    !> Current environment.
+    type(env_state_t), intent(inout) :: env_state
+    !> Current specific humidity
+    real(kind=dp), intent(in) :: q_v
+
+    real(kind=dp) :: pmv
+    real(kind=dp) :: epsilon
+
+    epsilon = const%water_molec_weight / const%air_molec_weight
+
+    pmv = q_v * env_state%pressure / (epsilon + q_v * (1 - epsilon))
+
+    env_state%rel_humid = pmv / env_state_sat_vapor_pressure(env_state)
+
+    end subroutine env_state_set_spec_humid
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Air density (kg m^{-3}).
   real(kind=dp) function env_state_air_den(env_state)
 

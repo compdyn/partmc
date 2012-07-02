@@ -2629,45 +2629,4 @@ contains
 
     end subroutine aero_state_spec_liquid_water
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Calculate specific humidity from env state
-  subroutine aero_state_spec_humidity(env_state, q_v)
-
-    !> Current environment.
-    type(env_state_t), intent(in) :: env_state
-    !> Specific humidity.
-    real(kind=dp), intent(out) :: q_v
-
-    real(kind=dp) :: epsilon
-    real(kind=dp) :: pmv
-
-    epsilon = const%water_molec_weight / const%air_molec_weight
-
-    pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
-
-    q_v = epsilon * pmv / (env_state%pressure - (1 - epsilon) * pmv)
-
-    end subroutine aero_state_spec_humidity
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Calculate water vapor pressure from env state and specific humidity
-  subroutine aero_state_vapor_pressure(env_state, q_v, pmv)
-
-    !> Current environment.
-    type(env_state_t), intent(in) :: env_state
-    !> Current specific humidity
-    real(kind=dp), intent(in) :: q_v
-    !> Water vapor pressure.
-    real(kind=dp), intent(out) :: pmv
-
-    real(kind=dp) :: epsilon
-
-    epsilon = const%water_molec_weight / const%air_molec_weight
-
-    pmv = q_v * env_state%pressure / (epsilon + q_v * (1 - epsilon))
-
-    end subroutine aero_state_vapor_pressure
-
 end module pmc_aero_state

@@ -115,17 +115,18 @@ contains
     call aero_binned_set_sizes(aero_binned, bin_grid_size(bin_grid), &
          aero_data_n_spec(aero_data))
 
-    mean_vol = rad2vol(radius_at_mean_vol)
+    mean_vol = aero_data_rad2vol(aero_data, radius_at_mean_vol)
     if (time .eq. 0d0) then
        do k = 1,bin_grid_size(bin_grid)
           aero_binned%num_conc(k) = const%pi / 2d0 &
                * (2d0 * bin_grid%centers(k))**3 * num_conc / mean_vol &
-               * exp(-(rad2vol(bin_grid%centers(k)) / mean_vol))
+               * exp(-(aero_data_rad2vol(aero_data, bin_grid%centers(k)) &
+               / mean_vol))
        end do
     else
        tau = num_conc * beta_0 * time
        do k = 1,bin_grid_size(bin_grid)
-          rat_v = rad2vol(bin_grid%centers(k)) / mean_vol
+          rat_v = aero_data_rad2vol(aero_data, bin_grid%centers(k)) / mean_vol
           nn = 4d0 * num_conc / (mean_vol * ( tau + 2d0 ) ** 2d0) &
                * exp(-2d0*rat_v/(tau+2d0)*exp(-lambda*tau)-lambda*tau)
           aero_binned%num_conc(k) = const%pi / 2d0 &
@@ -135,8 +136,8 @@ contains
 
     aero_binned%vol_conc = 0d0
     do k = 1,bin_grid_size(bin_grid)
-       aero_binned%vol_conc(k,1) = rad2vol(bin_grid%centers(k)) &
-            * aero_binned%num_conc(k)
+       aero_binned%vol_conc(k,1) = aero_data_rad2vol(aero_data, &
+            bin_grid%centers(k)) * aero_binned%num_conc(k)
     end do
 
   end subroutine soln_constant_exp

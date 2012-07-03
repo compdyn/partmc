@@ -19,22 +19,30 @@ module pmc_coag_kernel
   use pmc_coag_kernel_constant
   use pmc_coag_kernel_brown
   use pmc_coag_kernel_zero
+  use pmc_coag_kernel_brown_free
+  use pmc_coag_kernel_brown_cont
 
   !> Maximum length of a mode type.
   integer, parameter :: COAG_KERNEL_TYPE_LEN = 20
 
   !> Type code for an undefined or invalid kernel.
-  integer, parameter :: COAG_KERNEL_TYPE_INVALID  = 0
+  integer, parameter :: COAG_KERNEL_TYPE_INVALID      = 0
   !> Type code for a sedimentation kernel.
-  integer, parameter :: COAG_KERNEL_TYPE_SEDI     = 1
+  integer, parameter :: COAG_KERNEL_TYPE_SEDI         = 1
   !> Type code for an additive kernel.
-  integer, parameter :: COAG_KERNEL_TYPE_ADDITIVE = 2
+  integer, parameter :: COAG_KERNEL_TYPE_ADDITIVE     = 2
   !> Type code for a constant kernel.
-  integer, parameter :: COAG_KERNEL_TYPE_CONSTANT = 3
+  integer, parameter :: COAG_KERNEL_TYPE_CONSTANT     = 3
   !> Type code for a Brownian kernel.
-  integer, parameter :: COAG_KERNEL_TYPE_BROWN    = 4
+  integer, parameter :: COAG_KERNEL_TYPE_BROWN        = 4
   !> Type code for a zero kernel.
-  integer, parameter :: COAG_KERNEL_TYPE_ZERO     = 5
+  integer, parameter :: COAG_KERNEL_TYPE_ZERO         = 5
+  !> Type code for a Brownian kernel in free molecular regime from Vemury
+  !> and Pratsinis [1995].
+  integer, parameter :: COAG_KERNEL_TYPE_BROWN_FREE   = 6
+  !> Type code for a Brownian kernel in continuum regime from Vemury and
+  !> Pratsinis [1995].
+  integer, parameter :: COAG_KERNEL_TYPE_BROWN_CONT   = 7
 
 contains
 
@@ -59,6 +67,10 @@ contains
        coag_kernel_type_to_string = "brown"
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_ZERO) then
        coag_kernel_type_to_string = "zero"
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_BROWN_FREE) then
+       coag_kernel_type_to_string = "brown_free"
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_BROWN_CONT) then
+       coag_kernel_type_to_string = "brown_cont"
     else
        coag_kernel_type_to_string = "unknown"
     end if
@@ -99,6 +111,12 @@ contains
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_ZERO) then
        call kernel_zero(aero_particle_1, aero_particle_2, &
        aero_data, env_state, k)
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_BROWN_FREE) then
+       call kernel_brown_free(aero_particle_1, aero_particle_2, &
+       aero_data, env_state, k)
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_BROWN_CONT) then
+       call kernel_brown_cont(aero_particle_1, aero_particle_2, &
+       aero_data, env_state, k)
     else
        call die_msg(200724934, "Unknown kernel type: " &
             // trim(integer_to_string(coag_kernel_type)))
@@ -137,6 +155,12 @@ contains
        call kernel_brown_minmax(v1, v2, aero_data, env_state, k_min, k_max)
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_ZERO) then
        call kernel_zero_minmax(v1, v2, aero_data, env_state, k_min, k_max)
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_BROWN_FREE) then
+       call kernel_brown_free_minmax(v1, v2, aero_data, env_state, &
+            k_min, k_max)
+    elseif (coag_kernel_type == COAG_KERNEL_TYPE_BROWN_CONT) then
+       call kernel_brown_cont_minmax(v1, v2, aero_data, env_state, &
+            k_min, k_max)
     else
        call die_msg(330498208, "Unknown kernel type: " &
             // trim(integer_to_string(coag_kernel_type)))
@@ -177,10 +201,10 @@ contains
 
     call kernel(coag_kernel_type, aero_particle_1, aero_particle_2, &
          aero_data, env_state, unweighted_k)
-    i_r = aero_particle_radius(aero_particle_1)
-    j_r = aero_particle_radius(aero_particle_2)
-    k = unweighted_k * coag_num_conc_factor(aero_weight_array, i_r, j_r, &
-         i_class, j_class, ij_class)
+    i_r = aero_particle_radius(aero_particle_1, aero_data)
+    j_r = aero_particle_radius(aero_particle_2, aero_data)
+    k = unweighted_k * coag_num_conc_factor(aero_weight_array, aero_data, &
+         i_r, j_r, i_class, j_class, ij_class)
 
   end subroutine num_conc_weighted_kernel
 
@@ -212,8 +236,8 @@ contains
        do j = 1,n_bin
           call aero_particle_zero(aero_particle_1, aero_data)
           call aero_particle_zero(aero_particle_2, aero_data)
-          aero_particle_1%vol(1) = rad2vol(bin_r(i))
-          aero_particle_2%vol(1) = rad2vol(bin_r(j))
+          aero_particle_1%vol(1) = aero_data_rad2vol(aero_data, bin_r(i))
+          aero_particle_2%vol(1) = aero_data_rad2vol(aero_data, bin_r(j))
           call kernel(coag_kernel_type, aero_particle_1, aero_particle_2, &
                aero_data, env_state, k(i,j))
        end do
@@ -289,12 +313,12 @@ contains
     integer :: i, j
 
     ! v1_low < bin_v(b1) < v1_high
-    v1_low = rad2vol(bin_grid%edges(b1))
-    v1_high = rad2vol(bin_grid%edges(b1 + 1))
+    v1_low = aero_data_rad2vol(aero_data, bin_grid%edges(b1))
+    v1_high = aero_data_rad2vol(aero_data, bin_grid%edges(b1 + 1))
 
     ! v2_low < bin_v(b2) < v2_high
-    v2_low = rad2vol(bin_grid%edges(b2))
-    v2_high = rad2vol(bin_grid%edges(b2 + 1))
+    v2_low = aero_data_rad2vol(aero_data, bin_grid%edges(b2))
+    v2_high = aero_data_rad2vol(aero_data, bin_grid%edges(b2 + 1))
 
     do i = 1,n_sample
        do j = 1,n_sample
@@ -319,11 +343,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Coagulation scale factor due to number concentrations.
-  real(kind=dp) function coag_num_conc_factor(aero_weight_array, &
+  real(kind=dp) function coag_num_conc_factor(aero_weight_array, aero_data, &
        i_r, j_r, i_class, j_class, ij_class)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Radius of first particle.
     real(kind=dp), intent(in) :: i_r
     !> Radius of second particle.
@@ -337,7 +363,8 @@ contains
 
     real(kind=dp) :: ij_r, i_nc, j_nc, ij_nc, nc_min
 
-    ij_r = vol2rad(rad2vol(i_r) + rad2vol(j_r))
+    ij_r = aero_data_vol2rad(aero_data, aero_data_rad2vol(aero_data, i_r) &
+         + aero_data_rad2vol(aero_data, j_r))
     i_nc = aero_weight_array_num_conc_at_radius(aero_weight_array, i_class, &
          i_r)
     j_nc = aero_weight_array_num_conc_at_radius(aero_weight_array, j_class, &
@@ -352,11 +379,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the weight class in which coagulated particles will be placed.
-  integer function coag_dest_class(aero_weight_array, bin_grid, i_bin, j_bin, &
-       i_class, j_class)
+  integer function coag_dest_class(aero_weight_array, aero_data, &
+       bin_grid, i_bin, j_bin, i_class, j_class)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> First bin number.
@@ -372,7 +401,8 @@ contains
 
     i_r = bin_grid%centers(i_bin)
     j_r = bin_grid%centers(i_bin)
-    ij_r = vol2rad(rad2vol(i_r) + rad2vol(j_r))
+    ij_r = aero_data_vol2rad(aero_data, aero_data_rad2vol(aero_data, i_r) &
+         + aero_data_rad2vol(aero_data, j_r))
     ij_nc_i = aero_weight_array_num_conc_at_radius(aero_weight_array, &
          i_class, ij_r)
     ij_nc_j = aero_weight_array_num_conc_at_radius(aero_weight_array, &
@@ -389,11 +419,13 @@ contains
 
   !> Determine the minimum and maximum number concentration factors
   !> for coagulation.
-  subroutine max_coag_num_conc_factor(aero_weight_array, bin_grid, &
-       i_bin, j_bin, i_class, j_class, ij_class, f_max)
+  subroutine max_coag_num_conc_factor(aero_weight_array, aero_data, &
+       bin_grid, i_bin, j_bin, i_class, j_class, ij_class, f_max)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> First bin number.
@@ -424,8 +456,8 @@ contains
        do j_sample = 1,n_sample
           i_r = interp_linear_disc(i_r_min, i_r_max, n_sample, i_sample)
           j_r = interp_linear_disc(j_r_min, j_r_max, n_sample, j_sample)
-          f = coag_num_conc_factor(aero_weight_array, i_r, j_r, i_class, &
-               j_class, ij_class)
+          f = coag_num_conc_factor(aero_weight_array, aero_data, i_r, j_r, &
+               i_class, j_class, ij_class)
           f_max = max(f_max, f)
        end do
     end do
@@ -468,6 +500,10 @@ contains
        coag_kernel_type = COAG_KERNEL_TYPE_BROWN
     elseif (trim(kernel_name) == 'zero') then
        coag_kernel_type = COAG_KERNEL_TYPE_ZERO
+    elseif (trim(kernel_name) == 'brown_free') then
+       coag_kernel_type = COAG_KERNEL_TYPE_BROWN_FREE
+    elseif (trim(kernel_name) == 'brown_cont') then
+       coag_kernel_type = COAG_KERNEL_TYPE_BROWN_CONT
     else
        call spec_file_die_msg(920761229, file, &
             "Unknown coagulation kernel type: " // trim(kernel_name))

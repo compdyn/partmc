@@ -355,6 +355,11 @@ contains
     !!     environment state amongst processes each timestep, to
     !!     ensure a uniform environment
     !!   - \subpage input_format_parallel_coag
+    !! - \b do_fractal (logical): whether to consider particles
+    !!   as fractal agglomerates. If \c do_fractal is \c no, then all the
+    !!   particles are treated as spherical. If \c do_fractal is \c yes,
+    !!   then the following parameters must also be provided:
+    !!   - \subpage input_format_fractal
 
     if (pmc_mpi_rank() == 0) then
        ! only the root process does I/O
@@ -495,6 +500,7 @@ contains
           run_part_opt%parallel_coag_type = PARALLEL_COAG_TYPE_LOCAL
        end if
 
+       call spec_file_read_fractal(file, aero_data%fractal)
        call spec_file_close(file)
     end if
 
@@ -704,6 +710,11 @@ contains
     !!   coagulation.  If \c do_coagulation is \c yes, then the
     !!   following parameters must also be provided:
     !!   - \subpage input_format_coag_kernel
+    !! - \b do_fractal (logical): whether to consider particles
+    !!   as fractal agglomerates. If \c do_fractal is \c no, then all the
+    !!   particles are treated as spherical. If \c do_fractal is \c yes,
+    !!   then the following parameters must also be provided:
+    !!   - \subpage input_format_fractal
     !!
     !! Example:
     !! <pre>
@@ -739,6 +750,8 @@ contains
     !!
     !! do_coagulation yes              # whether to do coagulation (yes/no)
     !! kernel additive                 # Additive coagulation kernel
+    !!
+    !! do_fractal no                   # whether to do fractal treatment (yes/no)
     !! </pre>
 
     ! only serial code here
@@ -787,7 +800,8 @@ contains
     else
        run_exact_opt%loss_function_type = SCENARIO_LOSS_FUNCTION_INVALID
     end if
-
+    
+    call spec_file_read_fractal(file, aero_data%fractal)
     call spec_file_close(file)
 
     ! finished reading .spec data, now do the run
@@ -855,6 +869,11 @@ contains
     !!   coagulation.  If \c do_coagulation is \c yes, then the
     !!   following parameters must also be provided:
     !!   - \subpage input_format_coag_kernel
+    !! - \b do_fractal (logical): whether to consider particles
+    !!   as fractal agglomerates. If \c do_fractal is \c no, then all the
+    !!   particles are treated as spherical. If \c do_fractal is \c yes,
+    !!   then the following parameters must also be provided:
+    !!   - \subpage input_format_fractal
     !!
     !! Example:
     !! <pre>
@@ -891,6 +910,8 @@ contains
     !!
     !! do_coagulation yes              # whether to do coagulation (yes/no)
     !! kernel brown                    # coagulation kernel
+    !!
+    !! do_fractal no                   # whether to do fractal treatment (yes/no)
     !! </pre>
 
     ! only serial code here
@@ -934,6 +955,7 @@ contains
        run_sect_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
     end if
 
+    call spec_file_read_fractal(file, aero_data%fractal)
     call spec_file_close(file)
 
     ! finished reading .spec data, now do the run

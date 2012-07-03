@@ -11,6 +11,7 @@ module pmc_aero_data
   use pmc_spec_file
   use pmc_mpi
   use pmc_util
+  use pmc_fractal
   use pmc_netcdf
 #ifdef PMC_USE_MPI
   use mpi
@@ -55,9 +56,135 @@ module pmc_aero_data
      real(kind=dp), allocatable :: kappa(:)
      !> Length \c aero_data_n_source(aero_data), source names.
      character(len=AERO_SOURCE_NAME_LEN), allocatable :: source_name(:)
+     !> Fractal particle parameters.
+     type(fractal_t) :: fractal
   end type aero_data_t
 
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert material volume \f$V\f$ (m^3) to geometric radius
+  !> \f$R_{\rm geo}\f$ (m).
+  real(kind=dp) elemental function aero_data_vol2rad(aero_data, v)
+
+    !> Aero data structure.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Particle material volume (m^3).
+    real(kind=dp), intent(in) :: v
+
+    aero_data_vol2rad = fractal_vol2rad(aero_data%fractal, v)
+
+  end function aero_data_vol2rad
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert material volume \f$V\f$ (m^3) to geometric diameter
+  !> \f$D_{\rm geo}\f$ (m).
+  real(kind=dp) elemental function aero_data_vol2diam(aero_data, v)
+
+    !> Aero data structure.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Particle material volume (m^3).
+    real(kind=dp), intent(in) :: v
+
+    aero_data_vol2diam = fractal_vol2diam(aero_data%fractal, v)
+
+  end function aero_data_vol2diam
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert geometric radius \f$R_{\rm geo}\f$ (m) to material volume
+  !> \f$V\f$ (m^3).
+  real(kind=dp) elemental function aero_data_rad2vol(aero_data, r)
+
+    !> Aero data structure.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Geometric radius (m).
+    real(kind=dp), intent(in) :: r
+
+    aero_data_rad2vol = fractal_rad2vol(aero_data%fractal, r)
+
+  end function aero_data_rad2vol
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert geometric diameter \f$D_{\rm geo}\f$ (m) to material volume
+  !> \f$V\f$ (m^3).
+  real(kind=dp) elemental function aero_data_diam2vol(aero_data, d)
+
+    !> Aero data structure.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Geometric diameter (m).
+    real(kind=dp), intent(in) :: d
+
+    aero_data_diam2vol = fractal_rad2vol(aero_data%fractal, diam2rad(d))
+
+  end function aero_data_diam2vol
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert material volume \f$V\f$ (m^3) to number of monomers \f$N\f$ in a
+  !> fractal particle cluster.
+  !!
+  !! Based on Eq. 5 in Naumann [2003].
+  real(kind=dp) elemental function aero_data_vol_to_num_of_monomers(aero_data, v)
+
+    !> Aero data structure.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Particle material volume (m^3).
+    real(kind=dp), intent(in) :: v
+
+    aero_data_vol_to_num_of_monomers = fractal_vol_to_num_of_monomers( &
+         aero_data%fractal, v)
+
+  end function aero_data_vol_to_num_of_monomers
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert material volume \f$V\f$ (m^3) to mobility equivalent radius
+  !> \f$R_{\rm me}\f$ (m).
+  !!
+  !! Based on Eq. 5, 21 and 30 in Naumann [2003].
+  real(kind=dp) function aero_data_vol_to_mobility_rad(aero_data, v, temp, &
+       pressure)
+
+    !> Aero data structure.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Particle material volume (m^3).
+    real(kind=dp), intent(in) :: v
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: temp
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: pressure
+
+    aero_data_vol_to_mobility_rad = fractal_vol_to_mobility_rad(&
+         aero_data%fractal, v, temp, pressure)
+
+  end function aero_data_vol_to_mobility_rad
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert mobility equivalent radius \f$R_{\rm me}\f$ (m) to material volume
+  !> \f$V\f$ (m^3).
+  !!
+  !! Based on Eq. 5, 21 and 30 in Naumann [2003].
+  real(kind=dp) function aero_data_mobility_rad_to_vol(aero_data, mobility_rad, &
+       temp, pressure)
+
+    !> Aero data structure.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Mobility equivalent radius (m).
+    real(kind=dp), intent(in) :: mobility_rad
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: temp
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: pressure
+
+    aero_data_mobility_rad_to_vol = fractal_mobility_rad_to_vol(&
+         aero_data%fractal, mobility_rad, temp, pressure)
+
+  end function aero_data_mobility_rad_to_vol
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -325,7 +452,8 @@ contains
          + pmc_mpi_pack_size_integer_array(val%num_ions) &
          + pmc_mpi_pack_size_real_array(val%molec_weight) &
          + pmc_mpi_pack_size_real_array(val%kappa) &
-         + pmc_mpi_pack_size_string_array(val%source_name)
+         + pmc_mpi_pack_size_string_array(val%source_name) &
+         + pmc_mpi_pack_size_fractal(val%fractal)
 
   end function pmc_mpi_pack_size_aero_data
 
@@ -353,6 +481,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_pack_real_array(buffer, position, val%kappa)
     call pmc_mpi_pack_string_array(buffer, position, val%source_name)
+    call pmc_mpi_pack_fractal(buffer, position, val%fractal)
     call assert(183834856, &
          position - prev_position <= pmc_mpi_pack_size_aero_data(val))
 #endif
@@ -383,6 +512,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_unpack_real_array(buffer, position, val%kappa)
     call pmc_mpi_unpack_string_array(buffer, position, val%source_name)
+    call pmc_mpi_unpack_fractal(buffer, position, val%fractal)
     call assert(188522823, &
          position - prev_position <= pmc_mpi_pack_size_aero_data(val))
 #endif
@@ -538,6 +668,7 @@ contains
     !!     weights of aerosol species
     !!   - \b aero_kappa (unit kg/mol, dim \c aero_species): hygroscopicity
     !!     parameters of aerosol species
+    !!   - \b fractal parameters, see \ref output_format_fractal
     !!
     !! See also:
     !!   - \ref input_format_aero_data --- the corresponding input format
@@ -562,6 +693,7 @@ contains
     call pmc_nc_write_real_1d(ncid, aero_data%kappa, &
          "aero_kappa", (/ dimid_aero_species /), unit="1", &
          long_name="hygroscopicity parameters (kappas) of aerosol species")
+    call fractal_output_netcdf(aero_data%fractal, ncid)
 
   end subroutine aero_data_output_netcdf
 
@@ -641,6 +773,8 @@ contains
     call assert(377166446, aero_source_names == "")
 
     call aero_data_set_water_index(aero_data)
+
+    call fractal_input_netcdf(aero_data%fractal, ncid)
 
   end subroutine aero_data_input_netcdf
 

@@ -42,7 +42,8 @@
 
   * Distributed parallel coagulation is disabled due to lack of
     weighting support.
->>>>>>> add ChangeLog entry for automatic memory management
+
+  * Add fractal particle model treatment, following Naumann [2003].
 
 2.2.1 - 2012-03-30
 

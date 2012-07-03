@@ -295,7 +295,7 @@ contains
     end if
     ! loss to background
     call aero_state_sample_particles(aero_state, aero_state_delta, &
-         1d0 - p, AERO_INFO_DILUTION)
+         aero_data, 1d0 - p, AERO_INFO_DILUTION)
     n_dil_out = aero_state_total_particles(aero_state_delta)
     ! addition from background
     call aero_state_add_aero_dist_sample(aero_state, aero_data, &
@@ -388,7 +388,8 @@ contains
     else if (loss_function_type == SCENARIO_LOSS_FUNCTION_VOLUME) then
       scenario_loss_rate = 1d15*vol
     else if (loss_function_type == SCENARIO_LOSS_FUNCTION_DRY_DEP) then
-      scenario_loss_rate = scenario_loss_rate_dry_dep(vol, density, env_state)
+      scenario_loss_rate = scenario_loss_rate_dry_dep(vol, density, aero_data, &
+          env_state)
     else
        call die_msg(201594391, "Unknown loss function id: " &
             // trim(integer_to_string(loss_function_type)))
@@ -401,12 +402,15 @@ contains
   !> Compute and return the dry deposition rate for a given particle.
   !! All equations used here are written in detail in the file
   !! \c doc/deposition/deposition.tex.
-  real(kind=dp) function scenario_loss_rate_dry_dep(vol, density, env_state)
+  real(kind=dp) function scenario_loss_rate_dry_dep(vol, density, aero_data, &
+      env_state)
 
     !> Particle volume (m^3).
     real(kind=dp), intent(in) :: vol
     !> Particle density (kg m^-3).
     real(kind=dp), intent(in) :: density
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
 
@@ -437,7 +441,7 @@ contains
     gamma = .54d0 ! From table
 
     ! particle diameter
-    d_p = vol2diam(vol)
+    d_p = aero_data_vol2diam(aero_data, vol)
     ! density of air
     density_air = (const%air_molec_weight * env_state%pressure) &
          / (const%univ_gas_const * env_state%temp)
@@ -558,8 +562,8 @@ contains
     integer :: b, i
 
     do b = 1,bin_grid_size(bin_grid)
-       v_low = rad2vol(bin_grid%edges(b))
-       v_high = rad2vol(bin_grid%edges(b + 1))
+       v_low = aero_data_rad2vol(aero_data, bin_grid%edges(b))
+       v_high = aero_data_rad2vol(aero_data, bin_grid%edges(b + 1))
        r_max = 0d0
        do i = 1,n_sample
           vol = interp_linear_disc(v_low, v_high, n_sample, i)
@@ -611,7 +615,7 @@ contains
        return
     end if
 
-    call aero_state_sort(aero_state)
+    call aero_state_sort(aero_state, aero_data)
 
     if (.not. aero_state%aero_sorted%removal_rate_bounds_valid) then
        call scenario_loss_rate_bin_max(loss_function_type, &

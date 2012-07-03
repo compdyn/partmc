@@ -176,7 +176,8 @@ contains
        call aero_info_array_zero(aero_state%aero_info_array)
     end if
 
-    call aero_state_rebalance(aero_state, run_part_opt%allow_doubling, &
+    call aero_state_rebalance(aero_state, aero_data, &
+         run_part_opt%allow_doubling, &
          run_part_opt%allow_halving, initial_state_warning=.true.)
 
     t_start = env_state%elapsed_time
@@ -276,7 +277,8 @@ contains
           call env_state_mix(env_state)
        end if
 
-       call aero_state_rebalance(aero_state, run_part_opt%allow_doubling, &
+       call aero_state_rebalance(aero_state, aero_data, &
+            run_part_opt%allow_doubling, &
             run_part_opt%allow_halving, initial_state_warning=.false.)
 
        ! DEBUG: enable to check consistency

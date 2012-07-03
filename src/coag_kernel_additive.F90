@@ -122,22 +122,23 @@ contains
     call aero_binned_set_sizes(aero_binned, bin_grid_size(bin_grid), &
          aero_data_n_spec(aero_data))
 
-    mean_vol = rad2vol(radius_at_mean_vol)
+    mean_vol = aero_data_rad2vol(aero_data, radius_at_mean_vol)
     if (time .eq. 0d0) then
        do k = 1,bin_grid_size(bin_grid)
           aero_binned%num_conc(k) = const%pi/2d0 &
                * (2d0 * bin_grid%centers(k))**3 * num_conc / mean_vol &
-               * exp(-(rad2vol(bin_grid%centers(k)) / mean_vol))
+               * exp(-(aero_data_rad2vol(aero_data, bin_grid%centers(k)) &
+               / mean_vol))
        end do
     else
        tau = num_conc * mean_vol * beta_1 * time
        T = 1d0 - exp(-tau)
        do k = 1,bin_grid_size(bin_grid)
-          rat_v = rad2vol(bin_grid%centers(k)) / mean_vol
+          rat_v = aero_data_rad2vol(aero_data, bin_grid%centers(k)) / mean_vol
           x = 2d0 * rat_v * sqrt(T)
           if (x .lt. 500d0) then
              call bessi1(x, b)
-             nn = num_conc / rad2vol(bin_grid%centers(k)) &
+             nn = num_conc / aero_data_rad2vol(aero_data, bin_grid%centers(k)) &
                   * (1d0 - T) / sqrt(T) * exp(-((1d0 + T) * rat_v)) * b
           else
              ! For very large volumes we can use the asymptotic
@@ -145,7 +146,7 @@ contains
              ! simplify the result to avoid the overflow from
              ! multiplying a huge bessel function result by a very
              ! tiny exponential.
-             nn = num_conc / rad2vol(bin_grid%centers(k)) &
+             nn = num_conc / aero_data_rad2vol(aero_data, bin_grid%centers(k)) &
                   * (1d0 - T) / sqrt(T) &
                   * exp((2d0*sqrt(T) - T - 1d0) * rat_v) &
                   / sqrt(4d0 * const%pi * rat_v * sqrt(T))
@@ -157,8 +158,8 @@ contains
 
     aero_binned%vol_conc = 0d0
     do k = 1,bin_grid_size(bin_grid)
-       aero_binned%vol_conc(k,1) = rad2vol(bin_grid%centers(k)) &
-            * aero_binned%num_conc(k)
+       aero_binned%vol_conc(k,1) = aero_data_rad2vol(aero_data, &
+            bin_grid%centers(k)) * aero_binned%num_conc(k)
     end do
 
   end subroutine soln_additive_exp

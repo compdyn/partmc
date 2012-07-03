@@ -89,8 +89,8 @@ program extract_aero_particles
      write(out_unit, '(i15,e30.15e3,e30.15e3,e30.15e3)', advance='no') &
           aero_state%apa%particle(i_part)%id, &
           aero_state_particle_num_conc(aero_state, &
-          aero_state%apa%particle(i_part)), &
-          aero_particle_diameter(aero_state%apa%particle(i_part)), &
+          aero_state%apa%particle(i_part), aero_data), &
+          aero_particle_diameter(aero_state%apa%particle(i_part), aero_data), &
           aero_particle_mass(aero_state%apa%particle(i_part), aero_data)
      do i_spec = 1,aero_data_n_spec(aero_data)
         write(out_unit, '(e30.15e3)', advance='no') &

@@ -32,3 +32,5 @@ do_coagulation yes              # whether to do coagulation (yes/no)
 coag_kernel zero                # coagulation kernel
 do_loss yes                     # whether to do particle loss (yes/no)
 loss_function volume            # loss rate function
+
+do_fractal no                   # whether to do fractal treatment

@@ -146,7 +146,7 @@ contains
 
     call pmc_mpi_barrier()
 
-    call aero_state_sort(aero_state, all_procs_same=.true.)
+    call aero_state_sort(aero_state, aero_data, all_procs_same=.true.)
     if (.not. aero_state%aero_sorted%coag_kernel_bounds_valid) then
        call est_k_minmax_binned_unweighted(aero_state%aero_sorted%bin_grid, &
             coag_kernel_type, aero_data, env_state, &
@@ -176,7 +176,7 @@ contains
     do i_bin = 1,bin_grid_size(aero_state%aero_sorted%bin_grid)
        do j_bin = 1,bin_grid_size(aero_state%aero_sorted%bin_grid)
           call max_coag_num_conc_factor(aero_weight_total, &
-               aero_state%aero_sorted%bin_grid, i_bin, j_bin, s1, s2, sc, &
+               aero_data, aero_state%aero_sorted%bin_grid, i_bin, j_bin, s1, s2, sc, &
                f_max)
           k_max(i_bin, j_bin) &
                = aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin) * f_max
@@ -922,7 +922,7 @@ contains
     ! add new particle
     if (create_new) then
        new_group = aero_weight_array_rand_group(aero_weight_total, sc, &
-            aero_particle_radius(aero_particle_new))
+            aero_particle_radius(aero_particle_new, aero_data))
        aero_particle_new%weight_group = new_group
        new_proc = sample_cts_pdf(1d0 / magnitudes(new_group, :)) - 1
        call send_return_unreq_particle(aero_particle_new, new_proc)

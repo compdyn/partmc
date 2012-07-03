@@ -13,6 +13,7 @@ module pmc_coag_kernel_brown
   use pmc_constants
   use pmc_util
   use pmc_aero_particle
+  use pmc_aero_data
 
 contains
 
@@ -43,7 +44,7 @@ contains
     d1 = aero_particle_density(aero_particle_1, aero_data)
     d2 = aero_particle_density(aero_particle_2, aero_data)
 
-    call kernel_brown_helper(v1, d1, v2, d2, env_state%temp, &
+    call kernel_brown_helper(aero_data, v1, d1, v2, d2, env_state%temp, &
          env_state%pressure, k)
 
   end subroutine kernel_brown
@@ -84,7 +85,7 @@ contains
        do j = 1,n_sample
           d1 = interp_linear_disc(d_min, d_max, n_sample, i)
           d2 = interp_linear_disc(d_min, d_max, n_sample, j)
-          call kernel_brown_helper(v1, d1, v2, d2, &
+          call kernel_brown_helper(aero_data, v1, d1, v2, d2, &
                env_state%temp, env_state%pressure, k)
           if (first) then
              first = .false.
@@ -107,8 +108,8 @@ contains
   !!
   !! Uses equation (15.33) of M. Z. Jacobson, Fundamentals of Atmospheric
   !! Modeling Second Edition, Cambridge University Press, 2005.
-  subroutine kernel_brown_helper(vol_i, den_i, vol_j, den_j, temp, pressure, &
-       bckernel)
+  subroutine kernel_brown_helper(vol_i, den_i, vol_j, den_j, aero_data, &
+       temp, pressure, bckernel)
 
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: vol_i
@@ -118,6 +119,8 @@ contains
     real(kind=dp), intent(in) :: vol_j
     !> Density of second particle (kg/m^3).
     real(kind=dp), intent(in) :: den_j
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp
     !> Pressure (Pa).
@@ -157,29 +160,33 @@ contains
     !
     ! bckernel   = brownian coagulation kernel (m3/s)
 
-    rad_i     = vol2rad(vol_i)
+    rad_i     = vol2rad(vol_i, aero_data%fractal)
+    Rme_i     = vol_to_mobility_rad(vol_i, temp, pressure, &
+         aero_data%fractal)
 
-    knud      = gasfreepath/rad_i
+    knud      = gasfreepath/Rme_i
     cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
     diffus_i  = (const%boltzmann * temp * cunning) / &
-         (6.0d0 * const%pi * rad_i * viscosd)
+         (6.0d0 * const%pi * Rme_i * viscosd)
     speedsq_i = 8d0 * const%boltzmann * temp / (const%pi * den_i * vol_i)
     freepath  = 8d0*diffus_i/(const%pi*sqrt(speedsq_i))
-    tmp1      = (2d0*rad_i + freepath)**3
-    tmp2      = (4d0*rad_i*rad_i + freepath*freepath)**1.5d0
-    deltasq_i = ( (tmp1-tmp2)/(6d0*rad_i*freepath) - 2d0*rad_i )**2
+    tmp1      = (2d0*Rme_i + freepath)**3
+    tmp2      = (4d0*Rme_i*Rme_i + freepath*freepath)**1.5d0
+    deltasq_i = ( (tmp1-tmp2)/(6d0*Rme_i*freepath) - 2d0*Rme_i )**2
 
-    rad_j     = vol2rad(vol_j)
+    rad_j     = vol2rad(vol_j, aero_data%fractal)
+    Rme_j     = vol_to_mobility_rad(vol_j, temp, pressure, &
+         aero_data%fractal)
 
-    knud      = gasfreepath/rad_j
+    knud      = gasfreepath/Rme_j
     cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
     diffus_j  = (const%boltzmann * temp * cunning) / &
-         (6.0d0 * const%pi * rad_j * viscosd)
+         (6.0d0 * const%pi * Rme_j * viscosd)
     speedsq_j = 8d0 * const%boltzmann * temp / (const%pi * den_j * vol_j)
     freepath  = 8d0*diffus_j/(const%pi*sqrt(speedsq_j))
-    tmp1      = (2d0*rad_j + freepath)**3
-    tmp2      = (4d0*rad_j*rad_j + freepath*freepath)**1.5d0
-    deltasq_j = ( (tmp1-tmp2)/(6d0*rad_j*freepath) - 2d0*rad_j )**2
+    tmp1      = (2d0*Rme_j + freepath)**3
+    tmp2      = (4d0*Rme_j*Rme_j + freepath*freepath)**1.5d0
+    deltasq_j = ( (tmp1-tmp2)/(6d0*Rme_j*freepath) - 2d0*Rme_j )**2
 
     rad_sum    = rad_i + rad_j
     diffus_sum = diffus_i + diffus_j

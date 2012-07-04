@@ -13,6 +13,7 @@ module pmc_bin_grid
   use pmc_spec_file
   use pmc_mpi
   use pmc_netcdf
+  use pmc_fractal
 #ifdef PMC_USE_MPI
   use mpi
 #endif

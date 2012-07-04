@@ -20,9 +20,9 @@ module pmc_coag_kernel_sedi
   use pmc_constants
   use pmc_aero_data
   use pmc_aero_particle
-  
+ 
 contains
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Sedimentation coagulation kernel.
@@ -40,11 +40,12 @@ contains
     !> Kernel \c k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: k
 
-    call kernel_sedi_helper(aero_particle_volume(aero_particle_1), &
+    call kernel_sedi_helper(aero_data, &
+         aero_particle_volume(aero_particle_1), &
          aero_particle_volume(aero_particle_2), k)
 
   end subroutine kernel_sedi
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Minimum and maximum values of the sedimentation coagulation.
@@ -63,7 +64,8 @@ contains
     !> Maximum kernel \c k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: k_max
 
-    call kernel_sedi_helper(v1, v2, k_min)
+    call kernel_sedi_helper(aero_data, v1, v2, env_state%temp, &
+         env_state%pressure, k_min)
     k_max = k_min
 
   end subroutine kernel_sedi_minmax
@@ -73,21 +75,27 @@ contains
   !> Helper function that does the actual sedimentation kernel computation.
   !!
   !! Helper function. Do not call directly. Instead use kernel_sedi().
-  subroutine kernel_sedi_helper(v1, v2, k)
+  subroutine kernel_sedi_helper(aero_data, v1, v2, tk, press, k)
 
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
     !> Volume of second particle (m^3).
     real(kind=dp), intent(in) :: v2
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: tk
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: press
     !> Kernel k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: k
 
     real(kind=dp) r1, r2, winf1, winf2, ec
-    
-    r1 = vol2rad(v1) ! m
-    r2 = vol2rad(v2) ! m
-    call fall_g(r1, winf1) ! winf1 in m/s
-    call fall_g(r2, winf2) ! winf2 in m/s
+
+    r1 = vol2rad(v1, aero_data%fractal) ! m
+    r2 = vol2rad(v2, aero_data%fractal) ! m
+    call fall_g(vol2Rme(v1, tk, press, aero_data%fractal), winf1) ! winf1 in m/s
+    call fall_g(vol2Rme(v2, tk, press, aero_data%fractal), winf2) ! winf2 in m/s
     call effic(r1, r2, ec) ! ec is dimensionless
     k = ec * const%pi * (r1 + r2)**2 * abs(winf1 - winf2)
 
@@ -97,12 +105,12 @@ contains
 
   !> Finds the terminal velocity of a particle based on its size.
   subroutine fall_g(r, w_inf)
-    
+
     !> Particle radius (m).
     real(kind=dp), intent(in) :: r
     !> Terminal velocity (m/s).
     real(kind=dp), intent(out) :: w_inf
-    
+
     ! terminal velocity of falling drops
     real(kind=dp) eta, xlamb, rhow, rhoa, grav, cunh, t0, sigma
     real(kind=dp) stok, stb, phy, py, rr, x, y, xrey, bond
@@ -112,7 +120,7 @@ contains
          -0.578878d-3,0.855176d-4,-0.327815d-5/
     data c /-0.500015d1,0.523778d1,-0.204914d1,0.475294d0, &
          -0.542819d-1,0.238449d-2/
-    
+
     eta = 1.818d-4
     xlamb = 6.62d-6
     rhow = 1d0
@@ -126,10 +134,10 @@ contains
     phy = sigma * sigma * sigma * rhoa * rhoa  &
          / (eta**4 * grav * (rhow - rhoa))
     py = phy**(1d0/6d0)
-    
+
     ! rr: radius in cm-units
     rr = r * 1d2
-    
+
     if (rr .le. 1d-3) then
        w_inf = stok * (rr * rr + cunh * rr)
     elseif (rr .gt. 1d-3 .and. rr .le. 5.35d-2) then
@@ -157,9 +165,9 @@ contains
        end if
     end if
     w_inf = w_inf / 100d0
-    
+
   end subroutine fall_g
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Coagulation efficiency.
@@ -174,7 +182,7 @@ contains
     real(kind=dp), intent(in) :: r2
     !> Collision efficiency (dimensionless).
     real(kind=dp), intent(out) :: ec
-    
+
     real(kind=dp) :: r_small, r_big, rq, p, q, ek
     integer :: k, ir, kk, iq
     ! collision efficiencies of hall kernel
@@ -232,25 +240,25 @@ contains
          ,0.027d0,0.027d0,0.027d0,0.027d0,0.027d0,0.125d0,0.520d0 &
          ,1.400d0,2.300d0,3.000d0 ,4.000d0,4.000d0,4.000d0,4.000d0 &
          ,4.000d0/
-    
+
     r_small = min(r1 * 1d6, r2 * 1d6) ! um
     r_big = max(r1 * 1d6, r2 * 1d6) ! um
     rq = r_small / r_big
-    
+
     ir = 1
     do k = 1, 15
        if (r_big .gt. r0(k)) then
           ir = k + 1
        end if
     end do
-    
+
     iq = 1
     do kk = 1,21
        if (rq .gt. rat(kk)) then
           iq = kk + 1
        end if
     end do
-    
+
     if (ir .lt. 16) then
        if (ir .ge. 2) then
           p = (r_big - r0(ir - 1)) / (r0(ir) - r0(ir - 1))
@@ -268,11 +276,11 @@ contains
        ek = (1d0 - q) * ecoll(15, iq - 1) + q * ecoll(15, iq)
        ec = min(ek, 1d0)
     end if
-    
+
     if (ec .lt. 1d-20) stop 99
-    
+
   end subroutine effic
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_coag_kernel_sedi

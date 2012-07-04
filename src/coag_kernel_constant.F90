@@ -22,7 +22,7 @@ module pmc_coag_kernel_constant
   real(kind=dp), parameter :: beta_0 = 0.25d0 / (60d0 * 2d8)
 
 contains
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constant coagulation kernel.
@@ -41,7 +41,7 @@ contains
     real(kind=dp), intent(out) :: k
 
     k = beta_0
-    
+
   end subroutine kernel_constant
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -64,7 +64,7 @@ contains
 
     k_min = beta_0
     k_max = beta_0
-    
+
   end subroutine kernel_constant_minmax
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -106,36 +106,37 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Output state.
     type(aero_binned_t), intent(inout) :: aero_binned
-    
+
     real(kind=dp) :: tau, T, rat_v, nn, b, sigma, mean_vol
     integer :: k
-    
+
     real(kind=dp), parameter :: lambda = 1d0
 
-    mean_vol = rad2vol(radius_at_mean_vol)
+    mean_vol = rad2vol(radius_at_mean_vol, aero_data%fractal)
     if (time .eq. 0d0) then
        do k = 1,bin_grid%n_bin
           aero_binned%num_conc(k) = const%pi / 2d0 &
                * (2d0 * bin_grid%center_radius(k))**3 * num_conc / mean_vol &
-               * exp(-(rad2vol(bin_grid%center_radius(k)) / mean_vol))
+               * exp(-(rad2vol(bin_grid%center_radius(k), aero_data%fractal) &
+               / mean_vol))
        end do
     else
        tau = num_conc * beta_0 * time
        do k = 1,bin_grid%n_bin
-          rat_v = rad2vol(bin_grid%center_radius(k)) / mean_vol
+          rat_v = rad2vol(bin_grid%center_radius(k), aero_data%fractal) / mean_vol
           nn = 4d0 * num_conc / (mean_vol * ( tau + 2d0 ) ** 2d0) &
                * exp(-2d0*rat_v/(tau+2d0)*exp(-lambda*tau)-lambda*tau)
           aero_binned%num_conc(k) = const%pi / 2d0 &
                * (2d0 * bin_grid%center_radius(k))**3d0 * nn
        end do
     end if
-    
+
     aero_binned%vol_conc = 0d0
     do k = 1,bin_grid%n_bin
-       aero_binned%vol_conc(k,1) = rad2vol(bin_grid%center_radius(k)) &
-            * aero_binned%num_conc(k)
+       aero_binned%vol_conc(k,1) = rad2vol(bin_grid%center_radius(k), &
+            aero_data%fractal) * aero_binned%num_conc(k)
     end do
-    
+
   end subroutine soln_constant_exp
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

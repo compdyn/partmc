@@ -329,7 +329,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Add the given particle.
-  subroutine aero_state_add_particle(aero_state, aero_particle, aero_data, 
+  subroutine aero_state_add_particle(aero_state, aero_particle, aero_data, & 
        allow_resort)
 
     !> Aerosol state.
@@ -557,8 +557,7 @@ contains
   !!
   !! The pattern for use should be like:
   !! <pre>
-  !! call aero_state_num_conc_for_reweight(aero_state, aero_data, 
-  !! reweight_num_conc)
+  !! call aero_state_num_conc_for_reweight(aero_state, aero_data, reweight_num_conc)
   !! ... alter particle species volumes in aero_state ...
   !! call aero_state_reweight(aero_state, aero_data, reweight_num_conc)
   !! </pre>

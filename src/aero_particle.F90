@@ -389,12 +389,16 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total radius of the particle (m).
-  elemental real(kind=dp) function aero_particle_radius(aero_particle)
+  elemental real(kind=dp) function aero_particle_radius(aero_particle, &
+       aero_data)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
 
-    aero_particle_radius = vol2rad(aero_particle_volume(aero_particle))
+    aero_particle_radius = vol2rad(aero_particle_volume(aero_particle), &
+         aero_data%fractal)
 
   end function aero_particle_radius
 
@@ -410,19 +414,23 @@ contains
     type(aero_data_t), intent(in) :: aero_data
 
     aero_particle_dry_radius = vol2rad( &
-         aero_particle_dry_volume(aero_particle, aero_data))
+         aero_particle_dry_volume(aero_particle, aero_data), aero_data%fractal)
 
   end function aero_particle_dry_radius
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total diameter of the particle (m).
-  elemental real(kind=dp) function aero_particle_diameter(aero_particle)
+  elemental real(kind=dp) function aero_particle_diameter(aero_particle, &
+       aero_data)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
 
-    aero_particle_diameter = 2d0 * aero_particle_radius(aero_particle)
+    aero_particle_diameter = 2d0 * aero_particle_radius(aero_particle, &
+         aero_data)
 
   end function aero_particle_diameter
 
@@ -687,7 +695,8 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle
 
     aero_particle_solute_radius &
-         = vol2rad(aero_particle_solute_volume(aero_particle, aero_data))
+         = vol2rad(aero_particle_solute_volume(aero_particle, aero_data), &
+         aero_data%fractal)
 
   end function aero_particle_solute_radius
 
@@ -746,7 +755,7 @@ contains
     A = 4d0 * const%water_surf_eng * const%water_molec_weight &
          / (const%univ_gas_const * env_state%temp * const%water_density)
     C = sqrt(4d0 * A**3 / 27d0)
-    diam = vol2diam(aero_particle_volume(aero_particle))
+    diam = vol2diam(aero_particle_volume(aero_particle), aero_data%fractal)
     aero_particle_kappa_rh = C / sqrt(kappa * diam**3) + 1d0
 
   end function aero_particle_kappa_rh

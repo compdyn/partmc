@@ -1,0 +1,8 @@
+
+Brownian coagulation with fractal treatment Test-case
+===================================
+
+The initial condition is a single species of particle with a
+mono distribution and the simulation uses the Brownian coagulation
+kernel, based on Vemury and Pratsinis (1995) and Naumann (2003).
+

@@ -1,0 +1,147 @@
+! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2007 Richard Easter
+! Licensed under the GNU General Public License version 2 or (at your
+! option) any later version. See the file COPYING for details.
+    
+!> \file
+!> The pmc_coag_kernel_vemury_cont module.
+
+!> Brownian coagulation kernel in continuum regime based on 
+!> Vemury and Pratsinis (1995), eq (6).
+module pmc_coag_kernel_vemury_cont
+
+  use pmc_env_state
+  use pmc_constants
+  use pmc_util
+  use pmc_aero_particle
+  use pmc_aero_data
+  use pmc_fractal
+ 
+contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute the Brownian coagulation kernel in continuum regime.
+  !!
+  !! Uses equation (6) of Vemury and Pratsinis (1995) J. Aero. Sci.
+  subroutine kernel_vemury_cont(aero_particle_1, aero_particle_2, &
+       aero_data, env_state, k)
+
+    !> First particle.
+    type(aero_particle_t), intent(in) :: aero_particle_1
+    !> Second particle.
+    type(aero_particle_t), intent(in) :: aero_particle_2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Kernel k(a,b) (m^3/s).
+    real(kind=dp), intent(out) :: k
+
+    real(kind=dp) :: v1, v2, d1, d2
+
+    v1 = aero_particle_volume(aero_particle_1)
+    v2 = aero_particle_volume(aero_particle_2)
+    d1 = aero_particle_density(aero_particle_1, aero_data)
+    d2 = aero_particle_density(aero_particle_2, aero_data)
+
+    call kernel_vemury_cont_helper(aero_data, v1, d1, v2, d2, env_state%temp, &
+         env_state%pressure, k)
+
+  end subroutine kernel_vemury_cont
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute the minimum and maximum Brownian coagulation kernel in continuum 
+  !> regime based on Vemury and Pratsinis (1995).
+  !!
+  !! Finds the minimum and maximum kernel values between particles of
+  !! volumes v1 and v2, by sampling over possible densities.
+  subroutine kernel_vemury_cont_minmax(v1, v2, aero_data, env_state, k_min, k_max)
+
+    !> Volume of first particle (m^3).
+    real(kind=dp), intent(in) :: v1
+    !> Volume of second particle (m^3).
+    real(kind=dp), intent(in) :: v2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Minimum kernel value (m^3/s).
+    real(kind=dp), intent(out) :: k_min
+    !> Maximum kernel value (m^3/s).
+    real(kind=dp), intent(out) :: k_max
+
+    !> Number of density sample points.
+    integer, parameter :: n_sample = 3
+
+    real(kind=dp) :: d1, d2, d_min, d_max, k
+    integer :: i, j
+    logical :: first
+    
+    d_min = minval(aero_data%density)
+    d_max = maxval(aero_data%density)
+
+    first = .true.
+    do i = 1,n_sample
+       do j = 1,n_sample
+          d1 = interp_linear_disc(d_min, d_max, n_sample, i)
+          d2 = interp_linear_disc(d_min, d_max, n_sample, j)
+          call kernel_vemury_cont_helper(aero_data, v1, d1, v2, d2, &
+               env_state%temp, env_state%pressure, k)
+          if (first) then
+             first = .false.
+             k_min = k
+             k_max = k
+          else
+             k_min = min(k_min, k)
+             k_max = max(k_max, k)
+          end if
+       end do
+    end do
+
+  end subroutine kernel_vemury_cont_minmax
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Helper function that does the actual coagulation kernel computation.
+
+  !! Helper function. Do not call directly. Instead use kernel_vemury_cont().
+
+  !! Uses equation (6) of Vemury and Pratsinis (1995) J. Aero. Sci. 
+  subroutine kernel_vemury_cont_helper(aero_data, v1, d1, v2, d2, &
+       tk, press, bckernel)
+
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Volume of first particle (m^3).
+    real(kind=dp), intent(in) :: v1
+    !> Density of first particle (kg/m^3).
+    real(kind=dp), intent(in) :: d1
+    !> Volume of second particle (m^3).
+    real(kind=dp), intent(in) :: v2
+    !> Density of second particle (kg/m^3).
+    real(kind=dp), intent(in) :: d2
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: tk
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: press
+    !> Kernel k(a,b) (m^3/s).
+    real(kind=dp), intent(out) :: bckernel
+
+    real(kind=dp) :: N_i, N_j
+    ! Number of monomers in particles i and j.
+    N_i = 3d0 * v1 / 4d0 / const%pi / (aero_data%fractal%prime_radius**3d0)
+    N_j = 3d0 * v2 / 4d0 / const%pi / (aero_data%fractal%prime_radius**3d0)
+    
+    bckernel = 2d0 * const%boltzmann * tk / 3d0 / const%air_dyn_visc &
+         * (1d0 / N_i**(1d0 / aero_data%fractal%frac_dim) + 1d0 &
+         / N_j**(1d0 / aero_data%fractal%frac_dim)) &
+         * (N_i**(1d0 / aero_data%fractal%frac_dim) &
+         + N_j**(1d0 / aero_data%fractal%frac_dim))
+ 
+  end subroutine kernel_vemury_cont_helper
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+end module pmc_coag_kernel_vemury_cont

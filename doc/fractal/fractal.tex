@@ -1,0 +1,205 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage[margin=2cm]{geometry}
+\usepackage{longtable}
+\providecommand{\e}[1]{\ensuremath{\cdot 10^{#1}}}
+
+\begin{document}
+
+\newcommand{\rr}{\raggedright}
+\newcommand{\tn}{\tabularnewline\hline}
+\renewcommand{\arraystretch}{1.5}
+\begin{longtable}{|l|p{5.5cm}|l|l|p{4.5cm}|}
+\hline \textbf{Symbol} & \textbf{Meaning}                                                       & \textbf{Type} & \textbf{Units}                        &  \textbf{Reference}                                \tn
+\hline \endhead
+$a$					   & \rr exponent in size dependence of diffusive boundary layer thickness	& input			& $1$									& \rr eq.~\ref{eq:BL_thick}, value = 0.274			 \tn
+$A$					   & \rr constant in slip correction formula								& input			& $1$									& \rr eq.~\ref{eq:slip_correct}, value = 1.142		 \tn
+$A_{\rm D}$			   & \rr diffusional deposition area										& input			& $\rm m^2$								& \rr eq.~\ref{eq:diffusion}, value = 103			 \tn
+$A_{\rm S}$			   & \rr sedimentational deposition area									& input			& $\rm m^2$								& \rr eq.~\ref{eq:sedimentation}, value = 12.6		 \tn
+$b$					   & \rr constant in slip correction formula								& input			& $1$									& \rr eq.~\ref{eq:slip_correct}, value = 0.999		 \tn
+$C$					   & \rr slip correction factor from continuum to free molecular regime		& function		& $1$									& \rr eq.~\ref{eq:slip_correct}						 \tn
+$d_{\rm f}$			   & \rr volume fractal dimension											& input			& $1$									& \rr Table 2 from Naumann 2003						 \tn
+$d_{\rm s}$			   & \rr surface fractal dimension											& input			& $1$									& \rr $d_{\rm f} \leq 2, d_{\rm s} = 3$; $2 \leq d_{\rm f} \leq 3, d_{\rm s} = \frac{6}{d_{\rm f}}$				 \tn
+$D$					   & \rr translational diffusion coefficient								& function		& $\rm m^2 \, s^{-1}$					& \rr eq.~\ref{eq:Diff_coef}						 \tn
+$D_{\rm 0}$			   & \rr unit translational diffusion coefficient							& input			& $\rm m^2 \, s^{-1}$					& \rr eq.~\ref{eq:Diff_coef}, value = 1 from Bunz \& Dlugi, 1991		 \tn
+$D(R_{\rm me,\it i})$  & \rr translational diffusion coefficient for particle i					& function		& $\rm m^2 \, s^{-1}$					& \rr eq.~\ref{eq:Diff_coef}						 \tn
+$f$					   & \rr volume filling factor												& input			& $1$									& \rr Table 2 from Naumann 2003						 \tn
+$g$					   & \rr gravitational acceleration											& constant		& $\rm m \, s^{-2}$						& \rr \verb+const%g+			 					 \tn
+$h_{\rm KR}$		   & \rr Kirkwood-Riseman ratio												& function		& $1$									& \rr eq.~\ref{eq:h_KR}			 					 \tn
+$k$					   & \rr Boltzmann constant													& constant		& $\rm m^2 \, kg \, s^{-2} \, K^{-1}$	& \rr \verb+const%boltzmann+	 					 \tn
+$k_{\rm D}$			   & \rr prefactor in size dependence of diffusive boundary layer thickness	& input			& $\rm m$								& \rr eq.~\ref{eq:BL_thick}, value = 0.005			 \tn
+$l$					   & \rr mean free path of carrier gas molecules							& input			& $\rm m$								& \rr value = 6.65\e{-8}, from excel file			 \tn
+$m$					   & \rr particle mass														& input			& $\rm kg$								& \rr eq.~\ref{eq:m_Rgeo}		 					 \tn
+$N$					   & \rr number of monomers in a cluster									& function		& $1$									& \rr eq.~\ref{eq:Num_monomer}	 					 \tn
+$Q$					   & \rr constant in slip correction formula								& input			& $1$									& \rr eq.~\ref{eq:slip_correct}, value = 0.588		 \tn
+$R_{\rm 0}$			   & \rr radius of primary particles										& input			& $\rm m$								& \rr Table 2 from Naumann 2003	 					 \tn
+$R_{\rm ae}$		   & \rr aerodynamic radius													& function		& $\rm m$								& \rr eq.~\ref{eq:R_ae}			 					 \tn
+$R_{\rm eff}$		   & \rr effective radius to be used with slip correction					& function		& $\rm m$								& \rr eq.~\ref{eq:R_eff}							 \tn
+$R_{\rm geo}$		   & \rr geometric radius of fractal particles								& function		& $\rm m$								& \rr eq.~\ref{eq:R_geo}							 \tn
+$R_{\rm geo}^{\ast}$   & \rr $R_{\rm geo}$~$\slash$~$R_{\rm 0}$									& function		& $1$									& \rr 												 \tn
+$R_{\rm m}$		   	   & \rr mass equivalent radius												& function		& $\rm m$								& \rr eq.~\ref{eq:R_m}								 \tn
+$R_{\rm m,\it i}$	   & \rr mass equivalent radius for particle i								& function		& $\rm m$								& \rr 												 \tn
+$R_{\rm me}$		   & \rr mobility equivalent radius											& function		& $\rm m$								& \rr eq.~\ref{eq:R_me}								 \tn
+$R_{\rm me,c}$		   & \rr continuum regime mobility equivalent radius						& function		& $\rm m$								& \rr eq.~\ref{eq:R_me_c}							 \tn
+$R_{\rm me,\it i}$	   & \rr mobility equivalent radius for particle i							& function		& $\rm m$								& \rr 												 \tn
+$S_{\rm acc}$		   & \rr accessible particle surface										& function		& $\rm m^2$								& \rr eq.~\ref{eq:S_acc}							 \tn
+$T$                    & \rr absolute temperature               			                    & prescribed    & $\rm K$                               & \rr value = 296 				                     \tn
+$V$					   & \rr aerosol chamber volume												& input			& $\rm m^3$								& \rr value = 84.3 									 \tn
+$z$					   & \rr scaling factor in eq.~\ref{eq:S_acc} 								& input			& $1$									& \rr value = 1										 \tn
+$\alpha_i^D$		   & \rr diffusional deposition coefficient for particle i					& function		& $\rm s^{-1}$							& \rr eq.~\ref{eq:diffusion}						 \tn
+$\alpha_i^S$		   & \rr sedimentational deposition coefficient for particle i				& function		& $\rm s^{-1}$							& \rr eq.~\ref{eq:sedimentation}					 \tn
+$\gamma$			   & \rr scaling exponent in eq.\ref{eq:S_acc} 	 							& input			& $1$									& \rr value = 0.86									 \tn
+$\Gamma(..)$		   & \rr gamma function														& function		& $1$									& \rr												 \tn
+$\delta_{\rm D}$	   & \rr diffusional boundary layer thickness								& function		& $\rm m$								& \rr eq.~\ref{eq:BL_thick}							 \tn
+$\eta$				   & \rr gas viscosity														& constant		& $\rm kg \, m^{-1} \, s^{-1}$			& \rr \verb+const%air_dyn_visc+						 \tn
+$\pi$				   & \rr Pi																	& constant		& $1$									& \rr \verb+const%pi+			 					 \tn
+$\phi$				   & \rr constant in eq.\ref{eq:R_eff_simplified_2}							& constant		& 										& \rr eq.~\ref{eq:phi}								 \tn
+$\xi$				   & \rr scaling factor in eq.\ref{eq:R_me_c_anal}							& function		& $1$									& \rr eq.~\ref{eq:xi}								 \tn
+$\rho$				   & \rr material density of primary particles (black carbon)				& constant		& $\rm kg \, m^{-3}$					& \rr \verb+aero_data%density(BC)+					 \tn
+$\rho_{\rm 0}$		   & \rr material density of reference particles (latex sphere)				& input			& $\rm kg \, m^{-3}$					& \rr eq.~\ref{eq:R_ae}, value = 940				 \tn
+\end{longtable}
+
+\newpage
+
+\begin{align}
+  \alpha_i^D &= \frac{D(R_{\rm me,\it i}) A_{\rm D}}{\delta_{\rm D} V} \label{eq:diffusion} \displaybreak[0] \\ 
+  \alpha_i^S &= \frac{4 \pi \rho R_{\rm m,\it i}^3 g D(R_{\rm me,\it i}) A_{\rm S}}{3 k T V} \label{eq:sedimentation} \displaybreak[0] \\
+  \delta_{\rm D} &= k_{\rm D} \left(\frac{D}{D_{\rm 0}}\right)^{\rm a} \label{eq:BL_thick} \displaybreak[0] \\
+  D &= \frac{k T C(R_{\rm me})}{6 \pi \eta R_{\rm me}} = \frac{k T C(R_{\rm eff})}{6 \pi \eta R_{\rm me,c}} \label{eq:Diff_coef} \displaybreak[0] \\
+  %C(R_{\rm eff}) &= 1 + A \frac{l}{R_{\rm eff}} + Q \frac{l}{R_{\rm eff}} \exp\biggl(-b \frac{R_{\rm eff}}{l}\biggr)
+%  \label{eq:slip_correct} \displaybreak[0] \\
+  C(R) &= 1 + A \frac{l}{R} + Q \frac{l}{R} \exp\biggl(-b \frac{R}{l}\biggr)
+  \label{eq:slip_correct} \displaybreak[0] \\
+  S_{\rm acc} &= 4 \pi R_{\rm 0}^2 N^{\frac{d_{\rm s}}{3}} \left[\left(d_{\rm s} - 2\right) \left(\frac{z}{N}
+  \right)^{1 - \gamma} -d_{\rm s} + 3\right] \qquad \text{for } 2 \leq d_{\rm s} \leq 3 \label{eq:S_acc} \displaybreak[0] \\
+  S_{\rm acc} &= 4 \pi R_{\rm 0}^2 z^{1 - \gamma} N^{\gamma} \qquad \text{for $d_{\rm f} \leq 2$, $d_{\rm s} = 3$} \label{eq:S_acc_2} \displaybreak[0] \\
+  R_{\rm eff} &= \frac{S_{\rm acc}}{4 \pi R_{\rm me,c}} \label{eq:R_eff} \displaybreak[0] \\
+  R_{\rm me, c} &= \left(-0.06483 d_{\rm f}^2 + 0.6353 d_{\rm f} - 0.4898\right) R_{\rm geo} \qquad \text{(fit formula)} \label{eq:R_me_c} \displaybreak[0] \\ 
+  R_{\rm me, c} &= \frac{\xi \Gamma(d_{\rm f}/2)}{\Gamma((d_{\rm f}-1)/2)} \qquad \text{(analytical solution)} \label{eq:R_me_c_anal} \displaybreak[0] \\ 
+  \xi &= R_{\rm geo} \biggl(\frac{2}{d_{\rm f} \Gamma(d_{\rm f}/2)}\biggr)^{\rm 1/d_{\rm f}} \label{eq:xi} \displaybreak[0] \\ 
+  R_{\rm me} &= R_{\rm me, c} \frac{C(R_{\rm me})}{C(R_{\rm eff})} \label{eq:R_me} \displaybreak[0] \\ 
+%  R_{\rm me}^2 - R_{\rm me,c} C(R_{\rm eff}) R_{\rm me} &= R_{\rm me,c} C(R_{\rm eff}) Q l \exp\biggl(-b \frac{R_{\rm me}}{l}\biggr) 
+%  + R_{\rm me,c} C(R_{\rm eff}) A l \label{eq:R_me_expand} \displaybreak[0] \\
+  R_{\rm m} &= \left[\frac{3 m(R_{\rm geo})}{4 \pi \rho}\right]^{\frac{1}{3}} \label{eq:R_m} \displaybreak[0] \\
+  m(R_{\rm geo}) &= \frac{4 \pi \rho R_{\rm 0}^3}{3 f} R_{\rm geo}^{\ast d_{\rm f}} \label{eq:m_Rgeo} \displaybreak[0] \\
+  R_{\rm geo} &= R_{\rm geo}^{\ast} R_{\rm 0} \label{eq:R_geo} \displaybreak[0] \\
+  N &= \frac{R_{\rm geo}^{\ast d_{\rm f}}}{f} \label{eq:Num_monomer} \displaybreak[0] \\
+  R_{\rm ae}^2 C(R_{\rm ae}) &= \frac{\rho R_{\rm m}^3 C(R_{\rm me})}{\rho_{\rm 0} R_{\rm me}} \displaybreak[0] \\
+  R_{\rm ae}^2 C(R_{\rm ae}) &= \frac{\rho R_{\rm m}^3 C(R_{\rm eff})}{\rho_{\rm 0} R_{\rm me,c}} \label{eq:R_ae} \displaybreak[0] 
+%  R_{\rm ae}^2 + A l R_{\rm ae} + Q l R_{\rm ae} \exp\biggl(-b \frac{R_{\rm ae}}{l}\biggr) 
+%  &= \frac{\rho R_{\rm m}^3 C(R_{\rm eff})}{\rho_{\rm 0} R_{\rm me,c}} \displaybreak[0]
+\end{align}
+
+\newpage
+\textbf{Note:}
+\begin{itemize}
+\item Eq. \ref{eq:R_me} builds the basis to convert between $R_{\rm geo}$ and $R_{\rm me}$. 
+%Eq. \ref{eq:R_me_expand} is the expanding form of Eq. \ref{eq:R_me}.
+
+\item To convert from $R_{\rm geo}$ (or volume) to $R_{\rm me}$, we use Newton's method to solve the non-linear
+equation. The original and first derivative forms of $R_{\rm me}$ are shown in Eq. \ref{eq:f_Rme}
+and Eq. \ref{eq:df_Rme}.
+\begin{align}
+%   f(R_{\rm me}) &= R_{\rm me}^2 - R_{\rm me,c} C(R_{\rm eff}) R_{\rm me} - R_{\rm me,c} C(R_{\rm eff})
+%     Q l \exp\biggl(-b \frac{R_{\rm me}}{l}\biggr) - R_{\rm me,c} C(R_{\rm eff}) A l  
+%     \label{eq:f_Rme} \displaybreak[0] \\
+%   f^ \prime (R_{\rm me}) &= 2 R_{\rm me} - R_{\rm me,c} C(R_{\rm eff}) + R_{\rm me,c} C(R_{\rm eff})
+%     Q b \exp\biggl(-b \frac{R_{\rm me}}{l}\biggr) \label{eq:df_Rme} \displaybreak[0]
+   f(R_{\rm me}) &= C(R_{\rm eff}) R_{\rm me}^2 - R_{\rm me,c} R_{\rm me} - R_{\rm me,c} 
+     Q l \exp\biggl(-b \frac{R_{\rm me}}{l}\biggr) - R_{\rm me,c} A l  
+     \label{eq:f_Rme} \displaybreak[0] \\
+   f^ \prime (R_{\rm me}) &= 2 C(R_{\rm eff}) R_{\rm me} + R_{\rm me,c}
+     Q b \exp\biggl(-b \frac{R_{\rm me}}{l}\biggr) - R_{\rm me,c} \label{eq:df_Rme} \displaybreak[0]
+\end{align}
+
+\item To convert from $R_{\rm me}$ to $R_{\rm geo}$ (or volume), we need to first convert $R_{\rm me}$
+to $R_{\rm me,c}$, and then use Eq. \ref{eq:R_me_c} or Eq. \ref{eq:R_me_c_anal} to obtain $R_{\rm geo}$.
+%The original and first 
+%derivative forms of $R_{\rm me,c}$ are shown in Eq. \ref{eq:f_Rmec} and Eq. \ref{eq:df_Rmec}.
+%\begin{align}
+%   f(R_{\rm me,c}) &= \frac{4 \pi Q l R_{\rm me}}{S_{\rm acc} C(R_{\rm me})} R_{\rm me,c} \exp
+%     \biggl(-b \frac{S_{\rm acc}}{4 \pi l R_{\rm me,c}}\biggr) + \biggl(\frac{4 \pi A l R_{\rm me}}{S_{\rm acc} 
+%     C(R_{\rm me})} - 1\biggr) R_{\rm me,c} + \frac{R_{\rm me}}{C(R_{\rm me})} 
+%     \label{eq:f_Rmec} \displaybreak[0] 
+%   f^ \prime (R_{\rm me,c}) &= \frac{4 \pi Q l R_{\rm me}}{S_{\rm acc} C(R_{\rm me})} \exp
+%     \biggl(-b \frac{S_{\rm acc}}{4 \pi l R_{\rm me,c}}\biggr) \biggl(1 + b \frac{S_{\rm acc}}{4 \pi l}
+%     \frac{1}{R_{\rm me,c}}\biggr) + \frac{4 \pi A l R_{\rm me}}{S_{\rm acc} C(R_{\rm me})} - 1
+%     \label{eq:df_Rmec} \displaybreak[0] 
+%\end{align}
+%where $S_{\rm acc}$ is obtained from $R_{\rm me}$ using Eq. \ref{eq:S_acc_fromRme}.
+%where $S_{\rm acc}$ is obtained from Eq. \ref{eq:S_acc}.
+%\begin{align}
+%  S_{\rm acc} &= 4 \pi R_{\rm 0}^2 z^{1 - \gamma} N^{\gamma} = 4 \pi z^{1 - \gamma} R_{\rm me}^2
+%    \label{eq:S_acc_fromRme} \displaybreak[0]
+%\end{align}
+
+From Eq. \ref{eq:S_acc_2}, we know for $d_{\rm f} \leq 2$, $d_{\rm s} = 3$ (currently in our simulation
+we use $d_{\rm f} = 2$), we could get a simplified form for $S_{\rm acc}$. Thus, 
+together with Eq. \ref{eq:Num_monomer}, Eq. \ref{eq:R_eff} could be re-written as 
+
+\begin{equation}
+   R_{\rm eff} = \frac{R_{\rm 0}^2 N^{\rm \gamma}}{R_{\rm me,c}} = \frac{R_{\rm 0}^{\rm 2-d_{\rm f} \gamma}}
+        {f^{\rm \gamma} h_{\rm KR}^{\rm d_{\rm f} \gamma}} R_{\rm me,c}^{\rm d_{\rm f} \gamma - 1}
+     \label{eq:R_eff_simplified}
+\end{equation}
+
+where 
+
+\begin{equation} \label{eq:h_KR}
+  h_{\rm KR} = -0.06483 d_{\rm f}^2 + 0.6353 d_{\rm f} - 0.4898
+\end{equation}
+
+is the Kirkwood-Riseman ratio. If we define a constant 
+
+\begin{equation} \label{eq:phi}
+  \phi = \frac{R_{\rm 0}^{\rm 2-d_{\rm f} \gamma}}
+        {f^{\rm \gamma} h_{\rm KR}^{\rm d_{\rm f} \gamma}}
+\end{equation}
+
+so $R_{\rm eff}$ could be written as 
+
+\begin{equation} \label{eq:R_eff_simplified_2}
+  R_{\rm eff} = \phi R_{\rm me,c}^{\rm d_{\rm f} \gamma - 1}
+\end{equation}
+
+Therefore, using Eq. \ref{eq:R_me} we are able to write the original and first derivative forms of
+$R_{\rm me,c}$ in Eq. \ref{eq:f_Rme_c} and Eq. \ref{eq:df_Rme_c}.
+
+\begin{align}  
+   f(R_{\rm me,c}) &= C(R_{\rm me}) R_{\rm me,c} - \frac{A l R_{\rm me}}{\phi} R_{\rm me,c}^{\rm 1-d_{\rm f} \gamma}
+     - \frac{Q l R_{\rm me}}{\phi} R_{\rm me,c}^{\rm 1-d_{\rm f} \gamma} \exp\biggl(- \frac{b \phi}{l}
+     R_{\rm me,c}^{\rm d_{\rm f} \gamma - 1}\biggr) - R_{\rm me}
+     \label{eq:f_Rme_c} \displaybreak[0] \\
+   f^ \prime (R_{\rm me,c}) &= C(R_{\rm me}) - \frac{l R_{\rm me}}{\phi} (1 - d_{\rm f} \gamma)
+     R_{\rm me,c}^{\rm -d_{\rm f} \gamma} \left[A + Q \exp\biggl(- \frac{b \phi}{l} R_{\rm me,c}^{\rm d_{\rm f} \gamma - 1}
+     \biggr)\right] \notag \\
+     &- Q b R_{\rm me} (1 - d_{\rm f} \gamma) R_{\rm me,c}^{\rm -1} 
+     \exp\biggl(- \frac{b \phi}{l} R_{\rm me,c}^{\rm d_{\rm f} \gamma -1}\biggr)
+     \label{eq:df_Rme_c} \displaybreak[0]
+\end{align}
+
+Note that Eq. \ref{eq:f_Rme_c} and Eq. \ref{eq:df_Rme_c} are only available when $d_{\rm f} \leq 2$, $d_{\rm s} = 3$.
+When $d_{\rm f}$ is greater than 2, $d_{\rm s}$ will be $6/d_{\rm f}$, we will not be able to
+obtain a simplified equation for $R_{\rm eff}$ as shown in Eq. \ref{eq:R_eff_simplified_2}.
+
+\item For general formula to convert $R_{\rm me}$ to $R_{\rm me,c}$ for any given $\rm d_{\rm f}$, first we can define several constants as follows
+
+\begin{align}
+  \phi &= \frac{R_0^{2}}{(f h_{\rm KR}^{\rm d_{\rm f}} R_0^{\rm d_{\rm f}})^{\frac{d_{\rm s}}{3}}} \\
+  \psi &= \frac{1}{(f h_{\rm KR}^{\rm d_{\rm f}} R_0^{\rm d_{\rm f}})^{\gamma - 1}} \\
+  c_1 &= \frac{d_{\rm f} d_{\rm s}}{3} + \gamma d_{\rm f} - d_{\rm f} - 1 \\
+  c_2 &= \frac{d_{\rm f} d_{\rm s}}{3} - 1
+\end{align}
+
+Then we can write the original and first derivative forms of $R_{\rm me,c}$ as:
+
+\begin{align}
+  f(R_{\rm me,c}) &= \frac{C(R_{\rm me})}{R_{\rm me}} \phi \psi (d_{\rm s} -2) R_{\rm me,c}^{\rm c_1+1} + \frac{C(R_{\rm me})}{R_{\rm me}} \phi (3-d_{\rm s}) R_{\rm me,c}^{\rm c_2+1} - \phi \psi (d_{\rm s}-2) R_{\rm me,c}^{\rm c_1} \notag \\
+  &+ \phi (d_{\rm s} -3) R_{\rm me,c}^{\rm c_2} - Q l \exp\biggl(- \frac{b}{l} \left[\phi \psi (d_{\rm s}-2) R_{\rm me,c}^{\rm c_1} + \phi (3-d_{\rm s}) R_{\rm me,c}^{\rm c_2}\right]\biggr) - A l \\
+   f^ \prime (R_{\rm me,c}) &= \frac{C(R_{\rm me})}{R_{\rm me}} \phi \psi (d_{\rm s} -2) (c_1 +1) R_{\rm me,c}^{\rm c_1} + \frac{C(R_{\rm me})}{R_{\rm me}} \phi (3-d_{\rm s}) (c_2+1) R_{\rm me,c}^{\rm c_2} \notag \\
+   &- \phi \psi (d_{\rm s}-2) c_1 R_{\rm me,c}^{\rm c_1-1} + \phi (d_{\rm s} -3) c_2 R_{\rm me,c}^{\rm c_2-1} \notag - Q l \exp\biggl(- \frac{b}{l} \left[\phi \psi (d_{\rm s}-2) R_{\rm me,c}^{\rm c_1} + \phi (3-d_{\rm s}) R_{\rm me,c}^{\rm c_2} \right]\biggr) \notag \\
+   & \biggl(- \frac{b}{l} \left[\phi \psi (d_{\rm s}-2) c_1 R_{\rm me,c}^{\rm c_1-1} + \phi (3-d_{\rm s}) c_2 R_{\rm me,c}^{\rm c_2-1}\right]\biggr)
+\end{align}
+
+\end{itemize}
+\end{document}

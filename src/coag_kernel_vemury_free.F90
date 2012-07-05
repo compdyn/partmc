@@ -2,11 +2,11 @@
 ! Copyright (C) 2007 Richard Easter
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-    
+
 !> \file
 !> The pmc_coag_kernel_vemury_free module.
 
-!> Brownian coagulation kernel in free molecular regime based on 
+!> Brownian coagulation kernel in free molecular regime based on
 !> Vemury and Pratsinis (1995), eq (4).
 module pmc_coag_kernel_vemury_free
 
@@ -16,7 +16,7 @@ module pmc_coag_kernel_vemury_free
   use pmc_aero_particle
   use pmc_aero_data
   use pmc_fractal
- 
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -52,7 +52,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Compute the minimum and maximum Brownian coagulation kernel in free 
+  !> Compute the minimum and maximum Brownian coagulation kernel in free
   !> molecular regime based on Vemury and Pratsinis (1995).
   !!
   !! Finds the minimum and maximum kernel values between particles of
@@ -78,7 +78,7 @@ contains
     real(kind=dp) :: d1, d2, d_min, d_max, k
     integer :: i, j
     logical :: first
-    
+
     d_min = minval(aero_data%density)
     d_max = maxval(aero_data%density)
 
@@ -108,7 +108,7 @@ contains
 
   !! Helper function. Do not call directly. Instead use kernel_vemury_free().
 
-  !! Uses equation (4) of Vemury and Pratsinis (1995) J. Aero. Sci. 
+  !! Uses equation (4) of Vemury and Pratsinis (1995) J. Aero. Sci.
   subroutine kernel_vemury_free_helper(aero_data, v1, d1, v2, d2, &
        tk, press, bckernel)
 
@@ -135,15 +135,15 @@ contains
     ! Number of monomers in particles i and j.
     N_i = 3d0 * v1 / 4d0 / const%pi / (aero_data%fractal%prime_radius**3d0)
     N_j = 3d0 * v2 / 4d0 / const%pi / (aero_data%fractal%prime_radius**3d0)
-    
+
     bckernel = sqrt(6d0 * const%boltzmann * tk &
          * aero_data%fractal%prime_radius / rho) &
          * sqrt(1d0 / N_i + 1d0 / N_j) * (N_i**(1d0 &
          / aero_data%fractal%frac_dim) + N_j**(1d0 &
          / aero_data%fractal%frac_dim))**2d0
- 
+
   end subroutine kernel_vemury_free_helper
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_coag_kernel_vemury_free

@@ -2,11 +2,11 @@
 ! Copyright (C) 2007 Richard Easter
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-    
+
 !> \file
 !> The pmc_coag_kernel_naumann_cont module.
 
-!> Brownian coagulation kernel in continuum regime based on 
+!> Brownian coagulation kernel in continuum regime based on
 !> Naumann (2003), eq (41a).
 module pmc_coag_kernel_naumann_cont
 
@@ -16,7 +16,7 @@ module pmc_coag_kernel_naumann_cont
   use pmc_aero_particle
   use pmc_aero_data
   use pmc_fractal
- 
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -52,7 +52,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Compute the minimum and maximum Brownian coagulation kernel in continuum 
+  !> Compute the minimum and maximum Brownian coagulation kernel in continuum
   !> regime based on Naumann (2003).
   !!
   !! Finds the minimum and maximum kernel values between particles of
@@ -79,7 +79,7 @@ contains
     real(kind=dp) :: d1, d2, d_min, d_max, k
     integer :: i, j
     logical :: first
-    
+ 
     d_min = minval(aero_data%density)
     d_max = maxval(aero_data%density)
 
@@ -109,7 +109,7 @@ contains
 
   !! Helper function. Do not call directly. Instead use kernel_naumann_cont().
 
-  !! Uses equation (41a) of Naumann (2003) J. Aero. Sci. 
+  !! Uses equation (41a) of Naumann (2003) J. Aero. Sci.
   subroutine kernel_naumann_cont_helper(aero_data, v1, d1, v2, d2, &
        tk, press, bckernel)
 
@@ -140,9 +140,9 @@ contains
          / N_j**(1d0 / aero_data%fractal%frac_dim)) &
          * (N_i**(1d0 / aero_data%fractal%frac_dim) &
          + N_j**(1d0 / aero_data%fractal%frac_dim))
- 
+
   end subroutine kernel_naumann_cont_helper
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_coag_kernel_naumann_cont

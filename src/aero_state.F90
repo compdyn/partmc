@@ -24,7 +24,6 @@ module pmc_aero_state
   use pmc_aero_info_array
   use pmc_aero_weight
   use pmc_env_state
-  use pmc_fractal
   use pmc_aero_weight_array
 #ifdef PMC_USE_MPI
   use mpi
@@ -329,7 +328,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Add the given particle.
-  subroutine aero_state_add_particle(aero_state, aero_particle, aero_data, & 
+  subroutine aero_state_add_particle(aero_state, aero_particle, aero_data, &
        allow_resort)
 
     !> Aerosol state.

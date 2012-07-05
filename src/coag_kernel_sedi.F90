@@ -20,7 +20,7 @@ module pmc_coag_kernel_sedi
   use pmc_constants
   use pmc_aero_data
   use pmc_aero_particle
-   
+
 contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

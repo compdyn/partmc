@@ -9,7 +9,7 @@
 !> are the same as each other, to within the specified tolerance.
 !>
 !> If the arrays in the two files are of different sizes then they are
-!> automatically different. Otherwise the are the same if
+!> automatically different. Otherwise they are the same if
 !>       \f[ | A_1 - A_2 |_2 < \verb+abs_tol+ \f]
 !> and
 !>       \f[ \frac{| A_1 - A_2 |_2}{| A_1 |_2 + | A_2 |_2}

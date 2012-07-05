@@ -127,8 +127,8 @@ contains
        ! adjust weight if necessary
        n_samp_avg = nucleate_rate * del_t / aero_weight_num_conc_at_radius( &
             aero_state%awa%weight(i_group, i_class), diam2rad(nucleate_diam))
-       call aero_state_prepare_weight_for_add(aero_state, i_group, i_class, &
-            n_samp_avg)
+       call aero_state_prepare_weight_for_add(aero_state, aero_data, &
+            i_group, i_class, n_samp_avg)
 
        ! determine number of nucleated particles
        n_samp_avg = nucleate_rate * del_t / aero_weight_num_conc_at_radius( &
@@ -137,7 +137,7 @@ contains
 
        ! create the particles
        do i_samp = 1,n_samp
-          so4_vol = diam2vol(nucleate_diam)
+          so4_vol = diam2vol(nucleate_diam, aero_data%fractal)
           total_so4_vol = total_so4_vol + so4_vol
 
           call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
@@ -147,7 +147,7 @@ contains
           aero_particle%vol(i_aero_so4) = so4_vol
           call aero_particle_new_id(aero_particle)
           call aero_particle_set_weight(aero_particle, i_group, i_class)
-          call aero_state_add_particle(aero_state, aero_particle)
+          call aero_state_add_particle(aero_state, aero_particle, aero_data)
           call aero_particle_deallocate(aero_particle)
        end do
     end do

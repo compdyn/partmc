@@ -230,7 +230,7 @@ contains
   !> Compute a log-normal distribution in volume.
   subroutine vol_conc_log_normal(aero_data, total_num_conc, geom_mean_radius, &
        log10_sigma_g, bin_grid, vol_conc)
-
+    
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Total number concentration of the mode (m^{-3}).
@@ -260,7 +260,7 @@ contains
   !! Normalized so that sum(num_conc(k) * log_width) = 1
   subroutine num_conc_exp(aero_data, total_num_conc, radius_at_mean_vol, &
        bin_grid, num_conc)
-
+    
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Total number concentration of the mode (m^{-3}).
@@ -290,7 +290,7 @@ contains
   !> Exponential distribution in volume.
   subroutine vol_conc_exp(aero_data, total_num_conc, radius_at_mean_vol, &
        bin_grid, vol_conc)
-
+    
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Total number concentration of the mode (m^{-3}).
@@ -334,7 +334,7 @@ contains
     else
        num_conc(k) = total_num_conc / bin_grid%log_width
     end if
-
+    
   end subroutine num_conc_mono
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -342,7 +342,7 @@ contains
   !> Mono-disperse distribution in volume.
   subroutine vol_conc_mono(aero_data, total_num_conc, radius, &
        bin_grid, vol_conc)
-
+    
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Total number concentration of the mode (m^{-3}).
@@ -353,7 +353,7 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume concentration (V(ln(r))d(ln(r))).
     real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
-
+    
     integer :: k
 
     vol_conc = 0d0
@@ -364,7 +364,7 @@ contains
        vol_conc(k) = total_num_conc / bin_grid%log_width &
             * rad2vol(radius, aero_data%fractal)
     end if
-
+    
   end subroutine vol_conc_mono
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -372,7 +372,7 @@ contains
   !> Sampled distribution, not normalized.
   subroutine num_conc_sampled(sample_radius, sample_num_conc, bin_grid, &
        num_conc)
-
+    
     !> Sampled radius bin edges (m).
     real(kind=dp), intent(in) :: sample_radius(:)
     !> Sampled number concentrations (m^{-3}).
@@ -385,7 +385,7 @@ contains
     integer :: i_sample, n_sample, i_lower, i_upper, i_bin
     real(kind=dp) :: r_lower, r_upper
     real(kind=dp) :: r_bin_lower, r_bin_upper, r1, r2, ratio
-
+    
     n_sample = size(sample_num_conc)
     call assert(188766208, size(sample_radius) == n_sample + 1)
     call assert(295384037, n_sample >= 1)
@@ -410,7 +410,7 @@ contains
                + ratio * sample_num_conc(i_sample) / bin_grid%log_width
        end do
     end do
-
+    
   end subroutine num_conc_sampled
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -418,7 +418,7 @@ contains
   !> Sampled distribution in volume.
   subroutine vol_conc_sampled(aero_data, sample_radius, sample_num_conc, &
        bin_grid, vol_conc)
-
+    
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Sampled radius bin edges (m).
@@ -429,12 +429,12 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume concentration (V(ln(r))d(ln(r))).
     real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
-
+    
     real(kind=dp) :: num_conc(bin_grid%n_bin)
 
     call num_conc_sampled(sample_radius, sample_num_conc, bin_grid, num_conc)
     vol_conc = num_conc * rad2vol(bin_grid%center_radius, aero_data%fractal)
-
+    
   end subroutine vol_conc_sampled
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -15,7 +15,7 @@ module pmc_coag_kernel_brown
   use pmc_aero_particle
   use pmc_aero_data
   use pmc_fractal
-
+  
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -173,8 +173,8 @@ contains
     vol_i     = v1 * 1.0d+6   ! particle wet volume (cm3)
     rad_i     = vol2rad(vol_i, aero_data%fractal)  ! particle wet radius (cm)
     Rme_i     = vol2Rme(vol_i/1.0d+6, tk, press, aero_data%fractal)*1.0d+2
-
-    knud      = gasfreepath/Rme_i
+    
+    knud      = gasfreepath/Rme_i 
     cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
     diffus_i  = boltz*tk*cunning/(6d0*const%pi*Rme_i*viscosd)
     speedsq_i = 8d0*boltz*tk/(const%pi*den_i*vol_i)
@@ -187,8 +187,8 @@ contains
     vol_j     = v2 * 1.0d+6
     rad_j     = vol2rad(vol_j, aero_data%fractal)
     Rme_j     = vol2Rme(vol_j/1.0d+6, tk, press, aero_data%fractal)*1.0d+2
-
-    knud      = gasfreepath/Rme_j
+    
+    knud      = gasfreepath/Rme_j 
     cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
     diffus_j  = boltz*tk*cunning/(6d0*const%pi*Rme_j*viscosd)
     speedsq_j = 8d0*boltz*tk/(const%pi*den_j*vol_j)

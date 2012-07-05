@@ -924,7 +924,7 @@ contains
     call aero_info_deallocate(aero_info_1)
     call aero_info_deallocate(aero_info_2)
     call aero_particle_deallocate(ptc)
-
+    
   end subroutine coagulate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

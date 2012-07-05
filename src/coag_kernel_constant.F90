@@ -22,7 +22,7 @@ module pmc_coag_kernel_constant
   real(kind=dp), parameter :: beta_0 = 0.25d0 / (60d0 * 2d8)
 
 contains
-
+  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constant coagulation kernel.
@@ -41,7 +41,7 @@ contains
     real(kind=dp), intent(out) :: k
 
     k = beta_0
-
+    
   end subroutine kernel_constant
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -64,7 +64,7 @@ contains
 
     k_min = beta_0
     k_max = beta_0
-
+    
   end subroutine kernel_constant_minmax
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -106,10 +106,10 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Output state.
     type(aero_binned_t), intent(inout) :: aero_binned
-
+    
     real(kind=dp) :: tau, T, rat_v, nn, b, sigma, mean_vol
     integer :: k
-
+    
     real(kind=dp), parameter :: lambda = 1d0
 
     mean_vol = rad2vol(radius_at_mean_vol, aero_data%fractal)
@@ -130,13 +130,13 @@ contains
                * (2d0 * bin_grid%center_radius(k))**3d0 * nn
        end do
     end if
-
+    
     aero_binned%vol_conc = 0d0
     do k = 1,bin_grid%n_bin
        aero_binned%vol_conc(k,1) = rad2vol(bin_grid%center_radius(k), &
             aero_data%fractal) * aero_binned%num_conc(k)
     end do
-
+    
   end subroutine soln_constant_exp
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

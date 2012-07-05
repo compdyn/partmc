@@ -51,7 +51,7 @@ module pmc_coag_kernel
   !> Type code for a Brownian kernel in continuum regime from Naumann 
   !> (2003).
   integer, parameter :: COAG_KERNEL_TYPE_NAUMANN_CONT = 9
-
+  
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

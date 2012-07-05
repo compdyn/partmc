@@ -42,7 +42,8 @@ contains
 
     call kernel_sedi_helper(aero_data, &
          aero_particle_volume(aero_particle_1), &
-         aero_particle_volume(aero_particle_2), k)
+         aero_particle_volume(aero_particle_2), env_state%temp, &
+         env_state%pressure, k)
 
   end subroutine kernel_sedi
   

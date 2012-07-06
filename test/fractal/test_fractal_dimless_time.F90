@@ -18,8 +18,10 @@ program extract_dimless_time
   use pmc_constants
   use getopt_m
 
-  integer, parameter :: REGIME_FREE = 0
-  integer, parameter :: REGIME_CONT = 1
+  integer, parameter :: REGIME_FREE = 1
+  integer, parameter :: REGIME_CONT = 2
+  real(kind=dp), parameter :: DENSITY = 4200d0
+  real(kind=dp), parameter :: N_INIT = 1d14
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_prefix, out_filename
   character(len=PMC_MAX_FILENAME_LEN), allocatable :: filename_list(:)
@@ -34,8 +36,6 @@ program extract_dimless_time
   real(kind=dp), allocatable :: particle_num_concs(:)
   real(kind=dp), allocatable :: times(:), time_num_concs(:)
   real(kind=dp), allocatable :: dimless_times(:), dimless_time_num_concs(:)
-  real(kind=dp), parameter :: N_INIT = 1d14
-  real(kind=dp), parameter :: DENSITY = 4200d0
   type(option_s) :: opts(4)
 
   call pmc_mpi_init()
@@ -45,6 +45,7 @@ program extract_dimless_time
   opts(3) = option_s("cont", .false., 'c')
   opts(4) = option_s("output", .true., 'o')
 
+  regime = 0
   out_filename = ""
 
   do
@@ -68,6 +69,10 @@ program extract_dimless_time
         call die_msg(603100341, 'unhandled option: ' // trim(optopt))
      end select
   end do
+
+  if (regime == 0) then
+     call die_msg(367132882, 'missing aerosol regime: please specify --free or --cont')
+  end if
 
   if (optind /= command_argument_count()) then
      call print_help()

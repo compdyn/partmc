@@ -543,7 +543,7 @@ contains
          / 296.16d0)**1.5d0
     viscosk = viscosd / rhoair
     gasspeed = sqrt(8d0 * boltz * tk * avogad / (const%pi * mwair))
-    air_mean_free_path = 2d0 * viscosk / gasspeed * 1d-02
+    air_mean_free_path = 2d0 * viscosk / gasspeed * 1d-2
 
   end function air_mean_free_path
 

@@ -59,43 +59,43 @@ $\rho_{\rm 0}$		   & \rr material density of reference particles (latex sphere)	
   m(R_{\rm geo}) &= \frac{4 \pi \rho R_{\rm 0}^3}{3 f} R_{\rm geo}^{\ast d_{\rm f}} \label{eq:m_Rgeo} \displaybreak[0] \\
   R_{\rm geo} &= R_{\rm geo}^{\ast} R_{\rm 0} \label{eq:R_geo} \displaybreak[0] \\
   N &= \frac{R_{\rm geo}^{\ast d_{\rm f}}}{f} \label{eq:Num_monomer} \displaybreak[0] \\
-   R_{\rm me, c} &= h_{\rm KR} R_{\rm geo}  \label{eq:R_me_c} \displaybreak[0] \\ 
-   h_{\rm KR} &= -0.06483 d_{\rm f}^2 + 0.6353 d_{\rm f} - 0.4898 \label{eq:h_KR} \displaybreak[0] \\ 
-  R_{\rm me} &= R_{\rm me, c} \frac{C(R_{\rm me})}{C(R_{\rm eff})} \label{eq:R_me} \displaybreak[0] \\ 
+  R_{\rm me, c} &= h_{\rm KR} R_{\rm geo}  \label{eq:R_me_c} \displaybreak[0] \\
+  h_{\rm KR} &= -0.06483 d_{\rm f}^2 + 0.6353 d_{\rm f} - 0.4898 \label{eq:h_KR} \displaybreak[0] \\
+  R_{\rm me} &= R_{\rm me, c} \frac{C(R_{\rm me})}{C(R_{\rm eff})} \label{eq:R_me} \displaybreak[0] \\
   R_{\rm eff} &= \frac{S_{\rm acc}}{4 \pi R_{\rm me,c}} \label{eq:R_eff} \displaybreak[0] \\
   S_{\rm acc} &= 4 \pi R_{\rm 0}^2 N^{\frac{d_{\rm s}}{3}} \left[\left(d_{\rm s} - 2\right) \left(\frac{z}{N}
   \right)^{1 - \gamma} -d_{\rm s} + 3\right] \qquad \text{for } 2 \leq d_{\rm s} \leq 3 \label{eq:S_acc} \displaybreak[0] \\
   S_{\rm acc} &= 4 \pi R_{\rm 0}^2 z^{1 - \gamma} N^{\gamma} \qquad \text{for $d_{\rm f} \leq 2$, $d_{\rm s} = 3$} \label{eq:S_acc_2} \displaybreak[0] \\
   C(R) &= 1 + A \frac{l}{R} + Q \frac{l}{R} \exp\biggl(-b \frac{R}{l}\biggr)
   \label{eq:slip_correct} \displaybreak[0] \\
-  \rho_{\rm a} &= 0.001 \frac{P}{P_{\rm 0}} \frac{\bar{M}_{\rm a}}{R_{\rm gas} T} \label{eq:rho_a} \displaybreak[0] \\ 
-  \eta_{\rm a} &= 1.8325\e{-4} \left(\frac{416.16}{T+120}\right) \left(\frac{T}{296.16}\right)^{1.5}  \label{eq:eta_a} \displaybreak[0] \\ 
-  \upsilon_{\rm a} &= \frac{\eta_{\rm a}}{\rho_{\rm a}} \label{eq:upsilon_a} \displaybreak[0] \\ 
-  \bar{v}_{\rm a} &= \sqrt{\frac{8 k_{\rm B} T N_{\rm A}}{\pi \bar{M}_{\rm a}}} \label{eq:v_a} \displaybreak[0] \\ 
-  l &= \frac{2 \eta_{\rm a}}{\rho_{\rm a} \bar{v}_{\rm a}} = \frac{2 \upsilon_{\rm a}}{\bar{v}_{\rm a}} \label{eq:gas_free_path} \displaybreak[0] \\ 
+  \rho_{\rm a} &= 0.001 \frac{P}{P_{\rm 0}} \frac{\bar{M}_{\rm a}}{R_{\rm gas} T} \label{eq:rho_a} \displaybreak[0] \\
+  \eta_{\rm a} &= 1.8325\e{-4} \left(\frac{416.16}{T+120}\right) \left(\frac{T}{296.16}\right)^{1.5}  \label{eq:eta_a} \displaybreak[0] \\
+  \upsilon_{\rm a} &= \frac{\eta_{\rm a}}{\rho_{\rm a}} \label{eq:upsilon_a} \displaybreak[0] \\
+  \bar{v}_{\rm a} &= \sqrt{\frac{8 k_{\rm B} T N_{\rm A}}{\pi \bar{M}_{\rm a}}} \label{eq:v_a} \displaybreak[0] \\
+  l &= \frac{2 \eta_{\rm a}}{\rho_{\rm a} \bar{v}_{\rm a}} = \frac{2 \upsilon_{\rm a}}{\bar{v}_{\rm a}} \label{eq:gas_free_path} \displaybreak[0] \\
   R_{\rm m} &= \left[\frac{3 m(R_{\rm geo})}{4 \pi \rho}\right]^{\frac{1}{3}} \label{eq:R_m} \displaybreak[0] \\
   R_{\rm ae}^2 C(R_{\rm ae}) &= \frac{\rho R_{\rm m}^3 C(R_{\rm me})}{\rho_{\rm 0} R_{\rm me}} \displaybreak[0] \\
-  R_{\rm ae}^2 C(R_{\rm ae}) &= \frac{\rho R_{\rm m}^3 C(R_{\rm eff})}{\rho_{\rm 0} R_{\rm me,c}} \label{eq:R_ae} \displaybreak[0] 
+  R_{\rm ae}^2 C(R_{\rm ae}) &= \frac{\rho R_{\rm m}^3 C(R_{\rm eff})}{\rho_{\rm 0} R_{\rm me,c}} \label{eq:R_ae} \displaybreak[0]
 \end{align}
 
 \newpage
 \textbf{Note:}
 \begin{itemize}
-\item Eq. \ref{eq:R_me} builds the basis to convert between $R_{\rm geo}$ and $R_{\rm me}$. 
+\item Eq. \ref{eq:R_me} builds the basis to convert between $R_{\rm geo}$ and $R_{\rm me}$.
 
 \item To convert from $R_{\rm geo}$ (or volume) to $R_{\rm me}$, we use Newton's method to solve the non-linear
 equation. The original and first derivative forms of $R_{\rm me}$ are shown in Eq. \ref{eq:f_Rme}
 and Eq. \ref{eq:df_Rme}.
 \begin{align}
-   f(R_{\rm me}) &= C(R_{\rm eff}) R_{\rm me}^2 - R_{\rm me,c} R_{\rm me} - R_{\rm me,c} 
-     Q l \exp\biggl(-b \frac{R_{\rm me}}{l}\biggr) - R_{\rm me,c} A l  
+   f(R_{\rm me}) &= C(R_{\rm eff}) R_{\rm me}^2 - R_{\rm me,c} R_{\rm me} - R_{\rm me,c}
+     Q l \exp\biggl(-b \frac{R_{\rm me}}{l}\biggr) - R_{\rm me,c} A l
      \label{eq:f_Rme} \displaybreak[0] \\
    f^ \prime (R_{\rm me}) &= 2 C(R_{\rm eff}) R_{\rm me} + R_{\rm me,c}
      Q b \exp\biggl(-b \frac{R_{\rm me}}{l}\biggr) - R_{\rm me,c} \label{eq:df_Rme} \displaybreak[0]
 \end{align}
 
 \item To convert from $R_{\rm me}$ to $R_{\rm geo}$ (or volume), we need to first convert $R_{\rm me}$
-to $R_{\rm me,c}$, and then use Eq. \ref{eq:R_me_c} to obtain $R_{\rm geo}$. 
+to $R_{\rm me,c}$, and then use Eq. \ref{eq:R_me_c} to obtain $R_{\rm geo}$.
 
 First we define several constants as follows
 

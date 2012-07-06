@@ -5,7 +5,7 @@
 !> \file
 !> The extract_sectional_dimless_time program.
 
-!> Read sectional NetCDF output files and write out the time evolution of 
+!> Read sectional NetCDF output files and write out the time evolution of
 !> aerosol dimensionless number concentrations in text format.
 program extract_sectional_dimless_time
 
@@ -17,7 +17,7 @@ program extract_sectional_dimless_time
   use getopt_m
 
   integer, parameter :: REGIME_FREE = 0
-  integer, parameter :: REGIME_CONT = 1 
+  integer, parameter :: REGIME_CONT = 1
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_prefix, out_filename
   character(len=PMC_MAX_FILENAME_LEN), allocatable :: filename_list(:)
@@ -113,11 +113,11 @@ program extract_sectional_dimless_time
              * (3d0 / 4d0 / const%pi)**(1d0 / 6d0) * N_INIT * times(i_file)
      elseif (regime == REGIME_CONT) then
         dimless_times(i_file) = (2d0 * const%boltzmann * env_state%temp &
-             / 3d0 / const%air_dyn_visc) * N_INIT * times(i_file)      
+             / 3d0 / const%air_dyn_visc) * N_INIT * times(i_file)
      else
         call die(123323239)
      end if
-     time_num_concs(i_file) = sum(aero_binned%num_conc * bin_grid%log_width) 
+     time_num_concs(i_file) = sum(aero_binned%num_conc * bin_grid%log_width)
      dimless_time_num_concs(i_file) = time_num_concs(i_file) / N_INIT
   end do
 

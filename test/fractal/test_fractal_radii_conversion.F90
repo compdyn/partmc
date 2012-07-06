@@ -9,12 +9,12 @@
 !> equivalent radius and volume under various fractal parameters
 !> to check if the results are within tolerance.
 program test_radii_conversion
-  
+
   use pmc_util
   use pmc_constants
   use pmc_fractal
 
-  type(fractal_t) :: fractal  
+  type(fractal_t) :: fractal
   real(kind=dp) :: d_f(7), f(2), R0(4), Rme(100), Rgeo(100), vol(100)
   integer :: i_df, i_f, i_R0, i_part, vcount_Rme, vcount_Rgeo
   real(kind=dp), allocatable :: Rme_err(:), Rgeo_err(:)
@@ -26,7 +26,7 @@ program test_radii_conversion
   d_f = (/1.8d0, 2d0, 2.2d0, 2.4d0, 2.6d0, 2.8d0, 3d0/)
   f = (/1d0, 1.43d0/)
   R0 = (/1d-10, 1d-9, 1d-8, 1d-7/)
-  
+
   vcount_Rme = 0
   vcount_Rgeo = 0
   do i_R0 = 1, size(R0)

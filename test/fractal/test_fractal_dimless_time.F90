@@ -5,7 +5,7 @@
 !> \file
 !> The extract_dimless_time program.
 
-!> Read NetCDF output files and write out the time evolution of aerosol 
+!> Read NetCDF output files and write out the time evolution of aerosol
 !> dimensionless number concentrations in text format.
 program extract_dimless_time
 
@@ -18,7 +18,7 @@ program extract_dimless_time
   use getopt_m
 
   integer, parameter :: REGIME_FREE = 0
-  integer, parameter :: REGIME_CONT = 1 
+  integer, parameter :: REGIME_CONT = 1
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_prefix, out_filename
   character(len=PMC_MAX_FILENAME_LEN), allocatable :: filename_list(:)
@@ -115,7 +115,7 @@ program extract_dimless_time
              * N_INIT * times(i_file)
      elseif (regime == REGIME_CONT) then
         dimless_times(i_file) = (2d0 * const%boltzmann * env_state%temp &
-             / 3d0 / const%air_dyn_visc) * N_INIT * times(i_file)      
+             / 3d0 / const%air_dyn_visc) * N_INIT * times(i_file)
      else
         call die(123323239)
      end if

@@ -7,8 +7,8 @@
 
 !> Merge too text files from base run and restart run into one
 !> file for dimensionless time series.
-program merge_dimless_time_files 
-  
+program merge_dimless_time_files
+
   use pmc_util
   use pmc_mpi
   use getopt_m
@@ -48,10 +48,10 @@ program merge_dimless_time_files
   if (out_filename == "") then
      out_filename = "out_dimless_t/" // trim(in_prefix) // "_dimless_t_series.txt"
   end if
-  
+
   filename1 = "out_dimless_t/" // trim(in_prefix) // "_dimless_time.txt"
   filename2 = "out_dimless_t/restart/" // trim(in_prefix) // "_dimless_time.txt"
-  
+
   allocate (data1(0,0))
   allocate (data2(0,0))
   call loadtxt(filename1, data1)
@@ -62,7 +62,7 @@ program merge_dimless_time_files
      do col = 1, size(data1, 2)
         if (col == 1) then
            data1(row, col) = data2(row - old_row + 1, col) + data1(old_row, 1)
-        else   
+        else
            data1(row, col) = data2(row - old_row + 1, col)
         end if
      end do

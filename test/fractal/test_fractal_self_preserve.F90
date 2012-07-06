@@ -152,7 +152,7 @@ program test_fractal_self_preserve
   dimless_vol = aero_particle_volume( &
        aero_state%apa%particle(1:aero_state%apa%n_part)) * total_num_conc &
        / total_vol_conc
-  dimless_num_conc = num_concs * total_vol_conc / total_num_conc**2 
+  dimless_num_conc = num_concs * total_vol_conc / total_num_conc**2
   if (dist_type == DIST_TYPE_NUM) then
      call bin_grid_histogram_1d_SPSD(dimless_vol_grid, dimless_vol, &
           dimless_num_conc, hist, total_vol_conc, total_num_conc)

@@ -13,8 +13,8 @@ mkdir -p out_dimless_t/restart
 ../../partmc run_part_vemury_free_df_2_4_upto1000s.spec
 ../../partmc run_part_vemury_free_df_2_4_restart.spec
 
-../../test_fractal_dimless_time --free out_dimless_t/part_vemury_free_df_2_4_0001
-../../test_fractal_dimless_time --free out_dimless_t/restart/part_vemury_free_df_2_4_0001
+../../test_fractal_dimless_time --free --n_init 1e14 out_dimless_t/part_vemury_free_df_2_4_0001
+../../test_fractal_dimless_time --free --n_init 1e14 out_dimless_t/restart/part_vemury_free_df_2_4_0001
 ../../test_fractal_merge_files part_vemury_free_df_2_4_0001
 
 ../../numeric_diff --by col --rel-tol 0.1 ref_free_df_2_4_dimless_time_regrid.txt out_dimless_t/part_vemury_free_df_2_4_0001_dimless_t_series.txt

@@ -20,8 +20,6 @@ program extract_dimless_time
 
   integer, parameter :: REGIME_FREE = 1
   integer, parameter :: REGIME_CONT = 2
-  real(kind=dp), parameter :: DENSITY = 4200d0
-  real(kind=dp), parameter :: N_INIT = 1d14
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_prefix, out_filename
   character(len=PMC_MAX_FILENAME_LEN), allocatable :: filename_list(:)
@@ -31,25 +29,29 @@ program extract_dimless_time
   type(env_state_t) :: env_state
   integer :: index, i_repeat, i_spec, out_unit
   integer :: i_file, n_file, regime
-  real(kind=dp) :: time, del_t
+  real(kind=dp) :: time, del_t, density, n_init
+  type(aero_particle_t), pointer :: aero_particle
   character(len=PMC_UUID_LEN) :: uuid, run_uuid
-  real(kind=dp), allocatable :: particle_num_concs(:)
+  real(kind=dp), allocatable :: particle_num_concs(:), particle_masses(:)
+  real(kind=dp), allocatable :: particle_volumes(:)
   real(kind=dp), allocatable :: times(:), time_num_concs(:)
   real(kind=dp), allocatable :: dimless_times(:), dimless_time_num_concs(:)
-  type(option_s) :: opts(4)
+  type(option_s) :: opts(5)
 
   call pmc_mpi_init()
 
   opts(1) = option_s("help", .false., 'h')
   opts(2) = option_s("free", .false., 'f')
   opts(3) = option_s("cont", .false., 'c')
-  opts(4) = option_s("output", .true., 'o')
+  opts(4) = option_s("n_init", .true., 'n')
+  opts(5) = option_s("output", .true., 'o')
 
   regime = 0
+  n_init = 0d0
   out_filename = ""
 
   do
-     select case(getopt("hfco:", opts))
+     select case(getopt("hfcno:", opts))
      case(char(0))
         exit
      case('h')
@@ -59,6 +61,8 @@ program extract_dimless_time
         regime = REGIME_FREE
      case('c')
         regime = REGIME_CONT
+     case('n')
+        n_init = string_to_real(optarg)
      case('o')
         out_filename = optarg
      case( '?' )
@@ -69,6 +73,10 @@ program extract_dimless_time
         call die_msg(603100341, 'unhandled option: ' // trim(optopt))
      end select
   end do
+
+  if (n_init <= 0d0) then
+     call die_msg(367132882, 'expected initial number concentration')
+  end if
 
   if (regime == 0) then
      call die_msg(367132882, 'missing aerosol regime: please specify --free or --cont')
@@ -105,6 +113,8 @@ program extract_dimless_time
   allocate(dimless_time_num_concs(n_file))
 
   allocate(particle_num_concs(0))
+  allocate(particle_masses(0))
+  allocate(particle_volumes(0))
 
   do i_file = 1,n_file
      call input_state(filename_list(i_file), index, time, del_t, i_repeat, &
@@ -115,19 +125,24 @@ program extract_dimless_time
           // trim(filename_list(i_file)))
 
      times(i_file) = time
+     call aero_state_masses(aero_state, aero_data, particle_masses)
+     call ensure_real_array_size(particle_volumes, aero_state%apa%n_part)
+     particle_volumes = aero_particle_volume( &
+          aero_state%apa%particle(1:aero_state%apa%n_part))
+     density = sum(particle_masses) / sum(particle_volumes)
      if (regime == REGIME_FREE) then
         dimless_times(i_file) = (6d0 * const%boltzmann * env_state%temp &
-             * aero_data%fractal%prime_radius / DENSITY)**(1d0 / 2d0)   &
-             * N_INIT * times(i_file)
+             * aero_data%fractal%prime_radius / density)**(1d0 / 2d0)   &
+             * n_init * times(i_file)
      elseif (regime == REGIME_CONT) then
         dimless_times(i_file) = (2d0 * const%boltzmann * env_state%temp &
-             / 3d0 / const%air_dyn_visc) * N_INIT * times(i_file)
+             / 3d0 / const%air_dyn_visc) * n_init * times(i_file)
      else
         call die(123323239)
      end if
      call aero_state_num_concs(aero_state, aero_data, particle_num_concs)
      time_num_concs(i_file) = sum(particle_num_concs)
-     dimless_time_num_concs(i_file) = time_num_concs(i_file) / N_INIT
+     dimless_time_num_concs(i_file) = time_num_concs(i_file) / n_init
   end do
 
   write(*,'(a,a)') "Output file: ", trim(out_filename)
@@ -149,6 +164,8 @@ program extract_dimless_time
   deallocate(time_num_concs)
   deallocate(dimless_time_num_concs)
   deallocate(particle_num_concs)
+  deallocate(particle_masses)
+  deallocate(particle_volumes)
   deallocate(filename_list)
   call aero_data_deallocate(aero_data)
   call aero_state_deallocate(aero_state)

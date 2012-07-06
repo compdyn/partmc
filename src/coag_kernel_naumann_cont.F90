@@ -79,7 +79,7 @@ contains
     real(kind=dp) :: d1, d2, d_min, d_max, k
     integer :: i, j
     logical :: first
- 
+
     d_min = minval(aero_data%density)
     d_max = maxval(aero_data%density)
 

@@ -363,7 +363,7 @@ target_link_libraries(test_binomial_sample ${GSL_LIBS})
 ######################################################################
 # test_fractal_self_preserve
 
-add_executable(test_fractal_self_preserve 
+add_executable(test_fractal_self_preserve
   test/fractal/test_fractal_self_preserve.F90
   src/getopt.F90)
 
@@ -372,7 +372,7 @@ target_link_libraries(test_fractal_self_preserve partmclib)
 ######################################################################
 # test_fractal_dimless_time
 
-add_executable(test_fractal_dimless_time 
+add_executable(test_fractal_dimless_time
   test/fractal/test_fractal_dimless_time.F90
   src/getopt.F90)
 
@@ -381,7 +381,7 @@ target_link_libraries(test_fractal_dimless_time partmclib)
 ######################################################################
 # test_fractal_sectional_dimless_time
 
-add_executable(test_fractal_sectional_dimless_time 
+add_executable(test_fractal_sectional_dimless_time
   test/fractal/test_fractal_sectional_dimless_time.F90
   src/getopt.F90)
 
@@ -390,7 +390,7 @@ target_link_libraries(test_fractal_sectional_dimless_time partmclib)
 ######################################################################
 # test_fractal_merge_files
 
-add_executable(test_fractal_merge_files 
+add_executable(test_fractal_merge_files
   test/fractal/test_fractal_merge_files.F90
   src/getopt.F90)
 
@@ -399,7 +399,7 @@ target_link_libraries(test_fractal_merge_files partmclib)
 ######################################################################
 # test_fractal_radii_conversion
 
-add_executable(test_fractal_radii_conversion 
+add_executable(test_fractal_radii_conversion
   test/fractal/test_fractal_radii_conversion.F90)
 
 target_link_libraries(test_fractal_radii_conversion partmclib)

@@ -1,3 +1,4 @@
+! Copyright (C) 2009-2012 Matthew West
 ! Copyright (C) 2012 Jian Tian
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.

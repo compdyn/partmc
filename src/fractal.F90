@@ -61,6 +61,33 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert volume (m^3) to geometric radius (m) for spherical particles.
+  real(kind=dp) elemental function sphere_vol2rad(v)
+
+    !> Volume (m^3).
+    real(kind=dp), intent(in) :: v
+
+    sphere_vol2rad = (3d0 * v / 4d0 / const%pi)**(1d0 / 3d0)
+
+  end function sphere_vol2rad
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Calculate the number of monomers in a fractal particle cluster.
+  !> Based on Eq. 5 in Naumann 2003 J. Aerosol. Sci.
+  real(kind=dp) elemental function vol2N(v, fractal)
+
+    !> Volume (m^3).
+    real(kind=dp), intent(in) :: v
+    !> Fractal parameters.
+    type(fractal_t), intent(in) :: fractal
+
+    vol2N = (sphere_vol2rad(v) / fractal%prime_radius)**3
+
+  end function vol2N
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Convert volume (m^3) to radius (m).
   real(kind=dp) elemental function vol2rad(v, fractal)
 
@@ -102,6 +129,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert geometric radius (m) to volume (m^3) for spherical particles.
+  real(kind=dp) elemental function sphere_rad2vol(r)
+
+    !> Radius (m).
+    real(kind=dp), intent(in) :: r
+
+    sphere_rad2vol = 4d0 * const%pi * r**3 / 3d0
+
+  end function sphere_rad2vol
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Convert radius (m) to volume (m^3).
   real(kind=dp) elemental function rad2vol(r, fractal)
 
@@ -110,8 +149,8 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
-    rad2vol = 4d0 * const%pi * fractal%prime_radius**3 * (r &
-         / fractal%prime_radius)**fractal%frac_dim / 3d0 &
+    rad2vol = sphere_rad2vol(fractal%prime_radius) &
+         * (r / fractal%prime_radius)**fractal%frac_dim &
          / fractal%vol_fill_factor
 
   end function rad2vol
@@ -141,21 +180,6 @@ contains
     diam2vol = rad2vol(diam2rad(d), fractal)
 
   end function diam2vol
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Calculate the number of monomers in a fractal particle cluster.
-  !> Based on Eq. 5 in Naumann 2003 J. Aerosol. Sci.
-  real(kind=dp) elemental function vol2N(v, fractal)
-
-    !> Volume (m^3)
-    real(kind=dp), intent(in) :: v
-    !> Fractal parameters.
-    type(fractal_t), intent(in) :: fractal
-
-    vol2N = (3d0 * v / 4d0 / const%pi) / (fractal%prime_radius)**3
-
-  end function vol2N
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -192,12 +216,8 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
-    if (fractal%frac_dim == 3d0 .and. fractal%vol_fill_factor == 1d0) then
-       h_KR = 1d0
-    else
-       h_KR = -0.06483d0 * fractal%frac_dim**2 + 0.6353d0 * &
+    h_KR = -0.06483d0 * fractal%frac_dim**2 + 0.6353d0 * &
          fractal%frac_dim - 0.4898d0
-    end if
 
   end function h_KR
 

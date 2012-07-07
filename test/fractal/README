@@ -1,8 +1,23 @@
 
 Brownian coagulation with fractal treatment Test-case
-===================================
+======================================================
 
 The initial condition is a single species of particle with a
 mono distribution and the simulation uses the Brownian coagulation
-kernel, based on Vemury and Pratsinis (1995) and Naumann (2003).
+kernel from the following two papers for both continuum and
+free molecular regimes:
+1. S. Vemury and S. E. Pratsinis, Self-preserving size distributions
+of agglomerates, Journal of Aerosol Science, Vol. 26, No. 2,
+pp. 175-185, 1995.
+2. K.-H. Naumann, COSIMA - a computer program simulating the dynamics
+of fractal aerosols, Journal of Aerosol Science, Vol. 34, No. 10,
+pp. 1371-1397, 2003.
 
+The fractal treatment is based on Naumann [2003] with prescribed
+fractal parameters including fractal dimension, radius of primary
+particles and volume filling factor in the spec file.
+
+This test-case demonstrates that PartMC can succesfully reproduce
+the self-preserving size distributions and time evolutions of
+particle number concentration reported in the literature when
+Brownian coagulation is the dominant scheme for the evolution of particles.

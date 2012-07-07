@@ -155,12 +155,12 @@ program test_fractal_self_preserve
        / total_vol_conc
   dimless_num_conc = num_concs * total_vol_conc / total_num_conc**2
   if (dist_type == DIST_TYPE_NUM) then
-     call bin_grid_histogram_1d_SPSD(dimless_vol_grid, dimless_vol, &
+     call bin_grid_histogram_1d_self_preserve(dimless_vol_grid, dimless_vol, &
           dimless_num_conc, hist, total_vol_conc, total_num_conc)
   elseif (dist_type == DIST_TYPE_MASS) then
      call aero_state_masses(aero_state, aero_data, masses)
-     call bin_grid_histogram_1d_SPSD(dimless_vol_grid, dimless_vol, num_concs * masses, &
-          hist, total_vol_conc, total_num_conc)
+     call bin_grid_histogram_1d_self_preserve(dimless_vol_grid, dimless_vol, &
+          num_concs * masses, hist, total_vol_conc, total_num_conc)
   else
      call die(123323238)
   end if
@@ -210,9 +210,10 @@ program test_fractal_self_preserve
 contains
 
   !> Make a histogram with of the given weighted data, scaled by the
-  !> non-logarithmic bin sizes.
-  subroutine bin_grid_histogram_1d_SPSD(x_bin_grid, x_data, weight_data, hist, &
-       c_v, c_n)
+  !> non-logarithmic bin sizes, specially for self preserving
+  !> size distributions.
+  subroutine bin_grid_histogram_1d_self_preserve(x_bin_grid, x_data, &
+       weight_data, hist, c_v, c_n)
 
     !> x-axis bin grid.
     type(bin_grid_t), intent(in) :: x_bin_grid
@@ -237,7 +238,7 @@ contains
        end if
     end do
 
-  end subroutine bin_grid_histogram_1d_SPSD
+  end subroutine bin_grid_histogram_1d_self_preserve
 
   subroutine print_help()
 
@@ -247,15 +248,14 @@ contains
     write(*,'(a)') '  -h, --help        Print this help message.'
     write(*,'(a)') '  -n, --num         Output number distribution.'
     write(*,'(a)') '  -m, --mass        Output mass distribution.'
-    write(*,'(a)') '  -N, --dimless_vol <V>    Minimum dimensionless volume.'
-    write(*,'(a)') '  -X, --dimless_vol <V>    Maximum dimensionless volume.'
+    write(*,'(a)') '  -N, --dimless_vol_min <V>    Minimum dimensionless volume.'
+    write(*,'(a)') '  -X, --dimless_vol_max <V>    Maximum dimensionless volume.'
     write(*,'(a)') '  -b, --nbin <N>    Number of size bins.'
     write(*,'(a)') '  -o, --out <file>  Output filename.'
     write(*,'(a)') ''
     write(*,'(a)') 'Examples:'
-    write(*,'(a)') '  test_fractal_self_preserve --num data_0001'
-    write(*,'(a)') &
-         '  test_fractal_self_preserve --mass --dmin 1e-8 --dmax 1e-4 data_0001'
+    write(*,'(a)') '  test_fractal_self_preserve ' &
+         // '--num --dimless_vol_min 1e-3 --dimless_vol_max 10 --nbin 100 data_0001'
     write(*,'(a)') ''
 
   end subroutine print_help

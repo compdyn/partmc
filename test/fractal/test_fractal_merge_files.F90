@@ -84,14 +84,14 @@ contains
 
   subroutine print_help()
 
-    write(*,'(a)') 'Usage: merge_dimless_time_files [options] <netcdf_prefix>'
+    write(*,'(a)') 'Usage: test_fractal_merge_files [options] <netcdf_prefix>'
     write(*,'(a)') ''
     write(*,'(a)') 'options are:'
     write(*,'(a)') '  -h, --help        Print this help message.'
     write(*,'(a)') '  -o, --out <file>  Output filename.'
     write(*,'(a)') ''
     write(*,'(a)') 'Examples:'
-    write(*,'(a)') '  merge_dimless_time_files data_0001'
+    write(*,'(a)') '  test_fractal_merge_files data_0001'
     write(*,'(a)') ''
 
   end subroutine print_help

@@ -180,14 +180,17 @@ contains
 
   subroutine print_help()
 
-    write(*,'(a)') 'Usage: extract_sectional_dimless_time [options] <netcdf_prefix>'
+    write(*,'(a)') 'Usage: test_fractal_sectional_dimless_time [options] <netcdf_prefix>'
     write(*,'(a)') ''
     write(*,'(a)') 'options are:'
     write(*,'(a)') '  -h, --help        Print this help message.'
+    write(*,'(a)') '  -f, --free        Free molecular regime.'
+    write(*,'(a)') '  -c, --cont        Continuum regime.'
+    write(*,'(a)') '  -n, --n_init      Initial number concentration (m^-3).'
     write(*,'(a)') '  -o, --out <file>  Output filename.'
     write(*,'(a)') ''
     write(*,'(a)') 'Examples:'
-    write(*,'(a)') '  extract_sectional_dimless_time data_0001'
+    write(*,'(a)') '  test_fractal_sectional_dimless_time --free --n_init 1e14 data'
     write(*,'(a)') ''
 
   end subroutine print_help

@@ -1,3 +1,4 @@
+! Copyright (C) 2012 Jian Tian
 ! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Copyright (C) 2007 Richard Easter
 ! Licensed under the GNU General Public License version 2 or (at your
@@ -5,9 +6,14 @@
 
 !> \file
 !> The pmc_coag_kernel_vemury_free module.
+!!
+!! The coagulation kernel is based on Eq. 4 in
+!! S. Vemury and S. E. Pratsinis, Self-preserving size distributions
+!! of agglomerates, Journal of Aerosol Science, Vol. 26, No. 2,
+!! pp. 175-185, 1995.
 
 !> Brownian coagulation kernel in free molecular regime based on
-!> Vemury and Pratsinis (1995), eq (4).
+!> Eq. 4 in Vemury and Pratsinis [1995].
 module pmc_coag_kernel_vemury_free
 
   use pmc_env_state
@@ -23,7 +29,7 @@ contains
 
   !> Compute the Brownian coagulation kernel in free molecular regime.
   !!
-  !! Uses equation (4) of Vemury and Pratsinis (1995) J. Aero. Sci.
+  !! Uses Eq. 4 of Vemury and Pratsinis [1995].
   subroutine kernel_vemury_free(aero_particle_1, aero_particle_2, &
        aero_data, env_state, k)
 
@@ -45,19 +51,20 @@ contains
     d1 = aero_particle_density(aero_particle_1, aero_data)
     d2 = aero_particle_density(aero_particle_2, aero_data)
 
-    call kernel_vemury_free_helper(aero_data, v1, d1, v2, d2, env_state%temp, &
-         env_state%pressure, k)
+    call kernel_vemury_free_helper(aero_data, v1, d1, v2, d2, &
+         env_state%temp, env_state%pressure, k)
 
   end subroutine kernel_vemury_free
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute the minimum and maximum Brownian coagulation kernel in free
-  !> molecular regime based on Vemury and Pratsinis (1995).
+  !> molecular regime based on Vemury and Pratsinis [1995].
   !!
   !! Finds the minimum and maximum kernel values between particles of
   !! volumes v1 and v2, by sampling over possible densities.
-  subroutine kernel_vemury_free_minmax(v1, v2, aero_data, env_state, k_min, k_max)
+  subroutine kernel_vemury_free_minmax(v1, v2, aero_data, env_state, &
+       k_min, k_max)
 
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
@@ -105,10 +112,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Helper function that does the actual coagulation kernel computation.
-
+  !!
   !! Helper function. Do not call directly. Instead use kernel_vemury_free().
-
-  !! Uses equation (4) of Vemury and Pratsinis (1995) J. Aero. Sci.
+  !!
+  !! Uses Eq. 6 of Vemury and Pratsinis [1995].
   subroutine kernel_vemury_free_helper(aero_data, v1, d1, v2, d2, &
        tk, press, bckernel)
 

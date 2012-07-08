@@ -5,6 +5,16 @@
 !> \file
 !> The pmc_fractal module.
 
+!! This module includes all the conversions of different radii and
+!! diameters to volume (and vice versa), such as
+!! geometric radius/diameter, mobility equivalent radius/diameter, etc.
+!! All equations used in this file are obtained from K.-H. Naumann,
+!! COSIMA - a computer program simulating the dynamics
+!! of fractal aerosols, Journal of Aerosol Science, Vol. 34, No. 10,
+!! pp. 1371-1397, 2003. The equations are written in detail in the file
+!! \c doc/fractal/fractal.tex.
+
+!> The fractal_t structure and associated subroutines.
 module pmc_fractal
 
   use pmc_spec_file
@@ -20,12 +30,16 @@ module pmc_fractal
   !> Scaling exponent in calculating accessible particle surface.
   real(kind=dp), parameter :: SCALE_EXPONENT_S_ACC = 0.86d0
 
+  !> Fractal data.
+  !!
+  !! The data in this structure is constant, as it represents physical
+  !! quantities that cannot change over time.
   type fractal_t
-     !> Volume fractal dimension.
+     !> Volume fractal dimension (1).
      real(kind=dp) :: frac_dim
      !> Radius of primary particles (m).
      real(kind=dp) :: prime_radius
-     !> Volume filling factor.
+     !> Volume filling factor (1).
      real(kind=dp) :: vol_fill_factor
   end type fractal_t
 
@@ -74,7 +88,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Calculate the number of monomers in a fractal particle cluster.
-  !> Based on Eq. 5 in Naumann 2003 J. Aerosol. Sci.
+  !> Based on Eq. 5 in Naumann [2003].
   real(kind=dp) elemental function vol2N(v, fractal)
 
     !> Volume (m^3).
@@ -88,7 +102,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert volume (m^3) to radius (m).
+  !> Convert volume (m^3) to geometric radius (m).
   real(kind=dp) elemental function vol2rad(v, fractal)
 
     !> Volume (m^3).
@@ -103,7 +117,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert volume (m^3) to diameter (m).
+  !> Convert volume (m^3) to geometric diameter (m).
   real(kind=dp) function vol2diam(v, fractal)
 
     !> Volume (m^3).
@@ -141,7 +155,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert radius (m) to volume (m^3).
+  !> Convert geometric radius (m) to volume (m^3).
   real(kind=dp) elemental function rad2vol(r, fractal)
 
     !> Radius (m).
@@ -169,7 +183,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert diameter (m) to volume (m^3).
+  !> Convert geometric diameter (m) to volume (m^3).
   real(kind=dp) function diam2vol(d, fractal)
 
     !> Diameter (m).
@@ -184,7 +198,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Calculate the accessible particle surface.
-  !> Based on Eq. 26 in Naumann 2003 J. Aerosol. Sci.
+  !> Based on Eq. 26 in Naumann [2003].
   real(kind=dp) function vol2S_acc(v, fractal)
 
     !> Volume (m^3)
@@ -211,6 +225,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Kirkwood-Riseman ratio.
+  !> Based on Eq. 21 in Naumann [2003].
   real(kind=dp) function h_KR(fractal)
 
     !> Fractal parameters.
@@ -224,6 +239,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert volume (m^3) to continuum regime mobility equivalent radius.
+  !> Based on Eq. 21 in Naumann [2003].
   real(kind=dp) function vol2R_me_c(v, fractal)
 
     !> Volume (m^3).
@@ -237,11 +253,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Calculate effective radius.
-  !> Based on Eq. 28 in Naumann 2003 J. Aerosol. Sci.
+  !> Calculate particle effective radius.
+  !> Based on Eq. 28 in Naumann [2003].
   real(kind=dp) function vol2R_eff(v, fractal)
 
-    !> Volume (m^3)
+    !> Volume (m^3).
     real(kind=dp), intent(in) :: v
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
@@ -254,6 +270,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Slip correction function from continuum to free molecular regime.
+  !> Based on Eq. 22 in Naumann [2003].
   real(kind=dp) function Slip_correct(r, tk, press, fractal)
 
     !> Radius (m).
@@ -274,9 +291,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert volume (m^3) to mobility equivalent radius (m).
+  !> Based on Eq. 5, 21 and 30 in Naumann [2003].
   real(kind=dp) function vol2Rme(v, tk, press, fractal)
 
-    !> Volume (m^3)
+    !> Volume (m^3).
     real(kind=dp), intent(in) :: v
     !> Temperature (K).
     real(kind=dp), intent(in) :: tk
@@ -360,10 +378,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert mobility equivalent radius to that in the continuum regime
+  !> Convert mobility equivalent radius to that in the continuum regime.
+  !> Based on Eq. 30 in Naumann [2003].
   real(kind=dp) function Rme2R_me_c(r, tk, press, fractal)
 
-    !> Radius (m)
+    !> Radius (m).
     real(kind=dp), intent(in) :: r
     !> Temperature (K).
     real(kind=dp), intent(in) :: tk
@@ -486,7 +505,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!> Convert mobility equivalent radius (m) to volume (m^3)
+  !> Convert mobility equivalent radius (m) to volume (m^3).
+  !> Based on Eq. 5, 21 and 30 in Naumann [2003].
   real(kind=dp) function Rme2vol(r, tk, press, fractal)
 
     !> Radius (m).
@@ -549,7 +569,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Check the fractal dimension value.
+  !> Check the fractal dimension value to avoid an input value greater than 3.
   subroutine check_frac_dim(fractal)
 
     !> Fractal parameters.
@@ -578,11 +598,18 @@ contains
     !! computed for the rest of the simulation.
     !!
     !! The fractal state is specified by the parameters:
-    !! - \b frac_dim (real, dimensionless): the fractal dimension
-    !!   (3 is spherical and less than 3 is agglomerate)
+    !!   - \b frac_dim (real, dimensionless): the fractal dimension
+    !!     (3 is spherical and less than 3 is agglomerate)
+    !!   - \b prime_radius (real, unit m): radius of primary
+    !!     particles.
+    !!   - \b vol_fill_factor (real, dimensionless): the volume filling
+    !!     factor which accounts for the fact that even in a most closely
+    !!     packed structure the spherical monomers can occupy only 74
+    !!     percent of the available volume.
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format
+    !!   - \ref output_format_fractal --- the corresponding output format
 
     call spec_file_read_logical(file, 'do_fractal', &
          do_fractal)
@@ -596,7 +623,7 @@ contains
        call check_frac_dim(fractal)
     else
        fractal%frac_dim = 3d0
-       fractal%prime_radius = 1d-8 ! Can be set to any value
+       fractal%prime_radius = 1d-8
        fractal%vol_fill_factor = 1d0
     end if
 
@@ -607,6 +634,16 @@ contains
   !> Write full state.
   subroutine fractal_output_netcdf(fractal, ncid)
 
+    !> \page output_format_fractal Output File Format: Fractal Data
+    !!
+    !! The fractal data NetCDF variables are:
+    !!   - \b frac_dim (dimensionless): the fractal dimension
+    !!   - \b prime_radius (unit m): radius of primary particles
+    !!   - \b vol_fill_factor (dimensionless): volume filling factor
+    !!
+    !! See also:
+    !!   - \b input_format_fractal --- the corresponding input format
+
     !> Fractal parameters to write.
     type(fractal_t), intent(in) :: fractal
     !> NetCDF file ID, in data mode.
@@ -615,7 +652,8 @@ contains
     call pmc_nc_write_real(ncid, fractal%frac_dim, "fractal_dimension", &
          unit="1", standard_name="fractal_dimension")
     call pmc_nc_write_real(ncid, fractal%vol_fill_factor, &
-         "volume_filling_factor", unit="1", standard_name="volume_filling_factor")
+         "volume_filling_factor", unit="1", &
+         standard_name="volume_filling_factor")
     call pmc_nc_write_real(ncid, fractal%prime_radius, "prime_radius", &
          unit="m", standard_name="prime_radius")
 
@@ -632,7 +670,8 @@ contains
     integer, intent(in) :: ncid
 
     call pmc_nc_read_real(ncid, fractal%frac_dim, "fractal_dimension")
-    call pmc_nc_read_real(ncid, fractal%vol_fill_factor, "volume_filling_factor")
+    call pmc_nc_read_real(ncid, fractal%vol_fill_factor, &
+         "volume_filling_factor")
     call pmc_nc_read_real(ncid, fractal%prime_radius, "prime_radius")
 
   end subroutine fractal_input_netcdf

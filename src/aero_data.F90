@@ -640,6 +640,7 @@ contains
     !!     weights of aerosol species
     !!   - \b aero_kappa (unit kg/mol, dim \c aero_species): hygroscopicity
     !!     parameters of aerosol species
+    !!   - \b fractal parameters, see \ref output_format_fractal
     !!
     !! See also:
     !!   - \ref input_format_aero_data --- the corresponding input format

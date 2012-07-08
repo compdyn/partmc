@@ -1,3 +1,4 @@
+! Copyright (C) 2012 Jian Tian
 ! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
 ! Copyright (C) 2007 Richard Easter
 ! Licensed under the GNU General Public License version 2 or (at your
@@ -5,9 +6,13 @@
 
 !> \file
 !> The pmc_coag_kernel_naumann_free module.
+!!
+!! The coagulation kernel is based on Eq. 41a in K.-H. Naumann,
+!! COSIMA - a computer program simulating the dynamics
+!! of fractal aerosols, Journal of Aerosol Science, Vol. 34, No. 10,
+!! pp. 1371-1397, 2003.
 
-!> Brownian coagulation kernel in free molecular regime based on
-!> Naumann (2003), eq (41b).
+!> Brownian coagulation kernel in free molecular regime based o Naumann [2003].
 module pmc_coag_kernel_naumann_free
 
   use pmc_env_state
@@ -23,7 +28,7 @@ contains
 
   !> Compute the Brownian coagulation kernel in free molecular regime.
   !!
-  !! Uses equation (41b) of Naumann (2003) J. Aero. Sci.
+  !! Uses Eq. 41b of Naumann [2003].
   subroutine kernel_naumann_free(aero_particle_1, aero_particle_2, &
        aero_data, env_state, k)
 
@@ -45,19 +50,20 @@ contains
     d1 = aero_particle_density(aero_particle_1, aero_data)
     d2 = aero_particle_density(aero_particle_2, aero_data)
 
-    call kernel_naumann_free_helper(aero_data, v1, d1, v2, d2, env_state%temp, &
-         env_state%pressure, k)
+    call kernel_naumann_free_helper(aero_data, v1, d1, v2, d2, &
+         env_state%temp, env_state%pressure, k)
 
   end subroutine kernel_naumann_free
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute the minimum and maximum Brownian coagulation kernel in free
-  !> molecular regime based on Naumann (2003).
+  !> molecular regime based on Naumann [2003].
   !!
   !! Finds the minimum and maximum kernel values between particles of
   !! volumes v1 and v2, by sampling over possible densities.
-  subroutine kernel_naumann_free_minmax(v1, v2, aero_data, env_state, k_min, k_max)
+  subroutine kernel_naumann_free_minmax(v1, v2, aero_data, env_state, &
+       k_min, k_max)
 
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
@@ -105,10 +111,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Helper function that does the actual coagulation kernel computation.
-
+  !!
   !! Helper function. Do not call directly. Instead use kernel_naumann_free().
-
-  !! Uses equation (41b) of Naumann (2003) J. Aero. Sci.
+  !!
+  !! Uses Eq. 41b of Naumann [2003].
   subroutine kernel_naumann_free_helper(aero_data, v1, d1, v2, d2, &
        tk, press, bckernel)
 

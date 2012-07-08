@@ -7,7 +7,7 @@
 !> \file
 !> The pmc_coag_kernel_naumann_free module.
 !!
-!! The coagulation kernel is based on Eq. 41a in K.-H. Naumann,
+!! The coagulation kernel is based on Eq. 41b in K.-H. Naumann,
 !! COSIMA - a computer program simulating the dynamics
 !! of fractal aerosols, Journal of Aerosol Science, Vol. 34, No. 10,
 !! pp. 1371-1397, 2003.
@@ -28,7 +28,7 @@ contains
 
   !> Compute the Brownian coagulation kernel in free molecular regime.
   !!
-  !! Uses Eq. 41b of Naumann [2003].
+  !! Use Eq. 41b of Naumann [2003].
   subroutine kernel_naumann_free(aero_particle_1, aero_particle_2, &
        aero_data, env_state, k)
 
@@ -114,7 +114,7 @@ contains
   !!
   !! Helper function. Do not call directly. Instead use kernel_naumann_free().
   !!
-  !! Uses Eq. 41b of Naumann [2003].
+  !! Use Eq. 41b of Naumann [2003].
   subroutine kernel_naumann_free_helper(aero_data, v1, d1, v2, d2, &
        tk, press, bckernel)
 

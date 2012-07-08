@@ -28,7 +28,7 @@ contains
 
   !> Compute the Brownian coagulation kernel in continuum regime.
   !!
-  !! Uses Eq. 41b of Naumann [2003].
+  !! Use Eq. 41b of Naumann [2003].
   subroutine kernel_naumann_cont(aero_particle_1, aero_particle_2, &
        aero_data, env_state, k)
 
@@ -114,7 +114,7 @@ contains
   !!
   !! Helper function. Do not call directly. Instead use kernel_naumann_cont().
   !!
-  !! Uses Eq. 41a of Naumann [2003].
+  !! Use Eq. 41a of Naumann [2003].
   subroutine kernel_naumann_cont_helper(aero_data, v1, d1, v2, d2, &
        tk, press, bckernel)
 

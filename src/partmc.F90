@@ -350,6 +350,7 @@ contains
     !!     environment state amongst processes each timestep, to
     !!     ensure a uniform environment
     !!   - \subpage input_format_parallel_coag
+    !! - \subpage input_format_fractal
 
     call gas_data_allocate(gas_data)
     call gas_state_allocate(gas_state)
@@ -713,6 +714,7 @@ contains
     !!   coagulation.  If \c do_coagulation is \c yes, then the
     !!   following parameters must also be provided:
     !!   - \subpage input_format_coag_kernel
+    !! - \subpage input_format_fractal
     !!
     !! Example:
     !! <pre>
@@ -748,6 +750,8 @@ contains
     !!
     !! do_coagulation yes              # whether to do coagulation (yes/no)
     !! kernel additive                 # Additive coagulation kernel
+    !!
+    !! do_fractal no                   # whether to do fractal treatment (yes/no)
     !! </pre>
 
     ! only serial code here
@@ -872,6 +876,8 @@ contains
     !!   following parameters must also be provided:
     !!   - \subpage input_format_coag_kernel
     !!
+    !! - \subpage input_format_fractal
+    !!
     !! Example:
     !! <pre>
     !! run_type sectional              # sectional code run
@@ -907,6 +913,7 @@ contains
     !! 
     !! do_coagulation yes              # whether to do coagulation (yes/no)
     !! kernel brown                    # coagulation kernel
+    !! do_fractal no                   # whether to do fractal treatment (yes/no)
     !! </pre>
 
     ! only serial code here

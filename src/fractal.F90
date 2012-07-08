@@ -21,13 +21,17 @@ module pmc_fractal
   use pmc_constants
   use pmc_netcdf
 
-  !> Constants in slip correction equation.
+  !> Constant in slip correction equation in Eq. 22 of Naumann [2003].
   real(kind=dp), parameter :: A_SLIP = 1.142d0
+  !> Constant in slip correction equation in Eq. 22 of Naumann [2003].
   real(kind=dp), parameter :: Q_SLIP = 0.588d0
+  !> Constant in slip correction equation in Eq. 22 of Naumann [2003].
   real(kind=dp), parameter :: B_SLIP = 0.999d0
-  !> Scaling factor in calculating accessible particle surface.
+  !> Scaling factor in calculating accessible particle surface
+  !> in Eq. 26 of Naumann [2003].
   real(kind=dp), parameter :: SCALE_FACTOR_S_ACC = 1d0
-  !> Scaling exponent in calculating accessible particle surface.
+  !> Scaling exponent in calculating accessible particle surface
+  !> in Eq. 26 of Naumann [2003].
   real(kind=dp), parameter :: SCALE_EXPONENT_S_ACC = 0.86d0
 
   !> Fractal data.
@@ -87,7 +91,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert vollume (m^3) to number of monomers in a fractal particle cluster.
+  !> Convert volume (m^3) to number of monomers in a fractal particle cluster.
   !> Based on Eq. 5 in Naumann [2003].
   real(kind=dp) elemental function vol2N(v, fractal)
 
@@ -118,7 +122,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert volume (m^3) to geometric diameter (m).
-  real(kind=dp) function vol2diam(v, fractal)
+  real(kind=dp) elemental function vol2diam(v, fractal)
 
     !> Volume (m^3).
     real(kind=dp), intent(in) :: v
@@ -184,7 +188,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert geometric diameter (m) to volume (m^3).
-  real(kind=dp) function diam2vol(d, fractal)
+  real(kind=dp) elemental function diam2vol(d, fractal)
 
     !> Diameter (m).
     real(kind=dp), intent(in) :: d
@@ -359,7 +363,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> First derivative format of mobility equivalent radiusi function.
+  !> First derivative format of mobility equivalent radius function.
   function df_Rme(Rme, v, tk, press, fractal) result (y)
 
     !> Mobility equivalent radius (m).
@@ -601,7 +605,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Read environment specification from a spec file.
+  !> Read fractal specification from a spec file.
   subroutine spec_file_read_fractal(file, fractal)
 
     !> Spec file.
@@ -661,7 +665,7 @@ contains
     !!   - \b vol_fill_factor (dimensionless): volume filling factor
     !!
     !! See also:
-    !!   - \b input_format_fractal --- the corresponding input format
+    !!   - \ref input_format_fractal --- the corresponding input format
 
     !> Fractal parameters to write.
     type(fractal_t), intent(in) :: fractal

@@ -171,7 +171,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!> Convert diameter (m) to radius (m).
+  !> Convert diameter (m) to radius (m).
   real(kind=dp) elemental function diam2rad(d)
 
     !> Diameter (m).
@@ -328,9 +328,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  function f_Rme(x, v, tk, press, fractal) result (y)
+  !> Function format of mobility equivalent radius.
+  !> Based on Eq. 30 in Naumann [2003].
+  function f_Rme(Rme, v, tk, press, fractal) result (y)
 
-    real(kind=dp), intent(in) :: x
+    !> Mobility equivalent radius (m).
+    real(kind=dp), intent(in) :: Rme
+    !> Volume (m^3).
     real(kind=dp), intent(in) :: v
     !> Temperature (K).
     real(kind=dp), intent(in) :: tk
@@ -338,6 +342,7 @@ contains
     real(kind=dp), intent(in) :: press
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
+
     real(kind=dp) :: y
 
     real(kind=dp) :: R_me_c, R_eff, C_Reff
@@ -345,8 +350,8 @@ contains
     R_eff = vol2R_eff(v, fractal)
     C_Reff = Slip_correct(R_eff, tk, press, fractal)
 
-    y = C_Reff * x**2 - R_me_c * x - R_me_c * Q_SLIP &
-         * air_mean_free_path(tk, press) * exp(-B_SLIP * x &
+    y = C_Reff * Rme**2 - R_me_c * Rme - R_me_c * Q_SLIP &
+         * air_mean_free_path(tk, press) * exp(-B_SLIP * Rme &
          / air_mean_free_path(tk, press)) - R_me_c * A_SLIP &
          * air_mean_free_path(tk, press)
 
@@ -354,9 +359,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  function df_Rme(x, v, tk, press, fractal) result (y)
+  !> First derivative format of mobility equivalent radiusi function.
+  function df_Rme(Rme, v, tk, press, fractal) result (y)
 
-    real(kind=dp), intent(in) :: x
+    !> Mobility equivalent radius (m).
+    real(kind=dp), intent(in) :: Rme
+    !> Volume (m^3).
     real(kind=dp), intent(in) :: v
     !> Temperature (K).
     real(kind=dp), intent(in) :: tk
@@ -371,8 +379,8 @@ contains
     R_eff = vol2R_eff(v, fractal)
     C_Reff = Slip_correct(R_eff, tk, press, fractal)
 
-    y = 2d0 * C_Reff * x - R_me_c + R_me_c * Q_SLIP * B_SLIP &
-         * exp(-B_SLIP * x / air_mean_free_path(tk, press))
+    y = 2d0 * C_Reff * Rme - R_me_c + R_me_c * Q_SLIP * B_SLIP &
+         * exp(-B_SLIP * Rme / air_mean_free_path(tk, press))
 
   end function df_Rme
 
@@ -380,25 +388,26 @@ contains
 
   !> Convert mobility equivalent radius to that in the continuum regime.
   !> Based on Eq. 30 in Naumann [2003].
-  real(kind=dp) function Rme2R_me_c(r, tk, press, fractal)
+  real(kind=dp) function Rme2R_me_c(Rme, tk, press, fractal)
 
     !> Radius (m).
-    real(kind=dp), intent(in) :: r
+    real(kind=dp), intent(in) :: Rme
     !> Temperature (K).
     real(kind=dp), intent(in) :: tk
     !> Pressure (Pa).
     real(kind=dp), intent(in) :: press
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
+
     real(kind=dp) :: x
     integer, parameter :: MAX_ITERATIONS = 10
     integer :: iter
     iter = 1
-    x = r
+    x = Rme
 
     do
-      x = x - f_Rmec(x, r, tk, press, fractal) &
-           / df_Rmec(x, r, tk, press, fractal)
+      x = x - f_Rmec(x, Rme, tk, press, fractal) &
+           / df_Rmec(x, Rme, tk, press, fractal)
       if(iter > MAX_ITERATIONS) then
          exit
       end if
@@ -411,20 +420,25 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  function f_Rmec(x, r, tk, press, fractal) result (y)
+  !> Function format of mobility equivalent radius in continuum regime.
+  !> Based on Eq. 30 in Naumann [2003].
+  function f_Rmec(Rmec, Rme, tk, press, fractal) result (y)
 
-    real(kind=dp), intent(in) :: x
-    real(kind=dp), intent(in) :: r
+    !> Mobility equivalent radius in continuum regime (m).
+    real(kind=dp), intent(in) :: Rmec
+    !> Mobility equivalent radius (m).
+    real(kind=dp), intent(in) :: Rme
     !> Temperature (K).
     real(kind=dp), intent(in) :: tk
     !> Pressure (Pa).
     real(kind=dp), intent(in) :: press
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
+
     real(kind=dp) :: y
 
     real(kind=dp) :: C_Rme, phi, ds, psi, c1, c2
-    C_Rme = Slip_correct(r, tk, press, fractal)
+    C_Rme = Slip_correct(Rme, tk, press, fractal)
 
     if (fractal%frac_dim <= 2d0) then
        ds = 3d0
@@ -445,32 +459,37 @@ contains
 
     c2 = fractal%frac_dim * ds / 3d0 - 1d0
 
-    y = C_Rme / r * phi * psi * (ds - 2d0) * x**(c1 + 1d0) &
-         + C_Rme / r * phi * (3d0 - ds) * x**(c2 + 1d0) &
-         - phi * psi * (ds - 2d0) * x**c1 + phi * (ds - 3d0) * x**c2 &
+    y = C_Rme / Rme * phi * psi * (ds - 2d0) * Rmec**(c1 + 1d0) &
+         + C_Rme / Rme * phi * (3d0 - ds) * Rmec**(c2 + 1d0) &
+         - phi * psi * (ds - 2d0) * Rmec**c1 + phi * (ds - 3d0) * Rmec**c2 &
          - Q_SLIP * air_mean_free_path(tk, press) * exp(-B_SLIP &
-         / air_mean_free_path(tk, press) * (phi * psi * (ds - 2d0) * x**c1 &
-         + phi * (3d0 - ds) * x**c2)) - A_SLIP &
+         / air_mean_free_path(tk, press) * (phi * psi * (ds - 2d0) &
+         * Rmec**c1 + phi * (3d0 - ds) * Rmec**c2)) - A_SLIP &
          * air_mean_free_path(tk, press)
 
   end function f_Rmec
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  function df_Rmec(x, r, tk, press, fractal) result (y)
+  !> First derivative format of mobility equivalent radius in continuum
+  !> regime.
+  function df_Rmec(Rmec, Rme, tk, press, fractal) result (y)
 
-    real(kind=dp), intent(in) :: x
-    real(kind=dp), intent(in) :: r
+    !> Mobility equivalent radius in continuum regime (m).
+    real(kind=dp), intent(in) :: Rmec
+    !> Mobility equivalent radius (m).
+    real(kind=dp), intent(in) :: Rme
     !> Temperature (K).
     real(kind=dp), intent(in) :: tk
     !> Pressure (Pa).
     real(kind=dp), intent(in) :: press
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
+
     real(kind=dp) :: y
 
     real(kind=dp) :: C_Rme, phi, ds, psi, c1, c2
-    C_Rme = Slip_correct(r, tk, press, fractal)
+    C_Rme = Slip_correct(Rme, tk, press, fractal)
 
     if (fractal%frac_dim <= 2d0) then
        ds = 3d0
@@ -491,15 +510,15 @@ contains
 
     c2 = fractal%frac_dim * ds / 3d0 - 1d0
 
-    y = C_Rme / r * phi * psi * (ds - 2d0) * (c1 + 1d0) * x**c1 &
-         + C_Rme / r * phi * (3d0 - ds) * (c2 + 1d0) * x**c2 &
-         - phi * psi * (ds - 2d0) * c1 * x**(c1 - 1d0) &
-         + phi * (ds - 3d0) * c2 * x**(c2 - 1d0) &
+    y = C_Rme / Rme * phi * psi * (ds - 2d0) * (c1 + 1d0) * Rmec**c1 &
+         + C_Rme / Rme * phi * (3d0 - ds) * (c2 + 1d0) * Rmec**c2 &
+         - phi * psi * (ds - 2d0) * c1 * Rmec**(c1 - 1d0) &
+         + phi * (ds - 3d0) * c2 * Rmec**(c2 - 1d0) &
          - Q_SLIP * air_mean_free_path(tk, press) * exp(-B_SLIP &
-         / air_mean_free_path(tk, press) * (phi * psi * (ds - 2d0) * x**c1 &
-         + phi * (3d0 - ds) * x**c2)) * (-B_SLIP &
+         / air_mean_free_path(tk, press) * (phi * psi * (ds - 2d0) * Rmec**c1 &
+         + phi * (3d0 - ds) * Rmec**c2)) * (-B_SLIP &
          / air_mean_free_path(tk, press) * (phi * psi * (ds - 2d0) * c1 &
-         * x**(c1 - 1d0) + phi * (3d0 - ds) * c2* x**(c2 - 1d0)))
+         * Rmec**(c1 - 1d0) + phi * (3d0 - ds) * c2* Rmec**(c2 - 1d0)))
 
   end function df_Rmec
 
@@ -592,20 +611,20 @@ contains
 
     logical :: do_fractal
 
-    !> \page input_format_fractal Input File Format: Fractal State
+    !> \page input_format_fractal Input File Format: Fractal Data
     !!
     !! The fractal parameters are divided into those specified at
     !! computed for the rest of the simulation.
     !!
-    !! The fractal state is specified by the parameters:
+    !! The fractal data file is specified by the parameters:
     !!   - \b frac_dim (real, dimensionless): the fractal dimension
-    !!     (3 is spherical and less than 3 is agglomerate)
+    !!     (3 for spherical and less than 3 for agglomerate)
     !!   - \b prime_radius (real, unit m): radius of primary
-    !!     particles.
+    !!     particles
     !!   - \b vol_fill_factor (real, dimensionless): the volume filling
     !!     factor which accounts for the fact that even in a most closely
-    !!     packed structure the spherical monomers can occupy only 74
-    !!     percent of the available volume.
+    !!     packed structure the spherical monomers can occupy only 74%
+    !!     of the available volume
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format

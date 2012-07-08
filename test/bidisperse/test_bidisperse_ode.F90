@@ -24,6 +24,7 @@ program test_bidisperse_ode
   use pmc_util
   use pmc_bin_grid
   use pmc_aero_data
+  use pmc_fractal
 
   !> Radius of one small particle (m).
   real(kind=dp), parameter :: r_small = 1d-5
@@ -106,9 +107,9 @@ program test_bidisperse_ode
   close(out_unit)
   call bin_grid_deallocate(bin_grid)
   call aero_data_deallocate(aero_data)
-
+ 
 contains
-  
+ 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine bidisperse_f(n_small, v_small, v_big_init, &

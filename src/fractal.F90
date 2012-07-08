@@ -624,7 +624,7 @@ contains
     !!   - \b vol_fill_factor (real, dimensionless): the volume filling
     !!     factor which accounts for the fact that even in a most closely
     !!     packed structure the spherical monomers can occupy only 74%
-    !!     of the available volume
+    !!     of the available volume (1 for compact structure)
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format

@@ -133,7 +133,7 @@ program extract_sectional_dimless_time
      time_species_vol_concs(i_file, :) = sum(aero_binned%vol_conc &
           * bin_grid%log_width, 1)
      time_vol_concs(i_file) = sum(time_species_vol_concs(i_file, :))
-     density = time_mass_concs(i_file) / time_vol_concs(i_file) 
+     density = time_mass_concs(i_file) / time_vol_concs(i_file)
      if (regime == REGIME_FREE) then
         dimless_times(i_file) = (6d0 * const%boltzmann * env_state%temp &
              * aero_data%fractal%prime_radius / density)**(1d0 / 2d0)   &

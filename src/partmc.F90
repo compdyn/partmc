@@ -796,7 +796,7 @@ contains
        run_exact_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
     end if
 
-    call spec_file_read_fractal(file, aero_data%fractal) 
+    call spec_file_read_fractal(file, aero_data%fractal)
     call spec_file_close(file)
 
     ! finished reading .spec data, now do the run
@@ -957,7 +957,7 @@ contains
        run_sect_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
     end if
 
-    call spec_file_read_fractal(file, aero_data%fractal) 
+    call spec_file_read_fractal(file, aero_data%fractal)
     call spec_file_close(file)
 
     ! finished reading .spec data, now do the run

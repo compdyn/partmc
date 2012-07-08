@@ -40,16 +40,16 @@ module pmc_coag_kernel
   !> Type code for a zero kernel.
   integer, parameter :: COAG_KERNEL_TYPE_ZERO     = 5
   !> Type code for a Brownian kernel in free molecular regime from Vemury
-  !> and Pratsinis (1995).
+  !> and Pratsinis [1995].
   integer, parameter :: COAG_KERNEL_TYPE_VEMURY_FREE = 6
   !> Type code for a Brownian kernel in continuum regime from Vemury and
-  !> Pratsinis (1995).
+  !> Pratsinis [1995].
   integer, parameter :: COAG_KERNEL_TYPE_VEMURY_CONT = 7
   !> Type code for a Brownian kernel in free molecular regime from Naumann
-  !> (2003).
+  !> [2003].
   integer, parameter :: COAG_KERNEL_TYPE_NAUMANN_FREE = 8
   !> Type code for a Brownian kernel in continuum regime from Naumann
-  !> (2003).
+  !> [2003].
   integer, parameter :: COAG_KERNEL_TYPE_NAUMANN_CONT = 9
   
 contains

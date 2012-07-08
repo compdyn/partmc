@@ -87,7 +87,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Calculate the number of monomers in a fractal particle cluster.
+  !> Convert vollume (m^3) to number of monomers in a fractal particle cluster.
   !> Based on Eq. 5 in Naumann [2003].
   real(kind=dp) elemental function vol2N(v, fractal)
 
@@ -197,7 +197,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Calculate the accessible particle surface.
+  !> Convert volume (m^3) to accessible particle surface (m^2).
   !> Based on Eq. 26 in Naumann [2003].
   real(kind=dp) function vol2S_acc(v, fractal)
 
@@ -238,7 +238,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert volume (m^3) to continuum regime mobility equivalent radius.
+  !> Convert volume (m^3) to continuum regime mobility equivalent radius (m).
   !> Based on Eq. 21 in Naumann [2003].
   real(kind=dp) function vol2R_me_c(v, fractal)
 
@@ -253,7 +253,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Calculate particle effective radius.
+  !> Convert volume (m^3) to particle effective radius (m).
   !> Based on Eq. 28 in Naumann [2003].
   real(kind=dp) function vol2R_eff(v, fractal)
 
@@ -386,7 +386,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert mobility equivalent radius to that in the continuum regime.
+  !> Convert mobility equivalent radius (m) to that in the continuum regime.
   !> Based on Eq. 30 in Naumann [2003].
   real(kind=dp) function Rme2R_me_c(Rme, tk, press, fractal)
 

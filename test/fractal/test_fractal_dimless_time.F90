@@ -183,7 +183,7 @@ contains
     write(*,'(a)') '  -h, --help        Print this help message.'
     write(*,'(a)') '  -f, --free        Free molecular regime.'
     write(*,'(a)') '  -c, --cont        Continuum regime.'
-    write(*,'(a)') '  -n, --n_init      Initial number concentration (m^-3).' 
+    write(*,'(a)') '  -n, --n_init      Initial number concentration (m^-3).'
     write(*,'(a)') '  -o, --out <file>  Output filename.'
     write(*,'(a)') ''
     write(*,'(a)') 'Examples:'

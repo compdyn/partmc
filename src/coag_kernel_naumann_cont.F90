@@ -10,7 +10,7 @@
 !! The coagulation kernel is based on Eq. 41a in K.-H. Naumann,
 !! COSIMA - a computer program simulating the dynamics
 !! of fractal aerosols, Journal of Aerosol Science, Vol. 34, No. 10,
-!! pp. 1371-1397, 2003. 
+!! pp. 1371-1397, 2003.
 
 !> Brownian coagulation kernel in continuum regime based on Naumann [2003].
 module pmc_coag_kernel_naumann_cont

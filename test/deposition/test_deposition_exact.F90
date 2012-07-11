@@ -63,9 +63,6 @@ program test_deposition_exact
   real(kind=dp) :: ustar
   real(kind=dp) :: aer_res_a
 
-
-
-
   ! Allocates
   call gas_data_allocate(gas_data)
   call gas_state_allocate(gas_state_init)
@@ -132,6 +129,12 @@ program test_deposition_exact
   num_conc = 0.0d0
 
   do i_mode = 1, size(aero_dist_init%mode)
+     ! Check if not monodisperse
+     if (aero_dist_init%mode(i_mode)%type .ne. 3) then
+        print*, 'Must be monodisperse'
+        stop
+     end if
+
      do i_spec = 1, aero_data%n_spec
         if ((aero_dist_init%mode(i_mode)%vol_frac(i_spec) == 1.0d0)) then
            if (density(i_spec) == 0.0d0) then
@@ -141,7 +144,7 @@ program test_deposition_exact
                  + aero_dist_init%mode(i_mode)%vol_frac(i_spec) &
                  * aero_data%density(i_spec)
            else
-              print*, 'Error'
+              print*, 'Each species must have at most 1 mode'
               stop
            end if
         end if
@@ -165,12 +168,13 @@ program test_deposition_exact
 
   print*,'Total mass concentration = ', total_initial_mass
 
-  ! Other things
+  ! Other things that are still hard coded
   aer_res_a = .0d0
   ustar = 1.0
   gamma = .6d0
   A = 2.0/1000.0
   alpha =  .8d0
+  ! Environmental values
   rho_air = env_state_air_den(env_state)
   viscosd = env_state_air_dynamic_viscosity(env_state)
   viscosk = viscosd / rho_air
@@ -214,5 +218,19 @@ program test_deposition_exact
   close(out_unit)
 
   ! Deallocates
+  call gas_data_deallocate(gas_data)
+  call gas_state_deallocate(gas_state_init)
+  call aero_data_deallocate(aero_data)
+  call aero_dist_deallocate(aero_dist_init)
+  call env_state_deallocate(env_state)
+  call scenario_deallocate(scenario)
+
+  deallocate(diameter)
+  deallocate(vd_rate)
+  deallocate(particle_mass)
+  deallocate(total_mass)
+  deallocate(density)
+  deallocate(num_conc)
+  deallocate(total_initial_mass)
 
 end program test_deposition_exact

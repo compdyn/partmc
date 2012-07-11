@@ -6,7 +6,7 @@
 !> \file
 !> The merge_dimless_time_files program.
 
-!> Merge too text files from base run and restart run into one
+!> Merge two text files from base run and restart run into one
 !> file for dimensionless time series.
 program merge_dimless_time_files
 

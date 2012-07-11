@@ -1,6 +1,6 @@
 program test_deposition_exact
 
-  !use pmc_deposition
+  use pmc_deposition
   use pmc_constants
   use pmc_run_part
   use pmc_spec_file

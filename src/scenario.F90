@@ -670,7 +670,7 @@ contains
 
     type(aero_particle_t), pointer :: aero_particle
     type(aero_info_t) :: aero_info
-    integer :: c, b, init_size, candidates, cand_iter, s, p
+    integer :: c, b, init_size, candidates, cand_iter, s, p, check_size
     real(kind=dp) :: over_rate, rate, vol, density
     
     if(function_id == SCENARIO_LOSS_FUNCTION_ZERO .or. &
@@ -690,12 +690,11 @@ contains
         over_rate = aero_state%aero_sorted%removal_rate_max(b)
         candidates = rand_poisson(over_rate * delta_t * init_size)
         !TODO: make particle removal more efficient if rate is very large
-!        print *, candidates, " ", init_size
         do cand_iter = 1,candidates
           s = pmc_rand_int(init_size)
+          check_size = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry
           if (s > aero_state%aero_sorted%size_class%inverse(b, c)%n_entry) &
                     cycle
-!          call warn_assert_msg(295846288, s >= 1 .and. s <= aero_state%aero_sorted%size_class%inverse(b, c)%n_entry, "HERE")
           p = aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
           aero_particle => aero_state%apa%particle(p)
           vol = aero_particle_volume(aero_particle)
@@ -714,8 +713,12 @@ contains
           aero_info%other_id = 0
           call aero_state_remove_particle_with_info(aero_state, p, aero_info)
           call aero_info_deallocate(aero_info)
+          
+          if(aero_state%aero_sorted%size_class%inverse(b, c)%n_entry /= check_size-1) then
+              print *, "bin size invalid"
+              call aero_state_check_sort(aero_state)
+          end if
         end do
-!        print *, "here"
       end do
     end do
     

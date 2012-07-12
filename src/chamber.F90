@@ -14,6 +14,9 @@ module pmc_chamber
   use pmc_spec_file
   use pmc_fractal
 
+  !> Unit translational diffusion coefficient (m^2 s^{-1}).
+  real(kind=dp), parameter :: unit_diff_coef = 1d0
+
   type chamber_t
      !> Whether to do wall loss and sedimentation in the chamber.
      logical :: do_chamber
@@ -27,8 +30,6 @@ module pmc_chamber
      real(kind=dp) :: prefactor_BL
      !> Exponent in dissusive boundary layer thickness.
      real(kind=dp) :: exponent_BL
-     !> Unit translational diffusion coefficient (m^2 s^{-1}).
-     real(kind=dp) :: unit_diff_coef
   end type chamber_t
 
 contains
@@ -47,7 +48,6 @@ contains
     chamber%A_sedi = 0d0
     chamber%prefactor_BL = 0d0
     chamber%exponent_BL = 0d0 
-    chamber%unit_diff_coef = 1d0
   
   end subroutine chamber_allocate
 
@@ -109,7 +109,7 @@ contains
 
     chamber_diff_BL_thick = chamber%prefactor_BL                   &
          * (chamber_diff_coef(aero_particle, fractal, temp, press) &
-         / chamber%unit_diff_coef)**(chamber%exponent_BL)
+         / unit_diff_coef)**(chamber%exponent_BL)
 
   end function chamber_diff_BL_thick
 

@@ -1,0 +1,2 @@
+#     dens (kg/m^3)   ions in soln (1)    molec wght (kg/mole)   kappa (1)
+BC            1700                0                   1d-3      0

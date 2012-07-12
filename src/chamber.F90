@@ -158,15 +158,19 @@ contains
 
     ! Particle density.
     real(kind=dp) :: rho
+    ! Gravitational acceleration.
+    real(kind=dp) :: grav_accel
 
-    rho = aero_particle_mass(aero_particle, aero_data)       &
+    grav_accel = 9.8d0
+
+    rho = aero_particle_mass(aero_particle, aero_data) &
          / aero_particle_volume(aero_particle)
 
-    chamber_loss_sedi = 4d0 * const%pi * rho                                &
-         * vol2R_m(aero_particle_volume(aero_particle))**3d0                &
-         * const%grav_accel                                                 &
+    chamber_loss_sedi = 4d0 * const%pi * rho &
+         * sphere_vol2rad(aero_particle_volume(aero_particle))**3d0 &
+         * grav_accel &
          * chamber_diff_coef(aero_particle, aero_data%fractal, temp, press) &
-         * chamber%A_sedi / 3d0 / const%boltzmann                           &
+         * chamber%A_sedi / 3d0 / const%boltzmann &
          / temp / chamber%V_chamber
 
   end function chamber_loss_sedi

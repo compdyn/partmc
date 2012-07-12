@@ -48,4 +48,6 @@ gas_average yes                 # whether to average gases each timestep
 env_average yes                 # whether to average environment each timestep
 parallel_coag local             # parallel coagulation method (local/dist)
 
+do_chamber no                   # whether to do chamber loss
+
 do_fractal no                   # whether to do fractal treatment

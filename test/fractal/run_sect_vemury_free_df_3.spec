@@ -32,6 +32,8 @@ start_day 1                     # start day of year (UTC)
 do_coagulation yes              # whether to do coagulation (yes/no)
 coag_kernel vemury_free         # coagulation kernel
 
+do_chamber no                   # whether to do chamber loss
+
 do_fractal yes                  # whether to do fractal treatment
 frac_dim 3                      # fractal dimension
 prime_radius 5e-10              # radius of monomer

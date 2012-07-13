@@ -599,6 +599,9 @@ contains
        run_part_opt%i_repeat = i_repeat
        
        call gas_state_copy(gas_state_init, gas_state)
+       call env_state_copy(env_state_init, env_state)
+       call scenario_init_env_state(scenario, env_state, &
+            env_state_init%elapsed_time)
        if (do_restart) then
           call aero_state_copy(aero_state_init, aero_state)
           call aero_state_set_n_part_ideal(aero_state, n_part)
@@ -622,9 +625,6 @@ contains
           call aero_state_add_aero_dist_sample(aero_state, aero_data, &
                aero_dist_init, env_state, 1d0, 0d0)
        end if
-       call env_state_copy(env_state_init, env_state)
-       call scenario_init_env_state(scenario, env_state, &
-            env_state_init%elapsed_time)
 
 #ifdef PMC_USE_SUNDIALS
        if (do_init_equilibriate) then

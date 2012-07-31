@@ -91,7 +91,7 @@ program test_deposition_exact
   call spec_file_read_real(file, 't_output', run_part_opt%t_output)
   call spec_file_read_real(file, 't_progress', run_part_opt%t_progress)
 
-  print*, 'dt = ', run_part_opt%del_t,'t output = ', run_part_opt%t_output
+  !print*, 'dt = ', run_part_opt%del_t,'t output = ', run_part_opt%t_output
 
   ! Dummy gas info
   call spec_file_read_string(file, 'gas_data', sub_filename)
@@ -151,9 +151,10 @@ program test_deposition_exact
      end do
   end do
 
-  print*, 'Mean diameter = ', diameter
-  print*, 'Mean density = ', density
-  print*, 'Number concentration = ', num_conc
+! Debug information
+!  print*, 'Mean diameter = ', diameter
+!  print*, 'Mean density = ', density
+!  print*, 'Number concentration = ', num_conc
 
   call spec_file_close(file)
 
@@ -166,11 +167,11 @@ program test_deposition_exact
      total_initial_mass(i_spec) = num_conc(i_spec)*particle_mass(i_spec)
   end do
 
-  print*,'Total mass concentration = ', total_initial_mass
+!  print*,'Total mass concentration = ', total_initial_mass
 
   ! Other things that are still hard coded
   aer_res_a = .0d0
-  ustar = 1.0
+  ustar = .10d0
   gamma = .6d0
   A = 2.0/1000.0
   alpha =  .8d0
@@ -193,13 +194,13 @@ program test_deposition_exact
   end do
   ! Compute analytical solution
 
-  print*,vd_rate
+  !print*,vd_rate
 
   open(unit=out_unit, file=out_name)
 
   time = 0d0
   ntime = int(run_part_opt%t_max / run_part_opt%t_output)
-  print*, 'time steps = ', ntime
+  !print*, 'time steps = ', ntime
   write(out_unit,*) time, 0.0, 0.0, total_initial_mass
 
   allocate(total_mass(aero_data%n_spec))

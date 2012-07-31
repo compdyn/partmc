@@ -157,7 +157,7 @@ program partmc
 #endif
 
   character(len=300) :: spec_name
-  
+
   call pmc_mpi_init()
 
   if (pmc_mpi_rank() == 0) then
@@ -191,7 +191,7 @@ contains
 
   !> Do a PartMC run.
   subroutine partmc_run(spec_name)
-    
+
     !> Spec filename.
     character(len=*), intent(in) :: spec_name
 
@@ -204,13 +204,13 @@ contains
     if (spec_name((i-4):i) /= '.spec') then
        call die_msg(710381938, "input filename must end in .spec")
     end if
-    
+
     if (pmc_mpi_rank() == 0) then
        ! only the root process does I/O
        call spec_file_open(spec_name, file)
        call spec_file_read_string(file, 'run_type', run_type)
     end if
-    
+
     call pmc_mpi_bcast_string(run_type)
     if (trim(run_type) == 'particle') then
        call partmc_part(file)
@@ -361,7 +361,7 @@ contains
     call scenario_allocate(scenario)
     call env_state_allocate(env_state)
     call env_state_allocate(env_state_init)
-    
+
     if (pmc_mpi_rank() == 0) then
        ! only the root process does I/O
 
@@ -373,7 +373,7 @@ contains
        if (do_restart) then
           call spec_file_read_string(file, 'restart_file', restart_filename)
        end if
-       
+
        call spec_file_read_real(file, 't_max', run_part_opt%t_max)
        call spec_file_read_real(file, 'del_t', run_part_opt%del_t)
        call spec_file_read_real(file, 't_output', run_part_opt%t_output)
@@ -396,21 +396,21 @@ contains
           call spec_file_read_gas_state(sub_file, gas_data, &
                gas_state_init)
           call spec_file_close(sub_file)
-       
+
           call spec_file_read_string(file, 'aerosol_data', sub_filename)
           call spec_file_open(sub_filename, sub_file)
           call spec_file_read_aero_data(sub_file, aero_data)
           call spec_file_close(sub_file)
-       
+
           call spec_file_read_string(file, 'aerosol_init', sub_filename)
           call spec_file_open(sub_filename, sub_file)
           call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
           call spec_file_close(sub_file)
        end if
-       
+
        call spec_file_read_scenario(file, gas_data, aero_data, scenario)
        call spec_file_read_env_state(file, env_state_init)
-       
+
        call spec_file_read_logical(file, 'do_coagulation', &
             run_part_opt%do_coagulation)
        if (run_part_opt%do_coagulation) then
@@ -436,6 +436,15 @@ contains
 
        call spec_file_read_logical(file, 'do_dry_deposition', &
             run_part_opt%do_dry_deposition)
+       if (run_part_opt%do_dry_deposition) then
+          call spec_file_read_string(file, 'land_type', sub_filename)
+
+          call spec_file_read_string(file, 'stability_profile', sub_filename)
+          call spec_file_open(sub_filename, sub_file)
+          call spec_file_read_stability_class(sub_file, &
+               scenario%stability_class_time, scenario%stability_class)
+          call spec_file_close(sub_file)
+       end if
 
        call spec_file_read_logical(file, 'do_mosaic', run_part_opt%do_mosaic)
        if (run_part_opt%do_mosaic .and. (.not. mosaic_support())) then
@@ -493,7 +502,7 @@ contains
           run_part_opt%env_average = .false.
           run_part_opt%parallel_coag_type = PARALLEL_COAG_TYPE_LOCAL
        end if
-       
+
        call spec_file_close(file)
     end if
 
@@ -594,10 +603,10 @@ contains
     call gas_state_deallocate(gas_state)
     call gas_state_allocate_size(gas_state, gas_data%n_spec)
     call cpu_time(run_part_opt%t_wall_start)
-    
+
     do i_repeat = 1,run_part_opt%n_repeat
        run_part_opt%i_repeat = i_repeat
-       
+
        call gas_state_copy(gas_state_init, gas_state)
        if (do_restart) then
           call aero_state_copy(aero_state_init, aero_state)
@@ -631,7 +640,7 @@ contains
           call condense_equilib_particles(env_state, aero_data, aero_state)
        end if
 #endif
-       
+
        call run_part(scenario, env_state, aero_data, aero_state, gas_data, &
             gas_state, run_part_opt)
 
@@ -720,26 +729,26 @@ contains
     !! <pre>
     !! run_type exact                  # exact solution
     !! output_prefix additive_exact    # prefix of output files
-    !! 
+    !!
     !! t_max 600                       # total simulation time (s)
     !! t_output 60                     # output interval (0 disables) (s)
-    !! 
+    !!
     !! n_bin 160                       # number of bins
     !! d_min 1e-8                      # minimum diameter (m)
     !! d_max 1e-3                      # maximum diameter (m)
-    !! 
+    !!
     !! gas_data gas_data.dat           # file containing gas data
     !!
     !! aerosol_data aero_data.dat      # file containing aerosol data
     !! aerosol_init aero_init_dist.dat # aerosol initial condition file
-    !! 
+    !!
     !! temp_profile temp.dat           # temperature profile file
     !! height_profile height.dat       # height profile file
     !! gas_emissions gas_emit.dat      # gas emissions file
     !! gas_background gas_back.dat     # background gas mixing ratios file
     !! aero_emissions aero_emit.dat    # aerosol emissions file
     !! aero_background aero_back.dat   # aerosol background file
-    !! 
+    !!
     !! rel_humidity 0.999              # initial relative humidity (1)
     !! pressure 1e5                    # initial pressure (Pa)
     !! latitude 0                      # latitude (degrees, -90 to 90)
@@ -756,7 +765,7 @@ contains
     if (pmc_mpi_rank() /= 0) then
        return
     end if
-    
+
     call bin_grid_allocate(bin_grid)
     call gas_data_allocate(gas_data)
     call aero_data_allocate(aero_data)
@@ -797,7 +806,7 @@ contains
     else
        run_exact_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
     end if
-    
+
     call spec_file_close(file)
 
     ! finished reading .spec data, now do the run
@@ -877,27 +886,27 @@ contains
     !! <pre>
     !! run_type sectional              # sectional code run
     !! output_prefix brown_sect        # prefix of output files
-    !! 
+    !!
     !! t_max 86400                     # total simulation time (s)
     !! del_t 60                        # timestep (s)
     !! t_output 3600                   # output interval (0 disables) (s)
     !! t_progress 600                  # progress printing interval (0 disables) (s)
-    !! 
+    !!
     !! n_bin 220                       # number of bins
     !! d_min 1e-10                     # minimum diameter (m)
     !! d_max 1e-4                      # maximum diameter (m)
-    !! 
+    !!
     !! gas_data gas_data.dat           # file containing gas data
     !! aerosol_data aero_data.dat      # file containing aerosol data
     !! aerosol_init aero_init_dist.dat # initial aerosol distribution
-    !! 
+    !!
     !! temp_profile temp.dat           # temperature profile file
     !! height_profile height.dat       # height profile file
     !! gas_emissions gas_emit.dat      # gas emissions file
     !! gas_background gas_back.dat     # background gas mixing ratios file
     !! aero_emissions aero_emit.dat    # aerosol emissions file
     !! aero_background aero_back.dat   # aerosol background file
-    !! 
+    !!
     !! rel_humidity 0.999              # initial relative humidity (1)
     !! pressure 1e5                    # initial pressure (Pa)
     !! latitude 0                      # latitude (degrees_north, -90 to 90)
@@ -905,7 +914,7 @@ contains
     !! altitude 0                      # altitude (m)
     !! start_time 0                    # start time (s since 00:00 UTC)
     !! start_day 1                     # start day of year (UTC)
-    !! 
+    !!
     !! do_coagulation yes              # whether to do coagulation (yes/no)
     !! kernel brown                    # coagulation kernel
     !! </pre>
@@ -914,7 +923,7 @@ contains
     if (pmc_mpi_rank() /= 0) then
        return
     end if
-    
+
     call aero_data_allocate(aero_data)
     call aero_dist_allocate(aero_dist_init)
     call env_state_allocate(env_state)
@@ -935,7 +944,7 @@ contains
     call spec_file_open(sub_filename, sub_file)
     call spec_file_read_gas_data(sub_file, gas_data)
     call spec_file_close(sub_file)
-    
+
     call spec_file_read_string(file, 'aerosol_data', sub_filename)
     call spec_file_open(sub_filename, sub_file)
     call spec_file_read_aero_data(sub_file, aero_data)
@@ -957,7 +966,7 @@ contains
     else
        run_sect_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
     end if
-    
+
     call spec_file_close(file)
 
     ! finished reading .spec data, now do the run
@@ -979,7 +988,7 @@ contains
     call gas_data_deallocate(gas_data)
 
     call pmc_rand_finalize()
-    
+
   end subroutine partmc_sect
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

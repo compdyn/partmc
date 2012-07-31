@@ -182,3 +182,9 @@ better) to selectively sample based on the weight ratio. If we do the
 second of these, we could adjust the cloud parcel routine in
 scenario.F90 to allow equilib() to reweight, and thus remove the
 do_reweight argument to equilib().
+
+In getopt.F90, Dick needed to add "integer, external :: iargc" in
+three places.
+
+In util.F90, Dick needed to change "write( ret_val, '(i30)' ) val" to
+free format to avoid a crash.

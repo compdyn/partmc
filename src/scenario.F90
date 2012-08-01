@@ -17,10 +17,11 @@ module pmc_scenario
   use pmc_aero_data
   use pmc_gas_data
   use pmc_mpi
+  use pmc_deposition
 #ifdef PMC_USE_MPI
   use mpi
 #endif
-  
+
   !> Scenario data.
   !!
   !! This is everything needed to drive the scenario being simulated.
@@ -70,10 +71,16 @@ module pmc_scenario
      real(kind=dp), pointer :: aero_dilution_rate(:)
      !> Aerosol background at set-points (# m^{-3}).
      type(aero_dist_t), pointer :: aero_background(:)
+
+     !> Stability class set-point times (s).
+     real(kind=dp), pointer :: stability_class_time(:)
+     !> Stability class.
+     real(kind=dp), pointer :: stability_class(:)
+
   end type scenario_t
-  
+
 contains
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate an scenario.
@@ -103,6 +110,9 @@ contains
     allocate(scenario%aero_dilution_time(0))
     allocate(scenario%aero_dilution_rate(0))
     allocate(scenario%aero_background(0))
+
+    allocate(scenario%stability_class_time(0))
+    allocate(scenario%stability_class(0))
 
   end subroutine scenario_allocate
 
@@ -273,7 +283,7 @@ contains
     real(kind=dp), intent(in) :: time
     !> Whether to update the relative humidity.
     logical, intent(in) :: update_rel_humid
-    
+
     !> Ambient water vapor pressure (Pa).
     real(kind=dp) :: pmv
 
@@ -840,5 +850,5 @@ contains
   end subroutine pmc_mpi_unpack_scenario
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_scenario

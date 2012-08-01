@@ -263,7 +263,7 @@ contains
        if (run_part_opt%do_dry_deposition) then
           aer_res_a = dry_dep_aero_resistance()
           ustar = dry_dep_ustar()
-          call dry_dep_land_parameters(gamma, A, alpha, 1)
+          call dry_dep_land_parameters(gamma, A, alpha, SUMMER, GRASS)
           call dry_dep_aero_state(aero_state, aero_data, env_state, &
                aer_res_a, ustar, gamma, A, alpha, run_part_opt%del_t)
        end if

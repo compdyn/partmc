@@ -75,6 +75,14 @@ module pmc_deposition
   real(kind=dp), parameter, dimension(15) :: gamma_ref = [ 0.56, 0.58, 0.56, &
        0.56, 0.56, 0.54, 0.54, 0.54, 0.54, 0.54, 0.54, 0.54, 0.50, 0.50, 0.56]
 
+  type deposition_t
+     real(kind=dp) :: gamma
+     real(kind=dp) :: alpha
+     real(kind=dp) :: A
+     integer :: LUC
+     integer :: SC
+  end type deposition_t
+
   contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -447,7 +455,7 @@ module pmc_deposition
 
   !> Assigns values for dry deposition given a land type.
   !> Based on Zhang et al 2001 Table 2.
-  subroutine dry_dep_land_parameters(gamma, A, alpha, land_type)
+  subroutine dry_dep_land_parameters(gamma, A, alpha, season, land_type)
 
     !>
     real(kind=dp), intent(inout) :: gamma
@@ -455,16 +463,14 @@ module pmc_deposition
     real(kind=dp), intent(inout) :: A
     !>
     real(kind=dp), intent(inout) :: alpha
-    !>
+    !> Seasonal category.
+    integer, intent(in) :: season
+    !> Land use category.
     integer, intent(in) :: land_type
 
-    integer :: SC
-
-    SC = 1
-
-    A = a_ref(SC,GRASS)
-    gamma = gamma_ref(GRASS)
-    alpha = alpha_ref(GRASS)
+    A = a_ref(season, land_type)
+    gamma = gamma_ref(land_type)
+    alpha = alpha_ref(land_type)
 
   end subroutine dry_dep_land_parameters
 

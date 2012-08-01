@@ -15,6 +15,66 @@ module pmc_deposition
   use pmc_rand
   use pmc_env_state
 
+  !> Land type
+  integer, parameter :: EVERGREEN_NEEDLE = 1
+  !>
+  integer, parameter :: EVERGREEN_BROAD = 2
+  !>
+  integer, parameter :: DECIDUOUS_NEEDLE = 3
+  !>
+  integer, parameter :: DECIDUOUS_BROAD = 4
+  !>
+  integer, parameter :: FOREST_MIXED = 5
+  !>
+  integer, parameter :: GRASS = 6
+  !>
+  integer, parameter :: CROPLAND = 7
+  !>
+  integer, parameter :: DESERT = 8
+  !>
+  integer, parameter :: URBAN = 15
+
+  !> Seasonal categories
+  !>
+  integer, parameter :: SUMMER = 1
+  !>
+  integer, parameter :: AUTUMN = 2
+  !>
+  integer, parameter :: HARVEST = 3
+  !>
+  integer, parameter :: WINTER = 4
+  !>
+  integer, parameter :: SPRING = 5
+
+  !> Stability class
+  integer, parameter :: PAS_A = 1
+  !>
+  integer, parameter :: PAS_B = 2
+  !>
+  integer, parameter :: PAS_C = 3
+  !>
+  integer, parameter :: PAS_D = 4
+  !>
+  integer, parameter :: PAS_E = 5
+  !>
+  integer, parameter :: PAS_F = 6
+
+  !>
+  real(kind=dp), parameter, dimension(5,15) :: a_ref =  reshape(&
+       [[2.0, 2.0, 2.0, 2.0, 2.0], [5.0, 5.0, 5.0, 5.0, 5.0], &
+       [2.0, 2.0, 5.0, 5.0, 2.0], [5.0, 5.0, 10.0, 10.0, 5.0], &
+       [5.0, 5.0, 5.0, 5.0, 5.0], [2.0, 2.0, 5.0, 5.0, 2.0], &
+       [2.0, 2.0, 5.0, 5.0, 2.0], [0., 0., 0., 0., 0.], [0., 0., 0., 0.,0.], &
+       [10.0, 10.0, 10.0, 10.0, 10.0], [10.0, 10.0, 10.0, 10.0, 10.0], &
+       [0., 0., 0., 0., 0.], [0., 0., 0., 0., 0.], [0., 0., 0., 0., 0.], &
+       [10.0, 10.0, 10.0, 10.0, 10.0]],[5,15])
+  !>
+  real(kind=dp), parameter, dimension(15) :: alpha_ref = [ 1.0, 0.6, 1.1, &
+       0.8, 0.8, 1.2, 1.2, 50.0, 50.0, 1.3, 2.0, 50.0, 100.0, 100.0, 1.5]
+  !>
+  real(kind=dp), parameter, dimension(15) :: gamma_ref = [ 0.56, 0.58, 0.56, &
+       0.56, 0.56, 0.54, 0.54, 0.54, 0.54, 0.54, 0.54, 0.54, 0.50, 0.50, 0.56]
+
   contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -179,7 +239,7 @@ module pmc_deposition
      real(kind=dp), intent(in) :: diameter
      !> Particle density.
      real(kind=dp), intent(in) :: density
-     !> 
+     !>
      real(kind=dp), intent(in) :: viscosd
      !> Mean free path of air (m).
      real(kind=dp), intent(in) :: lambda
@@ -332,6 +392,81 @@ module pmc_deposition
         (3.0d0 * const%pi * const%air_dyn_visc * diameter)
 
   end function compute_brownian_diff
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !>
+  subroutine spec_file_read_stability_class(file, times, classes)
+
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
+    !> Times (s).
+    real(kind=dp), pointer :: times(:)
+    !> Rates (s^{-1}).
+    real(kind=dp), pointer :: classes(:)
+
+    integer :: n_lines, i, n_time, i_time
+    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
+    real(kind=dp), pointer :: species_data(:,:)
+
+    allocate(species_name(0))
+    allocate(species_data(0,0))
+    deallocate(times)
+    deallocate(classes)
+    call spec_file_read_real_named_array(file, 0, species_name, &
+         species_data)
+    n_time = size(species_data,2)
+    allocate(times(n_time))
+    allocate(classes(n_time))
+    do i_time = 1,n_time
+       times(i_time) = species_data(1,i_time)
+       classes(i_time) = species_data(2,i_time)
+    end do
+
+  end subroutine spec_file_read_stability_class
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Computes the friction velocity.
+  real(kind=dp) function dry_dep_ustar()
+
+     dry_dep_ustar = .10d0
+
+  end function dry_dep_ustar
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Computes the aerodynamic resistance.
+  real(kind=dp) function dry_dep_aero_resistance()
+
+    dry_dep_aero_resistance  = 0.0d0
+
+  end function dry_dep_aero_resistance
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Assigns values for dry deposition given a land type.
+  !> Based on Zhang et al 2001 Table 2.
+  subroutine dry_dep_land_parameters(gamma, A, alpha, land_type)
+
+    !>
+    real(kind=dp), intent(inout) :: gamma
+    !>
+    real(kind=dp), intent(inout) :: A
+    !>
+    real(kind=dp), intent(inout) :: alpha
+    !>
+    integer, intent(in) :: land_type
+
+    integer :: SC
+
+    SC = 1
+
+    A = a_ref(SC,GRASS)
+    gamma = gamma_ref(GRASS)
+    alpha = alpha_ref(GRASS)
+
+  end subroutine dry_dep_land_parameters
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

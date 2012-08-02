@@ -445,9 +445,34 @@ module pmc_deposition
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Computes the aerodynamic resistance.
+  !> S&P 19.14
   real(kind=dp) function dry_dep_aero_resistance()
 
     dry_dep_aero_resistance  = 0.0d0
+
+    ! Estimate Monin-Obukhov length L from 16.83
+    L = 1.0d0
+    !
+    z = 1.0d0
+    ! Roughness length
+    z0 = 1.0d0
+    ! Reference height
+    zr = 1.0d0
+    ! Dimensionless height scale
+    zeta = z/L
+    ! Get eta_0
+    zeta_0 = z0/L
+    eta_0 = (1.0d0 - 15.0d0*zeta_0)**(.25)
+    ! Get eta_r
+    zeta_r = zr/L
+    eta_r = (1.0d0 - 15.0d0*zeta_r)**(.25)
+    ! Get ustar
+    ustar = .10d0
+    ! Stable
+    ra = (1.0d0/(const%von_karman * ustar))*(log(z/z0) + 4.7*(zeta - zeta_0))
+    ! Neutral
+    ra = (1.0d0/(const%von_karman * ustar))*log(z / z0)
+    ! Unstable
 
   end function dry_dep_aero_resistance
 

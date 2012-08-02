@@ -36,7 +36,8 @@ module pmc_constants
      real(kind=dp) :: accom_coeff = 1d0
      !> Acceleration due to gravity (m s^{-2}).
      real(kind=dp) :: grav = 9.81d0
-
+     !> von Karman constant.
+     real(kind=dp) :: von_karman = .41d0
      !> Equilibrium water vapor pressure at 273 K (Pa).
      real(kind=dp) :: water_eq_vap_press = 611d0
      !> Freezing point of water (K).

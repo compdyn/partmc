@@ -39,8 +39,8 @@ program test_radii_conversion
         do i_df = 1, size(d_f)
            fractal%frac_dim = d_f(i_df)
            do i_part = 1, size(Rme)
-              if (.not. almost_equal(Rme(i_part), vol2Rme(Rme2vol(Rme(i_part), tk, press, fractal) &
-                   , tk, press, fractal))) then
+              if (.not. almost_equal(Rme(i_part), vol_to_mobility_rad(mobility_rad_to_vol(Rme(i_part), &
+                   tk, press, fractal), tk, press, fractal))) then
                  vcount_Rme = vcount_Rme + 1
                  write(*, '(a, e12.3, 3x, a, f5.2, 3x, a, f5.2, 3x, a, e12.3)') &
                       'Mobility equivalent radius values mismatch at: Rme = ', &

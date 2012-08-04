@@ -45,7 +45,7 @@ contains
     d1 = aero_particle_density(aero_particle_1, aero_data)
     d2 = aero_particle_density(aero_particle_2, aero_data)
 
-    call kernel_brown_helper(aero_data, v1, d1, v2, d2, env_state%temp, &
+    call kernel_brown_helper(v1, d1, v2, d2, aero_data, env_state%temp, &
          env_state%pressure, k)
 
   end subroutine kernel_brown
@@ -86,7 +86,7 @@ contains
        do j = 1,n_sample
           d1 = interp_linear_disc(d_min, d_max, n_sample, i)
           d2 = interp_linear_disc(d_min, d_max, n_sample, j)
-          call kernel_brown_helper(aero_data, v1, d1, v2, d2, &
+          call kernel_brown_helper(v1, d1, v2, d2, aero_data, &
                env_state%temp, env_state%pressure, k)
           if (first) then
              first = .false.
@@ -109,10 +109,9 @@ contains
   !!
   !! Uses equation (16.28) of M. Z. Jacobson, Fundamentals of
   !! Atmospheric Modeling, Cambridge University Press, 1999.
-  subroutine kernel_brown_helper(aero_data, v1, d1, v2, d2, tk, press, bckernel)
+  subroutine kernel_brown_helper(v1, d1, v2, d2, aero_data, tk, press, &
+       bckernel)
 
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
     !> Density of first particle (kg/m^3).
@@ -121,6 +120,8 @@ contains
     real(kind=dp), intent(in) :: v2
     !> Density of second particle (kg/m^3).
     real(kind=dp), intent(in) :: d2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Temperature (K).
     real(kind=dp), intent(in) :: tk
     !> Pressure (Pa).
@@ -172,7 +173,8 @@ contains
     den_i     = d1 * 1.0d-3   ! particle wet density (g/cm3)
     vol_i     = v1 * 1.0d+6   ! particle wet volume (cm3)
     rad_i     = vol2rad(vol_i, aero_data%fractal)  ! particle wet radius (cm)
-    Rme_i     = vol2Rme(vol_i/1d+6, tk, press, aero_data%fractal)*1d+2
+    Rme_i     = vol_to_mobility_rad(vol_i/1d+6, tk, press, &
+         aero_data%fractal)*1d+2
     
     knud      = gasfreepath/Rme_i
     cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
@@ -186,7 +188,8 @@ contains
     den_j     = d2 * 1.0d-3
     vol_j     = v2 * 1.0d+6
     rad_j     = vol2rad(vol_j, aero_data%fractal)
-    Rme_j     = vol2Rme(vol_j/1d+6, tk, press, aero_data%fractal)*1d+2
+    Rme_j     = vol_to_mobility_rad(vol_j/1d+6, tk, press, &
+         aero_data%fractal)*1d+2
     
     knud      = gasfreepath/Rme_j
     cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))

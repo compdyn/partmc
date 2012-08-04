@@ -50,7 +50,7 @@ contains
     d1 = aero_particle_density(aero_particle_1, aero_data)
     d2 = aero_particle_density(aero_particle_2, aero_data)
 
-    call kernel_naumann_cont_helper(aero_data, v1, d1, v2, d2, &
+    call kernel_naumann_cont_helper(v1, d1, v2, d2, aero_data, &
          env_state%temp, env_state%pressure, k)
 
   end subroutine kernel_naumann_cont
@@ -93,7 +93,7 @@ contains
        do j = 1,n_sample
           d1 = interp_linear_disc(d_min, d_max, n_sample, i)
           d2 = interp_linear_disc(d_min, d_max, n_sample, j)
-          call kernel_naumann_cont_helper(aero_data, v1, d1, v2, d2, &
+          call kernel_naumann_cont_helper(v1, d1, v2, d2, aero_data, &
                env_state%temp, env_state%pressure, k)
           if (first) then
              first = .false.
@@ -115,11 +115,9 @@ contains
   !! Helper function. Do not call directly. Instead use kernel_naumann_cont().
   !!
   !! Use Eq. 41a of Naumann [2003].
-  subroutine kernel_naumann_cont_helper(aero_data, v1, d1, v2, d2, &
+  subroutine kernel_naumann_cont_helper(v1, d1, v2, d2, aero_data, &
        tk, press, bckernel)
 
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
     !> Density of first particle (kg/m^3).
@@ -128,6 +126,8 @@ contains
     real(kind=dp), intent(in) :: v2
     !> Density of second particle (kg/m^3).
     real(kind=dp), intent(in) :: d2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Temperature (K).
     real(kind=dp), intent(in) :: tk
     !> Pressure (Pa).
@@ -141,7 +141,7 @@ contains
     N_j = 3d0 * v2 / 4d0 / const%pi / (aero_data%fractal%prime_radius**3d0)
 
     bckernel = 2d0 * const%boltzmann * tk / 3d0 / const%air_dyn_visc &
-         / h_KR(aero_data%fractal) * (1d0 / N_i**(1d0 &
+         / fractal_kirkwood_riseman(aero_data%fractal) * (1d0 / N_i**(1d0 &
          / aero_data%fractal%frac_dim) + 1d0 &
          / N_j**(1d0 / aero_data%fractal%frac_dim)) &
          * (N_i**(1d0 / aero_data%fractal%frac_dim) &

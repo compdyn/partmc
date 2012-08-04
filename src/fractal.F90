@@ -425,7 +425,7 @@ contains
        mobility_rad, tk, press, fractal)
 
     !> Radius (m).
-    real(kind=dp), intent(in) ::mobility_rad 
+    real(kind=dp), intent(in) ::mobility_rad
     !> Temperature (K).
     real(kind=dp), intent(in) :: tk
     !> Pressure (Pa).
@@ -438,7 +438,7 @@ contains
     real(kind=dp) :: x
     integer :: iter
 
-    x = mobility_rad 
+    x = mobility_rad
     do iter = 1, MAX_ITERATIONS
       x = x - fractal_f_mobility_rad_in_continuum(x, mobility_rad, &
            tk, press, fractal) &

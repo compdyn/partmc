@@ -54,8 +54,6 @@ module pmc_constants
      real(kind=dp) :: air_molec_weight = 2.89644d-2
      !> Atmospheric standard sea level pressure (Pa).
      real(kind=dp) :: air_std_press = 101325d0
-     !> Dynamic viscosity of air (kg m^{-1} s^{-1}).
-     real(kind=dp) :: air_dyn_visc = 1.78d-5
   end type const_t
 
   !> Fixed variable for accessing the constant's values.

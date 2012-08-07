@@ -47,9 +47,9 @@ module pmc_env_state
      !> Box height (m).
      real(kind=dp) :: height
   end type env_state_t
-  
+
 contains
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate an empty environment.
@@ -105,9 +105,9 @@ contains
     env_state%solar_zenith_angle = env_state%solar_zenith_angle &
          + env_state_delta%solar_zenith_angle
     env_state%height = env_state%height + env_state_delta%height
-    
+
   end subroutine env_state_add
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> env_state *= alpha
@@ -129,9 +129,9 @@ contains
     env_state%elapsed_time = env_state%elapsed_time * alpha
     env_state%solar_zenith_angle = env_state%solar_zenith_angle * alpha
     env_state%height = env_state%height * alpha
-    
+
   end subroutine env_state_scale
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> env_to = env_from
@@ -153,25 +153,25 @@ contains
     env_to%elapsed_time = env_from%elapsed_time
     env_to%solar_zenith_angle = env_from%solar_zenith_angle
     env_to%height = env_from%height
-    
+
   end subroutine env_state_copy
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Adds the given water volume to the water vapor and updates all
   !> environment quantities.
   subroutine env_state_change_water_volume(env_state, dv)
-    
+
     !> Environment state to update.
     type(env_state_t), intent(inout) :: env_state
     !> Volume concentration of water added (m^3/m^3).
     real(kind=dp), intent(in) :: dv
-    
+
     real(kind=dp) pmv     ! ambient water vapor pressure (Pa)
     real(kind=dp) mv      ! ambient water vapor density (kg m^{-3})
                    ! pmv and mv are related by the factor molec_weight/(R*T)
     real(kind=dp) dmv     ! change of water density (kg m^{-3})
-    
+
     dmv = dv * const%water_density
     pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
     mv = const%water_molec_weight / (const%univ_gas_const*env_state%temp) * pmv
@@ -183,23 +183,23 @@ contains
     env_state%rel_humid = const%univ_gas_const * env_state%temp &
          / const%water_molec_weight * mv &
          / env_state_sat_vapor_pressure(env_state)
-    
+
   end subroutine env_state_change_water_volume
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Computes the current saturation vapor pressure (Pa).
   real(kind=dp) function env_state_sat_vapor_pressure(env_state)
-    
+
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
-    
+
     env_state_sat_vapor_pressure = const%water_eq_vap_press &
          * 10d0**(7.45d0 * (env_state%temp - const%water_freeze_temp) &
          / (env_state%temp - 38d0))
-    
+
   end function env_state_sat_vapor_pressure
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Air density (kg m^{-3}).
@@ -225,6 +225,77 @@ contains
          / (const%univ_gas_const * env_state%temp)
 
   end function env_state_air_molar_den
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Dynamic viscosity of dry air (kg m-1 s-1).
+  !> Jacobson eq. 4.5.
+  real(kind=dp) function env_state_air_dynamic_viscosity(env_state)
+
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    env_state_air_dynamic_viscosity = (1.8325d-05 * (298.16d0 + 120.0d0) &
+         / (env_state%temp + 120.0d0)) * (env_state%temp / 298.16d0)**1.5d0
+
+  end function env_state_air_dynamic_viscosity
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Kinematic viscosity of dry air (  ).
+  !> Jacobson eq. .
+  real(kind=dp) function env_state_air_kinematic_viscosity(env_state)
+
+  end function env_state_air_kinematic_viscosity
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Mean free path of an air molecule (m).
+  !> Jacobson eq. 15.24.
+  real(kind=dp) function env_state_air_mean_free_path(env_state)
+
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    real(kind=dp) :: viscod
+    real(kind=dp) :: rho
+    real(kind=dp) :: thermal_speed
+
+    viscosd = env_state_air_dynamic_viscosity(env_state)
+    rho = env_state_air_den(env_state)
+    thermal_speed = air_thermal_speed(env_state%temp)
+
+    env_staet_air_mean_free_path = (2.0d0 * viscosd) / (rho * thermal_speed)
+
+  end function env_state_air_mean_free_path
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Thermal speed of an air molecule (m s-1).
+  real(kind=dp) function air_thermal_speed(tk)
+
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: tk
+
+    air_thermal_speed = thermal_speed(tk, const%air_molec_weight &
+       / const%avagadro)
+
+  end function air_thermal_speed
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Thermal speed of a molecule or particle of given mass (m s-1).
+  !> Jacobson eq. 15.32.
+  real(kind=dp) function thermal_speed(tk, mass)
+
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: tk
+    !> Mass of a single molecule or particle.
+    real(kind=dp), intent(in) :: mass
+
+    thermal_speed = sqrt((8.0d0 * const%boltzmann * tk) / (const%pi * mass))
+
+  end function thermal_speed
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -466,7 +537,7 @@ contains
 
   !> Write full state.
   subroutine env_state_output_netcdf(env_state, ncid)
-    
+
     !> Environment state to write.
     type(env_state_t), intent(in) :: env_state
     !> NetCDF file ID, in data mode.
@@ -527,7 +598,7 @@ contains
 
   !> Read full state.
   subroutine env_state_input_netcdf(env_state, ncid)
-    
+
     !> Environment state to read.
     type(env_state_t), intent(inout) :: env_state
     !> NetCDF file ID, in data mode.
@@ -549,7 +620,7 @@ contains
     call pmc_nc_read_real(ncid, env_state%height, "height")
 
   end subroutine env_state_input_netcdf
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_env_state

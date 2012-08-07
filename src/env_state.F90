@@ -229,7 +229,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Dynamic viscosity of dry air (kg m-1 s-1).
-  !> Jacobson eq. 4.5.
+  !> Jacobson eq. 4.54.
   real(kind=dp) function env_state_air_dynamic_viscosity(env_state)
 
     !> Environment state.
@@ -242,9 +242,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Kinematic viscosity of dry air (  ).
-  !> Jacobson eq. .
+  !> Kinematic viscosity of dry air (m2 s-1).
+  !> Jacobson eq. 4.55.
   real(kind=dp) function env_state_air_kinematic_viscosity(env_state)
+
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    env_state_air_kinematic_viscosity = &
+         env_state_air_dynamic_viscosity(env_state) &
+         / env_state_air_den(env_state)
 
   end function env_state_air_kinematic_viscosity
 

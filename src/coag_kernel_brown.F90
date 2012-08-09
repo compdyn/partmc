@@ -166,7 +166,7 @@ contains
     ! speedsq_i/j = square of particle mean thermal velocity (cm/s)
     ! freepath    = particle mean free path (cm)
     ! cunning     = cunningham slip-flow correction factor
-    ! deltasq_i/j = square of "delta_i" in eqn 16.29d0
+    ! deltasq_i/j = square of "delta_i" in eqn 16.29
     !
     ! bckernel1   = brownian coagulation kernel (cm3/s)
 

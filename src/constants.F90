@@ -34,6 +34,10 @@ module pmc_constants
      real(kind=dp) :: univ_gas_const = 8.314472d0
      !> Accomodation coefficient (have also used 0.045).
      real(kind=dp) :: accom_coeff = 1d0
+     !> Acceleration due to gravity at sea level (m s^{-2}).
+     real(kind=dp) :: grav = 9.81d0
+     !> von Karman constant.
+     real(kind=dp) :: von_karman = 0.40d0
 
      !> Equilibrium water vapor pressure at 273 K (Pa).
      real(kind=dp) :: water_eq_vap_press = 611d0

@@ -12,7 +12,6 @@ module pmc_chamber
   use pmc_aero_state
   use pmc_constants
   use pmc_spec_file
-  use pmc_fractal
 
   !> Unit translational diffusion coefficient (m^2 s^{-1}).
   real(kind=dp), parameter :: unit_diff_coef = 1d0
@@ -66,26 +65,25 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   !> Based on Eq. 23 in Naumann 2003 J. Aerosol. Sci.
-  real(kind=dp) function chamber_diff_coef(aero_particle, fractal, &
+  real(kind=dp) function chamber_diff_coef(aero_particle, aero_data, &
        temp, press)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
-    !> Fractal parameters.
-    type(fractal_t), intent(in) :: fractal
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp
     !> Pressure (Pa).
     real(kind=dp), intent(in) :: press
 
-    ! Particle effective radius.
     real(kind=dp) :: R_eff
 
-    R_eff = vol2R_eff(aero_particle_volume(aero_particle), fractal)
+    R_eff = vol2R_eff(aero_particle_volume(aero_particle), aero_data%fractal)
     chamber_diff_coef = const%boltzmann * temp &
-         * Slip_correct(R_eff, temp, press, fractal) / 6d0 / const%pi &
+         * Slip_correct(R_eff, temp, press, aero_data%fractal) / 6d0 / const%pi &
          / const%air_dyn_visc &
-         / vol2R_me_c(aero_particle_volume(aero_particle), fractal)
+         / vol2R_me_c(aero_particle_volume(aero_particle), aero_data%fractal)
 
   end function chamber_diff_coef
 
@@ -94,21 +92,21 @@ contains
   !> Calculate diffusional boundary layer thickness.
   !> Based on Eq. 40 in Naumann 2003 J. Aerosol. Sci.
   real(kind=dp) function chamber_diff_BL_thick(chamber, aero_particle, &
-       fractal, temp, press)
+       aero_data, temp, press)
 
     !> Chamber parameters.
     type(chamber_t) :: chamber
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
-    !> Fractal parameters.
-    type(fractal_t), intent(in) :: fractal
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp
     !> Pressure (Pa).
     real(kind=dp), intent(in) :: press
 
     chamber_diff_BL_thick = chamber%prefactor_BL                   &
-         * (chamber_diff_coef(aero_particle, fractal, temp, press) &
+         * (chamber_diff_coef(aero_particle, aero_data, temp, press) &
          / unit_diff_coef)**(chamber%exponent_BL)
 
   end function chamber_diff_BL_thick
@@ -118,22 +116,22 @@ contains
   !> Calculate the loss rate due to wall diffusion in chamber.
   !> Based on Eq. 37a in Naumann 2003 J. Aerosol. Sci. 
   real(kind=dp) function chamber_loss_wall(chamber, aero_particle, &
-       fractal, temp, press)
+       aero_data, temp, press)
 
     !> Chamber parameters.
     type(chamber_t), intent(in) :: chamber
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
-    !> Fractal parameters.
-    type(fractal_t), intent(in) :: fractal
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp
     !> Pressure (Pa).
     real(kind=dp), intent(in) :: press
 
-    chamber_loss_wall = chamber_diff_coef(aero_particle, fractal, &
+    chamber_loss_wall = chamber_diff_coef(aero_particle, aero_data, &
          temp, press) * chamber%A_diffuse & 
-         / chamber_diff_BL_thick(chamber, aero_particle, fractal, &
+         / chamber_diff_BL_thick(chamber, aero_particle, aero_data, &
          temp, press) / chamber%V_chamber
 
   end function chamber_loss_wall
@@ -169,7 +167,7 @@ contains
     chamber_loss_sedi = 4d0 * const%pi * rho &
          * sphere_vol2rad(aero_particle_volume(aero_particle))**3d0 &
          * grav_accel &
-         * chamber_diff_coef(aero_particle, aero_data%fractal, temp, press) &
+         * chamber_diff_coef(aero_particle, aero_data, temp, press) &
          * chamber%A_sedi / 3d0 / const%boltzmann &
          / temp / chamber%V_chamber
 

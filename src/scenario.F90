@@ -413,11 +413,11 @@ contains
 
   !> Remove particles due to wall diffusion and sedimentation for a 
   !> particle distribution in chamber study.
-  subroutine scenario_aero_chamber(chamber, delta_t, aero_data, &
+  subroutine scenario_aero_chamber(scenario, delta_t, aero_data, &
        aero_state, temp, press)
 
-    !> Chamber parameters.
-    type(chamber_t) :: chamber
+    !> Scenario.
+    type(scenario_t), intent(in) :: scenario
     !> Time increment to update over.
     real(kind=dp), intent(in) :: delta_t
     !> Aerosol data.
@@ -435,19 +435,16 @@ contains
     real(kind=dp) :: p
     ! Total loss rate (s^{-1}).
     real(kind=dp) :: lossrate
-    ! Total particle mass (kg).
-    real(kind=dp) :: m_Rgeo
 
     type(aero_info_t) :: aero_info
     integer :: i_part
 
     do i_part = aero_state%apa%n_part,1,-1
          aero_particle => aero_state%apa%particle(i_part)
-         m_Rgeo = aero_particle_mass(aero_particle, aero_data)
-         lossrate = chamber_loss_wall(chamber, aero_particle, &
-              aero_data%fractal, temp, press) &
-              + chamber_loss_sedi(chamber, aero_particle, aero_data, &
-              temp, press)
+         lossrate = chamber_loss_wall(scenario%chamber, aero_particle, &
+              aero_data, temp, press) &
+              + chamber_loss_sedi(scenario%chamber, aero_particle, &
+              aero_data, temp, press)
          p = lossrate * delta_t
          if (pmc_random() < p) then
             call aero_info_allocate(aero_info)
@@ -498,7 +495,7 @@ contains
 
     ! account for wall loss and sedimentation in chamber
     if (scenario%chamber%do_chamber) then
-       call scenario_aero_chamber(scenario%chamber, delta_t, &
+       call scenario_aero_chamber(scenario, delta_t, &
             aero_data, aero_state, env_state%temp, env_state%pressure)
     end if
 

@@ -251,8 +251,8 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
-    fractal_kirkwood_riseman = -0.06483d0 * fractal%frac_dim**2 + 0.6353d0 * &
-         fractal%frac_dim - 0.4898d0
+    fractal_kirkwood_riseman = -0.06483d0 * fractal%frac_dim**2 + 0.6353d0 &
+         * fractal%frac_dim - 0.4898d0
 
   end function fractal_kirkwood_riseman
 
@@ -421,7 +421,7 @@ contains
   !> Convert mobility equivalent radius (m) to that in the continuum regime.
   !!
   !! Based on Eq. 30 in Naumann [2003].
-  real(kind=dp) function mobility_rad_to_mobility_rad_in_continuum(&
+  real(kind=dp) function mobility_rad_to_mobility_rad_in_continuum( &
        mobility_rad, tk, press, fractal)
 
     !> Radius (m).
@@ -457,7 +457,7 @@ contains
   !! mobility_rad_to_mobility_rad_in_continuum.
   !!
   !! Based on Eq. 30 in Naumann [2003].
-  real(kind=dp) function fractal_f_mobility_rad_in_continuum(&
+  real(kind=dp) function fractal_f_mobility_rad_in_continuum( &
        mobility_rad_in_cont, mobility_rad, tk, press, fractal)
 
     !> Mobility equivalent radius in continuum regime (m).
@@ -481,8 +481,8 @@ contains
        ds = 6d0 / fractal%frac_dim
     end if
     phi = fractal%prime_radius**2 / (fractal%vol_fill_factor &
-         * fractal_kirkwood_riseman(fractal)**fractal%frac_dim * &
-         fractal%prime_radius**fractal%frac_dim)**(ds / 3d0)
+         * fractal_kirkwood_riseman(fractal)**fractal%frac_dim &
+         * fractal%prime_radius**fractal%frac_dim)**(ds / 3d0)
     psi = 1d0 / (fractal%vol_fill_factor &
          * fractal_kirkwood_riseman(fractal)**fractal%frac_dim &
          * fractal%prime_radius**fractal%frac_dim)&
@@ -510,7 +510,7 @@ contains
   !!
   !! Helper function. Do not call directly. To be solved in
   !! mobility_rad_to_mobility_rad_in_continuum.
-  real(kind=dp) function fractal_df_mobility_rad_in_continuum(&
+  real(kind=dp) function fractal_df_mobility_rad_in_continuum( &
        mobility_rad_in_cont, mobility_rad, tk, press, fractal)
 
     !> Mobility equivalent radius in continuum regime (m).

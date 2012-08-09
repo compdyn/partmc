@@ -228,7 +228,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Dynamic viscosity of dry air (kg m-1 s-1).
+  !> Dynamic viscosity of dry air (kg m^{-1} s^{-1}).
   !> Jacobson eq. 4.54.
   real(kind=dp) function env_state_air_dynamic_viscosity(env_state)
 
@@ -242,7 +242,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Kinematic viscosity of dry air (m2 s-1).
+  !> Kinematic viscosity of dry air (m^2 s^{-1}).
   !> Jacobson eq. 4.55.
   real(kind=dp) function env_state_air_kinematic_viscosity(env_state)
 
@@ -272,13 +272,13 @@ contains
     rho = env_state_air_den(env_state)
     thermal_speed = air_thermal_speed(env_state%temp)
 
-    env_staet_air_mean_free_path = (2.0d0 * viscosd) / (rho * thermal_speed)
+    env_state_air_mean_free_path = (2.0d0 * viscosd) / (rho * thermal_speed)
 
   end function env_state_air_mean_free_path
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Thermal speed of an air molecule (m s-1).
+  !> Thermal speed of an air molecule (m s^{-1}).
   real(kind=dp) function air_thermal_speed(tk)
 
     !> Temperature (K).
@@ -291,7 +291,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Thermal speed of a molecule or particle of given mass (m s-1).
+  !> Thermal speed of a molecule or particle of given mass (m s^{-1}).
   !> Jacobson eq. 15.32.
   real(kind=dp) function thermal_speed(tk, mass)
 

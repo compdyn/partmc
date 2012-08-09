@@ -264,7 +264,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
 
-    real(kind=dp) :: viscod
+    real(kind=dp) :: viscosd
     real(kind=dp) :: rho
     real(kind=dp) :: thermal_speed
 

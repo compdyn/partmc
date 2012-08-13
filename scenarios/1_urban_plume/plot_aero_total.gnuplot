@@ -20,5 +20,5 @@ set y2tics
 #    column  2: aerosol number concentration (#/m^3)
 #    column  3: aerosol mass concentration (kg/m^3)
 
-plot "out/urban_plume_wc_0001_aero_time.txt" using ($1/3600):2 axes x1y1 with lines title "number concentration", \
-     "out/urban_plume_wc_0001_aero_time.txt" using ($1/3600):3 axes x1y2 with lines title "mass concentration"
+plot "out/urban_plume_0001_aero_time.txt" using ($1/3600):2 axes x1y1 with lines title "number concentration", \
+     "out/urban_plume_0001_aero_time.txt" using ($1/3600):3 axes x1y2 with lines title "mass concentration"

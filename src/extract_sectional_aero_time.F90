@@ -91,9 +91,10 @@ program extract_sectional_aero_time
           // trim(filename_list(i_file)))
 
      times(i_file) = time
-     time_num_concs(i_file) = sum(aero_binned%num_conc * bin_grid%log_width)
+     time_num_concs(i_file) = sum(aero_binned%num_conc * bin_grid%widths)
+     ! FIXME: line below assumes bin_grid%widths is constant
      time_species_concs(i_file, :) = sum(aero_binned%vol_conc &
-          * bin_grid%log_width, 1) * aero_data%density
+          * bin_grid%widths(1), 1) * aero_data%density
      time_mass_concs(i_file) = sum(time_species_concs(i_file, :))
   end do
 

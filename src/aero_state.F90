@@ -922,8 +922,7 @@ contains
     aero_binned%vol_conc = 0d0
     do i_part = 1,aero_state%apa%n_part
        aero_particle => aero_state%apa%particle(i_part)
-       i_bin = bin_grid_particle_in_bin(bin_grid, &
-            aero_particle_radius(aero_particle))
+       i_bin = bin_grid_find(bin_grid, aero_particle_radius(aero_particle))
        if ((i_bin < 1) .or. (i_bin > bin_grid%n_bin)) then
           call warn_msg(980232449, "particle ID " &
                // trim(integer_to_string(aero_particle%id)) &
@@ -931,11 +930,11 @@ contains
        else
           aero_binned%vol_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) &
                + aero_particle%vol &
-               * aero_weight_array_num_conc(aero_state%awa, &
-               aero_particle) / bin_grid%log_width
+               * aero_weight_array_num_conc(aero_state%awa, aero_particle) &
+               / bin_grid%widths(i_bin)
           aero_binned%num_conc(i_bin) = aero_binned%num_conc(i_bin) &
-               + aero_weight_array_num_conc(aero_state%awa, &
-               aero_particle) / bin_grid%log_width
+               + aero_weight_array_num_conc(aero_state%awa, aero_particle) &
+               / bin_grid%widths(i_bin)
        end if
     end do
     
@@ -957,6 +956,25 @@ contains
          aero_state%apa%particle(1:aero_state%apa%n_part))
 
   end subroutine aero_state_diameters
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the dry diameters of all particles. The \c dry diameters
+  !> array will be reallocated if necessary.
+  subroutine aero_state_dry_diameters(aero_state, aero_data, dry_diameters)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Dry diameters array (m).
+    real(kind=dp), intent(inout), allocatable :: dry_diameters(:)
+
+    call ensure_real_array_size(dry_diameters, aero_state%apa%n_part)
+    dry_diameters = aero_particle_dry_diameter( &
+         aero_state%apa%particle(1:aero_state%apa%n_part), aero_data)
+
+  end subroutine aero_state_dry_diameters
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1082,7 +1100,7 @@ contains
     aero_binned%vol_conc = 0d0
     do i_part = 1,aero_state%apa%n_part
        aero_particle => aero_state%apa%particle(i_part)
-       i_bin = bin_grid_particle_in_bin(bin_grid, &
+       i_bin = bin_grid_find(bin_grid, &
             aero_particle_solute_radius(aero_particle, aero_data))
        if ((i_bin < 1) .or. (i_bin > bin_grid%n_bin)) then
           call warn_msg(503871022, "particle ID " &
@@ -1091,11 +1109,11 @@ contains
        else
           aero_binned%vol_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) &
                + aero_particle%vol &
-               * aero_weight_array_num_conc(aero_state%awa, &
-               aero_particle) / bin_grid%log_width
+               * aero_weight_array_num_conc(aero_state%awa, aero_particle) &
+               / bin_grid%widths(i_bin)
           aero_binned%num_conc(i_bin) = aero_binned%num_conc(i_bin) &
-               + aero_weight_array_num_conc(aero_state%awa, &
-               aero_particle) / bin_grid%log_width
+               + aero_weight_array_num_conc(aero_state%awa, aero_particle) &
+               / bin_grid%widths(i_bin)
        end if
     end do
     
@@ -1582,7 +1600,7 @@ contains
 
           ! determine the new_particle_volume for all particles in this bin
           if (bin_center) then
-             new_particle_volume = rad2vol(bin_grid%center_radius(i_bin))
+             new_particle_volume = rad2vol(bin_grid%centers(i_bin))
           elseif (aero_weight_array_check_flat(aero_state%awa)) then
              num_conc & ! any radius will have the same num_conc
                   = aero_weight_array_num_conc_at_radius(aero_state%awa, &

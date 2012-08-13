@@ -212,7 +212,7 @@ contains
     
     do k = 1,bin_grid%n_bin
        num_conc(k) = total_num_conc / (sqrt(2d0 * const%pi) &
-            * log10_sigma_g) * dexp(-(dlog10(bin_grid%center_radius(k)) &
+            * log10_sigma_g) * dexp(-(dlog10(bin_grid%centers(k)) &
             - dlog10(geom_mean_radius))**2d0 &
             / (2d0 * log10_sigma_g**2d0)) / dlog(10d0)
     end do
@@ -246,7 +246,7 @@ contains
 
     call num_conc_log_normal(total_num_conc, geom_mean_radius, &
          log10_sigma_g, bin_grid, num_conc)
-    vol_conc = num_conc * rad2vol(bin_grid%center_radius)
+    vol_conc = num_conc * rad2vol(bin_grid%centers)
     
   end subroutine vol_conc_log_normal
   
@@ -274,8 +274,8 @@ contains
     mean_vol = rad2vol(radius_at_mean_vol)
     do k = 1,bin_grid%n_bin
        num_conc_vol = total_num_conc / mean_vol &
-            * exp(-(rad2vol(bin_grid%center_radius(k)) / mean_vol))
-       call vol_to_lnr(bin_grid%center_radius(k), num_conc_vol, num_conc(k))
+            * exp(-(rad2vol(bin_grid%centers(k)) / mean_vol))
+       call vol_to_lnr(bin_grid%centers(k), num_conc_vol, num_conc(k))
     end do
     
   end subroutine num_conc_exp
@@ -298,7 +298,7 @@ contains
     real(kind=dp) :: num_conc(bin_grid%n_bin)
 
     call num_conc_exp(total_num_conc, radius_at_mean_vol, bin_grid, num_conc)
-    vol_conc = num_conc * rad2vol(bin_grid%center_radius)
+    vol_conc = num_conc * rad2vol(bin_grid%centers)
     
   end subroutine vol_conc_exp
   
@@ -320,11 +320,11 @@ contains
     integer :: k
 
     num_conc = 0d0
-    k = bin_grid_particle_in_bin(bin_grid, radius)
+    k = bin_grid_find(bin_grid, radius)
     if ((k < 1) .or. (k > bin_grid%n_bin)) then
        call warn_msg(825666877, "monodisperse radius outside of bin_grid")
     else
-       num_conc(k) = total_num_conc / bin_grid%log_width
+       num_conc(k) = total_num_conc / bin_grid%widths(k)
     end if
     
   end subroutine num_conc_mono
@@ -346,11 +346,12 @@ contains
     integer :: k
 
     vol_conc = 0d0
-    k = bin_grid_particle_in_bin(bin_grid, radius)
+    k = bin_grid_find(bin_grid, radius)
     if ((k < 1) .or. (k > bin_grid%n_bin)) then
        call warn_msg(420930707, "monodisperse radius outside of bin_grid")
     else
-       vol_conc(k) = total_num_conc / bin_grid%log_width * rad2vol(radius)
+       vol_conc(k) = total_num_conc / bin_grid%widths(k) &
+            * rad2vol(radius)
     end if
     
   end subroutine vol_conc_mono
@@ -382,20 +383,20 @@ contains
     do i_sample = 1,n_sample
        r_lower = sample_radius(i_sample)
        r_upper = sample_radius(i_sample + 1)
-       i_lower = bin_grid_particle_in_bin(bin_grid, r_lower)
-       i_upper = bin_grid_particle_in_bin(bin_grid, r_upper)
+       i_lower = bin_grid_find(bin_grid, r_lower)
+       i_upper = bin_grid_find(bin_grid, r_upper)
        if (i_upper < 1) cycle
        if (i_lower > bin_grid%n_bin) cycle
        i_lower = max(1, i_lower)
        i_upper = min(bin_grid%n_bin, i_upper)
        do i_bin = i_lower,i_upper
-          r_bin_lower = bin_grid%edge_radius(i_bin)
-          r_bin_upper = bin_grid%edge_radius(i_bin + 1)
+          r_bin_lower = bin_grid%edges(i_bin)
+          r_bin_upper = bin_grid%edges(i_bin + 1)
           r1 = max(r_lower, r_bin_lower)
           r2 = min(r_upper, r_bin_upper)
           ratio = (log(r2) - log(r1)) / (log(r_upper) - log(r_lower))
-          num_conc(i_bin) = num_conc(i_bin) &
-               + ratio * sample_num_conc(i_sample) / bin_grid%log_width
+          num_conc(i_bin) = num_conc(i_bin) + ratio &
+               * sample_num_conc(i_sample) / bin_grid%widths(i_bin)
        end do
     end do
     
@@ -419,7 +420,7 @@ contains
     real(kind=dp) :: num_conc(bin_grid%n_bin)
 
     call num_conc_sampled(sample_radius, sample_num_conc, bin_grid, num_conc)
-    vol_conc = num_conc * rad2vol(bin_grid%center_radius)
+    vol_conc = num_conc * rad2vol(bin_grid%centers)
     
   end subroutine vol_conc_sampled
   

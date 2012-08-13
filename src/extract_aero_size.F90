@@ -29,7 +29,7 @@ program extract_aero_size
   integer :: i_file, n_file, i_bin, n_bin, dist_type
   real(kind=dp) :: time, del_t
   type(aero_particle_t), pointer :: aero_particle
-  real(kind=dp) :: d_min, d_max, diam, volume, log_width
+  real(kind=dp) :: d_min, d_max, diam, volume
   character(len=PMC_UUID_LEN) :: uuid, run_uuid
   real(kind=dp), allocatable :: diameters(:), num_concs(:), masses(:), hist(:)
   real(kind=dp), allocatable :: aero_dist(:,:)
@@ -119,7 +119,7 @@ program extract_aero_size
   call assert_msg(554271458, n_file > 0, &
        "no NetCDF files found with prefix: " // trim(in_prefix))
 
-  call bin_grid_make(diam_grid, n_bin, d_min, d_max)
+  call bin_grid_make(diam_grid, BIN_GRID_TYPE_LOG, n_bin, d_min, d_max)
   allocate(aero_dist(n_bin, n_file))
   allocate(hist(n_bin))
   allocate(diameters(0))
@@ -163,12 +163,11 @@ program extract_aero_size
   end if
   write(*,'(a)') "  Diameter bins have logarithmic width:"
   write(*,'(a,e20.10)') "    log_width = ln(diam(i+1)) - ln(diam(i)) =", &
-       diam_grid%log_width
+       diam_grid%widths(1)
 
   call open_file_write(out_filename, out_unit)
   do i_bin = 1,n_bin
-     write(out_unit, '(e30.15e3)', advance='no') &
-          diam_grid%center_radius(i_bin)
+     write(out_unit, '(e30.15e3)', advance='no') diam_grid%centers(i_bin)
      do i_file = 1,n_file
         write(out_unit, '(e30.15e3)', advance='no') aero_dist(i_bin, i_file)
      end do

@@ -766,7 +766,7 @@ contains
     call spec_file_read_real(file, 't_max', run_exact_opt%t_max)
     call spec_file_read_real(file, 't_output', run_exact_opt%t_output)
 
-    call spec_file_read_bin_grid(file, bin_grid)
+    call spec_file_read_radius_bin_grid(file, bin_grid)
 
     call spec_file_read_string(file, 'gas_data', sub_filename)
     call spec_file_open(sub_filename, sub_file)
@@ -926,7 +926,7 @@ contains
     call spec_file_read_real(file, 't_output', run_sect_opt%t_output)
     call spec_file_read_real(file, 't_progress', run_sect_opt%t_progress)
 
-    call spec_file_read_bin_grid(file, bin_grid)
+    call spec_file_read_radius_bin_grid(file, bin_grid)
 
     call spec_file_read_string(file, 'gas_data', sub_filename)
     call spec_file_open(sub_filename, sub_file)

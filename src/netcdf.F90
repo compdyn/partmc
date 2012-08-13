@@ -1,15 +1,18 @@
-! Copyright (C) 2007-2010 Matthew West
+! Copyright (C) 2007-2010, 2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
 !> \file
 !> The pmc_netcdf module.
 
-!> Wrapper functions for NetCDF.
+!> Wrapper functions for NetCDF. These all take a NetCDF \c ncid in
+!> data mode and return with it again in data mode. Shifting to define
+!> mode is handled internally within each subroutine.
 module pmc_netcdf
 
   use netcdf
   use pmc_util
+  use pmc_rand
 
 contains
 
@@ -56,9 +59,25 @@ contains
     integer, intent(out) :: ncid
 
     call pmc_nc_check_msg(nf90_open(filename, NF90_NOWRITE, ncid), &
-         "opening " // trim(filename))
+         "opening " // trim(filename) // " for reading")
 
   end subroutine pmc_nc_open_read
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Open a NetCDF file for writing.
+  subroutine pmc_nc_open_write(filename, ncid)
+
+    !> Filename of NetCDF file to open.
+    character(len=*), intent(in) :: filename
+    !> NetCDF file ID, in data mode, returns in data mode.
+    integer, intent(out) :: ncid
+
+    call pmc_nc_check_msg(nf90_create(filename, NF90_CLOBBER, ncid), &
+         "opening " // trim(filename) // " for writing")
+    call pmc_nc_check(nf90_enddef(ncid))
+
+  end subroutine pmc_nc_open_write
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -68,9 +87,60 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
 
-    call pmc_nc_check(nf90_close(ncid))
+    call pmc_nc_check_msg(nf90_close(ncid), "closing NetCDF file")
 
   end subroutine pmc_nc_close
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write basic information to a NetCDF file.
+  subroutine pmc_nc_write_info(ncid, uuid, source, write_rank, write_n_proc)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> UUID for this data set.
+    character(len=PMC_UUID_LEN), intent(in) :: uuid
+    !> Source name for this data.
+    character(len=*), intent(in) :: source
+    !> Rank to write into file.
+    integer, intent(in), optional :: write_rank
+    !> Number of processes to write into file.
+    integer, intent(in), optional :: write_n_proc
+
+    character(len=(len_trim(source) + 100)) :: history
+    integer :: use_rank, use_n_proc
+
+    call pmc_nc_check(nf90_redef(ncid))
+    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "title", &
+         trim(source) // " output file"))
+    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "source", source))
+    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "UUID", uuid))
+    call iso8601_date_and_time(history)
+    history((len_trim(history)+1):) = (" created by " // trim(source))
+    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "history", history))
+    call pmc_nc_check(nf90_put_att(ncid, NF90_GLOBAL, "Conventions", "CF-1.4"))
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    if (present(write_rank)) then
+       use_rank = write_rank
+    else
+       use_rank = pmc_mpi_rank()
+    end if
+    if (present(write_n_proc)) then
+       use_n_proc = write_n_proc
+    else
+       use_n_proc = pmc_mpi_size()
+    end if
+
+#ifdef PMC_USE_MPI
+    call pmc_nc_write_integer(ncid, use_rank + 1, "process", &
+         description="the process number (starting from 1) " &
+         // "that output this data file")
+    call pmc_nc_write_integer(ncid, use_n_proc, "total_processes", &
+         description="total number of processes")
+#endif
+
+  end subroutine pmc_nc_write_info
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -386,9 +456,53 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Create a dimension if necessary, or check its size if it already
+  !> exists. In any case return the \c dimid.
+  subroutine pmc_nc_ensure_dim(ncid, dim_name, dimid, dim_size, array_dim)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> NetCDF dimension name for the variable.
+    character(len=*), intent(in) :: dim_name
+    !> NetCDF dimension ID.
+    integer, intent(out) :: dimid
+    !> Size of dimension.
+    integer, intent(in) :: dim_size
+    !> Dimension within data array that this NetCDF dim corresponds to.
+    integer, intent(in) :: array_dim
+
+    integer :: status, check_dim_size
+    character(len=1000) :: check_name
+
+    status = nf90_inq_dimid(ncid, dim_name, dimid)
+    if (status == NF90_NOERR) then
+       call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid, check_name, &
+            check_dim_size))
+       call assert_msg(657263912, check_dim_size == dim_size, &
+            "dim " // trim(integer_to_string(array_dim)) // " size " &
+            // trim(integer_to_string(dim_size)) &
+            // " of data array does not match size " &
+            // trim(integer_to_string(dim_size)) // " of '" &
+            // trim(dim_name) // "' dim")
+    else
+       ! could not determine dimid
+       if (status /= NF90_EBADDIM) then
+          ! the problem was not a missing dimension
+          call pmc_nc_check(status)
+       end if
+       ! the problem was a missing dimension, so make it
+       call pmc_nc_check(nf90_redef(ncid))
+       call pmc_nc_check(nf90_def_dim(ncid, dim_name, dim_size, dimid))
+       call pmc_nc_check(nf90_enddef(ncid))
+    end if
+
+  end subroutine pmc_nc_ensure_dim
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Write a simple real array to a NetCDF file.
-  subroutine pmc_nc_write_real_1d(ncid, var, name, dimids, unit, long_name, &
-       standard_name, description)
+  subroutine pmc_nc_write_real_1d(ncid, var, name, dimids, dim_name, unit, &
+       long_name, standard_name, description)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -396,8 +510,12 @@ contains
     real(kind=dp), intent(in) :: var(:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
-    !> NetCDF dimension IDs of the variable
-    integer, intent(in) :: dimids(1)
+    !> NetCDF dimension IDs of the variable (either this or dim_name
+    !> must be present).
+    integer, optional, intent(in) :: dimids(1)
+    !> NetCDF dimension name for the variable (either this or dimids
+    !> must be present).
+    character(len=*), optional, intent(in) :: dim_name
     !> Unit of variable.
     character(len=*), optional, intent(in) :: unit
     !> Long name of variable.
@@ -407,10 +525,17 @@ contains
     !> Description of variable.
     character(len=*), optional, intent(in) :: description
 
-    integer :: varid, start(1), count(1)
+    integer :: varid, start(1), count(1), use_dimids(1)
 
+    if (present(dimids)) then
+       use_dimids = dimids
+    elseif (present(dim_name)) then
+       call pmc_nc_ensure_dim(ncid, dim_name, use_dimids(1), size(var), 1)
+    else
+       call die_msg(891890123, "either dimids or dim_name must be present")
+    end if
     call pmc_nc_check(nf90_redef(ncid))
-    call pmc_nc_check(nf90_def_var(ncid, name, NF90_DOUBLE, dimids, varid))
+    call pmc_nc_check(nf90_def_var(ncid, name, NF90_DOUBLE, use_dimids, varid))
     call pmc_nc_write_atts(ncid, varid, unit, long_name, standard_name, &
          description)
     call pmc_nc_check(nf90_enddef(ncid))
@@ -425,7 +550,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write a simple integer array to a NetCDF file.
-  subroutine pmc_nc_write_integer_1d(ncid, var, name, dimids, unit, &
+  subroutine pmc_nc_write_integer_1d(ncid, var, name, dimids, dim_name, unit, &
        long_name, standard_name, description)
 
     !> NetCDF file ID, in data mode.
@@ -434,8 +559,12 @@ contains
     integer, intent(in) :: var(:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
-    !> NetCDF dimension IDs of the variable
-    integer, intent(in) :: dimids(1)
+    !> NetCDF dimension IDs of the variable (either this or dim_name
+    !> must be present).
+    integer, optional, intent(in) :: dimids(1)
+    !> NetCDF dimension name for the variable (either this or dimids
+    !> must be present).
+    character(len=*), optional, intent(in) :: dim_name
     !> Unit of variable.
     character(len=*), optional, intent(in) :: unit
     !> Long name of variable.
@@ -445,10 +574,17 @@ contains
     !> Description of variable.
     character(len=*), optional, intent(in) :: description
 
-    integer :: varid, start(1), count(1)
+    integer :: varid, start(1), count(1), use_dimids(1)
 
+    if (present(dimids)) then
+       use_dimids = dimids
+    elseif (present(dim_name)) then
+       call pmc_nc_ensure_dim(ncid, dim_name, use_dimids(1), size(var), 1)
+    else
+       call die_msg(464170526, "either dimids or dim_name must be present")
+    end if
     call pmc_nc_check(nf90_redef(ncid))
-    call pmc_nc_check(nf90_def_var(ncid, name, NF90_INT, dimids, varid))
+    call pmc_nc_check(nf90_def_var(ncid, name, NF90_INT, use_dimids, varid))
     call pmc_nc_write_atts(ncid, varid, unit, long_name, standard_name, &
          description)
     call pmc_nc_check(nf90_enddef(ncid))
@@ -463,8 +599,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write a simple real 2D array to a NetCDF file.
-  subroutine pmc_nc_write_real_2d(ncid, var, name, dimids, unit, long_name, &
-       standard_name, description)
+  subroutine pmc_nc_write_real_2d(ncid, var, name, dimids, dim_name_1, &
+       dim_name_2, unit, long_name, standard_name, description)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -472,8 +608,15 @@ contains
     real(kind=dp), intent(in) :: var(:,:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
-    !> NetCDF dimension IDs of the variable
-    integer, intent(in) :: dimids(2)
+    !> NetCDF dimension IDs of the variable (either \c dimids or both
+    !> \c dim_name_1 and \c dim_name_2 must be present).
+    integer, optional, intent(in) :: dimids(2)
+    !> First NetCDF dimension name for the variable (either \c dimids
+    !> or both \c dim_name_1 and \c dim_name 2 must be present).
+    character(len=*), optional, intent(in) :: dim_name_1
+    !> Second NetCDF dimension name for the variable (either \c dimids
+    !> or both \c dim_name_1 and \c dim_name 2 must be present).
+    character(len=*), optional, intent(in) :: dim_name_2
     !> Unit of variable.
     character(len=*), optional, intent(in) :: unit
     !> Long name of variable.
@@ -483,10 +626,19 @@ contains
     !> Description of variable.
     character(len=*), optional, intent(in) :: description
 
-    integer :: varid, start(2), count(2)
+    integer :: varid, start(2), count(2), use_dimids(2)
 
+    if (present(dimids)) then
+       use_dimids = dimids
+    elseif (present(dim_name_1) .and. present(dim_name_2)) then
+       call pmc_nc_ensure_dim(ncid, dim_name_1, use_dimids(1), size(var, 1), 1)
+       call pmc_nc_ensure_dim(ncid, dim_name_2, use_dimids(2), size(var, 2), 2)
+    else
+       call die_msg(959111259, &
+            "either dimids or both dim_name_1 and dim_name_2 must be present")
+    end if
     call pmc_nc_check(nf90_redef(ncid))
-    call pmc_nc_check(nf90_def_var(ncid, name, NF90_DOUBLE, dimids, varid))
+    call pmc_nc_check(nf90_def_var(ncid, name, NF90_DOUBLE, use_dimids, varid))
     call pmc_nc_write_atts(ncid, varid, unit, long_name, standard_name, &
          description)
     call pmc_nc_check(nf90_enddef(ncid))
@@ -501,8 +653,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Write a simple integer 2D array to a NetCDF file.
-  subroutine pmc_nc_write_integer_2d(ncid, var, name, dimids, unit, &
-       long_name, standard_name, description)
+  subroutine pmc_nc_write_integer_2d(ncid, var, name, dimids, dim_name_1, &
+       dim_name_2, unit, long_name, standard_name, description)
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
@@ -510,8 +662,15 @@ contains
     integer, intent(in) :: var(:,:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
-    !> NetCDF dimension IDs of the variable
-    integer, intent(in) :: dimids(2)
+    !> NetCDF dimension IDs of the variable (either \c dimids or both
+    !> \c dim_name_1 and \c dim_name_2 must be present).
+    integer, optional, intent(in) :: dimids(2)
+    !> First NetCDF dimension name for the variable (either \c dimids
+    !> or both \c dim_name_1 and \c dim_name 2 must be present).
+    character(len=*), optional, intent(in) :: dim_name_1
+    !> Second NetCDF dimension name for the variable (either \c dimids
+    !> or both \c dim_name_1 and \c dim_name 2 must be present).
+    character(len=*), optional, intent(in) :: dim_name_2
     !> Unit of variable.
     character(len=*), optional, intent(in) :: unit
     !> Long name of variable.
@@ -521,10 +680,19 @@ contains
     !> Description of variable.
     character(len=*), optional, intent(in) :: description
 
-    integer :: varid, start(2), count(2)
+    integer :: varid, start(2), count(2), use_dimids(2)
 
+    if (present(dimids)) then
+       use_dimids = dimids
+    elseif (present(dim_name_1) .and. present(dim_name_2)) then
+       call pmc_nc_ensure_dim(ncid, dim_name_1, use_dimids(1), size(var, 1), 1)
+       call pmc_nc_ensure_dim(ncid, dim_name_2, use_dimids(2), size(var, 2), 2)
+    else
+       call die_msg(669381383, &
+            "either dimids or both dim_name_1 and dim_name_2 must be present")
+    end if
     call pmc_nc_check(nf90_redef(ncid))
-    call pmc_nc_check(nf90_def_var(ncid, name, NF90_INT, dimids, varid))
+    call pmc_nc_check(nf90_def_var(ncid, name, NF90_INT, use_dimids, varid))
     call pmc_nc_write_atts(ncid, varid, unit, long_name, standard_name, &
          description)
     call pmc_nc_check(nf90_enddef(ncid))

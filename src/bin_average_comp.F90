@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2011 Matthew West
+! Copyright (C) 2009-2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -73,7 +73,8 @@ program bin_average_comp
   call gas_state_allocate(gas_state)
   call env_state_allocate(env_state)
 
-  call bin_grid_make(bin_grid, n_bin, diam2rad(d_min), diam2rad(d_max))
+  call bin_grid_make(bin_grid, BIN_GRID_TYPE_LOG, n_bin, diam2rad(d_min), &
+       diam2rad(d_max))
 
   call input_state(in_filename, index, time, del_t, i_repeat, uuid, &
        aero_data, aero_state, gas_data, gas_state, env_state)

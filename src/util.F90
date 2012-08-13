@@ -982,7 +982,205 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Reallocate the given array to ensure it is of the given size.
+  !> Compute a running average and variance.
+  !!
+  !! Given a sequence of data <tt>x(i)</tt> for <tt>i = 1,...,n</tt>,
+  !! this should be called like
+  !! <pre>
+  !! do i = 1,n
+  !!   call update_mean_var(mean, var, x(i), i)
+  !! end do
+  !! </pre>
+  !! After each call the variables \c mean and \c var will be the
+  !! sample mean and sample variance of the sequence elements up to \c
+  !! i.
+  !!
+  !! This computes the sample mean and sample variance using a
+  !! recurrence. The initial sample mean is \f$m_1 = x_1\f$ and the
+  !! initial sample variance is \f$v_1 = 0\f$ for \f$n = 1\f$, and
+  !! then for \f$n \ge 2\f$ we use the mean update
+  !! \f[
+  !!     m_n = m_{n-1} + \frac{x_n - m_{n-1}}{n}
+  !! \f]
+  !! and the variance update
+  !! \f[
+  !!     v_n = \frac{n - 2}{n - 1} v_{n-1}
+  !!           + \frac{(x_n - m_{n-1})^2}{n}.
+  !! \f]
+  !! Then \f$m_n\f$ and \f$v_n\f$ are the sample mean and sample
+  !! variance for \f$\{x_1,\ldots,x_n\}\f$ for each \f$n\f$.
+  !!
+  !! The derivation of these formulas begins with the definitions for
+  !! the running total
+  !! \f[
+  !!     t_n = \sum_{i=1}^n x_i
+  !! \f]
+  !! and running sum of square differences
+  !! \f[
+  !!     s_n = \sum_{i=1}^n (x_i - m_n)^2.
+  !! \f]
+  !! Then the running mean is \f$m_n = \frac{t_n}{n}\f$, the running
+  !! population variance is \f$p_n = \frac{1}{n} \left( s_n - n m_n^2
+  !! \right)\f$, and the running sample variance \f$v_n = \frac{1}{n -
+  !! 1} \left( s_n - n m_n^2 \right)\f$.
+  !!
+  !! We can then compute the mean update above, and observing that
+  !! \f[
+  !!     s_n = \sum_{i=1}^n x_i^2 - n m_n^2
+  !! \f]
+  !! we can compute the sum-of-square-dfferences update identity
+  !! \f[
+  !!     s_n = s_{n-1} + \frac{n - 1}{n} (x_n - m_{n-1})^2.
+  !! \f]
+  !! The algorithm then follows immediately. The population variance
+  !! update is given by
+  !! \f[
+  !!     p_n = \frac{n-1}{n} p_{n-1} + \frac{(x_n - m_n)(x_n - m_{n-1})}{n}
+  !!         = \frac{n-1}{n} p_{n-1} + \frac{n-1}{n^2} (x_n - m_{n-1})^2.
+  !! \f]
+  !!
+  !! This algorithm (in a form where \f$m_n\f$ and \f$s_n\f$ are
+  !! tracked) originally appeared in:
+  !!
+  !! B. P. Welford [1962] "Note on a Method for Calculating Corrected
+  !! Sums of Squares and Products", Technometrics 4(3), 419-420.
+  !!
+  !! Numerical tests performed by M. West on 2012-04-12 seem to
+  !! indicate that there is no substantial difference between tracking
+  !! \f$s_n\f$ versus \f$v_n\f$.
+  !!
+  !! The same method (tracking \f$m_n\f$ and \f$s_n\f$) is presented
+  !! on page 232 in Section 4.2.2 of Knuth:
+  !!
+  !! D. E. Knuth [1988] "The Art of Computer Programming, Volume 2:
+  !! Seminumerical Algorithms", third edition, Addison Wesley Longman,
+  !! ISBN 0-201-89684-2.
+  !!
+  !! An analysis of the error introduced by different variance
+  !! computation methods is given in:
+  !!
+  !! T. F. Chan, G. H. Golub, and R. J. LeVeque [1983] "Algorithms for
+  !! Computing the Sample Variance: Analysis and Recommendations", The
+  !! American Statistician 37(3), 242-247.
+  !!
+  !! The relative error in \f$s_n\f$ of Welford's method (tracking
+  !! \f$m_n\f$ and \f$s_n\f$) is of order \f$n \kappa \epsilon\f$,
+  !! where \f$\epsilon\f$ is the machine precision and \f$\kappa\f$ is
+  !! the condition number for the problem, which is given by
+  !! \f[
+  !!     \kappa = \frac{\|x\|_2}{\sqrt{s_n}}
+  !!            = \sqrt{1 + \frac{m_n^2}{p_n}}
+  !!            \approx \frac{m_n}{p_n}.
+  !! \f]
+  !!
+  !! This analysis was apparently first given in:
+  !!
+  !! T. F. C. Chan and J. G. Lewis [1978] "Rounding error analysis of
+  !! algorithms for computing means and standard deviations",
+  !! Technical Report No. 284, The Johns Hopkins University,
+  !! Department of Mathematical Sciences.
+  subroutine update_mean_var(mean, var, data, n)
+
+    !> Mean value to update (on entry \f$m_{n-1}\f$, on exit \f$m_n\f$).
+    real(kind=dp), intent(inout) :: mean
+    !> Variance value to update (on entry \f$v_{n-1}\f$, on exit \f$v_n\f$).
+    real(kind=dp), intent(inout) :: var
+    !> Data value \f$x_n\f$.
+    real(kind=dp), intent(in) :: data
+    !> Number \f$n\f$ of this data value.
+    integer, intent(in) :: n
+
+    real(kind=dp) :: data_diff
+
+    call assert_msg(376972566, n >= 1, &
+         "must have number n >= 1, not: " // trim(integer_to_string(n)))
+    if (n == 1) then
+       mean = data
+       var = 0d0
+    else
+       data_diff = data - mean
+       mean = mean + data_diff / real(n, kind=dp)
+       var = real(n - 2, kind=dp) / real(n - 1, kind=dp) * var &
+            + data_diff**2 / real(n, kind=dp)
+    end if
+
+  end subroutine update_mean_var
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute a running average and variance for 1D real arrays.
+  !!
+  !! See update_mean_var() for details.
+  subroutine update_mean_var_1d(mean, var, data, n)
+
+    !> Mean array to update.
+    real(kind=dp), intent(inout), allocatable :: mean(:)
+    !> Variance array to update.
+    real(kind=dp), intent(inout), allocatable :: var(:)
+    !> Data array.
+    real(kind=dp), intent(in) :: data(:)
+    !> Number of this data.
+    integer, intent(in) :: n
+
+    integer :: i
+
+    call assert_msg(201722997, n >= 1, &
+         "must have number n >= 1, not: " // trim(integer_to_string(n)))
+    if (n == 1) then
+       call ensure_real_array_size(mean, size(data))
+       call ensure_real_array_size(var, size(data))
+    else
+       call assert_msg(781233835, size(mean) == size(data), &
+            "shape mismatch between mean and data")
+       call assert_msg(735080330, size(var) == size(data), &
+            "shape mismatch between var and data")
+    end if
+    do i = 1,size(data)
+       call update_mean_var(mean(i), var(i), data(i), n)
+    end do
+
+  end subroutine update_mean_var_1d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute a running average and variance for 2D real arrays.
+  !!
+  !! See update_mean_var() for details.
+  subroutine update_mean_var_2d(mean, var, data, n)
+
+    !> Mean array to update.
+    real(kind=dp), intent(inout), allocatable :: mean(:,:)
+    !> Variance array to update.
+    real(kind=dp), intent(inout), allocatable :: var(:,:)
+    !> Data array.
+    real(kind=dp), intent(in) :: data(:,:)
+    !> Number of this data.
+    integer, intent(in) :: n
+
+    integer :: i, j
+
+    call assert_msg(201722997, n >= 1, &
+         "must have number n >= 1, not: " // trim(integer_to_string(n)))
+    if (n == 1) then
+       call ensure_real_array_2d_size(mean, size(data, 1), size(data, 2))
+       call ensure_real_array_2d_size(var, size(data, 1), size(data, 2))
+    else
+       call assert_msg(172030285, all(shape(mean) == shape(data)), &
+            "shape mismatch between mean and data")
+       call assert_msg(690351548, all(shape(var) == shape(data)), &
+            "shape mismatch between var and data")
+    end if
+    do i = 1,size(data, 1)
+       do j = 1,size(data, 2)
+          call update_mean_var(mean(i, j), var(i, j), data(i, j), n)
+       end do
+    end do
+
+  end subroutine update_mean_var_2d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocate or reallocate the given array to ensure it is of the given size.
   subroutine ensure_real_array_size(x, n)
 
     !> Array of real numbers.
@@ -990,12 +1188,60 @@ contains
     !> Desired size of array.
     integer, intent(in) :: n
 
-    if (size(x) /= n) then
-       deallocate(x)
+    if (allocated(x)) then
+       if (size(x) /= n) then
+          deallocate(x)
+          allocate(x(n))
+       end if
+    else
        allocate(x(n))
     end if
 
   end subroutine ensure_real_array_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocate or reallocate the given array to ensure it is of the given size.
+  subroutine ensure_real_array_2d_size(x, n1, n2)
+
+    !> Array of real numbers.
+    real(kind=dp), intent(inout), allocatable :: x(:, :)
+    !> Desired first size of array.
+    integer, intent(in) :: n1
+    !> Desired second size of array.
+    integer, intent(in) :: n2
+
+    if (allocated(x)) then
+       if ((size(x, 1) /= n1) .or. (size(x, 2) /= n2)) then
+          deallocate(x)
+          allocate(x(n1, n2))
+       end if
+    else
+       allocate(x(n1, n2))
+    end if
+
+  end subroutine ensure_real_array_2d_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocate or reallocate the given array to ensure it is of the given size.
+  subroutine ensure_string_array_size(x, n)
+
+    !> Array of strings numbers.
+    character(len=*), intent(inout), allocatable :: x(:)
+    !> Desired size of array.
+    integer, intent(in) :: n
+
+    if (allocated(x)) then
+       if (size(x) /= n) then
+          deallocate(x)
+          allocate(x(n))
+       end if
+    else
+       allocate(x(n))
+    end if
+
+  end subroutine ensure_string_array_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1343,6 +1589,31 @@ contains
     end do
 
   end subroutine read_word_raw
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Checks whether a string starts with a given other string.
+  !!
+  !! <tt>starts_with(A, B)</tt> returns \c true if string \c A starts
+  !! with string \c B.
+  logical function starts_with(string, start_string)
+
+    !> String to test.
+    character(len=*), intent(in) :: string
+    !> Starting string.
+    character(len=*), intent(in) :: start_string
+
+    if (len(string) < len(start_string)) then
+       starts_with = .false.
+       return
+    end if
+    if (string(1:len(start_string)) == start_string) then
+       starts_with = .true.
+    else
+       starts_with = .false.
+    end if
+
+  end function starts_with
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -42,12 +42,12 @@ set y2tics
 
 set multiplot layout 2,1
 
-plot "out/urban_plume_wc_0001_aero_time.txt" using ($1/3600):($5*1e9) axes x1y1 with lines title "NO3", \
-     "out/urban_plume_wc_0001_aero_time.txt" using ($1/3600):($21*1e9) axes x1y1 with lines title "OC", \
-     "out/urban_plume_wc_0001_aero_time.txt" using ($1/3600):($7*1e9) axes x1y1 with lines title "NH4"
+plot "out/urban_plume_0001_aero_time.txt" using ($1/3600):($5*1e9) axes x1y1 with lines title "NO3", \
+     "out/urban_plume_0001_aero_time.txt" using ($1/3600):($21*1e9) axes x1y1 with lines title "OC", \
+     "out/urban_plume_0001_aero_time.txt" using ($1/3600):($7*1e9) axes x1y1 with lines title "NH4"
 
-plot "out/urban_plume_wc_0001_aero_time.txt" using ($1/3600):($4*1e9) axes x1y1 with lines title "SO4", \
-     "out/urban_plume_wc_0001_aero_time.txt" using ($1/3600):($22*1e9) axes x1y1 with lines title "BC", \
-     "out/urban_plume_wc_0001_aero_time.txt" using ($1/3600):(($9+$10+$11+$12+$13+$14+$15+$16)*1e9) axes x1y1 with lines title "SOA" # ARO1 + ARO2 + ALK1 + OLE1 + API1 + API2 + LIM1 + LIM2
+plot "out/urban_plume_0001_aero_time.txt" using ($1/3600):($4*1e9) axes x1y1 with lines title "SO4", \
+     "out/urban_plume_0001_aero_time.txt" using ($1/3600):($22*1e9) axes x1y1 with lines title "BC", \
+     "out/urban_plume_0001_aero_time.txt" using ($1/3600):(($9+$10+$11+$12+$13+$14+$15+$16)*1e9) axes x1y1 with lines title "SOA" # ARO1 + ARO2 + ALK1 + OLE1 + API1 + API2 + LIM1 + LIM2
 
 unset multiplot

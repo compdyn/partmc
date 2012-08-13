@@ -11,7 +11,7 @@ program process
   use pmc_output
 
   character(len=PMC_MAX_FILENAME_LEN), parameter :: prefix &
-       = "out/urban_plume_wc"
+       = "out/urban_plume"
 
   integer, parameter :: diam_n_bin = 100
   real(kind=dp), parameter :: diam_min = 1d-9

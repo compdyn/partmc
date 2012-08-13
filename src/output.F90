@@ -650,6 +650,8 @@ contains
        end if
     end do
     n_repeat = repeat - 1
+    call assert_msg(252703940, n_repeat >= 1, &
+         "no files found with prefix: " // trim(prefix))
 
     repeat = 1
     index = 1

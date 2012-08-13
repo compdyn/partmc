@@ -1840,7 +1840,9 @@ def get_filename_list(directory, filename_pattern):
 
     The filename_pattern is a regular expression. All filenames in the
     given directory that match the pattern are returned in a sorted
-    list.
+    list. If the regular expression contains a group then the returned
+    list consists of (filename, match) pairs, where the match is the
+    group match.
 
     Example:
     >>> netcdf_files = partmc.get_filename_list('out/', r'data_.*\.nc')
@@ -1848,7 +1850,7 @@ def get_filename_list(directory, filename_pattern):
     """
     filename_list = []
     filenames = os.listdir(directory)
-    if len(filenames)  == 0:
+    if len(filenames) == 0:
         raise Exception("No files in %s match %s"
                         % (directory, filename_pattern))
     file_re = re.compile(filename_pattern)
@@ -1856,7 +1858,11 @@ def get_filename_list(directory, filename_pattern):
         match = file_re.search(filename)
         if match:
             full_filename = os.path.join(directory, filename)
-            filename_list.append(full_filename)
+            groups = match.groups()
+            if len(groups) > 0:
+                filename_list.append((full_filename, groups[0]))
+            else:
+                filename_list.append(full_filename)
     filename_list.sort()
     if len(filename_list) == 0:
         raise Exception("No files found in %s matching %s"

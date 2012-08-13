@@ -315,6 +315,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Mass of all species in the particle (kg).
+  function aero_particle_species_masses(aero_particle, aero_data)
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Return value.
+    real(kind=dp) :: aero_particle_species_masses(aero_data%n_spec)
+
+    aero_particle_species_masses = aero_particle%vol * aero_data%density
+
+  end function aero_particle_species_masses
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Total moles in the particle (1).
   elemental real(kind=dp) function aero_particle_moles(aero_particle, &
        aero_data)

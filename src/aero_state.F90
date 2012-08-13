@@ -1080,6 +1080,92 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the mass-entropies of all particles.
+  !!
+  !! If \c include is specified then only those species are included
+  !! in computing the entropy. If \c exclude is specified then all
+  !! species except those species are included. If both \c include and
+  !! \c exclude arguments are specified then only those species in \c
+  !! include but not in \c exclude are included. If \c group is
+  !! specified then the species are divided into two sets, given by
+  !! those in the group and those not in the group. The entropy is
+  !! then computed using the total mass of each set.
+  function aero_state_mass_entropies(aero_state, aero_data, include, exclude, &
+       group)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Species names to include in the mass.
+    character(len=*), optional :: include(:)
+    !> Species names to exclude in the mass.
+    character(len=*), optional :: exclude(:)
+    !> Species names to group together.
+    character(len=*), optional :: group(:)
+    !> Return value.
+    real(kind=dp) :: aero_state_mass_entropies(aero_state%apa%n_part)
+
+    logical :: use_species(aero_data%n_spec), group_species(aero_data%n_spec)
+    integer :: i_name, i_spec, i_part
+    real(kind=dp) :: group_mass, non_group_mass, mass
+
+    if (present(include)) then
+       use_species = .false.
+       do i_name = 1, size(include)
+          i_spec = aero_data_spec_by_name(aero_data, include(i_name))
+          call assert_msg(963163690, i_spec > 0, &
+               "unknown species: " // trim(include(i_name)))
+          use_species(i_spec) = .true.
+       end do
+    else
+       use_species = .true.
+    end if
+    if (present(exclude)) then
+       do i_name = 1, size(exclude)
+          i_spec = aero_data_spec_by_name(aero_data, exclude(i_name))
+          call assert_msg(950847713, i_spec > 0, &
+               "unknown species: " // trim(exclude(i_name)))
+          use_species(i_spec) = .false.
+       end do
+    end if
+    if (present(group)) then
+       group_species = .false.
+       do i_name = 1, size(group)
+          i_spec = aero_data_spec_by_name(aero_data, group(i_name))
+          call assert_msg(376359046, i_spec > 0, &
+               "unknown species: " // trim(group(i_name)))
+          group_species(i_spec) = .true.
+       end do
+       do i_part = 1,aero_state%apa%n_part
+          group_mass = 0d0
+          non_group_mass = 0d0
+          do i_spec = 1,aero_data%n_spec
+             if (use_species(i_spec)) then
+                mass = aero_particle_species_mass( &
+                     aero_state%apa%particle(i_part), i_spec, aero_data)
+                if (group_species(i_spec)) then
+                   group_mass = group_mass + mass
+                else
+                   non_group_mass = non_group_mass + mass
+                end if
+             end if
+          end do
+          aero_state_mass_entropies(i_part) &
+               = entropy([group_mass, non_group_mass])
+       end do
+    else
+       do i_part = 1,aero_state%apa%n_part
+          aero_state_mass_entropies(i_part) = entropy(pack( &
+               aero_particle_species_masses(aero_state%apa%particle(i_part), &
+               aero_data), use_species))
+       end do
+    end if
+
+  end function aero_state_mass_entropies
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Does the same thing as aero_state_to_bin() but based on dry radius.
   subroutine aero_state_to_binned_dry(bin_grid, aero_data, aero_state, &
        aero_binned)
@@ -1493,9 +1579,9 @@ contains
     call aero_state_sort(aero_state, bin_grid)
 
     do i_bin = 1,bin_grid%n_bin
+       species_volume_conc = 0d0
+       total_volume_conc = 0d0
        do i_class = 1,size(aero_state%awa%weight, 2)
-          species_volume_conc = 0d0
-          total_volume_conc = 0d0
           do i_entry = 1,aero_state%aero_sorted%size_class%inverse(i_bin, &
                i_class)%n_entry
              i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
@@ -1509,6 +1595,8 @@ contains
                   + num_conc * aero_particle%vol
              total_volume_conc = total_volume_conc + num_conc * particle_volume
           end do
+       end do
+       do i_class = 1,size(aero_state%awa%weight, 2)
           do i_entry = 1,aero_state%aero_sorted%size_class%inverse(i_bin, &
                i_class)%n_entry
              i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &

@@ -4,7 +4,7 @@ n_repeat 1                      # number of Monte Carlo repeats
 n_part 10000                    # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
-t_max 172800                    # total simulation time (s)
+t_max 86400                     # total simulation time (s)
 del_t 60                        # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
@@ -16,14 +16,16 @@ aerosol_data aero_data.dat      # file containing aerosol data
 aerosol_init aero_init_dist.dat # aerosol initial condition file
 
 temp_profile temp.dat           # temperature profile file
+pressure_profile pres.dat       # pressure profile file
+do_entrain no                   # whether to do entrainment (yes/no)
 height_profile height.dat       # height profile file
+
 gas_emissions gas_emit.dat      # gas emissions file
 gas_background gas_back.dat     # background gas concentrations file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
 
 rel_humidity 0.95               # initial relative humidity (1)
-pressure 1e5                    # initial pressure (Pa)
 latitude 40                     # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)
 altitude 0                      # altitude (m)

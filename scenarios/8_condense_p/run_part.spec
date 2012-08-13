@@ -2,24 +2,25 @@ run_type particle               # Monte Carlo run
 output_prefix out/condense      # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 100                      # total number of particles
-restart no                      # whether to restart from saved state (yes/no)
+restart yes                      # whether to restart from saved state (yes/no)
+restart_file start/urban_plume2_wc_0001_00000020.nc
 
 t_max 600                       # total simulation time (s)
-del_t 0.5                         # timestep (s)
+del_t 1                         # timestep (s)
 t_output 10                     # output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
 
-gas_data gas_data.dat           # file containing gas data
-gas_init gas_init.dat           # initial gas mixing ratios
+#gas_data gas_data.dat           # file containing gas data
+#gas_init gas_init.dat           # initial gas mixing ratios
 
-aerosol_data aero_data.dat      # file containing aerosol data
-aerosol_init aero_init_dist.dat # aerosol initial condition file
+#aerosol_data aero_data.dat      # file containing aerosol data
+#aerosol_init aero_init_dist.dat # aerosol initial condition file
 
-temp_profile temp_001.dat           # temperature profile file
-pressure_profile pres_001.dat       # pressure profile file
-do_entrain no                   # whether to do entrainment (yes/no)
-#q_tot_profile qtot_001.dat         # total water mixing ratio profile file
-#q_background q_back.dat         # background spec. humidity profile file
+temp_profile temp_001_00000020.dat           # temperature profile file
+pressure_profile pres_001_00000020.dat       # pressure profile file
+do_entrain yes                   # whether to do entrainment (yes/no)
+q_tot_profile qtot_001_00000020.dat         # total water mixing ratio profile file
+q_background q_back.dat         # background spec. humidity profile file
 height_profile height.dat       # height profile file
 
 gas_emissions gas_emit.dat      # gas emissions file

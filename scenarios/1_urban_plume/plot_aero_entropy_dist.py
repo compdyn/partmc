@@ -6,7 +6,7 @@ import mpl_helper
 import partmc
 import scipy.io, numpy
 
-for (filename, index) in partmc.get_filename_list('out/', r'urban_plume_wc_(.*)_process\.nc'):
+for (filename, index) in partmc.get_filename_list('out/', r'urban_plume_([0-9]+)_process\.nc'):
     (figure, axes) = mpl_helper.make_fig(right_margin=0.8)
 
     ncf = scipy.io.netcdf_file(filename)

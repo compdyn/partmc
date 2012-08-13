@@ -8,7 +8,7 @@ import scipy.io, numpy
 (figure, axes) = mpl_helper.make_fig(right_margin=0.8)
 axes2 = axes.twinx()
 
-ncf = scipy.io.netcdf_file("out/urban_plume_wc_process.nc")
+ncf = scipy.io.netcdf_file("out/urban_plume_process.nc")
 time = ncf.variables["time"].data / 3600
 num_conc = ncf.variables["tot_num_conc"].data / 1e6
 num_conc_err = ncf.variables["tot_num_conc_ci_offset"].data / 1e6

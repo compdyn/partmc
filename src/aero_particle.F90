@@ -745,9 +745,9 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the critical relative humidity from the kappa value (1).
-  real(kind=dp) function aero_particle_kappa_rh(aero_particle, aero_data, &
-       env_state)
+  !> Returns the approximate critical relative humidity (1).
+  real(kind=dp) function aero_particle_approx_crit_rel_humid(aero_particle, &
+       aero_data, env_state)
 
     !> Aerosol particle.
     type(aero_particle_t), intent(in) :: aero_particle
@@ -759,13 +759,11 @@ contains
     real(kind=dp) :: kappa, diam, C, A
 
     kappa = aero_particle_solute_kappa(aero_particle, aero_data)
-    A = 4d0 * const%water_surf_eng * const%water_molec_weight &
-         / (const%univ_gas_const * env_state%temp * const%water_density)
-    C = sqrt(4d0 * A**3 / 27d0)
-    diam = vol2diam(aero_particle_volume(aero_particle))
-    aero_particle_kappa_rh = C / sqrt(kappa * diam**3) + 1d0
+    C = sqrt(4d0 * env_state_A(env_state)**3 / 27d0)
+    diam = aero_particle_diameter(aero_particle)
+    aero_particle_approx_crit_rel_humid = C / sqrt(kappa * diam**3) + 1d0
 
-  end function aero_particle_kappa_rh
+  end function aero_particle_approx_crit_rel_humid
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

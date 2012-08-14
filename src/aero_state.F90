@@ -1166,6 +1166,31 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the approximate critical relative humidity for all particles (1).
+  function aero_state_approx_crit_rel_humids(aero_state, aero_data, env_state)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    !> Return value.
+    real(kind=dp) :: aero_state_approx_crit_rel_humids(aero_state%apa%n_part)
+
+    integer :: i_part
+
+    do i_part = 1,aero_state%apa%n_part
+       aero_state_approx_crit_rel_humids(i_part) = &
+            aero_particle_approx_crit_rel_humid( &
+            aero_state%apa%particle(i_part), aero_data, env_state)
+    end do
+
+  end function aero_state_approx_crit_rel_humids
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Does the same thing as aero_state_to_bin() but based on dry radius.
   subroutine aero_state_to_binned_dry(bin_grid, aero_data, aero_state, &
        aero_binned)

@@ -13,22 +13,11 @@ program process
   character(len=PMC_MAX_FILENAME_LEN), parameter :: prefix &
        = "out/urban_plume"
 
-  integer, parameter :: diam_n_bin = 100
-  real(kind=dp), parameter :: diam_min = 1d-9
-  real(kind=dp), parameter :: diam_max = 1d-3
-
-  integer, parameter :: bc_n_bin = 50
-  real(kind=dp), parameter :: bc_min = 0d0
-  real(kind=dp), parameter :: bc_max = 1d0
-
-  integer, parameter :: entropy_n_bin = 50
-  real(kind=dp), parameter :: entropy_min = 0d0
-  real(kind=dp), parameter :: entropy_max = 1d0
-
   character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename
-  type(bin_grid_t) :: diam_grid, bc_grid, entropy_grid, avg_bin_grid
+  type(bin_grid_t) :: diam_grid, bc_grid, sc_grid, entropy_grid, avg_bin_grid
   type(aero_data_t) :: aero_data
   type(aero_state_t) :: aero_state, aero_state_averaged
+  type(env_state_t) :: env_state
   integer :: ncid, index, repeat, i_index, i_repeat, n_index, n_repeat
   real(kind=dp) :: time, del_t, tot_num_conc, tot_mass_conc, tot_entropy
   real(kind=dp) :: tot_entropy_averaged
@@ -37,42 +26,44 @@ program process
   real(kind=dp), allocatable :: masses(:), bc_masses(:), bc_fracs(:)
   real(kind=dp), allocatable :: num_concs_averaged(:), dry_masses_averaged(:)
   real(kind=dp), allocatable :: masses_averaged(:)
-  real(kind=dp), allocatable :: num_dist(:), num_dist_mean(:)
-  real(kind=dp), allocatable :: num_dist_var(:), num_dist_ci_offset(:)
-  real(kind=dp), allocatable :: diam_bc_dist(:,:), diam_bc_dist_mean(:,:)
-  real(kind=dp), allocatable :: diam_bc_dist_var(:,:)
-  real(kind=dp), allocatable :: diam_bc_dist_ci_offset(:,:)
-  real(kind=dp), allocatable :: entropy_dist(:), entropy_dist_mean(:)
-  real(kind=dp), allocatable :: entropy_dist_var(:), entropy_dist_ci_offset(:)
+  real(kind=dp), allocatable :: num_dist(:), num_dist_mean(:), &
+       num_dist_var(:), num_dist_ci_offset(:)
+  real(kind=dp), allocatable :: diam_bc_dist(:,:), diam_bc_dist_mean(:,:), &
+       diam_bc_dist_var(:,:), diam_bc_dist_ci_offset(:,:)
+  real(kind=dp), allocatable :: diam_sc_dist(:,:), diam_sc_dist_mean(:,:), &
+       diam_sc_dist_var(:,:), diam_sc_dist_ci_offset(:,:)
+  real(kind=dp), allocatable :: entropy_dist(:), entropy_dist_mean(:), &
+       entropy_dist_var(:), entropy_dist_ci_offset(:)
   real(kind=dp), allocatable :: times(:)
-  real(kind=dp), allocatable :: tot_num_conc_mean(:), tot_num_conc_var(:)
-  real(kind=dp), allocatable :: tot_num_conc_ci_offset(:)
-  real(kind=dp), allocatable :: tot_mass_conc_mean(:), tot_mass_conc_var(:)
-  real(kind=dp), allocatable :: tot_mass_conc_ci_offset(:)
-  real(kind=dp), allocatable :: tot_entropy_mean(:), tot_entropy_var(:)
-  real(kind=dp), allocatable :: tot_entropy_ci_offset(:)
-  real(kind=dp), allocatable :: tot_entropy_averaged_mean(:)
-  real(kind=dp), allocatable :: tot_entropy_averaged_var(:)
-  real(kind=dp), allocatable :: tot_entropy_averaged_ci_offset(:)
+  real(kind=dp), allocatable :: tot_num_conc_mean(:), tot_num_conc_var(:), &
+       tot_num_conc_ci_offset(:)
+  real(kind=dp), allocatable :: tot_mass_conc_mean(:), tot_mass_conc_var(:), &
+       tot_mass_conc_ci_offset(:)
+  real(kind=dp), allocatable :: tot_entropy_mean(:), tot_entropy_var(:), &
+       tot_entropy_ci_offset(:)
+  real(kind=dp), allocatable :: tot_entropy_averaged_mean(:), &
+       tot_entropy_averaged_var(:), tot_entropy_averaged_ci_offset(:)
   real(kind=dp), allocatable :: entropies(:), entropies_averaged(:)
+  real(kind=dp), allocatable :: crit_rhs(:), scs(:)
 
   call pmc_mpi_init()
 
   call bin_grid_allocate(diam_grid)
   call bin_grid_allocate(bc_grid)
+  call bin_grid_allocate(sc_grid)
   call bin_grid_allocate(entropy_grid)
   call aero_data_allocate(aero_data)
   call aero_state_allocate(aero_state)
   call aero_state_allocate(aero_state_averaged)
   call bin_grid_allocate(avg_bin_grid)
+  call env_state_allocate(env_state)
 
   call input_n_files(prefix, n_repeat, n_index)
 
-  call bin_grid_make(diam_grid, BIN_GRID_TYPE_LOG, diam_n_bin, diam_min, &
-       diam_max)
-  call bin_grid_make(bc_grid, BIN_GRID_TYPE_LINEAR, bc_n_bin, bc_min, bc_max)
-  call bin_grid_make(entropy_grid, BIN_GRID_TYPE_LINEAR, entropy_n_bin, &
-       entropy_min, entropy_max)
+  call bin_grid_make(diam_grid, BIN_GRID_TYPE_LOG, 180, 1d-9, 1d-3)
+  call bin_grid_make(bc_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 1d0)
+  call bin_grid_make(sc_grid, BIN_GRID_TYPE_LOG, 50, 1d-4, 1d0)
+  call bin_grid_make(entropy_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 1d0)
   call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)
 
   allocate(times(n_index))
@@ -87,7 +78,8 @@ program process
         call make_filename(in_filename, prefix, ".nc", i_index, i_repeat)
         write(*,*) "Processing " // trim(in_filename)
         call input_state(in_filename, index, time, del_t, repeat, &
-             uuid, aero_data=aero_data, aero_state=aero_state)
+             uuid, aero_data=aero_data, aero_state=aero_state, &
+             env_state=env_state)
 
         ! FIXME: add UUID check into input_state(), keyed off of index or
         ! time or something?
@@ -97,9 +89,11 @@ program process
         call aero_state_masses(aero_state, aero_data, masses)
         call aero_state_masses(aero_state, aero_data, dry_masses, &
              exclude=(/"H2O"/))
-        !call aero_state_masses(aero_state, aero_data, bc_masses, &
-        !     include=(/"BC"/))
-        bc_masses = dry_masses
+        call aero_state_masses(aero_state, aero_data, bc_masses, &
+             include=(/"BC"/))
+        crit_rhs = aero_state_crit_rel_humids(aero_state, aero_data, &
+             env_state)
+        scs = crit_rhs - 1d0
         bc_fracs = bc_masses / dry_masses
         tot_num_conc = sum(num_concs)
         tot_mass_conc = sum(masses * num_concs)
@@ -139,6 +133,10 @@ program process
              bc_fracs, num_concs, diam_bc_dist)
         call update_mean_var_2d(diam_bc_dist_mean, diam_bc_dist_var, &
              diam_bc_dist, i_repeat)
+        call bin_grid_histogram_2d(diam_grid, dry_diameters, sc_grid, &
+             scs, num_concs, diam_sc_dist)
+        call update_mean_var_2d(diam_sc_dist_mean, diam_sc_dist_var, &
+             diam_sc_dist, i_repeat)
         call bin_grid_histogram_1d(entropy_grid, entropies, num_concs, &
              entropy_dist)
         call update_mean_var_1d(entropy_dist_mean, entropy_dist_var, &
@@ -147,6 +145,7 @@ program process
 
      call conf_95_offset_1d(num_dist_var, n_repeat, num_dist_ci_offset)
      call conf_95_offset_2d(diam_bc_dist_var, n_repeat, diam_bc_dist_ci_offset)
+     call conf_95_offset_2d(diam_sc_dist_var, n_repeat, diam_sc_dist_ci_offset)
      call conf_95_offset_1d(entropy_dist_var, n_repeat, entropy_dist_ci_offset)
 
      call make_filename(out_filename, prefix, "_process.nc", index)
@@ -154,6 +153,7 @@ program process
      call pmc_nc_write_info(ncid, uuid, "1_urban_plume process")
      call bin_grid_output_netcdf(diam_grid, ncid, "diam", unit="m")
      call bin_grid_output_netcdf(bc_grid, ncid, "bc_frac", unit="1")
+     call bin_grid_output_netcdf(sc_grid, ncid, "sc", unit="1")
      call bin_grid_output_netcdf(entropy_grid, ncid, "entropy", unit="1")
      call pmc_nc_write_real_1d(ncid, num_dist_mean, "num_dist", &
           dim_name="diam", unit="m^{-3}")
@@ -163,6 +163,11 @@ program process
           dim_name_1="diam", dim_name_2="bc_frac", unit="m^{-3}")
      call pmc_nc_write_real_2d(ncid, diam_bc_dist_ci_offset, &
           "diam_bc_dist_ci_offset", dim_name_1="diam", dim_name_2="bc_frac", &
+          unit="m^{-3}")
+     call pmc_nc_write_real_2d(ncid, diam_sc_dist_mean, "diam_sc_dist", &
+          dim_name_1="diam", dim_name_2="sc", unit="m^{-3}")
+     call pmc_nc_write_real_2d(ncid, diam_sc_dist_ci_offset, &
+          "diam_sc_dist_ci_offset", dim_name_1="diam", dim_name_2="sc", &
           unit="m^{-3}")
      call pmc_nc_write_real_1d(ncid, entropy_dist_mean, "entropy_dist", &
           dim_name="entropy", unit="1")
@@ -202,6 +207,7 @@ program process
   call bin_grid_allocate(diam_grid)
   call aero_data_deallocate(aero_data)
   call aero_state_deallocate(aero_state)
+  call env_state_deallocate(env_state)
 
   call pmc_mpi_finalize()
 

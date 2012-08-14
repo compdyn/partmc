@@ -942,6 +942,25 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the IDs of all particles.
+  function aero_state_ids(aero_state)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+
+    !> Return value.
+    integer :: aero_state_ids(aero_state%apa%n_part)
+
+    integer :: i_part
+
+    do i_part = 1,aero_state%apa%n_part
+       aero_state_ids(i_part) = aero_state%apa%particle(i_part)%id
+    end do
+
+  end function aero_state_ids
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Returns the diameters of all particles. The \c diameters array
   !> will be reallocated if necessary.
   subroutine aero_state_diameters(aero_state, diameters)
@@ -1163,6 +1182,55 @@ contains
     end if
 
   end function aero_state_mass_entropies
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the approximate critical relative humidity for all particles (1).
+  function aero_state_approx_crit_rel_humids(aero_state, aero_data, env_state)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    !> Return value.
+    real(kind=dp) :: aero_state_approx_crit_rel_humids(aero_state%apa%n_part)
+
+    integer :: i_part
+
+    do i_part = 1,aero_state%apa%n_part
+       aero_state_approx_crit_rel_humids(i_part) = &
+            aero_particle_approx_crit_rel_humid( &
+            aero_state%apa%particle(i_part), aero_data, env_state)
+    end do
+
+  end function aero_state_approx_crit_rel_humids
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the critical relative humidity for all particles (1).
+  function aero_state_crit_rel_humids(aero_state, aero_data, env_state)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    !> Return value.
+    real(kind=dp) :: aero_state_crit_rel_humids(aero_state%apa%n_part)
+
+    integer :: i_part
+
+    do i_part = 1,aero_state%apa%n_part
+       aero_state_crit_rel_humids(i_part) = aero_particle_crit_rel_humid( &
+            aero_state%apa%particle(i_part), aero_data, env_state)
+    end do
+
+  end function aero_state_crit_rel_humids
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

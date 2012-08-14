@@ -498,9 +498,9 @@ contains
   !!
   !! If xa is the array allocated by linspace(min_x, max_x, xa) then i
   !! = linspace_find(min_x, max_x, n, x) returns the index i
-  !! satisfying xa(i) <= x < xa(i+1) for min_x <= x < max_x. If x >=
-  !! max_x then i = n.  If x < min_x then i = 0. Thus 0 <= i <=
-  !! n. Here n is the length of xa.
+  !! satisfying xa(i) <= x < xa(i+1) for min_x <= x < max_x. If x ==
+  !! max_x then i = n - 1.  If x > max_x then i = n. If x < min_x then
+  !! i = 0. Thus 0 <= i <= n. Here n is the length of xa.
   !!
   !! This is equivalent to using find_1d() but much faster if the
   !! array is linear.
@@ -515,6 +515,10 @@ contains
     !> Value.
     real(kind=dp), intent(in) :: x
 
+    if (x == max_x) then
+       linspace_find = n - 1
+       return
+    end if
     linspace_find = floor((x - min_x) / (max_x - min_x) &
          * real(n - 1, kind=dp)) + 1
     linspace_find = min(linspace_find, n)

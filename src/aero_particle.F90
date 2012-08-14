@@ -745,9 +745,9 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the critical relative humidity from the kappa value (1).
-  real(kind=dp) function aero_particle_kappa_rh(aero_particle, aero_data, &
-       env_state)
+  !> Returns the approximate critical relative humidity (1).
+  real(kind=dp) function aero_particle_approx_crit_rel_humid(aero_particle, &
+       aero_data, env_state)
 
     !> Aerosol particle.
     type(aero_particle_t), intent(in) :: aero_particle
@@ -759,13 +759,128 @@ contains
     real(kind=dp) :: kappa, diam, C, A
 
     kappa = aero_particle_solute_kappa(aero_particle, aero_data)
-    A = 4d0 * const%water_surf_eng * const%water_molec_weight &
-         / (const%univ_gas_const * env_state%temp * const%water_density)
-    C = sqrt(4d0 * A**3 / 27d0)
-    diam = vol2diam(aero_particle_volume(aero_particle))
-    aero_particle_kappa_rh = C / sqrt(kappa * diam**3) + 1d0
+    C = sqrt(4d0 * env_state_A(env_state)**3 / 27d0)
+    diam = aero_particle_diameter(aero_particle)
+    aero_particle_approx_crit_rel_humid = C / sqrt(kappa * diam**3) + 1d0
 
-  end function aero_particle_kappa_rh
+  end function aero_particle_approx_crit_rel_humid
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the critical relative humidity (1).
+  real(kind=dp) function aero_particle_crit_rel_humid(aero_particle, &
+       aero_data, env_state)
+
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    real(kind=dp) :: kappa, crit_diam, dry_diam, A
+
+    A = env_state_A(env_state)
+    dry_diam = aero_particle_dry_diameter(aero_particle, aero_data)
+    crit_diam = aero_particle_crit_diameter(aero_particle, aero_data, &
+         env_state)
+    kappa = aero_particle_solute_kappa(aero_particle, aero_data)
+    if (kappa < 1d-30) then
+       aero_particle_crit_rel_humid = exp(A / crit_diam)
+    else
+       aero_particle_crit_rel_humid = (crit_diam**3 - dry_diam**3) &
+            / (crit_diam**3 - dry_diam**3 * (1 - kappa)) * exp(A / crit_diam)
+    end if
+
+  end function aero_particle_crit_rel_humid
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the critical diameter (m).
+  !!
+  !! The method is as follows. We need to solve the polynomial
+  !! equation \f$f(D)\f$ given in Eq. (7) of
+  !!
+  !! N. Riemer, M. West, R. Zaveri, D. Easter, "Estimating black
+  !! carbon aging time-scales with a particle-resolved aerosol
+  !! model", Aerosol Science 41, 143-158, 2010.
+  !!
+  !! This is the equation:
+  !! \f[
+  !!     f(D) = D^6 + c_4 D^4 + c_3 D^3 + c_0,
+  !! \f]
+  !! where \f$c_4 < 0\f$, \f$c_3 < 0\f$, and \f$c_0 > 0\f$. There is
+  !! unique solution for \f$D > D_{\rm dry}\f$, as shown in the above
+  !! paper.
+  !!
+  !! The polynomial has first derivative which factors like
+  !! \f[
+  !!     f'(D) = 6 D^5 + 4 c_4 D^3 + 3 c_3 D^2
+  !!           = (3 D^2 + 4 c_4) D^3 + (D^3 + c_3) 3 D^2.
+  !! \f]
+  !! The first term is positive for \f$D > (-4 c_4 / 3)^{1/2}\f$ and
+  !! the second is positive for \f$D > (-c_3)^{1/3}\f$. If we take
+  !! \f[
+  !!     D_0 = max((-4 c_4 / 3)^{1/2}, (-c_3)^{1/3})
+  !! \f]
+  !! then we have that \f$f'(D) > 0\f$ for \f$D > D_0\f$. Similarly,
+  !! \f[
+  !!     f''(D) = 30 D^4 + 12 c_4 D^2 + 6 c_3 D
+  !!            = (5 D^2 + 4 c_4) 3 D^2 + (5 D^3 + 2 c_3) 3 D,
+  !! \f]
+  !! so \f$f''(D) > 0\f$ for \f$D > D_0\f$ (as this ensures that \f$D
+  !! > (-4 c_4 / 5)^{1/2}\f$ and \f$D > (-2 c_3 / 5)^{1/3}\f$).
+  !!
+  !! Thus for $D > D_0$ we have that the first and second derivatives
+  !! of $f(D)$ are positive, so Newton's method starting from
+  !! \f$D_0\f$ will converge quadratically. This is the scheme used
+  !! here.
+  real(kind=dp) function aero_particle_crit_diameter(aero_particle, &
+       aero_data, env_state)
+
+    !> Aerosol particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    integer, parameter :: CRIT_DIAM_MAX_ITER = 100
+
+    real(kind=dp) :: kappa, dry_diam, A, c4, c3, c0, d, f, df, dd
+    integer :: i_newton
+
+    A = env_state_A(env_state)
+    dry_diam = aero_particle_dry_diameter(aero_particle, aero_data)
+    kappa = aero_particle_solute_kappa(aero_particle, aero_data)
+    if (kappa < 1d-30) then
+       ! bail out early for hydrophobic particles
+       aero_particle_crit_diameter = dry_diam
+       return
+    end if
+
+    c4 = - 3d0 * dry_diam**3 * kappa / A
+    c3 = - dry_diam**3 * (2d0 - kappa)
+    c0 = dry_diam**6 * (1d0 - kappa)
+
+    ! Newton's method for f(d) = d^6 + c4 d^4 + c3 d^3 + c0
+    d = max(sqrt(-4d0 / 3d0 * c4), (-c3)**(1d0/3d0))
+    do i_newton = 1,CRIT_DIAM_MAX_ITER
+       f = d**6 + c4 * d**4 + c3 * d**3 + c0
+       df = 6 * d**5 + 4 * c4 * d**3 + 3 * c3 * d**2
+       dd = f / df
+       d = d - dd
+       if (abs(dd / d) < 1d-14) then
+          exit
+       end if
+    end do
+    call warn_assert_msg(408545686, i_newton < CRIT_DIAM_MAX_ITER, &
+         "critical diameter Newton loop failed to converge")
+    call warn_assert_msg(353290871, d >= dry_diam, &
+         "critical diameter Newton loop converged to invalid solution")
+    aero_particle_crit_diameter = d
+
+  end function aero_particle_crit_diameter
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

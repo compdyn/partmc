@@ -942,6 +942,25 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the IDs of all particles.
+  function aero_state_ids(aero_state)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+
+    !> Return value.
+    integer :: aero_state_ids(aero_state%apa%n_part)
+
+    integer :: i_part
+
+    do i_part = 1,aero_state%apa%n_part
+       aero_state_ids(i_part) = aero_state%apa%particle(i_part)%id
+    end do
+
+  end function aero_state_ids
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Returns the diameters of all particles. The \c diameters array
   !> will be reallocated if necessary.
   subroutine aero_state_diameters(aero_state, diameters)

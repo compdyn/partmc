@@ -84,12 +84,12 @@ program process
         ! FIXME: add UUID check into input_state(), keyed off of index or
         ! time or something?
 
-        call aero_state_dry_diameters(aero_state, aero_data, dry_diameters)
-        call aero_state_num_concs(aero_state, num_concs)
-        call aero_state_masses(aero_state, aero_data, masses)
-        call aero_state_masses(aero_state, aero_data, dry_masses, &
+        dry_diameters = aero_state_dry_diameters(aero_state, aero_data)
+        num_concs = aero_state_num_concs(aero_state)
+        masses = aero_state_masses(aero_state, aero_data)
+        dry_masses = aero_state_masses(aero_state, aero_data, &
              exclude=(/"H2O"/))
-        call aero_state_masses(aero_state, aero_data, bc_masses, &
+        bc_masses = aero_state_masses(aero_state, aero_data, &
              include=(/"BC"/))
         crit_rhs = aero_state_crit_rel_humids(aero_state, aero_data, &
              env_state)
@@ -105,10 +105,10 @@ program process
         call aero_state_copy(aero_state, aero_state_averaged)
         call aero_state_bin_average_comp(aero_state_averaged, avg_bin_grid, &
              aero_data, dry_volume=.false.)
-        call aero_state_num_concs(aero_state_averaged, num_concs_averaged)
-        call aero_state_masses(aero_state_averaged, aero_data, masses_averaged)
-        call aero_state_masses(aero_state_averaged, aero_data, &
-             dry_masses_averaged, exclude=(/"H2O"/))
+        num_concs_averaged = aero_state_num_concs(aero_state_averaged)
+        masses_averaged = aero_state_masses(aero_state_averaged, aero_data)
+        dry_masses_averaged = aero_state_masses(aero_state_averaged, &
+             aero_data, exclude=(/"H2O"/))
         entropies_averaged = aero_state_mass_entropies(aero_state_averaged, &
              aero_data) !, exclude=["H2O"]) !, group=["BC"])
         tot_entropy_averaged &
@@ -125,20 +125,19 @@ program process
              tot_entropy_var(i_index), tot_entropy, i_repeat)
         call update_mean_var(tot_entropy_averaged_mean(i_index), &
              tot_entropy_averaged_var(i_index), tot_entropy_averaged, i_repeat)
-        call bin_grid_histogram_1d(diam_grid, dry_diameters, num_concs, &
-             num_dist)
+        num_dist = bin_grid_histogram_1d(diam_grid, dry_diameters, num_concs)
         call update_mean_var_1d(num_dist_mean, num_dist_var, num_dist, &
              i_repeat)
-        call bin_grid_histogram_2d(diam_grid, dry_diameters, bc_grid, &
-             bc_fracs, num_concs, diam_bc_dist)
+        diam_bc_dist = bin_grid_histogram_2d(diam_grid, dry_diameters, &
+             bc_grid, bc_fracs, num_concs)
         call update_mean_var_2d(diam_bc_dist_mean, diam_bc_dist_var, &
              diam_bc_dist, i_repeat)
-        call bin_grid_histogram_2d(diam_grid, dry_diameters, sc_grid, &
-             scs, num_concs, diam_sc_dist)
+        diam_sc_dist = bin_grid_histogram_2d(diam_grid, dry_diameters, &
+             sc_grid, scs, num_concs)
         call update_mean_var_2d(diam_sc_dist_mean, diam_sc_dist_var, &
              diam_sc_dist, i_repeat)
-        call bin_grid_histogram_1d(entropy_grid, entropies, num_concs, &
-             entropy_dist)
+        entropy_dist = bin_grid_histogram_1d(entropy_grid, entropies, &
+             num_concs)
         call update_mean_var_1d(entropy_dist_mean, entropy_dist_var, &
              entropy_dist, i_repeat)
      end do

@@ -83,9 +83,6 @@ program extract_aero_time
   allocate(time_mass_concs(n_file))
   allocate(time_species_concs(n_file, aero_data%n_spec))
 
-  allocate(particle_num_concs(0))
-  allocate(particle_masses(0))
-
   do i_file = 1,n_file
      call input_state(filename_list(i_file), index, time, del_t, i_repeat, &
           uuid, aero_data=aero_data, aero_state=aero_state)
@@ -95,12 +92,12 @@ program extract_aero_time
           // trim(filename_list(i_file)))
 
      times(i_file) = time
-     call aero_state_num_concs(aero_state, particle_num_concs)
+     particle_num_concs = aero_state_num_concs(aero_state)
      time_num_concs(i_file) = sum(particle_num_concs)
-     call aero_state_masses(aero_state, aero_data, particle_masses)
+     particle_masses = aero_state_masses(aero_state, aero_data)
      time_mass_concs(i_file) = sum(particle_masses * particle_num_concs)
      do i_spec = 1,aero_data%n_spec
-        call aero_state_masses(aero_state, aero_data, particle_masses, &
+        particle_masses = aero_state_masses(aero_state, aero_data, &
              include=(/aero_data%name(i_spec)/))
         time_species_concs(i_file, i_spec) &
              = sum(particle_masses * particle_num_concs)
@@ -135,8 +132,6 @@ program extract_aero_time
   deallocate(time_num_concs)
   deallocate(time_mass_concs)
   deallocate(time_species_concs)
-  deallocate(particle_num_concs)
-  deallocate(particle_masses)
   deallocate(filename_list)
   call aero_data_deallocate(aero_data)
   call aero_state_deallocate(aero_state)

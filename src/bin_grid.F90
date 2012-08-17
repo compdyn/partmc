@@ -222,7 +222,7 @@ contains
 
   !> Make a histogram with of the given weighted data, scaled by the
   !> bin sizes.
-  subroutine bin_grid_histogram_1d(x_bin_grid, x_data, weight_data, hist)
+  function bin_grid_histogram_1d(x_bin_grid, x_data, weight_data)
 
     !> x-axis bin grid.
     type(bin_grid_t), intent(in) :: x_bin_grid
@@ -230,29 +230,29 @@ contains
     real(kind=dp), intent(in) :: x_data(:)
     !> Data value weights.
     real(kind=dp), intent(in) :: weight_data(size(x_data))
-    !> Histogram to compute.
-    real(kind=dp), intent(inout), allocatable :: hist(:)
+
+    !> Return histogram.
+    real(kind=dp) :: bin_grid_histogram_1d(x_bin_grid%n_bin)
 
     integer :: i_data, x_bin
 
-    call ensure_real_array_size(hist, x_bin_grid%n_bin)
-    hist = 0d0
+    bin_grid_histogram_1d = 0d0
     do i_data = 1,size(x_data)
        x_bin = bin_grid_find(x_bin_grid, x_data(i_data))
        if ((x_bin >= 1) .and. (x_bin <= x_bin_grid%n_bin)) then
-          hist(x_bin) = hist(x_bin) &
+          bin_grid_histogram_1d(x_bin) = bin_grid_histogram_1d(x_bin) &
                + weight_data(i_data) / x_bin_grid%widths(x_bin)
        end if
     end do
 
-  end subroutine bin_grid_histogram_1d
+  end function bin_grid_histogram_1d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Make a 2D histogram with of the given weighted data, scaled by
   !> the bin sizes.
-  subroutine bin_grid_histogram_2d(x_bin_grid, x_data, y_bin_grid, y_data, &
-       weight_data, hist)
+  function bin_grid_histogram_2d(x_bin_grid, x_data, y_bin_grid, y_data, &
+       weight_data)
 
     !> x-axis bin grid.
     type(bin_grid_t), intent(in) :: x_bin_grid
@@ -264,24 +264,25 @@ contains
     real(kind=dp), intent(in) :: y_data(size(x_data))
     !> Data value weights.
     real(kind=dp), intent(in) :: weight_data(size(x_data))
-    !> Histogram to compute.
-    real(kind=dp), intent(inout), allocatable :: hist(:, :)
+
+    !> Return histogram.
+    real(kind=dp) :: bin_grid_histogram_2d(x_bin_grid%n_bin, y_bin_grid%n_bin)
 
     integer :: i_data, x_bin, y_bin
 
-    call ensure_real_array_2d_size(hist, x_bin_grid%n_bin, y_bin_grid%n_bin)
-    hist = 0d0
+    bin_grid_histogram_2d = 0d0
     do i_data = 1,size(x_data)
        x_bin = bin_grid_find(x_bin_grid, x_data(i_data))
        y_bin = bin_grid_find(y_bin_grid, y_data(i_data))
        if ((x_bin >= 1) .and. (x_bin <= x_bin_grid%n_bin) &
             .and. (y_bin >= 1) .and. (y_bin <= y_bin_grid%n_bin)) then
-          hist(x_bin, y_bin) = hist(x_bin, y_bin) + weight_data(i_data) &
+          bin_grid_histogram_2d(x_bin, y_bin) &
+               = bin_grid_histogram_2d(x_bin, y_bin) + weight_data(i_data) &
                / x_bin_grid%widths(x_bin) / y_bin_grid%widths(y_bin)
        end if
     end do
 
-  end subroutine bin_grid_histogram_2d
+  end function bin_grid_histogram_2d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

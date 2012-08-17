@@ -961,69 +961,66 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the diameters of all particles. The \c diameters array
-  !> will be reallocated if necessary.
-  subroutine aero_state_diameters(aero_state, diameters)
+  !> Returns the diameters of all particles.
+  function aero_state_diameters(aero_state)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
-    !> Diameters array (m).
-    real(kind=dp), intent(inout), allocatable :: diameters(:)
 
-    call ensure_real_array_size(diameters, aero_state%apa%n_part)
-    diameters = aero_particle_diameter( &
+    !> Return diameters array (m).
+    real(kind=dp) :: aero_state_diameters(aero_state%apa%n_part)
+
+    aero_state_diameters = aero_particle_diameter( &
          aero_state%apa%particle(1:aero_state%apa%n_part))
 
-  end subroutine aero_state_diameters
+  end function aero_state_diameters
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the dry diameters of all particles. The \c dry diameters
-  !> array will be reallocated if necessary.
-  subroutine aero_state_dry_diameters(aero_state, aero_data, dry_diameters)
+  !> Returns the dry diameters of all particles.
+  function aero_state_dry_diameters(aero_state, aero_data)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Dry diameters array (m).
-    real(kind=dp), intent(inout), allocatable :: dry_diameters(:)
 
-    call ensure_real_array_size(dry_diameters, aero_state%apa%n_part)
-    dry_diameters = aero_particle_dry_diameter( &
+    !> Return value (m).
+    real(kind=dp) :: aero_state_dry_diameters(aero_state%apa%n_part)
+
+    aero_state_dry_diameters = aero_particle_dry_diameter( &
          aero_state%apa%particle(1:aero_state%apa%n_part), aero_data)
 
-  end subroutine aero_state_dry_diameters
+  end function aero_state_dry_diameters
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the masses of all particles. The \c masses array
-  !> will be reallocated if necessary.
+  !> Returns the masses of all particles.
   !!
   !! If \c include is specified then only those species are included
   !! in computing the masses. If \c exclude is specified then all
   !! species except those species are included. If both \c include and
   !! \c exclude arguments are specified then only those species in \c
   !! include but not in \c exclude are included.
-  subroutine aero_state_masses(aero_state, aero_data, masses, include, exclude)
+  function aero_state_masses(aero_state, aero_data, include, exclude)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Masses array (kg).
-    real(kind=dp), intent(inout), allocatable :: masses(:)
     !> Species names to include in the mass.
     character(len=*), optional :: include(:)
     !> Species names to exclude in the mass.
     character(len=*), optional :: exclude(:)
 
+    !> Return masses array (kg).
+    real(kind=dp) :: aero_state_masses(aero_state%apa%n_part)
+
     logical :: use_species(aero_data%n_spec)
     integer :: i_name, i_spec
 
-    call ensure_real_array_size(masses, aero_state%apa%n_part)
     if ((.not. present(include)) .and. (.not. present(exclude))) then
-       masses = aero_particle_mass( &
+       aero_state_masses = aero_particle_mass( &
             aero_state%apa%particle(1:aero_state%apa%n_part), aero_data)
     else
        if (present(include)) then
@@ -1045,38 +1042,39 @@ contains
              use_species(i_spec) = .false.
           end do
        end if
-       masses = 0d0
+       aero_state_masses = 0d0
        do i_spec = 1,aero_data%n_spec
           if (use_species(i_spec)) then
-             masses = masses + aero_particle_species_mass( &
+             aero_state_masses = aero_state_masses &
+                  + aero_particle_species_mass( &
                   aero_state%apa%particle(1:aero_state%apa%n_part), &
                   i_spec, aero_data)
           end if
        end do
     end if
 
-  end subroutine aero_state_masses
+  end function aero_state_masses
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the number concentrations of all particles. The \c
-  !> num_concs array will be reallocated if necessary.
-  subroutine aero_state_num_concs(aero_state, num_concs)
+  !> Returns the number concentrations of all particles.
+  function aero_state_num_concs(aero_state)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
-    !> Number concentrations array (m^{-3}).
-    real(kind=dp), intent(inout), allocatable :: num_concs(:)
+
+    !> Return number concentrations array (m^{-3}).
+    real(kind=dp) :: aero_state_num_concs(aero_state%apa%n_part)
 
     integer :: i_part
 
-    call ensure_real_array_size(num_concs, aero_state%apa%n_part)
     do i_part = 1,aero_state%apa%n_part
-       num_concs(i_part) = aero_state_particle_num_conc(aero_state, &
+       aero_state_num_concs(i_part) &
+            = aero_state_particle_num_conc(aero_state, &
             aero_state%apa%particle(i_part))
     end do
 
-  end subroutine aero_state_num_concs
+  end function aero_state_num_concs
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1122,6 +1120,7 @@ contains
     character(len=*), optional :: exclude(:)
     !> Species names to group together.
     character(len=*), optional :: group(:)
+
     !> Return value.
     real(kind=dp) :: aero_state_mass_entropies(aero_state%apa%n_part)
 

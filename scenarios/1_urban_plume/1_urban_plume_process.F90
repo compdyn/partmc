@@ -103,12 +103,12 @@ program process
              / sum(masses * num_concs)
 
         call aero_state_copy(aero_state, aero_state_averaged)
+        call aero_state_bin_average_comp(aero_state_averaged, avg_bin_grid, &
+             aero_data, dry_volume=.false.)
         call aero_state_num_concs(aero_state_averaged, num_concs_averaged)
         call aero_state_masses(aero_state_averaged, aero_data, masses_averaged)
         call aero_state_masses(aero_state_averaged, aero_data, &
              dry_masses_averaged, exclude=(/"H2O"/))
-        call aero_state_bin_average_comp(aero_state_averaged, avg_bin_grid, &
-             aero_data, dry_volume=.false.)
         entropies_averaged = aero_state_mass_entropies(aero_state_averaged, &
              aero_data) !, exclude=["H2O"]) !, group=["BC"])
         tot_entropy_averaged &

@@ -11,4 +11,4 @@ set key center right
 set ytics nomirror
 
 plot "ref_condense_0001_env.txt" using 1:4 axes x1y1 with lines title "ref pressure", \
-     "out/condense_0001_env.txt" using 1:4 axes x1y1 with points title "pressure"
+     "out_00000004/condense_0001_env.txt" using 1:4 axes x1y1 with points title "pressure"

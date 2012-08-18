@@ -12,7 +12,7 @@ set key center right
 set ytics nomirror
 set y2tics
 
-plot "ref_condense_0001_env.txt" using 1:2 axes x1y1 with lines title "ref temperature", \
-     "out/condense_0001_env.txt" using 1:2 axes x1y1 with points title "temperature", \
-     "ref_condense_0001_env.txt" using 1:3 axes x1y2 with lines title "ref relative humidity", \
-     "out/condense_0001_env.txt" using 1:3 axes x1y2 with points title "relative humidity"
+plot "out_00000004/condense_0001_env.txt" using 1:2 axes x1y1 with lines title "ref temperature", \
+     "out_00000008/condense_0001_env.txt" using 1:2 axes x1y1 with points title "temperature", \
+     "out_00000004/condense_0001_env.txt" using 1:3 axes x1y2 with lines title "ref relative humidity", \
+     "out_00000008/condense_0001_env.txt" using 1:3 axes x1y2 with points title "relative humidity"

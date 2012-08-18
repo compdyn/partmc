@@ -3,14 +3,17 @@
 import scipy.io
 import sys
 import numpy as np
+sys.path.append("../../tool")
+import mpl_helper
 import matplotlib
 matplotlib.use("PDF")
-import matplotlib.pyplot as plt
-sys.path.append("../../tool")
 import partmc
 
 def make_plot(in_dir, in_filename1, in_filename2, in_filename3, out_filename):
     print in_filename1, in_filename2, in_filename3
+
+    (figure, axes) = mpl_helper.make_fig(left_margin=0.7, right_margin=1)
+
     ncf = scipy.io.netcdf.netcdf_file(in_dir+in_filename1, 'r')
     particles1 = partmc.aero_particle_array_t(ncf)
     ncf.close()

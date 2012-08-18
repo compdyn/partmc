@@ -3,13 +3,15 @@
 import scipy.io
 import sys
 import numpy as np
+sys.path.append("../../tool")
+import mpl_helper
 import matplotlib
 matplotlib.use("PDF")
-import matplotlib.pyplot as plt
-sys.path.append("../../tool")
+#import matplotlib.pyplot as plt
 import partmc
 
 def make_plot(in_filename,out_filename):
+    (figure, axes, cbar_axes) = mpl_helper.make_fig(left_margin=0.7, right_margin=1, colorbar=True)
     ncf = scipy.io.netcdf.netcdf_file(in_filename, 'r')
     particles = partmc.aero_particle_array_t(ncf)
     ncf.close()
@@ -24,18 +26,26 @@ def make_plot(in_filename,out_filename):
     y_axis = partmc.linear_grid(min=0,max=0.8,n_bin=40)
 
     hist2d = partmc.histogram_2d(wet_diameters, bc_frac, x_axis, y_axis, weights = particles.num_concs)
-    plt.clf()
-    plt.pcolor(x_axis.edges(), y_axis.edges(), hist2d.transpose(),norm = matplotlib.colors.LogNorm(vmin=1e8,vmax=1e12), linewidths = 0.1)
-    a = plt.gca()
-    a.set_xscale("log")
-    a.set_yscale("linear")
-    plt.axis([x_axis.min, x_axis.max, y_axis.min, y_axis.max])
-    plt.xlabel("wet diameter (m)")
-    plt.ylabel("BC mass fraction")
-    cbar = plt.colorbar()
-    cbar.set_label("number density (m^{-3})")
-    fig = plt.gcf()
-    fig.savefig(out_filename)
+    #plt.clf()
+    p =  axes.pcolor(x_axis.edges(), y_axis.edges(), hist2d.transpose(),norm = matplotlib.colors.LogNorm(vmin=1e8,vmax=1e12), linewidths = 0.1)
+
+    axes.set_xscale("log")
+    axes.set_xlabel(r"dry diameter $D_{\rm dry}$ / $\rm \mu m$")
+    axes.set_xlim(1e-8, 1e-4)
+
+    axes.set_yscale("linear")
+    axes.set_ylabel(r"BC mass fraction $w_{\rm BC}$ / \%")
+    axes.set_ylim(0, 0.8)
+
+    axes.grid(True)
+    cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
+                           orientation='vertical')
+    cbar_axes.xaxis.set_label_position('top')
+    cbar.set_label(r"number conc. $n(D_{\rm dry},w_{\rm BC})$ / $\rm cm^{-3}$")
+
+    figure.savefig(out_filename)
+    print out_filename
+
 
 filename_in1 = "../../scenarios/8_condense_p/out_00000004/condense_0001_00000001.nc" 
 filename_in2 = "../../scenarios/8_condense_p/out_00000004/condense_0001_00000031.nc" 

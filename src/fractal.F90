@@ -21,7 +21,7 @@
 !! to hydrodynamic interactions between the primary particles, which
 !! result in a decrease of the frictional forces acting upon the particles
 !! accompanied by an increase of the translational diffusion coefficient.
-!! Mobility equivalent radius is often used as output from experimental 
+!! Mobility equivalent radius is often used as output from experimental
 !! data such as SMPS measurement. Also use "mobility_rad_in_continuum"
 !! to stand for mobility equivalent radius in continuum regime.
 !!

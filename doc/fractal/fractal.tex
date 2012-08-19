@@ -35,19 +35,19 @@ $P$                    & \rr pressure	              			 			                    &
 $\pi$				   & \rr Pi																	& constant		& $1$									& \rr \verb+const%pi+			 					 \tn
 $Q$					   & \rr constant in slip correction formula								& constant			& $1$									& \rr eq.~\ref{eq:slip_correct}, value = 0.588		 \tn
 $R_{\rm 0}$			   & \rr radius of primary particles										& input			& $\rm m$								& \rr 					 \tn
-$R_{\rm ae}$		   & \rr aerodynamic radius													& function		& $\rm m$								& \rr eq.~\ref{eq:R_ae}	, eq.~(32) in Nauman [2003]		 					 \tn
-$R_{\rm eff}$		   & \rr effective radius to be used with slip correction					& function		& $\rm m$								& \rr eq.~\ref{eq:R_eff}, eq.~(28) in Naumann [2003]							 \tn
+$R_{\rm ae}$		   & \rr particle aerodynamic radius													& function		& $\rm m$								& \rr eq.~\ref{eq:R_ae}	, eq.~(32) in Nauman [2003]		 					 \tn
+$R_{\rm eff}$		   & \rr particle effective radius					& function		& $\rm m$								& \rr eq.~\ref{eq:R_eff}, eq.~(28) in Naumann [2003]							 \tn
 $R_{\rm gas}$			  		   & \rr universal gas constant												& constant		& $\rm J \, mol^{-1} \, K^{-1}$	& \rr \verb+const%univ_gas_const+		 \tn
-$R_{\rm geo}$		   & \rr geometric radius of fractal particles								& function		& $\rm m$								& 							 \tn
+$R_{\rm geo}$		   & \rr particle geometric radius								& function		& $\rm m$								& 							 \tn
 $\rho$				   & \rr material density of primary particles		& prescribed		& $\rm kg \, m^{-3}$					& \rr \verb+aero_data%density+					 \tn
 $\rho_{\rm 0}$		   & \rr material density of reference particles (latex sphere)				& constant			& $\rm kg \, m^{-3}$					& \rr eq.~\ref{eq:R_ae}, value = 940				 \tn
 $\rho_{\rm a}$		   & \rr air density														& function		& $\rm kg \, m^{-3}$					& \rr eq.~\ref{eq:rho_a}							 \tn
-$R_{\rm m}$		   	   & \rr mass equivalent radius												& function		& $\rm m$								& \rr eq.~\ref{eq:R_m}, eq.~(3) in Naumann [2003]								 \tn
-$R_{\rm me}$		   & \rr mobility equivalent radius											& function		& $\rm m$								& \rr eq.~\ref{eq:R_me}, eq.~(30) in Naumann [2003]								 \tn
-$R_{\rm me,c}$		   & \rr continuum regime mobility equivalent radius						& function		& $\rm m$								& \rr eq.~\ref{eq:R_me_c}, eq.~(21) in Naumann [2003]							 \tn
+$R_{\rm m}$		   	   & \rr particle mass equivalent radius												& function		& $\rm m$								& \rr eq.~\ref{eq:R_m}, eq.~(3) in Naumann [2003]								 \tn
+$R_{\rm me}$		   & \rr particle mobility equivalent radius											& function		& $\rm m$								& \rr eq.~\ref{eq:R_me}, eq.~(30) in Naumann [2003]								 \tn
+$R_{\rm me,c}$		   & \rr particle mobility equivalent radius in continuum regime				& function		& $\rm m$								& \rr eq.~\ref{eq:R_me_c}, eq.~(21) in Naumann [2003]							 \tn
 $S_{\rm acc}$		   & \rr accessible particle surface										& function		& $\rm m^2$								& \rr eq.~\ref{eq:S_acc}, eq.~(26) in Naumann [2003]							 \tn
 $T$                    & \rr absolute temperature               			                    & prescribed    & $\rm K$                               & \rr 				                     \tn
-$V$                    & \rr particle volume               			                    & function    & $\rm m^3$                               & \rr 				                     \tn
+$V$                    & \rr particle material volume               			                    & function    & $\rm m^3$                               & \rr 				                     \tn
 $\bar{v}_{\rm a}$	   & \rr thermal speed of an air molecule									& function		& $\rm m \, s^{-1}$					& \rr eq.~\ref{eq:v_a}, eq.~(15.25) in Jacobson [2005]				 		 \tn
 $z$					   & \rr scaling factor in eq.~\ref{eq:S_acc} 								& constant			& $1$									& \rr value = 1										 \tn
 \end{longtable}

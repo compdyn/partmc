@@ -11,6 +11,7 @@ module pmc_coagulation
   use pmc_bin_grid
   use pmc_aero_data
   use pmc_util
+  use pmc_stats
   use pmc_env_state
   use pmc_aero_state
   use pmc_aero_weight

@@ -10,16 +10,20 @@
 !! This module includes all the conversions of different radii and
 !! diameters to volume (and vice versa), such as
 !! geometric radius/diameter, mobility equivalent radius/diameter, etc.
-!! Geometric radius is defined as the radius of its closest convex
-!! envelop. This quantity provides the information about the collisional
+!! Here volume means the particle material volume (referred to "vol" in
+!! code). Geometric radius (referred to "rad" in code) is defined as the
+!! radius of the closest convex envelop.
+!! This quantity provides the information about the collisional
 !! cross section which is required to calculate coagulation rates.
-!! Mobility equivalent radius will be the same as geometric radius for
-!! spherical particles, and different for fractal particles. This is due
+!! Mobility equivalent radius (referred to "mobility_rad" in code)
+!! will be the same as geometric radius for
+!! spherical particles, but different for fractal particles. This is due
 !! to hydrodynamic interactions between the primary particles, which
 !! result in a decrease of the frictional forces acting upon the particles
-!! accompanied by an increase of the translatioal diffusion coefficient.
-!! Mobility equivalent radius is often used as outputs from experimental 
-!! data such as SMPS measurement.
+!! accompanied by an increase of the translational diffusion coefficient.
+!! Mobility equivalent radius is often used as output from experimental 
+!! data such as SMPS measurement. Also use "mobility_rad_in_continuum"
+!! to stand for mobility equivalent radius in continuum regime.
 !!
 !! All equations used in this file are obtained from
 !! K.&nbsp;-H.&nbsp;Naumann (2003)
@@ -33,16 +37,16 @@ module pmc_fractal
   use pmc_constants
   use pmc_netcdf
 
-  !> Constant in slip correction equation in Eq. 22 of Naumann [2003].
+  !> Constant \f$A\f$ in slip correction equation in Eq. 22 of Naumann [2003].
   real(kind=dp), parameter :: FRACTAL_A_SLIP = 1.142d0
-  !> Constant in slip correction equation in Eq. 22 of Naumann [2003].
+  !> Constant \f$Q\f$ in slip correction equation in Eq. 22 of Naumann [2003].
   real(kind=dp), parameter :: FRACTAL_Q_SLIP = 0.588d0
-  !> Constant in slip correction equation in Eq. 22 of Naumann [2003].
+  !> Constant \f$b\f$ in slip correction equation in Eq. 22 of Naumann [2003].
   real(kind=dp), parameter :: FRACTAL_B_SLIP = 0.999d0
-  !> Scaling factor in calculating accessible particle surface
+  !> Scaling factor \f$z\f$ in calculating accessible particle surface
   !> in Eq. 26 of Naumann [2003].
   real(kind=dp), parameter :: FRACTAL_SCALE_FACTOR_S_ACC = 1d0
-  !> Scaling exponent in calculating accessible particle surface
+  !> Scaling exponent \f$\gamma\f$ in calculating accessible particle surface
   !> in Eq. 26 of Naumann [2003].
   real(kind=dp), parameter :: FRACTAL_SCALE_EXPONENT_S_ACC = 0.86d0
 
@@ -51,11 +55,11 @@ module pmc_fractal
   !! The data in this structure is constant, as it represents physical
   !! quantities that cannot change over time.
   type fractal_t
-     !> Volume fractal dimension (1).
+     !> Volume fractal dimension \f$d_{\rm f}\f$ (1).
      real(kind=dp) :: frac_dim
-     !> Radius of primary particles (m).
+     !> Radius of primary particles \f$R_{\rm 0}\f$ (m).
      real(kind=dp) :: prime_radius
-     !> Volume filling factor (1).
+     !> Volume filling factor \f$f\f$ (1).
      real(kind=dp) :: vol_fill_factor
   end type fractal_t
 
@@ -91,7 +95,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert volume (m^3) to geometric radius (m) for spherical particles.
+  !> Convert volume \f$V\f$ (m^3) to geometric radius \f$R_{\rm geo}\f$ (m)
+  !> for spherical particles.
   real(kind=dp) elemental function sphere_vol2rad(v)
 
     !> Volume (m^3).
@@ -103,7 +108,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert volume (m^3) to number of monomers in a fractal particle cluster.
+  !> Convert volume \f$V\f$ (m^3) to number of monomers \f$N\f$ in a
+  !> fractal particle cluster.
   !!
   !! Based on Eq. 5 in Naumann [2003].
   real(kind=dp) elemental function vol_to_num_of_monomers(v, fractal)
@@ -119,7 +125,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert volume (m^3) to geometric radius (m).
+  !> Convert volume \f$V\f$ (m^3) to geometric radius \f$R_{\rm geo}\f$ (m).
   real(kind=dp) elemental function vol2rad(v, fractal)
 
     !> Volume (m^3).
@@ -134,7 +140,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert volume (m^3) to geometric diameter (m).
+  !> Convert volume \f$V\f$ (m^3) to geometric diameter \f$D_{\rm geo}\f$ (m).
   real(kind=dp) elemental function vol2diam(v, fractal)
 
     !> Volume (m^3).
@@ -160,7 +166,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert geometric radius (m) to volume (m^3) for spherical particles.
+  !> Convert geometric radius \f$R_{\rm geo}\f$ (m) to volume \f$V\f$ (m^3)
+  !> for spherical particles.
   real(kind=dp) elemental function sphere_rad2vol(r)
 
     !> Radius (m).
@@ -172,7 +179,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert geometric radius (m) to volume (m^3).
+  !> Convert geometric radius \f$R_{\rm geo}\f$ (m) to volume \f$V\f$ (m^3).
   real(kind=dp) elemental function rad2vol(r, fractal)
 
     !> Radius (m).
@@ -200,7 +207,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert geometric diameter (m) to volume (m^3).
+  !> Convert geometric diameter \f$D_{\rm geo}\f$ (m) to volume \f$V\f$ (m^3).
   real(kind=dp) elemental function diam2vol(d, fractal)
 
     !> Diameter (m).
@@ -214,7 +221,26 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert volume (m^3) to accessible particle surface (m^2).
+  !> Compute surface fractal dimension \f$d_{\rm s}\f$.
+  real(kind=dp) function fractal_cal_surface_frac_dim(fractal)
+
+    !> Fractal parameters.
+    type(fractal_t), intent(in) :: fractal
+
+    if (fractal%frac_dim <= 2d0) then
+       fractal_cal_surface_frac_dim = 3d0
+    elseif ((fractal%frac_dim > 2d0) .and. (fractal%frac_dim <= 3d0)) then
+       fractal_cal_surface_frac_dim = 6d0 / fractal%frac_dim
+    else
+       call die_msg(110248362, 'volume fractal dimension larger than 3')
+    end if
+
+  end function
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert volume \f$V\f$ (m^3) to accessible particle surface
+  !>  \f$S_{\rm acc}\f$ (m^2).
   !!
   !! Based on Eq. 26 in Naumann [2003].
   real(kind=dp) function vol_to_accessible_surface(v, fractal)
@@ -227,15 +253,11 @@ contains
     ! Surface fractal dimension.
     real(kind=dp) :: ds
 
-    if (fractal%frac_dim <= 2d0) then
-       ds = 3d0
-    elseif ((fractal%frac_dim > 2d0) .and. (fractal%frac_dim <= 3d0)) then
-       ds = 6d0 / fractal%frac_dim
-    end if
+    ds = fractal_cal_surface_frac_dim(fractal)
 
     vol_to_accessible_surface = 4d0 * const%pi * fractal%prime_radius**2 &
-         * vol_to_num_of_monomers(v, fractal)**(ds / 3d0) * ((ds - 2d0) &
-         * (FRACTAL_SCALE_FACTOR_S_ACC &
+         * vol_to_num_of_monomers(v, fractal)**(ds / 3d0) &
+         * ((ds - 2d0) * (FRACTAL_SCALE_FACTOR_S_ACC &
          / vol_to_num_of_monomers(v, fractal))**(1d0 &
          - FRACTAL_SCALE_EXPONENT_S_ACC) - ds + 3d0)
 
@@ -243,7 +265,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Kirkwood-Riseman ratio.
+  !> Kirkwood-Riseman ratio \f$h_{\rm KR}\f$.
   !!
   !! Based on Eq. 21 in Naumann [2003].
   real(kind=dp) function fractal_kirkwood_riseman(fractal)
@@ -251,14 +273,15 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
-    fractal_kirkwood_riseman = -0.06483d0 * fractal%frac_dim**2 + 0.6353d0 &
-         * fractal%frac_dim - 0.4898d0
+    fractal_kirkwood_riseman = -0.06483d0 * fractal%frac_dim**2 &
+         + 0.6353d0 * fractal%frac_dim - 0.4898d0
 
   end function fractal_kirkwood_riseman
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert volume (m^3) to continuum regime mobility equivalent radius (m).
+  !> Convert volume \f$V\f$ (m^3) to continuum regime mobility equivalent
+  !> radius \f$R_{\rm me,c}\f$ (m).
   !!
   !! Based on Eq. 21 in Naumann [2003].
   real(kind=dp) function vol_to_mobility_rad_in_continuum(v, fractal)
@@ -275,7 +298,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert volume (m^3) to particle effective radius (m).
+  !> Convert volume \f$V\f$ (m^3) to particle effective radius
+  !> \f$R_{\rm eff}\f$ (m).
   !!
   !! Based on Eq. 28 in Naumann [2003].
   real(kind=dp) function vol_to_effective_rad(v, fractal)
@@ -292,7 +316,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Slip correction function from continuum to free molecular regime.
+  !> Slip correction function \f$C(R)\f$ from continuum to
+  !> free molecular regime.
   !!
   !! Based on Eq. 22 in Naumann [2003].
   real(kind=dp) function fractal_slip_correct(r, tk, press, fractal)
@@ -309,14 +334,15 @@ contains
     real(kind=dp) :: fp
 
     fp = air_mean_free_path(tk, press)
-    fractal_slip_correct = 1d0 + FRACTAL_A_SLIP * fp / r + FRACTAL_Q_SLIP &
-         * fp / r * exp(-FRACTAL_B_SLIP * r / fp)
+    fractal_slip_correct = 1d0 + FRACTAL_A_SLIP * fp / r &
+         + FRACTAL_Q_SLIP * fp / r * exp(-FRACTAL_B_SLIP * r / fp)
 
   end function fractal_slip_correct
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert volume (m^3) to mobility equivalent radius (m).
+  !> Convert volume \f$V\f$ (m^3) to mobility equivalent radius
+  !> \f$R_{\rm me}\f$ (m).
   !!
   !! Based on Eq. 5, 21 and 30 in Naumann [2003].
   real(kind=dp) function vol_to_mobility_rad(v, tk, press, fractal)
@@ -350,7 +376,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Function format of mobility equivalent radius.
+  !> Function format of mobility equivalent radius \f$R_{\rm me}\f$.
   !!
   !! Helper function. Do not call directly. To be solved in
   !! vol_to_mobility_rad.
@@ -377,16 +403,17 @@ contains
     C_Reff = fractal_slip_correct(R_eff, tk, press, fractal)
     fp = air_mean_free_path(tk, press)
 
-    fractal_f_mobility_rad = C_Reff * mobility_rad**2 - R_me_c &
-         * mobility_rad - R_me_c * FRACTAL_Q_SLIP * fp &
-         * exp(-FRACTAL_B_SLIP * mobility_rad / fp) - R_me_c &
-         * FRACTAL_A_SLIP * fp
+    fractal_f_mobility_rad = C_Reff * mobility_rad**2 &
+         - R_me_c * mobility_rad &
+         - R_me_c * FRACTAL_Q_SLIP * fp &
+         * exp(-FRACTAL_B_SLIP * mobility_rad / fp) &
+         - R_me_c * FRACTAL_A_SLIP * fp
 
   end function fractal_f_mobility_rad
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> First derivative format of mobility equivalent radius function.
+  !> First derivative format of mobility equivalent radius \f$R_{\rm me}\f$.
   !!
   !! Helper function. Do not call directly. To be solved in
   !! vol_to_mobility_rad.
@@ -410,7 +437,8 @@ contains
     R_eff = vol_to_effective_rad(v, fractal)
     C_Reff = fractal_slip_correct(R_eff, tk, press, fractal)
 
-    fractal_df_mobility_rad = 2d0 * C_Reff * mobility_rad - R_me_c &
+    fractal_df_mobility_rad = 2d0 * C_Reff * mobility_rad &
+         - R_me_c &
          + R_me_c * FRACTAL_Q_SLIP * FRACTAL_B_SLIP &
          * exp(-FRACTAL_B_SLIP * mobility_rad / air_mean_free_path(tk, press))
 
@@ -418,7 +446,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert mobility equivalent radius (m) to that in the continuum regime.
+  !> Convert mobility equivalent radius \f$R_{\rm me}\f$ (m) to that in the
+  !> continuum regime \f$R_{\rm me,c}\f$ (m).
   !!
   !! Based on Eq. 30 in Naumann [2003].
   real(kind=dp) function mobility_rad_to_mobility_rad_in_continuum( &
@@ -451,7 +480,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Function format of mobility equivalent radius in continuum regime.
+  !> Function format of mobility equivalent radius
+  !> in continuum regime \f$R_{\rm me,c}\f$.
   !!
   !! Helper function. Do not call directly. To be solved in
   !! mobility_rad_to_mobility_rad_in_continuum.
@@ -475,11 +505,7 @@ contains
 
     C_Rme = fractal_slip_correct(mobility_rad, tk, press, fractal)
     fp = air_mean_free_path(tk, press)
-    if (fractal%frac_dim <= 2d0) then
-       ds = 3d0
-    elseif ((fractal%frac_dim > 2d0) .and. (fractal%frac_dim <= 3d0)) then
-       ds = 6d0 / fractal%frac_dim
-    end if
+    ds = fractal_cal_surface_frac_dim(fractal)
     phi = fractal%prime_radius**2 / (fractal%vol_fill_factor &
          * fractal_kirkwood_riseman(fractal)**fractal%frac_dim &
          * fractal%prime_radius**fractal%frac_dim)**(ds / 3d0)
@@ -495,18 +521,19 @@ contains
          * psi * (ds - 2d0) * mobility_rad_in_cont**(c1 + 1d0) &
          + C_Rme / mobility_rad * phi * (3d0 - ds) &
          * mobility_rad_in_cont**(c2 + 1d0) &
-         - phi * psi * (ds - 2d0) * mobility_rad_in_cont**c1 + phi &
-         * (ds - 3d0) * mobility_rad_in_cont**c2 &
+         - phi * psi * (ds - 2d0) * mobility_rad_in_cont**c1 &
+         + phi * (ds - 3d0) * mobility_rad_in_cont**c2 &
          - FRACTAL_Q_SLIP * fp * exp(-FRACTAL_B_SLIP / fp &
-         * (phi * psi * (ds - 2d0) * mobility_rad_in_cont**c1 + phi &
-         * (3d0 - ds) * mobility_rad_in_cont**c2)) - FRACTAL_A_SLIP * fp
+         * (phi * psi * (ds - 2d0) * mobility_rad_in_cont**c1 &
+         + phi * (3d0 - ds) * mobility_rad_in_cont**c2)) &
+         - FRACTAL_A_SLIP * fp
 
   end function fractal_f_mobility_rad_in_continuum
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> First derivative format of mobility equivalent radius in continuum
-  !> regime.
+  !> regime \f$R_{\rm me,c}\f$.
   !!
   !! Helper function. Do not call directly. To be solved in
   !! mobility_rad_to_mobility_rad_in_continuum.
@@ -528,11 +555,7 @@ contains
 
     C_Rme = fractal_slip_correct(mobility_rad, tk, press, fractal)
     fp = air_mean_free_path(tk, press)
-    if (fractal%frac_dim <= 2d0) then
-       ds = 3d0
-    elseif ((fractal%frac_dim > 2d0) .and. (fractal%frac_dim <= 3d0)) then
-       ds = 6d0 / fractal%frac_dim
-    end if
+    ds = fractal_cal_surface_frac_dim(fractal)
     phi = fractal%prime_radius**2 / (fractal%vol_fill_factor &
          * fractal_kirkwood_riseman(fractal)**fractal%frac_dim * &
          fractal%prime_radius**fractal%frac_dim)**(ds / 3d0)
@@ -545,28 +568,30 @@ contains
     c2 = fractal%frac_dim * ds / 3d0 - 1d0
 
     fractal_df_mobility_rad_in_continuum = C_Rme / mobility_rad * phi * psi &
-         * (ds - 2d0) * (c1 + 1d0) * mobility_rad_in_cont**c1 + C_Rme &
-         / mobility_rad * phi * (3d0 - ds) * (c2 + 1d0) &
-         * mobility_rad_in_cont**c2 - phi * psi * (ds - 2d0) * c1 &
-         * mobility_rad_in_cont**(c1 - 1d0) + phi * (ds - 3d0) * c2 &
-         * mobility_rad_in_cont**(c2 - 1d0) - FRACTAL_Q_SLIP * fp &
-         * exp(-FRACTAL_B_SLIP / fp * (phi * psi * (ds - 2d0) &
-         * mobility_rad_in_cont**c1 + phi * (3d0 - ds) &
-         * mobility_rad_in_cont**c2)) * (-FRACTAL_B_SLIP / fp * (phi * psi &
-         * (ds - 2d0) * c1 * mobility_rad_in_cont**(c1 - 1d0) + phi &
-         * (3d0 - ds) * c2* mobility_rad_in_cont**(c2 - 1d0)))
+         * (ds - 2d0) * (c1 + 1d0) * mobility_rad_in_cont**c1 &
+         + C_Rme / mobility_rad * phi * (3d0 - ds) * (c2 + 1d0) &
+         * mobility_rad_in_cont**c2 &
+         - phi * psi * (ds - 2d0) * c1 * mobility_rad_in_cont**(c1 - 1d0) &
+         + phi * (ds - 3d0) * c2 * mobility_rad_in_cont**(c2 - 1d0) &
+         - FRACTAL_Q_SLIP * fp * exp(-FRACTAL_B_SLIP / fp &
+         * (phi * psi * (ds - 2d0) * mobility_rad_in_cont**c1 &
+         + phi * (3d0 - ds) * mobility_rad_in_cont**c2)) &
+         * (-FRACTAL_B_SLIP / fp * (phi * psi &
+         * (ds - 2d0) * c1 * mobility_rad_in_cont**(c1 - 1d0) &
+         + phi * (3d0 - ds) * c2* mobility_rad_in_cont**(c2 - 1d0)))
 
   end function fractal_df_mobility_rad_in_continuum
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert mobility equivalent radius (m) to volume (m^3).
+  !> Convert mobility equivalent radius \f$R_{\rm me}\f$ (m) to volume
+  !> \f$V\f$ (m^3).
   !!
   !! Based on Eq. 5, 21 and 30 in Naumann [2003].
-  real(kind=dp) function mobility_rad_to_vol(r, tk, press, fractal)
+  real(kind=dp) function mobility_rad_to_vol(mobility_rad, tk, press, fractal)
 
     !> Radius (m).
-    real(kind=dp), intent(in) :: r
+    real(kind=dp), intent(in) :: mobility_rad
     !> Temperature (K).
     real(kind=dp), intent(in) :: tk
     !> Pressure (Pa).
@@ -577,9 +602,9 @@ contains
     real(kind=dp) :: R_me_c, Rgeo
 
     if (fractal%frac_dim == 3d0 .and. fractal%vol_fill_factor == 1d0) then
-       mobility_rad_to_vol = rad2vol(r, fractal)
+       mobility_rad_to_vol = rad2vol(mobility_rad, fractal)
     else
-       R_me_c = mobility_rad_to_mobility_rad_in_continuum(r, tk, &
+       R_me_c = mobility_rad_to_mobility_rad_in_continuum(mobility_rad, tk, &
             press, fractal)
        Rgeo = R_me_c / fractal_kirkwood_riseman(fractal)
        mobility_rad_to_vol = rad2vol(Rgeo, fractal)
@@ -589,7 +614,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Calculate air molecular mean free path (m).
+  !> Calculate air molecular mean free path \f$l\f$ (m).
   real(kind=dp) function air_mean_free_path(tk, press)
 
     !> Temperature (K).
@@ -600,28 +625,18 @@ contains
     real(kind=dp) :: boltz, avogad, mwair, rgas, rhoair, viscosd, &
          viscosk, gasspeed
 
-    ! boltz   = boltzmann's constant (erg/K = g*cm^2/s/K)
-    ! avogad  = avogadro's number (molecules/mol)
-    ! mwair   = molecular weight of air (g/mol)
-    ! rgas    = gas constant (atmos/(mol/liter)/K)
-    ! rhoair  = air density (g/cm^3)
-    ! viscosd = air dynamic viscosity (g/cm/s)
-    ! viscosk = air kinematic viscosity (cm^2/s)
-    ! gasspeed    = air molecule mean thermal velocity (cm/s)
-    ! air_mean_free_path = air molecule mean free path (m)
-
-    boltz = const%boltzmann * 1d7 ! J/K to erg/K
+    boltz = const%boltzmann
     avogad = const%avagadro
-    mwair = const%air_molec_weight * 1d3 ! kg/mole to g/mole
-    rgas = const%univ_gas_const * 1d-2 ! J/mole/K to atmos/(mol/liter)/K
+    mwair = const%air_molec_weight
+    rgas = const%univ_gas_const
 
-    rhoair = 0.001d0 * ((press/1.01325d5) * mwair / (rgas * tk))
+    rhoair = (press * mwair) / (rgas * tk)
 
-    viscosd = (1.8325d-04 * (296.16d0 + 120d0) / (tk + 120d0)) * (tk &
-         / 296.16d0)**1.5d0
+    viscosd = (1.8325d-05 * (296.16d0 + 120d0) / (tk + 120d0)) &
+         * (tk / 296.16d0)**1.5d0
     viscosk = viscosd / rhoair
     gasspeed = sqrt(8d0 * boltz * tk * avogad / (const%pi * mwair))
-    air_mean_free_path = 2d0 * viscosk / gasspeed * 1d-2
+    air_mean_free_path = 2d0 * viscosk / gasspeed
 
   end function air_mean_free_path
 

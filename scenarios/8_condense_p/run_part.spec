@@ -1,7 +1,7 @@
 run_type particle               # Monte Carlo run
-output_prefix out/condense      # prefix of output files
+output_prefix out_we/out_20/condense      # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
-n_part 100                      # total number of particles
+n_part 10000                    # total number of particles
 restart yes                      # whether to restart from saved state (yes/no)
 restart_file start/urban_plume2_wc_0001_00000020.nc
 
@@ -18,7 +18,7 @@ t_progress 60                   # progress printing interval (0 disables) (s)
 
 temp_profile temp_001_00000020.dat           # temperature profile file
 pressure_profile pres_001_00000020.dat       # pressure profile file
-do_entrain yes                   # whether to do entrainment (yes/no)
+do_entrain yes                              # whether to do entrainment (yes/no)
 q_tot_profile qtot_001_00000020.dat         # total water mixing ratio profile file
 q_background q_back.dat         # background spec. humidity profile file
 height_profile height.dat       # height profile file
@@ -42,7 +42,7 @@ do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
 
 rand_init 0                     # random initialization (0 to use time)
-allow_doubling no               # whether to allow doubling (yes/no)
+allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
 record_removals no              # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)

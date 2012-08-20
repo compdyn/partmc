@@ -26,7 +26,6 @@ def make_plot(in_filename,out_filename):
     y_axis = partmc.linear_grid(min=0,max=0.8,n_bin=40)
 
     hist2d = partmc.histogram_2d(wet_diameters, bc_frac, x_axis, y_axis, weights = particles.num_concs)
-    #plt.clf()
     p =  axes.pcolor(x_axis.edges(), y_axis.edges(), hist2d.transpose(),norm = matplotlib.colors.LogNorm(vmin=1e8,vmax=1e12), linewidths = 0.1)
 
     axes.set_xscale("log")
@@ -47,45 +46,45 @@ def make_plot(in_filename,out_filename):
     print out_filename
 
 
-filename_in1 = "../../scenarios/8_condense_p/out_00000004/condense_0001_00000001.nc" 
-filename_in2 = "../../scenarios/8_condense_p/out_00000004/condense_0001_00000031.nc" 
-filename_in3 = "../../scenarios/8_condense_p/out_00000004/condense_0001_00000061.nc" 
-filename_out1 = "figs/2d_bc_wet_diam_00000004_01.pdf" 
-filename_out2 = "figs/2d_bc_wet_diam_00000004_31.pdf" 
-filename_out3 = "figs/2d_bc_wet_diam_00000004_61.pdf" 
+filename_in1 = "../../scenarios/8_condense_p/out_we/out_04/condense_0001_00000001.nc" 
+filename_in2 = "../../scenarios/8_condense_p/out_we/out_04/condense_0001_00000031.nc" 
+filename_in3 = "../../scenarios/8_condense_p/out_we/out_04/condense_0001_00000061.nc" 
+filename_out1 = "figs/2d_bc_wet_diam_we_04_01.pdf" 
+filename_out2 = "figs/2d_bc_wet_diam_we_04_31.pdf" 
+filename_out3 = "figs/2d_bc_wet_diam_we_04_61.pdf" 
 
 make_plot(filename_in1, filename_out1)
 make_plot(filename_in2, filename_out2)
 make_plot(filename_in3, filename_out3)
 
-filename_in1 = "../../scenarios/8_condense_p/out_00000008/condense_0001_00000001.nc" 
-filename_in2 = "../../scenarios/8_condense_p/out_00000008/condense_0001_00000031.nc" 
-filename_in3 = "../../scenarios/8_condense_p/out_00000008/condense_0001_00000061.nc" 
-filename_out1 = "figs/2d_bc_wet_diam_00000008_01.pdf" 
-filename_out2 = "figs/2d_bc_wet_diam_00000008_31.pdf" 
-filename_out3 = "figs/2d_bc_wet_diam_00000008_61.pdf" 
+filename_in1 = "../../scenarios/8_condense_p/out_we/out_08/condense_0001_00000001.nc" 
+filename_in2 = "../../scenarios/8_condense_p/out_we/out_08/condense_0001_00000031.nc" 
+filename_in3 = "../../scenarios/8_condense_p/out_we/out_08/condense_0001_00000061.nc" 
+filename_out1 = "figs/2d_bc_wet_diam_we_08_01.pdf" 
+filename_out2 = "figs/2d_bc_wet_diam_we_08_31.pdf" 
+filename_out3 = "figs/2d_bc_wet_diam_we_08_61.pdf" 
 
 make_plot(filename_in1, filename_out1)
 make_plot(filename_in2, filename_out2)
 make_plot(filename_in3, filename_out3)
 
-filename_in1 = "../../scenarios/8_condense_p/out_00000013/condense_0001_00000001.nc" 
-filename_in2 = "../../scenarios/8_condense_p/out_00000013/condense_0001_00000031.nc" 
-filename_in3 = "../../scenarios/8_condense_p/out_00000013/condense_0001_00000061.nc" 
-filename_out1 = "figs/2d_bc_wet_diam_00000013_01.pdf" 
-filename_out2 = "figs/2d_bc_wet_diam_00000013_31.pdf" 
-filename_out3 = "figs/2d_bc_wet_diam_00000013_61.pdf" 
+filename_in1 = "../../scenarios/8_condense_p/out_we/out_13/condense_0001_00000001.nc" 
+filename_in2 = "../../scenarios/8_condense_p/out_we/out_13/condense_0001_00000031.nc" 
+filename_in3 = "../../scenarios/8_condense_p/out_we/out_13/condense_0001_00000061.nc" 
+filename_out1 = "figs/2d_bc_wet_diam_we_13_01.pdf" 
+filename_out2 = "figs/2d_bc_wet_diam_we_13_31.pdf" 
+filename_out3 = "figs/2d_bc_wet_diam_we_13_61.pdf" 
 
 make_plot(filename_in1, filename_out1)
 make_plot(filename_in2, filename_out2)
 make_plot(filename_in3, filename_out3)
 
-filename_in1 = "../../scenarios/8_condense_p/out_00000020/condense_0001_00000001.nc" 
-filename_in2 = "../../scenarios/8_condense_p/out_00000020/condense_0001_00000031.nc" 
-filename_in3 = "../../scenarios/8_condense_p/out_00000020/condense_0001_00000061.nc" 
-filename_out1 = "figs/2d_bc_wet_diam_00000020_01.pdf" 
-filename_out2 = "figs/2d_bc_wet_diam_00000020_31.pdf" 
-filename_out3 = "figs/2d_bc_wet_diam_00000020_61.pdf" 
+filename_in1 = "../../scenarios/8_condense_p/out_we/out_20/condense_0001_00000001.nc" 
+filename_in2 = "../../scenarios/8_condense_p/out_we/out_20/condense_0001_00000031.nc" 
+filename_in3 = "../../scenarios/8_condense_p/out_we/out_20/condense_0001_00000061.nc" 
+filename_out1 = "figs/2d_bc_wet_diam_we_20_01.pdf" 
+filename_out2 = "figs/2d_bc_wet_diam_we_20_31.pdf" 
+filename_out3 = "figs/2d_bc_wet_diam_we_20_61.pdf" 
 
 make_plot(filename_in1, filename_out1)
 make_plot(filename_in2, filename_out2)

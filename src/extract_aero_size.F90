@@ -121,10 +121,6 @@ program extract_aero_size
 
   call bin_grid_make(diam_grid, BIN_GRID_TYPE_LOG, n_bin, d_min, d_max)
   allocate(aero_dist(n_bin, n_file))
-  allocate(hist(n_bin))
-  allocate(diameters(0))
-  allocate(num_concs(0))
-  allocate(masses(0))
 
   do i_file = 1,n_file
      call input_state(filename_list(i_file), index, time, del_t, i_repeat, &
@@ -138,14 +134,13 @@ program extract_aero_size
              // trim(filename_list(i_file)))
      end if
 
-     call aero_state_diameters(aero_state, diameters)
-     call aero_state_num_concs(aero_state, num_concs)
+     diameters = aero_state_diameters(aero_state)
+     num_concs = aero_state_num_concs(aero_state)
      if (dist_type == DIST_TYPE_NUM) then
-        call bin_grid_histogram_1d(diam_grid, diameters, num_concs, hist)
+        hist = bin_grid_histogram_1d(diam_grid, diameters, num_concs)
      elseif (dist_type == DIST_TYPE_MASS) then
-        call aero_state_masses(aero_state, aero_data, masses)
-        call bin_grid_histogram_1d(diam_grid, diameters, num_concs * masses, &
-             hist)
+        masses = aero_state_masses(aero_state, aero_data)
+        hist = bin_grid_histogram_1d(diam_grid, diameters, num_concs * masses)
      else
         call die(123323238)
      end if
@@ -177,10 +172,6 @@ program extract_aero_size
 
   deallocate(filename_list)
   deallocate(aero_dist)
-  deallocate(hist)
-  deallocate(diameters)
-  deallocate(num_concs)
-  deallocate(masses)
   call bin_grid_allocate(diam_grid)
   call aero_data_deallocate(aero_data)
   call aero_state_deallocate(aero_state)

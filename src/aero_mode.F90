@@ -456,8 +456,8 @@ contains
        call num_conc_log_normal(aero_mode%num_conc, aero_mode%char_radius, &
             aero_mode%log10_std_dev_radius, bin_grid, num_conc)
     elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
-       call num_conc_exp(aero_data, aero_mode%num_conc, aero_mode%char_radius, &
-            bin_grid, num_conc)
+       call num_conc_exp(aero_data, aero_mode%num_conc, &
+            aero_mode%char_radius, bin_grid, num_conc)
     elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
        call num_conc_mono(aero_mode%num_conc, aero_mode%char_radius, &
             bin_grid, num_conc)
@@ -609,7 +609,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Return a radius randomly sampled from the mode distribution.
-  subroutine aero_mode_sample_radius(aero_data, aero_mode, aero_weight, radius)
+  subroutine aero_mode_sample_radius(aero_data, aero_mode, aero_weight, &
+       radius)
 
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data

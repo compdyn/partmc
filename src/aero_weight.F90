@@ -197,8 +197,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute the number concentration for a particle (m^{-3}).
-  real(kind=dp) function aero_weight_num_conc(aero_weight, &
-       aero_particle, aero_data)
+  real(kind=dp) function aero_weight_num_conc(aero_weight, aero_particle, &
+       aero_data)
 
     !> Aerosol weight.
     type(aero_weight_t), intent(in) :: aero_weight

@@ -783,8 +783,8 @@ contains
     ! create the resulting coagulated particle
     r1 = aero_particle_radius(pt1, aero_data)
     r2 = aero_particle_radius(pt2, aero_data)
-    rc = vol2rad(rad2vol(r1, aero_data%fractal) + rad2vol(r2, &
-         aero_data%fractal), aero_data%fractal)
+    rc = vol2rad(rad2vol(r1, aero_data%fractal) &
+         + rad2vol(r2, aero_data%fractal), aero_data%fractal)
     nc1 = aero_weight_array_num_conc_at_radius(aero_weight_array, c1, r1)
     nc2 = aero_weight_array_num_conc_at_radius(aero_weight_array, c2, r2)
     ncc = aero_weight_array_num_conc_at_radius(aero_weight_array, cc, rc)

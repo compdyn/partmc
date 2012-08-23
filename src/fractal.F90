@@ -22,8 +22,8 @@
 !! result in a decrease of the frictional forces acting upon the particles
 !! accompanied by an increase of the translational diffusion coefficient.
 !! Mobility equivalent radius is often used as output from experimental
-!! data such as SMPS measurement. Also use "mobility_rad_in_continuum"
-!! to stand for mobility equivalent radius in continuum regime.
+!! data such as SMPS measurements. We also use "mobility_rad_in_continuum"
+!! for the mobility equivalent radius in continuum regime.
 !!
 !! All equations used in this file are obtained from
 !! K.&nbsp;-H.&nbsp;Naumann (2003)
@@ -222,25 +222,25 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute surface fractal dimension \f$d_{\rm s}\f$.
-  real(kind=dp) function fractal_cal_surface_frac_dim(fractal)
+  real(kind=dp) function fractal_surface_frac_dim(fractal)
 
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
     if (fractal%frac_dim <= 2d0) then
-       fractal_cal_surface_frac_dim = 3d0
+       fractal_surface_frac_dim = 3d0
     elseif ((fractal%frac_dim > 2d0) .and. (fractal%frac_dim <= 3d0)) then
-       fractal_cal_surface_frac_dim = 6d0 / fractal%frac_dim
+       fractal_surface_frac_dim = 6d0 / fractal%frac_dim
     else
        call die_msg(110248362, 'volume fractal dimension larger than 3')
     end if
 
-  end function
+  end function fractal_surface_frac_dim
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert volume \f$V\f$ (m^3) to accessible particle surface
-  !>  \f$S_{\rm acc}\f$ (m^2).
+  !> Convert volume \f$V\f$ (m^3) to accessible particle surface area
+  !> \f$S_{\rm acc}\f$ (m^2).
   !!
   !! Based on Eq. 26 in Naumann [2003].
   real(kind=dp) function vol_to_accessible_surface(v, fractal)
@@ -253,7 +253,7 @@ contains
     ! Surface fractal dimension.
     real(kind=dp) :: ds
 
-    ds = fractal_cal_surface_frac_dim(fractal)
+    ds = fractal_surface_frac_dim(fractal)
 
     vol_to_accessible_surface = 4d0 * const%pi * fractal%prime_radius**2 &
          * vol_to_num_of_monomers(v, fractal)**(ds / 3d0) &
@@ -365,7 +365,7 @@ contains
        x = vol2rad(v, fractal)
     else
        x = vol_to_mobility_rad_in_continuum(v, fractal)
-       do iter = 1, MAX_ITERATIONS
+       do iter = 1,MAX_ITERATIONS
           x = x - fractal_f_mobility_rad(x, v, tk, press, fractal) &
               / fractal_df_mobility_rad(x, v, tk, press, fractal)
        end do
@@ -505,7 +505,7 @@ contains
 
     C_Rme = fractal_slip_correct(mobility_rad, tk, press, fractal)
     fp = air_mean_free_path(tk, press)
-    ds = fractal_cal_surface_frac_dim(fractal)
+    ds = fractal_surface_frac_dim(fractal)
     phi = fractal%prime_radius**2 / (fractal%vol_fill_factor &
          * fractal_kirkwood_riseman(fractal)**fractal%frac_dim &
          * fractal%prime_radius**fractal%frac_dim)**(ds / 3d0)
@@ -555,7 +555,7 @@ contains
 
     C_Rme = fractal_slip_correct(mobility_rad, tk, press, fractal)
     fp = air_mean_free_path(tk, press)
-    ds = fractal_cal_surface_frac_dim(fractal)
+    ds = fractal_surface_frac_dim(fractal)
     phi = fractal%prime_radius**2 / (fractal%vol_fill_factor &
          * fractal_kirkwood_riseman(fractal)**fractal%frac_dim * &
          fractal%prime_radius**fractal%frac_dim)**(ds / 3d0)
@@ -632,7 +632,7 @@ contains
 
     rhoair = (press * mwair) / (rgas * tk)
 
-    viscosd = (1.8325d-05 * (296.16d0 + 120d0) / (tk + 120d0)) &
+    viscosd = (1.8325d-5 * (296.16d0 + 120d0) / (tk + 120d0)) &
          * (tk / 296.16d0)**1.5d0
     viscosk = viscosd / rhoair
     gasspeed = sqrt(8d0 * boltz * tk * avogad / (const%pi * mwair))
@@ -654,8 +654,9 @@ contains
 
     !> \page input_format_fractal Input File Format: Fractal Data
     !!
-    !! The fractal parameters are divided into those specified at
-    !! computed for the rest of the simulation.
+    !! The fractal parameters are all held constant
+    !! for the rest of the simulation, are they are the same for all
+    !! the particles.
     !!
     !! The fractal data file is specified by the parameters:
     !!   - \b frac_dim (real, dimensionless): the fractal dimension
@@ -711,7 +712,7 @@ contains
     integer, intent(in) :: ncid
 
     call pmc_nc_write_real(ncid, fractal%frac_dim, "fractal_dimension", &
-         unit="1", standard_name="fractal_dimension")
+         unit="1", standard_name="")
     call pmc_nc_write_real(ncid, fractal%vol_fill_factor, &
          "fractal_vol_fill_factor", unit="1", &
          standard_name="fractal_vol_fill_factor")

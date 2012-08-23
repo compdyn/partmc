@@ -414,7 +414,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data
 
     aero_particle_dry_radius = vol2rad( &
-         aero_particle_dry_volume(aero_particle, aero_data), aero_data%fractal)
+         aero_particle_dry_volume(aero_particle, aero_data), &
+         aero_data%fractal)
 
   end function aero_particle_dry_radius
 

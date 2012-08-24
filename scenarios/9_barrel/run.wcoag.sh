@@ -2,15 +2,15 @@
 
 cat <<ENDINFO
 
-AIDA Chamber case
+Barrel case
 ---------------------
 
-This simulates a chamber study with aerosol
+This simulates a barrel study with aerosol
 coagulation.
 
 ENDINFO
 sleep 1
 
-echo ../../build/partmc aida_with_coag.spec
-../../build/partmc aida_with_coag.spec
+echo ../../build/partmc barrel_with_coag.spec
+../../build/partmc barrel_with_coag.spec
 

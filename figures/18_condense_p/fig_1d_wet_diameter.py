@@ -39,7 +39,7 @@ def make_plot(in_dir, in_filename1, in_filename2, in_filename3, out_filename):
     axes.semilogx(x_axis.centers(), hist2, label = '5 mins')
     axes.semilogx(x_axis.centers(), hist3, label = '10 mins') 
     axes.set_xlim(1e-8, 1e-4)
-    axes.set_ylim(0, 8e10)
+    axes.set_ylim(0, 3e10)
     axes.legend(loc = 'upper left')
     axes.set_xlabel("wet diameter (m)")
     axes.set_ylabel("number density (m^{-3})")
@@ -50,11 +50,11 @@ filename_in1 = "condense_0001_00000001.nc"
 filename_in2 = "condense_0001_00000031.nc" 
 filename_in3 = "condense_0001_00000061.nc" 
 
-dir_name = "../../scenarios/8_condense_p/out_ne/out_20/"
-filename_out = "figs/1d_wet_diameter_ne_20.pdf" 
-print dir_name
-print filename_out
-make_plot(dir_name, filename_in1, filename_in2, filename_in3, filename_out)
+#dir_name = "../../scenarios/8_condense_p/out_ne/out_20/"
+#filename_out = "figs/1d_wet_diameter_ne_20.pdf" 
+#print dir_name
+#print filename_out
+#make_plot(dir_name, filename_in1, filename_in2, filename_in3, filename_out)
 
 dir_name = "../../scenarios/8_condense_p/out_ne/out_04/"
 filename_out = "figs/1d_wet_diameter_ne_04.pdf"
@@ -62,14 +62,20 @@ print dir_name
 print filename_out
 make_plot(dir_name, filename_in1, filename_in2, filename_in3, filename_out) 
 
-dir_name = "../../scenarios/8_condense_p/out_ne/out_08/"
-filename_out = "figs/1d_wet_diameter_ne_08.pdf"
+dir_name = "../../scenarios/8_condense_p/out_we/out_04/"
+filename_out = "figs/1d_wet_diameter_we_04.pdf"
 print dir_name
 print filename_out
 make_plot(dir_name, filename_in1, filename_in2, filename_in3, filename_out) 
 
-dir_name = "../../scenarios/8_condense_p/out_ne/out_13/"
-filename_out = "figs/1d_wet_diameter_ne_13.pdf"
-print dir_name
-print filename_out
-make_plot(dir_name, filename_in1, filename_in2, filename_in3, filename_out) 
+#dir_name = "../../scenarios/8_condense_p/out_ne/out_08/"
+#filename_out = "figs/1d_wet_diameter_ne_08.pdf"
+#print dir_name
+#print filename_out
+#make_plot(dir_name, filename_in1, filename_in2, filename_in3, filename_out) 
+
+#dir_name = "../../scenarios/8_condense_p/out_ne/out_13/"
+#filename_out = "figs/1d_wet_diameter_ne_13.pdf"
+#print dir_name
+#print filename_out
+#make_plot(dir_name, filename_in1, filename_in2, filename_in3, filename_out) 

@@ -59,8 +59,8 @@ program merge_dimless_time_files
   call loadtxt(filename2, data2)
   old_row = size(data1, 1)
   call reallocate_real_array2d(data1, size(data1, 1) + size(data2, 1) - 1, size(data1, 2))
-  do row = old_row + 1, size(data1, 1)
-     do col = 1, size(data1, 2)
+  do row = old_row + 1,size(data1, 1)
+     do col = 1,size(data1, 2)
         if (col == 1) then
            data1(row, col) = data2(row - old_row + 1, col) + data1(old_row, 1)
         else
@@ -70,7 +70,7 @@ program merge_dimless_time_files
   end do
 
   call open_file_write(out_filename, out_unit)
-  do row = 1, size(data1, 1)
+  do row = 1,size(data1, 1)
      write(out_unit, '(e30.15e3)', advance='no') data1(row, 1)
      write(out_unit, '(e30.15e3)', advance='no') data1(row, 2)
      write(out_unit, '(a)') ''

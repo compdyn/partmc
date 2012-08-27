@@ -30,15 +30,15 @@ program test_radii_conversion
 
   vcount_Rme = 0
   vcount_Rgeo = 0
-  do i_R0 = 1, size(R0)
+  do i_R0 = 1,size(R0)
      fractal%prime_radius = R0(i_R0)
      call logspace(fractal%prime_radius, fractal%prime_radius*1d+3, Rme)
      call logspace(fractal%prime_radius, fractal%prime_radius*1d+3, Rgeo)
-     do i_f = 1, size(f)
+     do i_f = 1,size(f)
         fractal%vol_fill_factor = f(i_f)
-        do i_df = 1, size(d_f)
+        do i_df = 1,size(d_f)
            fractal%frac_dim = d_f(i_df)
-           do i_part = 1, size(Rme)
+           do i_part = 1,size(Rme)
               if (.not. almost_equal(Rme(i_part), vol_to_mobility_rad(mobility_rad_to_vol(Rme(i_part), &
                    tk, press, fractal), tk, press, fractal))) then
                  vcount_Rme = vcount_Rme + 1

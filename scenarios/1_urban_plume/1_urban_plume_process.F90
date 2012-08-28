@@ -12,7 +12,7 @@ program process
   use pmc_stats
 
   character(len=PMC_MAX_FILENAME_LEN), parameter :: prefix &
-       = "out/urban_plume"
+       = "out/urban_plume_comp1"
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename
   type(bin_grid_t) :: diam_grid, bc_grid, sc_grid, entropy_grid, avg_bin_grid
@@ -20,7 +20,7 @@ program process
   type(aero_state_t) :: aero_state, aero_state_averaged
   type(env_state_t) :: env_state
   integer :: ncid, index, repeat, i_index, i_repeat, n_index, n_repeat
-  real(kind=dp) :: time, del_t, tot_num_conc, tot_mass_conc, tot_entropy
+  real(kind=dp) :: time, del_t, tot_num_conc, tot_mass_conc, tot_entropy, ccn
   real(kind=dp) :: tot_entropy_averaged
   character(len=PMC_UUID_LEN) :: uuid
   real(kind=dp), allocatable :: times(:), dry_diameters(:), num_concs(:), &
@@ -29,8 +29,17 @@ program process
        entropies(:), entropies_averaged(:), crit_rhs(:), scs(:), num_dist(:), &
        diam_bc_dist(:,:), diam_sc_dist(:,:), entropy_dist(:)
   type(stats_1d_t) :: stats_num_dist, stats_entropy_dist, stats_tot_num_conc, &
-       stats_tot_mass_conc, stats_tot_entropy, stats_tot_entropy_averaged
+       stats_tot_mass_conc, stats_tot_entropy, stats_tot_entropy_averaged, &
+       stats_ccn(3)
   type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_sc_dist
+
+  real(kind=dp) :: s_env(3)
+  real(kind=dp), allocatable :: num_concs_active(:)
+  logical, allocatable :: is_active(:)
+
+  s_env(1) = 0.001
+  s_env(2) = 0.003
+  s_env(3) = 0.006
 
   call pmc_mpi_init()
 
@@ -94,6 +103,13 @@ program process
              sc_grid, scs, num_concs)
         call stats_2d_add(stats_diam_sc_dist, diam_sc_dist)
 
+        do i_ss=1,3
+           is_active = (scs < s_env(i_ss))
+           num_concs_active = pack(num_concs, is_active)
+           ccn = sum(num_concs_active)
+           call stats_1d_add_entry(stats_ccn(i_ss), ccn, i_index)
+        enddo
+
         entropies = aero_state_mass_entropies(aero_state, aero_data) !, &
              !exclude=["H2O"]) !, group=["BC"])
         entropy_dist = bin_grid_histogram_1d(entropy_grid, entropies, &
@@ -119,7 +135,10 @@ program process
              / sum(masses_averaged * num_concs_averaged)
         call stats_1d_add_entry(stats_tot_entropy_averaged, &
              tot_entropy_averaged, i_index)
+        write(6,*)i_index, i_repeat, shape(bc_masses), size(bc_masses)
      end do
+
+     
 
      call make_filename(out_filename, prefix, "_process.nc", index)
      call pmc_nc_open_write(out_filename, ncid)
@@ -156,6 +175,12 @@ program process
        dim_name="time", unit="m^{-3}")
   call stats_1d_output_netcdf(stats_tot_mass_conc, ncid, "tot_mass_conc", &
        dim_name="time", unit="m^{-3}")
+  call stats_1d_output_netcdf(stats_ccn(1), ncid, "ccn_01", dim_name="time", &
+       unit="m^{-3}")
+  call stats_1d_output_netcdf(stats_ccn(2), ncid, "ccn_03", dim_name="time", &
+       unit="m^{-3}")
+  call stats_1d_output_netcdf(stats_ccn(3), ncid, "ccn_06", dim_name="time", &
+       unit="m^{-3}")  
   call stats_1d_output_netcdf(stats_tot_entropy, ncid, "tot_entropy", &
        dim_name="time", unit="m^{-3}")
   call stats_1d_output_netcdf(stats_tot_entropy_averaged, ncid, &

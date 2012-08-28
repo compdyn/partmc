@@ -307,24 +307,37 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
-    real(kind=dp) :: x
-    integer, parameter :: MAX_ITERATIONS = 10
+    real(kind=dp) :: x, last_solution, solution
+    real(kind=dp) :: Rmec, Reff, C_Reff, fp, f, df
+    real(kind=dp) :: a1, a2, a3, a4, a5
     integer :: iter
-    iter = 1
 
     if (fractal%frac_dim == 3d0 .and. fractal%vol_fill_factor == 1d0) then
        x = vol2rad(v, fractal)
-    else
-       x = vol2R_me_c(v, fractal)
-       do
-         x = x - f_Rme(x, v, tk, press, fractal) &
-              / df_Rme(x, v, tk, press, fractal)
-         if (iter > MAX_ITERATIONS) then
-            exit
-         end if
-         iter= iter + 1
-       end do
+       return
     end if
+
+    Rmec = vol2R_me_c(v, fractal)
+    Reff = vol2R_eff(v, fractal)
+    C_Reff = Slip_correct(Reff, tk, press, fractal)
+    fp = air_mean_free_path(tk, press)
+    a1 = C_Reff
+    a2 = -Rmec
+    a3 = -Rmec * Q_SLIP * fp
+    a4 = -B_SLIP / fp
+    a5 = - Rmec * A_SLIP * fp
+
+    x = vol2R_me_c(v, fractal)
+    do iter = 1,10
+       last_solution = x
+       f = a1 * x**2 + a2 * x + a3 * exp(a4 * x) + a5
+       df = 2d0 * a1 * x + a2 + a3 * a4 * exp(a4 * x)
+       x = x - f / df
+       solution = x
+    end do
+    call warn_assert_msg(397562310, &
+         almost_equal(last_solution, solution), &
+         "volume to Rme newton loop did not satisfy convergence tolerance")
 
     vol2Rme = x
 
@@ -403,20 +416,52 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
-    real(kind=dp) :: x
-    integer, parameter :: MAX_ITERATIONS = 10
+    real(kind=dp) :: x, last_solution, solution
+    real(kind=dp) :: C_Rme, fp, phi, ds, psi, c1, c2, f, df
+    real(kind=dp) :: a1, a2, a3, a4, a5, a6, a7, a8
     integer :: iter
-    iter = 1
-    x = Rme
 
-    do
-      x = x - f_Rmec(x, Rme, tk, press, fractal) &
-           / df_Rmec(x, Rme, tk, press, fractal)
-      if(iter > MAX_ITERATIONS) then
-         exit
-      end if
-      iter = iter + 1
+    C_Rme = Slip_correct(Rme, tk, press, fractal)
+    fp = air_mean_free_path(tk, press)
+    if (fractal%frac_dim <= 2d0) then
+       ds = 3d0
+    elseif ((fractal%frac_dim > 2d0) .and. (fractal%frac_dim <= 3d0)) then
+       ds = 6d0 / fractal%frac_dim
+    end if
+    phi = fractal%prime_radius**2 / (fractal%vol_fill_factor &
+         * h_KR(fractal)**fractal%frac_dim * &
+         fractal%prime_radius**fractal%frac_dim)**(ds / 3d0)
+    psi = 1d0 / (fractal%vol_fill_factor * h_KR(fractal)**fractal%frac_dim &
+         * fractal%prime_radius**fractal%frac_dim)**(SCALE_EXPONENT_S_ACC &
+         - 1d0)
+    c1 = fractal%frac_dim * ds / 3d0 + (SCALE_EXPONENT_S_ACC - 1d0) &
+         * fractal%frac_dim - 1d0
+    c2 = fractal%frac_dim * ds / 3d0 - 1d0
+    
+    a1 = C_Rme / Rme * phi * psi * (ds - 2d0)
+    a2 = C_Rme / Rme * phi * (3d0 - ds)
+    a3 = -phi * psi * (ds - 2d0)
+    a4 = phi * (ds - 3d0)
+    a5 = -Q_SLIP * fp
+    a6 = -B_SLIP / fp * phi * psi * (ds - 2d0)
+    a7 = -B_SLIP / fp * phi * (3d0 - ds)
+    a8 = -A_SLIP * fp
+
+    x = Rme 
+    do iter = 1,10
+       last_solution = x
+       f = a1 * x**(c1 + 1d0) + a2 * x**(c2 + 1d0) + a3 * x**c1 &
+            + a4 * x**c2 + a5 * exp(a6 * x**c1 + a7 * x**c2) + a8
+       df = a1 * (c1 + 1d0) * x**c1 + a2 * (c2 + 1d0) * x**c2 &
+            + a3 * c1 * x**(c1 - 1d0) + a4 * c2 * x**(c2 - 1d0) &
+            + a5 * (a6 * c1 * x**(c1 - 1d0) + a7 * c2 * x**(c2 - 1d0)) &
+            * exp(a6 * x**c1 + a7 * x**c2)
+       x = x - f / df
+       solution = x
     end do
+    call warn_assert_msg(397562311, &
+            almost_equal(last_solution, solution), &
+            "Rme to Rmec newton loop did not satisfy convergence tolerance")
 
     Rme2R_me_c = x
 
@@ -544,11 +589,12 @@ contains
     real(kind=dp) :: R_me_c, Rgeo
     if (fractal%frac_dim == 3d0 .and. fractal%vol_fill_factor == 1d0) then
        Rme2vol = rad2vol(r, fractal)
-    else
-       R_me_c = Rme2R_me_c(r, tk, press, fractal)
-       Rgeo = R_me_c / h_KR(fractal)
-       Rme2vol = rad2vol(Rgeo, fractal)
+       return
     end if
+    
+    R_me_c = Rme2R_me_c(r, tk, press, fractal)
+    Rgeo = R_me_c / h_KR(fractal)
+    Rme2vol = rad2vol(Rgeo, fractal)
 
   end function Rme2vol
 

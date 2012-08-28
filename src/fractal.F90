@@ -130,7 +130,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert material volume \f$V\f$ (m^3) to geometric radius 
+  !> Convert material volume \f$V\f$ (m^3) to geometric radius
   !> \f$R_{\rm geo}\f$ (m) for spherical particles.
   real(kind=dp) elemental function sphere_vol2rad(v)
 
@@ -412,7 +412,7 @@ contains
     a2 = -Rmec
     a3 = -Rmec * FRACTAL_Q_SLIP * fp
     a4 = -FRACTAL_B_SLIP / fp
-    a5 = - Rmec * FRACTAL_A_SLIP * fp 
+    a5 = - Rmec * FRACTAL_A_SLIP * fp
 
     x = vol_to_mobility_rad_in_continuum(v, fractal)
     do iter = 1,5
@@ -425,7 +425,7 @@ contains
     call warn_assert_msg(397562310, &
          almost_equal(last_solution, solution), &
          "volume to Rme newton loop did not satisfy convergence tolerance")
-    
+
     vol_to_mobility_rad = x
 
   end function vol_to_mobility_rad

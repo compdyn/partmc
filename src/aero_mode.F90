@@ -228,8 +228,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute a log-normal distribution in volume.
-  subroutine vol_conc_log_normal(aero_data, total_num_conc, geom_mean_radius, &
-       log10_sigma_g, bin_grid, vol_conc)
+  subroutine vol_conc_log_normal(aero_data, total_num_conc, &
+       geom_mean_radius, log10_sigma_g, bin_grid, vol_conc)
     
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
@@ -609,13 +609,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Return a radius randomly sampled from the mode distribution.
-  subroutine aero_mode_sample_radius(aero_data, aero_mode, aero_weight, &
+  subroutine aero_mode_sample_radius(aero_mode, aero_data, aero_weight, &
        radius)
 
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
     !> Aero_mode to sample radius from.
     type(aero_mode_t), intent(in) :: aero_mode
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Aero weight.
     type(aero_weight_t), intent(in) :: aero_weight
     !> Sampled radius (m).

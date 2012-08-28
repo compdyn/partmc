@@ -111,15 +111,32 @@ then we can combine Eqs.~\ref{eq:m_Rgeo}, \ref{eq:Num_monomer} and \ref{eq:V_sph
   \end{align}
 \item Eq. \ref{eq:R_me} builds the basis to convert between $R_{\rm geo}$ and $R_{\rm me}$.
 \item To convert from $R_{\rm geo}$ (or volume) to $R_{\rm me}$, we use Newton's method to solve the non-linear
-equation. The original and first derivative forms of $R_{\rm me}$ are shown in Eq.~\ref{eq:f_Rme}
+equation. First we define several constants as
+
+  \begin{align}
+    a_1 &= C(R_{\rm eff}) \displaybreak[0] \\
+    a_2 &= -R_{\rm me, c} \displaybreak[0] \\
+    a_3 &= -R_{\rm me, c} Q l \displaybreak[0] \\ 
+    a_4 &= -\frac{b}{l} \displaybreak[0] \\ 
+    a_5 &= -R_{\rm me, c} A l
+  \end{align}
+
+The original and first derivative forms of $R_{\rm me}$ are shown in Eq.~\ref{eq:f_Rme}
 and Eq.~\ref{eq:df_Rme}.
+
 \begin{align}
-   f_1(R_{\rm me}) &= C(R_{\rm eff}) R_{\rm me}^2 - R_{\rm me,c} R_{\rm me} - R_{\rm me,c}
-     Q l \exp\biggl(-b \frac{R_{\rm me}}{l}\biggr) - R_{\rm me,c} A l
+   f_1(R_{\rm me}) &= a_1 R_{\rm me}^2 + a_2 R_{\rm me} + a_3 \exp(a_4 R_{\rm me}) + a_5
      \label{eq:f_Rme} \displaybreak[0] \\
-   f_1^ \prime (R_{\rm me}) &= 2 C(R_{\rm eff}) R_{\rm me} - R_{\rm me,c} + R_{\rm me,c}
-     Q b \exp\biggl(-b \frac{R_{\rm me}}{l}\biggr)  \label{eq:df_Rme} \displaybreak[0]
+   f_1^ \prime (R_{\rm me}) &= 2 a_1 R_{\rm me} + a_2 + a_3 a_4  \exp(a_4 R_{\rm me})  \label{eq:df_Rme} \displaybreak[0]
 \end{align}
+
+%\begin{align}
+%   f_1(R_{\rm me}) &= C(R_{\rm eff}) R_{\rm me}^2 - R_{\rm me,c} R_{\rm me} - R_{\rm me,c}
+%     Q l \exp\biggl(-b \frac{R_{\rm me}}{l}\biggr) - R_{\rm me,c} A l
+%     \label{eq:f_Rme} \displaybreak[0] \\
+%   f_1^ \prime (R_{\rm me}) &= 2 C(R_{\rm eff}) R_{\rm me} - R_{\rm me,c} + R_{\rm me,c}
+%     Q b \exp\biggl(-b \frac{R_{\rm me}}{l}\biggr)  \label{eq:df_Rme} \displaybreak[0]
+%\end{align}
 
 \item To convert from $R_{\rm me}$ to $R_{\rm geo}$ (or volume), we need to first convert $R_{\rm me}$
 to $R_{\rm me,c}$, and then use Eq.~\ref{eq:R_me_c} to obtain $R_{\rm geo}$.
@@ -133,15 +150,34 @@ First we define several constants as follows
   c_2 &= \frac{d_{\rm f} d_{\rm s}}{3} - 1
 \end{align}
 
+Also we can define the following constants
+
+\begin{align}
+  a_1 &= \frac{C(R_{\rm me})}{R_{\rm me}} \phi \psi (d_{\rm s} - 2) \displaybreak[0] \\
+  a_2 &= \frac{C(R_{\rm me})}{R_{\rm me}} \phi (3 - d_{\rm s}) \displaybreak[0] \\
+  a_3 &= - \phi \psi (d_{\rm s}-2) \displaybreak[0] \\
+  a_4 &= \phi (d_{\rm s} -3) \displaybreak[0] \\
+  a_5 &= -Q l \displaybreak[0] \\
+  a_6 &= - \frac{b}{l} \phi \psi (d_{\rm s}-2) \displaybreak[0] \\
+  a_7 &= - \frac{b}{l} \phi (3 - d_{\rm s}) \displaybreak[0] \\
+  a_8 &= - A l \displaybreak[0]
+\end{align}
+
 Then based on Eq.~\ref{eq:R_me}, we can write the original and first derivative forms of $R_{\rm me,c}$ as:
 
 \begin{align}
-  f_2(R_{\rm me,c}) &= \frac{C(R_{\rm me})}{R_{\rm me}} \phi \psi (d_{\rm s} -2) R_{\rm me,c}^{\rm c_1+1} + \frac{C(R_{\rm me})}{R_{\rm me}} \phi (3-d_{\rm s}) R_{\rm me,c}^{\rm c_2+1} - \phi \psi (d_{\rm s}-2) R_{\rm me,c}^{\rm c_1} \notag \\
-  &+ \phi (d_{\rm s} -3) R_{\rm me,c}^{\rm c_2} - Q l \exp\biggl(- \frac{b}{l} \left[\phi \psi (d_{\rm s}-2) R_{\rm me,c}^{\rm c_1} + \phi (3-d_{\rm s}) R_{\rm me,c}^{\rm c_2}\right]\biggr) - A l \\
-   f_2^ \prime (R_{\rm me,c}) &= \frac{C(R_{\rm me})}{R_{\rm me}} \phi \psi (d_{\rm s} -2) (c_1 +1) R_{\rm me,c}^{\rm c_1} + \frac{C(R_{\rm me})}{R_{\rm me}} \phi (3-d_{\rm s}) (c_2+1) R_{\rm me,c}^{\rm c_2} \notag \\
-   &- \phi \psi (d_{\rm s}-2) c_1 R_{\rm me,c}^{\rm c_1-1} + \phi (d_{\rm s} -3) c_2 R_{\rm me,c}^{\rm c_2-1} \notag - Q l \exp\biggl(- \frac{b}{l} \left[\phi \psi (d_{\rm s}-2) R_{\rm me,c}^{\rm c_1} + \phi (3-d_{\rm s}) R_{\rm me,c}^{\rm c_2} \right]\biggr) \notag \\
-   & \times \biggl(- \frac{b}{l} \left[\phi \psi (d_{\rm s}-2) c_1 R_{\rm me,c}^{\rm c_1-1} + \phi (3-d_{\rm s}) c_2 R_{\rm me,c}^{\rm c_2-1}\right]\biggr)
+  f_2(R_{\rm me,c}) &= a_1 R_{\rm me,c}^{c_1+1} + a_2 R_{\rm me,c}^{c_2+1} + a_3 R_{\rm me,c}^{c_1} + a_4 R_{\rm me,c}^{c_2} + a_5 \exp(a_6 R_{\rm me,c}^{c_1} + a_7 R_{\rm me,c}^{c_2}) + a_8 \displaybreak[0] \\
+  f_2^ \prime (R_{\rm me,c}) &= a_1 (c_1+1) R_{\rm me,c}^{c_1} + a_2 (c_2+1) R_{\rm me,c}^{c_2} + a_3 c_1 R_{\rm me,c}^{c_1-1} + a_4 c_2 R_{\rm me,c}^{c_2-1} \notag \\
+  & + a_5 (a_6 c_1 R_{\rm me,c}^{c_1-1} + a_7 c_2 R_{\rm me,c}^{c_2 - 1}) \exp(a_6 R_{\rm me,c}^{c_1} + a_7 R_{\rm me,c}^{c_2}) \displaybreak[0]
 \end{align}
+
+%\begin{align}
+%  f_2(R_{\rm me,c}) &= \frac{C(R_{\rm me})}{R_{\rm me}} \phi \psi (d_{\rm s} -2) R_{\rm me,c}^{\rm c_1+1} + \frac{C(R_{\rm me})}{R_{\rm me}} \phi (3-d_{\rm s}) R_{\rm me,c}^{\rm c_2+1} - \phi \psi (d_{\rm s}-2) R_{\rm me,c}^{\rm c_1} \notag \\
+%  &+ \phi (d_{\rm s} -3) R_{\rm me,c}^{\rm c_2} - Q l \exp\biggl(- \frac{b}{l} \left[\phi \psi (d_{\rm s}-2) R_{\rm me,c}^{\rm c_1} + \phi (3-d_{\rm s}) R_{\rm me,c}^{\rm c_2}\right]\biggr) - A l \\
+%   f_2^ \prime (R_{\rm me,c}) &= \frac{C(R_{\rm me})}{R_{\rm me}} \phi \psi (d_{\rm s} -2) (c_1 +1) R_{\rm me,c}^{\rm c_1} + \frac{C(R_{\rm me})}{R_{\rm me}} \phi (3-d_{\rm s}) (c_2+1) R_{\rm me,c}^{\rm c_2} \notag \\
+%   &- \phi \psi (d_{\rm s}-2) c_1 R_{\rm me,c}^{\rm c_1-1} + \phi (d_{\rm s} -3) c_2 R_{\rm me,c}^{\rm c_2-1} \notag - Q l \exp\biggl(- \frac{b}{l} \left[\phi \psi (d_{\rm s}-2) R_{\rm me,c}^{\rm c_1} + \phi (3-d_{\rm s}) R_{\rm me,c}^{\rm c_2} \right]\biggr) \notag \\
+%   & \times \biggl(- \frac{b}{l} \left[\phi \psi (d_{\rm s}-2) c_1 R_{\rm me,c}^{\rm c_1-1} + \phi (3-d_{\rm s}) c_2 R_{\rm me,c}^{\rm c_2-1}\right]\biggr)
+%\end{align}
 
 Then we use Newton's method to solve the non-linear equation to obtain $R_{\rm me,c}$.
 

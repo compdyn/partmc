@@ -23,7 +23,6 @@ module pmc_aero_state
   use pmc_aero_info
   use pmc_aero_info_array
   use pmc_aero_weight
-  use pmc_env_state
   use pmc_aero_weight_array
 #ifdef PMC_USE_MPI
   use mpi
@@ -711,7 +710,7 @@ contains
   !> Generates a Poisson sample of an \c aero_dist, adding to \c
   !> aero_state, with the given sample proportion.
   subroutine aero_state_add_aero_dist_sample(aero_state, aero_data, &
-       aero_dist, env_state, sample_prop, create_time, n_part_add)
+       aero_dist, sample_prop, create_time, n_part_add)
 
     !> Aero state to add to.
     type(aero_state_t), intent(inout) :: aero_state
@@ -719,8 +718,6 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Distribution to sample.
     type(aero_dist_t), intent(in) :: aero_dist
-    !> Environment.
-    type(env_state_t), intent(in) :: env_state
     !> Fraction to sample (1).
     real(kind=dp), intent(in) :: sample_prop
     !> Creation time for new particles (s).
@@ -764,7 +761,7 @@ contains
           end if
           do i_samp = 1,n_samp
              call aero_particle_zero(aero_particle)
-             call aero_mode_sample_radius(aero_data, aero_mode, &
+             call aero_mode_sample_radius(aero_mode, aero_data, &
                   aero_state%awa%weight(i_group, i_class), radius)
              total_vol = rad2vol(radius, aero_data%fractal)
              call aero_mode_sample_vols(aero_mode, total_vol, vols)

@@ -84,7 +84,6 @@ contains
     allocate(aero_data%kappa(0))
     allocate(aero_data%source_name(0))
     aero_data%i_water = 0
-
     call fractal_allocate(aero_data%fractal)
 
   end subroutine aero_data_allocate
@@ -112,7 +111,6 @@ contains
     allocate(aero_data%kappa(n_spec))
     allocate(aero_data%source_name(n_source))
     aero_data%i_water = 0
-
     call fractal_allocate(aero_data%fractal)
 
   end subroutine aero_data_allocate_size
@@ -132,7 +130,6 @@ contains
     deallocate(aero_data%molec_weight)
     deallocate(aero_data%kappa)
     deallocate(aero_data%source_name)
-
     call fractal_deallocate(aero_data%fractal)
 
   end subroutine aero_data_deallocate
@@ -159,6 +156,7 @@ contains
     aero_data_to%molec_weight = aero_data_from%molec_weight
     aero_data_to%kappa = aero_data_from%kappa
     aero_data_to%source_name = aero_data_from%source_name
+    call fractal_copy(aero_data_from%fractal, aero_data_to%fractal)
 
   end subroutine aero_data_copy
 
@@ -424,7 +422,8 @@ contains
          + pmc_mpi_pack_size_integer_array(val%num_ions) &
          + pmc_mpi_pack_size_real_array(val%molec_weight) &
          + pmc_mpi_pack_size_real_array(val%kappa) &
-         + pmc_mpi_pack_size_string_array(val%source_name)
+         + pmc_mpi_pack_size_string_array(val%source_name) &
+         + pmc_mpi_pack_size_fractal(val%fractal)
 
   end function pmc_mpi_pack_size_aero_data
 
@@ -454,6 +453,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_pack_real_array(buffer, position, val%kappa)
     call pmc_mpi_pack_string_array(buffer, position, val%source_name)
+    call pmc_mpi_pack_fractal(buffer, position, val%fractal)
     call assert(183834856, &
          position - prev_position <= pmc_mpi_pack_size_aero_data(val))
 #endif
@@ -486,6 +486,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_unpack_real_array(buffer, position, val%kappa)
     call pmc_mpi_unpack_string_array(buffer, position, val%source_name)
+    call pmc_mpi_unpack_fractal(buffer, position, val%fractal)
     call assert(188522823, &
          position - prev_position <= pmc_mpi_pack_size_aero_data(val))
 #endif
@@ -665,7 +666,6 @@ contains
     call pmc_nc_write_real_1d(ncid, aero_data%kappa, &
          "aero_kappa", (/ dimid_aero_species /), unit="1", &
          long_name="hygroscopicity parameters (kappas) of aerosol species")
-
     call fractal_output_netcdf(aero_data%fractal, ncid)
 
   end subroutine aero_data_output_netcdf

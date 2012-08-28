@@ -350,7 +350,11 @@ contains
     !!     environment state amongst processes each timestep, to
     !!     ensure a uniform environment
     !!   - \subpage input_format_parallel_coag
-    !! - \subpage input_format_fractal
+    !! - \b do_fractal (logical): whether to consider particles
+    !!   as fractal agglomerates. If \c do_fractal is \c no, then all the
+    !!   particles are treated as spherical. If \c do_fractal is \c yes,
+    !!   then the following parameters must also be provided:
+    !!   - \subpage input_format_fractal
 
     call gas_data_allocate(gas_data)
     call gas_state_allocate(gas_state)
@@ -619,7 +623,7 @@ contains
           end if
           call aero_state_set_n_part_ideal(aero_state, n_part)
           call aero_state_add_aero_dist_sample(aero_state, aero_data, &
-               aero_dist_init, env_state, 1d0, 0d0)
+               aero_dist_init, 1d0, 0d0)
        end if
        call env_state_copy(env_state_init, env_state)
        call scenario_init_env_state(scenario, env_state, &
@@ -714,7 +718,11 @@ contains
     !!   coagulation.  If \c do_coagulation is \c yes, then the
     !!   following parameters must also be provided:
     !!   - \subpage input_format_coag_kernel
-    !! - \subpage input_format_fractal
+    !! - \b do_fractal (logical): whether to consider particles
+    !!   as fractal agglomerates. If \c do_fractal is \c no, then all the
+    !!   particles are treated as spherical. If \c do_fractal is \c yes,
+    !!   then the following parameters must also be provided:
+    !!   - \subpage input_format_fractal
     !!
     !! Example:
     !! <pre>
@@ -875,8 +883,11 @@ contains
     !!   coagulation.  If \c do_coagulation is \c yes, then the
     !!   following parameters must also be provided:
     !!   - \subpage input_format_coag_kernel
-    !!
-    !! - \subpage input_format_fractal
+    !! - \b do_fractal (logical): whether to consider particles
+    !!   as fractal agglomerates. If \c do_fractal is \c no, then all the
+    !!   particles are treated as spherical. If \c do_fractal is \c yes,
+    !!   then the following parameters must also be provided:
+    !!   - \subpage input_format_fractal
     !!
     !! Example:
     !! <pre>
@@ -913,6 +924,7 @@ contains
     !! 
     !! do_coagulation yes              # whether to do coagulation (yes/no)
     !! kernel brown                    # coagulation kernel
+    !!
     !! do_fractal no                   # whether to do fractal treatment (yes/no)
     !! </pre>
 

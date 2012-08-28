@@ -400,7 +400,7 @@ contains
     integer :: iter
 
     if (fractal%frac_dim == 3d0 .and. fractal%vol_fill_factor == 1d0) then
-       x = vol2rad(v, fractal)
+       vol_to_mobility_rad = vol2rad(v, fractal)
        return
     end if
 
@@ -415,7 +415,7 @@ contains
     a5 = - Rmec * FRACTAL_A_SLIP * fp
 
     x = vol_to_mobility_rad_in_continuum(v, fractal)
-    do iter = 1,5
+    do iter = 1,7
        last_solution = x
        f = a1 * x**2 + a2 * x + a3 * exp(a4 * x) + a5
        df = 2d0 * a1 * x + a2 + a3 * a4 * exp(a4 * x)
@@ -476,7 +476,7 @@ contains
     a8 = -FRACTAL_A_SLIP * fp
 
     x = mobility_rad
-    do iter = 1,5
+    do iter = 1,7
        last_solution = x
        f = a1 * x**(c1 + 1d0) + a2 * x**(c2 + 1d0) + a3 * x**c1 &
             + a4 * x**c2 + a5 * exp(a6 * x**c1 + a7 * x**c2) + a8

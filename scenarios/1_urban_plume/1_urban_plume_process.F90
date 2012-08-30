@@ -12,7 +12,7 @@ program process
   use pmc_stats
 
   character(len=PMC_MAX_FILENAME_LEN), parameter :: prefix &
-       = "out/urban_plume_comp1"
+       = "out/urban_plume"
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename
   type(bin_grid_t) :: diam_grid, bc_grid, sc_grid, entropy_grid, avg_bin_grid
@@ -27,11 +27,11 @@ program process
        dry_masses(:), masses(:), bc_masses(:), bc_fracs(:), &
        num_concs_averaged(:), dry_masses_averaged(:), masses_averaged(:), &
        entropies(:), entropies_averaged(:), crit_rhs(:), scs(:), num_dist(:), &
-       diam_bc_dist(:,:), diam_sc_dist(:,:), entropy_dist(:)
+       diam_bc_dist(:,:), diam_sc_dist(:,:), entropy_dist(:), diam_entropy_dist(:,:)
   type(stats_1d_t) :: stats_num_dist, stats_entropy_dist, stats_tot_num_conc, &
        stats_tot_mass_conc, stats_tot_entropy, stats_tot_entropy_averaged, &
        stats_ccn(3)
-  type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_sc_dist
+  type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_sc_dist, stats_diam_entropy_dist
 
   real(kind=dp) :: s_env(3)
   real(kind=dp), allocatable :: num_concs_active(:)
@@ -58,7 +58,7 @@ program process
   call bin_grid_make(diam_grid, BIN_GRID_TYPE_LOG, 180, 1d-9, 1d-3)
   call bin_grid_make(bc_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 1d0)
   call bin_grid_make(sc_grid, BIN_GRID_TYPE_LOG, 50, 1d-4, 1d0)
-  call bin_grid_make(entropy_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 1d0)
+  call bin_grid_make(entropy_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 2d0)
   call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)
 
   allocate(times(n_index))
@@ -111,7 +111,7 @@ program process
         enddo
 
         entropies = aero_state_mass_entropies(aero_state, aero_data) !, &
-             !exclude=["H2O"]) !, group=["BC"])
+             !exclude=["H2O"], group=["BC"])
         entropy_dist = bin_grid_histogram_1d(entropy_grid, entropies, &
              num_concs)
         call stats_1d_add(stats_entropy_dist, entropy_dist)
@@ -119,6 +119,10 @@ program process
         tot_entropy = sum(entropies * masses * num_concs) &
              / sum(masses * num_concs)
         call stats_1d_add_entry(stats_tot_entropy, tot_entropy, i_index)
+
+        diam_entropy_dist = bin_grid_histogram_2d(diam_grid, dry_diameters, &
+             entropy_grid, entropies, num_concs)
+        call stats_2d_add(stats_diam_entropy_dist, diam_entropy_dist)
 
         call aero_state_copy(aero_state, aero_state_averaged)
         call aero_state_bin_average_comp(aero_state_averaged, avg_bin_grid, &
@@ -128,7 +132,7 @@ program process
         dry_masses_averaged = aero_state_masses(aero_state_averaged, &
              aero_data, exclude=(/"H2O"/))
         entropies_averaged = aero_state_mass_entropies(aero_state_averaged, &
-             aero_data) !, exclude=["H2O"]) !, group=["BC"])
+             aero_data) !, exclude=["H2O"], group=["BC"])
         tot_entropy_averaged &
              = sum(entropies_averaged * masses_averaged &
              * num_concs_averaged) &
@@ -163,6 +167,10 @@ program process
      call stats_1d_output_netcdf(stats_entropy_dist, ncid, "entropy_dist", &
           dim_name="entropy", unit="m^{-3}")
      call stats_1d_clear(stats_entropy_dist)
+
+     call stats_2d_output_netcdf(stats_diam_entropy_dist, ncid, "diam_entropy_dist", &
+          dim_name_1="diam", dim_name_2="entropy", unit="m^{-3}")
+     call stats_2d_clear(stats_diam_entropy_dist)
 
      call pmc_nc_close(ncid)
   end do

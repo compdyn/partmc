@@ -4,7 +4,7 @@ n_repeat 1                      # number of Monte Carlo repeats
 n_part 100000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
-t_max 15600                     # total simulation time (s)
+t_max 15600 #14400                     # total simulation time (s)
 del_t 60                       # timestep (s)
 t_output 600                   # output interval (0 disables) (s)
 t_progress 60                # progress printing interval (0 disables) (s)
@@ -23,7 +23,7 @@ gas_background gas_back.dat     # background gas mixing ratios file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
 
-rel_humidity 0.0385              # initial relative humidity (1)
+rel_humidity 0.0385 #0.0482             # initial relative humidity (1)
 latitude 0                     # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)
 altitude 0                      # altitude (m)
@@ -46,7 +46,7 @@ do_chamber yes                  # whether to do chamber loss
 V_chamber 0.2093                  # aerosol chamber volume (m^3)
 A_diffuse 1.988                   # diffusional deposition area (m^2)
 A_sedi 0.2463                     # sedimentational deposition area (m^2)
-prefactor_BL 0.5              # prefactor in diffusive boundary layer thickness (m)
+prefactor_BL 0.5 #0.2              # prefactor in diffusive boundary layer thickness (m)
 exponent_BL 0.274               # exponent in diffusive boundary layer thickness
 
 do_fractal no                  # whether to do fractal treatment

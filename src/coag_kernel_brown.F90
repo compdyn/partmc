@@ -179,9 +179,9 @@ contains
     diffus_i  = boltz*tk*cunning/(6d0*const%pi*Rme_i*viscosd)
     speedsq_i = 8d0*boltz*tk/(const%pi*den_i*vol_i)
     freepath  = 8d0*diffus_i/(const%pi*sqrt(speedsq_i))
-    tmp1      = (2d0*rad_i + freepath)**3
-    tmp2      = (4d0*rad_i*rad_i + freepath*freepath)**1.5d0
-    deltasq_i = ( (tmp1-tmp2)/(6d0*rad_i*freepath) - 2d0*rad_i )**2
+    tmp1      = (2d0*Rme_i + freepath)**3
+    tmp2      = (4d0*Rme_i*Rme_i + freepath*freepath)**1.5d0
+    deltasq_i = ( (tmp1-tmp2)/(6d0*Rme_i*freepath) - 2d0*Rme_i )**2
     
     den_j     = d2 * 1.0d-3
     vol_j     = v2 * 1.0d+6
@@ -193,14 +193,14 @@ contains
     diffus_j  = boltz*tk*cunning/(6d0*const%pi*Rme_j*viscosd)
     speedsq_j = 8d0*boltz*tk/(const%pi*den_j*vol_j)
     freepath  = 8d0*diffus_j/(const%pi*sqrt(speedsq_j))
-    tmp1      = (2d0*rad_j + freepath)**3
-    tmp2      = (4d0*rad_j*rad_j + freepath*freepath)**1.5d0
-    deltasq_j = ( (tmp1-tmp2)/(6d0*rad_j*freepath) - 2d0*rad_j )**2
+    tmp1      = (2d0*Rme_j + freepath)**3
+    tmp2      = (4d0*Rme_j*Rme_j + freepath*freepath)**1.5d0
+    deltasq_j = ( (tmp1-tmp2)/(6d0*Rme_j*freepath) - 2d0*Rme_j )**2
     
     rad_sum    = rad_i + rad_j
     diffus_sum = diffus_i + diffus_j 
     tmp1       = rad_sum/(rad_sum + sqrt(deltasq_i + deltasq_j))
-    tmp2       = 0.8d0 * 4d0*diffus_sum/(rad_sum*sqrt(speedsq_i + speedsq_j))
+    tmp2       = 4d0*diffus_sum/(rad_sum*sqrt(speedsq_i + speedsq_j)*0.4d0)
     bckernel1  = 4d0*const%pi*rad_sum*diffus_sum/(tmp1 + tmp2)
     
     bckernel   = bckernel1 * 1.0d-6

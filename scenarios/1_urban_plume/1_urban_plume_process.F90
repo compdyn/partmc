@@ -25,12 +25,15 @@ program process
   character(len=PMC_UUID_LEN) :: uuid
   real(kind=dp), allocatable :: times(:), dry_diameters(:), num_concs(:), &
        dry_masses(:), masses(:), bc_masses(:), bc_fracs(:), &
+       h2o_masses(:), h2o_fracs(:), no3_masses(:), no3_fracs(:), &
+       oc_masses(:), oc_fracs(:), so4_masses(:), so4_fracs(:), &
        num_concs_averaged(:), dry_masses_averaged(:), masses_averaged(:), &
        entropies(:), entropies_averaged(:), crit_rhs(:), scs(:), num_dist(:), &
-       diam_bc_dist(:,:), diam_sc_dist(:,:), entropy_dist(:), diam_entropy_dist(:,:)
-  type(stats_1d_t) :: stats_num_dist, stats_entropy_dist, stats_tot_num_conc, &
-       stats_tot_mass_conc, stats_tot_entropy, stats_tot_entropy_averaged, &
-       stats_ccn(3)
+       diam_bc_dist(:,:), diam_sc_dist(:,:), entropy_dist(:), diam_entropy_dist(:,:), &
+       entropy_dist_ratio(:)
+  type(stats_1d_t) :: stats_num_dist, stats_entropy_dist, stats_entropy_dist_ratio, &
+       stats_tot_num_conc, stats_tot_mass_conc, stats_tot_entropy, &
+       stats_tot_entropy_averaged, stats_ccn(3)
   type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_sc_dist, stats_diam_entropy_dist
 
   real(kind=dp) :: s_env(3)
@@ -92,6 +95,21 @@ program process
         bc_masses = aero_state_masses(aero_state, aero_data, &
              include=(/"BC"/))
         bc_fracs = bc_masses / dry_masses
+        h2o_masses = aero_state_masses(aero_state, aero_data, &
+             include=(/"H2O"/))
+        h2o_fracs = h2o_masses / dry_masses
+        oc_masses = aero_state_masses(aero_state, aero_data, &
+             include=(/"OC"/))
+        oc_fracs = oc_masses / dry_masses
+        no3_masses = aero_state_masses(aero_state, aero_data, &
+             include=(/"NO3"/))
+        no3_fracs = no3_masses / dry_masses
+        so4_masses = aero_state_masses(aero_state, aero_data, &
+             include=(/"SO4"/))
+        so4_fracs = so4_masses / dry_masses
+        
+        
+        
         diam_bc_dist = bin_grid_histogram_2d(diam_grid, dry_diameters, &
              bc_grid, bc_fracs, num_concs)
         call stats_2d_add(stats_diam_bc_dist, diam_bc_dist)
@@ -110,8 +128,8 @@ program process
            call stats_1d_add_entry(stats_ccn(i_ss), ccn, i_index)
         enddo
 
-        entropies = aero_state_mass_entropies(aero_state, aero_data) !, &
-             !exclude=["H2O"], group=["BC"])
+        entropies = aero_state_mass_entropies(aero_state, aero_data, &
+             exclude=["H2O"])!, group=["BC"])
         entropy_dist = bin_grid_histogram_1d(entropy_grid, entropies, &
              num_concs)
         call stats_1d_add(stats_entropy_dist, entropy_dist)
@@ -132,14 +150,33 @@ program process
         dry_masses_averaged = aero_state_masses(aero_state_averaged, &
              aero_data, exclude=(/"H2O"/))
         entropies_averaged = aero_state_mass_entropies(aero_state_averaged, &
-             aero_data) !, exclude=["H2O"], group=["BC"])
+             aero_data, exclude=["H2O"])!, group=["BC"])
+        entropy_dist_ratio = bin_grid_histogram_1d(entropy_grid, &
+             entropies/entropies_averaged, num_concs)
+        call stats_1d_add(stats_entropy_dist_ratio, entropy_dist_ratio)
+
         tot_entropy_averaged &
              = sum(entropies_averaged * masses_averaged &
              * num_concs_averaged) &
              / sum(masses_averaged * num_concs_averaged)
         call stats_1d_add_entry(stats_tot_entropy_averaged, &
              tot_entropy_averaged, i_index)
-        write(6,*)i_index, i_repeat, shape(bc_masses), size(bc_masses)
+        write(6,*)i_index, i_repeat, shape(bc_masses), size(bc_masses), & 
+             size(entropies_averaged), & 
+             size(entropies)
+
+        call make_filename(out_filename, prefix, "_process.nc", index, repeat)
+        call pmc_nc_open_write(out_filename, ncid)
+        call pmc_nc_write_info(ncid, uuid, "1_urban_plume process")
+        call pmc_nc_write_real_1d(ncid, entropies, "entropies", dim_name="particle", unit="1")
+        call pmc_nc_write_real_1d(ncid, dry_diameters, "dry_diam", dim_name="particle", unit="m")
+        call pmc_nc_write_real_1d(ncid, scs, "sc", dim_name="particle", unit="1")
+        call pmc_nc_write_real_1d(ncid, bc_fracs, "bc_frac", dim_name="particle", unit="1")
+        call pmc_nc_write_real_1d(ncid, h2o_fracs, "h2o_frac", dim_name="particle", unit="1")
+        call pmc_nc_write_real_1d(ncid, oc_fracs, "oc_frac", dim_name="particle", unit="1")
+        call pmc_nc_write_real_1d(ncid, no3_fracs, "no3_frac", dim_name="particle", unit="1")
+        call pmc_nc_write_real_1d(ncid, so4_fracs, "so4_frac", dim_name="particle", unit="1")
+        call pmc_nc_close(ncid)
      end do
 
      
@@ -167,6 +204,10 @@ program process
      call stats_1d_output_netcdf(stats_entropy_dist, ncid, "entropy_dist", &
           dim_name="entropy", unit="m^{-3}")
      call stats_1d_clear(stats_entropy_dist)
+
+     call stats_1d_output_netcdf(stats_entropy_dist_ratio, ncid, "entropy_dist_ratio", &
+          dim_name="entropy_ratio", unit="m^{-3}")
+     call stats_1d_clear(stats_entropy_dist_ratio)
 
      call stats_2d_output_netcdf(stats_diam_entropy_dist, ncid, "diam_entropy_dist", &
           dim_name_1="diam", dim_name_2="entropy", unit="m^{-3}")

@@ -8,28 +8,26 @@
 !> The fractal_t structure and associated subroutines.
 !!
 !! This module includes all the conversions of different radii and
-!! diameters to volume (and vice versa), such as
-!! geometric radius/diameter, mobility equivalent radius/diameter, etc.
-!! Here volume means the particle material volume (referred to "vol" in
-!! code). Geometric radius (referred to "rad" in code) is defined as the
-!! radius of the closest convex envelop.
-!! This quantity provides the information about the collisional
-!! cross section which is required to calculate coagulation rates.
+!! diameters to volume (and vice versa), such as geometric radius/diameter,
+!! mobility equivalent radius/diameter, etc. Here volume means the
+!! particle material volume (referred to "vol" in code). Geometric radius
+!! (referred to "rad" in code) is defined as the radius of the closest
+!! convex envelop. This quantity provides the information about the
+!! collisional cross section which is required to calculate coagulation rates.
 !! Mobility equivalent radius (referred to "mobility_rad" in code)
-!! will be the same as geometric radius for
-!! spherical particles, but different for fractal particles. This is due
-!! to hydrodynamic interactions between the primary particles, which
-!! result in a decrease of the frictional forces acting upon the particles
-!! accompanied by an increase of the translational diffusion coefficient.
-!! Mobility equivalent radius is often used as output from experimental
-!! data such as SMPS measurements. We also use "mobility_rad_in_continuum"
-!! for the mobility equivalent radius in continuum regime.
+!! will be the same as geometric radius for spherical particles, but
+!! different for fractal particles. This is due to hydrodynamic interactions
+!! between the primary particles, which result in a decrease of the frictional
+!! forces acting upon the particles accompanied by an increase of the
+!! translational diffusion coefficient. Mobility equivalent radius is often
+!! used as output from experimental data such as SMPS measurements. We also
+!! use "mobility_rad_in_continuum" for the mobility equivalent radius in
+!! continuum regime.
 !!
 !! All equations used in this file are obtained from
-!! K.&nbsp;-H.&nbsp;Naumann (2003)
-!! COSIMA - a computer program simulating the dynamics
-!! of fractal aerosols, <i>Journal of Aerosol Science</i>, 34(10),
-!! 1371-1397. The equations are written in detail in the file
+!! K.&nbsp;-H.&nbsp;Naumann (2003) COSIMA - a computer program simulating
+!! the dynamics of fractal aerosols, <i>Journal of Aerosol Science</i>,
+!! 34(10), 1371-1397. The equations are written in detail in the file
 !! \c doc/fractal/fractal.tex.
 module pmc_fractal
 
@@ -37,9 +35,6 @@ module pmc_fractal
   use pmc_constants
   use pmc_netcdf
   use pmc_mpi
-#ifdef PMC_USE_MPI
-  use mpi
-#endif
 
   !> Constant \f$A\f$ in slip correction equation in Eq. 22 of Naumann [2003].
   real(kind=dp), parameter :: FRACTAL_A_SLIP = 1.142d0
@@ -379,6 +374,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Test whether a particle is spherical.
+  logical function spherical(fractal)
+
+    !> Fractal parameters.
+    type(fractal_t), intent(in) :: fractal
+
+    if (fractal%frac_dim == 3d0 .and. fractal%vol_fill_factor == 1d0) then
+       spherical = .true.
+    else
+       spherical = .false.
+    end if
+
+  end function spherical
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Convert material volume \f$V\f$ (m^3) to mobility equivalent radius
   !> \f$R_{\rm me}\f$ (m).
   !!
@@ -394,12 +405,14 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
-    real(kind=dp) :: x, last_solution, solution
+    real(kind=dp), parameter :: eps = 1d-14
+    integer, parameter :: MAX_ITERATIONS = 10 
+    real(kind=dp) :: x, last_solution
     real(kind=dp) :: Rmec, Reff, C_Reff, fp, f, df
     real(kind=dp) :: a1, a2, a3, a4, a5
     integer :: iter
 
-    if (fractal%frac_dim == 3d0 .and. fractal%vol_fill_factor == 1d0) then
+    if (spherical(fractal)) then
        vol_to_mobility_rad = vol2rad(v, fractal)
        return
     end if
@@ -412,20 +425,17 @@ contains
     a2 = -Rmec
     a3 = -Rmec * FRACTAL_Q_SLIP * fp
     a4 = -FRACTAL_B_SLIP / fp
-    a5 = - Rmec * FRACTAL_A_SLIP * fp
+    a5 = -Rmec * FRACTAL_A_SLIP * fp
 
-    x = vol_to_mobility_rad_in_continuum(v, fractal)
-    do iter = 1,7
+    x = Rmec
+    do iter = 1,MAX_ITERATIONS
        last_solution = x
        f = a1 * x**2 + a2 * x + a3 * exp(a4 * x) + a5
        df = 2d0 * a1 * x + a2 + a3 * a4 * exp(a4 * x)
        x = x - f / df
-       solution = x
+       if (abs(last_solution - x) / (abs(last_solution) + abs(x)) &
+            .lt. eps) EXIT
     end do
-    call warn_assert_msg(397562310, &
-         almost_equal(last_solution, solution), &
-         "volume to Rme newton loop did not satisfy convergence tolerance")
-
     vol_to_mobility_rad = x
 
   end function vol_to_mobility_rad
@@ -448,7 +458,9 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
-    real(kind=dp) :: x, last_solution, solution
+    real(kind=dp), parameter :: eps = 1d-14
+    integer, parameter :: MAX_ITERATIONS = 10
+    real(kind=dp) :: x, last_solution
     real(kind=dp) :: C_Rme, fp, phi, ds, psi, c1, c2, f, df
     real(kind=dp) :: a1, a2, a3, a4, a5, a6, a7, a8
     integer :: iter
@@ -476,7 +488,7 @@ contains
     a8 = -FRACTAL_A_SLIP * fp
 
     x = mobility_rad
-    do iter = 1,7
+    do iter = 1,MAX_ITERATIONS
        last_solution = x
        f = a1 * x**(c1 + 1d0) + a2 * x**(c2 + 1d0) + a3 * x**c1 &
             + a4 * x**c2 + a5 * exp(a6 * x**c1 + a7 * x**c2) + a8
@@ -485,12 +497,9 @@ contains
             + a5 * (a6 * c1 * x**(c1 - 1d0) + a7 * c2 * x**(c2 - 1d0)) &
             * exp(a6 * x**c1 + a7 * x**c2)
        x = x - f / df
-       solution = x
+       if (abs(last_solution - x) / (abs(last_solution) + abs(x)) &
+            .lt. eps) EXIT
     end do
-    call warn_assert_msg(397562311, &
-            almost_equal(last_solution, solution), &
-            "Rme to Rmec newton loop did not satisfy convergence tolerance")
-
     mobility_rad_to_mobility_rad_in_continuum = x
 
   end function mobility_rad_to_mobility_rad_in_continuum
@@ -515,7 +524,7 @@ contains
 
     real(kind=dp) :: Rmec, Rgeo
 
-    if (fractal%frac_dim == 3d0 .and. fractal%vol_fill_factor == 1d0) then
+    if (spherical(fractal)) then
        mobility_rad_to_vol = rad2vol(mobility_rad, fractal)
        return
     end if
@@ -582,9 +591,14 @@ contains
     !> Value to pack.
     type(fractal_t), intent(in) :: val
 
+    integer :: prev_position
+
+    prev_position = position
     call pmc_mpi_pack_real(buffer, position, val%frac_dim)
     call pmc_mpi_pack_real(buffer, position, val%prime_radius)
     call pmc_mpi_pack_real(buffer, position, val%vol_fill_factor)
+    call assert(287864891, &
+         position - prev_position <= pmc_mpi_pack_size_fractal(val))
 
   end subroutine pmc_mpi_pack_fractal
 
@@ -600,9 +614,14 @@ contains
     !> Value to pack.
     type(fractal_t), intent(inout) :: val
 
+    integer :: prev_position
+
+    prev_position = position
     call pmc_mpi_unpack_real(buffer, position, val%frac_dim)
     call pmc_mpi_unpack_real(buffer, position, val%prime_radius)
     call pmc_mpi_unpack_real(buffer, position, val%vol_fill_factor)
+    call assert(294756245, &
+         position - prev_position <= pmc_mpi_pack_size_fractal(val))
 
   end subroutine pmc_mpi_unpack_fractal
 
@@ -620,21 +639,18 @@ contains
 
     !> \page input_format_fractal Input File Format: Fractal Data
     !!
-    !! The fractal parameters are all held constant
-    !! for the rest of the simulation, and they are the same for all
-    !! the particles.
+    !! The fractal parameters are all held constant for the simulation,
+    !! and they are the same for all the particles.
     !!
     !! The fractal data file is specified by the parameters:
-    !!   - \b frac_dim \f$d_{\rm f}\f$ (real, dimensionless):
-    !!     the fractal dimension
-    !!     (3 for spherical and less than 3 for agglomerate)
+    !!   - \b frac_dim \f$d_{\rm f}\f$ (real, dimensionless): the fractal
+    !!     dimension (3 for spherical and less than 3 for agglomerate)
     !!   - \b prime_radius \f$R_0\f$ (real, unit m): radius of primary
     !!     particles
-    !!   - \b vol_fill_factor \f$f\f$ (real, dimensionless):
-    !!     the volume filling
-    !!     factor which accounts for the fact that even in a most closely
-    !!     packed structure the spherical monomers can occupy only 74%
-    !!     of the available volume (1 for compact structure)
+    !!   - \b vol_fill_factor \f$f\f$ (real, dimensionless): the volume
+    !!     filling factor which accounts for the fact that even
+    !!     in a most closely packed structure the spherical monomers can
+    !!     occupy only 74% of the available volume (1 for compact structure)
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format

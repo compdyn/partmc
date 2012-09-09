@@ -18,8 +18,8 @@ $A$					   & \rr constant in slip correction formula								& constant			& $1$		
 $b$					   & \rr constant in slip correction formula								& constant			& $1$									& \rr eq.~\ref{eq:slip_correct}, value = 0.999		 \tn
 $C$					   & \rr slip correction factor from continuum to free molecular regime		& function		& $1$									& \rr eq.~\ref{eq:slip_correct}, eq.~(22) in Naumann [2003]					 \tn
 $d_{\rm f}$			   & \rr volume fractal dimension											& input			& $1$									& \rr 				 \tn
-$D_{\rm geo}$		   & \rr geometric diameter of fractal particles								& function		& $\rm m$								& 							 \tn
 $d_{\rm s}$			   & \rr surface fractal dimension											& input			& $1$									& \rr $d_{\rm f} \leq 2, d_{\rm s} = 3$; $2 \leq d_{\rm f} \leq 3, d_{\rm s} = \frac{6}{d_{\rm f}}$				 \tn
+$D_{\rm geo}$		   & \rr geometric diameter of fractal particles								& function		& $\rm m$								& 							 \tn
 $\eta_{\rm a}$		   & \rr dynamic viscosity of air											& function		& $\rm kg \, m^{-1} \, s^{-1}$			& \rr eq.~\ref{eq:eta_a}							 \tn
 $f$					   & \rr volume filling factor												& input			& $1$									& \rr 					 \tn
 $\gamma$			   & \rr scaling exponent in eq.~\ref{eq:S_acc} 	 							& constant			& $1$									& \rr value = 0.86									 \tn
@@ -39,17 +39,17 @@ $R_{\rm ae}$		   & \rr particle aerodynamic radius													& function		& $\r
 $R_{\rm eff}$		   & \rr particle effective radius					& function		& $\rm m$								& \rr eq.~\ref{eq:R_eff}, eq.~(28) in Naumann [2003]							 \tn
 $R_{\rm gas}$			  		   & \rr universal gas constant												& constant		& $\rm J \, mol^{-1} \, K^{-1}$	& \rr \verb+const%univ_gas_const+		 \tn
 $R_{\rm geo}$		   & \rr particle geometric radius								& function		& $\rm m$								& \rr eq.~\ref{eq:R_geo}							 \tn
+$R_{\rm m}$		   	   & \rr particle mass equivalent radius												& function		& $\rm m$								& \rr eq.~\ref{eq:R_m}, eq.~(3) in Naumann [2003]								 \tn
+$R_{\rm me}$		   & \rr particle mobility equivalent radius											& function		& $\rm m$								& \rr eq.~\ref{eq:R_me}, eq.~(30) in Naumann [2003]								 \tn
+$R_{\rm me,c}$		   & \rr particle mobility equivalent radius in continuum regime				& function		& $\rm m$								& \rr eq.~\ref{eq:R_me_c}, eq.~(21) in Naumann [2003]							 \tn
 $R_{\rm sphere}$		   & \rr geometric radius of spherical particles								& function		& $\rm m$				& \rr eq.~\ref{eq:R_sphere}							 \tn
 $\rho$				   & \rr material density of primary particles		& prescribed		& $\rm kg \, m^{-3}$					& \rr \verb+aero_data%density+					 \tn
 $\rho_{\rm 0}$		   & \rr material density of reference particles (latex sphere)				& constant			& $\rm kg \, m^{-3}$					& \rr eq.~\ref{eq:R_ae}, value = 940				 \tn
 $\rho_{\rm a}$		   & \rr air density														& function		& $\rm kg \, m^{-3}$					& \rr eq.~\ref{eq:rho_a}							 \tn
-$R_{\rm m}$		   	   & \rr particle mass equivalent radius												& function		& $\rm m$								& \rr eq.~\ref{eq:R_m}, eq.~(3) in Naumann [2003]								 \tn
-$R_{\rm me}$		   & \rr particle mobility equivalent radius											& function		& $\rm m$								& \rr eq.~\ref{eq:R_me}, eq.~(30) in Naumann [2003]								 \tn
-$R_{\rm me,c}$		   & \rr particle mobility equivalent radius in continuum regime				& function		& $\rm m$								& \rr eq.~\ref{eq:R_me_c}, eq.~(21) in Naumann [2003]							 \tn
 $S_{\rm acc}$		   & \rr accessible particle surface area										& function		& $\rm m^2$								& \rr eq.~\ref{eq:S_acc}, eq.~(26) in Naumann [2003]							 \tn
 $T$                    & \rr absolute temperature               			                    & prescribed    & $\rm K$                               & \rr 				                     \tn
-$V$                    & \rr particle material volume               			                    & function    & $\rm m^3$                               & \rr 				                     \tn
 $\bar{v}_{\rm a}$	   & \rr thermal speed of an air molecule									& function		& $\rm m \, s^{-1}$					& \rr eq.~\ref{eq:v_a}, eq.~(15.25) in Jacobson [2005]				 		 \tn
+$V$                    & \rr particle material volume               			                    & function    & $\rm m^3$                               & \rr 				                     \tn
 $V_{\rm sphere}$		   & \rr material volume of spherical particles								& function		& $\rm m^3$				& \rr eq.~\ref{eq:V_sphere}							 \tn
 $z$					   & \rr scaling factor in eq.~\ref{eq:S_acc} 								& constant			& $1$									& \rr value = 1										 \tn
 \end{longtable}
@@ -101,7 +101,7 @@ then rearrange Eq.~\ref{eq:Num_monomer} to calculate $R_{\rm geo}$
   \begin{align}
     R_{\rm geo} = R_{\rm 0} (f N)^{\frac{1}{d_{\rm f}}} \label{eq:R_geo}
   \end{align}
-In reverse, to calculate volume $V$ from $R_{\rm geo}$, we know the material volume of any spherical particle with radius $R$ is given by 
+In reverse, to calculate volume $V$ from $R_{\rm geo}$, we know the material volume of any spherical particle with radius $R$ is given by
    \begin{align}
     V_{\rm sphere}(R) = \frac{4}{3} \pi R^3 \label{eq:V_sphere}
   \end{align}
@@ -129,14 +129,6 @@ and Eq.~\ref{eq:df_Rme}.
      \label{eq:f_Rme} \displaybreak[0] \\
    f_1^ \prime (R_{\rm me}) &= 2 a_1 R_{\rm me} + a_2 + a_3 a_4  \exp(a_4 R_{\rm me})  \label{eq:df_Rme} \displaybreak[0]
 \end{align}
-
-%\begin{align}
-%   f_1(R_{\rm me}) &= C(R_{\rm eff}) R_{\rm me}^2 - R_{\rm me,c} R_{\rm me} - R_{\rm me,c}
-%     Q l \exp\biggl(-b \frac{R_{\rm me}}{l}\biggr) - R_{\rm me,c} A l
-%     \label{eq:f_Rme} \displaybreak[0] \\
-%   f_1^ \prime (R_{\rm me}) &= 2 C(R_{\rm eff}) R_{\rm me} - R_{\rm me,c} + R_{\rm me,c}
-%     Q b \exp\biggl(-b \frac{R_{\rm me}}{l}\biggr)  \label{eq:df_Rme} \displaybreak[0]
-%\end{align}
 
 \item To convert from $R_{\rm me}$ to $R_{\rm geo}$ (or volume), we need to first convert $R_{\rm me}$
 to $R_{\rm me,c}$, and then use Eq.~\ref{eq:R_me_c} to obtain $R_{\rm geo}$.
@@ -170,14 +162,6 @@ Then based on Eq.~\ref{eq:R_me}, we can write the original and first derivative 
   f_2^ \prime (R_{\rm me,c}) &= a_1 (c_1+1) R_{\rm me,c}^{c_1} + a_2 (c_2+1) R_{\rm me,c}^{c_2} + a_3 c_1 R_{\rm me,c}^{c_1-1} + a_4 c_2 R_{\rm me,c}^{c_2-1} \notag \\
   & + a_5 (a_6 c_1 R_{\rm me,c}^{c_1-1} + a_7 c_2 R_{\rm me,c}^{c_2 - 1}) \exp(a_6 R_{\rm me,c}^{c_1} + a_7 R_{\rm me,c}^{c_2}) \displaybreak[0]
 \end{align}
-
-%\begin{align}
-%  f_2(R_{\rm me,c}) &= \frac{C(R_{\rm me})}{R_{\rm me}} \phi \psi (d_{\rm s} -2) R_{\rm me,c}^{\rm c_1+1} + \frac{C(R_{\rm me})}{R_{\rm me}} \phi (3-d_{\rm s}) R_{\rm me,c}^{\rm c_2+1} - \phi \psi (d_{\rm s}-2) R_{\rm me,c}^{\rm c_1} \notag \\
-%  &+ \phi (d_{\rm s} -3) R_{\rm me,c}^{\rm c_2} - Q l \exp\biggl(- \frac{b}{l} \left[\phi \psi (d_{\rm s}-2) R_{\rm me,c}^{\rm c_1} + \phi (3-d_{\rm s}) R_{\rm me,c}^{\rm c_2}\right]\biggr) - A l \\
-%   f_2^ \prime (R_{\rm me,c}) &= \frac{C(R_{\rm me})}{R_{\rm me}} \phi \psi (d_{\rm s} -2) (c_1 +1) R_{\rm me,c}^{\rm c_1} + \frac{C(R_{\rm me})}{R_{\rm me}} \phi (3-d_{\rm s}) (c_2+1) R_{\rm me,c}^{\rm c_2} \notag \\
-%   &- \phi \psi (d_{\rm s}-2) c_1 R_{\rm me,c}^{\rm c_1-1} + \phi (d_{\rm s} -3) c_2 R_{\rm me,c}^{\rm c_2-1} \notag - Q l \exp\biggl(- \frac{b}{l} \left[\phi \psi (d_{\rm s}-2) R_{\rm me,c}^{\rm c_1} + \phi (3-d_{\rm s}) R_{\rm me,c}^{\rm c_2} \right]\biggr) \notag \\
-%   & \times \biggl(- \frac{b}{l} \left[\phi \psi (d_{\rm s}-2) c_1 R_{\rm me,c}^{\rm c_1-1} + \phi (3-d_{\rm s}) c_2 R_{\rm me,c}^{\rm c_2-1}\right]\biggr)
-%\end{align}
 
 Then we use Newton's method to solve the non-linear equation to obtain $R_{\rm me,c}$.
 

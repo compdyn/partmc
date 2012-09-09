@@ -12,7 +12,7 @@
 !! of fractal aerosols, Journal of Aerosol Science, Vol. 34, No. 10,
 !! pp. 1371-1397, 2003.
 
-!> Brownian coagulation kernel in free molecular regime based o Naumann [2003].
+!> Brownian coagulation kernel in free molecular regime based on Naumann [2003].
 module pmc_coag_kernel_naumann_free
 
   use pmc_env_state

@@ -13,7 +13,7 @@
 !! pp. 175-185, 1995.
 
 !> Brownian coagulation kernel in continuum regime based on
-!> in Vemury and Pratsinis [1995].
+!> Vemury and Pratsinis [1995].
 module pmc_coag_kernel_vemury_cont
 
   use pmc_env_state

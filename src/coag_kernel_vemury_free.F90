@@ -13,7 +13,7 @@
 !! pp. 175-185, 1995.
 
 !> Brownian coagulation kernel in free molecular regime based on
-!> in Vemury and Pratsinis [1995].
+!> Vemury and Pratsinis [1995].
 module pmc_coag_kernel_vemury_free
 
   use pmc_env_state
@@ -115,7 +115,7 @@ contains
   !!
   !! Helper function. Do not call directly. Instead use kernel_vemury_free().
   !!
-  !! Use Eq. 6 of Vemury and Pratsinis [1995].
+  !! Use Eq. 4 of Vemury and Pratsinis [1995].
   subroutine kernel_vemury_free_helper(v1, d1, v2, d2, aero_data, &
        tk, press, bckernel)
 

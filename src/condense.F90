@@ -535,6 +535,10 @@ contains
     delta_star = 0d0
     h = 0d0
     dh_ddelta = 1d0
+#ifdef CONDENSE_EXPLICIT
+    delta_star = U * V * D_vp * (inputs%H - a_w * exp(X / inputs%D)) / k_ap
+    dh_ddelta = k_ap
+#else
     do newton_step = 1,5
        ! update delta_star first so when the newton loop ends we have
        ! h and dh_ddelta evaluated at the final delta_star value
@@ -550,14 +554,23 @@ contains
             * exp(W * delta_star / (1d0 + delta_star) &
             + (X / inputs%D) / (1d0 + delta_star))
     end do
+    !write(*,*) 'rel tol', abs((h / dh_ddelta) / delta_star)
     call warn_assert_msg(387362320, &
          abs(h) < 1d3 * epsilon(1d0) * abs(U * V * D_vp * inputs%H), &
          "condensation newton loop did not satisfy convergence tolerance")
+#endif
 
     outputs%Ddot = k_ap * delta_star / (U * inputs%D)
     outputs%Hdot_i = - 2d0 * const%pi / (V * inputs%V_comp) &
          * inputs%D**2 * outputs%Ddot
 
+#ifdef CONDENSE_EXPLICIT
+    dh_dD = dkap_dD * delta_star &
+         - U * V * dDvp_dD * inputs%H + U * V &
+         * (a_w * dDvp_dD + D_vp * daw_dD &
+         - D_vp * a_w * (X / inputs%D**2)) &
+         * exp(X / inputs%D)
+#else
     dh_dD = dkap_dD * delta_star &
          - U * V * dDvp_dD * inputs%H + U * V &
          * (a_w * dDvp_dD + D_vp * daw_dD &
@@ -565,6 +578,7 @@ contains
          * (1d0 / (1d0 + delta_star)) &
          * exp((W * delta_star) / (1d0 + delta_star) &
          + (X / inputs%D) / (1d0 + delta_star))
+#endif
     dh_dH = - U * V * D_vp
 
     ddeltastar_dD = - dh_dD / dh_ddelta

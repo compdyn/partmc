@@ -18,6 +18,14 @@ option(ENABLE_GSL "Enable GSL library for random number generation" OFF)
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
+option(CONDENSE_EXPLICIT "Use explicit equations for condensation" OFF)
+
+######################################################################
+# CONDENSE_EXPLICIT
+
+if(CONDENSE_EXPLICIT)
+  add_definitions(-DCONDENSE_EXPLICIT)
+endif()
 
 ######################################################################
 # CPack

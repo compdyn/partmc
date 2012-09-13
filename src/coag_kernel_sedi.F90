@@ -75,7 +75,7 @@ contains
   !> Helper function that does the actual sedimentation kernel computation.
   !!
   !! Helper function. Do not call directly. Instead use kernel_sedi().
-  subroutine kernel_sedi_helper(v1, v2, aero_data, tk, press, k)
+  subroutine kernel_sedi_helper(v1, v2, aero_data, temp, pressure, k)
 
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
@@ -84,9 +84,9 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Temperature (K).
-    real(kind=dp), intent(in) :: tk
+    real(kind=dp), intent(in) :: temp
     !> Pressure (Pa).
-    real(kind=dp), intent(in) :: press
+    real(kind=dp), intent(in) :: pressure
     !> Kernel k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: k
 
@@ -94,9 +94,9 @@ contains
     
     r1 = vol2rad(v1, aero_data%fractal) ! m
     r2 = vol2rad(v2, aero_data%fractal) ! m
-    call fall_g(vol_to_mobility_rad(v1, tk, press, aero_data%fractal), &
+    call fall_g(vol_to_mobility_rad(v1, temp, pressure, aero_data%fractal), &
          winf1) ! winf1 in m/s
-    call fall_g(vol_to_mobility_rad(v2, tk, press, aero_data%fractal), &
+    call fall_g(vol_to_mobility_rad(v2, temp, pressure, aero_data%fractal), &
          winf2) ! winf2 in m/s
     call effic(r1, r2, ec) ! ec is dimensionless
     k = ec * const%pi * (r1 + r2)**2 * abs(winf1 - winf2)

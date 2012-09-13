@@ -52,7 +52,7 @@ contains
     d2 = aero_particle_density(aero_particle_2, aero_data)
 
     call kernel_vemury_cont_helper(v1, d1, v2, d2, aero_data, &
-         env_state%temp, env_state%pressure, k)
+         env_state%temp, k)
 
   end subroutine kernel_vemury_cont
 
@@ -95,7 +95,7 @@ contains
           d1 = interp_linear_disc(d_min, d_max, n_sample, i)
           d2 = interp_linear_disc(d_min, d_max, n_sample, j)
           call kernel_vemury_cont_helper(v1, d1, v2, d2, aero_data, &
-               env_state%temp, env_state%pressure, k)
+               env_state%temp, k)
           if (first) then
              first = .false.
              k_min = k
@@ -117,7 +117,7 @@ contains
   !!
   !! Use Eq. 6 of Vemury and Pratsinis [1995].
   subroutine kernel_vemury_cont_helper(v1, d1, v2, d2, aero_data, &
-       tk, press, bckernel)
+       temp, bckernel)
 
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
@@ -130,22 +130,18 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Temperature (K).
-    real(kind=dp), intent(in) :: tk
-    !> Pressure (Pa).
-    real(kind=dp), intent(in) :: press
+    real(kind=dp), intent(in) :: temp
     !> Kernel k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: bckernel
 
-    real(kind=dp) :: N_i, N_j
-    ! Number of monomers in particles i and j.
-    N_i = 3d0 * v1 / 4d0 / const%pi / (aero_data%fractal%prime_radius**3d0)
-    N_j = 3d0 * v2 / 4d0 / const%pi / (aero_data%fractal%prime_radius**3d0)
+    real(kind=dp) :: N_i, N_j, N_i_inv_df, N_j_inv_df
 
-    bckernel = 2d0 * const%boltzmann * tk / 3d0 / const%air_dyn_visc &
-         * (1d0 / N_i**(1d0 / aero_data%fractal%frac_dim) + 1d0 &
-         / N_j**(1d0 / aero_data%fractal%frac_dim)) &
-         * (N_i**(1d0 / aero_data%fractal%frac_dim) &
-         + N_j**(1d0 / aero_data%fractal%frac_dim))
+    N_i = vol_to_num_of_monomers(v1, aero_data%fractal)
+    N_j = vol_to_num_of_monomers(v2, aero_data%fractal)
+    N_i_inv_df = N_i**(1d0 / aero_data%fractal%frac_dim)
+    N_j_inv_df = N_j**(1d0 / aero_data%fractal%frac_dim)
+    bckernel = 2d0 * const%boltzmann * temp / 3d0 / const%air_dyn_visc &
+         * (1d0 / N_i_inv_df + 1d0 / N_j_inv_df) * (N_i_inv_df + N_j_inv_df)
 
   end subroutine kernel_vemury_cont_helper
 

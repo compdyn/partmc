@@ -28,23 +28,23 @@ module pmc_coag_kernel
   integer, parameter :: COAG_KERNEL_TYPE_LEN = 20
 
   !> Type code for an undefined or invalid kernel.
-  integer, parameter :: COAG_KERNEL_TYPE_INVALID  = 0
+  integer, parameter :: COAG_KERNEL_TYPE_INVALID      = 0
   !> Type code for a sedimentation kernel.
-  integer, parameter :: COAG_KERNEL_TYPE_SEDI     = 1
+  integer, parameter :: COAG_KERNEL_TYPE_SEDI         = 1
   !> Type code for an additive kernel.
-  integer, parameter :: COAG_KERNEL_TYPE_ADDITIVE = 2
+  integer, parameter :: COAG_KERNEL_TYPE_ADDITIVE     = 2
   !> Type code for a constant kernel.
-  integer, parameter :: COAG_KERNEL_TYPE_CONSTANT = 3
+  integer, parameter :: COAG_KERNEL_TYPE_CONSTANT     = 3
   !> Type code for a Brownian kernel.
-  integer, parameter :: COAG_KERNEL_TYPE_BROWN    = 4
+  integer, parameter :: COAG_KERNEL_TYPE_BROWN        = 4
   !> Type code for a zero kernel.
-  integer, parameter :: COAG_KERNEL_TYPE_ZERO     = 5
+  integer, parameter :: COAG_KERNEL_TYPE_ZERO         = 5
   !> Type code for a Brownian kernel in free molecular regime from Vemury
   !> and Pratsinis [1995].
-  integer, parameter :: COAG_KERNEL_TYPE_VEMURY_FREE = 6
+  integer, parameter :: COAG_KERNEL_TYPE_VEMURY_FREE  = 6
   !> Type code for a Brownian kernel in continuum regime from Vemury and
   !> Pratsinis [1995].
-  integer, parameter :: COAG_KERNEL_TYPE_VEMURY_CONT = 7
+  integer, parameter :: COAG_KERNEL_TYPE_VEMURY_CONT  = 7
   !> Type code for a Brownian kernel in free molecular regime from Naumann
   !> [2003].
   integer, parameter :: COAG_KERNEL_TYPE_NAUMANN_FREE = 8

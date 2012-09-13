@@ -51,7 +51,7 @@ contains
     d2 = aero_particle_density(aero_particle_2, aero_data)
 
     call kernel_naumann_free_helper(v1, d1, v2, d2, aero_data, &
-         env_state%temp, env_state%pressure, k)
+         env_state%temp, k)
 
   end subroutine kernel_naumann_free
 
@@ -94,7 +94,7 @@ contains
           d1 = interp_linear_disc(d_min, d_max, n_sample, i)
           d2 = interp_linear_disc(d_min, d_max, n_sample, j)
           call kernel_naumann_free_helper(v1, d1, v2, d2, aero_data, &
-               env_state%temp, env_state%pressure, k)
+               env_state%temp, k)
           if (first) then
              first = .false.
              k_min = k
@@ -116,7 +116,7 @@ contains
   !!
   !! Use Eq. 41b of Naumann [2003].
   subroutine kernel_naumann_free_helper(v1, d1, v2, d2, aero_data, &
-       tk, press, bckernel)
+       temp, bckernel)
 
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
@@ -129,26 +129,23 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Temperature (K).
-    real(kind=dp), intent(in) :: tk
-    !> Pressure (Pa).
-    real(kind=dp), intent(in) :: press
+    real(kind=dp), intent(in) :: temp
     !> Kernel k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: bckernel
 
-    real(kind=dp) :: rho, N_i, N_j
-    ! Calculate volume weighted particle density.
-    rho = (v1 / (v1 + v2)) * d1 + (v2 / (v1 + v2)) * d2
-    ! Number of monomers in particles i and j.
-    N_i = 3d0 * v1 / 4d0 / const%pi / (aero_data%fractal%prime_radius**3d0)
-    N_j = 3d0 * v2 / 4d0 / const%pi / (aero_data%fractal%prime_radius**3d0)
+    real(kind=dp) :: rho, N_i, N_j, f, df, R0, N_i_inv_df, N_j_inv_df
 
-    bckernel = sqrt(6d0 * const%boltzmann * tk &
-         * aero_data%fractal%prime_radius / rho) &
-         * sqrt(1d0 / N_i + 1d0 / N_j) &
-         * aero_data%fractal%vol_fill_factor**(2d0 &
-         / aero_data%fractal%frac_dim) * (N_i**(1d0 &
-         / aero_data%fractal%frac_dim) + N_j**(1d0 &
-         / aero_data%fractal%frac_dim))**2d0
+    rho = (v1 / (v1 + v2)) * d1 + (v2 / (v1 + v2)) * d2
+    N_i = vol_to_num_of_monomers(v1, aero_data%fractal)
+    N_j = vol_to_num_of_monomers(v2, aero_data%fractal)
+    f = aero_data%fractal%vol_fill_factor
+    df = aero_data%fractal%frac_dim
+    R0 = aero_data%fractal%prime_radius
+    N_i_inv_df = N_i**(1d0 / df)
+    N_j_inv_df = N_j**(1d0 / df)
+    bckernel = sqrt(6d0 * const%boltzmann * temp * R0 / rho &
+         * (1d0 / N_i + 1d0 / N_j)) &
+         * f**(2d0 / df) * (N_i_inv_df + N_j_inv_df)**2d0
 
   end subroutine kernel_naumann_free_helper
 

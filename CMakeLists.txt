@@ -270,20 +270,6 @@ add_test(test_fractal_14 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_14.sh
 set_tests_properties(test_fractal_14 PROPERTIES DEPENDS test_fractal_13)
 add_test(test_fractal_15 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_15.sh)
 set_tests_properties(test_fractal_15 PROPERTIES DEPENDS test_fractal_14)
-add_test(test_fractal_16 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_16.sh)
-set_tests_properties(test_fractal_16 PROPERTIES DEPENDS test_fractal_15)
-add_test(test_fractal_17 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_17.sh)
-set_tests_properties(test_fractal_17 PROPERTIES DEPENDS test_fractal_16)
-add_test(test_fractal_18 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_18.sh)
-set_tests_properties(test_fractal_18 PROPERTIES DEPENDS test_fractal_17)
-add_test(test_fractal_19 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_19.sh)
-set_tests_properties(test_fractal_19 PROPERTIES DEPENDS test_fractal_18)
-add_test(test_fractal_20 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_20.sh)
-set_tests_properties(test_fractal_20 PROPERTIES DEPENDS test_fractal_19)
-add_test(test_fractal_21 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_21.sh)
-set_tests_properties(test_fractal_21 PROPERTIES DEPENDS test_fractal_20)
-add_test(test_fractal_22 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_22.sh)
-set_tests_properties(test_fractal_22 PROPERTIES DEPENDS test_fractal_21)
 
 ######################################################################
 # partmc library
@@ -295,9 +281,8 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/aero_dist.F90 src/aero_weight.F90 src/aero_weight_array.F90
   src/coag_kernel_additive.F90 src/coag_kernel_sedi.F90
   src/coag_kernel_constant.F90 src/coag_kernel_brown.F90
-  src/coag_kernel_zero.F90 src/coag_kernel_vemury_free.F90
-  src/coag_kernel_vemury_cont.F90 src/coag_kernel_naumann_free.F90
-  src/coag_kernel_naumann_cont.F90 src/aero_data.F90 src/run_exact.F90
+  src/coag_kernel_zero.F90 src/coag_kernel_brown_free.F90
+  src/coag_kernel_brown_cont.F90 src/aero_data.F90 src/run_exact.F90
   src/run_part.F90 src/util.F90 src/run_sect.F90 src/output.F90
   src/mosaic.F90 src/gas_data.F90 src/gas_state.F90
   src/coagulation.F90 src/exact_soln.F90 src/coagulation_dist.F90

@@ -7,10 +7,14 @@ set -v
 # make sure that the current directory is the one where this script is
 cd ${0%/*}
 # make the output directory if it doesn't exist
-mkdir -p out
+mkdir -p out_dimless_t
+mkdir -p out_dimless_t/restart
 
-../../partmc run_part_naumann_cont_df_3.spec
+../../partmc run_part_brown_cont_df_3_upto1000s.spec
+../../partmc run_part_brown_cont_df_3_restart.spec
 
-../../test_fractal_self_preserve --dimless_vol_min 1e-3 --dimless_vol_max 10 --nbin 100 out/part_naumann_cont_df_3_0001
+../../test_fractal_dimless_time --cont --n_init 1e14 out_dimless_t/part_brown_cont_df_3_0001
+../../test_fractal_dimless_time --cont --n_init 1e14 out_dimless_t/restart/part_brown_cont_df_3_0001
+../../test_fractal_merge_files part_brown_cont_df_3_0001
 
-../../numeric_diff --by col --rel-tol 0.1 ref_cont_df_3_self_preserve_regrid.txt out/part_naumann_cont_df_3_0001_self_preserve.txt
+../../numeric_diff --by col --rel-tol 0.1 ref_cont_df_3_dimless_time_regrid.txt out_dimless_t/part_brown_cont_df_3_0001_dimless_t_series.txt

@@ -406,7 +406,7 @@ contains
     type(fractal_t), intent(in) :: fractal
 
     real(kind=dp), parameter :: eps = 1d-14
-    integer, parameter :: MAX_ITERATIONS = 10 
+    integer, parameter :: MAX_ITERATIONS = 10
     real(kind=dp) :: x, last_solution
     real(kind=dp) :: Rmec, Reff, C_Reff, fp, f, df
     real(kind=dp) :: a1, a2, a3, a4, a5

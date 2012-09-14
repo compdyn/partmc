@@ -184,6 +184,9 @@ contains
     type(aero_particle_t) :: new_aero_particle
     type(aero_info_t) :: aero_info
     integer :: n_copies, i_dup
+#ifdef CONDENSE_SPEEDTEST
+    real(kind=dp) :: t_wall_start, t_wall_end
+#endif
 
 #ifdef PMC_USE_SUNDIALS
 #ifndef DOXYGEN_SKIP_DOC
@@ -202,6 +205,9 @@ contains
 #endif
 #endif
 
+#ifdef CONDENSE_SPEEDTEST
+    call cpu_time(t_wall_start)
+#endif
     ! initial water volume in the aerosol particles in volume V_comp
     water_vol_initial = 0d0
     do i_bin = 1,bin_grid%n_bin
@@ -380,6 +386,11 @@ contains
     call aero_data_deallocate(condense_saved_aero_data)
     call env_data_deallocate(condense_saved_env_data)
     call env_state_deallocate(condense_saved_env_state_initial)
+#ifdef CONDENSE_SPEEDTEST
+    call cpu_time(t_wall_end)
+    write(*,*) 'timestep', (t_wall_end - t_wall_start)
+    stop
+#endif
 
   end subroutine condense_particles
 
@@ -625,6 +636,9 @@ contains
     type(env_state_t) :: env_state
     type(condense_rates_inputs_t) :: inputs
     type(condense_rates_outputs_t) :: outputs
+#ifdef CONDENSE_SPEEDTEST
+    real(kind=dp) :: t_wall_start, t_wall_end
+#endif
 
     condense_count_vf = condense_count_vf + 1
 
@@ -639,6 +653,11 @@ contains
     inputs%H = env_state%rel_humid
     inputs%p = env_state%pressure
     
+#ifdef CONDENSE_SPEEDTEST
+    if (time == 0d0) then
+       call cpu_time(t_wall_start)
+    end if
+#endif
     Hdot = 0d0
     do i_part = 1,(n_eqn - 1)
        inputs%D = state(i_part)
@@ -652,6 +671,12 @@ contains
        Hdot = Hdot + outputs%Hdot_i
     end do
     Hdot = Hdot + outputs%Hdot_env
+#ifdef CONDENSE_SPEEDTEST
+    if (time == 0d0) then
+       call cpu_time(t_wall_end)
+       write(*,*) 'condense_rates', (t_wall_end - t_wall_start)
+    end if
+#endif
     
     state_dot(n_eqn) = Hdot
     

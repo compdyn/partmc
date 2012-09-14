@@ -457,6 +457,10 @@ contains
     !> Outputs rates.
     type(condense_rates_outputs_t), intent(out) :: outputs
 
+    integer, parameter :: NEWTON_MAX_STEPS = 10
+    real(kind=dp), parameter :: NEWTON_X_REL_TOL = 1d-8
+    real(kind=dp), parameter :: NEWTON_F_ABS_TOL = 1d-15
+
     real(kind=dp) :: rho_w, M_w, P_0, dP0_dT_div_P0, rho_air, k_a, D_v, U
     real(kind=dp) :: V, W, X, Y, Z, k_ap, dkap_dD, D_vp, dDvp_dD
     real(kind=dp) :: a_w, daw_dD, delta_star, h, dh_ddelta, dh_dD
@@ -532,18 +536,22 @@ contains
     daw_dD = 3d0 * inputs%D**2 * inputs%kappa * inputs%D_dry**3 &
          / (inputs%D**3 + (inputs%kappa - 1d0) * inputs%D_dry**3)**2
 
-    delta_star = 0d0
-    h = 0d0
-    dh_ddelta = 1d0
 #ifdef CONDENSE_EXPLICIT
     delta_star = U * V * D_vp * (inputs%H - a_w * exp(X / inputs%D)) &
          / (k_ap + U * V * D_vp * a_w * exp(X / inputs%D) * W)
     dh_ddelta = k_ap + U * V * D_vp * a_w * exp(X / inputs%D) * W
 #else
-    do newton_step = 1,5
+    delta_star = U * V * D_vp * (inputs%H - a_w * exp(X / inputs%D)) &
+         / (k_ap + U * V * D_vp * a_w * exp(X / inputs%D) * W)
+    h = 0d0
+    dh_ddelta = 1d0
+    do newton_step = 1,NEWTON_MAX_STEPS
        ! update delta_star first so when the newton loop ends we have
        ! h and dh_ddelta evaluated at the final delta_star value
        delta_star = delta_star - h / dh_ddelta
+       if ((newton_step > 1) &
+            .and. (abs((h / dh_ddelta) / delta_star) < NEWTON_X_REL_TOL)) exit
+       if ((newton_step > 1) .and. (abs(h) < NEWTON_F_ABS_TOL)) exit
        h = k_ap * delta_star - U * V * D_vp &
             * (inputs%H - a_w / (1d0 + delta_star) &
             * exp(W * delta_star / (1d0 + delta_star) &
@@ -555,10 +563,8 @@ contains
             * exp(W * delta_star / (1d0 + delta_star) &
             + (X / inputs%D) / (1d0 + delta_star))
     end do
-    !write(*,*) 'rel tol', abs((h / dh_ddelta) / delta_star)
-    call warn_assert_msg(387362320, &
-         abs(h) < 1d3 * epsilon(1d0) * abs(U * V * D_vp * inputs%H), &
-         "condensation newton loop did not satisfy convergence tolerance")
+    call assert_msg(990700883, newton_step < NEWTON_MAX_STEPS, &
+         "condensation Newton loop failed to converge")
 #endif
 
     outputs%Ddot = k_ap * delta_star / (U * inputs%D)

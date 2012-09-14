@@ -1,20 +1,19 @@
 run_type particle               # Monte Carlo run
 output_prefix out/condense      # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
-n_part 1000                     # total number of particles
+n_part 10000                    # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 600                       # total simulation time (s)
-del_t 10                        # timestep (s)
-t_output 10                     # output interval (0 disables) (s)
+del_t 1                         # timestep (s)
+t_output 1                      # output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
 
 n_bin 160                       # number of bins
 d_min 1e-10                     # minimum diameter (m)
 d_max 1e-1                      # maximum diameter (m)
 
-weight power                    # weighting function
-exponent -1                     # weighting exponent
+weight none                     # weighting function
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios
@@ -43,7 +42,7 @@ do_init_equilibriate yes        # whether to initially equilibriate water (yes/n
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
 
-rand_init 0                     # random initialization (0 to use time)
+rand_init 7                     # random initialization (0 to use time)
 allow_doubling no               # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
 record_removals no              # whether to record particle removals (yes/no)

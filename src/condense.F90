@@ -536,8 +536,9 @@ contains
     h = 0d0
     dh_ddelta = 1d0
 #ifdef CONDENSE_EXPLICIT
-    delta_star = U * V * D_vp * (inputs%H - a_w * exp(X / inputs%D)) / k_ap
-    dh_ddelta = k_ap
+    delta_star = U * V * D_vp * (inputs%H - a_w * exp(X / inputs%D)) &
+         / (k_ap + U * V * D_vp * a_w * exp(X / inputs%D) * W)
+    dh_ddelta = k_ap + U * V * D_vp * a_w * exp(X / inputs%D) * W
 #else
     do newton_step = 1,5
        ! update delta_star first so when the newton loop ends we have
@@ -569,7 +570,7 @@ contains
          - U * V * dDvp_dD * inputs%H + U * V &
          * (a_w * dDvp_dD + D_vp * daw_dD &
          - D_vp * a_w * (X / inputs%D**2)) &
-         * exp(X / inputs%D)
+         * exp(W * delta_star + (X / inputs%D))
 #else
     dh_dD = dkap_dD * delta_star &
          - U * V * dDvp_dD * inputs%H + U * V &

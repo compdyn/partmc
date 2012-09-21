@@ -670,15 +670,13 @@ contains
 
     type(aero_particle_t), pointer :: aero_particle
     type(aero_info_t) :: aero_info
-    integer :: c, b, init_size, candidates, cand_iter, s, p, check_size
+    integer :: c, b, init_size, candidates, cand_iter, s, p
     real(kind=dp) :: over_rate, rate, vol, density
-    
-    print *, 'A'
-    call aero_state_check_sort(aero_state)
-    print *, 'B'
     
     if(function_id == SCENARIO_LOSS_FUNCTION_ZERO .or. &
         function_id == SCENARIO_LOSS_FUNCTION_INVALID) return
+    
+    call aero_state_sort(aero_state)
     
     if (.not. aero_state%aero_sorted%removal_rate_bounds_valid) then
       call scenario_loss_rate_bin_max(function_id, &
@@ -692,11 +690,12 @@ contains
         init_size = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry
         if(init_size == 0) cycle
         over_rate = aero_state%aero_sorted%removal_rate_max(b)
-        candidates = rand_poisson(over_rate * delta_t * init_size)
         !TODO: make particle removal more efficient if rate is very large
+        call warn_assert_msg(187573042, over_rate * delta_t < 1.0, &
+            "particle loss code is inefficient for high rate")
+        candidates = rand_poisson(over_rate * delta_t * init_size)
         do cand_iter = 1,candidates
           s = pmc_rand_int(init_size)
-          check_size = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry
           if (s > aero_state%aero_sorted%size_class%inverse(b, c)%n_entry) &
                     cycle
           p = aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
@@ -706,14 +705,10 @@ contains
           rate = scenario_loss_rate(function_id, vol, density, aero_data, &
                   temp, press)
           call warn_assert_msg(295846288, rate <= over_rate, &
-              "chamber loss upper bound estimation is too tight:" &
+              "particle loss upper bound estimation is too tight: " &
               // trim(real_to_string(rate)) // " > " &
               // trim(real_to_string(over_rate)) )
           if (pmc_random() * over_rate > rate) cycle
-          
-          if(p < 1 .or. p > aero_state%apa%n_part) then
-            print *, "invalid particle id:", p, aero_state%apa%n_part
-          end if
           
           call aero_info_allocate(aero_info)
           aero_info%id = aero_particle%id
@@ -721,43 +716,9 @@ contains
           aero_info%other_id = 0
           call aero_state_remove_particle_with_info(aero_state, p, aero_info)
           call aero_info_deallocate(aero_info)
-          
-          if(aero_state%aero_sorted%size_class%inverse(b, c)%n_entry /= check_size-1) then
-              print *, "bin size invalid"
-              call aero_state_check_sort(aero_state)
-          end if
         end do
       end do
     end do
-    
-    print *, 'C'
-    call aero_state_check_sort(aero_state)
-    print *, 'D'
-    
-!    do b = 1,aero_state%aero_sorted%bin_grid%n_bin
-!      over_rate = aero_state%aero_sorted%removal_rate_max(b)
-!      init_size = aero_state%aero_sorted%size_class%inverse(b)%n_entry
-!      candidates = rand_poisson(over_rate * delta_t * init_size)
-!      do c = 1,candidates
-!        s = pmc_rand_int(init_size)
-!        if (s >= aero_state%aero_sorted%size_class%inverse(b)%n_entry) cycle
-!        p = aero_state%aero_sorted%size_class%inverse(b)%entry(s)
-!        aero_particle => aero_state%apa%particle(p)
-!        rate = scenario_loss_rate(function_id, aero_particle, aero_data, &
-!                temp, press)
-!        call warn_assert_msg(295846288, rate > over_rate, &
-!            "chamber loss upper bound estimation is too tight")
-!        if (pmc_random() * over_rate > rate) cycle
-!        
-!        call aero_info_allocate(aero_info)
-!        aero_info%id = aero_particle%id
-!        aero_info%action = AERO_INFO_DILUTION
-!        aero_info%other_id = 0
-!        call aero_state_remove_particle_with_info(aero_state, p, aero_info)
-!        call aero_info_deallocate(aero_info)
-!        
-!      end do
-!    end do
 
 
   end subroutine scenario_particle_loss

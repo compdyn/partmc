@@ -375,18 +375,18 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Test whether a particle is spherical.
-  logical function spherical(fractal)
+  logical function fractal_is_spherical(fractal)
 
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
     if (fractal%frac_dim == 3d0 .and. fractal%vol_fill_factor == 1d0) then
-       spherical = .true.
+       fractal_is_spherical = .true.
     else
-       spherical = .false.
+       fractal_is_spherical = .false.
     end if
 
-  end function spherical
+  end function fractal_is_spherical
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -405,14 +405,15 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
-    real(kind=dp), parameter :: eps = 1d-14
+    real(kind=dp), parameter :: EPS = 1d-14
     integer, parameter :: MAX_ITERATIONS = 10
+
     real(kind=dp) :: x, last_solution
     real(kind=dp) :: Rmec, Reff, C_Reff, fp, f, df
     real(kind=dp) :: a1, a2, a3, a4, a5
     integer :: iter
 
-    if (spherical(fractal)) then
+    if (fractal_is_spherical(fractal)) then
        vol_to_mobility_rad = vol2rad(v, fractal)
        return
     end if
@@ -434,7 +435,7 @@ contains
        df = 2d0 * a1 * x + a2 + a3 * a4 * exp(a4 * x)
        x = x - f / df
        if (abs(last_solution - x) / (abs(last_solution) + abs(x)) &
-            .lt. eps) EXIT
+            < eps) exit
     end do
     vol_to_mobility_rad = x
 
@@ -524,7 +525,7 @@ contains
 
     real(kind=dp) :: Rmec, Rgeo
 
-    if (spherical(fractal)) then
+    if (fractal_is_spherical(fractal)) then
        mobility_rad_to_vol = rad2vol(mobility_rad, fractal)
        return
     end if

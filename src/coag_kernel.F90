@@ -39,10 +39,10 @@ module pmc_coag_kernel
   integer, parameter :: COAG_KERNEL_TYPE_ZERO         = 5
   !> Type code for a Brownian kernel in free molecular regime from Vemury
   !> and Pratsinis [1995].
-  integer, parameter :: COAG_KERNEL_TYPE_BROWN_FREE  = 6
+  integer, parameter :: COAG_KERNEL_TYPE_BROWN_FREE   = 6
   !> Type code for a Brownian kernel in continuum regime from Vemury and
   !> Pratsinis [1995].
-  integer, parameter :: COAG_KERNEL_TYPE_BROWN_CONT  = 7
+  integer, parameter :: COAG_KERNEL_TYPE_BROWN_CONT   = 7
   
 contains
 

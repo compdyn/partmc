@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Copyright (C) 2009 Joseph Ching
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
@@ -574,7 +574,7 @@ contains
             * exp(W * delta_star / (1d0 + delta_star) &
             + (X / inputs%D) / (1d0 + delta_star))
     end do
-    call assert_msg(990700883, newton_step < NEWTON_MAX_STEPS, &
+    call warn_assert_msg(990700883, newton_step < NEWTON_MAX_STEPS, &
          "condensation Newton loop failed to converge")
 #endif
 

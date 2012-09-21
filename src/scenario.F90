@@ -673,6 +673,10 @@ contains
     integer :: c, b, init_size, candidates, cand_iter, s, p, check_size
     real(kind=dp) :: over_rate, rate, vol, density
     
+    print *, 'A'
+    call aero_state_check_sort(aero_state)
+    print *, 'B'
+    
     if(function_id == SCENARIO_LOSS_FUNCTION_ZERO .or. &
         function_id == SCENARIO_LOSS_FUNCTION_INVALID) return
     
@@ -707,6 +711,10 @@ contains
               // trim(real_to_string(over_rate)) )
           if (pmc_random() * over_rate > rate) cycle
           
+          if(p < 1 .or. p > aero_state%apa%n_part) then
+            print *, "invalid particle id:", p, aero_state%apa%n_part
+          end if
+          
           call aero_info_allocate(aero_info)
           aero_info%id = aero_particle%id
           aero_info%action = AERO_INFO_DILUTION
@@ -721,6 +729,10 @@ contains
         end do
       end do
     end do
+    
+    print *, 'C'
+    call aero_state_check_sort(aero_state)
+    print *, 'D'
     
 !    do b = 1,aero_state%aero_sorted%bin_grid%n_bin
 !      over_rate = aero_state%aero_sorted%removal_rate_max(b)

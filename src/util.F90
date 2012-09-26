@@ -370,7 +370,10 @@ contains
     !> Second time variable (s).
     real(kind=dp), intent(in) :: second_time
 
-    if (abs(mod(first_time, second_time) / second_time) > 1d-6) then
+    real(kind=dp) :: ratio
+
+    ratio = first_time / second_time
+    if (abs(ratio - aint(ratio)) > 1d-6) then
        call warn_msg(952299377, trim(first_name) &
             // " is not an integer multiple of " // trim(second_name))
     end if

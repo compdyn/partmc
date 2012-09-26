@@ -157,12 +157,12 @@ contains
        aero_state%aero_sorted%coag_kernel_bounds_valid = .true.
     end if
 
-    allocate(n_samps(aero_state%aero_sorted%bin_grid%n_bin, &
-         aero_state%aero_sorted%bin_grid%n_bin))
-    allocate(accept_factors(aero_state%aero_sorted%bin_grid%n_bin, &
-         aero_state%aero_sorted%bin_grid%n_bin))
+    allocate(n_samps(bin_grid_size(aero_state%aero_sorted%bin_grid), &
+         bin_grid_size(aero_state%aero_sorted%bin_grid)))
+    allocate(accept_factors(bin_grid_size(aero_state%aero_sorted%bin_grid), &
+         bin_grid_size(aero_state%aero_sorted%bin_grid)))
 
-    allocate(n_parts(aero_state%aero_sorted%bin_grid%n_bin, n_proc))
+    allocate(n_parts(bin_grid_size(aero_state%aero_sorted%bin_grid), n_proc))
     call pmc_mpi_allgather_integer_array( &
          aero_state%aero_sorted%size_class%inverse(:, s1)%n_entry, n_parts)
 
@@ -174,10 +174,10 @@ contains
     call aero_weight_array_copy(aero_state%awa, aero_weight_total)
     aero_weight_total%weight(:, s1)%magnitude = 1d0 / sum(1d0 / magnitudes, 2)
 
-    allocate(k_max(aero_state%aero_sorted%bin_grid%n_bin, &
-         aero_state%aero_sorted%bin_grid%n_bin))
-    do i_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
-       do j_bin = 1,aero_state%aero_sorted%bin_grid%n_bin
+    allocate(k_max(bin_grid_size(aero_state%aero_sorted%bin_grid), &
+         bin_grid_size(aero_state%aero_sorted%bin_grid)))
+    do i_bin = 1,bin_grid_size(aero_state%aero_sorted%bin_grid)
+       do j_bin = 1,bin_grid_size(aero_state%aero_sorted%bin_grid)
           call max_coag_num_conc_factor(aero_weight_total, &
                aero_state%aero_sorted%bin_grid, i_bin, j_bin, s1, s2, sc, &
                f_max)

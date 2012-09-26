@@ -787,7 +787,6 @@ contains
        return
     end if
 
-    call bin_grid_allocate(bin_grid)
     call gas_data_allocate(gas_data)
     call aero_data_allocate(aero_data)
     call scenario_allocate(scenario)
@@ -852,7 +851,6 @@ contains
     call aero_data_deallocate(aero_data)
     call scenario_deallocate(scenario)
     call env_state_deallocate(env_state)
-    call bin_grid_deallocate(bin_grid)
     call gas_data_deallocate(gas_data)
     call aero_dist_deallocate(aero_dist_init)
 
@@ -957,7 +955,6 @@ contains
     call aero_dist_allocate(aero_dist_init)
     call env_state_allocate(env_state)
     call scenario_allocate(scenario)
-    call bin_grid_allocate(bin_grid)
     call gas_data_allocate(gas_data)
 
     call spec_file_read_string(file, 'output_prefix', run_sect_opt%prefix)
@@ -1013,7 +1010,6 @@ contains
     call aero_dist_deallocate(aero_dist_init)
     call env_state_deallocate(env_state)
     call scenario_deallocate(scenario)
-    call bin_grid_deallocate(bin_grid)
     call gas_data_deallocate(gas_data)
 
     call pmc_rand_finalize()

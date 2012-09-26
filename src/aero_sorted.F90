@@ -79,7 +79,6 @@ contains
     !> Structure to initialize.
     type(aero_sorted_t), intent(out) :: aero_sorted
 
-    call bin_grid_allocate(aero_sorted%bin_grid)
     call integer_rmap2_allocate(aero_sorted%size_class)
     call integer_rmap2_allocate(aero_sorted%group_class)
     aero_sorted%coag_kernel_bounds_valid = .false.
@@ -104,7 +103,6 @@ contains
     !> Number of weight classes.
     integer, intent(in) :: n_class
 
-    call bin_grid_allocate(aero_sorted%bin_grid)
     call integer_rmap2_allocate_size(aero_sorted%size_class, n_bin, n_class)
     call integer_rmap2_allocate_size(aero_sorted%group_class, n_group, n_class)
     aero_sorted%coag_kernel_bounds_valid = .false.
@@ -123,7 +121,6 @@ contains
     !> Structure to deallocate.
     type(aero_sorted_t), intent(inout) :: aero_sorted
 
-    call bin_grid_deallocate(aero_sorted%bin_grid)
     call integer_rmap2_deallocate(aero_sorted%size_class)
     call integer_rmap2_deallocate(aero_sorted%group_class)
     aero_sorted%coag_kernel_bounds_valid = .false.
@@ -203,8 +200,8 @@ contains
     integer, intent(in) :: n_class
 
     call aero_sorted_deallocate(aero_sorted)
-    call aero_sorted_allocate_size(aero_sorted, bin_grid%n_bin, n_group, &
-         n_class)
+    call aero_sorted_allocate_size(aero_sorted, bin_grid_size(bin_grid), &
+         n_group, n_class)
     call bin_grid_copy(bin_grid, aero_sorted%bin_grid)
 
   end subroutine aero_sorted_set_bin_grid
@@ -227,7 +224,7 @@ contains
     do i_part = aero_particle_array%n_part,1,-1
        i_bin = aero_sorted_particle_in_bin(aero_sorted, &
             aero_particle_array%particle(i_part))
-       if ((i_bin < 1) .or. (i_bin > aero_sorted%bin_grid%n_bin)) then
+       if ((i_bin < 1) .or. (i_bin > bin_grid_size(aero_sorted%bin_grid))) then
           call warn_msg(954800836, "particle ID " &
                // trim(integer_to_string( &
                aero_particle_array%particle(i_part)%id)) &
@@ -320,7 +317,7 @@ contains
        ! use bin data to avoid looping over all particles
        i_bin_min = 0
        i_bin_max = 0
-       do i_bin = 1,aero_sorted%bin_grid%n_bin
+       do i_bin = 1,bin_grid_size(aero_sorted%bin_grid)
           if (sum(aero_sorted%size_class%inverse(i_bin, :)%n_entry) > 0) then
              if (i_bin_min == 0) then
                 i_bin_min = i_bin
@@ -332,9 +329,10 @@ contains
        if (i_bin_min == 0) then
           ! there aren't any particles
           call assert(333430891, i_bin_max == 0)
-          if (aero_sorted%bin_grid%n_bin > 0) then
+          if (bin_grid_size(aero_sorted%bin_grid) > 0) then
              ! take r_min = upper edge, etc.
-             r_min = aero_sorted%bin_grid%edges(aero_sorted%bin_grid%n_bin + 1)
+             r_min = aero_sorted%bin_grid%edges( &
+                  bin_grid_size(aero_sorted%bin_grid) + 1)
              r_max = aero_sorted%bin_grid%edges(1)
           end if
        else
@@ -378,20 +376,19 @@ contains
     ! no particles and no existing useful bin_grid
     if (r_max == 0d0) then
        if (valid_sort) return
-       call bin_grid_allocate(new_bin_grid)
        call bin_grid_make(new_bin_grid, BIN_GRID_TYPE_LOG, n_bin=0, min=0d0, &
             max=0d0)
        call aero_sorted_set_bin_grid(aero_sorted, new_bin_grid, use_n_group, &
             use_n_class)
-       call bin_grid_deallocate(new_bin_grid)
        return
     end if
 
-    if (aero_sorted%bin_grid%n_bin < 1) then
+    if (bin_grid_size(aero_sorted%bin_grid) < 1) then
        need_new_bin_grid = .true.
     else
        grid_r_min = aero_sorted%bin_grid%edges(1)
-       grid_r_max = aero_sorted%bin_grid%edges(aero_sorted%bin_grid%n_bin + 1)
+       grid_r_max = aero_sorted%bin_grid%edges( &
+            bin_grid_size(aero_sorted%bin_grid) + 1)
 
        ! We don't check to see whether we could make the bin grid
        ! smaller, as there doesn't seem much point. It would be easy
@@ -407,12 +404,10 @@ contains
        grid_r_max = r_max * AERO_SORTED_BIN_OVER_FACTOR
        n_bin = ceiling((log10(grid_r_max) - log10(grid_r_min)) &
             * AERO_SORTED_BINS_PER_DECADE)
-       call bin_grid_allocate(new_bin_grid)
        call bin_grid_make(new_bin_grid, BIN_GRID_TYPE_LOG, n_bin, grid_r_min, &
             grid_r_max)
        call aero_sorted_set_bin_grid(aero_sorted, new_bin_grid, use_n_group, &
             use_n_class)
-       call bin_grid_deallocate(new_bin_grid)
        call aero_sorted_sort_particles(aero_sorted, aero_particle_array)
     else
        if (.not. valid_sort) then
@@ -459,7 +454,7 @@ contains
     i_group = aero_particle%weight_group
     i_class = aero_particle%weight_class
 
-    n_bin = aero_sorted%bin_grid%n_bin
+    n_bin = bin_grid_size(aero_sorted%bin_grid)
     n_group = aero_sorted_n_group(aero_sorted)
     n_class = aero_sorted_n_class(aero_sorted)
     call assert(417177855, (i_group >= 1) .and. (i_group <= n_group))
@@ -556,7 +551,7 @@ contains
 
     call integer_rmap2_check(aero_sorted%size_class, "size_class", &
          n_domain=aero_particle_array%n_part, &
-         n_range_1=aero_sorted%bin_grid%n_bin, n_range_2=n_class, &
+         n_range_1=bin_grid_size(aero_sorted%bin_grid), n_range_2=n_class, &
          continue_on_error=continue_on_error)
     do i_part = 1,aero_particle_array%n_part
        i_bin = aero_sorted_particle_in_bin(aero_sorted, &

@@ -109,7 +109,6 @@ program extract_aero_size
      end if
   end if
 
-  call bin_grid_allocate(diam_grid)
   call aero_data_allocate(aero_data)
   call aero_state_allocate(aero_state)
 
@@ -172,7 +171,6 @@ program extract_aero_size
 
   deallocate(filename_list)
   deallocate(aero_dist)
-  call bin_grid_allocate(diam_grid)
   call aero_data_deallocate(aero_data)
   call aero_state_deallocate(aero_state)
 

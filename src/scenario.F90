@@ -525,7 +525,7 @@ contains
 
     ! emissions
     call aero_dist_allocate(emissions)
-    call aero_binned_allocate_size(emissions_binned, bin_grid%n_bin, &
+    call aero_binned_allocate_size(emissions_binned, bin_grid_size(bin_grid), &
          aero_data%n_spec)
     call aero_dist_interp_1d(scenario%aero_emission, &
          scenario%aero_emission_time, scenario%aero_emission_rate_scale, &
@@ -539,8 +539,8 @@ contains
 
     ! dilution
     call aero_dist_allocate(background)
-    call aero_binned_allocate_size(background_binned, bin_grid%n_bin, &
-         aero_data%n_spec)
+    call aero_binned_allocate_size(background_binned, &
+         bin_grid_size(bin_grid), aero_data%n_spec)
     call aero_dist_interp_1d(scenario%aero_background, &
          scenario%aero_dilution_time, scenario%aero_dilution_rate, &
          env_state%elapsed_time, background, dilution_rate)

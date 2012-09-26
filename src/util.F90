@@ -450,57 +450,62 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Makes a linearly spaced array from min to max.
-  subroutine linspace(min_x, max_x, x)
+  function linspace(min_x, max_x, n)
 
     !> Minimum array value.
     real(kind=dp), intent(in) :: min_x
     !> Maximum array value.
     real(kind=dp), intent(in) :: max_x
-    !> Array.
-    real(kind=dp), intent(out) :: x(:)
+    !> Length of array to create.
+    integer, intent(in) :: n
 
-    integer :: i, n
+    !> Return value.
+    real(kind=dp) :: linspace(n)
+
+    integer :: i
     real(kind=dp) :: a
 
-    n = size(x)
+    call assert(999299119, n >= 0)
     do i = 2, (n - 1)
        a = real(i - 1, kind=dp) / real(n - 1, kind=dp)
-       x(i) = (1d0 - a) * min_x + a * max_x
+       linspace(i) = (1d0 - a) * min_x + a * max_x
     end do
     if (n > 0) then
        ! make sure these values are exact
-       x(1) = min_x
-       x(n) = max_x
+       linspace(1) = min_x
+       linspace(n) = max_x
     end if
 
-  end subroutine linspace
+  end function linspace
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Makes a logarithmically spaced array of length n from min to max.
-  subroutine logspace(min_x, max_x, x)
+  function logspace(min_x, max_x, n)
 
     !> Minimum array value.
     real(kind=dp), intent(in) :: min_x
     !> Maximum array value.
     real(kind=dp), intent(in) :: max_x
-    !> Array.
-    real(kind=dp), intent(out) :: x(:)
+    !> Length of array to create.
+    integer, intent(in) :: n
 
-    integer :: n
-    real(kind=dp) :: log_x(size(x))
+    !> Return value.
+    real(kind=dp) :: logspace(n)
 
-    n = size(x)
+    real(kind=dp), allocatable :: log_x(:)
+
+    call assert(804623592, n >= 0)
     if (n == 0) return
     call assert(548290438, min_x > 0d0)
     call assert(805259035, max_x > 0d0)
-    call linspace(log(min_x), log(max_x), log_x)
-    x = exp(log_x)
+    log_x = linspace(log(min_x), log(max_x), n)
+    logspace = exp(log_x)
     ! make sure these values are exact
-    x(1) = min_x
-    x(n) = max_x
+    logspace(1) = min_x
+    logspace(n) = max_x
 
-  end subroutine logspace
+  end function logspace
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

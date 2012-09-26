@@ -63,7 +63,6 @@ program extract_sectional_aero_time
      out_filename = trim(in_prefix) // "_aero_time.txt"
   end if
 
-  call bin_grid_allocate(bin_grid)
   call aero_data_allocate(aero_data)
   call aero_binned_allocate(aero_binned)
 
@@ -127,7 +126,6 @@ program extract_sectional_aero_time
   deallocate(time_mass_concs)
   deallocate(time_species_concs)
   deallocate(filename_list)
-  call bin_grid_allocate(bin_grid)
   call aero_data_deallocate(aero_data)
   call aero_binned_deallocate(aero_binned)
 

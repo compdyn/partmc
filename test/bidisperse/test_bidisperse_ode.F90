@@ -65,7 +65,6 @@ program test_bidisperse_ode
   v_big_init = rad2vol(r_big_init)
   num_conc = num_conc_small * (n_small_init + 1d0) / n_small_init
   comp_vol = (n_small_init + 1d0) / num_conc
-  call bin_grid_allocate(bin_grid)
   call bin_grid_make(bin_grid, BIN_GRID_TYPE_LOG, n_bin, rad2vol(bin_r_min), &
        rad2vol(bin_r_max))
 
@@ -100,7 +99,6 @@ program test_bidisperse_ode
   end do
 
   close(out_unit)
-  call bin_grid_deallocate(bin_grid)
   
 contains
   

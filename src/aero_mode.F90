@@ -207,11 +207,11 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Number concentration (#(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: num_conc(bin_grid_size(bin_grid))
 
     integer :: k
 
-    do k = 1,bin_grid%n_bin
+    do k = 1,bin_grid_size(bin_grid)
        num_conc(k) = total_num_conc / (sqrt(2d0 * const%pi) &
             * log10_sigma_g) * dexp(-(dlog10(bin_grid%centers(k)) &
             - dlog10(geom_mean_radius))**2d0 &
@@ -241,9 +241,9 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume concentration (V(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: vol_conc(bin_grid_size(bin_grid))
 
-    real(kind=dp) :: num_conc(bin_grid%n_bin)
+    real(kind=dp) :: num_conc(bin_grid_size(bin_grid))
 
     call num_conc_log_normal(total_num_conc, geom_mean_radius, &
          log10_sigma_g, bin_grid, num_conc)
@@ -267,13 +267,13 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Number concentration (#(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: num_conc(bin_grid_size(bin_grid))
 
     integer :: k
     real(kind=dp) :: mean_vol, num_conc_vol
 
     mean_vol = rad2vol(radius_at_mean_vol)
-    do k = 1,bin_grid%n_bin
+    do k = 1,bin_grid_size(bin_grid)
        num_conc_vol = total_num_conc / mean_vol &
             * exp(-(rad2vol(bin_grid%centers(k)) / mean_vol))
        call vol_to_lnr(bin_grid%centers(k), num_conc_vol, num_conc(k))
@@ -294,9 +294,9 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume concentration (V(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: vol_conc(bin_grid_size(bin_grid))
 
-    real(kind=dp) :: num_conc(bin_grid%n_bin)
+    real(kind=dp) :: num_conc(bin_grid_size(bin_grid))
 
     call num_conc_exp(total_num_conc, radius_at_mean_vol, bin_grid, num_conc)
     vol_conc = num_conc * rad2vol(bin_grid%centers)
@@ -316,13 +316,13 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Number concentration (#(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: num_conc(bin_grid_size(bin_grid))
 
     integer :: k
 
     num_conc = 0d0
     k = bin_grid_find(bin_grid, radius)
-    if ((k < 1) .or. (k > bin_grid%n_bin)) then
+    if ((k < 1) .or. (k > bin_grid_size(bin_grid))) then
        call warn_msg(825666877, "monodisperse radius outside of bin_grid")
     else
        num_conc(k) = total_num_conc / bin_grid%widths(k)
@@ -342,13 +342,13 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume concentration (V(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: vol_conc(bin_grid_size(bin_grid))
 
     integer :: k
 
     vol_conc = 0d0
     k = bin_grid_find(bin_grid, radius)
-    if ((k < 1) .or. (k > bin_grid%n_bin)) then
+    if ((k < 1) .or. (k > bin_grid_size(bin_grid))) then
        call warn_msg(420930707, "monodisperse radius outside of bin_grid")
     else
        vol_conc(k) = total_num_conc / bin_grid%widths(k) &
@@ -370,7 +370,7 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Number concentration (#(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: num_conc(bin_grid_size(bin_grid))
 
     integer :: i_sample, n_sample, i_lower, i_upper, i_bin
     real(kind=dp) :: r_lower, r_upper
@@ -387,9 +387,9 @@ contains
        i_lower = bin_grid_find(bin_grid, r_lower)
        i_upper = bin_grid_find(bin_grid, r_upper)
        if (i_upper < 1) cycle
-       if (i_lower > bin_grid%n_bin) cycle
+       if (i_lower > bin_grid_size(bin_grid)) cycle
        i_lower = max(1, i_lower)
-       i_upper = min(bin_grid%n_bin, i_upper)
+       i_upper = min(bin_grid_size(bin_grid), i_upper)
        do i_bin = i_lower,i_upper
           r_bin_lower = bin_grid%edges(i_bin)
           r_bin_upper = bin_grid%edges(i_bin + 1)
@@ -416,9 +416,9 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume concentration (V(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: vol_conc(bin_grid_size(bin_grid))
 
-    real(kind=dp) :: num_conc(bin_grid%n_bin)
+    real(kind=dp) :: num_conc(bin_grid_size(bin_grid))
 
     call num_conc_sampled(sample_radius, sample_num_conc, bin_grid, num_conc)
     vol_conc = num_conc * rad2vol(bin_grid%centers)
@@ -438,7 +438,7 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Number concentration (#(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: num_conc(bin_grid_size(bin_grid))
 
     if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
        call num_conc_log_normal(aero_mode%num_conc, aero_mode%char_radius, &
@@ -473,10 +473,11 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Volume concentration (V(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin, aero_data%n_spec)
+    real(kind=dp), intent(out) :: vol_conc(bin_grid_size(bin_grid), &
+         aero_data%n_spec)
 
     integer :: i_spec
-    real(kind=dp) :: vol_conc_total(bin_grid%n_bin)
+    real(kind=dp) :: vol_conc_total(bin_grid_size(bin_grid))
 
     if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
        call vol_conc_log_normal(aero_mode%num_conc, aero_mode%char_radius, &

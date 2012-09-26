@@ -509,7 +509,7 @@ contains
     new_bin = aero_sorted_particle_in_bin(aero_state%aero_sorted, &
          aero_state%apa%particle(target_part))
     if ((new_bin < 1) &
-         .or. (new_bin > aero_state%aero_sorted%bin_grid%n_bin)) then
+         .or. (new_bin > bin_grid_size(aero_state%aero_sorted%bin_grid))) then
        call die_msg(765620746, "particle outside of bin_grid: " &
             // "try reducing the timestep del_t")
     end if

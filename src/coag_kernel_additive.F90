@@ -121,7 +121,7 @@ contains
 
     mean_vol = rad2vol(radius_at_mean_vol)
     if (time .eq. 0d0) then
-       do k = 1,bin_grid%n_bin
+       do k = 1,bin_grid_size(bin_grid)
           aero_binned%num_conc(k) = const%pi/2d0 &
                * (2d0 * bin_grid%centers(k))**3 * num_conc / mean_vol &
                * exp(-(rad2vol(bin_grid%centers(k)) / mean_vol))
@@ -129,7 +129,7 @@ contains
     else
        tau = num_conc * mean_vol * beta_1 * time
        T = 1d0 - exp(-tau)
-       do k = 1,bin_grid%n_bin
+       do k = 1,bin_grid_size(bin_grid)
           rat_v = rad2vol(bin_grid%centers(k)) / mean_vol
           x = 2d0 * rat_v * sqrt(T)
           if (x .lt. 500d0) then
@@ -153,7 +153,7 @@ contains
     end if
 
     aero_binned%vol_conc = 0d0
-    do k = 1,bin_grid%n_bin
+    do k = 1,bin_grid_size(bin_grid)
        aero_binned%vol_conc(k,1) = rad2vol(bin_grid%centers(k)) &
             * aero_binned%num_conc(k)
     end do

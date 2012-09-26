@@ -934,7 +934,7 @@ contains
     do i_part = 1,aero_state%apa%n_part
        aero_particle => aero_state%apa%particle(i_part)
        i_bin = bin_grid_find(bin_grid, aero_particle_radius(aero_particle))
-       if ((i_bin < 1) .or. (i_bin > bin_grid%n_bin)) then
+       if ((i_bin < 1) .or. (i_bin > bin_grid_size(bin_grid))) then
           call warn_msg(980232449, "particle ID " &
                // trim(integer_to_string(aero_particle%id)) &
                // " outside of bin_grid, discarding")
@@ -1266,7 +1266,7 @@ contains
        aero_particle => aero_state%apa%particle(i_part)
        i_bin = bin_grid_find(bin_grid, &
             aero_particle_solute_radius(aero_particle, aero_data))
-       if ((i_bin < 1) .or. (i_bin > bin_grid%n_bin)) then
+       if ((i_bin < 1) .or. (i_bin > bin_grid_size(bin_grid))) then
           call warn_msg(503871022, "particle ID " &
                // trim(integer_to_string(aero_particle%id)) &
                // " outside of bin_grid, discarding")
@@ -1657,7 +1657,7 @@ contains
 
     call aero_state_sort(aero_state, bin_grid)
 
-    do i_bin = 1,bin_grid%n_bin
+    do i_bin = 1,bin_grid_size(bin_grid)
        species_volume_conc = 0d0
        total_volume_conc = 0d0
        do i_class = 1,size(aero_state%awa%weight, 2)
@@ -1732,7 +1732,7 @@ contains
 
     call aero_state_sort(aero_state, bin_grid)
 
-    do i_bin = 1,bin_grid%n_bin
+    do i_bin = 1,bin_grid_size(bin_grid)
        do i_class = 1,size(aero_state%awa%weight, 2)
           if (aero_state%aero_sorted%size_class%inverse(i_bin, &
                i_class)%n_entry == 0) then

@@ -242,14 +242,16 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Minimum kernel vals.
-    real(kind=dp), intent(out) :: k_min(bin_grid%n_bin,bin_grid%n_bin)
+    real(kind=dp), intent(out) :: k_min(bin_grid_size(bin_grid), &
+         bin_grid_size(bin_grid))
     !> Maximum kernel vals.
-    real(kind=dp), intent(out) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
+    real(kind=dp), intent(out) :: k_max(bin_grid_size(bin_grid), &
+         bin_grid_size(bin_grid))
 
     integer i, j
 
-    do i = 1,bin_grid%n_bin
-       do j = 1,bin_grid%n_bin
+    do i = 1,bin_grid_size(bin_grid)
+       do j = 1,bin_grid_size(bin_grid)
           call est_k_minmax_for_bin_unweighted(bin_grid, coag_kernel_type, &
                i, j, aero_data, env_state, k_min(i,j), k_max(i,j))
        end do

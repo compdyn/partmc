@@ -343,7 +343,7 @@ contains
     type(aero_data_t), intent(in) :: aero_data
 
     integer :: dimid_aero_diam, dimid_aero_species
-    real(kind=dp) :: mass_conc(bin_grid%n_bin, aero_data%n_spec)
+    real(kind=dp) :: mass_conc(bin_grid_size(bin_grid), aero_data%n_spec)
     integer :: i_bin
 
     !> \page output_format_aero_binned Output File Format: Aerosol Binned Sectional State
@@ -369,7 +369,31 @@ contains
     !!     distribution for the aerosol population,
     !!     \f$ dM(r,s)/d\ln r \f$, per bin and per species
 
-    do i_bin = 1,bin_grid%n_bin
+    ! output_format_diam_bin_grid is here, as this is the only place it's used
+
+    !> \page output_format_diam_bin_grid Output File Format: Diameter Bin Grid Data
+    !!
+    !! The aerosol diameter bin grid data NetCDF dimensions are:
+    !!   - \b aero_diam: number of bins (grid cells) on the diameter axis
+    !!   - \b aero_diam_edges: number of bin edges (grid cell edges) on
+    !!     the diameter axis --- always equal to <tt>aero_diam + 1</tt>
+    !!
+    !! The aerosol diameter bin grid data NetCDF variables are:
+    !!   - \b aero_diam (unit m, dim \c aero_diam): aerosol diameter axis
+    !!     bin centers --- centered on a logarithmic scale from the edges, so
+    !!     that <tt>aero_diam(i) / aero_diam_edges(i) =
+    !!     sqrt(aero_diam_edges(i+1) / aero_diam_edges(i))</tt>
+    !!   - \b aero_diam_edges (unit m, dim \c aero_diam_edges): aersol
+    !!     diameter axis bin edges (there is one more edge than center)
+    !!   - \b aero_diam_widths (dimensionless, dim \c aero_diam):
+    !!     the base-e logarithmic bin widths --- <tt>aero_diam_widths(i)
+    !!     = ln(aero_diam_edges(i+1) / aero_diam_edges(i))</tt>, so
+    !!     all bins have the same width
+    !!
+    !! See also:
+    !!   - \ref input_format_diam_bin_grid --- the corresponding input format
+
+    do i_bin = 1,bin_grid_size(bin_grid)
        mass_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) * aero_data%density
     end do
 
@@ -438,18 +462,18 @@ contains
     !> aero_data structure.
     type(aero_data_t), intent(in) :: aero_data
 
-    real(kind=dp) :: mass_conc(bin_grid%n_bin, aero_data%n_spec)
+    real(kind=dp) :: mass_conc(bin_grid_size(bin_grid), aero_data%n_spec)
     integer :: i_bin
 
     call aero_binned_deallocate(aero_binned)
-    call aero_binned_allocate_size(aero_binned, bin_grid%n_bin, &
+    call aero_binned_allocate_size(aero_binned, bin_grid_size(bin_grid), &
          aero_data%n_spec)
 
     call pmc_nc_read_real_1d(ncid, aero_binned%num_conc, &
          "aero_number_concentration")
     call pmc_nc_read_real_2d(ncid, mass_conc, "aero_mass_concentration")
 
-    do i_bin = 1,bin_grid%n_bin
+    do i_bin = 1,bin_grid_size(bin_grid)
        aero_binned%vol_conc(i_bin,:) = mass_conc(i_bin,:) / aero_data%density
     end do
 

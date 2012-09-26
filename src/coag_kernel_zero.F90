@@ -132,8 +132,8 @@ contains
 
     call aero_dist_allocate(emissions)
     call aero_dist_allocate(background)
-    call aero_binned_allocate_size(background_binned, bin_grid%n_bin, &
-         aero_data%n_spec)
+    call aero_binned_allocate_size(background_binned, &
+         bin_grid_size(bin_grid), aero_data%n_spec)
 
     call aero_dist_interp_1d(scenario%aero_emission, &
          scenario%aero_emission_time, scenario%aero_emission_rate_scale, &
@@ -173,8 +173,8 @@ contains
        end do
 
        ! calculate the limit steady state distribution
-       call aero_binned_allocate_size(aero_binned_limit, bin_grid%n_bin, &
-            aero_data%n_spec)
+       call aero_binned_allocate_size(aero_binned_limit, &
+            bin_grid_size(bin_grid), aero_data%n_spec)
        call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, &
             aero_data, emissions)
        call aero_binned_scale(aero_binned_limit, &

@@ -562,7 +562,8 @@ contains
     if(function_id == SCENARIO_LOSS_FUNCTION_ZERO) then
       scenario_loss_rate = 0d0
     else if(function_id == SCENARIO_LOSS_FUNCTION_VOLUME) then
-      scenario_loss_rate = 0.01d0
+      !TODO: implement SCENARIO_LOSS_FUNCTION_VOLUME correctly
+      scenario_loss_rate = 0.001d0
 !      scenario_loss_rate = 0d0
     else
        call die_msg(200724934, "Unknown loss function id: " &
@@ -686,7 +687,7 @@ contains
         over_rate = aero_state%aero_sorted%removal_rate_max(b)
         !TODO: make particle removal more efficient if rate is very large
         call warn_assert_msg(187573042, over_rate * delta_t < 1.0, &
-            "particle loss code is inefficient for high rate")
+            "current particle loss code is inefficient for high rate")
         candidates = rand_poisson(over_rate * delta_t * init_size)
         do cand_iter = 1,candidates
           s = pmc_rand_int(init_size)
@@ -1095,6 +1096,42 @@ contains
 #endif
 
   end subroutine pmc_mpi_unpack_scenario
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read the specification for a loss function type from a spec file and
+  !> generate it.
+  subroutine spec_file_read_loss_function_type(file, loss_function_type)
+
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
+    !> Function type.
+    integer, intent(out) :: loss_function_type
+
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: function_name
+
+    !> \page input_format_loss_function Input File Format:
+    !!     Loss Rate Function
+    !!
+    !! The loss rate function is specified by the parameter:
+    !!   - \b loss_function (string): the type of loss function ---
+    !!     must be one of: \c zero for no particle loss, or \c volume
+    !!     for particle loss proportional to particle volume
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+
+    call spec_file_read_string(file, 'loss_function', function_name)
+    if (trim(function_name) == 'zero') then
+       loss_function_type = SCENARIO_LOSS_FUNCTION_ZERO
+    elseif (trim(function_name) == 'volume') then
+       loss_function_type = SCENARIO_LOSS_FUNCTION_VOLUME
+    else
+       call spec_file_die_msg(518248400, file, &
+            "Unknown loss function type: " // trim(function_name))
+    end if
+
+  end subroutine spec_file_read_loss_function_type
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

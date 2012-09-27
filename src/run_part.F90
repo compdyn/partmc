@@ -56,6 +56,10 @@ module pmc_run_part
      integer :: nucleate_source
      !> Whether to do coagulation.
      logical :: do_coagulation
+     !> Whether to do particle loss.
+     logical :: do_loss
+     !> Type of loss rate function.
+     integer :: loss_function_type
      !> Whether to do nucleation.
      logical :: do_nucleation
      !> Allow doubling if needed.
@@ -206,11 +210,6 @@ contains
        update_rel_humid = .not. run_part_opt%do_condensation
        call scenario_update_env_state(scenario, env_state, time + t_start, &
             update_rel_humid)
-            
-       call scenario_particle_loss(SCENARIO_LOSS_FUNCTION_VOLUME, &
-            run_part_opt%del_t, aero_data, aero_state, &
-            env_state%temp, env_state%pressure)
-            
 
        if (run_part_opt%do_nucleation) then
           n_part_before = aero_state_total_particles(aero_state)
@@ -237,6 +236,12 @@ contains
           end if
           progress_n_samp = progress_n_samp + n_samp
           progress_n_coag = progress_n_coag + n_coag
+       end if
+            
+       if (run_part_opt%do_loss) then
+          call scenario_particle_loss(run_part_opt%loss_function_type, &
+               run_part_opt%del_t, aero_data, aero_state, &
+               env_state%temp, env_state%pressure)
        end if
 
        call scenario_update_gas_state(scenario, run_part_opt%del_t, &

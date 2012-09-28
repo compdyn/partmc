@@ -187,3 +187,9 @@ In util.F90, Dick needed to change "write( ret_val, '(i30)' ) val" to
 free format to avoid a crash.
 
 Rename bin_grid to rad_grid or similar (or replace with diam_grid).
+
+Change pmc_nc_read_real_1d() etc to take an allocatable array and then
+to call ensure_size() on it. Then remove allocates before these calls.
+
+Add aero_data_validate() or _check() and similar to check consistency
+in dimensions, valid data, etc. Call after loading from netcdf files.

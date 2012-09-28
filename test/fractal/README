@@ -3,7 +3,7 @@ Brownian coagulation with fractal treatment Test-case
 ======================================================
 
 The initial condition is a single species of particle with a
-mono distribution and the simulation uses the Brownian coagulation
+monodisperse distribution and the simulation uses the Brownian coagulation
 kernel from the following two papers for both continuum and
 free molecular regimes:
 1. S. Vemury and S. E. Pratsinis, Self-preserving size distributions
@@ -16,6 +16,12 @@ pp. 1371-1397, 2003.
 The fractal treatment is based on Naumann [2003] with prescribed
 fractal parameters including fractal dimension, radius of primary
 particles and volume filling factor in the spec file.
+
+test_fractal_01: test of various radii conversions
+test_fractal_02: number concentration decay for free molecular regime,
+df = 2.4. Run plot_dimless_time_free_df_2_4.gnuplot for comparison result.
+test_fractal_03: number concentration decay for continuum regime,
+df = 1.8. Run plot_dimless_time_cont_df_1_8.gnuplot for comparison result.
 
 This test-case demonstrates that PartMC can succesfully reproduce
 the self-preserving size distributions and time evolutions of

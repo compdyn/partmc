@@ -462,7 +462,7 @@ contains
 
     real(kind=dp), parameter :: NEWTON_REL_TOL = 1d-14
     integer, parameter :: NEWTON_MAX_STEPS = 10
-    
+
     real(kind=dp) :: x
     real(kind=dp) :: C_Rme, fp, phi, ds, psi, c1, c2, f, df
     real(kind=dp) :: a1, a2, a3, a4, a5, a6, a7, a8

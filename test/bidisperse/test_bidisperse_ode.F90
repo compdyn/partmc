@@ -107,8 +107,6 @@ contains
   subroutine bidisperse_f(n_small, v_small, v_big_init, &
        n_small_init, env_state, comp_vol, n_small_dot)
     
-    use pmc_env_state
-
     !> Current number of small particles.
     real(kind=dp), intent(in) :: n_small
     !> Volume of one small particle.
@@ -151,8 +149,6 @@ contains
   subroutine bidisperse_step(v_small, v_big_init, n_small_init, &
        env_state, comp_vol, del_t, n_small)
     
-    use pmc_env_state
-
     !> Volume of one small particle.
     real(kind=dp), intent(in) :: v_small
     !> Initial volume of the big particle.

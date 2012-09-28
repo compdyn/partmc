@@ -405,13 +405,13 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
-    real(kind=dp), parameter :: EPS = 1d-14
-    integer, parameter :: MAX_ITERATIONS = 10
+    real(kind=dp), parameter :: NEWTON_REL_TOL = 1d-14
+    integer, parameter :: NEWTON_MAX_STEPS = 10
 
-    real(kind=dp) :: x, last_solution
+    real(kind=dp) :: x
     real(kind=dp) :: Rmec, Reff, C_Reff, fp, f, df
     real(kind=dp) :: a1, a2, a3, a4, a5
-    integer :: iter
+    integer ::newton_step
 
     if (fractal_is_spherical(fractal)) then
        vol_to_mobility_rad = vol2rad(v, fractal)
@@ -429,14 +429,15 @@ contains
     a5 = -Rmec * FRACTAL_A_SLIP * fp
 
     x = Rmec
-    do iter = 1,MAX_ITERATIONS
-       last_solution = x
+    do newton_step = 1,NEWTON_MAX_STEPS
        f = a1 * x**2 + a2 * x + a3 * exp(a4 * x) + a5
        df = 2d0 * a1 * x + a2 + a3 * a4 * exp(a4 * x)
        x = x - f / df
-       if (abs(last_solution - x) / (abs(last_solution) + abs(x)) &
-            < eps) exit
+       if (abs(f / df) / (abs(x + f / df) + abs(x)) &
+            < NEWTON_REL_TOL) exit
     end do
+    call assert_msg(728724732, newton_step < NEWTON_MAX_STEPS, &
+         "fractal Newton loop failed to converge")
     vol_to_mobility_rad = x
 
   end function vol_to_mobility_rad
@@ -459,12 +460,13 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
-    real(kind=dp), parameter :: eps = 1d-14
-    integer, parameter :: MAX_ITERATIONS = 10
-    real(kind=dp) :: x, last_solution
+    real(kind=dp), parameter :: NEWTON_REL_TOL = 1d-14
+    integer, parameter :: NEWTON_MAX_STEPS = 10
+    
+    real(kind=dp) :: x
     real(kind=dp) :: C_Rme, fp, phi, ds, psi, c1, c2, f, df
     real(kind=dp) :: a1, a2, a3, a4, a5, a6, a7, a8
-    integer :: iter
+    integer :: newton_step
 
     C_Rme = fractal_slip_correct(mobility_rad, temp, pressure, fractal)
     fp = air_mean_free_path(temp, pressure)
@@ -489,8 +491,7 @@ contains
     a8 = -FRACTAL_A_SLIP * fp
 
     x = mobility_rad
-    do iter = 1,MAX_ITERATIONS
-       last_solution = x
+    do newton_step = 1,NEWTON_MAX_STEPS
        f = a1 * x**(c1 + 1d0) + a2 * x**(c2 + 1d0) + a3 * x**c1 &
             + a4 * x**c2 + a5 * exp(a6 * x**c1 + a7 * x**c2) + a8
        df = a1 * (c1 + 1d0) * x**c1 + a2 * (c2 + 1d0) * x**c2 &
@@ -498,9 +499,11 @@ contains
             + a5 * (a6 * c1 * x**(c1 - 1d0) + a7 * c2 * x**(c2 - 1d0)) &
             * exp(a6 * x**c1 + a7 * x**c2)
        x = x - f / df
-       if (abs(last_solution - x) / (abs(last_solution) + abs(x)) &
-            .lt. eps) EXIT
+       if (abs(f / df) / (abs(x + f / df) + abs(x)) &
+            < NEWTON_REL_TOL) exit
     end do
+    call assert_msg(875871349, newton_step < NEWTON_MAX_STEPS, &
+         "fractal Newton loop failed to converge")
     mobility_rad_to_mobility_rad_in_continuum = x
 
   end function mobility_rad_to_mobility_rad_in_continuum

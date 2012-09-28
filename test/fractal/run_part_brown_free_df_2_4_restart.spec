@@ -6,7 +6,7 @@ restart yes                     # whether to restart from saved state (yes/no)
 restart_file out_dimless_t/part_brown_free_df_2_4_0001_00000021.nc # saved state file to restart from
 
 t_max 6.5e+4                    # total simulation time (s)
-del_t 10                        # timestep (s)
+del_t 100                       # timestep (s)
 t_output 5e+3                   # output interval (0 disables) (s)
 t_progress 1e+3                 # progress printing interval (0 disables) (s)
 

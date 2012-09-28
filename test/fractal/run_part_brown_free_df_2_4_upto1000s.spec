@@ -5,7 +5,7 @@ n_part 10000                    # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 1000                      # total simulation time (s)
-del_t 0.1                       # timestep (s)
+del_t 10                        # timestep (s)
 t_output 50                     # output interval (0 disables) (s)
 t_progress 10                   # progress printing interval (0 disables) (s)
 

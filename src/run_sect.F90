@@ -101,14 +101,14 @@ contains
     ! r         : droplet radius grid (um)
     ! log_width : constant grid distance of logarithmic grid
 
-    if (aero_data%n_spec /= 1) then
+    if (aero_data_n_spec(aero_data) /= 1) then
        call die_msg(844211192, &
             'run_sect() can only use one aerosol species')
     end if
 
     ! output data structure
     call aero_binned_allocate_size(aero_binned, bin_grid_size(bin_grid), &
-         aero_data%n_spec)
+         aero_data_n_spec(aero_data))
     aero_binned%vol_conc = 0d0
     call gas_state_allocate_size(gas_state, gas_data%n_spec)
 

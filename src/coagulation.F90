@@ -368,8 +368,10 @@ contains
     real(kind=dp) :: prob_remove_i, prob_remove_source_max
     real(kind=dp) :: prob_coag, prob_coag_tot, prob_coag_mean
     real(kind=dp) :: num_conc_i, num_conc_source_min, num_conc_target, k
-    real(kind=dp) :: vol_sq(aero_data%n_spec), vol_mean(aero_data%n_spec)
-    real(kind=dp) :: vol_cv(aero_data%n_spec), vol_cv_max, mean_95_conf_cv
+    real(kind=dp) :: vol_sq(aero_data_n_spec(aero_data))
+    real(kind=dp) :: vol_mean(aero_data_n_spec(aero_data))
+    real(kind=dp) :: vol_cv(aero_data_n_spec(aero_data)), vol_cv_max
+    real(kind=dp) :: mean_95_conf_cv
     integer :: n_samp_remove, n_samp_extra, n_samp_total, n_avg, i_samp
     integer :: i_unif_entry, i_part, target_id, new_bin, ct
     type(aero_particle_t), pointer :: i_particle
@@ -401,7 +403,7 @@ contains
     prob_coag_tot = 0d0
     call aero_particle_deallocate(source_particle)
     call aero_particle_allocate_size(source_particle, &
-         aero_data%n_spec, aero_data%n_source)
+         aero_data_n_spec(aero_data), aero_data_n_source(aero_data))
     vol_sq = 0d0
 
     ! FIXME: Can't we just do n_samp = 1,n_samp_total and shift tests
@@ -834,8 +836,8 @@ contains
     ! create a new particle and set its ID
     if (create_new) then
        call aero_particle_deallocate(ptc)
-       call aero_particle_allocate_size(ptc, aero_data%n_spec, &
-            aero_data%n_source)
+       call aero_particle_allocate_size(ptc, aero_data_n_spec(aero_data), &
+            aero_data_n_source(aero_data))
        call aero_particle_coagulate(pt1, pt2, ptc)
        call aero_particle_set_weight(ptc, new_group, cc)
        if (remove_1 .and. (.not. id_1_lost)) then

@@ -343,7 +343,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data
 
     integer :: dimid_aero_diam, dimid_aero_species
-    real(kind=dp) :: mass_conc(bin_grid_size(bin_grid), aero_data%n_spec)
+    real(kind=dp) :: mass_conc(bin_grid_size(bin_grid), &
+         aero_data_n_spec(aero_data))
     integer :: i_bin
 
     !> \page output_format_aero_binned Output File Format: Aerosol Binned Sectional State
@@ -462,12 +463,13 @@ contains
     !> aero_data structure.
     type(aero_data_t), intent(in) :: aero_data
 
-    real(kind=dp) :: mass_conc(bin_grid_size(bin_grid), aero_data%n_spec)
+    real(kind=dp) :: mass_conc(bin_grid_size(bin_grid), &
+         aero_data_n_spec(aero_data))
     integer :: i_bin
 
     call aero_binned_deallocate(aero_binned)
     call aero_binned_allocate_size(aero_binned, bin_grid_size(bin_grid), &
-         aero_data%n_spec)
+         aero_data_n_spec(aero_data))
 
     call pmc_nc_read_real_1d(ncid, aero_binned%num_conc, &
          "aero_number_concentration")

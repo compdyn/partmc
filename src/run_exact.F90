@@ -71,7 +71,7 @@ contains
          "t_output", run_exact_opt%t_output)
 
     call aero_binned_allocate_size(aero_binned, bin_grid_size(bin_grid), &
-         aero_data%n_spec)
+         aero_data_n_spec(aero_data))
     call gas_data_allocate(gas_data)
     call gas_state_allocate(gas_state)
 

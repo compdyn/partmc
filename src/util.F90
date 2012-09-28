@@ -1000,6 +1000,24 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Return the index of the first occurance of the given value in the
+  !> array, or 0 if it is not present.
+  integer function string_array_find(array, val)
+
+    !> Array of values.
+    character(len=*), intent(in) :: array(:)
+    !> Value to find.
+    character(len=*), intent(in) :: val
+
+    do string_array_find = 1,size(array)
+       if (trim(array(string_array_find)) == trim(val)) return
+    end do
+    string_array_find = 0
+
+  end function string_array_find
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Allocate or reallocate the given array to ensure it is of the
   !> given size, preserving any data and/or initializing to 0.
   subroutine ensure_real_array_size(x, n, only_grow)

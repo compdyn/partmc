@@ -188,15 +188,16 @@ contains
     case(AERO_STATE_WEIGHT_NUMMASS)
        call aero_weight_array_allocate_nummass(aero_state%awa, 1)
     case(AERO_STATE_WEIGHT_FLAT_SOURCE)
-       call aero_weight_array_allocate_flat(aero_state%awa, aero_data%n_source)
+       call aero_weight_array_allocate_flat(aero_state%awa, &
+            aero_data_n_source(aero_data))
     case(AERO_STATE_WEIGHT_POWER_SOURCE)
        call assert_msg(102143848, present(exponent), &
             "exponent parameter required for AERO_STATE_WEIGHT_POWER")
        call aero_weight_array_allocate_power(aero_state%awa, &
-            aero_data%n_source, exponent)
+            aero_data_n_source(aero_data), exponent)
     case(AERO_STATE_WEIGHT_NUMMASS_SOURCE)
        call aero_weight_array_allocate_nummass(aero_state%awa, &
-            aero_data%n_source)
+            aero_data_n_source(aero_data))
     case default
        call die_msg(969076992, "unknown weight_type: " &
             // trim(integer_to_string(weight_type)))
@@ -713,13 +714,13 @@ contains
     integer, intent(out), optional :: n_part_add
 
     real(kind=dp) :: n_samp_avg, radius, total_vol
-    real(kind=dp) :: vols(aero_data%n_spec)
+    real(kind=dp) :: vols(aero_data_n_spec(aero_data))
     integer :: n_samp, i_mode, i_samp, i_group, i_class, n_group, n_class
     type(aero_mode_t), pointer :: aero_mode
     type(aero_particle_t) :: aero_particle
 
-    call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
-         aero_data%n_source)
+    call aero_particle_allocate_size(aero_particle, &
+         aero_data_n_spec(aero_data), aero_data_n_source(aero_data))
 
     n_group = size(aero_state%awa%weight, 1)
     n_class = size(aero_state%awa%weight, 2)
@@ -1027,7 +1028,7 @@ contains
     !> Return masses array (kg).
     real(kind=dp) :: aero_state_masses(aero_state%apa%n_part)
 
-    logical :: use_species(aero_data%n_spec)
+    logical :: use_species(aero_data_n_spec(aero_data))
     integer :: i_name, i_spec
 
     if ((.not. present(include)) .and. (.not. present(exclude))) then
@@ -1054,7 +1055,7 @@ contains
           end do
        end if
        aero_state_masses = 0d0
-       do i_spec = 1,aero_data%n_spec
+       do i_spec = 1,aero_data_n_spec(aero_data)
           if (use_species(i_spec)) then
              aero_state_masses = aero_state_masses &
                   + aero_particle_species_mass( &
@@ -1135,7 +1136,8 @@ contains
     !> Return value.
     real(kind=dp) :: aero_state_mass_entropies(aero_state%apa%n_part)
 
-    logical :: use_species(aero_data%n_spec), group_species(aero_data%n_spec)
+    logical :: use_species(aero_data_n_spec(aero_data))
+    logical :: group_species(aero_data_n_spec(aero_data))
     integer :: i_name, i_spec, i_part
     real(kind=dp) :: group_mass, non_group_mass, mass
 
@@ -1169,7 +1171,7 @@ contains
        do i_part = 1,aero_state%apa%n_part
           group_mass = 0d0
           non_group_mass = 0d0
-          do i_spec = 1,aero_data%n_spec
+          do i_spec = 1,aero_data_n_spec(aero_data)
              if (use_species(i_spec)) then
                 mass = aero_particle_species_mass( &
                      aero_state%apa%particle(i_part), i_spec, aero_data)
@@ -1650,7 +1652,7 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
 
-    real(kind=dp) :: species_volume_conc(aero_data%n_spec)
+    real(kind=dp) :: species_volume_conc(aero_data_n_spec(aero_data))
     real(kind=dp) :: total_volume_conc, particle_volume, num_conc
     integer :: i_bin, i_class, i_entry, i_part, i_spec
     type(aero_particle_t), pointer :: aero_particle
@@ -2170,8 +2172,9 @@ contains
     integer :: i_part, i_remove
     type(aero_particle_t), pointer :: particle
     real(kind=dp) :: aero_particle_mass(aero_state%apa%n_part, &
-         aero_data%n_spec)
-    integer :: aero_n_orig_part(aero_state%apa%n_part, aero_data%n_source)
+         aero_data_n_spec(aero_data))
+    integer :: aero_n_orig_part(aero_state%apa%n_part, &
+         aero_data_n_source(aero_data))
     integer :: aero_particle_weight_group(aero_state%apa%n_part)
     integer :: aero_particle_weight_class(aero_state%apa%n_part)
     real(kind=dp) :: aero_absorb_cross_sect(aero_state%apa%n_part)
@@ -2554,8 +2557,8 @@ contains
     call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_particle, &
          name, n_part))
 
-    allocate(aero_particle_mass(n_part, aero_data%n_spec))
-    allocate(aero_n_orig_part(n_part, aero_data%n_source))
+    allocate(aero_particle_mass(n_part, aero_data_n_spec(aero_data)))
+    allocate(aero_n_orig_part(n_part, aero_data_n_source(aero_data)))
     allocate(aero_particle_weight_group(n_part))
     allocate(aero_particle_weight_class(n_part))
     allocate(aero_absorb_cross_sect(n_part))
@@ -2613,8 +2616,8 @@ contains
     call aero_weight_array_input_netcdf(aero_state%awa, ncid)
     call aero_state_set_n_part_ideal(aero_state, 0d0)
 
-    call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
-         aero_data%n_source)
+    call aero_particle_allocate_size(aero_particle, &
+         aero_data_n_spec(aero_data), aero_data_n_source(aero_data))
     do i_part = 1,n_part
        aero_particle%vol = aero_particle_mass(i_part, :) / aero_data%density
        aero_particle%n_orig_part = aero_n_orig_part(i_part, :)

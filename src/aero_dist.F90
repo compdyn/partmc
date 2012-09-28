@@ -198,7 +198,7 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Volume concentration (V(ln(r))d(ln(r))).
     real(kind=dp), intent(out) :: vol_conc(bin_grid_size(bin_grid), &
-         aero_data%n_spec)
+         aero_data_n_spec(aero_data))
 
     integer :: i_mode
     real(kind=dp) :: mode_vol_conc(size(vol_conc, 1), size(vol_conc, 2))

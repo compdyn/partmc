@@ -34,7 +34,6 @@ program process
 
   call pmc_mpi_init()
 
-  call aero_data_allocate(aero_data)
   call aero_state_allocate(aero_state)
   call aero_state_allocate(aero_state_averaged)
   call env_state_allocate(env_state)
@@ -157,7 +156,6 @@ program process
        "tot_entropy_averaged", dim_name="time", unit="m^{-3}")
   call pmc_nc_close(ncid)
 
-  call aero_data_deallocate(aero_data)
   call aero_state_deallocate(aero_state)
   call env_state_deallocate(env_state)
 

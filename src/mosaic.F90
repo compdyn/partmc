@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2011 Matthew West
+! Copyright (C) 2007-2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -170,7 +170,7 @@ contains
     ! local variables
     real(kind=dp) :: time_UTC    ! 24-hr UTC clock time (hr).
     real(kind=dp) :: tmar21_sec  ! Time at noon, march 21, UTC (s).
-    real(kind=dp) :: conv_fac(aero_data%n_spec), dum_var
+    real(kind=dp) :: conv_fac(aero_data_n_spec(aero_data)), dum_var
     integer :: i_part, i_spec, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
     real(kind=dp) :: num_conc
@@ -209,7 +209,7 @@ contains
     dt_aeroptic_min = 0d0
 
     ! compute aerosol conversion factors
-    do i_spec = 1,aero_data%n_spec
+    do i_spec = 1,aero_data_n_spec(aero_data)
        ! converts m^3(species) to nmol(species)/m^3(air)
        conv_fac(i_spec) = 1.D9 * aero_data%density(i_spec) &
             / aero_data%molec_weight(i_spec)
@@ -236,7 +236,7 @@ contains
     do i_part = aero_state%apa%n_part,1,-1
        particle => aero_state%apa%particle(i_part)
        num_conc = aero_weight_array_num_conc(aero_state%awa, particle)
-       do i_spec = 1,aero_data%n_spec
+       do i_spec = 1,aero_data_n_spec(aero_data)
           i_spec_mosaic = aero_data%mosaic_index(i_spec)
           if (i_spec_mosaic > 0) then
              ! convert m^3(species) to nmol(species)/m^3(air)
@@ -293,13 +293,13 @@ contains
 
 #ifdef PMC_USE_MOSAIC
     ! local variables
-    real(kind=dp) :: conv_fac(aero_data%n_spec), dum_var, num_conc
+    real(kind=dp) :: conv_fac(aero_data_n_spec(aero_data)), dum_var, num_conc
     integer :: i_part, i_spec, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
     real(kind=dp) :: reweight_num_conc(aero_state%apa%n_part)
 
     ! compute aerosol conversion factors
-    do i_spec = 1,aero_data%n_spec
+    do i_spec = 1,aero_data_n_spec(aero_data)
        ! converts m^3(species) to nmol(species)/m^3(air)
        conv_fac(i_spec) = 1d9 * aero_data%density(i_spec) &
             / aero_data%molec_weight(i_spec)
@@ -324,7 +324,7 @@ contains
     do i_part = 1,aero_state%apa%n_part,1
        particle => aero_state%apa%particle(i_part)
        num_conc = aero_weight_array_num_conc(aero_state%awa, particle)
-       do i_spec = 1,aero_data%n_spec
+       do i_spec = 1,aero_data_n_spec(aero_data)
           i_spec_mosaic = aero_data%mosaic_index(i_spec)
           if (i_spec_mosaic > 0) then
              particle%vol(i_spec) = &

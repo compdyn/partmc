@@ -205,7 +205,6 @@ contains
     end do
 
     ! save data for use within the timestepper
-    call aero_data_allocate(condense_saved_aero_data)
     call env_state_allocate(condense_saved_env_state_initial)
     call aero_data_copy(aero_data, condense_saved_aero_data)
     call env_state_copy(env_state_initial, condense_saved_env_state_initial)
@@ -317,7 +316,6 @@ contains
     deallocate(condense_saved_kappa)
     deallocate(condense_saved_D_dry)
     deallocate(condense_saved_num_conc)
-    call aero_data_deallocate(condense_saved_aero_data)
     call env_state_deallocate(condense_saved_env_state_initial)
 
   end subroutine condense_particles

@@ -24,10 +24,10 @@ module pmc_aero_particle
   !! equal to aero_data%%n_spec, so that \c vol(i) is the volume (in
   !! m^3) of the i'th aerosol species.
   type aero_particle_t
-     !> Constituent species volumes [length aero_data%%n_spec] (m^3).
+     !> Constituent species volumes [length aero_data_n_spec()] (m^3).
      real(kind=dp), pointer :: vol(:)
      !> Number of original particles from each source that coagulated
-     !> to form this one [length aero_data%%n_source].
+     !> to form this one [length aero_data_n_source()].
      integer, pointer :: n_orig_part(:)
      !> Weighting function group number (see \c aero_weight_array_t).
      integer :: weight_group
@@ -323,7 +323,7 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Return value.
-    real(kind=dp) :: aero_particle_species_masses(aero_data%n_spec)
+    real(kind=dp) :: aero_particle_species_masses(aero_data_n_spec(aero_data))
 
     aero_particle_species_masses = aero_particle%vol * aero_data%density
 
@@ -371,7 +371,7 @@ contains
     integer :: i_spec
 
     aero_particle_dry_volume = 0d0
-    do i_spec = 1,aero_data%n_spec
+    do i_spec = 1,aero_data_n_spec(aero_data)
        if (i_spec /= aero_data%i_water) then
           aero_particle_dry_volume = aero_particle_dry_volume &
                + aero_particle%vol(i_spec)
@@ -486,7 +486,7 @@ contains
     !> Quantity to average.
     real(kind=dp), intent(in) :: quantity(:)
 
-    real(kind=dp) :: ones(aero_data%n_spec)
+    real(kind=dp) :: ones(aero_data_n_spec(aero_data))
 
     ones = 1d0
     aero_particle_average_solute_quantity = &
@@ -513,7 +513,7 @@ contains
     integer i
 
     total = 0d0
-    do i = 1,aero_data%n_spec
+    do i = 1,aero_data_n_spec(aero_data)
        if (i /= aero_data%i_water) then
           total = total + aero_particle%vol(i) * quantity(i)
        end if
@@ -682,7 +682,7 @@ contains
     !> Aerosol particle.
     type(aero_particle_t), intent(in) :: aero_particle
 
-    real(kind=dp) :: ones(aero_data%n_spec)
+    real(kind=dp) :: ones(aero_data_n_spec(aero_data))
 
     ones = 1d0
     aero_particle_solute_volume &
@@ -717,12 +717,12 @@ contains
     !> Aerosol particle.
     type(aero_particle_t), intent(in) :: aero_particle
 
-    real(kind=dp) :: kappa(aero_data%n_spec), M_w, rho_w, M_a, rho_a
+    real(kind=dp) :: kappa(aero_data_n_spec(aero_data)), M_w, rho_w, M_a, rho_a
     integer :: i_spec
 
     M_w = aero_particle_water_molec_weight(aero_data)
     rho_w = aero_particle_water_density(aero_data)
-    do i_spec = 1,aero_data%n_spec
+    do i_spec = 1,aero_data_n_spec(aero_data)
        if (i_spec == aero_data%i_water) then
           kappa(i_spec) = 0d0
        elseif (aero_data%num_ions(i_spec) > 0) then

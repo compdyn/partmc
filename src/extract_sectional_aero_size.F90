@@ -92,7 +92,6 @@ program extract_sectional_aero_size
      end if
   end if
 
-  call aero_data_allocate(aero_data)
   call aero_binned_allocate(aero_binned)
 
   allocate(filename_list(0))
@@ -153,7 +152,6 @@ program extract_sectional_aero_size
 
   deallocate(filename_list)
   deallocate(aero_dist)
-  call aero_data_deallocate(aero_data)
   call aero_binned_deallocate(aero_binned)
 
   call pmc_mpi_finalize()

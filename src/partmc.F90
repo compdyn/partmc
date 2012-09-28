@@ -378,7 +378,6 @@ contains
     call gas_data_allocate(gas_data)
     call gas_state_allocate(gas_state)
     call gas_state_allocate(gas_state_init)
-    call aero_data_allocate(aero_data)
     call aero_dist_allocate(aero_dist_init)
     call aero_state_allocate(aero_state)
     call aero_state_allocate(aero_state_init)
@@ -670,7 +669,6 @@ contains
     call gas_data_deallocate(gas_data)
     call gas_state_deallocate(gas_state)
     call gas_state_deallocate(gas_state_init)
-    call aero_data_deallocate(aero_data)
     call aero_dist_deallocate(aero_dist_init)
     call aero_state_deallocate(aero_state)
     call aero_state_deallocate(aero_state_init)
@@ -788,7 +786,6 @@ contains
     end if
 
     call gas_data_allocate(gas_data)
-    call aero_data_allocate(aero_data)
     call scenario_allocate(scenario)
     call env_state_allocate(env_state)
     call aero_dist_allocate(aero_dist_init)
@@ -848,7 +845,6 @@ contains
     call run_exact(bin_grid, scenario, env_state, aero_data, &
          aero_dist_init, run_exact_opt)
 
-    call aero_data_deallocate(aero_data)
     call scenario_deallocate(scenario)
     call env_state_deallocate(env_state)
     call gas_data_deallocate(gas_data)
@@ -951,7 +947,6 @@ contains
        return
     end if
 
-    call aero_data_allocate(aero_data)
     call aero_dist_allocate(aero_dist_init)
     call env_state_allocate(env_state)
     call scenario_allocate(scenario)
@@ -1006,7 +1001,6 @@ contains
     call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, scenario, &
          env_state, run_sect_opt)
 
-    call aero_data_deallocate(aero_data)
     call aero_dist_deallocate(aero_dist_init)
     call env_state_deallocate(env_state)
     call scenario_deallocate(scenario)

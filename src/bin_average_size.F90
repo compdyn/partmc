@@ -91,7 +91,6 @@ program bin_average_size
 
   call pmc_mpi_init()
 
-  call aero_data_allocate(aero_data)
   call aero_state_allocate(aero_state)
   call gas_data_allocate(gas_data)
   call gas_state_allocate(gas_state)
@@ -117,7 +116,6 @@ program bin_average_size
        gas_data, gas_state, env_state, index, time, del_t, i_repeat, &
        record_removals, record_optical, uuid)
 
-  call aero_data_deallocate(aero_data)
   call aero_state_deallocate(aero_state)
   call gas_data_deallocate(gas_data)
   call gas_state_deallocate(gas_state)

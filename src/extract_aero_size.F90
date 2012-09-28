@@ -109,7 +109,6 @@ program extract_aero_size
      end if
   end if
 
-  call aero_data_allocate(aero_data)
   call aero_state_allocate(aero_state)
 
   allocate(filename_list(0))
@@ -171,7 +170,6 @@ program extract_aero_size
 
   deallocate(filename_list)
   deallocate(aero_dist)
-  call aero_data_deallocate(aero_data)
   call aero_state_deallocate(aero_state)
 
   call pmc_mpi_finalize()

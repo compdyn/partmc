@@ -474,7 +474,7 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Volume concentration (V(ln(r))d(ln(r))).
     real(kind=dp), intent(out) :: vol_conc(bin_grid_size(bin_grid), &
-         aero_data%n_spec)
+         aero_data_n_spec(aero_data))
 
     integer :: i_spec
     real(kind=dp) :: vol_conc_total(bin_grid_size(bin_grid))
@@ -498,7 +498,7 @@ contains
     call assert_msg(756593082, sum(aero_mode%vol_frac_std) == 0d0, &
          "cannot convert species fractions with non-zero standard deviation " &
          // "to binned distributions")
-    do i_spec = 1,aero_data%n_spec
+    do i_spec = 1,aero_data_n_spec(aero_data)
        vol_conc(:,i_spec) = vol_conc_total * aero_mode%vol_frac(i_spec)
     end do
 
@@ -998,7 +998,7 @@ contains
        call spec_file_check_line_name(file, line, "mode_name")
        call spec_file_check_line_length(file, line, 1)
        call aero_mode_deallocate(aero_mode)
-       call aero_mode_allocate_size(aero_mode, aero_data%n_spec)
+       call aero_mode_allocate_size(aero_mode, aero_data_n_spec(aero_data))
        tmp_str = line%data(1) ! hack to avoid gfortran warning
        aero_mode%name = tmp_str(1:AERO_MODE_NAME_LEN)
        aero_mode%source = aero_data_source_by_name(aero_data, aero_mode%name)

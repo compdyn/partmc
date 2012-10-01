@@ -130,14 +130,10 @@ contains
     v_big = v_big_init + (n_small_init - n_small) * v_small
     n_spec = 1
     n_source = 1
-    call aero_particle_allocate_size(aero_particle_1, n_spec, n_source)
-    call aero_particle_allocate_size(aero_particle_2, n_spec, n_source)
-    aero_particle_1%vol(1) = v_small
-    aero_particle_2%vol(1) = v_big
+    aero_particle_1%vol = [v_small]
+    aero_particle_2%vol = [v_big]
     call kernel_sedi(aero_particle_1, aero_particle_2, aero_data, &
          env_state, k)
-    call aero_particle_deallocate(aero_particle_1)
-    call aero_particle_deallocate(aero_particle_2)
     n_small_dot = - k / comp_vol * n_small
     
   end subroutine bidisperse_f

@@ -149,15 +149,13 @@ contains
           so4_vol = diam2vol(nucleate_diam)
           total_so4_vol = total_so4_vol + so4_vol
 
-          call aero_particle_allocate_size(aero_particle, &
-               aero_data_n_spec(aero_data), aero_data_n_source(aero_data))
+          call aero_particle_zero(aero_particle, aero_data)
           call aero_particle_set_create_time(aero_particle, &
                env_state%elapsed_time)
           aero_particle%vol(i_aero_so4) = so4_vol
           call aero_particle_new_id(aero_particle)
           call aero_particle_set_weight(aero_particle, i_group, i_class)
           call aero_state_add_particle(aero_state, aero_particle)
-          call aero_particle_deallocate(aero_particle)
        end do
     end do
 

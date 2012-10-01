@@ -281,8 +281,8 @@ contains
        call aero_state_rebalance(aero_state, run_part_opt%allow_doubling, &
             run_part_opt%allow_halving, initial_state_warning=.false.)
 
-       ! DEBUG: enable to check array handling
-       ! call aero_state_check_sort(aero_state)
+       ! DEBUG: enable to check consistency
+       ! call aero_state_check(aero_state, aero_data)
        ! DEBUG: end
 
        if (run_part_opt%t_output > 0d0) then

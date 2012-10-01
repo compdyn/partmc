@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -73,9 +73,6 @@ contains
 
     aero_particle_array%n_part = n_part
     allocate(aero_particle_array%particle(n_part))
-    do i = 1,n_part
-       call aero_particle_allocate(aero_particle_array%particle(i))
-    end do
 
   end subroutine aero_particle_array_allocate_size
 
@@ -89,9 +86,6 @@ contains
 
     integer :: i
 
-    do i = 1,aero_particle_array%n_part
-       call aero_particle_deallocate(aero_particle_array%particle(i))
-    end do
     deallocate(aero_particle_array%particle)
 
   end subroutine aero_particle_array_deallocate
@@ -235,7 +229,6 @@ contains
 
     n = aero_particle_array%n_part + 1
     call aero_particle_array_enlarge_to(aero_particle_array, n)
-    call aero_particle_allocate(aero_particle_array%particle(n))
     call aero_particle_copy(aero_particle, &
          aero_particle_array%particle(n))
     aero_particle_array%n_part = aero_particle_array%n_part + 1
@@ -255,7 +248,6 @@ contains
 
     call assert(992946227, index >= 1)
     call assert(711246139, index <= aero_particle_array%n_part)
-    call aero_particle_deallocate(aero_particle_array%particle(index))
     if (index < aero_particle_array%n_part) then
        ! shift last particle into empty slot to preserve dense packing
        call aero_particle_shift( &
@@ -333,7 +325,6 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%n_part)
     allocate(val%particle(val%n_part))
     do i = 1,val%n_part
-       call aero_particle_allocate(val%particle(i))
        call pmc_mpi_unpack_aero_particle(buffer, position, val%particle(i))
     end do
     call assert(138783294, &
@@ -341,6 +332,34 @@ contains
 #endif
 
   end subroutine pmc_mpi_unpack_aero_particle_array
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Check that the particle array data is consistent.
+  subroutine aero_particle_array_check(aero_particle_array, aero_data, &
+       continue_on_error)
+
+    !> Aerosol particle array to check.
+    type(aero_particle_array_t), intent(in) :: aero_particle_array
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Whether to continue despite error.
+    logical, intent(in) :: continue_on_error
+
+    integer :: i_part
+
+    if (aero_particle_array%n_part < 0) then
+       write(0, *) 'ERROR aero_particle_array A:'
+       write(0, *) 'aero_particle_array%n_part', aero_particle_array%n_part
+       call assert(250011397, continue_on_error)
+    end if
+
+    do i_part = 1,aero_particle_array%n_part
+       call aero_particle_check(aero_particle_array%particle(i_part), &
+            aero_data, continue_on_error)
+    end do
+
+  end subroutine aero_particle_array_check
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -213,9 +213,6 @@ contains
        return
     end if
 
-    call aero_particle_allocate(target_particle)
-    call aero_particle_allocate(source_particle)
-
     ! work backwards to avoid particle movement issues
     do target_unif_entry &
          = aero_state%aero_sorted%size_class%inverse(bt, ct)%n_entry,1,-1
@@ -236,9 +233,6 @@ contains
        tot_n_coag = tot_n_coag + n_coag
        ! we discard n_remove information at present
     end do
-
-    call aero_particle_deallocate(target_particle)
-    call aero_particle_deallocate(source_particle)
 
     per_particle_coag_succeeded = .true.
 
@@ -401,10 +395,9 @@ contains
     n_samp = 0
     n_remove = 0
     prob_coag_tot = 0d0
-    call aero_particle_deallocate(source_particle)
-    call aero_particle_allocate_size(source_particle, &
-         aero_data_n_spec(aero_data), aero_data_n_source(aero_data))
     vol_sq = 0d0
+
+    call aero_particle_zero(source_particle, aero_data)
 
     ! FIXME: Can't we just do n_samp = 1,n_samp_total and shift tests
     ! to the end?
@@ -835,9 +828,6 @@ contains
 
     ! create a new particle and set its ID
     if (create_new) then
-       call aero_particle_deallocate(ptc)
-       call aero_particle_allocate_size(ptc, aero_data_n_spec(aero_data), &
-            aero_data_n_source(aero_data))
        call aero_particle_coagulate(pt1, pt2, ptc)
        call aero_particle_set_weight(ptc, new_group, cc)
        if (remove_1 .and. (.not. id_1_lost)) then
@@ -893,7 +883,6 @@ contains
     type(aero_info_t) :: aero_info_1, aero_info_2
     logical :: remove_1, remove_2, create_new, id_1_lost, id_2_lost
 
-    call aero_particle_allocate(ptc)
     call aero_info_allocate(aero_info_1)
     call aero_info_allocate(aero_info_2)
 
@@ -935,7 +924,6 @@ contains
 
     call aero_info_deallocate(aero_info_1)
     call aero_info_deallocate(aero_info_2)
-    call aero_particle_deallocate(ptc)
 
   end subroutine coagulate
 

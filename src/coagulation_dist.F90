@@ -70,7 +70,6 @@ contains
     !> Request object to allocate.
     type(request_t), intent(out) :: request
 
-    call aero_particle_allocate(request%local_aero_particle)
     request%active = .false.
 
   end subroutine request_allocate
@@ -83,7 +82,6 @@ contains
     !> Request object to deallocate
     type(request_t), intent(inout) :: request
 
-    call aero_particle_deallocate(request%local_aero_particle)
     request%active = .false.
 
   end subroutine request_deallocate
@@ -491,12 +489,10 @@ contains
          s1)%n_entry == 0) then
        call send_return_no_particle(remote_proc, request_bin)
     else
-       call aero_particle_allocate(aero_particle)
        call aero_state_remove_rand_particle_from_bin(aero_state, &
             request_bin, s1, aero_particle)
        call send_return_req_particle(aero_particle, request_bin, &
             remote_proc)
-       call aero_particle_deallocate(aero_particle)
     end if
 #endif
 
@@ -669,7 +665,6 @@ contains
     ! unpack it
     position = 0
     call pmc_mpi_unpack_integer(buffer, position, sent_bin)
-    call aero_particle_allocate(sent_aero_particle)
     call pmc_mpi_unpack_aero_particle(buffer, position, sent_aero_particle)
     call assert(753356021, position == buffer_size)
 
@@ -714,7 +709,6 @@ contains
 
     call request_deallocate(requests(i_req))
     call request_allocate(requests(i_req))
-    call aero_particle_deallocate(sent_aero_particle)
 #endif
 
   end subroutine recv_return_req_particle
@@ -775,14 +769,12 @@ contains
 
     ! unpack it
     position = 0
-    call aero_particle_allocate(aero_particle)
     call pmc_mpi_unpack_aero_particle(buffer, position, aero_particle)
     call assert(833588594, position == buffer_size)
 
     ! put it back
     call aero_state_add_particle(aero_state, aero_particle, &
          allow_resort=.false.)
-    call aero_particle_deallocate(aero_particle)
 #endif
 
   end subroutine recv_return_unreq_particle
@@ -913,7 +905,6 @@ contains
     type(aero_info_t) :: aero_info_1, aero_info_2
     logical :: create_new, id_1_lost, id_2_lost
 
-    call aero_particle_allocate(aero_particle_new)
     call aero_info_allocate(aero_info_1)
     call aero_info_allocate(aero_info_2)
 
@@ -940,7 +931,6 @@ contains
        call send_return_unreq_particle(aero_particle_new, new_proc)
     end if
 
-    call aero_particle_deallocate(aero_particle_new)
     call aero_info_deallocate(aero_info_1)
     call aero_info_deallocate(aero_info_2)
 

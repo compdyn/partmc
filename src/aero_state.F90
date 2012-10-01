@@ -477,7 +477,6 @@ contains
             i_part, aero_info)
        call aero_info_deallocate(aero_info)
     elseif (n_copies > 1) then
-       call aero_particle_allocate(new_aero_particle)
        do i_dup = 1,(n_copies - 1)
           call aero_particle_copy(aero_particle, new_aero_particle)
           call aero_particle_new_id(new_aero_particle)
@@ -495,7 +494,6 @@ contains
           ! changed due to reallocations caused by adding
           aero_particle => aero_state%apa%particle(i_part)
        end do
-       call aero_particle_deallocate(new_aero_particle)
     end if
 
   end subroutine aero_state_dup_particle
@@ -719,9 +717,6 @@ contains
     type(aero_mode_t), pointer :: aero_mode
     type(aero_particle_t) :: aero_particle
 
-    call aero_particle_allocate_size(aero_particle, &
-         aero_data_n_spec(aero_data), aero_data_n_source(aero_data))
-
     n_group = size(aero_state%awa%weight, 1)
     n_class = size(aero_state%awa%weight, 2)
     if (present(n_part_add)) then
@@ -748,7 +743,7 @@ contains
              n_part_add = n_part_add + n_samp
           end if
           do i_samp = 1,n_samp
-             call aero_particle_zero(aero_particle)
+             call aero_particle_zero(aero_particle, aero_data)
              call aero_mode_sample_radius(aero_mode, &
                   aero_state%awa%weight(i_group, i_class), radius)
              total_vol = rad2vol(radius)
@@ -762,7 +757,6 @@ contains
           end do
        end do
     end do
-    call aero_particle_deallocate(aero_particle)
 
   end subroutine aero_state_add_aero_dist_sample
 
@@ -1300,7 +1294,6 @@ contains
     integer :: i_part
     type(aero_particle_t) :: aero_particle
 
-    call aero_particle_allocate(aero_particle)
     do i_part = 1,aero_state%apa%n_part
        if ((aero_state%apa%particle(i_part)%weight_group == i_group) &
             .and. (aero_state%apa%particle(i_part)%weight_class == i_class)) &
@@ -1311,7 +1304,6 @@ contains
           call aero_state_add_particle(aero_state, aero_particle)
        end if
     end do
-    call aero_particle_deallocate(aero_particle)
     aero_state%valid_sort = .false.
     call aero_weight_scale(aero_state%awa%weight(i_group, i_class), 0.5d0)
 
@@ -2616,8 +2608,6 @@ contains
     call aero_weight_array_input_netcdf(aero_state%awa, ncid)
     call aero_state_set_n_part_ideal(aero_state, 0d0)
 
-    call aero_particle_allocate_size(aero_particle, &
-         aero_data_n_spec(aero_data), aero_data_n_source(aero_data))
     do i_part = 1,n_part
        aero_particle%vol = aero_particle_mass(i_part, :) / aero_data%density
        aero_particle%n_orig_part = aero_n_orig_part(i_part, :)
@@ -2642,7 +2632,6 @@ contains
 
        call aero_state_add_particle(aero_state, aero_particle)
     end do
-    call aero_particle_deallocate(aero_particle)
 
     deallocate(aero_particle_mass)
     deallocate(aero_n_orig_part)
@@ -2722,26 +2711,25 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Check that the sorted data is consistent.
-  subroutine aero_state_check_sort(aero_state)
+  !> Check that aerosol state data is consistent.
+  subroutine aero_state_check(aero_state, aero_data)
 
     !> Aerosol state to check.
     type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
 
     logical, parameter :: continue_on_error = .false.
 
-    integer :: i_part, i_bin
-
-    if (.not. aero_state%valid_sort) then
-       write(0,*) 'SORTED CHECK ERROR: SORT NOT VALID'
-       return
+    call aero_particle_array_check(aero_state%apa, aero_data, &
+         continue_on_error)
+    if (aero_state%valid_sort) then
+       call aero_sorted_check(aero_state%aero_sorted, aero_state%apa, &
+            size(aero_state%awa%weight, 1), size(aero_state%awa%weight, 2), &
+            continue_on_error)
     end if
 
-    call aero_sorted_check(aero_state%aero_sorted, aero_state%apa, &
-         size(aero_state%awa%weight, 1), size(aero_state%awa%weight, 2), &
-         continue_on_error)
-
-  end subroutine aero_state_check_sort
+  end subroutine aero_state_check
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

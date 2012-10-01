@@ -16,12 +16,8 @@ module pmc_aero_particle_array
   use mpi
 #endif
 
-  !> 1-D arrays of particles, used by aero_state to build a ragged
-  !> array.
-  !!
-  !! One aero_particle_array is generally a list of particles in a
-  !! single size bin, but the basic type can be used for any list of
-  !! particles.
+  !> 1-D array of particles, used by aero_state to store the
+  !> particles.
   !!
   !! To give a reasonable tradeoff between frequent re-allocs and
   !! memory usage, the length of an aero_particle_array is generally a
@@ -36,64 +32,40 @@ module pmc_aero_particle_array
   !! of used particle slots in it is given by
   !! aero_particle_array%%n_part. It must be that
   !! aero_particle_array%%n_part is less than or equal to
-  !! size(aero_particle_array%%particle).
+  !! size(aero_particle_array%%particle). In user code, the \c
+  !! aero_particle_array_n_part() getter function should be used.q
+  !!
+  !! For internal usage, if \c particle is not allocated then \c
+  !! n_part is invalid. If \c particle is allocated then \c n_part
+  !! must be valid.
   type aero_particle_array_t
      !> Number of particles.
      integer :: n_part
      !> Particle array.
-     type(aero_particle_t), pointer :: particle(:)
+     type(aero_particle_t), allocatable :: particle(:)
   end type aero_particle_array_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocates and initializes.
-  subroutine aero_particle_array_allocate(aero_particle_array)
+  !> Return the current number of particles.
+  elemental integer function aero_particle_array_n_part(aero_particle_array)
 
-    !> Result.
-    type(aero_particle_array_t), intent(out) :: aero_particle_array
+    !> Aerosol particle array.
+    type(aero_particle_array_t), intent(in) :: aero_particle_array
 
-    aero_particle_array%n_part = 0
-    allocate(aero_particle_array%particle(0))
+    if (allocated(aero_particle_array%particle)) then
+       aero_particle_array_n_part = aero_particle_array%n_part
+    else
+       aero_particle_array_n_part = 0
+    end if
 
-  end subroutine aero_particle_array_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Allocates and initializes to the given size.
-  subroutine aero_particle_array_allocate_size(aero_particle_array, n_part)
-
-    !> Result.
-    type(aero_particle_array_t), intent(out) :: aero_particle_array
-    !> Number of particles.
-    integer, intent(in) :: n_part
-
-    integer :: i
-
-    aero_particle_array%n_part = n_part
-    allocate(aero_particle_array%particle(n_part))
-
-  end subroutine aero_particle_array_allocate_size
+  end function aero_particle_array_n_part
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Deallocates.
-  subroutine aero_particle_array_deallocate(aero_particle_array)
-
-    !> Structure to deallocate.
-    type(aero_particle_array_t), intent(inout) :: aero_particle_array
-
-    integer :: i
-
-    deallocate(aero_particle_array%particle)
-
-  end subroutine aero_particle_array_deallocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Copies aero_particle_array_from to aero_particle_array_to, both
-  !> of which must already be allocated.
+  !> Copies aero_particle_array_from to aero_particle_array_to.
   subroutine aero_particle_array_copy(aero_particle_array_from, &
        aero_particle_array_to)
 
@@ -102,15 +74,14 @@ contains
     !> Destination structure.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array_to
 
-    integer :: i
-
-    call aero_particle_array_deallocate(aero_particle_array_to)
-    call aero_particle_array_allocate_size(aero_particle_array_to, &
-         aero_particle_array_from%n_part)
-    do i = 1,aero_particle_array_from%n_part
-       call aero_particle_copy(aero_particle_array_from%particle(i), &
-            aero_particle_array_to%particle(i))
-    end do
+    if (allocated(aero_particle_array_from%particle)) then
+       aero_particle_array_to%n_part = aero_particle_array_from%n_part
+       aero_particle_array_to%particle = aero_particle_array_from%particle
+    else
+       if (allocated(aero_particle_array_to%particle)) then
+          deallocate(aero_particle_array_to%particle)
+       end if
+    end if
 
   end subroutine aero_particle_array_copy
 
@@ -122,9 +93,10 @@ contains
     !> Structure to reset.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
 
-    call aero_particle_array_deallocate(aero_particle_array)
-    allocate(aero_particle_array%particle(0))
     aero_particle_array%n_part = 0
+    if (allocated(aero_particle_array%particle)) then
+       deallocate(aero_particle_array%particle)
+    end if
 
   end subroutine aero_particle_array_zero
 
@@ -134,63 +106,53 @@ contains
   !> new_length.
   !!
   !! This function should not be called directly, but rather use
-  !! aero_particle_array_enlarge(), aero_particle_array_enlarge_to()
-  !! or aero_particle_array_shrink().
+  !! aero_particle_array_enlarge() or aero_particle_array_shrink().
   subroutine aero_particle_array_realloc(aero_particle_array, new_length)
 
-    !> Array to reallocate (must already be allocated on entry).
+    !> Array to reallocate.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
     !> New length of the array.
     integer, intent(in) :: new_length
 
-    integer :: n_part, i
-    type(aero_particle_t), pointer :: new_particles(:)
+    integer :: i
+    type(aero_particle_t), allocatable :: new_particles(:)
 
-    n_part = aero_particle_array%n_part
-    call assert(867444847, new_length >= n_part)
+    if (.not. allocated(aero_particle_array%particle)) then
+       allocate(aero_particle_array%particle(new_length))
+       aero_particle_array%n_part = 0
+       return
+    end if
+
+    call assert(867444847, new_length >= aero_particle_array%n_part)
     allocate(new_particles(new_length))
     do i = 1,aero_particle_array%n_part
        call aero_particle_shift(aero_particle_array%particle(i), &
             new_particles(i))
     end do
-    deallocate(aero_particle_array%particle)
-    aero_particle_array%particle => new_particles
+    call move_alloc(new_particles, aero_particle_array%particle)
 
   end subroutine aero_particle_array_realloc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Enlarges the given aero_particle_array by at least one element
-  !!
-  !! Currently this doubles the length.
-  subroutine aero_particle_array_enlarge(aero_particle_array)
-
-    !> Array to enlarge.
-    type(aero_particle_array_t), intent(inout) :: aero_particle_array
-
-    integer :: length, new_length
-
-    length = size(aero_particle_array%particle)
-    new_length = max(length * 2, length + 1)
-    call aero_particle_array_realloc(aero_particle_array, new_length)
-
-  end subroutine aero_particle_array_enlarge
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Enlarges the given array so that it is at least of size n.
-  subroutine aero_particle_array_enlarge_to(aero_particle_array, n)
+  !> Possibly enlarges the given array, ensuring that it is at least of size n.
+  subroutine aero_particle_array_enlarge(aero_particle_array, n)
 
     !> Array to enlarge.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
     !> Minimum new size of array.
     integer, intent(in) :: n
 
-    do while (size(aero_particle_array%particle) < n)
-       call aero_particle_array_enlarge(aero_particle_array)
-    end do
+    if (.not. allocated(aero_particle_array%particle)) then
+       call aero_particle_array_realloc(aero_particle_array, pow2_above(n))
+       return
+    end if
 
-  end subroutine aero_particle_array_enlarge_to
+    if (n <= size(aero_particle_array%particle)) return
+
+    call aero_particle_array_realloc(aero_particle_array, pow2_above(n))
+
+  end subroutine aero_particle_array_enlarge
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -201,16 +163,14 @@ contains
     !> Array to shrink.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
 
-    integer :: n_part, length, new_length
+    integer :: new_length
 
-    n_part = aero_particle_array%n_part
-    length = size(aero_particle_array%particle)
-    new_length = length / 2
-    do while ((n_part <= new_length) .and. (length > 0))
+    if (.not. allocated(aero_particle_array%particle)) return
+
+    new_length = pow2_above(aero_particle_array%n_part)
+    if (new_length < size(aero_particle_array%particle)) then
        call aero_particle_array_realloc(aero_particle_array, new_length)
-       length = size(aero_particle_array%particle)
-       new_length = length / 2
-    end do
+    end if
 
   end subroutine aero_particle_array_shrink
 
@@ -227,11 +187,10 @@ contains
 
     integer :: n
 
-    n = aero_particle_array%n_part + 1
-    call aero_particle_array_enlarge_to(aero_particle_array, n)
-    call aero_particle_copy(aero_particle, &
-         aero_particle_array%particle(n))
-    aero_particle_array%n_part = aero_particle_array%n_part + 1
+    n = aero_particle_array_n_part(aero_particle_array) + 1
+    call aero_particle_array_enlarge(aero_particle_array, n)
+    call aero_particle_copy(aero_particle, aero_particle_array%particle(n))
+    aero_particle_array%n_part = n
 
   end subroutine aero_particle_array_add_particle
 
@@ -246,6 +205,7 @@ contains
     !> Index of particle to remove.
     integer, intent(in) :: index
 
+    call assert(883639923, allocated(aero_particle_array%particle))
     call assert(992946227, index >= 1)
     call assert(711246139, index <= aero_particle_array%n_part)
     if (index < aero_particle_array%n_part) then
@@ -270,8 +230,9 @@ contains
     integer :: i, total_size
 
     total_size = 0
-    total_size = total_size + pmc_mpi_pack_size_integer(val%n_part)
-    do i = 1,val%n_part
+    total_size = total_size &
+         + pmc_mpi_pack_size_integer(aero_particle_array_n_part(val))
+    do i = 1,aero_particle_array_n_part(val)
        total_size = total_size &
             + pmc_mpi_pack_size_aero_particle(val%particle(i))
     end do
@@ -295,8 +256,9 @@ contains
     integer :: prev_position, i
 
     prev_position = position
-    call pmc_mpi_pack_integer(buffer, position, val%n_part)
-    do i = 1,val%n_part
+    call pmc_mpi_pack_integer(buffer, position, &
+         aero_particle_array_n_part(val))
+    do i = 1,aero_particle_array_n_part(val)
        call pmc_mpi_pack_aero_particle(buffer, position, val%particle(i))
     end do
     call assert(803856329, &
@@ -318,13 +280,13 @@ contains
     type(aero_particle_array_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, i
+    integer :: prev_position, i, n
 
-    call aero_particle_array_deallocate(val)
     prev_position = position
-    call pmc_mpi_unpack_integer(buffer, position, val%n_part)
-    allocate(val%particle(val%n_part))
-    do i = 1,val%n_part
+    call pmc_mpi_unpack_integer(buffer, position, n)
+    call aero_particle_array_realloc(val, n)
+    val%n_part = n
+    do i = 1,n
        call pmc_mpi_unpack_aero_particle(buffer, position, val%particle(i))
     end do
     call assert(138783294, &
@@ -347,6 +309,8 @@ contains
     logical, intent(in) :: continue_on_error
 
     integer :: i_part
+
+    if (.not. allocated(aero_particle_array%particle)) return
 
     if (aero_particle_array%n_part < 0) then
        write(0, *) 'ERROR aero_particle_array A:'

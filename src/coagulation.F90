@@ -368,7 +368,6 @@ contains
     real(kind=dp) :: mean_95_conf_cv
     integer :: n_samp_remove, n_samp_extra, n_samp_total, n_avg, i_samp
     integer :: i_unif_entry, i_part, target_id, new_bin, ct
-    type(aero_particle_t), pointer :: i_particle
     type(aero_info_t) :: aero_info
 
     if (aero_state%aero_sorted%size_class%inverse(bs, cs)%n_entry == 0) then
@@ -422,25 +421,25 @@ contains
             cs)%n_entry)
        i_part = aero_state%aero_sorted%size_class%inverse(bs, &
             cs)%entry(i_unif_entry)
-       i_particle => aero_state%apa%particle(i_part)
        ! re-get j_part as particle ordering may be changing
-       call num_conc_weighted_kernel(coag_kernel_type, i_particle, &
-            coag_particle, cs, ct, ct, aero_data, aero_state%awa, env_state, k)
+       call num_conc_weighted_kernel(coag_kernel_type, &
+            aero_state%apa%particle(i_part), coag_particle, cs, ct, ct, &
+            aero_data, aero_state%awa, env_state, k)
        prob_coag = k * accept_factor
        prob_coag_tot = prob_coag_tot + prob_coag
        if (pmc_random() < prob_coag) then
           n_avg = n_avg + 1
-          call aero_particle_coagulate(source_particle, i_particle, &
-               source_particle)
-          vol_sq = vol_sq + i_particle%vol**2
+          call aero_particle_coagulate(source_particle, &
+               aero_state%apa%particle(i_part), source_particle)
+          vol_sq = vol_sq + aero_state%apa%particle(i_part)%vol**2
           if (i_samp <= n_samp_remove) then
              num_conc_i = aero_weight_array_num_conc(aero_state%awa, &
-                  i_particle)
+                  aero_state%apa%particle(i_part))
              prob_remove_i = num_conc_target / num_conc_i
              if (pmc_random() < prob_remove_i / prob_remove_source_max) then
                 n_remove = n_remove + 1
                 call aero_info_allocate(aero_info)
-                aero_info%id = i_particle%id
+                aero_info%id = aero_state%apa%particle(i_part)%id
                 aero_info%action = AERO_INFO_COAG
                 aero_info%other_id = target_id
                 call aero_state_remove_particle_with_info(aero_state, &
@@ -877,7 +876,6 @@ contains
     !> Coagulated weight class.
     integer, intent(in) :: cc
 
-    type(aero_particle_t), pointer :: pt1, pt2
     type(aero_particle_t) :: ptc
     integer :: bn
     type(aero_info_t) :: aero_info_1, aero_info_2
@@ -886,10 +884,8 @@ contains
     call aero_info_allocate(aero_info_1)
     call aero_info_allocate(aero_info_2)
 
-    pt1 => aero_state%apa%particle(p1)
-    pt2 => aero_state%apa%particle(p2)
-
-    call coagulate_weighting(pt1, pt2, ptc, c1, c2, cc, aero_data, &
+    call coagulate_weighting(aero_state%apa%particle(p1), &
+         aero_state%apa%particle(p2), ptc, c1, c2, cc, aero_data, &
          aero_state%awa, remove_1, remove_2, create_new, id_1_lost, &
          id_2_lost, aero_info_1, aero_info_2)
 

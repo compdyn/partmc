@@ -1614,4 +1614,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Return the least power-of-2 that is at least equal to n.
+  integer function pow2_above(n)
+
+    !> Lower bound on the power of 2.
+    integer, intent(in) :: n
+
+    if (n <= 0) then
+       pow2_above = 0
+       return
+    end if
+
+    ! LEADZ is in Fortran 2008
+    pow2_above = ibset(0, bit_size(n) - leadz(n - 1))
+
+  end function pow2_above
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_util

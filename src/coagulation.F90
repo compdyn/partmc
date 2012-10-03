@@ -74,8 +74,8 @@ contains
     do c1 = 1,aero_sorted_n_class(aero_state%aero_sorted)
        do c2 = 1,c1
           do b1 = 1,aero_sorted_n_bin(aero_state%aero_sorted)
-             if (aero_state%aero_sorted%size_class%inverse(b1, &
-                  c1)%n_entry == 0) &
+             if (integer_varray_n_entry( &
+                  aero_state%aero_sorted%size_class%inverse(b1, c1)) == 0) &
                   cycle
              if (c1 == c2) then
                 b2_start = b1
@@ -83,8 +83,8 @@ contains
                 b2_start = 1
              end if
              do b2 = b2_start,aero_sorted_n_bin(aero_state%aero_sorted)
-                if (aero_state%aero_sorted%size_class%inverse(b2, &
-                     c2)%n_entry == 0) &
+                if (integer_varray_n_entry( &
+                     aero_state%aero_sorted%size_class%inverse(b2, c2)) == 0) &
                      cycle
                 call mc_coag_for_bin(coag_kernel_type, env_state, aero_data, &
                      aero_state, del_t, tot_n_samp, tot_n_coag, b1, b2, c1, c2)
@@ -196,8 +196,9 @@ contains
        return
     end if
 
-    call compute_n_source(aero_state%aero_sorted%size_class%inverse(bs, &
-         cs)%n_entry, k_max, del_t, n_source_per_target, accept_factor)
+    call compute_n_source(integer_varray_n_entry( &
+         aero_state%aero_sorted%size_class%inverse(bs, cs)), k_max, del_t, &
+         n_source_per_target, accept_factor)
     if (n_source_per_target < COAG_ACCEL_N_EVENT) then
        per_particle_coag_succeeded = .false.
        return
@@ -214,8 +215,8 @@ contains
     end if
 
     ! work backwards to avoid particle movement issues
-    do target_unif_entry &
-         = aero_state%aero_sorted%size_class%inverse(bt, ct)%n_entry,1,-1
+    do target_unif_entry = integer_varray_n_entry( &
+         aero_state%aero_sorted%size_class%inverse(bt, ct)),1,-1
        target_part = aero_state%aero_sorted%size_class%inverse(bt, &
             ct)%entry(target_unif_entry)
        ! need to copy coag_particle as the underlying storage may be
@@ -370,7 +371,8 @@ contains
     integer :: i_unif_entry, i_part, target_id, new_bin, ct
     type(aero_info_t) :: aero_info
 
-    if (aero_state%aero_sorted%size_class%inverse(bs, cs)%n_entry == 0) then
+    if (integer_varray_n_entry( &
+         aero_state%aero_sorted%size_class%inverse(bs, cs)) == 0) then
        n_samp = 0
        n_remove = 0
        n_coag = 0
@@ -401,7 +403,8 @@ contains
     ! FIXME: Can't we just do n_samp = 1,n_samp_total and shift tests
     ! to the end?
     do i_samp = 1,n_samp_total
-       if (aero_state%aero_sorted%size_class%inverse(bs, cs)%n_entry == 0) exit
+       if (integer_varray_n_entry( &
+            aero_state%aero_sorted%size_class%inverse(bs, cs)) == 0) exit
        if ((n_samp > n_samp_remove) .and. (n_avg >= 2)) then
           vol_mean = source_particle%vol / real(n_avg, kind=dp)
           where(vol_mean > 0d0) &
@@ -416,9 +419,8 @@ contains
        end if
        n_samp = n_samp + 1
        ! FIXME: We are sampling with replacement. Is this a problem?
-       i_unif_entry &
-            = pmc_rand_int(aero_state%aero_sorted%size_class%inverse(bs, &
-            cs)%n_entry)
+       i_unif_entry = pmc_rand_int(integer_varray_n_entry( &
+            aero_state%aero_sorted%size_class%inverse(bs, cs)))
        i_part = aero_state%aero_sorted%size_class%inverse(bs, &
             cs)%entry(i_unif_entry)
        ! re-get j_part as particle ordering may be changing
@@ -562,16 +564,20 @@ contains
     integer :: i_samp, n_samp, n1, n2
     logical :: did_coag
 
-    n1 = aero_state%aero_sorted%size_class%inverse(b1, c1)%n_entry
-    n2 = aero_state%aero_sorted%size_class%inverse(b2, c2)%n_entry
+    n1 = integer_varray_n_entry( &
+         aero_state%aero_sorted%size_class%inverse(b1, c1))
+    n2 = integer_varray_n_entry( &
+         aero_state%aero_sorted%size_class%inverse(b2, c2))
     call compute_n_samp(n1, n2, ((b1 == b2) .and. (c1 == c2)), k_max, del_t, &
          n_samp_mean, n_samp, accept_factor)
     tot_n_samp = tot_n_samp + n_samp
 
     do i_samp = 1,n_samp
        ! check we still have enough particles to coagulate
-       n1 = aero_state%aero_sorted%size_class%inverse(b1, c1)%n_entry
-       n2 = aero_state%aero_sorted%size_class%inverse(b2, c2)%n_entry
+       n1 = integer_varray_n_entry( &
+            aero_state%aero_sorted%size_class%inverse(b1, c1))
+       n2 = integer_varray_n_entry( &
+            aero_state%aero_sorted%size_class%inverse(b2, c2))
        if (((n1 < 2) .and. (b1 == b2) .and. (c1 == c2)) &
             .or. (n1 < 1) .or. (n2 < 1)) &
             exit
@@ -720,20 +726,24 @@ contains
     !> Second rand particle.
     integer, intent(out) :: i2
 
-    call assert(619608562, aero_sorted%size_class%inverse(b1, c1)%n_entry >= 1)
-    i1 = pmc_rand_int(aero_sorted%size_class%inverse(b1, c1)%n_entry)
+    call assert(619608562, &
+         integer_varray_n_entry(aero_sorted%size_class%inverse(b1, c1)) >= 1)
+    i1 = pmc_rand_int( &
+         integer_varray_n_entry(aero_sorted%size_class%inverse(b1, c1)))
 
     if ((b1 == b2) .and. (c1 == c2)) then
-       call assert(956184336, &
-            aero_sorted%size_class%inverse(b2, c2)%n_entry >= 2)
-       i2 = pmc_rand_int(aero_sorted%size_class%inverse(b2, c2)%n_entry - 1)
+       call assert(956184336, integer_varray_n_entry( &
+            aero_sorted%size_class%inverse(b2, c2)) >= 2)
+       i2 = pmc_rand_int( &
+            integer_varray_n_entry(aero_sorted%size_class%inverse(b2, c2)) - 1)
        if (i2 == i1) then
-          i2 = aero_sorted%size_class%inverse(b2, c2)%n_entry
+          i2 = integer_varray_n_entry(aero_sorted%size_class%inverse(b2, c2))
        end if
     else
-       call assert(271635751, &
-            aero_sorted%size_class%inverse(b2, c2)%n_entry >= 1)
-       i2 = pmc_rand_int(aero_sorted%size_class%inverse(b2, c2)%n_entry)
+       call assert(271635751, integer_varray_n_entry( &
+            aero_sorted%size_class%inverse(b2, c2)) >= 1)
+       i2 = pmc_rand_int( &
+            integer_varray_n_entry(aero_sorted%size_class%inverse(b2, c2)))
     end if
 
   end subroutine find_rand_pair

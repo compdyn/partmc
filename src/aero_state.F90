@@ -278,8 +278,8 @@ contains
        call assert(908743823, present(i_class))
        if (aero_state%valid_sort) then
           aero_state_total_particles &
-               = aero_state%aero_sorted%group_class%inverse(i_group, &
-               i_class)%n_entry
+               = integer_varray_n_entry( &
+               aero_state%aero_sorted%group_class%inverse(i_group, i_class))
        else
           ! FIXME: should we just sort?
           aero_state_total_particles = 0
@@ -437,10 +437,10 @@ contains
     integer :: i_entry, i_part
 
     call assert(742996300, aero_state%valid_sort)
-    call assert(392182617, &
-         aero_state%aero_sorted%size_class%inverse(i_bin, i_class)%n_entry > 0)
-    i_entry = pmc_rand_int(aero_state%aero_sorted%size_class%inverse(i_bin, &
-         i_class)%n_entry)
+    call assert(392182617, integer_varray_n_entry( &
+         aero_state%aero_sorted%size_class%inverse(i_bin, i_class)) > 0)
+    i_entry = pmc_rand_int(integer_varray_n_entry( &
+         aero_state%aero_sorted%size_class%inverse(i_bin, i_class)))
     i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
          i_class)%entry(i_entry)
     call aero_particle_copy(aero_state%apa%particle(i_part), aero_particle)
@@ -1445,17 +1445,15 @@ contains
     ! scheme.
 
     call aero_state_sort(aero_state)
-    n_part = aero_state%aero_sorted%group_class%inverse(i_group, &
-         i_class)%n_entry
+    n_part = integer_varray_n_entry( &
+         aero_state%aero_sorted%group_class%inverse(i_group, i_class))
 
     if ((weight_ratio > 1d0) .and. (allow_halving .or. (n_part == 0))) then
-       call aero_weight_scale(aero_state%awa%weight(i_group, i_class), &
-            weight_ratio)
        n_remove = prob_round(real(n_part, kind=dp) &
             * (1d0 - 1d0 / weight_ratio))
        do i_remove = 1,n_remove
-          i_entry = pmc_rand_int(aero_state%aero_sorted%group_class%inverse( &
-               i_group, i_class)%n_entry)
+          i_entry = pmc_rand_int(integer_varray_n_entry( &
+               aero_state%aero_sorted%group_class%inverse(i_group, i_class)))
           i_part = aero_state%aero_sorted%group_class%inverse(i_group, &
                i_class)%entry(i_entry)
           call aero_info_allocate(aero_info)
@@ -1662,8 +1660,8 @@ contains
        species_volume_conc = 0d0
        total_volume_conc = 0d0
        do i_class = 1,size(aero_state%awa%weight, 2)
-          do i_entry = 1,aero_state%aero_sorted%size_class%inverse(i_bin, &
-               i_class)%n_entry
+          do i_entry = 1,integer_varray_n_entry( &
+               aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
              i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
                   i_class)%entry(i_entry)
              num_conc = aero_weight_array_num_conc(aero_state%awa, &
@@ -1676,8 +1674,8 @@ contains
           end do
        end do
        do i_class = 1,size(aero_state%awa%weight, 2)
-          do i_entry = 1,aero_state%aero_sorted%size_class%inverse(i_bin, &
-               i_class)%n_entry
+          do i_entry = 1,integer_varray_n_entry( &
+               aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
              i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
                   i_class)%entry(i_entry)
              particle_volume = aero_particle_volume( &
@@ -1734,17 +1732,18 @@ contains
 
     do i_bin = 1,bin_grid_size(bin_grid)
        do i_class = 1,size(aero_state%awa%weight, 2)
-          if (aero_state%aero_sorted%size_class%inverse(i_bin, &
-               i_class)%n_entry == 0) then
+          if (integer_varray_n_entry( &
+               aero_state%aero_sorted%size_class%inverse(i_bin, i_class)) &
+               == 0) then
              cycle
           end if
 
-          n_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
-               i_class)%n_entry
+          n_part = integer_varray_n_entry( &
+               aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
           total_num_conc = 0d0
           total_volume_conc = 0d0
-          do i_entry = 1,aero_state%aero_sorted%size_class%inverse(i_bin, &
-               i_class)%n_entry
+          do i_entry = 1,integer_varray_n_entry( &
+               aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
              i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
                   i_class)%entry(i_entry)
              num_conc = aero_weight_array_num_conc(aero_state%awa, &
@@ -1764,8 +1763,9 @@ contains
                   = aero_weight_array_num_conc_at_radius(aero_state%awa, &
                   i_class, 1d0)
              new_particle_volume = total_volume_conc / num_conc &
-                  / real(aero_state%aero_sorted%size_class%inverse(i_bin, &
-                  i_class)%n_entry, kind=dp)
+                  / real(integer_varray_n_entry( &
+                  aero_state%aero_sorted%size_class%inverse(i_bin, i_class)), &
+                  kind=dp)
           elseif (preserve_number) then
              ! number-preserving scheme: Solve the implicit equation:
              ! n_part * W(new_vol) = total_num_conc

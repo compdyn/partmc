@@ -71,10 +71,7 @@ contains
     !> Structure to initialize.
     type(integer_rmap2_t), intent(out) :: integer_rmap2
 
-    call integer_varray_allocate(integer_rmap2%forward1)
-    call integer_varray_allocate(integer_rmap2%forward2)
     allocate(integer_rmap2%inverse(0, 0))
-    call integer_varray_allocate(integer_rmap2%index)
 
   end subroutine integer_rmap2_allocate
 
@@ -91,11 +88,7 @@ contains
     !> Size of second range space.
     integer, intent(in) :: n_range_2
 
-    call integer_varray_allocate(integer_rmap2%forward1)
-    call integer_varray_allocate(integer_rmap2%forward2)
     allocate(integer_rmap2%inverse(n_range_1, n_range_2))
-    call integer_varray_allocate(integer_rmap2%inverse)
-    call integer_varray_allocate(integer_rmap2%index)
 
   end subroutine integer_rmap2_allocate_size
 
@@ -107,11 +100,7 @@ contains
     !> Structure to deallocate.
     type(integer_rmap2_t), intent(inout) :: integer_rmap2
 
-    call integer_varray_deallocate(integer_rmap2%forward1)
-    call integer_varray_deallocate(integer_rmap2%forward2)
-    call integer_varray_deallocate(integer_rmap2%inverse)
     deallocate(integer_rmap2%inverse)
-    call integer_varray_deallocate(integer_rmap2%index)
 
   end subroutine integer_rmap2_deallocate
 
@@ -152,9 +141,9 @@ contains
     call integer_varray_append(integer_rmap2%forward1, i_range_1)
     call integer_varray_append(integer_rmap2%forward2, i_range_2)
     call integer_varray_append(integer_rmap2%inverse(i_range_1, i_range_2), &
-         integer_rmap2%forward1%n_entry)
+         integer_varray_n_entry(integer_rmap2%forward1))
     call integer_varray_append(integer_rmap2%index, &
-         integer_rmap2%inverse(i_range_1, i_range_2)%n_entry)
+         integer_varray_n_entry(integer_rmap2%inverse(i_range_1, i_range_2)))
 
   end subroutine integer_rmap2_append
 
@@ -176,7 +165,8 @@ contains
     integer :: i_range_1_old, i_range_2_old, i_index_old, i_domain_shifted
 
     call assert(191141591, i_domain >= 1)
-    call assert(240079303, i_domain <= integer_rmap2%forward1%n_entry)
+    call assert(240079303, &
+         i_domain <= integer_varray_n_entry(integer_rmap2%forward1))
     call assert(671426897, i_range_1 >= 1)
     call assert(311976942, i_range_1 <= size(integer_rmap2%inverse, 1))
     call assert(383129645, i_range_2 >= 1)
@@ -191,7 +181,8 @@ contains
     call integer_varray_remove_entry( &
          integer_rmap2%inverse(i_range_1_old, i_range_2_old), i_index_old)
     if (i_index_old &
-         <= integer_rmap2%inverse(i_range_1_old, i_range_2_old)%n_entry) then
+         <= integer_varray_n_entry(integer_rmap2%inverse(i_range_1_old, &
+         i_range_2_old))) then
        ! the removed entry wasn't the last one, so the last entry
        ! was moved and needs fixing
        i_domain_shifted = integer_rmap2%inverse(i_range_1_old, &
@@ -205,7 +196,7 @@ contains
     call integer_varray_append(integer_rmap2%inverse(i_range_1, i_range_2), &
          i_domain)
     integer_rmap2%index%entry(i_domain) &
-         = integer_rmap2%inverse(i_range_1, i_range_2)%n_entry
+         = integer_varray_n_entry(integer_rmap2%inverse(i_range_1, i_range_2))
 
   end subroutine integer_rmap2_change
 
@@ -224,7 +215,8 @@ contains
     integer :: i_range_1_fix, i_range_2_fix, i_index_fix, i_domain_fix
 
     call assert(242566612, i_domain >= 1)
-    call assert(110569289, i_domain <= integer_rmap2%forward1%n_entry)
+    call assert(110569289, &
+         i_domain <= integer_varray_n_entry(integer_rmap2%forward1))
 
     ! Deleting particles shifts the end particles into the empty slots
     ! in the aero_particle_array and the aero_sorted forward and
@@ -235,7 +227,8 @@ contains
     i_range_2_old = integer_rmap2%forward2%entry(i_domain)
     i_index_old = integer_rmap2%index%entry(i_domain)
 
-    i_domain_shifted = integer_rmap2%forward1%n_entry ! old shifted value loc
+    ! old shifted value loc
+    i_domain_shifted = integer_varray_n_entry(integer_rmap2%forward1)
     if (i_domain_shifted /= i_domain) then
        i_range_1_fix = integer_rmap2%forward1%entry(i_domain_shifted)
        i_range_2_fix = integer_rmap2%forward2%entry(i_domain_shifted)
@@ -251,7 +244,8 @@ contains
     call integer_varray_remove_entry(integer_rmap2%index, i_domain)
 
     ! remove the inverse map
-    i_index_fix = integer_rmap2%inverse(i_range_1_old, i_range_2_old)%n_entry
+    i_index_fix = integer_varray_n_entry(integer_rmap2%inverse(i_range_1_old, &
+         i_range_2_old))
     i_domain_fix = integer_rmap2%inverse(i_range_1_old, i_range_2_old)%entry(&
          i_index_fix)
     call integer_varray_remove_entry( &
@@ -285,20 +279,21 @@ contains
 
     integer :: i_domain, i_range_1, i_range_2, i_index
 
-    if ((n_domain /= integer_rmap2%forward1%n_entry) &
-         .or. (n_domain /= integer_rmap2%forward2%n_entry) &
-         .or. (n_domain /= integer_rmap2%index%n_entry) &
+    if ((n_domain /= integer_varray_n_entry(integer_rmap2%forward1)) &
+         .or. (n_domain /= integer_varray_n_entry(integer_rmap2%forward2)) &
+         .or. (n_domain /= integer_varray_n_entry(integer_rmap2%index)) &
          .or. (n_range_1 /= size(integer_rmap2%inverse, 1)) &
          .or. (n_range_2 /= size(integer_rmap2%inverse, 2))) then
        write(0,*) 'ERROR integer_rmap2 A:', name
        write(0,*) 'n_domain', n_domain
        write(0,*) 'n_range_1', n_range_1
        write(0,*) 'n_range_2', n_range_2
-       write(0,*) 'integer_rmap2%forward1%n_entry', &
-            integer_rmap2%forward1%n_entry
-       write(0,*) 'integer_rmap2%forward2%n_entry', &
-            integer_rmap2%forward2%n_entry
-       write(0,*) 'integer_rmap2%index%n_entry', integer_rmap2%index%n_entry
+       write(0,*) 'integer_varray_n_entry(integer_rmap2%forward1)', &
+            integer_varray_n_entry(integer_rmap2%forward1)
+       write(0,*) 'integer_varray_n_entry(integer_rmap2%forward2)', &
+            integer_varray_n_entry(integer_rmap2%forward2)
+       write(0,*) 'integer_varray_n_entry(integer_rmap2%index)', &
+            integer_varray_n_entry(integer_rmap2%index)
        write(0,*) 'size(integer_rmap2%inverse, 1)', &
             size(integer_rmap2%inverse, 1)
        write(0,*) 'size(integer_rmap2%inverse, 2)', &
@@ -322,14 +317,17 @@ contains
 
        i_index = integer_rmap2%index%entry(i_domain)
        if ((i_index < 1) .or. (i_index &
-            > integer_rmap2%inverse(i_range_1, i_range_2)%n_entry)) then
+            > integer_varray_n_entry(integer_rmap2%inverse(i_range_1, &
+            i_range_2)))) then
           write(0,*) 'ERROR integer_rmap2 C:', name
           write(0,*) 'i_domain', i_domain
           write(0,*) 'i_range_1', i_range_1
           write(0,*) 'i_range_2', i_range_2
           write(0,*) 'i_index', i_index
-          write(0,*) 'integer_rmap2%inverse(i_range_1, i_range_2)%n_entry', &
-               integer_rmap2%inverse(i_range_1, i_range_2)%n_entry
+          write(0,*) 'integer_varray_n_entry(' &
+               // 'integer_rmap2%inverse(i_range_1, i_range_2))', &
+               integer_varray_n_entry(integer_rmap2%inverse(i_range_1, &
+               i_range_2))
           call assert(317458796, continue_on_error)
        end if
        if (i_domain &
@@ -348,7 +346,8 @@ contains
 
     do i_range_1 = 1,n_range_1
        do i_range_2 = 1,n_range_2
-          do i_index = 1,integer_rmap2%inverse(i_range_1, i_range_2)%n_entry
+          do i_index = 1,integer_varray_n_entry( &
+               integer_rmap2%inverse(i_range_1, i_range_2))
              i_domain &
                   = integer_rmap2%inverse(i_range_1, i_range_2)%entry(i_index)
              if ((i_domain < 1) .or. (i_domain > n_domain)) then

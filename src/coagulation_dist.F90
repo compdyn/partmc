@@ -161,8 +161,8 @@ contains
          bin_grid_size(aero_state%aero_sorted%bin_grid)))
 
     allocate(n_parts(bin_grid_size(aero_state%aero_sorted%bin_grid), n_proc))
-    call pmc_mpi_allgather_integer_array( &
-         aero_state%aero_sorted%size_class%inverse(:, s1)%n_entry, n_parts)
+    call pmc_mpi_allgather_integer_array(integer_varray_n_entry( &
+         aero_state%aero_sorted%size_class%inverse(:, s1)), n_parts)
 
     allocate(magnitudes(size(aero_state%awa%weight), n_proc))
     call pmc_mpi_allgather_real_array(aero_state%awa%weight(:, s1)%magnitude, &
@@ -328,8 +328,9 @@ contains
              call update_n_samps(n_samps, local_bin, remote_bin, &
                   samps_remaining)
              if (.not. samps_remaining) exit outer
-             if (aero_state%aero_sorted%size_class%inverse(local_bin, &
-                  s2)%n_entry > 0) then
+             if (integer_varray_n_entry( &
+                  aero_state%aero_sorted%size_class%inverse(local_bin, s2)) &
+                  > 0) then
                 call find_rand_remote_proc(n_parts, remote_bin, &
                      requests(i_req)%remote_proc)
                 requests(i_req)%active = .true.
@@ -485,8 +486,8 @@ contains
     call assert(895128380, position == buffer_size)
 
     ! send the particle back if we have one
-    if (aero_state%aero_sorted%size_class%inverse(request_bin, &
-         s1)%n_entry == 0) then
+    if (integer_varray_n_entry( &
+         aero_state%aero_sorted%size_class%inverse(request_bin, s1)) == 0) then
        call send_return_no_particle(remote_proc, request_bin)
     else
        call aero_state_remove_rand_particle_from_bin(aero_state, &

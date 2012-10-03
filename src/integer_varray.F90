@@ -1,4 +1,4 @@
-! Copyright (C) 2011 Matthew West
+! Copyright (C) 2011-2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -19,86 +19,68 @@ module pmc_integer_varray
      !> Number of currently used entries.
      integer :: n_entry
      !> Array of integer values.
-     integer, allocatable, dimension(:) :: entry
+     integer, allocatable :: entry(:)
   end type integer_varray_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocates an empty structure.
-  elemental subroutine integer_varray_allocate(integer_varray)
+  !> Return the current number of entries.
+  elemental integer function integer_varray_n_entry(integer_varray)
 
-    !> Structure to initialize.
-    type(integer_varray_t), intent(out) :: integer_varray
+    !> Array.
+    type(integer_varray_t), intent(in) :: integer_varray
 
-    integer_varray%n_entry = 0
-    allocate(integer_varray%entry(0))
+    if (allocated(integer_varray%entry)) then
+       integer_varray_n_entry = integer_varray%n_entry
+    else
+       integer_varray_n_entry = 0
+    end if
 
-  end subroutine integer_varray_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Allocates a structure with the given size.
-  elemental subroutine integer_varray_allocate_size(integer_varray, n_entry)
-
-    !> Structure to initialize.
-    type(integer_varray_t), intent(out) :: integer_varray
-    !> Number of entries.
-    integer, intent(in) :: n_entry
-
-    integer_varray%n_entry = n_entry
-    allocate(integer_varray%entry(n_entry))
-    integer_varray%entry = 0
-
-  end subroutine integer_varray_allocate_size
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Deallocates a previously allocated structure.
-  elemental subroutine integer_varray_deallocate(integer_varray)
-
-    !> Structure to deallocate.
-    type(integer_varray_t), intent(inout) :: integer_varray
-
-    deallocate(integer_varray%entry)
-
-  end subroutine integer_varray_deallocate
+  end function integer_varray_n_entry
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Changes the given integer_varray to exactly the given new_length.
   !!
   !! This function should not be called directly, but rather use
-  !! integer_varray_enlarge(), integer_varray_enlarge_to() or
-  !! integer_varray_shrink().
-  subroutine integer_varray_reallocate(integer_varray, new_length)
+  !! integer_varray_enlarge(), integer_varray_shrink().
+  subroutine integer_varray_realloc(integer_varray, new_length)
 
     !> Array to reallocate.
     type(integer_varray_t), intent(inout) :: integer_varray
     !> New length of the array.
     integer, intent(in) :: new_length
 
-    integer, dimension(integer_varray%n_entry) :: temp_array
+    integer, allocatable :: new_entries(:)
 
-    call assert(753399394, new_length >= integer_varray%n_entry)
-    temp_array = integer_varray%entry(1:integer_varray%n_entry)
-    deallocate(integer_varray%entry)
-    allocate(integer_varray%entry(new_length))
-    integer_varray%entry(1:integer_varray%n_entry) = temp_array
+    if (.not. allocated(integer_varray%entry)) then
+       allocate(integer_varray%entry(new_length))
+       integer_varray%n_entry = 0
+       return
+    end if
 
-  end subroutine integer_varray_reallocate
+    call assert(479324776, new_length >= integer_varray%n_entry)
+    allocate(new_entries(new_length))
+    new_entries(:integer_varray%n_entry) &
+         = integer_varray%entry(1:integer_varray%n_entry)
+    call move_alloc(new_entries, integer_varray%entry)
+
+  end subroutine integer_varray_realloc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Resets an integer_varray to have zero particles per bin.
+  !> Resets an integer_varray to have zero entries.
   elemental subroutine integer_varray_zero(integer_varray)
 
     !> Structure to zero.
     type(integer_varray_t), intent(inout) :: integer_varray
 
-    integer_varray%entry = 0
     integer_varray%n_entry = 0
+    if (allocated(integer_varray%entry)) then
+       deallocate(integer_varray%entry)
+    end if
 
   end subroutine integer_varray_zero
 
@@ -112,47 +94,37 @@ contains
     !> Structure to copy to.
     type(integer_varray_t), intent(inout) :: integer_varray_to
 
-    call integer_varray_deallocate(integer_varray_to)
-    call integer_varray_allocate_size(integer_varray_to, &
-         integer_varray_from%n_entry)
-    integer_varray_to%entry(1:integer_varray_from%n_entry) &
-         = integer_varray_from%entry(1:integer_varray_from%n_entry)
+    if (allocated(integer_varray_from%entry)) then
+       integer_varray_to%n_entry = integer_varray_from%n_entry
+       integer_varray_to%entry = integer_varray_from%entry
+    else
+       if (allocated(integer_varray_to%entry)) then
+          deallocate(integer_varray_to%entry)
+       end if
+    end if
 
   end subroutine integer_varray_copy
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Enlarges the given integer_varray by at least one element.
-  !!
-  !! Currently this at least doubles the length.
-  subroutine integer_varray_enlarge(integer_varray)
-
-    !> Array to enlarge.
-    type(integer_varray_t), intent(inout) :: integer_varray
-
-    integer :: length, new_length
-
-    length = size(integer_varray%entry)
-    new_length = max(length * 2, length + 1)
-    call integer_varray_reallocate(integer_varray, new_length)
-
-  end subroutine integer_varray_enlarge
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Enlarges the given array so that it is at least of size n.
-  subroutine integer_varray_enlarge_to(integer_varray, n)
+  subroutine integer_varray_enlarge(integer_varray, n)
 
     !> Array to enlarge.
     type(integer_varray_t), intent(inout) :: integer_varray
     !> Minimum new size of array.
     integer, intent(in) :: n
 
-    do while (size(integer_varray%entry) < n)
-       call integer_varray_enlarge(integer_varray)
-    end do
+    if (.not. allocated(integer_varray%entry)) then
+       call integer_varray_realloc(integer_varray, pow2_above(n))
+       return
+    end if
 
-  end subroutine integer_varray_enlarge_to
+    if (n <= size(integer_varray%entry)) return
+
+    call integer_varray_realloc(integer_varray, pow2_above(n))
+
+  end subroutine integer_varray_enlarge
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -165,13 +137,12 @@ contains
 
     integer :: length, new_length
 
-    length = size(integer_varray%entry)
-    new_length = length / 2
-    do while ((integer_varray%n_entry <= new_length) .and. (length > 0))
-       call integer_varray_reallocate(integer_varray, new_length)
-       length = size(integer_varray%entry)
-       new_length = length / 2
-    end do
+    if (.not. allocated(integer_varray%entry)) return
+
+    new_length = pow2_above(integer_varray%n_entry)
+    if (new_length < size(integer_varray%entry)) then
+       call integer_varray_realloc(integer_varray, new_length)
+    end if
 
   end subroutine integer_varray_shrink
 
@@ -188,7 +159,7 @@ contains
     integer :: n
 
     n = integer_varray%n_entry + 1
-    call integer_varray_enlarge_to(integer_varray, n)
+    call integer_varray_enlarge(integer_varray, n)
     integer_varray%entry(n) = val
     integer_varray%n_entry = n
 
@@ -205,6 +176,7 @@ contains
     !> Index of entry to remove.
     integer, intent(in) :: index
 
+    call assert(302759108, allocated(integer_varray%entry))
     call assert(541032660, index >= 1)
     call assert(385739765, index <= integer_varray%n_entry)
     if (index < integer_varray%n_entry) then
@@ -227,11 +199,15 @@ contains
     !> Value to pack.
     type(integer_varray_t), intent(in) :: val
 
+    logical :: is_allocated
     integer :: total_size
 
-    total_size = 0
-    total_size = total_size &
-         + pmc_mpi_pack_size_integer_array(val%entry(1:val%n_entry))
+    is_allocated = allocated(val%entry)
+    total_size = pmc_mpi_pack_size_logical(is_allocated)
+    if (is_allocated) then
+       total_size = total_size &
+            + pmc_mpi_pack_size_integer_array(val%entry(1:val%n_entry))
+    end if
     pmc_mpi_pack_size_integer_varray = total_size
 
   end function pmc_mpi_pack_size_integer_varray
@@ -249,11 +225,16 @@ contains
     type(integer_varray_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
+    logical :: is_allocated
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_pack_integer_array(buffer, position, &
-         val%entry(1:val%n_entry))
+    is_allocated = allocated(val%entry)
+    call pmc_mpi_pack_logical(buffer, position, is_allocated)
+    if (is_allocated) then
+       call pmc_mpi_pack_integer_array(buffer, position, &
+            val%entry(1:val%n_entry))
+    end if
     call assert(230655880, &
          position - prev_position <= pmc_mpi_pack_size_integer_varray(val))
 #endif
@@ -274,16 +255,23 @@ contains
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
+    logical :: is_allocated
     ! FIXME: should switch to allocatable arrays in pmc_mpi_unpack_*()
     integer, pointer, dimension(:) :: tmp_entry
 
     prev_position = position
-    allocate(tmp_entry(0))
-    call pmc_mpi_unpack_integer_array(buffer, position, tmp_entry)
-    call integer_varray_deallocate(val)
-    call integer_varray_allocate_size(val, size(tmp_entry))
-    val%entry = tmp_entry
-    deallocate(tmp_entry)
+    call pmc_mpi_unpack_logical(buffer, position, is_allocated)
+    if (is_allocated) then
+       allocate(tmp_entry(0))
+       call pmc_mpi_unpack_integer_array(buffer, position, tmp_entry)
+       call integer_varray_realloc(val, size(tmp_entry))
+       val%entry(1:size(tmp_entry)) = tmp_entry
+       deallocate(tmp_entry)
+    else
+       if (allocated(val%entry)) then
+          deallocate(val%entry)
+       end if
+    end if
     call assert(355866103, &
          position - prev_position <= pmc_mpi_pack_size_integer_varray(val))
 #endif

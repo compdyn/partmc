@@ -28,7 +28,7 @@ module pmc_aero_sorted
   !! For example, for size bin \c i_bin and weight class \c i_class,
   !! the number of particles with this size and class are
   !! <pre>
-  !! n = aero_sorted%%size_class%%inverse(i_bin, i_class)%%n_entry
+  !! n = integer_varray_n_entry(aero_sorted%size_class%inverse(i_bin, i_class))
   !! </pre>
   !! For particle number \c i_entry in this size/class bin, the
   !! particle number is
@@ -318,7 +318,8 @@ contains
        i_bin_min = 0
        i_bin_max = 0
        do i_bin = 1,bin_grid_size(aero_sorted%bin_grid)
-          if (sum(aero_sorted%size_class%inverse(i_bin, :)%n_entry) > 0) then
+          if (sum(integer_varray_n_entry( &
+               aero_sorted%size_class%inverse(i_bin, :))) > 0) then
              if (i_bin_min == 0) then
                 i_bin_min = i_bin
              end if

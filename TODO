@@ -193,3 +193,6 @@ to call ensure_size() on it. Then remove allocates before these calls.
 
 Add aero_data_validate() or _check() and similar to check consistency
 in dimensions, valid data, etc. Call after loading from netcdf files.
+
+Change integer_varray%n_entry to _n_entry. Same for
+aero_particle_array%n_part and similar.

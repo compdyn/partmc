@@ -42,54 +42,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocates an aero_weight.
-  elemental subroutine aero_weight_allocate(aero_weight)
-
-    !> Aerosol weight.
-    type(aero_weight_t), intent(out) :: aero_weight
-
-    call aero_weight_zero(aero_weight)
-
-  end subroutine aero_weight_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Allocates an aero_weight of the given size.
-  elemental subroutine aero_weight_allocate_size(aero_weight)
-
-    !> Aerosol weight.
-    type(aero_weight_t), intent(out) :: aero_weight
-
-    call aero_weight_zero(aero_weight)
-
-  end subroutine aero_weight_allocate_size
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Free all storage.
-  elemental subroutine aero_weight_deallocate(aero_weight)
-
-    !> Aerosol weight.
-    type(aero_weight_t), intent(in) :: aero_weight
-
-  end subroutine aero_weight_deallocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Zeros the contents of the \c aero_weight.
-  elemental subroutine aero_weight_zero(aero_weight)
-
-    !> Aerosol weight.
-    type(aero_weight_t), intent(inout) :: aero_weight
-
-    aero_weight%type = AERO_WEIGHT_TYPE_INVALID
-    aero_weight%magnitude = 1d0
-    aero_weight%exponent = 0d0
-
-  end subroutine aero_weight_zero
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Sets the \c aero_weight to a non-zero normalized value.
   elemental subroutine aero_weight_normalize(aero_weight)
 

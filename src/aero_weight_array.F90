@@ -64,7 +64,6 @@ contains
     integer,intent(in) :: n_class
 
     allocate(aero_weight_array%weight(n_group, n_class))
-    call aero_weight_allocate(aero_weight_array%weight)
 
   end subroutine aero_weight_array_allocate_size
 
@@ -133,7 +132,6 @@ contains
     !> Structure to deallocate.
     type(aero_weight_array_t), intent(inout) :: aero_weight_array
 
-    call aero_weight_deallocate(aero_weight_array%weight)
     deallocate(aero_weight_array%weight)
 
   end subroutine aero_weight_array_deallocate
@@ -145,8 +143,6 @@ contains
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(inout) :: aero_weight_array
-
-    call aero_weight_zero(aero_weight_array%weight)
 
   end subroutine aero_weight_array_zero
 

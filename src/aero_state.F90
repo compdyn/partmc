@@ -86,7 +86,6 @@ contains
     type(aero_state_t), intent(out) :: aero_state
 
     aero_state%valid_sort = .false.
-    call aero_weight_array_allocate(aero_state%awa)
     allocate(aero_state%n_part_ideal(0, 0))
     call aero_info_array_allocate(aero_state%aero_info_array)
 
@@ -101,7 +100,6 @@ contains
     type(aero_state_t), intent(inout) :: aero_state
 
     aero_state%valid_sort = .false.
-    call aero_weight_array_deallocate(aero_state%awa)
     deallocate(aero_state%n_part_ideal)
     call aero_info_array_deallocate(aero_state%aero_info_array)
 
@@ -183,28 +181,26 @@ contains
     real(kind=dp), intent(in), optional :: exponent
 
     aero_state%valid_sort = .false.
-    call aero_weight_array_deallocate(aero_state%awa)
     select case(weight_type)
     case(AERO_STATE_WEIGHT_NONE)
-       call aero_weight_array_allocate(aero_state%awa)
     case(AERO_STATE_WEIGHT_FLAT)
-       call aero_weight_array_allocate_flat(aero_state%awa, 1)
+       call aero_weight_array_set_flat(aero_state%awa, 1)
     case(AERO_STATE_WEIGHT_POWER)
        call assert_msg(656670336, present(exponent), &
             "exponent parameter required for AERO_STATE_WEIGHT_POWER")
-       call aero_weight_array_allocate_power(aero_state%awa, 1, exponent)
+       call aero_weight_array_set_power(aero_state%awa, 1, exponent)
     case(AERO_STATE_WEIGHT_NUMMASS)
-       call aero_weight_array_allocate_nummass(aero_state%awa, 1)
+       call aero_weight_array_set_nummass(aero_state%awa, 1)
     case(AERO_STATE_WEIGHT_FLAT_SOURCE)
-       call aero_weight_array_allocate_flat(aero_state%awa, &
+       call aero_weight_array_set_flat(aero_state%awa, &
             aero_data_n_source(aero_data))
     case(AERO_STATE_WEIGHT_POWER_SOURCE)
        call assert_msg(102143848, present(exponent), &
             "exponent parameter required for AERO_STATE_WEIGHT_POWER")
-       call aero_weight_array_allocate_power(aero_state%awa, &
+       call aero_weight_array_set_power(aero_state%awa, &
             aero_data_n_source(aero_data), exponent)
     case(AERO_STATE_WEIGHT_NUMMASS_SOURCE)
-       call aero_weight_array_allocate_nummass(aero_state%awa, &
+       call aero_weight_array_set_nummass(aero_state%awa, &
             aero_data_n_source(aero_data))
     case default
        call die_msg(969076992, "unknown weight_type: " &

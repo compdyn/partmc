@@ -73,80 +73,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocate an empty structure.
-  subroutine aero_sorted_allocate(aero_sorted)
-
-    !> Structure to initialize.
-    type(aero_sorted_t), intent(out) :: aero_sorted
-
-    aero_sorted%coag_kernel_bounds_valid = .false.
-    allocate(aero_sorted%coag_kernel_min(0, 0))
-    allocate(aero_sorted%coag_kernel_max(0, 0))
-    aero_sorted%removal_rate_bounds_valid = .false.
-    allocate(aero_sorted%removal_rate_max(0))
-
-  end subroutine aero_sorted_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Allocate a strcture with the given size.
-  subroutine aero_sorted_allocate_size(aero_sorted, n_bin, n_group, n_class)
-
-    !> Structure to initialize.
-    type(aero_sorted_t), intent(out) :: aero_sorted
-    !> Number of bins.
-    integer, intent(in) :: n_bin
-    !> Number of weight groups.
-    integer, intent(in) :: n_group
-    !> Number of weight classes.
-    integer, intent(in) :: n_class
-
-    call integer_rmap2_set_ranges(aero_sorted%size_class, n_bin, n_class)
-    call integer_rmap2_set_ranges(aero_sorted%group_class, n_group, n_class)
-    aero_sorted%coag_kernel_bounds_valid = .false.
-    allocate(aero_sorted%coag_kernel_min(n_bin, n_bin))
-    allocate(aero_sorted%coag_kernel_max(n_bin, n_bin))
-    aero_sorted%removal_rate_bounds_valid = .false.
-    allocate(aero_sorted%removal_rate_max(n_bin))
-
-  end subroutine aero_sorted_allocate_size
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Deallocates a previously allocated structure.
-  subroutine aero_sorted_deallocate(aero_sorted)
-
-    !> Structure to deallocate.
-    type(aero_sorted_t), intent(inout) :: aero_sorted
-
-    aero_sorted%coag_kernel_bounds_valid = .false.
-    deallocate(aero_sorted%coag_kernel_min)
-    deallocate(aero_sorted%coag_kernel_max)
-    aero_sorted%removal_rate_bounds_valid = .false.
-    deallocate(aero_sorted%removal_rate_max)
-
-  end subroutine aero_sorted_deallocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Resets an aero_sorted to have zero particles per bin.
-  subroutine aero_sorted_zero(aero_sorted)
-
-    !> Structure to zero.
-    type(aero_sorted_t), intent(inout) :: aero_sorted
-
-    call integer_rmap2_zero(aero_sorted%size_class)
-    call integer_rmap2_zero(aero_sorted%group_class)
-    aero_sorted%coag_kernel_bounds_valid = .false.
-    aero_sorted%coag_kernel_min = 0d0
-    aero_sorted%coag_kernel_max = 0d0
-    aero_sorted%removal_rate_bounds_valid = .false.
-    aero_sorted%removal_rate_max = 0d0
-
-  end subroutine aero_sorted_zero
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Returns the number of size bins.
   integer function aero_sorted_n_bin(aero_sorted)
 
@@ -183,7 +109,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Do a sorting of a set of aerosol particles.
+  !> Set the bin grid to be used for sorting.
   subroutine aero_sorted_set_bin_grid(aero_sorted, bin_grid, n_group, n_class)
 
     !> Aerosol sorted.
@@ -195,9 +121,20 @@ contains
     !> Number of weight classes.
     integer, intent(in) :: n_class
 
-    call aero_sorted_deallocate(aero_sorted)
-    call aero_sorted_allocate_size(aero_sorted, bin_grid_size(bin_grid), &
-         n_group, n_class)
+    integer :: n_bin
+
+    n_bin = bin_grid_size(bin_grid)
+    call integer_rmap2_set_ranges(aero_sorted%size_class, n_bin, n_class)
+    call integer_rmap2_set_ranges(aero_sorted%group_class, n_group, n_class)
+    aero_sorted%coag_kernel_bounds_valid = .false.
+    if (allocated(aero_sorted%coag_kernel_min)) then
+       deallocate(aero_sorted%coag_kernel_min)
+    end if
+    allocate(aero_sorted%coag_kernel_min(n_bin, n_bin))
+    if (allocated(aero_sorted%coag_kernel_max)) then
+       deallocate(aero_sorted%coag_kernel_max)
+    end if
+    allocate(aero_sorted%coag_kernel_max(n_bin, n_bin))
     call bin_grid_copy(bin_grid, aero_sorted%bin_grid)
 
   end subroutine aero_sorted_set_bin_grid

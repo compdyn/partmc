@@ -85,7 +85,6 @@ contains
     !> Aerosol to initialize.
     type(aero_state_t), intent(out) :: aero_state
 
-    call aero_sorted_allocate(aero_state%aero_sorted)
     aero_state%valid_sort = .false.
     call aero_weight_array_allocate(aero_state%awa)
     allocate(aero_state%n_part_ideal(0, 0))
@@ -101,7 +100,6 @@ contains
     !> Aerosol to deallocate.
     type(aero_state_t), intent(inout) :: aero_state
 
-    call aero_sorted_deallocate(aero_state%aero_sorted)
     aero_state%valid_sort = .false.
     call aero_weight_array_deallocate(aero_state%awa)
     deallocate(aero_state%n_part_ideal)

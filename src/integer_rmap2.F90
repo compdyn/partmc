@@ -65,21 +65,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocates an empty structure.
-  elemental subroutine integer_rmap2_allocate(integer_rmap2)
-
-    !> Structure to initialize.
-    type(integer_rmap2_t), intent(out) :: integer_rmap2
-
-    allocate(integer_rmap2%inverse(0, 0))
-
-  end subroutine integer_rmap2_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Allocates a structure with the given size.
-  elemental subroutine integer_rmap2_allocate_size(integer_rmap2, n_range_1, &
-       n_range_2)
+  !> Sets the maximum ranges of the forward map.
+  elemental subroutine integer_rmap2_set_ranges(integer_rmap2, n_range_1, &
 
     !> Structure to initialize.
     type(integer_rmap2_t), intent(out) :: integer_rmap2
@@ -88,25 +75,16 @@ contains
     !> Size of second range space.
     integer, intent(in) :: n_range_2
 
+    if (allocated(integer_rmap2%inverse)) then
+       deallocate(integer_rmap2%inverse)
+    end if
     allocate(integer_rmap2%inverse(n_range_1, n_range_2))
 
-  end subroutine integer_rmap2_allocate_size
+  end subroutine integer_rmap2_set_ranges
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Deallocates a previously allocated structure.
-  elemental subroutine integer_rmap2_deallocate(integer_rmap2)
-
-    !> Structure to deallocate.
-    type(integer_rmap2_t), intent(inout) :: integer_rmap2
-
-    deallocate(integer_rmap2%inverse)
-
-  end subroutine integer_rmap2_deallocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Resets an integer_rmap2 to have zero particles per bin.
+  !> Resets an integer_rmap2 to have no mappings.
   elemental subroutine integer_rmap2_zero(integer_rmap2)
 
     !> Structure to zero.
@@ -114,7 +92,9 @@ contains
 
     call integer_varray_zero(integer_rmap2%forward1)
     call integer_varray_zero(integer_rmap2%forward2)
-    call integer_varray_zero(integer_rmap2%inverse)
+    if (allocated(integer_rmap2%inverse)) then
+       call integer_varray_zero(integer_rmap2%inverse)
+    end if
     call integer_varray_zero(integer_rmap2%index)
 
   end subroutine integer_rmap2_zero
@@ -132,6 +112,7 @@ contains
     !> Second range value.
     integer, intent(in) :: i_range_2
 
+    call assert(438521606, allocated(integer_rmap2%inverse))
     call assert(708651144, i_range_1 >= 1)
     call assert(779828769, i_range_1 <= size(integer_rmap2%inverse, 1))
     call assert(978259336, i_range_2 >= 1)
@@ -164,6 +145,7 @@ contains
 
     integer :: i_range_1_old, i_range_2_old, i_index_old, i_domain_shifted
 
+    call assert(897948211, allocated(integer_rmap2%inverse))
     call assert(191141591, i_domain >= 1)
     call assert(240079303, &
          i_domain <= integer_varray_n_entry(integer_rmap2%forward1))
@@ -214,6 +196,7 @@ contains
     integer :: i_range_1_old, i_range_2_old, i_index_old, i_domain_shifted
     integer :: i_range_1_fix, i_range_2_fix, i_index_fix, i_domain_fix
 
+    call assert(902132756, allocated(integer_rmap2%inverse))
     call assert(242566612, i_domain >= 1)
     call assert(110569289, &
          i_domain <= integer_varray_n_entry(integer_rmap2%forward1))
@@ -278,6 +261,10 @@ contains
     logical, intent(in) :: continue_on_error
 
     integer :: i_domain, i_range_1, i_range_2, i_index
+
+    if (.not. allocated(integer_rmap2%inverse)) then
+       return
+    end if
 
     if ((n_domain /= integer_varray_n_entry(integer_rmap2%forward1)) &
          .or. (n_domain /= integer_varray_n_entry(integer_rmap2%forward2)) &
@@ -390,18 +377,25 @@ contains
     type(integer_rmap2_t), intent(in) :: val
 
     integer :: i_1, i_2, total_size
+    logical :: is_allocated
 
     total_size = 0
-    total_size = total_size + pmc_mpi_pack_size_integer(size(val%inverse, 1))
-    total_size = total_size + pmc_mpi_pack_size_integer(size(val%inverse, 2))
+    is_allocated = allocated(val%inverse)
+    total_size = total_size + pmc_mpi_pack_size_logical(is_allocated)
+    if (is_allocated) then
+       total_size = total_size &
+            + pmc_mpi_pack_size_integer(size(val%inverse, 1))
+       total_size = total_size &
+            + pmc_mpi_pack_size_integer(size(val%inverse, 2))
+       do i_1 = 1,size(val%inverse, 1)
+          do i_2 = 1,size(val%inverse, 2)
+             total_size = total_size &
+                  + pmc_mpi_pack_size_integer_varray(val%inverse(i_1, i_2))
+          end do
+       end do
+    end if
     total_size = total_size + pmc_mpi_pack_size_integer_varray(val%forward1)
     total_size = total_size + pmc_mpi_pack_size_integer_varray(val%forward2)
-    do i_1 = 1,size(val%inverse, 1)
-       do i_2 = 1,size(val%inverse, 2)
-          total_size = total_size &
-               + pmc_mpi_pack_size_integer_varray(val%inverse(i_1, i_2))
-       end do
-    end do
     total_size = total_size + pmc_mpi_pack_size_integer_varray(val%index)
     pmc_mpi_pack_size_integer_rmap2 = total_size
 
@@ -421,18 +415,23 @@ contains
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i_1, i_2
+    logical :: is_allocated
 
     prev_position = position
-    call pmc_mpi_pack_integer(buffer, position, size(val%inverse, 1))
-    call pmc_mpi_pack_integer(buffer, position, size(val%inverse, 2))
+    is_allocated = allocated(val%inverse)
+    call pmc_mpi_pack_logical(buffer, position, is_allocated)
+    if (is_allocated) then
+       call pmc_mpi_pack_integer(buffer, position, size(val%inverse, 1))
+       call pmc_mpi_pack_integer(buffer, position, size(val%inverse, 2))
+       do i_1 = 1,size(val%inverse, 1)
+          do i_2 = 1,size(val%inverse, 2)
+             call pmc_mpi_pack_integer_varray(buffer, position, &
+                  val%inverse(i_1, i_2))
+          end do
+       end do
+    end if
     call pmc_mpi_pack_integer_varray(buffer, position, val%forward1)
     call pmc_mpi_pack_integer_varray(buffer, position, val%forward2)
-    do i_1 = 1,size(val%inverse, 1)
-       do i_2 = 1,size(val%inverse, 2)
-          call pmc_mpi_pack_integer_varray(buffer, position, &
-               val%inverse(i_1, i_2))
-       end do
-    end do
     call pmc_mpi_pack_integer_varray(buffer, position, val%index)
     call assert(283629348, &
          position - prev_position <= pmc_mpi_pack_size_integer_rmap2(val))
@@ -454,20 +453,27 @@ contains
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i_1, i_2, n_1, n_2
+    logical :: is_allocated
 
     prev_position = position
-    call pmc_mpi_unpack_integer(buffer, position, n_1)
-    call pmc_mpi_unpack_integer(buffer, position, n_2)
-    call integer_rmap2_deallocate(val)
-    call integer_rmap2_allocate_size(val, n_1, n_2)
+    call pmc_mpi_unpack_logical(buffer, position, is_allocated)
+    if (is_allocated) then
+       call pmc_mpi_unpack_integer(buffer, position, n_1)
+       call pmc_mpi_unpack_integer(buffer, position, n_2)
+       call integer_rmap2_set_ranges(val, n_1, n_2)
+       do i_1 = 1,size(val%inverse, 1)
+          do i_2 = 1,size(val%inverse, 2)
+             call pmc_mpi_unpack_integer_varray(buffer, position, &
+                  val%inverse(i_1, i_2))
+          end do
+       end do
+    else
+       if (allocated(val%inverse)) then
+          deallocate(val%inverse)
+       end if
+    end if
     call pmc_mpi_unpack_integer_varray(buffer, position, val%forward1)
     call pmc_mpi_unpack_integer_varray(buffer, position, val%forward2)
-    do i_1 = 1,size(val%inverse, 1)
-       do i_2 = 1,size(val%inverse, 2)
-          call pmc_mpi_unpack_integer_varray(buffer, position, &
-               val%inverse(i_1, i_2))
-       end do
-    end do
     call pmc_mpi_unpack_integer_varray(buffer, position, val%index)
     call assert(796602256, &
          position - prev_position <= pmc_mpi_pack_size_integer_rmap2(val))

@@ -79,8 +79,6 @@ contains
     !> Structure to initialize.
     type(aero_sorted_t), intent(out) :: aero_sorted
 
-    call integer_rmap2_allocate(aero_sorted%size_class)
-    call integer_rmap2_allocate(aero_sorted%group_class)
     aero_sorted%coag_kernel_bounds_valid = .false.
     allocate(aero_sorted%coag_kernel_min(0, 0))
     allocate(aero_sorted%coag_kernel_max(0, 0))
@@ -103,8 +101,8 @@ contains
     !> Number of weight classes.
     integer, intent(in) :: n_class
 
-    call integer_rmap2_allocate_size(aero_sorted%size_class, n_bin, n_class)
-    call integer_rmap2_allocate_size(aero_sorted%group_class, n_group, n_class)
+    call integer_rmap2_set_ranges(aero_sorted%size_class, n_bin, n_class)
+    call integer_rmap2_set_ranges(aero_sorted%group_class, n_group, n_class)
     aero_sorted%coag_kernel_bounds_valid = .false.
     allocate(aero_sorted%coag_kernel_min(n_bin, n_bin))
     allocate(aero_sorted%coag_kernel_max(n_bin, n_bin))
@@ -121,8 +119,6 @@ contains
     !> Structure to deallocate.
     type(aero_sorted_t), intent(inout) :: aero_sorted
 
-    call integer_rmap2_deallocate(aero_sorted%size_class)
-    call integer_rmap2_deallocate(aero_sorted%group_class)
     aero_sorted%coag_kernel_bounds_valid = .false.
     deallocate(aero_sorted%coag_kernel_min)
     deallocate(aero_sorted%coag_kernel_max)

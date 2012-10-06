@@ -87,7 +87,6 @@ contains
 
     aero_state%valid_sort = .false.
     allocate(aero_state%n_part_ideal(0, 0))
-    call aero_info_array_allocate(aero_state%aero_info_array)
 
   end subroutine aero_state_allocate
 
@@ -101,7 +100,6 @@ contains
 
     aero_state%valid_sort = .false.
     deallocate(aero_state%n_part_ideal)
-    call aero_info_array_deallocate(aero_state%aero_info_array)
 
   end subroutine aero_state_deallocate
 
@@ -2108,7 +2106,8 @@ contains
 
     integer :: status, i_remove, dim_size
     integer :: varid_aero_removed
-    integer :: aero_removed_centers(max(aero_state%aero_info_array%n_item,1))
+    integer :: aero_removed_centers( &
+         max(1, aero_info_array_n_item(aero_state%aero_info_array)))
 
     ! try to get the dimension ID
     status = nf90_inq_dimid(ncid, "aero_removed", dimid_aero_removed)
@@ -2118,7 +2117,7 @@ contains
     ! dimension not defined, so define now define it
     call pmc_nc_check(nf90_redef(ncid))
 
-    dim_size = max(aero_state%aero_info_array%n_item, 1)
+    dim_size = max(1, aero_info_array_n_item(aero_state%aero_info_array))
     call pmc_nc_check(nf90_def_dim(ncid, "aero_removed", &
          dim_size, dimid_aero_removed))
 
@@ -2172,9 +2171,12 @@ contains
     integer :: aero_id(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_least_create_time(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_greatest_create_time(aero_state_n_part(aero_state))
-    integer :: aero_removed_id(max(aero_state%aero_info_array%n_item,1))
-    integer :: aero_removed_action(max(aero_state%aero_info_array%n_item,1))
-    integer :: aero_removed_other_id(max(aero_state%aero_info_array%n_item,1))
+    integer :: aero_removed_id( &
+         max(1, aero_info_array_n_item(aero_state%aero_info_array)))
+    integer :: aero_removed_action( &
+         max(1, aero_info_array_n_item(aero_state%aero_info_array)))
+    integer :: aero_removed_other_id( &
+         max(1, aero_info_array_n_item(aero_state%aero_info_array)))
 
     !> \page output_format_aero_state Output File Format: Aerosol Particle State
     !!
@@ -2401,8 +2403,8 @@ contains
     if (record_removals) then
        call aero_state_netcdf_dim_aero_removed(aero_state, ncid, &
             dimid_aero_removed)
-       if (aero_state%aero_info_array%n_item >= 1) then
-          do i_remove = 1,aero_state%aero_info_array%n_item
+       if (aero_info_array_n_item(aero_state%aero_info_array) >= 1) then
+          do i_remove = 1,aero_info_array_n_item(aero_state%aero_info_array)
              aero_removed_id(i_remove) = &
                   aero_state%aero_info_array%aero_info(i_remove)%id
              aero_removed_action(i_remove) = &
@@ -2660,9 +2662,9 @@ contains
        call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_removed, &
             name, n_info_item))
 
-       allocate(aero_removed_id(max(n_info_item,1)))
-       allocate(aero_removed_action(max(n_info_item,1)))
-       allocate(aero_removed_other_id(max(n_info_item,1)))
+       allocate(aero_removed_id(max(1, n_info_item)))
+       allocate(aero_removed_action(max(1, n_info_item)))
+       allocate(aero_removed_other_id(max(1, n_info_item)))
 
        call pmc_nc_read_integer_1d(ncid, aero_removed_id, &
             "aero_removed_id")

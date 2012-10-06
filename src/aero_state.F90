@@ -70,38 +70,12 @@ module pmc_aero_state
      !> Weighting functions.
      type(aero_weight_array_t) :: awa
      !> Ideal number of computational particles, per weight group and class.
-     real(kind=dp), pointer :: n_part_ideal(:, :)
+     real(kind=dp), allocatable :: n_part_ideal(:, :)
      !> Information on removed particles.
      type(aero_info_array_t) :: aero_info_array
   end type aero_state_t
 
 contains
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Allocates aerosol arrays.
-  subroutine aero_state_allocate(aero_state)
-
-    !> Aerosol to initialize.
-    type(aero_state_t), intent(out) :: aero_state
-
-    aero_state%valid_sort = .false.
-    allocate(aero_state%n_part_ideal(0, 0))
-
-  end subroutine aero_state_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Deallocates a previously allocated aerosol.
-  subroutine aero_state_deallocate(aero_state)
-
-    !> Aerosol to deallocate.
-    type(aero_state_t), intent(inout) :: aero_state
-
-    aero_state%valid_sort = .false.
-    deallocate(aero_state%n_part_ideal)
-
-  end subroutine aero_state_deallocate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -117,21 +91,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Resets an \c aero_state to an empty state.
-  subroutine aero_state_reset(aero_state)
-
-    !> Aerosol to reset.
-    type(aero_state_t), intent(inout) :: aero_state
-
-    call aero_state_deallocate(aero_state)
-    call aero_state_allocate(aero_state)
-
-  end subroutine aero_state_reset
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Copies aerosol to a destination that has already had
-  !> aero_state_allocate() called on it.
+  !> Copies aerosol to a destination.
   subroutine aero_state_copy(aero_state_from, aero_state_to)
 
     !> Reference aerosol.
@@ -142,7 +102,13 @@ contains
     call aero_particle_array_copy(aero_state_from%apa, aero_state_to%apa)
     aero_state_to%valid_sort = .false.
     call aero_state_copy_weight(aero_state_from, aero_state_to)
-    call copy_real_2d(aero_state_from%n_part_ideal, aero_state_to%n_part_ideal)
+    if (allocated(aero_state_from%n_part_ideal)) then
+       aero_state_to%n_part_ideal = aero_state_from%n_part_ideal
+    else
+       if (allocated(aero_state_to%n_part_ideal)) then
+          deallocate(aero_state_to%n_part_ideal)
+       end if
+    end if
     call aero_info_array_copy(aero_state_from%aero_info_array, &
          aero_state_to%aero_info_array)
 
@@ -222,7 +188,9 @@ contains
 
     n_group = aero_weight_array_n_group(aero_state%awa)
     n_class = aero_weight_array_n_class(aero_state%awa)
-    deallocate(aero_state%n_part_ideal)
+    if (allocated(aero_state%n_part_ideal)) then
+       deallocate(aero_state%n_part_ideal)
+    end if
     allocate(aero_state%n_part_ideal(n_group, n_class))
     aero_state%n_part_ideal = n_part / real(n_group * n_class, kind=dp)
 
@@ -311,9 +279,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Resets an aero_state to have zero particles per bin. This must
-  !> already have had aero_state_allocate() called on it. This
-  !> function can be called more than once on the same state.
+  !> Resets an aero_state to have zero particles per bin.
   subroutine aero_state_zero(aero_state)
 
     !> State to zero.
@@ -798,7 +764,7 @@ contains
     type(aero_info_t) :: aero_info
 
     call assert(721006962, (sample_prob >= 0d0) .and. (sample_prob <= 1d0))
-    call aero_state_reset(aero_state_to)
+    call aero_state_zero(aero_state_to)
     call aero_state_copy_weight(aero_state_from, aero_state_to)
     n_transfer = rand_binomial(aero_state_total_particles(aero_state_from), &
          sample_prob)
@@ -871,7 +837,7 @@ contains
     type(aero_info_t) :: aero_info
 
     call assert(393205561, (sample_prob >= 0d0) .and. (sample_prob <= 1d0))
-    call aero_state_reset(aero_state_to)
+    call aero_state_zero(aero_state_to)
     call aero_state_copy_weight(aero_state_from, aero_state_to)
     call aero_weight_array_normalize(aero_state_to%awa)
     n_transfer = rand_binomial(aero_state_total_particles(aero_state_from), &
@@ -1498,10 +1464,6 @@ contains
     ! allocate aero_state arrays
     allocate(aero_state_sends(n_proc))
     allocate(aero_state_recvs(n_proc))
-    do i_proc = 0,(n_proc - 1)
-       call aero_state_allocate(aero_state_sends(i_proc + 1))
-       call aero_state_allocate(aero_state_recvs(i_proc + 1))
-    end do
 
     ! compute the transfer probability
     if (present(specify_prob_transfer)) then
@@ -1539,10 +1501,6 @@ contains
     end do
 
     ! cleanup
-    do i_proc = 0,(n_proc - 1)
-          call aero_state_deallocate(aero_state_sends(i_proc + 1))
-          call aero_state_deallocate(aero_state_recvs(i_proc + 1))
-    end do
     deallocate(aero_state_sends)
     deallocate(aero_state_recvs)
 #endif
@@ -2032,15 +1990,12 @@ contains
 
           ! unpack it
           position = 0
-          call aero_state_allocate(aero_state_transfer)
           call pmc_mpi_unpack_aero_state(buffer, position, &
                aero_state_transfer)
           call assert(518174881, position == buffer_size)
           deallocate(buffer)
 
           call aero_state_add(aero_state_total, aero_state_transfer)
-
-          call aero_state_deallocate(aero_state_transfer)
        end do
     end if
 
@@ -2540,11 +2495,11 @@ contains
     integer, allocatable :: aero_removed_action(:)
     integer, allocatable :: aero_removed_other_id(:)
 
+    call aero_state_zero(aero_state)
+
     status = nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle)
     if (status == NF90_EBADDIM) then
        ! no aero_particle dimension means no particles present
-       call aero_state_deallocate(aero_state)
-       call aero_state_allocate(aero_state)
        call aero_weight_array_input_netcdf(aero_state%awa, ncid)
        return
     end if
@@ -2604,9 +2559,6 @@ contains
          "aero_least_create_time")
     call pmc_nc_read_real_1d(ncid, aero_greatest_create_time, &
          "aero_greatest_create_time")
-
-    call aero_state_deallocate(aero_state)
-    call aero_state_allocate(aero_state)
 
     call aero_weight_array_input_netcdf(aero_state%awa, ncid)
     call aero_state_set_n_part_ideal(aero_state, 0d0)

@@ -379,8 +379,6 @@ contains
     call gas_state_allocate(gas_state)
     call gas_state_allocate(gas_state_init)
     call aero_dist_allocate(aero_dist_init)
-    call aero_state_allocate(aero_state)
-    call aero_state_allocate(aero_state_init)
     call scenario_allocate(scenario)
     call env_state_allocate(env_state)
     call env_state_allocate(env_state_init)
@@ -631,7 +629,7 @@ contains
           call aero_state_copy(aero_state_init, aero_state)
           call aero_state_set_n_part_ideal(aero_state, n_part)
        else
-          call aero_state_reset(aero_state)
+          call aero_state_zero(aero_state)
           aero_mode_type_exp_present &
                = aero_dist_contains_aero_mode_type(aero_dist_init, &
                AERO_MODE_TYPE_EXP) &
@@ -670,8 +668,6 @@ contains
     call gas_state_deallocate(gas_state)
     call gas_state_deallocate(gas_state_init)
     call aero_dist_deallocate(aero_dist_init)
-    call aero_state_deallocate(aero_state)
-    call aero_state_deallocate(aero_state_init)
     call scenario_deallocate(scenario)
     call env_state_deallocate(env_state)
     call env_state_deallocate(env_state_init)

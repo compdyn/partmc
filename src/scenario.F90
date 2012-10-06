@@ -477,11 +477,9 @@ contains
        p = p * old_env_state%height / env_state%height
     end if
     ! loss to background
-    call aero_state_allocate(aero_state_delta)
     call aero_state_sample_particles(aero_state, aero_state_delta, &
          1d0 - p, AERO_INFO_DILUTION)
     n_dil_out = aero_state_total_particles(aero_state_delta)
-    call aero_state_deallocate(aero_state_delta)
     ! addition from background
     call aero_state_add_aero_dist_sample(aero_state, aero_data, &
          background, 1d0 - p, env_state%elapsed_time, allow_doubling, &

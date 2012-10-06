@@ -66,8 +66,6 @@ program extract_aero_particles
      end if
   end if
 
-  call aero_state_allocate(aero_state)
-
   call input_state(in_filename, index, time, del_t, i_repeat, uuid, &
        aero_data=aero_data, aero_state=aero_state)
 
@@ -102,8 +100,6 @@ program extract_aero_particles
      write(out_unit, *) ''
   end do
   call close_file(out_unit)
-
-  call aero_state_deallocate(aero_state)
 
   call pmc_mpi_finalize()
 

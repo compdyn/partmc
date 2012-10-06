@@ -65,8 +65,6 @@ program extract_aero_time
      out_filename = trim(in_prefix) // "_aero_time.txt"
   end if
 
-  call aero_state_allocate(aero_state)
-
   allocate(filename_list(0))
   call input_filename_list(in_prefix, filename_list)
   n_file = size(filename_list)
@@ -132,7 +130,6 @@ program extract_aero_time
   deallocate(time_mass_concs)
   deallocate(time_species_concs)
   deallocate(filename_list)
-  call aero_state_deallocate(aero_state)
 
   call pmc_mpi_finalize()
 

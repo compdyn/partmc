@@ -440,13 +440,11 @@ contains
              prob_remove_i = num_conc_target / num_conc_i
              if (pmc_random() < prob_remove_i / prob_remove_source_max) then
                 n_remove = n_remove + 1
-                call aero_info_allocate(aero_info)
                 aero_info%id = aero_state%apa%particle(i_part)%id
                 aero_info%action = AERO_INFO_COAG
                 aero_info%other_id = target_id
                 call aero_state_remove_particle_with_info(aero_state, &
                      i_part, aero_info)
-                call aero_info_deallocate(aero_info)
              end if
           end if
        end if
@@ -891,9 +889,6 @@ contains
     type(aero_info_t) :: aero_info_1, aero_info_2
     logical :: remove_1, remove_2, create_new, id_1_lost, id_2_lost
 
-    call aero_info_allocate(aero_info_1)
-    call aero_info_allocate(aero_info_2)
-
     call coagulate_weighting(aero_state%apa%particle(p1), &
          aero_state%apa%particle(p2), ptc, c1, c2, cc, aero_data, &
          aero_state%awa, remove_1, remove_2, create_new, id_1_lost, &
@@ -927,9 +922,6 @@ contains
     if (create_new) then
        call aero_state_add_particle(aero_state, ptc, allow_resort=.false.)
     end if
-
-    call aero_info_deallocate(aero_info_1)
-    call aero_info_deallocate(aero_info_2)
 
   end subroutine coagulate
 

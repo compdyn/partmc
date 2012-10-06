@@ -905,9 +905,6 @@ contains
     type(aero_info_t) :: aero_info_1, aero_info_2
     logical :: create_new, id_1_lost, id_2_lost
 
-    call aero_info_allocate(aero_info_1)
-    call aero_info_allocate(aero_info_2)
-
     call coagulate_weighting(aero_particle_1, aero_particle_2, &
          aero_particle_new, s1, s2, sc, aero_data, aero_state%awa, &
          remove_1, remove_2, create_new, id_1_lost, id_2_lost, &
@@ -930,9 +927,6 @@ contains
        new_proc = sample_cts_pdf(1d0 / magnitudes(new_group, :)) - 1
        call send_return_unreq_particle(aero_particle_new, new_proc)
     end if
-
-    call aero_info_deallocate(aero_info_1)
-    call aero_info_deallocate(aero_info_2)
 
   end subroutine coagulate_dist
 

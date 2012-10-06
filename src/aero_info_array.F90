@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -67,13 +67,8 @@ contains
     !> Number of items.
     integer, intent(in) :: n_item
 
-    integer :: i
-
     aero_info_array%n_item = n_item
     allocate(aero_info_array%aero_info(n_item))
-    do i = 1,n_item
-       call aero_info_allocate(aero_info_array%aero_info(i))
-    end do
 
   end subroutine aero_info_array_allocate_size
 
@@ -85,11 +80,6 @@ contains
     !> Structure to deallocate.
     type(aero_info_array_t), intent(inout) :: aero_info_array
 
-    integer :: i
-
-    do i = 1,aero_info_array%n_item
-       call aero_info_deallocate(aero_info_array%aero_info(i))
-    end do
     deallocate(aero_info_array%aero_info)
 
   end subroutine aero_info_array_deallocate
@@ -156,7 +146,6 @@ contains
     do i = 1,aero_info_array%n_item
        call aero_info_copy(aero_info_array%aero_info(i), &
             new_particles(i))
-       call aero_info_deallocate(aero_info_array%aero_info(i))
     end do
     deallocate(aero_info_array%aero_info)
     aero_info_array%aero_info => new_particles
@@ -234,7 +223,6 @@ contains
 
     n = aero_info_array%n_item + 1
     call aero_info_array_enlarge_to(aero_info_array, n)
-    call aero_info_allocate(aero_info_array%aero_info(n))
     call aero_info_copy(aero_info, aero_info_array%aero_info(n))
     aero_info_array%n_item = aero_info_array%n_item + 1
 
@@ -253,14 +241,11 @@ contains
 
     call assert(213892348, index >= 1)
     call assert(953927392, index <= aero_info_array%n_item)
-    call aero_info_deallocate(aero_info_array%aero_info(index))
     if (index < aero_info_array%n_item) then
        ! shift last aero_info into empty slot to preserve dense packing
        call aero_info_copy( &
             aero_info_array%aero_info(aero_info_array%n_item), &
             aero_info_array%aero_info(index))
-       call aero_info_deallocate( &
-            aero_info_array%aero_info(aero_info_array%n_item))
     end if
     aero_info_array%n_item = aero_info_array%n_item - 1
     call aero_info_array_shrink(aero_info_array)
@@ -285,7 +270,6 @@ contains
     n_new = n + n_delta
     call aero_info_array_enlarge_to(aero_info_array, n_new)
     do i = 1,n_delta
-       call aero_info_allocate(aero_info_array%aero_info(n + i))
        call aero_info_copy(aero_info_array_delta%aero_info(i), &
             aero_info_array%aero_info(n + i))
     end do
@@ -359,7 +343,6 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%n_item)
     allocate(val%aero_info(val%n_item))
     do i = 1,val%n_item
-       call aero_info_allocate(val%aero_info(i))
        call pmc_mpi_unpack_aero_info(buffer, position, val%aero_info(i))
     end do
     call assert(262838429, &

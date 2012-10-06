@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2009-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -59,30 +59,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocates and initializes.
-  subroutine aero_info_allocate(aero_info)
-
-    !> Result.
-    type(aero_info_t), intent(out) :: aero_info
-
-    call aero_info_zero(aero_info)
-
-  end subroutine aero_info_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Deallocates.
-  subroutine aero_info_deallocate(aero_info)
-
-    !> Structure to deallocate.
-    type(aero_info_t), intent(inout) :: aero_info
-
-  end subroutine aero_info_deallocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Copies aero_info_from to aero_info_to, both
-  !> of which must already be allocated.
+  !> Copies aero_info_from to aero_info_to.
   subroutine aero_info_copy(aero_info_from, &
        aero_info_to)
 
@@ -99,20 +76,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Resets an aero_info to contain zero particles.
-  subroutine aero_info_zero(aero_info)
-
-    !> Structure to reset.
-    type(aero_info_t), intent(inout) :: aero_info
-
-    aero_info%id = 0
-    aero_info%action = AERO_INFO_NONE
-    aero_info%other_id = 0
-
-  end subroutine aero_info_zero
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+>>>>>>> change aero_info to not allocate
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_aero_info(val)
 

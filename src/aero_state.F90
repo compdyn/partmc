@@ -471,13 +471,11 @@ contains
 
     n_copies = prob_round(n_part_mean)
     if (n_copies == 0) then
-       call aero_info_allocate(aero_info)
        aero_info%id = aero_state%apa%particle(i_part)%id
        aero_info%action = AERO_INFO_WEIGHT
        aero_info%other_id = 0
        call aero_state_remove_particle_with_info(aero_state, &
             i_part, aero_info)
-       call aero_info_deallocate(aero_info)
     elseif (n_copies > 1) then
        do i_dup = 1,(n_copies - 1)
           call aero_particle_copy(aero_state%apa%particle(i_part), &
@@ -837,12 +835,10 @@ contains
        end if
        if (do_remove) then
           if (removal_action /= AERO_INFO_NONE) then
-             call aero_info_allocate(aero_info)
              aero_info%id = aero_state_from%apa%particle(i_part)%id
              aero_info%action = removal_action
              call aero_state_remove_particle_with_info(aero_state_from, &
                   i_part, aero_info)
-             call aero_info_deallocate(aero_info)
           else
              call aero_state_remove_particle_no_info(aero_state_from, &
                   i_part)
@@ -889,12 +885,10 @@ contains
        call aero_state_add_particle(aero_state_to, &
             aero_state_from%apa%particle(i_part))
        if (removal_action /= AERO_INFO_NONE) then
-          call aero_info_allocate(aero_info)
           aero_info%id = aero_state_from%apa%particle(i_part)%id
           aero_info%action = removal_action
           call aero_state_remove_particle_with_info(aero_state_from, &
                i_part, aero_info)
-          call aero_info_deallocate(aero_info)
        else
           call aero_state_remove_particle_no_info(aero_state_from, &
                i_part)
@@ -1326,7 +1320,6 @@ contains
     integer :: i_part
     type(aero_info_t) :: aero_info
 
-    call aero_info_allocate(aero_info)
     do i_part = aero_state_n_part(aero_state),1,-1
        if ((aero_state%apa%particle(i_part)%weight_group == i_group) &
             .and. (aero_state%apa%particle(i_part)%weight_class == i_class)) &
@@ -1339,7 +1332,6 @@ contains
           end if
        end if
     end do
-    call aero_info_deallocate(aero_info)
     call aero_weight_scale(aero_state%awa%weight(i_group, i_class), 2d0)
 
   end subroutine aero_state_halve
@@ -1450,12 +1442,10 @@ contains
                aero_state%aero_sorted%group_class%inverse(i_group, i_class)))
           i_part = aero_state%aero_sorted%group_class%inverse(i_group, &
                i_class)%entry(i_entry)
-          call aero_info_allocate(aero_info)
           aero_info%id = aero_state%apa%particle(i_part)%id
           aero_info%action = AERO_INFO_HALVED
           call aero_state_remove_particle(aero_state, i_part, .true., &
                aero_info)
-          call aero_info_deallocate(aero_info)
        end do
     elseif ((weight_ratio < 1d0) &
          .and. (allow_doubling .or. (n_part == 0))) then

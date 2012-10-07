@@ -676,7 +676,6 @@ contains
     real(kind=dp) :: n_samp_avg, radius, total_vol
     real(kind=dp) :: vols(aero_data_n_spec(aero_data))
     integer :: n_samp, i_mode, i_samp, i_group, i_class, n_group, n_class
-    type(aero_mode_t), pointer :: aero_mode
     type(aero_particle_t) :: aero_particle
 
     n_group = size(aero_state%awa%weight, 1)
@@ -685,20 +684,19 @@ contains
        n_part_add = 0
     end if
     do i_group = 1,n_group
-       do i_mode = 1,aero_dist%n_mode
-          aero_mode => aero_dist%mode(i_mode)
+       do i_mode = 1,aero_dist_n_mode(aero_dist)
           i_class = aero_state_weight_class_for_source(aero_state, &
-               aero_mode%source)
+               aero_dist%mode(i_mode)%source)
 
           ! adjust weight if necessary
-          n_samp_avg = sample_prop * aero_mode_number(aero_mode, &
+          n_samp_avg = sample_prop * aero_mode_number(aero_dist%mode(i_mode), &
                aero_state%awa%weight(i_group, i_class))
           call aero_state_prepare_weight_for_add(aero_state, i_group, &
                i_class, n_samp_avg, allow_doubling, allow_halving)
           if (n_samp_avg == 0d0) cycle
 
           ! sample particles
-          n_samp_avg = sample_prop * aero_mode_number(aero_mode, &
+          n_samp_avg = sample_prop * aero_mode_number(aero_dist%mode(i_mode), &
                aero_state%awa%weight(i_group, i_class))
           n_samp = rand_poisson(n_samp_avg)
           if (present(n_part_add)) then
@@ -706,15 +704,17 @@ contains
           end if
           do i_samp = 1,n_samp
              call aero_particle_zero(aero_particle, aero_data)
-             call aero_mode_sample_radius(aero_mode, &
+             call aero_mode_sample_radius(aero_dist%mode(i_mode), &
                   aero_state%awa%weight(i_group, i_class), radius)
              total_vol = rad2vol(radius)
-             call aero_mode_sample_vols(aero_mode, total_vol, vols)
+             call aero_mode_sample_vols(aero_dist%mode(i_mode), total_vol, &
+                  vols)
              call aero_particle_set_vols(aero_particle, vols)
              call aero_particle_new_id(aero_particle)
              call aero_particle_set_weight(aero_particle, i_group, i_class)
              call aero_particle_set_create_time(aero_particle, create_time)
-             call aero_particle_set_source(aero_particle, aero_mode%source)
+             call aero_particle_set_source(aero_particle, &
+                  aero_dist%mode(i_mode)%source)
              call aero_state_add_particle(aero_state, aero_particle)
           end do
        end do

@@ -31,61 +31,27 @@ module pmc_aero_dist
 
   !> A complete aerosol distribution, consisting of several modes.
   type aero_dist_t
-     !> Number of modes.
-     integer :: n_mode
-     !> Internally mixed modes [length \c n_mode].
-     type(aero_mode_t), pointer :: mode(:)
+     !> Internally mixed modes.
+     type(aero_mode_t), allocatable :: mode(:)
   end type aero_dist_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocates an aero_dist.
-  subroutine aero_dist_allocate(aero_dist)
+  !> Return the number of modes.
+  elemental integer function aero_dist_n_mode(aero_dist)
 
-    !> Aerosol distribution.
-    type(aero_dist_t), intent(out) :: aero_dist
+    !> Aero data structure.
+    type(aero_dist_t), intent(in) :: aero_dist
 
-    integer :: i
+    if (allocated(aero_dist%mode)) then
+       aero_dist_n_mode = size(aero_dist%mode)
+    else
+       aero_dist_n_mode = 0
+    end if
 
-    aero_dist%n_mode = 0
-    allocate(aero_dist%mode(0))
-
-  end subroutine aero_dist_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Allocates an aero_dist of the given size.
-  subroutine aero_dist_allocate_size(aero_dist, n_mode, n_spec)
-
-    !> Aerosol distribution.
-    type(aero_dist_t), intent(out) :: aero_dist
-    !> Number of modes.
-    integer, intent(in) :: n_mode
-    !> Number of species.
-    integer, intent(in) :: n_spec
-
-    integer :: i
-
-    aero_dist%n_mode = n_mode
-    allocate(aero_dist%mode(n_mode))
-
-  end subroutine aero_dist_allocate_size
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Free all storage.
-  subroutine aero_dist_deallocate(aero_dist)
-
-    !> Aerosol distribution.
-    type(aero_dist_t), intent(inout) :: aero_dist
-
-    integer :: i
-
-    deallocate(aero_dist%mode)
-
-  end subroutine aero_dist_deallocate
+  end function aero_dist_n_mode
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -97,18 +63,18 @@ contains
     !> Aero_dist copy.
     type(aero_dist_t), intent(inout) :: aero_dist_to
 
-    integer :: n_spec, i
+    integer :: i_mode
 
-    if (aero_dist_from%n_mode > 0) then
-       n_spec = size(aero_dist_from%mode(1)%vol_frac)
-    else
-       n_spec = 0
+    if (allocated(aero_dist_to%mode)) then
+       deallocate(aero_dist_to%mode)
     end if
-    call aero_dist_deallocate(aero_dist_to)
-    call aero_dist_allocate_size(aero_dist_to, aero_dist_from%n_mode, n_spec)
-    do i = 1,aero_dist_from%n_mode
-       call aero_mode_copy(aero_dist_from%mode(i), aero_dist_to%mode(i))
-    end do
+    if (allocated(aero_dist_from%mode)) then
+       allocate(aero_dist_to%mode(size(aero_dist_from%mode)))
+       do i_mode = 1,aero_dist_n_mode(aero_dist_from)
+          call aero_mode_copy(aero_dist_from%mode(i_mode), &
+               aero_dist_to%mode(i_mode))
+       end do
+    end if
 
   end subroutine aero_dist_copy
 
@@ -123,7 +89,7 @@ contains
     integer :: i_mode
 
     aero_dist_total_num_conc = 0d0
-    do i_mode = 1,aero_dist%n_mode
+    do i_mode = 1,aero_dist_n_mode(aero_dist)
        aero_dist_total_num_conc = aero_dist_total_num_conc &
             + aero_mode_total_num_conc(aero_dist%mode(i_mode))
     end do
@@ -143,7 +109,7 @@ contains
     integer :: i_mode
 
     aero_dist_number = 0d0
-    do i_mode = 1,aero_dist%n_mode
+    do i_mode = 1,aero_dist_n_mode(aero_dist)
        aero_dist_number = aero_dist_number &
             + aero_mode_number(aero_dist%mode(i_mode), aero_weight)
     end do
@@ -169,7 +135,7 @@ contains
     real(kind=dp) :: mode_num_conc(size(num_conc, 1))
 
     num_conc = 0d0
-    do i_mode = 1,aero_dist%n_mode
+    do i_mode = 1,aero_dist_n_mode(aero_dist)
        call aero_mode_num_conc(aero_dist%mode(i_mode), bin_grid, &
             aero_data, mode_num_conc)
        num_conc = num_conc + mode_num_conc
@@ -198,7 +164,7 @@ contains
     real(kind=dp) :: mode_vol_conc(size(vol_conc, 1), size(vol_conc, 2))
 
     vol_conc = 0d0
-    do i_mode = 1,aero_dist%n_mode
+    do i_mode = 1,aero_dist_n_mode(aero_dist)
        call aero_mode_vol_conc(aero_dist%mode(i_mode), bin_grid, &
             aero_data, mode_vol_conc)
        vol_conc = vol_conc + mode_vol_conc
@@ -217,8 +183,13 @@ contains
     !> Aerosol mode type to test for.
     integer, intent(in) :: aero_mode_type
 
-    aero_dist_contains_aero_mode_type &
-         = any(aero_dist%mode%type == aero_mode_type)
+    integer :: i_mode
+
+    aero_dist_contains_aero_mode_type = .false.
+    do i_mode = 1,aero_dist_n_mode(aero_dist)
+       aero_dist_contains_aero_mode_type = aero_dist_contains_aero_mode_type &
+            .or. (aero_dist%mode(i_mode)%type == aero_mode_type)
+    end do
 
   end function aero_dist_contains_aero_mode_type
 
@@ -275,9 +246,9 @@ contains
     !> Aerosol dist.
     type(aero_dist_t), intent(inout) :: aero_dist
 
-    type(aero_mode_t), pointer :: new_aero_mode_list(:)
+    type(aero_mode_t), allocatable :: new_aero_mode_list(:)
     type(aero_mode_t) :: aero_mode
-    integer :: i, j
+    integer :: i, j, n_mode
     logical :: eof
 
     ! note that the <p> is needed below to force correct paragraph
@@ -293,21 +264,17 @@ contains
     !!   - \ref input_format_aero_mode --- the format for each mode
     !!     of an aerosol distribution
 
-    call aero_dist_deallocate(aero_dist)
-    call aero_dist_allocate(aero_dist)
     call spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
     do while (.not. eof)
-       aero_dist%n_mode = aero_dist%n_mode + 1
-       allocate(new_aero_mode_list(aero_dist%n_mode))
+       n_mode = aero_dist_n_mode(aero_dist) + 1
+       allocate(new_aero_mode_list(n_mode))
        call aero_mode_copy(aero_mode, &
-            new_aero_mode_list(aero_dist%n_mode))
-       do i = 1,(aero_dist%n_mode - 1)
+            new_aero_mode_list(n_mode))
+       do i = 1,(n_mode - 1)
           call aero_mode_copy(aero_dist%mode(i), &
                new_aero_mode_list(i))
        end do
-       deallocate(aero_dist%mode)
-       aero_dist%mode => new_aero_mode_list
-       nullify(new_aero_mode_list)
+       call move_alloc(new_aero_mode_list, aero_dist%mode)
        call spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
     end do
 
@@ -423,9 +390,6 @@ contains
     end if
 
     ! copy over the data
-    do i_time = 1,size(aero_dists)
-       call aero_dist_deallocate(aero_dists(i_time))
-    end do
     deallocate(aero_dists)
     deallocate(times)
     deallocate(rates)
@@ -434,7 +398,6 @@ contains
     allocate(rates(n_time))
     do i_time = 1,n_time
        call spec_file_open(aero_dist_line%data(i_time), aero_dist_file)
-       call aero_dist_allocate(aero_dists(i_time))
        call spec_file_read_aero_dist(aero_dist_file, &
             aero_data, aero_dists(i_time))
        call spec_file_close(aero_dist_file)
@@ -457,7 +420,7 @@ contains
 
     integer :: i, total_size
 
-    total_size = pmc_mpi_pack_size_integer(val%n_mode)
+    total_size = pmc_mpi_pack_size_integer(aero_dist_n_mode(val))
     do i = 1,size(val%mode)
        total_size = total_size + pmc_mpi_pack_size_aero_mode(val%mode(i))
     end do
@@ -481,7 +444,7 @@ contains
     integer :: prev_position, i
 
     prev_position = position
-    call pmc_mpi_pack_integer(buffer, position, val%n_mode)
+    call pmc_mpi_pack_integer(buffer, position, aero_dist_n_mode(val))
     do i = 1,size(val%mode)
        call pmc_mpi_pack_aero_mode(buffer, position, val%mode(i))
     end do
@@ -504,15 +467,17 @@ contains
     type(aero_dist_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, i
+    integer :: prev_position, i, n
 
-    call aero_dist_deallocate(val)
     prev_position = position
-    call pmc_mpi_unpack_integer(buffer, position, val%n_mode)
-    allocate(val%mode(val%n_mode))
-    do i = 1,size(val%mode)
-       call pmc_mpi_unpack_aero_mode(buffer, position, val%mode(i))
-    end do
+    call pmc_mpi_unpack_integer(buffer, position, n)
+    if (allocated(val%mode)) deallocate(val%mode)
+    if (n > 0) then
+       allocate(val%mode(n))
+       do i = 1,n
+          call pmc_mpi_unpack_aero_mode(buffer, position, val%mode(i))
+       end do
+    end if
     call assert(742535268, &
          position - prev_position <= pmc_mpi_pack_size_aero_dist(val))
 #endif

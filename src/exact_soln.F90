@@ -64,10 +64,10 @@ contains
 
     if (coag_kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
        ! FIXME: check scenario has no emissions or dilution
-       if (aero_dist_init%n_mode /= 1) then
+       if (aero_dist_n_mode(aero_dist_init) /= 1) then
           call die_msg(285407619, "Exact solution with additive kernel " &
                // "requires exactly 1 initial distribution mode, not: " &
-               // trim(integer_to_string(aero_dist_init%n_mode)))
+               // trim(integer_to_string(aero_dist_n_mode(aero_dist_init))))
        end if
        if (aero_dist_init%mode(1)%type /= AERO_MODE_TYPE_EXP) then
           call die_msg(373749499, "Exact solution with additive kernel " &
@@ -80,10 +80,10 @@ contains
             aero_dist_init%mode(1)%char_radius, env_state, aero_binned)
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_CONSTANT) then
        ! FIXME: check scenario has no emissions or dilution
-       if (aero_dist_init%n_mode /= 1) then
+       if (aero_dist_n_mode(aero_dist_init) /= 1) then
           call die_msg(827813758, "Exact solution with constant kernel " &
                // "requires exactly 1 initial distribution mode, not: " &
-               // trim(integer_to_string(aero_dist_init%n_mode)))
+               // trim(integer_to_string(aero_dist_n_mode(aero_dist_init))))
        end if
        if (aero_dist_init%mode(1)%type /= AERO_MODE_TYPE_EXP) then
           call die_msg(574495367, "Exact solution with constant kernel " &

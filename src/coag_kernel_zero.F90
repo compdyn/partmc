@@ -128,10 +128,6 @@ contains
     type(aero_dist_t) :: emissions, background
     type(aero_binned_t) :: background_binned, aero_binned_limit
 
-    logical, save :: already_warned_water = .false.
-
-    call aero_dist_allocate(emissions)
-    call aero_dist_allocate(background)
     call aero_binned_set_sizes(aero_binned, bin_grid_size(bin_grid), &
          aero_data_n_spec(aero_data))
     call aero_binned_set_sizes(background_binned, &
@@ -197,9 +193,6 @@ contains
        call aero_binned_scale_by_array(aero_binned, loss_array)
        call aero_binned_add(aero_binned, aero_binned_limit)
     end if
-
-    call aero_dist_deallocate(emissions)
-    call aero_dist_deallocate(background)
 
   end subroutine soln_zero
 

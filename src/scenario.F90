@@ -157,16 +157,10 @@ contains
     deallocate(scenario%gas_dilution_rate)
     deallocate(scenario%gas_background)
 
-    do i = 1,size(scenario%aero_emission)
-       call aero_dist_deallocate(scenario%aero_emission(i))
-    end do
     deallocate(scenario%aero_emission_time)
     deallocate(scenario%aero_emission_rate_scale)
     deallocate(scenario%aero_emission)
 
-    do i = 1,size(scenario%aero_background)
-       call aero_dist_deallocate(scenario%aero_background(i))
-    end do
     deallocate(scenario%aero_dilution_time)
     deallocate(scenario%aero_dilution_rate)
     deallocate(scenario%aero_background)
@@ -244,7 +238,6 @@ contains
     allocate(scenario_to%aero_emission( &
          size(scenario_from%aero_emission)))
     do i = 1,size(scenario_from%aero_emission)
-       call aero_dist_allocate(scenario_to%aero_emission(i))
        call aero_dist_copy(scenario_from%aero_emission(i), &
             scenario_to%aero_emission(i))
     end do
@@ -258,7 +251,6 @@ contains
     allocate(scenario_to%aero_background( &
          size(scenario_from%aero_background)))
     do i = 1,size(scenario_from%aero_background)
-       call aero_dist_allocate(scenario_to%aero_background(i))
        call aero_dist_copy(scenario_from%aero_background(i), &
             scenario_to%aero_background(i))
     end do
@@ -445,7 +437,6 @@ contains
     type(aero_state_t) :: aero_state_delta
 
     ! emissions
-    call aero_dist_allocate(emissions)
     call aero_dist_interp_1d(scenario%aero_emission, &
          scenario%aero_emission_time, scenario%aero_emission_rate_scale, &
          env_state%elapsed_time, emissions, emission_rate_scale)
@@ -453,10 +444,8 @@ contains
     call aero_state_add_aero_dist_sample(aero_state, aero_data, &
          emissions, p, env_state%elapsed_time, allow_doubling, allow_halving, &
          n_emit)
-    call aero_dist_deallocate(emissions)
 
     ! dilution
-    call aero_dist_allocate(background)
     call aero_dist_interp_1d(scenario%aero_background, &
          scenario%aero_dilution_time, scenario%aero_dilution_rate, &
          env_state%elapsed_time, background, dilution_rate)
@@ -510,7 +499,6 @@ contains
     type(aero_binned_t) :: emissions_binned, background_binned
 
     ! emissions
-    call aero_dist_allocate(emissions)
     call aero_dist_interp_1d(scenario%aero_emission, &
          scenario%aero_emission_time, scenario%aero_emission_rate_scale, &
          env_state%elapsed_time, emissions, emission_rate_scale)
@@ -518,10 +506,8 @@ contains
          emissions)
     p = emission_rate_scale * delta_t / env_state%height
     call aero_binned_add_scaled(aero_binned, emissions_binned, p)
-    call aero_dist_deallocate(emissions)
 
     ! dilution
-    call aero_dist_allocate(background)
     call aero_dist_interp_1d(scenario%aero_background, &
          scenario%aero_dilution_time, scenario%aero_dilution_rate, &
          env_state%elapsed_time, background, dilution_rate)
@@ -533,7 +519,6 @@ contains
     end if
     call aero_binned_scale(aero_binned, p)
     call aero_binned_add_scaled(aero_binned, background_binned, 1d0 - p)
-    call aero_dist_deallocate(background)
 
   end subroutine scenario_update_aero_binned
 
@@ -1254,11 +1239,9 @@ contains
        call pmc_mpi_unpack_gas_state(buffer, position, val%gas_background(i))
     end do
     do i = 1,size(val%aero_emission)
-       call aero_dist_allocate(val%aero_emission(i))
        call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_emission(i))
     end do
     do i = 1,size(val%aero_background)
-       call aero_dist_allocate(val%aero_background(i))
        call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_background(i))
     end do
     call assert(611542570, &

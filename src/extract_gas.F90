@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2011 Matthew West
+! Copyright (C) 2009-2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -63,7 +63,6 @@ program extract_gas
   end if
 
   call gas_data_allocate(gas_data)
-  call gas_state_allocate(gas_state)
 
   allocate(filename_list(0))
   call input_filename_list(in_prefix, filename_list)
@@ -113,7 +112,6 @@ program extract_gas
   deallocate(times)
   deallocate(gas_mixing_ratios)
   call gas_data_deallocate(gas_data)
-  call gas_state_deallocate(gas_state)
 
   call pmc_mpi_finalize()
 

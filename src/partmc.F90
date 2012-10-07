@@ -376,8 +376,6 @@ contains
     !!   - \subpage input_format_parallel_coag
 
     call gas_data_allocate(gas_data)
-    call gas_state_allocate(gas_state)
-    call gas_state_allocate(gas_state_init)
     call aero_dist_allocate(aero_dist_init)
     call scenario_allocate(scenario)
     call env_state_allocate(env_state)
@@ -617,8 +615,6 @@ contains
     call pmc_rand_finalize()
     call pmc_srand(rand_init, pmc_mpi_rank())
 
-    call gas_state_deallocate(gas_state)
-    call gas_state_allocate_size(gas_state, gas_data%n_spec)
     call cpu_time(run_part_opt%t_wall_start)
 
     do i_repeat = 1,run_part_opt%n_repeat
@@ -665,8 +661,6 @@ contains
     end do
 
     call gas_data_deallocate(gas_data)
-    call gas_state_deallocate(gas_state)
-    call gas_state_deallocate(gas_state_init)
     call aero_dist_deallocate(aero_dist_init)
     call scenario_deallocate(scenario)
     call env_state_deallocate(env_state)

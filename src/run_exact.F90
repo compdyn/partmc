@@ -71,7 +71,7 @@ contains
          "t_output", run_exact_opt%t_output)
 
     call gas_data_allocate(gas_data)
-    call gas_state_allocate(gas_state)
+    call gas_state_set_size(gas_state, gas_data%n_spec)
 
     n_time = nint(run_exact_opt%t_max / run_exact_opt%t_output)
     do i_time = 0,n_time
@@ -88,7 +88,6 @@ contains
     end do
 
     call gas_data_deallocate(gas_data)
-    call gas_state_deallocate(gas_state)
 
   end subroutine run_exact
 

@@ -149,16 +149,10 @@ contains
     deallocate(scenario%height_time)
     deallocate(scenario%height)
 
-    do i = 1,size(scenario%gas_emission)
-       call gas_state_deallocate(scenario%gas_emission(i))
-    end do
     deallocate(scenario%gas_emission_time)
     deallocate(scenario%gas_emission_rate_scale)
     deallocate(scenario%gas_emission)
 
-    do i = 1,size(scenario%gas_background)
-       call gas_state_deallocate(scenario%gas_background(i))
-    end do
     deallocate(scenario%gas_dilution_time)
     deallocate(scenario%gas_dilution_rate)
     deallocate(scenario%gas_background)
@@ -223,7 +217,6 @@ contains
     allocate(scenario_to%gas_emission( &
          size(scenario_from%gas_emission)))
     do i = 1,size(scenario_from%gas_emission)
-       call gas_state_allocate(scenario_to%gas_emission(i))
        call gas_state_copy(scenario_from%gas_emission(i), &
             scenario_to%gas_emission(i))
     end do
@@ -237,7 +230,6 @@ contains
     allocate(scenario_to%gas_background( &
          size(scenario_from%gas_background)))
     do i = 1,size(scenario_from%gas_background)
-       call gas_state_allocate(scenario_to%gas_background(i))
        call gas_state_copy(scenario_from%gas_background(i), &
             scenario_to%gas_background(i))
     end do
@@ -392,17 +384,14 @@ contains
     type(gas_state_t) :: emissions, background
 
     ! emissions
-    call gas_state_allocate_size(emissions, gas_data%n_spec)
     call gas_state_interp_1d(scenario%gas_emission, &
          scenario%gas_emission_time, scenario%gas_emission_rate_scale, &
          env_state%elapsed_time, emissions, emission_rate_scale)
     call gas_state_mole_dens_to_ppb(emissions, env_state)
     p = emission_rate_scale * delta_t / env_state%height
     call gas_state_add_scaled(gas_state, emissions, p)
-    call gas_state_deallocate(emissions)
 
     ! dilution
-    call gas_state_allocate_size(background, gas_data%n_spec)
     call gas_state_interp_1d(scenario%gas_background, &
          scenario%gas_dilution_time, scenario%gas_dilution_rate, &
          env_state%elapsed_time, background, dilution_rate)
@@ -413,7 +402,6 @@ contains
     call gas_state_scale(gas_state, p)
     call gas_state_add_scaled(gas_state, background, 1d0 - p)
     call gas_state_ensure_nonnegative(gas_state)
-    call gas_state_deallocate(background)
 
   end subroutine scenario_update_gas_state
 
@@ -1260,11 +1248,9 @@ contains
     allocate(val%aero_emission(size(val%aero_emission_time)))
     allocate(val%aero_background(size(val%aero_dilution_time)))
     do i = 1,size(val%gas_emission)
-       call gas_state_allocate(val%gas_emission(i))
        call pmc_mpi_unpack_gas_state(buffer, position, val%gas_emission(i))
     end do
     do i = 1,size(val%gas_background)
-       call gas_state_allocate(val%gas_background(i))
        call pmc_mpi_unpack_gas_state(buffer, position, val%gas_background(i))
     end do
     do i = 1,size(val%aero_emission)

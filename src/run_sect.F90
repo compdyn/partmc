@@ -107,7 +107,7 @@ contains
     end if
 
     ! output data structure
-    call gas_state_allocate_size(gas_state, gas_data%n_spec)
+    call gas_state_set_size(gas_state, gas_data%n_spec)
 
     ! mass and radius grid
     do i = 1,bin_grid_size(bin_grid)
@@ -197,7 +197,6 @@ contains
     end do
 
     call env_state_deallocate(old_env_state)
-    call gas_state_deallocate(gas_state)
 
   end subroutine run_sect
 

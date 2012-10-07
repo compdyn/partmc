@@ -182,7 +182,6 @@ contains
           ! collect all data onto process 0 and then write it to a
           ! single file
           call env_state_allocate(env_state_write)
-          call gas_state_allocate(gas_state_write)
           call env_state_copy(env_state, env_state_write)
           call gas_state_copy(gas_state, gas_state_write)
           call env_state_reduce_avg(env_state_write)
@@ -195,7 +194,6 @@ contains
                   rank, 1)
           end if
           call env_state_deallocate(env_state_write)
-          call gas_state_deallocate(gas_state_write)
 #endif
        end if
     else
@@ -482,7 +480,6 @@ contains
     ! unpack message
     position = 0
     call env_state_allocate(env_state)
-    call gas_state_allocate(gas_state)
     call pmc_mpi_unpack_env_state(buffer, position, env_state)
     call pmc_mpi_unpack_gas_state(buffer, position, gas_state)
     call pmc_mpi_unpack_aero_state(buffer, position, aero_state)
@@ -494,7 +491,6 @@ contains
          record_removals, record_optical, uuid, remote_proc, n_proc)
 
     call env_state_deallocate(env_state)
-    call gas_state_deallocate(gas_state)
 #endif
 
   end subroutine recv_output_state_central

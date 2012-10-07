@@ -67,7 +67,6 @@ program bin_average_comp
   call pmc_mpi_init()
 
   call gas_data_allocate(gas_data)
-  call gas_state_allocate(gas_state)
   call env_state_allocate(env_state)
 
   call bin_grid_make(bin_grid, BIN_GRID_TYPE_LOG, n_bin, diam2rad(d_min), &
@@ -90,7 +89,6 @@ program bin_average_comp
        record_removals, record_optical, uuid)
 
   call gas_data_deallocate(gas_data)
-  call gas_state_deallocate(gas_state)
   call env_state_deallocate(env_state)
 
   call pmc_mpi_finalize()

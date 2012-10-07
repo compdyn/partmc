@@ -63,8 +63,6 @@ program extract_sectional_aero_time
      out_filename = trim(in_prefix) // "_aero_time.txt"
   end if
 
-  call aero_binned_allocate(aero_binned)
-
   allocate(filename_list(0))
   call input_filename_list(in_prefix, filename_list)
   n_file = size(filename_list)
@@ -125,7 +123,6 @@ program extract_sectional_aero_time
   deallocate(time_mass_concs)
   deallocate(time_species_concs)
   deallocate(filename_list)
-  call aero_binned_deallocate(aero_binned)
 
   call pmc_mpi_finalize()
 

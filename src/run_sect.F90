@@ -107,9 +107,6 @@ contains
     end if
 
     ! output data structure
-    call aero_binned_allocate_size(aero_binned, bin_grid_size(bin_grid), &
-         aero_data_n_spec(aero_data))
-    aero_binned%vol_conc = 0d0
     call gas_state_allocate_size(gas_state, gas_data%n_spec)
 
     ! mass and radius grid
@@ -200,7 +197,6 @@ contains
     end do
 
     call env_state_deallocate(old_env_state)
-    call aero_binned_deallocate(aero_binned)
     call gas_state_deallocate(gas_state)
 
   end subroutine run_sect

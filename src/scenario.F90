@@ -523,8 +523,6 @@ contains
 
     ! emissions
     call aero_dist_allocate(emissions)
-    call aero_binned_allocate_size(emissions_binned, bin_grid_size(bin_grid), &
-         aero_data_n_spec(aero_data))
     call aero_dist_interp_1d(scenario%aero_emission, &
          scenario%aero_emission_time, scenario%aero_emission_rate_scale, &
          env_state%elapsed_time, emissions, emission_rate_scale)
@@ -533,12 +531,9 @@ contains
     p = emission_rate_scale * delta_t / env_state%height
     call aero_binned_add_scaled(aero_binned, emissions_binned, p)
     call aero_dist_deallocate(emissions)
-    call aero_binned_deallocate(emissions_binned)
 
     ! dilution
     call aero_dist_allocate(background)
-    call aero_binned_allocate_size(background_binned, &
-         bin_grid_size(bin_grid), aero_data_n_spec(aero_data))
     call aero_dist_interp_1d(scenario%aero_background, &
          scenario%aero_dilution_time, scenario%aero_dilution_rate, &
          env_state%elapsed_time, background, dilution_rate)
@@ -551,7 +546,6 @@ contains
     call aero_binned_scale(aero_binned, p)
     call aero_binned_add_scaled(aero_binned, background_binned, 1d0 - p)
     call aero_dist_deallocate(background)
-    call aero_binned_deallocate(background_binned)
 
   end subroutine scenario_update_aero_binned
 

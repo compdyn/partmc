@@ -112,6 +112,9 @@ contains
 
     real(kind=dp), parameter :: lambda = 1d0
 
+    call aero_binned_set_sizes(aero_binned, bin_grid_size(bin_grid), &
+         aero_data_n_spec(aero_data))
+
     mean_vol = rad2vol(radius_at_mean_vol)
     if (time .eq. 0d0) then
        do k = 1,bin_grid_size(bin_grid)

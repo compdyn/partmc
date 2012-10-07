@@ -30,61 +30,60 @@ module pmc_aero_binned
   !! store binned aerosol distributions. The difference is that an
   !! aero_dist_t has the same composition in every bin, whereas an
   !! aero_binned_t can have aerosol composition that varies per bin.
+  !!
+  !! By convention, if aero_binned_is_allocated() return \c .false.,
+  !! then the aero_binned is treated as zero for all operations on
+  !! it. This will be the case for new \c aero_binned_t structures.
   type aero_binned_t
      !> Number concentration per bin (#/m^3/log_width).
-     !! Array length is typically \c bin_grid%%n_bin.
-     real(kind=dp), pointer :: num_conc(:)
+     !! Array length is typically \c bin_grid\%n_bin.
+     real(kind=dp), allocatable :: num_conc(:)
      !> Volume concentration per bin and per species (m^3/m^3/log_width).
-     !! Array size is typically \c bin_grid%%n_bin x \c aero_data%%n_spec.
-     real(kind=dp), pointer :: vol_conc(:,:)
+     !! Array size is typically \c bin_grid\%n_bin x \c aero_data\%n_spec.
+     real(kind=dp), allocatable :: vol_conc(:,:)
   end type aero_binned_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocate an aero_binned_t.
-  subroutine aero_binned_allocate(aero_binned)
+  !> Determine whether the \c aero_binned is correctly allocated.
+  logical function aero_binned_is_allocated(aero_binned)
 
-    !> Structure to be allocated.
-    type(aero_binned_t), intent(out) :: aero_binned
+    !> Aerosol binned to check.
+    type(aero_binned_t), intent(in) :: aero_binned
 
-    allocate(aero_binned%num_conc(0))
-    allocate(aero_binned%vol_conc(0, 0))
+    logical :: valid
 
-  end subroutine aero_binned_allocate
+    valid = .true.
+    valid = valid .and. allocated(aero_binned%num_conc)
+    valid = valid .and. allocated(aero_binned%vol_conc)
+    valid = valid &
+         .and. (size(aero_binned%num_conc) == size(aero_binned%num_conc, 1))
+    aero_binned_is_allocated = valid
+
+  end function aero_binned_is_allocated
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocate an aero_binned_t of the given size.
-  subroutine aero_binned_allocate_size(aero_binned, n_bin, n_spec)
+  !> Set the number of bins and species in an aero_binned_t.
+  subroutine aero_binned_set_sizes(aero_binned, n_bin, n_spec)
 
     !> Structure to be allocated.
-    type(aero_binned_t), intent(out) :: aero_binned
+    type(aero_binned_t), intent(inout) :: aero_binned
     !> Number of aerosol bins to allocate (typically \c bin_grid%%n_bin).
     integer, intent(in) :: n_bin
     !> Number of aerosol species to allocate (typically
     !> \c aero_data%%n_spec).
     integer, intent(in) :: n_spec
 
+    if (allocated(aero_binned%num_conc)) deallocate(aero_binned%num_conc)
+    if (allocated(aero_binned%vol_conc)) deallocate(aero_binned%vol_conc)
     allocate(aero_binned%num_conc(n_bin))
     allocate(aero_binned%vol_conc(n_bin, n_spec))
     call aero_binned_zero(aero_binned)
 
-  end subroutine aero_binned_allocate_size
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Free internal memory in an aero_binned_t structure.
-  subroutine aero_binned_deallocate(aero_binned)
-
-    !> Structure to free.
-    type(aero_binned_t), intent(inout) :: aero_binned
-
-    deallocate(aero_binned%num_conc)
-    deallocate(aero_binned%vol_conc)
-
-  end subroutine aero_binned_deallocate
+  end subroutine aero_binned_set_sizes
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -94,8 +93,10 @@ contains
     !> Structure to zero.
     type(aero_binned_t), intent(inout) :: aero_binned
 
-    aero_binned%num_conc = 0d0
-    aero_binned%vol_conc = 0d0
+    if (aero_binned_is_allocated(aero_binned)) then
+       aero_binned%num_conc = 0d0
+       aero_binned%vol_conc = 0d0
+    end if
 
   end subroutine aero_binned_zero
 
@@ -111,8 +112,17 @@ contains
     !> Structure to add to aero_binned.
     type(aero_binned_t), intent(in) :: aero_binned_delta
 
-    aero_binned%num_conc = aero_binned%num_conc + aero_binned_delta%num_conc
-    aero_binned%vol_conc = aero_binned%vol_conc + aero_binned_delta%vol_conc
+    if (aero_binned_is_allocated(aero_binned_delta)) then
+       if (aero_binned_is_allocated(aero_binned)) then
+          aero_binned%num_conc = aero_binned%num_conc &
+               + aero_binned_delta%num_conc
+          aero_binned%vol_conc = aero_binned%vol_conc &
+               + aero_binned_delta%vol_conc
+       else
+          aero_binned%num_conc = aero_binned_delta%num_conc
+          aero_binned%vol_conc = aero_binned_delta%vol_conc
+       end if
+    end if
 
   end subroutine aero_binned_add
 
@@ -130,10 +140,17 @@ contains
     !> Scale factor.
     real(kind=dp), intent(in) :: alpha
 
-    aero_binned%num_conc = aero_binned%num_conc &
-         + alpha * aero_binned_delta%num_conc
-    aero_binned%vol_conc = aero_binned%vol_conc &
-         + alpha * aero_binned_delta%vol_conc
+    if (aero_binned_is_allocated(aero_binned_delta)) then
+       if (aero_binned_is_allocated(aero_binned)) then
+          aero_binned%num_conc = aero_binned%num_conc &
+               + alpha * aero_binned_delta%num_conc
+          aero_binned%vol_conc = aero_binned%vol_conc &
+               + alpha * aero_binned_delta%vol_conc
+       else
+          aero_binned%num_conc = aero_binned_delta%num_conc
+          aero_binned%vol_conc = aero_binned_delta%vol_conc
+       end if
+    end if
 
   end subroutine aero_binned_add_scaled
 
@@ -149,8 +166,17 @@ contains
     !> Structure to subtract from aero_binned.
     type(aero_binned_t), intent(in) :: aero_binned_delta
 
-    aero_binned%num_conc = aero_binned%num_conc - aero_binned_delta%num_conc
-    aero_binned%vol_conc = aero_binned%vol_conc - aero_binned_delta%vol_conc
+    if (aero_binned_is_allocated(aero_binned_delta)) then
+       if (aero_binned_is_allocated(aero_binned)) then
+          aero_binned%num_conc = aero_binned%num_conc &
+               - aero_binned_delta%num_conc
+          aero_binned%vol_conc = aero_binned%vol_conc &
+               - aero_binned_delta%vol_conc
+       else
+          aero_binned%num_conc = - aero_binned_delta%num_conc
+          aero_binned%vol_conc = - aero_binned_delta%vol_conc
+       end if
+    end if
 
   end subroutine aero_binned_sub
 
@@ -166,8 +192,10 @@ contains
     !> Scale factor.
     real(kind=dp), intent(in) :: alpha
 
-    aero_binned%num_conc = aero_binned%num_conc * alpha
-    aero_binned%vol_conc = aero_binned%vol_conc * alpha
+    if (aero_binned_is_allocated(aero_binned)) then
+       aero_binned%num_conc = aero_binned%num_conc * alpha
+       aero_binned%vol_conc = aero_binned%vol_conc * alpha
+    end if
 
   end subroutine aero_binned_scale
 
@@ -202,14 +230,13 @@ contains
     !> Structure to copy to.
     type(aero_binned_t), intent(inout) :: aero_binned_to
 
-    integer :: n_bin, n_spec
-
-    n_bin = size(aero_binned_from%vol_conc, 1)
-    n_spec = size(aero_binned_from%vol_conc, 2)
-    call aero_binned_deallocate(aero_binned_to)
-    call aero_binned_allocate_size(aero_binned_to, n_bin, n_spec)
-    aero_binned_to%num_conc = aero_binned_from%num_conc
-    aero_binned_to%vol_conc = aero_binned_from%vol_conc
+    if (aero_binned_is_allocated(aero_binned_from)) then
+       aero_binned_to%num_conc = aero_binned_from%num_conc
+       aero_binned_to%vol_conc = aero_binned_from%vol_conc
+    else
+       deallocate(aero_binned_to%num_conc)
+       deallocate(aero_binned_to%vol_conc)
+    end if
 
   end subroutine aero_binned_copy
 
@@ -230,16 +257,21 @@ contains
     !> The aero_dist_t structure to add.
     type(aero_dist_t), intent(in) :: aero_dist
 
-    real(kind=dp) :: dist_num_conc(size(aero_binned%num_conc, 1))
-    real(kind=dp) :: dist_vol_conc(size(aero_binned%vol_conc, 1), &
-         size(aero_binned%vol_conc, 2))
+    real(kind=dp) :: dist_num_conc(bin_grid_size(bin_grid))
+    real(kind=dp) :: dist_vol_conc(bin_grid_size(bin_grid), &
+         aero_data_n_spec(aero_data))
 
     call aero_dist_num_conc(aero_dist, bin_grid, aero_data, &
          dist_num_conc)
     call aero_dist_vol_conc(aero_dist, bin_grid, aero_data, &
          dist_vol_conc)
-    aero_binned%num_conc = aero_binned%num_conc + dist_num_conc
-    aero_binned%vol_conc = aero_binned%vol_conc + dist_vol_conc
+    if (aero_binned_is_allocated(aero_binned)) then
+       aero_binned%num_conc = aero_binned%num_conc + dist_num_conc
+       aero_binned%vol_conc = aero_binned%vol_conc + dist_vol_conc
+    else
+       aero_binned%num_conc = dist_num_conc
+       aero_binned%vol_conc = dist_vol_conc
+    end if
 
   end subroutine aero_binned_add_aero_dist
 
@@ -467,8 +499,7 @@ contains
          aero_data_n_spec(aero_data))
     integer :: i_bin
 
-    call aero_binned_deallocate(aero_binned)
-    call aero_binned_allocate_size(aero_binned, bin_grid_size(bin_grid), &
+    call aero_binned_set_sizes(aero_binned, bin_grid_size(bin_grid), &
          aero_data_n_spec(aero_data))
 
     call pmc_nc_read_real_1d(ncid, aero_binned%num_conc, &

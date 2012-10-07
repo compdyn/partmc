@@ -92,8 +92,6 @@ program extract_sectional_aero_size
      end if
   end if
 
-  call aero_binned_allocate(aero_binned)
-
   allocate(filename_list(0))
   call input_filename_list(in_prefix, filename_list)
   n_file = size(filename_list)
@@ -152,7 +150,6 @@ program extract_sectional_aero_size
 
   deallocate(filename_list)
   deallocate(aero_dist)
-  call aero_binned_deallocate(aero_binned)
 
   call pmc_mpi_finalize()
 

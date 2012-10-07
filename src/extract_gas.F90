@@ -62,8 +62,6 @@ program extract_gas
      out_filename = trim(in_prefix) // "_gas.txt"
   end if
 
-  call gas_data_allocate(gas_data)
-
   allocate(filename_list(0))
   call input_filename_list(in_prefix, filename_list)
   n_file = size(filename_list)
@@ -75,7 +73,7 @@ program extract_gas
   run_uuid = uuid
 
   allocate(times(n_file))
-  allocate(gas_mixing_ratios(n_file, gas_data%n_spec))
+  allocate(gas_mixing_ratios(n_file, gas_data_n_spec(gas_data)))
 
   do i_file = 1,n_file
      call input_state(filename_list(i_file), index, time, del_t, i_repeat, &
@@ -93,7 +91,7 @@ program extract_gas
   write(*,'(a)') "  Each row of output is one time."
   write(*,'(a)') "  The columns of output are:"
   write(*,'(a)') "    column  1: time (s)"
-  do i_spec = 1,gas_data%n_spec
+  do i_spec = 1,gas_data_n_spec(gas_data)
      write(*,'(a,i2,a,a,a)') "    column ", i_spec + 1, ": gas ", &
           trim(gas_data%name(i_spec)), " mixing ratio (ppb)"
   end do
@@ -101,7 +99,7 @@ program extract_gas
   call open_file_write(out_filename, out_unit)
   do i_file = 1,n_file
      write(out_unit, '(e30.15e3)', advance='no') times(i_file)
-     do i_spec = 1,gas_data%n_spec
+     do i_spec = 1,gas_data_n_spec(gas_data)
         write(out_unit, '(e30.15e3)', advance='no') &
              gas_mixing_ratios(i_file, i_spec)
      end do
@@ -111,7 +109,6 @@ program extract_gas
 
   deallocate(times)
   deallocate(gas_mixing_ratios)
-  call gas_data_deallocate(gas_data)
 
   call pmc_mpi_finalize()
 

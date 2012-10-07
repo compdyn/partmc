@@ -46,7 +46,7 @@ contains
 
   !> Run an exact simulation.
   subroutine run_exact(bin_grid, scenario, env_state, aero_data, &
-       aero_dist_init, run_exact_opt)
+       aero_dist_init, gas_data, run_exact_opt)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -58,20 +58,20 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Initial aerosol distribution.
     type(aero_dist_t), intent(in) :: aero_dist_init
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
     !> Options.
     type(run_exact_opt_t), intent(in) :: run_exact_opt
 
     integer :: i_time, n_time, ncid
     type(aero_binned_t) :: aero_binned
     real(kind=dp) :: time
-    type(gas_data_t) :: gas_data
     type(gas_state_t) :: gas_state
 
     call check_time_multiple("t_max", run_exact_opt%t_max, &
          "t_output", run_exact_opt%t_output)
 
-    call gas_data_allocate(gas_data)
-    call gas_state_set_size(gas_state, gas_data%n_spec)
+    call gas_state_set_size(gas_state, gas_data_n_spec(gas_data))
 
     n_time = nint(run_exact_opt%t_max / run_exact_opt%t_output)
     do i_time = 0,n_time
@@ -86,8 +86,6 @@ contains
             aero_binned, gas_data, gas_state, env_state, i_time + 1, &
             time, run_exact_opt%t_output, run_exact_opt%uuid)
     end do
-
-    call gas_data_deallocate(gas_data)
 
   end subroutine run_exact
 

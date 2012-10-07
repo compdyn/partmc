@@ -254,7 +254,7 @@ contains
 
     ! gas chemistry: map PartMC -> MOSAIC
     cnn = 0d0
-    do i_spec = 1,gas_data%n_spec
+    do i_spec = 1,gas_data_n_spec(gas_data)
        i_spec_mosaic = gas_data%mosaic_index(i_spec)
        if (i_spec_mosaic > 0) then
           ! convert ppbv to molec/cc
@@ -343,7 +343,7 @@ contains
     call aero_state_reweight(aero_state, reweight_num_conc)
 
     ! gas chemistry: map MOSAIC -> PartMC
-    do i_spec = 1,gas_data%n_spec
+    do i_spec = 1,gas_data_n_spec(gas_data)
        i_spec_mosaic = gas_data%mosaic_index(i_spec)
        if (i_spec_mosaic > 0) then
           ! convert molec/cc to ppbv

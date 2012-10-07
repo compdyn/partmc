@@ -298,7 +298,7 @@ contains
     end if
 
     ! copy over the data
-    call gas_state_set_size(gas_state, gas_data%n_spec)
+    call gas_state_set_size(gas_state, gas_data_n_spec(gas_data))
     do i = 1,n_species
        species = gas_data_spec_by_name(gas_data, species_name(i))
        if (species == 0) then
@@ -432,7 +432,7 @@ contains
     allocate(times(n_time))
     allocate(rates(n_time))
     do i_time = 1,n_time
-       call gas_state_set_size(gas_states(i_time), gas_data%n_spec)
+       call gas_state_set_size(gas_states(i_time), gas_data_n_spec(gas_data))
        times(i_time) = species_data(1,i_time)
        rates(i_time) = species_data(2,i_time)
     end do
@@ -616,7 +616,7 @@ contains
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
 
-    call gas_state_set_size(gas_state, gas_data%n_spec)
+    call gas_state_set_size(gas_state, gas_data_n_spec(gas_data))
     call pmc_nc_read_real_1d(ncid, gas_state%mix_rat, &
          "gas_mixing_ratio")
 

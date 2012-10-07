@@ -375,7 +375,6 @@ contains
     !!     ensure a uniform environment
     !!   - \subpage input_format_parallel_coag
 
-    call gas_data_allocate(gas_data)
     call aero_dist_allocate(aero_dist_init)
     call scenario_allocate(scenario)
     call env_state_allocate(env_state)
@@ -660,7 +659,6 @@ contains
 
     end do
 
-    call gas_data_deallocate(gas_data)
     call aero_dist_deallocate(aero_dist_init)
     call scenario_deallocate(scenario)
     call env_state_deallocate(env_state)
@@ -775,7 +773,6 @@ contains
        return
     end if
 
-    call gas_data_allocate(gas_data)
     call scenario_allocate(scenario)
     call env_state_allocate(env_state)
     call aero_dist_allocate(aero_dist_init)
@@ -833,11 +830,10 @@ contains
     call scenario_init_env_state(scenario, env_state, 0d0)
 
     call run_exact(bin_grid, scenario, env_state, aero_data, &
-         aero_dist_init, run_exact_opt)
+         aero_dist_init, gas_data, run_exact_opt)
 
     call scenario_deallocate(scenario)
     call env_state_deallocate(env_state)
-    call gas_data_deallocate(gas_data)
     call aero_dist_deallocate(aero_dist_init)
 
     call pmc_rand_finalize()
@@ -940,7 +936,6 @@ contains
     call aero_dist_allocate(aero_dist_init)
     call env_state_allocate(env_state)
     call scenario_allocate(scenario)
-    call gas_data_allocate(gas_data)
 
     call spec_file_read_string(file, 'output_prefix', run_sect_opt%prefix)
 
@@ -994,7 +989,6 @@ contains
     call aero_dist_deallocate(aero_dist_init)
     call env_state_deallocate(env_state)
     call scenario_deallocate(scenario)
-    call gas_data_deallocate(gas_data)
 
     call pmc_rand_finalize()
 

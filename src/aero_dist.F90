@@ -70,9 +70,6 @@ contains
 
     aero_dist%n_mode = n_mode
     allocate(aero_dist%mode(n_mode))
-    do i = 1,n_mode
-       call aero_mode_allocate_size(aero_dist%mode(i), n_spec)
-    end do
 
   end subroutine aero_dist_allocate_size
 
@@ -86,9 +83,6 @@ contains
 
     integer :: i
 
-    do i = 1,aero_dist%n_mode
-       call aero_mode_deallocate(aero_dist%mode(i))
-    end do
     deallocate(aero_dist%mode)
 
   end subroutine aero_dist_deallocate
@@ -301,27 +295,21 @@ contains
 
     call aero_dist_deallocate(aero_dist)
     call aero_dist_allocate(aero_dist)
-    call aero_mode_allocate(aero_mode)
     call spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
     do while (.not. eof)
        aero_dist%n_mode = aero_dist%n_mode + 1
        allocate(new_aero_mode_list(aero_dist%n_mode))
-       do i = 1,aero_dist%n_mode
-          call aero_mode_allocate(new_aero_mode_list(i))
-       end do
        call aero_mode_copy(aero_mode, &
             new_aero_mode_list(aero_dist%n_mode))
        do i = 1,(aero_dist%n_mode - 1)
           call aero_mode_copy(aero_dist%mode(i), &
                new_aero_mode_list(i))
-          call aero_mode_deallocate(aero_dist%mode(i))
        end do
        deallocate(aero_dist%mode)
        aero_dist%mode => new_aero_mode_list
        nullify(new_aero_mode_list)
        call spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
     end do
-    call aero_mode_deallocate(aero_mode)
 
   end subroutine spec_file_read_aero_dist
 
@@ -523,7 +511,6 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%n_mode)
     allocate(val%mode(val%n_mode))
     do i = 1,size(val%mode)
-       call aero_mode_allocate(val%mode(i))
        call pmc_mpi_unpack_aero_mode(buffer, position, val%mode(i))
     end do
     call assert(742535268, &

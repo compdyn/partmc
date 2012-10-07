@@ -54,15 +54,15 @@ module pmc_aero_mode
      !> Log base 10 of geometric standard deviation of radius, (m).
      real(kind=dp) :: log10_std_dev_radius
      !> Sample bin radii [length <tt>(N + 1)</tt>] (m).
-     real(kind=dp), pointer :: sample_radius(:)
+     real(kind=dp), allocatable :: sample_radius(:)
      !> Sample bin number concentrations [length <tt>N</tt>] (m^{-3}).
-     real(kind=dp), pointer :: sample_num_conc(:)
+     real(kind=dp), allocatable :: sample_num_conc(:)
      !> Total number concentration of mode (#/m^3).
      real(kind=dp) :: num_conc
      !> Species fractions by volume [length \c aero_data%%n_spec] (1).
-     real(kind=dp), pointer :: vol_frac(:)
+     real(kind=dp), allocatable :: vol_frac(:)
      !> Species fraction standard deviation [length \c aero_data%%n_spec] (1).
-     real(kind=dp), pointer :: vol_frac_std(:)
+     real(kind=dp), allocatable :: vol_frac_std(:)
      !> Source number.
      integer :: source
   end type aero_mode_t
@@ -95,53 +95,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocates an aero_mode.
-  subroutine aero_mode_allocate(aero_mode)
-
-    !> Aerosol mode.
-    type(aero_mode_t), intent(out) :: aero_mode
-
-    allocate(aero_mode%vol_frac(0))
-    allocate(aero_mode%vol_frac_std(0))
-    allocate(aero_mode%sample_radius(0))
-    allocate(aero_mode%sample_num_conc(0))
-
-  end subroutine aero_mode_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Allocates an aero_mode of the given size.
-  subroutine aero_mode_allocate_size(aero_mode, n_spec)
-
-    !> Aerosol mode.
-    type(aero_mode_t), intent(out) :: aero_mode
-    !> Number of species.
-    integer, intent(in) :: n_spec
-
-    allocate(aero_mode%vol_frac(n_spec))
-    allocate(aero_mode%vol_frac_std(n_spec))
-    allocate(aero_mode%sample_radius(0))
-    allocate(aero_mode%sample_num_conc(0))
-
-  end subroutine aero_mode_allocate_size
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Free all storage.
-  subroutine aero_mode_deallocate(aero_mode)
-
-    !> Aerosol mode.
-    type(aero_mode_t), intent(inout) :: aero_mode
-
-    deallocate(aero_mode%vol_frac)
-    deallocate(aero_mode%vol_frac_std)
-    deallocate(aero_mode%sample_radius)
-    deallocate(aero_mode%sample_num_conc)
-
-  end subroutine aero_mode_deallocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Copy an aero_mode.
   subroutine aero_mode_copy(aero_mode_from, aero_mode_to)
 
@@ -150,23 +103,40 @@ contains
     !> Aerosol mode copy.
     type(aero_mode_t), intent(inout) :: aero_mode_to
 
-    call aero_mode_deallocate(aero_mode_to)
-    call aero_mode_allocate_size(aero_mode_to, size(aero_mode_from%vol_frac))
     aero_mode_to%name = aero_mode_from%name
     aero_mode_to%type = aero_mode_from%type
     aero_mode_to%char_radius = aero_mode_from%char_radius
     aero_mode_to%log10_std_dev_radius = aero_mode_from%log10_std_dev_radius
     aero_mode_to%num_conc = aero_mode_from%num_conc
-    aero_mode_to%vol_frac = aero_mode_from%vol_frac
-    aero_mode_to%vol_frac_std = aero_mode_from%vol_frac_std
+    if (allocated(aero_mode_from%vol_frac)) then
+       aero_mode_to%vol_frac = aero_mode_from%vol_frac
+    else
+       if (allocated(aero_mode_to%vol_frac)) then
+          deallocate(aero_mode_to%vol_frac)
+       end if
+    end if
+    if (allocated(aero_mode_from%vol_frac_std)) then
+       aero_mode_to%vol_frac_std = aero_mode_from%vol_frac_std
+    else
+       if (allocated(aero_mode_to%vol_frac_std)) then
+          deallocate(aero_mode_to%vol_frac_std)
+       end if
+    end if
     aero_mode_to%source = aero_mode_from%source
-    deallocate(aero_mode_to%sample_radius)
-    deallocate(aero_mode_to%sample_num_conc)
-    allocate(aero_mode_to%sample_radius(size(aero_mode_from%sample_radius)))
-    allocate(aero_mode_to%sample_num_conc( &
-         size(aero_mode_from%sample_num_conc)))
-    aero_mode_to%sample_radius = aero_mode_from%sample_radius
-    aero_mode_to%sample_num_conc = aero_mode_from%sample_num_conc
+    if (allocated(aero_mode_from%sample_radius)) then
+       aero_mode_to%sample_radius = aero_mode_from%sample_radius
+    else
+       if (allocated(aero_mode_to%sample_radius)) then
+          deallocate(aero_mode_to%sample_radius)
+       end if
+    end if
+    if (allocated(aero_mode_from%sample_num_conc)) then
+       aero_mode_to%sample_num_conc = aero_mode_from%sample_num_conc
+    else
+       if (allocated(aero_mode_to%sample_num_conc)) then
+          deallocate(aero_mode_to%sample_num_conc)
+       end if
+    end if
 
   end subroutine aero_mode_copy
 
@@ -702,9 +672,9 @@ contains
     !> Aero_data data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol species volume fractions.
-    real(kind=dp), intent(inout) :: vol_frac(:)
+    real(kind=dp), allocatable, intent(inout) :: vol_frac(:)
     !> Aerosol species volume fraction standard deviations.
-    real(kind=dp), intent(inout) :: vol_frac_std(:)
+    real(kind=dp), allocatable, intent(inout) :: vol_frac_std(:)
 
     integer :: n_species, species, i
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
@@ -770,6 +740,10 @@ contains
     end if
 
     ! copy over the data
+    if (allocated(vol_frac)) deallocate(vol_frac)
+    if (allocated(vol_frac_std)) deallocate(vol_frac_std)
+    allocate(vol_frac(aero_data_n_spec(aero_data)))
+    allocate(vol_frac_std(aero_data_n_spec(aero_data)))
     vol_frac = 0d0
     vol_frac_std = 0d0
     do i = 1,n_species
@@ -813,9 +787,9 @@ contains
     !> Spec file to read size distribution from.
     type(spec_file_t), intent(inout) :: file
     !> Sample radius values (m).
-    real(kind=dp), pointer :: sample_radius(:)
+    real(kind=dp), allocatable, intent(inout) :: sample_radius(:)
     !> Sample number concentrations (m^{-3}).
-    real(kind=dp), pointer :: sample_num_conc(:)
+    real(kind=dp), allocatable, intent(inout) :: sample_num_conc(:)
 
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: names(:)
     real(kind=dp), pointer :: data(:,:)
@@ -862,7 +836,7 @@ contains
     call spec_file_assert_msg(669011124, file, n_sample >= 1, &
          'must have at least two diam values')
 
-    deallocate(sample_radius)
+    if (allocated(sample_radius)) deallocate(sample_radius)
     allocate(sample_radius(n_sample + 1))
     sample_radius = diam2rad(data(1,:))
     do i_sample = 1,n_sample
@@ -877,7 +851,7 @@ contains
     call spec_file_assert_msg(721029144, file, size(data, 2) == n_sample, &
          'must have one fewer num_conc than diam values')
 
-    deallocate(sample_num_conc)
+    if (allocated(sample_num_conc)) deallocate(sample_num_conc)
     allocate(sample_num_conc(n_sample))
     sample_num_conc = data(1,:)
     do i_sample = 1,n_sample
@@ -997,8 +971,6 @@ contains
     if (.not. eof) then
        call spec_file_check_line_name(file, line, "mode_name")
        call spec_file_check_line_length(file, line, 1)
-       call aero_mode_deallocate(aero_mode)
-       call aero_mode_allocate_size(aero_mode, aero_data_n_spec(aero_data))
        tmp_str = line%data(1) ! hack to avoid gfortran warning
        aero_mode%name = tmp_str(1:AERO_MODE_NAME_LEN)
        aero_mode%source = aero_data_source_by_name(aero_data, aero_mode%name)

@@ -966,7 +966,6 @@ contains
     !!   - \ref input_format_mass_frac --- the format for the mass
     !!     fractions file
 
-    call spec_line_allocate(line)
     call spec_file_read_line(file, line, eof)
     if (.not. eof) then
        call spec_file_check_line_name(file, line, "mode_name")
@@ -1009,7 +1008,6 @@ contains
                "Unknown distribution mode type: " // trim(mode_type))
        end if
     end if
-    call spec_line_deallocate(line)
 
   end subroutine spec_file_read_aero_mode
 

@@ -260,8 +260,7 @@ contains
     end do
 
     ! allocate the data and read out the data items
-    call spec_line_deallocate(line)
-    call spec_line_allocate_size(line, n_data)
+    call spec_line_set_size(line, n_data)
     n_data = 0
     rest = line_string
     done = .false.
@@ -331,11 +330,7 @@ contains
     ! read file, working out how many lines we have
     num_lines = 0
     eof = .false.
-    call spec_line_allocate(temp_line_list(num_lines + 1))
     call spec_file_read_line(file, temp_line_list(num_lines + 1), eof)
-    if (eof) then
-       call spec_line_deallocate(temp_line_list(num_lines + 1))
-    end if
     do while (.not. eof)
        num_lines = num_lines + 1
        if (num_lines > SPEC_FILE_MAX_LIST_LINES) then
@@ -348,24 +343,15 @@ contains
           end if
        end if
        if (.not. eof) then
-          call spec_line_allocate(temp_line_list(num_lines + 1))
           call spec_file_read_line(file, temp_line_list(num_lines + 1), eof)
-          if (eof) then
-             call spec_line_deallocate(temp_line_list(num_lines + 1))
-          end if
        end if
     end do
 
     ! copy data to actual list
-    do i = 1,size(line_list)
-       call spec_line_deallocate(line_list(i))
-    end do
     deallocate(line_list)
     allocate(line_list(num_lines))
     do i = 1,num_lines
-       call spec_line_allocate(line_list(i))
        call spec_line_copy(temp_line_list(i), line_list(i))
-       call spec_line_deallocate(temp_line_list(i))
     end do
 
   end subroutine spec_file_read_line_list
@@ -563,12 +549,10 @@ contains
 
     type(spec_line_t) :: line
 
-    call spec_line_allocate(line)
     call spec_file_read_line_no_eof(file, line)
     call spec_file_check_line_name(file, line, name)
     call spec_file_check_line_length(file, line, 1)
     var = spec_file_string_to_integer(file, line%data(1))
-    call spec_line_deallocate(line)
 
   end subroutine spec_file_read_integer
 
@@ -587,12 +571,10 @@ contains
 
     type(spec_line_t) :: line
 
-    call spec_line_allocate(line)
     call spec_file_read_line_no_eof(file, line)
     call spec_file_check_line_name(file, line, name)
     call spec_file_check_line_length(file, line, 1)
     var = spec_file_string_to_real(file, line%data(1))
-    call spec_line_deallocate(line)
 
   end subroutine spec_file_read_real
 
@@ -610,12 +592,10 @@ contains
 
     type(spec_line_t) :: line
 
-    call spec_line_allocate(line)
     call spec_file_read_line_no_eof(file, line)
     call spec_file_check_line_name(file, line, name)
     call spec_file_check_line_length(file, line, 1)
     var = spec_file_string_to_logical(file, line%data(1))
-    call spec_line_deallocate(line)
 
   end subroutine spec_file_read_logical
 
@@ -633,12 +613,10 @@ contains
 
     type(spec_line_t) :: line
 
-    call spec_line_allocate(line)
     call spec_file_read_line_no_eof(file, line)
     call spec_file_check_line_name(file, line, name)
     call spec_file_check_line_length(file, line, 1)
     var = line%data(1)
-    call spec_line_deallocate(line)
 
   end subroutine spec_file_read_string
 
@@ -657,13 +635,11 @@ contains
 
     type(spec_line_t) :: line
 
-    call spec_line_allocate(line)
     call spec_file_read_line_no_eof(file, line)
     call spec_file_check_line_name(file, line, name)
     call spec_file_check_line_length(file, line, 2)
     var = cmplx(spec_file_string_to_real(file, line%data(1)), &
          spec_file_string_to_real(file, line%data(2)), kind=dc)
-    call spec_line_deallocate(line)
 
   end subroutine spec_file_read_complex
 
@@ -704,9 +680,6 @@ contains
        allocate(names(0))
        allocate(vals(0,0))
     end if
-    do i = 1,num_lines
-       call spec_line_deallocate(line_array(i))
-    end do
     deallocate(line_array)
 
   end subroutine spec_file_read_real_named_array

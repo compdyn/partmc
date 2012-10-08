@@ -369,7 +369,6 @@ contains
     allocate(names(0))
     allocate(data(0,0))
     call spec_file_read_real_named_array(file, 2, names, data)
-    call spec_line_allocate(aero_dist_line)
     call spec_file_read_line_no_eof(file, aero_dist_line)
     call spec_file_check_line_name(file, aero_dist_line, "dist")
     call spec_file_check_line_length(file, aero_dist_line, size(data, 2))
@@ -402,7 +401,6 @@ contains
     end do
     deallocate(names)
     deallocate(data)
-    call spec_line_deallocate(aero_dist_line)
 
   end subroutine spec_file_read_aero_dists_times_rates
 

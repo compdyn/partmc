@@ -331,7 +331,6 @@ contains
        end if
        species_list(i) = spec
     end do
-    call spec_line_deallocate(line)
 
   end subroutine spec_file_read_species_list
 

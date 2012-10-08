@@ -34,8 +34,6 @@ program process
 
   call pmc_mpi_init()
 
-  call env_state_allocate(env_state)
-
   call input_n_files(prefix, n_repeat, n_index)
 
   call bin_grid_make(diam_grid, BIN_GRID_TYPE_LOG, 180, 1d-9, 1d-3)
@@ -153,8 +151,6 @@ program process
   call stats_1d_output_netcdf(stats_tot_entropy_averaged, ncid, &
        "tot_entropy_averaged", dim_name="time", unit="m^{-3}")
   call pmc_nc_close(ncid)
-
-  call env_state_deallocate(env_state)
 
   call pmc_mpi_finalize()
 

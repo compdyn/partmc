@@ -91,8 +91,6 @@ program bin_average_size
 
   call pmc_mpi_init()
 
-  call env_state_allocate(env_state)
-
   call bin_grid_make(bin_grid, BIN_GRID_TYPE_LOG, n_bin, diam2rad(d_min), &
        diam2rad(d_max))
 
@@ -112,8 +110,6 @@ program bin_average_size
   call output_state(out_prefix, output_type, aero_data, aero_state, &
        gas_data, gas_state, env_state, index, time, del_t, i_repeat, &
        record_removals, record_optical, uuid)
-
-  call env_state_deallocate(env_state)
 
   call pmc_mpi_finalize()
 

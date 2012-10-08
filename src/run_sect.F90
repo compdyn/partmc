@@ -155,7 +155,6 @@ contains
 
     ! main time-stepping loop
     num_t = nint(run_sect_opt%t_max / run_sect_opt%del_t)
-    call env_state_allocate(old_env_state)
     do i_time = 1, num_t
 
        if (run_sect_opt%do_coagulation) then
@@ -195,8 +194,6 @@ contains
           write(*,'(i6,f8.1)') i_time, time
        end if
     end do
-
-    call env_state_deallocate(old_env_state)
 
   end subroutine run_sect
 

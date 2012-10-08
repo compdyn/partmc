@@ -162,8 +162,6 @@ contains
     call check_time_multiple("t_progress", run_part_opt%t_progress, &
          "del_t", run_part_opt%del_t)
 
-    call env_state_allocate(old_env_state)
-
     if (run_part_opt%do_mosaic) then
        call mosaic_init(env_state, aero_data, run_part_opt%del_t, &
             run_part_opt%do_optical)
@@ -349,8 +347,6 @@ contains
     if (run_part_opt%do_mosaic) then
        call mosaic_cleanup()
     end if
-
-    call env_state_deallocate(old_env_state)
 
   end subroutine run_part
 

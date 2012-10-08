@@ -275,6 +275,8 @@ contains
          scenario%pressure, time)
     env_state%height = interp_1d(scenario%height_time, scenario%height, time)
     env_state%elapsed_time = time
+    ! FIXME: should compute this at some point
+    env_state%solar_zenith_angle = 0d0
 
   end subroutine scenario_init_env_state
 

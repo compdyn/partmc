@@ -376,8 +376,6 @@ contains
     !!   - \subpage input_format_parallel_coag
 
     call scenario_allocate(scenario)
-    call env_state_allocate(env_state)
-    call env_state_allocate(env_state_init)
 
     if (pmc_mpi_rank() == 0) then
        ! only the root process does I/O
@@ -403,6 +401,8 @@ contains
        end if
 
        if (.not. do_restart) then
+          env_state_init%elapsed_time = 0d0
+
           call spec_file_read_string(file, 'gas_data', sub_filename)
           call spec_file_open(sub_filename, sub_file)
           call spec_file_read_gas_data(sub_file, gas_data)
@@ -659,8 +659,6 @@ contains
     end do
 
     call scenario_deallocate(scenario)
-    call env_state_deallocate(env_state)
-    call env_state_deallocate(env_state_init)
 
     call pmc_rand_finalize()
 
@@ -772,7 +770,6 @@ contains
     end if
 
     call scenario_allocate(scenario)
-    call env_state_allocate(env_state)
 
     call spec_file_read_string(file, 'output_prefix', run_exact_opt%prefix)
 
@@ -830,7 +827,6 @@ contains
          aero_dist_init, gas_data, run_exact_opt)
 
     call scenario_deallocate(scenario)
-    call env_state_deallocate(env_state)
 
     call pmc_rand_finalize()
 
@@ -929,7 +925,6 @@ contains
        return
     end if
 
-    call env_state_allocate(env_state)
     call scenario_allocate(scenario)
 
     call spec_file_read_string(file, 'output_prefix', run_sect_opt%prefix)
@@ -981,7 +976,6 @@ contains
     call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, scenario, &
          env_state, run_sect_opt)
 
-    call env_state_deallocate(env_state)
     call scenario_deallocate(scenario)
 
     call pmc_rand_finalize()

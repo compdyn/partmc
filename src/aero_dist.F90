@@ -292,11 +292,11 @@ contains
     !> Aero data.
     type(aero_data_t), intent(inout) :: aero_data
     !> Times (s).
-    real(kind=dp), pointer :: times(:)
+    real(kind=dp), allocatable :: times(:)
     !> Rates (s^{-1}).
-    real(kind=dp), pointer :: rates(:)
+    real(kind=dp), allocatable :: rates(:)
     !> Aero dists.
-    type(aero_dist_t), pointer :: aero_dists(:)
+    type(aero_dist_t), allocatable :: aero_dists(:)
 
     type(spec_line_t) :: aero_dist_line
     type(spec_file_t) :: aero_dist_file
@@ -390,19 +390,15 @@ contains
     end if
 
     ! copy over the data
-    deallocate(aero_dists)
-    deallocate(times)
-    deallocate(rates)
+    times = data(1,:)
+    rates = data(2,:)
+    if (allocated(aero_dists)) deallocate(aero_dists)
     allocate(aero_dists(n_time))
-    allocate(times(n_time))
-    allocate(rates(n_time))
     do i_time = 1,n_time
        call spec_file_open(aero_dist_line%data(i_time), aero_dist_file)
        call spec_file_read_aero_dist(aero_dist_file, &
             aero_data, aero_dists(i_time))
        call spec_file_close(aero_dist_file)
-       times(i_time) = data(1,i_time)
-       rates(i_time) = data(2,i_time)
     end do
     deallocate(names)
     deallocate(data)

@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -721,9 +721,9 @@ contains
     !> Variable name.
     character(len=*), intent(in) :: name
     !> Names of lines.
-    real(kind=dp), pointer :: times(:)
+    real(kind=dp), allocatable :: times(:)
     !> Data values.
-    real(kind=dp), pointer :: vals(:)
+    real(kind=dp), allocatable :: vals(:)
 
     integer :: n_lines, n_times
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: read_names(:)
@@ -753,10 +753,6 @@ contains
             // ' not: ' // trim(read_names(2)))
     end if
 
-    deallocate(times)
-    deallocate(vals)
-    allocate(times(n_times))
-    allocate(vals(n_times))
     times = read_data(1,:)
     vals = read_data(2,:)
     deallocate(read_names)

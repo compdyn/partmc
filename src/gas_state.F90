@@ -324,11 +324,11 @@ contains
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
     !> Times (s).
-    real(kind=dp), pointer :: times(:)
+    real(kind=dp), allocatable :: times(:)
     !> Rates (s^{-1}).
-    real(kind=dp), pointer :: rates(:)
+    real(kind=dp), allocatable :: rates(:)
     !> Gas states.
-    type(gas_state_t), pointer :: gas_states(:)
+    type(gas_state_t), allocatable :: gas_states(:)
 
     integer :: n_lines, species, i, n_time, i_time
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
@@ -425,16 +425,12 @@ contains
     end if
 
     ! copy over the data
-    deallocate(gas_states)
-    deallocate(times)
-    deallocate(rates)
+    times = species_data(1,:)
+    rates = species_data(2,:)
+    if (allocated(gas_states)) deallocate(gas_states)
     allocate(gas_states(n_time))
-    allocate(times(n_time))
-    allocate(rates(n_time))
     do i_time = 1,n_time
        call gas_state_set_size(gas_states(i_time), gas_data_n_spec(gas_data))
-       times(i_time) = species_data(1,i_time)
-       rates(i_time) = species_data(2,i_time)
     end do
     do i = 3,n_lines
        species = gas_data_spec_by_name(gas_data, species_name(i))

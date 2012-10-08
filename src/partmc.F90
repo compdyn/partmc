@@ -375,8 +375,6 @@ contains
     !!     ensure a uniform environment
     !!   - \subpage input_format_parallel_coag
 
-    call scenario_allocate(scenario)
-
     if (pmc_mpi_rank() == 0) then
        ! only the root process does I/O
 
@@ -658,8 +656,6 @@ contains
 
     end do
 
-    call scenario_deallocate(scenario)
-
     call pmc_rand_finalize()
 
   end subroutine partmc_part
@@ -769,8 +765,6 @@ contains
        return
     end if
 
-    call scenario_allocate(scenario)
-
     call spec_file_read_string(file, 'output_prefix', run_exact_opt%prefix)
 
     call spec_file_read_real(file, 't_max', run_exact_opt%t_max)
@@ -825,8 +819,6 @@ contains
 
     call run_exact(bin_grid, scenario, env_state, aero_data, &
          aero_dist_init, gas_data, run_exact_opt)
-
-    call scenario_deallocate(scenario)
 
     call pmc_rand_finalize()
 
@@ -925,8 +917,6 @@ contains
        return
     end if
 
-    call scenario_allocate(scenario)
-
     call spec_file_read_string(file, 'output_prefix', run_sect_opt%prefix)
 
     call spec_file_read_real(file, 't_max', run_sect_opt%t_max)
@@ -975,8 +965,6 @@ contains
 
     call run_sect(bin_grid, gas_data, aero_data, aero_dist_init, scenario, &
          env_state, run_sect_opt)
-
-    call scenario_deallocate(scenario)
 
     call pmc_rand_finalize()
 

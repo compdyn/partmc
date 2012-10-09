@@ -903,14 +903,14 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    integer, pointer :: val(:)
+    integer, intent(inout), allocatable :: val(:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n, ierr
 
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, n)
-    deallocate(val)
+    if (allocated(val)) deallocate(val)
     allocate(val(n))
     call mpi_unpack(buffer, size(buffer), position, val, n, MPI_INTEGER, &
          MPI_COMM_WORLD, ierr)
@@ -931,14 +931,14 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    real(kind=dp), pointer :: val(:)
+    real(kind=dp), intent(inout), allocatable :: val(:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n, ierr
 
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, n)
-    deallocate(val)
+    if (allocated(val)) deallocate(val)
     allocate(val(n))
     call mpi_unpack(buffer, size(buffer), position, val, n, &
          MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr)
@@ -959,14 +959,14 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    character(len=*), pointer :: val(:)
+    character(len=*), intent(inout), allocatable :: val(:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i, n
 
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, n)
-    deallocate(val)
+    if (allocated(val)) deallocate(val)
     allocate(val(n))
     do i = 1,n
        call pmc_mpi_unpack_string(buffer, position, val(i))
@@ -987,7 +987,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    real(kind=dp), pointer :: val(:,:)
+    real(kind=dp), intent(inout), allocatable :: val(:,:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n1, n2, ierr
@@ -995,7 +995,7 @@ contains
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, n1)
     call pmc_mpi_unpack_integer(buffer, position, n2)
-    deallocate(val)
+    if (allocated(val)) deallocate(val)
     allocate(val(n1,n2))
     call mpi_unpack(buffer, size(buffer), position, val, n1*n2, &
          MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr)

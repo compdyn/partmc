@@ -301,8 +301,8 @@ contains
     type(spec_line_t) :: aero_dist_line
     type(spec_file_t) :: aero_dist_file
     integer :: n_time, i_time
-    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: names(:)
-    real(kind=dp), pointer :: data(:,:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), allocatable :: names(:)
+    real(kind=dp), allocatable :: data(:,:)
 
     !> \page input_format_aero_dist_profile Input File Format: Aerosol Distribution Profile
     !!
@@ -366,14 +366,16 @@ contains
     !!     instantaneous aerosol distribution files
 
     ! read the data from the file
-    allocate(names(0))
-    allocate(data(0,0))
     call spec_file_read_real_named_array(file, 2, names, data)
     call spec_file_read_line_no_eof(file, aero_dist_line)
     call spec_file_check_line_name(file, aero_dist_line, "dist")
     call spec_file_check_line_length(file, aero_dist_line, size(data, 2))
 
     ! check the data size
+    if (size(names) /= 2) then
+       call die_msg(530745700, &
+            trim(file%name) // ' must contain exactly two data lines')
+    end if
     if (trim(names(1)) /= 'time') then
        call die_msg(570205795, 'row 1 in ' // trim(file%name) &
             // ' must start with: time not: ' // trim(names(1)))
@@ -399,8 +401,6 @@ contains
             aero_data, aero_dists(i_time))
        call spec_file_close(aero_dist_file)
     end do
-    deallocate(names)
-    deallocate(data)
 
   end subroutine spec_file_read_aero_dists_times_rates
 

@@ -677,8 +677,8 @@ contains
     real(kind=dp), allocatable, intent(inout) :: vol_frac_std(:)
 
     integer :: n_species, species, i
-    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
-    real(kind=dp), pointer :: species_data(:,:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), allocatable :: species_name(:)
+    real(kind=dp), allocatable :: species_data(:,:)
     real(kind=dp) :: tot_vol_frac
 
     !> \page input_format_mass_frac Input File Format: Aerosol Mass Fractions
@@ -723,8 +723,6 @@ contains
     !!     of an aerosol distribution
 
     ! read the aerosol data from the specified file
-    allocate(species_name(0))
-    allocate(species_data(0,0))
     call spec_file_read_real_named_array(file, 0, species_name, &
          species_data)
 
@@ -757,8 +755,6 @@ contains
           vol_frac_std(species) = species_data(i, 2)
        end if
     end do
-    deallocate(species_name)
-    deallocate(species_data)
 
     ! convert mass fractions to volume fractions
     vol_frac = vol_frac / aero_data%density
@@ -791,8 +787,8 @@ contains
     !> Sample number concentrations (m^{-3}).
     real(kind=dp), allocatable, intent(inout) :: sample_num_conc(:)
 
-    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: names(:)
-    real(kind=dp), pointer :: data(:,:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), allocatable :: names(:)
+    real(kind=dp), allocatable :: data(:,:)
     integer :: n_sample, i_sample
 
     !> \page input_format_size_dist Input File Format: Size Distribution
@@ -828,9 +824,9 @@ contains
     !!     of an aerosol distribution
 
     ! read the data from the file
-    allocate(names(0))
-    allocate(data(0,0))
     call spec_file_read_real_named_array(file, 1, names, data)
+    call spec_file_assert_msg(311818741, file, size(names) == 1, &
+         'must contain a line starting with "diam"')
     call spec_file_check_name(file, 'diam', names(1))
     n_sample = size(data,2) - 1
     call spec_file_assert_msg(669011124, file, n_sample >= 1, &
@@ -846,6 +842,8 @@ contains
     end do
 
     call spec_file_read_real_named_array(file, 1, names, data)
+    call spec_file_assert_msg(801676496, file, size(names) == 1, &
+         'must contain a line starting with "num_conc"')
     call spec_file_check_name(file, 'num_conc', names(1))
 
     call spec_file_assert_msg(721029144, file, size(data, 2) == n_sample, &

@@ -148,8 +148,8 @@ contains
     type(gas_data_t), intent(inout) :: gas_data
 
     integer :: n_species, species, i
-    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
-    real(kind=dp), pointer :: species_data(:,:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), allocatable :: species_name(:)
+    real(kind=dp), allocatable :: species_data(:,:)
 
     !> \page input_format_gas_data Input File Format: Gas Material Data
     !!
@@ -169,8 +169,6 @@ contains
     !!   - \ref output_format_gas_data --- the corresponding output format
 
     ! read the gas data from the specified file
-    allocate(species_name(0))
-    allocate(species_data(0,0))
     call spec_file_read_real_named_array(file, 0, species_name, &
          species_data)
 
@@ -186,8 +184,6 @@ contains
     do i = 1,n_species
        gas_data%name(i) = species_name(i)(1:GAS_NAME_LEN)
     end do
-    deallocate(species_name)
-    deallocate(species_data)
 
     call ensure_integer_array_size(gas_data%mosaic_index, n_species)
     call gas_data_set_mosaic_map(gas_data)

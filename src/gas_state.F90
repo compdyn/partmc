@@ -259,8 +259,8 @@ contains
     type(gas_state_t), intent(inout) :: gas_state
 
     integer :: n_species, species, i
-    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
-    real(kind=dp), pointer :: species_data(:,:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), allocatable :: species_name(:)
+    real(kind=dp), allocatable :: species_data(:,:)
 
     !> \page input_format_gas_state Input File Format: Gas State
     !!
@@ -285,8 +285,6 @@ contains
     !!   - \ref input_format_gas_data --- the gas species list and
     !!     material data
 
-    allocate(species_name(0))
-    allocate(species_data(0,0))
     call spec_file_read_real_named_array(file, 0, species_name, &
          species_data)
 
@@ -307,8 +305,6 @@ contains
        end if
        gas_state%mix_rat(species) = species_data(i,1)
     end do
-    deallocate(species_name)
-    deallocate(species_data)
 
   end subroutine spec_file_read_gas_state
 
@@ -331,8 +327,8 @@ contains
     type(gas_state_t), allocatable :: gas_states(:)
 
     integer :: n_lines, species, i, n_time, i_time
-    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
-    real(kind=dp), pointer :: species_data(:,:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), allocatable :: species_name(:)
+    real(kind=dp), allocatable :: species_data(:,:)
 
     !> \page input_format_gas_profile Input File Format: Gas Profile
     !!
@@ -399,8 +395,6 @@ contains
     !!     material data
 
     ! read the data from the file
-    allocate(species_name(0))
-    allocate(species_data(0,0))
     call spec_file_read_real_named_array(file, 0, species_name, &
          species_data)
 
@@ -443,8 +437,6 @@ contains
           gas_states(i_time)%mix_rat(species) = species_data(i,i_time)
        end do
     end do
-    deallocate(species_name)
-    deallocate(species_data)
 
   end subroutine spec_file_read_gas_states_times_rates
 

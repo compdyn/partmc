@@ -216,8 +216,8 @@ contains
     type(aero_data_t), intent(inout) :: aero_data
 
     integer :: n_species, species, i
-    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
-    real(kind=dp), pointer :: species_data(:,:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), allocatable :: species_name(:)
+    real(kind=dp), allocatable :: species_data(:,:)
 
     !> \page input_format_aero_data Input File Format: Aerosol Material Data
     !!
@@ -253,8 +253,6 @@ contains
     !!   - \ref spec_file_format --- the input file text format
     !!   - \ref output_format_aero_data --- the corresponding output format
 
-    allocate(species_name(0))
-    allocate(species_data(0,0))
     call spec_file_read_real_named_array(file, 0, species_name, species_data)
 
     ! check the data size
@@ -296,8 +294,6 @@ contains
                // trim(real_to_string(const%water_molec_weight)) // ")")
        end if
     end do
-    deallocate(species_name)
-    deallocate(species_data)
     call aero_data_set_water_index(aero_data)
     call aero_data_set_mosaic_map(aero_data)
 

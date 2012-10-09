@@ -544,8 +544,8 @@ contains
   !! <pre>
   !! offset = conf_95_offset(var, n)
   !! </pre>
-  !! means that the 95% confidence interval for the mean is <tt>[mean
-  !! - offset, mean + offset]</tt>.
+  !! means that the 95% confidence interval for the mean is
+  !! <tt>[mean - offset, mean + offset]</tt>.
   function conf_95_offset(var, n_sample)
 
     !> Sample variance of data.

@@ -18,33 +18,33 @@ module pmc_integer_rmap
   !! The forward map takes integer \f$i\f$ in the domain
   !! 1,...,n_domain to an integer \f$j\f$ in the range
   !! 1,...,n_range. This is stored with <tt>j =
-  !! integer_rmap%forward%entry(i)</tt>. This map will generally not be
+  !! integer_rmap%%forward%%entry(i)</tt>. This map will generally not be
   !! one-to-one or onto.
   !!
   !! The inverse map is multi-valued, with
-  !! <tt>integer_rmap%inverse(j)</tt> containing all the inverses of
+  !! <tt>integer_rmap%%inverse(j)</tt> containing all the inverses of
   !! \f$j\f$. The entries in the inverse map are given by
-  !! <tt>inverse_rmap%index</tt>. The relationships between
+  !! <tt>inverse_rmap%%index</tt>. The relationships between
   !! the forward and reverse maps are as follows.
   !!
   !! Given \f$i\f$, let:
   !! <pre>
-  !! j = integer_rmap%forward%entry(i)
-  !! k = integer_rmap%index%entry(i)
+  !! j = integer_rmap%%forward%%entry(i)
+  !! k = integer_rmap%%index%%entry(i)
   !! </pre>
   !! Then:
   !! <pre>
-  !! integer_rmap%inverse(j)%entry(k) == i
+  !! integer_rmap%%inverse(j)%%entry(k) == i
   !! </pre>
   !!
   !! Alternatively, given \f$j\f$ and \f$k\f$, let:
   !! <pre>
-  !! i = integer_rmap%inverse(j)%entry(k)
+  !! i = integer_rmap%%inverse(j)%%entry(k)
   !! </pre>
   !! Then:
   !! <pre>
-  !! integer_rmap%forward%entry(i) == j
-  !! integer_rmap%index%entry(i) == k
+  !! integer_rmap%%forward%%entry(i) == j
+  !! integer_rmap%%index%%entry(i) == k
   !! </pre>
   type integer_rmap_t
      !> Forward map (single valued).

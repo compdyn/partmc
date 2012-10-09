@@ -24,7 +24,7 @@ module pmc_aero_binned
   !!
   !! These quantities are densities both in volume (per m^3) and in
   !! radius (per log_width). The total concentration per volume is computed as
-  !! sum(aero_binned\%num_conc * bin_grid\%log_width).
+  !! sum(aero_binned%%num_conc * bin_grid%%log_width).
   !!
   !! An aero_binned_t is similar to an aero_dist_t in that they both
   !! store binned aerosol distributions. The difference is that an
@@ -32,10 +32,10 @@ module pmc_aero_binned
   !! aero_binned_t can have aerosol composition that varies per bin.
   type aero_binned_t
      !> Number concentration per bin (#/m^3/log_width).
-     !! Array length is typically \c bin_grid\%n_bin.
+     !! Array length is typically \c bin_grid%%n_bin.
      real(kind=dp), pointer :: num_conc(:)
      !> Volume concentration per bin and per species (m^3/m^3/log_width).
-     !! Array size is typically \c bin_grid\%n_bin x \c aero_data\%n_spec.
+     !! Array size is typically \c bin_grid%%n_bin x \c aero_data%%n_spec.
      real(kind=dp), pointer :: vol_conc(:,:)
   end type aero_binned_t
 

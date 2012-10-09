@@ -19,36 +19,36 @@ module pmc_integer_rmap2
   !! \ldots, N_{\rm d}\}\f$ to integers \f$(j_1,j_2)\f$ in the range
   !! \f$\{1, \ldots, N_{\rm r,1} \times \{1, \ldots, N_{\rm
   !! r,2}\}\f$. This is stored with <tt>j_1 =
-  !! integer_rmap2%forward1%entry(i)</tt> and <tt>j_2 =
-  !! integer_rmap2%forward2%entry(i)</tt>. This map is not assumed to
+  !! integer_rmap2%%forward1%%entry(i)</tt> and <tt>j_2 =
+  !! integer_rmap2%%forward2%%entry(i)</tt>. This map is not assumed to
   !! be one-to-one or onto.
   !!
   !! The inverse map is multi-valued, with
-  !! <tt>integer_rmap2%inverse(j_1, j_2)</tt> containing all the inverses of
+  !! <tt>integer_rmap2%%inverse(j_1, j_2)</tt> containing all the inverses of
   !! \f$(j_1, j_2)\f$. The entry numbers in the inverse map are given by
-  !! <tt>inverse_rmap%index</tt>. The relationships between the
+  !! <tt>inverse_rmap%%index</tt>. The relationships between the
   !! forward and reverse maps are as follows.
   !!
   !! Given \c i, let:
   !! <pre>
-  !! j_1 = integer_rmap2%forward1%entry(i)
-  !! j_2 = integer_rmap2%forward2%entry(i)
-  !! k = integer_rmap2%index%entry(i)
+  !! j_1 = integer_rmap2%%forward1%%entry(i)
+  !! j_2 = integer_rmap2%%forward2%%entry(i)
+  !! k = integer_rmap2%%index%%entry(i)
   !! </pre>
   !! Then:
   !! <pre>
-  !! integer_rmap2%inverse(j_1, j_2)%entry(k) == i
+  !! integer_rmap2%%inverse(j_1, j_2)%%entry(k) == i
   !! </pre>
   !!
   !! Alternatively, given \c j_1, \c j_2 and \c k, let:
   !! <pre>
-  !! i = integer_rmap2%inverse(j_1, j_2)%entry(k)
+  !! i = integer_rmap2%%inverse(j_1, j_2)%%entry(k)
   !! </pre>
   !! Then:
   !! <pre>
-  !! integer_rmap2%forward1%entry(i) == j_1
-  !! integer_rmap2%forward2%entry(i) == j_2
-  !! integer_rmap2%index%entry(i) == k
+  !! integer_rmap2%%forward1%%entry(i) == j_1
+  !! integer_rmap2%%forward2%%entry(i) == j_2
+  !! integer_rmap2%%index%%entry(i) == k
   !! </pre>
   type integer_rmap2_t
      !> Forward map to first range (single valued).

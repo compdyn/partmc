@@ -207,10 +207,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Set the ideal number of particles to the given value. The \c
-  !> aero_state%awa must be already set correctly.
+  !> aero_state%%awa must be already set correctly.
   subroutine aero_state_set_n_part_ideal(aero_state, n_part)
 
-    !> Aerosol state (with \c aero_state%awa set).
+    !> Aerosol state (with \c aero_state%%awa set).
     type(aero_state_t), intent(inout) :: aero_state
     !> Ideal total number of particles.
     real(kind=dp), intent(in) :: n_part
@@ -624,7 +624,7 @@ contains
 
   !> <tt>aero_state += aero_state_delta</tt>, with the weight
   !> of \c aero_state left unchanged, so the new concentration is the
-  !> sum of the two concentrations, computed with \c aero_state%awa.
+  !> sum of the two concentrations, computed with \c aero_state%%awa.
   subroutine aero_state_add_particles(aero_state, aero_state_delta)
 
     !> Aerosol state.
@@ -902,7 +902,7 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Create the bin number and mass arrays from aero_state%v.
+  !> Create binned number and mass arrays.
   subroutine aero_state_to_binned(bin_grid, aero_data, aero_state, &
        aero_binned)
     

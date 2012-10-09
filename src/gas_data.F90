@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -113,7 +113,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Fills in gas_data%mosaic_index.
+  !> Fills in gas_data%%mosaic_index.
   subroutine gas_data_set_mosaic_map(gas_data)
 
     !> Gas data.

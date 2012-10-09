@@ -222,7 +222,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Fills in aero_data%i_water.
+  !> Fills in aero_data%%i_water.
   subroutine aero_data_set_water_index(aero_data)
 
     !> Aero_data data.
@@ -240,7 +240,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Fills in aero_data%mosaic_index.
+  !> Fills in aero_data%%mosaic_index.
   subroutine aero_data_set_mosaic_map(aero_data)
 
     !> Aero_data data.

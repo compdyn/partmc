@@ -28,20 +28,20 @@ module pmc_aero_sorted
   !! For example, for size bin \c i_bin and weight class \c i_class,
   !! the number of particles with this size and class are
   !! <pre>
-  !! n = aero_sorted%size_class%inverse(i_bin, i_class)%n_entry
+  !! n = aero_sorted%%size_class%%inverse(i_bin, i_class)%%n_entry
   !! </pre>
   !! For particle number \c i_entry in this size/class bin, the
   !! particle number is
   !! <pre>
-  !! i_part = aero_sorted%size_class%inverse(i_bin, i_class)%entry(i_entry)
+  !! i_part = aero_sorted%%size_class%%inverse(i_bin, i_class)%%entry(i_entry)
   !! </pre>
   !! For particle number \c i_part, the size bin and weight class are
   !! <pre>
-  !! i_bin = aero_sorted%size_class%forward1%entry(i_part)
-  !! i_class = aero_sorted%size_class%forward2%entry(i_part)
+  !! i_bin = aero_sorted%%size_class%%forward1%%entry(i_part)
+  !! i_class = aero_sorted%%size_class%%forward2%%entry(i_part)
   !! </pre>
   !!
-  !! Similar relationships hold for \c aero_sorted%group_class which
+  !! Similar relationships hold for \c aero_sorted%%group_class which
   !! sorts particles per weight group/class.
   type aero_sorted_t
      !> Bin grid for sorting.

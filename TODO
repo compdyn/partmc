@@ -171,9 +171,6 @@ name(1:AERO_SOURCE_NAME_LEN)" and similar. This dies at runtime if
 "name" has length less than AERO_SOURCE_NAME_LEN, which it might have
 because we only say "character(len=*), intent(in) :: name".
 
-Fix % symbol not appearing in doxygen generated comments. E.g. the
-integer_rmap2_t type docs.
-
 Add check for height being <= 0.
 
 Change aero_state_add_particles() to either check that

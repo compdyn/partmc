@@ -473,19 +473,16 @@ contains
     !> aero_data structure.
     type(aero_data_t), intent(in) :: aero_data
 
-    real(kind=dp) :: mass_conc(bin_grid_size(bin_grid), &
-         aero_data_n_spec(aero_data))
     integer :: i_bin
-
-    call aero_binned_set_sizes(aero_binned, bin_grid_size(bin_grid), &
-         aero_data_n_spec(aero_data))
 
     call pmc_nc_read_real_1d(ncid, aero_binned%num_conc, &
          "aero_number_concentration")
-    call pmc_nc_read_real_2d(ncid, mass_conc, "aero_mass_concentration")
-
+    call pmc_nc_read_real_2d(ncid, aero_binned%vol_conc, &
+         "aero_mass_concentration")
+    ! convert mass concentation to volume concentration
     do i_bin = 1,bin_grid_size(bin_grid)
-       aero_binned%vol_conc(i_bin,:) = mass_conc(i_bin,:) / aero_data%density
+       aero_binned%vol_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) &
+            / aero_data%density
     end do
 
   end subroutine aero_binned_input_netcdf

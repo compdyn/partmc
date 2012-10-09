@@ -685,10 +685,6 @@ contains
     call assert(719221386, n_group < 1000)
     call assert(520105999, n_class < 1000)
 
-    allocate(type(n_group, n_class))
-    allocate(magnitude(n_group, n_class))
-    allocate(exponent(n_group, n_class))
-
     call pmc_nc_read_integer_2d(ncid, type, "weight_type")
     call pmc_nc_read_real_2d(ncid, magnitude, "weight_magnitude")
     call pmc_nc_read_real_2d(ncid, exponent, "weight_exponent")
@@ -701,10 +697,6 @@ contains
     aero_weight_array%weight%type = type
     aero_weight_array%weight%magnitude = magnitude
     aero_weight_array%weight%exponent = exponent
-
-    deallocate(type)
-    deallocate(magnitude)
-    deallocate(exponent)
 
   end subroutine aero_weight_array_input_netcdf
 

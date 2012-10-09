@@ -584,9 +584,7 @@ contains
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
 
-    call gas_state_set_size(gas_state, gas_data_n_spec(gas_data))
-    call pmc_nc_read_real_1d(ncid, gas_state%mix_rat, &
-         "gas_mixing_ratio")
+    call pmc_nc_read_real_1d(ncid, gas_state%mix_rat, "gas_mixing_ratio")
 
   end subroutine gas_state_input_netcdf
 

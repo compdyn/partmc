@@ -597,30 +597,19 @@ contains
          dimid_aero_source, name, n_source))
     call assert(739238793, n_source < MAX_SOURCES)
 
-    call ensure_string_array_size(aero_data%name, n_spec)
-    call ensure_integer_array_size(aero_data%mosaic_index, n_spec)
-    call ensure_real_array_size(aero_data%density, n_spec)
-    call ensure_integer_array_size(aero_data%num_ions, n_spec)
-    call ensure_real_array_size(aero_data%molec_weight, n_spec)
-    call ensure_real_array_size(aero_data%kappa, n_spec)
-    call ensure_string_array_size(aero_data%source_name, n_source)
-
     call pmc_nc_read_integer_1d(ncid, aero_data%mosaic_index, &
          "aero_mosaic_index")
-    call pmc_nc_read_real_1d(ncid, aero_data%density, &
-         "aero_density")
-    call pmc_nc_read_integer_1d(ncid, aero_data%num_ions, &
-         "aero_num_ions")
-    call pmc_nc_read_real_1d(ncid, aero_data%molec_weight, &
-         "aero_molec_weight")
-    call pmc_nc_read_real_1d(ncid, aero_data%kappa, &
-         "aero_kappa")
+    call pmc_nc_read_real_1d(ncid, aero_data%density, "aero_density")
+    call pmc_nc_read_integer_1d(ncid, aero_data%num_ions, "aero_num_ions")
+    call pmc_nc_read_real_1d(ncid, aero_data%molec_weight, "aero_molec_weight")
+    call pmc_nc_read_real_1d(ncid, aero_data%kappa, "aero_kappa")
 
     call pmc_nc_check(nf90_inq_varid(ncid, "aero_species", &
          varid_aero_species))
     call pmc_nc_check(nf90_get_att(ncid, varid_aero_species, "names", &
          aero_species_names))
     ! aero_species_names are comma-separated, so unpack them
+    call ensure_string_array_size(aero_data%name, n_spec)
     do i_spec = 1,aero_data_n_spec(aero_data)
        i = 1
        do while ((aero_species_names(i:i) /= " ") &
@@ -638,6 +627,7 @@ contains
     call pmc_nc_check(nf90_get_att(ncid, varid_aero_source, "names", &
          aero_source_names))
     ! aero_source_names are comma-separated, so unpack them
+    call ensure_string_array_size(aero_data%source_name, n_source)
     do i_source = 1,aero_data_n_source(aero_data)
        i = 1
        do while ((aero_source_names(i:i) /= " ") &

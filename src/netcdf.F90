@@ -219,15 +219,15 @@ contains
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
-    !> Data to read, must be correctly sized.
-    real(kind=dp), intent(out) :: var(:)
+    !> Data to read.
+    real(kind=dp), intent(inout), allocatable :: var(:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
     !> Whether the variable must be present in the NetCDF file
     !> (default .true.).
     logical, optional, intent(in) :: must_be_present
 
-    integer :: varid, status
+    integer :: varid, status, dimids(1), size1
     logical :: use_must_be_present
 
     if (present(must_be_present)) then
@@ -237,11 +237,17 @@ contains
     end if
     status = nf90_inq_varid(ncid, name, varid)
     if ((.not. use_must_be_present) .and. (status == NF90_ENOTVAR)) then
-       ! variable was not present, but that's ok
-       var = 0d0
+       ! variable was not present, but that's ok, set it to empty
+       var = [real(kind=dp)::]
        return
     end if
     call pmc_nc_check_msg(status, "inquiring variable " // trim(name))
+    call pmc_nc_check_msg(nf90_inquire_variable(ncid, varid, dimids=dimids), &
+         "determining size of variable " // trim(name))
+    call pmc_nc_check_msg(nf90_inquire_dimension(ncid, dimids(1), len=size1), &
+         "determining size of dimension number " &
+         // trim(integer_to_string(dimids(1))))
+    call ensure_real_array_size(var, size1)
     call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
          "getting variable " // trim(name))
 
@@ -255,14 +261,14 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
     !> Data to read, must be correctly sized.
-    integer, intent(out) :: var(:)
+    integer, intent(inout), allocatable :: var(:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
     !> Whether the variable must be present in the NetCDF file
     !> (default .true.).
     logical, optional, intent(in) :: must_be_present
 
-    integer :: varid, status
+    integer :: varid, status, dimids(1), size1
     logical :: use_must_be_present
 
     if (present(must_be_present)) then
@@ -273,10 +279,16 @@ contains
     status = nf90_inq_varid(ncid, name, varid)
     if ((.not. use_must_be_present) .and. (status == NF90_ENOTVAR)) then
        ! variable was not present, but that's ok
-       var = 0
+       var = [integer::]
        return
     end if
     call pmc_nc_check_msg(status, "inquiring variable " // trim(name))
+    call pmc_nc_check_msg(nf90_inquire_variable(ncid, varid, dimids=dimids), &
+         "determining size of variable " // trim(name))
+    call pmc_nc_check_msg(nf90_inquire_dimension(ncid, dimids(1), len=size1), &
+         "determining size of dimension number " &
+         // trim(integer_to_string(dimids(1))))
+    call ensure_integer_array_size(var, size1)
     call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
          "getting variable " // trim(name))
 
@@ -290,14 +302,14 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
     !> Data to read, must be correctly sized.
-    real(kind=dp), intent(out) :: var(:,:)
+    real(kind=dp), intent(inout), allocatable :: var(:,:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
     !> Whether the variable must be present in the NetCDF file
     !> (default .true.).
     logical, optional, intent(in) :: must_be_present
 
-    integer :: varid, status
+    integer :: varid, status, dimids(2), size1, size2
     logical :: use_must_be_present
 
     if (present(must_be_present)) then
@@ -308,10 +320,19 @@ contains
     status = nf90_inq_varid(ncid, name, varid)
     if ((.not. use_must_be_present) .and. (status == NF90_ENOTVAR)) then
        ! variable was not present, but that's ok
-       var = 0d0
+       var = reshape([real(kind=dp)::], [0, 0])
        return
     end if
     call pmc_nc_check_msg(status, "inquiring variable " // trim(name))
+    call pmc_nc_check_msg(nf90_inquire_variable(ncid, varid, dimids=dimids), &
+         "determining size of variable " // trim(name))
+    call pmc_nc_check_msg(nf90_inquire_dimension(ncid, dimids(1), len=size1), &
+         "determining size of dimension number " &
+         // trim(integer_to_string(dimids(1))))
+    call pmc_nc_check_msg(nf90_inquire_dimension(ncid, dimids(2), len=size2), &
+         "determining size of dimension number " &
+         // trim(integer_to_string(dimids(2))))
+    call ensure_real_array_2d_size(var, size1, size2)
     call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
          "getting variable " // trim(name))
 
@@ -325,14 +346,14 @@ contains
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
     !> Data to read, must be correctly sized.
-    integer, intent(out) :: var(:,:)
+    integer, intent(inout), allocatable :: var(:,:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
     !> Whether the variable must be present in the NetCDF file
     !> (default .true.).
     logical, optional, intent(in) :: must_be_present
 
-    integer :: varid, status
+    integer :: varid, status, dimids(2), size1, size2
     logical :: use_must_be_present
 
     if (present(must_be_present)) then
@@ -343,10 +364,19 @@ contains
     status = nf90_inq_varid(ncid, name, varid)
     if ((.not. use_must_be_present) .and. (status == NF90_ENOTVAR)) then
        ! variable was not present, but that's ok
-       var = 0
+       var = reshape([integer::], [0, 0])
        return
     end if
     call pmc_nc_check_msg(status, "inquiring variable " // trim(name))
+    call pmc_nc_check_msg(nf90_inquire_variable(ncid, varid, dimids=dimids), &
+         "determining size of variable " // trim(name))
+    call pmc_nc_check_msg(nf90_inquire_dimension(ncid, dimids(1), len=size1), &
+         "determining size of dimension number " &
+         // trim(integer_to_string(dimids(1))))
+    call pmc_nc_check_msg(nf90_inquire_dimension(ncid, dimids(2), len=size2), &
+         "determining size of dimension number " &
+         // trim(integer_to_string(dimids(2))))
+    call ensure_integer_array_2d_size(var, size1, size2)
     call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
          "getting variable " // trim(name))
 
@@ -472,7 +502,7 @@ contains
     integer, intent(in) :: array_dim
 
     integer :: status, check_dim_size
-    character(len=1000) :: check_name
+    character(len=NF90_MAX_NAME) :: check_name
 
     status = nf90_inq_dimid(ncid, dim_name, dimid)
     if (status == NF90_NOERR) then

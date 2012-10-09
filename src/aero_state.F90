@@ -2480,24 +2480,6 @@ contains
     call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_particle, &
          name, n_part))
 
-    allocate(aero_particle_mass(n_part, aero_data_n_spec(aero_data)))
-    allocate(aero_n_orig_part(n_part, aero_data_n_source(aero_data)))
-    allocate(aero_particle_weight_group(n_part))
-    allocate(aero_particle_weight_class(n_part))
-    allocate(aero_absorb_cross_sect(n_part))
-    allocate(aero_scatter_cross_sect(n_part))
-    allocate(aero_asymmetry(n_part))
-    allocate(aero_refract_shell_real(n_part))
-    allocate(aero_refract_shell_imag(n_part))
-    allocate(aero_refract_core_real(n_part))
-    allocate(aero_refract_core_imag(n_part))
-    allocate(aero_core_vol(n_part))
-    allocate(aero_water_hyst_leg(n_part))
-    allocate(aero_num_conc(n_part))
-    allocate(aero_id(n_part))
-    allocate(aero_least_create_time(n_part))
-    allocate(aero_greatest_create_time(n_part))
-
     call pmc_nc_read_real_2d(ncid, aero_particle_mass, &
          "aero_particle_mass")
     call pmc_nc_read_integer_2d(ncid, aero_n_orig_part, &
@@ -2541,15 +2523,29 @@ contains
        aero_particle%n_orig_part = aero_n_orig_part(i_part, :)
        aero_particle%weight_group = aero_particle_weight_group(i_part)
        aero_particle%weight_class = aero_particle_weight_class(i_part)
-       aero_particle%absorb_cross_sect = aero_absorb_cross_sect(i_part)
-       aero_particle%scatter_cross_sect = aero_scatter_cross_sect(i_part)
-       aero_particle%asymmetry = aero_asymmetry(i_part)
-       aero_particle%refract_shell = &
-            cmplx(aero_refract_shell_real(i_part), &
-            aero_refract_shell_imag(i_part), kind=dc)
-       aero_particle%refract_core = cmplx(aero_refract_core_real(i_part), &
-            aero_refract_core_imag(i_part), kind=dc)
-       aero_particle%core_vol = aero_core_vol(i_part)
+       if (size(aero_absorb_cross_sect) == n_part) then
+          aero_particle%absorb_cross_sect = aero_absorb_cross_sect(i_part)
+       end if
+       if (size(aero_scatter_cross_sect) == n_part) then
+            aero_particle%scatter_cross_sect = aero_scatter_cross_sect(i_part)
+         end if
+       if (size(aero_asymmetry) == n_part) then
+            aero_particle%asymmetry = aero_asymmetry(i_part)
+         end if
+       if ((size(aero_refract_shell_real) == n_part) &
+            .and. (size(aero_refract_shell_imag) == n_part)) then
+          aero_particle%refract_shell = &
+               cmplx(aero_refract_shell_real(i_part), &
+               aero_refract_shell_imag(i_part), kind=dc)
+       end if
+       if ((size(aero_refract_core_real) == n_part) &
+            .and. (size(aero_refract_core_imag) == n_part)) then
+          aero_particle%refract_core = cmplx(aero_refract_core_real(i_part), &
+               aero_refract_core_imag(i_part), kind=dc)
+       end if
+       if (size(aero_core_vol) == n_part) then
+          aero_particle%core_vol = aero_core_vol(i_part)
+       end if
        aero_particle%water_hyst_leg = aero_water_hyst_leg(i_part)
        aero_particle%id = aero_id(i_part)
        aero_particle%least_create_time = aero_least_create_time(i_part)
@@ -2561,44 +2557,17 @@ contains
        call aero_state_add_particle(aero_state, aero_particle)
     end do
 
-    deallocate(aero_particle_mass)
-    deallocate(aero_n_orig_part)
-    deallocate(aero_particle_weight_group)
-    deallocate(aero_particle_weight_class)
-    deallocate(aero_absorb_cross_sect)
-    deallocate(aero_scatter_cross_sect)
-    deallocate(aero_asymmetry)
-    deallocate(aero_refract_shell_real)
-    deallocate(aero_refract_shell_imag)
-    deallocate(aero_refract_core_real)
-    deallocate(aero_refract_core_imag)
-    deallocate(aero_core_vol)
-    deallocate(aero_water_hyst_leg)
-    deallocate(aero_num_conc)
-    deallocate(aero_id)
-    deallocate(aero_least_create_time)
-    deallocate(aero_greatest_create_time)
+    call pmc_nc_read_integer_1d(ncid, aero_removed_id, &
+         "aero_removed_id", must_be_present=.false.)
+    call pmc_nc_read_integer_1d(ncid, aero_removed_action, &
+         "aero_removed_action", must_be_present=.false.)
+    call pmc_nc_read_integer_1d(ncid, aero_removed_other_id, &
+         "aero_removed_other_id", must_be_present=.false.)
 
-    status = nf90_inq_dimid(ncid, "aero_removed", dimid_aero_removed)
-    if ((status /= NF90_NOERR) .and. (status /= NF90_EBADDIM)) then
-       call pmc_nc_check(status)
-    end if
-    if (status == NF90_NOERR) then
-       call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_removed, &
-            name, n_info_item))
-
-       allocate(aero_removed_id(max(1, n_info_item)))
-       allocate(aero_removed_action(max(1, n_info_item)))
-       allocate(aero_removed_other_id(max(1, n_info_item)))
-
-       call pmc_nc_read_integer_1d(ncid, aero_removed_id, &
-            "aero_removed_id")
-       call pmc_nc_read_integer_1d(ncid, aero_removed_action, &
-            "aero_removed_action")
-       call pmc_nc_read_integer_1d(ncid, aero_removed_other_id, &
-            "aero_removed_other_id")
-
-       if ((n_info_item > 1) .or. (aero_removed_id(1) /= 0)) then
+    n_info_item = size(aero_removed_id)
+    if (n_info_item >= 1) then
+       if ((n_info_item > 1) &
+            .or. ((n_info_item == 1) .and. (aero_removed_id(1) /= 0))) then
           call aero_info_array_enlarge_to(aero_state%aero_info_array, &
                n_info_item)
           do i_remove = 1,n_info_item
@@ -2610,10 +2579,6 @@ contains
                   = aero_removed_other_id(i_remove)
           end do
        end if
-
-       deallocate(aero_removed_id)
-       deallocate(aero_removed_action)
-       deallocate(aero_removed_other_id)
     end if
 
   end subroutine aero_state_input_netcdf

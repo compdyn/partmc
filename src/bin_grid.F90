@@ -541,7 +541,6 @@ contains
     call pmc_nc_check(nf90_inq_varid(ncid, dim_name, varid))
     call pmc_nc_check(nf90_get_att(ncid, varid, "description", description))
 
-    allocate(edges(n_bin + 1))
     call pmc_nc_read_real_1d(ncid, edges, dim_name // "_edges")
 
     if (starts_with(description, "logarithmically")) then
@@ -559,8 +558,6 @@ contains
     else
        call bin_grid_make(bin_grid, type, n_bin, edges(1), edges(n_bin + 1))
     end if
-
-    deallocate(edges)
 
   end subroutine bin_grid_input_netcdf
 

@@ -53,50 +53,31 @@
 
 !> \page coding_style Coding Style
 !!
-!! The code is mainly Fortran 90, with a few parts still clearly
-!! showing their Fortran 77 heritage. A few Fortran 95 and Fortran
-!! 2003 features are used (mainly the \c COMMAND_ARGUMENT_COUNT and \c
-!! GET_COMMAND_ARGUMENT intrinsics). The code needs to be processed
-!! with \c cpp or a compatible pre-processor.
+!! The code is mainly modern Fortran, with a few parts still clearly
+!! showing their Fortran 77 heritage. Fortran 2003 features are used
+!! heavily (especially allocatable array features). The code needs to
+!! be processed with \c cpp or a compatible pre-processor.
 !!
 !! \section oo_fortran Object Oriented Fortran
 !!
-!! Extensive use is made of Fortran 90 derived types and pointers for
-!! dynamic memory allocation of arrays inside derived types. Derived
-!! types are named \c my_type_t and are generally defined in modules
-!! named \c pmc_my_type within files named \c my_type.F95. Each
-!! derived type has allocation and deallocation functions \c
-!! my_type_allocate() and \c my_type_deallocate(), where
-!! appropriate. Almost all subroutines and function in each \c
-!! my_type.F95 file have names of the form \c my_type_*() and take an
-!! object of type \c my_type_t (called \c my_type) as the first argument
-!! on which to operate.
+!! Extensive use is made of Fortran 90 derived types. Derived types
+!! are named \c my_type_t and are generally defined in modules named
+!! \c pmc_my_type within files named \c my_type.F90. Almost all
+!! subroutines and function in each \c my_type.F90 file have names of
+!! the form \c my_type_*() and take an object of type \c my_type_t
+!! (called \c my_type) as the first argument on which to operate.
 !!
 !! Module names are always the same as the name of the containing
 !! file, but prefixed with \c pmc_. Thus the module \c
-!! pmc_condense is contained in the file \c condense.F95.
+!! pmc_condense is contained in the file \c condense.F90.
 !!
 !! \section mem_manage Memory Management
 !!
-!! The memory allocation policy is that all functions must be called
-!! with an already allocated structure. That is, if a subroutine
-!! defines a variable of type \c my_type_t, then it must call \c
-!! my_type_allocate() or \c my_type_allocate_size() on it before
-!! passing it to any other subroutines or functions. The defining
-!! subroutine is also responsible for calling \c my_type_deallocate()
-!! on every variable it defines.
-!!
-!! Similarly, any subroutine that declares a pointer variable must
-!! allocate it and any data it points to before passing it to other
-!! subroutines or functions. If no specific length is known for an array
-!! pointer then it should be allocated to zero size. Any subsequent
-!! subroutines are free to deallocate and reallocate if they need to
-!! change the size.
-!!
-!! This means that every subroutine (except for allocate and
-!! deallocate routines) should contain matching \c
-!! allocate()/deallocate() and
-!! <tt>my_type_allocate()/my_type_deallocate()</tt> calls.
+!! The memory allocation policy to is to always use \c allocatable
+!! arrays and to do the allocation in the lowest-level routine
+!! possible. Explicit \c allocate() and \c deallocate() statements are
+!! discouraged in favor of automatic memory management, where
+!! possible.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

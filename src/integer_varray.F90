@@ -86,27 +86,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Copies an integer_varray.
-  subroutine integer_varray_copy(integer_varray_from, integer_varray_to)
-
-    !> Structure to copy from.
-    type(integer_varray_t), intent(in) :: integer_varray_from
-    !> Structure to copy to.
-    type(integer_varray_t), intent(inout) :: integer_varray_to
-
-    if (allocated(integer_varray_from%entry)) then
-       integer_varray_to%n_entry = integer_varray_from%n_entry
-       integer_varray_to%entry = integer_varray_from%entry
-    else
-       if (allocated(integer_varray_to%entry)) then
-          deallocate(integer_varray_to%entry)
-       end if
-    end if
-
-  end subroutine integer_varray_copy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Enlarges the given array so that it is at least of size n.
   subroutine integer_varray_enlarge(integer_varray, n)
 

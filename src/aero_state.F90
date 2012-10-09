@@ -91,31 +91,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Copies aerosol to a destination.
-  subroutine aero_state_copy(aero_state_from, aero_state_to)
-
-    !> Reference aerosol.
-    type(aero_state_t), intent(in) :: aero_state_from
-    !> Already allocated.
-    type(aero_state_t), intent(inout) :: aero_state_to
-
-    call aero_particle_array_copy(aero_state_from%apa, aero_state_to%apa)
-    aero_state_to%valid_sort = .false.
-    call aero_state_copy_weight(aero_state_from, aero_state_to)
-    if (allocated(aero_state_from%n_part_ideal)) then
-       aero_state_to%n_part_ideal = aero_state_from%n_part_ideal
-    else
-       if (allocated(aero_state_to%n_part_ideal)) then
-          deallocate(aero_state_to%n_part_ideal)
-       end if
-    end if
-    call aero_info_array_copy(aero_state_from%aero_info_array, &
-         aero_state_to%aero_info_array)
-
-  end subroutine aero_state_copy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Copies weighting information for an \c aero_state.
   subroutine aero_state_copy_weight(aero_state_from, aero_state_to)
 
@@ -124,7 +99,7 @@ contains
     !> Already allocated.
     type(aero_state_t), intent(inout) :: aero_state_to
 
-    call aero_weight_array_copy(aero_state_from%awa, aero_state_to%awa)
+    aero_state_to%awa = aero_state_from%awa
 
   end subroutine aero_state_copy_weight
 
@@ -401,7 +376,7 @@ contains
          aero_state%aero_sorted%size_class%inverse(i_bin, i_class)))
     i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
          i_class)%entry(i_entry)
-    call aero_particle_copy(aero_state%apa%particle(i_part), aero_particle)
+    aero_particle = aero_state%apa%particle(i_part)
     call aero_state_remove_particle_no_info(aero_state, i_part)
 
   end subroutine aero_state_remove_rand_particle_from_bin
@@ -442,8 +417,7 @@ contains
             i_part, aero_info)
     elseif (n_copies > 1) then
        do i_dup = 1,(n_copies - 1)
-          call aero_particle_copy(aero_state%apa%particle(i_part), &
-               new_aero_particle)
+          new_aero_particle = aero_state%apa%particle(i_part)
           call aero_particle_new_id(new_aero_particle)
           if (present(random_weight_group)) then
              if (random_weight_group) then
@@ -1258,8 +1232,7 @@ contains
        if ((aero_state%apa%particle(i_part)%weight_group == i_group) &
             .and. (aero_state%apa%particle(i_part)%weight_class == i_class)) &
             then
-          call aero_particle_copy(aero_state%apa%particle(i_part), &
-               aero_particle)
+          aero_particle = aero_state%apa%particle(i_part)
           call aero_particle_new_id(aero_particle)
           call aero_state_add_particle(aero_state, aero_particle)
        end if
@@ -1953,7 +1926,7 @@ contains
 #endif
 
     if (pmc_mpi_rank() == 0) then
-       call aero_state_copy(aero_state, aero_state_total)
+       aero_state_total = aero_state
     end if
 
 #ifdef PMC_USE_MPI

@@ -62,37 +62,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Copies a particle.
-  subroutine aero_particle_copy(aero_particle_from, aero_particle_to)
-
-    !> Reference particle.
-    type(aero_particle_t), intent(in) :: aero_particle_from
-    !> Destination particle (already alloced on entry).
-    type(aero_particle_t), intent(inout) :: aero_particle_to
-
-    integer :: n_spec, n_source
-
-    aero_particle_to%vol = aero_particle_from%vol
-    aero_particle_to%n_orig_part = aero_particle_from%n_orig_part
-    aero_particle_to%weight_group = aero_particle_from%weight_group
-    aero_particle_to%weight_class = aero_particle_from%weight_class
-    aero_particle_to%absorb_cross_sect = aero_particle_from%absorb_cross_sect
-    aero_particle_to%scatter_cross_sect = &
-         aero_particle_from%scatter_cross_sect
-    aero_particle_to%asymmetry = aero_particle_from%asymmetry
-    aero_particle_to%refract_shell = aero_particle_from%refract_shell
-    aero_particle_to%refract_core = aero_particle_from%refract_core
-    aero_particle_to%core_vol = aero_particle_from%core_vol
-    aero_particle_to%water_hyst_leg = aero_particle_from%water_hyst_leg
-    aero_particle_to%id = aero_particle_from%id
-    aero_particle_to%least_create_time = aero_particle_from%least_create_time
-    aero_particle_to%greatest_create_time = &
-         aero_particle_from%greatest_create_time
-
-  end subroutine aero_particle_copy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Shift data from one aero_particle_t to another and free the first
   !> one.
   subroutine aero_particle_shift(aero_particle_from, aero_particle_to)

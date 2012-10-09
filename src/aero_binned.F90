@@ -220,28 +220,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Copy one aero_binned_t structure to another.
-  !!
-  !! Symbolically does aero_binned_to = aero_binned_from.
-  subroutine aero_binned_copy(aero_binned_from, aero_binned_to)
-
-    !> Base aero_binned_t structure to copy from.
-    type(aero_binned_t), intent(in) :: aero_binned_from
-    !> Structure to copy to.
-    type(aero_binned_t), intent(inout) :: aero_binned_to
-
-    if (aero_binned_is_allocated(aero_binned_from)) then
-       aero_binned_to%num_conc = aero_binned_from%num_conc
-       aero_binned_to%vol_conc = aero_binned_from%vol_conc
-    else
-       deallocate(aero_binned_to%num_conc)
-       deallocate(aero_binned_to%vol_conc)
-    end if
-
-  end subroutine aero_binned_copy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Add an aero_dist_t to an aero_binned_t.
   !!
   !! Symbolically does aero_binned = aero_binned + aero_dist.

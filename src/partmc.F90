@@ -616,9 +616,9 @@ contains
     do i_repeat = 1,run_part_opt%n_repeat
        run_part_opt%i_repeat = i_repeat
 
-       call gas_state_copy(gas_state_init, gas_state)
+       gas_state = gas_state_init
        if (do_restart) then
-          call aero_state_copy(aero_state_init, aero_state)
+          aero_state = aero_state_init
           call aero_state_set_n_part_ideal(aero_state, n_part)
        else
           call aero_state_zero(aero_state)
@@ -641,7 +641,7 @@ contains
                aero_dist_init, 1d0, 0d0, run_part_opt%allow_doubling, &
                run_part_opt%allow_halving)
        end if
-       call env_state_copy(env_state_init, env_state)
+       env_state = env_state_init
        call scenario_init_env_state(scenario, env_state, &
             env_state_init%elapsed_time)
 

@@ -129,21 +129,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Copy an \c aero_weight_array.
-  subroutine aero_weight_array_copy(aero_weight_array_from, &
-       aero_weight_array_to)
-
-    !> Origin aerosol weight array.
-    type(aero_weight_array_t), intent(in) :: aero_weight_array_from
-    !> Destination aerosol weight array.
-    type(aero_weight_array_t), intent(inout) :: aero_weight_array_to
-
-    aero_weight_array_to%weight = aero_weight_array_from%weight
-
-  end subroutine aero_weight_array_copy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Return the number of weight groups.
   integer function aero_weight_array_n_group(aero_weight_array)
 

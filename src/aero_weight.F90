@@ -54,22 +54,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Copy an aero_weight.
-  elemental subroutine aero_weight_copy(aero_weight_from, aero_weight_to)
-
-    !> Aerosol weight original.
-    type(aero_weight_t), intent(in) :: aero_weight_from
-    !> Aerosol weight copy.
-    type(aero_weight_t), intent(inout) :: aero_weight_to
-
-    aero_weight_to%type = aero_weight_from%type
-    aero_weight_to%magnitude = aero_weight_from%magnitude
-    aero_weight_to%exponent = aero_weight_from%exponent
-
-  end subroutine aero_weight_copy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Scale the weight by the given fraction, so <tt>new_weight =
   !> old_weight * factor</tt>.
   elemental subroutine aero_weight_scale(aero_weight, factor)

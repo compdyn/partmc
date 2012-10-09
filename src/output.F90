@@ -181,8 +181,8 @@ contains
 #ifdef PMC_USE_MPI
           ! collect all data onto process 0 and then write it to a
           ! single file
-          call env_state_copy(env_state, env_state_write)
-          call gas_state_copy(gas_state, gas_state_write)
+          env_state_write = env_state
+          gas_state_write = gas_state
           call env_state_reduce_avg(env_state_write)
           call gas_state_reduce_avg(gas_state_write)
           call aero_state_mpi_gather(aero_state, aero_state_write)

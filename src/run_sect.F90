@@ -169,7 +169,7 @@ contains
        time = run_sect_opt%t_max * real(i_time, kind=dp) &
             / real(num_t, kind=dp)
 
-       call env_state_copy(env_state, old_env_state)
+       old_env_state = env_state
        call scenario_update_env_state(scenario, env_state, time)
        call scenario_update_gas_state(scenario, run_sect_opt%del_t, &
             env_state, old_env_state, gas_data, gas_state)

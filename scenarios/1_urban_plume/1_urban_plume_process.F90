@@ -94,7 +94,7 @@ program process
              / sum(masses * num_concs)
         call stats_1d_add_entry(stats_tot_entropy, tot_entropy, i_index)
 
-        call aero_state_copy(aero_state, aero_state_averaged)
+        aero_state_averaged = aero_state
         call aero_state_bin_average_comp(aero_state_averaged, avg_bin_grid, &
              aero_data)
         num_concs_averaged = aero_state_num_concs(aero_state_averaged)

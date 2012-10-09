@@ -168,7 +168,7 @@ contains
     call pmc_mpi_allgather_real_array(aero_state%awa%weight(:, s1)%magnitude, &
          magnitudes)
 
-    call aero_weight_array_copy(aero_state%awa, aero_weight_total)
+    aero_weight_total = aero_state%awa
     aero_weight_total%weight(:, s1)%magnitude = 1d0 / sum(1d0 / magnitudes, 2)
 
     allocate(k_max(bin_grid_size(aero_state%aero_sorted%bin_grid), &

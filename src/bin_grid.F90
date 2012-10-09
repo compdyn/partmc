@@ -62,23 +62,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Copies a bin grid.
-  subroutine bin_grid_copy(bin_grid_from, bin_grid_to)
-
-    !> Bin_grid to copy from.
-    type(bin_grid_t), intent(in) :: bin_grid_from
-    !> Bin_grid to copy to.
-    type(bin_grid_t), intent(inout) :: bin_grid_to
-
-    bin_grid_to%type = bin_grid_from%type
-    bin_grid_to%centers = bin_grid_from%centers
-    bin_grid_to%edges = bin_grid_from%edges
-    bin_grid_to%widths = bin_grid_from%widths
-
-  end subroutine bin_grid_copy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Convert a concentration f(vol)d(vol) to f(ln(r))d(ln(r))
   !> where vol = 4/3 pi r^3.
   subroutine vol_to_lnr(r, f_vol, f_lnr)

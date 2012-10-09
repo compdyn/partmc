@@ -65,28 +65,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Copies aero_particle_array_from to aero_particle_array_to.
-  subroutine aero_particle_array_copy(aero_particle_array_from, &
-       aero_particle_array_to)
-
-    !> Origin structure.
-    type(aero_particle_array_t), intent(in) :: aero_particle_array_from
-    !> Destination structure.
-    type(aero_particle_array_t), intent(inout) :: aero_particle_array_to
-
-    if (allocated(aero_particle_array_from%particle)) then
-       aero_particle_array_to%n_part = aero_particle_array_from%n_part
-       aero_particle_array_to%particle = aero_particle_array_from%particle
-    else
-       if (allocated(aero_particle_array_to%particle)) then
-          deallocate(aero_particle_array_to%particle)
-       end if
-    end if
-
-  end subroutine aero_particle_array_copy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Resets an aero_particle_array to contain zero particles.
   subroutine aero_particle_array_zero(aero_particle_array)
 
@@ -189,7 +167,7 @@ contains
 
     n = aero_particle_array_n_part(aero_particle_array) + 1
     call aero_particle_array_enlarge(aero_particle_array, n)
-    call aero_particle_copy(aero_particle, aero_particle_array%particle(n))
+    aero_particle_array%particle(n) = aero_particle
     aero_particle_array%n_part = n
 
   end subroutine aero_particle_array_add_particle

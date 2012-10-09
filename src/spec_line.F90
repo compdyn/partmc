@@ -51,21 +51,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Copies a spec_line.
-  subroutine spec_line_copy(from_spec_line, to_spec_line)
-
-    !> Original spec_line.
-    type(spec_line_t), intent(in) :: from_spec_line
-    !> Destination, already alloced.
-    type(spec_line_t), intent(inout) :: to_spec_line
-
-    to_spec_line%name = from_spec_line%name
-    to_spec_line%data = from_spec_line%data
-
-  end subroutine spec_line_copy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Strip the comments from a string. Comments are everything after
   !> the first # character.
   subroutine spec_line_strip_comment(string)

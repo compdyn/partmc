@@ -207,7 +207,7 @@ contains
 
        time = real(i_time, kind=dp) * run_part_opt%del_t
 
-       call env_state_copy(env_state, old_env_state)
+       old_env_state = env_state
        call scenario_update_env_state(scenario, env_state, time + t_start)
 
        if (run_part_opt%do_nucleation) then

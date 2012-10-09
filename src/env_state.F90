@@ -102,30 +102,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> env_to = env_from
-  subroutine env_state_copy(env_from, env_to)
-
-    !> Original.
-    type(env_state_t), intent(in) :: env_from
-    !> Destination.
-    type(env_state_t), intent(inout) :: env_to
-
-    env_to%temp = env_from%temp
-    env_to%rel_humid = env_from%rel_humid
-    env_to%pressure = env_from%pressure
-    env_to%longitude = env_from%longitude
-    env_to%latitude = env_from%latitude
-    env_to%altitude = env_from%altitude
-    env_to%start_time = env_from%start_time
-    env_to%start_day = env_from%start_day
-    env_to%elapsed_time = env_from%elapsed_time
-    env_to%solar_zenith_angle = env_from%solar_zenith_angle
-    env_to%height = env_from%height
-
-  end subroutine env_state_copy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Adds the given water volume to the water vapor and updates all
   !> environment quantities.
   subroutine env_state_change_water_volume(env_state, dv)
@@ -431,7 +407,7 @@ contains
     !> Result.
     type(env_state_t), intent(inout) :: val_avg
 
-    call env_state_copy(val, val_avg)
+    val_avg = val
     call pmc_mpi_reduce_avg_real(val%temp, val_avg%temp)
     call pmc_mpi_reduce_avg_real(val%rel_humid, val_avg%rel_humid)
     call pmc_mpi_reduce_avg_real(val%pressure, val_avg%pressure)

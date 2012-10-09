@@ -221,8 +221,7 @@ contains
             ct)%entry(target_unif_entry)
        ! need to copy coag_particle as the underlying storage may be
        ! rearranged due to removals
-       call aero_particle_copy(aero_state%apa%particle(target_part), &
-            target_particle)
+       target_particle = aero_state%apa%particle(target_part)
        call sample_source_particle(aero_state, aero_data, env_state, &
             coag_kernel_type, bs, cs, target_particle, n_source_per_target, &
             accept_factor, n_samp, n_coag, n_remove, source_particle)

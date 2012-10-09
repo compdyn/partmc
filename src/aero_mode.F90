@@ -95,53 +95,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Copy an aero_mode.
-  subroutine aero_mode_copy(aero_mode_from, aero_mode_to)
-
-    !> Aerosol mode original.
-    type(aero_mode_t), intent(in) :: aero_mode_from
-    !> Aerosol mode copy.
-    type(aero_mode_t), intent(inout) :: aero_mode_to
-
-    aero_mode_to%name = aero_mode_from%name
-    aero_mode_to%type = aero_mode_from%type
-    aero_mode_to%char_radius = aero_mode_from%char_radius
-    aero_mode_to%log10_std_dev_radius = aero_mode_from%log10_std_dev_radius
-    aero_mode_to%num_conc = aero_mode_from%num_conc
-    if (allocated(aero_mode_from%vol_frac)) then
-       aero_mode_to%vol_frac = aero_mode_from%vol_frac
-    else
-       if (allocated(aero_mode_to%vol_frac)) then
-          deallocate(aero_mode_to%vol_frac)
-       end if
-    end if
-    if (allocated(aero_mode_from%vol_frac_std)) then
-       aero_mode_to%vol_frac_std = aero_mode_from%vol_frac_std
-    else
-       if (allocated(aero_mode_to%vol_frac_std)) then
-          deallocate(aero_mode_to%vol_frac_std)
-       end if
-    end if
-    aero_mode_to%source = aero_mode_from%source
-    if (allocated(aero_mode_from%sample_radius)) then
-       aero_mode_to%sample_radius = aero_mode_from%sample_radius
-    else
-       if (allocated(aero_mode_to%sample_radius)) then
-          deallocate(aero_mode_to%sample_radius)
-       end if
-    end if
-    if (allocated(aero_mode_from%sample_num_conc)) then
-       aero_mode_to%sample_num_conc = aero_mode_from%sample_num_conc
-    else
-       if (allocated(aero_mode_to%sample_num_conc)) then
-          deallocate(aero_mode_to%sample_num_conc)
-       end if
-    end if
-
-  end subroutine aero_mode_copy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Returns the total number concentration of a mode. (#/m^3)
   real(kind=dp) function aero_mode_total_num_conc(aero_mode)
 
@@ -977,6 +930,8 @@ contains
             aero_mode%vol_frac, aero_mode%vol_frac_std)
        call spec_file_close(mass_frac_file)
        call spec_file_read_string(file, 'mode_type', mode_type)
+       aero_mode%sample_radius = [ real(kind=dp) :: ]
+       aero_mode%sample_num_conc = [ real(kind=dp) :: ]
        if (trim(mode_type) == 'log_normal') then
           aero_mode%type = AERO_MODE_TYPE_LOG_NORMAL
           call spec_file_read_real(file, 'num_conc', aero_mode%num_conc)

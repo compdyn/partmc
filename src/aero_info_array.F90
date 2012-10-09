@@ -58,30 +58,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Copies aero_info_array_from to aero_info_array_to, both
-  !> of which must already be allocated.
-  subroutine aero_info_array_copy(aero_info_array_from, &
-       aero_info_array_to)
-
-    !> Origin structure.
-    type(aero_info_array_t), intent(in) :: aero_info_array_from
-    !> Destination structure.
-    type(aero_info_array_t), intent(inout) :: aero_info_array_to
-
-    if (allocated(aero_info_array_from%aero_info)) then
-       aero_info_array_to%n_item = aero_info_array_from%n_item
-       aero_info_array_to%aero_info = aero_info_array_from%aero_info
-    else
-       if (allocated(aero_info_array_to%aero_info)) then
-          deallocate(aero_info_array_to%aero_info)
-       end if
-    end if
-
-  end subroutine aero_info_array_copy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Resets an aero_info_array to contain zero data.
+  !> Sets an aero_info_array to contain zero data.
   subroutine aero_info_array_zero(aero_info_array)
 
     !> Structure to reset.
@@ -91,6 +68,7 @@ contains
     if (allocated(aero_info_array%aero_info)) then
        deallocate(aero_info_array%aero_info)
     end if
+    allocate(aero_info_array%aero_info(0))
 
   end subroutine aero_info_array_zero
 
@@ -121,8 +99,7 @@ contains
     call assert(867444847, new_length >= aero_info_array%n_item)
     allocate(new_items(new_length))
     do i = 1,aero_info_array%n_item
-       call aero_info_copy(aero_info_array%aero_info(i), &
-            new_items(i))
+       new_items(i) = aero_info_array%aero_info(i)
     end do
     call move_alloc(new_items, aero_info_array%aero_info)
 
@@ -184,7 +161,7 @@ contains
 
     n = aero_info_array_n_item(aero_info_array) + 1
     call aero_info_array_enlarge_to(aero_info_array, n)
-    call aero_info_copy(aero_info, aero_info_array%aero_info(n))
+    aero_info_array%aero_info(n) = aero_info
     aero_info_array%n_item = n
 
   end subroutine aero_info_array_add_aero_info
@@ -205,9 +182,8 @@ contains
     call assert(953927392, index <= aero_info_array%n_item)
     if (index < aero_info_array%n_item) then
        ! shift last aero_info into empty slot to preserve dense packing
-       call aero_info_copy( &
-            aero_info_array%aero_info(aero_info_array%n_item), &
-            aero_info_array%aero_info(index))
+       aero_info_array%aero_info(index) &
+            = aero_info_array%aero_info(aero_info_array%n_item)
     end if
     aero_info_array%n_item = aero_info_array%n_item - 1
     call aero_info_array_shrink(aero_info_array)
@@ -232,8 +208,7 @@ contains
     n_new = n + n_delta
     call aero_info_array_enlarge_to(aero_info_array, n_new)
     do i = 1,n_delta
-       call aero_info_copy(aero_info_array_delta%aero_info(i), &
-            aero_info_array%aero_info(n + i))
+       aero_info_array%aero_info(n + i) = aero_info_array_delta%aero_info(i)
     end do
     aero_info_array%n_item = n_new
 

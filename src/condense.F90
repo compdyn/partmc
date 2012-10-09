@@ -205,8 +205,8 @@ contains
     end do
 
     ! save data for use within the timestepper
-    call aero_data_copy(aero_data, condense_saved_aero_data)
-    call env_state_copy(env_state_initial, condense_saved_env_state_initial)
+    condense_saved_aero_data = aero_data
+    condense_saved_env_state_initial = env_state_initial
     condense_saved_Tdot &
          = (env_state_final%temp - env_state_initial%temp) / del_t
     condense_saved_pdot &

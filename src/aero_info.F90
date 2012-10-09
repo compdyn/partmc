@@ -59,24 +59,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Copies aero_info_from to aero_info_to.
-  subroutine aero_info_copy(aero_info_from, &
-       aero_info_to)
-
-    !> Origin structure.
-    type(aero_info_t), intent(in) :: aero_info_from
-    !> Destination structure.
-    type(aero_info_t), intent(inout) :: aero_info_to
-
-    aero_info_to%id = aero_info_from%id
-    aero_info_to%action = aero_info_from%action
-    aero_info_to%other_id = aero_info_from%other_id
-
-  end subroutine aero_info_copy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
->>>>>>> change aero_info to not allocate
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_aero_info(val)
 

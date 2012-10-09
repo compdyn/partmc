@@ -197,14 +197,6 @@ in dimensions, valid data, etc. Call after loading from netcdf files.
 Change integer_varray%n_entry to _n_entry. Same for
 aero_particle_array%n_part and similar.
 
-Change copy_real_2d() etc to take allocatables rather than pointers,
-and do the whole "if allocated" thing. Use this in aero_state_copy(),
-etc.
-
 Change pmc_mpi_pack_size_real_array_2d() etc to take allocatables that
 might not be allocated, and deal correctly with them. Use this in
 pmg_mpi_pack_aero_state(), etc.
-
-Remove _copy() subroutines entirely and replace with =. Will require
-checking that RHSes are always allocated first. I think only aero_mode
-will need fixing, to always allocate the sampled data.

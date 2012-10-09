@@ -135,7 +135,7 @@ contains
        deallocate(aero_sorted%coag_kernel_max)
     end if
     allocate(aero_sorted%coag_kernel_max(n_bin, n_bin))
-    call bin_grid_copy(bin_grid, aero_sorted%bin_grid)
+    aero_sorted%bin_grid = bin_grid
 
   end subroutine aero_sorted_set_bin_grid
 

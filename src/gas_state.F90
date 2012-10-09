@@ -78,26 +78,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Copy to an already allocated to_state.
-  subroutine gas_state_copy(gas_state_from, gas_state_to)
-
-    !> Existing gas state.
-    type(gas_state_t), intent(in) :: gas_state_from
-    !> Must be allocated already.
-    type(gas_state_t), intent(inout) :: gas_state_to
-
-    integer :: n_spec
-
-    if (gas_state_is_allocated(gas_state_from)) then
-       gas_state_to%mix_rat = gas_state_from%mix_rat
-    else
-       deallocate(gas_state_to%mix_rat)
-    end if
-
-  end subroutine gas_state_copy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Scale a gas state.
   subroutine gas_state_scale(gas_state, alpha)
 
@@ -232,15 +212,15 @@ contains
     p = find_1d(n, time_list, time)
     if (p == 0) then
        ! before the start, just use the first state and rate
-       call gas_state_copy(gas_state_list(1), gas_state)
+       gas_state = gas_state_list(1)
        rate = rate_list(1)
     elseif (p == n) then
        ! after the end, just use the last state and rate
-       call gas_state_copy(gas_state_list(n), gas_state)
+       gas_state = gas_state_list(n)
        rate = rate_list(n)
     else
        ! in the middle, use the previous state
-       call gas_state_copy(gas_state_list(p), gas_state)
+       gas_state = gas_state_list(p)
        rate = rate_list(p)
     end if
 

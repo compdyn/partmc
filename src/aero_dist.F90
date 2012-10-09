@@ -55,31 +55,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Copy an aero_dist.
-  subroutine aero_dist_copy(aero_dist_from, aero_dist_to)
-
-    !> Aero_dist original.
-    type(aero_dist_t), intent(in) :: aero_dist_from
-    !> Aero_dist copy.
-    type(aero_dist_t), intent(inout) :: aero_dist_to
-
-    integer :: i_mode
-
-    if (allocated(aero_dist_to%mode)) then
-       deallocate(aero_dist_to%mode)
-    end if
-    if (allocated(aero_dist_from%mode)) then
-       allocate(aero_dist_to%mode(size(aero_dist_from%mode)))
-       do i_mode = 1,aero_dist_n_mode(aero_dist_from)
-          call aero_mode_copy(aero_dist_from%mode(i_mode), &
-               aero_dist_to%mode(i_mode))
-       end do
-    end if
-
-  end subroutine aero_dist_copy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Returns the total number concentration of a distribution. (#/m^3)
   real(kind=dp) function aero_dist_total_num_conc(aero_dist)
 
@@ -220,15 +195,15 @@ contains
     p = find_1d(n, time_list, time)
     if (p == 0) then
        ! before the start, just use the first state and rate
-       call aero_dist_copy(aero_dist_list(1), aero_dist)
+       aero_dist = aero_dist_list(1)
        rate = rate_list(1)
     elseif (p == n) then
        ! after the end, just use the last state and rate
-       call aero_dist_copy(aero_dist_list(n), aero_dist)
+       aero_dist = aero_dist_list(n)
        rate = rate_list(n)
     else
        ! in the middle, use the previous dist
-       call aero_dist_copy(aero_dist_list(p), aero_dist)
+       aero_dist = aero_dist_list(p)
        rate = rate_list(p)
     end if
 
@@ -246,9 +221,9 @@ contains
     !> Aerosol dist.
     type(aero_dist_t), intent(inout) :: aero_dist
 
-    type(aero_mode_t), allocatable :: new_aero_mode_list(:)
     type(aero_mode_t) :: aero_mode
-    integer :: i, j, n_mode
+    type(aero_mode_t), allocatable :: new_modes(:)
+    integer :: n, i
     logical :: eof
 
     ! note that the <p> is needed below to force correct paragraph
@@ -264,17 +239,17 @@ contains
     !!   - \ref input_format_aero_mode --- the format for each mode
     !!     of an aerosol distribution
 
+    allocate(aero_dist%mode(0))
     call spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
     do while (.not. eof)
-       n_mode = aero_dist_n_mode(aero_dist) + 1
-       allocate(new_aero_mode_list(n_mode))
-       call aero_mode_copy(aero_mode, &
-            new_aero_mode_list(n_mode))
-       do i = 1,(n_mode - 1)
-          call aero_mode_copy(aero_dist%mode(i), &
-               new_aero_mode_list(i))
+       n = size(aero_dist%mode)
+       allocate(new_modes(n + 1))
+       do i = 1,n
+          new_modes(i) = aero_dist%mode(i)
        end do
-       call move_alloc(new_aero_mode_list, aero_dist%mode)
+       new_modes(n + 1) = aero_mode
+       call move_alloc(new_modes, aero_dist%mode)
+       !aero_dist%mode = [ aero_dist%mode, aero_mode ]
        call spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
     end do
 

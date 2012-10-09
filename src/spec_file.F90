@@ -348,11 +348,9 @@ contains
     end do
 
     ! copy data to actual list
-    if (allocated(line_list)) deallocate(line_list)
+    ! FIXME: following allocate shouldn't be needed, but is on gfortran 4.6.3
     allocate(line_list(num_lines))
-    do i = 1,num_lines
-       call spec_line_copy(temp_line_list(i), line_list(i))
-    end do
+    line_list = temp_line_list(1:num_lines)
 
   end subroutine spec_file_read_line_list
 

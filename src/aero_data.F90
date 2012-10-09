@@ -93,27 +93,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Copy structure.
-  subroutine aero_data_copy(aero_data_from, aero_data_to)
-
-    !> Source aerosol data.
-    type(aero_data_t), intent(in) :: aero_data_from
-    !> Destination aerosol data.
-    type(aero_data_t), intent(inout) :: aero_data_to
-
-    aero_data_to%i_water = aero_data_from%i_water
-    aero_data_to%name = aero_data_from%name
-    aero_data_to%mosaic_index = aero_data_from%mosaic_index
-    aero_data_to%density = aero_data_from%density
-    aero_data_to%num_ions = aero_data_from%num_ions
-    aero_data_to%molec_weight = aero_data_from%molec_weight
-    aero_data_to%kappa = aero_data_from%kappa
-    aero_data_to%source_name = aero_data_from%source_name
-
-  end subroutine aero_data_copy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Returns the number of the species in aero_data with the given name, or
   !> returns 0 if there is no such species.
   integer function aero_data_spec_by_name(aero_data, name)

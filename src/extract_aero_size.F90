@@ -28,7 +28,6 @@ program extract_aero_size
   integer :: index, i_repeat, i_part, i_spec, out_unit
   integer :: i_file, n_file, i_bin, n_bin, dist_type
   real(kind=dp) :: time, del_t
-  type(aero_particle_t), pointer :: aero_particle
   real(kind=dp) :: d_min, d_max, diam, volume
   character(len=PMC_UUID_LEN) :: uuid, run_uuid
   real(kind=dp), allocatable :: diameters(:), num_concs(:), masses(:), hist(:)

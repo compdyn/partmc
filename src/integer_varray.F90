@@ -235,17 +235,14 @@ contains
 #ifdef PMC_USE_MPI
     integer :: prev_position
     logical :: is_allocated
-    ! FIXME: should switch to allocatable arrays in pmc_mpi_unpack_*()
-    integer, pointer, dimension(:) :: tmp_entry
+    integer, allocatable :: tmp_entry(:)
 
     prev_position = position
     call pmc_mpi_unpack_logical(buffer, position, is_allocated)
     if (is_allocated) then
-       allocate(tmp_entry(0))
        call pmc_mpi_unpack_integer_array(buffer, position, tmp_entry)
        call integer_varray_realloc(val, size(tmp_entry))
        val%entry(1:size(tmp_entry)) = tmp_entry
-       deallocate(tmp_entry)
     else
        if (allocated(val%entry)) then
           deallocate(val%entry)

@@ -172,7 +172,6 @@ contains
     real(kind=dp) :: tmar21_sec  ! Time at noon, march 21, UTC (s).
     real(kind=dp) :: conv_fac(aero_data_n_spec(aero_data)), dum_var
     integer :: i_part, i_spec, i_spec_mosaic
-    type(aero_particle_t), pointer :: particle
     real(kind=dp) :: num_conc
 
     ! MOSAIC function interfaces
@@ -295,7 +294,6 @@ contains
     ! local variables
     real(kind=dp) :: conv_fac(aero_data_n_spec(aero_data)), dum_var, num_conc
     integer :: i_part, i_spec, i_spec_mosaic
-    type(aero_particle_t), pointer :: particle
     real(kind=dp) :: reweight_num_conc(aero_state_n_part(aero_state))
 
     ! compute aerosol conversion factors
@@ -454,7 +452,6 @@ contains
     end interface
 
     integer :: i_part
-    type(aero_particle_t), pointer :: particle
 
     ! map PartMC -> MOSAIC
 !    call mosaic_from_partmc(env_state, aero_data, aero_state, &

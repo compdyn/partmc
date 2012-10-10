@@ -1534,43 +1534,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Copy a 1D array of reals, reallocating if necessary.
-  subroutine copy_real_1d(source, dest)
-
-    !> Source array.
-    real(kind=dp), intent(in) :: source(:)
-    !> Destination array.
-    real(kind=dp), intent(inout), pointer :: dest(:)
-
-    if (size(dest) /= size(source)) then
-       deallocate(dest)
-       allocate(dest(size(source)))
-    end if
-    dest = source
-
-  end subroutine copy_real_1d
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Copy a 2D array of reals, reallocating if necessary.
-  subroutine copy_real_2d(source, dest)
-
-    !> Source array.
-    real(kind=dp), intent(in) :: source(:, :)
-    !> Destination array.
-    real(kind=dp), intent(inout), pointer :: dest(:, :)
-
-    if ((size(dest, 1) /= size(source, 1)) &
-         .or. (size(dest, 2) /= size(source, 2))) then
-       deallocate(dest)
-       allocate(dest(size(source, 1), size(source, 2)))
-    end if
-    dest = source
-
-  end subroutine copy_real_2d
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Compute the harmonic mean of two numbers.
   elemental real(kind=dp) function harmonic_mean(x1, x2)
 

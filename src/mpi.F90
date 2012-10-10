@@ -166,9 +166,7 @@ contains
     character(len=100) :: send_string, recv_string
     integer :: send_integer, recv_integer
     real(kind=dp) :: send_real_array(2)
-    real(kind=dp), pointer :: recv_real_array(:)
-
-    allocate(recv_real_array(1))
+    real(kind=dp), allocatable :: recv_real_array(:)
 
     if (pmc_mpi_rank() == 0) then
        send_real = test_real
@@ -278,8 +276,6 @@ contains
             // " not equal to " &
             // trim(real_to_string(aimag(test_complex))))
     end if
-
-    deallocate(recv_real_array)
 #endif
 
   end subroutine pmc_mpi_test

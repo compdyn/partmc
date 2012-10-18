@@ -164,8 +164,12 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
-    vol2rad = fractal%prime_radius * (vol_to_num_of_monomers(v, fractal) &
-         * fractal%vol_fill_factor)**(1d0 / fractal%frac_dim)
+    if (fractal_is_spherical(fractal)) then
+       vol2rad = sphere_vol2rad(v)
+    else
+       vol2rad = fractal%prime_radius * (vol_to_num_of_monomers(v, fractal) &
+            * fractal%vol_fill_factor)**(1d0 / fractal%frac_dim)
+    end if
 
   end function vol2rad
 
@@ -220,9 +224,13 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
-    rad2vol = sphere_rad2vol(fractal%prime_radius) &
-         * (r / fractal%prime_radius)**fractal%frac_dim &
-         / fractal%vol_fill_factor
+    if (fractal_is_spherical(fractal)) then
+       rad2vol = sphere_rad2vol(r)
+    else
+       rad2vol = sphere_rad2vol(fractal%prime_radius) &
+            * (r / fractal%prime_radius)**fractal%frac_dim &
+            / fractal%vol_fill_factor
+    end if
 
   end function rad2vol
 
@@ -375,7 +383,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Test whether a particle is spherical.
-  logical function fractal_is_spherical(fractal)
+  elemental logical function fractal_is_spherical(fractal)
 
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal

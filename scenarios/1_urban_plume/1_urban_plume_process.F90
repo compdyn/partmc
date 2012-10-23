@@ -31,6 +31,7 @@ program process
        entropies(:), entropies_averaged(:), crit_rhs(:), scs(:), num_dist(:), &
        diam_bc_dist(:,:), diam_sc_dist(:,:), entropy_dist(:), diam_entropy_dist(:,:), &
        entropy_dist_ratio(:)
+  real(kind=dp), allocatable :: least_create_times(:), greatest_create_times(:)
   type(stats_1d_t) :: stats_num_dist, stats_entropy_dist, stats_entropy_dist_ratio, &
        stats_tot_num_conc, stats_tot_mass_conc, stats_tot_entropy, &
        stats_tot_entropy_averaged, stats_ccn(3)
@@ -108,7 +109,8 @@ program process
              include=(/"SO4"/))
         so4_fracs = so4_masses / dry_masses
         
-        
+        least_create_times = aero_state_least_create_times(aero_state)
+	greatest_create_times = aero_state_greatest_create_times(aero_state) 
         
         diam_bc_dist = bin_grid_histogram_2d(diam_grid, dry_diameters, &
              bc_grid, bc_fracs, num_concs)
@@ -176,6 +178,8 @@ program process
         call pmc_nc_write_real_1d(ncid, oc_fracs, "oc_frac", dim_name="particle", unit="1")
         call pmc_nc_write_real_1d(ncid, no3_fracs, "no3_frac", dim_name="particle", unit="1")
         call pmc_nc_write_real_1d(ncid, so4_fracs, "so4_frac", dim_name="particle", unit="1")
+        call pmc_nc_write_real_1d(ncid, least_create_times, "least_ct", dim_name="particle", unit="1")
+        call pmc_nc_write_real_1d(ncid, greatest_create_times, "greatest_ct", dim_name="particle", unit="1")
         call pmc_nc_close(ncid)
      end do
 

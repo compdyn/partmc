@@ -961,6 +961,46 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the IDs of all particles.
+  function aero_state_least_create_times(aero_state)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+
+    !> Return value.
+    real(kind=dp) :: aero_state_least_create_times(aero_state%apa%n_part)
+
+    integer :: i_part
+
+    do i_part = 1,aero_state%apa%n_part
+       aero_state_least_create_times(i_part) & 
+             = aero_state%apa%particle(i_part)%least_create_time
+    end do
+
+  end function aero_state_least_create_times
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the IDs of all particles.
+  function aero_state_greatest_create_times(aero_state)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+
+    !> Return value.
+    real(kind=dp) :: aero_state_greatest_create_times(aero_state%apa%n_part)
+
+    integer :: i_part
+
+    do i_part = 1,aero_state%apa%n_part
+       aero_state_greatest_create_times(i_part) & 
+             = aero_state%apa%particle(i_part)%greatest_create_time
+    end do
+
+  end function aero_state_greatest_create_times
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Returns the diameters of all particles.
   function aero_state_diameters(aero_state)
 

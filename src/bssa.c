@@ -47,9 +47,23 @@ void bssa_on_part_add(int bin, int numBins, const int* binLens, double* sums)
 }
 
 //call after removing particle, other bin counts should be unchanged
-void bssa_on_part_add(int bin, int numBins, const int* binLens, double* sums)
+void bssa_on_part_remove(int bin, int numBins, const int* binLens,
+		double* sums)
 {
-
+	double* kmaxRow = kmax + bin*binLens;
+	double netDiff = 0.0;
+	for(int i = 0; i < bin; i++) {
+		netDiff -= binLens[i]*kmaxRow[i];
+	}
+	int selfPairsDiff = -binLens[bin];
+	netDiff += selfPairsDiff*kmaxRow[bin];
+	sums[bin] += netDiff;
+	for(int j = bin+1; j < numBins; j++) {
+		double diff = -binLens[j]*kmaxRow[j];
+		sums[j] += diff;
+		netDiff += diff;
+	}
+	sums[numBins] += netDiff;
 }
 
 //TODO: possibly always keep track of row sums so that it does not

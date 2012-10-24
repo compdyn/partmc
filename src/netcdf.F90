@@ -73,7 +73,8 @@ contains
     !> NetCDF file ID, in data mode, returns in data mode.
     integer, intent(out) :: ncid
 
-    call pmc_nc_check_msg(nf90_create(filename, NF90_CLOBBER, ncid), &
+    call pmc_nc_check_msg(nf90_create(filename, &
+         ior(NF90_CLOBBER, NF90_64BIT_OFFSET), ncid), &
          "opening " // trim(filename) // " for writing")
     call pmc_nc_check(nf90_enddef(ncid))
 

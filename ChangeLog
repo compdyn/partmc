@@ -13,6 +13,9 @@
     `aero_num_conc`, which is the inverse of the previous
     `aero_comp_vol` variable.
 
+  * Output NetCDF files use 64-bit offsets, allowing variables up to
+    4 GB (in practice, `n_part * n_spec < 2^29 = 5.4e8`).
+
 2.2.1 - 2012-03-30
 
   * De-duplicate error codes.

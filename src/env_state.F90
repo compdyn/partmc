@@ -76,6 +76,9 @@ module pmc_env_state
      type(aero_dist_t) :: aero_background
      !> Aero-background dilute rate (s^{-1}).
      real(kind=dp) :: aero_dilution_rate
+     !> Environmental dilution rate (s^{-1}).
+     real(kind=dp) :: env_dilution_rate
+
   end type env_state_t
   
 contains
@@ -367,13 +370,53 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !JT Calculate the current plume height
+  real(kind=dp) function env_state_plume_height(env_state)
+    
+    !Environment state
+    type(env_state_t), intent(in) :: env_state
+    
+    !parameters for calculation
+    real(kind=dp), parameter :: t0 = 1.0d0  !s, initial time
+    real(kind=dp), parameter :: h0 = 5.5d0  !m, initial plume height at t0 = 1s
+    real(kind=dp), parameter :: beta = 0.6d0  !plume expansion rate in vertical
+    real(kind=dp), parameter :: t_shift = 1.0d0  !shifting time for the dilution calculation
+    
+    env_state_plume_height = h0 * ((env_state%elapsed_time + t_shift) / t0) ** beta
+
+  end function env_state_plume_height
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  !JT Calculate the dilution rate
+  real(kind=dp) function env_state_dilution_rate(env_state)
+    
+    !Environment state
+    type(env_state_t), intent(in) :: env_state
+    
+    !parameters for calculation
+    real(kind=dp), parameter :: alpha = 0.75d0  !plume expansion rate in horizontal
+    real(kind=dp), parameter :: beta = 0.6d0  !plume expansion rate in vertical
+    real(kind=dp), parameter :: t_shift = 1.0d0  !shifting time for the dilution calculation
+    
+    if(env_state_plume_height(env_state) < env_state%height) then
+      env_state_dilution_rate = (alpha + beta) / (env_state%elapsed_time + t_shift)
+    else
+      env_state_dilution_rate = alpha / (env_state%elapsed_time+ t_shift)
+    end if
+    
+    !env_state_dilution_rate = 0.0d0  !Turn dilution off!
+  end function env_state_dilution_rate 
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Do emissions and background dilution from the environment.
   subroutine env_state_update_gas_state(env_state, delta_t, &
        old_env_state, &
        gas_data, gas_state)
 
     !> Current environment.
-    type(env_state_t), intent(in) :: env_state
+    type(env_state_t), intent(inout) :: env_state
     !> Time increment to update over.
     real(kind=dp), intent(in) :: delta_t
     !> Previous environment.
@@ -390,13 +433,17 @@ contains
     call gas_state_allocate_size(dilution, gas_data%n_spec)
 
     ! account for height changes
-    effective_dilution_rate = env_state%gas_dilution_rate
-    if (env_state%height > old_env_state%height) then
-       effective_dilution_rate = effective_dilution_rate &
-            + (env_state%height - old_env_state%height) / delta_t / &
-            old_env_state%height
-    end if
-
+    !effective_dilution_rate = env_state%gas_dilution_rate
+    !if (env_state%height > old_env_state%height) then
+    !   effective_dilution_rate = effective_dilution_rate &
+    !        + (env_state%height - old_env_state%height) / delta_t / &
+    !        old_env_state%height
+    !end if
+    
+    !effective_dilution_rate = env_state%env_dilution_rate
+    effective_dilution_rate = env_state_dilution_rate(env_state)
+    env_state%env_dilution_rate = env_state_dilution_rate(env_state)
+    
     ! emission = delta_t * gas_emission_rate * gas_emissions
     ! but emissions are in (mol m^{-2} s^{-1})
     call gas_state_copy(env_state%gas_emissions, emission)
@@ -427,7 +474,7 @@ contains
        old_env_state, aero_data, aero_state, n_emit, n_dil_in, n_dil_out)
 
     !> Current environment.
-    type(env_state_t), intent(in) :: env_state
+    type(env_state_t), intent(inout) :: env_state
     !> Time increment to update over.
     real(kind=dp), intent(in) :: delta_t
     !> Previous environment.
@@ -448,15 +495,23 @@ contains
     type(aero_state_t) :: aero_state_delta
 
     ! account for height changes
-    effective_dilution_rate = env_state%aero_dilution_rate
-    if (env_state%height > old_env_state%height) then
-       effective_dilution_rate = effective_dilution_rate &
-            + (env_state%height - old_env_state%height) / delta_t / &
-            old_env_state%height
-    end if
+    !effective_dilution_rate = env_state%aero_dilution_rate
+    !if (env_state%height > old_env_state%height) then
+    !   effective_dilution_rate = effective_dilution_rate &
+    !        + (env_state%height - old_env_state%height) / delta_t / &
+    !        old_env_state%height
+    !end if
+
+    effective_dilution_rate = env_state_dilution_rate(env_state)
+    env_state%env_dilution_rate = env_state_dilution_rate(env_state)
 
     ! loss to background
-    sample_prop = 1d0 - exp(- delta_t * effective_dilution_rate)
+    !sample_prop = 1d0 - exp(- delta_t * effective_dilution_rate)
+    sample_prop = delta_t * effective_dilution_rate
+    if (sample_prop > 1d0) then
+       call die_msg(925788271, &
+            'effective dilution rate too high for this timestep')
+    end if
     call aero_state_allocate_size(aero_state_delta, AERO_STATE_WEIGHT_NONE)
     call aero_state_zero(aero_state_delta)
     call aero_weight_array_copy(aero_state%aero_weight, &
@@ -467,14 +522,20 @@ contains
     call aero_state_deallocate(aero_state_delta)
 
     ! addition from background
-    sample_prop = 1d0 - exp(- delta_t * effective_dilution_rate)
+    !sample_prop = 1d0 - exp(- delta_t * effective_dilution_rate)
+    if(env_state%elapsed_time == delta_t) then
+       sample_prop = 1d0
+    else
+       sample_prop = delta_t * effective_dilution_rate
+    endif
     call aero_state_add_aero_dist_sample(aero_state, aero_data, &
          env_state%aero_background, sample_prop, env_state%elapsed_time, &
          n_dil_in)
     
     ! emissions
-    sample_prop = 1d0 &
-         - exp(- delta_t * env_state%aero_emission_rate / env_state%height)
+    !sample_prop = 1d0 &
+    !     - exp(- delta_t * env_state%aero_emission_rate / env_state%height)
+    sample_prop = delta_t * env_state%aero_emission_rate / env_state%height
     call aero_state_add_aero_dist_sample(aero_state, aero_data, &
          env_state%aero_emissions, sample_prop, env_state%elapsed_time, n_emit)
 
@@ -492,7 +553,7 @@ contains
        old_env_state, bin_grid, aero_data, aero_binned)
 
     !> Current environment.
-    type(env_state_t), intent(in) :: env_state
+    type(env_state_t), intent(inout) :: env_state
     !> Time increment to update over.
     real(kind=dp), intent(in) :: delta_t
     !> Previous environment.
@@ -511,12 +572,15 @@ contains
     call aero_binned_allocate_size(dilution, bin_grid%n_bin, aero_data%n_spec)
 
     ! account for height changes
-    effective_dilution_rate = env_state%aero_dilution_rate
-    if (env_state%height > old_env_state%height) then
-       effective_dilution_rate = effective_dilution_rate &
-            + (env_state%height - old_env_state%height) / delta_t / &
-            old_env_state%height
-    end if
+    !effective_dilution_rate = env_state%aero_dilution_rate
+    !if (env_state%height > old_env_state%height) then
+    !   effective_dilution_rate = effective_dilution_rate &
+    !        + (env_state%height - old_env_state%height) / delta_t / &
+    !        old_env_state%height
+    !end if
+
+    effective_dilution_rate = env_state_dilution_rate(env_state)
+    env_state%env_dilution_rate = env_state_dilution_rate(env_state) 
 
     ! emission = delta_t * aero_emission_rate * aero_emissions
     ! but emissions are #/m^2 so we need to divide by height
@@ -830,7 +894,8 @@ contains
          description="current angle from the zenith to the sun")
     call pmc_nc_write_real(ncid, env_state%height, "height", unit="m", &
          long_name="boundary layer mixing height")
-
+    call pmc_nc_write_real(ncid, env_state%env_dilution_rate, "DilutionRate", unit="s-1", &
+         long_name="Environmental dilution rate")
   end subroutine env_state_output_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -857,6 +922,7 @@ contains
     call pmc_nc_read_real(ncid, env_state%solar_zenith_angle, &
          "solar_zenith_angle")
     call pmc_nc_read_real(ncid, env_state%height, "height")
+    call pmc_nc_read_real(ncid, env_state%env_dilution_rate, "DilutionRate")    
 
   end subroutine env_state_input_netcdf
   

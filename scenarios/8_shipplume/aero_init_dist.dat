@@ -1,0 +1,20 @@
+mode_name init_volatile
+mass_frac aero_init_comp_volatile.dat           # composition proportions of species
+mode_type log_normal              # type of distribution
+num_conc 2.29e15                     # particle number density (#/m^3)
+geom_mean_diam 15e-9                  # geometric mean diameter (m)
+log10_geom_std_dev 0.22                 # log_10 of geometric standard deviation
+
+mode_name init_combustion1
+mass_frac aero_init_comp_combustion1.dat           # composition proportions of species
+mode_type log_normal              # type of distribution
+num_conc 4.36e14                     # particle number density (#/m^3)
+geom_mean_diam 3.8e-8                # geometric mean diameter (m)
+log10_geom_std_dev 0.146                 # log_10 of geometric standard deviation
+
+mode_name init_combustion2
+mass_frac aero_init_comp_combustion2.dat           # composition proportions of species
+mode_type log_normal              # type of distribution
+num_conc 3.11e10                     # particle number density (#/m^3)
+geom_mean_diam 15.5e-8                # geometric mean diameter (m)
+log10_geom_std_dev 0.097                 # log_10 of geometric standard deviation

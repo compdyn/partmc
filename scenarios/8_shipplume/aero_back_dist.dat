@@ -1,0 +1,20 @@
+mode_name Aitken
+mass_frac aero_back_comp_aitken.dat            # composition proportions of species
+mode_type log_normal               # type of distribution
+num_conc 9.6e8                      # particle number density (#/m^3)
+geom_mean_diam 4e-8                   # geometric mean diameter (m)
+log10_geom_std_dev 0.23                  # log_10 of geometric standard deviation
+
+mode_name Accumulation
+mass_frac aero_back_comp_accumulation.dat            # composition proportions of species
+mode_type log_normal               # type of distribution
+num_conc 2.3e8                      # particle number density (#/m^3)
+geom_mean_diam 2.0e-7                 # geometric mean diameter (m)
+log10_geom_std_dev 0.097                  # log_10 of geometric standard deviation
+
+mode_name Coarse
+mass_frac aero_back_comp_coarse.dat            # composition proportions of species
+mode_type log_normal               # type of distribution
+num_conc 3.2e6                      # particle number density (#/m^3)
+geom_mean_diam 9e-7                 # geometric mean diameter (m)
+log10_geom_std_dev 0.255                  # log_10 of geometric standard deviation

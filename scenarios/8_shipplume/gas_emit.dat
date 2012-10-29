@@ -1,0 +1,24 @@
+# time (s)
+# rate = scaling parameter
+# emissions (mol m^{-2} s^{-1})
+time     0           86400
+rate     0.5         0.5
+#rate     1           1 
+SO2       0           0 
+NO2       0           0 
+NO        0           0 
+NH3       0           0 
+CO        0           0 
+ALD2      0           0 
+HCHO      0           0 
+ETH       0           0 
+OLEI      0           0 
+OLET      0           0 
+TOL       0           0 
+XYL       0           0 
+AONE      0           0 
+PAR       0           0 
+ISOP      0           0 
+CH3OH     0           0 
+ANOL      0           0 
+

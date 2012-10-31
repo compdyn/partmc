@@ -145,7 +145,7 @@ program test_fractal_dimless_time
      write(out_unit,'(a)') ''
   end do
   call close_file(out_unit)
-  
+
   deallocate(times)
   deallocate(dimless_times)
   deallocate(time_num_concs)

@@ -1,5 +1,5 @@
 run_type particle               # particle-resolved run
-output_prefix out/additive_part # prefix of output files
+output_prefix out/loss_part     # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 100000                   # number of Monte Carlo particles
 restart no                      # whether to restart from saved state (yes/no)

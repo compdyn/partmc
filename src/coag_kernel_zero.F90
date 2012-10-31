@@ -99,7 +99,7 @@ contains
   !!                     + \frac{k_{\rm emit}}{k_{\rm dilute}} n_{\rm emit}(D)
   !! \f]
   subroutine soln_zero(bin_grid, aero_data, time, aero_dist_init, &
-       scenario, env_state, aero_binned)
+       scenario, env_state, loss_function_type, aero_binned)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -113,8 +113,14 @@ contains
     type(scenario_t), intent(in) :: scenario
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Particle loss function type.
+    integer, intent(in) :: loss_function_type
     !> Output state.
     type(aero_binned_t), intent(inout) :: aero_binned
+    
+    
+    !FIXME: add functionality for loss_function_type
+    
 
     real(kind=dp) :: emission_rate_scale, dilution_rate, p
     type(aero_dist_t) :: emissions, background

@@ -55,19 +55,14 @@ contains
     type(aero_binned_t), intent(inout) :: aero_binned
 
     if (.not. do_coagulation) then
-       if (do_loss) then
-       
-       end
-       else
-          call die_msg(287486666, 'Exact solutions require coagulation ' &
-               // '(can set coag_kernel to "zero") or particle loss.')
+       call die_msg(287486666, 'Exact solutions require coagulation ' &
+            // '(can set coag_kernel to "zero").')
        endif
     end if
     
-    if (do_loss) then
-       call die_msg(853898367, "Exact solution cannot couple particle " &
-            // "loss with coagulation")
-    end if
+    if (coag_kernel_type /= COAG_KERNEL_TYPE_ZERO && do_loss) then
+       call die_msg(189372109, 'Exact solution with particle loss ' &
+            // 'requires using the "zero" coag_kernel.')
 
     if (coag_kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
        ! FIXME: check scenario has no emissions or dilution
@@ -103,8 +98,13 @@ contains
             aero_dist_init%mode(1)%char_radius, env_state, aero_binned)
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_ZERO) then
        ! FIXME: check scenario has constant emissions and constant dilution
-       call soln_zero(bin_grid, aero_data, time, aero_dist_init, &
-            scenario, env_state, aero_binned)
+       if do_loss then
+          call soln_zero(bin_grid, aero_data, time, aero_dist_init, &
+             scenario, env_state, loss_function_type, aero_binned)
+       else
+          call soln_zero(bin_grid, aero_data, time, aero_dist_init, &
+             scenario, env_state, SCENARIO_LOSS_FUNCTION_INVALID, aero_binned)
+       endif
     else
        call die_msg(932981721, "No exact solutions with " &
             // "coagulation kernel type " &

@@ -23,11 +23,13 @@ module pmc_exact_soln
 
 contains
 
+  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine exact_soln(bin_grid, aero_data, do_coagulation, &
-       coag_kernel_type, aero_dist_init, scenario, env_state, time, &
-       aero_binned)
+       coag_kernel_type, do_loss, loss_function_type, aero_dist_init, &
+       scenario, env_state, time, aero_binned)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -37,6 +39,10 @@ contains
     logical, intent(in) :: do_coagulation
     !> Coagulation kernel type.
     integer, intent(in) :: coag_kernel_type
+    !> Whether to do particle loss.
+    logical, intent(in) :: do_loss
+    !> Particle loss function type.
+    integer, intent(in) :: loss_function_type
     !> Initial distribution.
     type(aero_dist_t), intent(in) :: aero_dist_init
     !> Environment data.
@@ -49,8 +55,18 @@ contains
     type(aero_binned_t), intent(inout) :: aero_binned
 
     if (.not. do_coagulation) then
-       call die_msg(287486666, 'Exact solutions require coagulation ' &
-            // '(can set coag_kernel to "zero").')
+       if (do_loss) then
+       
+       end
+       else
+          call die_msg(287486666, 'Exact solutions require coagulation ' &
+               // '(can set coag_kernel to "zero") or particle loss.')
+       endif
+    end if
+    
+    if (do_loss) then
+       call die_msg(853898367, "Exact solution cannot couple particle " &
+            // "loss with coagulation")
     end if
 
     if (coag_kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then

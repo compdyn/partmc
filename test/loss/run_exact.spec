@@ -1,5 +1,5 @@
 run_type exact                  # exact solution
-output_prefix out/additive_exact # prefix of output files
+output_prefix out/loss_exact    # prefix of output files
 
 t_max 600                       # total simulation time (s)
 t_output 60                     # output interval (0 disables) (s)
@@ -28,6 +28,7 @@ altitude 0                      # altitude (m)
 start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
-do_coagulation no               # whether to do coagulation (yes/no)
+do_coagulation yes              # whether to do coagulation (yes/no)
+coag_kernel none                # coagulation kernel
 do_loss yes                     # whether to do particle loss (yes/no)
 loss_function volume            # loss rate function

@@ -4,11 +4,11 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The extract_sectional_dimless_time program.
+!> The test_fractal_sectional_dimless_time program.
 
 !> Read sectional NetCDF output files and write out the time evolution of
 !> aerosol dimensionless number concentrations in text format.
-program extract_sectional_dimless_time
+program test_fractal_sectional_dimless_time
 
   use pmc_aero_binned
   use pmc_output
@@ -31,58 +31,44 @@ program extract_sectional_dimless_time
   integer :: i_file, n_file, regime
   real(kind=dp) :: time, del_t, density, n_init
   character(len=PMC_UUID_LEN) :: uuid, run_uuid
-  real(kind=dp), allocatable :: times(:), time_num_concs(:), time_mass_concs(:)
+  real(kind=dp), allocatable :: times(:), time_num_concs(:)
+  real(kind=dp), allocatable :: time_mass_concs(:)
   real(kind=dp), allocatable :: time_vol_concs(:)
-  real(kind=dp), allocatable :: dimless_times(:), dimless_time_num_concs(:)
-  real(kind=dp), allocatable :: time_species_concs(:,:), time_species_vol_concs(:,:)
-  type(option_s) :: opts(5)
+  real(kind=dp), allocatable :: dimless_times(:)
+  real(kind=dp), allocatable :: dimless_time_num_concs(:)
+  real(kind=dp), allocatable :: time_species_concs(:,:)
+  real(kind=dp), allocatable :: time_species_vol_concs(:,:)
+  type(option_s) :: opts(3)
 
   call pmc_mpi_init()
 
-  opts(1) = option_s("help", .false., 'h')
-  opts(2) = option_s("free", .false., 'f')
-  opts(3) = option_s("cont", .false., 'c')
-  opts(4) = option_s("n_init", .true., 'n')
-  opts(5) = option_s("output", .true., 'o')
+  opts(1) = option_s("free", .false., 'f')
+  opts(2) = option_s("cont", .false., 'c')
+  opts(3) = option_s("output", .true., 'o')
 
   regime = 0
-  n_init = 0d0
+  n_init = 1d14
   out_filename = ""
 
   do
-     select case(getopt("hfco:", opts))
+     select case(getopt("fco:", opts))
      case(char(0))
         exit
-     case('h')
-        call print_help()
-        stop
      case('f')
         regime = REGIME_FREE
      case('c')
         regime = REGIME_CONT
-     case('n')
-        n_init = string_to_real(optarg)
      case('o')
         out_filename = optarg
-     case( '?' )
-        call print_help()
-        call die_msg(514364550, 'unknown option: ' // trim(optopt))
-     case default
-        call print_help()
-        call die_msg(603100341, 'unhandled option: ' // trim(optopt))
      end select
   end do
 
-  if (n_init <= 0d0) then
-     call die_msg(397132882, 'expected initial number concentration')
-  end if
-
   if (regime == 0) then
-     call die_msg(377136887, 'missing aerosol regime: please specify --free or --cont')
+     call die_msg(377136887, 'missing aerosol regime: ' &
+          // 'please specify --free or --cont')
   end if
 
   if (optind /= command_argument_count()) then
-     call print_help()
      call die_msg(967032896, 'expected exactly one non-option prefix argument')
   end if
 
@@ -104,7 +90,8 @@ program extract_sectional_dimless_time
        "no NetCDF files found with prefix: " // trim(in_prefix))
 
   call input_sectional(filename_list(1), index, time, del_t, uuid, &
-       bin_grid=bin_grid, aero_data=aero_data, aero_binned=aero_binned, env_state=env_state)
+       bin_grid=bin_grid, aero_data=aero_data, &
+       aero_binned=aero_binned, env_state=env_state)
   run_uuid = uuid
 
   allocate(times(n_file))
@@ -118,7 +105,8 @@ program extract_sectional_dimless_time
 
   do i_file = 1,n_file
      call input_sectional(filename_list(i_file), index, time, del_t, uuid, &
-       bin_grid=bin_grid, aero_data=aero_data, aero_binned=aero_binned, env_state=env_state)
+          bin_grid=bin_grid, aero_data=aero_data, aero_binned=aero_binned, &
+          env_state=env_state)
 
      call assert_msg(397906326, uuid == run_uuid, &
           "UUID mismatch between " // trim(filename_list(1)) // " and " &
@@ -176,23 +164,4 @@ program extract_sectional_dimless_time
 
   call pmc_mpi_finalize()
 
-contains
-
-  subroutine print_help()
-
-    write(*,'(a)') 'Usage: test_fractal_sectional_dimless_time [options] <netcdf_prefix>'
-    write(*,'(a)') ''
-    write(*,'(a)') 'options are:'
-    write(*,'(a)') '  -h, --help        Print this help message.'
-    write(*,'(a)') '  -f, --free        Free molecular regime.'
-    write(*,'(a)') '  -c, --cont        Continuum regime.'
-    write(*,'(a)') '  -n, --n_init      Initial number concentration (m^-3).'
-    write(*,'(a)') '  -o, --out <file>  Output filename.'
-    write(*,'(a)') ''
-    write(*,'(a)') 'Examples:'
-    write(*,'(a)') '  test_fractal_sectional_dimless_time --free --n_init 1e14 data'
-    write(*,'(a)') ''
-
-  end subroutine print_help
-
-end program extract_sectional_dimless_time
+end program test_fractal_sectional_dimless_time

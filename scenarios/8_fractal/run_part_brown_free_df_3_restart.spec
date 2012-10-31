@@ -1,14 +1,14 @@
 run_type particle               # particle-resolved run
-output_prefix out_dimless_t/restart/part_brown_free_df_3     # prefix of output files
+output_prefix out/restart_part_brown_free_df_3     # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 10000                    # total number of particles
 restart yes                     # whether to restart from saved state (yes/no)
-restart_file out_dimless_t/part_brown_free_df_3_0001_00000021.nc # saved state file to restart from
+restart_file out/part_brown_free_df_3_0001_00000021.nc # saved state file to restart from
 
-t_max 6.5e+4                    # total simulation time (s)
+t_max 65000                    # total simulation time (s)
 del_t 10                        # timestep (s)
-t_output 5e+3                   # output interval (0 disables) (s)
-t_progress 1e+3                 # progress printing interval (0 disables) (s)
+t_output 5000                   # output interval (0 disables) (s)
+t_progress 1000                 # progress printing interval (0 disables) (s)
 
 temp_profile temp_free.dat      # temperature profile file
 pressure_profile pressure.dat   # pressure profile file

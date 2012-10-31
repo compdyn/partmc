@@ -241,11 +241,11 @@ add_test(test_sedi_1 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_1.sh)
 add_test(test_sedi_2 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_2.sh)
 set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 
-add_test(test_fractal_01 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_01.sh)
-add_test(test_fractal_02 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_02.sh)
-set_tests_properties(test_fractal_02 PROPERTIES DEPENDS test_fractal_01)
-add_test(test_fractal_03 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_03.sh)
-set_tests_properties(test_fractal_03 PROPERTIES DEPENDS test_fractal_02)
+add_test(test_fractal_1 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_1.sh)
+add_test(test_fractal_2 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_2.sh)
+set_tests_properties(test_fractal_2 PROPERTIES DEPENDS test_fractal_1)
+add_test(test_fractal_3 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_3.sh)
+set_tests_properties(test_fractal_3 PROPERTIES DEPENDS test_fractal_2)
 
 ######################################################################
 # partmc library
@@ -347,15 +347,6 @@ add_executable(test_fractal_sectional_dimless_time
   src/getopt.F90)
 
 target_link_libraries(test_fractal_sectional_dimless_time partmclib)
-
-######################################################################
-# test_fractal_merge_files
-
-add_executable(test_fractal_merge_files
-  test/fractal/test_fractal_merge_files.F90
-  src/getopt.F90)
-
-target_link_libraries(test_fractal_merge_files partmclib)
 
 ######################################################################
 # test_fractal_radii_conversion

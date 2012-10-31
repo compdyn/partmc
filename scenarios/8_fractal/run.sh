@@ -6,8 +6,6 @@ set -e
 set -v
 
 mkdir -p out
-mkdir -p out_dimless_t
-mkdir -p out_dimless_t/restart
 
 ../../build/partmc run_part_brown_free_df_3.spec
 ../../build/partmc run_sect_brown_free_df_3.spec

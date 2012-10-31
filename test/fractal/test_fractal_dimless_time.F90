@@ -4,11 +4,12 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The extract_dimless_time program.
+!> The test_fractal_dimless_time program.
 
 !> Read NetCDF output files and write out the time evolution of aerosol
 !> dimensionless number concentrations in text format.
-program extract_dimless_time
+
+program test_fractal_dimless_time
 
   use pmc_aero_state
   use pmc_aero_particle
@@ -36,55 +37,39 @@ program extract_dimless_time
   real(kind=dp), allocatable :: particle_volumes(:)
   real(kind=dp), allocatable :: times(:), time_num_concs(:)
   real(kind=dp), allocatable :: dimless_times(:), dimless_time_num_concs(:)
-  type(option_s) :: opts(5)
+  type(option_s) :: opts(3)
 
   call pmc_mpi_init()
 
-  opts(1) = option_s("help", .false., 'h')
-  opts(2) = option_s("free", .false., 'f')
-  opts(3) = option_s("cont", .false., 'c')
-  opts(4) = option_s("n_init", .true., 'n')
-  opts(5) = option_s("output", .true., 'o')
+  opts(1) = option_s("free", .false., 'f')
+  opts(2) = option_s("cont", .false., 'c')
+  opts(3) = option_s("output", .true., 'o')
 
   regime = 0
-  n_init = 0d0
+  n_init = 1d14
   out_filename = ""
 
   do
-     select case(getopt("hfcno:", opts))
+     select case(getopt("fco:", opts))
      case(char(0))
         exit
-     case('h')
-        call print_help()
-        stop
      case('f')
         regime = REGIME_FREE
      case('c')
         regime = REGIME_CONT
-     case('n')
-        n_init = string_to_real(optarg)
      case('o')
         out_filename = optarg
-     case( '?' )
-        call print_help()
-        call die_msg(514364550, 'unknown option: ' // trim(optopt))
-     case default
-        call print_help()
-        call die_msg(603100341, 'unhandled option: ' // trim(optopt))
      end select
   end do
 
-  if (n_init <= 0d0) then
-     call die_msg(367132882, 'expected initial number concentration')
-  end if
-
   if (regime == 0) then
-     call die_msg(367132882, 'missing aerosol regime: please specify --free or --cont')
+     call die_msg(738176431, 'missing aerosol regime: ' &
+          // 'please specify --free or --cont')
   end if
 
   if (optind /= command_argument_count()) then
-     call print_help()
-     call die_msg(967032896, 'expected exactly one non-option prefix argument')
+     call die_msg(967032896, &
+          'expected exactly one non-option prefix argument')
   end if
 
   call get_command_argument(optind, in_prefix)
@@ -103,8 +88,9 @@ program extract_dimless_time
   call assert_msg(323514871, n_file > 0, &
        "no NetCDF files found with prefix: " // trim(in_prefix))
 
-  call input_state(filename_list(1), index, time, del_t, i_repeat, uuid, &
-       aero_data=aero_data, aero_state=aero_state, env_state=env_state)
+  call input_state(filename_list(1), index, time, del_t, &
+       i_repeat, uuid, aero_data=aero_data, &
+       aero_state=aero_state, env_state=env_state)
   run_uuid = uuid
 
   allocate(times(n_file))
@@ -117,8 +103,9 @@ program extract_dimless_time
   allocate(particle_volumes(0))
 
   do i_file = 1,n_file
-     call input_state(filename_list(i_file), index, time, del_t, i_repeat, &
-          uuid, aero_data=aero_data, aero_state=aero_state, env_state=env_state)
+     call input_state(filename_list(i_file), index, time, &
+          del_t, i_repeat, uuid, aero_data=aero_data, &
+          aero_state=aero_state, env_state=env_state)
 
      call assert_msg(397906326, uuid == run_uuid, &
           "UUID mismatch between " // trim(filename_list(1)) // " and " &
@@ -138,7 +125,7 @@ program extract_dimless_time
         dimless_times(i_file) = (2d0 * const%boltzmann * env_state%temp &
              / 3d0 / const%air_dyn_visc) * n_init * times(i_file)
      else
-        call die(123323239)
+        call die(612347164)
      end if
      call aero_state_num_concs(aero_state, aero_data, particle_num_concs)
      time_num_concs(i_file) = sum(particle_num_concs)
@@ -153,12 +140,12 @@ program extract_dimless_time
 
   call open_file_write(out_filename, out_unit)
   do i_file = 1,n_file
-     write(out_unit, '(e30.15e3)', advance='no') dimless_times(i_file)
-     write(out_unit, '(e30.15e3)', advance='no') dimless_time_num_concs(i_file)
-     write(out_unit, '(a)') ''
+     write(out_unit,'(e30.15e3)',advance='no') dimless_times(i_file)
+     write(out_unit,'(e30.15e3)',advance='no') dimless_time_num_concs(i_file)
+     write(out_unit,'(a)') ''
   end do
   call close_file(out_unit)
-
+  
   deallocate(times)
   deallocate(dimless_times)
   deallocate(time_num_concs)
@@ -173,23 +160,4 @@ program extract_dimless_time
 
   call pmc_mpi_finalize()
 
-contains
-
-  subroutine print_help()
-
-    write(*,'(a)') 'Usage: test_fractal_dimless_time [options] <netcdf_prefix>'
-    write(*,'(a)') ''
-    write(*,'(a)') 'options are:'
-    write(*,'(a)') '  -h, --help        Print this help message.'
-    write(*,'(a)') '  -f, --free        Free molecular regime.'
-    write(*,'(a)') '  -c, --cont        Continuum regime.'
-    write(*,'(a)') '  -n, --n_init      Initial number concentration (m^-3).'
-    write(*,'(a)') '  -o, --out <file>  Output filename.'
-    write(*,'(a)') ''
-    write(*,'(a)') 'Examples:'
-    write(*,'(a)') '  test_fractal_dimless_time --free --n_init 1e14 data_0001'
-    write(*,'(a)') ''
-
-  end subroutine print_help
-
-end program extract_dimless_time
+end program test_fractal_dimless_time

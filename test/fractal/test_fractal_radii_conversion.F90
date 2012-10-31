@@ -32,8 +32,8 @@ program test_fractal_radii_conversion
   Rgeo_match = .true.
   do i_R0 = 1,size(R0)
      fractal%prime_radius = R0(i_R0)
-     call logspace(fractal%prime_radius, fractal%prime_radius*1d3, Rme)
-     call logspace(fractal%prime_radius, fractal%prime_radius*1d3, Rgeo)
+     call logspace(fractal%prime_radius, fractal%prime_radius * 1d3, Rme)
+     call logspace(fractal%prime_radius, fractal%prime_radius * 1d3, Rgeo)
      do i_f = 1,size(f)
         fractal%vol_fill_factor = f(i_f)
         do i_df = 1,size(d_f)
@@ -46,7 +46,7 @@ program test_fractal_radii_conversion
                  write(*, '(a,e12.3,3x,a,f5.2,3x,a,f5.2,3x,a,e12.3)') &
                       'Mobility equivalent radii mismatch at: Rme = ', &
                       Rme(i_part), 'df = ', d_f(i_df), 'f = ', f(i_f), &
-                      'R0 = ',R0(i_R0)
+                      'R0 = ', R0(i_R0)
               end if
               if (.not. almost_equal(Rgeo(i_part), &
                    vol2rad(rad2vol(Rgeo(i_part), fractal), fractal))) then

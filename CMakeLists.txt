@@ -325,7 +325,7 @@ target_link_libraries(test_binomial_sample ${GSL_LIBS})
 # test_fractal_self_preserve
 
 add_executable(test_fractal_self_preserve
-  test/fractal/test_fractal_self_preserve.F90
+  scenarios/8_fractal/test_fractal_self_preserve.F90
   src/getopt.F90)
 
 target_link_libraries(test_fractal_self_preserve partmclib)
@@ -338,15 +338,6 @@ add_executable(test_fractal_dimless_time
   src/getopt.F90)
 
 target_link_libraries(test_fractal_dimless_time partmclib)
-
-######################################################################
-# test_fractal_sectional_dimless_time
-
-add_executable(test_fractal_sectional_dimless_time
-  test/fractal/test_fractal_sectional_dimless_time.F90
-  src/getopt.F90)
-
-target_link_libraries(test_fractal_sectional_dimless_time partmclib)
 
 ######################################################################
 # test_fractal_radii_conversion

@@ -17,10 +17,10 @@ The fractal treatment is based on Naumann [2003] with prescribed
 fractal parameters including fractal dimension, radius of primary
 particles and volume filling factor in the spec file.
 
-test_fractal_01: test of various radii conversions
-test_fractal_02: number concentration decay for free molecular regime,
+test_fractal_1: test of various radii conversions
+test_fractal_2: number concentration decay for free molecular regime,
 df = 2.4. Run plot_dimless_time_free_df_2_4.gnuplot for comparison result.
-test_fractal_03: number concentration decay for continuum regime,
+test_fractal_3: number concentration decay for continuum regime,
 df = 1.8. Run plot_dimless_time_cont_df_1_8.gnuplot for comparison result.
 
 This test-case demonstrates that PartMC can succesfully reproduce

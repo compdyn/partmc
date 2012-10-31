@@ -13,6 +13,8 @@
     `aero_num_conc`, which is the inverse of the previous
     `aero_comp_vol` variable.
 
+  * Add fractal particle model treatment, following Naumann [2003].
+
 2.2.1 - 2012-03-30
 
   * De-duplicate error codes.

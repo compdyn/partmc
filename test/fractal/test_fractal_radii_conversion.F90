@@ -15,12 +15,13 @@ program test_fractal_radii_conversion
   use pmc_constants
   use pmc_fractal
 
+  real(kind=dp), parameter :: temp = 300d0
+  real(kind=dp), parameter :: pressure = 1d5
+
   type(fractal_t) :: fractal
-  real(kind=dp) :: d_f(7), f(2), R0(4), Rme(100), Rgeo(100), vol(100)
+  real(kind=dp) :: d_f(7), f(2), R0(4), Rme(100), Rgeo(100)
   integer :: i_df, i_f, i_R0, i_part
   logical :: Rme_match, Rgeo_match
-  real(kind=dp), parameter :: tk = 300d0
-  real(kind=dp), parameter :: press = 1d5
 
   call fractal_allocate(fractal)
 
@@ -41,7 +42,7 @@ program test_fractal_radii_conversion
            do i_part = 1,size(Rme)
               if (.not. almost_equal(Rme(i_part), &
                    vol_to_mobility_rad(mobility_rad_to_vol(Rme(i_part), &
-                   tk, press, fractal), tk, press, fractal))) then
+                   temp, pressure, fractal), temp, pressure, fractal))) then
                  Rme_match = .false.
                  write(*, '(a,e12.3,3x,a,f5.2,3x,a,f5.2,3x,a,e12.3)') &
                       'Mobility equivalent radii mismatch at: Rme = ', &

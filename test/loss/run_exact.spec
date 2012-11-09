@@ -29,6 +29,6 @@ start_time 0                    # start time (s since 00:00 UTC)
 start_day 1                     # start day of year (UTC)
 
 do_coagulation yes              # whether to do coagulation (yes/no)
-coag_kernel none                # coagulation kernel
+coag_kernel zero                # coagulation kernel
 do_loss yes                     # whether to do particle loss (yes/no)
 loss_function volume            # loss rate function

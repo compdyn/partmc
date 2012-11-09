@@ -81,8 +81,8 @@ contains
             * run_exact_opt%t_max
        call scenario_update_env_state(scenario, env_state, time)
        call exact_soln(bin_grid, aero_data, run_exact_opt%do_coagulation, &
-            run_exact_opt%coag_kernel_type, run_exact_opt%do_loss &
-            run_exact_opt%loss_fuction_type, aero_dist_init, scenario, &
+            run_exact_opt%coag_kernel_type, run_exact_opt%do_loss, &
+            run_exact_opt%loss_function_type, aero_dist_init, scenario, &
             env_state, time, aero_binned)
        call output_sectional(run_exact_opt%prefix, bin_grid, aero_data, &
             aero_binned, gas_data, gas_state, env_state, i_time + 1, &

@@ -563,7 +563,7 @@ contains
       scenario_loss_rate = 0d0
     else if(function_id == SCENARIO_LOSS_FUNCTION_VOLUME) then
       !TODO: implement SCENARIO_LOSS_FUNCTION_VOLUME correctly
-      scenario_loss_rate = 0.001d0
+      scenario_loss_rate = 4d-4
     else
        call die_msg(200724934, "Unknown loss function id: " &
             // trim(integer_to_string(function_id)))
@@ -713,6 +713,8 @@ contains
         end do
       end do
     end do
+    
+    !call aero_state_check_sort(aero_state)
 
 
   end subroutine scenario_particle_loss

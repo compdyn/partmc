@@ -165,9 +165,25 @@ contains
     type(aero_binned_t), intent(inout) :: aero_binned
     !> Scale factor.
     real(kind=dp), intent(in) :: alpha
-
+    
     aero_binned%num_conc = aero_binned%num_conc * alpha
     aero_binned%vol_conc = aero_binned%vol_conc * alpha
+
+  end subroutine aero_binned_scale
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_binned_scale(aero_binned, alpha_array)
+
+    !> Base aero_binned_t structure that will be scaled.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Structure to scale aero_binned.
+    real(kind=dp), pointer, intent(in) :: alpha_array(:)
+
+    do i = 1, size(aero_binned%num_conc)
+       aero_binned%num_conc(i) = alpha_array(i)*aero_binned%num_conc(i)
+       aero_binned%vol_conc(i) = alpha_array(i)*aero_binned%vol_conc(i)
+    end do
 
   end subroutine aero_binned_scale
 

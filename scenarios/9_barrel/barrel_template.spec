@@ -1,5 +1,5 @@
 run_type particle               # particle-resolved run
-output_prefix out_as_0_3LPM_0925/barrel_wc # prefix of output files
+output_prefix out/barrel_wc # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 100000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
@@ -46,7 +46,7 @@ do_chamber yes                  # whether to do chamber loss
 V_chamber 0.2093                  # aerosol chamber volume (m^3)
 A_diffuse 1.988                   # diffusional deposition area (m^2)
 A_sedi 0.2463                     # sedimentational deposition area (m^2)
-prefactor_BL 0.05              # prefactor in diffusive boundary layer thickness (m)
-exponent_BL 0.274               # exponent in diffusive boundary layer thickness
+prefactor_BL %%prefactor%%              # prefactor in diffusive boundary layer thickness (m)
+exponent_BL %%exponent%%               # exponent in diffusive boundary layer thickness
 
 do_fractal no                  # whether to do fractal treatment

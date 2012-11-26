@@ -1,5 +1,8 @@
+import sys
+sys.path.append('../../tool/')
 import partmc
 import scipy.io
+import os
 import numpy
 import mpl_helper
 import matplotlib.pyplot as plt
@@ -21,10 +24,8 @@ title = ""
 xlabel = ""
 ylabel = ""
 plt.semilogx(x_grid.centers(), dist)
-plt.savefig('aero_num_size.pdf')
-
-f1 = 'bin_centers.txt'
-numpy.savetxt(f1,x_grid.centers())
-f2 = 'num_conc.txt'
-numpy.savetxt(f2,dist)
-
+plt.plot(x_grid.centers(), dist)
+filename_out = "aero_num_size.pdf"
+plt.savefig(filename_out)
+str_command = "open "+filename_out
+os.system(str_command)

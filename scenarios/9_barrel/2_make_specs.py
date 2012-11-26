@@ -2,14 +2,18 @@
 
 import os
 import numpy as np
+import shutil
 
 if not os.path.exists("spec"):
     os.mkdir("spec")
+else:
+    shutil.rmtree("spec")
+    os.mkdir("spec")
 
 run = 0
-for prefactor in np.arange(0.005,0.051,0.001):
+for prefactor in np.arange(0.005,0.055,0.005):
     filename_in = "barrel_template.spec"
-    for exponent in np.arange(0.2,0.31,0.01): 
+    for exponent in np.arange(0.1,1.05,0.05): 
         print "prefactor = ", prefactor, "exponent = ", exponent
         run = run + 1
         filename_out = "spec/barrel_wc_run_%04d.spec" % (run)
@@ -23,6 +27,3 @@ for prefactor in np.arange(0.005,0.051,0.001):
 
         f_in.close()
         f_out.close()
-
-
-

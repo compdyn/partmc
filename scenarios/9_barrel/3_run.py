@@ -101,9 +101,9 @@ for fname in dirList:
     f_out_rmse_mass.write("%04d   %.3f   %.3f    " % (case, prefactor, exponent))
     f_out_rmse_total.write("%04d   %.3f   %.3f   " % (case, prefactor, exponent))
 
-    array_num_err = []
-    array_mass_err = []
-    array_total_err = []
+    list_num_err = []
+    list_mass_err = []
+    list_total_err = []
     for col in range(1,data1.shape[1]):
         data1_1d = data1[:,col]
         data2_1d = data2[:,col]
@@ -117,12 +117,8 @@ for fname in dirList:
         rel_err_num = sqrt(sum(diff**2)) / sqrt(sum(data2_1d**2))
         diff = data4_1d - data3_1d
         rel_err_mass = sqrt(sum(diff**2)) / sqrt(sum(data4_1d**2))
-        # combine num and mass errors by calculating root mean square err
+        # combine num and mass errors by calculating root mean square error
         rel_err_total = sqrt(0.5*(rel_err_num**2 + rel_err_mass**2))
-
-        array_num_err.append(rel_err_num)
-        array_mass_err.append(rel_err_mass)
-        array_total_err.append(rel_err_total)
 
         if col != data1.shape[1]-1:
            f_out_num.write("%.4f   " % (rel_err_num))
@@ -133,9 +129,19 @@ for fname in dirList:
            f_out_mass.write("%.4f\n" % (rel_err_mass))
            f_out_total.write("%.4f\n" % (rel_err_total))
 
-    f_out_rmse_num.write("%.4f\n" %(sqrt(sum(array_num_err**2)/len(array_num_err))))
-    f_out_rmse_mass.write("%.4f\n" %(sqrt(sum(array_mass_err**2)/len(array_mass_err))))
-    f_out_rmse_total.write("%.4f\n" %(sqrt(sum(array_total_err**2)/len(array_total_err))))
+        list_num_err.append(rel_err_num)
+        list_mass_err.append(rel_err_mass)
+        list_total_err.append(rel_err_total)
+
+    array_num_err = array(list_num_err)
+    array_mass_err  = array(list_mass_err)
+    array_total_err = array(list_total_err)
+    rmse_num = sqrt(sum(array_num_err**2)/len(array_num_err))
+    rmse_mass = sqrt(sum(array_mass_err**2)/len(array_mass_err))
+    rmse_total = sqrt(sum(array_total_err**2)/len(array_total_err))
+    f_out_rmse_num.write("%.4f\n" % (rmse_num))
+    f_out_rmse_mass.write("%.4f\n" % (rmse_mass))
+    f_out_rmse_total.write("%.4f\n" % (rmse_total))
 
 f_out_num.close()
 f_out_mass.close()

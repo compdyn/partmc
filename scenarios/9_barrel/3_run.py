@@ -133,9 +133,9 @@ for fname in dirList:
            f_out_mass.write("%.4f\n" % (rel_err_mass))
            f_out_total.write("%.4f\n" % (rel_err_total))
 
-     f_out_rmse_num.write("%.4f\n" %(sqrt(sum(array_num_err**2)/len(array_num_err))))
-     f_out_rmse_mass.write("%.4f\n" %(sqrt(sum(array_mass_err**2)/len(array_mass_err))))
-     f_out_rmse_total.write("%.4f\n" %(sqrt(sum(array_total_err**2)/len(array_total_err))))
+    f_out_rmse_num.write("%.4f\n" %(sqrt(sum(array_num_err**2)/len(array_num_err))))
+    f_out_rmse_mass.write("%.4f\n" %(sqrt(sum(array_mass_err**2)/len(array_mass_err))))
+    f_out_rmse_total.write("%.4f\n" %(sqrt(sum(array_total_err**2)/len(array_total_err))))
 
 f_out_num.close()
 f_out_mass.close()

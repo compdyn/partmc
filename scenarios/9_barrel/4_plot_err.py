@@ -12,45 +12,15 @@ prefactor = 0.0
 exponent = 0.0
 plt_opt = raw_input("Enter plot option (1 for 1d, 2 for 2d):")
 if plt_opt == '1':
-   para_opt = raw_input("Enter fixed parameter to plot (p for prefactor, e for exponent):")
-   if para_opt == 'p':
-      prefactor = float(raw_input("Enter prefactor to plot:"))
-   if para_opt == 'e':
-      exponent = float(raw_input("Enter exponent to plot:"))
+   prefactor = float(raw_input("Enter prefactor:"))
+   exponent = float(raw_input("Enter exponent:"))
 
-data1 = np.loadtxt("rel_err_num.dat")
-data2 = np.loadtxt("rel_err_mass.dat")
-data3 = np.loadtxt("rel_err_total.dat")
-
-filename_out_num = "max_rel_err_num.dat"
-f_out_num = open(filename_out_num, 'w')
-f_out_num.write("# Colume 1: prefactor\n")
-f_out_num.write("# Colume 2: exponent\n")
-f_out_num.write("# Colume 3: maximum relative error of number distribution\n")
-filename_out_mass = "max_rel_err_mass.dat"
-f_out_mass = open(filename_out_mass, 'w')
-f_out_mass.write("# Colume 1: prefactor\n")
-f_out_mass.write("# Colume 2: exponent\n")
-f_out_mass.write("# Colume 3: maximum relative error of mass distribution\n")
-filename_out_total = "max_rel_err_total.dat"
-f_out_total = open(filename_out_total, 'w')
-f_out_total.write("# Colume 1: prefactor\n")
-f_out_total.write("# Colume 2: exponent\n")
-f_out_total.write("# Colume 3: total maximum relative error\n")
-
-for row in range(0, data1.shape[0]):
-    data_1d = data1[row, :]
-    f_out_num.write("%.3f     " % data_1d[0])
-    f_out_num.write("%.3f     " % data_1d[1])
-    f_out_num.write("%.3f\n" % max(data_1d[2:]))
-    data_1d = data2[row, :]
-    f_out_mass.write("%.3f     " % data_1d[0])
-    f_out_mass.write("%.3f     " % data_1d[1])
-    f_out_mass.write("%.3f\n" % max(data_1d[2:]))
-    data_1d = data3[row, :]
-    f_out_total.write("%.3f     " % data_1d[0])
-    f_out_total.write("%.3f     " % data_1d[1])
-    f_out_total.write("%.3f\n" % max(data_1d[2:]))
+data1 = np.genfromtxt("rel_err_num.dat", skip_header=4)
+data2 = np.genfromtxt("rel_err_mass.dat", skip_header=4)
+data3 = np.genfromtxt("rel_err_total.dat", skip_header=4)
+data4 = np.genfromtxt("rmse_num.dat", skip_header=4)
+data5 = np.genfromtxt("rmse_mass.dat", skip_header=4)
+data6 = np.genfromtxt("rmse_total.dat", skip_header=4)
 
 # make plots
 list_prefactor = []
@@ -70,15 +40,13 @@ for row in range(0, data1.shape[0]):
        list_max_err_num.append(max(data_1d[2:]))
 
 (figure, axes) = mpl_helper.make_fig(colorbar=False)
-if para_opt == 'p':
-   plt.plot(list_exponent, list_max_err_num, 'bo')
-   plt.title = "prefactor = %.3f" % (prefactor)
-   plt.xlabel = "exponent"
-   plt.ylabel = "maximum relative error of number distribution"
+if plt_opt == '1':
+   axes.plot(list_exponent, list_max_err_num)
+   axes.set_title("prefactor = %.3f" % (prefactor))
+   axes.set_xlabel("exponent")
+   axes.set_ylabel("maximum relative error of number distribution")
    filename_out = "plot_max_err_num_vs_exponent.pdf"
-   plt.savefig(filename_out)
-   str_command = "open "+filename_out
-   os.system(str_command)
+   figure.savefig(filename_out)
 if para_opt == 'e':
    plt.plot(list_prefactor, list_max_err_num, 'bo')
    plt.title = "exponent = %.3f" % (exponent)
@@ -86,10 +54,3 @@ if para_opt == 'e':
    plt.ylabel = "maximum relative error of number distribution"
    filename_out = "plot_max_err_num_vs_prefactor.pdf"
    plt.savefig(filename_out)
-   str_command = "open "+filename_out
-   os.system(str_command)
-
-
-f_out_num.close()
-f_out_mass.close()
-f_out_total.close()

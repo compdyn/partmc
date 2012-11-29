@@ -21,7 +21,6 @@ for prefactor in np.arange(0.005,0.055,0.005):
         f_out = open(filename_out, 'w')
 
         for line in f_in:
-            line = line.replace('%%OUTPUT_PREFIX%%', 'out/case_%04d_wc' % (case))
             line = line.replace('%%prefactor%%', str(prefactor))
             line = line.replace('%%exponent%%', str(exponent))
             f_out.write(line)

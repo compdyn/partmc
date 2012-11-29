@@ -7,7 +7,7 @@ import numpy
 import mpl_helper
 import matplotlib.pyplot as plt
 
-file = "out_as_0_3LPM_0925/barrel_wc_0001_00000001.nc"
+file = "out/barrel_wc_0001_00000001.nc"
 ncf = scipy.io.netcdf.netcdf_file(file, 'r')
 particles = partmc.aero_particle_array_t(ncf)
 env_state = partmc.env_state_t(ncf)

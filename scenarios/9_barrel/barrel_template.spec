@@ -1,5 +1,5 @@
 run_type particle               # particle-resolved run
-output_prefix out/barrel_wc     # prefix of output files
+output_prefix %%OUTPUT_PREFIX%%     # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 100000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)

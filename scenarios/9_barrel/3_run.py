@@ -75,7 +75,7 @@ for fname in dirList:
     prefactor = read_values_from_spec_file(spec_file, 'prefactor_BL')
     exponent = read_values_from_spec_file(spec_file, 'exponent_BL')
 
-    ncfile_prefix = "out/barrel_wc_0001"
+    ncfile_prefix = "out/case_%04d_wc_0001" % (case)
 
     command_1 = [str_exec,spec_file]
     command_2 = [str_extr,"--num","--dmin","1e-8","--dmax","1e-6","--nbin","100",ncfile_prefix]

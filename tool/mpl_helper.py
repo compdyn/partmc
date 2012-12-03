@@ -6,7 +6,7 @@
 import sys, os
 import math
 import matplotlib
-matplotlib.use('PDF')
+#matplotlib.use('PDF')
 import matplotlib.pyplot as plt
 
 matplotlib.rc('text', usetex = True)

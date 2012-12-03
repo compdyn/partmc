@@ -1,10 +1,10 @@
 run_type particle               # particle-resolved run
-output_prefix out_as_0_3LPM_lowconc_no_chamber/barrel_wc # prefix of output files
+output_prefix out_0925_no_chamber/barrel_wc # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 100000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
-t_max 15960 #19740 #65100 #16200 #14400 #15600                     # total simulation time (s)
+t_max 20160 #15960 #19740 #65100 #16200 #14400 #15600                     # total simulation time (s)
 del_t 60                       # timestep (s)
 t_output 420 #600                   # output interval (0 disables) (s)
 t_progress 60                # progress printing interval (0 disables) (s)
@@ -36,7 +36,7 @@ do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
 
-rand_init 0                     # random initialization (0 to auto-generate)
+rand_init 7                     # random initialization (0 to auto-generate)
 allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
 record_removals no              # whether to record particle removals (yes/no)

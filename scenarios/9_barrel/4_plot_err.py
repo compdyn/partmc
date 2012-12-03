@@ -106,7 +106,7 @@ if plt_opt == '1':
    axes.plot(time, array_rmse_num_vs_time, marker='^')
    axes.plot(time, array_rmse_mass_vs_time, marker='D')
    axes.plot(time, array_rmse_total_vs_time, marker='o')
-   axes.set_title("prfactor = %.3f, exponent = %.3f" % (prefactor, exponent))
+   axes.set_title("prefactor = %.3f, exponent = %.3f" % (prefactor, exponent))
    axes.set_xlabel("time (min)")
    axes.set_ylabel("relative error")
    axes.grid()

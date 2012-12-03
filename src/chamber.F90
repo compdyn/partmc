@@ -46,8 +46,8 @@ contains
     chamber%A_diffuse = 0d0
     chamber%A_sedi = 0d0
     chamber%prefactor_BL = 0d0
-    chamber%exponent_BL = 0d0 
-  
+    chamber%exponent_BL = 0d0
+
   end subroutine chamber_allocate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -63,7 +63,7 @@ contains
   end subroutine chamber_deallocate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
   !> Based on Eq. 23 in Naumann 2003 J. Aerosol. Sci.
   real(kind=dp) function chamber_diff_coef(aero_particle, aero_data, &
        temp, press)
@@ -114,7 +114,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Calculate the loss rate due to wall diffusion in chamber.
-  !> Based on Eq. 37a in Naumann 2003 J. Aerosol. Sci. 
+  !> Based on Eq. 37a in Naumann 2003 J. Aerosol. Sci.
   real(kind=dp) function chamber_loss_wall(chamber, aero_particle, &
        aero_data, temp, press)
 
@@ -130,7 +130,7 @@ contains
     real(kind=dp), intent(in) :: press
 
     chamber_loss_wall = chamber_diff_coef(aero_particle, aero_data, &
-         temp, press) * chamber%A_diffuse & 
+         temp, press) * chamber%A_diffuse &
          / chamber_diff_BL_thick(chamber, aero_particle, aero_data, &
          temp, press) / chamber%V_chamber
 
@@ -147,7 +147,7 @@ contains
     type(chamber_t), intent(in) :: chamber
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
-    !> Aerosol data. 
+    !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp

@@ -57,7 +57,7 @@ for time in [0,10,20,30]:
     (figure, axes) = mpl_helper.make_fig(colorbar=False)
     axes.semilogx(barrel_num[:,0], barrel_num[:,time+1])
     axes.semilogx(partmc_num[:,0], partmc_num[:,time+1]*math.log(10), marker='o', mfc='None')
-    axes.set_title(r"k\_{D} = %.3f, a = %.3f at time %02d" \
+    axes.set_title(r"$\mathrm{k}_{\mathrm{D}}$ = %.3f, a = %.3f at time %02d" \
     % (prefactor, exponent, time))
     axes.set_xlabel("Dry diameter (m)")
     axes.set_ylabel(r"Number concentration ($\mathrm{m}^{-3}$)")
@@ -69,7 +69,7 @@ for time in [0,10,20,30]:
     (figure, axes) = mpl_helper.make_fig(colorbar=False)
     axes.semilogx(barrel_mass[:,0], barrel_mass[:,time+1])
     axes.semilogx(partmc_mass[:,0], partmc_mass[:,time+1]*math.log(10), marker='o', mfc='None')
-    axes.set_title(r"k\_{D} = %.3f, a = %.3f at time %02d" \
+    axes.set_title(r"$\mathrm{k}_{\mathrm{D}}$ = %.3f, a = %.3f at time %02d" \
     % (prefactor, exponent, time))
     axes.set_xlabel("Dry diameter (m)")
     axes.set_ylabel(r"Mass concentration (kg $\mathrm{m}^{-3}$)")

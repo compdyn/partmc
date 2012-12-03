@@ -36,7 +36,7 @@ def slip_correct(diameter, temp, press):
     return slip_correct
 
 def diff_coef(diameter, temp, press):
-    
+
     boltzmann = 1.3806505e-23
     air_dyn_visc = 1.78e-5
 

@@ -79,35 +79,45 @@ partmc_num = np.loadtxt("out_with_bounds/0925_0001_aero_size_num.txt")
 barrel_num = np.loadtxt("ref_aero_size_num_regrid.txt")
 partmc_mass = np.loadtxt("out_with_bounds/0925_0001_aero_size_mass.txt")
 barrel_mass = np.loadtxt("ref_aero_size_mass_regrid.txt")
-t = 0
 
+t = 0
 if not os.path.exists("plots_with_bounds_num_size"):
    os.mkdir("plots_with_bounds_num_size")
 for col in range(1,partmc_num.shape[1]):
-     (figure, axes) = mpl_helper.make_fig(colorbar=False)
-     axes.semilogx(barrel_num[:,0], barrel_num[:,col], color='r')
-     axes.semilogx(partmc_num[:,0], partmc_num[:,col]*math.log(10), color='k')
-     axes.semilogx(array_max_size_num[:,0], array_max_size_num[:,col]*math.log(10), linestyle='--', color='k')
-     axes.semilogx(array_min_size_num[:,0], array_min_size_num[:,col]*math.log(10), linestyle='--', color='k')
-     t = t + 1
-     axes.set_title(r"k\_{D} = %.3f, a = %.3f at time %02d" \
-     % (prefactor, exponent, t))
-     axes.set_xlabel("Dry diameter (m)")
-     axes.set_ylabel(r"Number concentration ($\mathrm{m}^{-3}$)")
-     axes.grid()
-     axes.legend(('Barrel', 'PartMC'))
-     filename_out = "plots_with_bounds_num_size/plot_aero_size_num_with_bounds_time%02d.png" %(t)
-     #figure.set_dpi(600)
-     figure.savefig(filename_out)
-#for time in [0,10,20,30]:
-#    (figure, axes) = mpl_helper.make_fig(colorbar=False)
-#    axes.semilogx(barrel_mass[:,0], barrel_mass[:,time+1])
-#    axes.semilogx(partmc_mass[:,0], partmc_mass[:,time+1]*math.log(10), marker='o', mfc='None')
-#    axes.set_title("k\_{D} = %.3f, a = %.3f at time %02d" \
-#    % (prefactor, exponent, time))
-#    axes.set_xlabel("Dry diameter (m)")
-#    axes.set_ylabel("Mass concentration (kg $\mathrm{m}^{-3}$)")
-#    axes.grid()
-#    axes.legend(('Barrel', 'PartMC'), loc='upper left')
-#    filename_out = "plot_aero_size_mass_time%02d.pdf" %(time)
-#    figure.savefig(filename_out)
+    (figure, axes) = mpl_helper.make_fig(colorbar=False)
+    axes.semilogx(barrel_num[:,0], barrel_num[:,col], color='r')
+    axes.semilogx(partmc_num[:,0], partmc_num[:,col]*math.log(10), color='k')
+    axes.semilogx(array_max_size_num[:,0], array_max_size_num[:,col]*math.log(10), linestyle='--', color='k')
+    axes.semilogx(array_min_size_num[:,0], array_min_size_num[:,col]*math.log(10), linestyle='--', color='k')
+    t = t + 1
+    axes.set_title(r"$\mathrm{k}_{\mathrm{D}}$ = %.3f, a = %.2f at time %02d" \
+    % (prefactor, exponent, t))
+    axes.set_xlabel("Dry diameter (m)")
+    axes.set_ylabel(r"Number concentration ($\mathrm{m}^{-3}$)")
+    axes.grid()
+    axes.set_ylim(0, 1.05*max(array_max_size_num[:,1]*math.log(10)))
+    axes.legend(('Barrel', 'PartMC'))
+    filename_out = "plots_with_bounds_num_size/plot_aero_size_num_with_bounds_time%02d.png" %(t)
+    figure.set_dpi(600)
+    figure.savefig(filename_out)
+
+t = 0
+if not os.path.exists("plots_with_bounds_mass_size"):
+   os.mkdir("plots_with_bounds_mass_size")
+for col in range(1,partmc_mass.shape[1]):
+    (figure, axes) = mpl_helper.make_fig(colorbar=False)
+    axes.semilogx(barrel_mass[:,0], barrel_mass[:,col], color='r')
+    axes.semilogx(partmc_mass[:,0], partmc_mass[:,col]*math.log(10), color='k')
+    axes.semilogx(array_max_size_mass[:,0], array_max_size_mass[:,col]*math.log(10), linestyle='--', color='k')
+    axes.semilogx(array_min_size_mass[:,0], array_min_size_mass[:,col]*math.log(10), linestyle='--', color='k')
+    t = t + 1
+    axes.set_title(r"$\mathrm{k}_{\mathrm{D}}$ = %.3f, a = %.2f at time %02d" \
+    % (prefactor, exponent, t))
+    axes.set_xlabel("Dry diameter (m)")
+    axes.set_ylabel(r"Mass concentration (kg $\mathrm{m}^{-3}$)")
+    axes.grid()
+    axes.set_ylim(0, 1.05*max(array_max_size_mass[:,1]*math.log(10)))
+    axes.legend(('Barrel', 'PartMC'), loc='upper left')
+    filename_out = "plots_with_bounds_mass_size/plot_aero_size_mass_with_bounds_time%02d.png" %(t)
+    figure.set_dpi(600)
+    figure.savefig(filename_out)

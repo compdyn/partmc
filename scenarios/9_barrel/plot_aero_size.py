@@ -8,9 +8,9 @@ import numpy as np
 import mpl_helper
 import matplotlib.pyplot as plt
 
-partmc_num = np.loadtxt("out_0925_no_chamber/barrel_wc_0001_aero_size_num.txt")
+partmc_num = np.loadtxt("out_with_fractal/case_0008_wc_0001_aero_size_num.txt")
 barrel_num = np.loadtxt("ref_aero_size_num_regrid.txt")
-partmc_mass = np.loadtxt("out_0925_no_chamber/barrel_wc_0001_aero_size_mass.txt")
+partmc_mass = np.loadtxt("out_with_fractal/case_0008_wc_0001_aero_size_mass.txt")
 barrel_mass = np.loadtxt("ref_aero_size_mass_regrid.txt")
 
 t = 0
@@ -22,7 +22,7 @@ for col in range(1,partmc_num.shape[1]):
     axes.semilogx(partmc_num[:,0], partmc_num[:,col]*math.log(10), color='k')
     t = t + 1
     axes.set_title(r"time %02d" % (t))
-    axes.set_xlabel("Dry diameter (m)")
+    axes.set_xlabel("Diameter (m)")
     axes.set_ylabel(r"Number concentration ($\mathrm{m}^{-3}$)")
     axes.grid()
     axes.set_ylim(0, 1.05*max(partmc_num[:,1]*math.log(10)))
@@ -40,7 +40,7 @@ for col in range(1,partmc_mass.shape[1]):
     axes.semilogx(partmc_mass[:,0], partmc_mass[:,col]*math.log(10), color='k')
     t = t + 1
     axes.set_title(r"time %02d" % (t))
-    axes.set_xlabel("Dry diameter (m)")
+    axes.set_xlabel("Diameter (m)")
     axes.set_ylabel(r"Mass concentration (kg $\mathrm{m}^{-3}$)")
     axes.grid()
     axes.set_ylim(0, 1.05*max(partmc_mass[:,1]*math.log(10)))

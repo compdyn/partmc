@@ -98,6 +98,9 @@ program extract_aero_time
      call aero_state_num_concs(aero_state, aero_data, particle_num_concs)
      time_num_concs(i_file) = sum(particle_num_concs)
      call aero_state_masses(aero_state, aero_data, particle_masses)
+     if (i_file==1) then
+        write(*,*) particle_masses(1:50)
+     end if
      time_mass_concs(i_file) = sum(particle_masses * particle_num_concs)
      do i_spec = 1,aero_data%n_spec
         call aero_state_masses(aero_state, aero_data, particle_masses, &

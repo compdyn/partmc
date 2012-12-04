@@ -429,6 +429,10 @@ add_executable(extract_aero_size src/extract_aero_size.F90
   src/getopt.F90)
 target_link_libraries(extract_aero_size partmclib)
 
+add_executable(extract_aero_mob_size src/extract_aero_mob_size.F90
+  src/getopt.F90)
+target_link_libraries(extract_aero_mob_size partmclib)
+
 add_executable(extract_aero_time src/extract_aero_time.F90
   src/getopt.F90)
 target_link_libraries(extract_aero_time partmclib)

@@ -65,7 +65,7 @@ for diameter in Dp:
     list_diff_coef.append(diff_coef(diameter, temp, press))
 
 (figure, axes) = mpl_helper.make_fig(colorbar=False)
-axes.semilogx(Dp, list_diff_coef)
+axes.loglog(Dp, list_diff_coef)
 axes.set_xlabel("Diameter (m)")
 axes.set_ylabel(r"Diffusional coefficient ($\mathrm{m}^{2}$ / s)")
 axes.grid()
@@ -83,12 +83,12 @@ for prefactor in numpy.arange(0.005,0.055,0.005):
         for diameter in Dp:
             list_wall_loss.append(wall_loss(diameter, temp, press, prefactor, exponent))
         (figure, axes) = mpl_helper.make_fig(colorbar=False)
-        axes.semilogx(Dp, list_wall_loss)
+        axes.loglog(Dp, list_wall_loss)
         axes.set_xlabel("Diameter (m)")
         axes.set_ylabel(r"Wall loss rate ($\mathrm{s}^{-1}$)")
         axes.set_title("prefactor = %.3f, exponent = %.3f" %(prefactor, exponent))
         axes.grid()
-        axes.set_ylim(0,0.0062)
+        axes.set_ylim(1e-8,1e-2)
         filename_out = "plots_wall_loss/plot_wall_loss_%04d.png" %(i)
         figure.set_dpi(600)
         figure.savefig(filename_out)

@@ -7,7 +7,7 @@ import numpy
 import mpl_helper
 import matplotlib.pyplot as plt
 
-file = "out_0925_no_chamber/barrel_wc_0001_00000011.nc"
+file = "out_with_fractal/case_0001_wc_0001_00000001.nc"
 ncf = scipy.io.netcdf.netcdf_file(file, 'r')
 particles = partmc.aero_particle_array_t(ncf)
 env_state = partmc.env_state_t(ncf)
@@ -23,7 +23,7 @@ ref_data = numpy.loadtxt("ref_aero_size_num_regrid.txt")
 
 (figure, axes) = mpl_helper.make_fig(colorbar=False)
 axes.semilogx(x_grid.centers(),dist,marker='o',markersize=3.5,color='k')
-axes.semilogx(ref_data[:,0],ref_data[:,11],linestyle='-',linewidth=1,color='r')
+axes.semilogx(ref_data[:,0],ref_data[:,1],linestyle='-',linewidth=1,color='r')
 axes.set_title("")
 axes.set_xlabel("Dry diameter (m)")
 axes.set_ylabel(r"Number concentration ($\mathrm{m}^{-3}$)")

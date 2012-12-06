@@ -198,6 +198,24 @@ for fname in dirList:
     f_out_rmse_mass.write("%.4f\n" % (rmse_mass))
     f_out_rmse_total.write("%.4f\n" % (rmse_total))
 
+# sort total rmse data
+data6 = genfromtxt("rmse_total.dat", skip_header=5)
+data6_sorted = data6[np.argsort(data6[:,4])]
+print "Mininum total error = %.4f, at prefactor = %.3f and exponent = %.2f "\
+      "and frac_dim = %.1f with case %04d" %(data6_sorted[0,4], data6_sorted[0,1], \
+      data6_sorted[0,2], data6_sorted[0,3], data6_sorted[0,0])
+filename_out = "rmse_total_sorted.dat"
+f_out = open(filename_out, 'w')
+f_out.write("# Colume 1: caseID\n")
+f_out.write("# Colume 2: prefactor\n")
+f_out.write("# Colume 3: exponent\n")
+f_out.write("# Colume 4: fractal dimension\n")
+f_out.write("# Colume 5: total root mean square error (num + mass)\n")
+for row in range(0,data6_sorted.shape[0]):
+    f_out.write("%04d   %.3f   %.2f    %.1f    %.4f\n" % (data6_sorted[row,0], \
+    data6_sorted[row,1], data6_sorted[row,2], data6_sorted[row,3], data6_sorted[row,4])
+f_out.close()
+
 f_out_num.close()
 f_out_mass.close()
 f_out_total.close()

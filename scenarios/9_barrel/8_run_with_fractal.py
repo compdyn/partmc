@@ -164,8 +164,10 @@ for fname in dirList:
         # extract_aero_size gives d*_dlnDp, neet to convert to d*_dlogDp
         data1_1d *= math.log(10)
         #data3_1d *= math.log(10)
-        data3_1d *= math.pi / 6. * rho * diameters**3 * data1_1d
-        data4_1d *= math.pi / 6. * rho * diameters**3 * data2_1d
+        data3_1d = data1_1d
+        data4_1d = data2_1d
+        data3_1d *= math.pi / 6. * rho * diameters**3
+        data4_1d *= math.pi / 6. * rho * diameters**3
 
         # calculate the relative error
         diff = data2_1d - data1_1d

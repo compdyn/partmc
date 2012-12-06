@@ -8,7 +8,7 @@ import numpy as np
 import mpl_helper
 import matplotlib.pyplot as plt
 
-partmc_time = np.loadtxt("out_with_fractal/case_0008_wc_0001_aero_time.txt")
+partmc_time = np.loadtxt("out_with_fractal/case_0010_wc_0001_aero_time.txt")
 barrel_time = np.loadtxt("ref_aero_time.txt")
 (figure, axes) = mpl_helper.make_fig(colorbar=False)
 axes.plot(barrel_time[:,0], barrel_time[:,1], color='r')

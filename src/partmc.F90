@@ -491,8 +491,8 @@ contains
           run_part_opt%env_average = .false.
           run_part_opt%parallel_coag_type = PARALLEL_COAG_TYPE_LOCAL
        end if
-      
-       call spec_file_read_chamber(file, scenario%chamber) 
+
+       call spec_file_read_chamber(file, scenario%chamber)
        call spec_file_read_fractal(file, aero_data%fractal)
        call spec_file_close(file)
     end if
@@ -800,8 +800,8 @@ contains
     else
        run_exact_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
     end if
-   
-    call spec_file_read_chamber(file, scenario%chamber) 
+
+    call spec_file_read_chamber(file, scenario%chamber)
     call spec_file_read_fractal(file, aero_data%fractal)
     call spec_file_close(file)
 
@@ -965,7 +965,7 @@ contains
     else
        run_sect_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
     end if
-    
+
     call spec_file_read_chamber(file, scenario%chamber)
     call spec_file_read_fractal(file, aero_data%fractal)
     call spec_file_close(file)

@@ -150,7 +150,7 @@ contains
     boltz = const%boltzmann * 1d7 ! J/K to erg/K
     avogad = const%avagadro
     mwair = const%air_molec_weight * 1d3 ! kg/mole to g/mole
-    rgas = const%univ_gas_const * 1d-2 ! J/mole/K to atmos/(mol/liter)/K
+    rgas = const%univ_gas_const / 1.01325d2 ! J/mole/K to atmos/(mol/liter)/K
     
     rhoair = 0.001d0 * ((press/1.01325d5)*mwair/(rgas*tk))
     
@@ -200,7 +200,7 @@ contains
     rad_sum    = rad_i + rad_j
     diffus_sum = diffus_i + diffus_j 
     tmp1       = rad_sum/(rad_sum + sqrt(deltasq_i + deltasq_j))
-    tmp2       = 4d0*diffus_sum/(rad_sum*sqrt(speedsq_i + speedsq_j)*1d0)
+    tmp2       = 4d0*diffus_sum/(rad_sum*sqrt(speedsq_i + speedsq_j))
     bckernel1  = 4d0*const%pi*rad_sum*diffus_sum/(tmp1 + tmp2)
     
     bckernel   = bckernel1 * 1.0d-6

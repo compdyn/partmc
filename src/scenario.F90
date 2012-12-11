@@ -411,7 +411,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Remove particles due to wall diffusion and sedimentation for a 
+  !> Remove particles due to wall diffusion and sedimentation for a
   !> particle distribution in chamber study.
   subroutine scenario_aero_chamber(scenario, delta_t, aero_data, &
        aero_state, temp, press)

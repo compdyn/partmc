@@ -437,7 +437,7 @@ contains
     c1 = fractal%frac_dim * ds / 3d0 + (SCALE_EXPONENT_S_ACC - 1d0) &
          * fractal%frac_dim - 1d0
     c2 = fractal%frac_dim * ds / 3d0 - 1d0
-    
+
     a1 = C_Rme / Rme * phi * psi * (ds - 2d0)
     a2 = C_Rme / Rme * phi * (3d0 - ds)
     a3 = -phi * psi * (ds - 2d0)
@@ -447,7 +447,7 @@ contains
     a7 = -B_SLIP / fp * phi * (3d0 - ds)
     a8 = -A_SLIP * fp
 
-    x = Rme 
+    x = Rme
     do iter = 1,7
        last_solution = x
        f = a1 * x**(c1 + 1d0) + a2 * x**(c2 + 1d0) + a3 * x**c1 &
@@ -591,7 +591,7 @@ contains
        Rme2vol = rad2vol(r, fractal)
        return
     end if
-    
+
     R_me_c = Rme2R_me_c(r, tk, press, fractal)
     Rgeo = R_me_c / h_KR(fractal)
     Rme2vol = rad2vol(Rgeo, fractal)

@@ -202,7 +202,7 @@ for fname in dirList:
 
 # sort total rmse data
 data6 = genfromtxt("rmse_total.dat", skip_header=5)
-data6_sorted = data6[np.argsort(data6[:,4])]
+data6_sorted = data6[argsort(data6[:,4])]
 print "Mininum total error = %.4f, at prefactor = %.3f and exponent = %.2f "\
       "and frac_dim = %.1f with case %04d" %(data6_sorted[0,4], data6_sorted[0,1], \
       data6_sorted[0,2], data6_sorted[0,3], data6_sorted[0,0])

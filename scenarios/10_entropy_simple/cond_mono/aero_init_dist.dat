@@ -1,0 +1,8 @@
+# initial mode 1 (sulfate)
+mode_name init_sulf
+mass_frac aero_init_comp.dat      # composition proportions of species
+mode_type mono                    # type of distribution
+num_conc 3e10                     # particle number concentration (#/m^3)
+diam     1e-7                     # diam (m)
+
+

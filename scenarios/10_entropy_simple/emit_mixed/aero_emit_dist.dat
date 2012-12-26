@@ -1,0 +1,6 @@
+mode_name bc_emit
+mass_frac aero_emit_comp.dat # composition proportions of species
+mode_type log_normal            # type of distribution
+num_conc 1.6E+08                # particle number concentration (#/m^2)
+geom_mean_diam 5e-8             # geometric mean diameter (m)
+log10_geom_std_dev 0.24         # log_10 of geometric std dev of diameter

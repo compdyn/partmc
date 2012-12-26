@@ -1,0 +1,16 @@
+# initial mode 1 (small)
+mode_name init_sulf
+mass_frac aero_init_comp1.dat      # composition proportions of species
+mode_type mono                    # type of distribution
+num_conc 3e10                     # particle number concentration (#/m^3)
+diam     10e-9                     # diam (m)
+
+# initial mode 2 (large)
+mode_name init_bc
+mass_frac aero_init_comp1.dat      # composition proportions of species
+mode_type mono                    # type of distribution
+num_conc 3e10                     # particle number concentration (#/m^3)
+diam     1e-7                     # diam (m)
+
+
+

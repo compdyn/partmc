@@ -375,3 +375,10 @@ add_executable(1_urban_plume_process
 target_link_libraries(1_urban_plume_process partmclib)
 
 ######################################################################
+# scenarios/10_entropy_simple/process
+
+add_executable(10_entropy_process
+  scenarios/10_entropy_simple/10_entropy_process.F90)
+target_link_libraries(10_entropy_process partmclib)
+
+######################################################################

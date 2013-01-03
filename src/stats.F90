@@ -491,6 +491,9 @@ contains
   !! r\sigma/\sqrt{n}]\f$, where <tt>r =
   !! student_t_95_coeff(n_sample)</tt>.
   !!
+  !! If \c n_sample is less than or equal to 1, then this function 
+  !! returns 0.
+  !! 
   !! The method used here was written by MW on 2011-05-01, based on
   !! the following empirical observation. If \f$f(\nu) =
   !! t_{0.95,\nu}\f$ is the function we want, where \f$\nu = n - 1\f$
@@ -522,8 +525,9 @@ contains
     integer :: n_dof
 
     n_dof = n_sample - 1
-    call assert(359779741, n_dof >= 1)
-    if (n_dof <= 15) then
+    if (n_dof <= 0) then
+       student_t_95_coeff = 0d0
+    elseif (n_dof <= 15) then
        student_t_95_coeff = values(n_dof)
     elseif (n_dof <= 20) then
        student_t_95_coeff = (2.11990529922d0 - limit) * 16d0 &

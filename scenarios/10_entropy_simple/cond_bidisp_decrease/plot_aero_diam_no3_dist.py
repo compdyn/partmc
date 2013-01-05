@@ -23,7 +23,7 @@ for (filename, index) in partmc.get_filename_list('out/', r'urban_plume_([0-9]+)
     axes.set_xlim(1e-2, 1e0)
 
     axes.set_yscale("linear")
-    axes.set_ylabel(r"NO_3 mass fraction $w_{\rm NO_3}$ / \%")
+    axes.set_ylabel(r"$NO_3$ mass fraction $w_{\rm NO_3}$ / \%")
     axes.set_ylim(0, 100)
 
     axes.grid(True)

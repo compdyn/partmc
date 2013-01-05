@@ -1,8 +1,7 @@
 #       mass fractions
-BC  0.03
-OC  0.03
+BC  0.06
 SO4 0.03
 NH4 0.03
 NO3 0.06
-H2O 0.81
+#H2O 0.81
 

@@ -3,10 +3,13 @@
 # emissions (mol m^{-2} s^{-1})
 time            0 
 rate            1
+NO  6e-8
+NH3 9e-9
+
 #SO2    4.234E-09
 #NO2    3.024E-09
-NO     5.749E-08
-NH3    8.93E-09
+##NO     5.749E-08
+##NH3    8.93E-09
 #CO     7.839E-07
 #ALD2   1.702E-09
 #HCHO   4.061E-09
@@ -16,7 +19,7 @@ NH3    8.93E-09
 #TOL    6.101E-09
 #XYL    5.599E-09
 #AONE   7.825E-10
-PAR    1.709E-07
+##PAR    1.709E-07
 #ISOP   2.412E-10
 #CH3OH  2.368E-10
 #ANOL   5.304E-09

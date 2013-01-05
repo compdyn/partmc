@@ -15,7 +15,8 @@ program process
        = "out/urban_plume"
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename
-  type(bin_grid_t) :: diam_grid, bc_grid, h2o_grid, sc_grid, entropy_grid, avg_bin_grid
+  type(bin_grid_t) :: diam_grid, bc_grid, no3_grid, h2o_grid, sc_grid, &
+       entropy_grid, avg_bin_grid
   type(aero_data_t) :: aero_data
   type(aero_state_t) :: aero_state, aero_state_averaged
   type(env_state_t) :: env_state
@@ -29,7 +30,7 @@ program process
        oc_masses(:), oc_fracs(:), so4_masses(:), so4_fracs(:), &
        num_concs_averaged(:), dry_masses_averaged(:), masses_averaged(:), &
        entropies(:), entropies_of_avg_part(:), crit_rhs(:), scs(:), num_dist(:), &
-       diam_bc_dist(:,:), diam_h2o_dist(:,:), &
+       diam_bc_dist(:,:), diam_no3_dist(:,:), diam_h2o_dist(:,:), &
        diam_sc_dist(:,:), entropy_dist(:), diam_entropy_dist(:,:)
   real(kind=dp) :: tot_entropy_conc, tot_entropy_of_avg_conc, & 
        tot_entropy_ratio
@@ -41,7 +42,7 @@ program process
        stats_tot_num_conc, stats_tot_mass_conc, stats_avg_part_entropy, &
        stats_entropy_of_avg_part, stats_ccn(3), stats_tot_entropy_conc, &
        stats_tot_entropy_of_avg_conc, stats_tot_entropy_ratio
-  type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_h2o_dist, &
+  type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_no3_dist, stats_diam_h2o_dist, &
        stats_diam_sc_dist, stats_diam_entropy_dist
 
   real(kind=dp) :: s_env(3)
@@ -56,6 +57,7 @@ program process
 
   call bin_grid_allocate(diam_grid)
   call bin_grid_allocate(bc_grid)
+  call bin_grid_allocate(no3_grid)
   call bin_grid_allocate(h2o_grid)
   call bin_grid_allocate(sc_grid)
   call bin_grid_allocate(entropy_grid)
@@ -69,7 +71,8 @@ program process
 
   call bin_grid_make(diam_grid, BIN_GRID_TYPE_LOG, 180, 1d-9, 1d-3)
   call bin_grid_make(bc_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 1d0)
-  call bin_grid_make(h2o_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 1d0)
+  call bin_grid_make(no3_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 1d0)
+  call bin_grid_make(h2o_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 2d0)
   call bin_grid_make(sc_grid, BIN_GRID_TYPE_LOG, 50, 1d-4, 1d0)
   call bin_grid_make(entropy_grid, BIN_GRID_TYPE_LINEAR, 200, 0d0, 5d0)
   call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)
@@ -108,6 +111,7 @@ program process
         h2o_masses = aero_state_masses(aero_state, aero_data, &
              include=(/"H2O"/))
         h2o_fracs = h2o_masses / dry_masses
+
         oc_masses = aero_state_masses(aero_state, aero_data, &
              include=(/"OC"/))
         oc_fracs = oc_masses / dry_masses
@@ -124,6 +128,10 @@ program process
         diam_bc_dist = bin_grid_histogram_2d(diam_grid, dry_diameters, &
              bc_grid, bc_fracs, num_concs)
         call stats_2d_add(stats_diam_bc_dist, diam_bc_dist)
+
+        diam_no3_dist = bin_grid_histogram_2d(diam_grid, dry_diameters, &
+             no3_grid, no3_fracs, num_concs)
+        call stats_2d_add(stats_diam_no3_dist, diam_no3_dist)
 
         diam_h2o_dist = bin_grid_histogram_2d(diam_grid, dry_diameters, &
              h2o_grid, h2o_fracs, num_concs)
@@ -228,6 +236,7 @@ program process
      call pmc_nc_write_info(ncid, uuid, "1_urban_plume process")
      call bin_grid_output_netcdf(diam_grid, ncid, "diam", unit="m")
      call bin_grid_output_netcdf(bc_grid, ncid, "bc_frac", unit="1")
+     call bin_grid_output_netcdf(no3_grid, ncid, "no3_frac", unit="1")
      call bin_grid_output_netcdf(h2o_grid, ncid, "h2o_frac", unit="1")
      call bin_grid_output_netcdf(sc_grid, ncid, "sc", unit="1")
      call bin_grid_output_netcdf(entropy_grid, ncid, "entropy", unit="1")
@@ -240,7 +249,11 @@ program process
           dim_name_1="diam", dim_name_2="bc_frac", unit="m^{-3}")
      call stats_2d_clear(stats_diam_bc_dist)
 
-     call stats_2d_output_netcdf(stats_diam_bc_dist, ncid, "diam_h2o_dist", &
+     call stats_2d_output_netcdf(stats_diam_no3_dist, ncid, "diam_no3_dist", &
+          dim_name_1="diam", dim_name_2="no3_frac", unit="m^{-3}")
+     call stats_2d_clear(stats_diam_no3_dist)
+
+     call stats_2d_output_netcdf(stats_diam_h2o_dist, ncid, "diam_h2o_dist", &
           dim_name_1="diam", dim_name_2="h2o_frac", unit="m^{-3}")
      call stats_2d_clear(stats_diam_h2o_dist)
 

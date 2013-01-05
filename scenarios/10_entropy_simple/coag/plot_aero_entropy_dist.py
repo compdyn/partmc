@@ -15,10 +15,11 @@ for (filename, index) in partmc.get_filename_list('out/', r'urban_plume_([0-9]+)
     entropy_err = ncf.variables["entropy_dist_ci_offset"].data
 
 
-    axes.errorbar(entropy, entropy_dist, entropy_err, fmt="b-")
+    axes.plot(entropy, entropy_dist/entropy_dist.max())
     axes.set_xlabel(r"entropy")
     axes.set_ylabel(r"norm. num. conc.")
- #   axes.set_ylim(0, 1)
+    axes.set_xlim(0,2)
+#   axes.set_ylim(0, 1)
     axes.grid(True)
 
     out_filename = "out/urban_plume_entropy_dist_%s.pdf" % index

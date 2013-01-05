@@ -613,7 +613,8 @@ contains
                   AERO_STATE_WEIGHT_FLAT)
           else
              call aero_state_set_weight(aero_state, aero_data, &
-                  AERO_STATE_WEIGHT_NUMMASS_SOURCE)
+!!                  AERO_STATE_WEIGHT_NUMMASS_SOURCE)
+                  AERO_STATE_WEIGHT_FLAT)
           end if
           call aero_state_set_n_part_ideal(aero_state, n_part)
           call aero_state_add_aero_dist_sample(aero_state, aero_data, &

@@ -61,8 +61,8 @@ for dataset_name in dataset:
                     line = line.replace('%%OUTPUT_PREFIX%%', 'out_'+dataset_name+'/case_%04d_wc' % (case))
                     line = line.replace('%%t_max%%', str(t_max[index]))
                     line = line.replace('%%t_output%%', str(t_output[index]))
-                    line = line.replace('%%temp_profile%%', 'temp_'+datasetname+'.dat')
-                    line = line.replace('%%aero_background%%', 'aero_back_'+datasetname+'.dat')
+                    line = line.replace('%%temp_profile%%', 'temp_'+dataset_name+'.dat')
+                    line = line.replace('%%aero_background%%', 'aero_back_'+dataset_name+'.dat')
                     line = line.replace('%%rel_humidity%%', str(rh[index]))
                     line = line.replace('%%prefactor%%', str(prefactor))
                     line = line.replace('%%exponent%%', str(exponent))
@@ -214,8 +214,15 @@ for dataset_name in dataset:
         f_out_rmse_mass.write("%.4f\n" % (rmse_mass))
         f_out_rmse_total.write("%.4f\n" % (rmse_total))
 
+    f_out_num.close()
+    f_out_mass.close()
+    f_out_total.close()
+    f_out_rmse_num.close()
+    f_out_rmse_mass.close()
+    f_out_rmse_total.close()
+
     # sort total rmse data
-    data6 = genfromtxt("rmse_total_"+dataset_name+".dat", skip_header=5)
+    data6 = genfromtxt("rmse_total_"+dataset_name+".dat")
     data6_sorted = data6[argsort(data6[:,4])]
     print "Mininum total error = %.4f, at prefactor = %.3f and exponent = %.2f "\
           "and frac_dim = %.1f with case %04d" %(data6_sorted[0,4], data6_sorted[0,1], \
@@ -231,13 +238,6 @@ for dataset_name in dataset:
         f_out_sort.write("%04d   %.3f   %.2f    %.1f    %.4f\n" % (data6_sorted[row,0], \
         data6_sorted[row,1], data6_sorted[row,2], data6_sorted[row,3], data6_sorted[row,4]))
     f_out_sort.close()
-
-    f_out_num.close()
-    f_out_mass.close()
-    f_out_total.close()
-    f_out_rmse_num.close()
-    f_out_rmse_mass.close()
-    f_out_rmse_total.close()
 
     index = index + 1
 

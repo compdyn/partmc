@@ -206,14 +206,21 @@ contains
     integer :: j
 
     call assert_msg(549391523, i >= 1, "cannot use a non-positive row")
-    if (allocated(stats%n)) then
-       call assert_msg(286470660, size(stats%n, 2) == size(data), &
-            "size mismatch between existing n and newly added data")
-       call assert_msg(901102174, size(stats%mean, 2) == size(data), &
-            "size mismatch between existing mean and newly added data")
-       call assert_msg(993806885, size(stats%var, 2) == size(data), &
-            "size mismatch between existing var and newly added data")
-    end if
+
+    if (.not. allocated(stats%n)) then
+       allocate(stats%n(0, size(data)))
+       allocate(stats%mean(0, size(data)))
+       allocate(stats%var(0, size(data)))
+       stats%n = 0
+    end if 
+
+    call assert_msg(286470660, size(stats%n, 2) == size(data), &
+         "size mismatch between existing n and newly added data")
+    call assert_msg(901102174, size(stats%mean, 2) == size(data), &
+         "size mismatch between existing mean and newly added data")
+    call assert_msg(993806885, size(stats%var, 2) == size(data), &
+         "size mismatch between existing var and newly added data")
+
     call ensure_integer_array_2d_size(stats%n, i, size(stats%n, 2), &
          only_grow=.true.)
     call ensure_real_array_2d_size(stats%mean, i, size(stats%mean, 2), &
@@ -244,14 +251,21 @@ contains
     integer :: i
 
     call assert_msg(549391523, j >= 1, "cannot use a non-positive column")
-    if (allocated(stats%n)) then
-       call assert_msg(286470660, size(stats%n, 1) == size(data), &
-            "size mismatch between existing n and newly added data")
-       call assert_msg(901102174, size(stats%mean, 1) == size(data), &
-            "size mismatch between existing mean and newly added data")
-       call assert_msg(993806885, size(stats%var, 1) == size(data), &
-            "size mismatch between existing var and newly added data")
-    end if
+
+    if (.not. allocated(stats%n)) then
+       allocate(stats%n(size(data), 0))
+       allocate(stats%mean(size(data), 0))
+       allocate(stats%var(size(data), 0))
+       stats%n = 0
+    end if 
+
+    call assert_msg(286470660, size(stats%n, 1) == size(data), &
+         "size mismatch between existing n and newly added data")
+    call assert_msg(901102174, size(stats%mean, 1) == size(data), &
+         "size mismatch between existing mean and newly added data")
+    call assert_msg(993806885, size(stats%var, 1) == size(data), &
+         "size mismatch between existing var and newly added data")
+
     call ensure_integer_array_2d_size(stats%n, size(stats%n, 1), j, &
          only_grow=.true.)
     call ensure_real_array_2d_size(stats%mean, size(stats%mean, 1), j, &

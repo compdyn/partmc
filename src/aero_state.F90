@@ -409,6 +409,34 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Remove particles as indicated by the \c do_remove array.
+  subroutine aero_state_remove_particles(aero_state, do_remove)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Whether to remove each particle.
+    logical, intent(in) :: do_remove(:)
+
+    integer :: i_part, n_part
+
+    write(6,*)'remove particles'
+    n_part = aero_state_total_particles(aero_state)
+    call assert_msg(731973094, size(do_remove) == n_part, &
+         "do_remove size " // trim(integer_to_string(size(do_remove))) &
+         // " does not match number of particles" &
+         // trim(integer_to_string(n_part)))
+
+    ! Loop backwards over particles due to particle reordering on removal
+    do i_part = n_part,1,-1
+       if (do_remove(i_part)) then
+          call aero_state_remove_particle_no_info(aero_state, i_part)
+       end if
+    end do
+
+  end subroutine aero_state_remove_particles
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Remove a randomly chosen particle from the given bin and return
   !> it.
   subroutine aero_state_remove_rand_particle_from_bin(aero_state, &
@@ -961,7 +989,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the IDs of all particles.
+  !> Returns the least create times all particles.
   function aero_state_least_create_times(aero_state)
 
     !> Aerosol state.
@@ -981,7 +1009,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the IDs of all particles.
+  !> Returns the greatest create times of all particles.
   function aero_state_greatest_create_times(aero_state)
 
     !> Aerosol state.
@@ -998,6 +1026,38 @@ contains
     end do
 
   end function aero_state_greatest_create_times
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns source information of all particles.
+  function aero_state_n_orig_part(aero_state, aero_data, source_name)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aero_data data.
+    type(aero_data_t), intent(inout) :: aero_data
+    !> Source names to select.
+    character(len=*), optional :: source_name
+
+    !> Return particle array of source \c source_name
+    real(kind=dp) :: aero_state_n_orig_part(aero_state%apa%n_part)
+
+    integer :: i_part, i_source
+
+    if (present(source_name)) then
+       i_source = aero_data_source_by_name(aero_data, source_name)
+       do i_part = 1,aero_state%apa%n_part
+          aero_state_n_orig_part(i_part) & 
+               = aero_state%apa%particle(i_part)%n_orig_part(i_source)
+       end do
+    else
+       do i_part = 1,aero_state%apa%n_part
+          aero_state_n_orig_part(i_part) & 
+               = sum(aero_state%apa%particle(i_part)%n_orig_part)
+       end do
+    end if
+
+  end function aero_state_n_orig_part
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

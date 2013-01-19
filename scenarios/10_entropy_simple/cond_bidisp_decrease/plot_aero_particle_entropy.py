@@ -3,7 +3,12 @@
 import sys, os
 sys.path.append("../../../tool")
 import mpl_helper
-import scipy.io, numpy
+import scipy.io
+import numpy as np
+import matplotlib.pyplot
+from matplotlib.patches import Polygon
+from matplotlib.patches import FancyArrowPatch
+
 
 (figure, axes) = mpl_helper.make_fig(right_margin=0.8)
 
@@ -25,15 +30,15 @@ axes.set_xlim([0,24])
 axes.set_ylim([0.3,1])
 axes.set_xticks([0, 6, 12, 18, 24])
 
-axes.annotate(r"$\bar{H}$", (time[7], avg_part_entropy[7]),
+axes.annotate(r"$\bar{H}$", (time[42], avg_part_entropy[42]),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$\bar{\hat{H}}$", (time[3], entropy_of_avg_part[3]),
+axes.annotate(r"$\bar{\hat{H}}$", (time[18], entropy_of_avg_part[18]),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$\gamma$", (time[5], tot_entropy_ratio[5]),
+axes.annotate(r"$\gamma$", (time[30], tot_entropy_ratio[30]),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
@@ -42,3 +47,19 @@ axes.annotate(r"$\gamma$", (time[5], tot_entropy_ratio[5]),
 axes.grid(True)
 
 figure.savefig("out/urban_plume_particle_entropy.pdf")
+
+(figure, axes) = mpl_helper.make_fig(right_margin=0.8)
+
+axes.plot(avg_part_entropy, tot_entropy_ratio, "b-")
+axes.set_xlabel(r"$\bar{H}$")
+axes.set_xlim([0,1.4])
+axes.set_xticks([0., 0.2,0.4,0.6, 0.8, 1.0, 1.2, 1.4])
+axes.set_ylim([0,1])
+axes.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1])
+axes.set_ylabel(r"$\gamma$")
+pts = np.array([[0,0], [1.4,1], [0,1]])
+p = Polygon(pts,closed=True,alpha=0.05)
+axes.add_patch(p)
+axes.arrow(avg_part_entropy[6],tot_entropy_ratio[6], (avg_part_entropy[7]-avg_part_entropy[6]),(tot_entropy_ratio[7]-tot_entropy_ratio[6]), fc="b", ec="b", head_width=0.03, head_length=0.03)
+axes.grid(True)
+figure.savefig("out/gamma_versus_h_bar.pdf")

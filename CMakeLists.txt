@@ -389,4 +389,10 @@ add_executable(10_entropy_process_bc
 target_link_libraries(10_entropy_process_bc partmclib)
 
 ######################################################################
+# scenarios/10_entropy_simple/process_source
 
+add_executable(10_entropy_process_source
+  scenarios/10_entropy_simple/10_entropy_process_source.F90)
+target_link_libraries(10_entropy_process_source partmclib)
+
+######################################################################

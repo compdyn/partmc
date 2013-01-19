@@ -1,17 +1,14 @@
 # initial mode 1 (sulfate)
 mode_name init_sulf
 mass_frac aero_init_comp_so4.dat      # composition proportions of species
-mode_type log_normal              # type of distribution
-num_conc 3e10                     # particle number concentration (#/m^3)
-geom_mean_diam 1e-7               # geometric mean diameter (m)
-log10_geom_std_dev 0.2            # log_10 of geometric std dev of diameter
+mode_type mono                    # type of distribution
+num_conc 3e10                     # particle number concentration (#/m^)
+diam 1e-7                         # diameter (m)
 
 # initial mode 2 (bc)
 mode_name init_bc
 mass_frac aero_init_comp_bc.dat # composition proportions of species
-mode_type log_normal            # type of distribution
+mode_type mono                  # type of distribution
 num_conc 3E+10                  # particle number concentration (#/m^3)
-#geom_mean_diam 5e-8             # geometric mean diameter (m)
-geom_mean_diam 1e-7             # geometric mean diameter (m)
-log10_geom_std_dev 0.2          # log_10 of geometric std dev of diameter
+diam 1e-7                       # diameter (m)
 

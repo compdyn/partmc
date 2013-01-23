@@ -9,8 +9,8 @@ import mpl_helper
 import matplotlib.pyplot as plt
 
 # plot number distribution
-partmc_num = np.loadtxt("out/case_0161_wc_0001_aero_size_num.txt")
-barrel_num = np.loadtxt("ref_aero_size_num_regrid.txt")
+partmc_num = np.loadtxt("out_0909/case_0373_wc_0001_aero_size_num.txt")
+barrel_num = np.loadtxt("ref_0909/ref_aero_size_num_regrid.txt")
 (figure, axes) = mpl_helper.make_fig(colorbar=False)
 b1 = axes.semilogx(barrel_num[:,0], barrel_num[:,1], color='r')
 axes.semilogx(partmc_num[:,0], partmc_num[:,1]*math.log(10), color='k',linestyle='--')

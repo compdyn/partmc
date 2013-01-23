@@ -12,7 +12,7 @@ program process
   use pmc_stats
 
   character(len=PMC_MAX_FILENAME_LEN), parameter :: prefix &
-       = "out/urban_plume"
+       = "out/urban_plume2"
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename
   type(bin_grid_t) :: diam_grid, bc_grid, no3_grid, h2o_grid, sc_grid, &
@@ -21,13 +21,16 @@ program process
   type(aero_state_t) :: aero_state, aero_state_averaged, aero_state_bc
   type(env_state_t) :: env_state
   integer :: ncid, index, repeat, i_index, i_repeat, n_index, n_repeat
-  real(kind=dp) :: time, del_t, tot_num_conc, tot_mass_conc, avg_part_entropy, ccn
+  real(kind=dp) :: time, del_t, tot_num_conc, tot_mass_conc, avg_part_entropy, &
+       ccn, tot_bc_conc, tot_so4_conc, tot_no3_conc, tot_nh4_conc, tot_soa_conc, &
+       tot_oc_conc
   real(kind=dp) :: entropy_of_avg_part
   character(len=PMC_UUID_LEN) :: uuid
   real(kind=dp), allocatable :: times(:), dry_diameters(:), num_concs(:), &
        dry_masses(:), masses(:), bc_masses(:), bc_fracs(:), &
        h2o_masses(:), h2o_fracs(:), no3_masses(:), no3_fracs(:), &
        oc_masses(:), oc_fracs(:), so4_masses(:), so4_fracs(:), &
+       nh4_masses(:), nh4_fracs(:), soa_masses(:), soa_fracs(:), &
        num_concs_averaged(:), dry_masses_averaged(:), masses_averaged(:), &
        entropies(:), entropies_of_avg_part(:), crit_rhs(:), scs(:), num_dist(:), &
        diam_bc_dist(:,:), diam_no3_dist(:,:), diam_h2o_dist(:,:), &
@@ -41,7 +44,9 @@ program process
        stats_dist_ratio_to_entropy_of_avg_part, stats_dist_ratio_to_avg_part_entropy, &
        stats_tot_num_conc, stats_tot_mass_conc, stats_avg_part_entropy, &
        stats_entropy_of_avg_part, stats_ccn(3), stats_tot_entropy_conc, &
-       stats_tot_entropy_of_avg_conc, stats_tot_entropy_ratio
+       stats_tot_entropy_of_avg_conc, stats_tot_entropy_ratio, &
+       stats_tot_so4_conc, stats_tot_nh4_conc, stats_tot_no3_conc, stats_tot_soa_conc, &
+       stats_tot_oc_conc, stats_tot_bc_conc
   type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_no3_dist, stats_diam_h2o_dist, &
        stats_diam_sc_dist, stats_diam_entropy_dist, stats_time_entropy_dist
 
@@ -76,7 +81,7 @@ program process
   call bin_grid_make(h2o_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 2d0)
   call bin_grid_make(sc_grid, BIN_GRID_TYPE_LOG, 50, 1d-4, 1d0)
   call bin_grid_make(entropy_grid, BIN_GRID_TYPE_LINEAR, 200, 0d0, 5d0)
-  call bin_grid_make(time_grid, BIN_GRID_TYPE_LINEAR, 145, 0d0, 24d0)
+  call bin_grid_make(time_grid, BIN_GRID_TYPE_LINEAR, 289, 0d0, 48d0)
   call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)
 
   allocate(times(n_index))
@@ -108,6 +113,11 @@ program process
         so4_masses = aero_state_masses(aero_state, aero_data, &
              include=(/"SO4"/))
         so4_fracs = so4_masses / dry_masses
+        nh4_masses = aero_state_masses(aero_state, aero_data, &
+             include=(/"NH4"/))
+        nh4_fracs = nh4_masses / dry_masses
+        soa_masses = aero_state_masses(aero_state, aero_data, &
+             include=(/"API1"/))
 
         times(i_index) = time
 
@@ -121,7 +131,20 @@ program process
 
         masses = aero_state_masses(aero_state, aero_data)
         tot_mass_conc = sum(masses * num_concs)
+        tot_so4_conc = sum(so4_masses * num_concs)
+        tot_nh4_conc = sum(nh4_masses * num_concs)
+        tot_no3_conc = sum(no3_masses * num_concs)
+        tot_oc_conc = sum(oc_masses * num_concs)
+        tot_bc_conc = sum(bc_masses * num_concs)
+        tot_soa_conc = sum(soa_masses * num_concs)
+
         call stats_1d_add_entry(stats_tot_mass_conc, tot_mass_conc, i_index)
+        call stats_1d_add_entry(stats_tot_so4_conc, tot_so4_conc, i_index)
+        call stats_1d_add_entry(stats_tot_nh4_conc, tot_nh4_conc, i_index)
+        call stats_1d_add_entry(stats_tot_no3_conc, tot_no3_conc, i_index)
+        call stats_1d_add_entry(stats_tot_oc_conc, tot_oc_conc, i_index)
+        call stats_1d_add_entry(stats_tot_bc_conc, tot_bc_conc, i_index)
+        call stats_1d_add_entry(stats_tot_soa_conc, tot_soa_conc, i_index)
         
         least_create_times = aero_state_least_create_times(aero_state)
 	greatest_create_times = aero_state_greatest_create_times(aero_state) 
@@ -293,6 +316,18 @@ program process
   call stats_1d_output_netcdf(stats_tot_num_conc, ncid, "tot_num_conc", &
        dim_name="time", unit="m^{-3}")
   call stats_1d_output_netcdf(stats_tot_mass_conc, ncid, "tot_mass_conc", &
+       dim_name="time", unit="m^{-3}")
+  call stats_1d_output_netcdf(stats_tot_so4_conc, ncid, "tot_so4_conc", &
+       dim_name="time", unit="m^{-3}")
+  call stats_1d_output_netcdf(stats_tot_no3_conc, ncid, "tot_no3_conc", &
+       dim_name="time", unit="m^{-3}")
+  call stats_1d_output_netcdf(stats_tot_nh4_conc, ncid, "tot_nh4_conc", &
+       dim_name="time", unit="m^{-3}")
+  call stats_1d_output_netcdf(stats_tot_bc_conc, ncid, "tot_bc_conc", &
+       dim_name="time", unit="m^{-3}")
+  call stats_1d_output_netcdf(stats_tot_oc_conc, ncid, "tot_oc_conc", &
+       dim_name="time", unit="m^{-3}")
+  call stats_1d_output_netcdf(stats_tot_soa_conc, ncid, "tot_soa_conc", &
        dim_name="time", unit="m^{-3}")
   call stats_1d_output_netcdf(stats_ccn(1), ncid, "ccn_01", dim_name="time", &
        unit="m^{-3}")

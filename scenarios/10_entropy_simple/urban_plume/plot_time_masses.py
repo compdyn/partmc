@@ -5,7 +5,7 @@ sys.path.append("../../../tool")
 import mpl_helper
 import scipy.io, numpy
 
-(figure, axes_array) = mpl_helper.make_fig_array(2,1)
+(figure, axes_array) = mpl_helper.make_fig_array(2,1, figure_width=3)
 
 ncf = scipy.io.netcdf_file("out/urban_plume2_process.nc")
 time = ncf.variables["time"].data / 3600

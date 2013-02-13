@@ -19,13 +19,13 @@ def make_plot(in_dir1, in_dir2, in_file_pattern, out_filename):
     env_state_history = partmc.read_history(partmc.env_state_t, in_dir1, in_file_pattern)
     time = [env_state_history[i][0] for i in range(len(env_state_history))]
     rh1 = [env_state_history[i][1].relative_humidity for i in range(len(env_state_history))]
-    temp = [env_state_history[i][1].temperature for i in range(len(env_state_history))]
+    temp1= [env_state_history[i][1].temperature for i in range(len(env_state_history))]
     print time
     
     env_state_history = partmc.read_history(partmc.env_state_t, in_dir2, in_file_pattern)
     time = [env_state_history[i][0] for i in range(len(env_state_history))]
     rh2 = [env_state_history[i][1].relative_humidity for i in range(len(env_state_history))]
-    temp = [env_state_history[i][1].temperature for i in range(len(env_state_history))]
+    temp2= [env_state_history[i][1].temperature for i in range(len(env_state_history))]
 
 
     for i in range(len(env_state_history)):
@@ -40,7 +40,8 @@ def make_plot(in_dir1, in_dir2, in_file_pattern, out_filename):
     axes.set_ylim(0.7,1.1)
     axes.set_ylabel('RH')
     axes.legend(loc = 'lower center')
-    axes2.plot(time,temp)
+    axes2.plot(time,temp1)
+    axes2.plot(time,temp2)
     axes2.set_ylabel("Temperature / K")
     axes.set_xlabel("time / min")
     axes.grid(True)

@@ -54,8 +54,8 @@ axes.plot(time, tot_entropy_ratio, "r--", markersize = 2)
 axes.set_xlabel(r"time / h")
 axes.set_ylabel(r"quantity")
 axes.set_xlim([0,24])
-axes.set_ylim([0,1])
 axes.set_xticks([0, 6, 12, 18, 24])
+axes.set_ylim([0,1])
 
 axes.annotate(r"$\bar{H}$", (time[78], avg_part_entropy[78]),
               verticalalignment="bottom", horizontalalignment="right",
@@ -165,11 +165,9 @@ axes = axes_array[2][1]
 axes.plot(time, avg_part_entropy, "b-")
 axes.plot(time, entropy_of_avg_part, "k:")
 axes.plot(time, tot_entropy_ratio, "r--", markersize = 2)
-axes.set_xlabel(r"time / h")
 axes.set_ylabel(r"quantity")
 axes.set_xlim([0,24])
 axes.set_ylim([0,1])
-axes.set_xticks([0, 6, 12, 18, 24])
 
 axes.annotate(r"$\bar{H}$", (time[78], avg_part_entropy[78]),
               verticalalignment="bottom", horizontalalignment="right",

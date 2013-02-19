@@ -5,7 +5,7 @@ sys.path.append("../../../tool")
 import mpl_helper
 import scipy.io, numpy
 
-(figure, axes_array) = mpl_helper.make_fig_array(2,1, figure_width=3)
+(figure, axes_array) = mpl_helper.make_fig_array(2,1,figure_width=4,vert_sep=0.3,)
 
 ncf = scipy.io.netcdf_file("out/urban_plume2_process.nc")
 time = ncf.variables["time"].data / 3600
@@ -38,7 +38,7 @@ axes.annotate(r"$\rm NH_4$", (time[150], nh4_conc[150]),
 
 axes.set_xlabel(r"time / h")
 axes.set_xlim([0,48])
-axes.set_xticks([0, 6, 12, 18, 24, 30, 36, 42, 48])
+axes.set_xticks([0, 12, 24, 36, 48])
 axes.set_ylabel(r"mass conc. / $\rm \mu g \, m^{-3}$")
 axes.grid(True)
 
@@ -63,4 +63,5 @@ axes.annotate(r"SOA", (time[162], soa_conc[162]),
 axes.set_ylabel(r"mass conc. / $\rm \mu g \, m^{-3}$")
 axes.grid(True)
 
+mpl_helper.remove_fig_array_axes(axes_array)
 figure.savefig("out/urban_plume_time_masses.pdf")

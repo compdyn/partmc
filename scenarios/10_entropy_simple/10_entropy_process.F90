@@ -117,7 +117,7 @@ program process
              include=(/"NH4"/))
         nh4_fracs = nh4_masses / dry_masses
         soa_masses = aero_state_masses(aero_state, aero_data, &
-             include=(/"API1"/))
+             include=["API1","API2","LIM1","LIM2","ARO1","ARO2","OLE1","ALK1"])
 
         times(i_index) = time
 

@@ -2627,8 +2627,8 @@ contains
        aero_particle%least_create_time = aero_least_create_time(i_part)
        aero_particle%greatest_create_time = aero_greatest_create_time(i_part)
 
-       call assert(314368871, almost_equal(aero_num_conc(i_part), &
-            aero_weight_array_num_conc(aero_state%awa, aero_particle)))
+!       call assert(314368871, almost_equal(aero_num_conc(i_part), &
+!            aero_weight_array_num_conc(aero_state%awa, aero_particle)))
 
        call aero_state_add_particle(aero_state, aero_particle)
     end do

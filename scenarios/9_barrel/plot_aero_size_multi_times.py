@@ -26,8 +26,11 @@ axes.set_xlabel("Diameter (m)")
 axes.set_ylabel(r"Number concentration ($\mathrm{m}^{-3}$)")
 axes.grid()
 axes.set_ylim(0, 1.05*max(partmc_num[:,1]*math.log(10)))
+#axes.set_ylim(0,6e11)
 axes.legend([b1,b2,b3,b4,b5,p5], ('0 min', '70 min', '140 min', \
-                                  '210 min', '266 min', 'PartMC'), loc='upper left')
+                                  '210 min', '266 min', 'PartMC'), loc='upper right')
+bbox_props = dict(boxstyle="square,pad=0.3", fc="cyan", ec="b", lw=1)
+axes.annotate('$d_f$ = 2.6', xy=(0.05, 0.9), xycoords='axes fraction',weight='extra bold', size=14, bbox=bbox_props)
 filename_out = "aero_num_size_multi_times.pdf"
 figure.savefig(filename_out)
 
@@ -47,8 +50,11 @@ p5 = axes.semilogx(partmc_num[:,0], partmc_num[:,39] * math.pi / 6. * rho * part
 axes.set_xlabel("Diameter (m)")
 axes.set_ylabel(r"Mass concentration (kg $\mathrm{m}^{-3}$)")
 axes.grid()
-axes.set_ylim(0, 1.05*max(partmc_num[:,1] * math.pi / 6. * rho * partmc_num[:,0]**3 * math.log(10)))
+axes.set_ylim(0, 1.05*max(partmc_num[:,11] * math.pi / 6. * rho * partmc_num[:,0]**3 * math.log(10)))
+#axes.set_ylim(0, 1.5e-6)
+axes.ticklabel_format(style='sci', scilimits=(0,0), axis='y')
 axes.legend([b1,b2,b3,b4,b5,p5], ('0 min', '70 min', '140 min', \
                                   '210 min', '266 min', 'PartMC'), loc='upper left')
+axes.annotate('$d_f$ = 2.6', xy=(0.8, 0.9), xycoords='axes fraction',weight='extra bold', size=14, bbox=bbox_props)
 filename_out = "aero_mass_size_multi_times.pdf"
 figure.savefig(filename_out)

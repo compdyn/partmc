@@ -46,6 +46,7 @@ if shape_opt == 'f':
    axes.plot(barrel_time[:,0], list_barrel_mass, color='r')
    axes.plot(partmc_time[:,0], list_partmc_mass, color='k')
    axes.set_xlabel("Time (s)")
+   axes.ticklabel_format(style='sci', scilimits=(0,0), axis='y')
    axes.set_ylabel(r"Mass concentration (kg $\mathrm{m}^{-3}$)")
    axes.grid()
    axes.legend(('Barrel', 'PartMC'))

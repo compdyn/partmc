@@ -1,10 +1,10 @@
 run_type particle               # particle-resolved run
-output_prefix out_0908/barrel_wc # prefix of output files
+output_prefix out_0908_indi_fit/barrel_wc # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 100000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
-t_max 65100 #16200 #14400 #15600                     # total simulation time (s)
+t_max 65100 #15960 #65100 #16200 #14400 #15600                     # total simulation time (s)
 del_t 60                       # timestep (s)
 t_output 420 #600                   # output interval (0 disables) (s)
 t_progress 60                # progress printing interval (0 disables) (s)
@@ -23,7 +23,7 @@ gas_background gas_back.dat     # background gas mixing ratios file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
 
-rel_humidity 0.0945 #0.1275 #0.0945 #0.0482 #0.0385             # initial relative humidity (1)
+rel_humidity 0.0945 #0.0986 #0.0945 #0.1275 #0.0945 #0.0482 #0.0385             # initial relative humidity (1)
 latitude 0                     # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)
 altitude 0                      # altitude (m)
@@ -47,9 +47,9 @@ V_chamber 0.2093                  # aerosol chamber volume (m^3)
 A_diffuse 1.988                   # diffusional deposition area (m^2)
 A_sedi 0.2463                     # sedimentational deposition area (m^2)
 prefactor_BL 0.04              # prefactor in diffusive boundary layer thickness (m)
-exponent_BL 0.24              # exponent in diffusive boundary layer thickness
+exponent_BL 0.23              # exponent in diffusive boundary layer thickness
 
 do_fractal yes                  # whether to do fractal treatment
-frac_dim 2.6                   # fractal dimension
+frac_dim 2.4                   # fractal dimension
 prime_radius 1e-8             # radius of monomer
 vol_fill_factor 1.43            # volume filling factor

@@ -1,14 +1,14 @@
 import os
+import shutil
 import perturb_particles
 
 charsPerOutFileNum = 2
-partmcCommand = '../../build/partmc'
 
 def numToStr(num, numChars):
 	strNum = str(num)
 	if len(strNum) > numChars:
 		raise Exception(strNum + ' is more than ' + str(numChars) + ' chars')
-	return '0'*(numChars - len(strNum)) + strNum
+	return strNum.rjust(numChars, '0')
 
 def updateSpecFileRunNumbers(fileName, oldNum, newNum, numChanges):
 	f = open(fileName, 'r+')
@@ -33,8 +33,7 @@ def updateSpecFilesRunNumbers(oldNum, newNum):
 	updateSpecFileRunNumbers('urban_plume.spec', oldNum, newNum, 1)
 	updateSpecFileRunNumbers('urban_plume_restart.spec', oldNum, newNum, 2)
 	
-def ensureOutDirectory(runNumber):
-	dirName = getOutDir(runNumber)
+def ensureDirectory(dirName):
 	if os.path.exists(dirName):
 		if not os.path.isdir(dirName):
 			raise Exception(dirName + ' is not a directory')
@@ -44,7 +43,25 @@ def ensureOutDirectory(runNumber):
 def getOutDir(runNumber):
 	return 'out/run' + numToStr(runNumber, charsPerOutFileNum)
 	
-def findRestartIndexStr():
+def specFileToDict(specFile):
+	f = open('urban_plume_restart.spec')
+	lines = f.readlines(-1)
+	f.close()
+	dict = {}
+	for line in lines:
+		commentI = line.find('#')
+		if commentI >= 0:
+			line = line[0:commentI]
+		words = line.split()
+		if len(words) == 0:
+			continue
+		if len(words) != 2 or dict.has_key(words[0]):
+			dict[words[0]] = 'UNKNOWN VALUE'
+		else:
+			dict[words[0]] = words[1]
+	return dict
+	
+def findRestartIndex():
 	f = open('urban_plume_restart.spec')
 	text = f.read(-1)
 	f.close()
@@ -56,27 +73,39 @@ def findRestartIndexStr():
 	endI = startI + 8
 	if endI > len(text):
 		raise Exception('cannot find appropriate restart file')
-	return text[startI:endI]
+	indexStr = text[startI:endI]
+	index = int(indexStr)
+	if index < 0:
+		raise Exception('cannot find appropriate restart file')
+	return index
+	
+def runPartMC(specFile):
+	if specFile.find('0') >= 0 or not specFile.endswith('.spec'):
+		raise Exception('invalid spec file: ' + specFile)
+	code = os.system('../../build/partmc ' + specFile)
+	if code != 0:
+		raise Exception('bad PartMC exit code: ' + str(code))
 
 def runSimulations(numSimulations):
-	if numSimulations == 0:
+	if numSimulations <= 0:
 		return
 	numToStr(numSimulations-1, charsPerOutFileNum)
 	lastRunNum = 0
-	restartIndexStr = findRestartIndexStr()
+	restartIndex = findRestartIndex()
 	for runNum in xrange(0, numSimulations):
 		outDir = getOutDir(runNum)
 		updateSpecFilesRunNumbers(lastRunNum, runNum)
-		ensureOutDirectory(runNum)
-		os.system(partmcCommand + ' urban_plume.spec')
-		os.system('cp ' + outDir + '/normal_0001_' + restartIndexStr
-			+ '.nc ' + outDir + '/perturbed_0001_' + restartIndexStr
-			+ '.nc')
+		ensureDirectory(outDir)
+		runPartMC('urban_plume.spec')
+		for i in xrange(1, restartIndex+1):
+			shutil.copyfile(
+				outDir + '/normal_0001_' + numToStr(i, 8) + '.nc',
+				outDir + '/perturbed_0001_' + numToStr(i, 8) + '.nc')
 		perturbResult = perturb_particles.perturbFile(
-			outDir + '/perturbed_0001_' + restartIndexStr + '.nc')
+			outDir + '/perturbed_0001_' + numToStr(restartIndex, 8) + '.nc')
 		logFile = open(outDir + '/perturb.log', 'w')
+		logFile.write('Perturbed output file ' + str(restartIndex) + '\n')
 		logFile.write(str(perturbResult))
 		logFile.close()
-		os.system(partmcCommand + ' urban_plume_restart.spec')
+		runPartMC('urban_plume_restart.spec')
 	updateSpecFilesRunNumbers(numSimulations-1, 0)
-		

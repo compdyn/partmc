@@ -1,9 +1,9 @@
 run_type particle               # particle-resolved run
-output_prefix out/run0/perturbed # prefix of output files
+output_prefix out/run00/perturbed # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 1000                     # total number of particles
 restart yes                     # whether to restart from saved state (yes/no)
-restart_file out/run0/perturbed_0001_00000005.nc
+restart_file out/run00/perturbed_0001_00000005.nc
 
 t_max 28800                     # total simulation time (s)
 del_t 60                        # timestep (s)

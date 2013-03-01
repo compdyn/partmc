@@ -1,8 +1,9 @@
 import os
 import shutil
 import perturb_particles
+from FileData import FileData
 
-charsPerOutFileNum = 2
+charsPerOutFileNum = 4
 
 def numToStr(num, numChars):
 	strNum = str(num)
@@ -18,7 +19,7 @@ def updateSpecFileRunNumbers(fileName, oldNum, newNum, numChanges):
 	newNumStr = numToStr(newNum, charsPerOutFileNum)
 	actNumChanges = 0
 	while True:
-		index = text.find(searchStr, index+1)
+		index = text.find(searchStr+'/', index+1)
 		if index < 0:
 			break
 		f.seek(index + len(searchStr) - charsPerOutFileNum)
@@ -29,9 +30,9 @@ def updateSpecFileRunNumbers(fileName, oldNum, newNum, numChanges):
 		raise Exception('Expected ' + str(numChanges)
 			+ ' file writes, but performed ' + str(actNumChanges))
 	
-def updateSpecFilesRunNumbers(oldNum, newNum):
-	updateSpecFileRunNumbers('urban_plume.spec', oldNum, newNum, 1)
-	updateSpecFileRunNumbers('urban_plume_restart.spec', oldNum, newNum, 2)
+#def updateSpecFilesRunNumbers(oldNum, newNum):
+#	updateSpecFileRunNumbers('urban_plume_altered.spec', oldNum, newNum, 1)
+#	updateSpecFileRunNumbers('urban_plume_restart.spec', oldNum, newNum, 2)
 	
 def ensureDirectory(dirName):
 	if os.path.exists(dirName):
@@ -43,69 +44,147 @@ def ensureDirectory(dirName):
 def getOutDir(runNumber):
 	return 'out/run' + numToStr(runNumber, charsPerOutFileNum)
 	
-def specFileToDict(specFile):
-	f = open('urban_plume_restart.spec')
-	lines = f.readlines(-1)
-	f.close()
-	dict = {}
-	for line in lines:
-		commentI = line.find('#')
-		if commentI >= 0:
-			line = line[0:commentI]
-		words = line.split()
-		if len(words) == 0:
-			continue
-		if len(words) != 2 or dict.has_key(words[0]):
-			dict[words[0]] = 'UNKNOWN VALUE'
-		else:
-			dict[words[0]] = words[1]
-	return dict
-	
-def findRestartIndex():
-	f = open('urban_plume_restart.spec')
-	text = f.read(-1)
-	f.close()
-	searchStr = 'restart_file out/run00/perturbed_0001_'
-	i = text.find(searchStr)
-	if i < 0:
-		raise Exception('cannot find appropriate restart file')
-	startI = i + len(searchStr)
-	endI = startI + 8
-	if endI > len(text):
-		raise Exception('cannot find appropriate restart file')
-	indexStr = text[startI:endI]
-	index = int(indexStr)
-	if index < 0:
-		raise Exception('cannot find appropriate restart file')
-	return index
-	
 def runPartMC(specFile):
 	if specFile.find('0') >= 0 or not specFile.endswith('.spec'):
 		raise Exception('invalid spec file: ' + specFile)
 	code = os.system('../../build/partmc ' + specFile)
 	if code != 0:
 		raise Exception('bad PartMC exit code: ' + str(code))
+		
+def trimExtension(file, extension):
+	checkExtension(extension)
+	return file[0:-len(extension)]
 
-def runSimulations(numSimulations):
+def checkExtension(file, extension):
+	if not file.endswith(extension):
+		raise Exception('Expected ' + extension + ' file, got ' + file)
+		
+def makeRestartSpecFile(baseSpecFileName, restartIndex):
+	checkExtension(baseSpecFileName, '.spec')
+	data = FileData()
+	data.readFile(baseSpecFileName)
+	outPrefix = data.getEntry('output_prefix')
+	endOfOutPrefix = '/normal'
+	if not outPrefix[1].endswith(endOfOutPrefix):
+		raise Exception('out_prefix should end with ' + endOfOutPrefix)
+	data.getEntry('restart')[1] = 'yes'
+	data.addEntry(['restart_file',
+		outPrefix[1][0:-len(endOfOutPrefix)] + '/perturbed_start.nc'],
+		data.getIndex('restart') + 1 )
+	outPrefix[1] = outPrefix[1][0:-len(endOfOutPrefix)] + '/perturbed'
+	data.getEntry('t_max')[1] -= indexToTime(data, restartIndex)
+	data.removeEntries('gas_data')
+	data.removeEntries('gas_init')
+	data.removeEntries('aerosol_data')
+	data.removeEntries('aerosol_init')
+	data.writeToFile('restart_' + baseSpecFileName)
+	
+def adjustDatFilesForRestart(fileList, restartTime):
+	for file in fileList:
+		checkExtension(file, '.dat')
+		data = FileData()
+		data.readFile(file)
+		entry = data.getEntry('time')
+		for i in xrange(1, len(entry)):
+			entry[i] -= restartTime
+		data.writeToFile(file)
+		
+datFileBackupPrefix = 'original_version_of_'
+
+def copyDatFiles(fileList):
+	for file in fileList:
+		checkExtension(file, '.dat')
+		shutil.copyfile(file, datFileBackupPrefix + file)
+	
+def restoreDatFiles(fileList):
+	for file in fileList:
+		checkExtension(file, '.dat')
+		shutil.copyfile(datFileBackupPrefix + file, file)
+		os.remove(datFileBackupPrefix + file)
+		
+def indexToTime(file, timeIndex):
+	if isinstance(file, str):
+		f = FileData()
+		f.readFile(file)
+		file = f
+	result = file.getEntry('t_output')[1]*(timeIndex-1)
+	if result > file.getEntry('t_max')[1]:
+		raise Exception('invalid time index ' + timeIndex)
+	return result
+	
+def getNumOutputFiles(fileName):
+	f = FileData()
+	f.readFile(fileName)
+	interval = f.getEntry('t_output')[1]
+	full = f.getEntry('t_max')[1]
+	if full % interval != 0:
+		raise Exception('t_output does not divide t_max')
+	return (full / interval) + 1
+	
+def checkNumSimulations(numSimulations):
 	if numSimulations <= 0:
-		return
-	numToStr(numSimulations-1, charsPerOutFileNum)
-	lastRunNum = 0
-	restartIndex = findRestartIndex()
-	for runNum in xrange(0, numSimulations):
-		outDir = getOutDir(runNum)
-		updateSpecFilesRunNumbers(lastRunNum, runNum)
-		ensureDirectory(outDir)
+		raise Exception('numSimulations must be positive')
+	numToStr(numSimulations, charsPerOutFileNum)
+	
+def runSimulationsNormal(numSimulations):
+	checkNumSimulations(numSimulations)
+	for runNum in xrange(1, numSimulations+1):
+		updateSpecFileRunNumbers('urban_plume.spec', runNum-1, runNum, 1)
+		ensureDirectory(getOutDir(runNum))
 		runPartMC('urban_plume.spec')
-		for i in xrange(1, restartIndex+1):
-			shutil.copyfile(
-				outDir + '/normal_0001_' + numToStr(i, 8) + '.nc',
-				outDir + '/perturbed_0001_' + numToStr(i, 8) + '.nc')
+	updateSpecFileRunNumbers('urban_plume.spec', numSimulations, 0, 1)
+	
+def perturbSimulations(numSimulations, restartIndex):
+	checkNumSimulations(numSimulations)
+	for runNum in xrange(1, numSimulations+1):
+		outDir = getOutDir(runNum)
+		shutil.copyfile(
+			outDir + '/normal_0001_' + numToStr(restartIndex, 8) + '.nc',
+			outDir + '/perturbed_start.nc')
 		perturbResult = perturb_particles.perturbFile(
-			outDir + '/perturbed_0001_' + numToStr(restartIndex, 8) + '.nc')
+			outDir + '/perturbed_start.nc')
 		logFile = open(outDir + '/perturb.log', 'w')
 		logFile.write('Perturbed output file ' + str(restartIndex) + '\n')
 		logFile.write(str(perturbResult))
 		logFile.close()
-		runPartMC('urban_plume_restart.spec')
-	updateSpecFilesRunNumbers(numSimulations-1, 0)
+		
+def runSimulationsRestart(numSimulations, restartIndex):
+	checkNumSimulations(numSimulations)
+	datFilesWithTime = ['aero_back.dat', 'aero_emit.dat', 'gas_back.dat',
+		'gas_emit.dat', 'height.dat', 'pres.dat', 'temp.dat']
+	makeRestartSpecFile('urban_plume.spec', restartIndex)
+	restartTime = indexToTime('urban_plume.spec', restartIndex)
+	copyDatFiles(datFilesWithTime)
+	adjustDatFilesForRestart(datFilesWithTime, restartTime)
+	for runNum in xrange(1, numSimulations+1):
+		updateSpecFileRunNumbers('restart_urban_plume.spec', runNum-1, runNum,
+			2)
+		runPartMC('restart_urban_plume.spec')
+	restoreDatFiles(datFilesWithTime)
+	updateSpecFileRunNumbers('restart_urban_plume.spec', numSimulations, 0, 2)
+
+def runSimulations(numSimulations, restartIndex):
+	runSimulationsNormal(numSimulations)
+	perturbSimulations(numSimulations, restartIndex)
+	runSimulationsRestart(numSimulations, restartIndex)
+
+def perturbedRunToOutDir(numSimulations, restartIndex):
+	os.system('rm out/*.nc')
+	numOutputFiles = getNumOutputFiles('urban_plume.spec')
+	for runNum in xrange(1, numSimulations+1):
+		outDir = getOutDir(runNum)
+		for outIndex in xrange(1, numOutputFiles+1):
+			prefix = 'normal'
+			srcOutIndex = outIndex
+			if outIndex >= restartIndex:
+				prefix = 'perturbed'
+				srcOutIndex = outIndex - restartIndex + 1
+			src = outDir + '/' + prefix + '_0001_'
+			src += numToStr(srcOutIndex,8) + '.nc'
+			dst = 'out/urban_plume_' + numToStr(runNum, 4) + '_'
+			dst += numToStr(outIndex, 8) + '.nc'
+			shutil.copyfile(src, dst)
+		
+def normalRunToOutDir(numSimulations):
+	perturbedRunToOutDir(numSimulations, 1000000000)
+	

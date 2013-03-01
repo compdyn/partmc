@@ -1,10 +1,10 @@
 run_type particle               # particle-resolved run
-output_prefix out/run00/normal   # prefix of output files
-n_repeat 1                      # number of Monte Carlo repeats
-n_part 1000                     # total number of particles
+output_prefix out/run0000/normal   # prefix of output files
+n_repeat 1                     # number of Monte Carlo repeats
+n_part 10000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
-t_max 28800                     # total simulation time (s)
+t_max 86400                     # total simulation time (s)
 del_t 60                        # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)
@@ -33,8 +33,8 @@ start_day 200                   # start day of year (UTC)
 do_coagulation yes              # whether to do coagulation (yes/no)
 coag_kernel brown               # coagulation kernel
 do_condensation no              # whether to do condensation (yes/no)
-do_mosaic no                    # whether to do MOSAIC (yes/no)
-#do_optical yes                 # whether to compute optical props (yes/no)
+do_mosaic no                   # whether to do MOSAIC (yes/no)
+#do_optical yes                  # whether to compute optical props (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
 
 rand_init 0                     # random initialization (0 to use time)

@@ -10,13 +10,13 @@ import scipy.io, numpy
 (figure, axes_array, cbar_axes_array) \
     = mpl_helper.make_fig_array(4,2,figure_width=8,
                                 top_margin=0.45, bottom_margin=0.45,
-                                left_margin=1, right_margin=0.65,
+                                left_margin=1, right_margin=1.65,
                                 vert_sep=0.3, horiz_sep=1.5,
                                 colorbar="individual",colorbar_location="right",
                                 share_y_axes=False)
 
-######## first row ###############
-filename = 'coag/out/urban_plume_process.nc'
+######## first row (bottom) ###############
+filename = 'cond_bidisp_decrease/out/urban_plume_process.nc'
 ncf = scipy.io.netcdf_file(filename)
 time_grid_edges = ncf.variables["time_grid_edges"].data
 diversity_edges = ncf.variables["diversity_edges"].data
@@ -41,7 +41,7 @@ axes.set_xticks([0, 6, 12, 18, 24])
 
 axes.set_yscale("linear")
 axes.set_ylabel(r"particle diversity $D_i$")
-axes.set_ylim(0.95, 2.05)
+axes.set_ylim(1, 3)
 
 axes.grid(True)
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
@@ -57,7 +57,7 @@ axes.set_xlim([0,24])
 axes.set_xticks([0, 6, 12, 18, 24])
 
 axes.set_ylabel(r"$D_{\alpha}, D{\gamma}$")
-axes.set_ylim([0.95,2.05])
+axes.set_ylim([1,3])
 
 axes2 =  axes.twinx()
 axes2.plot(time, tot_entropy_ratio, "r--", markersize = 2)
@@ -79,7 +79,7 @@ axes.annotate(r"$\chi$", (time[102], tot_entropy_ratio[102]),
 axes.grid(True)
 
 ######## second row ###############
-filename = 'emit_pure/out/urban_plume_process.nc'
+filename = 'cond_bidisp/out/urban_plume_process.nc'
 ncf = scipy.io.netcdf_file(filename)
 time_grid_edges = ncf.variables["time_grid_edges"].data
 diversity_edges = ncf.variables["diversity_edges"].data
@@ -104,7 +104,7 @@ axes.set_xticks([0, 6, 12, 18, 24])
 
 axes.set_yscale("linear")
 axes.set_ylabel(r"particle diversity $D_i$")
-axes.set_ylim(0.95, 2.05)
+axes.set_ylim(1, 4)
 
 axes.grid(True)
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
@@ -120,7 +120,7 @@ axes.set_xlim([0,24])
 axes.set_xticks([0, 6, 12, 18, 24])
 
 axes.set_ylabel(r"$D_{\alpha}, D{\gamma}$")
-axes.set_ylim([0.95,3.0])
+axes.set_ylim([1,4])
 
 axes2 =  axes.twinx()
 axes2.plot(time, tot_entropy_ratio, "r--", markersize = 2)
@@ -142,7 +142,7 @@ axes.annotate(r"$\chi$", (time[102], tot_entropy_ratio[102]),
 axes.grid(True)
 
 ######## third row ###############
-filename = 'emit_mixed/out/urban_plume_process.nc'
+filename = 'cond_mono_decrease/out/urban_plume_process.nc'
 ncf = scipy.io.netcdf_file(filename)
 time_grid_edges = ncf.variables["time_grid_edges"].data
 diversity_edges = ncf.variables["diversity_edges"].data
@@ -167,7 +167,7 @@ axes.set_xticks([0, 6, 12, 18, 24])
 
 axes.set_yscale("linear")
 axes.set_ylabel(r"particle diversity $D_i$")
-axes.set_ylim(1, 2.5)
+axes.set_ylim(2,4)
 
 axes.grid(True)
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
@@ -183,7 +183,7 @@ axes.set_xlim([0,24])
 axes.set_xticks([0, 6, 12, 18, 24])
 
 axes.set_ylabel(r"$D_{\alpha}, D{\gamma}$")
-axes.set_ylim([1,5.0])
+axes.set_ylim([2,4.0])
 
 axes2 =  axes.twinx()
 axes2.plot(time, tot_entropy_ratio, "r--", markersize = 2)
@@ -205,7 +205,7 @@ axes.annotate(r"$\chi$", (time[102], tot_entropy_ratio[102]),
 axes.grid(True)
 
 ######## forth row ###############
-filename = 'emit/out/urban_plume_process.nc'
+filename = 'cond_mono/out/urban_plume_process.nc'
 ncf = scipy.io.netcdf_file(filename)
 time_grid_edges = ncf.variables["time_grid_edges"].data
 diversity_edges = ncf.variables["diversity_edges"].data
@@ -246,7 +246,7 @@ axes.set_xlim([0,24])
 axes.set_xticks([0, 6, 12, 18, 24])
 
 axes.set_ylabel(r"$D_{\alpha}, D{\gamma}$")
-axes.set_ylim([1,5.0])
+axes.set_ylim([1,2.5])
 
 axes2 =  axes.twinx()
 axes2.plot(time, tot_entropy_ratio, "r--", markersize = 2)
@@ -269,6 +269,6 @@ axes.grid(True)
 
 #mpl_helper.remove_fig_array_axes(axes_array)
 
-out_filename = "urban_plume_time_entropy.pdf"
+out_filename = "simple_cases2.pdf"
 figure.savefig(out_filename)
 print out_filename

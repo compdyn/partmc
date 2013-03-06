@@ -269,6 +269,6 @@ axes.grid(True)
 
 #mpl_helper.remove_fig_array_axes(axes_array)
 
-out_filename = "urban_plume_time_entropy.pdf"
+out_filename = "simple_cases1.pdf"
 figure.savefig(out_filename)
 print out_filename

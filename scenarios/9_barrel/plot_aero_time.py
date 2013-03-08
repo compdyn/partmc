@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 
 shape_opt = raw_input("Enter s for spherical, f for fractal:")
 
-partmc_time = np.loadtxt("out_0322/barrel_wc_0001_aero_time.txt")
-barrel_time = np.loadtxt("ref_0322/ref_aero_time.txt")
+partmc_time = np.loadtxt("out_0212/barrel_wc_nummass_source_0001_aero_time.txt")
+barrel_time = np.loadtxt("ref_0212/ref_aero_time.txt")
 (figure, axes) = mpl_helper.make_fig(colorbar=False)
 axes.plot(barrel_time[:,0], barrel_time[:,1], color='r')
 axes.plot(partmc_time[:,0], partmc_time[:,1], color='k')
@@ -33,8 +33,8 @@ if shape_opt == 's':
    figure.savefig(filename_out)
 if shape_opt == 'f':
    rho = 1760 # density in kgm-3
-   partmc_num = np.loadtxt("out_0322/barrel_wc_0001_aero_size_num.txt")
-   barrel_num = np.loadtxt("ref_0322/ref_aero_size_num_regrid.txt")
+   partmc_num = np.loadtxt("out_0212/barrel_wc_nummass_source_0001_aero_size_num.txt")
+   barrel_num = np.loadtxt("ref_0212/ref_aero_size_num_regrid.txt")
    list_partmc_mass = []
    list_barrel_mass = []
    for col in range(1,partmc_num.shape[1]):

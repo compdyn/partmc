@@ -12,6 +12,7 @@ program extract_aero_time
   use pmc_aero_state
   use pmc_aero_particle
   use pmc_output
+  use pmc_env_state
   use pmc_mpi
   use getopt_m
 
@@ -90,7 +91,7 @@ program extract_aero_time
 
   do i_file = 1,n_file
      call input_state(filename_list(i_file), index, time, del_t, i_repeat, &
-          uuid, aero_data=aero_data, aero_state=aero_state)
+          uuid, aero_data=aero_data, aero_state=aero_state, env_state=env_state)
 
      call assert_msg(397906326, uuid == run_uuid, &
           "UUID mismatch between " // trim(filename_list(1)) // " and " &

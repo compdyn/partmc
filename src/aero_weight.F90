@@ -14,6 +14,7 @@ module pmc_aero_weight
   use pmc_spec_file
   use pmc_aero_particle
   use pmc_aero_data
+  use pmc_env_state
   use pmc_netcdf
   use pmc_mpi
 #ifdef PMC_USE_MPI
@@ -198,7 +199,7 @@ contains
 
   !> Compute the number concentration for a particle (m^{-3}).
   real(kind=dp) function aero_weight_num_conc(aero_weight, &
-       aero_particle, aero_data)
+       aero_particle, aero_data, env_state)
 
     !> Aerosol weight.
     type(aero_weight_t), intent(in) :: aero_weight
@@ -206,9 +207,12 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Environment.
+    type(env_state_t), intent(in) :: env_state
 
     aero_weight_num_conc = aero_weight_num_conc_at_radius(aero_weight, &
-         aero_particle_radius(aero_particle, aero_data))
+         !aero_particle_radius(aero_particle, aero_data))
+         aero_particle_mob_radius(aero_particle, aero_data, env_state))
 
   end function aero_weight_num_conc
 

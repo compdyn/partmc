@@ -19,6 +19,7 @@ program extract_aero_particles
   type(aero_data_t) :: aero_data
   type(aero_state_t) :: aero_state
   integer :: index, i_repeat, i_part, i_spec, out_unit, i_char
+  type(env_state_t) :: env_state
   real(kind=dp) :: time, del_t
   character(len=PMC_UUID_LEN) :: uuid
   type(aero_particle_t), pointer :: aero_particle
@@ -69,9 +70,10 @@ program extract_aero_particles
 
   call aero_data_allocate(aero_data)
   call aero_state_allocate(aero_state)
+  call env_state_allocate(env_state)
 
   call input_state(in_filename, index, time, del_t, i_repeat, uuid, &
-       aero_data=aero_data, aero_state=aero_state)
+       aero_data=aero_data, aero_state=aero_state, env_state=env_state)
 
   write(*,'(a)') "Output file: " // trim(out_filename)
   write(*,'(a)') "  Output data is for time = " &
@@ -93,7 +95,7 @@ program extract_aero_particles
      aero_particle => aero_state%apa%particle(i_part)
      write(out_unit, '(i15,e30.15e3,e30.15e3,e30.15e3)', advance='no') &
           aero_particle%id, &
-          aero_state_particle_num_conc(aero_state, aero_particle, aero_data), &
+          aero_state_particle_num_conc(aero_state, aero_particle, aero_data, env_state), &
           aero_particle_diameter(aero_particle, aero_data), &
           aero_particle_mass(aero_particle, aero_data)
      do i_spec = 1,aero_data%n_spec

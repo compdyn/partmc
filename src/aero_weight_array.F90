@@ -17,6 +17,7 @@ module pmc_aero_weight_array
   use pmc_mpi
   use pmc_aero_weight
   use pmc_aero_data
+  use pmc_env_state
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -264,7 +265,7 @@ contains
 
   !> Compute the number concentration for a particle (m^{-3}).
   real(kind=dp) function aero_weight_array_single_num_conc(aero_weight_array, &
-       aero_particle, aero_data)
+       aero_particle, aero_data, env_state)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
@@ -272,10 +273,12 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Environment.
+    type(env_state_t), intent(in) :: env_state
 
     aero_weight_array_single_num_conc = aero_weight_num_conc( &
          aero_weight_array%weight(aero_particle%weight_group, &
-         aero_particle%weight_class), aero_particle, aero_data)
+         aero_particle%weight_class), aero_particle, aero_data, env_state)
 
   end function aero_weight_array_single_num_conc
 
@@ -308,7 +311,7 @@ contains
 
   !> Compute the number concentration for a particle (m^{-3}).
   real(kind=dp) function aero_weight_array_num_conc(aero_weight_array, &
-       aero_particle, aero_data)
+       aero_particle, aero_data, env_state)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
@@ -316,10 +319,12 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Environment.
+    type(env_state_t), intent(in) :: env_state
 
     aero_weight_array_num_conc = aero_weight_array_num_conc_at_radius( &
          aero_weight_array, aero_particle%weight_class, &
-         aero_particle_radius(aero_particle, aero_data))
+         aero_particle_mob_radius(aero_particle, aero_data, env_state))
 
   end function aero_weight_array_num_conc
 

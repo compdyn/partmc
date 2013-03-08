@@ -83,7 +83,7 @@ program bin_average_comp
   end if
 
   call aero_state_bin_average_comp(aero_state, bin_grid, aero_data, &
-       dry_volume)
+       env_state, dry_volume)
 
   output_type = OUTPUT_TYPE_SINGLE
   record_removals = .false.

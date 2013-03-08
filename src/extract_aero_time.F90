@@ -20,6 +20,7 @@ program extract_aero_time
   character(len=1000) :: tmp_str
   type(aero_data_t) :: aero_data
   type(aero_state_t) :: aero_state
+  type(env_state_t) :: env_state
   integer :: index, i_repeat, i_spec, out_unit
   integer :: i_file, n_file
   real(kind=dp) :: time, del_t
@@ -67,6 +68,7 @@ program extract_aero_time
 
   call aero_data_allocate(aero_data)
   call aero_state_allocate(aero_state)
+  call env_state_allocate(env_state)
 
   allocate(filename_list(0))
   call input_filename_list(in_prefix, filename_list)
@@ -75,7 +77,7 @@ program extract_aero_time
        "no NetCDF files found with prefix: " // trim(in_prefix))
 
   call input_state(filename_list(1), index, time, del_t, i_repeat, uuid, &
-       aero_data=aero_data, aero_state=aero_state)
+       aero_data=aero_data, aero_state=aero_state, env_state=env_state)
   run_uuid = uuid
 
   allocate(times(n_file))
@@ -95,7 +97,7 @@ program extract_aero_time
           // trim(filename_list(i_file)))
 
      times(i_file) = time
-     call aero_state_num_concs(aero_state, aero_data, particle_num_concs)
+     call aero_state_num_concs(aero_state, aero_data, env_state, particle_num_concs)
      time_num_concs(i_file) = sum(particle_num_concs)
      call aero_state_masses(aero_state, aero_data, particle_masses)
      time_mass_concs(i_file) = sum(particle_masses * particle_num_concs)

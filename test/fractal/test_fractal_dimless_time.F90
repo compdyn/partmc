@@ -140,7 +140,7 @@ program extract_dimless_time
      else
         call die(123323239)
      end if
-     call aero_state_num_concs(aero_state, aero_data, particle_num_concs)
+     call aero_state_num_concs(aero_state, aero_data, env_state, particle_num_concs)
      time_num_concs(i_file) = sum(particle_num_concs)
      dimless_time_num_concs(i_file) = time_num_concs(i_file) / n_init
   end do

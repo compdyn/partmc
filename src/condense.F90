@@ -200,7 +200,7 @@ contains
     do i_part = 1,aero_state%apa%n_part
        aero_particle => aero_state%apa%particle(i_part)
        num_conc = aero_weight_array_num_conc(aero_state%awa, &
-            aero_particle, aero_data)
+            aero_particle, aero_data, env_state_initial)
        water_vol_conc_initial = water_vol_conc_initial &
             + aero_particle%vol(aero_data%i_water) * num_conc
     end do
@@ -231,7 +231,7 @@ contains
             aero_data%fractal)
        condense_saved_num_conc(i_part) &
             = aero_weight_array_num_conc(aero_state%awa, &
-            aero_particle, aero_data)
+            aero_particle, aero_data, env_state_initial)
        state(i_part) = aero_particle_diameter(aero_particle, aero_data)
        abs_tol_vector(i_part) = max(1d-30, &
             1d-8 * (state(i_part) - condense_saved_D_dry(i_part)))
@@ -274,11 +274,11 @@ contains
     ! account for number concentration changes
     water_vol_conc_final = 0d0
     call aero_state_num_conc_for_reweight(aero_state, aero_data, &
-         reweight_num_conc)
+         env_state_final, reweight_num_conc)
     do i_part = 1,aero_state%apa%n_part
        aero_particle => aero_state%apa%particle(i_part)
        num_conc = aero_weight_array_num_conc(aero_state%awa, &
-            aero_particle, aero_data)
+            aero_particle, aero_data, env_state_final)
        
        ! translate output back to particle
        aero_particle%vol(aero_data%i_water) = diam2vol(state(i_part), &
@@ -294,7 +294,7 @@ contains
             + aero_particle%vol(aero_data%i_water) * num_conc
     end do
     ! adjust particles to account for weight changes
-    call aero_state_reweight(aero_state, aero_data, reweight_num_conc)
+    call aero_state_reweight(aero_state, aero_data, env_state_final, reweight_num_conc)
 
     ! Check that water removed from particles equals water added to
     ! vapor. Note that water concentration is not conserved (due to
@@ -762,13 +762,13 @@ contains
     aero_state%valid_sort = .false.
 
     call aero_state_num_conc_for_reweight(aero_state, aero_data, &
-         reweight_num_conc)
+         env_state, reweight_num_conc)
     do i_part = aero_state%apa%n_part,1,-1
        call condense_equilib_particle(env_state, aero_data, &
             aero_state%apa%particle(i_part))
     end do
     ! adjust particles to account for weight changes
-    call aero_state_reweight(aero_state, aero_data, reweight_num_conc)
+    call aero_state_reweight(aero_state, aero_data, env_state, reweight_num_conc)
 
   end subroutine condense_equilib_particles
 

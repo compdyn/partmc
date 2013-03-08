@@ -24,6 +24,7 @@ program test_fractal_self_preserve
   type(bin_grid_t) :: dimless_vol_grid
   type(aero_data_t) :: aero_data
   type(aero_state_t) :: aero_state
+  type(env_state_t) :: env_state
   integer :: index, i_repeat, i_part, i_spec, out_unit
   integer :: i_file, n_file, i_bin, n_bin
   real(kind=dp) :: time, del_t
@@ -87,6 +88,7 @@ program test_fractal_self_preserve
   call bin_grid_allocate(dimless_vol_grid)
   call aero_data_allocate(aero_data)
   call aero_state_allocate(aero_state)
+  call env_state_allocate(env_state)
 
   allocate(filename_list(0))
   call input_filename_list(in_prefix, filename_list)
@@ -104,15 +106,15 @@ program test_fractal_self_preserve
   allocate(dimless_num_conc(0))
 
   call input_state(filename_list(n_file), index, time, del_t, i_repeat, &
-       uuid, aero_data=aero_data, aero_state=aero_state)
+       uuid, aero_data=aero_data, aero_state=aero_state, env_state=env_state)
 
   run_uuid = uuid
   call assert_msg(657993562, uuid == run_uuid, &
        "UUID mismatch between " // trim(filename_list(1)) // " and " &
        // trim(filename_list(n_file)))
 
-  call aero_state_num_concs(aero_state, aero_data, num_concs)
-  total_num_conc = aero_state_total_num_conc(aero_state, aero_data)
+  call aero_state_num_concs(aero_state, aero_data, env_state, num_concs)
+  total_num_conc = aero_state_total_num_conc(aero_state, aero_data, env_state)
   call ensure_real_array_size(dimless_vol, aero_state%apa%n_part)
   call ensure_real_array_size(dimless_num_conc, aero_state%apa%n_part)
   call ensure_real_array_size(vol_concs, aero_state%apa%n_part)

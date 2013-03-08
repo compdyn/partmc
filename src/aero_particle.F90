@@ -404,6 +404,24 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Total mobility radius of the particle (m).
+  real(kind=dp) function aero_particle_mob_radius(aero_particle, &
+       aero_data, env_state)
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment.
+    type(env_state_t), intent(in) :: env_state
+
+    aero_particle_mob_radius = vol2Rme(aero_particle_volume(aero_particle), &
+         env_state%temp, env_state%pressure, aero_data%fractal)
+
+  end function aero_particle_mob_radius
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Total dry radius of the particle (m).
   elemental real(kind=dp) function aero_particle_dry_radius(aero_particle, &
        aero_data)

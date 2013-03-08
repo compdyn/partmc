@@ -7,10 +7,11 @@
 
 !> Read NetCDF output files and write out the aerosol number or mass
 !> size distributions in text format.
-program extract_aero_size
+program extract_aero_mob_size
 
   use pmc_aero_state
   use pmc_aero_particle
+  use pmc_env_state
   use pmc_output
   use pmc_mpi
   use getopt_m
@@ -151,12 +152,12 @@ program extract_aero_size
              env_state%pressure, aero_data%fractal)
      end do
 
-     call aero_state_num_concs(aero_state, aero_data, num_concs)   
-     do i_part = 1,size(num_concs)
-        num_concs(i_part) = aero_weight_array_num_conc_at_radius( &
-            aero_state%awa, aero_state%apa%particle(i_part)%weight_class, &
-            diameters(i_part) / 2d0)
-     end do
+     call aero_state_num_concs(aero_state, aero_data, env_state, num_concs)   
+     !do i_part = 1,size(num_concs)
+     !   num_concs(i_part) = aero_weight_array_num_conc_at_radius( &
+     !       aero_state%awa, aero_state%apa%particle(i_part)%weight_class, &
+     !       diameters(i_part) / 2d0)
+     !end do
 
      if (dist_type == DIST_TYPE_NUM) then
         call bin_grid_histogram_1d(diam_grid, diameters, num_concs, hist)
@@ -229,4 +230,4 @@ contains
 
   end subroutine print_help
 
-end program extract_aero_size
+end program extract_aero_mob_size

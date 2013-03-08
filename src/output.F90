@@ -369,7 +369,7 @@ contains
     call gas_state_output_netcdf(gas_state, ncid, gas_data)
     call aero_data_output_netcdf(aero_data, ncid)
     call aero_state_output_netcdf(aero_state, ncid, aero_data, &
-         record_removals, record_optical)
+         env_state, record_removals, record_optical)
 
     call pmc_nc_check(nf90_close(ncid))
     
@@ -535,10 +535,14 @@ contains
     call pmc_nc_read_integer(ncid, i_repeat, "repeat")
     call pmc_nc_read_integer(ncid, index, "timestep_index")
 
+    if (present(env_state)) then
+       call env_state_input_netcdf(env_state, ncid)
+    end if
+
     if (present(aero_data)) then
        call aero_data_input_netcdf(aero_data, ncid)
        if (present(aero_state)) then
-          call aero_state_input_netcdf(aero_state, ncid, aero_data)
+          call aero_state_input_netcdf(aero_state, env_state, ncid, aero_data)
        end if
     else
        call assert_msg(289621231, present(aero_state) .eqv. .false., &
@@ -555,9 +559,9 @@ contains
             "cannot input gas_state without gas_data")
     end if
 
-    if (present(env_state)) then
-       call env_state_input_netcdf(env_state, ncid)
-    end if
+    !if (present(env_state)) then
+    !   call env_state_input_netcdf(env_state, ncid)
+    !end if
 
     call pmc_nc_close(ncid)
     

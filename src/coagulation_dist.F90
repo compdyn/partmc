@@ -882,7 +882,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine coagulate_dist(aero_data, aero_state, aero_particle_1, &
-       aero_particle_2, remote_proc, aero_weight_total, magnitudes, &
+       aero_particle_2, env_state, remote_proc, aero_weight_total, magnitudes, &
        remove_1, remove_2)
 
     !> Aerosol data.
@@ -893,6 +893,8 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle_1
     !> Second particle to coagulate.
     type(aero_particle_t), intent(in) :: aero_particle_2
+    !> Environment.
+    type(env_state_t), intent(in) :: env_state
     !> Remote process that the particle came from.
     integer, intent(in) :: remote_proc
     !> Total weight across all processes.
@@ -919,7 +921,7 @@ contains
 
     call coagulate_weighting(aero_particle_1, aero_particle_2, &
          aero_particle_new, s1, s2, sc, aero_data, aero_state%awa, &
-         remove_1, remove_2, create_new, id_1_lost, id_2_lost, &
+         env_state, remove_1, remove_2, create_new, id_1_lost, id_2_lost, &
          aero_info_1, aero_info_2)
 
     if (id_1_lost) then
@@ -934,7 +936,8 @@ contains
     ! add new particle
     if (create_new) then
        new_group = aero_weight_array_rand_group(aero_weight_total, sc, &
-            aero_particle_radius(aero_particle_new, aero_data))
+            !aero_particle_radius(aero_particle_new, aero_data))
+            aero_particle_mob_radius(aero_particle_new, aero_data, env_state))
        aero_particle_new%weight_group = new_group
        new_proc = sample_cts_pdf(1d0 / magnitudes(new_group, :)) - 1
        call send_return_unreq_particle(aero_particle_new, new_proc)

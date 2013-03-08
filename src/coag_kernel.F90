@@ -225,10 +225,12 @@ contains
 
     call kernel(coag_kernel_type, aero_particle_1, aero_particle_2, &
          aero_data, env_state, unweighted_k)
-    i_r = aero_particle_radius(aero_particle_1, aero_data)
-    j_r = aero_particle_radius(aero_particle_2, aero_data)
+    !i_r = aero_particle_radius(aero_particle_1, aero_data)
+    !j_r = aero_particle_radius(aero_particle_2, aero_data)
+    i_r = aero_particle_mob_radius(aero_particle_1, aero_data, env_state)
+    j_r = aero_particle_mob_radius(aero_particle_2, aero_data, env_state)
     k = unweighted_k * coag_num_conc_factor(aero_weight_array, aero_data, &
-         i_r, j_r, i_class, j_class, ij_class)
+         env_state, i_r, j_r, i_class, j_class, ij_class)
 
   end subroutine num_conc_weighted_kernel
 
@@ -370,12 +372,14 @@ contains
 
   !> Coagulation scale factor due to number concentrations.
   real(kind=dp) function coag_num_conc_factor(aero_weight_array, aero_data, &
-       i_r, j_r, i_class, j_class, ij_class)
+       env_state, i_r, j_r, i_class, j_class, ij_class)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Environment.
+    type(env_state_t), intent(in) :: env_state
     !> Radius of first particle.
     real(kind=dp), intent(in) :: i_r
     !> Radius of second particle.
@@ -389,8 +393,11 @@ contains
 
     real(kind=dp) :: ij_r, i_nc, j_nc, ij_nc, nc_min
 
-    ij_r = vol2rad(rad2vol(i_r, aero_data%fractal) + rad2vol(j_r, &
-         aero_data%fractal), aero_data%fractal)
+    !ij_r = vol2rad(rad2vol(i_r, aero_data%fractal) + rad2vol(j_r, &
+    !     aero_data%fractal), aero_data%fractal)
+    ij_r = vol2Rme(Rme2vol(i_r, env_state%temp, env_state%pressure, aero_data%fractal) &
+           + Rme2vol(j_r, env_state%temp, env_state%pressure, aero_data%fractal), &
+           env_state%temp, env_state%pressure, aero_data%fractal)
     i_nc = aero_weight_array_num_conc_at_radius(aero_weight_array, i_class, &
          i_r)
     j_nc = aero_weight_array_num_conc_at_radius(aero_weight_array, j_class, &
@@ -446,7 +453,7 @@ contains
   !> Determine the minimum and maximum number concentration factors
   !> for coagulation.
   subroutine max_coag_num_conc_factor(aero_weight_array, aero_data, &
-       bin_grid, i_bin, j_bin, i_class, j_class, ij_class, f_max)
+       bin_grid, env_state, i_bin, j_bin, i_class, j_class, ij_class, f_max)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
@@ -454,6 +461,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
+    !> Environment.
+    type(env_state_t), intent(in) :: env_state
     !> First bin number.
     integer, intent(in) :: i_bin
     !> Second bin number.
@@ -482,7 +491,7 @@ contains
        do j_sample = 1,n_sample
           i_r = interp_linear_disc(i_r_min, i_r_max, n_sample, i_sample)
           j_r = interp_linear_disc(j_r_min, j_r_max, n_sample, j_sample)
-          f = coag_num_conc_factor(aero_weight_array, aero_data, i_r, j_r, &
+          f = coag_num_conc_factor(aero_weight_array, aero_data, env_state, i_r, j_r, &
                i_class, j_class, ij_class)
           f_max = max(f_max, f)
        end do

@@ -25,6 +25,7 @@ program extract_aero_size
   type(bin_grid_t) :: diam_grid
   type(aero_data_t) :: aero_data
   type(aero_state_t) :: aero_state
+  type(env_state_t) :: env_state
   integer :: index, i_repeat, i_part, i_spec, out_unit
   integer :: i_file, n_file, i_bin, n_bin, dist_type
   real(kind=dp) :: time, del_t
@@ -112,6 +113,7 @@ program extract_aero_size
   call bin_grid_allocate(diam_grid)
   call aero_data_allocate(aero_data)
   call aero_state_allocate(aero_state)
+  call env_state_allocate(env_state)
 
   allocate(filename_list(0))
   call input_filename_list(in_prefix, filename_list)
@@ -128,7 +130,7 @@ program extract_aero_size
 
   do i_file = 1,n_file
      call input_state(filename_list(i_file), index, time, del_t, i_repeat, &
-          uuid, aero_data=aero_data, aero_state=aero_state)
+          uuid, aero_data=aero_data, aero_state=aero_state, env_state=env_state)
 
      if (i_file == 1) then
         run_uuid = uuid
@@ -139,7 +141,7 @@ program extract_aero_size
      end if
 
      call aero_state_diameters(aero_state, aero_data, diameters)
-     call aero_state_num_concs(aero_state, aero_data, num_concs)
+     call aero_state_num_concs(aero_state, aero_data, env_state, num_concs)
      if (dist_type == DIST_TYPE_NUM) then
         call bin_grid_histogram_1d(diam_grid, diameters, num_concs, hist)
      elseif (dist_type == DIST_TYPE_MASS) then

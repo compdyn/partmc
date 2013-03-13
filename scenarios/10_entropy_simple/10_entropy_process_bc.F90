@@ -16,7 +16,7 @@ program process
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename
   type(bin_grid_t) :: diam_grid, bc_grid, no3_grid, h2o_grid, sc_grid, &
-       entropy_grid, avg_bin_grid, time_grid
+       entropy_grid, diversity_grid, avg_bin_grid, time_grid
   type(aero_data_t) :: aero_data
   type(aero_state_t) :: aero_state, aero_state_averaged, aero_state_bc
   type(env_state_t) :: env_state
@@ -30,20 +30,21 @@ program process
        oc_masses(:), oc_fracs(:), so4_masses(:), so4_fracs(:), &
        num_concs_averaged(:), dry_masses_averaged(:), masses_averaged(:), &
        entropies(:), entropies_of_avg_part(:), crit_rhs(:), scs(:), num_dist(:), &
+       diversities(:), &
        diam_bc_dist(:,:), diam_no3_dist(:,:), diam_h2o_dist(:,:), &
-       diam_sc_dist(:,:), entropy_dist(:), diam_entropy_dist(:,:), time_entropy_dist(:,:)
+       diam_sc_dist(:,:), diversity_dist(:), diam_diversity_dist(:,:), time_diversity_dist(:,:)
   real(kind=dp) :: tot_entropy_conc, tot_entropy_of_avg_conc, & 
        tot_entropy_ratio
   real(kind=dp), allocatable :: dist_ratio_to_entropy_of_avg_part(:), &
        dist_ratio_to_avg_part_entropy(:)
   real(kind=dp), allocatable :: least_create_times(:), greatest_create_times(:)
-  type(stats_1d_t) :: stats_num_dist, stats_entropy_dist, &
+  type(stats_1d_t) :: stats_num_dist, stats_diversity_dist, &
        stats_dist_ratio_to_entropy_of_avg_part, stats_dist_ratio_to_avg_part_entropy, &
        stats_tot_num_conc, stats_tot_mass_conc, stats_avg_part_entropy, &
        stats_entropy_of_avg_part, stats_ccn(3), stats_tot_entropy_conc, &
        stats_tot_entropy_of_avg_conc, stats_tot_entropy_ratio
   type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_no3_dist, stats_diam_h2o_dist, &
-       stats_diam_sc_dist, stats_diam_entropy_dist, stats_time_entropy_dist
+       stats_diam_sc_dist, stats_diam_diversity_dist, stats_time_diversity_dist
 
   real(kind=dp) :: s_env(3)
   real(kind=dp), allocatable :: num_concs_active(:)
@@ -61,6 +62,7 @@ program process
   call bin_grid_allocate(h2o_grid)
   call bin_grid_allocate(sc_grid)
   call bin_grid_allocate(entropy_grid)
+  call bin_grid_allocate(diversity_grid)
   call bin_grid_allocate(time_grid)
   call aero_data_allocate(aero_data)
   call aero_state_allocate(aero_state)
@@ -77,7 +79,8 @@ program process
   call bin_grid_make(h2o_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 2d0)
   call bin_grid_make(sc_grid, BIN_GRID_TYPE_LOG, 50, 1d-4, 1d0)
   call bin_grid_make(entropy_grid, BIN_GRID_TYPE_LINEAR, 200, 0d0, 5d0)
-  call bin_grid_make(time_grid, BIN_GRID_TYPE_LINEAR, 49, 0d0, 48d0)
+  call bin_grid_make(diversity_grid, BIN_GRID_TYPE_LINEAR, 200, 0d0, 10d0)
+  call bin_grid_make(time_grid, BIN_GRID_TYPE_LINEAR, 289, 0d0, 48d0)
   call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)
 
   allocate(times(n_index))
@@ -170,18 +173,21 @@ program process
         entropies = aero_state_mass_entropies(aero_state_bc, aero_data, &
              exclude=["H2O"])!, group=["BC"])
 
-!> 1d distribution of H_i
-        entropy_dist = bin_grid_histogram_1d(entropy_grid, entropies, &
+!> per-particle diversities (D_i)
+        diversities = exp(entropies)
+
+!> 1d distribution of D_i
+        diversity_dist = bin_grid_histogram_1d(diversity_grid, diversities, &
              num_concs)
-        call stats_1d_add(stats_entropy_dist, entropy_dist)
+        call stats_1d_add(stats_diversity_dist, diversity_dist)
 
-!> 2d distribution of number conc. in terms of H_i and dry diameter
-        diam_entropy_dist = bin_grid_histogram_2d(diam_grid, dry_diameters, &
-             entropy_grid, entropies, num_concs)
-        call stats_2d_add(stats_diam_entropy_dist, diam_entropy_dist)
+!> 2d distribution of number conc. in terms of D_i and dry diameter
+        diam_diversity_dist = bin_grid_histogram_2d(diam_grid, dry_diameters, &
+             diversity_grid, diversities, num_concs)
+        call stats_2d_add(stats_diam_diversity_dist, diam_diversity_dist)
 
-!> 2d distribution of number conc. in terms of H_i and time
-        call stats_2d_add_col(stats_time_entropy_dist, entropy_dist, i_index)
+!> 2d distribution of number conc. in terms of D_i and time
+        call stats_2d_add_col(stats_time_diversity_dist, diversity_dist, i_index)
 
 !> average per-particle entropy (\bar{H})
         avg_part_entropy = sum(entropies * masses * num_concs) &
@@ -260,7 +266,7 @@ program process
 !     call bin_grid_output_netcdf(no3_grid, ncid, "no3_frac", unit="1")
 !     call bin_grid_output_netcdf(h2o_grid, ncid, "h2o_frac", unit="1")
 !     call bin_grid_output_netcdf(sc_grid, ncid, "sc", unit="1")
-     call bin_grid_output_netcdf(entropy_grid, ncid, "entropy", unit="1")
+     call bin_grid_output_netcdf(diversity_grid, ncid, "diversity", unit="1")
 
      call stats_1d_output_netcdf(stats_num_dist, ncid, "num_dist", &
           dim_name="diam", unit="m^{-3}")
@@ -282,9 +288,9 @@ program process
 !          dim_name_1="diam", dim_name_2="sc", unit="m^{-3}")
 !     call stats_2d_clear(stats_diam_sc_dist)
 
-     call stats_1d_output_netcdf(stats_entropy_dist, ncid, "entropy_dist", &
-          dim_name="entropy", unit="m^{-3}")
-     call stats_1d_clear(stats_entropy_dist)
+     call stats_1d_output_netcdf(stats_diversity_dist, ncid, "diversity_dist", &
+          dim_name="diversity", unit="m^{-3}")
+     call stats_1d_clear(stats_diversity_dist)
 
      call stats_1d_output_netcdf(stats_dist_ratio_to_entropy_of_avg_part, ncid, &
           "dist_ratio_to_entropy_of_avg_part", dim_name="entropy", unit="1")
@@ -294,9 +300,9 @@ program process
           "dist_ratio_to_avg_part_entropy", dim_name="entropy", unit="1")
      call stats_1d_clear(stats_dist_ratio_to_avg_part_entropy)
 
-     call stats_2d_output_netcdf(stats_diam_entropy_dist, ncid, "diam_entropy_dist", &
-          dim_name_1="diam", dim_name_2="entropy", unit="m^{-3}")
-     call stats_2d_clear(stats_diam_entropy_dist)
+     call stats_2d_output_netcdf(stats_diam_diversity_dist, ncid, "diam_diversity_dist", &
+          dim_name_1="diam", dim_name_2="diversity", unit="m^{-3}")
+     call stats_2d_clear(stats_diam_diversity_dist)
 
      call pmc_nc_close(ncid)
   end do
@@ -305,7 +311,7 @@ program process
   call pmc_nc_open_write(out_filename, ncid)
   call pmc_nc_write_info(ncid, uuid, "1_urban_plume process")
   call pmc_nc_write_real_1d(ncid, times, "time", dim_name="time", unit="s")
-  call bin_grid_output_netcdf(entropy_grid, ncid, "entropy", unit="1")
+  call bin_grid_output_netcdf(diversity_grid, ncid, "diversity", unit="1")
   call bin_grid_output_netcdf(time_grid, ncid, "time_grid", unit="h")
   call stats_1d_output_netcdf(stats_tot_num_conc, ncid, "tot_num_conc", &
        dim_name="time", unit="m^{-3}")
@@ -327,9 +333,9 @@ program process
        dim_name="time", unit="m^{-3}")
   call stats_1d_output_netcdf(stats_tot_entropy_ratio, ncid, "tot_entropy_ratio", &
        dim_name="time", unit="1")
-  call stats_2d_output_netcdf(stats_time_entropy_dist, ncid, "time_entropy_dist", &
-       dim_name_1="entropy", dim_name_2="time", unit="m^{-3}")
-  call stats_2d_clear(stats_time_entropy_dist)
+  call stats_2d_output_netcdf(stats_time_diversity_dist, ncid, "time_diversity_dist", &
+       dim_name_1="diversity", dim_name_2="time", unit="m^{-3}")
+  call stats_2d_clear(stats_time_diversity_dist)
 
 
   call pmc_nc_close(ncid)

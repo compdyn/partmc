@@ -1,7 +1,8 @@
 import os
 import shutil
-import perturb_particles
+import perturb_particles as pp
 from FileData import FileData
+import numpy as np
 
 charsPerOutFileNum = 4
 
@@ -141,13 +142,46 @@ def perturbSimulations(numSimulations, restartIndex):
 		shutil.copyfile(
 			outDir + '/normal_0001_' + numToStr(restartIndex, 8) + '.nc',
 			outDir + '/perturbed_start.nc')
-		perturbResult = perturb_particles.perturbFile(
-			outDir + '/perturbed_start.nc')
+		perturbResult = pp.perturbFile(outDir + '/perturbed_start.nc')
 		logFile = open(outDir + '/perturb.log', 'w')
 		logFile.write('Perturbed output file ' + str(restartIndex) + '\n')
 		logFile.write(str(perturbResult))
 		logFile.close()
 		
+def getAveDistortions(numSimulations, restartIndex, methodName):
+	numDataPoints = 7
+	sums = np.zeros((numDataPoints, 4))
+	numCodevectorSums = np.zeros(numDataPoints)
+	params = getDistortParameters(methodName, numDataPoints)
+	for runNum in xrange(1, numSimulations+1):
+		print 'runNum: ' + str(runNum)
+		vectors = pp.readMassVectorsFromFile(getOutDir(runNum)
+			+ '/normal_0001_' + numToStr(restartIndex, 8) + '.nc')
+		for i in xrange(0, numDataPoints):
+			print 'Data point: ' + str(i)
+			result = distortVectors(vectors, methodName, params[i])
+			numCodevectorSums[i] += (np.array(result[1]).T)[1].sum()
+			sums[i,:] += pp.computeDistortions(vectors, result[0])
+	sums /= numSimulations
+	numCodevectorSums /= numSimulations
+	return (numCodevectorSums, sums)
+				
+def distortVectors(vectors, methodName, param):
+	if methodName == 'grid':
+		return pp.mergeVectorsInGrid(vectors, param)
+	elif methodName == 'kmeans':
+		return pp.kmeansVQ(vectors, param)
+	else:
+		raise Exception('invalid methodName: ' + str(methodName))
+		
+def getDistortParameters(methodName, numPoints):
+	if methodName == 'grid':
+		return np.logspace(.1, 1, numPoints)
+	elif methodName == 'kmeans':
+		return np.logspace(0, 4, numPoints)
+	else:
+		raise Exception('invalid methodName: ' + str(methodName))
+	
 def runSimulationsRestart(numSimulations, restartIndex):
 	checkNumSimulations(numSimulations)
 	datFilesWithTime = ['aero_back.dat', 'aero_emit.dat', 'gas_back.dat',

@@ -178,7 +178,7 @@ def getDistortParameters(methodName, numPoints):
 	if methodName == 'grid':
 		return np.logspace(.1, 1, numPoints)
 	elif methodName == 'kmeans':
-		return np.logspace(0, 4, numPoints)
+		return np.logspace(0, 3, numPoints)
 	else:
 		raise Exception('invalid methodName: ' + str(methodName))
 	

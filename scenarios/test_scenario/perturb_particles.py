@@ -19,8 +19,8 @@ def perturbFile(fileName):
 	result = mergeVectorsInGrid(vectors, 2)
 	writeMassVectors(data, result[0])
 	data.close()
-	distortions = computeDistortions(vectors, results[0])
-	return (distortions, results[1])
+	distortions = computeDistortions(vectors, result[0])
+	return (distortions, result[1])
 	
 def readMassVectorsFromFile(filename):
 	data = Dataset(filename, 'r', format='NETCDF3_CLASSIC')
@@ -74,8 +74,9 @@ def mergeVectorsInGrid(vectors, cellGrowthFactor):
 		else:
 			superWeightMap[entry[1]] = 1
 	superWeights = superWeightMap.items()
+	superWeights.sort()
 	
-	return (newVectors, superWeightMap.items())
+	return (newVectors, superWeights)
 	
 def kmeansVQ(vectors, numCodevectors):
 	codevectors = vq.kmeans(vectors, numCodevectors)

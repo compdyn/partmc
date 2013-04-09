@@ -568,8 +568,8 @@ contains
     if(function_id == SCENARIO_LOSS_FUNCTION_ZERO) then
       scenario_loss_rate = 0d0
     else if(function_id == SCENARIO_LOSS_FUNCTION_VOLUME) then
-      !TODO: implement SCENARIO_LOSS_FUNCTION_VOLUME correctly
-      scenario_loss_rate = 4d-4
+      !scenario_loss_rate = 4d-4
+      scenario_loss_rate = vol
     else
        call die_msg(200724934, "Unknown loss function id: " &
             // trim(integer_to_string(function_id)))
@@ -670,8 +670,10 @@ contains
 
     type(aero_particle_t), pointer :: aero_particle
     type(aero_info_t) :: aero_info
-    integer :: c, b, init_size, candidates, cand_iter, s, p
+    integer :: c, b, s, p
     real(kind=dp) :: over_rate, rate, vol, density
+    
+    integer :: init_size, candidates, cand_iter
     
     if(function_id == SCENARIO_LOSS_FUNCTION_ZERO .or. &
         function_id == SCENARIO_LOSS_FUNCTION_INVALID) return
@@ -687,17 +689,12 @@ contains
     
     do c = 1,aero_sorted_n_class(aero_state%aero_sorted)
       do b = 1,aero_sorted_n_bin(aero_state%aero_sorted)
-        init_size = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry
-        if(init_size == 0) cycle
+        s = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry + 1
         over_rate = aero_state%aero_sorted%removal_rate_max(b)
-        !TODO: make particle removal more efficient if rate is very large
-        call warn_assert_msg(187573042, over_rate * delta_t < 1.0, &
-            "current particle loss code is inefficient for high rate")
-        candidates = rand_poisson(over_rate * delta_t * init_size)
-        do cand_iter = 1,candidates
-          s = pmc_rand_int(init_size)
-          if (s > aero_state%aero_sorted%size_class%inverse(b, c)%n_entry) &
-                    cycle
+        do while (.TRUE.)
+          s = s - rand_geometric(over_rate)
+          if (s < 1) exit
+          
           p = aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
           aero_particle => aero_state%apa%particle(p)
           vol = aero_particle_volume(aero_particle)
@@ -721,7 +718,6 @@ contains
     end do
     
     !call aero_state_check_sort(aero_state)
-
 
   end subroutine scenario_particle_loss
 

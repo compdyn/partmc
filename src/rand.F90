@@ -457,7 +457,21 @@ contains
 #endif
 
   end function rand_normal
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  integer function rand_geometric(p)
+    real(kind=dp), intent(in) :: p
+    
+    if (1d0 - p >= 1d0) then
+      rand_geometric = 1000000000
+    elseif (1d0 - p <= 0d0) then
+      rand_geometric = 1
+    else
+      rand_geometric = floor(log(pmc_random())/log(1d0 - p)) + 1
+    endif
+  end function rand_geometric
+    
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Generates a vector of normally distributed random numbers with

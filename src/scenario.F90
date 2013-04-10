@@ -22,11 +22,13 @@ module pmc_scenario
 #endif
 
   !> Type code for an undefined or invalid loss function.
-  integer, parameter :: SCENARIO_LOSS_FUNCTION_INVALID = 0
+  integer, parameter :: SCENARIO_LOSS_FUNCTION_INVALID  = 0
   !> Type code for a zero loss function.
-  integer, parameter :: SCENARIO_LOSS_FUNCTION_ZERO    = 1
+  integer, parameter :: SCENARIO_LOSS_FUNCTION_ZERO     = 1
+  !> Type code for a constant loss function.
+  integer, parameter :: SCENARIO_LOSS_FUNCTION_CONSTANT = 2
   !> Type code for a loss rate fuction proportional to volume.
-  integer, parameter :: SCENARIO_LOSS_FUNCTION_VOLUME  = 2
+  integer, parameter :: SCENARIO_LOSS_FUNCTION_VOLUME   = 3
   
   !> Scenario data.
   !!
@@ -561,8 +563,9 @@ contains
     
     if(function_id == SCENARIO_LOSS_FUNCTION_ZERO) then
       scenario_loss_rate = 0d0
-    else if(function_id == SCENARIO_LOSS_FUNCTION_VOLUME) then
-      !scenario_loss_rate = 4d-4
+    elseif(function_id == SCENARIO_LOSS_FUNCTION_CONSTANT) then
+      scenario_loss_rate = 4d-4
+    elseif(function_id == SCENARIO_LOSS_FUNCTION_VOLUME) then
       scenario_loss_rate = vol
     else
        call die_msg(200724934, "Unknown loss function id: " &
@@ -665,9 +668,9 @@ contains
     type(aero_particle_t), pointer :: aero_particle
     type(aero_info_t) :: aero_info
     integer :: c, b, s, p
-    real(kind=dp) :: over_rate, rate, vol, density
+    real(kind=dp) :: rate, vol, density, over_rate, over_prob
     
-    integer :: init_size, candidates, cand_iter
+    !integer :: init_size, candidates, cand_iter
     
     if(function_id == SCENARIO_LOSS_FUNCTION_ZERO .or. &
         function_id == SCENARIO_LOSS_FUNCTION_INVALID) return
@@ -681,12 +684,15 @@ contains
       aero_state%aero_sorted%removal_rate_bounds_valid = .true.
     end if
     
+    !TODO: consider using -expm1(...) instead of 1d0 - exp(...)
+    
     do c = 1,aero_sorted_n_class(aero_state%aero_sorted)
       do b = 1,aero_sorted_n_bin(aero_state%aero_sorted)
         s = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry + 1
         over_rate = aero_state%aero_sorted%removal_rate_max(b)
+        over_prob = 1d0 - exp(-delta_t*over_rate)
         do while (.TRUE.)
-          s = s - rand_geometric(over_rate)
+          s = s - rand_geometric(over_prob)
           if (s < 1) exit
           
           p = aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
@@ -699,7 +705,7 @@ contains
               "particle loss upper bound estimation is too tight: " &
               // trim(real_to_string(rate)) // " > " &
               // trim(real_to_string(over_rate)) )
-          if (pmc_random() * over_rate > rate) cycle
+          if (pmc_random()*over_prob > 1d0 - exp(-delta_t*rate)) cycle
           
           call aero_info_allocate(aero_info)
           aero_info%id = aero_particle%id
@@ -1121,6 +1127,8 @@ contains
     call spec_file_read_string(file, 'loss_function', function_name)
     if (trim(function_name) == 'zero') then
        loss_function_type = SCENARIO_LOSS_FUNCTION_ZERO
+    elseif (trim(function_name) == 'constant') then
+       loss_function_type = SCENARIO_LOSS_FUNCTION_CONSTANT
     elseif (trim(function_name) == 'volume') then
        loss_function_type = SCENARIO_LOSS_FUNCTION_VOLUME
     else

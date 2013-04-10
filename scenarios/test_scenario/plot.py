@@ -181,9 +181,9 @@ def compPartMCDistortion(numRuns, fileSuffixNormal, fileSuffixPerturbed,
 		useLog=useLog, useRel=useRel)
 	
 def plotTest1(xFeature, yFeature, useLog=False, useRel=None):
-	numDataPoints = 25
-	splitIndex = 1
-	numRuns = 4
+	numDataPoints = 18
+	splitIndex = 8
+	numRuns = 5
 	distError = np.zeros(numDataPoints)
 	magError = np.zeros(numDataPoints)
 	for i in xrange(0, numDataPoints):
@@ -214,6 +214,25 @@ def plotNumParticlesDivergence():
 	pl.semilogy(hours, numParticlesA, label='normal run')
 	pl.semilogy(hours, numParticlesB, label='perturbed run')
 	return (hours, numParticlesA, numParticlesB)
+	
+def plotScalarValues(varName):
+	numDataPoints = 25
+	splitIndex = 8
+	valuesA = np.zeros(numDataPoints)
+	valuesB = np.zeros(numDataPoints)
+	for i in xrange(0, numDataPoints):
+		valuesA[i] = readArray(getOutDir(1) + '/' + 'normal_0001_'
+			+ numToStr(i+1, 8) + '.nc', varName)[0]
+		if (i+1) < splitIndex:
+			valuesB[i] = valuesA[i]
+		else:
+			valuesB[i] = readArray(getOutDir(1) + '/' + 'perturbed_0001_'
+				+ numToStr(i + 1 - splitIndex + 1, 8) + '.nc', varName)[0]
+	hours = range(0, numDataPoints)
+	pl.hold(True)
+	pl.plot(hours, valuesA, label='normal run')
+	pl.plot(hours, valuesB, label='perturbed run')
+	return (hours, valuesA, valuesB)
 	
 def gaussTest():
 	xVals = np.logspace(0, 4)

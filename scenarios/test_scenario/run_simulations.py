@@ -188,13 +188,13 @@ def runSimulationsRestart(numSimulations, restartIndex):
 		'gas_emit.dat', 'height.dat', 'pres.dat', 'temp.dat']
 	makeRestartSpecFile('urban_plume.spec', restartIndex)
 	restartTime = indexToTime('urban_plume.spec', restartIndex)
-	copyDatFiles(datFilesWithTime)
-	adjustDatFilesForRestart(datFilesWithTime, restartTime)
+#	copyDatFiles(datFilesWithTime)
+#	adjustDatFilesForRestart(datFilesWithTime, restartTime)
 	for runNum in xrange(1, numSimulations+1):
 		updateSpecFileRunNumbers('restart_urban_plume.spec', runNum-1, runNum,
 			2)
 		runPartMC('restart_urban_plume.spec')
-	restoreDatFiles(datFilesWithTime)
+#	restoreDatFiles(datFilesWithTime)
 	updateSpecFileRunNumbers('restart_urban_plume.spec', numSimulations, 0, 2)
 
 def runSimulations(numSimulations, restartIndex):

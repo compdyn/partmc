@@ -20,20 +20,12 @@ ncf.close()
 
 axes.plot((avg_part_entropy1-1)/9, (entropy_of_avg_part1-1)/9, "b-", linewidth=2)
 
-x_values = np.linspace(0,2,21)
-
-axes.plot(x_values, x_values*1, "k", linewidth=0.5)
-axes.plot(x_values, x_values*2, "k", linewidth=0.5)
-
 axes.set_xlabel(r"$(D_{\alpha}-1)/(A-1)$")
 axes.set_xlim([0.2,1.])
 axes.set_xticks([0.2, 0.4, 0.6, 0.8, 1.0])
 axes.set_ylim([0.2,1])
 axes.set_yticks([0.2, 0.4, 0.6, 0.8, 1])
 axes.set_ylabel(r"$(D_{\gamma}-1)/(A-1)$")
-#pts = np.array([[0,0], [1,1], [0,1]])
-#p = Polygon(pts,closed=True,alpha=0.05)
-#axes.add_patch(p)
 
 axes.annotate("",
             xy=((avg_part_entropy1[30]-1)/9,(entropy_of_avg_part1[30]-1)/9), xycoords='data',
@@ -41,6 +33,28 @@ axes.annotate("",
             arrowprops=dict(arrowstyle="simple, head_width=0.5, head_length=1, tail_width=0.001",
                             connectionstyle="arc3", ec ="b", fc = "b", ),
             )
+
+
+x_values = np.linspace(0,2,21)
+
+axes.plot(x_values, x_values/0.5, "k", linewidth=0.5)
+axes.plot(x_values, x_values/0.75, "k", linewidth=0.5)
+axes.plot(x_values, x_values, "k", linewidth=0.5)
+
+axes.annotate(r"$\chi=0.5$", (0.45, 0.9),
+              verticalalignment="bottom", horizontalalignment="right",
+              bbox = dict(facecolor='white', edgecolor='white'),
+              xytext=(0, 5), textcoords='offset points')
+
+axes.annotate(r"$\chi=0.75$", (0.68, 0.9),
+              verticalalignment="bottom", horizontalalignment="right",
+              bbox = dict(facecolor='white', edgecolor='white'),
+              xytext=(0, 5), textcoords='offset points')
+
+axes.annotate(r"$\chi=1$", (0.9,0.9),
+              verticalalignment="bottom", horizontalalignment="right",
+              bbox = dict(facecolor='white', edgecolor='white'),
+              xytext=(0, 5), textcoords='offset points')
 
 axes.grid(True)
 figure.savefig("d_g_versus_d_a_urban_plume_poster.pdf")

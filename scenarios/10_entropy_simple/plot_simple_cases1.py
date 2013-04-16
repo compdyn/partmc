@@ -53,8 +53,6 @@ axes = axes_array[0][1]
 axes.plot(time, avg_part_entropy, "b-")
 axes.plot(time, entropy_of_avg_part, "k:")
 axes.set_xlabel(r"time / h")
-axes.set_xlim([0,24])
-axes.set_xticks([0, 6, 12, 18, 24])
 
 axes.set_ylabel(r"$D_{\alpha}, D{\gamma}$")
 axes.set_ylim([0.95,2.05])
@@ -62,16 +60,19 @@ axes.set_ylim([0.95,2.05])
 axes2 =  axes.twinx()
 axes2.plot(time, tot_entropy_ratio, "r--", markersize = 2)
 axes2.set_ylabel(r"$\chi$")
+axes2.set_ylim([0,1])
+axes2.set_xlim([0,24])
+axes2.set_xticks([0, 6, 12, 18, 24])
 
-axes.annotate(r"$D_{\alpha}$", (time[78], avg_part_entropy[78]),
+axes.annotate(r"$D_{\alpha}$", (6,1.8),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$D_{\gamma}$", (time[66], entropy_of_avg_part[66]),
+axes.annotate(r"$D_{\gamma}$", (3,1.2),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$\chi$", (time[102], tot_entropy_ratio[102]),
+axes.annotate(r"$\chi$", (18,1.7),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
@@ -98,13 +99,12 @@ p = axes.pcolor(time_grid_edges, diversity_edges, time_diversity_dist.transpose(
                 norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
 
 axes.set_xscale("linear")
-axes.set_xlabel(r"time / h")
 axes.set_xlim([0,24])
 axes.set_xticks([0, 6, 12, 18, 24])
 
 axes.set_yscale("linear")
 axes.set_ylabel(r"particle diversity $D_i$")
-axes.set_ylim(0.95, 2.05)
+axes.set_ylim(0.95, 3)
 
 axes.grid(True)
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
@@ -115,9 +115,6 @@ cbar.set_label(r"num. conc. $n(t, D_i)$ / $\rm m^{-3}$")
 axes = axes_array[1][1]
 axes.plot(time, avg_part_entropy, "b-")
 axes.plot(time, entropy_of_avg_part, "k:")
-axes.set_xlabel(r"time / h")
-axes.set_xlim([0,24])
-axes.set_xticks([0, 6, 12, 18, 24])
 
 axes.set_ylabel(r"$D_{\alpha}, D{\gamma}$")
 axes.set_ylim([0.95,3.0])
@@ -125,16 +122,20 @@ axes.set_ylim([0.95,3.0])
 axes2 =  axes.twinx()
 axes2.plot(time, tot_entropy_ratio, "r--", markersize = 2)
 axes2.set_ylabel(r"$\chi$")
+axes2.set_ylim([0,1])
+axes2.set_xlim([0,24])
+axes2.set_xticks([0, 6, 12, 18, 24])
+
 
 axes.annotate(r"$D_{\alpha}$", (time[78], avg_part_entropy[78]),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$D_{\gamma}$", (time[66], entropy_of_avg_part[66]),
+axes.annotate(r"$D_{\gamma}$", (7,1),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$\chi$", (time[102], tot_entropy_ratio[102]),
+axes.annotate(r"$\chi$", (6,1.5),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
@@ -161,13 +162,9 @@ p = axes.pcolor(time_grid_edges, diversity_edges, time_diversity_dist.transpose(
                 norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
 
 axes.set_xscale("linear")
-axes.set_xlabel(r"time / h")
-axes.set_xlim([0,24])
-axes.set_xticks([0, 6, 12, 18, 24])
-
 axes.set_yscale("linear")
 axes.set_ylabel(r"particle diversity $D_i$")
-axes.set_ylim(1, 2.5)
+axes.set_ylim([1, 5])
 
 axes.grid(True)
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
@@ -178,26 +175,26 @@ cbar.set_label(r"num. conc. $n(t, D_i)$ / $\rm m^{-3}$")
 axes = axes_array[2][1]
 axes.plot(time, avg_part_entropy, "b-")
 axes.plot(time, entropy_of_avg_part, "k:")
-axes.set_xlabel(r"time / h")
-axes.set_xlim([0,24])
-axes.set_xticks([0, 6, 12, 18, 24])
 
 axes.set_ylabel(r"$D_{\alpha}, D{\gamma}$")
-axes.set_ylim([1,5.0])
+axes.set_ylim([1, 5])
 
 axes2 =  axes.twinx()
 axes2.plot(time, tot_entropy_ratio, "r--", markersize = 2)
 axes2.set_ylabel(r"$\chi$")
+axes2.set_ylim([0,1])
+axes2.set_xlim([0,24])
+axes2.set_xticks([0, 6, 12, 18, 24])
 
-axes.annotate(r"$D_{\alpha}$", (time[78], avg_part_entropy[78]),
+axes.annotate(r"$D_{\alpha}$", (3,1.5),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$D_{\gamma}$", (time[66], entropy_of_avg_part[66]),
+axes.annotate(r"$D_{\gamma}$", (10,2),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$\chi$", (time[102], tot_entropy_ratio[102]),
+axes.annotate(r"$\chi$", (12,4.5),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
@@ -224,13 +221,10 @@ p = axes.pcolor(time_grid_edges, diversity_edges, time_diversity_dist.transpose(
                 norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
 
 axes.set_xscale("linear")
-axes.set_xlabel(r"time / h")
-axes.set_xlim([0,24])
-axes.set_xticks([0, 6, 12, 18, 24])
 
 axes.set_yscale("linear")
 axes.set_ylabel(r"particle diversity $D_i$")
-axes.set_ylim(1, 2.5)
+axes.set_ylim([1,3])
 
 axes.grid(True)
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
@@ -241,33 +235,33 @@ cbar.set_label(r"num. conc. $n(t, D_i)$ / $\rm m^{-3}$")
 axes = axes_array[3][1]
 axes.plot(time, avg_part_entropy, "b-")
 axes.plot(time, entropy_of_avg_part, "k:")
-axes.set_xlabel(r"time / h")
-axes.set_xlim([0,24])
-axes.set_xticks([0, 6, 12, 18, 24])
 
 axes.set_ylabel(r"$D_{\alpha}, D{\gamma}$")
-axes.set_ylim([1,5.0])
+axes.set_ylim([1,3])
 
 axes2 =  axes.twinx()
 axes2.plot(time, tot_entropy_ratio, "r--", markersize = 2)
 axes2.set_ylabel(r"$\chi$")
+axes2.set_ylim([0,1])
+axes2.set_xlim([0,24])
+axes2.set_xticks([0, 6, 12, 18, 24])
 
-axes.annotate(r"$D_{\alpha}$", (time[78], avg_part_entropy[78]),
+axes.annotate(r"$D_{\alpha}$", (6,1.3),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$D_{\gamma}$", (time[66], entropy_of_avg_part[66]),
+axes.annotate(r"$D_{\gamma}$", (10,2.5),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$\chi$", (time[102], tot_entropy_ratio[102]),
+axes.annotate(r"$\chi$", (12,1.8),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
 
 axes.grid(True)
 
-#mpl_helper.remove_fig_array_axes(axes_array)
+mpl_helper.remove_fig_array_axes(axes_array)
 
 out_filename = "simple_cases1.pdf"
 figure.savefig(out_filename)

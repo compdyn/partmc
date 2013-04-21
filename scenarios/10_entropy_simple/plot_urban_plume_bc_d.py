@@ -208,8 +208,10 @@ cbar_axes = cbar_axes_array[0][0]
 d = numpy.ma.masked_less_equal(time_diversity_dist, 0)
 vmin = 10**math.floor(math.log10(d.min()))
 vmax = 10**math.ceil(math.log10(d.max()))
-p = axes.pcolor(time_grid_edges, diversity_edges, d.transpose(),
-                    norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
+p = axes.imshow(numpy.flipud(d.transpose()), interpolation='nearest',
+                extent=[time_grid_edges.min(), time_grid_edges.max(),
+                        diversity_edges.min(), diversity_edges.max()],
+                norm = matplotlib.colors.LogNorm(), aspect='auto')
 
 axes.set_xscale("linear")
 axes.set_xlabel(r"time $t$ / h")
@@ -224,6 +226,8 @@ axes.grid(True)
 
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
                        orientation='vertical')
+cbar.solids.set_edgecolor("face")
+cbar.solids.set_rasterized(True)
 cbar_axes.xaxis.set_label_position('top')
 cbar.set_label(r"$n(t, D_i)$ / $\rm m^{-3}$")
 
@@ -260,5 +264,5 @@ axes.grid(True)
 mpl_helper.remove_fig_array_axes(axes_array, remove_y_axes=False)
 
 out_filename = "urban_plume_bc_d.pdf"
-figure.savefig(out_filename)
+figure.savefig(out_filename, dpi=1200)
 print out_filename

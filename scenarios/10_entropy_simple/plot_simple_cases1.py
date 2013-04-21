@@ -208,8 +208,10 @@ cbar_axes = cbar_axes_array[0][0]
 d = numpy.ma.masked_less_equal(time_diversity_dist, 0)
 vmin = 10**math.floor(math.log10(d.min()))
 vmax = 10**math.ceil(math.log10(d.max()))
-p = axes.pcolor(time_grid_edges, diversity_edges, d.transpose(),
-                    norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
+p = axes.imshow(numpy.flipud(d.transpose()), interpolation='nearest',
+                extent=[time_grid_edges.min(), time_grid_edges.max(),
+                        diversity_edges.min(), diversity_edges.max()],
+                norm = matplotlib.colors.LogNorm(), aspect='auto')
 
 axes.set_xscale("linear")
 axes.set_xlabel(r"time $t$ / h")
@@ -228,6 +230,8 @@ axes.text(-0.45, 0.5, r'Case 4', horizontalalignment='center',
 
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
                        orientation='vertical')
+cbar.solids.set_edgecolor("face")
+cbar.solids.set_rasterized(True)
 cbar_axes.xaxis.set_label_position('top')
 cbar.set_label(r"$n(t, D_i)$ / $\rm m^{-3}$")
 
@@ -280,8 +284,10 @@ cbar_axes = cbar_axes_array[1][0]
 d = numpy.ma.masked_less_equal(time_diversity_dist, 0)
 vmin = 10**math.floor(math.log10(d.min()))
 vmax = 10**math.ceil(math.log10(d.max()))
-p = axes.pcolor(time_grid_edges, diversity_edges, d.transpose(),
-                    norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
+p = axes.imshow(numpy.flipud(d.transpose()), interpolation='nearest',
+                extent=[time_grid_edges.min(), time_grid_edges.max(),
+                        diversity_edges.min(), diversity_edges.max()],
+                norm = matplotlib.colors.LogNorm(), aspect='auto')
 
 axes.set_xscale("linear")
 axes.set_xlim([0,24])
@@ -299,6 +305,8 @@ axes.text(-0.45, 0.5, r'Case 3', horizontalalignment='center',
 
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
                        orientation='vertical')
+cbar.solids.set_edgecolor("face")
+cbar.solids.set_rasterized(True)
 cbar_axes.xaxis.set_label_position('top')
 cbar.set_label(r"$n(t, D_i)$ / $\rm m^{-3}$")
 
@@ -352,8 +360,10 @@ cbar_axes = cbar_axes_array[2][0]
 d = numpy.ma.masked_less_equal(time_diversity_dist, 0)
 vmin = 10**math.floor(math.log10(d.min()))
 vmax = 10**math.ceil(math.log10(d.max()))
-p = axes.pcolor(time_grid_edges, diversity_edges, d.transpose(),
-                    norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
+p = axes.imshow(numpy.flipud(d.transpose()), interpolation='nearest',
+                extent=[time_grid_edges.min(), time_grid_edges.max(),
+                        diversity_edges.min(), diversity_edges.max()],
+                norm = matplotlib.colors.LogNorm(), aspect='auto')
 
 axes.set_xscale("linear")
 axes.set_yscale("linear")
@@ -370,6 +380,8 @@ axes.text(-0.45, 0.5, r'Case 2', horizontalalignment='center',
 
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
                        orientation='vertical')
+cbar.solids.set_edgecolor("face")
+cbar.solids.set_rasterized(True)
 cbar_axes.xaxis.set_label_position('top')
 cbar.set_label(r"$n(t, D_i)$ / $\rm m^{-3}$")
 
@@ -424,8 +436,10 @@ cbar_axes = cbar_axes_array[3][0]
 d = numpy.ma.masked_less_equal(time_diversity_dist, 0)
 vmin = 10**math.floor(math.log10(d.min()))
 vmax = 10**math.ceil(math.log10(d.max()))
-p = axes.pcolor(time_grid_edges, diversity_edges, d.transpose(),
-                    norm = matplotlib.colors.LogNorm(), linewidths = 0.1)
+p = axes.imshow(numpy.flipud(d.transpose()), interpolation='nearest',
+                extent=[time_grid_edges.min(), time_grid_edges.max(),
+                        diversity_edges.min(), diversity_edges.max()],
+                norm = matplotlib.colors.LogNorm(), aspect='auto')
 
 axes.set_xscale("linear")
 
@@ -441,6 +455,8 @@ axes.text(-0.45, 0.5, r'Case 1', horizontalalignment='center',
 
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
                        orientation='vertical')
+cbar.solids.set_edgecolor("face")
+cbar.solids.set_rasterized(True)
 cbar_axes.xaxis.set_label_position('top')
 cbar.set_label(r"$n(t, D_i)$ / $\rm m^{-3}$")
 
@@ -477,5 +493,5 @@ axes.grid(True)
 mpl_helper.remove_fig_array_axes(axes_array, remove_y_axes=False)
 
 out_filename = "simple_cases1.pdf"
-figure.savefig(out_filename)
+figure.savefig(out_filename, dpi=1200)
 print out_filename

@@ -67,11 +67,45 @@ x_values = np.linspace(0,2,21)
 axes.plot(x_values, x_values*1, "k", linewidth=0.5)
 axes.plot(x_values, x_values*2, "k", linewidth=0.5)
 
-#axes.annotate(r"1", (avg_part_entropy1[5], entropy_of_avg_part1[5]),
-#              verticalalignment="bottom", horizontalalignment="right",
-#              bbox = dict(facecolor='white', edgecolor='white'),
-#              xytext=(0, 5), textcoords='offset points')
+axes.annotate(r"1", (0.28,0.8),
+              verticalalignment="bottom", horizontalalignment="right",
+              bbox = dict(edgecolor='black', facecolor='white',
+                          boxstyle="round,pad=0.3"))
 
+axes.annotate(r"2", (0.37,0.9),
+              verticalalignment="bottom", horizontalalignment="right",
+              bbox = dict(edgecolor='black', facecolor='white',
+                          boxstyle="round,pad=0.3"))
+
+axes.annotate(r"3", (0.1,0.7),
+              verticalalignment="bottom", horizontalalignment="right",
+              bbox = dict(edgecolor='black', facecolor='white',
+                          boxstyle="round,pad=0.3"))
+
+axes.annotate(r"4", (0.2,1.02),
+              verticalalignment="bottom", horizontalalignment="right",
+              bbox = dict(edgecolor='black', facecolor='white',
+                          boxstyle="round,pad=0.3"))
+
+axes.annotate(r"5", (0.3,0.22),
+              verticalalignment="bottom", horizontalalignment="right",
+              bbox = dict(edgecolor='black', facecolor='white',
+                          boxstyle="round,pad=0.3"))
+
+axes.annotate(r"6", (0.7,0.62),
+              verticalalignment="bottom", horizontalalignment="right",
+              bbox = dict(edgecolor='black', facecolor='white',
+                          boxstyle="round,pad=0.3"))
+
+axes.annotate(r"7", (0.6,0.83),
+              verticalalignment="bottom", horizontalalignment="right",
+              bbox = dict(edgecolor='black', facecolor='white',
+                          boxstyle="round,pad=0.3"))
+
+axes.annotate(r"8", (0.25,0.34),
+              verticalalignment="bottom", horizontalalignment="right",
+              bbox = dict(edgecolor='black', facecolor='white',
+                          boxstyle="round,pad=0.3"))
 
 #axes.annotate(r"$\gamma=0$", (x_values[1], 1),
 #              verticalalignment="bottom", horizontalalignment="right",
@@ -100,22 +134,22 @@ p = Polygon(pts,closed=True,alpha=0.05)
 axes.add_patch(p)
 
 axes.annotate("",
-            xy=((avg_part_entropy1[45]-1)/2,(entropy_of_avg_part1[45]-1)/2), xycoords='data',
-            xytext=((avg_part_entropy1[25]-1)/2,(entropy_of_avg_part1[25]-1)/2), textcoords='data',
+              xy=((avg_part_entropy1[20]-1)/2,(entropy_of_avg_part1[20]-1)/2), xycoords='data',
+              xytext=((avg_part_entropy1[5]-1)/2,(entropy_of_avg_part1[5]-1)/2), textcoords='data',
             arrowprops=dict(arrowstyle="simple, head_width=0.5, head_length=1, tail_width=0.001",
                             connectionstyle="arc3", ec ="b", fc = "b", ),
             )
 
 axes.annotate("",
-            xy=((avg_part_entropy2[6]-1)/3,(entropy_of_avg_part2[6]-1)/3), xycoords='data',
-            xytext=((avg_part_entropy2[4]-1)/3,(entropy_of_avg_part2[4]-1)/3), textcoords='data',
+              xy=((avg_part_entropy2[4]-1)/3,(entropy_of_avg_part2[4]-1)/3), xycoords='data',
+              xytext=((avg_part_entropy2[3]-1)/3,(entropy_of_avg_part2[3]-1)/3), textcoords='data',
             arrowprops=dict(arrowstyle="simple, head_width=0.5, head_length=1, tail_width=0.001",
                             connectionstyle="arc3", ec ="b", fc = "b", ),
             )
 
 axes.annotate("",
-            xy=((avg_part_entropy3[10]-1)/2,(entropy_of_avg_part3[10]-1)/2), xycoords='data',
-            xytext=((avg_part_entropy3[5]-1)/2,(entropy_of_avg_part3[5]-1)/2), textcoords='data',
+            xy=((avg_part_entropy3[40]-1)/2,(entropy_of_avg_part3[40]-1)/2), xycoords='data',
+            xytext=((avg_part_entropy3[35]-1)/2,(entropy_of_avg_part3[35]-1)/2), textcoords='data',
             arrowprops=dict(arrowstyle="simple, head_width=0.5, head_length=1, tail_width=0.001",
                             connectionstyle="arc3", ec ="c", fc = "c", ),
             )
@@ -136,7 +170,7 @@ axes.annotate("",
 
 axes.annotate("",
             xy=((avg_part_entropy6[8]-1)/3,(entropy_of_avg_part6[8]-1)/3), xycoords='data',
-            xytext=((avg_part_entropy6[5]-1)/3,(entropy_of_avg_part6[5]-1)/3), textcoords='data',
+              xytext=((avg_part_entropy6[6]-1)/3,(entropy_of_avg_part6[6]-1)/3), textcoords='data',
             arrowprops=dict(arrowstyle="simple, head_width=0.5, head_length=1, tail_width=0.001",
                             connectionstyle="arc3", ec ="k", fc = "k", ),
             )
@@ -150,7 +184,7 @@ axes.annotate("",
 
 axes.annotate("",
             xy=((avg_part_entropy8[15]-1)/3,(entropy_of_avg_part8[15]-1)/3), xycoords='data',
-            xytext=((avg_part_entropy8[5]-1)/3,(entropy_of_avg_part8[5]-1)/3), textcoords='data',
+              xytext=((avg_part_entropy8[10]-1)/3,(entropy_of_avg_part8[10]-1)/3), textcoords='data',
             arrowprops=dict(arrowstyle="simple, head_width=0.5, head_length=1, tail_width=0.0001",
                             connectionstyle="arc3", ec ="g", fc = "g", ),
             )

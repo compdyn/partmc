@@ -246,11 +246,11 @@ axes2.set_ylim([-0.05,1.05])
 axes2.set_xlim([0,24])
 axes2.set_xticks([0, 6, 12, 18, 24])
 
-axes.annotate(r"$D_{\alpha}$", (6,1.8),
+axes.annotate(r"$D_{\gamma}$", (6,1.75),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$D_{\gamma}$", (3,1.2),
+axes.annotate(r"$D_{\alpha}$", (3,1.2),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
@@ -322,11 +322,11 @@ axes.annotate(r"$D_{\alpha}$", (time[78], avg_part_entropy[78]),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$D_{\gamma}$", (7,1),
+axes.annotate(r"$D_{\gamma}$", (7,2.2),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$\chi$", (6,1.5),
+axes.annotate(r"$\chi$", (18,2.1),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
@@ -390,15 +390,15 @@ axes2.set_yticks([0.2, 0.4, 0.6, 0.8, 1.0])
 axes2.set_xlim([0,24])
 axes2.set_xticks([0, 6, 12, 18, 24])
 
-axes.annotate(r"$D_{\alpha}$", (3,1.5),
+axes.annotate(r"$D_{\alpha}$", (6,1.1),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$D_{\gamma}$", (10,2),
+axes.annotate(r"$D_{\gamma}$", (10,2.2),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$\chi$", (12,4.5),
+axes.annotate(r"$\chi$", (12,4.1),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
@@ -459,7 +459,7 @@ axes2.set_yticks([0.2, 0.4, 0.6, 0.8, 1.0])
 axes2.set_xlim([0,24])
 axes2.set_xticks([0, 6, 12, 18, 24])
 
-axes.annotate(r"$D_{\alpha}$", (6,1.3),
+axes.annotate(r"$D_{\alpha}$", (18,1.6),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
@@ -467,7 +467,7 @@ axes.annotate(r"$D_{\gamma}$", (10,2.5),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$\chi$", (12,1.8),
+axes.annotate(r"$\chi$", (2,2.6),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')

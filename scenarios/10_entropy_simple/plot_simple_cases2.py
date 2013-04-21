@@ -247,7 +247,7 @@ axes2.set_xlim([0,24])
 axes2.set_xticks([0, 6, 12, 18, 24])
 
 
-axes.annotate(r"$D_{\alpha}$", (time[78], avg_part_entropy[78]),
+axes.annotate(r"$D_{\alpha}$", (6.1, 1.45),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
@@ -282,7 +282,7 @@ d = numpy.ma.masked_less_equal(time_diversity_dist, 0)
 vmin = 10**math.floor(math.log10(d.min()))
 vmax = 10**math.ceil(math.log10(d.max()))
 p = axes.pcolor(time_grid_edges, diversity_edges, d.transpose(),
-                    norm = matplotlib.colors.LogNorm(vmin=vmin, vmax=vmax), linewidths = 0.1)
+                    norm = matplotlib.colors.LogNorm(vmin=1e12, vmax=1e13), linewidths = 0.1)
 
 axes.set_xscale("linear")
 axes.set_yscale("linear")
@@ -313,15 +313,15 @@ axes2.set_ylim([0.5,0.8])
 axes2.set_xlim([0,24])
 axes2.set_xticks([0, 6, 12, 18, 24])
 
-axes.annotate(r"$D_{\alpha}$", (time[78], avg_part_entropy[78]),
+axes.annotate(r"$D_{\alpha}$", (22,2.5),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$D_{\gamma}$", (time[66], entropy_of_avg_part[66]),
+axes.annotate(r"$D_{\gamma}$", (6.1,3.2),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$\chi$", (18,3),
+axes.annotate(r"$\chi$", (18,3.4),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
@@ -380,11 +380,11 @@ axes2.set_yticks([0.8, 0.9, 1.0, 1.0, 1.1, 1.2])
 axes2.set_xlim([0,24])
 axes2.set_xticks([0, 6, 12, 18, 24])
 
-axes.annotate(r"$D_{\alpha}$", (time[78], avg_part_entropy[78]),
+axes.annotate(r"$D_{\alpha}$", (12,2.3),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$D_{\gamma}$", (time[66], entropy_of_avg_part[66]),
+axes.annotate(r"$D_{\gamma}$", (16,2.25),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
@@ -448,15 +448,15 @@ axes2.set_yticks([0.8, 0.9, 1.0, 1.0, 1.1, 1.2])
 axes2.set_xlim([0,24])
 axes2.set_xticks([0, 6, 12, 18, 24])
 
-axes.annotate(r"$D_{\alpha}$", (time[78], avg_part_entropy[78]),
+axes.annotate(r"$D_{\alpha}$", (12,2.3),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$D_{\gamma}$", (time[66], entropy_of_avg_part[66]),
+axes.annotate(r"$D_{\gamma}$", (16,2.35),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$\chi$", (18,1.8),
+axes.annotate(r"$\chi$", (18,2),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')

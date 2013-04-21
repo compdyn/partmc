@@ -12,7 +12,7 @@ program process
   use pmc_stats
 
   character(len=PMC_MAX_FILENAME_LEN), parameter :: prefix &
-       = "out/urban_plume2"
+       = "out/urban_plume"
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename
   type(bin_grid_t) :: diam_grid, bc_grid, no3_grid, h2o_grid, sc_grid, &
@@ -82,9 +82,9 @@ program process
   call bin_grid_make(no3_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 1d0)
   call bin_grid_make(h2o_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 2d0)
   call bin_grid_make(sc_grid, BIN_GRID_TYPE_LOG, 50, 1d-4, 1d0)
-  call bin_grid_make(entropy_grid, BIN_GRID_TYPE_LINEAR, 200, 0d0, 5d0)
-  call bin_grid_make(diversity_grid, BIN_GRID_TYPE_LINEAR, 200, 0d0, 10d0)
-  call bin_grid_make(time_grid, BIN_GRID_TYPE_LINEAR, 289, 0d0, 48d0)
+  call bin_grid_make(entropy_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 5d0)
+  call bin_grid_make(diversity_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 5d0)
+  call bin_grid_make(time_grid, BIN_GRID_TYPE_LINEAR, 145, 0d0, 24d0)
   call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)
 
   allocate(times(n_index))

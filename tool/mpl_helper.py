@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007-2011 Matthew West
+# Copyright (C) 2007-2013 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -431,3 +431,31 @@ def axes_broken_y(fig, axes, upper_frac=0.5, break_frac=0.05, ybounds=None,
     for loc, spine in axes.spines.iteritems():
         spine.set_color('none')
     return upper_axes, lower_axes
+
+def add_boxed_text(axes, text,
+                   axes_anchor=(1,1), # axes coordinates (0 to 1)
+                   box_anchor=(1,0), # box coordinates (0 to 1)
+                   box_size=(18,16), # display coordinates
+                   text_baseline_offset=5, # display coordinates
+                   ):
+    axes_anchor_disp = axes.transAxes.transform(axes_anchor)
+    ll_disp = (axes_anchor_disp[0] - box_anchor[0] * box_size[0],
+               axes_anchor_disp[1] - box_anchor[1] * box_size[1])
+    ur_disp = (ll_disp[0] + box_size[0],
+               ll_disp[1] + box_size[1])
+    ll_axes = axes.transAxes.inverted().transform(ll_disp)
+    ur_axes = axes.transAxes.inverted().transform(ur_disp)
+    box_width = ur_axes[0] - ll_axes[0]
+    box_height = ur_axes[1] - ll_axes[1]
+    text_disp = (ll_disp[0] + 0.5 * box_size[0],
+                 ll_disp[1] + text_baseline_offset)
+    text_axes = axes.transAxes.inverted().transform(text_disp)
+    r = matplotlib.patches.Rectangle(ll_axes, box_width, box_height,
+                                     facecolor="None", edgecolor="black",
+                                     clip_on=False, transform=axes.transAxes)
+    axes.add_artist(r)
+    t = matplotlib.text.Text(x=text_axes[0], y=text_axes[1], text=text,
+                             verticalalignment='baseline',
+                             horizontalalignment='center',
+                             clip_on=False, transform=axes.transAxes)
+    axes.add_artist(t)

@@ -234,15 +234,8 @@ cbar.solids.set_edgecolor("face")
 cbar.solids.set_rasterized(True)
 cbar_axes.xaxis.set_label_position('top')
 cbar.set_label(r"$n(t, D_i)$ / $\rm m^{-3}$")
-axes.text(1,1, r'(g)', horizontalalignment='right',
-           verticalalignment='bottom', transform=axes.transAxes,
-           bbox=dict(edgecolor='black', facecolor='white',
-                                          boxstyle="square,pad=0.2"))
-#axes.annotate(r'(g)', xy=(1,1), xycoords='axes fraction',
-#              xytext=(15,-15), textcoords='offset points',
-#              horizontalalignment='left', verticalalignment='top',
-#              bbox=dict(edgecolor='black', facecolor='white',
-#                        boxstyle="square,pad=0.2"))
+
+mpl_helper.add_boxed_text(axes, "(g)")
 
 axes = axes_array[0][1]
 axes.plot(time, avg_part_entropy, "b-")
@@ -272,10 +265,7 @@ axes.annotate(r"$\chi$", (18,1.7),
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
 
-axes.text(0.938, 1.085, r'(h)', horizontalalignment='center',
-           verticalalignment='center', transform=axes.transAxes,
-           bbox=dict(edgecolor='black', facecolor='white',
-                                          boxstyle="square,pad=0.2"))
+mpl_helper.add_boxed_text(axes2, "(h)")
 
 axes.grid(True)
 
@@ -317,10 +307,7 @@ axes.text(-0.45, 0.5, r'Case 3', horizontalalignment='center',
            rotation='vertical', bbox=dict(edgecolor='black', facecolor='white',
                                           boxstyle="round,pad=0.5"))
 
-axes.text(0.938, 1.085, r'(e)', horizontalalignment='center',
-           verticalalignment='center', transform=axes.transAxes,
-           bbox=dict(edgecolor='black', facecolor='white',
-                                          boxstyle="square,pad=0.2"))
+mpl_helper.add_boxed_text(axes, "(e)")
 
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
                        orientation='vertical')
@@ -344,7 +331,6 @@ axes2.set_yticks([0.0, 0.1, 0.2, 0.3, 0.4])
 axes2.set_xlim([0,24])
 axes2.set_xticks([0, 6, 12, 18, 24])
 
-
 axes.annotate(r"$D_{\alpha}$", (time[78], avg_part_entropy[78]),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
@@ -358,10 +344,7 @@ axes.annotate(r"$\chi$", (18,2.1),
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
 
-axes.text(0.938, 1.085, r'(f)', horizontalalignment='center',
-           verticalalignment='center', transform=axes.transAxes,
-           bbox=dict(edgecolor='black', facecolor='white',
-                                          boxstyle="square,pad=0.2"))
+mpl_helper.add_boxed_text(axes2, "(f)")
 
 axes.grid(True)
 
@@ -402,10 +385,7 @@ axes.text(-0.45, 0.5, r'Case 2', horizontalalignment='center',
            rotation='vertical', bbox=dict(edgecolor='black', facecolor='white',
                                           boxstyle="round,pad=0.5"))
 
-axes.text(0.938, 1.085, r'(c)', horizontalalignment='center',
-           verticalalignment='center', transform=axes.transAxes,
-           bbox=dict(edgecolor='black', facecolor='white',
-                                          boxstyle="square,pad=0.2"))
+mpl_helper.add_boxed_text(axes, "(c)")
 
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
                        orientation='vertical')
@@ -444,10 +424,7 @@ axes.annotate(r"$\chi$", (12,4.1),
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
 
-axes.text(0.938, 1.085, r'(d)', horizontalalignment='center',
-           verticalalignment='center', transform=axes.transAxes,
-           bbox=dict(edgecolor='black', facecolor='white',
-                                          boxstyle="square,pad=0.2"))
+mpl_helper.add_boxed_text(axes2, "(d)")
 
 axes.grid(True)
 
@@ -487,10 +464,7 @@ axes.text(-0.45, 0.5, r'Case 1', horizontalalignment='center',
            rotation='vertical', bbox=dict(edgecolor='black', facecolor='white',
                                           boxstyle="round,pad=0.5"))
 
-axes.text(0.938, 1.085, r'(a)', horizontalalignment='center',
-           verticalalignment='center', transform=axes.transAxes,
-           bbox=dict(edgecolor='black', facecolor='white',
-                                          boxstyle="square,pad=0.2"))
+mpl_helper.add_boxed_text(axes, "(a)")
 
 cbar = figure.colorbar(p, cax=cbar_axes, format=matplotlib.ticker.LogFormatterMathtext(),
                        orientation='vertical')
@@ -527,10 +501,7 @@ axes.annotate(r"$\chi$", (2,2.6),
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
 
-axes.text(0.938, 1.085, r'(b)', horizontalalignment='center',
-           verticalalignment='center', transform=axes.transAxes,
-           bbox=dict(edgecolor='black', facecolor='white',
-                                          boxstyle="square,pad=0.2"))
+mpl_helper.add_boxed_text(axes2, "(b)")
 
 axes.grid(True)
 

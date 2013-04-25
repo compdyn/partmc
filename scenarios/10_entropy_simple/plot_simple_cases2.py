@@ -211,7 +211,7 @@ vmax = 10**math.ceil(math.log10(d.max()))
 p = axes.imshow(numpy.flipud(d.transpose()), interpolation='nearest',
                 extent=[time_grid_edges.min(), time_grid_edges.max(),
                         diversity_edges.min(), diversity_edges.max()],
-                norm = matplotlib.colors.LogNorm(), aspect='auto')
+                norm = matplotlib.colors.LogNorm(vmin=1e13,vmax=1e14), aspect='auto')
 
 axes.set_xscale("linear")
 axes.set_xlabel(r"time $t$ / h")
@@ -292,7 +292,7 @@ vmax = 10**math.ceil(math.log10(d.max()))
 p = axes.imshow(numpy.flipud(d.transpose()), interpolation='nearest',
                 extent=[time_grid_edges.min(), time_grid_edges.max(),
                         diversity_edges.min(), diversity_edges.max()],
-                norm = matplotlib.colors.LogNorm(), aspect='auto')
+                norm = matplotlib.colors.LogNorm(vmin=vmin,vmax=vmax), aspect='auto')
 
 axes.set_xscale("linear")
 axes.set_yscale("linear")
@@ -366,7 +366,7 @@ vmax = 10**math.ceil(math.log10(d.max()))
 p = axes.imshow(numpy.flipud(d.transpose()), interpolation='nearest',
                 extent=[time_grid_edges.min(), time_grid_edges.max(),
                         diversity_edges.min(), diversity_edges.max()],
-                norm = matplotlib.colors.LogNorm(), aspect='auto')
+                norm = matplotlib.colors.LogNorm(vmin=1e13, vmax=1e13), aspect='auto')
 
 axes.set_xscale("linear")
 axes.set_yscale("linear")

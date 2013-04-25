@@ -183,7 +183,7 @@ def make_fig_array(n_vert=2,
 (figure, axes_array, cbar_axes_array) \
     = make_fig_array(1,2,figure_width=6.9,
                      colorbar_offset=0.1,
-                                top_margin=0.15, bottom_margin=0.45,
+                                top_margin=0.25, bottom_margin=0.45,
                                 left_margin=1, right_margin=0.6,
                                 vert_sep=0.3, horiz_sep=1.6,
                                 colorbar="individual",colorbar_location="right",
@@ -230,6 +230,7 @@ cbar.solids.set_edgecolor("face")
 cbar.solids.set_rasterized(True)
 cbar_axes.xaxis.set_label_position('top')
 cbar.set_label(r"$n(t, D_i)$ / $\rm m^{-3}$")
+mpl_helper.add_boxed_text(axes, "(a)")
 
 axes = axes_array[0][1]
 axes.plot(time, avg_part_entropy, "b-")
@@ -260,7 +261,7 @@ axes.annotate(r"$\chi$", (36,7),
               xytext=(0, 5), textcoords='offset points')
 
 axes.grid(True)
-
+mpl_helper.add_boxed_text(axes, "(b)")
 mpl_helper.remove_fig_array_axes(axes_array, remove_y_axes=False)
 
 out_filename = "urban_plume_all_d.pdf"

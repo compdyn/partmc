@@ -211,7 +211,8 @@ vmax = 10**math.ceil(math.log10(d.max()))
 p = axes.imshow(numpy.flipud(d.transpose()), interpolation='nearest',
                 extent=[time_grid_edges.min(), time_grid_edges.max(),
                         diversity_edges.min(), diversity_edges.max()],
-                norm = matplotlib.colors.LogNorm(vmin=1e13,vmax=1e14), aspect='auto')
+                norm = matplotlib.colors.LogNorm(vmin=vmin, vmax=vmax),
+                aspect='auto')
 
 axes.set_xscale("linear")
 axes.set_xlabel(r"time $t$ / h")
@@ -289,10 +290,13 @@ cbar_axes = cbar_axes_array[1][0]
 d = numpy.ma.masked_less_equal(time_diversity_dist, 0)
 vmin = 10**math.floor(math.log10(d.min()))
 vmax = 10**math.ceil(math.log10(d.max()))
+vmin = 1e12
+vmax = 1e13
 p = axes.imshow(numpy.flipud(d.transpose()), interpolation='nearest',
                 extent=[time_grid_edges.min(), time_grid_edges.max(),
                         diversity_edges.min(), diversity_edges.max()],
-                norm = matplotlib.colors.LogNorm(vmin=vmin,vmax=vmax), aspect='auto')
+                norm = matplotlib.colors.LogNorm(vmin=vmin, vmax=vmax),
+                aspect='auto')
 
 axes.set_xscale("linear")
 axes.set_yscale("linear")
@@ -366,7 +370,8 @@ vmax = 10**math.ceil(math.log10(d.max()))
 p = axes.imshow(numpy.flipud(d.transpose()), interpolation='nearest',
                 extent=[time_grid_edges.min(), time_grid_edges.max(),
                         diversity_edges.min(), diversity_edges.max()],
-                norm = matplotlib.colors.LogNorm(vmin=1e13, vmax=1e13), aspect='auto')
+                norm = matplotlib.colors.LogNorm(vmin=vmin, vmax=vmax),
+                aspect='auto')
 
 axes.set_xscale("linear")
 axes.set_yscale("linear")
@@ -441,7 +446,8 @@ vmax = 10**math.ceil(math.log10(d.max()))
 p = axes.imshow(numpy.flipud(d.transpose()), interpolation='nearest',
                 extent=[time_grid_edges.min(), time_grid_edges.max(),
                         diversity_edges.min(), diversity_edges.max()],
-                norm = matplotlib.colors.LogNorm(), aspect='auto')
+                norm = matplotlib.colors.LogNorm(vmin=vmin, vmax=vmax),
+                aspect='auto')
 
 axes.set_xscale("linear")
 axes.set_yscale("linear")

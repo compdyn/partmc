@@ -149,6 +149,7 @@ for dataset_name in dataset:
         subprocess.check_call(command_2)
         data1 = loadtxt(ncfile_prefix+"_aero_size_num.txt")
         data2 = loadtxt("ref_"+dataset_name+"/ref_aero_size_num_regrid.txt")
+        raw_counts = loadtxt("ref_"+dataset_name+"/ref_aero_raw_counts_regrid.txt")
 
         print command_3
         subprocess.check_call(command_3)
@@ -181,11 +182,46 @@ for dataset_name in dataset:
             data3_1d = data1_1d * math.pi / 6. * rho * diameters**3
             data4_1d = data2_1d * math.pi / 6. * rho * diameters**3
 
+            # Calculate raw counts error
+            ref_data_err_ratio_counts = []
+            for i in raw_counts[:,col]:
+                if (i == 0):
+                   ref_data_err_ratio_counts.append(0)
+                else:
+                   ref_data_err_ratio_counts.append(1 / sqrt(i))
+
+            # Calculate size error
+            ref_data_err_ratio_size = []
+            for i in range(0,data2.shape[0]):
+                if (i == 0 and data2[i,col]!=0):
+                   ref_data_err_ratio_size.append(0.05 * data2[i,0] * abs(data2[i+1,col] - data2[i,col]) \
+                        / (data2[i+1,0] - data2[i,0]) / data2[i,col])
+                elif (i == data2.shape[0]-1 and data2[i,col]!=0):
+                   ref_data_err_ratio_size.append(0.05 * data2[i,0] * abs(data2[i,col] - data2[i-1,col]) \
+                        / (data2[i,0] - data2[i-1,0]) / data2[i,col])
+                elif (i > 0 and i < data2.shape[0]-1 and data2[i,col]!=0):
+                   ref_data_err_ratio_size.append(0.05 * data2[i,0] * abs(data2[i+1,col] - data2[i-1,col]) \
+                        / (data2[i+1,0] - data2[i-1,0]) / data2[i,col])
+                else:
+                   ref_data_err_ratio_size.append(0)
+
+            # Calculate flow rate error (constant of 1.5%)
+            ref_data_err_ratio_flow = [0.015]*data2.shape[0]
+
+            ratio_counts = array(ref_data_err_ratio_counts)
+            ratio_size = array(ref_data_err_ratio_size)
+            ratio_flow = array(ref_data_err_ratio_flow)
+
+            ref_data_err_ratio = sqrt(ratio_counts**2 + ratio_size**2 + ratio_flow**2)
+
+            ref_data_err = ref_data_err_ratio * data2[:,col]
+            ref_data_err_mass = math.pi / 6. * rho * diameters**3 * ref_data_err
+
             # calculate the relative error
             diff = data2_1d - data1_1d
-            rel_err_num = sqrt(sum(diff**2)) / sqrt(sum(data2_1d**2))
+            rel_err_num = sqrt(sum(diff**2 / ref_data_err**2))
             diff = data4_1d - data3_1d
-            rel_err_mass = sqrt(sum(diff**2)) / sqrt(sum(data4_1d**2))
+            rel_err_mass = sqrt(sum(diff**2 / ref_data_err_mass**2))
             # combine num and mass errors by calculating root mean square error
             rel_err_total = sqrt(0.5*(rel_err_num**2 + rel_err_mass**2))
 

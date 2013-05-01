@@ -9,7 +9,7 @@ import mpl_helper
 import matplotlib.pyplot as plt
 
 # plot number distribution
-partmc_num = np.loadtxt("out_0212/barrel_wc_nummass_source_0001_aero_size_num.txt")
+partmc_num = np.loadtxt("out_0212/barrel_wc_extend_size_0001_aero_size_num.txt")
 barrel_num = np.loadtxt("ref_0212/ref_aero_size_num_regrid.txt")
 (figure, axes) = mpl_helper.make_fig(colorbar=False)
 b1 = axes.semilogx(barrel_num[:,0], barrel_num[:,1], color='r')
@@ -28,7 +28,7 @@ axes.grid()
 axes.set_ylim(0, 1.05*max(partmc_num[:,1]*math.log(10)))
 axes.set_ylim(0, 1.6e12)
 axes.legend([b1,b2,b3,b4,b5,p5], ('0 min', '70 min', '140 min', \
-                                  '210 min', '260 min', 'PartMC'), loc='upper left')
+                                  '210 min', '260 min', 'PartMC'), loc='upper right')
 filename_out = "aero_num_size_multi_times.pdf"
 figure.savefig(filename_out)
 
@@ -52,6 +52,6 @@ axes.set_ylim(0, 1.05*max(partmc_num[:,1] * math.pi / 6. * rho * partmc_num[:,0]
 axes.set_ylim(0, 1.6e-5)
 axes.ticklabel_format(style='sci', scilimits=(0,0), axis='y')
 axes.legend([b1,b2,b3,b4,b5,p5], ('0 min', '70 min', '140 min', \
-                                  '210 min', '260 min', 'PartMC'), loc='upper left')
+                                  '210 min', '260 min', 'PartMC'), loc='upper right')
 filename_out = "aero_mass_size_multi_times.pdf"
 figure.savefig(filename_out)

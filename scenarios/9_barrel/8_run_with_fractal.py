@@ -48,9 +48,9 @@ for dataset_name in dataset:
     case = 0
     command_0 = ["cp", "aero_init_size_dist_"+dataset_name+".dat", "aero_init_size_dist.dat"]
     subprocess.check_call(command_0)
-    for prefactor in arange(0.005,0.055,0.005):
-        for exponent in arange(0.2,0.3,0.01):
-            for frac_dim in arange(2.4,2.9,0.1):
+    for prefactor in arange(0.025,0.055,0.005):
+        for exponent in arange(0.23,0.27,0.01):
+            for frac_dim in arange(2.2,3.1,0.1):
                 filename_in = "barrel_template_with_fractal.spec"
                 case += 1
                 filename_out = "spec_"+dataset_name+"/barrel_wc_case_%04d.spec" % (case)
@@ -212,16 +212,21 @@ for dataset_name in dataset:
             ratio_size = array(ref_data_err_ratio_size)
             ratio_flow = array(ref_data_err_ratio_flow)
 
-            ref_data_err_ratio = sqrt(ratio_counts**2 + ratio_size**2 + ratio_flow**2)
-
-            ref_data_err = ref_data_err_ratio * data2[:,col]
-            ref_data_err_mass = math.pi / 6. * rho * diameters**3 * ref_data_err
-
             # calculate the relative error
-            diff = data2_1d - data1_1d
-            rel_err_num = sqrt(sum(diff**2 / ref_data_err**2))
-            diff = data4_1d - data3_1d
-            rel_err_mass = sqrt(sum(diff**2 / ref_data_err_mass**2))
+            diff_num_list = []
+            diff_mass_list = []
+            ref_data_err_list = []
+            for i in range(0,data2.shape[0]):
+                if (data2[i,col] > 0):
+                   ref_data_err_list.append(sqrt(ratio_counts[i]**2 + ratio_size[i]**2 + ratio_flow[i]**2) * data2[i,col])
+                   diff_num_list.append(data2_1d[i] - data1_1d[i])
+                   diff_mass_list.append(data4_1d[i] - data3_1d[i])
+            ref_data_err = array(ref_data_err_list)
+            ref_data_err_mass = math.pi / 6. * rho * diameters**3 * ref_data_err
+            diff_num = array(diff_num_list)
+            rel_err_num = sqrt(sum(diff_num**2 / ref_data_err**2))
+            diff_mass = array(diff_mass_list)
+            rel_err_mass = sqrt(sum(diff_mass**2 / ref_data_err_mass**2))
             # combine num and mass errors by calculating root mean square error
             rel_err_total = sqrt(0.5*(rel_err_num**2 + rel_err_mass**2))
 

@@ -216,13 +216,16 @@ for dataset_name in dataset:
             diff_num_list = []
             diff_mass_list = []
             ref_data_err_list = []
+            diams_list = []
             for i in range(0,data2.shape[0]):
                 if (data2[i,col] > 0):
+                   diams_list.append(data1[i,0])
                    ref_data_err_list.append(sqrt(ratio_counts[i]**2 + ratio_size[i]**2 + ratio_flow[i]**2) * data2[i,col])
                    diff_num_list.append(data2_1d[i] - data1_1d[i])
                    diff_mass_list.append(data4_1d[i] - data3_1d[i])
             ref_data_err = array(ref_data_err_list)
-            ref_data_err_mass = math.pi / 6. * rho * diameters**3 * ref_data_err
+            diams = array(diams_list)
+            ref_data_err_mass = math.pi / 6. * rho * diams**3 * ref_data_err
             diff_num = array(diff_num_list)
             rel_err_num = sqrt(sum(diff_num**2 / ref_data_err**2))
             diff_mass = array(diff_mass_list)

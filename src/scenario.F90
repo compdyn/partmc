@@ -674,7 +674,8 @@ contains
     type(aero_particle_t), pointer :: aero_particle
     type(aero_info_t) :: aero_info
     integer :: c, b, s, p
-    real(kind=dp) :: rate, vol, density, over_rate, over_prob
+    real(kind=dp) :: rate, vol, density, over_rate, over_prob, &
+        rand_real, rand_geom
     
     !integer :: init_size, candidates, cand_iter
     
@@ -696,10 +697,14 @@ contains
       do b = 1,aero_sorted_n_bin(aero_state%aero_sorted)
         s = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry + 1
         over_rate = aero_state%aero_sorted%removal_rate_max(b)
+        if (delta_t*over_rate <= 0d0) cycle
         over_prob = 1d0 - exp(-delta_t*over_rate)
         do while (.TRUE.)
-          s = s - rand_geometric(over_prob)
-          if (s < 1) exit
+          rand_real = pmc_random()
+          if (rand_real <= 0d0) exit
+          rand_geom = -log(rand_real)/(delta_t*over_rate) + 1d0
+          if (rand_geom >= s) exit
+          s = s - floor(rand_geom)
           
           p = aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
           aero_particle => aero_state%apa%particle(p)

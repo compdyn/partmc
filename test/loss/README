@@ -1,0 +1,8 @@
+
+Particle Loss Test-case
+=================
+
+This tests the particle-resolved particle loss code for a loss-rate
+function proportional to the volume of the particle with a constant
+initial distribution.  The analytical solution at each point is a
+decaying exponential with rate equal to the loss-rate function.

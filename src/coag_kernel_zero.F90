@@ -99,7 +99,7 @@ contains
   !!                     + \frac{k_{\rm emit}}{k_{\rm dilute}} n_{\rm emit}(D)
   !! \f]
   subroutine soln_zero(bin_grid, aero_data, time, aero_dist_init, &
-       scenario, env_state, aero_binned)
+       scenario, env_state, loss_function_type, aero_binned)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -113,10 +113,14 @@ contains
     type(scenario_t), intent(in) :: scenario
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Particle loss function type.
+    integer, intent(in) :: loss_function_type
     !> Output state.
     type(aero_binned_t), intent(inout) :: aero_binned
 
+    integer :: i
     real(kind=dp) :: emission_rate_scale, dilution_rate, p
+    real(kind=dp), pointer :: loss_array(:)
     type(aero_dist_t) :: emissions, background
     type(aero_binned_t) :: background_binned, aero_binned_limit
 
@@ -134,33 +138,71 @@ contains
     call aero_binned_add_aero_dist(background_binned, bin_grid, aero_data, &
          background)
 
-    if (dilution_rate == 0d0) then
+    if (dilution_rate == 0d0 .and. &
+         loss_function_type == SCENARIO_LOSS_FUNCTION_INVALID) then
        call aero_binned_zero(aero_binned)
        call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_data, &
             emissions)
        call aero_binned_scale(aero_binned, &
             emission_rate_scale * time / env_state%height)
     else
+       allocate(loss_array(bin_grid%n_bin))
+       do i = 1, bin_grid%n_bin
+          loss_array(i) = dilution_rate + scenario_loss_rate( &
+               loss_function_type, rad2vol(bin_grid%center_radius(i)), &
+               const%water_density, aero_data, env_state%temp, &
+               env_state%pressure)
+          call assert_msg(181676342, loss_array(i) > 0, &
+               "non-positive loss rate")
+          loss_array(i) = 1d0/loss_array(i)
+       end do
+       
        ! calculate the limit steady state distribution
        call aero_binned_allocate_size(aero_binned_limit, bin_grid%n_bin, &
             aero_data%n_spec)
        call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, &
             aero_data, emissions)
        call aero_binned_scale(aero_binned_limit, &
-            emission_rate_scale / env_state%height / dilution_rate)
-       call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, &
-            aero_data, background)
-
+            emission_rate_scale / env_state%height)
+       call aero_binned_scale(background_binned, dilution_rate)
+       call aero_binned_add(aero_binned_limit, background_binned)
+       call aero_binned_scale_by_array(aero_binned_limit, loss_array)
+       
+       do i = 1, bin_grid%n_bin
+          loss_array(i) = exp(-time/loss_array(i))
+       end do
+       
        ! calculate the current state
        call aero_binned_zero(aero_binned)
        call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_data, &
             aero_dist_init)
        call aero_binned_sub(aero_binned, aero_binned_limit)
-       call aero_binned_scale(aero_binned, &
-            exp(-dilution_rate * time))
+       call aero_binned_scale_by_array(aero_binned, loss_array)
        call aero_binned_add(aero_binned, aero_binned_limit)
 
        call aero_binned_deallocate(aero_binned_limit)
+       
+    
+!       ! calculate the limit steady state distribution
+!       call aero_binned_allocate_size(aero_binned_limit, bin_grid%n_bin, &
+!            aero_data%n_spec)
+!       call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, &
+!            aero_data, emissions)
+!       call aero_binned_scale(aero_binned_limit, &
+!            emission_rate_scale / env_state%height / dilution_rate)
+!       call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, &
+!            aero_data, background)
+!
+!       ! calculate the current state
+!       call aero_binned_zero(aero_binned)
+!       call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_data, &
+!            aero_dist_init)
+!       call aero_binned_sub(aero_binned, aero_binned_limit)
+!       call aero_binned_scale(aero_binned, &
+!            exp(-dilution_rate * time))
+!       call aero_binned_add(aero_binned, aero_binned_limit)
+!
+!       call aero_binned_deallocate(aero_binned_limit)
     end if
 
     call aero_dist_deallocate(emissions)

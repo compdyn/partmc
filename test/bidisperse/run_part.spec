@@ -32,6 +32,7 @@ start_day 1                     # start day of year (UTC)
 
 do_coagulation yes              # whether to do coagulation (yes/no)
 coag_kernel sedi                # coagulation kernel
+do_loss no                      # whether to do particle loss (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)

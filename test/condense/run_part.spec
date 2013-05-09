@@ -31,6 +31,7 @@ start_time 81000                # start time (s since 00:00 UTC)
 start_day 200                   # start day of year (UTC)
 
 do_coagulation no               # whether to do coagulation (yes/no)
+do_loss no                      # whether to do particle loss (yes/no)
 do_condensation yes             # whether to do condensation (yes/no)
 do_init_equilibriate yes        # whether to initially equilibriate water (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)

@@ -149,7 +149,7 @@ contains
        allocate(loss_array(bin_grid%n_bin))
        do i = 1, bin_grid%n_bin
           loss_array(i) = dilution_rate + scenario_loss_rate( &
-               loss_function_type, rad2vol(bin_grid%center_radius(i)), &
+               loss_function_type, rad2vol(bin_grid%centers(i)), &
                const%water_density, aero_data, env_state%temp, &
                env_state%pressure)
           call assert_msg(181676342, loss_array(i) > 0, &

@@ -545,6 +545,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Evaluate a loss rate function
   real(kind=dp) function scenario_loss_rate(function_id, vol, density, &
        aero_data, temp, press)
        
@@ -576,6 +577,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Compute and return the max loss rate function for a given volume
   real(kind=dp) function scenario_loss_rate_max(function_id, vol, &
       aero_data, temp, press)
 
@@ -609,6 +611,10 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Compute an upper bound on the maximum kernel value for each
+  !> bin.  Value over_scale is multiplied to the maximum sampled value
+  !> to get the upper bound.  A tighter bound may be reached if over_scale
+  !> is smaller, but that also risks falling below a kernel value.
   subroutine scenario_loss_rate_bin_max(function_id, bin_grid, &
         aero_data, temp, press, loss_max)
        
@@ -649,6 +655,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Performs stochastic particle loss for one time-step.
+  !> If a particle p has a scenario_loss_rate(...) value of rate, then the
+  !> probability p will be removed by this function is 1 - exp(-delta_t*rate).
+  !> Uses an accept-reject algorithm for efficiency, in which a particle
+  !> is first sampled with rate 1 - exp(-delta_t*over_rate)
+  !> and then accepted with rate
+  !> (1 - exp(-delta_t*rate))/(1 - exp(-delta_t*over_rate)).
   subroutine scenario_particle_loss(function_id, delta_t, aero_data, &
        aero_state, temp, press)
 
@@ -685,8 +698,6 @@ contains
       aero_state%aero_sorted%removal_rate_bounds_valid = .true.
     end if
     
-    !TODO: consider using -expm1(...) instead of 1d0 - exp(...)
-    
     do c = 1,aero_sorted_n_class(aero_state%aero_sorted)
       do b = 1,aero_sorted_n_bin(aero_state%aero_sorted)
         s = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry + 1
@@ -699,6 +710,9 @@ contains
           rand_geom = -log(rand_real)/(delta_t*over_rate) + 1d0
           if (rand_geom >= s) exit
           s = s - floor(rand_geom)
+          
+          ! note: floor(rand_geom) is a random geometric variable
+          ! with accept probability 1 - exp(-delta*over_rate)
           
           p = aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
           aero_particle => aero_state%apa%particle(p)

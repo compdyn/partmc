@@ -60,6 +60,10 @@ module pmc_run_part
      logical :: do_loss
      !> Type of loss rate function.
      integer :: loss_function_type
+     !> Parameter to switch between algorithms for particle loss.
+     !> A value of 0 will always use the naive algorithm, and
+     !> a value of 1 will always use the accept-reject algorithm.
+     real(kind=dp) :: loss_alg_threshold
      !> Whether to do nucleation.
      logical :: do_nucleation
      !> Allow doubling if needed.
@@ -241,7 +245,8 @@ contains
        if (run_part_opt%do_loss) then
           call scenario_particle_loss(run_part_opt%loss_function_type, &
                run_part_opt%del_t, aero_data, aero_state, &
-               env_state%temp, env_state%pressure)
+               env_state%temp, env_state%pressure, &
+               run_part_opt%loss_alg_threshold)
        end if
 
        call scenario_update_gas_state(scenario, run_part_opt%del_t, &

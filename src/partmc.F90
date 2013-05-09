@@ -424,6 +424,8 @@ contains
        if (run_part_opt%do_loss) then
           call spec_file_read_loss_function_type(file, &
                run_part_opt%loss_function_type)
+          call spec_file_read_real(file, 'loss_alg_threshold', &
+               run_part_opt%loss_alg_threshold)
        else
           run_part_opt%loss_function_type = SCENARIO_LOSS_FUNCTION_INVALID
        end if

@@ -562,14 +562,16 @@ contains
     !> Pressure (Pa).
     real(kind=dp), intent(in) :: press
     
-    if(function_id == SCENARIO_LOSS_FUNCTION_ZERO) then
+    if(function_id == SCENARIO_LOSS_FUNCTION_INVALID) then
+      scenario_loss_rate = 0d0
+    elseif(function_id == SCENARIO_LOSS_FUNCTION_ZERO) then
       scenario_loss_rate = 0d0
     elseif(function_id == SCENARIO_LOSS_FUNCTION_CONSTANT) then
       scenario_loss_rate = 4d-4
     elseif(function_id == SCENARIO_LOSS_FUNCTION_VOLUME) then
       scenario_loss_rate = vol
     else
-       call die_msg(200724934, "Unknown loss function id: " &
+       call die_msg(201594391, "Unknown loss function id: " &
             // trim(integer_to_string(function_id)))
     end if
     
@@ -640,8 +642,8 @@ contains
     integer :: b, i
     
     do b = 1,bin_grid%n_bin
-      v_low = rad2vol(bin_grid%edge_radius(b))
-      v_high = rad2vol(bin_grid%edge_radius(b + 1))
+      v_low = rad2vol(bin_grid%edges(b))
+      v_high = rad2vol(bin_grid%edges(b + 1))
       r_max = 0d0
       do i = 1,n_sample
         vol = interp_linear_disc(v_low, v_high, n_sample, i)

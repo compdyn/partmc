@@ -26,6 +26,7 @@ start_time 43200                # start time (s since 00:00 UTC)
 start_day 200                   # start day of year (UTC)
 
 do_coagulation no               # whether to do coagulation (yes/no)
+do_loss no                      # whether to do particle loss (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic yes                   # whether to do MOSAIC (yes/no)
 do_optical yes                  # whether to compute optical props (yes/no)

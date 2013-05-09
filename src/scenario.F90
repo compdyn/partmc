@@ -663,7 +663,7 @@ contains
   !> and then accepted with rate
   !> (1 - exp(-delta_t*rate))/(1 - exp(-delta_t*over_rate)).
   subroutine scenario_particle_loss(function_id, delta_t, aero_data, &
-       aero_state, temp, press)
+       aero_state, temp, press, alg_threshold)
 
     !> Id of loss rate function to be used
     integer, intent(in) :: function_id
@@ -677,17 +677,27 @@ contains
     real(kind=dp), intent(in) :: temp
     !> Pressure (Pa).
     real(kind=dp), intent(in) :: press
+    !> Parameter to switch between algorithms for particle loss.
+    !> A value of 0 will always use the naive algorithm, and
+    !> a value of 1 will always use the accept-reject algorithm.
+    real(kind=dp), intent(in) :: alg_threshold
 
-    type(aero_particle_t), pointer :: aero_particle
-    type(aero_info_t) :: aero_info
     integer :: c, b, s, p
-    real(kind=dp) :: rate, vol, density, over_rate, over_prob, &
-        rand_real, rand_geom
+    real(kind=dp) :: over_rate, over_prob, rand_real, rand_geom
     
     !integer :: init_size, candidates, cand_iter
     
     if(function_id == SCENARIO_LOSS_FUNCTION_ZERO .or. &
         function_id == SCENARIO_LOSS_FUNCTION_INVALID) return
+        
+    if(alg_threshold <= 0d0) then
+      ! use naive algorithm for everything
+      do p = aero_state%apa%n_part, 1, -1
+        call scenario_try_single_particle_loss(function_id, delta_t, &
+            aero_data, aero_state, temp, press, p, 1d0)
+      end do
+      return
+    end if
     
     call aero_state_sort(aero_state)
     
@@ -700,45 +710,85 @@ contains
     
     do c = 1,aero_sorted_n_class(aero_state%aero_sorted)
       do b = 1,aero_sorted_n_bin(aero_state%aero_sorted)
-        s = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry + 1
         over_rate = aero_state%aero_sorted%removal_rate_max(b)
         if (delta_t*over_rate <= 0d0) cycle
         over_prob = 1d0 - exp(-delta_t*over_rate)
-        do while (.TRUE.)
-          rand_real = pmc_random()
-          if (rand_real <= 0d0) exit
-          rand_geom = -log(rand_real)/(delta_t*over_rate) + 1d0
-          if (rand_geom >= s) exit
-          s = s - floor(rand_geom)
-          
-          ! note: floor(rand_geom) is a random geometric variable
-          ! with accept probability 1 - exp(-delta*over_rate)
-          
-          p = aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
-          aero_particle => aero_state%apa%particle(p)
-          vol = aero_particle_volume(aero_particle)
-          density = aero_particle_density(aero_particle, aero_data)
-          rate = scenario_loss_rate(function_id, vol, density, aero_data, &
-                  temp, press)
-          call warn_assert_msg(295846288, rate <= over_rate, &
-              "particle loss upper bound estimation is too tight: " &
-              // trim(real_to_string(rate)) // " > " &
-              // trim(real_to_string(over_rate)) )
-          if (pmc_random()*over_prob > 1d0 - exp(-delta_t*rate)) cycle
-          
-          call aero_info_allocate(aero_info)
-          aero_info%id = aero_particle%id
-          aero_info%action = AERO_INFO_DILUTION
-          aero_info%other_id = 0
-          call aero_state_remove_particle_with_info(aero_state, p, aero_info)
-          call aero_info_deallocate(aero_info)
-        end do
+        if(over_prob >= alg_threshold) then
+          ! use naive algorithm over bin
+          do s = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry,1,-1
+            p = aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
+            call scenario_try_single_particle_loss(function_id, delta_t, &
+                aero_data, aero_state, temp, press, p, 1d0)
+          end do
+        else
+          ! use accept-reject algorithm over bin
+          s = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry + 1
+          do while (.TRUE.)
+            rand_real = pmc_random()
+            if (rand_real <= 0d0) exit
+            rand_geom = -log(rand_real)/(delta_t*over_rate) + 1d0
+            if (rand_geom >= s) exit
+            s = s - floor(rand_geom)
+            
+            ! note: floor(rand_geom) is a random geometric variable
+            ! with accept probability 1 - exp(-delta_t*over_rate)
+            
+            p = aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
+            call scenario_try_single_particle_loss(function_id, delta_t, &
+                aero_data, aero_state, temp, press, p, over_prob)
+          end do
+        end if
       end do
     end do
     
     !call aero_state_check_sort(aero_state)
 
   end subroutine scenario_particle_loss
+  
+  
+  subroutine scenario_try_single_particle_loss(function_id, delta_t, &
+      aero_data, aero_state, temp, press, part_i, over_prob)
+    !> Id of loss rate function to be used
+    integer, intent(in) :: function_id
+    !> Time increment to update over.
+    real(kind=dp), intent(in) :: delta_t
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: temp
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: press
+    !> Index of particle to attempt removal
+    integer, intent(in) :: part_i
+    !> Overestimated removal probability used previously
+    real(kind=dp), intent(in) :: over_prob
+    
+    real(kind=dp) :: prob, rate, vol, density
+    type(aero_particle_t), pointer :: aero_particle
+    type(aero_info_t) :: aero_info
+    
+    aero_particle => aero_state%apa%particle(part_i)
+    vol = aero_particle_volume(aero_particle)
+    density = aero_particle_density(aero_particle, aero_data)
+    rate = scenario_loss_rate(function_id, vol, density, aero_data, &
+            temp, press)
+    prob = 1d0 - exp(-delta_t*rate)
+    call warn_assert_msg(295846288, prob <= over_prob, &
+        "particle loss upper bound estimation is too tight: " &
+        // trim(real_to_string(prob)) // " > " &
+        // trim(real_to_string(over_prob)) )
+    if (pmc_random()*over_prob > prob) return
+          
+    call aero_info_allocate(aero_info)
+    aero_info%id = aero_particle%id
+    aero_info%action = AERO_INFO_DILUTION
+    aero_info%other_id = 0
+    call aero_state_remove_particle_with_info(aero_state, part_i, aero_info)
+    call aero_info_deallocate(aero_info)
+       
+  end subroutine scenario_try_single_particle_loss
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

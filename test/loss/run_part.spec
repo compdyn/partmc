@@ -33,6 +33,7 @@ start_day 1                     # start day of year (UTC)
 do_coagulation no               # whether to do coagulation (yes/no)
 do_loss yes                     # whether to do particle loss (yes/no)
 loss_function volume            # loss rate function
+loss_alg_threshold .5d0         # algorithm switch threshold [0,1] (0 = naive)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)

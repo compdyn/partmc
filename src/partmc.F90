@@ -419,7 +419,7 @@ contains
        else
           run_part_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
        end if
-       
+
        call spec_file_read_logical(file, 'do_loss', run_part_opt%do_loss)
        if (run_part_opt%do_loss) then
           call spec_file_read_loss_function_type(file, &
@@ -429,7 +429,6 @@ contains
        else
           run_part_opt%loss_function_type = SCENARIO_LOSS_FUNCTION_INVALID
        end if
-       
 
        call spec_file_read_logical(file, 'do_condensation', &
             run_part_opt%do_condensation)
@@ -805,7 +804,7 @@ contains
     else
        run_exact_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
     end if
-    
+
     call spec_file_read_logical(file, 'do_loss', run_exact_opt%do_loss)
     if (run_exact_opt%do_loss) then
        call spec_file_read_loss_function_type(file, &

@@ -548,7 +548,7 @@ contains
   !> Evaluate a loss rate function
   real(kind=dp) function scenario_loss_rate(function_type, vol, density, &
        aero_data, temp, press)
-       
+
     !> Id of loss rate function to be used
     integer, intent(in) :: function_type
     !> Volume of particle (m^3).
@@ -561,7 +561,7 @@ contains
     real(kind=dp), intent(in) :: temp
     !> Pressure (Pa).
     real(kind=dp), intent(in) :: press
-    
+
     if(function_type == SCENARIO_LOSS_FUNCTION_INVALID) then
       scenario_loss_rate = 0d0
     else if(function_type == SCENARIO_LOSS_FUNCTION_ZERO) then
@@ -574,7 +574,7 @@ contains
        call die_msg(201594391, "Unknown loss function id: " &
             // trim(integer_to_string(function_type)))
     end if
-    
+
   end function scenario_loss_rate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -599,7 +599,7 @@ contains
 
     real(kind=dp) :: d, d_min, d_max, loss
     integer :: i
-    
+
     d_min = minval(aero_data%density)
     d_max = maxval(aero_data%density)
 
@@ -609,7 +609,7 @@ contains
       loss = scenario_loss_rate(function_type, vol, d, aero_data, temp, press)
       scenario_loss_rate_max = max(scenario_loss_rate_max, loss)
     end do
-    
+
   end function scenario_loss_rate_max
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -621,7 +621,7 @@ contains
   !! is smaller, but that also risks falling below a kernel value.
   subroutine scenario_loss_rate_bin_max(function_type, bin_grid, &
         aero_data, temp, press, loss_max)
-       
+
     !> Id of loss rate function to be used
     integer, intent(in) :: function_type
     !> Bin_grid.
@@ -634,15 +634,15 @@ contains
     real(kind=dp), intent(in) :: press
     !> Maximum loss vals.
     real(kind=dp), intent(out) :: loss_max(bin_grid%n_bin)
-    
+
     !> Number of sample points per bin.
     integer, parameter :: n_sample = 3
     !> Over-estimation scale factor parameter.
     real(kind=dp), parameter :: over_scale = 2d0
-    
+
     real(kind=dp) :: v_low, v_high, vol, r, r_max
     integer :: b, i
-    
+
     do b = 1,bin_grid%n_bin
       v_low = rad2vol(bin_grid%edges(b))
       v_high = rad2vol(bin_grid%edges(b + 1))
@@ -654,7 +654,7 @@ contains
       end do
       loss_max(b) = r_max*over_scale
     end do
-    
+
   end subroutine scenario_loss_rate_bin_max
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -688,10 +688,10 @@ contains
 
     integer :: c, b, s, p
     real(kind=dp) :: over_rate, over_prob, rand_real, rand_geom
-    
+
     if(function_type == SCENARIO_LOSS_FUNCTION_ZERO .or. &
         function_type == SCENARIO_LOSS_FUNCTION_INVALID) return
-        
+
     if(alg_threshold <= 0d0) then
       ! use naive algorithm for everything
       do p = aero_state%apa%n_part, 1, -1
@@ -700,16 +700,16 @@ contains
       end do
       return
     end if
-    
+
     call aero_state_sort(aero_state)
-    
+
     if (.not. aero_state%aero_sorted%removal_rate_bounds_valid) then
       call scenario_loss_rate_bin_max(function_type, &
           aero_state%aero_sorted%bin_grid, aero_data, temp, press, &
           aero_state%aero_sorted%removal_rate_max)
       aero_state%aero_sorted%removal_rate_bounds_valid = .true.
     end if
-    
+
     do c = 1,aero_sorted_n_class(aero_state%aero_sorted)
       do b = 1,aero_sorted_n_bin(aero_state%aero_sorted)
         over_rate = aero_state%aero_sorted%removal_rate_max(b)
@@ -731,10 +731,10 @@ contains
             rand_geom = -log(rand_real)/(delta_t*over_rate) + 1d0
             if (rand_geom >= real(s, kind=dp)) exit
             s = s - floor(rand_geom)
-            
+
             ! note: floor(rand_geom) is a random geometric variable
             ! with accept probability 1 - exp(-delta_t*over_rate)
-            
+
             p = aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
             call scenario_try_single_particle_loss(function_type, delta_t, &
                 aero_data, aero_state, temp, press, p, over_prob)
@@ -742,13 +742,13 @@ contains
         end if
       end do
     end do
-    
+
     !call aero_state_check_sort(aero_state)
 
   end subroutine scenario_particle_loss
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
   !> Test a candidate particle to see if it should be removed,
   !> and remove if necessary.
   !! Particle is removed with probability
@@ -772,11 +772,11 @@ contains
     integer, intent(in) :: part_i
     !> Overestimated removal probability used previously
     real(kind=dp), intent(in) :: over_prob
-    
+
     real(kind=dp) :: prob, rate, vol, density
     type(aero_particle_t), pointer :: aero_particle
     type(aero_info_t) :: aero_info
-    
+
     aero_particle => aero_state%apa%particle(part_i)
     vol = aero_particle_volume(aero_particle)
     density = aero_particle_density(aero_particle, aero_data)
@@ -788,14 +788,14 @@ contains
         // trim(real_to_string(prob)) // " > " &
         // trim(real_to_string(over_prob)) )
     if (pmc_random()*over_prob > prob) return
-          
+
     call aero_info_allocate(aero_info)
     aero_info%id = aero_particle%id
     aero_info%action = AERO_INFO_DILUTION
     aero_info%other_id = 0
     call aero_state_remove_particle_with_info(aero_state, part_i, aero_info)
     call aero_info_deallocate(aero_info)
-       
+
   end subroutine scenario_try_single_particle_loss
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1176,7 +1176,7 @@ contains
 #endif
 
   end subroutine pmc_mpi_unpack_scenario
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read the specification for a loss function type from a spec file and

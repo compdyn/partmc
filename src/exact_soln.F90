@@ -23,8 +23,6 @@ module pmc_exact_soln
 
 contains
 
-  
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine exact_soln(bin_grid, aero_data, do_coagulation, &
@@ -58,7 +56,7 @@ contains
        call die_msg(287486666, 'Exact solutions require coagulation ' &
             // '(can set coag_kernel to "zero").')
     end if
-    
+
     if (coag_kernel_type /= COAG_KERNEL_TYPE_ZERO .and. do_loss) then
        call die_msg(189372109, 'Exact solution with particle loss ' &
             // 'requires using the "zero" coag_kernel.')

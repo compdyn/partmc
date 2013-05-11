@@ -242,7 +242,7 @@ contains
           progress_n_samp = progress_n_samp + n_samp
           progress_n_coag = progress_n_coag + n_coag
        end if
-            
+
        if (run_part_opt%do_loss) then
           call scenario_particle_loss(run_part_opt%loss_function_type, &
                run_part_opt%del_t, aero_data, aero_state, &

@@ -5,7 +5,7 @@ n_part 100000                   # number of Monte Carlo particles
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 600                       # total simulation time (s)
-del_t 1                         # timestep (s)
+del_t 60                        # timestep (s)
 t_output 60                     # output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
 
@@ -33,7 +33,7 @@ start_day 1                     # start day of year (UTC)
 do_coagulation no               # whether to do coagulation (yes/no)
 do_loss yes                     # whether to do particle loss (yes/no)
 loss_function volume            # loss rate function
-loss_alg_threshold .5d0         # algorithm switch threshold [0,1] (0 = naive)
+loss_alg_threshold .99d0        # algorithm switch threshold [0,1] (0 = naive)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)

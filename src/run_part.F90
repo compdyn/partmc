@@ -61,8 +61,8 @@ module pmc_run_part
      !> Type of loss rate function.
      integer :: loss_function_type
      !> Parameter to switch between algorithms for particle loss.
-     !> A value of 0 will always use the naive algorithm, and
-     !> a value of 1 will always use the accept-reject algorithm.
+     !! A value of 0 will always use the naive algorithm, and
+     !! a value of 1 will always use the accept-reject algorithm.
      real(kind=dp) :: loss_alg_threshold
      !> Whether to do nucleation.
      logical :: do_nucleation

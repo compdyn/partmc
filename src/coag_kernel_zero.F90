@@ -77,12 +77,14 @@ contains
   !! satisfies:
   !! \f[
   !!     \frac{d n(D,t)}{dt} = k_{\rm emit} n_{\rm emit}(D)
-  !!                           + k_{\rm dilute} (n_{\rm back}(D) - n(D,t))
+  !!         + (k_{\rm dilute} + k_{\rm loss}(D)) (n_{\rm back}(D) - n(D,t))
   !! \f]
   !! together with the initial condition \f$ n(D,0) = n_0(D) \f$. Here
   !! \f$n_{\rm emit}(D)\f$ and \f$n_{\rm back}(D)\f$ are emission and
   !! background size distributions, with corresponding rates \f$k_{\rm
-  !! emit}\f$ and \f$k_{\rm dilute}\f$. All values are taken at time
+  !! emit}\f$ and \f$k_{\rm dilute}\f$. An optional loss function
+  !! \f$k_{\rm loss}(D)\f$ can be used to specify a volume-dependent
+  !! rate at which particles are lost.  All values are taken at time
   !! \f$t = 0\f$ and held constant, so there is no support for
   !! time-varying emissions or background dilution.
   !!
@@ -90,13 +92,15 @@ contains
   !! solution:
   !! \f[
   !!     n(D,t) = n_{\infty}(D)
-  !!              + (n_0(D) - n_{\infty}(D)) \exp(-k_{\rm dilute} t)
+  !!              + (n_0(D) - n_{\infty}(D)) \exp(
+  !!                                -(k_{\rm dilute} + k_{\rm loss}(D)) t)
   !! \f]
   !! where the steady state limit is:
   !! \f[
   !!     n_{\infty}(D) = n(D,\infty)
   !!                   = n_{\rm back}(D)
-  !!                     + \frac{k_{\rm emit}}{k_{\rm dilute}} n_{\rm emit}(D)
+  !!                     + \frac{k_{\rm emit}}{k_{\rm dilute}
+  !!                       + k_{\rm loss}(D)} n_{\rm emit}(D)
   !! \f]
   subroutine soln_zero(bin_grid, aero_data, time, aero_dist_init, &
        scenario, env_state, loss_function_type, aero_binned)
@@ -181,28 +185,6 @@ contains
        call aero_binned_add(aero_binned, aero_binned_limit)
 
        call aero_binned_deallocate(aero_binned_limit)
-       
-    
-!       ! calculate the limit steady state distribution
-!       call aero_binned_allocate_size(aero_binned_limit, bin_grid%n_bin, &
-!            aero_data%n_spec)
-!       call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, &
-!            aero_data, emissions)
-!       call aero_binned_scale(aero_binned_limit, &
-!            emission_rate_scale / env_state%height / dilution_rate)
-!       call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, &
-!            aero_data, background)
-!
-!       ! calculate the current state
-!       call aero_binned_zero(aero_binned)
-!       call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_data, &
-!            aero_dist_init)
-!       call aero_binned_sub(aero_binned, aero_binned_limit)
-!       call aero_binned_scale(aero_binned, &
-!            exp(-dilution_rate * time))
-!       call aero_binned_add(aero_binned, aero_binned_limit)
-!
-!       call aero_binned_deallocate(aero_binned_limit)
     end if
 
     call aero_dist_deallocate(emissions)

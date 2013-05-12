@@ -20,11 +20,11 @@ import matplotlib.pyplot as plt
 
 #dist = partmc.histogram_1d(x_values, x_grid, weighted=True, weights=particles.num_concs)
 
-col = 15
+col = 21
 
-partmc_num = numpy.loadtxt("out_0212/barrel_wc_nummass_source_0001_aero_size_num.txt")
-ref_data = numpy.loadtxt("ref_0212/ref_aero_size_num_regrid.txt")
-raw_counts = numpy.loadtxt("ref_0212/ref_aero_raw_counts_regrid.txt")
+partmc_num = numpy.loadtxt("out_0925/case_0048_wc_0001_aero_size_num.txt")
+ref_data = numpy.loadtxt("ref_0925/ref_aero_size_num_regrid.txt")
+raw_counts = numpy.loadtxt("ref_0925/ref_aero_raw_counts_regrid.txt")
 
 # Calculate raw count error
 ref_data_err_ratio_counts = []
@@ -61,51 +61,54 @@ ref_data_err_ratio = numpy.sqrt(ratio_counts**2 + ratio_size**2 + ratio_flow**2)
 ref_data_err = ref_data_err_ratio * ref_data[:,col]
 
 # plot slope
-slope = []
-for i in range(0,ref_data.shape[0]):
-    if (i == 0):
-       slope.append((ref_data[i+1,col] - ref_data[i,col]) \
-            / (ref_data[i+1,0] - ref_data[i,0]))
-    elif (i == ref_data.shape[0]-1):
-       slope.append((ref_data[i,col] - ref_data[i-1,col]) \
-            / (ref_data[i,0] - ref_data[i-1,0]))
-    else:
-       slope.append((ref_data[i+1,col] - ref_data[i-1,col]) \
-            / (ref_data[i+1,0] - ref_data[i-1,0]))
-slope_array = numpy.array(slope)
+#slope = []
+#for i in range(0,ref_data.shape[0]):
+#    if (i == 0):
+#       slope.append((ref_data[i+1,col] - ref_data[i,col]) \
+#            / (ref_data[i+1,0] - ref_data[i,0]))
+#    elif (i == ref_data.shape[0]-1):
+#       slope.append((ref_data[i,col] - ref_data[i-1,col]) \
+#            / (ref_data[i,0] - ref_data[i-1,0]))
+#    else:
+#       slope.append((ref_data[i+1,col] - ref_data[i-1,col]) \
+#            / (ref_data[i+1,0] - ref_data[i-1,0]))
+#slope_array = numpy.array(slope)
+
+#(figure, axes) = mpl_helper.make_fig(colorbar=False)
+#axes.semilogx(partmc_num[:,0], slope_array, color='k')
+#axes.set_title("")
+#axes.set_xlabel("Dry diameter (m)")
+#axes.set_ylabel(r"Slope")
+#axes.grid()
+#filename_out = "slope.pdf"
+#figure.savefig(filename_out)
 
 (figure, axes) = mpl_helper.make_fig(colorbar=False)
-axes.semilogx(partmc_num[:,0], slope_array, color='k')
-axes.set_title("")
-axes.set_xlabel("Dry diameter (m)")
-axes.set_ylabel(r"Slope")
-axes.grid()
-filename_out = "slope.pdf"
-figure.savefig(filename_out)
-
-(figure, axes) = mpl_helper.make_fig(colorbar=False)
-axes.semilogx(partmc_num[:,0], partmc_num[:,col]*math.log(10), color='k',linestyle='--')
-axes.errorbar(ref_data[:,0],ref_data[:,col],yerr=ref_data_err,color='r')
+axes.semilogx(partmc_num[:,0], partmc_num[:,col]*math.log(10), color='k')
+#axes.errorbar(ref_data[:,0],ref_data[:,col],yerr=ref_data_err,color='r')
+axes.semilogx(ref_data[:,0],ref_data[:,col], color='#CC4F1B')
+axes.fill_between(ref_data[:,0], ref_data[:,col]-ref_data_err, ref_data[:,col]+ref_data_err,
+    alpha=0.5, edgecolor='#CC4F1B', facecolor='#FF9848')
 axes.set_title("")
 axes.set_xlabel("Dry diameter (m)")
 axes.set_ylabel(r"Number concentration ($\mathrm{m}^{-3}$)")
 axes.grid()
-axes.set_ylim(0,0.1e12)
-axes.legend(('PartMC','Barrel'))
+axes.set_ylim(0,)
+axes.legend(('PartMC','Barrel'),loc='upper left')
 filename_out = "aero_num_size.pdf"
 figure.savefig(filename_out)
 
-rho = 1760 # density in kgm-3
-(figure, axes) = mpl_helper.make_fig(colorbar=False)
-ref_data_err_mass = math.pi / 6. * rho * ref_data[:,0]**3 * ref_data_err
-axes.semilogx(partmc_num[:,0], partmc_num[:,col] * math.pi / 6. * rho * partmc_num[:,0]**3 * math.log(10), color='k',linestyle='--')
-axes.errorbar(ref_data[:,0],ref_data[:,col] * math.pi / 6. * rho * ref_data[:,0]**3,yerr=ref_data_err_mass,color='r')
-axes.set_title("")
-axes.set_xlabel("Dry diameter (m)")
-axes.set_ylabel(r"Mass concentration (kg $\mathrm{m}^{-3}$)")
-axes.grid()
-axes.set_ylim(0,0.25e-5)
-axes.ticklabel_format(style='sci', scilimits=(0,0), axis='y')
-axes.legend(('PartMC','Barrel'),loc='upper left')
-filename_out = "aero_mass_size.pdf"
-figure.savefig(filename_out)
+#rho = 1760 # density in kgm-3
+#(figure, axes) = mpl_helper.make_fig(colorbar=False)
+#ref_data_err_mass = math.pi / 6. * rho * ref_data[:,0]**3 * ref_data_err
+#axes.semilogx(partmc_num[:,0], partmc_num[:,col] * math.pi / 6. * rho * partmc_num[:,0]**3 * math.log(10), color='k',linestyle='--')
+#axes.errorbar(ref_data[:,0],ref_data[:,col] * math.pi / 6. * rho * ref_data[:,0]**3,yerr=ref_data_err_mass,color='r')
+#axes.set_title("")
+#axes.set_xlabel("Dry diameter (m)")
+#axes.set_ylabel(r"Mass concentration (kg $\mathrm{m}^{-3}$)")
+#axes.grid()
+#axes.set_ylim(0,0.25e-5)
+#axes.ticklabel_format(style='sci', scilimits=(0,0), axis='y')
+#axes.legend(('PartMC','Barrel'),loc='upper left')
+#filename_out = "aero_mass_size.pdf"
+#figure.savefig(filename_out)

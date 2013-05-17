@@ -51,7 +51,7 @@ axes.annotate(r"BC", (time[74], bc_conc[74]),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"OC", (time[180], oc_conc[180]),
+axes.annotate(r"POA", (time[180], oc_conc[180]),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')

@@ -200,7 +200,7 @@ time = ncf.variables["time"].data / 3600
 avg_part_entropy = numpy.exp(ncf.variables["avg_part_entropy"].data)
 entropy_of_avg_part = numpy.exp(ncf.variables["entropy_of_avg_part"].data)
 #tot_entropy_ratio = ncf.variables["tot_entropy_ratio"].data
-tot_entropy_ratio = (avg_part_entropy-1) / (entropy_of_avg_part-1)
+tot_entropy_ratio = (avg_part_entropy-1)*100 / (entropy_of_avg_part-1)
 ncf.close()
 
 axes = axes_array[0][0]
@@ -240,7 +240,7 @@ cbar.set_label(r"$n(t, D_i)$ / $\rm m^{-3}$")
 
 axes = axes_array[0][1]
 axes.plot(time, avg_part_entropy, "b-")
-axes.plot(time, entropy_of_avg_part, "k:")
+axes.plot(time, entropy_of_avg_part, "k-")
 axes.set_xlabel(r"time $t$ / h")
 
 axes.set_ylabel(r"diversity $D_{\alpha}, D{\gamma}$")
@@ -248,8 +248,8 @@ axes.set_ylim([1,3])
 
 axes2 =  axes.twinx()
 axes2.plot(time, tot_entropy_ratio, "r--", markersize = 2)
-axes2.set_ylabel(r"mixing state index $\chi$")
-axes2.set_ylim([0.7,0.9])
+axes2.set_ylabel(r"mix. state $\chi$ / \%")
+axes2.set_ylim([70,90])
 axes2.set_xlim([0,24])
 axes2.set_xticks([0, 6, 12, 18, 24])
 
@@ -282,7 +282,7 @@ time = ncf.variables["time"].data / 3600
 avg_part_entropy = numpy.exp(ncf.variables["avg_part_entropy"].data)
 entropy_of_avg_part = numpy.exp(ncf.variables["entropy_of_avg_part"].data)
 #tot_entropy_ratio = ncf.variables["tot_entropy_ratio"].data
-tot_entropy_ratio = (avg_part_entropy-1) / (entropy_of_avg_part-1)
+tot_entropy_ratio = (avg_part_entropy-1)*100 / (entropy_of_avg_part-1)
 ncf.close()
 
 axes = axes_array[1][0]
@@ -320,14 +320,14 @@ cbar.set_label(r"$n(t, D_i)$ / $\rm m^{-3}$")
 
 axes = axes_array[1][1]
 axes.plot(time, avg_part_entropy, "b-")
-axes.plot(time, entropy_of_avg_part, "k:")
+axes.plot(time, entropy_of_avg_part, "k-")
 axes.set_ylabel(r"diversity $D_{\alpha}, D{\gamma}$")
 axes.set_ylim([1,4])
 
 axes2 =  axes.twinx()
 axes2.plot(time, tot_entropy_ratio, "r--", markersize = 2)
-axes2.set_ylabel(r"mixing state index $\chi$")
-axes2.set_ylim([0.5,0.8])
+axes2.set_ylabel(r"mix. state $\chi$ / \%")
+axes2.set_ylim([50,80])
 axes2.set_xlim([0,24])
 axes2.set_xticks([0, 6, 12, 18, 24])
 
@@ -339,7 +339,7 @@ axes.annotate(r"$D_{\gamma}$", (6.1,3.2),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$\chi$", (18,3.4),
+axes.annotate(r"$\chi$", (2.2,1.5),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
@@ -359,7 +359,7 @@ time = ncf.variables["time"].data / 3600
 avg_part_entropy = numpy.exp(ncf.variables["avg_part_entropy"].data)
 entropy_of_avg_part = numpy.exp(ncf.variables["entropy_of_avg_part"].data)
 #tot_entropy_ratio = ncf.variables["tot_entropy_ratio"].data
-tot_entropy_ratio = (avg_part_entropy-1) / (entropy_of_avg_part-1)
+tot_entropy_ratio = (avg_part_entropy-1)*100 / (entropy_of_avg_part-1)
 ncf.close()
 
 axes = axes_array[2][0]
@@ -395,15 +395,15 @@ cbar.set_label(r"$n(t, D_i)$ / $\rm m^{-3}$")
 
 axes = axes_array[2][1]
 axes.plot(time, avg_part_entropy, "b-")
-axes.plot(time, entropy_of_avg_part, "k:")
+axes.plot(time, entropy_of_avg_part, "k-")
 axes.set_ylabel(r"diversity $D_{\alpha}, D{\gamma}$")
 axes.set_ylim([2,4.0])
 
 axes2 =  axes.twinx()
 axes2.plot(time, tot_entropy_ratio, "r--", markersize = 2)
-axes2.set_ylabel(r"mixing state index $\chi$")
-axes2.set_ylim([0.8,1.2])
-axes2.set_yticks([0.8, 0.9, 1.0, 1.0, 1.1, 1.2])
+axes2.set_ylabel(r"mix. state $\chi$ / \%")
+axes2.set_ylim([80,120])
+axes2.set_yticks([80, 90, 100, 110, 120])
 axes2.set_xlim([0,24])
 axes2.set_xticks([0, 6, 12, 18, 24])
 
@@ -435,7 +435,7 @@ time = ncf.variables["time"].data / 3600
 avg_part_entropy = numpy.exp(ncf.variables["avg_part_entropy"].data)
 entropy_of_avg_part = numpy.exp(ncf.variables["entropy_of_avg_part"].data)
 #tot_entropy_ratio = ncf.variables["tot_entropy_ratio"].data
-tot_entropy_ratio = (avg_part_entropy-1) / (entropy_of_avg_part-1)
+tot_entropy_ratio = (avg_part_entropy-1)*100 / (entropy_of_avg_part-1)
 ncf.close()
 
 axes = axes_array[3][0]
@@ -471,16 +471,16 @@ cbar.set_label(r"$n(t, D_i)$ / $\rm m^{-3}$")
 
 axes = axes_array[3][1]
 axes.plot(time, avg_part_entropy, "b-")
-axes.plot(time, entropy_of_avg_part, "k:")
+axes.plot(time, entropy_of_avg_part, "k-")
 
 axes.set_ylabel(r"diversity $D_{\alpha}, D{\gamma}$")
 axes.set_ylim([1,3])
 
 axes2 =  axes.twinx()
 axes2.plot(time, tot_entropy_ratio, "r--", markersize = 2)
-axes2.set_ylabel(r"mixing state index $\chi$")
-axes2.set_ylim([0.8,1.2])
-axes2.set_yticks([0.8, 0.9, 1.0, 1.0, 1.1, 1.2])
+axes2.set_ylabel(r"mix. state $\chi$ / \%")
+axes2.set_ylim([80,120])
+axes2.set_yticks([80, 90, 100, 110, 120])
 axes2.set_xlim([0,24])
 axes2.set_xticks([0, 6, 12, 18, 24])
 
@@ -492,7 +492,7 @@ axes.annotate(r"$D_{\gamma}$", (16,2.35),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$\chi$", (18,2),
+axes.annotate(r"$\chi$", (18,1.6),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')

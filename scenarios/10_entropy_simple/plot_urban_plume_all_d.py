@@ -200,7 +200,7 @@ time = ncf.variables["time"].data / 3600
 avg_part_entropy = numpy.exp(ncf.variables["avg_part_entropy"].data)
 entropy_of_avg_part = numpy.exp(ncf.variables["entropy_of_avg_part"].data)
 #tot_entropy_ratio = ncf.variables["tot_entropy_ratio"].data
-tot_entropy_ratio = (avg_part_entropy-1) / (entropy_of_avg_part-1)
+tot_entropy_ratio = (avg_part_entropy-1)*100 / (entropy_of_avg_part-1)
 ncf.close()
 
 axes = axes_array[0][0]
@@ -234,7 +234,7 @@ mpl_helper.add_boxed_text(axes, "(a)")
 
 axes = axes_array[0][1]
 axes.plot(time, avg_part_entropy, "b-")
-axes.plot(time, entropy_of_avg_part, "k:")
+axes.plot(time, entropy_of_avg_part, "k-")
 axes.set_xlabel(r"time $t$ / h")
 
 axes.set_ylabel(r"diversity $D_{\alpha}, D{\gamma}$")
@@ -242,12 +242,12 @@ axes.set_ylim([0,10])
 
 axes2 =  axes.twinx()
 axes2.plot(time, tot_entropy_ratio, "r--", markersize = 2)
-axes2.set_ylabel(r"mixing state index $\chi$")
-axes2.set_ylim([0.4,0.9])
+axes2.set_ylabel(r"mix. state $\chi$ / \%")
+axes2.set_ylim([40,90])
 axes2.set_xlim([0,48])
 axes2.set_xticks([0, 12, 24, 36, 48])
 
-axes.annotate(r"$D_{\gamma}$", (12,7.8),
+axes.annotate(r"$D_{\gamma}$", (14,7.8),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')

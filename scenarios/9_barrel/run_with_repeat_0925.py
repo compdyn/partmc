@@ -172,7 +172,8 @@ for dataset_name in dataset:
             for row in range(0,data2.shape[0]):
                 list_data_temp_1d = []
                 for i in arange(1,11,1):
-                    data_temp = loadtxt("out_"+dataset_name+"/case_%04d_wc_%04d_aero_size_num.txt") % (case, i)
+                    file_load = "out_"+dataset_name+"/case_%04d_wc_%04d_aero_size_num.txt" % (case, i)
+                    data_temp = loadtxt(file_load)
                     list_data_temp_1d.append(data_temp[row,col])
                 data_temp_1d = array(list_data_temp_1d)
                 data_temp_1d *= math.log(10) # convert to d*_dlogDp

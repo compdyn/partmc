@@ -135,7 +135,6 @@ for dataset_name in dataset:
 
         list_num_err = []
         for col in range(1,data2.shape[1]):
-            diameters = data2[:,0]
             data2_1d = data2[:,col]
 
             # Calculate raw counts error
@@ -176,6 +175,7 @@ for dataset_name in dataset:
                     data_temp = loadtxt("out_"+dataset_name+"/case_%04d_wc_%04d_aero_size_num.txt") % (case, i)
                     list_data_temp_1d.append(data_temp[row,col])
                 data_temp_1d = array(list_data_temp_1d)
+                data_temp_1d *= math.log(10) # convert to d*_dlogDp
                 list_mean.append(mean(data_temp_1d))
                 diff = data_temp_1d - mean(data_temp_1d)
                 list_std.append(sqrt(1. / float(len(data_temp_1d)-1) * sum(diff**2)))

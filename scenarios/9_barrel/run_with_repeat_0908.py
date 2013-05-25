@@ -43,9 +43,9 @@ for dataset_name in dataset:
     vol_fill_factor = 1.43
     rho = 1760
     case = 0
-    for prefactor in arange(0.005,0.055,0.005):
-        for exponent in arange(0.2,0.31,0.01):
-            for frac_dim in arange(2.0,3.1,0.1):
+    for prefactor in arange(0.025,0.065,0.005):
+        for exponent in arange(0.22,0.27,0.01):
+            for frac_dim in arange(2.2,3.1,0.1):
                 filename_in = "barrel_template_with_repeat.spec"
                 case += 1
                 filename_out = "spec_"+dataset_name+"/barrel_wc_case_%04d.spec" % (case)

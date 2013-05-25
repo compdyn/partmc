@@ -123,9 +123,9 @@ for dataset_name in dataset:
             print command_4
             subprocess.check_call(command_4)
 
-        command_5 = ["rm","out_"+dataset_name+"/*.nc"]
-        print command_5
-        subprocess.check_call(command_5)
+        filelist = [ f for f in os.listdir("out_"+dataset_name) if f.endswith(".nc") ]
+        for f in filelist: 
+            os.remove("out_"+dataset_name+"/"+f)
 
         data2 = loadtxt("ref_"+dataset_name+"/ref_aero_size_num_regrid.txt")
         raw_counts = loadtxt("ref_"+dataset_name+"/ref_aero_raw_counts_regrid.txt")

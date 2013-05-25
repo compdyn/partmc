@@ -103,17 +103,16 @@ for dataset_name in dataset:
         exponent = read_values_from_spec_file(spec_file, 'exponent_BL')
         frac_dim = read_values_from_spec_file(spec_file, 'frac_dim')
 
+        command_1 = [str_exec,spec_file]
+        print command_1
+        subprocess.check_call(command_1)
+
         for i in arange(1,11,1):
             ncfile_prefix = "out_"+dataset_name+"/case_%04d_wc_%04d" % (case, i)
 
-            command_1 = [str_exec,spec_file]
             command_2 = [str_extr_size,"--num","--dmin","1e-8","--dmax","1e-6","--nbin","100",ncfile_prefix]
             command_3 = [str_extr_size,"--mass","--dmin","1e-8","--dmax","1e-6","--nbin","100",ncfile_prefix]
             command_4 = [str_extr_time,ncfile_prefix]
-            command_5 = ["rm","out_"+dataset_name+"/*.nc"]
-
-            print command_1
-            subprocess.check_call(command_1)
 
             print command_2
             subprocess.check_call(command_2)
@@ -124,8 +123,9 @@ for dataset_name in dataset:
             print command_4
             subprocess.check_call(command_4)
 
-            print command_5
-            subprocess.check_call(command_5)
+        filelist = [ f for f in os.listdir("out_"+dataset_name) if f.endswith(".nc") ]
+        for f in filelist: 
+            os.remove("out_"+dataset_name+"/"+f)
 
         data2 = loadtxt("ref_"+dataset_name+"/ref_aero_size_num_regrid.txt")
         raw_counts = loadtxt("ref_"+dataset_name+"/ref_aero_raw_counts_regrid.txt")
@@ -135,7 +135,6 @@ for dataset_name in dataset:
 
         list_num_err = []
         for col in range(1,data2.shape[1]):
-            diameters = data2[:,0]
             data2_1d = data2[:,col]
 
             # Calculate raw counts error

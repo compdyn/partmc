@@ -1,0 +1,4 @@
+mode_name init                     # name of mode source
+mass_frac aero_init_comp.dat       # species mass fractions
+mode_type sampled                  # type of distribution
+size_dist aero_init_size_dist_0908.dat  # filename for the sample distribution

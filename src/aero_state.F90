@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2013 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -1626,8 +1626,7 @@ contains
   !> species volume ratios given by the total species volume ratio
   !> within each bin. This preserves the (weighted) total species
   !> volume per bin as well as per-particle total volumes.
-  subroutine aero_state_bin_average_comp(aero_state, bin_grid, aero_data, &
-       dry_volume)
+  subroutine aero_state_bin_average_comp(aero_state, bin_grid, aero_data)
 
     !> Aerosol state to average.
     type(aero_state_t), intent(inout) :: aero_state
@@ -1635,8 +1634,6 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Whether to use dry volume (rather than wet).
-    logical, intent(in) :: dry_volume
 
     real(kind=dp) :: species_volume_conc(aero_data%n_spec)
     real(kind=dp) :: total_volume_conc, particle_volume, num_conc
@@ -1656,8 +1653,7 @@ contains
              aero_particle => aero_state%apa%particle(i_part)
              num_conc = aero_weight_array_num_conc(aero_state%awa, &
                   aero_particle)
-             particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
-                  aero_data, dry_volume)
+             particle_volume = aero_particle_volume(aero_particle)
              species_volume_conc = species_volume_conc &
                   + num_conc * aero_particle%vol
              total_volume_conc = total_volume_conc + num_conc * particle_volume
@@ -1669,14 +1665,9 @@ contains
              i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
                   i_class)%entry(i_entry)
              aero_particle => aero_state%apa%particle(i_part)
-             particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
-                  aero_data, dry_volume)
+             particle_volume = aero_particle_volume(aero_particle)
              aero_particle%vol = particle_volume * species_volume_conc &
                   / total_volume_conc
-             if (dry_volume .and. (aero_data%i_water > 0)) then
-                ! set water to zero if we are doing dry volume averaging
-                aero_particle%vol(aero_data%i_water) = 0d0
-             end if
           end do
        end do
     end do
@@ -1700,7 +1691,7 @@ contains
   !! not preserve species volume ratios in gernal, but will do so if
   !! the particle population has already been composition-averaged.
   subroutine aero_state_bin_average_size(aero_state, bin_grid, aero_data, &
-       dry_volume, bin_center, preserve_number)
+       bin_center, preserve_number)
 
     !> Aerosol state to average.
     type(aero_state_t), intent(inout) :: aero_state
@@ -1708,8 +1699,6 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Whether to use dry volume (rather than wet).
-    logical, intent(in) :: dry_volume
     !> Whether to assign the bin center volume (rather than the average
     !> volume).
     logical, intent(in) :: bin_center
@@ -1747,8 +1736,7 @@ contains
              num_conc = aero_weight_array_num_conc(aero_state%awa, &
                   aero_particle)
              total_num_conc = total_num_conc + num_conc
-             particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
-                  aero_data, dry_volume)
+             particle_volume = aero_particle_volume(aero_particle)
              total_volume_conc = total_volume_conc &
                   + num_conc * particle_volume
           end do
@@ -1784,8 +1772,7 @@ contains
                 i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
                      i_class)%entry(i_entry)
                 aero_particle => aero_state%apa%particle(i_part)
-                particle_volume = aero_particle_volume_maybe_dry( &
-                     aero_particle, aero_data, dry_volume)
+                particle_volume = aero_particle_volume(aero_particle)
                 if (i_part == 1) then
                    lower_volume = particle_volume
                    upper_volume = particle_volume
@@ -1840,8 +1827,7 @@ contains
                 i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
                      i_class)%entry(i_entry)
                 aero_particle => aero_state%apa%particle(i_part)
-                particle_volume = aero_particle_volume_maybe_dry( &
-                     aero_particle, aero_data, dry_volume)
+                particle_volume = aero_particle_volume(aero_particle)
                 if (i_part == 1) then
                    lower_volume = particle_volume
                    upper_volume = particle_volume
@@ -1884,14 +1870,9 @@ contains
              i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
                   i_class)%entry(i_entry)
              aero_particle => aero_state%apa%particle(i_part)
-             particle_volume = aero_particle_volume_maybe_dry(aero_particle, &
-                  aero_data, dry_volume)
+             particle_volume = aero_particle_volume(aero_particle)
              aero_particle%vol = aero_particle%vol / particle_volume &
                   * new_particle_volume
-             if (dry_volume .and. (aero_data%i_water > 0)) then
-                ! set water to zero if we are doing dry volume averaging
-                aero_particle%vol(aero_data%i_water) = 0d0
-             end if
           end do
        end do
     end do

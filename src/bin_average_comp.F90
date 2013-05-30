@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2012 Matthew West
+! Copyright (C) 2009-2013 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -83,8 +83,7 @@ program bin_average_comp
      call aero_state_make_dry(aero_state, aero_data)
   end if
 
-  call aero_state_bin_average_comp(aero_state, bin_grid, aero_data, &
-       dry_volume)
+  call aero_state_bin_average_comp(aero_state, bin_grid, aero_data)
 
   output_type = OUTPUT_TYPE_SINGLE
   record_removals = .false.

@@ -1890,13 +1890,20 @@ contains
     type(aero_data_t), intent(in) :: aero_data
 
     integer :: i_part
+    real(kind=dp) :: reweight_num_conc(aero_state%apa%n_part)
 
+    ! We're modifying particle diameters, so bin sorting is now invalid
+    aero_state%valid_sort = .false.
+
+    call aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
     if (aero_data%i_water > 0) then
        do i_part = 1,aero_state%apa%n_part
           aero_state%apa%particle(i_part)%vol(aero_data%i_water) = 0d0
        end do
        aero_state%valid_sort = .false.
     end if
+    ! adjust particles to account for weight changes
+    call aero_state_reweight(aero_state, reweight_num_conc)
 
    end subroutine aero_state_make_dry
 

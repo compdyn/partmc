@@ -27,8 +27,10 @@ module pmc_scenario
   integer, parameter :: SCENARIO_LOSS_FUNCTION_ZERO     = 1
   !> Type code for a constant loss function.
   integer, parameter :: SCENARIO_LOSS_FUNCTION_CONSTANT = 2
-  !> Type code for a loss rate fuction proportional to volume.
+  !> Type code for a loss rate function proportional to volume.
   integer, parameter :: SCENARIO_LOSS_FUNCTION_VOLUME   = 3
+  !> Type code for a loss rate function based on dry deposition
+  integer, parameter :: SCENARIO_LOSS_FUNCTION_DRY_DEP  = 4
   
   !> Scenario data.
   !!
@@ -544,7 +546,8 @@ contains
   end subroutine scenario_update_aero_binned
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+  ! FIXME: This needs to take better inputs probably
+  ! Scenario? Env_state?
   !> Evaluate a loss rate function
   real(kind=dp) function scenario_loss_rate(function_type, vol, density, &
        aero_data, temp, press)
@@ -570,12 +573,37 @@ contains
       scenario_loss_rate = 1d-3
     else if(function_type == SCENARIO_LOSS_FUNCTION_VOLUME) then
       scenario_loss_rate = 1d15*vol
+    else if(function_type == SCENARIO_LOSS_FUNCTION_DRY_DEP) then
+      ! FIXME: Need to do better here but initially this will be fine
+      ! with assuming many things constant - such as land type,
+      ! aerodynamic resistance.
+      scenario_loss_rate = scenario_loss_rate_dry_dep(vol, density, temp, &
+           press)
     else
        call die_msg(201594391, "Unknown loss function id: " &
             // trim(integer_to_string(function_type)))
     end if
 
   end function scenario_loss_rate
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute and return the dry deposition rate for a given particle
+  real(kind=dp) function scenario_loss_rate_dry_dep(vol, density, temp, &
+      press)
+
+    !> Particle volume (m^3).
+    real(kind=dp), intent(in) :: vol 
+    !> Particle density (kg m^-3).
+    real(kind=dp), intent(in) :: density
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: temp
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: press 
+
+    scenario_loss_rate_dry_dep = 1d15*vol
+
+  end function scenario_loss_rate_dry_dep
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1208,6 +1236,8 @@ contains
        loss_function_type = SCENARIO_LOSS_FUNCTION_CONSTANT
     else if (trim(function_name) == 'volume') then
        loss_function_type = SCENARIO_LOSS_FUNCTION_VOLUME
+    else if (trim(function_name) == 'drydep') then
+       loss_function_type = SCENARIO_LOSS_FUNCTION_DRY_DEP
     else
        call spec_file_die_msg(518248400, file, &
             "Unknown loss function type: " // trim(function_name))

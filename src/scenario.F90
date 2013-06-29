@@ -601,7 +601,80 @@ contains
     !> Pressure (Pa).
     real(kind=dp), intent(in) :: press 
 
-    scenario_loss_rate_dry_dep = 1d15*vol
+    real(kind=dp) :: V_d
+    real(kind=dp) :: V_s
+    real(kind=dp) :: d_p
+    real(kind=dp) :: den_air
+    real(kind=dp) :: visc_d, visc_k
+    real(kind=dp) :: gas_speed, gas_mean_free_path
+    real(kind=dp) :: knud, cunning
+    real(kind=dp) :: grav
+    real(kind=dp) :: height
+    real(kind=dp) :: R_s, R_a
+
+    real(kind=dp) :: alpha, beta, gamma, A, eps_0
+    real(kind=dp) :: diff_p
+    real(kind=dp) :: von_karman
+    real(kind=dp) :: St, Sc, u_star
+    real(kind=dp) :: E_B, E_IM, E_IN, R1
+
+    ! particle diameter
+    d_p = vol2diam(vol)
+    ! density of air
+    den_air = (const%air_molec_weight * press) / (const%univ_gas_const * temp)
+    ! dynamic viscosity
+    visc_d = 1.8325d-5 * (416.16 / (temp + 120.0d0)) * (temp / 296.16)**1.5d0
+    ! kinematic viscosity
+    visc_k = visc_d / den_air
+    ! gas speed
+    gas_speed = sqrt((8.0d0 * const%boltzmann * temp * const%avagadro) / &
+         (const%pi * const%air_molec_weight))
+    ! gas free path
+    gas_mean_free_path = (2.0d0* visc_d) / (den_air * gas_speed)
+    ! knudson number
+    knud = (2.0d0 * gas_mean_free_path) / d_p
+    ! cunningham correction factor
+    cunning = 1.0d0 + knud * (1.249d0 + 0.42d0 * exp(-0.87d0 / knud))
+    ! gravity
+    grav = 9.81d0
+    ! Compute V_s
+    V_s = (density * d_p**2.0d0 * grav * cunning) / (18.0d0 * visc_d)
+    ! Aerodynamic resistance - should be specified over time?
+    R_a = 0.0d0
+    ! Brownian diffusion efficiency
+    diff_p = (const%boltzmann * temp * cunning) / &
+         (3.d0 * const%pi * visc_d * d_p)
+    gamma = 2.0d0 / 3.0d0 ! Between 1/2 and 2/3 (water to vegetative)
+    Sc = visc_k / diff_p
+    E_B = Sc**(-gamma)
+
+    ! Interception efficiency
+    ! Characteristic radius of large collectors
+    A = 2.0d0 / 1000.0d0 ! Dependent on land type (Table 3)
+    E_IN = .5d0 * (d_p / A)**2.0d0
+
+    ! Impaction efficiency
+    alpha = .8d0
+    beta = 2.0d0
+    u_star = 5.0d0 ! Should be specified
+    St = (V_s * u_star) / (grav * A)
+    E_IM = (St / (alpha + St))**beta
+
+    ! Rebound correction
+    R1 = exp(-St**.5d0)
+
+    ! Surface resistance
+    eps_0 = 3.0d0 ! Taken to be 3
+    R_s = 1.0d0 / (eps_0 * u_star* (E_B + E_IN + E_IM)*R1)
+   
+    ! Dry deposition
+    V_d = V_s + (1.0d0 / (R_a + R_s + R_a * R_s * V_s))
+    
+    ! Box height or reference height
+    height = 500.0d0
+
+    ! The loss rate
+    scenario_loss_rate_dry_dep = V_d / height
 
   end function scenario_loss_rate_dry_dep
 

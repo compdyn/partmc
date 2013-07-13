@@ -184,7 +184,7 @@ def make_fig_array(n_vert=2,
     = make_fig_array(1,2,figure_width=6.9,
                      colorbar_offset=0.1,
                                 top_margin=0.25, bottom_margin=0.45,
-                                left_margin=1, right_margin=0.6,
+                                left_margin=0.6, right_margin=0.6,
                                 vert_sep=0.3, horiz_sep=1.6,
                                 colorbar="individual",colorbar_location="right",
                                 share_y_axes=False)

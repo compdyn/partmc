@@ -252,6 +252,7 @@ contains
     character(len=PMC_MAX_FILENAME_LEN) :: restart_filename
     integer :: dummy_index, dummy_i_repeat
     real(kind=dp) :: dummy_time, dummy_del_t, n_part
+    real(kind=dp) :: q_l_parcel, q_v_parcel
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
 
@@ -372,6 +373,7 @@ contains
        call spec_file_read_logical(file, 'restart', do_restart)
        if (do_restart) then
           call spec_file_read_string(file, 'restart_file', restart_filename)
+          write(6,*) restart_filename
        end if
        
        call spec_file_read_real(file, 't_max', run_part_opt%t_max)
@@ -613,22 +615,40 @@ contains
                   AERO_STATE_WEIGHT_FLAT)
           else
              call aero_state_set_weight(aero_state, aero_data, &
-                  AERO_STATE_WEIGHT_NUMMASS_SOURCE)
+                  AERO_STATE_WEIGHT_FLAT)
           end if
           call aero_state_set_n_part_ideal(aero_state, n_part)
           call aero_state_add_aero_dist_sample(aero_state, aero_data, &
                aero_dist_init, 1d0, 0d0)
        end if
        call env_state_copy(env_state_init, env_state)
+       write(6,*)'env_state_init rh (spec file)', env_state%rel_humid
+       write(6,*)'first value of qtot ', scenario%q_tot(1)
        call scenario_init_env_state(scenario, env_state, &
             env_state_init%elapsed_time)
 
+       write(6,*)'env_state elapsed time ', env_state%elapsed_time
+       write(6,*)'env_state_init rh (spec file)', env_state%rel_humid
+       write(6,*)'temp ', env_state%temp
+       write(6,*)'pres ', env_state%pressure
+       write(6,*)'first value of qtot ', scenario%q_tot(1)
+
+       call aero_state_spec_liquid_water(aero_state, env_state, aero_data, &
+            q_l_parcel)
+       write(6,*)'q_l_parcel init (urban plume file)', q_l_parcel
+       q_v_parcel = scenario%q_tot(1) - q_l_parcel
+       write(6,*)'q_v_parcel based on difference q_tot-q_l ', q_v_parcel
+
+!       call env_state_set_spec_humid(env_state, q_v_parcel)
+!       write(6,*)'rh based on q_v_parcel', env_state%rel_humid
+!       stop
+       
 #ifdef PMC_USE_SUNDIALS
        if (do_init_equilibriate) then
           call condense_equilib_particles(env_state, aero_data, aero_state)
        end if
 #endif
-       
+
        call run_part(scenario, env_state, aero_data, aero_state, gas_data, &
             gas_state, run_part_opt)
 

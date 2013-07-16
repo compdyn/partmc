@@ -12,7 +12,32 @@ set key center right
 set ytics nomirror
 set y2tics
 
-plot "out_00000004/condense_0001_env.txt" using 1:2 axes x1y1 with lines title "ref temperature", \
-     "out_00000008/condense_0001_env.txt" using 1:2 axes x1y1 with points title "temperature", \
-     "out_00000004/condense_0001_env.txt" using 1:3 axes x1y2 with lines title "ref relative humidity", \
-     "out_00000008/condense_0001_env.txt" using 1:3 axes x1y2 with points title "relative humidity"
+plot "out_amanda_we_eq/condense_flat_0001_env.txt" using 1:2 axes x1y1 with lines title "w.e. temperature", \
+     "out_amanda_we_eq/condense_flat_0001_env.txt" using 1:3 axes x1y2 with lines title "w.e. relative humidity", \
+     "out_amanda_ne_eq/condense_flat_0001_env.txt" using 1:2 axes x1y1 with lines title "n.e. temperature", \
+     "out_amanda_ne_eq/condense_flat_0001_env.txt" using 1:3 axes x1y2 with lines title "n.e. relative humidity"
+
+
+#plot "out_amanda_eq/up2_hour01_eq_0001_env.txt" using 1:2 axes x1y1 with lines title "w.e. temperature", \
+#     "out_amanda_eq/up2_hour01_eq_0001_env.txt" using 1:3 axes x1y2 with lines title "w.e. relative humidity", \
+
+#plot "out_amanda_we/condense_flat_0001_env.txt" using 1:2 axes x1y1 with lines title "w.e. temperature", \
+#     "out_amanda_we/condense_flat_0001_env.txt" using 1:3 axes x1y2 with lines title "w.e. relative humidity", \
+#     "out_amanda_ne/condense_flat_0001_env.txt" using 1:2 axes x1y1 with lines title "n.e. temperature", \
+#     "out_amanda_ne/condense_flat_0001_env.txt" using 1:3 axes x1y2 with lines title "n.e. relative humidity"
+
+
+#plot "out_amanda_we/condense_0001_env.txt" using 1:2 axes x1y1 with lines title "w.e. temperature", \
+#     "out_amanda_we/condense_0001_env.txt" using 1:3 axes x1y2 with lines title "w.e. relative humidity", \
+#     "out_amanda_ne/condense_0001_env.txt" using 1:2 axes x1y1 with lines title "n.e. temperature", \
+#     "out_amanda_ne/condense_0001_env.txt" using 1:3 axes x1y2 with lines title "n.e. relative humidity"
+
+#plot "out/up2_hour20_eq_0001_env.txt" using 1:2 axes x1y1 with lines title "w.e. temperature", \
+#     "out/up2_hour20_eq_0001_env.txt" using 1:3 axes x1y2 with lines title "w.e. relative humidity"
+
+#plot "out_we/out_20/condense_0001_env.txt" using 1:2 axes x1y1 with lines title "w.e. temperature", \
+#     "out_we/out_20/condense_0001_env.txt" using 1:3 axes x1y2 with lines title "w.e. relative humidity", \
+#     "out_ne/out_20/condense_0001_env.txt" using 1:2 axes x1y1 with lines title "n.e. temperature", \
+#     "out_ne/out_20/condense_0001_env.txt" using 1:3 axes x1y2 with lines title "n.e. relative humidity", \
+#     "out/up2_hour20_eq_0001_env.txt" using 1:2 axes x1y1 with lines title "w.e. temperature", \
+#     "out/up2_hour20_eq_0001_env.txt" using 1:3 axes x1y2 with lines title "w.e. relative humidity"

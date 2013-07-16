@@ -201,9 +201,13 @@ contains
 
        time = real(i_time, kind=dp) * run_part_opt%del_t
        write(6,*)"TIME***************", time
+       write(6,*)'rh 0 ', env_state%rel_humid
        call env_state_copy(env_state, old_env_state)
+  
+       write(6,*)'rh 1 ', env_state%rel_humid
        call scenario_update_env_state(scenario, env_state, time + t_start)
 
+       write(6,*)'rh 2 ', env_state%rel_humid
        if (run_part_opt%do_nucleation) then
           n_part_before = aero_state_total_particles(aero_state)
           call nucleate(run_part_opt%nucleate_type, &
@@ -232,10 +236,12 @@ contains
        end if
 
 #ifdef PMC_USE_SUNDIALS
+       write(6,*)'rh befor condensation ', env_state%rel_humid
        if (run_part_opt%do_condensation) then
           call condense_particles(aero_state, aero_data, old_env_state, &
                env_state, run_part_opt%del_t)
        end if
+       write(6,*)'rh after condensation ', env_state%rel_humid
 #endif
 
        call scenario_update_gas_state(scenario, run_part_opt%del_t, &
@@ -248,6 +254,7 @@ contains
                  env_state, gas_data, gas_state, aero_data, &
                  aero_state, n_dil_in, n_dil_out)
        end if
+       write(6,*)'rh after entrain ', env_state%rel_humid
        progress_n_emit = progress_n_emit + n_emit
        progress_n_dil_in = progress_n_dil_in + n_dil_in
        progress_n_dil_out = progress_n_dil_out + n_dil_out
@@ -256,6 +263,7 @@ contains
           call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
                gas_state, run_part_opt%do_optical)
        end if
+       write(6,*)'rh 3 ', env_state%rel_humid
 
        if (run_part_opt%mix_timescale > 0d0) then
           call aero_state_mix(aero_state, run_part_opt%del_t, &
@@ -271,6 +279,7 @@ contains
        call aero_state_rebalance(aero_state, run_part_opt%allow_doubling, &
             run_part_opt%allow_halving, initial_state_warning=.false.)
 
+       write(6,*)'rh 4 ', env_state%rel_humid
        ! DEBUG: enable to check array handling
        ! call aero_state_check_sort(aero_state)
        ! DEBUG: end

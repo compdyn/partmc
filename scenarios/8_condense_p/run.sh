@@ -11,5 +11,5 @@ mkdir -p out
 
 ../../build/partmc run_part.spec
 
-../../build/extract_env out/condense_0001
-../../build/extract_aero_time out/condense_0001
+../../build/extract_env out_we/out_20/condense_0001
+../../build/extract_aero_time out_we/out_20/condense_0001

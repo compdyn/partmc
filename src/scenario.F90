@@ -539,7 +539,7 @@ contains
     integer :: i_part
     real(kind=dp) :: q_tot, q_tot_final, qdot
     real(kind=dp) :: q_back
-    real(kind=dp) :: q_l_parcel, q_v_parcel, q_v_parcel_new
+    real(kind=dp) :: q_l_parcel, q_v_parcel, q_v_parcel_new, q_l_parcel_help
     real(kind=dp) :: rho_l
     real(kind=dp) :: pmv, pmv_new, pmv_back
     real(kind=dp) :: epsilon
@@ -553,19 +553,28 @@ contains
  
     q_tot = interp_1d(scenario%q_tot_time, scenario%q_tot, &
         env_state%elapsed_time)  ! current q_tot
+    write(6,*)'q_tot                ', env_state%elapsed_time, q_tot
     q_tot_final = interp_1d(scenario%q_tot_time, scenario%q_tot, &
         env_state%elapsed_time + delta_t) ! q_tot at next time step
+    write(6,*)'q_tot_final          ', q_tot_final
     qdot = (q_tot_final - q_tot) / delta_t
-
     q_back = interp_1d(scenario%q_background_time, scenario%q_background, &
         env_state%elapsed_time)
 
     ! specific liquid water in parcel (mass of liquid water per mass of moist air)
     call aero_state_spec_liquid_water(aero_state, env_state, aero_data, &
          q_l_parcel)
+    write(6,*)'q_l_parcel based on aerosol   ', q_l_parcel
 
     ! specific humidity in parcel (mass of water vapor per mass of moist air)
     call env_state_spec_humidity(env_state, q_v_parcel)
+    q_l_parcel_help = q_tot - q_v_parcel
+    write(6,*)'q_l_parcel based on diff      ', q_l_parcel_help
+    write(6,*)'q_v_parcel based on env_state ', q_v_parcel
+    write(6,*)'q_l difference %     ', (q_l_parcel - q_l_parcel_help)*100/q_l_parcel
+    write(6,*)'rh in entrain        ', env_state%rel_humid
+    write(6,*)'temp in entrain      ', env_state%temp
+    write(6,*)'pres in entrain      ', env_state%pressure
 
     ! entrainment rate
     epsilon = const%water_molec_weight / const%air_molec_weight
@@ -577,7 +586,8 @@ contains
         & (q_back - q_l_parcel - q_v_parcel - q_tot_final * K)
 
     entrain_rate = max(0d0, entrain_rate)
-
+    write(6,*)'entrain_rate         ', entrain_rate
+  
     ! gas dilution
     call gas_state_allocate_size(background_gas, gas_data%n_spec)
     call gas_state_interp_1d(scenario%gas_background, &
@@ -620,12 +630,19 @@ contains
     ! new specific liquid water in parcel
     call aero_state_spec_liquid_water(aero_state, env_state, aero_data, &
         q_l_parcel)
+    write(6,*)'q_l_parcel new          ', q_l_parcel
 
     !adjust relative humidity so that q_tot is matched
-    q_v_parcel_new = q_tot - q_l_parcel
+    !if (entrain_rate .gt. 0) then
+        q_v_parcel_new = q_tot - q_l_parcel
+       write(6,*)'update q_v_parcel     ', q_v_parcel_new
+   ! else
+   !     q_v_parcel_new = q_v_parcel
+   ! endif
+   ! write(6,*)'q_v_parcel_new ', q_v_parcel_new
 
     call env_state_set_spec_humid(env_state, q_v_parcel_new)
-
+    write(6,*)'rh at the end            ', env_state%rel_humid
   end subroutine scenario_update_cloud
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -895,9 +912,11 @@ contains
 
     ! temperature profile
     call spec_file_read_string(file, "temp_profile", sub_filename)
+    write(6,*)'temp profile ', sub_filename
     call spec_file_open(sub_filename, sub_file)
     call spec_file_read_timed_real_array(sub_file, "temp", &
          scenario%temp_time, scenario%temp)
+    write(6,*)scenario%temp_time, scenario%temp
     call spec_file_close(sub_file)
 
     ! pressure profile

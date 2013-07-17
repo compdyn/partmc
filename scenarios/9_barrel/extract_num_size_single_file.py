@@ -21,10 +21,11 @@ import matplotlib.pyplot as plt
 #dist = partmc.histogram_1d(x_values, x_grid, weighted=True, weights=particles.num_concs)
 
 col = 21
+datasetname = '0322'
+case = 387
 
-partmc_num = numpy.loadtxt("out_0925/case_0048_wc_0001_aero_size_num.txt")
-ref_data = numpy.loadtxt("ref_0925/ref_aero_size_num_regrid.txt")
-raw_counts = numpy.loadtxt("ref_0925/ref_aero_raw_counts_regrid.txt")
+ref_data = numpy.loadtxt("ref_"+dataset_name+"/ref_aero_size_num_regrid.txt")
+raw_counts = numpy.loadtxt("ref_"+dataset_name+"/ref_aero_raw_counts_regrid.txt")
 
 # Calculate raw count error
 ref_data_err_ratio_counts = []
@@ -56,9 +57,31 @@ ratio_counts = numpy.array(ref_data_err_ratio_counts)
 ratio_size = numpy.array(ref_data_err_ratio_size)
 ratio_flow = numpy.array(ref_data_err_ratio_flow)
 
-ref_data_err_ratio = numpy.sqrt(ratio_counts**2 + ratio_size**2 + ratio_flow**2)
+list_mean = []
+list_std = []
+for row in range(0,ref_data.shape[0]):
+    list_data_temp_1d = []
+    for i in arange(1,11,1):
+        file_load = "out_"+dataset_name+"/case_%04d_wc_%04d_aero_size_num.txt" % (case, i)
+        data_temp = loadtxt(file_load)
+        list_data_temp_1d.append(data_temp[row,col])
+    data_temp_1d = array(list_data_temp_1d)
+    data_temp_1d *= math.log(10) # convert to d*_dlogDp
+    list_mean.append(mean(data_temp_1d))
+    diff = data_temp_1d - mean(data_temp_1d)
+    list_std.append(sqrt(1. / float(len(data_temp_1d)-1) * sum(diff**2)))
+data1_1d = array(list_mean)
+partmc_std = array(list_std)
 
-ref_data_err = ref_data_err_ratio * ref_data[:,col]
+# calculate the relative error
+ref_data_err_list = []
+diams_list = []
+for i in range(0,ref_data.shape[0]):
+    diams_list.append(ref_data[i,0])
+    ref_data_err_list.append(3. * sqrt((ratio_counts[i]*ref_data[i,col])**2 + (ratio_size[i]*ref_data[i,col])**2 \
+         + (ratio_flow[i]*ref_data[i,col])**2 + partmc_std[i]**2/10.)) # use 3*sigma
+ref_data_err = array(ref_data_err_list)
+diams = array(diams_list)
 
 # plot slope
 #slope = []
@@ -84,7 +107,7 @@ ref_data_err = ref_data_err_ratio * ref_data[:,col]
 #figure.savefig(filename_out)
 
 (figure, axes) = mpl_helper.make_fig(colorbar=False)
-axes.semilogx(partmc_num[:,0], partmc_num[:,col]*math.log(10), color='k')
+axes.semilogx(diams, data1_1d, color='k')
 #axes.errorbar(ref_data[:,0],ref_data[:,col],yerr=ref_data_err,color='r')
 axes.semilogx(ref_data[:,0],ref_data[:,col], color='#CC4F1B')
 axes.fill_between(ref_data[:,0], ref_data[:,col]-ref_data_err, ref_data[:,col]+ref_data_err,

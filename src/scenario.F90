@@ -617,6 +617,8 @@ contains
     real(kind=dp) :: von_karman
     real(kind=dp) :: St, Sc, u_star
     real(kind=dp) :: E_B, E_IM, E_IN, R1
+    real(kind=dp) :: u_mean, z_ref, z_rough
+
 
     ! particle diameter
     d_p = vol2diam(vol)
@@ -656,7 +658,10 @@ contains
     ! Impaction efficiency
     alpha = .8d0
     beta = 2.0d0
-    u_star = 5.0d0 ! Should be specified
+    u_mean = 10.0d0
+    z_ref =  10.0d0
+    z_rough = 1.0d0
+    u_star = .4 * u_mean / log(z_ref / z_rough)
     St = (V_s * u_star) / (grav * A)
     E_IM = (St / (alpha + St))**beta
 

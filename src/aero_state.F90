@@ -2613,8 +2613,54 @@ contains
 
     real(kind=dp) :: pmv
     real(kind=dp) :: rho_air_dry
+    real(kind=dp) :: rho_air_moist
     real(kind=dp) :: water_vol_conc
-    real(kind=dp) :: rho_l
+    real(kind=dp) :: rho_l, q_v_parcel, epsilon
+
+    epsilon = const%water_molec_weight / const%air_molec_weight
+
+    write(6,*)'RH in aero_state_spec_liquid_water ', env_state%rel_humid
+
+    pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
+ 
+    ! specific humidity in parcel (mass of water vapor per mass of moist air)
+    call env_state_spec_humidity(env_state, q_v_parcel)
+
+     rho_air_moist = env_state%pressure * const%air_molec_weight &
+         / (const%univ_gas_const * env_state%temp*(1+(1/epsilon-1)*q_v_parcel))
+
+    call aero_state_water_vol_conc(aero_state, aero_data, water_vol_conc)
+
+    rho_l = water_vol_conc * const%water_density
+
+    q_l = rho_l / rho_air_moist 
+
+    write(6,*)'rho_dry ', rho_air_dry
+    write(6,*)'rho_wet ', rho_air_moist
+    write(6,*)'rho_l   ', rho_l
+    write(6,*)'q_l     ', rho_l / rho_air_moist
+    
+
+    end subroutine aero_state_spec_liquid_water
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Calculate initial RH 
+  subroutine aero_state_init_RH(aero_state, aero_data, q_tot_init, env_state)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    ! Aero data values.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Current environment
+    type(env_state_t), intent(inout) :: env_state
+
+    real(kind=dp) :: pmv
+    real(kind=dp) :: rho_air_dry
+    real(kind=dp) :: water_vol_conc, q_tot_init
+    real(kind=dp) :: rho_l, rho_v, q_v_parcel, epsilon
+
+    epsilon = const%water_molec_weight / const%air_molec_weight
 
     pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
 
@@ -2625,8 +2671,17 @@ contains
 
     rho_l = water_vol_conc * const%water_density
 
-    q_l = rho_l / (rho_air_dry + rho_l)
+    rho_v = (rho_air_dry * q_tot_init - rho_l) / (1 - q_tot_init)
 
-    end subroutine aero_state_spec_liquid_water
+    q_v_parcel = rho_v / (rho_v + rho_air_dry)
+
+    call env_state_set_spec_humid(env_state, q_v_parcel)
+
+    write(6,*)'rho_dry ', rho_air_dry
+    write(6,*)'rho_l   ', rho_l
+    write(6,*)'q_v_parcel ', q_v_parcel
+    write(6,*)'rh based on aerosol and q_tot ', env_state%rel_humid    
+
+    end subroutine aero_state_init_RH
 
 end module pmc_aero_state

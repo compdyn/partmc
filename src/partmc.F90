@@ -386,7 +386,6 @@ contains
                dummy_del_t, dummy_i_repeat, run_part_opt%uuid, aero_data, &
                aero_state_init, gas_data, gas_state_init, env_state_init)
        end if
-
        if (.not. do_restart) then
           call spec_file_read_string(file, 'gas_data', sub_filename)
           call spec_file_open(sub_filename, sub_file)
@@ -409,7 +408,6 @@ contains
           call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
           call spec_file_close(sub_file)
        end if
-       
        call spec_file_read_scenario(file, gas_data, aero_data, scenario)
        call spec_file_read_env_state(file, env_state_init)
        
@@ -615,7 +613,7 @@ contains
                   AERO_STATE_WEIGHT_FLAT)
           else
              call aero_state_set_weight(aero_state, aero_data, &
-                  AERO_STATE_WEIGHT_FLAT)
+                  AERO_STATE_WEIGHT_NUMMASS_SOURCE)
           end if
           call aero_state_set_n_part_ideal(aero_state, n_part)
           call aero_state_add_aero_dist_sample(aero_state, aero_data, &
@@ -623,7 +621,6 @@ contains
        end if
        call env_state_copy(env_state_init, env_state)
        write(6,*)'env_state_init rh (spec file)', env_state%rel_humid
-       write(6,*)'first value of qtot ', scenario%q_tot(1)
        call scenario_init_env_state(scenario, env_state, &
             env_state_init%elapsed_time)
 
@@ -631,14 +628,13 @@ contains
        write(6,*)'env_state_init rh (spec file)', env_state%rel_humid
        write(6,*)'temp ', env_state%temp
        write(6,*)'pres ', env_state%pressure
-       write(6,*)'first value of qtot ', scenario%q_tot(1)
 
-       call aero_state_spec_liquid_water(aero_state, env_state, aero_data, &
-            q_l_parcel)
-       write(6,*)'q_l_parcel init (urban plume file)', q_l_parcel
-       q_v_parcel = scenario%q_tot(1) - q_l_parcel
-       write(6,*)'q_v_parcel based on difference q_tot-q_l ', q_v_parcel
-
+!       call aero_state_init_RH(aero_state, aero_data, scenario%q_tot(1), env_state)
+!       stop
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!       q_v_parcel = scenario%q_tot(1) - q_l_parcel
+!       write(6,*)'q_v_parcel based on difference q_tot-q_l ', q_v_parcel
 !       call env_state_set_spec_humid(env_state, q_v_parcel)
 !       write(6,*)'rh based on q_v_parcel', env_state%rel_humid
 !       stop

@@ -912,11 +912,9 @@ contains
 
     ! temperature profile
     call spec_file_read_string(file, "temp_profile", sub_filename)
-    write(6,*)'temp profile ', sub_filename
     call spec_file_open(sub_filename, sub_file)
     call spec_file_read_timed_real_array(sub_file, "temp", &
          scenario%temp_time, scenario%temp)
-    write(6,*)scenario%temp_time, scenario%temp
     call spec_file_close(sub_file)
 
     ! pressure profile
@@ -980,7 +978,6 @@ contains
          scenario%aero_dilution_time, scenario%aero_dilution_rate, &
          scenario%aero_background)
     call spec_file_close(sub_file)
-
   end subroutine spec_file_read_scenario
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

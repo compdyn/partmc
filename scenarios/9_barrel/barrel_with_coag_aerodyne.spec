@@ -1,6 +1,6 @@
 run_type particle               # particle-resolved run
 output_prefix out_aerodyne_0828/barrel_wc # prefix of output files
-n_repeat 1                      # number of Monte Carlo repeats
+n_repeat 10                      # number of Monte Carlo repeats
 n_part 10000                    # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
@@ -36,7 +36,7 @@ do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
 
-rand_init 7                     # random initialization (0 to auto-generate)
+rand_init 0                     # random initialization (0 to auto-generate)
 allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
 record_removals no              # whether to record particle removals (yes/no)
@@ -50,6 +50,6 @@ prefactor_BL 0.05              # prefactor in diffusive boundary layer thickness
 exponent_BL 0.274              # exponent in diffusive boundary layer thickness
 
 do_fractal yes                  # whether to do fractal treatment
-frac_dim 1.5                   # fractal dimension
+frac_dim 2.5                   # fractal dimension
 prime_radius 1e-8             # radius of monomer
 vol_fill_factor 1.43            # volume filling factor

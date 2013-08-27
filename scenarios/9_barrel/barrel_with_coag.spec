@@ -1,29 +1,29 @@
 run_type particle               # particle-resolved run
-output_prefix out_0212/barrel_wc_extend_size # prefix of output files
+output_prefix out/barrel_wc # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 100000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
-t_max 15600 #20160 #15960 #65100 #16200 #14400 #15600                     # total simulation time (s)
+t_max 20160 #15960 #65100 #16200 #14400 #15600                     # total simulation time (s)
 del_t 60                       # timestep (s)
-t_output 600                   # output interval (0 disables) (s)
+t_output 420                   # output interval (0 disables) (s)
 t_progress 60                # progress printing interval (0 disables) (s)
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios
 
 aerosol_data aero_data.dat      # file containing aerosol data
-aerosol_init aero_init_dist_sampled.dat # aerosol initial condition file
+aerosol_init aero_init_dist_sampled_0925.dat # aerosol initial condition file
 
-temp_profile temp.dat           # temperature profile file
+temp_profile temp_0925.dat           # temperature profile file
 pressure_profile pressure.dat   # pressure profile file
 height_profile height.dat       # height profile file
 gas_emissions gas_emit.dat      # gas emissions file
 gas_background gas_back.dat     # background gas mixing ratios file
 aero_emissions aero_emit.dat    # aerosol emissions file
-aero_background aero_back.dat   # aerosol background file
+aero_background aero_back_0925.dat   # aerosol background file
 
-rel_humidity 0.0383 #0.0945 #0.1275 #0.0945 #0.0482 #0.0385             # initial relative humidity (1)
+rel_humidity 0.0986 #0.0383 #0.0945 #0.1275 #0.0945 #0.0482 #0.0385             # initial relative humidity (1)
 latitude 0                     # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)
 altitude 0                      # altitude (m)
@@ -46,10 +46,10 @@ do_chamber yes                  # whether to do chamber loss
 V_chamber 0.2093                  # aerosol chamber volume (m^3)
 A_diffuse 1.988                   # diffusional deposition area (m^2)
 A_sedi 0.2463                     # sedimentational deposition area (m^2)
-prefactor_BL 0.04              # prefactor in diffusive boundary layer thickness (m)
-exponent_BL 0.23              # exponent in diffusive boundary layer thickness
+prefactor_BL 0.045              # prefactor in diffusive boundary layer thickness (m)
+exponent_BL 0.25              # exponent in diffusive boundary layer thickness
 
 do_fractal yes                  # whether to do fractal treatment
-frac_dim 3.0                   # fractal dimension
-prime_radius 1e-8             # radius of monomer
+frac_dim 2.4                   # fractal dimension
+prime_radius 8e-8             # radius of monomer
 vol_fill_factor 1.43            # volume filling factor

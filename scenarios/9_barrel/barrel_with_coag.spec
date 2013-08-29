@@ -51,5 +51,5 @@ exponent_BL 0.25              # exponent in diffusive boundary layer thickness
 
 do_fractal yes                  # whether to do fractal treatment
 frac_dim 2.4                   # fractal dimension
-prime_radius 8e-8             # radius of monomer
-vol_fill_factor 1.43            # volume filling factor
+prime_radius 4e-8             # radius of monomer
+vol_fill_factor 2.0            # volume filling factor

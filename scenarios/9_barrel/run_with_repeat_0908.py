@@ -22,7 +22,7 @@ def read_values_from_spec_file(filename_in, str_wanted):
     return val
 
 dataset = ['0908']
-t_max = [65100]
+t_max = [21420]
 t_output = [420]
 rh = [0.0945]
 index = 0
@@ -39,7 +39,7 @@ for dataset_name in dataset:
 
     #prefactor = float(raw_input("Enter prefactor:"))
     #exponent = float(raw_input("Enter exponent:"))
-    prime_radius = 1e-8
+    prime_radius = 4.5e-8
     vol_fill_factor = 1.43
     rho = 1760
     case = 0

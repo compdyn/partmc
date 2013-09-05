@@ -2619,8 +2619,6 @@ contains
 
     epsilon = const%water_molec_weight / const%air_molec_weight
 
-    write(6,*)'RH in aero_state_spec_liquid_water ', env_state%rel_humid
-
     pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
  
     ! specific humidity in parcel (mass of water vapor per mass of moist air)
@@ -2634,12 +2632,6 @@ contains
     rho_l = water_vol_conc * const%water_density
 
     q_l = rho_l / rho_air_moist 
-
-    write(6,*)'rho_dry ', rho_air_dry
-    write(6,*)'rho_wet ', rho_air_moist
-    write(6,*)'rho_l   ', rho_l
-    write(6,*)'q_l     ', rho_l / rho_air_moist
-    
 
     end subroutine aero_state_spec_liquid_water
 
@@ -2655,31 +2647,40 @@ contains
     !> Current environment
     type(env_state_t), intent(inout) :: env_state
 
-    real(kind=dp) :: pmv
-    real(kind=dp) :: rho_air_dry
-    real(kind=dp) :: water_vol_conc, q_tot_init
-    real(kind=dp) :: rho_l, rho_v, q_v_parcel, epsilon
+    real(kind=dp) :: tv_const, gas_const_dry, e_sat
+    real(kind=dp) :: water_vol_conc, q_tot_init, pmv
+    real(kind=dp) :: rho_l, rho_v, epsilon
 
     epsilon = const%water_molec_weight / const%air_molec_weight
 
-    pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
+    tv_const = (1 / epsilon) - 1
 
-    rho_air_dry = (env_state%pressure - pmv) * const%air_molec_weight &
-         / (const%univ_gas_const * env_state%temp)
+    gas_const_dry = const%univ_gas_const / const%air_molec_weight
 
     call aero_state_water_vol_conc(aero_state, aero_data, water_vol_conc)
 
     rho_l = water_vol_conc * const%water_density
 
-    rho_v = (rho_air_dry * q_tot_init - rho_l) / (1 - q_tot_init)
+    rho_v = (env_state%pressure * q_tot_init - rho_l * gas_const_dry * env_state%temp) &
+         / (gas_const_dry * env_state%temp &
+         + gas_const_dry * env_state%temp * tv_const * q_tot_init)
 
-    q_v_parcel = rho_v / (rho_v + rho_air_dry)
+    pmv = rho_v * const%univ_gas_const / const%water_molec_weight * env_state%temp
 
-    call env_state_set_spec_humid(env_state, q_v_parcel)
+    env_state%rel_humid = pmv / env_state_sat_vapor_pressure(env_state)
 
-    write(6,*)'rho_dry ', rho_air_dry
+    write(6,*)'IN aero_state_init_RH!!!!!'
+    write(6,*)'epsilon ', epsilon
+    write(6,*)'pressure ', env_state%pressure 
+    write(6,*)'q_tot ', q_tot_init 
+    write(6,*)'temp. ', env_state%temp
+    write(6,*)'R_dry ', gas_const_dry
+    write(6,*)'R* ', const%univ_gas_const 
+    write(6,*)'molec. weight water ', const%water_molec_weight
+    write(6,*)'rho_v   ', rho_v
     write(6,*)'rho_l   ', rho_l
-    write(6,*)'q_v_parcel ', q_v_parcel
+    write(6,*)'water vapor pressure ', pmv
+    write(6,*)'saturation water vap. ', env_state_sat_vapor_pressure(env_state)
     write(6,*)'rh based on aerosol and q_tot ', env_state%rel_humid    
 
     end subroutine aero_state_init_RH

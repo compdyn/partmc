@@ -373,7 +373,6 @@ contains
        call spec_file_read_logical(file, 'restart', do_restart)
        if (do_restart) then
           call spec_file_read_string(file, 'restart_file', restart_filename)
-          write(6,*) restart_filename
        end if
        
        call spec_file_read_real(file, 't_max', run_part_opt%t_max)
@@ -620,14 +619,8 @@ contains
                aero_dist_init, 1d0, 0d0)
        end if
        call env_state_copy(env_state_init, env_state)
-       write(6,*)'env_state_init rh (spec file)', env_state%rel_humid
        call scenario_init_env_state(scenario, env_state, &
             env_state_init%elapsed_time)
-
-       write(6,*)'env_state elapsed time ', env_state%elapsed_time
-       write(6,*)'env_state_init rh (spec file)', env_state%rel_humid
-       write(6,*)'temp ', env_state%temp
-       write(6,*)'pres ', env_state%pressure
 
 !       call aero_state_init_RH(aero_state, aero_data, scenario%q_tot(1), env_state)
 !       stop

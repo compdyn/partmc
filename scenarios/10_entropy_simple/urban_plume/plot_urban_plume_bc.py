@@ -17,7 +17,7 @@ from matplotlib.patches import FancyArrowPatch
                                 vert_sep=0.3, horiz_sep=1.5,
                                 colorbar="individual",colorbar_location="right")
 
-ncf = scipy.io.netcdf_file("out/urban_plume2_process_bc.nc", 'r')
+ncf = scipy.io.netcdf_file("out/urban_plume2_process_bc_new.nc", 'r')
 time_grid_edges = ncf.variables["time_grid_edges"].data
 entropy_edges = ncf.variables["entropy_edges"].data
 time_entropy_dist = ncf.variables["time_entropy_dist"].data
@@ -74,5 +74,5 @@ axes.annotate(r"$\gamma$", (time[102], tot_entropy_ratio[102]),
 #axes.legend(loc = 'lower right')
 axes.grid(True)
 
-figure.savefig("out/urban_plume_particle_entropy_bc.pdf")
+figure.savefig("out/urban_plume_particle_entropy_bc_new.pdf")
 

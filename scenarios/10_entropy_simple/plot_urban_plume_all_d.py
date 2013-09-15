@@ -190,7 +190,7 @@ def make_fig_array(n_vert=2,
                                 share_y_axes=False)
 
 ######## first row ###############
-filename = 'urban_plume/out/urban_plume2_process.nc'
+filename = 'urban_plume/out/urban_plume2_process_new.nc'
 ncf = scipy.io.netcdf_file(filename)
 time_grid_edges = ncf.variables["time_grid_edges"].data
 diversity_edges = ncf.variables["diversity_edges"].data
@@ -264,6 +264,6 @@ axes.grid(True)
 mpl_helper.add_boxed_text(axes, "(b)")
 mpl_helper.remove_fig_array_axes(axes_array, remove_y_axes=False)
 
-out_filename = "urban_plume_all_d.pdf"
+out_filename = "urban_plume_all_d_new.pdf"
 figure.savefig(out_filename, dpi=1200)
 print out_filename

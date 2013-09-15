@@ -206,8 +206,10 @@ ncf.close()
 axes = axes_array[0][0]
 cbar_axes = cbar_axes_array[0][0]
 d = numpy.ma.masked_less_equal(time_diversity_dist, 0)
-vmin = 10**math.floor(math.log10(d.min()))
-vmax = 10**math.ceil(math.log10(d.max()))
+#vmin = 10**math.floor(math.log10(d.min()))
+#vmax = 10**math.ceil(math.log10(d.max()))
+vmin=1e12
+vmax=1e13
 p = axes.imshow(numpy.flipud(d.transpose()), interpolation='nearest',
                 extent=[time_grid_edges.min(), time_grid_edges.max(),
                         diversity_edges.min(), diversity_edges.max()],
@@ -365,8 +367,10 @@ ncf.close()
 axes = axes_array[2][0]
 cbar_axes = cbar_axes_array[2][0]
 d = numpy.ma.masked_less_equal(time_diversity_dist, 0)
-vmin = 10**math.floor(math.log10(d.min()))
-vmax = 10**math.ceil(math.log10(d.max()))
+#vmin = 10**math.floor(math.log10(d.min()))
+#vmax = 10**math.ceil(math.log10(d.max()))
+vmin=1e12
+vmax=1e13
 p = axes.imshow(numpy.flipud(d.transpose()), interpolation='nearest',
                 extent=[time_grid_edges.min(), time_grid_edges.max(),
                         diversity_edges.min(), diversity_edges.max()],
@@ -441,8 +445,10 @@ ncf.close()
 axes = axes_array[3][0]
 cbar_axes = cbar_axes_array[3][0]
 d = numpy.ma.masked_less_equal(time_diversity_dist, 0)
-vmin = 10**math.floor(math.log10(d.min()))
-vmax = 10**math.ceil(math.log10(d.max()))
+#vmin = 10**math.floor(math.log10(d.min()))
+#vmax = 10**math.ceil(math.log10(d.max()))
+vmin=1e12
+vmax=1e13
 p = axes.imshow(numpy.flipud(d.transpose()), interpolation='nearest',
                 extent=[time_grid_edges.min(), time_grid_edges.max(),
                         diversity_edges.min(), diversity_edges.max()],

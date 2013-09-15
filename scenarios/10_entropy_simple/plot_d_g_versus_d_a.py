@@ -190,6 +190,6 @@ axes.annotate("",
             )
 
 axes.grid(True)
-figure.savefig("d_g_versus_d_a.pdf")
+figure.savefig("d_g_versus_d_a_new.pdf")
 
 

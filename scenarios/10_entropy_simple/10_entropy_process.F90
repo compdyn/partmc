@@ -20,7 +20,7 @@ program process
   type(aero_data_t) :: aero_data
   type(aero_state_t) :: aero_state, aero_state_averaged, aero_state_bc
   type(env_state_t) :: env_state
-  integer :: ncid, index, repeat, i_index, i_repeat, n_index, n_repeat
+  integer :: ncid, index, repeat, i_index, i_repeat, n_index, n_repeat, i_ss
   real(kind=dp) :: time, del_t, tot_num_conc, tot_mass_conc, avg_part_entropy, &
        ccn, tot_bc_conc, tot_so4_conc, tot_no3_conc, tot_nh4_conc, tot_soa_conc, &
        tot_oc_conc
@@ -82,8 +82,8 @@ program process
   call bin_grid_make(no3_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 1d0)
   call bin_grid_make(h2o_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 2d0)
   call bin_grid_make(sc_grid, BIN_GRID_TYPE_LOG, 50, 1d-4, 1d0)
-  call bin_grid_make(entropy_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 5d0)
-  call bin_grid_make(diversity_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 5d0)
+  call bin_grid_make(entropy_grid, BIN_GRID_TYPE_LINEAR, 65, 0d0, 5d0)
+  call bin_grid_make(diversity_grid, BIN_GRID_TYPE_LINEAR, 65, 0d0, 5d0)
   call bin_grid_make(time_grid, BIN_GRID_TYPE_LINEAR, 145, 0d0, 24d0)
   call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)
 
@@ -199,8 +199,8 @@ program process
         call stats_2d_add_col(stats_time_diversity_dist, diversity_dist, i_index)
 
 !> average per-particle entropy (\bar{H})
-        avg_part_entropy = sum(entropies * masses * num_concs) &
-             / sum(masses * num_concs)
+        avg_part_entropy = sum(entropies * dry_masses * num_concs) &
+             / sum(dry_masses * num_concs)
         call stats_1d_add_entry(stats_avg_part_entropy, avg_part_entropy, i_index)
 
 !> 1d distribution of ratio of per-particle entropies to average per-particle entropy (\bar{R_i})
@@ -209,7 +209,7 @@ program process
         call stats_1d_add(stats_dist_ratio_to_avg_part_entropy, dist_ratio_to_avg_part_entropy)
 
 !> entropy concentration (c_H)
-        tot_entropy_conc = sum(entropies * masses * num_concs)
+        tot_entropy_conc = sum(entropies * dry_masses * num_concs)
         call stats_1d_add_entry(stats_tot_entropy_conc, tot_entropy_conc, i_index)
 
 !> composition-averaging
@@ -232,14 +232,14 @@ program process
 
 !> average per-particle entropy after composition-averaging (\bar{\hat{H}})
         entropy_of_avg_part &
-             = sum(entropies_of_avg_part * masses_averaged &
+             = sum(entropies_of_avg_part * dry_masses_averaged &
              * num_concs_averaged) &
-             / sum(masses_averaged * num_concs_averaged)
+             / sum(dry_masses_averaged * num_concs_averaged)
         call stats_1d_add_entry(stats_entropy_of_avg_part, &
              entropy_of_avg_part, i_index)
 
 !> entropy concentration after composition-averaging (c_{\hat{H}})
-        tot_entropy_of_avg_conc = sum(entropies_of_avg_part * masses * num_concs)
+        tot_entropy_of_avg_conc = sum(entropies_of_avg_part * dry_masses * num_concs)
         call stats_1d_add_entry(stats_tot_entropy_of_avg_conc, tot_entropy_of_avg_conc, i_index)
 
 !> ratio of entropy conc. and entropy conc. after composition-averaging (R)

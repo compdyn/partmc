@@ -370,9 +370,9 @@ add_executable(numeric_average src/numeric_average.F90)
 ######################################################################
 # scenarios/1_urban_plume/process
 
-add_executable(1_urban_plume_process
-  scenarios/1_urban_plume/1_urban_plume_process.F90)
-target_link_libraries(1_urban_plume_process partmclib)
+#add_executable(1_urban_plume_process
+#  scenarios/1_urban_plume/1_urban_plume_process.F90)
+#target_link_libraries(1_urban_plume_process partmclib)
 
 ######################################################################
 # scenarios/10_entropy_simple/process
@@ -384,15 +384,15 @@ target_link_libraries(10_entropy_process partmclib)
 ######################################################################
 # scenarios/10_entropy_simple/process_bc
 
-add_executable(10_entropy_process_bc
-  scenarios/10_entropy_simple/10_entropy_process_bc.F90)
-target_link_libraries(10_entropy_process_bc partmclib)
+#add_executable(10_entropy_process_bc
+#  scenarios/10_entropy_simple/10_entropy_process_bc.F90)
+#target_link_libraries(10_entropy_process_bc partmclib)
 
 ######################################################################
 # scenarios/10_entropy_simple/process_source
 
-add_executable(10_entropy_process_source
-  scenarios/10_entropy_simple/10_entropy_process_source.F90)
-target_link_libraries(10_entropy_process_source partmclib)
+#add_executable(10_entropy_process_source
+#  scenarios/10_entropy_simple/10_entropy_process_source.F90)
+#target_link_libraries(10_entropy_process_source partmclib)
 
 ######################################################################

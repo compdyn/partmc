@@ -368,3 +368,10 @@ target_link_libraries(numeric_diff partmclib)
 add_executable(numeric_average src/numeric_average.F90)
 
 ######################################################################
+# scenarios/14_paris/process
+
+add_executable(14_entropy_process
+  scenarios/14_paris/14_entropy_process.F90)
+target_link_libraries(14_entropy_process partmclib)
+
+######################################################################

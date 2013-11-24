@@ -21,8 +21,8 @@ import matplotlib.pyplot as plt
 #dist = partmc.histogram_1d(x_values, x_grid, weighted=True, weights=particles.num_concs)
 
 col = 11
-dataset_name = '0908'
-case = 383
+dataset_name = '0925'
+case = 415
 
 ref_data = numpy.loadtxt("ref_"+dataset_name+"/ref_aero_size_num_regrid.txt")
 raw_counts = numpy.loadtxt("ref_"+dataset_name+"/ref_aero_raw_counts_regrid.txt")

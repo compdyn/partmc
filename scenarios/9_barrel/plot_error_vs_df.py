@@ -9,8 +9,8 @@ import mpl_helper
 import matplotlib.pyplot as plt
 
 dataset_name = '0925'
-prefactor = 0.045
-exponent = 0.25
+prefactor = 0.06
+exponent = 0.26
 
 ref_data = numpy.loadtxt("rmse_num_"+dataset_name+".dat")
 list_df = []

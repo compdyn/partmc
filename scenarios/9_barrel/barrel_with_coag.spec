@@ -46,10 +46,10 @@ do_chamber yes                  # whether to do chamber loss
 V_chamber 0.2093                  # aerosol chamber volume (m^3)
 A_diffuse 1.988                   # diffusional deposition area (m^2)
 A_sedi 0.2463                     # sedimentational deposition area (m^2)
-prefactor_BL 0.045              # prefactor in diffusive boundary layer thickness (m)
-exponent_BL 0.25              # exponent in diffusive boundary layer thickness
+prefactor_BL 0.06              # prefactor in diffusive boundary layer thickness (m)
+exponent_BL 0.26              # exponent in diffusive boundary layer thickness
 
 do_fractal yes                  # whether to do fractal treatment
-frac_dim 2.4                   # fractal dimension
-prime_radius 4e-8             # radius of monomer
+frac_dim 2.2                   # fractal dimension
+prime_radius 4.5e-8             # radius of monomer
 vol_fill_factor 2.0            # volume filling factor

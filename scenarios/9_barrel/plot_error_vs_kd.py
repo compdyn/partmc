@@ -9,8 +9,8 @@ import mpl_helper
 import matplotlib.pyplot as plt
 
 dataset_name = '0925'
-exponent = 0.25
-frac_dim = 2.4
+exponent = 0.26
+frac_dim = 2.2
 
 ref_data = numpy.loadtxt("rmse_num_"+dataset_name+".dat")
 list_kd = []

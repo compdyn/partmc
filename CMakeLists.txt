@@ -396,3 +396,11 @@ target_link_libraries(10_entropy_process partmclib)
 #target_link_libraries(10_entropy_process_source partmclib)
 
 ######################################################################
+# scenarios/13_entropy_simple/process
+
+add_executable(13_entropy_process
+  scenarios/13_cares/13_entropy_process.F90)
+target_link_libraries(13_entropy_process partmclib)
+
+
+

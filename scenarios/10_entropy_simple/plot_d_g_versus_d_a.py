@@ -11,7 +11,7 @@ from matplotlib.patches import FancyArrowPatch
 
 matplotlib.rc('text.latex', preamble='\usepackage{rotating}')
 
-(figure, axes) = mpl_helper.make_fig(figure_width=5, axis_ratio=1)
+(figure, axes) = mpl_helper.make_fig(figure_width=4, axis_ratio=1, left_margin=0.6)
 
 ncf = scipy.io.netcdf_file("emit/out/urban_plume_process.nc")
 avg_part_entropy1 = np.exp(ncf.variables["avg_part_entropy"].data)
@@ -67,37 +67,37 @@ x_values = np.linspace(0,2,21)
 axes.plot(x_values, x_values*1, "k", linewidth=0.5)
 axes.plot(x_values, x_values*2, "k", linewidth=0.5)
 
-axes.annotate(r"1", (0.28,0.8),
+axes.annotate(r"1", (0.27,0.79),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(edgecolor='black', facecolor='white',
                           boxstyle="round,pad=0.3"))
 
-axes.annotate(r"2", (0.37,0.9),
+axes.annotate(r"2", (0.39,0.9),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(edgecolor='black', facecolor='white',
                           boxstyle="round,pad=0.3"))
 
-axes.annotate(r"3", (0.1,0.7),
+axes.annotate(r"3", (0.09,0.7),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(edgecolor='black', facecolor='white',
                           boxstyle="round,pad=0.3"))
 
-axes.annotate(r"4", (0.2,1.02),
+axes.annotate(r"4", (0.2,1.03),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(edgecolor='black', facecolor='white',
                           boxstyle="round,pad=0.3"))
 
-axes.annotate(r"5", (0.3,0.22),
+axes.annotate(r"5", (0.32,0.22),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(edgecolor='black', facecolor='white',
                           boxstyle="round,pad=0.3"))
 
-axes.annotate(r"6", (0.7,0.62),
+axes.annotate(r"6", (0.72,0.62),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(edgecolor='black', facecolor='white',
                           boxstyle="round,pad=0.3"))
 
-axes.annotate(r"7", (0.6,0.83),
+axes.annotate(r"7", (0.62,0.83),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(edgecolor='black', facecolor='white',
                           boxstyle="round,pad=0.3"))
@@ -190,6 +190,6 @@ axes.annotate("",
             )
 
 axes.grid(True)
-figure.savefig("d_g_versus_d_a_new.pdf")
+figure.savefig("d_g_versus_d_a_final.pdf")
 
 

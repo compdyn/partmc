@@ -181,10 +181,10 @@ def make_fig_array(n_vert=2,
     return (figure, axes_array)
 
 (figure, axes_array, cbar_axes_array) \
-    = make_fig_array(1,2,figure_width=6.9,
+    = make_fig_array(1,2,figure_width=6,
                      colorbar_offset=0.1,
                                 top_margin=0.25, bottom_margin=0.45,
-                                left_margin=0.6, right_margin=0.6,
+                                left_margin=0.5, right_margin=0.6,
                                 vert_sep=0.3, horiz_sep=1.6,
                                 colorbar="individual",colorbar_location="right",
                                 share_y_axes=False)
@@ -219,7 +219,7 @@ axes.set_xlim([0,48])
 axes.set_xticks([0, 12, 24, 36, 48])
 
 axes.set_yscale("linear")
-axes.set_ylabel(r"particle diversity $D_i$")
+axes.set_ylabel(r"part. div. $D_i$")
 axes.set_ylim(0, 10)
 
 axes.grid(True)
@@ -237,7 +237,7 @@ axes.plot(time, avg_part_entropy, "b-")
 axes.plot(time, entropy_of_avg_part, "k-")
 axes.set_xlabel(r"time $t$ / h")
 
-axes.set_ylabel(r"diversity $D_{\alpha}, D{\gamma}$")
+axes.set_ylabel(r"diversity $D_{\alpha}, D_{\gamma}$")
 axes.set_ylim([0,10])
 
 axes2 =  axes.twinx()
@@ -247,15 +247,15 @@ axes2.set_ylim([40,90])
 axes2.set_xlim([0,48])
 axes2.set_xticks([0, 12, 24, 36, 48])
 
-axes.annotate(r"$D_{\gamma}$", (14,7.8),
+axes.annotate(r"$D_{\gamma}$", (5.5,7.5),
+              verticalalignment="bottom", horizontalalignment="right",
+              #bbox = dict(facecolor='white', edgecolor='white'),
+              xytext=(0, 5), textcoords='offset points')
+axes.annotate(r"$D_{\alpha}$", (36,2.9),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$D_{\alpha}$", (36,3),
-              verticalalignment="bottom", horizontalalignment="right",
-              bbox = dict(facecolor='white', edgecolor='white'),
-              xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$\chi$", (36,7),
+axes.annotate(r"$\chi$", (42,6.6),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
@@ -264,6 +264,6 @@ axes.grid(True)
 mpl_helper.add_boxed_text(axes, "(b)")
 mpl_helper.remove_fig_array_axes(axes_array, remove_y_axes=False)
 
-out_filename = "urban_plume_all_d_new.pdf"
+out_filename = "urban_plume_all_d_final.pdf"
 figure.savefig(out_filename, dpi=1200)
 print out_filename

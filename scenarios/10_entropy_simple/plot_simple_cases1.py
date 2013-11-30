@@ -181,10 +181,10 @@ def make_fig_array(n_vert=2,
     return (figure, axes_array)
 
 (figure, axes_array, cbar_axes_array) \
-    = make_fig_array(4,2,figure_width=6.9,
+    = make_fig_array(4,2,figure_width=6,
                      colorbar_offset=0.1,
                                 top_margin=0.25, bottom_margin=0.45,
-                                left_margin=1, right_margin=0.6,
+                                left_margin=0.85, right_margin=0.6,
                                 vert_sep=0.3, horiz_sep=1.6,
                                 colorbar="individual",colorbar_location="right",
                                 share_y_axes=False)
@@ -219,7 +219,7 @@ axes.set_xlim([0,24])
 axes.set_xticks([0, 6, 12, 18, 24])
 
 axes.set_yscale("linear")
-axes.set_ylabel(r"particle diversity $D_i$")
+axes.set_ylabel(r"part. div. $D_i$")
 axes.set_ylim(0.95, 2.05)
 
 axes.grid(True)
@@ -242,7 +242,7 @@ axes.plot(time, avg_part_entropy, "b-")
 axes.plot(time, entropy_of_avg_part, "k-")
 axes.set_xlabel(r"time $t$ / h")
 
-axes.set_ylabel(r"diversity $D_{\alpha}, D{\gamma}$")
+axes.set_ylabel(r"diversity $D_{\alpha}, D_{\gamma}$")
 axes.set_ylim([0.95,2.05])
 
 axes2 =  axes.twinx()
@@ -252,15 +252,15 @@ axes2.set_ylim([-5,105])
 axes2.set_xlim([0,24])
 axes2.set_xticks([0, 6, 12, 18, 24])
 
-axes.annotate(r"$D_{\gamma}$", (6,1.75),
+axes.annotate(r"$D_{\gamma}$", (6,1.68),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$D_{\alpha}$", (3,1.2),
+axes.annotate(r"$D_{\alpha}$", (3.8,1.3),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$\chi$", (18,1.7),
+axes.annotate(r"$\chi$", (18,1.65),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
@@ -298,7 +298,7 @@ axes.set_xlim([0,24])
 axes.set_xticks([0, 6, 12, 18, 24])
 
 axes.set_yscale("linear")
-axes.set_ylabel(r"particle diversity $D_i$")
+axes.set_ylabel(r"part. div. $D_i$")
 axes.set_ylim(0.9, 3)
 
 axes.grid(True)
@@ -320,7 +320,7 @@ axes = axes_array[1][1]
 axes.plot(time, avg_part_entropy, "b-")
 axes.plot(time, entropy_of_avg_part, "k-")
 
-axes.set_ylabel(r"diversity $D_{\alpha}, D{\gamma}$")
+axes.set_ylabel(r"diversity $D_{\alpha}, D_{\gamma}$")
 axes.set_ylim([0.9,3.0])
 
 axes2 =  axes.twinx()
@@ -331,15 +331,15 @@ axes2.set_yticks([0.0, 10, 20, 30, 40])
 axes2.set_xlim([0,24])
 axes2.set_xticks([0, 6, 12, 18, 24])
 
-axes.annotate(r"$D_{\alpha}$", (time[78], avg_part_entropy[78]),
+axes.annotate(r"$D_{\alpha}$", (19,1.3),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$D_{\gamma}$", (7,2.2),
+axes.annotate(r"$D_{\gamma}$", (7.1,2.2),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$\chi$", (18,2.1),
+axes.annotate(r"$\chi$", (18.1,2.0),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
@@ -374,7 +374,7 @@ p = axes.imshow(numpy.flipud(d.transpose()), interpolation='nearest',
 
 axes.set_xscale("linear")
 axes.set_yscale("linear")
-axes.set_ylabel(r"particle diversity $D_i$")
+axes.set_ylabel(r"part. div. $D_i$")
 axes.set_ylim([1, 5])
 axes.set_yticks([1, 2, 3, 4, 5])
 axes.set_yticklabels(["1.0", "2.0", "3.0", "4.0", "5.0"])
@@ -398,7 +398,7 @@ axes = axes_array[2][1]
 axes.plot(time, avg_part_entropy, "b-")
 axes.plot(time, entropy_of_avg_part, "k-")
 
-axes.set_ylabel(r"diversity $D_{\alpha}, D{\gamma}$")
+axes.set_ylabel(r"diversity $D_{\alpha}, D_{\gamma}$")
 axes.set_ylim([1, 5])
 axes.set_yticks([1, 2, 3, 4, 5])
 axes.set_yticklabels(["1.0", "2.0", "3.0", "4.0", "5.0"])
@@ -411,11 +411,11 @@ axes2.set_yticks([20, 40, 60, 80, 100])
 axes2.set_xlim([0,24])
 axes2.set_xticks([0, 6, 12, 18, 24])
 
-axes.annotate(r"$D_{\alpha}$", (6,1.1),
+axes.annotate(r"$D_{\alpha}$", (6,0.98),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$D_{\gamma}$", (10,2.2),
+axes.annotate(r"$D_{\gamma}$", (15,2.05),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
@@ -455,7 +455,7 @@ p = axes.imshow(numpy.flipud(d.transpose()), interpolation='nearest',
 axes.set_xscale("linear")
 
 axes.set_yscale("linear")
-axes.set_ylabel(r"particle diversity $D_i$")
+axes.set_ylabel(r"part. div. $D_i$")
 axes.set_ylim([0.9,3])
 
 axes.grid(True)
@@ -477,7 +477,7 @@ axes = axes_array[3][1]
 axes.plot(time, avg_part_entropy, "b-")
 axes.plot(time, entropy_of_avg_part, "k-")
 
-axes.set_ylabel(r"diversity $D_{\alpha}, D{\gamma}$")
+axes.set_ylabel(r"diversity $D_{\alpha}, D_{\gamma}$")
 axes.set_ylim([0.9,3])
 
 axes2 =  axes.twinx()
@@ -488,15 +488,15 @@ axes2.set_yticks([20, 40, 60, 80, 100])
 axes2.set_xlim([0,24])
 axes2.set_xticks([0, 6, 12, 18, 24])
 
-axes.annotate(r"$D_{\alpha}$", (18,1.6),
+axes.annotate(r"$D_{\alpha}$", (18,1.5),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$D_{\gamma}$", (10,2.5),
+axes.annotate(r"$D_{\gamma}$", (21,2.15),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')
-axes.annotate(r"$\chi$", (2,2.6),
+axes.annotate(r"$\chi$", (3,2.5),
               verticalalignment="bottom", horizontalalignment="right",
               bbox = dict(facecolor='white', edgecolor='white'),
               xytext=(0, 5), textcoords='offset points')

@@ -8,7 +8,7 @@ import numpy as np
 import mpl_helper
 import matplotlib.pyplot as plt
 
-col = 11
+col = 31
 
 partmc_num = np.loadtxt("out_aerodyne_0325/barrel_wc_0001_aero_size_num.txt")
 barrel_num = np.loadtxt("ref_aerodyne_0325/ref_aero_size_num.txt")

@@ -8,8 +8,8 @@ import numpy as np
 import mpl_helper
 import matplotlib.pyplot as plt
 
-partmc_time = np.loadtxt("out_aerodyne_0326/barrel_wc_0001_aero_time.txt")
-barrel_time = np.loadtxt("ref_aerodyne_0326/ref_aero_time.txt")
+partmc_time = np.loadtxt("out_aerodyne_0716/barrel_wc_0001_aero_time.txt")
+barrel_time = np.loadtxt("ref_aerodyne_0716/ref_aero_time.txt")
 (figure, axes) = mpl_helper.make_fig(colorbar=False)
 axes.plot(barrel_time[:,0], barrel_time[:,1], color='r')
 axes.plot(partmc_time[:,0], partmc_time[:,1], color='k')

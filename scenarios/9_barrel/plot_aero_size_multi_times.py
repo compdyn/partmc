@@ -9,8 +9,8 @@ import mpl_helper
 import matplotlib.pyplot as plt
 
 # plot number distribution
-partmc_num = np.loadtxt("out_aerodyne_0326/barrel_wc_0001_aero_size_num.txt")
-barrel_num = np.loadtxt("ref_aerodyne_0326/ref_aero_size_num.txt")
+partmc_num = np.loadtxt("out_aerodyne_0716/barrel_wc_0001_aero_size_num.txt")
+barrel_num = np.loadtxt("ref_aerodyne_0716/ref_aero_size_num.txt")
 
 (figure, axes) = mpl_helper.make_fig(colorbar=False)
 b1, = axes.semilogx(barrel_num[:,0], barrel_num[:,1], color='r')
@@ -29,7 +29,7 @@ axes.grid()
 axes.set_ylim(0, 1.05*max(partmc_num[:,1]*math.log(10)))
 #axes.set_ylim(0,2.6e11)
 axes.legend([b1,b2,b3,b4,b5,p5], ('0 min', '40 min', '80 min', \
-                                  '120 min', '240 min', 'PartMC'), loc='upper right')
+                                  '160 min', '240 min', 'PartMC'), loc='best')
 #bbox_props = dict(boxstyle="square,pad=0.3", fc="cyan", ec="b", lw=1)
 #axes.annotate('after 1hr', xy=(0.05, 0.9), xycoords='axes fraction',weight='extra bold', size=14, bbox=bbox_props)
 filename_out = "aero_num_size_multi_times.pdf"

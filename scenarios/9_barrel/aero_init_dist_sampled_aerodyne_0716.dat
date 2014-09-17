@@ -1,4 +1,4 @@
 mode_name init                     # name of mode source
 mass_frac aero_init_comp_aerodyne_0716.dat       # species mass fractions
 mode_type sampled                  # type of distribution
-size_dist aero_init_size_dist_aerodyne_0716.dat  # filename for the sample distribution
+size_dist aero_init_size_dist_aerodyne_0716_after18000s.dat  # filename for the sample distribution

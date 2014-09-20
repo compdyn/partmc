@@ -9,27 +9,27 @@ import mpl_helper
 import matplotlib.pyplot as plt
 
 # plot number distribution
-partmc_num = np.loadtxt("out_aerodyne_0830/barrel_wc_0001_aero_size_num.txt")
-barrel_num = np.loadtxt("ref_aerodyne_0830/ref_aero_size_num.txt")
+partmc_num = np.loadtxt("out_aerodyne_0828/barrel_wc_0001_aero_size_num.txt")
+barrel_num = np.loadtxt("ref_aerodyne_0828/ref_aero_size_num.txt")
 
 (figure, axes) = mpl_helper.make_fig(colorbar=False)
 b1, = axes.semilogx(barrel_num[:,0], barrel_num[:,1], color='r')
 axes.semilogx(partmc_num[:,0], partmc_num[:,1]*math.log(10), color='k')
-b2, = axes.semilogx(barrel_num[:,0], barrel_num[:,16], color='b')
+b2, = axes.semilogx(barrel_num[:,0], barrel_num[:,6], color='b')
+axes.semilogx(partmc_num[:,0], partmc_num[:,6]*math.log(10), color='k')
+b3, = axes.semilogx(barrel_num[:,0], barrel_num[:,16], color='g')
 axes.semilogx(partmc_num[:,0], partmc_num[:,16]*math.log(10), color='k')
-b3, = axes.semilogx(barrel_num[:,0], barrel_num[:,31], color='g')
+b4, = axes.semilogx(barrel_num[:,0], barrel_num[:,31], color='y')
 axes.semilogx(partmc_num[:,0], partmc_num[:,31]*math.log(10), color='k')
-b4, = axes.semilogx(barrel_num[:,0], barrel_num[:,47], color='y')
-axes.semilogx(partmc_num[:,0], partmc_num[:,47]*math.log(10), color='k')
-b5, = axes.semilogx(barrel_num[:,0], barrel_num[:,62], color='c')
-p5, = axes.semilogx(partmc_num[:,0], partmc_num[:,62]*math.log(10), color='k')
+b5, = axes.semilogx(barrel_num[:,0], barrel_num[:,66], color='c')
+p5, = axes.semilogx(partmc_num[:,0], partmc_num[:,66]*math.log(10), color='k')
 axes.set_xlabel("Diameter (m)")
 axes.set_ylabel(r"Number concentration ($\mathrm{m}^{-3}$)")
 axes.grid()
 axes.set_ylim(0, 1.05*max(partmc_num[:,1]*math.log(10)))
 #axes.set_ylim(0,2.6e11)
-axes.legend([b1,b2,b3,b4,b5,p5], ('0 min', '30 min', '60 min', \
-                                  '92 min', '122 min', 'PartMC'), loc='best')
+axes.legend([b1,b2,b3,b4,b5,p5], ('0 min', '10 min', '30 min', \
+                                  '60 min', '130 min', 'PartMC'), loc='best')
 #bbox_props = dict(boxstyle="square,pad=0.3", fc="cyan", ec="b", lw=1)
 #axes.annotate('after 1hr', xy=(0.05, 0.9), xycoords='axes fraction',weight='extra bold', size=14, bbox=bbox_props)
 filename_out = "aero_num_size_multi_times.pdf"

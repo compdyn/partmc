@@ -44,7 +44,7 @@ module pmc_bin_grid
   end type bin_grid_t
 
 contains
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates a bin_grid.
@@ -118,18 +118,18 @@ contains
   !> Convert a concentration f(vol)d(vol) to f(ln(r))d(ln(r))
   !> where vol = 4/3 pi r^3.
   subroutine vol_to_lnr(r, f_vol, f_lnr)
-    
+
     !> Radius (m).
     real(kind=dp), intent(in) :: r
     !> Concentration as a function of volume.
     real(kind=dp), intent(in) :: f_vol
     !> Concentration as a function of ln(r).
     real(kind=dp), intent(out) :: f_lnr
-    
+
     f_lnr = f_vol * 4d0 * const%pi * r**3
-    
+
   end subroutine vol_to_lnr
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Generates the bin grid given the range and number of bins.
@@ -217,7 +217,7 @@ contains
     end if
 
   end function bin_grid_find
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Make a histogram with of the given weighted data, scaled by the
@@ -573,7 +573,7 @@ contains
 
   !> Read full state.
   subroutine bin_grid_input_netcdf(bin_grid, ncid, dim_name, scale)
-    
+
     !> bin_grid to read.
     type(bin_grid_t), intent(inout) :: bin_grid
     !> NetCDF file ID, in data mode.
@@ -616,5 +616,5 @@ contains
   end subroutine bin_grid_input_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_bin_grid

@@ -84,7 +84,7 @@ contains
 
     !> Aerosol to initialize.
     type(aero_state_t), intent(out) :: aero_state
-    
+
     call aero_particle_array_allocate(aero_state%apa)
     call aero_sorted_allocate(aero_state%aero_sorted)
     aero_state%valid_sort = .false.
@@ -93,7 +93,7 @@ contains
     call aero_info_array_allocate(aero_state%aero_info_array)
 
   end subroutine aero_state_allocate
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Deallocates a previously allocated aerosol.
@@ -101,7 +101,7 @@ contains
 
     !> Aerosol to deallocate.
     type(aero_state_t), intent(inout) :: aero_state
-    
+
     call aero_particle_array_deallocate(aero_state%apa)
     call aero_sorted_deallocate(aero_state%aero_sorted)
     aero_state%valid_sort = .false.
@@ -110,7 +110,7 @@ contains
     call aero_info_array_deallocate(aero_state%aero_info_array)
 
   end subroutine aero_state_deallocate
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Resets an \c aero_state to an empty state.
@@ -143,7 +143,7 @@ contains
          aero_state_to%aero_info_array)
 
   end subroutine aero_state_copy
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Copies weighting information for an \c aero_state.
@@ -203,7 +203,7 @@ contains
     end select
 
   end subroutine aero_state_set_weight
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Set the ideal number of particles to the given value. The \c
@@ -315,7 +315,7 @@ contains
 
     !> State to zero.
     type(aero_state_t), intent(inout) :: aero_state
-    
+
     integer :: i, n_bin
 
     call aero_particle_array_zero(aero_state%apa)
@@ -323,7 +323,7 @@ contains
     call aero_info_array_zero(aero_state%aero_info_array)
 
   end subroutine aero_state_zero
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Add the given particle.
@@ -640,7 +640,7 @@ contains
     end do
     call aero_info_array_add(aero_state%aero_info_array, &
          aero_state_delta%aero_info_array)
-    
+
   end subroutine aero_state_add_particles
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -754,7 +754,7 @@ contains
     call aero_particle_deallocate(aero_particle)
 
   end subroutine aero_state_add_aero_dist_sample
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Choose a random particle from the aero_state.
@@ -790,7 +790,7 @@ contains
     !> Action for removal (see pmc_aero_info module for action
     !> parameters). Set to AERO_INFO_NONE to not log removal.
     integer, intent(in) :: removal_action
-    
+
     integer :: n_transfer, i_transfer, i_part
     logical :: do_add, do_remove
     real(kind=dp) :: num_conc_from, num_conc_to
@@ -845,9 +845,9 @@ contains
           i_transfer = i_transfer + 1
        end if
     end do
-    
+
   end subroutine aero_state_sample_particles
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Generates a random sample by removing particles from
@@ -899,13 +899,13 @@ contains
          sample_prob)
 
   end subroutine aero_state_sample
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Create binned number and mass arrays.
   subroutine aero_state_to_binned(bin_grid, aero_data, aero_state, &
        aero_binned)
-    
+
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
@@ -914,7 +914,7 @@ contains
     type(aero_state_t), intent(in) :: aero_state
     !> Binned distributions.
     type(aero_binned_t), intent(inout) :: aero_binned
-    
+
     integer :: i_part, i_bin
     type(aero_particle_t), pointer :: aero_particle
 
@@ -937,9 +937,9 @@ contains
                / bin_grid%widths(i_bin)
        end if
     end do
-    
+
   end subroutine aero_state_to_binned
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the IDs of all particles.
@@ -1236,7 +1236,7 @@ contains
   !> Does the same thing as aero_state_to_bin() but based on dry radius.
   subroutine aero_state_to_binned_dry(bin_grid, aero_data, aero_state, &
        aero_binned)
-    
+
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
@@ -1245,10 +1245,10 @@ contains
     type(aero_state_t), intent(in) :: aero_state
     !> Binned distributions.
     type(aero_binned_t), intent(inout) :: aero_binned
-    
+
     integer :: i_part, i_bin
     type(aero_particle_t), pointer :: aero_particle
-    
+
     aero_binned%num_conc = 0d0
     aero_binned%vol_conc = 0d0
     do i_part = 1,aero_state%apa%n_part
@@ -1269,14 +1269,14 @@ contains
                / bin_grid%widths(i_bin)
        end if
     end do
-    
+
   end subroutine aero_state_to_binned_dry
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Doubles number of particles in the given weight group.
   subroutine aero_state_double(aero_state, i_group, i_class)
-    
+
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Weight group to double.
@@ -1303,19 +1303,19 @@ contains
     call aero_weight_scale(aero_state%awa%weight(i_group, i_class), 0.5d0)
 
   end subroutine aero_state_double
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Remove approximately half of the particles in the given weight group.
   subroutine aero_state_halve(aero_state, i_group, i_class)
-    
+
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
     !> Weight group to halve.
     integer, intent(in) :: i_group
     !> Weight class to halve.
     integer, intent(in) :: i_class
-    
+
     integer :: i_part
     type(aero_info_t) :: aero_info
 
@@ -1336,7 +1336,7 @@ contains
     call aero_weight_scale(aero_state%awa%weight(i_group, i_class), 2d0)
 
   end subroutine aero_state_halve
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Double or halve the particle population in each weight group to
@@ -2001,7 +2001,7 @@ contains
     end if
 
 #ifdef PMC_USE_MPI
-    
+
     if (pmc_mpi_rank() /= 0) then
        ! send data from remote processes
        max_buffer_size = 0
@@ -2041,7 +2041,7 @@ contains
           deallocate(buffer)
 
           call aero_state_add(aero_state_total, aero_state_transfer)
-          
+
           call aero_state_deallocate(aero_state_transfer)
        end do
     end if
@@ -2138,7 +2138,7 @@ contains
   !> Write full state.
   subroutine aero_state_output_netcdf(aero_state, ncid, aero_data, &
        record_removals, record_optical)
-    
+
     !> aero_state to write.
     type(aero_state_t), intent(in) :: aero_state
     !> NetCDF file ID, in data mode.
@@ -2270,7 +2270,7 @@ contains
     !!     simulation (by emissions, dilution, etc.)
 
     call aero_weight_array_output_netcdf(aero_state%awa, ncid)
-    
+
     call aero_data_netcdf_dim_aero_species(aero_data, ncid, &
          dimid_aero_species)
     call aero_data_netcdf_dim_aero_source(aero_data, ncid, &
@@ -2489,7 +2489,7 @@ contains
 
   !> Read full state.
   subroutine aero_state_input_netcdf(aero_state, ncid, aero_data)
-    
+
     !> aero_state to read.
     type(aero_state_t), intent(inout) :: aero_state
     !> NetCDF file ID, in data mode.
@@ -2590,7 +2590,7 @@ contains
 
     call aero_state_deallocate(aero_state)
     call aero_state_allocate(aero_state)
-    
+
     call aero_weight_array_input_netcdf(aero_state%awa, ncid)
     call aero_state_set_n_part_ideal(aero_state, 0d0)
 
@@ -2697,7 +2697,7 @@ contains
     aero_state%valid_sort = .true.
 
   end subroutine aero_state_sort
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check that the sorted data is consistent.
@@ -2720,7 +2720,7 @@ contains
          continue_on_error)
 
   end subroutine aero_state_check_sort
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_aero_state

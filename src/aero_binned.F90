@@ -40,7 +40,7 @@ module pmc_aero_binned
   end type aero_binned_t
 
 contains
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate an aero_binned_t.
@@ -313,7 +313,7 @@ contains
   !> Write full state.
   subroutine aero_binned_output_netcdf(aero_binned, ncid, bin_grid, &
        aero_data)
-    
+
     !> Aero_binned to write.
     type(aero_binned_t), intent(in) :: aero_binned
     !> NetCDF file ID, in data mode.
@@ -326,7 +326,7 @@ contains
     integer :: dimid_aero_diam, dimid_aero_species
     real(kind=dp) :: mass_conc(bin_grid%n_bin, aero_data%n_spec)
     integer :: i_bin
-    
+
     !> \page output_format_aero_binned Output File Format: Aerosol Binned Sectional State
     !!
     !! The aerosol size distributions (number and mass) are stored on
@@ -373,7 +373,7 @@ contains
     !!
     !! See also:
     !!   - \ref input_format_diam_bin_grid --- the corresponding input format
-    
+
     do i_bin = 1,bin_grid%n_bin
        mass_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) * aero_data%density
     end do
@@ -405,7 +405,7 @@ contains
   !> Read full state.
   subroutine aero_binned_input_netcdf(aero_binned, ncid, bin_grid, &
        aero_data)
-    
+
     !> Aero_binned to write.
     type(aero_binned_t), intent(inout) :: aero_binned
     !> NetCDF file ID, in data mode.
@@ -433,5 +433,5 @@ contains
   end subroutine aero_binned_input_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_aero_binned

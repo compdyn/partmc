@@ -138,7 +138,7 @@ module pmc_condense
   integer, save :: condense_count_solve
 
 contains
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do condensation to all the particles for a given time interval,
@@ -159,7 +159,7 @@ contains
     type(env_state_t), intent(inout) :: env_state_final
     !> Total time to integrate.
     real(kind=dp), intent(in) :: del_t
-    
+
     integer :: i_part, n_eqn, i_eqn
     type(aero_particle_t), pointer :: aero_particle
     real(kind=dp) :: state(aero_state%apa%n_part + 1), init_time, final_time
@@ -274,15 +274,15 @@ contains
     do i_part = 1,aero_state%apa%n_part
        aero_particle => aero_state%apa%particle(i_part)
        num_conc = aero_weight_array_num_conc(aero_state%awa, aero_particle)
-       
+
        ! translate output back to particle
        aero_particle%vol(aero_data%i_water) = diam2vol(state(i_part)) &
             - aero_particle_solute_volume(aero_particle, aero_data)
-       
+
        ! ensure volumes stay positive
        aero_particle%vol(aero_data%i_water) = max(0d0, &
             aero_particle%vol(aero_data%i_water))
-       
+
        ! add up total water volume, using old number concentrations
        water_vol_conc_final = water_vol_conc_final &
             + aero_particle%vol(aero_data%i_water) * num_conc
@@ -396,7 +396,7 @@ contains
     V = 4d0 * M_w * P_0 / (rho_w * const%univ_gas_const * inputs%T)
     W = const%water_latent_heat * M_w / (const%univ_gas_const * inputs%T)
     X = 4d0 * M_w * const%water_surf_eng &
-         / (const%univ_gas_const * inputs%T * rho_w) 
+         / (const%univ_gas_const * inputs%T * rho_w)
     Y = 2d0 * k_a / (const%accom_coeff * rho_air &
          * const%air_spec_heat) &
          * sqrt(2d0 * const%pi * const%air_molec_weight &
@@ -419,18 +419,18 @@ contains
        daw_dD = 0d0
 
        delta_star = U * V * D_vp * inputs%H / k_ap
-       
+
        outputs%Ddot = k_ap * delta_star / (U * inputs%D_dry)
        outputs%Hdot_i = - 2d0 * const%pi / (V * inputs%V_comp) &
             * inputs%D_dry**2 * outputs%Ddot
-       
+
        dh_ddelta = k_ap
        dh_dD = 0d0
        dh_dH = - U * V * D_vp
 
        ddeltastar_dD = - dh_dD / dh_ddelta
        ddeltastar_dH = - dh_dH / dh_ddelta
-       
+
        outputs%dDdot_dD = 0d0
        outputs%dDdot_dH = k_ap / (U * inputs%D_dry) * ddeltastar_dH
        outputs%dHdoti_dD = - 2d0 * const%pi / (V * inputs%V_comp) &
@@ -505,7 +505,7 @@ contains
   !> Compute the condensation rates (Ddot and Hdot) at the current
   !> value of the state (D and H).
   subroutine condense_vf_f(n_eqn, time, state_p, state_dot_p) bind(c)
-    
+
     !> Length of state vector.
     integer(kind=c_int), value, intent(in) :: n_eqn
     !> Current time (s).
@@ -526,7 +526,7 @@ contains
 
     call c_f_pointer(state_p, state, (/ n_eqn /))
     call c_f_pointer(state_dot_p, state_dot, (/ n_eqn /))
-    
+
     inputs%T = condense_saved_env_state_initial%temp &
          + time * condense_saved_Tdot
     inputs%p = condense_saved_env_state_initial%pressure &
@@ -534,7 +534,7 @@ contains
     inputs%Tdot = condense_saved_Tdot
     inputs%pdot = condense_saved_pdot
     inputs%H = state(n_eqn)
-    
+
     Hdot = 0d0
     do i_part = 1,(n_eqn - 1)
        inputs%D = state(i_part)
@@ -549,12 +549,12 @@ contains
        Hdot = Hdot + outputs%Hdot_i
     end do
     Hdot = Hdot + outputs%Hdot_env
-    
+
     state_dot(n_eqn) = Hdot
-    
+
   end subroutine condense_vf_f
 #endif
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #ifdef PMC_USE_SUNDIALS
@@ -593,7 +593,7 @@ contains
     inputs%Tdot = condense_saved_Tdot
     inputs%pdot = condense_saved_pdot
     inputs%H = state(n_eqn)
-    
+
     dHdot_dH = 0d0
     do i_part = 1,(n_eqn - 1)
        inputs%D = state(i_part)
@@ -610,7 +610,7 @@ contains
        dHdot_dH = dHdot_dH + outputs%dHdoti_dH
     end do
     dHdot_dH = dHdot_dH + outputs%dHdotenv_dH
-    
+
   end subroutine condense_jac
 #endif
 
@@ -749,7 +749,7 @@ contains
 
     integer :: i_part
     real(kind=dp) :: reweight_num_conc(aero_state%apa%n_part)
- 
+
     ! We're modifying particle diameters, so bin sorting is now invalid
     aero_state%valid_sort = .false.
 
@@ -764,5 +764,5 @@ contains
   end subroutine condense_equilib_particles
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_condense

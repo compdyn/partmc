@@ -13,7 +13,7 @@
 module pmc_mpi
 
   use pmc_util
-  
+
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -1087,7 +1087,7 @@ contains
 
 #ifdef PMC_USE_MPI
     integer :: rank, ierr, status(MPI_STATUS_SIZE)
-    
+
     rank = pmc_mpi_rank()
     if (from_proc == to_proc) then
        if (rank == from_proc) then
@@ -1440,7 +1440,7 @@ contains
     n_proc = pmc_mpi_size()
     n_data = size(send, 1)
     call assert(353005542, all(shape(recv) == (/n_data, n_proc/)))
-    
+
     ! use a new send_buf to make sure the memory is contiguous
     allocate(send_buf(n_data))
     allocate(recv_buf(n_data * n_proc))
@@ -1475,7 +1475,7 @@ contains
     n_proc = pmc_mpi_size()
     n_data = size(send, 1)
     call assert(291000580, all(shape(recv) == (/n_data, n_proc/)))
-    
+
     ! use a new send_buf to make sure the memory is contiguous
     allocate(send_buf(n_data))
     allocate(recv_buf(n_data * n_proc))

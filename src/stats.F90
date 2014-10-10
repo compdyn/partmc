@@ -42,7 +42,7 @@ module pmc_stats
   end type stats_2d_t
 
 contains
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Clear data statistics collected so far.

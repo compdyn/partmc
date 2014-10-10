@@ -218,7 +218,7 @@ contains
     end do
     deallocate(species_name)
     deallocate(species_data)
-    
+
     call gas_data_set_mosaic_map(gas_data)
 
   end subroutine spec_file_read_gas_data
@@ -348,7 +348,7 @@ contains
 
   !> Write full state.
   subroutine gas_data_output_netcdf(gas_data, ncid)
-    
+
     !> Gas_data to write.
     type(gas_data_t), intent(in) :: gas_data
     !> NetCDF file ID, in data mode.
@@ -384,7 +384,7 @@ contains
 
   !> Read full state.
   subroutine gas_data_input_netcdf(gas_data, ncid)
-    
+
     !> Gas_data to read.
     type(gas_data_t), intent(inout) :: gas_data
     !> NetCDF file ID, in data mode.

@@ -47,9 +47,9 @@ module pmc_env_state
      !> Box height (m).
      real(kind=dp) :: height
   end type env_state_t
-  
+
 contains
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate an empty environment.
@@ -105,9 +105,9 @@ contains
     env_state%solar_zenith_angle = env_state%solar_zenith_angle &
          + env_state_delta%solar_zenith_angle
     env_state%height = env_state%height + env_state_delta%height
-    
+
   end subroutine env_state_add
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> env_state *= alpha
@@ -129,9 +129,9 @@ contains
     env_state%elapsed_time = env_state%elapsed_time * alpha
     env_state%solar_zenith_angle = env_state%solar_zenith_angle * alpha
     env_state%height = env_state%height * alpha
-    
+
   end subroutine env_state_scale
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> env_to = env_from
@@ -153,25 +153,25 @@ contains
     env_to%elapsed_time = env_from%elapsed_time
     env_to%solar_zenith_angle = env_from%solar_zenith_angle
     env_to%height = env_from%height
-    
+
   end subroutine env_state_copy
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Adds the given water volume to the water vapor and updates all
   !> environment quantities.
   subroutine env_state_change_water_volume(env_state, dv)
-    
+
     !> Environment state to update.
     type(env_state_t), intent(inout) :: env_state
     !> Volume concentration of water added (m^3/m^3).
     real(kind=dp), intent(in) :: dv
-    
+
     real(kind=dp) pmv     ! ambient water vapor pressure (Pa)
     real(kind=dp) mv      ! ambient water vapor density (kg m^{-3})
                    ! pmv and mv are related by the factor molec_weight/(R*T)
     real(kind=dp) dmv     ! change of water density (kg m^{-3})
-    
+
     dmv = dv * const%water_density
     pmv = env_state_sat_vapor_pressure(env_state) * env_state%rel_humid
     mv = const%water_molec_weight / (const%univ_gas_const*env_state%temp) * pmv
@@ -183,23 +183,23 @@ contains
     env_state%rel_humid = const%univ_gas_const * env_state%temp &
          / const%water_molec_weight * mv &
          / env_state_sat_vapor_pressure(env_state)
-    
+
   end subroutine env_state_change_water_volume
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Computes the current saturation vapor pressure (Pa).
   real(kind=dp) function env_state_sat_vapor_pressure(env_state)
-    
+
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
-    
+
     env_state_sat_vapor_pressure = const%water_eq_vap_press &
          * 10d0**(7.45d0 * (env_state%temp - const%water_freeze_temp) &
          / (env_state%temp - 38d0))
-    
+
   end function env_state_sat_vapor_pressure
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Air density (kg m^{-3}).
@@ -479,7 +479,7 @@ contains
 
   !> Write full state.
   subroutine env_state_output_netcdf(env_state, ncid)
-    
+
     !> Environment state to write.
     type(env_state_t), intent(in) :: env_state
     !> NetCDF file ID, in data mode.
@@ -540,7 +540,7 @@ contains
 
   !> Read full state.
   subroutine env_state_input_netcdf(env_state, ncid)
-    
+
     !> Environment state to read.
     type(env_state_t), intent(inout) :: env_state
     !> NetCDF file ID, in data mode.
@@ -562,7 +562,7 @@ contains
     call pmc_nc_read_real(ncid, env_state%height, "height")
 
   end subroutine env_state_input_netcdf
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_env_state

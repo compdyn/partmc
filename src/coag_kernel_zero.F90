@@ -20,9 +20,9 @@ module pmc_coag_kernel_zero
   use pmc_aero_dist
   use pmc_aero_data
   use pmc_aero_particle
-  
+
 contains
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Zero coagulation kernel.
@@ -39,11 +39,11 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Coagulation kernel.
     real(kind=dp), intent(out) :: k
-    
+
     k = 0d0
-    
+
   end subroutine kernel_zero
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Minimum and maximum of the zero coagulation kernel.
@@ -61,12 +61,12 @@ contains
     real(kind=dp), intent(out) :: k_min
     !> Coagulation kernel maximum value.
     real(kind=dp), intent(out) :: k_max
-    
+
     k_min = 0d0
     k_max = 0d0
-    
+
   end subroutine kernel_zero_minmax
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Exact solution with the zero coagulation kernel. Only useful for
@@ -170,5 +170,5 @@ contains
   end subroutine soln_zero
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_coag_kernel_zero

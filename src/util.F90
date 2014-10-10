@@ -29,7 +29,7 @@ module pmc_util
   integer, parameter :: PMC_MAX_FILENAME_LEN = 300
 
 contains
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Prints a warning message.
@@ -232,11 +232,11 @@ contains
 
     !> Volume (m^3).
     real(kind=dp), intent(in) :: v
-    
+
     vol2rad = (v / (4d0 / 3d0 * const%pi))**(1d0/3d0)
-    
+
   end function vol2rad
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert volume (m^3) to diameter (m).
@@ -244,11 +244,11 @@ contains
 
     !> Volume (m^3).
     real(kind=dp), intent(in) :: v
-    
+
     vol2diam = 2d0 * (v / (4d0 / 3d0 * const%pi))**(1d0/3d0)
-    
+
   end function vol2diam
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert radius (m) to diameter (m).
@@ -256,11 +256,11 @@ contains
 
     !> Radius (m).
     real(kind=dp), intent(in) :: r
-    
+
     rad2diam = 2d0 * r
-    
+
   end function rad2diam
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert radius (m) to volume (m^3).
@@ -268,11 +268,11 @@ contains
 
     !> Radius (m).
     real(kind=dp), intent(in) :: r
-    
+
     rad2vol = 4d0 / 3d0 * const%pi * r**3d0
-    
+
   end function rad2vol
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert diameter (m) to radius (m).
@@ -280,11 +280,11 @@ contains
 
     !> Diameter (m).
     real(kind=dp), intent(in) :: d
-    
+
     diam2rad = d / 2d0
-    
+
   end function diam2rad
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert diameter (m) to volume (m^3).
@@ -292,25 +292,25 @@ contains
 
     !> Diameter (m).
     real(kind=dp), intent(in) :: d
-    
+
     diam2vol = 4d0 / 3d0 * const%pi * (d / 2d0)**3d0
-    
+
   end function diam2vol
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Tests whether two real numbers are almost equal using only a
   !> relative tolerance.
   logical function almost_equal(d1, d2)
-    
+
     !> First number to compare.
     real(kind=dp), intent(in) :: d1
     !> Second number to compare.
     real(kind=dp), intent(in) :: d2
-    
+
     !> Relative tolerance.
     real(kind=dp), parameter :: eps = 1d-8
-    
+
     ! handle the 0.0 case
     if (d1 .eq. d2) then
        almost_equal = .true.
@@ -321,25 +321,25 @@ contains
           almost_equal = .false.
        end if
     end if
-    
+
   end function almost_equal
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Tests whether two real numbers are almost equal using an
   !> absolute and relative tolerance.
   logical function almost_equal_abs(d1, d2, abs_tol)
-    
+
     !> First number to compare.
     real(kind=dp), intent(in) :: d1
     !> Second number to compare.
     real(kind=dp), intent(in) :: d2
     !> Tolerance for when d1 equals d2.
     real(kind=dp), intent(in) :: abs_tol
-    
+
     !> Relative tolerance.
     real(kind=dp), parameter :: eps = 1d-8
-    
+
     ! handle the 0.0 case
     if (d1 .eq. d2) then
        almost_equal_abs = .true.
@@ -351,9 +351,9 @@ contains
           almost_equal_abs = .false.
        end if
     end if
-    
+
   end function almost_equal_abs
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check that the first time interval is close to an integer
@@ -391,7 +391,7 @@ contains
   !! timestep is used to guess whether to do the event.
   subroutine check_event(time, timestep, interval, last_time, &
        do_event)
-    
+
     !> Current time.
     real(kind=dp), intent(in) :: time
     !> Estimate of the time to the next call.
@@ -402,12 +402,12 @@ contains
     real(kind=dp), intent(inout) :: last_time
     !> Whether the event should be done.
     logical, intent(out) :: do_event
-    
+
     !> Fuzz for event occurance.
     real(kind=dp), parameter :: tolerance = 1d-6
-    
+
     real(kind=dp) closest_interval_time
-    
+
     ! if we are at time 0 then do the event unconditionally
     if (time .eq. 0d0) then
        do_event = .true.
@@ -433,13 +433,13 @@ contains
           end if
        end if
     end if
-    
+
     if (do_event) then
        last_time = time
     end if
-    
+
   end subroutine check_event
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Makes a linearly spaced array from min to max.
@@ -465,7 +465,7 @@ contains
        x(1) = min_x
        x(n) = max_x
     end if
-    
+
   end subroutine linspace
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -526,7 +526,7 @@ contains
          * real(n - 1, kind=dp)) + 1
     linspace_find = min(linspace_find, n)
     linspace_find = max(linspace_find, 0)
-    
+
   end function linspace_find
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -553,7 +553,7 @@ contains
     real(kind=dp), intent(in) :: x
 
     logspace_find = linspace_find(log(min_x), log(max_x), n, log(x))
-    
+
   end function logspace_find
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -659,7 +659,7 @@ contains
 
     !> String to convert.
     character(len=*), intent(in) :: string
-    
+
     integer :: val
     integer :: ios
     character(len=len(string)+300) :: error_msg
@@ -682,7 +682,7 @@ contains
 
     !> String to convert.
     character(len=*), intent(in) :: string
-    
+
     real(kind=dp) :: val
     integer :: ios
     character(len=len(string)+300) :: error_msg
@@ -704,7 +704,7 @@ contains
 
     !> String to convert.
     character(len=*), intent(in) :: string
-    
+
     logical :: val
     integer :: ios
     character(len=len(string)+300) :: error_msg
@@ -740,7 +740,7 @@ contains
     integer, intent(in) :: val
 
     character(len=PMC_UTIL_CONVERT_STRING_LEN) :: ret_val
-    
+
     ret_val = ""
     write(ret_val, '(i30)') val
     integer_to_string = adjustl(ret_val)
@@ -756,7 +756,7 @@ contains
     real(kind=dp), intent(in) :: val
 
     character(len=PMC_UTIL_CONVERT_STRING_LEN) :: ret_val
-    
+
     ret_val = ""
     write(ret_val, '(g30.20)') val
     real_to_string = adjustl(ret_val)
@@ -772,7 +772,7 @@ contains
     logical, intent(in) :: val
 
     character(len=PMC_UTIL_CONVERT_STRING_LEN) :: ret_val
-    
+
     ret_val = ""
     if (val) then
        ret_val = "TRUE"
@@ -922,7 +922,7 @@ contains
   !! Use n_samp samples. Returns discrete vector whose relative entry
   !! sizes are \f$ \ell_1 \f$ closest to the continuous vector.
   subroutine vec_cts_to_disc(n, vec_cts, n_samp, vec_disc)
-    
+
     !> Number of entries in vectors.
     integer, intent(in) :: n
     !> Continuous vector.
@@ -931,62 +931,62 @@ contains
     integer, intent(in) :: n_samp
     !> Discretized vector.
     integer, intent(out) :: vec_disc(n)
-    
+
     integer :: k(1)
     real(kind=dp) :: vec_tot
-    
+
     vec_tot = sum(vec_cts)
-    
+
     ! assign a best guess for each bin independently
     vec_disc = nint(vec_cts / vec_tot * real(n_samp, kind=dp))
-    
+
     ! if we have too few particles then add more
     do while (sum(vec_disc) < n_samp)
        k = minloc(abs(real(vec_disc + 1, kind=dp) - vec_cts) &
             - abs(real(vec_disc, kind=dp) - vec_cts))
        vec_disc(k) = vec_disc(k) + 1
     end do
-    
+
     ! if we have too many particles then remove some
     do while (sum(vec_disc) > n_samp)
        k = minloc(abs(real(vec_disc - 1, kind=dp) - vec_cts) &
             - abs(real(vec_disc, kind=dp) - vec_cts))
        vec_disc(k) = vec_disc(k) - 1
     end do
-    
+
     call assert_msg(323412496, sum(vec_disc) == n_samp, &
          'generated incorrect number of samples')
-    
+
   end subroutine vec_cts_to_disc
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Computes the average of an array of integer numbers.
   subroutine average_integer(int_vec, int_avg)
-    
+
     !> Array of integer numbers.
     integer, intent(in) :: int_vec(:)
     !> Average of int_vec.
     integer, intent(out) :: int_avg
-    
+
     int_avg = sum(int_vec) / size(int_vec)
-    
+
   end subroutine average_integer
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Computes the average of an array of real numbers.
   subroutine average_real(real_vec, real_avg)
-    
+
     !> Array of real numbers.
     real(kind=dp), intent(in) :: real_vec(:)
     !> Average of real_vec.
     real(kind=dp), intent(out) :: real_avg
-    
+
     real_avg = sum(real_vec) / real(size(real_vec), kind=dp)
-    
+
   end subroutine average_real
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate or reallocate the given array to ensure it is of the
@@ -1211,7 +1211,7 @@ contains
     write(date_time, '(14a)') date(1:4), "-", date(5:6), "-", &
          date(7:8), "T", time(1:2), ":", time(3:4), ":", &
          time(5:10), zone(1:3), ":", zone(4:5)
-    
+
   end subroutine iso8601_date_and_time
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1237,9 +1237,9 @@ contains
     rad2deg = rad / const%pi * 180d0
 
   end function rad2deg
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 #ifdef DEFINE_LOCAL_COMMAND_ARGUMENT
   !> Hack for compilers that don't support the Fortran2003 standard
   !> command_argument_count() function.
@@ -1263,7 +1263,7 @@ contains
 
   end subroutine get_command_argument
 #endif
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Sort the given data array and return the permutation defining the sort.
@@ -1277,7 +1277,7 @@ contains
     integer, intent(inout) :: data(:)
     !> Permutation defining the sort: <tt>new_data(i) = data(perm(i))</tt>.
     integer, intent(out) :: perm(size(data))
-    
+
 #ifdef PMC_USE_C_SORT
     integer(kind=c_int) :: n_c
     integer(kind=c_int), target :: data_c(size(data))
@@ -1391,7 +1391,7 @@ contains
     deallocate(data)
     allocate(data(rows, cols))
     data(1:data_rows, 1:data_cols) = tmp_data(1:data_rows, 1:data_cols)
-   
+
   end subroutine reallocate_real_array2d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1456,7 +1456,7 @@ contains
 110 eol = .true. ! goto here if end-of-record, meaning end-of-line
 
 120 return
-    
+
   end subroutine read_char_raw
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1488,7 +1488,7 @@ contains
        call read_char_raw(unit, char, eol, eof)
     end do
     if (eol .or. eof) return
-    
+
     ! char is now the first word character
     i = 1
     word(i:i) = char

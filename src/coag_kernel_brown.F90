@@ -2,7 +2,7 @@
 ! Copyright (C) 2007 Richard Easter
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
-    
+
 !> \file
 !> The pmc_coag_kernel_brown module.
 
@@ -13,7 +13,7 @@ module pmc_coag_kernel_brown
   use pmc_constants
   use pmc_util
   use pmc_aero_particle
-  
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -75,7 +75,7 @@ contains
     real(kind=dp) :: d1, d2, d_min, d_max, k
     integer :: i, j
     logical :: first
-    
+
     d_min = minval(aero_data%density)
     d_max = maxval(aero_data%density)
 
@@ -147,9 +147,9 @@ contains
     avogad = const%avagadro
     mwair = const%air_molec_weight * 1d3 ! kg/mole to g/mole
     rgas = const%univ_gas_const * 1d-2 ! J/mole/K to atmos/(mol/liter)/K
-    
+
     rhoair = 0.001d0 * ((press/1.01325d5)*mwair/(rgas*tk))
-    
+
     viscosd = (1.8325d-04*(296.16d0+120d0)/(tk+120d0)) * (tk/296.16d0)**1.5d0
     viscosk = viscosd/rhoair
     gasspeed = sqrt(8d0*boltz*tk*avogad/(const%pi*mwair))
@@ -168,8 +168,8 @@ contains
     den_i     = d1 * 1.0d-3   ! particle wet density (g/cm3)
     vol_i     = v1 * 1.0d+6   ! particle wet volume (cm3)
     rad_i     = vol2rad(vol_i)       ! particle wet radius (cm)
-    
-    knud      = gasfreepath/rad_i  
+
+    knud      = gasfreepath/rad_i
     cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
     diffus_i  = boltz*tk*cunning/(6d0*const%pi*rad_i*viscosd)
     speedsq_i = 8d0*boltz*tk/(const%pi*den_i*vol_i)
@@ -177,12 +177,12 @@ contains
     tmp1      = (2d0*rad_i + freepath)**3
     tmp2      = (4d0*rad_i*rad_i + freepath*freepath)**1.5d0
     deltasq_i = ( (tmp1-tmp2)/(6d0*rad_i*freepath) - 2d0*rad_i )**2
-    
+
     den_j     = d2 * 1.0d-3
     vol_j     = v2 * 1.0d+6
     rad_j     = vol2rad(vol_j)
-    
-    knud      = gasfreepath/rad_j  
+
+    knud      = gasfreepath/rad_j
     cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
     diffus_j  = boltz*tk*cunning/(6d0*const%pi*rad_j*viscosd)
     speedsq_j = 8d0*boltz*tk/(const%pi*den_j*vol_j)
@@ -190,17 +190,17 @@ contains
     tmp1      = (2d0*rad_j + freepath)**3
     tmp2      = (4d0*rad_j*rad_j + freepath*freepath)**1.5d0
     deltasq_j = ( (tmp1-tmp2)/(6d0*rad_j*freepath) - 2d0*rad_j )**2
-    
+
     rad_sum    = rad_i + rad_j
-    diffus_sum = diffus_i + diffus_j 
+    diffus_sum = diffus_i + diffus_j
     tmp1       = rad_sum/(rad_sum + sqrt(deltasq_i + deltasq_j))
     tmp2       = 4d0*diffus_sum/(rad_sum*sqrt(speedsq_i + speedsq_j))
     bckernel1  = 4d0*const%pi*rad_sum*diffus_sum/(tmp1 + tmp2)
-    
+
     bckernel   = bckernel1 * 1.0d-6
-    
+
   end subroutine kernel_brown_helper
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_coag_kernel_brown

@@ -76,7 +76,7 @@ contains
 
     !> Aero mode type.
     integer, intent(in) :: type
-   
+
     if (type == AERO_MODE_TYPE_INVALID) then
        aero_mode_type_to_string = "invalid"
     elseif (type == AERO_MODE_TYPE_LOG_NORMAL) then
@@ -207,30 +207,30 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Number concentration (#(ln(r))d(ln(r))).
     real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
-    
+
     integer :: k
-    
+
     do k = 1,bin_grid%n_bin
        num_conc(k) = total_num_conc / (sqrt(2d0 * const%pi) &
             * log10_sigma_g) * dexp(-(dlog10(bin_grid%centers(k)) &
             - dlog10(geom_mean_radius))**2d0 &
             / (2d0 * log10_sigma_g**2d0)) / dlog(10d0)
     end do
-    
+
     ! The formula above was originally for a distribution in
     ! log_10(r), while we are using log_e(r) for our bin grid. The
     ! division by dlog(10) at the end corrects for this.
 
     ! Remember that log_e(r) = log_10(r) * log_e(10).
-    
+
   end subroutine num_conc_log_normal
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute a log-normal distribution in volume.
   subroutine vol_conc_log_normal(total_num_conc, geom_mean_radius, &
        log10_sigma_g, bin_grid, vol_conc)
-    
+
     !> Total number concentration of the mode (m^{-3}).
     real(kind=dp), intent(in) :: total_num_conc
     !> Geometric mean radius (m).
@@ -241,15 +241,15 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume concentration (V(ln(r))d(ln(r))).
     real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
-    
+
     real(kind=dp) :: num_conc(bin_grid%n_bin)
 
     call num_conc_log_normal(total_num_conc, geom_mean_radius, &
          log10_sigma_g, bin_grid, num_conc)
     vol_conc = num_conc * rad2vol(bin_grid%centers)
-    
+
   end subroutine vol_conc_log_normal
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Exponential distribution in volume.
@@ -258,7 +258,7 @@ contains
   !! Normalized so that sum(num_conc(k) * log_width) = 1
   subroutine num_conc_exp(total_num_conc, radius_at_mean_vol, bin_grid, &
        num_conc)
-    
+
     !> Total number concentration of the mode (m^{-3}).
     real(kind=dp), intent(in) :: total_num_conc
     !> Radius at mean volume (m).
@@ -267,25 +267,25 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Number concentration (#(ln(r))d(ln(r))).
     real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
-    
+
     integer :: k
     real(kind=dp) :: mean_vol, num_conc_vol
-    
+
     mean_vol = rad2vol(radius_at_mean_vol)
     do k = 1,bin_grid%n_bin
        num_conc_vol = total_num_conc / mean_vol &
             * exp(-(rad2vol(bin_grid%centers(k)) / mean_vol))
        call vol_to_lnr(bin_grid%centers(k), num_conc_vol, num_conc(k))
     end do
-    
+
   end subroutine num_conc_exp
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Exponential distribution in volume.
   subroutine vol_conc_exp(total_num_conc, radius_at_mean_vol, bin_grid, &
        vol_conc)
-    
+
     !> Total number concentration of the mode (m^{-3}).
     real(kind=dp), intent(in) :: total_num_conc
     !> Radius at mean volume (m).
@@ -294,20 +294,20 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume concentration (V(ln(r))d(ln(r))).
     real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
-    
+
     real(kind=dp) :: num_conc(bin_grid%n_bin)
 
     call num_conc_exp(total_num_conc, radius_at_mean_vol, bin_grid, num_conc)
     vol_conc = num_conc * rad2vol(bin_grid%centers)
-    
+
   end subroutine vol_conc_exp
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Mono-disperse distribution.
   !> Normalized so that sum(num_conc(k) * log_width) = 1
   subroutine num_conc_mono(total_num_conc, radius, bin_grid, num_conc)
-    
+
     !> Total number concentration of the mode (m^{-3}).
     real(kind=dp), intent(in) :: total_num_conc
     !> Radius of each particle (m^3).
@@ -316,7 +316,7 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Number concentration (#(ln(r))d(ln(r))).
     real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
-    
+
     integer :: k
 
     num_conc = 0d0
@@ -326,14 +326,14 @@ contains
     else
        num_conc(k) = total_num_conc / bin_grid%widths(k)
     end if
-    
+
   end subroutine num_conc_mono
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Mono-disperse distribution in volume.
   subroutine vol_conc_mono(total_num_conc, radius, bin_grid, vol_conc)
-    
+
     !> Total number concentration of the mode (m^{-3}).
     real(kind=dp), intent(in) :: total_num_conc
     !> Radius of each particle (m^3).
@@ -342,7 +342,7 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume concentration (V(ln(r))d(ln(r))).
     real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
-    
+
     integer :: k
 
     vol_conc = 0d0
@@ -353,15 +353,15 @@ contains
        vol_conc(k) = total_num_conc / bin_grid%widths(k) &
             * rad2vol(radius)
     end if
-    
+
   end subroutine vol_conc_mono
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Sampled distribution, not normalized.
   subroutine num_conc_sampled(sample_radius, sample_num_conc, bin_grid, &
        num_conc)
-    
+
     !> Sampled radius bin edges (m).
     real(kind=dp), intent(in) :: sample_radius(:)
     !> Sampled number concentrations (m^{-3}).
@@ -374,7 +374,7 @@ contains
     integer :: i_sample, n_sample, i_lower, i_upper, i_bin
     real(kind=dp) :: r_lower, r_upper
     real(kind=dp) :: r_bin_lower, r_bin_upper, r1, r2, ratio
-    
+
     n_sample = size(sample_num_conc)
     call assert(188766208, size(sample_radius) == n_sample + 1)
     call assert(295384037, n_sample >= 1)
@@ -399,15 +399,15 @@ contains
                * sample_num_conc(i_sample) / bin_grid%widths(i_bin)
        end do
     end do
-    
+
   end subroutine num_conc_sampled
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Sampled distribution in volume.
   subroutine vol_conc_sampled(sample_radius, sample_num_conc, bin_grid, &
        vol_conc)
-    
+
     !> Sampled radius bin edges (m).
     real(kind=dp), intent(in) :: sample_radius(:)
     !> Sampled number concentrations (m^{-3}).
@@ -416,14 +416,14 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume concentration (V(ln(r))d(ln(r))).
     real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
-    
+
     real(kind=dp) :: num_conc(bin_grid%n_bin)
 
     call num_conc_sampled(sample_radius, sample_num_conc, bin_grid, num_conc)
     vol_conc = num_conc * rad2vol(bin_grid%centers)
-    
+
   end subroutine vol_conc_sampled
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Return the binned number concentration for an aero_mode.
@@ -786,7 +786,7 @@ contains
     ! convert mass fractions to volume fractions
     vol_frac = vol_frac / aero_data%density
     vol_frac_std = vol_frac_std / aero_data%density
-    
+
     ! normalize
     tot_vol_frac = sum(vol_frac)
     if ((minval(vol_frac) < 0d0) .or. (tot_vol_frac <= 0d0)) then
@@ -867,7 +867,7 @@ contains
             sample_radius(i_sample) < sample_radius(i_sample + 1), &
             'diam values must be strictly increasing')
     end do
-    
+
     call spec_file_read_real_named_array(file, 1, names, data)
     call spec_file_check_name(file, 'num_conc', names(1))
 

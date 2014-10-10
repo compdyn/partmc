@@ -59,7 +59,7 @@ module pmc_coagulation_dist
      !> Whether this request is currently active
      logical :: active
   end type request_t
-  
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -79,7 +79,7 @@ contains
 
   !> Deallocate a request object and set it to be invalid.
   subroutine request_deallocate(request)
-   
+
     !> Request object to deallocate
     type(request_t), intent(inout) :: request
 
@@ -124,7 +124,7 @@ contains
     integer, parameter :: s1 = 1
     integer, parameter :: s2 = 1
     integer, parameter :: sc = 1
-    
+
 #ifdef PMC_USE_MPI
     logical :: samps_remaining, sent_dones
     integer :: i_bin, j_bin, n_samp, i_samp, i_proc, n_proc
@@ -143,7 +143,7 @@ contains
     call assert_msg(667898741, &
          aero_sorted_n_class(aero_state%aero_sorted) == 1, &
          "FIXME: mc_coag_dist() can only handle one weight class")
-    
+
     n_proc = pmc_mpi_size()
 
     call pmc_mpi_barrier()
@@ -293,7 +293,7 @@ contains
             'unknown tag: ' // trim(integer_to_string(status(MPI_TAG))))
     end if
 #endif
-    
+
   end subroutine coag_dist_recv
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -319,7 +319,7 @@ contains
     integer, parameter :: s1 = 1
     integer, parameter :: s2 = 1
     integer, parameter :: sc = 1
-    
+
     integer :: i_req
 
     if (.not. samps_remaining) return
@@ -357,7 +357,7 @@ contains
 
     !> Array of outstanding requests.
     type(request_t), intent(inout) :: requests(COAG_DIST_MAX_REQUESTS)
-    
+
     integer :: i_req
 
     do i_req = 1,COAG_DIST_MAX_REQUESTS
@@ -367,7 +367,7 @@ contains
        end if
     end do
     any_requests_active = .false.
-    
+
   end function any_requests_active
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -416,7 +416,7 @@ contains
        end if
        if (local_bin > n_bin) exit
     end do
-    
+
     if (local_bin > n_bin) then
        samps_remaining = .false.
     else
@@ -462,7 +462,7 @@ contains
     integer, parameter :: s1 = 1
     integer, parameter :: s2 = 1
     integer, parameter :: sc = 1
-    
+
 #ifdef PMC_USE_MPI
     integer :: buffer_size, position, request_bin, sent_proc
     integer :: ierr, remote_proc, status(MPI_STATUS_SIZE)
@@ -645,7 +645,7 @@ contains
     integer, parameter :: s1 = 1
     integer, parameter :: s2 = 1
     integer, parameter :: sc = 1
-    
+
 #ifdef PMC_USE_MPI
     logical :: found_request, remove_1, remove_2
     integer :: buffer_size, position, sent_bin, sent_proc, i_req
@@ -683,7 +683,7 @@ contains
        end if
     end do
     call assert(579308475, found_request)
-    
+
     ! maybe do coagulation
     call num_conc_weighted_kernel(coag_kernel_type, &
          requests(i_req)%local_aero_particle, sent_aero_particle, &
@@ -815,7 +815,7 @@ contains
 
     !> Which processes are finished with coagulation.
     logical, intent(inout) :: procs_done(:)
-    
+
 #ifdef PMC_USE_MPI
     integer :: buffer_size, sent_proc, ierr
     character :: buffer(COAG_DIST_MAX_BUFFER_SIZE)
@@ -844,7 +844,7 @@ contains
   !> generate the number of samples to do per bin pair.
   subroutine generate_n_samps(n_parts, del_t, bin_grid, aero_weight_array, &
        k_max, n_samps, accept_factors)
-    
+
     !> Number of particles per bin on all processes.
     integer, intent(in) :: n_parts(:,:)
     !> Timestep.
@@ -907,7 +907,7 @@ contains
     integer, parameter :: s1 = 1
     integer, parameter :: s2 = 1
     integer, parameter :: sc = 1
-    
+
     type(aero_particle_t) :: aero_particle_new
     integer :: new_proc, new_group
     type(aero_info_t) :: aero_info_1, aero_info_2
@@ -947,5 +947,5 @@ contains
   end subroutine coagulate_dist
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_coagulation_dist

@@ -36,7 +36,7 @@ contains
     allocate(integer_varray%entry(0))
 
   end subroutine integer_varray_allocate
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates a structure with the given size.
@@ -52,7 +52,7 @@ contains
     integer_varray%entry = 0
 
   end subroutine integer_varray_allocate_size
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Deallocates a previously allocated structure.
@@ -60,11 +60,11 @@ contains
 
     !> Structure to deallocate.
     type(integer_varray_t), intent(inout) :: integer_varray
-    
+
     deallocate(integer_varray%entry)
 
   end subroutine integer_varray_deallocate
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Changes the given integer_varray to exactly the given new_length.
@@ -86,7 +86,7 @@ contains
     deallocate(integer_varray%entry)
     allocate(integer_varray%entry(new_length))
     integer_varray%entry(1:integer_varray%n_entry) = temp_array
-    
+
   end subroutine integer_varray_reallocate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -101,7 +101,7 @@ contains
     integer_varray%n_entry = 0
 
   end subroutine integer_varray_zero
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Copies an integer_varray.
@@ -111,7 +111,7 @@ contains
     type(integer_varray_t), intent(in) :: integer_varray_from
     !> Structure to copy to.
     type(integer_varray_t), intent(inout) :: integer_varray_to
-    
+
     call integer_varray_deallocate(integer_varray_to)
     call integer_varray_allocate_size(integer_varray_to, &
          integer_varray_from%n_entry)
@@ -119,7 +119,7 @@ contains
          = integer_varray_from%entry(1:integer_varray_from%n_entry)
 
   end subroutine integer_varray_copy
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Enlarges the given integer_varray by at least one element.
@@ -135,7 +135,7 @@ contains
     length = size(integer_varray%entry)
     new_length = max(length * 2, length + 1)
     call integer_varray_reallocate(integer_varray, new_length)
-    
+
   end subroutine integer_varray_enlarge
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -291,5 +291,5 @@ contains
   end subroutine pmc_mpi_unpack_integer_varray
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_integer_varray

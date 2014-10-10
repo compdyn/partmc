@@ -56,7 +56,7 @@ contains
     allocate(aero_info_array%aero_info(0))
 
   end subroutine aero_info_array_allocate
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates with the given size.
@@ -76,7 +76,7 @@ contains
     end do
 
   end subroutine aero_info_array_allocate_size
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Deallocates.
@@ -86,14 +86,14 @@ contains
     type(aero_info_array_t), intent(inout) :: aero_info_array
 
     integer :: i
-    
+
     do i = 1,aero_info_array%n_item
        call aero_info_deallocate(aero_info_array%aero_info(i))
     end do
     deallocate(aero_info_array%aero_info)
 
   end subroutine aero_info_array_deallocate
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Copies aero_info_array_from to aero_info_array_to, both
@@ -107,7 +107,7 @@ contains
     type(aero_info_array_t), intent(inout) :: aero_info_array_to
 
     integer :: i
-    
+
     call aero_info_array_deallocate(aero_info_array_to)
     call aero_info_array_allocate_size(aero_info_array_to, &
          aero_info_array_from%n_item)
@@ -117,7 +117,7 @@ contains
     end do
 
   end subroutine aero_info_array_copy
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Resets an aero_info_array to contain zero particles.
@@ -131,7 +131,7 @@ contains
     aero_info_array%n_item = 0
 
   end subroutine aero_info_array_zero
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Changes the given aero_info_array to exactly the given
@@ -160,7 +160,7 @@ contains
     end do
     deallocate(aero_info_array%aero_info)
     aero_info_array%aero_info => new_particles
-    
+
   end subroutine aero_info_array_realloc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -178,7 +178,7 @@ contains
     length = size(aero_info_array%aero_info)
     new_length = max(length * 2, length + 1)
     call aero_info_array_realloc(aero_info_array, new_length)
-    
+
   end subroutine aero_info_array_enlarge
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -369,5 +369,5 @@ contains
   end subroutine pmc_mpi_unpack_aero_info_array
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_aero_info_array

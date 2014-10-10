@@ -35,7 +35,7 @@ module pmc_coag_kernel
   integer, parameter :: COAG_KERNEL_TYPE_BROWN    = 4
   !> Type code for a zero kernel.
   integer, parameter :: COAG_KERNEL_TYPE_ZERO     = 5
-  
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -46,7 +46,7 @@ contains
 
     !> Coagulation kernel type.
     integer, intent(in) :: coag_kernel_type
-   
+
     if (coag_kernel_type == COAG_KERNEL_TYPE_INVALID) then
        coag_kernel_type_to_string = "invalid"
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_SEDI) then
@@ -191,7 +191,7 @@ contains
   !> kernel is only a function of the particle volumes.
   subroutine bin_kernel(n_bin, bin_r, aero_data, coag_kernel_type, &
        env_state, k)
-    
+
     !> Number of bins.
     integer, intent(in) :: n_bin
     !> Radii of particles in bins (m).
@@ -207,7 +207,7 @@ contains
 
     integer :: i, j
     type(aero_particle_t) :: aero_particle_1, aero_particle_2
-    
+
     call aero_particle_allocate_size(aero_particle_1, aero_data%n_spec, &
          aero_data%n_source)
     call aero_particle_allocate_size(aero_particle_2, aero_data%n_spec, &
@@ -222,9 +222,9 @@ contains
     end do
     call aero_particle_deallocate(aero_particle_1)
     call aero_particle_deallocate(aero_particle_2)
-    
+
   end subroutine bin_kernel
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Estimate an array of minimum and maximum kernel values. Given
@@ -245,25 +245,25 @@ contains
     real(kind=dp), intent(out) :: k_min(bin_grid%n_bin,bin_grid%n_bin)
     !> Maximum kernel vals.
     real(kind=dp), intent(out) :: k_max(bin_grid%n_bin,bin_grid%n_bin)
-    
+
     integer i, j
-    
+
     do i = 1,bin_grid%n_bin
        do j = 1,bin_grid%n_bin
           call est_k_minmax_for_bin_unweighted(bin_grid, coag_kernel_type, &
                i, j, aero_data, env_state, k_min(i,j), k_max(i,j))
        end do
     end do
-    
+
   end subroutine est_k_minmax_binned_unweighted
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Samples within bins b1 and b2 to find the minimum and maximum
   !> value of the kernel between particles from the two bins.
   subroutine est_k_minmax_for_bin_unweighted(bin_grid, coag_kernel_type, &
        b1, b2, aero_data, env_state, k_min, k_max)
-   
+
     !> Bin_grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Coagulation kernel type.
@@ -280,24 +280,24 @@ contains
     real(kind=dp), intent(out) :: k_min
     !> Maximum kernel value.
     real(kind=dp), intent(out) :: k_max
-    
+
     !> Number of sample points per bin.
     integer, parameter :: n_sample = 3
     !> Over-estimation scale factor parameter.
     real(kind=dp), parameter :: over_scale = 2d0
-    
+
     real(kind=dp) :: v1, v2, v1_high, v1_low, v2_high, v2_low
     real(kind=dp) :: new_k_min, new_k_max
     integer :: i, j
-    
+
     ! v1_low < bin_v(b1) < v1_high
     v1_low = rad2vol(bin_grid%edges(b1))
     v1_high = rad2vol(bin_grid%edges(b1 + 1))
-    
+
     ! v2_low < bin_v(b2) < v2_high
     v2_low = rad2vol(bin_grid%edges(b2))
     v2_high = rad2vol(bin_grid%edges(b2 + 1))
-    
+
     do i = 1,n_sample
        do j = 1,n_sample
           v1 = interp_linear_disc(v1_low, v1_high, n_sample, i)
@@ -313,11 +313,11 @@ contains
           end if
        end do
     end do
-    
+
     k_max = k_max * over_scale
-    
+
   end subroutine est_k_minmax_for_bin_unweighted
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Coagulation scale factor due to number concentrations.

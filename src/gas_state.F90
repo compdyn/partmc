@@ -368,7 +368,7 @@ contains
     !! Here there are no emissions of \f$\rm H_2SO_4\f$, while \f$\rm
     !! SO_2\f$ starts out being emitted at \f$4\times
     !! 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}\f$ at the start of the simulation,
-    !! before falling to a rate of \f$2.8\times 
+    !! before falling to a rate of \f$2.8\times
     !! 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}\f$ at 10&nbsp;min (note the scaling
     !! of 0.5), and then rising again to \f$5\times
     !! 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}\f$ after 30&nbsp;min. Between
@@ -558,7 +558,7 @@ contains
 
   !> Write full state.
   subroutine gas_state_output_netcdf(gas_state, ncid, gas_data)
-    
+
     !> Gas state to write.
     type(gas_state_t), intent(in) :: gas_state
     !> NetCDF file ID, in data mode.
@@ -595,7 +595,7 @@ contains
 
   !> Read full state.
   subroutine gas_state_input_netcdf(gas_state, ncid, gas_data)
-    
+
     !> Gas state to read.
     type(gas_state_t), intent(inout) :: gas_state
     !> NetCDF file ID, in data mode.

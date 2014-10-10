@@ -48,7 +48,7 @@ static int condense_check_flag(void *flagvalue, char *funcname, int opt);
 static int condense_solver_Init(CVodeMem cv_mem);
 
 static int condense_solver_Setup(CVodeMem cv_mem, int convfail, N_Vector ypred,
-				 N_Vector fpred, booleantype *jcurPtr, 
+				 N_Vector fpred, booleantype *jcurPtr,
 				 N_Vector vtemp1, N_Vector vtemp2, N_Vector vtemp3);
 
 static int condense_solver_Solve(CVodeMem cv_mem, N_Vector b, N_Vector weight,
@@ -87,17 +87,17 @@ int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
 	if (condense_check_flag((void *)y, "N_VNew_Serial", 0))
                 return PMC_CONDENSE_SOLVER_INIT_Y;
 
-	abstol = N_VNew_Serial(neq); 
+	abstol = N_VNew_Serial(neq);
 	if (condense_check_flag((void *)abstol, "N_VNew_Serial", 0))
                 return PMC_CONDENSE_SOLVER_INIT_ABSTOL;
-	
+
 	y_data = NV_DATA_S(y);
 	abstol_data = NV_DATA_S(abstol);
 	for (i = 0; i < neq; i++) {
 		y_data[i] = x_f[i];
 		abstol_data[i] = abstol_f[i];
 	}
-	
+
 	reltol = reltol_f;
 	t_initial = t_initial_f;
 	t_final = t_final_f;
@@ -128,10 +128,10 @@ int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
 	// iterative solver
 	//pretype = PREC_LEFT;
 	//maxl = 0;
-	//flag = CVSptfqmr(cvode_mem, pretype, maxl); 
+	//flag = CVSptfqmr(cvode_mem, pretype, maxl);
 	//if (condense_check_flag(&flag, "CVSptfqmr", 1)) return(1);
 
-	//flag = CVSpilsSetJacTimesVecFn(cvode_mem, condense_jtimes); 
+	//flag = CVSpilsSetJacTimesVecFn(cvode_mem, condense_jtimes);
 	//if (condense_check_flag(&flag, "CVSpilsSetJacTimesVecFn", 1)) return(1);
 
 	//flag = CVSpilsSetPreconditioner(cvode_mem, NULL, condense_prec);
@@ -190,7 +190,7 @@ static int condense_vf(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 	for (i = 0; i < neq; i++) {
 		ydot_data[i] = ydot_f[i];
 	}
-	
+
 	free(y_f);
 	free(ydot_f);
 	return(0);
@@ -266,7 +266,7 @@ static int condense_solver_Init(CVodeMem cv_mem)
  * \return A result code (0 is success).
  */
 static int condense_solver_Setup(CVodeMem cv_mem, int convfail, N_Vector ypred,
-				 N_Vector fpred, booleantype *jcurPtr, 
+				 N_Vector fpred, booleantype *jcurPtr,
 				 N_Vector vtemp1, N_Vector vtemp2, N_Vector vtemp3)
 {
 	return(0);
@@ -314,7 +314,7 @@ static int condense_solver_Solve(CVodeMem cv_mem, N_Vector b, N_Vector weight,
 	for (i = 0; i < neq; i++) {
 		b_data[i] = b_f[i];
 	}
-	
+
 	free(b_f);
 	free(ycur_f);
 	free(fcur_f);

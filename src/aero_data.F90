@@ -600,7 +600,7 @@ contains
 
   !> Write full state.
   subroutine aero_data_output_netcdf(aero_data, ncid)
-    
+
     !> Aero_data to write.
     type(aero_data_t), intent(in) :: aero_data
     !> NetCDF file ID, in data mode.
@@ -662,7 +662,7 @@ contains
 
   !> Read full state.
   subroutine aero_data_input_netcdf(aero_data, ncid)
-    
+
     !> Aero_data to read.
     type(aero_data_t), intent(inout) :: aero_data
     !> NetCDF file ID, in data mode.

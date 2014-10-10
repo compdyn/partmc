@@ -9,7 +9,7 @@
 module pmc_spec_line
 
   use pmc_util
-  
+
   !> Maximum size of a single line.
   integer, parameter :: SPEC_LINE_MAX_LEN = 10000
   !> Maximum size of a variable.
@@ -96,19 +96,19 @@ contains
   !> Strip the comments from a string. Comments are everything after
   !> the first # character.
   subroutine spec_line_strip_comment(string)
-    
+
     !> Complete input string.
     character(len=*), intent(inout) :: string
-    
+
     integer :: hash_index
-    
+
     hash_index = index(string, '#')
     if (hash_index > 0) then
        string = string(1:(hash_index - 1))
     end if
-    
+
   end subroutine spec_line_strip_comment
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Expand all tabs in a string into single spaces (one tab makes one

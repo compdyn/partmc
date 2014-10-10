@@ -7,7 +7,7 @@
 
 !> Random number generators.
 module pmc_rand
-  
+
   use pmc_util
   use pmc_constants
   use pmc_mpi
@@ -28,7 +28,7 @@ module pmc_rand
   !> Result code indicating the generator was already initialized when
   !> an initialization was attempted.
   integer, parameter :: PMC_RAND_GSL_ALREADY_INIT = 3
-  
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -165,7 +165,7 @@ contains
 #endif
 
   end function pmc_random
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns a random integer between 1 and n.
@@ -546,7 +546,7 @@ contains
     sample_disc_pdf = k
 
   end function sample_disc_pdf
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert a real-valued vector into an integer-valued vector by
@@ -555,7 +555,7 @@ contains
   !! Use n_samp samples. Each discrete entry is sampled with a PDF
   !! given by vec_cts. This is very slow for large n_samp or large n.
   subroutine sample_vec_cts_to_disc(vec_cts, n_samp, vec_disc)
-    
+
     !> Continuous vector.
     real(kind=dp), intent(in) :: vec_cts(:)
     !> Number of discrete samples to use.
@@ -571,9 +571,9 @@ contains
        k = sample_cts_pdf(vec_cts)
        vec_disc(k) = vec_disc(k) + 1
     end do
-    
+
   end subroutine sample_vec_cts_to_disc
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Generate a random hexadecimal character.

@@ -100,7 +100,7 @@ module pmc_output
   integer, parameter :: TAG_OUTPUT_STATE_CENTRAL = 4341
   !> Internal-use variable only.
   integer, parameter :: TAG_OUTPUT_STATE_SINGLE  = 4342
-  
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -138,7 +138,7 @@ contains
     logical, intent(in) :: record_optical
     !> UUID of the simulation.
     character(len=PMC_UUID_LEN), intent(in) :: uuid
-    
+
     integer :: rank, n_proc
 #ifdef PMC_USE_MPI
     type(env_state_t) :: env_state_write
@@ -315,7 +315,7 @@ contains
     integer, intent(in), optional :: write_rank
     !> Number of processes to write into file.
     integer, intent(in), optional :: write_n_proc
-    
+
     character(len=len(prefix)+100) :: filename
     integer :: ncid
 
@@ -383,7 +383,7 @@ contains
          record_removals, record_optical)
 
     call pmc_nc_check(nf90_close(ncid))
-    
+
   end subroutine output_state_to_file
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -491,16 +491,16 @@ contains
     call pmc_mpi_unpack_aero_state(buffer, position, aero_state)
     call assert(279581330, position == buffer_size)
     deallocate(buffer)
-    
+
     call output_state_to_file(prefix, aero_data, aero_state, gas_data, &
          gas_state, env_state, index, time, del_t, i_repeat, &
          record_removals, record_optical, remote_proc, n_proc, uuid)
-    
+
     call env_state_deallocate(env_state)
     call gas_state_deallocate(gas_state)
     call aero_state_deallocate(aero_state)
 #endif
-    
+
   end subroutine recv_output_state_central
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -531,7 +531,7 @@ contains
     type(gas_state_t), optional, intent(inout) :: gas_state
     !> Environment state.
     type(env_state_t), optional, intent(inout) :: env_state
-    
+
     integer :: ncid
 
     call assert_msg(819739354, pmc_mpi_rank() == 0, &
@@ -571,9 +571,9 @@ contains
     end if
 
     call pmc_nc_close(ncid)
-    
+
   end subroutine input_state
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Find all NetCDF (.nc) filenames that match the given prefix.
@@ -675,7 +675,7 @@ contains
   !> Write the current sectional data.
   subroutine output_sectional(prefix, bin_grid, aero_data, aero_binned, &
        gas_data, gas_state, env_state, index, time, del_t, uuid)
-    
+
     !> Prefix of filename to write
     character(len=*), intent(in) :: prefix
     !> Bin grid.
@@ -720,7 +720,7 @@ contains
     call pmc_nc_check(nf90_close(ncid))
 
   end subroutine output_sectional
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Input sectional data.
@@ -800,14 +800,14 @@ contains
   !> Read the specification for an output type from a spec file and
   !> generate it.
   subroutine spec_file_read_output_type(file, output_type)
-    
+
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
     !> Kernel type.
     integer, intent(out) :: output_type
-    
+
     character(len=SPEC_LINE_MAX_VAR_LEN) :: output_type_name
-    
+
     !> \page input_format_output Input File Format: Output Type
     !!
     !! The output type is specified by the parameter:
@@ -835,5 +835,5 @@ contains
   end subroutine spec_file_read_output_type
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_output

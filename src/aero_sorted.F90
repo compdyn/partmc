@@ -83,7 +83,7 @@ contains
     allocate(aero_sorted%coag_kernel_max(0, 0))
 
   end subroutine aero_sorted_allocate
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocate a strcture with the given size.
@@ -106,7 +106,7 @@ contains
     allocate(aero_sorted%coag_kernel_max(n_bin, n_bin))
 
   end subroutine aero_sorted_allocate_size
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Deallocates a previously allocated structure.
@@ -123,7 +123,7 @@ contains
     deallocate(aero_sorted%coag_kernel_max)
 
   end subroutine aero_sorted_deallocate
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Resets an aero_sorted to have zero particles per bin.
@@ -139,7 +139,7 @@ contains
     aero_sorted%coag_kernel_max = 0d0
 
   end subroutine aero_sorted_zero
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the number of size bins.
@@ -207,7 +207,7 @@ contains
     type(aero_sorted_t), intent(in) :: aero_sorted
     !> Aerosol particles to discard from.
     type(aero_particle_array_t), intent(inout) :: aero_particle_array
-  
+
     integer :: i_part, i_bin
 
     ! Work backwards so we only shift particles that we've already
@@ -355,7 +355,7 @@ contains
              local_r_min = r_min
           end if
           call pmc_mpi_allreduce_min_real(local_r_min, r_min)
-          
+
           ! check that all the bin grids are really the same
           if (.not. pmc_mpi_allequal_bin_grid(aero_sorted%bin_grid)) then
              need_new_bin_grid = .true.
@@ -380,7 +380,7 @@ contains
     else
        grid_r_min = aero_sorted%bin_grid%edges(1)
        grid_r_max = aero_sorted%bin_grid%edges(aero_sorted%bin_grid%n_bin + 1)
-       
+
        ! We don't check to see whether we could make the bin grid
        ! smaller, as there doesn't seem much point. It would be easy
        ! to add if desired.
@@ -419,12 +419,12 @@ contains
     type(aero_sorted_t), intent(in) :: aero_sorted
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
-    
+
     aero_sorted_particle_in_bin = bin_grid_find(aero_sorted%bin_grid, &
          aero_particle_radius(aero_particle))
-    
+
   end function aero_sorted_particle_in_bin
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Add a new particle to both an aero_sorted and the corresponding
@@ -669,5 +669,5 @@ contains
   end subroutine pmc_mpi_unpack_aero_sorted
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_aero_sorted

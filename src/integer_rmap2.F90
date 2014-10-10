@@ -77,7 +77,7 @@ contains
     call integer_varray_allocate(integer_rmap2%index)
 
   end subroutine integer_rmap2_allocate
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates a structure with the given size.
@@ -98,7 +98,7 @@ contains
     call integer_varray_allocate(integer_rmap2%index)
 
   end subroutine integer_rmap2_allocate_size
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Deallocates a previously allocated structure.
@@ -106,7 +106,7 @@ contains
 
     !> Structure to deallocate.
     type(integer_rmap2_t), intent(inout) :: integer_rmap2
-    
+
     call integer_varray_deallocate(integer_rmap2%forward1)
     call integer_varray_deallocate(integer_rmap2%forward2)
     call integer_varray_deallocate(integer_rmap2%inverse)
@@ -114,7 +114,7 @@ contains
     call integer_varray_deallocate(integer_rmap2%index)
 
   end subroutine integer_rmap2_deallocate
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Resets an integer_rmap2 to have zero particles per bin.
@@ -129,7 +129,7 @@ contains
     call integer_varray_zero(integer_rmap2%index)
 
   end subroutine integer_rmap2_zero
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Set the map value of the next free domain value to
@@ -477,5 +477,5 @@ contains
   end subroutine pmc_mpi_unpack_integer_rmap2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_integer_rmap2

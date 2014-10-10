@@ -195,7 +195,7 @@ contains
        per_particle_coag_succeeded = .false.
        return
     end if
- 
+
     call aero_particle_allocate(target_particle)
     call aero_particle_allocate(source_particle)
 
@@ -593,13 +593,13 @@ contains
     integer, intent(out) :: n_samp
     !> Scale factor for accept probability (1).
     real(kind=dp), intent(out) :: accept_factor
-    
+
     real(kind=dp) :: r_samp
     real(kind=dp) :: n_possible ! use real(kind=dp) to avoid integer overflow
     ! could use integer*8 or integer(kind = 8)
     ! or di = selected_int_kind(18), integer(kind=di)
     ! to represent 10^{-18} to 10^{18}
-    
+
     if (same_bin) then
        ! don't change this to ni * (ni - 1) as the ni/nj distinction
        ! is important for coagulation_dist, which also calls this
@@ -607,7 +607,7 @@ contains
     else
        n_possible = real(ni, kind=dp) * real(nj, kind=dp)
     end if
-    
+
     r_samp = k_max * del_t
     n_samp_mean = r_samp * n_possible
     n_samp = rand_poisson(n_samp_mean)
@@ -627,9 +627,9 @@ contains
     !       189.78 211.12 195.19
     !   B with n_samp = ceiling(n_samp_mean + 3 * sqrt(n_samp_mean)):
     !       214.60 201.25 203.55
-    
+
   end subroutine compute_n_samp
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Choose a random pair for potential coagulation and test its
@@ -667,7 +667,7 @@ contains
     integer :: i1, i2
     integer :: p1, p2
     real(kind=dp) :: p, k
-    
+
     call find_rand_pair(aero_state%aero_sorted, b1, b2, c1, c2, i1, i2)
     p1 = aero_state%aero_sorted%size_class%inverse(b1, c1)%entry(i1)
     p2 = aero_state%aero_sorted%size_class%inverse(b2, c2)%entry(i2)
@@ -684,16 +684,16 @@ contains
        call coagulate(aero_data, aero_state, p1, p2, c1, c2, cc)
        did_coag = .true.
     end if
-    
+
   end subroutine maybe_coag_pair
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Given <tt>(b1, c1)</tt> and <tt>(b2, c2)</tt>, find a random pair
   !> of particles <tt>(b1, c1, i1)</tt> and <tt>(b2, c2, i2)</tt> that
   !> are not the same particle particle as each other.
   subroutine find_rand_pair(aero_sorted, b1, b2, c1, c2, i1, i2)
-    
+
     !> Aerosol sorted data.
     type(aero_sorted_t), intent(in) :: aero_sorted
     !> Bin number of first particle.
@@ -724,9 +724,9 @@ contains
             aero_sorted%size_class%inverse(b2, c2)%n_entry >= 1)
        i2 = pmc_rand_int(aero_sorted%size_class%inverse(b2, c2)%n_entry)
     end if
-    
+
   end subroutine find_rand_pair
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Actually coagulate pt1 and pt2 to form ptc and compute weighting
@@ -852,7 +852,7 @@ contains
   !> Join together particles \c p1 and \c p2, updating all particle
   !> and bin structures to reflect the change.
   subroutine coagulate(aero_data, aero_state, p1, p2, c1, c2, cc)
- 
+
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
@@ -917,9 +917,9 @@ contains
     call aero_info_deallocate(aero_info_1)
     call aero_info_deallocate(aero_info_2)
     call aero_particle_deallocate(ptc)
-    
+
   end subroutine coagulate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_coagulation

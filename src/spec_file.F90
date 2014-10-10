@@ -44,7 +44,7 @@ module pmc_spec_file
 
   use pmc_spec_line
   use pmc_util
-  
+
   !> Maximum number of lines in an array.
   integer, parameter :: SPEC_FILE_MAX_LIST_LINES = 1000
 
@@ -173,7 +173,7 @@ contains
     eof = .true.
 
 110 return ! goto here if end-of-record, meaning everything is ok
-    
+
   end subroutine spec_file_read_line_raw
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -287,7 +287,7 @@ contains
           call spec_line_strip_leading_spaces(rest)
        end if
     end do
-    
+
   end subroutine spec_file_read_line
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -395,7 +395,7 @@ contains
           end if
        end do
     end if
-    
+
   end subroutine spec_file_read_line_array
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -417,19 +417,19 @@ contains
     end if
 
   end subroutine spec_file_check_line_name
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Checks that the read_name is the same as name.
   subroutine spec_file_check_name(file, name, read_name)
-    
+
     !> Spec file.
     type(spec_file_t), intent(inout) :: file
     !> Name that we should have.
     character(len=*), intent(in) :: name
     !> Name that we do have.
     character(len=*), intent(in) :: read_name
-    
+
     integer name_len, read_name_len
 
     if (name /= read_name) then
@@ -437,9 +437,9 @@ contains
             'line must begin with: ' // trim(name) &
             // ' not: ' // trim(read_name))
     end if
-    
+
   end subroutine spec_file_check_name
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check that the length of the line data is as given.
@@ -458,7 +458,7 @@ contains
     end if
 
   end subroutine spec_file_check_line_length
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check the IOSTAT and error if it is bad.
@@ -487,7 +487,7 @@ contains
     type(spec_file_t), intent(in) :: file
     !> String to convert.
     character(len=*), intent(in) :: string
-    
+
     integer :: val
     integer :: ios
 
@@ -506,7 +506,7 @@ contains
     type(spec_file_t), intent(in) :: file
     !> String to convert.
     character(len=*), intent(in) :: string
-    
+
     real(kind=dp) :: val
     integer :: ios
 
@@ -525,7 +525,7 @@ contains
     type(spec_file_t), intent(in) :: file
     !> String to convert.
     character(len=*), intent(in) :: string
-    
+
     logical :: val
     integer :: ios
 
@@ -571,7 +571,7 @@ contains
     call spec_line_deallocate(line)
 
   end subroutine spec_file_read_integer
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read a real number from a spec file that must have the given
@@ -724,7 +724,7 @@ contains
     real(kind=dp), pointer :: times(:)
     !> Data values.
     real(kind=dp), pointer :: vals(:)
-    
+
     integer :: n_lines, n_times
     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: read_names(:)
     real(kind=dp), pointer :: read_data(:,:)

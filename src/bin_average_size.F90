@@ -100,7 +100,7 @@ program bin_average_size
 
   call bin_grid_make(bin_grid, BIN_GRID_TYPE_LOG, n_bin, diam2rad(d_min), &
        diam2rad(d_max))
-  
+
   call input_state(in_filename, index, time, del_t, i_repeat, uuid, &
        aero_data, aero_state, gas_data, gas_state, env_state)
 
@@ -124,7 +124,7 @@ program bin_average_size
   call gas_data_deallocate(gas_data)
   call gas_state_deallocate(gas_state)
   call env_state_deallocate(env_state)
-  
+
   call pmc_mpi_finalize()
 
 end program bin_average_size

@@ -98,7 +98,7 @@ program bin_average_comp
   call gas_data_deallocate(gas_data)
   call gas_state_deallocate(gas_state)
   call env_state_deallocate(env_state)
-  
+
   call pmc_mpi_finalize()
 
 end program bin_average_comp

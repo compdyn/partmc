@@ -18,12 +18,12 @@ module pmc_coag_kernel_additive
   use pmc_aero_dist
   use pmc_aero_data
   use pmc_aero_particle
-  
+
   !> Scaling coefficient for constant kernel.
   real(kind=dp), parameter :: beta_1 = 1000d0
 
 contains
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Additive coagulation kernel.
@@ -45,7 +45,7 @@ contains
          + aero_particle_volume(aero_particle_2))
 
   end subroutine kernel_additive
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Minimum and maximum values of the additive kernel.
@@ -63,12 +63,12 @@ contains
     real(kind=dp), intent(out) :: k_min
     !> Coagulation kernel maximum value.
     real(kind=dp), intent(out) :: k_max
-    
+
     k_min = beta_1 * (v1 + v2)
     k_max = k_min
-    
+
   end subroutine kernel_additive_minmax
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Exact solution with the additive coagulation kernel and
@@ -81,7 +81,7 @@ contains
   !! parameter. Then the solution is
   !! \f[
   !!     n(D,t) \ {\rm d}\ln D
-  !!     = \frac{\pi}{2} D^3 
+  !!     = \frac{\pi}{2} D^3
   !!       \frac{N_0}{v} \frac{1 - T}{\sqrt{T}}
   !!       \exp\left(-(1 + T) \frac{v}{v_\mu}\right)
   !!       I_1\left(2 \frac{v}{v_\mu} \sqrt{T}\right) {\rm d}\ln D
@@ -115,10 +115,10 @@ contains
     type(env_state_t), intent(in) :: env_state
     !> Output state.
     type(aero_binned_t), intent(inout) :: aero_binned
-    
+
     real(kind=dp) :: tau, T, rat_v, nn, b, x, mean_vol
     integer :: k
-    
+
     mean_vol = rad2vol(radius_at_mean_vol)
     if (time .eq. 0d0) then
        do k = 1,bin_grid%n_bin
@@ -157,7 +157,7 @@ contains
        aero_binned%vol_conc(k,1) = rad2vol(bin_grid%centers(k)) &
             * aero_binned%num_conc(k)
     end do
-    
+
   end subroutine soln_additive_exp
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -173,7 +173,7 @@ contains
     real(kind=dp), intent(in) :: x
     !> Function value.
     real(kind=dp), intent(out) :: r
-    
+
     real(kind=dp) ax
     real(kind=dp) p1,p2,p3,p4,p5,p6,p7,q1,q2,q3,q4,q5,q6,q7,q8,q9,y
     data p1,p2,p3,p4,p5,p6,p7/0.5d0,0.87890594d0,0.51498869d0, &
@@ -181,7 +181,7 @@ contains
     data q1,q2,q3,q4,q5,q6,q7,q8,q9/0.39894228d0,-0.3988024d-1, &
          -0.362018d-2,0.163801d-2,-0.1031555d-1,0.2282967d-1, &
          -0.2895312d-1,0.1787654d-1,-0.420059d-2/
-    
+
     if (abs(x) .lt. 3.75d0) then
        y = (x / 3.75d0)**2
        r = x*(p1+y*(p2+y*(p3+y*(p4+y*(p5+y*(p6+y*p7))))))
@@ -192,11 +192,11 @@ contains
             y*(q5+y*(q6+y*(q7+y*(q8+y*q9))))))))
        if (x .lt. 0d0) r = -r
     else
-       
+
     end if
-    
+
   end subroutine bessi1
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_coag_kernel_additive

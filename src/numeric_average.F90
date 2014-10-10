@@ -108,7 +108,7 @@ contains
 
     !> String to convert.
     character(len=*), intent(in) :: string
-    
+
     real(kind=dp) :: val
     integer :: ios
 
@@ -184,7 +184,7 @@ contains
 110 eol = .true. ! goto here if end-of-record, meaning end-of-line
 
 120 return
-    
+
   end subroutine read_char_raw
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -216,7 +216,7 @@ contains
        call read_char_raw(unit, char, eol, eof)
     end do
     if (eol .or. eof) return
-    
+
     ! char is now the first word character
     i = 1
     word(i:i) = char

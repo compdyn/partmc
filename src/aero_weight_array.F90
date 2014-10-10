@@ -739,7 +739,7 @@ contains
     aero_weight_array%weight%type = type
     aero_weight_array%weight%magnitude = magnitude
     aero_weight_array%weight%exponent = exponent
-    
+
     deallocate(type)
     deallocate(magnitude)
     deallocate(exponent)

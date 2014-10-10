@@ -68,7 +68,7 @@ contains
     call aero_info_zero(aero_info)
 
   end subroutine aero_info_allocate
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Deallocates.
@@ -78,7 +78,7 @@ contains
     type(aero_info_t), intent(inout) :: aero_info
 
   end subroutine aero_info_deallocate
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Copies aero_info_from to aero_info_to, both
@@ -96,7 +96,7 @@ contains
     aero_info_to%other_id = aero_info_from%other_id
 
   end subroutine aero_info_copy
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Resets an aero_info to contain zero particles.
@@ -110,7 +110,7 @@ contains
     aero_info%other_id = 0
 
   end subroutine aero_info_zero
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
@@ -180,5 +180,5 @@ contains
   end subroutine pmc_mpi_unpack_aero_info
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_aero_info

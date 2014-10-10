@@ -7,7 +7,7 @@
 
 !> Interface to the MOSAIC aerosol and gas phase chemistry code.
 module pmc_mosaic
-  
+
   use pmc_aero_data
   use pmc_aero_state
   use pmc_constants
@@ -15,9 +15,9 @@ module pmc_mosaic
   use pmc_gas_data
   use pmc_gas_state
   use pmc_util
-  
+
 contains
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Whether MOSAIC support is compiled in.
@@ -35,17 +35,17 @@ contains
 
   !> Initialize all MOSAIC data-structures.
   subroutine mosaic_init(env_state, aero_data, del_t, do_optical)
-    
+
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: alpha_ASTEM, rtol_eqb_ASTEM, &
          ptol_mol_ASTEM, mGAS_AER_XFER, mDYNAMIC_SOLVER
-    
+
     use module_data_mosaic_main, only: tbeg_sec, dt_sec, rlon, rlat, &
          zalt_m, RH, te, pr_atm, cair_mlc, cair_molm3, ppb, avogad, &
          mmode, mgas, maer, mcld, maeroptic, mshellcore, &
          msolar, mphoto, lun_aeroptic, naerbin
 #endif
-    
+
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
@@ -71,7 +71,7 @@ contains
     ! allocate one aerosol bin
     naerbin = 1
     call AllocateMemory()
-    
+
     ! parameters
     mmode = 1               ! 1 = time integration, 2 = parametric analysis
     mgas = 1                ! 1 = gas chem on, 0 = gas chem off
@@ -91,17 +91,17 @@ contains
     alpha_ASTEM = 0.5d0     ! solver parameter. range: 0.01 - 1.0
     rtol_eqb_ASTEM = 0.01d0 ! relative eqb tolerance. range: 0.01 - 0.03
     ptol_mol_ASTEM = 0.01d0 ! percent mol tolerance.  range: 0.01 - 1.0
-    
+
     ! time variables
     dt_sec = del_t                                 ! time-step (s)
     tbeg_sec = env_state%start_day*24*3600 + &     ! time since the beg of
          nint(env_state%start_time)                ! year 00:00, UTC (s)
-    
+
     ! geographic location
     rlon = deg2rad(env_state%longitude)            ! longitude
     rlat = deg2rad(env_state%latitude)             ! latitude
     zalt_m = env_state%altitude                    ! altitude (m)
- 
+
     ! environmental parameters: map PartMC -> MOSAIC
     RH = env_state%rel_humid * 100.d0              ! relative humidity (%)
     te = env_state%temp                            ! temperature (K)
@@ -111,7 +111,7 @@ contains
     ppb = 1d9
 
     call LoadPeroxyParameters ! Aperox and Bperox only once
-    
+
     ! get unit for aerosol optical output
     if (lun_aeroptic <= 0 ) lun_aeroptic = get_unit()
 
@@ -120,14 +120,14 @@ contains
          "MOSAIC requires H2O as an aerosol species")
 
 #endif
-    
+
   end subroutine mosaic_init
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Clean-up after running MOSAIC, deallocating memory.
   subroutine mosaic_cleanup()
-    
+
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
     interface
@@ -137,7 +137,7 @@ contains
 
     call DeallocateMemory()
 #endif
-    
+
   end subroutine mosaic_cleanup
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -145,16 +145,16 @@ contains
   !> Map all data PartMC -> MOSAIC.
   subroutine mosaic_from_partmc(env_state, aero_data, &
        aero_state, gas_data, gas_state)
-    
+
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
          jtotal, water_a
-    
+
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
          dt_sec, dt_min, dt_aeroptic_min, RH, te, pr_atm, cnn, cair_mlc, &
          cair_molm3, ppb, avogad, msolar, naerbin
 #endif
-    
+
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
@@ -222,7 +222,7 @@ contains
     cair_mlc = avogad*pr_atm/(82.056d0*te)   ! air conc [molec/cc]
     cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
     ppb = 1d9
-    
+
     ! aerosol data: map PartMC -> MOSAIC
     nbin_a = aero_state_total_particles(aero_state)
     if (nbin_a > naerbin) then
@@ -266,20 +266,20 @@ contains
   end subroutine mosaic_from_partmc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
   !> Map all data MOSAIC -> PartMC.
   subroutine mosaic_to_partmc(env_state, aero_data, aero_state, gas_data, &
        gas_state)
-    
+
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
          jtotal, water_a
-    
+
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
          dt_sec, dt_min, dt_aeroptic_min, RH, te, pr_atm, cnn, cair_mlc, &
          cair_molm3, ppb, avogad, msolar, cos_sza
 #endif
-    
+
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
@@ -365,11 +365,11 @@ contains
   !! currently disabled.
   subroutine mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
        gas_state, do_optical)
-    
+
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_main, only: msolar
 #endif
-    
+
     !> Environment state.
     type(env_state_t), intent(inout) :: env_state
     !> Aerosol data.
@@ -393,7 +393,7 @@ contains
        subroutine aerosol_optical()
        end subroutine aerosol_optical
     end interface
-    
+
     ! map PartMC -> MOSAIC
     call mosaic_from_partmc(env_state, aero_data, aero_state, gas_data, &
          gas_state)
@@ -429,12 +429,12 @@ contains
   !! be re-evaluated at some point in the future.
   subroutine mosaic_aero_optical(env_state, aero_data, &
        aero_state, gas_data, gas_state)
-    
+
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: ri_shell_a, ri_core_a, &
          ext_cross, scat_cross, asym_particle
 #endif
-    
+
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Aerosol data.
@@ -455,7 +455,7 @@ contains
 
     integer :: i_part
     type(aero_particle_t), pointer :: particle
-    
+
     ! map PartMC -> MOSAIC
 !    call mosaic_from_partmc(env_state, aero_data, aero_state, &
 !         gas_data, gas_state)

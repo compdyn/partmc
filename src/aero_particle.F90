@@ -73,7 +73,7 @@ contains
     call aero_particle_zero(aero_particle)
 
   end subroutine aero_particle_allocate
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates an aero_particle_t of the given size.
@@ -91,7 +91,7 @@ contains
     call aero_particle_zero(aero_particle)
 
   end subroutine aero_particle_allocate_size
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Deallocates memory associated with an aero_particle_t.
@@ -99,12 +99,12 @@ contains
 
     !> Particle to free.
     type(aero_particle_t), intent(inout) :: aero_particle
-    
+
     deallocate(aero_particle%vol)
     deallocate(aero_particle%n_orig_part)
 
   end subroutine aero_particle_deallocate
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Copies a particle.
@@ -114,7 +114,7 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle_from
     !> Destination particle (already alloced on entry).
     type(aero_particle_t), intent(inout) :: aero_particle_to
-    
+
     integer :: n_spec, n_source
 
     n_spec = size(aero_particle_from%vol)
@@ -146,7 +146,7 @@ contains
          aero_particle_from%greatest_create_time
 
   end subroutine aero_particle_copy
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Shift data from one aero_particle_t to another and free the first
@@ -180,7 +180,7 @@ contains
     aero_particle_to%least_create_time = aero_particle_from%least_create_time
     aero_particle_to%greatest_create_time = &
          aero_particle_from%greatest_create_time
-    
+
   end subroutine aero_particle_shift
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -190,7 +190,7 @@ contains
 
     !> Particle to zero.
     type(aero_particle_t), intent(inout) :: aero_particle
-    
+
     aero_particle%vol = 0d0
     aero_particle%n_orig_part = 0
     aero_particle%weight_group = 0
@@ -207,7 +207,7 @@ contains
     aero_particle%greatest_create_time = 0d0
 
   end subroutine aero_particle_zero
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Assigns a globally-unique new ID number to the particle.
@@ -215,12 +215,12 @@ contains
 
     !> Particle to set ID for.
     type(aero_particle_t), intent(inout) :: aero_particle
-    
+
     aero_particle%id = (next_id - 1) * pmc_mpi_size() + pmc_mpi_rank() + 1
     next_id = next_id + 1
 
   end subroutine aero_particle_new_id
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Sets the creation times for the particle.
@@ -230,12 +230,12 @@ contains
     type(aero_particle_t), intent(inout) :: aero_particle
     !> Creation time.
     real(kind=dp), intent(in) :: create_time
-    
+
     aero_particle%least_create_time = create_time
     aero_particle%greatest_create_time = create_time
 
   end subroutine aero_particle_set_create_time
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Sets the aerosol particle volumes.
@@ -290,7 +290,7 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    
+
     aero_particle_mass = sum(aero_particle%vol * aero_data%density)
 
   end function aero_particle_mass
@@ -339,7 +339,7 @@ contains
     type(aero_particle_t), intent(in) :: aero_particle
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    
+
     aero_particle_moles = sum(aero_particle%vol * aero_data%density &
          / aero_data%molec_weight)
 
@@ -379,7 +379,7 @@ contains
     end do
 
   end function aero_particle_dry_volume
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Total volume (dry or wet) of the particle (m^3).
@@ -740,7 +740,7 @@ contains
     aero_particle_solute_kappa &
          = aero_particle_average_solute_quantity(aero_particle, &
          aero_data, kappa)
-    
+
   end function aero_particle_solute_kappa
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -954,7 +954,7 @@ contains
          + pmc_mpi_pack_size_integer(val%id) &
          + pmc_mpi_pack_size_real(val%least_create_time) &
          + pmc_mpi_pack_size_real(val%greatest_create_time)
-    
+
   end function pmc_mpi_pack_size_aero_particle
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1030,5 +1030,5 @@ contains
   end subroutine pmc_mpi_unpack_aero_particle
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
 end module pmc_aero_particle

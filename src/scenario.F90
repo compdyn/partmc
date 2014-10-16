@@ -619,6 +619,16 @@ contains
     real(kind=dp) :: E_B, E_IM, E_IN, R1
     real(kind=dp) :: u_mean, z_ref, z_rough
 
+    ! User set variables
+    height = 250.0d0
+    u_mean = 5.0d0 ! Mean wind speed at reference height
+    z_ref =  20.0d0 ! Reference height
+    ! Setting for LUC = 7, SC = 1 - See Table 3
+    z_rough = .1d0 ! According to land category 
+    A = 2.0d0 / 1000.0d0 ! Dependent on land type
+    alpha = 1.2d0 ! From table
+    beta = 2.0d0 ! From text
+    gamma = .54d0 ! From table
 
     ! particle diameter
     d_p = vol2diam(vol)
@@ -636,32 +646,27 @@ contains
     ! knudson number
     knud = (2.0d0 * gas_mean_free_path) / d_p
     ! cunningham correction factor
-    cunning = 1.0d0 + knud * (1.249d0 + 0.42d0 * exp(-0.87d0 / knud))
+    cunning = 1.0d0 + knud * (1.257d0 + 0.4d0 * exp(-1.1d0 / knud))
     ! gravity
     grav = 9.81d0
     ! Compute V_s
     V_s = (density * d_p**2.0d0 * grav * cunning) / (18.0d0 * visc_d)
-    ! Aerodynamic resistance - should be specified over time?
-    R_a = 0.0d0
+
+    ! Aerodynamic resistance
+    ! For neutral stability
+    u_star = .4 * u_mean / log(z_ref / z_rough) ! S&P 16.80 simplified to 16.67
+    R_a = (1.0 / (.4 * u_star)) * log(z_ref / z_rough) ! S&P 19.14 (Neutral)
     ! Brownian diffusion efficiency
     diff_p = (const%boltzmann * temp * cunning) / &
          (3.d0 * const%pi * visc_d * d_p)
-    gamma = 2.0d0 / 3.0d0 ! Between 1/2 and 2/3 (water to vegetative)
     Sc = visc_k / diff_p
     E_B = Sc**(-gamma)
 
     ! Interception efficiency
     ! Characteristic radius of large collectors
-    A = 2.0d0 / 1000.0d0 ! Dependent on land type (Table 3)
     E_IN = .5d0 * (d_p / A)**2.0d0
 
     ! Impaction efficiency
-    alpha = .8d0
-    beta = 2.0d0
-    u_mean = 10.0d0
-    z_ref =  10.0d0
-    z_rough = 1.0d0
-    u_star = .4 * u_mean / log(z_ref / z_rough)
     St = (V_s * u_star) / (grav * A)
     E_IM = (St / (alpha + St))**beta
 
@@ -674,10 +679,11 @@ contains
    
     ! Dry deposition
     V_d = V_s + (1.0d0 / (R_a + R_s + R_a * R_s * V_s))
-    
-    ! Box height or reference height
-    height = 500.0d0
-
+    !V_d = V_s + (1.0d0 / (R_a + R_s))
+    ! Hack to easily get deposition velocities 
+    ! Should typically be commented out
+    !write(90,*) d_p, V_d
+ 
     ! The loss rate
     scenario_loss_rate_dry_dep = V_d / height
 

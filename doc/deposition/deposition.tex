@@ -71,4 +71,57 @@ D & = \frac{kTC_c}{3 \pi \mu D_p}  \label{eq:brownian}\\
 \bar{v}_a & = \sqrt{\frac{8k_bT}{\pi\bar{M}}} \label{eq:thermal}
 \end{align}
 
+\section{Determining the environmental values $R_a$ and $u_*$}
+
+Aerodynamic resistance is a contributing factor that is independent of particle size
+and composition. To determine aerodynamic resistance, we use the following
+based on Pasquill Stability Classes.
+
+From Seinfeld and Pandis page 907, aerodynamic resistance is
+\[R_a =\begin{cases}
+\frac{1}{\kappa u_*}\left[\ln \left(\frac{z}{z_0}\right)
+  + 4.7 \left(\zeta - \zeta_0\right)\right] & \textrm{(stable)} \\
+\frac{1}{\kappa u_*} \ln \left( \frac{z}{z_0} \right)& \textrm{(neutral)} \\
+\frac{1}{\kappa u_*} \left[ \ln \left( \frac{z}{z_0} \right)
+  + \ln \left( \frac{\left(\eta_0^2 +1\right)\left(\eta_0 + 1\right)^2}
+  {\left(\eta_{\rm ref}^2 + 1 \right)\left(\eta_{\rm ref} + 1 \right)^2}\right)
+  + 2 \left(\tan^{-1} \eta_{\rm ref} - \tan^{-1} \eta_0 \right)\right]
+& \textrm{(unstable)}\\
+\end{cases}\]
+where $\eta_0 = \left(1 - 15 \zeta_0\right)^{1/4}$, 
+$\eta_{\rm ref} = \left(1-15\zeta_{\rm ref}\right)^{1/4}$,$\zeta = z/L$
+and $\zeta_0 = z_0 / L$.
+Friction velocity $u_{*}$ is given by equation 16.80 in S\&P as
+\begin{align}
+u_* & = \frac{\kappa \bar{u}\left(z_{\rm ref}\right)}
+  {\int_{z_0}^{z_{\rm ref}} \left(\Phi (z/L)/z\right)dz}
+\end{align}
+Given a neutral atmosphere, this reduces to 16.67 in S\&P
+\begin{align}
+u_* & = \frac{\kappa \bar{u}\left(z_{\rm ref}\right)}
+  \ln \left(\frac{z_{\rm ref}}{z_0}\right)
+\end{align}
+For a stable atmosphere (equation 16.81 in S\&P)
+\begin{align}
+u_* & = \frac{\kappa \bar{u} \left(z_{\rm ref}\right)}
+  {\ln \left(\frac{z_{\rm ref}}{z_0}\right)  
+  + \frac{4.7\left(z_{\rm ref} - z_0\right)}{L}}
+\end{align}
+and for an unstable atmosphere (equation 16.82 in S\&P)
+\begin{align}
+u_* & = \frac{\kappa \bar{u} \left(z_{\rm ref}\right)}
+  {\ln \left(\frac{z_{\rm ref}}{z_0}\right) +
+  \ln \left[\frac{\left(n_0^2 + 1 \right)\left(n_0 + 1\right)^2}
+  {\left(n_1^2 + 1 \right)\left(n_1 + 1\right)^2}\right]
+  + 2 \left(\tan^{-1}n_1 - \tan^{-1}n_0\right)}
+\end{align}
+where $n_0 = \left[1 - 15 \frac{z_0}{L}\right]^{1/4}$ and
+$n_1 = \left[ 1 - 15 \frac{z_{\rm ref}}{L}\right]^{1/4}$.
 \end{document}
+
+To get the value of $L$,
+\begin{align}
+\frac{1}{L} & = a + b \log z_0
+\end{align}
+where $a$ and $b$ are given by Table 16.4 in S\&P based on
+Pasquill Stability Class (which may have been determined by Table 16.3).

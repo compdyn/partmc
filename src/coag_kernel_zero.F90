@@ -155,8 +155,7 @@ contains
           !FIXME: Density is set to water. This can cause issues possibly
           loss_array(i) = dilution_rate + scenario_loss_rate( &
                loss_function_type, rad2vol(bin_grid%centers(i)), &
-               const%water_density, aero_data, env_state%temp, &
-               env_state%pressure)
+               const%water_density, aero_data, env_state)
           call assert_msg(181676342, loss_array(i) > 0, &
                "non-positive loss rate")
           loss_array(i) = 1d0/loss_array(i)

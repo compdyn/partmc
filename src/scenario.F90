@@ -550,7 +550,7 @@ contains
   ! Scenario? Env_state?
   !> Evaluate a loss rate function
   real(kind=dp) function scenario_loss_rate(function_type, vol, density, &
-       aero_data, temp, press)
+       aero_data, env_state)
 
     !> Id of loss rate function to be used
     integer, intent(in) :: function_type
@@ -560,10 +560,8 @@ contains
     real(kind=dp), intent(in) :: density
     !> Aerosol data. 
     type(aero_data_t), intent(in) :: aero_data
-    !> Temperature (K).
-    real(kind=dp), intent(in) :: temp
-    !> Pressure (Pa).
-    real(kind=dp), intent(in) :: press
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
 
     if(function_type == SCENARIO_LOSS_FUNCTION_INVALID) then
       scenario_loss_rate = 0d0
@@ -577,8 +575,7 @@ contains
       ! FIXME: Need to do better here but initially this will be fine
       ! with assuming many things constant - such as land type,
       ! aerodynamic resistance.
-      scenario_loss_rate = scenario_loss_rate_dry_dep(vol, density, temp, &
-           press)
+      scenario_loss_rate = scenario_loss_rate_dry_dep(vol, density, env_state)
     else
        call die_msg(201594391, "Unknown loss function id: " &
             // trim(integer_to_string(function_type)))
@@ -589,17 +586,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute and return the dry deposition rate for a given particle
-  real(kind=dp) function scenario_loss_rate_dry_dep(vol, density, temp, &
-      press)
+  real(kind=dp) function scenario_loss_rate_dry_dep(vol, density, env_state)
 
     !> Particle volume (m^3).
     real(kind=dp), intent(in) :: vol 
     !> Particle density (kg m^-3).
     real(kind=dp), intent(in) :: density
-    !> Temperature (K).
-    real(kind=dp), intent(in) :: temp
-    !> Pressure (Pa).
-    real(kind=dp), intent(in) :: press 
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
 
     real(kind=dp) :: V_d
     real(kind=dp) :: V_s
@@ -609,7 +603,6 @@ contains
     real(kind=dp) :: gas_speed, gas_mean_free_path
     real(kind=dp) :: knud, cunning
     real(kind=dp) :: grav
-    real(kind=dp) :: height
     real(kind=dp) :: R_s, R_a
 
     real(kind=dp) :: alpha, beta, gamma, A, eps_0
@@ -618,9 +611,9 @@ contains
     real(kind=dp) :: St, Sc, u_star
     real(kind=dp) :: E_B, E_IM, E_IN, R1
     real(kind=dp) :: u_mean, z_ref, z_rough
+    real(kind=dp) :: temp, press
 
     ! User set variables
-    height = 250.0d0
     u_mean = 5.0d0 ! Mean wind speed at reference height
     z_ref =  20.0d0 ! Reference height
     ! Setting for LUC = 7, SC = 1 - See Table 3
@@ -629,6 +622,10 @@ contains
     alpha = 1.2d0 ! From table
     beta = 2.0d0 ! From text
     gamma = .54d0 ! From table
+
+    ! FIXME: Replace these all
+    temp = env_state%temp
+    press = env_state%pressure
 
     ! particle diameter
     d_p = vol2diam(vol)
@@ -685,7 +682,7 @@ contains
     !write(90,*) d_p, V_d
  
     ! The loss rate
-    scenario_loss_rate_dry_dep = V_d / height
+    scenario_loss_rate_dry_dep = V_d / env_state%height
 
   end function scenario_loss_rate_dry_dep
 
@@ -693,7 +690,7 @@ contains
 
   !> Compute and return the max loss rate function for a given volume
   real(kind=dp) function scenario_loss_rate_max(function_type, vol, &
-      aero_data, temp, press)
+      aero_data, env_state)
 
     !> Id of loss rate function to be used
     integer, intent(in) :: function_type
@@ -701,10 +698,8 @@ contains
     real(kind=dp), intent(in) :: vol
     !> Aerosol data. 
     type(aero_data_t), intent(in) :: aero_data
-    !> Temperature (K).
-    real(kind=dp), intent(in) :: temp
-    !> Pressure (Pa).
-    real(kind=dp), intent(in) :: press
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
 
     !> Number of density sample points.
     integer, parameter :: n_sample = 3
@@ -718,7 +713,7 @@ contains
     scenario_loss_rate_max = 0d0
     do i = 1,n_sample
       d = interp_linear_disc(d_min, d_max, n_sample, i)
-      loss = scenario_loss_rate(function_type, vol, d, aero_data, temp, press)
+      loss = scenario_loss_rate(function_type, vol, d, aero_data, env_state)
       scenario_loss_rate_max = max(scenario_loss_rate_max, loss)
     end do
 
@@ -732,7 +727,7 @@ contains
   !! to get the upper bound.  A tighter bound may be reached if over_scale
   !! is smaller, but that also risks falling below a kernel value.
   subroutine scenario_loss_rate_bin_max(function_type, bin_grid, &
-        aero_data, temp, press, loss_max)
+        aero_data, env_state, loss_max)
 
     !> Id of loss rate function to be used
     integer, intent(in) :: function_type
@@ -740,10 +735,8 @@ contains
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Temperature (K).
-    real(kind=dp), intent(in) :: temp
-    !> Pressure (Pa).
-    real(kind=dp), intent(in) :: press
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
     !> Maximum loss vals.
     real(kind=dp), intent(out) :: loss_max(bin_grid%n_bin)
 
@@ -761,7 +754,7 @@ contains
       r_max = 0d0
       do i = 1,n_sample
         vol = interp_linear_disc(v_low, v_high, n_sample, i)
-        r = scenario_loss_rate_max(function_type, vol, aero_data, temp, press)
+        r = scenario_loss_rate_max(function_type, vol, aero_data, env_state)
         r_max = max(r_max, r)
       end do
       loss_max(b) = r_max*over_scale
@@ -779,7 +772,7 @@ contains
   !! and then accepted with rate
   !! (1 - exp(-delta_t*rate))/(1 - exp(-delta_t*over_rate)).
   subroutine scenario_particle_loss(function_type, delta_t, aero_data, &
-       aero_state, temp, press, alg_threshold)
+       aero_state, env_state, alg_threshold)
 
     !> Id of loss rate function to be used
     integer, intent(in) :: function_type
@@ -789,10 +782,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Temperature (K).
-    real(kind=dp), intent(in) :: temp
-    !> Pressure (Pa).
-    real(kind=dp), intent(in) :: press
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
     !> Parameter to switch between algorithms for particle loss.
     !! A value of 0 will always use the naive algorithm, and
     !! a value of 1 will always use the accept-reject algorithm.
@@ -808,7 +799,7 @@ contains
       ! use naive algorithm for everything
       do p = aero_state%apa%n_part, 1, -1
         call scenario_try_single_particle_loss(function_type, delta_t, &
-            aero_data, aero_state, temp, press, p, 1d0)
+            aero_data, aero_state, env_state, p, 1d0)
       end do
       return
     end if
@@ -817,7 +808,7 @@ contains
 
     if (.not. aero_state%aero_sorted%removal_rate_bounds_valid) then
       call scenario_loss_rate_bin_max(function_type, &
-          aero_state%aero_sorted%bin_grid, aero_data, temp, press, &
+          aero_state%aero_sorted%bin_grid, aero_data, env_state, &
           aero_state%aero_sorted%removal_rate_max)
       aero_state%aero_sorted%removal_rate_bounds_valid = .true.
     end if
@@ -832,11 +823,13 @@ contains
           do s = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry,1,-1
             p = aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
             call scenario_try_single_particle_loss(function_type, delta_t, &
-                aero_data, aero_state, temp, press, p, 1d0)
+                aero_data, aero_state, env_state, p, 1d0)
           end do
         else
           ! use accept-reject algorithm over bin
           s = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry + 1
+          ! Entries in the aero_info_array before removals for bin b
+          before_removals = aero_state%aero_info_array%n_item
           do while (.true.)
             rand_real = pmc_random()
             if (rand_real <= 0d0) exit
@@ -849,7 +842,7 @@ contains
 
             p = aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
             call scenario_try_single_particle_loss(function_type, delta_t, &
-                aero_data, aero_state, temp, press, p, over_prob)
+                aero_data, aero_state, env_state, p, over_prob)
           end do
         end if
       end do
@@ -867,7 +860,7 @@ contains
   !! (1d0 - exp(-delta_t*rate))/over_prob, where rate is the loss function
   !! evaluated for the given particle.
   subroutine scenario_try_single_particle_loss(function_type, delta_t, &
-      aero_data, aero_state, temp, press, part_i, over_prob)
+      aero_data, aero_state, env_state, part_i, over_prob)
     !> Id of loss rate function to be used
     integer, intent(in) :: function_type
     !> Time increment to update over.
@@ -876,10 +869,8 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Temperature (K).
-    real(kind=dp), intent(in) :: temp
-    !> Pressure (Pa).
-    real(kind=dp), intent(in) :: press
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
     !> Index of particle to attempt removal
     integer, intent(in) :: part_i
     !> Overestimated removal probability used previously
@@ -893,7 +884,7 @@ contains
     vol = aero_particle_volume(aero_particle)
     density = aero_particle_density(aero_particle, aero_data)
     rate = scenario_loss_rate(function_type, vol, density, aero_data, &
-            temp, press)
+            env_state)
     prob = 1d0 - exp(-delta_t*rate)
     call warn_assert_msg(295846288, prob <= over_prob, &
         "particle loss upper bound estimation is too tight: " &

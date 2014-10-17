@@ -828,8 +828,6 @@ contains
         else
           ! use accept-reject algorithm over bin
           s = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry + 1
-          ! Entries in the aero_info_array before removals for bin b
-          before_removals = aero_state%aero_info_array%n_item
           do while (.true.)
             rand_real = pmc_random()
             if (rand_real <= 0d0) exit

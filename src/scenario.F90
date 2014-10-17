@@ -31,7 +31,7 @@ module pmc_scenario
   integer, parameter :: SCENARIO_LOSS_FUNCTION_VOLUME   = 3
   !> Type code for a loss rate function based on dry deposition
   integer, parameter :: SCENARIO_LOSS_FUNCTION_DRY_DEP  = 4
-  
+
   !> Scenario data.
   !!
   !! This is everything needed to drive the scenario being simulated.
@@ -558,7 +558,7 @@ contains
     real(kind=dp), intent(in) :: vol
     !> Density of particle (kg/m^3).
     real(kind=dp), intent(in) :: density
-    !> Aerosol data. 
+    !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
@@ -589,7 +589,7 @@ contains
   real(kind=dp) function scenario_loss_rate_dry_dep(vol, density, env_state)
 
     !> Particle volume (m^3).
-    real(kind=dp), intent(in) :: vol 
+    real(kind=dp), intent(in) :: vol
     !> Particle density (kg m^-3).
     real(kind=dp), intent(in) :: density
     !> Environment state.
@@ -617,7 +617,7 @@ contains
     u_mean = 5.0d0 ! Mean wind speed at reference height
     z_ref =  20.0d0 ! Reference height
     ! Setting for LUC = 7, SC = 1 - See Table 3
-    z_rough = .1d0 ! According to land category 
+    z_rough = .1d0 ! According to land category
     A = 2.0d0 / 1000.0d0 ! Dependent on land type
     alpha = 1.2d0 ! From table
     beta = 2.0d0 ! From text
@@ -673,14 +673,14 @@ contains
     ! Surface resistance
     eps_0 = 3.0d0 ! Taken to be 3
     R_s = 1.0d0 / (eps_0 * u_star* (E_B + E_IN + E_IM)*R1)
-   
+
     ! Dry deposition
     V_d = V_s + (1.0d0 / (R_a + R_s + R_a * R_s * V_s))
     !V_d = V_s + (1.0d0 / (R_a + R_s))
-    ! Hack to easily get deposition velocities 
+    ! Hack to easily get deposition velocities
     ! Should typically be commented out
     !write(90,*) d_p, V_d
- 
+
     ! The loss rate
     scenario_loss_rate_dry_dep = V_d / env_state%height
 
@@ -696,7 +696,7 @@ contains
     integer, intent(in) :: function_type
     !> Particle volume (m^3).
     real(kind=dp), intent(in) :: vol
-    !> Aerosol data. 
+    !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state

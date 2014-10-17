@@ -812,7 +812,7 @@ contains
     else
        run_exact_opt%loss_function_type = SCENARIO_LOSS_FUNCTION_INVALID
     end if
-    
+
     call spec_file_close(file)
 
     ! finished reading .spec data, now do the run

@@ -211,7 +211,7 @@ contains
 
        call env_state_copy(env_state, old_env_state)
        call scenario_update_env_state(scenario, env_state, time + t_start)
-            
+
        if (run_part_opt%do_nucleation) then
           n_part_before = aero_state_total_particles(aero_state)
           call nucleate(run_part_opt%nucleate_type, &

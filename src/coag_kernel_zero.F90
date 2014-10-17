@@ -158,7 +158,7 @@ contains
                const%water_density, aero_data, env_state)
           call assert_msg(181676342, loss_array(i) > 0, &
                "non-positive loss rate")
-          loss_array(i) = 1d0/loss_array(i)
+          loss_array(i) = 1d0 / loss_array(i)
        end do
 
        ! calculate the limit steady state distribution
@@ -173,7 +173,7 @@ contains
        call aero_binned_scale_by_array(aero_binned_limit, loss_array)
 
        do i = 1, bin_grid%n_bin
-          loss_array(i) = exp(-time/loss_array(i))
+          loss_array(i) = exp(-time / loss_array(i))
        end do
 
        ! calculate the current state

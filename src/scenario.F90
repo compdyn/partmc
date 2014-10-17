@@ -546,9 +546,8 @@ contains
   end subroutine scenario_update_aero_binned
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  ! FIXME: This needs to take better inputs probably
-  ! Scenario? Env_state?
-  !> Evaluate a loss rate function
+
+  !> Evaluate a loss rate function.
   real(kind=dp) function scenario_loss_rate(function_type, vol, density, &
        aero_data, env_state)
 
@@ -585,7 +584,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Compute and return the dry deposition rate for a given particle
+  !> Compute and return the dry deposition rate for a given particle.
   real(kind=dp) function scenario_loss_rate_dry_dep(vol, density, env_state)
 
     !> Particle volume (m^3).
@@ -604,7 +603,6 @@ contains
     real(kind=dp) :: knud, cunning
     real(kind=dp) :: grav
     real(kind=dp) :: R_s, R_a
-
     real(kind=dp) :: alpha, beta, gamma, A, eps_0
     real(kind=dp) :: diff_p
     real(kind=dp) :: von_karman
@@ -639,7 +637,7 @@ contains
     gas_speed = sqrt((8.0d0 * const%boltzmann * temp * const%avagadro) / &
          (const%pi * const%air_molec_weight))
     ! gas free path
-    gas_mean_free_path = (2.0d0* visc_d) / (den_air * gas_speed)
+    gas_mean_free_path = (2.0d0 * visc_d) / (den_air * gas_speed)
     ! knudson number
     knud = (2.0d0 * gas_mean_free_path) / d_p
     ! cunningham correction factor
@@ -651,8 +649,8 @@ contains
 
     ! Aerodynamic resistance
     ! For neutral stability
-    u_star = .4 * u_mean / log(z_ref / z_rough) ! S&P 16.80 simplified to 16.67
-    R_a = (1.0 / (.4 * u_star)) * log(z_ref / z_rough) ! S&P 19.14 (Neutral)
+    u_star = .4d0 * u_mean / log(z_ref / z_rough)
+    R_a = (1.0d0 / (.4d0 * u_star)) * log(z_ref / z_rough)
     ! Brownian diffusion efficiency
     diff_p = (const%boltzmann * temp * cunning) / &
          (3.d0 * const%pi * visc_d * d_p)
@@ -672,14 +670,11 @@ contains
 
     ! Surface resistance
     eps_0 = 3.0d0 ! Taken to be 3
-    R_s = 1.0d0 / (eps_0 * u_star* (E_B + E_IN + E_IM)*R1)
+    R_s = 1.0d0 / (eps_0 * u_star * (E_B + E_IN + E_IM) * R1)
 
     ! Dry deposition
     V_d = V_s + (1.0d0 / (R_a + R_s + R_a * R_s * V_s))
     !V_d = V_s + (1.0d0 / (R_a + R_s))
-    ! Hack to easily get deposition velocities
-    ! Should typically be commented out
-    !write(90,*) d_p, V_d
 
     ! The loss rate
     scenario_loss_rate_dry_dep = V_d / env_state%height
@@ -688,7 +683,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Compute and return the max loss rate function for a given volume
+  !> Compute and return the max loss rate function for a given volume.
   real(kind=dp) function scenario_loss_rate_max(function_type, vol, &
       aero_data, env_state)
 
@@ -723,7 +718,7 @@ contains
 
   !> Compute an upper bound on the maximum kernel value for each
   !> bin.
-  !!Value over_scale is multiplied to the maximum sampled value
+  !! Value over_scale is multiplied to the maximum sampled value
   !! to get the upper bound.  A tighter bound may be reached if over_scale
   !! is smaller, but that also risks falling below a kernel value.
   subroutine scenario_loss_rate_bin_max(function_type, bin_grid, &
@@ -757,7 +752,7 @@ contains
         r = scenario_loss_rate_max(function_type, vol, aero_data, env_state)
         r_max = max(r_max, r)
       end do
-      loss_max(b) = r_max*over_scale
+      loss_max(b) = r_max * over_scale
     end do
 
   end subroutine scenario_loss_rate_bin_max
@@ -799,7 +794,7 @@ contains
       ! use naive algorithm for everything
       do p = aero_state%apa%n_part, 1, -1
         call scenario_try_single_particle_loss(function_type, delta_t, &
-            aero_data, aero_state, env_state, p, 1d0)
+             aero_data, aero_state, env_state, p, 1d0)
       end do
       return
     end if
@@ -808,22 +803,22 @@ contains
 
     if (.not. aero_state%aero_sorted%removal_rate_bounds_valid) then
       call scenario_loss_rate_bin_max(function_type, &
-          aero_state%aero_sorted%bin_grid, aero_data, env_state, &
-          aero_state%aero_sorted%removal_rate_max)
+           aero_state%aero_sorted%bin_grid, aero_data, env_state, &
+           aero_state%aero_sorted%removal_rate_max)
       aero_state%aero_sorted%removal_rate_bounds_valid = .true.
     end if
 
     do c = 1,aero_sorted_n_class(aero_state%aero_sorted)
       do b = 1,aero_sorted_n_bin(aero_state%aero_sorted)
         over_rate = aero_state%aero_sorted%removal_rate_max(b)
-        if (delta_t*over_rate <= 0d0) cycle
-        over_prob = 1d0 - exp(-delta_t*over_rate)
+        if (delta_t * over_rate <= 0d0) cycle
+        over_prob = 1d0 - exp(-delta_t * over_rate)
         if(over_prob >= alg_threshold) then
           ! use naive algorithm over bin
           do s = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry,1,-1
             p = aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
             call scenario_try_single_particle_loss(function_type, delta_t, &
-                aero_data, aero_state, env_state, p, 1d0)
+                 aero_data, aero_state, env_state, p, 1d0)
           end do
         else
           ! use accept-reject algorithm over bin
@@ -831,7 +826,7 @@ contains
           do while (.true.)
             rand_real = pmc_random()
             if (rand_real <= 0d0) exit
-            rand_geom = -log(rand_real)/(delta_t*over_rate) + 1d0
+            rand_geom = -log(rand_real) / (delta_t * over_rate) + 1d0
             if (rand_geom >= real(s, kind=dp)) exit
             s = s - floor(rand_geom)
 
@@ -840,7 +835,7 @@ contains
 
             p = aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
             call scenario_try_single_particle_loss(function_type, delta_t, &
-                aero_data, aero_state, env_state, p, over_prob)
+                 aero_data, aero_state, env_state, p, over_prob)
           end do
         end if
       end do
@@ -883,12 +878,12 @@ contains
     density = aero_particle_density(aero_particle, aero_data)
     rate = scenario_loss_rate(function_type, vol, density, aero_data, &
             env_state)
-    prob = 1d0 - exp(-delta_t*rate)
+    prob = 1d0 - exp(-delta_t * rate)
     call warn_assert_msg(295846288, prob <= over_prob, &
-        "particle loss upper bound estimation is too tight: " &
-        // trim(real_to_string(prob)) // " > " &
-        // trim(real_to_string(over_prob)) )
-    if (pmc_random()*over_prob > prob) return
+         "particle loss upper bound estimation is too tight: " &
+         // trim(real_to_string(prob)) // " > " &
+         // trim(real_to_string(over_prob)) )
+    if (pmc_random() * over_prob > prob) return
 
     call aero_info_allocate(aero_info)
     aero_info%id = aero_particle%id

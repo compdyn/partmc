@@ -102,7 +102,7 @@ contains
        else
           call soln_zero(bin_grid, aero_data, time, aero_dist_init, &
              scenario, env_state, SCENARIO_LOSS_FUNCTION_INVALID, aero_binned)
-       endif
+       end if
     else
        call die_msg(932981721, "No exact solutions with " &
             // "coagulation kernel type " &

@@ -10,7 +10,7 @@ set ylabel "mass concentration / (kg/m^3)"
 set key left top
 
 set xrange [1e-7:1e-3]
-set yrange [0:8e-3]
+set yrange [0:5e-4]
 
 plot "out/loss_part_0001_aero_size_mass.txt" using 1:2 title "particle t = 0 hours", \
      "out/loss_part_0001_aero_size_mass.txt" using 1:7 title "particle t = 5 minutes", \

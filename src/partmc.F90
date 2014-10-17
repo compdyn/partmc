@@ -299,6 +299,10 @@ contains
     !!   coagulation. If \c do_coagulation is \c yes, then the
     !!   following parameters must also be provided:
     !!   - \subpage input_format_coag_kernel
+    !! - \b do_loss (logical): whether to perform particle loss. If
+    !!   \c do_loss is \c yes, then the following parameters must also
+    !!   be provided:
+    !!   - \subpage input_format_loss_function
     !! - \b do_condensation (logical): whether to perform explicit
     !!   water condensation (requires SUNDIALS support to be compiled
     !!   in; cannot be used simultaneously with MOSAIC). If \c

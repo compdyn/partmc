@@ -19,33 +19,33 @@
 $\alpha$ & parameter &   & 1   &      \tn
 $A$ & characteristic radius of large collectors  &   &  m    &  \tn
 $\beta$ & parameter & & 1 &  \tn
-$\gamma$  & parameter &   & 1    &      \tn
-$C_c$ & \rr Cunningham slip correction factor & function & 1 &\rr  eq. \ref{eq:cc}, Zhang et al 2001 eq. 3\tn
-$D$ & Brownian diffusion & function & m$^2$ s$^{-1}$& eq. \ref{eq:brownian}, S\&P eq. 9.73\tn
-$D_p$ & particle diameter &  & m & \tn
-$E_{\textrm{B}}$  & \rr collection efficiency from Brownian diffusion  & function         & 1    &  \rr eq. \ref{eq:eb},  Zhang et al 2001 eq. 6 \tn
-$E_{\textrm{IM}}$  & \rr collection efficiency from impaction  & function         & 1    &   \rr eq. \ref{eq:eim},          Zhang et al 2001 eq. 7c \tn
-$E_{\textrm{IN}}$  & \rr collection efficiency from interception & function         & 1    &\rr   eq. \ref{eq:ein},      Zhang et al 2001 eq. 8 \tn
+$\gamma$  & parameter &  & 1    &      \tn
+$C_c$ & \rr Cunningham slip correction factor & function & 1 &\rr  eq. \eqref{eq:cc}, Zhang et al eq. 3\tn
+$D$ & Brownian diffusion & function & m$^2$ s$^{-1}$& eq. \eqref{eq:brownian}, S\&P eq. 9.73\tn
+$D_p$ & particle diameter & function & m & \tn
+$E_{\textrm{B}}$  & \rr collection efficiency from Brownian diffusion  & function         & 1    &  \rr eq. \eqref{eq:eb},  Zhang et al eq. 6 \tn
+$E_{\textrm{IM}}$  & \rr collection efficiency from impaction  & function         & 1    &   \rr eq. \eqref{eq:eim},          Zhang et al eq. 7c \tn
+$E_{\textrm{IN}}$  & \rr collection efficiency from interception & function         & 1    &\rr   eq. \eqref{eq:ein},      Zhang et al eq. 8 \tn
 $\epsilon_0$  & \rr empirical constant  & constant         & 1   &                      \tn
 $k$ & \rr Von Karman constant & constant & 1 & \tn
 $k_b$ & \rr Boltzmann constant & constant & 1 & \tn
 $\lambda$ & mean free path of air molecules & function & m & eq. \ref{eq:lambda}\tn
 $\bar{M}$ & mass of a molecule of air & constant & kg & \tn
-$R_1$  & \rr correction factor for bounce-off  & function &  1    & \rr  eq. \ref{eq:R_1}, Zhang et al 2001 eq. 9 \tn
+$R_1$  & \rr correction factor for bounce-off  & function &  1    & \rr  eq. \eqref{eq:R_1}, Zhang et al eq. 9 \tn
 $R_a$  & \rr aerodynamic resistance  & function & m$^{-1}$ s &  \tn
 $R_s$  & \rr surface resistance  & function & m$^{-1}$ s & Zhang et al 2001 eq. 5 \tn
-$\rho$ & density of particle & & kg m$^{-3}$ &  \tn
-$\rho_a$ & density of air & & kg m$^{-3}$ & \tn
-$ Sc $ & \rr Schmidt number & function & 1 &\rr  eq. \ref{eq:sc}\tn
-$ St$ & \rr Stokes number for smooth surfaces & function & 1 &\rr  eq. \ref{eq:st_smooth}, S\&P 19.23 \tn
-$ St$ & \rr Stokes number for vegetated surfaces & function & 1 & \rr eq. \ref{eq:st_veg}, S\&P 19.24 \tn
-$T$ & current environmental temperature &  & K & \tn
-$u_*$ & \rr friction velocity & & m s$^{-1}$ & \tn
-$\mu$ & dynamic viscocity of air & function & kg m$^{-1}$ s$^{-1}$&\rr  eq. \ref{eq:dynamic_visc}, Jacobson eq. 4.54 \tn
-$\nu$ & kinematic viscocity of air & function & m$^2$ s$^{-1}$&\rr  eq. \ref{eq:kinematic_visc} \tn
-$\bar{v}_a$ & thermal speed of an air molecule & function & m s$^{-1}$ & \ref{eq:thermal}, Jacobson eq. 15.25 \tn
-$V_d$  & \rr deposition velocity  & function & m s$^{-1}$ & eq. \ref{eq:vd}, Zhang et al 2001 eq. 1 \tn
-$V_s$  & \rr settling velocity  & function & m s$^{-1}$   &eq. \ref{eq:vs}, Zhang et al 2001 eq. 2 \tn
+$\rho$ & density of particle & input & kg m$^{-3}$ &  \tn
+$\rho_a$ & density of air & function & kg m$^{-3}$ & \tn
+$ Sc $ & \rr Schmidt number & function & 1 &\rr  eq. \eqref{eq:sc}\tn
+$ St$ & \rr Stokes number for smooth surfaces & function & 1 &\rr  eq. \eqref{eq:st_smooth}, S\&P 19.23 \tn
+$ St$ & \rr Stokes number for vegetated surfaces & function & 1 & \rr eq. \eqref{eq:st_veg}, S\&P 19.24 \tn
+$T$ & current environmental temperature & input & K & \tn
+$u_*$ & \rr friction velocity & function & m s$^{-1}$ & \tn
+$\mu$ & dynamic viscocity of air & function & kg m$^{-1}$ s$^{-1}$&\rr  eq. \eqref{eq:dynamic_visc}, Jacobson eq. 4.54 \tn
+$\nu$ & kinematic viscocity of air & function & m$^2$ s$^{-1}$&\rr  eq. \eqref{eq:kinematic_visc} \tn
+$\bar{v}_a$ & thermal speed of an air molecule & function & m s$^{-1}$ & eq. \eqref{eq:thermal}, Jacobson eq. 15.25 \tn
+$V_d$  & \rr deposition velocity  & function & m s$^{-1}$ & eq. \eqref{eq:vd}, Zhang et al eq. 1 \tn
+$V_s$  & \rr settling velocity  & function & m s$^{-1}$   &eq. \eqref{eq:vs}, Zhang et al eq. 2 \tn
 \end{longtable}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -92,4 +92,15 @@ Given a neutral atmosphere, this reduces to 16.67 in S\&P
 u_* & = \frac{\kappa \bar{u}\left(z_{\rm ref}\right)}
   \ln \left(\frac{z_{\rm ref}}{z_0}\right).
 \end{align}
+
+\section{References}
+\begin{itemize}
+\item Seinfeld, John H., and Spyros N. Pandis. Atmospheric Chemistry
+  and Physics: From Pollution to Climate Change. John Wiley \& Sons, 2012.
+\item M. Z. Jacobson,
+Fundamentals of Atmospheric Modeling, Second Edition, Cambridge University Press, 2005.
+\item Zhang, L., Gong, S., Padro, J., and Barrie, L.: A size-segregated
+    particle dry deposition scheme for an atmospheric aerosol module,
+    Atmospheric Environment, 35, 549-560, 2001.
+\end{itemize}
 \end{document}

@@ -178,7 +178,7 @@ contains
     !> Base aero_binned_t structure that will be scaled.
     type(aero_binned_t), intent(inout) :: aero_binned
     !> Structure to scale aero_binned.
-    real(kind=dp), pointer, intent(in) :: alpha_array(:)
+    real(kind=dp), allocatable, intent(in) :: alpha_array(:)
 
     integer :: i
 

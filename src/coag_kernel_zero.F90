@@ -124,7 +124,7 @@ contains
 
     integer :: i
     real(kind=dp) :: emission_rate_scale, dilution_rate, p
-    real(kind=dp), pointer :: loss_array(:)
+    real(kind=dp), allocatable :: loss_array(:)
     type(aero_dist_t) :: emissions, background
     type(aero_binned_t) :: background_binned, aero_binned_limit
 
@@ -151,8 +151,16 @@ contains
             emission_rate_scale * time / env_state%height)
     else
        allocate(loss_array(bin_grid%n_bin))
+
+       if ((loss_function_type /= SCENARIO_LOSS_FUNCTION_ZERO) .or. &
+            (loss_function_type /= SCENARIO_LOSS_FUNCTION_INVALID)) then
+          if (aero_data%name(1) /= "H2O") then
+             call warn_msg(176257943, &
+                  "exact solution assumes composition is water")
+          end if
+       end if
+
        do i = 1, bin_grid%n_bin
-          !FIXME: Density is set to water. This can cause issues possibly
           loss_array(i) = dilution_rate + scenario_loss_rate( &
                loss_function_type, rad2vol(bin_grid%centers(i)), &
                const%water_density, aero_data, env_state)

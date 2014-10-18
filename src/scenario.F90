@@ -548,11 +548,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Evaluate a loss rate function.
-  real(kind=dp) function scenario_loss_rate(function_type, vol, density, &
+  real(kind=dp) function scenario_loss_rate(loss_function_type, vol, density, &
        aero_data, env_state)
 
     !> Id of loss rate function to be used
-    integer, intent(in) :: function_type
+    integer, intent(in) :: loss_function_type
     !> Volume of particle (m^3).
     real(kind=dp), intent(in) :: vol
     !> Density of particle (kg/m^3).
@@ -562,22 +562,19 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
 
-    if(function_type == SCENARIO_LOSS_FUNCTION_INVALID) then
+    if (loss_function_type == SCENARIO_LOSS_FUNCTION_INVALID) then
       scenario_loss_rate = 0d0
-    else if(function_type == SCENARIO_LOSS_FUNCTION_ZERO) then
+    else if (loss_function_type == SCENARIO_LOSS_FUNCTION_ZERO) then
       scenario_loss_rate = 0d0
-    else if(function_type == SCENARIO_LOSS_FUNCTION_CONSTANT) then
+    else if (loss_function_type == SCENARIO_LOSS_FUNCTION_CONSTANT) then
       scenario_loss_rate = 1d-3
-    else if(function_type == SCENARIO_LOSS_FUNCTION_VOLUME) then
+    else if (loss_function_type == SCENARIO_LOSS_FUNCTION_VOLUME) then
       scenario_loss_rate = 1d15*vol
-    else if(function_type == SCENARIO_LOSS_FUNCTION_DRY_DEP) then
-      ! FIXME: Need to do better here but initially this will be fine
-      ! with assuming many things constant - such as land type,
-      ! aerodynamic resistance.
+    else if (loss_function_type == SCENARIO_LOSS_FUNCTION_DRY_DEP) then
       scenario_loss_rate = scenario_loss_rate_dry_dep(vol, density, env_state)
     else
        call die_msg(201594391, "Unknown loss function id: " &
-            // trim(integer_to_string(function_type)))
+            // trim(integer_to_string(loss_function_type)))
     end if
 
   end function scenario_loss_rate
@@ -597,7 +594,7 @@ contains
     real(kind=dp) :: V_d
     real(kind=dp) :: V_s
     real(kind=dp) :: d_p
-    real(kind=dp) :: den_air
+    real(kind=dp) :: density_air
     real(kind=dp) :: visc_d, visc_k
     real(kind=dp) :: gas_speed, gas_mean_free_path
     real(kind=dp) :: knud, cunning
@@ -609,7 +606,6 @@ contains
     real(kind=dp) :: St, Sc, u_star
     real(kind=dp) :: E_B, E_IM, E_IN, R1
     real(kind=dp) :: u_mean, z_ref, z_rough
-    real(kind=dp) :: temp, press
 
     ! User set variables
     u_mean = 5.0d0 ! Mean wind speed at reference height
@@ -621,23 +617,22 @@ contains
     beta = 2.0d0 ! From text
     gamma = .54d0 ! From table
 
-    ! FIXME: Replace these all
-    temp = env_state%temp
-    press = env_state%pressure
-
     ! particle diameter
     d_p = vol2diam(vol)
     ! density of air
-    den_air = (const%air_molec_weight * press) / (const%univ_gas_const * temp)
+    density_air = (const%air_molec_weight * env_state%pressure) &
+         / (const%univ_gas_const * env_state%temp)
     ! dynamic viscosity
-    visc_d = 1.8325d-5 * (416.16 / (temp + 120.0d0)) * (temp / 296.16)**1.5d0
+    visc_d = 1.8325d-5 * (416.16 / (env_state%temp + 120.0d0)) &
+         * (env_state%temp / 296.16)**1.5d0
     ! kinematic viscosity
-    visc_k = visc_d / den_air
+    visc_k = visc_d / density_air
     ! gas speed
-    gas_speed = sqrt((8.0d0 * const%boltzmann * temp * const%avagadro) / &
+    gas_speed = &
+         sqrt((8.0d0 * const%boltzmann * env_state%temp * const%avagadro) / &
          (const%pi * const%air_molec_weight))
     ! gas free path
-    gas_mean_free_path = (2.0d0 * visc_d) / (den_air * gas_speed)
+    gas_mean_free_path = (2.0d0 * visc_d) / (density_air * gas_speed)
     ! knudson number
     knud = (2.0d0 * gas_mean_free_path) / d_p
     ! cunningham correction factor
@@ -652,7 +647,7 @@ contains
     u_star = .4d0 * u_mean / log(z_ref / z_rough)
     R_a = (1.0d0 / (.4d0 * u_star)) * log(z_ref / z_rough)
     ! Brownian diffusion efficiency
-    diff_p = (const%boltzmann * temp * cunning) / &
+    diff_p = (const%boltzmann * env_state%temp * cunning) / &
          (3.d0 * const%pi * visc_d * d_p)
     Sc = visc_k / diff_p
     E_B = Sc**(-gamma)
@@ -674,7 +669,6 @@ contains
 
     ! Dry deposition
     V_d = V_s + (1.0d0 / (R_a + R_s + R_a * R_s * V_s))
-    !V_d = V_s + (1.0d0 / (R_a + R_s))
 
     ! The loss rate
     scenario_loss_rate_dry_dep = V_d / env_state%height
@@ -684,11 +678,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute and return the max loss rate function for a given volume.
-  real(kind=dp) function scenario_loss_rate_max(function_type, vol, &
+  real(kind=dp) function scenario_loss_rate_max(loss_function_type, vol, &
       aero_data, env_state)
 
     !> Id of loss rate function to be used
-    integer, intent(in) :: function_type
+    integer, intent(in) :: loss_function_type
     !> Particle volume (m^3).
     real(kind=dp), intent(in) :: vol
     !> Aerosol data.
@@ -707,9 +701,10 @@ contains
 
     scenario_loss_rate_max = 0d0
     do i = 1,n_sample
-      d = interp_linear_disc(d_min, d_max, n_sample, i)
-      loss = scenario_loss_rate(function_type, vol, d, aero_data, env_state)
-      scenario_loss_rate_max = max(scenario_loss_rate_max, loss)
+       d = interp_linear_disc(d_min, d_max, n_sample, i)
+       loss = scenario_loss_rate(loss_function_type, vol, d, aero_data, &
+            env_state)
+       scenario_loss_rate_max = max(scenario_loss_rate_max, loss)
     end do
 
   end function scenario_loss_rate_max
@@ -721,11 +716,11 @@ contains
   !! Value over_scale is multiplied to the maximum sampled value
   !! to get the upper bound.  A tighter bound may be reached if over_scale
   !! is smaller, but that also risks falling below a kernel value.
-  subroutine scenario_loss_rate_bin_max(function_type, bin_grid, &
+  subroutine scenario_loss_rate_bin_max(loss_function_type, bin_grid, &
         aero_data, env_state, loss_max)
 
     !> Id of loss rate function to be used
-    integer, intent(in) :: function_type
+    integer, intent(in) :: loss_function_type
     !> Bin_grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
@@ -744,15 +739,16 @@ contains
     integer :: b, i
 
     do b = 1,bin_grid%n_bin
-      v_low = rad2vol(bin_grid%edges(b))
-      v_high = rad2vol(bin_grid%edges(b + 1))
-      r_max = 0d0
-      do i = 1,n_sample
-        vol = interp_linear_disc(v_low, v_high, n_sample, i)
-        r = scenario_loss_rate_max(function_type, vol, aero_data, env_state)
-        r_max = max(r_max, r)
-      end do
-      loss_max(b) = r_max * over_scale
+       v_low = rad2vol(bin_grid%edges(b))
+       v_high = rad2vol(bin_grid%edges(b + 1))
+       r_max = 0d0
+       do i = 1,n_sample
+          vol = interp_linear_disc(v_low, v_high, n_sample, i)
+          r = scenario_loss_rate_max(loss_function_type, vol, aero_data, &
+               env_state)
+          r_max = max(r_max, r)
+       end do
+       loss_max(b) = r_max * over_scale
     end do
 
   end subroutine scenario_loss_rate_bin_max
@@ -760,17 +756,17 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Performs stochastic particle loss for one time-step.
-  !! If a particle p has a scenario_loss_rate(...) value of rate, then the
+  !! If a particle i_part has a scenario_loss_rate() value of rate, then the
   !! probability p will be removed by this function is 1 - exp(-delta_t*rate).
   !! Uses an accept-reject algorithm for efficiency, in which a particle
   !! is first sampled with rate 1 - exp(-delta_t*over_rate)
   !! and then accepted with rate
   !! (1 - exp(-delta_t*rate))/(1 - exp(-delta_t*over_rate)).
-  subroutine scenario_particle_loss(function_type, delta_t, aero_data, &
+  subroutine scenario_particle_loss(loss_function_type, delta_t, aero_data, &
        aero_state, env_state, alg_threshold)
 
-    !> Id of loss rate function to be used
-    integer, intent(in) :: function_type
+    !> Id of loss rate function to be used.
+    integer, intent(in) :: loss_function_type
     !> Time increment to update over.
     real(kind=dp), intent(in) :: delta_t
     !> Aerosol data.
@@ -784,61 +780,65 @@ contains
     !! a value of 1 will always use the accept-reject algorithm.
     real(kind=dp), intent(in) :: alg_threshold
 
-    integer :: c, b, s, p
+    integer :: c, b, s, i_part
     real(kind=dp) :: over_rate, over_prob, rand_real, rand_geom
 
-    if(function_type == SCENARIO_LOSS_FUNCTION_ZERO .or. &
-        function_type == SCENARIO_LOSS_FUNCTION_INVALID) return
+    if (loss_function_type == SCENARIO_LOSS_FUNCTION_ZERO .or. &
+        loss_function_type == SCENARIO_LOSS_FUNCTION_INVALID) return
 
-    if(alg_threshold <= 0d0) then
-      ! use naive algorithm for everything
-      do p = aero_state%apa%n_part, 1, -1
-        call scenario_try_single_particle_loss(function_type, delta_t, &
-             aero_data, aero_state, env_state, p, 1d0)
-      end do
-      return
+    if (alg_threshold <= 0d0) then
+       ! use naive algorithm for everything
+       do i_part = aero_state%apa%n_part, 1, -1
+          call scenario_try_single_particle_loss(loss_function_type, delta_t, &
+               aero_data, aero_state, env_state, i_part, 1d0)
+       end do
+       return
     end if
 
     call aero_state_sort(aero_state)
 
     if (.not. aero_state%aero_sorted%removal_rate_bounds_valid) then
-      call scenario_loss_rate_bin_max(function_type, &
-           aero_state%aero_sorted%bin_grid, aero_data, env_state, &
-           aero_state%aero_sorted%removal_rate_max)
-      aero_state%aero_sorted%removal_rate_bounds_valid = .true.
+       call scenario_loss_rate_bin_max(loss_function_type, &
+            aero_state%aero_sorted%bin_grid, aero_data, env_state, &
+            aero_state%aero_sorted%removal_rate_max)
+       aero_state%aero_sorted%removal_rate_bounds_valid = .true.
     end if
 
     do c = 1,aero_sorted_n_class(aero_state%aero_sorted)
-      do b = 1,aero_sorted_n_bin(aero_state%aero_sorted)
-        over_rate = aero_state%aero_sorted%removal_rate_max(b)
-        if (delta_t * over_rate <= 0d0) cycle
-        over_prob = 1d0 - exp(-delta_t * over_rate)
-        if(over_prob >= alg_threshold) then
-          ! use naive algorithm over bin
-          do s = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry,1,-1
-            p = aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
-            call scenario_try_single_particle_loss(function_type, delta_t, &
-                 aero_data, aero_state, env_state, p, 1d0)
-          end do
-        else
-          ! use accept-reject algorithm over bin
-          s = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry + 1
-          do while (.true.)
-            rand_real = pmc_random()
-            if (rand_real <= 0d0) exit
-            rand_geom = -log(rand_real) / (delta_t * over_rate) + 1d0
-            if (rand_geom >= real(s, kind=dp)) exit
-            s = s - floor(rand_geom)
+       do b = 1,aero_sorted_n_bin(aero_state%aero_sorted)
+          over_rate = aero_state%aero_sorted%removal_rate_max(b)
+          if (delta_t * over_rate <= 0d0) cycle
+          over_prob = 1d0 - exp(-delta_t * over_rate)
+          if (over_prob >= alg_threshold) then
+             ! use naive algorithm over bin
+             do s = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry, &
+                  1,-1
+                i_part = &
+                     aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
+                call scenario_try_single_particle_loss(loss_function_type, &
+                     delta_t, aero_data, aero_state, env_state, i_part, 1d0)
+             end do
+          else
+             ! use accept-reject algorithm over bin
+             s = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry + 1
+             do while (.true.)
+                rand_real = pmc_random()
+                if (rand_real <= 0d0) exit
+                rand_geom = -log(rand_real) / (delta_t * over_rate) + 1d0
+                if (rand_geom >= real(s, kind=dp)) exit
+                s = s - floor(rand_geom)
 
-            ! note: floor(rand_geom) is a random geometric variable
-            ! with accept probability 1 - exp(-delta_t*over_rate)
+                ! note: floor(rand_geom) is a random geometric variable
+                ! with accept probability 1 - exp(-delta_t*over_rate)
 
-            p = aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
-            call scenario_try_single_particle_loss(function_type, delta_t, &
-                 aero_data, aero_state, env_state, p, over_prob)
-          end do
-        end if
-      end do
+                i_part = &
+                     aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
+                call scenario_try_single_particle_loss(loss_function_type, &
+                     delta_t, aero_data, aero_state, env_state, i_part, &
+                     over_prob)
+             end do
+          end if
+       end do
     end do
 
     !call aero_state_check_sort(aero_state)
@@ -852,10 +852,10 @@ contains
   !! Particle is removed with probability
   !! (1d0 - exp(-delta_t*rate))/over_prob, where rate is the loss function
   !! evaluated for the given particle.
-  subroutine scenario_try_single_particle_loss(function_type, delta_t, &
-      aero_data, aero_state, env_state, part_i, over_prob)
+  subroutine scenario_try_single_particle_loss(loss_function_type, delta_t, &
+      aero_data, aero_state, env_state, i_part, over_prob)
     !> Id of loss rate function to be used
-    integer, intent(in) :: function_type
+    integer, intent(in) :: loss_function_type
     !> Time increment to update over.
     real(kind=dp), intent(in) :: delta_t
     !> Aerosol data.
@@ -865,7 +865,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Index of particle to attempt removal
-    integer, intent(in) :: part_i
+    integer, intent(in) :: i_part
     !> Overestimated removal probability used previously
     real(kind=dp), intent(in) :: over_prob
 
@@ -873,11 +873,11 @@ contains
     type(aero_particle_t), pointer :: aero_particle
     type(aero_info_t) :: aero_info
 
-    aero_particle => aero_state%apa%particle(part_i)
+    aero_particle => aero_state%apa%particle(i_part)
     vol = aero_particle_volume(aero_particle)
     density = aero_particle_density(aero_particle, aero_data)
-    rate = scenario_loss_rate(function_type, vol, density, aero_data, &
-            env_state)
+    rate = scenario_loss_rate(loss_function_type, vol, density, aero_data, &
+         env_state)
     prob = 1d0 - exp(-delta_t * rate)
     call warn_assert_msg(295846288, prob <= over_prob, &
          "particle loss upper bound estimation is too tight: " &
@@ -889,7 +889,7 @@ contains
     aero_info%id = aero_particle%id
     aero_info%action = AERO_INFO_DILUTION
     aero_info%other_id = 0
-    call aero_state_remove_particle_with_info(aero_state, part_i, aero_info)
+    call aero_state_remove_particle_with_info(aero_state, i_part, aero_info)
     call aero_info_deallocate(aero_info)
 
   end subroutine scenario_try_single_particle_loss
@@ -1291,8 +1291,10 @@ contains
     !!
     !! The loss rate function is specified by the parameter:
     !!   - \b loss_function (string): the type of loss function ---
-    !!     must be one of: \c zero for no particle loss, or \c volume
-    !!     for particle loss proportional to particle volume
+    !!     must be one of: \c zero for no particle loss, \c constant
+    !!     for constant loss rate, \c volume for particle loss proportional
+    !!     to particle volume, or \c drydep for particle loss proportional
+    !!     to dry deposition velocity
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format

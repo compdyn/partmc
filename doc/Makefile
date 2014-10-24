@@ -19,11 +19,11 @@ all: doc
 .PHONY: doc
 doc: README.html ChangeLog.html $(GRAPHVIZ_PDF) $(DOC_INDEX)
 
-README.html: ../README markdown2.py
+README.html: ../README.md markdown2.py
 	echo "<html>" > $@
 	echo "<head><title>PartMC $(VERSION)</title></head>" >> $@
 	echo "<body bgcolor=\"#ffffff\">" >> $@
-	./markdown2.py ../README >> $@
+	./markdown2.py ../README.md >> $@
 	echo "</body></html>" >> $@
 
 ChangeLog.html: ../ChangeLog markdown2.py

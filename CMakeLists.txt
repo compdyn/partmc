@@ -193,6 +193,13 @@ set_tests_properties(test_emission_2 PROPERTIES DEPENDS test_emission_1)
 add_test(test_emission_3 ${CMAKE_BINARY_DIR}/test_run/emission/test_emission_3.sh)
 set_tests_properties(test_emission_3 PROPERTIES DEPENDS test_emission_2)
 
+add_test(test_loss_1 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_1.sh)
+add_test(test_loss_2 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_2.sh)
+set_tests_properties(test_loss_2 PROPERTIES DEPENDS test_loss_1)
+add_test(test_loss_3 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_3.sh)
+add_test(test_loss_4 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_4.sh)
+set_tests_properties(test_loss_4 PROPERTIES DEPENDS test_loss_3)
+
 add_test(test_nucleate_1 ${CMAKE_BINARY_DIR}/test_run/nucleate/test_nucleate_1.sh)
 add_test(test_nucleate_2 ${CMAKE_BINARY_DIR}/test_run/nucleate/test_nucleate_2.sh)
 set_tests_properties(test_nucleate_2 PROPERTIES DEPENDS test_nucleate_1)

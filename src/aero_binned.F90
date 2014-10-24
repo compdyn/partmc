@@ -173,6 +173,25 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Scales an aero_binned_t element-wise by an array of reals.
+  subroutine aero_binned_scale_by_array(aero_binned, alpha_array)
+
+    !> Base aero_binned_t structure that will be scaled.
+    type(aero_binned_t), intent(inout) :: aero_binned
+    !> Structure to scale aero_binned.
+    real(kind=dp), allocatable, intent(in) :: alpha_array(:)
+
+    integer :: i
+
+    do i = 1, size(aero_binned%num_conc)
+       aero_binned%num_conc(i) = alpha_array(i)*aero_binned%num_conc(i)
+       aero_binned%vol_conc(i,:) = alpha_array(i)*aero_binned%vol_conc(i,:)
+    end do
+
+  end subroutine aero_binned_scale_by_array
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Copy one aero_binned_t structure to another.
   !!
   !! Symbolically does aero_binned_to = aero_binned_from.

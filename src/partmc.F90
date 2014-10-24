@@ -299,6 +299,10 @@ contains
     !!   coagulation. If \c do_coagulation is \c yes, then the
     !!   following parameters must also be provided:
     !!   - \subpage input_format_coag_kernel
+    !! - \b do_loss (logical): whether to perform particle loss. If
+    !!   \c do_loss is \c yes, then the following parameters must also
+    !!   be provided:
+    !!   - \subpage input_format_loss_function
     !! - \b do_condensation (logical): whether to perform explicit
     !!   water condensation (requires SUNDIALS support to be compiled
     !!   in; cannot be used simultaneously with MOSAIC). If \c
@@ -418,6 +422,14 @@ contains
                run_part_opt%coag_kernel_type)
        else
           run_part_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
+       end if
+
+       call spec_file_read_logical(file, 'do_loss', run_part_opt%do_loss)
+       if (run_part_opt%do_loss) then
+          call spec_file_read_loss_function_type(file, &
+               run_part_opt%loss_function_type)
+       else
+          run_part_opt%loss_function_type = SCENARIO_LOSS_FUNCTION_INVALID
        end if
 
        call spec_file_read_logical(file, 'do_condensation', &
@@ -793,6 +805,14 @@ contains
             run_exact_opt%coag_kernel_type)
     else
        run_exact_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
+    end if
+
+    call spec_file_read_logical(file, 'do_loss', run_exact_opt%do_loss)
+    if (run_exact_opt%do_loss) then
+       call spec_file_read_loss_function_type(file, &
+          run_exact_opt%loss_function_type)
+    else
+       run_exact_opt%loss_function_type = SCENARIO_LOSS_FUNCTION_INVALID
     end if
 
     call spec_file_close(file)

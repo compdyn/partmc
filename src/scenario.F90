@@ -769,7 +769,7 @@ contains
   !! Uses an accept-reject algorithm for efficiency, in which a particle
   !! is first sampled with rate <tt>1 - exp(-delta_t*over_rate) </tt>
   !! and then accepted with rate
-  !! <tt>(1 - \exp(-delta_t*rate))/(1 - exp(-delta_t*over_rate))</tt>.
+  !! <tt>(1 - exp(-delta_t*rate))/(1 - exp(-delta_t*over_rate))</tt>.
   subroutine scenario_particle_loss(loss_function_type, delta_t, aero_data, &
        aero_state, env_state)
 

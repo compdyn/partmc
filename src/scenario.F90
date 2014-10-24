@@ -32,6 +32,11 @@ module pmc_scenario
   !> Type code for a loss rate function based on dry deposition
   integer, parameter :: SCENARIO_LOSS_FUNCTION_DRY_DEP  = 4
 
+  !> Parameter to switch between algorithms for particle loss.
+  !! A value of 0 will always use the naive algorithm, and
+  !! a value of 1 will always use the accept-reject algorithm.
+  real(kind=dp), parameter :: alg_threshold = 1.0d0
+
   !> Scenario data.
   !!
   !! This is everything needed to drive the scenario being simulated.
@@ -756,14 +761,15 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Performs stochastic particle loss for one time-step.
-  !! If a particle i_part has a scenario_loss_rate() value of rate, then the
-  !! probability p will be removed by this function is 1 - exp(-delta_t*rate).
+  !! If a particle \c i_part has a scenario_loss_rate() value of rate, then the
+  !! probability p will be removed by this function is
+  !! <tt>1 - exp(-delta_t*rate)</tt>.
   !! Uses an accept-reject algorithm for efficiency, in which a particle
-  !! is first sampled with rate 1 - exp(-delta_t*over_rate)
+  !! is first sampled with rate <tt>1 - exp(-delta_t*over_rate) </tt>
   !! and then accepted with rate
-  !! (1 - exp(-delta_t*rate))/(1 - exp(-delta_t*over_rate)).
+  !! <tt>(1 - \exp(-delta_t*rate))/(1 - exp(-delta_t*over_rate))</tt>.
   subroutine scenario_particle_loss(loss_function_type, delta_t, aero_data, &
-       aero_state, env_state, alg_threshold)
+       aero_state, env_state)
 
     !> Id of loss rate function to be used.
     integer, intent(in) :: loss_function_type
@@ -775,10 +781,6 @@ contains
     type(aero_state_t), intent(inout) :: aero_state
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
-    !> Parameter to switch between algorithms for particle loss.
-    !! A value of 0 will always use the naive algorithm, and
-    !! a value of 1 will always use the accept-reject algorithm.
-    real(kind=dp), intent(in) :: alg_threshold
 
     integer :: c, b, s, i_part
     real(kind=dp) :: over_rate, over_prob, rand_real, rand_geom

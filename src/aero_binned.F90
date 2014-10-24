@@ -173,6 +173,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Scales an aero_binned_t element-wise by an array of reals.
   subroutine aero_binned_scale_by_array(aero_binned, alpha_array)
 
     !> Base aero_binned_t structure that will be scaled.

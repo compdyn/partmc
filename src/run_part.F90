@@ -241,8 +241,7 @@ contains
 
        if (run_part_opt%do_loss) then
           call scenario_particle_loss(run_part_opt%loss_function_type, &
-               run_part_opt%del_t, aero_data, aero_state, env_state, &
-               run_part_opt%loss_alg_threshold)
+               run_part_opt%del_t, aero_data, aero_state, env_state)
        end if
 
 #ifdef PMC_USE_SUNDIALS

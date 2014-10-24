@@ -587,6 +587,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute and return the dry deposition rate for a given particle.
+  !! All equations used here are written in detail in the file
+  !! \c doc/deposition/deposition.tex.
   real(kind=dp) function scenario_loss_rate_dry_dep(vol, density, env_state)
 
     !> Particle volume (m^3).

@@ -29,7 +29,7 @@ $E_{\textrm{IN}}$  & \rr collection efficiency from interception & function     
 $\epsilon_0$  & \rr empirical constant  & constant         & 1   &                      \tn
 $k$ & \rr Von Karman constant & constant & 1 & \tn
 $k_b$ & \rr Boltzmann constant & constant & 1 & \tn
-$\lambda$ & mean free path of air molecules & function & m & eq. \ref{eq:lambda}\tn
+$\lambda$ & mean free path of air molecules & function & m & eq. \eqref{eq:lambda}\tn
 $\bar{M}$ & mass of a molecule of air & constant & kg & \tn
 $R_1$  & \rr correction factor for bounce-off  & function &  1    & \rr  eq. \eqref{eq:R_1}, Zhang et al eq. 9 \tn
 $R_a$  & \rr aerodynamic resistance  & function & m$^{-1}$ s &  \tn
@@ -44,7 +44,7 @@ $u_*$ & \rr friction velocity & function & m s$^{-1}$ & \tn
 $\mu$ & dynamic viscocity of air & function & kg m$^{-1}$ s$^{-1}$&\rr  eq. \eqref{eq:dynamic_visc}, Jacobson eq. 4.54 \tn
 $\nu$ & kinematic viscocity of air & function & m$^2$ s$^{-1}$&\rr  eq. \eqref{eq:kinematic_visc} \tn
 $\bar{v}_a$ & thermal speed of an air molecule & function & m s$^{-1}$ & eq. \eqref{eq:thermal}, Jacobson eq. 15.25 \tn
-$V_d$  & \rr deposition velocity  & function & m s$^{-1}$ & eq. \eqref{eq:vd}, Zhang et al eq. 1 \tn
+$V_d$  & \rr deposition velocity  & function & m s$^{-1}$ & eq. \eqref{eq:vd}, S\&P 19.7 \tn
 $V_s$  & \rr settling velocity  & function & m s$^{-1}$   &eq. \eqref{eq:vs}, Zhang et al eq. 2 \tn
 \end{longtable}
 
@@ -56,7 +56,7 @@ $V_s$  & \rr settling velocity  & function & m s$^{-1}$   &eq. \eqref{eq:vs}, Zh
 \begin{align}
 \mu & =  1.8325 \times 10^{-5}\left(\frac{416.16}{T + 120}\right)\left(\frac{T}{296.16}\right)^{1.5}\label{eq:dynamic_visc}\\
 \nu & = \frac{\mu}{\rho_a}  \label{eq:kinematic_visc}\\
-V_d &= V_s + \frac{1}{R_a + R_s} \label{eq:vd}\\
+V_d &= V_s + \frac{1}{R_a + R_s + R_aR_sV_s} \label{eq:vd}\\
 V_s & = \frac{\rho D_p^2gC_c}{18\mu } \label{eq:vs}\\
 Sc &= \frac{\nu}{D}   \label{eq:sc} \\
 St &= \frac{V_su_*^2}{g \nu } \label{eq:st_smooth}\\

@@ -106,18 +106,26 @@ diams = numpy.array(diams_list)
 #filename_out = "slope.pdf"
 #figure.savefig(filename_out)
 
+data_no_fractal = numpy.loadtxt("out_0925/no_fractal_0001_aero_size_num.txt")
+data_no_fractal_1d = data_no_fractal[:,col] * math.log(10)
+
 (figure, axes) = mpl_helper.make_fig(colorbar=False)
 axes.semilogx(diams, data1_1d, color='k')
+axes.semilogx(diams, data_no_fractal_1d, color='b')
 #axes.errorbar(ref_data[:,0],ref_data[:,col],yerr=ref_data_err,color='r')
 axes.semilogx(ref_data[:,0],ref_data[:,col], color='#CC4F1B')
 axes.fill_between(ref_data[:,0], ref_data[:,col]-ref_data_err, ref_data[:,col]+ref_data_err,
     alpha=0.5, edgecolor='#CC4F1B', facecolor='#FF9848')
 axes.set_title("")
-axes.set_xlabel("Dry diameter (m)")
-axes.set_ylabel(r"Number concentration ($\mathrm{m}^{-3}$)")
+axes.set_xlabel("Dry diameter (m)", fontsize=14)
+axes.set_ylabel(r"Number concentration ($\mathrm{m}^{-3}$)", fontsize=14)
 axes.grid()
 axes.set_ylim(0,)
-axes.legend(('PartMC','Barrel'),loc='upper left')
+axes.legend(('PartMC','PartMC (no fractal)','Barrel'),loc='upper left')
+bbox_props = dict(boxstyle="square,pad=0.3", fc="cyan", ec="b", lw=1)
+axes.annotate('210 min', xy=(0.82, 0.85), xycoords='axes fraction',weight='extra bold', size=14, bbox=bbox_props)
+bbox_props_1 = dict(boxstyle="square,pad=0.3", fc="white", ec="r", lw=1)
+axes.annotate('Exp.4', xy=(0.02, 0.15), xycoords='axes fraction',weight='extra bold', size=14, bbox=bbox_props_1)
 filename_out = "aero_num_size.pdf"
 figure.savefig(filename_out)
 

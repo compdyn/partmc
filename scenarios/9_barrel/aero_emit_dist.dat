@@ -1,1 +1,10 @@
 # empty aerosol state with no particles
+mode_name emit_as                    # name of mode source
+mass_frac aero_emit_comp_aerodyne_0828_as.dat       # species mass fractions
+mode_type sampled                  # type of distribution
+size_dist aero_emit_size_dist_aerodyne_0828_as.dat  # filename for the sample distribution
+
+mode_name emit_rb                    # name of mode source
+mass_frac aero_emit_comp_aerodyne_0828_rb.dat       # species mass fractions
+mode_type sampled                  # type of distribution
+size_dist aero_emit_size_dist_aerodyne_0828_rb.dat  # filename for the sample distribution

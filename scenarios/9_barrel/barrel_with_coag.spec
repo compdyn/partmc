@@ -1,5 +1,5 @@
 run_type particle               # particle-resolved run
-output_prefix out/barrel_wc # prefix of output files
+output_prefix out_0925/barrel_wc # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 100000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
@@ -52,4 +52,4 @@ exponent_BL 0.26              # exponent in diffusive boundary layer thickness
 do_fractal yes                  # whether to do fractal treatment
 frac_dim 2.2                   # fractal dimension
 prime_radius 4.5e-8             # radius of monomer
-vol_fill_factor 2.0            # volume filling factor
+vol_fill_factor 1.43            # volume filling factor

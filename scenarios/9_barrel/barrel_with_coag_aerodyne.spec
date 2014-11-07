@@ -4,7 +4,7 @@ n_repeat 1                      # number of Monte Carlo repeats
 n_part 10000                    # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
-t_max 8400 #7800                      # total simulation time (s)
+t_max 9600 #7800                      # total simulation time (s)
 del_t 60                        # timestep (s)
 t_output 120                    # output interval (0 disables) (s)
 t_progress 60                   # progress printing interval (0 disables) (s)
@@ -49,7 +49,7 @@ A_sedi 0.2565                     # sedimentational deposition area (m^2)
 prefactor_BL 0.05             # prefactor in diffusive boundary layer thickness (m)
 exponent_BL 0.274              # exponent in diffusive boundary layer thickness
 
-do_fractal yes                  # whether to do fractal treatment
-frac_dim 2.5                   # fractal dimension
-prime_radius 1e-8             # radius of monomer
-vol_fill_factor 1.43            # volume filling factor
+do_fractal no                  # whether to do fractal treatment
+#frac_dim 2.5                   # fractal dimension
+#prime_radius 1e-8             # radius of monomer
+#vol_fill_factor 1.43            # volume filling factor

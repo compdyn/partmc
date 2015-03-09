@@ -20,11 +20,15 @@ for i in range(0,ref_data.shape[0]):
        list_df.append(ref_data[i,3])
        list_rmse.append(ref_data[i,4])
 
+list_df, list_rmse = zip(*sorted(zip(list_df, list_rmse)))
+
 (figure, axes) = mpl_helper.make_fig(colorbar=False)
 axes.plot(list_df, list_rmse, '-ro')
 axes.set_xlabel("Fractal dimension")
 axes.set_ylabel(r"Root mean square error")
 axes.set_title("prefactor = %.3f, exponent = %.2f" %(prefactor, exponent))
 axes.grid()
+bbox_props_1 = dict(boxstyle="square,pad=0.3", fc="white", ec="r", lw=1)
+axes.annotate('Exp.4', xy=(0.85, 0.05), xycoords='axes fraction',weight='extra bold', size=14, bbox=bbox_props_1)
 filename_out = "rmse_vs_df.pdf"
 figure.savefig(filename_out)

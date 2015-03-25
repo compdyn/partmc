@@ -1437,7 +1437,7 @@ contains
     if (weight_ratio > 1d0) then
        n_remove = prob_round( &
             real(aero_state%aero_sorted%group_class%inverse(i_group, &
-            i_class)%n_entry, kind=dp) / weight_ratio)
+            i_class)%n_entry, kind=dp) * (1d0 - 1d0 / weight_ratio))
        do i_remove = 1,n_remove
           i_entry = pmc_rand_int(aero_state%aero_sorted%group_class%inverse( &
                i_group, i_class)%n_entry)

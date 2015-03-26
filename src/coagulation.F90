@@ -182,6 +182,8 @@ contains
     integer :: target_unif_entry, target_part, n_samp, n_coag, n_remove, bt, bs
     integer :: ct, cs
     real(kind=dp) :: n_source_per_target, accept_factor
+    real(kind=dp) :: min_target_vol, max_source_vol, max_new_target_vol
+    real(kind=dp) :: max_target_growth_factor
     type(aero_particle_t) :: target_particle, source_particle
 
     call determine_target_and_source(aero_state%awa, &

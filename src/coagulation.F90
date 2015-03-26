@@ -1,4 +1,6 @@
-! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer
+! Copyright (C) 2005-2015 Matthew West
+! Copyright (C) 2015 Jeffrey Curtis
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -201,13 +203,10 @@ contains
        return
     end if
 
-    ! minimum target volume
     min_target_vol = rad2vol(aero_state%aero_sorted%bin_grid%edges(bt))
-    ! maximum source volume
     max_source_vol = rad2vol(aero_state%aero_sorted%bin_grid%edges(bs+1))
-    ! maximum new target particle volume
     max_new_target_vol = min_target_vol + max_source_vol * n_source_per_target
-    ! check for large volume change
+    ! check for unacceptably large volume change
     max_target_growth_factor = max_new_target_vol / min_target_vol
     if (max_target_growth_factor > MAX_ALLOWABLE_GROWTH_FACTOR) then
        per_particle_coag_succeeded = .false.

@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2015 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -426,7 +426,8 @@ contains
   !! model. We additionally scale the number concentration to account
   !! for temperature changes.
   subroutine scenario_update_aero_state(scenario, delta_t, env_state, &
-       old_env_state, aero_data, aero_state, n_emit, n_dil_in, n_dil_out)
+       old_env_state, aero_data, aero_state, n_emit, n_dil_in, n_dil_out, &
+       allow_doubling, allow_halving)
 
     !> Scenario.
     type(scenario_t), intent(in) :: scenario
@@ -446,6 +447,10 @@ contains
     integer, intent(out) :: n_dil_in
     !> Number of diluted-out particles.
     integer, intent(out) :: n_dil_out
+    !> Whether to allow doubling of the population.
+    logical, intent(in) :: allow_doubling
+    !> Whether to allow halving of the population.
+    logical, intent(in) :: allow_halving
 
     real(kind=dp) :: emission_rate_scale, dilution_rate, p
     type(aero_dist_t) :: emissions, background
@@ -458,7 +463,8 @@ contains
          env_state%elapsed_time, emissions, emission_rate_scale)
     p = emission_rate_scale * delta_t / env_state%height
     call aero_state_add_aero_dist_sample(aero_state, aero_data, &
-         emissions, p, env_state%elapsed_time, n_emit)
+         emissions, p, env_state%elapsed_time, allow_doubling, allow_halving, &
+         n_emit)
     call aero_dist_deallocate(emissions)
 
     ! dilution
@@ -478,7 +484,8 @@ contains
     call aero_state_deallocate(aero_state_delta)
     ! addition from background
     call aero_state_add_aero_dist_sample(aero_state, aero_data, &
-         background, 1d0 - p, env_state%elapsed_time, n_dil_in)
+         background, 1d0 - p, env_state%elapsed_time, allow_doubling, &
+         allow_halving, n_dil_in)
     call aero_dist_deallocate(background)
 
     ! update computational volume

@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2013 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2015 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -649,7 +649,7 @@ contains
   !> about \c n_add computational particles will give the correct
   !> final particle number.
   subroutine aero_state_prepare_weight_for_add(aero_state, i_group, &
-       i_class, n_add)
+       i_class, n_add, allow_doubling, allow_halving)
 
     !> Aero state to add to.
     type(aero_state_t), intent(inout) :: aero_state
@@ -659,6 +659,10 @@ contains
     integer, intent(in) :: i_class
     !> Approximate number of particles to be added at current weighting.
     real(kind=dp), intent(in) :: n_add
+    !> Whether to allow doubling of the population.
+    logical, intent(in) :: allow_doubling
+    !> Whether to allow halving of the population.
+    logical, intent(in) :: allow_halving
 
     integer :: global_n_part, n_group, n_class
     real(kind=dp) :: mean_n_part, n_part_new, weight_ratio
@@ -677,7 +681,8 @@ contains
          .or. (n_part_new > n_part_ideal_local_group * 2d0)) &
          then
        weight_ratio = n_part_new / n_part_ideal_local_group
-       call aero_state_scale_weight(aero_state, i_group, i_class, weight_ratio)
+       call aero_state_scale_weight(aero_state, i_group, i_class, &
+            weight_ratio, allow_doubling, allow_halving)
     end if
 
   end subroutine aero_state_prepare_weight_for_add
@@ -687,7 +692,8 @@ contains
   !> Generates a Poisson sample of an \c aero_dist, adding to \c
   !> aero_state, with the given sample proportion.
   subroutine aero_state_add_aero_dist_sample(aero_state, aero_data, &
-       aero_dist, sample_prop, create_time, n_part_add)
+       aero_dist, sample_prop, create_time, allow_doubling, allow_halving, &
+       n_part_add)
 
     !> Aero state to add to.
     type(aero_state_t), intent(inout) :: aero_state
@@ -699,6 +705,10 @@ contains
     real(kind=dp), intent(in) :: sample_prop
     !> Creation time for new particles (s).
     real(kind=dp), intent(in) :: create_time
+    !> Whether to allow doubling of the population.
+    logical, intent(in) :: allow_doubling
+    !> Whether to allow halving of the population.
+    logical, intent(in) :: allow_halving
     !> Number of particles added.
     integer, intent(out), optional :: n_part_add
 
@@ -726,7 +736,7 @@ contains
           n_samp_avg = sample_prop * aero_mode_number(aero_mode, &
                aero_state%awa%weight(i_group, i_class))
           call aero_state_prepare_weight_for_add(aero_state, i_group, &
-               i_class, n_samp_avg)
+               i_class, n_samp_avg, allow_doubling, allow_halving)
           if (n_samp_avg == 0d0) cycle
 
           ! sample particles
@@ -1408,7 +1418,7 @@ contains
   !> altering particle number as necessary to preserve the number
   !> concentration.
   subroutine aero_state_scale_weight(aero_state, i_group, i_class, &
-       weight_ratio)
+       weight_ratio, allow_doubling, allow_halving)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
@@ -1418,26 +1428,28 @@ contains
     integer, intent(in) :: i_class
     !> Ratio of <tt>new_weight / old_weight</tt>.
     real(kind=dp), intent(in) :: weight_ratio
+    !> Whether to allow doubling of the population.
+    logical, intent(in) :: allow_doubling
+    !> Whether to allow halving of the population.
+    logical, intent(in) :: allow_halving
 
     real(kind=dp) :: ratio
-    integer :: i_part, i_remove, n_remove, i_entry
+    integer :: i_part, i_remove, n_remove, i_entry, n_part
     type(aero_info_t) :: aero_info
 
     ! We could use the ratio < 1 case unconditionally, but that would
     ! have higher variance for the ratio > 1 case than the current
     ! scheme.
 
-    call aero_weight_scale(aero_state%awa%weight(i_group, i_class), &
-         weight_ratio)
-
-    if (aero_state%apa%n_part == 0) return
-
     call aero_state_sort(aero_state)
+    n_part = aero_state%aero_sorted%group_class%inverse(i_group, &
+         i_class)%n_entry
 
-    if (weight_ratio > 1d0) then
-       n_remove = prob_round( &
-            real(aero_state%aero_sorted%group_class%inverse(i_group, &
-            i_class)%n_entry, kind=dp) * (1d0 - 1d0 / weight_ratio))
+    if ((weight_ratio > 1d0) .and. (allow_halving .or. (n_part == 0))) then
+       call aero_weight_scale(aero_state%awa%weight(i_group, i_class), &
+            weight_ratio)
+       n_remove = prob_round(real(n_part, kind=dp) &
+            * (1d0 - 1d0 / weight_ratio))
        do i_remove = 1,n_remove
           i_entry = pmc_rand_int(aero_state%aero_sorted%group_class%inverse( &
                i_group, i_class)%n_entry)
@@ -1450,9 +1462,11 @@ contains
                aero_info)
           call aero_info_deallocate(aero_info)
        end do
-    elseif (weight_ratio < 1d0) then
-       do i_entry = aero_state%aero_sorted%group_class%inverse(i_group, &
-            i_class)%n_entry,1,-1
+    elseif ((weight_ratio < 1d0) &
+         .and. (allow_doubling .or. (n_part == 0))) then
+       call aero_weight_scale(aero_state%awa%weight(i_group, i_class), &
+            weight_ratio)
+       do i_entry = n_part,1,-1
           i_part = aero_state%aero_sorted%group_class%inverse(i_group, &
                i_class)%entry(i_entry)
           call aero_state_dup_particle(aero_state, i_part, 1d0 / weight_ratio)

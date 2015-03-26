@@ -1,4 +1,4 @@
-! Copyright (C) 2010-2012 Matthew West
+! Copyright (C) 2010-2015 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -29,7 +29,7 @@ contains
 
   !> Do nucleation of the type given by the first argument.
   subroutine nucleate(nucleate_type, nucleate_source, env_state, gas_data, &
-       aero_data, aero_state, gas_state, del_t)
+       aero_data, aero_state, gas_state, del_t, allow_doubling, allow_halving)
 
     !> Type of nucleation.
     integer, intent(in) :: nucleate_type
@@ -47,10 +47,15 @@ contains
     type(gas_state_t), intent(inout) :: gas_state
     !> Time to perform nucleation for.
     real(kind=dp), intent(in) :: del_t
+    !> Whether to allow doubling of the population.
+    logical, intent(in) :: allow_doubling
+    !> Whether to allow halving of the population.
+    logical, intent(in) :: allow_halving
 
     if (nucleate_type == NUCLEATE_TYPE_SULF_ACID) then
        call nucleate_sulf_acid(nucleate_source, env_state, gas_data, &
-            aero_data, aero_state, gas_state, del_t)
+            aero_data, aero_state, gas_state, del_t, allow_doubling, &
+            allow_halving)
     else
        call die_msg(983831728, &
             "unknown nucleation type: " &
@@ -76,7 +81,7 @@ contains
   !! <i>J. Geophys. Res.</i>, 113, D10209, doi:<a
   !! href="http://dx.doi.org/10.1029/2007JD009253">10.1029/2007JD009253</a>.
   subroutine nucleate_sulf_acid(nucleate_source, env_state, gas_data, &
-       aero_data, aero_state, gas_state, del_t)
+       aero_data, aero_state, gas_state, del_t, allow_doubling, allow_halving)
 
     !> Nucleate source number.
     integer, intent(in) :: nucleate_source
@@ -92,6 +97,10 @@ contains
     type(gas_state_t), intent(inout) :: gas_state
     !> Time to perform nucleation for.
     real(kind=dp), intent(in) :: del_t
+    !> Whether to allow doubling of the population.
+    logical, intent(in) :: allow_doubling
+    !> Whether to allow halving of the population.
+    logical, intent(in) :: allow_halving
 
     real(kind=dp), parameter :: nucleate_coeff = 1d-18 ! K (m^3 s^{-1})
     real(kind=dp), parameter :: nucleate_diam = 1d-9   ! diameter of new
@@ -128,7 +137,7 @@ contains
        n_samp_avg = nucleate_rate * del_t / aero_weight_num_conc_at_radius( &
             aero_state%awa%weight(i_group, i_class), diam2rad(nucleate_diam))
        call aero_state_prepare_weight_for_add(aero_state, i_group, i_class, &
-            n_samp_avg)
+            n_samp_avg, allow_doubling, allow_halving)
 
        ! determine number of nucleated particles
        n_samp_avg = nucleate_rate * del_t / aero_weight_num_conc_at_radius( &

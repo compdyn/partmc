@@ -730,9 +730,8 @@ contains
          .or. (trim(string) == '0')) then
        val = .false.
     else
-       call assert_msg(985010153, ios == 0, &
-            'error converting "' // trim(string) &
-            // '" to logical: IOSTAT = ' // trim(integer_to_string(ios)))
+       call die_msg(985010153, 'error converting "' // trim(string) &
+            // '" to logical')
     end if
     string_to_logical = val
 

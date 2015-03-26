@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2015 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -201,10 +201,8 @@ contains
     real(kind=dp), intent(in) :: val
 
     call assert(448215689, bin_grid%n_bin >= 0)
-    if (bin_grid%n_bin == 0) then
-       bin_grid_find = 0
-       return
-    end if
+    bin_grid_find = 0
+    if (bin_grid%n_bin == 0) return
     if (bin_grid%type == BIN_GRID_TYPE_LOG) then
        bin_grid_find = logspace_find(bin_grid%edges(1), &
             bin_grid%edges(bin_grid%n_bin + 1), bin_grid%n_bin + 1, val)

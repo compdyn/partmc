@@ -1,4 +1,4 @@
-! Copyright (C) 2010-2012 Matthew West
+! Copyright (C) 2010-2015 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -180,6 +180,7 @@ contains
     !> Radius to compute number concentration at (m).
     real(kind=dp), intent(in) :: radius
 
+    aero_weight_num_conc_at_radius = 0d0
     if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
        aero_weight_num_conc_at_radius = aero_weight%magnitude
     elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &
@@ -219,6 +220,7 @@ contains
     !> Number concentration to compute the radius at (m^{-3}).
     real(kind=dp), intent(in) :: num_conc
 
+    aero_weight_radius_at_num_conc = 0d0
     if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
        call die_msg(545688537, "cannot invert weight type 'none'")
     elseif ((aero_weight%type == AERO_WEIGHT_TYPE_POWER) &

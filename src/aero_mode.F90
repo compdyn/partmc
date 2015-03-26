@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2015 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -178,6 +178,7 @@ contains
     !> Aerosol mode.
     type(aero_mode_t), intent(in) :: aero_mode
 
+    aero_mode_total_num_conc = 0d0
     if ((aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) &
          .or. (aero_mode%type == AERO_MODE_TYPE_EXP) &
        .or. (aero_mode%type == AERO_MODE_TYPE_MONO)) then
@@ -553,6 +554,7 @@ contains
     real(kind=dp) :: x_mean_prime
     real(kind=dp), allocatable :: weighted_num_conc(:)
 
+    aero_mode_number = 0d0
     if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
        if (aero_weight%type == AERO_WEIGHT_TYPE_NONE) then
           aero_mode_number = aero_mode%num_conc / aero_weight%magnitude

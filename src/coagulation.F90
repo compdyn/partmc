@@ -29,6 +29,9 @@ module pmc_coagulation
   !> Maximum allowed coefficient-of-variation due to undersampling in
   !> accelerated coagulation.
   real(kind=dp), parameter :: COAG_ACCEL_MAX_CV = 0.1d0
+  !> Maximum allowable growth factor of a target particle volume within one
+  !> timestep when using accelerated coagulation.
+  real(kind=dp), parameter :: MAX_ALLOWABLE_GROWTH_FACTOR = 1.5d0
 
 contains
 
@@ -192,6 +195,19 @@ contains
     call compute_n_source(aero_state%aero_sorted%size_class%inverse(bs, &
          cs)%n_entry, k_max, del_t, n_source_per_target, accept_factor)
     if (n_source_per_target < COAG_ACCEL_N_EVENT) then
+       per_particle_coag_succeeded = .false.
+       return
+    end if
+
+    ! minimum target volume
+    min_target_vol = rad2vol(aero_state%aero_sorted%bin_grid%edges(bt))
+    ! maximum source volume
+    max_source_vol = rad2vol(aero_state%aero_sorted%bin_grid%edges(bs+1))
+    ! maximum new target particle volume
+    max_new_target_vol = min_target_vol + max_source_vol * n_source_per_target
+    ! check for large volume change
+    max_target_growth_factor = max_new_target_vol / min_target_vol
+    if (max_target_growth_factor > MAX_ALLOWABLE_GROWTH_FACTOR) then
        per_particle_coag_succeeded = .false.
        return
     end if

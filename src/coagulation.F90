@@ -1,4 +1,6 @@
-! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012 Nicole Riemer
+! Copyright (C) 2005-2015 Matthew West
+! Copyright (C) 2015 Jeffrey Curtis
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -29,6 +31,9 @@ module pmc_coagulation
   !> Maximum allowed coefficient-of-variation due to undersampling in
   !> accelerated coagulation.
   real(kind=dp), parameter :: COAG_ACCEL_MAX_CV = 0.1d0
+  !> Maximum allowable growth factor of a target particle volume within one
+  !> timestep when using accelerated coagulation.
+  real(kind=dp), parameter :: MAX_ALLOWABLE_GROWTH_FACTOR = 1.5d0
 
 contains
 
@@ -179,6 +184,8 @@ contains
     integer :: target_unif_entry, target_part, n_samp, n_coag, n_remove, bt, bs
     integer :: ct, cs
     real(kind=dp) :: n_source_per_target, accept_factor
+    real(kind=dp) :: min_target_vol, max_source_vol, max_new_target_vol
+    real(kind=dp) :: max_target_growth_factor
     type(aero_particle_t) :: target_particle, source_particle
 
     call determine_target_and_source(aero_state%awa, &
@@ -192,6 +199,16 @@ contains
     call compute_n_source(aero_state%aero_sorted%size_class%inverse(bs, &
          cs)%n_entry, k_max, del_t, n_source_per_target, accept_factor)
     if (n_source_per_target < COAG_ACCEL_N_EVENT) then
+       per_particle_coag_succeeded = .false.
+       return
+    end if
+
+    min_target_vol = rad2vol(aero_state%aero_sorted%bin_grid%edges(bt))
+    max_source_vol = rad2vol(aero_state%aero_sorted%bin_grid%edges(bs+1))
+    max_new_target_vol = min_target_vol + max_source_vol * n_source_per_target
+    ! check for unacceptably large volume change
+    max_target_growth_factor = max_new_target_vol / min_target_vol
+    if (max_target_growth_factor > MAX_ALLOWABLE_GROWTH_FACTOR) then
        per_particle_coag_succeeded = .false.
        return
     end if

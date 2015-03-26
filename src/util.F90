@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2015 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -33,13 +33,20 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Prints a warning message.
-  subroutine warn_msg(code, warning_msg)
+  subroutine warn_msg(code, warning_msg, already_warned)
 
     !> Status code to use.
     integer, intent(in) :: code
     !> Message to display.
     character(len=*), intent(in) :: warning_msg
+    !> Flag to control warning only once (should be a save variable).
+    logical, intent(inout), optional :: already_warned
 
+    if (present(already_warned)) then
+       if (already_warned) return
+       ! set already_warned so next time we will immediately return
+       already_warned = .true.
+    end if
     write(0,'(a)') 'WARNING (PartMC-' // trim(integer_to_string(code)) &
          // '): ' // trim(warning_msg)
 

@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2012 Matthew West
+! Copyright (C) 2007-2015 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -128,6 +128,8 @@ contains
     type(aero_dist_t) :: emissions, background
     type(aero_binned_t) :: background_binned, aero_binned_limit
 
+    logical, save :: already_warned_water = .false.
+
     call aero_dist_allocate(emissions)
     call aero_dist_allocate(background)
     call aero_binned_allocate_size(background_binned, bin_grid%n_bin, &
@@ -156,7 +158,8 @@ contains
             (loss_function_type /= SCENARIO_LOSS_FUNCTION_INVALID)) then
           if (aero_data%name(1) /= "H2O") then
              call warn_msg(176257943, &
-                  "exact solution assumes composition is water")
+                  "exact solution assumes composition is water", &
+                  already_warned_water)
           end if
        end if
 

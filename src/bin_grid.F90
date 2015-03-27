@@ -386,9 +386,9 @@ contains
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, val%type)
     call pmc_mpi_unpack_integer(buffer, position, val%n_bin)
-    call pmc_mpi_unpack_real_array(buffer, position, val%centers)
-    call pmc_mpi_unpack_real_array(buffer, position, val%edges)
-    call pmc_mpi_unpack_real_array(buffer, position, val%widths)
+    call pmc_mpi_unpack_real_array_alloc(buffer, position, val%centers)
+    call pmc_mpi_unpack_real_array_alloc(buffer, position, val%edges)
+    call pmc_mpi_unpack_real_array_alloc(buffer, position, val%widths)
     call assert(741838730, &
          position - prev_position <= pmc_mpi_pack_size_bin_grid(val))
 #endif

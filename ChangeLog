@@ -13,6 +13,28 @@
     `aero_num_conc`, which is the inverse of the previous
     `aero_comp_vol` variable.
 
+  * Use Fortran for post-processing rather than Python using `stats.F90`.
+    An example is in `scenarios/1_urban_plume/1_urban_plume_process.F90`.
+
+  * Add example Python plotting scripts to `scenarios/1_urban_plume`.
+
+  * Add processing code to calculate particle composition entropy.
+
+  * Add exact calculations of `aero_particle_crit_diameter()` and
+    `aero_particle_crit_rel_humid()`.
+
+  * Fix averaging with dry particles to correctly handle weightings.
+
+  * Add dry deposition using an accelerated stochastic particle loss
+    algorithm.
+
+  * Fix accelerated coagulation for negative weightings to only activate
+    for small/large events.
+
+  * Fix `allow_doubling`/`allow_halving` with weighted particles.
+
+  * Replace Bessel function code with an LGPL-licensed version.
+
 2.2.1 - 2012-03-30
 
   * De-duplicate error codes.

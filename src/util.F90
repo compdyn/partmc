@@ -1246,32 +1246,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#ifdef DEFINE_LOCAL_COMMAND_ARGUMENT
-  !> Hack for compilers that don't support the Fortran2003 standard
-  !> command_argument_count() function.
-  integer function command_argument_count()
-
-    command_argument_count = iargc()
-
-  end function command_argument_count
-#endif
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-#ifdef DEFINE_LOCAL_COMMAND_ARGUMENT
-  !> Hack for compilers that don't support the Fortran2003 standard
-  !> get_command_argument() subroutine.
-  subroutine get_command_argument(i, arg)
-    integer, intent(in) :: i
-    character(len=*), intent(out) :: arg
-
-    call getarg(i, arg)
-
-  end subroutine get_command_argument
-#endif
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Sort the given data array and return the permutation defining the sort.
   !!
   !! If \c data is the original data array, \c new_data is the sorted

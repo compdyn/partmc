@@ -232,15 +232,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#ifdef DEFINE_LOCAL_COMMAND_ARGUMENT
-  integer function command_argument_count()
-    command_argument_count = iargc()
-  end function command_argument_count
-  subroutine get_command_argument(i, arg)
-    integer, intent(in) :: i
-    character(len=*), intent(out) :: arg
-    call getarg(i, arg)
-  end subroutine get_command_argument
-#endif
-
 end program numeric_average

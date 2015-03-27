@@ -595,7 +595,7 @@ contains
 
     if (starts_with(description, "logarithmically")) then
        type = BIN_GRID_TYPE_LOG
-    elseif (starts_with(description, "logarithmically")) then
+    elseif (starts_with(description, "linearly")) then
        type = BIN_GRID_TYPE_LINEAR
     else
        call die_msg(792158584, "cannot identify grid type for NetCDF " &

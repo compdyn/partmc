@@ -216,7 +216,8 @@ contains
           n_part_before = aero_state_total_particles(aero_state)
           call nucleate(run_part_opt%nucleate_type, &
                run_part_opt%nucleate_source, env_state, gas_data, aero_data, &
-               aero_state, gas_state, run_part_opt%del_t)
+               aero_state, gas_state, run_part_opt%del_t, &
+               run_part_opt%allow_doubling, run_part_opt%allow_halving)
           n_nuc = aero_state_total_particles(aero_state) &
                - n_part_before
           progress_n_nuc = progress_n_nuc + n_nuc
@@ -255,7 +256,8 @@ contains
             env_state, old_env_state, gas_data, gas_state)
        call scenario_update_aero_state(scenario, run_part_opt%del_t, &
             env_state, old_env_state, aero_data, aero_state, n_emit, &
-            n_dil_in, n_dil_out)
+            n_dil_in, n_dil_out, run_part_opt%allow_doubling, &
+            run_part_opt%allow_halving)
        progress_n_emit = progress_n_emit + n_emit
        progress_n_dil_in = progress_n_dil_in + n_dil_in
        progress_n_dil_out = progress_n_dil_out + n_dil_out

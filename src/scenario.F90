@@ -567,6 +567,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
 
+    scenario_loss_rate = 0d0
     if (loss_function_type == SCENARIO_LOSS_FUNCTION_INVALID) then
       scenario_loss_rate = 0d0
     else if (loss_function_type == SCENARIO_LOSS_FUNCTION_ZERO) then

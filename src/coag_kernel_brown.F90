@@ -146,9 +146,9 @@ contains
     boltz = const%boltzmann * 1d7 ! J/K to erg/K
     avogad = const%avagadro
     mwair = const%air_molec_weight * 1d3 ! kg/mole to g/mole
-    rgas = const%univ_gas_const * 1d3 / 1.01325d5 ! J/mole/K to atmos/(mol/liter)/K
+    rgas = const%univ_gas_const * 1d3 / const%air_std_press ! J/mole/K to atmos/(mol/liter)/K
 
-    rhoair = 0.001d0 * ((press/1.01325d5)*mwair/(rgas*tk))
+    rhoair = 0.001d0 * ((press/const%air_std_press)*mwair/(rgas*tk))
 
     viscosd = (1.8325d-04*(296.16d0+120d0)/(tk+120d0)) * (tk/296.16d0)**1.5d0
     viscosk = viscosd/rhoair

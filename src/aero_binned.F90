@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2015 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for the.
 
@@ -349,7 +349,7 @@ contains
     !> \page output_format_aero_binned Output File Format: Aerosol Binned Sectional State
     !!
     !! The aerosol size distributions (number and mass) are stored on
-    !! a logarmithmic grid (see the \ref output_format_bin_grid
+    !! a logarmithmic grid (see the \ref output_format_diam_bin_grid
     !! section). To compute the total number or mass concentration,
     !! compute the sum over \c i of <tt>aero_number_concentration(i) *
     !! aero_diam_widths(i)</tt>, for example.
@@ -368,30 +368,6 @@ contains
     !!     <tt>dimid_aero_diam x dimid_aero_species</tt>): the mass size
     !!     distribution for the aerosol population,
     !!     \f$ dM(r,s)/d\ln r \f$, per bin and per species
-
-    ! output_format_diam_bin_grid is here, as this is the only place it's used
-
-    !> \page output_format_diam_bin_grid Output File Format: Diameter Bin Grid Data
-    !!
-    !! The aerosol diameter bin grid data NetCDF dimensions are:
-    !!   - \b aero_diam: number of bins (grid cells) on the diameter axis
-    !!   - \b aero_diam_edges: number of bin edges (grid cell edges) on
-    !!     the diameter axis --- always equal to <tt>aero_diam + 1</tt>
-    !!
-    !! The aerosol diameter bin grid data NetCDF variables are:
-    !!   - \b aero_diam (unit m, dim \c aero_diam): aerosol diameter axis
-    !!     bin centers --- centered on a logarithmic scale from the edges, so
-    !!     that <tt>aero_diam(i) / aero_diam_edges(i) =
-    !!     sqrt(aero_diam_edges(i+1) / aero_diam_edges(i))</tt>
-    !!   - \b aero_diam_edges (unit m, dim \c aero_diam_edges): aersol
-    !!     diameter axis bin edges (there is one more edge than center)
-    !!   - \b aero_diam_widths (dimensionless, dim \c aero_diam):
-    !!     the base-e logarithmic bin widths --- <tt>aero_diam_widths(i)
-    !!     = ln(aero_diam_edges(i+1) / aero_diam_edges(i))</tt>, so
-    !!     all bins have the same width
-    !!
-    !! See also:
-    !!   - \ref input_format_diam_bin_grid --- the corresponding input format
 
     do i_bin = 1,bin_grid%n_bin
        mass_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) * aero_data%density
@@ -418,6 +394,34 @@ contains
          // "species s")
 
   end subroutine aero_binned_output_netcdf
+
+  ! output_format_diam_bin_grid is here, as this is the only place it's used
+
+  ! this belongs in the subroutine above, but is outside because
+  ! Doxygen 1.8.7 doesn't resolve references when multiple \page
+  ! blocks are in one subroutine
+
+  !> \page output_format_diam_bin_grid Output File Format: Diameter Bin Grid Data
+  !!
+  !! The aerosol diameter bin grid data NetCDF dimensions are:
+  !!   - \b aero_diam: number of bins (grid cells) on the diameter axis
+  !!   - \b aero_diam_edges: number of bin edges (grid cell edges) on
+  !!     the diameter axis --- always equal to <tt>aero_diam + 1</tt>
+  !!
+  !! The aerosol diameter bin grid data NetCDF variables are:
+  !!   - \b aero_diam (unit m, dim \c aero_diam): aerosol diameter axis
+  !!     bin centers --- centered on a logarithmic scale from the edges, so
+  !!     that <tt>aero_diam(i) / aero_diam_edges(i) =
+  !!     sqrt(aero_diam_edges(i+1) / aero_diam_edges(i))</tt>
+  !!   - \b aero_diam_edges (unit m, dim \c aero_diam_edges): aersol
+  !!     diameter axis bin edges (there is one more edge than center)
+  !!   - \b aero_diam_widths (dimensionless, dim \c aero_diam):
+  !!     the base-e logarithmic bin widths --- <tt>aero_diam_widths(i)
+  !!     = ln(aero_diam_edges(i+1) / aero_diam_edges(i))</tt>, so
+  !!     all bins have the same width
+  !!
+  !! See also:
+  !!   - \ref input_format_diam_bin_grid --- the corresponding input format
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

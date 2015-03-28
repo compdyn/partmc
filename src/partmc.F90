@@ -729,7 +729,7 @@ contains
     !! - \b t_output (real, unit s): the interval on which to output
     !!   data to disk and to print progress information to the screen
     !!   (see \ref output_format)
-    !! - \subpage input_format_bin_grid
+    !! - \subpage input_format_diam_bin_grid
     !! - \b gas_data (string): name of file from which to read the
     !!   gas material data --- the file format should be
     !!   \subpage input_format_gas_data
@@ -894,7 +894,7 @@ contains
     !!   output data to disk (see \ref output_format)
     !! - \b t_progress (real, unit s): the interval on which to
     !!   write summary information to the screen while running
-    !! - \subpage input_format_bin_grid
+    !! - \subpage input_format_diam_bin_grid
     !! - \b gas_data (string): name of file from which to read the
     !!   gas material data --- the file format should be
     !!   \subpage input_format_gas_data

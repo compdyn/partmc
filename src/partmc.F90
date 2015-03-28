@@ -102,6 +102,26 @@
 
 !> \page publications PartMC Publications
 !!
+!!   - J.&nbsp;Tian, N.&nbsp;Riemer, M.&nbsp;West,
+!!     L.&nbsp;Pfaffenberger, H.&nbsp;Schlager, and A.&nbsp;Petzold
+!!     (2014) Modeling the evolution of aerosol particles in a ship
+!!     plume using PartMC-MOSAIC, <i>Atmospheric Chemistry and
+!!     Physics</i> 14, 5327-5347, DOI: <a
+!!     href="http://dx.doi.org/10.5194/acp-14-5327-2014">10.5194/acp-14-5327-2014</a>.
+!!   - N.&nbsp;Riemer and M.&nbsp;West (2013) Quantifying aerosol mixing
+!!     state with entropy and diversity measures, <i>Atmospheric
+!!     Chemistry and Physics</i> 13, 11423-11439, DOI: <a
+!!     href="http://dx.doi.org/10.5194/acp-13-11423-2013">10.5194/acp-13-11423-2013</a>.
+!!   - M.&nbsp;D.&nbsp;Michelotti, M.&nbsp;T.&nbsp;Heath, and
+!!     M.&nbsp;West (2013) Binning for efficient stochastic multiscale
+!!     particle simulations, <i>Atmospheric Chemistry and Physics</i>
+!!     11(4), 1071-1096, DOI: <a
+!!     href="http://dx.doi.org/10.1137/130908038">10.1137/130908038</a>.
+!!   - J.&nbsp;Ching, N.&nbsp;Riemer, and M.&nbsp;West (2012) Impacts of
+!!     black carbon mixing state on black carbon nucleation scavenging:
+!!     Insights from a particle-resolved model, <i>Journal of
+!!     Geophysical Research</i> 117(D23209), DOI: <a
+!!     href="http://dx.doi.org/10.1029/2012JD018269">10.1029/2012JD018269</a>.
 !!   - R.&nbsp;E.&nbsp;L.&nbsp;DeVille, N.&nbsp;Riemer, and
 !!     M.&nbsp;West (2011) Weighted Flow Algorithms (WFA) for
 !!     stochastic particle coagulation, <i>Journal of Computational

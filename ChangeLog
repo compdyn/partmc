@@ -13,6 +13,9 @@
     `aero_num_conc`, which is the inverse of the previous
     `aero_comp_vol` variable.
 
+  * Distributed parallel coagulation is disabled due to lack of
+    weighting support.
+
 2.2.1 - 2012-03-30
 
   * De-duplicate error codes.

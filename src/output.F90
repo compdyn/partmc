@@ -82,7 +82,7 @@ module pmc_output
 #endif
 
   !> PartMC verson number.
-  character(len=100), parameter :: PARTMC_VERSION = "2.2.0"
+  character(len=100), parameter :: PARTMC_VERSION = "2.3.0"
 
   !> Type code for undefined or invalid output.
   integer, parameter :: OUTPUT_TYPE_INVALID = 0

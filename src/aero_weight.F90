@@ -148,10 +148,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Adjust \c aero_weight_from to reflect moving \c sample_prop
-  !> proportion of particles to \c aero_weight_to.
+  !> Adjust source and destination weights to reflect moving \c
+  !> sample_prop proportion of particles from \c aero_weight_from to
+  !> \c aero_weight_to.
   elemental subroutine aero_weight_shift(aero_weight_from, &
-       aero_weight_to, sample_prop)
+       aero_weight_to, sample_prop, overwrite_to)
 
     !> Aerosol weight to shift from.
     type(aero_weight_t), intent(inout) :: aero_weight_from
@@ -159,14 +160,27 @@ contains
     type(aero_weight_t), intent(inout) :: aero_weight_to
     !> Proportion of particles being transfered.
     real(kind=dp), intent(in) :: sample_prop
+    !> Whether to overwrite the destination weight (default: no).
+    logical, intent(in), optional :: overwrite_to
 
     real(kind=dp) :: magnitude_transfer
+    logical :: use_overwrite_to
 
     magnitude_transfer = aero_weight_from%magnitude / sample_prop
     aero_weight_from%magnitude = harmonic_mean(aero_weight_from%magnitude, &
          - magnitude_transfer)
-    aero_weight_to%magnitude = harmonic_mean(aero_weight_to%magnitude, &
-         magnitude_transfer)
+    use_overwrite_to = .false.
+    if (present(overwrite_to)) then
+       if (overwrite_to) then
+          use_overwrite_to = .true.
+       end if
+    end if
+    if (use_overwrite_to) then
+       aero_weight_to%magnitude = magnitude_transfer
+    else
+       aero_weight_to%magnitude = harmonic_mean(aero_weight_to%magnitude, &
+            magnitude_transfer)
+    end if
 
   end subroutine aero_weight_shift
 

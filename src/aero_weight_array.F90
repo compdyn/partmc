@@ -1,4 +1,5 @@
 ! Copyright (C) 2012 Jeff Curtis
+! Copyright (C) 2012-2015 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -242,10 +243,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Adjust \c aero_weight_array_from to reflect moving \c sample_prop
-  !> proportion of particles to \c aero_weight_array_to.
+  !> Adjust source and destination weights to reflect moving \c
+  !> sample_prop proportion of particles from
+  !> \c aero_weight_array_from to \c aero_weight_array_to.
   subroutine aero_weight_array_shift(aero_weight_array_from, &
-       aero_weight_array_to, sample_prop)
+       aero_weight_array_to, sample_prop, overwrite_to)
 
     !> Aerosol weight array to shift from.
     type(aero_weight_array_t), intent(inout) :: aero_weight_array_from
@@ -253,9 +255,11 @@ contains
     type(aero_weight_array_t), intent(inout) :: aero_weight_array_to
     !> Proportion of particles being transfered.
     real(kind=dp), intent(in) :: sample_prop
+    !> Whether to overwrite the destination weight (default: no).
+    logical, intent(in), optional :: overwrite_to
 
     call aero_weight_shift(aero_weight_array_from%weight, &
-         aero_weight_array_to%weight, sample_prop)
+         aero_weight_array_to%weight, sample_prop, overwrite_to)
 
   end subroutine aero_weight_array_shift
 

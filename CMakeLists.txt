@@ -25,7 +25,7 @@ option(ENABLE_C_SORT "Enable C sorting routines" OFF)
 
 set(CPACK_SOURCE_GENERATOR "TGZ")
 SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${PACKAGE_TARNAME}-${PACKAGE_VERSION}")
-set(CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES};/.*~$;/[.].*/;/build/;/figures/;/scenarios/[^12].*/;/doc/condensation/;/doc/ship_track/;/old/;/tool/;/TODO")
+set(CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES};/.*~$;/[.].*/;/build/;/figures/;/scenarios/[^12].*/;/doc/condensation/;/doc/deposition/;/doc/ship_track/;/old/;/tool/;/TODO")
 
 include(CPack)
 

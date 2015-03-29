@@ -1494,4 +1494,31 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Unpacks the given value from the buffer to an allocated array, advancing
+  !> position.
+  subroutine pmc_mpi_unpack_real_array_alloc(buffer, position, val)
+
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    real(kind=dp), intent(inout), allocatable :: val(:)
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, n, ierr
+
+    prev_position = position
+    call pmc_mpi_unpack_integer(buffer, position, n)
+    if (allocated(val)) deallocate(val)
+    allocate(val(n))
+    call mpi_unpack(buffer, size(buffer), position, val, n, &
+         MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    call assert(782875761, &
+         position - prev_position <= pmc_mpi_pack_size_real_array(val))
+#endif
+
+  end subroutine pmc_mpi_unpack_real_array_alloc
+
 end module pmc_mpi

@@ -877,7 +877,7 @@ contains
     integer, intent(in) :: removal_action
 
     integer :: n_transfer, i_transfer, i_part
-    logical :: do_add, do_remove
+    logical :: do_add, do_remove, overwrite_to
     real(kind=dp) :: num_conc_from, num_conc_to
     type(aero_info_t) :: aero_info
 
@@ -905,8 +905,9 @@ contains
                i_part)
        end if
     end do
+    overwrite_to = .true.
     call aero_weight_array_shift(aero_state_from%awa, aero_state_to%awa, &
-         sample_prob)
+         sample_prob, overwrite_to)
 
   end subroutine aero_state_sample
 

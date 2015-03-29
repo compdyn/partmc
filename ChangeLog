@@ -35,6 +35,9 @@
 
   * Replace Bessel function code with an LGPL-licensed version.
 
+  * Distributed parallel coagulation is disabled due to lack of
+    weighting support.
+
 2.2.1 - 2012-03-30
 
   * De-duplicate error codes.

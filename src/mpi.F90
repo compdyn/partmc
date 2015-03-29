@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2012 Matthew West
+! Copyright (C) 2007-2015 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -1515,7 +1515,7 @@ contains
     call mpi_unpack(buffer, size(buffer), position, val, n, &
          MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
-    call assert(782875761, &
+    call assert(520690818, &
          position - prev_position <= pmc_mpi_pack_size_real_array(val))
 #endif
 

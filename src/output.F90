@@ -631,7 +631,7 @@ contains
     character(len=len(prefix)+100) :: filename
     logical :: done
 
-    call assert_msg(277193351, pmc_mpi_rank() == 0, &
+    call assert_msg(711223711, pmc_mpi_rank() == 0, &
          "can only call from process 0")
 
     unit = get_unit()

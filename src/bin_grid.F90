@@ -472,7 +472,7 @@ contains
             // trim(integer_to_string(len(use_long_name))))
        use_long_name = trim(long_name)
     else
-       call assert_msg(125084459, len_trim(dim_name) <= len(use_long_name), &
+       call assert_msg(660927086, len_trim(dim_name) <= len(use_long_name), &
             "dim_name is longer than " &
             // trim(integer_to_string(len(use_long_name))))
        use_long_name = trim(dim_name)

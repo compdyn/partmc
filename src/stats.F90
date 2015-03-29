@@ -1,4 +1,4 @@
-! Copyright (C) 2012 Matthew West
+! Copyright (C) 2012-2015 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -243,13 +243,13 @@ contains
 
     integer :: i
 
-    call assert_msg(549391523, j >= 1, "cannot use a non-positive column")
+    call assert_msg(944718123, j >= 1, "cannot use a non-positive column")
     if (allocated(stats%n)) then
-       call assert_msg(286470660, size(stats%n, 1) == size(data), &
+       call assert_msg(170275693, size(stats%n, 1) == size(data), &
             "size mismatch between existing n and newly added data")
-       call assert_msg(901102174, size(stats%mean, 1) == size(data), &
+       call assert_msg(659257452, size(stats%mean, 1) == size(data), &
             "size mismatch between existing mean and newly added data")
-       call assert_msg(993806885, size(stats%var, 1) == size(data), &
+       call assert_msg(279552980, size(stats%var, 1) == size(data), &
             "size mismatch between existing var and newly added data")
     end if
     call ensure_integer_array_2d_size(stats%n, size(stats%n, 1), j, &

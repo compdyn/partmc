@@ -974,103 +974,6 @@ contains
     !! See also:
     !!   - \ref spec_file_format --- the input file text format
 
-    !> \page input_format_temp_profile Input File Format: Temperature Profile
-    !!
-    !! A temperature profile input file must consist of two lines:
-    !! - the first line must begin with \c time and should be followed
-    !!   by \f$N\f$ space-separated real scalars, giving the times (in
-    !!   s after the start of the simulation) of the temperature set
-    !!   points --- the times must be in increasing order
-    !! - the second line must begin with \c temp and should be followed
-    !!   by \f$N\f$ space-separated real scalars, giving the
-    !!   temperatures (in K) at the corresponding times
-    !!
-    !! The temperature profile is linearly interpolated between the
-    !! specified times, while before the first time it takes the first
-    !! temperature value and after the last time it takes the last
-    !! temperature value.
-    !!
-    !! Example:
-    !! <pre>
-    !! time  0    600  1800  # time (in s) after simulation start
-    !! temp  270  290  280   # temperature (in K)
-    !! </pre>
-    !! Here the temperature starts at 270&nbsp;K at the start of the
-    !! simulation, rises to 290&nbsp;K after 10&nbsp;min, and then
-    !! falls again to 280&nbsp;K at 30&nbsp;min. Between these times
-    !! the temperature is linearly interpolated, while after
-    !! 30&nbsp;min it is held constant at 280&nbsp;K.
-    !!
-    !! See also:
-    !!   - \ref spec_file_format --- the input file text format
-    !!   - \ref input_format_scenario --- the environment data
-    !!     containing the temperature profile
-
-    !> \page input_format_pressure_profile Input File Format: Pressure Profile
-    !!
-    !! A pressure profile input file must consist of two lines:
-    !! - the first line must begin with \c time and should be followed
-    !!   by \f$N\f$ space-separated real scalars, giving the times (in
-    !!   s after the start of the simulation) of the pressure set
-    !!   points --- the times must be in increasing order
-    !! - the second line must begin with \c pressure and should be followed
-    !!   by \f$N\f$ space-separated real scalars, giving the
-    !!   pressures (in Pa) at the corresponding times
-    !!
-    !! The pressure profile is linearly interpolated between the
-    !! specified times, while before the first time it takes the first
-    !! pressure value and after the last time it takes the last
-    !! pressure value.
-    !!
-    !! Example:
-    !! <pre>
-    !! time      0    600  1800  # time (in s) after simulation start
-    !! pressure  1e5  9e4  7.5e4 # pressure (in Pa)
-    !! </pre>
-    !! Here the pressure starts at 1e5&nbsp;Pa at the start of the
-    !! simulation, decreases to 9e4&nbsp;Pa after 10&nbsp;min, and then
-    !! decreases further to 7.5e4&nbsp;Pa at 30&nbsp;min. Between these times
-    !! the pressure is linearly interpolated, while after
-    !! 30&nbsp;min it is held constant at 7.5e4&nbsp;Pa.
-    !!
-    !! See also:
-    !!   - \ref spec_file_format --- the input file text format
-    !!   - \ref input_format_scenario --- the environment data
-    !!     containing the pressure profile
-
-    !> \page input_format_height_profile Input File Format: Mixing Layer Height Profile
-    !!
-    !! A mixing layer height profile input file must consist of two
-    !! lines:
-    !! - the first line must begin with \c time and should be followed
-    !!   by \f$N\f$ space-separated real scalars, giving the times (in
-    !!   s after the start of the simulation) of the height set
-    !!   points --- the times must be in increasing order
-    !! - the second line must begin with \c height and should be
-    !!   followed by \f$N\f$ space-separated real scalars, giving the
-    !!   mixing layer heights (in m) at the corresponding times
-    !!
-    !! The mixing layer height profile is linearly interpolated
-    !! between the specified times, while before the first time it
-    !! takes the first height value and after the last time it takes
-    !! the last height value.
-    !!
-    !! Example:
-    !! <pre>
-    !! time    0    600   1800  # time (in s) after simulation start
-    !! height  500  1000  800   # mixing layer height (in m)
-    !! </pre>
-    !! Here the mixing layer height starts at 500&nbsp;m at the start
-    !! of the simulation, rises to 1000&nbsp;m after 10&nbsp;min, and
-    !! then falls again to 800&nbsp;m at 30&nbsp;min. Between these
-    !! times the mixing layer height is linearly interpolated, while
-    !! after 30&nbsp;min it is held constant at 800&nbsp;m.
-    !!
-    !! See also:
-    !!   - \ref spec_file_format --- the input file text format
-    !!   - \ref input_format_scenario --- the environment data
-    !!     containing the mixing layer height profile
-
     ! temperature profile
     call spec_file_read_string(file, "temp_profile", sub_filename)
     call spec_file_open(sub_filename, sub_file)
@@ -1125,6 +1028,107 @@ contains
     call spec_file_close(sub_file)
 
   end subroutine spec_file_read_scenario
+
+  ! the following blocks belong in the subroutine above, but they are
+  ! outside because Doxygen 1.8.7 doesn't resolve references when
+  ! multiple \page blocks are in one subroutine
+
+  !> \page input_format_temp_profile Input File Format: Temperature Profile
+  !!
+  !! A temperature profile input file must consist of two lines:
+  !! - the first line must begin with \c time and should be followed
+  !!   by \f$N\f$ space-separated real scalars, giving the times (in
+  !!   s after the start of the simulation) of the temperature set
+  !!   points --- the times must be in increasing order
+  !! - the second line must begin with \c temp and should be followed
+  !!   by \f$N\f$ space-separated real scalars, giving the
+  !!   temperatures (in K) at the corresponding times
+  !!
+  !! The temperature profile is linearly interpolated between the
+  !! specified times, while before the first time it takes the first
+  !! temperature value and after the last time it takes the last
+  !! temperature value.
+  !!
+  !! Example:
+  !! <pre>
+  !! time  0    600  1800  # time (in s) after simulation start
+  !! temp  270  290  280   # temperature (in K)
+  !! </pre>
+  !! Here the temperature starts at 270&nbsp;K at the start of the
+  !! simulation, rises to 290&nbsp;K after 10&nbsp;min, and then
+  !! falls again to 280&nbsp;K at 30&nbsp;min. Between these times
+  !! the temperature is linearly interpolated, while after
+  !! 30&nbsp;min it is held constant at 280&nbsp;K.
+  !!
+  !! See also:
+  !!   - \ref spec_file_format --- the input file text format
+  !!   - \ref input_format_scenario --- the environment data
+  !!     containing the temperature profile
+
+  !> \page input_format_pressure_profile Input File Format: Pressure Profile
+  !!
+  !! A pressure profile input file must consist of two lines:
+  !! - the first line must begin with \c time and should be followed
+  !!   by \f$N\f$ space-separated real scalars, giving the times (in
+  !!   s after the start of the simulation) of the pressure set
+  !!   points --- the times must be in increasing order
+  !! - the second line must begin with \c pressure and should be followed
+  !!   by \f$N\f$ space-separated real scalars, giving the
+  !!   pressures (in Pa) at the corresponding times
+  !!
+  !! The pressure profile is linearly interpolated between the
+  !! specified times, while before the first time it takes the first
+  !! pressure value and after the last time it takes the last
+  !! pressure value.
+  !!
+  !! Example:
+  !! <pre>
+  !! time      0    600  1800  # time (in s) after simulation start
+  !! pressure  1e5  9e4  7.5e4 # pressure (in Pa)
+  !! </pre>
+  !! Here the pressure starts at 1e5&nbsp;Pa at the start of the
+  !! simulation, decreases to 9e4&nbsp;Pa after 10&nbsp;min, and then
+  !! decreases further to 7.5e4&nbsp;Pa at 30&nbsp;min. Between these times
+  !! the pressure is linearly interpolated, while after
+  !! 30&nbsp;min it is held constant at 7.5e4&nbsp;Pa.
+  !!
+  !! See also:
+  !!   - \ref spec_file_format --- the input file text format
+  !!   - \ref input_format_scenario --- the environment data
+  !!     containing the pressure profile
+
+  !> \page input_format_height_profile Input File Format: Mixing Layer Height Profile
+  !!
+  !! A mixing layer height profile input file must consist of two
+  !! lines:
+  !! - the first line must begin with \c time and should be followed
+  !!   by \f$N\f$ space-separated real scalars, giving the times (in
+  !!   s after the start of the simulation) of the height set
+  !!   points --- the times must be in increasing order
+  !! - the second line must begin with \c height and should be
+  !!   followed by \f$N\f$ space-separated real scalars, giving the
+  !!   mixing layer heights (in m) at the corresponding times
+  !!
+  !! The mixing layer height profile is linearly interpolated
+  !! between the specified times, while before the first time it
+  !! takes the first height value and after the last time it takes
+  !! the last height value.
+  !!
+  !! Example:
+  !! <pre>
+  !! time    0    600   1800  # time (in s) after simulation start
+  !! height  500  1000  800   # mixing layer height (in m)
+  !! </pre>
+  !! Here the mixing layer height starts at 500&nbsp;m at the start
+  !! of the simulation, rises to 1000&nbsp;m after 10&nbsp;min, and
+  !! then falls again to 800&nbsp;m at 30&nbsp;min. Between these
+  !! times the mixing layer height is linearly interpolated, while
+  !! after 30&nbsp;min it is held constant at 800&nbsp;m.
+  !!
+  !! See also:
+  !!   - \ref spec_file_format --- the input file text format
+  !!   - \ref input_format_scenario --- the environment data
+  !!     containing the mixing layer height profile
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

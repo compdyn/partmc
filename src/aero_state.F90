@@ -2400,64 +2400,6 @@ contains
        end if
     end if
 
-    !> \page output_format_aero_removed Output File Format: Aerosol Particle Removal Information
-    !!
-    !! When an aerosol particle is introduced into the simulation it
-    !! is assigned a unique ID number. This ID number will persist
-    !! over time, allowing tracking of a paticular particle's
-    !! evolution. If the \c record_removals variable in the input spec
-    !! file is \c yes, then the every time a particle is removed from
-    !! the simulation its removal will be recorded in the removal
-    !! information.
-    !!
-    !! The removal information written at timestep \c n contains
-    !! information about every particle ID that is present at time
-    !! <tt>(n - 1)</tt> but not present at time \c n.
-    !!
-    !! The removal information is always written in the output files,
-    !! even if no particles were removed in the previous
-    !! timestep. Unfortunately, NetCDF files cannot contain arrays of
-    !! length 0. In the case of no particles being removed, the \c
-    !! aero_removed dimension will be set to 1 and
-    !! <tt>aero_removed_action(1)</tt> will be 0 (\c AERO_INFO_NONE).
-    !!
-    !! When two particles coagulate, the ID number of the combined
-    !! particle will be the ID particle of the largest constituent, if
-    !! possible (weighting functions can make this impossible to
-    !! achieve). A given particle ID may thus be lost due to
-    !! coagulation (if the resulting combined particle has a different
-    !! ID), or the ID may be preserved (as the ID of the combined
-    !! particle). Only if the ID is lost will the particle be recorded
-    !! in the removal information, and in this case
-    !! <tt>aero_removed_action(i)</tt> will be 2 (\c AERO_INFO_COAG)
-    !! and <tt>aero_removed_other_id(i)</tt> will be the ID number of
-    !! the combined particle.
-    !!
-    !! The aerosol removal information NetCDF dimensions are:
-    !!   - \b aero_removed: number of aerosol particles removed from the
-    !!     simulation during the previous timestep (or 1, as described
-    !!     above)
-    !!
-    !! The aerosol removal information NetCDF variables are:
-    !!   - \b aero_removed (dim \c aero_removed): dummy dimension variable
-    !!     (no useful value)
-    !!   - \b aero_removed_id (dim \c aero_removed): the ID number of each
-    !!     removed particle
-    !!   - \b aero_removed_action (dim \c aero_removed): the reasons for
-    !!     removal for each particle, with values:
-    !!     - 0 (\c AERO_INFO_NONE): no information (invalid entry)
-    !!     - 1 (\c AERO_INFO_DILUTION): particle was removed due to dilution
-    !!       with outside air
-    !!     - 2 (\c AERO_INFO_COAG): particle was removed due to coagulation
-    !!     - 3 (\c AERO_INFO_HALVED): particle was removed due to halving of
-    !!       the aerosol population
-    !!     - 4 (\c AERO_INFO_WEIGHT): particle was removed due to adjustments
-    !!       in the particle's weighting function
-    !!   - \b aero_removed_other_id (dim \c aero_removed): the ID number of
-    !!     the combined particle formed by coagulation, if the removal reason
-    !!     was coagulation (2, \c AERO_INFO_COAG). May be 0, if the new
-    !!     coagulated particle was not created due to weighting.
-
     ! FIXME: move this to aero_info_array.F90, together with
     ! aero_state_netcdf_dim_aero_removed() ?
     if (record_removals) then
@@ -2499,6 +2441,68 @@ contains
     end if
 
   end subroutine aero_state_output_netcdf
+
+  ! this belongs in the subroutine above, but is outside because
+  ! Doxygen 1.8.7 doesn't resolve references when multiple \page
+  ! blocks are in one subroutine
+
+  !> \page output_format_aero_removed Output File Format: Aerosol Particle Removal Information
+  !!
+  !! When an aerosol particle is introduced into the simulation it
+  !! is assigned a unique ID number. This ID number will persist
+  !! over time, allowing tracking of a paticular particle's
+  !! evolution. If the \c record_removals variable in the input spec
+  !! file is \c yes, then the every time a particle is removed from
+  !! the simulation its removal will be recorded in the removal
+  !! information.
+  !!
+  !! The removal information written at timestep \c n contains
+  !! information about every particle ID that is present at time
+  !! <tt>(n - 1)</tt> but not present at time \c n.
+  !!
+  !! The removal information is always written in the output files,
+  !! even if no particles were removed in the previous
+  !! timestep. Unfortunately, NetCDF files cannot contain arrays of
+  !! length 0. In the case of no particles being removed, the \c
+  !! aero_removed dimension will be set to 1 and
+  !! <tt>aero_removed_action(1)</tt> will be 0 (\c AERO_INFO_NONE).
+  !!
+  !! When two particles coagulate, the ID number of the combined
+  !! particle will be the ID particle of the largest constituent, if
+  !! possible (weighting functions can make this impossible to
+  !! achieve). A given particle ID may thus be lost due to
+  !! coagulation (if the resulting combined particle has a different
+  !! ID), or the ID may be preserved (as the ID of the combined
+  !! particle). Only if the ID is lost will the particle be recorded
+  !! in the removal information, and in this case
+  !! <tt>aero_removed_action(i)</tt> will be 2 (\c AERO_INFO_COAG)
+  !! and <tt>aero_removed_other_id(i)</tt> will be the ID number of
+  !! the combined particle.
+  !!
+  !! The aerosol removal information NetCDF dimensions are:
+  !!   - \b aero_removed: number of aerosol particles removed from the
+  !!     simulation during the previous timestep (or 1, as described
+  !!     above)
+  !!
+  !! The aerosol removal information NetCDF variables are:
+  !!   - \b aero_removed (dim \c aero_removed): dummy dimension variable
+  !!     (no useful value)
+  !!   - \b aero_removed_id (dim \c aero_removed): the ID number of each
+  !!     removed particle
+  !!   - \b aero_removed_action (dim \c aero_removed): the reasons for
+  !!     removal for each particle, with values:
+  !!     - 0 (\c AERO_INFO_NONE): no information (invalid entry)
+  !!     - 1 (\c AERO_INFO_DILUTION): particle was removed due to dilution
+  !!       with outside air
+  !!     - 2 (\c AERO_INFO_COAG): particle was removed due to coagulation
+  !!     - 3 (\c AERO_INFO_HALVED): particle was removed due to halving of
+  !!       the aerosol population
+  !!     - 4 (\c AERO_INFO_WEIGHT): particle was removed due to adjustments
+  !!       in the particle's weighting function
+  !!   - \b aero_removed_other_id (dim \c aero_removed): the ID number of
+  !!     the combined particle formed by coagulation, if the removal reason
+  !!     was coagulation (2, \c AERO_INFO_COAG). May be 0, if the new
+  !!     coagulated particle was not created due to weighting.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

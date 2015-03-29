@@ -7,31 +7,45 @@ PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 Version 2.2.0  
 Released 2012-02-25
 
-<http://lagrange.mechse.illinois.edu/mwest/partmc/>
+<http://lagrange.mechse.illinois.edu/partmc/>
 
 References:
 
    * N. Riemer, M. West, R. A. Zaveri, and R. C. Easter (2009),
      Simulating the evolution of soot mixing state with a
-     particle-resolved aerosol model, J. Geophys. Res. 114(D09202),
+     particle-resolved aerosol model, _J. Geophys. Res._ 114(D09202),
      <http://dx.doi.org/10.1029/2008JD011073>.
    * N. Riemer, M. West, R. A. Zaveri, and R. C. Easter (2010),
      Estimating black carbon aging time-scales with a
-     particle-resolved aerosol model, J. Aerosol Sci. 41(1), 143-158,
+     particle-resolved aerosol model, _J. Aerosol Sci._ 41(1), 143-158,
      <http://dx.doi.org/10.1016/j.jaerosci.2009.08.009>.
    * R. A. Zaveri, J. C. Barnard, R. C. Easter, N. Riemer, and M. West
      (2010), Particle-resolved simulation of aerosol size,
      composition, mixing state, and the associated optical and cloud
      condensation nuclei activation properties in an evolving urban
-     plume, J. Geophys. Res. 115(D17210),
+     plume, _J. Geophys. Res._ 115(D17210),
      <http://dx.doi.org/10.1029/2009JD013616>.
    * R. E. L. DeVille, N. Riemer, and M. West, Weighted Flow
      Algorithms (WFA) for stochastic particle coagulation,
-     J. Comp. Phys. 230(23), 8427-8451, 2011,
+     _J. Comp. Phys._ 230(23), 8427-8451, 2011,
      <http://dx.doi.org/10.1016/j.jcp.2011.07.027>
+   * J. Ching, N. Riemer, and M. West, Impacts of black carbon mixing
+     state on black carbon nucleation scavenging: Insights from a
+     particle-resolved model, _J. Geophys. Res._ 117(D23209), 2012,
+     <http://dx.doi.org/10.1029/2012JD018269>
+   * M. D. Michelotti, M. T. Heath, and M. West, Binning for efficient
+     stochastic multiscale particle simulations, _Atmos. Chem. Phys._
+     11(4), 1071-1096, 2013, <http://dx.doi.org/10.1137/130908038>
+   * N. Riemer and M. West, Quantifying aerosol mixing state with
+     entropy and diversity measures, _Atmos. Chem. Phys._ 13,
+     11423-11439, 2013, <http://dx.doi.org/10.5194/acp-13-11423-2013>
+   * J. Tian, N. Riemer, M. West, L. Pfaffenberger, H. Schlager, and
+     A. Petzold, Modeling the evolution of aerosol particles in a ship
+     plume using PartMC-MOSAIC, _Atmos. Chem. Phys._ 14, 5327-5347,
+     2014, <http://dx.doi.org/10.5194/acp-14-5327-2014>
 
-Copyright (C) 2005-2012 Nicole Riemer and Matthew West  
-Portions copyright (C) Andreas Bott and Richard Easter  
+Copyright (C) 2005-2015 Nicole Riemer and Matthew West  
+Portions copyright (C) Andreas Bott, Richard Easter, and Jeffrey Curtis  
 Licensed under the GNU General Public License version 2 or (at your
 option) any later version.  
 For details see the file COPYING or
@@ -43,10 +57,10 @@ Dependencies
 
 Required dependencies:
 
-   * Fortran 95 compiler (Fortran 2003 `ISO_C_BINDING` support
-     required for SUNDIALS or GSL)
-   * cmake version 2.6.4 or higher - <http://www.cmake.org/>
-   * NetCDF - <http://www.unidata.ucar.edu/software/netcdf/> (note that NetCDF 4.1.3 is buggy, so use 4.1.2 or earlier, or 
+   * Fortran 2003 compiler - <https://gcc.gnu.org/fortran/> or similar
+   * CMake version 2.6.4 or higher - <http://www.cmake.org/>
+   * NetCDF version 4.2 or higher -
+     <http://www.unidata.ucar.edu/software/netcdf/>
 
 Optional dependencies:
 
@@ -59,18 +73,9 @@ Optional dependencies:
      <http://www.llnl.gov/casc/sundials/>
    * gnuplot for testcase plotting - <http://www.gnuplot.info/>
 
-PartMC has beeen tested on the platforms:
-
-   * OS X 10.7 with MacPorts 2.0.3 and installed ports: `gcc46`,
-     `cmake`; manually compiled: `netcdf-4.1.2`
-   * Fedora 16 with installed packages: `gcc-gfortran`, `cmake`;
-     manually compiled: `netcdf-4.1.2`
-
 
 Installation
 ============
-
-The quick-start instructions are:
 
 1. Install cmake and NetCDF (see above). The NetCDF libraries are
    required to compile PartMC. The `netcdf.mod` Fortran 90 module file

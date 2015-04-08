@@ -67,6 +67,7 @@ contains
 
   !> Sets the maximum ranges of the forward map.
   elemental subroutine integer_rmap2_set_ranges(integer_rmap2, n_range_1, &
+       n_range_2)
 
     !> Structure to initialize.
     type(integer_rmap2_t), intent(out) :: integer_rmap2

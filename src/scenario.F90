@@ -301,7 +301,6 @@ contains
     call aero_state_add_aero_dist_sample(aero_state, aero_data, &
          background, 1d0 - p, env_state%elapsed_time, allow_doubling, &
          allow_halving, n_dil_in)
-    call aero_dist_deallocate(background)
 
     ! update computational volume
     call aero_weight_array_scale(aero_state%awa, &
@@ -548,7 +547,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Maximum loss vals.
-    real(kind=dp), intent(out) :: loss_max(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: loss_max(bin_grid_size(bin_grid))
 
     !> Number of sample points per bin.
     integer, parameter :: n_sample = 3
@@ -558,7 +557,7 @@ contains
     real(kind=dp) :: v_low, v_high, vol, r, r_max
     integer :: b, i
 
-    do b = 1,bin_grid%n_bin
+    do b = 1,bin_grid_size(bin_grid)
        v_low = rad2vol(bin_grid%edges(b))
        v_high = rad2vol(bin_grid%edges(b + 1))
        r_max = 0d0
@@ -701,12 +700,10 @@ contains
          // trim(real_to_string(over_prob)) )
     if (pmc_random() * over_prob > prob) return
 
-    call aero_info_allocate(aero_info)
     aero_info%id = aero_particle%id
     aero_info%action = AERO_INFO_DILUTION
     aero_info%other_id = 0
     call aero_state_remove_particle_with_info(aero_state, i_part, aero_info)
-    call aero_info_deallocate(aero_info)
 
   end subroutine scenario_try_single_particle_loss
 

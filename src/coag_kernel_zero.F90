@@ -128,6 +128,8 @@ contains
     type(aero_dist_t) :: emissions, background
     type(aero_binned_t) :: background_binned, aero_binned_limit
 
+    logical, save :: already_warned_water = .false.
+
     call aero_binned_set_sizes(aero_binned, bin_grid_size(bin_grid), &
          aero_data_n_spec(aero_data))
     call aero_binned_set_sizes(background_binned, &
@@ -150,7 +152,7 @@ contains
        call aero_binned_scale(aero_binned, &
             emission_rate_scale * time / env_state%height)
     else
-       allocate(loss_array(bin_grid%n_bin))
+       allocate(loss_array(bin_grid_size(bin_grid)))
 
        if ((loss_function_type /= SCENARIO_LOSS_FUNCTION_ZERO) .or. &
             (loss_function_type /= SCENARIO_LOSS_FUNCTION_INVALID)) then
@@ -161,7 +163,7 @@ contains
           end if
        end if
 
-       do i = 1, bin_grid%n_bin
+       do i = 1,bin_grid_size(bin_grid)
           loss_array(i) = dilution_rate + scenario_loss_rate( &
                loss_function_type, rad2vol(bin_grid%centers(i)), &
                const%water_density, aero_data, env_state)
@@ -181,7 +183,7 @@ contains
        call aero_binned_add(aero_binned_limit, background_binned)
        call aero_binned_scale_by_array(aero_binned_limit, loss_array)
 
-       do i = 1, bin_grid%n_bin
+       do i = 1,bin_grid_size(bin_grid)
           loss_array(i) = exp(-time / loss_array(i))
        end do
 

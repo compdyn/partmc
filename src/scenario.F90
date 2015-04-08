@@ -690,9 +690,8 @@ contains
     type(aero_particle_t), pointer :: aero_particle
     type(aero_info_t) :: aero_info
 
-    aero_particle => aero_state%apa%particle(i_part)
-    vol = aero_particle_volume(aero_particle)
-    density = aero_particle_density(aero_particle, aero_data)
+    vol = aero_particle_volume(aero_state%apa%particle(i_part))
+    density = aero_particle_density(aero_state%apa%particle(i_part), aero_data)
     rate = scenario_loss_rate(loss_function_type, vol, density, aero_data, &
          env_state)
     prob = 1d0 - exp(-delta_t * rate)

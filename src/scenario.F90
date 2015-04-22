@@ -699,7 +699,7 @@ contains
          // trim(real_to_string(over_prob)) )
     if (pmc_random() * over_prob > prob) return
 
-    aero_info%id = aero_particle%id
+    aero_info%id = aero_state%apa%particle(i_part)%id
     aero_info%action = AERO_INFO_DILUTION
     aero_info%other_id = 0
     call aero_state_remove_particle_with_info(aero_state, i_part, aero_info)

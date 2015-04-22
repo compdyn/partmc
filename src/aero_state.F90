@@ -1372,6 +1372,8 @@ contains
          aero_state%aero_sorted%group_class%inverse(i_group, i_class))
 
     if ((weight_ratio > 1d0) .and. (allow_halving .or. (n_part == 0))) then
+       call aero_weight_scale(aero_state%awa%weight(i_group, i_class), &
+            weight_ratio)
        n_remove = prob_round(real(n_part, kind=dp) &
             * (1d0 - 1d0 / weight_ratio))
        do i_remove = 1,n_remove

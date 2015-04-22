@@ -686,7 +686,6 @@ contains
     real(kind=dp), intent(in) :: over_prob
 
     real(kind=dp) :: prob, rate, vol, density
-    type(aero_particle_t), pointer :: aero_particle
     type(aero_info_t) :: aero_info
 
     vol = aero_particle_volume(aero_state%apa%particle(i_part))

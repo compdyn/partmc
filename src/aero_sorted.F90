@@ -135,6 +135,11 @@ contains
        deallocate(aero_sorted%coag_kernel_max)
     end if
     allocate(aero_sorted%coag_kernel_max(n_bin, n_bin))
+    aero_sorted%removal_rate_bounds_valid = .false.
+    if (allocated(aero_sorted%removal_rate_max)) then
+       deallocate(aero_sorted%removal_rate_max)
+    end if
+    allocate(aero_sorted%removal_rate_max(n_bin))
     aero_sorted%bin_grid = bin_grid
 
   end subroutine aero_sorted_set_bin_grid

@@ -58,7 +58,7 @@ module pmc_aero_sorted
      real(kind=dp), allocatable, dimension(:,:) :: coag_kernel_max
      !> Whether particle removal rate bounds are valid.
      logical :: removal_rate_bounds_valid
-     !> Particle removal rate upper bound [<tt>n_bin x n_bin</tt>].
+     !> Particle removal rate upper bound [<tt>n_bin</tt>].
      real(kind=dp), allocatable, dimension(:) :: removal_rate_max
   end type aero_sorted_t
 

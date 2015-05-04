@@ -1,4 +1,9 @@
 
+2.4.0 - XXXX-XX-XX
+
+  * Composition sampling uses a new mean-projection algorithm to give
+    better spread.
+
 2.3.0 - 2015-03-29
 
   * Pressure is now specified as a profile rather than a constant value.

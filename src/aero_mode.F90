@@ -685,8 +685,27 @@ contains
     !> Sampled volumes (m^3).
     real(kind=dp), intent(out) :: vols(size(aero_mode%vol_frac))
 
-    call rand_normal_array_1d(aero_mode%vol_frac, aero_mode%vol_frac_std, vols)
-    vols = max(vols, 0d0)
+    integer, parameter :: AERO_MODE_MAX_SAMPLE_LOOPS = 1000000
+
+    integer :: i_sample
+    real(kind=dp) :: offset
+
+    ! sampling of volume fractions, normalized to sum to 1 by
+    ! projecting out the mean direction, and accepted if all
+    ! non-negative, otherwise rejected and repeated (accept-reject)
+    do i_sample = 1,AERO_MODE_MAX_SAMPLE_LOOPS
+       call rand_normal_array_1d(aero_mode%vol_frac, aero_mode%vol_frac_std, &
+            vols)
+       ! add the correct amount of (offset * vol_frac) to vols to ensure
+       ! that sum(vols) is 1
+       offset = 1d0 - sum(vols)
+       vols = vols + offset * aero_mode%vol_frac
+       if (minval(vols) >= 0d0) exit
+    end do
+    if (i_sample == AERO_MODE_MAX_SAMPLE_LOOPS) then
+       call die_msg(549015143, "Unable to sample non-negative volumes for " &
+            // "mode: " // trim(aero_mode%name))
+    end if
     vols = vols / sum(vols) * total_vol
 
   end subroutine aero_mode_sample_vols

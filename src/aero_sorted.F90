@@ -346,6 +346,7 @@ contains
        call bin_grid_make(new_bin_grid, BIN_GRID_TYPE_LOG, n_bin, grid_r_min, &
             grid_r_max)
        call aero_sorted_set_bin_grid(aero_sorted, new_bin_grid, use_n_group, &
+
             use_n_class)
        call aero_sorted_sort_particles(aero_sorted, aero_particle_array)
     else
@@ -405,6 +406,8 @@ contains
     if ((i_bin < 1) .or. (i_bin > n_bin)) then
        ! particle doesn't fit in the current bin_grid, so remake the
        ! bin_grid if we are allowed
+       ! if bin_grid is unallocated, then i_bin will be -1 thus will remake
+       ! the bin_grid.
        if (present(allow_resort)) then
           if (.not. allow_resort) then
              ! FIXME: this could be avoided if the new bin_grid was an

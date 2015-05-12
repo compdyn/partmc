@@ -147,9 +147,8 @@ contains
     !> Value to locate bin for.
     real(kind=dp), intent(in) :: val
 
-    call assert(448215689, bin_grid_size(bin_grid) >= 0)
-    if (bin_grid_size(bin_grid) == 0) then
-       bin_grid_find = 0
+    if (bin_grid_size(bin_grid) <= 0) then
+       bin_grid_find = -1
        return
     end if
     if (bin_grid%type == BIN_GRID_TYPE_LOG) then

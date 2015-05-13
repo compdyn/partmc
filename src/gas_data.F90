@@ -199,8 +199,7 @@ contains
     type(gas_data_t), intent(in) :: val
 
     pmc_mpi_pack_size_gas_data = &
-         pmc_mpi_pack_size_integer(gas_data_n_spec(val)) &
-         + pmc_mpi_pack_size_string_array(val%name) &
+         pmc_mpi_pack_size_string_array(val%name) &
          + pmc_mpi_pack_size_integer_array(val%mosaic_index)
 
   end function pmc_mpi_pack_size_gas_data
@@ -221,7 +220,6 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_pack_integer(buffer, position, gas_data_n_spec(val))
     call pmc_mpi_pack_string_array(buffer, position, val%name)
     call pmc_mpi_pack_integer_array(buffer, position, val%mosaic_index)
     call assert(449872094, &
@@ -246,7 +244,6 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_unpack_integer(buffer, position, gas_data_n_spec(val))
     call pmc_mpi_unpack_string_array(buffer, position, val%name)
     call pmc_mpi_unpack_integer_array(buffer, position, val%mosaic_index)
     call assert(137879163, &

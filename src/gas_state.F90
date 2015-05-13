@@ -434,7 +434,6 @@ contains
     call gas_state_set_size(val_avg, size(val%mix_rat))
     call pmc_mpi_allreduce_average_real_array(val%mix_rat, val_avg%mix_rat)
     val%mix_rat = val_avg%mix_rat
-    call gas_state_deallocate(val_avg)
 #endif
 
   end subroutine gas_state_mix
@@ -456,7 +455,6 @@ contains
     if (pmc_mpi_rank() == 0) then
        val%mix_rat = val_avg%mix_rat
     end if
-    call gas_state_deallocate(val_avg)
 #endif
 
   end subroutine gas_state_reduce_avg

@@ -276,7 +276,6 @@ contains
 #ifdef PMC_USE_MPI
     integer :: prev_position, i, n
 
-    call aero_info_array_deallocate(val)
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, n)
     call aero_info_array_realloc(val, n)

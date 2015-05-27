@@ -389,10 +389,14 @@ contains
 
     integer :: i, total_size
 
-    total_size = pmc_mpi_pack_size_integer(aero_dist_n_mode(val))
-    do i = 1,size(val%mode)
-       total_size = total_size + pmc_mpi_pack_size_aero_mode(val%mode(i))
-    end do
+    if (allocated(val%mode)) then
+       total_size = pmc_mpi_pack_size_integer(aero_dist_n_mode(val))
+       do i = 1,size(val%mode)
+          total_size = total_size + pmc_mpi_pack_size_aero_mode(val%mode(i))
+       end do
+    else
+       total_size = pmc_mpi_pack_size_integer(-1)
+    end if
     pmc_mpi_pack_size_aero_dist = total_size
 
   end function pmc_mpi_pack_size_aero_dist
@@ -413,10 +417,14 @@ contains
     integer :: prev_position, i
 
     prev_position = position
-    call pmc_mpi_pack_integer(buffer, position, aero_dist_n_mode(val))
-    do i = 1,size(val%mode)
-       call pmc_mpi_pack_aero_mode(buffer, position, val%mode(i))
-    end do
+    if (allocated(val%mode)) then
+       call pmc_mpi_pack_integer(buffer, position, aero_dist_n_mode(val))
+       do i = 1,size(val%mode)
+          call pmc_mpi_pack_aero_mode(buffer, position, val%mode(i))
+       end do
+    else
+       call pmc_mpi_pack_integer(buffer, position, -1)
+    end if
     call assert(440557910, &
          position - prev_position <= pmc_mpi_pack_size_aero_dist(val))
 #endif
@@ -441,7 +449,7 @@ contains
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, n)
     if (allocated(val%mode)) deallocate(val%mode)
-    if (n > 0) then
+    if (n >= 0) then
        allocate(val%mode(n))
        do i = 1,n
           call pmc_mpi_unpack_aero_mode(buffer, position, val%mode(i))

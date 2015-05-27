@@ -165,7 +165,7 @@ contains
     logical :: send_logical, recv_logical
     character(len=100) :: send_string, recv_string
     integer :: send_integer, recv_integer
-    real(kind=dp) :: send_real_array(2)
+    real(kind=dp), allocatable :: send_real_array(:)
     real(kind=dp), allocatable :: recv_real_array(:)
 
     if (pmc_mpi_rank() == 0) then
@@ -174,6 +174,7 @@ contains
        send_logical = test_logical
        send_string = test_string
        send_integer = test_integer
+       allocate(send_real_array(2))
        send_real_array(1) = real(test_complex)
        send_real_array(2) = aimag(test_complex)
 
@@ -445,16 +446,20 @@ contains
   integer function pmc_mpi_pack_size_integer_array(val)
 
     !> Value to pack.
-    integer, intent(in) :: val(:)
+    integer, allocatable, intent(in) :: val(:)
 
     integer :: ierr
 
 #ifdef PMC_USE_MPI
-    call mpi_pack_size(size(val), MPI_INTEGER, MPI_COMM_WORLD, &
-         pmc_mpi_pack_size_integer_array, ierr)
-    call pmc_mpi_check_ierr(ierr)
-    pmc_mpi_pack_size_integer_array = pmc_mpi_pack_size_integer_array &
+    if (allocated(val)) then
+       call mpi_pack_size(size(val), MPI_INTEGER, MPI_COMM_WORLD, &
+            pmc_mpi_pack_size_integer_array, ierr)
+       call pmc_mpi_check_ierr(ierr)
+       pmc_mpi_pack_size_integer_array = pmc_mpi_pack_size_integer_array &
          + pmc_mpi_pack_size_integer(size(val))
+    else
+       pmc_mpi_pack_size_integer_array = pmc_mpi_pack_size_integer(-1)
+    end if
 #else
     pmc_mpi_pack_size_integer_array = 0
 #endif
@@ -467,16 +472,20 @@ contains
   integer function pmc_mpi_pack_size_real_array(val)
 
     !> Value to pack.
-    real(kind=dp), intent(in) :: val(:)
+    real(kind=dp), allocatable, intent(in) :: val(:)
 
     integer :: ierr
 
 #ifdef PMC_USE_MPI
-    call mpi_pack_size(size(val), MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, &
-         pmc_mpi_pack_size_real_array, ierr)
-    call pmc_mpi_check_ierr(ierr)
-    pmc_mpi_pack_size_real_array = pmc_mpi_pack_size_real_array &
-         + pmc_mpi_pack_size_integer(size(val))
+    if (allocated(val)) then
+       call mpi_pack_size(size(val), MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, &
+            pmc_mpi_pack_size_real_array, ierr)
+       call pmc_mpi_check_ierr(ierr)
+       pmc_mpi_pack_size_real_array = pmc_mpi_pack_size_real_array &
+            + pmc_mpi_pack_size_integer(size(val))
+    else
+       pmc_mpi_pack_size_real_array = pmc_mpi_pack_size_integer(-1)
+    end if
 #else
     pmc_mpi_pack_size_real_array = 0
 #endif
@@ -489,14 +498,18 @@ contains
   integer function pmc_mpi_pack_size_string_array(val)
 
     !> Value to pack.
-    character(len=*), intent(in) :: val(:)
+    character(len=*), allocatable, intent(in) :: val(:)
 
     integer :: i, total_size
 
-    total_size = pmc_mpi_pack_size_integer(size(val))
-    do i = 1,size(val)
-       total_size = total_size + pmc_mpi_pack_size_string(val(i))
-    end do
+    if (allocated(val)) then
+       total_size = pmc_mpi_pack_size_integer(size(val))
+       do i = 1,size(val)
+          total_size = total_size + pmc_mpi_pack_size_string(val(i))
+       end do
+    else
+       total_size = pmc_mpi_pack_size_integer(-1)
+    end if
     pmc_mpi_pack_size_string_array = total_size
 
   end function pmc_mpi_pack_size_string_array
@@ -507,17 +520,23 @@ contains
   integer function pmc_mpi_pack_size_real_array_2d(val)
 
     !> Value to pack.
-    real(kind=dp), intent(in) :: val(:,:)
+    real(kind=dp), allocatable, intent(in) :: val(:,:)
 
     integer :: ierr
 
 #ifdef PMC_USE_MPI
-    call mpi_pack_size(size(val), MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, &
-         pmc_mpi_pack_size_real_array_2d, ierr)
-    call pmc_mpi_check_ierr(ierr)
-    pmc_mpi_pack_size_real_array_2d = pmc_mpi_pack_size_real_array_2d &
-         + pmc_mpi_pack_size_integer(size(val,1)) &
-         + pmc_mpi_pack_size_integer(size(val,2))
+    if (allocated(val)) then
+       call mpi_pack_size(size(val), MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, &
+            pmc_mpi_pack_size_real_array_2d, ierr)
+       call pmc_mpi_check_ierr(ierr)
+       pmc_mpi_pack_size_real_array_2d = pmc_mpi_pack_size_real_array_2d &
+            + pmc_mpi_pack_size_integer(size(val,1)) &
+            + pmc_mpi_pack_size_integer(size(val,2))
+    else
+       pmc_mpi_pack_size_real_array_2d = &
+            pmc_mpi_pack_size_integer(-1) &
+            + pmc_mpi_pack_size_integer(-1)
+    end if
 #else
     pmc_mpi_pack_size_real_array_2d = 0
 #endif
@@ -661,7 +680,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    integer, intent(in) :: val(:)
+    integer, allocatable, intent(in) :: val(:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n, ierr
@@ -688,17 +707,21 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    real(kind=dp), intent(in) :: val(:)
+    real(kind=dp), allocatable, intent(in) :: val(:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n, ierr
 
     prev_position = position
-    n = size(val)
-    call pmc_mpi_pack_integer(buffer, position, n)
-    call mpi_pack(val, n, MPI_DOUBLE_PRECISION, buffer, size(buffer), &
-         position, MPI_COMM_WORLD, ierr)
-    call pmc_mpi_check_ierr(ierr)
+    if (allocated(val)) then
+       n = size(val)
+       call pmc_mpi_pack_integer(buffer, position, n)
+       call mpi_pack(val, n, MPI_DOUBLE_PRECISION, buffer, size(buffer), &
+            position, MPI_COMM_WORLD, ierr)
+       call pmc_mpi_check_ierr(ierr)
+    else
+       call pmc_mpi_pack_integer(buffer, position, -1)
+    end if
     call assert(825718791, &
          position - prev_position <= pmc_mpi_pack_size_real_array(val))
 #endif
@@ -715,7 +738,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    character(len=*), intent(in) :: val(:)
+    character(len=*), allocatable, intent(in) :: val(:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i, n
@@ -742,19 +765,24 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    real(kind=dp), intent(in) :: val(:,:)
+    real(kind=dp), allocatable, intent(in) :: val(:,:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n1, n2, ierr
 
     prev_position = position
-    n1 = size(val, 1)
-    n2 = size(val, 2)
-    call pmc_mpi_pack_integer(buffer, position, n1)
-    call pmc_mpi_pack_integer(buffer, position, n2)
-    call mpi_pack(val, n1*n2, MPI_DOUBLE_PRECISION, buffer, size(buffer), &
-         position, MPI_COMM_WORLD, ierr)
-    call pmc_mpi_check_ierr(ierr)
+    if (allocated(val)) then
+       n1 = size(val, 1)
+       n2 = size(val, 2)
+       call pmc_mpi_pack_integer(buffer, position, n1)
+       call pmc_mpi_pack_integer(buffer, position, n2)
+       call mpi_pack(val, n1*n2, MPI_DOUBLE_PRECISION, buffer, size(buffer), &
+            position, MPI_COMM_WORLD, ierr)
+       call pmc_mpi_check_ierr(ierr)
+    else
+       call pmc_mpi_pack_integer(buffer, position, -1)
+       call pmc_mpi_pack_integer(buffer, position, -1)
+    end if
     call assert(567349745, &
          position - prev_position <= pmc_mpi_pack_size_real_array_2d(val))
 #endif
@@ -899,7 +927,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    integer, intent(inout), allocatable :: val(:)
+    integer, allocatable, intent(inout) :: val(:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n, ierr
@@ -927,7 +955,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    real(kind=dp), intent(inout), allocatable :: val(:)
+    real(kind=dp), allocatable, intent(inout) :: val(:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n, ierr
@@ -935,6 +963,7 @@ contains
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, n)
     if (allocated(val)) deallocate(val)
+    if (n == -1) return
     allocate(val(n))
     call mpi_unpack(buffer, size(buffer), position, val, n, &
          MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr)
@@ -955,7 +984,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    character(len=*), intent(inout), allocatable :: val(:)
+    character(len=*), allocatable, intent(inout) :: val(:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i, n
@@ -983,7 +1012,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    real(kind=dp), intent(inout), allocatable :: val(:,:)
+    real(kind=dp), allocatable, intent(inout) :: val(:,:)
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n1, n2, ierr
@@ -992,6 +1021,7 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, n1)
     call pmc_mpi_unpack_integer(buffer, position, n2)
     if (allocated(val)) deallocate(val)
+    if (n1 == -1) return
     allocate(val(n1,n2))
     call mpi_unpack(buffer, size(buffer), position, val, n1*n2, &
          MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr)
@@ -1489,32 +1519,5 @@ contains
   end subroutine pmc_mpi_allgather_real_array
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Unpacks the given value from the buffer to an allocated array, advancing
-  !> position.
-  subroutine pmc_mpi_unpack_real_array_alloc(buffer, position, val)
-
-    !> Memory buffer.
-    character, intent(inout) :: buffer(:)
-    !> Current buffer position.
-    integer, intent(inout) :: position
-    !> Value to pack.
-    real(kind=dp), intent(inout), allocatable :: val(:)
-
-#ifdef PMC_USE_MPI
-    integer :: prev_position, n, ierr
-
-    prev_position = position
-    call pmc_mpi_unpack_integer(buffer, position, n)
-    if (allocated(val)) deallocate(val)
-    allocate(val(n))
-    call mpi_unpack(buffer, size(buffer), position, val, n, &
-         MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr)
-    call pmc_mpi_check_ierr(ierr)
-    call assert(520690818, &
-         position - prev_position <= pmc_mpi_pack_size_real_array(val))
-#endif
-
-  end subroutine pmc_mpi_unpack_real_array_alloc
 
 end module pmc_mpi

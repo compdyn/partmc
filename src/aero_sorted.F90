@@ -547,11 +547,6 @@ contains
     integer :: total_size
 
     total_size = 0
-    total_size = total_size + pmc_mpi_pack_size_integer(aero_sorted_n_bin(val))
-    total_size = total_size &
-         + pmc_mpi_pack_size_integer(aero_sorted_n_group(val))
-    total_size = total_size &
-         + pmc_mpi_pack_size_integer(aero_sorted_n_class(val))
     total_size = total_size + pmc_mpi_pack_size_bin_grid(val%bin_grid)
     total_size = total_size + pmc_mpi_pack_size_integer_rmap2(val%size_class)
     total_size = total_size + pmc_mpi_pack_size_integer_rmap2(val%group_class)
@@ -575,9 +570,6 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_pack_integer(buffer, position, aero_sorted_n_bin(val))
-    call pmc_mpi_pack_integer(buffer, position, aero_sorted_n_group(val))
-    call pmc_mpi_pack_integer(buffer, position, aero_sorted_n_class(val))
     call pmc_mpi_pack_bin_grid(buffer, position, val%bin_grid)
     call pmc_mpi_pack_integer_rmap2(buffer, position, val%size_class)
     call pmc_mpi_pack_integer_rmap2(buffer, position, val%group_class)
@@ -603,11 +595,6 @@ contains
     integer :: prev_position, n_bin, n_group, n_class
 
     prev_position = position
-    call pmc_mpi_unpack_integer(buffer, position, n_bin)
-    call pmc_mpi_unpack_integer(buffer, position, n_group)
-    call pmc_mpi_unpack_integer(buffer, position, n_class)
-    call aero_sorted_deallocate(val)
-    call aero_sorted_allocate_size(val, n_bin, n_group, n_class)
     call pmc_mpi_unpack_bin_grid(buffer, position, val%bin_grid)
     call pmc_mpi_unpack_integer_rmap2(buffer, position, val%size_class)
     call pmc_mpi_unpack_integer_rmap2(buffer, position, val%group_class)

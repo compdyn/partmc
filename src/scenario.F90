@@ -955,22 +955,30 @@ contains
          + pmc_mpi_pack_size_real_array(val%aero_emission_rate_scale) &
          + pmc_mpi_pack_size_real_array(val%aero_dilution_time) &
          + pmc_mpi_pack_size_real_array(val%aero_dilution_rate)
-    do i = 1,size(val%gas_emission)
-       total_size = total_size &
-            + pmc_mpi_pack_size_gas_state(val%gas_emission(i))
-    end do
-    do i = 1,size(val%gas_background)
-       total_size = total_size &
-            + pmc_mpi_pack_size_gas_state(val%gas_background(i))
-    end do
-    do i = 1,size(val%aero_emission)
-       total_size = total_size &
-            + pmc_mpi_pack_size_aero_dist(val%aero_emission(i))
-    end do
-    do i = 1,size(val%aero_background)
-       total_size = total_size &
-            + pmc_mpi_pack_size_aero_dist(val%aero_background(i))
-    end do
+    if (allocated(val%gas_emission_time)) then
+       do i = 1,size(val%gas_emission)
+          total_size = total_size &
+               + pmc_mpi_pack_size_gas_state(val%gas_emission(i))
+       end do
+    end if
+    if (allocated(val%gas_dilution_time)) then
+       do i = 1,size(val%gas_background)
+          total_size = total_size &
+               + pmc_mpi_pack_size_gas_state(val%gas_background(i))
+       end do
+    end if
+    if (allocated(val%aero_emission_time)) then
+       do i = 1,size(val%aero_emission)
+          total_size = total_size &
+               + pmc_mpi_pack_size_aero_dist(val%aero_emission(i))
+       end do
+    end if
+    if (allocated(val%aero_dilution_time)) then
+       do i = 1,size(val%aero_background)
+          total_size = total_size &
+               + pmc_mpi_pack_size_aero_dist(val%aero_background(i))
+       end do
+    end if
 
     pmc_mpi_pack_size_scenario = total_size
 
@@ -1007,18 +1015,26 @@ contains
          val%aero_emission_rate_scale)
     call pmc_mpi_pack_real_array(buffer, position, val%aero_dilution_time)
     call pmc_mpi_pack_real_array(buffer, position, val%aero_dilution_rate)
-    do i = 1,size(val%gas_emission)
-       call pmc_mpi_pack_gas_state(buffer, position, val%gas_emission(i))
-    end do
-    do i = 1,size(val%gas_background)
-       call pmc_mpi_pack_gas_state(buffer, position, val%gas_background(i))
-    end do
-    do i = 1,size(val%aero_emission)
-       call pmc_mpi_pack_aero_dist(buffer, position, val%aero_emission(i))
-    end do
-    do i = 1,size(val%aero_background)
-       call pmc_mpi_pack_aero_dist(buffer, position, val%aero_background(i))
-    end do
+    if (allocated(val%gas_emission_time)) then
+       do i = 1,size(val%gas_emission)
+          call pmc_mpi_pack_gas_state(buffer, position, val%gas_emission(i))
+       end do
+    end if
+    if (allocated(val%gas_dilution_time)) then
+       do i = 1,size(val%gas_background)
+          call pmc_mpi_pack_gas_state(buffer, position, val%gas_background(i))
+       end do
+    end if
+    if (allocated(val%aero_emission_time)) then
+       do i = 1,size(val%aero_emission)
+          call pmc_mpi_pack_aero_dist(buffer, position, val%aero_emission(i))
+       end do
+    end if
+    if (allocated(val%aero_dilution_time)) then
+       do i = 1,size(val%aero_background)
+          call pmc_mpi_pack_aero_dist(buffer, position, val%aero_background(i))
+       end do
+    end if
     call assert(639466930, &
          position - prev_position <= pmc_mpi_pack_size_scenario(val))
 #endif
@@ -1061,22 +1077,32 @@ contains
     if (allocated(val%gas_background)) deallocate(val%gas_background)
     if (allocated(val%aero_emission)) deallocate(val%aero_emission)
     if (allocated(val%aero_background)) deallocate(val%aero_background)
-    allocate(val%gas_emission(size(val%gas_emission_time)))
-    allocate(val%gas_background(size(val%gas_dilution_time)))
-    allocate(val%aero_emission(size(val%aero_emission_time)))
-    allocate(val%aero_background(size(val%aero_dilution_time)))
-    do i = 1,size(val%gas_emission)
-       call pmc_mpi_unpack_gas_state(buffer, position, val%gas_emission(i))
-    end do
-    do i = 1,size(val%gas_background)
-       call pmc_mpi_unpack_gas_state(buffer, position, val%gas_background(i))
-    end do
-    do i = 1,size(val%aero_emission)
-       call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_emission(i))
-    end do
-    do i = 1,size(val%aero_background)
-       call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_background(i))
-    end do
+    if (allocated(val%gas_emission_time)) then
+       allocate(val%gas_emission(size(val%gas_emission_time)))
+       do i = 1,size(val%gas_emission)
+          call pmc_mpi_unpack_gas_state(buffer, position, val%gas_emission(i))
+       end do
+    end if
+    if (allocated(val%gas_dilution_time)) then
+       allocate(val%gas_background(size(val%gas_dilution_time)))
+       do i = 1,size(val%gas_background)
+          call pmc_mpi_unpack_gas_state(buffer, position, &
+               val%gas_background(i))
+       end do
+    end if
+    if (allocated(val%aero_emission_time)) then
+       allocate(val%aero_emission(size(val%aero_emission_time)))
+       do i = 1,size(val%aero_emission)
+          call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_emission(i))
+       end do
+    end if
+    if (allocated(val%aero_dilution_time)) then
+       allocate(val%aero_background(size(val%aero_dilution_time)))
+       do i = 1,size(val%aero_background)
+          call pmc_mpi_unpack_aero_dist(buffer, position, &
+               val%aero_background(i))
+       end do
+    end if
     call assert(611542570, &
          position - prev_position <= pmc_mpi_pack_size_scenario(val))
 #endif

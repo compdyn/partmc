@@ -179,13 +179,15 @@ contains
     type(integer_varray_t), intent(in) :: val
 
     logical :: is_allocated
+    integer, allocatable :: tmp_entry(:)
     integer :: total_size
 
     is_allocated = allocated(val%entry)
     total_size = pmc_mpi_pack_size_logical(is_allocated)
     if (is_allocated) then
+       tmp_entry = val%entry(1:val%n_entry)
        total_size = total_size &
-            + pmc_mpi_pack_size_integer_array(val%entry(1:val%n_entry))
+            + pmc_mpi_pack_size_integer_array(tmp_entry)
     end if
     pmc_mpi_pack_size_integer_varray = total_size
 
@@ -206,13 +208,14 @@ contains
 #ifdef PMC_USE_MPI
     logical :: is_allocated
     integer :: prev_position
+    integer, allocatable :: tmp_entry(:)
 
     prev_position = position
     is_allocated = allocated(val%entry)
     call pmc_mpi_pack_logical(buffer, position, is_allocated)
     if (is_allocated) then
-       call pmc_mpi_pack_integer_array(buffer, position, &
-            val%entry(1:val%n_entry))
+       tmp_entry = val%entry(1:val%n_entry)
+       call pmc_mpi_pack_integer_array(buffer, position, tmp_entry)
     end if
     call assert(230655880, &
          position - prev_position <= pmc_mpi_pack_size_integer_varray(val))

@@ -627,8 +627,12 @@ contains
     elseif (p == n) then
        y = y_vals(n)
     else
-       alpha = (x - x_vals(p)) / (x_vals(p+1) - x_vals(p))
-       y = (1d0 - alpha) * y_vals(p) + alpha * y_vals(p+1)
+       if (y_vals(p) == y_vals(p+1)) then
+          y = y_vals(p)
+       else
+          alpha = (x - x_vals(p)) / (x_vals(p+1) - x_vals(p))
+          y = (1d0 - alpha) * y_vals(p) + alpha * y_vals(p+1)
+       end if
     end if
     interp_1d = y
 
@@ -654,8 +658,12 @@ contains
 
     real(kind=dp) :: alpha
 
-    alpha = real(i - 1, kind=dp) / real(n - 1, kind=dp)
-    interp_linear_disc = (1d0 - alpha) * x_1 + alpha * x_n
+    if (x_1 == x_n) then
+       interp_linear_disc = x_1
+    else
+       alpha = real(i - 1, kind=dp) / real(n - 1, kind=dp)
+       interp_linear_disc = (1d0 - alpha) * x_1 + alpha * x_n
+    end if
 
   end function interp_linear_disc
 

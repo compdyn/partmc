@@ -242,14 +242,16 @@ contains
     allocate(aero_dist%mode(0))
     call spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
     do while (.not. eof)
-       n = size(aero_dist%mode)
-       allocate(new_modes(n + 1))
-       do i = 1,n
-          new_modes(i) = aero_dist%mode(i)
-       end do
-       new_modes(n + 1) = aero_mode
-       call move_alloc(new_modes, aero_dist%mode)
-       !aero_dist%mode = [ aero_dist%mode, aero_mode ]
+!       n = size(aero_dist%mode)
+!       allocate(new_modes(n + 1))
+!       do i = 1,n
+!          new_modes(i) = aero_dist%mode(i)
+!       end do
+!       new_modes(n + 1) = aero_mode
+!      call move_alloc(new_modes, aero_dist%mode)
+!       aero_dist%mode = new_modes
+!       deallocate(new_modes)
+       aero_dist%mode = [ aero_dist%mode, aero_mode ]
        call spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
     end do
 

@@ -460,11 +460,12 @@ contains
     integer, intent(in) :: n
 
     !> Return value.
-    real(kind=dp) :: linspace(n)
+    real(kind=dp), allocatable :: linspace(:)
 
     integer :: i
     real(kind=dp) :: a
 
+    allocate(linspace(n))
     call assert(999299119, n >= 0)
     do i = 2, (n - 1)
        a = real(i - 1, kind=dp) / real(n - 1, kind=dp)
@@ -491,9 +492,11 @@ contains
     integer, intent(in) :: n
 
     !> Return value.
-    real(kind=dp) :: logspace(n)
+    real(kind=dp), allocatable :: logspace(:)
 
     real(kind=dp), allocatable :: log_x(:)
+
+    allocate(logspace(n))
 
     call assert(804623592, n >= 0)
     if (n == 0) return

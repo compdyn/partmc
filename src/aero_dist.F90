@@ -242,16 +242,25 @@ contains
     allocate(aero_dist%mode(0))
     call spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
     do while (.not. eof)
-!       n = size(aero_dist%mode)
-!       allocate(new_modes(n + 1))
-!       do i = 1,n
-!          new_modes(i) = aero_dist%mode(i)
-!       end do
-!       new_modes(n + 1) = aero_mode
-!      call move_alloc(new_modes, aero_dist%mode)
-!       aero_dist%mode = new_modes
-!       deallocate(new_modes)
-       aero_dist%mode = [ aero_dist%mode, aero_mode ]
+       n = size(aero_dist%mode)
+       allocate(new_modes(n + 1))
+       do i = 1,n
+          new_modes(i) = aero_dist%mode(i)
+       end do
+       new_modes(n + 1) = aero_mode
+       ! Next line is commented out due to a reported memory leak with valgrind
+       ! using both gcc 4.6.3 and 4.9.2.
+       !call move_alloc(new_modes, aero_dist%mode)
+       ! Next two lines are here to avoid issues with reallocation of lhs by
+       ! assignment.
+       deallocate(aero_dist%mode)
+       allocate(aero_dist%mode(n+1))
+       aero_dist%mode = new_modes
+       deallocate(new_modes)
+       ! Next line appears to work in gcc 4.9.2 but led to problems with older
+       ! versions of gcc (4.6.3). This will be ideal in the future as it avoids
+       ! the copying of the aero_dist%mode array each loop.
+       !aero_dist%mode = [aero_dist%mode, aero_mode]
        call spec_file_read_aero_mode(file, aero_data, aero_mode, eof)
     end do
 

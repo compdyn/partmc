@@ -1,0 +1,755 @@
+COMMENT  All the names of non-ionic aqueous phase species begin with a, cations end 
+COMMENT  with p and anions end with m, respectively. 
+
+COMMENT  CLASS: HENRY, TYPE: TEMP3
+COMMENT	 Phase transfer
+COMMENT  Kh = A exp(B (1/T - 1/298))
+COMMENT  B = dH/R [K]
+COMMENT  Further uptake parameters according to Schwartz's approach (alpha, Dg)  
+COMMENT  are read elsewhere in the program
+
+CLASS: HENRY 
+CO2 = aCO2        
+TEMP3:   A: 3.1e-2  B: 2423.0 
+
+CLASS: HENRY 
+O3 = aO3          
+TEMP3:   A: 1.14e-2  B: 2300.0
+
+CLASS: HENRY 
+HO2  = aHO2       
+TEMP3:   A: 9.0e3  B: 0.0
+
+CLASS: HENRY 
+HO = aHO          
+TEMP3:   A: 25.0  B: 5280.0
+
+CLASS: HENRY 
+H2O2 = aH2O2      
+TEMP3:   A: 1.02e5  B: 6340.0 
+
+CLASS: HENRY 
+NO2 = aNO2        
+TEMP3:   A: 1.2e-2  B: 1263.0
+
+CLASS: HENRY 
+HONO = aHONO     
+TEMP3:   A: 49.0   B: 4880.0
+
+COMMENT MLD - Removed undissociated HNO3
+COMMENT CLASS: HENRY 
+COMMENT HNO3 = aHNO3      
+COMMENT TEMP3:   A: 2.1e5  B: 8700.0
+CLASS: HENRY 
+HNO3 = NO3m + Hp
+TEMP3:   A: 2.1e5  B: 8700.0
+
+CLASS: HENRY 
+NO3 =  aNO3         
+TEMP3:   A: 6.0e-1  B: 0.0
+
+CLASS: HENRY 
+N2O5 = aN2O5
+TEMP3:   A: 1.4e0  B: 0.0
+ 
+CLASS: HENRY 
+NH3 =  aNH3       
+TEMP3:   A: 60.7  B: 3920.0
+
+CLASS: HENRY 
+HCL =  aHCL       
+TEMP3:   A: 1.1  B: 2020.0 
+
+CLASS: HENRY 
+HCHO = aHCHO      
+TEMP3:   A:  2.5 B: 7216.0
+
+CLASS: HENRY 
+ORA1 = aORA1   
+TEMP3:   A: 5.53e3  B: 5630.0
+ 
+CLASS: HENRY 
+SO2 =  aSO2       
+TEMP3:   A: 1.24  B: 3247.0
+ 
+CLASS: HENRY 
+OP1 =  aOP1       
+TEMP3:   A:   310.0 B: 5607.0
+
+CLASS: HENRY 
+ORA2 =  aORA2      
+TEMP3:   A: 5.5e3  B: 5890.0
+
+CLASS: HENRY 
+MO2 =  aMO2      
+TEMP3:   A:  310.0 B: 5607.0
+
+CLASS: HENRY 
+ETHPX =  aETHPX      
+TEMP3:   A: 340.0  B: 87.0
+
+CLASS: HENRY 
+ETOH =  aETOH      
+TEMP3:   A: 1.9e2 B: 6290.0  
+
+CLASS: HENRY 
+CH3OH =  aCH3OH      
+TEMP3:   A: 2.2e2 B: 5390.0  
+
+CLASS: HENRY 
+ALD =  aALD      
+TEMP3:   A:  4.8 B: 6254.0   
+                               
+CLASS: HENRY 
+BR2 =  aBR2      
+TEMP3:   A: 7.58e-1 B: 3800.0
+
+CLASS: HENRY 
+CL2 =  aCL2      
+TEMP3:   A: 9.15e-2 B: 2490.0  
+
+COMMENT MLD - Removed undissociated H2SO4
+COMMENT CLASS: HENRY 
+COMMENT SULF =  aSULF      
+COMMENT TEMP3:   A:   8.7e11  B: 0.0 
+CLASS: HENRY 
+SULF =  HSO4m + Hp 
+TEMP3:   A:   8.7e11  B: 0.0 
+
+CLASS: HENRY 
+HNO4 =  aHNO4      
+TEMP3:   A: 3e4  B: 0.0
+
+CLASS: HENRY 
+ACO3 =  aACO3      
+TEMP3:   A: 6.69e2 B: 5893.0
+
+CLASS: HENRY 
+GLY = aGLY
+TEMP3:  A: 1.4   B: 0.0
+
+CLASS: HENRY 
+[O2] = aO2
+TEMP3:  A: 1.3e-3  B: 1700.0
+
+CLASS: HENRY 
+CLNO2 = aCLNO2
+TEMP3:  A: 0.024 B: 0.0
+
+CLASS: HENRY 
+BRNO2 = aBRNO2
+TEMP3:  A: 0.3 B: 0.0
+
+CLASS: HENRY 
+BRCL = aBRCL
+TEMP3:  A: 0.94  B: 0.0
+
+CLASS: HENRY 
+NO = aNO
+TEMP3:  A: 1.9e-3 B: 0.0    
+ 
+COMMENT  CLASS: AQUA, TYPE: PHOTABC photolysis reactions according to 
+COMMENT  j = A * exp (B *(1 - 1 /(cos (C * chi)); A = jmax; chi = zenith angle
+
+CLASS: AQUA 
+FEOHpp    = FEpp  + aHO  
+PHOTABC:   A: 4.76e-03   B: 2.19894e+00  C: 0.76087e+00 
+
+CLASS: AQUA 
+NO3m   = aNO2 + aHO + OHm             
+PHOTABC:   A: 4.57e-7 B: 2.59408e+00  C: 0.77213e+00
+
+CLASS: AQUA 
+aH2O2     = aHO + aHO             
+PHOTABC:   A: 7.64e-06  B: 2.46425e+00   C: 0.76355e+00 
+
+CLASS: AQUA 
+FEC2O42m =   FEpp +  C2O4mm +  aCO2 + CO2m
+PHOTABC:  A:  2.47e-2    B: 1.95825e+00     C: 0.76782e+00
+
+COMMENT  CLASS: AQUA;  TYPE: TEMP3
+COMMENT  TEmperature dependent reation
+COMMENT  k(T)=A*exp(B*(1/T-1/298))
+COMMENT  A=k(298 K)
+COMMENT  B=-Ea/R 
+
+CLASS: AQUA 
+aH2O2 +  FEpp    =  FEppp + aHO  + OHm 
+TEMP3:   A: 50.0  B:  0.0
+
+CLASS: AQUA 
+aH2O2 +  CUp = CUpp + aHO   + OHm
+TEMP3:   A: 7.0e3  B: 0.0 
+
+CLASS: AQUA 
+O2m   + FEppp =  FEpp + aO2            
+TEMP3:   A: 1.5e8  B: 0.0 
+
+CLASS: AQUA 
+aHO2   + FEOHpp =  FEpp + aO2 + [aH2O]           
+TEMP3:   A: 1.3e5  B: 0.0    
+
+CLASS: AQUA 
+O2m   + FEOHpp =  FEpp + aO2 + OHm           
+TEMP3:   A: 1.5e8  B: 0.0 
+ 
+CLASS: AQUA 
+O2m   +  FEpp = FEppp  + aH2O2  + 2 OHm - 2 [aH2O]      
+TEMP3:   A: 1.0e7  B: 0.0 
+
+CLASS: AQUA 
+aHO2 + FEpp  = FEppp  + aH2O2  + OHm - [aH2O] 
+TEMP3:   A: 1.2e6  B: -5050.0      
+
+CLASS: AQUA 
+aHO + FEpp  = FEOHpp        
+TEMP3:   A: 4.3e8  B: -1100.0      
+
+CLASS: AQUA 
+O2m  +  CUp   = CUpp  + aH2O2   + 2 OHm - 2 [aH2O]  
+TEMP3:   A:  1e10  B: 0.0 
+
+CLASS: AQUA 
+aHO2 +   CUp  = CUpp  + aH2O2  + OHm - [aH2O]   
+TEMP3:   A: 2.3e9  B: 0.0 
+
+CLASS: AQUA 
+aHO2   +  CUpp = CUp  + aO2 + Hp
+TEMP3:   A: 1.0e8  B: 0.0             
+
+CLASS: AQUA 
+O2m   +  CUpp = CUp  + aO2             
+TEMP3:   A: 8.0e9  B: 0.0 
+
+CLASS: AQUA 
+FEppp  + CUp  = FEpp  + CUpp         
+TEMP3:   A: 1.3e7  B: 0.0 
+
+CLASS: AQUA 
+FEOHpp  + CUp  = FEpp  + CUpp + OHm            
+TEMP3:   A: 1.3e7  B: 0.0 
+
+CLASS: AQUA 
+aO3  + O2m     =  O3m + aO2   
+TEMP3:   A: 1.5e9  B:  -2200.0
+
+CLASS: AQUA 
+aHO3 = aHO + aO2
+TEMP3:   A:  330.0  B: -4500.0        
+
+CLASS: AQUA 
+aH2O2  + aHO  = aHO2  +  [aH2O]           
+TEMP3:   A: 3.0e7  B: -1680.0 
+
+CLASS: AQUA 
+HSO3m  + aHO  = SO3m  +  [aH2O]           
+TEMP3:   A: 2.7e9  B: 0.0 
+
+CLASS: AQUA 
+CUp + aO2 =  CUpp + O2m
+TEMP3:  A: 4.6e5 B: 0.0
+
+CLASS: AQUA 
+FEpp + aO3 = FEOpp + aO2
+TEMP3:   A:  8.2e5  B: -4690.0
+
+CLASS: AQUA 
+FEOpp + CLm = FEppp + CLOHm + OHm - [aH2O]
+TEMP3:  A: 100.0 B: 0.0
+
+CLASS: AQUA 
+FEOpp +  FEpp =  2 FEppp + 2 OHm
+TEMP3:   A:   7.2e4  B: -842.0                      
+
+CLASS: AQUA 
+aN2O5 = NO2p + NO3m
+TEMP3:  A: 1e9 B: 0.0
+
+CLASS: AQUA 
+NO2p + [aH2O] =  NO3m + Hp + Hp
+TEMP3:  A: 8.9e7  B: 0.0
+
+CLASS: AQUA 
+aNO3 + HSO3m = NO3m + Hp + SO3m
+TEMP3:  A: 1.3e9 B: -2000
+
+CLASS: AQUA 
+aNO3  + SO4mm  = NO3m + SO4m           
+TEMP3:   A:  1e5  B: 0.0 
+
+CLASS: AQUA 
+NO4m = NO2m + aO2
+TEMP3:   A: 4.5e-2  B: 0.0        
+
+CLASS: AQUA 
+aHNO4  + HSO3m  = HSO4m  + Hp + NO3m           
+TEMP3:   A: 3.3e5  B:  0.0
+
+CLASS: AQUA 
+NO2p + CLm = aCLNO2
+TEMP3:  A: 1e10 B: 0.0
+
+CLASS: AQUA 
+NO2p + BRm = aBRNO2
+TEMP3:  A: 1e10 B: 0.0
+
+CLASS: AQUA 
+aCLNO2 + BRm = NO2m + aBRCL
+TEMP3:  A: 5e6 B: 0.0
+
+CLASS: AQUA 
+aBRNO2 + BRm = aBR2 + NO2m
+TEMP3:  A: 2.55E4 B: 0.0
+
+CLASS: AQUA 
+aBRNO2 + CLm = NO2m + aBRCL
+TEMP3:  A: 10.0 B: 0.0
+
+CLASS: AQUA 
+HMSm +  aHO    = CHOHSO3m + [aH2O]
+TEMP3:   A: 3.0e8  B: 0.0
+
+CLASS: AQUA 
+CHOHSO3m + aO2 = O2CHOHSO3m 
+TEMP3:  A: 2.6e9  B: 0.0
+
+CLASS: AQUA 
+O2CHOHSO3m = aHO2 + CHOSO3m
+TEMP3:   A:   1.7e4  B: 0.0
+                                 
+CLASS: AQUA 
+O2CHOHSO3m = aO2CHO + HSO3m
+TEMP3:  A: 7e3 B: 0.0
+ 
+CLASS: AQUA 
+CHOSO3m + [aH2O] = HSO3m + aORA1
+TEMP3:  A: 1.26e-2 B: 0.0
+                                  
+CLASS: AQUA 
+aO2CHO + [aH2O] = aORA1 + aHO2
+TEMP3:   A:   44.32 B: 0.0
+ 
+CLASS: AQUA 
+HSO3m  + aH2O2 +  Hp = SO4mm  + 2 Hp  + [aH2O]
+TEMP3:   A: 7.2e7  B: -4000.0 
+
+CLASS: AQUA 
+HSO3m  + aO3  = SO4mm  + Hp  + aO2 
+TEMP3:   A: 3.7e5 B: -5530.0
+
+CLASS: AQUA 
+SO3mm  + aO3  = SO4mm  + aO2  
+TEMP3:   A: 1.5e9 B: -5280.0
+
+CLASS: AQUA 
+SO5m +  FEpp = HSO5m + FEOHpp 
+TEMP3:   A: 2.65e7  B: -5809.0 
+
+CLASS: AQUA 
+HSO5m +  FEpp = SO4m + FEOHpp
+TEMP3:   A: 3.0e4  B: 0.0 
+
+CLASS: AQUA 
+FEpp + SO4m = FEOHpp  + SO4mm + Hp 
+TEMP3:   A: 4.6e9  B: 2165.0 
+
+CLASS: AQUA 
+SO5m + SO5m = SO4m + SO4m + aO2
+TEMP3:   A: 2.2e8  B: -2600.0 
+
+CLASS: AQUA 
+SO5m + aHO2 = SO5O2Hm
+TEMP3:   A: 1.7e9  B: 0.0 
+
+CLASS: AQUA 
+SO5O2mm  = HSO5m + aO2 + OHm - [aH2O]
+TEMP3:   A:   1.2e3  B: 0.0
+
+CLASS: AQUA 
+SO3m + aO2 = SO5m
+TEMP3:  A: 2.5e9   B: 0.0
+
+CLASS: AQUA 
+SO4m + [aH2O] = SO4mm + aHO + Hp
+TEMP3:   A: 11.0  B:  -1110.0
+
+CLASS: AQUA 
+HSO5m + HSO3m + Hp = 2 SO4mm + 3 Hp
+TEMP3:   A: 7.14e6  B: 0.0 
+
+CLASS: AQUA 
+aCH3OH + aHO = aCH2OH + [aH2O]
+TEMP3:   A: 1.0e9  B: -580.0 
+
+CLASS: AQUA 
+aCH2OH + aO2 = aO2CH2OH
+TEMP3:  A: 2e9  B: 0.0
+
+CLASS: AQUA 
+aO2CH2OH + aO2CH2OH = aCH3OH + aO2 + aHCHO
+TEMP3:  A: 1.05e9 B: 0.0
+ 
+CLASS: AQUA 
+aETOH + aHO = aCH3CHOH + [aH2O]
+TEMP3:   A: 1.9e9  B: 0.0 
+
+CLASS: AQUA 
+aCH3CHOH + aO2 = aO2CH3CHOH
+TEMP3:  A: 2e9   B: 0.0
+
+CLASS: AQUA 
+aO2CH3CHOH = aALD + aHO2
+TEMP3:  A: 52.0 B: -7217.0
+
+CLASS: AQUA 
+aCH2OH2 + aHO = aCHOH2 + [aH2O]
+TEMP3:   A: 1.0e9  B: -1020.0 
+
+CLASS: AQUA 
+aCHOH2 + aO2 = aHO2 + aORA1
+TEMP3:  A: 2e9 B: 0.0
+
+CLASS: AQUA 
+aCH3CHOH2 + aHO = aCH3COH2 + [aH2O]
+TEMP3:   A: 1.2e9   B: 0.0 
+
+CLASS: AQUA 
+aALD + aHO = aCH3CO + [aH2O]
+TEMP3:   A: 3.6e9   B: 0.0 
+
+CLASS: AQUA 
+aORA1 + aHO = aCO2H + [aH2O]
+TEMP3:  A: 1.3e8   B: -1000.0
+
+CLASS: AQUA 
+HCOOm + aHO = aCO2H + OHm   
+TEMP3:   A: 3.2e9  B: -1000.0 
+
+CLASS: AQUA 
+aORA2 + aHO  = aCH2COOH + [aH2O] 
+TEMP3:   A: 1.5e7  B: -1330.0 
+
+CLASS: AQUA 
+MCOOm + aHO  = CH2COOm + [aH2O] 
+TEMP3:   A: 1.0e8  B: -1800.0 
+
+CLASS: AQUA 
+aCH2COOH + aO2 = aACO3
+TEMP3:  A: 1.7e9  B: 0.0
+
+CLASS: AQUA 
+aMO2 + aMO2 = aCH3OH + aHCHO + aO2
+TEMP3:   A:  7.4e7 B: -2200.0 
+
+CLASS: AQUA 
+aMO2 + aMO2 = aCH3O + aCH3O + aO2
+TEMP3:   A:  3.6e7 B: -2200.0                  
+
+CLASS: AQUA 
+aACO3 + aACO3 = aMO2 + aMO2 + aCO2 + aCO2 + aO2
+TEMP3:  A: 1.5e8  B: 0.0
+
+CLASS: AQUA 
+aMO2 + HSO3m = aOP1 + SO3m
+TEMP3:   A: 5.0e5  B: 0.0 
+
+CLASS: AQUA 
+aETHPX + aETHPX = aCH3CH2O + aCH3CH2O + aO2
+TEMP3:   A: 1.0e8  B:  750.0
+
+CLASS: AQUA 
+aCH3CH2O = aCH3CHOH
+TEMP3:  A: 1e6 B: 0.0
+
+CLASS: AQUA 
+aHO + HC2O4m = C2O4m + [aH2O]
+TEMP3:   A: 3.2e7   B: 0.0
+ 
+CLASS: AQUA 
+aHO + C2O4mm = OHm + C2O4m
+TEMP3:   A:   5.3e6 B: 0.0
+
+CLASS: AQUA 
+C2O4m + aO2 = aCO2 + O2m + aCO2
+TEMP3:   A: 2e9   B: 0.0
+
+CLASS: AQUA 
+aHO + aCHOH2CHOH2 = aCOH2CHOH2 + [aH2O]
+TEMP3:  A:  1.1e9 B: -1516.0
+
+CLASS: AQUA 
+aCOH2CHOH2 + aO2 = aO2COH2CHOH2
+TEMP3:  A: 1.38e9  B: 0.0
+
+CLASS: AQUA 
+aO2COH2CHOH2 = aHO2 + aCHOH2COOH
+TEMP3:  A:  2e9 B: 0.0
+
+CLASS: AQUA 
+aHO + aCHOH2COOH  =  aCOH2COOH + [aH2O]
+TEMP3:  A:  1.1e9 B: -1516.0
+
+CLASS: AQUA 
+aCOH2COOH + aO2 = aO2COH2COOH
+TEMP3:  A: 2e9  B: 0.0
+
+CLASS: AQUA 
+aO2COH2COOH  = aHO2 + aH2C2O4
+TEMP3:  A:  2e9 B: 0.0       
+
+CLASS: AQUA 
+aCH3COH2 + aO2 = aCH3COH2OO
+TEMP3:  A: 2e9 B: 0.0
+
+CLASS: AQUA 
+aCH3COH2OO = Hp + Hp + MCOOm + O2m
+TEMP3:  A: 1e5 B: 0.0
+
+CLASS:  AQUA 
+aCH3O = aCH2OH
+TEMP3:  A: 1e6 B: 0.0
+
+CLASS: AQUA 
+CH2COOm + aO2 = O2CH2COOm
+TEMP3:  A: 2e9  B: 0.0
+
+CLASS: AQUA 
+O2CH2COOm + O2CH2COOm = 2 CHOH2COOm + aH2O2 
+TEMP3:  A: 2e7 B: 0.0
+
+CLASS: AQUA 
+CO2m + aO2 = aCO2 + O2m
+TEMP3:  A: 4e9  B: 0.0
+
+CLASS: AQUA 
+CL2m + FEpp = 2 CLm + FEppp
+TEMP3:   A: 1e7  B: -3030.0     
+
+CLASS: AQUA 
+CL2m + aHO2 = 2 CLm + Hp + aO2
+TEMP3:   A: 1.3e10  B: 0.0   
+
+CLASS: AQUA 
+CL2m + HSO3m = 2 CLm + Hp + SO3m
+TEMP3:   A: 1.7e8  B: -400.0  
+
+CLASS: AQUA 
+aCL2 + [aH2O] = Hp + CLm + aHOCL
+TEMP3:   A: 0.4  B: -7900.0  
+
+CLASS: AQUA 
+CL2m + [aH2O] = Hp + CLm + CLm + aHO
+TEMP3:  A: 23.4  B: 0.0
+
+CLASS: AQUA 
+BRm + SO4m = SO4mm + aBR
+TEMP3:   A: 2.1e9  B: 0.0 
+
+CLASS: AQUA 
+BRm + aNO3 = NO3m + aBR
+TEMP3:   A: 3.8e9  B: 0.0  
+
+CLASS: AQUA 
+BR2m + BR2m = aBR2 + 2 BRm
+TEMP3:   A: 1.7e9  B: 0.0 
+  
+CLASS: AQUA 
+BR2m +  FEpp = 2 BRm + FEppp
+TEMP3:   A: 3.6e6  B: -3330.0 
+  
+CLASS: AQUA 
+BR2m + aH2O2 = 2 BRm + Hp + aHO2
+TEMP3:   A: 1.0e5  B: 0.0    
+  
+CLASS: AQUA 
+BR2m + aHO2 = 2 BRm + aO2 + Hp
+TEMP3:   A: 6.5e9  B: 0.0     
+  
+CLASS: AQUA 
+BR2m + HSO3m = 2 BRm + Hp + SO3m
+TEMP3:   A: 5.0e7  B: -780.0 
+
+CLASS: AQUA 
+aBR2  + [aH2O] = Hp + BRm + aHOBR 
+TEMP3:   A:  0.031  B: -7500.0  
+ 
+CLASS: AQUA 
+BROHm = aBR + OHm
+TEMP3:  A: 4.2e6  B: 0.0
+
+COMMENT  CLASS: DISS, TYPE: DCONST
+COMMENT  Temperature dependent dissociation
+COMMENT  Ke = A exp(B*(1/T - 1/298)); 
+COMMENT  B=-Ea/R  
+COMMENT  C = k(back reaction)
+
+
+COMMENT  CLASS: DISS, TYPE: DCONST
+COMMENT  Dissociation
+COMMENT  Ke = A 
+COMMENT  B= k(back reaction) 
+
+CLASS: DISS  
+[aH2O]          =  OHm + Hp
+DTEMP:   A: 1.8e-16  B: -6800.0  C: 1.3e11
+
+CLASS: DISS
+aCO2 = HCO3m + Hp
+DTEMP:  A: 4.3e-7  B: -913  C: 5.6e4
+
+CLASS: DISS  
+aHCL          =  CLm + Hp
+DTEMP:   A: 1.72e+6  B: 6890.0  C: 2.9e5
+
+CLASS: DISS  
+aNH3 + [aH2O]   =  NH4p  + OHm
+DTEMP:   A: 3.17e-7 B: -560.0  C: 3.4e10
+
+CLASS: DISS  
+aHO2          =  O2m + Hp
+DCONST:   A: 1.6e-5   B: 5.0e10
+
+COMMENT MLD - Removed undissociated HNO3   
+COMMENT CLASS: DISS  
+COMMENT aHNO3         =    NO3m + Hp
+COMMENT DTEMP:   A: 22.0  B: 1800.0  C: 5.0e10
+  
+CLASS: DISS  
+aHONO         =    NO2m + Hp
+DTEMP:   A: 5.3e-4  B: -1760.0  C: 5.0e10
+
+CLASS: DISS 
+aHNO4 = NO4m + Hp
+DCONST:   A: 1.0e-5   B: 5.0e10
+
+CLASS: DISS  
+aNO2 + aHO2 = aHNO4
+DCONST:   A: 2.2e9   B:  4.6e-3      
+
+CLASS: DISS  
+aSO2 + [aH2O]  =  HSO3m  + Hp
+DTEMP:   A: 3.13e-4  B: 1940.0  C: 2.0e8
+
+CLASS: DISS  
+HSO3m         =    SO3mm  + Hp
+DTEMP:   A: 6.22e-8  B: 1960.0  C: 5.0e10
+
+COMMENT MLD - Removed undissociated H2SO4
+COMMENT CLASS: DISS 
+COMMENT aSULF = HSO4m + Hp
+COMMENT DCONST:  A:  1000.0  B: 5e10
+
+CLASS: DISS 
+HSO4m = Hp + SO4mm
+DTEMP:  A: 1.02e-2  B: 2700.0 C: 1e11
+
+CLASS: DISS 
+aORA1 = Hp + HCOOm
+DTEMP:  A: 1.77e-4  B: 12  C: 5e10
+
+CLASS: DISS 
+aORA2 = Hp + MCOOm
+DTEMP:  A: 1.75e-5  B: 46.0  C: 5e10
+
+CLASS: DISS  
+FEppp + [aH2O]    =   FEOHpp + Hp
+DCONST:   A: 1.1e-4  B: 4.3e8
+
+CLASS: DISS  
+aHCHO  + [aH2O] =    aCH2OH2
+DTEMP:   A: 36.0  B: 4030.0  C: 5.1e-3 
+
+CLASS: DISS 
+aALD + [aH2O] = aCH3CHOH2
+DTEMP:   A: 2.46e-2  B: 2500.0  C: 5.69e-3  
+
+CLASS: AQUA 
+HSO3m + aHCHO = HMSm   
+TEMP3:   A: 790  B: -3293.0 
+
+CLASS: AQUA 
+HMSm = HSO3m  + aHCHO
+TEMP3:   A: 1.197e-7  B: -5831.0
+
+CLASS: AQUA 
+SO3mm  + aHCHO = HMSm + OHm - [aH2O]
+TEMP3:   A: 2.5e+7  B: -2752.0 
+
+CLASS: AQUA 
+HMSm = aHCHO + SO3mm + Hp
+TEMP3:   A: 3.79e-3  B: -5290.0
+
+CLASS: DISS  
+aCL + CLm = CL2m
+DCONST:   A: 1.4e5  B: 6e4
+
+CLASS: DISS  
+aBR + BRm = BR2m
+DCONST:   A: 6.32e5  B: 1.9e4
+
+CLASS: DISS 
+CLm + aHO = CLOHm
+DCONST:  A: 0.7  B: 6.1e9
+
+CLASS: DISS 
+CLOHm + Hp = aCL + [aH2O]
+DCONST:  A: 5.1e6  B: 4100.0
+
+CLASS: DISS 
+BRm + aHO = BROHm
+DCONST:  A: 333.0 B: 3.3e7
+
+CLASS: DISS 
+BROHm + Hp = aBR + [aH2O]
+DCONST:  A: 1.8e12  B: 2.45e-2       
+
+CLASS: DISS 
+aHO3 = Hp + O3m
+DCONST:  A: 6.3e-9  B: 5.2e+10
+
+CLASS: DISS 
+CHOHSO3m = CHOSO3mm + Hp 
+DCONST:   A: 1.34e-6  B: 4.4e10
+
+CLASS: DISS 
+SO5O2Hm = Hp + SO5O2mm
+DCONST:   A:   1.5e-5  B: 5e10
+
+CLASS: DISS 
+HC2O4m = C2O4mm + Hp
+DCONST:  A: 6.25e-5   B: 5.0e10
+
+CLASS: DISS 
+aCHOH2COOH = Hp + CHOH2COOm
+DCONST:  A: 3.16e-4  B: 2e10
+
+CLASS: DISS 
+aGLY + [aH2O] = aCHOH2CHOH2
+DCONST:  A: 3900.0  B: 5.5e-3
+
+CLASS: DISS 
+FEppp + C2O4mm = FEC2O4p
+DCONST:  A: 2.9e9  B: 3e-3
+
+CLASS: DISS 
+FEC2O4p + C2O4mm = FEC2O42m
+DCONST:  A:  6.3e6  B: 3e-3
+
+CLASS: DISS 
+SO4m + CLm = SO4mm + aCL
+DCONST:  A: 1.2 B: 2.1e8
+
+CLASS: DISS 
+aNO3 + CLm = NO3m + aCL
+DTEMP:  A:  3.4 B: -4300.0   C: 1e8
+
+CLASS: DISS 
+aCH3CO + [aH2O] = aCH3COH2
+DTEMP:  A: 367.0  B: 0.0  C: 3e4
+
+CLASS: DISS 
+aACO3 = Hp + O2CH2COOm
+DTEMP:  A: 1.75e-5  B: 46.0  C: 5e10
+
+
+ 

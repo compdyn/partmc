@@ -41,3 +41,5 @@ do_mosaic yes                   # whether to do MOSAIC (yes/no)
 do_optical yes                  # whether to compute optical props (yes/no)
 record_removals yes             # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)
+
+do_aq_chem no 					# whether to do aqueous chemistry

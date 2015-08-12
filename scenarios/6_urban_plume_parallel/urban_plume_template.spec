@@ -48,3 +48,5 @@ mix_timescale %%{{MIX_TIMESCALE}}%% # mixing timescale between processors (s)
 gas_average %%{{GAS_AVERAGE}}%% # whether to average gases each timestep
 env_average %%{{ENV_AVERAGE}}%% # whether to average environment each timestep
 coag_method %%{{COAG_METHOD}}%% # parallel method (local/collect/central/dist)
+
+do_aq_chem no 					# whether to do aqueous chemistry

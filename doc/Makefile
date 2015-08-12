@@ -1,5 +1,5 @@
 
-VERSION = 2.3.0
+VERSION = 2.3.0.aq
 
 GRAPHVIZ_FILE = partmc_modules.gv
 GRAPHVIZ_PDF = $(patsubst %.gv,%.pdf,$(GRAPHVIZ_FILE))

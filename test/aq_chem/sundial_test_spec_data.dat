@@ -1,0 +1,5 @@
+# SUNDIALS test case from user_guide
+# Name  Dg (m2 s-1)  MW (kg mol-1)  N_star (unitless) AbsTol (atm or M)
+y1       0.0       0.0        0.0       1e-8
+y2       0.0       0.0        0.0       1e-14
+y3       0.0       0.0        0.0       1e-6

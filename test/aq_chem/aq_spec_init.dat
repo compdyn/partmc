@@ -1,0 +1,27 @@
+# from CAPRAM 2.4 urban scenario 1st data set
+# species    initial concentration (atm or M)
+NO2          4.5E-09
+HNO3         1.0E-09
+H2O2         1.0E-09
+O3           9.0E-08
+HCL          6.0E-09
+NH3          2.5E-08
+CO2          5.0E-04
+SO2          1.0E-08
+HCHO         1.0E-10
+ALD          1.0E-10
+GLY          1.0E-10
+CH3OH        5.0E-09
+ETOH         1.0E-09
+aO2          3.0E-04
+OHm          3.2E-10
+Hp           3.2E-05
+CLm          1.0E-04
+BRm          3.0E-06
+FEppp        5.0E-06
+CUp          2.5E-07
+HSO4m        3.0E-07
+SO4mm        6.0E-05
+C2O4mm       5.0E-06
+[O2]         2.1E-01
+[aH2O]       5.5E+01

@@ -1,0 +1,5 @@
+# setting initial and constant species concentrations
+# species    initial concentration (atm or M)
+CO2          5.0E-04
+[O2]         2.1E-01
+[aH2O]       5.5E+01

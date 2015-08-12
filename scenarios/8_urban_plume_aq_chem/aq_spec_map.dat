@@ -1,0 +1,142 @@
+# Relation between CAPRAM aqueous chemistry related species and PMC species
+# CAPRAM Name    Phase    PMC Name
+O3               gas      O3
+HO2              gas      HO2
+HO               gas      OH
+H2O2             gas      H2O2
+NO2              gas      NO2
+HONO             gas      HONO
+HNO3             gas      HNO3
+NO3              gas      NO3
+N2O5             gas      N2O5
+NH3              gas      NH3
+HCL              gas      HCl
+HCHO             gas      HCHO
+ORA1             gas      HCOOH
+SO2              gas      SO2
+OP1              gas      CH3OOH
+ORA2             gas      ETHOOH
+MO2              gas      CH3O2
+ETHPX            gas      ETHP
+# ETOH is not a gas-phase species in CBM-Z
+CH3OH            gas      CH3OH
+ALD              gas      ALD2
+# BR2 is not a gas-phase species in CBM-Z
+# CL2 is not a gas-phase species in CBM-Z
+SULF             gas      H2SO4
+HNO4             gas      HNO4
+ACO3             gas      C2O3
+# GLY is not a gas-phase species in CBM-Z
+# CLNO2 is not a gas-phase species in CBM-Z
+# BRNO2 is not a gas-phase species in CBM-Z
+# BRCL is not a gas-phase species in CBM-Z
+NO               gas      NO
+#
+# Aqueous species
+aCO2             aero     aCO2
+aO3              aero     aO3
+aHO2             aero     aHO2
+aHO              aero     aOH
+aH2O2            aero     aH2O2
+aHONO            aero     aHONO
+# aHNO3            aero     aHNO3   removed
+aNO3             aero     aNO3
+aN2O5            aero     aN2O5
+aNH3             aero     aNH3
+aHCL             aero     aHCL
+aHCHO            aero     aHCHO
+aORA1            aero     aORA1
+aSO2             aero     aSO2
+aOP1             aero     aOP1
+aORA2            aero     aORA2
+aMO2             aero     aMO2
+aETHPX           aero     aETHPX
+aETOH            aero     aETOH
+aCH3OH           aero     aCH3OH
+aALD             aero     aALD
+aBR2             aero     aBR2
+aCL2             aero     aCL2
+# aSULF            aero     aSULF   removed
+aHNO4            aero     aHNO4
+aACO3            aero     aACO3
+aGLY             aero     aGLY
+aO2              aero     aO2
+aCLNO2           aero     aCLNO2
+aBRNO2           aero     aBRNO2
+aBRCL            aero     aBRCL
+aNO              aero     aNO
+FEOHpp           aero     FEOHpp
+FEpp             aero     FEpp
+NO3m             aero     NO3        # existing species
+OHm              aero     OHm
+FEC2O42m         aero     FEC2O42m
+C2O4mm           aero     C2O4mm
+CO2m             aero     CO2m
+FEppp            aero     FEppp
+CUp              aero     CUp
+CUpp             aero     CUpp
+O2m              aero     O2m
+Hp               aero     Hp
+O3m              aero     O3m
+aHO3             aero     aHO3
+HSO3m            aero     HSO3m
+SO3m             aero     SO3m
+FEOpp            aero     FEOpp
+CLm              aero     Cl         # existing species
+CLOHm            aero     CLOHm
+NO2p             aero     NO2p
+SO4mm            aero     SO4        # existing species
+SO4m             aero     SO4m
+NO4m             aero     NO4m
+NO2m             aero     NO2m
+HSO4m            aero     HSO4m
+BRm              aero     BRm
+HMSm             aero     HMSm
+CHOHSO3m         aero     CHOHSO3m
+O2CHOHSO3m       aero     O2CHOHSO3m
+CHOSO3m          aero     CHOSO3m
+aO2CHO           aero     aO2CHO
+SO3mm            aero     SO3mm
+SO5m             aero     SO5m
+HSO5m            aero     HSO5m
+SO5O2Hm          aero     SO5O2Hm
+SO5O2mm          aero     SO5O2mm
+aCH2OH           aero     aCH2OH
+aO2CH2OH         aero     aO2CH2OH
+aCH3CHOH         aero     aCH3CHOH
+aO2CH3CHOH       aero     aO2CH3CHOH
+aCH2OH2          aero     aCH2OH2
+aCHOH2           aero     aCHOH2
+aCH3CHOH2        aero     aCH3CHOH2
+aCH3COH2         aero     aCH3COH2
+aCH3CO           aero     aCH3CO
+aCO2H            aero     aCO2H
+HCOOm            aero     HCOOm
+aCH2COOH         aero     aCH2COOH
+MCOOm            aero     MCOOm
+CH2COOm          aero     CH2COOm
+aCH3O            aero     aCH3O
+aCH3CH2O         aero     aCH3CH2O
+HC2O4m           aero     HC2O4m
+C2O4m            aero     C2O4m
+aCHOH2CHOH2      aero     aCHOH2CHOH2
+aCOH2CHOH2       aero     aCOH2CHOH2
+aO2COH2CHOH2     aero     aO2COH2CHOH2
+aCHOH2COOH       aero     aCHOH2COOH
+aCOH2COOH        aero     aCOH2COOH
+aO2COH2COOH      aero     aO2COH2COOH
+aH2C2O4          aero     aH2C2O4
+aCH3COH2OO       aero     aCH3COH2OO
+O2CH2COOm        aero     O2CH2COOm
+CHOH2COOm        aero     CHOH2COOm
+CL2m             aero     CL2m
+aHOCL            aero     aHOCL
+aBR              aero     aBR
+BR2m             aero     BR2m
+aHOBR            aero     aHOBR
+BROHm            aero     BROHm
+HCO3m            aero     CO3           # existing species
+NH4p             aero     NH4           # existing species
+aCL              aero     aCL
+CHOSO3mm         aero     CHOSO3mm
+FEC2O4p          aero     FEC2O4p

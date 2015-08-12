@@ -1,0 +1,28 @@
+mode_name paved_road
+mass_frac aero_emit_comp_pavedrd.dat # composition proportions of species
+mode_type log_normal            # type of distribution
+num_conc 5.03E+03               # particle number concentration (#/m^2)
+geom_mean_diam 1.42e-6          # geometric mean diameter (m)
+log10_geom_std_dev 0.11         # log_10 of geometric std dev of diameter
+
+mode_name cooking
+mass_frac aero_emit_comp_cooking.dat # composition proportions of species
+mode_type log_normal            # type of distribution
+num_conc 9.0E+06                # particle number concentration (#/m^2)
+geom_mean_diam 8.64e-8          # geometric mean diameter (m)
+log10_geom_std_dev 0.28         # log_10 of geometric std dev of diameter
+
+mode_name diesel
+mass_frac aero_emit_comp_diesel.dat # composition proportions of species
+mode_type log_normal            # type of distribution
+num_conc 1.6E+08                # particle number concentration (#/m^2)
+geom_mean_diam 5e-8             # geometric mean diameter (m)
+log10_geom_std_dev 0.24         # log_10 of geometric std dev of diameter
+
+mode_name gasoline
+mass_frac aero_emit_comp_gasol.dat # composition proportions of species
+mode_type log_normal            # type of distribution
+num_conc 5.00E+07               # particle number concentration (#/m^2)
+geom_mean_diam 5e-8             # geometric mean diameter (m)
+log10_geom_std_dev 0.24         # log_10 of geometric std dev of diameter
+

@@ -529,6 +529,28 @@ contains
   end function pmc_mpi_pack_size_real_array_2d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! MLD: AQ CHEM
+  !> Determines the number of bytes required to pack the given value.
+  integer function pmc_mpi_pack_size_logical_array(val)
+
+    !> Value to pack.
+    logical, intent(in) :: val(:)
+
+    integer :: ierr
+
+#ifdef PMC_USE_MPI
+    call mpi_pack_size(size(val), MPI_LOGICAL, MPI_COMM_WORLD, &
+         pmc_mpi_pack_size_logical_array, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    pmc_mpi_pack_size_logical_array = pmc_mpi_pack_size_logical_array &
+         + pmc_mpi_pack_size_integer(size(val))
+#else
+    pmc_mpi_pack_size_logical_array = 0
+#endif
+
+  end function pmc_mpi_pack_size_logical_array
+! END MLD: AQ CHEM
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_integer(buffer, position, val)
@@ -765,6 +787,33 @@ contains
 
   end subroutine pmc_mpi_pack_real_array_2d
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! MLD: AQ CHEM
+  !> Packs the given value into the buffer, advancing position.
+  subroutine pmc_mpi_pack_logical_array(buffer, position, val)
+
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    logical, intent(in) :: val(:)
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, n, ierr
+
+    prev_position = position
+    n = size(val)
+    call pmc_mpi_pack_integer(buffer, position, n)
+    call mpi_pack(val, n, MPI_LOGICAL, buffer, size(buffer), &
+         position, MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    call assert(615088346, &
+         position - prev_position <= pmc_mpi_pack_size_logical_array(val))
+#endif
+
+  end subroutine pmc_mpi_pack_logical_array
+! END MLD: AQ CHEM
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
@@ -1006,6 +1055,34 @@ contains
 
   end subroutine pmc_mpi_unpack_real_array_2d
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! MLD: AQ CHEM
+  !> Unpacks the given value from the buffer, advancing position.
+  subroutine pmc_mpi_unpack_logical_array(buffer, position, val)
+
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    logical, pointer :: val(:)
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, n, ierr
+
+    prev_position = position
+    call pmc_mpi_unpack_integer(buffer, position, n)
+    deallocate(val)
+    allocate(val(n))
+    call mpi_unpack(buffer, size(buffer), position, val, n, MPI_LOGICAL, &
+         MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    call assert(615374065, &
+         position - prev_position <= pmc_mpi_pack_size_logical_array(val))
+#endif
+
+  end subroutine pmc_mpi_unpack_logical_array
+! END MLD: AQ CHEM
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Computes the average of val across all processes, storing the

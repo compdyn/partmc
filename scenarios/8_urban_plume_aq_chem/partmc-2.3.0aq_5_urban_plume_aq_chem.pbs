@@ -1,0 +1,21 @@
+#!/bin/bash
+#$ -N PartMC-2.3.0aq_5_urban_plume_aq_chem
+#$ -q air64
+#$ -pe openmp 32
+#$ -m beas
+
+module purge
+module load openmpi-1.8.3/gcc-4.8.2
+module load netcdf-fortran/4.4.1
+module load gsl/1.16
+ulimit -s 10240
+
+# Edit this line to reflect your directory.
+cd /dfs2/dabdub/mldawson/proj_nr_aqchem/partmc-2.3.0aq_to_HPC/scenarios/5_urban_plume_aq_chem
+
+mkdir -p out 
+
+mpirun -v -np $CORES ../../build/partmc urban_plume_aq_chem.spec > out/read
+
+mpirun -v -np $CORES ../../build/partmc urban_plume_aq_chem_2.spec > out/read_2
+mpirun -v -np $CORES ../../build/partmc urban_plume_aq_chem_3.spec > out/read_3

@@ -249,6 +249,11 @@ add_test(test_sedi_1 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_1.sh)
 add_test(test_sedi_2 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_2.sh)
 set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 
+if(ENABLE_MOSAIC AND ENABLE_SUNDIALS)
+  add_test(test_aq_chem ${CMAKE_BINARY_DIR}/test_run/aq_chem/test_aq_chem.sh)
+  add_test(test_aq_chem_CAPRAM ${CMAKE_BINARY_DIR}/test_run/aq_chem/test_aq_chem_CAPRAM.sh)
+endif()
+
 ######################################################################
 # partmc library
 
@@ -266,7 +271,10 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/coag_kernel.F90 src/spec_line.F90 src/spec_file.F90 src/rand.F90
   src/aero_particle.F90 src/aero_particle_array.F90 src/mpi.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
-  src/nucleate.F90 src/condense.F90 ${SUNDIALS_SRC} ${GSL_SRC}
+  src/nucleate.F90 src/condense.F90 src/aq_integrate.c 
+  src/aq_spec_data.F90 src/aq_state.F90 src/aq_rxn_line.F90
+  src/aq_rxn_data.F90 src/aq_rxn_file.F90 src/aq_mech_data.F90
+  src/aq_integrate_f.F90 src/aq_chem.F90 ${SUNDIALS_SRC} ${GSL_SRC}
   ${C_SORT_SRC})
 
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
@@ -381,5 +389,19 @@ add_executable(numeric_average src/numeric_average.F90)
 add_executable(1_urban_plume_process
   scenarios/1_urban_plume/1_urban_plume_process.F90)
 target_link_libraries(1_urban_plume_process partmclib)
+
+######################################################################
+# scenarios/8_urban_plume_aq_chem/process
+
+add_executable(8_urban_plume_aq_chem_process
+  scenarios/8_urban_plume_aq_chem/8_urban_plume_aq_chem_process.F90)
+target_link_libraries(8_urban_plume_aq_chem_process partmclib)
+
+######################################################################
+
+# test_aq_chem
+
+add_executable(test_aq_chem src/aq_test.F90)
+target_link_libraries(test_aq_chem partmclib)
 
 ######################################################################

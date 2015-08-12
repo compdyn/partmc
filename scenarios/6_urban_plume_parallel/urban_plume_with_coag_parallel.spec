@@ -48,3 +48,5 @@ mix_timescale 0                 # mixing timescale between processors (s)
 gas_average yes                 # whether to average gases each timestep
 env_average yes                 # whether to average environment each timestep
 coag_method dist                # parallel method (local/collect/central/dist)
+
+do_aq_chem no 					# whether to do aqueous chemistry

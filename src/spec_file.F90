@@ -711,7 +711,53 @@ contains
 
   end subroutine spec_file_read_real_named_array
 
+! MLD: AQ CHEM
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read an array of named lines with string data. All lines must have
+  !> the same number of data elements.
+  subroutine spec_file_read_string_named_array(file, max_lines, names, vals)
+
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
+    !> Max lines to read (0 = no max).
+    integer, intent(in) :: max_lines
+    !> Names of lines.
+    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: names(:)
+    !> Data values.
+    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: vals(:,:)
+
+    type(spec_line_t), pointer :: line_array(:)
+    integer :: num_lines, line_length, i, j
+
+    allocate(line_array(0))
+    call spec_file_read_line_array(file, max_lines, line_array)
+    num_lines = size(line_array)
+    deallocate(names)
+    deallocate(vals)
+    if (num_lines > 0) then
+       line_length = size(line_array(1)%data)
+       allocate(names(num_lines))
+       allocate(vals(num_lines, line_length))
+       do i = 1,num_lines
+          names(i) = line_array(i)%name
+          do j = 1,line_length
+             vals(i,j) = line_array(i)%data(j)
+          end do
+       end do
+    else
+       allocate(names(0))
+       allocate(vals(0,0))
+    end if
+    do i = 1,num_lines
+       call spec_line_deallocate(line_array(i))
+    end do
+    deallocate(line_array)
+
+  end subroutine spec_file_read_string_named_array
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! END MLD: AQ CHEM
 
   !> Read an a time-indexed array of real data.
   subroutine spec_file_read_timed_real_array(file, name, times, vals)

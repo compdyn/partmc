@@ -1,0 +1,5 @@
+# SUNDIALS test case from user_guide
+# species    initial concentration (atm or M)
+y1           1.0E+00
+y2           0.0E+00
+y3           0.0E+00

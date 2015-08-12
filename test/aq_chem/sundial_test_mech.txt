@@ -1,0 +1,16 @@
+COMMENT  SUNDIALS test case from user_guide
+COMMENT  CLASS: AQUA, TYPE: TEMP3
+COMMENT  Kh = A exp(B (1/T - 1/298))
+COMMENT  B = dH/R [K]
+
+CLASS: AQUA 
+y1 = y2
+TEMP3:   A: 0.04  B: 0.0 
+
+CLASS: AQUA 
+y2 + y3 = y1 + y3
+TEMP3:   A: 1.0E+04  B: 0.0 
+
+CLASS: AQUA 
+y2 + y2 = y3 + y2
+TEMP3:   A: 3.0E+07  B: 0.0 

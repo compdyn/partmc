@@ -34,7 +34,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize all MOSAIC data-structures.
-  subroutine mosaic_init(env_state, aero_data, del_t, do_optical)
+  ! MLD: AQ CHEM
+  subroutine mosaic_init(env_state, aero_data, del_t, do_optical, &
+                do_gas_phase_only)
+  ! END MLD: AQ CHEM
 
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: alpha_ASTEM, rtol_eqb_ASTEM, &
@@ -54,6 +57,10 @@ contains
     real(kind=dp), intent(in) :: del_t
     !> Whether to compute optical properties.
     logical, intent(in) :: do_optical
+    ! MLD: AQ CHEM
+    !> Whether to run just the gas-phase mechanism
+    logical, intent(in) :: do_gas_phase_only
+    ! END MLD: AQ CHEM
 
 #ifdef PMC_USE_MOSAIC
     ! MOSAIC function interfaces
@@ -75,7 +82,13 @@ contains
     ! parameters
     mmode = 1               ! 1 = time integration, 2 = parametric analysis
     mgas = 1                ! 1 = gas chem on, 0 = gas chem off
-    maer = 1                ! 1 = aer chem on, 0 = aer chem off
+    ! MLD: AQ CHEM
+    if (do_gas_phase_only) then
+        maer = 0                ! 1 = aer chem on, 0 = aer chem off
+    else
+        maer = 1                ! 1 = aer chem on, 0 = aer chem off
+    endif
+    ! END MLD: AQ CHEM
     mcld = 0                ! 1 = cld chem on, 0 = cld chem off
     if (do_optical) then
        maeroptic = 1        ! 1 = aer_optical on, 0 = aer_optical off
@@ -148,11 +161,15 @@ contains
 
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
-         jtotal, water_a
+         ! MLD: AQ CHEM
+         jtotal, water_a, iso4_a
+         ! END MLD: AQ CHEM
 
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
          dt_sec, dt_min, dt_aeroptic_min, RH, te, pr_atm, cnn, cair_mlc, &
-         cair_molm3, ppb, avogad, msolar, naerbin
+         ! MLD: AQ CHEM
+         cair_molm3, ppb, avogad, msolar, naerbin, maer
+         ! END MLD: AQ CHEM
 #endif
 
     !> Environment state.
@@ -174,6 +191,10 @@ contains
     integer :: i_part, i_spec, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
     real(kind=dp) :: num_conc
+
+    ! MLD: AQ CHEM
+    integer :: i_HSO4m, i_SO4mm
+    ! END MLD: AQ CHEM
 
     ! MOSAIC function interfaces
     interface
@@ -223,6 +244,12 @@ contains
     cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
     ppb = 1d9
 
+    ! MLD: AQ CHEM
+    ! bypass aerosol mapping if only running gas-phase chemistry
+    if (maer.eq.0) then
+        aer = 0d0
+    else
+    ! END MLD: AQ CHEM
     ! aerosol data: map PartMC -> MOSAIC
     nbin_a = aero_state_total_particles(aero_state)
     if (nbin_a > naerbin) then
@@ -250,7 +277,21 @@ contains
             * aero_data%density(aero_data%i_water) * num_conc
        num_a(i_part) = 1d-6 * num_conc ! num conc (#/cc(air))
        jhyst_leg(i_part) = particle%water_hyst_leg
+       ! MLD: AQ CHEM
+       ! set SULF in MOSAIC as a combination of HSO4- SO42-
+       ! (SO42- is already included above)
+       i_HSO4m = aero_data_spec_by_name(aero_data, "HSO4m")
+       i_SO4mm = aero_data_spec_by_name(aero_data, "SO4")
+       if (i_HSO4m.ne.0 .and. i_SO4mm.ne.0) then
+         aer(iso4_a, 3, i_part) = aer(iso4_a, 3, i_part) + &
+            particle%vol(i_HSO4m) * conv_fac(i_HSO4m) * num_conc &
+            * aero_data%molec_weight(i_HSO4m) / aero_data%molec_weight(i_SO4mm)
+       endif
+       ! END MLD: AQ CHEM
     end do
+    ! MLD: AQ CHEM
+    endif
+    ! END MLD: AQ CHEM
 
     ! gas chemistry: map PartMC -> MOSAIC
     cnn = 0d0
@@ -273,11 +314,15 @@ contains
 
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
-         jtotal, water_a
+        ! MLD: AQ CHEM
+        jtotal, water_a, iso4_a, jc_h, ja_hso4, ja_so4, ma, mc
+        ! END MLD: AQ CHEM
 
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
          dt_sec, dt_min, dt_aeroptic_min, RH, te, pr_atm, cnn, cair_mlc, &
-         cair_molm3, ppb, avogad, msolar, cos_sza
+         ! MLD: AQ CHEM
+         cair_molm3, ppb, avogad, msolar, cos_sza, maer
+         ! END MLD: AQ CHEM
 #endif
 
     !> Environment state.
@@ -297,6 +342,10 @@ contains
     integer :: i_part, i_spec, i_spec_mosaic
     type(aero_particle_t), pointer :: particle
     real(kind=dp) :: reweight_num_conc(aero_state%apa%n_part)
+    ! MLD: AQ CHEM
+    integer :: i_Hp, i_HSO4m, i_SO4mm
+    real :: ratio_HSO4m_SULFATE
+    ! END MLD: AQ CHEM
 
     ! compute aerosol conversion factors
     do i_spec = 1,aero_data%n_spec
@@ -315,6 +364,11 @@ contains
     cair_mlc = avogad*pr_atm/(82.056d0*te)   ! air conc [molec/cc]
     cair_molm3 = 1d6*pr_atm/(82.056d0*te)    ! air conc [mol/m^3]
     ppb = 1d9
+
+    ! MLD: AQ CHEM
+    ! bypass aerosol mapping if only running gas-phase chemistry
+    if (maer.eq.1) then
+    ! END MLD: AQ CHEM
 
     ! We're modifying particle diameters, so the bin sort is now invalid
     aero_state%valid_sort = .false.
@@ -338,9 +392,36 @@ contains
        ! convert kg(water)/m^3(air) to m^3(water)
        particle%vol(aero_data%i_water) = water_a(i_part) &
             / aero_data%density(aero_data%i_water) / num_conc
+      ! MLD: AQ CHEM
+      ! set H+ concentration
+      i_Hp = aero_data_spec_by_name(aero_data, "Hp")
+      if (i_Hp.ne.0) then
+        ! convert mol(H+)/kg(water) to vol(H+)
+        particle%vol(i_Hp) = mc(jc_h,i_part) * water_a(i_part) &
+          / ((conv_fac(i_Hp)/1d9) * num_conc)
+      endif
+      ! set HSO4- based on HSO4-/SO42- in MOSAIC
+      i_HSO4m = aero_data_spec_by_name(aero_data, "HSO4m")
+      i_SO4mm = aero_data_spec_by_name(aero_data, "SO4")
+      if (i_HSO4m.ne.0 .and. i_SO4mm.ne.0) then
+        if (ma(ja_so4,i_part).eq.0.0) then
+          ratio_HSO4m_SULFATE = 0.0
+        else
+          ratio_HSO4m_SULFATE = ma(ja_hso4,i_part) / (ma(ja_so4,i_part) + ma(ja_hso4,i_part))
+          particle%vol(i_HSO4m) = ratio_HSO4m_SULFATE * aer(iso4_a, 3, i_part) &
+                / (conv_fac(i_HSO4m) * num_conc)
+          particle%vol(i_SO4mm) = (1.0-ratio_HSO4m_SULFATE) * aer(iso4_a, 3, i_part) &
+                / (conv_fac(i_SO4mm) * num_conc)
+        endif
+      endif
+      ! END MLD: AQ CHEM
     end do
     ! adjust particles to account for weight changes
     call aero_state_reweight(aero_state, reweight_num_conc)
+
+    ! MLD: AQ CHEM
+    endif
+    ! END MLD: AQ CHEM
 
     ! gas chemistry: map MOSAIC -> PartMC
     do i_spec = 1,gas_data%n_spec

@@ -711,7 +711,6 @@ contains
 
   end subroutine spec_file_read_real_named_array
 
-! MLD: AQ CHEM
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Read an array of named lines with string data. All lines must have
@@ -757,7 +756,6 @@ contains
   end subroutine spec_file_read_string_named_array
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! END MLD: AQ CHEM
 
   !> Read an a time-indexed array of real data.
   subroutine spec_file_read_timed_real_array(file, name, times, vals)

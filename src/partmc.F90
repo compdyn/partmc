@@ -175,14 +175,12 @@ program partmc
 #ifdef PMC_USE_SUNDIALS
   use pmc_condense
 #endif
-  ! MLD: AQ CHEM
   use pmc_aq_mech_data
   use pmc_aq_spec_data
   use pmc_aq_state
   use pmc_aq_chem
   use pmc_aq_integrate_f
   use pmc_aq_rxn_file
-  ! END MLD: AQ CHEM
 
   character(len=300) :: spec_name
 
@@ -271,13 +269,11 @@ contains
     type(env_state_t) :: env_state
     type(env_state_t) :: env_state_init
     type(run_part_opt_t) :: run_part_opt
-    ! MLD: AQ CHEM
     type(aq_mech_data_t), target :: aq_mech_data
     type(aq_spec_data_t), target :: aq_spec_data
     type(aq_state_t) :: aq_state
     type(aq_state_t) :: aq_state_init
     type(aq_rxn_file_t) :: aq_rxn_file
-    ! END MLD: AQ CHEM
     integer :: i_repeat, i_group
     integer :: rand_init
     character, allocatable :: buffer(:)
@@ -289,9 +285,7 @@ contains
     real(kind=dp) :: dummy_time, dummy_del_t, n_part
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
-    ! MLD: AQ CHEM
     integer :: part_index
-    ! END MLD: AQ CHEM
 
     !> \page input_format_particle Input File Format: Particle-Resolved Simulation
     !!
@@ -411,12 +405,10 @@ contains
     call scenario_allocate(scenario)
     call env_state_allocate(env_state)
     call env_state_allocate(env_state_init)
-    ! MLD: AQ CHEM
     call aq_mech_data_allocate(aq_mech_data)
     call aq_spec_data_allocate(aq_spec_data)
     call aq_state_allocate(aq_state)
     call aq_state_allocate(aq_state_init)
-    ! END MLD: AQ CHEM
 
     if (pmc_mpi_rank() == 0) then
        ! only the root process does I/O
@@ -554,7 +546,6 @@ contains
           run_part_opt%env_average = .false.
           run_part_opt%parallel_coag_type = PARALLEL_COAG_TYPE_LOCAL
        end if
-       ! MLD: AQ CHEM
        call spec_file_read_logical(file, 'do_aq_chem', &
           run_part_opt%do_aq_chem)
        if (run_part_opt%do_aq_chem) then
@@ -596,7 +587,6 @@ contains
           call aq_mech_data_check_const(aq_mech_data, aq_spec_data)
 
        endif
-       ! END MLD: AQ CHEM
        call spec_file_close(file)
     end if
 
@@ -637,7 +627,6 @@ contains
             + pmc_mpi_pack_size_logical(do_init_equilibriate)
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_aero_state(aero_state_init)
-       ! MLD: AQ CHEM
        if (run_part_opt%do_aq_chem) then
          max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_aq_mech_data(aq_mech_data)
@@ -646,7 +635,6 @@ contains
          max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_aq_state(aq_state_init)
        endif
-       ! END MLD: AQ CHEM
        allocate(buffer(max_buffer_size))
 
        position = 0
@@ -662,13 +650,11 @@ contains
        call pmc_mpi_pack_logical(buffer, position, do_restart)
        call pmc_mpi_pack_logical(buffer, position, do_init_equilibriate)
        call pmc_mpi_pack_aero_state(buffer, position, aero_state_init)
-       ! MLD: AQ CHEM
        if (run_part_opt%do_aq_chem) then
          call pmc_mpi_pack_aq_mech_data(buffer, position, aq_mech_data)
          call pmc_mpi_pack_aq_spec_data(buffer, position, aq_spec_data)
          call pmc_mpi_pack_aq_state(buffer, position, aq_state_init)
        endif
-       ! END MLD: AQ CHEM
        call assert(181905491, position <= max_buffer_size)
        buffer_size = position ! might be less than we allocated
     end if
@@ -699,7 +685,6 @@ contains
        call pmc_mpi_unpack_logical(buffer, position, do_restart)
        call pmc_mpi_unpack_logical(buffer, position, do_init_equilibriate)
        call pmc_mpi_unpack_aero_state(buffer, position, aero_state_init)
-       ! MLD: AQ CHEM
        if (run_part_opt%do_aq_chem) then
          call pmc_mpi_unpack_aq_mech_data(buffer, position, aq_mech_data)
          call pmc_mpi_unpack_aq_spec_data(buffer, position, aq_spec_data)
@@ -710,7 +695,6 @@ contains
          call aq_state_allocate(aq_state)
          call aq_state_allocate(aq_state_init)
        endif
-       ! END MLD: AQ CHEM
        call assert(143770146, position == buffer_size)
     end if
 
@@ -724,12 +708,10 @@ contains
 
     call gas_state_deallocate(gas_state)
     call gas_state_allocate_size(gas_state, gas_data%n_spec)
-    ! MLD: AQ CHEM
     if (run_part_opt%do_aq_chem) then
       call aq_state_deallocate(aq_state)
       call aq_state_allocate_size(aq_state, aq_spec_data%n_spec)
     endif
-    ! END MLD: AQ CHEM
     call cpu_time(run_part_opt%t_wall_start)
 
     do i_repeat = 1,run_part_opt%n_repeat
@@ -769,7 +751,6 @@ contains
           call condense_equilib_particles(env_state, aero_data, aero_state)
        end if
 #endif
-       ! MLD: AQ CHEM
        ! Start off all particles as charge balanced
        if (run_part_opt%do_aq_chem) then
          do part_index=1,aero_state%apa%n_part
@@ -787,13 +768,10 @@ contains
 
          enddo
        endif
-       ! END MLD: AQ CHEM
 
-       ! MLD: AQ CHEM
        call run_part(scenario, env_state, aero_data, aero_state, gas_data, &
             gas_state, run_part_opt, aq_mech_data, aq_spec_data, aq_state, &
             aq_state_init)
-       ! END MLD: AQ CHEM
     end do
 
     call gas_data_deallocate(gas_data)
@@ -806,12 +784,10 @@ contains
     call scenario_deallocate(scenario)
     call env_state_deallocate(env_state)
     call env_state_deallocate(env_state_init)
-    ! MLD: AQ CHEM
     call aq_mech_data_deallocate(aq_mech_data)
     call aq_spec_data_deallocate(aq_spec_data)
     call aq_state_deallocate(aq_state)
     call aq_state_deallocate(aq_state_init)
-    ! END MLD: AQ CHEM
 
     call pmc_rand_finalize()
 

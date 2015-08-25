@@ -9,4 +9,4 @@ cd ${0%/*}
 # make the output directory if it doesn't exist
 mkdir -p out
 
-../../test_aq_chem capram24_red+.txt aq_spec_init_from_pmc.dat aq_spec_data.dat 100.0 > output_CAPRAM.txt
+../../test_aq_chem capram24_red+.txt aq_spec_init.dat aq_spec_data.dat 100.0 > output_CAPRAM.txt

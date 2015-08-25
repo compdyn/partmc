@@ -28,12 +28,10 @@ module pmc_run_part
 #ifdef PMC_USE_MPI
   use mpi
 #endif
-  ! MLD: AQ CHEM
   use pmc_aq_mech_data
   use pmc_aq_spec_data
   use pmc_aq_state
   use pmc_aq_chem
-  ! END MLD: AQ CHEM
 
   !> Type code for undefined or invalid parallel coagulation method.
   integer, parameter :: PARALLEL_COAG_TYPE_INVALID = 0
@@ -80,10 +78,8 @@ module pmc_run_part
      logical :: do_condensation
      !> Whether to do MOSAIC.
      logical :: do_mosaic
-     ! MLD: AQ CHEM
      !> Whether to do aqueous chemistry
      logical :: do_aq_chem
-     ! END MLD: AQ CHEM
      !> Whether to compute optical properties.
      logical :: do_optical
      !> Repeat number of run.
@@ -115,10 +111,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Do a particle-resolved Monte Carlo simulation.
-  ! MLD: AQ CHEM
   subroutine run_part(scenario, env_state, aero_data, aero_state, gas_data, &
        gas_state, run_part_opt, aq_mech_data, aq_spec_data, aq_state, aq_state_init)
-  ! END MLD: AQ CHEM
 
     !> Environment state.
     type(scenario_t), intent(in) :: scenario
@@ -134,7 +128,6 @@ contains
     type(gas_state_t), intent(inout) :: gas_state
     !> Monte Carlo options.
     type(run_part_opt_t), intent(in) :: run_part_opt
-    ! MLD: AQ CHEM
     !> Aq. Phase Mechanism data.
     type(aq_mech_data_t), intent(in), target :: aq_mech_data
     !> Aq. Phase Species data.
@@ -144,7 +137,6 @@ contains
     !> Aq. Phase Species State containing initial and 
     !! constant species concentrations
     type(aq_state_t), intent(inout) :: aq_state_init
-    !END MLD: AQ CHEM
 
     real(kind=dp) :: time, pre_time, pre_del_t, prop_done
     real(kind=dp) :: last_output_time, last_progress_time
@@ -188,19 +180,15 @@ contains
     call env_state_allocate(old_env_state)
 
     if (run_part_opt%do_mosaic) then
-    ! MLD: AQ CHEM
        call mosaic_init(env_state, aero_data, run_part_opt%del_t, &
             run_part_opt%do_optical, .false.)
-    ! END MLD: AQ CHEM
     end if
 
-    ! MLD: AQ CHEM
     ! set up mosaic for gas-phase only for do_aq_chem
     if (run_part_opt%do_aq_chem) then
        call mosaic_init(env_state, aero_data, run_part_opt%del_t, &
             run_part_opt%do_optical, .true.)
     end if
-    ! END MLD: AQ CHEM
 
     if (run_part_opt%t_output > 0d0) then
        call output_state(run_part_opt%output_prefix, &
@@ -295,29 +283,23 @@ contains
        progress_n_dil_in = progress_n_dil_in + n_dil_in
        progress_n_dil_out = progress_n_dil_out + n_dil_out
 
-       ! MLD: AQ CHEM
        ! run aero & gas mosaic for do_mosaic or just gas mosaic for do_aq_chem
        if (run_part_opt%do_mosaic .or. run_part_opt%do_aq_chem) then
-       ! END MLD: AQ CHEM
           call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &
                gas_state, run_part_opt%do_optical)
-       ! MLD: AQ CHEM
           ! If this is the first timestep, the solar zenith angle was not
           ! set in the old environment variable
           if (i_time.eq.i_time_start) then
             old_env_state%solar_zenith_angle = env_state%solar_zenith_angle
           end if
-       ! END MLD: AQ CHEM
        end if
 
-       ! MLD: AQ CHEM
        if (run_part_opt%do_aq_chem) then
           ! run aqueous chemistry
           call aq_chem_timestep(old_env_state, env_state, aq_mech_data, &
                 aq_spec_data, aq_state, aq_state_init, gas_data, gas_state, &
                 aero_data, aero_state, run_part_opt%del_t)
        end if
-       ! END MLD: AQ CHEM
 
        if (run_part_opt%mix_timescale > 0d0) then
           call aero_state_mix(aero_state, run_part_opt%del_t, &
@@ -398,9 +380,7 @@ contains
 
     end do
 
-    ! MLD: AQ CHEM
     if (run_part_opt%do_mosaic .or. run_part_opt%do_aq_chem) then
-    ! END MLD: AQ CHEM
        call mosaic_cleanup()
     end if
 
@@ -479,9 +459,7 @@ contains
          + pmc_mpi_pack_size_logical(val%allow_halving) &
          + pmc_mpi_pack_size_logical(val%do_condensation) &
          + pmc_mpi_pack_size_logical(val%do_mosaic) &
-         ! MLD: AQ CHEM
          + pmc_mpi_pack_size_logical(val%do_aq_chem) &
-         ! END MLD: AQ CHEM
          + pmc_mpi_pack_size_logical(val%do_optical) &
          + pmc_mpi_pack_size_integer(val%i_repeat) &
          + pmc_mpi_pack_size_integer(val%n_repeat) &
@@ -530,9 +508,7 @@ contains
     call pmc_mpi_pack_logical(buffer, position, val%allow_halving)
     call pmc_mpi_pack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_pack_logical(buffer, position, val%do_mosaic)
-    ! MLD: AQ CHEM
     call pmc_mpi_pack_logical(buffer, position, val%do_aq_chem)
-    ! END MLD: AQ CHEM
     call pmc_mpi_pack_logical(buffer, position, val%do_optical)
     call pmc_mpi_pack_integer(buffer, position, val%i_repeat)
     call pmc_mpi_pack_integer(buffer, position, val%n_repeat)
@@ -584,9 +560,7 @@ contains
     call pmc_mpi_unpack_logical(buffer, position, val%allow_halving)
     call pmc_mpi_unpack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_mosaic)
-    ! MLD: AQ CHEM
     call pmc_mpi_unpack_logical(buffer, position, val%do_aq_chem)
-    ! END MLD: AQ CHEM
     call pmc_mpi_unpack_logical(buffer, position, val%do_optical)
     call pmc_mpi_unpack_integer(buffer, position, val%i_repeat)
     call pmc_mpi_unpack_integer(buffer, position, val%n_repeat)

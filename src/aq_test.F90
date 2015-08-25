@@ -1,3 +1,7 @@
+! Copyright (C) 2015 Matthew Dawson
+! Licensed under the GNU General Public License version 2 or (at your
+! option) any later version. See the file COPYING for details.
+
 !> Test program for the PartMC aqueous chemistry mechanism
 program test_aq
 

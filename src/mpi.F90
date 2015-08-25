@@ -529,7 +529,7 @@ contains
   end function pmc_mpi_pack_size_real_array_2d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! MLD: AQ CHEM
+
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_logical_array(val)
 
@@ -549,7 +549,7 @@ contains
 #endif
 
   end function pmc_mpi_pack_size_logical_array
-! END MLD: AQ CHEM
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
@@ -788,7 +788,7 @@ contains
   end subroutine pmc_mpi_pack_real_array_2d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! MLD: AQ CHEM
+
   !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_logical_array(buffer, position, val)
 
@@ -813,7 +813,7 @@ contains
 #endif
 
   end subroutine pmc_mpi_pack_logical_array
-! END MLD: AQ CHEM
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
@@ -1056,7 +1056,7 @@ contains
   end subroutine pmc_mpi_unpack_real_array_2d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! MLD: AQ CHEM
+
   !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_logical_array(buffer, position, val)
 
@@ -1082,7 +1082,7 @@ contains
 #endif
 
   end subroutine pmc_mpi_unpack_logical_array
-! END MLD: AQ CHEM
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Computes the average of val across all processes, storing the

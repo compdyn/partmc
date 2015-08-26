@@ -1,5 +1,5 @@
 # time (s)
 # rate = scaling parameter
 # emissions (mol m^{-2} s^{-1})
-time      0   
+time      43200   
 rate      0

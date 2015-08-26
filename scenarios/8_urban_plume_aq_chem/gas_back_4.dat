@@ -1,8 +1,8 @@
 # time (s)
 # rate (s^{-1})
 # concentrations (ppb)
-time            0
-rate         1.5e-5
+time         43200
+rate         0
 NO           0.1E+00
 NO2          1.0E+00
 NO3          0.0E+00

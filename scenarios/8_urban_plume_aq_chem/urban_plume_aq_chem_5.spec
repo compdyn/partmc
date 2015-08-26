@@ -1,9 +1,9 @@
 run_type particle               # particle-resolved run
-output_prefix out/urban_plume_aq_chem_b   # prefix of output files
+output_prefix out/urban_plume_aq_chem_e   # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 10000                    # total number of particles
 restart yes                     # whether to restart from saved state (yes/no)
-restart_file out/urban_plume_aq_chem_0001_00000021.nc
+restart_file out/urban_plume_aq_chem_0001_00000241.nc
 
 t_max 1200                      # total simulation time (s)
 del_t 1                         # timestep (s)
@@ -22,7 +22,7 @@ rel_humidity 0.95               # initial relative humidity (1)
 latitude 0                      # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)
 altitude 0                      # altitude (m)
-start_time 28800                # start time (s since 00:00 UTC)
+start_time 108000               # start time (s since 00:00 UTC)
 start_day 200                   # start day of year (UTC)
 
 do_coagulation no               # whether to do coagulation (yes/no)

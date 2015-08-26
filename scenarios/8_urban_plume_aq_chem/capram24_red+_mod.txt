@@ -42,7 +42,7 @@ COMMENT HNO3 = aHNO3
 COMMENT TEMP3:   A: 2.1e5  B: 8700.0
 CLASS: HENRY 
 HNO3 = NO3m + Hp
-TEMP3:   A: 2.1e5  B: 8700.0
+TEMP3:   A: 4.62e6  B: 10500.0
 
 CLASS: HENRY 
 NO3 =  aNO3         
@@ -56,9 +56,13 @@ CLASS: HENRY
 NH3 =  aNH3       
 TEMP3:   A: 60.7  B: 3920.0
 
+COMMENT MLD - Removed undissociated HCl
+COMMENT CLASS: HENRY 
+COMMENT HCL =  aHCL       
+COMMENT TEMP3:   A: 1.1  B: 2020.0 
 CLASS: HENRY 
-HCL =  aHCL       
-TEMP3:   A: 1.1  B: 2020.0 
+HCL =  CLm + Hp       
+TEMP3:   A: 1.89e6  B: 8910.0
 
 CLASS: HENRY 
 HCHO = aHCHO      
@@ -114,7 +118,7 @@ COMMENT SULF =  aSULF
 COMMENT TEMP3:   A:   8.7e11  B: 0.0 
 CLASS: HENRY 
 SULF =  HSO4m + Hp 
-TEMP3:   A:   8.7e11  B: 0.0 
+TEMP3:   A:   8.7e14  B: 5.0e10
 
 CLASS: HENRY 
 HNO4 =  aHNO4      
@@ -597,9 +601,10 @@ CLASS: DISS
 aCO2 = HCO3m + Hp
 DTEMP:  A: 4.3e-7  B: -913  C: 5.6e4
 
-CLASS: DISS  
-aHCL          =  CLm + Hp
-DTEMP:   A: 1.72e+6  B: 6890.0  C: 2.9e5
+COMMENT MLD - Removed undissociated HCl
+COMMENT CLASS: DISS  
+COMMENT aHCL          =  CLm + Hp
+COMMENT DTEMP:   A: 1.72e+6  B: 6890.0  C: 2.9e5
 
 CLASS: DISS  
 aNH3 + [aH2O]   =  NH4p  + OHm

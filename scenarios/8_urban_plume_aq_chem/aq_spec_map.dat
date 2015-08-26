@@ -43,7 +43,7 @@ aHONO            aero     aHONO
 aNO3             aero     aNO3
 aN2O5            aero     aN2O5
 aNH3             aero     aNH3
-aHCL             aero     aHCL
+# aHCL             aero     aHCL    removed
 aHCHO            aero     aHCHO
 aORA1            aero     aORA1
 aSO2             aero     aSO2

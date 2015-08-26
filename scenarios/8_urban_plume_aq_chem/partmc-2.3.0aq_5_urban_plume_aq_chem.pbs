@@ -11,11 +11,12 @@ module load gsl/1.16
 ulimit -s 10240
 
 # Edit this line to reflect your directory.
-cd /dfs2/dabdub/mldawson/proj_nr_aqchem/partmc-2.3.0aq_to_HPC/scenarios/5_urban_plume_aq_chem
+cd /dfs2/dabdub/mldawson/proj_nr_aqchem/partmc/scenarios/8_urban_plume_aq_chem
 
 mkdir -p out 
 
-mpirun -v -np $CORES ../../build/partmc urban_plume_aq_chem.spec > out/read
-
+# mpirun -v -np $CORES ../../build/partmc urban_plume_aq_chem.spec > out/read
 mpirun -v -np $CORES ../../build/partmc urban_plume_aq_chem_2.spec > out/read_2
 mpirun -v -np $CORES ../../build/partmc urban_plume_aq_chem_3.spec > out/read_3
+mpirun -v -np $CORES ../../build/partmc urban_plume_aq_chem_4.spec > out/read_4
+mpirun -v -np $CORES ../../build/partmc urban_plume_aq_chem_5.spec > out/read_5

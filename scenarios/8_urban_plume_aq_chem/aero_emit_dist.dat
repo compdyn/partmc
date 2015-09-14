@@ -1,7 +1,8 @@
 mode_name paved_road
 mass_frac aero_emit_comp_pavedrd.dat # composition proportions of species
 mode_type log_normal            # type of distribution
-num_conc 5.03E+03               # particle number concentration (#/m^2)
+num_conc 262                    # particle number concentration (#/m^2)
+                                #   based on 1.232e-8 g/m^2/s average emissions in SoCAB
 geom_mean_diam 1.42e-6          # geometric mean diameter (m)
 log10_geom_std_dev 0.11         # log_10 of geometric std dev of diameter
 

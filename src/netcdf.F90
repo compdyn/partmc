@@ -260,7 +260,7 @@ contains
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
-    !> Data to read, must be correctly sized.
+    !> Data to read.
     integer, intent(inout), allocatable :: var(:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
@@ -301,7 +301,7 @@ contains
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
-    !> Data to read, must be correctly sized.
+    !> Data to read.
     real(kind=dp), intent(inout), allocatable :: var(:,:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name
@@ -345,7 +345,7 @@ contains
 
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
-    !> Data to read, must be correctly sized.
+    !> Data to read.
     integer, intent(inout), allocatable :: var(:,:)
     !> Variable name in NetCDF file.
     character(len=*), intent(in) :: name

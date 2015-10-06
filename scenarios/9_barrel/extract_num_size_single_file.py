@@ -21,8 +21,8 @@ import matplotlib.pyplot as plt
 #dist = partmc.histogram_1d(x_values, x_grid, weighted=True, weights=particles.num_concs)
 
 col = 31
-dataset_name = '0925'
-case = 415
+dataset_name = '0322'
+case = 1
 
 ref_data = numpy.loadtxt("ref_"+dataset_name+"/ref_aero_size_num_regrid.txt")
 raw_counts = numpy.loadtxt("ref_"+dataset_name+"/ref_aero_raw_counts_regrid.txt")
@@ -62,7 +62,8 @@ list_std = []
 for row in range(0,ref_data.shape[0]):
     list_data_temp_1d = []
     for i in numpy.arange(1,11,1):
-        file_load = "out_"+dataset_name+"/case_%04d_wc_%04d_aero_size_num.txt" % (case, i)
+        #file_load = "out_"+dataset_name+"/case_%04d_wc_%04d_aero_size_num.txt" % (case, i)
+        file_load = "out_barrel_universe/out_"+dataset_name+"/case_%04d_wc_%04d_aero_size_num.txt" % (case, i)
         data_temp = numpy.loadtxt(file_load)
         list_data_temp_1d.append(data_temp[row,col])
     data_temp_1d = numpy.array(list_data_temp_1d)
@@ -106,12 +107,12 @@ diams = numpy.array(diams_list)
 #filename_out = "slope.pdf"
 #figure.savefig(filename_out)
 
-data_no_fractal = numpy.loadtxt("out_0925/no_fractal_0001_aero_size_num.txt")
-data_no_fractal_1d = data_no_fractal[:,col] * math.log(10)
+#data_no_fractal = numpy.loadtxt("out_0925/no_fractal_0001_aero_size_num.txt")
+#data_no_fractal_1d = data_no_fractal[:,col] * math.log(10)
 
 (figure, axes) = mpl_helper.make_fig(colorbar=False)
 axes.semilogx(diams, data1_1d, color='k')
-axes.semilogx(diams, data_no_fractal_1d, color='b')
+#axes.semilogx(diams, data_no_fractal_1d, color='b')
 #axes.errorbar(ref_data[:,0],ref_data[:,col],yerr=ref_data_err,color='r')
 axes.semilogx(ref_data[:,0],ref_data[:,col], color='#CC4F1B')
 axes.fill_between(ref_data[:,0], ref_data[:,col]-ref_data_err, ref_data[:,col]+ref_data_err,
@@ -121,11 +122,12 @@ axes.set_xlabel("Dry diameter (m)", fontsize=14)
 axes.set_ylabel(r"Number concentration ($\mathrm{m}^{-3}$)", fontsize=14)
 axes.grid()
 axes.set_ylim(0,)
-axes.legend(('PartMC','PartMC (no fractal)','Barrel'),loc='upper left')
+#axes.legend(('PartMC','PartMC (no fractal)','Barrel'),loc='upper left')
+axes.legend(('PartMC','Barrel'),loc='upper left')
 bbox_props = dict(boxstyle="square,pad=0.3", fc="cyan", ec="b", lw=1)
 axes.annotate('210 min', xy=(0.82, 0.85), xycoords='axes fraction',weight='extra bold', size=14, bbox=bbox_props)
 bbox_props_1 = dict(boxstyle="square,pad=0.3", fc="white", ec="r", lw=1)
-axes.annotate('Exp.4', xy=(0.02, 0.15), xycoords='axes fraction',weight='extra bold', size=14, bbox=bbox_props_1)
+axes.annotate('Exp.1', xy=(0.02, 0.15), xycoords='axes fraction',weight='extra bold', size=14, bbox=bbox_props_1)
 filename_out = "aero_num_size.pdf"
 figure.savefig(filename_out)
 

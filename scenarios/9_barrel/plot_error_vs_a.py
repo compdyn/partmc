@@ -8,9 +8,23 @@ import math
 import mpl_helper
 import matplotlib.pyplot as plt
 
+"""
 dataset_name = '0925'
 prefactor = 0.06
 frac_dim = 2.2
+
+dataset_name = '0909'
+prefactor = 0.04
+frac_dim = 2.4
+
+dataset_name = '0908'
+prefactor = 0.07
+frac_dim = 2.2
+"""
+
+dataset_name = '0322'
+prefactor = 0.05
+frac_dim = 3.0
 
 ref_data = numpy.loadtxt("rmse_num_"+dataset_name+".dat")
 list_a = []
@@ -21,6 +35,8 @@ for i in range(0,ref_data.shape[0]):
        list_rmse.append(ref_data[i,4])
 
 list_a, list_rmse = zip(*sorted(zip(list_a, list_rmse)))
+print list_a
+print list_rmse
 
 (figure, axes) = mpl_helper.make_fig(colorbar=False)
 axes.plot(list_a, list_rmse, '-ko')

@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -260,8 +260,7 @@ contains
     end do
 
     ! allocate the data and read out the data items
-    call spec_line_deallocate(line)
-    call spec_line_allocate_size(line, n_data)
+    call spec_line_set_size(line, n_data)
     n_data = 0
     rest = line_string
     done = .false.
@@ -322,7 +321,7 @@ contains
     !> Max lines to read (0 = no max).
     integer, intent(in) :: max_lines
     !> List of spec_lines.
-    type(spec_line_t), pointer :: line_list(:)
+    type(spec_line_t), allocatable :: line_list(:)
 
     logical :: eof
     integer :: i, num_lines
@@ -331,11 +330,7 @@ contains
     ! read file, working out how many lines we have
     num_lines = 0
     eof = .false.
-    call spec_line_allocate(temp_line_list(num_lines + 1))
     call spec_file_read_line(file, temp_line_list(num_lines + 1), eof)
-    if (eof) then
-       call spec_line_deallocate(temp_line_list(num_lines + 1))
-    end if
     do while (.not. eof)
        num_lines = num_lines + 1
        if (num_lines > SPEC_FILE_MAX_LIST_LINES) then
@@ -348,25 +343,14 @@ contains
           end if
        end if
        if (.not. eof) then
-          call spec_line_allocate(temp_line_list(num_lines + 1))
           call spec_file_read_line(file, temp_line_list(num_lines + 1), eof)
-          if (eof) then
-             call spec_line_deallocate(temp_line_list(num_lines + 1))
-          end if
        end if
     end do
 
     ! copy data to actual list
-    do i = 1,size(line_list)
-       call spec_line_deallocate(line_list(i))
-    end do
-    deallocate(line_list)
+    ! FIXME: following allocate shouldn't be needed, but is on gfortran 4.6.3
     allocate(line_list(num_lines))
-    do i = 1,num_lines
-       call spec_line_allocate(line_list(i))
-       call spec_line_copy(temp_line_list(i), line_list(i))
-       call spec_line_deallocate(temp_line_list(i))
-    end do
+    line_list = temp_line_list(1:num_lines)
 
   end subroutine spec_file_read_line_list
 
@@ -381,7 +365,7 @@ contains
     !> Max lines to read (0 = no max).
     integer, intent(in) :: max_lines
     !> Array of spec_lines,.
-    type(spec_line_t), pointer :: line_array(:)
+    type(spec_line_t), allocatable :: line_array(:)
 
     integer :: i, line_length
 
@@ -563,12 +547,10 @@ contains
 
     type(spec_line_t) :: line
 
-    call spec_line_allocate(line)
     call spec_file_read_line_no_eof(file, line)
     call spec_file_check_line_name(file, line, name)
     call spec_file_check_line_length(file, line, 1)
     var = spec_file_string_to_integer(file, line%data(1))
-    call spec_line_deallocate(line)
 
   end subroutine spec_file_read_integer
 
@@ -587,12 +569,10 @@ contains
 
     type(spec_line_t) :: line
 
-    call spec_line_allocate(line)
     call spec_file_read_line_no_eof(file, line)
     call spec_file_check_line_name(file, line, name)
     call spec_file_check_line_length(file, line, 1)
     var = spec_file_string_to_real(file, line%data(1))
-    call spec_line_deallocate(line)
 
   end subroutine spec_file_read_real
 
@@ -610,12 +590,10 @@ contains
 
     type(spec_line_t) :: line
 
-    call spec_line_allocate(line)
     call spec_file_read_line_no_eof(file, line)
     call spec_file_check_line_name(file, line, name)
     call spec_file_check_line_length(file, line, 1)
     var = spec_file_string_to_logical(file, line%data(1))
-    call spec_line_deallocate(line)
 
   end subroutine spec_file_read_logical
 
@@ -633,12 +611,10 @@ contains
 
     type(spec_line_t) :: line
 
-    call spec_line_allocate(line)
     call spec_file_read_line_no_eof(file, line)
     call spec_file_check_line_name(file, line, name)
     call spec_file_check_line_length(file, line, 1)
     var = line%data(1)
-    call spec_line_deallocate(line)
 
   end subroutine spec_file_read_string
 
@@ -657,13 +633,11 @@ contains
 
     type(spec_line_t) :: line
 
-    call spec_line_allocate(line)
     call spec_file_read_line_no_eof(file, line)
     call spec_file_check_line_name(file, line, name)
     call spec_file_check_line_length(file, line, 2)
     var = cmplx(spec_file_string_to_real(file, line%data(1)), &
          spec_file_string_to_real(file, line%data(2)), kind=dc)
-    call spec_line_deallocate(line)
 
   end subroutine spec_file_read_complex
 
@@ -678,18 +652,17 @@ contains
     !> Max lines to read (0 = no max).
     integer, intent(in) :: max_lines
     !> Names of lines.
-    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: names(:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), allocatable :: names(:)
     !> Data values.
-    real(kind=dp), pointer :: vals(:,:)
+    real(kind=dp), allocatable :: vals(:,:)
 
-    type(spec_line_t), pointer :: line_array(:)
+    type(spec_line_t), allocatable :: line_array(:)
     integer :: num_lines, line_length, i, j
 
-    allocate(line_array(0))
     call spec_file_read_line_array(file, max_lines, line_array)
     num_lines = size(line_array)
-    deallocate(names)
-    deallocate(vals)
+    if (allocated(names)) deallocate(names)
+    if (allocated(vals)) deallocate(vals)
     if (num_lines > 0) then
        line_length = size(line_array(1)%data)
        allocate(names(num_lines))
@@ -704,10 +677,6 @@ contains
        allocate(names(0))
        allocate(vals(0,0))
     end if
-    do i = 1,num_lines
-       call spec_line_deallocate(line_array(i))
-    end do
-    deallocate(line_array)
 
   end subroutine spec_file_read_real_named_array
 
@@ -721,16 +690,14 @@ contains
     !> Variable name.
     character(len=*), intent(in) :: name
     !> Names of lines.
-    real(kind=dp), pointer :: times(:)
+    real(kind=dp), allocatable :: times(:)
     !> Data values.
-    real(kind=dp), pointer :: vals(:)
+    real(kind=dp), allocatable :: vals(:)
 
     integer :: n_lines, n_times
-    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: read_names(:)
-    real(kind=dp), pointer :: read_data(:,:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), allocatable :: read_names(:)
+    real(kind=dp), allocatable :: read_data(:,:)
 
-    allocate(read_names(0))
-    allocate(read_data(0,0))
     call spec_file_read_real_named_array(file, 0, read_names, read_data)
 
     n_lines = size(read_names)
@@ -753,14 +720,8 @@ contains
             // ' not: ' // trim(read_names(2)))
     end if
 
-    deallocate(times)
-    deallocate(vals)
-    allocate(times(n_times))
-    allocate(vals(n_times))
     times = read_data(1,:)
     vals = read_data(2,:)
-    deallocate(read_names)
-    deallocate(read_data)
 
   end subroutine spec_file_read_timed_real_array
 

@@ -34,16 +34,6 @@ program process
 
   call pmc_mpi_init()
 
-  call bin_grid_allocate(diam_grid)
-  call bin_grid_allocate(bc_grid)
-  call bin_grid_allocate(sc_grid)
-  call bin_grid_allocate(entropy_grid)
-  call aero_data_allocate(aero_data)
-  call aero_state_allocate(aero_state)
-  call aero_state_allocate(aero_state_averaged)
-  call bin_grid_allocate(avg_bin_grid)
-  call env_state_allocate(env_state)
-
   call input_n_files(prefix, n_repeat, n_index)
 
   call bin_grid_make(diam_grid, BIN_GRID_TYPE_LOG, 180, 1d-9, 1d-3)
@@ -104,7 +94,7 @@ program process
              / sum(masses * num_concs)
         call stats_1d_add_entry(stats_tot_entropy, tot_entropy, i_index)
 
-        call aero_state_copy(aero_state, aero_state_averaged)
+        aero_state_averaged = aero_state
         call aero_state_bin_average_comp(aero_state_averaged, avg_bin_grid, &
              aero_data)
         num_concs_averaged = aero_state_num_concs(aero_state_averaged)
@@ -161,11 +151,6 @@ program process
   call stats_1d_output_netcdf(stats_tot_entropy_averaged, ncid, &
        "tot_entropy_averaged", dim_name="time", unit="m^{-3}")
   call pmc_nc_close(ncid)
-
-  call bin_grid_allocate(diam_grid)
-  call aero_data_deallocate(aero_data)
-  call aero_state_deallocate(aero_state)
-  call env_state_deallocate(env_state)
 
   call pmc_mpi_finalize()
 

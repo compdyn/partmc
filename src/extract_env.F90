@@ -62,8 +62,6 @@ program extract_env
      out_filename = trim(in_prefix) // "_env.txt"
   end if
 
-  call env_state_allocate(env_state)
-
   allocate(filename_list(0))
   call input_filename_list(in_prefix, filename_list)
   n_file = size(filename_list)
@@ -120,7 +118,6 @@ program extract_env
   deallocate(rel_humids)
   deallocate(pressures)
   deallocate(mix_heights)
-  call env_state_deallocate(env_state)
 
   call pmc_mpi_finalize()
 

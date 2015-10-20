@@ -71,15 +71,16 @@ contains
     !> Options.
     type(run_sect_opt_t), intent(in) :: run_sect_opt
 
-    real(kind=dp) c(bin_grid%n_bin,bin_grid%n_bin)
-    integer ima(bin_grid%n_bin,bin_grid%n_bin)
-    real(kind=dp) g(bin_grid%n_bin), r(bin_grid%n_bin), e(bin_grid%n_bin)
-    real(kind=dp) k_bin(bin_grid%n_bin,bin_grid%n_bin)
-    real(kind=dp) ck(bin_grid%n_bin,bin_grid%n_bin)
-    real(kind=dp) ec(bin_grid%n_bin,bin_grid%n_bin)
-    real(kind=dp) taug(bin_grid%n_bin), taup(bin_grid%n_bin)
-    real(kind=dp) taul(bin_grid%n_bin), tauu(bin_grid%n_bin)
-    real(kind=dp) prod(bin_grid%n_bin), ploss(bin_grid%n_bin)
+    real(kind=dp) c(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
+    integer ima(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
+    real(kind=dp) g(bin_grid_size(bin_grid)), r(bin_grid_size(bin_grid))
+    real(kind=dp) e(bin_grid_size(bin_grid))
+    real(kind=dp) k_bin(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
+    real(kind=dp) ck(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
+    real(kind=dp) ec(bin_grid_size(bin_grid),bin_grid_size(bin_grid))
+    real(kind=dp) taug(bin_grid_size(bin_grid)), taup(bin_grid_size(bin_grid))
+    real(kind=dp) taul(bin_grid_size(bin_grid)), tauu(bin_grid_size(bin_grid))
+    real(kind=dp) prod(bin_grid_size(bin_grid)), ploss(bin_grid_size(bin_grid))
     real(kind=dp) time, last_output_time, last_progress_time
     type(env_state_t) :: old_env_state
     type(aero_binned_t) :: aero_binned
@@ -100,19 +101,16 @@ contains
     ! r         : droplet radius grid (um)
     ! log_width : constant grid distance of logarithmic grid
 
-    if (aero_data%n_spec /= 1) then
+    if (aero_data_n_spec(aero_data) /= 1) then
        call die_msg(844211192, &
             'run_sect() can only use one aerosol species')
     end if
 
     ! output data structure
-    call aero_binned_allocate_size(aero_binned, bin_grid%n_bin, &
-         aero_data%n_spec)
-    aero_binned%vol_conc = 0d0
-    call gas_state_allocate_size(gas_state, gas_data%n_spec)
+    call gas_state_set_size(gas_state, gas_data_n_spec(gas_data))
 
     ! mass and radius grid
-    do i = 1,bin_grid%n_bin
+    do i = 1,bin_grid_size(bin_grid)
        r(i) = bin_grid%centers(i) * 1d6 ! radius in m to um
        e(i) = rad2vol(bin_grid%centers(i)) &
             * aero_data%density(1) * 1d6 ! vol in m^3 to mass in mg
@@ -122,7 +120,7 @@ contains
     call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_data, &
          aero_dist)
 
-    call courant(bin_grid%n_bin, bin_grid%widths(1), e, ima, c)
+    call courant(bin_grid_size(bin_grid), bin_grid%widths(1), e, ima, c)
 
     ! initialize time
     last_progress_time = 0d0
@@ -130,18 +128,18 @@ contains
     i_summary = 1
 
     ! precompute kernel values for all pairs of bins
-    call bin_kernel(bin_grid%n_bin, bin_grid%centers, aero_data, &
+    call bin_kernel(bin_grid_size(bin_grid), bin_grid%centers, aero_data, &
          run_sect_opt%coag_kernel_type, env_state, k_bin)
-    call smooth_bin_kernel(bin_grid%n_bin, k_bin, ck)
-    do i = 1,bin_grid%n_bin
-       do j = 1,bin_grid%n_bin
+    call smooth_bin_kernel(bin_grid_size(bin_grid), k_bin, ck)
+    do i = 1,bin_grid_size(bin_grid)
+       do j = 1,bin_grid_size(bin_grid)
           ck(i,j) = ck(i,j) * 1d6  ! m^3/s to cm^3/s
        end do
     end do
 
     ! multiply kernel with constant timestep and logarithmic grid distance
-    do i = 1,bin_grid%n_bin
-       do j = 1,bin_grid%n_bin
+    do i = 1,bin_grid_size(bin_grid)
+       do j = 1,bin_grid_size(bin_grid)
           ck(i,j) = ck(i,j) * run_sect_opt%del_t * bin_grid%widths(i)
        end do
     end do
@@ -157,13 +155,12 @@ contains
 
     ! main time-stepping loop
     num_t = nint(run_sect_opt%t_max / run_sect_opt%del_t)
-    call env_state_allocate(old_env_state)
     do i_time = 1, num_t
 
        if (run_sect_opt%do_coagulation) then
           g = aero_binned%vol_conc(:,1) * aero_data%density(1)
-          call coad(bin_grid%n_bin, run_sect_opt%del_t, taug, taup, taul, &
-               tauu, prod, ploss, c, ima, g, r, e, ck, ec)
+          call coad(bin_grid_size(bin_grid), run_sect_opt%del_t, taug, taup, &
+               taul, tauu, prod, ploss, c, ima, g, r, e, ck, ec)
           aero_binned%vol_conc(:,1) = g / aero_data%density(1)
           aero_binned%num_conc = aero_binned%vol_conc(:,1) &
                / rad2vol(bin_grid%centers)
@@ -172,7 +169,7 @@ contains
        time = run_sect_opt%t_max * real(i_time, kind=dp) &
             / real(num_t, kind=dp)
 
-       call env_state_copy(env_state, old_env_state)
+       old_env_state = env_state
        call scenario_update_env_state(scenario, env_state, time)
        call scenario_update_gas_state(scenario, run_sect_opt%del_t, &
             env_state, old_env_state, gas_data, gas_state)
@@ -197,10 +194,6 @@ contains
           write(*,'(i6,f8.1)') i_time, time
        end if
     end do
-
-    call env_state_deallocate(old_env_state)
-    call aero_binned_deallocate(aero_binned)
-    call gas_state_deallocate(gas_state)
 
   end subroutine run_sect
 

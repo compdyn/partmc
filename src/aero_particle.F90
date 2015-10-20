@@ -24,11 +24,11 @@ module pmc_aero_particle
   !! equal to aero_data%%n_spec, so that \c vol(i) is the volume (in
   !! m^3) of the i'th aerosol species.
   type aero_particle_t
-     !> Constituent species volumes [length aero_data%%n_spec] (m^3).
-     real(kind=dp), pointer :: vol(:)
+     !> Constituent species volumes [length aero_data_n_spec()] (m^3).
+     real(kind=dp), allocatable :: vol(:)
      !> Number of original particles from each source that coagulated
-     !> to form this one [length aero_data%%n_source].
-     integer, pointer :: n_orig_part(:)
+     !> to form this one [length aero_data_n_source()].
+     integer, allocatable :: n_orig_part(:)
      !> Weighting function group number (see \c aero_weight_array_t).
      integer :: weight_group
      !> Weighting function class number (see \c aero_weight_array_t).
@@ -62,99 +62,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocates memory in an aero_particle_t.
-  subroutine aero_particle_allocate(aero_particle)
-
-    !> Particle to init.
-    type(aero_particle_t), intent(out) :: aero_particle
-
-    allocate(aero_particle%vol(0))
-    allocate(aero_particle%n_orig_part(0))
-    call aero_particle_zero(aero_particle)
-
-  end subroutine aero_particle_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Allocates an aero_particle_t of the given size.
-  subroutine aero_particle_allocate_size(aero_particle, n_spec, n_source)
-
-    !> Particle to init.
-    type(aero_particle_t), intent(out) :: aero_particle
-    !> Number of species.
-    integer, intent(in) :: n_spec
-    !> Number of sources.
-    integer, intent(in) :: n_source
-
-    allocate(aero_particle%vol(n_spec))
-    allocate(aero_particle%n_orig_part(n_source))
-    call aero_particle_zero(aero_particle)
-
-  end subroutine aero_particle_allocate_size
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Deallocates memory associated with an aero_particle_t.
-  subroutine aero_particle_deallocate(aero_particle)
-
-    !> Particle to free.
-    type(aero_particle_t), intent(inout) :: aero_particle
-
-    deallocate(aero_particle%vol)
-    deallocate(aero_particle%n_orig_part)
-
-  end subroutine aero_particle_deallocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Copies a particle.
-  subroutine aero_particle_copy(aero_particle_from, aero_particle_to)
-
-    !> Reference particle.
-    type(aero_particle_t), intent(in) :: aero_particle_from
-    !> Destination particle (already alloced on entry).
-    type(aero_particle_t), intent(inout) :: aero_particle_to
-
-    integer :: n_spec, n_source
-
-    n_spec = size(aero_particle_from%vol)
-    n_source = size(aero_particle_from%n_orig_part)
-    if ((n_spec /= size(aero_particle_to%vol)) &
-         .or. (n_source /= size(aero_particle_to%n_orig_part))) then
-       call aero_particle_deallocate(aero_particle_to)
-       call aero_particle_allocate_size(aero_particle_to, n_spec, n_source)
-    end if
-    call assert(651178226, size(aero_particle_from%vol) &
-         == size(aero_particle_to%vol))
-    call assert(105980551, size(aero_particle_from%n_orig_part) &
-         == size(aero_particle_to%n_orig_part))
-    aero_particle_to%vol = aero_particle_from%vol
-    aero_particle_to%n_orig_part = aero_particle_from%n_orig_part
-    aero_particle_to%weight_group = aero_particle_from%weight_group
-    aero_particle_to%weight_class = aero_particle_from%weight_class
-    aero_particle_to%absorb_cross_sect = aero_particle_from%absorb_cross_sect
-    aero_particle_to%scatter_cross_sect = &
-         aero_particle_from%scatter_cross_sect
-    aero_particle_to%asymmetry = aero_particle_from%asymmetry
-    aero_particle_to%refract_shell = aero_particle_from%refract_shell
-    aero_particle_to%refract_core = aero_particle_from%refract_core
-    aero_particle_to%core_vol = aero_particle_from%core_vol
-    aero_particle_to%water_hyst_leg = aero_particle_from%water_hyst_leg
-    aero_particle_to%id = aero_particle_from%id
-    aero_particle_to%least_create_time = aero_particle_from%least_create_time
-    aero_particle_to%greatest_create_time = &
-         aero_particle_from%greatest_create_time
-
-  end subroutine aero_particle_copy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Shift data from one aero_particle_t to another and free the first
   !> one.
-  !!
-  !! This is roughly equivalent to aero_particle_copy(from, to)
-  !! followed by aero_particle_deallocate(from), but faster and with
-  !! different memory allocation requirements.
   subroutine aero_particle_shift(aero_particle_from, aero_particle_to)
 
     !> Reference particle (will be deallocated on return).
@@ -162,10 +71,9 @@ contains
     !> Destination particle (not allocated on entry).
     type(aero_particle_t), intent(inout) :: aero_particle_to
 
-    aero_particle_to%vol => aero_particle_from%vol
-    nullify(aero_particle_from%vol)
-    aero_particle_to%n_orig_part => aero_particle_from%n_orig_part
-    nullify(aero_particle_from%n_orig_part)
+    call move_alloc(aero_particle_from%vol, aero_particle_to%vol)
+    call move_alloc(aero_particle_from%n_orig_part, &
+         aero_particle_to%n_orig_part)
     aero_particle_to%weight_group = aero_particle_from%weight_group
     aero_particle_to%weight_class = aero_particle_from%weight_class
     aero_particle_to%absorb_cross_sect = aero_particle_from%absorb_cross_sect
@@ -186,12 +94,17 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Resets an aero_particle to be zero.
-  subroutine aero_particle_zero(aero_particle)
+  subroutine aero_particle_zero(aero_particle, aero_data)
 
     !> Particle to zero.
     type(aero_particle_t), intent(inout) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
 
+    call ensure_real_array_size(aero_particle%vol, aero_data_n_spec(aero_data))
     aero_particle%vol = 0d0
+    call ensure_integer_array_size(aero_particle%n_orig_part, &
+         aero_data_n_source(aero_data))
     aero_particle%n_orig_part = 0
     aero_particle%weight_group = 0
     aero_particle%weight_class = 0
@@ -244,7 +157,7 @@ contains
     !> Particle.
     type(aero_particle_t), intent(inout) :: aero_particle
     !> New volumes.
-    real(kind=dp), intent(in) :: vols(size(aero_particle%vol))
+    real(kind=dp), intent(in) :: vols(:)
 
     aero_particle%vol = vols
 
@@ -260,6 +173,7 @@ contains
     !> Source number for the particle.
     integer, intent(in) :: i_source
 
+    aero_particle%n_orig_part = 0
     aero_particle%n_orig_part(i_source) = 1
 
   end subroutine aero_particle_set_source
@@ -323,7 +237,7 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Return value.
-    real(kind=dp) :: aero_particle_species_masses(aero_data%n_spec)
+    real(kind=dp) :: aero_particle_species_masses(aero_data_n_spec(aero_data))
 
     aero_particle_species_masses = aero_particle%vol * aero_data%density
 
@@ -371,7 +285,7 @@ contains
     integer :: i_spec
 
     aero_particle_dry_volume = 0d0
-    do i_spec = 1,aero_data%n_spec
+    do i_spec = 1,aero_data_n_spec(aero_data)
        if (i_spec /= aero_data%i_water) then
           aero_particle_dry_volume = aero_particle_dry_volume &
                + aero_particle%vol(i_spec)
@@ -486,7 +400,7 @@ contains
     !> Quantity to average.
     real(kind=dp), intent(in) :: quantity(:)
 
-    real(kind=dp) :: ones(aero_data%n_spec)
+    real(kind=dp) :: ones(aero_data_n_spec(aero_data))
 
     ones = 1d0
     aero_particle_average_solute_quantity = &
@@ -513,7 +427,7 @@ contains
     integer i
 
     total = 0d0
-    do i = 1,aero_data%n_spec
+    do i = 1,aero_data_n_spec(aero_data)
        if (i /= aero_data%i_water) then
           total = total + aero_particle%vol(i) * quantity(i)
        end if
@@ -682,7 +596,7 @@ contains
     !> Aerosol particle.
     type(aero_particle_t), intent(in) :: aero_particle
 
-    real(kind=dp) :: ones(aero_data%n_spec)
+    real(kind=dp) :: ones(aero_data_n_spec(aero_data))
 
     ones = 1d0
     aero_particle_solute_volume &
@@ -717,12 +631,12 @@ contains
     !> Aerosol particle.
     type(aero_particle_t), intent(in) :: aero_particle
 
-    real(kind=dp) :: kappa(aero_data%n_spec), M_w, rho_w, M_a, rho_a
+    real(kind=dp) :: kappa(aero_data_n_spec(aero_data)), M_w, rho_w, M_a, rho_a
     integer :: i_spec
 
     M_w = aero_particle_water_molec_weight(aero_data)
     rho_w = aero_particle_water_density(aero_data)
-    do i_spec = 1,aero_data%n_spec
+    do i_spec = 1,aero_data_n_spec(aero_data)
        if (i_spec == aero_data%i_water) then
           kappa(i_spec) = 0d0
        elseif (aero_data%num_ions(i_spec) > 0) then
@@ -897,13 +811,9 @@ contains
     type(aero_particle_t), intent(inout) :: aero_particle_new
 
     call assert(203741686, size(aero_particle_1%vol) &
-         == size(aero_particle_new%vol))
-    call assert(586181003, size(aero_particle_2%vol) &
-         == size(aero_particle_new%vol))
+         == size(aero_particle_2%vol))
     call assert(483452167, size(aero_particle_1%n_orig_part) &
-         == size(aero_particle_new%n_orig_part))
-    call assert(126911035, size(aero_particle_2%n_orig_part) &
-         == size(aero_particle_new%n_orig_part))
+         == size(aero_particle_2%n_orig_part))
     aero_particle_new%vol = aero_particle_1%vol + aero_particle_2%vol
     aero_particle_new%n_orig_part = aero_particle_1%n_orig_part &
          + aero_particle_2%n_orig_part
@@ -1028,6 +938,42 @@ contains
 #endif
 
   end subroutine pmc_mpi_unpack_aero_particle
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Check that the particle data is consistent.
+  subroutine aero_particle_check(aero_particle, aero_data, &
+       continue_on_error)
+
+    !> Aerosol particle to check.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Whether to continue despite error.
+    logical, intent(in) :: continue_on_error
+
+    if (allocated(aero_particle%vol)) then
+       if (size(aero_particle%vol) /= aero_data_n_spec(aero_data)) then
+          write(0, *) 'ERROR aero_particle A:'
+          write(0, *) 'size(aero_particle%vol)', size(aero_particle%vol)
+          write(0, *) 'aero_data_n_spec(aero_data)', &
+               aero_data_n_spec(aero_data)
+          call assert(185878626, continue_on_error)
+       end if
+    end if
+    if (allocated(aero_particle%n_orig_part)) then
+       if (size(aero_particle%n_orig_part) &
+            /= aero_data_n_source(aero_data)) then
+          write(0, *) 'ERROR aero_particle A:'
+          write(0, *) 'size(aero_particle%n_orig_part)', &
+               size(aero_particle%n_orig_part)
+          write(0, *) 'aero_data_n_source(aero_data)', &
+               aero_data_n_source(aero_data)
+          call assert(625490639, continue_on_error)
+       end if
+    end if
+
+  end subroutine aero_particle_check
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

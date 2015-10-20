@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2011 Matthew West
+! Copyright (C) 2007-2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -170,9 +170,8 @@ contains
     ! local variables
     real(kind=dp) :: time_UTC    ! 24-hr UTC clock time (hr).
     real(kind=dp) :: tmar21_sec  ! Time at noon, march 21, UTC (s).
-    real(kind=dp) :: conv_fac(aero_data%n_spec), dum_var
+    real(kind=dp) :: conv_fac(aero_data_n_spec(aero_data)), dum_var
     integer :: i_part, i_spec, i_spec_mosaic
-    type(aero_particle_t), pointer :: particle
     real(kind=dp) :: num_conc
 
     ! MOSAIC function interfaces
@@ -209,7 +208,7 @@ contains
     dt_aeroptic_min = 0d0
 
     ! compute aerosol conversion factors
-    do i_spec = 1,aero_data%n_spec
+    do i_spec = 1,aero_data_n_spec(aero_data)
        ! converts m^3(species) to nmol(species)/m^3(air)
        conv_fac(i_spec) = 1.D9 * aero_data%density(i_spec) &
             / aero_data%molec_weight(i_spec)
@@ -233,28 +232,30 @@ contains
     aer = 0d0    ! initialize to zero
     ! work backwards for consistency with mosaic_to_partmc(), which
     ! has specific ordering requirements
-    do i_part = aero_state%apa%n_part,1,-1
-       particle => aero_state%apa%particle(i_part)
-       num_conc = aero_weight_array_num_conc(aero_state%awa, particle)
-       do i_spec = 1,aero_data%n_spec
+    do i_part = aero_state_n_part(aero_state),1,-1
+       num_conc = aero_weight_array_num_conc(aero_state%awa, &
+            aero_state%apa%particle(i_part))
+       do i_spec = 1,aero_data_n_spec(aero_data)
           i_spec_mosaic = aero_data%mosaic_index(i_spec)
           if (i_spec_mosaic > 0) then
              ! convert m^3(species) to nmol(species)/m^3(air)
              aer(i_spec_mosaic, 3, i_part) &   ! nmol/m^3(air)
-                  = particle%vol(i_spec) * conv_fac(i_spec) * num_conc
+                  = aero_state%apa%particle(i_part)%vol(i_spec) &
+                  * conv_fac(i_spec) * num_conc
           end if
        end do
        ! handle water specially
        ! convert m^3(water) to kg(water)/m^3(air)
-       water_a(i_part) = particle%vol(aero_data%i_water) &
+       water_a(i_part) = &
+            aero_state%apa%particle(i_part)%vol(aero_data%i_water) &
             * aero_data%density(aero_data%i_water) * num_conc
        num_a(i_part) = 1d-6 * num_conc ! num conc (#/cc(air))
-       jhyst_leg(i_part) = particle%water_hyst_leg
+       jhyst_leg(i_part) = aero_state%apa%particle(i_part)%water_hyst_leg
     end do
 
     ! gas chemistry: map PartMC -> MOSAIC
     cnn = 0d0
-    do i_spec = 1,gas_data%n_spec
+    do i_spec = 1,gas_data_n_spec(gas_data)
        i_spec_mosaic = gas_data%mosaic_index(i_spec)
        if (i_spec_mosaic > 0) then
           ! convert ppbv to molec/cc
@@ -293,13 +294,12 @@ contains
 
 #ifdef PMC_USE_MOSAIC
     ! local variables
-    real(kind=dp) :: conv_fac(aero_data%n_spec), dum_var, num_conc
+    real(kind=dp) :: conv_fac(aero_data_n_spec(aero_data)), dum_var, num_conc
     integer :: i_part, i_spec, i_spec_mosaic
-    type(aero_particle_t), pointer :: particle
-    real(kind=dp) :: reweight_num_conc(aero_state%apa%n_part)
+    real(kind=dp) :: reweight_num_conc(aero_state_n_part(aero_state))
 
     ! compute aerosol conversion factors
-    do i_spec = 1,aero_data%n_spec
+    do i_spec = 1,aero_data_n_spec(aero_data)
        ! converts m^3(species) to nmol(species)/m^3(air)
        conv_fac(i_spec) = 1d9 * aero_data%density(i_spec) &
             / aero_data%molec_weight(i_spec)
@@ -321,29 +321,28 @@ contains
 
     ! aerosol data: map MOSAIC -> PartMC
     call aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
-    do i_part = 1,aero_state%apa%n_part,1
-       particle => aero_state%apa%particle(i_part)
-       num_conc = aero_weight_array_num_conc(aero_state%awa, particle)
-       do i_spec = 1,aero_data%n_spec
+    do i_part = 1,aero_state_n_part(aero_state),1
+       num_conc = aero_weight_array_num_conc(aero_state%awa, &
+            aero_state%apa%particle(i_part))
+       do i_spec = 1,aero_data_n_spec(aero_data)
           i_spec_mosaic = aero_data%mosaic_index(i_spec)
           if (i_spec_mosaic > 0) then
-             particle%vol(i_spec) = &
+             aero_state%apa%particle(i_part)%vol(i_spec) = &
                   ! convert nmol(species)/m^3(air) to m^3(species)
-                  aer(i_spec_mosaic, 3, i_part) &
-                  / (conv_fac(i_spec) * num_conc)
+                  aer(i_spec_mosaic, 3, i_part) / (conv_fac(i_spec) * num_conc)
           end if
        end do
-       particle%water_hyst_leg = jhyst_leg(i_part)
+       aero_state%apa%particle(i_part)%water_hyst_leg = jhyst_leg(i_part)
        ! handle water specially
        ! convert kg(water)/m^3(air) to m^3(water)
-       particle%vol(aero_data%i_water) = water_a(i_part) &
-            / aero_data%density(aero_data%i_water) / num_conc
+       aero_state%apa%particle(i_part)%vol(aero_data%i_water) = &
+            water_a(i_part) / aero_data%density(aero_data%i_water) / num_conc
     end do
     ! adjust particles to account for weight changes
     call aero_state_reweight(aero_state, reweight_num_conc)
 
     ! gas chemistry: map MOSAIC -> PartMC
-    do i_spec = 1,gas_data%n_spec
+    do i_spec = 1,gas_data_n_spec(gas_data)
        i_spec_mosaic = gas_data%mosaic_index(i_spec)
        if (i_spec_mosaic > 0) then
           ! convert molec/cc to ppbv
@@ -454,7 +453,6 @@ contains
     end interface
 
     integer :: i_part
-    type(aero_particle_t), pointer :: particle
 
     ! map PartMC -> MOSAIC
 !    call mosaic_from_partmc(env_state, aero_data, aero_state, &
@@ -465,17 +463,19 @@ contains
     ! map MOSAIC -> PartMC
     ! work backwards for consistency with mosaic_to_partmc(), which
     ! has specific ordering requirements
-    do i_part = aero_state%apa%n_part,1,-1
-       particle => aero_state%apa%particle(i_part)
-       particle%absorb_cross_sect = (ext_cross(i_part) &
+    do i_part = aero_state_n_part(aero_state),1,-1
+       aero_state%apa%particle(i_part)%absorb_cross_sect = (ext_cross(i_part) &
             - scat_cross(i_part)) / 1d4                       ! (m^2)
-       particle%scatter_cross_sect = scat_cross(i_part) / 1d4 ! (m^2)
-       particle%asymmetry = asym_particle(i_part)             ! (1)
-       particle%refract_shell = cmplx(ri_shell_a(i_part), kind=dc) ! (1)
-       particle%refract_core = cmplx(ri_core_a(i_part), kind=dc)   ! (1)
+       aero_state%apa%particle(i_part)%scatter_cross_sect = &
+            scat_cross(i_part) / 1d4 ! (m^2)
+       aero_state%apa%particle(i_part)%asymmetry = asym_particle(i_part) ! (1)
+       aero_state%apa%particle(i_part)%refract_shell = &
+            cmplx(ri_shell_a(i_part), kind=dc) ! (1)
+       aero_state%apa%particle(i_part)%refract_core =&
+            cmplx(ri_core_a(i_part), kind=dc) ! (1)
        ! FIXME: how do we get core_vol?
        !particle%core_vol = diam2vol(dp_core_a(i_part))        ! (m^3)
-       particle%core_vol = 0d0
+       aero_state%apa%particle(i_part)%core_vol = 0d0
     end do
 #endif
 

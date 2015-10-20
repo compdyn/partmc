@@ -65,7 +65,6 @@ program test_bidisperse_ode
   v_big_init = rad2vol(r_big_init)
   num_conc = num_conc_small * (n_small_init + 1d0) / n_small_init
   comp_vol = (n_small_init + 1d0) / num_conc
-  call bin_grid_allocate(bin_grid)
   call bin_grid_make(bin_grid, BIN_GRID_TYPE_LOG, n_bin, rad2vol(bin_r_min), &
        rad2vol(bin_r_max))
 
@@ -100,7 +99,6 @@ program test_bidisperse_ode
   end do
 
   close(out_unit)
-  call bin_grid_deallocate(bin_grid)
   
 contains
   
@@ -109,8 +107,6 @@ contains
   subroutine bidisperse_f(n_small, v_small, v_big_init, &
        n_small_init, env_state, comp_vol, n_small_dot)
     
-    use pmc_env_state
-
     !> Current number of small particles.
     real(kind=dp), intent(in) :: n_small
     !> Volume of one small particle.
@@ -134,16 +130,10 @@ contains
     v_big = v_big_init + (n_small_init - n_small) * v_small
     n_spec = 1
     n_source = 1
-    call aero_data_allocate_size(aero_data, n_spec, n_source)
-    call aero_particle_allocate_size(aero_particle_1, n_spec, n_source)
-    call aero_particle_allocate_size(aero_particle_2, n_spec, n_source)
-    aero_particle_1%vol(1) = v_small
-    aero_particle_2%vol(1) = v_big
+    aero_particle_1%vol = [v_small]
+    aero_particle_2%vol = [v_big]
     call kernel_sedi(aero_particle_1, aero_particle_2, aero_data, &
          env_state, k)
-    call aero_particle_deallocate(aero_particle_1)
-    call aero_particle_deallocate(aero_particle_2)
-    call aero_data_deallocate(aero_data)
     n_small_dot = - k / comp_vol * n_small
     
   end subroutine bidisperse_f
@@ -153,8 +143,6 @@ contains
   subroutine bidisperse_step(v_small, v_big_init, n_small_init, &
        env_state, comp_vol, del_t, n_small)
     
-    use pmc_env_state
-
     !> Volume of one small particle.
     real(kind=dp), intent(in) :: v_small
     !> Initial volume of the big particle.

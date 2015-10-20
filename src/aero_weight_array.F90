@@ -32,63 +32,54 @@ module pmc_aero_weight_array
   !! only important when doubling or halving occurs, which takes place
   !! for a specific group and class.
   type aero_weight_array_t
-     !> Aero weight array, <tt>n_group x n_class</tt>.
-     type(aero_weight_t), pointer :: weight(:, :)
+     !> Aero weight array, <tt>aero_weight_array_n_group(aero_weight_array) x
+     !> aero_weight_array_n_class(aero_weight_array)</tt>.
+     type(aero_weight_t), allocatable :: weight(:, :)
   end type aero_weight_array_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocates an aero_weight_array.
-  subroutine aero_weight_array_allocate(aero_weight_array)
-
-    !> Aerosol weight array.
-    type(aero_weight_array_t), intent(out) :: aero_weight_array
-
-    allocate(aero_weight_array%weight(0, 0))
-
-  end subroutine aero_weight_array_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Allocates an \c aero_weight_array to the given size.
-  subroutine aero_weight_array_allocate_size(aero_weight_array, n_group, &
+  !> Sets the number of weight groups and classes.
+  subroutine aero_weight_array_set_sizes(aero_weight_array, n_group, &
        n_class)
 
     !> Aerosol weight array.
-    type(aero_weight_array_t), intent(out) :: aero_weight_array
+    type(aero_weight_array_t), intent(inout) :: aero_weight_array
     !> Number of weight groups.
     integer,intent(in) :: n_group
     !> Number of weight classes.
     integer,intent(in) :: n_class
 
+    if (allocated(aero_weight_array%weight)) then
+       deallocate(aero_weight_array%weight)
+    end if
     allocate(aero_weight_array%weight(n_group, n_class))
-    call aero_weight_allocate(aero_weight_array%weight)
 
-  end subroutine aero_weight_array_allocate_size
+  end subroutine aero_weight_array_set_sizes
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates an \c aero_weight_array as flat weightings.
-  subroutine aero_weight_array_allocate_flat(aero_weight_array, n_class)
+  subroutine aero_weight_array_set_flat(aero_weight_array, n_class)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(out) :: aero_weight_array
     !> Number of weight classes.
     integer,intent(in) :: n_class
 
-    call aero_weight_array_allocate_size(aero_weight_array, 1, n_class)
+    call aero_weight_array_set_sizes(aero_weight_array, 1, n_class)
     aero_weight_array%weight%type = AERO_WEIGHT_TYPE_NONE
     aero_weight_array%weight%magnitude = 1d0
     aero_weight_array%weight%exponent = 0d0
 
-  end subroutine aero_weight_array_allocate_flat
+  end subroutine aero_weight_array_set_flat
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates an \c aero_weight_array as power weightings.
-  subroutine aero_weight_array_allocate_power(aero_weight_array, n_class, &
+  subroutine aero_weight_array_set_power(aero_weight_array, n_class, &
        exponent)
 
     !> Aerosol weight array.
@@ -98,24 +89,24 @@ contains
     !> Exponent for power-law.
     real(kind=dp), intent(in) :: exponent
 
-    call aero_weight_array_allocate_size(aero_weight_array, 1, n_class)
+    call aero_weight_array_set_sizes(aero_weight_array, 1, n_class)
     aero_weight_array%weight%type = AERO_WEIGHT_TYPE_POWER
     aero_weight_array%weight%magnitude = 1d0
     aero_weight_array%weight%exponent = exponent
 
-  end subroutine aero_weight_array_allocate_power
+  end subroutine aero_weight_array_set_power
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Allocates an \c aero_weight_array as joint flat/power-3 weightings..
-  subroutine aero_weight_array_allocate_nummass(aero_weight_array, n_class)
+  subroutine aero_weight_array_set_nummass(aero_weight_array, n_class)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(out) :: aero_weight_array
     !> Number of weight classes.
     integer,intent(in) :: n_class
 
-    call aero_weight_array_allocate_size(aero_weight_array, 2, n_class)
+    call aero_weight_array_set_sizes(aero_weight_array, 2, n_class)
     aero_weight_array%weight(1, :)%type = AERO_WEIGHT_TYPE_NONE
     aero_weight_array%weight(1, :)%magnitude = 1d0
     aero_weight_array%weight(1, :)%exponent = 0d0
@@ -123,32 +114,7 @@ contains
     aero_weight_array%weight(2, :)%magnitude = 1d0
     aero_weight_array%weight(2, :)%exponent = -3d0
 
-  end subroutine aero_weight_array_allocate_nummass
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Free all storage.
-  subroutine aero_weight_array_deallocate(aero_weight_array)
-
-    !> Structure to deallocate.
-    type(aero_weight_array_t), intent(inout) :: aero_weight_array
-
-    call aero_weight_deallocate(aero_weight_array%weight)
-    deallocate(aero_weight_array%weight)
-
-  end subroutine aero_weight_array_deallocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Zeros the contents of the \c aero_weight_array.
-  subroutine aero_weight_array_zero(aero_weight_array)
-
-    !> Aerosol weight array.
-    type(aero_weight_array_t), intent(inout) :: aero_weight_array
-
-    call aero_weight_zero(aero_weight_array%weight)
-
-  end subroutine aero_weight_array_zero
+  end subroutine aero_weight_array_set_nummass
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -161,29 +127,6 @@ contains
     call aero_weight_normalize(aero_weight_array%weight)
 
   end subroutine aero_weight_array_normalize
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Copy an \c aero_weight_array.
-  subroutine aero_weight_array_copy(aero_weight_array_from, &
-       aero_weight_array_to)
-
-    !> Origin aerosol weight array.
-    type(aero_weight_array_t), intent(in) :: aero_weight_array_from
-    !> Destination aerosol weight array.
-    type(aero_weight_array_t), intent(inout) :: aero_weight_array_to
-
-    if (any(shape(aero_weight_array_to%weight) &
-         /= shape(aero_weight_array_from%weight))) then
-       deallocate(aero_weight_array_to%weight)
-       call aero_weight_array_allocate_size(aero_weight_array_to, &
-            size(aero_weight_array_from%weight, 1), &
-            size(aero_weight_array_from%weight, 2))
-    end if
-    call aero_weight_copy(aero_weight_array_from%weight, &
-         aero_weight_array_to%weight)
-
-  end subroutine aero_weight_array_copy
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -473,19 +416,24 @@ contains
     !> Value to pack.
     type(aero_weight_array_t), intent(in) :: val
 
-    integer :: i_group, i_class
+    integer :: i_group, i_class, total_size
+    logical :: is_allocated
 
-    pmc_mpi_pack_size_aero_weight_array = &
-         pmc_mpi_pack_size_integer(size(val%weight, 1)) &
-         + pmc_mpi_pack_size_integer(size(val%weight, 2))
-
-    do i_group = 1,size(val%weight, 1)
-       do i_class = 1,size(val%weight, 2)
-          pmc_mpi_pack_size_aero_weight_array = &
-               pmc_mpi_pack_size_aero_weight_array &
-               + pmc_mpi_pack_size_aero_weight(val%weight(i_group, i_class))
+    total_size = 0
+    is_allocated = allocated(val%weight)
+    total_size = total_size + pmc_mpi_pack_size_logical(is_allocated)
+    if (is_allocated) then
+       total_size = total_size &
+            + pmc_mpi_pack_size_integer(size(val%weight, 1)) &
+            + pmc_mpi_pack_size_integer(size(val%weight, 2))
+       do i_group = 1,size(val%weight, 1)
+          do i_class = 1,size(val%weight, 2)
+             total_size = total_size &
+                  + pmc_mpi_pack_size_aero_weight(val%weight(i_group, i_class))
+          end do
        end do
-    end do
+    end if
+    pmc_mpi_pack_size_aero_weight_array = total_size
 
   end function pmc_mpi_pack_size_aero_weight_array
 
@@ -503,16 +451,21 @@ contains
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, i_group, i_class
+    logical :: is_allocated
 
     prev_position = position
-    call pmc_mpi_pack_integer(buffer, position, size(val%weight, 1))
-    call pmc_mpi_pack_integer(buffer, position, size(val%weight, 2))
-    do i_group = 1,size(val%weight, 1)
-       do i_class = 1,size(val%weight, 2)
-          call pmc_mpi_pack_aero_weight(buffer, position, &
-               val%weight(i_group, i_class))
+    is_allocated = allocated(val%weight)
+    call pmc_mpi_pack_logical(buffer, position, is_allocated)
+    if (is_allocated) then
+       call pmc_mpi_pack_integer(buffer, position, size(val%weight, 1))
+       call pmc_mpi_pack_integer(buffer, position, size(val%weight, 2))
+       do i_group = 1,size(val%weight, 1)
+          do i_class = 1,size(val%weight, 2)
+             call pmc_mpi_pack_aero_weight(buffer, position, &
+                  val%weight(i_group, i_class))
+          end do
        end do
-    end do
+    end if
     call assert(84068036, &
          position - prev_position <= pmc_mpi_pack_size_aero_weight_array(val))
 #endif
@@ -533,18 +486,25 @@ contains
 
 #ifdef PMC_USE_MPI
     integer :: prev_position, n_group, n_class, i_group, i_class
+    logical :: is_allocated
 
-    call aero_weight_array_deallocate(val)
     prev_position = position
-    call pmc_mpi_unpack_integer(buffer, position, n_group)
-    call pmc_mpi_unpack_integer(buffer, position, n_class)
-    call aero_weight_array_allocate_size(val, n_group, n_class)
-    do i_group = 1,size(val%weight, 1)
-       do i_class = 1,size(val%weight, 2)
-          call pmc_mpi_unpack_aero_weight(buffer, position, &
-               val%weight(i_group, i_class))
+    call pmc_mpi_unpack_logical(buffer, position, is_allocated)
+    if (is_allocated) then
+       call pmc_mpi_unpack_integer(buffer, position, n_group)
+       call pmc_mpi_unpack_integer(buffer, position, n_class)
+       call aero_weight_array_set_sizes(val, n_group, n_class)
+       do i_group = 1,size(val%weight, 1)
+          do i_class = 1,size(val%weight, 2)
+             call pmc_mpi_unpack_aero_weight(buffer, position, &
+                  val%weight(i_group, i_class))
+          end do
        end do
-    end do
+    else
+       if (allocated(val%weight)) then
+          deallocate(val%weight)
+       end if
+    end if
     call assert(321022868, &
          position - prev_position <= pmc_mpi_pack_size_aero_weight_array(val))
 #endif
@@ -726,10 +686,6 @@ contains
     call assert(719221386, n_group < 1000)
     call assert(520105999, n_class < 1000)
 
-    allocate(type(n_group, n_class))
-    allocate(magnitude(n_group, n_class))
-    allocate(exponent(n_group, n_class))
-
     call pmc_nc_read_integer_2d(ncid, type, "weight_type")
     call pmc_nc_read_real_2d(ncid, magnitude, "weight_magnitude")
     call pmc_nc_read_real_2d(ncid, exponent, "weight_exponent")
@@ -737,16 +693,11 @@ contains
     call assert(309191498, size(magnitude) == size(type))
     call assert(588649520, size(magnitude) == size(exponent))
 
-    call aero_weight_array_deallocate(aero_weight_array)
-    call aero_weight_array_allocate_size(aero_weight_array, n_group, n_class)
+    call aero_weight_array_set_sizes(aero_weight_array, n_group, n_class)
 
     aero_weight_array%weight%type = type
     aero_weight_array%weight%magnitude = magnitude
     aero_weight_array%weight%exponent = exponent
-
-    deallocate(type)
-    deallocate(magnitude)
-    deallocate(exponent)
 
   end subroutine aero_weight_array_input_netcdf
 

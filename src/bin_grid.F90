@@ -33,8 +33,6 @@ module pmc_bin_grid
   type bin_grid_t
      !> Type of grid spacing (BIN_GRID_TYPE_LOG, etc).
      integer :: type
-     !> Number of bins.
-     integer :: n_bin
      !> Bin centers.
      real(kind=dp), allocatable :: centers(:)
      !> Bin edges.
@@ -47,71 +45,20 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocates a bin_grid.
-  subroutine bin_grid_allocate(bin_grid)
+  !> Return the number of bins in the grid, or -1 if the bin grid is
+  !> not allocated.
+  elemental integer function bin_grid_size(bin_grid)
 
-    !> Bin grid.
-    type(bin_grid_t), intent(out) :: bin_grid
+    !> Bin grid structure.
+    type(bin_grid_t), intent(in) :: bin_grid
 
-    bin_grid%type = BIN_GRID_TYPE_INVALID
-    bin_grid%n_bin = 0
-    allocate(bin_grid%centers(0))
-    allocate(bin_grid%edges(0))
-    allocate(bin_grid%widths(0))
+    if (allocated(bin_grid%centers)) then
+       bin_grid_size = size(bin_grid%centers)
+    else
+       bin_grid_size = -1
+    end if
 
-  end subroutine bin_grid_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Allocates a bin_grid.
-  subroutine bin_grid_allocate_size(bin_grid, n_bin)
-
-    !> Bin grid.
-    type(bin_grid_t), intent(out) :: bin_grid
-    !> Number of bins.
-    integer, intent(in) :: n_bin
-
-    bin_grid%type = BIN_GRID_TYPE_INVALID
-    bin_grid%n_bin = n_bin
-    allocate(bin_grid%centers(n_bin))
-    allocate(bin_grid%edges(n_bin + 1))
-    allocate(bin_grid%widths(n_bin))
-
-  end subroutine bin_grid_allocate_size
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Frees all memory.
-  subroutine bin_grid_deallocate(bin_grid)
-
-    !> Bin_grid to free.
-    type(bin_grid_t), intent(inout) :: bin_grid
-
-    deallocate(bin_grid%centers)
-    deallocate(bin_grid%edges)
-    deallocate(bin_grid%widths)
-
-  end subroutine bin_grid_deallocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Copies a bin grid.
-  subroutine bin_grid_copy(bin_grid_from, bin_grid_to)
-
-    !> Bin_grid to copy from.
-    type(bin_grid_t), intent(in) :: bin_grid_from
-    !> Bin_grid to copy to.
-    type(bin_grid_t), intent(inout) :: bin_grid_to
-
-    call bin_grid_deallocate(bin_grid_to)
-    call bin_grid_allocate_size(bin_grid_to, bin_grid_from%n_bin)
-    bin_grid_to%type = bin_grid_from%type
-    bin_grid_to%n_bin = bin_grid_from%n_bin
-    bin_grid_to%centers = bin_grid_from%centers
-    bin_grid_to%edges = bin_grid_from%edges
-    bin_grid_to%widths = bin_grid_from%widths
-
-  end subroutine bin_grid_copy
+  end function bin_grid_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -147,6 +94,7 @@ contains
     real(kind=dp), intent(in) :: max
 
     real(kind=dp) :: c1, c2
+    integer :: i
 
     call assert_msg(538534122, n_bin >= 0, &
          "bin_grid requires a non-negative n_bin, not: " &
@@ -162,23 +110,22 @@ contains
             // trim(real_to_string(min)) // " and " &
             // trim(real_to_string(max)))
     end if
-    call bin_grid_deallocate(bin_grid)
-    call bin_grid_allocate_size(bin_grid, n_bin)
     bin_grid%type = type
     if (n_bin == 0) return
     if (type == BIN_GRID_TYPE_LOG) then
-       call logspace(min, max, bin_grid%edges)
+       bin_grid%edges = logspace(min, max, n_bin + 1)
        c1 = exp(interp_linear_disc(log(min), log(max), 2 * n_bin + 1, 2))
        c2 = exp(interp_linear_disc(log(min), log(max), 2 * n_bin + 1, &
             2 * n_bin))
-       call logspace(c1, c2, bin_grid%centers)
-       bin_grid%widths = (log(max) - log(min)) / real(n_bin, kind=dp)
+       bin_grid%centers = logspace(c1, c2, n_bin)
+       bin_grid%widths = [ ((log(max) - log(min)) / real(n_bin, kind=dp), &
+            i=1,n_bin) ]
     elseif (bin_grid%type == BIN_GRID_TYPE_LINEAR) then
-       call linspace(min, max, bin_grid%edges)
+       bin_grid%edges = linspace(min, max, n_bin + 1)
        c1 = interp_linear_disc(min, max, 2 * n_bin + 1, 2)
        c2 = interp_linear_disc(min, max, 2 * n_bin + 1, 2 * n_bin)
-       call linspace(c1, c2, bin_grid%centers)
-       bin_grid%widths = (max - min) / real(n_bin, kind=dp)
+       bin_grid%centers = linspace(c1, c2, n_bin)
+       bin_grid%widths = [ ((max - min) / real(n_bin, kind=dp), i=1,n_bin) ]
     else
        call die_msg(678302366, "unknown bin_grid type: " &
             // trim(integer_to_string(bin_grid%type)))
@@ -192,7 +139,7 @@ contains
   !!
   !! If a particle is below the smallest bin then its bin number is
   !! 0. If a particle is above the largest bin then its bin number is
-  !! <tt>n_bin + 1</tt>.
+  !! <tt>bin_grid_size(bin_grid) + 1</tt>.
   integer function bin_grid_find(bin_grid, val)
 
     !> Bin_grid.
@@ -200,15 +147,18 @@ contains
     !> Value to locate bin for.
     real(kind=dp), intent(in) :: val
 
-    call assert(448215689, bin_grid%n_bin >= 0)
-    bin_grid_find = 0
-    if (bin_grid%n_bin == 0) return
+    if (bin_grid_size(bin_grid) <= 0) then
+       bin_grid_find = -1
+       return
+    end if
     if (bin_grid%type == BIN_GRID_TYPE_LOG) then
        bin_grid_find = logspace_find(bin_grid%edges(1), &
-            bin_grid%edges(bin_grid%n_bin + 1), bin_grid%n_bin + 1, val)
+            bin_grid%edges(bin_grid_size(bin_grid) + 1), &
+            bin_grid_size(bin_grid) + 1, val)
     elseif (bin_grid%type == BIN_GRID_TYPE_LINEAR) then
        bin_grid_find = linspace_find(bin_grid%edges(1), &
-            bin_grid%edges(bin_grid%n_bin + 1), bin_grid%n_bin + 1, val)
+            bin_grid%edges(bin_grid_size(bin_grid) + 1), &
+            bin_grid_size(bin_grid) + 1, val)
     else
        call die_msg(348908641, "unknown bin_grid type: " &
             // trim(integer_to_string(bin_grid%type)))
@@ -230,14 +180,14 @@ contains
     real(kind=dp), intent(in) :: weight_data(size(x_data))
 
     !> Return histogram.
-    real(kind=dp) :: bin_grid_histogram_1d(x_bin_grid%n_bin)
+    real(kind=dp) :: bin_grid_histogram_1d(bin_grid_size(x_bin_grid))
 
     integer :: i_data, x_bin
 
     bin_grid_histogram_1d = 0d0
     do i_data = 1,size(x_data)
        x_bin = bin_grid_find(x_bin_grid, x_data(i_data))
-       if ((x_bin >= 1) .and. (x_bin <= x_bin_grid%n_bin)) then
+       if ((x_bin >= 1) .and. (x_bin <= bin_grid_size(x_bin_grid))) then
           bin_grid_histogram_1d(x_bin) = bin_grid_histogram_1d(x_bin) &
                + weight_data(i_data) / x_bin_grid%widths(x_bin)
        end if
@@ -264,7 +214,8 @@ contains
     real(kind=dp), intent(in) :: weight_data(size(x_data))
 
     !> Return histogram.
-    real(kind=dp) :: bin_grid_histogram_2d(x_bin_grid%n_bin, y_bin_grid%n_bin)
+    real(kind=dp) :: bin_grid_histogram_2d(bin_grid_size(x_bin_grid), &
+         bin_grid_size(y_bin_grid))
 
     integer :: i_data, x_bin, y_bin
 
@@ -272,8 +223,8 @@ contains
     do i_data = 1,size(x_data)
        x_bin = bin_grid_find(x_bin_grid, x_data(i_data))
        y_bin = bin_grid_find(y_bin_grid, y_data(i_data))
-       if ((x_bin >= 1) .and. (x_bin <= x_bin_grid%n_bin) &
-            .and. (y_bin >= 1) .and. (y_bin <= y_bin_grid%n_bin)) then
+       if ((x_bin >= 1) .and. (x_bin <= bin_grid_size(x_bin_grid)) &
+            .and. (y_bin >= 1) .and. (y_bin <= bin_grid_size(y_bin_grid))) then
           bin_grid_histogram_2d(x_bin, y_bin) &
                = bin_grid_histogram_2d(x_bin, y_bin) + weight_data(i_data) &
                / x_bin_grid%widths(x_bin) / y_bin_grid%widths(y_bin)
@@ -334,7 +285,6 @@ contains
 
     pmc_mpi_pack_size_bin_grid = &
          pmc_mpi_pack_size_integer(val%type) &
-         + pmc_mpi_pack_size_integer(val%n_bin) &
          + pmc_mpi_pack_size_real_array(val%centers) &
          + pmc_mpi_pack_size_real_array(val%edges) &
          + pmc_mpi_pack_size_real_array(val%widths)
@@ -358,7 +308,6 @@ contains
 
     prev_position = position
     call pmc_mpi_pack_integer(buffer, position, val%type)
-    call pmc_mpi_pack_integer(buffer, position, val%n_bin)
     call pmc_mpi_pack_real_array(buffer, position, val%centers)
     call pmc_mpi_pack_real_array(buffer, position, val%edges)
     call pmc_mpi_pack_real_array(buffer, position, val%widths)
@@ -385,10 +334,9 @@ contains
 
     prev_position = position
     call pmc_mpi_unpack_integer(buffer, position, val%type)
-    call pmc_mpi_unpack_integer(buffer, position, val%n_bin)
-    call pmc_mpi_unpack_real_array_alloc(buffer, position, val%centers)
-    call pmc_mpi_unpack_real_array_alloc(buffer, position, val%edges)
-    call pmc_mpi_unpack_real_array_alloc(buffer, position, val%widths)
+    call pmc_mpi_unpack_real_array(buffer, position, val%centers)
+    call pmc_mpi_unpack_real_array(buffer, position, val%edges)
+    call pmc_mpi_unpack_real_array(buffer, position, val%widths)
     call assert(741838730, &
          position - prev_position <= pmc_mpi_pack_size_bin_grid(val))
 #endif
@@ -409,18 +357,18 @@ contains
        return
     end if
 
-    if (.not. pmc_mpi_allequal_integer(val%n_bin)) then
+    if (.not. pmc_mpi_allequal_integer(bin_grid_size(val))) then
        pmc_mpi_allequal_bin_grid = .false.
        return
     end if
 
-    if (val%n_bin == 0) then
+    if (bin_grid_size(val) <= 0) then
        pmc_mpi_allequal_bin_grid = .true.
        return
     end if
 
     if (pmc_mpi_allequal_real(val%edges(1)) &
-         .and. pmc_mpi_allequal_real(val%edges(val%n_bin))) then
+         .and. pmc_mpi_allequal_real(val%edges(bin_grid_size(val)))) then
        pmc_mpi_allequal_bin_grid = .true.
     else
        pmc_mpi_allequal_bin_grid = .false.
@@ -454,8 +402,9 @@ contains
     real(kind=dp), intent(in), optional :: scale
 
     integer :: status, varid, dimid_edges, varid_edges, varid_widths, i
-    real(kind=dp) :: centers(bin_grid%n_bin), edges(bin_grid%n_bin + 1)
-    real(kind=dp) :: widths(bin_grid%n_bin)
+    real(kind=dp) :: centers(size(bin_grid%centers))
+    real(kind=dp) :: edges(size(bin_grid%edges))
+    real(kind=dp) :: widths(size(bin_grid%widths))
     character(len=(len_trim(dim_name)+10)) :: dim_name_edges
     character(len=255) :: use_long_name
 
@@ -479,9 +428,10 @@ contains
     end if
 
     call pmc_nc_check(nf90_redef(ncid))
-    call pmc_nc_check(nf90_def_dim(ncid, dim_name, bin_grid%n_bin, dimid))
-    call pmc_nc_check(nf90_def_dim(ncid, dim_name_edges, bin_grid%n_bin + 1, &
-         dimid_edges))
+    call pmc_nc_check(nf90_def_dim(ncid, dim_name, size(bin_grid%centers), &
+         dimid))
+    call pmc_nc_check(nf90_def_dim(ncid, dim_name_edges, &
+         size(bin_grid%edges), dimid_edges))
     call pmc_nc_check(nf90_enddef(ncid))
 
     centers = bin_grid%centers
@@ -590,7 +540,6 @@ contains
     call pmc_nc_check(nf90_inq_varid(ncid, dim_name, varid))
     call pmc_nc_check(nf90_get_att(ncid, varid, "description", description))
 
-    allocate(edges(n_bin + 1))
     call pmc_nc_read_real_1d(ncid, edges, dim_name // "_edges")
 
     if (starts_with(description, "logarithmically")) then
@@ -608,8 +557,6 @@ contains
     else
        call bin_grid_make(bin_grid, type, n_bin, edges(1), edges(n_bin + 1))
     end if
-
-    deallocate(edges)
 
   end subroutine bin_grid_input_netcdf
 

@@ -70,7 +70,7 @@ module pmc_aero_state
      !> Weighting functions.
      type(aero_weight_array_t) :: awa
      !> Ideal number of computational particles, per weight group and class.
-     real(kind=dp), pointer :: n_part_ideal(:, :)
+     real(kind=dp), allocatable :: n_part_ideal(:, :)
      !> Information on removed particles.
      type(aero_info_array_t) :: aero_info_array
   end type aero_state_t
@@ -79,70 +79,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocates aerosol arrays.
-  subroutine aero_state_allocate(aero_state)
+  !> Return the current number of particles.
+  elemental integer function aero_state_n_part(aero_state)
 
-    !> Aerosol to initialize.
-    type(aero_state_t), intent(out) :: aero_state
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
 
-    call aero_particle_array_allocate(aero_state%apa)
-    call aero_sorted_allocate(aero_state%aero_sorted)
-    aero_state%valid_sort = .false.
-    call aero_weight_array_allocate(aero_state%awa)
-    allocate(aero_state%n_part_ideal(0, 0))
-    call aero_info_array_allocate(aero_state%aero_info_array)
+    aero_state_n_part = aero_particle_array_n_part(aero_state%apa)
 
-  end subroutine aero_state_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Deallocates a previously allocated aerosol.
-  subroutine aero_state_deallocate(aero_state)
-
-    !> Aerosol to deallocate.
-    type(aero_state_t), intent(inout) :: aero_state
-
-    call aero_particle_array_deallocate(aero_state%apa)
-    call aero_sorted_deallocate(aero_state%aero_sorted)
-    aero_state%valid_sort = .false.
-    call aero_weight_array_deallocate(aero_state%awa)
-    deallocate(aero_state%n_part_ideal)
-    call aero_info_array_deallocate(aero_state%aero_info_array)
-
-  end subroutine aero_state_deallocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Resets an \c aero_state to an empty state.
-  subroutine aero_state_reset(aero_state)
-
-    !> Aerosol to reset.
-    type(aero_state_t), intent(inout) :: aero_state
-
-    call aero_state_deallocate(aero_state)
-    call aero_state_allocate(aero_state)
-
-  end subroutine aero_state_reset
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Copies aerosol to a destination that has already had
-  !> aero_state_allocate() called on it.
-  subroutine aero_state_copy(aero_state_from, aero_state_to)
-
-    !> Reference aerosol.
-    type(aero_state_t), intent(in) :: aero_state_from
-    !> Already allocated.
-    type(aero_state_t), intent(inout) :: aero_state_to
-
-    call aero_particle_array_copy(aero_state_from%apa, aero_state_to%apa)
-    aero_state_to%valid_sort = .false.
-    call aero_state_copy_weight(aero_state_from, aero_state_to)
-    call copy_real_2d(aero_state_from%n_part_ideal, aero_state_to%n_part_ideal)
-    call aero_info_array_copy(aero_state_from%aero_info_array, &
-         aero_state_to%aero_info_array)
-
-  end subroutine aero_state_copy
+  end function aero_state_n_part
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -154,7 +99,7 @@ contains
     !> Already allocated.
     type(aero_state_t), intent(inout) :: aero_state_to
 
-    call aero_weight_array_copy(aero_state_from%awa, aero_state_to%awa)
+    aero_state_to%awa = aero_state_from%awa
 
   end subroutine aero_state_copy_weight
 
@@ -175,28 +120,27 @@ contains
     real(kind=dp), intent(in), optional :: exponent
 
     aero_state%valid_sort = .false.
-    call aero_weight_array_deallocate(aero_state%awa)
     select case(weight_type)
     case(AERO_STATE_WEIGHT_NONE)
-       call aero_weight_array_allocate(aero_state%awa)
     case(AERO_STATE_WEIGHT_FLAT)
-       call aero_weight_array_allocate_flat(aero_state%awa, 1)
+       call aero_weight_array_set_flat(aero_state%awa, 1)
     case(AERO_STATE_WEIGHT_POWER)
        call assert_msg(656670336, present(exponent), &
             "exponent parameter required for AERO_STATE_WEIGHT_POWER")
-       call aero_weight_array_allocate_power(aero_state%awa, 1, exponent)
+       call aero_weight_array_set_power(aero_state%awa, 1, exponent)
     case(AERO_STATE_WEIGHT_NUMMASS)
-       call aero_weight_array_allocate_nummass(aero_state%awa, 1)
+       call aero_weight_array_set_nummass(aero_state%awa, 1)
     case(AERO_STATE_WEIGHT_FLAT_SOURCE)
-       call aero_weight_array_allocate_flat(aero_state%awa, aero_data%n_source)
+       call aero_weight_array_set_flat(aero_state%awa, &
+            aero_data_n_source(aero_data))
     case(AERO_STATE_WEIGHT_POWER_SOURCE)
        call assert_msg(102143848, present(exponent), &
             "exponent parameter required for AERO_STATE_WEIGHT_POWER")
-       call aero_weight_array_allocate_power(aero_state%awa, &
-            aero_data%n_source, exponent)
+       call aero_weight_array_set_power(aero_state%awa, &
+            aero_data_n_source(aero_data), exponent)
     case(AERO_STATE_WEIGHT_NUMMASS_SOURCE)
-       call aero_weight_array_allocate_nummass(aero_state%awa, &
-            aero_data%n_source)
+       call aero_weight_array_set_nummass(aero_state%awa, &
+            aero_data_n_source(aero_data))
     case default
        call die_msg(969076992, "unknown weight_type: " &
             // trim(integer_to_string(weight_type)))
@@ -219,7 +163,9 @@ contains
 
     n_group = aero_weight_array_n_group(aero_state%awa)
     n_class = aero_weight_array_n_class(aero_state%awa)
-    deallocate(aero_state%n_part_ideal)
+    if (allocated(aero_state%n_part_ideal)) then
+       deallocate(aero_state%n_part_ideal)
+    end if
     allocate(aero_state%n_part_ideal(n_group, n_class))
     aero_state%n_part_ideal = n_part / real(n_group * n_class, kind=dp)
 
@@ -267,12 +213,12 @@ contains
        call assert(908743823, present(i_class))
        if (aero_state%valid_sort) then
           aero_state_total_particles &
-               = aero_state%aero_sorted%group_class%inverse(i_group, &
-               i_class)%n_entry
+               = integer_varray_n_entry( &
+               aero_state%aero_sorted%group_class%inverse(i_group, i_class))
        else
           ! FIXME: should we just sort?
           aero_state_total_particles = 0
-          do i_part = 1,aero_state%apa%n_part
+          do i_part = 1,aero_state_n_part(aero_state)
              if ((aero_state%apa%particle(i_part)%weight_group == i_group) &
                   .and. &
                   (aero_state%apa%particle(i_part)%weight_class == i_class)) &
@@ -282,7 +228,7 @@ contains
           end do
        end if
     else
-       aero_state_total_particles = aero_state%apa%n_part
+       aero_state_total_particles = aero_state_n_part(aero_state)
     end if
 
   end function aero_state_total_particles
@@ -308,9 +254,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Resets an aero_state to have zero particles per bin. This must
-  !> already have had aero_state_allocate() called on it. This
-  !> function can be called more than once on the same state.
+  !> Resets an aero_state to have zero particles per bin.
   subroutine aero_state_zero(aero_state)
 
     !> State to zero.
@@ -426,13 +370,13 @@ contains
     integer :: i_entry, i_part
 
     call assert(742996300, aero_state%valid_sort)
-    call assert(392182617, &
-         aero_state%aero_sorted%size_class%inverse(i_bin, i_class)%n_entry > 0)
-    i_entry = pmc_rand_int(aero_state%aero_sorted%size_class%inverse(i_bin, &
-         i_class)%n_entry)
+    call assert(392182617, integer_varray_n_entry( &
+         aero_state%aero_sorted%size_class%inverse(i_bin, i_class)) > 0)
+    i_entry = pmc_rand_int(integer_varray_n_entry( &
+         aero_state%aero_sorted%size_class%inverse(i_bin, i_class)))
     i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
          i_class)%entry(i_entry)
-    call aero_particle_copy(aero_state%apa%particle(i_part), aero_particle)
+    aero_particle = aero_state%apa%particle(i_part)
     call aero_state_remove_particle_no_info(aero_state, i_part)
 
   end subroutine aero_state_remove_rand_particle_from_bin
@@ -461,40 +405,31 @@ contains
     logical, optional, intent(in) :: random_weight_group
 
     integer :: n_copies, i_dup, new_group
-    type(aero_particle_t), pointer :: aero_particle
     type(aero_particle_t) :: new_aero_particle
     type(aero_info_t) :: aero_info
 
-    aero_particle => aero_state%apa%particle(i_part)
     n_copies = prob_round(n_part_mean)
     if (n_copies == 0) then
-       call aero_info_allocate(aero_info)
-       aero_info%id = aero_particle%id
+       aero_info%id = aero_state%apa%particle(i_part)%id
        aero_info%action = AERO_INFO_WEIGHT
        aero_info%other_id = 0
        call aero_state_remove_particle_with_info(aero_state, &
             i_part, aero_info)
-       call aero_info_deallocate(aero_info)
     elseif (n_copies > 1) then
-       call aero_particle_allocate(new_aero_particle)
        do i_dup = 1,(n_copies - 1)
-          call aero_particle_copy(aero_particle, new_aero_particle)
+          new_aero_particle = aero_state%apa%particle(i_part)
           call aero_particle_new_id(new_aero_particle)
           if (present(random_weight_group)) then
              if (random_weight_group) then
                 new_group &
                      = aero_weight_array_rand_group(aero_state%awa, &
-                     aero_particle%weight_class, &
-                     aero_particle_radius(aero_particle))
+                     aero_state%apa%particle(i_part)%weight_class, &
+                     aero_particle_radius(aero_state%apa%particle(i_part)))
                 call aero_particle_set_weight(new_aero_particle, new_group)
              end if
           end if
           call aero_state_add_particle(aero_state, new_aero_particle)
-          ! re-get the particle pointer, which may have
-          ! changed due to reallocations caused by adding
-          aero_particle => aero_state%apa%particle(i_part)
        end do
-       call aero_particle_deallocate(new_aero_particle)
     end if
 
   end subroutine aero_state_dup_particle
@@ -524,11 +459,12 @@ contains
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
     !> Number concentrations for later use by aero_state_reweight().
-    real(kind=dp), intent(out) :: reweight_num_conc(aero_state%apa%n_part)
+    real(kind=dp), intent(out) &
+         :: reweight_num_conc(aero_state_n_part(aero_state))
 
     integer :: i_part
 
-    do i_part = 1,aero_state%apa%n_part
+    do i_part = 1,aero_state_n_part(aero_state)
        reweight_num_conc(i_part) &
             = aero_weight_array_single_num_conc(aero_state%awa, &
             aero_state%apa%particle(i_part))
@@ -553,7 +489,8 @@ contains
     type(aero_state_t), intent(inout) :: aero_state
     !> Number concentrations previously computed by
     !> aero_state_num_conc_for_reweight().
-    real(kind=dp), intent(in) :: reweight_num_conc(aero_state%apa%n_part)
+    real(kind=dp), intent(in) &
+         :: reweight_num_conc(aero_state_n_part(aero_state))
 
     integer :: i_part, i_group, i_class
     real(kind=dp) :: n_part_old(size(aero_state%awa%weight, 1), &
@@ -561,20 +498,18 @@ contains
     real(kind=dp) :: n_part_new(size(aero_state%awa%weight, 1), &
          size(aero_state%awa%weight, 2))
     real(kind=dp) :: old_num_conc, new_num_conc, n_part_mean
-    type(aero_particle_t), pointer :: aero_particle
 
     ! find average number of new particles in each weight group, if
     ! weight is not changed
     n_part_old = 0d0
     n_part_new = 0d0
-    do i_part = 1,aero_state%apa%n_part
-       aero_particle => aero_state%apa%particle(i_part)
+    do i_part = 1,aero_state_n_part(aero_state)
        old_num_conc = reweight_num_conc(i_part)
        new_num_conc = aero_weight_array_single_num_conc(aero_state%awa, &
-            aero_particle)
+            aero_state%apa%particle(i_part))
        n_part_mean = old_num_conc / new_num_conc
-       i_group = aero_particle%weight_group
-       i_class = aero_particle%weight_class
+       i_group = aero_state%apa%particle(i_part)%weight_group
+       i_class = aero_state%apa%particle(i_part)%weight_class
        n_part_new(i_group, i_class) = n_part_new(i_group, i_class) &
             + n_part_mean
        n_part_old(i_group, i_class) = n_part_old(i_group, i_class) + 1d0
@@ -592,11 +527,11 @@ contains
 
     ! work backwards so any additions and removals will only affect
     ! particles that we've already dealt with
-    do i_part = aero_state%apa%n_part,1,-1
-       aero_particle => aero_state%apa%particle(i_part)
+    do i_part = aero_state_n_part(aero_state),1,-1
        old_num_conc = reweight_num_conc(i_part)
        new_num_conc &
-            = aero_weight_array_single_num_conc(aero_state%awa, aero_particle)
+            = aero_weight_array_single_num_conc(aero_state%awa, &
+            aero_state%apa%particle(i_part))
        n_part_mean = old_num_conc / new_num_conc
        call aero_state_dup_particle(aero_state, i_part, n_part_mean)
     end do
@@ -713,13 +648,9 @@ contains
     integer, intent(out), optional :: n_part_add
 
     real(kind=dp) :: n_samp_avg, radius, total_vol
-    real(kind=dp) :: vols(aero_data%n_spec)
+    real(kind=dp) :: vols(aero_data_n_spec(aero_data))
     integer :: n_samp, i_mode, i_samp, i_group, i_class, n_group, n_class
-    type(aero_mode_t), pointer :: aero_mode
     type(aero_particle_t) :: aero_particle
-
-    call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
-         aero_data%n_source)
 
     n_group = size(aero_state%awa%weight, 1)
     n_class = size(aero_state%awa%weight, 2)
@@ -727,41 +658,41 @@ contains
        n_part_add = 0
     end if
     do i_group = 1,n_group
-       do i_mode = 1,aero_dist%n_mode
-          aero_mode => aero_dist%mode(i_mode)
+       do i_mode = 1,aero_dist_n_mode(aero_dist)
           i_class = aero_state_weight_class_for_source(aero_state, &
-               aero_mode%source)
+               aero_dist%mode(i_mode)%source)
 
           ! adjust weight if necessary
-          n_samp_avg = sample_prop * aero_mode_number(aero_mode, &
+          n_samp_avg = sample_prop * aero_mode_number(aero_dist%mode(i_mode), &
                aero_state%awa%weight(i_group, i_class))
           call aero_state_prepare_weight_for_add(aero_state, i_group, &
                i_class, n_samp_avg, allow_doubling, allow_halving)
           if (n_samp_avg == 0d0) cycle
 
           ! sample particles
-          n_samp_avg = sample_prop * aero_mode_number(aero_mode, &
+          n_samp_avg = sample_prop * aero_mode_number(aero_dist%mode(i_mode), &
                aero_state%awa%weight(i_group, i_class))
           n_samp = rand_poisson(n_samp_avg)
           if (present(n_part_add)) then
              n_part_add = n_part_add + n_samp
           end if
           do i_samp = 1,n_samp
-             call aero_particle_zero(aero_particle)
-             call aero_mode_sample_radius(aero_mode, &
+             call aero_particle_zero(aero_particle, aero_data)
+             call aero_mode_sample_radius(aero_dist%mode(i_mode), &
                   aero_state%awa%weight(i_group, i_class), radius)
              total_vol = rad2vol(radius)
-             call aero_mode_sample_vols(aero_mode, total_vol, vols)
+             call aero_mode_sample_vols(aero_dist%mode(i_mode), total_vol, &
+                  vols)
              call aero_particle_set_vols(aero_particle, vols)
              call aero_particle_new_id(aero_particle)
              call aero_particle_set_weight(aero_particle, i_group, i_class)
              call aero_particle_set_create_time(aero_particle, create_time)
-             call aero_particle_set_source(aero_particle, aero_mode%source)
+             call aero_particle_set_source(aero_particle, &
+                  aero_dist%mode(i_mode)%source)
              call aero_state_add_particle(aero_state, aero_particle)
           end do
        end do
     end do
-    call aero_particle_deallocate(aero_particle)
 
   end subroutine aero_state_add_aero_dist_sample
 
@@ -775,8 +706,8 @@ contains
     !> Chosen random particle number.
     integer, intent(out) :: i_part
 
-    call assert(950725003, aero_state%apa%n_part > 0)
-    i_part = pmc_rand_int(aero_state%apa%n_part)
+    call assert(950725003, aero_state_n_part(aero_state) > 0)
+    i_part = pmc_rand_int(aero_state_n_part(aero_state))
 
   end subroutine aero_state_rand_particle
 
@@ -807,7 +738,7 @@ contains
     type(aero_info_t) :: aero_info
 
     call assert(721006962, (sample_prob >= 0d0) .and. (sample_prob <= 1d0))
-    call aero_state_reset(aero_state_to)
+    call aero_state_zero(aero_state_to)
     call aero_state_copy_weight(aero_state_from, aero_state_to)
     n_transfer = rand_binomial(aero_state_total_particles(aero_state_from), &
          sample_prob)
@@ -842,12 +773,10 @@ contains
        end if
        if (do_remove) then
           if (removal_action /= AERO_INFO_NONE) then
-             call aero_info_allocate(aero_info)
              aero_info%id = aero_state_from%apa%particle(i_part)%id
              aero_info%action = removal_action
              call aero_state_remove_particle_with_info(aero_state_from, &
                   i_part, aero_info)
-             call aero_info_deallocate(aero_info)
           else
              call aero_state_remove_particle_no_info(aero_state_from, &
                   i_part)
@@ -882,7 +811,7 @@ contains
     type(aero_info_t) :: aero_info
 
     call assert(393205561, (sample_prob >= 0d0) .and. (sample_prob <= 1d0))
-    call aero_state_reset(aero_state_to)
+    call aero_state_zero(aero_state_to)
     call aero_state_copy_weight(aero_state_from, aero_state_to)
     call aero_weight_array_normalize(aero_state_to%awa)
     n_transfer = rand_binomial(aero_state_total_particles(aero_state_from), &
@@ -894,12 +823,10 @@ contains
        call aero_state_add_particle(aero_state_to, &
             aero_state_from%apa%particle(i_part))
        if (removal_action /= AERO_INFO_NONE) then
-          call aero_info_allocate(aero_info)
           aero_info%id = aero_state_from%apa%particle(i_part)%id
           aero_info%action = removal_action
           call aero_state_remove_particle_with_info(aero_state_from, &
                i_part, aero_info)
-          call aero_info_deallocate(aero_info)
        else
           call aero_state_remove_particle_no_info(aero_state_from, &
                i_part)
@@ -927,25 +854,25 @@ contains
     type(aero_binned_t), intent(inout) :: aero_binned
 
     integer :: i_part, i_bin
-    type(aero_particle_t), pointer :: aero_particle
+    real(kind=dp) :: factor
 
     aero_binned%num_conc = 0d0
     aero_binned%vol_conc = 0d0
-    do i_part = 1,aero_state%apa%n_part
-       aero_particle => aero_state%apa%particle(i_part)
-       i_bin = bin_grid_find(bin_grid, aero_particle_radius(aero_particle))
-       if ((i_bin < 1) .or. (i_bin > bin_grid%n_bin)) then
+    do i_part = 1,aero_state_n_part(aero_state)
+       i_bin = bin_grid_find(bin_grid, &
+            aero_particle_radius(aero_state%apa%particle(i_part)))
+       if ((i_bin < 1) .or. (i_bin > bin_grid_size(bin_grid))) then
           call warn_msg(980232449, "particle ID " &
-               // trim(integer_to_string(aero_particle%id)) &
+               // trim(integer_to_string(aero_state%apa%particle(i_part)%id)) &
                // " outside of bin_grid, discarding")
        else
+          factor = aero_weight_array_num_conc(aero_state%awa, &
+               aero_state%apa%particle(i_part)) &
+               / bin_grid%widths(i_bin)
           aero_binned%vol_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) &
-               + aero_particle%vol &
-               * aero_weight_array_num_conc(aero_state%awa, aero_particle) &
-               / bin_grid%widths(i_bin)
+               + aero_state%apa%particle(i_part)%vol * factor
           aero_binned%num_conc(i_bin) = aero_binned%num_conc(i_bin) &
-               + aero_weight_array_num_conc(aero_state%awa, aero_particle) &
-               / bin_grid%widths(i_bin)
+               + factor
        end if
     end do
 
@@ -960,11 +887,11 @@ contains
     type(aero_state_t), intent(in) :: aero_state
 
     !> Return value.
-    integer :: aero_state_ids(aero_state%apa%n_part)
+    integer :: aero_state_ids(aero_state_n_part(aero_state))
 
     integer :: i_part
 
-    do i_part = 1,aero_state%apa%n_part
+    do i_part = 1,aero_state_n_part(aero_state)
        aero_state_ids(i_part) = aero_state%apa%particle(i_part)%id
     end do
 
@@ -979,10 +906,10 @@ contains
     type(aero_state_t), intent(in) :: aero_state
 
     !> Return diameters array (m).
-    real(kind=dp) :: aero_state_diameters(aero_state%apa%n_part)
+    real(kind=dp) :: aero_state_diameters(aero_state_n_part(aero_state))
 
     aero_state_diameters = aero_particle_diameter( &
-         aero_state%apa%particle(1:aero_state%apa%n_part))
+         aero_state%apa%particle(1:aero_state_n_part(aero_state)))
 
   end function aero_state_diameters
 
@@ -997,10 +924,10 @@ contains
     type(aero_data_t), intent(in) :: aero_data
 
     !> Return value (m).
-    real(kind=dp) :: aero_state_dry_diameters(aero_state%apa%n_part)
+    real(kind=dp) :: aero_state_dry_diameters(aero_state_n_part(aero_state))
 
     aero_state_dry_diameters = aero_particle_dry_diameter( &
-         aero_state%apa%particle(1:aero_state%apa%n_part), aero_data)
+         aero_state%apa%particle(1:aero_state_n_part(aero_state)), aero_data)
 
   end function aero_state_dry_diameters
 
@@ -1025,14 +952,15 @@ contains
     character(len=*), optional :: exclude(:)
 
     !> Return masses array (kg).
-    real(kind=dp) :: aero_state_masses(aero_state%apa%n_part)
+    real(kind=dp) :: aero_state_masses(aero_state_n_part(aero_state))
 
-    logical :: use_species(aero_data%n_spec)
+    logical :: use_species(aero_data_n_spec(aero_data))
     integer :: i_name, i_spec
 
     if ((.not. present(include)) .and. (.not. present(exclude))) then
        aero_state_masses = aero_particle_mass( &
-            aero_state%apa%particle(1:aero_state%apa%n_part), aero_data)
+            aero_state%apa%particle(1:aero_state_n_part(aero_state)), &
+            aero_data)
     else
        if (present(include)) then
           use_species = .false.
@@ -1054,11 +982,11 @@ contains
           end do
        end if
        aero_state_masses = 0d0
-       do i_spec = 1,aero_data%n_spec
+       do i_spec = 1,aero_data_n_spec(aero_data)
           if (use_species(i_spec)) then
              aero_state_masses = aero_state_masses &
                   + aero_particle_species_mass( &
-                  aero_state%apa%particle(1:aero_state%apa%n_part), &
+                  aero_state%apa%particle(1:aero_state_n_part(aero_state)), &
                   i_spec, aero_data)
           end if
        end do
@@ -1075,11 +1003,11 @@ contains
     type(aero_state_t), intent(in) :: aero_state
 
     !> Return number concentrations array (m^{-3}).
-    real(kind=dp) :: aero_state_num_concs(aero_state%apa%n_part)
+    real(kind=dp) :: aero_state_num_concs(aero_state_n_part(aero_state))
 
     integer :: i_part
 
-    do i_part = 1,aero_state%apa%n_part
+    do i_part = 1,aero_state_n_part(aero_state)
        aero_state_num_concs(i_part) &
             = aero_state_particle_num_conc(aero_state, &
             aero_state%apa%particle(i_part))
@@ -1098,7 +1026,7 @@ contains
     integer :: i_part
 
     aero_state_total_num_conc = 0d0
-    do i_part = 1,aero_state%apa%n_part
+    do i_part = 1,aero_state_n_part(aero_state)
        aero_state_total_num_conc = aero_state_total_num_conc &
             + aero_state_particle_num_conc(aero_state, &
             aero_state%apa%particle(i_part))
@@ -1133,9 +1061,10 @@ contains
     character(len=*), optional :: group(:)
 
     !> Return value.
-    real(kind=dp) :: aero_state_mass_entropies(aero_state%apa%n_part)
+    real(kind=dp) :: aero_state_mass_entropies(aero_state_n_part(aero_state))
 
-    logical :: use_species(aero_data%n_spec), group_species(aero_data%n_spec)
+    logical :: use_species(aero_data_n_spec(aero_data))
+    logical :: group_species(aero_data_n_spec(aero_data))
     integer :: i_name, i_spec, i_part
     real(kind=dp) :: group_mass, non_group_mass, mass
 
@@ -1166,10 +1095,10 @@ contains
                "unknown species: " // trim(group(i_name)))
           group_species(i_spec) = .true.
        end do
-       do i_part = 1,aero_state%apa%n_part
+       do i_part = 1,aero_state_n_part(aero_state)
           group_mass = 0d0
           non_group_mass = 0d0
-          do i_spec = 1,aero_data%n_spec
+          do i_spec = 1,aero_data_n_spec(aero_data)
              if (use_species(i_spec)) then
                 mass = aero_particle_species_mass( &
                      aero_state%apa%particle(i_part), i_spec, aero_data)
@@ -1184,7 +1113,7 @@ contains
                = entropy([group_mass, non_group_mass])
        end do
     else
-       do i_part = 1,aero_state%apa%n_part
+       do i_part = 1,aero_state_n_part(aero_state)
           aero_state_mass_entropies(i_part) = entropy(pack( &
                aero_particle_species_masses(aero_state%apa%particle(i_part), &
                aero_data), use_species))
@@ -1206,11 +1135,12 @@ contains
     type(env_state_t), intent(in) :: env_state
 
     !> Return value.
-    real(kind=dp) :: aero_state_approx_crit_rel_humids(aero_state%apa%n_part)
+    real(kind=dp) &
+         :: aero_state_approx_crit_rel_humids(aero_state_n_part(aero_state))
 
     integer :: i_part
 
-    do i_part = 1,aero_state%apa%n_part
+    do i_part = 1,aero_state_n_part(aero_state)
        aero_state_approx_crit_rel_humids(i_part) = &
             aero_particle_approx_crit_rel_humid( &
             aero_state%apa%particle(i_part), aero_data, env_state)
@@ -1231,11 +1161,11 @@ contains
     type(env_state_t), intent(in) :: env_state
 
     !> Return value.
-    real(kind=dp) :: aero_state_crit_rel_humids(aero_state%apa%n_part)
+    real(kind=dp) :: aero_state_crit_rel_humids(aero_state_n_part(aero_state))
 
     integer :: i_part
 
-    do i_part = 1,aero_state%apa%n_part
+    do i_part = 1,aero_state_n_part(aero_state)
        aero_state_crit_rel_humids(i_part) = aero_particle_crit_rel_humid( &
             aero_state%apa%particle(i_part), aero_data, env_state)
     end do
@@ -1258,26 +1188,26 @@ contains
     type(aero_binned_t), intent(inout) :: aero_binned
 
     integer :: i_part, i_bin
-    type(aero_particle_t), pointer :: aero_particle
+    real(kind=dp) :: factor
 
     aero_binned%num_conc = 0d0
     aero_binned%vol_conc = 0d0
-    do i_part = 1,aero_state%apa%n_part
-       aero_particle => aero_state%apa%particle(i_part)
+    do i_part = 1,aero_state_n_part(aero_state)
        i_bin = bin_grid_find(bin_grid, &
-            aero_particle_solute_radius(aero_particle, aero_data))
-       if ((i_bin < 1) .or. (i_bin > bin_grid%n_bin)) then
+            aero_particle_solute_radius(aero_state%apa%particle(i_part), &
+            aero_data))
+       if ((i_bin < 1) .or. (i_bin > bin_grid_size(bin_grid))) then
           call warn_msg(503871022, "particle ID " &
-               // trim(integer_to_string(aero_particle%id)) &
+               // trim(integer_to_string(aero_state%apa%particle(i_part)%id)) &
                // " outside of bin_grid, discarding")
        else
+          factor = aero_weight_array_num_conc(aero_state%awa, &
+               aero_state%apa%particle(i_part)) &
+               / bin_grid%widths(i_bin)
           aero_binned%vol_conc(i_bin,:) = aero_binned%vol_conc(i_bin,:) &
-               + aero_particle%vol &
-               * aero_weight_array_num_conc(aero_state%awa, aero_particle) &
-               / bin_grid%widths(i_bin)
+               + aero_state%apa%particle(i_part)%vol * factor
           aero_binned%num_conc(i_bin) = aero_binned%num_conc(i_bin) &
-               + aero_weight_array_num_conc(aero_state%awa, aero_particle) &
-               / bin_grid%widths(i_bin)
+               + factor
        end if
     end do
 
@@ -1298,18 +1228,15 @@ contains
     integer :: i_part
     type(aero_particle_t) :: aero_particle
 
-    call aero_particle_allocate(aero_particle)
-    do i_part = 1,aero_state%apa%n_part
+    do i_part = 1,aero_state_n_part(aero_state)
        if ((aero_state%apa%particle(i_part)%weight_group == i_group) &
             .and. (aero_state%apa%particle(i_part)%weight_class == i_class)) &
             then
-          call aero_particle_copy(aero_state%apa%particle(i_part), &
-               aero_particle)
+          aero_particle = aero_state%apa%particle(i_part)
           call aero_particle_new_id(aero_particle)
           call aero_state_add_particle(aero_state, aero_particle)
        end if
     end do
-    call aero_particle_deallocate(aero_particle)
     aero_state%valid_sort = .false.
     call aero_weight_scale(aero_state%awa%weight(i_group, i_class), 0.5d0)
 
@@ -1330,8 +1257,7 @@ contains
     integer :: i_part
     type(aero_info_t) :: aero_info
 
-    call aero_info_allocate(aero_info)
-    do i_part = aero_state%apa%n_part,1,-1
+    do i_part = aero_state_n_part(aero_state),1,-1
        if ((aero_state%apa%particle(i_part)%weight_group == i_group) &
             .and. (aero_state%apa%particle(i_part)%weight_class == i_class)) &
             then
@@ -1343,7 +1269,6 @@ contains
           end if
        end if
     end do
-    call aero_info_deallocate(aero_info)
     call aero_weight_scale(aero_state%awa%weight(i_group, i_class), 2d0)
 
   end subroutine aero_state_halve
@@ -1443,8 +1368,8 @@ contains
     ! scheme.
 
     call aero_state_sort(aero_state)
-    n_part = aero_state%aero_sorted%group_class%inverse(i_group, &
-         i_class)%n_entry
+    n_part = integer_varray_n_entry( &
+         aero_state%aero_sorted%group_class%inverse(i_group, i_class))
 
     if ((weight_ratio > 1d0) .and. (allow_halving .or. (n_part == 0))) then
        call aero_weight_scale(aero_state%awa%weight(i_group, i_class), &
@@ -1452,16 +1377,14 @@ contains
        n_remove = prob_round(real(n_part, kind=dp) &
             * (1d0 - 1d0 / weight_ratio))
        do i_remove = 1,n_remove
-          i_entry = pmc_rand_int(aero_state%aero_sorted%group_class%inverse( &
-               i_group, i_class)%n_entry)
+          i_entry = pmc_rand_int(integer_varray_n_entry( &
+               aero_state%aero_sorted%group_class%inverse(i_group, i_class)))
           i_part = aero_state%aero_sorted%group_class%inverse(i_group, &
                i_class)%entry(i_entry)
-          call aero_info_allocate(aero_info)
           aero_info%id = aero_state%apa%particle(i_part)%id
           aero_info%action = AERO_INFO_HALVED
           call aero_state_remove_particle(aero_state, i_part, .true., &
                aero_info)
-          call aero_info_deallocate(aero_info)
        end do
     elseif ((weight_ratio < 1d0) &
          .and. (allow_doubling .or. (n_part == 0))) then
@@ -1516,10 +1439,6 @@ contains
     ! allocate aero_state arrays
     allocate(aero_state_sends(n_proc))
     allocate(aero_state_recvs(n_proc))
-    do i_proc = 0,(n_proc - 1)
-       call aero_state_allocate(aero_state_sends(i_proc + 1))
-       call aero_state_allocate(aero_state_recvs(i_proc + 1))
-    end do
 
     ! compute the transfer probability
     if (present(specify_prob_transfer)) then
@@ -1557,10 +1476,6 @@ contains
     end do
 
     ! cleanup
-    do i_proc = 0,(n_proc - 1)
-          call aero_state_deallocate(aero_state_sends(i_proc + 1))
-          call aero_state_deallocate(aero_state_recvs(i_proc + 1))
-    end do
     deallocate(aero_state_sends)
     deallocate(aero_state_recvs)
 #endif
@@ -1650,39 +1565,38 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
 
-    real(kind=dp) :: species_volume_conc(aero_data%n_spec)
+    real(kind=dp) :: species_volume_conc(aero_data_n_spec(aero_data))
     real(kind=dp) :: total_volume_conc, particle_volume, num_conc
     integer :: i_bin, i_class, i_entry, i_part, i_spec
-    type(aero_particle_t), pointer :: aero_particle
 
     call aero_state_sort(aero_state, bin_grid)
 
-    do i_bin = 1,bin_grid%n_bin
+    do i_bin = 1,bin_grid_size(bin_grid)
        species_volume_conc = 0d0
        total_volume_conc = 0d0
        do i_class = 1,size(aero_state%awa%weight, 2)
-          do i_entry = 1,aero_state%aero_sorted%size_class%inverse(i_bin, &
-               i_class)%n_entry
+          do i_entry = 1,integer_varray_n_entry( &
+               aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
              i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
                   i_class)%entry(i_entry)
-             aero_particle => aero_state%apa%particle(i_part)
              num_conc = aero_weight_array_num_conc(aero_state%awa, &
-                  aero_particle)
-             particle_volume = aero_particle_volume(aero_particle)
+                  aero_state%apa%particle(i_part))
+             particle_volume = aero_particle_volume( &
+                  aero_state%apa%particle(i_part))
              species_volume_conc = species_volume_conc &
-                  + num_conc * aero_particle%vol
+                  + num_conc * aero_state%apa%particle(i_part)%vol
              total_volume_conc = total_volume_conc + num_conc * particle_volume
           end do
        end do
        do i_class = 1,size(aero_state%awa%weight, 2)
-          do i_entry = 1,aero_state%aero_sorted%size_class%inverse(i_bin, &
-               i_class)%n_entry
+          do i_entry = 1,integer_varray_n_entry( &
+               aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
              i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
                   i_class)%entry(i_entry)
-             aero_particle => aero_state%apa%particle(i_part)
-             particle_volume = aero_particle_volume(aero_particle)
-             aero_particle%vol = particle_volume * species_volume_conc &
-                  / total_volume_conc
+             particle_volume = aero_particle_volume( &
+                  aero_state%apa%particle(i_part))
+             aero_state%apa%particle(i_part)%vol &
+                  = particle_volume * species_volume_conc / total_volume_conc
           end do
        end do
     end do
@@ -1728,30 +1642,30 @@ contains
     real(kind=dp) :: lower_function, upper_function, center_function
     integer :: i_bin, i_class, i_entry, i_part, i_bisect, n_part
     logical :: monotone_increasing, monotone_decreasing
-    type(aero_particle_t), pointer :: aero_particle
 
     call aero_state_sort(aero_state, bin_grid)
 
-    do i_bin = 1,bin_grid%n_bin
+    do i_bin = 1,bin_grid_size(bin_grid)
        do i_class = 1,size(aero_state%awa%weight, 2)
-          if (aero_state%aero_sorted%size_class%inverse(i_bin, &
-               i_class)%n_entry == 0) then
+          if (integer_varray_n_entry( &
+               aero_state%aero_sorted%size_class%inverse(i_bin, i_class)) &
+               == 0) then
              cycle
           end if
 
-          n_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
-               i_class)%n_entry
+          n_part = integer_varray_n_entry( &
+               aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
           total_num_conc = 0d0
           total_volume_conc = 0d0
-          do i_entry = 1,aero_state%aero_sorted%size_class%inverse(i_bin, &
-               i_class)%n_entry
+          do i_entry = 1,integer_varray_n_entry( &
+               aero_state%aero_sorted%size_class%inverse(i_bin, i_class))
              i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
                   i_class)%entry(i_entry)
-             aero_particle => aero_state%apa%particle(i_part)
              num_conc = aero_weight_array_num_conc(aero_state%awa, &
-                  aero_particle)
+                  aero_state%apa%particle(i_part))
              total_num_conc = total_num_conc + num_conc
-             particle_volume = aero_particle_volume(aero_particle)
+             particle_volume = aero_particle_volume( &
+                  aero_state%apa%particle(i_part))
              total_volume_conc = total_volume_conc &
                   + num_conc * particle_volume
           end do
@@ -1764,8 +1678,9 @@ contains
                   = aero_weight_array_num_conc_at_radius(aero_state%awa, &
                   i_class, 1d0)
              new_particle_volume = total_volume_conc / num_conc &
-                  / real(aero_state%aero_sorted%size_class%inverse(i_bin, &
-                  i_class)%n_entry, kind=dp)
+                  / real(integer_varray_n_entry( &
+                  aero_state%aero_sorted%size_class%inverse(i_bin, i_class)), &
+                  kind=dp)
           elseif (preserve_number) then
              ! number-preserving scheme: Solve the implicit equation:
              ! n_part * W(new_vol) = total_num_conc
@@ -1786,8 +1701,8 @@ contains
              do i_entry = 1,n_part
                 i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
                      i_class)%entry(i_entry)
-                aero_particle => aero_state%apa%particle(i_part)
-                particle_volume = aero_particle_volume(aero_particle)
+                particle_volume = aero_particle_volume( &
+                     aero_state%apa%particle(i_part))
                 if (i_part == 1) then
                    lower_volume = particle_volume
                    upper_volume = particle_volume
@@ -1841,8 +1756,8 @@ contains
              do i_entry = 1,n_part
                 i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
                      i_class)%entry(i_entry)
-                aero_particle => aero_state%apa%particle(i_part)
-                particle_volume = aero_particle_volume(aero_particle)
+                particle_volume = aero_particle_volume( &
+                     aero_state%apa%particle(i_part))
                 if (i_part == 1) then
                    lower_volume = particle_volume
                    upper_volume = particle_volume
@@ -1884,10 +1799,11 @@ contains
           do i_entry = 1,n_part
              i_part = aero_state%aero_sorted%size_class%inverse(i_bin, &
                   i_class)%entry(i_entry)
-             aero_particle => aero_state%apa%particle(i_part)
-             particle_volume = aero_particle_volume(aero_particle)
-             aero_particle%vol = aero_particle%vol / particle_volume &
-                  * new_particle_volume
+             particle_volume = aero_particle_volume( &
+                  aero_state%apa%particle(i_part))
+             aero_state%apa%particle(i_part)%vol &
+                  = aero_state%apa%particle(i_part)%vol &
+                  / particle_volume * new_particle_volume
           end do
        end do
     end do
@@ -1912,7 +1828,7 @@ contains
 
     call aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
     if (aero_data%i_water > 0) then
-       do i_part = 1,aero_state%apa%n_part
+       do i_part = 1,aero_state_n_part(aero_state)
           aero_state%apa%particle(i_part)%vol(aero_data%i_water) = 0d0
        end do
        aero_state%valid_sort = .false.
@@ -2012,7 +1928,7 @@ contains
 #endif
 
     if (pmc_mpi_rank() == 0) then
-       call aero_state_copy(aero_state, aero_state_total)
+       aero_state_total = aero_state
     end if
 
 #ifdef PMC_USE_MPI
@@ -2049,15 +1965,12 @@ contains
 
           ! unpack it
           position = 0
-          call aero_state_allocate(aero_state_transfer)
           call pmc_mpi_unpack_aero_state(buffer, position, &
                aero_state_transfer)
           call assert(518174881, position == buffer_size)
           deallocate(buffer)
 
           call aero_state_add(aero_state_total, aero_state_transfer)
-
-          call aero_state_deallocate(aero_state_transfer)
        end do
     end if
 
@@ -2082,7 +1995,7 @@ contains
 
     integer :: status, i_part
     integer :: varid_aero_particle
-    integer :: aero_particle_centers(aero_state%apa%n_part)
+    integer :: aero_particle_centers(aero_state_n_part(aero_state))
 
     ! try to get the dimension ID
     status = nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle)
@@ -2093,11 +2006,11 @@ contains
     call pmc_nc_check(nf90_redef(ncid))
 
     call pmc_nc_check(nf90_def_dim(ncid, "aero_particle", &
-         aero_state%apa%n_part, dimid_aero_particle))
+         aero_state_n_part(aero_state), dimid_aero_particle))
 
     call pmc_nc_check(nf90_enddef(ncid))
 
-    do i_part = 1,aero_state%apa%n_part
+    do i_part = 1,aero_state_n_part(aero_state)
        aero_particle_centers(i_part) = i_part
     end do
     call pmc_nc_write_integer_1d(ncid, aero_particle_centers, &
@@ -2123,7 +2036,8 @@ contains
 
     integer :: status, i_remove, dim_size
     integer :: varid_aero_removed
-    integer :: aero_removed_centers(max(aero_state%aero_info_array%n_item,1))
+    integer :: aero_removed_centers( &
+         max(1, aero_info_array_n_item(aero_state%aero_info_array)))
 
     ! try to get the dimension ID
     status = nf90_inq_dimid(ncid, "aero_removed", dimid_aero_removed)
@@ -2133,7 +2047,7 @@ contains
     ! dimension not defined, so define now define it
     call pmc_nc_check(nf90_redef(ncid))
 
-    dim_size = max(aero_state%aero_info_array%n_item, 1)
+    dim_size = max(1, aero_info_array_n_item(aero_state%aero_info_array))
     call pmc_nc_check(nf90_def_dim(ncid, "aero_removed", &
          dim_size, dimid_aero_removed))
 
@@ -2168,28 +2082,31 @@ contains
     integer :: dimid_aero_particle, dimid_aero_species, dimid_aero_source
     integer :: dimid_aero_removed
     integer :: i_part, i_remove
-    type(aero_particle_t), pointer :: particle
-    real(kind=dp) :: aero_particle_mass(aero_state%apa%n_part, &
-         aero_data%n_spec)
-    integer :: aero_n_orig_part(aero_state%apa%n_part, aero_data%n_source)
-    integer :: aero_particle_weight_group(aero_state%apa%n_part)
-    integer :: aero_particle_weight_class(aero_state%apa%n_part)
-    real(kind=dp) :: aero_absorb_cross_sect(aero_state%apa%n_part)
-    real(kind=dp) :: aero_scatter_cross_sect(aero_state%apa%n_part)
-    real(kind=dp) :: aero_asymmetry(aero_state%apa%n_part)
-    real(kind=dp) :: aero_refract_shell_real(aero_state%apa%n_part)
-    real(kind=dp) :: aero_refract_shell_imag(aero_state%apa%n_part)
-    real(kind=dp) :: aero_refract_core_real(aero_state%apa%n_part)
-    real(kind=dp) :: aero_refract_core_imag(aero_state%apa%n_part)
-    real(kind=dp) :: aero_core_vol(aero_state%apa%n_part)
-    integer :: aero_water_hyst_leg(aero_state%apa%n_part)
-    real(kind=dp) :: aero_num_conc(aero_state%apa%n_part)
-    integer :: aero_id(aero_state%apa%n_part)
-    real(kind=dp) :: aero_least_create_time(aero_state%apa%n_part)
-    real(kind=dp) :: aero_greatest_create_time(aero_state%apa%n_part)
-    integer :: aero_removed_id(max(aero_state%aero_info_array%n_item,1))
-    integer :: aero_removed_action(max(aero_state%aero_info_array%n_item,1))
-    integer :: aero_removed_other_id(max(aero_state%aero_info_array%n_item,1))
+    real(kind=dp) :: aero_particle_mass(aero_state_n_part(aero_state), &
+         aero_data_n_spec(aero_data))
+    integer :: aero_n_orig_part(aero_state_n_part(aero_state), &
+         aero_data_n_source(aero_data))
+    integer :: aero_particle_weight_group(aero_state_n_part(aero_state))
+    integer :: aero_particle_weight_class(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_absorb_cross_sect(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_scatter_cross_sect(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_asymmetry(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_refract_shell_real(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_refract_shell_imag(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_refract_core_real(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_refract_core_imag(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_core_vol(aero_state_n_part(aero_state))
+    integer :: aero_water_hyst_leg(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_num_conc(aero_state_n_part(aero_state))
+    integer :: aero_id(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_least_create_time(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_greatest_create_time(aero_state_n_part(aero_state))
+    integer :: aero_removed_id( &
+         max(1, aero_info_array_n_item(aero_state%aero_info_array)))
+    integer :: aero_removed_action( &
+         max(1, aero_info_array_n_item(aero_state%aero_info_array)))
+    integer :: aero_removed_other_id( &
+         max(1, aero_info_array_n_item(aero_state%aero_info_array)))
 
     !> \page output_format_aero_state Output File Format: Aerosol Particle State
     !!
@@ -2291,33 +2208,44 @@ contains
     call aero_data_netcdf_dim_aero_source(aero_data, ncid, &
          dimid_aero_source)
 
-    if (aero_state%apa%n_part > 0) then
+    if (aero_state_n_part(aero_state) > 0) then
        call aero_state_netcdf_dim_aero_particle(aero_state, ncid, &
             dimid_aero_particle)
 
-       ! FIXME: replace this loop with statements like
-       ! aero_n_orig_part = aero_state%apa%particle%n_orig_part
-       do i_part = 1,aero_state%apa%n_part
-          particle => aero_state%apa%particle(i_part)
-          aero_particle_mass(i_part, :) = particle%vol * aero_data%density
-          aero_n_orig_part(i_part, :) = particle%n_orig_part
-          aero_particle_weight_group(i_part) = particle%weight_group
-          aero_particle_weight_class(i_part) = particle%weight_class
-          aero_water_hyst_leg(i_part) = particle%water_hyst_leg
+       do i_part = 1,aero_state_n_part(aero_state)
+          aero_particle_mass(i_part, :) &
+               = aero_state%apa%particle(i_part)%vol * aero_data%density
+          aero_n_orig_part(i_part, :) &
+               = aero_state%apa%particle(i_part)%n_orig_part
+          aero_particle_weight_group(i_part) &
+               = aero_state%apa%particle(i_part)%weight_group
+          aero_particle_weight_class(i_part) &
+               = aero_state%apa%particle(i_part)%weight_class
+          aero_water_hyst_leg(i_part) &
+               = aero_state%apa%particle(i_part)%water_hyst_leg
           aero_num_conc(i_part) &
-               = aero_state_particle_num_conc(aero_state, particle)
-          aero_id(i_part) = particle%id
-          aero_least_create_time(i_part) = particle%least_create_time
-          aero_greatest_create_time(i_part) = particle%greatest_create_time
+               = aero_state_particle_num_conc(aero_state, &
+               aero_state%apa%particle(i_part))
+          aero_id(i_part) = aero_state%apa%particle(i_part)%id
+          aero_least_create_time(i_part) &
+               = aero_state%apa%particle(i_part)%least_create_time
+          aero_greatest_create_time(i_part) &
+               = aero_state%apa%particle(i_part)%greatest_create_time
           if (record_optical) then
-             aero_absorb_cross_sect(i_part) = particle%absorb_cross_sect
-             aero_scatter_cross_sect(i_part) = particle%scatter_cross_sect
-             aero_asymmetry(i_part) = particle%asymmetry
-             aero_refract_shell_real(i_part) = real(particle%refract_shell)
-             aero_refract_shell_imag(i_part) = aimag(particle%refract_shell)
-             aero_refract_core_real(i_part) = real(particle%refract_core)
-             aero_refract_core_imag(i_part) = aimag(particle%refract_core)
-             aero_core_vol(i_part) = particle%core_vol
+             aero_absorb_cross_sect(i_part) &
+                  = aero_state%apa%particle(i_part)%absorb_cross_sect
+             aero_scatter_cross_sect(i_part) &
+                  = aero_state%apa%particle(i_part)%scatter_cross_sect
+             aero_asymmetry(i_part) = aero_state%apa%particle(i_part)%asymmetry
+             aero_refract_shell_real(i_part) &
+                  = real(aero_state%apa%particle(i_part)%refract_shell)
+             aero_refract_shell_imag(i_part) &
+                  = aimag(aero_state%apa%particle(i_part)%refract_shell)
+             aero_refract_core_real(i_part) &
+                  = real(aero_state%apa%particle(i_part)%refract_core)
+             aero_refract_core_imag(i_part) &
+                  = aimag(aero_state%apa%particle(i_part)%refract_core)
+             aero_core_vol(i_part) = aero_state%apa%particle(i_part)%core_vol
           end if
        end do
        call pmc_nc_write_real_2d(ncid, aero_particle_mass, &
@@ -2405,8 +2333,8 @@ contains
     if (record_removals) then
        call aero_state_netcdf_dim_aero_removed(aero_state, ncid, &
             dimid_aero_removed)
-       if (aero_state%aero_info_array%n_item >= 1) then
-          do i_remove = 1,aero_state%aero_info_array%n_item
+       if (aero_info_array_n_item(aero_state%aero_info_array) >= 1) then
+          do i_remove = 1,aero_info_array_n_item(aero_state%aero_info_array)
              aero_removed_id(i_remove) = &
                   aero_state%aero_info_array%aero_info(i_remove)%id
              aero_removed_action(i_remove) = &
@@ -2542,35 +2470,17 @@ contains
     integer, allocatable :: aero_removed_action(:)
     integer, allocatable :: aero_removed_other_id(:)
 
+    call aero_state_zero(aero_state)
+
     status = nf90_inq_dimid(ncid, "aero_particle", dimid_aero_particle)
     if (status == NF90_EBADDIM) then
        ! no aero_particle dimension means no particles present
-       call aero_state_deallocate(aero_state)
-       call aero_state_allocate(aero_state)
        call aero_weight_array_input_netcdf(aero_state%awa, ncid)
        return
     end if
     call pmc_nc_check(status)
     call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_particle, &
          name, n_part))
-
-    allocate(aero_particle_mass(n_part, aero_data%n_spec))
-    allocate(aero_n_orig_part(n_part, aero_data%n_source))
-    allocate(aero_particle_weight_group(n_part))
-    allocate(aero_particle_weight_class(n_part))
-    allocate(aero_absorb_cross_sect(n_part))
-    allocate(aero_scatter_cross_sect(n_part))
-    allocate(aero_asymmetry(n_part))
-    allocate(aero_refract_shell_real(n_part))
-    allocate(aero_refract_shell_imag(n_part))
-    allocate(aero_refract_core_real(n_part))
-    allocate(aero_refract_core_imag(n_part))
-    allocate(aero_core_vol(n_part))
-    allocate(aero_water_hyst_leg(n_part))
-    allocate(aero_num_conc(n_part))
-    allocate(aero_id(n_part))
-    allocate(aero_least_create_time(n_part))
-    allocate(aero_greatest_create_time(n_part))
 
     call pmc_nc_read_real_2d(ncid, aero_particle_mass, &
          "aero_particle_mass")
@@ -2607,28 +2517,37 @@ contains
     call pmc_nc_read_real_1d(ncid, aero_greatest_create_time, &
          "aero_greatest_create_time")
 
-    call aero_state_deallocate(aero_state)
-    call aero_state_allocate(aero_state)
-
     call aero_weight_array_input_netcdf(aero_state%awa, ncid)
     call aero_state_set_n_part_ideal(aero_state, 0d0)
 
-    call aero_particle_allocate_size(aero_particle, aero_data%n_spec, &
-         aero_data%n_source)
     do i_part = 1,n_part
        aero_particle%vol = aero_particle_mass(i_part, :) / aero_data%density
        aero_particle%n_orig_part = aero_n_orig_part(i_part, :)
        aero_particle%weight_group = aero_particle_weight_group(i_part)
        aero_particle%weight_class = aero_particle_weight_class(i_part)
-       aero_particle%absorb_cross_sect = aero_absorb_cross_sect(i_part)
-       aero_particle%scatter_cross_sect = aero_scatter_cross_sect(i_part)
-       aero_particle%asymmetry = aero_asymmetry(i_part)
-       aero_particle%refract_shell = &
-            cmplx(aero_refract_shell_real(i_part), &
-            aero_refract_shell_imag(i_part), kind=dc)
-       aero_particle%refract_core = cmplx(aero_refract_core_real(i_part), &
-            aero_refract_core_imag(i_part), kind=dc)
-       aero_particle%core_vol = aero_core_vol(i_part)
+       if (size(aero_absorb_cross_sect) == n_part) then
+          aero_particle%absorb_cross_sect = aero_absorb_cross_sect(i_part)
+       end if
+       if (size(aero_scatter_cross_sect) == n_part) then
+            aero_particle%scatter_cross_sect = aero_scatter_cross_sect(i_part)
+         end if
+       if (size(aero_asymmetry) == n_part) then
+            aero_particle%asymmetry = aero_asymmetry(i_part)
+         end if
+       if ((size(aero_refract_shell_real) == n_part) &
+            .and. (size(aero_refract_shell_imag) == n_part)) then
+          aero_particle%refract_shell = &
+               cmplx(aero_refract_shell_real(i_part), &
+               aero_refract_shell_imag(i_part), kind=dc)
+       end if
+       if ((size(aero_refract_core_real) == n_part) &
+            .and. (size(aero_refract_core_imag) == n_part)) then
+          aero_particle%refract_core = cmplx(aero_refract_core_real(i_part), &
+               aero_refract_core_imag(i_part), kind=dc)
+       end if
+       if (size(aero_core_vol) == n_part) then
+          aero_particle%core_vol = aero_core_vol(i_part)
+       end if
        aero_particle%water_hyst_leg = aero_water_hyst_leg(i_part)
        aero_particle%id = aero_id(i_part)
        aero_particle%least_create_time = aero_least_create_time(i_part)
@@ -2639,46 +2558,18 @@ contains
 
        call aero_state_add_particle(aero_state, aero_particle)
     end do
-    call aero_particle_deallocate(aero_particle)
 
-    deallocate(aero_particle_mass)
-    deallocate(aero_n_orig_part)
-    deallocate(aero_particle_weight_group)
-    deallocate(aero_particle_weight_class)
-    deallocate(aero_absorb_cross_sect)
-    deallocate(aero_scatter_cross_sect)
-    deallocate(aero_asymmetry)
-    deallocate(aero_refract_shell_real)
-    deallocate(aero_refract_shell_imag)
-    deallocate(aero_refract_core_real)
-    deallocate(aero_refract_core_imag)
-    deallocate(aero_core_vol)
-    deallocate(aero_water_hyst_leg)
-    deallocate(aero_num_conc)
-    deallocate(aero_id)
-    deallocate(aero_least_create_time)
-    deallocate(aero_greatest_create_time)
+    call pmc_nc_read_integer_1d(ncid, aero_removed_id, &
+         "aero_removed_id", must_be_present=.false.)
+    call pmc_nc_read_integer_1d(ncid, aero_removed_action, &
+         "aero_removed_action", must_be_present=.false.)
+    call pmc_nc_read_integer_1d(ncid, aero_removed_other_id, &
+         "aero_removed_other_id", must_be_present=.false.)
 
-    status = nf90_inq_dimid(ncid, "aero_removed", dimid_aero_removed)
-    if ((status /= NF90_NOERR) .and. (status /= NF90_EBADDIM)) then
-       call pmc_nc_check(status)
-    end if
-    if (status == NF90_NOERR) then
-       call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_aero_removed, &
-            name, n_info_item))
-
-       allocate(aero_removed_id(max(n_info_item,1)))
-       allocate(aero_removed_action(max(n_info_item,1)))
-       allocate(aero_removed_other_id(max(n_info_item,1)))
-
-       call pmc_nc_read_integer_1d(ncid, aero_removed_id, &
-            "aero_removed_id")
-       call pmc_nc_read_integer_1d(ncid, aero_removed_action, &
-            "aero_removed_action")
-       call pmc_nc_read_integer_1d(ncid, aero_removed_other_id, &
-            "aero_removed_other_id")
-
-       if ((n_info_item > 1) .or. (aero_removed_id(1) /= 0)) then
+    n_info_item = size(aero_removed_id)
+    if (n_info_item >= 1) then
+       if ((n_info_item > 1) &
+            .or. ((n_info_item == 1) .and. (aero_removed_id(1) /= 0))) then
           call aero_info_array_enlarge_to(aero_state%aero_info_array, &
                n_info_item)
           do i_remove = 1,n_info_item
@@ -2690,10 +2581,6 @@ contains
                   = aero_removed_other_id(i_remove)
           end do
        end if
-
-       deallocate(aero_removed_id)
-       deallocate(aero_removed_action)
-       deallocate(aero_removed_other_id)
     end if
 
   end subroutine aero_state_input_netcdf
@@ -2719,26 +2606,25 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Check that the sorted data is consistent.
-  subroutine aero_state_check_sort(aero_state)
+  !> Check that aerosol state data is consistent.
+  subroutine aero_state_check(aero_state, aero_data)
 
     !> Aerosol state to check.
     type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
 
     logical, parameter :: continue_on_error = .false.
 
-    integer :: i_part, i_bin
-
-    if (.not. aero_state%valid_sort) then
-       write(0,*) 'SORTED CHECK ERROR: SORT NOT VALID'
-       return
+    call aero_particle_array_check(aero_state%apa, aero_data, &
+         continue_on_error)
+    if (aero_state%valid_sort) then
+       call aero_sorted_check(aero_state%aero_sorted, aero_state%apa, &
+            size(aero_state%awa%weight, 1), size(aero_state%awa%weight, 2), &
+            continue_on_error)
     end if
 
-    call aero_sorted_check(aero_state%aero_sorted, aero_state%apa, &
-         size(aero_state%awa%weight, 1), size(aero_state%awa%weight, 2), &
-         continue_on_error)
-
-  end subroutine aero_state_check_sort
+  end subroutine aero_state_check
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

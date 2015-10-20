@@ -65,9 +65,6 @@ program extract_aero_time
      out_filename = trim(in_prefix) // "_aero_time.txt"
   end if
 
-  call aero_data_allocate(aero_data)
-  call aero_state_allocate(aero_state)
-
   allocate(filename_list(0))
   call input_filename_list(in_prefix, filename_list)
   n_file = size(filename_list)
@@ -81,7 +78,7 @@ program extract_aero_time
   allocate(times(n_file))
   allocate(time_num_concs(n_file))
   allocate(time_mass_concs(n_file))
-  allocate(time_species_concs(n_file, aero_data%n_spec))
+  allocate(time_species_concs(n_file, aero_data_n_spec(aero_data)))
 
   do i_file = 1,n_file
      call input_state(filename_list(i_file), index, time, del_t, i_repeat, &
@@ -96,7 +93,7 @@ program extract_aero_time
      time_num_concs(i_file) = sum(particle_num_concs)
      particle_masses = aero_state_masses(aero_state, aero_data)
      time_mass_concs(i_file) = sum(particle_masses * particle_num_concs)
-     do i_spec = 1,aero_data%n_spec
+     do i_spec = 1,aero_data_n_spec(aero_data)
         particle_masses = aero_state_masses(aero_state, aero_data, &
              include=(/aero_data%name(i_spec)/))
         time_species_concs(i_file, i_spec) &
@@ -110,7 +107,7 @@ program extract_aero_time
   write(*,'(a)') "    column  1: time (s)"
   write(*,'(a)') "    column  2: aerosol number concentration (#/m^3)"
   write(*,'(a)') "    column  3: aerosol mass concentration (kg/m^3)"
-  do i_spec = 1,aero_data%n_spec
+  do i_spec = 1,aero_data_n_spec(aero_data)
      write(*,'(a,i2,a,a,a)') "    column ", i_spec + 3, ": aerosol ", &
           trim(aero_data%name(i_spec)), " concentration (kg/m^3)"
   end do
@@ -120,7 +117,7 @@ program extract_aero_time
      write(out_unit, '(e30.15e3)', advance='no') times(i_file)
      write(out_unit, '(e30.15e3)', advance='no') time_num_concs(i_file)
      write(out_unit, '(e30.15e3)', advance='no') time_mass_concs(i_file)
-     do i_spec = 1,aero_data%n_spec
+     do i_spec = 1,aero_data_n_spec(aero_data)
         write(out_unit, '(e30.15e3)', advance='no') &
              time_species_concs(i_file, i_spec)
      end do
@@ -133,8 +130,6 @@ program extract_aero_time
   deallocate(time_mass_concs)
   deallocate(time_species_concs)
   deallocate(filename_list)
-  call aero_data_deallocate(aero_data)
-  call aero_state_deallocate(aero_state)
 
   call pmc_mpi_finalize()
 

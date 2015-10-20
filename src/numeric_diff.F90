@@ -171,7 +171,6 @@ program numeric_diff
 
   n_row = max_row - min_row + 1
   n_col = max_col - min_col + 1
-  allocate(diff(n_row, n_col))
   diff = use_data1 - use_data2
 
   select case(by)
@@ -249,13 +248,6 @@ program numeric_diff
      call print_errors(abs_err, rel_err)
      stop 1
   end if
-
-  deallocate(data1)
-  deallocate(data2)
-  deallocate(diff)
-  deallocate(norm1)
-  deallocate(abs_err)
-  deallocate(rel_err)
 
   call pmc_mpi_finalize()
 

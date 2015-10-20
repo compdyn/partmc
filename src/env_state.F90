@@ -52,38 +52,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocate an empty environment.
-  subroutine env_state_allocate(env_state)
-
-    !> Environment.
-    type(env_state_t), intent(out) :: env_state
-
-    env_state%temp = 0d0
-    env_state%rel_humid = 0d0
-    env_state%pressure = 0d0
-    env_state%longitude = 0d0
-    env_state%latitude = 0d0
-    env_state%altitude = 0d0
-    env_state%start_time = 0d0
-    env_state%start_day = 0
-    env_state%elapsed_time = 0d0
-    env_state%solar_zenith_angle = 0d0
-    env_state%height = 0d0
-
-  end subroutine env_state_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Free all storage.
-  subroutine env_state_deallocate(env_state)
-
-    !> Environment.
-    type(env_state_t), intent(inout) :: env_state
-
-  end subroutine env_state_deallocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> env_state += env_state_delta
   subroutine env_state_add(env_state, env_state_delta)
 
@@ -131,30 +99,6 @@ contains
     env_state%height = env_state%height * alpha
 
   end subroutine env_state_scale
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> env_to = env_from
-  subroutine env_state_copy(env_from, env_to)
-
-    !> Original.
-    type(env_state_t), intent(in) :: env_from
-    !> Destination.
-    type(env_state_t), intent(inout) :: env_to
-
-    env_to%temp = env_from%temp
-    env_to%rel_humid = env_from%rel_humid
-    env_to%pressure = env_from%pressure
-    env_to%longitude = env_from%longitude
-    env_to%latitude = env_from%latitude
-    env_to%altitude = env_from%altitude
-    env_to%start_time = env_from%start_time
-    env_to%start_day = env_from%start_day
-    env_to%elapsed_time = env_from%elapsed_time
-    env_to%solar_zenith_angle = env_from%solar_zenith_angle
-    env_to%height = env_from%height
-
-  end subroutine env_state_copy
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -329,14 +273,12 @@ contains
 #ifdef PMC_USE_MPI
     type(env_state_t) :: val_avg
 
-    call env_state_allocate(val_avg)
     call pmc_mpi_allreduce_average_real(val%temp, val_avg%temp)
     call pmc_mpi_allreduce_average_real(val%rel_humid, val_avg%rel_humid)
     call pmc_mpi_allreduce_average_real(val%pressure, val_avg%pressure)
     val%temp = val_avg%temp
     val%rel_humid = val_avg%rel_humid
     val%pressure = val_avg%pressure
-    call env_state_deallocate(val_avg)
 #endif
 
   end subroutine env_state_mix
@@ -353,7 +295,6 @@ contains
 #ifdef PMC_USE_MPI
     type(env_state_t) :: val_avg
 
-    call env_state_allocate(val_avg)
     call pmc_mpi_reduce_avg_real(val%temp, val_avg%temp)
     call pmc_mpi_reduce_avg_real(val%rel_humid, val_avg%rel_humid)
     call pmc_mpi_reduce_avg_real(val%pressure, val_avg%pressure)
@@ -362,7 +303,6 @@ contains
        val%rel_humid = val_avg%rel_humid
        val%pressure = val_avg%pressure
     end if
-    call env_state_deallocate(val_avg)
 #endif
 
   end subroutine env_state_reduce_avg
@@ -467,8 +407,7 @@ contains
     !> Result.
     type(env_state_t), intent(inout) :: val_avg
 
-    call env_state_allocate(val_avg)
-    call env_state_copy(val, val_avg)
+    val_avg = val
     call pmc_mpi_reduce_avg_real(val%temp, val_avg%temp)
     call pmc_mpi_reduce_avg_real(val%rel_humid, val_avg%rel_humid)
     call pmc_mpi_reduce_avg_real(val%pressure, val_avg%pressure)

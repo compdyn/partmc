@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -29,106 +29,46 @@ module pmc_aero_info_array
   !!
   !! The true allocated length of the aero_info_array can be obtained
   !! by size(aero_info_array%%aero_info), while the number of used
-  !! particle slots in it is given by aero_info_array%%n_item. It must
-  !! be that aero_info_array%%n_item is less than or equal to
-  !! size(aero_info_array%%aero_info).
+  !! particle slots in it is given by aero_info_array_n_item().
   type aero_info_array_t
      !> Number of items in the array (not the same as the length of
      !> the allocated memory).
      integer :: n_item
      !> Array of aero_info_t structures.
-     type(aero_info_t), pointer :: aero_info(:)
+     type(aero_info_t), allocatable :: aero_info(:)
   end type aero_info_array_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocates the structure.
-  subroutine aero_info_array_allocate(aero_info_array)
+  !> Return the current number of items.
+  elemental integer function aero_info_array_n_item(aero_info_array)
 
-    !> Result.
-    type(aero_info_array_t), intent(out) :: aero_info_array
+    !> Aero info array.
+    type(aero_info_array_t), intent(in) :: aero_info_array
 
-    integer :: i
+    if (allocated(aero_info_array%aero_info)) then
+       aero_info_array_n_item = aero_info_array%n_item
+    else
+       aero_info_array_n_item = 0
+    end if
 
-    aero_info_array%n_item = 0
-    allocate(aero_info_array%aero_info(0))
-
-  end subroutine aero_info_array_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Allocates with the given size.
-  subroutine aero_info_array_allocate_size(aero_info_array, n_item)
-
-    !> Result.
-    type(aero_info_array_t), intent(out) :: aero_info_array
-    !> Number of items.
-    integer, intent(in) :: n_item
-
-    integer :: i
-
-    aero_info_array%n_item = n_item
-    allocate(aero_info_array%aero_info(n_item))
-    do i = 1,n_item
-       call aero_info_allocate(aero_info_array%aero_info(i))
-    end do
-
-  end subroutine aero_info_array_allocate_size
+  end function aero_info_array_n_item
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Deallocates.
-  subroutine aero_info_array_deallocate(aero_info_array)
-
-    !> Structure to deallocate.
-    type(aero_info_array_t), intent(inout) :: aero_info_array
-
-    integer :: i
-
-    do i = 1,aero_info_array%n_item
-       call aero_info_deallocate(aero_info_array%aero_info(i))
-    end do
-    deallocate(aero_info_array%aero_info)
-
-  end subroutine aero_info_array_deallocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Copies aero_info_array_from to aero_info_array_to, both
-  !> of which must already be allocated.
-  subroutine aero_info_array_copy(aero_info_array_from, &
-       aero_info_array_to)
-
-    !> Origin structure.
-    type(aero_info_array_t), intent(in) :: aero_info_array_from
-    !> Destination structure.
-    type(aero_info_array_t), intent(inout) :: aero_info_array_to
-
-    integer :: i
-
-    call aero_info_array_deallocate(aero_info_array_to)
-    call aero_info_array_allocate_size(aero_info_array_to, &
-         aero_info_array_from%n_item)
-    do i = 1,aero_info_array_from%n_item
-       call aero_info_copy(aero_info_array_from%aero_info(i), &
-            aero_info_array_to%aero_info(i))
-    end do
-
-  end subroutine aero_info_array_copy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Resets an aero_info_array to contain zero particles.
+  !> Sets an aero_info_array to contain zero data.
   subroutine aero_info_array_zero(aero_info_array)
 
     !> Structure to reset.
     type(aero_info_array_t), intent(inout) :: aero_info_array
 
-    call aero_info_array_deallocate(aero_info_array)
-    allocate(aero_info_array%aero_info(0))
     aero_info_array%n_item = 0
+    if (allocated(aero_info_array%aero_info)) then
+       deallocate(aero_info_array%aero_info)
+    end if
+    allocate(aero_info_array%aero_info(0))
 
   end subroutine aero_info_array_zero
 
@@ -147,43 +87,27 @@ contains
     !> New length of the array.
     integer, intent(in) :: new_length
 
-    integer :: n_item, i
-    type(aero_info_t), pointer :: new_particles(:)
+    integer :: i
+    type(aero_info_t), allocatable :: new_items(:)
 
-    n_item = aero_info_array%n_item
-    call assert(372938429, new_length >= n_item)
-    allocate(new_particles(new_length))
+    if (.not. allocated(aero_info_array%aero_info)) then
+       allocate(aero_info_array%aero_info(new_length))
+       aero_info_array%n_item = 0
+       return
+    end if
+
+    call assert(867444847, new_length >= aero_info_array%n_item)
+    allocate(new_items(new_length))
     do i = 1,aero_info_array%n_item
-       call aero_info_copy(aero_info_array%aero_info(i), &
-            new_particles(i))
-       call aero_info_deallocate(aero_info_array%aero_info(i))
+       new_items(i) = aero_info_array%aero_info(i)
     end do
-    deallocate(aero_info_array%aero_info)
-    aero_info_array%aero_info => new_particles
+    call move_alloc(new_items, aero_info_array%aero_info)
 
   end subroutine aero_info_array_realloc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Enlarges the given aero_info_array by at least one element
-  !!
-  !! Currently this doubles the length.
-  subroutine aero_info_array_enlarge(aero_info_array)
-
-    !> Array to enlarge.
-    type(aero_info_array_t), intent(inout) :: aero_info_array
-
-    integer :: length, new_length
-
-    length = size(aero_info_array%aero_info)
-    new_length = max(length * 2, length + 1)
-    call aero_info_array_realloc(aero_info_array, new_length)
-
-  end subroutine aero_info_array_enlarge
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Enlarges the given array so that it is at least of size n.
+  !> Possibly enlarges the given array, ensuring that it is at least of size n.
   subroutine aero_info_array_enlarge_to(aero_info_array, n)
 
     !> Array to enlarge.
@@ -191,9 +115,14 @@ contains
     !> Minimum new size of array.
     integer, intent(in) :: n
 
-    do while (size(aero_info_array%aero_info) < n)
-       call aero_info_array_enlarge(aero_info_array)
-    end do
+    if (.not. allocated(aero_info_array%aero_info)) then
+       call aero_info_array_realloc(aero_info_array, pow2_above(n))
+       return
+    end if
+
+    if (n <= size(aero_info_array%aero_info)) return
+
+    call aero_info_array_realloc(aero_info_array, pow2_above(n))
 
   end subroutine aero_info_array_enlarge_to
 
@@ -206,16 +135,14 @@ contains
     !> Array to shrink.
     type(aero_info_array_t), intent(inout) :: aero_info_array
 
-    integer :: n_item, length, new_length
+    integer :: new_length
 
-    n_item = aero_info_array%n_item
-    length = size(aero_info_array%aero_info)
-    new_length = length / 2
-    do while ((n_item <= new_length) .and. (length > 0))
+    if (.not. allocated(aero_info_array%aero_info)) return
+
+    new_length = pow2_above(aero_info_array%n_item)
+    if (new_length < size(aero_info_array%aero_info)) then
        call aero_info_array_realloc(aero_info_array, new_length)
-       length = size(aero_info_array%aero_info)
-       new_length = length / 2
-    end do
+    end if
 
   end subroutine aero_info_array_shrink
 
@@ -232,11 +159,10 @@ contains
 
     integer :: n
 
-    n = aero_info_array%n_item + 1
+    n = aero_info_array_n_item(aero_info_array) + 1
     call aero_info_array_enlarge_to(aero_info_array, n)
-    call aero_info_allocate(aero_info_array%aero_info(n))
-    call aero_info_copy(aero_info, aero_info_array%aero_info(n))
-    aero_info_array%n_item = aero_info_array%n_item + 1
+    aero_info_array%aero_info(n) = aero_info
+    aero_info_array%n_item = n
 
   end subroutine aero_info_array_add_aero_info
 
@@ -251,16 +177,13 @@ contains
     !> Index of aero_info to remove.
     integer, intent(in) :: index
 
+    call assert(578870706, allocated(aero_info_array%aero_info))
     call assert(213892348, index >= 1)
     call assert(953927392, index <= aero_info_array%n_item)
-    call aero_info_deallocate(aero_info_array%aero_info(index))
     if (index < aero_info_array%n_item) then
        ! shift last aero_info into empty slot to preserve dense packing
-       call aero_info_copy( &
-            aero_info_array%aero_info(aero_info_array%n_item), &
-            aero_info_array%aero_info(index))
-       call aero_info_deallocate( &
-            aero_info_array%aero_info(aero_info_array%n_item))
+       aero_info_array%aero_info(index) &
+            = aero_info_array%aero_info(aero_info_array%n_item)
     end if
     aero_info_array%n_item = aero_info_array%n_item - 1
     call aero_info_array_shrink(aero_info_array)
@@ -285,9 +208,7 @@ contains
     n_new = n + n_delta
     call aero_info_array_enlarge_to(aero_info_array, n_new)
     do i = 1,n_delta
-       call aero_info_allocate(aero_info_array%aero_info(n + i))
-       call aero_info_copy(aero_info_array_delta%aero_info(i), &
-            aero_info_array%aero_info(n + i))
+       aero_info_array%aero_info(n + i) = aero_info_array_delta%aero_info(i)
     end do
     aero_info_array%n_item = n_new
 
@@ -304,8 +225,9 @@ contains
     integer :: i, total_size
 
     total_size = 0
-    total_size = total_size + pmc_mpi_pack_size_integer(val%n_item)
-    do i = 1,val%n_item
+    total_size = total_size &
+         + pmc_mpi_pack_size_integer(aero_info_array_n_item(val))
+    do i = 1,aero_info_array_n_item(val)
        total_size = total_size &
             + pmc_mpi_pack_size_aero_info(val%aero_info(i))
     end do
@@ -329,8 +251,8 @@ contains
     integer :: prev_position, i
 
     prev_position = position
-    call pmc_mpi_pack_integer(buffer, position, val%n_item)
-    do i = 1,val%n_item
+    call pmc_mpi_pack_integer(buffer, position, aero_info_array_n_item(val))
+    do i = 1,aero_info_array_n_item(val)
        call pmc_mpi_pack_aero_info(buffer, position, val%aero_info(i))
     end do
     call assert(732927292, &
@@ -352,14 +274,13 @@ contains
     type(aero_info_array_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, i
+    integer :: prev_position, i, n
 
-    call aero_info_array_deallocate(val)
     prev_position = position
-    call pmc_mpi_unpack_integer(buffer, position, val%n_item)
-    allocate(val%aero_info(val%n_item))
-    do i = 1,val%n_item
-       call aero_info_allocate(val%aero_info(i))
+    call pmc_mpi_unpack_integer(buffer, position, n)
+    call aero_info_array_realloc(val, n)
+    val%n_item = n
+    do i = 1,n
        call pmc_mpi_unpack_aero_info(buffer, position, val%aero_info(i))
     end do
     call assert(262838429, &

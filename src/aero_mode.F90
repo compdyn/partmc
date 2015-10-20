@@ -54,15 +54,16 @@ module pmc_aero_mode
      !> Log base 10 of geometric standard deviation of radius, (m).
      real(kind=dp) :: log10_std_dev_radius
      !> Sample bin radii [length <tt>(N + 1)</tt>] (m).
-     real(kind=dp), pointer :: sample_radius(:)
+     real(kind=dp), allocatable :: sample_radius(:)
      !> Sample bin number concentrations [length <tt>N</tt>] (m^{-3}).
-     real(kind=dp), pointer :: sample_num_conc(:)
+     real(kind=dp), allocatable :: sample_num_conc(:)
      !> Total number concentration of mode (#/m^3).
      real(kind=dp) :: num_conc
-     !> Species fractions by volume [length \c aero_data%%n_spec] (1).
-     real(kind=dp), pointer :: vol_frac(:)
-     !> Species fraction standard deviation [length \c aero_data%%n_spec] (1).
-     real(kind=dp), pointer :: vol_frac_std(:)
+     !> Species fractions by volume [length \c aero_data_n_spec(aero_data)] (1).
+     real(kind=dp), allocatable :: vol_frac(:)
+     !> Species fraction standard deviation
+     !> [length \c aero_data_n_spec(aero_data)] (1).
+     real(kind=dp), allocatable :: vol_frac_std(:)
      !> Source number.
      integer :: source
   end type aero_mode_t
@@ -92,83 +93,6 @@ contains
     end if
 
   end function aero_mode_type_to_string
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Allocates an aero_mode.
-  subroutine aero_mode_allocate(aero_mode)
-
-    !> Aerosol mode.
-    type(aero_mode_t), intent(out) :: aero_mode
-
-    allocate(aero_mode%vol_frac(0))
-    allocate(aero_mode%vol_frac_std(0))
-    allocate(aero_mode%sample_radius(0))
-    allocate(aero_mode%sample_num_conc(0))
-
-  end subroutine aero_mode_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Allocates an aero_mode of the given size.
-  subroutine aero_mode_allocate_size(aero_mode, n_spec)
-
-    !> Aerosol mode.
-    type(aero_mode_t), intent(out) :: aero_mode
-    !> Number of species.
-    integer, intent(in) :: n_spec
-
-    allocate(aero_mode%vol_frac(n_spec))
-    allocate(aero_mode%vol_frac_std(n_spec))
-    allocate(aero_mode%sample_radius(0))
-    allocate(aero_mode%sample_num_conc(0))
-
-  end subroutine aero_mode_allocate_size
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Free all storage.
-  subroutine aero_mode_deallocate(aero_mode)
-
-    !> Aerosol mode.
-    type(aero_mode_t), intent(inout) :: aero_mode
-
-    deallocate(aero_mode%vol_frac)
-    deallocate(aero_mode%vol_frac_std)
-    deallocate(aero_mode%sample_radius)
-    deallocate(aero_mode%sample_num_conc)
-
-  end subroutine aero_mode_deallocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Copy an aero_mode.
-  subroutine aero_mode_copy(aero_mode_from, aero_mode_to)
-
-    !> Aerosol mode original.
-    type(aero_mode_t), intent(in) :: aero_mode_from
-    !> Aerosol mode copy.
-    type(aero_mode_t), intent(inout) :: aero_mode_to
-
-    call aero_mode_deallocate(aero_mode_to)
-    call aero_mode_allocate_size(aero_mode_to, size(aero_mode_from%vol_frac))
-    aero_mode_to%name = aero_mode_from%name
-    aero_mode_to%type = aero_mode_from%type
-    aero_mode_to%char_radius = aero_mode_from%char_radius
-    aero_mode_to%log10_std_dev_radius = aero_mode_from%log10_std_dev_radius
-    aero_mode_to%num_conc = aero_mode_from%num_conc
-    aero_mode_to%vol_frac = aero_mode_from%vol_frac
-    aero_mode_to%vol_frac_std = aero_mode_from%vol_frac_std
-    aero_mode_to%source = aero_mode_from%source
-    deallocate(aero_mode_to%sample_radius)
-    deallocate(aero_mode_to%sample_num_conc)
-    allocate(aero_mode_to%sample_radius(size(aero_mode_from%sample_radius)))
-    allocate(aero_mode_to%sample_num_conc( &
-         size(aero_mode_from%sample_num_conc)))
-    aero_mode_to%sample_radius = aero_mode_from%sample_radius
-    aero_mode_to%sample_num_conc = aero_mode_from%sample_num_conc
-
-  end subroutine aero_mode_copy
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -207,11 +131,11 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Number concentration (#(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: num_conc(bin_grid_size(bin_grid))
 
     integer :: k
 
-    do k = 1,bin_grid%n_bin
+    do k = 1,bin_grid_size(bin_grid)
        num_conc(k) = total_num_conc / (sqrt(2d0 * const%pi) &
             * log10_sigma_g) * dexp(-(dlog10(bin_grid%centers(k)) &
             - dlog10(geom_mean_radius))**2d0 &
@@ -241,9 +165,9 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume concentration (V(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: vol_conc(bin_grid_size(bin_grid))
 
-    real(kind=dp) :: num_conc(bin_grid%n_bin)
+    real(kind=dp) :: num_conc(bin_grid_size(bin_grid))
 
     call num_conc_log_normal(total_num_conc, geom_mean_radius, &
          log10_sigma_g, bin_grid, num_conc)
@@ -267,13 +191,13 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Number concentration (#(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: num_conc(bin_grid_size(bin_grid))
 
     integer :: k
     real(kind=dp) :: mean_vol, num_conc_vol
 
     mean_vol = rad2vol(radius_at_mean_vol)
-    do k = 1,bin_grid%n_bin
+    do k = 1,bin_grid_size(bin_grid)
        num_conc_vol = total_num_conc / mean_vol &
             * exp(-(rad2vol(bin_grid%centers(k)) / mean_vol))
        call vol_to_lnr(bin_grid%centers(k), num_conc_vol, num_conc(k))
@@ -294,9 +218,9 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume concentration (V(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: vol_conc(bin_grid_size(bin_grid))
 
-    real(kind=dp) :: num_conc(bin_grid%n_bin)
+    real(kind=dp) :: num_conc(bin_grid_size(bin_grid))
 
     call num_conc_exp(total_num_conc, radius_at_mean_vol, bin_grid, num_conc)
     vol_conc = num_conc * rad2vol(bin_grid%centers)
@@ -316,13 +240,13 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Number concentration (#(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: num_conc(bin_grid_size(bin_grid))
 
     integer :: k
 
     num_conc = 0d0
     k = bin_grid_find(bin_grid, radius)
-    if ((k < 1) .or. (k > bin_grid%n_bin)) then
+    if ((k < 1) .or. (k > bin_grid_size(bin_grid))) then
        call warn_msg(825666877, "monodisperse radius outside of bin_grid")
     else
        num_conc(k) = total_num_conc / bin_grid%widths(k)
@@ -342,13 +266,13 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume concentration (V(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: vol_conc(bin_grid_size(bin_grid))
 
     integer :: k
 
     vol_conc = 0d0
     k = bin_grid_find(bin_grid, radius)
-    if ((k < 1) .or. (k > bin_grid%n_bin)) then
+    if ((k < 1) .or. (k > bin_grid_size(bin_grid))) then
        call warn_msg(420930707, "monodisperse radius outside of bin_grid")
     else
        vol_conc(k) = total_num_conc / bin_grid%widths(k) &
@@ -370,7 +294,7 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Number concentration (#(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: num_conc(bin_grid_size(bin_grid))
 
     integer :: i_sample, n_sample, i_lower, i_upper, i_bin
     real(kind=dp) :: r_lower, r_upper
@@ -387,9 +311,9 @@ contains
        i_lower = bin_grid_find(bin_grid, r_lower)
        i_upper = bin_grid_find(bin_grid, r_upper)
        if (i_upper < 1) cycle
-       if (i_lower > bin_grid%n_bin) cycle
+       if (i_lower > bin_grid_size(bin_grid)) cycle
        i_lower = max(1, i_lower)
-       i_upper = min(bin_grid%n_bin, i_upper)
+       i_upper = min(bin_grid_size(bin_grid), i_upper)
        do i_bin = i_lower,i_upper
           r_bin_lower = bin_grid%edges(i_bin)
           r_bin_upper = bin_grid%edges(i_bin + 1)
@@ -416,9 +340,9 @@ contains
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Volume concentration (V(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: vol_conc(bin_grid_size(bin_grid))
 
-    real(kind=dp) :: num_conc(bin_grid%n_bin)
+    real(kind=dp) :: num_conc(bin_grid_size(bin_grid))
 
     call num_conc_sampled(sample_radius, sample_num_conc, bin_grid, num_conc)
     vol_conc = num_conc * rad2vol(bin_grid%centers)
@@ -438,7 +362,7 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Number concentration (#(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: num_conc(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: num_conc(bin_grid_size(bin_grid))
 
     if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
        call num_conc_log_normal(aero_mode%num_conc, aero_mode%char_radius, &
@@ -473,10 +397,11 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Volume concentration (V(ln(r))d(ln(r))).
-    real(kind=dp), intent(out) :: vol_conc(bin_grid%n_bin, aero_data%n_spec)
+    real(kind=dp), intent(out) :: vol_conc(bin_grid_size(bin_grid), &
+         aero_data_n_spec(aero_data))
 
     integer :: i_spec
-    real(kind=dp) :: vol_conc_total(bin_grid%n_bin)
+    real(kind=dp) :: vol_conc_total(bin_grid_size(bin_grid))
 
     if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
        call vol_conc_log_normal(aero_mode%num_conc, aero_mode%char_radius, &
@@ -497,7 +422,7 @@ contains
     call assert_msg(756593082, sum(aero_mode%vol_frac_std) == 0d0, &
          "cannot convert species fractions with non-zero standard deviation " &
          // "to binned distributions")
-    do i_spec = 1,aero_data%n_spec
+    do i_spec = 1,aero_data_n_spec(aero_data)
        vol_conc(:,i_spec) = vol_conc_total * aero_mode%vol_frac(i_spec)
     end do
 
@@ -720,13 +645,13 @@ contains
     !> Aero_data data.
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol species volume fractions.
-    real(kind=dp), intent(inout) :: vol_frac(:)
+    real(kind=dp), allocatable, intent(inout) :: vol_frac(:)
     !> Aerosol species volume fraction standard deviations.
-    real(kind=dp), intent(inout) :: vol_frac_std(:)
+    real(kind=dp), allocatable, intent(inout) :: vol_frac_std(:)
 
     integer :: n_species, species, i
-    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
-    real(kind=dp), pointer :: species_data(:,:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), allocatable :: species_name(:)
+    real(kind=dp), allocatable :: species_data(:,:)
     real(kind=dp) :: tot_vol_frac
 
     !> \page input_format_mass_frac Input File Format: Aerosol Mass Fractions
@@ -771,8 +696,6 @@ contains
     !!     of an aerosol distribution
 
     ! read the aerosol data from the specified file
-    allocate(species_name(0))
-    allocate(species_data(0,0))
     call spec_file_read_real_named_array(file, 0, species_name, &
          species_data)
 
@@ -788,6 +711,10 @@ contains
     end if
 
     ! copy over the data
+    if (allocated(vol_frac)) deallocate(vol_frac)
+    if (allocated(vol_frac_std)) deallocate(vol_frac_std)
+    allocate(vol_frac(aero_data_n_spec(aero_data)))
+    allocate(vol_frac_std(aero_data_n_spec(aero_data)))
     vol_frac = 0d0
     vol_frac_std = 0d0
     do i = 1,n_species
@@ -801,8 +728,6 @@ contains
           vol_frac_std(species) = species_data(i, 2)
        end if
     end do
-    deallocate(species_name)
-    deallocate(species_data)
 
     ! convert mass fractions to volume fractions
     vol_frac = vol_frac / aero_data%density
@@ -831,12 +756,12 @@ contains
     !> Spec file to read size distribution from.
     type(spec_file_t), intent(inout) :: file
     !> Sample radius values (m).
-    real(kind=dp), pointer :: sample_radius(:)
+    real(kind=dp), allocatable, intent(inout) :: sample_radius(:)
     !> Sample number concentrations (m^{-3}).
-    real(kind=dp), pointer :: sample_num_conc(:)
+    real(kind=dp), allocatable, intent(inout) :: sample_num_conc(:)
 
-    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: names(:)
-    real(kind=dp), pointer :: data(:,:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), allocatable :: names(:)
+    real(kind=dp), allocatable :: data(:,:)
     integer :: n_sample, i_sample
 
     !> \page input_format_size_dist Input File Format: Size Distribution
@@ -872,15 +797,15 @@ contains
     !!     of an aerosol distribution
 
     ! read the data from the file
-    allocate(names(0))
-    allocate(data(0,0))
     call spec_file_read_real_named_array(file, 1, names, data)
+    call spec_file_assert_msg(311818741, file, size(names) == 1, &
+         'must contain a line starting with "diam"')
     call spec_file_check_name(file, 'diam', names(1))
     n_sample = size(data,2) - 1
     call spec_file_assert_msg(669011124, file, n_sample >= 1, &
          'must have at least two diam values')
 
-    deallocate(sample_radius)
+    if (allocated(sample_radius)) deallocate(sample_radius)
     allocate(sample_radius(n_sample + 1))
     sample_radius = diam2rad(data(1,:))
     do i_sample = 1,n_sample
@@ -890,12 +815,14 @@ contains
     end do
 
     call spec_file_read_real_named_array(file, 1, names, data)
+    call spec_file_assert_msg(801676496, file, size(names) == 1, &
+         'must contain a line starting with "num_conc"')
     call spec_file_check_name(file, 'num_conc', names(1))
 
     call spec_file_assert_msg(721029144, file, size(data, 2) == n_sample, &
          'must have one fewer num_conc than diam values')
 
-    deallocate(sample_num_conc)
+    if (allocated(sample_num_conc)) deallocate(sample_num_conc)
     allocate(sample_num_conc(n_sample))
     sample_num_conc = data(1,:)
     do i_sample = 1,n_sample
@@ -1010,13 +937,10 @@ contains
     !!   - \ref input_format_mass_frac --- the format for the mass
     !!     fractions file
 
-    call spec_line_allocate(line)
     call spec_file_read_line(file, line, eof)
     if (.not. eof) then
        call spec_file_check_line_name(file, line, "mode_name")
        call spec_file_check_line_length(file, line, 1)
-       call aero_mode_deallocate(aero_mode)
-       call aero_mode_allocate_size(aero_mode, aero_data%n_spec)
        tmp_str = line%data(1) ! hack to avoid gfortran warning
        aero_mode%name = tmp_str(1:AERO_MODE_NAME_LEN)
        aero_mode%source = aero_data_source_by_name(aero_data, aero_mode%name)
@@ -1026,6 +950,8 @@ contains
             aero_mode%vol_frac, aero_mode%vol_frac_std)
        call spec_file_close(mass_frac_file)
        call spec_file_read_string(file, 'mode_type', mode_type)
+       aero_mode%sample_radius = [ real(kind=dp) :: ]
+       aero_mode%sample_num_conc = [ real(kind=dp) :: ]
        if (trim(mode_type) == 'log_normal') then
           aero_mode%type = AERO_MODE_TYPE_LOG_NORMAL
           call spec_file_read_real(file, 'num_conc', aero_mode%num_conc)
@@ -1055,7 +981,6 @@ contains
                "Unknown distribution mode type: " // trim(mode_type))
        end if
     end if
-    call spec_line_deallocate(line)
 
   end subroutine spec_file_read_aero_mode
 

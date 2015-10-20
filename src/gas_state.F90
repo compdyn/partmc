@@ -23,51 +23,44 @@ module pmc_gas_state
   !! The gas species are defined by the gas_data_t structure, so that
   !! \c gas_state%%mix_rat(i) is the current mixing ratio of the gas
   !! with name \c gas_data%%name(i), etc.
+  !!
+  !! By convention, if gas_state_is_allocated() return \c .false.,
+  !! then the gas_state is treated as zero for all operations on
+  !! it. This will be the case for new \c gas_state_t structures.
   type gas_state_t
      !> Length n_spec, mixing ratio (ppb).
-     real(kind=dp), pointer :: mix_rat(:)
+     real(kind=dp), allocatable :: mix_rat(:)
   end type gas_state_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocate storage for gas species.
-  subroutine gas_state_allocate(gas_state)
+  !> Determine whether the \c gas_state is correctly allocated.
+  logical function gas_state_is_allocated(gas_state)
 
-    !> Gas state to be allocated.
-    type(gas_state_t), intent(out) :: gas_state
+    !> Gas state to check.
+    type(gas_state_t), intent(in) :: gas_state
 
-    allocate(gas_state%mix_rat(0))
+    gas_state_is_allocated = allocated(gas_state%mix_rat)
 
-  end subroutine gas_state_allocate
+  end function gas_state_is_allocated
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocate storage for gas species of the given size.
-  subroutine gas_state_allocate_size(gas_state, n_spec)
+  !> Sets the sizes of the gas state.
+  subroutine gas_state_set_size(gas_state, n_spec)
 
     !> Gas state to be allocated.
-    type(gas_state_t), intent(out) :: gas_state
+    type(gas_state_t), intent(inout) :: gas_state
     !> Number of species.
     integer, intent(in) :: n_spec
 
+    if (allocated(gas_state%mix_rat)) deallocate(gas_state%mix_rat)
     allocate(gas_state%mix_rat(n_spec))
     call gas_state_zero(gas_state)
 
-  end subroutine gas_state_allocate_size
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Free all storage.
-  subroutine gas_state_deallocate(gas_state)
-
-    !> Gas state to be freed.
-    type(gas_state_t), intent(inout) :: gas_state
-
-    deallocate(gas_state%mix_rat)
-
-  end subroutine gas_state_deallocate
+  end subroutine gas_state_set_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -77,28 +70,11 @@ contains
     !> Gas state.
     type(gas_state_t), intent(inout) :: gas_state
 
-    gas_state%mix_rat = 0d0
+    if (gas_state_is_allocated(gas_state)) then
+       gas_state%mix_rat = 0d0
+    end if
 
   end subroutine gas_state_zero
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Copy to an already allocated to_state.
-  subroutine gas_state_copy(from_state, to_state)
-
-    !> Existing gas state.
-    type(gas_state_t), intent(in) :: from_state
-    !> Must be allocated already.
-    type(gas_state_t), intent(inout) :: to_state
-
-    integer :: n_spec
-
-    n_spec = size(from_state%mix_rat)
-    deallocate(to_state%mix_rat)
-    allocate(to_state%mix_rat(n_spec))
-    to_state%mix_rat = from_state%mix_rat
-
-  end subroutine gas_state_copy
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -110,7 +86,9 @@ contains
     !> Scale factor.
     real(kind=dp), intent(in) :: alpha
 
-    gas_state%mix_rat = gas_state%mix_rat * alpha
+    if (gas_state_is_allocated(gas_state)) then
+       gas_state%mix_rat = gas_state%mix_rat * alpha
+    end if
 
   end subroutine gas_state_scale
 
@@ -124,7 +102,13 @@ contains
     !> Incremental state.
     type(gas_state_t), intent(in) :: gas_state_delta
 
-    gas_state%mix_rat = gas_state%mix_rat + gas_state_delta%mix_rat
+    if (gas_state_is_allocated(gas_state_delta)) then
+       if (gas_state_is_allocated(gas_state)) then
+          gas_state%mix_rat = gas_state%mix_rat + gas_state_delta%mix_rat
+       else
+          gas_state%mix_rat = gas_state_delta%mix_rat
+       end if
+    end if
 
   end subroutine gas_state_add
 
@@ -142,7 +126,14 @@ contains
     !> Scale factor.
     real(kind=dp), intent(in) :: alpha
 
-    gas_state%mix_rat = gas_state%mix_rat + alpha * gas_state_delta%mix_rat
+    if (gas_state_is_allocated(gas_state_delta)) then
+       if (gas_state_is_allocated(gas_state)) then
+          gas_state%mix_rat = gas_state%mix_rat &
+               + alpha * gas_state_delta%mix_rat
+       else
+          gas_state%mix_rat = alpha * gas_state_delta%mix_rat
+       end if
+    end if
 
   end subroutine gas_state_add_scaled
 
@@ -156,7 +147,13 @@ contains
     !> Incremental state.
     type(gas_state_t), intent(in) :: gas_state_delta
 
-    gas_state%mix_rat = gas_state%mix_rat - gas_state_delta%mix_rat
+    if (gas_state_is_allocated(gas_state_delta)) then
+       if (gas_state_is_allocated(gas_state)) then
+          gas_state%mix_rat = gas_state%mix_rat - gas_state_delta%mix_rat
+       else
+          gas_state%mix_rat = - gas_state_delta%mix_rat
+       end if
+    end if
 
   end subroutine gas_state_sub
 
@@ -168,7 +165,9 @@ contains
     !> Gas state.
     type(gas_state_t) :: gas_state
 
-    gas_state%mix_rat = max(gas_state%mix_rat, 0d0)
+    if (gas_state_is_allocated(gas_state)) then
+       gas_state%mix_rat = max(gas_state%mix_rat, 0d0)
+    end if
 
   end subroutine gas_state_ensure_nonnegative
 
@@ -182,8 +181,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
 
-    gas_state%mix_rat = gas_state%mix_rat &
-         / env_state_air_molar_den(env_state) * 1d9
+    call gas_state_scale(gas_state, 1d9 / env_state_air_molar_den(env_state))
 
   end subroutine gas_state_mole_dens_to_ppb
 
@@ -214,15 +212,15 @@ contains
     p = find_1d(n, time_list, time)
     if (p == 0) then
        ! before the start, just use the first state and rate
-       call gas_state_copy(gas_state_list(1), gas_state)
+       gas_state = gas_state_list(1)
        rate = rate_list(1)
     elseif (p == n) then
        ! after the end, just use the last state and rate
-       call gas_state_copy(gas_state_list(n), gas_state)
+       gas_state = gas_state_list(n)
        rate = rate_list(n)
     else
        ! in the middle, use the previous state
-       call gas_state_copy(gas_state_list(p), gas_state)
+       gas_state = gas_state_list(p)
        rate = rate_list(p)
     end if
 
@@ -241,8 +239,8 @@ contains
     type(gas_state_t), intent(inout) :: gas_state
 
     integer :: n_species, species, i
-    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
-    real(kind=dp), pointer :: species_data(:,:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), allocatable :: species_name(:)
+    real(kind=dp), allocatable :: species_data(:,:)
 
     !> \page input_format_gas_state Input File Format: Gas State
     !!
@@ -267,8 +265,6 @@ contains
     !!   - \ref input_format_gas_data --- the gas species list and
     !!     material data
 
-    allocate(species_name(0))
-    allocate(species_data(0,0))
     call spec_file_read_real_named_array(file, 0, species_name, &
          species_data)
 
@@ -280,9 +276,7 @@ contains
     end if
 
     ! copy over the data
-    call gas_state_deallocate(gas_state)
-    call gas_state_allocate_size(gas_state, gas_data%n_spec)
-    gas_state%mix_rat = 0d0
+    call gas_state_set_size(gas_state, gas_data_n_spec(gas_data))
     do i = 1,n_species
        species = gas_data_spec_by_name(gas_data, species_name(i))
        if (species == 0) then
@@ -291,8 +285,6 @@ contains
        end if
        gas_state%mix_rat(species) = species_data(i,1)
     end do
-    deallocate(species_name)
-    deallocate(species_data)
 
   end subroutine spec_file_read_gas_state
 
@@ -308,15 +300,15 @@ contains
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
     !> Times (s).
-    real(kind=dp), pointer :: times(:)
+    real(kind=dp), allocatable :: times(:)
     !> Rates (s^{-1}).
-    real(kind=dp), pointer :: rates(:)
+    real(kind=dp), allocatable :: rates(:)
     !> Gas states.
-    type(gas_state_t), pointer :: gas_states(:)
+    type(gas_state_t), allocatable :: gas_states(:)
 
     integer :: n_lines, species, i, n_time, i_time
-    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
-    real(kind=dp), pointer :: species_data(:,:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), allocatable :: species_name(:)
+    real(kind=dp), allocatable :: species_data(:,:)
 
     !> \page input_format_gas_profile Input File Format: Gas Profile
     !!
@@ -383,8 +375,6 @@ contains
     !!     material data
 
     ! read the data from the file
-    allocate(species_name(0))
-    allocate(species_data(0,0))
     call spec_file_read_real_named_array(file, 0, species_name, &
          species_data)
 
@@ -409,19 +399,12 @@ contains
     end if
 
     ! copy over the data
-    do i_time = 1,size(gas_states)
-       call gas_state_deallocate(gas_states(i_time))
-    end do
-    deallocate(gas_states)
-    deallocate(times)
-    deallocate(rates)
+    times = species_data(1,:)
+    rates = species_data(2,:)
+    if (allocated(gas_states)) deallocate(gas_states)
     allocate(gas_states(n_time))
-    allocate(times(n_time))
-    allocate(rates(n_time))
     do i_time = 1,n_time
-       call gas_state_allocate_size(gas_states(i_time), gas_data%n_spec)
-       times(i_time) = species_data(1,i_time)
-       rates(i_time) = species_data(2,i_time)
+       call gas_state_set_size(gas_states(i_time), gas_data_n_spec(gas_data))
     end do
     do i = 3,n_lines
        species = gas_data_spec_by_name(gas_data, species_name(i))
@@ -434,8 +417,6 @@ contains
           gas_states(i_time)%mix_rat(species) = species_data(i,i_time)
        end do
     end do
-    deallocate(species_name)
-    deallocate(species_data)
 
   end subroutine spec_file_read_gas_states_times_rates
 
@@ -450,10 +431,9 @@ contains
 #ifdef PMC_USE_MPI
     type(gas_state_t) :: val_avg
 
-    call gas_state_allocate_size(val_avg, size(val%mix_rat))
+    call gas_state_set_size(val_avg, size(val%mix_rat))
     call pmc_mpi_allreduce_average_real_array(val%mix_rat, val_avg%mix_rat)
     val%mix_rat = val_avg%mix_rat
-    call gas_state_deallocate(val_avg)
 #endif
 
   end subroutine gas_state_mix
@@ -470,12 +450,11 @@ contains
 #ifdef PMC_USE_MPI
     type(gas_state_t) :: val_avg
 
-    call gas_state_allocate_size(val_avg, size(val%mix_rat))
+    call gas_state_set_size(val_avg, size(val%mix_rat))
     call pmc_mpi_reduce_avg_real_array(val%mix_rat, val_avg%mix_rat)
     if (pmc_mpi_rank() == 0) then
        val%mix_rat = val_avg%mix_rat
     end if
-    call gas_state_deallocate(val_avg)
 #endif
 
   end subroutine gas_state_reduce_avg
@@ -603,10 +582,7 @@ contains
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
 
-    call gas_state_deallocate(gas_state)
-    call gas_state_allocate_size(gas_state, gas_data%n_spec)
-    call pmc_nc_read_real_1d(ncid, gas_state%mix_rat, &
-         "gas_mixing_ratio")
+    call pmc_nc_read_real_1d(ncid, gas_state%mix_rat, "gas_mixing_ratio")
 
   end subroutine gas_state_input_netcdf
 

@@ -42,6 +42,7 @@
 
   * Distributed parallel coagulation is disabled due to lack of
     weighting support.
+>>>>>>> add ChangeLog entry for automatic memory management
 
 2.2.1 - 2012-03-30
 

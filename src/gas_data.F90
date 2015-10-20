@@ -22,65 +22,36 @@ module pmc_gas_data
   !> Constant gas data.
   !!
   !! Each gas species is identified by an integer \c i between 1 and
-  !! \c n_spec. Species \c i has name \c gas_data%%name(i). The
-  !! variable gas data describing the current mixing ratios is stored
+  !! \c gas_data_n_spec(gas_data). Species \c i has name \c gas_data%%name(i).
+  !! The variable gas data describing the current mixing ratios is stored
   !! in the gas_state_t structure, so the mixing ratio of species \c i
   !! is gas_state%%mix_rat(i).
   type gas_data_t
-     !> Number of species.
-     integer :: n_spec
-     !> Species name [length \c n_spec].
-     character(len=GAS_NAME_LEN), pointer :: name(:)
+     !> Species name [length \c gas_data_n_spec(gas_data)].
+     character(len=GAS_NAME_LEN), allocatable :: name(:)
      !> Index of the corresponding MOSAIC species [length \c
-     !> n_spec]. \c to_mosaic(i) is the mosaic index of species \c i,
-     !> or 0 if there is no match.
-     integer, pointer :: mosaic_index(:)
+     !> gas_data_n_spec(gas_data)]. \c to_mosaic(i) is the mosaic index of
+     !> species \c i, or 0 if there is no match.
+     integer, allocatable :: mosaic_index(:)
   end type gas_data_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocate storage for gas species.
-  subroutine gas_data_allocate(gas_data)
+  !> Return the number of gas species.
+  elemental integer function gas_data_n_spec(gas_data)
 
-    !> Gas data.
-    type(gas_data_t), intent(out) :: gas_data
+    !> Aero data structure.
+    type(gas_data_t), intent(in) :: gas_data
 
-    gas_data%n_spec = 0
-    allocate(gas_data%name(0))
-    allocate(gas_data%mosaic_index(0))
+    if (allocated(gas_data%name)) then
+       gas_data_n_spec = size(gas_data%name)
+    else
+       gas_data_n_spec = 0
+    end if
 
-  end subroutine gas_data_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Allocate storage for gas species with the given size.
-  subroutine gas_data_allocate_size(gas_data, n_spec)
-
-    !> Gas data.
-    type(gas_data_t), intent(out) :: gas_data
-    !> Number of species.
-    integer, intent(in) :: n_spec
-
-    gas_data%n_spec = n_spec
-    allocate(gas_data%name(n_spec))
-    allocate(gas_data%mosaic_index(n_spec))
-
-  end subroutine gas_data_allocate_size
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Free all storage.
-  subroutine gas_data_deallocate(gas_data)
-
-    !> Gas data.
-    type(gas_data_t), intent(inout) :: gas_data
-
-    deallocate(gas_data%name)
-    deallocate(gas_data%mosaic_index)
-
-  end subroutine gas_data_deallocate
+  end function gas_data_n_spec
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -97,7 +68,7 @@ contains
     logical found
 
     found = .false.
-    do i = 1,gas_data%n_spec
+    do i = 1,gas_data_n_spec(gas_data)
        if (name == gas_data%name(i)) then
           found = .true.
           exit
@@ -152,7 +123,7 @@ contains
     integer spec, mosaic_spec, i
 
     gas_data%mosaic_index = 0
-    do spec = 1,gas_data%n_spec
+    do spec = 1,gas_data_n_spec(gas_data)
        mosaic_spec = 0
        do i = 1,n_mosaic_species
           if (gas_data%name(spec) == mosaic_species(i)) then
@@ -177,8 +148,8 @@ contains
     type(gas_data_t), intent(inout) :: gas_data
 
     integer :: n_species, species, i
-    character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: species_name(:)
-    real(kind=dp), pointer :: species_data(:,:)
+    character(len=SPEC_LINE_MAX_VAR_LEN), allocatable :: species_name(:)
+    real(kind=dp), allocatable :: species_data(:,:)
 
     !> \page input_format_gas_data Input File Format: Gas Material Data
     !!
@@ -198,8 +169,6 @@ contains
     !!   - \ref output_format_gas_data --- the corresponding output format
 
     ! read the gas data from the specified file
-    allocate(species_name(0))
-    allocate(species_data(0,0))
     call spec_file_read_real_named_array(file, 0, species_name, &
          species_data)
 
@@ -211,14 +180,12 @@ contains
 
     ! allocate and copy over the data
     n_species = size(species_data, 1)
-    call gas_data_deallocate(gas_data)
-    call gas_data_allocate_size(gas_data, n_species)
+    call ensure_string_array_size(gas_data%name, n_species)
     do i = 1,n_species
        gas_data%name(i) = species_name(i)(1:GAS_NAME_LEN)
     end do
-    deallocate(species_name)
-    deallocate(species_data)
 
+    call ensure_integer_array_size(gas_data%mosaic_index, n_species)
     call gas_data_set_mosaic_map(gas_data)
 
   end subroutine spec_file_read_gas_data
@@ -232,8 +199,7 @@ contains
     type(gas_data_t), intent(in) :: val
 
     pmc_mpi_pack_size_gas_data = &
-         pmc_mpi_pack_size_integer(val%n_spec) &
-         + pmc_mpi_pack_size_string_array(val%name) &
+         pmc_mpi_pack_size_string_array(val%name) &
          + pmc_mpi_pack_size_integer_array(val%mosaic_index)
 
   end function pmc_mpi_pack_size_gas_data
@@ -254,7 +220,6 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_pack_integer(buffer, position, val%n_spec)
     call pmc_mpi_pack_string_array(buffer, position, val%name)
     call pmc_mpi_pack_integer_array(buffer, position, val%mosaic_index)
     call assert(449872094, &
@@ -279,7 +244,6 @@ contains
     integer :: prev_position
 
     prev_position = position
-    call pmc_mpi_unpack_integer(buffer, position, val%n_spec)
     call pmc_mpi_unpack_string_array(buffer, position, val%name)
     call pmc_mpi_unpack_integer_array(buffer, position, val%mosaic_index)
     call assert(137879163, &
@@ -305,8 +269,9 @@ contains
 
     integer :: status, i_spec
     integer :: varid_gas_species
-    integer :: gas_species_centers(gas_data%n_spec)
-    character(len=((GAS_NAME_LEN + 2) * gas_data%n_spec)) :: gas_species_names
+    integer :: gas_species_centers(gas_data_n_spec(gas_data))
+    character(len=((GAS_NAME_LEN + 2) * gas_data_n_spec(gas_data))) &
+         :: gas_species_names
 
     ! try to get the dimension ID
     status = nf90_inq_dimid(ncid, "gas_species", dimid_gas_species)
@@ -317,12 +282,12 @@ contains
     call pmc_nc_check(nf90_redef(ncid))
 
     call pmc_nc_check(nf90_def_dim(ncid, "gas_species", &
-         gas_data%n_spec, dimid_gas_species))
+         gas_data_n_spec(gas_data), dimid_gas_species))
     gas_species_names = ""
-    do i_spec = 1,gas_data%n_spec
+    do i_spec = 1,gas_data_n_spec(gas_data)
        gas_species_names((len_trim(gas_species_names) + 1):) &
             = trim(gas_data%name(i_spec))
-       if (i_spec < gas_data%n_spec) then
+       if (i_spec < gas_data_n_spec(gas_data)) then
           gas_species_names((len_trim(gas_species_names) + 1):) = ","
        end if
     end do
@@ -336,7 +301,7 @@ contains
 
     call pmc_nc_check(nf90_enddef(ncid))
 
-    do i_spec = 1,gas_data%n_spec
+    do i_spec = 1,gas_data_n_spec(gas_data)
        gas_species_centers(i_spec) = i_spec
     end do
     call pmc_nc_check(nf90_put_var(ncid, varid_gas_species, &
@@ -397,9 +362,12 @@ contains
     call pmc_nc_check(nf90_inq_dimid(ncid, "gas_species", dimid_gas_species))
     call pmc_nc_check(nf90_Inquire_Dimension(ncid, dimid_gas_species, name, &
          n_spec))
-    call gas_data_deallocate(gas_data)
-    call gas_data_allocate_size(gas_data, n_spec)
     call assert(719237193, n_spec < 1000)
+
+    if (allocated(gas_data%name)) deallocate(gas_data%name)
+    if (allocated(gas_data%mosaic_index)) deallocate(gas_data%mosaic_index)
+    allocate(gas_data%name(n_spec))
+    allocate(gas_data%mosaic_index(n_spec))
 
     call pmc_nc_read_integer_1d(ncid, gas_data%mosaic_index, &
          "gas_mosaic_index")
@@ -408,7 +376,7 @@ contains
     call pmc_nc_check(nf90_get_att(ncid, varid_gas_species, "names", &
          gas_species_names))
     ! gas_species_names are comma-separated, so unpack them
-    do i_spec = 1,gas_data%n_spec
+    do i_spec = 1,gas_data_n_spec(gas_data)
        i = 1
        do while ((gas_species_names(i:i) /= " ") &
             .and. (gas_species_names(i:i) /= ","))

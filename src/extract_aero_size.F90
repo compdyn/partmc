@@ -28,7 +28,6 @@ program extract_aero_size
   integer :: index, i_repeat, i_part, i_spec, out_unit
   integer :: i_file, n_file, i_bin, n_bin, dist_type
   real(kind=dp) :: time, del_t
-  type(aero_particle_t), pointer :: aero_particle
   real(kind=dp) :: d_min, d_max, diam, volume
   character(len=PMC_UUID_LEN) :: uuid, run_uuid
   real(kind=dp), allocatable :: diameters(:), num_concs(:), masses(:), hist(:)
@@ -109,10 +108,6 @@ program extract_aero_size
      end if
   end if
 
-  call bin_grid_allocate(diam_grid)
-  call aero_data_allocate(aero_data)
-  call aero_state_allocate(aero_state)
-
   allocate(filename_list(0))
   call input_filename_list(in_prefix, filename_list)
   n_file = size(filename_list)
@@ -172,9 +167,6 @@ program extract_aero_size
 
   deallocate(filename_list)
   deallocate(aero_dist)
-  call bin_grid_allocate(diam_grid)
-  call aero_data_deallocate(aero_data)
-  call aero_state_deallocate(aero_state)
 
   call pmc_mpi_finalize()
 

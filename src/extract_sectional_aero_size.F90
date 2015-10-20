@@ -92,10 +92,6 @@ program extract_sectional_aero_size
      end if
   end if
 
-  call bin_grid_allocate(bin_grid)
-  call aero_data_allocate(aero_data)
-  call aero_binned_allocate(aero_binned)
-
   allocate(filename_list(0))
   call input_filename_list(in_prefix, filename_list)
   n_file = size(filename_list)
@@ -106,7 +102,7 @@ program extract_sectional_aero_size
        bin_grid=bin_grid, aero_data=aero_data, aero_binned=aero_binned)
   run_uuid = uuid
 
-  allocate(aero_dist(bin_grid%n_bin, n_file))
+  allocate(aero_dist(bin_grid_size(bin_grid), n_file))
 
   do i_file = 1,n_file
      call input_sectional(filename_list(i_file), index, time, del_t, uuid, &
@@ -119,7 +115,7 @@ program extract_sectional_aero_size
      if (dist_type == DIST_TYPE_NUM) then
         aero_dist(:, i_file) = aero_binned%num_conc
      elseif (dist_type == DIST_TYPE_MASS) then
-        do i_bin = 1,bin_grid%n_bin
+        do i_bin = 1,bin_grid_size(bin_grid)
            aero_dist(i_bin, i_file) = sum(aero_binned%vol_conc(i_bin, :) &
                 * aero_data%density)
         end do
@@ -142,7 +138,7 @@ program extract_sectional_aero_size
        bin_grid%widths(1)
 
   call open_file_write(out_filename, out_unit)
-  do i_bin = 1,bin_grid%n_bin
+  do i_bin = 1,bin_grid_size(bin_grid)
      write(out_unit, '(e30.15e3)', advance='no') &
           rad2diam(bin_grid%centers(i_bin))
      do i_file = 1,n_file
@@ -154,9 +150,6 @@ program extract_sectional_aero_size
 
   deallocate(filename_list)
   deallocate(aero_dist)
-  call bin_grid_allocate(bin_grid)
-  call aero_data_deallocate(aero_data)
-  call aero_binned_deallocate(aero_binned)
 
   call pmc_mpi_finalize()
 

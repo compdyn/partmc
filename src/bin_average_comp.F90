@@ -66,13 +66,6 @@ program bin_average_comp
 
   call pmc_mpi_init()
 
-  call bin_grid_allocate(bin_grid)
-  call aero_data_allocate(aero_data)
-  call aero_state_allocate(aero_state)
-  call gas_data_allocate(gas_data)
-  call gas_state_allocate(gas_state)
-  call env_state_allocate(env_state)
-
   call bin_grid_make(bin_grid, BIN_GRID_TYPE_LOG, n_bin, diam2rad(d_min), &
        diam2rad(d_max))
 
@@ -91,13 +84,6 @@ program bin_average_comp
   call output_state(out_prefix, output_type, aero_data, aero_state, &
        gas_data, gas_state, env_state, index, time, del_t, i_repeat, &
        record_removals, record_optical, uuid)
-
-  call bin_grid_deallocate(bin_grid)
-  call aero_data_deallocate(aero_data)
-  call aero_state_deallocate(aero_state)
-  call gas_data_deallocate(gas_data)
-  call gas_state_deallocate(gas_state)
-  call env_state_deallocate(env_state)
 
   call pmc_mpi_finalize()
 

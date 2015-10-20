@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2011 Nicole Riemer and Matthew West
+! Copyright (C) 2009-2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -56,60 +56,6 @@ module pmc_aero_info
   end type aero_info_t
 
 contains
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Allocates and initializes.
-  subroutine aero_info_allocate(aero_info)
-
-    !> Result.
-    type(aero_info_t), intent(out) :: aero_info
-
-    call aero_info_zero(aero_info)
-
-  end subroutine aero_info_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Deallocates.
-  subroutine aero_info_deallocate(aero_info)
-
-    !> Structure to deallocate.
-    type(aero_info_t), intent(inout) :: aero_info
-
-  end subroutine aero_info_deallocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Copies aero_info_from to aero_info_to, both
-  !> of which must already be allocated.
-  subroutine aero_info_copy(aero_info_from, &
-       aero_info_to)
-
-    !> Origin structure.
-    type(aero_info_t), intent(in) :: aero_info_from
-    !> Destination structure.
-    type(aero_info_t), intent(inout) :: aero_info_to
-
-    aero_info_to%id = aero_info_from%id
-    aero_info_to%action = aero_info_from%action
-    aero_info_to%other_id = aero_info_from%other_id
-
-  end subroutine aero_info_copy
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Resets an aero_info to contain zero particles.
-  subroutine aero_info_zero(aero_info)
-
-    !> Structure to reset.
-    type(aero_info_t), intent(inout) :: aero_info
-
-    aero_info%id = 0
-    aero_info%action = AERO_INFO_NONE
-    aero_info%other_id = 0
-
-  end subroutine aero_info_zero
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -450,57 +450,65 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Makes a linearly spaced array from min to max.
-  subroutine linspace(min_x, max_x, x)
+  function linspace(min_x, max_x, n)
 
     !> Minimum array value.
     real(kind=dp), intent(in) :: min_x
     !> Maximum array value.
     real(kind=dp), intent(in) :: max_x
-    !> Array.
-    real(kind=dp), intent(out) :: x(:)
+    !> Length of array to create.
+    integer, intent(in) :: n
 
-    integer :: i, n
+    !> Return value.
+    real(kind=dp), allocatable :: linspace(:)
+
+    integer :: i
     real(kind=dp) :: a
 
-    n = size(x)
+    allocate(linspace(n))
+    call assert(999299119, n >= 0)
     do i = 2, (n - 1)
        a = real(i - 1, kind=dp) / real(n - 1, kind=dp)
-       x(i) = (1d0 - a) * min_x + a * max_x
+       linspace(i) = (1d0 - a) * min_x + a * max_x
     end do
     if (n > 0) then
        ! make sure these values are exact
-       x(1) = min_x
-       x(n) = max_x
+       linspace(1) = min_x
+       linspace(n) = max_x
     end if
 
-  end subroutine linspace
+  end function linspace
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Makes a logarithmically spaced array of length n from min to max.
-  subroutine logspace(min_x, max_x, x)
+  function logspace(min_x, max_x, n)
 
     !> Minimum array value.
     real(kind=dp), intent(in) :: min_x
     !> Maximum array value.
     real(kind=dp), intent(in) :: max_x
-    !> Array.
-    real(kind=dp), intent(out) :: x(:)
+    !> Length of array to create.
+    integer, intent(in) :: n
 
-    integer :: n
-    real(kind=dp) :: log_x(size(x))
+    !> Return value.
+    real(kind=dp), allocatable :: logspace(:)
 
-    n = size(x)
+    real(kind=dp), allocatable :: log_x(:)
+
+    allocate(logspace(n))
+
+    call assert(804623592, n >= 0)
     if (n == 0) return
     call assert(548290438, min_x > 0d0)
     call assert(805259035, max_x > 0d0)
-    call linspace(log(min_x), log(max_x), log_x)
-    x = exp(log_x)
+    log_x = linspace(log(min_x), log(max_x), n)
+    logspace = exp(log_x)
     ! make sure these values are exact
-    x(1) = min_x
-    x(n) = max_x
+    logspace(1) = min_x
+    logspace(n) = max_x
 
-  end subroutine logspace
+  end function logspace
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1000,6 +1008,24 @@ contains
     real_avg = sum(real_vec) / real(size(real_vec), kind=dp)
 
   end subroutine average_real
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Return the index of the first occurance of the given value in the
+  !> array, or 0 if it is not present.
+  integer function string_array_find(array, val)
+
+    !> Array of values.
+    character(len=*), intent(in) :: array(:)
+    !> Value to find.
+    character(len=*), intent(in) :: val
+
+    do string_array_find = 1,size(array)
+       if (trim(array(string_array_find)) == trim(val)) return
+    end do
+    string_array_find = 0
+
+  end function string_array_find
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1519,43 +1545,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Copy a 1D array of reals, reallocating if necessary.
-  subroutine copy_real_1d(source, dest)
-
-    !> Source array.
-    real(kind=dp), intent(in) :: source(:)
-    !> Destination array.
-    real(kind=dp), intent(inout), pointer :: dest(:)
-
-    if (size(dest) /= size(source)) then
-       deallocate(dest)
-       allocate(dest(size(source)))
-    end if
-    dest = source
-
-  end subroutine copy_real_1d
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Copy a 2D array of reals, reallocating if necessary.
-  subroutine copy_real_2d(source, dest)
-
-    !> Source array.
-    real(kind=dp), intent(in) :: source(:, :)
-    !> Destination array.
-    real(kind=dp), intent(inout), pointer :: dest(:, :)
-
-    if ((size(dest, 1) /= size(source, 1)) &
-         .or. (size(dest, 2) /= size(source, 2))) then
-       deallocate(dest)
-       allocate(dest(size(source, 1), size(source, 2)))
-    end if
-    dest = source
-
-  end subroutine copy_real_2d
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Compute the harmonic mean of two numbers.
   elemental real(kind=dp) function harmonic_mean(x1, x2)
 
@@ -1596,6 +1585,24 @@ contains
     entropy = sum(nplogp(p / sum(p)))
 
   end function entropy
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Return the least power-of-2 that is at least equal to n.
+  integer function pow2_above(n)
+
+    !> Lower bound on the power of 2.
+    integer, intent(in) :: n
+
+    if (n <= 0) then
+       pow2_above = 0
+       return
+    end if
+
+    ! LEADZ is in Fortran 2008
+    pow2_above = ibset(0, bit_size(n) - leadz(n - 1))
+
+  end function pow2_above
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

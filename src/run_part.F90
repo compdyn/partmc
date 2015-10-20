@@ -162,8 +162,6 @@ contains
     call check_time_multiple("t_progress", run_part_opt%t_progress, &
          "del_t", run_part_opt%del_t)
 
-    call env_state_allocate(old_env_state)
-
     if (run_part_opt%do_mosaic) then
        call mosaic_init(env_state, aero_data, run_part_opt%del_t, &
             run_part_opt%do_optical)
@@ -209,7 +207,7 @@ contains
 
        time = real(i_time, kind=dp) * run_part_opt%del_t
 
-       call env_state_copy(env_state, old_env_state)
+       old_env_state = env_state
        call scenario_update_env_state(scenario, env_state, time + t_start)
 
        if (run_part_opt%do_nucleation) then
@@ -281,8 +279,8 @@ contains
        call aero_state_rebalance(aero_state, run_part_opt%allow_doubling, &
             run_part_opt%allow_halving, initial_state_warning=.false.)
 
-       ! DEBUG: enable to check array handling
-       ! call aero_state_check_sort(aero_state)
+       ! DEBUG: enable to check consistency
+       ! call aero_state_check(aero_state, aero_data)
        ! DEBUG: end
 
        if (run_part_opt%t_output > 0d0) then
@@ -349,8 +347,6 @@ contains
     if (run_part_opt%do_mosaic) then
        call mosaic_cleanup()
     end if
-
-    call env_state_deallocate(old_env_state)
 
   end subroutine run_part
 

@@ -187,3 +187,13 @@ In util.F90, Dick needed to change "write( ret_val, '(i30)' ) val" to
 free format to avoid a crash.
 
 Rename bin_grid to rad_grid or similar (or replace with diam_grid).
+
+Add aero_data_validate() or _check() and similar to check consistency
+in dimensions, valid data, etc. Call after loading from netcdf files.
+
+Change integer_varray%n_entry to _n_entry. Same for
+aero_particle_array%n_part and similar.
+
+Change pmc_mpi_pack_size_real_array_2d() etc to take allocatables that
+might not be allocated, and deal correctly with them. Use this in
+pmg_mpi_pack_aero_state(), etc.

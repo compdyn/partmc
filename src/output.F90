@@ -181,13 +181,10 @@ contains
 #ifdef PMC_USE_MPI
           ! collect all data onto process 0 and then write it to a
           ! single file
-          call env_state_allocate(env_state_write)
-          call gas_state_allocate(gas_state_write)
-          call env_state_copy(env_state, env_state_write)
-          call gas_state_copy(gas_state, gas_state_write)
+          env_state_write = env_state
+          gas_state_write = gas_state
           call env_state_reduce_avg(env_state_write)
           call gas_state_reduce_avg(gas_state_write)
-          call aero_state_allocate(aero_state_write)
           call aero_state_mpi_gather(aero_state, aero_state_write)
           if (rank == 0) then
              call output_state_to_file(prefix, aero_data, aero_state_write, &
@@ -195,9 +192,6 @@ contains
                   del_t, i_repeat, record_removals, record_optical, uuid, &
                   rank, 1)
           end if
-          call aero_state_deallocate(aero_state_write)
-          call env_state_deallocate(env_state_write)
-          call gas_state_deallocate(gas_state_write)
 #endif
        end if
     else
@@ -483,9 +477,6 @@ contains
 
     ! unpack message
     position = 0
-    call env_state_allocate(env_state)
-    call gas_state_allocate(gas_state)
-    call aero_state_allocate(aero_state)
     call pmc_mpi_unpack_env_state(buffer, position, env_state)
     call pmc_mpi_unpack_gas_state(buffer, position, gas_state)
     call pmc_mpi_unpack_aero_state(buffer, position, aero_state)
@@ -495,10 +486,6 @@ contains
     call output_state_to_file(prefix, aero_data, aero_state, gas_data, &
          gas_state, env_state, index, time, del_t, i_repeat, &
          record_removals, record_optical, uuid, remote_proc, n_proc)
-
-    call env_state_deallocate(env_state)
-    call gas_state_deallocate(gas_state)
-    call aero_state_deallocate(aero_state)
 #endif
 
   end subroutine recv_output_state_central

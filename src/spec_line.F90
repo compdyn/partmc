@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2010 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2010, 2012 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -28,68 +28,26 @@ module pmc_spec_line
      !> Variable name.
      character(len=SPEC_LINE_MAX_VAR_LEN) :: name
      !> Array of data as strings.
-     character(len=SPEC_LINE_MAX_VAR_LEN), pointer :: data(:)
+     character(len=SPEC_LINE_MAX_VAR_LEN), allocatable :: data(:)
   end type spec_line_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Allocates memory for a spec_line.
-  subroutine spec_line_allocate(spec_line)
+  !> Sets the number of data elements in the line.
+  subroutine spec_line_set_size(spec_line, n_data)
 
     !> Struct to alloc.
-    type(spec_line_t), intent(out) :: spec_line
-
-    allocate(spec_line%data(0))
-
-  end subroutine spec_line_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Allocates memory for a spec_line of the given size.
-  subroutine spec_line_allocate_size(spec_line, n_data)
-
-    !> Struct to alloc.
-    type(spec_line_t), intent(out) :: spec_line
+    type(spec_line_t), intent(inout) :: spec_line
     !> Number of data items.
     integer, intent(in) :: n_data
 
+    if (allocated(spec_line%data)) deallocate(spec_line%data)
     allocate(spec_line%data(n_data))
+    spec_line%data = ""
 
-  end subroutine spec_line_allocate_size
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Frees all storage.
-  subroutine spec_line_deallocate(spec_line)
-
-    !> Struct to free.
-    type(spec_line_t), intent(inout) :: spec_line
-
-    deallocate(spec_line%data)
-
-  end subroutine spec_line_deallocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Copies a spec_line.
-  subroutine spec_line_copy(from_spec_line, to_spec_line)
-
-    !> Original spec_line.
-    type(spec_line_t), intent(in) :: from_spec_line
-    !> Destination, already alloced.
-    type(spec_line_t), intent(inout) :: to_spec_line
-
-    if (size(to_spec_line%data) /= size(from_spec_line%data)) then
-       call spec_line_deallocate(to_spec_line)
-       call spec_line_allocate_size(to_spec_line, &
-            size(from_spec_line%data))
-    end if
-    to_spec_line%name = from_spec_line%name
-    to_spec_line%data = from_spec_line%data
-
-  end subroutine spec_line_copy
+  end subroutine spec_line_set_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

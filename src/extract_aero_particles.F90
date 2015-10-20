@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2011 Matthew West
+! Copyright (C) 2009-2012 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -21,7 +21,6 @@ program extract_aero_particles
   integer :: index, i_repeat, i_part, i_spec, out_unit, i_char
   real(kind=dp) :: time, del_t
   character(len=PMC_UUID_LEN) :: uuid
-  type(aero_particle_t), pointer :: aero_particle
   type(option_s) :: opts(2)
 
   call pmc_mpi_init()
@@ -67,9 +66,6 @@ program extract_aero_particles
      end if
   end if
 
-  call aero_data_allocate(aero_data)
-  call aero_state_allocate(aero_state)
-
   call input_state(in_filename, index, time, del_t, i_repeat, uuid, &
        aero_data=aero_data, aero_state=aero_state)
 
@@ -82,30 +78,28 @@ program extract_aero_particles
   write(*,'(a)') "    column  2: number concentration (m^{-3})"
   write(*,'(a)') "    column  3: particle diameter (m)"
   write(*,'(a)') "    column  4: particle total mass (kg)"
-  do i_spec = 1,aero_data%n_spec
+  do i_spec = 1,aero_data_n_spec(aero_data)
      write(*,'(a,i2,a,a,a,e10.4,a)') '    column ', i_spec + 4, ': ', &
           trim(aero_data%name(i_spec)), ' mass (kg) - density = ', &
           aero_data%density(i_spec), ' (kg/m^3)'
   end do
 
   call open_file_write(out_filename, out_unit)
-  do i_part = 1,aero_state%apa%n_part
-     aero_particle => aero_state%apa%particle(i_part)
+  do i_part = 1,aero_state_n_part(aero_state)
      write(out_unit, '(i15,e30.15e3,e30.15e3,e30.15e3)', advance='no') &
-          aero_particle%id, &
-          aero_state_particle_num_conc(aero_state, aero_particle), &
-          aero_particle_diameter(aero_particle), &
-          aero_particle_mass(aero_particle, aero_data)
-     do i_spec = 1,aero_data%n_spec
+          aero_state%apa%particle(i_part)%id, &
+          aero_state_particle_num_conc(aero_state, &
+          aero_state%apa%particle(i_part)), &
+          aero_particle_diameter(aero_state%apa%particle(i_part)), &
+          aero_particle_mass(aero_state%apa%particle(i_part), aero_data)
+     do i_spec = 1,aero_data_n_spec(aero_data)
         write(out_unit, '(e30.15e3)', advance='no') &
-             aero_particle_species_mass(aero_particle, i_spec, aero_data)
+             aero_particle_species_mass(aero_state%apa%particle(i_part), &
+             i_spec, aero_data)
      end do
      write(out_unit, *) ''
   end do
   call close_file(out_unit)
-
-  call aero_data_deallocate(aero_data)
-  call aero_state_deallocate(aero_state)
 
   call pmc_mpi_finalize()
 

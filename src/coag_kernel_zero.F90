@@ -130,10 +130,10 @@ contains
 
     logical, save :: already_warned_water = .false.
 
-    call aero_dist_allocate(emissions)
-    call aero_dist_allocate(background)
-    call aero_binned_allocate_size(background_binned, bin_grid%n_bin, &
-         aero_data%n_spec)
+    call aero_binned_set_sizes(aero_binned, bin_grid_size(bin_grid), &
+         aero_data_n_spec(aero_data))
+    call aero_binned_set_sizes(background_binned, &
+         bin_grid_size(bin_grid), aero_data_n_spec(aero_data))
 
     call aero_dist_interp_1d(scenario%aero_emission, &
          scenario%aero_emission_time, scenario%aero_emission_rate_scale, &
@@ -152,7 +152,7 @@ contains
        call aero_binned_scale(aero_binned, &
             emission_rate_scale * time / env_state%height)
     else
-       allocate(loss_array(bin_grid%n_bin))
+       allocate(loss_array(bin_grid_size(bin_grid)))
 
        if ((loss_function_type /= SCENARIO_LOSS_FUNCTION_ZERO) .or. &
             (loss_function_type /= SCENARIO_LOSS_FUNCTION_INVALID)) then
@@ -163,7 +163,7 @@ contains
           end if
        end if
 
-       do i = 1, bin_grid%n_bin
+       do i = 1,bin_grid_size(bin_grid)
           loss_array(i) = dilution_rate + scenario_loss_rate( &
                loss_function_type, rad2vol(bin_grid%centers(i)), &
                const%water_density, aero_data, env_state)
@@ -173,8 +173,8 @@ contains
        end do
 
        ! calculate the limit steady state distribution
-       call aero_binned_allocate_size(aero_binned_limit, bin_grid%n_bin, &
-            aero_data%n_spec)
+       call aero_binned_set_sizes(aero_binned_limit, &
+            bin_grid_size(bin_grid), aero_data_n_spec(aero_data))
        call aero_binned_add_aero_dist(aero_binned_limit, bin_grid, &
             aero_data, emissions)
        call aero_binned_scale(aero_binned_limit, &
@@ -183,7 +183,7 @@ contains
        call aero_binned_add(aero_binned_limit, background_binned)
        call aero_binned_scale_by_array(aero_binned_limit, loss_array)
 
-       do i = 1, bin_grid%n_bin
+       do i = 1,bin_grid_size(bin_grid)
           loss_array(i) = exp(-time / loss_array(i))
        end do
 
@@ -194,13 +194,7 @@ contains
        call aero_binned_sub(aero_binned, aero_binned_limit)
        call aero_binned_scale_by_array(aero_binned, loss_array)
        call aero_binned_add(aero_binned, aero_binned_limit)
-
-       call aero_binned_deallocate(aero_binned_limit)
     end if
-
-    call aero_dist_deallocate(emissions)
-    call aero_dist_deallocate(background)
-    call aero_binned_deallocate(background_binned)
 
   end subroutine soln_zero
 

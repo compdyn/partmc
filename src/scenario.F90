@@ -50,228 +50,50 @@ module pmc_scenario
   !! aero_dist_interp_1d(), respectively.
   type scenario_t
      !> Temperature set-point times (s).
-     real(kind=dp), pointer :: temp_time(:)
+     real(kind=dp), allocatable :: temp_time(:)
      !> Temperatures at set-points (K).
-     real(kind=dp), pointer :: temp(:)
+     real(kind=dp), allocatable :: temp(:)
 
      !> Pressure set-point times (s).
-     real(kind=dp), pointer :: pressure_time(:)
+     real(kind=dp), allocatable :: pressure_time(:)
      !> Pressures at set-points (Pa).
-     real(kind=dp), pointer :: pressure(:)
+     real(kind=dp), allocatable :: pressure(:)
 
      !> Height set-point times (s).
-     real(kind=dp), pointer :: height_time(:)
+     real(kind=dp), allocatable :: height_time(:)
      !> Heights at set-points (m).
-     real(kind=dp), pointer :: height(:)
+     real(kind=dp), allocatable :: height(:)
 
      !> Gas emission set-point times (s).
-     real(kind=dp), pointer :: gas_emission_time(:)
+     real(kind=dp), allocatable :: gas_emission_time(:)
      !> Gas emisssion rate scales at set-points (1).
-     real(kind=dp), pointer :: gas_emission_rate_scale(:)
+     real(kind=dp), allocatable :: gas_emission_rate_scale(:)
      !> Gas emission rates at set-points (mol m^{-2} s^{-1}).
-     type(gas_state_t), pointer :: gas_emission(:)
+     type(gas_state_t), allocatable :: gas_emission(:)
 
      !> Gas-background dilution set-point times (s).
-     real(kind=dp), pointer :: gas_dilution_time(:)
+     real(kind=dp), allocatable :: gas_dilution_time(:)
      !> Gas-background dilution rates at set-points (s^{-1}).
-     real(kind=dp), pointer :: gas_dilution_rate(:)
+     real(kind=dp), allocatable :: gas_dilution_rate(:)
      !> Background gas mixing ratios at set-points (ppb).
-     type(gas_state_t), pointer :: gas_background(:)
+     type(gas_state_t), allocatable :: gas_background(:)
 
      !> Aerosol emission set-points times (s).
-     real(kind=dp), pointer :: aero_emission_time(:)
+     real(kind=dp), allocatable :: aero_emission_time(:)
      !> Aerosol emission rate scales at set-points (1).
-     real(kind=dp), pointer :: aero_emission_rate_scale(:)
+     real(kind=dp), allocatable :: aero_emission_rate_scale(:)
      !> Aerosol emissions at set-points (# m^{-2} s^{-1}).
-     type(aero_dist_t), pointer :: aero_emission(:)
+     type(aero_dist_t), allocatable :: aero_emission(:)
 
      !> Aerosol-background dilution set-point times (s).
-     real(kind=dp), pointer :: aero_dilution_time(:)
+     real(kind=dp), allocatable :: aero_dilution_time(:)
      !> Aerosol-background dilution rates at set-points (s^{-1}).
-     real(kind=dp), pointer :: aero_dilution_rate(:)
+     real(kind=dp), allocatable :: aero_dilution_rate(:)
      !> Aerosol background at set-points (# m^{-3}).
-     type(aero_dist_t), pointer :: aero_background(:)
+     type(aero_dist_t), allocatable :: aero_background(:)
   end type scenario_t
 
 contains
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Allocate an scenario.
-  subroutine scenario_allocate(scenario)
-
-    !> Environment data.
-    type(scenario_t), intent(out) :: scenario
-
-    allocate(scenario%temp_time(0))
-    allocate(scenario%temp(0))
-
-    allocate(scenario%pressure_time(0))
-    allocate(scenario%pressure(0))
-
-    allocate(scenario%height_time(0))
-    allocate(scenario%height(0))
-
-    allocate(scenario%gas_emission_time(0))
-    allocate(scenario%gas_emission_rate_scale(0))
-    allocate(scenario%gas_emission(0))
-
-    allocate(scenario%gas_dilution_time(0))
-    allocate(scenario%gas_dilution_rate(0))
-    allocate(scenario%gas_background(0))
-
-    allocate(scenario%aero_emission_time(0))
-    allocate(scenario%aero_emission_rate_scale(0))
-    allocate(scenario%aero_emission(0))
-
-    allocate(scenario%aero_dilution_time(0))
-    allocate(scenario%aero_dilution_rate(0))
-    allocate(scenario%aero_background(0))
-
-  end subroutine scenario_allocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Free all storage.
-  subroutine scenario_deallocate(scenario)
-
-    !> Environment data.
-    type(scenario_t), intent(inout) :: scenario
-
-    integer :: i
-
-    deallocate(scenario%temp_time)
-    deallocate(scenario%temp)
-
-    deallocate(scenario%pressure_time)
-    deallocate(scenario%pressure)
-
-    deallocate(scenario%height_time)
-    deallocate(scenario%height)
-
-    do i = 1,size(scenario%gas_emission)
-       call gas_state_deallocate(scenario%gas_emission(i))
-    end do
-    deallocate(scenario%gas_emission_time)
-    deallocate(scenario%gas_emission_rate_scale)
-    deallocate(scenario%gas_emission)
-
-    do i = 1,size(scenario%gas_background)
-       call gas_state_deallocate(scenario%gas_background(i))
-    end do
-    deallocate(scenario%gas_dilution_time)
-    deallocate(scenario%gas_dilution_rate)
-    deallocate(scenario%gas_background)
-
-    do i = 1,size(scenario%aero_emission)
-       call aero_dist_deallocate(scenario%aero_emission(i))
-    end do
-    deallocate(scenario%aero_emission_time)
-    deallocate(scenario%aero_emission_rate_scale)
-    deallocate(scenario%aero_emission)
-
-    do i = 1,size(scenario%aero_background)
-       call aero_dist_deallocate(scenario%aero_background(i))
-    end do
-    deallocate(scenario%aero_dilution_time)
-    deallocate(scenario%aero_dilution_rate)
-    deallocate(scenario%aero_background)
-
-  end subroutine scenario_deallocate
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Copy structure.
-  subroutine scenario_copy(scenario_from, scenario_to)
-
-    !> Source environment data.
-    type(scenario_t), intent(in) :: scenario_from
-    !> Destination environment data.
-    type(scenario_t), intent(inout) :: scenario_to
-
-    integer :: i
-
-    call scenario_deallocate(scenario_to)
-
-    allocate(scenario_to%temp_time( &
-         size(scenario_from%temp_time)))
-    scenario_to%temp_time = scenario_from%temp_time
-    allocate(scenario_to%temp( &
-         size(scenario_from%temp)))
-    scenario_to%temp = scenario_from%temp
-
-    allocate(scenario_to%pressure_time( &
-         size(scenario_from%pressure_time)))
-    scenario_to%pressure_time = scenario_from%pressure_time
-    allocate(scenario_to%pressure( &
-         size(scenario_from%pressure)))
-    scenario_to%pressure = scenario_from%pressure
-
-    allocate(scenario_to%height_time( &
-         size(scenario_from%height_time)))
-    scenario_to%height_time = scenario_from%height_time
-    allocate(scenario_to%height( &
-         size(scenario_from%height)))
-    scenario_to%height = scenario_from%height
-
-    allocate(scenario_to%gas_emission_time( &
-         size(scenario_from%gas_emission_time)))
-    scenario_to%gas_emission_time = scenario_from%gas_emission_time
-    allocate(scenario_to%gas_emission_rate_scale( &
-         size(scenario_from%gas_emission_rate_scale)))
-    scenario_to%gas_emission_rate_scale = scenario_from%gas_emission_rate_scale
-    allocate(scenario_to%gas_emission( &
-         size(scenario_from%gas_emission)))
-    do i = 1,size(scenario_from%gas_emission)
-       call gas_state_allocate(scenario_to%gas_emission(i))
-       call gas_state_copy(scenario_from%gas_emission(i), &
-            scenario_to%gas_emission(i))
-    end do
-
-    allocate(scenario_to%gas_dilution_time( &
-         size(scenario_from%gas_dilution_time)))
-    scenario_to%gas_dilution_time = scenario_from%gas_dilution_time
-    allocate(scenario_to%gas_dilution_rate( &
-         size(scenario_from%gas_dilution_rate)))
-    scenario_to%gas_dilution_rate = scenario_from%gas_dilution_rate
-    allocate(scenario_to%gas_background( &
-         size(scenario_from%gas_background)))
-    do i = 1,size(scenario_from%gas_background)
-       call gas_state_allocate(scenario_to%gas_background(i))
-       call gas_state_copy(scenario_from%gas_background(i), &
-            scenario_to%gas_background(i))
-    end do
-
-    allocate(scenario_to%aero_emission_time( &
-         size(scenario_from%aero_emission_time)))
-    scenario_to%aero_emission_time = scenario_from%aero_emission_time
-    allocate(scenario_to%aero_emission_rate_scale( &
-         size(scenario_from%aero_emission_rate_scale)))
-    scenario_to%aero_emission_rate_scale &
-         = scenario_from%aero_emission_rate_scale
-    allocate(scenario_to%aero_emission( &
-         size(scenario_from%aero_emission)))
-    do i = 1,size(scenario_from%aero_emission)
-       call aero_dist_allocate(scenario_to%aero_emission(i))
-       call aero_dist_copy(scenario_from%aero_emission(i), &
-            scenario_to%aero_emission(i))
-    end do
-
-    allocate(scenario_to%aero_dilution_time( &
-         size(scenario_from%aero_dilution_time)))
-    scenario_to%aero_dilution_time = scenario_from%aero_dilution_time
-    allocate(scenario_to%aero_dilution_rate( &
-         size(scenario_from%aero_dilution_rate)))
-    scenario_to%aero_dilution_rate = scenario_from%aero_dilution_rate
-    allocate(scenario_to%aero_background( &
-         size(scenario_from%aero_background)))
-    do i = 1,size(scenario_from%aero_background)
-       call aero_dist_allocate(scenario_to%aero_background(i))
-       call aero_dist_copy(scenario_from%aero_background(i), &
-            scenario_to%aero_background(i))
-    end do
-
-  end subroutine scenario_copy
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -291,6 +113,8 @@ contains
          scenario%pressure, time)
     env_state%height = interp_1d(scenario%height_time, scenario%height, time)
     env_state%elapsed_time = time
+    ! FIXME: should compute this at some point
+    env_state%solar_zenith_angle = 0d0
 
   end subroutine scenario_init_env_state
 
@@ -392,17 +216,14 @@ contains
     type(gas_state_t) :: emissions, background
 
     ! emissions
-    call gas_state_allocate_size(emissions, gas_data%n_spec)
     call gas_state_interp_1d(scenario%gas_emission, &
          scenario%gas_emission_time, scenario%gas_emission_rate_scale, &
          env_state%elapsed_time, emissions, emission_rate_scale)
     call gas_state_mole_dens_to_ppb(emissions, env_state)
     p = emission_rate_scale * delta_t / env_state%height
     call gas_state_add_scaled(gas_state, emissions, p)
-    call gas_state_deallocate(emissions)
 
     ! dilution
-    call gas_state_allocate_size(background, gas_data%n_spec)
     call gas_state_interp_1d(scenario%gas_background, &
          scenario%gas_dilution_time, scenario%gas_dilution_rate, &
          env_state%elapsed_time, background, dilution_rate)
@@ -413,7 +234,6 @@ contains
     call gas_state_scale(gas_state, p)
     call gas_state_add_scaled(gas_state, background, 1d0 - p)
     call gas_state_ensure_nonnegative(gas_state)
-    call gas_state_deallocate(background)
 
   end subroutine scenario_update_gas_state
 
@@ -457,7 +277,6 @@ contains
     type(aero_state_t) :: aero_state_delta
 
     ! emissions
-    call aero_dist_allocate(emissions)
     call aero_dist_interp_1d(scenario%aero_emission, &
          scenario%aero_emission_time, scenario%aero_emission_rate_scale, &
          env_state%elapsed_time, emissions, emission_rate_scale)
@@ -465,10 +284,8 @@ contains
     call aero_state_add_aero_dist_sample(aero_state, aero_data, &
          emissions, p, env_state%elapsed_time, allow_doubling, allow_halving, &
          n_emit)
-    call aero_dist_deallocate(emissions)
 
     ! dilution
-    call aero_dist_allocate(background)
     call aero_dist_interp_1d(scenario%aero_background, &
          scenario%aero_dilution_time, scenario%aero_dilution_rate, &
          env_state%elapsed_time, background, dilution_rate)
@@ -477,16 +294,13 @@ contains
        p = p * old_env_state%height / env_state%height
     end if
     ! loss to background
-    call aero_state_allocate(aero_state_delta)
     call aero_state_sample_particles(aero_state, aero_state_delta, &
          1d0 - p, AERO_INFO_DILUTION)
     n_dil_out = aero_state_total_particles(aero_state_delta)
-    call aero_state_deallocate(aero_state_delta)
     ! addition from background
     call aero_state_add_aero_dist_sample(aero_state, aero_data, &
          background, 1d0 - p, env_state%elapsed_time, allow_doubling, &
          allow_halving, n_dil_in)
-    call aero_dist_deallocate(background)
 
     ! update computational volume
     call aero_weight_array_scale(aero_state%awa, &
@@ -524,9 +338,6 @@ contains
     type(aero_binned_t) :: emissions_binned, background_binned
 
     ! emissions
-    call aero_dist_allocate(emissions)
-    call aero_binned_allocate_size(emissions_binned, bin_grid%n_bin, &
-         aero_data%n_spec)
     call aero_dist_interp_1d(scenario%aero_emission, &
          scenario%aero_emission_time, scenario%aero_emission_rate_scale, &
          env_state%elapsed_time, emissions, emission_rate_scale)
@@ -534,13 +345,8 @@ contains
          emissions)
     p = emission_rate_scale * delta_t / env_state%height
     call aero_binned_add_scaled(aero_binned, emissions_binned, p)
-    call aero_dist_deallocate(emissions)
-    call aero_binned_deallocate(emissions_binned)
 
     ! dilution
-    call aero_dist_allocate(background)
-    call aero_binned_allocate_size(background_binned, bin_grid%n_bin, &
-         aero_data%n_spec)
     call aero_dist_interp_1d(scenario%aero_background, &
          scenario%aero_dilution_time, scenario%aero_dilution_rate, &
          env_state%elapsed_time, background, dilution_rate)
@@ -552,8 +358,6 @@ contains
     end if
     call aero_binned_scale(aero_binned, p)
     call aero_binned_add_scaled(aero_binned, background_binned, 1d0 - p)
-    call aero_dist_deallocate(background)
-    call aero_binned_deallocate(background_binned)
 
   end subroutine scenario_update_aero_binned
 
@@ -743,7 +547,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Maximum loss vals.
-    real(kind=dp), intent(out) :: loss_max(bin_grid%n_bin)
+    real(kind=dp), intent(out) :: loss_max(bin_grid_size(bin_grid))
 
     !> Number of sample points per bin.
     integer, parameter :: n_sample = 3
@@ -753,7 +557,7 @@ contains
     real(kind=dp) :: v_low, v_high, vol, r, r_max
     integer :: b, i
 
-    do b = 1,bin_grid%n_bin
+    do b = 1,bin_grid_size(bin_grid)
        v_low = rad2vol(bin_grid%edges(b))
        v_high = rad2vol(bin_grid%edges(b + 1))
        r_max = 0d0
@@ -882,12 +686,10 @@ contains
     real(kind=dp), intent(in) :: over_prob
 
     real(kind=dp) :: prob, rate, vol, density
-    type(aero_particle_t), pointer :: aero_particle
     type(aero_info_t) :: aero_info
 
-    aero_particle => aero_state%apa%particle(i_part)
-    vol = aero_particle_volume(aero_particle)
-    density = aero_particle_density(aero_particle, aero_data)
+    vol = aero_particle_volume(aero_state%apa%particle(i_part))
+    density = aero_particle_density(aero_state%apa%particle(i_part), aero_data)
     rate = scenario_loss_rate(loss_function_type, vol, density, aero_data, &
          env_state)
     prob = 1d0 - exp(-delta_t * rate)
@@ -897,12 +699,10 @@ contains
          // trim(real_to_string(over_prob)) )
     if (pmc_random() * over_prob > prob) return
 
-    call aero_info_allocate(aero_info)
-    aero_info%id = aero_particle%id
+    aero_info%id = aero_state%apa%particle(i_part)%id
     aero_info%action = AERO_INFO_DILUTION
     aero_info%other_id = 0
     call aero_state_remove_particle_with_info(aero_state, i_part, aero_info)
-    call aero_info_deallocate(aero_info)
 
   end subroutine scenario_try_single_particle_loss
 
@@ -1155,22 +955,30 @@ contains
          + pmc_mpi_pack_size_real_array(val%aero_emission_rate_scale) &
          + pmc_mpi_pack_size_real_array(val%aero_dilution_time) &
          + pmc_mpi_pack_size_real_array(val%aero_dilution_rate)
-    do i = 1,size(val%gas_emission)
-       total_size = total_size &
-            + pmc_mpi_pack_size_gas_state(val%gas_emission(i))
-    end do
-    do i = 1,size(val%gas_background)
-       total_size = total_size &
-            + pmc_mpi_pack_size_gas_state(val%gas_background(i))
-    end do
-    do i = 1,size(val%aero_emission)
-       total_size = total_size &
-            + pmc_mpi_pack_size_aero_dist(val%aero_emission(i))
-    end do
-    do i = 1,size(val%aero_background)
-       total_size = total_size &
-            + pmc_mpi_pack_size_aero_dist(val%aero_background(i))
-    end do
+    if (allocated(val%gas_emission_time)) then
+       do i = 1,size(val%gas_emission)
+          total_size = total_size &
+               + pmc_mpi_pack_size_gas_state(val%gas_emission(i))
+       end do
+    end if
+    if (allocated(val%gas_dilution_time)) then
+       do i = 1,size(val%gas_background)
+          total_size = total_size &
+               + pmc_mpi_pack_size_gas_state(val%gas_background(i))
+       end do
+    end if
+    if (allocated(val%aero_emission_time)) then
+       do i = 1,size(val%aero_emission)
+          total_size = total_size &
+               + pmc_mpi_pack_size_aero_dist(val%aero_emission(i))
+       end do
+    end if
+    if (allocated(val%aero_dilution_time)) then
+       do i = 1,size(val%aero_background)
+          total_size = total_size &
+               + pmc_mpi_pack_size_aero_dist(val%aero_background(i))
+       end do
+    end if
 
     pmc_mpi_pack_size_scenario = total_size
 
@@ -1207,18 +1015,26 @@ contains
          val%aero_emission_rate_scale)
     call pmc_mpi_pack_real_array(buffer, position, val%aero_dilution_time)
     call pmc_mpi_pack_real_array(buffer, position, val%aero_dilution_rate)
-    do i = 1,size(val%gas_emission)
-       call pmc_mpi_pack_gas_state(buffer, position, val%gas_emission(i))
-    end do
-    do i = 1,size(val%gas_background)
-       call pmc_mpi_pack_gas_state(buffer, position, val%gas_background(i))
-    end do
-    do i = 1,size(val%aero_emission)
-       call pmc_mpi_pack_aero_dist(buffer, position, val%aero_emission(i))
-    end do
-    do i = 1,size(val%aero_background)
-       call pmc_mpi_pack_aero_dist(buffer, position, val%aero_background(i))
-    end do
+    if (allocated(val%gas_emission_time)) then
+       do i = 1,size(val%gas_emission)
+          call pmc_mpi_pack_gas_state(buffer, position, val%gas_emission(i))
+       end do
+    end if
+    if (allocated(val%gas_dilution_time)) then
+       do i = 1,size(val%gas_background)
+          call pmc_mpi_pack_gas_state(buffer, position, val%gas_background(i))
+       end do
+    end if
+    if (allocated(val%aero_emission_time)) then
+       do i = 1,size(val%aero_emission)
+          call pmc_mpi_pack_aero_dist(buffer, position, val%aero_emission(i))
+       end do
+    end if
+    if (allocated(val%aero_dilution_time)) then
+       do i = 1,size(val%aero_background)
+          call pmc_mpi_pack_aero_dist(buffer, position, val%aero_background(i))
+       end do
+    end if
     call assert(639466930, &
          position - prev_position <= pmc_mpi_pack_size_scenario(val))
 #endif
@@ -1240,8 +1056,6 @@ contains
 #ifdef PMC_USE_MPI
     integer :: prev_position, i
 
-    call scenario_deallocate(val)
-    call scenario_allocate(val)
     prev_position = position
     call pmc_mpi_unpack_real_array(buffer, position, val%temp_time)
     call pmc_mpi_unpack_real_array(buffer, position, val%temp)
@@ -1259,30 +1073,36 @@ contains
          val%aero_emission_rate_scale)
     call pmc_mpi_unpack_real_array(buffer, position, val%aero_dilution_time)
     call pmc_mpi_unpack_real_array(buffer, position, val%aero_dilution_rate)
-    deallocate(val%gas_emission)
-    deallocate(val%gas_background)
-    deallocate(val%aero_emission)
-    deallocate(val%aero_background)
-    allocate(val%gas_emission(size(val%gas_emission_time)))
-    allocate(val%gas_background(size(val%gas_dilution_time)))
-    allocate(val%aero_emission(size(val%aero_emission_time)))
-    allocate(val%aero_background(size(val%aero_dilution_time)))
-    do i = 1,size(val%gas_emission)
-       call gas_state_allocate(val%gas_emission(i))
-       call pmc_mpi_unpack_gas_state(buffer, position, val%gas_emission(i))
-    end do
-    do i = 1,size(val%gas_background)
-       call gas_state_allocate(val%gas_background(i))
-       call pmc_mpi_unpack_gas_state(buffer, position, val%gas_background(i))
-    end do
-    do i = 1,size(val%aero_emission)
-       call aero_dist_allocate(val%aero_emission(i))
-       call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_emission(i))
-    end do
-    do i = 1,size(val%aero_background)
-       call aero_dist_allocate(val%aero_background(i))
-       call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_background(i))
-    end do
+    if (allocated(val%gas_emission)) deallocate(val%gas_emission)
+    if (allocated(val%gas_background)) deallocate(val%gas_background)
+    if (allocated(val%aero_emission)) deallocate(val%aero_emission)
+    if (allocated(val%aero_background)) deallocate(val%aero_background)
+    if (allocated(val%gas_emission_time)) then
+       allocate(val%gas_emission(size(val%gas_emission_time)))
+       do i = 1,size(val%gas_emission)
+          call pmc_mpi_unpack_gas_state(buffer, position, val%gas_emission(i))
+       end do
+    end if
+    if (allocated(val%gas_dilution_time)) then
+       allocate(val%gas_background(size(val%gas_dilution_time)))
+       do i = 1,size(val%gas_background)
+          call pmc_mpi_unpack_gas_state(buffer, position, &
+               val%gas_background(i))
+       end do
+    end if
+    if (allocated(val%aero_emission_time)) then
+       allocate(val%aero_emission(size(val%aero_emission_time)))
+       do i = 1,size(val%aero_emission)
+          call pmc_mpi_unpack_aero_dist(buffer, position, val%aero_emission(i))
+       end do
+    end if
+    if (allocated(val%aero_dilution_time)) then
+       allocate(val%aero_background(size(val%aero_dilution_time)))
+       do i = 1,size(val%aero_background)
+          call pmc_mpi_unpack_aero_dist(buffer, position, &
+               val%aero_background(i))
+       end do
+    end if
     call assert(611542570, &
          position - prev_position <= pmc_mpi_pack_size_scenario(val))
 #endif

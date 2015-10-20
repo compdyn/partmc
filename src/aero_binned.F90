@@ -36,10 +36,11 @@ module pmc_aero_binned
   !! it. This will be the case for new \c aero_binned_t structures.
   type aero_binned_t
      !> Number concentration per bin (#/m^3/log_width).
-     !! Array length is typically \c bin_grid\%n_bin.
+     !! Array length is \c bin_grid_size(bin_grid).
      real(kind=dp), allocatable :: num_conc(:)
      !> Volume concentration per bin and per species (m^3/m^3/log_width).
-     !! Array size is typically \c bin_grid\%n_bin x \c aero_data\%n_spec.
+     !! Array size is <tt>bin_grid_size(bin_grid) x
+     !! aero_data_n_spec(aero_data)</tt>.
      real(kind=dp), allocatable :: vol_conc(:,:)
   end type aero_binned_t
 

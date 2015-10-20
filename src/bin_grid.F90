@@ -139,7 +139,7 @@ contains
   !!
   !! If a particle is below the smallest bin then its bin number is
   !! 0. If a particle is above the largest bin then its bin number is
-  !! <tt>n_bin + 1</tt>.
+  !! <tt>bin_grid_size(bin_grid) + 1</tt>.
   integer function bin_grid_find(bin_grid, val)
 
     !> Bin_grid.

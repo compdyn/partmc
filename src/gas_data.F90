@@ -22,16 +22,16 @@ module pmc_gas_data
   !> Constant gas data.
   !!
   !! Each gas species is identified by an integer \c i between 1 and
-  !! \c n_spec. Species \c i has name \c gas_data%%name(i). The
-  !! variable gas data describing the current mixing ratios is stored
+  !! \c gas_data_n_spec(gas_data). Species \c i has name \c gas_data%%name(i).
+  !! The variable gas data describing the current mixing ratios is stored
   !! in the gas_state_t structure, so the mixing ratio of species \c i
   !! is gas_state%%mix_rat(i).
   type gas_data_t
-     !> Species name [length \c n_spec].
+     !> Species name [length \c gas_data_n_spec(gas_data)].
      character(len=GAS_NAME_LEN), allocatable :: name(:)
      !> Index of the corresponding MOSAIC species [length \c
-     !> n_spec]. \c to_mosaic(i) is the mosaic index of species \c i,
-     !> or 0 if there is no match.
+     !> gas_data_n_spec(gas_data)]. \c to_mosaic(i) is the mosaic index of
+     !> species \c i, or 0 if there is no match.
      integer, allocatable :: mosaic_index(:)
   end type gas_data_t
 

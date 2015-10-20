@@ -32,7 +32,8 @@ module pmc_aero_weight_array
   !! only important when doubling or halving occurs, which takes place
   !! for a specific group and class.
   type aero_weight_array_t
-     !> Aero weight array, <tt>n_group x n_class</tt>.
+     !> Aero weight array, <tt>aero_weight_array_n_group(aero_weight_array) x
+     !> aero_weight_array_n_class(aero_weight_array)</tt>.
      type(aero_weight_t), allocatable :: weight(:, :)
   end type aero_weight_array_t
 

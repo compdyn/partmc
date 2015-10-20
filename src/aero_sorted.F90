@@ -52,13 +52,15 @@ module pmc_aero_sorted
      type(integer_rmap2_t) :: group_class
      !> Whether coagulation kernel bounds are valid.
      logical :: coag_kernel_bounds_valid
-     !> Coagulation kernel lower bound [<tt>n_bin x n_bin</tt>].
+     !> Coagulation kernel lower bound [<tt>bin_grid_size(bin_grid) x
+     !> bin_grid_size(bin_grid)</tt>].
      real(kind=dp), allocatable, dimension(:,:) :: coag_kernel_min
-     !> Coagulation kernel upper bound [<tt>n_bin x n_bin</tt>].
+     !> Coagulation kernel upper bound [<tt>bin_grid_size(bin_grid) x
+     !> bin_grid_size(bin_grid)</tt>].
      real(kind=dp), allocatable, dimension(:,:) :: coag_kernel_max
      !> Whether particle removal rate bounds are valid.
      logical :: removal_rate_bounds_valid
-     !> Particle removal rate upper bound [<tt>n_bin</tt>].
+     !> Particle removal rate upper bound [<tt>bin_grid_size(bin_grid)</tt>].
      real(kind=dp), allocatable, dimension(:) :: removal_rate_max
   end type aero_sorted_t
 

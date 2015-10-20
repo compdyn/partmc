@@ -59,9 +59,10 @@ module pmc_aero_mode
      real(kind=dp), allocatable :: sample_num_conc(:)
      !> Total number concentration of mode (#/m^3).
      real(kind=dp) :: num_conc
-     !> Species fractions by volume [length \c aero_data%%n_spec] (1).
+     !> Species fractions by volume [length \c aero_data_n_spec(aero_data)] (1).
      real(kind=dp), allocatable :: vol_frac(:)
-     !> Species fraction standard deviation [length \c aero_data%%n_spec] (1).
+     !> Species fraction standard deviation
+     !> [length \c aero_data_n_spec(aero_data)] (1).
      real(kind=dp), allocatable :: vol_frac_std(:)
      !> Source number.
      integer :: source

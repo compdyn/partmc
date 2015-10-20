@@ -25,9 +25,9 @@ module pmc_aero_data
   !! quantities that cannot change over time.
   !!
   !! Each aerosol species is identified by an index <tt>i =
-  !! 1,...,n_spec</tt>. Then \c name(i) is the name of that species,
-  !! \c density(i) is its density, etc. The ordering of the species is
-  !! arbitrary and should not be relied upon (currently it is the
+  !! 1,...,aero_data_n_spec(aero_data)</tt>. Then \c name(i) is the name of
+  !! that species, \c density(i) is its density, etc. The ordering of the
+  !! species is arbitrary and should not be relied upon (currently it is the
   !! order in the species data file). The only exception is that it is
   !! possible to find out which species is water from the \c i_water
   !! variable.
@@ -40,20 +40,20 @@ module pmc_aero_data
   type aero_data_t
      !> Water species number (0 if water is not a species).
      integer :: i_water
-     !> Len n_spec, species names.
+     !> Length \c aero_data_n_spec(aero_data), species names.
      character(len=AERO_NAME_LEN), allocatable :: name(:)
-     !> Length n_spec, mosaic_index(i) a positive integer giving the
-     !> mosaic index of species i, or 0 if there is no match.
+     !> Length \c aero_data_n_spec(aero_data), mosaic_index(i) a positive
+     !> integer giving the mosaic index of species i, or 0 if there is no match.
      integer, allocatable :: mosaic_index(:)
-     !> Len n_spec, densities (kg m^{-3}).
+     !> Length \c aero_data_n_spec(aero_data), densities (kg m^{-3}).
      real(kind=dp), allocatable ::  density(:)
-     !> Len n_spec, number of ions in solute.
+     !> Length \c aero_data_n_spec(aero_data), number of ions in solute.
      integer, allocatable :: num_ions(:)
-     !> Len n_spec, molecular weights (kg mol^{-1}).
+     !> Length \c aero_data_n_spec(aero_data), molecular weights (kg mol^{-1}).
      real(kind=dp), allocatable :: molec_weight(:)
-     !> Len n_spec, kappas (1).
+     !> Length \c aero_data_n_spec(aero_data), kappas (1).
      real(kind=dp), allocatable :: kappa(:)
-     !> Len n_source, source names.
+     !> Length \c aero_data_n_source(aero_data), source names.
      character(len=AERO_SOURCE_NAME_LEN), allocatable :: source_name(:)
   end type aero_data_t
 

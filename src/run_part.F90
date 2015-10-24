@@ -165,6 +165,10 @@ contains
     if (run_part_opt%do_mosaic) then
        call mosaic_init(env_state, aero_data, run_part_opt%del_t, &
             run_part_opt%do_optical)
+       if (run_part_opt%do_optical) then
+          call mosaic_aero_optical_init(env_state, aero_data, &
+            aero_state, gas_data, gas_state)
+       end if
     end if
 
     if (run_part_opt%t_output > 0d0) then

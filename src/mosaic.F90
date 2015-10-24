@@ -431,7 +431,7 @@ contains
 
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: ri_shell_a, ri_core_a, &
-         ext_cross, scat_cross, asym_particle
+         ext_cross, scat_cross, asym_particle, dp_core_a
 #endif
 
     !> Environment state.
@@ -473,13 +473,74 @@ contains
             cmplx(ri_shell_a(i_part), kind=dc) ! (1)
        aero_state%apa%particle(i_part)%refract_core =&
             cmplx(ri_core_a(i_part), kind=dc) ! (1)
-       ! FIXME: how do we get core_vol?
-       !particle%core_vol = diam2vol(dp_core_a(i_part))        ! (m^3)
-       aero_state%apa%particle(i_part)%core_vol = 0d0
+       aero_state%apa%particle(i_part)%core_vol = &
+            diam2vol(dp_core_a(i_part)) / 1d6 ! (m^3)
     end do
 #endif
 
   end subroutine mosaic_aero_optical
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute the optical properties of each aerosol particle for initial
+  !! timestep.
+  subroutine mosaic_aero_optical_init(env_state, aero_data, &
+       aero_state, gas_data, gas_state)
+
+#ifdef PMC_USE_MOSAIC
+    use module_data_mosaic_aero, only: ri_shell_a, ri_core_a, &
+         ext_cross, scat_cross, asym_particle, dp_core_a
+#endif
+
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state.
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Gas data.
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state.
+    type(gas_state_t), intent(in) :: gas_state
+
+#ifdef PMC_USE_MOSAIC
+    ! MOSAIC function interfaces
+    interface
+       subroutine load_mosaic_parameters()
+       end subroutine load_mosaic_parameters
+       subroutine aerosol_optical()
+       end subroutine aerosol_optical
+    end interface
+
+    integer :: i_part
+
+    call load_mosaic_parameters
+
+    ! map PartMC -> MOSAIC
+    call mosaic_from_partmc(env_state, aero_data, aero_state, &
+         gas_data, gas_state)
+
+    call aerosol_optical
+
+    ! map MOSAIC -> PartMC
+    ! work backwards for consistency with mosaic_to_partmc(), which
+    ! has specific ordering requirements
+    do i_part = aero_state_n_part(aero_state),1,-1
+       aero_state%apa%particle(i_part)%absorb_cross_sect = (ext_cross(i_part) &
+            - scat_cross(i_part)) / 1d4                       ! (m^2)
+       aero_state%apa%particle(i_part)%scatter_cross_sect = &
+            scat_cross(i_part) / 1d4 ! (m^2)
+       aero_state%apa%particle(i_part)%asymmetry = asym_particle(i_part) ! (1)
+       aero_state%apa%particle(i_part)%refract_shell = &
+            cmplx(ri_shell_a(i_part), kind=dc) ! (1)
+       aero_state%apa%particle(i_part)%refract_core =&
+            cmplx(ri_core_a(i_part), kind=dc) ! (1)
+       aero_state%apa%particle(i_part)%core_vol = &
+            diam2vol(dp_core_a(i_part)) / 1d6 ! (m^3)
+    end do
+#endif
+
+  end subroutine mosaic_aero_optical_init
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

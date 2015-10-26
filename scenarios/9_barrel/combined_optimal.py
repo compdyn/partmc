@@ -2,6 +2,7 @@
 import sys, collections, operator
 
 file_list = ["rmse_num_0322.dat", "rmse_num_0908.dat", "rmse_num_0909.dat", "rmse_num_0925.dat"]
+#file_list = ["rmse_num_0322.dat", "rmse_num_0908.dat", "rmse_num_0909.dat"]
 d = collections.defaultdict(list)
 for file in file_list:
 	lines = open(file,'r').readlines()[5:]
@@ -14,7 +15,7 @@ for file in file_list:
 res = {}
 for key in d:
 	li = d[key]
-	if len(li) == 4:
+	if len(li) == len(file_list):
 		res[key] = sum(li) / len(li)
 
 sorted_res = sorted(res.items(), key=operator.itemgetter(1))

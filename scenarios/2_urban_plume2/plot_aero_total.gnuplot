@@ -5,7 +5,7 @@
 
 set key top left
 
-set title "Aerosol bulk concentrations (with coag)"
+set title "Aerosol bulk concentrations"
 
 set xrange [0:48]
 
@@ -20,5 +20,5 @@ set y2tics
 #    column  2: aerosol number concentration (#/m^3)
 #    column  3: aerosol mass concentration (kg/m^3)
 
-plot "out/urban_plume2_wc_0001_aero_time.txt" using ($1/3600):2 axes x1y1 with lines title "number concentration", \
-     "out/urban_plume2_wc_0001_aero_time.txt" using ($1/3600):3 axes x1y2 with lines title "mass concentration"
+plot "out/urban_plume2_0001_aero_time.txt" using ($1/3600):2 axes x1y1 with lines title "number concentration", \
+     "out/urban_plume2_0001_aero_time.txt" using ($1/3600):3 axes x1y2 with lines title "mass concentration"

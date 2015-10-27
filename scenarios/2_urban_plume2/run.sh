@@ -7,7 +7,6 @@ set -v
 
 mkdir -p out
 
-../../build/partmc urban_plume2_with_coag.spec
-../../build/partmc urban_plume2_no_coag.spec
+../../build/partmc urban_plume2.spec
 
 # Now run ./process.sh to process the data

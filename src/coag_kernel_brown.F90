@@ -152,7 +152,7 @@ contains
     ! speedsq_i/j = square of particle mean thermal velocity (m/s)
     ! freepath    = particle mean free path (m)
     ! cunning     = cunningham slip-flow correction factor
-    ! deltasq_i/j = square of "delta_i" in eqn 16.29d0
+    ! deltasq_i/j = square of "delta_i" in eqn 15.34
     !
     ! bckernel1   = brownian coagulation kernel (m3/s)
 
@@ -164,7 +164,7 @@ contains
     cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
     diffus_i  = (const%boltzmann * temp * cunning) / &
          (6.0d0 * const%pi * rad_i * viscosd)
-    speedsq_i = 8d0*const%boltzmann*temp/(const%pi*den_i*vol_i)
+    speedsq_i = 8d0 * const%boltzmann * temp / (const%pi * den_i * vol_i)
     freepath  = 8d0*diffus_i/(const%pi*sqrt(speedsq_i))
     tmp1      = (2d0*rad_i + freepath)**3
     tmp2      = (4d0*rad_i*rad_i + freepath*freepath)**1.5d0
@@ -178,7 +178,7 @@ contains
     cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
     diffus_j  = (const%boltzmann * temp * cunning) / &
          (6.0d0 * const%pi * rad_j * viscosd)
-    speedsq_j = 8d0*const%boltzmann*temp/(const%pi*den_j*vol_j)
+    speedsq_j = 8d0 * const%boltzmann * temp / (const%pi * den_j * vol_j)
     freepath  = 8d0*diffus_j/(const%pi*sqrt(speedsq_j))
     tmp1      = (2d0*rad_j + freepath)**3
     tmp2      = (4d0*rad_j*rad_j + freepath*freepath)**1.5d0

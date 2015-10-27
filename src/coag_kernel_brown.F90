@@ -107,16 +107,17 @@ contains
   !!
   !! Uses equation (15.33) of M. Z. Jacobson, Fundamentals of Atmospheric
   !! Modeling Second Edition, Cambridge University Press, 2005.
-  subroutine kernel_brown_helper(v1, d1, v2, d2, temp, pressure, bckernel)
+  subroutine kernel_brown_helper(vol_i, den_i, vol_j, den_j, temp, pressure, &
+       bckernel)
 
     !> Volume of first particle (m^3).
-    real(kind=dp), intent(in) :: v1
+    real(kind=dp), intent(in) :: vol_i
     !> Density of first particle (kg/m^3).
-    real(kind=dp), intent(in) :: d1
+    real(kind=dp), intent(in) :: den_i
     !> Volume of second particle (m^3).
-    real(kind=dp), intent(in) :: v2
+    real(kind=dp), intent(in) :: vol_j
     !> Density of second particle (kg/m^3).
-    real(kind=dp), intent(in) :: d2
+    real(kind=dp), intent(in) :: den_j
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp
     !> Pressure (Pa).
@@ -124,7 +125,7 @@ contains
     !> Kernel k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: bckernel
 
-    real(kind=dp) :: bckernel1, cunning, deltasq_i, &
+    real(kind=dp) :: cunning, deltasq_i, &
          deltasq_j, den_i, den_j, diffus_i, diffus_j, diffus_sum, &
          freepath, gasfreepath, gasspeed, knud, rad_i, rad_j, &
          rad_sum, rhoair, speedsq_i, speedsq_j, tmp1, tmp2, &
@@ -154,10 +155,8 @@ contains
     ! cunning     = cunningham slip-flow correction factor
     ! deltasq_i/j = square of "delta_i" in eqn 15.34
     !
-    ! bckernel1   = brownian coagulation kernel (m3/s)
+    ! bckernel   = brownian coagulation kernel (m3/s)
 
-    den_i     = d1
-    vol_i     = v1
     rad_i     = vol2rad(vol_i)
 
     knud      = gasfreepath/rad_i
@@ -170,8 +169,6 @@ contains
     tmp2      = (4d0*rad_i*rad_i + freepath*freepath)**1.5d0
     deltasq_i = ( (tmp1-tmp2)/(6d0*rad_i*freepath) - 2d0*rad_i )**2
 
-    den_j     = d2
-    vol_j     = v2
     rad_j     = vol2rad(vol_j)
 
     knud      = gasfreepath/rad_j
@@ -188,9 +185,7 @@ contains
     diffus_sum = diffus_i + diffus_j
     tmp1       = rad_sum/(rad_sum + sqrt(deltasq_i + deltasq_j))
     tmp2       = 4d0*diffus_sum/(rad_sum*sqrt(speedsq_i + speedsq_j))
-    bckernel1  = 4d0*const%pi*rad_sum*diffus_sum/(tmp1 + tmp2)
-
-    bckernel   = bckernel1
+    bckernel  = 4d0*const%pi*rad_sum*diffus_sum/(tmp1 + tmp2)
 
   end subroutine kernel_brown_helper
 

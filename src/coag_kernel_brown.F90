@@ -126,10 +126,10 @@ contains
     real(kind=dp), intent(out) :: bckernel
 
     real(kind=dp) :: cunning, deltasq_i, &
-         deltasq_j, den_i, den_j, diffus_i, diffus_j, diffus_sum, &
+         deltasq_j, diffus_i, diffus_j, diffus_sum, &
          freepath, gasfreepath, gasspeed, knud, rad_i, rad_j, &
          rad_sum, rhoair, speedsq_i, speedsq_j, tmp1, tmp2, &
-         viscosd, viscosk, vol_i, vol_j
+         viscosd, viscosk
 
     ! rhoair  = air density (kg/m^3)
     ! viscosd = air dynamic viscosity (kg/m/s)

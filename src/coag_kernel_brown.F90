@@ -20,8 +20,8 @@ contains
 
   !> Compute the Brownian coagulation kernel.
   !!
-  !! Uses equation (16.28) of M. Z. Jacobson, Fundamentals of
-  !! Atmospheric Modeling, Cambridge University Press, 1999.
+  !! Uses equation (15.33) of M. Z. Jacobson, Fundamentals of Atmospheric
+  !! Modeling Second Edition, Cambridge University Press, 2005.
   subroutine kernel_brown(aero_particle_1, aero_particle_2, &
        aero_data, env_state, k)
 
@@ -105,9 +105,9 @@ contains
   !!
   !! Helper function. Do not call directly. Instead use kernel_brown().
   !!
-  !! Uses equation (16.28) of M. Z. Jacobson, Fundamentals of
-  !! Atmospheric Modeling, Cambridge University Press, 1999.
-  subroutine kernel_brown_helper(v1, d1, v2, d2, tk, press, bckernel)
+  !! Uses equation (15.33) of M. Z. Jacobson, Fundamentals of Atmospheric
+  !! Modeling Second Edition, Cambridge University Press, 2005.
+  subroutine kernel_brown_helper(v1, d1, v2, d2, temp, pressure, bckernel)
 
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
@@ -118,74 +118,67 @@ contains
     !> Density of second particle (kg/m^3).
     real(kind=dp), intent(in) :: d2
     !> Temperature (K).
-    real(kind=dp), intent(in) :: tk
+    real(kind=dp), intent(in) :: temp
     !> Pressure (Pa).
-    real(kind=dp), intent(in) :: press
+    real(kind=dp), intent(in) :: pressure
     !> Kernel k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: bckernel
 
-    integer, parameter :: nbin_maxd = 1000
-    integer, save :: nbin = 0
-    real(kind=dp), save :: rad_sv(nbin_maxd)
-    real(kind=dp) :: avogad, bckernel1, boltz, cunning, deltasq_i, &
+    real(kind=dp) :: bckernel1, cunning, deltasq_i, &
          deltasq_j, den_i, den_j, diffus_i, diffus_j, diffus_sum, &
-         freepath, gasfreepath, gasspeed, knud, mwair, rad_i, rad_j, &
-         rad_sum, rgas, rhoair, speedsq_i, speedsq_j, tmp1, tmp2, &
+         freepath, gasfreepath, gasspeed, knud, rad_i, rad_j, &
+         rad_sum, rhoair, speedsq_i, speedsq_j, tmp1, tmp2, &
          viscosd, viscosk, vol_i, vol_j
 
-    ! boltz   = boltzmann's constant (erg/K = g*cm^2/s/K)
-    ! avogad  = avogadro's number (molecules/mol)
-    ! mwair   = molecular weight of air (g/mol)
-    ! rgas    = gas constant (atmos/(mol/liter)/K)
-    ! rhoair  = air density (g/cm^3)
-    ! viscosd = air dynamic viscosity (g/cm/s)
-    ! viscosk = air kinematic viscosity (cm^2/s)
-    ! gasspeed    = air molecule mean thermal velocity (cm/s)
-    ! gasfreepath = air molecule mean free path (cm)
+    ! rhoair  = air density (kg/m^3)
+    ! viscosd = air dynamic viscosity (kg/m/s)
+    ! viscosk = air kinematic viscosity (m^2/s)
+    ! gasspeed    = air molecule mean thermal velocity (m/s)
+    ! gasfreepath = air molecule mean free path (m)
 
-    boltz = const%boltzmann * 1d7 ! J/K to erg/K
-    avogad = const%avagadro
-    mwair = const%air_molec_weight * 1d3 ! kg/mole to g/mole
-    rgas = const%univ_gas_const * 1d3 / const%air_std_press ! J/mole/K to atmos/(mol/liter)/K
+    rhoair = (pressure * const%air_molec_weight) / &
+         (const%univ_gas_const * temp)
 
-    rhoair = 0.001d0 * ((press/const%air_std_press)*mwair/(rgas*tk))
+    viscosd = 1.8325d-05 * (416.16d0 / (temp + 120d0)) * &
+         (temp / 296.16d0)**1.5d0
+    viscosk = viscosd / rhoair
+    gasspeed = sqrt((8.0d0 * const%boltzmann * temp * const%avagadro) / &
+         (const%pi * const%air_molec_weight))
+    gasfreepath = 2d0 * viscosk / gasspeed
 
-    viscosd = (1.8325d-04*(296.16d0+120d0)/(tk+120d0)) * (tk/296.16d0)**1.5d0
-    viscosk = viscosd/rhoair
-    gasspeed = sqrt(8d0*boltz*tk*avogad/(const%pi*mwair))
-    gasfreepath = 2d0*viscosk/gasspeed
-
-    ! coagulation kernel from eqn 16.28 of jacobson (1999) text
+    ! coagulation kernel from eqn 15.33 of Jacobson (2005) text
     !
-    ! diffus_i/j  = particle brownian diffusion coefficient  (cm^2/s)
-    ! speedsq_i/j = square of particle mean thermal velocity (cm/s)
-    ! freepath    = particle mean free path (cm)
+    ! diffus_i/j  = particle brownian diffusion coefficient  (m^2/s)
+    ! speedsq_i/j = square of particle mean thermal velocity (m/s)
+    ! freepath    = particle mean free path (m)
     ! cunning     = cunningham slip-flow correction factor
     ! deltasq_i/j = square of "delta_i" in eqn 16.29d0
     !
-    ! bckernel1   = brownian coagulation kernel (cm3/s)
+    ! bckernel1   = brownian coagulation kernel (m3/s)
 
-    den_i     = d1 * 1.0d-3   ! particle wet density (g/cm3)
-    vol_i     = v1 * 1.0d+6   ! particle wet volume (cm3)
-    rad_i     = vol2rad(vol_i)       ! particle wet radius (cm)
+    den_i     = d1
+    vol_i     = v1
+    rad_i     = vol2rad(vol_i)
 
     knud      = gasfreepath/rad_i
     cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
-    diffus_i  = boltz*tk*cunning/(6d0*const%pi*rad_i*viscosd)
-    speedsq_i = 8d0*boltz*tk/(const%pi*den_i*vol_i)
+    diffus_i  = (const%boltzmann * temp * cunning) / &
+         (6.0d0 * const%pi * rad_i * viscosd)
+    speedsq_i = 8d0*const%boltzmann*temp/(const%pi*den_i*vol_i)
     freepath  = 8d0*diffus_i/(const%pi*sqrt(speedsq_i))
     tmp1      = (2d0*rad_i + freepath)**3
     tmp2      = (4d0*rad_i*rad_i + freepath*freepath)**1.5d0
     deltasq_i = ( (tmp1-tmp2)/(6d0*rad_i*freepath) - 2d0*rad_i )**2
 
-    den_j     = d2 * 1.0d-3
-    vol_j     = v2 * 1.0d+6
+    den_j     = d2
+    vol_j     = v2
     rad_j     = vol2rad(vol_j)
 
     knud      = gasfreepath/rad_j
     cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
-    diffus_j  = boltz*tk*cunning/(6d0*const%pi*rad_j*viscosd)
-    speedsq_j = 8d0*boltz*tk/(const%pi*den_j*vol_j)
+    diffus_j  = (const%boltzmann * temp * cunning) / &
+         (6.0d0 * const%pi * rad_j * viscosd)
+    speedsq_j = 8d0*const%boltzmann*temp/(const%pi*den_j*vol_j)
     freepath  = 8d0*diffus_j/(const%pi*sqrt(speedsq_j))
     tmp1      = (2d0*rad_j + freepath)**3
     tmp2      = (4d0*rad_j*rad_j + freepath*freepath)**1.5d0
@@ -197,7 +190,7 @@ contains
     tmp2       = 4d0*diffus_sum/(rad_sum*sqrt(speedsq_i + speedsq_j))
     bckernel1  = 4d0*const%pi*rad_sum*diffus_sum/(tmp1 + tmp2)
 
-    bckernel   = bckernel1 * 1.0d-6
+    bckernel   = bckernel1
 
   end subroutine kernel_brown_helper
 

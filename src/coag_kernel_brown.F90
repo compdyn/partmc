@@ -132,7 +132,7 @@ contains
          deltasq_j, diffus_i, diffus_j, diffus_sum, &
          freepath, gasfreepath, gasspeed, knud, rad_i, rad_j, &
          rad_sum, rhoair, speedsq_i, speedsq_j, tmp1, tmp2, &
-         viscosd, viscosk
+         viscosd, viscosk, Rme_i, Rme_j
 
     ! rhoair  = air density (kg/m^3)
     ! viscosd = air dynamic viscosity (kg/m/s)
@@ -160,9 +160,9 @@ contains
     !
     ! bckernel   = brownian coagulation kernel (m3/s)
 
-    rad_i     = vol2rad(vol_i, aero_data%fractal)
-    Rme_i     = vol_to_mobility_rad(vol_i, temp, pressure, &
-         aero_data%fractal)
+    rad_i     = aero_data_vol2rad(aero_data, vol_i)
+    Rme_i     = aero_data_vol_to_mobility_rad(aero_data, vol_i, &
+         temp, pressure)
 
     knud      = gasfreepath/Rme_i
     cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))
@@ -174,9 +174,9 @@ contains
     tmp2      = (4d0*Rme_i*Rme_i + freepath*freepath)**1.5d0
     deltasq_i = ( (tmp1-tmp2)/(6d0*Rme_i*freepath) - 2d0*Rme_i )**2
 
-    rad_j     = vol2rad(vol_j, aero_data%fractal)
-    Rme_j     = vol_to_mobility_rad(vol_j, temp, pressure, &
-         aero_data%fractal)
+    rad_j     = aero_data_vol2rad(aero_data, vol_j)
+    Rme_j     = aero_data_vol_to_mobility_rad(aero_data, vol_j, &
+         temp, pressure)
 
     knud      = gasfreepath/Rme_j
     cunning   = 1d0 + knud*(1.249d0 + 0.42d0*exp(-0.87d0/knud))

@@ -229,8 +229,8 @@ contains
        condense_saved_num_conc(i_part) &
             = aero_weight_array_num_conc(aero_state%awa, &
             aero_state%apa%particle(i_part), aero_data)
-       state(i_part) = aero_particle_diameter(aero_state%apa%particle(i_part), &
-            aero_data)
+       state(i_part) = aero_particle_diameter(&
+            aero_state%apa%particle(i_part), aero_data)
        abs_tol_vector(i_part) = max(1d-30, &
             1d-8 * (state(i_part) - condense_saved_D_dry(i_part)))
     end do

@@ -751,7 +751,7 @@ contains
     !! do_coagulation yes              # whether to do coagulation (yes/no)
     !! kernel additive                 # Additive coagulation kernel
     !!
-    !! do_fractal no                   # whether to do fractal treatment (yes/no)
+    !! do_fractal no                   # whether to do fractal treatment
     !! </pre>
 
     ! only serial code here
@@ -800,7 +800,7 @@ contains
     else
        run_exact_opt%loss_function_type = SCENARIO_LOSS_FUNCTION_INVALID
     end if
-    
+
     call spec_file_read_fractal(file, aero_data%fractal)
     call spec_file_close(file)
 
@@ -911,7 +911,7 @@ contains
     !! do_coagulation yes              # whether to do coagulation (yes/no)
     !! kernel brown                    # coagulation kernel
     !!
-    !! do_fractal no                   # whether to do fractal treatment (yes/no)
+    !! do_fractal no                   # whether to do fractal treatment
     !! </pre>
 
     ! only serial code here

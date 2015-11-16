@@ -388,8 +388,8 @@ contains
     else if (loss_function_type == SCENARIO_LOSS_FUNCTION_VOLUME) then
       scenario_loss_rate = 1d15*vol
     else if (loss_function_type == SCENARIO_LOSS_FUNCTION_DRY_DEP) then
-      scenario_loss_rate = scenario_loss_rate_dry_dep(vol, density, aero_data, &
-          env_state)
+      scenario_loss_rate = scenario_loss_rate_dry_dep(vol, density, &
+          aero_data, env_state)
     else
        call die_msg(201594391, "Unknown loss function id: " &
             // trim(integer_to_string(loss_function_type)))

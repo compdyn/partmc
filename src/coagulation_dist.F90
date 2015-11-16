@@ -176,8 +176,8 @@ contains
     do i_bin = 1,bin_grid_size(aero_state%aero_sorted%bin_grid)
        do j_bin = 1,bin_grid_size(aero_state%aero_sorted%bin_grid)
           call max_coag_num_conc_factor(aero_weight_total, &
-               aero_data, aero_state%aero_sorted%bin_grid, i_bin, j_bin, s1, s2, sc, &
-               f_max)
+               aero_data, aero_state%aero_sorted%bin_grid, &
+               i_bin, j_bin, s1, s2, sc, f_max)
           k_max(i_bin, j_bin) &
                = aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin) * f_max
        end do

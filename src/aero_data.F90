@@ -128,7 +128,8 @@ contains
   !> fractal particle cluster.
   !!
   !! Based on Eq. 5 in Naumann [2003].
-  real(kind=dp) elemental function aero_data_vol_to_num_of_monomers(aero_data, v)
+  real(kind=dp) elemental function aero_data_vol_to_num_of_monomers(&
+       aero_data, v)
 
     !> Aero data structure.
     type(aero_data_t), intent(in) :: aero_data
@@ -169,8 +170,8 @@ contains
   !> \f$V\f$ (m^3).
   !!
   !! Based on Eq. 5, 21 and 30 in Naumann [2003].
-  real(kind=dp) function aero_data_mobility_rad_to_vol(aero_data, mobility_rad, &
-       temp, pressure)
+  real(kind=dp) function aero_data_mobility_rad_to_vol(aero_data, &
+       mobility_rad, temp, pressure)
 
     !> Aero data structure.
     type(aero_data_t), intent(in) :: aero_data

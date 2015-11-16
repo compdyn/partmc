@@ -1,3 +1,6 @@
+2.5.0 - XXXX-XX-XX
+
+  * Add fractal particle model treatment, following Naumann [2003].
 
 2.4.0 - XXXX-XX-XX
 
@@ -42,8 +45,6 @@
 
   * Distributed parallel coagulation is disabled due to lack of
     weighting support.
-
-  * Add fractal particle model treatment, following Naumann [2003].
 
 2.2.1 - 2012-03-30
 

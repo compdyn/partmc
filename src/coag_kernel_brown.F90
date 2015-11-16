@@ -44,7 +44,7 @@ contains
     d1 = aero_particle_density(aero_particle_1, aero_data)
     d2 = aero_particle_density(aero_particle_2, aero_data)
 
-    call kernel_brown_helper(aero_data, v1, d1, v2, d2, env_state%temp, &
+    call kernel_brown_helper(v1, d1, v2, d2, aero_data, env_state%temp, &
          env_state%pressure, k)
 
   end subroutine kernel_brown
@@ -85,7 +85,7 @@ contains
        do j = 1,n_sample
           d1 = interp_linear_disc(d_min, d_max, n_sample, i)
           d2 = interp_linear_disc(d_min, d_max, n_sample, j)
-          call kernel_brown_helper(aero_data, v1, d1, v2, d2, &
+          call kernel_brown_helper(v1, d1, v2, d2, aero_data, &
                env_state%temp, env_state%pressure, k)
           if (first) then
              first = .false.

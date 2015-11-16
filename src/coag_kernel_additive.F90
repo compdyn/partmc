@@ -138,7 +138,8 @@ contains
           x = 2d0 * rat_v * sqrt(T)
           if (x .lt. 500d0) then
              call bessi1(x, b)
-             nn = num_conc / aero_data_rad2vol(aero_data, bin_grid%centers(k)) &
+             nn = num_conc / aero_data_rad2vol(aero_data, &
+                  bin_grid%centers(k)) &
                   * (1d0 - T) / sqrt(T) * exp(-((1d0 + T) * rat_v)) * b
           else
              ! For very large volumes we can use the asymptotic
@@ -146,7 +147,8 @@ contains
              ! simplify the result to avoid the overflow from
              ! multiplying a huge bessel function result by a very
              ! tiny exponential.
-             nn = num_conc / aero_data_rad2vol(aero_data, bin_grid%centers(k)) &
+             nn = num_conc / aero_data_rad2vol(aero_data, &
+                  bin_grid%centers(k)) &
                   * (1d0 - T) / sqrt(T) &
                   * exp((2d0*sqrt(T) - T - 1d0) * rat_v) &
                   / sqrt(4d0 * const%pi * rat_v * sqrt(T))

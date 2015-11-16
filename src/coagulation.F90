@@ -204,8 +204,10 @@ contains
        return
     end if
 
-    min_target_vol = aero_data_rad2vol(aero_data, aero_state%aero_sorted%bin_grid%edges(bt))
-    max_source_vol = aero_data_rad2vol(aero_data, aero_state%aero_sorted%bin_grid%edges(bs+1))
+    min_target_vol = aero_data_rad2vol(aero_data, &
+         aero_state%aero_sorted%bin_grid%edges(bt))
+    max_source_vol = aero_data_rad2vol(aero_data, &
+         aero_state%aero_sorted%bin_grid%edges(bs+1))
     max_new_target_vol = min_target_vol + max_source_vol * n_source_per_target
     ! check for unacceptably large volume change
     max_target_growth_factor = max_new_target_vol / min_target_vol
@@ -378,8 +380,8 @@ contains
        return
     end if
 
-    num_conc_target = aero_weight_array_num_conc(aero_state%awa, coag_particle, &
-         aero_data)
+    num_conc_target = aero_weight_array_num_conc(aero_state%awa, &
+         coag_particle, aero_data)
     target_id = coag_particle%id
     ct = coag_particle%weight_class
 

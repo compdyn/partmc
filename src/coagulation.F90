@@ -474,9 +474,9 @@ contains
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
-    !> Bin of coagulating particle.
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Bin of coagulating particle.
     integer, intent(in) :: bt
     !> Weight class of coagulating particle.
     integer, intent(in) :: ct

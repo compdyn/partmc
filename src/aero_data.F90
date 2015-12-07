@@ -64,13 +64,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert material volume \f$V\f$ (m^3) to geometric radius
+  !> Convert mass-equivalent volume \f$V\f$ (m^3) to geometric radius
   !> \f$R_{\rm geo}\f$ (m).
   real(kind=dp) elemental function aero_data_vol2rad(aero_data, v)
 
     !> Aero data structure.
     type(aero_data_t), intent(in) :: aero_data
-    !> Particle material volume (m^3).
+    !> Particle mass-equivalent volume (m^3).
     real(kind=dp), intent(in) :: v
 
     aero_data_vol2rad = fractal_vol2rad(aero_data%fractal, v)
@@ -79,13 +79,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert material volume \f$V\f$ (m^3) to geometric diameter
+  !> Convert mass-equivalent volume \f$V\f$ (m^3) to geometric diameter
   !> \f$D_{\rm geo}\f$ (m).
   real(kind=dp) elemental function aero_data_vol2diam(aero_data, v)
 
     !> Aero data structure.
     type(aero_data_t), intent(in) :: aero_data
-    !> Particle material volume (m^3).
+    !> Particle mass-equivalent volume (m^3).
     real(kind=dp), intent(in) :: v
 
     aero_data_vol2diam = fractal_vol2diam(aero_data%fractal, v)
@@ -94,7 +94,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert geometric radius \f$R_{\rm geo}\f$ (m) to material volume
+  !> Convert geometric radius \f$R_{\rm geo}\f$ (m) to mass-equivalent volume
   !> \f$V\f$ (m^3).
   real(kind=dp) elemental function aero_data_rad2vol(aero_data, r)
 
@@ -109,8 +109,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert geometric diameter \f$D_{\rm geo}\f$ (m) to material volume
-  !> \f$V\f$ (m^3).
+  !> Convert geometric diameter \f$D_{\rm geo}\f$ (m) to
+  !> mass-equivalent volume \f$V\f$ (m^3).
   real(kind=dp) elemental function aero_data_diam2vol(aero_data, d)
 
     !> Aero data structure.
@@ -124,8 +124,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert material volume \f$V\f$ (m^3) to number of monomers \f$N\f$ in a
-  !> fractal particle cluster.
+  !> Convert mass-equivalent volume \f$V\f$ (m^3) to number of
+  !> monomers \f$N\f$ in a fractal particle cluster.
   !!
   !! Based on Eq. 5 in Naumann [2003].
   real(kind=dp) elemental function aero_data_vol_to_num_of_monomers(&
@@ -133,7 +133,7 @@ contains
 
     !> Aero data structure.
     type(aero_data_t), intent(in) :: aero_data
-    !> Particle material volume (m^3).
+    !> Particle mass-equivalent volume (m^3).
     real(kind=dp), intent(in) :: v
 
     aero_data_vol_to_num_of_monomers = fractal_vol_to_num_of_monomers( &
@@ -143,8 +143,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert material volume \f$V\f$ (m^3) to mobility equivalent radius
-  !> \f$R_{\rm me}\f$ (m).
+  !> Convert mass-equivalent volume \f$V\f$ (m^3) to mobility equivalent
+  !> radius \f$R_{\rm me}\f$ (m).
   !!
   !! Based on Eq. 5, 21 and 30 in Naumann [2003].
   real(kind=dp) function aero_data_vol_to_mobility_rad(aero_data, v, temp, &
@@ -152,7 +152,7 @@ contains
 
     !> Aero data structure.
     type(aero_data_t), intent(in) :: aero_data
-    !> Particle material volume (m^3).
+    !> Particle mass-equivalent volume (m^3).
     real(kind=dp), intent(in) :: v
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp
@@ -166,8 +166,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert mobility equivalent radius \f$R_{\rm me}\f$ (m) to material volume
-  !> \f$V\f$ (m^3).
+  !> Convert mobility equivalent radius \f$R_{\rm me}\f$ (m) to
+  !> mass-equivalent volume \f$V\f$ (m^3).
   !!
   !! Based on Eq. 5, 21 and 30 in Naumann [2003].
   real(kind=dp) function aero_data_mobility_rad_to_vol(aero_data, &

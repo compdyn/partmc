@@ -1511,7 +1511,8 @@ contains
     ! process the received particles
     do i_proc = 0,(n_proc - 1)
        if (i_proc /= rank) then
-          call aero_state_add(aero_state, aero_state_recvs(i_proc + 1))
+          call aero_state_add(aero_state, aero_state_recvs(i_proc + 1), &
+               aero_data)
        end if
     end do
 
@@ -2015,7 +2016,8 @@ contains
           call assert(518174881, position == buffer_size)
           deallocate(buffer)
 
-          call aero_state_add(aero_state_total, aero_state_transfer)
+          call aero_state_add(aero_state_total, aero_state_transfer, &
+               aero_data)
        end do
     end if
 

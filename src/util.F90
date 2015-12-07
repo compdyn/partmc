@@ -234,6 +234,84 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Convert mass-equivalent volume \f$V\f$ (m^3) to geometric radius
+  !> \f$R_{\rm geo}\f$ (m) for spherical particles.
+  real(kind=dp) elemental function sphere_vol2rad(v)
+
+    !> Particle mass-equivalent volume (m^3).
+    real(kind=dp), intent(in) :: v
+
+    sphere_vol2rad = (3d0 * v / 4d0 / const%pi)**(1d0 / 3d0)
+
+  end function sphere_vol2rad
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert radius (m) to diameter (m).
+  real(kind=dp) elemental function rad2diam(r)
+
+    !> Radius (m).
+    real(kind=dp), intent(in) :: r
+
+    rad2diam = 2d0 * r
+
+  end function rad2diam
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert geometric radius \f$R_{\rm geo}\f$ (m) to mass-equivalent volume
+  !> \f$V\f$ (m^3) for spherical particles.
+  real(kind=dp) elemental function sphere_rad2vol(r)
+
+    !> Geometric radius (m).
+    real(kind=dp), intent(in) :: r
+
+    sphere_rad2vol = 4d0 * const%pi * r**3 / 3d0
+
+  end function sphere_rad2vol
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert diameter (m) to radius (m).
+  real(kind=dp) elemental function diam2rad(d)
+
+    !> Diameter (m).
+    real(kind=dp), intent(in) :: d
+
+    diam2rad = d / 2d0
+
+  end function diam2rad
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Calculate air molecular mean free path \f$l\f$ (m).
+  real(kind=dp) function air_mean_free_path(temp, pressure)
+
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: temp
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: pressure
+
+    real(kind=dp) :: boltz, avogad, mwair, rgas, rhoair, viscosd, &
+         viscosk, gasspeed
+
+    boltz = const%boltzmann
+    avogad = const%avagadro
+    mwair = const%air_molec_weight
+    rgas = const%univ_gas_const
+
+    rhoair = (pressure * mwair) / (rgas * temp)
+
+    viscosd = (1.8325d-5 * (296.16d0 + 120d0) / (temp + 120d0)) &
+         * (temp / 296.16d0)**1.5d0
+    viscosk = viscosd / rhoair
+    gasspeed = sqrt(8d0 * boltz * temp * avogad / (const%pi * mwair))
+    air_mean_free_path = 2d0 * viscosk / gasspeed
+
+  end function air_mean_free_path
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Tests whether two real numbers are almost equal using only a
   !> relative tolerance.
   logical function almost_equal(d1, d2)
@@ -1531,84 +1609,6 @@ contains
     pow2_above = ibset(0, bit_size(n) - leadz(n - 1))
 
   end function pow2_above
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Convert material volume \f$V\f$ (m^3) to geometric radius
-  !> \f$R_{\rm geo}\f$ (m) for spherical particles.
-  real(kind=dp) elemental function sphere_vol2rad(v)
-
-    !> Particle material volume (m^3).
-    real(kind=dp), intent(in) :: v
-
-    sphere_vol2rad = (3d0 * v / 4d0 / const%pi)**(1d0 / 3d0)
-
-  end function sphere_vol2rad
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Convert radius (m) to diameter (m).
-  real(kind=dp) elemental function rad2diam(r)
-
-    !> Radius (m).
-    real(kind=dp), intent(in) :: r
-
-    rad2diam = 2d0 * r
-
-  end function rad2diam
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Convert geometric radius \f$R_{\rm geo}\f$ (m) to material volume
-  !> \f$V\f$ (m^3) for spherical particles.
-  real(kind=dp) elemental function sphere_rad2vol(r)
-
-    !> Geometric radius (m).
-    real(kind=dp), intent(in) :: r
-
-    sphere_rad2vol = 4d0 * const%pi * r**3 / 3d0
-
-  end function sphere_rad2vol
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Convert diameter (m) to radius (m).
-  real(kind=dp) elemental function diam2rad(d)
-
-    !> Diameter (m).
-    real(kind=dp), intent(in) :: d
-
-    diam2rad = d / 2d0
-
-  end function diam2rad
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Calculate air molecular mean free path \f$l\f$ (m).
-  real(kind=dp) function air_mean_free_path(temp, pressure)
-
-    !> Temperature (K).
-    real(kind=dp), intent(in) :: temp
-    !> Pressure (Pa).
-    real(kind=dp), intent(in) :: pressure
-
-    real(kind=dp) :: boltz, avogad, mwair, rgas, rhoair, viscosd, &
-         viscosk, gasspeed
-
-    boltz = const%boltzmann
-    avogad = const%avagadro
-    mwair = const%air_molec_weight
-    rgas = const%univ_gas_const
-
-    rhoair = (pressure * mwair) / (rgas * temp)
-
-    viscosd = (1.8325d-5 * (296.16d0 + 120d0) / (temp + 120d0)) &
-         * (temp / 296.16d0)**1.5d0
-    viscosk = viscosd / rhoair
-    gasspeed = sqrt(8d0 * boltz * temp * avogad / (const%pi * mwair))
-    air_mean_free_path = 2d0 * viscosk / gasspeed
-
-  end function air_mean_free_path
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

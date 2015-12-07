@@ -1,6 +1,5 @@
 ! Copyright (C) 2012 Jian Tian
 ! Copyright (C) 2005-2011 Nicole Riemer and Matthew West
-! Copyright (C) 2007 Richard Easter
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 

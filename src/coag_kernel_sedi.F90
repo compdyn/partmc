@@ -40,8 +40,8 @@ contains
     !> Kernel \c k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: k
 
-    call kernel_sedi_helper(aero_data, aero_particle_volume(aero_particle_1), &
-         aero_particle_volume(aero_particle_2), env_state%temp, &
+    call kernel_sedi_helper(aero_particle_volume(aero_particle_1), &
+         aero_particle_volume(aero_particle_2), aero_data, env_state%temp, &
          env_state%pressure, k)
 
   end subroutine kernel_sedi
@@ -64,7 +64,7 @@ contains
     !> Maximum kernel \c k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: k_max
 
-    call kernel_sedi_helper(aero_data, v1, v2, env_state%temp, &
+    call kernel_sedi_helper(v1, v2, aero_data, env_state%temp, &
          env_state%pressure, k_min)
     k_max = k_min
 
@@ -75,14 +75,14 @@ contains
   !> Helper function that does the actual sedimentation kernel computation.
   !!
   !! Helper function. Do not call directly. Instead use kernel_sedi().
-  subroutine kernel_sedi_helper(aero_data, v1, v2, temp, pressure, k)
+  subroutine kernel_sedi_helper(v1, v2, aero_data, temp, pressure, k)
 
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
     !> Volume of second particle (m^3).
     real(kind=dp), intent(in) :: v2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp
     !> Pressure (Pa).
@@ -108,7 +108,7 @@ contains
   !> Finds the terminal velocity of a particle based on its size.
   subroutine fall_g(r, w_inf)
 
-    !> Particle radius (m).
+    !> Particle mobility radius (m).
     real(kind=dp), intent(in) :: r
     !> Terminal velocity (m/s).
     real(kind=dp), intent(out) :: w_inf
@@ -178,9 +178,9 @@ contains
   !! given that they approach close enough to do so.
   subroutine effic(r1, r2, ec)
 
-    !> Radius of first particle (m).
+    !> Geometric radius of first particle (m).
     real(kind=dp), intent(in) :: r1
-    !> Radius of second particle (m).
+    !> Geometric radius of second particle (m).
     real(kind=dp), intent(in) :: r2
     !> Collision efficiency (dimensionless).
     real(kind=dp), intent(out) :: ec

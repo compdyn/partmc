@@ -49,8 +49,8 @@ $\rho_{\rm a}$		   & \rr air density														& function		& $\rm kg \, m^{-3
 $S_{\rm acc}$		   & \rr accessible particle surface area										& function		& $\rm m^2$								& \rr eq.~\ref{eq:S_acc}, eq.~(26) in Naumann [2003]							 \tn
 $T$                    & \rr absolute temperature               			                    & prescribed    & $\rm K$                               & \rr 				                     \tn
 $\bar{v}_{\rm a}$	   & \rr thermal speed of an air molecule									& function		& $\rm m \, s^{-1}$					& \rr eq.~\ref{eq:v_a}, eq.~(15.25) in Jacobson [2005]				 		 \tn
-$V$                    & \rr particle material volume               			                    & function    & $\rm m^3$                               & \rr 				                     \tn
-$V_{\rm sphere}$		   & \rr material volume of spherical particles								& function		& $\rm m^3$				& \rr eq.~\ref{eq:V_sphere}							 \tn
+$V$                    & \rr particle mass-equivalent volume               			                    & function    & $\rm m^3$                               & \rr 				                     \tn
+$V_{\rm sphere}$		   & \rr mass-equivalent volume of spherical particles								& function		& $\rm m^3$				& \rr eq.~\ref{eq:V_sphere}							 \tn
 $z$					   & \rr scaling factor in eq.~\ref{eq:S_acc} 								& constant			& $1$									& \rr value = 1										 \tn
 \end{longtable}
 
@@ -101,7 +101,7 @@ then rearrange Eq.~\ref{eq:Num_monomer} to calculate $R_{\rm geo}$
   \begin{align}
     R_{\rm geo} = R_{\rm 0} (f N)^{\frac{1}{d_{\rm f}}} \label{eq:R_geo}
   \end{align}
-In reverse, to calculate volume $V$ from $R_{\rm geo}$, we know the material volume of any spherical particle with radius $R$ is given by
+In reverse, to calculate volume $V$ from $R_{\rm geo}$, we know the mass-equivalent volume of any spherical particle with radius $R$ is given by
    \begin{align}
     V_{\rm sphere}(R) = \frac{4}{3} \pi R^3 \label{eq:V_sphere}
   \end{align}

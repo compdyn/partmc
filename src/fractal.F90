@@ -10,7 +10,10 @@
 !! This module includes all the conversions of different radii and
 !! diameters to volume (and vice versa), such as geometric radius/diameter,
 !! mobility equivalent radius/diameter, etc. Here volume means the
-!! particle material volume (referred to "vol" in code). Geometric radius
+!! particle mass-equivalent volume (referred to "vol" in code).
+!! The mass-equivalent volume is the sum of the per-species volumes, which are
+!! in turn the per-species masses divided by the per-species
+!! densities in aero_data. Geometric radius
 !! (referred to "rad" in code) is defined as the radius of the closest
 !! convex envelop. This quantity provides the information about the
 !! collisional cross section which is required to calculate coagulation rates.
@@ -80,15 +83,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert material volume \f$V\f$ (m^3) to number of monomers \f$N\f$ in a
-  !> fractal particle cluster.
+  !> Convert mass-equivalent volume \f$V\f$ (m^3) to number of 
+  !> monomers \f$N\f$ in a fractal particle cluster.
   !!
   !! Based on Eq. 5 in Naumann [2003].
   real(kind=dp) elemental function fractal_vol_to_num_of_monomers(fractal, v)
 
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
-    !> Particle material volume (m^3).
+    !> Particle mass-equivalent volume (m^3).
     real(kind=dp), intent(in) :: v
 
     fractal_vol_to_num_of_monomers = (sphere_vol2rad(v) &
@@ -98,13 +101,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert material volume \f$V\f$ (m^3) to geometric radius
+  !> Convert mass-equivalent volume \f$V\f$ (m^3) to geometric radius
   !> \f$R_{\rm geo}\f$ (m).
   real(kind=dp) elemental function fractal_vol2rad(fractal, v)
 
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
-    !> Particle material volume (m^3).
+    !> Particle mass-equivalent volume (m^3).
     real(kind=dp), intent(in) :: v
 
     if (fractal_is_spherical(fractal)) then
@@ -119,13 +122,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert material volume \f$V\f$ (m^3) to geometric diameter
+  !> Convert mass-equivalent volume \f$V\f$ (m^3) to geometric diameter
   !> \f$D_{\rm geo}\f$ (m).
   real(kind=dp) elemental function fractal_vol2diam(fractal, v)
 
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
-    !> Particle material volume (m^3).
+    !> Particle mass-equivalent volume (m^3).
     real(kind=dp), intent(in) :: v
 
     fractal_vol2diam = 2d0 * fractal_vol2rad(fractal, v)
@@ -134,7 +137,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert geometric radius \f$R_{\rm geo}\f$ (m) to material volume
+  !> Convert geometric radius \f$R_{\rm geo}\f$ (m) to mass-equivalent volume
   !> \f$V\f$ (m^3).
   real(kind=dp) elemental function fractal_rad2vol(fractal, r)
 
@@ -155,8 +158,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert geometric diameter \f$D_{\rm geo}\f$ (m) to material volume
-  !> \f$V\f$ (m^3).
+  !> Convert geometric diameter \f$D_{\rm geo}\f$ (m) to
+  !> mass-equivalent volume \f$V\f$ (m^3).
   real(kind=dp) elemental function fractal_diam2vol(fractal, d)
 
     !> Fractal parameters.
@@ -188,15 +191,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert material volume \f$V\f$ (m^3) to accessible particle surface area
-  !> \f$S_{\rm acc}\f$ (m^2).
+  !> Convert mass-equivalent volume \f$V\f$ (m^3) to accessible
+  !>  particle surface area \f$S_{\rm acc}\f$ (m^2).
   !!
   !! Based on Eq. 26 in Naumann [2003].
   real(kind=dp) function fractal_vol_to_accessible_surface(fractal, v)
 
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
-    !> Particle material volume (m^3)
+    !> Particle mass-equivalent volume (m^3)
     real(kind=dp), intent(in) :: v
 
     real(kind=dp) :: ds, N
@@ -228,15 +231,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert material volume \f$V\f$ (m^3) to continuum regime mobility
-  !> equivalent radius \f$R_{\rm me,c}\f$ (m).
+  !> Convert mass-equivalent volume \f$V\f$ (m^3) to continuum regime
+  !> mobility equivalent radius \f$R_{\rm me,c}\f$ (m).
   !!
   !! Based on Eq. 21 in Naumann [2003].
   real(kind=dp) function fractal_vol_to_mobility_rad_in_continuum(fractal, v)
 
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
-    !> Particle material volume (m^3).
+    !> Particle mass-equivalent volume (m^3).
     real(kind=dp), intent(in) :: v
 
     fractal_vol_to_mobility_rad_in_continuum = &
@@ -246,15 +249,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert material volume \f$V\f$ (m^3) to particle effective radius
-  !> \f$R_{\rm eff}\f$ (m).
+  !> Convert mass-equivalent volume \f$V\f$ (m^3) to particle effective
+  !> radius \f$R_{\rm eff}\f$ (m).
   !!
   !! Based on Eq. 28 in Naumann [2003].
   real(kind=dp) function fractal_vol_to_effective_rad(fractal, v)
 
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
-    !> Particle material volume (m^3).
+    !> Particle mass-equivalent volume (m^3).
     real(kind=dp), intent(in) :: v
 
     fractal_vol_to_effective_rad = &
@@ -304,8 +307,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert material volume \f$V\f$ (m^3) to mobility equivalent radius
-  !> \f$R_{\rm me}\f$ (m).
+  !> Convert mass-equivalent volume \f$V\f$ (m^3) to mobility equivalent
+  !> radius \f$R_{\rm me}\f$ (m).
   !!
   !! Based on Eq. 5, 21 and 30 in Naumann [2003].
   real(kind=dp) function fractal_vol_to_mobility_rad(fractal, v, temp, &
@@ -313,7 +316,7 @@ contains
 
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
-    !> Particle material volume (m^3).
+    !> Particle mass-equivalent volume (m^3).
     real(kind=dp), intent(in) :: v
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp
@@ -425,8 +428,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert mobility equivalent radius \f$R_{\rm me}\f$ (m) to material volume
-  !> \f$V\f$ (m^3).
+  !> Convert mobility equivalent radius \f$R_{\rm me}\f$ (m) to
+  !> mass-equivalent volume \f$V\f$ (m^3).
   !!
   !! Based on Eq. 5, 21 and 30 in Naumann [2003].
   real(kind=dp) function fractal_mobility_rad_to_vol(fractal, mobility_rad, &

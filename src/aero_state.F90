@@ -1499,7 +1499,7 @@ contains
           prob_transfer_given_not_transferred = prob_transfer &
                / prob_not_transferred
           call aero_state_sample(aero_state, &
-               aero_state_sends(i_proc + 1), &
+               aero_state_sends(i_proc + 1), aero_data, &
                prob_transfer_given_not_transferred, AERO_INFO_NONE)
           prob_not_transferred = prob_not_transferred - prob_transfer
        end if
@@ -1959,12 +1959,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Gathers data from all processes into one aero_state on process 0.
-  subroutine aero_state_mpi_gather(aero_state, aero_state_total)
+  subroutine aero_state_mpi_gather(aero_state, aero_state_total, aero_data)
 
     !> Local aero_state.
     type(aero_state_t), intent(in) :: aero_state
     !> Centralized aero_state (only on process 0).
     type(aero_state_t), intent(inout) :: aero_state_total
+    !> Aero data values.
+    type(aero_data_t), intent(in) :: aero_data
 
 #ifdef PMC_USE_MPI
     type(aero_state_t) :: aero_state_transfer

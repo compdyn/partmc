@@ -280,7 +280,7 @@ contains
             aero_data, aero_state, accept_factors, coag_kernel_type, &
             tot_n_coag, magnitudes)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_UNREQ_PARTICLE) then
-       call recv_return_unreq_particle(aero_state)
+       call recv_return_unreq_particle(aero_state, aero_data)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_NO_PARTICLE) then
        call recv_return_no_particle(requests, aero_data, aero_state)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_DONE) then
@@ -574,7 +574,8 @@ contains
     ! back. If we wanted to, we could use the knowledge that it should
     ! go into bin requests(i_req)%local_bin
     call aero_state_add_particle(aero_state, &
-         requests(i_req)%local_aero_particle, allow_resort=.false.)
+         requests(i_req)%local_aero_particle, aero_data, &
+         allow_resort=.false.)
     call request_deallocate(requests(i_req))
     call request_allocate(requests(i_req))
 #endif
@@ -701,7 +702,8 @@ contains
        ! If we wanted to, we could use the knowledge that this will go
        ! into bin requests(i_req)%local_bin
        call aero_state_add_particle(aero_state, &
-            requests(i_req)%local_aero_particle, allow_resort=.false.)
+            requests(i_req)%local_aero_particle, aero_data, &
+            allow_resort=.false.)
     end if
     if (.not. remove_2) then
        call send_return_unreq_particle(sent_aero_particle, sent_proc)
@@ -743,10 +745,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine recv_return_unreq_particle(aero_state)
+  subroutine recv_return_unreq_particle(aero_state, aero_data)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
 
 #ifdef PMC_USE_MPI
     logical :: found_request
@@ -773,7 +777,7 @@ contains
     call assert(833588594, position == buffer_size)
 
     ! put it back
-    call aero_state_add_particle(aero_state, aero_particle, &
+    call aero_state_add_particle(aero_state, aero_particle, aero_data, &
          allow_resort=.false.)
 #endif
 

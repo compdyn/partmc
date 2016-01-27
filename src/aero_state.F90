@@ -1840,6 +1840,45 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read the specification for a weighting type from a spec file.
+  subroutine spec_file_read_aero_state_weighting_type(file, weighting_type)
+
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
+    !> Kernel type.
+    integer, intent(out) :: weighting_type
+
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: weighting_name
+
+    !> \page input_format_weight_type Input File Format: Weighting type
+    !!
+    !! The weighting type is specified by the parameter:
+    !!   - \b weight_type (string): the type of weighting scheme ---
+    !!     must be one of: \c flat for flat weighting, \c flat_source for
+    !!     flat weighting by source, \c nummass for number and mass weighting,
+    !!     and \c nummass_source for number and mass weighting by source.
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+
+    call spec_file_read_string(file, 'weight_type', weighting_name)
+    if (trim(weighting_name) == 'flat') then
+       weighting_type = AERO_STATE_WEIGHT_FLAT
+    elseif (trim(weighting_name) == 'flat_source') then
+       weighting_type = AERO_STATE_WEIGHT_FLAT_SOURCE
+    elseif (trim(weighting_name) == 'nummass') then
+       weighting_type = AERO_STATE_WEIGHT_NUMMASS
+    elseif (trim(weighting_name) == 'nummass_source') then
+       weighting_type = AERO_STATE_WEIGHT_NUMMASS_SOURCE
+    else
+       call spec_file_die_msg(920321729, file, &
+            "Unknown weighting type: " // trim(weighting_name))
+    end if
+
+  end subroutine spec_file_read_aero_state_weighting_type
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_aero_state(val)
 

@@ -1,7 +1,7 @@
 
 import sys, collections, operator
 
-file_list = ["rmse_num_0322.dat", "rmse_num_0908.dat", "rmse_num_0909.dat", "rmse_num_0925.dat"]
+file_list = ["rmse_num_0908.dat", "rmse_num_0909.dat", "rmse_num_0925.dat"]
 #file_list = ["rmse_num_0322.dat", "rmse_num_0908.dat", "rmse_num_0909.dat"]
 d = collections.defaultdict(list)
 for file in file_list:

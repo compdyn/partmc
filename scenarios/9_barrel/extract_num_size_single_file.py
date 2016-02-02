@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 
 #dist = partmc.histogram_1d(x_values, x_grid, weighted=True, weights=particles.num_concs)
 
-col = 31
+col = 2
 dataset_name = '0925'
 case = 1
 
@@ -63,7 +63,7 @@ for row in range(0,ref_data.shape[0]):
     list_data_temp_1d = []
     for i in numpy.arange(1,11,1):
         #file_load = "out_"+dataset_name+"/case_%04d_wc_%04d_aero_size_num.txt" % (case, i)
-        file_load = "out_barrel_universe/out_"+dataset_name+"_new/case_%04d_wc_%04d_aero_size_num.txt" % (case, i)
+        file_load = "out_barrel_sep_fit/out_"+dataset_name+"/case_%04d_wc_%04d_aero_size_num.txt" % (case, i)
         data_temp = numpy.loadtxt(file_load)
         list_data_temp_1d.append(data_temp[row,col])
     data_temp_1d = numpy.array(list_data_temp_1d)
@@ -125,7 +125,7 @@ axes.set_ylim(0,)
 #axes.legend(('PartMC','PartMC (no fractal)','Barrel'),loc='upper left')
 axes.legend(('PartMC','Barrel'),loc='upper left')
 bbox_props = dict(boxstyle="square,pad=0.3", fc="cyan", ec="b", lw=1)
-axes.annotate('210 min', xy=(0.82, 0.85), xycoords='axes fraction',weight='extra bold', size=14, bbox=bbox_props)
+axes.annotate('7 min', xy=(0.82, 0.85), xycoords='axes fraction',weight='extra bold', size=14, bbox=bbox_props)
 bbox_props_1 = dict(boxstyle="square,pad=0.3", fc="white", ec="r", lw=1)
 axes.annotate('Exp.4', xy=(0.02, 0.15), xycoords='axes fraction',weight='extra bold', size=14, bbox=bbox_props_1)
 filename_out = "aero_num_size.pdf"

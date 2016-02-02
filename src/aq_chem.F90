@@ -149,7 +149,7 @@ contains
 
     ! Convert gas-phase species from atm (aq. chemistry) to ppb (PMC)
     where (aq_spec_data%pmc_gas_index.ne.0)
-         gas_state%mix_rat(aq_spec_data%pmc_gas_index) = aq_state%mix_rat / 1d-9
+        gas_state%mix_rat(aq_spec_data%pmc_gas_index) = aq_state%mix_rat / 1d-9
     endwhere
 
   end subroutine aq_chem_gas_spec_to_PMC
@@ -202,6 +202,7 @@ contains
 
     ! aerosol-phase water (L)
     real(kind=dp) :: water_conc
+    integer :: i
 
     ! Water does not condense or evaporate in the aqueous-phase mechanism
     ! so use the original PMC water concentration to calculate new
@@ -211,11 +212,20 @@ contains
     water_conc = particle%vol(aero_data%i_water) * real(1d3, kind=dp)
 
     ! Convert aerosol-phase species from mol/L (aq. chemistry) to m^3 (PMC)
-    where (aq_spec_data%pmc_aero_index.ne.0)
-        particle%vol(aq_spec_data%pmc_aero_index) = &
-            aq_state%mix_rat / aero_data%density(aq_spec_data%pmc_aero_index) &
-            * aero_data%molec_weight(aq_spec_data%pmc_aero_index) * water_conc
-    endwhere
+    do i=1, aq_spec_data%n_spec
+        if (aq_spec_data%pmc_aero_index(i).ne.0) then
+        if (aq_state%mix_rat(i) .lt. 0.0) then
+            if (aq_state%mix_rat(i) .lt. -(aq_spec_data%abstol(i))) then
+                write(*,*) "Warning: Negative concentration for ", &
+                    aq_spec_data%name(i), " = ", aq_state%mix_rat(i), " M"
+            endif
+            aq_state%mix_rat(i) = 0.0
+        endif
+        particle%vol(aq_spec_data%pmc_aero_index(i)) = &
+            aq_state%mix_rat(i) / aero_data%density(aq_spec_data%pmc_aero_index(i)) &
+            * aero_data%molec_weight(aq_spec_data%pmc_aero_index(i)) * water_conc
+        endif
+    enddo
 
   end subroutine aq_chem_aero_spec_to_PMC
 

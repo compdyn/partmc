@@ -26,7 +26,7 @@ ALD              gas      ALD2
 SULF             gas      H2SO4
 HNO4             gas      HNO4
 ACO3             gas      C2O3
-# GLY is not a gas-phase species in CBM-Z
+GLY              gas      GLY
 # CLNO2 is not a gas-phase species in CBM-Z
 # BRNO2 is not a gas-phase species in CBM-Z
 # BRCL is not a gas-phase species in CBM-Z
@@ -40,6 +40,7 @@ aHO              aero     aOH
 aH2O2            aero     aH2O2
 aHONO            aero     aHONO
 # aHNO3            aero     aHNO3   removed
+aNO2 			 aero     aqNO2
 aNO3             aero     aNO3
 aN2O5            aero     aN2O5
 aNH3             aero     aNH3
@@ -140,3 +141,6 @@ NH4p             aero     NH4           # existing species
 aCL              aero     aCL
 CHOSO3mm         aero     CHOSO3mm
 FEC2O4p          aero     FEC2O4p
+
+NAp 			 aero     Na            # existing species
+NAp_C 			 aero     NAp_C

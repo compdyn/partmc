@@ -314,9 +314,15 @@ contains
             k_mt = aq_rxn_data_get_mass_transfer_rc(aq_spec_data%Dg(species_index), &
                     radius, alpha, aq_spec_data%MW(species_index), temp)
 
-            ! At equilibrium the evaporation rate equals the condensation rate, so...
-            rc_backward = k_mt / rc_forward
-            rc_forward = k_mt
+            ! At equilibrium the evaporation rate equals the condensation rate
+            ! If rc_forward is infinite, then there is no evaportation
+            if (rc_forward .eq. rc_forward-1) then
+                rc_backward = 0.0
+                rc_forward = k_mt
+            else
+                rc_backward = k_mt / rc_forward
+                rc_forward = k_mt
+            endif
 
         ! DISS
         case("DISS")

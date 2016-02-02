@@ -2,5 +2,5 @@
 # rate (s^{-1})
 # aerosol distribution filename   
 time    0   43200 
-rate    1   0  
+rate    0.1   0  
 dist    aero_emit_dist.dat aero_emit_dist.dat

@@ -1,0 +1,10 @@
+#       mass fractions
+
+Cl 			1.0
+Na 			0.648
+
+# BRm is not a species in MOSIAC
+#  so NAp_C is used to charge
+#  balance it for use in CAPRAM
+BRm 		0.01
+NAp_C 		0.0029

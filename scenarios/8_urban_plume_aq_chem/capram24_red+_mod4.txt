@@ -1,3 +1,9 @@
+COMMENT  (mod2) Changed rxn forming H2C2O4 to form HC2O4m + Hp
+COMMENT  (mod3) Changed above rxn back to form H2C2O4 and included the first
+COMMENT           acid dissociation step (from full mechanism)
+COMMENT  (mod4) Added species NAp and NAp_C for charge balance in 
+COMMENT           MOSIAC and CAPRAM
+
 COMMENT  All the names of non-ionic aqueous phase species begin with a, cations end 
 COMMENT  with p and anions end with m, respectively. 
 
@@ -497,6 +503,8 @@ CLASS: AQUA
 aCOH2COOH + aO2 = aO2COH2COOH
 TEMP3:  A: 2e9  B: 0.0
 
+COMMENT MLD - modified rxn to form HC2O4m instead of aH2C2O4
+COMMENT MLD - changed back to original
 CLASS: AQUA 
 aO2COH2COOH  = aHO2 + aH2C2O4
 TEMP3:  A:  2e9 B: 0.0       
@@ -724,6 +732,11 @@ CLASS: DISS
 HC2O4m = C2O4mm + Hp
 DCONST:  A: 6.25e-5   B: 5.0e10
 
+COMMENT MLD - Added following reaction
+CLASS: DISS 
+aH2C2O4 = HC2O4m + Hp
+DCONST:  A:  6.4e-2  B: 5.0e10   
+
 CLASS: DISS 
 aCHOH2COOH = Hp + CHOH2COOm
 DCONST:  A: 3.16e-4  B: 2e10
@@ -756,5 +769,8 @@ CLASS: DISS
 aACO3 = Hp + O2CH2COOm
 DTEMP:  A: 1.75e-5  B: 46.0  C: 5e10
 
-
+COMMENT Dummy reaction for Na+
+CLASS: DISS
+NAp + NAp_C = NAp + NAp_C
+DCONST:  A: 0.0 B: 0.0
  

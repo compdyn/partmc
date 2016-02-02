@@ -1,6 +1,16 @@
-#       mass fractions
-OIN              0.9965
-Ca               0.0014
-CO3              0.0021
+# Based on PM10 in Tiburg from Boogaard et al., Atmos Environ 2011
+# and assuming 10% dissolved Fe (Matthijsen et al., 1995)
+# and that S is primarily sulfate and OIN makes up the remainder of PM
+OIN              0.8137
+FEppp            0.0025
+CUp              0.0011
+Ca               0.0120
+BRm              0.0002
+Cl               0.0411
+SO4              0.1293
 
+# Ca is used to charge balance the  in MOSIAC, and NAp_C is used
+#  to charge balance in CAPRAM
+Ca 				 0.056
+NAp_C 			 0.061
 

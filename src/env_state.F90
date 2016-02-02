@@ -188,6 +188,43 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Updates the solar zenith angle based on simulation time and location
+  subroutine env_state_update_sza(env_state)
+
+    !> Environment state to update
+    type(env_state_t), intent(inout) :: env_state
+
+    ! Calculation is based on equation in MOSAIC for consistency
+    real(kind=dp) :: tlocal, tdec, sidec, codec, tloc, thou
+    real(kind=dp) :: tmar21_sec, cos_sza, rlon, rlat
+
+    tmar21_sec = real((79*24 + 12)*3600, kind=dp) ! noon, mar 21, UTC
+    rlon = deg2rad(env_state%longitude)           ! longitude
+    rlat = deg2rad(env_state%latitude)            ! latitude
+
+    tlocal=real(env_state%start_day*24*3600, kind=dp) + &   ! time since the beg of
+        env_state%start_time + &                            ! year 00:00, UTC (s)
+        env_state%elapsed_time                              ! elapsed model time
+
+    if (tlocal.ge.tmar21_sec) then
+      tlocal = tlocal - tmar21_sec
+    else
+      tlocal = tlocal + real(((365-79)*24 - 12)*3600, kind=dp)
+    endif
+
+    tdec=0.4092797*sin(1.992385E-7*tlocal)
+    sidec=sin(tdec)
+    codec=cos(tdec)
+    tloc=7.272205E-5*tlocal
+    thou=cos(rlon+tloc)
+    cos_sza=sin(rlat)*sidec+cos(rlat)*codec*thou
+
+    env_state%solar_zenith_angle = acos(cos_sza)
+
+  end subroutine env_state_update_sza
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Computes the current saturation vapor pressure (Pa).
   real(kind=dp) function env_state_sat_vapor_pressure(env_state)
 

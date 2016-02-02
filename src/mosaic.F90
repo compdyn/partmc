@@ -377,15 +377,21 @@ contains
       i_HSO4m = aero_data_spec_by_name(aero_data, "HSO4m")
       i_SO4mm = aero_data_spec_by_name(aero_data, "SO4")
       if (i_HSO4m.ne.0 .and. i_SO4mm.ne.0) then
-        if (ma(ja_so4,i_part).eq.0.0) then
+        if ((ma(ja_so4,i_part) + ma(ja_hso4,i_part)).eq.0.0) then
           ratio_HSO4m_SULFATE = 0.0
         else
           ratio_HSO4m_SULFATE = ma(ja_hso4,i_part) / (ma(ja_so4,i_part) + ma(ja_hso4,i_part))
-          particle%vol(i_HSO4m) = ratio_HSO4m_SULFATE * aer(iso4_a, 3, i_part) &
-                / (conv_fac(i_HSO4m) * num_conc)
-          particle%vol(i_SO4mm) = (1.0-ratio_HSO4m_SULFATE) * aer(iso4_a, 3, i_part) &
-                / (conv_fac(i_SO4mm) * num_conc)
         endif
+        if (ratio_HSO4m_SULFATE .lt. 0.0) then
+            ratio_HSO4m_SULFATE = 0.0
+        endif
+        if (ratio_HSO4m_SULFATE .gt. 1.0) then
+            ratio_HSO4m_SULFATE = 1.0
+        endif
+        particle%vol(i_HSO4m) = ratio_HSO4m_SULFATE * aer(iso4_a, 3, i_part) &
+                / (conv_fac(i_HSO4m) * num_conc)
+        particle%vol(i_SO4mm) = (1.0-ratio_HSO4m_SULFATE) * aer(iso4_a, 3, i_part) &
+                / (conv_fac(i_SO4mm) * num_conc)
       endif
     end do
     ! adjust particles to account for weight changes

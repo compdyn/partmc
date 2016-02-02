@@ -292,6 +292,8 @@ contains
     env_state%height = interp_1d(scenario%height_time, scenario%height, time)
     env_state%elapsed_time = time
 
+    call env_state_update_sza(env_state)
+
   end subroutine scenario_init_env_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -330,6 +332,8 @@ contains
 
     env_state%height = interp_1d(scenario%height_time, scenario%height, time)
     env_state%elapsed_time = time
+
+    call env_state_update_sza(env_state)
 
   end subroutine scenario_update_env_state
 

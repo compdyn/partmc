@@ -15,7 +15,7 @@ HCHO             gas      HCHO
 ORA1             gas      HCOOH
 SO2              gas      SO2
 OP1              gas      CH3OOH
-ORA2             gas      ETHOOH
+ORA2             gas      RCOOH
 MO2              gas      CH3O2
 ETHPX            gas      ETHP
 # ETOH is not a gas-phase species in CBM-Z

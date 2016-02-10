@@ -468,8 +468,10 @@ contains
             run_part_opt%allow_doubling)
        call spec_file_read_logical(file, 'allow_halving', &
             run_part_opt%allow_halving)
-       call spec_file_read_aero_state_weighting_type(file, &
+       if (.not. do_restart) then
+          call spec_file_read_aero_state_weighting_type(file, &
                run_part_opt%weighting_type)
+       end if
        call spec_file_read_logical(file, 'record_removals', &
             run_part_opt%record_removals)
 

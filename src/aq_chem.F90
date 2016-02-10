@@ -16,6 +16,7 @@ module pmc_aq_chem
   use pmc_gas_state
   use pmc_aero_state
   use pmc_aq_integrate_f
+  use pmc_constants
 
   implicit none
 
@@ -70,15 +71,22 @@ contains
 
     ! TEMP - FIX LATER
     ! Estimate gas-phase glyoxal as 3% of formaldehyde
-    form_idx = gas_data_spec_by_name(gas_data, "HCHO")
-    gly_idx = gas_data_spec_by_name(gas_data, "GLY")
-    if (form_idx.eq.0) then
-        call die_msg(586230727, 'Cannot find gas-phase index for formaldehyde.')
-    elseif (gly_idx.eq.0) then
-        call die_msg(586415604, 'Cannot find gas-phase index for glyoxal.')
-    else
-        gas_state%mix_rat(gly_idx) = gas_state%mix_rat(form_idx) * 0.03
-    endif
+    ! form_idx = gas_data_spec_by_name(gas_data, "HCHO")
+    ! gly_idx = gas_data_spec_by_name(gas_data, "GLY")
+    ! if (form_idx.eq.0) then
+        ! call die_msg(586230727, 'Cannot find gas-phase index for formaldehyde.')
+    ! elseif (gly_idx.eq.0) then
+        ! call die_msg(586415604, 'Cannot find gas-phase index for glyoxal.')
+    ! else
+        ! Updated gloxal calculation based on CAPRAM urban scenario to 
+        ! to better capture diurnal cycle
+        ! gas_state%mix_rat(gly_idx) = gas_state%mix_rat(form_idx) * 0.03
+        ! gas_state%mix_rat(gly_idx) = gas_state%mix_rat(form_idx) * &
+           ! ((const%pi-env_state_initial%solar_zenith_angle)*0.0194 - 0.0123)
+        ! if (gas_state%mix_rat(gly_idx).lt.0.0) then
+           ! gas_state%mix_rat(gly_idx) = 0.0
+        ! endif
+    ! endif
 
     ! Map PMC gas-phase species to aqueous chemistry species
     call aq_chem_gas_spec_from_PMC(aq_spec_data, aq_state, gas_state)

@@ -19,7 +19,7 @@ module pmc_aq_integrate_f
   implicit none
 
   !> Relative tolerance for integration
-  real(kind=dp), parameter :: AQ_INTEGRATE_RELTOL = 1.0D-7
+  real(kind=dp), parameter :: AQ_INTEGRATE_RELTOL = 1.0D-5
   !> Maximum number of iterations for solver
   integer, parameter :: AQ_INTEGRATE_MAX_STEPS = 10000000
 

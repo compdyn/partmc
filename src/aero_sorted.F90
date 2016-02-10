@@ -65,7 +65,7 @@ module pmc_aero_sorted
   !> How many size bins to use per decade of particle radius.
   real(kind=dp), parameter :: AERO_SORTED_BINS_PER_DECADE = 10d0
   !> Factor to extend size grid beyond largest/smallest particles.
-  real(kind=dp), parameter :: AERO_SORTED_BIN_OVER_FACTOR = 10d0
+  real(kind=dp), parameter :: AERO_SORTED_BIN_OVER_FACTOR = 30d0
   !> Size grid extension factor when we should regenerate grid.
   real(kind=dp), parameter :: AERO_SORTED_BIN_SAFETY_FACTOR = 3d0
 

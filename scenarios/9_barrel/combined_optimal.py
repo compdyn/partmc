@@ -19,5 +19,15 @@ for key in d:
 		res[key] = sum(li) / len(li)
 
 sorted_res = sorted(res.items(), key=operator.itemgetter(1))
+f_out_rmse_num = open('combined_rmse.txt', 'w')
+f_out_rmse_num.write("# Colume 1: caseID\n")
+f_out_rmse_num.write("# Colume 2: prefactor\n")
+f_out_rmse_num.write("# Colume 3: exponent\n")
+f_out_rmse_num.write("# Colume 4: fractal dimension\n")
+f_out_rmse_num.write("# Colume 5: root mean square error of number distribution\n")
+case = 0
 for key, value in sorted_res:
 	print key, value
+	case += 1
+	f_out_rmse_num.write("%04d   %.3f   %.2f   %.1f    %.4f\n" % (case, key[0], key[1], key[2], value))
+f_out_rmse_num.close()

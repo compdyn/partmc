@@ -9,7 +9,7 @@ import math
 import mpl_helper
 import matplotlib.pyplot as plt
 
-dataset_name = '0909'
+dataset_name = '0925'
 case = 1
 
 ref_data = numpy.loadtxt("ref_"+dataset_name+"/ref_aero_size_num_regrid.txt")
@@ -18,6 +18,7 @@ list_mean = []
 list_std = []
 list_time = []
 file_load = "out_barrel_sep_fit/out_"+dataset_name+"/case_%04d_wc_%04d_aero_size_num.txt" % (case, 1)
+#file_load = "out_"+dataset_name+"/case_%04d_wc_%04d_aero_size_num.txt" % (case, 1)
 data_temp = numpy.loadtxt(file_load)
 diams = data_temp[:,0]
 for col in range(1,data_temp.shape[1]):
@@ -74,7 +75,7 @@ axes.set_ylabel(r"Mean particle diameter $\bar{D}_{\rm p}$ (m)", fontsize=14)
 axes.grid()
 axes.legend(('PartMC','Barrel'),loc='upper left')
 bbox_props_1 = dict(boxstyle="square,pad=0.3", fc="white", ec="r", lw=1)
-axes.annotate('Exp.3', xy=(0.1, 0.1), xycoords='axes fraction',weight='extra bold', size=14, bbox=bbox_props_1)
+axes.annotate('Exp.1', xy=(0.1, 0.1), xycoords='axes fraction',weight='extra bold', size=14, bbox=bbox_props_1)
 filename_out = "aero_dmean_time.pdf"
 figure.savefig(filename_out)
 
@@ -87,7 +88,7 @@ axes.set_ylabel(r"Standard deviation of size $\sigma$ (m)", fontsize=14)
 axes.grid()
 axes.legend(('PartMC','Barrel'),loc='upper left')
 bbox_props_1 = dict(boxstyle="square,pad=0.3", fc="white", ec="r", lw=1)
-axes.annotate('Exp.3', xy=(0.1, 0.1), xycoords='axes fraction',weight='extra bold', size=14, bbox=bbox_props_1)
+axes.annotate('Exp.1', xy=(0.1, 0.1), xycoords='axes fraction',weight='extra bold', size=14, bbox=bbox_props_1)
 filename_out = "aero_sigma_time.pdf"
 figure.savefig(filename_out)
 
@@ -100,6 +101,6 @@ axes.set_ylabel(r"Skewness of size distribution", fontsize=14)
 axes.grid()
 axes.legend(('PartMC','Barrel'),loc='upper right')
 bbox_props_1 = dict(boxstyle="square,pad=0.3", fc="white", ec="r", lw=1)
-axes.annotate('Exp.3', xy=(0.1, 0.1), xycoords='axes fraction',weight='extra bold', size=14, bbox=bbox_props_1)
+axes.annotate('Exp.1', xy=(0.1, 0.1), xycoords='axes fraction',weight='extra bold', size=14, bbox=bbox_props_1)
 filename_out = "aero_skewness_time.pdf"
 figure.savefig(filename_out)

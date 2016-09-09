@@ -193,6 +193,12 @@ set_tests_properties(test_emission_2 PROPERTIES DEPENDS test_emission_1)
 add_test(test_emission_3 ${CMAKE_BINARY_DIR}/test_run/emission/test_emission_3.sh)
 set_tests_properties(test_emission_3 PROPERTIES DEPENDS test_emission_2)
 
+add_test(test_fractal_1 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_1.sh)
+add_test(test_fractal_2 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_2.sh)
+set_tests_properties(test_fractal_2 PROPERTIES DEPENDS test_fractal_1)
+add_test(test_fractal_3 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_3.sh)
+set_tests_properties(test_fractal_3 PROPERTIES DEPENDS test_fractal_2)
+
 add_test(test_loss_1 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_1.sh)
 add_test(test_loss_2 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_2.sh)
 set_tests_properties(test_loss_2 PROPERTIES DEPENDS test_loss_1)
@@ -248,12 +254,6 @@ set_tests_properties(test_rand_8 PROPERTIES DEPENDS test_rand_7)
 add_test(test_sedi_1 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_1.sh)
 add_test(test_sedi_2 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_2.sh)
 set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
-
-add_test(test_fractal_1 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_1.sh)
-add_test(test_fractal_2 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_2.sh)
-set_tests_properties(test_fractal_2 PROPERTIES DEPENDS test_fractal_1)
-add_test(test_fractal_3 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_3.sh)
-set_tests_properties(test_fractal_3 PROPERTIES DEPENDS test_fractal_2)
 
 ######################################################################
 # partmc library

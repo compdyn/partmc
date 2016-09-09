@@ -249,6 +249,12 @@ add_test(test_sedi_1 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_1.sh)
 add_test(test_sedi_2 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_2.sh)
 set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 
+add_test(test_fractal_1 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_1.sh)
+add_test(test_fractal_2 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_2.sh)
+set_tests_properties(test_fractal_2 PROPERTIES DEPENDS test_fractal_1)
+add_test(test_fractal_3 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_3.sh)
+set_tests_properties(test_fractal_3 PROPERTIES DEPENDS test_fractal_2)
+
 ######################################################################
 # partmc library
 
@@ -259,14 +265,16 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/aero_dist.F90 src/aero_weight.F90 src/aero_weight_array.F90
   src/coag_kernel_additive.F90 src/coag_kernel_sedi.F90
   src/coag_kernel_constant.F90 src/coag_kernel_brown.F90
-  src/coag_kernel_zero.F90 src/aero_data.F90 src/run_exact.F90
-  src/run_part.F90 src/util.F90 src/stats.F90 src/run_sect.F90
-  src/output.F90 src/mosaic.F90 src/gas_data.F90 src/gas_state.F90
+  src/coag_kernel_zero.F90 src/coag_kernel_brown_free.F90
+  src/coag_kernel_brown_cont.F90 src/aero_data.F90 src/run_exact.F90
+  src/run_part.F90 src/util.F90 src/stats.F90 src/run_sect.F90 src/output.F90
+  src/mosaic.F90 src/gas_data.F90 src/gas_state.F90
   src/coagulation.F90 src/exact_soln.F90 src/coagulation_dist.F90
   src/coag_kernel.F90 src/spec_line.F90 src/spec_file.F90 src/rand.F90
   src/aero_particle.F90 src/aero_particle_array.F90 src/mpi.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
-  src/nucleate.F90 src/condense.F90 ${SUNDIALS_SRC} ${GSL_SRC}
+  src/nucleate.F90 src/condense.F90 src/fractal.F90
+  ${SUNDIALS_SRC} ${GSL_SRC}
   ${C_SORT_SRC})
 
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
@@ -320,6 +328,32 @@ add_executable(test_binomial_sample test/rand/test_binomial_sample.F90
   ${C_SORT_SRC})
 
 target_link_libraries(test_binomial_sample ${GSL_LIBS})
+
+######################################################################
+# test_fractal_self_preserve
+
+add_executable(test_fractal_self_preserve
+  test/fractal/test_fractal_self_preserve.F90
+  src/getopt.F90)
+
+target_link_libraries(test_fractal_self_preserve partmclib)
+
+######################################################################
+# test_fractal_dimless_time
+
+add_executable(test_fractal_dimless_time
+  test/fractal/test_fractal_dimless_time.F90
+  src/getopt.F90)
+
+target_link_libraries(test_fractal_dimless_time partmclib)
+
+######################################################################
+# test_fractal_radii_conversion
+
+add_executable(test_fractal_radii_conversion
+  test/fractal/test_fractal_radii_conversion.F90)
+
+target_link_libraries(test_fractal_radii_conversion partmclib)
 
 ######################################################################
 # bin_average_comp

@@ -234,7 +234,7 @@ contains
     ! has specific ordering requirements
     do i_part = aero_state_n_part(aero_state),1,-1
        num_conc = aero_weight_array_num_conc(aero_state%awa, &
-            aero_state%apa%particle(i_part))
+            aero_state%apa%particle(i_part), aero_data)
        do i_spec = 1,aero_data_n_spec(aero_data)
           i_spec_mosaic = aero_data%mosaic_index(i_spec)
           if (i_spec_mosaic > 0) then
@@ -320,10 +320,11 @@ contains
     aero_state%valid_sort = .false.
 
     ! aerosol data: map MOSAIC -> PartMC
-    call aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
+    call aero_state_num_conc_for_reweight(aero_state, aero_data, &
+         reweight_num_conc)
     do i_part = 1,aero_state_n_part(aero_state),1
        num_conc = aero_weight_array_num_conc(aero_state%awa, &
-            aero_state%apa%particle(i_part))
+            aero_state%apa%particle(i_part), aero_data)
        do i_spec = 1,aero_data_n_spec(aero_data)
           i_spec_mosaic = aero_data%mosaic_index(i_spec)
           if (i_spec_mosaic > 0) then
@@ -339,7 +340,7 @@ contains
             water_a(i_part) / aero_data%density(aero_data%i_water) / num_conc
     end do
     ! adjust particles to account for weight changes
-    call aero_state_reweight(aero_state, reweight_num_conc)
+    call aero_state_reweight(aero_state, aero_data, reweight_num_conc)
 
     ! gas chemistry: map MOSAIC -> PartMC
     do i_spec = 1,gas_data_n_spec(gas_data)

@@ -185,7 +185,7 @@ contains
           gas_state_write = gas_state
           call env_state_reduce_avg(env_state_write)
           call gas_state_reduce_avg(gas_state_write)
-          call aero_state_mpi_gather(aero_state, aero_state_write)
+          call aero_state_mpi_gather(aero_state, aero_state_write, aero_data)
           if (rank == 0) then
              call output_state_to_file(prefix, aero_data, aero_state_write, &
                   gas_data, gas_state_write, env_state_write, index, time, &

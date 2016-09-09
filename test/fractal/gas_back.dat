@@ -1,0 +1,7 @@
+# time (s)
+# rate (s^{-1})
+# mixing ratios (ppb)
+time            0
+rate            0
+# these lines intentionally left empty
+# to serve as an empty gas state

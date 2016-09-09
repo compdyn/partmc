@@ -41,7 +41,8 @@ contains
     real(kind=dp), intent(out) :: k
 
     call kernel_sedi_helper(aero_particle_volume(aero_particle_1), &
-         aero_particle_volume(aero_particle_2), k)
+         aero_particle_volume(aero_particle_2), aero_data, env_state%temp, &
+         env_state%pressure, k)
 
   end subroutine kernel_sedi
 
@@ -63,7 +64,8 @@ contains
     !> Maximum kernel \c k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: k_max
 
-    call kernel_sedi_helper(v1, v2, k_min)
+    call kernel_sedi_helper(v1, v2, aero_data, env_state%temp, &
+         env_state%pressure, k_min)
     k_max = k_min
 
   end subroutine kernel_sedi_minmax
@@ -73,21 +75,29 @@ contains
   !> Helper function that does the actual sedimentation kernel computation.
   !!
   !! Helper function. Do not call directly. Instead use kernel_sedi().
-  subroutine kernel_sedi_helper(v1, v2, k)
+  subroutine kernel_sedi_helper(v1, v2, aero_data, temp, pressure, k)
 
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
     !> Volume of second particle (m^3).
     real(kind=dp), intent(in) :: v2
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: temp
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: pressure
     !> Kernel k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: k
 
     real(kind=dp) r1, r2, winf1, winf2, ec
 
-    r1 = vol2rad(v1) ! m
-    r2 = vol2rad(v2) ! m
-    call fall_g(r1, winf1) ! winf1 in m/s
-    call fall_g(r2, winf2) ! winf2 in m/s
+    r1 = aero_data_vol2rad(aero_data, v1) ! m
+    r2 = aero_data_vol2rad(aero_data, v2) ! m
+    call fall_g(aero_data_vol_to_mobility_rad(aero_data, v1, temp, pressure), &
+         winf1) ! winf1 in m/s
+    call fall_g(aero_data_vol_to_mobility_rad(aero_data, v2, temp, pressure), &
+         winf2) ! winf2 in m/s
     call effic(r1, r2, ec) ! ec is dimensionless
     k = ec * const%pi * (r1 + r2)**2 * abs(winf1 - winf2)
 
@@ -98,7 +108,7 @@ contains
   !> Finds the terminal velocity of a particle based on its size.
   subroutine fall_g(r, w_inf)
 
-    !> Particle radius (m).
+    !> Particle mobility radius (m).
     real(kind=dp), intent(in) :: r
     !> Terminal velocity (m/s).
     real(kind=dp), intent(out) :: w_inf
@@ -168,9 +178,9 @@ contains
   !! given that they approach close enough to do so.
   subroutine effic(r1, r2, ec)
 
-    !> Radius of first particle (m).
+    !> Geometric radius of first particle (m).
     real(kind=dp), intent(in) :: r1
-    !> Radius of second particle (m).
+    !> Geometric radius of second particle (m).
     real(kind=dp), intent(in) :: r2
     !> Collision efficiency (dimensionless).
     real(kind=dp), intent(out) :: ec

@@ -112,7 +112,7 @@ contains
     ! mass and radius grid
     do i = 1,bin_grid_size(bin_grid)
        r(i) = bin_grid%centers(i) * 1d6 ! radius in m to um
-       e(i) = rad2vol(bin_grid%centers(i)) &
+       e(i) = aero_data_rad2vol(aero_data, bin_grid%centers(i)) &
             * aero_data%density(1) * 1d6 ! vol in m^3 to mass in mg
     end do
 
@@ -163,7 +163,7 @@ contains
                taul, tauu, prod, ploss, c, ima, g, r, e, ck, ec)
           aero_binned%vol_conc(:,1) = g / aero_data%density(1)
           aero_binned%num_conc = aero_binned%vol_conc(:,1) &
-               / rad2vol(bin_grid%centers)
+               / aero_data_rad2vol(aero_data, bin_grid%centers)
        end if
 
        time = run_sect_opt%t_max * real(i_time, kind=dp) &

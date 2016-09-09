@@ -57,7 +57,7 @@ program process
         times(i_index) = time
 
         dry_diameters = aero_state_dry_diameters(aero_state, aero_data)
-        num_concs = aero_state_num_concs(aero_state)
+        num_concs = aero_state_num_concs(aero_state, aero_data)
         num_dist = bin_grid_histogram_1d(diam_grid, dry_diameters, num_concs)
         call stats_1d_add(stats_num_dist, num_dist)
 
@@ -97,7 +97,7 @@ program process
         aero_state_averaged = aero_state
         call aero_state_bin_average_comp(aero_state_averaged, avg_bin_grid, &
              aero_data)
-        num_concs_averaged = aero_state_num_concs(aero_state_averaged)
+        num_concs_averaged = aero_state_num_concs(aero_state_averaged, aero_data)
         masses_averaged = aero_state_masses(aero_state_averaged, aero_data)
         dry_masses_averaged = aero_state_masses(aero_state_averaged, &
              aero_data, exclude=(/"H2O"/))

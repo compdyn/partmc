@@ -146,7 +146,7 @@ contains
 
     call pmc_mpi_barrier()
 
-    call aero_state_sort(aero_state, all_procs_same=.true.)
+    call aero_state_sort(aero_state, aero_data, all_procs_same=.true.)
     if (.not. aero_state%aero_sorted%coag_kernel_bounds_valid) then
        call est_k_minmax_binned_unweighted(aero_state%aero_sorted%bin_grid, &
             coag_kernel_type, aero_data, env_state, &
@@ -176,8 +176,8 @@ contains
     do i_bin = 1,bin_grid_size(aero_state%aero_sorted%bin_grid)
        do j_bin = 1,bin_grid_size(aero_state%aero_sorted%bin_grid)
           call max_coag_num_conc_factor(aero_weight_total, &
-               aero_state%aero_sorted%bin_grid, i_bin, j_bin, s1, s2, sc, &
-               f_max)
+               aero_data, aero_state%aero_sorted%bin_grid, &
+               i_bin, j_bin, s1, s2, sc, f_max)
           k_max(i_bin, j_bin) &
                = aero_state%aero_sorted%coag_kernel_max(i_bin, j_bin) * f_max
        end do
@@ -280,7 +280,7 @@ contains
             aero_data, aero_state, accept_factors, coag_kernel_type, &
             tot_n_coag, magnitudes)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_UNREQ_PARTICLE) then
-       call recv_return_unreq_particle(aero_state)
+       call recv_return_unreq_particle(aero_state, aero_data)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_RETURN_NO_PARTICLE) then
        call recv_return_no_particle(requests, aero_data, aero_state)
     elseif (status(MPI_TAG) == COAG_DIST_TAG_DONE) then
@@ -574,7 +574,8 @@ contains
     ! back. If we wanted to, we could use the knowledge that it should
     ! go into bin requests(i_req)%local_bin
     call aero_state_add_particle(aero_state, &
-         requests(i_req)%local_aero_particle, allow_resort=.false.)
+         requests(i_req)%local_aero_particle, aero_data, &
+         allow_resort=.false.)
     call request_deallocate(requests(i_req))
     call request_allocate(requests(i_req))
 #endif
@@ -701,7 +702,8 @@ contains
        ! If we wanted to, we could use the knowledge that this will go
        ! into bin requests(i_req)%local_bin
        call aero_state_add_particle(aero_state, &
-            requests(i_req)%local_aero_particle, allow_resort=.false.)
+            requests(i_req)%local_aero_particle, aero_data, &
+            allow_resort=.false.)
     end if
     if (.not. remove_2) then
        call send_return_unreq_particle(sent_aero_particle, sent_proc)
@@ -743,10 +745,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine recv_return_unreq_particle(aero_state)
+  subroutine recv_return_unreq_particle(aero_state, aero_data)
 
     !> Aerosol state.
     type(aero_state_t), intent(inout) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
 
 #ifdef PMC_USE_MPI
     logical :: found_request
@@ -773,7 +777,7 @@ contains
     call assert(833588594, position == buffer_size)
 
     ! put it back
-    call aero_state_add_particle(aero_state, aero_particle, &
+    call aero_state_add_particle(aero_state, aero_particle, aero_data, &
          allow_resort=.false.)
 #endif
 
@@ -922,7 +926,7 @@ contains
     ! add new particle
     if (create_new) then
        new_group = aero_weight_array_rand_group(aero_weight_total, sc, &
-            aero_particle_radius(aero_particle_new))
+            aero_particle_radius(aero_particle_new, aero_data))
        aero_particle_new%weight_group = new_group
        new_proc = sample_cts_pdf(1d0 / magnitudes(new_group, :)) - 1
        call send_return_unreq_particle(aero_particle_new, new_proc)

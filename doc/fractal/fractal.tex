@@ -1,0 +1,169 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage[margin=2cm]{geometry}
+\usepackage{longtable}
+\providecommand{\e}[1]{\ensuremath{\cdot 10^{#1}}}
+
+\begin{document}
+
+\newcommand{\rr}{\raggedright}
+\newcommand{\tn}{\tabularnewline\hline}
+\renewcommand{\arraystretch}{1.5}
+
+
+\begin{longtable}{|l|p{5.5cm}|l|l|p{4.5cm}|}
+\hline \textbf{Symbol} & \textbf{Meaning}                                                       & \textbf{Type} & \textbf{Units}                        &  \textbf{Reference}                                \tn
+\hline \endhead
+$A$					   & \rr constant in slip correction formula								& constant			& $1$									& \rr eq.~\ref{eq:slip_correct}, value = 1.142		 \tn
+$b$					   & \rr constant in slip correction formula								& constant			& $1$									& \rr eq.~\ref{eq:slip_correct}, value = 0.999		 \tn
+$C$					   & \rr slip correction factor from continuum to free molecular regime		& function		& $1$									& \rr eq.~\ref{eq:slip_correct}, eq.~(22) in Naumann [2003]					 \tn
+$d_{\rm f}$			   & \rr volume fractal dimension											& input			& $1$									& \rr 				 \tn
+$d_{\rm s}$			   & \rr surface fractal dimension											& input			& $1$									& \rr $d_{\rm f} \leq 2, d_{\rm s} = 3$; $2 \leq d_{\rm f} \leq 3, d_{\rm s} = \frac{6}{d_{\rm f}}$				 \tn
+$D_{\rm geo}$		   & \rr geometric diameter of fractal particles								& function		& $\rm m$								& 							 \tn
+$\eta_{\rm a}$		   & \rr dynamic viscosity of air											& function		& $\rm kg \, m^{-1} \, s^{-1}$			& \rr eq.~\ref{eq:eta_a}							 \tn
+$f$					   & \rr volume filling factor												& input			& $1$									& \rr 					 \tn
+$\gamma$			   & \rr scaling exponent in eq.~\ref{eq:S_acc} 	 							& constant			& $1$									& \rr value = 0.86									 \tn
+$h_{\rm KR}$		   & \rr Kirkwood-Riseman ratio												& function		& $1$									& \rr eq.~\ref{eq:h_KR}	, eq.~(21) in Naumann [2003] 					 \tn
+$k_{\rm B}$			   & \rr Boltzmann constant													& constant		& $\rm J \, K^{-1}$	& \rr \verb+const%boltzmann+ 		 		 \tn
+$l$					   & \rr mean free path of carrier gas molecules							& function			& $\rm m$								& \rr 	eq.~\ref{eq:gas_free_path}, eq.~(15.24) in Jacobson [2005]	 \tn
+$m$					   & \rr particle mass														& input			& $\rm kg$								& \rr eq.~\ref{eq:m_Rgeo}, eq.~(2) in Naumann [2003] 					 \tn
+$\bar{M}_{\rm a}$	   & \rr molecular weight of air											& constant		& $\rm kg \, mol^{-1}$					& \rr \verb+const%air_molec_weight+		 \tn
+$N$					   & \rr number of monomers in a cluster									& function		& $1$									& \rr eq.~\ref{eq:Num_monomer}	 					 \tn
+$N_{\rm A}$			   & \rr Avogadro number													& constant		& $\rm mol^{-1}$						& \rr \verb+const%avagadro+ 				 		 \tn
+$\nu_{\rm a}$	   & \rr kinematic viscosity of air											& function		& $\rm m^2 \, s^{-1}$					& \rr eq.~\ref{eq:nu_a}						 \tn
+$P$                    & \rr pressure	              			 			                    & prescribed    & $\rm Pa$                              & \rr 							                     \tn
+$\pi$				   & \rr Pi																	& constant		& $1$									& \rr \verb+const%pi+			 					 \tn
+$Q$					   & \rr constant in slip correction formula								& constant			& $1$									& \rr eq.~\ref{eq:slip_correct}, value = 0.588		 \tn
+$R_{\rm 0}$			   & \rr radius of primary particles										& input			& $\rm m$								& \rr 					 \tn
+$R_{\rm ae}$		   & \rr particle aerodynamic radius													& function		& $\rm m$								& \rr eq.~\ref{eq:R_ae}	, eq.~(32) in Nauman [2003]		 					 \tn
+$R_{\rm eff}$		   & \rr particle effective radius					& function		& $\rm m$								& \rr eq.~\ref{eq:R_eff}, eq.~(28) in Naumann [2003]							 \tn
+$R_{\rm gas}$			  		   & \rr universal gas constant												& constant		& $\rm J \, mol^{-1} \, K^{-1}$	& \rr \verb+const%univ_gas_const+		 \tn
+$R_{\rm geo}$		   & \rr particle geometric radius								& function		& $\rm m$								& \rr eq.~\ref{eq:R_geo}							 \tn
+$R_{\rm m}$		   	   & \rr particle mass equivalent radius												& function		& $\rm m$								& \rr eq.~\ref{eq:R_m}, eq.~(3) in Naumann [2003]								 \tn
+$R_{\rm me}$		   & \rr particle mobility equivalent radius											& function		& $\rm m$								& \rr eq.~\ref{eq:R_me}, eq.~(30) in Naumann [2003]								 \tn
+$R_{\rm me,c}$		   & \rr particle mobility equivalent radius in continuum regime				& function		& $\rm m$								& \rr eq.~\ref{eq:R_me_c}, eq.~(21) in Naumann [2003]							 \tn
+$R_{\rm sphere}$		   & \rr geometric radius of spherical particles								& function		& $\rm m$				& \rr eq.~\ref{eq:R_sphere}							 \tn
+$\rho$				   & \rr material density of primary particles		& prescribed		& $\rm kg \, m^{-3}$					& \rr \verb+aero_data%density+					 \tn
+$\rho_{\rm 0}$		   & \rr material density of reference particles (latex sphere)				& constant			& $\rm kg \, m^{-3}$					& \rr eq.~\ref{eq:R_ae}, value = 940				 \tn
+$\rho_{\rm a}$		   & \rr air density														& function		& $\rm kg \, m^{-3}$					& \rr eq.~\ref{eq:rho_a}							 \tn
+$S_{\rm acc}$		   & \rr accessible particle surface area										& function		& $\rm m^2$								& \rr eq.~\ref{eq:S_acc}, eq.~(26) in Naumann [2003]							 \tn
+$T$                    & \rr absolute temperature               			                    & prescribed    & $\rm K$                               & \rr 				                     \tn
+$\bar{v}_{\rm a}$	   & \rr thermal speed of an air molecule									& function		& $\rm m \, s^{-1}$					& \rr eq.~\ref{eq:v_a}, eq.~(15.25) in Jacobson [2005]				 		 \tn
+$V$                    & \rr particle mass-equivalent volume               			                    & function    & $\rm m^3$                               & \rr 				                     \tn
+$V_{\rm sphere}$		   & \rr mass-equivalent volume of spherical particles								& function		& $\rm m^3$				& \rr eq.~\ref{eq:V_sphere}							 \tn
+$z$					   & \rr scaling factor in eq.~\ref{eq:S_acc} 								& constant			& $1$									& \rr value = 1										 \tn
+\end{longtable}
+
+\newpage
+
+\begin{align}
+  m &= \frac{4 \pi \rho R_{\rm 0}^3}{3} N \label{eq:m_Rgeo} \displaybreak[0] \\
+  N &= \frac{1}{f}  \left(\frac{R_{\rm geo}}{R_{\rm 0}}\right)^{d_{\rm f}} \label{eq:Num_monomer} \displaybreak[0] \\
+  R_{\rm me, c} &= h_{\rm KR} R_{\rm geo}  \label{eq:R_me_c} \displaybreak[0] \\
+  h_{\rm KR} &= -0.06483 d_{\rm f}^2 + 0.6353 d_{\rm f} - 0.4898 \label{eq:h_KR} \displaybreak[0] \\
+  R_{\rm me} &= R_{\rm me, c} \frac{C(R_{\rm me})}{C(R_{\rm eff})} \label{eq:R_me} \displaybreak[0] \\
+  R_{\rm eff} &= \frac{S_{\rm acc}}{4 \pi R_{\rm me,c}} \label{eq:R_eff} \displaybreak[0] \\
+  S_{\rm acc} &= 4 \pi R_{\rm 0}^2 N^{\frac{d_{\rm s}}{3}} \left[\left(d_{\rm s} - 2\right) \left(\frac{z}{N}
+  \right)^{1 - \gamma} -d_{\rm s} + 3\right] \qquad \text{for } 2 \leq d_{\rm s} \leq 3 \label{eq:S_acc} \displaybreak[0] \\
+  S_{\rm acc} &= 4 \pi R_{\rm 0}^2 z^{1 - \gamma} N^{\gamma} \qquad \text{for $d_{\rm f} \leq 2$, $d_{\rm s} = 3$} \label{eq:S_acc_2} \displaybreak[0] \\
+  C(R) &= 1 + A \frac{l}{R} + Q \frac{l}{R} \exp\biggl(-b \frac{R}{l}\biggr)
+  \label{eq:slip_correct} \displaybreak[0] \\
+  \rho_{\rm a} &= \frac{P \bar{M}_{\rm a}}{R_{\rm gas} T} \label{eq:rho_a} \displaybreak[0] \\
+  \eta_{\rm a} &= 1.8325\e{-5} \left(\frac{416.16}{T+120}\right) \left(\frac{T}{296.16}\right)^{1.5}  \label{eq:eta_a} \displaybreak[0] \\
+  \nu_{\rm a} &= \frac{\eta_{\rm a}}{\rho_{\rm a}} \label{eq:nu_a} \displaybreak[0] \\
+  \bar{v}_{\rm a} &= \sqrt{\frac{8 k_{\rm B} T N_{\rm A}}{\pi \bar{M}_{\rm a}}} \label{eq:v_a} \displaybreak[0] \\
+  l &= \frac{2 \eta_{\rm a}}{\rho_{\rm a} \bar{v}_{\rm a}} = \frac{2 \nu_{\rm a}}{\bar{v}_{\rm a}} \label{eq:gas_free_path} \displaybreak[0] \\
+  R_{\rm m} &= \left[\frac{3 m(R_{\rm geo})}{4 \pi \rho}\right]^{\frac{1}{3}} \label{eq:R_m} \displaybreak[0] \\
+  R_{\rm ae}^2 C(R_{\rm ae}) &= \frac{\rho R_{\rm m}^3 C(R_{\rm me})}{\rho_{\rm 0} R_{\rm me}} \displaybreak[0] \\
+  R_{\rm ae}^2 C(R_{\rm ae}) &= \frac{\rho R_{\rm m}^3 C(R_{\rm eff})}{\rho_{\rm 0} R_{\rm me,c}} \label{eq:R_ae} \displaybreak[0]
+\end{align}
+
+\newpage
+\textbf{References of equations:}
+\begin{itemize}
+\item Eqs.~\ref{eq:m_Rgeo} to \ref{eq:slip_correct} are used to do radii conversions of fractal particles, which are based on K.-H. Naumann, COSIMA --- a computer program simulating the dynamics of fractal aerosols, Journal of Aerosol Science, 34, 1371--1397, 2003.
+\item Eqs.~\ref{eq:rho_a} to \ref{eq:gas_free_path} are used to calculate air mean free path, which are based on M. Z. Jacobson,
+Fundamentals of Atmospheric Modeling, second edition, Cambridge University Press, 2005.
+\item Eqs.~\ref{eq:R_m} to \ref{eq:R_ae} are used to calculate aerodynamic radius based on Naumann [2003]. This part is not included in current fractal code in PartMC.
+\end{itemize}
+
+\textbf{To use these equations:}
+\begin{itemize}
+\item To calculate $R_{\rm geo}$ from volume $V$, first we know the geometric radius of a spherical particle is given by
+  \begin{align}
+    R_{\rm sphere} = \left(\frac{3 V}{4 \pi}\right)^{\frac{1}{3}} \label{eq:R_sphere}
+  \end{align}
+we then use Eq.~\ref{eq:m_Rgeo} to obtain number of primary particles $N$
+  \begin{align}
+    N = \left(\frac{R_{\rm sphere}}{R_{\rm 0}}\right)^3
+  \end{align}
+then rearrange Eq.~\ref{eq:Num_monomer} to calculate $R_{\rm geo}$
+  \begin{align}
+    R_{\rm geo} = R_{\rm 0} (f N)^{\frac{1}{d_{\rm f}}} \label{eq:R_geo}
+  \end{align}
+In reverse, to calculate volume $V$ from $R_{\rm geo}$, we know the mass-equivalent volume of any spherical particle with radius $R$ is given by
+   \begin{align}
+    V_{\rm sphere}(R) = \frac{4}{3} \pi R^3 \label{eq:V_sphere}
+  \end{align}
+then we can combine Eqs.~\ref{eq:m_Rgeo}, \ref{eq:Num_monomer} and \ref{eq:V_sphere} to get:
+  \begin{align}
+    V = \frac{V_{\rm sphere}(R_0)}{f} \left(\frac{R_{\rm geo}}{R_{\rm 0}}\right)^{d_{\rm f}}
+  \end{align}
+\item Eq. \ref{eq:R_me} builds the basis to convert between $R_{\rm geo}$ and $R_{\rm me}$.
+\item To convert from $R_{\rm geo}$ (or volume) to $R_{\rm me}$, we use Newton's method to solve the non-linear
+equation. First we define several constants as
+
+  \begin{align}
+    a_1 &= C(R_{\rm eff}) \displaybreak[0] \\
+    a_2 &= -R_{\rm me, c} \displaybreak[0] \\
+    a_3 &= -R_{\rm me, c} Q l \displaybreak[0] \\
+    a_4 &= -\frac{b}{l} \displaybreak[0] \\
+    a_5 &= -R_{\rm me, c} A l
+  \end{align}
+
+The original and first derivative forms of $R_{\rm me}$ are shown in Eq.~\ref{eq:f_Rme}
+and Eq.~\ref{eq:df_Rme}.
+
+\begin{align}
+   f_1(R_{\rm me}) &= a_1 R_{\rm me}^2 + a_2 R_{\rm me} + a_3 \exp(a_4 R_{\rm me}) + a_5
+     \label{eq:f_Rme} \displaybreak[0] \\
+   f_1^ \prime (R_{\rm me}) &= 2 a_1 R_{\rm me} + a_2 + a_3 a_4  \exp(a_4 R_{\rm me})  \label{eq:df_Rme} \displaybreak[0]
+\end{align}
+
+\item To convert from $R_{\rm me}$ to $R_{\rm geo}$ (or volume), we need to first convert $R_{\rm me}$
+to $R_{\rm me,c}$, and then use Eq.~\ref{eq:R_me_c} to obtain $R_{\rm geo}$.
+
+First we define several constants as follows
+
+\begin{align}
+  \phi &= \frac{R_0^{2}}{(f h_{\rm KR}^{\rm d_{\rm f}} R_0^{\rm d_{\rm f}})^{\frac{d_{\rm s}}{3}}} \\
+  \psi &= \frac{1}{(f h_{\rm KR}^{\rm d_{\rm f}} R_0^{\rm d_{\rm f}})^{\gamma - 1}} \\
+  c_1 &= \frac{d_{\rm f} d_{\rm s}}{3} + \gamma d_{\rm f} - d_{\rm f} - 1 \\
+  c_2 &= \frac{d_{\rm f} d_{\rm s}}{3} - 1
+\end{align}
+
+Also we can define the following constants
+
+\begin{align}
+  a_1 &= \frac{C(R_{\rm me})}{R_{\rm me}} \phi \psi (d_{\rm s} - 2) \displaybreak[0] \\
+  a_2 &= \frac{C(R_{\rm me})}{R_{\rm me}} \phi (3 - d_{\rm s}) \displaybreak[0] \\
+  a_3 &= - \phi \psi (d_{\rm s}-2) \displaybreak[0] \\
+  a_4 &= \phi (d_{\rm s} -3) \displaybreak[0] \\
+  a_5 &= -Q l \displaybreak[0] \\
+  a_6 &= - \frac{b}{l} \phi \psi (d_{\rm s}-2) \displaybreak[0] \\
+  a_7 &= - \frac{b}{l} \phi (3 - d_{\rm s}) \displaybreak[0] \\
+  a_8 &= - A l \displaybreak[0]
+\end{align}
+
+Then based on Eq.~\ref{eq:R_me}, we can write the original and first derivative forms of $R_{\rm me,c}$ as:
+
+\begin{align}
+  f_2(R_{\rm me,c}) &= a_1 R_{\rm me,c}^{c_1+1} + a_2 R_{\rm me,c}^{c_2+1} + a_3 R_{\rm me,c}^{c_1} + a_4 R_{\rm me,c}^{c_2} + a_5 \exp(a_6 R_{\rm me,c}^{c_1} + a_7 R_{\rm me,c}^{c_2}) + a_8 \displaybreak[0] \\
+  f_2^ \prime (R_{\rm me,c}) &= a_1 (c_1+1) R_{\rm me,c}^{c_1} + a_2 (c_2+1) R_{\rm me,c}^{c_2} + a_3 c_1 R_{\rm me,c}^{c_1-1} + a_4 c_2 R_{\rm me,c}^{c_2-1} \notag \\
+  & + a_5 (a_6 c_1 R_{\rm me,c}^{c_1-1} + a_7 c_2 R_{\rm me,c}^{c_2 - 1}) \exp(a_6 R_{\rm me,c}^{c_1} + a_7 R_{\rm me,c}^{c_2}) \displaybreak[0]
+\end{align}
+
+Then we use Newton's method to solve the non-linear equation to obtain $R_{\rm me,c}$.
+
+\end{itemize}
+\end{document}

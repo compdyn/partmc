@@ -199,7 +199,7 @@ contains
     water_vol_conc_initial = 0d0
     do i_part = 1,aero_state_n_part(aero_state)
        num_conc = aero_weight_array_num_conc(aero_state%awa, &
-            aero_state%apa%particle(i_part))
+            aero_state%apa%particle(i_part), aero_data)
        water_vol_conc_initial = water_vol_conc_initial &
             + aero_state%apa%particle(i_part)%vol(aero_data%i_water) * num_conc
     end do
@@ -223,13 +223,14 @@ contains
        condense_saved_kappa(i_part) &
             = aero_particle_solute_kappa(aero_state%apa%particle(i_part), &
             aero_data)
-       condense_saved_D_dry(i_part) = vol2diam(&
+       condense_saved_D_dry(i_part) = aero_data_vol2diam(aero_data, &
             aero_particle_solute_volume(aero_state%apa%particle(i_part), &
             aero_data))
        condense_saved_num_conc(i_part) &
             = aero_weight_array_num_conc(aero_state%awa, &
-            aero_state%apa%particle(i_part))
-       state(i_part) = aero_particle_diameter(aero_state%apa%particle(i_part))
+            aero_state%apa%particle(i_part), aero_data)
+       state(i_part) = aero_particle_diameter(&
+            aero_state%apa%particle(i_part), aero_data)
        abs_tol_vector(i_part) = max(1d-30, &
             1d-8 * (state(i_part) - condense_saved_D_dry(i_part)))
     end do
@@ -270,14 +271,15 @@ contains
     ! water volume concentration, and adjust particle number to
     ! account for number concentration changes
     water_vol_conc_final = 0d0
-    call aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
+    call aero_state_num_conc_for_reweight(aero_state, aero_data, &
+         reweight_num_conc)
     do i_part = 1,aero_state_n_part(aero_state)
        num_conc = aero_weight_array_num_conc(aero_state%awa, &
-            aero_state%apa%particle(i_part))
+            aero_state%apa%particle(i_part), aero_data)
 
        ! translate output back to particle
        aero_state%apa%particle(i_part)%vol(aero_data%i_water) &
-            = diam2vol(state(i_part)) &
+            = aero_data_diam2vol(aero_data, state(i_part)) &
             - aero_particle_solute_volume(aero_state%apa%particle(i_part), &
             aero_data)
 
@@ -290,7 +292,7 @@ contains
             + aero_state%apa%particle(i_part)%vol(aero_data%i_water) * num_conc
     end do
     ! adjust particles to account for weight changes
-    call aero_state_reweight(aero_state, reweight_num_conc)
+    call aero_state_reweight(aero_state, aero_data, reweight_num_conc)
 
     ! Check that water removed from particles equals water added to
     ! vapor. Note that water concentration is not conserved (due to
@@ -713,7 +715,9 @@ contains
          / (const%univ_gas_const * env_state%temp &
          * const%water_density)
     kappa = aero_particle_solute_kappa(aero_particle, aero_data)
-    D_dry = vol2diam(aero_particle_solute_volume(aero_particle, aero_data))
+    D_dry = aero_data_vol2diam(aero_data, &
+         aero_particle_solute_volume(aero_particle, &
+         aero_data))
 
     D = D_dry
     g = 0d0
@@ -729,7 +733,8 @@ contains
     call warn_assert_msg(426620001, abs(g) < 1d3 * epsilon(1d0), &
          "convergence problem in equilibriation")
 
-    aero_particle%vol(aero_data%i_water) = diam2vol(D) - diam2vol(D_dry)
+    aero_particle%vol(aero_data%i_water) = aero_data_diam2vol(aero_Data, D) &
+         - aero_data_diam2vol(aero_data, D_dry)
 
   end subroutine condense_equilib_particle
 
@@ -753,13 +758,14 @@ contains
     ! We're modifying particle diameters, so bin sorting is now invalid
     aero_state%valid_sort = .false.
 
-    call aero_state_num_conc_for_reweight(aero_state, reweight_num_conc)
+    call aero_state_num_conc_for_reweight(aero_state, aero_data, &
+         reweight_num_conc)
     do i_part = aero_state_n_part(aero_state),1,-1
        call condense_equilib_particle(env_state, aero_data, &
             aero_state%apa%particle(i_part))
     end do
     ! adjust particles to account for weight changes
-    call aero_state_reweight(aero_state, reweight_num_conc)
+    call aero_state_reweight(aero_state, aero_data, reweight_num_conc)
 
   end subroutine condense_equilib_particles
 

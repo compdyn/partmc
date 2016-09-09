@@ -17,6 +17,7 @@ module pmc_aero_weight_array
   use pmc_netcdf
   use pmc_mpi
   use pmc_aero_weight
+  use pmc_aero_data
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -210,16 +211,18 @@ contains
 
   !> Compute the number concentration for a particle (m^{-3}).
   real(kind=dp) function aero_weight_array_single_num_conc(aero_weight_array, &
-       aero_particle)
+       aero_particle, aero_data)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
     !> Aerosol particle to compute number concentration for.
     type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
 
     aero_weight_array_single_num_conc = aero_weight_num_conc( &
          aero_weight_array%weight(aero_particle%weight_group, &
-         aero_particle%weight_class), aero_particle)
+         aero_particle%weight_class), aero_particle, aero_data)
 
   end function aero_weight_array_single_num_conc
 
@@ -252,16 +255,18 @@ contains
 
   !> Compute the number concentration for a particle (m^{-3}).
   real(kind=dp) function aero_weight_array_num_conc(aero_weight_array, &
-       aero_particle)
+       aero_particle, aero_data)
 
     !> Aerosol weight array.
     type(aero_weight_array_t), intent(in) :: aero_weight_array
     !> Aerosol particle to compute number concentration for.
     type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
 
     aero_weight_array_num_conc = aero_weight_array_num_conc_at_radius( &
          aero_weight_array, aero_particle%weight_class, &
-         aero_particle_radius(aero_particle))
+         aero_particle_radius(aero_particle, aero_data))
 
   end function aero_weight_array_num_conc
 

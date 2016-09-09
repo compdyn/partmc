@@ -89,7 +89,7 @@ program extract_aero_time
           // trim(filename_list(i_file)))
 
      times(i_file) = time
-     particle_num_concs = aero_state_num_concs(aero_state)
+     particle_num_concs = aero_state_num_concs(aero_state, aero_data)
      time_num_concs(i_file) = sum(particle_num_concs)
      particle_masses = aero_state_masses(aero_state, aero_data)
      time_mass_concs(i_file) = sum(particle_masses * particle_num_concs)

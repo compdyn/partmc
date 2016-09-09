@@ -23,6 +23,7 @@ program test_bidisperse_ode
   use pmc_env_state
   use pmc_util
   use pmc_bin_grid
+  use pmc_aero_data
 
   !> Radius of one small particle (m).
   real(kind=dp), parameter :: r_small = 1d-5
@@ -48,8 +49,6 @@ program test_bidisperse_ode
   real(kind=dp), parameter :: bin_r_min = 1d-8
   !> Minimum bin radius (m).
   real(kind=dp), parameter :: bin_r_max = 1d0
-  !> Scale factor for bins.
-  integer, parameter :: scal = 3
   !> Output unit number.
   integer, parameter :: out_unit = 33
   !> Output filename.
@@ -60,13 +59,15 @@ program test_bidisperse_ode
   real(kind=dp) :: comp_vol, n_small, time, v_big, num_conc
   real(kind=dp) :: v_small, v_big_init
   type(bin_grid_t) :: bin_grid
+  type(aero_data_t) :: aero_data
 
-  v_small = rad2vol(r_small)
-  v_big_init = rad2vol(r_big_init)
+  call fractal_set_spherical(aero_data%fractal)
+  v_small = aero_data_rad2vol(aero_data, r_small)
+  v_big_init = aero_data_rad2vol(aero_data, r_big_init)
   num_conc = num_conc_small * (n_small_init + 1d0) / n_small_init
   comp_vol = (n_small_init + 1d0) / num_conc
-  call bin_grid_make(bin_grid, BIN_GRID_TYPE_LOG, n_bin, rad2vol(bin_r_min), &
-       rad2vol(bin_r_max))
+  call bin_grid_make(bin_grid, BIN_GRID_TYPE_LOG, n_bin, aero_data_rad2vol(&
+       aero_data, bin_r_min), aero_data_rad2vol(aero_data, bin_r_max))
 
   open(unit=out_unit, file=out_name)
   time = 0d0
@@ -83,7 +84,7 @@ program test_bidisperse_ode
   do i_step = 2,n_step
      time = dble(i_step - 1) * del_t
      call bidisperse_step(v_small, v_big_init, n_small_init, &
-          env_state, comp_vol, del_t, n_small)
+          env_state, aero_data, comp_vol, del_t, n_small)
      v_big = v_big_init + (n_small_init - n_small) * v_small
      if (mod(i_step - 1, nint(t_progress / del_t)) .eq. 0) then
         write(*,'(a8,a14,a14,a9)') &
@@ -99,13 +100,13 @@ program test_bidisperse_ode
   end do
 
   close(out_unit)
-  
+
 contains
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine bidisperse_f(n_small, v_small, v_big_init, &
-       n_small_init, env_state, comp_vol, n_small_dot)
+       n_small_init, env_state, aero_data, comp_vol, n_small_dot)
     
     !> Current number of small particles.
     real(kind=dp), intent(in) :: n_small
@@ -117,6 +118,8 @@ contains
     real(kind=dp), intent(in) :: n_small_init
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Computational volume (m^3).
     real(kind=dp), intent(in) :: comp_vol
     !> Derivative of n_small.
@@ -125,7 +128,6 @@ contains
     integer :: n_spec, n_source
     real(kind=dp) :: v_big, k
     type(aero_particle_t) :: aero_particle_1, aero_particle_2
-    type(aero_data_t) :: aero_data
     
     v_big = v_big_init + (n_small_init - n_small) * v_small
     n_spec = 1
@@ -141,7 +143,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   subroutine bidisperse_step(v_small, v_big_init, n_small_init, &
-       env_state, comp_vol, del_t, n_small)
+       env_state, aero_data, comp_vol, del_t, n_small)
     
     !> Volume of one small particle.
     real(kind=dp), intent(in) :: v_small
@@ -151,6 +153,8 @@ contains
     real(kind=dp), intent(in) :: n_small_init
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
     !> Computational volume (m^3).
     real(kind=dp), intent(in) :: comp_vol
     !> Timestep.
@@ -161,21 +165,24 @@ contains
     real(kind=dp) n_small_dot, k1, k2, k3, k4
     
     ! integrate ODE with Runge-Kutta-4
-    
     call bidisperse_f(n_small, &
-         v_small, v_big_init, n_small_init, env_state, comp_vol, n_small_dot)
+         v_small, v_big_init, n_small_init, env_state, aero_data, &
+              comp_vol, n_small_dot)
     k1 = del_t * n_small_dot
-    
+
     call bidisperse_f(n_small + k1/2d0, &
-         v_small, v_big_init, n_small_init, env_state, comp_vol, n_small_dot)
+         v_small, v_big_init, n_small_init, env_state, aero_data, &
+              comp_vol, n_small_dot)
     k2 = del_t * n_small_dot
-    
+
     call bidisperse_f(n_small + k2/2d0, &
-         v_small, v_big_init, n_small_init, env_state, comp_vol, n_small_dot)
+         v_small, v_big_init, n_small_init, env_state, aero_data, &
+              comp_vol, n_small_dot)
     k3 = del_t * n_small_dot
-    
+
     call bidisperse_f(n_small + k3, &
-         v_small, v_big_init, n_small_init, env_state, comp_vol, n_small_dot)
+         v_small, v_big_init, n_small_init, env_state, aero_data, &
+              comp_vol, n_small_dot)
     k4 = del_t * n_small_dot
     
     n_small = n_small + k1/6d0 + k2/3d0 + k3/3d0 + k4/6d0

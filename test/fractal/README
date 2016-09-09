@@ -1,0 +1,29 @@
+
+Brownian coagulation with fractal treatment Test-case
+======================================================
+
+The initial condition is a single species of particle with a
+monodisperse distribution and the simulation uses the Brownian coagulation
+kernel from the following two papers for both continuum and
+free molecular regimes:
+1. S. Vemury and S. E. Pratsinis, Self-preserving size distributions
+of agglomerates, Journal of Aerosol Science, Vol. 26, No. 2,
+pp. 175-185, 1995.
+2. K.-H. Naumann, COSIMA - a computer program simulating the dynamics
+of fractal aerosols, Journal of Aerosol Science, Vol. 34, No. 10,
+pp. 1371-1397, 2003.
+
+The fractal treatment is based on Naumann [2003] with prescribed
+fractal parameters including fractal dimension, radius of primary
+particles and volume filling factor in the spec file.
+
+test_fractal_1: test of various radii conversions
+test_fractal_2: number concentration decay for free molecular regime,
+df = 2.4. Run plot_dimless_time_free_df_2_4.gnuplot for comparison result.
+test_fractal_3: number concentration decay for continuum regime,
+df = 1.8. Run plot_dimless_time_cont_df_1_8.gnuplot for comparison result.
+
+This test-case demonstrates that PartMC can succesfully reproduce
+the self-preserving size distributions and time evolutions of
+particle number concentration reported in the literature when
+Brownian coagulation is the dominant scheme for the evolution of particles.

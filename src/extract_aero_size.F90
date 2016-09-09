@@ -129,8 +129,8 @@ program extract_aero_size
              // trim(filename_list(i_file)))
      end if
 
-     diameters = aero_state_diameters(aero_state)
-     num_concs = aero_state_num_concs(aero_state)
+     diameters = aero_state_diameters(aero_state, aero_data)
+     num_concs = aero_state_num_concs(aero_state, aero_data)
      if (dist_type == DIST_TYPE_NUM) then
         hist = bin_grid_histogram_1d(diam_grid, diameters, num_concs)
      elseif (dist_type == DIST_TYPE_MASS) then

@@ -1,4 +1,4 @@
-! Copyright (C) 2011-2012 Jian Tian
+! Copyright (C) 2011-2012, 2016 Jian Tian, Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -268,14 +268,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Slip correction function \f$C(R)\f$ from continuum to
+  !> Slip correction function \f$C(R_eff)\f$ from continuum to
   !> free molecular regime.
   !!
   !! Based on Eq. 22 in Naumann [2003].
-  real(kind=dp) function fractal_slip_correct(r, temp, pressure)
+  real(kind=dp) function fractal_slip_correct(R_eff, temp, pressure)
 
-    !> Radius (m).
-    real(kind=dp), intent(in) :: r
+    !> Effective radius (m).
+    real(kind=dp), intent(in) :: R_eff
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp
     !> Pressure (Pa).
@@ -284,8 +284,8 @@ contains
     real(kind=dp) :: fp
 
     fp = air_mean_free_path(temp, pressure)
-    fractal_slip_correct = 1d0 + FRACTAL_A_SLIP * fp / r &
-         + FRACTAL_Q_SLIP * fp / r * exp(-FRACTAL_B_SLIP * r / fp)
+    fractal_slip_correct = 1d0 + FRACTAL_A_SLIP * fp / R_eff &
+         + FRACTAL_Q_SLIP * fp / R_eff * exp(-FRACTAL_B_SLIP * R_eff / fp)
 
   end function fractal_slip_correct
 

@@ -22,6 +22,7 @@ gas_emissions gas_emit.dat      # gas emissions file
 gas_background gas_back.dat     # background gas concentrations file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
+loss_function none              # particle loss function
 
 rel_humidity 0.95               # initial relative humidity (1)
 latitude 0                      # latitude (degrees, -90 to 90)
@@ -31,7 +32,6 @@ start_time 81000                # start time (s since 00:00 UTC)
 start_day 200                   # start day of year (UTC)
 
 do_coagulation no               # whether to do coagulation (yes/no)
-do_loss no                      # whether to do particle loss (yes/no)
 do_condensation yes             # whether to do condensation (yes/no)
 do_init_equilibriate yes        # whether to initially equilibriate water (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)

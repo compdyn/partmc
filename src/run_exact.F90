@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2016 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -32,10 +32,6 @@ module pmc_run_exact
      logical :: do_coagulation
      !> Type of coagulation kernel.
      integer :: coag_kernel_type
-     !> Whether to do particle loss.
-     logical :: do_loss
-     !> Type of loss rate function.
-     integer :: loss_function_type
      !> UUID of the simulation.
      character(len=PMC_UUID_LEN) :: uuid
   end type run_exact_opt_t
@@ -79,8 +75,7 @@ contains
             * run_exact_opt%t_max
        call scenario_update_env_state(scenario, env_state, time)
        call exact_soln(bin_grid, aero_data, run_exact_opt%do_coagulation, &
-            run_exact_opt%coag_kernel_type, run_exact_opt%do_loss, &
-            run_exact_opt%loss_function_type, aero_dist_init, scenario, &
+            run_exact_opt%coag_kernel_type, aero_dist_init, scenario, &
             env_state, time, aero_binned)
        call output_sectional(run_exact_opt%prefix, bin_grid, aero_data, &
             aero_binned, gas_data, gas_state, env_state, i_time + 1, &

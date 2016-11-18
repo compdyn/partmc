@@ -21,6 +21,7 @@ gas_emissions gas_emit.dat      # gas emissions file
 gas_background gas_back.dat     # background gas mixing ratios file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
+loss_function none              # particle loss function
 
 rel_humidity 0.999              # initial relative humidity (1)
 latitude 40                     # latitude (degrees, -90 to 90)

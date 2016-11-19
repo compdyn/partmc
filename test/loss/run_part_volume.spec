@@ -1,5 +1,5 @@
 run_type particle               # particle-resolved run
-output_prefix out/loss_part     # prefix of output files
+output_prefix out/loss_part_volume # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 100000                   # number of Monte Carlo particles
 restart no                      # whether to restart from saved state (yes/no)
@@ -13,7 +13,7 @@ gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios
 
 aerosol_data aero_data.dat      # file containing aerosol data
-aerosol_init aero_init_dist.dat # aerosol initial condition file
+aerosol_init aero_init_dist_volume.dat # aerosol initial condition file
 
 temp_profile temp.dat           # temperature profile file
 pressure_profile pressure.dat   # pressure profile file

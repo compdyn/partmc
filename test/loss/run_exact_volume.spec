@@ -1,5 +1,5 @@
 run_type exact                  # exact solution
-output_prefix out/loss_exact    # prefix of output files
+output_prefix out/loss_exact_volume # prefix of output files
 
 t_max 600                       # total simulation time (s)
 t_output 60                     # output interval (0 disables) (s)
@@ -11,7 +11,7 @@ d_max 1e-3                      # maximum diameter (m)
 gas_data gas_data.dat           # file containing gas data
 
 aerosol_data aero_data.dat      # file containing aerosol data
-aerosol_init aero_init_dist.dat # aerosol initial condition file
+aerosol_init aero_init_dist_volume.dat # aerosol initial condition file
 
 temp_profile temp.dat           # temperature profile file
 pressure_profile pressure.dat   # pressure profile file

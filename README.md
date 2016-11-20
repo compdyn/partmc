@@ -125,6 +125,12 @@ Installation
    build, toggle advanced mode with `t` and set the
    `CMAKE_Fortran_COMPILER` to `mpif90`, then reconfigure.
 
+8. Optionally, enable compiler warnings by pressing `t` inside ccmake
+   to enable advanced options and then setting `CMAKE_Fortran_FLAGS`
+   to:
+
+        -O2 -g -fimplicit-none -W -Wall -Wconversion -Wunderflow -Wimplicit-interface -Wno-compare-reals -Wno-unused -Wno-unused-parameter -Wno-unused-dummy-argument -fbounds-check
+
 8. Compile PartMC and test it as follows. Some tests may fail due to
    bad random initial conditions, so re-run the tests a few times to
    see if failures persist.

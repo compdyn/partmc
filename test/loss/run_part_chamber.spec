@@ -1,19 +1,19 @@
 run_type particle               # particle-resolved run
-output_prefix out/loss_part_drydep  # prefix of output files
+output_prefix out/loss_part_chamber # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 100000                   # number of Monte Carlo particles
 restart no                      # whether to restart from saved state (yes/no)
 
-t_max 172800                    # total simulation time (s)
-del_t 3600                      # timestep (s)
+t_max 43200                     # total simulation time (s)
+del_t 600                       # timestep (s)
 t_output 3600                   # output interval (0 disables) (s)
-t_progress 14400                # progress printing interval (0 disables) (s)
+t_progress 3600                 # progress printing interval (0 disables) (s)
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios
 
 aerosol_data aero_data.dat      # file containing aerosol data
-aerosol_init aero_init_dist_drydep.dat # aerosol initial condition file
+aerosol_init aero_init_dist_chamber.dat # aerosol initial condition file
 
 temp_profile temp.dat           # temperature profile file
 pressure_profile pressure.dat   # pressure profile file
@@ -22,7 +22,12 @@ gas_emissions gas_emit.dat      # gas emissions file
 gas_background gas_back.dat     # background gas mixing ratios file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
-loss_function drydep            # particle loss function
+loss_function chamber           # particle loss function
+chamber_vol 84.3                # chamber volume (m^3)
+area_diffuse 103                # wall diffusion deposition area (m^2)
+area_sedi 12.6                  # sedimentation deposition area (m^2)
+prefactor_BL 0.005              # boundary layer prefactor (m)
+exponent_BL 0.274               # boundary layer exponent (1)
 
 rel_humidity 0.999              # initial relative humidity (1)
 latitude 40                     # latitude (degrees, -90 to 90)

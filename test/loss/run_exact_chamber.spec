@@ -1,8 +1,8 @@
 run_type exact                  # exact solution
-output_prefix out/loss_exact_volume # prefix of output files
+output_prefix out/loss_exact_chamber # prefix of output files
 
-t_max 600                       # total simulation time (s)
-t_output 60                     # output interval (0 disables) (s)
+t_max 43200                     # total simulation time (s)
+t_output 3600                   # output interval (0 disables) (s)
 
 n_bin 160                       # number of bins
 d_min 1e-9                      # minimum diameter (m)
@@ -11,7 +11,7 @@ d_max 1e-3                      # maximum diameter (m)
 gas_data gas_data.dat           # file containing gas data
 
 aerosol_data aero_data.dat      # file containing aerosol data
-aerosol_init aero_init_dist_volume.dat # aerosol initial condition file
+aerosol_init aero_init_dist_chamber.dat # aerosol initial condition file
 
 temp_profile temp.dat           # temperature profile file
 pressure_profile pressure.dat   # pressure profile file
@@ -20,7 +20,12 @@ gas_emissions gas_emit.dat      # gas emissions file
 gas_background gas_back.dat     # background gas mixing ratios file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
-loss_function volume            # particle loss function
+loss_function chamber           # particle loss function
+chamber_vol 84.3                # chamber volume (m^3)
+area_diffuse 103                # wall diffusion deposition area (m^2)
+area_sedi 12.6                  # sedimentation deposition area (m^2)
+prefactor_BL 0.005              # boundary layer prefactor (m)
+exponent_BL 0.274               # boundary layer exponent (1)
 
 rel_humidity 0.999              # initial relative humidity (1)
 latitude 40                     # latitude (degrees, -90 to 90)

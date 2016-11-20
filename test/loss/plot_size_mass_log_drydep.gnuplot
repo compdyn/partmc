@@ -9,12 +9,12 @@ set ylabel "mass concentration / (kg/m^3)"
 
 set key left top
 
-set xrange [1e-7:1e-3]
-set yrange [1e-13:1e-1]
+set xrange [1e-9:1e-3]
+set yrange [1e-15:1e-3]
 
 plot "out/loss_part_drydep_0001_aero_size_mass.txt" using 1:2 title "particle t = 0 hours", \
-     "out/loss_part_drydep_0001_aero_size_mass.txt" using 1:7 title "particle t = 5 minutes", \
-     "out/loss_part_drydep_0001_aero_size_mass.txt" using 1:12 title "particle t = 10 minutes", \
+     "out/loss_part_drydep_0001_aero_size_mass.txt" using 1:26 title "particle t = 24 hours", \
+     "out/loss_part_drydep_0001_aero_size_mass.txt" using 1:50 title "particle t = 48 hours", \
      "out/loss_exact_drydep_aero_size_mass.txt" using 1:2 with lines title "exact t = 0 hours", \
-     "out/loss_exact_drydep_aero_size_mass.txt" using 1:7 with lines title "exact t = 5 minutes", \
-     "out/loss_exact_drydep_aero_size_mass.txt" using 1:12 with lines title "exact t = 10 minutes"
+     "out/loss_exact_drydep_aero_size_mass.txt" using 1:26 with lines title "exact t = 24 hours", \
+     "out/loss_exact_drydep_aero_size_mass.txt" using 1:50 with lines title "exact t = 48 hours"

@@ -1,13 +1,13 @@
 run_type particle               # particle-resolved run
-output_prefix out/loss_part_drydep  # prefix of output files
+output_prefix out/loss_part_constant # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 100000                   # number of Monte Carlo particles
 restart no                      # whether to restart from saved state (yes/no)
 
-t_max 172800                    # total simulation time (s)
-del_t 3600                      # timestep (s)
-t_output 3600                   # output interval (0 disables) (s)
-t_progress 14400                # progress printing interval (0 disables) (s)
+t_max 7200                      # total simulation time (s)
+del_t 60                        # timestep (s)
+t_output 600                    # output interval (0 disables) (s)
+t_progress 600                  # progress printing interval (0 disables) (s)
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios
@@ -22,7 +22,7 @@ gas_emissions gas_emit.dat      # gas emissions file
 gas_background gas_back.dat     # background gas mixing ratios file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
-loss_function drydep            # particle loss function
+loss_function constant          # particle loss function
 
 rel_humidity 0.999              # initial relative humidity (1)
 latitude 40                     # latitude (degrees, -90 to 90)

@@ -1,8 +1,8 @@
 run_type exact                  # exact solution
-output_prefix out/loss_exact_drydep # prefix of output files
+output_prefix out/loss_exact_constant # prefix of output files
 
-t_max 172800                    # total simulation time (s)
-t_output 3600                   # output interval (0 disables) (s)
+t_max 7200                      # total simulation time (s)
+t_output 600                    # output interval (0 disables) (s)
 
 n_bin 160                       # number of bins
 d_min 1e-9                      # minimum diameter (m)
@@ -20,7 +20,7 @@ gas_emissions gas_emit.dat      # gas emissions file
 gas_background gas_back.dat     # background gas mixing ratios file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
-loss_function drydep            # particle loss function
+loss_function constant          # particle loss function
 
 rel_humidity 0.999              # initial relative humidity (1)
 latitude 40                     # latitude (degrees, -90 to 90)

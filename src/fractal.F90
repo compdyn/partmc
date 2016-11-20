@@ -179,6 +179,7 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
+    fractal_surface_frac_dim = 0d0 ! prevent uninitialized warnings
     if (fractal%frac_dim <= 2d0) then
        fractal_surface_frac_dim = 3d0
     elseif ((fractal%frac_dim > 2d0) .and. (fractal%frac_dim <= 3d0)) then

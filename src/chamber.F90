@@ -104,7 +104,8 @@ contains
     delta = chamber_diff_BL_thick(chamber, vol, aero_data, env_state%temp, &
          env_state%pressure)
 
-    chamber_loss_wall = (D * chamber%area_diffuse) / (delta * chamber%volume)
+    chamber_loss_rate_wall = (D * chamber%area_diffuse) &
+         / (delta * chamber%volume)
 
   end function chamber_loss_rate_wall
 
@@ -130,7 +131,7 @@ contains
 
     D = chamber_diff_coef(vol, aero_data, env_state%temp, env_state%pressure)
 
-    chamber_loss_sedi &
+    chamber_loss_rate_sedi &
          = (density * vol * const%std_grav * D * chamber%area_sedi) &
          / (const%boltzmann * env_state%temp * chamber%volume)
 

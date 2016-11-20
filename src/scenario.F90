@@ -28,10 +28,10 @@ module pmc_scenario
   integer, parameter :: SCENARIO_LOSS_FUNCTION_NONE     = 1
   !> Type code for a constant loss function.
   integer, parameter :: SCENARIO_LOSS_FUNCTION_CONSTANT = 2
-  !> Type code for a loss rate function proportional to volume.
+  !> Type code for a loss rate function proportional to particle volume.
   integer, parameter :: SCENARIO_LOSS_FUNCTION_VOLUME   = 3
   !> Type code for a loss rate function based on dry deposition
-  integer, parameter :: SCENARIO_LOSS_FUNCTION_DRY_DEP  = 4
+  integer, parameter :: SCENARIO_LOSS_FUNCTION_DRYDEP  = 4
   !> Type code for a loss rate function for chamber experiments.
   integer, parameter :: SCENARIO_LOSS_FUNCTION_CHAMBER  = 5
 
@@ -400,7 +400,7 @@ contains
        scenario_loss_rate = 1d-3
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_VOLUME) then
        scenario_loss_rate = 1d15*vol
-    else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRY_DEP) &
+    else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) &
          then
        scenario_loss_rate = scenario_loss_rate_dry_dep(vol, density, &
             aero_data, env_state)
@@ -412,7 +412,7 @@ contains
             aero_data, env_state)
     else
        call die_msg(201594391, "Unknown loss function id: " &
-            // trim(integer_to_string(loss_function_type)))
+            // trim(integer_to_string(scenario%loss_function_type)))
     end if
 
   end function scenario_loss_rate
@@ -866,7 +866,7 @@ contains
     else if (trim(function_name) == 'volume') then
        scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_VOLUME
     else if (trim(function_name) == 'drydep') then
-       scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_DRY_DEP
+       scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_DRYDEP
     else if (trim(function_name) == 'chamber') then
        scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_CHAMBER
        call spec_file_read_chamber(file, scenario%chamber)

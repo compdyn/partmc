@@ -10,4 +10,4 @@ cd ${0%/*}
 ../../extract_aero_size --mass --dmin 1e-9 --dmax 1e-3 --nbin 160 out/loss_part_volume_0001
 ../../extract_sectional_aero_size --mass out/loss_exact_volume
 
-../../numeric_diff --by col --rel-tol 0.1 out/loss_exact_volume_aero_size_mass.txt out/loss_part_volume_0001_aero_size_mass.txt
+../../numeric_diff --by col --rel-tol 0.3 out/loss_exact_volume_aero_size_mass.txt out/loss_part_volume_0001_aero_size_mass.txt

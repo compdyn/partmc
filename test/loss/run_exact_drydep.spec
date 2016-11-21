@@ -2,7 +2,7 @@ run_type exact                  # exact solution
 output_prefix out/loss_exact_drydep # prefix of output files
 
 t_max 172800                    # total simulation time (s)
-t_output 3600                   # output interval (0 disables) (s)
+t_output 21600                  # output interval (0 disables) (s)
 
 n_bin 160                       # number of bins
 d_min 1e-9                      # minimum diameter (m)

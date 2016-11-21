@@ -1,10 +1,10 @@
 run_type particle               # particle-resolved run
 output_prefix out/loss_part_constant # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
-n_part 100000                   # number of Monte Carlo particles
+n_part 10000                    # number of Monte Carlo particles
 restart no                      # whether to restart from saved state (yes/no)
 
-t_max 7200                      # total simulation time (s)
+t_max 3600                      # total simulation time (s)
 del_t 60                        # timestep (s)
 t_output 600                    # output interval (0 disables) (s)
 t_progress 600                  # progress printing interval (0 disables) (s)

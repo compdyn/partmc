@@ -1,12 +1,12 @@
 run_type particle               # particle-resolved run
 output_prefix out/loss_part_drydep  # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
-n_part 100000                   # number of Monte Carlo particles
+n_part 10000                    # number of Monte Carlo particles
 restart no                      # whether to restart from saved state (yes/no)
 
 t_max 172800                    # total simulation time (s)
 del_t 3600                      # timestep (s)
-t_output 3600                   # output interval (0 disables) (s)
+t_output 21600                  # output interval (0 disables) (s)
 t_progress 14400                # progress printing interval (0 disables) (s)
 
 gas_data gas_data.dat           # file containing gas data

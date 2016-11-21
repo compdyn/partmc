@@ -1,7 +1,7 @@
 run_type exact                  # exact solution
 output_prefix out/loss_exact_constant # prefix of output files
 
-t_max 7200                      # total simulation time (s)
+t_max 3600                      # total simulation time (s)
 t_output 600                    # output interval (0 disables) (s)
 
 n_bin 160                       # number of bins

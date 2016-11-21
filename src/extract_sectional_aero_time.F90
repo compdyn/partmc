@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2012 Matthew West
+! Copyright (C) 2009-2012, 2016 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -135,12 +135,10 @@ contains
     write(*,'(a)') ''
     write(*,'(a)') 'options are:'
     write(*,'(a)') '  -h, --help        Print this help message.'
-    write(*,'(a)') '  -n, --num         Output number distribution.'
-    write(*,'(a)') '  -m, --mass        Output mass distribution.'
     write(*,'(a)') '  -o, --out <file>  Output filename.'
     write(*,'(a)') ''
     write(*,'(a)') 'Examples:'
-    write(*,'(a)') '  extract_sectional_aero_time --num data_0001'
+    write(*,'(a)') '  extract_sectional_aero_time data_0001'
     write(*,'(a)') ''
 
   end subroutine print_help

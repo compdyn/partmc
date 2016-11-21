@@ -3,6 +3,8 @@
 # or from the commandline with:
 # gnuplot -persist <filename>.gnuplot
 
+set title "drydep size num"
+
 set logscale
 set xlabel "diameter / m"
 set ylabel "number concentration / (1/m^3)"

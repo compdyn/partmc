@@ -3,6 +3,8 @@
 # or from the commandline with:
 # gnuplot -persist <filename>.gnuplot
 
+set title "constant time"
+
 set logscale y
 set logscale y2
 set xlabel "time / h"

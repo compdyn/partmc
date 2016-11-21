@@ -3,6 +3,8 @@
 # or from the commandline with:
 # gnuplot -persist <filename>.gnuplot
 
+set title "volume time"
+
 set logscale y
 set logscale y2
 set xlabel "time / min"
@@ -15,7 +17,7 @@ set y2tics
 set key right top
 
 set xrange [0:10]
-set yrange [1e9:1e12]
+set yrange [6e10:1.1e11]
 set y2range [1e-5:1e-2]
 
 plot "out/loss_part_volume_0001_aero_time.txt" using ($1/60):2 axes x1y1 title "particle number", \

@@ -3,6 +3,8 @@
 # or from the commandline with:
 # gnuplot -persist <filename>.gnuplot
 
+set title "chamber size mass"
+
 set logscale
 set xlabel "diameter / m"
 set ylabel "mass concentration / (kg/m^3)"

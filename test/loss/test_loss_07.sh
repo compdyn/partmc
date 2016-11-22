@@ -9,8 +9,8 @@ cd ${0%/*}
 # make the output directory if it doesn't exist
 mkdir -p out
 
-../../partmc run_part_drydep.spec
-../../partmc run_exact_drydep.spec
+../../partmc run_drydep_part.spec
+../../partmc run_drydep_exact.spec
 
 ../../extract_aero_time out/loss_part_drydep_0001
 ../../extract_sectional_aero_time out/loss_exact_drydep

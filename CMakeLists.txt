@@ -431,3 +431,10 @@ add_executable(1_urban_plume_process
 target_link_libraries(1_urban_plume_process partmclib)
 
 ######################################################################
+# scenarios/8_chamber/process
+
+add_executable(chamber_process
+  scenarios/8_chamber/chamber_process.F90)
+target_link_libraries(chamber_process partmclib)
+
+######################################################################

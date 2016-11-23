@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2015 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2016 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -1389,6 +1389,49 @@ contains
     call close_file(unit)
 
   end subroutine loadtxt
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write a real 1D array to a text file.
+  subroutine savetxt_1d(filename, data)
+
+    !> Filename to write to.
+    character(len=*), intent(in) :: filename
+    !> Array of data to write.
+    real(kind=dp), intent(in) :: data(:)
+
+    integer :: unit, i
+
+    call open_file_write(filename, unit)
+    do i = 1,size(data)
+       write(unit, '(e30.15e3)') data(i)
+    end do
+    call close_file(unit)
+
+  end subroutine savetxt_1d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write a real 2D array to a text file.
+  subroutine savetxt_2d(filename, data)
+
+    !> Filename to write to.
+    character(len=*), intent(in) :: filename
+    !> Array of data to write.
+    real(kind=dp), intent(in) :: data(:,:)
+
+    integer :: unit, i, j
+
+    call open_file_write(filename, unit)
+    do i = 1,size(data, 1)
+       do j = 1,size(data, 2)
+          write(unit, '(e30.15e3)', advance='no') data(i, j)
+       end do
+       write(unit, *) ''
+    end do
+    call close_file(unit)
+
+  end subroutine savetxt_2d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -1,4 +1,4 @@
-! Copyright (C) 2012-2015 Matthew West
+! Copyright (C) 2012-2016 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -546,6 +546,8 @@ contains
   !! </pre>
   !! means that the 95% confidence interval for the mean is
   !! <tt>[mean - offset, mean + offset]</tt>.
+  !!
+  !! If \c n_sample is one or less then zero is returned.
   function conf_95_offset(var, n_sample)
 
     !> Sample variance of data.
@@ -555,6 +557,11 @@ contains
 
     !> Return offset from mean for the 95% confidence interval.
     real(kind=dp) :: conf_95_offset
+
+    if (n_sample <= 1) then
+       conf_95_offset = 0d0
+       return
+    end if
 
     conf_95_offset = student_t_95_coeff(n_sample) * sqrt(var) &
          / sqrt(real(n_sample, kind=dp))
@@ -630,6 +637,40 @@ contains
          dim_name_2=dim_name_2, unit=unit)
 
   end subroutine stats_2d_output_netcdf
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write statistics (mean and 95% conf. int.) to a text file.
+  !!
+  !! The format has three columns:
+  !!     <dim> <mean> <ci_offset>
+  !! where <dim> is the optional dimension argument, <mean> is the mean value
+  !! and <ci_offset> is the 95% confidence interval offset, so the 95% CI is
+  !! [mean - ci_offset, mean + ci_offset].
+  subroutine stats_1d_output_text(stats, filename, dim)
+
+    !> Statistics structure to write.
+    type(stats_1d_t), intent(in) :: stats
+    !> Filename to write to.
+    character(len=*), intent(in) :: filename
+    !> Dimension array (independent variable).
+    real(kind=dp), intent(in) :: dim(:)
+
+    real(kind=dp), allocatable :: data(:,:)
+
+    if (size(dim) /= size(stats%n)) then
+       call die_msg(460147728, 'dim size ' // integer_to_string(size(dim)) &
+            // ' does not match stats size ' &
+            // integer_to_string(size(stats%n)))
+    end if
+
+    allocate(data(size(stats%n), 3))
+    data(:,1) = dim
+    data(:,2) = stats%mean
+    data(:,3) = stats_1d_conf_95_offset(stats)
+    call savetxt_2d(filename, data)
+
+  end subroutine stats_1d_output_text
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

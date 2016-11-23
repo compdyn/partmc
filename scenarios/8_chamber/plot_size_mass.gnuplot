@@ -17,4 +17,8 @@ set xrange [10:1000]
 plot "out/chamber_00000001_mass_dist.txt" using ($1*1e9):($2*1e9):($3*1e9) with errorbars title "t = 0 hours", \
      "out/chamber_00000002_mass_dist.txt" using ($1*1e9):($2*1e9):($3*1e9) with errorbars title "t = 7 minutes", \
      "out/chamber_00000011_mass_dist.txt" using ($1*1e9):($2*1e9):($3*1e9) with errorbars title "t = 70 minutes", \
-     "out/chamber_00000031_mass_dist.txt" using ($1*1e9):($2*1e9):($3*1e9) with errorbars title "t = 210 minutes"
+     "out/chamber_00000031_mass_dist.txt" using ($1*1e9):($2*1e9):($3*1e9) with errorbars title "t = 210 minutes", \
+     "ref_0925/ref_aero_size_mass.txt" using ($1*1e9):($2*1e9) with lines title "barrel experiment 1, t = 0 min", \
+     "ref_0925/ref_aero_size_mass.txt" using ($1*1e9):($3*1e9) with lines title "barrel experiment 1, t = 7 min", \
+     "ref_0925/ref_aero_size_mass.txt" using ($1*1e9):($12*1e9) with lines title "barrel experiment 1, t = 70 min", \
+     "ref_0925/ref_aero_size_mass.txt" using ($1*1e9):($32*1e9) with lines title "barrel experiment 1, t = 210 min"

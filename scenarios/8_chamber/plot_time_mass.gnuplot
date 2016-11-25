@@ -14,4 +14,4 @@ set xrange [0:350]
 #set yrange [0:45]
 
 plot "out/chamber_tot_mass_conc.txt" using ($1/60):($2*1e9):($3*1e9) with errorbars title "PartMC simulation", \
-     "ref_0925/ref_aero_time.txt" using ($1/60):($3*1e9) with lines title "barrel experiment 1"
+     "exp_aero_time.txt" using ($1/60):($3*1e9) with lines title "barrel experiment 1"

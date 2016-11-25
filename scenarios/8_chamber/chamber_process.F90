@@ -22,8 +22,8 @@ program process
   integer :: ncid, index, repeat, i_index, i_repeat, n_index, n_repeat
   real(kind=dp) :: time, del_t, tot_num_conc, tot_mass_conc
   character(len=PMC_UUID_LEN) :: uuid
-  real(kind=dp), allocatable :: times(:), dry_diameters(:), num_concs(:), &
-       dry_masses(:), masses(:), num_dist(:), mass_dist(:)
+  real(kind=dp), allocatable :: times(:), mobility_diameters(:), &
+       num_concs(:), dry_masses(:), masses(:), num_dist(:), mass_dist(:)
   type(stats_1d_t) :: stats_num_dist, stats_mass_dist, stats_tot_num_conc, &
        stats_tot_mass_conc
 
@@ -45,17 +45,19 @@ program process
 
         times(i_index) = time
 
-        dry_diameters = aero_state_dry_diameters(aero_state, aero_data)
+        mobility_diameters = aero_state_mobility_diameters(aero_state, &
+             aero_data, env_state)
         num_concs = aero_state_num_concs(aero_state, aero_data)
-        num_dist = bin_grid_histogram_1d(diam_grid, dry_diameters, num_concs)
+        num_dist = bin_grid_histogram_1d(diam_grid, mobility_diameters, &
+             num_concs) * log(10d0)
         call stats_1d_add(stats_num_dist, num_dist)
 
         tot_num_conc = sum(num_concs)
         call stats_1d_add_entry(stats_tot_num_conc, tot_num_conc, i_index)
 
         masses = aero_state_masses(aero_state, aero_data)
-        mass_dist = bin_grid_histogram_1d(diam_grid, dry_diameters, &
-             masses * num_concs)
+        mass_dist = bin_grid_histogram_1d(diam_grid, mobility_diameters, &
+             masses * num_concs) * log(10d0)
         call stats_1d_add(stats_mass_dist, mass_dist)
 
         tot_mass_conc = sum(masses * num_concs)

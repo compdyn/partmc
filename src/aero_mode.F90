@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2015 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2016 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -786,14 +786,14 @@ contains
     !!
     !! A size distribution file must consist of two lines:
     !! - the first line must begin with \c diam and be followed by
-    !!   \f$N + 1\f$ space-separated real scalars, giving the radii
-    !!   \f$r_1,\ldots,r_{N+1}\f$ of bin edges (m) --- these must be
-    !!   in increasing order, so \f$r_i < r_{i+1}\f$
+    !!   \f$N + 1\f$ space-separated real scalars, giving the diameters
+    !!   \f$D_1,\ldots,D_{N+1}\f$ of bin edges (m) --- these must be
+    !!   in increasing order, so \f$D_i < D_{i+1}\f$
     !! - the second line must begin with \c num_conc and be followed
     !!   by \f$N\f$ space-separated real scalars, giving the number
     !!   concenrations \f$C_1,\ldots,C_N\f$ in each bin (#/m^3) ---
     !!   \f$C_i\f$ is the total number concentrations of particles
-    !!   with diameters in \f$[r_i, r_{i+1}]\f$
+    !!   with diameters in \f$[D_i, D_{i+1}]\f$
     !!
     !! The resulting size distribution is taken to be piecewise
     !! constant in log-diameter coordinates.

@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012, 2016 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -273,6 +273,21 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Volume of a single species in the particle (m^3).
+  elemental real(kind=dp) function aero_particle_species_volume( &
+       aero_particle, i_spec)
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Species number to find volume of.
+    integer, intent(in) :: i_spec
+
+    aero_particle_species_volume = aero_particle%vol(i_spec)
+
+  end function aero_particle_species_volume
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Total dry volume of the particle (m^3).
   elemental real(kind=dp) function aero_particle_dry_volume(aero_particle, &
        aero_data)
@@ -379,6 +394,28 @@ contains
          = 2d0 * aero_particle_dry_radius(aero_particle, aero_data)
 
   end function aero_particle_dry_diameter
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Mobility diameter of the particle (m).
+  real(kind=dp) function aero_particle_mobility_diameter(aero_particle, &
+       aero_data, env_state)
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    real(kind=dp) :: volume, mobility_radius
+
+    volume = aero_particle_volume(aero_particle)
+    mobility_radius = fractal_vol_to_mobility_rad(aero_data%fractal, &
+         volume, env_state%temp, env_state%pressure)
+    aero_particle_mobility_diameter = rad2diam(mobility_radius)
+
+  end function aero_particle_mobility_diameter
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

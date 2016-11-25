@@ -312,8 +312,8 @@ contains
   !> radius \f$R_{\rm me}\f$ (m).
   !!
   !! Based on Eq. 5, 21 and 30 in Naumann [2003].
-  real(kind=dp) function fractal_vol_to_mobility_rad(fractal, v, temp, &
-       pressure)
+  real(kind=dp) function fractal_vol_to_mobility_rad(fractal, v, &
+       temp, pressure)
 
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
@@ -373,7 +373,7 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
     !> Mobility equivalent radius (m).
-    real(kind=dp), intent(in) ::mobility_rad
+    real(kind=dp), intent(in) :: mobility_rad
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp
     !> Pressure (Pa).

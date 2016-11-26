@@ -473,6 +473,10 @@ contains
             run_part_opt%allow_doubling)
        call spec_file_read_logical(file, 'allow_halving', &
             run_part_opt%allow_halving)
+       if (.not. do_restart) then
+          call spec_file_read_aero_state_weighting_type(file, &
+               run_part_opt%weighting_type)
+       end if
        call spec_file_read_logical(file, 'record_removals', &
             run_part_opt%record_removals)
 
@@ -621,7 +625,7 @@ contains
                   AERO_STATE_WEIGHT_FLAT)
           else
              call aero_state_set_weight(aero_state, aero_data, &
-                  AERO_STATE_WEIGHT_NUMMASS_SOURCE)
+                  run_part_opt%weighting_type)
           end if
           call aero_state_set_n_part_ideal(aero_state, n_part)
           call aero_state_add_aero_dist_sample(aero_state, aero_data, &

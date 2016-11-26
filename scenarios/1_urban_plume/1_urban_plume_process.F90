@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2013 Matthew West
+! Copyright (C) 2009-2013, 2016 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -43,6 +43,9 @@ program process
   call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)
 
   allocate(times(n_index))
+
+  scs = [ real(kind=dp) :: ] ! silence compiler warnings
+  bc_fracs = [ real(kind=dp) :: ]
 
   do i_index = 1,n_index
      do i_repeat = 1,n_repeat

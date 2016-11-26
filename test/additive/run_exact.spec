@@ -11,6 +11,7 @@ d_max 1e-3                      # maximum diameter (m)
 gas_data gas_data.dat           # file containing gas data
 
 aerosol_data aero_data.dat      # file containing aerosol data
+do_fractal no                   # whether to do fractal treatment
 aerosol_init aero_init_dist.dat # aerosol initial condition file
 
 temp_profile temp.dat           # temperature profile file
@@ -31,5 +32,3 @@ start_day 1                     # start day of year (UTC)
 
 do_coagulation yes              # whether to do coagulation (yes/no)
 coag_kernel additive            # coagulation kernel
-
-do_fractal no                  # whether to do fractal treatment

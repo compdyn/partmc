@@ -430,6 +430,36 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert mobility equivalent radius \f$R_{\rm me}\f$ (m) to
+  !> geometric radius \f$R_{\rm geo}\f$ (m^3).
+  real(kind=dp) function fractal_mobility_rad_to_geometric_rad(fractal, &
+       mobility_rad, temp, pressure)
+
+    !> Fractal parameters.
+    type(fractal_t), intent(in) :: fractal
+    !> Mobility equivalent radius (m).
+    real(kind=dp), intent(in) :: mobility_rad
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: temp
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: pressure
+
+    real(kind=dp) :: Rmec
+
+    if (fractal_is_spherical(fractal)) then
+       fractal_mobility_rad_to_geometric_rad = mobility_rad
+       return
+    end if
+
+    Rmec = fractal_mobility_rad_to_mobility_rad_in_continuum(fractal, &
+         mobility_rad, temp, pressure)
+    fractal_mobility_rad_to_geometric_rad &
+         = Rmec / fractal_kirkwood_riseman(fractal)
+
+  end function fractal_mobility_rad_to_geometric_rad
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert mobility equivalent radius \f$R_{\rm me}\f$ (m) to
   !> mass-equivalent volume \f$V\f$ (m^3).
   !!
   !! Based on Eq. 5, 21 and 30 in Naumann [2003].
@@ -445,16 +475,10 @@ contains
     !> Pressure (Pa).
     real(kind=dp), intent(in) :: pressure
 
-    real(kind=dp) :: Rmec, Rgeo
+    real(kind=dp) :: Rgeo
 
-    if (fractal_is_spherical(fractal)) then
-       fractal_mobility_rad_to_vol = fractal_rad2vol(fractal, mobility_rad)
-       return
-    end if
-
-    Rmec = fractal_mobility_rad_to_mobility_rad_in_continuum(fractal, &
-         mobility_rad, temp, pressure)
-    Rgeo = Rmec / fractal_kirkwood_riseman(fractal)
+    Rgeo = fractal_mobility_rad_to_geometric_rad(fractal, mobility_rad, temp, &
+         pressure)
     fractal_mobility_rad_to_vol = fractal_rad2vol(fractal, Rgeo)
 
   end function fractal_mobility_rad_to_vol

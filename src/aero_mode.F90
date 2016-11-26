@@ -36,6 +36,13 @@ module pmc_aero_mode
   !> Type code for a sampled mode.
   integer, parameter :: AERO_MODE_TYPE_SAMPLED    = 4
 
+  !> Type code for an undefined for invalid diameter type.
+  integer, parameter :: AERO_MODE_DIAM_TYPE_INVALID   = 0
+  !> Type code for geometric diameter.
+  integer, parameter :: AERO_MODE_DIAM_TYPE_GEOMETRIC = 1
+  !> Type code for mobility equivalent diameter.
+  integer, parameter :: AERO_MODE_DIAM_TYPE_MOBILITY  = 2
+
   !> An aerosol size distribution mode.
   !!
   !! Each mode is assumed to be fully internally mixed so that every
@@ -866,12 +873,15 @@ contains
     !> If eof instead of reading data.
     logical :: eof
 
-    character(len=SPEC_LINE_MAX_VAR_LEN) :: tmp_str, mode_type
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: tmp_str, mode_type, diam_type_str
     character(len=SPEC_LINE_MAX_VAR_LEN) :: mass_frac_filename
     character(len=SPEC_LINE_MAX_VAR_LEN) :: size_dist_filename
     type(spec_line_t) :: line
     type(spec_file_t) :: mass_frac_file, size_dist_file
-    real(kind=dp) :: diam
+    real(kind=dp) :: diam, temp, pressure
+    integer :: diam_type, i_radius
+    real(kind=dp) :: log10_r0_mob, log10_r1_mob, log10_r2_mob, &
+         r0_mob, r2_mob, r0_geom, r2_geom, log10_r0_geom, log10_r2_geom
 
     ! note that doxygen's automatic list creation breaks on the list
     ! below for some reason, so we just use html format
@@ -885,6 +895,17 @@ contains
     !! <li> \b mass_frac (string): name of file from which to read the
     !!      species mass fractions --- the file format should
     !!      be \subpage input_format_mass_frac
+    !! <li> \b diam_type (string): the type of diameter for the mode
+    !!      --- must be one of: \c geometric for geometric diameter;
+    !!      or \c mobility for mobility equivalent diameter
+    !! <li> if \c diam_type is \c mobility then the following
+    !!      parameters are:
+    !!      <ul>
+    !!      <li> \b temp (real, unit K): the temperate at which the
+    !!           mobility diameters were measured
+    !!      <li> \b pressure (real, unit Pa): the pressure at which the
+    !!           mobility diameters were measured
+    !!      </ul>
     !! <li> \b mode_type (string): the functional form of the mode ---
     !!      must be one of: \c log_normal for a log-normal
     !!      distribution; \c exp for an exponential distribution; \c
@@ -962,11 +983,25 @@ contains
        tmp_str = line%data(1) ! hack to avoid gfortran warning
        aero_mode%name = tmp_str(1:AERO_MODE_NAME_LEN)
        aero_mode%source = aero_data_source_by_name(aero_data, aero_mode%name)
+
        call spec_file_read_string(file, 'mass_frac', mass_frac_filename)
        call spec_file_open(mass_frac_filename, mass_frac_file)
        call spec_file_read_vol_frac(mass_frac_file, aero_data, &
             aero_mode%vol_frac, aero_mode%vol_frac_std)
        call spec_file_close(mass_frac_file)
+
+       call spec_file_read_string(file, 'diam_type', diam_type_str)
+       if (trim(diam_type_str) == 'geometric') then
+          diam_type = AERO_MODE_DIAM_TYPE_GEOMETRIC
+       elseif (trim(diam_type_str) == 'mobility') then
+          diam_type = AERO_MODE_DIAM_TYPE_MOBILITY
+          call spec_file_read_real(file, 'temp', temp)
+          call spec_file_read_real(file, 'pressure', pressure)
+       else
+          call spec_file_die_msg(804343794, file, &
+               "Unknown diam_type: " // trim(diam_type_str))
+       end if
+
        call spec_file_read_string(file, 'mode_type', mode_type)
        aero_mode%sample_radius = [ real(kind=dp) :: ]
        aero_mode%sample_num_conc = [ real(kind=dp) :: ]
@@ -974,19 +1009,65 @@ contains
           aero_mode%type = AERO_MODE_TYPE_LOG_NORMAL
           call spec_file_read_real(file, 'num_conc', aero_mode%num_conc)
           call spec_file_read_real(file, 'geom_mean_diam', diam)
-          aero_mode%char_radius = diam2rad(diam)
           call spec_file_read_real(file, 'log10_geom_std_dev', &
                aero_mode%log10_std_dev_radius)
+          if (diam_type == AERO_MODE_DIAM_TYPE_GEOMETRIC) then
+             aero_mode%char_radius = diam2rad(diam)
+          elseif (diam_type == AERO_MODE_DIAM_TYPE_MOBILITY) then
+             aero_mode%char_radius &
+                  = aero_data_mobility_rad_to_geometric_rad(aero_data, &
+                  diam2rad(diam), temp, pressure)
+
+             ! Convert log10_std_dev_radius from mobility to geometric radius.
+             ! We do this by finding points +/- one std dev in mobility
+             ! radius, converting them to geometric radius, and then using
+             ! the distance between them as a measure of 2 * std_dev in
+             ! geometric radius.
+             log10_r1_mob = log10(diam2rad(diam))
+             log10_r0_mob = log10_r1_mob - aero_mode%log10_std_dev_radius
+             log10_r2_mob = log10_r1_mob + aero_mode%log10_std_dev_radius
+             r0_mob = 10**log10_r0_mob
+             r2_mob = 10**log10_r2_mob
+             r0_geom = aero_data_mobility_rad_to_geometric_rad(aero_data, &
+                  r0_mob, temp, pressure)
+             r2_geom = aero_data_mobility_rad_to_geometric_rad(aero_data, &
+                  r2_mob, temp, pressure)
+             log10_r0_geom = log10(r0_geom)
+             log10_r2_geom = log10(r2_geom)
+             aero_mode%log10_std_dev_radius &
+                  = (log10_r2_geom - log10_r0_geom) / 2d0
+          else
+             call die_msg(532966100, "Diameter type not handled: " &
+                  // integer_to_string(diam_type))
+          end if
        elseif (trim(mode_type) == 'exp') then
           aero_mode%type = AERO_MODE_TYPE_EXP
           call spec_file_read_real(file, 'num_conc', aero_mode%num_conc)
           call spec_file_read_real(file, 'diam_at_mean_vol', diam)
-          aero_mode%char_radius = diam2rad(diam)
+          if (diam_type == AERO_MODE_DIAM_TYPE_GEOMETRIC) then
+             aero_mode%char_radius = diam2rad(diam)
+          elseif (diam_type == AERO_MODE_DIAM_TYPE_MOBILITY) then
+             aero_mode%char_radius &
+                  = aero_data_mobility_rad_to_geometric_rad(aero_data, &
+                  diam2rad(diam), temp, pressure)
+          else
+             call die_msg(585104460, "Diameter type not handled: " &
+                  // integer_to_string(diam_type))
+          end if
        elseif (trim(mode_type) == 'mono') then
           aero_mode%type = AERO_MODE_TYPE_MONO
           call spec_file_read_real(file, 'num_conc', aero_mode%num_conc)
           call spec_file_read_real(file, 'diam', diam)
-          aero_mode%char_radius = diam2rad(diam)
+          if (diam_type == AERO_MODE_DIAM_TYPE_GEOMETRIC) then
+             aero_mode%char_radius = diam2rad(diam)
+          elseif (diam_type == AERO_MODE_DIAM_TYPE_MOBILITY) then
+             aero_mode%char_radius &
+                  = aero_data_mobility_rad_to_geometric_rad(aero_data, &
+                  diam2rad(diam), temp, pressure)
+          else
+             call die_msg(902864269, "Diameter type not handled: " &
+                  // integer_to_string(diam_type))
+          end if
        elseif (trim(mode_type) == 'sampled') then
           aero_mode%type = AERO_MODE_TYPE_SAMPLED
           call spec_file_read_string(file, 'size_dist', size_dist_filename)
@@ -994,6 +1075,18 @@ contains
           call spec_file_read_size_dist(size_dist_file, &
                aero_mode%sample_radius, aero_mode%sample_num_conc)
           call spec_file_close(size_dist_file)
+          if (diam_type == AERO_MODE_DIAM_TYPE_GEOMETRIC) then
+             ! do nothing
+          elseif (diam_type == AERO_MODE_DIAM_TYPE_MOBILITY) then
+             do i_radius = 1,size(aero_mode%sample_radius)
+                aero_mode%sample_radius(i_radius) &
+                     = aero_data_mobility_rad_to_geometric_rad(aero_data, &
+                     aero_mode%sample_radius(i_radius), temp, pressure)
+             end do
+          else
+             call die_msg(239088838, "Diameter type not handled: " &
+                  // integer_to_string(diam_type))
+          end if
        else
           call spec_file_die_msg(729472928, file, &
                "Unknown distribution mode type: " // trim(mode_type))

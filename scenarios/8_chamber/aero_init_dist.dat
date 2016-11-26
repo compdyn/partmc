@@ -1,4 +1,7 @@
 mode_name init                     # name of mode source
 mass_frac aero_init_comp.dat       # species mass fractions
+diam_type mobility                 # type of diameter used in mode input
+temp 293.4                         # temperature (K) when diameters were measured
+pressure  1e5                      # pressure (Pa) when diameters were measured
 mode_type sampled                  # type of distribution
 size_dist aero_init_size_num.dat   # filename for the sample distribution

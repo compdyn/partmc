@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012, 2016 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -128,7 +128,7 @@ contains
   !> monomers \f$N\f$ in a fractal particle cluster.
   !!
   !! Based on Eq. 5 in Naumann [2003].
-  real(kind=dp) elemental function aero_data_vol_to_num_of_monomers(&
+  real(kind=dp) elemental function aero_data_vol_to_num_of_monomers( &
        aero_data, v)
 
     !> Aero data structure.
@@ -159,7 +159,7 @@ contains
     !> Pressure (Pa).
     real(kind=dp), intent(in) :: pressure
 
-    aero_data_vol_to_mobility_rad = fractal_vol_to_mobility_rad(&
+    aero_data_vol_to_mobility_rad = fractal_vol_to_mobility_rad( &
          aero_data%fractal, v, temp, pressure)
 
   end function aero_data_vol_to_mobility_rad
@@ -168,8 +168,6 @@ contains
 
   !> Convert mobility equivalent radius \f$R_{\rm me}\f$ (m) to
   !> mass-equivalent volume \f$V\f$ (m^3).
-  !!
-  !! Based on Eq. 5, 21 and 30 in Naumann [2003].
   real(kind=dp) function aero_data_mobility_rad_to_vol(aero_data, &
        mobility_rad, temp, pressure)
 
@@ -182,10 +180,32 @@ contains
     !> Pressure (Pa).
     real(kind=dp), intent(in) :: pressure
 
-    aero_data_mobility_rad_to_vol = fractal_mobility_rad_to_vol(&
+    aero_data_mobility_rad_to_vol = fractal_mobility_rad_to_vol( &
          aero_data%fractal, mobility_rad, temp, pressure)
 
   end function aero_data_mobility_rad_to_vol
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert mobility equivalent radius \f$R_{\rm me}\f$ (m) to
+  !> geometric radius \f$R_{\rm geo}\f$ (m^3).
+  real(kind=dp) function aero_data_mobility_rad_to_geometric_rad(aero_data, &
+       mobility_rad, temp, pressure)
+
+    !> Aero data structure.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Mobility equivalent radius (m).
+    real(kind=dp), intent(in) :: mobility_rad
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: temp
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: pressure
+
+    aero_data_mobility_rad_to_geometric_rad &
+         = fractal_mobility_rad_to_geometric_rad(aero_data%fractal, &
+         mobility_rad, temp, pressure)
+
+  end function aero_data_mobility_rad_to_geometric_rad
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

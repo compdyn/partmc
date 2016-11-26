@@ -290,6 +290,11 @@ contains
     !! - \b aerosol_data (string): name of file from which to read the
     !!   aerosol material data (only provide if \c restart is \c no)
     !!   --- the file format should be \subpage input_format_aero_data
+    !! - \b do_fractal (logical): whether to consider particles
+    !!   as fractal agglomerates. If \c do_fractal is \c no, then all the
+    !!   particles are treated as spherical. If \c do_fractal is \c yes,
+    !!   then the following parameters must also be provided:
+    !!   - \subpage input_format_fractal
     !! - \b aerosol_init (string): filename containing the initial
     !!   aerosol state at the start of the simulation (only provide
     !!   option if \c restart is \c no) --- the file format should
@@ -351,11 +356,6 @@ contains
     !!     environment state amongst processes each timestep, to
     !!     ensure a uniform environment
     !!   - \subpage input_format_parallel_coag
-    !! - \b do_fractal (logical): whether to consider particles
-    !!   as fractal agglomerates. If \c do_fractal is \c no, then all the
-    !!   particles are treated as spherical. If \c do_fractal is \c yes,
-    !!   then the following parameters must also be provided:
-    !!   - \subpage input_format_fractal
 
     if (pmc_mpi_rank() == 0) then
        ! only the root process does I/O
@@ -398,6 +398,8 @@ contains
           call spec_file_open(sub_filename, sub_file)
           call spec_file_read_aero_data(sub_file, aero_data)
           call spec_file_close(sub_file)
+
+          call spec_file_read_fractal(file, aero_data%fractal)
 
           call spec_file_read_string(file, 'aerosol_init', sub_filename)
           call spec_file_open(sub_filename, sub_file)
@@ -488,7 +490,6 @@ contains
           run_part_opt%parallel_coag_type = PARALLEL_COAG_TYPE_LOCAL
        end if
 
-       call spec_file_read_fractal(file, aero_data%fractal)
        call spec_file_close(file)
     end if
 
@@ -689,6 +690,11 @@ contains
     !! - \b aerosol_data (string): name of file from which to read the
     !!   aerosol material data --- the file format should be
     !!   \subpage input_format_aero_data
+    !! - \b do_fractal (logical): whether to consider particles
+    !!   as fractal agglomerates. If \c do_fractal is \c no, then all the
+    !!   particles are treated as spherical. If \c do_fractal is \c yes,
+    !!   then the following parameters must also be provided:
+    !!   - \subpage input_format_fractal
     !! - \b aerosol_init (string): filename containing the initial
     !!   aerosol state at the start of the simulation --- the file
     !!   format should be \subpage input_format_aero_dist
@@ -698,11 +704,6 @@ contains
     !!   coagulation.  If \c do_coagulation is \c yes, then the
     !!   following parameters must also be provided:
     !!   - \subpage input_format_coag_kernel
-    !! - \b do_fractal (logical): whether to consider particles
-    !!   as fractal agglomerates. If \c do_fractal is \c no, then all the
-    !!   particles are treated as spherical. If \c do_fractal is \c yes,
-    !!   then the following parameters must also be provided:
-    !!   - \subpage input_format_fractal
     !!
     !! Example:
     !! <pre>
@@ -719,6 +720,7 @@ contains
     !! gas_data gas_data.dat           # file containing gas data
     !!
     !! aerosol_data aero_data.dat      # file containing aerosol data
+    !! do_fractal no                   # whether to do fractal treatment
     !! aerosol_init aero_init_dist.dat # aerosol initial condition file
     !!
     !! temp_profile temp.dat           # temperature profile file
@@ -738,8 +740,6 @@ contains
     !!
     !! do_coagulation yes              # whether to do coagulation (yes/no)
     !! kernel additive                 # Additive coagulation kernel
-    !!
-    !! do_fractal no                   # whether to do fractal treatment
     !! </pre>
 
     ! only serial code here
@@ -764,6 +764,8 @@ contains
     call spec_file_read_aero_data(sub_file, aero_data)
     call spec_file_close(sub_file)
 
+    call spec_file_read_fractal(file, aero_data%fractal)
+
     call spec_file_read_string(file, 'aerosol_init', sub_filename)
     call spec_file_open(sub_filename, sub_file)
     call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
@@ -781,7 +783,6 @@ contains
        run_exact_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
     end if
 
-    call spec_file_read_fractal(file, aero_data%fractal)
     call spec_file_close(file)
 
     ! finished reading .spec data, now do the run
@@ -840,6 +841,11 @@ contains
     !! - \b aerosol_data (string): name of file from which to read the
     !!   aerosol material data --- the file format should be
     !!   \subpage input_format_aero_data
+    !! - \b do_fractal (logical): whether to consider particles
+    !!   as fractal agglomerates. If \c do_fractal is \c no, then all the
+    !!   particles are treated as spherical. If \c do_fractal is \c yes,
+    !!   then the following parameters must also be provided:
+    !!   - \subpage input_format_fractal
     !! - \b aerosol_init (string): filename containing the initial
     !!   aerosol state at the start of the simulation --- the file
     !!   format should be \subpage input_format_aero_dist
@@ -849,11 +855,6 @@ contains
     !!   coagulation.  If \c do_coagulation is \c yes, then the
     !!   following parameters must also be provided:
     !!   - \subpage input_format_coag_kernel
-    !! - \b do_fractal (logical): whether to consider particles
-    !!   as fractal agglomerates. If \c do_fractal is \c no, then all the
-    !!   particles are treated as spherical. If \c do_fractal is \c yes,
-    !!   then the following parameters must also be provided:
-    !!   - \subpage input_format_fractal
     !!
     !! Example:
     !! <pre>
@@ -871,6 +872,7 @@ contains
     !!
     !! gas_data gas_data.dat           # file containing gas data
     !! aerosol_data aero_data.dat      # file containing aerosol data
+    !! do_fractal no                   # whether to do fractal treatment
     !! aerosol_init aero_init_dist.dat # initial aerosol distribution
     !!
     !! temp_profile temp.dat           # temperature profile file
@@ -890,8 +892,6 @@ contains
     !!
     !! do_coagulation yes              # whether to do coagulation (yes/no)
     !! kernel brown                    # coagulation kernel
-    !!
-    !! do_fractal no                   # whether to do fractal treatment
     !! </pre>
 
     ! only serial code here
@@ -918,6 +918,8 @@ contains
     call spec_file_read_aero_data(sub_file, aero_data)
     call spec_file_close(sub_file)
 
+    call spec_file_read_fractal(file, aero_data%fractal)
+
     call spec_file_read_string(file, 'aerosol_init', sub_filename)
     call spec_file_open(sub_filename, sub_file)
     call spec_file_read_aero_dist(sub_file, aero_data, aero_dist_init)
@@ -935,7 +937,6 @@ contains
        run_sect_opt%coag_kernel_type = COAG_KERNEL_TYPE_INVALID
     end if
 
-    call spec_file_read_fractal(file, aero_data%fractal)
     call spec_file_close(file)
 
     ! finished reading .spec data, now do the run

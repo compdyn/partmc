@@ -13,6 +13,7 @@ gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios
 
 aerosol_data aero_data.dat      # file containing aerosol data
+do_fractal no                   # whether to do fractal treatment
 aerosol_init aero_init_dist.dat # aerosol initial condition file
 
 temp_profile temp.dat           # temperature profile file
@@ -46,5 +47,3 @@ allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
 record_removals no              # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)
-
-do_fractal no                   # whether to do fractal treatment

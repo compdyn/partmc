@@ -199,12 +199,26 @@ set_tests_properties(test_fractal_2 PROPERTIES DEPENDS test_fractal_1)
 add_test(test_fractal_3 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_3.sh)
 set_tests_properties(test_fractal_3 PROPERTIES DEPENDS test_fractal_2)
 
-add_test(test_loss_1 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_1.sh)
-add_test(test_loss_2 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_2.sh)
-set_tests_properties(test_loss_2 PROPERTIES DEPENDS test_loss_1)
-add_test(test_loss_3 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_3.sh)
-add_test(test_loss_4 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_4.sh)
-set_tests_properties(test_loss_4 PROPERTIES DEPENDS test_loss_3)
+add_test(test_loss_01 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_01.sh)
+add_test(test_loss_02 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_02.sh)
+add_test(test_loss_03 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_03.sh)
+set_tests_properties(test_loss_02 PROPERTIES DEPENDS test_loss_01)
+set_tests_properties(test_loss_03 PROPERTIES DEPENDS test_loss_01)
+add_test(test_loss_04 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_04.sh)
+add_test(test_loss_05 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_05.sh)
+add_test(test_loss_06 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_06.sh)
+set_tests_properties(test_loss_05 PROPERTIES DEPENDS test_loss_04)
+set_tests_properties(test_loss_06 PROPERTIES DEPENDS test_loss_04)
+add_test(test_loss_07 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_07.sh)
+add_test(test_loss_08 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_08.sh)
+add_test(test_loss_09 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_09.sh)
+set_tests_properties(test_loss_08 PROPERTIES DEPENDS test_loss_07)
+set_tests_properties(test_loss_09 PROPERTIES DEPENDS test_loss_07)
+add_test(test_loss_10 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_10.sh)
+add_test(test_loss_11 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_11.sh)
+add_test(test_loss_12 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_12.sh)
+set_tests_properties(test_loss_11 PROPERTIES DEPENDS test_loss_10)
+set_tests_properties(test_loss_12 PROPERTIES DEPENDS test_loss_10)
 
 add_test(test_nucleate_1 ${CMAKE_BINARY_DIR}/test_run/nucleate/test_nucleate_1.sh)
 add_test(test_nucleate_2 ${CMAKE_BINARY_DIR}/test_run/nucleate/test_nucleate_2.sh)
@@ -273,7 +287,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/coag_kernel.F90 src/spec_line.F90 src/spec_file.F90 src/rand.F90
   src/aero_particle.F90 src/aero_particle_array.F90 src/mpi.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
-  src/nucleate.F90 src/condense.F90 src/fractal.F90
+  src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
   ${SUNDIALS_SRC} ${GSL_SRC}
   ${C_SORT_SRC})
 
@@ -410,10 +424,17 @@ target_link_libraries(numeric_diff partmclib)
 add_executable(numeric_average src/numeric_average.F90)
 
 ######################################################################
-# scenarios/1_urban_plume/process
+# scenarios/1_urban_plume/urban_plum_process
 
-add_executable(1_urban_plume_process
-  scenarios/1_urban_plume/1_urban_plume_process.F90)
-target_link_libraries(1_urban_plume_process partmclib)
+add_executable(urban_plume_process
+  scenarios/1_urban_plume/urban_plume_process.F90)
+target_link_libraries(urban_plume_process partmclib)
+
+######################################################################
+# scenarios/8_chamber/chamber_process
+
+add_executable(chamber_process
+  scenarios/8_chamber/chamber_process.F90)
+target_link_libraries(chamber_process partmclib)
 
 ######################################################################

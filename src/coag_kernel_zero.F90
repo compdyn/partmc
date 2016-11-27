@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2015 Matthew West
+! Copyright (C) 2007-2016 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -70,10 +70,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Exact solution with the zero coagulation kernel. Only useful for
-  !> testing emissions and background dilution.
+  !> testing emissions, background dilution, and proportional loss functions.
   !!
-  !! With only constant-rate emissions and dilution the number
-  !! distribution \f$n(D,t)\f$ at diameter \f$D\f$ and time \f$t\f$
+  !! With only constant-rate emissions, dilutionm, and proportional losses
+  !! the numberdistribution \f$n(D,t)\f$ at diameter \f$D\f$ and time \f$t\f$
   !! satisfies:
   !! \f[
   !!     \frac{d n(D,t)}{dt} = k_{\rm emit} n_{\rm emit}(D)
@@ -83,10 +83,10 @@ contains
   !! \f$n_{\rm emit}(D)\f$ and \f$n_{\rm back}(D)\f$ are emission and
   !! background size distributions, with corresponding rates \f$k_{\rm
   !! emit}\f$ and \f$k_{\rm dilute}\f$. An optional loss function
-  !! \f$k_{\rm loss}(D)\f$ can be used to specify a volume-dependent
+  !! \f$k_{\rm loss}(D)\f$ can be used to specify a size-dependent
   !! rate at which particles are lost.  All values are taken at time
   !! \f$t = 0\f$ and held constant, so there is no support for
-  !! time-varying emissions or background dilution.
+  !! time-varying emissions, background dilution, or loss functions.
   !!
   !! This is a family of ODEs parameterized by \f$D\f$ with
   !! solution:
@@ -103,7 +103,7 @@ contains
   !!                       + k_{\rm loss}(D)} n_{\rm emit}(D)
   !! \f]
   subroutine soln_zero(bin_grid, aero_data, time, aero_dist_init, &
-       scenario, env_state, loss_function_type, aero_binned)
+       scenario, env_state, aero_binned)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -117,8 +117,6 @@ contains
     type(scenario_t), intent(in) :: scenario
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
-    !> Particle loss function type.
-    integer, intent(in) :: loss_function_type
     !> Output state.
     type(aero_binned_t), intent(inout) :: aero_binned
 
@@ -145,7 +143,7 @@ contains
          background)
 
     if (dilution_rate == 0d0 .and. &
-         loss_function_type == SCENARIO_LOSS_FUNCTION_INVALID) then
+         scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_NONE) then
        call aero_binned_zero(aero_binned)
        call aero_binned_add_aero_dist(aero_binned, bin_grid, aero_data, &
             emissions)
@@ -154,8 +152,7 @@ contains
     else
        allocate(loss_array(bin_grid_size(bin_grid)))
 
-       if ((loss_function_type /= SCENARIO_LOSS_FUNCTION_ZERO) .or. &
-            (loss_function_type /= SCENARIO_LOSS_FUNCTION_INVALID)) then
+       if (scenario%loss_function_type /= SCENARIO_LOSS_FUNCTION_NONE) then
           if (aero_data%name(1) /= "H2O") then
              call warn_msg(176257943, &
                   "exact solution assumes composition is water", &
@@ -164,10 +161,9 @@ contains
        end if
 
        do i = 1,bin_grid_size(bin_grid)
-          loss_array(i) = dilution_rate + scenario_loss_rate( &
-               loss_function_type, aero_data_rad2vol(aero_data, &
-               bin_grid%centers(i)), const%water_density, &
-               aero_data, env_state)
+          loss_array(i) = dilution_rate + scenario_loss_rate(scenario, &
+               aero_data_rad2vol(aero_data, bin_grid%centers(i)), &
+               const%water_density, aero_data, env_state)
           call assert_msg(181676342, loss_array(i) > 0, &
                "non-positive loss rate")
           loss_array(i) = 1d0 / loss_array(i)

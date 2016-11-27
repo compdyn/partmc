@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2015 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2016 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -962,6 +962,97 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the mobility diameters of all particles.
+  function aero_state_mobility_diameters(aero_state, aero_data, env_state)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+
+    !> Return value (m).
+    real(kind=dp) :: aero_state_mobility_diameters( &
+         aero_state_n_part(aero_state))
+
+    integer :: i_part
+
+    do i_part = 1,aero_state_n_part(aero_state)
+       aero_state_mobility_diameters(i_part) &
+            = aero_particle_mobility_diameter( &
+            aero_state%apa%particle(i_part), aero_data, env_state)
+    end do
+
+  end function aero_state_mobility_diameters
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the volumes of all particles.
+  !!
+  !! If \c include is specified then only those species are included
+  !! in computing the volumes. If \c exclude is specified then all
+  !! species except those species are included. If both \c include and
+  !! \c exclude arguments are specified then only those species in \c
+  !! include but not in \c exclude are included.
+  function aero_state_volumes(aero_state, aero_data, include, exclude)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), optional, intent(in) :: aero_data
+    !> Species names to include in the mass.
+    character(len=*), optional, intent(in) :: include(:)
+    !> Species names to exclude in the mass.
+    character(len=*), optional, intent(in) :: exclude(:)
+
+    !> Return volumes array (m^3).
+    real(kind=dp) :: aero_state_volumes(aero_state_n_part(aero_state))
+
+    logical, allocatable :: use_species(:)
+    integer :: i_name, i_spec
+
+    if ((.not. present(include)) .and. (.not. present(exclude))) then
+       aero_state_volumes = aero_particle_volume( &
+            aero_state%apa%particle(1:aero_state_n_part(aero_state)))
+    else
+       call assert_msg(599558703, present(aero_data), &
+            "must provide 'aero_data' if using 'include' or 'exclude'")
+       allocate(use_species(aero_data_n_spec(aero_data)))
+       if (present(include)) then
+          use_species = .false.
+          do i_name = 1, size(include)
+             i_spec = aero_data_spec_by_name(aero_data, include(i_name))
+             call assert_msg(963163690, i_spec > 0, &
+                  "unknown species: " // trim(include(i_name)))
+             use_species(i_spec) = .true.
+          end do
+       else
+          use_species = .true.
+       end if
+       if (present(exclude)) then
+          do i_name = 1, size(exclude)
+             i_spec = aero_data_spec_by_name(aero_data, exclude(i_name))
+             call assert_msg(950847713, i_spec > 0, &
+                  "unknown species: " // trim(exclude(i_name)))
+             use_species(i_spec) = .false.
+          end do
+       end if
+       aero_state_volumes = 0d0
+       do i_spec = 1,aero_data_n_spec(aero_data)
+          if (use_species(i_spec)) then
+             aero_state_volumes = aero_state_volumes &
+                  + aero_particle_species_volume( &
+                  aero_state%apa%particle(1:aero_state_n_part(aero_state)), &
+                  i_spec)
+          end if
+       end do
+    end if
+
+  end function aero_state_volumes
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Returns the masses of all particles.
   !!
   !! If \c include is specified then only those species are included
@@ -976,9 +1067,9 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Species names to include in the mass.
-    character(len=*), optional :: include(:)
+    character(len=*), optional, intent(in) :: include(:)
     !> Species names to exclude in the mass.
-    character(len=*), optional :: exclude(:)
+    character(len=*), optional, intent(in) :: exclude(:)
 
     !> Return masses array (kg).
     real(kind=dp) :: aero_state_masses(aero_state_n_part(aero_state))

@@ -26,4 +26,6 @@ axes.set_ylabel(r"num. conc. / $\rm cm^{-3}$")
 axes2.set_ylabel(r"entropy")
 axes.grid(True)
 
-figure.savefig("out/urban_plume_entropy.pdf")
+out_filename = "out/urban_plume_entropy.pdf"
+print("Writing %s" % out_filename)
+figure.savefig(out_filename)

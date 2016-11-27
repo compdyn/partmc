@@ -1,4 +1,4 @@
-! Copyright (C) 2011-2012 Jian Tian
+! Copyright (C) 2011-2012, 2016 Jian Tian, Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -179,6 +179,7 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
 
+    fractal_surface_frac_dim = 0d0 ! prevent uninitialized warnings
     if (fractal%frac_dim <= 2d0) then
        fractal_surface_frac_dim = 3d0
     elseif ((fractal%frac_dim > 2d0) .and. (fractal%frac_dim <= 3d0)) then
@@ -268,14 +269,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Slip correction function \f$C(R)\f$ from continuum to
+  !> Slip correction function \f$C(R_eff)\f$ from continuum to
   !> free molecular regime.
   !!
   !! Based on Eq. 22 in Naumann [2003].
-  real(kind=dp) function fractal_slip_correct(r, temp, pressure)
+  real(kind=dp) function fractal_slip_correct(R_eff, temp, pressure)
 
-    !> Radius (m).
-    real(kind=dp), intent(in) :: r
+    !> Effective radius (m).
+    real(kind=dp), intent(in) :: R_eff
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp
     !> Pressure (Pa).
@@ -284,8 +285,8 @@ contains
     real(kind=dp) :: fp
 
     fp = air_mean_free_path(temp, pressure)
-    fractal_slip_correct = 1d0 + FRACTAL_A_SLIP * fp / r &
-         + FRACTAL_Q_SLIP * fp / r * exp(-FRACTAL_B_SLIP * r / fp)
+    fractal_slip_correct = 1d0 + FRACTAL_A_SLIP * fp / R_eff &
+         + FRACTAL_Q_SLIP * fp / R_eff * exp(-FRACTAL_B_SLIP * R_eff / fp)
 
   end function fractal_slip_correct
 
@@ -311,8 +312,8 @@ contains
   !> radius \f$R_{\rm me}\f$ (m).
   !!
   !! Based on Eq. 5, 21 and 30 in Naumann [2003].
-  real(kind=dp) function fractal_vol_to_mobility_rad(fractal, v, temp, &
-       pressure)
+  real(kind=dp) function fractal_vol_to_mobility_rad(fractal, v, &
+       temp, pressure)
 
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
@@ -372,7 +373,7 @@ contains
     !> Fractal parameters.
     type(fractal_t), intent(in) :: fractal
     !> Mobility equivalent radius (m).
-    real(kind=dp), intent(in) ::mobility_rad
+    real(kind=dp), intent(in) :: mobility_rad
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp
     !> Pressure (Pa).
@@ -429,6 +430,36 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Convert mobility equivalent radius \f$R_{\rm me}\f$ (m) to
+  !> geometric radius \f$R_{\rm geo}\f$ (m^3).
+  real(kind=dp) function fractal_mobility_rad_to_geometric_rad(fractal, &
+       mobility_rad, temp, pressure)
+
+    !> Fractal parameters.
+    type(fractal_t), intent(in) :: fractal
+    !> Mobility equivalent radius (m).
+    real(kind=dp), intent(in) :: mobility_rad
+    !> Temperature (K).
+    real(kind=dp), intent(in) :: temp
+    !> Pressure (Pa).
+    real(kind=dp), intent(in) :: pressure
+
+    real(kind=dp) :: Rmec
+
+    if (fractal_is_spherical(fractal)) then
+       fractal_mobility_rad_to_geometric_rad = mobility_rad
+       return
+    end if
+
+    Rmec = fractal_mobility_rad_to_mobility_rad_in_continuum(fractal, &
+         mobility_rad, temp, pressure)
+    fractal_mobility_rad_to_geometric_rad &
+         = Rmec / fractal_kirkwood_riseman(fractal)
+
+  end function fractal_mobility_rad_to_geometric_rad
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert mobility equivalent radius \f$R_{\rm me}\f$ (m) to
   !> mass-equivalent volume \f$V\f$ (m^3).
   !!
   !! Based on Eq. 5, 21 and 30 in Naumann [2003].
@@ -444,16 +475,10 @@ contains
     !> Pressure (Pa).
     real(kind=dp), intent(in) :: pressure
 
-    real(kind=dp) :: Rmec, Rgeo
+    real(kind=dp) :: Rgeo
 
-    if (fractal_is_spherical(fractal)) then
-       fractal_mobility_rad_to_vol = fractal_rad2vol(fractal, mobility_rad)
-       return
-    end if
-
-    Rmec = fractal_mobility_rad_to_mobility_rad_in_continuum(fractal, &
-         mobility_rad, temp, pressure)
-    Rgeo = Rmec / fractal_kirkwood_riseman(fractal)
+    Rgeo = fractal_mobility_rad_to_geometric_rad(fractal, mobility_rad, temp, &
+         pressure)
     fractal_mobility_rad_to_vol = fractal_rad2vol(fractal, Rgeo)
 
   end function fractal_mobility_rad_to_vol

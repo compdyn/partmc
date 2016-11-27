@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2016 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -26,8 +26,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   subroutine exact_soln(bin_grid, aero_data, do_coagulation, &
-       coag_kernel_type, do_loss, loss_function_type, aero_dist_init, &
-       scenario, env_state, time, aero_binned)
+       coag_kernel_type, aero_dist_init, scenario, env_state, time, &
+       aero_binned)
 
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
@@ -37,10 +37,6 @@ contains
     logical, intent(in) :: do_coagulation
     !> Coagulation kernel type.
     integer, intent(in) :: coag_kernel_type
-    !> Whether to do particle loss.
-    logical, intent(in) :: do_loss
-    !> Particle loss function type.
-    integer, intent(in) :: loss_function_type
     !> Initial distribution.
     type(aero_dist_t), intent(in) :: aero_dist_init
     !> Environment data.
@@ -57,9 +53,10 @@ contains
             // '(can set coag_kernel to "zero").')
     end if
 
-    if (coag_kernel_type /= COAG_KERNEL_TYPE_ZERO .and. do_loss) then
+    if (coag_kernel_type /= COAG_KERNEL_TYPE_ZERO &
+       .and. scenario%loss_function_type /= SCENARIO_LOSS_FUNCTION_NONE) then
        call die_msg(189372109, 'Exact solution with particle loss ' &
-            // 'requires using the "zero" coag_kernel.')
+            // 'requires using the "none" coag_kernel.')
     end if
 
     if (coag_kernel_type == COAG_KERNEL_TYPE_ADDITIVE) then
@@ -96,13 +93,8 @@ contains
             aero_dist_init%mode(1)%char_radius, env_state, aero_binned)
     elseif (coag_kernel_type == COAG_KERNEL_TYPE_ZERO) then
        ! FIXME: check scenario has constant emissions and constant dilution
-       if (do_loss) then
-          call soln_zero(bin_grid, aero_data, time, aero_dist_init, &
-             scenario, env_state, loss_function_type, aero_binned)
-       else
-          call soln_zero(bin_grid, aero_data, time, aero_dist_init, &
-             scenario, env_state, SCENARIO_LOSS_FUNCTION_INVALID, aero_binned)
-       end if
+       call soln_zero(bin_grid, aero_data, time, aero_dist_init, &
+            scenario, env_state, aero_binned)
     else
        call die_msg(932981721, "No exact solutions with " &
             // "coagulation kernel type " &

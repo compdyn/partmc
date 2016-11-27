@@ -13,6 +13,10 @@ gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios
 
 aerosol_data aero_data.dat      # file containing aerosol data
+do_fractal yes                  # whether to do fractal treatment
+frac_dim 2.4                    # fractal dimension
+prime_radius 5e-10              # radius of monomer
+vol_fill_factor 1               # volume filling factor
 aerosol_init aero_init_dist_free.dat # aerosol initial condition file
 
 temp_profile temp_free.dat      # temperature profile file
@@ -22,6 +26,7 @@ gas_emissions gas_emit.dat      # gas emissions file
 gas_background gas_back.dat     # background gas mixing ratios file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
+loss_function none              # particle loss function
 
 rel_humidity 0.47               # initial relative humidity (1)
 latitude 40                     # latitude (degrees, -90 to 90)
@@ -32,7 +37,6 @@ start_day 1                     # start day of year (UTC)
 
 do_coagulation yes              # whether to do coagulation (yes/no)
 coag_kernel brown_free         # coagulation kernel
-do_loss no                      # whether to do particle loss (yes/no)
 do_condensation no              # whether to do condensation (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
@@ -42,8 +46,3 @@ allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
 record_removals yes             # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)
-
-do_fractal yes                  # whether to do fractal treatment
-frac_dim 2.4                    # fractal dimension
-prime_radius 5e-10              # radius of monomer
-vol_fill_factor 1               # volume filling factor

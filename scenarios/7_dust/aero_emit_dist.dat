@@ -1,5 +1,6 @@
 mode_name cooking
 mass_frac aero_emit_comp_cooking.dat # composition proportions of species
+diam_type geometric               # type of diameter specified
 mode_type log_normal            # type of distribution
 num_conc 9.0E+06                 # particle number density (#/m^2)
 mean_radius 4.32E-08            # mean radius (m)
@@ -7,6 +8,7 @@ log_std_dev 0.28                # log_10 of geometric standard deviation
 
 mode_name diesel
 mass_frac aero_emit_comp_diesel.dat  # composition proportions of species
+diam_type geometric               # type of diameter specified
 mode_type log_normal            # type of distribution
 num_conc 1.6E+08                 # particle number density (#/m^2)
 mean_radius 2.5E-08             # mean radius (m)
@@ -14,6 +16,7 @@ log_std_dev 0.24                # log_10 of geometric standard deviation
 
 mode_name gasoline
 mass_frac aero_emit_comp_gasol.dat   # composition proportions of species
+diam_type geometric               # type of diameter specified
 mode_type log_normal            # type of distribution
 num_conc 5.00E+07                # particle number density (#/m^2)
 mean_radius 2.5E-08             # mean radius (m)
@@ -21,6 +24,7 @@ log_std_dev 0.24                # log_10 of geometric standard deviation
 
 mode_name dust_1
 mass_frac aero_emit_comp_dust.dat   # composition proportions of species
+diam_type geometric               # type of diameter specified
 mode_type log_normal            # type of distribution
 num_conc 5.00E+04                # particle number density (#/m^2)
 mean_radius 2.25E-07             # mean radius (m)
@@ -28,6 +32,7 @@ log_std_dev 0.342                # log_10 of geometric standard deviation
 
 mode_name dust_2
 mass_frac aero_emit_comp_dust.dat   # composition proportions of species
+diam_type geometric               # type of diameter specified
 mode_type log_normal            # type of distribution
 num_conc 5.00E+03                # particle number density (#/m^2)
 mean_radius 1.4E-06             # mean radius (m)

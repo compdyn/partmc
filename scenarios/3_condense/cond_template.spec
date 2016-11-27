@@ -10,19 +10,16 @@ del_t 1                         # timestep (s)
 t_output 1                      # output interval (0 disables) (s)
 t_progress 1                    # progress printing interval (0 disables) (s)
 
-gas_data gas_data.dat           # file containing gas data
-
-aerosol_data aero_data.dat      # file containing aerosol data
-
 temp_profile %%TEMP_PROFILE%%   # temperature profile file
+pressure_profile pressure.dat   # pressure profile file
 height_profile height.dat       # height profile file
 gas_emissions gas_emit.dat      # gas emissions file
 gas_background gas_back.dat     # background gas concentrations file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
+loss_function none              # particle loss function
 
 rel_humidity 0.95               # initial relative humidity (1)
-pressure 1e5                    # initial pressure (Pa)
 latitude 0                      # latitude (degrees, -90 to 90)
 longitude 0                     # longitude (degrees, -180 to 180)
 altitude 0                      # altitude (m)

@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2012 Matthew West
+! Copyright (C) 2009-2012, 2016 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -230,6 +230,10 @@ program numeric_diff
   case default
      call die(681575403)
   end select
+
+  if (.not. allocated(norm1)) then
+     allocate(norm1(0,0)) ! prevent uninitialized warnings
+  end if
 
   allocate(rel_err(size(abs_err, 1), size(abs_err, 2)))
   where (norm1 > 0d0)

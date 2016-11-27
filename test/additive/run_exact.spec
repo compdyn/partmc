@@ -11,6 +11,7 @@ d_max 1e-3                      # maximum diameter (m)
 gas_data gas_data.dat           # file containing gas data
 
 aerosol_data aero_data.dat      # file containing aerosol data
+do_fractal no                   # whether to do fractal treatment
 aerosol_init aero_init_dist.dat # aerosol initial condition file
 
 temp_profile temp.dat           # temperature profile file
@@ -20,6 +21,7 @@ gas_emissions gas_emit.dat      # gas emissions file
 gas_background gas_back.dat     # background gas mixing ratios file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
+loss_function none              # loss function specification
 
 rel_humidity 0.999              # initial relative humidity (1)
 latitude 40                     # latitude (degrees, -90 to 90)
@@ -30,6 +32,3 @@ start_day 1                     # start day of year (UTC)
 
 do_coagulation yes              # whether to do coagulation (yes/no)
 coag_kernel additive            # coagulation kernel
-do_loss no                      # whether to do particle loss (yes/no)
-
-do_fractal no                  # whether to do fractal treatment

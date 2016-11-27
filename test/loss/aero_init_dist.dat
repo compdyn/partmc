@@ -1,5 +1,6 @@
 mode_name init1                 # name of mode source
 mass_frac aero_comp_water.dat   # species mass fractions
+diam_type geometric             # type of diameter specified
 mode_type log_normal            # type of mode
 num_conc 1e11                   # particle number conecentration (#/m^3)
 geom_mean_diam 7e-7             # geometric mean diameter (m)

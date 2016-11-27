@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2007-2011 Matthew West
+# Copyright (C) 2007-2011, 2016 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
@@ -389,7 +389,7 @@ def axes_broken_y(fig, axes, upper_frac=0.5, break_frac=0.05, ybounds=None,
     # Readjust upper_frac if ybounds are defined
     if ybounds:
         if len(ybounds) != 4:
-            print "len(ybounds) != 4; aborting..."
+            print("len(ybounds) != 4; aborting...")
             return
         ymin1, ymax1, ymin2, ymax2 = [float(value) for value in ybounds]
         if not enforce_upper_frac:

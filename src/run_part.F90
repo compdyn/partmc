@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2016 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -56,14 +56,6 @@ module pmc_run_part
      integer :: nucleate_source
      !> Whether to do coagulation.
      logical :: do_coagulation
-     !> Whether to do particle loss.
-     logical :: do_loss
-     !> Type of loss rate function.
-     integer :: loss_function_type
-     !> Parameter to switch between algorithms for particle loss.
-     !! A value of 0 will always use the naive algorithm, and
-     !! a value of 1 will always use the accept-reject algorithm.
-     real(kind=dp) :: loss_alg_threshold
      !> Whether to do nucleation.
      logical :: do_nucleation
      !> Allow doubling if needed.
@@ -239,11 +231,6 @@ contains
           progress_n_coag = progress_n_coag + n_coag
        end if
 
-       if (run_part_opt%do_loss) then
-          call scenario_particle_loss(run_part_opt%loss_function_type, &
-               run_part_opt%del_t, aero_data, aero_state, env_state)
-       end if
-
 #ifdef PMC_USE_SUNDIALS
        if (run_part_opt%do_condensation) then
           call condense_particles(aero_state, aero_data, old_env_state, &
@@ -415,9 +402,6 @@ contains
          + pmc_mpi_pack_size_integer(val%nucleate_type) &
          + pmc_mpi_pack_size_integer(val%nucleate_source) &
          + pmc_mpi_pack_size_logical(val%do_coagulation) &
-         + pmc_mpi_pack_size_logical(val%do_loss) &
-         + pmc_mpi_pack_size_integer(val%loss_function_type) &
-         + pmc_mpi_pack_size_real(val%loss_alg_threshold) &
          + pmc_mpi_pack_size_logical(val%do_nucleation) &
          + pmc_mpi_pack_size_logical(val%allow_doubling) &
          + pmc_mpi_pack_size_logical(val%allow_halving) &
@@ -463,9 +447,6 @@ contains
     call pmc_mpi_pack_integer(buffer, position, val%nucleate_type)
     call pmc_mpi_pack_integer(buffer, position, val%nucleate_source)
     call pmc_mpi_pack_logical(buffer, position, val%do_coagulation)
-    call pmc_mpi_pack_logical(buffer, position, val%do_loss)
-    call pmc_mpi_pack_integer(buffer, position, val%loss_function_type)
-    call pmc_mpi_pack_real(buffer, position, val%loss_alg_threshold)
     call pmc_mpi_pack_logical(buffer, position, val%do_nucleation)
     call pmc_mpi_pack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_pack_logical(buffer, position, val%allow_halving)
@@ -514,9 +495,6 @@ contains
     call pmc_mpi_unpack_integer(buffer, position, val%nucleate_type)
     call pmc_mpi_unpack_integer(buffer, position, val%nucleate_source)
     call pmc_mpi_unpack_logical(buffer, position, val%do_coagulation)
-    call pmc_mpi_unpack_logical(buffer, position, val%do_loss)
-    call pmc_mpi_unpack_integer(buffer, position, val%loss_function_type)
-    call pmc_mpi_unpack_real(buffer, position, val%loss_alg_threshold)
     call pmc_mpi_unpack_logical(buffer, position, val%do_nucleation)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_doubling)
     call pmc_mpi_unpack_logical(buffer, position, val%allow_halving)

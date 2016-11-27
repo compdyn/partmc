@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2015 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2016 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -16,6 +16,7 @@ module pmc_scenario
   use pmc_spec_file
   use pmc_aero_data
   use pmc_gas_data
+  use pmc_chamber
   use pmc_mpi
 #ifdef PMC_USE_MPI
   use mpi
@@ -24,18 +25,20 @@ module pmc_scenario
   !> Type code for an undefined or invalid loss function.
   integer, parameter :: SCENARIO_LOSS_FUNCTION_INVALID  = 0
   !> Type code for a zero loss function.
-  integer, parameter :: SCENARIO_LOSS_FUNCTION_ZERO     = 1
+  integer, parameter :: SCENARIO_LOSS_FUNCTION_NONE     = 1
   !> Type code for a constant loss function.
   integer, parameter :: SCENARIO_LOSS_FUNCTION_CONSTANT = 2
-  !> Type code for a loss rate function proportional to volume.
+  !> Type code for a loss rate function proportional to particle volume.
   integer, parameter :: SCENARIO_LOSS_FUNCTION_VOLUME   = 3
   !> Type code for a loss rate function based on dry deposition
-  integer, parameter :: SCENARIO_LOSS_FUNCTION_DRY_DEP  = 4
+  integer, parameter :: SCENARIO_LOSS_FUNCTION_DRYDEP  = 4
+  !> Type code for a loss rate function for chamber experiments.
+  integer, parameter :: SCENARIO_LOSS_FUNCTION_CHAMBER  = 5
 
   !> Parameter to switch between algorithms for particle loss.
   !! A value of 0 will always use the naive algorithm, and
   !! a value of 1 will always use the accept-reject algorithm.
-  real(kind=dp), parameter :: alg_threshold = 1.0d0
+  real(kind=dp), parameter :: SCENARIO_LOSS_ALG_THRESHOLD = 1.0d0
 
   !> Scenario data.
   !!
@@ -91,6 +94,11 @@ module pmc_scenario
      real(kind=dp), allocatable :: aero_dilution_rate(:)
      !> Aerosol background at set-points (# m^{-3}).
      type(aero_dist_t), allocatable :: aero_background(:)
+
+     !> Type of loss rate function.
+     integer :: loss_function_type
+     !> Chamber parameters for wall loss and sedimentation.
+     type(chamber_t) :: chamber
   end type scenario_t
 
 contains
@@ -101,7 +109,7 @@ contains
   !> environment. Thereafter scenario_update_env_state() should be used.
   subroutine scenario_init_env_state(scenario, env_state, time)
 
-    !> Environment data.
+    !> Scenario data.
     type(scenario_t), intent(in) :: scenario
     !> Environment state to update.
     type(env_state_t), intent(inout) :: env_state
@@ -124,7 +132,7 @@ contains
   !> scenario_init_env_state() should have been called at the start.
   subroutine scenario_update_env_state(scenario, env_state, time)
 
-    !> Environment data.
+    !> Scenario data.
     type(scenario_t), intent(in) :: scenario
     !> Environment state to update.
     type(env_state_t), intent(inout) :: env_state
@@ -199,7 +207,7 @@ contains
   subroutine scenario_update_gas_state(scenario, delta_t, env_state, &
        old_env_state, gas_data, gas_state)
 
-    !> Scenario.
+    !> Scenario data.
     type(scenario_t), intent(in) :: scenario
     !> Time increment to update over.
     real(kind=dp), intent(in) :: delta_t
@@ -249,7 +257,7 @@ contains
        old_env_state, aero_data, aero_state, n_emit, n_dil_in, n_dil_out, &
        allow_doubling, allow_halving)
 
-    !> Scenario.
+    !> Scenario data.
     type(scenario_t), intent(in) :: scenario
     !> Time increment to update over.
     real(kind=dp), intent(in) :: delta_t
@@ -302,6 +310,10 @@ contains
          background, 1d0 - p, env_state%elapsed_time, allow_doubling, &
          allow_halving, n_dil_in)
 
+    ! particle loss function
+    call scenario_particle_loss(scenario, delta_t, aero_data, aero_state, &
+         env_state)
+    
     ! update computational volume
     call aero_weight_array_scale(aero_state%awa, &
          old_env_state%temp * env_state%pressure &
@@ -318,7 +330,7 @@ contains
   subroutine scenario_update_aero_binned(scenario, delta_t, env_state, &
        old_env_state, bin_grid, aero_data, aero_binned)
 
-    !> Scenario.
+    !> Scenario data.
     type(scenario_t), intent(in) :: scenario
     !> Time increment to update over.
     real(kind=dp), intent(in) :: delta_t
@@ -364,11 +376,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Evaluate a loss rate function.
-  real(kind=dp) function scenario_loss_rate(loss_function_type, vol, density, &
+  real(kind=dp) function scenario_loss_rate(scenario, vol, density, &
        aero_data, env_state)
 
-    !> Id of loss rate function to be used
-    integer, intent(in) :: loss_function_type
+    !> Scenario data.
+    type(scenario_t), intent(in) :: scenario
     !> Volume of particle (m^3).
     real(kind=dp), intent(in) :: vol
     !> Density of particle (kg/m^3).
@@ -379,20 +391,28 @@ contains
     type(env_state_t), intent(in) :: env_state
 
     scenario_loss_rate = 0d0
-    if (loss_function_type == SCENARIO_LOSS_FUNCTION_INVALID) then
-      scenario_loss_rate = 0d0
-    else if (loss_function_type == SCENARIO_LOSS_FUNCTION_ZERO) then
-      scenario_loss_rate = 0d0
-    else if (loss_function_type == SCENARIO_LOSS_FUNCTION_CONSTANT) then
-      scenario_loss_rate = 1d-3
-    else if (loss_function_type == SCENARIO_LOSS_FUNCTION_VOLUME) then
-      scenario_loss_rate = 1d15*vol
-    else if (loss_function_type == SCENARIO_LOSS_FUNCTION_DRY_DEP) then
-      scenario_loss_rate = scenario_loss_rate_dry_dep(vol, density, &
-          aero_data, env_state)
+    if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_INVALID) then
+       scenario_loss_rate = 0d0
+    else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_NONE) then
+       scenario_loss_rate = 0d0
+    else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_CONSTANT) &
+         then
+       scenario_loss_rate = 1d-3
+    else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_VOLUME) then
+       scenario_loss_rate = 1d15*vol
+    else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) &
+         then
+       scenario_loss_rate = scenario_loss_rate_dry_dep(vol, density, &
+            aero_data, env_state)
+    else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_CHAMBER) &
+         then
+       scenario_loss_rate = chamber_loss_rate_wall(scenario%chamber, vol, &
+            aero_data, env_state) &
+            + chamber_loss_rate_sedi(scenario%chamber, vol, density, &
+            aero_data, env_state)
     else
        call die_msg(201594391, "Unknown loss function id: " &
-            // trim(integer_to_string(loss_function_type)))
+            // trim(integer_to_string(scenario%loss_function_type)))
     end if
 
   end function scenario_loss_rate
@@ -501,11 +521,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute and return the max loss rate function for a given volume.
-  real(kind=dp) function scenario_loss_rate_max(loss_function_type, vol, &
-      aero_data, env_state)
+  real(kind=dp) function scenario_loss_rate_max(scenario, vol, aero_data, &
+       env_state)
 
-    !> Id of loss rate function to be used
-    integer, intent(in) :: loss_function_type
+    !> Scenario data.
+    type(scenario_t), intent(in) :: scenario
     !> Particle volume (m^3).
     real(kind=dp), intent(in) :: vol
     !> Aerosol data.
@@ -525,8 +545,7 @@ contains
     scenario_loss_rate_max = 0d0
     do i = 1,n_sample
        d = interp_linear_disc(d_min, d_max, n_sample, i)
-       loss = scenario_loss_rate(loss_function_type, vol, d, aero_data, &
-            env_state)
+       loss = scenario_loss_rate(scenario, vol, d, aero_data, env_state)
        scenario_loss_rate_max = max(scenario_loss_rate_max, loss)
     end do
 
@@ -539,11 +558,11 @@ contains
   !! Value over_scale is multiplied to the maximum sampled value
   !! to get the upper bound.  A tighter bound may be reached if over_scale
   !! is smaller, but that also risks falling below a kernel value.
-  subroutine scenario_loss_rate_bin_max(loss_function_type, bin_grid, &
-        aero_data, env_state, loss_max)
+  subroutine scenario_loss_rate_bin_max(scenario, bin_grid, aero_data, &
+       env_state, loss_max)
 
-    !> Id of loss rate function to be used
-    integer, intent(in) :: loss_function_type
+    !> Scenario data.
+    type(scenario_t), intent(in) :: scenario
     !> Bin_grid.
     type(bin_grid_t), intent(in) :: bin_grid
     !> Aerosol data.
@@ -567,8 +586,7 @@ contains
        r_max = 0d0
        do i = 1,n_sample
           vol = interp_linear_disc(v_low, v_high, n_sample, i)
-          r = scenario_loss_rate_max(loss_function_type, vol, aero_data, &
-               env_state)
+          r = scenario_loss_rate_max(scenario, vol, aero_data, env_state)
           r_max = max(r_max, r)
        end do
        loss_max(b) = r_max * over_scale
@@ -586,11 +604,11 @@ contains
   !! is first sampled with rate <tt>1 - exp(-delta_t*over_rate) </tt>
   !! and then accepted with rate
   !! <tt>(1 - exp(-delta_t*rate))/(1 - exp(-delta_t*over_rate))</tt>.
-  subroutine scenario_particle_loss(loss_function_type, delta_t, aero_data, &
-       aero_state, env_state)
+  subroutine scenario_particle_loss(scenario, delta_t, aero_data, aero_state, &
+       env_state)
 
-    !> Id of loss rate function to be used.
-    integer, intent(in) :: loss_function_type
+    !> Scenario data.
+    type(scenario_t), intent(in) :: scenario
     !> Time increment to update over.
     real(kind=dp), intent(in) :: delta_t
     !> Aerosol data.
@@ -603,13 +621,13 @@ contains
     integer :: c, b, s, i_part
     real(kind=dp) :: over_rate, over_prob, rand_real, rand_geom
 
-    if (loss_function_type == SCENARIO_LOSS_FUNCTION_ZERO .or. &
-        loss_function_type == SCENARIO_LOSS_FUNCTION_INVALID) return
+    if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_NONE .or. &
+        scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_INVALID) return
 
-    if (alg_threshold <= 0d0) then
+    if (SCENARIO_LOSS_ALG_THRESHOLD <= 0d0) then
        ! use naive algorithm for everything
        do i_part = aero_state%apa%n_part, 1, -1
-          call scenario_try_single_particle_loss(loss_function_type, delta_t, &
+          call scenario_try_single_particle_loss(scenario, delta_t, &
                aero_data, aero_state, env_state, i_part, 1d0)
        end do
        return
@@ -618,7 +636,7 @@ contains
     call aero_state_sort(aero_state, aero_data)
 
     if (.not. aero_state%aero_sorted%removal_rate_bounds_valid) then
-       call scenario_loss_rate_bin_max(loss_function_type, &
+       call scenario_loss_rate_bin_max(scenario, &
             aero_state%aero_sorted%bin_grid, aero_data, env_state, &
             aero_state%aero_sorted%removal_rate_max)
        aero_state%aero_sorted%removal_rate_bounds_valid = .true.
@@ -629,14 +647,14 @@ contains
           over_rate = aero_state%aero_sorted%removal_rate_max(b)
           if (delta_t * over_rate <= 0d0) cycle
           over_prob = 1d0 - exp(-delta_t * over_rate)
-          if (over_prob >= alg_threshold) then
+          if (over_prob >= SCENARIO_LOSS_ALG_THRESHOLD) then
              ! use naive algorithm over bin
              do s = aero_state%aero_sorted%size_class%inverse(b, c)%n_entry, &
                   1,-1
                 i_part = &
                      aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
-                call scenario_try_single_particle_loss(loss_function_type, &
-                     delta_t, aero_data, aero_state, env_state, i_part, 1d0)
+                call scenario_try_single_particle_loss(scenario, delta_t, &
+                     aero_data, aero_state, env_state, i_part, 1d0)
              end do
           else
              ! use accept-reject algorithm over bin
@@ -653,9 +671,8 @@ contains
 
                 i_part = &
                      aero_state%aero_sorted%size_class%inverse(b, c)%entry(s)
-                call scenario_try_single_particle_loss(loss_function_type, &
-                     delta_t, aero_data, aero_state, env_state, i_part, &
-                     over_prob)
+                call scenario_try_single_particle_loss(scenario, delta_t, &
+                     aero_data, aero_state, env_state, i_part, over_prob)
              end do
           end if
        end do
@@ -672,10 +689,11 @@ contains
   !! Particle is removed with probability
   !! (1d0 - exp(-delta_t*rate))/over_prob, where rate is the loss function
   !! evaluated for the given particle.
-  subroutine scenario_try_single_particle_loss(loss_function_type, delta_t, &
+  subroutine scenario_try_single_particle_loss(scenario, delta_t, &
       aero_data, aero_state, env_state, i_part, over_prob)
-    !> Id of loss rate function to be used
-    integer, intent(in) :: loss_function_type
+
+    !> Scenario data.
+    type(scenario_t), intent(in) :: scenario
     !> Time increment to update over.
     real(kind=dp), intent(in) :: delta_t
     !> Aerosol data.
@@ -694,8 +712,7 @@ contains
 
     vol = aero_particle_volume(aero_state%apa%particle(i_part))
     density = aero_particle_density(aero_state%apa%particle(i_part), aero_data)
-    rate = scenario_loss_rate(loss_function_type, vol, density, aero_data, &
-         env_state)
+    rate = scenario_loss_rate(scenario, vol, density, aero_data, env_state)
     prob = 1d0 - exp(-delta_t * rate)
     call warn_assert_msg(295846288, prob <= over_prob, &
          "particle loss upper bound estimation is too tight: " &
@@ -716,7 +733,7 @@ contains
   elemental logical function scenario_contains_aero_mode_type(scenario, &
        aero_mode_type)
 
-    !> Environment data.
+    !> Scenario data.
     type(scenario_t), intent(in) :: scenario
     !> Aerosol mode type to test for.
     integer, intent(in) :: aero_mode_type
@@ -740,11 +757,12 @@ contains
     type(gas_data_t), intent(in) :: gas_data
     !> Aerosol data.
     type(aero_data_t), intent(inout) :: aero_data
-    !> Environment data.
+    !> Scenario data.
     type(scenario_t), intent(inout) :: scenario
 
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: function_name
 
     ! note that we have to hard-code the list for doxygen below
 
@@ -773,6 +791,14 @@ contains
     !! <li> \b aero_background (string): the name of the file from which
     !!      to read the aerosol background profile --- the file format
     !!      should be \subpage input_format_aero_dist_profile
+    !! <li> \b loss_function (string): the type of loss function ---
+    !!      must be one of: \c none for no particle loss, \c constant
+    !!      for constant loss rate, \c volume for particle loss proportional
+    !!      to particle volume, \c drydep for particle loss proportional
+    !!      to dry deposition velocity, or \c chamber for a chamber model.
+    !!      If \c loss_function is \c chamber, then the following
+    !!      parameters must also be provided:
+    !!      - \subpage input_format_chamber
     !! </ul>
     !!
     !! See also:
@@ -830,6 +856,24 @@ contains
          scenario%aero_dilution_time, scenario%aero_dilution_rate, &
          scenario%aero_background)
     call spec_file_close(sub_file)
+
+    ! loss function
+    call spec_file_read_string(file, 'loss_function', function_name)
+    if (trim(function_name) == 'none') then
+       scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_NONE
+    else if (trim(function_name) == 'constant') then
+       scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_CONSTANT
+    else if (trim(function_name) == 'volume') then
+       scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_VOLUME
+    else if (trim(function_name) == 'drydep') then
+       scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_DRYDEP
+    else if (trim(function_name) == 'chamber') then
+       scenario%loss_function_type = SCENARIO_LOSS_FUNCTION_CHAMBER
+       call spec_file_read_chamber(file, scenario%chamber)
+    else
+       call spec_file_die_msg(518248400, file, &
+            "Unknown loss function type: " // trim(function_name))
+    end if
 
   end subroutine spec_file_read_scenario
 
@@ -958,7 +1002,9 @@ contains
          + pmc_mpi_pack_size_real_array(val%aero_emission_time) &
          + pmc_mpi_pack_size_real_array(val%aero_emission_rate_scale) &
          + pmc_mpi_pack_size_real_array(val%aero_dilution_time) &
-         + pmc_mpi_pack_size_real_array(val%aero_dilution_rate)
+         + pmc_mpi_pack_size_real_array(val%aero_dilution_rate) &
+         + pmc_mpi_pack_size_integer(val%loss_function_type) &
+         + pmc_mpi_pack_size_chamber(val%chamber)
     if (allocated(val%gas_emission_time)) then
        do i = 1,size(val%gas_emission)
           total_size = total_size &
@@ -1019,6 +1065,8 @@ contains
          val%aero_emission_rate_scale)
     call pmc_mpi_pack_real_array(buffer, position, val%aero_dilution_time)
     call pmc_mpi_pack_real_array(buffer, position, val%aero_dilution_rate)
+    call pmc_mpi_pack_integer(buffer, position, val%loss_function_type)
+    call pmc_mpi_pack_chamber(buffer, position, val%chamber)
     if (allocated(val%gas_emission_time)) then
        do i = 1,size(val%gas_emission)
           call pmc_mpi_pack_gas_state(buffer, position, val%gas_emission(i))
@@ -1077,6 +1125,8 @@ contains
          val%aero_emission_rate_scale)
     call pmc_mpi_unpack_real_array(buffer, position, val%aero_dilution_time)
     call pmc_mpi_unpack_real_array(buffer, position, val%aero_dilution_rate)
+    call pmc_mpi_unpack_integer(buffer, position, val%loss_function_type)
+    call pmc_mpi_unpack_chamber(buffer, position, val%chamber)
     if (allocated(val%gas_emission)) deallocate(val%gas_emission)
     if (allocated(val%gas_background)) deallocate(val%gas_background)
     if (allocated(val%aero_emission)) deallocate(val%aero_emission)
@@ -1112,48 +1162,6 @@ contains
 #endif
 
   end subroutine pmc_mpi_unpack_scenario
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Read the specification for a loss function type from a spec file and
-  !> generate it.
-  subroutine spec_file_read_loss_function_type(file, loss_function_type)
-
-    !> Spec file.
-    type(spec_file_t), intent(inout) :: file
-    !> Function type.
-    integer, intent(out) :: loss_function_type
-
-    character(len=SPEC_LINE_MAX_VAR_LEN) :: function_name
-
-    !> \page input_format_loss_function Input File Format:
-    !!     Loss Rate Function
-    !!
-    !! The loss rate function is specified by the parameter:
-    !!   - \b loss_function (string): the type of loss function ---
-    !!     must be one of: \c zero for no particle loss, \c constant
-    !!     for constant loss rate, \c volume for particle loss proportional
-    !!     to particle volume, or \c drydep for particle loss proportional
-    !!     to dry deposition velocity
-    !!
-    !! See also:
-    !!   - \ref spec_file_format --- the input file text format
-
-    call spec_file_read_string(file, 'loss_function', function_name)
-    if (trim(function_name) == 'zero') then
-       loss_function_type = SCENARIO_LOSS_FUNCTION_ZERO
-    else if (trim(function_name) == 'constant') then
-       loss_function_type = SCENARIO_LOSS_FUNCTION_CONSTANT
-    else if (trim(function_name) == 'volume') then
-       loss_function_type = SCENARIO_LOSS_FUNCTION_VOLUME
-    else if (trim(function_name) == 'drydep') then
-       loss_function_type = SCENARIO_LOSS_FUNCTION_DRY_DEP
-    else
-       call spec_file_die_msg(518248400, file, &
-            "Unknown loss function type: " // trim(function_name))
-    end if
-
-  end subroutine spec_file_read_loss_function_type
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -1,0 +1,6 @@
+# time (s)
+# rate (s^{-1})
+# aerosol distribution filename
+time    0 1800 1801 9600
+rate    0 0 0 0 #2.1768e-4 2.1768e-4 0 0 #4.3535e-4 #0
+dist    aero_emit_dist.dat aero_emit_dist.dat aero_emit_dist.dat aero_emit_dist.dat

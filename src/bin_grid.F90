@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2015 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2016 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -147,8 +147,8 @@ contains
     !> Value to locate bin for.
     real(kind=dp), intent(in) :: val
 
+    bin_grid_find = -1
     if (bin_grid_size(bin_grid) <= 0) then
-       bin_grid_find = -1
        return
     end if
     if (bin_grid%type == BIN_GRID_TYPE_LOG) then

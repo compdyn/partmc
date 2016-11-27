@@ -115,6 +115,7 @@ program process
      end do
 
      call make_filename(out_filename, prefix, "_process.nc", index)
+     write(*,*) "Writing " // trim(out_filename)
      call pmc_nc_open_write(out_filename, ncid)
      call pmc_nc_write_info(ncid, uuid, "1_urban_plume process")
      call bin_grid_output_netcdf(diam_grid, ncid, "diam", unit="m")
@@ -142,6 +143,7 @@ program process
   end do
 
   call make_filename(out_filename, prefix, "_process.nc")
+  write(*,*) "Writing " // trim(out_filename)
   call pmc_nc_open_write(out_filename, ncid)
   call pmc_nc_write_info(ncid, uuid, "1_urban_plume process")
   call pmc_nc_write_real_1d(ncid, times, "time", dim_name="time", unit="s")

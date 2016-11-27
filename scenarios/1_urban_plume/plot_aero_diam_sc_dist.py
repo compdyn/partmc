@@ -33,5 +33,5 @@ for (filename, index) in partmc.get_filename_list('out/', r'urban_plume_([0-9]+)
     cbar.set_label(r"number conc. $n(D_{\rm dry},S_{\rm c})$ / $\rm cm^{-3}$")
 
     out_filename = "out/urban_plume_diam_sc_dist_%s.pdf" % index
+    print("Writing %s" % out_filename)
     figure.savefig(out_filename)
-    print out_filename

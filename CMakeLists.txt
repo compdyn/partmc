@@ -424,14 +424,14 @@ target_link_libraries(numeric_diff partmclib)
 add_executable(numeric_average src/numeric_average.F90)
 
 ######################################################################
-# scenarios/1_urban_plume/process
+# scenarios/1_urban_plume/urban_plum_process
 
-add_executable(1_urban_plume_process
-  scenarios/1_urban_plume/1_urban_plume_process.F90)
-target_link_libraries(1_urban_plume_process partmclib)
+add_executable(urban_plume_process
+  scenarios/1_urban_plume/urban_plume_process.F90)
+target_link_libraries(urban_plume_process partmclib)
 
 ######################################################################
-# scenarios/8_chamber/process
+# scenarios/8_chamber/chamber_process
 
 add_executable(chamber_process
   scenarios/8_chamber/chamber_process.F90)

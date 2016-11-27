@@ -9,4 +9,4 @@ mkdir -p out
 
 ../../build/partmc urban_plume.spec
 
-# Now run ./process.sh to process the data
+# Now run ./2_process.sh to process the data

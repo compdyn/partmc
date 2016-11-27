@@ -22,4 +22,6 @@ axes.set_ylabel(r"num. conc. / $\rm cm^{-3}$")
 axes2.set_ylabel(r"mass conc. / $\rm \mu g\ m^{-3}$")
 axes.grid(True)
 
-figure.savefig("out/urban_plume_total.pdf")
+out_filename = "out/urban_plume_total.pdf"
+print("Writing %s" % out_filename)
+figure.savefig(out_filename)

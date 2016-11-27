@@ -13,6 +13,7 @@ gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas concentrations
 
 aerosol_data aero_data.dat      # file containing aerosol data
+do_fractal no                   # whether to do fractal treatment
 aerosol_init aero_init_dist.dat # aerosol initial condition file
 
 temp_profile temp.dat           # temperature profile file
@@ -21,6 +22,7 @@ gas_emissions gas_emit.dat      # gas emissions file
 gas_background gas_back.dat     # background gas concentrations file
 aero_emissions aero_emit.dat    # aerosol emissions file
 aero_background aero_back.dat   # aerosol background file
+loss_function none              # loss function specification
 
 rel_humidity 0.90               # initial relative humidity (1)
 pressure 1e5                    # initial pressure (Pa)

@@ -8,20 +8,20 @@ if not os.path.exists("temp"):
     os.mkdir("temp")
 
 for counter in range(1, 50):
-    print "counter = ", counter
+    print("counter = ", counter)
     filename_in = "cond_template.spec"
     for run in ["ref", "comp", "size", "both"]: 
         filename_out = "spec/cond_%02d_%s.spec" % (counter, run)
-        print "filename_out ", filename_out
+        print("filename_out ", filename_out)
         f_in = open(filename_in, 'r')
         f_out = open(filename_out, 'w')
 
         for line in f_in:
             line = line.replace('%%OUTPUT_PREFIX%%', 'out/cond_%02d_%s' % (counter, run))
             if run == "ref":
-                line = line.replace('%%RESTART_FILE%%',  'start/urban_plume_wc_0001_000000%02d.nc' % counter )
+                line = line.replace('%%RESTART_FILE%%',  'start/urban_plume2_0001_000000%02d.nc' % counter )
             else:
-                line = line.replace('%%RESTART_FILE%%',  'start/urban_plume_%s_wc_0001_000000%02d.nc' % (run, counter) )
+                line = line.replace('%%RESTART_FILE%%',  'start/urban_plume2_%s_0001_000000%02d.nc' % (run, counter) )
             line = line.replace('%%TEMP_PROFILE%%',  'temp/temp_%02d.dat' % counter)
             f_out.write(line)
 
@@ -29,7 +29,7 @@ for counter in range(1, 50):
         f_out.close()
 
     filename_out_temp = "temp/temp_%02d.dat" % counter
-    print "filename_out_temp", filename_out_temp
+    print("filename_out_temp", filename_out_temp)
     f_out = open(filename_out_temp, 'w')
 
     f_out.write("# time (s)\n")

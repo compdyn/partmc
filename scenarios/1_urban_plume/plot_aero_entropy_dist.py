@@ -21,5 +21,5 @@ for (filename, index) in partmc.get_filename_list('out/', r'urban_plume_([0-9]+)
     axes.grid(True)
 
     out_filename = "out/urban_plume_entropy_%s.pdf" % index
+    print("Writing %s" % out_filename)
     figure.savefig(out_filename)
-    print out_filename

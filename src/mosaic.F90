@@ -475,7 +475,7 @@ contains
        aero_state%apa%particle(i_part)%refract_core =&
             cmplx(ri_core_a(i_part), kind=dc) ! (1)
        aero_state%apa%particle(i_part)%core_vol = &
-            diam2vol(dp_core_a(i_part)) / 1d6 ! (m^3)
+            aero_data_diam2vol(aero_data, dp_core_a(i_part)) / 1d6 ! (m^3)
     end do
 #endif
 
@@ -537,7 +537,7 @@ contains
        aero_state%apa%particle(i_part)%refract_core =&
             cmplx(ri_core_a(i_part), kind=dc) ! (1)
        aero_state%apa%particle(i_part)%core_vol = &
-            diam2vol(dp_core_a(i_part)) / 1d6 ! (m^3)
+            aero_data_diam2vol(aero_data, dp_core_a(i_part)) / 1d6 ! (m^3)
     end do
 #endif
 

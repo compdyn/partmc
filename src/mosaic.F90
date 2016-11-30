@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2012 Matthew West
+! Copyright (C) 2007-2012, 2016 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -484,7 +484,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute the optical properties of each aerosol particle for initial
-  !! timestep.
+  !> timestep.
   subroutine mosaic_aero_optical_init(env_state, aero_data, &
        aero_state, gas_data, gas_state)
 

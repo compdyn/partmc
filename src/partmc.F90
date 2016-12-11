@@ -337,15 +337,7 @@ contains
     !!   number of simulated particles rises above <tt>n_part *
     !!   2</tt>, half of the particles are removed (chosen randomly)
     !!   to reduce the computational expense
-    !! - \b weight_type (string): the type of weighting scheme ---
-    !!   must be one of: \c flat for flat weighting, \c flat_source for
-    !!   flat weighting by source, \c power for power weighting,
-    !!   \c power_source for power source weighting, \c nummass for number
-    !!   and mass weighting, and \c nummass_source for number and mass
-    !!   weighting by source. If \c weight_type is \c power or \c
-    !!   power_source then the following parameters must also be provided:
-    !!   - \b weighting_exponent (real): weighting exponent for \c power or
-    !!     \c power_source weighting.
+    !! - \subpage input_format_weighting_type
     !! - \b record_removals (logical): whether to record information
     !!   about aerosol particles removed from the simulation --- see
     !!   \ref output_format_aero_removed

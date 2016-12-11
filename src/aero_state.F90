@@ -105,6 +105,27 @@ contains
 
     character(len=SPEC_LINE_MAX_VAR_LEN) :: weighting_name
 
+    !> \page input_format_weighting_type Input File Format: Type of aerosol
+    !!  size distribution weighting functions.
+    !!
+    !! The weighting function is specified by the parameters:
+    !!   - \b weight_type (string): the type of weighting function ---
+    !!     must be one of: \c flat for flat weighting, \c flat_source for
+    !!     flat weighting by source, \c power for power weighting,
+    !!     \c power_source for power source weighting, \c nummass for number
+    !!     and mass weighting, and \c nummass_source for number and mass
+    !!     weighting by source. If \c weight_type is \c power or \c
+    !!     power_source then the next parameter must also be provided:
+    !!   - \b weighting_exponent (real): the exponent for \c power or
+    !!     \c power_source. Setting the \c exponent to 0 is equivalent to no
+    !!     weighting, while setting the exponent negative uses more
+    !!     computational particles at larger diameters and setting the exponent
+    !!     positive uses more computaitonal partilces at smaller diameters; in
+    !!     practice exponents between 0 and -3 are most useful.
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+
     call spec_file_read_string(file, 'weight_type', weighting_name)
     if (trim(weighting_name) == 'flat') then
        weighting_type = AERO_STATE_WEIGHT_FLAT

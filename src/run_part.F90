@@ -68,6 +68,10 @@ module pmc_run_part
      logical :: do_mosaic
      !> Whether to compute optical properties.
      logical :: do_optical
+     !> Type of particle weighting scheme.
+     integer :: weighting_type
+     !> Weighting exponent for power weighting scheme.
+     real(kind=dp) :: weighting_exponent
      !> Repeat number of run.
      integer :: i_repeat
      !> Total number of repeats.
@@ -412,6 +416,8 @@ contains
          + pmc_mpi_pack_size_logical(val%do_condensation) &
          + pmc_mpi_pack_size_logical(val%do_mosaic) &
          + pmc_mpi_pack_size_logical(val%do_optical) &
+         + pmc_mpi_pack_size_integer(val%weighting_type) &
+         + pmc_mpi_pack_size_real(val%weighting_exponent) &
          + pmc_mpi_pack_size_integer(val%i_repeat) &
          + pmc_mpi_pack_size_integer(val%n_repeat) &
          + pmc_mpi_pack_size_real(val%t_wall_start) &
@@ -457,6 +463,8 @@ contains
     call pmc_mpi_pack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_pack_logical(buffer, position, val%do_mosaic)
     call pmc_mpi_pack_logical(buffer, position, val%do_optical)
+    call pmc_mpi_pack_integer(buffer, position, val%weighting_type)
+    call pmc_mpi_pack_real(buffer, position, val%weighting_exponent)
     call pmc_mpi_pack_integer(buffer, position, val%i_repeat)
     call pmc_mpi_pack_integer(buffer, position, val%n_repeat)
     call pmc_mpi_pack_real(buffer, position, val%t_wall_start)
@@ -505,6 +513,8 @@ contains
     call pmc_mpi_unpack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_mosaic)
     call pmc_mpi_unpack_logical(buffer, position, val%do_optical)
+    call pmc_mpi_unpack_integer(buffer, position, val%weighting_type)
+    call pmc_mpi_unpack_real(buffer, position, val%weighting_exponent)
     call pmc_mpi_unpack_integer(buffer, position, val%i_repeat)
     call pmc_mpi_unpack_integer(buffer, position, val%n_repeat)
     call pmc_mpi_unpack_real(buffer, position, val%t_wall_start)

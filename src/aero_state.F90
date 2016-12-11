@@ -91,6 +91,44 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read the specification for a weighting type from a spec file.
+  subroutine spec_file_read_aero_state_weighting_type(file, weighting_type, &
+       exponent)
+
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
+    !> Kernel type.
+    integer, intent(out) :: weighting_type
+    !> Exponent for power-law weighting (only used if \c weight_type
+    !> is \c AERO_STATE_WEIGHT_POWER).
+    real(kind=dp), intent(out) :: exponent
+
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: weighting_name
+
+    call spec_file_read_string(file, 'weight_type', weighting_name)
+    if (trim(weighting_name) == 'flat') then
+       weighting_type = AERO_STATE_WEIGHT_FLAT
+    elseif (trim(weighting_name) == 'power') then
+       weighting_type = AERO_STATE_WEIGHT_POWER
+       call spec_file_read_real(file, 'weighting_exponent', exponent)
+    elseif (trim(weighting_name) == 'nummass') then
+       weighting_type = AERO_STATE_WEIGHT_NUMMASS
+    elseif (trim(weighting_name) == 'flat_source') then
+       weighting_type = AERO_STATE_WEIGHT_FLAT_SOURCE
+    elseif (trim(weighting_name) == 'power_source') then
+       weighting_type = AERO_STATE_WEIGHT_POWER
+       call spec_file_read_real(file, 'weighting_exponent', exponent)
+    elseif (trim(weighting_name) == 'nummass_source') then
+       weighting_type = AERO_STATE_WEIGHT_NUMMASS_SOURCE
+    else
+       call spec_file_die_msg(920321729, file, &
+            "Unknown weighting type: " // trim(weighting_name))
+    end if
+
+  end subroutine spec_file_read_aero_state_weighting_type
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Copies weighting information for an \c aero_state.
   subroutine aero_state_copy_weight(aero_state_from, aero_state_to)
 

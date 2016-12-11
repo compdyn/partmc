@@ -42,5 +42,6 @@ do_nucleation no                # whether to do nucleation (yes/no)
 rand_init 0                     # random initialization (0 to use time)
 allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
+weight_type nummass
 record_removals yes             # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)

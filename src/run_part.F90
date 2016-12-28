@@ -68,6 +68,8 @@ module pmc_run_part
      logical :: do_mosaic
      !> Whether to compute optical properties.
      logical :: do_optical
+     !> Whether to have user defined weighting.
+     logical :: do_select_weighting
      !> Type of particle weighting scheme.
      integer :: weighting_type
      !> Weighting exponent for power weighting scheme.
@@ -416,6 +418,7 @@ contains
          + pmc_mpi_pack_size_logical(val%do_condensation) &
          + pmc_mpi_pack_size_logical(val%do_mosaic) &
          + pmc_mpi_pack_size_logical(val%do_optical) &
+         + pmc_mpi_pack_size_logical(val%do_select_weighting) &
          + pmc_mpi_pack_size_integer(val%weighting_type) &
          + pmc_mpi_pack_size_real(val%weighting_exponent) &
          + pmc_mpi_pack_size_integer(val%i_repeat) &
@@ -463,6 +466,7 @@ contains
     call pmc_mpi_pack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_pack_logical(buffer, position, val%do_mosaic)
     call pmc_mpi_pack_logical(buffer, position, val%do_optical)
+    call pmc_mpi_pack_logical(buffer, position, val%do_select_weighting)
     call pmc_mpi_pack_integer(buffer, position, val%weighting_type)
     call pmc_mpi_pack_real(buffer, position, val%weighting_exponent)
     call pmc_mpi_pack_integer(buffer, position, val%i_repeat)
@@ -513,6 +517,7 @@ contains
     call pmc_mpi_unpack_logical(buffer, position, val%do_condensation)
     call pmc_mpi_unpack_logical(buffer, position, val%do_mosaic)
     call pmc_mpi_unpack_logical(buffer, position, val%do_optical)
+    call pmc_mpi_unpack_logical(buffer, position, val%do_select_weighting)
     call pmc_mpi_unpack_integer(buffer, position, val%weighting_type)
     call pmc_mpi_unpack_real(buffer, position, val%weighting_exponent)
     call pmc_mpi_unpack_integer(buffer, position, val%i_repeat)

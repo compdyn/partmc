@@ -1287,7 +1287,7 @@ contains
     real(kind=dp) :: group_mass, non_group_mass, mass
 
     call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)
-    num_concs = aero_state_num_concs(aero_state)
+    num_concs = aero_state_num_concs(aero_state, aero_data)
     masses = aero_state_masses(aero_state, aero_data, &
          include, exclude)
     
@@ -1302,7 +1302,7 @@ contains
         aero_state_averaged = aero_state
         call aero_state_bin_average_comp(aero_state_averaged, avg_bin_grid, &
              aero_data)
-        num_concs_averaged = aero_state_num_concs(aero_state_averaged)
+        num_concs_averaged = aero_state_num_concs(aero_state_averaged, aero_data)
         masses_averaged = aero_state_masses(aero_state_averaged, &
              aero_data, include, exclude)
 

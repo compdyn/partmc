@@ -87,8 +87,8 @@ program process
         call stats_2d_add(stats_diam_sc_dist, diam_sc_dist)
 
         call aero_state_mixing_state_metrics(aero_state, aero_data, &
-             d_alpha, d_gamma, chi, exclude=(/"H2O"/), group=["BC","OC"])
-        write(6,*) 'd_alpha , d_gamma, chi', d_alpha, d_gamma, chi
+             d_alpha, d_gamma, chi, exclude=(/"H2O"/))
+        
         call stats_1d_add_entry(stats_d_alpha, d_alpha, i_index)
         call stats_1d_add_entry(stats_d_gamma, d_gamma, i_index)
         call stats_1d_add_entry(stats_chi, chi, i_index)

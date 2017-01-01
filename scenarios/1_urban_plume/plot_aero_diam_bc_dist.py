@@ -11,9 +11,9 @@ for (filename, index) in partmc.get_filename_list('out/', r'urban_plume_([0-9]+)
     (figure, axes, cbar_axes) = mpl_helper.make_fig(left_margin=0.7, right_margin=1, colorbar=True)
 
     ncf = scipy.io.netcdf_file(filename)
-    diam_edges = ncf.variables["diam_edges"].data * 1e6
-    bc_frac_edges = ncf.variables["bc_frac_edges"].data * 100
-    diam_bc_dist = ncf.variables["diam_bc_dist"].data * 1e-6
+    diam_edges = ncf.variables["diam_edges"].data.copy() * 1e6
+    bc_frac_edges = ncf.variables["bc_frac_edges"].data.copy() * 100
+    diam_bc_dist = ncf.variables["diam_bc_dist"].data.copy() * 1e-6
 
     p = axes.pcolor(diam_edges, bc_frac_edges, diam_bc_dist,
                     norm = matplotlib.colors.LogNorm(vmin=1e3, vmax=1e5), linewidths = 0.1)
@@ -35,3 +35,4 @@ for (filename, index) in partmc.get_filename_list('out/', r'urban_plume_([0-9]+)
     out_filename = "out/urban_plume_diam_bc_dist_%s.pdf" % index
     print("Writing %s" % out_filename)
     figure.savefig(out_filename)
+    matplotlib.pyplot.close(figure)

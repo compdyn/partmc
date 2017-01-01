@@ -15,9 +15,9 @@ program process
        = "out/urban_plume"
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename
-  type(bin_grid_t) :: diam_grid, bc_grid, sc_grid, avg_bin_grid
+  type(bin_grid_t) :: diam_grid, bc_grid, sc_grid
   type(aero_data_t) :: aero_data
-  type(aero_state_t) :: aero_state, aero_state_averaged
+  type(aero_state_t) :: aero_state
   type(env_state_t) :: env_state
   integer :: ncid, index, repeat, i_index, i_repeat, n_index, n_repeat
   real(kind=dp) :: time, del_t, tot_num_conc, tot_mass_conc
@@ -25,8 +25,7 @@ program process
   character(len=PMC_UUID_LEN) :: uuid
   real(kind=dp), allocatable :: times(:), dry_diameters(:), num_concs(:), &
        dry_masses(:), masses(:), bc_masses(:), bc_fracs(:), &
-       num_concs_averaged(:), dry_masses_averaged(:), masses_averaged(:), &
-       entropies(:), entropies_of_avg_part(:), crit_rhs(:), scs(:), num_dist(:), &
+       crit_rhs(:), scs(:), num_dist(:), &
        diam_bc_dist(:,:), diam_sc_dist(:,:)
   type(stats_1d_t) :: stats_num_dist, stats_d_alpha, stats_tot_num_conc, &
        stats_tot_mass_conc, stats_d_gamma, stats_chi
@@ -39,8 +38,7 @@ program process
   call bin_grid_make(diam_grid, BIN_GRID_TYPE_LOG, 180, 1d-9, 1d-3)
   call bin_grid_make(bc_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 1d0)
   call bin_grid_make(sc_grid, BIN_GRID_TYPE_LOG, 50, 1d-4, 1d0)
-  call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)
-
+  
   allocate(times(n_index))
 
   scs = [ real(kind=dp) :: ] ! silence compiler warnings
@@ -131,7 +129,8 @@ program process
        dim_name="time", unit="1")
   call stats_1d_output_netcdf(stats_d_gamma, ncid, &
        "d_gamma", dim_name="time", unit="1")
-  call stats_1d_output_netcdf(stats_chi, ncid, "chi", dim_name="time", unit="1")
+  call stats_1d_output_netcdf(stats_chi, ncid, "chi", &
+       dim_name="time", unit="1")
   call pmc_nc_close(ncid)
 
   call pmc_mpi_finalize()

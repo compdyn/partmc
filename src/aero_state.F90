@@ -1258,7 +1258,6 @@ contains
   !! specified then the species are divided into two sets, given by
   !! those in the group and those not in the group. The entropies are
   !! then computed using the total mass of each set.
-  
   subroutine aero_state_mixing_state_metrics(aero_state, aero_data, d_alpha, &
        d_gamma, chi, include, exclude, group)
     
@@ -1277,48 +1276,39 @@ contains
     
     real(kind=dp), allocatable :: entropies(:), entropies_of_avg_part(:)
     real(kind=dp), allocatable :: masses(:), num_concs(:), &
-         num_concs_averaged(:), masses_averaged(:)
+         num_concs_of_avg_part(:), masses_of_avg_part(:)
     type(aero_state_t) :: aero_state_averaged
     type(bin_grid_t) :: avg_bin_grid
-    
-    logical :: use_species(aero_data_n_spec(aero_data))
-    logical :: group_species(aero_data_n_spec(aero_data))
-    integer :: i_name, i_spec, i_part
-    real(kind=dp) :: group_mass, non_group_mass, mass
 
-    call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)
+
+    ! per-particle properties
     num_concs = aero_state_num_concs(aero_state, aero_data)
     masses = aero_state_masses(aero_state, aero_data, &
          include, exclude)
-    
-!> per-particle mixing entropy (H_i)
     entropies = aero_state_mass_entropies(aero_state, aero_data, &
-             include, exclude, group)
-!> D_alpha
-        d_alpha = exp(sum(entropies * masses * num_concs) &
+         include, exclude, group)
+
+    d_alpha = exp(sum(entropies * masses * num_concs) &
              / sum(masses * num_concs))
         
-!> composition-averaging
-        aero_state_averaged = aero_state
-        call aero_state_bin_average_comp(aero_state_averaged, avg_bin_grid, &
-             aero_data)
-        num_concs_averaged = aero_state_num_concs(aero_state_averaged, aero_data)
-        masses_averaged = aero_state_masses(aero_state_averaged, &
-             aero_data, include, exclude)
+    ! per-particle properties of averaged particles
+    call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)
+    aero_state_averaged = aero_state
+    call aero_state_bin_average_comp(aero_state_averaged, avg_bin_grid, &
+         aero_data)
+    num_concs_of_avg_part = aero_state_num_concs(aero_state_averaged, aero_data)
+    masses_of_avg_part = aero_state_masses(aero_state_averaged, &
+         aero_data, include, exclude)    
+    entropies_of_avg_part = aero_state_mass_entropies(aero_state_averaged, &
+         aero_data, include, exclude, group)
 
-!> per-particle mixing entropy after composition-averaging  (\hat{H_i})
-        entropies_of_avg_part = aero_state_mass_entropies(aero_state_averaged, &
-             aero_data, include, exclude, group)
-
-!> D_gamma
-        d_gamma = exp(sum(entropies_of_avg_part * masses_averaged &
-             * num_concs_averaged) &
-             / sum(masses_averaged * num_concs_averaged))
+    d_gamma = exp(sum(entropies_of_avg_part * masses_of_avg_part &
+         * num_concs_of_avg_part) &
+         / sum(masses_of_avg_part * num_concs_of_avg_part))
         
-!> chi
-        chi = (d_alpha - 1) / (d_gamma - 1)
+    chi = (d_alpha - 1) / (d_gamma - 1)
             
-      end subroutine aero_state_mixing_state_metrics
+  end subroutine aero_state_mixing_state_metrics
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   

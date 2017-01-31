@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2013, 2016 Matthew West
+! Copyright (C) 2009-2013, 2016, 2017 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -38,7 +38,7 @@ program process
   call bin_grid_make(diam_grid, BIN_GRID_TYPE_LOG, 180, 1d-9, 1d-3)
   call bin_grid_make(bc_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 1d0)
   call bin_grid_make(sc_grid, BIN_GRID_TYPE_LOG, 50, 1d-4, 1d0)
-  
+
   allocate(times(n_index))
 
   scs = [ real(kind=dp) :: ] ! silence compiler warnings
@@ -86,7 +86,7 @@ program process
 
         call aero_state_mixing_state_metrics(aero_state, aero_data, &
              d_alpha, d_gamma, chi, exclude=(/"H2O"/))
-        
+
         call stats_1d_add_entry(stats_d_alpha, d_alpha, i_index)
         call stats_1d_add_entry(stats_d_gamma, d_gamma, i_index)
         call stats_1d_add_entry(stats_chi, chi, i_index)

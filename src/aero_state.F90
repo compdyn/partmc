@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2016 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2017 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -1260,7 +1260,7 @@ contains
   !! then computed using the total mass of each set.
   subroutine aero_state_mixing_state_metrics(aero_state, aero_data, d_alpha, &
        d_gamma, chi, include, exclude, group)
-    
+
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
     !> Aerosol data.
@@ -1273,7 +1273,7 @@ contains
     character(len=*), optional :: exclude(:)
     !> Species names to group together.
     character(len=*), optional :: group(:)
-    
+
     real(kind=dp), allocatable :: entropies(:), entropies_of_avg_part(:)
     real(kind=dp), allocatable :: masses(:), num_concs(:), &
          num_concs_of_avg_part(:), masses_of_avg_part(:)
@@ -1290,28 +1290,29 @@ contains
 
     d_alpha = exp(sum(entropies * masses * num_concs) &
              / sum(masses * num_concs))
-        
+
     ! per-particle properties of averaged particles
     call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)
     aero_state_averaged = aero_state
     call aero_state_bin_average_comp(aero_state_averaged, avg_bin_grid, &
          aero_data)
-    num_concs_of_avg_part = aero_state_num_concs(aero_state_averaged, aero_data)
+    num_concs_of_avg_part = aero_state_num_concs(aero_state_averaged, &
+         aero_data)
     masses_of_avg_part = aero_state_masses(aero_state_averaged, &
-         aero_data, include, exclude)    
+         aero_data, include, exclude)
     entropies_of_avg_part = aero_state_mass_entropies(aero_state_averaged, &
          aero_data, include, exclude, group)
 
     d_gamma = exp(sum(entropies_of_avg_part * masses_of_avg_part &
          * num_concs_of_avg_part) &
          / sum(masses_of_avg_part * num_concs_of_avg_part))
-        
+
     chi = (d_alpha - 1) / (d_gamma - 1)
-            
+
   end subroutine aero_state_mixing_state_metrics
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
   !> Returns the approximate critical relative humidity for all particles (1).
   function aero_state_approx_crit_rel_humids(aero_state, aero_data, env_state)
 

@@ -1265,8 +1265,12 @@ contains
     type(aero_state_t), intent(in) :: aero_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
-    !> Output values.
-    real(kind=dp), intent(out) :: d_alpha, d_gamma, chi
+    !> Average particle diversity.
+    real(kind=dp), intent(out) :: d_alpha
+    !> Bulk diversity.
+    real(kind=dp), intent(out) :: d_gamma
+    !> Mixing state index.
+    real(kind=dp), intent(out) :: chi
     !> Species names to include in the mass.
     character(len=*), optional :: include(:)
     !> Species names to exclude in the mass.
@@ -1280,11 +1284,9 @@ contains
     type(aero_state_t) :: aero_state_averaged
     type(bin_grid_t) :: avg_bin_grid
 
-
     ! per-particle properties
     num_concs = aero_state_num_concs(aero_state, aero_data)
-    masses = aero_state_masses(aero_state, aero_data, &
-         include, exclude)
+    masses = aero_state_masses(aero_state, aero_data, include, exclude)
     entropies = aero_state_mass_entropies(aero_state, aero_data, &
          include, exclude, group)
 

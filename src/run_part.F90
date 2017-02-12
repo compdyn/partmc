@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2016 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2017 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -68,7 +68,7 @@ module pmc_run_part
      logical :: do_mosaic
      !> Whether to compute optical properties.
      logical :: do_optical
-     !> Whether to have user defined weighting.
+     !> Whether to have explicitly selected weighting.
      logical :: do_select_weighting
      !> Type of particle weighting scheme.
      integer :: weighting_type

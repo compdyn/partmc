@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2012, 2016 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2012, 2016, 2017 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -337,7 +337,7 @@ contains
     !!   number of simulated particles rises above <tt>n_part *
     !!   2</tt>, half of the particles are removed (chosen randomly)
     !!   to reduce the computational expense
-    !! - \b do_select_weighting (logical): whether the user is selecting
+    !! - \b do_select_weighting (logical): whether to explicitly select
     !!   the weighting scheme. If \c do_select_weighting is \c yes, then the
     !!   following parameters must also be provided:
     !!   - \subpage input_format_weight_type

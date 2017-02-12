@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2016 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2017 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -1245,6 +1245,73 @@ contains
     end if
 
   end function aero_state_mass_entropies
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the mixing state metrics of the population.
+  !!
+  !! If \c include is specified then only those species are included
+  !! in computing the entropies. If \c exclude is specified then all
+  !! species except those species are included. If both \c include and
+  !! \c exclude arguments are specified then only those species in \c
+  !! include but not in \c exclude are included. If \c group is
+  !! specified then the species are divided into two sets, given by
+  !! those in the group and those not in the group. The entropies are
+  !! then computed using the total mass of each set.
+  subroutine aero_state_mixing_state_metrics(aero_state, aero_data, d_alpha, &
+       d_gamma, chi, include, exclude, group)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+    !> Aerosol data.
+    type(aero_data_t), intent(in) :: aero_data
+    !> Average particle diversity.
+    real(kind=dp), intent(out) :: d_alpha
+    !> Bulk diversity.
+    real(kind=dp), intent(out) :: d_gamma
+    !> Mixing state index.
+    real(kind=dp), intent(out) :: chi
+    !> Species names to include in the mass.
+    character(len=*), optional :: include(:)
+    !> Species names to exclude in the mass.
+    character(len=*), optional :: exclude(:)
+    !> Species names to group together.
+    character(len=*), optional :: group(:)
+
+    real(kind=dp), allocatable :: entropies(:), entropies_of_avg_part(:)
+    real(kind=dp), allocatable :: masses(:), num_concs(:), &
+         num_concs_of_avg_part(:), masses_of_avg_part(:)
+    type(aero_state_t) :: aero_state_averaged
+    type(bin_grid_t) :: avg_bin_grid
+
+    ! per-particle properties
+    num_concs = aero_state_num_concs(aero_state, aero_data)
+    masses = aero_state_masses(aero_state, aero_data, include, exclude)
+    entropies = aero_state_mass_entropies(aero_state, aero_data, &
+         include, exclude, group)
+
+    d_alpha = exp(sum(entropies * masses * num_concs) &
+             / sum(masses * num_concs))
+
+    ! per-particle properties of averaged particles
+    call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)
+    aero_state_averaged = aero_state
+    call aero_state_bin_average_comp(aero_state_averaged, avg_bin_grid, &
+         aero_data)
+    num_concs_of_avg_part = aero_state_num_concs(aero_state_averaged, &
+         aero_data)
+    masses_of_avg_part = aero_state_masses(aero_state_averaged, &
+         aero_data, include, exclude)
+    entropies_of_avg_part = aero_state_mass_entropies(aero_state_averaged, &
+         aero_data, include, exclude, group)
+
+    d_gamma = exp(sum(entropies_of_avg_part * masses_of_avg_part &
+         * num_concs_of_avg_part) &
+         / sum(masses_of_avg_part * num_concs_of_avg_part))
+
+    chi = (d_alpha - 1) / (d_gamma - 1)
+
+  end subroutine aero_state_mixing_state_metrics
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

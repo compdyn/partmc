@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2016 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2017 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -136,7 +136,7 @@ contains
     elseif (trim(weighting_name) == 'flat_source') then
        weighting_type = AERO_STATE_WEIGHT_FLAT_SOURCE
     elseif (trim(weighting_name) == 'power_source') then
-       weighting_type = AERO_STATE_WEIGHT_POWER
+       weighting_type = AERO_STATE_WEIGHT_POWER_SOURCE
        call spec_file_read_real(file, 'weighting_exponent', exponent)
     elseif (trim(weighting_name) == 'nummass_source') then
        weighting_type = AERO_STATE_WEIGHT_NUMMASS_SOURCE

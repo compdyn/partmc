@@ -91,6 +91,64 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read the specification for a weighting type from a spec file.
+  subroutine spec_file_read_aero_state_weighting_type(file, weighting_type, &
+       exponent)
+
+    !> Spec file.
+    type(spec_file_t), intent(inout) :: file
+    !> Aerosol weighting scheme.
+    integer, intent(out) :: weighting_type
+    !> Exponent for power-law weighting (only used if \c weight_type
+    !> is \c AERO_STATE_WEIGHT_POWER).
+    real(kind=dp), intent(out) :: exponent
+
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: weighting_name
+
+    !> \page input_format_weight_type Input File Format: Type of aerosol size distribution weighting functions.
+    !!
+    !! The weighting function is specified by the parameters:
+    !!   - \b weight_type (string): the type of weighting function ---
+    !!     must be one of: \c flat for flat weighting, \c flat_source for
+    !!     flat weighting by source, \c power for power weighting,
+    !!     \c power_source for power source weighting, \c nummass for number
+    !!     and mass weighting, and \c nummass_source for number and mass
+    !!     weighting by source. If \c weight_type is \c power or \c
+    !!     power_source then the next parameter must also be provided:
+    !!     - \b weighting_exponent (real): the exponent for \c power or
+    !!       \c power_source. Setting the \c exponent to 0 is equivalent to no
+    !!       weighting, while setting the exponent negative uses more
+    !!       computational particles at larger diameters and setting the
+    !!       exponent positive uses more computaitonal partilces at smaller
+    !!       diameters; in practice exponents between 0 and -3 are most useful.
+    !!
+    !! See also:
+    !!   - \ref spec_file_format --- the input file text format
+
+    call spec_file_read_string(file, 'weight_type', weighting_name)
+    if (trim(weighting_name) == 'flat') then
+       weighting_type = AERO_STATE_WEIGHT_FLAT
+    elseif (trim(weighting_name) == 'power') then
+       weighting_type = AERO_STATE_WEIGHT_POWER
+       call spec_file_read_real(file, 'weighting_exponent', exponent)
+    elseif (trim(weighting_name) == 'nummass') then
+       weighting_type = AERO_STATE_WEIGHT_NUMMASS
+    elseif (trim(weighting_name) == 'flat_source') then
+       weighting_type = AERO_STATE_WEIGHT_FLAT_SOURCE
+    elseif (trim(weighting_name) == 'power_source') then
+       weighting_type = AERO_STATE_WEIGHT_POWER_SOURCE
+       call spec_file_read_real(file, 'weighting_exponent', exponent)
+    elseif (trim(weighting_name) == 'nummass_source') then
+       weighting_type = AERO_STATE_WEIGHT_NUMMASS_SOURCE
+    else
+       call spec_file_die_msg(920321729, file, &
+            "Unknown weighting type: " // trim(weighting_name))
+    end if
+
+  end subroutine spec_file_read_aero_state_weighting_type
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Copies weighting information for an \c aero_state.
   subroutine aero_state_copy_weight(aero_state_from, aero_state_to)
 

@@ -1,3 +1,4 @@
+**/.DS_Store
 CMakeCache.txt
 CMakeFiles/
 build/
@@ -11,3 +12,8 @@ doc/partmc_modules.gv
 doc/partmc_modules.pdf
 scenarios/1_urban_plume/out/
 scenarios/2_urban_plume2/out/
+scenarios/3_condense/start/
+scenarios/3_condense/spec/
+scenarios/3_condense/temp/
+scenarios/3_condense/out/
+scenarios/4_chamber/out/

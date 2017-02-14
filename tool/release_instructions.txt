@@ -61,5 +61,5 @@ make website
 push to remote:
 
 cd ~/git/partmc
-git push origin master
-git push upstream master
+git push --tags origin master
+git push --tags upstream master

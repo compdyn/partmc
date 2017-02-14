@@ -83,6 +83,26 @@
 
 !> \page publications PartMC Publications
 !!
+!!   - J.&nbsp;Ching, N.&nbsp;Riemer, and M.&nbsp;West (2016) Black
+!!     carbon mixing state impacts on cloud microphysical properties:
+!!     Effects of aerosol plume and environmental conditions,
+!!     <i>Journal of Geophysical Research</i> <b>121</b>(10),
+!!     5990-6013, DOI: <a
+!!     href="http://dx.doi.org/10.1002/2016JD024851">10.1002/2016JD024851</a>.
+!!   - J.&nbsp;H.&nbsp;Curtis, M.&nbsp;D.&nbsp;Michelotti,
+!!     N.&nbsp;Riemer, M.&nbsp;Heath, and M.&nbsp;West (2016)
+!!     Accelerated simulation of stochastic particle removal processes
+!!     in particle-resolved aerosol models, <i>Journal of
+!!     Computational Physics</i> <b>322</b>, 21-32, DOI: <a
+!!     href="http://dx.doi.org/10.1016/j.jcp.2016.06.029">10.1016/j.jcp.2016.06.029</a>.
+!!   - R.&nbsp;M.&nbsp;Healy, N.&nbsp;Riemer, J.&nbsp;C.&nbsp;Wenger,
+!!     M.&nbsp;Murphy, M.&nbsp;West, L.&nbsp;Poulain,
+!!     A.&nbsp;Wiedensohler, I.&nbsp;P.&nbsp;O'Connor,
+!!     E.&nbsp;McGillicuddy, J.&nbsp;R.&nbsp;Sodeau, and
+!!     G.&nbsp;J.&nbsp;Evans, Single particle diversity and mixing
+!!     state measurements, <i>Atmospheric Chemistry and Physics</i>
+!!     <b>14</b>, 6289-6299, DOI: <a
+!!     href="http://dx.doi.org/10.5194/acp-14-6289-2014">10.5194/acp-14-6289-2014</a>.
 !!   - J.&nbsp;Tian, N.&nbsp;Riemer, M.&nbsp;West,
 !!     L.&nbsp;Pfaffenberger, H.&nbsp;Schlager, and A.&nbsp;Petzold
 !!     (2014) Modeling the evolution of aerosol particles in a ship

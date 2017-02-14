@@ -7,7 +7,7 @@ restart no                      # whether to restart from saved state (yes/no)
 t_max 20160                     # total simulation time (s)
 del_t 60                        # timestep (s)
 t_output 420                    # output interval (0 disables) (s)
-t_progress 60                   # progress printing interval (0 disables) (s)
+t_progress 2520                 # progress printing interval (0 disables) (s)
 
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios

@@ -8,7 +8,7 @@ restart_file %%RESTART_FILE%%   # saved state file to restart from
 t_max 600                       # total simulation time (s)
 del_t 1                         # timestep (s)
 t_output 1                      # output interval (0 disables) (s)
-t_progress 1                    # progress printing interval (0 disables) (s)
+t_progress 60                   # progress printing interval (0 disables) (s)
 
 temp_profile %%TEMP_PROFILE%%   # temperature profile file
 pressure_profile pressure.dat   # pressure profile file
@@ -35,6 +35,5 @@ do_nucleation no                # whether to do nucleation (yes/no)
 rand_init 0                     # random initialization (0 to use time)
 allow_doubling no               # whether to allow doubling (yes/no)
 allow_halving no                # whether to allow halving (yes/no)
-do_select_weighting no          # whether to select weighting explicitly (yes/no)
 record_removals no              # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)

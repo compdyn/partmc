@@ -8,11 +8,11 @@ if not os.path.exists("temp"):
     os.mkdir("temp")
 
 for counter in range(1, 50):
-    print("counter = ", counter)
+    print("counter: %d" % counter)
     filename_in = "cond_template.spec"
     for run in ["ref", "comp", "size", "both"]: 
         filename_out = "spec/cond_%02d_%s.spec" % (counter, run)
-        print("filename_out ", filename_out)
+        print("filename_out: %s" % filename_out)
         f_in = open(filename_in, 'r')
         f_out = open(filename_out, 'w')
 
@@ -29,7 +29,7 @@ for counter in range(1, 50):
         f_out.close()
 
     filename_out_temp = "temp/temp_%02d.dat" % counter
-    print("filename_out_temp", filename_out_temp)
+    print("filename_out_temp: %s" % filename_out_temp)
     f_out = open(filename_out_temp, 'w')
 
     f_out.write("# time (s)\n")

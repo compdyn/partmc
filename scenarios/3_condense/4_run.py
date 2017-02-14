@@ -20,14 +20,14 @@ for hour in range(1, 50):
     command_3 = [str_exec, spec_file_size]
     command_4 = [str_exec, spec_file_both]
 
-    print(command_1)
+    print(" ".join(command_1))
     subprocess.check_call(command_1)
 
-    print(command_2)
+    print(" ".join(command_2))
     subprocess.check_call(command_2)
 
-    print(command_3)
+    print(" ".join(command_3))
     subprocess.check_call(command_3)
 
-    print(command_4)
+    print(" ".join(command_4))
     subprocess.check_call(command_4)

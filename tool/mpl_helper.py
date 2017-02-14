@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# Copyright (C) 2007-2011, 2016 Matthew West
+# Copyright (C) 2007-2011, 2016-2017 Matthew West
 # Licensed under the GNU General Public License version 2 or (at your
 # option) any later version. See the file COPYING for details.
 
-import sys, os
-import math
+import sys, os, math, re
 import matplotlib
 matplotlib.use('PDF')
 import matplotlib.pyplot as plt
@@ -431,3 +430,37 @@ def axes_broken_y(fig, axes, upper_frac=0.5, break_frac=0.05, ybounds=None,
     for loc, spine in axes.spines.iteritems():
         spine.set_color('none')
     return upper_axes, lower_axes
+
+def get_filename_list(directory, filename_pattern):
+    """Return a list of files in a directory matching a given pattern.
+
+    The filename_pattern is a regular expression. All filenames in the
+    given directory that match the pattern are returned in a sorted
+    list. If the regular expression contains a group then the returned
+    list consists of (filename, match) pairs, where the match is the
+    group match.
+
+    Example:
+    >>> netcdf_files = partmc.get_filename_list('out/', r'data_.*\.nc')
+
+    """
+    filename_list = []
+    filenames = os.listdir(directory)
+    if len(filenames) == 0:
+        raise Exception("No files in %s match %s"
+                        % (directory, filename_pattern))
+    file_re = re.compile(filename_pattern)
+    for filename in filenames:
+        match = file_re.search(filename)
+        if match:
+            full_filename = os.path.join(directory, filename)
+            groups = match.groups()
+            if len(groups) > 0:
+                filename_list.append((full_filename, groups[0]))
+            else:
+                filename_list.append(full_filename)
+    filename_list.sort()
+    if len(filename_list) == 0:
+        raise Exception("No files found in %s matching %s"
+                        % (directory, filename_pattern))
+    return filename_list

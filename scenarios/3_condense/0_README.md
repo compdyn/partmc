@@ -1,7 +1,7 @@
 
 # Condensation scenario
 
-J. Ching, N. Riemer, and M. West (2012) Impacts of black carbon mixing state on black carbon nucleation scavenging: Insights from a particle-resolved model</a>, <i>Journal of Geophysical Research</i> <b>117</b>(D23209), DOI: <a href="http://dx.doi.org/10.1029/2012JD018269">10.1029/2012JD018269</a>.
+J. Ching, N. Riemer, and M. West (2012) Impacts of black carbon mixing state on black carbon nucleation scavenging: Insights from a particle-resolved model, _J. Geophys. Res. 117(D23209), DOI: <http://dx.doi.org/10.1029/2012JD018269>.
 
 This scenario demonstrates the use of PartMC in a "cloud parcel" mode. It also shows how a Python script (`3_make_specs.py`) can be used to generate spec files from a template to perform many runs.
 

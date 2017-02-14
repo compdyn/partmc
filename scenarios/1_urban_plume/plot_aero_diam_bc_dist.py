@@ -4,10 +4,9 @@ import sys, os
 sys.path.append("../../tool")
 import mpl_helper
 import matplotlib
-import partmc
 import scipy.io, numpy
 
-for (filename, index) in partmc.get_filename_list('out/', r'urban_plume_([0-9]+)_process\.nc'):
+for (filename, index) in mpl_helper.get_filename_list('out/', r'urban_plume_([0-9]+)_process\.nc'):
     (figure, axes, cbar_axes) = mpl_helper.make_fig(left_margin=0.7, right_margin=1, colorbar=True)
 
     ncf = scipy.io.netcdf_file(filename)

@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2012 Matthew West
+! Copyright (C) 2009-2012, 2017 Matthew West
 ! Copyright (C) 2012 Jian Tian
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
@@ -51,7 +51,8 @@ program test_fractal_radii_conversion
                       'R0 = ', R0(i_R0)
               end if
               if (.not. almost_equal(Rgeo(i_part), &
-                   fractal_vol2rad(fractal, fractal_rad2vol(fractal, Rgeo(i_part))))) then
+                   fractal_vol2rad(fractal, &
+                   fractal_rad2vol(fractal, Rgeo(i_part))))) then
                  Rgeo_match = .false.
                  write(*, '(a,e12.3,3x,a,f5.2,3x,a,f5.2,3x,a,e12.3)') &
                       'Geometric radii mismatch at: Rgeo = ', &

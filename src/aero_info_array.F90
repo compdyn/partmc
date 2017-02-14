@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2012, 2017 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -96,7 +96,7 @@ contains
        return
     end if
 
-    call assert(867444847, new_length >= aero_info_array%n_item)
+    call assert(955874877, new_length >= aero_info_array%n_item)
     allocate(new_items(new_length))
     do i = 1,aero_info_array%n_item
        new_items(i) = aero_info_array%aero_info(i)

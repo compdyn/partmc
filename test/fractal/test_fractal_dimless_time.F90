@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2012 Matthew West
+! Copyright (C) 2009-2012, 2017 Matthew West
 ! Copyright (C) 2012 Jian Tian
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
@@ -68,7 +68,7 @@ program test_fractal_dimless_time
   end if
 
   if (optind /= command_argument_count()) then
-     call die_msg(967032896, &
+     call die_msg(467447497, &
           'expected exactly one non-option prefix argument')
   end if
 
@@ -81,7 +81,7 @@ program test_fractal_dimless_time
   allocate(filename_list(0))
   call input_filename_list(in_prefix, filename_list)
   n_file = size(filename_list)
-  call assert_msg(323514871, n_file > 0, &
+  call assert_msg(582892256, n_file > 0, &
        "no NetCDF files found with prefix: " // trim(in_prefix))
 
   call input_state(filename_list(1), index, time, del_t, &
@@ -103,7 +103,7 @@ program test_fractal_dimless_time
           del_t, i_repeat, uuid, aero_data=aero_data, &
           aero_state=aero_state, env_state=env_state)
 
-     call assert_msg(397906326, uuid == run_uuid, &
+     call assert_msg(545569193, uuid == run_uuid, &
           "UUID mismatch between " // trim(filename_list(1)) // " and " &
           // trim(filename_list(i_file)))
 

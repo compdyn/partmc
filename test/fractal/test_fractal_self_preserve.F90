@@ -1,4 +1,4 @@
-! Copyright (C) 2009-2012 Matthew West
+! Copyright (C) 2009-2012, 2017 Matthew West
 ! Copyright (C) 2012 Jian Tian
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
@@ -56,7 +56,7 @@ program test_fractal_self_preserve
   end do
 
   if (optind /= command_argument_count()) then
-     call die_msg(533171694, 'expected exactly one non-option prefix argument')
+     call die_msg(927637140, 'expected exactly one non-option prefix argument')
   end if
 
   call get_command_argument(optind, in_prefix)
@@ -68,7 +68,7 @@ program test_fractal_self_preserve
   allocate(filename_list(0))
   call input_filename_list(in_prefix, filename_list)
   n_file = size(filename_list)
-  call assert_msg(554271458, n_file > 0, &
+  call assert_msg(958886039, n_file > 0, &
        "no NetCDF files found with prefix: " // trim(in_prefix))
 
   call bin_grid_make(dimless_vol_grid, BIN_GRID_TYPE_LOG, n_bin, &
@@ -84,7 +84,7 @@ program test_fractal_self_preserve
        uuid, aero_data=aero_data, aero_state=aero_state)
 
   run_uuid = uuid
-  call assert_msg(657993562, uuid == run_uuid, &
+  call assert_msg(551984571, uuid == run_uuid, &
        "UUID mismatch between " // trim(filename_list(1)) // " and " &
        // trim(filename_list(n_file)))
 
@@ -154,7 +154,8 @@ contains
     real(kind=dp), intent(in) :: c_v, c_n
 
     !> Return histogram.
-    real(kind=dp) :: bin_grid_histogram_1d_self_preserve(bin_grid_size(x_bin_grid))
+    real(kind=dp) :: &
+         bin_grid_histogram_1d_self_preserve(bin_grid_size(x_bin_grid))
 
     integer :: i_data, x_bin
 

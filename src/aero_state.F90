@@ -1081,7 +1081,7 @@ contains
           use_species = .false.
           do i_name = 1, size(include)
              i_spec = aero_data_spec_by_name(aero_data, include(i_name))
-             call assert_msg(963163690, i_spec > 0, &
+             call assert_msg(111852070, i_spec > 0, &
                   "unknown species: " // trim(include(i_name)))
              use_species(i_spec) = .true.
           end do
@@ -1091,7 +1091,7 @@ contains
        if (present(exclude)) then
           do i_name = 1, size(exclude)
              i_spec = aero_data_spec_by_name(aero_data, exclude(i_name))
-             call assert_msg(950847713, i_spec > 0, &
+             call assert_msg(182075590, i_spec > 0, &
                   "unknown species: " // trim(exclude(i_name)))
              use_species(i_spec) = .false.
           end do

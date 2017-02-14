@@ -1,4 +1,4 @@
-! Copyright (C) 2012-2016 Matthew West
+! Copyright (C) 2012-2017 Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -643,10 +643,10 @@ contains
   !> Write statistics (mean and 95% conf. int.) to a text file.
   !!
   !! The format has three columns:
-  !!     <dim> <mean> <ci_offset>
-  !! where <dim> is the optional dimension argument, <mean> is the mean value
-  !! and <ci_offset> is the 95% confidence interval offset, so the 95% CI is
-  !! [mean - ci_offset, mean + ci_offset].
+  !!     `dim mean ci_offset`
+  !! where \c dim is the optional dimension argument, \c mean is the mean value
+  !! and \c ci_offset is the 95% confidence interval offset, so the 95% CI is
+  !! `mean - ci_offset, mean + ci_offset`.
   subroutine stats_1d_output_text(stats, filename, dim)
 
     !> Statistics structure to write.

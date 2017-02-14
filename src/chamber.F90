@@ -1,4 +1,4 @@
-! Copyright (C) 2011-2012, 2016 Jian Tian, Matthew West
+! Copyright (C) 2011-2012, 2016-2017 Jian Tian, Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -156,11 +156,11 @@ contains
     !! - \b area_sedi (real, unit m^2): the surface area in the chamber
     !!   available for sedimentation deposition (the floor area)
     !! - \b prefactor_BL (real, unit m): the coefficient \f$k_{\rm D}\f$ in
-    !!   the model \f$\delta = k_{\rm D}(D/D_0)^a\f$ for boundary-layer
-    !!   thickness \f$\delta\f$
-    !! - \b exponent_BL (real, dimensionless): the exponent \f$a$ in
-    !!   the model \f$\delta = k_{\rm D}(D/D_0)^a\f$ for boundary-layer
-    !!   thickness \f$\delta\f$
+    !!   the model \f$ \delta = k_{\rm D}(D/D_0)^a \f$ for boundary-layer
+    !!   thickness \f$ \delta \f$
+    !! - \b exponent_BL (real, dimensionless): the exponent \f$a\f$ in
+    !!   the model \f$ \delta = k_{\rm D}(D/D_0)^a \f$ for boundary-layer
+    !!   thickness \f$ \delta \f$
     !!
     !! See also:
     !!   - \ref spec_file_format --- the input file text format

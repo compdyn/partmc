@@ -7,9 +7,9 @@ project(PARTMC Fortran C)
 
 set(PACKAGE_BUGREPORT "mwest@illinois.edu")
 set(PACKAGE_NAME "PartMC")
-set(PACKAGE_STRING "PartMC 2.3.0")
+set(PACKAGE_STRING "PartMC 2.4.0")
 set(PACKAGE_TARNAME "partmc")
-set(PACKAGE_VERSION "2.3.0")
+set(PACKAGE_VERSION "2.4.0")
 
 ######################################################################
 # options

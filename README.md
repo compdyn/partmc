@@ -4,8 +4,8 @@ PartMC
 
 PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
-Version 2.3.0  
-Released 2015-03-29
+Version 2.4.0  
+Released 2017-02-14
 
 <http://lagrange.mechse.illinois.edu/partmc/>
 
@@ -34,8 +34,9 @@ References:
      particle-resolved model, _J. Geophys. Res._ 117(D23209), 2012,
      <http://dx.doi.org/10.1029/2012JD018269>
    * M. D. Michelotti, M. T. Heath, and M. West, Binning for efficient
-     stochastic multiscale particle simulations, _Atmos. Chem. Phys._
-     11(4), 1071-1096, 2013, <http://dx.doi.org/10.1137/130908038>
+     stochastic multiscale particle simulations, _Multiscale
+     Model. Simul._ 11(4), 1071-1096, 2013,
+     <http://dx.doi.org/10.1137/130908038>
    * N. Riemer and M. West, Quantifying aerosol mixing state with
      entropy and diversity measures, _Atmos. Chem. Phys._ 13,
      11423-11439, 2013, <http://dx.doi.org/10.5194/acp-13-11423-2013>
@@ -43,9 +44,24 @@ References:
      A. Petzold, Modeling the evolution of aerosol particles in a ship
      plume using PartMC-MOSAIC, _Atmos. Chem. Phys._ 14, 5327-5347,
      2014, <http://dx.doi.org/10.5194/acp-14-5327-2014>
+   * R. M. Healy, N. Riemer, J. C. Wenger, M. Murphy, M. West,
+     L. Poulain, A. Wiedensohler, I. P. O'Connor, E. McGillicuddy,
+     J. R. Sodeau, and G. J. Evans, Single
+     particle diversity and mixing state measurements,
+     _Atmos. Chem. and Phys._ 14, 6289-6299,
+     2014, <http://dx.doi.org/10.5194/acp-14-6289-2014>
+   * J. H. Curtis, M. D. Michelotti, N. Riemer, M. Heath, and M. West,
+     Accelerated simulation of stochastic particle removal processes
+     in particle-resolved aerosol models, _J. Comp. Phys._ 322, 21-32,
+     2016, <http://dx.doi.org/10.1016/j.jcp.2016.06.029>
+   * J. Ching, N. Riemer, and M. West, Black carbon mixing state
+     impacts on cloud microphysical properties: Effects of aerosol
+     plume and environmental conditions, _J. Geophys. Res._ 121(10),
+     5990-6013, 2016 <http://dx.doi.org/10.1002/2016JD024851>
 
-Copyright (C) 2005-2015 Nicole Riemer and Matthew West  
-Portions copyright (C) Andreas Bott, Richard Easter, and Jeffrey Curtis  
+Copyright (C) 2005-2017 Nicole Riemer and Matthew West  
+Portions copyright (C) Andreas Bott, Richard Easter, Jeffrey Curtis,
+and Jian Tian  
 Licensed under the GNU General Public License version 2 or (at your
 option) any later version.  
 For details see the file COPYING or
@@ -69,7 +85,7 @@ Optional dependencies:
    * MPI parallel support - <http://www.open-mpi.org/>
    * GSL for random number generators -
      <http://www.gnu.org/software/gsl/>
-   * SUNDIALS ODE solver version 2.4 for condensation support -
+   * SUNDIALS ODE solver version 2.6 for condensation support -
      <http://www.llnl.gov/casc/sundials/>
    * gnuplot for testcase plotting - <http://www.gnuplot.info/>
 
@@ -84,19 +100,19 @@ Installation
 
 2. Unpack PartMC:
 
-        tar xzvf partmc-2.3.0.tar.gz
+        tar xzvf partmc-2.4.0.tar.gz
 
 3. Change into the main PartMC directory (where this README file is
    located):
 
-        cd partmc-2.3.0
+        cd partmc-2.4.0
 
 4. Make a directory called `build` and change into it:
 
         mkdir build
         cd build
 
-5. If necessary, set environment variables to indicate the install
+5. If desired, set environment variables to indicate the install
    locations of supporting libraries. If running `echo $SHELL`
    indicates that you are running `bash`, then you can do something
    like:
@@ -109,7 +125,7 @@ Installation
    Of course the exact directories will depend on where the libraries
    are installed. You only need to set variables for libraries
    installed in non-default locations, and only for those libraries
-   you want to use.
+   you want to use. Everything except NetCDF is optional.
 
    If `echo $SHELL` instead is `tcsh` or similar, then the environment
    variables can be set like `setenv NETCDF_HOME /` and similarly.
@@ -158,7 +174,7 @@ Installation
 12. To run full scenarios, do, for example:
 
         cd ../scenarios/1_urban_plume
-        ./run.sh
+        ./1_run.sh
 
 
 Usage

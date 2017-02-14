@@ -17,9 +17,10 @@ doc/Makefile: Version
 doc/Doxyfile: Version
 src/output.F90: PARTMC_VERSION
 
+git add -u
 git commit -m "update info for 2.1.0 release"
 
-git tag 2.1.0
+git tag -a 2.1.0 -m "Version 2.1.0"
 
 cd ~/t
 git clone ~/git/partmc
@@ -57,7 +58,8 @@ edit index.content
 remember to add ChangeLog now
 make website
 
-push to lagrange:
+push to remote:
 
 cd ~/git/partmc
-git push
+git push origin master
+git push upstream master

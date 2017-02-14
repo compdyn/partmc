@@ -1,11 +1,24 @@
-2.5.0 - XXXX-XX-XX
+2.4.0 - 2017-02-14
 
-  * Add fractal particle model treatment, following Naumann [2003].
+  * Delete unnecessary scenarios and add documentation for remaining
+    ones (Matt West).
 
-2.4.0 - XXXX-XX-XX
+  * Allow selection of weighting function in spec file (Jeff Curtis).
+
+  * Entropy calculation helper functions added (Nicole Riemer).
+
+  * Add chamber models for wall and settling losses (Jian Tian).
+
+  * Add fractal particle model treatment, following Naumann [2003]
+    (Jian Tian).
 
   * Composition sampling uses a new mean-projection algorithm to give
-    better spread.
+    better spread (Matt West).
+
+  * Clean up browian coagulation function (Jeff Curtis).
+
+  * Convert code internals to use allocatable arrays rather than
+    pointers (Jeff Curtis).
 
 2.3.0 - 2015-03-29
 

@@ -23,9 +23,9 @@ for filename in sys.argv[1:]:
     f = open(filename)
     linenum = 0
     for line in f:
-	linenum += 1
-	if len(line) > 80:
+        linenum += 1
+        if len(line) > 80:
             stripped_line = line.rstrip()
             if not long_comment_re.search(line) and stripped_line not in known_long_lines:
-                print "%s:%d" % (filename, linenum)
+                print("%s:%d" % (filename, linenum))
     f.close()

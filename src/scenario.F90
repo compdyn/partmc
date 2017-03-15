@@ -230,7 +230,7 @@ contains
     call gas_state_mole_dens_to_ppb(emissions, env_state)
     p = emission_rate_scale * delta_t / env_state%height
     call gas_state_add_scaled(gas_state, emissions, p)
-
+#ifndef PMC_USE_WRF
     ! dilution
     call gas_state_interp_1d(scenario%gas_background, &
          scenario%gas_dilution_time, scenario%gas_dilution_rate, &
@@ -241,6 +241,7 @@ contains
     end if
     call gas_state_scale(gas_state, p)
     call gas_state_add_scaled(gas_state, background, 1d0 - p)
+#endif
     call gas_state_ensure_nonnegative(gas_state)
 
   end subroutine scenario_update_gas_state
@@ -292,7 +293,7 @@ contains
     call aero_state_add_aero_dist_sample(aero_state, aero_data, &
          emissions, p, env_state%elapsed_time, allow_doubling, allow_halving, &
          n_emit)
-
+#ifndef PMC_USE_WRF
     ! dilution
     call aero_dist_interp_1d(scenario%aero_background, &
          scenario%aero_dilution_time, scenario%aero_dilution_rate, &
@@ -313,7 +314,8 @@ contains
     ! particle loss function
     call scenario_particle_loss(scenario, delta_t, aero_data, aero_state, &
          env_state)
-    
+#endif
+
     ! update computational volume
     call aero_weight_array_scale(aero_state%awa, &
          old_env_state%temp * env_state%pressure &

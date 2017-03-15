@@ -29,7 +29,6 @@ PMC_MODULES =                           \
   coagulation.o                 \
   coagulation_dist.o            \
   constants.o                   \
-  env_data.o                    \
   env_state.o                   \
   fractal.o                     \
   gas_data.o                    \
@@ -51,11 +50,12 @@ PMC_MODULES =                           \
 
 OBJS = \
  
-LIBTARGET    =  partmcmosaic
+LIBTARGET    =  libpartmc.a
 TARGETDIR    =  ./
 $(LIBTARGET) :  $(MODULES) $(PMC_MODULES) $(OBJS)
-		$(AR) $(ARFLAGS) $(MODULES) $(PMC_MODULES) \
+		$(AR) $(ARFLAGS) $(LIBTARGET) $(MODULES) $(PMC_MODULES) \
 		$(OBJS)
+		$(RANLIB) $(RANLIBFLAGS) $@
 
 include ../../WRFV3/configure.wrf
 
@@ -143,9 +143,6 @@ coagulation_dist.o: bin_grid.o aero_data.o util.o env_state.o \
 
 constants.o: constants.F90
 
-env_data.o: gas_state.o aero_dist.o util.o env_state.o \
-     spec_file.o aero_data.o gas_data.o mpi.o
-
 env_state.o: constants.o util.o spec_file.o mpi.o netcdf.o
 
 fractal.o: spec_file.o constants.o netcdf.o mpi.o
@@ -166,6 +163,7 @@ mosaic.o: aero_data.o aero_state.o constants.o env_state.o \
 mpi.o: util.o
 
 netcdf.o: util.o
+#	mpif90 -c netcdf.F90 -I/data/keeling/a/jcurtis2/support/netcdf4-4.1.2/include/
 
 nucleate.o: env_state.o aero_state.o aero_data.o gas_data.o gas_state.o
 

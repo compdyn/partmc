@@ -686,13 +686,22 @@ contains
 
     n_group = aero_weight_array_n_group(aero_state%awa)
     n_class = aero_weight_array_n_class(aero_state%awa)
+#ifdef PMC_USE_WRF
+    global_n_part = aero_state_total_particles(aero_state, i_group, i_class)
+    mean_n_part = real(global_n_part, kind=dp)
+#else
     global_n_part = aero_state_total_particles_all_procs(aero_state, &
          i_group, i_class)
     mean_n_part = real(global_n_part, kind=dp) / real(pmc_mpi_size(), kind=dp)
+#endif
     n_part_new = mean_n_part + n_add
     if (n_part_new == 0d0) return
+#ifdef PMC_USE_WRF
+    n_part_ideal_local_group = aero_state%n_part_ideal(i_group, i_class)
+#else
     n_part_ideal_local_group = aero_state%n_part_ideal(i_group, i_class) &
          / real(pmc_mpi_size(), kind=dp)
+#endif
     if ((n_part_new < n_part_ideal_local_group / 2d0) &
          .or. (n_part_new > n_part_ideal_local_group * 2d0)) &
          then
@@ -816,13 +825,14 @@ contains
     integer, intent(in) :: removal_action
 
     integer :: n_transfer, i_transfer, i_part
+    integer :: i_group, i_class
     logical :: do_add, do_remove
     real(kind=dp) :: num_conc_from, num_conc_to
     type(aero_info_t) :: aero_info
 
     call assert(721006962, (sample_prob >= 0d0) .and. (sample_prob <= 1d0))
-    call aero_state_zero(aero_state_to)
-    call aero_state_copy_weight(aero_state_from, aero_state_to)
+!    call aero_state_zero(aero_state_to)
+!    call aero_state_copy_weight(aero_state_from, aero_state_to)
     n_transfer = rand_binomial(aero_state_total_particles(aero_state_from), &
          sample_prob)
     i_transfer = 0
@@ -853,7 +863,19 @@ contains
        if (do_add) then
           call aero_state_add_particle(aero_state_to, &
                aero_state_from%apa%particle(i_part), aero_data)
+          if (.not.do_remove) then
+             call aero_particle_new_id(aero_state_to%apa% &
+                 particle(aero_state_to%apa%n_part))
+          end if
        end if
+       ! Check to make sure we aren't having a particle number problem
+       i_group = aero_state_from%apa%particle(i_part)%weight_group
+       i_class = aero_state_from%apa%particle(i_part)%weight_class
+       do while (real(aero_state_total_particles(aero_state_to, &
+                  i_group, i_class), kind=dp) &
+                  > aero_state_to%n_part_ideal(i_group, i_class) * 2d0)
+                call aero_state_halve(aero_state_to, i_group, i_class)
+       end do
        if (do_remove) then
           if (removal_action /= AERO_INFO_NONE) then
              aero_info%id = aero_state_from%apa%particle(i_part)%id
@@ -1553,9 +1575,14 @@ contains
     if (allow_doubling) then
        do i_group = 1,n_group
           do i_class = 1,n_class
+#ifdef PMC_USE_WRF
+             global_n_part &
+                  = aero_state_total_particles(aero_state, i_group, i_class)
+#else
              global_n_part &
                   = aero_state_total_particles_all_procs(aero_state, i_group, &
                   i_class)
+#endif;
              do while ((real(global_n_part, kind=dp) &
                   < aero_state%n_part_ideal(i_group, i_class) / 2d0) &
                   .and. (global_n_part > 0))
@@ -1564,9 +1591,14 @@ contains
                         // "condition")
                 end if
                 call aero_state_double(aero_state, aero_data, i_group, i_class)
+#ifdef PMC_USE_WRF
+             global_n_part &
+                  = aero_state_total_particles(aero_state, i_group, i_class)
+#else
                 global_n_part &
                      = aero_state_total_particles_all_procs(aero_state, &
                      i_group, i_class)
+#endif
              end do
           end do
        end do
@@ -1576,9 +1608,15 @@ contains
     if (allow_halving) then
        do i_group = 1,n_group
           do i_class = 1,n_class
+#ifdef PMC_USE_WRF
+             do while (real(aero_state_total_particles(aero_state, &
+                  i_group, i_class), kind=dp) &
+                  > aero_state%n_part_ideal(i_group, i_class) * 2d0)
+#else
              do while (real(aero_state_total_particles_all_procs(aero_state, &
                   i_group, i_class), kind=dp) &
                   > aero_state%n_part_ideal(i_group, i_class) * 2d0)
+#endif
                 if (initial_state_warning) then
                    call warn_msg(661936373, &
                         "halving particles in initial condition")

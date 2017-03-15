@@ -36,6 +36,28 @@ module pmc_env_state
      real(kind=dp) :: latitude
      !> Altitude (m).
      real(kind=dp) :: altitude
+#ifdef PMC_USE_WRF
+     !> Lower boundary altitude (m).
+     real(kind=dp) :: z_min
+     !> Upper boundary altitude (m).
+     real(kind=dp) :: z_max
+     !> Specific volume (m^3 kg^{-1}).
+     real(kind=dp) :: rrho
+     !> East-West index.
+     integer :: ix
+     !> North-South index.
+     integer :: iy
+     !> Top-Bottom index.
+     integer :: iz
+     !> Eddy diffusivity coefficient (m^2 s^{-2}).
+     real(kind=dp) :: diff_coef
+     !> Transfer probability in all directions due to advection.
+     real(kind=dp), allocatable :: prob_advection(:,:,:)
+     !> Transfer probability in all directions due to diffusion.
+     real(kind=dp), allocatable :: prob_diffusion(:,:,:)
+     !>
+     real(kind=dp), allocatable :: prob_vert_diffusion(:)
+#endif
      !> Start time (s since 00:00 UTC on \c start_day).
      real(kind=dp) :: start_time
      !> Start day of year (UTC).
@@ -322,6 +344,18 @@ contains
          + pmc_mpi_pack_size_real(val%longitude) &
          + pmc_mpi_pack_size_real(val%latitude) &
          + pmc_mpi_pack_size_real(val%altitude) &
+#ifdef PMC_USE_WRF
+         + pmc_mpi_pack_size_real(val%z_min) &
+         + pmc_mpi_pack_size_real(val%z_max) &
+         + pmc_mpi_pack_size_real(val%rrho) &
+         + pmc_mpi_pack_size_integer(val%ix) &
+         + pmc_mpi_pack_size_integer(val%iy) &
+         + pmc_mpi_pack_size_integer(val%iz) &
+         + pmc_mpi_pack_size_real(val%diff_coef) &
+         + pmc_mpi_pack_size_real_array_3d(val%prob_advection) &
+         + pmc_mpi_pack_size_real_array_3d(val%prob_diffusion) &
+         + pmc_mpi_pack_size_real_array(val%prob_vert_diffusion) &
+#endif
          + pmc_mpi_pack_size_real(val%start_time) &
          + pmc_mpi_pack_size_integer(val%start_day) &
          + pmc_mpi_pack_size_real(val%elapsed_time) &
@@ -352,6 +386,18 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%longitude)
     call pmc_mpi_pack_real(buffer, position, val%latitude)
     call pmc_mpi_pack_real(buffer, position, val%altitude)
+#ifdef PMC_USE_WRF
+    call pmc_mpi_pack_real(buffer, position, val%z_min)
+    call pmc_mpi_pack_real(buffer, position, val%z_max)
+    call pmc_mpi_pack_real(buffer, position, val%rrho)
+    call pmc_mpi_pack_integer(buffer, position, val%ix)
+    call pmc_mpi_pack_integer(buffer, position, val%iy)
+    call pmc_mpi_pack_integer(buffer, position, val%iz)
+    call pmc_mpi_pack_real(buffer, position, val%diff_coef)
+    call pmc_mpi_pack_real_array_3d(buffer, position, val%prob_advection)
+    call pmc_mpi_pack_real_array_3d(buffer, position, val%prob_diffusion)
+    call pmc_mpi_pack_real_array(buffer, position, val%prob_vert_diffusion)
+#endif
     call pmc_mpi_pack_real(buffer, position, val%start_time)
     call pmc_mpi_pack_integer(buffer, position, val%start_day)
     call pmc_mpi_pack_real(buffer, position, val%elapsed_time)
@@ -385,6 +431,18 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%longitude)
     call pmc_mpi_unpack_real(buffer, position, val%latitude)
     call pmc_mpi_unpack_real(buffer, position, val%altitude)
+#ifdef PMC_USE_WRF
+    call pmc_mpi_unpack_real(buffer, position, val%z_min)
+    call pmc_mpi_unpack_real(buffer, position, val%z_max)
+    call pmc_mpi_unpack_real(buffer, position, val%rrho)
+    call pmc_mpi_unpack_integer(buffer, position, val%ix)
+    call pmc_mpi_unpack_integer(buffer, position, val%iy)
+    call pmc_mpi_unpack_integer(buffer, position, val%iz)
+    call pmc_mpi_unpack_real(buffer, position, val%diff_coef)
+    call pmc_mpi_unpack_real_array_3d(buffer, position, val%prob_advection)
+    call pmc_mpi_unpack_real_array_3d(buffer, position, val%prob_diffusion)
+    call pmc_mpi_unpack_real_array(buffer, position, val%prob_vert_diffusion)
+#endif
     call pmc_mpi_unpack_real(buffer, position, val%start_time)
     call pmc_mpi_unpack_integer(buffer, position, val%start_day)
     call pmc_mpi_unpack_real(buffer, position, val%elapsed_time)
@@ -459,6 +517,22 @@ contains
          unit="degree_north", standard_name="latitude")
     call pmc_nc_write_real(ncid, env_state%altitude, "altitude", unit="m", &
          standard_name="altitude")
+#ifdef PMC_USE_WRF
+    call pmc_nc_write_real(ncid, env_state%z_min, "bottom_boundary_altitude", &
+         unit="m", standard_name="bottom_altitude")
+    call pmc_nc_write_real(ncid, env_state%z_max, "top_boundary_altitude", &
+         unit="m", standard_name="top_altitude")
+    call pmc_nc_write_real(ncid, env_state%rrho, "specific_volume", &
+         unit="m3kg-1", standard_name="specific_volume")
+    call pmc_nc_write_integer(ncid,env_state%ix,"x_index", &
+         description="east-west index of WRF domain")
+    call pmc_nc_write_integer(ncid,env_state%iy,"y_index", &
+         description="north-south index of WRF domain")
+    call pmc_nc_write_integer(ncid,env_state%iz,"z_index", &
+         description="top-bottom index of WRF domain")
+    call pmc_nc_write_real(ncid, env_state%diff_coef, "eddy_diff", &
+         unit="m2s-1", description="eddy diffusion coefficient")
+#endif
     call pmc_nc_write_real(ncid, env_state%start_time, &
          "start_time_of_day", unit="s", description="time-of-day of " &
          // "simulation start in seconds since midnight")

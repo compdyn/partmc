@@ -26,6 +26,8 @@ module pmc_constants
   type const_t
      !> Pi.
      real(kind=dp) :: pi = 3.14159265358979323846d0
+     !> Acceleration due to gravity (m s^{-2}).
+     real(kind=dp) :: grav = 9.81d0
      !> Boltzmann constant (J K^{-1}).
      real(kind=dp) :: boltzmann = 1.3806505d-23
      !> Avogadro's number (mole^{-1}).

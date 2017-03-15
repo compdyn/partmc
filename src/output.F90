@@ -360,8 +360,13 @@ contains
     !!     involved in writing data (may be less than the total number of
     !!     processes that computed the data)
 
+#ifdef PMC_USE_WRF
+    write(filename,'(a,a,i3.3,a,i3.3,a,i3.3,a,i8.8,a)') trim(prefix), &
+         '_',env_state%ix,'_',env_state%iy,'_',env_state%iz,'_', index,'.nc'
+#else
     call make_filename(filename, prefix, ".nc", index, i_repeat, write_rank, &
          write_n_proc)
+#endif
     call pmc_nc_open_write(filename, ncid)
     call pmc_nc_write_info(ncid, uuid, &
          "PartMC version " // trim(PARTMC_VERSION), write_rank, write_n_proc)

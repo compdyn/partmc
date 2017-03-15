@@ -736,4 +736,187 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a real 4D array from a NetCDF file.
+  subroutine pmc_nc_get_4d_var_real(ncid, var, name, must_be_present)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Data to read.
+    real(kind=dp), allocatable, intent(out) :: var(:,:,:,:)
+    !> Variable name in NetCDF file.
+    character(len=*), intent(in) :: name
+    !> Whether the variable must be present in the NetCDF file
+    !> (default .true.).
+    logical, optional, intent(in) :: must_be_present
+
+    integer :: varid, status
+    logical :: use_must_be_present
+    integer :: dimids(4)
+    integer :: dim_size(4)
+    integer :: dim
+
+    if (present(must_be_present)) then
+       use_must_be_present = must_be_present
+    else
+       use_must_be_present = .true.
+    end if
+    status = nf90_inq_varid(ncid, name, varid)
+    if ((.not. use_must_be_present) .and. (status == NF90_ENOTVAR)) then
+       ! variable was not present, but that's ok
+       var = 0d0
+       return
+    end if
+
+    ! Find the varid
+    status = nf90_inq_varid(ncid, name, varid)
+    ! Inquire for the dimension IDs
+    call pmc_nc_check(nf90_inquire_variable(ncid, varid, dimids=dimids))
+    ! Loop over all the dimensions to get their lengths
+    do dim = 1, 4
+       call pmc_nc_check(nf90_inquire_dimension(ncid, dimids(dim), &
+            len=dim_size(dim)))
+    end do
+
+    ! Now allocate an array to hold the value
+    if (allocated(var)) deallocate(var)
+    allocate(var(dim_size(1),dim_size(2),dim_size(3),dim_size(4)))
+    call pmc_nc_check(nf90_get_var(ncid,varid,values=var))
+
+  end subroutine pmc_nc_get_4d_var_real
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read a integer 4D array from a NetCDF file.
+  subroutine pmc_nc_get_4d_var_int(ncid, var, name, must_be_present)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Data to read.
+    integer, allocatable, intent(out) :: var(:,:,:,:)
+    !> Variable name in NetCDF file.
+    character(len=*), intent(in) :: name
+    !> Whether the variable must be present in the NetCDF file
+    !> (default .true.).
+    logical, optional, intent(in) :: must_be_present
+
+    integer :: varid, status
+    logical :: use_must_be_present
+    integer :: dimids(4)
+    integer :: dim_size(4)
+    integer :: dim
+
+    if (present(must_be_present)) then
+       use_must_be_present = must_be_present
+    else
+       use_must_be_present = .true.
+    end if
+    status = nf90_inq_varid(ncid, name, varid)
+    if ((.not. use_must_be_present) .and. (status == NF90_ENOTVAR)) then
+       ! variable was not present, but that's ok
+       var = 0
+       return
+    end if
+
+    ! Find the varid
+    status = nf90_inq_varid(ncid, name, varid)
+    ! Inquire for the dimension IDs
+    call pmc_nc_check(nf90_inquire_variable(ncid, varid, dimids=dimids))
+    ! Loop over all the dimensions to get their lengths
+    do dim = 1, 4
+       call pmc_nc_check(nf90_inquire_dimension(ncid, dimids(dim), &
+            len=dim_size(dim)))
+    end do
+
+    ! Now allocate an array to hold the value
+    if (allocated(var)) deallocate(var)
+    allocate(var(dim_size(1),dim_size(2),dim_size(3),dim_size(4)))
+    call pmc_nc_check(nf90_get_var(ncid,varid,values=var))
+
+  end subroutine pmc_nc_get_4d_var_int
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read a real 3D array from a NetCDF file.
+  subroutine pmc_nc_get_3d_var_real(ncid, var, name, must_be_present)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Data to read.
+    real(kind=dp), allocatable, intent(out) :: var(:,:,:)
+    !> Variable name in NetCDF file.
+    character(len=*), intent(in) :: name
+    !> Whether the variable must be present in the NetCDF file
+    !> (default .true.).
+    logical, optional, intent(in) :: must_be_present
+
+    integer :: varid, status
+    logical :: use_must_be_present
+    integer :: dimids(3)
+    integer :: dim_size(3)
+    integer :: dim
+
+    if (present(must_be_present)) then
+       use_must_be_present = must_be_present
+    else
+       use_must_be_present = .true.
+    end if
+    status = nf90_inq_varid(ncid, name, varid)
+    if ((.not. use_must_be_present) .and. (status == NF90_ENOTVAR)) then
+       ! variable was not present, but that's ok
+       var = 0d0
+       return
+    end if
+
+    ! Find the varid
+    status = nf90_inq_varid(ncid, name, varid)
+    ! Inquire for the dimension IDs
+    call pmc_nc_check(nf90_inquire_variable(ncid, varid, dimids=dimids))
+    ! Loop over all the dimensions to get their lengths
+    do dim = 1, 3
+       call pmc_nc_check(nf90_inquire_dimension(ncid, dimids(dim), &
+            len=dim_size(dim)))
+    end do
+
+    ! Now allocate an array to hold the value
+    if (allocated(var)) deallocate(var)
+    allocate(var(dim_size(1),dim_size(2),dim_size(3)))
+    call pmc_nc_check(nf90_get_var(ncid,varid,values=var))
+
+  end subroutine pmc_nc_get_3d_var_real
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read a simple real 3D array from a NetCDF file.
+  subroutine pmc_nc_read_real_3d(ncid, var, name, must_be_present)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Data to read, must be correctly sized.
+    real(kind=dp), intent(out) :: var(:,:,:)
+    !> Variable name in NetCDF file.
+    character(len=*), intent(in) :: name
+    !> Whether the variable must be present in the NetCDF file
+    !> (default .true.).
+    logical, optional, intent(in) :: must_be_present
+
+    integer :: varid, status
+    logical :: use_must_be_present
+
+    if (present(must_be_present)) then
+       use_must_be_present = must_be_present
+    else
+       use_must_be_present = .true.
+    end if
+    status = nf90_inq_varid(ncid, name, varid)
+    if ((.not. use_must_be_present) .and. (status == NF90_ENOTVAR)) then
+       ! variable was not present, but that's ok
+       var = 0d0
+       return
+    end if
+    call pmc_nc_check_msg(status, "inquiring variable " // trim(name))
+    call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
+         "getting variable " // trim(name))
+
+  end subroutine pmc_nc_read_real_3d
+
 end module pmc_netcdf

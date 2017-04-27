@@ -9,6 +9,7 @@ matplotlib.use('PDF')
 import matplotlib.pyplot as plt
 
 matplotlib.rc('text', usetex = True)
+matplotlib.rc('text.latex', preview = True)
 matplotlib.rc('xtick.major', pad = 8)
 matplotlib.rc('ytick.major', pad = 8)
 matplotlib.rc('xtick', labelsize = 10)

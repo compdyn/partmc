@@ -312,6 +312,10 @@ contains
 
     character(len=len(prefix)+100) :: filename
     integer :: ncid
+#ifdef PMC_USE_WRF
+    character(len=50) :: group_name
+    integer :: ncid_group
+#endif
 
     !> \page output_format_general Output File Format: General Information
     !!
@@ -361,11 +365,17 @@ contains
     !!     processes that computed the data)
 
 #ifdef PMC_USE_WRF
-    write(filename,'(a,a,i3.3,a,i3.3,a,i3.3,a,i8.8,a)') trim(prefix), &
-         '_',env_state%ix,'_',env_state%iy,'_',env_state%iz,'_', index,'.nc'
+    !write(filename,'(a,a,i3.3,a,i3.3,a,i3.3,a,i8.8,a)') trim(prefix), &
+    !     '_',env_state%ix,'_',env_state%iy,'_',env_state%iz,'_', index,'.nc'
+    write(filename,'(a,a,i3.3,a,i3.3,a,i8.8,a)') trim(prefix), &
+         '_',env_state%ix,'_',env_state%iy,'_', index,'.nc'
 #else
     call make_filename(filename, prefix, ".nc", index, i_repeat, write_rank, &
          write_n_proc)
+#endif
+
+#ifdef PMC_USE_WRF
+if (env_state%iz == 1) then
 #endif
     call pmc_nc_open_write(filename, ncid)
     call pmc_nc_write_info(ncid, uuid, &
@@ -373,14 +383,34 @@ contains
     call write_time(ncid, time, del_t, index)
     call pmc_nc_write_integer(ncid, i_repeat, "repeat", &
          description="repeat number of this simulation (starting from 1)")
+#ifdef PMC_USE_WRF
+else
+    call pmc_nc_check_msg(nf90_open(filename, NF90_WRITE, ncid), &
+         "opening " // trim(filename) // " for reading")
+end if
+#endif
 
+! FIXME: We can do better here
+#ifdef PMC_USE_WRF
+    call pmc_nc_check_msg(nf90_redef(ncid),'in define mode')
+    write(group_name,'(a,i2.2)') 'level_', env_state%iz
+    call pmc_nc_check_msg(nf90_def_grp(ncid,group_name,ncid_group), &
+         'creating group')
+    call pmc_nc_check_msg(nf90_enddef(ncid),'end define mode')
+    call env_state_output_netcdf(env_state, ncid_group)
+    call gas_data_output_netcdf(gas_data, ncid_group)
+    call gas_state_output_netcdf(gas_state, ncid_group, gas_data)
+    call aero_data_output_netcdf(aero_data, ncid_group)
+    call aero_state_output_netcdf(aero_state, ncid_group, aero_data, &
+         record_removals, record_optical)
+#else
     call env_state_output_netcdf(env_state, ncid)
     call gas_data_output_netcdf(gas_data, ncid)
     call gas_state_output_netcdf(gas_state, ncid, gas_data)
     call aero_data_output_netcdf(aero_data, ncid)
     call aero_state_output_netcdf(aero_state, ncid, aero_data, &
          record_removals, record_optical)
-
+#endif
     call pmc_nc_check(nf90_close(ncid))
 
   end subroutine output_state_to_file

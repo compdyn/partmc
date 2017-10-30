@@ -135,13 +135,13 @@ coag_kernel_zero.o: bin_grid.o env_state.o util.o aero_binned.o \
      aero_dist.o aero_data.o aero_particle.o scenario.o
 
 coagulation.o: bin_grid.o aero_data.o util.o env_state.o \
-     aero_state.o aero_weight.o mpi.o coag_kernel.o \
+     aero_state.o aero_weight.o mpi.o coag_kernel.o stats.o \
      aero_sorted.o
 
 coagulation_dist.o: bin_grid.o aero_data.o util.o env_state.o \
      aero_state.o coagulation.o mpi.o
 
-constants.o: constants.F90
+constants.o:
 
 env_state.o: constants.o util.o spec_file.o mpi.o netcdf.o
 
@@ -149,7 +149,7 @@ fractal.o: spec_file.o constants.o netcdf.o mpi.o
 
 gas_data.o: spec_file.o mpi.o util.o netcdf.o
 
-gas_state.o:util.o spec_file.o gas_data.o mpi.o netcdf.o
+gas_state.o:util.o spec_file.o gas_data.o mpi.o netcdf.o env_state.o
 
 integer_rmap.o: integer_varray.o util.o mpi.o
 
@@ -162,7 +162,7 @@ mosaic.o: aero_data.o aero_state.o constants.o env_state.o \
 
 mpi.o: util.o
 
-netcdf.o: util.o
+netcdf.o: util.o rand.o
 #	mpif90 -c netcdf.F90 -I/data/keeling/a/jcurtis2/support/netcdf4-4.1.2/include/
 
 nucleate.o: env_state.o aero_state.o aero_data.o gas_data.o gas_state.o

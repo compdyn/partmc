@@ -588,6 +588,40 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Determines the number of bytes required to pack the given value.
+  integer function pmc_mpi_pack_size_real_array_5d(val)
+
+    !> Value to pack.
+    real(kind=dp), allocatable, intent(in) :: val(:,:,:,:,:)
+
+    integer :: ierr, total_size
+
+#ifdef PMC_USE_MPI
+    logical :: is_allocated
+
+    total_size = 0
+    is_allocated = allocated(val)
+    if (is_allocated) then
+       call mpi_pack_size(size(val), MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, &
+            total_size, ierr)
+       call pmc_mpi_check_ierr(ierr)
+       total_size = total_size + pmc_mpi_pack_size_integer(size(val,1)) &
+         + pmc_mpi_pack_size_integer(size(val,2)) &
+         + pmc_mpi_pack_size_integer(size(val,3)) &
+         + pmc_mpi_pack_size_integer(size(val,4)) &
+         + pmc_mpi_pack_size_integer(size(val,5))
+    end if
+    total_size = total_size + pmc_mpi_pack_size_logical(is_allocated)
+#else
+    total_size = 0
+#endif
+
+    pmc_mpi_pack_size_real_array_5d = total_size
+
+  end function pmc_mpi_pack_size_real_array_5d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Packs the given value into the buffer, advancing position.
   subroutine pmc_mpi_pack_integer(buffer, position, val)
 
@@ -881,6 +915,46 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Packs the given value into the buffer, advancing position.
+  subroutine pmc_mpi_pack_real_array_5d(buffer, position, val)
+
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    real(kind=dp), allocatable, intent(in) :: val(:,:,:,:,:)
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, n1, n2, n3, n4, n5, ierr
+    logical :: is_allocated
+
+    prev_position = position
+    is_allocated = allocated(val)
+    call pmc_mpi_pack_logical(buffer, position, is_allocated)
+    if (is_allocated) then
+       n1 = size(val, 1)
+       n2 = size(val, 2)
+       n3 = size(val, 3)
+       n4 = size(val, 4)
+       n5 = size(val, 5)
+       call pmc_mpi_pack_integer(buffer, position, n1)
+       call pmc_mpi_pack_integer(buffer, position, n2)
+       call pmc_mpi_pack_integer(buffer, position, n3)
+       call pmc_mpi_pack_integer(buffer, position, n4)
+       call pmc_mpi_pack_integer(buffer, position, n5)
+       call mpi_pack(val, n1*n2*n3*n4*n5, MPI_DOUBLE_PRECISION, buffer, &
+            position, MPI_COMM_WORLD, ierr)
+       call pmc_mpi_check_ierr(ierr)
+    end if
+    call assert(567349745, &
+         position - prev_position <= pmc_mpi_pack_size_real_array_5d(val))
+#endif
+
+  end subroutine pmc_mpi_pack_real_array_5d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Unpacks the given value from the buffer, advancing position.
   subroutine pmc_mpi_unpack_integer(buffer, position, val)
 
@@ -1169,6 +1243,42 @@ contains
 #endif
 
   end subroutine pmc_mpi_unpack_real_array_3d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpacks the given value from the buffer, advancing position.
+  subroutine pmc_mpi_unpack_real_array_5d(buffer, position, val)
+
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    real(kind=dp), allocatable, intent(inout) :: val(:,:,:,:,:)
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, n1, n2, n3, n4, n5, ierr
+    logical :: is_allocated
+
+    prev_position = position
+    call pmc_mpi_unpack_logical(buffer, position, is_allocated)
+    if (allocated(val)) deallocate(val)
+    if (is_allocated) then
+       call pmc_mpi_unpack_integer(buffer, position, n1)
+       call pmc_mpi_unpack_integer(buffer, position, n2)
+       call pmc_mpi_unpack_integer(buffer, position, n3)
+       call pmc_mpi_unpack_integer(buffer, position, n4)
+       call pmc_mpi_unpack_integer(buffer, position, n5)
+       allocate(val(n1,n2,n3,n4,n5))
+       call mpi_unpack(buffer, size(buffer), position, val, n1*n2*n3*n4*n5, &
+            MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr)
+       call pmc_mpi_check_ierr(ierr)
+    end if
+    call assert(781681739, position - prev_position &
+         <= pmc_mpi_pack_size_real_array_5d(val))
+#endif
+
+  end subroutine pmc_mpi_unpack_real_array_5d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

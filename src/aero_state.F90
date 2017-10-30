@@ -831,8 +831,10 @@ contains
     type(aero_info_t) :: aero_info
 
     call assert(721006962, (sample_prob >= 0d0) .and. (sample_prob <= 1d0))
-!    call aero_state_zero(aero_state_to)
-!    call aero_state_copy_weight(aero_state_from, aero_state_to)
+#ifndef PMC_USE_WRF
+    call aero_state_zero(aero_state_to)
+    call aero_state_copy_weight(aero_state_from, aero_state_to)
+#endif
     n_transfer = rand_binomial(aero_state_total_particles(aero_state_from), &
          sample_prob)
     i_transfer = 0
@@ -863,19 +865,12 @@ contains
        if (do_add) then
           call aero_state_add_particle(aero_state_to, &
                aero_state_from%apa%particle(i_part), aero_data)
-          if (.not.do_remove) then
+          ! If we don't remove, we need to change the ID
+          if (.not. do_remove) then
              call aero_particle_new_id(aero_state_to%apa% &
                  particle(aero_state_to%apa%n_part))
           end if
        end if
-       ! Check to make sure we aren't having a particle number problem
-       i_group = aero_state_from%apa%particle(i_part)%weight_group
-       i_class = aero_state_from%apa%particle(i_part)%weight_class
-       do while (real(aero_state_total_particles(aero_state_to, &
-                  i_group, i_class), kind=dp) &
-                  > aero_state_to%n_part_ideal(i_group, i_class) * 2d0)
-                call aero_state_halve(aero_state_to, i_group, i_class)
-       end do
        if (do_remove) then
           if (removal_action /= AERO_INFO_NONE) then
              aero_info%id = aero_state_from%apa%particle(i_part)%id

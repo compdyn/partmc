@@ -1,0 +1,19 @@
+# blacklist all
+*
+
+# whitelist things to copy
+!CMakeLists.txt
+!docker/
+!src/
+!test/
+!tool/
+
+# scenarios are whitelisted, but out/ subdirs are blacklisted again
+!scenarios/1_urban_plume/
+scenarios/1_urban_plume/out
+!scenarios/1_urban_plume2/
+scenarios/2_urban_plume2/out
+!scenarios/3_condense
+scenarios/3_condense/out
+!scenarios/4_chamber
+scenarios/4_chamber/out

@@ -73,8 +73,13 @@ contains
     !> NetCDF file ID, in data mode, returns in data mode.
     integer, intent(out) :: ncid
 
+#ifdef PMC_USE_WRF
+    call pmc_nc_check_msg(nf90_create(filename, NF90_HDF5, ncid), &
+         "opening " // trim(filename) // " for writing")
+#else
     call pmc_nc_check_msg(nf90_create(filename, NF90_CLOBBER, ncid), &
          "opening " // trim(filename) // " for writing")
+#endif
     call pmc_nc_check(nf90_enddef(ncid))
 
   end subroutine pmc_nc_open_write

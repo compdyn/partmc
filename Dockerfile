@@ -16,5 +16,3 @@ RUN mkdir /build \
     && cd /build \
     && cmake /partmc \
     && make
-
-CMD /build/partmc

@@ -4,6 +4,10 @@ PartMC
 
 PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
+[![Docker build status](https://img.shields.io/docker/automated/compdyn/partmc.svg)](https://cloud.docker.com/swarm/compdyn/repository/docker/compdyn/partmc/builds)
+
+[![CI Status](https://img.shields.io/travis/compdyn/partmc/master.svg)](https://travis-ci.org/compdyn/partmc)
+
 Version 2.4.0  
 Released 2017-02-14
 
@@ -66,6 +70,45 @@ Licensed under the GNU General Public License version 2 or (at your
 option) any later version.  
 For details see the file COPYING or
 <http://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
+
+
+Running PartMC with Docker
+==========================
+
+This is the fastest way to get running.
+
+* **_Step 1:_** Install [Docker Community Edition](https://www.docker.com/community-edition).
+    * On Linux and MacOS this is straightforward. [Download from here](https://store.docker.com/search?type=edition&offering=community).
+    * On Windows the best version is [Docker Community Edition for Windows](https://store.docker.com/editions/community/docker-ce-desktop-windows), which requires Windows 10 Pro/Edu.
+
+* **_Step 2:_** (Optional) Run the PartMC test suite with:
+
+```text
+docker run --rm compdyn/partmc bash -c 'cd /build; make test'
+```
+
+* **_Step 3:_** Run a scenario like the following. This example uses `partmc/scenarios/4_chamber`. This mounts the current directory (`$PWD`, replace with `%cd%` on Windows) into `/run` inside the container, changes into that directory, and then runs PartMC.
+
+```text
+cd partmc/scenarios/4_chamber
+docker run --rm -v $PWD:/run compdyn/partmc bash -c 'cd /run; /build/partmc chamber.spec'
+```
+
+In the above `docker run` command the arguments are:
+
+- `--rm`: remove temporary docker container files after running
+- `-v LOCAL:REMOTE`: mount the `LOCAL` directory to the `REMOTE` directory inside the container
+- `compdyn/partmc`: the docker image to run
+- `bash -c 'COMMAND'`: run `COMMAND` inside the docker container
+
+The directory structure inside the docker container is:
+
+```text
+/partmc           # a copy of the partmc git source code repository
+/build            # the diretory in which partmc was compiled
+/build/partmc     # the compiled partmc executable
+/run              # the default diretory to run in
+```
 
 
 Dependencies

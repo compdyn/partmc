@@ -84,18 +84,19 @@ This is the fastest way to get running.
 * **_Step 2:_** (Optional) Run the PartMC test suite with:
 
 ```text
-docker run --rm compdyn/partmc bash -c 'cd /build; make test'
+docker run -it --rm compdyn/partmc bash -c 'cd /build; make test'
 ```
 
 * **_Step 3:_** Run a scenario like the following. This example uses `partmc/scenarios/4_chamber`. This mounts the current directory (`$PWD`, replace with `%cd%` on Windows) into `/run` inside the container, changes into that directory, and then runs PartMC.
 
 ```text
 cd partmc/scenarios/4_chamber
-docker run --rm -v $PWD:/run compdyn/partmc bash -c 'cd /run; /build/partmc chamber.spec'
+docker run -it --rm -v $PWD:/run compdyn/partmc bash -c 'cd /run; /build/partmc chamber.spec'
 ```
 
 In the above `docker run` command the arguments are:
 
+- `-it`: activates "interactive" mode so Ctrl-C works to kill the command
 - `--rm`: remove temporary docker container files after running
 - `-v LOCAL:REMOTE`: mount the `LOCAL` directory to the `REMOTE` directory inside the container
 - `compdyn/partmc`: the docker image to run

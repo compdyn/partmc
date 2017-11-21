@@ -41,10 +41,10 @@ find_path(NETCDF_INCLUDE_DIR netcdf.mod NETCDF.mod
   /opt/local/include)
 find_library(NETCDF_C_LIB netcdf
   DOC "NetCDF C library"
-  PATHS $ENV{NETCDF_HOME}/lib /opt/local/lib)
+  PATHS $ENV{NETCDF_HOME}/lib $ENV{NETCDF_HOME}/lib64 /opt/local/lib)
 find_library(NETCDF_FORTRAN_LIB netcdff
   DOC "NetCDF Fortran library"
-  PATHS $ENV{NETCDF_HOME}/lib /opt/local/lib)
+  PATHS $ENV{NETCDF_HOME}/lib $ENV{NETCDF_HOME}/lib64 /opt/local/lib)
 set(NETCDF_LIBS ${NETCDF_C_LIB})
 if(NETCDF_FORTRAN_LIB)
   set(NETCDF_LIBS ${NETCDF_LIBS} ${NETCDF_FORTRAN_LIB})
@@ -126,6 +126,8 @@ endif()
 enable_testing()
 add_custom_target(copy_test ALL ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/test ${CMAKE_BINARY_DIR}/test_run)
 set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES test_run)
+
+add_test(unit_test_property ${CMAKE_BINARY_DIR}/unit_test_property)
 
 add_test(test_additive_1 ${CMAKE_BINARY_DIR}/test_run/additive/test_additive_1.sh)
 add_test(test_additive_2 ${CMAKE_BINARY_DIR}/test_run/additive/test_additive_2.sh)
@@ -288,6 +290,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/aero_particle.F90 src/aero_particle_array.F90 src/mpi.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
   src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
+  src/property.F90
   ${SUNDIALS_SRC} ${GSL_SRC}
   ${C_SORT_SRC})
 
@@ -302,6 +305,13 @@ set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
 add_executable(partmc src/partmc.F90)
 
 target_link_libraries(partmc partmclib)
+
+######################################################################
+# test_property
+
+add_executable(unit_test_property test/unit_property/test_property.F90)
+
+target_link_libraries(unit_test_property partmclib)
 
 ######################################################################
 # test_bidisperse_ode

@@ -1,11 +1,6 @@
 sudo: required
 services:
   - docker
-branches:
-  only:
-  - master
-  - /^[0-9]+\.[0-9]+$/
-  - code-coverage
 notifications:
   slack:
     secure: M0qIzBBPdALrMaY2Sx0n/4pIWsN4/fOjunAGyG5AyhoRHPyNj1ILt5MQ5N/fBnidv5Mt7g7h15a4TKbhxeVxvQj5fKLjdl1Q0rUHhukw32SIl4XACQEfagR1uTf/1/yWRlweZct3MNiUE0KELgUOq3hjB/nKJcvtnqZRtsMhsipqD9uIFoooT6IrFzOH1QtGkjDV9jebu/l/qLULB06VPNANGiD3btB32NvNRBLsERhy/1+76oOgnP7eLA6GFPnH1zBsRd9TlNYzi3h3jsma0qBXtJrURwHAcqOTM5ygP9kMEEIDsxUn0UcFHQgjpN8SBWaxi2uPQzzQ3OuaVbkSjHHc58YoGyKtWuunqywds1rocneB2OwUJB1As7b0GwPJnw3B0rfSLNqz0kCzDhfNy4qDtZEx433hxJIvyYq+1Zm5NZPVdrU8Fow3zOQl2/AHjE3XdJyJt2npQGoDbm1tHHcLsh7EG1J5E9+Cb2t1obXO8omckSw4hji/UCB0LZ14alamqnhjqhzHOJhliEl/1NAVvn3ife0fu1o0YBgHhzXcWYv8HZ9nx6n+5P7XDPHuM4u4RQAnVLnK/YVaqS10gtlVKNRk4TDKYLBudQJ9rX5pE5uPZBE1Hf74haUQKjtQ/ugu8iRWeIuhr6dqIqeBUQj9CWrqhxTl+MjTqfe3LZs=

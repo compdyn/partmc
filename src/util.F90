@@ -28,6 +28,12 @@ module pmc_util
   !> Maximum length of filenames.
   integer, parameter :: PMC_MAX_FILENAME_LEN = 300
 
+  !> Interface for to_string functions
+  interface to_string
+    module procedure integer_to_string, real_to_string, logical_to_string, &
+                    complex_to_string
+  end interface to_string
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

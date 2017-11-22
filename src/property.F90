@@ -2,13 +2,17 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
+! TODO Figure out a way to avoid type-specific value getter functions
+! Seems like this should be possible with class(*)?
+
 !> \file
 !> The pmc_property module.
 
 !> The property_t structure and associated subroutines.
 module pmc_property
 
-  use pmc_constants,                only : i_kind
+  use pmc_constants,                only : i_kind, dp
+  use pmc_util,                     only : die_msg
 
   implicit none
   private
@@ -24,11 +28,11 @@ module pmc_property
     !> Number of elements
     integer(kind=i_kind) :: num_elem = 0
     !> First element in the set
-    class(property_link_t), pointer :: first_link => null()
+    type(property_link_t), pointer :: first_link => null()
     !> Last element in the set
-    class(property_link_t), pointer :: last_link => null()
+    type(property_link_t), pointer :: last_link => null()
     !> Iterator
-    class(property_link_t), pointer :: curr_link => null()
+    type(property_link_t), pointer :: curr_link => null()
   contains
     !> Put a value in the data set
     procedure :: put => pmc_property_put
@@ -42,6 +46,8 @@ module pmc_property
     procedure :: iter_curr => pmc_property_iter_curr
     !> Increment the iterator
     procedure :: iter_next => pmc_property_iter_next
+    !> Finalize
+    final :: pmc_property_final
   end type property_t
 
   !> Constructor for property_t
@@ -60,12 +66,24 @@ module pmc_property
     !> Value
     class(*), pointer :: val => null()
     !> Next link
-    class(property_link_t), pointer :: next_link => null()
+    type(property_link_t), pointer :: next_link => null()
   contains
     !> Get the key name
     procedure :: key => pmc_property_link_key
-    !> Get the value
-    procedure :: value => pmc_property_link_value
+    !> Set the value
+    procedure, private :: set_value => pmc_property_link_set_value
+    !> Get the int value
+    procedure :: value_int => pmc_property_link_value_int
+    !> Get the real value
+    procedure :: value_real => pmc_property_link_value_real
+    !> Get the logical value
+    procedure :: value_logical => pmc_property_link_value_logical
+    !> Get the string value
+    procedure :: value_string => pmc_property_link_value_string
+    !> Get the property sub-set
+    procedure :: value_property_t => pmc_property_link_value_property_t
+    !> Finalize
+    final :: pmc_property_link_final
   end type property_link_t
 
   !> Constructor for link
@@ -80,8 +98,8 @@ contains
   !> Constructor for property_t
   function pmc_property_constructor() result(new_obj)
 
-    !> Pointer to new property set
-    class(property_t), pointer :: new_obj
+    !> A new property set
+    type(property_t), pointer :: new_obj
 
     allocate(new_obj)
 
@@ -100,13 +118,13 @@ contains
     class(*), intent(in) :: val
 
     !> New link
-    class(property_link_t), pointer :: new_link
+    type(property_link_t), pointer :: new_link
 
     new_link => this%get(key)
 
     if (associated(new_link)) then
       if (associated(new_link%val)) deallocate(new_link%val)
-      allocate(new_link%val, source=val)
+      call new_link%set_value(val)
       return
     end if
 
@@ -130,13 +148,13 @@ contains
   function pmc_property_get(this, key) result(found_pair)
 
     !> Pointer to property key-value pair
-    class(property_link_t), pointer :: found_pair
+    type(property_link_t), pointer :: found_pair
     !> Property dataset
     class(property_t), intent(in) :: this
     !> Key name to search for
     character(len=*), intent(in) :: key
 
-    class(property_link_t), pointer :: curr_link
+    type(property_link_t), pointer :: curr_link
 
     found_pair => null()
     curr_link => this%first_link
@@ -160,7 +178,7 @@ contains
     !> Property dataset
     class(property_t), intent(in) :: this
     
-    class(property_link_t), pointer :: curr_link
+    type(property_link_t), pointer :: curr_link
 
     size = 0
     curr_link => this%first_link
@@ -190,7 +208,7 @@ contains
   function pmc_property_iter_curr(this) result(curr_link)
 
     !> Pointer to current property key-value pair
-    class(property_link_t), pointer :: curr_link
+    type(property_link_t), pointer :: curr_link
     !> Property dataset
     class(property_t), intent(in) :: this
 
@@ -212,11 +230,29 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Finalize a property_t variable
+  elemental subroutine pmc_property_final(this)
+
+    !> Property dataset
+    type(property_t), intent(inout) :: this
+    type(property_link_t), pointer :: curr, next
+
+    next => this%first_link
+    do while (associated(next))
+      curr => next
+      next => curr%next_link 
+      deallocate(curr)
+    end do
+
+  end subroutine pmc_property_final
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Constructor for property_link_t
   function pmc_property_link_constructor(key, val) result(new_obj)
 
     !> Pointer to new property key-value pair
-    class(property_link_t), pointer :: new_obj
+    type(property_link_t), pointer :: new_obj
     !> Key name
     character(len=*), intent(in) :: key
     !> New value
@@ -225,7 +261,7 @@ contains
     allocate(new_obj)
     new_obj%key_name = trim(key)
     new_obj%next_link => null()
-    allocate(new_obj%val, source=val)
+    call new_obj%set_value(val)
 
   end function pmc_property_link_constructor
 
@@ -245,20 +281,158 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the value of a property
-  function pmc_property_link_value(this) result(val)
+  !> Set the value of a property key-value pair
+  subroutine pmc_property_link_set_value(this, val)
+
+    !> Property key-value pair
+    class(property_link_t), intent(inout) :: this
+    !> New value
+    class(*), intent(in) :: val
+
+    select type (val)
+      type is (integer(kind=i_kind))
+      type is (real(kind=dp))
+      type is (logical)
+      type is (character(len=*))
+      type is (property_t)
+      class default
+        call die_msg(555557200,"Invalid property data type")
+    end select
+
+    allocate(this%val, source=val)
+
+  end subroutine pmc_property_link_set_value
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the int value of a property
+  function pmc_property_link_value_int(this) result(val)
 
     !> Value
-    class(*), allocatable :: val
+    integer(kind=i_kind) :: val
     !> Property key-value pair
     class(property_link_t), intent(in) :: this
-    
-    allocate(val, source=this%val)
 
-  end function pmc_property_link_value
+    class(*), pointer :: this_val
+
+    this_val => this%val
+    select type(this_val)
+      type is (integer(kind=i_kind))
+        val = this_val
+    end select
+
+  end function pmc_property_link_value_int
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the real value of a property
+  function pmc_property_link_value_real(this) result(val)
+
+    !> Value
+    real(kind=dp) :: val
+    !> Property key-value pair
+    class(property_link_t), intent(in) :: this
+
+    class(*), pointer :: this_val
+
+    this_val => this%val
+    select type(this_val)
+      type is (real(kind=dp))
+        val = this_val
+      class default
+        call die_msg(151463892, "Property type mismatch")
+    end select
+
+  end function pmc_property_link_value_real
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the logical value of a property
+  function pmc_property_link_value_logical(this) result(val)
+
+    !> Value
+    logical :: val
+    !> Property key-value pair
+    class(property_link_t), intent(in) :: this
+
+    class(*), pointer :: this_val
+
+    this_val => this%val
+    select type(this_val)
+      type is (logical)
+        val = this_val
+      class default
+        call die_msg(371288570, "Property type mismatch")
+    end select
+
+  end function pmc_property_link_value_logical
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the string value of a property
+  function pmc_property_link_value_string(this) result(val)
+
+    !> Value
+    character(:), pointer :: val
+    !> Property key-value pair
+    class(property_link_t), intent(in) :: this
+
+    class(*), pointer :: this_val
+
+    this_val => this%val
+    select type(this_val)
+      type is (character(len=*))
+        val => this_val
+      class default
+        call die_msg(192508586, "Property type mismatch")
+    end select
+
+  end function pmc_property_link_value_string
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the property_t value of a property
+  function pmc_property_link_value_property_t(this) result(val)
+
+    !> Value
+    type(property_t), pointer :: val
+    !> Property key-value pair
+    class(property_link_t), intent(in) :: this
+
+    class(*), pointer :: this_val
+
+    this_val => this%val
+    select type(this_val)
+      type is (property_t)
+        val => this_val
+      class default
+        call die_msg(641781966, "Property type mismatch")
+    end select
+
+  end function pmc_property_link_value_property_t
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Finalize the property_link_t variable
+  elemental subroutine pmc_property_link_final(this)
+
+    !> Property key-value pair
+    type(property_link_t), intent(inout) :: this
+
+    class(*), pointer :: this_val
+
+    if (associated(this%val)) then
+      this_val => this%val
+      select type (this_val)
+        type is (property_t)
+          deallocate(this_val)
+      end select
+    end if
+
+    if (allocated(this%key_name)) deallocate(this%key_name)
+
+  end subroutine pmc_property_link_final
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_property
-
-

@@ -19,6 +19,7 @@ option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
+option(ENABLE_JSON "Enable json-fortran support" ON)
 
 ######################################################################
 # CPack
@@ -118,6 +119,20 @@ if(ENABLE_SUNDIALS)
   set(SUNDIALS_SRC src/condense_solver.c)
   include_directories(${SUNDIALS_INCLUDE_DIR})
   add_definitions(-DPMC_USE_SUNDIALS)
+endif()
+
+######################################################################
+# json-fortran
+
+if (ENABLE_JSON)
+  find_path(JSON_INCLUDE_DIR json_module.mod
+    DOC "json-fortran include directory (must have json_module.mod)"
+    PATHS /opt/local/include)
+  find_library(JSON_LIB jsonfortran
+    DOC "json-fortran library"
+    PATHS /opt/local/lib)
+  include_directories(${JSON_INCLUDE_DIR})
+  add_definitions(-DPMC_USE_JSON)
 endif()
 
 ######################################################################
@@ -295,7 +310,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   ${C_SORT_SRC})
 
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
-  ${MOSAIC_LIB} ${GSL_LIBS})
+  ${MOSAIC_LIB} ${GSL_LIBS} ${JSON_LIB})
 
 set_target_properties(partmclib PROPERTIES OUTPUT_NAME partmc)
 

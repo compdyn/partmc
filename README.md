@@ -132,6 +132,8 @@ Optional dependencies:
    * SUNDIALS ODE solver version 2.6 for condensation support -
      <http://www.llnl.gov/casc/sundials/>
    * gnuplot for testcase plotting - <http://www.gnuplot.info/>
+   * json-fortran for JSON input file support -
+     <https://github.com/jacobwilliams/json-fortran>
 
 
 Installation

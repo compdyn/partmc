@@ -5,6 +5,8 @@
 ! TODO Figure out a way to avoid type-specific value getter functions
 ! Seems like this should be possible with class(*)?
 
+! TODO Figure out a way to avoid a string-specific put function
+
 !> \file
 !> The pmc_property module.
 
@@ -12,7 +14,11 @@
 module pmc_property
 
   use pmc_constants,                only : i_kind, dp
-  use pmc_util,                     only : die_msg
+  use pmc_util,                     only : die_msg, warn_msg
+
+#ifdef PMC_USE_JSON
+  use json_module
+#endif
 
   implicit none
   private
@@ -34,7 +40,9 @@ module pmc_property
     !> Iterator
     type(property_link_t), pointer :: curr_link => null()
   contains
-    !> Put a value in the data set
+    !> Put a string in the data set
+    procedure :: put_string => pmc_property_put_string
+    !> Put a non-string value in the data set
     procedure :: put => pmc_property_put
     !> Find a key-value pair by key name
     procedure :: get => pmc_property_get
@@ -46,6 +54,8 @@ module pmc_property
     procedure :: iter_curr => pmc_property_iter_curr
     !> Increment the iterator
     procedure :: iter_next => pmc_property_iter_next
+    !> Load input data
+    procedure :: load => pmc_property_load
     !> Finalize
     final :: pmc_property_final
   end type property_t
@@ -91,6 +101,13 @@ module pmc_property
     procedure pmc_property_link_constructor
   end interface property_link_t
 
+  !> Internal use type for string data
+  type string_t
+    private
+    !> String value
+    character(len=:), allocatable :: string
+  end type string_t
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -108,12 +125,32 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Put an element in the property data set
+  subroutine pmc_property_put_string(this, key, val)
+
+    !> Property data set
+    class(property_t), intent(inout) :: this
+    !> New key
+    character(len=:), allocatable, intent(in) :: key
+    !> New value
+    character(len=:), allocatable, intent(in) :: val
+
+    type(string_t) :: str_val
+
+    str_val%string = val
+
+    call this%put(key, str_val)
+
+  end subroutine pmc_property_put_string
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Put an element in the property data set
   subroutine pmc_property_put(this, key, val)
 
     !> Property data set
     class(property_t), intent(inout) :: this
     !> New key
-    character(len=*), intent(in) :: key
+    character(len=:), allocatable, intent(in) :: key
     !> New value
     class(*), intent(in) :: val
 
@@ -152,7 +189,7 @@ contains
     !> Property dataset
     class(property_t), intent(in) :: this
     !> Key name to search for
-    character(len=*), intent(in) :: key
+    character(len=:), allocatable, intent(in) :: key
 
     type(property_link_t), pointer :: curr_link
 
@@ -230,6 +267,80 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Load a property set from input data
+#ifdef PMC_USE_JSON
+  recursive subroutine pmc_property_load(this, json, j_obj, as_object)
+
+    !> Property dataset
+    class(property_t), intent(inout) :: this
+    !> JSON core
+    type(json_core), pointer, intent(in) :: json
+    !> JSON object
+    type(json_value), pointer, intent(in) :: j_obj
+    !> Set to true if j_obj is a json object to parse, adding all child 
+    !! key-value pairs to the data set, or false if j_obj is a single
+    !! key-value pair to add to the data set
+    logical :: as_object
+
+    type(json_value), pointer :: child, next
+    type(property_t), pointer :: sub_prop
+    character(kind=json_ck, len=:), allocatable :: unicode_prop_key
+    character(len=:), allocatable :: prop_key
+
+    character(kind=json_ck, len=:), allocatable :: unicode_val
+    character(len=:), allocatable :: str_val
+    logical(json_lk)     :: bool_val
+    real(json_rk)        :: real_val
+    integer(json_ik)     :: int_val
+
+    integer(json_ik)     :: var_type
+
+    next => null()
+    if (as_object) then 
+      call json%get_child(j_obj, child)
+    else 
+      child => j_obj
+    end if
+    do while (associated(child))
+      call json%info(child, name=unicode_prop_key, var_type=var_type)
+      prop_key = unicode_prop_key
+      select case (var_type)
+        case (json_null)
+        case (json_integer)
+          call json%get(child, int_val)
+          call this%put(prop_key, int(int_val, i_kind))
+        case (json_double)
+          call json%get(child, real_val)
+          call this%put(prop_key, real(real_val, dp))
+        case (json_logical)
+          call json%get(child, bool_val)
+          call this%put(prop_key, logical(bool_val))
+        case (json_string)
+          call json%get(child, unicode_val)
+          str_val = unicode_val
+          call this%put(prop_key, str_val)
+        case (json_object)
+          allocate(sub_prop)
+          sub_prop = property_t()
+          call sub_prop%load(json, child, .true.)
+          call this%put(prop_key, sub_prop)
+        case default
+      end select
+      if (as_object) call json%get_next(child, next)
+      child => next
+    end do
+#else
+  subroutine pmc_property_load(this)
+
+    !> Property dataset
+    class(property_t), intent(inout) :: this
+
+    call warn_msg(733896496, "No support for input files.")
+#endif
+  end subroutine pmc_property_load
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Finalize a property_t variable
   elemental subroutine pmc_property_final(this)
 
@@ -254,7 +365,7 @@ contains
     !> Pointer to new property key-value pair
     type(property_link_t), pointer :: new_obj
     !> Key name
-    character(len=*), intent(in) :: key
+    character(len=:), allocatable, intent(in) :: key
     !> New value
     class(*), intent(in) :: val
 
@@ -289,14 +400,21 @@ contains
     !> New value
     class(*), intent(in) :: val
 
-    select type (val)
+    type(string_t), pointer :: str_val
+
+    select type(val)
       type is (integer(kind=i_kind))
       type is (real(kind=dp))
       type is (logical)
+      type is (string_t)
+      class is (property_t)
       type is (character(len=*))
-      type is (property_t)
+        allocate(str_val)
+        str_val%string = val
+        allocate(this%val, source=str_val)
+        return
       class default
-        call die_msg(555557200,"Invalid property data type")
+        call die_msg(728532218, "Unsupported property type")
     end select
 
     allocate(this%val, source=val)
@@ -380,11 +498,11 @@ contains
     class(*), pointer :: this_val
 
     this_val => this%val
-    select type(this_val)
-      type is (character(len=*))
-        val => this_val
+    select type (this_val)
+      type is (string_t)
+        val => this_val%string
       class default
-        call die_msg(192508586, "Property type mismatch")
+        call die_msg(153505401, "Property type mismatch")
     end select
 
   end function pmc_property_link_value_string
@@ -424,7 +542,7 @@ contains
     if (associated(this%val)) then
       this_val => this%val
       select type (this_val)
-        type is (property_t)
+        class is (property_t)
           deallocate(this_val)
       end select
     end if

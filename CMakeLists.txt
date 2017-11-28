@@ -127,10 +127,10 @@ endif()
 if (ENABLE_JSON)
   find_path(JSON_INCLUDE_DIR json_module.mod
     DOC "json-fortran include directory (must have json_module.mod)"
-    PATHS /opt/local/include)
+    PATHS /opt/local/include /usr/local/include /usr/local/jsonfortran-gnu-6.1.0/lib)
   find_library(JSON_LIB jsonfortran
     DOC "json-fortran library"
-    PATHS /opt/local/lib)
+    PATHS /opt/local/lib /usr/local/lib /usr/local/jsonfortran-gnu-6.1.0/lib)
   include_directories(${JSON_INCLUDE_DIR})
   add_definitions(-DPMC_USE_JSON)
 endif()

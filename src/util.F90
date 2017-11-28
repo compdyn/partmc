@@ -34,7 +34,33 @@ module pmc_util
                     complex_to_string
   end interface to_string
 
+  !> String type for building arrays of string of various size
+  type string_t
+    !> String value
+    character(len=:), allocatable :: string
+  end type string_t
+
+  !> Constructor for string_t
+  interface string_t
+    procedure :: string_t_constructor
+  end interface string_t
+
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Constructor for string_t
+  function string_t_constructor(val) result(new_obj)
+
+    !> A new string
+    type(string_t), pointer :: new_obj
+    !> String value
+    character(len=:), allocatable :: val
+
+    allocate(new_obj)
+    new_obj%string = val
+
+  end function string_t_constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

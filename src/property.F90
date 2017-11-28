@@ -14,7 +14,7 @@
 module pmc_property
 
   use pmc_constants,                only : i_kind, dp
-  use pmc_util,                     only : die_msg, warn_msg
+  use pmc_util,                     only : die_msg, warn_msg, to_string, string_t
 
 #ifdef PMC_USE_JSON
   use json_module
@@ -23,7 +23,7 @@ module pmc_property
   implicit none
   private
 
-  public :: property_t, property_link_t
+  public :: property_t
 
   !> Property data
   !!
@@ -44,8 +44,16 @@ module pmc_property
     procedure :: put_string => pmc_property_put_string
     !> Put a non-string value in the data set
     procedure :: put => pmc_property_put
-    !> Find a key-value pair by key name
-    procedure :: get => pmc_property_get
+    !> Get an integer value
+    procedure :: get_int => pmc_property_get_int
+    !> Get a real value
+    procedure :: get_real => pmc_property_get_real
+    !> Get a logical value
+    procedure :: get_logical => pmc_property_get_logical
+    !> Get a string value
+    procedure :: get_string => pmc_property_get_string
+    !> Get a sub-set of properties
+    procedure :: get_property_t => pmc_property_get_property_t
     !> Get the number of key-value pairs
     procedure :: size => pmc_property_size
     !> Reset the iterator
@@ -56,8 +64,18 @@ module pmc_property
     procedure :: iter_next => pmc_property_iter_next
     !> Load input data
     procedure :: load => pmc_property_load
+    !> Move property data from one property_t instance to another
+    procedure :: move => pmc_property_move
+    !> Update this property_t instance with data from another
+    procedure :: update => pmc_property_update
     !> Finalize
     final :: pmc_property_final
+    !> Print the contents of a property set
+    procedure :: print => pmc_property_print
+    
+    !> Private functions
+    !> Find a key-value pair by key name
+    procedure, private :: get => pmc_property_get
   end type property_t
 
   !> Constructor for property_t
@@ -68,7 +86,10 @@ module pmc_property
   !> Property link data
   !!
   !! An element of a property data set. Property values can be of any
-  !! primitive type or be a pointer to a sub-set of property data
+  !! primitive type or be a pointer to a sub-set of property data.
+  !! The property_link_t object is for internal use in the pmc_property
+  !! module. All interactions with property data should be made using
+  !! property_t objects.
   type property_link_t
     private
     !> Key name
@@ -78,10 +99,11 @@ module pmc_property
     !> Next link
     type(property_link_t), pointer :: next_link => null()
   contains
+    private
     !> Get the key name
     procedure :: key => pmc_property_link_key
     !> Set the value
-    procedure, private :: set_value => pmc_property_link_set_value
+    procedure :: set_value => pmc_property_link_set_value
     !> Get the int value
     procedure :: value_int => pmc_property_link_value_int
     !> Get the real value
@@ -94,19 +116,14 @@ module pmc_property
     procedure :: value_property_t => pmc_property_link_value_property_t
     !> Finalize
     final :: pmc_property_link_final
+    !> Print the contents of a property key-value pair
+    procedure :: print => pmc_property_link_print
   end type property_link_t
 
   !> Constructor for link
   interface property_link_t
     procedure pmc_property_link_constructor
   end interface property_link_t
-
-  !> Internal use type for string data
-  type string_t
-    private
-    !> String value
-    character(len=:), allocatable :: string
-  end type string_t
 
 contains
 
@@ -145,7 +162,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Put an element in the property data set
-  subroutine pmc_property_put(this, key, val)
+  recursive subroutine pmc_property_put(this, key, val)
 
     !> Property data set
     class(property_t), intent(inout) :: this
@@ -154,17 +171,34 @@ contains
     !> New value
     class(*), intent(in) :: val
 
-    !> New link
-    type(property_link_t), pointer :: new_link
+    type(property_link_t), pointer :: new_link, sub_link
+    class(*), pointer :: curr_val
 
     new_link => this%get(key)
 
+    ! Do not allow overwrites of existing properties, but allow sub-sets
+    ! of properties to be appended
     if (associated(new_link)) then
-      if (associated(new_link%val)) deallocate(new_link%val)
-      call new_link%set_value(val)
+      curr_val => new_link%val
+      select type (curr_val)
+      class is (property_t)
+        select type (val)
+        class is (property_t)
+          sub_link => val%first_link
+          do while (associated(sub_link))
+            call curr_val%put(sub_link%key_name, sub_link%val)
+            sub_link => sub_link%next_link
+          end do
+        class default
+          call die_msg(698012538, "Property type mismatch for "//key)
+        end select
+      class default
+        call die_msg(359604264, "Trying to overwrite property "//key)
+      end select
       return
     end if
 
+    ! Create a new link to add to the property dataset
     new_link => property_link_t(key, val)
     if (.not.associated(this%first_link)) then
       this%first_link => new_link
@@ -204,6 +238,121 @@ contains
     end do
 
   end function pmc_property_get
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get an integer value. The return value is true if the key-value pair
+  !! was found, and false otherwise.
+  logical function pmc_property_get_int(this, key, val) result(found)
+
+    !> Property dataset
+    class(property_t), intent(in) :: this
+    !> Key name to search for
+    character(len=:), allocatable, intent(in) :: key
+    !> Property value
+    integer(kind=i_kind), intent(out) :: val
+
+    type(property_link_t), pointer :: link
+
+    found = .false.
+    link => pmc_property_get(this, key)
+    if (.not. associated(link)) return
+    val = link%value_int()
+    found = .true.
+
+  end function pmc_property_get_int
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get a real value. The return value is true if the key-value pair
+  !! was found, and false otherwise.
+  logical function pmc_property_get_real(this, key, val) result(found)
+
+    !> Property dataset
+    class(property_t), intent(in) :: this
+    !> Key name to search for
+    character(len=:), allocatable, intent(in) :: key
+    !> Property value
+    real(kind=dp), intent(out) :: val
+
+    type(property_link_t), pointer :: link
+
+    found = .false.
+    link => pmc_property_get(this, key)
+    if (.not. associated(link)) return
+    val = link%value_real()
+    found = .true.
+
+  end function pmc_property_get_real
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get an logical value. The return value is true if the key-value pair
+  !! was found, and false otherwise.
+  logical function pmc_property_get_logical(this, key, val) result(found)
+
+    !> Property dataset
+    class(property_t), intent(in) :: this
+    !> Key name to search for
+    character(len=:), allocatable, intent(in) :: key
+    !> Property value
+    logical, intent(out) :: val
+
+    type(property_link_t), pointer :: link
+
+    found = .false.
+    link => pmc_property_get(this, key)
+    if (.not. associated(link)) return
+    val = link%value_logical()
+    found = .true.
+
+  end function pmc_property_get_logical
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get a string value. The return value is true if the key-value pair
+  !! was found, and false otherwise.
+  logical function pmc_property_get_string(this, key, val) result(found)
+
+    !> Property dataset
+    class(property_t), intent(in) :: this
+    !> Key name to search for
+    character(len=:), allocatable, intent(in) :: key
+    !> Property value
+    character(len=:), allocatable, intent(out) :: val
+
+    type(property_link_t), pointer :: link
+
+    found = .false.
+    link => pmc_property_get(this, key)
+    if (.not. associated(link)) return
+    val = link%value_string()
+    found = .true.
+
+  end function pmc_property_get_string
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get an property sub-set. The return value is true if the key-value pair
+  !! was found, and false otherwise.
+  logical function pmc_property_get_property_t(this, key, val) result(found)
+
+    !> Property dataset
+    class(property_t), intent(in) :: this
+    !> Key name to search for
+    character(len=:), allocatable, intent(in) :: key
+    !> Property value
+    type(property_t), pointer, intent(out) :: val
+
+    type(property_link_t), pointer :: link
+
+    found = .false.
+    link => pmc_property_get(this, key)
+    if (.not. associated(link)) return
+    val => link%value_property_t()
+    found = .true.
+
+  end function pmc_property_get_property_t
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -341,6 +490,47 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Move data from one property_t instance to another
+  elemental subroutine pmc_property_move(this, dest)
+
+    !> Property dataset to move
+    class(property_t), intent(inout) :: this
+    !> Property dataset destination
+    class(property_t), intent(inout) :: dest
+
+    dest%first_link => this%first_link
+    dest%curr_link => this%curr_link
+    dest%last_link => this%last_link
+    dest%num_elem = this%num_elem
+    this%first_link => null()
+    this%curr_link => null()
+    this%last_link => null()
+    this%num_elem = 0
+
+  end subroutine pmc_property_move
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Update this property_t instance with data from another
+  subroutine pmc_property_update(this, source)
+
+    !> Property dataset to update
+    class(property_t), intent(inout) :: this
+    !> Property dataset to update from
+    class(property_t), intent(inout) :: source
+
+    type(property_link_t), pointer :: curr_prop
+
+    curr_prop => source%first_link
+    do while (associated(curr_prop))
+      call this%put(curr_prop%key_name, curr_prop%val)
+      curr_prop => curr_prop%next_link
+    end do
+
+  end subroutine pmc_property_update
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Finalize a property_t variable
   elemental subroutine pmc_property_final(this)
 
@@ -408,6 +598,9 @@ contains
       type is (logical)
       type is (string_t)
       class is (property_t)
+        if (.not.associated(val%first_link)) then
+          call die_msg(823052154, "Received empty property sub-set") 
+        end if
       type is (character(len=*))
         allocate(str_val)
         str_val%string = val
@@ -550,6 +743,60 @@ contains
     if (allocated(this%key_name)) deallocate(this%key_name)
 
   end subroutine pmc_property_link_final
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Print the contents of a property set
+  recursive subroutine pmc_property_print(this)
+
+    !> Property dataset
+    class(property_t), intent(in) :: this
+
+    type(property_link_t), pointer :: curr_link
+
+    curr_link => this%first_link
+    do while (associated(curr_link))
+      if (associated(curr_link%next_link)) then
+        call curr_link%print(",")
+      else
+        call curr_link%print("")
+      endif
+      curr_link => curr_link%next_link
+    end do
+
+  end subroutine pmc_property_print
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Print the contents of a property key-value pair
+  recursive subroutine pmc_property_link_print(this, suffix)
+
+    !> Property key-value pair
+    class(property_link_t), intent(in) :: this
+    !> Text to append to the end of the line
+    character(len=*) :: suffix
+
+    class(*), pointer :: val
+
+    val => this%val
+    select type(val)
+      type is (integer(kind=i_kind))
+        write(*,*) '"'//this%key_name//'" : '//trim(to_string(val))//suffix
+      type is (real(kind=dp))
+        write(*,*) '"'//this%key_name//'" : '//trim(to_string(val))//suffix
+      type is (logical)
+        write(*,*) '"'//this%key_name//'" : '//trim(to_string(val))//suffix
+      type is (string_t)
+        write(*,*) '"'//this%key_name//'" : "'//val%string//'"'//suffix
+      class is (property_t)
+        write(*,*) '"'//this%key_name//'" : {'
+        call val%print()
+        write(*,*) '}'//suffix
+      class default
+        call die_msg(711028956, "Unsupported property type")
+    end select
+
+  end subroutine pmc_property_link_print
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

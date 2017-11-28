@@ -143,6 +143,7 @@ add_custom_target(copy_test ALL ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURC
 set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES test_run)
 
 add_test(unit_test_property ${CMAKE_BINARY_DIR}/unit_test_property)
+add_test(unit_test_chem_spec_data ${CMAKE_BINARY_DIR}/unit_test_chem_spec_data)
 
 add_test(test_additive_1 ${CMAKE_BINARY_DIR}/test_run/additive/test_additive_1.sh)
 add_test(test_additive_2 ${CMAKE_BINARY_DIR}/test_run/additive/test_additive_2.sh)
@@ -305,7 +306,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/aero_particle.F90 src/aero_particle_array.F90 src/mpi.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
   src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
-  src/property.F90
+  src/property.F90 src/chem_spec_data.F90
   ${SUNDIALS_SRC} ${GSL_SRC}
   ${C_SORT_SRC})
 
@@ -327,6 +328,13 @@ target_link_libraries(partmc partmclib)
 add_executable(unit_test_property test/unit_property/test_property.F90)
 
 target_link_libraries(unit_test_property partmclib)
+
+######################################################################
+# test_chem_spec_data
+
+add_executable(unit_test_chem_spec_data test/unit_chem_spec_data/test_chem_spec_data.F90)
+
+target_link_libraries(unit_test_chem_spec_data partmclib)
 
 ######################################################################
 # test_bidisperse_ode

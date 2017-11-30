@@ -99,7 +99,6 @@ module pmc_property
     !> Next link
     type(property_link_t), pointer :: next_link => null()
   contains
-    private
     !> Get the key name
     procedure :: key => pmc_property_link_key
     !> Set the value

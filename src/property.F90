@@ -44,6 +44,8 @@ module pmc_property
     procedure :: put_string => pmc_property_put_string
     !> Put a non-string value in the data set
     procedure :: put => pmc_property_put
+    !> Get the current key name
+    procedure :: get_key => pmc_property_get_key
     !> Get an integer value
     procedure :: get_int => pmc_property_get_int
     !> Get a real value
@@ -58,8 +60,6 @@ module pmc_property
     procedure :: size => pmc_property_size
     !> Reset the iterator
     procedure :: iter_reset => pmc_property_iter_reset
-    !> Get the current key-value pair
-    procedure :: iter_curr => pmc_property_iter_curr
     !> Increment the iterator
     procedure :: iter_next => pmc_property_iter_next
     !> Load input data
@@ -227,6 +227,7 @@ contains
     type(property_link_t), pointer :: curr_link
 
     found_pair => null()
+    if (.not. associated(this%first_link)) return
     curr_link => this%first_link
     do while (associated(curr_link))
       if (key .eq. curr_link%key()) then
@@ -240,23 +241,50 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Get the current key name of the iterator. True indicates a current
+  !! key-value exists; false indicates the list is empty, the iterator was
+  !! never reset, or the end of the list has been reached.
+  logical function pmc_property_get_key(this, key) result (found)
+
+    !> Property dataset
+    class(property_t), intent(in) :: this
+    !> Key name
+    character(len=:), allocatable, intent(out) :: key
+
+    found = .false.
+    if (.not.associated(this%curr_link)) return
+    key = this%curr_link%key()
+    found = .true.
+
+  end function pmc_property_get_key
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Get an integer value. The return value is true if the key-value pair
-  !! was found, and false otherwise.
+  !! was found, and false otherwise. If no key name is specified, the current
+  !! value of the iterator is returned. In this case true indicates a current 
+  !! key-value exists; false indicates the list is empty, the iterator was
+  !! never reset, or the end of the list has been reached.
   logical function pmc_property_get_int(this, key, val) result(found)
 
     !> Property dataset
     class(property_t), intent(in) :: this
     !> Key name to search for
-    character(len=:), allocatable, intent(in) :: key
+    character(len=:), allocatable, intent(in), optional :: key
     !> Property value
     integer(kind=i_kind), intent(out) :: val
 
     type(property_link_t), pointer :: link
 
     found = .false.
-    link => pmc_property_get(this, key)
-    if (.not. associated(link)) return
-    val = link%value_int()
+    if (present(key)) then
+      link => pmc_property_get(this, key)
+      if (.not. associated(link)) return
+      val = link%value_int()
+    else
+      if (.not.associated(this%curr_link)) return
+      val = this%curr_link%value_int()
+    endif
     found = .true.
 
   end function pmc_property_get_int
@@ -264,45 +292,61 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a real value. The return value is true if the key-value pair
-  !! was found, and false otherwise.
+  !! was found, and false otherwise. If no key name is specified, the current
+  !! value of the iterator is returned. In this case true indicates a current 
+  !! key-value exists; false indicates the list is empty, the iterator was
+  !! never reset, or the end of the list has been reached.
   logical function pmc_property_get_real(this, key, val) result(found)
 
     !> Property dataset
     class(property_t), intent(in) :: this
     !> Key name to search for
-    character(len=:), allocatable, intent(in) :: key
+    character(len=:), allocatable, intent(in), optional :: key
     !> Property value
     real(kind=dp), intent(out) :: val
 
     type(property_link_t), pointer :: link
 
     found = .false.
-    link => pmc_property_get(this, key)
-    if (.not. associated(link)) return
-    val = link%value_real()
+    if (present(key)) then
+      link => pmc_property_get(this, key)
+      if (.not. associated(link)) return
+      val = link%value_real()
+    else
+      if (.not.associated(this%curr_link)) return
+      val = this%curr_link%value_real()
+    endif
     found = .true.
 
   end function pmc_property_get_real
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get an logical value. The return value is true if the key-value pair
-  !! was found, and false otherwise.
+  !> Get a logical value. The return value is true if the key-value pair
+  !! was found, and false otherwise. If no key name is specified, the current
+  !! value of the iterator is returned. In this case true indicates a current 
+  !! key-value exists; false indicates the list is empty, the iterator was
+  !! never reset, or the end of the list has been reached.
   logical function pmc_property_get_logical(this, key, val) result(found)
 
     !> Property dataset
     class(property_t), intent(in) :: this
     !> Key name to search for
-    character(len=:), allocatable, intent(in) :: key
+    character(len=:), allocatable, intent(in), optional :: key
     !> Property value
     logical, intent(out) :: val
 
     type(property_link_t), pointer :: link
 
     found = .false.
-    link => pmc_property_get(this, key)
-    if (.not. associated(link)) return
-    val = link%value_logical()
+    if (present(key)) then
+      link => pmc_property_get(this, key)
+      if (.not. associated(link)) return
+      val = link%value_logical()
+    else
+      if (.not.associated(this%curr_link)) return
+      val = this%curr_link%value_logical()
+    endif
     found = .true.
 
   end function pmc_property_get_logical
@@ -310,45 +354,61 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a string value. The return value is true if the key-value pair
-  !! was found, and false otherwise.
+  !! was found, and false otherwise. If no key name is specified, the current
+  !! value of the iterator is returned. In this case true indicates a current 
+  !! key-value exists; false indicates the list is empty, the iterator was
+  !! never reset, or the end of the list has been reached.
   logical function pmc_property_get_string(this, key, val) result(found)
 
     !> Property dataset
     class(property_t), intent(in) :: this
     !> Key name to search for
-    character(len=:), allocatable, intent(in) :: key
+    character(len=:), allocatable, intent(in), optional :: key
     !> Property value
     character(len=:), allocatable, intent(out) :: val
 
     type(property_link_t), pointer :: link
 
     found = .false.
-    link => pmc_property_get(this, key)
-    if (.not. associated(link)) return
-    val = link%value_string()
+    if (present(key)) then
+      link => pmc_property_get(this, key)
+      if (.not. associated(link)) return
+      val = link%value_string()
+    else
+      if (.not.associated(this%curr_link)) return
+      val = this%curr_link%value_string()
+    endif
     found = .true.
 
   end function pmc_property_get_string
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get an property sub-set. The return value is true if the key-value pair
-  !! was found, and false otherwise.
+  !> Get a property sub-set. The return value is true if the key-value pair
+  !! was found, and false otherwise. If no key name is specified, the current
+  !! value of the iterator is returned. In this case true indicates a current 
+  !! key-value exists; false indicates the list is empty, the iterator was
+  !! never reset, or the end of the list has been reached.
   logical function pmc_property_get_property_t(this, key, val) result(found)
 
     !> Property dataset
     class(property_t), intent(in) :: this
     !> Key name to search for
-    character(len=:), allocatable, intent(in) :: key
+    character(len=:), allocatable, intent(in), optional :: key
     !> Property value
     type(property_t), pointer, intent(out) :: val
 
     type(property_link_t), pointer :: link
 
     found = .false.
-    link => pmc_property_get(this, key)
-    if (.not. associated(link)) return
-    val => link%value_property_t()
+    if (present(key)) then
+      link => pmc_property_get(this, key)
+      if (.not. associated(link)) return
+      val => link%value_property_t()
+    else
+      if (.not. associated(this%curr_link)) return
+      val => this%curr_link%value_property_t()
+    end if
     found = .true.
 
   end function pmc_property_get_property_t
@@ -389,27 +449,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get a pointer to the current property from the interator
-  function pmc_property_iter_curr(this) result(curr_link)
-
-    !> Pointer to current property key-value pair
-    type(property_link_t), pointer :: curr_link
-    !> Property dataset
-    class(property_t), intent(in) :: this
-
-    curr_link => this%curr_link
-
-  end function pmc_property_iter_curr
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Increment the interator
   subroutine pmc_property_iter_next(this)
 
     !> Property dataset
     class(property_t), intent(inout) :: this
 
-    this%curr_link => this%curr_link%next_link
+    if (associated(this%curr_link)) then
+      this%curr_link => this%curr_link%next_link
+    else
+      call warn_msg(365476096, "Trying to iterate NULL iterator.")
+    end if
 
   end subroutine pmc_property_iter_next
 
@@ -598,7 +648,8 @@ contains
       type is (string_t)
       class is (property_t)
         if (.not.associated(val%first_link)) then
-          call die_msg(823052154, "Received empty property sub-set") 
+          this%val => property_t()
+          return
         end if
       type is (character(len=*))
         allocate(str_val)
@@ -629,6 +680,9 @@ contains
     select type(this_val)
       type is (integer(kind=i_kind))
         val = this_val
+      class default
+        call die_msg(509101133, "Property type mismatch for key "//&
+                trim(this%key_name))
     end select
 
   end function pmc_property_link_value_int
@@ -647,10 +701,13 @@ contains
 
     this_val => this%val
     select type(this_val)
+      type is (integer(kind=i_kind))
+        val = real(this_val, kind=dp)
       type is (real(kind=dp))
         val = this_val
       class default
-        call die_msg(151463892, "Property type mismatch")
+        call die_msg(151463892, "Property type mismatch for key "//&
+                trim(this%key_name))
     end select
 
   end function pmc_property_link_value_real
@@ -672,7 +729,8 @@ contains
       type is (logical)
         val = this_val
       class default
-        call die_msg(371288570, "Property type mismatch")
+        call die_msg(371288570, "Property type mismatch for key "//&
+                trim(this%key_name))
     end select
 
   end function pmc_property_link_value_logical
@@ -694,7 +752,8 @@ contains
       type is (string_t)
         val => this_val%string
       class default
-        call die_msg(153505401, "Property type mismatch")
+        call die_msg(153505401, "Property type mismatch for key "//&
+                trim(this%key_name))
     end select
 
   end function pmc_property_link_value_string
@@ -716,7 +775,8 @@ contains
       type is (property_t)
         val => this_val
       class default
-        call die_msg(641781966, "Property type mismatch")
+        call die_msg(641781966, "Property type mismatch for key "//&
+                trim(this%key_name))
     end select
 
   end function pmc_property_link_value_property_t

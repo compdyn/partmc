@@ -16,6 +16,7 @@ module pmc_chem_spec_data
   use pmc_mpi
   use pmc_util,                       only : die_msg, string_t
   use pmc_property
+  use pmc_chem_spec_state
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -353,14 +354,18 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Create a new state variable for this set of chemical species
-  subroutine chem_spec_data_new_state(this)
+  function chem_spec_data_new_state(this) result (chem_state)
 
+    !> Species state variable
+    type(chem_spec_state_t) :: chem_state
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
 
-    ! TODO finish after creating chem_spec_state_t type
+    allocate(chem_state%conc(this%num_spec))
+    
+    ! TODO add aerosol species indices after creating chem_aero_group_data_t
 
-  end subroutine chem_spec_data_new_state
+  end function chem_spec_data_new_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

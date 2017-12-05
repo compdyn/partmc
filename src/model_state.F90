@@ -3,14 +3,15 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_chem_spec_state module.
+!> The pmc_model_state module.
 
-!> The chem_spec_state_t structure and associated subroutines.
-module pmc_chem_spec_state
+!> The model_state_t structure and associated subroutines.
+module pmc_model_state
 
-  use pmc_constants,                  only : i_kind
   use pmc_mpi
   use pmc_util,                       only : die_msg, string_t
+  use pmc_chem_spec_state
+  use pmc_env_state
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -18,85 +19,91 @@ module pmc_chem_spec_state
   implicit none
   private
 
-  public :: chem_spec_state_t
+  public :: model_state_t
 
-  !> Chemical species data
+  !> Model state
   !!
-  !! Time-invariant data related to a chemical species
-  type chem_spec_state_t
-    !> Concentration TODO Determine how to handle units
-    real(kind=dp), allocatable :: conc(:)
+  !! Temporal state of the model
+  type model_state_t
+    !> Chemical species state
+    type(chem_spec_state_t) :: chem_spec_state
+    !> Environmental conditions
+    type(env_state_t) :: env_state
+    ! TODO add aerosol representation states array
   contains
     !> Determine the size of a binary required to pack a given variable
-    procedure :: pack_size => pmc_chem_spec_state_pack_size
+    procedure :: pack_size => pmc_model_state_pack_size
     !> Pack the given value to the buffer, advancing position
-    procedure :: bin_pack => pmc_chem_spec_state_bin_pack
+    procedure :: bin_pack => pmc_model_state_bin_pack
     !> Unpack the given value from the buffer, advancing position
-    procedure :: bin_unpack => pmc_chem_spec_state_bin_unpack
-  end type chem_spec_state_t
+    procedure :: bin_unpack => pmc_model_state_bin_unpack
+  end type model_state_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack a given variable
-  integer(kind=i_kind) function pmc_chem_spec_state_pack_size(this) &
+  integer(kind=i_kind) function pmc_model_state_pack_size(this) &
                   result (pack_size)
 
     !> Chemical species states
-    class(chem_spec_state_t), intent(in) :: this
+    class(model_state_t), intent(in) :: this
 
     pack_size = &
-            pmc_mpi_pack_size_real_array(this%conc)
+            this%chem_spec_state%pack_size() + &
+            this%env_state%pack_size()
 
-  end function pmc_chem_spec_state_pack_size
+  end function pmc_model_state_pack_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Pack the given value to the buffer, advancing position
-  subroutine pmc_chem_spec_state_bin_pack(this, buffer, pos)
+  subroutine pmc_model_state_bin_pack(this, buffer, pos)
 
     !> Chemical species states
-    class(chem_spec_state_t), intent(in) :: this
+    class(model_state_t), intent(in) :: this
     !> Memory buffer
     character, intent(inout) :: buffer(:)
     !> Current buffer position
     integer, intent(inout) :: pos
 
- #ifdef PMC_USE_MPI
+#ifdef PMC_USE_MPI
      integer :: prev_position
 
      prev_position = pos
-     call pmc_mpi_pack_real_array(buffer, pos, this%conc)
-     call assert(361046754, &
+     call this%chem_spec_state%bin_pack(buffer, pos)
+     call this%env_state%bin_pack(buffer, pos)
+     call assert(204737650, &
              pos - prev_position <= this%pack_size())
- #endif
+#endif
 
-   end subroutine pmc_chem_spec_state_bin_pack
+   end subroutine pmc_model_state_bin_pack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpack the given value to the buffer, advancing position
-  subroutine pmc_chem_spec_state_bin_unpack(this, buffer, pos)
+  subroutine pmc_model_state_bin_unpack(this, buffer, pos)
 
     !> Chemical species states
-    class(chem_spec_state_t), intent(inout) :: this
+    class(model_state_t), intent(inout) :: this
     !> Memory buffer
-    character, intent(in) :: buffer(:)
+    character, intent(inout) :: buffer(:)
     !> Current buffer position
     integer, intent(inout) :: pos
 
- #ifdef PMC_USE_MPI
+#ifdef PMC_USE_MPI
      integer :: prev_position
 
      prev_position = pos
-     call pmc_mpi_unpack_real_array(buffer, pos, this%conc)
-     call assert(184624599, &
+     call this%chem_spec_state%bin_pack(buffer, pos)
+     call this%env_state%bin_pack(buffer, pos)
+     call assert(820809161, &
              pos - prev_position <= this%pack_size())
- #endif
+#endif
 
-   end subroutine pmc_chem_spec_state_bin_unpack
+   end subroutine pmc_model_state_bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module pmc_chem_spec_state
+end module pmc_model_state

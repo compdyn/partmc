@@ -46,6 +46,13 @@ module pmc_env_state
      real(kind=dp) :: solar_zenith_angle
      !> Box height (m).
      real(kind=dp) :: height
+  contains
+     !> Determine the number of bytes required to pack the given value
+     procedure, pass(val) :: pack_size => pmc_mpi_pack_size_env_state
+     !> Pack the given value to a buffer, advancing position
+     procedure, pass(val) :: bin_pack => pmc_mpi_pack_env_state
+     !> Unpack the given value from a buffer, advancing position
+     procedure, pass(val) :: bin_unpack => pmc_mpi_unpack_env_state
   end type env_state_t
 
 contains
@@ -313,7 +320,7 @@ contains
   integer function pmc_mpi_pack_size_env_state(val)
 
     !> Value to pack.
-    type(env_state_t), intent(in) :: val
+    class(env_state_t), intent(in) :: val
 
     pmc_mpi_pack_size_env_state = &
          pmc_mpi_pack_size_real(val%temp) &
@@ -340,7 +347,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    type(env_state_t), intent(in) :: val
+    class(env_state_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
@@ -373,7 +380,7 @@ contains
     !> Current buffer position.
     integer, intent(inout) :: position
     !> Value to pack.
-    type(env_state_t), intent(inout) :: val
+    class(env_state_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
     integer :: prev_position

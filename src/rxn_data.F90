@@ -8,11 +8,12 @@
 !> The rxn_data_t structure and associated subroutines.
 module pmc_rxn_data
 
-  use pmc_constants,                  only : i_kind
+  use pmc_constants,                  only : i_kind, dp
   use pmc_mpi
   use pmc_util,                       only : die_msg, string_t
   use pmc_property
   use pmc_chem_spec_data
+  use pmc_model_state
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -33,14 +34,7 @@ module pmc_rxn_data
   !! will not be passed to the child nodes after initialization. Instead all
   !! data required by an extending type during a model run should be packed
   !! into the condensed_data arrays during initialization.
-  type, abstract rxn_data_t
-    private
-    !> Reactant indices in the model_state_t instance
-    integer(kind=i_kind), allocatable :: reactant_id(:)
-    !> Product indices in the model_state_t instance
-    integer(kind=i_kind), allocatable :: product_id(:)
-    !> Product yields (unitless)
-    real(kind=dp), allocatable :: product_yield(:)
+  type, abstract :: rxn_data_t
     !> Reaction parameters. These will be available during initialization,
     !! but not during integration. All information required to calculate
     !! the time derivatives and jacobian matrix constributions must be
@@ -52,13 +46,12 @@ module pmc_rxn_data
     !! from the model_state_t object.
     real(kind=dp), allocatable :: condensed_data_real(:)
     !> Condensed reaction data (integers)
-    integer(kind=dp), allocatable ::  condensed_data_int(:)
+    integer(kind=i_kind), allocatable ::  condensed_data_int(:)
   contains
-    public
     !> Reaction initialization
     procedure(pmc_rxn_data_initialize), deferred :: initialize
-    !> Rate calculation
-    procedure(pmc_rxn_data_rate), deferred :: rate
+    !> Rate contribution
+    procedure(pmc_rxn_data_func_contrib), deferred :: func_contrib
     !> Jacobian matrix contribution
     procedure(pmc_rxn_data_jac_contrib), deferred :: jac_contrib
     !> Determine the number of bytes required to pack the given value
@@ -69,6 +62,8 @@ module pmc_rxn_data
     procedure :: bin_unpack => pmc_rxn_data_bin_unpack
     !> Load data from an input file
     procedure :: load => pmc_rxn_data_load
+    !> Print the reaction data
+    procedure :: print => pmc_rxn_data_print
   end type rxn_data_t
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -81,7 +76,7 @@ module pmc_rxn_data
   !! in the condensed data arrays.
   interface pmc_rxn_data_initialize_if
     subroutine pmc_rxn_data_initialize(this, chem_spec_data)
-      import :: rxn_data_t
+      import :: rxn_data_t, chem_spec_data_t
 
       !> Reaction data
       class(rxn_data_t), intent(inout) :: this
@@ -99,7 +94,7 @@ module pmc_rxn_data
   !! reaction data instance during initialization.
   interface pmc_rxn_data_func_contrib_if
     subroutine pmc_rxn_data_func_contrib(this, model_state, func) 
-      import :: rxn_data_t
+      import :: rxn_data_t, model_state_t, dp
 
       !> Reaction data
       class(rxn_data_t), intent(in) :: this
@@ -110,7 +105,7 @@ module pmc_rxn_data
       !! append, not overwrite, the values already in the vector
       real(kind=dp), allocatable, intent(inout) :: func(:)
 
-    end function pmc_rxn_data_func_contrib
+    end subroutine pmc_rxn_data_func_contrib
   end interface pmc_rxn_data_func_contrib_if
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -121,7 +116,7 @@ module pmc_rxn_data
   !! data instance during initialization.
   interface pmc_rxn_data_jac_contrib_if
     subroutine pmc_rxn_data_jac_contrib(this, model_state, jac_matrix)
-      import :: rxn_data_t
+      import :: rxn_data_t, model_state_t, dp
 
       !> Reaction data
       class(rxn_data_t), intent(in) :: this
@@ -149,11 +144,8 @@ contains
     class(rxn_data_t), intent(in) :: this
     
     pack_size = &
-            pmc_mpi_pack_size_integer_array(this%reactant_id) + &
-            pmc_mpi_pack_size_integer_array(this%product_id) + &
-            pmc_mpi_pack_size_real_array(this%product_yield) + &
             pmc_mpi_pack_size_real_array(this%condensed_data_real) + &
-            pmc_mpi_pack_size_real_array(this%condensed_data_int)
+            pmc_mpi_pack_size_integer_array(this%condensed_data_int)
 
   end function pmc_rxn_data_pack_size
 
@@ -173,11 +165,8 @@ contains
     integer :: prev_position
 
     prev_position = pos
-    call pmc_mpi_pack_integer_array(buffer, pos, this%reactant_id)
-    call pmc_mpi_pack_integer_array(buffer, pos, this%product_id)
-    call pmc_mpi_pack_real_array(buffer, pos, this%product_yield)
     call pmc_mpi_pack_real_array(buffer, pos, this%condensed_data_real)
-    call pmc_mpi_pack_real_array(buffer, pos, this%condensed_data_int)
+    call pmc_mpi_pack_integer_array(buffer, pos, this%condensed_data_int)
     call assert(149359274, &
          pos - prev_position <= this%pack_size())
 #endif
@@ -192,7 +181,7 @@ contains
     !> Reaction data
     class(rxn_data_t), intent(out) :: this
     !> Memory buffer
-    character, intent(in) :: buffer(:)
+    character, intent(inout) :: buffer(:)
     !> Current buffer position
     integer, intent(inout) :: pos
 
@@ -200,11 +189,8 @@ contains
     integer :: prev_position
 
     prev_position = pos
-    call pmc_mpi_unpack_integer_array(buffer, pos, this%reactant_id)
-    call pmc_mpi_unpack_integer_array(buffer, pos, this%product_id)
-    call pmc_mpi_unpack_real_array(buffer, pos, this%product_yield)
     call pmc_mpi_unpack_real_array(buffer, pos, this%condensed_data_real)
-    call pmc_mpi_unpack_real_array(buffer, pos, this%condensed_data_int)
+    call pmc_mpi_unpack_integer_array(buffer, pos, this%condensed_data_int)
     call assert(168345796, &
          pos - prev_position <= this%pack_size())
 #endif
@@ -264,13 +250,16 @@ contains
   !! including nested objects. However, extending types will have specific
   !! requirements for the remaining data. Additionally it is recommended to 
   !! use the above format for reactants and products when developing child
-  !! reaction derived types, for consistency.
+  !! reaction derived types, and to use 'rxn type' values that match the 
+  !! name of the derived-type of the extending class. For example, the 
+  !! reaction type rxn_photolysis_t would be identified as the string constant
+  !! 'PHOTOLYSIS' in the 'rxn type' key-value pair.
   !!
   !! Mechanism data may be inter-mixed with json objects of other types (e.g.,
   !! species), but the there must be exactly one top-level key-value pair 
   !! named "pmc-data" per input file whose value is an array of json objects 
   !! with valid PMC types.
-  subroutine rxn_data_load(this, json, j_obj)
+  subroutine pmc_rxn_data_load(this, json, j_obj)
 
     !> Reaction data
     class(rxn_data_t), intent(out) :: this
@@ -282,22 +271,18 @@ contains
     type(json_value), pointer :: child, next, species
     character(kind=json_ck, len=:), allocatable :: key
 
-    type(property_t), pointer :: property_set
-
-    property_set = property_t()
+    this%property_set => property_t()
 
     next => null()
     call json%get_child(j_obj, child)
     do while (associated(child))
       call json%info(child, name=key)
-      if (key.ne."rxn type") call property_set%load(json, child, .false.)
+      if (key.ne."rxn type") call this%property_set%load(json, child, .false.)
       call json%get_next(child, next)
       child => next
     end do
-
-    this%property_set => property_set
 #else
-  subroutine rxn_data_load(this)
+  subroutine pmc_rxn_data_load(this)
 
     !> Reaction data
     class(rxn_data_t), intent(inout) :: this
@@ -305,7 +290,19 @@ contains
     call warn_msg(332862889, "No support for input files")
 #endif
 
-  end subroutine rxn_data_load
+  end subroutine pmc_rxn_data_load
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Print the reaction data
+  subroutine pmc_rxn_data_print(this)
+
+    !> Reaction data
+    class(rxn_data_t), intent(in) :: this
+
+    if (associated(this%property_set)) call this%property_set%print()
+
+  end subroutine pmc_rxn_data_print
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

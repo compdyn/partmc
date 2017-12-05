@@ -3,261 +3,302 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_test_rxn_data module.
+!> The pmc_test_rxn_data program
 
-!> The rxn_test_t type and associated functions, used to test the
-!! abstract rxn_data_t type. This module can be used as a template for
-!! developing new reaction modules.
-module pmc_test_rxn_data
+!> Test class for the rxn_test_t type, which extends the abstract
+!! rxn_data_t type.
+program pmc_test_rxn_data
+
+  use pmc_util,                         only: i_kind, dp, assert, &
+                                              almost_equal
+  use pmc_test_rxn_data_child
+  use pmc_model_state
+  use pmc_chem_spec_data
+  use pmc_chem_spec_state
+#ifdef PMC_USE_JSON
+  use json_module
+#endif
 
   implicit none
-  private
 
-#define _NUM_REACT this%condensed_data_int(1)
-#define _NUM_PROD this%condensed_data_int(2)
-#define _A this%condensed_data_real(1)
-#define _B this%condensed_data_real(2)
-#define _theta this%condensed_data_real(3)
-#define _NUM_INT_PROP 2
-#define _NUM_REAL_PROP 3
-#define _REACT(x) this%condensed_data_int(_NUM_INT_PROP + x)
-#define _PROD(x) this%condensed_data_int(_NUM_INT_PROP + _NUM_REACT + x)
-#define _MW(x) this%condensed_data_real(_NUM_REAL_PROP + x)
-#define _yield this%condensed_data_real(_NUM_REAL_PROP + _NUM_REACT + x)
-#define _CD_INT_SIZE (_NUM_INT_PROP + _NUM_REACT + _NUM_PROD)
-#define _CD_REAL_SIZE (_NUM_REAL_PROP + _NUM_REACT + _NUM_PROD)
+  ! New-line character
+  character(len=*), parameter :: new_line = char(10)
 
-public :: rxn_test_t
-
-  !> Generic test reaction data type
-  type, extends(rxn_data_t) rxn_test_t
-  contains
-    public
-    !> Reaction initialization
-    procedure :: initialize => pmc_test_rxn_data_initialize
-    !> Rate calculation
-    procedure :: rate => pmc_test_rxn_data_rate
-    !> Jacobian matrix contribution
-    procedure :: jac_contrib => pmc_test_rxn_data_jac_contrib
-    !> Calculate the rate constant
-    procedure, private :: rate_const => pmc_test_rxn_data_rate_const
-  end type rxn_test_t
+  if (run_pmc_rxn_data_tests()) then
+    write(*,*) "Rxn data tests - PASS"
+  else
+    write(*,*) "Rxn data tests - FAIL"
+  end if
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Initialize the reaction data, validating component data and loading
-  !! any required information from reactant, product and reaction 
-  !! property_t objects. This routine should be called once for each reaction
-  !! at the beginning of a model run after all the input files have been
-  !! read in. It ensure all data required during the model run are included
-  !! in the condensed data arrays.
-  subroutine pmc_test_rxn_data_initialize(this, chem_spec_data)
-    
-    !> Reaction data
-    class(rxn_test_t), intent(inout) :: this
-    !> Chemical species data
-    type(chem_spec_data_t), intent(in) :: chem_spec_data
+  !> Run all pmc_rxn_data tests
+  logical function run_pmc_rxn_data_tests() result(passed)
 
-    type(property_t) :: spec_props, reactants, products
-    character(len=:), allocatable :: key_name, spec_name
-    integer(kind=i_kind) :: i_spec
+    passed = build_rxn_data_set_test()
 
-    ! Get the species involved
-    key_name = "reactants"
-    call assert_msg(278982963, this%property_set%get_property_t(key_name, reactants) &
-            "Generic reaction is missing reactants")
-    key_name = "products"
-    call assert_msg(197632993, this%property_set%get_property_t(key_name, products) &
-            "Generic reaction is missing products")
-
-    ! Allocate space in the condensed data arrays
-    ! Space in this example is allocated for two sets of inidices for the 
-    ! reactants and products, one molecular property for each reactant, 
-    ! yields for the products and three reaction parameters.
-    allocate(condensed_data_int(_CD_INT_SIZE)
-    allocate(condensed_data_real(_CD_REAL_SIZE)
-    
-    ! Save the size of the reactant and product arrays (for reactions where these
-    ! can vary)
-    _NUM_REACT = reactants%size()
-    _NUM_PROD = products%size()
-
-    ! Check the number of reactants
-    call assert_msg(212395756, _NUM_REACT.eq.2, "Expected 2 reactants, got "// &
-            to_string(_NUM_REACT))
-
-    ! Get reaction parameters (it might be easiest to keep these at the beginning
-    ! of the condensed data array, so they can be accessed using compliler flags)
-    assert_msg(785292700, this%property_set%get_real("A", _A), "Missing reaction parameter A")
-    assert_msg(, this%property_set%get_real("B", _B), "Missing reaction parameter B")
-    assert_msg(, this%property_set%get_real("theta",_theta), "Missing reaction parameter theta")
-
-    ! Get the indices and chemical properties for the reactants
-    call reactants%iter_reset()
-    i_spec = 1
-    do while (associated(reactants%iter_curr()))
-
-      ! Get the name of the current species
-      spec_name = reactants%iter_curr%key()
-
-      ! Check the species type
-      call assert_msg(193108104, chem_spec_data%get_type(spec_name).eq.GAS_SPEC, &
-              "Expected gas-phase species for "//spec_name)
-
-      ! Save the index of this species in the chem_spec_state_t variable
-      _REACT(i) = chem_spec_data%state_id(spec_name)
-
-      ! Get a chemical property for this species and save it in the condensed real array
-      spec_props = chem_spec_data%get_property_set(spec_name)
-      call assert_msg(542784410, spec_props%get_real("MW", _MW(i), &
-              "Missing reaction parameter MW")
-
-      call reactants%iter_next()
-      i_spec = i_spec + 1
-    end do
-
-    ! Get the indices and chemical properties for the products
-    call products%iter_reset()
-    i_spec = 1
-    do while (associated(products%iter_curr()))
-
-      ! Get the name of the current species
-      spec_name = products%iter_curr%key()
-
-      ! Check the species type
-      call assert_msg(293069092, chem_spec_data%get_type(spec_name).eq.GAS_SPEC, &
-              "Expected gas-phase species for "//spec_name//" in reaction: "// &
-              this%property_set%to_string())
-
-      ! Save the index of this species in the chem_spec_state_t variable
-      _PROD(i_spec) = chem_spec_data%state_id(spec_name)
-
-      ! Get a chemical property for this species and save it in the condensed real array
-      spec_props = products%iter_curr%value_property_t()
-      call assert_msg(235230533, spec_props%get_real("yield", _yield(i_spec), &
-              "Missing product yield"))
-
-      call reactants%iter_next()
-      i_spec = i_spec + 1
-    end do
-
-  end subroutine pmc_test_rxn_data_initialize
+  end function run_pmc_rxn_data_tests
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Calculate the contribution to the time derivative vector. The current 
-  !! model state is provided for species concentrations, aerosol state and 
-  !! environmental variables. All other parameters must have been saved to the
-  !! reaction data instance during initialization.
-  !!
-  !! Sample reaction rate equation:
-  !!     [reactant1]/MW1 * [reactant2]/MW2 *A*exp(B+temp/theta)
-  !!
-  subroutine  pmc_test_rxn_data_rate(this, model_state, func)
+  !> Build rxn_data set
+  logical function build_rxn_data_set_test()
 
-    !> Reaction data
-    class(rxn_data_t), intent(in) :: this
-    !> Current model state
-    type(model_state_t), intent(in) :: model_state
-    !> Time derivative vector. This vector may include contributions from
-    !! other reactions, so the contributions from this reaction should
-    !! append, not overwrite, the values already in the vector
-    real(kind=dp), allocatable, intent(inout) :: func(:)
-   
-    integer(kind=i_kind) :: i_spec
-    real(kind=dp) :: rate
+    type(rxn_test_t) :: rxn_test(3)
+    type(model_state_t) :: model_state
+    type(chem_spec_data_t) :: spec_data
 
-    rate = this%rate_const(model_state)
-    do i_spec=1, _NUM_REACT
-      rate = rate * model_state%chem_spec_state%conc(_REACT(i_spec))
+    real(kind=dp), allocatable :: func(:)
+    real(kind=dp), allocatable :: jac_matrix(:,:)
+
+#ifdef PMC_USE_JSON
+    type(json_core), pointer :: json
+    type(json_file) :: j_file
+    type(json_value), pointer :: j_obj, j_next, j_rxn
+
+    character(kind=json_ck, len=:), allocatable :: str_val, key_name
+    character(len=:), allocatable :: spec_name, other_spec_name
+    character(len=:), allocatable :: json_string
+
+    integer(kind=i_kind) :: i
+    real(kind=dp) :: test_real
+
+    build_rxn_data_set_test = .false.
+
+    json_string = '{ "pmc-data" : ['//new_line//&
+            '{  "name" : "peanut butter", "type" : "GAS_SPEC", "MW" : 12.75 },'//new_line//&
+            '{  "name" : "jelly", "type" : "GAS_SPEC", "MW" : 42.5 },'//new_line//&
+            '{  "name" : "sandwich", "type" : "GAS_SPEC", "MW" : 13.58 },'//new_line//&
+            '{  "name" : "snack", "type" : "GAS_SPEC", "MW" : 185.39 },'//new_line//&
+            '{  "name" : "oreo", "type" : "GAS_SPEC", "MW" : 12.45 },'//new_line//&
+            '{  "name" : "extra lid", "type" : "GAS_SPEC" },'//new_line//&
+            '{  "name" : "lunch", "type" : "GAS_SPEC" },'//new_line//&
+            '{  "name" : "my mechanism",'//new_line//&
+            '  "type" : "MECHANISM",'//new_line//&
+            '  "reactions" : [{'//new_line//&
+            '    "rxn type" : "TEST",'//new_line//&
+            '    "reactants" : {'//new_line//&
+            '      "peanut butter" : {},'//new_line//&
+            '      "jelly" : {}'//new_line//&
+            '    },'//new_line//&
+            '    "products" : {'//new_line//&
+            '      "sandwich" : {}'//new_line//&
+            '    },'//new_line//&
+            '    "A" : 1.2e3,'//new_line//&
+            '    "B" : 1.2,'//new_line//&
+            '    "theta" : 298.15'//new_line//&
+            '  },'//new_line//&
+            '  {'//new_line//&
+            '    "rxn type" : "TEST",'//new_line//&
+            '    "reactants" : {'//new_line//&
+            '      "oreo" : { "qty" : 2 }'//new_line//&
+            '    },'//new_line//&
+            '    "products" : {'//new_line//&
+            '      "snack" : {},'//new_line//&
+            '      "extra lid" : { "yield" : 2.0 }'//new_line//&
+            '    },'//new_line//&
+            '    "A" : 3056,'//new_line//&
+            '    "B" : 0.9,'//new_line//&
+            '    "theta" : 275.0'//new_line//&
+            '  },'//new_line//&
+            '  {'//new_line//&
+            '    "rxn type" : "TEST",'//new_line//&
+            '    "reactants" : {'//new_line//&
+            '      "snack" : {},'//new_line//&
+            '      "sandwich" : {}'//new_line//&
+            '    },'//new_line//&
+            '    "products" : {'//new_line//&
+            '      "lunch" : { "yield" : 0.73 }'//new_line//&
+            '    },'//new_line//&
+            '    "A" : 5.2e4,'//new_line//&
+            '    "B" : 1.0,'//new_line//&
+            '    "theta" : 298'//new_line//&
+            '  }]'//new_line//&
+            '}'//new_line//&
+            ']}'//new_line
+ 
+    ! Set up the json core
+    allocate(json)
+    call j_file%load_from_string(json_string)
+
+    ! Get the pmc-data object
+    call j_file%get('pmc-data(1)', j_obj)
+
+    ! Set up the chemical species data 
+    spec_data = chem_spec_data_t()
+    call assert(782321038, associated(j_obj))
+
+    do while (associated(j_obj))
+      call json%get(j_obj, 'type', str_val)
+      if (str_val.eq."GAS_SPEC" .or. str_val.eq."AERO_SPEC") then
+        call spec_data%load(json, j_obj)
+      else if (str_val.eq."MECHANISM") then
+        call json%get(j_obj, 'reactions(1)', j_rxn)
+        call assert(767719830, associated(j_rxn))
+        i=1
+        do while(associated(j_rxn))
+          call rxn_test(i)%load(json, j_rxn)
+          i=i+1
+          j_next => j_rxn
+          call json%get_next(j_next, j_rxn)
+        end do
+        call assert(366660985, i.eq.4)
+      else
+        call assert(476334378, .false.)
+      end if
+      j_next => j_obj
+      call json%get_next(j_next, j_obj)
     end do
 
-    do i_spec=1, _NUM_REACT
-      func(_REACT(i_spec)) = func(_REACT(i_spec)) - rate * _MW(i_spec)
+    ! Get a species state variable
+    model_state%env_state%temp = real(301.15, kind=dp)
+    model_state%chem_spec_state = spec_data%new_state()
+    call assert(760288463, size(model_state%chem_spec_state%conc).eq.7)
+
+    ! Set up the time derivative and Jacobian matrix arrays
+    allocate(func(size(model_state%chem_spec_state%conc)))
+    allocate(jac_matrix(size(model_state%chem_spec_state%conc), &
+            size(model_state%chem_spec_state%conc)))
+
+    func (:) = real(0.0, kind=dp)
+    jac_matrix(:,:) = real(0.0, kind=dp)
+
+    ! Initialize the reactions
+    do i=1,3
+      call rxn_test(i)%initialize(spec_data)
     end do
 
-    do i_spec=1, _NUM_PROD
-      func(_PROD(i_spec) = func(_PROD(i_spec)) + _yield(i_spec) * rate
+    ! Set the species concentrations
+    model_state%chem_spec_state%conc(:) = real(0.0, kind=dp)
+    spec_name = "peanut butter"
+    model_state%chem_spec_state%conc(spec_data%state_id(spec_name)) = real(200.0, kind=dp)
+    spec_name = "jelly"
+    model_state%chem_spec_state%conc(spec_data%state_id(spec_name)) = real(150.0, kind=dp)
+    spec_name = "oreo"
+    model_state%chem_spec_state%conc(spec_data%state_id(spec_name)) = real(100.0, kind=dp)
+    spec_name = "sandwich"
+    model_state%chem_spec_state%conc(spec_data%state_id(spec_name)) = real(75.0, kind=dp)
+    spec_name = "snack"
+    model_state%chem_spec_state%conc(spec_data%state_id(spec_name)) = real(50.0, kind=dp)
+
+    ! Calculate contributions from the test reaction to the time derivative 
+    ! and the Jacobian matric
+    do i=1, 3
+      call rxn_test(i)%func_contrib(model_state, func)
+      call rxn_test(i)%jac_contrib(model_state, jac_matrix)
     end do
 
-  end subroutine pmc_test_rxn_data_rate
+    ! ******************************************
+    ! * Validate time derivative contributions *
+    ! ******************************************
+
+    ! Peanut butter is consumed in its reaction with jelly
+    test_real = -200.0 * 150.0/42.5 * 1.2e3 * exp(1.2 + 301.15/298.15)
+    spec_name = "peanut butter"
+    call assert(445736741, abs(func(spec_data%state_id(spec_name))-test_real)/ &
+            abs(test_real) .lt. 1e-6)
+
+    ! Jelly is consumed in its reaction with peanut butter
+    test_real = -200.0/12.75 * 150.0 * 1.2e3 * exp(1.2 + 301.15/298.15)
+    spec_name = "jelly"
+    call assert(509063946, abs(func(spec_data%state_id(spec_name))-test_real)/ &
+            abs(test_real) .lt. 1e-6)
+
+    ! Sandwiches are mode from peanut butter and jelly and destroyed in the lunch-
+    ! forming reaction
+    test_real = 200.0/12.75 * 150.0/42.5 * 1.2e3 * exp(1.2 + 301.15/298.15)
+    test_real = test_real - 75.0 * 50.0/185.39 * 5.2e4 * exp(1.0 + 301.15/298)
+    spec_name = "sandwich"
+    call assert(286332790, abs(func(spec_data%state_id(spec_name))-test_real)/ &
+            abs(test_real) .lt. 1e-6)
+
+    ! Oreos are consumed in a self-reaction (double stuffing)
+    test_real = -2.0 * 100.0 * 100.0/12.45 * 3056 * exp(0.9 + 301.15/275.0)
+    spec_name = "oreo"
+    call assert(398651135, abs(func(spec_data%state_id(spec_name))-test_real)/ &
+            abs(test_real) .lt. 1e-6)
+
+    ! Oreo lids accumulate from the double stuffing process
+    test_real = 2.0 * 100.0/12.45 * 100.0/12.45 * 3056 * exp(0.9 + 301.15/275.0)
+    spec_name = "extra lid"
+    call assert(423701766, abs(func(spec_data%state_id(spec_name))-test_real)/ &
+            abs(test_real) .lt. 1e-6)
+
+    ! Snacks are formed from oreo double stuffing and react with sandwiches to
+    ! form a lunch
+    test_real = 100.0/12.45 * 100.0/12.45 * 3056 * exp(0.9 + 301.15/275.0)
+    test_real = test_real - 50.0 * 75.0/13.58 * 5.2e4 * exp(1.0 + 301.15/298) 
+    spec_name = "snack"
+    call assert(121073879, abs(func(spec_data%state_id(spec_name))-test_real)/ &
+            abs(test_real) .lt. 1e-6)
+
+    ! A partial lunch is made from a sandwich and a snack
+    test_real = 0.73 * 50.0/185.39 * 75.0/13.58 * 5.2e4 * exp(1.0 + 301.15/298) 
+    spec_name = "lunch"
+    call assert(277795691, abs(func(spec_data%state_id(spec_name))-test_real)/ &
+            abs(test_real) .lt. 1e-6)
+
+    ! ******************************************
+    ! * Validate Jacobian matrix contributions *
+    ! ******************************************
+
+    ! Validate row for sandwich
+    spec_name = "sandwich"
+
+    ! Peanut butter contributes to sandwich production
+    test_real = 1.0/12.75 * 150.0/42.5 * 1.2e3 * exp(1.2 + 301.15/298.15)
+    other_spec_name = "peanut butter"
+    call assert(244207961, abs(jac_matrix(spec_data%state_id(spec_name), &
+            spec_data%state_id(other_spec_name))-test_real)/ &
+            abs(test_real) .lt. 1e-6)
+
+    ! Jelly contributes to sandwich production
+    test_real = 200.0/12.75 * 1.0/42.5 * 1.2e3 * exp(1.2 + 301.15/298.15)
+    other_spec_name = "jelly"
+    call assert(993489873, abs(jac_matrix(spec_data%state_id(spec_name), &
+            spec_data%state_id(other_spec_name))-test_real)/ &
+            abs(test_real) .lt. 1e-6)
+
+    ! Oreos do not directly affect sandwich loading
+    test_real = 0.0 
+    other_spec_name = "oreo"
+    call assert(821879730, jac_matrix(spec_data%state_id(spec_name), &
+            spec_data%state_id(other_spec_name)).eq.test_real)
+
+    ! Oreo lids also do not directly affect sandwich loading
+    test_real = 0.0 
+    other_spec_name = "extra lid"
+    call assert(529328162, jac_matrix(spec_data%state_id(spec_name), &
+            spec_data%state_id(other_spec_name)).eq.test_real)
+
+    ! Snacks react with sandwiches to form a lunch
+    test_real = - 1.0/185.39 * 75.0 * 5.2e4 * exp(1.0 + 301.15/298) 
+    other_spec_name = "snack"
+    call assert(121099476, abs(jac_matrix(spec_data%state_id(spec_name), &
+            spec_data%state_id(other_spec_name))-test_real)/ &
+            abs(test_real) .lt. 1e-6)
+
+    ! Sandwich loading affect the lunch forming reaction
+    test_real = - 50.0/185.39 * 1.0 * 5.2e4 * exp(1.0 + 301.15/298) 
+    other_spec_name = "sandwich"
+    call assert(849489332, abs(jac_matrix(spec_data%state_id(spec_name), &
+            spec_data%state_id(other_spec_name))-test_real)/ &
+            abs(test_real) .lt. 1e-6)
+
+    ! Because we have omitted the reverse (i.e. lunch decomposition) reaction,
+    ! sandwich loading is not affected by total lunches
+    test_real = 0.0 
+    other_spec_name = "lunch"
+    call assert(272556981, jac_matrix(spec_data%state_id(spec_name), &
+            spec_data%state_id(other_spec_name)).eq.test_real)
+
+#endif
+    build_rxn_data_set_test = .true.
+
+  end function build_rxn_data_set_test
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Calculate the contribution of this reaction to the Jacobian matrix.
-  !! The current model state is provided for species concentrations and 
-  !! aerosol state. All other parameters must have been saved to the reaction 
-  !! data instance during initialization.
-  subroutine pmc_rxn_data_jac_contrib(this, model_state, jac_matrix)
-
-    !> Reaction data
-    class(rxn_data_t), intent(in) :: this
-    !> Current model state
-    type(model_state_t), intent(in) :: model_state
-    !> Jacobian matrix. This matrix may include contributions from other
-    !! reactions, so the contributions from this reaction should append,
-    !! not overwrite, the values already in the matrix.
-    real(kind=dp), allocatable, intent(inout) :: jac_matrix(:,:)
-
-    integer(kind=i_kind) :: i_spec_i, i_spec_d
-    real(kind=dp) :: rate
-
-    rate = this%rate_const(model_state)
-    do i_spec=1, _NUM_REACT
-      rate = rate * model_state%chem_spec_state%conc(_REACT(i_spec))
-    end do
-
-    if (rate.eq.0.0) return
-
-    do i_spec_d=1, _NUM_REACT
-      do i_spec_i=1, _NUM_REACT
-        rate = rate_const
-        rate = rate / model_state%chem_spec_state%conc(_REACT(i_spec_i))
-        jac_matrix(_REACT(i_spec_d), _REACT(i_spec_i)) = &
-              jac_matrix(_REACT(i_spec_d), _REACT(i_spec_i)) - &
-              rate * _MW(i_spec_d)
-      end do
-    end do
-
-    do i_spec_d=1, _NUM_PROD
-      do i_spec_i=1, _NUM_REACT
-        rate = rate_const
-        rate = rate / model_state%chem_spec_state%conc(_REACT(i_spec_i))
-        jac_matrix(_REACT(i_spec_d), _REACT(i_spec_i)) = &
-              jac_matrix(_REACT(i_spec_d), _REACT(i_spec_i)) + &
-              _yield(i_spec_d) * rate
-      end do
-    end do
-
-  end subroutine pmc_rxn_data_jac_contrib
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Optional support function for calculating reactions rate constants
-  !!
-  !! Sample rate constant equation:
-  !!     A*exp(B+temp/theta)
-  !!
-  real(kind=dp) function pmc_test_rxn_data_rate_const(this, model_state) &
-                  result(rate_const)
-
-    !> Reaction data
-    class(rxn_data_t), intent(in) :: this
-    !> Current model state
-    type(model_state_t), intent(in) :: model_state
-
-    integer(kind=i_kind) :: i_spec
-
-    rate_const = _A * exp(_B + model_state%env_state%temperature / _theta)
-
-    do i_spec = 1, _NUM_REACT
-      rate_const = rate_const/_MW(i_spec) 
-    end do
-
-  end function pmc_test_rxn_data_rate_const
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-end module pmc_test_rxn_data
+end program pmc_test_rxn_data

@@ -1,0 +1,53 @@
+{
+	"pmc-data" : [
+		{ "name" : "peanut butter", "type" : "GAS_SPEC", "MW" : 12.75},
+		{ "name" : "jelly", "type" : "GAS_SPEC", "MW" : 42.5},
+		{ "name" : "sanwich", "type" : "GAS_SPEC", "MW" : 13.58},
+		{ "name" : "snack", "type" : "GAS_SPEC", "MW" : 185.39},
+		{ "name" : "oreo", "type" : "GAS_SPEC", "MW" : 12.45},
+		{ "name" : "extra lid", "type" : "GAS_SPEC"},
+		{ "name" : "lunch", "type" : "GAS_SPEC"},
+		{ 
+			"name" : "lunch mechanism", 
+			"type" : "MECHANISM",
+			"reactions" : [
+				{
+					"rxn type" : "ARRHENIUS",
+					"reactants" : {
+						"peanut butter" : {},
+						"jelly" : {}
+					},
+					"products" : {
+						"sanwich" : {}
+					},
+					"A" : 1.2e3,
+					"Ea" : 3256.1
+				},
+				{
+					"rxn type" : "ARRHENIUS",
+					"reactants" : {
+						"oreo" : { "qty" : 2 }
+					},
+					"products" : {
+						"snack" : {},
+						"extra lid" : { "yield" : 2.0 }
+					},
+					"A" : 3.4e2,
+					"Ea" : 1.2e3
+				},
+				{
+					"rxn type" : "ARRHENIUS",
+					"reactants" : {
+						"snack" : {},
+						"sandwich" : {}
+					},
+					"products" : {
+						"lunch" : { "yield" : 0.73}
+					},
+					"A" : 27.3,
+					"Ea" : 3.6e3
+				}
+			]
+		}
+	]
+}

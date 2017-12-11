@@ -136,15 +136,24 @@ if (ENABLE_JSON)
 endif()
 
 ######################################################################
+# Unit test macro
+
+macro(do_unit_test test_name result)
+  add_test(unit_test_${test_name} ${CMAKE_BINARY_DIR}/unit_test_${test_name})
+  set_tests_properties(unit_test_${test_name}
+	  PROPERTIES PASS_REGULAR_EXPRESSION ${result})
+endmacro(do_unit_test)
+
+######################################################################
 # tests
 
 enable_testing()
 add_custom_target(copy_test ALL ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/test ${CMAKE_BINARY_DIR}/test_run)
 set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES test_run)
 
-add_test(unit_test_property ${CMAKE_BINARY_DIR}/unit_test_property)
-add_test(unit_test_chem_spec_data ${CMAKE_BINARY_DIR}/unit_test_chem_spec_data)
-add_test(unit_test_rxn_data ${CMAKE_BINARY_DIR}/unit_test_rxn_data)
+do_unit_test(property "PASS")
+do_unit_test(chem_spec_data "PASS")
+do_unit_test(rxn_data "PASS")
 
 add_test(test_additive_1 ${CMAKE_BINARY_DIR}/test_run/additive/test_additive_1.sh)
 add_test(test_additive_2 ${CMAKE_BINARY_DIR}/test_run/additive/test_additive_2.sh)
@@ -347,7 +356,6 @@ add_executable(unit_test_rxn_data test/unit_rxn_data/test_rxn_data_child.F90
 target_link_libraries(unit_test_rxn_data partmclib)
 
 ######################################################################
-# test_bidisperse_ode
 # test_bidisperse_ode
 
 add_executable(test_bidisperse_ode

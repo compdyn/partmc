@@ -4,17 +4,15 @@
 set -e
 # turn on command echoing
 set -v
-# make sure that the current directory is the one where this script is
-cd ${0%/*}
 
 ((counter = 1))
 while [ true ]
 do
   echo Attempt $counter
 
-if ! ../../test_fractal_radii_conversion &> /dev/null; then
+  if ! $($1) &> /dev/null; then
 	  echo Failure "$counter"
-	  if [ "$counter" -gt 10 ]
+	  if [ "$counter" -gt $(($2)) ]
 	  then
 		  echo FAIL
 		  exit 1

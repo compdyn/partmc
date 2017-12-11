@@ -90,7 +90,7 @@ contains
   function pmc_mechanism_data_constructor(mech_name, init_size) result(new_obj)
 
     !> Chemical mechanism
-    type(mechanism_data_t), pointer :: new_obj
+    type(mechanism_data_t), target :: new_obj
     !> Name of the mechanism
     character(len=:), allocatable :: mech_name
     !> Number of reactions to allocate space for initially
@@ -100,7 +100,6 @@ contains
 
     if (present(init_size)) alloc_size = init_size
     new_obj%name = mech_name
-    allocate(new_obj)
     allocate(new_obj%rxn_type(alloc_size))
     allocate(new_obj%reactions(alloc_size))
 
@@ -153,8 +152,8 @@ contains
   !!
   !! For the structure of the reaction objects, see the pmc_rxn_data module.
   !! Mechanism data may be split into multiple mechanism objects - they will
-  !! combined based on the mechanism name. All mechanisms objects must have
-  !! a name, and type of "MECHANISM" and a reaction array containing at least
+  !! be combined based on the mechanism name. All mechanisms objects must have
+  !! a name, a type = "MECHANISM" and a reaction array containing at least
   !! one reaction.
   subroutine pmc_mechanism_data_load(this, json, j_obj)
 
@@ -230,7 +229,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the name of the mechanism
-  function pmc_mechanism_data_size(this) result(mech_name)
+  function pmc_mechanism_name(this) result(mech_name)
 
     !> Name of the mechanism
     character(len=:), allocatable :: mech_name

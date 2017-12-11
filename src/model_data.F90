@@ -34,6 +34,10 @@ module pmc_model_data
   contains
     !> Load model data
     procedure :: load => pmc_model_data_load
+    !> Find a mechanism by name
+    procedure :: find_mechanism :: pmc_model_data_find_mechanism
+    !> Add a mechanism to the model
+    procedure :: add_mechanism :: pmc_model_data_add_mechanism
     !> Initialize the model
     procedure :: initialize => pmc_model_data_initialize
     !> Get a new model state variable
@@ -102,6 +106,7 @@ contains
   !!
   !! Each json input file should contain exactly one json object with a 
   !! single key-value pair "pmc-data" whose value is an array of json objects.
+  !! Additional top-level key-value pairs will be ignored.
   !! Each of the json objects in the pmc-data array must contain a key-value
   !! pair "type" whose value is a string referenceing a valid Part-MC object.
   !! The valid values for type are:
@@ -160,6 +165,9 @@ contains
       end do
       call j_file%destroy()
     end do
+#else
+    call warn_msg(350136328, "No support for input files.");
+#endif
 
   end subroutine pmc_model_data_load
 
@@ -218,6 +226,8 @@ contains
 
     new_mechanism(1:size(this%mechanism)) = &
             this%mechanism(1:size(this%mechanism))
+
+    new_mechanism(size(new_mechanism)) = mechanism_data_t(mech_name)
 
     deallocate(this%mechanism)
     this%mechanism => new_mechanism

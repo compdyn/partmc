@@ -14,9 +14,9 @@ while [ true ]
 do
   echo Attempt $counter
 
-../../test_binomial_sample 30 0.5 10000000 > out/binomial_3_approx.dat
-../../test_binomial_sample 30 0.5 0        > out/binomial_3_exact.dat
-if ! ../../numeric_diff --by col --rel-tol 5e-3 out/binomial_3_exact.dat out/binomial_3_approx.dat &> /dev/null; then
+if ! ../../test_binomial_sample 30 0.5 10000000 > out/binomial_3_approx.dat || \
+   ! ../../test_binomial_sample 30 0.5 0        > out/binomial_3_exact.dat || \
+   ! ../../numeric_diff --by col --rel-tol 5e-3 out/binomial_3_exact.dat out/binomial_3_approx.dat; then
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then

@@ -12,10 +12,9 @@ while [ true ]
 do
   echo Attempt $counter
 
-../../extract_aero_time out/emission_part_0001
-../../extract_sectional_aero_time out/emission_exact
-
-if ! ../../numeric_diff --by col --rel-tol 0.1 out/emission_exact_aero_time.txt out/emission_part_0001_aero_time.txt &> /dev/null; then
+if ! ../../extract_aero_time out/emission_part_0001 || \
+   ! ../../extract_sectional_aero_time out/emission_exact || \
+   ! ../../numeric_diff --by col --rel-tol 0.1 out/emission_exact_aero_time.txt out/emission_part_0001_aero_time.txt; then
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then
@@ -23,8 +22,8 @@ if ! ../../numeric_diff --by col --rel-tol 0.1 out/emission_exact_aero_time.txt 
 		  exit 1
 	  fi
 	  echo retrying...
-	  ../../partmc run_part.spec
-	  ../../partmc run_exact.spec
+	  if ! ../../partmc run_part.spec; then continue; fi
+	  if ! ../../partmc run_exact.spec; then continue; fi
   else
 	  echo PASS
 	  exit 0

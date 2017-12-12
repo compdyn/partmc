@@ -14,10 +14,9 @@ while [ true ]
 do
   echo Attempt $counter
 
-../../extract_aero_size --num --dmin 1e-9 --dmax 1e-3 --nbin 160 out/loss_part_volume_0001
-../../extract_sectional_aero_size --num out/loss_exact_volume
-
-if ! ../../numeric_diff --by col --rel-tol 0.3 out/loss_exact_volume_aero_size_num.txt out/loss_part_volume_0001_aero_size_num.txt &> /dev/null; then
+if ! ../../extract_aero_size --num --dmin 1e-9 --dmax 1e-3 --nbin 160 out/loss_part_volume_0001 || \
+   ! ../../extract_sectional_aero_size --num out/loss_exact_volume || \
+   ! ../../numeric_diff --by col --rel-tol 0.3 out/loss_exact_volume_aero_size_num.txt out/loss_part_volume_0001_aero_size_num.txt; then
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then
@@ -25,8 +24,8 @@ if ! ../../numeric_diff --by col --rel-tol 0.3 out/loss_exact_volume_aero_size_n
 		  exit 1
 	  fi
 	  echo retrying...
-	  ../../partmc run_constant_part.spec
-	  ../../partmc run_constant_exact.spec
+	  if ! ../../partmc run_constant_part.spec; then continue; fi
+	  if ! ../../partmc run_constant_exact.spec; then continue; fi
   else
 	  echo PASS
 	  exit 0

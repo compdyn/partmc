@@ -14,12 +14,11 @@ while [ true ]
 do
   echo Attempt $counter
 
-../../partmc run_part.spec
-../../partmc run_sect.spec
-
-../../extract_aero_size --num --dmin 1e-10 --dmax 1e-4 --nbin 220 out/brownian_part_0001
-../../extract_sectional_aero_size --num out/brownian_sect
-if ! ../../numeric_diff --by col --rel-tol 0.4 out/brownian_sect_aero_size_num.txt out/brownian_part_0001_aero_size_num.txt &> /dev/null; then
+if ! ../../partmc run_part.spec || \
+   ! ../../partmc run_sect.spec || \
+   ! ../../extract_aero_size --num --dmin 1e-10 --dmax 1e-4 --nbin 220 out/brownian_part_0001 || \
+   ! ../../extract_sectional_aero_size --num out/brownian_sect || \
+   ! ../../numeric_diff --by col --rel-tol 0.4 out/brownian_sect_aero_size_num.txt out/brownian_part_0001_aero_size_num.txt; then
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then

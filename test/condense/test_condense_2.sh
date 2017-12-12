@@ -12,9 +12,8 @@ while [ true ]
 do
   echo Attempt $counter
 
-../../extract_aero_time out/condense_0001
-
-if ! ../../numeric_diff --min-col 23 --max-col 23 --rel-tol 0.05 ref_condense_0001_aero_time.txt out/condense_0001_aero_time.txt &> /dev/null; then
+if ! ../../extract_aero_time out/condense_0001 || \
+   ! ../../numeric_diff --min-col 23 --max-col 23 --rel-tol 0.05 ref_condense_0001_aero_time.txt out/condense_0001_aero_time.txt; then
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then
@@ -22,6 +21,7 @@ if ! ../../numeric_diff --min-col 23 --max-col 23 --rel-tol 0.05 ref_condense_00
 		  exit 1
 	  fi
 	  echo retrying...
+          if ! ../../partmc run_part.spec; then continue; fi
   else
 	  echo PASS
 	  exit 0

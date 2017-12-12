@@ -12,9 +12,9 @@ while [ true ]
 do
   echo Attempt $counter
 
-../../extract_aero_particles out/average_compsizenum_0001_00000001.nc
-sort out/average_compsizenum_0001_00000001_aero_particles.txt > out/average_compsizenum_aero_particles_sorted.txt
-if ! ../../numeric_diff --by elem --min-col 3 --max-col 4 --rel-tol 3 out/average_aero_particles_sorted.txt out/average_compsizenum_aero_particles_sorted.txt &> /dev/null; then
+if ! ../../extract_aero_particles out/average_compsizenum_0001_00000001.nc || \
+   ! sort out/average_compsizenum_0001_00000001_aero_particles.txt > out/average_compsizenum_aero_particles_sorted.txt || \
+   ! ../../numeric_diff --by elem --min-col 3 --max-col 4 --rel-tol 3 out/average_aero_particles_sorted.txt out/average_compsizenum_aero_particles_sorted.txt; then
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then
@@ -22,8 +22,8 @@ if ! ../../numeric_diff --by elem --min-col 3 --max-col 4 --rel-tol 3 out/averag
 		  exit 1
 	  fi
 	  echo retrying...
-	  ../../partmc run_part.spec
-	  ../../bin_average_comp 1e-10 1e-4 24 wet out/average_0001_00000001.nc out/average_comp
+	  if ! ../../partmc run_part.spec; then continue; fi
+	  if ! ../../bin_average_comp 1e-10 1e-4 24 wet out/average_0001_00000001.nc out/average_comp; then continue; fi
   else
 	  echo PASS
 	  exit 0

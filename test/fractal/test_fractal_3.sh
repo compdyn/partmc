@@ -14,15 +14,25 @@ while [ true ]
 do
   echo Attempt $counter
 
-../../partmc run_part_brown_cont_df_1_8_upto1000s.spec
-../../partmc run_part_brown_cont_df_1_8_restart.spec
+if ! ../../partmc run_part_brown_cont_df_1_8_upto1000s.spec || \
+   ! ../../partmc run_part_brown_cont_df_1_8_restart.spec || \
+   ! ../../test_fractal_dimless_time --cont out/part_brown_cont_df_1_8_0001 || \
+   ! ../../test_fractal_dimless_time --cont out/restart_part_brown_cont_df_1_8_0001; then
+	echo Failure "$counter"
+	if [ "$counter" -gt 10 ]
+	then
+		echo FAIL
+		exit 1
+	fi
+	echo retrying...
+	((counter++))
+	continue
+fi
 
-../../test_fractal_dimless_time --cont out/part_brown_cont_df_1_8_0001
-../../test_fractal_dimless_time --cont out/restart_part_brown_cont_df_1_8_0001
 tail -n +2 out/restart_part_brown_cont_df_1_8_0001_dimless_time.txt > out/restart_part_brown_cont_df_1_8_0001_dimless_time_tailed.txt
 cat out/part_brown_cont_df_1_8_0001_dimless_time.txt out/restart_part_brown_cont_df_1_8_0001_dimless_time_tailed.txt > out/part_brown_cont_df_1_8_0001_dimless_t_series.txt
 
-if ! ../../numeric_diff --by col --rel-tol 0.1 ref_cont_df_1_8_dimless_time_regrid.txt out/part_brown_cont_df_1_8_0001_dimless_t_series.txt &> /dev/null; then
+if ! ../../numeric_diff --by col --rel-tol 0.1 ref_cont_df_1_8_dimless_time_regrid.txt out/part_brown_cont_df_1_8_0001_dimless_t_series.txt; then
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then

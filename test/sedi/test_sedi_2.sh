@@ -12,10 +12,9 @@ while [ true ]
 do
   echo Attempt $counter
 
-../../extract_aero_size --mass --dmin 1e-7 --dmax 1 --nbin 100 out/sedi_part_0001
-../../extract_sectional_aero_size --mass out/sedi_sect
-
-if ! ../../numeric_diff --by col --rel-tol 0.7 out/sedi_sect_aero_size_mass.txt out/sedi_part_0001_aero_size_mass.txt &> /dev/null; then
+if ! ../../extract_aero_size --mass --dmin 1e-7 --dmax 1 --nbin 100 out/sedi_part_0001 || \
+   ! ../../extract_sectional_aero_size --mass out/sedi_sect || \
+   ! ../../numeric_diff --by col --rel-tol 0.7 out/sedi_sect_aero_size_mass.txt out/sedi_part_0001_aero_size_mass.txt; then
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then
@@ -23,8 +22,8 @@ if ! ../../numeric_diff --by col --rel-tol 0.7 out/sedi_sect_aero_size_mass.txt 
 		  exit 1
 	  fi
 	  echo retrying...
-	  ../../partmc run_part.spec
-	  ../../partmc run_sect.spec
+	  if ! ../../partmc run_part.spec; then continue; fi
+	  if ! ../../partmc run_sect.spec; then continue; fi
   else
 	  echo PASS
 	  exit 0

@@ -12,8 +12,8 @@ while [ true ]
 do
   echo Attempt $counter
 
-../../extract_gas out/nucleate_part_0001
-if ! ../../numeric_diff --by col --rel-tol 0.05  out/nucleate_ode_gas.txt out/nucleate_part_0001_gas.txt &> /dev/null; then
+if ! ../../extract_gas out/nucleate_part_0001 || \
+   ! ../../numeric_diff --by col --rel-tol 0.05  out/nucleate_ode_gas.txt out/nucleate_part_0001_gas.txt; then
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then
@@ -21,7 +21,7 @@ if ! ../../numeric_diff --by col --rel-tol 0.05  out/nucleate_ode_gas.txt out/nu
 		  exit 1
 	  fi
 	  echo retrying...
-	  ../../partmc run_part.spec
+	  if ! ../../partmc run_part.spec; then continue; fi
   else
 	  echo PASS
 	  exit 0

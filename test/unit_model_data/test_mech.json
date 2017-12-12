@@ -12,7 +12,7 @@
 			"type" : "MECHANISM",
 			"reactions" : [
 				{
-					"rxn type" : "ARRHENIUS",
+					"type" : "ARRHENIUS",
 					"reactants" : {
 						"peanut butter" : {},
 						"jelly" : {}
@@ -24,7 +24,7 @@
 					"Ea" : 3256.1
 				},
 				{
-					"rxn type" : "ARRHENIUS",
+					"type" : "ARRHENIUS",
 					"reactants" : {
 						"oreo" : { "qty" : 2 }
 					},
@@ -36,7 +36,7 @@
 					"Ea" : 1.2e3
 				},
 				{
-					"rxn type" : "ARRHENIUS",
+					"type" : "ARRHENIUS",
 					"reactants" : {
 						"snack" : {},
 						"sandwich" : {}

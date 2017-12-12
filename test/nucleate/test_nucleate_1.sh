@@ -14,10 +14,10 @@ while [ true ]
 do
   echo Attempt $counter
 
-../../partmc run_part.spec
-../../extract_aero_time out/nucleate_part_0001
-../../test_nucleate_ode
-if ! ../../numeric_diff --by col --min-col 1 --max-col 3 --rel-tol 0.15 out/nucleate_ode_aero_time.txt out/nucleate_part_0001_aero_time.txt &> /dev/null; then
+if ! ../../partmc run_part.spec || \
+   ! ../../extract_aero_time out/nucleate_part_0001 || \
+   ! ../../test_nucleate_ode || \
+   ! ../../numeric_diff --by col --min-col 1 --max-col 3 --rel-tol 0.15 out/nucleate_ode_aero_time.txt out/nucleate_part_0001_aero_time.txt; then
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then

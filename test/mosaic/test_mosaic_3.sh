@@ -12,8 +12,8 @@ while [ true ]
 do
   echo Attempt $counter
 
-../../extract_gas out/mosaic_0001
-if ! ../../numeric_diff --by row --rel-tol 1e-4 ref_mosaic_0001_gas.txt out/mosaic_0001_gas.txt &> /dev/null; then
+if ! ../../extract_gas out/mosaic_0001 || \
+   ! ../../numeric_diff --by row --rel-tol 1e-4 ref_mosaic_0001_gas.txt out/mosaic_0001_gas.txt; then
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then
@@ -21,7 +21,7 @@ if ! ../../numeric_diff --by row --rel-tol 1e-4 ref_mosaic_0001_gas.txt out/mosa
 		  exit 1
 	  fi
 	  echo retrying...
-	  ../../partmc run_part.spec
+	  if ! ../../partmc run_part.spec; then continue; fi
   else
 	  echo PASS
 	  exit 0

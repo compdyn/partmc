@@ -12,9 +12,9 @@ while [ true ]
 do
   echo Attempt $counter
 
-../../test_poisson_sample 4 50 10000000 > out/poisson_4_approx.dat
-../../test_poisson_sample 4 50 0        > out/poisson_4_exact.dat
-if ! ../../numeric_diff --by col --rel-tol 2e-3 out/poisson_4_exact.dat out/poisson_4_approx.dat &> /dev/null; then
+if ! ../../test_poisson_sample 4 50 10000000 > out/poisson_4_approx.dat || \
+   ! ../../test_poisson_sample 4 50 0        > out/poisson_4_exact.dat || \
+   ! ../../numeric_diff --by col --rel-tol 2e-3 out/poisson_4_exact.dat out/poisson_4_approx.dat; then
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then

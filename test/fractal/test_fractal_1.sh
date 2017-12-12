@@ -12,7 +12,7 @@ while [ true ]
 do
   echo Attempt $counter
 
-if ! ../../test_fractal_radii_conversion &> /dev/null; then
+if ! ../../test_fractal_radii_conversion; then
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then

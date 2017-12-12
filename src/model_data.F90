@@ -17,6 +17,10 @@ module pmc_model_data
 #ifdef PMC_USE_JSON
   use json_module
 #endif
+  use pmc_model_state
+  use pmc_chem_spec_state
+  use pmc_chem_spec_data
+  use pmc_mechanism_data
 
   implicit none
   private
@@ -34,12 +38,12 @@ module pmc_model_data
   contains
     !> Load model data
     procedure :: load => pmc_model_data_load
-    !> Find a mechanism by name
-    procedure :: find_mechanism :: pmc_model_data_find_mechanism
-    !> Add a mechanism to the model
-    procedure :: add_mechanism :: pmc_model_data_add_mechanism
     !> Initialize the model
     procedure :: initialize => pmc_model_data_initialize
+    !> Find a mechanism by name
+    procedure :: find_mechanism => pmc_model_data_find_mechanism
+    !> Add a mechanism to the model
+    procedure :: add_mechanism => pmc_model_data_add_mechanism
     !> Get a new model state variable
     procedure :: new_state => pmc_model_data_new_state
     !> Run the chemical mechanisms
@@ -50,12 +54,6 @@ module pmc_model_data
     procedure :: bin_pack => pmc_model_data_bin_pack
     !> Unpack the given variable from a buffer, advancing position
     procedure :: bin_unpack => pmc_model_data_bin_unpack
-
-    !> Private functions
-    !> Find mechanism by name
-    procedure :: find_mechanism => pmc_model_data_find_mechanism
-    !> Add a mechanism to the model data
-    procedure :: add_mechanism => pmc_model_data_add_mechanism
   end type model_data_t
 
   !> Constructor for chem_spec_data_t
@@ -73,14 +71,14 @@ contains
     !> A new set of model parameters
     type(model_data_t), pointer :: new_obj
     !> Part-MC input file paths
-    character(len=:), allocatable, optional :: input_file_path(:)
+    type(string_t), allocatable, optional :: input_file_path(:)
 
     allocate(new_obj)
     allocate(new_obj%mechanism(0))
     new_obj%chem_spec_data => chem_spec_data_t()
 
     if (present(input_file_path)) then
-      call this%load(input_file_path)
+      call new_obj%load(input_file_path)
     end if
 
   end function pmc_model_data_constructor
@@ -122,30 +120,35 @@ contains
     !> Model data
     class(model_data_t), intent(inout) :: this
     !> Part-MC input file paths
-    character(len=:), allocatable :: input_file_path(:)
+    type(string_t), allocatable :: input_file_path(:)
 
     integer(kind=i_kind) :: i_file, i_mech
 #ifdef PMC_USE_JSON
-    type(json_core), pointer :: json
+    type(json_core), target :: json
     type(json_file) :: j_file
     type(json_value), pointer :: j_obj, j_next
 
     character(kind=json_ck, len=:), allocatable :: key, unicode_str_val
     character(len=:), allocatable :: str_val
 
+    logical :: found
+
+    j_obj => null()
+    j_next => null()
     do i_file = 1, size(input_file_path)
       call j_file%initialize()
-      call j_file%load_file(filename = input_file_path(i_file))      
+      call j_file%get_core(json)
+      call j_file%load_file(filename = input_file_path(i_file)%string)
       call j_file%get('pmc-data(1)', j_obj)
       do while (associated(j_obj))
         call json%get(j_obj, 'type', unicode_str_val, found)
         call assert_msg(689470331, found, "Missing type in json input file "//&
-                input_file_path(i_file))
+                input_file_path(i_file)%string)
         str_val = unicode_str_val
         if (str_val.eq.'MECHANISM') then
           call json%get(j_obj, 'name', unicode_str_val, found)
-          call assert_msg(822680732, "Missing mechanism name in file "//&
-                  input_file_path(i_file))
+          call assert_msg(822680732, found, "Missing mechanism name in file "//&
+                  input_file_path(i_file)%string)
           str_val = unicode_str_val
           if (.not.this%find_mechanism(str_val, i_mech)) then
             call this%add_mechanism(str_val)
@@ -179,9 +182,11 @@ contains
     !> Model data
     class(model_data_t), intent(inout) :: this
 
-    forall this%mechanism
-      call this%mechanism%initialize(this%chem_spec_data)
-    end forall
+    integer(kind=i_kind) :: i_mech
+
+    do i_mech = 1, size(this%mechanism)
+      call this%mechanism(i_mech)%initialize(this%chem_spec_data)
+    end do
 
   end subroutine pmc_model_data_initialize
 
@@ -192,7 +197,7 @@ contains
                   result(found)
 
     !> Model data
-    type(model_data_t), intent(in) :: this
+    class(model_data_t), intent(in) :: this
     !> Mechanism name to search for
     character(len=:), allocatable :: mech_name
     !> Index of mechanism in the array
@@ -216,7 +221,7 @@ contains
   subroutine pmc_model_data_add_mechanism(this, mech_name)
 
     !> Model data
-    type(model_data_t), intent(inout) :: this
+    class(model_data_t), intent(inout) :: this
     !> Mechanism name
     character(len=:), allocatable :: mech_name
 
@@ -236,4 +241,105 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end model pmc_model_data
+  !> Get a model state variable based on the this set of model data
+  function pmc_model_data_new_state(this) result(new_state)
+
+    !> New model state
+    type(model_state_t) :: new_state
+    !> Chemical model
+    class(model_data_t), intent(in) :: this
+
+    new_state%chem_spec_state = this%chem_spec_data%new_state()
+
+  end function pmc_model_data_new_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Integrate the chemical mechanism
+  subroutine pmc_model_data_do_chemistry(this, model_state, time_step)
+  
+    !> Chemical model
+    class(model_data_t), intent(in) :: this
+    !> Current model state
+    type(model_state_t), intent(inout) :: model_state
+    !> Time step over which to integrate (s)
+    real(kind=dp), intent(in) :: time_step
+
+    ! TODO run integration once the integration module is finished
+
+  end subroutine pmc_model_data_do_chemistry
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determine the size of a binary required to pack the mechanism
+  integer(kind=i_kind) function pmc_model_data_pack_size(this) &
+                  result (pack_size)
+
+    !> Chemical model
+    class(model_data_t), intent(in) :: this
+    
+    integer(kind=i_kind) :: i_mech
+
+    pack_size =  pmc_mpi_pack_size_integer(size(this%mechanism))
+    do i_mech = 1, size(this%mechanism)
+      pack_size = pack_size + this%mechanism(i_mech)%pack_size()
+    end do
+
+  end function pmc_model_data_pack_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Pack the given value to the buffer, advancing position
+  subroutine pmc_model_data_bin_pack(this, buffer, pos)
+
+    !> Chemical model
+    class(model_data_t), intent(in) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+
+#ifdef PMC_USE_MPI
+    integer :: i_mech, prev_position
+
+    prev_position = pos
+    call pmc_mpi_pack_integer(buffer, pos, size(this%mechanism)
+    do i_mech = 1, size(this%mechanism)
+      call this%mechanism(i_mech)%bin_pack(buffer, pos)
+    end do
+    call assert(184050835, &
+         pos - prev_position <= this%pack_size())
+#endif
+
+  end subroutine pmc_model_data_bin_pack
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpack the given value from the buffer, advancing position
+  subroutine pmc_model_data_bin_unpack(this, buffer, pos)
+
+    !> Chemical model
+    class(model_data_t), intent(in) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+
+#ifdef PMC_USE_MPI
+    integer :: i_mech, prev_position, num_mech
+
+    prev_position = pos
+    call pmc_mpi_unpack_integer(buffer, pos, num_mech)
+    allocate(this%mechanism(num_mech))
+    do i_mech = 1, size(this%mechanism)
+      call this%mechanism(i_mech)%bin_unpack(buffer, pos)
+    end do
+    call assert(291557168, &
+         pos - prev_position <= this%pack_size())
+#endif
+
+  end subroutine pmc_model_data_bin_unpack
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+end module pmc_model_data

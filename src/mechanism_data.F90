@@ -18,8 +18,10 @@ module pmc_mechanism_data
   use json_module
 #endif
   ! Reaction modules
-  use rxn_arrhenius
-
+  use pmc_rxn_data
+  use pmc_rxn_arrhenius
+  use pmc_chem_spec_data
+  use pmc_model_state
 
   implicit none
   private
@@ -43,11 +45,11 @@ module pmc_mechanism_data
     !> Number of reactions
     integer(kind=i_kind) :: num_rxn = 0
     !> Mechanism name
-    character(len=:), allocatable :: name
+    character(len=:), allocatable :: mech_name
     !> Reaction type
-    integer(kind=i_kind), pointer :: rxn_type(:) => null()
+    integer(kind=i_kind), allocatable :: rxn_type(:)
     !> Reactions
-    type(rxn_data_t), pointer :: reaction(:) => null()
+    type(rxn_data_ptr_t), pointer :: rxn_ptr(:) => null()
   contains
     !> Load reactions from an input file
     procedure :: load => pmc_mechanism_data_load
@@ -82,6 +84,13 @@ module pmc_mechanism_data
     procedure :: pmc_mechanism_data_constructor
   end interface mechanism_data_t
 
+  !> Private type for holding pointers to rxn_data_t extending variables
+  type :: rxn_data_ptr_t
+    private
+    !> Pointer to a reaction
+    class(rxn_data_t), pointer :: rxn
+  end type rxn_data_ptr_t
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -99,9 +108,9 @@ contains
     integer(i_kind) :: alloc_size = REALLOC_INC
 
     if (present(init_size)) alloc_size = init_size
-    new_obj%name = mech_name
+    new_obj%mech_name = mech_name
     allocate(new_obj%rxn_type(alloc_size))
-    allocate(new_obj%reactions(alloc_size))
+    allocate(new_obj%rxn_ptr(alloc_size))
 
   end function pmc_mechanism_data_constructor
 
@@ -117,21 +126,21 @@ contains
     integer(i_kind) :: num_rxn
 
     integer(kind=i_kind) :: new_size
-    integer(kind=i_kind) :: new_rxn_type(:)
-    type(rxn_data_t), pointer :: new_reaction(:)
+    integer(kind=i_kind), allocatable :: new_rxn_type(:)
+    type(rxn_data_ptr_t), pointer :: new_rxn_ptr(:)
 
-    if (size(this%reaction) .ge. this%num_rxn + num_rxn) return
+    if (size(this%rxn_ptr) .ge. this%num_rxn + num_rxn) return
     new_size = this%num_rxn + num_rxn + REALLOC_INC
     allocate(new_rxn_type(new_size))
-    allocate(new_reaction(new_size))
-    new_rxn_type(1:this%num_spec) = this%rxn_type(1:this%num_spec)
-    call this%reaction(1:this%num_spec)%move(new_reaction(1:this%num_spec))
+    allocate(new_rxn_ptr(new_size))
+    new_rxn_type(1:this%num_rxn) = this%rxn_type(1:this%num_rxn)
+    new_rxn_ptr(1:this%num_rxn) = this%rxn_ptr(1:this%num_rxn)
     deallocate(this%rxn_type)
-    deallocate(this%reaction)
-    this%rxn_type => new_rxn_type
-    this%reaction => new_reaction
+    deallocate(this%rxn_ptr)
+    this%rxn_type = new_rxn_type
+    this%rxn_ptr => new_rxn_ptr
 
-  end subroutine mechanism_data_ensure_size
+  end subroutine pmc_mechanism_data_ensure_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -179,11 +188,11 @@ contains
       str_val = unicode_str_val
       if (str_val .eq. "ARRHENIUS") then
         this%rxn_type = RXN_ARRHENIUS
-        this%reaction(this%num_rxn) = rxn_arrhenius_t()
+        this%rxn_ptr(this%num_rxn)%rxn => rxn_arrhenius_t()
       else 
-        die_msg(359134071, "Invalid reaction type: "//trim(str_val))
+        call die_msg(359134071, "Invalid reaction type: "//trim(str_val))
       end if
-      this%reaction(this%num_rxn)%load(json, child)
+      call this%rxn_ptr(this%num_rxn)%rxn%load(json, child)
       call json%get_next(child, next)
       child => next
     end do
@@ -202,14 +211,18 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize the mechanism
-  subroutine pmc_mechanism_data_initialize(this)
+  subroutine pmc_mechanism_data_initialize(this, chem_spec_data)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(inout) :: this
+    !> Chemical species data
+    type(chem_spec_data_t), intent(in) :: chem_spec_data
 
-    forall this%reaction
-      call this%reaction%initialize()
-    end forall
+    integer(kind=i_kind) :: i_rxn
+
+    do i_rxn = 1, this%num_rxn
+      call this%rxn_ptr(i_rxn)%rxn%initialize(chem_spec_data)
+    end do
 
   end subroutine pmc_mechanism_data_initialize
 
@@ -224,21 +237,21 @@ contains
 
     mech_size = this%num_rxn
 
-  end function pmc_mechanism_size
+  end function pmc_mechanism_data_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the name of the mechanism
-  function pmc_mechanism_name(this) result(mech_name)
+  function pmc_mechanism_data_name(this) result(mech_name)
 
     !> Name of the mechanism
     character(len=:), allocatable :: mech_name
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
 
-    mech_name = this%name
+    mech_name = this%mech_name
 
-  end function pmc_mechanism_name
+  end function pmc_mechanism_data_name
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -253,9 +266,11 @@ contains
     !> Time derivative vector
     real(kind=dp), allocatable, intent(inout) :: func(:)
 
-    forall this%reactions
-      call this%reaction%func_contrib(model_state, func)
-    end forall
+    integer(kind=i_kind) :: i_rxn
+
+    do i_rxn = 1, this%num_rxn
+      call this%rxn_ptr(i_rxn)%rxn%func_contrib(model_state, func)
+    end do
 
   end subroutine pmc_mechanism_data_get_func_contrib
 
@@ -271,9 +286,11 @@ contains
     !> Time derivative vector
     real(kind=dp), allocatable, intent(inout) :: jac_matrix(:,:)
 
-    forall this%reactions
-      call this%reaction%jac_contrib(model_state, jac_matrix)
-    end forall
+    integer(kind=i_kind) :: i_rxn
+
+    do i_rxn = 1, this%num_rxn
+      call this%rxn_ptr(i_rxn)%rxn%jac_contrib(model_state, jac_matrix)
+    end do
 
   end subroutine pmc_mechanism_data_get_jac_contrib
 
@@ -289,10 +306,10 @@ contains
     integer(kind=i_kind) :: i_rxn
 
     pack_size =  pmc_mpi_pack_size_integer(this%num_rxn) + &
-                 pmc_pack_size_string(this%name) + &
+                 pmc_mpi_pack_size_string(this%mech_name) + &
                  pmc_mpi_pack_size_integer_array(this%rxn_type)
     do i_rxn = 1, this%num_rxn
-      pack_size = pack_size + this%reaction(i_rxn)%pack_size()
+      pack_size = pack_size + this%rxn_ptr(i_rxn)%rxn%pack_size()
     end do
 
   end function pmc_mechanism_data_pack_size
@@ -314,10 +331,10 @@ contains
 
     prev_position = pos
     call pmc_mpi_pack_integer(buffer, pos, this%num_rxn)
-    call pmc_mpi_pack_string(buffer, pos, this%name)
+    call pmc_mpi_pack_string(buffer, pos, this%mech_name)
     call pmc_mpi_pack_integer_array(buffer, pos, this%rxn_type)
     do i_rxn = 1, this%num_rxn
-      this%reactions(i_rxn)%bin_pack(buffer, pos)
+      call this%rxn_ptr(i_rxn)%rxn%bin_pack(buffer, pos)
     end do
     call assert(669506045, &
          pos - prev_position <= this%pack_size())
@@ -342,17 +359,17 @@ contains
 
     prev_position = pos
     call pmc_mpi_unpack_integer(buffer, pos, this%num_rxn)
-    call pmc_mpi_unpack_string(buffer, pos, this%name)
+    call pmc_mpi_unpack_string(buffer, pos, this%mech_name)
     call pmc_mpi_unpack_integer_array(buffer, pos, this%rxn_type)
     do i_rxn = 1, this%num_rxn
       select (this%rxn_type(i_rxn))
         case (RXN_ARRHENIUS)
-          this%reaction(i_rxn) => rxn_arrhenius_t()
+          this%rxn_ptr(i_rxn)%rxn => rxn_arrhenius_t()
         case default
           call die_msg(655357132, "Trying to unpack unknown reaction type: "&
                   //to_string(this%rxn_type(i_rxn)))
       end select
-      this%reactions(i_rxn)%bin_unpack(buffer, pos)
+      call this%rxn_ptr(i_rxn)%rxn%bin_unpack(buffer, pos)
     end do
     call assert(360900030, &
          pos - prev_position <= this%pack_size())
@@ -370,11 +387,11 @@ contains
 
     integer :: i_rxn
 
-    write(*,*) "Mechanism: "//trim(this%name)
+    write(*,*) "Mechanism: "//trim(this%name())
     do i_rxn = 1, this%num_rxn
-      this%reaction(i_rxn)%print()
+      call this%rxn_ptr(i_rxn)%rxn%print()
     end do
-    write(*,*) "End mechanism: "//trim(this%name)
+    write(*,*) "End mechanism: "//trim(this%name())
 
   end subroutine pmc_mechanism_data_print
 

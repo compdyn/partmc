@@ -14,15 +14,12 @@ while [ true ]
 do
   echo Attempt $counter
 
-../../partmc run_part.spec
-../../test_bidisperse_extract
-
-../../test_bidisperse_ode
-
+if ! ../../partmc run_part.spec || \
+   ! ../../test_bidisperse_extract || \
+   ! ../../test_bidisperse_ode || \
 # extract size distributions for plotting
-../../extract_aero_size --num --dmin 1e-5 --dmax 1e-3 --nbin 255 out/bidisperse_part_0001
-
-if ! ../../numeric_diff --by col --rel-tol 0.3 out/bidisperse_ode_data.txt out/bidisperse_part_data.txt &> /dev/null; then
+   ! ../../extract_aero_size --num --dmin 1e-5 --dmax 1e-3 --nbin 255 out/bidisperse_part_0001 || \
+   ! ../../numeric_diff --by col --rel-tol 0.3 out/bidisperse_ode_data.txt out/bidisperse_part_data.txt; then
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then

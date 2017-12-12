@@ -14,10 +14,9 @@ while [ true ]
 do
   echo Attempt $counter
 
-../../partmc run_part.spec
-
-../../extract_env out/condense_0001
-if ! ../../numeric_diff --by col --rel-tol 1e-4 ref_condense_0001_env.txt out/condense_0001_env.txt &> /dev/null; then
+if ! ../../partmc run_part.spec || \
+   ! ../../extract_env out/condense_0001 || \
+   ! ../../numeric_diff --by col --rel-tol 1e-4 ref_condense_0001_env.txt out/condense_0001_env.txt; then
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then

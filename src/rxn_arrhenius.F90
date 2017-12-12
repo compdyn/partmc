@@ -75,7 +75,24 @@ public :: rxn_arrhenius_t
     procedure, private :: rate_const => pmc_rxn_arrhenius_rate_const
   end type rxn_arrhenius_t
 
+  !> Constructor for rxn_arrhenius_t
+  interface rxn_arrhenius_t
+    procedure :: pmc_rxn_arrhenius_constructor
+  end interface rxn_arrhenius_t
+
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Constructor for Arrhenius reaction
+  function pmc_rxn_arrhenius_constructor() result(new_obj)
+
+    !> A new reaction instance
+    type(rxn_arrhenius_t), pointer :: new_obj
+
+    allocate(new_obj)
+
+  end function pmc_rxn_arrhenius_constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -156,7 +173,6 @@ contains
       if (spec_props%get_int(key_name, temp_int)) then
         do i_spec = i_spec + 1, i_spec + temp_int - 1
           _REACT_(i_spec) = _REACT_(i_spec-1)
-          _MW_(i_spec) = _MW_(i_spec-1)
         end do
       end if
 

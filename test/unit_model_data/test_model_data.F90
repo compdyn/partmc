@@ -48,6 +48,8 @@ contains
     integer :: i_mech
     character(len=:), allocatable :: key_name
 
+    load_model_data_test = .false.
+
     allocate(input_file_path(1))
     input_file_path(1)%string = 'test_run/unit_model_data/test_mech.json'
 
@@ -65,6 +67,8 @@ contains
 
     ! Check the mechanism name
     call assert(636308667, model_data%mechanism(i_mech)%name().eq."lunch mechanism")
+
+    load_model_data_test = .true.
 
   end function load_model_data_test
 

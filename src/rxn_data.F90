@@ -103,7 +103,7 @@ module pmc_rxn_data
       !> Time derivative vector. This vector may include contributions from
       !! other reactions, so the contributions from this reaction should
       !! append, not overwrite, the values already in the vector
-      real(kind=dp), allocatable, intent(inout) :: func(:)
+      real(kind=dp), pointer, intent(inout) :: func(:)
 
     end subroutine pmc_rxn_data_func_contrib
   end interface pmc_rxn_data_func_contrib_if
@@ -125,7 +125,7 @@ module pmc_rxn_data
       !> Jacobian matrix. This matrix may include contributions from other
       !! reactions, so the contributions from this reaction should append,
       !! not overwrite, the values already in the matrix.
-      real(kind=dp), allocatable, intent(inout) :: jac_matrix(:,:)
+      real(kind=dp), pointer, intent(inout) :: jac_matrix(:,:)
 
     end subroutine pmc_rxn_data_jac_contrib
   end interface pmc_rxn_data_jac_contrib_if

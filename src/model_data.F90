@@ -21,6 +21,7 @@ module pmc_model_data
   use pmc_chem_spec_state
   use pmc_chem_spec_data
   use pmc_mechanism_data
+  use pmc_integration_data
 
   implicit none
   private
@@ -35,6 +36,8 @@ module pmc_model_data
     type(mechanism_data_t), pointer :: mechanism(:)
     !> Chemical species data
     type(chem_spec_data_t), pointer :: chem_spec_data
+    !> Integration data
+    type(integration_data_t), pointer, private :: integration_data => null()
   contains
     !> Load model data
     procedure :: load => pmc_model_data_load
@@ -179,14 +182,31 @@ contains
   !> Initialize the model data
   subroutine pmc_model_data_initialize(this)
 
+    use iso_c_binding
+          
     !> Model data
-    class(model_data_t), intent(inout) :: this
+    class(model_data_t), target, intent(inout) :: this
 
     integer(kind=i_kind) :: i_mech
+    procedure(integration_data_deriv_func), pointer :: deriv_func
+    procedure(integration_data_jac_func), pointer :: jac_func
+    real(kind=dp), pointer :: abs_tol(:)
+    type(model_data_t), pointer :: this_ptr
+
+    this_ptr => this
+    deriv_func => pmc_model_data_calc_derivative
+    jac_func => pmc_model_data_calc_jacobian
 
     do i_mech = 1, size(this%mechanism)
       call this%mechanism(i_mech)%initialize(this%chem_spec_data)
     end do
+
+    ! Set up the integrator
+    abs_tol => this%chem_spec_data%get_abs_tolerances()
+    this%integration_data => integration_data_t(c_loc(this_ptr), deriv_func, &
+            jac_func, abs_tol)
+
+    deallocate(abs_tol)
 
   end subroutine pmc_model_data_initialize
 
@@ -257,15 +277,27 @@ contains
 
   !> Integrate the chemical mechanism
   subroutine pmc_model_data_do_chemistry(this, model_state, time_step)
-  
+ 
+    use iso_c_binding
+
     !> Chemical model
     class(model_data_t), intent(in) :: this
     !> Current model state
-    type(model_state_t), intent(inout) :: model_state
+    type(model_state_t), intent(inout), target :: model_state
     !> Time step over which to integrate (s)
     real(kind=dp), intent(in) :: time_step
 
-    ! TODO run integration once the integration module is finished
+    integer(kind=i_kind) :: solver_status
+    real(kind=dp), pointer :: state_array(:)
+
+    state_array => model_state%chem_spec_state%conc
+
+    ! Run integration
+    solver_status = this%integration_data%solve(state_array, &
+            c_loc(model_state), time_step)
+
+    ! Evaluate the solver status
+    call this%integration_data%check_status(solver_status)
 
   end subroutine pmc_model_data_do_chemistry
 
@@ -339,6 +371,68 @@ contains
 #endif
 
   end subroutine pmc_model_data_bin_unpack
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Calculate the time derivative f(t,y)
+  subroutine pmc_model_data_calc_derivative(curr_time, deriv, &
+                  model_data_c_ptr, model_state_c_ptr)
+
+    use iso_c_binding
+
+    !> Current solver time (s)
+    real(kind=dp), intent(in) :: curr_time
+    !> Time derivative to calculate
+    real(kind=dp), intent(inout), pointer :: deriv(:)
+    !> Pointer to model data
+    type(c_ptr), intent(in) :: model_data_c_ptr
+    !> Pointer to model state
+    type(c_ptr), intent(in) :: model_state_c_ptr
+
+    type(model_data_t), pointer :: model_data
+    type(model_state_t), pointer :: model_state
+    integer(kind=i_kind) :: i_mech
+
+    call c_f_pointer(model_data_c_ptr, model_data)
+    call c_f_pointer(model_state_c_ptr, model_state)
+
+    ! Calculate f(t,y)
+    do i_mech=1, size(model_data%mechanism)
+      call model_data%mechanism(i_mech)%get_func_contrib(model_state, deriv)
+    end do
+
+  end subroutine pmc_model_data_calc_derivative
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Calculate the Jacobian matrix J(t,y)
+  subroutine pmc_model_data_calc_jacobian(curr_time, jac, &
+                  model_data_c_ptr, model_state_c_ptr)
+
+    use iso_c_binding
+
+    !> Current solver time (s)
+    real(kind=dp), intent(in) :: curr_time
+    !> Jacobian matrix to calculate
+    real(kind=dp), intent(inout), pointer :: jac(:,:)
+    !> Pointer to model data
+    type(c_ptr), intent(in) :: model_data_c_ptr
+    !> Pointer to model state
+    type(c_ptr), intent(in) :: model_state_c_ptr
+
+    type(model_data_t), pointer :: model_data
+    type(model_state_t), pointer :: model_state
+    integer(kind=i_kind) :: i_mech
+
+    call c_f_pointer(model_data_c_ptr, model_data)
+    call c_f_pointer(model_state_c_ptr, model_state)
+
+    ! Calculate J(t,y)
+    do i_mech=1, size(model_data%mechanism)
+      call model_data%mechanism(i_mech)%get_jac_contrib(model_state, jac)
+    end do
+
+  end subroutine pmc_model_data_calc_jacobian
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

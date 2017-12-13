@@ -264,7 +264,7 @@ contains
     !> Current model state
     type(model_state_t), intent(in) :: model_state
     !> Time derivative vector
-    real(kind=dp), allocatable, intent(inout) :: func(:)
+    real(kind=dp), pointer, intent(inout) :: func(:)
 
     integer(kind=i_kind) :: i_rxn
 
@@ -284,7 +284,7 @@ contains
     !> Current model state
     type(model_state_t), intent(in) :: model_state
     !> Time derivative vector
-    real(kind=dp), allocatable, intent(inout) :: jac_matrix(:,:)
+    real(kind=dp), pointer, intent(inout) :: jac_matrix(:,:)
 
     integer(kind=i_kind) :: i_rxn
 

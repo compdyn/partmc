@@ -50,8 +50,8 @@ contains
     type(model_state_t) :: model_state
     type(chem_spec_data_t) :: spec_data
 
-    real(kind=dp), allocatable :: func(:)
-    real(kind=dp), allocatable :: jac_matrix(:,:)
+    real(kind=dp), pointer :: func(:)
+    real(kind=dp), pointer :: jac_matrix(:,:)
 
 #ifdef PMC_USE_JSON
     type(json_core), pointer :: json

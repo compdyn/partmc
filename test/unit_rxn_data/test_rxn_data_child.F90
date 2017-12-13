@@ -199,7 +199,7 @@ contains
     !> Time derivative vector. This vector may include contributions from
     !! other reactions, so the contributions from this reaction should
     !! append, not overwrite, the values already in the vector
-    real(kind=dp), allocatable, intent(inout) :: func(:)
+    real(kind=dp), pointer, intent(inout) :: func(:)
    
     integer(kind=i_kind) :: i_spec
     real(kind=dp) :: rate
@@ -240,7 +240,7 @@ contains
     !> Jacobian matrix. This matrix may include contributions from other
     !! reactions, so the contributions from this reaction should append,
     !! not overwrite, the values already in the matrix.
-    real(kind=dp), allocatable, intent(inout) :: jac_matrix(:,:)
+    real(kind=dp), pointer, intent(inout) :: jac_matrix(:,:)
 
     character(len=16) :: out
     integer(kind=i_kind) :: i_spec_i, i_spec_d

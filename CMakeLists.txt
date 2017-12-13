@@ -116,7 +116,7 @@ if(ENABLE_SUNDIALS)
     DOC "SUNDIALS CVODE library"
     PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib)
   set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB})
-  set(SUNDIALS_SRC src/condense_solver.c)
+  set(SUNDIALS_SRC src/condense_solver.c src/integrate.c)
   include_directories(${SUNDIALS_INCLUDE_DIR})
   add_definitions(-DPMC_USE_SUNDIALS)
 endif()
@@ -323,7 +323,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
   src/property.F90 src/chem_spec_data.F90 src/chem_spec_state.F90
   src/rxn_data.F90 src/model_state.F90 src/mechanism_data.F90
-  src/model_data.F90
+  src/model_data.F90 src/integration_data.F90
   ${REACTIONS_SRC}
   ${SUNDIALS_SRC} ${GSL_SRC}
   ${C_SORT_SRC})

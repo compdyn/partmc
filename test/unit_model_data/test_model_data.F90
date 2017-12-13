@@ -68,6 +68,9 @@ contains
     ! Check the mechanism name
     call assert(636308667, model_data%mechanism(i_mech)%name().eq."lunch mechanism")
 
+    ! Make sure all three reactions were loaded
+    call assert(360948482, model_data%mechanism(i_mech)%size().eq.3)
+
     load_model_data_test = .true.
 
   end function load_model_data_test

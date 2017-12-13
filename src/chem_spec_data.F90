@@ -31,6 +31,8 @@ module pmc_chem_spec_data
 
   !> Reallocation increment
   integer(kind=i_kind), parameter :: REALLOC_INC = 50
+  !> Default absolute integration tolerance
+  real(kind=dp), parameter :: DEFAULT_ABS_TOL = 1.0e-30
 
   !> Unknown species type
   integer(kind=i_kind), parameter, public :: UNKNOWN_SPEC = 0
@@ -65,6 +67,9 @@ module pmc_chem_spec_data
     procedure :: new_state => chem_spec_data_new_state
     !> Get a species index in the chem_spec_state_t variable
     procedure :: state_id => chem_spec_data_state_id
+    !> Get an array of absolute integration tolerances corresponding
+    !! to the dimensions of the state array
+    procedure :: get_abs_tolerances => chem_spec_data_get_abs_tolerances
 
     !> Private functions
     !> Add a species
@@ -384,6 +389,33 @@ contains
     ! TODO add aerosol species indices after creating chem_aero_group_data_t
 
   end function chem_spec_data_state_id
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get an array of absolute integration tolerances corresponding to the
+  !! dimensions of the state array
+  function chem_spec_data_get_abs_tolerances(this) result (abs_tol)
+
+    !> Array of species absolute integration tolerances
+    real(kind=dp), pointer :: abs_tol(:)
+    !> Species dataset
+    class(chem_spec_data_t), intent(in) :: this
+
+    character(len=:), allocatable :: key
+    integer(kind=i_kind) :: i_spec
+    real(kind=dp) :: val
+
+    allocate(abs_tol(this%num_spec))
+    key = "absolute integration tolerance"
+    do i_spec = 1, this%num_spec
+      if (this%property_set(i_spec)%get_real(key, val)) then
+        abs_tol(i_spec) = val
+      else
+        abs_tol(i_spec) = DEFAULT_ABS_TOL
+      end if
+    end do
+
+  end function chem_spec_data_get_abs_tolerances
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -16,10 +16,11 @@ module pmc_integration_data
   implicit none
   private
 
-  public :: integration_data_t, integration_data_deriv_func, integration_data_jac_func
+  public :: integration_data_t, integration_data_deriv_func, &
+          integration_data_jac_func, pmc_integration_data_is_solver_available
 
   !> Default relative tolerance for integration
-  real(kind=dp), parameter :: PMC_INTEGRATION_DEFAULT_REL_TOL = 5.0D-5
+  real(kind=dp), parameter :: PMC_INTEGRATION_DEFAULT_REL_TOL = 5.0D-8
   !> Default max number of integration steps
   integer(kind=i_kind), parameter :: PMC_INTEGRATION_DEFAULT_MAX_STEPS = 10000000
 

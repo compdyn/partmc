@@ -346,15 +346,19 @@ contains
 
   !> Tests whether two real numbers are almost equal using only a
   !> relative tolerance.
-  logical function almost_equal(d1, d2)
+  logical function almost_equal(d1, d2, tol)
 
     !> First number to compare.
     real(kind=dp), intent(in) :: d1
     !> Second number to compare.
     real(kind=dp), intent(in) :: d2
+    !> User-defined relative tolerance
+    real(kind=dp), intent(in), optional :: tol
 
     !> Relative tolerance.
-    real(kind=dp), parameter :: eps = 1d-8
+    real(kind=dp) :: eps = 1d-8
+
+    if (present(tol)) eps = tol
 
     ! handle the 0.0 case
     if (d1 .eq. d2) then

@@ -158,6 +158,8 @@ if(ENABLE_JSON)
   do_unit_test(model_data "PASS")
 endif()
 
+add_test(test_chemistry_1 ${CMAKE_BINARY_DIR}/test_run/chemistry/test_chemistry_1.sh)
+
 add_test(test_additive_1 ${CMAKE_BINARY_DIR}/test_run/additive/test_additive_1.sh)
 add_test(test_additive_2 ${CMAKE_BINARY_DIR}/test_run/additive/test_additive_2.sh)
 set_tests_properties(test_additive_2 PROPERTIES DEPENDS test_additive_1)
@@ -368,6 +370,13 @@ target_link_libraries(unit_test_rxn_data partmclib)
 add_executable(unit_test_model_data test/unit_model_data/test_model_data.F90)
 
 target_link_libraries(unit_test_model_data partmclib)
+
+######################################################################
+# test_chem_mech_solver
+
+add_executable(test_chem_mech_solver test/chemistry/test_chem_mech_solver.F90)
+
+target_link_libraries(test_chem_mech_solver partmclib)
 
 ######################################################################
 # test_bidisperse_ode

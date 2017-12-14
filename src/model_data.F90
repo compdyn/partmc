@@ -50,7 +50,7 @@ module pmc_model_data
     !> Get a new model state variable
     procedure :: new_state => pmc_model_data_new_state
     !> Run the chemical mechanisms
-    procedure :: do_chemistry => pmc_model_data_do_chemistry
+    procedure :: solve => pmc_model_data_solve
     !> Determine the number of bytes required to pack the variable
     procedure :: pack_size => pmc_model_data_pack_size
     !> Pack the given variable into a buffer, advancing position
@@ -276,7 +276,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Integrate the chemical mechanism
-  subroutine pmc_model_data_do_chemistry(this, model_state, time_step)
+  subroutine pmc_model_data_solve(this, model_state, time_step)
  
     use iso_c_binding
 
@@ -299,7 +299,7 @@ contains
     ! Evaluate the solver status
     call this%integration_data%check_status(solver_status)
 
-  end subroutine pmc_model_data_do_chemistry
+  end subroutine pmc_model_data_solve
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

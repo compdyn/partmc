@@ -154,6 +154,7 @@ set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES test_run)
 do_unit_test(property "PASS")
 do_unit_test(chem_spec_data "PASS")
 do_unit_test(rxn_data "PASS")
+do_unit_test(aero_phase_data "PASS")
 if(ENABLE_JSON)
   do_unit_test(model_data "PASS")
 endif()
@@ -325,7 +326,9 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
   src/property.F90 src/chem_spec_data.F90 src/chem_spec_state.F90
   src/rxn_data.F90 src/model_state.F90 src/mechanism_data.F90
-  src/model_data.F90 src/integration_data.F90
+  src/model_data.F90 src/integration_data.F90 src/aero_rep_data.F90
+  src/aero_phase_data.F90 src/aero_rep_factory.F90 
+  src/aero_rep_single_particle.F90
   ${REACTIONS_SRC}
   ${SUNDIALS_SRC} ${GSL_SRC}
   ${C_SORT_SRC})
@@ -370,6 +373,13 @@ target_link_libraries(unit_test_rxn_data partmclib)
 add_executable(unit_test_model_data test/unit_model_data/test_model_data.F90)
 
 target_link_libraries(unit_test_model_data partmclib)
+
+######################################################################
+# test_aero_phase_data
+
+add_executable(unit_test_aero_phase_data test/unit_aero_phase_data/test_aero_phase_data.F90)
+
+target_link_libraries(unit_test_aero_phase_data partmclib)
 
 ######################################################################
 # test_chem_mech_solver

@@ -59,6 +59,8 @@ module pmc_chem_spec_data
     procedure :: load => chem_spec_data_load
     !> Get the size of the species database
     procedure :: size => chem_spec_data_size
+    !> Check if a species name is in the set of chemical species
+    procedure :: exists => chem_spec_data_exists
     !> Get a species properties
     procedure :: get_property_set => chem_spec_data_get_property_set
     !> Get a species type
@@ -291,6 +293,20 @@ contains
     chem_spec_data_size = this%num_spec
 
   end function chem_spec_data_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Check if a species name is in the set of chemical species
+  logical function chem_spec_data_exists(this, spec_name) result (found)
+
+    !> Species dataset
+    class(chem_spec_data_t), intent(in) :: this
+    !> Species name
+    character(len=:), allocatable, intent(in) :: spec_name
+
+    found = this%find(spec_name).ne.0
+
+  end function chem_spec_data_exists
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -1,0 +1,50 @@
+{
+	"pmc-data" : [
+{
+	"name" : "my test phase one",
+	"type" : "AERO_PHASE",
+	"species" : ["species a", "species b", "species c"],
+	"some property" : 12.2
+},
+{
+	"name" : "my test phase two",
+	"type" : "AERO_PHASE",
+	"species" : ["species c", "species d", "species e"],
+	"some other property" : false
+},
+{
+	"name" : "my last test phase",
+	"type" : "AERO_PHASE",
+	"species" : ["species b", "species e"],
+	"some property" : 13.75
+},
+{
+	"name" : "species a",
+	"type" : "AERO_SPEC"
+},
+{
+	"name" : "species b",
+	"type" : "AERO_SPEC"
+},
+{
+	"name" : "species c",
+	"type" : "AERO_SPEC"
+},
+{
+	"name" : "species d",
+	"type" : "AERO_SPEC"
+},
+{
+	"name" : "species e",
+	"type" : "AERO_SPEC"
+},
+{
+	"name" : "species f",
+	"type" : "AERO_SPEC"
+},
+{
+	"name" : "species g",
+	"type" : "AERO_SPEC"
+}
+	]
+}

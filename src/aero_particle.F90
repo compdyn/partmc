@@ -12,6 +12,7 @@ module pmc_aero_particle
   use pmc_aero_data
   use pmc_spec_file
   use pmc_env_state
+  use pmc_aero_rep_state
   use pmc_mpi
 #ifdef PMC_USE_MPI
   use mpi
@@ -23,7 +24,7 @@ module pmc_aero_particle
   !! species that make up the particle. This array must have length
   !! equal to aero_data%%n_spec, so that \c vol(i) is the volume (in
   !! m^3) of the i'th aerosol species.
-  type aero_particle_t
+  type, extends(aero_rep_state_t) :: aero_particle_t
      !> Constituent species volumes [length aero_data_n_spec()] (m^3).
      real(kind=dp), allocatable :: vol(:)
      !> Number of original particles from each source that coagulated
@@ -53,12 +54,36 @@ module pmc_aero_particle
      real(kind=dp) :: least_create_time
      !> Last time a constituent was created (s).
      real(kind=dp) :: greatest_create_time
+  contains
+    !> Determine the size of a binary required to pack a given variable
+    procedure :: pack_size => pmc_aero_particle_pack_size
+    !> Pack the given value to the buffer, advancing position
+    procedure :: bin_pack => pmc_aero_particle_bin_pack
+    !> Unpack the given value from the buffer, advancing position
+    procedure :: bin_unpack => pmc_aero_particle_bin_unpack
   end type aero_particle_t
+
+  !> Constructor for aero_particle_t
+  interface aero_particle_t
+    procedure :: pmc_aero_particle_constructor
+  end interface aero_particle_t
 
   !> Next unique ID number to use for a particle.
   integer, save :: next_id = 1
 
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Constructor for aero_particle_t
+  function pmc_aero_particle_constructor() result (new_obj)
+
+    !> New aerosol state 
+    type(aero_particle_t), pointer :: new_obj
+
+    allocate(new_obj)
+
+  end function pmc_aero_particle_constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1020,6 +1045,47 @@ contains
     end if
 
   end subroutine aero_particle_check
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determine the size of a binary required to pack a given variable
+  integer(kind=i_kind) function pmc_aero_particle_pack_size(this) &
+                  result (pack_size)
+
+    !> Aerosol representation state
+    class(aero_particle_t), intent(in) :: this
+
+    pack_size = 0
+
+  end function pmc_aero_particle_pack_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Pack the given value to the buffer, advancing position
+  subroutine pmc_aero_particle_bin_pack(this, buffer, pos)
+
+    !> Aerosol representation state
+    class(aero_particle_t), intent(in) :: this
+    !> Memory buffer
+    character, allocatable, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer(kind=i_kind), intent(inout) :: pos
+
+   end subroutine pmc_aero_particle_bin_pack
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpack the given value to the buffer, advancing position
+  subroutine pmc_aero_particle_bin_unpack(this, buffer, pos)
+
+    !> Aerosol representation state
+    class(aero_particle_t), intent(inout) :: this
+    !> Memory buffer
+    character, allocatable, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer(kind=i_kind), intent(inout) :: pos
+
+  end subroutine pmc_aero_particle_bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

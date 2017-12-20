@@ -55,7 +55,7 @@ contains
     !> A new string
     type(string_t), pointer :: new_obj
     !> String value
-    character(len=:), allocatable :: val
+    character(len=:), allocatable, intent(in) :: val
 
     allocate(new_obj)
     new_obj%string = val

@@ -91,6 +91,7 @@ contains
     type(rxn_arrhenius_t), pointer :: new_obj
 
     allocate(new_obj)
+    new_obj%rxn_phase = GAS_RXN
 
   end function pmc_rxn_arrhenius_constructor
 
@@ -164,7 +165,7 @@ contains
     i_spec = 1
     do while (reactants%get_key(spec_name))
 
-      ! Save the index of this species in the chem_spec_state_t variable
+      ! Save the index of this species in the state variable array
       _REACT_(i_spec) = chem_spec_data%state_id(spec_name)
 
       ! Get properties included with this reactant in the reaction data
@@ -185,7 +186,7 @@ contains
     i_spec = 1
     do while (products%get_key(spec_name))
 
-      ! Save the index of this species in the chem_spec_state_t variable
+      ! Save the index of this species in the state variable array
       _PROD_(i_spec) = chem_spec_data%state_id(spec_name)
 
       ! Get properties included with this product in the reaction data
@@ -229,7 +230,7 @@ contains
 
     rate = this%rate_const(model_state)
     do i_spec=1, _NUM_REACT_
-      rate = rate * model_state%chem_spec_state%conc(_REACT_(i_spec))
+      rate = rate * model_state%state_var(_REACT_(i_spec))
     end do
     
     if (rate.eq.real(0.0, kind=dp)) return
@@ -272,7 +273,7 @@ contains
     rate_const = this%rate_const(model_state)
     do i_spec_i=1, _NUM_REACT_
       rate_const = rate_const * &
-              model_state%chem_spec_state%conc(_REACT_(i_spec_i))
+              model_state%state_var(_REACT_(i_spec_i))
     end do
 
     if (rate_const.eq.real(0.0, kind=dp)) return
@@ -280,7 +281,7 @@ contains
     do i_spec_d=1, _NUM_REACT_
       do i_spec_i=1, _NUM_REACT_
         rate = rate_const
-        rate = rate / model_state%chem_spec_state%conc( &
+        rate = rate / model_state%state_var( &
                 _REACT_(i_spec_i))
         jac_matrix(_REACT_(i_spec_d), &
                 _REACT_(i_spec_i)) = &
@@ -293,7 +294,7 @@ contains
     do i_spec_d=1, _NUM_PROD_
       do i_spec_i=1, _NUM_REACT_
         rate = rate_const
-        rate = rate / model_state%chem_spec_state%conc( &
+        rate = rate / model_state%state_var( &
                 _REACT_(i_spec_i) )
         jac_matrix(_PROD_(i_spec_d), &
                 _REACT_(i_spec_i) ) = &

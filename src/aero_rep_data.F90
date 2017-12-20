@@ -37,7 +37,9 @@ module pmc_aero_rep_data
     !> Name of the aerosol representation
     character(len=:), allocatable :: rep_name
     !> Aerosol phases associated with this aerosol scheme
-    class(aero_phase_data_ptr), allocatable :: aero_phase
+    !! FIXME This should be a private component, but extending types need
+    !! access to it.
+    class(aero_phase_data_ptr), allocatable, public :: aero_phase(:)
     !> Aerosol representation parameters. These will be available during 
     !! initialization, but not during integration. All information required
     !! by functions of the aerosol representation  must be saved by the
@@ -47,12 +49,21 @@ module pmc_aero_rep_data
     !! integration, and should contain any information required by the
     !! functions of the aerosol representation that cannot be obtained
     !! from the model_state_t object. (floating-point)
-    real(kind=dp), allocatable :: condensed_data_real(:)
+    !! FIXME This should be a private component, but extending types need
+    !! access to it.
+    real(kind=dp), allocatable, public :: condensed_data_real(:)
     !> Condensed reaction data (integers)
-    integer(kind=i_kind), allocatable ::  condensed_data_int(:)
+    !! FIXME This should be a private component, but extending types need
+    !! access to it.
+    integer(kind=i_kind), allocatable, public ::  condensed_data_int(:)
   contains
     !> Aerosol representation initialization
     procedure(pmc_aero_rep_data_initialize), deferred :: initialize
+    !> Get the size of the state variable array required for this aerosol
+    !! representation
+    procedure(pmc_aero_rep_data_size), deferred :: size
+    !> Get an instance of the state variable for this aerosol representation
+    procedure(pmc_aero_rep_data_new_state), deferred :: new_state
     !> Get aerosol species state id
     procedure(pmc_aero_rep_data_species_state_id), deferred :: &
             species_state_id
@@ -68,6 +79,8 @@ module pmc_aero_rep_data
             vapor_pressure_scaling
     !> Get the name of the aerosol representation
     procedure :: name => pmc_aero_rep_data_name
+    !> Get a phase id in this aerosol representation
+    procedure :: phase_id => pmc_aero_rep_data_phase_id
     !> Determine the number of bytes required to pack the given value
     procedure :: pack_size => pmc_aero_rep_data_pack_size
     !> Packs the given value into the buffer, advancing position
@@ -95,16 +108,61 @@ module pmc_aero_rep_data
   !! read in. It ensures all data required during the model run are included
   !! in the condensed data arrays.
   interface pmc_aero_rep_data_initialize_if
-    subroutine pmc_aero_rep_data_initialize(this, aero_phase_set)
-      import :: aero_rep_data_t, aero_phase_data_t
+    subroutine pmc_aero_rep_data_initialize(this, aero_phase_set, &
+                  spec_state_id, aero_state_id, chem_spec_data)
+      use pmc_util,                                     only : i_kind
+      use pmc_chem_spec_data
+      use pmc_aero_phase_data
+      import :: aero_rep_data_t
 
       !> Aerosol representation data
       class(aero_rep_data_t), intent(inout) :: this
-      !> Aerosol phase data
+      !> The set of aerosol phases
       type(aero_phase_data_t), pointer, intent(in) :: aero_phase_set(:)
+      !> Beginning state id for this aerosol representationin the model species
+      !! state array
+      integer(kind=i_kind), intent(in) :: spec_state_id
+      !> Index for this representation in the model state aero_rep_state_t
+      !! array
+      integer(kind=i_kind), intent(in) :: aero_state_id
+      !> Chemical species data
+      type(chem_spec_data_t), intent(in) :: chem_spec_data
 
     end subroutine pmc_aero_rep_data_initialize
   end interface pmc_aero_rep_data_initialize_if
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the size of the state variable array required for this aerosol
+  !! representation
+  interface pmc_aero_rep_data_size_if
+    function pmc_aero_rep_data_size(this) result (state_size)
+      use pmc_util,                                     only : i_kind
+      import :: aero_rep_data_t
+
+      !> Size of the state array
+      integer(kind=i_kind) :: state_size
+      !> Aerosol representation data
+      class(aero_rep_data_t), intent(in) :: this
+
+    end function pmc_aero_rep_data_size
+  end interface pmc_aero_rep_data_size_if
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get an instance of the state type for this aerosol representation
+  interface pmc_aero_rep_data_new_state_if
+    function pmc_aero_rep_data_new_state(this) result (aero_rep_state)
+      use pmc_aero_rep_state
+      import :: aero_rep_data_t
+
+      !> Aerosol representation state
+      class(aero_rep_state_t), pointer :: aero_rep_state
+      !> Aerosol representation data
+      class(aero_rep_data_t), intent(in) :: this
+
+    end function pmc_aero_rep_data_new_state
+  end interface pmc_aero_rep_data_new_state_if
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -112,6 +170,8 @@ module pmc_aero_rep_data
   !! index of the species in the specified phase in each aerosol group (e.g.,
   !! bin, mode). If the species is not present in a certain group-phase the
   !! index will be 0.
+  !! 
+  !! This function should only be called during initialization
   interface pmc_aero_rep_data_species_state_id_if
     function pmc_aero_rep_data_species_state_id(this, phase, species_name) &
                     result(spec_index)
@@ -136,9 +196,10 @@ module pmc_aero_rep_data
   !! may be 'gas' to indicate the gas-phase, or both phases may be aerosol
   !! phases.
   interface pmc_aero_rep_data_surface_area_conc_if 
-    function pmc_aero_rep_data_surface_area_conc(this, phase1, phase2) &
-                    result(surface_area_conc)
-      use pmc_util,                                     only : dp
+    function pmc_aero_rep_data_surface_area_conc(this, i_phase1, i_phase2, &
+                    model_state, jac_contrib) result(surface_area_conc)
+      use pmc_util,                                     only : dp, i_kind
+      use pmc_model_state
       import :: aero_rep_data_t
 
       !> Surface area concentration
@@ -146,9 +207,16 @@ module pmc_aero_rep_data
       !> Aerosol representation data
       class(aero_rep_data_t), intent(in) :: this
       !> Aerosol phase1
-      character(len=:), allocatable, intent(in) :: phase1
+      integer(kind=i_kind), intent(in) :: i_phase1
       !> Aerosol phase2
-      character(len=:), allocatable, intent(in) :: phase2
+      integer(kind=i_kind), intent(in) :: i_phase2
+      !> Model state
+      type(model_state_t), intent(in) :: model_state
+      !> Contribution to Jacobian matrix. An array of the same size as the
+      !! state array that, when present, will be filled with the partial
+      !! derivatives of the result of this calculation with each state
+      !! variable.
+      real(kind=dp), allocatable, intent(out), optional :: jac_contrib(:)
 
     end function pmc_aero_rep_data_surface_area_conc
   end interface pmc_aero_rep_data_surface_area_conc_if
@@ -159,19 +227,27 @@ module pmc_aero_rep_data
   !! (m^2/m^3). It is assumed the surface is between the gas-phase and an
   !! aerosol phase.
   interface pmc_aero_rep_data_species_surface_area_conc_if
-    function pmc_aero_rep_data_species_surface_area_conc(this, phase, species_name) &
-                    result(surface_area_conc)
-      use pmc_util,                                     only : dp
+    function pmc_aero_rep_data_species_surface_area_conc(this, i_phase, &
+                    i_spec, model_state, jac_contrib) result(surface_area_conc)
+      use pmc_util,                                     only : dp, i_kind
+      use pmc_model_state
       import :: aero_rep_data_t
 
       !> Surface area concentration
       real(kind=dp) :: surface_area_conc
       !> Aerosol representation data
       class(aero_rep_data_t), intent(in) :: this
-      !> Aerosol phase
-      character(len=:), allocatable, intent(in) :: phase
-      !> Species name
-      character(len=:), allocatable, intent(in) :: species_name
+      !> Aerosol phase id
+      integer(kind=i_kind), intent(in) :: i_phase
+      !> Species id
+      integer(kind=i_kind), intent(in) :: i_spec
+      !> Model state
+      type(model_state_t), intent(in) :: model_state
+      !> Contribution to Jacobian matrix. An array of the same size as the
+      !! state array that, when present, will be filled with the partial
+      !! derivatives of the result of this calculation with each state
+      !! variable.
+      real(kind=dp), allocatable, intent(out), optional :: jac_contrib(:)
 
     end function pmc_aero_rep_data_species_surface_area_conc
   end interface pmc_aero_rep_data_species_surface_area_conc_if
@@ -180,9 +256,10 @@ module pmc_aero_rep_data
             
   !> Get the vapor pressure scaling for a particular species (unitless)
   interface pmc_aero_rep_data_vapor_pressure_scaling_if  
-    function pmc_aero_rep_data_vapor_pressure_scaling(this, species_name) &
-                    result(vapor_pressure_scaling)
-      use pmc_util,                                     only : dp
+    function pmc_aero_rep_data_vapor_pressure_scaling(this, i_spec, &
+                    model_state, jac_contrib) result(vapor_pressure_scaling)
+      use pmc_util,                                     only : dp, i_kind
+      use pmc_model_state
       import :: aero_rep_data_t
 
       !> Vapor pressure scaling
@@ -190,7 +267,14 @@ module pmc_aero_rep_data
       !> Aerosol representation data
       class(aero_rep_data_t), intent(in) :: this
       !> Species name
-      character(len=:), allocatable, intent(in) :: species_name
+      integer(kind=i_kind), intent(in) :: i_spec
+      !> Model state
+      type(model_state_t), intent(in) :: model_state
+      !> Contribution to Jacobian matrix. An array of the same size as the
+      !! state array that, when present, will be filled with the partial
+      !! derivatives of the result of this calculation with each state
+      !! variable.
+      real(kind=dp), allocatable, intent(out), optional :: jac_contrib(:)
 
     end function pmc_aero_rep_data_vapor_pressure_scaling
   end interface pmc_aero_rep_data_vapor_pressure_scaling_if
@@ -212,6 +296,32 @@ contains
     name = this%rep_name
 
   end function pmc_aero_rep_data_name
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get a phase id in this representation, for use in solver functions.
+  !! Returns 0 if phase is not present.
+  !!
+  !! This function should only be called during initialization
+  integer(kind=i_kind) function pmc_aero_rep_data_phase_id(this, phase_name) &
+                  result (phase_id)
+
+    !> Aerosol representation data
+    class(aero_rep_data_t), intent(in) :: this
+    !> Aerosol phase to find
+    character(len=:), allocatable, intent(in) :: phase_name
+
+    integer(kind=i_kind) :: i_phase
+
+    phase_id = 0
+    do i_phase = 1, size(this%aero_phase)
+      if (this%aero_phase(i_phase)%val%name().eq.phase_name) then
+        phase_id = i_phase
+        return
+      end if
+    end do
+
+  end function pmc_aero_rep_data_phase_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -13,6 +13,7 @@ module pmc_aero_phase_data
   use pmc_util,                       only : die_msg, string_t
   use pmc_property
   use pmc_chem_spec_data
+  use pmc_model_state
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -53,6 +54,13 @@ module pmc_aero_phase_data
     !! saved by the aero_rep_data_t-exdending type in the condensed data 
     !! arrays.
     type(property_t), pointer :: property_set => null()
+    !> Condensed representaiton data. Theses arrays will be available during
+    !! integration, and should contain any information required by the
+    !! functions of the aerosol representation that cannot be obtained
+    !! from the model_state_t object. (floating-point)
+    real(kind=dp), allocatable :: condensed_data_real(:)
+    !> Condensed reaction data (integers)
+    integer(kind=i_kind), allocatable ::  condensed_data_int(:)
   contains
     !> Aerosol representation initialization
     procedure :: initialize => pmc_aero_phase_data_initialize
@@ -60,10 +68,18 @@ module pmc_aero_phase_data
     procedure :: name => pmc_aero_phase_data_name
     !> Get property data associated with this phase
     procedure :: get_property_set => pmc_aero_phase_data_property_set
-    !> Get the size of the state array required for this phase
-    procedure :: state_size => pmc_aero_phase_data_state_size
+    !> Get a list of species names in this phase
+    procedure :: get_species => pmc_aero_phase_data_get_species
     !> Get an aerosol species state id
     procedure :: state_id => pmc_aero_phase_data_state_id
+    !> Get the total mass in a phase (ug/m^3)
+    procedure :: total_mass => pmc_aero_phase_data_total_mass
+    !> Determine the number of bytes required to pack the given value
+    procedure :: pack_size => pmc_aero_phase_data_pack_size
+    !> Packs the given value into the buffer, advancing position
+    procedure :: bin_pack => pmc_aero_phase_data_bin_pack
+    !> Unpacks the given value from the buffer, advancing position
+    procedure :: bin_unpack => pmc_aero_phase_data_bin_unpack
     !> Load data from an input file
     procedure :: load => pmc_aero_phase_data_load
     !> Get the number of species in the phase
@@ -166,16 +182,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the size of the state array required for this phase
-  integer(kind=i_kind) function  pmc_aero_phase_data_state_size(this) &
-                  result (state_size)
+  !> Get the aerosol phase species list
+  function pmc_aero_phase_data_get_species(this) result (species)
 
+    !> A list of species in this phase
+    type(string_t), allocatable :: species(:)
     !> Aerosol phase data
-    class(aero_phase_data_t), intent(inout) :: this
+    class(aero_phase_data_t), intent(in) :: this
 
-    state_size = this%num_spec
+    integer(kind=i_kind) :: i_spec
 
-  end function pmc_aero_phase_data_state_size
+    allocate(species(this%num_spec))
+    do i_spec = 1, this%num_spec
+      species(i_spec)%string = this%spec_name(i_spec)%string
+    end do
+
+  end function pmc_aero_phase_data_get_species
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -396,6 +418,88 @@ contains
     end do
 
   end function pmc_aero_phase_data_find
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the total mass in a phase based on the model state (ug/m^3)
+  real(kind=dp) function pmc_aero_phase_data_total_mass(this, model_state, &
+                  state_id) result (total_mass)
+
+    !> Aerosol phase data
+    class(aero_phase_data_t), intent(in) :: this
+    !> Current model state
+    type(model_state_t), intent(in) :: model_state
+    !> Beginning id in the state array for phase
+    integer(kind=i_kind), intent(in) :: state_id
+
+    integer :: i_spec
+
+    total_mass = real(0.0, kind=dp)
+    do i_spec = 0, this%num_spec-1
+      total_mass = total_mass + model_state%state_var(state_id + i_spec)
+    end do
+
+  end function pmc_aero_phase_data_total_mass
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determine the size of a binary required to pack the aerosol 
+  !! representation data
+  integer(kind=i_kind) function pmc_aero_phase_data_pack_size(this) &
+                  result (pack_size)
+
+    !> Aerosol representation data
+    class(aero_phase_data_t), intent(in) :: this
+    
+    pack_size = pmc_mpi_pack_size_integer(this%num_spec)
+
+  end function pmc_aero_phase_data_pack_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Pack the given value to the buffer, advancing position
+  subroutine pmc_aero_phase_data_bin_pack(this, buffer, pos)
+
+    !> Aerosol representation data
+    class(aero_phase_data_t), intent(in) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = pos
+    call pmc_mpi_pack_integer(buffer, pos, this%num_spec)
+    call assert(561436372, &
+         pos - prev_position <= this%pack_size())
+#endif
+
+  end subroutine pmc_aero_phase_data_bin_pack
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpack the given value from the buffer, advancing position
+  subroutine pmc_aero_phase_data_bin_unpack(this, buffer, pos)
+
+    !> Aerosol representation data
+    class(aero_phase_data_t), intent(out) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = pos
+    call pmc_mpi_unpack_integer(buffer, pos, this%num_spec)
+    call assert(219217030, &
+         pos - prev_position <= this%pack_size())
+#endif
+
+  end subroutine pmc_aero_phase_data_bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

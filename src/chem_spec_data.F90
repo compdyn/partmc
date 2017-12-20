@@ -16,7 +16,6 @@ module pmc_chem_spec_data
   use pmc_mpi
   use pmc_util,                       only : die_msg, string_t
   use pmc_property
-  use pmc_chem_spec_state
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -65,9 +64,7 @@ module pmc_chem_spec_data
     procedure :: get_property_set => chem_spec_data_get_property_set
     !> Get a species type
     procedure :: get_type => chem_spec_data_get_type
-    !> Get a new chem_spec_state_t variable for this species set
-    procedure :: new_state => chem_spec_data_new_state
-    !> Get a species index in the chem_spec_state_t variable
+    !> Get a species index in the state variable
     procedure :: state_id => chem_spec_data_state_id
     !> Get an array of absolute integration tolerances corresponding
     !! to the dimensions of the state array
@@ -374,23 +371,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Create a new state variable for this set of chemical species
-  function chem_spec_data_new_state(this) result (chem_state)
-
-    !> Species state variable
-    type(chem_spec_state_t) :: chem_state
-    !> Species dataset
-    class(chem_spec_data_t), intent(in) :: this
-
-    allocate(chem_state%conc(this%num_spec))
-    
-    ! TODO add aerosol species indices after creating chem_aero_group_data_t
-
-  end function chem_spec_data_new_state
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Return the index of a species in a chem_spec_state_t instance
+  !> Return the index of a gas-phase species in the state array 
   function chem_spec_data_state_id(this, spec_name) result (spec_id)
 
     !> Index of the species in the dataset
@@ -401,8 +382,6 @@ contains
     character(len=:), allocatable, intent(in) :: spec_name
 
     spec_id = this%find(spec_name)
-
-    ! TODO add aerosol species indices after creating chem_aero_group_data_t
 
   end function chem_spec_data_state_id
 

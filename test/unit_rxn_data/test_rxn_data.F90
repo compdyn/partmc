@@ -15,6 +15,7 @@ program pmc_test_rxn_data
   use pmc_model_state
   use pmc_chem_spec_data
   use pmc_chem_spec_state
+  use pmc_rxn_data
 #ifdef PMC_USE_JSON
   use json_module
 #endif
@@ -46,7 +47,7 @@ contains
   !> Build rxn_data set
   logical function build_rxn_data_set_test()
 
-    type(rxn_test_t) :: rxn_test(3)
+    type(rxn_data_ptr) :: rxn_test(3)
     type(model_state_t) :: model_state
     type(chem_spec_data_t) :: spec_data
 
@@ -130,6 +131,11 @@ contains
     spec_data = chem_spec_data_t()
     call assert(782321038, associated(j_obj))
 
+    ! Build rxn list
+    rxn_test(1)%val => rxn_test_t()
+    rxn_test(2)%val => rxn_test_t()
+    rxn_test(3)%val => rxn_test_t()
+
     do while (associated(j_obj))
       call json%get(j_obj, 'type', str_val)
       if (str_val.eq."GAS_SPEC" .or. str_val.eq."AERO_SPEC") then
@@ -139,7 +145,7 @@ contains
         call assert(767719830, associated(j_rxn))
         i=1
         do while(associated(j_rxn))
-          call rxn_test(i)%load(json, j_rxn)
+          call rxn_test(i)%val%load(json, j_rxn)
           i=i+1
           j_next => j_rxn
           call json%get_next(j_next, j_rxn)
@@ -154,40 +160,40 @@ contains
 
     ! Get a species state variable
     model_state%env_state%temp = real(301.15, kind=dp)
-    model_state%chem_spec_state = spec_data%new_state()
-    call assert(760288463, size(model_state%chem_spec_state%conc).eq.7)
+    allocate(model_state%state_var(spec_data%size()))
+    call assert(760288463, size(model_state%state_var).eq.7)
 
     ! Set up the time derivative and Jacobian matrix arrays
-    allocate(func(size(model_state%chem_spec_state%conc)))
-    allocate(jac_matrix(size(model_state%chem_spec_state%conc), &
-            size(model_state%chem_spec_state%conc)))
+    allocate(func(size(model_state%state_var)))
+    allocate(jac_matrix(size(model_state%state_var), &
+            size(model_state%state_var)))
 
     func (:) = real(0.0, kind=dp)
     jac_matrix(:,:) = real(0.0, kind=dp)
 
     ! Initialize the reactions
     do i=1,3
-      call rxn_test(i)%initialize(spec_data)
+      call rxn_test(i)%val%initialize(spec_data)
     end do
 
     ! Set the species concentrations
-    model_state%chem_spec_state%conc(:) = real(0.0, kind=dp)
+    model_state%state_var(:) = real(0.0, kind=dp)
     spec_name = "peanut butter"
-    model_state%chem_spec_state%conc(spec_data%state_id(spec_name)) = real(200.0, kind=dp)
+    model_state%state_var(spec_data%state_id(spec_name)) = real(200.0, kind=dp)
     spec_name = "jelly"
-    model_state%chem_spec_state%conc(spec_data%state_id(spec_name)) = real(150.0, kind=dp)
+    model_state%state_var(spec_data%state_id(spec_name)) = real(150.0, kind=dp)
     spec_name = "oreo"
-    model_state%chem_spec_state%conc(spec_data%state_id(spec_name)) = real(100.0, kind=dp)
+    model_state%state_var(spec_data%state_id(spec_name)) = real(100.0, kind=dp)
     spec_name = "sandwich"
-    model_state%chem_spec_state%conc(spec_data%state_id(spec_name)) = real(75.0, kind=dp)
+    model_state%state_var(spec_data%state_id(spec_name)) = real(75.0, kind=dp)
     spec_name = "snack"
-    model_state%chem_spec_state%conc(spec_data%state_id(spec_name)) = real(50.0, kind=dp)
+    model_state%state_var(spec_data%state_id(spec_name)) = real(50.0, kind=dp)
 
     ! Calculate contributions from the test reaction to the time derivative 
     ! and the Jacobian matric
     do i=1, 3
-      call rxn_test(i)%func_contrib(model_state, func)
-      call rxn_test(i)%jac_contrib(model_state, jac_matrix)
+      call rxn_test(i)%val%func_contrib(model_state, func)
+      call rxn_test(i)%val%jac_contrib(model_state, jac_matrix)
     end do
 
     ! ******************************************

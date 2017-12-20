@@ -49,7 +49,7 @@ module pmc_mechanism_data
     !> Reaction type
     integer(kind=i_kind), allocatable :: rxn_type(:)
     !> Reactions
-    type(rxn_data_ptr_t), pointer :: rxn_ptr(:) => null()
+    type(rxn_data_ptr), pointer :: rxn_ptr(:) => null()
   contains
     !> Load reactions from an input file
     procedure :: load => pmc_mechanism_data_load
@@ -83,13 +83,6 @@ module pmc_mechanism_data
   interface mechanism_data_t
     procedure :: pmc_mechanism_data_constructor
   end interface mechanism_data_t
-
-  !> Private type for holding pointers to rxn_data_t extending variables
-  type :: rxn_data_ptr_t
-    private
-    !> Pointer to a reaction
-    class(rxn_data_t), pointer :: rxn
-  end type rxn_data_ptr_t
 
 contains
 
@@ -127,7 +120,7 @@ contains
 
     integer(kind=i_kind) :: new_size
     integer(kind=i_kind), allocatable :: new_rxn_type(:)
-    type(rxn_data_ptr_t), pointer :: new_rxn_ptr(:)
+    type(rxn_data_ptr), pointer :: new_rxn_ptr(:)
 
     if (size(this%rxn_ptr) .ge. this%num_rxn + num_rxn) return
     new_size = this%num_rxn + num_rxn + REALLOC_INC
@@ -188,11 +181,11 @@ contains
       str_val = unicode_str_val
       if (str_val .eq. "ARRHENIUS") then
         this%rxn_type = RXN_ARRHENIUS
-        this%rxn_ptr(this%num_rxn)%rxn => rxn_arrhenius_t()
+        this%rxn_ptr(this%num_rxn)%val => rxn_arrhenius_t()
       else 
         call die_msg(359134071, "Invalid reaction type: "//trim(str_val))
       end if
-      call this%rxn_ptr(this%num_rxn)%rxn%load(json, child)
+      call this%rxn_ptr(this%num_rxn)%val%load(json, child)
       call json%get_next(child, next)
       child => next
     end do
@@ -221,7 +214,7 @@ contains
     integer(kind=i_kind) :: i_rxn
 
     do i_rxn = 1, this%num_rxn
-      call this%rxn_ptr(i_rxn)%rxn%initialize(chem_spec_data)
+      call this%rxn_ptr(i_rxn)%val%initialize(chem_spec_data)
     end do
 
   end subroutine pmc_mechanism_data_initialize
@@ -269,7 +262,9 @@ contains
     integer(kind=i_kind) :: i_rxn
 
     do i_rxn = 1, this%num_rxn
-      call this%rxn_ptr(i_rxn)%rxn%func_contrib(model_state, func)
+      if (this%rxn_ptr(i_rxn)%val%check_phase(model_state%rxn_phase)) then
+        call this%rxn_ptr(i_rxn)%val%func_contrib(model_state, func)
+      end if
     end do
 
   end subroutine pmc_mechanism_data_get_func_contrib
@@ -289,7 +284,9 @@ contains
     integer(kind=i_kind) :: i_rxn
 
     do i_rxn = 1, this%num_rxn
-      call this%rxn_ptr(i_rxn)%rxn%jac_contrib(model_state, jac_matrix)
+      if (this%rxn_ptr(i_rxn)%val%check_phase(model_state%rxn_phase)) then
+        call this%rxn_ptr(i_rxn)%val%jac_contrib(model_state, jac_matrix)
+      end if
     end do
 
   end subroutine pmc_mechanism_data_get_jac_contrib
@@ -309,7 +306,7 @@ contains
                  pmc_mpi_pack_size_string(this%mech_name) + &
                  pmc_mpi_pack_size_integer_array(this%rxn_type)
     do i_rxn = 1, this%num_rxn
-      pack_size = pack_size + this%rxn_ptr(i_rxn)%rxn%pack_size()
+      pack_size = pack_size + this%rxn_ptr(i_rxn)%val%pack_size()
     end do
 
   end function pmc_mechanism_data_pack_size
@@ -334,7 +331,7 @@ contains
     call pmc_mpi_pack_string(buffer, pos, this%mech_name)
     call pmc_mpi_pack_integer_array(buffer, pos, this%rxn_type)
     do i_rxn = 1, this%num_rxn
-      call this%rxn_ptr(i_rxn)%rxn%bin_pack(buffer, pos)
+      call this%rxn_ptr(i_rxn)%val%bin_pack(buffer, pos)
     end do
     call assert(669506045, &
          pos - prev_position <= this%pack_size())
@@ -364,12 +361,12 @@ contains
     do i_rxn = 1, this%num_rxn
       select (this%rxn_type(i_rxn))
         case (RXN_ARRHENIUS)
-          this%rxn_ptr(i_rxn)%rxn => rxn_arrhenius_t()
+          this%rxn_ptr(i_rxn)%val => rxn_arrhenius_t()
         case default
           call die_msg(655357132, "Trying to unpack unknown reaction type: "&
                   //to_string(this%rxn_type(i_rxn)))
       end select
-      call this%rxn_ptr(i_rxn)%rxn%bin_unpack(buffer, pos)
+      call this%rxn_ptr(i_rxn)%val%bin_unpack(buffer, pos)
     end do
     call assert(360900030, &
          pos - prev_position <= this%pack_size())
@@ -389,7 +386,7 @@ contains
 
     write(*,*) "Mechanism: "//trim(this%name())
     do i_rxn = 1, this%num_rxn
-      call this%rxn_ptr(i_rxn)%rxn%print()
+      call this%rxn_ptr(i_rxn)%val%print()
     end do
     write(*,*) "End mechanism: "//trim(this%name())
 

@@ -109,9 +109,9 @@ contains
     call aero_phase_data_set(2)%val%initialize(chem_spec_data)
     call aero_phase_data_set(3)%val%initialize(chem_spec_data)
 
-    call assert(814209333, aero_phase_data_set(1)%val%state_size().eq.3)
-    call assert(863424812, aero_phase_data_set(2)%val%state_size().eq.3)
-    call assert(358218407, aero_phase_data_set(3)%val%state_size().eq.2)
+    call assert(814209333, aero_phase_data_set(1)%val%size().eq.3)
+    call assert(863424812, aero_phase_data_set(2)%val%size().eq.3)
+    call assert(358218407, aero_phase_data_set(3)%val%size().eq.2)
 
     call assert(278773971, aero_phase_data_set(1)%val%size().eq.3)
     call assert(608559165, aero_phase_data_set(2)%val%size().eq.3)

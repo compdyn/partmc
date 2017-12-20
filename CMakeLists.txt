@@ -307,6 +307,7 @@ set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 # partmc library
 
 set(REACTIONS_SRC src/rxn_arrhenius.F90)
+set(AEROSOL_REPS_SRC src/aero_rep_single_particle.F90)
 
 add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/integer_rmap.F90 src/integer_rmap2.F90 src/aero_sorted.F90
@@ -324,11 +325,11 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/aero_particle.F90 src/aero_particle_array.F90 src/mpi.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
   src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
-  src/property.F90 src/chem_spec_data.F90 src/chem_spec_state.F90
+  src/property.F90 src/chem_spec_data.F90 src/aero_rep_state.F90
   src/rxn_data.F90 src/model_state.F90 src/mechanism_data.F90
   src/model_data.F90 src/integration_data.F90 src/aero_rep_data.F90
-  src/aero_phase_data.F90 src/aero_rep_factory.F90 
-  src/aero_rep_single_particle.F90
+  src/aero_phase_data.F90 src/aero_rep_factory.F90  
+  ${AEROSOL_REPS_SRC}
   ${REACTIONS_SRC}
   ${SUNDIALS_SRC} ${GSL_SRC}
   ${C_SORT_SRC})

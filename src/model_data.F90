@@ -18,7 +18,6 @@ module pmc_model_data
   use json_module
 #endif
   use pmc_model_state
-  use pmc_chem_spec_state
   use pmc_chem_spec_data
   use pmc_mechanism_data
   use pmc_integration_data
@@ -238,7 +237,7 @@ contains
     !> Model data
     class(model_data_t), target, intent(inout) :: this
 
-    integer(kind=i_kind) :: i_mech, i_phase, i_aero_rep
+    integer(kind=i_kind) :: i_mech, i_phase, i_aero_rep, i_state_var
     procedure(integration_data_deriv_func), pointer :: deriv_func
     procedure(integration_data_jac_func), pointer :: jac_func
     real(kind=dp), pointer :: abs_tol(:)
@@ -248,6 +247,9 @@ contains
     deriv_func => pmc_model_data_calc_derivative
     jac_func => pmc_model_data_calc_jacobian
 
+    ! Get the size of the gas-phase species on the state array
+    i_state_var = this%chem_spec_data%size() + 1
+
     ! Initialize the aerosol phases
     do i_phase = 1, size(this%aero_phase)
       call this%aero_phase(i_phase)%initialize(this%chem_spec_data)
@@ -255,7 +257,9 @@ contains
 
     ! Initialize the aerosol representations
     do i_aero_rep = 1, size(this%aero_rep)
-      call this%aero_rep(i_aero_rep)%val%initialize(this%aero_phase)
+      call this%aero_rep(i_aero_rep)%val%initialize(this%aero_phase, &
+              i_state_var, i_aero_rep, this%chem_spec_data)
+      i_state_var = i_state_var + this%aero_rep(i_aero_rep)%val%size()
     end do
 
     ! Initialize the mechanisms
@@ -426,19 +430,35 @@ contains
   function pmc_model_data_new_state(this) result(new_state)
 
     !> New model state
-    type(model_state_t) :: new_state
+    type(model_state_t), pointer :: new_state
     !> Chemical model
     class(model_data_t), intent(in) :: this
 
-    new_state%chem_spec_state = this%chem_spec_data%new_state()
+    integer(kind=i_kind) :: state_size, i_rep
+
+    new_state => model_state_t()
+
+    ! Set up the state variable array
+    state_size = this%chem_spec_data%size()
+    do i_rep = 1, size(this%aero_rep)
+      state_size = state_size + this%aero_rep(i_rep)%val%size()
+    end do
+    allocate(new_state%state_var(state_size))
+
+    ! Create the aerosol representation states
+    allocate(new_state%aero_rep_state(size(this%aero_rep)))
+    do i_rep = 1, size(this%aero_rep)
+      new_state%aero_rep_state(i_rep)%val => this%aero_rep(i_rep)%val%new_state()
+    end do
 
   end function pmc_model_data_new_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Integrate the chemical mechanism
-  subroutine pmc_model_data_solve(this, model_state, time_step)
- 
+  subroutine pmc_model_data_solve(this, model_state, time_step, rxn_phase)
+
+    use pmc_rxn_data 
     use iso_c_binding
 
     !> Chemical model
@@ -447,11 +467,30 @@ contains
     type(model_state_t), intent(inout), target :: model_state
     !> Time step over which to integrate (s)
     real(kind=dp), intent(in) :: time_step
+    !> Phase to solve - gas, aerosol, or both (default)
+    !! Use parameters in pmc_rxn_data to specify phase:
+    !! GAS_RXN, AERO_RXN, GAS_AERO_RXN
+    integer(kind=dp), intent(in), optional :: rxn_phase
 
-    integer(kind=i_kind) :: solver_status
+    integer(kind=i_kind) :: solver_status, phase
     real(kind=dp), pointer :: state_array(:)
 
-    state_array => model_state%chem_spec_state%conc
+    if (present(rxn_phase)) then
+      phase = rxn_phase
+    else
+      phase = GAS_AERO_RXN
+    end if
+
+    if (phase.ne.GAS_RXN .and. &
+        phase.ne.AERO_RXN .and. &
+        phase.ne.GAS_AERO_RXN) then
+      call die_msg(704896254, "Invalid rxn phase specified for chemistry "// &
+              "solver: "//to_string(phase))
+    end if
+
+    model_state%rxn_phase = phase
+
+    state_array => model_state%state_var
 
     ! Run integration
     solver_status = this%integration_data%solve(state_array, &
@@ -557,6 +596,9 @@ contains
     call c_f_pointer(model_data_c_ptr, model_data)
     call c_f_pointer(model_state_c_ptr, model_state)
 
+    ! Generate a unique state id
+    call model_state%reset_id()
+
     ! Calculate f(t,y)
     do i_mech=1, size(model_data%mechanism)
       call model_data%mechanism(i_mech)%get_func_contrib(model_state, deriv)
@@ -587,6 +629,9 @@ contains
 
     call c_f_pointer(model_data_c_ptr, model_data)
     call c_f_pointer(model_state_c_ptr, model_state)
+
+    ! Generate a unique state id
+    call model_state%reset_id()
 
     ! Calculate J(t,y)
     do i_mech=1, size(model_data%mechanism)

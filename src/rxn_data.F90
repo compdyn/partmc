@@ -24,7 +24,14 @@ module pmc_rxn_data
   implicit none
   private
 
-  public :: rxn_data_t
+  public :: rxn_data_t, rxn_data_ptr
+
+  !> Gas-phase reaction
+  integer(kind=i_kind), parameter, public :: GAS_RXN = 1
+  !> Mixed-phase (gas and aerosol) reaction
+  integer(kind=i_kind), parameter, public :: GAS_AERO_RXN = 2
+  !> Aerosol-phase reaction
+  integer(kind=i_kind), parameter, public :: AERO_RXN = 3
 
   !> Abstract reaction data type
   !!
@@ -35,6 +42,8 @@ module pmc_rxn_data
   !! data required by an extending type during a model run should be packed
   !! into the condensed_data arrays during initialization.
   type, abstract :: rxn_data_t
+    !> Reaction phase
+    integer(kind=i_kind) :: rxn_phase
     !> Reaction parameters. These will be available during initialization,
     !! but not during integration. All information required to calculate
     !! the time derivatives and jacobian matrix constributions must be
@@ -54,6 +63,12 @@ module pmc_rxn_data
     procedure(pmc_rxn_data_func_contrib), deferred :: func_contrib
     !> Jacobian matrix contribution
     procedure(pmc_rxn_data_jac_contrib), deferred :: jac_contrib
+    !> Check the phase of the reaction against the phase being solved for.
+    !! During GAS_RXN integrations, only GAS_RXN reactions are solved.
+    !! During AERO_RXN integrations, only AERO_RXN and GAS_AERO_RXN
+    !! reactions are solved. During GAS_AERO_RXN integrations, all 
+    !! reactions are solved.
+    procedure :: check_phase => pmc_rxn_data_check_phase
     !> Determine the number of bytes required to pack the given value
     procedure :: pack_size => pmc_rxn_data_pack_size
     !> Packs the given value into the buffer, advancing position
@@ -65,6 +80,11 @@ module pmc_rxn_data
     !> Print the reaction data
     procedure :: print => pmc_rxn_data_print
   end type rxn_data_t
+
+  !> Pointer type for building arrays of mixed reactions
+  type :: rxn_data_ptr
+    class(rxn_data_t), pointer :: val
+  end type rxn_data_ptr
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -133,6 +153,26 @@ module pmc_rxn_data
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Check that the phase of the reaction is being solved
+  logical function pmc_rxn_data_check_phase(this, rxn_phase) result (valid_rxn)
+
+    !> Reaction data
+    class(rxn_data_t), intent(in) :: this
+    !> Phase being solved
+    integer(kind=i_kind), intent(in) :: rxn_phase
+
+    if (rxn_phase.eq.GAS_AERO_RXN .or. &
+        rxn_phase.eq.this%rxn_phase .or. &
+        (rxn_phase.eq.AERO_RXN .and. this%rxn_phase.eq.GAS_AERO_RXN)) then
+        valid_rxn = .true.
+    else
+      valid_rxn = .false.
+    end if
+
+  end function pmc_rxn_data_check_phase
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

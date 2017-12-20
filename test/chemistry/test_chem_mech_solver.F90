@@ -127,14 +127,14 @@ contains
     model_conc(0,:) = true_conc(0,:)
 
     ! Set the initial concentrations in the model
-    model_state%chem_spec_state%conc(:) = model_conc(0,:)
+    model_state%state_var(:) = model_conc(0,:)
 
     ! Integrate the mechanism
     do i_time = 1, NUM_TIME_STEP
 
       ! Get the modeled conc
       call model_data%solve(model_state, time_step)
-      model_conc(i_time,:) = model_state%chem_spec_state%conc(:)
+      model_conc(i_time,:) = model_state%state_var(:)
 
       ! Get the analytic conc
       time = i_time * time_step

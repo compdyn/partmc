@@ -94,6 +94,10 @@ module pmc_run_part
      logical :: env_average
      !> Parallel coagulation method type.
      integer :: parallel_coag_type
+     !> Whether to do phlexible chemistry
+     logical :: do_phlex_chem
+     !> Phlexible chemistry configuration file name
+     character(len=:), allocatable :: phlex_config_filename
      !> UUID for this simulation.
      character(len=PMC_UUID_LEN) :: uuid
   end type run_part_opt_t

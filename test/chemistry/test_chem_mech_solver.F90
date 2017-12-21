@@ -16,6 +16,7 @@ program pmc_test_chem_mech_solver
 #ifdef PMC_USE_JSON
   use json_module
 #endif
+  use pmc_mpi
 
   implicit none
 
@@ -23,6 +24,9 @@ program pmc_test_chem_mech_solver
   character(len=*), parameter :: new_line = char(10)
   ! Number of timesteps to output in mechanisms
   integer(kind=i_kind) :: NUM_TIME_STEP = 100
+
+  ! initialize mpi
+  call pmc_mpi_init()
 
   if (run_pmc_chem_mech_solver_tests()) then
     write(*,*) "Mechanism solver tests - PASS"
@@ -66,7 +70,8 @@ contains
 
     type(model_data_t), pointer :: model_data
     type(model_state_t), target :: model_state
-    type(string_t), allocatable, dimension(:) :: input_file_path, output_file_path
+    character(len=:), allocatable :: input_file_path
+    type(string_t), allocatable, dimension(:) :: output_file_path
 
     real(kind=dp), dimension(0:NUM_TIME_STEP, 3) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_A, idx_B, idx_C
@@ -92,8 +97,7 @@ contains
     time_step = 0.1
 
     ! Get the consecutive-rxn mechanism json file
-    allocate(input_file_path(1))
-    input_file_path(1)%string = 'consecutive.json'
+    input_file_path = 'config_1.json'
 
     ! Construct a model_data variable
     model_data => model_data_t(input_file_path)

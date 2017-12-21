@@ -9,6 +9,8 @@ del_t 10                        # timestep (s)
 t_output 50                     # output interval (0 disables) (s)
 t_progress 10                   # progress printing interval (0 disables) (s)
 
+do_phlex_chem no                # whether to run the phlexible chemistry module
+
 gas_data gas_data.dat           # file containing gas data
 gas_init gas_init.dat           # initial gas mixing ratios
 

@@ -16,11 +16,15 @@ program pmc_test_aero_phase_data
 #ifdef PMC_USE_JSON
   use json_module
 #endif
+  use pmc_mpi
 
   implicit none
 
   ! New-line character
   character(len=*), parameter :: new_line = char(10)
+
+  !> initialize mpi
+  call pmc_mpi_init()
 
   if (run_pmc_aero_phase_data_tests()) then
     write(*,*) "Aerosol phase data tests - PASS"
@@ -57,6 +61,9 @@ contains
     character(len=:), allocatable :: key
     real(kind=dp) :: temp_real
     logical :: temp_logical
+
+    character, allocatable :: buffer(:)
+    integer(kind=i_kind) :: pos, pack_size
 
     call j_file%initialize()
     call j_file%get_core(json)
@@ -141,6 +148,28 @@ contains
     call assert(379110463, aero_phase_data_set(3)%val%state_id(key).ne.0)
     key = "species a"
     call assert(544003060, aero_phase_data_set(3)%val%state_id(key).eq.0)
+
+#ifdef PMC_USE_MPI
+    pack_size = 0
+    do i_phase = 1, 3
+      pack_size = pack_size + aero_phase_data_set(i_phase)%val%pack_size()
+    end do
+    allocate(buffer(pack_size))
+    pos = 0
+    do i_phase = 1, 3
+      call aero_phase_data_set(i_phase)%val%bin_pack(buffer, pos)
+      deallocate(aero_phase_data_set(i_phase)%val)
+    end do
+    pos = 0
+    do i_phase = 1, 3
+      aero_phase_data_set(i_phase)%val => aero_phase_data_t()
+      call aero_phase_data_set(i_phase)%val%bin_unpack(buffer, pos)
+    end do
+#endif
+
+    ! If condensed data arrays are used for aerosol phases in the future, put
+    ! tests for passed info here
+
 #endif  
     build_aero_phase_data_set_test = .true.
 

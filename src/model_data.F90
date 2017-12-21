@@ -45,7 +45,9 @@ module pmc_model_data
     !> Integration data
     type(integration_data_t), pointer, private :: integration_data => null()
   contains
-    !> Load model data
+    !> Load a set of configuration files
+    procedure :: load_files => pmc_model_data_load_files
+    !> Load model data from a configuration file
     procedure :: load => pmc_model_data_load
     !> Initialize the model
     procedure :: initialize => pmc_model_data_initialize
@@ -88,18 +90,81 @@ contains
     !> A new set of model parameters
     type(model_data_t), pointer :: new_obj
     !> Part-MC input file paths
-    type(string_t), allocatable, optional :: input_file_path(:)
+    character(len=:), allocatable, optional :: input_file_path
 
     allocate(new_obj)
     allocate(new_obj%mechanism(0))
     new_obj%chem_spec_data => chem_spec_data_t()
 
     if (present(input_file_path)) then
-      call new_obj%load(input_file_path)
+      call new_obj%load_files(input_file_path)
     end if
 
   end function pmc_model_data_constructor
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Load a set of model data files
+#ifdef PMC_USE_JSON
+  !! Reads a list of files containing model data. The format of the json file
+  !! should be the following:
+  !!
+  !! { "pmc-files" : [
+  !!   "file_one.json",
+  !!   "some_dir/file_two.json",
+  !!   ...
+  !! ]}
+  !!
+  !! The input file should be in json format and contain a single key-value
+  !! pair named pmc-files whose value is an array of string with paths to the
+  !! set of configuration files to load. Input files should be json format.
+#endif
+  subroutine pmc_model_data_load_files(this, input_file_path)
+
+    !> Model data
+    class(model_data_t), intent(inout) :: this
+    !> Part-MC input file paths
+    character(len=:), allocatable :: input_file_path
+
+#ifdef PMC_USE_JSON
+    type(json_core), target :: json
+    type(json_file) :: j_file
+    type(json_value), pointer :: j_obj, j_next
+
+    logical(kind=json_lk) :: found
+    character(kind=json_ck, len=:), allocatable :: key, unicode_str_val
+
+    integer(kind=json_ik) :: i_file, num_files
+    type(string_t), allocatable :: file_list(:)
+
+    call j_file%initialize()
+    call j_file%get_core(json)
+    call j_file%load_file(filename = input_file_path)
+    call j_file%get('pmc-files(1)', j_obj, found)
+    call assert_msg(405149265, found, &
+            "Could not find pmc-files object in input file: "//input_file_path)
+    call j_file%info('pmc-files', n_children = num_files)
+    call assert_msg(411804027, num_files.gt.0, &
+            "No file names were found in "//input_file_path)
+    allocate(file_list(num_files))
+    j_next => null()
+    i_file = 1
+    do while (associated(j_obj))
+      call json%get(j_obj, unicode_str_val)
+      file_list(i_file)%string = unicode_str_val
+      i_file = i_file + 1
+      call json%get_next(j_obj, j_next)
+      j_obj => j_next
+    end do
+    call j_file%destroy()
+
+    call this%load(file_list)
+#else
+    call warn_msg(171627969, "No support for input files.");
+#endif
+
+  end subroutine pmc_model_data_load_files
+    
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Load model data from input files
@@ -107,7 +172,7 @@ contains
   !! Reads json files containing model object data. The general format of the
   !! json files should be the following:
   !!
-  !! {"pmc-data" : [
+  !! { "pmc-data" : [
   !!   {
   !!     "type" : "OBJECT_TYPE",
   !!     ...
@@ -535,7 +600,7 @@ contains
     integer :: i_mech, prev_position
 
     prev_position = pos
-    call pmc_mpi_pack_integer(buffer, pos, size(this%mechanism)
+    call pmc_mpi_pack_integer(buffer, pos, size(this%mechanism))
     do i_mech = 1, size(this%mechanism)
       call this%mechanism(i_mech)%bin_pack(buffer, pos)
     end do
@@ -551,7 +616,7 @@ contains
   subroutine pmc_model_data_bin_unpack(this, buffer, pos)
 
     !> Chemical model
-    class(model_data_t), intent(in) :: this
+    class(model_data_t), intent(inout) :: this
     !> Memory buffer
     character, intent(inout) :: buffer(:)
     !> Current buffer position

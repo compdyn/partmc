@@ -300,16 +300,25 @@ contains
     !!   output data to disk (see \ref output_format)
     !! - \b t_progress (real, unit s): the interval on which to
     !!   write summary information to the screen while running
+    !! - \b do_phlex_chem (logical): whether to run the phlexible module for
+    !!   chemistry (requires JSON and SUNDIALS support to be compiled in).
+    !!   If \c do_phlex_chem is \c yes, then the following parameters must
+    !!   also be provided:
+    !!   - \b phlex_config (string): file containing a list of phlex-chem
+    !!     configuration files. File format should be \ref 
+    !!     input_format_phlex_config
     !! - \b gas_data (string): name of file from which to read the gas
-    !!   material data (only provide if \c restart is \c no) --- the
-    !!   file format should be \subpage input_format_gas_data
+    !!   material data (only provide if \c restart and \c do_phlex_chem
+    !!   are \c no) --- the file format should be \subpage 
+    !!   input_format_gas_data
     !! - \b gas_init (string): name of file from which to read the
     !!   initial gas state at the start of the simulation (only
     !!   provide option if \c restart is \c no) --- the file format
     !!   should be \subpage input_format_gas_state
     !! - \b aerosol_data (string): name of file from which to read the
-    !!   aerosol material data (only provide if \c restart is \c no)
-    !!   --- the file format should be \subpage input_format_aero_data
+    !!   aerosol material data (only provide if \c restart and do_phlex_chem
+    !!   are \c no) --- the file format should be \subpage
+    !!   input_format_aero_data
     !! - \b do_fractal (logical): whether to consider particles
     !!   as fractal agglomerates. If \c do_fractal is \c no, then all the
     !!   particles are treated as spherical. If \c do_fractal is \c yes,
@@ -397,6 +406,29 @@ contains
        call spec_file_read_real(file, 'del_t', run_part_opt%del_t)
        call spec_file_read_real(file, 't_output', run_part_opt%t_output)
        call spec_file_read_real(file, 't_progress', run_part_opt%t_progress)
+       
+       call spec_file_read_logical(file, 'do_phlex_chem', &
+               run_part_opt%do_phlex_chem)
+       if (run_part_opt%do_phlex_chem) then
+#ifndef PMC_USE_JSON
+         call spec_file_die_msg(581685398, file, &
+                 'cannot do phlex chem, JSON support not compiled in')
+#endif
+#ifndef PMC_USE_SUNDIALS
+         call spec_file_die_msg(905205341, file, &
+                 'cannot do phlex chem, SUNDIALS support not compiled in')
+#endif
+         if (run_part_opt%do_mosaic) then
+           call spec_file_die_msg(952967581, file, &
+                 'cannot use MOSAIC with phlex chem')
+         end if
+         if (run_part_opt%do_condensation) then
+           call spec_file_die_msg(556720748, file, &
+                   'cannot do condensation with phlex chem')
+         end if
+         call spec_file_read_string(file, 'phlex_config', &
+                 run_part_opt%phlex_config_filename)
+       end if
 
        if (do_restart) then
           call input_state(restart_filename, dummy_index, dummy_time, &
@@ -407,10 +439,12 @@ contains
        if (.not. do_restart) then
           env_state_init%elapsed_time = 0d0
 
-          call spec_file_read_string(file, 'gas_data', sub_filename)
-          call spec_file_open(sub_filename, sub_file)
-          call spec_file_read_gas_data(sub_file, gas_data)
-          call spec_file_close(sub_file)
+          if (.not. run_part_opt%do_phlex_chem) then
+            call spec_file_read_string(file, 'gas_data', sub_filename)
+            call spec_file_open(sub_filename, sub_file)
+            call spec_file_read_gas_data(sub_file, gas_data)
+            call spec_file_close(sub_file)
+          end if
 
           call spec_file_read_string(file, 'gas_init', sub_filename)
           call spec_file_open(sub_filename, sub_file)
@@ -418,10 +452,12 @@ contains
                gas_state_init)
           call spec_file_close(sub_file)
 
-          call spec_file_read_string(file, 'aerosol_data', sub_filename)
-          call spec_file_open(sub_filename, sub_file)
-          call spec_file_read_aero_data(sub_file, aero_data)
-          call spec_file_close(sub_file)
+          if (.not. run_part_opt%do_phlex_chem) then
+            call spec_file_read_string(file, 'aerosol_data', sub_filename)
+            call spec_file_open(sub_filename, sub_file)
+            call spec_file_read_aero_data(sub_file, aero_data)
+            call spec_file_close(sub_file)
+          end if
 
           call spec_file_read_fractal(file, aero_data%fractal)
 

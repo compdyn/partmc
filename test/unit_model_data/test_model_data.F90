@@ -44,14 +44,13 @@ contains
   logical function load_model_data_test()
 
     type(model_data_t), pointer :: model_data
-    type(string_t), allocatable :: input_file_path(:)
+    character(len=:), allocatable :: input_file_path
     integer :: i_mech
     character(len=:), allocatable :: key_name
 
     load_model_data_test = .false.
 
-    allocate(input_file_path(1))
-    input_file_path(1)%string = 'test_run/unit_model_data/test_mech.json'
+    input_file_path = 'test_run/unit_model_data/test_mech_config.json'
 
     model_data => model_data_t(input_file_path)
 

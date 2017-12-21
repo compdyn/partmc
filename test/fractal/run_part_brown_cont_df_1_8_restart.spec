@@ -10,6 +10,8 @@ del_t 100                       # timestep (s)
 t_output 5000                   # output interval (0 disables) (s)
 t_progress 1000                 # progress printing interval (0 disables) (s)
 
+do_phlex_chem no                # whether to run the phlexible chemistry module
+
 temp_profile temp_cont.dat      # temperature profile file
 pressure_profile pressure.dat   # pressure profile file
 height_profile height.dat       # height profile file

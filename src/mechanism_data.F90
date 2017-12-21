@@ -359,7 +359,7 @@ contains
     call pmc_mpi_unpack_string(buffer, pos, this%mech_name)
     call pmc_mpi_unpack_integer_array(buffer, pos, this%rxn_type)
     do i_rxn = 1, this%num_rxn
-      select (this%rxn_type(i_rxn))
+    select case (this%rxn_type(i_rxn))
         case (RXN_ARRHENIUS)
           this%rxn_ptr(i_rxn)%val => rxn_arrhenius_t()
         case default

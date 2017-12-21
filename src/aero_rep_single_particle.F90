@@ -224,7 +224,8 @@ contains
     sp_spec = 1
     do i_phase = 1, size(this%aero_phase)
       do i_spec = 1, this%aero_phase(i_phase)%val%size()
-        _MASS_(i_phase, i_spec) = sp_state%vol(sp_spec)
+        _MASS_(i_phase, i_spec) = sp_state%vol(sp_spec) * &
+                _DENSITY_(i_phase, i_spec)
       end do
     end do
 
@@ -249,7 +250,8 @@ contains
     sp_spec = 1
     do i_phase = 1, size(this%aero_phase)
       do i_spec = 1, this%aero_phase(i_phase)%val%size()
-        sp_state%vol(sp_spec) = _MASS_(i_phase, i_spec)
+        sp_state%vol(sp_spec) = _MASS_(i_phase, i_spec) / &
+                _DENSITY_(i_phase, i_spec)
       end do
     end do
 

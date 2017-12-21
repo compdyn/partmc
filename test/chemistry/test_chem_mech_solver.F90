@@ -11,8 +11,8 @@ program pmc_test_chem_mech_solver
   use pmc_util,                         only: i_kind, dp, assert, &
                                               almost_equal, string_t, &
                                               warn_msg
-  use pmc_model_data
-  use pmc_model_state
+  use pmc_phlex_core
+  use pmc_phlex_state
 #ifdef PMC_USE_JSON
   use json_module
 #endif
@@ -68,8 +68,8 @@ contains
 
     use pmc_constants
 
-    type(model_data_t), pointer :: model_data
-    type(model_state_t), target :: model_state
+    type(phlex_core_t), pointer :: phlex_core
+    type(phlex_state_t), target :: phlex_state
     character(len=:), allocatable :: input_file_path
     type(string_t), allocatable, dimension(:) :: output_file_path
 
@@ -99,25 +99,25 @@ contains
     ! Get the consecutive-rxn mechanism json file
     input_file_path = 'config_1.json'
 
-    ! Construct a model_data variable
-    model_data => model_data_t(input_file_path)
+    ! Construct a phlex_core variable
+    phlex_core => phlex_core_t(input_file_path)
 
     ! Initialize the model
-    call model_data%initialize()
+    call phlex_core%initialize()
 
     ! Get a model state variable
-    model_state = model_data%new_state()
+    phlex_state = phlex_core%new_state()
 
     ! Set the environmental conditions
-    model_state%env_state%temp = temp
+    phlex_state%env_state%temp = temp
 
     ! Get species indices
     key = "A"
-    idx_A = model_data%chem_spec_data%state_id(key);
+    idx_A = phlex_core%chem_spec_data%state_id(key);
     key = "B"
-    idx_B = model_data%chem_spec_data%state_id(key);
+    idx_B = phlex_core%chem_spec_data%state_id(key);
     key = "C"
-    idx_C = model_data%chem_spec_data%state_id(key);
+    idx_C = phlex_core%chem_spec_data%state_id(key);
 
     ! Make sure the expected species are in the model
     call assert(629811894, idx_A.gt.0)
@@ -131,14 +131,14 @@ contains
     model_conc(0,:) = true_conc(0,:)
 
     ! Set the initial concentrations in the model
-    model_state%state_var(:) = model_conc(0,:)
+    phlex_state%state_var(:) = model_conc(0,:)
 
     ! Integrate the mechanism
     do i_time = 1, NUM_TIME_STEP
 
       ! Get the modeled conc
-      call model_data%solve(model_state, time_step)
-      model_conc(i_time,:) = model_state%state_var(:)
+      call phlex_core%solve(phlex_state, time_step)
+      model_conc(i_time,:) = phlex_state%state_var(:)
 
       ! Get the analytic conc
       time = i_time * time_step

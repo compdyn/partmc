@@ -3,10 +3,10 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_model_data module.
+!> The pmc_phlex_core module.
 
-!> The model_data_t structure and associated subroutines.
-module pmc_model_data
+!> The phlex_core_t structure and associated subroutines.
+module pmc_phlex_core
 
   use pmc_constants,                  only : i_kind, dp
   use pmc_mpi
@@ -17,7 +17,7 @@ module pmc_model_data
 #ifdef PMC_USE_JSON
   use json_module
 #endif
-  use pmc_model_state
+  use pmc_phlex_state
   use pmc_chem_spec_data
   use pmc_mechanism_data
   use pmc_integration_data
@@ -28,12 +28,12 @@ module pmc_model_data
   implicit none
   private
 
-  public :: model_data_t
+  public :: phlex_core_t
 
   !> Part-MC model data
   !!
   !! Contains all time-invariant data for a Part-MC model run.
-  type :: model_data_t
+  type :: phlex_core_t
     !> Chemical mechanisms
     type(mechanism_data_t), pointer :: mechanism(:)
     !> Chemical species data
@@ -46,49 +46,49 @@ module pmc_model_data
     type(integration_data_t), pointer, private :: integration_data => null()
   contains
     !> Load a set of configuration files
-    procedure :: load_files => pmc_model_data_load_files
+    procedure :: load_files => pmc_phlex_core_load_files
     !> Load model data from a configuration file
-    procedure :: load => pmc_model_data_load
+    procedure :: load => pmc_phlex_core_load
     !> Initialize the model
-    procedure :: initialize => pmc_model_data_initialize
+    procedure :: initialize => pmc_phlex_core_initialize
     !> Find a mechanism by name
-    procedure :: find_mechanism => pmc_model_data_find_mechanism
+    procedure :: find_mechanism => pmc_phlex_core_find_mechanism
     !> Add a mechanism to the model
-    procedure :: add_mechanism => pmc_model_data_add_mechanism
+    procedure :: add_mechanism => pmc_phlex_core_add_mechanism
     !> Find an aerosol representation by name
-    procedure :: find_aero_rep => pmc_model_data_find_aero_rep
+    procedure :: find_aero_rep => pmc_phlex_core_find_aero_rep
     !> Add an aerosol representation to the model
-    procedure :: add_aero_rep => pmc_model_data_add_aero_rep
+    procedure :: add_aero_rep => pmc_phlex_core_add_aero_rep
     !> Find an aerosol phase by name
-    procedure :: find_aero_phase => pmc_model_data_find_aero_phase
+    procedure :: find_aero_phase => pmc_phlex_core_find_aero_phase
     !> Add an aerosol phase to the model
-    procedure :: add_aero_phase => pmc_model_data_add_aero_phase
+    procedure :: add_aero_phase => pmc_phlex_core_add_aero_phase
     !> Get a new model state variable
-    procedure :: new_state => pmc_model_data_new_state
+    procedure :: new_state => pmc_phlex_core_new_state
     !> Run the chemical mechanisms
-    procedure :: solve => pmc_model_data_solve
+    procedure :: solve => pmc_phlex_core_solve
     !> Determine the number of bytes required to pack the variable
-    procedure :: pack_size => pmc_model_data_pack_size
+    procedure :: pack_size => pmc_phlex_core_pack_size
     !> Pack the given variable into a buffer, advancing position
-    procedure :: bin_pack => pmc_model_data_bin_pack
+    procedure :: bin_pack => pmc_phlex_core_bin_pack
     !> Unpack the given variable from a buffer, advancing position
-    procedure :: bin_unpack => pmc_model_data_bin_unpack
-  end type model_data_t
+    procedure :: bin_unpack => pmc_phlex_core_bin_unpack
+  end type phlex_core_t
 
-  !> Constructor for model_data_t
-  interface model_data_t
-    procedure :: pmc_model_data_constructor
-  end interface model_data_t
+  !> Constructor for phlex_core_t
+  interface phlex_core_t
+    procedure :: pmc_phlex_core_constructor
+  end interface phlex_core_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Constructor for model_data_t
-  function pmc_model_data_constructor(input_file_path) result(new_obj)
+  !> Constructor for phlex_core_t
+  function pmc_phlex_core_constructor(input_file_path) result(new_obj)
 
     !> A new set of model parameters
-    type(model_data_t), pointer :: new_obj
+    type(phlex_core_t), pointer :: new_obj
     !> Part-MC input file paths
     character(len=:), allocatable, optional :: input_file_path
 
@@ -100,7 +100,7 @@ contains
       call new_obj%load_files(input_file_path)
     end if
 
-  end function pmc_model_data_constructor
+  end function pmc_phlex_core_constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -119,10 +119,10 @@ contains
   !! pair named pmc-files whose value is an array of string with paths to the
   !! set of configuration files to load. Input files should be json format.
 #endif
-  subroutine pmc_model_data_load_files(this, input_file_path)
+  subroutine pmc_phlex_core_load_files(this, input_file_path)
 
     !> Model data
-    class(model_data_t), intent(inout) :: this
+    class(phlex_core_t), intent(inout) :: this
     !> Part-MC input file paths
     character(len=:), allocatable :: input_file_path
 
@@ -163,7 +163,7 @@ contains
     call warn_msg(171627969, "No support for input files.");
 #endif
 
-  end subroutine pmc_model_data_load_files
+  end subroutine pmc_phlex_core_load_files
     
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -197,10 +197,10 @@ contains
   !! Refer to specific Part-MC data type documentation for the required format
   !! for input objects.
 #endif
-  subroutine pmc_model_data_load(this, input_file_path)
+  subroutine pmc_phlex_core_load(this, input_file_path)
 
     !> Model data
-    class(model_data_t), intent(inout) :: this
+    class(phlex_core_t), intent(inout) :: this
     !> Part-MC input file paths
     type(string_t), allocatable :: input_file_path(:)
 
@@ -290,27 +290,27 @@ contains
     call warn_msg(350136328, "No support for input files.");
 #endif
 
-  end subroutine pmc_model_data_load
+  end subroutine pmc_phlex_core_load
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize the model data
-  subroutine pmc_model_data_initialize(this)
+  subroutine pmc_phlex_core_initialize(this)
 
     use iso_c_binding
           
     !> Model data
-    class(model_data_t), target, intent(inout) :: this
+    class(phlex_core_t), target, intent(inout) :: this
 
     integer(kind=i_kind) :: i_mech, i_phase, i_aero_rep, i_state_var
     procedure(integration_data_deriv_func), pointer :: deriv_func
     procedure(integration_data_jac_func), pointer :: jac_func
     real(kind=dp), pointer :: abs_tol(:)
-    type(model_data_t), pointer :: this_ptr
+    type(phlex_core_t), pointer :: this_ptr
 
     this_ptr => this
-    deriv_func => pmc_model_data_calc_derivative
-    jac_func => pmc_model_data_calc_jacobian
+    deriv_func => pmc_phlex_core_calc_derivative
+    jac_func => pmc_phlex_core_calc_jacobian
 
     ! Get the size of the gas-phase species on the state array
     i_state_var = this%chem_spec_data%size() + 1
@@ -339,16 +339,16 @@ contains
 
     deallocate(abs_tol)
 
-  end subroutine pmc_model_data_initialize
+  end subroutine pmc_phlex_core_initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Find a mechanism by name in the model data
-  logical function pmc_model_data_find_mechanism(this, mech_name, mech_id) &
+  logical function pmc_phlex_core_find_mechanism(this, mech_name, mech_id) &
                   result(found)
 
     !> Model data
-    class(model_data_t), intent(in) :: this
+    class(phlex_core_t), intent(in) :: this
     !> Mechanism name to search for
     character(len=:), allocatable :: mech_name
     !> Index of mechanism in the array
@@ -364,15 +364,15 @@ contains
     end do
     mech_id = 0
 
-  end function pmc_model_data_find_mechanism
+  end function pmc_phlex_core_find_mechanism
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Add a chemical mechanism to the model data
-  subroutine pmc_model_data_add_mechanism(this, mech_name)
+  subroutine pmc_phlex_core_add_mechanism(this, mech_name)
 
     !> Model data
-    class(model_data_t), intent(inout) :: this
+    class(phlex_core_t), intent(inout) :: this
     !> Mechanism name
     character(len=:), allocatable :: mech_name
 
@@ -388,16 +388,16 @@ contains
     deallocate(this%mechanism)
     this%mechanism => new_mechanism
 
-  end subroutine pmc_model_data_add_mechanism
+  end subroutine pmc_phlex_core_add_mechanism
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Find an aerosol representation by name in the model data
-  logical function pmc_model_data_find_aero_rep(this, rep_name, rep_id) &
+  logical function pmc_phlex_core_find_aero_rep(this, rep_name, rep_id) &
                   result(found)
 
     !> Model data
-    class(model_data_t), intent(in) :: this
+    class(phlex_core_t), intent(in) :: this
     !> Aerosol representation name to search for
     character(len=:), allocatable :: rep_name
     !> Index of the representation in the array
@@ -413,15 +413,15 @@ contains
     end do
     rep_id = 0
 
-  end function pmc_model_data_find_aero_rep
+  end function pmc_phlex_core_find_aero_rep
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Add a aerosol representation to the model data
-  subroutine pmc_model_data_add_aero_rep(this, rep_name)
+  subroutine pmc_phlex_core_add_aero_rep(this, rep_name)
 
     !> Model data
-    class(model_data_t), intent(inout) :: this
+    class(phlex_core_t), intent(inout) :: this
     !> Aerosol representation name
     character(len=:), allocatable :: rep_name
 
@@ -438,16 +438,16 @@ contains
     deallocate(this%aero_rep)
     this%aero_rep => new_aero_rep
 
-  end subroutine pmc_model_data_add_aero_rep
+  end subroutine pmc_phlex_core_add_aero_rep
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Find an aerosol phase by name in the model data
-  logical function pmc_model_data_find_aero_phase(this, phase_name, rep_id) &
+  logical function pmc_phlex_core_find_aero_phase(this, phase_name, rep_id) &
                   result(found)
 
     !> Model data
-    class(model_data_t), intent(in) :: this
+    class(phlex_core_t), intent(in) :: this
     !> Aerosol phase name to search for
     character(len=:), allocatable :: phase_name
     !> Index of the phase in the array
@@ -463,15 +463,15 @@ contains
     end do
     rep_id = 0
 
-  end function pmc_model_data_find_aero_phase
+  end function pmc_phlex_core_find_aero_phase
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Add a aerosol phase to the model data
-  subroutine pmc_model_data_add_aero_phase(this, phase_name)
+  subroutine pmc_phlex_core_add_aero_phase(this, phase_name)
 
     !> Model data
-    class(model_data_t), intent(inout) :: this
+    class(phlex_core_t), intent(inout) :: this
     !> Aerosol phase name
     character(len=:), allocatable :: phase_name
 
@@ -487,21 +487,21 @@ contains
     deallocate(this%aero_phase)
     this%aero_phase => new_aero_phase
 
-  end subroutine pmc_model_data_add_aero_phase
+  end subroutine pmc_phlex_core_add_aero_phase
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a model state variable based on the this set of model data
-  function pmc_model_data_new_state(this) result(new_state)
+  function pmc_phlex_core_new_state(this) result(new_state)
 
     !> New model state
-    type(model_state_t), pointer :: new_state
+    type(phlex_state_t), pointer :: new_state
     !> Chemical model
-    class(model_data_t), intent(in) :: this
+    class(phlex_core_t), intent(in) :: this
 
     integer(kind=i_kind) :: state_size, i_rep
 
-    new_state => model_state_t()
+    new_state => phlex_state_t()
 
     ! Set up the state variable array
     state_size = this%chem_spec_data%size()
@@ -516,20 +516,20 @@ contains
       new_state%aero_rep_state(i_rep)%val => this%aero_rep(i_rep)%val%new_state()
     end do
 
-  end function pmc_model_data_new_state
+  end function pmc_phlex_core_new_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Integrate the chemical mechanism
-  subroutine pmc_model_data_solve(this, model_state, time_step, rxn_phase)
+  subroutine pmc_phlex_core_solve(this, phlex_state, time_step, rxn_phase)
 
     use pmc_rxn_data 
     use iso_c_binding
 
     !> Chemical model
-    class(model_data_t), intent(in) :: this
+    class(phlex_core_t), intent(in) :: this
     !> Current model state
-    type(model_state_t), intent(inout), target :: model_state
+    type(phlex_state_t), intent(inout), target :: phlex_state
     !> Time step over which to integrate (s)
     real(kind=dp), intent(in) :: time_step
     !> Phase to solve - gas, aerosol, or both (default)
@@ -553,27 +553,27 @@ contains
               "solver: "//to_string(phase))
     end if
 
-    model_state%rxn_phase = phase
+    phlex_state%rxn_phase = phase
 
-    state_array => model_state%state_var
+    state_array => phlex_state%state_var
 
     ! Run integration
     solver_status = this%integration_data%solve(state_array, &
-            c_loc(model_state), time_step)
+            c_loc(phlex_state), time_step)
 
     ! Evaluate the solver status
     call this%integration_data%check_status(solver_status)
 
-  end subroutine pmc_model_data_solve
+  end subroutine pmc_phlex_core_solve
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack the mechanism
-  integer(kind=i_kind) function pmc_model_data_pack_size(this) &
+  integer(kind=i_kind) function pmc_phlex_core_pack_size(this) &
                   result (pack_size)
 
     !> Chemical model
-    class(model_data_t), intent(in) :: this
+    class(phlex_core_t), intent(in) :: this
     
     integer(kind=i_kind) :: i_mech
 
@@ -582,15 +582,15 @@ contains
       pack_size = pack_size + this%mechanism(i_mech)%pack_size()
     end do
 
-  end function pmc_model_data_pack_size
+  end function pmc_phlex_core_pack_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Pack the given value to the buffer, advancing position
-  subroutine pmc_model_data_bin_pack(this, buffer, pos)
+  subroutine pmc_phlex_core_bin_pack(this, buffer, pos)
 
     !> Chemical model
-    class(model_data_t), intent(in) :: this
+    class(phlex_core_t), intent(in) :: this
     !> Memory buffer
     character, intent(inout) :: buffer(:)
     !> Current buffer position
@@ -608,15 +608,15 @@ contains
          pos - prev_position <= this%pack_size())
 #endif
 
-  end subroutine pmc_model_data_bin_pack
+  end subroutine pmc_phlex_core_bin_pack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpack the given value from the buffer, advancing position
-  subroutine pmc_model_data_bin_unpack(this, buffer, pos)
+  subroutine pmc_phlex_core_bin_unpack(this, buffer, pos)
 
     !> Chemical model
-    class(model_data_t), intent(inout) :: this
+    class(phlex_core_t), intent(inout) :: this
     !> Memory buffer
     character, intent(inout) :: buffer(:)
     !> Current buffer position
@@ -635,13 +635,13 @@ contains
          pos - prev_position <= this%pack_size())
 #endif
 
-  end subroutine pmc_model_data_bin_unpack
+  end subroutine pmc_phlex_core_bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Calculate the time derivative f(t,y)
-  subroutine pmc_model_data_calc_derivative(curr_time, deriv, &
-                  model_data_c_ptr, model_state_c_ptr)
+  subroutine pmc_phlex_core_calc_derivative(curr_time, deriv, &
+                  phlex_core_c_ptr, phlex_state_c_ptr)
 
     use iso_c_binding
 
@@ -650,32 +650,32 @@ contains
     !> Time derivative to calculate
     real(kind=dp), intent(inout), pointer :: deriv(:)
     !> Pointer to model data
-    type(c_ptr), intent(in) :: model_data_c_ptr
+    type(c_ptr), intent(in) :: phlex_core_c_ptr
     !> Pointer to model state
-    type(c_ptr), intent(in) :: model_state_c_ptr
+    type(c_ptr), intent(in) :: phlex_state_c_ptr
 
-    type(model_data_t), pointer :: model_data
-    type(model_state_t), pointer :: model_state
+    type(phlex_core_t), pointer :: phlex_core
+    type(phlex_state_t), pointer :: phlex_state
     integer(kind=i_kind) :: i_mech
 
-    call c_f_pointer(model_data_c_ptr, model_data)
-    call c_f_pointer(model_state_c_ptr, model_state)
+    call c_f_pointer(phlex_core_c_ptr, phlex_core)
+    call c_f_pointer(phlex_state_c_ptr, phlex_state)
 
     ! Generate a unique state id
-    call model_state%reset_id()
+    call phlex_state%reset_id()
 
     ! Calculate f(t,y)
-    do i_mech=1, size(model_data%mechanism)
-      call model_data%mechanism(i_mech)%get_func_contrib(model_state, deriv)
+    do i_mech=1, size(phlex_core%mechanism)
+      call phlex_core%mechanism(i_mech)%get_func_contrib(phlex_state, deriv)
     end do
 
-  end subroutine pmc_model_data_calc_derivative
+  end subroutine pmc_phlex_core_calc_derivative
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Calculate the Jacobian matrix J(t,y)
-  subroutine pmc_model_data_calc_jacobian(curr_time, jac, &
-                  model_data_c_ptr, model_state_c_ptr)
+  subroutine pmc_phlex_core_calc_jacobian(curr_time, jac, &
+                  phlex_core_c_ptr, phlex_state_c_ptr)
 
     use iso_c_binding
 
@@ -684,27 +684,27 @@ contains
     !> Jacobian matrix to calculate
     real(kind=dp), intent(inout), pointer :: jac(:,:)
     !> Pointer to model data
-    type(c_ptr), intent(in) :: model_data_c_ptr
+    type(c_ptr), intent(in) :: phlex_core_c_ptr
     !> Pointer to model state
-    type(c_ptr), intent(in) :: model_state_c_ptr
+    type(c_ptr), intent(in) :: phlex_state_c_ptr
 
-    type(model_data_t), pointer :: model_data
-    type(model_state_t), pointer :: model_state
+    type(phlex_core_t), pointer :: phlex_core
+    type(phlex_state_t), pointer :: phlex_state
     integer(kind=i_kind) :: i_mech
 
-    call c_f_pointer(model_data_c_ptr, model_data)
-    call c_f_pointer(model_state_c_ptr, model_state)
+    call c_f_pointer(phlex_core_c_ptr, phlex_core)
+    call c_f_pointer(phlex_state_c_ptr, phlex_state)
 
     ! Generate a unique state id
-    call model_state%reset_id()
+    call phlex_state%reset_id()
 
     ! Calculate J(t,y)
-    do i_mech=1, size(model_data%mechanism)
-      call model_data%mechanism(i_mech)%get_jac_contrib(model_state, jac)
+    do i_mech=1, size(phlex_core%mechanism)
+      call phlex_core%mechanism(i_mech)%get_jac_contrib(phlex_state, jac)
     end do
 
-  end subroutine pmc_model_data_calc_jacobian
+  end subroutine pmc_phlex_core_calc_jacobian
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module pmc_model_data
+end module pmc_phlex_core

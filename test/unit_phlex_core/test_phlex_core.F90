@@ -3,15 +3,14 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_test_model_data program
+!> The pmc_test_phlex_core program
 
-!> Test class for the model_data_t type
-program pmc_test_model_data
+!> Test class for the phlex_core_t type
+program pmc_test_phlex_core
 
   use pmc_util,                         only: i_kind, dp, assert, &
                                               almost_equal, string_t
-  use pmc_model_data
-  use pmc_model_state
+  use pmc_phlex_core
 #ifdef PMC_USE_JSON
   use json_module
 #endif
@@ -21,7 +20,7 @@ program pmc_test_model_data
   ! New-line character
   character(len=*), parameter :: new_line = char(10)
 
-  if (run_pmc_model_data_tests()) then
+  if (run_pmc_phlex_core_tests()) then
     write(*,*) "Model data tests - PASS"
   else
     write(*,*) "Model data tests - FAIL"
@@ -31,49 +30,49 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Run all pmc_model_data tests
-  logical function run_pmc_model_data_tests() result(passed)
+  !> Run all pmc_phlex_core tests
+  logical function run_pmc_phlex_core_tests() result(passed)
 
-    passed = load_model_data_test()
+    passed = load_phlex_core_test()
 
-  end function run_pmc_model_data_tests
+  end function run_pmc_phlex_core_tests
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Load model data from a test input file
-  logical function load_model_data_test()
+  logical function load_phlex_core_test()
 
-    type(model_data_t), pointer :: model_data
+    type(phlex_core_t), pointer :: phlex_core
     character(len=:), allocatable :: input_file_path
     integer :: i_mech
     character(len=:), allocatable :: key_name
 
-    load_model_data_test = .false.
+    load_phlex_core_test = .false.
 
-    input_file_path = 'test_run/unit_model_data/test_mech_config.json'
+    input_file_path = 'test_run/unit_phlex_core/test_mech_config.json'
 
-    model_data => model_data_t(input_file_path)
+    phlex_core => phlex_core_t(input_file_path)
 
     ! Check the number of species in the model
-    call assert(822520018, model_data%chem_spec_data%size().eq.7)
+    call assert(822520018, phlex_core%chem_spec_data%size().eq.7)
 
     ! Make sure one mechanism has been loaded
-    call assert(533327223, size(model_data%mechanism).eq.1)
+    call assert(533327223, size(phlex_core%mechanism).eq.1)
 
     ! Get the mechanism index
     key_name = "lunch mechanism"
-    call assert(589233468, model_data%find_mechanism(key_name, i_mech))
+    call assert(589233468, phlex_core%find_mechanism(key_name, i_mech))
 
     ! Check the mechanism name
-    call assert(636308667, model_data%mechanism(i_mech)%name().eq."lunch mechanism")
+    call assert(636308667, phlex_core%mechanism(i_mech)%name().eq."lunch mechanism")
 
     ! Make sure all three reactions were loaded
-    call assert(360948482, model_data%mechanism(i_mech)%size().eq.3)
+    call assert(360948482, phlex_core%mechanism(i_mech)%size().eq.3)
 
-    load_model_data_test = .true.
+    load_phlex_core_test = .true.
 
-  end function load_model_data_test
+  end function load_phlex_core_test
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end program pmc_test_model_data
+end program pmc_test_phlex_core

@@ -13,7 +13,7 @@ module pmc_aero_rep_data
   use pmc_util,                       only : die_msg, string_t
   use pmc_property
   use pmc_chem_spec_data
-  use pmc_model_state
+  use pmc_phlex_state
   use pmc_aero_phase_data
 #ifdef PMC_USE_MPI
   use mpi
@@ -48,7 +48,7 @@ module pmc_aero_rep_data
     !> Condensed representaiton data. Theses arrays will be available during
     !! integration, and should contain any information required by the
     !! functions of the aerosol representation that cannot be obtained
-    !! from the model_state_t object. (floating-point)
+    !! from the phlex_state_t object. (floating-point)
     !! FIXME This should be a private component, but extending types need
     !! access to it.
     real(kind=dp), allocatable, public :: condensed_data_real(:)
@@ -197,9 +197,9 @@ module pmc_aero_rep_data
   !! phases.
   interface pmc_aero_rep_data_surface_area_conc_if 
     function pmc_aero_rep_data_surface_area_conc(this, i_phase1, i_phase2, &
-                    model_state, jac_contrib) result(surface_area_conc)
+                    phlex_state, jac_contrib) result(surface_area_conc)
       use pmc_util,                                     only : dp, i_kind
-      use pmc_model_state
+      use pmc_phlex_state
       import :: aero_rep_data_t
 
       !> Surface area concentration
@@ -211,7 +211,7 @@ module pmc_aero_rep_data
       !> Aerosol phase2
       integer(kind=i_kind), intent(in) :: i_phase2
       !> Model state
-      type(model_state_t), intent(in) :: model_state
+      type(phlex_state_t), intent(in) :: phlex_state
       !> Contribution to Jacobian matrix. An array of the same size as the
       !! state array that, when present, will be filled with the partial
       !! derivatives of the result of this calculation with each state
@@ -228,9 +228,9 @@ module pmc_aero_rep_data
   !! aerosol phase.
   interface pmc_aero_rep_data_species_surface_area_conc_if
     function pmc_aero_rep_data_species_surface_area_conc(this, i_phase, &
-                    i_spec, model_state, jac_contrib) result(surface_area_conc)
+                    i_spec, phlex_state, jac_contrib) result(surface_area_conc)
       use pmc_util,                                     only : dp, i_kind
-      use pmc_model_state
+      use pmc_phlex_state
       import :: aero_rep_data_t
 
       !> Surface area concentration
@@ -242,7 +242,7 @@ module pmc_aero_rep_data
       !> Species id
       integer(kind=i_kind), intent(in) :: i_spec
       !> Model state
-      type(model_state_t), intent(in) :: model_state
+      type(phlex_state_t), intent(in) :: phlex_state
       !> Contribution to Jacobian matrix. An array of the same size as the
       !! state array that, when present, will be filled with the partial
       !! derivatives of the result of this calculation with each state
@@ -257,9 +257,9 @@ module pmc_aero_rep_data
   !> Get the vapor pressure scaling for a particular species (unitless)
   interface pmc_aero_rep_data_vapor_pressure_scaling_if  
     function pmc_aero_rep_data_vapor_pressure_scaling(this, i_spec, &
-                    model_state, jac_contrib) result(vapor_pressure_scaling)
+                    phlex_state, jac_contrib) result(vapor_pressure_scaling)
       use pmc_util,                                     only : dp, i_kind
-      use pmc_model_state
+      use pmc_phlex_state
       import :: aero_rep_data_t
 
       !> Vapor pressure scaling
@@ -269,7 +269,7 @@ module pmc_aero_rep_data
       !> Species name
       integer(kind=i_kind), intent(in) :: i_spec
       !> Model state
-      type(model_state_t), intent(in) :: model_state
+      type(phlex_state_t), intent(in) :: phlex_state
       !> Contribution to Jacobian matrix. An array of the same size as the
       !! state array that, when present, will be filled with the partial
       !! derivatives of the result of this calculation with each state

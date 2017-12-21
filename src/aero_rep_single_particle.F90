@@ -15,7 +15,7 @@ module pmc_aero_rep_single_particle
   use pmc_aero_rep_data
   use pmc_aero_phase_data
   use pmc_aero_particle
-  use pmc_model_state
+  use pmc_phlex_state
 
   implicit none
   private
@@ -28,7 +28,7 @@ module pmc_aero_rep_single_particle
 #define _SPEC_STATE_ID_(y,x) _PHASE_STATE_ID_(y) + x - 1
 #define _PHASE_SPEC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_PHASE_ + x)
 #define _DENSITY_(y,x) this%condensed_data_real(_PHASE_SPEC_ID_(y) + x - 1)
-#define _MASS_(y,x) model_state%state_var(_PHASE_STATE_ID_(y) + x - 1)
+#define _MASS_(y,x) phlex_state%state_var(_PHASE_STATE_ID_(y) + x - 1)
   
   public :: aero_rep_single_particle_t
 
@@ -209,17 +209,17 @@ contains
 
   !> Set the current aerosol state based on volume concentrations in a
   !! aero_particle_t state. (Called before solving chemistry)
-  subroutine pmc_aero_rep_single_particle_set_chem_state(this, model_state)
+  subroutine pmc_aero_rep_single_particle_set_chem_state(this, phlex_state)
 
     !> Aerosol representation data
     class(aero_rep_single_particle_t), intent(in) :: this
     !> Model state
-    type(model_state_t), intent(inout) :: model_state
+    type(phlex_state_t), intent(inout) :: phlex_state
     
     type(aero_particle_t), pointer :: sp_state
     integer(kind=i_kind) :: i_spec,sp_spec, i_phase
 
-    sp_state => this%get_state(model_state)
+    sp_state => this%get_state(phlex_state)
 
     sp_spec = 1
     do i_phase = 1, size(this%aero_phase)
@@ -235,17 +235,17 @@ contains
 
   !> Update an aero_particle_t state based on the the current aerosol state.
   !! (Called after solving chemistry)
-  subroutine pmc_aero_rep_single_particle_set_pmc_state(this, model_state)
+  subroutine pmc_aero_rep_single_particle_set_pmc_state(this, phlex_state)
 
     !> Aerosol representation data
     class(aero_rep_single_particle_t), intent(in) :: this
     !> Model state
-    type(model_state_t), intent(inout) :: model_state
+    type(phlex_state_t), intent(inout) :: phlex_state
     
     type(aero_particle_t), pointer :: sp_state
     integer(kind=i_kind) :: i_spec,sp_spec, i_phase
 
-    sp_state => this%get_state(model_state)
+    sp_state => this%get_state(phlex_state)
 
     sp_spec = 1
     do i_phase = 1, size(this%aero_phase)
@@ -296,7 +296,7 @@ contains
   !! may be set to 0 to indicate the gas-phase, or both phases may be aerosol
   !! phases, with a corresponding index
   function pmc_aero_rep_single_particle_surface_area_conc(this, i_phase1, &
-                  i_phase2, model_state, jac_contrib) result(surface_area_conc)
+                  i_phase2, phlex_state, jac_contrib) result(surface_area_conc)
     use pmc_util,                                     only : dp
     use pmc_constants
 
@@ -309,7 +309,7 @@ contains
     !> Aerosol phase2 id
     integer(kind=i_kind), intent(in) :: i_phase2
     !> Model state
-    type(model_state_t), intent(in) :: model_state
+    type(phlex_state_t), intent(in) :: phlex_state
     !> Contribution to Jacobian matrix. An array of the same size as the
     !! state array that, when present, will be filled with the partial
     !! derivatives of the result of this calculation with each state
@@ -358,7 +358,7 @@ contains
   !! (m^2/m^3). It is assumed the surface is between the gas-phase and an
   !! aerosol phase.
   function pmc_aero_rep_single_particle_species_surface_area_conc(this, &
-                i_phase, i_spec, model_state, jac_contrib) &
+                i_phase, i_spec, phlex_state, jac_contrib) &
                 result(surface_area_conc)
     use pmc_util,                                     only : dp
 
@@ -371,7 +371,7 @@ contains
     !> Species id
     integer(kind=i_kind), intent(in) :: i_spec
     !> Model state
-    type(model_state_t), intent(in) :: model_state
+    type(phlex_state_t), intent(in) :: phlex_state
     !> Contribution to Jacobian matrix. An array of the same size as the
     !! state array that, when present, will be filled with the partial
     !! derivatives of the result of this calculation with each state
@@ -390,9 +390,9 @@ contains
     
     ! Get the surface area density (m^2/m^3)
     if (present(jac_contrib)) then
-      surface_area = this%surface_area_conc(0, i_phase, model_state, jac_contrib)
+      surface_area = this%surface_area_conc(0, i_phase, phlex_state, jac_contrib)
     else
-      surface_area = this%surface_area_conc(0, i_phase, model_state)
+      surface_area = this%surface_area_conc(0, i_phase, phlex_state)
     end if
 
     ! get the surface area for this species (m^2/m^3)
@@ -415,7 +415,7 @@ contains
             
   !> Get the vapor pressure scaling for a particular species (unitless)
   function pmc_aero_rep_single_particle_vapor_pressure_scaling(this, &
-                  i_spec, model_state, jac_contrib) result(vapor_pressure_scaling)
+                  i_spec, phlex_state, jac_contrib) result(vapor_pressure_scaling)
     use pmc_util,                                     only : dp
 
     !> Vapor pressure scaling
@@ -425,7 +425,7 @@ contains
     !> Species id
     integer(kind=i_kind), intent(in) :: i_spec
     !> Model state
-    type(model_state_t), intent(in) :: model_state
+    type(phlex_state_t), intent(in) :: phlex_state
     !> Contribution to Jacobian matrix. An array of the same size as the
     !! state array that, when present, will be filled with the partial
     !! derivatives of the result of this calculation with each state
@@ -441,7 +441,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the associated aero_rep_state_t variable
-  function pmc_aero_rep_single_particle_get_state(this, model_state) &
+  function pmc_aero_rep_single_particle_get_state(this, phlex_state) &
                   result (aero_rep_state)
 
     !> Aerosol representation state
@@ -449,9 +449,9 @@ contains
     !> Aerosol representation data
     class(aero_rep_single_particle_t), intent(in) :: this
     !> Model state
-    type(model_state_t), intent(in) :: model_state
+    type(phlex_state_t), intent(in) :: phlex_state
 
-    select type (state_ptr => model_state%aero_rep_state(_AERO_STATE_ID_)%val)
+    select type (state_ptr => phlex_state%aero_rep_state(_AERO_STATE_ID_)%val)
       type is (aero_particle_t)
         aero_rep_state => state_ptr
       class default

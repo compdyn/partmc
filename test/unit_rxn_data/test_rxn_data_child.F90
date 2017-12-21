@@ -15,7 +15,7 @@ module pmc_test_rxn_data_child
   use pmc_rxn_data
   use pmc_chem_spec_data
   use pmc_property
-  use pmc_model_state
+  use pmc_phlex_state
 
   implicit none
   private
@@ -208,12 +208,12 @@ contains
   !! Sample reaction rate equation:
   !!     [reactant1]/MW1 * [reactant2]/MW2 *A*exp(B+temp/theta)
   !!
-  subroutine  pmc_test_rxn_data_func_contrib(this, model_state, func)
+  subroutine  pmc_test_rxn_data_func_contrib(this, phlex_state, func)
 
     !> Reaction data
     class(rxn_test_t), intent(in) :: this
     !> Current model state
-    type(model_state_t), intent(in) :: model_state
+    type(phlex_state_t), intent(in) :: phlex_state
     !> Time derivative vector. This vector may include contributions from
     !! other reactions, so the contributions from this reaction should
     !! append, not overwrite, the values already in the vector
@@ -222,9 +222,9 @@ contains
     integer(kind=i_kind) :: i_spec
     real(kind=dp) :: rate
 
-    rate = this%rate_const(model_state)
+    rate = this%rate_const(phlex_state)
     do i_spec=1, _NUM_REACT_
-      rate = rate * model_state%state_var(_REACT_(i_spec))
+      rate = rate * phlex_state%state_var(_REACT_(i_spec))
     end do
     
     if (rate.eq.real(0.0, kind=dp)) return
@@ -249,12 +249,12 @@ contains
   !! The current model state is provided for species concentrations and 
   !! aerosol state. All other parameters must have been saved to the reaction 
   !! data instance during initialization.
-  subroutine pmc_test_rxn_data_jac_contrib(this, model_state, jac_matrix)
+  subroutine pmc_test_rxn_data_jac_contrib(this, phlex_state, jac_matrix)
 
     !> Reaction data
     class(rxn_test_t), intent(in) :: this
     !> Current model state
-    type(model_state_t), intent(in) :: model_state
+    type(phlex_state_t), intent(in) :: phlex_state
     !> Jacobian matrix. This matrix may include contributions from other
     !! reactions, so the contributions from this reaction should append,
     !! not overwrite, the values already in the matrix.
@@ -264,10 +264,10 @@ contains
     integer(kind=i_kind) :: i_spec_i, i_spec_d
     real(kind=dp) :: rate, rate_const
 
-    rate_const = this%rate_const(model_state)
+    rate_const = this%rate_const(phlex_state)
     do i_spec_i=1, _NUM_REACT_
       rate_const = rate_const * &
-              model_state%state_var(_REACT_(i_spec_i))
+              phlex_state%state_var(_REACT_(i_spec_i))
     end do
 
     if (rate_const.eq.real(0.0, kind=dp)) return
@@ -275,7 +275,7 @@ contains
     do i_spec_d=1, _NUM_REACT_
       do i_spec_i=1, _NUM_REACT_
         rate = rate_const
-        rate = rate / model_state%state_var( &
+        rate = rate / phlex_state%state_var( &
                 _REACT_(i_spec_i))
         jac_matrix(_REACT_(i_spec_d), &
                 _REACT_(i_spec_i)) = &
@@ -288,7 +288,7 @@ contains
     do i_spec_d=1, _NUM_PROD_
       do i_spec_i=1, _NUM_REACT_
         rate = rate_const
-        rate = rate / model_state%state_var( &
+        rate = rate / phlex_state%state_var( &
                 _REACT_(i_spec_i) )
         jac_matrix(_PROD_(i_spec_d), &
                 _REACT_(i_spec_i) ) = &
@@ -307,18 +307,18 @@ contains
   !! Sample rate constant equation:
   !!     A*exp(B+temp/theta)
   !!
-  real(kind=dp) function pmc_test_rxn_data_rate_const(this, model_state) &
+  real(kind=dp) function pmc_test_rxn_data_rate_const(this, phlex_state) &
                   result(rate_const)
 
     !> Reaction data
     class(rxn_test_t), intent(in) :: this
     !> Current model state
-    type(model_state_t), intent(in) :: model_state
+    type(phlex_state_t), intent(in) :: phlex_state
 
     integer(kind=i_kind) :: i_spec
 
     rate_const = _A_*exp(_B_ + &
-            model_state%env_state%temp/_theta_)
+            phlex_state%env_state%temp/_theta_)
 
     do i_spec = 1, _NUM_REACT_
       rate_const = rate_const/_MW_(i_spec) 

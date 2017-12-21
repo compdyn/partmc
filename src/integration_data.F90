@@ -88,9 +88,9 @@ module pmc_integration_data
   type :: integration_data_t
     private
     !> PartMC model data
-    type(c_ptr) :: model_data_c_ptr
+    type(c_ptr) :: phlex_core_c_ptr
     !> PartMC model state
-    type(c_ptr) :: model_state_c_ptr
+    type(c_ptr) :: phlex_state_c_ptr
     !> Time derivative function pointer
     procedure(integration_data_deriv_func), pointer, nopass :: deriv_func_ptr => null()
     !> Jacobian matrix function pointer
@@ -116,7 +116,7 @@ module pmc_integration_data
   abstract interface 
     !> Interface for the time derivative function
     subroutine integration_data_deriv_func(curr_time, deriv, &
-                    model_data_c_ptr, model_state_c_ptr)
+                    phlex_core_c_ptr, phlex_state_c_ptr)
       use pmc_constants,              only: dp
       use iso_c_binding
       
@@ -125,14 +125,14 @@ module pmc_integration_data
       !> Time derivative to calculate
       real(kind=dp), pointer, intent(inout) :: deriv(:)
       !> Pointer to model data
-      type(c_ptr), intent(in) :: model_data_c_ptr
+      type(c_ptr), intent(in) :: phlex_core_c_ptr
       !> Pointer to model state
-      type(c_ptr), intent(in) :: model_state_c_ptr
+      type(c_ptr), intent(in) :: phlex_state_c_ptr
     end subroutine integration_data_deriv_func
 
     !> Interface for the Jacobian function
     subroutine integration_data_jac_func(curr_time, jac, &
-                    model_data_c_ptr, model_state_c_ptr)
+                    phlex_core_c_ptr, phlex_state_c_ptr)
       use pmc_constants,              only: dp
       use iso_c_binding
 
@@ -141,9 +141,9 @@ module pmc_integration_data
       !> Jacobian matrix to calculate
       real(kind=dp), pointer, intent(inout) :: jac(:,:)
       !> Pointer to model data
-      type(c_ptr), intent(in) :: model_data_c_ptr
+      type(c_ptr), intent(in) :: phlex_core_c_ptr
       !> Pointer to model state
-      type(c_ptr), intent(in) :: model_state_c_ptr
+      type(c_ptr), intent(in) :: phlex_state_c_ptr
     end subroutine integration_data_jac_func
   end interface 
 
@@ -152,13 +152,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for integration_data_t
-  function pmc_integration_data_constructor(model_data_c_ptr, deriv_func_ptr, &
+  function pmc_integration_data_constructor(phlex_core_c_ptr, deriv_func_ptr, &
                   jac_func_ptr, abs_tol) result(new_obj)
 
     !> New integration variable
     type(integration_data_t), pointer :: new_obj
     !> Model data pointer
-    type(c_ptr), intent(in) :: model_data_c_ptr
+    type(c_ptr), intent(in) :: phlex_core_c_ptr
     !> Time derivative function pointer
     procedure(integration_data_deriv_func), pointer, intent(in) :: deriv_func_ptr
     !> Jacobian matrix function pointer
@@ -170,7 +170,7 @@ contains
             "No solver available for integration.")
 
     allocate(new_obj)
-    new_obj%model_data_c_ptr = model_data_c_ptr
+    new_obj%phlex_core_c_ptr = phlex_core_c_ptr
     new_obj%deriv_func_ptr => deriv_func_ptr
     new_obj%jac_func_ptr => jac_func_ptr
     allocate(new_obj%abs_tol_c(size(abs_tol)))
@@ -181,7 +181,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Run the integration over a specified time step
-  function pmc_integration_data_solve(this, state_array, model_state_c_ptr, &
+  function pmc_integration_data_solve(this, state_array, phlex_state_c_ptr, &
                   time_step) result(solver_status)
 
     !> Solver status
@@ -192,13 +192,13 @@ contains
     !! concentrations (y) for use by the solver. It should hold the initial 
     !! (time t) concentrations for all species. After the integration, it will
     !! hold the final (t+dt) concentrations. It should be located within the
-    !! model_state_c_ptr, so that during derivative function calls, the 
+    !! phlex_state_c_ptr, so that during derivative function calls, the 
     !! current model state is correct.
     real(kind=dp), pointer :: state_array(:)
     !> Model state pointer. This is a void pointer for use by the derivative
     !! functions to allow access to state variables including those tthat are 
     !! not solved for during the integration (e.g., temperature, pressure)
-    type(c_ptr) :: model_state_c_ptr
+    type(c_ptr) :: phlex_state_c_ptr
     !> Time step (s)
     real(kind=dp), intent(in) :: time_step
 
@@ -227,7 +227,7 @@ contains
     t_final_c = real(time_step, kind=c_double)
 
     ! Set up the state pointer
-    this%model_state_c_ptr = model_state_c_ptr
+    this%phlex_state_c_ptr = phlex_state_c_ptr
 
 #ifdef PMC_USE_SUNDIALS
     ! Run the solver
@@ -279,8 +279,8 @@ contains
 
     ! Calculate the time derivative
     call integration_data%deriv_func_ptr(curr_time, deriv, &
-            integration_data%model_data_c_ptr, &
-            integration_data%model_state_c_ptr)
+            integration_data%phlex_core_c_ptr, &
+            integration_data%phlex_state_c_ptr)
 
   end subroutine pmc_integration_data_deriv_func
 
@@ -324,8 +324,8 @@ contains
 
     ! Calculate the Jacobian matrix
     call integration_data%jac_func_ptr(curr_time, jac, &
-            integration_data%model_data_c_ptr, &
-            integration_data%model_state_c_ptr)
+            integration_data%phlex_core_c_ptr, &
+            integration_data%phlex_state_c_ptr)
 
   end subroutine pmc_integration_data_jac_func
 

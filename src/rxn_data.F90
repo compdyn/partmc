@@ -13,7 +13,7 @@ module pmc_rxn_data
   use pmc_util,                       only : die_msg, string_t
   use pmc_property
   use pmc_chem_spec_data
-  use pmc_model_state
+  use pmc_phlex_state
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -52,7 +52,7 @@ module pmc_rxn_data
     !> Condensed reaction data. Theses arrays will be available during
     !! integration, and should contain any information required by the
     !! rate and Jacobian constribution functions that cannot be obtained
-    !! from the model_state_t object.
+    !! from the phlex_state_t object.
     real(kind=dp), allocatable :: condensed_data_real(:)
     !> Condensed reaction data (integers)
     integer(kind=i_kind), allocatable ::  condensed_data_int(:)
@@ -113,13 +113,13 @@ module pmc_rxn_data
   !! environmental variables. All other parameters must have been saved to the
   !! reaction data instance during initialization.
   interface pmc_rxn_data_func_contrib_if
-    subroutine pmc_rxn_data_func_contrib(this, model_state, func) 
-      import :: rxn_data_t, model_state_t, dp
+    subroutine pmc_rxn_data_func_contrib(this, phlex_state, func) 
+      import :: rxn_data_t, phlex_state_t, dp
 
       !> Reaction data
       class(rxn_data_t), intent(in) :: this
       !> Current model state
-      type(model_state_t), intent(in) :: model_state
+      type(phlex_state_t), intent(in) :: phlex_state
       !> Time derivative vector. This vector may include contributions from
       !! other reactions, so the contributions from this reaction should
       !! append, not overwrite, the values already in the vector
@@ -135,13 +135,13 @@ module pmc_rxn_data
   !! aerosol state. All other parameters must have been saved to the reaction 
   !! data instance during initialization.
   interface pmc_rxn_data_jac_contrib_if
-    subroutine pmc_rxn_data_jac_contrib(this, model_state, jac_matrix)
-      import :: rxn_data_t, model_state_t, dp
+    subroutine pmc_rxn_data_jac_contrib(this, phlex_state, jac_matrix)
+      import :: rxn_data_t, phlex_state_t, dp
 
       !> Reaction data
       class(rxn_data_t), intent(in) :: this
       !> Current model state
-      type(model_state_t), intent(in) :: model_state
+      type(phlex_state_t), intent(in) :: phlex_state
       !> Jacobian matrix. This matrix may include contributions from other
       !! reactions, so the contributions from this reaction should append,
       !! not overwrite, the values already in the matrix.

@@ -12,7 +12,7 @@ program pmc_test_rxn_data
   use pmc_util,                         only: i_kind, dp, assert, &
                                               almost_equal
   use pmc_test_rxn_data_child
-  use pmc_model_state
+  use pmc_phlex_state
   use pmc_chem_spec_data
   use pmc_rxn_data
 #ifdef PMC_USE_JSON
@@ -47,7 +47,7 @@ contains
   logical function build_rxn_data_set_test()
 
     type(rxn_data_ptr) :: rxn_test(3)
-    type(model_state_t) :: model_state
+    type(phlex_state_t) :: phlex_state
     type(chem_spec_data_t) :: spec_data
 
     real(kind=dp), pointer :: func(:)
@@ -158,14 +158,14 @@ contains
     end do
 
     ! Get a species state variable
-    model_state%env_state%temp = real(301.15, kind=dp)
-    allocate(model_state%state_var(spec_data%size()))
-    call assert(760288463, size(model_state%state_var).eq.7)
+    phlex_state%env_state%temp = real(301.15, kind=dp)
+    allocate(phlex_state%state_var(spec_data%size()))
+    call assert(760288463, size(phlex_state%state_var).eq.7)
 
     ! Set up the time derivative and Jacobian matrix arrays
-    allocate(func(size(model_state%state_var)))
-    allocate(jac_matrix(size(model_state%state_var), &
-            size(model_state%state_var)))
+    allocate(func(size(phlex_state%state_var)))
+    allocate(jac_matrix(size(phlex_state%state_var), &
+            size(phlex_state%state_var)))
 
     func (:) = real(0.0, kind=dp)
     jac_matrix(:,:) = real(0.0, kind=dp)
@@ -176,23 +176,23 @@ contains
     end do
 
     ! Set the species concentrations
-    model_state%state_var(:) = real(0.0, kind=dp)
+    phlex_state%state_var(:) = real(0.0, kind=dp)
     spec_name = "peanut butter"
-    model_state%state_var(spec_data%state_id(spec_name)) = real(200.0, kind=dp)
+    phlex_state%state_var(spec_data%state_id(spec_name)) = real(200.0, kind=dp)
     spec_name = "jelly"
-    model_state%state_var(spec_data%state_id(spec_name)) = real(150.0, kind=dp)
+    phlex_state%state_var(spec_data%state_id(spec_name)) = real(150.0, kind=dp)
     spec_name = "oreo"
-    model_state%state_var(spec_data%state_id(spec_name)) = real(100.0, kind=dp)
+    phlex_state%state_var(spec_data%state_id(spec_name)) = real(100.0, kind=dp)
     spec_name = "sandwich"
-    model_state%state_var(spec_data%state_id(spec_name)) = real(75.0, kind=dp)
+    phlex_state%state_var(spec_data%state_id(spec_name)) = real(75.0, kind=dp)
     spec_name = "snack"
-    model_state%state_var(spec_data%state_id(spec_name)) = real(50.0, kind=dp)
+    phlex_state%state_var(spec_data%state_id(spec_name)) = real(50.0, kind=dp)
 
     ! Calculate contributions from the test reaction to the time derivative 
     ! and the Jacobian matric
     do i=1, 3
-      call rxn_test(i)%val%func_contrib(model_state, func)
-      call rxn_test(i)%val%jac_contrib(model_state, jac_matrix)
+      call rxn_test(i)%val%func_contrib(phlex_state, func)
+      call rxn_test(i)%val%jac_contrib(phlex_state, jac_matrix)
     end do
 
     ! ******************************************

@@ -21,7 +21,7 @@ module pmc_mechanism_data
   use pmc_rxn_data
   use pmc_rxn_arrhenius
   use pmc_chem_spec_data
-  use pmc_model_state
+  use pmc_phlex_state
 
   implicit none
   private
@@ -250,20 +250,20 @@ contains
 
   !> Get contributions of the mechanism reactions to the time derivative
   !! vector
-  subroutine pmc_mechanism_data_get_func_contrib(this, model_state, func)
+  subroutine pmc_mechanism_data_get_func_contrib(this, phlex_state, func)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
     !> Current model state
-    type(model_state_t), intent(in) :: model_state
+    type(phlex_state_t), intent(in) :: phlex_state
     !> Time derivative vector
     real(kind=dp), pointer, intent(inout) :: func(:)
 
     integer(kind=i_kind) :: i_rxn
 
     do i_rxn = 1, this%num_rxn
-      if (this%rxn_ptr(i_rxn)%val%check_phase(model_state%rxn_phase)) then
-        call this%rxn_ptr(i_rxn)%val%func_contrib(model_state, func)
+      if (this%rxn_ptr(i_rxn)%val%check_phase(phlex_state%rxn_phase)) then
+        call this%rxn_ptr(i_rxn)%val%func_contrib(phlex_state, func)
       end if
     end do
 
@@ -272,20 +272,20 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get contributions of the mechanism reactions to the Jacobian matrix
-  subroutine pmc_mechanism_data_get_jac_contrib(this, model_state, jac_matrix)
+  subroutine pmc_mechanism_data_get_jac_contrib(this, phlex_state, jac_matrix)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
     !> Current model state
-    type(model_state_t), intent(in) :: model_state
+    type(phlex_state_t), intent(in) :: phlex_state
     !> Time derivative vector
     real(kind=dp), pointer, intent(inout) :: jac_matrix(:,:)
 
     integer(kind=i_kind) :: i_rxn
 
     do i_rxn = 1, this%num_rxn
-      if (this%rxn_ptr(i_rxn)%val%check_phase(model_state%rxn_phase)) then
-        call this%rxn_ptr(i_rxn)%val%jac_contrib(model_state, jac_matrix)
+      if (this%rxn_ptr(i_rxn)%val%check_phase(phlex_state%rxn_phase)) then
+        call this%rxn_ptr(i_rxn)%val%jac_contrib(phlex_state, jac_matrix)
       end if
     end do
 

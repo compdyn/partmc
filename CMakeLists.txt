@@ -156,7 +156,7 @@ do_unit_test(chem_spec_data "PASS")
 do_unit_test(rxn_data "PASS")
 do_unit_test(aero_phase_data "PASS")
 if(ENABLE_JSON)
-  do_unit_test(model_data "PASS")
+  do_unit_test(phlex_core "PASS")
 endif()
 
 add_test(test_chemistry_1 ${CMAKE_BINARY_DIR}/test_run/chemistry/test_chemistry_1.sh)
@@ -326,8 +326,8 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
   src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
   src/property.F90 src/chem_spec_data.F90 src/aero_rep_state.F90
-  src/rxn_data.F90 src/model_state.F90 src/mechanism_data.F90
-  src/model_data.F90 src/integration_data.F90 src/aero_rep_data.F90
+  src/rxn_data.F90 src/phlex_state.F90 src/mechanism_data.F90
+  src/phlex_core.F90 src/integration_data.F90 src/aero_rep_data.F90
   src/aero_phase_data.F90 src/aero_rep_factory.F90  
   ${AEROSOL_REPS_SRC}
   ${REACTIONS_SRC}
@@ -369,11 +369,11 @@ add_executable(unit_test_rxn_data test/unit_rxn_data/test_rxn_data_child.F90
 target_link_libraries(unit_test_rxn_data partmclib)
 
 ######################################################################
-# test_model_data
+# test_phlex_core
 
-add_executable(unit_test_model_data test/unit_model_data/test_model_data.F90)
+add_executable(unit_test_phlex_core test/unit_phlex_core/test_phlex_core.F90)
 
-target_link_libraries(unit_test_model_data partmclib)
+target_link_libraries(unit_test_phlex_core partmclib)
 
 ######################################################################
 # test_aero_phase_data

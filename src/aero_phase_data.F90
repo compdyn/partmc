@@ -13,7 +13,7 @@ module pmc_aero_phase_data
   use pmc_util,                       only : die_msg, string_t
   use pmc_property
   use pmc_chem_spec_data
-  use pmc_model_state
+  use pmc_phlex_state
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -57,7 +57,7 @@ module pmc_aero_phase_data
     !> Condensed representaiton data. Theses arrays will be available during
     !! integration, and should contain any information required by the
     !! functions of the aerosol representation that cannot be obtained
-    !! from the model_state_t object. (floating-point)
+    !! from the phlex_state_t object. (floating-point)
     real(kind=dp), allocatable :: condensed_data_real(:)
     !> Condensed reaction data (integers)
     integer(kind=i_kind), allocatable ::  condensed_data_int(:)
@@ -422,13 +422,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the total mass in a phase based on the model state (ug/m^3)
-  real(kind=dp) function pmc_aero_phase_data_total_mass(this, model_state, &
+  real(kind=dp) function pmc_aero_phase_data_total_mass(this, phlex_state, &
                   state_id) result (total_mass)
 
     !> Aerosol phase data
     class(aero_phase_data_t), intent(in) :: this
     !> Current model state
-    type(model_state_t), intent(in) :: model_state
+    type(phlex_state_t), intent(in) :: phlex_state
     !> Beginning id in the state array for phase
     integer(kind=i_kind), intent(in) :: state_id
 
@@ -436,7 +436,7 @@ contains
 
     total_mass = real(0.0, kind=dp)
     do i_spec = 0, this%num_spec-1
-      total_mass = total_mass + model_state%state_var(state_id + i_spec)
+      total_mass = total_mass + phlex_state%state_var(state_id + i_spec)
     end do
 
   end function pmc_aero_phase_data_total_mass

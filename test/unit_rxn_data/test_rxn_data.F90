@@ -14,7 +14,6 @@ program pmc_test_rxn_data
   use pmc_test_rxn_data_child
   use pmc_model_state
   use pmc_chem_spec_data
-  use pmc_chem_spec_state
   use pmc_rxn_data
 #ifdef PMC_USE_JSON
   use json_module

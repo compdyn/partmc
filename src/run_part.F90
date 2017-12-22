@@ -22,6 +22,9 @@ module pmc_run_part
   use pmc_coag_kernel
   use pmc_nucleate
   use pmc_mpi
+  use pmc_phlex_core
+  use pmc_phlex_state
+  use pmc_phlex_interface
 #ifdef PMC_USE_SUNDIALS
   use pmc_condense
 #endif
@@ -96,8 +99,6 @@ module pmc_run_part
      integer :: parallel_coag_type
      !> Whether to do phlexible chemistry
      logical :: do_phlex_chem
-     !> Phlexible chemistry configuration file name
-     character(len=:), allocatable :: phlex_config_filename
      !> UUID for this simulation.
      character(len=PMC_UUID_LEN) :: uuid
   end type run_part_opt_t
@@ -108,7 +109,7 @@ contains
 
   !> Do a particle-resolved Monte Carlo simulation.
   subroutine run_part(scenario, env_state, aero_data, aero_state, gas_data, &
-       gas_state, run_part_opt)
+       gas_state, run_part_opt, phlex_core)
 
     !> Environment state.
     type(scenario_t), intent(in) :: scenario
@@ -124,7 +125,11 @@ contains
     type(gas_state_t), intent(inout) :: gas_state
     !> Monte Carlo options.
     type(run_part_opt_t), intent(in) :: run_part_opt
-
+    !> Phlexible chemistry core
+    type(phlex_core_t), pointer, intent(in), optional :: phlex_core
+    
+    
+    type(phlex_state_t), pointer :: phlex_state
     real(kind=dp) :: time, pre_time, pre_del_t, prop_done
     real(kind=dp) :: last_output_time, last_progress_time
     integer :: rank, n_proc, pre_index, ncid
@@ -141,6 +146,8 @@ contains
     type(env_state_t) :: old_env_state
     integer :: n_time, i_time, i_time_start, pre_i_time
     integer :: i_state, i_state_netcdf, i_output
+
+    phlex_state => phlex_state_t(env_state)
 
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
@@ -261,6 +268,13 @@ contains
        progress_n_emit = progress_n_emit + n_emit
        progress_n_dil_in = progress_n_dil_in + n_dil_in
        progress_n_dil_out = progress_n_dil_out + n_dil_out
+
+#ifdef PMC_USE_SUNDIALS
+       if (run_part_opt%do_phlex_chem) then
+          call pmc_phlex_interface_solve(phlex_core, phlex_state, aero_data, &
+               aero_state, gas_data, gas_state, run_part_opt%del_t)
+       end if
+#endif
 
        if (run_part_opt%do_mosaic) then
           call mosaic_timestep(env_state, aero_data, aero_state, gas_data, &

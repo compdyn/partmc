@@ -73,6 +73,9 @@ module pmc_aero_state
      real(kind=dp), allocatable :: n_part_ideal(:, :)
      !> Information on removed particles.
      type(aero_info_array_t) :: aero_info_array
+  contains
+     !> Get the number of particles in the aerosol state
+     procedure :: n_part => aero_state_n_part
   end type aero_state_t
 
 contains
@@ -83,7 +86,7 @@ contains
   elemental integer function aero_state_n_part(aero_state)
 
     !> Aerosol state.
-    type(aero_state_t), intent(in) :: aero_state
+    class(aero_state_t), intent(in) :: aero_state
 
     aero_state_n_part = aero_particle_array_n_part(aero_state%apa)
 

@@ -173,6 +173,7 @@ program partmc
   use pmc_gas_data
   use pmc_gas_state
   use pmc_util
+  use pmc_phlex_core
 #ifdef PMC_USE_SUNDIALS
   use pmc_condense
 #endif
@@ -261,9 +262,10 @@ contains
     type(aero_state_t) :: aero_state
     type(aero_state_t) :: aero_state_init
     type(scenario_t) :: scenario
-    type(env_state_t) :: env_state
+    type(env_state_t), target  :: env_state
     type(env_state_t) :: env_state_init
     type(run_part_opt_t) :: run_part_opt
+    type(phlex_core_t), pointer :: phlex_core
     integer :: i_repeat, i_group
     integer :: rand_init
     character, allocatable :: buffer(:)
@@ -275,6 +277,7 @@ contains
     real(kind=dp) :: dummy_time, dummy_del_t, n_part
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
+    character(len=:), allocatable :: phlex_config_filename
 
     !> \page input_format_particle Input File Format: Particle-Resolved Simulation
     !!
@@ -427,7 +430,9 @@ contains
                    'cannot do condensation with phlex chem')
          end if
          call spec_file_read_string(file, 'phlex_config', &
-                 run_part_opt%phlex_config_filename)
+                 phlex_config_filename)
+         phlex_core => phlex_core_t(phlex_config_filename)
+         call phlex_core%initialize()
        end if
 
        if (do_restart) then
@@ -444,6 +449,8 @@ contains
             call spec_file_open(sub_filename, sub_file)
             call spec_file_read_gas_data(sub_file, gas_data)
             call spec_file_close(sub_file)
+          else
+            call gas_data%initialize(phlex_core)
           end if
 
           call spec_file_read_string(file, 'gas_init', sub_filename)
@@ -457,6 +464,8 @@ contains
             call spec_file_open(sub_filename, sub_file)
             call spec_file_read_aero_data(sub_file, aero_data)
             call spec_file_close(sub_file)
+          else
+            call aero_data%initialize(phlex_core)
           end if
 
           call spec_file_read_fractal(file, aero_data%fractal)
@@ -601,6 +610,8 @@ contains
             + pmc_mpi_pack_size_logical(do_init_equilibriate)
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_aero_state(aero_state_init)
+       max_buffer_size = max_buffer_size &
+            + phlex_core%pack_size()
 
        allocate(buffer(max_buffer_size))
 
@@ -617,6 +628,7 @@ contains
        call pmc_mpi_pack_logical(buffer, position, do_restart)
        call pmc_mpi_pack_logical(buffer, position, do_init_equilibriate)
        call pmc_mpi_pack_aero_state(buffer, position, aero_state_init)
+       call phlex_core%bin_pack(buffer, position)
        call assert(181905491, position <= max_buffer_size)
        buffer_size = position ! might be less than we allocated
     end if
@@ -633,6 +645,8 @@ contains
     call pmc_mpi_bcast_packed(buffer)
 
     if (pmc_mpi_rank() /= 0) then
+       ! set up the phlex chem core
+       phlex_core => phlex_core_t()
        ! non-root processes unpack data
        position = 0
        call pmc_mpi_unpack_run_part_opt(buffer, position, run_part_opt)
@@ -647,6 +661,7 @@ contains
        call pmc_mpi_unpack_logical(buffer, position, do_restart)
        call pmc_mpi_unpack_logical(buffer, position, do_init_equilibriate)
        call pmc_mpi_unpack_aero_state(buffer, position, aero_state_init)
+       call phlex_core%bin_unpack(buffer, position)
        call assert(143770146, position == buffer_size)
     end if
 

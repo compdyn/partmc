@@ -62,6 +62,12 @@ module pmc_aero_rep_data
     !> Get the size of the state variable array required for this aerosol
     !! representation
     procedure(pmc_aero_rep_data_size), deferred :: size
+    !> Get a list of unique species names for each element of the state
+    !! variable array
+    procedure(pmc_aero_rep_data_unique_names), deferred :: unique_names
+    !> Get a species state id by unique name
+    procedure(pmc_aero_rep_data_state_id_by_unique_name), deferred :: &
+            state_id_by_unique_name
     !> Get an instance of the state variable for this aerosol representation
     procedure(pmc_aero_rep_data_new_state), deferred :: new_state
     !> Get aerosol species state id
@@ -147,6 +153,41 @@ module pmc_aero_rep_data
 
     end function pmc_aero_rep_data_size
   end interface pmc_aero_rep_data_size_if
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get a list of unique names for each element of the state variable array.
+  interface pmc_aero_rep_data_unique_names_if
+    function pmc_aero_rep_data_unique_names(this) result (unique_names)
+      use pmc_util,                                     only : string_t
+      import :: aero_rep_data_t
+
+      !> List of unique names
+      type(string_t), allocatable :: unique_names(:)
+      !> Aerosol representation data
+      class(aero_rep_data_t), intent(in) :: this
+
+    end function pmc_aero_rep_data_unique_names
+  end interface pmc_aero_rep_data_unique_names_if
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the species state id by the unique name
+  interface pmc_aero_rep_data_state_id_by_unique_name_if
+    function pmc_aero_rep_data_state_id_by_unique_name(this, &
+                    unique_name) result (spec_id)
+      use pmc_util,                                     only : i_kind
+      import :: aero_rep_data_t
+
+      !> Species state id
+      integer(kind=i_kind) :: spec_id
+      !> Aerosol representation data
+      class(aero_rep_data_t), intent(in) :: this
+      !> Unique name
+      character(len=:), allocatable :: unique_name
+
+    end function pmc_aero_rep_data_state_id_by_unique_name
+  end interface pmc_aero_rep_data_state_id_by_unique_name_if
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

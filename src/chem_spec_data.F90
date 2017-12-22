@@ -58,6 +58,10 @@ module pmc_chem_spec_data
     procedure :: load => chem_spec_data_load
     !> Get the size of the species database
     procedure :: size => chem_spec_data_size
+    !> Get the number of species by type
+    procedure :: num_spec_by_type => chem_spec_data_num_spec_by_type
+    !> Get an list of species names by type
+    procedure :: spec_names_by_type => chem_spec_data_spec_names_by_type
     !> Check if a species name is in the set of chemical species
     procedure :: exists => chem_spec_data_exists
     !> Get a species properties
@@ -290,6 +294,52 @@ contains
     chem_spec_data_size = this%num_spec
 
   end function chem_spec_data_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the number of species of a certain type
+  integer(kind=i_kind) function chem_spec_data_num_spec_by_type(this, &
+                  spec_type) result (num_spec)
+
+    !> Species database
+    class(chem_spec_data_t), intent(in) :: this
+    !> Species type
+    integer(kind=i_kind) :: spec_type
+
+    integer(kind=i_kind) :: i_spec
+
+    num_spec = 0
+    do i_spec = 1, this%num_spec
+      if (this%spec_type(i_spec).eq.spec_type) num_spec = num_spec + 1
+    end do
+
+  end function chem_spec_data_num_spec_by_type
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get a list of species names by type
+  function chem_spec_data_spec_names_by_type(this, spec_type) &
+                  result (spec_names)
+
+    !> List of species names
+    type(string_t), allocatable :: spec_names(:)
+    !> Species database
+    class(chem_spec_data_t), intent(in) :: this
+    !> Species type
+    integer(kind=i_kind), intent(in) :: spec_type
+
+    integer(kind=i_kind) :: i_spec, j_spec
+
+    allocate(spec_names(this%num_spec_by_type(spec_type)))
+    j_spec = 1
+    do i_spec = 1, this%num_spec
+      if (this%spec_type(i_spec).eq.spec_type) then
+        spec_names(j_spec) = this%spec_name(i_spec) 
+        j_spec = j_spec + 1
+      end if
+    end do
+
+  end function chem_spec_data_spec_names_by_type
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

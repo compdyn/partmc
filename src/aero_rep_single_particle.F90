@@ -8,13 +8,15 @@
 !> The abstract aero_rep_single_particle_t structure and associated subroutines.
 module pmc_aero_rep_single_particle
 
-  use pmc_util,                                      only : dp, i_kind, &
-                                                            string_t
+  use pmc_util,                                  only: dp, i_kind, &
+                                                       string_t, assert_msg, &
+                                                       die_msg
   use pmc_property
   use pmc_chem_spec_data
   use pmc_aero_rep_data
   use pmc_aero_phase_data
-  use pmc_aero_particle
+  use pmc_aero_rep_state
+  use pmc_aero_rep_single_particle_state
   use pmc_phlex_state
 
   implicit none
@@ -41,6 +43,11 @@ module pmc_aero_rep_single_particle
     procedure :: initialize => pmc_aero_rep_single_particle_initialize
     !> Get the size of this representation on the state variable array
     procedure :: size => pmc_aero_rep_single_particle_size
+    !> Get a list of unique names for each element on the state array
+    procedure :: unique_names => pmc_aero_rep_single_particle_unique_names
+    !> Get a species state id by its unique name
+    procedure :: state_id_by_unique_name => &
+            pmc_aero_rep_data_state_id_by_unique_name
     !> Get an instance of the state variable for this aerosol representation
     procedure :: new_state => pmc_aero_rep_single_particle_new_state
     !> Get an aerosol species state id
@@ -55,12 +62,6 @@ module pmc_aero_rep_single_particle
     !> Get the vapor pressure scaling for a particular species (unitless)
     procedure :: vapor_pressure_scaling => &
             pmc_aero_rep_single_particle_vapor_pressure_scaling
-    !> Set the model state prior to solving chemistry
-    procedure :: set_chem_state => &
-            pmc_aero_rep_single_particle_set_chem_state
-    !> Set the PartMC particle state after solving chemistry
-    procedure :: set_pmc_state => &
-            pmc_aero_rep_single_particle_set_pmc_state
 
     !> Private functions
     !> Get the associated aero_rep_state_t variable
@@ -188,11 +189,66 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Get a list of unique names for each species on the state array
+  function pmc_aero_rep_single_particle_unique_names(this) &
+                    result (unique_names)
+
+    !> List of unique names
+    type(string_t), allocatable :: unique_names(:)
+    !> Aerosol representation data
+    class(aero_rep_single_particle_t), intent(in) :: this
+
+    integer(kind=i_kind) :: num_spec, i_spec, i_phase
+    type(string_t), allocatable :: phase_names(:)
+    
+    num_spec = 0
+    do i_phase = 1, size(this%aero_phase)
+      num_spec = num_spec + this%aero_phase(i_phase)%val%size()
+    end do
+    allocate(unique_names(num_spec))
+    i_spec = 1
+    do i_phase = 1, size(this%aero_phase)
+      num_spec = this%aero_phase(i_phase)%val%size()
+      phase_names = this%aero_phase(i_phase)%val%get_species()
+      unique_names(i_spec:i_spec-1+num_spec) = phase_names(1:num_spec)
+      i_spec = i_spec + num_spec
+    end do
+
+  end function pmc_aero_rep_single_particle_unique_names
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get a species state id by its unique name
+  function pmc_aero_rep_data_state_id_by_unique_name(this, &
+                    unique_name) result (spec_id)
+
+    !> Species state id
+    integer(kind=i_kind) :: spec_id
+    !> Aerosol representation data
+    class(aero_rep_single_particle_t), intent(in) :: this
+    !> Unique name
+    character(len=:), allocatable :: unique_name
+
+    type(string_t), allocatable :: unique_names(:)
+    integer(kind=i_kind) :: i_spec
+
+    spec_id = 0
+    unique_names = this%unique_names()
+    do i_spec = 1, size(unique_names)
+      if (unique_names(i_spec)%string .eq. unique_name) then
+        spec_id = i_spec
+        return
+      end if
+    end do
+
+  end function pmc_aero_rep_data_state_id_by_unique_name
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Get an instance of the state type for this aerosol representation
   !!
   !! For PartMC single particle runs, the aerosol state will be set by PartMC
-  !! at the beginning of each chemistry integration to point to the 
-  !! current aero_particle_array_t state
+  !! at the beginning of each chemistry integration
   function pmc_aero_rep_single_particle_new_state(this) result (aero_rep_state)
 
     !> Aerosol representation state
@@ -201,61 +257,9 @@ contains
     class(aero_rep_single_particle_t), intent(in) :: this
 
     ! Empty state variable
-    aero_rep_state => aero_particle_t()
+    aero_rep_state => aero_rep_single_particle_state_t()
 
   end function pmc_aero_rep_single_particle_new_state
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Set the current aerosol state based on volume concentrations in a
-  !! aero_particle_t state. (Called before solving chemistry)
-  subroutine pmc_aero_rep_single_particle_set_chem_state(this, phlex_state)
-
-    !> Aerosol representation data
-    class(aero_rep_single_particle_t), intent(in) :: this
-    !> Model state
-    type(phlex_state_t), intent(inout) :: phlex_state
-    
-    type(aero_particle_t), pointer :: sp_state
-    integer(kind=i_kind) :: i_spec,sp_spec, i_phase
-
-    sp_state => this%get_state(phlex_state)
-
-    sp_spec = 1
-    do i_phase = 1, size(this%aero_phase)
-      do i_spec = 1, this%aero_phase(i_phase)%val%size()
-        _MASS_(i_phase, i_spec) = sp_state%vol(sp_spec) * &
-                _DENSITY_(i_phase, i_spec)
-      end do
-    end do
-
-  end subroutine pmc_aero_rep_single_particle_set_chem_state
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Update an aero_particle_t state based on the the current aerosol state.
-  !! (Called after solving chemistry)
-  subroutine pmc_aero_rep_single_particle_set_pmc_state(this, phlex_state)
-
-    !> Aerosol representation data
-    class(aero_rep_single_particle_t), intent(in) :: this
-    !> Model state
-    type(phlex_state_t), intent(inout) :: phlex_state
-    
-    type(aero_particle_t), pointer :: sp_state
-    integer(kind=i_kind) :: i_spec,sp_spec, i_phase
-
-    sp_state => this%get_state(phlex_state)
-
-    sp_spec = 1
-    do i_phase = 1, size(this%aero_phase)
-      do i_spec = 1, this%aero_phase(i_phase)%val%size()
-        sp_state%vol(sp_spec) = _MASS_(i_phase, i_spec) / &
-                _DENSITY_(i_phase, i_spec)
-      end do
-    end do
-
-  end subroutine pmc_aero_rep_single_particle_set_pmc_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -281,12 +285,16 @@ contains
     !> Species name
     character(len=:), allocatable, intent(in) :: species_name
 
-    integer(kind=i_kind) :: i_phase, offset
+    integer(kind=i_kind) :: i_phase, i_spec
 
     allocate(spec_index(1))
     i_phase = this%phase_id(phase)
-    spec_index(1) = _PHASE_STATE_ID_(i_phase) + &
-            this%aero_phase(i_phase)%val%state_id(species_name)
+    call assert_msg(820720954, i_phase.gt.0, "Invalid phase requested: "// &
+            phase)
+    i_spec = this%aero_phase(i_phase)%val%state_id(species_name)
+    call assert_msg(413945507, i_spec.gt.0, "Invalid species requested: "// &
+            species_name//" for phase: "//phase)
+    spec_index(1) = _PHASE_STATE_ID_(i_phase) + i_spec
 
   end function pmc_aero_rep_single_particle_species_state_id
 
@@ -445,14 +453,14 @@ contains
                   result (aero_rep_state)
 
     !> Aerosol representation state
-    type(aero_particle_t), pointer :: aero_rep_state
+    type(aero_rep_single_particle_state_t), pointer :: aero_rep_state
     !> Aerosol representation data
     class(aero_rep_single_particle_t), intent(in) :: this
     !> Model state
     type(phlex_state_t), intent(in) :: phlex_state
 
     select type (state_ptr => phlex_state%aero_rep_state(_AERO_STATE_ID_)%val)
-      type is (aero_particle_t)
+      type is (aero_rep_single_particle_state_t)
         aero_rep_state => state_ptr
       class default
         call die_msg(814359298, "Received incorrect aero_rep_state_t variable "//&

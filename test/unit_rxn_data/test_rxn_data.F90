@@ -15,6 +15,7 @@ program pmc_test_rxn_data
   use pmc_phlex_state
   use pmc_chem_spec_data
   use pmc_rxn_data
+  use pmc_mpi
 #ifdef PMC_USE_JSON
   use json_module
 #endif
@@ -23,6 +24,8 @@ program pmc_test_rxn_data
 
   ! New-line character
   character(len=*), parameter :: new_line = char(10)
+
+  call pmc_mpi_init()
 
   if (run_pmc_rxn_data_tests()) then
     write(*,*) "Rxn data tests - PASS"
@@ -47,7 +50,7 @@ contains
   logical function build_rxn_data_set_test()
 
     type(rxn_data_ptr) :: rxn_test(3)
-    type(phlex_state_t) :: phlex_state
+    type(phlex_state_t), pointer :: phlex_state
     type(chem_spec_data_t) :: spec_data
 
     real(kind=dp), pointer :: func(:)
@@ -125,6 +128,9 @@ contains
 
     ! Get the pmc-data object
     call j_file%get('pmc-data(1)', j_obj)
+
+    ! Set up the phlex chem state
+    phlex_state => phlex_state_t()
 
     ! Set up the chemical species data 
     spec_data = chem_spec_data_t()

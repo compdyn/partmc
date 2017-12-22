@@ -14,6 +14,7 @@ module pmc_gas_state
   use pmc_env_state
   use pmc_mpi
   use pmc_netcdf
+  use pmc_phlex_state
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -30,9 +31,42 @@ module pmc_gas_state
   type gas_state_t
      !> Length n_spec, mixing ratio (ppb).
      real(kind=dp), allocatable :: mix_rat(:)
+  contains
+     !> Set Phlexible chemistry gas-phase species concentrations
+     procedure :: set_phlex_conc => gas_state_set_phlex_conc
+     !> Get Phlexible chemistry gas-phase species concentrations
+     procedure :: get_phlex_conc => gas_state_get_phlex_conc
   end type gas_state_t
 
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Set Phlexible chemistry gas-phase species concentrations
+  subroutine gas_state_set_phlex_conc(this, phlex_state)
+
+    !> Gas state
+    class(gas_state_t), intent(in) :: this
+    !> Phlexible chemisty state
+    type(phlex_state_t), intent(inout) :: phlex_state
+
+    phlex_state%state_var(1:size(this%mix_rat)) = this%mix_rat(:) 
+
+  end subroutine gas_state_set_phlex_conc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get Phlexible chemistry gas-phase species concentrations
+  subroutine gas_state_get_phlex_conc(this, phlex_state)
+
+    !> Gas state
+    class(gas_state_t), intent(inout) :: this
+    !> Phlexible chemistry state
+    type(phlex_state_t), intent(in) :: phlex_state
+
+    this%mix_rat(:) = phlex_state%state_var(1:size(this%mix_rat))
+
+  end subroutine gas_state_get_phlex_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

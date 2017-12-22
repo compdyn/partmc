@@ -55,8 +55,12 @@ module pmc_phlex_core
     procedure :: find_mechanism => pmc_phlex_core_find_mechanism
     !> Add a mechanism to the model
     procedure :: add_mechanism => pmc_phlex_core_add_mechanism
+    !> Find an aerosol representation index by name
+    procedure :: find_aero_rep_id_by_name => pmc_phlex_core_find_aero_rep_id_by_name
     !> Find an aerosol representation by name
-    procedure :: find_aero_rep => pmc_phlex_core_find_aero_rep
+    procedure :: find_aero_rep_by_name => pmc_phlex_core_find_aero_rep_by_name
+    !> Find an aerosol representation or it's id
+    generic :: find_aero_rep => find_aero_rep_id_by_name, find_aero_rep_by_name
     !> Add an aerosol representation to the model
     procedure :: add_aero_rep => pmc_phlex_core_add_aero_rep
     !> Find an aerosol phase by name
@@ -392,9 +396,9 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Find an aerosol representation by name in the model data
-  logical function pmc_phlex_core_find_aero_rep(this, rep_name, rep_id) &
-                  result(found)
+  !> Find an aerosol representation id by name in the model data
+  logical function pmc_phlex_core_find_aero_rep_id_by_name(this, rep_name, &
+                  rep_id) result(found)
 
     !> Model data
     class(phlex_core_t), intent(in) :: this
@@ -413,7 +417,29 @@ contains
     end do
     rep_id = 0
 
-  end function pmc_phlex_core_find_aero_rep
+  end function pmc_phlex_core_find_aero_rep_id_by_name
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Find an aerosol representation by name in the model data
+  logical function pmc_phlex_core_find_aero_rep_by_name(this, rep_name, rep) &
+                  result(found)
+
+    !> Model data
+    class(phlex_core_t), intent(in) :: this
+    !> Aerosol representation name to search for
+    character(len=:), allocatable :: rep_name
+    !> Aerosol representation
+    class(aero_rep_data_t), pointer :: rep
+
+    integer(kind=i_kind) :: rep_id
+
+    found = this%find_aero_rep_id_by_name(rep_name, rep_id)
+    if (.not.found) return
+    
+    rep => this%aero_rep(rep_id)%val
+
+  end function pmc_phlex_core_find_aero_rep_by_name
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -535,7 +561,7 @@ contains
     !> Phase to solve - gas, aerosol, or both (default)
     !! Use parameters in pmc_rxn_data to specify phase:
     !! GAS_RXN, AERO_RXN, GAS_AERO_RXN
-    integer(kind=dp), intent(in), optional :: rxn_phase
+    integer(kind=i_kind), intent(in), optional :: rxn_phase
 
     integer(kind=i_kind) :: solver_status, phase
     real(kind=dp), pointer :: state_array(:)

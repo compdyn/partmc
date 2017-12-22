@@ -12,6 +12,8 @@ module pmc_gas_data
   use pmc_mpi
   use pmc_util
   use pmc_netcdf
+  use pmc_phlex_core
+  use pmc_chem_spec_data
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -26,16 +28,40 @@ module pmc_gas_data
   !! The variable gas data describing the current mixing ratios is stored
   !! in the gas_state_t structure, so the mixing ratio of species \c i
   !! is gas_state%%mix_rat(i).
-  type gas_data_t
+  type :: gas_data_t
      !> Species name [length \c gas_data_n_spec(gas_data)].
      character(len=GAS_NAME_LEN), allocatable :: name(:)
      !> Index of the corresponding MOSAIC species [length \c
      !> gas_data_n_spec(gas_data)]. \c to_mosaic(i) is the mosaic index of
      !> species \c i, or 0 if there is no match.
      integer, allocatable :: mosaic_index(:)
+  contains
+     !> Initialize the gas_data_t instance
+     procedure :: initialize => gas_data_initialize
   end type gas_data_t
 
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Initialize the gas_data_t instance from phlex_core data
+  subroutine gas_data_initialize(this, phlex_core)
+
+    !> Gas-phase species data
+    class(gas_data_t), intent(inout) :: this
+    !> Phlexible chemistry core
+    class(phlex_core_t), intent(in) :: phlex_core
+
+    integer :: i_spec
+    type(string_t), allocatable :: spec_names(:)
+
+    spec_names = phlex_core%chem_spec_data%spec_names_by_type(GAS_SPEC)
+    allocate(this%name(size(spec_names)))
+    do i_spec = 1, size(this%name)
+      this%name(i_spec) = spec_names(i_spec)%string 
+    end do
+
+  end subroutine gas_data_initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -36,7 +36,7 @@ module pmc_phlex_state
     !! in the phlex_core%aero_rep(:) array.
     type(aero_rep_state_ptr), allocatable :: aero_rep_state(:)
     !> Environmental conditions
-    type(env_state_t) :: env_state
+    type(env_state_t), pointer :: env_state
     !> Rxn phase being solved
     integer(kind=i_kind) :: rxn_phase = 0
     !> Identifier that can be used by expensive, repeated functions to
@@ -66,12 +66,19 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for phlex_state_t
-  function pmc_phlex_state_constructor() result (new_obj)
+  function pmc_phlex_state_constructor(env_state) result (new_obj)
 
     !> New model state
     type(phlex_state_t), pointer :: new_obj
+    !> Environmental state
+    type(env_state_t), target, intent(in), optional :: env_state
 
     allocate(new_obj)
+    if (present(env_state)) then
+      new_obj%env_state => env_state
+    else
+      allocate(new_obj%env_state)
+    end if
     call pmc_srand(0,0)
 
   end function pmc_phlex_state_constructor

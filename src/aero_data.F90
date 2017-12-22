@@ -13,6 +13,10 @@ module pmc_aero_data
   use pmc_util
   use pmc_fractal
   use pmc_netcdf
+  use pmc_phlex_core
+  use pmc_aero_rep_data
+  use pmc_aero_rep_single_particle
+  use pmc_property
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -58,6 +62,13 @@ module pmc_aero_data
      character(len=AERO_SOURCE_NAME_LEN), allocatable :: source_name(:)
      !> Fractal particle parameters.
      type(fractal_t) :: fractal
+     !> Phlexible chemistry aerosol representation id
+     integer :: phlex_rep_id
+     !> Aerosol species ids on the phlex chem state array
+     integer, allocatable :: phlex_spec_id(:)
+  contains
+     !> Initialize the aero_data_t variable with phlex chem data
+     procedure :: initialize => aero_data_initialize
   end type aero_data_t
 
 contains
@@ -798,6 +809,81 @@ contains
     call fractal_input_netcdf(aero_data%fractal, ncid)
 
   end subroutine aero_data_input_netcdf
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Initialize the aero_data_t variable with phlex chem data
+  subroutine aero_data_initialize(this, phlex_core)
+
+    !> Aerosol data
+    class(aero_data_t), intent(inout) :: this
+    !> Phlexible chemistry core
+    type(phlex_core_t), intent(in) :: phlex_core
+
+    class(aero_rep_data_t), pointer :: aero_rep
+    character(len=:), allocatable :: rep_name, prop_name, source_name
+    type(string_t), allocatable :: spec_names(:)
+    integer :: num_spec, i_spec
+    type(property_t), pointer :: property_set
+    integer(kind=i_kind), allocatable :: phlex_id(:)
+
+    rep_name = "PartMC single particle"
+    if (.not.phlex_core%find_aero_rep(rep_name, this%phlex_rep_id)) then
+      call die_msg(418509983, "Missing 'PartMC single particle' aerosol "// &
+              "representation.")
+    end if
+    aero_rep => phlex_core%aero_rep(this%phlex_rep_id)%val
+
+    spec_names = aero_rep%unique_names()
+    num_spec = size(spec_names)
+    allocate(this%name(num_spec))
+    allocate(this%mosaic_index(num_spec))
+    allocate(this%density(num_spec))
+    allocate(this%num_ions(num_spec))
+    allocate(this%molec_weight(num_spec))
+    allocate(this%kappa(num_spec))
+    allocate(this%source_name(num_spec))
+    allocate(this%phlex_spec_id(num_spec))
+
+    do i_spec = 1, num_spec
+      this%name(i_spec) = spec_names(i_spec)%string
+      property_set => &
+          phlex_core%chem_spec_data%get_property_set(spec_names(i_spec)%string)
+      if (.not. associated(property_set)) then
+        call die_msg(934844845, "Missing property set for aerosol species "//&
+             spec_names(i_spec)%string)
+      end if
+      prop_name = "density"
+      if (.not. property_set%get_real(prop_name, this%density(i_spec))) then
+        call die_msg(547508215, "Missing  for aerosol species "//&
+             spec_names(i_spec)%string)
+      end if
+      prop_name = "num_ions"
+      if (.not. property_set%get_int(prop_name, this%num_ions(i_spec))) then
+        call die_msg(324777059, "Missing num_ions for aerosol species "//&
+             spec_names(i_spec)%string)
+      end if
+      prop_name = "molec_weight"
+      if (.not. property_set%get_real(prop_name, this%molec_weight(i_spec))) then
+        call die_msg(549413749, "Missing molec_weight for aerosol species "//&
+             spec_names(i_spec)%string)
+      end if
+      prop_name = "kappa"
+      if (.not. property_set%get_real(prop_name, this%kappa(i_spec))) then
+        call die_msg(944207343, "Missing kappa for aerosol species "//&
+             spec_names(i_spec)%string)
+      end if
+      prop_name = "source_name"
+      if (property_set%get_string(prop_name, source_name)) then
+        this%source_name(i_spec) = source_name
+      else
+        this%source_name(i_spec) = ""
+      end if
+      this%phlex_spec_id(i_spec) = &
+          aero_rep%state_id_by_unique_name(spec_names(i_spec)%string)
+    end do
+
+  end subroutine aero_data_initialize 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

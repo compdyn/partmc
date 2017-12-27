@@ -41,13 +41,16 @@ contains
   !> Run all pmc_chem_mech_solver tests
   logical function run_pmc_chem_mech_solver_tests() result(passed)
 
-    use pmc_integration_data,  only: pmc_integration_data_is_solver_available
+    use pmc_integration_data
 
-    if (pmc_integration_data_is_solver_available()) then
+    type(integration_data_t), pointer :: integration_data
+
+    integration_data => integration_data_t()
+
+    if (integration_data%is_solver_available()) then
       passed = run_consecutive_mech_test()
     else
-      passed = .true.
-      call warn_msg(465633118, "No solver available for mechanism integration")
+      call warn_msg(398972036, "No solver available")
     end if
 
   end function run_pmc_chem_mech_solver_tests

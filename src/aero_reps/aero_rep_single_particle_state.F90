@@ -23,16 +23,16 @@ module pmc_aero_rep_single_particle_state
   type, extends(aero_rep_state_t) :: aero_rep_single_particle_state_t
   contains
     !> Determine the size of a binary required to pack a given variable
-    procedure :: pack_size => pmc_aero_rep_single_particle_state_pack_size
+    procedure :: pack_size
     !> Pack the given value to the buffer, advancing position
-    procedure :: bin_pack => pmc_aero_rep_single_particle_state_bin_pack
+    procedure :: bin_pack
     !> Unpack the given value from the buffer, advancing position
-    procedure :: bin_unpack => pmc_aero_rep_single_particle_state_bin_unpack
+    procedure :: bin_unpack
   end type aero_rep_single_particle_state_t
 
   !> Constructor for aero_rep_single_particle_state_t
   interface aero_rep_single_particle_state_t
-    procedure :: pmc_aero_rep_single_particle_state_constructor
+    procedure :: constructor
   end interface aero_rep_single_particle_state_t
 
 contains
@@ -40,32 +40,31 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for aero_rep_single_particle_state_t
-  function pmc_aero_rep_single_particle_state_constructor() result (new_obj)
+  function constructor() result (new_obj)
 
     !> New aerosol state 
     type(aero_rep_single_particle_state_t), pointer :: new_obj
 
     allocate(new_obj)
 
-  end function pmc_aero_rep_single_particle_state_constructor
+  end function constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack a given variable
-  integer(kind=i_kind) function pmc_aero_rep_single_particle_state_pack_size(this) &
-                  result (pack_size)
+  integer(kind=i_kind) function pack_size(this)
 
     !> Aerosol representation state
     class(aero_rep_single_particle_state_t), intent(in) :: this
 
     pack_size = 0
 
-  end function pmc_aero_rep_single_particle_state_pack_size
+  end function pack_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Pack the given value to the buffer, advancing position
-  subroutine pmc_aero_rep_single_particle_state_bin_pack(this, buffer, pos)
+  subroutine bin_pack(this, buffer, pos)
 
     !> Aerosol representation state
     class(aero_rep_single_particle_state_t), intent(in) :: this
@@ -74,12 +73,12 @@ contains
     !> Current buffer position
     integer(kind=i_kind), intent(inout) :: pos
 
-   end subroutine pmc_aero_rep_single_particle_state_bin_pack
+   end subroutine bin_pack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpack the given value to the buffer, advancing position
-  subroutine pmc_aero_rep_single_particle_state_bin_unpack(this, buffer, pos)
+  subroutine bin_unpack(this, buffer, pos)
 
     !> Aerosol representation state
     class(aero_rep_single_particle_state_t), intent(inout) :: this
@@ -88,7 +87,7 @@ contains
     !> Current buffer position
     integer(kind=i_kind), intent(inout) :: pos
 
-  end subroutine pmc_aero_rep_single_particle_state_bin_unpack
+  end subroutine bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

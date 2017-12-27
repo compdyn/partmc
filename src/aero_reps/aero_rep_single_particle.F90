@@ -40,37 +40,33 @@ module pmc_aero_rep_single_particle
   type, extends(aero_rep_data_t) :: aero_rep_single_particle_t
   contains
     !> Aerosol representation initialization
-    procedure :: initialize => pmc_aero_rep_single_particle_initialize
+    procedure :: initialize
     !> Get the size of this representation on the state variable array
-    procedure :: size => pmc_aero_rep_single_particle_size
+    procedure :: size => get_size
     !> Get a list of unique names for each element on the state array
-    procedure :: unique_names => pmc_aero_rep_single_particle_unique_names
+    procedure :: unique_names
     !> Get a species state id by its unique name
-    procedure :: state_id_by_unique_name => &
-            pmc_aero_rep_data_state_id_by_unique_name
+    procedure :: state_id_by_unique_name
     !> Get an instance of the state variable for this aerosol representation
-    procedure :: new_state => pmc_aero_rep_single_particle_new_state
+    procedure :: new_state
     !> Get an aerosol species state id
-    procedure :: species_state_id => pmc_aero_rep_single_particle_species_state_id
+    procedure :: species_state_id
     !> Get the surface area concentration (m^2/m^3)
-    procedure :: surface_area_conc => &
-            pmc_aero_rep_single_particle_surface_area_conc
+    procedure :: surface_area_conc
     !> Get the surface area concentration for a specific aerosol species
     !! (m^2/m^3)
-    procedure :: species_surface_area_conc => &
-            pmc_aero_rep_single_particle_species_surface_area_conc
+    procedure :: species_surface_area_conc
     !> Get the vapor pressure scaling for a particular species (unitless)
-    procedure :: vapor_pressure_scaling => &
-            pmc_aero_rep_single_particle_vapor_pressure_scaling
+    procedure :: vapor_pressure_scaling
 
     !> Private functions
     !> Get the associated aero_rep_state_t variable
-    procedure, private :: get_state => pmc_aero_rep_single_particle_get_state
+    procedure, private :: get_state => get_state
   end type aero_rep_single_particle_t
 
   !> Constructor for aero_rep_single_particle_t
   interface aero_rep_single_particle_t
-    procedure :: pmc_aero_rep_single_particle_constructor
+    procedure :: constructor
   end interface aero_rep_single_particle_t
 
 contains
@@ -78,14 +74,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for aero_rep_single_particle_t
-  function pmc_aero_rep_single_particle_constructor() result (new_obj)
+  function constructor() result (new_obj)
 
     !> New aerosol representation
     type(aero_rep_single_particle_t), pointer :: new_obj
 
     allocate(new_obj)
 
-  end function pmc_aero_rep_single_particle_constructor
+  end function constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -95,7 +91,7 @@ contains
   !! at the beginning of a model run after all the input files have been
   !! read in. It ensures all data required during the model run are included
   !! in the condensed data arrays.
-  subroutine pmc_aero_rep_single_particle_initialize(this, aero_phase_set, &
+  subroutine initialize(this, aero_phase_set, &
                   spec_state_id, aero_state_id, chem_spec_data)
 
     !> Aerosol representation data
@@ -120,13 +116,13 @@ contains
     ! Assume all phases will be applied to each particle
     allocate(this%aero_phase(size(aero_phase_set)))
     do i_phase = 1, size(aero_phase_set)
-      this%aero_phase(i_phase)%val => aero_phase_set(i_phase)
+      this%aero_phase(i_phase) = aero_phase_set(i_phase)
     end do
 
     ! Get the total number of species across all phases
     num_spec = 0
     do i_phase = 1, size(this%aero_phase)
-      num_spec = num_spec + this%aero_phase(i_phase)%val%size()
+      num_spec = num_spec + this%aero_phase(i_phase)%size()
     end do
 
     ! Allocate condensed data arrays
@@ -141,15 +137,15 @@ contains
     do i_phase = 1, _NUM_PHASE_
       _PHASE_STATE_ID_(i_phase) = curr_id
       _PHASE_SPEC_ID_(i_phase) = curr_spec_id
-      curr_spec_id = curr_spec_id + this%aero_phase(i_phase)%val%size()
-      curr_id = curr_id + this%aero_phase(i_phase)%val%size()
+      curr_spec_id = curr_spec_id + this%aero_phase(i_phase)%size()
+      curr_id = curr_id + this%aero_phase(i_phase)%size()
     end do
 
     ! Set densities
     key = "density"
     do i_phase = 1, _NUM_PHASE_
       curr_spec_id = 1
-      species = this%aero_phase(i_phase)%val%get_species()
+      species = this%aero_phase(i_phase)%get_species()
       do i_spec = 1, size(species)
         spec_props = chem_spec_data%get_property_set(species(i_spec)%string)
         if (.not.associated(spec_props)) then
@@ -165,12 +161,12 @@ contains
       end do
     end do
 
-  end subroutine pmc_aero_rep_single_particle_initialize
+  end subroutine initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the size of this aerosol representation on the state variable array
-  function pmc_aero_rep_single_particle_size(this) result (state_size)
+  function get_size(this) result (state_size)
 
     !> Size on the state array
     integer(kind=i_kind) :: state_size
@@ -182,16 +178,15 @@ contains
     ! Get the total number of species across all phases
     state_size = 0
     do i_phase = 1, size(this%aero_phase)
-      state_size = state_size + this%aero_phase(i_phase)%val%size()
+      state_size = state_size + this%aero_phase(i_phase)%size()
     end do
 
-  end function pmc_aero_rep_single_particle_size
+  end function get_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a list of unique names for each species on the state array
-  function pmc_aero_rep_single_particle_unique_names(this) &
-                    result (unique_names)
+  function unique_names(this)
 
     !> List of unique names
     type(string_t), allocatable :: unique_names(:)
@@ -203,24 +198,23 @@ contains
     
     num_spec = 0
     do i_phase = 1, size(this%aero_phase)
-      num_spec = num_spec + this%aero_phase(i_phase)%val%size()
+      num_spec = num_spec + this%aero_phase(i_phase)%size()
     end do
     allocate(unique_names(num_spec))
     i_spec = 1
     do i_phase = 1, size(this%aero_phase)
-      num_spec = this%aero_phase(i_phase)%val%size()
-      phase_names = this%aero_phase(i_phase)%val%get_species()
+      num_spec = this%aero_phase(i_phase)%size()
+      phase_names = this%aero_phase(i_phase)%get_species()
       unique_names(i_spec:i_spec-1+num_spec) = phase_names(1:num_spec)
       i_spec = i_spec + num_spec
     end do
 
-  end function pmc_aero_rep_single_particle_unique_names
+  end function unique_names
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a species state id by its unique name
-  function pmc_aero_rep_data_state_id_by_unique_name(this, &
-                    unique_name) result (spec_id)
+  function state_id_by_unique_name(this, unique_name) result (spec_id)
 
     !> Species state id
     integer(kind=i_kind) :: spec_id
@@ -241,7 +235,7 @@ contains
       end if
     end do
 
-  end function pmc_aero_rep_data_state_id_by_unique_name
+  end function state_id_by_unique_name
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -249,7 +243,7 @@ contains
   !!
   !! For PartMC single particle runs, the aerosol state will be set by PartMC
   !! at the beginning of each chemistry integration
-  function pmc_aero_rep_single_particle_new_state(this) result (aero_rep_state)
+  function new_state(this) result (aero_rep_state)
 
     !> Aerosol representation state
     class(aero_rep_state_t), pointer :: aero_rep_state
@@ -259,7 +253,7 @@ contains
     ! Empty state variable
     aero_rep_state => aero_rep_single_particle_state_t()
 
-  end function pmc_aero_rep_single_particle_new_state
+  end function new_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -272,8 +266,7 @@ contains
  !!
  !! One of each aerosol phase exists for each single particle, so this array
  !! will always be of length 1.
- function pmc_aero_rep_single_particle_species_state_id(this, phase, &
-                    species_name) result(spec_index)
+ function species_state_id(this, phase_name, species_name) result(spec_index)
     use pmc_util,                                     only : i_kind
 
     !> Species index array
@@ -281,30 +274,30 @@ contains
     !> Aerosol representation data
     class(aero_rep_single_particle_t), intent(in) :: this
     !> Aerosol phase id
-    character(len=:), allocatable, intent(in) :: phase
+    character(len=:), allocatable, intent(in) :: phase_name
     !> Species name
     character(len=:), allocatable, intent(in) :: species_name
 
     integer(kind=i_kind) :: i_phase, i_spec
 
     allocate(spec_index(1))
-    i_phase = this%phase_id(phase)
+    i_phase = this%phase_id(phase_name)
     call assert_msg(820720954, i_phase.gt.0, "Invalid phase requested: "// &
-            phase)
-    i_spec = this%aero_phase(i_phase)%val%state_id(species_name)
+            phase_name)
+    i_spec = this%aero_phase(i_phase)%state_id(species_name)
     call assert_msg(413945507, i_spec.gt.0, "Invalid species requested: "// &
-            species_name//" for phase: "//phase)
+            species_name//" for phase: "//phase_name)
     spec_index(1) = _PHASE_STATE_ID_(i_phase) + i_spec
 
-  end function pmc_aero_rep_single_particle_species_state_id
+  end function species_state_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get surface area concentration (m^2/m^3) between two phases. One phase
   !! may be set to 0 to indicate the gas-phase, or both phases may be aerosol
   !! phases, with a corresponding index
-  function pmc_aero_rep_single_particle_surface_area_conc(this, i_phase1, &
-                  i_phase2, phlex_state, jac_contrib) result(surface_area_conc)
+  function surface_area_conc(this, i_phase1, i_phase2, phlex_state, &
+                  jac_contrib)
     use pmc_util,                                     only : dp
     use pmc_constants
 
@@ -336,7 +329,7 @@ contains
 
     ! Calculate the volume density (m^3_aerosol/m^3_air)
     volume = 0
-    do i_spec = 1, this%aero_phase(i_phase)%val%size()
+    do i_spec = 1, this%aero_phase(i_phase)%size()
       volume = volume + _DENSITY_(i_phase, i_spec) &
               * _MASS_(i_phase, i_spec)
     end do
@@ -351,23 +344,22 @@ contains
     ! dV/dx = density(x)
     if (present(jac_contrib)) then
       jac_contrib(:) = real(0.0, kind=dp)
-      do i_spec = 1, this%aero_phase(i_phase)%val%size()
+      do i_spec = 1, this%aero_phase(i_phase)%size()
         jac_contrib(_SPEC_STATE_ID_(i_phase, i_spec)) = &
                 2.0/((3.0/4.0*volume/const%pi)**(1/3)) * &
                 _DENSITY_(i_phase, i_spec)
       end do
     end if
 
-  end function pmc_aero_rep_single_particle_surface_area_conc
+  end function surface_area_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the surface area concentration for a specific aerosol species
   !! (m^2/m^3). It is assumed the surface is between the gas-phase and an
   !! aerosol phase.
-  function pmc_aero_rep_single_particle_species_surface_area_conc(this, &
-                i_phase, i_spec, phlex_state, jac_contrib) &
-                result(surface_area_conc)
+  function species_surface_area_conc(this,  i_phase, i_spec, phlex_state, &
+                jac_contrib) result(surface_area_conc)
     use pmc_util,                                     only : dp
 
     !> Surface area concentration
@@ -391,7 +383,7 @@ contains
     
     ! Get the mass fraction of this species (kg/kg)
     mass_frac = real(0.0, kind=dp)
-    do j_spec = 1, this%aero_phase(i_phase)%val%size()
+    do j_spec = 1, this%aero_phase(i_phase)%size()
       mass_frac = mass_frac + _MASS_(i_phase, j_spec)
     end do
     if (mass_frac.gt.0.0) mass_frac = _MASS_(i_phase, i_spec) / mass_frac
@@ -410,20 +402,19 @@ contains
     ! TODO check math
     ! dSSA/dx = dSA/dx * MF + SA * dMF/dx
     if (present(jac_contrib)) then
-      do j_spec = 1, this%aero_phase(i_phase)%val%size()
+      do j_spec = 1, this%aero_phase(i_phase)%size()
         jac_contrib(_SPEC_STATE_ID_(i_phase, j_spec)) = &
                 jac_contrib(_SPEC_STATE_ID_(i_phase, j_spec)) * mass_frac + &
                 surface_area_conc * merge(0, 1, i_spec.eq.j_spec)
       end do
     end if
 
-  end function pmc_aero_rep_single_particle_species_surface_area_conc
+  end function species_surface_area_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             
   !> Get the vapor pressure scaling for a particular species (unitless)
-  function pmc_aero_rep_single_particle_vapor_pressure_scaling(this, &
-                  i_spec, phlex_state, jac_contrib) result(vapor_pressure_scaling)
+  function vapor_pressure_scaling(this, i_spec, phlex_state, jac_contrib)
     use pmc_util,                                     only : dp
 
     !> Vapor pressure scaling
@@ -444,12 +435,12 @@ contains
 
     call die_msg(787876225, "Kelvin effect not available yet.")
     
-  end function pmc_aero_rep_single_particle_vapor_pressure_scaling
+  end function vapor_pressure_scaling
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the associated aero_rep_state_t variable
-  function pmc_aero_rep_single_particle_get_state(this, phlex_state) &
+  function get_state(this, phlex_state) &
                   result (aero_rep_state)
 
     !> Aerosol representation state
@@ -467,7 +458,7 @@ contains
                 "for aero_rep_single_particle_t")
     end select
 
-  end function pmc_aero_rep_single_particle_get_state
+  end function get_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

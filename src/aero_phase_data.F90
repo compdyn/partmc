@@ -24,7 +24,7 @@ module pmc_aero_phase_data
   implicit none
   private
 
-  public :: aero_phase_data_t, aero_phase_data_ptr
+  public :: aero_phase_data_t
 
   !> Reallocation increment
   integer(kind=i_kind), parameter :: REALLOC_INC = 50
@@ -63,57 +63,51 @@ module pmc_aero_phase_data
     integer(kind=i_kind), allocatable ::  condensed_data_int(:)
   contains
     !> Aerosol representation initialization
-    procedure :: initialize => pmc_aero_phase_data_initialize
+    procedure :: initialize
     !> Get the name of the aerosol phase
-    procedure :: name => pmc_aero_phase_data_name
+    procedure :: name => get_name
     !> Get property data associated with this phase
-    procedure :: get_property_set => pmc_aero_phase_data_property_set
+    procedure :: get_property_set
     !> Get a list of species names in this phase
-    procedure :: get_species => pmc_aero_phase_data_get_species
+    procedure :: get_species
     !> Get an aerosol species state id
-    procedure :: state_id => pmc_aero_phase_data_state_id
+    procedure :: state_id
     !> Get the total mass in a phase (ug/m^3)
-    procedure :: total_mass => pmc_aero_phase_data_total_mass
+    procedure :: total_mass
     !> Determine the number of bytes required to pack the given value
-    procedure :: pack_size => pmc_aero_phase_data_pack_size
+    procedure :: pack_size
     !> Packs the given value into the buffer, advancing position
-    procedure :: bin_pack => pmc_aero_phase_data_bin_pack
+    procedure :: bin_pack
     !> Unpacks the given value from the buffer, advancing position
-    procedure :: bin_unpack => pmc_aero_phase_data_bin_unpack
+    procedure :: bin_unpack
     !> Load data from an input file
-    procedure :: load => pmc_aero_phase_data_load
+    procedure :: load
     !> Get the number of species in the phase
-    procedure :: size => pmc_aero_phase_data_size
+    procedure :: size => get_size
     !> Print the aerosol phase data
-    procedure :: print => pmc_aero_phase_data_print
+    procedure :: print => do_print
 
     !> Private functions
     !> Add a species
-    procedure, private :: add => pmc_aero_phase_data_add
+    procedure, private :: add
     !> Ensure there is enough room in the species dataset to add a specified
     !! number of species
-    procedure, private :: ensure_size => pmc_aero_phase_data_ensure_size
+    procedure, private :: ensure_size
     !> Find a species index by name
-    procedure, private :: find => pmc_aero_phase_data_find
+    procedure, private :: find
   end type aero_phase_data_t
 
   !> Constructor for aero_phase_data_t
   interface aero_phase_data_t
-    procedure :: aero_phase_data_constructor
+    procedure :: constructor
   end interface aero_phase_data_t
-
-  !> Pointer type for use in building lists of pointers to aero_phase_data_t
-  !! instances
-  type aero_phase_data_ptr
-    class(aero_phase_data_t), pointer :: val
-  end type aero_phase_data_ptr
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for aero_phase_data_t
-  function aero_phase_data_constructor(phase_name, init_size) result(new_obj)
+  function constructor(phase_name, init_size) result(new_obj)
 
     !> A new set of aerosol-phase species
     type(aero_phase_data_t), pointer :: new_obj
@@ -129,12 +123,12 @@ contains
     if (present(phase_name)) new_obj%phase_name = phase_name
     allocate(new_obj%spec_name(alloc_size))
 
-  end function aero_phase_data_constructor
+  end function constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize the aerosol phase data, validating species names.
-  subroutine pmc_aero_phase_data_initialize(this, chem_spec_data)
+  subroutine initialize(this, chem_spec_data)
 
     !> Aerosol phase data
     class(aero_phase_data_t), intent(inout) :: this
@@ -150,12 +144,12 @@ contains
       end if
     end do
 
-  end subroutine pmc_aero_phase_data_initialize
+  end subroutine initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the aerosol phase name
-  function pmc_aero_phase_data_name(this) result (phase_name)
+  function get_name(this) result (phase_name)
 
     !> The name of the aerosol phase
     character(len=:), allocatable :: phase_name
@@ -164,12 +158,12 @@ contains
 
     phase_name = this%phase_name
 
-  end function pmc_aero_phase_data_name
+  end function get_name
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the aerosol phase property set
-  function pmc_aero_phase_data_property_set(this) result (property_set)
+  function get_property_set(this) result (property_set)
 
     !> A pointer to the aerosol phase property set
     class(property_t), pointer :: property_set
@@ -178,12 +172,12 @@ contains
 
     property_set => this%property_set
 
-  end function pmc_aero_phase_data_property_set
+  end function get_property_set
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the aerosol phase species list
-  function pmc_aero_phase_data_get_species(this) result (species)
+  function get_species(this) result (species)
 
     !> A list of species in this phase
     type(string_t), allocatable :: species(:)
@@ -197,22 +191,22 @@ contains
       species(i_spec)%string = this%spec_name(i_spec)%string
     end do
 
-  end function pmc_aero_phase_data_get_species
+  end function get_species
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the index of a species in the state array for this phase
-  integer(kind=i_kind) function pmc_aero_phase_data_state_id(this, spec_name) &
-          result (state_id)
+  integer(kind=i_kind) function state_id(this, spec_name) &
+          result (id)
 
     !> Aerosol phase data
-    class(aero_phase_data_t), intent(inout) :: this
+    class(aero_phase_data_t), intent(in) :: this
     !> Chemical species name
     character(len=:), allocatable, intent(in) :: spec_name
 
-    state_id = this%find(spec_name)
+    id = this%find(spec_name)
 
-  end function pmc_aero_phase_data_state_id
+  end function state_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -249,7 +243,7 @@ contains
   !! including nested objects. Multiple entries with the same aerosol phase 
   !! name will be merged into a single phase, but duplicate property names for
   !! the same phase will cause an error.
-  subroutine pmc_aero_phase_data_load(this, json, j_obj)
+  subroutine load(this, json, j_obj)
 
     !> Aerosol phase data
     class(aero_phase_data_t), intent(inout) :: this
@@ -305,31 +299,31 @@ contains
       this%property_set => property_set
     end if
 #else
-  subroutine pmc_aero_phase_data_load(this)
+  subroutine load(this)
 
     !> Aerosol phase data
     class(aero_phase_data_t), intent(in) :: this
 
     call warn_msg(236665532, "No support for input files.")
 #endif
-  end subroutine pmc_aero_phase_data_load
+  end subroutine load
    
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the number of species in the phase
-  integer(kind=i_kind) function pmc_aero_phase_data_size(this) result(num_spec)
+  integer(kind=i_kind) function get_size(this) result(num_spec)
 
     !> Aerosol phase data
     class(aero_phase_data_t), intent(in) :: this
 
     num_spec = this%num_spec
 
-  end function pmc_aero_phase_data_size
+  end function get_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Print out the aerosol phase data
-  subroutine pmc_aero_phase_data_print(this)
+  subroutine do_print(this)
 
     !> Aerosol phase data
     class(aero_phase_data_t), intent(in) :: this
@@ -346,12 +340,12 @@ contains
     call this%property_set%print()
     write(*,*) "End aerosol phase: ", this%phase_name
 
-  end subroutine pmc_aero_phase_data_print
+  end subroutine do_print
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Add a new chemical species to the phase
-  subroutine pmc_aero_phase_data_add(this, spec_name)
+  subroutine add(this, spec_name)
 
     !> Aerosol phase data
     class(aero_phase_data_t), intent(inout) :: this
@@ -370,13 +364,13 @@ contains
     this%num_spec = this%num_spec + 1
     this%spec_name(this%num_spec) = string_t(spec_name)
 
-  end subroutine pmc_aero_phase_data_add
+  end subroutine add
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Ensure there is enough room in the species dataset to add a specified 
   !! number of species
-  subroutine pmc_aero_phase_data_ensure_size(this, num_spec)
+  subroutine ensure_size(this, num_spec)
 
     !> Aerosol phase data
     class(aero_phase_data_t), intent(inout) :: this
@@ -393,13 +387,13 @@ contains
     deallocate(this%spec_name)
     this%spec_name => new_name
 
-  end subroutine pmc_aero_phase_data_ensure_size
+  end subroutine ensure_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the index of an aerosol-phase species by name. Return 0 if the species
   !! is not found
-  integer(kind=i_kind) function pmc_aero_phase_data_find(this, spec_name) &
+  integer(kind=i_kind) function find(this, spec_name) &
                   result (spec_id)
 
     !> Aerosol phase data
@@ -417,13 +411,12 @@ contains
       end if
     end do
 
-  end function pmc_aero_phase_data_find
+  end function find
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the total mass in a phase based on the model state (ug/m^3)
-  real(kind=dp) function pmc_aero_phase_data_total_mass(this, phlex_state, &
-                  state_id) result (total_mass)
+  real(kind=dp) function total_mass(this, phlex_state, state_id)
 
     !> Aerosol phase data
     class(aero_phase_data_t), intent(in) :: this
@@ -439,26 +432,25 @@ contains
       total_mass = total_mass + phlex_state%state_var(state_id + i_spec)
     end do
 
-  end function pmc_aero_phase_data_total_mass
+  end function total_mass
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack the aerosol 
   !! representation data
-  integer(kind=i_kind) function pmc_aero_phase_data_pack_size(this) &
-                  result (pack_size)
+  integer(kind=i_kind) function pack_size(this)
 
     !> Aerosol representation data
     class(aero_phase_data_t), intent(in) :: this
     
     pack_size = pmc_mpi_pack_size_integer(this%num_spec)
 
-  end function pmc_aero_phase_data_pack_size
+  end function pack_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Pack the given value to the buffer, advancing position
-  subroutine pmc_aero_phase_data_bin_pack(this, buffer, pos)
+  subroutine bin_pack(this, buffer, pos)
 
     !> Aerosol representation data
     class(aero_phase_data_t), intent(in) :: this
@@ -476,12 +468,12 @@ contains
          pos - prev_position <= this%pack_size())
 #endif
 
-  end subroutine pmc_aero_phase_data_bin_pack
+  end subroutine bin_pack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpack the given value from the buffer, advancing position
-  subroutine pmc_aero_phase_data_bin_unpack(this, buffer, pos)
+  subroutine bin_unpack(this, buffer, pos)
 
     !> Aerosol representation data
     class(aero_phase_data_t), intent(out) :: this
@@ -499,7 +491,7 @@ contains
          pos - prev_position <= this%pack_size())
 #endif
 
-  end subroutine pmc_aero_phase_data_bin_unpack
+  end subroutine bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

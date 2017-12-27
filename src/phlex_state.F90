@@ -45,20 +45,20 @@ module pmc_phlex_state
     character(len=PMC_UUID_LEN) :: uuid
   contains
     !> Reset the state identifier
-    procedure :: reset_id => pmc_phlex_state_reset_id
+    procedure :: reset_id
     !> Get the unique state identifier
-    procedure :: get_id => pmc_phlex_state_get_id
+    procedure :: get_id
     !> Determine the size of a binary required to pack a given variable
-    procedure :: pack_size => pmc_phlex_state_pack_size
+    procedure :: pack_size
     !> Pack the given value to the buffer, advancing position
-    procedure :: bin_pack => pmc_phlex_state_bin_pack
+    procedure :: bin_pack
     !> Unpack the given value from the buffer, advancing position
-    procedure :: bin_unpack => pmc_phlex_state_bin_unpack
+    procedure :: bin_unpack
   end type phlex_state_t
 
   !> Constructor for phlex_state_t
   interface phlex_state_t
-    procedure :: pmc_phlex_state_constructor
+    procedure :: constructor
   end interface phlex_state_t
 
 contains
@@ -66,7 +66,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for phlex_state_t
-  function pmc_phlex_state_constructor(env_state) result (new_obj)
+  function constructor(env_state) result (new_obj)
 
     !> New model state
     type(phlex_state_t), pointer :: new_obj
@@ -81,40 +81,39 @@ contains
     end if
     call pmc_srand(0,0)
 
-  end function pmc_phlex_state_constructor
+  end function constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Reset the state identifier. This should be called every time the state 
   !! changes.
-  subroutine pmc_phlex_state_reset_id(this)
+  subroutine reset_id(this)
 
     !> Model state
     class(phlex_state_t), intent(inout) :: this
 
     call uuid4_str(this%uuid)
 
-  end subroutine pmc_phlex_state_reset_id
+  end subroutine reset_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the unique state identifier. This will change every time the state
   !! changes, and can be used to avoid duplicating expensive calculations in
   !! the mechanisms
-  character(len=PMC_UUID_LEN) function pmc_phlex_state_get_id(this)
+  character(len=PMC_UUID_LEN) function get_id(this)
 
     !> Model state
     class(phlex_state_t), intent(in) :: this
 
-    pmc_phlex_state_get_id = this%uuid 
+    get_id = this%uuid 
 
-  end function pmc_phlex_state_get_id
+  end function get_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack a given variable
-  integer(kind=i_kind) function pmc_phlex_state_pack_size(this) &
-                  result (pack_size)
+  integer(kind=i_kind) function pack_size(this)
 
     !> Chemical species states
     class(phlex_state_t), intent(in) :: this
@@ -122,12 +121,12 @@ contains
     pack_size = &
             this%env_state%pack_size()
 
-  end function pmc_phlex_state_pack_size
+  end function pack_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Pack the given value to the buffer, advancing position
-  subroutine pmc_phlex_state_bin_pack(this, buffer, pos)
+  subroutine bin_pack(this, buffer, pos)
 
     !> Chemical species states
     class(phlex_state_t), intent(in) :: this
@@ -145,12 +144,12 @@ contains
              pos - prev_position <= this%pack_size())
 #endif
 
-   end subroutine pmc_phlex_state_bin_pack
+   end subroutine bin_pack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpack the given value to the buffer, advancing position
-  subroutine pmc_phlex_state_bin_unpack(this, buffer, pos)
+  subroutine bin_unpack(this, buffer, pos)
 
     !> Chemical species states
     class(phlex_state_t), intent(inout) :: this
@@ -168,7 +167,7 @@ contains
              pos - prev_position <= this%pack_size())
 #endif
 
-   end subroutine pmc_phlex_state_bin_unpack
+   end subroutine bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

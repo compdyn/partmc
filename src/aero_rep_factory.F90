@@ -39,15 +39,15 @@ module pmc_aero_rep_factory
   type :: aero_rep_factory_t
   contains
     !> Create a new aerosol representation by type name
-    procedure :: create => pmc_aero_rep_factory_create
+    procedure :: create
     !> Create a new aerosol representation from input data
-    procedure :: load => pmc_aero_rep_factory_load
+    procedure :: load
     !> Determine the number of bytes required to pack a given aerosol representation
-    procedure :: pack_size => pmc_aero_rep_factory_pack_size
+    procedure :: pack_size
     !> Pack a given aerosol representation to the buffer, advancing the position
-    procedure :: bin_pack => pmc_aero_rep_factory_bin_pack
+    procedure :: bin_pack
     !> Unpack a aerosol representation from the buffer, advancing the position
-    procedure :: bin_unpack => pmc_aero_rep_factory_bin_unpack
+    procedure :: bin_unpack
   end type aero_rep_factory_t
 
 contains
@@ -55,7 +55,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Create a new aerosol representation by type name
-  function pmc_aero_rep_factory_create(this, type_name) result (new_obj)
+  function create(this, type_name) result (new_obj)
 
     !> An aerosol representation
     class(aero_rep_data_t), pointer :: new_obj
@@ -74,13 +74,13 @@ contains
                 //type_name) 
     end select
 
-  end function pmc_aero_rep_factory_create
+  end function create
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Load an aerosol represenation based on its type
 #ifdef PMC_USE_JSON
-  function pmc_aero_rep_factory_load(this, json, j_obj) result (new_obj)
+  function load(this, json, j_obj) result (new_obj)
 
     !> An aerosol representation
     class(aero_rep_data_t), pointer :: new_obj
@@ -104,7 +104,7 @@ contains
     new_obj => this%create(type_name)    
     call new_obj%load(json, j_obj)
 #else
-  function pmc_aero_rep_factory_load(this) result (new_obj)
+  function load(this) result (new_obj)
 
     !> An aerosol representation
     class(aero_rep_data_t), pointer :: new_obj
@@ -115,13 +115,12 @@ contains
 
     call warn_msg(723960750, "No support for input files.")
 #endif
-  end function pmc_aero_rep_factory_load
+  end function load
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack a aerosol representation
-  integer(kind=i_kind) function pmc_aero_rep_factory_pack_size(this, aero_rep) &
-                  result (pack_size)
+  integer(kind=i_kind) function pack_size(this, aero_rep)
 
     !> Aerosol representation factory
     class(aero_rep_factory_t) :: this
@@ -133,12 +132,12 @@ contains
     pack_size =  pmc_mpi_pack_size_integer(int(1, kind=i_kind)) + &
                  aero_rep%pack_size()
 
-  end function pmc_aero_rep_factory_pack_size
+  end function pack_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Pack the given value to the buffer, advancing position
-  subroutine pmc_aero_rep_factory_bin_pack(this, aero_rep, buffer, pos)
+  subroutine bin_pack(this, aero_rep, buffer, pos)
 
     !> Aerosol representation factory
     class(aero_rep_factory_t), intent(in) :: this
@@ -165,12 +164,12 @@ contains
          pos - prev_position <= this%pack_size(aero_rep))
 #endif
 
-  end subroutine pmc_aero_rep_factory_bin_pack
+  end subroutine bin_pack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpack the given value to the buffer, advancing position
-  function pmc_aero_rep_factory_bin_unpack(this, buffer, pos) result (aero_rep)
+  function bin_unpack(this, buffer, pos) result (aero_rep)
 
     !> Unpacked aerosol representation
     class(aero_rep_data_t), pointer :: aero_rep
@@ -198,7 +197,7 @@ contains
          pos - prev_position <= this%pack_size(aero_rep))
 #endif
 
-  end function pmc_aero_rep_factory_bin_unpack
+  end function bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

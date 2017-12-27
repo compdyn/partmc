@@ -70,11 +70,11 @@
 /* Fortran support subroutines */
 #ifndef DOXYGEN_SKIP_DOC
 // Fortran subroutine to calcualte f(t,y) for the aqueous-phase chemical mechanism
-void pmc_integration_data_deriv_func(int n_eqn_c, double curr_time_c, double *state_c_p,
+void deriv_func(int n_eqn_c, double curr_time_c, double *state_c_p,
                     double *f_c_p, void *sysdata_c_p);
 
 // Fortran subroutine to calculate J(t,y) = df/dy for the aqueous-phase chemical mechanism
-void pmc_integration_data_jac_func(int n_eqn_c, double curr_time_c, double *state_c_p,
+void jac_func(int n_eqn_c, double curr_time_c, double *state_c_p,
                       double *jac_c_p, void *sysdata_c_p);
 #endif
 
@@ -321,7 +321,7 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
     f     = (double*) NV_DATA_S(ydot);
     
     // Call fortran f(t,y) function
-    pmc_integration_data_deriv_func(n_eqn, (double) t, state, f, user_data);
+    deriv_func(n_eqn, (double) t, state, f, user_data);
     
     return(0);
 }
@@ -353,7 +353,7 @@ static int Jac(realtype t,
 
     // Call fortran jacobian function
     // (jac is square so we can use N for neq)
-    pmc_integration_data_jac_func(N, (double) t, state, jac, user_data);
+    jac_func(N, (double) t, state, jac, user_data);
     
     return(0);
 }

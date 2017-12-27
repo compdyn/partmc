@@ -2,10 +2,6 @@
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
-! TODO Determine if we can avoid sending this data through MPI.
-! Everything needed to solve the chemistry should be in the state
-! objects and the reaction data
-
 !> \file
 !> The pmc_chem_spec_data module.
 
@@ -55,38 +51,38 @@ module pmc_chem_spec_data
     type(property_t), pointer :: property_set(:) => null()
   contains
     !> Load species from an input file
-    procedure :: load => chem_spec_data_load
+    procedure :: load
     !> Get the size of the species database
-    procedure :: size => chem_spec_data_size
+    procedure :: size => get_size
     !> Get the number of species by type
-    procedure :: num_spec_by_type => chem_spec_data_num_spec_by_type
+    procedure :: num_spec_by_type
     !> Get an list of species names by type
-    procedure :: spec_names_by_type => chem_spec_data_spec_names_by_type
+    procedure :: spec_names_by_type
     !> Check if a species name is in the set of chemical species
-    procedure :: exists => chem_spec_data_exists
+    procedure :: exists
     !> Get a species properties
-    procedure :: get_property_set => chem_spec_data_get_property_set
+    procedure :: get_property_set
     !> Get a species type
-    procedure :: get_type => chem_spec_data_get_type
+    procedure :: get_type
     !> Get a species index in the state variable
-    procedure :: state_id => chem_spec_data_state_id
+    procedure :: state_id
     !> Get an array of absolute integration tolerances corresponding
     !! to the dimensions of the state array
-    procedure :: get_abs_tolerances => chem_spec_data_get_abs_tolerances
+    procedure :: get_absolute_tolerances
 
     !> Private functions
     !> Add a species
-    procedure, private :: add => chem_spec_data_add
+    procedure, private :: add
     !> Ensure there is enough room in the species dataset to add a
     !! specified number of species
-    procedure, private :: ensure_size => chem_spec_data_ensure_size
+    procedure, private :: ensure_size
     !> Find a species index by name
-    procedure, private :: find => chem_spec_data_find
+    procedure, private :: find
   end type chem_spec_data_t
 
   !> Constructor for chem_spec_data_t
   interface chem_spec_data_t
-    procedure :: chem_spec_data_constructor
+    procedure :: constructor
   end interface chem_spec_data_t
 
 contains
@@ -94,7 +90,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for chem_spec_data_t
-  function chem_spec_data_constructor(init_size) result(new_obj)
+  function constructor(init_size) result(new_obj)
 
     !> A new set of chemical species
     type(chem_spec_data_t), pointer :: new_obj
@@ -109,13 +105,13 @@ contains
     allocate(new_obj%spec_type(alloc_size))
     allocate(new_obj%property_set(alloc_size))
 
-  end function chem_spec_data_constructor
+  end function constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Ensure there is enough room in the species dataset to add a specified
   !! number of species
-  subroutine chem_spec_data_ensure_size(this, num_spec)
+  subroutine ensure_size(this, num_spec)
 
     !> Species dataset
     class(chem_spec_data_t), intent(inout) :: this
@@ -142,12 +138,12 @@ contains
     this%spec_type => new_type
     this%property_set => new_property_set
 
-  end subroutine chem_spec_data_ensure_size
+  end subroutine ensure_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Add a new chemical species
-  subroutine chem_spec_data_add(this, spec_name, spec_type, property_set)
+  subroutine add(this, spec_name, spec_type, property_set)
 
     !> Species dataset
     class(chem_spec_data_t), intent(inout) :: this
@@ -180,7 +176,7 @@ contains
       end if
     end if
 
-  end subroutine chem_spec_data_add
+  end subroutine add
           
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -223,7 +219,7 @@ contains
   !! reactions), but the there must be exactly one top-level key-value pair 
   !! named "pmc-data" per input file whose value is an array of json objects 
   !! with valid PMC types.
-  subroutine chem_spec_data_load(this, json, j_obj)
+  subroutine load(this, json, j_obj)
 
     !> Species dataset
     class(chem_spec_data_t), intent(inout) :: this
@@ -274,31 +270,31 @@ contains
 
     call this%add(spec_name, spec_type, property_set)
 #else
-  subroutine chem_spec_data_load(this)
+  subroutine load(this)
 
     !> Species dataset
     class(chem_spec_data_t), intent(inout) :: this
 
     call warn_msg(627397948, "No support for input files")
 #endif
-  end subroutine chem_spec_data_load
+  end subroutine load
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the size of a species database
-  integer(kind=i_kind) function chem_spec_data_size(this)
+  integer(kind=i_kind) function get_size(this)
 
     !> Species database
     class(chem_spec_data_t), intent(in) :: this
 
-    chem_spec_data_size = this%num_spec
+    get_size = this%num_spec
 
-  end function chem_spec_data_size
+  end function get_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the number of species of a certain type
-  integer(kind=i_kind) function chem_spec_data_num_spec_by_type(this, &
+  integer(kind=i_kind) function num_spec_by_type(this, &
                   spec_type) result (num_spec)
 
     !> Species database
@@ -313,12 +309,12 @@ contains
       if (this%spec_type(i_spec).eq.spec_type) num_spec = num_spec + 1
     end do
 
-  end function chem_spec_data_num_spec_by_type
+  end function num_spec_by_type
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a list of species names by type
-  function chem_spec_data_spec_names_by_type(this, spec_type) &
+  function spec_names_by_type(this, spec_type) &
                   result (spec_names)
 
     !> List of species names
@@ -339,12 +335,12 @@ contains
       end if
     end do
 
-  end function chem_spec_data_spec_names_by_type
+  end function spec_names_by_type
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check if a species name is in the set of chemical species
-  logical function chem_spec_data_exists(this, spec_name) result (found)
+  logical function exists(this, spec_name) result (found)
 
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
@@ -353,13 +349,13 @@ contains
 
     found = this%find(spec_name).ne.0
 
-  end function chem_spec_data_exists
+  end function exists
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the index of a chemical species by name. Return 0 if the species is
   !! not found.
-  integer(kind=i_kind) function chem_spec_data_find(this, spec_name) &
+  integer(kind=i_kind) function find(this, spec_name) &
       result (spec_id)
 
     !> Species dataset
@@ -377,12 +373,12 @@ contains
       end if
     end do
 
-  end function chem_spec_data_find
+  end function find
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a species property set
-  function chem_spec_data_get_property_set(this, spec_name) result (property_set)
+  function get_property_set(this, spec_name) result (property_set)
 
     !> Pointer to species properties
     class(property_t), pointer :: property_set
@@ -397,12 +393,12 @@ contains
     spec_id = this%find(spec_name)
     if (spec_id.gt.0) property_set => this%property_set(spec_id)
 
-  end function chem_spec_data_get_property_set
+  end function get_property_set
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a species type
-  function chem_spec_data_get_type(this, spec_name) result(spec_type)
+  function get_type(this, spec_name) result(spec_type)
 
     !> Species type
     integer(kind=i_kind) :: spec_type
@@ -417,29 +413,27 @@ contains
     spec_id = this%find(spec_name)
     if (spec_id.gt.0) spec_type = this%spec_type(spec_id)
 
-  end function chem_spec_data_get_type
+  end function get_type
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Return the index of a gas-phase species in the state array 
-  function chem_spec_data_state_id(this, spec_name) result (spec_id)
+  integer(kind=i_kind) function state_id(this, spec_name)
 
-    !> Index of the species in the dataset
-    integer(kind=i_kind) :: spec_id
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
     !> Species name
     character(len=:), allocatable, intent(in) :: spec_name
 
-    spec_id = this%find(spec_name)
+    state_id = this%find(spec_name)
 
-  end function chem_spec_data_state_id
+  end function state_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get an array of absolute integration tolerances corresponding to the
   !! dimensions of the state array
-  function chem_spec_data_get_abs_tolerances(this) result (abs_tol)
+  function get_absolute_tolerances(this) result (abs_tol)
 
     !> Array of species absolute integration tolerances
     real(kind=dp), pointer :: abs_tol(:)
@@ -460,7 +454,7 @@ contains
       end if
     end do
 
-  end function chem_spec_data_get_abs_tolerances
+  end function get_absolute_tolerances
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -37,11 +37,11 @@ module pmc_aero_rep_state
     private
   contains
     !> Determine the size of a binary required to pack a given variable
-    procedure(pmc_aero_rep_state_pack_size), deferred :: pack_size 
+    procedure(pack_size), deferred :: pack_size 
     !> Pack the given value to the buffer, advancing position
-    procedure(pmc_aero_rep_state_bin_pack), deferred :: bin_pack
+    procedure(bin_pack), deferred :: bin_pack
     !> Unpack the given value from the buffer, advancing position
-    procedure(pmc_aero_rep_state_bin_unpack), deferred :: bin_unpack
+    procedure(bin_unpack), deferred :: bin_unpack
   end type aero_rep_state_t
 
   !> Pointer to an aero_rep_state_t extending type, for building arrays
@@ -49,57 +49,54 @@ module pmc_aero_rep_state
     class(aero_rep_state_t), pointer :: val
   end type aero_rep_state_ptr
 
+interface
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack a given variable
-  interface pmc_aero_rep_state_pack_size_if
-    integer(kind=i_kind) function pmc_aero_rep_state_pack_size(this) &
-                  result (pack_size)
-      use pmc_util,                                     only: i_kind
-      import :: aero_rep_state_t
+  integer(kind=i_kind) function pack_size(this)
+    use pmc_util,                                     only: i_kind
+    import :: aero_rep_state_t
 
-      !> Aerosol representation state
-      class(aero_rep_state_t), intent(in) :: this
+    !> Aerosol representation state
+    class(aero_rep_state_t), intent(in) :: this
 
-    end function pmc_aero_rep_state_pack_size
-  end interface pmc_aero_rep_state_pack_size_if
+  end function pack_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Pack the given value to the buffer, advancing position
-  interface pmc_aero_rep_state_bin_pack_if
-    subroutine pmc_aero_rep_state_bin_pack(this, buffer, pos)
-      use pmc_util,                                     only: i_kind
-      import :: aero_rep_state_t
+  subroutine bin_pack(this, buffer, pos)
+    use pmc_util,                                     only: i_kind
+    import :: aero_rep_state_t
 
-      !> Aerosol representation state
-      class(aero_rep_state_t), intent(in) :: this
-      !> Memory buffer
-      character, allocatable, intent(inout) :: buffer(:)
-      !> Current buffer position
-      integer(kind=i_kind), intent(inout) :: pos
+    !> Aerosol representation state
+    class(aero_rep_state_t), intent(in) :: this
+    !> Memory buffer
+    character, allocatable, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer(kind=i_kind), intent(inout) :: pos
 
-     end subroutine pmc_aero_rep_state_bin_pack
-   end interface pmc_aero_rep_state_bin_pack_if
+   end subroutine bin_pack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpack the given value to the buffer, advancing position
-  interface pmc_aero_rep_state_bin_unpack_if
-    subroutine pmc_aero_rep_state_bin_unpack(this, buffer, pos)
-      use pmc_util,                                     only: i_kind
-      import :: aero_rep_state_t
+  subroutine bin_unpack(this, buffer, pos)
+    use pmc_util,                                     only: i_kind
+    import :: aero_rep_state_t
 
-      !> Aerosol representation state
-      class(aero_rep_state_t), intent(inout) :: this
-      !> Memory buffer
-      character, allocatable, intent(inout) :: buffer(:)
-      !> Current buffer position
-      integer(kind=i_kind), intent(inout) :: pos
+    !> Aerosol representation state
+    class(aero_rep_state_t), intent(inout) :: this
+    !> Memory buffer
+    character, allocatable, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer(kind=i_kind), intent(inout) :: pos
 
-    end subroutine pmc_aero_rep_state_bin_unpack
-  end interface pmc_aero_rep_state_bin_unpack_if
+  end subroutine bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+end interface
 
 end module pmc_aero_rep_state

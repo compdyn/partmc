@@ -17,7 +17,7 @@ module pmc_integration_data
   private
 
   public :: integration_data_t, integration_data_deriv_func, &
-          integration_data_jac_func, pmc_integration_data_is_solver_available
+          integration_data_jac_func
 
   !> Default relative tolerance for integration
   real(kind=dp), parameter :: PMC_INTEGRATION_DEFAULT_REL_TOL = 5.0D-8
@@ -103,14 +103,16 @@ module pmc_integration_data
     integer(kind=i_kind), public :: max_steps = PMC_INTEGRATION_DEFAULT_MAX_STEPS
   contains
     !> Integrate over a given time step
-    procedure :: solve => pmc_integration_data_solve
+    procedure :: solve
     !> Checks the result status code from an integration
-    procedure :: check_status => pmc_integration_data_check_status
+    procedure :: check_status
+    !> Checks whether a solver is available
+    procedure :: is_solver_available
   end type integration_data_t
 
   !> Constructor for integration_data_t
   interface integration_data_t
-    procedure :: pmc_integration_data_constructor
+    procedure :: constructor, constructor_empty
   end interface integration_data_t
 
   abstract interface 
@@ -152,7 +154,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for integration_data_t
-  function pmc_integration_data_constructor(phlex_core_c_ptr, deriv_func_ptr, &
+  function constructor(phlex_core_c_ptr, deriv_func_ptr, &
                   jac_func_ptr, abs_tol) result(new_obj)
 
     !> New integration variable
@@ -166,22 +168,33 @@ contains
     !> Absolute tolerance for each species
     real(kind=dp), pointer, intent(in) :: abs_tol(:)
 
-    call assert_msg(668626727, pmc_integration_data_is_solver_available(), &
-            "No solver available for integration.")
-
     allocate(new_obj)
+    call assert_msg(668626727, new_obj%is_solver_available(), &
+            "No solver available for integration.")
     new_obj%phlex_core_c_ptr = phlex_core_c_ptr
     new_obj%deriv_func_ptr => deriv_func_ptr
     new_obj%jac_func_ptr => jac_func_ptr
     allocate(new_obj%abs_tol_c(size(abs_tol)))
     new_obj%abs_tol_c(:) = real(abs_tol(:), kind=c_double)
 
-  end function pmc_integration_data_constructor
+  end function constructor
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> General constructor for integration_data_t
+  function constructor_empty() result(new_obj)
+
+    !> New integration variable
+    type(integration_data_t), pointer :: new_obj
+
+    allocate(new_obj)
+
+  end function constructor_empty
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Run the integration over a specified time step
-  function pmc_integration_data_solve(this, state_array, phlex_state_c_ptr, &
+  function solve(this, state_array, phlex_state_c_ptr, &
                   time_step) result(solver_status)
 
     !> Solver status
@@ -237,12 +250,12 @@ contains
 #else
     call die_msg(764363956, "No available solver.")
 #endif
-  end function pmc_integration_data_solve
+  end function solve
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Calculate the time derivative f(t,y) when requested by the solver
-  subroutine pmc_integration_data_deriv_func(num_spec_c, curr_time_c, &
+  subroutine deriv_func(num_spec_c, curr_time_c, &
                   state_array_c_p, deriv_c_p, integration_data_c_p) bind (c)
 
     use iso_c_binding
@@ -282,12 +295,12 @@ contains
             integration_data%phlex_core_c_ptr, &
             integration_data%phlex_state_c_ptr)
 
-  end subroutine pmc_integration_data_deriv_func
+  end subroutine deriv_func
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Calculate the Jacobian matrix J(t,y) when requested by the solver
-  subroutine pmc_integration_data_jac_func(num_spec_c, curr_time_c, &
+  subroutine jac_func(num_spec_c, curr_time_c, &
                   state_array_c_p, jac_c_p, integration_data_c_p) bind (c)
 
     use iso_c_binding
@@ -327,12 +340,12 @@ contains
             integration_data%phlex_core_c_ptr, &
             integration_data%phlex_state_c_ptr)
 
-  end subroutine pmc_integration_data_jac_func
+  end subroutine jac_func
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Check the return code from the pmc_integration_data_solve() function.
-  subroutine pmc_integration_data_check_status(this, value)
+  !> Check the return code from the solve() function.
+  subroutine check_status(this, value)
 
     !> Integration data
     class(integration_data_t), intent(in) :: this
@@ -387,20 +400,23 @@ contains
 
     return
 
-  end subroutine pmc_integration_data_check_status
+  end subroutine check_status
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check whether a solver is available for the integration 
-  logical function pmc_integration_data_is_solver_available()
+  logical function is_solver_available(this)
+
+    !> Integration data
+    class(integration_data_t), intent(in) :: this
 
 #ifdef PMC_USE_SUNDIALS
-    pmc_integration_data_is_solver_available = .true.
+    is_solver_available = .true.
 #else
-    pmc_integration_data_is_solver_available = .false.
+    is_solver_available = .false.
 #endif
 
-  end function pmc_integration_data_is_solver_available
+  end function is_solver_available
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

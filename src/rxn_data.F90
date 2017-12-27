@@ -42,49 +42,60 @@ module pmc_rxn_data
   !! data required by an extending type during a model run should be packed
   !! into the condensed_data arrays during initialization.
   type, abstract :: rxn_data_t
+    private
     !> Reaction phase
-    integer(kind=i_kind) :: rxn_phase
+    !! FIXME This should be a private component, but extending types need
+    !! access to it.
+    integer(kind=i_kind), public :: rxn_phase
     !> Reaction parameters. These will be available during initialization,
     !! but not during integration. All information required to calculate
     !! the time derivatives and jacobian matrix constributions must be
     !! saved by the exdending type.
-    type(property_t), pointer :: property_set => null()
+    !! FIXME This should be a private component, but extending types need
+    !! access to it.
+    type(property_t), pointer, public :: property_set => null()
     !> Condensed reaction data. Theses arrays will be available during
     !! integration, and should contain any information required by the
     !! rate and Jacobian constribution functions that cannot be obtained
     !! from the phlex_state_t object.
-    real(kind=dp), allocatable :: condensed_data_real(:)
+    !! FIXME This should be a private component, but extending types need
+    !! access to it.
+    real(kind=dp), allocatable, public :: condensed_data_real(:)
     !> Condensed reaction data (integers)
-    integer(kind=i_kind), allocatable ::  condensed_data_int(:)
+    !! FIXME This should be a private component, but extending types need
+    !! access to it.
+    integer(kind=i_kind), allocatable, public ::  condensed_data_int(:)
   contains
     !> Reaction initialization
-    procedure(pmc_rxn_data_initialize), deferred :: initialize
+    procedure(initialize), deferred :: initialize
     !> Rate contribution
-    procedure(pmc_rxn_data_func_contrib), deferred :: func_contrib
+    procedure(func_contrib), deferred :: func_contrib
     !> Jacobian matrix contribution
-    procedure(pmc_rxn_data_jac_contrib), deferred :: jac_contrib
+    procedure(jac_contrib), deferred :: jac_contrib
     !> Check the phase of the reaction against the phase being solved for.
     !! During GAS_RXN integrations, only GAS_RXN reactions are solved.
     !! During AERO_RXN integrations, only AERO_RXN and GAS_AERO_RXN
     !! reactions are solved. During GAS_AERO_RXN integrations, all 
     !! reactions are solved.
-    procedure :: check_phase => pmc_rxn_data_check_phase
+    procedure :: check_phase
     !> Determine the number of bytes required to pack the given value
-    procedure :: pack_size => pmc_rxn_data_pack_size
+    procedure :: pack_size
     !> Packs the given value into the buffer, advancing position
-    procedure :: bin_pack => pmc_rxn_data_bin_pack
+    procedure :: bin_pack
     !> Unpacks the given value from the buffer, advancing position
-    procedure :: bin_unpack => pmc_rxn_data_bin_unpack
+    procedure :: bin_unpack
     !> Load data from an input file
-    procedure :: load => pmc_rxn_data_load
+    procedure :: load
     !> Print the reaction data
-    procedure :: print => pmc_rxn_data_print
+    procedure :: print => do_print
   end type rxn_data_t
 
   !> Pointer type for building arrays of mixed reactions
   type :: rxn_data_ptr
     class(rxn_data_t), pointer :: val
   end type rxn_data_ptr
+
+interface
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -94,17 +105,15 @@ module pmc_rxn_data
   !! at the beginning of a model run after all the input files have been
   !! read in. It ensure all data required during the model run are included
   !! in the condensed data arrays.
-  interface pmc_rxn_data_initialize_if
-    subroutine pmc_rxn_data_initialize(this, chem_spec_data)
-      import :: rxn_data_t, chem_spec_data_t
+  subroutine initialize(this, chem_spec_data)
+    import :: rxn_data_t, chem_spec_data_t
 
-      !> Reaction data
-      class(rxn_data_t), intent(inout) :: this
-      !> Chemical species data
-      type(chem_spec_data_t), intent(in) :: chem_spec_data
+    !> Reaction data
+    class(rxn_data_t), intent(inout) :: this
+    !> Chemical species data
+    type(chem_spec_data_t), intent(in) :: chem_spec_data
 
-    end subroutine pmc_rxn_data_initialize
-  end interface pmc_rxn_data_initialize_if
+  end subroutine initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -112,21 +121,19 @@ module pmc_rxn_data
   !! model state is provided for species concentrations, aerosol state and 
   !! environmental variables. All other parameters must have been saved to the
   !! reaction data instance during initialization.
-  interface pmc_rxn_data_func_contrib_if
-    subroutine pmc_rxn_data_func_contrib(this, phlex_state, func) 
-      import :: rxn_data_t, phlex_state_t, dp
+  subroutine func_contrib(this, phlex_state, func) 
+    import :: rxn_data_t, phlex_state_t, dp
 
-      !> Reaction data
-      class(rxn_data_t), intent(in) :: this
-      !> Current model state
-      type(phlex_state_t), intent(in) :: phlex_state
-      !> Time derivative vector. This vector may include contributions from
-      !! other reactions, so the contributions from this reaction should
-      !! append, not overwrite, the values already in the vector
-      real(kind=dp), pointer, intent(inout) :: func(:)
+    !> Reaction data
+    class(rxn_data_t), intent(in) :: this
+    !> Current model state
+    type(phlex_state_t), intent(in) :: phlex_state
+    !> Time derivative vector. This vector may include contributions from
+    !! other reactions, so the contributions from this reaction should
+    !! append, not overwrite, the values already in the vector
+    real(kind=dp), pointer, intent(inout) :: func(:)
 
-    end subroutine pmc_rxn_data_func_contrib
-  end interface pmc_rxn_data_func_contrib_if
+  end subroutine func_contrib
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -134,30 +141,30 @@ module pmc_rxn_data
   !! The current model state is provided for species concentrations and 
   !! aerosol state. All other parameters must have been saved to the reaction 
   !! data instance during initialization.
-  interface pmc_rxn_data_jac_contrib_if
-    subroutine pmc_rxn_data_jac_contrib(this, phlex_state, jac_matrix)
-      import :: rxn_data_t, phlex_state_t, dp
+  subroutine jac_contrib(this, phlex_state, jac_matrix)
+    import :: rxn_data_t, phlex_state_t, dp
 
-      !> Reaction data
-      class(rxn_data_t), intent(in) :: this
-      !> Current model state
-      type(phlex_state_t), intent(in) :: phlex_state
-      !> Jacobian matrix. This matrix may include contributions from other
-      !! reactions, so the contributions from this reaction should append,
-      !! not overwrite, the values already in the matrix.
-      real(kind=dp), pointer, intent(inout) :: jac_matrix(:,:)
+    !> Reaction data
+    class(rxn_data_t), intent(in) :: this
+    !> Current model state
+    type(phlex_state_t), intent(in) :: phlex_state
+    !> Jacobian matrix. This matrix may include contributions from other
+    !! reactions, so the contributions from this reaction should append,
+    !! not overwrite, the values already in the matrix.
+    real(kind=dp), pointer, intent(inout) :: jac_matrix(:,:)
 
-    end subroutine pmc_rxn_data_jac_contrib
-  end interface pmc_rxn_data_jac_contrib_if
+  end subroutine jac_contrib
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+end interface
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Check that the phase of the reaction is being solved
-  logical function pmc_rxn_data_check_phase(this, rxn_phase) result (valid_rxn)
+  logical function check_phase(this, rxn_phase) result (valid_rxn)
 
     !> Reaction data
     class(rxn_data_t), intent(in) :: this
@@ -172,13 +179,12 @@ contains
       valid_rxn = .false.
     end if
 
-  end function pmc_rxn_data_check_phase
+  end function check_phase
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack the reaction data
-  integer(kind=i_kind) function pmc_rxn_data_pack_size(this) &
-                  result (pack_size)
+  integer(kind=i_kind) function pack_size(this)
 
     !> Reaction data
     class(rxn_data_t), intent(in) :: this
@@ -187,12 +193,12 @@ contains
             pmc_mpi_pack_size_real_array(this%condensed_data_real) + &
             pmc_mpi_pack_size_integer_array(this%condensed_data_int)
 
-  end function pmc_rxn_data_pack_size
+  end function pack_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Pack the given value to the buffer, advancing position
-  subroutine pmc_rxn_data_bin_pack(this, buffer, pos)
+  subroutine bin_pack(this, buffer, pos)
 
     !> Reaction data
     class(rxn_data_t), intent(in) :: this
@@ -211,12 +217,12 @@ contains
          pos - prev_position <= this%pack_size())
 #endif
 
-  end subroutine pmc_rxn_data_bin_pack
+  end subroutine bin_pack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpack the given value from the buffer, advancing position
-  subroutine pmc_rxn_data_bin_unpack(this, buffer, pos)
+  subroutine bin_unpack(this, buffer, pos)
 
     !> Reaction data
     class(rxn_data_t), intent(out) :: this
@@ -235,7 +241,7 @@ contains
          pos - prev_position <= this%pack_size())
 #endif
 
-  end subroutine pmc_rxn_data_bin_unpack
+  end subroutine bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -299,7 +305,7 @@ contains
   !! species), but the there must be exactly one top-level key-value pair 
   !! named "pmc-data" per input file whose value is an array of json objects 
   !! with valid PMC types.
-  subroutine pmc_rxn_data_load(this, json, j_obj)
+  subroutine load(this, json, j_obj)
 
     !> Reaction data
     class(rxn_data_t), intent(out) :: this
@@ -322,7 +328,7 @@ contains
       child => next
     end do
 #else
-  subroutine pmc_rxn_data_load(this)
+  subroutine load(this)
 
     !> Reaction data
     class(rxn_data_t), intent(inout) :: this
@@ -330,19 +336,19 @@ contains
     call warn_msg(332862889, "No support for input files")
 #endif
 
-  end subroutine pmc_rxn_data_load
+  end subroutine load
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Print the reaction data
-  subroutine pmc_rxn_data_print(this)
+  subroutine do_print(this)
 
     !> Reaction data
     class(rxn_data_t), intent(in) :: this
 
     if (associated(this%property_set)) call this%property_set%print()
 
-  end subroutine pmc_rxn_data_print
+  end subroutine do_print
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

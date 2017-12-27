@@ -39,15 +39,15 @@ module pmc_rxn_factory
   type :: rxn_factory_t
   contains
     !> Create a new chemical reaction by type name
-    procedure :: create => pmc_rxn_factory_create
+    procedure :: create
     !> Create a new chemical reaction from input data
-    procedure :: load => pmc_rxn_factory_load
+    procedure :: load
     !> Determine the number of bytes required to pack a given reaction
-    procedure :: pack_size => pmc_rxn_factory_pack_size
+    procedure :: pack_size
     !> Pack a given reaction to the buffer, advancing the position
-    procedure :: bin_pack => pmc_rxn_factory_bin_pack
+    procedure :: bin_pack
     !> Unpack a reaction from the buffer, advancing the position
-    procedure :: bin_unpack => pmc_rxn_factory_bin_unpack
+    procedure :: bin_unpack
   end type rxn_factory_t
 
 contains
@@ -55,7 +55,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Create a new chemical reaction by type name
-  function pmc_rxn_factory_create(this, type_name) result (new_obj)
+  function create(this, type_name) result (new_obj)
 
     !> A chemical reaction
     class(rxn_data_t), pointer :: new_obj
@@ -75,13 +75,13 @@ contains
                 //type_name) 
     end select
 
-  end function pmc_rxn_factory_create
+  end function create
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Load an aerosol represenation from input data
 #ifdef PMC_USE_JSON
-  function pmc_rxn_factory_load(this, json, j_obj) result (new_obj)
+  function load(this, json, j_obj) result (new_obj)
 
     !> A chemical reaction
     class(rxn_data_t), pointer :: new_obj
@@ -112,7 +112,7 @@ contains
 
 #else
   !> Generic warning function when no input file support exists
-  function pmc_rxn_factory_load(this) result (new_obj)
+  function load(this) result (new_obj)
 
     !> A chemical reaction
     class(rxn_data_t), pointer :: new_obj
@@ -123,13 +123,12 @@ contains
 
     call warn_msg(979827016, "No support for input files.")
 #endif
-  end function pmc_rxn_factory_load
+  end function load
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack a reaction
-  integer(kind=i_kind) function pmc_rxn_factory_pack_size(this, rxn) &
-                  result (pack_size)
+  integer(kind=i_kind) function pack_size(this, rxn)
 
     !> Reaction factory
     class(rxn_factory_t) :: this
@@ -141,12 +140,12 @@ contains
     pack_size =  pmc_mpi_pack_size_integer(int(1, kind=i_kind)) + &
                  rxn%pack_size()
 
-  end function pmc_rxn_factory_pack_size
+  end function pack_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Pack the given value to the buffer, advancing position
-  subroutine pmc_rxn_factory_bin_pack(this, rxn, buffer, pos)
+  subroutine bin_pack(this, rxn, buffer, pos)
 
     !> Reaction factory
     class(rxn_factory_t), intent(in) :: this
@@ -173,12 +172,12 @@ contains
          pos - prev_position <= this%pack_size(rxn))
 #endif
 
-  end subroutine pmc_rxn_factory_bin_pack
+  end subroutine bin_pack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpack the given value to the buffer, advancing position
-  function pmc_rxn_factory_bin_unpack(this, buffer, pos) result (rxn)
+  function bin_unpack(this, buffer, pos) result (rxn)
 
     !> Unpacked reaction
     class(rxn_data_t), pointer :: rxn
@@ -206,7 +205,7 @@ contains
          pos - prev_position <= this%pack_size(rxn))
 #endif
 
-  end function pmc_rxn_factory_bin_unpack
+  end function bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

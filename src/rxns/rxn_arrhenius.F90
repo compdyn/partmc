@@ -66,18 +66,18 @@ public :: rxn_arrhenius_t
   type, extends(rxn_data_t) :: rxn_arrhenius_t
   contains
     !> Reaction initialization
-    procedure :: initialize => pmc_rxn_arrhenius_initialize
+    procedure :: initialize
     !> Time derivative contribution
-    procedure :: func_contrib => pmc_rxn_arrhenius_func_contrib
+    procedure :: func_contrib
     !> Jacobian matrix contribution
-    procedure :: jac_contrib => pmc_rxn_arrhenius_jac_contrib
+    procedure :: jac_contrib
     !> Calculate the rate constant
-    procedure, private :: rate_const => pmc_rxn_arrhenius_rate_const
+    procedure, private :: rate_const
   end type rxn_arrhenius_t
 
   !> Constructor for rxn_arrhenius_t
   interface rxn_arrhenius_t
-    procedure :: pmc_rxn_arrhenius_constructor
+    procedure :: constructor
   end interface rxn_arrhenius_t
 
 contains
@@ -85,7 +85,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for Arrhenius reaction
-  function pmc_rxn_arrhenius_constructor() result(new_obj)
+  function constructor() result(new_obj)
 
     !> A new reaction instance
     type(rxn_arrhenius_t), pointer :: new_obj
@@ -93,7 +93,7 @@ contains
     allocate(new_obj)
     new_obj%rxn_phase = GAS_RXN
 
-  end function pmc_rxn_arrhenius_constructor
+  end function constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -103,7 +103,7 @@ contains
   !! at the beginning of a model run after all the input files have been
   !! read in. It ensures all data required during the model run are included
   !! in the condensed data arrays.
-  subroutine pmc_rxn_arrhenius_initialize(this, chem_spec_data)
+  subroutine initialize(this, chem_spec_data)
     
     !> Reaction data
     class(rxn_arrhenius_t), intent(inout) :: this
@@ -202,7 +202,7 @@ contains
       i_spec = i_spec + 1
     end do
 
-  end subroutine pmc_rxn_arrhenius_initialize
+  end subroutine initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -214,7 +214,7 @@ contains
   !! Sample reaction rate equation:
   !!     [reactant1] * [reactant2] *A*exp(B+temp/theta)
   !!
-  subroutine  pmc_rxn_arrhenius_func_contrib(this, phlex_state, func)
+  subroutine  func_contrib(this, phlex_state, func)
 
     !> Reaction data
     class(rxn_arrhenius_t), intent(in) :: this
@@ -247,7 +247,7 @@ contains
         + _yield_(i_spec) * rate
     end do
 
-  end subroutine pmc_rxn_arrhenius_func_contrib
+  end subroutine func_contrib
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -255,7 +255,7 @@ contains
   !! The current model state is provided for species concentrations and 
   !! aerosol state. All other parameters must have been saved to the reaction 
   !! data instance during initialization.
-  subroutine pmc_rxn_arrhenius_jac_contrib(this, phlex_state, jac_matrix)
+  subroutine jac_contrib(this, phlex_state, jac_matrix)
 
     !> Reaction data
     class(rxn_arrhenius_t), intent(in) :: this
@@ -304,13 +304,12 @@ contains
       end do
     end do
 
-  end subroutine pmc_rxn_arrhenius_jac_contrib
+  end subroutine jac_contrib
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Calculate the reaction rate constant
-  real(kind=dp) function pmc_rxn_arrhenius_rate_const(this, phlex_state) &
-                  result(rate_const)
+  real(kind=dp) function rate_const(this, phlex_state)
 
     !> Reaction data
     class(rxn_arrhenius_t), intent(in) :: this
@@ -323,7 +322,7 @@ contains
     rate_const = _A_*exp(- _Ea_ / ( &
             phlex_state%env_state%temp * const%boltzmann))
 
-  end function pmc_rxn_arrhenius_rate_const
+  end function rate_const
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

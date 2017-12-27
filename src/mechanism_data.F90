@@ -47,36 +47,36 @@ module pmc_mechanism_data
     type(rxn_data_ptr), pointer :: rxn_ptr(:) => null()
   contains
     !> Load reactions from an input file
-    procedure :: load => pmc_mechanism_data_load
+    procedure :: load
     !> Initialize the mechanism
-    procedure :: initialize => pmc_mechanism_data_initialize
+    procedure :: initialize
     !> Get the mechanism name
-    procedure :: name => pmc_mechanism_data_name
+    procedure :: name => get_name
     !> Get the size of the species database
-    procedure :: size => pmc_mechanism_data_size
+    procedure :: size => get_size
     !> Get constributions of mechanism reactions to the time derivative
     !! vector
-    procedure :: get_func_contrib => pmc_mechanism_data_get_func_contrib
+    procedure :: get_func_contrib
     !> Get contributions of mechanism reactions to the Jaobian matrix
-    procedure :: get_jac_contrib => pmc_mechanism_data_get_jac_contrib
+    procedure :: get_jac_contrib
     !> Determine the number of bytes required to pack the given value
-    procedure :: pack_size => pmc_mechanism_data_pack_size
+    procedure :: pack_size
     !> Packs the given value into the buffer, advancing position
-    procedure :: bin_pack => pmc_mechanism_data_bin_pack
+    procedure :: bin_pack
     !> Unpacks the given value from the buffer, advancing position
-    procedure :: bin_unpack => pmc_mechanism_data_bin_unpack
+    procedure :: bin_unpack
     !> Print the mechanism data
-    procedure :: print => pmc_mechanism_data_print
+    procedure :: print => do_print
 
     !> Private functions
     !> Ensure there is enough room in the reaction dataset to add a
     !! specified number of reactions
-    procedure, private :: ensure_size => pmc_mechanism_data_ensure_size
+    procedure, private :: ensure_size
   end type mechanism_data_t
 
   !> Constructor for mechanism_data_t
   interface mechanism_data_t
-    procedure :: pmc_mechanism_data_constructor
+    procedure :: constructor
   end interface mechanism_data_t
 
 contains
@@ -84,10 +84,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for mechanism_data_t
-  function pmc_mechanism_data_constructor(mech_name, init_size) result(new_obj)
+  function constructor(mech_name, init_size) result(new_obj)
 
     !> Chemical mechanism
-    type(mechanism_data_t), target :: new_obj
+    type(mechanism_data_t), pointer :: new_obj
     !> Name of the mechanism
     character(len=:), allocatable, intent(in) :: mech_name
     !> Number of reactions to allocate space for initially
@@ -95,17 +95,18 @@ contains
 
     integer(i_kind) :: alloc_size = REALLOC_INC
 
+    allocate(new_obj)
     if (present(init_size)) alloc_size = init_size
     new_obj%mech_name = mech_name
     allocate(new_obj%rxn_ptr(alloc_size))
 
-  end function pmc_mechanism_data_constructor
+  end function constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Ensure there is enough room in the reaction dataset to add a specified
   !! number of reactions
-  subroutine pmc_mechanism_data_ensure_size(this, num_rxn)
+  subroutine ensure_size(this, num_rxn)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(inout) :: this
@@ -123,7 +124,7 @@ contains
     deallocate(this%rxn_ptr)
     this%rxn_ptr => new_rxn_ptr
 
-  end subroutine pmc_mechanism_data_ensure_size
+  end subroutine ensure_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -147,7 +148,7 @@ contains
   !! be combined based on the mechanism name. All mechanisms objects must have
   !! a name, a type = "MECHANISM" and a reaction array containing at least
   !! one reaction.
-  subroutine pmc_mechanism_data_load(this, json, j_obj)
+  subroutine load(this, json, j_obj)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(inout) :: this
@@ -177,7 +178,7 @@ contains
     end do
 
 #else
-  subroutine pmc_mechanism_data_load(this)
+  subroutine load(this)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(inout) :: this
@@ -185,12 +186,12 @@ contains
     call warn_msg(384838139, "No support for input files")
 #endif
 
-  end subroutine pmc_mechanism_data_load
+  end subroutine load
     
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize the mechanism
-  subroutine pmc_mechanism_data_initialize(this, chem_spec_data)
+  subroutine initialize(this, chem_spec_data)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(inout) :: this
@@ -203,25 +204,24 @@ contains
       call this%rxn_ptr(i_rxn)%val%initialize(chem_spec_data)
     end do
 
-  end subroutine pmc_mechanism_data_initialize
+  end subroutine initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the current size of the chemical mechanism
-  integer(kind=i_kind) function pmc_mechanism_data_size(this) &
-                  result(mech_size)
+  integer(kind=i_kind) function get_size(this)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
 
-    mech_size = this%num_rxn
+    get_size = this%num_rxn
 
-  end function pmc_mechanism_data_size
+  end function get_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the name of the mechanism
-  function pmc_mechanism_data_name(this) result(mech_name)
+  function get_name(this) result(mech_name)
 
     !> Name of the mechanism
     character(len=:), allocatable :: mech_name
@@ -230,13 +230,13 @@ contains
 
     mech_name = this%mech_name
 
-  end function pmc_mechanism_data_name
+  end function get_name
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get contributions of the mechanism reactions to the time derivative
   !! vector
-  subroutine pmc_mechanism_data_get_func_contrib(this, phlex_state, func)
+  subroutine get_func_contrib(this, phlex_state, func)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
@@ -253,12 +253,12 @@ contains
       end if
     end do
 
-  end subroutine pmc_mechanism_data_get_func_contrib
+  end subroutine get_func_contrib
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get contributions of the mechanism reactions to the Jacobian matrix
-  subroutine pmc_mechanism_data_get_jac_contrib(this, phlex_state, jac_matrix)
+  subroutine get_jac_contrib(this, phlex_state, jac_matrix)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
@@ -275,13 +275,12 @@ contains
       end if
     end do
 
-  end subroutine pmc_mechanism_data_get_jac_contrib
+  end subroutine get_jac_contrib
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack the mechanism
-  integer(kind=i_kind) function pmc_mechanism_data_pack_size(this) &
-                  result (pack_size)
+  integer(kind=i_kind) function pack_size(this)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
@@ -297,12 +296,12 @@ contains
       end associate
     end do
 
-  end function pmc_mechanism_data_pack_size
+  end function pack_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Pack the given value to the buffer, advancing position
-  subroutine pmc_mechanism_data_bin_pack(this, buffer, pos)
+  subroutine bin_pack(this, buffer, pos)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
@@ -327,12 +326,12 @@ contains
          pos - prev_position <= this%pack_size())
 #endif
 
-  end subroutine pmc_mechanism_data_bin_pack
+  end subroutine bin_pack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpack the given value to the buffer, advancing position
-  subroutine pmc_mechanism_data_bin_unpack(this, buffer, pos)
+  subroutine bin_unpack(this, buffer, pos)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(inout) :: this
@@ -356,12 +355,12 @@ contains
          pos - prev_position <= this%pack_size())
 #endif
 
-  end subroutine pmc_mechanism_data_bin_unpack
+  end subroutine bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Print the mechanism data
-  subroutine pmc_mechanism_data_print(this)
+  subroutine do_print(this)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
@@ -374,7 +373,7 @@ contains
     end do
     write(*,*) "End mechanism: "//trim(this%name())
 
-  end subroutine pmc_mechanism_data_print
+  end subroutine do_print
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

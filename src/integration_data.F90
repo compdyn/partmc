@@ -194,11 +194,11 @@ contains
     !! hold the final (t+dt) concentrations. It should be located within the
     !! phlex_state_c_ptr, so that during derivative function calls, the 
     !! current model state is correct.
-    real(kind=dp), pointer :: state_array(:)
+    real(kind=dp), pointer, intent(inout) :: state_array(:)
     !> Model state pointer. This is a void pointer for use by the derivative
-    !! functions to allow access to state variables including those tthat are 
+    !! functions to allow access to state variables including those that are 
     !! not solved for during the integration (e.g., temperature, pressure)
-    type(c_ptr) :: phlex_state_c_ptr
+    type(c_ptr), intent(in) :: phlex_state_c_ptr
     !> Time step (s)
     real(kind=dp), intent(in) :: time_step
 

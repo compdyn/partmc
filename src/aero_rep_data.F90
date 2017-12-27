@@ -184,7 +184,7 @@ module pmc_aero_rep_data
       !> Aerosol representation data
       class(aero_rep_data_t), intent(in) :: this
       !> Unique name
-      character(len=:), allocatable :: unique_name
+      character(len=:), allocatable, intent(in) :: unique_name
 
     end function pmc_aero_rep_data_state_id_by_unique_name
   end interface pmc_aero_rep_data_state_id_by_unique_name_if

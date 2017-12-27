@@ -227,7 +227,7 @@ contains
     !> Aerosol representation data
     class(aero_rep_single_particle_t), intent(in) :: this
     !> Unique name
-    character(len=:), allocatable :: unique_name
+    character(len=:), allocatable, intent(in) :: unique_name
 
     type(string_t), allocatable :: unique_names(:)
     integer(kind=i_kind) :: i_spec

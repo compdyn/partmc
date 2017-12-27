@@ -381,7 +381,7 @@ contains
     !> Aerosol phase data
     class(aero_phase_data_t), intent(inout) :: this
     !> Number of new species to ensure space for
-    integer(kind=i_kind) :: num_spec
+    integer(kind=i_kind), intent(in) :: num_spec
 
     integer :: new_size
     type(string_t), pointer :: new_name(:)

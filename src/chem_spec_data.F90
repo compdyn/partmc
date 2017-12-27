@@ -120,7 +120,7 @@ contains
     !> Species dataset
     class(chem_spec_data_t), intent(inout) :: this
     !> Number of new species to ensure space for
-    integer(i_kind) :: num_spec
+    integer(i_kind), intent(in) :: num_spec
 
     integer :: new_size
     type(string_t), pointer :: new_name(:)
@@ -304,7 +304,7 @@ contains
     !> Species database
     class(chem_spec_data_t), intent(in) :: this
     !> Species type
-    integer(kind=i_kind) :: spec_type
+    integer(kind=i_kind), intent(in) :: spec_type
 
     integer(kind=i_kind) :: i_spec
 
@@ -389,7 +389,7 @@ contains
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
     !> Species name to find properties of
-    character(len=:), allocatable :: spec_name
+    character(len=:), allocatable, intent(in) :: spec_name
 
     integer(i_kind) :: spec_id
 
@@ -409,7 +409,7 @@ contains
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
     !> Species name to find properties of
-    character(len=:), allocatable :: spec_name
+    character(len=:), allocatable, intent(in) :: spec_name
 
     integer(i_kind) :: spec_id
 

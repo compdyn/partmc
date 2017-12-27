@@ -94,7 +94,7 @@ contains
     !> A new set of model parameters
     type(phlex_core_t), pointer :: new_obj
     !> Part-MC input file paths
-    character(len=:), allocatable, optional :: input_file_path
+    character(len=:), allocatable, intent(in), optional :: input_file_path
 
     allocate(new_obj)
     allocate(new_obj%mechanism(0))
@@ -128,7 +128,7 @@ contains
     !> Model data
     class(phlex_core_t), intent(inout) :: this
     !> Part-MC input file paths
-    character(len=:), allocatable :: input_file_path
+    character(len=:), allocatable, intent(in) :: input_file_path
 
 #ifdef PMC_USE_JSON
     type(json_core), target :: json
@@ -206,7 +206,7 @@ contains
     !> Model data
     class(phlex_core_t), intent(inout) :: this
     !> Part-MC input file paths
-    type(string_t), allocatable :: input_file_path(:)
+    type(string_t), allocatable, intent(in) :: input_file_path(:)
 
     integer(kind=i_kind) :: i_file, i_mech
 #ifdef PMC_USE_JSON
@@ -354,9 +354,9 @@ contains
     !> Model data
     class(phlex_core_t), intent(in) :: this
     !> Mechanism name to search for
-    character(len=:), allocatable :: mech_name
+    character(len=:), allocatable, intent(in) :: mech_name
     !> Index of mechanism in the array
-    integer(kind=i_kind) :: mech_id
+    integer(kind=i_kind), intent(out) :: mech_id
 
     found = .false.
     
@@ -378,7 +378,7 @@ contains
     !> Model data
     class(phlex_core_t), intent(inout) :: this
     !> Mechanism name
-    character(len=:), allocatable :: mech_name
+    character(len=:), allocatable, intent(in) :: mech_name
 
     type(mechanism_data_t), pointer :: new_mechanism(:)
 
@@ -403,9 +403,9 @@ contains
     !> Model data
     class(phlex_core_t), intent(in) :: this
     !> Aerosol representation name to search for
-    character(len=:), allocatable :: rep_name
+    character(len=:), allocatable, intent(in) :: rep_name
     !> Index of the representation in the array
-    integer(kind=i_kind) :: rep_id
+    integer(kind=i_kind), intent(out) :: rep_id
 
     found = .false.
     
@@ -428,9 +428,9 @@ contains
     !> Model data
     class(phlex_core_t), intent(in) :: this
     !> Aerosol representation name to search for
-    character(len=:), allocatable :: rep_name
+    character(len=:), allocatable, intent(in) :: rep_name
     !> Aerosol representation
-    class(aero_rep_data_t), pointer :: rep
+    class(aero_rep_data_t), pointer, intent(out) :: rep
 
     integer(kind=i_kind) :: rep_id
 
@@ -449,7 +449,7 @@ contains
     !> Model data
     class(phlex_core_t), intent(inout) :: this
     !> Aerosol representation name
-    character(len=:), allocatable :: rep_name
+    character(len=:), allocatable, intent(in) :: rep_name
 
     type(aero_rep_data_ptr), pointer :: new_aero_rep(:)
     type(aero_rep_factory_t), pointer :: aero_rep_factory
@@ -475,9 +475,9 @@ contains
     !> Model data
     class(phlex_core_t), intent(in) :: this
     !> Aerosol phase name to search for
-    character(len=:), allocatable :: phase_name
+    character(len=:), allocatable, intent(in) :: phase_name
     !> Index of the phase in the array
-    integer(kind=i_kind) :: rep_id
+    integer(kind=i_kind), intent(out) :: rep_id
 
     found = .false.
     
@@ -499,7 +499,7 @@ contains
     !> Model data
     class(phlex_core_t), intent(inout) :: this
     !> Aerosol phase name
-    character(len=:), allocatable :: phase_name
+    character(len=:), allocatable, intent(in) :: phase_name
 
     type(aero_phase_data_t), pointer :: new_aero_phase(:)
 

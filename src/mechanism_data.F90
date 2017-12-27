@@ -94,7 +94,7 @@ contains
     !> Chemical mechanism
     type(mechanism_data_t), target :: new_obj
     !> Name of the mechanism
-    character(len=:), allocatable :: mech_name
+    character(len=:), allocatable, intent(in) :: mech_name
     !> Number of reactions to allocate space for initially
     integer(i_kind), intent(in), optional :: init_size
 
@@ -116,7 +116,7 @@ contains
     !> Chemical mechanism
     class(mechanism_data_t), intent(inout) :: this
     !> Number of new reactions to ensure space for
-    integer(i_kind) :: num_rxn
+    integer(i_kind), intent(in) :: num_rxn
 
     integer(kind=i_kind) :: new_size
     integer(kind=i_kind), allocatable :: new_rxn_type(:)

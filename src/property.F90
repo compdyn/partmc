@@ -478,7 +478,7 @@ contains
     !> Set to true if j_obj is a json object to parse, adding all child 
     !! key-value pairs to the data set, or false if j_obj is a single
     !! key-value pair to add to the data set
-    logical :: as_object
+    logical, intent(in) :: as_object
 
     type(json_value), pointer :: child, next
     type(property_t), pointer :: sub_prop
@@ -585,6 +585,7 @@ contains
 
     !> Property dataset
     type(property_t), intent(inout) :: this
+
     type(property_link_t), pointer :: curr, next
 
     next => this%first_link

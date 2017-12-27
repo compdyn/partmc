@@ -306,9 +306,9 @@ set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 ######################################################################
 # partmc library
 
-set(REACTIONS_SRC src/rxn_arrhenius.F90)
-set(AEROSOL_REPS_SRC src/aero_rep_single_particle.F90 
-   src/aero_rep_single_particle_state.F90)
+set(REACTIONS_SRC src/rxns/rxn_arrhenius.F90)
+set(AEROSOL_REPS_SRC src/aero_reps/aero_rep_single_particle.F90 
+   src/aero_reps/aero_rep_single_particle_state.F90)
 
 add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/integer_rmap.F90 src/integer_rmap2.F90 src/aero_sorted.F90
@@ -330,7 +330,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/rxn_data.F90 src/phlex_state.F90 src/mechanism_data.F90
   src/phlex_core.F90 src/integration_data.F90 src/aero_rep_data.F90
   src/aero_phase_data.F90 src/aero_rep_factory.F90 
-  src/phlex_interface.F90 
+  src/phlex_interface.F90 src/rxn_factory.F90
   ${AEROSOL_REPS_SRC}
   ${REACTIONS_SRC}
   ${SUNDIALS_SRC} ${GSL_SRC}

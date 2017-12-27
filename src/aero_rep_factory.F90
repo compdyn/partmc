@@ -12,14 +12,25 @@ module pmc_aero_rep_factory
   use pmc_util,                       only : die_msg, string_t, assert_msg, &
                                              warn_msg
   use pmc_aero_rep_data
+  use pmc_mpi
 #ifdef PMC_USE_JSON
   use json_module
 #endif
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
+
+  ! Use all aerosol representation modules
+  use pmc_aero_rep_single_particle
 
   implicit none
   private
 
   public :: aero_rep_factory_t
+
+  !> Identifiers for aerosol representations - used by binary packing/unpacking 
+  !! functions
+  integer(kind=i_kind), parameter :: AERO_REP_SINGLE_PARTICLE = 1
 
   !> Factory type for aerosol representations
   !!
@@ -31,6 +42,12 @@ module pmc_aero_rep_factory
     procedure :: create => pmc_aero_rep_factory_create
     !> Create a new aerosol representation from input data
     procedure :: load => pmc_aero_rep_factory_load
+    !> Determine the number of bytes required to pack a given aerosol representation
+    procedure :: pack_size => pmc_aero_rep_factory_pack_size
+    !> Pack a given aerosol representation to the buffer, advancing the position
+    procedure :: bin_pack => pmc_aero_rep_factory_bin_pack
+    !> Unpack a aerosol representation from the buffer, advancing the position
+    procedure :: bin_unpack => pmc_aero_rep_factory_bin_unpack
   end type aero_rep_factory_t
 
 contains
@@ -39,8 +56,6 @@ contains
 
   !> Create a new aerosol representation by type name
   function pmc_aero_rep_factory_create(this, type_name) result (new_obj)
-
-    use pmc_aero_rep_single_particle
 
     !> An aerosol representation
     class(aero_rep_data_t), pointer :: new_obj
@@ -101,6 +116,89 @@ contains
     call warn_msg(723960750, "No support for input files.")
 #endif
   end function pmc_aero_rep_factory_load
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determine the size of a binary required to pack a aerosol representation
+  integer(kind=i_kind) function pmc_aero_rep_factory_pack_size(this, aero_rep) &
+                  result (pack_size)
+
+    !> Aerosol representation factory
+    class(aero_rep_factory_t) :: this
+    !> Aerosol representation to pack
+    class(aero_rep_data_t), intent(in) :: aero_rep
+
+    integer(kind=i_kind) :: i_aero_rep
+
+    pack_size =  pmc_mpi_pack_size_integer(int(1, kind=i_kind)) + &
+                 aero_rep%pack_size()
+
+  end function pmc_aero_rep_factory_pack_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Pack the given value to the buffer, advancing position
+  subroutine pmc_aero_rep_factory_bin_pack(this, aero_rep, buffer, pos)
+
+    !> Aerosol representation factory
+    class(aero_rep_factory_t), intent(in) :: this
+    !> Aerosol representation to pack
+    class(aero_rep_data_t), intent(in) :: aero_rep
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+
+#ifdef PMC_USE_MPI
+    integer :: aero_rep_type, i_aero_rep, prev_position
+
+    prev_position = pos
+    select type (aero_rep)
+      type is (aero_rep_single_particle_t)
+        aero_rep_type = AERO_REP_SINGLE_PARTICLE
+      class default
+        call die_msg(278244560, "Trying to pack aerosol representation of unknown type.")
+    end select
+    call pmc_mpi_pack_integer(buffer, pos, aero_rep_type)
+    call aero_rep%bin_pack(buffer, pos)
+    call assert(897674844, &
+         pos - prev_position <= this%pack_size(aero_rep))
+#endif
+
+  end subroutine pmc_aero_rep_factory_bin_pack
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpack the given value to the buffer, advancing position
+  function pmc_aero_rep_factory_bin_unpack(this, buffer, pos) result (aero_rep)
+
+    !> Unpacked aerosol representation
+    class(aero_rep_data_t), pointer :: aero_rep
+    !> Aerosol representation factory
+    class(aero_rep_factory_t), intent(in) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
+
+#ifdef PMC_USE_MPI
+    integer :: aero_rep_type, i_aero_rep, prev_position
+
+    prev_position = pos
+    call pmc_mpi_unpack_integer(buffer, pos, aero_rep_type)
+    select case (aero_rep_type)
+      case (AERO_REP_SINGLE_PARTICLE)
+        aero_rep => aero_rep_single_particle_t()
+      case default
+        call die_msg(106634417, "Trying to unpack aerosol representation of unknown type:"// &
+                to_string(aero_rep_type))
+    end select
+    call aero_rep%bin_unpack(buffer, pos)
+    call assert(948795857, &
+         pos - prev_position <= this%pack_size(aero_rep))
+#endif
+
+  end function pmc_aero_rep_factory_bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

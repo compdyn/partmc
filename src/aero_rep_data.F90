@@ -70,7 +70,7 @@ module pmc_aero_rep_data
             state_id_by_unique_name
     !> Get an instance of the state variable for this aerosol representation
     procedure(pmc_aero_rep_data_new_state), deferred :: new_state
-    !> Get aerosol species state id
+    !> Get a set of aerosol species state ids
     procedure(pmc_aero_rep_data_species_state_id), deferred :: &
             species_state_id
     !> Get surface area concentration (m^2/m^3)

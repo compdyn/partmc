@@ -219,15 +219,13 @@ contains
 
     type(aero_phase_data_t), pointer :: new_aero_phase(:)
     type(aero_rep_data_ptr), pointer :: new_aero_rep(:)
-    type(aero_rep_factory_t), pointer :: aero_rep_factory
+    type(aero_rep_factory_t) :: aero_rep_factory
 
     type(aero_phase_data_t), pointer :: aero_phase
     type(aero_rep_data_ptr), pointer :: aero_rep_ptr
 
     integer(kind=i_kind) :: i_rep, i_phase
     logical :: found
-
-    aero_rep_factory = aero_rep_factory_t()
 
     j_obj => null()
     j_next => null()
@@ -434,6 +432,7 @@ contains
 
     integer(kind=i_kind) :: rep_id
 
+    rep => null()
     found = this%find_aero_rep_id_by_name(rep_name, rep_id)
     if (.not.found) return
     
@@ -452,9 +451,8 @@ contains
     character(len=:), allocatable, intent(in) :: rep_name
 
     type(aero_rep_data_ptr), pointer :: new_aero_rep(:)
-    type(aero_rep_factory_t), pointer :: aero_rep_factory
+    type(aero_rep_factory_t) :: aero_rep_factory
 
-    aero_rep_factory = aero_rep_factory_t()
     allocate(new_aero_rep(size(this%aero_rep)+1))
 
     new_aero_rep(1:size(this%aero_rep)) = &
@@ -601,11 +599,18 @@ contains
     !> Chemical model
     class(phlex_core_t), intent(in) :: this
     
-    integer(kind=i_kind) :: i_mech
+    type(aero_rep_factory_t) :: aero_rep_factory
+    integer(kind=i_kind) :: i_mech, i_rep
 
-    pack_size =  pmc_mpi_pack_size_integer(size(this%mechanism))
+    pack_size =  pmc_mpi_pack_size_integer(size(this%mechanism)) + &
+                 pmc_mpi_pack_size_integer(size(this%aero_rep))
     do i_mech = 1, size(this%mechanism)
       pack_size = pack_size + this%mechanism(i_mech)%pack_size()
+    end do
+    do i_rep = 1, size(this%aero_rep)
+      associate (aero_rep => this%aero_rep(i_rep)%val)
+      pack_size = pack_size + aero_rep_factory%pack_size(aero_rep)
+      end associate
     end do
 
   end function pmc_phlex_core_pack_size
@@ -623,12 +628,19 @@ contains
     integer, intent(inout) :: pos
 
 #ifdef PMC_USE_MPI
-    integer :: i_mech, prev_position
+    type(aero_rep_factory_t) :: aero_rep_factory
+    integer :: i_mech, i_rep, prev_position
 
     prev_position = pos
     call pmc_mpi_pack_integer(buffer, pos, size(this%mechanism))
+    call pmc_mpi_pack_integer(buffer, pos, size(this%aero_rep))
     do i_mech = 1, size(this%mechanism)
       call this%mechanism(i_mech)%bin_pack(buffer, pos)
+    end do
+    do i_rep = 1, size(this%aero_rep)
+      associate (aero_rep => this%aero_rep(i_rep)%val)
+      call aero_rep_factory%bin_pack(aero_rep, buffer, pos)
+      end associate
     end do
     call assert(184050835, &
          pos - prev_position <= this%pack_size())
@@ -649,13 +661,19 @@ contains
     integer, intent(inout) :: pos
 
 #ifdef PMC_USE_MPI
-    integer :: i_mech, prev_position, num_mech
+    type(aero_rep_factory_t) :: aero_rep_factory
+    integer :: i_mech, i_rep, prev_position, num_mech, num_rep
 
     prev_position = pos
     call pmc_mpi_unpack_integer(buffer, pos, num_mech)
+    call pmc_mpi_unpack_integer(buffer, pos, num_rep)
     allocate(this%mechanism(num_mech))
-    do i_mech = 1, size(this%mechanism)
+    allocate(this%aero_rep(num_rep))
+    do i_mech = 1, num_mech
       call this%mechanism(i_mech)%bin_unpack(buffer, pos)
+    end do
+    do i_rep = 1, num_rep
+      this%aero_rep(i_rep)%val => aero_rep_factory%bin_unpack(buffer, pos)
     end do
     call assert(291557168, &
          pos - prev_position <= this%pack_size())

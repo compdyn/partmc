@@ -19,7 +19,7 @@ module pmc_mechanism_data
 #endif
   ! Reaction modules
   use pmc_rxn_data
-  use pmc_rxn_arrhenius
+  use pmc_rxn_factory
   use pmc_chem_spec_data
   use pmc_phlex_state
 
@@ -30,9 +30,6 @@ module pmc_mechanism_data
 
   !> Reallocation increment
   integer(kind=i_kind), parameter :: REALLOC_INC = 50
-
-  !> Arrhenius equation
-  integer(kind=i_kind), parameter :: RXN_ARRHENIUS = 1
 
   !> A chemical mechanism
   !!
@@ -46,8 +43,6 @@ module pmc_mechanism_data
     integer(kind=i_kind) :: num_rxn = 0
     !> Mechanism name
     character(len=:), allocatable :: mech_name
-    !> Reaction type
-    integer(kind=i_kind), allocatable :: rxn_type(:)
     !> Reactions
     type(rxn_data_ptr), pointer :: rxn_ptr(:) => null()
   contains
@@ -102,7 +97,6 @@ contains
 
     if (present(init_size)) alloc_size = init_size
     new_obj%mech_name = mech_name
-    allocate(new_obj%rxn_type(alloc_size))
     allocate(new_obj%rxn_ptr(alloc_size))
 
   end function pmc_mechanism_data_constructor
@@ -124,13 +118,9 @@ contains
 
     if (size(this%rxn_ptr) .ge. this%num_rxn + num_rxn) return
     new_size = this%num_rxn + num_rxn + REALLOC_INC
-    allocate(new_rxn_type(new_size))
     allocate(new_rxn_ptr(new_size))
-    new_rxn_type(1:this%num_rxn) = this%rxn_type(1:this%num_rxn)
     new_rxn_ptr(1:this%num_rxn) = this%rxn_ptr(1:this%num_rxn)
-    deallocate(this%rxn_type)
     deallocate(this%rxn_ptr)
-    this%rxn_type = new_rxn_type
     this%rxn_ptr => new_rxn_ptr
 
   end subroutine pmc_mechanism_data_ensure_size
@@ -166,26 +156,22 @@ contains
     !> JSON object
     type(json_value), pointer, intent(in) :: j_obj
 
-    logical :: found
     type(json_value), pointer :: child, next
-    character(kind=json_ck, len=:), allocatable :: key, unicode_str_val
-    character(len=:), allocatable :: str_val
+    type(rxn_factory_t) :: rxn_factory
 
+    ! Cycle through the set of reactions in the json file
     next => null()
     call json%get(j_obj, 'reactions(1)', child)
     do while (associated(child))
+
+      ! Increase the size of the mechanism
       call this%ensure_size(1)
       this%num_rxn = this%num_rxn + 1
-      call json%get(child, "type", unicode_str_val, found)
-      call assert_msg(303914867, found, "Missing reaction type") 
-      str_val = unicode_str_val
-      if (str_val .eq. "ARRHENIUS") then
-        this%rxn_type = RXN_ARRHENIUS
-        this%rxn_ptr(this%num_rxn)%val => rxn_arrhenius_t()
-      else 
-        call die_msg(359134071, "Invalid reaction type: "//trim(str_val))
-      end if
-      call this%rxn_ptr(this%num_rxn)%val%load(json, child)
+      
+      ! Load the reaction into the mechanism
+      this%rxn_ptr(this%num_rxn)%val => rxn_factory%load(json, child)
+      
+      ! Get the next reaction in the json file
       call json%get_next(child, next)
       child => next
     end do
@@ -299,14 +285,16 @@ contains
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
-    
+   
+    type(rxn_factory_t) :: rxn_factory 
     integer(kind=i_kind) :: i_rxn
 
     pack_size =  pmc_mpi_pack_size_integer(this%num_rxn) + &
-                 pmc_mpi_pack_size_string(this%mech_name) + &
-                 pmc_mpi_pack_size_integer_array(this%rxn_type)
+                 pmc_mpi_pack_size_string(this%mech_name)
     do i_rxn = 1, this%num_rxn
-      pack_size = pack_size + this%rxn_ptr(i_rxn)%val%pack_size()
+      associate (rxn => this%rxn_ptr(i_rxn)%val)
+      pack_size = pack_size + rxn_factory%pack_size(rxn)
+      end associate
     end do
 
   end function pmc_mechanism_data_pack_size
@@ -324,14 +312,16 @@ contains
     integer, intent(inout) :: pos
 
 #ifdef PMC_USE_MPI
+    type(rxn_factory_t) :: rxn_factory 
     integer :: i_rxn, prev_position
 
     prev_position = pos
     call pmc_mpi_pack_integer(buffer, pos, this%num_rxn)
     call pmc_mpi_pack_string(buffer, pos, this%mech_name)
-    call pmc_mpi_pack_integer_array(buffer, pos, this%rxn_type)
     do i_rxn = 1, this%num_rxn
-      call this%rxn_ptr(i_rxn)%val%bin_pack(buffer, pos)
+      associate (rxn => this%rxn_ptr(i_rxn)%val)
+      call rxn_factory%bin_pack(rxn, buffer, pos)
+      end associate
     end do
     call assert(669506045, &
          pos - prev_position <= this%pack_size())
@@ -352,21 +342,15 @@ contains
     integer, intent(inout) :: pos
 
 #ifdef PMC_USE_MPI
+    type(rxn_factory_t) :: rxn_factory 
     integer :: i_rxn, prev_position
 
     prev_position = pos
     call pmc_mpi_unpack_integer(buffer, pos, this%num_rxn)
     call pmc_mpi_unpack_string(buffer, pos, this%mech_name)
-    call pmc_mpi_unpack_integer_array(buffer, pos, this%rxn_type)
+    call this%ensure_size(this%num_rxn)
     do i_rxn = 1, this%num_rxn
-    select case (this%rxn_type(i_rxn))
-        case (RXN_ARRHENIUS)
-          this%rxn_ptr(i_rxn)%val => rxn_arrhenius_t()
-        case default
-          call die_msg(655357132, "Trying to unpack unknown reaction type: "&
-                  //to_string(this%rxn_type(i_rxn)))
-      end select
-      call this%rxn_ptr(i_rxn)%val%bin_unpack(buffer, pos)
+      this%rxn_ptr(i_rxn)%val => rxn_factory%bin_unpack(buffer, pos)
     end do
     call assert(360900030, &
          pos - prev_position <= this%pack_size())

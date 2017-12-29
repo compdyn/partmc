@@ -5,18 +5,20 @@
 !> \file
 !> The pmc_rxn_arrhenius module.
 
-!> The rxn_arrhenius_t type and associated functions. The Arrhenius reaction
-!! rate constant equation is:
+!> \page phlex_rxn_arrhenius Phlexible Mechanism for Chemistry: Arrhenius Reaction
 !!
-!!   A*exp(-Ea/(kb*temp))
+!! The Arrhenius reaction rate constant equation is:
 !!
-!! where A is the pre-exponential factor ([concentration unit]^-(n-1) s^-1),
-!! n is the number of reactants, Ea is the  activation energy (J), kb is the 
-!! Boltzmann constant (J/K) and temp is the temperature (K).
+!!   \f$Ae^{(\frac{-E_a}{k_bT})}\f$
 !!
-#ifdef PMC_USE_JSON
+!! where \f$A\f$ is the pre-exponential factor 
+!! (\f$[\mbox{concentration unit}]^{-(n-1)} s^{-1}\f$),
+!! \f$n\f$ is the number of reactants, \f$E_a\f$ is the  activation energy
+!! (J), \f$k_b\f$ is the Boltzmann constant (J/K) and \f$T\f$ is the
+!! temperature (K).
+!!
 !! Input data for Arrhenius equations should take the form :
-!!
+!! \code{.json}
 !!   {
 !!     "type" : "RXN_ARRHENIUS",
 !!     "A" : 123.45,
@@ -32,11 +34,15 @@
 !!       ...
 !!     }
 !!   }
-!!
-!! The key-value pairs A, Ea, reactants, and products are required. Reactants
-!! without a qty value are assumed to appear once in the reaction equation.
-!! Products without a specified yield are assumed to have a yield of 1.0.
-#endif
+!! \endcode
+!! The key-value pairs \b A, \b Ea, \b reactants, and \b products are 
+!! required. Reactants without a \b qty value are assumed to appear once in
+!! the reaction equation. Products without a specified \b yield are assumed to
+!! have a \b yield of 1.0.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!> The rxn_arrhenius_t type and associated functions. 
 module pmc_rxn_arrhenius
 
   use pmc_constants,                        only: const_t

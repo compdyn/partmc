@@ -5,6 +5,10 @@
 !> \file
 !> The pmc_phlex_core module.
 
+!> \page phlex_chem Phlexible Module for Chemistry
+!!
+!! Description...
+
 !> The phlex_core_t structure and associated subroutines.
 module pmc_phlex_core
 
@@ -110,21 +114,28 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Load a set of model data files
-#ifdef PMC_USE_JSON
-  !! Reads a list of files containing model data. The format of the json file
-  !! should be the following:
+  !> \page input_format_phlex_file_list Input File Format: Phlex-Chem Configuration File List
   !!
+  !! A list of files containing configuration data for the \ref phlex_chem 
+  !! "Phlexible Module for Chemistry". The file should be in \c json format
+  !! and the general structure should be the following:
+  !! \code{.json}
   !! { "pmc-files" : [
   !!   "file_one.json",
   !!   "some_dir/file_two.json",
   !!   ...
   !! ]}
+  !! \endcode
+  !! The input file should be in \c json format and contain a single key-value
+  !! pair named \b pmc-files whose value is an array of \b strings with paths
+  !! to the set of \ref input_format_phlex_config "configuration" files to
+  !! load. Input files should be in \c json format.
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Load a set of model data files. 
   !!
-  !! The input file should be in json format and contain a single key-value
-  !! pair named pmc-files whose value is an array of string with paths to the
-  !! set of configuration files to load. Input files should be json format.
-#endif
+  !! See \ref input_format_phlex_file_list for the input file format.
   subroutine load_files(this, input_file_path)
 
     !> Model data
@@ -173,11 +184,12 @@ contains
     
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Load model data from input files
-#ifdef PMC_USE_JSON
-  !! Reads json files containing model object data. The general format of the
-  !! json files should be the following:
+  !> \page input_format_phlex_config Input File Format: Phlex-Chem Configuration Data
   !!
+  !! Configuration data for the \ref phlex_chem "Phlexible Module for Chemistry".
+  !! The files are in \c json format and their general structure
+  !! should be the following:
+  !! \code{.json}
   !! { "pmc-data" : [
   !!   {
   !!     "type" : "OBJECT_TYPE",
@@ -189,20 +201,39 @@ contains
   !!   },
   !!   ...
   !! ]}
+  !! \endcode
+  !! Each input file should contain exactly one \c json object with a single
+  !! key-value pair \b pmc-data whose value is an array of \c json objects.
+  !! Additional top-level key-value pairs will be ignored. Each of the \c json
+  !! objects in the \b pmc-data array must contain a key-value pair \b type
+  !! whose value is a string referenceing a valid PartMC object.
   !!
-  !! Each json input file should contain exactly one json object with a 
-  !! single key-value pair "pmc-data" whose value is an array of json objects.
-  !! Additional top-level key-value pairs will be ignored.
-  !! Each of the json objects in the pmc-data array must contain a key-value
-  !! pair "type" whose value is a string referenceing a valid Part-MC object.
-  !! The valid values for type are:
-  !!     MECHANISM
-  !!     GAS_SPEC
-  !!     AERO_SPEC
-  !!     AERO_REP
-  !! Refer to specific Part-MC data type documentation for the required format
-  !! for input objects.
-#endif
+  !! The valid values for \b type are:
+  !!
+  !!   - \subpage input_format_mechanism "MECHANISM"
+  !!   - \subpage input_format_species "GAS_SPEC"
+  !!   - \subpage input_format_species "AERO_SPEC"
+  !!   - \subpage input_format_aero_phase "AERO_PHASE"
+  !!   - \subpage input_format_aero_rep "AERO_REP_*"
+  !!
+  !! The arrangement of objects within the \b pmc-data array and between input
+  !! files is arbitrary. Additionally, some objects, such as \ref 
+  !! input_format_species "chemical species" and \ref input_format_mechanism
+  !! "mechanisms" may be split into multiple objects within the \b pmc-data
+  !! array and/or between files, and will be combined based on their unique
+  !! name. This flexibility is provided so that the chemical mechanism data
+  !! can be organized in a way that makes sense to the designer of the 
+  !! mechanism. For example, files could be split based on species source 
+  !! (biogenic, fossil fuel, etc.) or based on properties (molecular weight,
+  !! density, etc.) or any combination of criteria. However, if a single
+  !! property of an object (e.g., the molecular weight of a chemical species)
+  !! is set in more than one location, this will cause an error.
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+  !> Load model data from input files
+  !!
+  !! See \ref input_format_phlex_config for the input file format.
   subroutine load(this, input_file_path)
 
     !> Model data

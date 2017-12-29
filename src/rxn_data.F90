@@ -5,6 +5,10 @@
 !> \file
 !> The pmc_rxn_data module.
 
+!> \page phlex_rxn Phlexible Module for Chemistry: Reactions
+!!
+!! Descriptions
+
 !> The rxn_data_t structure and associated subroutines.
 module pmc_rxn_data
 
@@ -245,19 +249,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Load reactions from an input file
-#ifdef PMC_USE_JSON
-  !! j_obj is expected to be a JSON object containing data related to a
-  !! chemical reaction required for building the chemical mechanism. It should
-  !! be of the form:
+  !> \page input_format_rxn Input JSON Object Format: Reaction (general)
   !! 
+  !! A \c json object containing information about a chemical reaction or 
+  !! physical process in the gas phase, in an \ref phlex_aero_phase 
+  !! "aerosol phase", or between two phases (phase-transfer). \ref phlex_rxn
+  !! "Reactions" are used to build \ref phlex_mechanism "mechanisms" and are
+  !! only found within an input \ref input_format_mechanism "mechanism object"
+  !! in an array labelled \b reactions.
+  !! \code{.json}
   !! { "pmc-data" : [
   !!   {
   !!     "name" : "my mechanism",
   !!     "type" : "MECHANISM",
   !!     "reactions" : [
   !!     {
-  !!       "rxn type" : "REACTION_TYPE",
+  !!       "type" : "REACTION_TYPE",
   !!       "reactants" : {
   !!         "some species" : {},
   !!         "another species" : { "qty" : 2 }
@@ -275,7 +282,7 @@ contains
   !!       ...
   !!     },
   !!     {
-  !!       "rxn type" : "REACTION_TYPE",
+  !!       "type" : "REACTION_TYPE",
   !!       "reactants" : {
   !!         "that one species" : { "qty" : 3 }
   !!       },
@@ -286,25 +293,24 @@ contains
   !!   ]},
   !!   ...
   !! ]}
+  !! \endcode
+  !! The key-value pair \b type is required and its value must correspond
+  !! to a valid reaction type. Valid reaction types include:
   !!
-  !! Reactions must be placed in an array with the key name "reactions" in a
-  !! mechanism object. Reactions outside of mechanisms are not permitted.
-  !! The key-value pair "rxn type" is required and its value must correspond
-  !! to a valid reaction type. 
-  !!
-  !! All remaining data are optional and may include any valid JSON value, 
-  !! including nested objects. However, extending types will have specific
-  !! requirements for the remaining data. Additionally it is recommended to 
-  !! use the above format for reactants and products when developing child
-  !! reaction derived types, and to use 'rxn type' values that match the 
-  !! name of the derived-type of the extending class. For example, the 
-  !! reaction type rxn_photolysis_t would be identified as the string constant
-  !! 'PHOTOLYSIS' in the 'rxn type' key-value pair.
-  !!
-  !! Mechanism data may be inter-mixed with json objects of other types (e.g.,
-  !! species), but the there must be exactly one top-level key-value pair 
-  !! named "pmc-data" per input file whose value is an array of json objects 
-  !! with valid PMC types.
+  !!   - \subpage phlex_rxn_arrhenius "Arrhenius"
+  !! 
+  !! All remaining data are optional and may include any valid \c json value, 
+  !! including nested objects. However, extending types (i.e. reactions) will
+  !! have specific requirements for the remaining data. Additionally it is
+  !! recommended to use the above format for reactants and products when
+  !! developing derived types that extend \c rxn_data_t, and to use \b type
+  !! values that match the name of the extending derived-type. For example, the 
+  !! reaction type \c rxn_photolysis_t would have a \b type of \b PHOTOLYSIS.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef PMC_USE_JSON
+  !> Load reactions from an input file
   subroutine load(this, json, j_obj)
 
     !> Reaction data

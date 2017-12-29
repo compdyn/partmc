@@ -18,10 +18,14 @@
 !! \subpage coding_style - Description of code conventions and style.
 !!
 !! \subpage publications - Publications about PartMC.
+!!
+!! \subpage phlex_chem - Description of the module for incorporation of chemical
+!!   mechanisms in PartMC.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !> \page input_format Input File Format
+!! \section ss_spec_file Spec File Format
 !!
 !! The input file format is plain text:
 !!
@@ -42,6 +46,29 @@
 !! \subpage input_format_exact "Exact (analytical) solution"
 !!
 !! \subpage input_format_sectional "Sectional model simulation"
+!!
+!! \section ss_json JSON File Format
+!!
+!! Beginning with the \ref phlex_chem "Phlexible Module for Chemistry",
+!! \c json format is used as an alternative input file format:
+!!
+!! <a href="https://www.json.org">www.json.org</a>
+!!
+!! Two types of \c json input files are used by \ref phlex_chem 
+!! "phlex-chem":
+!!
+!! \subpage input_format_phlex_file_list "Phlex-chem file list"
+!!
+!! \subpage input_format_phlex_config "Phlex-chem configuration data"
+!!
+!! Typically, one \subpage input_format_phlex_file_list "file list" file is 
+!! used for a PartMC run, which includes paths to multiple \subpage 
+!! input_format_phlex_config "configuration" files containing the \ref
+!! phlex_chem "phlex-chem" configuration data. When running stand-alone
+!! PartMC, the path to the \subpage input_format_phlex_file_list "file list"
+!! file is included in the spec file. When  using the PartMC library, the path
+!! to the \subpage input_format_phlex_file_list "file list" file can be passed
+!! as an argument to the \c phlex_core_t constructor.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -70,6 +97,27 @@
 !! Module names are always the same as the name of the containing
 !! file, but prefixed with \c pmc_. Thus the module \c
 !! pmc_condense is contained in the file \c condense.F90.
+!!
+!! \subsection update_2017 2017 Updates
+!!
+!! Some changes were made beginning with the \ref phlex_chem
+!! "Phlexible Module for Chemistry" to take advantage of Fortran 2003 and 2008
+!! features. In general, modules are \c private and expose functionality
+!! through type-bound procedures. \c public module functions, variables and
+!! parameters are discouraged, as are \c public derived-type variables.
+!!
+!! Constructors that return a pointer to a newly allocated instance of a
+!! module's primary derived type are typically included in each module. In 
+!! addition to the primary derived type, a pointer type may be included for
+!! building arrays of pointers to the primary derived type. For example, the
+!! \c my_type_t type may have an associated \c my_type_ptr type in the same
+!! module whose only member is a pointer to a \c my_type_t object named \c 
+!! val. (This helps, in particular, with building arrays of mixed extending
+!! types of an abstract type.) When abstract types are used, for example \c
+!! my_general_data_t, a factory type in a separate module, \c 
+!! my_general_factory_t, is provided to create instances of extending types
+!! by name or from input files. Extending types are located in a \c 
+!! \\my_general folder in the \c \\src directory.
 !!
 !! \section mem_manage Memory Management
 !!
@@ -303,12 +351,12 @@ contains
     !!   output data to disk (see \ref output_format)
     !! - \b t_progress (real, unit s): the interval on which to
     !!   write summary information to the screen while running
-    !! - \b do_phlex_chem (logical): whether to run the phlexible module for
-    !!   chemistry (requires JSON and SUNDIALS support to be compiled in).
-    !!   If \c do_phlex_chem is \c yes, then the following parameters must
-    !!   also be provided:
-    !!   - \b phlex_config (string): file containing a list of phlex-chem
-    !!     configuration files. File format should be \ref 
+    !! - \b do_phlex_chem (logical): whether to run the <b>Phlexible module 
+    !!   for Chemistry</b> (requires JSON and SUNDIALS support to be compiled
+    !!   in). If \c do_phlex_chem is \c yes, then the following parameters 
+    !!   must also be provided:
+    !!   - \b phlex_config (string): name of file containing a list of \b 
+    !!     phlex-chem configuration files. File format should be \ref 
     !!     input_format_phlex_config
     !! - \b gas_data (string): name of file from which to read the gas
     !!   material data (only provide if \c restart and \c do_phlex_chem

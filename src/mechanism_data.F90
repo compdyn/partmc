@@ -5,6 +5,10 @@
 !> \file
 !> The pmc_mechanism_data module.
 
+!> \page phlex_mechanism Phlexible Module for Chemistry: Chemical Mechanism
+!!
+!! Description...
+
 !> The mechanism_data_t structure and associated subroutines.
 module pmc_mechanism_data
 
@@ -128,11 +132,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Load a chemical mechanism from an input file
-#ifdef PMC_USE_JSON
-  !! j_obj is expected to be a JSON object containing data related to a
-  !! chemical mechanism. It should be of the form:
-  !! 
+  !> \page input_format_mechanism Input JSON Object Format: Mechanism
+  !!
+  !! A \c json object containing information about a \ref phlex_mechanism
+  !! "chemical mechanism" of the form:
+  !! \code{.json}
   !! { "pmc-data" : [
   !!   {
   !!     "name" : "my mechanism",
@@ -142,12 +146,17 @@ contains
   !!     ]
   !!   }
   !! ]}
-  !!
-  !! For the structure of the reaction objects, see the pmc_rxn_data module.
-  !! Mechanism data may be split into multiple mechanism objects - they will
-  !! be combined based on the mechanism name. All mechanisms objects must have
-  !! a name, a type = "MECHANISM" and a reaction array containing at least
-  !! one reaction.
+  !! \endcode
+  !! A \ref phlex_mechanism "mechanism" object must have a unique \b name, 
+  !! a \b type of \b MECHANISM and an array of \ref input_format_rxn
+  !! "reaction objects" labelled \b reactions. Mechanism data may be split
+  !! into multiple mechanism objects - they will be combined based on the
+  !! mechanism name.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef PMC_USE_JSON
+  !> Load a chemical mechanism from an input file
   subroutine load(this, json, j_obj)
 
     !> Chemical mechanism

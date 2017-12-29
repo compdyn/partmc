@@ -28,7 +28,10 @@ module pmc_property
   !> Property data
   !!
   !! A set of physical properties, sub-model parameters and similar constants
-  !! related to a chemical species, reaction, or other data object.
+  !! related to a chemical species, reaction, or other data object. The \c
+  !! property_t type allows building a set of nested properties, similar in
+  !! structure to a \c json object. However, array values are not currently
+  !! supported.
   type property_t
     private
     !> Number of elements
@@ -78,7 +81,7 @@ module pmc_property
     procedure, private :: get => pmc_property_get
   end type property_t
 
-  !> Constructor for property_t
+  ! Constructor for property_t
   interface property_t
     procedure :: pmc_property_constructor
   end interface property_t
@@ -119,7 +122,7 @@ module pmc_property
     procedure :: print => pmc_property_link_print
   end type property_link_t
 
-  !> Constructor for link
+  ! Constructor for link
   interface property_link_t
     procedure pmc_property_link_constructor
   end interface property_link_t
@@ -173,6 +176,7 @@ contains
     type(property_link_t), pointer :: new_link, sub_link
     class(*), pointer :: curr_val
 
+    ! Look for the key in the existing properties
     new_link => this%get(key)
 
     ! Do not allow overwrites of existing properties, but allow sub-sets
@@ -197,7 +201,8 @@ contains
       return
     end if
 
-    ! Create a new link to add to the property dataset
+    ! If the key does not exist in the property dataset,
+    ! create a new link to add it.
     new_link => property_link_t(key, val)
     if (.not.associated(this%first_link)) then
       this%first_link => new_link

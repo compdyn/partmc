@@ -5,6 +5,10 @@
 !> \file
 !> The pmc_chem_spec_data module.
 
+!> \page phlex_species Phlexible Module for Chemistry: Chemical Species
+!!
+!! Description ...
+
 !> The chem_spec_data_t structure and associated subroutines.
 module pmc_chem_spec_data
 
@@ -180,12 +184,11 @@ contains
           
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Load species from an input file
-#ifdef PMC_USE_JSON
-  !! j_obj is expected to be a JSON object containing data related to a
-  !! chemical species required for building the chemical mechanism. It should
-  !! be of the form:
-  !! 
+  !> \page input_format_species Input JSON Object Format: Chemical Species
+  !!
+  !! A \c json object containing information about a \ref phlex_species
+  !! "chemical species" of the form:
+  !! \code{.json} 
   !! { "pmc-data" : [
   !!   {
   !!     "name" : "my species name",
@@ -206,19 +209,21 @@ contains
   !!   },
   !!   ...
   !! ]}
-  !!
-  !! The key-value pair "name" is required and must contain the unique name
-  !! used for this species in the mechanism. (The same name may not be used
-  !! for a gas species and an aerosol species.) The key-value pair "type" is 
-  !! also required and its value must be GAS_SPEC or AERO_SPEC. All remaining
-  !! data is optional and may include any valid JSON value, including nested
+  !! \endcode
+  !! The key-value pair \b name is required and must contain the unique name
+  !! used for this species in the \ref input_format_mechanism
+  !! "mechanism object". (The same name may not be used for a gas species and
+  !! an aerosol species.) The key-value pair \b type is also required and its
+  !! value must be \b GAS_SPEC or \b AERO_SPEC. All remaining data are
+  !! optional and may include any valid \c json value, including nested
   !! objects. Multilple entries with the same species name will be merged
   !! into a single species, but duplicate property names for the same species
   !! will cause an error.
-  !! Species data may be inter-mixed with json objects of other types (e.g.,
-  !! reactions), but the there must be exactly one top-level key-value pair 
-  !! named "pmc-data" per input file whose value is an array of json objects 
-  !! with valid PMC types.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef PMC_USE_JSON
+  !> Load species from an input file
   subroutine load(this, json, j_obj)
 
     !> Species dataset

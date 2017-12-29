@@ -5,6 +5,34 @@
 !> \file
 !> The pmc_aero_rep_single_particle module.
 
+!> \page phlex_aero_rep_single_particle Phlexible Module for Chemistry: Single Particle Aerosol Representation
+!!
+!! The single particle aerosol representation is for use with a PartMC
+!! particle-resolved run. The \c json object for this \ref phlex_aero_rep
+!! "aerosol representation" is of the form:
+!! \code{.json}
+!!  { "pmc-data" : [
+!!    {
+!!      "type" : "AERO_REP_SINGLE_PARTICLE"
+!!    },
+!!    ...
+!!  ]}
+!! \endcode
+!! The only key-value pair required is the \b type, which must be \b
+!! AERO_REP_SINGLE_PARTICLE. This representation assumes that every
+!! \ref input_format_aero_phase "aerosol phase object" available will be
+!! present once in each particle, and that integration of the
+!! \ref input_format_mechanism "chemical mechanisms" at each time step will
+!! solve the gas-phase first then do phase-transfer and aerosol-phase
+!! chemistry for each single particle in the \c pmc_aero_particle_array::aero_particle_array_t variable
+!! sequentially.
+!!
+!! For surface area and Kelvin effect calculations, it is assumed that each 
+!! aerosol phase exists as a 3D wedge in a spherical particle and that each 
+!! species within an aerosol phase is equally likely to be present on the 
+!! surface and in the bulk. Finally, the size of the particle is determined by
+!! a linear combination of each aerosol species volume (mass * density).
+
 !> The abstract aero_rep_single_particle_t structure and associated subroutines.
 module pmc_aero_rep_single_particle
 
@@ -148,7 +176,7 @@ contains
     key = "density"
     do i_phase = 1, _NUM_PHASE_
       curr_spec_id = 1
-      species = this%aero_phase(i_phase)%val%get_species()
+      species = this%aero_phase(i_phase)%val%get_species_names()
       do i_spec = 1, size(species)
         spec_props = chem_spec_data%get_property_set(species(i_spec)%string)
         if (.not.associated(spec_props)) then
@@ -209,7 +237,7 @@ contains
     do i_phase = 1, size(this%aero_phase)
       phase_name = this%aero_phase(i_phase)%val%name()
       num_spec = this%aero_phase(i_phase)%val%size()
-      spec_names = this%aero_phase(i_phase)%val%get_species()
+      spec_names = this%aero_phase(i_phase)%val%get_species_names()
       do j_spec = 1, num_spec
         unique_names(i_spec + j_spec - 1)%string = &
                 phase_name//'.'//spec_names(j_spec)%string
@@ -292,7 +320,7 @@ contains
     i_phase = this%phase_id(phase_name)
     call assert_msg(820720954, i_phase.gt.0, "Invalid phase requested: "// &
             phase_name)
-    i_spec = this%aero_phase(i_phase)%val%state_id(species_name)
+    i_spec = this%aero_phase(i_phase)%val%spec_id(species_name)
     call assert_msg(413945507, i_spec.gt.0, "Invalid species requested: "// &
             species_name//" for phase: "//phase_name)
     spec_index(1) = _PHASE_STATE_ID_(i_phase) + i_spec - 1
@@ -327,8 +355,8 @@ contains
   !!   \f$\frac{dA_P}{dx} = \frac{(3r_T\frac{dV_P}{dx} - 
   !!       3V_P\frac{dr_T}{dx})}{r_T^2}\f$
   !!   \f$\frac{dV_P}{dx} = \rho_x\ \forall x \in P\f$
-  !!   \f$\frac{dr_T}{dx} = \frac{1}{3}\(\frac{3V_T}{4\pi}\)^\frac{1}{3} 
-  !!       \rho_x\ \forall x \in T\f$
+  !!   \f$\frac{dr_T}{dx} = \frac{1}{3}(\frac{3V_T}{4\pi})^(\frac{1}{3}) 
+  !!       \rho_x \forall x \in T\f$
   !!
   function surface_area_conc(this, i_phase1, i_phase2, phlex_state, &
                   jac_contrib)

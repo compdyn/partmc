@@ -5,6 +5,37 @@
 !> \file
 !> The pmc_aero_phase_data module.
 
+!> \page phlex_aero_phase Phlexible Module for Chemistry: Aerosol Phase
+!!
+!! An aerosol phase describes a unique chemical phase within an aerosol. It is
+!! designed to abstract the chemistry from the particular \ref phlex_aero_rep
+!! "aerosol representation" used (e.g., bins, modes, single particles). The
+!! general idea is that a set of aerosol phases will be made available (by
+!! loading them from an \ref input_format_aero_phase "input file".) Each phase
+!! will be defined by a fixed set of \ref phlex_species "chemical species".
+!!
+!! Reactions in the chemical mechanism will have the ability to specify, by
+!! name, the phase they take place in, and which species in that phase are
+!! involved. (How they decide this is up to the particular \ref 
+!! phlex_rxn "reaction type".) 
+!!
+!! \ref phlex_aero_rep "Aerosol representations" will be able to specify 
+!! which phases they will implement and how many instances of that phase
+!! will be present. For example, a binned representation with 10 bins may
+!! implement 10 aqueous phases and 10 organic phases, while a single 
+!! particle representation with a concentric shell structure of 3 layers
+!! may implement 3 of each phase (assuming the chemistry is solved for each
+!! single particle individually).
+!!
+!! Any physical aerosol parameters, such as the surface area between phases,
+!! or the Kelvin effect vapor pressure scaling, required by a chemical
+!! reaction will be provided by the aerosol representation through deferred
+!! type-bound procedures of the abstract \c
+!! pmc_aero_rep_data::aero_rep_data_t type.
+!!
+!! The input format for an aerosol phase can be found \ref
+!! input_format_aero_phase "here".
+
 !> The abstract aero_phase_data_t structure and associated subroutines.
 module pmc_aero_phase_data
 
@@ -31,13 +62,7 @@ module pmc_aero_phase_data
 
   !> Aerosol phase data type
   !!
-  !! Aerosol phase information. The chemistry module uses a set of phases to
-  !! model chemical reactions for aerosol species. Chemical reactions can take
-  !! place within a phase or across an interface between phases (e.g., for 
-  !! condensation/evaporation). Phases may or may not correspond to aerosol
-  !! representations directly. For example, a binned aerosol representation
-  !! may have one aerosol phase per bin, or an organic and aqueous phase in
-  !! each bin, or three concentric aerosol phases (layers).
+  !! Aerosol phase information. 
   type :: aero_phase_data_t
     private
     !> Name of the aerosol phase
@@ -45,14 +70,14 @@ module pmc_aero_phase_data
     !> Number of species in the phase
     integer(kind=i_kind) :: num_spec = 0
     !> Species names. These are species that are present in the aerosol
-    !! phase. These species must exist in the chem_spec_data_t variable
-    !! during initialization.
+    !! phase. These species must exist in the \c
+    !! pmc_chem_spec::chem_spec_data_t variable during initialization.
     type(string_t), pointer :: spec_name(:) => null()
     !> Aerosol phase parameters. These will be available during 
     !! initialization, but not during integration. All information required
     !! by functions of the aerosol representation related to a phase must be 
-    !! saved by the aero_rep_data_t-exdending type in the condensed data 
-    !! arrays.
+    !! saved by the \c pmc_aero_rep_data::aero_rep_data_t-exdending type in
+    !! the condensed data arrays.
     type(property_t), pointer :: property_set => null()
     !> Condensed representaiton data. Theses arrays will be available during
     !! integration, and should contain any information required by the
@@ -69,9 +94,12 @@ module pmc_aero_phase_data
     !> Get property data associated with this phase
     procedure :: get_property_set
     !> Get a list of species names in this phase
-    procedure :: get_species
-    !> Get an aerosol species state id
-    procedure :: state_id
+    procedure :: get_species_names
+    !> Get an aerosol species id within the phase.
+    !!
+    !! The species id \f$i_{spec} = 1...n_{spec}\f$ where \f$n_{spec}\f$ is
+    !! number of species in this phase.
+    procedure :: spec_id
     !> Get the total mass in a phase (ug/m^3)
     procedure :: total_mass
     !> Determine the number of bytes required to pack the given value
@@ -97,7 +125,7 @@ module pmc_aero_phase_data
     procedure, private :: find
   end type aero_phase_data_t
 
-  !> Constructor for aero_phase_data_t
+  ! Constructor for aero_phase_data_t
   interface aero_phase_data_t
     procedure :: constructor
   end interface aero_phase_data_t
@@ -181,8 +209,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the aerosol phase species list
-  function get_species(this) result (species)
+  !> Get a list of the aerosol phase species names
+  function get_species_names(this) result (species)
 
     !> A list of species in this phase
     type(string_t), allocatable :: species(:)
@@ -196,12 +224,15 @@ contains
       species(i_spec)%string = this%spec_name(i_spec)%string
     end do
 
-  end function get_species
+  end function get_species_names
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the index of a species in the state array for this phase
-  integer(kind=i_kind) function state_id(this, spec_name) &
+  !> Get an aerosol species id within the phase.
+  !!
+  !! The species id \f$i_{spec} = 1...n_{spec}\f$ where \f$n_{spec}\f$ is
+  !! number of species in this phase.
+  integer(kind=i_kind) function spec_id(this, spec_name) &
           result (id)
 
     !> Aerosol phase data
@@ -211,15 +242,15 @@ contains
 
     id = this%find(spec_name)
 
-  end function state_id
+  end function spec_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Load species from an input file
-#ifdef PMC_USE_JSON
-  !! j_obj is expected to be a JSON object containing data related to an
-  !! aerosol phase. It should be of the form:
+  !> \page input_format_aero_phase Input JSON Object Format: Aerosol Phase
   !!
+  !! A \c json object containing information about an \ref phlex_aero_phase
+  !! "aerosol phase" of the form:
+  !! \code{.json}
   !! { "pmc-data" : [
   !!   {
   !!     "name" : "my aerosol phase"
@@ -233,21 +264,39 @@ contains
   !!   },
   !!   ...
   !! ]}
+  !! \endcode
+  !! The key-value pair \b name is required and must contain the unique name
+  !! used for this \ref phlex_aero_phase "aerosol phase" in the \ref 
+  !! input_format_mechanism "mechanism object". A single phase may be 
+  !! present in several \ref input_format_aero_rep 
+  !! "aerosol representation objects" (e.g., an aqueous phase in
+  !! a binned and a single-particle representation), but the 
+  !! \ref input_format_species "species" associated with a
+  !! particular phase will be constant throughout the model run. Once loaded
+  !! an aerosol phase will be available to any \ref input_format_aero_rep
+  !! "aerosol representations" that want to implement it.
   !!
-  !! The key-value pair "name" is required and must contain the unique name
-  !! used for this aerosol phase in the mechanism. A single phase may be 
-  !! present in several aerosol groups (e.g., an aqueous phase is each bin
-  !! of a binned aerosol representation), but the species associated with a
-  !! particular phase will be constant throughout the model run.
+  !! It is important to note that the purpose of having an \ref
+  !! phlex_aero_phase "aerosol phase" in addition to an \ref phlex_aero_rep
+  !! "aerosol representation" type is to permit abstraction of the chemistry
+  !! and aerosol micro-physics. This allows a single "aqueous" \ref
+  !! phlex_aero_phase "phase" to be used to perform aqueous aerosol chemistry,
+  !! regardless of the number of aerosol representations (or their interal
+  !! bins, modes, particles, etc.).
   !!
-  !! The key-value pair "type" is also required and its value must be
-  !! AERO_PHASE. A list of species should be included in a key-value pair
-  !! named "species" whose value is an array of species names. These names
-  !! must correspond to species names loaded into the chem_spec_data_t 
-  !! object. All other data is optional and may include any valid JSON value,
-  !! including nested objects. Multiple entries with the same aerosol phase 
-  !! name will be merged into a single phase, but duplicate property names for
-  !! the same phase will cause an error.
+  !! The key-value pair \b type is also required and its value must be
+  !! \b AERO_PHASE. A list of species names should be included in a key-value
+  !! pair named \b species whose value is an array of species names. These
+  !! names must correspond to an existing \ref input_format_species "species"
+  !! \b name. All other data is optional and may include any valid \c json
+  !! value, including nested objects. Multiple entries with the same aerosol
+  !! phase \b name will be merged into a single phase, but duplicate property
+  !! names for the same phase will cause an error.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef PMC_USE_JSON
+  !> Load species from an input file
   subroutine load(this, json, j_obj)
 
     !> Aerosol phase data

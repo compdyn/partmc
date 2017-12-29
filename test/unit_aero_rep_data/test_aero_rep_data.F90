@@ -214,7 +214,7 @@ contains
       phase_name = "my test phase two"
       spec_name = "species c"
       i_phase = aero_rep%phase_id(phase_name)
-      i_spec_list = aero_rep%aero_phase(i_phase)%val%state_id(spec_name)
+      i_spec_list = aero_rep%aero_phase(i_phase)%val%spec_id(spec_name)
       i_spec = i_spec_list(1)
       call assert_msg(136045982, i_phase.gt.0, rep_name)
       surf_conc = aero_rep%species_surface_area_conc(i_phase, i_spec, phlex_state)

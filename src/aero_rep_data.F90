@@ -5,6 +5,27 @@
 !> \file
 !> The pmc_aero_rep_data module.
 
+!> \page phlex_aero_rep Phlexible Module for Chemistry: Aerosol Representation (general)
+!!
+!! An aerosol representation acts as an interface between the aerosol micro-
+!! physics module and the chemistry module. The abstract \c aero_rep_data_t
+!! type should include deferred functions for calculating the physical aerosol
+!! parameters required by chemical reactions during integrations of the 
+!! chemical mechanisms(s).
+!!
+!! A unique derived type that extends the \c aero_rep_data_t type should be
+!! developed for each type of representation used by an external model (e.g.,
+!! binned, modal, single particle). This derived type can either calculate
+!! the aerosol microphysics directly, or use the microphysics results of the
+!! host model to update the \ref phlex_aero_phase "aerosol phase" states
+!! in the chemistry module.
+!!
+!! The available aerosol representations are:
+!!  - \ref phlex_aero_rep_single_particle "Single Particle"
+!!
+!! The general input format for an aerosol representation can be found \ref
+!! input_format_aero_rep "here".
+
 !> The abstract aero_rep_data_t structure and associated subroutines.
 module pmc_aero_rep_data
 
@@ -417,15 +438,14 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Load an aerosol representation from an input file
-#ifdef PMC_USE_JSON
-  !! j_obj is expected to be a JSON object containing data related to an
-  !! aerosol representation. It should be of the form:
-  !! 
+  !> \page input_format_aero_rep Input JSON Object Format: Aerosol Representation (general)
+  !!
+  !! A \c json object containing information about an \ref phlex_aero_rep
+  !! "aerosol representation" of the form:
+  !! \code{.json}
   !! { "pmc-data" : [
   !!   {
-  !!     "name" : "my representation",
-  !!     "type" : "AERO_REP_TYPE"
+  !!     "type" : "AERO_REP_TYPE",
   !!     "some parameter" : 123.34,
   !!     "some other parameter" : true,
   !!     "nested parameters" : {
@@ -434,13 +454,20 @@ contains
   !!   },
   !!   ...
   !! ]}
+  !! \endcode
+  !! Aerosol representations must have a unique \b type that corresponds to a
+  ! valid aerosol representation type. These include:
   !!
-  !! Aerosol representations must have a unique name and have a "type" that
-  !! corresponds to a valid aerosol representation type.
+  !!   - \subpage phlex_aero_rep_single_particle "Single Particle"
   !!
-  !! All remaining data are optional and may include any valid JSON value, 
+  !! All remaining data are optional and may include any valid \c json value, 
   !! including nested objects. However, extending types will have specific
   !! requirements for the remaining data. 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#ifdef PMC_USE_JSON
+  !> Load an aerosol representation from an input file
   subroutine load(this, json, j_obj)
 
     !> Aerosol representation data

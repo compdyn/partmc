@@ -125,29 +125,29 @@ contains
     call assert(438402261, aero_phase_data_set(3)%size().eq.2)
 
     key = "species a"
-    call assert(780621603, aero_phase_data_set(1)%state_id(key).ne.0)
+    call assert(780621603, aero_phase_data_set(1)%spec_id(key).ne.0)
     key = "species b"
-    call assert(610464699, aero_phase_data_set(1)%state_id(key).ne.0)
+    call assert(610464699, aero_phase_data_set(1)%spec_id(key).ne.0)
     key = "species c"
-    call assert(722783044, aero_phase_data_set(1)%state_id(key).ne.0)
+    call assert(722783044, aero_phase_data_set(1)%spec_id(key).ne.0)
     key = "species d"
-    call assert(552626140, aero_phase_data_set(1)%state_id(key).eq.0)
+    call assert(552626140, aero_phase_data_set(1)%spec_id(key).eq.0)
 
     key = "species c"
-    call assert(947419734, aero_phase_data_set(2)%state_id(key).ne.0)
+    call assert(947419734, aero_phase_data_set(2)%spec_id(key).ne.0)
     key = "species d"
-    call assert(777262830, aero_phase_data_set(2)%state_id(key).ne.0)
+    call assert(777262830, aero_phase_data_set(2)%spec_id(key).ne.0)
     key = "species e"
-    call assert(889581175, aero_phase_data_set(2)%state_id(key).ne.0)
+    call assert(889581175, aero_phase_data_set(2)%spec_id(key).ne.0)
     key = "species f"
-    call assert(154473773, aero_phase_data_set(2)%state_id(key).eq.0)
+    call assert(154473773, aero_phase_data_set(2)%spec_id(key).eq.0)
 
     key = "species b"
-    call assert(549267367, aero_phase_data_set(3)%state_id(key).ne.0)
+    call assert(549267367, aero_phase_data_set(3)%spec_id(key).ne.0)
     key = "species e"
-    call assert(379110463, aero_phase_data_set(3)%state_id(key).ne.0)
+    call assert(379110463, aero_phase_data_set(3)%spec_id(key).ne.0)
     key = "species a"
-    call assert(544003060, aero_phase_data_set(3)%state_id(key).eq.0)
+    call assert(544003060, aero_phase_data_set(3)%spec_id(key).eq.0)
 
 #ifdef PMC_USE_MPI
     pack_size = 0

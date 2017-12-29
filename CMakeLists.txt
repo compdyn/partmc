@@ -156,6 +156,7 @@ do_unit_test(chem_spec_data "PASS")
 do_unit_test(rxn_data "PASS")
 do_unit_test(aero_phase_data "PASS")
 if(ENABLE_JSON)
+  do_unit_test(aero_rep_data "PASS")
   do_unit_test(phlex_core "PASS")
 endif()
 
@@ -383,6 +384,13 @@ target_link_libraries(unit_test_phlex_core partmclib)
 add_executable(unit_test_aero_phase_data test/unit_aero_phase_data/test_aero_phase_data.F90)
 
 target_link_libraries(unit_test_aero_phase_data partmclib)
+
+######################################################################
+# test_aero_rep_data
+
+add_executable(unit_test_aero_rep_data test/unit_aero_rep_data/test_aero_rep_data.F90)
+
+target_link_libraries(unit_test_aero_rep_data partmclib)
 
 ######################################################################
 # test_chem_mech_solver

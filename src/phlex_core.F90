@@ -41,7 +41,7 @@ module pmc_phlex_core
     !> Aerosol representations
     type(aero_rep_data_ptr), pointer :: aero_rep(:)
     !> Aerosol phases
-    type(aero_phase_data_t), pointer :: aero_phase(:)
+    type(aero_phase_data_ptr), pointer :: aero_phase(:)
     !> Integration data
     type(integration_data_t), pointer, private :: integration_data => null()
   contains
@@ -99,6 +99,8 @@ contains
     allocate(new_obj)
     allocate(new_obj%mechanism(0))
     new_obj%chem_spec_data => chem_spec_data_t()
+    allocate(new_obj%aero_phase(0))
+    allocate(new_obj%aero_rep(0))
 
     if (present(input_file_path)) then
       call new_obj%load_files(input_file_path)
@@ -217,12 +219,12 @@ contains
     character(kind=json_ck, len=:), allocatable :: key, unicode_str_val
     character(len=:), allocatable :: str_val
 
-    type(aero_phase_data_t), pointer :: new_aero_phase(:)
+    type(aero_phase_data_ptr), pointer :: new_aero_phase(:)
     type(aero_rep_data_ptr), pointer :: new_aero_rep(:)
     type(aero_rep_factory_t) :: aero_rep_factory
 
     type(aero_phase_data_t), pointer :: aero_phase
-    type(aero_rep_data_ptr), pointer :: aero_rep_ptr
+    type(aero_rep_data_ptr) :: aero_rep_ptr
 
     integer(kind=i_kind) :: i_rep, i_phase
     logical :: found
@@ -256,28 +258,26 @@ contains
         else if (str_val(1:8).eq.'AERO_REP') then
           aero_rep_ptr%val => aero_rep_factory%load(json, j_obj)
           if (this%find_aero_rep(aero_rep_ptr%val%name(), i_rep)) then
-            deallocate(aero_rep_ptr)
             call this%aero_rep(i_rep)%val%load(json, j_obj)
           else
             allocate(new_aero_rep(size(this%aero_rep)+1))
             new_aero_rep(1:size(this%aero_rep)) = this%aero_rep(1:size(this%aero_rep))
             new_aero_rep(size(new_aero_rep))%val => aero_rep_ptr%val
-            deallocate(aero_rep_ptr)
             deallocate(this%aero_rep)
             this%aero_rep => new_aero_rep
           end if
         else if (str_val.eq.'AERO_PHASE') then
-          aero_phase = aero_phase_data_t()
+          aero_phase => aero_phase_data_t()
           call aero_phase%load(json, j_obj)
           if (this%find_aero_phase(aero_phase%name(), i_phase)) then
             deallocate(aero_phase)
-            call this%aero_phase(i_phase)%load(json, j_obj)
+            call this%aero_phase(i_phase)%val%load(json, j_obj)
           else
             allocate(new_aero_phase(size(this%aero_phase)+1))
             new_aero_phase(1:size(this%aero_phase)) = this%aero_phase(1:size(this%aero_phase))
-            new_aero_phase(size(new_aero_phase)) = aero_phase
+            new_aero_phase(size(new_aero_phase))%val => aero_phase
             deallocate(this%aero_phase)
-            this%aero_phase = new_aero_phase
+            this%aero_phase => new_aero_phase
           end if
         else
           call die_msg(448039776, "Received invalid json input object type: "//&
@@ -319,7 +319,7 @@ contains
 
     ! Initialize the aerosol phases
     do i_phase = 1, size(this%aero_phase)
-      call this%aero_phase(i_phase)%initialize(this%chem_spec_data)
+      call this%aero_phase(i_phase)%val%initialize(this%chem_spec_data)
     end do
 
     ! Initialize the aerosol representations
@@ -405,7 +405,9 @@ contains
     integer(kind=i_kind), intent(out) :: rep_id
 
     found = .false.
-    
+    rep_id = 0
+    if (size(this%aero_rep).eq.0) return
+
     do rep_id = 1, size(this%aero_rep)
       if (this%aero_rep(rep_id)%val%name().eq.rep_name) then
         found = .true.
@@ -477,7 +479,7 @@ contains
     found = .false.
     
     do phase_id = 1, size(this%aero_phase)
-      if (this%aero_phase(phase_id)%name().eq.phase_name) then
+      if (this%aero_phase(phase_id)%val%name().eq.phase_name) then
         found = .true.
         return
       end if
@@ -496,14 +498,14 @@ contains
     !> Aerosol phase name
     character(len=:), allocatable, intent(in) :: phase_name
 
-    type(aero_phase_data_t), pointer :: new_aero_phase(:)
+    type(aero_phase_data_ptr), pointer :: new_aero_phase(:)
 
     allocate(new_aero_phase(size(this%aero_phase)+1))
 
     new_aero_phase(1:size(this%aero_phase)) = &
             this%aero_phase(1:size(this%aero_phase))
 
-    new_aero_phase(size(new_aero_phase)) = aero_phase_data_t(phase_name)
+    new_aero_phase(size(new_aero_phase))%val => aero_phase_data_t(phase_name)
 
     deallocate(this%aero_phase)
     this%aero_phase => new_aero_phase

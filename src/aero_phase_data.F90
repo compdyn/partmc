@@ -24,7 +24,7 @@ module pmc_aero_phase_data
   implicit none
   private
 
-  public :: aero_phase_data_t
+  public :: aero_phase_data_t, aero_phase_data_ptr
 
   !> Reallocation increment
   integer(kind=i_kind), parameter :: REALLOC_INC = 50
@@ -101,6 +101,11 @@ module pmc_aero_phase_data
   interface aero_phase_data_t
     procedure :: constructor
   end interface aero_phase_data_t
+
+  !> Pointer type for building arrays
+  type aero_phase_data_ptr
+    type(aero_phase_data_t), pointer :: val
+  end type aero_phase_data_ptr
 
 contains
 

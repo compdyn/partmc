@@ -51,6 +51,7 @@ contains
       passed = run_consecutive_mech_test()
     else
       call warn_msg(398972036, "No solver available")
+      passed = .true.
     end if
 
   end function run_pmc_chem_mech_solver_tests

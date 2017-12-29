@@ -35,11 +35,13 @@ module pmc_aero_rep_data
   type, abstract :: aero_rep_data_t
     private
     !> Name of the aerosol representation
-    character(len=:), allocatable :: rep_name
+    !! FIXME This should be a private component, but extending types need
+    !! access to it.
+    character(len=:), allocatable, public :: rep_name
     !> Aerosol phases associated with this aerosol scheme
     !! FIXME This should be a private component, but extending types need
     !! access to it.
-    type(aero_phase_data_t), allocatable, public :: aero_phase(:)
+    type(aero_phase_data_ptr), allocatable, public :: aero_phase(:)
     !> Aerosol representation parameters. These will be available during 
     !! initialization, but not during integration. All information required
     !! by functions of the aerosol representation  must be saved by the
@@ -82,9 +84,10 @@ module pmc_aero_rep_data
     !! (m^2/m^3)
     procedure(species_surface_area_conc), deferred :: &
             species_surface_area_conc
-    !> Get the vapor pressure scaling for a particular species (unitless)
-    procedure(vapor_pressure_scaling), deferred :: &
-            vapor_pressure_scaling
+    !> Get the Kelvin effect vapor pressure adjustment for a particular 
+    !! species (unitless)
+    procedure(kelvin_effect), deferred :: &
+            kelvin_effect
     !> Get the name of the aerosol representation
     procedure :: name => get_name
     !> Get a phase id in this aerosol representation
@@ -126,7 +129,7 @@ interface
     !> Aerosol representation data
     class(aero_rep_data_t), intent(inout) :: this
     !> The set of aerosol phases
-    type(aero_phase_data_t), pointer, intent(in) :: aero_phase_set(:)
+    type(aero_phase_data_ptr), pointer, intent(in) :: aero_phase_set(:)
     !> Beginning state id for this aerosol representationin the model species
     !! state array
     integer(kind=i_kind), intent(in) :: spec_state_id
@@ -246,7 +249,7 @@ interface
     !! state array that, when present, will be filled with the partial
     !! derivatives of the result of this calculation with each state
     !! variable.
-    real(kind=dp), allocatable, intent(out), optional :: jac_contrib(:)
+    real(kind=dp), allocatable, intent(inout), optional :: jac_contrib(:)
 
   end function surface_area_conc
 
@@ -275,20 +278,21 @@ interface
     !! state array that, when present, will be filled with the partial
     !! derivatives of the result of this calculation with each state
     !! variable.
-    real(kind=dp), allocatable, intent(out), optional :: jac_contrib(:)
+    real(kind=dp), allocatable, intent(inout), optional :: jac_contrib(:)
 
   end function species_surface_area_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             
-  !> Get the vapor pressure scaling for a particular species (unitless)
-  function vapor_pressure_scaling(this, i_spec, phlex_state, jac_contrib)
+  !> Get the Kelvin effect vapor pressure adjustment for a particular species 
+  !! (unitless)
+  function kelvin_effect(this, i_spec, phlex_state, jac_contrib)
     use pmc_util,                                     only : dp, i_kind
     use pmc_phlex_state
     import :: aero_rep_data_t
 
     !> Vapor pressure scaling
-    real(kind=dp) :: vapor_pressure_scaling
+    real(kind=dp) :: kelvin_effect
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
     !> Species name
@@ -299,9 +303,9 @@ interface
     !! state array that, when present, will be filled with the partial
     !! derivatives of the result of this calculation with each state
     !! variable.
-    real(kind=dp), allocatable, intent(out), optional :: jac_contrib(:)
+    real(kind=dp), allocatable, intent(inout), optional :: jac_contrib(:)
 
-  end function vapor_pressure_scaling
+  end function kelvin_effect
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -340,7 +344,7 @@ contains
 
     phase_id = 0
     do i_phase = 1, size(this%aero_phase)
-      if (this%aero_phase(i_phase)%name().eq.phase_name) then
+      if (this%aero_phase(i_phase)%val%name().eq.phase_name) then
         phase_id = i_phase
         return
       end if
@@ -440,7 +444,7 @@ contains
   subroutine load(this, json, j_obj)
 
     !> Aerosol representation data
-    class(aero_rep_data_t), intent(out) :: this
+    class(aero_rep_data_t), intent(inout) :: this
     !> JSON core
     type(json_core), pointer, intent(in) :: json
     !> JSON object

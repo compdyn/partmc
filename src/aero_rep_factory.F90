@@ -73,6 +73,7 @@ contains
         call die_msg(792930166, "Unknown aerosol representation type: " &
                 //type_name) 
     end select
+    new_obj%rep_name = type_name
 
   end function create
 

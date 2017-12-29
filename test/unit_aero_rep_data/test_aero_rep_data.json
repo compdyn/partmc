@@ -1,0 +1,60 @@
+{
+	"pmc-data" : [
+{
+	"type" : "AERO_REP_SINGLE_PARTICLE"
+},
+{
+	"name" : "my test phase one",
+	"type" : "AERO_PHASE",
+	"species" : ["species a", "species b", "species c"],
+	"some property" : 12.2
+},
+{
+	"name" : "my test phase two",
+	"type" : "AERO_PHASE",
+	"species" : ["species c", "species d", "species e"],
+	"some other property" : false
+},
+{
+	"name" : "my last test phase",
+	"type" : "AERO_PHASE",
+	"species" : ["species b", "species e"],
+	"some property" : 13.75
+},
+{
+	"name" : "species a",
+	"type" : "AERO_SPEC",
+	"density" : 1.0
+},
+{
+	"name" : "species b",
+	"type" : "AERO_SPEC",
+	"density" : 2.0
+},
+{
+	"name" : "species c",
+	"type" : "AERO_SPEC",
+	"density" : 3.0
+},
+{
+	"name" : "species d",
+	"type" : "AERO_SPEC",
+	"density" : 4.0
+},
+{
+	"name" : "species e",
+	"type" : "AERO_SPEC",
+	"density" : 5.0
+},
+{
+	"name" : "species f",
+	"type" : "AERO_SPEC",
+	"density" : 6.0
+},
+{
+	"name" : "species g",
+	"type" : "AERO_SPEC",
+	"density" : 7.0
+}
+	]
+}

@@ -29,6 +29,7 @@ module pmc_aero_rep_single_particle
 #define _PHASE_STATE_ID_(x) this%condensed_data_int(_NUM_INT_PROP_ + x)
 #define _SPEC_STATE_ID_(y,x) _PHASE_STATE_ID_(y) + x - 1
 #define _PHASE_SPEC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_PHASE_ + x)
+#define _NUM_SPEC_(x) this%condensed_data_int(_NUM_INT_PROP_ + (_NUM_PHASE_)*2 + x)
 #define _DENSITY_(y,x) this%condensed_data_real(_PHASE_SPEC_ID_(y) + x - 1)
 #define _MASS_(y,x) phlex_state%state_var(_PHASE_STATE_ID_(y) + x - 1)
   
@@ -57,7 +58,7 @@ module pmc_aero_rep_single_particle
     !! (m^2/m^3)
     procedure :: species_surface_area_conc
     !> Get the vapor pressure scaling for a particular species (unitless)
-    procedure :: vapor_pressure_scaling
+    procedure :: kelvin_effect
 
     !> Private functions
     !> Get the associated aero_rep_state_t variable
@@ -97,7 +98,7 @@ contains
     !> Aerosol representation data
     class(aero_rep_single_particle_t), intent(inout) :: this
     !> The set of aerosol phases
-    type(aero_phase_data_t), pointer, intent(in) :: aero_phase_set(:)
+    type(aero_phase_data_ptr), pointer, intent(in) :: aero_phase_set(:)
     !> Beginning state id for this aerosol representationin the model species
     !! state array
     integer(kind=i_kind), intent(in) :: spec_state_id
@@ -116,17 +117,18 @@ contains
     ! Assume all phases will be applied to each particle
     allocate(this%aero_phase(size(aero_phase_set)))
     do i_phase = 1, size(aero_phase_set)
-      this%aero_phase(i_phase) = aero_phase_set(i_phase)
+      allocate(this%aero_phase(i_phase)%val)
+      this%aero_phase(i_phase)%val = aero_phase_set(i_phase)%val
     end do
 
     ! Get the total number of species across all phases
     num_spec = 0
     do i_phase = 1, size(this%aero_phase)
-      num_spec = num_spec + this%aero_phase(i_phase)%size()
+      num_spec = num_spec + this%aero_phase(i_phase)%val%size()
     end do
 
     ! Allocate condensed data arrays
-    allocate(this%condensed_data_int(_NUM_INT_PROP_ + 2*size(this%aero_phase)))
+    allocate(this%condensed_data_int(_NUM_INT_PROP_ + 3*size(this%aero_phase)))
     allocate(this%condensed_data_real(_NUM_REAL_PROP_ + num_spec))
 
     ! Set indexes
@@ -137,15 +139,16 @@ contains
     do i_phase = 1, _NUM_PHASE_
       _PHASE_STATE_ID_(i_phase) = curr_id
       _PHASE_SPEC_ID_(i_phase) = curr_spec_id
-      curr_spec_id = curr_spec_id + this%aero_phase(i_phase)%size()
-      curr_id = curr_id + this%aero_phase(i_phase)%size()
+      _NUM_SPEC_(i_phase) = this%aero_phase(i_phase)%val%size()
+      curr_spec_id = curr_spec_id + this%aero_phase(i_phase)%val%size()
+      curr_id = curr_id + this%aero_phase(i_phase)%val%size()
     end do
 
     ! Set densities
     key = "density"
     do i_phase = 1, _NUM_PHASE_
       curr_spec_id = 1
-      species = this%aero_phase(i_phase)%get_species()
+      species = this%aero_phase(i_phase)%val%get_species()
       do i_spec = 1, size(species)
         spec_props = chem_spec_data%get_property_set(species(i_spec)%string)
         if (.not.associated(spec_props)) then
@@ -178,7 +181,7 @@ contains
     ! Get the total number of species across all phases
     state_size = 0
     do i_phase = 1, size(this%aero_phase)
-      state_size = state_size + this%aero_phase(i_phase)%size()
+      state_size = state_size + this%aero_phase(i_phase)%val%size()
     end do
 
   end function get_size
@@ -193,19 +196,24 @@ contains
     !> Aerosol representation data
     class(aero_rep_single_particle_t), intent(in) :: this
 
-    integer(kind=i_kind) :: num_spec, i_spec, i_phase
-    type(string_t), allocatable :: phase_names(:)
+    integer(kind=i_kind) :: num_spec, i_spec, j_spec, i_phase
+    type(string_t), allocatable :: spec_names(:)
+    character(len=:), allocatable :: phase_name
     
     num_spec = 0
     do i_phase = 1, size(this%aero_phase)
-      num_spec = num_spec + this%aero_phase(i_phase)%size()
+      num_spec = num_spec + this%aero_phase(i_phase)%val%size()
     end do
     allocate(unique_names(num_spec))
     i_spec = 1
     do i_phase = 1, size(this%aero_phase)
-      num_spec = this%aero_phase(i_phase)%size()
-      phase_names = this%aero_phase(i_phase)%get_species()
-      unique_names(i_spec:i_spec-1+num_spec) = phase_names(1:num_spec)
+      phase_name = this%aero_phase(i_phase)%val%name()
+      num_spec = this%aero_phase(i_phase)%val%size()
+      spec_names = this%aero_phase(i_phase)%val%get_species()
+      do j_spec = 1, num_spec
+        unique_names(i_spec + j_spec - 1)%string = &
+                phase_name//'.'//spec_names(j_spec)%string
+      end do
       i_spec = i_spec + num_spec
     end do
 
@@ -230,7 +238,7 @@ contains
     unique_names = this%unique_names()
     do i_spec = 1, size(unique_names)
       if (unique_names(i_spec)%string .eq. unique_name) then
-        spec_id = i_spec
+        spec_id = _PHASE_STATE_ID_(1) + i_spec - 1
         return
       end if
     end do
@@ -284,10 +292,10 @@ contains
     i_phase = this%phase_id(phase_name)
     call assert_msg(820720954, i_phase.gt.0, "Invalid phase requested: "// &
             phase_name)
-    i_spec = this%aero_phase(i_phase)%state_id(species_name)
+    i_spec = this%aero_phase(i_phase)%val%state_id(species_name)
     call assert_msg(413945507, i_spec.gt.0, "Invalid species requested: "// &
             species_name//" for phase: "//phase_name)
-    spec_index(1) = _PHASE_STATE_ID_(i_phase) + i_spec
+    spec_index(1) = _PHASE_STATE_ID_(i_phase) + i_spec - 1
 
   end function species_state_id
 
@@ -295,7 +303,33 @@ contains
 
   !> Get surface area concentration (m^2/m^3) between two phases. One phase
   !! may be set to 0 to indicate the gas-phase, or both phases may be aerosol
-  !! phases, with a corresponding index
+  !! phases, with a corresponding index.
+  !!
+  !! For single particles, currently only gas-aerosol interfaces are solved
+  !! for. Because species are tracked by mass, the gas-aerosol surface area
+  !! density for a single phase (assuming each phase has an exposed surface
+  !! proportional to its fractional aerosol volume) is:
+  !!
+  !!   \f$A_P = \frac{V_P}{r_T}\f$
+  !!
+  !! where A is the exposed surface, V is the volume, r is the radius of the 
+  !! particle, T indicates the total set of aerosol species and P indicates
+  !! the aerosol species within a particular phase. The radius and volumes are
+  !! calculated as:
+  !!
+  !!   \f$r_T = (\frac{3V_T}{4\pi})^(\frac{1}{3})\f$
+  !!   \f$V_{T/P} = \sum_x \rho_x m_x \forall x \in T or P\f$
+  !!
+  !! where \f$rho_x\f$ is the density of species x and \f$m_x\f$ is its mass.
+  !! The partial derivative of \f$A_P\f$ with respect to a single aerosol 
+  !! species is:
+  !!
+  !!   \f$\frac{dA_P}{dx} = \frac{(3r_T\frac{dV_P}{dx} - 
+  !!       3V_P\frac{dr_T}{dx})}{r_T^2}\f$
+  !!   \f$\frac{dV_P}{dx} = \rho_x\ \forall x \in P\f$
+  !!   \f$\frac{dr_T}{dx} = \frac{1}{3}\(\frac{3V_T}{4\pi}\)^\frac{1}{3} 
+  !!       \rho_x\ \forall x \in T\f$
+  !!
   function surface_area_conc(this, i_phase1, i_phase2, phlex_state, &
                   jac_contrib)
     use pmc_util,                                     only : dp
@@ -305,9 +339,9 @@ contains
     real(kind=dp) :: surface_area_conc
     !> Aerosol representation data
     class(aero_rep_single_particle_t), intent(in) :: this
-    !> Aerosol phase1 id
+    !> Aerosol phase 1 id
     integer(kind=i_kind), intent(in) :: i_phase1
-    !> Aerosol phase2 id
+    !> Aerosol phase 2 id
     integer(kind=i_kind), intent(in) :: i_phase2
     !> Model state
     type(phlex_state_t), intent(in) :: phlex_state
@@ -315,10 +349,10 @@ contains
     !! state array that, when present, will be filled with the partial
     !! derivatives of the result of this calculation with each state
     !! variable.
-    real(kind=dp), allocatable, intent(out), optional :: jac_contrib(:)
+    real(kind=dp), allocatable, intent(inout), optional :: jac_contrib(:)
 
-    real(kind=dp) :: volume, radius
-    integer(kind=i_kind) :: i_phase, i_spec
+    real(kind=dp) :: v_t, v_p, r_t, temp_jac
+    integer(kind=i_kind) :: i_phase, j_phase, i_spec
 
     ! Currently, only gas-aerosol interfaces are supported
     if (i_phase1.ne.0 .and. i_phase2.ne.0) then
@@ -327,27 +361,40 @@ contains
     end if
     i_phase = i_phase1 + i_phase2
 
-    ! Calculate the volume density (m^3_aerosol/m^3_air)
-    volume = 0
-    do i_spec = 1, this%aero_phase(i_phase)%size()
-      volume = volume + _DENSITY_(i_phase, i_spec) &
-              * _MASS_(i_phase, i_spec)
+    ! Calculate phase and total volume denisty (m^3/m^3)
+    v_t = 0.0
+    v_p = 0.0
+    do j_phase = 1, _NUM_PHASE_
+      do i_spec = 1, _NUM_SPEC_(j_phase)
+        if (j_phase.eq.i_phase) v_p = v_p + &
+               _MASS_(j_phase, i_spec) * &
+               _DENSITY_(j_phase, i_spec)
+        v_t = v_t + _MASS_(j_phase, i_spec) * &
+               _DENSITY_(j_phase, i_spec)
+      end do 
     end do
-    radius = (3.0/4.0*volume/const%pi)**(1/3)
+
+    ! Calculate radius (m)
+    r_t = (3.0/4.0*v_t/const%pi)**(1.0/3.0)
 
     ! Calculate the surface area density (m^2/m^3)
-    surface_area_conc = 3.0 * volume / radius
+    surface_area_conc = 3.0 * v_p / r_t
+
+    write(*,*) v_p, v_t, r_t, surface_area_conc
 
     ! Calculate jac_contrib
-    ! TODO check math
-    ! dSA/dx = 2*(3/4*V/pi)^(-1/3)*dV/dx
-    ! dV/dx = density(x)
     if (present(jac_contrib)) then
       jac_contrib(:) = real(0.0, kind=dp)
-      do i_spec = 1, this%aero_phase(i_phase)%size()
-        jac_contrib(_SPEC_STATE_ID_(i_phase, i_spec)) = &
-                2.0/((3.0/4.0*volume/const%pi)**(1/3)) * &
-                _DENSITY_(i_phase, i_spec)
+      do j_phase = 1, _NUM_PHASE_
+        do i_spec = 1, _NUM_SPEC_(j_phase)
+          temp_jac = 0.0
+          if (j_phase.eq.i_phase) temp_jac = 3.0 * r_t * &
+                  _DENSITY_(j_phase, i_spec)
+          temp_jac = temp_jac - v_p * (3.0/4.0*v_t/const%pi)**(1.0/3.0) * &
+                  _DENSITY_(j_phase, i_spec)
+          jac_contrib(_SPEC_STATE_ID_(j_phase, i_spec)) = &
+                  temp_jac / (r_t * r_t)
+        end do
       end do
     end if
 
@@ -358,8 +405,14 @@ contains
   !> Get the surface area concentration for a specific aerosol species
   !! (m^2/m^3). It is assumed the surface is between the gas-phase and an
   !! aerosol phase.
+  !!
+  !! Species surface area concentration for single particles is calculated the
+  !! same way as surface area concentration, but with \f$P\f$ being the 
+  !! single-element set of species \f$x\f$.
+  !!
   function species_surface_area_conc(this,  i_phase, i_spec, phlex_state, &
                 jac_contrib) result(surface_area_conc)
+    use pmc_constants
     use pmc_util,                                     only : dp
 
     !> Surface area concentration
@@ -376,36 +429,43 @@ contains
     !! state array that, when present, will be filled with the partial
     !! derivatives of the result of this calculation with each state
     !! variable.
-    real(kind=dp), allocatable, intent(out), optional :: jac_contrib(:)
+    real(kind=dp), allocatable, intent(inout), optional :: jac_contrib(:)
 
-    real(kind=dp) :: mass_frac, surface_area
-    integer(kind=i_kind) :: j_spec
+    real(kind=dp) :: surface_area, v_t, v_p, r_t, temp_jac
+    integer(kind=i_kind) :: j_spec, j_phase
     
-    ! Get the mass fraction of this species (kg/kg)
-    mass_frac = real(0.0, kind=dp)
-    do j_spec = 1, this%aero_phase(i_phase)%size()
-      mass_frac = mass_frac + _MASS_(i_phase, j_spec)
+    ! Calculate phase and total volume denisty (m^3/m^3)
+    v_t = 0.0
+    v_p = 0.0
+    do j_phase = 1, _NUM_PHASE_
+      do j_spec = 1, _NUM_SPEC_(j_phase)
+        if (j_phase.eq.i_phase .and. j_spec.eq.i_spec) v_p = v_p + &
+               _MASS_(j_phase, j_spec) * &
+               _DENSITY_(j_phase, j_spec)
+        v_t = v_t + _MASS_(j_phase, j_spec) * &
+               _DENSITY_(j_phase, j_spec)
+      end do 
     end do
-    if (mass_frac.gt.0.0) mass_frac = _MASS_(i_phase, i_spec) / mass_frac
-    
-    ! Get the surface area density (m^2/m^3)
-    if (present(jac_contrib)) then
-      surface_area = this%surface_area_conc(0, i_phase, phlex_state, jac_contrib)
-    else
-      surface_area = this%surface_area_conc(0, i_phase, phlex_state)
-    end if
 
-    ! get the surface area for this species (m^2/m^3)
-    surface_area_conc = mass_frac * surface_area
+    ! Calculate radius (m)
+    r_t = (3.0/4.0*v_t/const%pi)**(1.0/3.0)
+
+    ! Calculate the surface area density (m^2/m^3)
+    surface_area_conc = 3.0 * v_p / r_t
 
     ! Calculate jac_contrib
-    ! TODO check math
-    ! dSSA/dx = dSA/dx * MF + SA * dMF/dx
     if (present(jac_contrib)) then
-      do j_spec = 1, this%aero_phase(i_phase)%size()
-        jac_contrib(_SPEC_STATE_ID_(i_phase, j_spec)) = &
-                jac_contrib(_SPEC_STATE_ID_(i_phase, j_spec)) * mass_frac + &
-                surface_area_conc * merge(0, 1, i_spec.eq.j_spec)
+      jac_contrib(:) = real(0.0, kind=dp)
+      do j_phase = 1, _NUM_PHASE_
+        do j_spec = 1, _NUM_SPEC_(j_phase)
+          temp_jac = 0.0
+          if (j_phase.eq.i_phase .and. j_spec.eq.i_spec) temp_jac = 3.0 * &
+                  r_t * _DENSITY_(j_phase, j_spec)
+          temp_jac = temp_jac - v_p * (3.0/4.0*v_t/const%pi)**(1.0/3.0) * &
+                  _DENSITY_(j_phase, j_spec)
+          jac_contrib(_SPEC_STATE_ID_(j_phase, j_spec)) = &
+                  temp_jac / (r_t * r_t)
+        end do
       end do
     end if
 
@@ -413,12 +473,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             
-  !> Get the vapor pressure scaling for a particular species (unitless)
-  function vapor_pressure_scaling(this, i_spec, phlex_state, jac_contrib)
+  !> Get the Kelvin effect adjustment to a species vapor pressure (unitless)
+  function kelvin_effect(this, i_spec, phlex_state, jac_contrib)
     use pmc_util,                                     only : dp
 
     !> Vapor pressure scaling
-    real(kind=dp) :: vapor_pressure_scaling
+    real(kind=dp) :: kelvin_effect
     !> Aerosol representation data
     class(aero_rep_single_particle_t), intent(in) :: this
     !> Species id
@@ -429,13 +489,13 @@ contains
     !! state array that, when present, will be filled with the partial
     !! derivatives of the result of this calculation with each state
     !! variable.
-    real(kind=dp), allocatable, intent(out), optional :: jac_contrib(:)
+    real(kind=dp), allocatable, intent(inout), optional :: jac_contrib(:)
 
     ! TODO Finish
 
     call die_msg(787876225, "Kelvin effect not available yet.")
     
-  end function vapor_pressure_scaling
+  end function kelvin_effect
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

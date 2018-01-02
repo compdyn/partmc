@@ -62,7 +62,7 @@ module pmc_aero_phase_data
 
   !> Aerosol phase data type
   !!
-  !! Aerosol phase information. 
+  !! \ref phlex_aero_phase "Aerosol phase" information. 
   type :: aero_phase_data_t
     private
     !> Name of the aerosol phase
@@ -79,12 +79,15 @@ module pmc_aero_phase_data
     !! saved by the \c pmc_aero_rep_data::aero_rep_data_t-exdending type in
     !! the condensed data arrays.
     type(property_t), pointer :: property_set => null()
-    !> Condensed representaiton data. Theses arrays will be available during
+    !> Condensed phase data. Theses arrays will be available during
     !! integration, and should contain any information required by the
-    !! functions of the aerosol representation that cannot be obtained
-    !! from the phlex_state_t object. (floating-point)
+    !! functions of the aerosol phase that cannot be obtained
+    !! from the \c pmc_phlex_state::phlex_state_t object. (floating-point)
     real(kind=dp), allocatable :: condensed_data_real(:)
-    !> Condensed reaction data (integers)
+    !> Condensed phase data. Theses arrays will be available during
+    !! integration, and should contain any information required by the
+    !! functions of the aerosol phase that cannot be obtained
+    !! from the \c pmc_phlex_state::phlex_state_t object. (integer)
     integer(kind=i_kind), allocatable ::  condensed_data_int(:)
   contains
     !> Aerosol representation initialization
@@ -115,7 +118,7 @@ module pmc_aero_phase_data
     !> Print the aerosol phase data
     procedure :: print => do_print
 
-    !> Private functions
+    ! Private functions
     !> Add a species
     procedure, private :: add
     !> Ensure there is enough room in the species dataset to add a specified
@@ -295,8 +298,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#ifdef PMC_USE_JSON
   !> Load species from an input file
+#ifdef PMC_USE_JSON
   subroutine load(this, json, j_obj)
 
     !> Aerosol phase data

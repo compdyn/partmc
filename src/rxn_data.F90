@@ -7,7 +7,41 @@
 
 !> \page phlex_rxn Phlexible Module for Chemistry: Reactions
 !!
-!! Descriptions
+!! A reaction represents a transformation of the model state due to a physical
+!! or chemical process that occurs within a phase (gas or \ref
+!! phlex_aero_phase "aerosol") or across the interface between two phases. In
+!! the \ref phlex_chem "phlex-chem" model, reactions are grouped into \ref
+!! phlex_mechanism "mechanisms", which are solved over time-steps specified by
+!! the host model.
+!!
+!! The primary function of a reaction in the \ref phlex_chem "phlex-chem"
+!! model is to provide the solver with contributions to the time derivative 
+!! and Jacobian matrix for \ref phlex_species "chemical species"
+!! concentrations based on the current model state described in a \c
+!! pmc_phlex_state::phlex_state_t object.
+!!
+!! Specific reaction types extend the abstract \c pmc_rxn_data::rxn_data_t
+!! type and generally accept a set of reactants and products whose names
+!! correspond to \ref phlex_species "chemical species" names, as well as a
+!! set of reaction parameters needed to describe a particular reaction.
+!! During initialization, a reaction will have access to its set of parameters
+!! as well as the parameters of any \ref phlex_species "species" and \ref
+!! phlex_aero_rep "aerosol phase" in the \ref phlex_chem "phlex-chem" model,
+!! however this information will not be available during a model run. The
+!! information required by the reaction instance to calculate its contribution
+!! to the time derivatve and Jacobian matrix must therefore be packed into
+!! the condensed data arrays of the \c pmc_rep_data::rep_data_t object during
+!! intialization.
+!!  
+!! Valid reaction types include:
+!!
+!!   - \subpage phlex_rxn_arrhenius "Arrhenius"
+!!
+!! The general input format for a reaction can be found \ref input_format_rxn
+!! "here".
+!!
+!! General instructions for adding a new reaction type can be found \ref
+!! phlex_rxn_add "here".
 
 !> The rxn_data_t structure and associated subroutines.
 module pmc_rxn_data
@@ -39,42 +73,49 @@ module pmc_rxn_data
 
   !> Abstract reaction data type
   !!
-  !! Time-invariant data related to a chemical reaction. Types extending
-  !! rxn_data_t should represent specific reaction types, with unique
-  !! rate equations. Extending types should not have data members, as these
-  !! will not be passed to the child nodes after initialization. Instead all
-  !! data required by an extending type during a model run should be packed
-  !! into the condensed_data arrays during initialization.
+  !! Time-invariant data related to a \ref phlex_rxn "reaction". Types
+  !! extending \c rxn_data_t should represent specific reaction types, with
+  !! unique rate equations. Extending types should not have data members, as
+  !! these will not be passed to the child nodes after initialization. Instead
+  !! all data required by an extending type during a model run should be
+  !! packed into the condensed_data arrays during initialization.
   type, abstract :: rxn_data_t
     private
     !> Reaction phase
-    !! FIXME This should be a private component, but extending types need
-    !! access to it.
     integer(kind=i_kind), public :: rxn_phase
     !> Reaction parameters. These will be available during initialization,
     !! but not during integration. All information required to calculate
-    !! the time derivatives and jacobian matrix constributions must be
+    !! the time derivatives and Jacobian matrix constributions must be
     !! saved by the exdending type.
-    !! FIXME This should be a private component, but extending types need
-    !! access to it.
     type(property_t), pointer, public :: property_set => null()
     !> Condensed reaction data. Theses arrays will be available during
     !! integration, and should contain any information required by the
     !! rate and Jacobian constribution functions that cannot be obtained
-    !! from the phlex_state_t object.
-    !! FIXME This should be a private component, but extending types need
-    !! access to it.
+    !! from the \c pmc_phlex_state::phlex_state_t object. (floating-point)
     real(kind=dp), allocatable, public :: condensed_data_real(:)
-    !> Condensed reaction data (integers)
-    !! FIXME This should be a private component, but extending types need
-    !! access to it.
+    !> Condensed reaction data. Theses arrays will be available during
+    !! integration, and should contain any information required by the
+    !! rate and Jacobian constribution functions that cannot be obtained
+    !! from the \c pmc_phlex_state::phlex_state_t object. (integer)
     integer(kind=i_kind), allocatable, public ::  condensed_data_int(:)
   contains
-    !> Reaction initialization
+    !> Reaction initialization. Takes species, phase and reaction parameters
+    !! and packs required information into the condensed data arrays for use
+    !! during the model run.
+    !!
+    !! This routine should be called once for each reaction
+    !! at the beginning of a model run after all the input files have been
+    !! read in.
     procedure(initialize), deferred :: initialize
-    !> Rate contribution
+    !> Calculate the contribution to the time derivative vector. The current 
+    !! model state is provided for species concentrations, aerosol state and 
+    !! environmental variables. All other parameters must have been saved to the
+    !! reaction data instance during initialization.
     procedure(func_contrib), deferred :: func_contrib
-    !> Jacobian matrix contribution
+    !> Calculate the contribution of this reaction to the Jacobian matrix.
+    !! The current model state is provided for species concentrations and 
+    !! aerosol state. All other parameters must have been saved to the reaction 
+    !! data instance during initialization.
     procedure(jac_contrib), deferred :: jac_contrib
     !> Check the phase of the reaction against the phase being solved for.
     !! During GAS_RXN integrations, only GAS_RXN reactions are solved.
@@ -103,12 +144,13 @@ interface
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Initialize the reaction data, validating component data and loading
-  !! any required information from reactant, product and reaction 
-  !! property_t objects. This routine should be called once for each reaction
+  !> Reaction initialization. Takes species, phase and reaction parameters
+  !! and packs required information into the condensed data arrays for use
+  !! during the model run.
+  !!
+  !! This routine should be called once for each reaction
   !! at the beginning of a model run after all the input files have been
-  !! read in. It ensure all data required during the model run are included
-  !! in the condensed data arrays.
+  !! read in.
   subroutine initialize(this, chem_spec_data)
     import :: rxn_data_t, chem_spec_data_t
 
@@ -167,7 +209,11 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Check that the phase of the reaction is being solved
+  !> Check the phase of the reaction against the phase being solved for.
+  !! During GAS_RXN integrations, only GAS_RXN reactions are solved.
+  !! During AERO_RXN integrations, only AERO_RXN and GAS_AERO_RXN
+  !! reactions are solved. During GAS_AERO_RXN integrations, all 
+  !! reactions are solved.
   logical function check_phase(this, rxn_phase) result (valid_rxn)
 
     !> Reaction data
@@ -309,8 +355,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#ifdef PMC_USE_JSON
   !> Load reactions from an input file
+#ifdef PMC_USE_JSON
   subroutine load(this, json, j_obj)
 
     !> Reaction data

@@ -184,15 +184,15 @@ contains
     ! Set the species concentrations
     phlex_state%state_var(:) = real(0.0, kind=dp)
     spec_name = "peanut butter"
-    phlex_state%state_var(spec_data%state_id(spec_name)) = real(200.0, kind=dp)
+    phlex_state%state_var(spec_data%gas_state_id(spec_name)) = real(200.0, kind=dp)
     spec_name = "jelly"
-    phlex_state%state_var(spec_data%state_id(spec_name)) = real(150.0, kind=dp)
+    phlex_state%state_var(spec_data%gas_state_id(spec_name)) = real(150.0, kind=dp)
     spec_name = "oreo"
-    phlex_state%state_var(spec_data%state_id(spec_name)) = real(100.0, kind=dp)
+    phlex_state%state_var(spec_data%gas_state_id(spec_name)) = real(100.0, kind=dp)
     spec_name = "sandwich"
-    phlex_state%state_var(spec_data%state_id(spec_name)) = real(75.0, kind=dp)
+    phlex_state%state_var(spec_data%gas_state_id(spec_name)) = real(75.0, kind=dp)
     spec_name = "snack"
-    phlex_state%state_var(spec_data%state_id(spec_name)) = real(50.0, kind=dp)
+    phlex_state%state_var(spec_data%gas_state_id(spec_name)) = real(50.0, kind=dp)
 
     ! Calculate contributions from the test reaction to the time derivative 
     ! and the Jacobian matric
@@ -208,13 +208,13 @@ contains
     ! Peanut butter is consumed in its reaction with jelly
     test_real = -200.0 * 150.0/42.5 * 1.2e3 * exp(1.2 + 301.15/298.15)
     spec_name = "peanut butter"
-    call assert(445736741, abs(func(spec_data%state_id(spec_name))-test_real)/ &
+    call assert(445736741, abs(func(spec_data%gas_state_id(spec_name))-test_real)/ &
             abs(test_real) .lt. 1e-6)
 
     ! Jelly is consumed in its reaction with peanut butter
     test_real = -200.0/12.75 * 150.0 * 1.2e3 * exp(1.2 + 301.15/298.15)
     spec_name = "jelly"
-    call assert(509063946, abs(func(spec_data%state_id(spec_name))-test_real)/ &
+    call assert(509063946, abs(func(spec_data%gas_state_id(spec_name))-test_real)/ &
             abs(test_real) .lt. 1e-6)
 
     ! Sandwiches are mode from peanut butter and jelly and destroyed in the lunch-
@@ -222,19 +222,19 @@ contains
     test_real = 200.0/12.75 * 150.0/42.5 * 1.2e3 * exp(1.2 + 301.15/298.15)
     test_real = test_real - 75.0 * 50.0/185.39 * 5.2e4 * exp(1.0 + 301.15/298)
     spec_name = "sandwich"
-    call assert(286332790, abs(func(spec_data%state_id(spec_name))-test_real)/ &
+    call assert(286332790, abs(func(spec_data%gas_state_id(spec_name))-test_real)/ &
             abs(test_real) .lt. 1e-6)
 
     ! Oreos are consumed in a self-reaction (double stuffing)
     test_real = -2.0 * 100.0 * 100.0/12.45 * 3056 * exp(0.9 + 301.15/275.0)
     spec_name = "oreo"
-    call assert(398651135, abs(func(spec_data%state_id(spec_name))-test_real)/ &
+    call assert(398651135, abs(func(spec_data%gas_state_id(spec_name))-test_real)/ &
             abs(test_real) .lt. 1e-6)
 
     ! Oreo lids accumulate from the double stuffing process
     test_real = 2.0 * 100.0/12.45 * 100.0/12.45 * 3056 * exp(0.9 + 301.15/275.0)
     spec_name = "extra lid"
-    call assert(423701766, abs(func(spec_data%state_id(spec_name))-test_real)/ &
+    call assert(423701766, abs(func(spec_data%gas_state_id(spec_name))-test_real)/ &
             abs(test_real) .lt. 1e-6)
 
     ! Snacks are formed from oreo double stuffing and react with sandwiches to
@@ -242,13 +242,13 @@ contains
     test_real = 100.0/12.45 * 100.0/12.45 * 3056 * exp(0.9 + 301.15/275.0)
     test_real = test_real - 50.0 * 75.0/13.58 * 5.2e4 * exp(1.0 + 301.15/298) 
     spec_name = "snack"
-    call assert(121073879, abs(func(spec_data%state_id(spec_name))-test_real)/ &
+    call assert(121073879, abs(func(spec_data%gas_state_id(spec_name))-test_real)/ &
             abs(test_real) .lt. 1e-6)
 
     ! A partial lunch is made from a sandwich and a snack
     test_real = 0.73 * 50.0/185.39 * 75.0/13.58 * 5.2e4 * exp(1.0 + 301.15/298) 
     spec_name = "lunch"
-    call assert(277795691, abs(func(spec_data%state_id(spec_name))-test_real)/ &
+    call assert(277795691, abs(func(spec_data%gas_state_id(spec_name))-test_real)/ &
             abs(test_real) .lt. 1e-6)
 
     ! ******************************************
@@ -261,49 +261,49 @@ contains
     ! Peanut butter contributes to sandwich production
     test_real = 1.0/12.75 * 150.0/42.5 * 1.2e3 * exp(1.2 + 301.15/298.15)
     other_spec_name = "peanut butter"
-    call assert(244207961, abs(jac_matrix(spec_data%state_id(spec_name), &
-            spec_data%state_id(other_spec_name))-test_real)/ &
+    call assert(244207961, abs(jac_matrix(spec_data%gas_state_id(spec_name), &
+            spec_data%gas_state_id(other_spec_name))-test_real)/ &
             abs(test_real) .lt. 1e-6)
 
     ! Jelly contributes to sandwich production
     test_real = 200.0/12.75 * 1.0/42.5 * 1.2e3 * exp(1.2 + 301.15/298.15)
     other_spec_name = "jelly"
-    call assert(993489873, abs(jac_matrix(spec_data%state_id(spec_name), &
-            spec_data%state_id(other_spec_name))-test_real)/ &
+    call assert(993489873, abs(jac_matrix(spec_data%gas_state_id(spec_name), &
+            spec_data%gas_state_id(other_spec_name))-test_real)/ &
             abs(test_real) .lt. 1e-6)
 
     ! Oreos do not directly affect sandwich loading
     test_real = 0.0 
     other_spec_name = "oreo"
-    call assert(821879730, jac_matrix(spec_data%state_id(spec_name), &
-            spec_data%state_id(other_spec_name)).eq.test_real)
+    call assert(821879730, jac_matrix(spec_data%gas_state_id(spec_name), &
+            spec_data%gas_state_id(other_spec_name)).eq.test_real)
 
     ! Oreo lids also do not directly affect sandwich loading
     test_real = 0.0 
     other_spec_name = "extra lid"
-    call assert(529328162, jac_matrix(spec_data%state_id(spec_name), &
-            spec_data%state_id(other_spec_name)).eq.test_real)
+    call assert(529328162, jac_matrix(spec_data%gas_state_id(spec_name), &
+            spec_data%gas_state_id(other_spec_name)).eq.test_real)
 
     ! Snacks react with sandwiches to form a lunch
     test_real = - 1.0/185.39 * 75.0 * 5.2e4 * exp(1.0 + 301.15/298) 
     other_spec_name = "snack"
-    call assert(121099476, abs(jac_matrix(spec_data%state_id(spec_name), &
-            spec_data%state_id(other_spec_name))-test_real)/ &
+    call assert(121099476, abs(jac_matrix(spec_data%gas_state_id(spec_name), &
+            spec_data%gas_state_id(other_spec_name))-test_real)/ &
             abs(test_real) .lt. 1e-6)
 
     ! Sandwich loading affect the lunch forming reaction
     test_real = - 50.0/185.39 * 1.0 * 5.2e4 * exp(1.0 + 301.15/298) 
     other_spec_name = "sandwich"
-    call assert(849489332, abs(jac_matrix(spec_data%state_id(spec_name), &
-            spec_data%state_id(other_spec_name))-test_real)/ &
+    call assert(849489332, abs(jac_matrix(spec_data%gas_state_id(spec_name), &
+            spec_data%gas_state_id(other_spec_name))-test_real)/ &
             abs(test_real) .lt. 1e-6)
 
     ! Because we have omitted the reverse (i.e. lunch decomposition) reaction,
     ! sandwich loading is not affected by total lunches
     test_real = 0.0 
     other_spec_name = "lunch"
-    call assert(272556981, jac_matrix(spec_data%state_id(spec_name), &
-            spec_data%state_id(other_spec_name)).eq.test_real)
+    call assert(272556981, jac_matrix(spec_data%gas_state_id(spec_name), &
+            spec_data%gas_state_id(other_spec_name)).eq.test_real)
 
 #endif
     build_rxn_data_set_test = .true.

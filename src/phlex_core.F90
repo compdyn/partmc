@@ -338,7 +338,7 @@ contains
     integer(kind=i_kind) :: i_mech, i_phase, i_aero_rep, i_state_var
     procedure(integration_data_deriv_func), pointer :: deriv_func
     procedure(integration_data_jac_func), pointer :: jac_func
-    real(kind=dp), pointer :: abs_tol(:)
+    real(kind=dp), allocatable, target :: abs_tol(:)
     type(phlex_core_t), pointer :: this_ptr
 
     this_ptr => this
@@ -346,7 +346,7 @@ contains
     jac_func => calc_jacobian
 
     ! Get the size of the gas-phase species on the state array
-    i_state_var = this%chem_spec_data%size() + 1
+    i_state_var = this%chem_spec_data%num_spec_by_type(GAS_SPEC) + 1
 
     ! Initialize the aerosol phases
     do i_phase = 1, size(this%aero_phase)
@@ -366,7 +366,12 @@ contains
     end do
 
     ! Set up the integrator
-    abs_tol => this%chem_spec_data%get_absolute_tolerances()
+    allocate(abs_tol(i_state_var))
+    call this%chem_spec_data%gas_abs_tol(abs_tol)
+    do i_aero_rep = 1, size(this%aero_rep)
+      call this%aero_rep(i_aero_rep)%val%get_abs_tol(this%chem_spec_data, &
+              abs_tol)
+    end do
     this%integration_data => integration_data_t(c_loc(this_ptr), deriv_func, &
             jac_func, abs_tol)
 

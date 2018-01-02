@@ -38,7 +38,7 @@ module pmc_aero_rep_single_particle
 
   use pmc_util,                                  only: dp, i_kind, &
                                                        string_t, assert_msg, &
-                                                       die_msg
+                                                       die_msg, to_string
   use pmc_property
   use pmc_chem_spec_data
   use pmc_aero_rep_data
@@ -68,32 +68,91 @@ module pmc_aero_rep_single_particle
   !! Time-invariant data related to a single particle aerosol representation. 
   type, extends(aero_rep_data_t) :: aero_rep_single_particle_t
   contains
-    !> Aerosol representation initialization
+    !> Initialize the aerosol representation data, validating component data and
+    !! loading any required information from the \c
+    !! aero_rep_data_t::property_set. This routine should be called once for
+    !! each aerosol representation at the beginning of a model run after all
+    !! the input files have been read in. It ensures all data required during
+    !! the model run are included in the condensed data arrays.
     procedure :: initialize
-    !> Get the size of this representation on the state variable array
+    !> Get the size of the section of the
+    !! \c pmc_phlex_state::phlex_state_t::state_var array required for this
+    !! aerosol representation.
+    !!
+    !! For a single particle representation, the size will correspond to the
+    !! the sum of the sizes of a single instance of each aerosol phase
+    !! provided to \c aero_rep_single_particle::initialize()
     procedure :: size => get_size
-    !> Get a list of unique names for each element on the state array
+    !> Get a list of unique names for each element on the
+    !! \c pmc_phlex_state::phlex_state_t::state_var array for this aerosol
+    !! representation.
+    !! 
+    !! For a single particle representation, the unique names will be the
+    !! phase name with the species name separated by a '.'
     procedure :: unique_names
-    !> Get a species state id by its unique name
+    !> Get a species id on the \c pmc_phlex_state::phlex_state_t::state_var
+    !! array by unique name. These are unique ids for each variable on the
+    !! state array for this \ref phlex_aero_rep  "aerosol representation" and
+    !! are numbered:
+    !!
+    !!   \f$x_u = x_f ... (x_f+n-1)\f$
+    !!
+    !! where \f$x_u\f$ is the id of the variable corresponding to unique name
+    !! \f$u\f$ on the \c pmc_phlex_state::phlex_state_t::state_var array,
+    !! \f$x_u\f$ is the index of the first variable for this aerosol
+    !! representation on the state array and \f$n\f$ is the total number of
+    !! variables on the state array from this aerosol representation.
     procedure :: state_id_by_unique_name
-    !> Get an instance of the state variable for this aerosol representation
-    procedure :: new_state
-    !> Get an aerosol species state id
+    !> Get a set of ids on the \c pmc_phlex_state::phlex_state_t::state_var
+    !! array for a particular aerosol species. These are unique ids for each
+    !! variable on the state array that correspond to a particular species in
+    !! this \ref phlex_aero_rep "aerosol representation" and are numbered:
+    !!
+    !!   \f$x_{si} \in x_f ... (x_f+n-1)\f$
+    !!
+    !! where \f$x_{si}\f$ is the index of species \f$s\f$ in phase instance
+    !! \f$i\f$, \f$x_f\f$ is the index of the first variable for this aerosol
+    !! representation on the \c pmc_phlex_state:phlex_state_t::state_var array
+    !! and \f$n\f$ is the total number of variables on the state array for
+    !! this aerosol representation. The size of the returned array will be:
+    !!
+    !!   \f$\text{size} = \sum_p n_p\f$
+    !!
+    !! where \f$n_p\f$ is the number of instances of phase \f$p\f$ in this
+    !! aerosol representation. If species \f$s\f$ is not present in phase
+    !! \f$p\f$ then \f$x_{si} \equiv 0 \quad \forall i \in p\f$.
+    !! 
+    !! This function should only be called during initialization
     procedure :: species_state_id
-    !> Get the surface area concentration (m^2/m^3)
+    !> Get an instance of the pmc_aero_rep_state::aero_rep_state_t variable
+    !! for this aerosol representation.
+    !!
+    !! See phlex_aero_rep_state "Aerosol Representation States" for details.
+    !!
+    !! For PartMC single particle runs, the aerosol state will be set by PartMC
+    !! at the beginning of each chemistry integration
+    procedure :: new_state
+    !> Get the absolute integration tolerance for each variable on the
+    !! pmc_phlex_state::phlex_state_t::state_var array from this aerosol
+    !! representation
+    procedure :: get_abs_tol
+    !> Get surface area concentration (m^2/m^3) between two phases. One phase
+    !! may be set to 0 to indicate the gas phase, or both phases may be
+    !! aerosol phases.
     procedure :: surface_area_conc
     !> Get the surface area concentration for a specific aerosol species
-    !! (m^2/m^3)
+    !! (m^2/m^3) between a specified aerosol phase and the gas phase.
     procedure :: species_surface_area_conc
-    !> Get the vapor pressure scaling for a particular species (unitless)
+    !> Get the Kelvin effect vapor pressure adjustment for a particular 
+    !! species (unitless)
     procedure :: kelvin_effect
 
-    !> Private functions
+    ! Private functions
     !> Get the associated aero_rep_state_t variable
     procedure, private :: get_state => get_state
   end type aero_rep_single_particle_t
 
-  !> Constructor for aero_rep_single_particle_t
+  ! Constructor for aero_rep_single_particle_t
   interface aero_rep_single_particle_t
     procedure :: constructor
   end interface aero_rep_single_particle_t
@@ -115,11 +174,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize the aerosol representation data, validating component data and
-  !! loading any required information from the  property_t object. This 
-  !! routine should be called once for each aerosol representation
-  !! at the beginning of a model run after all the input files have been
-  !! read in. It ensures all data required during the model run are included
-  !! in the condensed data arrays.
+  !! loading any required information from the \c
+  !! aero_rep_data_t::property_set. This routine should be called once for
+  !! each aerosol representation at the beginning of a model run after all
+  !! the input files have been read in. It ensures all data required during
+  !! the model run are included in the condensed data arrays.
   subroutine initialize(this, aero_phase_set, &
                   spec_state_id, aero_state_id, chem_spec_data)
 
@@ -196,7 +255,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the size of this aerosol representation on the state variable array
+  !> Get the size of the section of the
+  !! \c pmc_phlex_state::phlex_state_t::state_var array required for this
+  !! aerosol representation.
+  !!
+  !! For a single particle representation, the size will correspond to the
+  !! the sum of the sizes of a single instance of each aerosol phase
+  !! provided to \c aero_rep_single_particle::initialize()
   function get_size(this) result (state_size)
 
     !> Size on the state array
@@ -216,7 +281,12 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get a list of unique names for each species on the state array
+  !> Get a list of unique names for each element on the
+  !! \c pmc_phlex_state::phlex_state_t::state_var array for this aerosol
+  !! representation.
+  !! 
+  !! For a single particle representation, the unique names will be the
+  !! phase name with the species name separated by a '.'
   function unique_names(this)
 
     !> List of unique names
@@ -249,7 +319,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get a species state id by its unique name
+  !> Get a species id on the \c pmc_phlex_state::phlex_state_t::state_var
+  !! array by unique name. These are unique ids for each variable on the
+  !! state array for this \ref phlex_aero_rep  "aerosol representation" and
+  !! are numbered:
+  !!
+  !!   \f$x_u = x_f ... (x_f+n-1)\f$
+  !!
+  !! where \f$x_u\f$ is the id of the variable corresponding to unique name
+  !! \f$u\f$ on the \c pmc_phlex_state::phlex_state_t::state_var array,
+  !! \f$x_u\f$ is the index of the first variable for this aerosol
+  !! representation on the state array and \f$n\f$ is the total number of
+  !! variables on the state array from this aerosol representation.
   function state_id_by_unique_name(this, unique_name) result (spec_id)
 
     !> Species state id
@@ -275,34 +356,27 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get an instance of the state type for this aerosol representation
+  !> Get a set of ids on the \c pmc_phlex_state::phlex_state_t::state_var
+  !! array for a particular aerosol species. These are unique ids for each
+  !! variable on the state array that correspond to a particular species in
+  !! this \ref phlex_aero_rep "aerosol representation" and are numbered:
   !!
-  !! For PartMC single particle runs, the aerosol state will be set by PartMC
-  !! at the beginning of each chemistry integration
-  function new_state(this) result (aero_rep_state)
-
-    !> Aerosol representation state
-    class(aero_rep_state_t), pointer :: aero_rep_state
-    !> Aerosol representaiton data
-    class(aero_rep_single_particle_t), intent(in) :: this
-
-    ! Empty state variable
-    aero_rep_state => aero_rep_single_particle_state_t()
-
-  end function new_state
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
- !> Get an aerosol species state id(s). The returned array will have the
- !! index of the species in the specified phase in each aerosol group (e.g.,
- !! bin, mode). If the species is not present in a certain group-phase the
- !! index will be 0.
- !!
- !! This function should only be called during initialization.
- !!
- !! One of each aerosol phase exists for each single particle, so this array
- !! will always be of length 1.
- function species_state_id(this, phase_name, species_name) result(spec_index)
+  !!   \f$x_{si} \in x_f ... (x_f+n-1)\f$
+  !!
+  !! where \f$x_{si}\f$ is the index of species \f$s\f$ in phase instance
+  !! \f$i\f$, \f$x_f\f$ is the index of the first variable for this aerosol
+  !! representation on the \c pmc_phlex_state:phlex_state_t::state_var array
+  !! and \f$n\f$ is the total number of variables on the state array for
+  !! this aerosol representation. The size of the returned array will be:
+  !!
+  !!   \f$\text{size} = \sum_p n_p\f$
+  !!
+  !! where \f$n_p\f$ is the number of instances of phase \f$p\f$ in this
+  !! aerosol representation. If species \f$s\f$ is not present in phase
+  !! \f$p\f$ then \f$x_{si} \equiv 0 \quad \forall i \in p\f$.
+  !! 
+  !! This function should only be called during initialization
+  function species_state_id(this, phase_name, species_name) result(spec_index)
     use pmc_util,                                     only : i_kind
 
     !> Species index array
@@ -329,9 +403,66 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Get the absolute integration tolerance for each variable on the
+  !! pmc_phlex_state::phlex_state_t::state_var array from this aerosol
+  !! representation
+  subroutine get_abs_tol(this, chem_spec_data, abs_tol)
+
+    !> Aerosol representation data
+    class(aero_rep_single_particle_t), intent(in) :: this
+    !> Chemical species data
+    type(chem_spec_data_t), intent(in) :: chem_spec_data
+    !> Absolute integration tolerances
+    real(kind=dp), allocatable :: abs_tol(:)
+
+    integer(kind=i_kind) :: i_spec, i_phase, curr_spec_id
+    type(string_t), allocatable :: species(:)
+
+    ! Make sure the abs_tol array is big enough
+    i_phase = _NUM_PHASE_
+    i_spec = _PHASE_STATE_ID_(i_phase) + &
+            _NUM_SPEC_(i_phase) - 1
+    call assert_msg(509399695, size(abs_tol).ge.i_spec, "Absolute "// &
+            "tolerance array too small. Expected "//to_string(i_spec)// &
+            " got "//to_string(size(abs_tol)))
+
+    ! Set the tolerances
+    do i_phase = 1, _NUM_PHASE_
+      species = this%aero_phase(i_phase)%val%get_species_names()
+      do i_spec = 1, size(species)
+        curr_spec_id = _SPEC_STATE_ID_(i_phase, i_spec)
+        abs_tol(curr_spec_id) = chem_spec_data%get_abs_tol(species(i_spec)%string)
+      end do
+    end do
+
+  end subroutine get_abs_tol
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get an instance of the pmc_aero_rep_state::aero_rep_state_t variable
+  !! for this aerosol representation.
+  !!
+  !! See phlex_aero_rep_state "Aerosol Representation States" for details.
+  !!
+  !! For PartMC single particle runs, the aerosol state will be set by PartMC
+  !! at the beginning of each chemistry integration
+  function new_state(this) result (aero_rep_state)
+
+    !> Aerosol representation state
+    class(aero_rep_state_t), pointer :: aero_rep_state
+    !> Aerosol representaiton data
+    class(aero_rep_single_particle_t), intent(in) :: this
+
+    ! Empty state variable
+    aero_rep_state => aero_rep_single_particle_state_t()
+
+  end function new_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Get surface area concentration (m^2/m^3) between two phases. One phase
-  !! may be set to 0 to indicate the gas-phase, or both phases may be aerosol
-  !! phases, with a corresponding index.
+  !! may be set to 0 to indicate the gas phase, or both phases may be
+  !! aerosol phases.
   !!
   !! For single particles, currently only gas-aerosol interfaces are solved
   !! for. Because species are tracked by mass, the gas-aerosol surface area
@@ -346,7 +477,8 @@ contains
   !! calculated as:
   !!
   !!   \f$r_T = (\frac{3V_T}{4\pi})^(\frac{1}{3})\f$
-  !!   \f$V_{T/P} = \sum_x \rho_x m_x \forall x \in T or P\f$
+  !!
+  !!   \f$V_{T/P} = \sum_x \rho_x m_x \quad \forall x \in T or P\f$
   !!
   !! where \f$rho_x\f$ is the density of species x and \f$m_x\f$ is its mass.
   !! The partial derivative of \f$A_P\f$ with respect to a single aerosol 
@@ -354,9 +486,11 @@ contains
   !!
   !!   \f$\frac{dA_P}{dx} = \frac{(3r_T\frac{dV_P}{dx} - 
   !!       3V_P\frac{dr_T}{dx})}{r_T^2}\f$
-  !!   \f$\frac{dV_P}{dx} = \rho_x\ \forall x \in P\f$
+  !!
+  !!   \f$\frac{dV_P}{dx} = \rho_x\ \quad \forall x \in P\f$
+  !!
   !!   \f$\frac{dr_T}{dx} = \frac{1}{3}(\frac{3V_T}{4\pi})^(\frac{1}{3}) 
-  !!       \rho_x \forall x \in T\f$
+  !!       \rho_x \quad \forall x \in T\f$
   !!
   function surface_area_conc(this, i_phase1, i_phase2, phlex_state, &
                   jac_contrib)
@@ -431,11 +565,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the surface area concentration for a specific aerosol species
-  !! (m^2/m^3). It is assumed the surface is between the gas-phase and an
-  !! aerosol phase.
+  !! (m^2/m^3) between a specified aerosol phase and the gas phase.
   !!
   !! Species surface area concentration for single particles is calculated the
-  !! same way as surface area concentration, but with \f$P\f$ being the 
+  !! same way as \c surface_area_conc, but with \f$P\f$ being the
   !! single-element set of species \f$x\f$.
   !!
   function species_surface_area_conc(this,  i_phase, i_spec, phlex_state, &
@@ -501,7 +634,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             
-  !> Get the Kelvin effect adjustment to a species vapor pressure (unitless)
+  !> Get the Kelvin effect vapor pressure adjustment for a particular 
+  !! species (unitless)
   function kelvin_effect(this, i_spec, phlex_state, jac_contrib)
     use pmc_util,                                     only : dp
 

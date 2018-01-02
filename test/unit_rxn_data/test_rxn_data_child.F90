@@ -149,7 +149,7 @@ contains
               "Expected gas-phase species for "//spec_name)
 
       ! Save the index of this species in the chem_spec_state_t variable
-      _REACT_(i_spec) = chem_spec_data%state_id(spec_name)
+      _REACT_(i_spec) = chem_spec_data%gas_state_id(spec_name)
 
       ! Get a chemical property for this species and save it in the condensed real array
       spec_props = chem_spec_data%get_property_set(spec_name)
@@ -181,7 +181,7 @@ contains
               "Expected gas-phase species for "//spec_name)
 
       ! Save the index of this species in the chem_spec_state_t variable
-      _PROD_(i_spec) = chem_spec_data%state_id(spec_name)
+      _PROD_(i_spec) = chem_spec_data%gas_state_id(spec_name)
 
       ! Get properties included with this product in the reaction data
       call assert(425790028, products%get_property_t(val=spec_props))

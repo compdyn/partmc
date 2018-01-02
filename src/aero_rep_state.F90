@@ -26,13 +26,21 @@ module pmc_aero_rep_state
   !> Abstract aerosol representation state type
   !!
   !! State data related to an aerosol representation. Derived types extending 
-  !! aero_rep_state_t should describe the state of specific types of aerosol
-  !! schemes (e.g., binned, modal, particle-resolved).
+  !! \c aero_rep_state_t should describe the state, other than aerosol species
+  !! concentrations, of specific types of aerosol schemes (e.g., binned,
+  !! modal, particle-resolved). The only data that should be tracked using an
+  !! \c aero_rep_state_t extending type are time-varying data that cannot be
+  !! obtained or calculated from the species concentrations in the \c
+  !! pmc_phlex_state::phlex_state_t::state_var array or the \c
+  !! pmc_phlex_state::phlex_state_t::env_state object. In some cases (e.g.,
+  !! particle-resolved), no information other than the species concentrations
+  !! are required, so the \c aero_rep_state_t extending type does not include
+  !! any member variables. 
   !!
   !! Depending on the scheme, message packing functions can be used to pass
   !! state data for the aerosol representation. Alternately, the aerosol
-  !! state can be set by the host model at the beginning of each call to the
-  !! chemistry module integration function
+  !! state can be set by the host model at the prior to each call to
+  !! \c pmc_phlex_core::phlex_core_t::solve()
   type, abstract :: aero_rep_state_t
     private
   contains

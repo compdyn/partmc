@@ -172,7 +172,7 @@ contains
     do while (reactants%get_key(spec_name))
 
       ! Save the index of this species in the state variable array
-      _REACT_(i_spec) = chem_spec_data%state_id(spec_name)
+      _REACT_(i_spec) = chem_spec_data%gas_state_id(spec_name)
 
       ! Get properties included with this reactant in the reaction data
       call assert(796763915, reactants%get_property_t(val=spec_props))
@@ -193,7 +193,7 @@ contains
     do while (products%get_key(spec_name))
 
       ! Save the index of this species in the state variable array
-      _PROD_(i_spec) = chem_spec_data%state_id(spec_name)
+      _PROD_(i_spec) = chem_spec_data%gas_state_id(spec_name)
 
       ! Get properties included with this product in the reaction data
       call assert(451185800, products%get_property_t(val=spec_props))

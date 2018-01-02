@@ -117,11 +117,11 @@ contains
 
     ! Get species indices
     key = "A"
-    idx_A = phlex_core%chem_spec_data%state_id(key);
+    idx_A = phlex_core%chem_spec_data%gas_state_id(key);
     key = "B"
-    idx_B = phlex_core%chem_spec_data%state_id(key);
+    idx_B = phlex_core%chem_spec_data%gas_state_id(key);
     key = "C"
-    idx_C = phlex_core%chem_spec_data%state_id(key);
+    idx_C = phlex_core%chem_spec_data%gas_state_id(key);
 
     ! Make sure the expected species are in the model
     call assert(629811894, idx_A.gt.0)

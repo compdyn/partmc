@@ -7,7 +7,22 @@
 
 !> \page phlex_mechanism Phlexible Module for Chemistry: Chemical Mechanism
 !!
-!! Description...
+!! A mechanism in the \ref phlex_chem "phlex-chem" module is a set of
+!! \ref phlex_rxn "reactions" that occur in the gas-phase or within one of
+!! several \ref phlex_aero_phase "aerosol phases" or across an interface
+!! between two phases (gas or aerosol). One or several mechanisms may be
+!! included in a \ref phlex_chem "phlex-chem" model run. 
+!!
+!! Every mechanism in a \ref phlex_chem "phlex-chem" run will have access to
+!! the same set of \ref phlex_species "chemical species" and \ref
+!! phlex_aero_phase "aerosol phases", so phase and species names must be 
+!! consistent across all concurrently loaded mechanisms. The division of \ref
+!! phlex_rxn "reactions" into distinct mechanisms permits a host model to
+!! specificy which mechanisms should be solved during a call to 
+!! \c pmc_phlex_core::phlex_core_t::solve().
+!!
+!! The input format for mechanism data can be found \ref
+!! input_format_mechanism "here".
 
 !> The mechanism_data_t structure and associated subroutines.
 module pmc_mechanism_data
@@ -37,10 +52,9 @@ module pmc_mechanism_data
 
   !> A chemical mechanism
   !!
-  !! Instances of mechanism_data_t represent complete chemical
-  !! mechanisms (e.g., CACM/MPMPO, CB-5, EQSAM). Multiple mechanisms
-  !! may be used during one model run and will be integrated
-  !! together.
+  !! Instances of mechanism_data_t represent complete \ref phlex_mechanism 
+  !! chemical mechanisms (e.g., CACM/MPMPO, CB-5, EQSAM). Multiple mechanisms
+  !! may be used during one model run and will be solved simultaneously.
   type :: mechanism_data_t
     private
     !> Number of reactions
@@ -72,13 +86,13 @@ module pmc_mechanism_data
     !> Print the mechanism data
     procedure :: print => do_print
 
-    !> Private functions
+    ! Private functions
     !> Ensure there is enough room in the reaction dataset to add a
     !! specified number of reactions
     procedure, private :: ensure_size
   end type mechanism_data_t
 
-  !> Constructor for mechanism_data_t
+  ! Constructor for mechanism_data_t
   interface mechanism_data_t
     procedure :: constructor
   end interface mechanism_data_t
@@ -155,8 +169,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#ifdef PMC_USE_JSON
   !> Load a chemical mechanism from an input file
+#ifdef PMC_USE_JSON
   subroutine load(this, json, j_obj)
 
     !> Chemical mechanism

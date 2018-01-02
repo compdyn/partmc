@@ -5,6 +5,182 @@
 !> \file
 !> The pmc_aero_rep_factory module.
 
+!> \page phlex_aero_rep_add Phlexible Module for Chemistry: Adding an Aerosol Representation
+!!
+!! Adding an \ref phlex_aero_rep "aerosol representation" to the \ref
+!! phlex_chem "phlex-chem" module can be done in the following steps:
+!!
+!! ## Step 1. Create a new aerosol representation module ##
+!!   The module should be placed in the \c /src/aero_reps folder and
+!!   extend the abstract \c pmc_aero_rep_data::aero_rep_data_t type,
+!!   overriding all deferred functions, and providing a constructor that
+!!   returns a pointer to a newly allocated instance of the new type:
+!!
+!! \code{.f90}
+!! module pmc_aero_rep_foo
+!!
+!!   use ...
+!!
+!!   implicit none
+!!   private
+!!
+!!   public :: aero_rep_foo_t
+!!
+!!   type, extends(aero_rep_data_t) :: aero_rep_foo_t
+!!   contains
+!!     ... (all deferred functions) ...
+!!   end type :: aero_rep_foo_t
+!!   
+!!   ! Constructor
+!!   interface aero_rep_foo_t
+!!     procedure :: constructor
+!!   end interface aero_rep_foo_t
+!!
+!!   function constructor() result (new_obj)
+!!     type(aero_rep_foo_t), pointer :: new_obj
+!!     allocate(new_obj)
+!!   end function constructor
+!!
+!!   ...
+!!
+!! end module pmc_aero_rep_foo
+!! \endcode
+!!
+!! ## Step 2. Create a new aerosol representation state module ##
+!!   The module should also be placed in the \c /src/aero_reps folder and
+!!   should extend the abstract \c pmc_aero_rep_state::aero_rep_state_t
+!!   type, overriding all deferred functions, and providing a constructor
+!!   that returns a pointer to a newly allocated instance of the new type:
+!!
+!! \code{.f90}
+!! module pmc_aero_rep_foo_state
+!!
+!!   use ...
+!!
+!!   implicit none
+!!   private
+!!
+!!   public :: aero_rep_foo_state_t
+!!
+!!   type, extends(aero_rep_state_t) :: aero_rep_foo_state_t
+!!   contains
+!!     ... (all deferred functions) ...
+!!   end type :: aero_rep_foo_state_t
+!!   
+!!   ! Constructor
+!!   interface aero_rep_foo_state_t
+!!     procedure :: constructor
+!!   end interface aero_rep_foo_state_t
+!!
+!!   function constructor() result (new_obj)
+!!     type(aero_rep_foo_state_t), pointer :: new_obj
+!!     allocate(new_obj)
+!!   end function constructor
+!!
+!!   ...
+!!
+!! end module pmc_aero_rep_foo_state
+!! \endcode
+!!
+!! ## Step 3. Add the aerosol representation to the \c  pmc_aero_rep_factory module ##
+!!
+!! \code{.f90}
+!! module pmc_aero_rep_factory
+!!
+!! ...
+!!
+!!  ! Use all aerosol representation modules
+!!  ...
+!!  use pmc_aero_rep_foo
+!!
+!!  ...
+!!
+!!  !> Identifiers for aerosol representations - used by binary packing/unpacking 
+!!  !! functions
+!!  ...
+!!  integer(kind=i_kind), parameter :: AERO_REP_FOO = 32
+!!
+!!  ...
+!!
+!!  !> Create a new aerosol representation by type name
+!!  function create(this, type_name) result (new_obj)
+!!    ...
+!!    select case (type_name)
+!!      ...
+!!      case ("AERO_REP_FOO")
+!!        new_obj => aero_rep_foo_t()
+!!    ...
+!!  end function create
+!!
+!! ...
+!!
+!!  !> Pack the given value to the buffer, advancing position
+!!  subroutine bin_pack(this, aero_rep, buffer, pos)
+!!    ...
+!!    select type (aero_rep)
+!!      ...
+!!      type is (aero_rep_foo_t)
+!!        aero_rep_type = AERO_REP_FOO
+!!    ...
+!!  end subroutine bin_pack
+!!
+!! ...
+!!
+!!  !> Unpack the given value to the buffer, advancing position
+!!  function bin_unpack(this, buffer, pos) result (aero_rep)
+!!    ...
+!!    select case (aero_rep_type)
+!!      ...
+!!      case (AERO_REP_FOO)
+!!        aero_rep => aero_rep_foo_t()
+!!    ...
+!!  end function bin_unpack
+!!  
+!! ...
+!! end module pmc_aero_rep_factory
+!! \endcode
+!!
+!! ## Step 4. Add the new module to the CMakeList file in the root directory. ##
+!!
+!! \code
+!! ...
+!!
+!! # partmc library
+!! ...
+!! set(AEROSOL_REPS_SRC
+!!   ...
+!!   src/aero_reps/aero_rep_foo.F90
+!!   src/aero_reps/aero_rep_foo_state.F90
+!! )
+!! 
+!! ...
+!! \endcode
+!!
+!! ## Step 5. Add unit tests for the new \c aero_rep_foo_t and \c aero_rep_foo_state_t types ##
+!!
+!! Unit testing should be based on the actual functions of the new module, but
+!! in general 80% code coverage is recommended. Some examples can be found in
+!! the \c /src/test folder
+!!
+!! ## Useage ##
+!! The new \ref phlex_aero_rep "aerosol representation" is now ready to use.
+!! To include it in a \c pmc_phlex_core::phlex_core_t instance, add an \ref
+!! input_format_aero_rep "aerosol representation object" to a new or existing
+!! \ref input_format_phlex_config "phlex-chem configuration file" with a type
+!! corresponding to the newly created type, along with any required
+!! parameters:
+!!
+!! \code{.json}
+!! { "pmc-data" : [
+!!   {
+!!     "type" : "AERO_REP_FOO",
+!!     ...
+!!   },
+!!   ...
+!! ]}
+!! \endcode
+!!
+
 !> The abstract aero_rep_factory_t structure and associated subroutines.
 module pmc_aero_rep_factory
 
@@ -42,7 +218,8 @@ module pmc_aero_rep_factory
     procedure :: create
     !> Create a new aerosol representation from input data
     procedure :: load
-    !> Determine the number of bytes required to pack a given aerosol representation
+    !> Determine the number of bytes required to pack an given aerosol
+    !! representation
     procedure :: pack_size
     !> Pack a given aerosol representation to the buffer, advancing the position
     procedure :: bin_pack
@@ -120,7 +297,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Determine the size of a binary required to pack a aerosol representation
+  !> Determine the size of a binary required to pack an aerosol representation
   integer(kind=i_kind) function pack_size(this, aero_rep)
 
     !> Aerosol representation factory

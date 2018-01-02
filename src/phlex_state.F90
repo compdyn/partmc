@@ -56,7 +56,7 @@ module pmc_phlex_state
     procedure :: bin_unpack
   end type phlex_state_t
 
-  !> Constructor for phlex_state_t
+  ! Constructor for phlex_state_t
   interface phlex_state_t
     procedure :: constructor
   end interface phlex_state_t

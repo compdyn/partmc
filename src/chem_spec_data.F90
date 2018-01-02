@@ -7,7 +7,26 @@
 
 !> \page phlex_species Phlexible Module for Chemistry: Chemical Species
 !!
-!! Description ...
+!! Chemical species in the \ref phlex_chem "phlex-chem" module are gas- or
+!! aerosol-phase species that can participate in chemical or phase-transfer
+!! reactions in the \ref phlex_mechanism "mechanism(s)". Each species must
+!! have a unique name (the same species name cannot be used for a gas-phase
+!! species and an aerosol-phase species). Chemical species may be present
+!! either in the gas-phase or any number of \ref phlex_aero_phase
+!! "aerosol phases". For example, an aerosol-phase chemical species may be
+!! present in an "organic" and an "aqueous" \ref phlex_aero_phase
+!! "aerosol phase".
+!!
+!! Chemical species data include physical constants and species-specific
+!! model parameters that are used during initialization to assemble reaction
+!! data for use during the model run. Note that chemical species data are
+!! **only** available during initialization, and when using MPI are not passed
+!! to child nodes. The primary node will, however, have access to data in the
+!! \c pmc_phlex_core::phlex_core_t::chem_spec_data object for outputing model
+!! data (e.g., species names).
+!!
+!! The input format for chemical species can be found \ref
+!! input_format_species "here".
 
 !> The chem_spec_data_t structure and associated subroutines.
 module pmc_chem_spec_data
@@ -42,7 +61,7 @@ module pmc_chem_spec_data
 
   !> Chemical species data
   !!
-  !! Time-invariant data related to a chemical species
+  !! Time-invariant data related to a \ref phlex_species "chemical species"
   type chem_spec_data_t
     private
     !> Number of species
@@ -68,13 +87,20 @@ module pmc_chem_spec_data
     procedure :: get_property_set
     !> Get a species type
     procedure :: get_type
-    !> Get a species index in the state variable
-    procedure :: state_id
-    !> Get an array of absolute integration tolerances corresponding
-    !! to the dimensions of the state array
-    procedure :: get_absolute_tolerances
+    !> Get a gas-phase species index in the \c
+    !! pmc_phlex_state::phlex_state_t::state_var array.  Note that
+    !! aerosol-phase species indices on the \c
+    !! pmc_phlex_state::phlex_state_t::state_var array must be accessed from
+    !! \c pmc_aero_rep_data::aero_rep_data_t::species_state_id() for a
+    !! particular \ref phlex_aero_rep "aerosol representation".
+    procedure :: gas_state_id
+    !> Get an array of absolute integration tolerances for the gas-phase 
+    !! species on the \c pmc_phlex_state::phlex_state_t::state_var array
+    procedure :: gas_abs_tol
+    !> Get the absolute integration tolerance of a species by name
+    procedure :: get_abs_tol
 
-    !> Private functions
+    ! Private functions
     !> Add a species
     procedure, private :: add
     !> Ensure there is enough room in the species dataset to add a
@@ -84,7 +110,7 @@ module pmc_chem_spec_data
     procedure, private :: find
   end type chem_spec_data_t
 
-  !> Constructor for chem_spec_data_t
+  ! Constructor for chem_spec_data_t
   interface chem_spec_data_t
     procedure :: constructor
   end interface chem_spec_data_t
@@ -222,8 +248,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#ifdef PMC_USE_JSON
   !> Load species from an input file
+#ifdef PMC_USE_JSON
   subroutine load(this, json, j_obj)
 
     !> Species dataset
@@ -422,44 +448,74 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Return the index of a gas-phase species in the state array 
-  integer(kind=i_kind) function state_id(this, spec_name)
+  !> Get a gas-phase species index in the \c
+  !! pmc_phlex_state::phlex_state_t::state_var array.  Note that
+  !! aerosol-phase species indices on the \c
+  !! pmc_phlex_state::phlex_state_t::state_var array must be accessed from
+  !! \c pmc_aero_rep_data::aero_rep_data_t::species_state_id() for a
+  !! particular \ref phlex_aero_rep "aerosol representation".
+  integer(kind=i_kind) function gas_state_id(this, spec_name)
 
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
     !> Species name
     character(len=:), allocatable, intent(in) :: spec_name
 
-    state_id = this%find(spec_name)
+    gas_state_id = this%find(spec_name)
 
-  end function state_id
+  end function gas_state_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get an array of absolute integration tolerances corresponding to the
-  !! dimensions of the state array
-  function get_absolute_tolerances(this) result (abs_tol)
+  !> Add gas-phase species tolerances to the absolute integration tolerance
+  !! array
+  subroutine gas_abs_tol(this, abs_tol)
 
-    !> Array of species absolute integration tolerances
-    real(kind=dp), pointer :: abs_tol(:)
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
+    !> Array of species absolute integration tolerances. This array should be
+    !! the same size as the pmc_phlex_state::phlex_state_t::state_var array
+    real(kind=dp), allocatable :: abs_tol(:)
+
+    integer(kind=i_kind) :: i_spec, state_id
+
+    state_id = 1
+    do i_spec = 1, this%num_spec
+      if (this%spec_type(i_spec).eq.GAS_SPEC) then
+        abs_tol(state_id) = this%get_abs_tol(this%spec_name(i_spec)%string)
+        state_id = state_id + 1
+      end if
+    end do
+
+  end subroutine gas_abs_tol
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the absolute integration tolerance of a species by name
+  function get_abs_tol(this, spec_name) result (abs_tol)
+
+    !> Absolute integration tolerance
+    real(kind=dp) :: abs_tol
+    !> Species dataset
+    class(chem_spec_data_t), intent(in) :: this
+    !> Species name
+    character(len=:), allocatable :: spec_name
 
     character(len=:), allocatable :: key
     integer(kind=i_kind) :: i_spec
     real(kind=dp) :: val
 
-    allocate(abs_tol(this%num_spec))
     key = "absolute integration tolerance"
-    do i_spec = 1, this%num_spec
-      if (this%property_set(i_spec)%get_real(key, val)) then
-        abs_tol(i_spec) = val
-      else
-        abs_tol(i_spec) = DEFAULT_ABS_TOL
-      end if
-    end do
+    i_spec = this%find(spec_name)
+    call assert_msg(956793138, i_spec.gt.0, "Could not find species "// &
+            spec_name)
+    if (this%property_set(i_spec)%get_real(key, val)) then
+      abs_tol = val
+    else
+      abs_tol = DEFAULT_ABS_TOL
+    end if
 
-  end function get_absolute_tolerances
+  end function get_abs_tol
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

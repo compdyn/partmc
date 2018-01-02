@@ -30,7 +30,7 @@ module pmc_aero_rep_single_particle_state
     procedure :: bin_unpack
   end type aero_rep_single_particle_state_t
 
-  !> Constructor for aero_rep_single_particle_state_t
+  ! Constructor for aero_rep_single_particle_state_t
   interface aero_rep_single_particle_state_t
     procedure :: constructor
   end interface aero_rep_single_particle_state_t

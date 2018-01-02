@@ -110,7 +110,7 @@ module pmc_integration_data
     procedure :: is_solver_available
   end type integration_data_t
 
-  !> Constructor for integration_data_t
+  ! Constructor for integration_data_t
   interface integration_data_t
     procedure :: constructor, constructor_empty
   end interface integration_data_t

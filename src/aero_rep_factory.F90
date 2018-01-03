@@ -142,7 +142,7 @@
 !!
 !! ## Step 4. Add the new module to the CMakeList file in the root directory. ##
 !!
-!! \code
+!! \code{.unparsed}
 !! ...
 !!
 !! # partmc library
@@ -162,12 +162,12 @@
 !! in general 80% code coverage is recommended. Some examples can be found in
 !! the \c /src/test folder
 !!
-!! ## Useage ##
+!! ## Usage ##
 !! The new \ref phlex_aero_rep "aerosol representation" is now ready to use.
 !! To include it in a \c pmc_phlex_core::phlex_core_t instance, add an \ref
 !! input_format_aero_rep "aerosol representation object" to a new or existing
-!! \ref input_format_phlex_config "phlex-chem configuration file" with a type
-!! corresponding to the newly created type, along with any required
+!! \ref input_format_phlex_config "phlex-chem configuration file" with a 
+!! \b type corresponding to the newly created type, along with any required
 !! parameters:
 !!
 !! \code{.json}

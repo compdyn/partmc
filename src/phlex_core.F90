@@ -7,7 +7,59 @@
 
 !> \page phlex_chem Phlexible Module for Chemistry
 !!
-!! Description...
+!! The Phlexible Module for Chemistry (\ref phlex_chem "phlex-chem") is a
+!! module within PartMC designed to provide a flexible framework for
+!! incorporating chemical mechanisms into PartMC or another host model. In
+!! general, the \ref phlex_chem "phlex-chem" module solves one or more
+!! \ref phlex_mechanism "mechanisms" composed of a set of \ref phlex_rxn
+!! "reactions" over a time-step specified by the host model. \ref phlex_rxn
+!! "Reactions" can take place in the gas phase, in one of several \ref
+!! phlex_aero_phase "aerosol phases", or across an interface between phases
+!! (gas or aerosol). The \ref phlex_chem "phlex-chem" module is designed to
+!! work with any \ref phlex_aero_rep "aerosol representation" used by the
+!! host model (e.g., binned, modal, single particle) by abstracting the
+!! chemistry from the \ref phlex_aero_rep "aerosol representation" through the
+!! use of custom extending types of the abstract \c pmc_aero_rep::aero_rep_t
+!! type that implement a set of \ref phlex_aero_phase "aerosol phases" based
+!! on the configuration of the host model.
+!!
+!! The flexibility of the \ref phlex_chem "phlex-chem" module is achieved
+!! through the use of \ref ss_json "json input files" to load
+!! \ref input_format_species "chemical species", \ref input_format_mechanism
+!! "mechanisms", \ref input_format_aero_phase "aerosol phases", and \ref
+!! input_format_aero_rep "aerosol representations" at runtime. This allows a
+!! user to modify any of these data without recompiling the model, permits
+!! host models to choose which mechanisms to solve based on model conditions,
+!! and allows multiple mechanisms to be solved simultaneously.
+!!
+!! # Usage #
+!! 
+!! ## Compiling ##
+!!
+!! To inlucde the \ref phlex_chem "phlex-chem" module in the PartMC library,
+!! set the ccmake flags \c ENABLE_JSON and \c ENABLE_SUNDIALS to \c ON. 
+!! (<a href="http://www.llnl.gov/casc/sundials/">SUNDIALS</a> and
+!! <a href="https://github.com/jacobwilliams/json-fortran">json-fortran</a>
+!! must be installed).
+!!
+!! ## PartMC scenarios ##
+!!
+!! Using \ref phlex_chem "phlex-chem" in a PartMC scenario requires modifying
+!! the \ref input_format "spec file" and providing a \ref
+!! input_format_phlex_file_list "phlex-chem file list" file and one or more
+!! \ref input_format_phlex_config "phlex-chem configuration" files that 
+!! describe the \ref phlex_species "chemical species", \ref phlex_mechanism
+!! "mechanism(s)", \ref phlex_aero_phase "aerosol phase(s)", and \ref
+!! phlex_aero_rep "aerosol representation(s)". A description of the input
+!! files required for a PartMC run can be found \ref input_format "here".
+!!
+!! ## Phlex-chem in another host model ##
+!!
+!! Incorporating the \ref phlex_chem "phlex-chem" module into another host
+!! model can be done in the following steps:
+!!
+!! TODO: Finish
+!!
 
 !> The phlex_core_t structure and associated subroutines.
 module pmc_phlex_core
@@ -126,10 +178,10 @@ contains
   !!   ...
   !! ]}
   !! \endcode
-  !! The input file should be in \c json format and contain a single key-value
-  !! pair named \b pmc-files whose value is an array of \b strings with paths
-  !! to the set of \ref input_format_phlex_config "configuration" files to
-  !! load. Input files should be in \c json format.
+  !! The file should contain a single key-value pair named \b pmc-files whose
+  !! value is an array of \b strings with paths to the set of \ref
+  !! input_format_phlex_config "configuration" files to load. Input files
+  !! should be in \c json format.
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

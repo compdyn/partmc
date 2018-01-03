@@ -68,7 +68,7 @@
 !! PartMC, the path to the \subpage input_format_phlex_file_list "file list"
 !! file is included in the spec file. When  using the PartMC library, the path
 !! to the \subpage input_format_phlex_file_list "file list" file can be passed
-!! as an argument to the \c phlex_core_t constructor.
+!! as an argument to the \c pmc_phlex_core::phlex_core_t constructor.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -20,7 +20,7 @@
 !! Input data for Arrhenius equations should take the form :
 !! \code{.json}
 !!   {
-!!     "type" : "RXN_ARRHENIUS",
+!!     "type" : "ARRHENIUS",
 !!     "A" : 123.45,
 !!     "Ea" : 123.45,
 !!     "reactants" : {

@@ -5,6 +5,161 @@
 !> \file
 !> The pmc_rxn_factory module.
 
+!> \page phlex_rxn_add Phlexible Module for Chemistry: Adding a Reaction Type
+!!
+!! Adding a \ref phlex_rxn "reaction" to the \ref phlex_chem "phlex-chem"
+!! module can be done in the following steps:
+!!
+!! ## Step 1. Create a new reaction module ##
+!!   The module should be placed in the \c /src/rxns folder and extent the
+!!   abstract \c pmc_rxn_data::rxn_data_t type, overriding all deferred
+!!   functions, and providing a constructor that returns a pointer to a newly
+!!   allocated instance of the new type:
+!!
+!! \code{.f90}
+!! module rxn_foo
+!!
+!!   use ...
+!!
+!!   implicit none
+!!   private
+!!
+!!   public :: rxn_foo_t
+!!
+!!   type, extends(rxn_data_t) :: rxn_foo_t
+!!   contains
+!!      ... (all deferred functions) ...
+!!   end type rxn_foo_t
+!!
+!!   ! Constructor
+!!   interface rxn_foo_t
+!!     procedure :: constructor
+!!   end interface rxn_foo_t
+!!
+!! contains
+!!
+!!   function constructor() result(new_obj)
+!!     type(rxn_foo_t), pointer :: new_obj
+!!     allocate(new_obj)
+!!   end function constructor
+!!
+!!   ...
+!!
+!! end module pmc_rxn_foo
+!! \endcode
+!!
+!! ## Step 2. Add the reaction to the \c pmc_rxn_factory module ##
+!!
+!! \code{.f90}
+!! module pmc_rxn_factory
+!!
+!!  ...
+!!
+!!  ! Use all reaction modules
+!!  ...
+!!  use pmc_rxn_foo
+!!
+!!  ...
+!!
+!!  !> Identifiers for reaction types - used by binary packing/unpacking 
+!!  !! functions
+!!  ...
+!!  integer(kind=i_kind), parameter :: RXN_FOO = 32
+!!
+!!  ...
+!!
+!!  !> Create a new chemical reaction by type name
+!!  function create(this, type_name) result (new_obj)
+!!    ...
+!!    select case (type_name)
+!!      ...
+!!      case ("FOO")
+!!        new_obj => rxn_foo_t()
+!!    ...
+!!  end function create
+!!
+!!  ...
+!!
+!!  !> Pack the given value to the buffer, advancing position
+!!  subroutine bin_pack(this, rxn, buffer, pos)
+!!    ...
+!!    select type (rxn)
+!!      ...
+!!      type is (rxn_foo_t)
+!!        rxn_type = RXN_FOO
+!!    ...
+!!  end subroutine bin_pack
+!!
+!!  ...
+!!
+!!  !> Unpack the given value to the buffer, advancing position
+!!  function bin_unpack(this, buffer, pos) result (rxn)
+!!    ...
+!!    select case (rxn_type)
+!!      ...
+!!      case (RXN_FOO)
+!!        rxn => rxn_foo_t()
+!!    ...
+!!  end function bin_unpack
+!!
+!!  ...
+!!
+!! end module pmc_rxn_factory
+!! \endcode
+!!
+!! # Step 4. Add the new module to the CMakeList file in the root directory. ##
+!!
+!! \code{.unparsed}
+!! ...
+!!
+!! # partmc library
+!! 
+!! set(REACTIONS 
+!!     ...
+!!     src/rxns/pmc_foo.F90
+!! )
+!!
+!! ...
+!! \endcode
+!!
+!! ## Step 5. Add unit tests for the new \c rxn_foo_t type ##
+!!
+!! Unit testing should cover, at minimum, the initialization, time derivative
+!! and Jacbian matrix functions, and in general 80% code coverage is
+!! recommended. Some examples can be found in the \c /src/test folder.
+!!
+!! ## Usage ##
+!! The new \ref phlex_rxn "reaction type" is now ready to use. To include a
+!! reaction of this type in a \ref phlex_mechanism "mechanism", add a \ref
+!! input_format_rxn "reaction object" to a new or existing \ref
+!! input_format_phlex_config "phlex-chem configuration file" as part of a
+!! \ref input_format_mechanism "mechanism object". The reaction should have a
+!! \b type corresponding to the newly created reaction type, along with any
+!! required parameters:
+!!
+!! \code{.json}
+!! { "pmc-data" : [
+!!   {
+!!     "name" : "my mechanism",
+!!     "type" : "MECHANISM",
+!!     "reactions" : [
+!!       {
+!!         "type" : "FOO",
+!!         ...
+!!       },
+!!       ...
+!!     ]
+!!   },
+!!   ...
+!! ]}
+!! \endcode
+!!
+
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 !> The abstract rxn_factory_t structure and associated subroutines.
 module pmc_rxn_factory
 

@@ -350,6 +350,13 @@ add_executable(partmc src/partmc.F90)
 target_link_libraries(partmc partmclib)
 
 ######################################################################
+# phlex-chem box model
+
+add_executable(phlex_box_model test/chemistry/phlex_box_model.F90)
+
+target_link_libraries(phlex_box_model partmclib)
+
+######################################################################
 # test_property
 
 add_executable(unit_test_property test/unit_property/test_property.F90)

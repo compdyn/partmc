@@ -1,0 +1,44 @@
+{
+  "pmc-data" : [
+    {
+      "name" : "A",
+      "type" : "GAS_SPEC"
+    },
+    {
+      "name" : "B",
+      "type" : "GAS_SPEC"
+    },
+    {
+      "name" : "C",
+      "type" : "GAS_SPEC"
+    },
+    {
+      "name" : "consecutive",
+      "type" : "MECHANISM",
+      "reactions" : [
+	{
+	  "type" : "ARRHENIUS",
+	  "reactants" : {
+	    "A" : {}
+	  },
+	  "products" : {
+	    "B" : {}
+	  },
+	  "A" : 12.0,
+	  "Ea" : 1.0e-20
+	},
+	{
+	  "type" : "ARRHENIUS",
+	  "reactants" : {
+	    "B" : {}
+	  },
+	  "products" : {
+	    "C" : {}
+	  },
+	  "A" : 13.0,
+	  "Ea" : 2.0e-20
+	}
+      ] 
+    }
+  ]
+}

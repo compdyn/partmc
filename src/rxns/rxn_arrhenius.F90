@@ -7,15 +7,16 @@
 
 !> \page phlex_rxn_arrhenius Phlexible Mechanism for Chemistry: Arrhenius Reaction
 !!
-!! The Arrhenius reaction rate constant equation is:
+!! Arrhenius-like reaction rate constant equations can take the form:
 !!
-!!   \f$Ae^{(\frac{-E_a}{k_bT})}\f$
+!!   \f$Ae^{(\frac{-E_a}{k_bT})}(T/D)^B(1.0+\frac{E}{P})\f$
 !!
 !! where \f$A\f$ is the pre-exponential factor 
 !! (\f$[\mbox{concentration unit}]^{-(n-1)} s^{-1}\f$),
-!! \f$n\f$ is the number of reactants, \f$E_a\f$ is the  activation energy
-!! (J), \f$k_b\f$ is the Boltzmann constant (J/K) and \f$T\f$ is the
-!! temperature (K).
+!! \f$n\f$ is the number of reactants, \f$E_a\f$ is the activation energy
+!! (J), \f$k_b\f$ is the Boltzmann constant (J/K), \f$D\f$ (K), \f$B\f$ 
+!! (unitless), and \f$E\f$ (atm) are reaction parameters, \f$T\f$ is the
+!! temperature (K), and \f$P\f$ is the pressure (atm).
 !!
 !! Input data for Arrhenius equations should take the form :
 !! \code{.json}
@@ -23,6 +24,9 @@
 !!     "type" : "ARRHENIUS",
 !!     "A" : 123.45,
 !!     "Ea" : 123.45,
+!!     "B"  : 1.3,
+!!     "D"  : 300.0,
+!!     "E"  : 0.6,
 !!     "reactants" : {
 !!       "spec1" : {},
 !!       "spec2" : { "qty" : 2 },
@@ -35,17 +39,24 @@
 !!     }
 !!   }
 !! \endcode
-!! The key-value pairs \b A, \b Ea, \b reactants, and \b products are 
-!! required. Reactants without a \b qty value are assumed to appear once in
-!! the reaction equation. Products without a specified \b yield are assumed to
-!! have a \b yield of 1.0.
+!! The key-value pairs \b reactants, and \b products are required. Reactants
+!! without a \b qty value are assumed to appear once in the reaction equation.
+!! Products without a specified \b yield are assumed to have a \b yield of
+!! 1.0.
+!!
+!! Optionally, a parameter \b C may be included, and is taken to equal
+!! \f$\frac{-E_a}{k_b}\f$. Note that either \b Ea or \b C may be included, but
+!! not both. When neither \b Ea or \b C are included, they are assumed to be
+!! 0.0. When \b A is not included, it is assumed to be 1.0, when \b D is not
+!! included, it is assumed to be 300.0 K, when \b B is not included, it is
+!! assumed to be 0.0, and when \b E is not included, it is assumed to be 0.0.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !> The rxn_arrhenius_t type and associated functions. 
 module pmc_rxn_arrhenius
 
-  use pmc_constants,                        only: const_t
+  use pmc_constants,                        only: const
   use pmc_util,                             only: i_kind, dp, to_string, &
                                                   assert, assert_msg, die_msg
   use pmc_rxn_data
@@ -59,9 +70,12 @@ module pmc_rxn_arrhenius
 #define _NUM_REACT_ this%condensed_data_int(1)
 #define _NUM_PROD_ this%condensed_data_int(2)
 #define _A_ this%condensed_data_real(1)
-#define _Ea_ this%condensed_data_real(2)
+#define _C_ this%condensed_data_real(2)
+#define _D_ this%condensed_data_real(3)
+#define _B_ this%condensed_data_real(4)
+#define _E_ this%condensed_data_real(5)
 #define _NUM_INT_PROP_ 2
-#define _NUM_REAL_PROP_ 2
+#define _NUM_REAL_PROP_ 5
 #define _REACT_(x) this%condensed_data_int(_NUM_INT_PROP_ + x)
 #define _PROD_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + x)
 #define _yield_(x) this%condensed_data_real(_NUM_REAL_PROP_ + x)
@@ -160,11 +174,38 @@ contains
     ! Get reaction parameters (it might be easiest to keep these at the beginning
     ! of the condensed data array, so they can be accessed using compliler flags)
     key_name = "A"
-    call assert_msg(189315484, this%property_set%get_real(key_name, _A_), &
-            "Missing Arrhenius reaction parameter A")
+    if (.not. this%property_set%get_real(key_name, _A_)) then
+      _A_ = 1.0
+    end if
     key_name = "Ea"
-    call assert_msg(861320020, this%property_set%get_real(key_name, _Ea_), &
-            "Missing Arrhenius reaction parameter Ea")
+    if (this%property_set%get_real(key_name, temp_real)) then
+      _C_ = -temp_real/const%boltzmann
+      key_name = "C"
+      call assert_msg(297370315, &
+              .not.this%property_set%get_real(key_name, temp_real), &
+              "Received both Ea and C parameter for Arrhenius equation")
+    else
+      key_name = "C"
+      if (.not. this%property_set%get_real(key_name, _C_)) then
+        _C_ = 0.0
+      end if
+    end if
+    key_name = "D"
+    if (.not. this%property_set%get_real(key_name, _D_)) then
+      _D_ = 300.0
+    end if
+    key_name = "B"
+    if (.not. this%property_set%get_real(key_name, _B_)) then
+      _B_ = 0.0
+    end if
+    key_name = "E"
+    if (.not. this%property_set%get_real(key_name, _E_)) then
+      _E_ = 0.0
+    end if
+    
+    call assert_msg(344705857, .not. ((_B_.ne.real(0.0, kind=dp)) &
+            .and.(_D_.eq.real(0.0, kind=dp))), &
+            "D cannot be zero if B is non-zero in Arrhenius reaction.")
 
     ! Get the indices and chemical properties for the reactants
     call reactants%iter_reset()
@@ -323,10 +364,19 @@ contains
     type(phlex_state_t), intent(in) :: phlex_state
 
     integer(kind=i_kind) :: i_spec
-    type(const_t) :: const
 
-    rate_const = _A_*exp(- _Ea_ / ( &
-            phlex_state%env_state%temp * const%boltzmann))
+    if (_B_.eq.real(0.0, kind=dp)) then
+      rate_const = _A_*exp(_C_/ &
+          phlex_state%env_state%temp)* &
+          (1.0 + _E_*const%air_std_press/ &
+            phlex_state%env_state%pressure)
+    else
+      rate_const = _A_*exp(_C_/ &
+          phlex_state%env_state%temp)* &
+          (phlex_state%env_state%temp/_D_)**_B_* &
+          (1.0 + _E_*const%air_std_press/ &
+            phlex_state%env_state%pressure)
+    end if
 
   end function rate_const
 

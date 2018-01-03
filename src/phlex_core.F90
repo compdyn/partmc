@@ -36,7 +36,7 @@
 !! 
 !! ## Compiling ##
 !!
-!! To inlucde the \ref phlex_chem "phlex-chem" module in the PartMC library,
+!! To include the \ref phlex_chem "phlex-chem" module in the PartMC library,
 !! set the ccmake flags \c ENABLE_JSON and \c ENABLE_SUNDIALS to \c ON. 
 !! (<a href="http://www.llnl.gov/casc/sundials/">SUNDIALS</a> and
 !! <a href="https://github.com/jacobwilliams/json-fortran">json-fortran</a>

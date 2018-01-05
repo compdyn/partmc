@@ -3,7 +3,6 @@
     "name" : "cb05_mechanism.json",
     "type" : "MECHANISM",
     "reactions" : [
-// EQUATIONS;
       {
         "rxn id" : "R1",
         "reactants" : {
@@ -1503,7 +1502,6 @@
         "orig params" : "TUV_J(26, THETA)",
         "type" : "PHOTOLYSIS"
       },
-// {currently using CH3OOH, but CB05 uses CH3C(O)OH};
       {
         "rxn id" : "R97",
         "reactants" : {
@@ -2642,7 +2640,6 @@
         "type" : "ARRHENIUS",
         "preproc flag" : "REMOVE"
       },
-// {TUV_J(HOCL_IUPAC04, THETA)};
       {
         "rxn id" : "CL3",
         "reactants" : {
@@ -2735,7 +2732,6 @@
         "type" : "ARRHENIUS",
         "preproc flag" : "REMOVE"
       },
-// {TUV_J(FMCL_IUPAC04, THETA)};
       {
         "rxn id" : "CL9",
         "reactants" : {

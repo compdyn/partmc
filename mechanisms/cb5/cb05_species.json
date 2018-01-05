@@ -1,0 +1,306 @@
+{ "pmc-data" : [
+  {
+    "name" : "AACD",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "ALD2",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "ALDX",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "BENZENE",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "BENZRO2",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "BNZHRXN",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "BNZNRXN",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "C2O3",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "CH4",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "CL",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "CL2",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "CLO",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "CO",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "CRES",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "CRO",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "CXO3",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "ETH",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "ETHA",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "ETOH",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "FACD",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "FMCL",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "FORM",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "H2O2",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "HCL",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "HCO3",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "HNO3",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "HO2",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "HOCL",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "HONO",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "IOLE",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "ISOP",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "ISOPRXN",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "ISPD",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "MEO2",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "MEOH",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "MEPX",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "MGLY",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "N2O5",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "NO",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "NO2",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "NO3",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "NTR",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "O",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "O1D",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "O3",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "OH",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "OLE",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "OPEN",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "PACD",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "PAN",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "PANX",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "PAR",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "PNA",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "ROOH",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "ROR",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "SESQ",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "SESQRXN",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "SO2",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "SULF",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "SULRXN",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "TERP",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "TO2",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "TOL",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "TOLHRXN",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "TOLNRXN",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "TOLRO2",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "TRPRXN",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "XO2",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "XO2N",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "XYL",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "XYLHRXN",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "XYLNRXN",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "XYLRO2",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "N2O",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "DUMMY",
+    "type" : "GAS_SPEC"
+  },
+  {
+    "name" : "O2",
+    "type" : "GAS_SPEC"
+  }
+]}

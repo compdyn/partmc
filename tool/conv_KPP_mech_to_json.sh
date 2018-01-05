@@ -134,3 +134,6 @@ sed -i '' -E "s/\-\-//g" $MECH_FILE
 # add trailing zeros
 sed -i '' -E "s/([0-9]+\.)([^0-9]+)/\10\2/g" $MECH_FILE
 sed -i '' -E "s/([0-9]+\.)$/\10/g" $MECH_FILE
+
+# remove comments
+sed -i '' '/\/\// d' $MECH_FILE

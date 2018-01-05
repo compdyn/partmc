@@ -36,6 +36,10 @@
 !! Valid reaction types include:
 !!
 !!   - \subpage phlex_rxn_arrhenius "Arrhenius"
+!!   - \subpage phlex_rxn_troe "Troe (fall-off)"
+!!   - \subpage phlex_rxn_CMAQ_H2O2 "CMAQ special reaction type for 2HO2 (+ H2O) -> H2O2"
+!!   - \subpage phlex_rxn_CMAQ_OH_HNO3 "CMAQ special reaction type for OH + HNO3 -> NO3 + H2O"
+!!   - \subpage phlex_rxn_fastj_photo "Fast-J Photolysis"
 !!
 !! The general input format for a reaction can be found \ref input_format_rxn
 !! "here".
@@ -344,6 +348,10 @@ contains
   !! to a valid reaction type. Valid reaction types include:
   !!
   !!   - \subpage phlex_rxn_arrhenius "Arrhenius"
+  !!   - \subpage phlex_rxn_troe "Troe (fall-off)"
+  !!   - \subpage phlex_rxn_CMAQ_H2O2 "CMAQ special reaction type for 2HO2 (+ H2O) -> H2O2"
+  !!   - \subpage phlex_rxn_CMAQ_OH_HNO3 "CMAQ special reaction type for OH + HNO3 -> NO3 + H2O"
+  !!   - \subpage phlex_rxn_fastj_photo "Fast-J Photolysis"
   !! 
   !! All remaining data are optional and may include any valid \c json value, 
   !! including nested objects. However, extending types (i.e. reactions) will

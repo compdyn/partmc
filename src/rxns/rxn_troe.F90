@@ -3,34 +3,37 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_rxn_arrhenius module.
+!> The pmc_rxn_troe module.
 
-!> \page phlex_rxn_arrhenius Phlexible Mechanism for Chemistry: Arrhenius Reaction
+!> \page phlex_rxn_troe Phlexible Mechanism for Chemistry: Troe Reaction
 !!
-!! Arrhenius-like reaction rate constant equations can take the form:
+!! Troe (fall-off) reaction rate constant equations take the form:
 !!
 !! \f[
-!!   Ae^{(\frac{-E_a}{k_bT})}(\frac{T}{D})^B(1.0+E*P)
+!!   \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1/N+[log_{10}k_0[\mbox{M}]/k_{\inf}]^2)^{-1}}
 !! \f]
 !!
-!! where \f$A\f$ is the pre-exponential factor 
-!! (\f$[\mbox{concentration unit}]^{-(n-1)} s^{-1}\f$),
-!! \f$n\f$ is the number of reactants, \f$E_a\f$ is the activation energy
-!! (J), \f$k_b\f$ is the Boltzmann constant (J/K), \f$D\f$ (K), \f$B\f$ 
-!! (unitless) and \f$E\f$ (atm) are reaction parameters, \f$T\f$ is the
-!! temperature (K), and \f$P\f$ is the pressure (atm). The first two terms
-!! are described in Finlayson-Pitts and Pitts (2000). The final term is
-!! included to accomodate CMAQ EBI solver type 7 rate constants.
+!! where \f$k_0\f$ is the low-pressure limiting rate constant, \f$k_{\inf}\f$
+!! is the high-pressure limiting rate constant, \f$[\mbox{M}]\f$ is the
+!! density of air (taken to be \f$10^6\f$ ppm), and \f$F_C\f$ and \f$N\f$
+!! are parameters that determine the shape of the fall-off curve, and are
+!! typically 0.6 and 1.0, respectively (Finalyson-Pitts and Pitts, 2000;
+!! Gipson and Young, 1999). \f$k_0\f$ and \f$k_{\inf}\f$ are assumed to be
+!! \ref phlex_rxn_arrhenius "Arrhenius" rate constants with \f$D=300\f$ and
+!! \f$E=0\f$.
 !!
-!! Input data for Arrhenius equations should take the form :
+!! Input data for Troe equations should take the form :
 !! \code{.json}
 !!   {
-!!     "type" : "ARRHENIUS",
-!!     "A" : 123.45,
-!!     "Ea" : 123.45,
-!!     "B"  : 1.3,
-!!     "D"  : 300.0,
-!!     "E"  : 0.6,
+!!     "type" : "TROE",
+!!     "k0_A" : 5.6E-12,
+!!     "k0_B" : -1.8,
+!!     "k0_C" : 180.0,
+!!     "kinf_A" : 3.4E-12,
+!!     "kinf_B" : -1.6,
+!!     "kinf_C" : 104.1,
+!!     "Fc"  : 0.7,
+!!     "N"  : 0.9,
 !!     "reactants" : {
 !!       "spec1" : {},
 !!       "spec2" : { "qty" : 2 },
@@ -48,17 +51,16 @@
 !! Products without a specified \b yield are assumed to have a \b yield of
 !! 1.0.
 !!
-!! Optionally, a parameter \b C may be included, and is taken to equal
-!! \f$\frac{-E_a}{k_b}\f$. Note that either \b Ea or \b C may be included, but
-!! not both. When neither \b Ea or \b C are included, they are assumed to be
-!! 0.0. When \b A is not included, it is assumed to be 1.0, when \b D is not
-!! included, it is assumed to be 300.0 K, when \b B is not included, it is
-!! assumed to be 0.0, and when \b E is not included, it is assumed to be 0.0.
+!! The two sets of parameters beginning with \b k0_ and \b kinf_ are the
+!! \ref phlex_rxn_arrhenius "Arrhenius" parameters for the \f$k_0\f$ and
+!! \f$k_{\inf}\f$ rate constants, respectively. When not present, \b _A
+!! parameters are assumed to be 1.0, \b _B to be 0.0, \b _C to be 0.0, \b Fc
+!! to be 0.6 and \b N to be 1.0.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!> The rxn_arrhenius_t type and associated functions. 
-module pmc_rxn_arrhenius
+!> The rxn_troe_t type and associated functions. 
+module pmc_rxn_troe
 
   use pmc_constants,                        only: const
   use pmc_util,                             only: i_kind, dp, to_string, &
@@ -73,21 +75,24 @@ module pmc_rxn_arrhenius
 
 #define _NUM_REACT_ this%condensed_data_int(1)
 #define _NUM_PROD_ this%condensed_data_int(2)
-#define _A_ this%condensed_data_real(1)
-#define _C_ this%condensed_data_real(2)
-#define _D_ this%condensed_data_real(3)
-#define _B_ this%condensed_data_real(4)
-#define _E_ this%condensed_data_real(5)
+#define _k0_A_ this%condensed_data_real(1)
+#define _k0_B_ this%condensed_data_real(2)
+#define _k0_C_ this%condensed_data_real(3)
+#define _kinf_A_ this%condensed_data_real(4)
+#define _kinf_B_ this%condensed_data_real(5)
+#define _kinf_C_ this%condensed_data_real(6)
+#define _Fc_ this%condensed_data_real(7)
+#define _N_ this%condensed_data_real(8)
 #define _NUM_INT_PROP_ 2
-#define _NUM_REAL_PROP_ 5
+#define _NUM_REAL_PROP_ 8
 #define _REACT_(x) this%condensed_data_int(_NUM_INT_PROP_ + x)
 #define _PROD_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + x)
 #define _yield_(x) this%condensed_data_real(_NUM_REAL_PROP_ + x)
 
-public :: rxn_arrhenius_t
+public :: rxn_troe_t
 
   !> Generic test reaction data type
-  type, extends(rxn_data_t) :: rxn_arrhenius_t
+  type, extends(rxn_data_t) :: rxn_troe_t
   contains
     !> Reaction initialization
     procedure :: initialize
@@ -97,22 +102,22 @@ public :: rxn_arrhenius_t
     procedure :: jac_contrib
     !> Calculate the rate constant
     procedure, private :: rate_const
-  end type rxn_arrhenius_t
+  end type rxn_troe_t
 
-  !> Constructor for rxn_arrhenius_t
-  interface rxn_arrhenius_t
+  !> Constructor for rxn_troe_t
+  interface rxn_troe_t
     procedure :: constructor
-  end interface rxn_arrhenius_t
+  end interface rxn_troe_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Constructor for Arrhenius reaction
+  !> Constructor for Troe reaction
   function constructor() result(new_obj)
 
     !> A new reaction instance
-    type(rxn_arrhenius_t), pointer :: new_obj
+    type(rxn_troe_t), pointer :: new_obj
 
     allocate(new_obj)
     new_obj%rxn_phase = GAS_RXN
@@ -130,7 +135,7 @@ contains
   subroutine initialize(this, chem_spec_data)
     
     !> Reaction data
-    class(rxn_arrhenius_t), intent(inout) :: this
+    class(rxn_troe_t), intent(inout) :: this
     !> Chemical species data
     type(chem_spec_data_t), intent(in) :: chem_spec_data
 
@@ -145,18 +150,18 @@ contains
     if (.not. associated(this%property_set)) call die_msg(255324828, &
             "Missing property set needed to initialize reaction")
     key_name = "reactants"
-    call assert_msg(250060521, this%property_set%get_property_t(key_name, reactants), &
-            "Arrhenius reaction is missing reactants")
+    call assert_msg(229463444, this%property_set%get_property_t(key_name, reactants), &
+            "Troe reaction is missing reactants")
     key_name = "products"
-    call assert_msg(304540307, this%property_set%get_property_t(key_name, products), &
-            "Arrhenius reaction is missing products")
+    call assert_msg(729857837, this%property_set%get_property_t(key_name, products), &
+            "Troe reaction is missing products")
 
     ! Count the number of reactants (including those with a qty specified)
     call reactants%iter_reset()
     i_spec = 0
     do while (reactants%get_key(spec_name))
       ! Get properties included with this reactant in the reaction data
-      call assert(243342975, reactants%get_property_t(val=spec_props))
+      call assert(844081716, reactants%get_property_t(val=spec_props))
       key_name = "qty"
       if (spec_props%get_int(key_name, temp_int)) i_spec = i_spec+temp_int-1
       call reactants%iter_next()
@@ -177,40 +182,39 @@ contains
 
     ! Get reaction parameters (it might be easiest to keep these at the beginning
     ! of the condensed data array, so they can be accessed using compliler flags)
-    key_name = "A"
-    if (.not. this%property_set%get_real(key_name, _A_)) then
-      _A_ = 1.0
+    key_name = "k0_A"
+    if (.not. this%property_set%get_real(key_name, _k0_A_)) then
+      _k0_A_ = 1.0
     end if
-    key_name = "Ea"
-    if (this%property_set%get_real(key_name, temp_real)) then
-      _C_ = -temp_real/const%boltzmann
-      key_name = "C"
-      call assert_msg(297370315, &
-              .not.this%property_set%get_real(key_name, temp_real), &
-              "Received both Ea and C parameter for Arrhenius equation")
-    else
-      key_name = "C"
-      if (.not. this%property_set%get_real(key_name, _C_)) then
-        _C_ = 0.0
-      end if
+    key_name = "k0_B"
+    if (.not. this%property_set%get_real(key_name, _k0_B_)) then
+      _k0_B_ = 0.0
     end if
-    key_name = "D"
-    if (.not. this%property_set%get_real(key_name, _D_)) then
-      _D_ = 300.0
+    key_name = "k0_C"
+    if (.not. this%property_set%get_real(key_name, _k0_C_)) then
+      _k0_C_ = 0.0
     end if
-    key_name = "B"
-    if (.not. this%property_set%get_real(key_name, _B_)) then
-      _B_ = 0.0
+    key_name = "kinf_A"
+    if (.not. this%property_set%get_real(key_name, _kinf_A_)) then
+      _kinf_A_ = 1.0
     end if
-    key_name = "E"
-    if (.not. this%property_set%get_real(key_name, _E_)) then
-      _E_ = 0.0
+    key_name = "kinf_B"
+    if (.not. this%property_set%get_real(key_name, _kinf_B_)) then
+      _kinf_B_ = 0.0
+    end if
+    key_name = "kinf_C"
+    if (.not. this%property_set%get_real(key_name, _kinf_C_)) then
+      _kinf_C_ = 0.0
+    end if
+    key_name = "Fc"
+    if (.not. this%property_set%get_real(key_name, _Fc_)) then
+      _Fc_ = 0.6
+    end if
+    key_name = "N"
+    if (.not. this%property_set%get_real(key_name, _N_)) then
+      _N_ = 1.0
     end if
     
-    call assert_msg(344705857, .not. ((_B_.ne.real(0.0, kind=dp)) &
-            .and.(_D_.eq.real(0.0, kind=dp))), &
-            "D cannot be zero if B is non-zero in Arrhenius reaction.")
-
     ! Get the indices and chemical properties for the reactants
     call reactants%iter_reset()
     i_spec = 1
@@ -220,7 +224,7 @@ contains
       _REACT_(i_spec) = chem_spec_data%gas_state_id(spec_name)
 
       ! Get properties included with this reactant in the reaction data
-      call assert(796763915, reactants%get_property_t(val=spec_props))
+      call assert(221292659, reactants%get_property_t(val=spec_props))
       key_name = "qty"
       if (spec_props%get_int(key_name, temp_int)) then
         do i_spec = i_spec + 1, i_spec + temp_int - 1
@@ -241,7 +245,7 @@ contains
       _PROD_(i_spec) = chem_spec_data%gas_state_id(spec_name)
 
       ! Get properties included with this product in the reaction data
-      call assert(451185800, products%get_property_t(val=spec_props))
+      call assert(393355097, products%get_property_t(val=spec_props))
       key_name = "yield"
       if (spec_props%get_real(key_name, temp_real)) then
         _yield_(i_spec) = temp_real
@@ -268,7 +272,7 @@ contains
   subroutine  func_contrib(this, phlex_state, func)
 
     !> Reaction data
-    class(rxn_arrhenius_t), intent(in) :: this
+    class(rxn_troe_t), intent(in) :: this
     !> Current model state
     type(phlex_state_t), intent(in) :: phlex_state
     !> Time derivative vector. This vector may include contributions from
@@ -309,7 +313,7 @@ contains
   subroutine jac_contrib(this, phlex_state, jac_matrix)
 
     !> Reaction data
-    class(rxn_arrhenius_t), intent(in) :: this
+    class(rxn_troe_t), intent(in) :: this
     !> Current model state
     type(phlex_state_t), intent(in) :: phlex_state
     !> Jacobian matrix. This matrix may include contributions from other
@@ -363,27 +367,44 @@ contains
   real(kind=dp) function rate_const(this, phlex_state)
 
     !> Reaction data
-    class(rxn_arrhenius_t), intent(in) :: this
+    class(rxn_troe_t), intent(in) :: this
     !> Current model state
     type(phlex_state_t), intent(in) :: phlex_state
 
     integer(kind=i_kind) :: i_spec
+    real(kind=dp) :: k0, kinf
+    real(kind=dp), parameter :: M = 1.0d6
+    real(kind=dp), parameter :: D = 300.0d0
 
-    if (_B_.eq.real(0.0, kind=dp)) then
-      rate_const = _A_*exp(_C_/ &
-          phlex_state%env_state%temp)* &
-          (1.0 + _E_*const%air_std_press* &
-            phlex_state%env_state%pressure)
+    ! k0
+    if (_k0_B_.eq.real(0.0, kind=dp)) then
+      k0 = _k0_A_*exp(_k0_C_/ &
+          phlex_state%env_state%temp)
     else
-      rate_const = _A_*exp(_C_/ &
+      k0 = _k0_A_*exp(_k0_C_/ &
           phlex_state%env_state%temp)* &
-          (phlex_state%env_state%temp/_D_)**_B_* &
-          (1.0 + _E_*const%air_std_press* &
-            phlex_state%env_state%pressure)
+          (phlex_state%env_state%temp/D)**_k0_B_
     end if
+
+    ! kinf
+    if (_kinf_B_.eq.real(0.0, kind=dp)) then
+      kinf = _kinf_A_*exp(_kinf_C_/ &
+          phlex_state%env_state%temp)
+    else
+      kinf = _kinf_A_*exp(_kinf_C_/ &
+          phlex_state%env_state%temp)* &
+          (phlex_state%env_state%temp/D)**_kinf_B_
+    end if
+
+    k0 = k0 * M
+    kinf = k0 / kinf
+    rate_const = (k0 / (1.0d0 + kinf))* &
+            _Fc_** &
+            (1.0d0 / (1.0d0 / _N_ + &
+            (log10(kinf))**2))
 
   end function rate_const
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module pmc_rxn_arrhenius
+end module pmc_rxn_troe

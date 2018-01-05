@@ -307,7 +307,11 @@ set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 ######################################################################
 # partmc library
 
-set(REACTIONS_SRC src/rxns/rxn_arrhenius.F90)
+set(REACTIONS_SRC src/rxns/rxn_arrhenius.F90
+	src/rxns/rxn_troe.F90
+	src/rxns/rxn_CMAQ_H2O2.F90
+	src/rxns/rxn_CMAQ_OH_HNO3.F90
+	src/rxns/rxn_fastj_photo.F90)
 set(AEROSOL_REPS_SRC src/aero_reps/aero_rep_single_particle.F90 
    src/aero_reps/aero_rep_single_particle_state.F90)
 

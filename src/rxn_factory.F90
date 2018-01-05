@@ -128,6 +128,10 @@
 !! and Jacbian matrix functions, and in general 80% code coverage is
 !! recommended. Some examples can be found in the \c /src/test folder.
 !!
+!! ## Step 6.  Update documentation ##
+!!
+!! TODO finish...
+!!
 !! ## Usage ##
 !! The new \ref phlex_rxn "reaction type" is now ready to use. To include a
 !! reaction of this type in a \ref phlex_mechanism "mechanism", add a \ref
@@ -155,9 +159,6 @@
 !! \endcode
 !!
 
-
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !> The abstract rxn_factory_t structure and associated subroutines.
@@ -177,6 +178,10 @@ module pmc_rxn_factory
 
   ! Use all reaction modules
   use pmc_rxn_arrhenius
+  use pmc_rxn_troe
+  use pmc_rxn_CMAQ_H2O2
+  use pmc_rxn_CMAQ_OH_HNO3
+  use pmc_rxn_fastj_photo
 
   implicit none
   private
@@ -186,6 +191,10 @@ module pmc_rxn_factory
   !> Identifiers for reaction types - used by binary packing/unpacking 
   !! functions
   integer(kind=i_kind), parameter :: RXN_ARRHENIUS = 1
+  integer(kind=i_kind), parameter :: RXN_TROE = 2
+  integer(kind=i_kind), parameter :: RXN_CMAQ_H2O2 = 3
+  integer(kind=i_kind), parameter :: RXN_CMAQ_OH_HNO3 = 4
+  integer(kind=i_kind), parameter :: RXN_FASTJ_PHOTO = 5
 
   !> Factory type for chemical reactions
   !!
@@ -225,6 +234,14 @@ contains
     select case (type_name)
       case ("ARRHENIUS")
         new_obj => rxn_arrhenius_t()
+      case ("TROE")
+        new_obj => rxn_troe_t()
+      case ("CMAQ_H2O2")
+        new_obj => rxn_CMAQ_H2O2_t()
+      case ("CMAQ_OH_HNO3")
+        new_obj => rxn_CMAQ_OH_HNO3_t()
+      case ("FASTJ_PHOTO")
+        new_obj => rxn_fastj_photo_t()
       case default
         call die_msg(367114278, "Unknown chemical reaction type: " &
                 //type_name) 
@@ -318,6 +335,14 @@ contains
     select type (rxn)
       type is (rxn_arrhenius_t)
         rxn_type = RXN_ARRHENIUS
+      type is (rxn_troe_t)
+        rxn_type = RXN_TROE
+      type is (rxn_CMAQ_H2O2_t)
+        rxn_type = RXN_CMAQ_H2O2
+      type is (rxn_CMAQ_OH_HNO3_t)
+        rxn_type = RXN_CMAQ_OH_HNO3
+      type is (rxn_fastj_photo_t)
+        rxn_type = RXN_FASTJ_PHOTO
       class default
         call die_msg(343941184, "Trying to pack reaction of unknown type.")
     end select
@@ -351,6 +376,14 @@ contains
     select case (rxn_type)
       case (RXN_ARRHENIUS)
         rxn => rxn_arrhenius_t()
+      case (RXN_TROE)
+        rxn => rxn_troe_t()
+      case (RXN_CMAQ_H2O2)
+        rxn => rxn_CMAQ_H2O2_t()
+      case (RXN_CMAQ_OH_HNO3)
+        rxn => rxn_CMAQ_OH_HNO3_t()
+      case (RXN_FASTJ_PHOTO)
+        rxn => rxn_fastj_photo_t()
       case default
         call die_msg(659290342, "Trying to unpack reaction of unknown type:"// &
                 to_string(rxn_type))

@@ -161,6 +161,7 @@ if(ENABLE_JSON)
 endif()
 
 add_test(test_chemistry_1 ${CMAKE_BINARY_DIR}/test_run/chemistry/test_chemistry_1.sh)
+#add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh)
 
 add_test(test_additive_1 ${CMAKE_BINARY_DIR}/test_run/additive/test_additive_1.sh)
 add_test(test_additive_2 ${CMAKE_BINARY_DIR}/test_run/additive/test_additive_2.sh)
@@ -359,6 +360,14 @@ target_link_libraries(partmc partmclib)
 add_executable(phlex_box_model test/chemistry/phlex_box_model.F90)
 
 target_link_libraries(phlex_box_model partmclib)
+
+######################################################################
+# MONARCH interface
+
+add_executable(mock_monarch test/monarch/mock_monarch.F90
+	test/monarch/pmc_monarch.F90)
+
+target_link_libraries(mock_monarch partmclib)
 
 ######################################################################
 # test_property

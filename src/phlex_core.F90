@@ -205,9 +205,17 @@ contains
 
     integer(kind=json_ik) :: i_file, num_files
     type(string_t), allocatable :: file_list(:)
+    logical :: file_exists
 
     call j_file%initialize()
     call j_file%get_core(json)
+    call assert_msg(394951135, allocated(input_file_path), &
+            "Received non-allocated string for file path")
+    call assert_msg(600888426, trim(input_file_path).ne."", &
+            "Received empty string for file path")
+    inquire( file=input_file_path, exist=file_exists )
+    call assert_msg(433777575, file_exists, "Cannot find file: "//&
+            input_file_path)
     call j_file%load_file(filename = input_file_path)
     call j_file%get('pmc-files(1)', j_obj, found)
     call assert_msg(405149265, found, &
@@ -301,6 +309,7 @@ contains
 
     character(kind=json_ck, len=:), allocatable :: key, unicode_str_val
     character(len=:), allocatable :: str_val
+    logical :: file_exists
 
     type(aero_phase_data_ptr), pointer :: new_aero_phase(:)
     type(aero_rep_data_ptr), pointer :: new_aero_rep(:)
@@ -317,6 +326,13 @@ contains
     do i_file = 1, size(input_file_path)
       call j_file%initialize()
       call j_file%get_core(json)
+      call assert_msg(366175417, allocated(input_file_path(i_file)%string), &
+              "Received non-allocated string for file path")
+      call assert_msg(936390222, trim(input_file_path(i_file)%string).ne."", &
+              "Received empty string for file path")
+      inquire( file=input_file_path(i_file)%string, exist=file_exists )
+      call assert_msg(910660557, file_exists, "Cannot file file: "// &
+              input_file_path(i_file)%string)
       call j_file%load_file(filename = input_file_path(i_file)%string)
       call j_file%get('pmc-data(1)', j_obj)
       do while (associated(j_obj))

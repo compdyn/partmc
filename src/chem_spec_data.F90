@@ -50,7 +50,7 @@ module pmc_chem_spec_data
   !> Reallocation increment
   integer(kind=i_kind), parameter :: REALLOC_INC = 50
   !> Default absolute integration tolerance
-  real(kind=dp), parameter :: DEFAULT_ABS_TOL = 1.0e-30
+  real(kind=dp), parameter :: DEFAULT_ABS_TOL = 1.0e-20
 
   !> Unknown species type
   integer(kind=i_kind), parameter, public :: UNKNOWN_SPEC = 0

@@ -161,7 +161,10 @@ if(ENABLE_JSON)
 endif()
 
 add_test(test_chemistry_1 ${CMAKE_BINARY_DIR}/test_run/chemistry/test_chemistry_1.sh)
-#add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh)
+if (ENABLE_JSON AND ENABLE_SUNDIALS)
+  add_test(test_chemistry_cb5 ${CMAKE_BINARY_DIR}/test_run/chemistry/test_chemistry_cb5.sh)
+  #add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh)
+endif()
 
 add_test(test_additive_1 ${CMAKE_BINARY_DIR}/test_run/additive/test_additive_1.sh)
 add_test(test_additive_2 ${CMAKE_BINARY_DIR}/test_run/additive/test_additive_2.sh)
@@ -312,7 +315,7 @@ set(REACTIONS_SRC src/rxns/rxn_arrhenius.F90
 	src/rxns/rxn_troe.F90
 	src/rxns/rxn_CMAQ_H2O2.F90
 	src/rxns/rxn_CMAQ_OH_HNO3.F90
-	src/rxns/rxn_fastj_photo.F90)
+	src/rxns/rxn_photolysis.F90)
 set(AEROSOL_REPS_SRC src/aero_reps/aero_rep_single_particle.F90 
    src/aero_reps/aero_rep_single_particle_state.F90)
 
@@ -360,6 +363,33 @@ target_link_libraries(partmc partmclib)
 add_executable(phlex_box_model test/chemistry/phlex_box_model.F90)
 
 target_link_libraries(phlex_box_model partmclib)
+
+######################################################################
+# test_chemistry_cb5
+
+set(CB5_EBI_SOLVER 
+	test/chemistry/cb5/EXT-CONST_mod.F90
+	test/chemistry/cb5/ext-hrg2.F90
+	test/chemistry/cb5/ext-hrcalcks.F90
+	test/chemistry/cb5/ext-hrinit.F90
+	test/chemistry/cb5/ext-hrdata_mod.F90
+	test/chemistry/cb5/ext-hrg3.F90
+	test/chemistry/cb5/ext-hrprodloss.F90
+	test/chemistry/cb5/ext-hrg1.F90
+	test/chemistry/cb5/ext-hrg4.F90
+	test/chemistry/cb5/ext-hrrates.F90
+	test/chemistry/cb5/ext-hrsolver.F90
+	test/chemistry/cb5/EXT-RXCM_mod.F90
+	)
+
+set_source_files_properties(${CB5_EBI_SOLVER} PROPERTIES COMPILE_FLAGS
+       	"-ffixed-form -ffixed-line-length-none")
+
+add_executable(test_chemistry_cb5 test/chemistry/cb5/test_cb5.F90
+	${CB5_EBI_SOLVER}
+	test/chemistry/cb5/module_BSC_CHEM_DATA.F90)
+
+target_link_libraries(test_chemistry_cb5 partmclib)
 
 ######################################################################
 # MONARCH interface

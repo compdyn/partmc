@@ -3,26 +3,30 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_rxn_fastj_photo module.
+!> The pmc_rxn_photolysis module.
 
-!> \page phlex_rxn_fastj_photo Phlexible Mechanism for Chemistry: Fast-J Photolysis
+!> \page phlex_rxn_photolysis Phlexible Mechanism for Chemistry: Photolysis
 !!
-!! Photolysis reactions are considered to be uni-molecular decomposition
-!! reactions:
+!! Photolysis reactions take the form:
 !!
 !! \f[
 !!   \mbox{X} + h\nu \to \mbox{Y_1} ( + \mbox{Y_2} \dots )
 !! \f]
-!!
+!!_
 !! where \f$\mbox{X}\f$ is the species being photolyzed, and
 !! \f$\mbox{Y_n}\f$ are the photolysis products.
 !!
-!! Photolysis rates are calculated by the Fast-J module. 
+!! Photolysis rate constants (including the \f$h\nu\f$ term) can be constant
+!! or set from an external photolysis module using the
+!! \c pmc_rxn_photolysis::rxn_photolysis_t::set_rate_const() function.
+!! External modules can use the
+!! \c pmc_rxn_photolysis::rxn_photolysis_t::get_property_set() function during
+!! initilialization to access any needed reaction parameters.
 !!
-!! Input data for Fast-J Photolysis equations should take the form :
+!! Input data for Photolysis equations should take the form :
 !! \code{.json}
 !!   {
-!!     "type" : "FASTJ_PHOTO",
+!!     "type" : "PHOTOLYSIS",
 !!     "reactants" : {
 !!       "spec1" : {}
 !!     },
@@ -30,19 +34,23 @@
 !!       "spec2" : {},
 !!       "spec3" : { "yield" : 0.65 },
 !!       ...
-!!     }
+!!     },
+!!     "rate const" : 12.5
 !!   }
 !! \endcode
 !! The key-value pairs \b reactants, and \b products are required. There must
 !! be exactly one key-value pair in the \b reactants object whose name is the
 !! species being photolyzed and whose value is an empty \c json object. Any
 !! number of products may be present. Products without a specified \b yield
-!! are assumed to have a \b yield of 1.0.
+!! are assumed to have a \b yield of 1.0. The \b "rate const" is optional and
+!! can be used to set a rate constant (including the \f$h\nu\f$ term) that
+!! remains constant throughout the model run. All other data is optional and
+!! will be available to external photolysis modules during initialization.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!> The rxn_fastj_photo_t type and associated functions. 
-module pmc_rxn_fastj_photo
+!> The rxn_photolysis_t type and associated functions. 
+module pmc_rxn_photolysis
 
   use pmc_constants,                        only: const
   use pmc_util,                             only: i_kind, dp, to_string, &
@@ -57,16 +65,17 @@ module pmc_rxn_fastj_photo
 
 #define _NUM_REACT_ this%condensed_data_int(1)
 #define _NUM_PROD_ this%condensed_data_int(2)
+#define _RATE_CONST_ this%condensed_data_real(1)
 #define _NUM_INT_PROP_ 2
-#define _NUM_REAL_PROP_ 0
+#define _NUM_REAL_PROP_ 1
 #define _REACT_(x) this%condensed_data_int(_NUM_INT_PROP_ + x)
 #define _PROD_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + x)
 #define _yield_(x) this%condensed_data_real(_NUM_REAL_PROP_ + x)
 
-public :: rxn_fastj_photo_t
+public :: rxn_photolysis_t
 
   !> Generic test reaction data type
-  type, extends(rxn_data_t) :: rxn_fastj_photo_t
+  type, extends(rxn_data_t) :: rxn_photolysis_t
   contains
     !> Reaction initialization
     procedure :: initialize
@@ -76,22 +85,26 @@ public :: rxn_fastj_photo_t
     procedure :: jac_contrib
     !> Calculate the rate constant
     procedure, private :: rate_const
-  end type rxn_fastj_photo_t
+    !> Set the photolysis rate constant
+    procedure :: set_rate_const
+    !> Get the reaction property set
+    procedure :: get_property_set
+  end type rxn_photolysis_t
 
-  !> Constructor for rxn_fastj_photo_t
-  interface rxn_fastj_photo_t
+  !> Constructor for rxn_photolysis_t
+  interface rxn_photolysis_t
     procedure :: constructor
-  end interface rxn_fastj_photo_t
+  end interface rxn_photolysis_t
 
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Constructor for Fast-J Photolysis reaction
+  !> Constructor for Photolysis reaction
   function constructor() result(new_obj)
 
     !> A new reaction instance
-    type(rxn_fastj_photo_t), pointer :: new_obj
+    type(rxn_photolysis_t), pointer :: new_obj
 
     allocate(new_obj)
     new_obj%rxn_phase = GAS_RXN
@@ -109,7 +122,7 @@ contains
   subroutine initialize(this, chem_spec_data)
     
     !> Reaction data
-    class(rxn_fastj_photo_t), intent(inout) :: this
+    class(rxn_photolysis_t), intent(inout) :: this
     !> Chemical species data
     type(chem_spec_data_t), intent(in) :: chem_spec_data
 
@@ -125,10 +138,10 @@ contains
             "Missing property set needed to initialize reaction")
     key_name = "reactants"
     call assert_msg(250060521, this%property_set%get_property_t(key_name, reactants), &
-            "Fast-J Photolysis reaction is missing reactants")
+            "Photolysis reaction is missing reactants")
     key_name = "products"
     call assert_msg(304540307, this%property_set%get_property_t(key_name, products), &
-            "Fast-J Photolysis reaction is missing products")
+            "Photolysis reaction is missing products")
 
     ! Count the number of reactants (including those with a qty specified)
     call reactants%iter_reset()
@@ -156,12 +169,10 @@ contains
 
     ! Get reaction parameters (it might be easiest to keep these at the beginning
     ! of the condensed data array, so they can be accessed using compliler flags)
-    ! 
-    ! TODO Add properties needed for FastJ
-    ! key_name = "A"
-    ! if (.not. this%property_set%get_real(key_name, _A_)) then
-    !   _A_ = 1.0
-    ! end if
+    key_name = "rate const"
+    if (.not. this%property_set%get_real(key_name, _RATE_CONST_)) then
+      _RATE_CONST_ = real(0.0, kind=dp)
+    end if
 
     ! Get the indices and chemical properties for the reactants
     call reactants%iter_reset()
@@ -186,7 +197,7 @@ contains
 
     ! Make sure exactly one reactant is present
     call assert_msg(908486656, i_spec.eq.2, "Incorrect number of reactants"//&
-            " for Fast-J Photolysis reaction: "//to_string(i_spec-1))
+            " for Photolysis reaction: "//to_string(i_spec-1))
 
     ! Get the indices and chemical properties for the products
     call products%iter_reset()
@@ -224,7 +235,7 @@ contains
   subroutine  func_contrib(this, phlex_state, func)
 
     !> Reaction data
-    class(rxn_fastj_photo_t), intent(in) :: this
+    class(rxn_photolysis_t), intent(in) :: this
     !> Current model state
     type(phlex_state_t), intent(in) :: phlex_state
     !> Time derivative vector. This vector may include contributions from
@@ -265,7 +276,7 @@ contains
   subroutine jac_contrib(this, phlex_state, jac_matrix)
 
     !> Reaction data
-    class(rxn_fastj_photo_t), intent(in) :: this
+    class(rxn_photolysis_t), intent(in) :: this
     !> Current model state
     type(phlex_state_t), intent(in) :: phlex_state
     !> Jacobian matrix. This matrix may include contributions from other
@@ -319,17 +330,42 @@ contains
   real(kind=dp) function rate_const(this, phlex_state)
 
     !> Reaction data
-    class(rxn_fastj_photo_t), intent(in) :: this
+    class(rxn_photolysis_t), intent(in) :: this
     !> Current model state
     type(phlex_state_t), intent(in) :: phlex_state
 
-    integer(kind=i_kind) :: i_spec
-
-    ! TODO connect to Fast-J module for rate calculation
-    rate_const = 1.0d0
+    rate_const = _RATE_CONST_
 
   end function rate_const
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module pmc_rxn_fastj_photo
+  !> Set the rate constant from an external photolysis module
+  subroutine set_rate_const(this, rate_const)
+
+    !> Reaction data
+    class(rxn_photolysis_t), intent(inout) :: this
+    !> Rate constant \f$k_photo*h\nu\f$ (\f$s^{-1}\f$)
+    real(kind=dp), intent(in) ::rate_const
+
+    _RATE_CONST_ = rate_const
+
+  end subroutine set_rate_const
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the reaction properties. (For use by external photolysis modules.)
+  function get_property_set(this) result(prop_set)
+
+    !> Reaction properties
+    type(property_t), pointer :: prop_set
+    !> Reaction data
+    class(rxn_photolysis_t), intent(in) :: this
+
+    prop_set => this%property_set
+
+  end function get_property_set
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+end module pmc_rxn_photolysis

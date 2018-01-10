@@ -62,7 +62,7 @@ module pmc_mechanism_data
     !> Mechanism name
     character(len=:), allocatable :: mech_name
     !> Reactions
-    type(rxn_data_ptr), pointer :: rxn_ptr(:) => null()
+    type(rxn_data_ptr), pointer, public :: rxn_ptr(:) => null()
   contains
     !> Load reactions from an input file
     procedure :: load

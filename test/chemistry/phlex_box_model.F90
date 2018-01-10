@@ -87,6 +87,8 @@ contains
     real(kind=dp), allocatable :: model_conc(:,:)
     integer(kind=i_kind) :: i_time, i_spec, row_size, row_pos, row_end
 
+    real(kind=dp) :: comp_start, comp_end
+
     ! Check for an available solver
     integration_data => integration_data_t()
     call assert_msg(831452409, integration_data%is_solver_available(), &
@@ -94,6 +96,9 @@ contains
 
     ! Set up the phlex_core_t and phlex_state_t variables
     if (pmc_mpi_rank() == 0) then
+
+      ! Start the computational timer
+      call cpu_time(comp_start)
 
       ! Construct a phlex_core_t variable and load input files
       phlex_core => phlex_core_t(file_list)
@@ -158,6 +163,19 @@ contains
     allocate(model_conc(0:NUM_TIME_STEP,size(phlex_state%state_var)))
     model_conc(0,:) = phlex_state%state_var(:)
 
+    ! Calculate the initialization time, and reset the timer for the model run
+    if (pmc_mpi_rank() == 0) then
+      call cpu_time(comp_end)
+      write(*,*) "Initialization time: ", comp_end-comp_start, " s"
+      call cpu_time(comp_start)
+    end if
+
+    write (*,*) "***** Phlex-chem configuration *******"
+    call phlex_core%mechanism(1)%print()
+    write (*,*) "Phlex state: ", phlex_state%state_var(:)
+    write (*,*) "Temp: ", phlex_state%env_state%temp
+    write (*,*) "***** end Phlex-chem configuration *******"
+
     ! Integrate the mechanism
     do i_time = 1, NUM_TIME_STEP
 
@@ -168,6 +186,12 @@ contains
       model_conc(i_time,:) = phlex_state%state_var(:)
 
     end do
+
+    ! Calculate the model run time
+    if (pmc_mpi_rank() == 0) then
+      call cpu_time(comp_end)
+      write(*,*) "Model run time: ", comp_end-comp_start, " s"
+    end if
 
     ! TODO Check child nodes to be sure results match parent node
 

@@ -1,6 +1,7 @@
 {
 	"pmc-files" : [
 		"cb5.json",
+		"cb5_abs_tol.json",
 		"cb5_init.json"
 	]
 }

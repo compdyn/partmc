@@ -30,15 +30,15 @@ program mock_monarch
   !> Number of S-N cells in mock MONARCH
   integer, parameter :: NUM_SN_CELLS = 30
   !> Number of vertical cells in mock MONARCH
-  integer, parameter :: NUM_VERT_CELLS = 6
+  integer, parameter :: NUM_VERT_CELLS = 1
   !> Starting W-E cell for phlex-chem call
-  integer, parameter :: I_W = 8
+  integer, parameter :: I_W = 9
   !> Ending W-E cell for phlex-chem call
-  integer, parameter :: I_E = 14
+  integer, parameter :: I_E = 11
   !> Starting S-N cell for phlex-chem call
-  integer, parameter :: I_S = 13
+  integer, parameter :: I_S = 14
   !> Ending S-N cell for phlex-chem call
-  integer, parameter :: I_N = 17
+  integer, parameter :: I_N = 16
   !> Starting index for phlex-chem species in tracer array
   integer, parameter :: START_PHLEX_ID = 100
   !> Ending index for phlex-chem species in tracer array
@@ -104,7 +104,6 @@ program mock_monarch
 
   ! Run the model
   do i_time=0, NUM_TIME_STEP
-    write(OUTPUT_FILE_UNIT,*) "Solving at model time: ", start_time
     call output_results(start_time)
     call pmc_integrate(start_time,        & ! Starting time (min)
                        TIME_STEP,         & ! Time step (min)
@@ -120,6 +119,9 @@ program mock_monarch
                        pressure)            ! Air pressure (Pa)   
     start_time = start_time + TIME_STEP
   end do
+
+  write(*,*) "Model run time: ", comp_time, " s"
+
   call output_results(start_time)
 
   ! TODO evaluate results
@@ -145,7 +147,7 @@ contains
     call pmc_mpi_init()
 
     ! TODO refine initial model conditions
-    temperature(:,:,:) = 278.0
+    temperature(:,:,:) = 298.0
     species_conc(:,:,:,:) = 0.0
     water_conc(:,:,:,:) = 0.0
     water_conc(:,:,:,WATER_VAPOR_ID) = 0.01
@@ -164,7 +166,7 @@ contains
     !> Current model time (min since midnight)
     real, intent(in) :: curr_time
 
-    write(RESULTS_FILE_UNIT, *) curr_time, species_conc(10,15,3,:)
+    write(RESULTS_FILE_UNIT, *) curr_time, species_conc(10,15,1,START_PHLEX_ID:)
 
   end subroutine output_results
 

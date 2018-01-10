@@ -181,7 +181,7 @@ module pmc_rxn_factory
   use pmc_rxn_troe
   use pmc_rxn_CMAQ_H2O2
   use pmc_rxn_CMAQ_OH_HNO3
-  use pmc_rxn_fastj_photo
+  use pmc_rxn_photolysis
 
   implicit none
   private
@@ -194,7 +194,7 @@ module pmc_rxn_factory
   integer(kind=i_kind), parameter :: RXN_TROE = 2
   integer(kind=i_kind), parameter :: RXN_CMAQ_H2O2 = 3
   integer(kind=i_kind), parameter :: RXN_CMAQ_OH_HNO3 = 4
-  integer(kind=i_kind), parameter :: RXN_FASTJ_PHOTO = 5
+  integer(kind=i_kind), parameter :: RXN_PHOTOLYSIS = 5
 
   !> Factory type for chemical reactions
   !!
@@ -241,7 +241,7 @@ contains
       case ("CMAQ_OH_HNO3")
         new_obj => rxn_CMAQ_OH_HNO3_t()
       case ("FASTJ_PHOTO")
-        new_obj => rxn_fastj_photo_t()
+        new_obj => rxn_photolysis_t()
       case default
         call die_msg(367114278, "Unknown chemical reaction type: " &
                 //type_name) 
@@ -341,8 +341,8 @@ contains
         rxn_type = RXN_CMAQ_H2O2
       type is (rxn_CMAQ_OH_HNO3_t)
         rxn_type = RXN_CMAQ_OH_HNO3
-      type is (rxn_fastj_photo_t)
-        rxn_type = RXN_FASTJ_PHOTO
+      type is (rxn_photolysis_t)
+        rxn_type = RXN_PHOTOLYSIS
       class default
         call die_msg(343941184, "Trying to pack reaction of unknown type.")
     end select
@@ -382,8 +382,8 @@ contains
         rxn => rxn_CMAQ_H2O2_t()
       case (RXN_CMAQ_OH_HNO3)
         rxn => rxn_CMAQ_OH_HNO3_t()
-      case (RXN_FASTJ_PHOTO)
-        rxn => rxn_fastj_photo_t()
+      case (RXN_PHOTOLYSIS)
+        rxn => rxn_photolysis_t()
       case default
         call die_msg(659290342, "Trying to unpack reaction of unknown type:"// &
                 to_string(rxn_type))

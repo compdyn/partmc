@@ -15,6 +15,7 @@ module pmc_monarch
   use pmc_phlex_state
   use pmc_chem_spec_data
   use pmc_property
+  use pmc_integration_data
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -45,6 +46,9 @@ module pmc_monarch
   type(string_t), allocatable :: spec_names(:)
   !! TODO Set up similar mapping for aerosol species
 
+  ! TEMPORARY
+  real(kind=dp), public, save :: comp_time = 0.0d0
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -62,12 +66,24 @@ contains
     !> Ending index for chemical species in the MONARCH tracer array
     integer, optional :: ending_id
 
+    type(integration_data_t), pointer :: integration_data
     character(len=:), allocatable :: buffer
     integer(kind=i_kind) :: pos, pack_size
     integer(kind=i_kind) :: i_spec
 
-    !> Initialize the time-invariant model data on each node
+    ! Computation time variable
+    real(kind=dp) :: comp_start, comp_end
+
+    ! Check for an available solver
+    call assert_msg(332298164, integration_data%is_solver_available(), &
+            "No solver available")
+
+    ! Initialize the time-invariant model data on each node
     if (MONARCH_NODE.eq.0) then
+      
+      ! Start the computation timer on the primary node
+      call cpu_time(comp_start)
+
       call assert_msg(304676624, present(input_file_path), &
               "Missing input file directory")
       call assert_msg(937567597, present(starting_id), &
@@ -115,6 +131,12 @@ contains
     ! Create a state variable on each node
     phlex_state = phlex_core%new_state()
 
+    ! Calculate the intialization time
+    if (MONARCH_NODE.eq.0) then
+      call cpu_time(comp_end)
+      write(*,*) "Initialization time: ", comp_end-comp_start, " s"
+    end if
+
   end subroutine pmc_initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -155,6 +177,9 @@ contains
 
     integer :: i, j, k, k_flip, i_spec
 
+    ! Computation time variables
+    real(kind=dp) :: comp_start, comp_end
+
     ! Loop through the grid cells
     do i=i_start, i_end
       do j=j_start, j_end
@@ -174,14 +199,27 @@ contains
                   MONARCH_conc(i,j,k_flip,tracer_starting_id:&
                   tracer_starting_id+size(spec_map))
 
+          ! Start the computation timer
+          if (MONARCH_NODE.eq.0 .and. i.eq.i_start .and. j.eq.j_start &
+                  .and. k.eq.1) then
+            call cpu_time(comp_start)
+          end if
+
           ! Integrate the PMC mechanism
           call phlex_core%solve(phlex_state, real(time_step, kind=dp))
+
+          ! Calculate the computation time
+          if (MONARCH_NODE.eq.0 .and. i.eq.i_start .and. j.eq.j_start &
+                  .and. k.eq.1) then
+            call cpu_time(comp_end)
+            comp_time = comp_time + (comp_end-comp_start)
+          end if
 
           ! Update the MONARCH tracer array with new species concentrations
           MONARCH_conc(i,j,k_flip,tracer_starting_id:&
                   tracer_starting_id+size(spec_map)) = &
                   phlex_state%state_var(spec_map(:))
-
+ 
         end do
       end do
     end do

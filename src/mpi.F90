@@ -944,7 +944,7 @@ contains
        call pmc_mpi_pack_integer(buffer, position, n4)
        call pmc_mpi_pack_integer(buffer, position, n5)
        call mpi_pack(val, n1*n2*n3*n4*n5, MPI_DOUBLE_PRECISION, buffer, &
-            position, MPI_COMM_WORLD, ierr)
+            size(buffer), position, MPI_COMM_WORLD, ierr)
        call pmc_mpi_check_ierr(ierr)
     end if
     call assert(567349745, &

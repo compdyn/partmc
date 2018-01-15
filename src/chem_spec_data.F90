@@ -99,6 +99,8 @@ module pmc_chem_spec_data
     procedure :: gas_abs_tol
     !> Get the absolute integration tolerance of a species by name
     procedure :: get_abs_tol
+    !> Print out the species data
+    procedure :: print => do_print
 
     ! Private functions
     !> Add a species
@@ -516,6 +518,29 @@ contains
     end if
 
   end function get_abs_tol
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Print out the species data
+  subroutine do_print(this, file_unit)
+
+    !> Chemical species data
+    class(chem_spec_data_t), intent(in) :: this
+    !> File unit for output
+    integer(kind=i_kind), optional :: file_unit
+
+    integer(kind=i_kind) :: i_spec
+    integer(kind=i_kind) :: f_unit = 6
+
+    if (present(file_unit)) f_unit = file_unit
+
+    write(f_unit,*) "Number of species: ", this%num_spec
+    do i_spec = 1, this%num_spec
+      write(f_unit,*) "  ", this%spec_name(i_spec)%string
+      call this%property_set(i_spec)%print(f_unit)
+    end do
+
+  end subroutine do_print
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

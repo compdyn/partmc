@@ -1,0 +1,173 @@
+! 11-01-18
+! This was downloaded from www-personal.umich.edu/~sillman/direct/rbchemsolver/fort.87
+! for use in testing the cb05cl_ae5 mechanism
+
+fort.87rb_rpai     = CHEMICAL INPUT for REACTION7_GMI_LKS07  (chemmain1.f)
+NOVEMBER 2006.  Ito 2006 + Sillman 2007 aq+cl+br+hg.  
+ *** NOTE OPTION *** HGO = 0 or .2e6
+
+  TITLE:
+hg_gmi_rpa    REGIONAL PA EMISSIONS + REMOTE INITIAL (=500 mb summer, fort.87remotf) (hgaebr ) + isoprene
+
+    35    nchem - # fast chems   (NOTE! 32 vs. 28 or 29 to avoid CRES ?)
+    86    nchem1 - # total chems (includes sums)
+   399    nchem2 - # saved chems (may include fractions -- for other pgms)
+2.350E+19 dens -- mol/cm3 M  (2.464)
+
+***   here are CHEMICAL CONCENTRATIONS: initial,updr,topdr,gen,depo (/cm3,/cm2,
+(7x?,5e10.3,5x,a8;miss space. 1 to NCHEM1)                           cm/sec)
+  1    0.094E+13 0.094E+13 0.094E+13 0.        0.060E+01       O3
+  2    0.300E+09 0.300E+09 0.300E+09 0.150E+11 0.060E+01      NO2
+  3    0.300E+09 0.300E+09 0.300E+09 0.460E+12 0.010E+01       NO
+  4    0.100E+08 0.100E+04 0.100E+04 0.        0.             NO3
+  5    0.100E+08 0.        0.        0.        0.            N2O5
+  6    0.200E+10 0.200E+10 0.200E+10 0.        0.250E+01     HNO3
+  7    0.100E+08 0.        0.        0.        0.            HONO
+  8    0.100E+08 0.        0.        0.        0.            HNO4
+  9    0.200E+06 0.        0.        0.        0.              OH
+ 10    0.200E+09 0.        0.        0.        0.             HO2
+ 11    0.120E+11 0.120E+11 0.120E+11 0.        0.250E+01     H2O2
+ 12    0.200E+06 0.        0.050E+00 0.290E+12 0.             SO2
+ 13    0.200E+11 0.200E+11 0.200E+11 0.300E+10 0.            SULF opt .2e10
+ 14    0.100E+17 0.100E+17 0.100E+17 0.        0.             H2O
+ 15    0.100E+13 0.100E+13 0.100E+13 0.230E+13 0.              CO   (.2-.4ppm)
+ 76    1.000E+13 1.000E+13 1.000E+13 0.        0.              H2  
+ 17    0.240E+14 0.240E+14 0.240E+14 0.540E+11 0.             CH4  
+ 18    0.200E+09 0.200E+09 0.200E+09 0.400E+10 0.            C2H6
+ 19    0.200E+08 0.200E+08 0.200E+08 0.120E+11 0.            C3H8
+ 20    0.200E+09 0.200E+09 0.200E+09 0.620E+11 0.            ALK4
+ 21    0.200E+07 0.200E+07 0.200E+07 0.310E+11 0.            ALK7
+ 22    0.150E+10 0.150E+10 0.150E+10 0.810E+10 0.            HCHO
+ 23    0.100E+09 0.100E+09 0.100E+09 0.091E+10 0.            ALD2
+ 24    0.200E+08 0.200E+08 0.200E+08 0.031E+10 0.            RCHO
+ 25    0.200E+10 0.200E+10 0.200E+10 0.200E+10 0.            ACET
+ 26    0.100E+09 0.100E+09 0.100E+09 0.200E+10 0.             MEK
+ 27    0.100E+07 0.100E+07 0.100E+07 0.340E+11 0.            ETHE
+ 28    0.000E+10 0.000E+10 0.000E+06 0.230E+11 0.            PRPE
+ 29    0.000E+10 0.000e+10 0.000E+06 0.053E+11 0.            BUTE
+ 30    0.500E+10 0.000E+10 0.000E+00 0.300e+13 0.            ISOP  (alt e10 e13)
+ 31    0.200E+08 0.200E+08 0.200E+08 0.430E+11 0.            BENZ
+ 32    0.200E+07 0.200E+07 0.200E+07 0.200E+11 0.            TOLU
+ 33    0.000E+10 0.000E+10 0.000E+06 0.130E+11 0.            XYLE
+ 34    0.050E+10 0.000E+10 0.000E+10 0.200E+12 0.            APIN  (alt e10 e12)
+ 35    0.050E+10 0.        0.        0.200E+12 0.            LIMO  limonene
+ 36    0.100E+07 0.100E+07 0.100E+07 0.        0.            MCO3
+ 37    0.750E+10 0.750E+10 0.750E+10 0.        0.250E+00      PAN  (orig0.25e11)
+ 38    0.100E+09 0.100E+09 0.100E+09 0.        0.             MO2  
+ 39    0.        0.        0.        0.        0.            ETO2
+ 40    0.        0.        0.        0.        0.             ro2
+ 41    0.        0.        0.        0.        0.            rno2
+ 42    0.        0.        0.        0.        0.            ino3
+ 43    0.100E+00 0.100E+09 0.100E+09 0.        0.            rno3  
+ 44    0.        0.        0.        0.        0.            nco3   
+ 45    0.500E+09 0.500E+09 0.500E+09 0.        0.250E+00      PPN   
+ 46    0.        0.        0.        0.        0.250E+00     npan
+ 47    0.        0.        0.        0.        0.250E+00     MPAN
+ 48    0.        0.        0.        0.        0.            PRPN
+ 49    0.        0.        0.        0.        0.             HAC
+ 50    0.        0.        0.        0.        0.            GLYX
+ 51    0.        0.        0.        0.        0.            MGLY
+ 52    0.        0.        0.        0.        0.            GLYC
+ 53    0.        0.        0.        0.        0.            IALD
+ 54    0.        0.        0.        0.        0.            A-DI (chohcho)
+ 55    0.        0.        0.        0.        0.            PHEN  
+ 56    0.        0.        0.        0.        0.            CRES  
+ 57    0.        0.        0.        0.        0.             DMP  
+ 58    0.        0.        0.        0.        0.            POXY  
+ 59    0.        0.        0.        0.        0.            DIAL  
+ 60    0.        0.        0.        0.        0.            ADAL
+ 61    0.        0.        0.        0.        0.            MDAL
+ 62    0.        0.        0.        0.        0.            ACHO
+ 63    0.000E+10 0.000E+10 0.000E+06 0.        0.             MVK
+ 64    0.000E+10 0.000E+10 0.000E+06 0.        0.            MACR
+ 65    0.000E+10 0.000E+10 0.000E+06 0.        0.            IPRD
+ 66    0.        0.        0.        0.        0.            crig  (gCHO2 )
+ 67    0.        0.        0.        0.        0.            ACO2   (HCOOH)
+ 68    0.        0.        0.        0.        0.            ACTA   (CH3COOH)
+ 69    0.        0.        0.        0.        0.            RCOH   (RCOOH)
+ 70    0.200E+10 0.200E+10 0.200E+10 0.        0.             MOH   methanol
+ 71    0.        0.        0.        0.        0.             EOH   ethanol  
+ 72    0.        0.        0.        0.        0.             ROH   R+anol
+ 73    0.        0.        0.        0.        0.             AHO2  
+ 74    0.        0.        0.        0.        0.             DMS   
+ 75    0.        0.        0.        0.        0.080E+01       MP (rioh)
+ 76    0.200E+10 0.200E+10 0.200E+10 0.        0.080E+01     rooh sum
+ 77    0.        0.        0.        0.        0.080E+01      RIP (rioh)
+ 78    0.        0.        0.        0.        0.080E+01     rmoh (rioh)
+ 79    0.        0.        0.        0.        0.080E+01     rpoh (pin-ooh)
+ 80    0.        0.        0.        0.        0.            NITP = aro NO3
+ 81    0.        0.        0.        0.        0.250E+01     MVNP=  mvk-n-rooh  
+ 82    0.        0.        0.        0.        0.250E+01     INPN  ino2-rooh
+ 83    0.        0.        0.        0.        0.250E+01     ISNP  iso-n-rooh
+ 84    0.        0.        0.        0.        0.250E+01     ISNT  isop nitrate
+ 85    0.        0.        0.        0.        0.250E+01     PINT  pin- nitrate
+ 86    0.880E+16 0.        0.        0.        0.             CO2  
+
+*** FRZ(24),height vs hour;FRS sun; FRW wind, FGEN  real gen vs hour
+12f6.2
+   FRZ - 00000,0.01,0.1,0.25,0.4,0.55,0.70,0.85,90,95,1/1.,543210
+  0.00  0.00  0.00  0.00  0.00  0.00  0.10  0.25  0.40  0.55  0.70  0.85
+  0.90  0.95  1.00  1.00  1.00  1.00  1.00  0.60  0.40  0.20  0.00  0.00
+  FRS -- SOL; isoprene schedule
+  0.00  0.00  0.00  0.00  0.00  0.05  0.12  0.24  0.41  0.60  0.80  1.00
+  0.80  0.60  0.41  0.24  0.12  0.05  0.00  0.00  0.00  0.00  0.00  0.00
+  FRW
+  1.00  1.00  1.00  1.00  1.00  1.00  1.00  1.00  1.00  1.00  1.00  1.00
+  0.00  1.00  1.00  1.00  1.00  1.00  1.00  1.00  1.00  1.00  1.00  1.00
+ FGEN
+  0.45  0.45  0.45  0.45  0.50  1.00  1.40  1.55  1.45  1.40  1.40  1.40
+  1.40  1.40  1.55  1.65  1.55  1.15  0.95  0.65  0.45  0.45  0.45  0.45
+FNGEN (NO,NO2)
+  0.62  0.60  0.60  0.60  0.60  0.77  1.28  1.40  1.36  1.33  1.33  1.33
+  1.32  1.36  1.26  1.28  1.26  1.05  0.95  0.77  0.75  0.72  0.70  0.67
+
+***  here are numbers for newton-rafson iteration 
+
+    20     numitr - # nuraf iterations
+   0.200   rafmin -- factor for biggest redux in iter (f8.3)
+   100.0   rafmax -- maximum increase (F8.1)
+   0.700   damp1 -- for first few iters (f8.3)
+0.100E-02   rafpml - convergence test F/P-L e9.3 (E-4)
+-0.10E-04  raferr -- convergence allowed error dx/x (E-4)  (-0.10E-01)
+0.500E-01  ermat -- error requiring new matfill  e9.3 (NOTE make low..)
+0.200E+00  erslo -- errorin FAST errxo requiring new SLO chem calc(LIBERAL)
+0.100E-02  errfro -- error in FR requiring new calc (LIBERAL since OLD test)
+ 66661     iprt -- print and stop at this time step (test NR convergence)
+     0     nhkem -- # chemicals input on hourly basis upwind
+ (END)
+***  here are indices NK(i) for chemical xr's thru nchem1 (NK(i)=1, etc.)
+
+  9 10  1  2  3  4  5  7  8 38
+ 39 40 75 34 36 35 37 29 30 47
+ 48 55 56 67 68 69 53 54 57 66
+ 63 64 65 22 51 59 60 61 49 50
+ 23 24 25 26  6 11 12 13 14 15
+ 16 17 18 19 20 21 27 28 31 32
+ 33 41 42 43 44 45 46 52 58 62
+ 70 71 72 73 74 76 77 78 79 80
+ 80 81 82 83 84 86 87 88 89 80
+ 91 92 93 94 95 96 97 98 99100
+
+*** here are IWRIT for writing 115 chemicals
+
+  1  2  3 16 30 35 37 09 10 11     STOPS: 7,13oh,41hc,48r,55n
+ 44 76 06 15 17 18 19 20 21 27
+ 28 29 31 32 33 22 23 24 25 26
+ 49 50 51 59 60 61 62 63 64 65
+ 66 38 39 40 34 36 04 05 07 08
+ 12 13 14 41 42 43 45 46 47 48 
+ 52 53 54 55 56 57 58 67 68 69
+ 70 71 72 73 74 75 77 78 79 80
+ 80 81 82 83 84 86 87 88 89 80
+ 91 92 93 94 95 96 97 98 99100
+
+*** here is ISTS for steady state chems. 0 stops. MUST BE FAST CHEM!
+
+ 00 23 49 50 51 59 60 61 24 11
+ 73 74 75 76 77 78 79 80 81 82
+ 83 84 85 86 87 88 89 90 91 92
+ 93 94 95 96 97 98 99 63 64 65
+ 66 00 52 53 54 55  0  0  0  0
+
+***  here are chemicals read hourly (1x,i5,e12.4; # is xr # of chem)
+

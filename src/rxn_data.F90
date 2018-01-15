@@ -401,12 +401,17 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Print the reaction data
-  subroutine do_print(this)
+  subroutine do_print(this, file_unit)
 
     !> Reaction data
     class(rxn_data_t), intent(in) :: this
+    !> File unit for output
+    integer(kind=i_kind), optional :: file_unit
 
-    if (associated(this%property_set)) call this%property_set%print()
+    integer(kind=i_kind) :: f_unit = 6
+
+    if (present(file_unit)) f_unit = file_unit
+    if (associated(this%property_set)) call this%property_set%print(f_unit)
 
   end subroutine do_print
 

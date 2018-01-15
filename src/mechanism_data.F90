@@ -383,18 +383,23 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Print the mechanism data
-  subroutine do_print(this)
+  subroutine do_print(this, file_unit)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
+    !> File unit for output
+    integer(kind=i_kind), optional :: file_unit
 
     integer :: i_rxn
+    integer(kind=i_kind) :: f_unit = 6
 
-    write(*,*) "Mechanism: "//trim(this%name())
+    if (present(file_unit)) f_unit = file_unit
+
+    write(f_unit,*) "Mechanism: "//trim(this%name())
     do i_rxn = 1, this%num_rxn
-      call this%rxn_ptr(i_rxn)%val%print()
+      call this%rxn_ptr(i_rxn)%val%print(f_unit)
     end do
-    write(*,*) "End mechanism: "//trim(this%name())
+    write(f_unit,*) "End mechanism: "//trim(this%name())
 
   end subroutine do_print
 

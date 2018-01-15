@@ -231,6 +231,10 @@ contains
       ! Save the index of this species in the state variable array
       _REACT_(i_spec) = chem_spec_data%gas_state_id(spec_name)
 
+      ! Make sure the species exists
+      call assert_msg(665522163, _REACT_(i_spec).gt.0, &
+              "Missing CMAQ OH HNO3 reactant: "//spec_name)
+
       ! Get properties included with this reactant in the reaction data
       call assert(796763915, reactants%get_property_t(val=spec_props))
       key_name = "qty"
@@ -251,6 +255,10 @@ contains
 
       ! Save the index of this species in the state variable array
       _PROD_(i_spec) = chem_spec_data%gas_state_id(spec_name)
+
+      ! Make sure the species exists
+      call assert_msg(881535773, _PROD_(i_spec).gt.0, &
+              "Missing CMAQ OH HNO3 product: "//spec_name)
 
       ! Get properties included with this product in the reaction data
       call assert(451185800, products%get_property_t(val=spec_props))

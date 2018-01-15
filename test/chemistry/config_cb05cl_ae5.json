@@ -1,0 +1,8 @@
+{
+	"pmc-files" : [
+		"../../../mechanisms/cb05cl_ae5/cb05cl_ae5_mechanism.json",
+		"../../../mechanisms/cb05cl_ae5/cb05cl_ae5_species.json",
+		"cb05cl_ae5_abs_tol.json",
+		"cb05cl_ae5_init.json"
+	]
+}

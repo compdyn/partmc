@@ -20,7 +20,7 @@ module pmc_integration_data
           integration_data_jac_func
 
   !> Default relative tolerance for integration
-  real(kind=dp), parameter :: PMC_INTEGRATION_DEFAULT_REL_TOL = 5.0D-8
+  real(kind=dp), parameter :: PMC_INTEGRATION_DEFAULT_REL_TOL = 1.0D-08
   !> Default max number of integration steps
   integer(kind=i_kind), parameter :: PMC_INTEGRATION_DEFAULT_MAX_STEPS = 10000000
 

@@ -23,14 +23,14 @@
 !! type that implement a set of \ref phlex_aero_phase "aerosol phases" based
 !! on the configuration of the host model.
 !!
-!! The flexibility of the \ref phlex_chem "phlex-chem" module is achieved
-!! through the use of \ref ss_json "json input files" to load
-!! \ref input_format_species "chemical species", \ref input_format_mechanism
-!! "mechanisms", \ref input_format_aero_phase "aerosol phases", and \ref
-!! input_format_aero_rep "aerosol representations" at runtime. This allows a
-!! user to modify any of these data without recompiling the model, permits
-!! host models to choose which mechanisms to solve based on model conditions,
-!! and allows multiple mechanisms to be solved simultaneously.
+!! The \ref phlex_chem "phlex-chem" module uses \ref ss_json
+!! "json input files" to load \ref input_format_species "chemical species",
+!! \ref input_format_mechanism "mechanisms", \ref input_format_aero_phase
+!! "aerosol phases", and \ref input_format_aero_rep "aerosol representations"
+!! at runtime. This allows a user to modify any of these data without
+!! recompiling the model, permits host models to choose which mechanisms to
+!! solve based on model conditions, and allows multiple mechanisms to be
+!! solved simultaneously.
 !!
 !! # Usage #
 !! 
@@ -133,6 +133,8 @@ module pmc_phlex_core
     procedure :: bin_pack
     !> Unpack the given variable from a buffer, advancing position
     procedure :: bin_unpack
+    !> Print the core data
+    procedure :: print => do_print
   end type phlex_core_t
 
   !> Constructor for phlex_core_t
@@ -850,6 +852,32 @@ contains
     end do
 
   end subroutine calc_jacobian
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Print the core data
+  subroutine do_print(this, file_unit)
+
+    !> Core data
+    class(phlex_core_t) :: this
+    !> File unit for output
+    integer(kind=i_kind), optional :: file_unit
+
+    integer(kind=i_kind) :: i_mech
+    integer(kind=i_kind) :: f_unit=6
+
+    if (present(file_unit)) f_unit = file_unit
+
+    write(f_unit,*) "*********************"
+    write(f_unit,*) "** Phlex core data **"
+    write(f_unit,*) "*********************"
+    call this%chem_spec_data%print(f_unit)
+    write(f_unit,*) "Number of mechanisms: ", size(this%mechanism)
+    do i_mech=1, size(this%mechanism)
+      call this%mechanism(i_mech)%print(f_unit)
+    end do
+
+  end subroutine do_print
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

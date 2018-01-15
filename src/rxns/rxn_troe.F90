@@ -223,6 +223,10 @@ contains
       ! Save the index of this species in the state variable array
       _REACT_(i_spec) = chem_spec_data%gas_state_id(spec_name)
 
+      ! Make sure the species exists
+      call assert_msg(595701751, _REACT_(i_spec).gt.0, &
+              "Missing Troe reactant: "//spec_name)
+
       ! Get properties included with this reactant in the reaction data
       call assert(221292659, reactants%get_property_t(val=spec_props))
       key_name = "qty"
@@ -243,6 +247,10 @@ contains
 
       ! Save the index of this species in the state variable array
       _PROD_(i_spec) = chem_spec_data%gas_state_id(spec_name)
+
+      ! Make sure the species exists
+      call assert_msg(480024633, _PROD_(i_spec).gt.0, &
+              "Missing Troe product: "//spec_name)
 
       ! Get properties included with this product in the reaction data
       call assert(393355097, products%get_property_t(val=spec_props))

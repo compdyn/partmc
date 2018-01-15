@@ -12,7 +12,7 @@
 !! \f[
 !!   \mbox{X} + h\nu \to \mbox{Y_1} ( + \mbox{Y_2} \dots )
 !! \f]
-!!_
+!!
 !! where \f$\mbox{X}\f$ is the species being photolyzed, and
 !! \f$\mbox{Y_n}\f$ are the photolysis products.
 !!
@@ -182,6 +182,10 @@ contains
       ! Save the index of this species in the state variable array
       _REACT_(i_spec) = chem_spec_data%gas_state_id(spec_name)
 
+      ! Make sure the species exists
+      call assert_msg(929298013, _REACT_(i_spec).gt.0, &
+              "Missing photolysis reactant: "//spec_name)
+
       ! Get properties included with this reactant in the reaction data
       call assert(796763915, reactants%get_property_t(val=spec_props))
       key_name = "qty"
@@ -206,6 +210,10 @@ contains
 
       ! Save the index of this species in the state variable array
       _PROD_(i_spec) = chem_spec_data%gas_state_id(spec_name)
+
+      ! Make sure the species exists
+      call assert_msg(360988742, _PROD_(i_spec).gt.0, &
+              "Missing photolysis product: "//spec_name)
 
       ! Get properties included with this product in the reaction data
       call assert(451185800, products%get_property_t(val=spec_props))
@@ -345,7 +353,7 @@ contains
 
     !> Reaction data
     class(rxn_photolysis_t), intent(inout) :: this
-    !> Rate constant \f$k_photo*h\nu\f$ (\f$s^{-1}\f$)
+    !> Rate constant \f$k_{photo}*h\nu\f$ (\f$s^{-1}\f$)
     real(kind=dp), intent(in) ::rate_const
 
     _RATE_CONST_ = rate_const

@@ -812,19 +812,24 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Print the contents of a property set
-  recursive subroutine pmc_property_print(this)
+  recursive subroutine pmc_property_print(this, file_unit)
 
     !> Property dataset
     class(property_t), intent(in) :: this
+    !> File unit for output
+    integer(kind=i_kind), optional :: file_unit
 
     type(property_link_t), pointer :: curr_link
+    integer(kind=i_kind) :: f_unit = 6
+
+    if (present(file_unit)) f_unit = file_unit
 
     curr_link => this%first_link
     do while (associated(curr_link))
       if (associated(curr_link%next_link)) then
-        call curr_link%print(",")
+        call curr_link%print(",", f_unit)
       else
-        call curr_link%print("")
+        call curr_link%print("", f_unit)
       endif
       curr_link => curr_link%next_link
     end do
@@ -834,29 +839,34 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Print the contents of a property key-value pair
-  recursive subroutine pmc_property_link_print(this, suffix)
+  recursive subroutine pmc_property_link_print(this, suffix, file_unit)
 
     !> Property key-value pair
     class(property_link_t), intent(in) :: this
     !> Text to append to the end of the line
     character(len=*) :: suffix
+    !> File unit for output
+    integer(kind=i_kind), optional :: file_unit
 
     class(*), pointer :: val
+    integer(kind=i_kind) :: f_unit = 6
+
+    if (present(file_unit)) f_unit = file_unit
 
     val => this%val
     select type(val)
       type is (integer(kind=i_kind))
-        write(*,*) '"'//this%key_name//'" : '//trim(to_string(val))//suffix
+        write(f_unit,*) '"'//this%key_name//'" : '//trim(to_string(val))//suffix
       type is (real(kind=dp))
-        write(*,*) '"'//this%key_name//'" : '//trim(to_string(val))//suffix
+        write(f_unit,*) '"'//this%key_name//'" : '//trim(to_string(val))//suffix
       type is (logical)
-        write(*,*) '"'//this%key_name//'" : '//trim(to_string(val))//suffix
+        write(f_unit,*) '"'//this%key_name//'" : '//trim(to_string(val))//suffix
       type is (string_t)
-        write(*,*) '"'//this%key_name//'" : "'//val%string//'"'//suffix
+        write(f_unit,*) '"'//this%key_name//'" : "'//val%string//'"'//suffix
       class is (property_t)
-        write(*,*) '"'//this%key_name//'" : {'
-        call val%print()
-        write(*,*) '}'//suffix
+        write(f_unit,*) '"'//this%key_name//'" : {'
+        call val%print(f_unit)
+        write(f_unit,*) '}'//suffix
       class default
         call die_msg(711028956, "Unsupported property type")
     end select

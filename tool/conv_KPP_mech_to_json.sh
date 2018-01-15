@@ -64,7 +64,7 @@ done
 sed -i '' -E "1s/^/{ \"pmc-data\" : [\\$NL  {\\$NL    \"name\" : \"\\$MECH_FILE\",\\$NL    \"type\" : \"MECHANISM\",\\$NL    \"reactions\" : [\\$NL/" $MECH_FILE
 
 # footer
-sed -i '' -E "\$a\\$NL  }\\$NL]}" $MECH_FILE
+sed -i '' -E "\$a\\$NL    ]\\$NL  }\\$NL]}" $MECH_FILE
 
 # reaction wrapper
 sed -i '' -E "s/<RXN([a-zA-Z0-9]+)>/      {\\$NL        \"rxn id\" : \"\1\",\\$NL/g" $MECH_FILE
@@ -87,7 +87,7 @@ sed -i '' -E "s/<RATE_PARAM>[[:space:]]*/        \"orig params\" : \"/g" $MECH_F
 sed -i '' -E "s/<\/RATE_PARAM>/\"\\$NL/g" $MECH_FILE
 
 # remove final comma at end of reaction list
-sed -i '' -e ':a' -e 'N' -e '$!ba' -e "s/},[[:space:]]*\n[[:space:]]}/}\\$NL  }/g" $MECH_FILE
+sed -i '' -e ':a' -e 'N' -e '$!ba' -e "s/},[[:space:]]*\n[[:space:]]\]/}\\$NL    ]/g" $MECH_FILE
 
 
 ###############################
@@ -112,11 +112,11 @@ ARG_MATCH='[[:space:]]*([^,\)[:space:]]+)[[:space:]]*'
 # sed -i '' -E "s/^<RC>[[:space:]]*CMAQ_1to4\([[:space:]]*([^,[:space:]]+)[[:space:]]*,[[:space:]]*([^,[:space:]]+)[[:space:]]*,[[:space:]]*([^\)[:space:]]+)[[:space:]]*\).*$/        \"type\" : \"ARRHENIUS\",\\$NL        \"A\" : \1,\\$NL        \"B\" : \2,\\$NL        \"C\" : -\3/g" $MECH_FILE
 sed -i '' -E "s/^<RC>[[:space:]]*CMAQ_1to4\($ARG_MATCH,$ARG_MATCH,$ARG_MATCH\).*$/        \"type\" : \"ARRHENIUS\",\\$NL        \"A\" : \1,\\$NL        \"B\" : \2,\\$NL        \"C\" : -\3/g" $MECH_FILE
 
-# CMAQ_8 (FIXME lookup reaction type)
-sed -i '' -E "s/^<RC>[[:space:]]*CMAQ_8\($ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH\).*$/        \"type\" : \"CMAQ_9\",\\$NL        \"k0_A\" : \1,\\$NL        \"k0_C\" : \2,\\$NL        \"k2_A\" : -\3,\\$NL        \"k2_C\" : \4,\\$NL        \"k3_A\" : \5,\\$NL        \"k3_C\" : \6/g" $MECH_FILE
+# CMAQ_8 (CMAQ_OH_HNO3)
+sed -i '' -E "s/^<RC>[[:space:]]*CMAQ_8\($ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH\).*$/        \"type\" : \"CMAQ_OH_HNO3\",\\$NL        \"k0_A\" : \1,\\$NL        \"k0_C\" : \2,\\$NL        \"k2_A\" : -\3,\\$NL        \"k2_C\" : \4,\\$NL        \"k3_A\" : \5,\\$NL        \"k3_C\" : \6/g" $MECH_FILE
 
-# CMAQ_9 (FIXME lookup reaction type)
-sed -i '' -E "s/^<RC>[[:space:]]*CMAQ_9\($ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH\).*$/        \"type\" : \"CMAQ_9\",\\$NL        \"k1_A\" : \1,\\$NL        \"k1_C\" : \2,\\$NL        \"k2_A\" : -\3,\\$NL        \"k2_C\" : \4/g" $MECH_FILE
+# CMAQ_9 (CMAQ_H2O2)
+sed -i '' -E "s/^<RC>[[:space:]]*CMAQ_9\($ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH\).*$/        \"type\" : \"CMAQ_H2O2\",\\$NL        \"k1_A\" : \1,\\$NL        \"k1_C\" : \2,\\$NL        \"k2_A\" : -\3,\\$NL        \"k2_C\" : \4/g" $MECH_FILE
 
 # CMAQ_10 (Troe)
 sed -i '' -E "s/^<RC>[[:space:]]*CMAQ_10\($ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH\).*$/        \"type\" : \"TROE\",\\$NL        \"k0_A\" : \1,\\$NL        \"k0_B\" : \2,\\$NL        \"k0_C\" : -\3,\\$NL        \"kinf_A\" : \4,\\$NL        \"kinf_B\" : \5,\\$NL        \"kinf_C\" : -\6,\\$NL        \"Fc\" : \7,\\$NL        \"N\" : \8/g" $MECH_FILE
@@ -130,6 +130,9 @@ sed -i '' -E "s/^<RC>[[:space:]]*0[[:space:]]*$/        \"type\" : \"ARRHENIUS\"
 
 # remove double negatives
 sed -i '' -E "s/\-\-//g" $MECH_FILE
+
+# change all exponent flags to E
+sed -i '' -E "s/([0-9]+\.[0-9]*)[D]([\+\-][0-9]+)/\1E\2/g" $MECH_FILE
 
 # add trailing zeros
 sed -i '' -E "s/([0-9]+\.)([^0-9]+)/\10\2/g" $MECH_FILE

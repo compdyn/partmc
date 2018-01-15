@@ -240,7 +240,7 @@ contains
         new_obj => rxn_CMAQ_H2O2_t()
       case ("CMAQ_OH_HNO3")
         new_obj => rxn_CMAQ_OH_HNO3_t()
-      case ("FASTJ_PHOTO")
+      case ("PHOTOLYSIS")
         new_obj => rxn_photolysis_t()
       case default
         call die_msg(367114278, "Unknown chemical reaction type: " &

@@ -89,12 +89,20 @@ program mock_monarch
   call assert_msg(129432506, command_argument_count().eq.2, "Usage: "// &
           "./mock_monarch phlex_input_file_list.json output_file.txt")
 
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! **** Add to MONARCH during initialization **** !
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   ! Initialize PartMC-phlex
   call get_command_argument(1, arg, status=status_code)
   call assert_msg(678165802, status_code.eq.0, "Error getting PartMC-phlex "//&
           "configuration file name")
   phlex_input_file = trim(arg)
   call pmc_initialize(phlex_input_file, START_PHLEX_ID, END_PHLEX_ID)
+
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! **** end initialization modification **** !
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   ! Initialize the mock model
   call get_command_argument(2, arg, status=status_code)
@@ -104,6 +112,11 @@ program mock_monarch
 
   ! Run the model
   do i_time=0, NUM_TIME_STEP
+  
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! **** Add to MONARCH during runtime for each time step **** !
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     call output_results(start_time)
     call pmc_integrate(start_time,        & ! Starting time (min)
                        TIME_STEP,         & ! Time step (min)
@@ -118,6 +131,11 @@ program mock_monarch
                        air_density,       & ! Air density (kg_air/m^3)
                        pressure)            ! Air pressure (Pa)   
     start_time = start_time + TIME_STEP
+  
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! **** end runtime modification **** !
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    
   end do
 
   write(*,*) "Model run time: ", comp_time, " s"

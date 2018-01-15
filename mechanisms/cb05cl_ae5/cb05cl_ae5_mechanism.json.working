@@ -1,0 +1,55 @@
+{ "pmc-data" : [
+  {
+    "name" : "cb05cl_ae5",
+    "type" : "MECHANISM",
+    "reactions" : [
+      {
+        "rxn id" : "R2",
+        "reactants" : {
+          "O" : {} ,
+          "O2" : {} ,
+          "M" : {} 
+        },
+        "products" : {
+          "O3" : {} ,
+          "M" : {} 
+        },
+        "orig params" : "O2 * M * CMAQ_1to4(6.0E-34, -2.4, 0.0E+00)",
+        "type" : "ARRHENIUS",
+        "A" : 6.0E-34,
+        "B" : -2.4,
+        "C" : -0.0E+00
+      },
+      {
+        "rxn id" : "R3",
+        "reactants" : {
+          "O3" : {} ,
+          "NO" : {} 
+        },
+        "products" : {
+          "NO2" : {} 
+        },
+        "orig params" : "CMAQ_1to4(3.0E-12, 0.0E+00, 1500.0)",
+        "type" : "ARRHENIUS",
+        "A" : 3.0E-12,
+        "B" : 0.0E+00,
+        "C" : -1500.0
+      },
+      {
+        "rxn id" : "R4",
+        "reactants" : {
+          "O" : {} ,
+          "NO2" : {} 
+        },
+        "products" : {
+          "NO" : {} 
+        },
+        "orig params" : "CMAQ_1to4(5.6E-12, 0.0E+00, -180.0)",
+        "type" : "ARRHENIUS",
+        "A" : 5.6E-12,
+        "B" : 0.0E+00,
+        "C" : 180.0
+      }
+    ]
+  }
+]}

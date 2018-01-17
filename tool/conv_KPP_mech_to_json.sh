@@ -5,6 +5,9 @@ NL='
 '
 echo "Processing KPP mechanism..."
 echo "this is still a work in progress..."
+echo ""
+echo "when this is done, go through the mechanism and replace duplicate reactants and products with qty and yield parameters"
+echo ""
 
 # copy to new file
 cp $MECH_FILE_ORIG $MECH_FILE 
@@ -113,10 +116,10 @@ ARG_MATCH='[[:space:]]*([^,\)[:space:]]+)[[:space:]]*'
 sed -i '' -E "s/^<RC>[[:space:]]*CMAQ_1to4\($ARG_MATCH,$ARG_MATCH,$ARG_MATCH\).*$/        \"type\" : \"ARRHENIUS\",\\$NL        \"A\" : \1,\\$NL        \"B\" : \2,\\$NL        \"C\" : -\3/g" $MECH_FILE
 
 # CMAQ_8 (CMAQ_OH_HNO3)
-sed -i '' -E "s/^<RC>[[:space:]]*CMAQ_8\($ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH\).*$/        \"type\" : \"CMAQ_OH_HNO3\",\\$NL        \"k0_A\" : \1,\\$NL        \"k0_C\" : \2,\\$NL        \"k2_A\" : -\3,\\$NL        \"k2_C\" : \4,\\$NL        \"k3_A\" : \5,\\$NL        \"k3_C\" : \6/g" $MECH_FILE
+sed -i '' -E "s/^<RC>[[:space:]]*CMAQ_8\($ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH\).*$/        \"type\" : \"CMAQ_OH_HNO3\",\\$NL        \"k0_A\" : \1,\\$NL        \"k0_C\" : \2,\\$NL        \"k2_A\" : \3,\\$NL        \"k2_C\" : \4,\\$NL        \"k3_A\" : \5,\\$NL        \"k3_C\" : \6/g" $MECH_FILE
 
 # CMAQ_9 (CMAQ_H2O2)
-sed -i '' -E "s/^<RC>[[:space:]]*CMAQ_9\($ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH\).*$/        \"type\" : \"CMAQ_H2O2\",\\$NL        \"k1_A\" : \1,\\$NL        \"k1_C\" : \2,\\$NL        \"k2_A\" : -\3,\\$NL        \"k2_C\" : \4/g" $MECH_FILE
+sed -i '' -E "s/^<RC>[[:space:]]*CMAQ_9\($ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH\).*$/        \"type\" : \"CMAQ_H2O2\",\\$NL        \"k1_A\" : \1,\\$NL        \"k1_C\" : \2,\\$NL        \"k2_A\" : \3,\\$NL        \"k2_C\" : \4/g" $MECH_FILE
 
 # CMAQ_10 (Troe)
 sed -i '' -E "s/^<RC>[[:space:]]*CMAQ_10\($ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH,$ARG_MATCH\).*$/        \"type\" : \"TROE\",\\$NL        \"k0_A\" : \1,\\$NL        \"k0_B\" : \2,\\$NL        \"k0_C\" : -\3,\\$NL        \"kinf_A\" : \4,\\$NL        \"kinf_B\" : \5,\\$NL        \"kinf_C\" : -\6,\\$NL        \"Fc\" : \7,\\$NL        \"N\" : \8/g" $MECH_FILE

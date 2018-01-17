@@ -359,5 +359,45 @@
       "name" : "SESQRXN",
       "type" : "GAS_SPEC",
       "absolute integration tolerance" : 1.0E+00
+    },
+    {
+      "name" : "M",
+      "type" : "GAS_SPEC",
+      "absolute integration tolerance" : 1.0E+00
+    },
+    {
+      "name" : "O2",
+      "type" : "GAS_SPEC",
+      "absolute integration tolerance" : 1.0E+00
+    },
+    {
+      "name" : "N2",
+      "type" : "GAS_SPEC",
+      "absolute integration tolerance" : 1.0E+00
+    },
+    {
+      "name" : "H2O",
+      "type" : "GAS_SPEC",
+      "absolute integration tolerance" : 1.0E+00
+    },
+    {
+      "name" : "CH4",
+      "type" : "GAS_SPEC",
+      "absolute integration tolerance" : 1.0E+00
+    },
+    {
+      "name" : "H2",
+      "type" : "GAS_SPEC",
+      "absolute integration tolerance" : 1.0E+00
+    },
+    {
+      "name" : "N2O",
+      "type" : "GAS_SPEC",
+      "absolute integration tolerance" : 1.0E-03
+    },
+    {
+      "name" : "DUMMY",
+      "type" : "GAS_SPEC",
+      "absolute integration tolerance" : 1.0E+00
     }
 ]}

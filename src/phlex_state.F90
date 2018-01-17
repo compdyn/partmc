@@ -40,14 +40,26 @@ module pmc_phlex_state
     !> Rxn phase being solved
     integer(kind=i_kind) :: rxn_phase = 0
     !> Identifier that can be used by expensive, repeated functions to
-    !! determine whether the state has changed since the last time they
-    !! were called
-    character(len=PMC_UUID_LEN) :: uuid
+    !! determine whether the concentrations have changed since the last
+    !! time they were called
+    integer(kind=i_kind) :: conc_id = 1
+    !> Identifier that can be used by expensive, repeated functions to
+    !! determine whether the environment has changed since the last
+    !! time they were called
+    integer(kind=i_kind) :: env_id = 1
   contains
-    !> Reset the state identifier
-    procedure :: reset_id
-    !> Get the unique state identifier
-    procedure :: get_id
+    !> Reset the concentration state identifier
+    procedure :: reset_conc_id
+    !> Reset the environmental state identifier
+    procedure :: reset_env_id
+    !> Check for a match with the unique concentration state identifier.
+    !! If the values do not match, the passed value is updated to hold
+    !! the current state id.
+    procedure :: check_conc_id
+    !> Check for a match with the unique environmental state identifier.
+    !! If the values do not match, the passed value is updated to hold
+    !! the current state id.
+    procedure :: check_env_id
     !> Determine the size of a binary required to pack a given variable
     procedure :: pack_size
     !> Pack the given value to the buffer, advancing position
@@ -85,30 +97,76 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Reset the state identifier. This should be called every time the state 
-  !! changes.
-  subroutine reset_id(this)
+  !> Reset the concentration state identifier. This should be called every
+  !! time the concentrations change (usually in the solver functions).
+  subroutine reset_conc_id(this)
 
     !> Model state
     class(phlex_state_t), intent(inout) :: this
 
-    call uuid4_str(this%uuid)
+    this%conc_id = this%conc_id + 1
 
-  end subroutine reset_id
+  end subroutine reset_conc_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the unique state identifier. This will change every time the state
-  !! changes, and can be used to avoid duplicating expensive calculations in
-  !! the mechanisms
-  character(len=PMC_UUID_LEN) function get_id(this)
+  !> Reset the environmental state identifier. This should be called every
+  !! time the environmental conditions change (usually before calling the
+  !! chemistry solver).
+  subroutine reset_env_id(this)
+
+    !> Model state
+    class(phlex_state_t), intent(inout) :: this
+
+    this%env_id = this%env_id + 1
+
+  end subroutine reset_env_id
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compare a value with the unique concentration state identifier. This will
+  !! change every time the concentrations change, and can be used to avoid
+  !! duplicating expensive calculations in the mechanisms.
+  !! If the values do not match, the passed value is updated to hold
+  !! the current state id.
+  logical function check_conc_id(this, id_to_check)
 
     !> Model state
     class(phlex_state_t), intent(in) :: this
+    !> ID to compare with concentration id
+    integer(kind=i_kind), intent(inout) :: id_to_check
 
-    get_id = this%uuid 
+    if (this%conc_id.eq.id_to_check) then
+      check_conc_id = .true.
+    else
+      id_to_check = this%conc_id
+      check_conc_id = .false.
+    endif
 
-  end function get_id
+  end function check_conc_id
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compare a value with the unique environmentalstate identifier. This will
+  !! change every time the environmental conditions change, and can be used to
+  !! avoid duplicating expensive calculations in the mechanisms.
+  !! If the values do not match, the passed value is updated to hold
+  !! the current state id.
+  logical function check_env_id(this, id_to_check)
+
+    !> Model state
+    class(phlex_state_t), intent(in) :: this
+    !> ID to compare with concentration id
+    integer(kind=i_kind), intent(inout) :: id_to_check
+
+    if (this%env_id.eq.id_to_check) then
+      check_env_id = .true.
+    else
+      id_to_check = this%env_id
+      check_env_id = .false.
+    endif
+
+  end function check_env_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

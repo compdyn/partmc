@@ -436,7 +436,7 @@ contains
     end do
 
     ! Set up the integrator
-    allocate(abs_tol(i_state_var))
+    allocate(abs_tol(i_state_var-1))
     call this%chem_spec_data%gas_abs_tol(abs_tol)
     do i_aero_rep = 1, size(this%aero_rep)
       call this%aero_rep(i_aero_rep)%val%get_abs_tol(this%chem_spec_data, &
@@ -809,8 +809,8 @@ contains
     call c_f_pointer(phlex_core_c_ptr, phlex_core)
     call c_f_pointer(phlex_state_c_ptr, phlex_state)
 
-    ! Generate a unique state id
-    call phlex_state%reset_id()
+    ! Generate a unique concentration state id
+    call phlex_state%reset_conc_id()
 
     ! Calculate f(t,y)
     do i_mech=1, size(phlex_core%mechanism)
@@ -843,8 +843,8 @@ contains
     call c_f_pointer(phlex_core_c_ptr, phlex_core)
     call c_f_pointer(phlex_state_c_ptr, phlex_state)
 
-    ! Generate a unique state id
-    call phlex_state%reset_id()
+    ! Generate a unique concentration state id
+    call phlex_state%reset_conc_id()
 
     ! Calculate J(t,y)
     do i_mech=1, size(phlex_core%mechanism)
@@ -876,6 +876,7 @@ contains
     do i_mech=1, size(this%mechanism)
       call this%mechanism(i_mech)%print(f_unit)
     end do
+    call this%integration_data%print(f_unit)
 
   end subroutine do_print
 

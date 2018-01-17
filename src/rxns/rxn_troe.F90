@@ -34,6 +34,7 @@
 !!     "kinf_C" : 104.1,
 !!     "Fc"  : 0.7,
 !!     "N"  : 0.9,
+!!     "time unit" : "MIN",
 !!     "reactants" : {
 !!       "spec1" : {},
 !!       "spec2" : { "qty" : 2 },
@@ -56,6 +57,10 @@
 !! \f$k_{\inf}\f$ rate constants, respectively. When not present, \b _A
 !! parameters are assumed to be 1.0, \b _B to be 0.0, \b _C to be 0.0, \b Fc
 !! to be 0.6 and \b N to be 1.0.
+!!
+!! The unit for time is assumed to be s, but inclusion of the optional
+!! key-value pair \b "time unit" = "MIN" can be used to indicate a rate
+!! with min as the time unit.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -83,8 +88,9 @@ module pmc_rxn_troe
 #define _kinf_C_ this%condensed_data_real(6)
 #define _Fc_ this%condensed_data_real(7)
 #define _N_ this%condensed_data_real(8)
+#define _CONV_ this%condensed_data_real(9)
 #define _NUM_INT_PROP_ 2
-#define _NUM_REAL_PROP_ 8
+#define _NUM_REAL_PROP_ 9
 #define _REACT_(x) this%condensed_data_int(_NUM_INT_PROP_ + x)
 #define _PROD_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + x)
 #define _yield_(x) this%condensed_data_real(_NUM_REAL_PROP_ + x)
@@ -100,6 +106,8 @@ public :: rxn_troe_t
     procedure :: func_contrib
     !> Jacobian matrix contribution
     procedure :: jac_contrib
+    !> Get test info
+    procedure :: get_test_info
     !> Calculate the rate constant
     procedure, private :: rate_const
   end type rxn_troe_t
@@ -140,8 +148,8 @@ contains
     type(chem_spec_data_t), intent(in) :: chem_spec_data
 
     type(property_t), pointer :: spec_props, reactants, products
-    character(len=:), allocatable :: key_name, spec_name
-    integer(kind=i_kind) :: i_spec
+    character(len=:), allocatable :: key_name, spec_name, string_val
+    integer(kind=i_kind) :: i_spec, i_qty
 
     integer(kind=i_kind) :: temp_int
     real(kind=dp) :: temp_real
@@ -180,6 +188,9 @@ contains
     _NUM_REACT_ = i_spec
     _NUM_PROD_ = products%size()
 
+    ! Set the #/cc -> ppm conversion prefactor
+    _CONV_ = const%avagadro / const%univ_gas_const * 10.0d0**(-12.0d0)
+
     ! Get reaction parameters (it might be easiest to keep these at the beginning
     ! of the condensed data array, so they can be accessed using compliler flags)
     key_name = "k0_A"
@@ -214,6 +225,13 @@ contains
     if (.not. this%property_set%get_real(key_name, _N_)) then
       _N_ = 1.0
     end if
+    key_name = "time unit"
+    if (this%property_set%get_string(key_name, string_val)) then
+      if (trim(string_val).eq."MIN") then
+        _k0_A_ = _k0_A_ / 60.0
+        _kinf_A_ = _kinf_A_ / 60.0
+      end if
+    endif
     
     ! Get the indices and chemical properties for the reactants
     call reactants%iter_reset()
@@ -231,9 +249,10 @@ contains
       call assert(221292659, reactants%get_property_t(val=spec_props))
       key_name = "qty"
       if (spec_props%get_int(key_name, temp_int)) then
-        do i_spec = i_spec + 1, i_spec + temp_int - 1
-          _REACT_(i_spec) = _REACT_(i_spec-1)
+        do i_qty = 1, temp_int - 1
+          _REACT_(i_spec + i_qty) = _REACT_(i_spec)
         end do
+        i_spec = i_spec + temp_int - 1
       end if
 
       call reactants%iter_next()
@@ -318,7 +337,7 @@ contains
   !! The current model state is provided for species concentrations and 
   !! aerosol state. All other parameters must have been saved to the reaction 
   !! data instance during initialization.
-  subroutine jac_contrib(this, phlex_state, jac_matrix)
+  subroutine jac_contrib(this, phlex_state, jac)
 
     !> Reaction data
     class(rxn_troe_t), intent(in) :: this
@@ -327,9 +346,8 @@ contains
     !> Jacobian matrix. This matrix may include contributions from other
     !! reactions, so the contributions from this reaction should append,
     !! not overwrite, the values already in the matrix.
-    real(kind=dp), pointer, intent(inout) :: jac_matrix(:,:)
+    real(kind=dp), pointer, intent(inout) :: jac(:,:)
 
-    character(len=16) :: out
     integer(kind=i_kind) :: i_spec_i, i_spec_d
     real(kind=dp) :: rate, rate_const
 
@@ -346,11 +364,11 @@ contains
         rate = rate_const
         rate = rate / phlex_state%state_var( &
                 _REACT_(i_spec_i))
-        jac_matrix(_REACT_(i_spec_d), &
-                _REACT_(i_spec_i)) = &
-              jac_matrix(_REACT_(i_spec_d) &
-              , _REACT_(i_spec_i)) - &
-              rate
+        jac(_REACT_(i_spec_d), &
+            _REACT_(i_spec_i)) = &
+          jac(_REACT_(i_spec_d), &
+              _REACT_(i_spec_i)) - &
+              rate 
       end do
     end do
 
@@ -358,16 +376,45 @@ contains
       do i_spec_i=1, _NUM_REACT_
         rate = rate_const
         rate = rate / phlex_state%state_var( &
-                _REACT_(i_spec_i) )
-        jac_matrix(_PROD_(i_spec_d), &
-                _REACT_(i_spec_i) ) = &
-              jac_matrix(_PROD_(i_spec_d) &
-              , _REACT_(i_spec_i) ) + &
+                _REACT_(i_spec_i))
+        jac(_PROD_(i_spec_d), &
+            _REACT_(i_spec_i)) = &
+          jac(_PROD_(i_spec_d), &
+              _REACT_(i_spec_i)) + &
               _yield_(i_spec_d) * rate
       end do
     end do
 
   end subroutine jac_contrib
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the reaction rate and rate constant for a given model state. The
+  !! definition of the rate and rate constant depends on the extending type.
+  !! THIS FUNCTION IS ONLY FOR TESTING.
+  subroutine get_test_info(this, phlex_state, rate, rate_const, property_set)
+
+    !> Reaction data
+    class(rxn_troe_t), intent(in) :: this
+    !> Current model state
+    type(phlex_state_t), intent(in) :: phlex_state
+    !> Reaction rate (definition depends on extending type)
+    real(kind=dp), intent(out) :: rate
+    !> Rate constant (definition depends on extending type)
+    real(kind=dp), intent(out) :: rate_const
+    !> Reaction properties
+    type(property_t), pointer, intent(out) :: property_set
+
+    integer(kind=i_kind) :: i_spec
+
+    rate_const = this%rate_const(phlex_state)
+    rate = rate_const
+    do i_spec=1, _NUM_REACT_
+      rate = rate * phlex_state%state_var(_REACT_(i_spec))
+    end do
+    property_set => this%property_set
+
+  end subroutine get_test_info
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -383,6 +430,7 @@ contains
     real(kind=dp) :: k0, kinf
     real(kind=dp), parameter :: M = 1.0d6
     real(kind=dp), parameter :: D = 300.0d0
+    real(kind=dp) :: conv
 
     ! k0
     if (_k0_B_.eq.real(0.0, kind=dp)) then
@@ -404,12 +452,17 @@ contains
           (phlex_state%env_state%temp/D)**_kinf_B_
     end if
 
-    k0 = k0 * M
+    ! Convert from #/cc -> ppm
+    conv = _CONV_ * &
+            phlex_state%env_state%pressure / phlex_state%env_state%temp
+
+    k0 = k0 * M*conv
     kinf = k0 / kinf
     rate_const = (k0 / (1.0d0 + kinf))* &
             _Fc_** &
             (1.0d0 / (1.0d0 / _N_ + &
             (log10(kinf))**2))
+    rate_const = rate_const * conv**(_NUM_REACT_-1)
 
   end function rate_const
 

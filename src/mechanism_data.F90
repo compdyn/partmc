@@ -281,20 +281,20 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get contributions of the mechanism reactions to the Jacobian matrix
-  subroutine get_jac_contrib(this, phlex_state, jac_matrix)
+  subroutine get_jac_contrib(this, phlex_state, jac)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
     !> Current model state
     type(phlex_state_t), intent(in) :: phlex_state
-    !> Time derivative vector
-    real(kind=dp), pointer, intent(inout) :: jac_matrix(:,:)
+    !> Jacobian matrix being calculated
+    real(kind=dp), pointer, intent(inout) :: jac(:,:)
 
     integer(kind=i_kind) :: i_rxn
 
     do i_rxn = 1, this%num_rxn
       if (this%rxn_ptr(i_rxn)%val%check_phase(phlex_state%rxn_phase)) then
-        call this%rxn_ptr(i_rxn)%val%jac_contrib(phlex_state, jac_matrix)
+        call this%rxn_ptr(i_rxn)%val%jac_contrib(phlex_state, jac)
       end if
     end do
 

@@ -121,6 +121,10 @@ module pmc_rxn_data
     !! aerosol state. All other parameters must have been saved to the reaction 
     !! data instance during initialization.
     procedure(jac_contrib), deferred :: jac_contrib
+    !> Get the reaction rate and rate constant for a given model state. The
+    !! definition of the rate and rate constant depends on the extending type.
+    !! THIS FUNCTION IS ONLY FOR TESTING.
+    procedure(get_test_info), deferred :: get_test_info
     !> Check the phase of the reaction against the phase being solved for.
     !! During GAS_RXN integrations, only GAS_RXN reactions are solved.
     !! During AERO_RXN integrations, only AERO_RXN and GAS_AERO_RXN
@@ -191,7 +195,7 @@ interface
   !! The current model state is provided for species concentrations and 
   !! aerosol state. All other parameters must have been saved to the reaction 
   !! data instance during initialization.
-  subroutine jac_contrib(this, phlex_state, jac_matrix)
+  subroutine jac_contrib(this, phlex_state, jac)
     import :: rxn_data_t, phlex_state_t, dp
 
     !> Reaction data
@@ -201,9 +205,30 @@ interface
     !> Jacobian matrix. This matrix may include contributions from other
     !! reactions, so the contributions from this reaction should append,
     !! not overwrite, the values already in the matrix.
-    real(kind=dp), pointer, intent(inout) :: jac_matrix(:,:)
+    real(kind=dp), pointer, intent(inout) :: jac(:,:)
 
   end subroutine jac_contrib
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the reaction rate and rate constant for a given model state. The
+  !! definition of the rate and rate constant depends on the extending type.
+  !! THIS FUNCTION IS ONLY FOR TESTING.
+  subroutine get_test_info(this, phlex_state, rate, rate_const, property_set)
+    import :: rxn_data_t, phlex_state_t, dp, property_t
+
+    !> Reaction data
+    class(rxn_data_t), intent(in) :: this
+    !> Current model state
+    type(phlex_state_t), intent(in) :: phlex_state
+    !> Reaction rate (definition depends on extending type)
+    real(kind=dp), intent(out) :: rate
+    !> Rate constant (definition depends on extending type)
+    real(kind=dp), intent(out) :: rate_const
+    !> Reaction properties
+    type(property_t), pointer, intent(out) :: property_set
+
+  end subroutine get_test_info
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -411,8 +436,12 @@ contains
     integer(kind=i_kind) :: f_unit = 6
 
     if (present(file_unit)) f_unit = file_unit
+    write(f_unit,*) "*** Rxn ***"
     if (associated(this%property_set)) call this%property_set%print(f_unit)
-
+    if (allocated(this%condensed_data_int)) &
+      write (f_unit,*) "  *** condensed data int: ", this%condensed_data_int(:)
+    if (allocated(this%condensed_data_real)) &
+      write (f_unit,*) "  *** condensed data real: ", this%condensed_data_real(:)
   end subroutine do_print
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

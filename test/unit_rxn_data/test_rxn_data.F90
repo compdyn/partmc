@@ -65,7 +65,7 @@ contains
     character(len=:), allocatable :: spec_name, other_spec_name
     character(len=:), allocatable :: json_string
 
-    integer(kind=i_kind) :: i
+    integer(kind=i_kind) :: i, i_spec
     real(kind=dp) :: test_real
 
     build_rxn_data_set_test = .false.

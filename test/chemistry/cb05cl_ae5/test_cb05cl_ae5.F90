@@ -10,10 +10,11 @@
 program pmc_test_cb05cl_ae5
 
 #define DEBUG
-      
+     
+  use pmc_constants,                    only: const
   use pmc_util,                         only: i_kind, dp, assert, assert_msg, &
                                               almost_equal, string_t, &
-                                              to_string
+                                              to_string, warn_assert_msg
   use pmc_phlex_core
   use pmc_phlex_state
   use pmc_chem_spec_data
@@ -46,11 +47,11 @@ program pmc_test_cb05cl_ae5
   open(unit=DEBUG_UNIT, file="out/debug_cb05cl_ae.txt", status="replace", action="write")
 #endif
 
-!  if (run_cb05cl_ae5_tests()) then
+  if (run_cb05cl_ae5_tests()) then
     write(*,*) "CB5 mechanism tests - PASS"
-!  else
-!    write(*,*) "CB5 mechanism tests - FAIL"
-!  end if
+  else
+    write(*,*) "CB5 mechanism tests - FAIL"
+  end if
 
 #ifdef DEBUG
   close(DEBUG_UNIT)
@@ -74,6 +75,7 @@ contains
   logical function run_standard_cb05cl_ae5_test() result(passed)
 
     use EXT_HRDATA
+    use EXT_RXCM,                               only : NRXNS, RXLABEL
 
     ! EBI-solver species names
     type(string_t), dimension(NUM_EBI_SPEC) :: ebi_spec_names
@@ -87,12 +89,12 @@ contains
     ! Pressure (atm)
     real :: pressure = 0.8
     ! Water vapor concentration (ppmV)
-    real :: water_conc = 3000.0
+    real :: water_conc = 0.0 ! (Set by Phlex-chem initial concentration)
     
     ! Phlex-chem core
     type(phlex_core_t), pointer :: phlex_core
     ! Phlex-chem state
-    type(phlex_state_t), target :: phlex_state
+    type(phlex_state_t), target :: phlex_state, phlex_state_comp
     ! Phlex-chem species names
     type(string_t), allocatable :: phlex_spec_names(:)
     ! EBI -> Phlex-chem species map
@@ -103,9 +105,12 @@ contains
 
     class(rxn_data_t), pointer :: rxn
     type(property_t), pointer :: prop_set
-    character(len=:), allocatable :: key, phlex_input_file
-    real(kind=dp) :: real_val
-    integer(kind=i_kind) :: i_spec, i_mech, i_rxn, i_time
+    character(len=:), allocatable :: key, spec_name, string_val, phlex_input_file
+    real(kind=dp) :: real_val, phlex_rate, phlex_rate_const
+    integer(kind=i_kind) :: i_spec, i_mech, i_rxn, i_ebi_rxn, i_time
+
+    integer(kind=i_kind) :: i_M, i_O2, i_N2, i_H2O, i_CH4, i_H2
+    integer(kind=i_kind), allocatable :: rxn_map(:)
 
     passed = .false.
     
@@ -148,16 +153,33 @@ contains
     call phlex_core%initialize()
     phlex_state = phlex_core%new_state()
     phlex_state%env_state%temp = temperature
-    phlex_state%env_state%pressure = pressure
+    phlex_state%env_state%pressure = pressure * const%air_std_press
     call cpu_time(comp_end)
     write(*,*) "Phlex-chem initialization time: ", comp_end-comp_start," s"
 
+    ! Get a phlex-state for rate comparisons and find constant species
+    phlex_state_comp = phlex_core%new_state()
+    phlex_state_comp%env_state%temp = phlex_state%env_state%temp
+    phlex_state_comp%env_state%pressure = phlex_state%env_state%pressure
+    spec_name = "M"
+    i_M = phlex_core%chem_spec_data%gas_state_id(spec_name)
+    spec_name = "O2"
+    i_O2 = phlex_core%chem_spec_data%gas_state_id(spec_name)
+    spec_name = "N2"
+    i_N2 = phlex_core%chem_spec_data%gas_state_id(spec_name)
+    spec_name = "H2O"
+    i_H2O = phlex_core%chem_spec_data%gas_state_id(spec_name)
+    spec_name = "CH4"
+    i_CH4 = phlex_core%chem_spec_data%gas_state_id(spec_name)
+    spec_name = "H2"
+    i_H2 = phlex_core%chem_spec_data%gas_state_id(spec_name)
+
     ! Set the photolysis rates (dummy values for solver comparison)
     allocate(photo_rates(NUM_EBI_PHOTO_RXN))
-    photo_rates(:) = 0.01
+    photo_rates(:) = 0.01 * 60.0 ! EBI solver wants rates in min^-1
     key = "cb05cl_ae5"
     call assert(331333207, phlex_core%find_mechanism(key, i_mech))
-    do i_rxn = 1, size(phlex_core%mechanism(i_mech)%rxn_ptr)
+    do i_rxn = 1, phlex_core%mechanism(i_mech)%size()
       rxn => phlex_core%mechanism(i_mech)%rxn_ptr(i_rxn)%val
       select type(rxn) 
         type is (rxn_photolysis_t)
@@ -193,12 +215,55 @@ contains
 #endif
       end if
     end do
+    
+    ! Set EBI solver constant species concentrations in Phlex-chem
+    spec_name = "M"
+    prop_set => phlex_core%chem_spec_data%get_property_set(spec_name)
+    call assert(740666066, associated(prop_set))
+    call assert(907464197, prop_set%get_real(key, real_val))
+    phlex_state%state_var(i_M) = real_val
+    spec_name = "O2"
+    prop_set => phlex_core%chem_spec_data%get_property_set(spec_name)
+    call assert(729136508, associated(prop_set))
+    call assert(223930103, prop_set%get_real(key, real_val))
+    phlex_state%state_var(i_O2) = real_val
+    spec_name = "N2"
+    prop_set => phlex_core%chem_spec_data%get_property_set(spec_name)
+    call assert(553715297, associated(prop_set))
+    call assert(666033642, prop_set%get_real(key, real_val))
+    phlex_state%state_var(i_N2) = real_val
+    spec_name = "H2O"
+    prop_set => phlex_core%chem_spec_data%get_property_set(spec_name)
+    call assert(160827237, associated(prop_set))
+    call assert(273145582, prop_set%get_real(key, real_val))
+    phlex_state%state_var(i_H2O) = real_val
+    spec_name = "CH4"
+    prop_set => phlex_core%chem_spec_data%get_property_set(spec_name)
+    call assert(667939176, associated(prop_set))
+    call assert(780257521, prop_set%get_real(key, real_val))
+    phlex_state%state_var(i_CH4) = real_val
+    spec_name = "H2"
+    prop_set => phlex_core%chem_spec_data%get_property_set(spec_name)
+    call assert(892575866, associated(prop_set))
+    call assert(722418962, prop_set%get_real(key, real_val))
+    phlex_state%state_var(i_H2) = real_val
+
+    ! Set the water concentration for EBI solver (ppmV)
+    water_conc = phlex_state%state_var(i_H2O)
+
     ! EBI solver species have a minimum value set
     YC(:) = MAX(YC(:), 1e-30)
+    phlex_state%state_var(:) = MAX(phlex_state%state_var(:), 1e-30)
 
 #ifdef DEBUG
     call phlex_core%print(DEBUG_UNIT)
-    write(DEBUG_UNIT,*) "Phlex state: ", phlex_state%state_var(:)
+    write(DEBUG_UNIT,*) "*** Constant species concentrations ***"
+    write(DEBUG_UNIT,*) "[M] = ", phlex_state%state_var(i_M), i_M
+    write(DEBUG_UNIT,*) "[O2] = ", phlex_state%state_var(i_O2), i_O2
+    write(DEBUG_UNIT,*) "[N2] = ", phlex_state%state_var(i_N2), i_N2
+    write(DEBUG_UNIT,*) "[H2O] = ", phlex_state%state_var(i_H2O), i_H2O
+    write(DEBUG_UNIT,*) "[CH4] = ", phlex_state%state_var(i_CH4), i_CH4
+    write(DEBUG_UNIT,*) "[H2] = ", phlex_state%state_var(i_H2), i_H2
 #endif
 
     ! Set up the output files
@@ -212,12 +277,35 @@ contains
     write(PHLEX_FILE_UNIT,*) "time ", (phlex_spec_names(i_spec)%string//" ", i_spec=1, &
             size(phlex_spec_names))
 
+    ! Set up the reaction map between phlex-chem and ebi solver
+    key = "rxn id"
+    allocate(rxn_map(phlex_core%mechanism(i_mech)%size()))
+    rxn_map(:) = 0
+    do i_rxn = 1, phlex_core%mechanism(i_mech)%size()
+      rxn => phlex_core%mechanism(i_mech)%rxn_ptr(i_rxn)%val
+      call assert_msg(917216189, associated(rxn), "Missing rxn "//to_string(i_rxn))
+      call rxn%get_test_info(phlex_state, phlex_rate, phlex_rate_const, prop_set)
+      call assert(656034097, prop_set%get_string(key, string_val))
+      do i_ebi_rxn = 1, NRXNS 
+        if (trim(RXLABEL(i_ebi_rxn)).eq.trim(string_val)) then
+          rxn_map(i_rxn) = i_ebi_rxn
+          exit
+        end if
+      end do
+      call assert_msg(921715481, rxn_map(i_rxn).ne.0, "Missing rxn "//string_val)
+    end do
+
     ! Reset the computation timers
     comp_ebi = 0.0
     comp_phlex = 0.0
 
     ! Solve the mechanism
     do i_time = 1, NUM_TIME_STEPS
+
+#ifdef DEBUG
+      write(*,*) "Time step: ", i_time
+      write(DEBUG_UNIT,*) "Phlex state: ", phlex_state%state_var(:)
+#endif
 
       ! Output current time step
       write(EBI_FILE_UNIT,*) i_time*EBI_TMSTEP, YC(:)
@@ -236,11 +324,37 @@ contains
       call cpu_time(comp_end)
       comp_ebi = comp_ebi + (comp_end-comp_start)
 
+#ifdef DEBUG
+      ! Compare rate constants
+      phlex_state_comp%state_var(:) = 1.0
+      phlex_state_comp%state_var(i_M)   = phlex_state%state_var(i_M)
+      phlex_state_comp%state_var(i_O2)  = phlex_state%state_var(i_O2)
+      phlex_state_comp%state_var(i_N2)  = phlex_state%state_var(i_N2)
+      phlex_state_comp%state_var(i_H2O) = phlex_state%state_var(i_H2O)
+      phlex_state_comp%state_var(i_CH4) = phlex_state%state_var(i_CH4)
+      phlex_state_comp%state_var(i_H2)  = phlex_state%state_var(i_H2)
+      do i_rxn = 1, phlex_core%mechanism(i_mech)%size()
+        rxn => phlex_core%mechanism(i_mech)%rxn_ptr(i_rxn)%val
+        call rxn%get_test_info(phlex_state_comp, phlex_rate, phlex_rate_const, prop_set)
+        ! EBI solver rates are in min^-1
+        if (.not.almost_equal(phlex_rate*60.0, RKI(rxn_map(i_rxn)), 1.0d-4)) then
+          write(DEBUG_UNIT,*) "Different rate constants for reaction "// &
+             trim(RXLABEL(rxn_map(i_rxn)))//": ",phlex_rate*60.0, RKI(rxn_map(i_rxn))
+        endif
+        call rxn%get_test_info(phlex_state, phlex_rate, phlex_rate_const, prop_set)
+        write(DEBUG_UNIT,*) trim(RXLABEL(rxn_map(i_rxn))), "Rate constant: ", &
+                phlex_rate_const, "; rate: ", phlex_rate
+      end do
+#endif
+
       ! Phlex-chem
       call cpu_time(comp_start)
       call phlex_core%solve(phlex_state, real(EBI_TMSTEP, kind=dp))
       call cpu_time(comp_end)
       comp_phlex = comp_phlex + (comp_end-comp_start)
+
+      ! Keep concentrations positive
+      phlex_state%state_var(:) = MAX(phlex_state%state_var(:), 1.0d-30)
 
     end do 
 
@@ -254,10 +368,10 @@ contains
 
     ! Compare the results
     do i_spec = 1, NUM_EBI_SPEC
-      call assert_msg(749090387, almost_equal(real(YC(i_spec), kind=dp), &
+      call warn_assert_msg(749090387, almost_equal(real(YC(i_spec), kind=dp), &
           phlex_state%state_var( &
                   phlex_core%chem_spec_data%gas_state_id( &
-                  ebi_spec_names(i_spec)%string))), &
+                  ebi_spec_names(i_spec)%string)), 1.0d-2), &
           "Species "//ebi_spec_names(i_spec)%string//" has different result. "// &
           "EBI solver: "//trim(to_string(real(YC(i_spec), kind=dp)))// &
           "; Phlex-chem: "// &

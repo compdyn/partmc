@@ -9,7 +9,7 @@
 module pmc_integration_data
 
   use pmc_constants,                  only : i_kind, dp
-  use pmc_util,                       only : assert_msg, integer_to_string, die_msg
+  use pmc_util,                       only : assert_msg, to_string, die_msg
 
   use iso_c_binding
 
@@ -108,6 +108,10 @@ module pmc_integration_data
     procedure :: check_status
     !> Checks whether a solver is available
     procedure :: is_solver_available
+    !> Gets the absolute integration tolerance for a species by index
+    procedure :: get_abs_tol
+    !> Print the integration data
+    procedure :: print => do_print
   end type integration_data_t
 
   ! Constructor for integration_data_t
@@ -395,7 +399,7 @@ contains
 
     else
        call die_msg(594768683, "integrate_data: unknown return code: " &
-            // trim(integer_to_string(value)))
+            // trim(to_string(value)))
     end if
 
     return
@@ -417,6 +421,50 @@ contains
 #endif
 
   end function is_solver_available
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Gets the absolute integration tolerance for species by index
+  real(kind=dp) function get_abs_tol(this, i_spec)
+
+    !> Integration data
+    class(integration_data_t), intent(in) :: this
+    !> Species index
+    integer(kind=i_kind), intent(in) :: i_spec
+
+    call assert_msg(279436430, i_spec.gt.0 .and. i_spec.le.size(this%abs_tol_c), &
+            "Request for absolute integration tolerance out-of-bounds: "// &
+            to_string(i_spec))
+
+    get_abs_tol = this%abs_tol_c(i_spec)
+
+  end function get_abs_tol
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Print the integration data
+  subroutine do_print(this, file_unit)
+
+    !> Integration data
+    class(integration_data_t), intent(in) :: this
+    !> File unit for output
+    integer(kind=i_kind), optional :: file_unit
+
+    integer(kind=i_kind) :: i_spec
+    integer(kind=i_kind) :: f_unit = 6
+
+    if (present(file_unit)) f_unit = file_unit
+
+    write(f_unit,*) "*** Integration data ***"
+    write(f_unit,*) "  Number of integration species: ", size(this%abs_tol_c)
+    write(f_unit,*) "  Absolute tolerances:"
+    do i_spec = 1, size(this%abs_tol_c)
+      write(f_unit,*) "    index: ", i_spec, " tolerance: ", this%abs_tol_c(i_spec)
+    end do
+    write(f_unit,*) "  Relative tolerance: ", this%rel_tol
+    write(f_unit,*) "  Maximum number of integration steps: ", this%max_steps
+
+  end subroutine do_print
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

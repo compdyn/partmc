@@ -294,7 +294,8 @@
         "rxn id" : "R20",
         "reactants" : {
           "N2O5" : {} ,
-          "H2O" : { "qty" : 2 } 
+          "H2O" : {} ,
+          "H2O" : {} 
         },
         "products" : {
           "HNO3" : { "yield" : 2.000 } 
@@ -329,7 +330,8 @@
       {
         "rxn id" : "R22",
         "reactants" : {
-          "NO" : { "qty" : 2 } ,
+          "NO" : {} ,
+          "NO" : {} ,
           "O2" : {} 
         },
         "products" : {
@@ -407,7 +409,8 @@
       {
         "rxn id" : "R27",
         "reactants" : {
-          "HONO" : { "qty" : 2 } 
+          "HONO" : {} ,
+          "HONO" : {} 
         },
         "products" : {
           "NO" : {} ,
@@ -451,11 +454,11 @@
         "orig params" : "CMAQ_8(2.4E-14, -460.0, 2.7E-17, -2199.0, 6.5E-34, -1335.0)",
         "type" : "CMAQ_OH_HNO3",
         "k0_A" : 2.4E-14,
-        "k0_C" : 460.0,
-        "k2_A" : 2.7E-17,
-        "k2_C" : 2199.0,
+        "k0_C" : -460.0,
+        "k2_A" : -2.7E-17,
+        "k2_C" : -2199.0,
         "k3_A" : 6.5E-34,
-        "k3_C" : 1335.0
+        "k3_C" : -1335.0
       },
       {
         "rxn id" : "R30",
@@ -531,7 +534,8 @@
       {
         "rxn id" : "R34",
         "reactants" : {
-          "HO2" : { "qty" : 2 } 
+          "HO2" : {} ,
+          "HO2" : {} 
         },
         "products" : {
           "H2O2" : {} ,
@@ -540,14 +544,15 @@
         "orig params" : "CMAQ_9(2.3E-13, -6.0E+02, 1.7E-33, -1.0E+03)",
         "type" : "CMAQ_H2O2",
         "k1_A" : 2.3E-13,
-        "k1_C" : 6.0E+02,
-        "k2_A" : 1.7E-33,
-        "k2_C" : 1.0E+03
+        "k1_C" : -6.0E+02,
+        "k2_A" : -1.7E-33,
+        "k2_C" : -1.0E+03
       },
       {
         "rxn id" : "R35",
         "reactants" : {
-          "HO2" : { "qty" : 2 } ,
+          "HO2" : {} ,
+          "HO2" : {} ,
           "H2O" : {} 
         },
         "products" : {
@@ -556,9 +561,9 @@
         "orig params" : "H2O * CMAQ_9(3.22E-34, -2.8E+03, 2.38E-54, -3.2E+3)",
         "type" : "CMAQ_H2O2",
         "k1_A" : 3.22E-34,
-        "k1_C" : 2.8E+03,
-        "k2_A" : 2.38E-54,
-        "k2_C" : 3.2E+3
+        "k1_C" : -2.8E+03,
+        "k2_A" : -2.38E-54,
+        "k2_C" : -3.2E+3
       },
       {
         "rxn id" : "R36",
@@ -635,7 +640,8 @@
       {
         "rxn id" : "R41",
         "reactants" : {
-          "OH" : { "qty" : 2 } 
+          "OH" : {} ,
+          "OH" : {} 
         },
         "products" : {
           "O" : {} 
@@ -649,7 +655,8 @@
       {
         "rxn id" : "R42",
         "reactants" : {
-          "OH" : { "qty" : 2 } 
+          "OH" : {} ,
+          "OH" : {} 
         },
         "products" : {
           "H2O2" : {} 
@@ -775,7 +782,8 @@
       {
         "rxn id" : "R50",
         "reactants" : {
-          "NO3" : { "qty" : 2 } 
+          "NO3" : {} ,
+          "NO3" : {} 
         },
         "products" : {
           "NO2" : { "yield" : 2.000 } 
@@ -887,7 +895,8 @@
       {
         "rxn id" : "R58",
         "reactants" : {
-          "XO2" : { "qty" :2 } 
+          "XO2" : {} ,
+          "XO2" : {} 
         },
         "products" : {
           "DUMMY" : {} 
@@ -901,7 +910,8 @@
       {
         "rxn id" : "R59",
         "reactants" : {
-          "XO2N" : { "qty" : 2 } 
+          "XO2N" : {} ,
+          "XO2N" : {} 
         },
         "products" : {
           "DUMMY" : {} 
@@ -1007,7 +1017,7 @@
         "type" : "CMAQ_H2O2",
         "k1_A" : 1.44E-13,
         "k1_C" : 0.0E+00,
-        "k2_A" : 3.43E-33,
+        "k2_A" : -3.43E-33,
         "k2_C" : 0.0E+00
       },
       {
@@ -1060,7 +1070,8 @@
       {
         "rxn id" : "R69",
         "reactants" : {
-          "MEO2" : { "qty" : 2 } 
+          "MEO2" : {} ,
+          "MEO2" : {} 
         },
         "products" : {
           "FORM" : { "yield" : 1.370 } ,
@@ -1452,7 +1463,8 @@
       {
         "rxn id" : "R94",
         "reactants" : {
-          "C2O3" : { "qty" : 2 } 
+          "C2O3" : {} ,
+          "C2O3" : {} 
         },
         "products" : {
           "MEO2" : { "yield" : 2.000 } 
@@ -1707,7 +1719,8 @@
       {
         "rxn id" : "R110",
         "reactants" : {
-          "CXO3" : { "qty" : 2 } 
+          "CXO3" : {} ,
+          "CXO3" : {} 
         },
         "products" : {
           "ALD2" : { "yield" : 2.000 } ,
@@ -2176,7 +2189,6 @@
           "CO" : {} 
         },
         "orig params" : "9.0 * TUV_J(15, THETA)",
-	"scaling factor" : 9.0,
         "type" : "PHOTOLYSIS"
       },
       {
@@ -2439,7 +2451,6 @@
           "C2O3" : { "yield" : 0.967 } 
         },
         "orig params" : "0.0036 * TUV_J(89, THETA)",
-	"scaling factor" : 0.0036,
         "type" : "PHOTOLYSIS"
       },
       {
@@ -2617,6 +2628,19 @@
         "type" : "PHOTOLYSIS"
       },
       {
+        "rxn id" : "CL2",
+        "reactants" : {
+          "HOCL" : {} 
+        },
+        "products" : {
+          "OH" : {} ,
+          "CL" : {} 
+        },
+        "orig params" : "0",
+        "type" : "ARRHENIUS",
+        "preproc flag" : "REMOVE"
+      },
+      {
         "rxn id" : "CL3",
         "reactants" : {
           "CL" : {} ,
@@ -2634,7 +2658,8 @@
       {
         "rxn id" : "CL4",
         "reactants" : {
-          "CLO" : { "qty" : 2 } 
+          "CLO" : {} ,
+          "CLO" : {} 
         },
         "products" : {
           "CL2" : { "yield" : 0.300 } ,
@@ -2692,6 +2717,20 @@
         "A" : 5.0E-13,
         "B" : 0.0E+00,
         "C" : -0.0E+00
+      },
+      {
+        "rxn id" : "CL8",
+        "reactants" : {
+          "FMCL" : {} 
+        },
+        "products" : {
+          "CL" : {} ,
+          "CO" : {} ,
+          "HO2" : {} 
+        },
+        "orig params" : "0",
+        "type" : "ARRHENIUS",
+        "preproc flag" : "REMOVE"
       },
       {
         "rxn id" : "CL9",

@@ -236,6 +236,9 @@ contains
     call pmc_mpi_check_ierr(ierr)
     call assert(577822730, &
          COAG_DIST_OUTGOING_BUFFER_SIZE == outgoing_buffer_size_check)
+#else
+    tot_n_samp = 0
+    tot_n_coag = 0
 #endif
 
   end subroutine mc_coag_dist
@@ -382,6 +385,8 @@ contains
 #ifdef PMC_USE_MPI
     call assert(770964285, size(n_parts, 2) == pmc_mpi_size())
     remote_proc = sample_disc_pdf(n_parts(remote_bin, :)) - 1
+#else
+    remote_proc = 0
 #endif
 
   end subroutine find_rand_remote_proc

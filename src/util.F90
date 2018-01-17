@@ -1358,6 +1358,8 @@ contains
     call integer_sort_c(n_c, data_ptr, perm_ptr)
     data = int(data_c)
     perm = int(perm_c)
+#else
+    perm = 0
 #endif
 
   end subroutine integer_sort

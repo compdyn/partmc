@@ -797,14 +797,19 @@ contains
 
     class(*), pointer :: this_val
 
+    ! Intel compiler has a problem deallocating in the select type block
+    logical :: dealloc
+
+    dealloc = .false.
     if (associated(this%val)) then
       this_val => this%val
       select type (this_val)
         class is (property_t)
-          deallocate(this_val)
+          dealloc = .true.
       end select
     end if
 
+    if (dealloc) deallocate(this_val)
     if (allocated(this%key_name)) deallocate(this%key_name)
 
   end subroutine pmc_property_link_final

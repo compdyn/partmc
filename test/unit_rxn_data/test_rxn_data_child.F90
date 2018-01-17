@@ -86,7 +86,7 @@ contains
 
     type(property_t), pointer :: spec_props, reactants, products
     character(len=:), allocatable :: key_name, spec_name
-    integer(kind=i_kind) :: i_spec
+    integer(kind=i_kind) :: i_spec, i_qty
 
     integer(kind=i_kind) :: temp_int
     real(kind=dp) :: temp_real
@@ -154,7 +154,7 @@ contains
       _REACT_(i_spec) = chem_spec_data%gas_state_id(spec_name)
 
       ! Get a chemical property for this species and save it in the condensed real array
-      spec_props = chem_spec_data%get_property_set(spec_name)
+      spec_props => chem_spec_data%get_property_set(spec_name)
       key_name = "MW"
       call assert_msg(542784410, spec_props%get_real(key_name, _MW_(i_spec)), &
               "Missing reaction parameter MW")
@@ -163,10 +163,11 @@ contains
       call assert(193983497, reactants%get_property_t(val=spec_props))
       key_name = "qty"
       if (spec_props%get_int(key_name, temp_int)) then
-        do i_spec = i_spec + 1, i_spec + temp_int - 1
-          _REACT_(i_spec) = _REACT_(i_spec-1)
-          _MW_(i_spec) = _MW_(i_spec-1)
+        do i_qty = 1, temp_int - 1
+          _REACT_(i_spec + i_qty) = _REACT_(i_spec)
+          _MW_(i_spec + i_qty) = _MW_(i_spec)
         end do
+        i_spec = i_spec + temp_int + 1
       end if
 
       call reactants%iter_next()

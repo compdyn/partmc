@@ -141,7 +141,7 @@ contains
     ! Check the properties associated with the chemical species
     key_name = "my first species"
     call assert(839073838, spec_data%get_type(key_name).eq.GAS_SPEC)
-    spec_props = spec_data%get_property_set(key_name)
+    spec_props => spec_data%get_property_set(key_name)
 
     key_name = "MW"
     call assert(446925196, spec_props%get_real(key_name, temp_real))
@@ -182,7 +182,7 @@ contains
 
     key_name = "my second species"
     call assert(529754002, spec_data%get_type(key_name).eq.AERO_SPEC)
-    spec_props = spec_data%get_property_set(key_name)
+    spec_props => spec_data%get_property_set(key_name)
 
     key_name = "MW"
     call assert(307022846, spec_props%get_real(key_name, temp_real))

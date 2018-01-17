@@ -349,7 +349,7 @@ contains
 
       ! Phlex-chem
       call cpu_time(comp_start)
-      call phlex_core%solve(phlex_state, real(EBI_TMSTEP, kind=dp))
+      call phlex_core%solve(phlex_state, real(EBI_TMSTEP*60.0, kind=dp))
       call cpu_time(comp_end)
       comp_phlex = comp_phlex + (comp_end-comp_start)
 

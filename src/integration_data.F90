@@ -16,9 +16,6 @@ module pmc_integration_data
   implicit none
   private
 
-  public :: integration_data_t, integration_data_deriv_func, &
-          integration_data_jac_func
-
   !> Default relative tolerance for integration
   real(kind=dp), parameter :: PMC_INTEGRATION_DEFAULT_REL_TOL = 1.0D-08
   !> Default max number of integration steps
@@ -152,6 +149,9 @@ module pmc_integration_data
       type(c_ptr), intent(in) :: phlex_state_c_ptr
     end subroutine integration_data_jac_func
   end interface 
+
+  public :: integration_data_t, integration_data_deriv_func, &
+          integration_data_jac_func
 
 contains
 

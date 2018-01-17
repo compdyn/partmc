@@ -305,7 +305,7 @@ contains
 
     integer(kind=i_kind) :: i_file, i_mech
 #ifdef PMC_USE_JSON
-    type(json_core), target :: json
+    type(json_core), pointer :: json
     type(json_file) :: j_file
     type(json_value), pointer :: j_obj, j_next
 
@@ -325,6 +325,7 @@ contains
 
     j_obj => null()
     j_next => null()
+    allocate(json)
     do i_file = 1, size(input_file_path)
       call j_file%initialize()
       call j_file%get_core(json)
@@ -358,7 +359,8 @@ contains
           call this%chem_spec_data%load(json, j_obj)
         else if (str_val(1:8).eq.'AERO_REP') then
           aero_rep_ptr%val => aero_rep_factory%load(json, j_obj)
-          if (this%find_aero_rep(aero_rep_ptr%val%name(), i_rep)) then
+          str_val = aero_rep_ptr%val%name()
+          if (this%find_aero_rep(str_val, i_rep)) then
             call this%aero_rep(i_rep)%val%load(json, j_obj)
           else
             allocate(new_aero_rep(size(this%aero_rep)+1))
@@ -370,7 +372,8 @@ contains
         else if (str_val.eq.'AERO_PHASE') then
           aero_phase => aero_phase_data_t()
           call aero_phase%load(json, j_obj)
-          if (this%find_aero_phase(aero_phase%name(), i_phase)) then
+          str_val = aero_phase%name()
+          if (this%find_aero_phase(str_val, i_phase)) then
             deallocate(aero_phase)
             call this%aero_phase(i_phase)%val%load(json, j_obj)
           else
@@ -408,7 +411,9 @@ contains
     integer(kind=i_kind) :: i_mech, i_phase, i_aero_rep, i_state_var
     procedure(integration_data_deriv_func), pointer :: deriv_func
     procedure(integration_data_jac_func), pointer :: jac_func
+    type(c_ptr) :: this_c
     real(kind=dp), allocatable, target :: abs_tol(:)
+    real(kind=dp), pointer :: abs_tol_ptr(:)
     type(phlex_core_t), pointer :: this_ptr
 
     this_ptr => this
@@ -436,14 +441,16 @@ contains
     end do
 
     ! Set up the integrator
+    this_c = c_loc(this_ptr)
     allocate(abs_tol(i_state_var-1))
+    abs_tol_ptr => abs_tol
     call this%chem_spec_data%gas_abs_tol(abs_tol)
     do i_aero_rep = 1, size(this%aero_rep)
       call this%aero_rep(i_aero_rep)%val%get_abs_tol(this%chem_spec_data, &
               abs_tol)
     end do
-    this%integration_data => integration_data_t(c_loc(this_ptr), deriv_func, &
-            jac_func, abs_tol)
+    this%integration_data => integration_data_t(this_c, deriv_func, &
+            jac_func, abs_tol_ptr)
 
     deallocate(abs_tol)
 

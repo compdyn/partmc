@@ -54,7 +54,7 @@ static int condense_solver_Setup(CVodeMem cv_mem, int convfail, N_Vector ypred,
 static int condense_solver_Solve(CVodeMem cv_mem, N_Vector b, N_Vector weight,
 				 N_Vector ycur, N_Vector fcur);
 
-static void condense_solver_Free(CVodeMem cv_mem);
+static int condense_solver_Free(CVodeMem cv_mem);
 /*******************************************************/
 
 /** \brief Call the ODE solver.
@@ -325,6 +325,7 @@ static int condense_solver_Solve(CVodeMem cv_mem, N_Vector b, N_Vector weight,
  *
  * \param cv_mem The \c CVODE solver parameter structure.
  */
-static void condense_solver_Free(CVodeMem cv_mem)
+static int condense_solver_Free(CVodeMem cv_mem)
 {
+	return 0;
 }

@@ -382,8 +382,14 @@ set(CB5_EBI_SOLVER
 	test/chemistry/cb05cl_ae5/EXT-RXCM_mod.F90
 	)
 
+if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
+	set(CB5_EBI_FLAGS "-fixed -extend_source -warn truncated_source")
+elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
+	set(CB5_EBI_FLAGS "-ffixed-form -ffixed-line-length-none")
+endif()
+
 set_source_files_properties(${CB5_EBI_SOLVER} PROPERTIES COMPILE_FLAGS
-       	"-ffixed-form -ffixed-line-length-none")
+	${CB5_EBI_FLAGS})
 
 add_executable(test_chemistry_cb05cl_ae5 test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
 	${CB5_EBI_SOLVER}

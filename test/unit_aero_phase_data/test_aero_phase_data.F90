@@ -53,7 +53,7 @@ contains
     type(chem_spec_data_t), pointer :: chem_spec_data
 #ifdef PMC_USE_JSON
     type(json_file) :: j_file
-    type(json_core), target :: json
+    type(json_core), pointer :: json
     type(json_value), pointer :: j_obj, j_next
 
     integer(kind=i_kind) :: i_phase, i_spec
@@ -65,6 +65,7 @@ contains
     character, allocatable :: buffer(:)
     integer(kind=i_kind) :: pos, pack_size
 
+    allocate(json)
     call j_file%initialize()
     call j_file%get_core(json)
     call j_file%load_file(filename = &

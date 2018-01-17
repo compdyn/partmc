@@ -237,7 +237,7 @@ contains
       curr_spec_id = 1
       species = this%aero_phase(i_phase)%val%get_species_names()
       do i_spec = 1, size(species)
-        spec_props = chem_spec_data%get_property_set(species(i_spec)%string)
+        spec_props => chem_spec_data%get_property_set(species(i_spec)%string)
         if (.not.associated(spec_props)) then
           call die_msg(204001989, "Missing properties for species "// &
                   species(i_spec)%string)
@@ -655,6 +655,7 @@ contains
 
     ! TODO Finish
 
+    kelvin_effect = real(0.0, kind=dp)
     call die_msg(787876225, "Kelvin effect not available yet.")
     
   end function kelvin_effect

@@ -832,6 +832,8 @@ contains
     call pmc_mpi_check_ierr(ierr)
     call assert(890243339, &
          position - prev_position <= pmc_mpi_pack_size_integer(val))
+#else
+    val = 0
 #endif
 
   end subroutine pmc_mpi_unpack_integer
@@ -857,6 +859,8 @@ contains
     call pmc_mpi_check_ierr(ierr)
     call assert(570771632, &
          position - prev_position <= pmc_mpi_pack_size_real(val))
+#else
+    val = real(0.0, kind=dp)
 #endif
 
   end subroutine pmc_mpi_unpack_real
@@ -885,6 +889,8 @@ contains
     call pmc_mpi_check_ierr(ierr)
     call assert(503378058, &
          position - prev_position <= pmc_mpi_pack_size_string(val))
+#else
+    val = ''
 #endif
 
   end subroutine pmc_mpi_unpack_string
@@ -910,6 +916,8 @@ contains
     call pmc_mpi_check_ierr(ierr)
     call assert(694750528, &
          position - prev_position <= pmc_mpi_pack_size_logical(val))
+#else
+    val = .false.
 #endif
 
   end subroutine pmc_mpi_unpack_logical
@@ -935,6 +943,8 @@ contains
     call pmc_mpi_check_ierr(ierr)
     call assert(969672634, &
          position - prev_position <= pmc_mpi_pack_size_complex(val))
+#else
+    val = cmplx(0)
 #endif
 
   end subroutine pmc_mpi_unpack_complex

@@ -829,15 +829,21 @@ contains
     logical :: do_add, do_remove
     real(kind=dp) :: num_conc_from, num_conc_to
     type(aero_info_t) :: aero_info
+    integer :: n_parts_before
 
     call assert(721006962, (sample_prob >= 0d0) .and. (sample_prob <= 1d0))
 #ifndef PMC_USE_WRF
     call aero_state_zero(aero_state_to)
     call aero_state_copy_weight(aero_state_from, aero_state_to)
 #endif
+
+#ifdef PMC_DEBUG
+    n_parts_before = aero_state_total_particles(aero_state_to)
+#endif
     n_transfer = rand_binomial(aero_state_total_particles(aero_state_from), &
          sample_prob)
     i_transfer = 0
+    print*, 'n_transfer = ', n_transfer, sample_prob
     do while (i_transfer < n_transfer)
        if (aero_state_total_particles(aero_state_from) <= 0) exit
        call aero_state_rand_particle(aero_state_from, i_part)
@@ -845,7 +851,13 @@ contains
             aero_state_from%apa%particle(i_part), aero_data)
        num_conc_to = aero_weight_array_num_conc(aero_state_to%awa, &
             aero_state_from%apa%particle(i_part), aero_data)
-
+#ifdef PMC_DEBUG
+       if (num_conc_to*100 > num_conc_from .or. num_conc_from > 100*num_conc_to) then
+          print*, "WARNING ", 'from: ', num_conc_from, 'to: ', num_conc_to, &
+             'group/class', aero_state_from%apa%particle(i_part)%weight_group, &
+             aero_state_from%apa%particle(i_part)%weight_class
+       end if
+#endif
        if (num_conc_to == num_conc_from) then ! add and remove
           do_add = .true.
           do_remove = .true.
@@ -884,6 +896,12 @@ contains
           i_transfer = i_transfer + 1
        end if
     end do
+
+#ifdef PMC_DEBUG
+    print*, 'aero_state_sample_particles: aero_state_to contains', &
+         aero_state_total_particles(aero_state_to), ' particles and gained', &
+         aero_state_total_particles(aero_state_to) - n_parts_before
+#endif
 
   end subroutine aero_state_sample_particles
 
@@ -1664,6 +1682,9 @@ contains
             weight_ratio)
        n_remove = prob_round(real(n_part, kind=dp) &
             * (1d0 - 1d0 / weight_ratio))
+#ifdef PMC_DEBUG
+       print*, 'n_remove', n_remove, 'n_part', n_part, weight_ratio
+#endif
        do i_remove = 1,n_remove
           i_entry = pmc_rand_int(integer_varray_n_entry( &
                aero_state%aero_sorted%group_class%inverse(i_group, i_class)))

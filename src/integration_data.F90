@@ -17,41 +17,47 @@ module pmc_integration_data
   private
 
   !> Default relative tolerance for integration
-  real(kind=dp), parameter :: PMC_INTEGRATION_DEFAULT_REL_TOL = 1.0D-08
+  real(kind=dp), parameter :: PMC_INTEGRATION_DEFAULT_REL_TOL = 1.0D-5
   !> Default max number of integration steps
   integer(kind=i_kind), parameter :: PMC_INTEGRATION_DEFAULT_MAX_STEPS = 10000000
 
   !> Result code indicating successful completion.
-  integer, parameter :: PMC_INTEGRATION_SUCCESS         = 0
+  integer, parameter :: PMC_INTEGRATION_SUCCESS             = 0
   !> Result code indicating no available integration routine
-  integer, parameter :: PMC_INTEGRATION_NO_AVAIL_SOLVER = 12
+  integer, parameter :: PMC_INTEGRATION_NO_AVAIL_SOLVER     = 12
 #ifdef PMC_USE_SUNDIALS
   !> Result code indicating failure to allocate \c y vector.
-  integer, parameter :: PMC_INTEGRATION_INIT_Y          = 1
+  integer, parameter :: PMC_INTEGRATION_INIT_Y              = 1
   !> Result code indicating failure to allocate \c abstol vector.
-  integer, parameter :: PMC_INTEGRATION_INIT_ABSTOL     = 2
+  integer, parameter :: PMC_INTEGRATION_INIT_ABSTOL         = 2
   !> Result code indicating failure to create the solver.
-  integer, parameter :: PMC_INTEGRATION_INIT_CVODE_MEM  = 3
+  integer, parameter :: PMC_INTEGRATION_INIT_CVODE_MEM      = 3
   !> Result code indicating failure to initialize the solver.
-  integer, parameter :: PMC_INTEGRATION_INIT_CVODE      = 4
+  integer, parameter :: PMC_INTEGRATION_INIT_CVODE          = 4
   !> Result code indicating failure to set tolerances.
-  integer, parameter :: PMC_INTEGRATION_SVTOL           = 5
+  integer, parameter :: PMC_INTEGRATION_SVTOL               = 5
   !> Result code indicating failure to set maximum steps.
-  integer, parameter :: PMC_INTEGRATION_SET_MAX_STEPS   = 6
+  integer, parameter :: PMC_INTEGRATION_SET_MAX_STEPS       = 6
   !> Result code indicating failure of the solver.
-  integer, parameter :: PMC_INTEGRATION_FAIL            = 7
+  integer, parameter :: PMC_INTEGRATION_FAIL                = 7
   !> Result code indicating failure to set dense Jacobian solver
-  integer, parameter :: PMC_INTEGRATION_DENSE_JAC       = 8
+  integer, parameter :: PMC_INTEGRATION_DENSE_JAC           = 8
   !> Result code indicating failure to set Jacobian function
-  integer, parameter :: PMC_INTEGRATION_JAC_FUNC        = 9
+  integer, parameter :: PMC_INTEGRATION_JAC_FUNC            = 9
   !> Result code indicating failure to set user data
-  integer, parameter :: PMC_INTEGRATION_SET_USER_DATA   = 10
+  integer, parameter :: PMC_INTEGRATION_SET_USER_DATA       = 10
   !> Result code indicating SUNDIALS realtype is not set to double precision
-  integer, parameter :: PMC_INTEGRATION_WRONG_PRECISION = 11
+  integer, parameter :: PMC_INTEGRATION_WRONG_PRECISION     = 11
   !> Result code indicating failure to get the dense linear solver
-  integer, parameter :: PMC_INTEGRATION_DENSE_LINEAR_SOLVER  = 13
+  integer, parameter :: PMC_INTEGRATION_DENSE_LINEAR_SOLVER = 13
   !> Result code indicating failure to set the dense linear solver
-  integer, parameter :: PMC_INTEGRATION_SET_LINEAR_SOLVER    = 14
+  integer, parameter :: PMC_INTEGRATION_SET_LINEAR_SOLVER   = 14
+  !> Result code indicating failure to set the maximum number of convergence failures
+  integer, parameter :: PMC_INTEGRATION_SET_MAX_CONV_FAILS  = 15
+  !> Result code indicating failure to set the SPGMR solver
+  integer, parameter :: PMC_INTEGRATION_SPGMR_LINEAR_SOLVER = 16
+  !> Result code indicating failure to set the preconditioner functions
+  integer, parameter :: PMC_INTEGRATION_SET_PRECONDITIONER  = 17
 
   !> Interface to c ODE solver function
   interface
@@ -381,6 +387,9 @@ contains
     elseif (value == PMC_INTEGRATION_SET_MAX_STEPS) then
        call die_msg(593810684, "integrate_data: " &
             // "failed to set maximum steps")
+    elseif (value == PMC_INTEGRATION_SET_MAX_CONV_FAILS) then
+       call die_msg(763861174, "integrate_data: " &
+            // "failed to set maximum convergence failures")
     elseif (value == PMC_INTEGRATION_FAIL) then
        call die_msg(594113210, "integrate_data: solver failed")
     elseif (value==PMC_INTEGRATION_DENSE_JAC) then
@@ -392,6 +401,12 @@ contains
     elseif (value==PMC_INTEGRATION_SET_USER_DATA) then
        call die_msg(594533385, "integrate_data: " &
             // "failed to set user data")
+    elseif (value==PMC_INTEGRATION_SPGMR_LINEAR_SOLVER ) then
+       call die_msg(786820319, "integrate_data: " &
+            // "failed to set SPGMR linear solver")
+    elseif (value==PMC_INTEGRATION_SET_PRECONDITIONER ) then
+       call die_msg(281613914, "integrate_data: " &
+            // "failed to set preconditioner functions")
     elseif (value==PMC_INTEGRATION_WRONG_PRECISION) then
        call die_msg(594651034, "integrate_data: " &
             // "SUNDIALS was not compiled for double precision variables")

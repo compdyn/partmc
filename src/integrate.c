@@ -13,18 +13,28 @@
 /** \file
  * \brief Interface to c solvers for chemistry
 */
+#define KRYLOV
+
 #include <stdio.h>
+#include <stdlib.h>
 
 /* Header files with a description of contents used */
 
 #if defined(PMC_USE_SUNDIALS)
 #include <cvode/cvode.h>               /* prototypes for CVODE fcts., consts.  */
+#include <cvode/cvode_spils.h>         /* CVSpils interface                    */
 #include <nvector/nvector_serial.h>    /* serial N_Vector types, fcts., macros */
 #include <sunmatrix/sunmatrix_dense.h> /* dense SUNMatrix                      */
+#include <sunlinsol/sunlinsol_spgmr.h> /* SPGMR SUNLinearSolver                */
 #include <sunlinsol/sunlinsol_dense.h> /* dense SUNLinearSolver                */
 #include <cvode/cvode_direct.h>        /* CVDls interface                      */
-#include <sundials/sundials_types.h> /* definition of type realtype */
+#include <sundials/sundials_types.h>   /* definition of type realtype          */
 #endif
+
+/// Flag to disallow negative concentrations
+#define PMC_INTEGRATION_CHECK_NEGATIVE 0
+/// Maximum number of convergence failures
+#define PMC_INTEGRATION_MAX_CONV_FAILS 20
 
 /// Result code indicating successful completion.
 #define PMC_INTEGRATION_SUCCESS        0
@@ -59,6 +69,12 @@
 #define PMC_INTEGRATION_DENSE_LINEAR_SOLVER    13
 /// Result code indicating failure to set the dense linear solver
 #define PMC_INTEGRATION_SET_LINEAR_SOLVER      14
+/// Result code indicating failure to set the maximum number of convergence failures
+#define PMC_INTEGRATION_SET_MAX_CONV_FAILS   15
+/// Result code indicating failure to set the SPGMR solver
+#define PMC_INTEGRATION_SPGMR_LINEAR_SOLVER 16
+/// Result code indicating failure to set the preconditioner functions
+#define PMC_INTEGRATION_SET_PRECONDITIONER 17
 #endif
 
 // Macros for accessing N_Vector and DlsMat elements with Fortran-type indices
@@ -66,6 +82,16 @@
 #define Ith(v,i)    NV_Ith_S(v,i-1)
 /// IJth numbers rows,cols 1..NEQ
 #define IJth(A,i,j) SM_ELEMENT_D(A,i-1,j-1)
+
+/* Type : UserData
+ * contains preconditioner blocks, pivot arrays, and void pointer to send to fortran 
+ * functions.
+ */
+typedef struct {
+  DlsMat P, Jbd;
+  sunindextype *pivot;
+  void *sysdata;
+} *UserData;
 
 /* Fortran support subroutines */
 #ifndef DOXYGEN_SKIP_DOC
@@ -87,6 +113,15 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data);
 static int Jac(realtype t,
                N_Vector y, N_Vector fy, SUNMatrix J, void *user_data,
                N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
+
+/// Preconditioner
+static int Precond(realtype tn, N_Vector c, N_Vector fc, booleantype jok,
+		   booleantype *jcurPtr, realtype gamma, void *user_data);
+
+/// Solver for the preconditioner
+static int PSolve(realtype tn, N_Vector c, N_Vector fc, N_Vector r, N_Vector z,
+		  realtype gamma, realtype delta, int lr, void *user_data);
+
 #ifndef DOXYGEN_SKIP_DOC
 static int test_f(realtype t, N_Vector y, N_Vector ydot, void *user_data);
 
@@ -94,6 +129,7 @@ static int test_Jac(realtype t,
                N_Vector y, N_Vector fy, SUNMatrix J, void *user_data,
                N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
 #endif
+
 /// \brief Private function to print species concentrations
 static void integrate_print_output(realtype t, realtype y1, realtype y2, realtype y3);
 /// \brief Private function to print final statistics
@@ -132,9 +168,17 @@ int integrate_solver (int neq, double *y, double *abstol, double reltol,
     N_Vector abstol_nv; // absolulte tolerances (atm or M)
     SUNMatrix A;
     SUNLinearSolver LS;
+    UserData user_data; // sysdata and preconditioner data
 
     void *cvode_mem;    // CVODE solver parameters
     int flag;
+
+    // Set up user data
+    user_data = (UserData) malloc(sizeof *user_data);
+    user_data->P = NewDenseMat(neq, neq);
+    user_data->Jbd = NewDenseMat(neq, neq);
+    user_data->pivot = newIndexArray(neq);
+    user_data->sysdata = sysdata;
 
     y_nv = abstol_nv = NULL;
     A = NULL;
@@ -156,6 +200,11 @@ int integrate_solver (int neq, double *y, double *abstol, double reltol,
     if (integrate_SUNDIALS_check_flag((void *)cvode_mem, "CVodeCreate", 0))
         return(PMC_INTEGRATION_INIT_CVODE_MEM);
     
+    /* Set user data */
+    flag = CVodeSetUserData(cvode_mem, user_data);
+    if (integrate_SUNDIALS_check_flag(&flag, "CVodeSetUserData", 1))
+        return(PMC_INTEGRATION_SET_USER_DATA);
+    
     /* Call CVodeInit to initialize the integrator memory and specify the
      * right hand side function in y'=f(t,y), the inital time T0, and
      * the initial dependent variable vector y. */
@@ -175,6 +224,31 @@ int integrate_solver (int neq, double *y, double *abstol, double reltol,
     if (integrate_SUNDIALS_check_flag(&flag, "CVodeSetMaxNumSteps", 1))
         return PMC_INTEGRATION_SET_MAX_STEPS;
     
+    /* Call CVodeSetMaxConvFails to specify the maximum number of
+     * convergence failures */
+    flag = CVodeSetMaxConvFails(cvode_mem, PMC_INTEGRATION_MAX_CONV_FAILS);
+    if (integrate_SUNDIALS_check_flag(&flag, "CVodeSetMaxConvFails",1))
+        return PMC_INTEGRATION_SET_MAX_CONV_FAILS;
+
+#ifdef KRYLOV
+    /* Create an SPGMR linear solver */
+    LS = SUNSPGMR(y_nv, PREC_LEFT, 0);
+    if (integrate_SUNDIALS_check_flag((void *)LS, "SUNSPGMR", 0))
+	return(PMC_INTEGRATION_SPGMR_LINEAR_SOLVER);
+
+    /* Set the SPGMR linear solver */
+    flag = CVSpilsSetLinearSolver(cvode_mem, LS);
+    if (integrate_SUNDIALS_check_flag(&flag, "CVSpilsSetLinearSolver", 1))
+	return(PMC_INTEGRATION_SET_LINEAR_SOLVER);
+
+    /* Set the preconditioner setup and solve functions */
+    flag = CVSpilsSetPreconditioner(cvode_mem, Precond, PSolve);
+    if (integrate_SUNDIALS_check_flag(&flag, "CVSpilsSetPreconditioner", 1))
+	return(PMC_INTEGRATION_SET_PRECONDITIONER);
+
+    /* Use stability detection */
+    flag = CVodeSetStabLimDet(cvode_mem, SUNTRUE);
+#else
     /* Create dense SUNMatrix for use in linear solves */
     A = SUNDenseMatrix(neq, neq);
     if (integrate_SUNDIALS_check_flag((void *)A, "SUNMatrix", 0))
@@ -194,12 +268,8 @@ int integrate_solver (int neq, double *y, double *abstol, double reltol,
     flag = CVDlsSetJacFn(cvode_mem, Jac);
     if (integrate_SUNDIALS_check_flag(&flag, "CVDlsSetJacFn", 1))
         return(PMC_INTEGRATION_JAC_FUNC);
+#endif
 
-    /* Set user data */
-    flag = CVodeSetUserData(cvode_mem, sysdata);
-    if (integrate_SUNDIALS_check_flag(&flag, "CVodeSetUserData", 1))
-        return(PMC_INTEGRATION_SET_USER_DATA);
-    
     /* Run the solver */
     flag = CVode(cvode_mem, (realtype) t_final, y_nv, &t_rt, CV_NORMAL);
     if (integrate_SUNDIALS_check_flag(&flag, "CVode", 1))
@@ -223,6 +293,12 @@ int integrate_solver (int neq, double *y, double *abstol, double reltol,
 
     /* Free the matrix memory */
     SUNMatDestroy(A);
+
+    /* Free the userdata memory */
+    DestroyMat(user_data->P);
+    DestroyMat(user_data->Jbd);
+    destroyArray(user_data->pivot);
+    free(user_data);
 
     return PMC_INTEGRATION_SUCCESS;
     
@@ -313,15 +389,22 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
     int n_eqn;      // Number of equations
     double *state;  // Pointer to state vector
     double *f;      // Pointer to f(t,y)
-    
+    UserData data;  // Integration and model data
+
     int i;
     
     n_eqn = (int) NV_LENGTH_S(y);
     state = (double*) NV_DATA_S(y);
     f     = (double*) NV_DATA_S(ydot);
-    
+    data  = (UserData) user_data;
+   
+    // Check for negatives
+    if (PMC_INTEGRATION_CHECK_NEGATIVE) {
+        for(int i=0; i<n_eqn; i++) if(state[i]<0.0) return (1);
+    }
+
     // Call fortran f(t,y) function
-    deriv_func(n_eqn, (double) t, state, f, user_data);
+    deriv_func(n_eqn, (double) t, state, f, data->sysdata);
     
     return(0);
 }
@@ -331,7 +414,7 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
  * Jacobian routine
  *------------------
  * \param t The current time
- * \param y A pointer to the aq. chemistry state array (atm or M)
+ * \param y A pointer to the state array 
  * \param fy Calculated f(t,y)
  * \param J Jacobian matrix J(t,y) to be calculated
  * \param *user_data A pointer to system data for use in f(t,y) and J(t,y) functions
@@ -344,18 +427,110 @@ static int Jac(realtype t,
     double *state;  // Pointer to state vector
     double *jac;    // Pointer to J(t,y)
     int N;          // Size of J(t,y)
+    UserData data;  // Integration and model data
 
     int i, j;
     
     state = (double*) NV_DATA_S(y);
     jac   = (double*) SUNDenseMatrix_Data(J);
     N     = NV_LENGTH_S(y);
+    data  = (UserData) user_data;
 
     // Call fortran jacobian function
     // (jac is square so we can use N for neq)
-    jac_func(N, (double) t, state, jac, user_data);
+    jac_func(N, (double) t, state, jac, data->sysdata);
     
     return(0);
+}
+
+/**
+ *---------------------
+ * Preconditioner setup
+ *---------------------
+ * \param t The current time
+ * \param y A pointer to the state array
+ * \param fy Calculated f(t,y)
+ * \param jok A flag that when SUNTRUE indicates Jacobian data can be reused
+ * \param jcurPtr Set to SUNTRUE if Jacobian data was reused, SUNFALSE otherwise
+ * \param gamma Scalar gamma in Newton matrix M = I - gamma * J
+ * \param user_data A pointer to system data
+ */
+static int Precond(realtype t, N_Vector y, N_Vector fy, booleantype jok,
+		   booleantype *jcurPtr, realtype gamma, void *user_data)
+{
+  UserData data;       // Preconditioner data and sysdata
+  DlsMat P, Jbd;       // Preconditioner and Jacobian matrices
+  sunindextype *pivot; // pivot data
+
+  double *state;  // Pointer to state vector
+  int n_eqn;      // Number of species
+  
+  data  = (UserData) user_data;
+  P     = data->P;
+  Jbd   = data->Jbd;
+  pivot = data->pivot;
+  n_eqn = (int) NV_LENGTH_S(y);
+
+  if (jok) {
+    // Copy Jbd to P
+    DenseCopy(Jbd, P);
+    *jcurPtr = SUNFALSE;
+  } else {
+    // Generate new Jacobian data
+    state = (double*) NV_DATA_S(y);
+    jac_func(n_eqn, (double) t, state, (double*) Jbd->data, data->sysdata);
+    DenseCopy(Jbd, P);
+    *jcurPtr = SUNTRUE;
+  }
+
+  // Scale by -gamma
+  DenseScale(-gamma, P);
+
+  // Add identity matrix and do LU decomposition
+  AddIdentity(P);
+  if (DenseGETRF(P, pivot) != 0) return(1); 
+
+  return(0);
+
+}
+
+/**
+ *----------------------
+ * Preconditioner solver
+ *----------------------
+ * \param t The current time
+ * \param y A pointer to the state array
+ * \param fy Calculated f(t,y)
+ * \param r The right-hand side vector of the linear system
+ * \param z The vector to compute
+ * \param gamma The scaling factor in the Newton matrix M = I - gamma * J
+ * \param delta Input tolerance for iterative methods
+ * \param lr Flag for left (1) or right (2) preconditioner
+ * \param user_data Pointer to preconditioner data and sysdata
+ */
+static int PSolve(realtype t, N_Vector y, N_Vector fy, N_Vector r, N_Vector z,
+		  realtype gamma, realtype delta, int lr, void *user_data)
+{
+  UserData data;
+  DlsMat P;
+  sunindextype *pivot;
+  int n_eqn;
+  realtype *zdata;
+
+  data = (UserData) user_data;
+  P = data->P;
+  pivot = data->pivot;
+  zdata = N_VGetArrayPointer(z);
+
+  N_VScale(1.0, r, z);
+
+  n_eqn = (int) NV_LENGTH_S(y);
+
+  // Solve the system Px = r using LU factors stored in P and
+  // pivot data in pivot. Return the solution in z
+  DenseGETRS(P, pivot, zdata);
+
+  return(0);
 }
 
 #ifndef DOXYGEN_SKIP_DOC

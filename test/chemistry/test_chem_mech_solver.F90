@@ -84,12 +84,13 @@ contains
     real(kind=dp) :: time_step
 
     ! Parameters for calculating true concentrations
-    real(kind=dp) :: k1, k2, temp, Ea1, Ea2, A1, A2, time
+    real(kind=dp) :: k1, k2, temp, pressure, Ea1, Ea2, A1, A2, time
 
     run_consecutive_mech_test = .true.
 
     ! Set the rate constants (for calculating the true value)
     temp = 298.0
+    pressure = const%air_std_press
     A1 = 12.0
     Ea1 = 1.0e-20
     A2 = 13.0
@@ -114,6 +115,7 @@ contains
 
     ! Set the environmental conditions
     phlex_state%env_state%temp = temp
+    phlex_state%env_state%pressure = pressure
 
     ! Get species indices
     key = "A"
@@ -167,9 +169,11 @@ contains
     ! Analyze the results
     do i_time = 1, NUM_TIME_STEP
       do i_spec = 1, size(model_conc, 2)
-        call assert(848069355, &
+        call assert_msg(848069355, &
           almost_equal(model_conc(i_time, i_spec), true_conc(i_time, i_spec), &
-          real(1.0e-5, kind=dp)))
+          real(1.0e-2, kind=dp)), "time: "//to_string(i_time)//"; species: "// &
+          to_string(i_spec)//"; mod: "//to_string(model_conc(i_time, i_spec))// &
+          "; true: "//to_string(true_conc(i_time, i_spec)))
       end do
     end do
 

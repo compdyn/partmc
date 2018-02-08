@@ -111,6 +111,7 @@ contains
 
     integer(kind=i_kind) :: i_M, i_O2, i_N2, i_H2O, i_CH4, i_H2
     integer(kind=i_kind), allocatable :: rxn_map(:)
+    type(string_t), allocatable :: spec_names(:)
 
     passed = .false.
     
@@ -173,6 +174,7 @@ contains
     i_CH4 = phlex_core%chem_spec_data%gas_state_id(spec_name)
     spec_name = "H2"
     i_H2 = phlex_core%chem_spec_data%gas_state_id(spec_name)
+    spec_names = phlex_core%chem_spec_data%spec_names_by_type(GAS_SPEC)
 
     ! Set the photolysis rates (dummy values for solver comparison)
     allocate(photo_rates(NUM_EBI_PHOTO_RXN))
@@ -252,8 +254,8 @@ contains
     water_conc = phlex_state%state_var(i_H2O)
 
     ! EBI solver species have a minimum value set
-    YC(:) = MAX(YC(:), 1e-30)
-    phlex_state%state_var(:) = MAX(phlex_state%state_var(:), 1e-30)
+!    YC(:) = MAX(YC(:), 1e-30)
+!    phlex_state%state_var(:) = MAX(phlex_state%state_var(:), 1e-30)
 
 #ifdef DEBUG
     call phlex_core%print(DEBUG_UNIT)
@@ -304,7 +306,8 @@ contains
 
 #ifdef DEBUG
       write(*,*) "Time step: ", i_time
-      write(DEBUG_UNIT,*) "Phlex state: ", phlex_state%state_var(:)
+      write(DEBUG_UNIT,*) "Phlex state: ", (spec_names(i_spec)%string, &
+              phlex_state%state_var(i_spec), i_spec=1,size(phlex_state%state_var))
 #endif
 
       ! Output current time step
@@ -337,13 +340,10 @@ contains
         rxn => phlex_core%mechanism(i_mech)%rxn_ptr(i_rxn)%val
         call rxn%get_test_info(phlex_state_comp, phlex_rate, phlex_rate_const, prop_set)
         ! EBI solver rates are in min^-1
-        if (.not.almost_equal(phlex_rate*60.0, RKI(rxn_map(i_rxn)), 1.0d-4)) then
+        if (.not.almost_equal(phlex_rate*60.0, RKI(rxn_map(i_rxn)), 1.0d-3)) then
           write(DEBUG_UNIT,*) "Different rate constants for reaction "// &
              trim(RXLABEL(rxn_map(i_rxn)))//": ",phlex_rate*60.0, RKI(rxn_map(i_rxn))
         endif
-        call rxn%get_test_info(phlex_state, phlex_rate, phlex_rate_const, prop_set)
-        write(DEBUG_UNIT,*) trim(RXLABEL(rxn_map(i_rxn))), "Rate constant: ", &
-                phlex_rate_const, "; rate: ", phlex_rate
       end do
 #endif
 
@@ -352,9 +352,6 @@ contains
       call phlex_core%solve(phlex_state, real(EBI_TMSTEP*60.0, kind=dp))
       call cpu_time(comp_end)
       comp_phlex = comp_phlex + (comp_end-comp_start)
-
-      ! Keep concentrations positive
-      phlex_state%state_var(:) = MAX(phlex_state%state_var(:), 1.0d-30)
 
     end do 
 

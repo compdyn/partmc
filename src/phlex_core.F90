@@ -86,6 +86,9 @@ module pmc_phlex_core
 
   public :: phlex_core_t
 
+  !> Relative tolerance for calculating J(t,y) terms
+  real(kind=dp), parameter :: JAC_TOL = 1.0e-3
+
   !> Part-MC model data
   !!
   !! Contains all time-invariant data for a Part-MC model run.
@@ -690,7 +693,6 @@ contains
     end if
 
     phlex_state%rxn_phase = phase
-
     state_array => phlex_state%state_var
 
     ! Run integration
@@ -699,6 +701,9 @@ contains
 
     ! Evaluate the solver status
     call this%integration_data%check_status(solver_status)
+
+    ! Keep concentrations positive
+    phlex_state%state_var(:) = MAX(phlex_state%state_var(:), real(0.0, kind=dp))
 
   end subroutine solve
 
@@ -845,7 +850,7 @@ contains
 
     type(phlex_core_t), pointer :: phlex_core
     type(phlex_state_t), pointer :: phlex_state
-    integer(kind=i_kind) :: i_mech
+    integer(kind=i_kind) :: i_mech, i_spec
 
     call c_f_pointer(phlex_core_c_ptr, phlex_core)
     call c_f_pointer(phlex_state_c_ptr, phlex_state)

@@ -1,0 +1,6 @@
+#MODEL cb05cl_ae5_aq
+#INTEGRATOR kpp_lsode
+#LANGUAGE Fortran90
+#DRIVER general
+#HESSIAN OFF
+#STOICMAT OFF

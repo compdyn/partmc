@@ -13,7 +13,7 @@
 !        R. Sander, Max-Planck Institute for Chemistry, Mainz, Germany
 ! 
 ! File                 : cb05cl_ae5_Initialize.f90
-! Time                 : Wed Feb  7 16:13:31 2018
+! Time                 : Thu Feb  8 11:36:55 2018
 ! Working directory    : /home/Earth/mdawson/Documents/partmc-chem/partmc/test/chemistry/cb05cl_ae5
 ! Equation file        : cb05cl_ae5.kpp
 ! Output root filename : cb05cl_ae5
@@ -63,6 +63,13 @@ SUBROUTINE Initialize ( )
 ! END constant rate coefficients
 
 ! INLINED initializations
+
+ TSTART = (12.*3600.) ! seconds
+ TEND = TSTART + (3.*24.*3600.) ! seconds
+ DT = 1./15.*3600. ! seconds
+ TEMP = 230. ! K
+ PRESS = 298.30 ! hPa
+ M = AVOGADRO * PRESS * 100. /TEMP/R ! molecules cm-3
 
 ! End INLINED initializations
 

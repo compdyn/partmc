@@ -13,7 +13,7 @@
 !        R. Sander, Max-Planck Institute for Chemistry, Mainz, Germany
 ! 
 ! File                 : cb05cl_ae5_Monitor.f90
-! Time                 : Wed Feb  7 16:13:32 2018
+! Time                 : Thu Feb  8 11:36:55 2018
 ! Working directory    : /home/Earth/mdawson/Documents/partmc-chem/partmc/test/chemistry/cb05cl_ae5
 ! Equation file        : cb05cl_ae5.kpp
 ! Output root filename : cb05cl_ae5
@@ -61,7 +61,9 @@ MODULE cb05cl_ae5_Monitor
       61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, &
       73, 74, 75 /)
 
-  INTEGER, DIMENSION(1) :: MONITOR
+  INTEGER, PARAMETER, DIMENSION(3) :: MONITOR = (/ &
+      63, 68, 74 /)
+
   CHARACTER(LEN=15), DIMENSION(1) :: SMASS
   CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_0 = (/ &
      '          NO2 --> NO + O                                                                            ', &

@@ -13,7 +13,7 @@
 !        R. Sander, Max-Planck Institute for Chemistry, Mainz, Germany
 ! 
 ! File                 : cb05cl_ae5_Global.f90
-! Time                 : Wed Feb  7 16:13:32 2018
+! Time                 : Thu Feb  8 11:36:55 2018
 ! Working directory    : /home/Earth/mdawson/Documents/partmc-chem/partmc/test/chemistry/cb05cl_ae5
 ! Equation file        : cb05cl_ae5.kpp
 ! Output root filename : cb05cl_ae5
@@ -68,6 +68,31 @@ MODULE cb05cl_ae5_Global
   REAL(kind=dp) :: CFACTOR
 
 ! INLINED global variable declarations
+
+  REAL(dp) :: PRESS, LAT, LON, O3COL, JO1D, JNO2, H2O, H2, N2O, CH4, M, O2, N2,&
+ & RO2 = 0
+  REAL(dp), parameter :: AVOGADRO = 6.02214179e23 ! molecules mol-1
+  REAL(dp), parameter :: R = 8.314472 * 1e6 ! cm3 Pa K-1 mol-1
+  REAL(dp) :: JDAY, THETA
+  INTEGER :: INIT_TIME, NOX(NVAR), ncconcid, ncrateid, ncirrid, isims
+  INTEGER :: ncconcids(NVAR), ncrateids(NREACT), ncirrids(NREACT), ncstdids(10)
+  REAL(dp):: CONSTRAIN(NVAR)
+  REAL(dp), dimension(10000) :: VLAT, VLON, VTEMP, VPRESS, VH2O
+  LOGICAL :: SPEC_CH4, SPEC_H2, SPEC_N2O
+  INTEGER :: IntTime, IntCount
+  LOGICAL :: CONSTRAIN_NOX
+  LOGICAL :: CONSTRAIN_RUN, LAST_POINT, OUTPUT_LAST
+  CHARACTER(LEN=15) :: spec_name(10000)
+  INTEGER :: const_method(10000)
+!Photolysis variables
+  include 'tuv_old/params'
+  INTEGER, parameter :: NSZAS = 19, NJ = kj
+  INTEGER, parameter :: IDATE = 19840701, JDATE = 1984184
+
+  REAL*8::bs(NSZAS,NJ), cs(NSZAS,NJ),ds(NSZAS,NJ)
+  REAL::svj_tj(kt,kj), szas(kt), jfactno2, jfacto1d
+!End photolysis variables
+
 
 ! INLINED global variable declarations
 

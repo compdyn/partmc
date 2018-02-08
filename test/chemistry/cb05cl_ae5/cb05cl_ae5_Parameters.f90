@@ -13,7 +13,7 @@
 !        R. Sander, Max-Planck Institute for Chemistry, Mainz, Germany
 ! 
 ! File                 : cb05cl_ae5_Parameters.f90
-! Time                 : Wed Feb  7 16:13:31 2018
+! Time                 : Thu Feb  8 11:36:55 2018
 ! Working directory    : /home/Earth/mdawson/Documents/partmc-chem/partmc/test/chemistry/cb05cl_ae5
 ! Equation file        : cb05cl_ae5.kpp
 ! Output root filename : cb05cl_ae5
@@ -52,7 +52,7 @@ MODULE cb05cl_ae5_Parameters
 ! NLOOKAT - Number of species to look at
   INTEGER, PARAMETER :: NLOOKAT = 75 
 ! NMONITOR - Number of species to monitor
-  INTEGER, PARAMETER :: NMONITOR = 0 
+  INTEGER, PARAMETER :: NMONITOR = 3 
 ! NMASS - Number of atoms to check mass balance
   INTEGER, PARAMETER :: NMASS = 1 
 

@@ -13,7 +13,7 @@
 !        R. Sander, Max-Planck Institute for Chemistry, Mainz, Germany
 ! 
 ! File                 : cb05cl_ae5_Rates.f90
-! Time                 : Wed Feb  7 16:13:32 2018
+! Time                 : Thu Feb  8 11:36:55 2018
 ! Working directory    : /home/Earth/mdawson/Documents/partmc-chem/partmc/test/chemistry/cb05cl_ae5
 ! Equation file        : cb05cl_ae5.kpp
 ! Output root filename : cb05cl_ae5
@@ -130,6 +130,158 @@ CONTAINS
 ! Begin INLINED Rate Law Functions
 
 
+  SUBROUTINE UPDATE_TUV() 
+     REAL(kind=dp) alta
+     !    Set up the photolysis rates
+     !    First calculate pressure altitude from altitude
+     WRITE (6,*) 'hvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhv'
+     alta=(1-(press/1013.25)**0.190263)*288.15/0.00198122*0.304800/1000.
+ 
+     if (o3col .eq. 0) then 
+       o3col=260.
+       write (6,*) 'Ozone column not specified using 260 Dobsons'
+     else
+       write (6,*) 'Ozone column =', o3col
+     endif
+       
+!    Calculate the photolysis rates for the run
+     call set_up_photol(O3col, alta, temp, bs,cs,ds,szas,svj_tj)
+     WRITE (6,*) 'Photolysis rates calculated'
+     WRITE (6,*) 'hvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhv'
+  END SUBROUTINE
+
+  !---------------------------------------------------------------------------
+
+  REAL(kind=dp) FUNCTION CMAQ_1to4(A0, B0, C0)
+    REAL A0, B0, C0
+
+!   CMAQ reaction rates have the form K = A * (T/300.0)**B * EXP(-C/T) 
+!   KPP ARR reaction rates have the form K = A * (T/300.0)**C * EXP(-B/T) 
+!   
+!   Translation reorders B and C
+    CMAQ_1to4 = ARR(A0, C0, B0)
+  END FUNCTION
+  
+  !---------------------------------------------------------------------------
+
+  REAL(kind=dp) FUNCTION CMAQ_5(A0, B0, C0, Kf)
+    REAL A0, B0, C0
+    REAL(kind=dp) K1, Kf
+    K1 = CMAQ_1to4(A0, B0, C0)
+    CMAQ_5 = Kf / K1
+  END FUNCTION
+
+  !---------------------------------------------------------------------------
+  
+  REAL(kind=dp) FUNCTION CMAQ_6(A0, B0, C0, Kf)
+    REAL A0, B0, C0
+    REAL(kind=dp) K1, Kf
+    K1 = CMAQ_1to4(A0, B0, C0)
+    CMAQ_6 = Kf * K1
+  END FUNCTION
+
+  !---------------------------------------------------------------------------
+  
+  REAL(kind=dp) FUNCTION CMAQ_7(A0, B0, C0)
+    REAL A0, B0, C0
+    REAL(kind=dp) K0
+    K0 = CMAQ_1to4(A0, B0, C0)
+    CMAQ_7 = K0 * (1 + .6 * PRESS * 100.)
+  END FUNCTION
+
+  !---------------------------------------------------------------------------
+  
+   REAL(kind=dp) FUNCTION CMAQ_8(A0, C0, A2, C2, A3, C3)
+      REAL A0, C0, A2, C2, A3, C3
+      REAL(kind=dp) K0, K2, K3            
+      K0 = DBLE(A0) * EXP(-DBLE(C0) / TEMP)
+      K2 = DBLE(A2) * EXP(-DBLE(C2) / TEMP)
+      K3 = DBLE(A3) * EXP(-DBLE(C3) / TEMP)
+      K3 = K3 * M
+      CMAQ_8 = K0 + K3 / (1.0_dp + K3 / K2 )
+   END FUNCTION CMAQ_8
+
+  !---------------------------------------------------------------------------
+
+   REAL(kind=dp) FUNCTION CMAQ_9(A1, C1, A2, C2) 
+      REAL*8 A1, C1, A2, C2
+      REAL(kind=dp) K1, K2      
+      K1 = DBLE(A1) * EXP(-DBLE(C1) / TEMP)
+      K2 = DBLE(A2) * EXP(-DBLE(C2) / TEMP)
+      CMAQ_9 = K1 + K2 * M
+   END FUNCTION CMAQ_9 
+
+  !---------------------------------------------------------------------------
+
+   REAL(kind=dp) FUNCTION CMAQ_10 ( A0, B0, C0, A1, B1, C1, CF, N)
+      REAL A0, B0, C0, A1, B1, C1, CF, N
+      REAL(kind=dp) K0, K1     
+      K0 = CMAQ_1to4(A0, B0, C0)
+      K1 = CMAQ_1to4(A1, B1, C1)
+      K0 = K0 * M
+      K1 = K0 / K1
+      CMAQ_10 = (K0 / (1.0_dp + K1))*   &
+           DBLE(CF)**(1.0_dp / (1.0_dp / DBLE(N) + (LOG10(K1))**2))
+   END FUNCTION CMAQ_10
+
+  !---------------------------------------------------------------------------
+
+   REAL(kind=dp) FUNCTION OH_CO ( A0, B0, C0, A1, B1, C1, CF, N)
+      REAL A0, B0, C0, A1, B1, C1, CF, N
+      REAL(kind=dp) K0, K1     
+      K0 = CMAQ_1to4(A0, B0, C0)
+      K1 = CMAQ_1to4(A1, B1, C1)
+      K0 = K0
+      K1 = K0 / (K1 / M)
+      OH_CO = (K0 / (1.0_dp + K1))*   &
+           DBLE(CF)**(1.0_dp / (1.0_dp / DBLE(N) + (LOG10(K1))**2))
+   END FUNCTION OH_CO
+
+  !---------------------------------------------------------------------------
+
+  REAL(kind=dp) FUNCTION TUV_J(IJ, THETA)
+    USE model_Global,  only: BS, CS, DS, SZAS, SVJ_TJ, NSZAS
+    REAL(kind=dp) B(NSZAS), C(NSZAS), D(NSZAS), TMP_SVJ_TJ(NSZAS), &
+  &               TMP_SZAS(NSZAS), THETA
+  ! IJ is the integer index of the TUV photolysis calculation
+  ! THETA is the current solar zenith angle
+    INTEGER IJ, THIS_CSZA
+
+    REAL SEVAL ! function from TUV
+    EXTERNAL SEVAL ! function from TUV
+    INTEGER THIS_SZA ! temporary variables
+    IF (THETA .LT. 90.D0) THEN
+      DO THIS_CSZA = 1, NSZAS
+        B(THIS_CSZA) = BS(THIS_CSZA, IJ)
+        C(THIS_CSZA) = CS(THIS_CSZA, IJ)
+        D(THIS_CSZA) = DS(THIS_CSZA, IJ)
+        TMP_SZAS(THIS_CSZA) = SZAS(THIS_CSZA)
+        TMP_SVJ_TJ(THIS_CSZA) = SVJ_TJ(THIS_CSZA, IJ)
+      ENDDO
+      
+      TUV_J = SEVAL(NSZAS, THETA, TMP_SZAS, TMP_SVJ_TJ, B, C, D, .false.)
+      if (.false.) then
+          write(*,*) 'MP'
+          write(*,*) 'I,THETA,J:', IJ, THETA, TUV_J
+          write(*,8879) 'B     :', B
+          write(*,8879) 'C     :', C
+          write(*,8879) 'D     :', D
+          write(*,8879) 'SZAS  :', TMP_SZAS
+          write(*,8879) 'SVJ_TJ:', TMP_SVJ_TJ
+          
+8879     FORMAT(1A6,100000(E26.17))
+          TUV_J = SEVAL(NSZAS, THETA, TMP_SZAS, TMP_SVJ_TJ, B, C, D, .true.)
+
+      endif
+    
+      IF (TUV_J .LT. 0.d0) TUV_J = 0.d0
+    ELSE
+      TUV_J = 0.d0
+    ENDIF
+
+  END FUNCTION
+
+
 ! End INLINED Rate Law Functions
 
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -187,6 +339,36 @@ SUBROUTINE Update_RCONST ( )
 
 ! Begin INLINED RCONST
 
+ 
+ !end of USE statements 
+ !
+ ! start of executable statements
+
+ REAL ZENITH
+ REAL(kind=dp) :: Time2
+ PRESS = VPRESS(IntCount)
+ TEMP = VTEMP(IntCount)
+ LAT = VLAT(IntCount)
+ LON = VLON(IntCount)
+ M = AVOGADRO * PRESS * 100 / TEMP / R ! molecules cm-3
+ CFACTOR = M * 1.e-6
+ H2O = VH2O(IntCount) * CFACTOR
+ N2 = 0.7808*M
+ O2 = 0.2095*M
+ Time2=mod(Time/(60.*60.), 24.)
+ ! Assuming fixed will always contain O2
+ IF (NFIX .GT. 0) THEN
+    FIX(indf_O2) = O2
+ ENDIF
+ IF (IntCount .GT. 1) THEN
+   IF (VPRESS(IntCount-1) .NE. PRESS .OR. VTEMP(IntCount-1) .NE. TEMP) THEN
+     call update_tuv()
+   ENDIF
+ ELSE
+   call update_tuv()
+ ENDIF
+
+ THETA=DBLE( ZENITH ( REAL(LAT), REAL(LON), IDATE, REAL(Time2) ))
 
 ! End INLINED RCONST
 

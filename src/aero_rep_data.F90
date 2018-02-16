@@ -337,7 +337,7 @@ interface
     !> Chemical species data
     type(chem_spec_data_t), intent(in) :: chem_spec_data
     !> Absolute integration tolerance
-    real(kind=dp), allocatable :: abs_tol(:)
+    real(kind=dp), pointer :: abs_tol(:)
 
   end subroutine get_abs_tol
 

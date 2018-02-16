@@ -102,7 +102,7 @@ module pmc_phlex_core
     !> Aerosol phases
     type(aero_phase_data_ptr), pointer :: aero_phase(:)
     !> Integration data
-    type(integration_data_t), pointer, private :: integration_data => null()
+    type(integration_data_t), pointer :: integration_data => null()
   contains
     !> Load a set of configuration files
     procedure :: load_files
@@ -412,18 +412,21 @@ contains
     class(phlex_core_t), target, intent(inout) :: this
 
     integer(kind=i_kind) :: i_mech, i_phase, i_aero_rep, i_state_var
-    procedure(integration_data_deriv_func), pointer :: deriv_func
-    procedure(integration_data_jac_func), pointer :: jac_func
+    procedure(integration_data_deriv_func), pointer :: deriv_func_ptr
+    procedure(integration_data_jac_func), pointer :: jac_func_ptr
     type(c_ptr) :: this_c
-    real(kind=dp), allocatable, target :: abs_tol(:)
-    real(kind=dp), pointer :: abs_tol_ptr(:)
+    real(kind=dp), pointer :: abs_tol(:)
     type(phlex_core_t), pointer :: this_ptr
+    integer(kind=i_kind), allocatable :: use_jac_elem(:,:)
+    integer(kind=i_kind) :: n_jac_elem, i_spec, j_spec, i_elem
+    integer(kind=i_kind), pointer :: n_jac_col_elem(:)
+    integer(kind=i_kind), pointer :: jac_row_ids(:)
 
     this_ptr => this
-    deriv_func => calc_derivative
-    jac_func => calc_jacobian
+    deriv_func_ptr => calc_derivative
+    jac_func_ptr => calc_jacobian
 
-    ! Get the size of the gas-phase species on the state array
+    ! Get the next index on the state array after the gas-phase species
     i_state_var = this%chem_spec_data%num_spec_by_type(GAS_SPEC) + 1
 
     ! Initialize the aerosol phases
@@ -438,24 +441,60 @@ contains
       i_state_var = i_state_var + this%aero_rep(i_aero_rep)%val%size()
     end do
 
+    ! Set i_state_var to hold the size of the state array, instead of the next index
+    i_state_var = i_state_var - 1
+
     ! Initialize the mechanisms
     do i_mech = 1, size(this%mechanism)
       call this%mechanism(i_mech)%initialize(this%chem_spec_data)
     end do
 
+    ! Get elements to include in the sparse Jacobian matrix
+    allocate(use_jac_elem(i_state_var, i_state_var))
+    use_jac_elem(:,:) = 0
+    do i_mech = 1, size(this%mechanism)
+      call this%mechanism(i_mech)%get_used_jac_elem(use_jac_elem)
+    end do
+    n_jac_elem = 0
+    do i_spec = 1, i_state_var
+      do j_spec = 1, i_state_var
+        if (use_jac_elem(i_spec, j_spec).gt.0) n_jac_elem = n_jac_elem + 1
+      end do
+    end do
+    allocate(n_jac_col_elem(i_state_var))
+    allocate(jac_row_ids(n_jac_elem))
+    i_elem = 0
+    n_jac_col_elem(:) = 0
+    do j_spec = 1, i_state_var
+      do i_spec = 1, i_state_var
+        if (use_jac_elem(i_spec, j_spec).gt.0) then
+          i_elem = i_elem + 1
+          n_jac_col_elem(j_spec) = n_jac_col_elem(j_spec) + 1
+          jac_row_ids(i_elem) = i_spec
+        end if
+      end do
+    end do
+    deallocate(use_jac_elem)
+
     ! Set up the integrator
     this_c = c_loc(this_ptr)
-    allocate(abs_tol(i_state_var-1))
-    abs_tol_ptr => abs_tol
+    allocate(abs_tol(i_state_var))
     call this%chem_spec_data%gas_abs_tol(abs_tol)
     do i_aero_rep = 1, size(this%aero_rep)
       call this%aero_rep(i_aero_rep)%val%get_abs_tol(this%chem_spec_data, &
               abs_tol)
     end do
-    this%integration_data => integration_data_t(this_c, deriv_func, &
-            jac_func, abs_tol_ptr)
+    this%integration_data => integration_data_t(this_c, deriv_func_ptr, &
+            jac_func_ptr, abs_tol, n_jac_elem, n_jac_col_elem, jac_row_ids)
+
+    ! Update the time derivative and Jacobian indexes
+    do i_mech = 1, size(this%mechanism)
+      call this%mechanism(i_mech)%update_integration_ids(this%integration_data)
+    end do
 
     deallocate(abs_tol)
+    deallocate(n_jac_col_elem)
+    deallocate(jac_row_ids)
 
   end subroutine initialize
 
@@ -677,7 +716,6 @@ contains
     integer(kind=i_kind), intent(in), optional :: rxn_phase
 
     integer(kind=i_kind) :: solver_status, phase
-    real(kind=dp), pointer :: state_array(:)
 
     if (present(rxn_phase)) then
       phase = rxn_phase
@@ -693,11 +731,9 @@ contains
     end if
 
     phlex_state%rxn_phase = phase
-    state_array => phlex_state%state_var
 
     ! Run integration
-    solver_status = this%integration_data%solve(state_array, &
-            c_loc(phlex_state), time_step)
+    solver_status = this%integration_data%solve(phlex_state, time_step)
 
     ! Evaluate the solver status
     call this%integration_data%check_status(solver_status)
@@ -800,33 +836,24 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Calculate the time derivative f(t,y)
-  subroutine calc_derivative(curr_time, deriv, phlex_core_c_ptr, &
-                  phlex_state_c_ptr)
+  subroutine calc_derivative(integration_data)
 
     use iso_c_binding
 
-    !> Current solver time (s)
-    real(kind=dp), intent(in) :: curr_time
-    !> Time derivative to calculate
-    real(kind=dp), intent(inout), pointer :: deriv(:)
-    !> Pointer to model data
-    type(c_ptr), intent(in) :: phlex_core_c_ptr
-    !> Pointer to model state
-    type(c_ptr), intent(in) :: phlex_state_c_ptr
+    !> Integration data
+    type(integration_data_t), pointer, intent(inout) :: integration_data
 
     type(phlex_core_t), pointer :: phlex_core
-    type(phlex_state_t), pointer :: phlex_state
     integer(kind=i_kind) :: i_mech
 
-    call c_f_pointer(phlex_core_c_ptr, phlex_core)
-    call c_f_pointer(phlex_state_c_ptr, phlex_state)
+    call c_f_pointer(integration_data%phlex_core_c_ptr, phlex_core)
 
     ! Generate a unique concentration state id
-    call phlex_state%reset_conc_id()
+    call integration_data%phlex_state%reset_conc_id()
 
     ! Calculate f(t,y)
     do i_mech=1, size(phlex_core%mechanism)
-      call phlex_core%mechanism(i_mech)%get_func_contrib(phlex_state, deriv)
+      call phlex_core%mechanism(i_mech)%get_func_contrib(integration_data)
     end do
 
   end subroutine calc_derivative
@@ -834,33 +861,24 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Calculate the Jacobian matrix J(t,y)
-  subroutine calc_jacobian(curr_time, jac, phlex_core_c_ptr, &
-                  phlex_state_c_ptr)
+  subroutine calc_jacobian(integration_data)
 
     use iso_c_binding
 
-    !> Current solver time (s)
-    real(kind=dp), intent(in) :: curr_time
-    !> Jacobian matrix to calculate
-    real(kind=dp), intent(inout), pointer :: jac(:,:)
-    !> Pointer to model data
-    type(c_ptr), intent(in) :: phlex_core_c_ptr
-    !> Pointer to model state
-    type(c_ptr), intent(in) :: phlex_state_c_ptr
+    !> Integration data
+    type(integration_data_t), pointer, intent(inout) :: integration_data
 
     type(phlex_core_t), pointer :: phlex_core
-    type(phlex_state_t), pointer :: phlex_state
-    integer(kind=i_kind) :: i_mech, i_spec
+    integer(kind=i_kind) :: i_mech
 
-    call c_f_pointer(phlex_core_c_ptr, phlex_core)
-    call c_f_pointer(phlex_state_c_ptr, phlex_state)
+    call c_f_pointer(integration_data%phlex_core_c_ptr, phlex_core)
 
     ! Generate a unique concentration state id
-    call phlex_state%reset_conc_id()
+    call integration_data%phlex_state%reset_conc_id()
 
     ! Calculate J(t,y)
     do i_mech=1, size(phlex_core%mechanism)
-      call phlex_core%mechanism(i_mech)%get_jac_contrib(phlex_state, jac)
+      call phlex_core%mechanism(i_mech)%get_jac_contrib(integration_data)
     end do
 
   end subroutine calc_jacobian

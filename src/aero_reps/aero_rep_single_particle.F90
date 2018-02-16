@@ -413,7 +413,7 @@ contains
     !> Chemical species data
     type(chem_spec_data_t), intent(in) :: chem_spec_data
     !> Absolute integration tolerances
-    real(kind=dp), allocatable :: abs_tol(:)
+    real(kind=dp), pointer :: abs_tol(:)
 
     integer(kind=i_kind) :: i_spec, i_phase, curr_spec_id
     type(string_t), allocatable :: species(:)

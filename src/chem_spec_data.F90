@@ -50,7 +50,7 @@ module pmc_chem_spec_data
   !> Reallocation increment
   integer(kind=i_kind), parameter :: REALLOC_INC = 50
   !> Default absolute integration tolerance
-  real(kind=dp), parameter :: DEFAULT_ABS_TOL = 1.0e-15
+  real(kind=dp), parameter :: DEFAULT_ABS_TOL = 1.0e-14
 
   !> Unknown species type
   integer(kind=i_kind), parameter, public :: UNKNOWN_SPEC = 0
@@ -477,7 +477,7 @@ contains
     class(chem_spec_data_t), intent(in) :: this
     !> Array of species absolute integration tolerances. This array should be
     !! the same size as the pmc_phlex_state::phlex_state_t::state_var array
-    real(kind=dp), allocatable :: abs_tol(:)
+    real(kind=dp), pointer :: abs_tol(:)
 
     integer(kind=i_kind) :: i_spec, state_id
 

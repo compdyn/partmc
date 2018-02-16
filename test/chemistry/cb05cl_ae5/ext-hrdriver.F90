@@ -248,12 +248,12 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !OJORBA3
 !OJORBA2         ITMSTEP = TIME2SEC( TSTEP( 2 ) )
          CHEMSTEP = FLOAT( ITMSTEP ) / 60.0
-!OJORBA2         WRITE( LOGDEV, 92000 ) CHEMSTEP, DELTAT
+         WRITE( LOGDEV, 92000 ) CHEMSTEP, DELTAT
 
-!OJORBA2         WRITE( LOGDEV, 92020 )
-!OJORBA2         DO SPC = 1, N_GC_SPC
-!OJORBA2            WRITE( LOGDEV, 92040 ) GC_SPC( SPC ), RTOL( SPC )
-!OJORBA2         ENDDO
+         WRITE( LOGDEV, 92020 )
+         DO SPC = 1, N_GC_SPC
+            WRITE( LOGDEV, 92040 ) GC_SPC( SPC ), RTOL( SPC )
+         ENDDO
 
          MAOMV =  MWAIR / MWWAT
 
@@ -436,6 +436,7 @@ c..Get rate constants
 c..Call EBI solver
                N_EBI_IT = 0
 !OJORBA3
+               write(*,*) "EBI time step: ", JTIME
                CALL EXT_HRSOLVER( JDATE, JTIME, C, R, L )
 !OJORBA3
 !OJORBA2#ifdef hrstats
@@ -463,8 +464,8 @@ c..Update concentration array
 !OJORBA2
 
 !OJORBA2#ifdef hrstats
-!OJORBA2      AVGEBI = SUMEBI / FLOAT( NCOLS * NROWS * NLAYS )
-!OJORBA2      WRITE( ISTFL, 94040 ) JDATE, JTIME, MNEBI, AVGEBI, MXEBI
+      AVGEBI = SUMEBI / FLOAT( NCOLS * NROWS * NLAYS )
+      WRITE( ISTFL, 94040 ) JDATE, JTIME, MNEBI, AVGEBI, MXEBI
 !OJORBA2#endif
 
       RETURN

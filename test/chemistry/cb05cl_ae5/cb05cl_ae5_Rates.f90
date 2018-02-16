@@ -130,26 +130,6 @@ CONTAINS
 ! Begin INLINED Rate Law Functions
 
 
-  SUBROUTINE UPDATE_TUV() 
-     REAL(kind=dp) alta
-     !    Set up the photolysis rates
-     !    First calculate pressure altitude from altitude
-     WRITE (6,*) 'hvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhv'
-     alta=(1-(press/1013.25)**0.190263)*288.15/0.00198122*0.304800/1000.
- 
-     if (o3col .eq. 0) then 
-       o3col=260.
-       write (6,*) 'Ozone column not specified using 260 Dobsons'
-     else
-       write (6,*) 'Ozone column =', o3col
-     endif
-       
-!    Calculate the photolysis rates for the run
-     call set_up_photol(O3col, alta, temp, bs,cs,ds,szas,svj_tj)
-     WRITE (6,*) 'Photolysis rates calculated'
-     WRITE (6,*) 'hvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhvhv'
-  END SUBROUTINE
-
   !---------------------------------------------------------------------------
 
   REAL(kind=dp) FUNCTION CMAQ_1to4(A0, B0, C0)
@@ -240,89 +220,17 @@ CONTAINS
   !---------------------------------------------------------------------------
 
   REAL(kind=dp) FUNCTION TUV_J(IJ, THETA)
-    USE model_Global,  only: BS, CS, DS, SZAS, SVJ_TJ, NSZAS
-    REAL(kind=dp) B(NSZAS), C(NSZAS), D(NSZAS), TMP_SVJ_TJ(NSZAS), &
-  &               TMP_SZAS(NSZAS), THETA
-  ! IJ is the integer index of the TUV photolysis calculation
-  ! THETA is the current solar zenith angle
-    INTEGER IJ, THIS_CSZA
+    USE cb05cl_ae5_Global,  only: PHOTO_RATES
 
-    REAL SEVAL ! function from TUV
-    EXTERNAL SEVAL ! function from TUV
-    INTEGER THIS_SZA ! temporary variables
-    IF (THETA .LT. 90.D0) THEN
-      DO THIS_CSZA = 1, NSZAS
-        B(THIS_CSZA) = BS(THIS_CSZA, IJ)
-        C(THIS_CSZA) = CS(THIS_CSZA, IJ)
-        D(THIS_CSZA) = DS(THIS_CSZA, IJ)
-        TMP_SZAS(THIS_CSZA) = SZAS(THIS_CSZA)
-        TMP_SVJ_TJ(THIS_CSZA) = SVJ_TJ(THIS_CSZA, IJ)
-      ENDDO
-      
-      TUV_J = SEVAL(NSZAS, THETA, TMP_SZAS, TMP_SVJ_TJ, B, C, D, .false.)
-      if (.false.) then
-          write(*,*) 'MP'
-          write(*,*) 'I,THETA,J:', IJ, THETA, TUV_J
-          write(*,8879) 'B     :', B
-          write(*,8879) 'C     :', C
-          write(*,8879) 'D     :', D
-          write(*,8879) 'SZAS  :', TMP_SZAS
-          write(*,8879) 'SVJ_TJ:', TMP_SVJ_TJ
-          
-8879     FORMAT(1A6,100000(E26.17))
-          TUV_J = SEVAL(NSZAS, THETA, TMP_SZAS, TMP_SVJ_TJ, B, C, D, .true.)
+    INTEGER :: IJ
+    REAL(kind=dp) :: THETA
 
-      endif
-    
-      IF (TUV_J .LT. 0.d0) TUV_J = 0.d0
-    ELSE
-      TUV_J = 0.d0
-    ENDIF
+    TUV_J = PHOTO_RATES(IJ)
 
   END FUNCTION
 
 
 ! End INLINED Rate Law Functions
-
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-! 
-! Update_SUN - update SUN light using TIME
-!   Arguments :
-! 
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  SUBROUTINE Update_SUN()
-      !USE cb05cl_ae5_Parameters
-      !USE cb05cl_ae5_Global
-
-    IMPLICIT NONE
-
-    REAL(kind=dp) :: SunRise, SunSet
-    REAL(kind=dp) :: Thour, Tlocal, Ttmp 
-    ! PI - Value of pi
-    REAL(kind=dp), PARAMETER :: PI = 3.14159265358979d0
-    
-    SunRise = 4.5_dp 
-    SunSet  = 19.5_dp 
-    Thour = TIME/3600.0_dp 
-    Tlocal = Thour - (INT(Thour)/24)*24
-
-    IF ((Tlocal>=SunRise).AND.(Tlocal<=SunSet)) THEN
-       Ttmp = (2.0*Tlocal-SunRise-SunSet)/(SunSet-SunRise)
-       IF (Ttmp.GT.0) THEN
-          Ttmp =  Ttmp*Ttmp
-       ELSE
-          Ttmp = -Ttmp*Ttmp
-       END IF
-       SUN = ( 1.0_dp + COS(PI*Ttmp) )/2.0_dp 
-    ELSE
-       SUN = 0.0_dp 
-    END IF
-
- END SUBROUTINE Update_SUN
-
-! End of Update_SUN function
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -346,13 +254,8 @@ SUBROUTINE Update_RCONST ( )
 
  REAL ZENITH
  REAL(kind=dp) :: Time2
- PRESS = VPRESS(IntCount)
- TEMP = VTEMP(IntCount)
- LAT = VLAT(IntCount)
- LON = VLON(IntCount)
  M = AVOGADRO * PRESS * 100 / TEMP / R ! molecules cm-3
  CFACTOR = M * 1.e-6
- H2O = VH2O(IntCount) * CFACTOR
  N2 = 0.7808*M
  O2 = 0.2095*M
  Time2=mod(Time/(60.*60.), 24.)
@@ -360,15 +263,8 @@ SUBROUTINE Update_RCONST ( )
  IF (NFIX .GT. 0) THEN
     FIX(indf_O2) = O2
  ENDIF
- IF (IntCount .GT. 1) THEN
-   IF (VPRESS(IntCount-1) .NE. PRESS .OR. VTEMP(IntCount-1) .NE. TEMP) THEN
-     call update_tuv()
-   ENDIF
- ELSE
-   call update_tuv()
- ENDIF
 
- THETA=DBLE( ZENITH ( REAL(LAT), REAL(LON), IDATE, REAL(Time2) ))
+ THETA=0.0
 
 ! End INLINED RCONST
 
@@ -457,7 +353,7 @@ SUBROUTINE Update_RCONST ( )
   RCONST(83) = (CMAQ_1to4(1.8E-11,0.0E+00,1100.0))
   RCONST(84) = (CMAQ_1to4(5.6E-12,0.0E+00,-270.0))
   RCONST(85) = (CMAQ_1to4(1.4E-12,0.0E+00,1900.0))
-  RCONST(86) = (TUV_J(17,THETA)+TUV_J(19,THETA))
+  RCONST(86) = (TUV_J(17,THETA)) ! +TUV_J(19,THETA)) temporary change for mechanism comparison
   RCONST(87) = (CMAQ_1to4(8.1E-12,0.0E+00,-270.0))
   RCONST(88) = (CMAQ_10(2.7E-28,-7.1,0.0E+00,1.2E-11,-0.9,0.0E+00,0.3,1.0))
   RCONST(89) = (CMAQ_10(4.9E-3,0.0E+00,12100.0,5.4E16,0.0E+00,13830.0,0.3,1.0))

@@ -71,6 +71,7 @@ module pmc_rxn_arrhenius
   use pmc_chem_spec_data
   use pmc_property
   use pmc_phlex_state
+  use pmc_integration_data
 
   implicit none
   private
@@ -87,6 +88,7 @@ module pmc_rxn_arrhenius
 #define _NUM_REAL_PROP_ 6
 #define _REACT_(x) this%condensed_data_int(_NUM_INT_PROP_ + x)
 #define _PROD_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + x)
+#define _JACID_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + _NUM_PROD_ + x)
 #define _yield_(x) this%condensed_data_real(_NUM_REAL_PROP_ + x)
 
 public :: rxn_arrhenius_t
@@ -96,6 +98,10 @@ public :: rxn_arrhenius_t
   contains
     !> Reaction initialization
     procedure :: initialize
+    !> Indicate which Jacobian elements are populated by this reactions
+    procedure :: get_used_jac_elem
+    !> Update indexes used during integration
+    procedure :: update_integration_ids
     !> Time derivative contribution
     procedure :: func_contrib
     !> Jacobian matrix contribution
@@ -175,7 +181,8 @@ contains
     ! Space in this example is allocated for two sets of inidices for the 
     ! reactants and products, one molecular property for each reactant, 
     ! yields for the products and three reaction parameters.
-    allocate(this%condensed_data_int(_NUM_INT_PROP_+i_spec+products%size()))
+    allocate(this%condensed_data_int(_NUM_INT_PROP_+i_spec+products%size() &
+            + i_spec * (i_spec + products%size())))
     allocate(this%condensed_data_real(_NUM_REAL_PROP_+products%size()))
     
     ! Save the size of the reactant and product arrays (for reactions where these
@@ -283,41 +290,98 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Indicate which Jacobian elements are populated by this reaction
+  subroutine get_used_jac_elem(this, use_jac_elem)
+
+    !> Reaction data
+    class(rxn_arrhenius_t), intent(in) :: this
+    !> Matrix of flags indicating whether to include Jacobian elements
+    !! in the sparse matrix
+    integer(kind=i_kind), allocatable, intent(inout) :: use_jac_elem(:,:)
+
+    integer(kind=i_kind) :: i_spec_d, i_spec_i
+
+    do i_spec_d=1, _NUM_REACT_
+      do i_spec_i=1, _NUM_REACT_
+        use_jac_elem(_REACT_(i_spec_d), &
+            _REACT_(i_spec_i)) = 1
+      end do
+    end do
+
+    do i_spec_d=1, _NUM_PROD_
+      do i_spec_i=1, _NUM_REACT_
+        use_jac_elem(_PROD_(i_spec_d), &
+            _REACT_(i_spec_i)) = 1
+      end do
+    end do
+
+  end subroutine get_used_jac_elem
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Update indexes used during integration
+  subroutine update_integration_ids(this, integration_data)
+
+    !> Reaction data
+    class(rxn_arrhenius_t), intent(inout) :: this
+    !> Integration data
+    class(integration_data_t), intent(in) :: integration_data
+
+    integer(kind=i_kind) :: i_spec_d, i_spec_i, jac_id
+
+    jac_id = 0
+    do i_spec_d=1, _NUM_REACT_
+      do i_spec_i=1, _NUM_REACT_
+        jac_id = jac_id + 1
+        _JACID_(jac_id) = &
+            integration_data%get_jac_elem_id(&
+            _REACT_(i_spec_d), &
+            _REACT_(i_spec_i))
+      end do
+    end do
+
+    do i_spec_d=1, _NUM_PROD_
+      do i_spec_i=1, _NUM_REACT_
+        jac_id = jac_id + 1
+        _JACID_(jac_id) = &
+            integration_data%get_jac_elem_id(&
+            _PROD_(i_spec_d), &
+            _REACT_(i_spec_i))
+      end do
+    end do
+
+  end subroutine update_integration_ids
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Calculate the contribution to the time derivative vector. The current 
   !! model state is provided for species concentrations, aerosol state and 
   !! environmental variables. All other parameters must have been saved to the
   !! reaction data instance during initialization.
-  subroutine  func_contrib(this, phlex_state, func)
+  subroutine  func_contrib(this, integration_data)
 
     !> Reaction data
     class(rxn_arrhenius_t), intent(in) :: this
-    !> Current model state
-    type(phlex_state_t), intent(in) :: phlex_state
-    !> Time derivative vector. This vector may include contributions from
-    !! other reactions, so the contributions from this reaction should
-    !! append, not overwrite, the values already in the vector
-    real(kind=dp), pointer, intent(inout) :: func(:)
-   
+    !> Integration data
+    class(integration_data_t), intent(inout) :: integration_data
+
     integer(kind=i_kind) :: i_spec
     real(kind=dp) :: rate
 
-    rate = this%rate_const(phlex_state)
+    rate = this%rate_const(integration_data%phlex_state)
     do i_spec=1, _NUM_REACT_
-      rate = rate * phlex_state%state_var(_REACT_(i_spec))
+      rate = rate * integration_data%phlex_state%state_var(_REACT_(i_spec))
     end do
     
     if (rate.eq.real(0.0, kind=dp)) return
 
     do i_spec=1, _NUM_REACT_
-      func(_REACT_(i_spec)) = &
-        func(_REACT_(i_spec)) &
-        - rate
+      call integration_data%add_deriv_contrib( _REACT_(i_spec), -rate)
     end do
 
     do i_spec=1, _NUM_PROD_
-      func(_PROD_(i_spec)) = &
-        func(_PROD_(i_spec)) &
-        + _yield_(i_spec) * rate
+      call integration_data%add_deriv_contrib( _PROD_(i_spec), &
+          _yield_(i_spec) * rate)
     end do
 
   end subroutine func_contrib
@@ -328,51 +392,46 @@ contains
   !! The current model state is provided for species concentrations and 
   !! aerosol state. All other parameters must have been saved to the reaction 
   !! data instance during initialization.
-  subroutine jac_contrib(this, phlex_state, jac)
+  subroutine jac_contrib(this, integration_data)
 
     !> Reaction data
     class(rxn_arrhenius_t), intent(in) :: this
-    !> Current model state
-    type(phlex_state_t), intent(in) :: phlex_state
-    !> Jacobian matrix. This matrix may include contributions from other
-    !! reactions, so the contributions from this reaction should append,
-    !! not overwrite, the values already in the matrix.
-    real(kind=dp), pointer, intent(inout) :: jac(:,:)
+    !> Integration data
+    class(integration_data_t), intent(inout) :: integration_data
 
-    integer(kind=i_kind) :: i_spec_i, i_spec_d
+    integer(kind=i_kind) :: i_spec_i, i_spec_d, jac_id
     real(kind=dp) :: rate, rate_const
 
-    rate_const = this%rate_const(phlex_state)
+    rate_const = this%rate_const(integration_data%phlex_state)
     do i_spec_i=1, _NUM_REACT_
       rate_const = rate_const * &
-              phlex_state%state_var(_REACT_(i_spec_i))
+              integration_data%phlex_state%state_var(_REACT_(i_spec_i))
     end do
 
     if (rate_const.eq.real(0.0, kind=dp)) return
 
+    jac_id = 0
     do i_spec_d=1, _NUM_REACT_
       do i_spec_i=1, _NUM_REACT_
+        jac_id = jac_id + 1
         rate = rate_const
-        rate = rate / phlex_state%state_var( &
+        rate = rate / integration_data%phlex_state%state_var( &
                 _REACT_(i_spec_i))
-        jac(_REACT_(i_spec_d), &
-            _REACT_(i_spec_i)) = &
-          jac(_REACT_(i_spec_d), &
-              _REACT_(i_spec_i)) - &
-              rate 
+        call integration_data%add_jac_contrib( &
+                _JACID_(jac_id), &
+                -rate) 
       end do
     end do
 
     do i_spec_d=1, _NUM_PROD_
       do i_spec_i=1, _NUM_REACT_
+        jac_id = jac_id + 1
         rate = rate_const
-        rate = rate / phlex_state%state_var( &
+        rate = rate / integration_data%phlex_state%state_var( &
                 _REACT_(i_spec_i))
-        jac(_PROD_(i_spec_d), &
-            _REACT_(i_spec_i)) = &
-          jac(_PROD_(i_spec_d), &
-              _REACT_(i_spec_i)) + &
-              _yield_(i_spec_d) * rate
+        call integration_data%add_jac_contrib( &
+                _JACID_(jac_id), &
+                _yield_(i_spec_d) * rate)
       end do
     end do
 

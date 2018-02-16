@@ -77,7 +77,7 @@ MODULE cb05cl_ae5_Global
   INTEGER :: INIT_TIME, NOX(NVAR), ncconcid, ncrateid, ncirrid, isims
   INTEGER :: ncconcids(NVAR), ncrateids(NREACT), ncirrids(NREACT), ncstdids(10)
   REAL(dp):: CONSTRAIN(NVAR)
-  REAL(dp), dimension(10000) :: VLAT, VLON, VTEMP, VPRESS, VH2O
+  REAL(dp):: PHOTO_RATES(100)
   LOGICAL :: SPEC_CH4, SPEC_H2, SPEC_N2O
   INTEGER :: IntTime, IntCount
   LOGICAL :: CONSTRAIN_NOX
@@ -85,12 +85,9 @@ MODULE cb05cl_ae5_Global
   CHARACTER(LEN=15) :: spec_name(10000)
   INTEGER :: const_method(10000)
 !Photolysis variables
-  include 'tuv_old/params'
-  INTEGER, parameter :: NSZAS = 19, NJ = kj
+!  include 'tuv_old/params'
   INTEGER, parameter :: IDATE = 19840701, JDATE = 1984184
 
-  REAL*8::bs(NSZAS,NJ), cs(NSZAS,NJ),ds(NSZAS,NJ)
-  REAL::svj_tj(kt,kj), szas(kt), jfactno2, jfacto1d
 !End photolysis variables
 
 

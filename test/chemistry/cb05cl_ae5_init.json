@@ -117,7 +117,8 @@
   {
     "name" : "HCL",
     "type" : "GAS_SPEC",
-    "init conc" : 1.0E-03
+    "init conc" : 0.0,
+    "orig init" : 1.0E-03
   },
   {
     "name" : "HCO3",

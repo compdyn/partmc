@@ -56,6 +56,7 @@ module pmc_rxn_data
   use pmc_property
   use pmc_chem_spec_data
   use pmc_phlex_state
+  use pmc_integration_data
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -111,10 +112,16 @@ module pmc_rxn_data
     !! at the beginning of a model run after all the input files have been
     !! read in.
     procedure(initialize), deferred :: initialize
+    !> Indicate the elements of the Jacobian matrix that are populated by
+    !! this reaction
+    procedure(get_used_jac_elem), deferred :: get_used_jac_elem
+    !> Update the indexes used during integration
+    procedure(update_integration_ids), deferred :: update_integration_ids
     !> Calculate the contribution to the time derivative vector. The current 
     !! model state is provided for species concentrations, aerosol state and 
     !! environmental variables. All other parameters must have been saved to the
     !! reaction data instance during initialization.
+    !> Get the elements of the Jacobian that are populated by this reaction
     procedure(func_contrib), deferred :: func_contrib
     !> Calculate the contribution of this reaction to the Jacobian matrix.
     !! The current model state is provided for species concentrations and 
@@ -171,21 +178,44 @@ interface
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Indicate which Jacobian elements are populated by this reaction
+  subroutine get_used_jac_elem(this, use_jac_elem)
+    import :: rxn_data_t, i_kind
+
+    !> Reaction data
+    class(rxn_data_t), intent(in) :: this
+    !> Matrix of flags indicating whether to include Jacobian elements
+    !! in the sparse matrix
+    integer(kind=i_kind), allocatable, intent(inout) :: use_jac_elem(:,:)
+
+  end subroutine get_used_jac_elem
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Update indexes used during integration
+  subroutine update_integration_ids(this, integration_data)
+    import :: rxn_data_t, integration_data_t
+
+    !> Reaction data
+    class(rxn_data_t), intent(inout) :: this
+    !> Integration data
+    class(integration_data_t), intent(in) :: integration_data
+
+  end subroutine update_integration_ids
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Calculate the contribution to the time derivative vector. The current 
   !! model state is provided for species concentrations, aerosol state and 
   !! environmental variables. All other parameters must have been saved to the
   !! reaction data instance during initialization.
-  subroutine func_contrib(this, phlex_state, func) 
-    import :: rxn_data_t, phlex_state_t, dp
+  subroutine func_contrib(this, integration_data) 
+    import :: rxn_data_t, integration_data_t
 
     !> Reaction data
     class(rxn_data_t), intent(in) :: this
-    !> Current model state
-    type(phlex_state_t), intent(in) :: phlex_state
-    !> Time derivative vector. This vector may include contributions from
-    !! other reactions, so the contributions from this reaction should
-    !! append, not overwrite, the values already in the vector
-    real(kind=dp), pointer, intent(inout) :: func(:)
+    !> Integration data
+    class(integration_data_t), intent(inout) :: integration_data
 
   end subroutine func_contrib
 
@@ -195,17 +225,13 @@ interface
   !! The current model state is provided for species concentrations and 
   !! aerosol state. All other parameters must have been saved to the reaction 
   !! data instance during initialization.
-  subroutine jac_contrib(this, phlex_state, jac)
-    import :: rxn_data_t, phlex_state_t, dp
+  subroutine jac_contrib(this, integration_data)
+    import :: rxn_data_t, integration_data_t
 
     !> Reaction data
     class(rxn_data_t), intent(in) :: this
-    !> Current model state
-    type(phlex_state_t), intent(in) :: phlex_state
-    !> Jacobian matrix. This matrix may include contributions from other
-    !! reactions, so the contributions from this reaction should append,
-    !! not overwrite, the values already in the matrix.
-    real(kind=dp), pointer, intent(inout) :: jac(:,:)
+    !> Integration data
+    class(integration_data_t), intent(inout) :: integration_data
 
   end subroutine jac_contrib
 

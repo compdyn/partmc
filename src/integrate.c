@@ -4,7 +4,7 @@
  *
  * This is the c ODE solver for the chemistry module 
  * It is currently set up to use the SUNDIALS BDF method, Newton
- * iteration with the CVDENSE dense linear solver, and a user-supplied
+ * iteration with the CVDENSE sparse linear solver, and a user-supplied
  * Jacobian routine. 
  *
  * It uses a scalar relative tolerance and a vector absolute tolerance.
@@ -13,7 +13,6 @@
 /** \file
  * \brief Interface to c solvers for chemistry
 */
-#define KRYLOV
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,14 +20,15 @@
 /* Header files with a description of contents used */
 
 #if defined(PMC_USE_SUNDIALS)
-#include <cvode/cvode.h>               /* prototypes for CVODE fcts., consts.  */
-#include <cvode/cvode_spils.h>         /* CVSpils interface                    */
-#include <nvector/nvector_serial.h>    /* serial N_Vector types, fcts., macros */
-#include <sunmatrix/sunmatrix_dense.h> /* dense SUNMatrix                      */
-#include <sunlinsol/sunlinsol_spgmr.h> /* SPGMR SUNLinearSolver                */
-#include <sunlinsol/sunlinsol_dense.h> /* dense SUNLinearSolver                */
-#include <cvode/cvode_direct.h>        /* CVDls interface                      */
-#include <sundials/sundials_types.h>   /* definition of type realtype          */
+#include <cvode/cvode.h>                /* prototypes for CVODE fcts., consts.  */
+#include <cvode/cvode_spils.h>          /* CVSpils interface                    */
+#include <nvector/nvector_serial.h>     /* serial N_Vector types, fcts., macros */
+#include <sunmatrix/sunmatrix_sparse.h> /* sparse SUNMatrix                     */
+#include <sundials/sundials_dense.h>    /* SUNDIALS dense matrix                */
+#include <sunlinsol/sunlinsol_spgmr.h>  /* SPGMR SUNLinearSolver                */
+#include <sunlinsol/sunlinsol_klu.h>    /* KLU SUNLinearSolver                  */
+#include <cvode/cvode_direct.h>         /* CVDls interface                      */
+#include <sundials/sundials_types.h>    /* definition of type realtype          */
 #endif
 
 /// Flag to disallow negative concentrations
@@ -37,44 +37,44 @@
 #define PMC_INTEGRATION_MAX_CONV_FAILS 20
 
 /// Result code indicating successful completion.
-#define PMC_INTEGRATION_SUCCESS        0
+#define PMC_INTEGRATION_SUCCESS                0
 /// Result code indicating no available integration routine
-#define PMC_INTEGRATION_NO_AVAIL_SOLVER   12
+#define PMC_INTEGRATION_NO_AVAIL_SOLVER        12
 
 // SUNDIALS result codes
 #if defined(PMC_USE_SUNDIALS)
 /// Result code indicating failure to allocate \c y vector.
-#define PMC_INTEGRATION_INIT_Y         1
+#define PMC_INTEGRATION_INIT_Y                 1
 /// Result code indicating failure to allocate \c abstol vector.
-#define PMC_INTEGRATION_INIT_ABSTOL    2
+#define PMC_INTEGRATION_INIT_ABSTOL            2
 /// Result code indicating failure to create the solver.
-#define PMC_INTEGRATION_INIT_CVODE_MEM 3
+#define PMC_INTEGRATION_INIT_CVODE_MEM         3
 /// Result code indicating failure to initialize the solver.
-#define PMC_INTEGRATION_INIT_CVODE     4
+#define PMC_INTEGRATION_INIT_CVODE             4
 /// Result code indicating failure to set tolerances.
-#define PMC_INTEGRATION_SVTOL          5
+#define PMC_INTEGRATION_SVTOL                  5
 /// Result code indicating failure to set maximum steps.
-#define PMC_INTEGRATION_SET_MAX_STEPS  6
+#define PMC_INTEGRATION_SET_MAX_STEPS          6
 /// Result code indicating failure of the solver.
-#define PMC_INTEGRATION_FAIL           7
-/// Result code indicating failure to set dense Jacobian solver
-#define PMC_INTEGRATION_DENSE_JAC      8
+#define PMC_INTEGRATION_FAIL                   7
+/// Result code indicating failure to initialize sparse Jacobian
+#define PMC_INTEGRATION_SPARSE_JAC             8
 /// Result code indicating failure to set Jacobian function
-#define PMC_INTEGRATION_JAC_FUNC       9
+#define PMC_INTEGRATION_JAC_FUNC               9
 /// Result code indicating failure to set user data
-#define PMC_INTEGRATION_SET_USER_DATA  10
+#define PMC_INTEGRATION_SET_USER_DATA          10
 /// Result code indicating SUNDIALS realtype is not set to double precision
-#define PMC_INTEGRATION_WRONG_PRECISION  11
-/// Result code indicating failure to get the dense linear solver
-#define PMC_INTEGRATION_DENSE_LINEAR_SOLVER    13
-/// Result code indicating failure to set the dense linear solver
+#define PMC_INTEGRATION_WRONG_PRECISION        11
+/// Result code indicating failure to get the KLU linear solver
+#define PMC_INTEGRATION_KLU_LINEAR_SOLVER      13
+/// Result code indicating failure to set the linear solver
 #define PMC_INTEGRATION_SET_LINEAR_SOLVER      14
 /// Result code indicating failure to set the maximum number of convergence failures
-#define PMC_INTEGRATION_SET_MAX_CONV_FAILS   15
+#define PMC_INTEGRATION_SET_MAX_CONV_FAILS     15
 /// Result code indicating failure to set the SPGMR solver
-#define PMC_INTEGRATION_SPGMR_LINEAR_SOLVER 16
+#define PMC_INTEGRATION_SPGMR_LINEAR_SOLVER    16
 /// Result code indicating failure to set the preconditioner functions
-#define PMC_INTEGRATION_SET_PRECONDITIONER 17
+#define PMC_INTEGRATION_SET_PRECONDITIONER     17
 #endif
 
 // Macros for accessing N_Vector and DlsMat elements with Fortran-type indices
@@ -91,15 +91,17 @@ typedef struct {
   DlsMat P, Jbd;
   sunindextype *pivot;
   void *sysdata;
+  SUNMatrix jac_init;
 } *UserData;
+
 
 /* Fortran support subroutines */
 #ifndef DOXYGEN_SKIP_DOC
-// Fortran subroutine to calcualte f(t,y) for the aqueous-phase chemical mechanism
+// Fortran subroutine to calcualte f(t,y) for the system
 void deriv_func(int n_eqn_c, double curr_time_c, double *state_c_p,
                     double *f_c_p, void *sysdata_c_p);
 
-// Fortran subroutine to calculate J(t,y) = df/dy for the aqueous-phase chemical mechanism
+// Fortran subroutine to calculate J(t,y) = df/dy for the system
 void jac_func(int n_eqn_c, double curr_time_c, double *state_c_p,
                       double *jac_c_p, void *sysdata_c_p);
 #endif
@@ -133,7 +135,7 @@ static int test_Jac(realtype t,
 /// \brief Private function to print species concentrations
 static void integrate_print_output(realtype t, realtype y1, realtype y2, realtype y3);
 /// \brief Private function to print final statistics
-static void integrate_print_stats(void *cvode_mem, int n_eqn);
+static void integrate_print_stats(void *cvode_mem, int n_eqn, N_Vector y_nv);
 
 #if defined(PMC_USE_SUNDIALS)
 /// \brief Private function to check SUNDIALS return values
@@ -154,9 +156,15 @@ static int integrate_SUNDIALS_check_flag(void *flagvalue, char *funcname, int op
  * \param t_initial The start time (s)
  * \param t_final The end time (s)
  * \param sysdata A pointer to system data for use in f(t,y) and J(t,y) functions
+ * \param n_jac_elem The exact number of non-zero elements in the sparse Jacobian matrix
+ * \param n_jac_col_elem An array containing the number of non-zero elements in each column
+ *          of the Jacobian matrix. Their sum should equal n_jac_elem.
+ * \param jac_row_ids An array containing the row id of each element in the Jacobian matrix
+ *          data arranged as a flat array. The array should contain n_jac_elem elements.
  */
 int integrate_solver (int neq, double *y, double *abstol, double reltol,
-                  int max_steps, double t_initial, double t_final, void *sysdata)
+                  int max_steps, double t_initial, double t_final, void *sysdata,
+		  int n_jac_elem, int *jac_col_ptrs, int *jac_row_ids)
 {
     
 #if defined(PMC_USE_SUNDIALS)
@@ -175,10 +183,13 @@ int integrate_solver (int neq, double *y, double *abstol, double reltol,
 
     // Set up user data
     user_data = (UserData) malloc(sizeof *user_data);
+#ifdef KRYLOV
     user_data->P = NewDenseMat(neq, neq);
     user_data->Jbd = NewDenseMat(neq, neq);
     user_data->pivot = newIndexArray(neq);
+#endif
     user_data->sysdata = sysdata;
+    user_data->jac_init = NULL;
 
     y_nv = abstol_nv = NULL;
     A = NULL;
@@ -249,15 +260,23 @@ int integrate_solver (int neq, double *y, double *abstol, double reltol,
     /* Use stability detection */
     flag = CVodeSetStabLimDet(cvode_mem, SUNTRUE);
 #else
-    /* Create dense SUNMatrix for use in linear solves */
-    A = SUNDenseMatrix(neq, neq);
+    /* Create sparse SUNMatrix for use in linear solves */
+    A = SUNSparseMatrix(neq, neq, n_jac_elem, CSC_MAT);
     if (integrate_SUNDIALS_check_flag((void *)A, "SUNMatrix", 0))
-        return(PMC_INTEGRATION_DENSE_JAC);
-    
-    /* Create dense SUNLinearSolver object for use by CVode */
-    LS = SUNDenseLinearSolver(y_nv, A);
-    if (integrate_SUNDIALS_check_flag((void *)LS, "SUNDenseLinearSolver", 0))
-	return(PMC_INTEGRATION_DENSE_LINEAR_SOLVER);
+        return(PMC_INTEGRATION_SPARSE_JAC);
+    for (int i=0; i<=neq; i++) (SM_INDEXPTRS_S(A))[i] = (sunindextype) jac_col_ptrs[i];
+    for (int i=0; i<n_jac_elem; i++) (SM_INDEXVALS_S(A))[i] = (sunindextype) jac_row_ids[i];
+    for (int i=0; i<n_jac_elem; i++) (SM_DATA_S(A))[i] = (realtype) 1.0;
+
+    /* Create a clone of the Jacobian to use during calls to the Jacobian
+     * function to preserve the original sparse matrix dimensions */
+    user_data->jac_init = SUNMatClone(A);
+    SUNMatCopy(A, user_data->jac_init);
+
+    /* Create KLU SUNLinearSolver object for use by CVode */
+    LS = SUNKLU(y_nv, A);
+    if (integrate_SUNDIALS_check_flag((void *)LS, "SUNKLULinearSolver", 0))
+	return(PMC_INTEGRATION_KLU_LINEAR_SOLVER);
 
     /* Call CVDlsSetLinearSolver to attach the matrix and linear solver to CVode */
     flag = CVDlsSetLinearSolver(cvode_mem, LS, A);
@@ -275,7 +294,7 @@ int integrate_solver (int neq, double *y, double *abstol, double reltol,
     if (integrate_SUNDIALS_check_flag(&flag, "CVode", 1))
     {
         // DIAGNOSTIC
-        integrate_print_stats(cvode_mem, neq);
+        integrate_print_stats(cvode_mem, neq, y_nv);
 
         return(PMC_INTEGRATION_FAIL);
     }
@@ -293,28 +312,30 @@ int integrate_solver (int neq, double *y, double *abstol, double reltol,
 
     /* Free the matrix memory */
     SUNMatDestroy(A);
+    SUNMatDestroy(user_data->jac_init);
 
     /* Free the userdata memory */
+#ifdef KRYLOV
     DestroyMat(user_data->P);
     DestroyMat(user_data->Jbd);
     destroyArray(user_data->pivot);
+#endif
     free(user_data);
+
 
     return PMC_INTEGRATION_SUCCESS;
     
 #else
 
     // SUNDIALS is available but the realtype is not set to double precision
- 
-	return PMC_INTEGRATION_WRONG_PRECISION;
+    return PMC_INTEGRATION_WRONG_PRECISION;
     
 #endif
 #endif
     
     // Currently there is no default non-SUNDIALS integration function,
     // so return an error if SUNDIALS is not available
- 
-	return PMC_INTEGRATION_NO_AVAIL_SOLVER;
+    return PMC_INTEGRATION_NO_AVAIL_SOLVER;
 }
 
 #if defined(PMC_USE_SUNDIALS)
@@ -432,10 +453,26 @@ static int Jac(realtype t,
     int i, j;
     
     state = (double*) NV_DATA_S(y);
-    jac   = (double*) SUNDenseMatrix_Data(J);
     N     = NV_LENGTH_S(y);
     data  = (UserData) user_data;
-
+ 
+    // Reset the Jacobian dimensions
+    if (SM_NNZ_S(J)<SM_NNZ_S(data->jac_init)) {
+	SM_INDEXVALS_S(J) = realloc(SM_INDEXVALS_S(J), SM_NNZ_S(data->jac_init)*sizeof(int));
+	SM_DATA_S(J) = realloc(SM_DATA_S(J), SM_NNZ_S(data->jac_init)*sizeof(realtype));
+    }
+    SM_NNZ_S(J) = SM_NNZ_S(data->jac_init);
+    for (i=0; i<SM_NNZ_S(J); i++) {
+	(SM_DATA_S(J))[i] = (realtype)0.0;
+	(SM_INDEXVALS_S(J))[i] = (SM_INDEXVALS_S(data->jac_init))[i];
+    }
+    for (i=0; i<=SM_NP_S(J); i++) {
+	(SM_INDEXPTRS_S(J))[i] = (SM_INDEXPTRS_S(data->jac_init))[i];
+    }
+    
+    // Get a pointer to the data
+    jac   = (double*) (SM_DATA_S(J));
+    
     // Call fortran jacobian function
     // (jac is square so we can use N for neq)
     jac_func(N, (double) t, state, jac, data->sysdata);
@@ -478,6 +515,7 @@ static int Precond(realtype t, N_Vector y, N_Vector fy, booleantype jok,
   } else {
     // Generate new Jacobian data
     state = (double*) NV_DATA_S(y);
+    // FIXME Need to adjust to use SUNSparseMatrix Jacobian
     jac_func(n_eqn, (double) t, state, (double*) Jbd->data, data->sysdata);
     DenseCopy(Jbd, P);
     *jcurPtr = SUNTRUE;
@@ -606,7 +644,7 @@ static void integrate_print_output(realtype t, realtype y1, realtype y2, realtyp
  * Get and print some final statistics
  */
 
-static void integrate_print_stats(void *cvode_mem, int n_eqn)
+static void integrate_print_stats(void *cvode_mem, int n_eqn, N_Vector y_nv)
 {
     long int nst, nfe, nsetups, nje, nfeLS, nni, ncfn, netf, nge;
     int flag, i;
@@ -652,10 +690,10 @@ static void integrate_print_stats(void *cvode_mem, int n_eqn)
            nni, ncfn, netf, nge);
     printf("suggested tolerance scaling factor = %lg\n\n", sug_tol);
     
-    printf("SpecID\tErr Wt\tEst Error\tProduct\n");
+    printf("SpecID\tErr Wt\tEst Error\tProduct\tValue\n");
     for (i=0; i<n_eqn; i++) {
-        printf("%d\t%lg\t%lg\t%lg\n", i+1, Ith(err_weight,i+1), Ith(est_error,i+1),
-               Ith(err_weight,i+1)*Ith(est_error,i+1));
+        printf("%d\t%lg\t%lg\t%lg\t%lg\n", i+1, Ith(err_weight,i+1), Ith(est_error,i+1),
+               Ith(err_weight,i+1)*Ith(est_error,i+1), Ith(y_nv, i+1));
     }
     
 }

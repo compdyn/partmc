@@ -41,6 +41,7 @@ module pmc_mechanism_data
   use pmc_rxn_factory
   use pmc_chem_spec_data
   use pmc_phlex_state
+  use pmc_integration_data
 
   implicit none
   private
@@ -72,6 +73,11 @@ module pmc_mechanism_data
     procedure :: name => get_name
     !> Get the size of the species database
     procedure :: size => get_size
+    !> Get the elements of the Jacobian matrix that are populated by 
+    !! the mechanism
+    procedure :: get_used_jac_elem
+    !> Update the indexes used during integration 
+    procedure :: update_integration_ids
     !> Get constributions of mechanism reactions to the time derivative
     !! vector
     procedure :: get_func_contrib
@@ -257,22 +263,59 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get contributions of the mechanism reactions to the time derivative
-  !! vector
-  subroutine get_func_contrib(this, phlex_state, func)
+  !> Get the elements of the Jacobian matrix that are populated by the 
+  !! mechanism
+  subroutine get_used_jac_elem(this, use_jac_elem)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
-    !> Current model state
-    type(phlex_state_t), intent(in) :: phlex_state
-    !> Time derivative vector
-    real(kind=dp), pointer, intent(inout) :: func(:)
+    !> Matrix of flags indicating whether the corresponding Jacobian element
+    !! should be included in the sparse matrix
+    integer(kind=i_kind), allocatable, intent(inout) :: use_jac_elem(:,:)
 
     integer(kind=i_kind) :: i_rxn
 
     do i_rxn = 1, this%num_rxn
-      if (this%rxn_ptr(i_rxn)%val%check_phase(phlex_state%rxn_phase)) then
-        call this%rxn_ptr(i_rxn)%val%func_contrib(phlex_state, func)
+      call this%rxn_ptr(i_rxn)%val%get_used_jac_elem(use_jac_elem)
+    end do
+
+  end subroutine get_used_jac_elem
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Update the indexes used during integration
+  subroutine update_integration_ids(this, integration_data)
+
+    !> Chemical mechanism
+    class(mechanism_data_t), intent(in) :: this
+    !> Integation data
+    class(integration_data_t), intent(in) :: integration_data
+
+    integer(kind=i_kind) :: i_rxn
+
+    do i_rxn = 1, this%num_rxn
+      call this%rxn_ptr(i_rxn)%val%update_integration_ids(integration_data)
+    end do
+
+  end subroutine update_integration_ids
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get contributions of the mechanism reactions to the time derivative
+  !! vector
+  subroutine get_func_contrib(this, integration_data)
+
+    !> Chemical mechanism
+    class(mechanism_data_t), intent(in) :: this
+    !> Integration data
+    type(integration_data_t), intent(inout) :: integration_data
+
+    integer(kind=i_kind) :: i_rxn
+
+    do i_rxn = 1, this%num_rxn
+      if (this%rxn_ptr(i_rxn)%val%check_phase( &
+              integration_data%phlex_state%rxn_phase)) then
+        call this%rxn_ptr(i_rxn)%val%func_contrib(integration_data)
       end if
     end do
 
@@ -281,20 +324,19 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get contributions of the mechanism reactions to the Jacobian matrix
-  subroutine get_jac_contrib(this, phlex_state, jac)
+  subroutine get_jac_contrib(this, integration_data)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
-    !> Current model state
-    type(phlex_state_t), intent(in) :: phlex_state
-    !> Jacobian matrix being calculated
-    real(kind=dp), pointer, intent(inout) :: jac(:,:)
+    !> Integration data
+    type(integration_data_t), intent(inout) :: integration_data
 
     integer(kind=i_kind) :: i_rxn
 
     do i_rxn = 1, this%num_rxn
-      if (this%rxn_ptr(i_rxn)%val%check_phase(phlex_state%rxn_phase)) then
-        call this%rxn_ptr(i_rxn)%val%jac_contrib(phlex_state, jac)
+      if (this%rxn_ptr(i_rxn)%val%check_phase( &
+              integration_data%phlex_state%rxn_phase)) then
+        call this%rxn_ptr(i_rxn)%val%jac_contrib(integration_data)
       end if
     end do
 

@@ -17,10 +17,8 @@ module pmc_integration_data
   implicit none
   private
 
-  !> Small number for minimum state array values
-  real(kind=dp), parameter :: PMC_INTEGRATION_SMALL_NUM = 1.0D-30
   !> Default relative tolerance for integration
-  real(kind=dp), parameter :: PMC_INTEGRATION_DEFAULT_REL_TOL = 1.0D-4
+  real(kind=dp), parameter :: PMC_INTEGRATION_DEFAULT_REL_TOL = 1.0D-8
   !> Default max number of integration steps
   integer(kind=i_kind), parameter :: PMC_INTEGRATION_DEFAULT_MAX_STEPS = 10000000
 
@@ -315,10 +313,6 @@ contains
     t_initial_c = real(0.0, kind=c_double)
     t_final_c = real(time_step, kind=c_double)
     n_jac_elem_c = int(this%n_jac_elem, kind=c_int)
-
-    ! Remove negative and zero values
-    where (state_array.lt.PMC_INTEGRATION_SMALL_NUM) state_array = &
-                    PMC_INTEGRATION_SMALL_NUM
 
     ! Set up the state pointer
     this%phlex_state => phlex_state

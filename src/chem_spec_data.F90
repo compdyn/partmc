@@ -83,6 +83,8 @@ module pmc_chem_spec_data
     procedure :: spec_names_by_type
     !> Check if a species name is in the set of chemical species
     procedure :: exists
+    !> Get the name of a species
+    procedure :: get_name
     !> Get a species properties
     procedure :: get_property_set
     !> Get a species type
@@ -383,6 +385,22 @@ contains
     found = this%find(spec_name).ne.0
 
   end function exists
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the name of a species
+  function get_name(this, i_spec) result (spec_name)
+
+    !> Species name
+    character(len=:), allocatable :: spec_name
+    !> Species dataset
+    class(chem_spec_data_t), intent(in) :: this
+    !> Species id
+    integer(kind=i_kind), intent(in) :: i_spec
+
+    spec_name = this%spec_name(i_spec)%string
+
+  end function get_name
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

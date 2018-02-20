@@ -231,8 +231,6 @@ contains
     integer(kind=i_kind) :: i_col, col_id
 
     allocate(new_obj)
-    call assert_msg(668626727, new_obj%is_solver_available(), &
-            "No solver available for integration.")
     new_obj%phlex_core_c_ptr = phlex_core_c_ptr
     new_obj%deriv_func_ptr => deriv_func_ptr
     new_obj%jac_func_ptr => jac_func_ptr

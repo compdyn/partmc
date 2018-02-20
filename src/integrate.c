@@ -20,14 +20,14 @@
 /* Header files with a description of contents used */
 
 #if defined(PMC_USE_SUNDIALS)
-#include <cvode/cvode.h>                /* prototypes for CVODE fcts., consts.  */
-#include <cvode/cvode_spils.h>          /* CVSpils interface                    */
+#include <cvodes/cvodes.h>              /* prototypes for CVODE fcts., consts.  */
+#include <cvodes/cvodes_spils.h>        /* CVSpils interface                    */
 #include <nvector/nvector_serial.h>     /* serial N_Vector types, fcts., macros */
 #include <sunmatrix/sunmatrix_sparse.h> /* sparse SUNMatrix                     */
 #include <sundials/sundials_dense.h>    /* SUNDIALS dense matrix                */
 #include <sunlinsol/sunlinsol_spgmr.h>  /* SPGMR SUNLinearSolver                */
 #include <sunlinsol/sunlinsol_klu.h>    /* KLU SUNLinearSolver                  */
-#include <cvode/cvode_direct.h>         /* CVDls interface                      */
+#include <cvodes/cvodes_direct.h>       /* CVDls interface                      */
 #include <sundials/sundials_types.h>    /* definition of type realtype          */
 #endif
 

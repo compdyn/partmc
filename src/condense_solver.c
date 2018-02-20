@@ -9,10 +9,10 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <cvode/cvode.h>
+#include <cvodes/cvodes.h>
 #include <nvector/nvector_serial.h>
 #include <sundials/sundials_types.h>
-#include <cvode/cvode_impl.h>
+#include <cvodes/cvodes_impl.h>
 
 /** \brief Result code indicating successful completion.
  */

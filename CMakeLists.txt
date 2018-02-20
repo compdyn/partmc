@@ -106,18 +106,18 @@ endif()
 # SUNDIALS
 
 if(ENABLE_SUNDIALS)
-  find_path(SUNDIALS_INCLUDE_DIR cvode/cvode.h
-    DOC "SUNDIALS include directory (must have cvode/, sundials/, nvector/ subdirs)"
-    PATHS $ENV{SUNDIALS_HOME}/include /opt/local/include)
+  find_path(SUNDIALS_INCLUDE_DIR cvodes/cvodes.h
+    DOC "SUNDIALS include directory (must have cvodes/, sundials/, nvector/ subdirs)"
+    PATHS $ENV{SUNDIALS_HOME}/include /opt/local/include /usr/local/include)
   find_library(SUNDIALS_NVECSERIAL_LIB sundials_nvecserial
     DOC "SUNDIALS serial vector library"
-    PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib)
-  find_library(SUNDIALS_CVODE_LIB sundials_cvode
+    PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib /usr/local/lib)
+  find_library(SUNDIALS_CVODE_LIB sundials_cvodes
     DOC "SUNDIALS CVODE library"
-    PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib)
+    PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib /usr/local/lib)
   find_library(SUNDIALS_KLU_LIB sundials_sunlinsolklu
     DOC "SUNDIALS KLU library"
-    PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib)
+    PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib /usr/local/lib)
   set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB} ${SUNDIALS_KLU_LIB})
   set(SUNDIALS_SRC src/condense_solver.c src/integrate.c)
   include_directories(${SUNDIALS_INCLUDE_DIR})

@@ -1222,6 +1222,10 @@ contains
 
     call phlex_core%integration_data%init_solver_arrays(phlex_state)
 
+    ! Find the phlex-core mechanism
+    key = "cb05cl_ae5"
+    call assert(331333207, phlex_core%find_mechanism(key, i_mech))
+    
     ! Calculate the phlex-chem time derivative and Jacobian
     deriv_func_ptr => phlex_core%integration_data%get_deriv_func()
     jac_func_ptr => phlex_core%integration_data%get_jac_func()

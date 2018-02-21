@@ -41,7 +41,7 @@ RUN curl -LO https://github.com/jacobwilliams/json-fortran/archive/6.1.0.tar.gz 
 # NOTE: Modify .dockerignore to whitelist files/directories to copy.
 COPY . /partmc/
 
-RUN mkdir partmc/build \
-    && cd partmc/build \
+RUN mkdir build \
+    && cd build \
     && cmake -D ENABLE_SUNDIALS:BOOL=TRUE -D SUNDIALS_CVODE_LIB=/usr/local/lib/libsundials_cvodes.so -D SUNDIALS_INCLUDE_DIR=/usr/local/include /partmc \
     && make

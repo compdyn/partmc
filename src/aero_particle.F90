@@ -9,6 +9,7 @@
 module pmc_aero_particle
 
   use pmc_util
+  use pmc_aero_component
   use pmc_aero_data
   use pmc_spec_file
   use pmc_env_state
@@ -49,6 +50,8 @@ module pmc_aero_particle
      integer :: water_hyst_leg
      !> Unique ID number.
      integer :: id
+     !> Array of aerosol components.
+     type(aero_component_t), allocatable :: components(:)
      !> First time a constituent was created (s).
      real(kind=dp) :: least_create_time
      !> Last time a constituent was created (s).

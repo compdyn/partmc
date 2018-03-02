@@ -41,13 +41,13 @@ contains
   !> Run all pmc_chem_mech_solver tests
   logical function run_pmc_chem_mech_solver_tests() result(passed)
 
-    use pmc_integration_data
+    use pmc_phlex_solver_data
 
-    type(integration_data_t), pointer :: integration_data
+    type(phlex_solver_data_t), pointer :: phlex_solver_data
 
-    integration_data => integration_data_t()
+    phlex_solver_data => phlex_solver_data_t()
 
-    if (integration_data%is_solver_available()) then
+    if (phlex_solver_data%is_solver_available()) then
       passed = run_consecutive_mech_test()
     else
       call warn_msg(398972036, "No solver available")

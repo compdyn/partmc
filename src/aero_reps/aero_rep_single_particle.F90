@@ -132,10 +132,9 @@ module pmc_aero_rep_single_particle
     !! For PartMC single particle runs, the aerosol state will be set by PartMC
     !! at the beginning of each chemistry integration
     procedure :: new_state
-    !> Get the absolute integration tolerance for each variable on the
-    !! pmc_phlex_state::phlex_state_t::state_var array from this aerosol
-    !! representation
-    procedure :: get_abs_tol
+    !> Get the non-unique name of a species in this aerosol representation by
+    !! id.
+    procedure :: spec_name_by_id
     !> Get surface area concentration (m^2/m^3) between two phases. One phase
     !! may be set to 0 to indicate the gas phase, or both phases may be
     !! aerosol phases.
@@ -197,9 +196,8 @@ contains
 
     integer(kind=i_kind) :: i_phase, i_spec, curr_id, curr_spec_id, num_spec
     type(property_t), pointer :: spec_props
-    type(string_t), allocatable :: species(:)
     real(kind=dp) :: density
-    character(len=:), allocatable :: key
+    character(len=:), allocatable :: key, spec_name
 
     ! Assume all phases will be applied to each particle
     allocate(this%aero_phase(size(aero_phase_set)))
@@ -235,16 +233,15 @@ contains
     key = "density"
     do i_phase = 1, _NUM_PHASE_
       curr_spec_id = 1
-      species = this%aero_phase(i_phase)%val%get_species_names()
-      do i_spec = 1, size(species)
-        spec_props => chem_spec_data%get_property_set(species(i_spec)%string)
-        if (.not.associated(spec_props)) then
+      do i_spec = 1, this%aero_phase(i_phase)%val%size()
+        spec_name = this%aero_phase(i_phase)%val%get_species_name(i_spec)
+        if (.not.chem_spec_data%get_property_set(spec_name, spec_props)) then
           call die_msg(204001989, "Missing properties for species "// &
-                  species(i_spec)%string)
+                  spec_name)
         end if
         if (.not.spec_props%get_real(key, density)) then
           call die_msg(532333944, "Missing density for species "// &
-                  species(i_spec)%string)
+                  spec_name)
         end if
         _DENSITY_(i_phase, curr_spec_id) = density
         curr_spec_id = curr_spec_id + 1
@@ -295,8 +292,7 @@ contains
     class(aero_rep_single_particle_t), intent(in) :: this
 
     integer(kind=i_kind) :: num_spec, i_spec, j_spec, i_phase
-    type(string_t), allocatable :: spec_names(:)
-    character(len=:), allocatable :: phase_name
+    character(len=:), allocatable :: phase_name, spec_name
     
     num_spec = 0
     do i_phase = 1, size(this%aero_phase)
@@ -307,10 +303,10 @@ contains
     do i_phase = 1, size(this%aero_phase)
       phase_name = this%aero_phase(i_phase)%val%name()
       num_spec = this%aero_phase(i_phase)%val%size()
-      spec_names = this%aero_phase(i_phase)%val%get_species_names()
       do j_spec = 1, num_spec
         unique_names(i_spec + j_spec - 1)%string = &
-                phase_name//'.'//spec_names(j_spec)%string
+                phase_name//'.'// &
+                this%aero_phase(i_phase)%val%get_species_name(i_spec)
       end do
       i_spec = i_spec + num_spec
     end do
@@ -403,39 +399,31 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the absolute integration tolerance for each variable on the
-  !! pmc_phlex_state::phlex_state_t::state_var array from this aerosol
-  !! representation
-  subroutine get_abs_tol(this, chem_spec_data, abs_tol)
+  !> Get the non-unique name of a species in this aerosol representation by
+  !! id.
+  function spec_name_by_id(this, aero_rep_spec_id)
 
+    !> Chemical species name
+    character(len=:), allocatable :: spec_name_by_id
     !> Aerosol representation data
     class(aero_rep_single_particle_t), intent(in) :: this
-    !> Chemical species data
-    type(chem_spec_data_t), intent(in) :: chem_spec_data
-    !> Absolute integration tolerances
-    real(kind=dp), pointer :: abs_tol(:)
+    !> Indoex of species in this aerosol representation
+    integer(kind=i_kind) :: aero_rep_spec_id
 
-    integer(kind=i_kind) :: i_spec, i_phase, curr_spec_id
-    type(string_t), allocatable :: species(:)
-
-    ! Make sure the abs_tol array is big enough
-    i_phase = _NUM_PHASE_
-    i_spec = _PHASE_STATE_ID_(i_phase) + &
-            _NUM_SPEC_(i_phase) - 1
-    call assert_msg(509399695, size(abs_tol).ge.i_spec, "Absolute "// &
-            "tolerance array too small. Expected "//to_string(i_spec)// &
-            " got "//to_string(size(abs_tol)))
-
-    ! Set the tolerances
-    do i_phase = 1, _NUM_PHASE_
-      species = this%aero_phase(i_phase)%val%get_species_names()
-      do i_spec = 1, size(species)
-        curr_spec_id = _SPEC_STATE_ID_(i_phase, i_spec)
-        abs_tol(curr_spec_id) = chem_spec_data%get_abs_tol(species(i_spec)%string)
+    ! Indices for iterators
+    integer(kind=i_kind) :: i_spec, j_spec, i_phase
+    
+    i_spec = 1
+    do i_phase = 1, size(this%aero_phase)
+      do j_spec = 1, this%aero_phase(i_phase)%val%size()
+        if (i_spec.eq.aero_rep_spec_id) then
+          spec_name_by_id = this%aero_phase(i_phase)%val%get_species_name(j_spec)
+        end if
+        i_spec = i_spec + 1
       end do
     end do
 
-  end subroutine get_abs_tol
+  end function spec_name_by_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -571,7 +559,7 @@ contains
   !! same way as \c surface_area_conc, but with \f$P\f$ being the
   !! single-element set of species \f$x\f$.
   !!
-  function species_surface_area_conc(this,  i_phase, i_spec, phlex_state, &
+  function species_surface_area_conc(this, i_phase, i_spec, phlex_state, &
                 jac_contrib) result(surface_area_conc)
     use pmc_constants
     use pmc_util,                                     only : dp

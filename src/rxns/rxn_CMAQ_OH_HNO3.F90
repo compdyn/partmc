@@ -77,7 +77,6 @@ module pmc_rxn_CMAQ_OH_HNO3
   use pmc_chem_spec_data
   use pmc_property
   use pmc_phlex_state
-  use pmc_integration_data
 
   implicit none
   private
@@ -94,12 +93,16 @@ module pmc_rxn_CMAQ_OH_HNO3
 #define _k3_B_ this%condensed_data_real(8)
 #define _k3_C_ this%condensed_data_real(9)
 #define _CONV_ this%condensed_data_real(10)
+#define _RATE_CONSTANT_ this%condensed_data_real(11)
 #define _NUM_INT_PROP_ 2
-#define _NUM_REAL_PROP_ 10
+#define _NUM_REAL_PROP_ 11
 #define _REACT_(x) this%condensed_data_int(_NUM_INT_PROP_ + x)
 #define _PROD_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + x)
-#define _JACID_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + _NUM_PROD_ + x)
+#define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + _NUM_PROD_ + x)
+#define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_ + 2*(_NUM_REACT_ + _NUM_PROD_) + x)
 #define _yield_(x) this%condensed_data_real(_NUM_REAL_PROP_ + x)
+#define _INT_DATA_SIZE_ (_NUM_INT_PROP_+(_NUM_REACT_+2)*(_NUM_REACT_+_NUM_PROD_))
+#define _REAL_DATA_SIZE_ (_NUM_REAL_PROP_+_NUM_PROD_)
 
 public :: rxn_CMAQ_OH_HNO3_t
 
@@ -108,18 +111,10 @@ public :: rxn_CMAQ_OH_HNO3_t
   contains
     !> Reaction initialization
     procedure :: initialize
-    !> Indicate which Jacobian elements are populated by this reactions
-    procedure :: get_used_jac_elem
-    !> Update indexes used during integration
-    procedure :: update_integration_ids
-    !> Time derivative contribution
-    procedure :: func_contrib
-    !> Jacobian matrix contribution
-    procedure :: jac_contrib
-    !> Get test info
-    procedure :: get_test_info
-    !> Calculate the rate constant
-    procedure, private :: rate_const
+    !> Build rate constant expression
+    procedure :: build_rate_const_expr
+    !> Build time derivative expression
+    procedure :: build_deriv_expr
   end type rxn_CMAQ_OH_HNO3_t
 
   !> Constructor for rxn_CMAQ_OH_HNO3_t
@@ -190,9 +185,10 @@ contains
     ! Space in this example is allocated for two sets of inidices for the 
     ! reactants and products, one molecular property for each reactant, 
     ! yields for the products and three reaction parameters.
-    allocate(this%condensed_data_int(_NUM_INT_PROP_+i_spec+products%size() &
-            + i_spec * (i_spec + products%size())))
-    allocate(this%condensed_data_real(_NUM_REAL_PROP_+products%size()))
+    allocate(this%condensed_data_int( &
+            _INT_DATA_SIZE_))
+    allocate(this%condensed_data_real( &
+            _REAL_DATA_SIZE_))
     
     ! Save the size of the reactant and product arrays (for reactions where these
     ! can vary)
@@ -248,7 +244,10 @@ contains
         _k3_A_ = _k3_A_ / 60.0
       end if
     endif
-    
+  
+    ! Include the multiplication [M]*k3 in _k3_A_
+    _k3_A_ = _k3_A_ * real(1.0d6, kind=dp)
+
     ! Get the indices and chemical properties for the reactants
     call reactants%iter_reset()
     i_spec = 1
@@ -304,242 +303,63 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Indicate which Jacobian elements are populated by this reaction
-  subroutine get_used_jac_elem(this, use_jac_elem)
+  !> Build rate constant expression
+  function build_rate_const_expr(this, rxn_id) result (expr)
 
+    !> Rate constant expression
+    character(len=:), allocatable :: expr
     !> Reaction data
     class(rxn_CMAQ_OH_HNO3_t), intent(in) :: this
-    !> Matrix of flags indicating whether to include Jacobian elements
-    !! in the sparse matrix
-    integer(kind=i_kind), allocatable, intent(inout) :: use_jac_elem(:,:)
+    !> Reaction id in mechanism
+    integer(kind=i_kind), intent(in) :: rxn_id
 
-    integer(kind=i_kind) :: i_spec_d, i_spec_i
+    expr = ""
 
-    do i_spec_d=1, _NUM_REACT_
-      do i_spec_i=1, _NUM_REACT_
-        use_jac_elem(_REACT_(i_spec_d), &
-            _REACT_(i_spec_i)) = 1
-      end do
-    end do
-
-    do i_spec_d=1, _NUM_PROD_
-      do i_spec_i=1, _NUM_REACT_
-        use_jac_elem(_PROD_(i_spec_d), &
-            _REACT_(i_spec_i)) = 1
-      end do
-    end do
-
-  end subroutine get_used_jac_elem
+  end function build_rate_const_expr
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Update indexes used during integration
-  subroutine update_integration_ids(this, integration_data)
+  !> Build time derivative expression
+  function build_deriv_expr(this, rxn_id, spec_id, chem_spec_data) &
+                  result (expr)
 
-    !> Reaction data
-    class(rxn_CMAQ_OH_HNO3_t), intent(inout) :: this
-    !> Integration data
-    class(integration_data_t), intent(in) :: integration_data
-
-    integer(kind=i_kind) :: i_spec_d, i_spec_i, jac_id
-
-    jac_id = 0
-    do i_spec_d=1, _NUM_REACT_
-      do i_spec_i=1, _NUM_REACT_
-        jac_id = jac_id + 1
-        _JACID_(jac_id) = &
-            integration_data%get_jac_elem_id(&
-            _REACT_(i_spec_d), &
-            _REACT_(i_spec_i))
-      end do
-    end do
-
-    do i_spec_d=1, _NUM_PROD_
-      do i_spec_i=1, _NUM_REACT_
-        jac_id = jac_id + 1
-        _JACID_(jac_id) = &
-            integration_data%get_jac_elem_id(&
-            _PROD_(i_spec_d), &
-            _REACT_(i_spec_i))
-      end do
-    end do
-
-  end subroutine update_integration_ids
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Calculate the contribution to the time derivative vector. The current 
-  !! model state is provided for species concentrations, aerosol state and 
-  !! environmental variables. All other parameters must have been saved to the
-  !! reaction data instance during initialization.
-  !!
-  !! Sample reaction rate equation:
-  !!     [reactant1] * [reactant2] *A*exp(B+temp/theta)
-  !!
-  subroutine  func_contrib(this, integration_data)
-
+    !> Contribution to time derivative expression for species spec_id
+    character(len=:), allocatable :: expr
     !> Reaction data
     class(rxn_CMAQ_OH_HNO3_t), intent(in) :: this
-    !> Integration data
-    class(integration_data_t), pointer, intent(inout) :: integration_data
+    !> Reaction id in mechanism
+    integer(kind=i_kind), intent(in) :: rxn_id
+    !> Species id to get contribution for
+    integer(kind=i_kind), intent(in) :: spec_id
+    ! Chemical species data
+    type(chem_spec_data_t), intent(in) :: chem_spec_data
 
-    integer(kind=i_kind) :: i_spec
-    real(kind=dp) :: rate
+    expr = ""
 
-    rate = this%rate_const(integration_data%phlex_state)
-    do i_spec=1, _NUM_REACT_
-      rate = rate * integration_data%phlex_state%state_var(_REACT_(i_spec))
-    end do
-    
-    if (rate.eq.real(0.0, kind=dp)) return
-
-    do i_spec=1, _NUM_REACT_
-      call integration_data%add_deriv_contrib(_REACT_(i_spec), -rate)
-    end do
-
-    do i_spec=1, _NUM_PROD_
-      call integration_data%add_deriv_contrib(_PROD_(i_spec), &
-          _yield_(i_spec) * rate)
-    end do
-
-  end subroutine func_contrib
+  end function build_deriv_expr
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Calculate the contribution of this reaction to the Jacobian matrix.
-  !! The current model state is provided for species concentrations and 
-  !! aerosol state. All other parameters must have been saved to the reaction 
-  !! data instance during initialization.
-  subroutine jac_contrib(this, integration_data)
-
-    !> Reaction data
-    class(rxn_CMAQ_OH_HNO3_t), intent(in) :: this
-    !> Integration data
-    class(integration_data_t), pointer, intent(inout) :: integration_data
-
-    integer(kind=i_kind) :: i_spec_i, i_spec_d, jac_id
-    real(kind=dp) :: rate, rate_const
-
-    rate_const = this%rate_const(integration_data%phlex_state)
-    do i_spec_i=1, _NUM_REACT_
-      rate_const = rate_const * &
-              integration_data%phlex_state%state_var(_REACT_(i_spec_i))
-    end do
-
-    if (rate_const.eq.real(0.0, kind=dp)) return
-
-    jac_id = 0
-    do i_spec_d=1, _NUM_REACT_
-      do i_spec_i=1, _NUM_REACT_
-        jac_id = jac_id + 1
-        rate = rate_const
-        rate = rate / integration_data%phlex_state%state_var( &
-                _REACT_(i_spec_i))
-        call integration_data%add_jac_contrib( &
-                _JACID_(jac_id), &
-                -rate) 
-      end do
-    end do
-
-    do i_spec_d=1, _NUM_PROD_
-      do i_spec_i=1, _NUM_REACT_
-        jac_id = jac_id + 1
-        rate = rate_const
-        rate = rate / integration_data%phlex_state%state_var( &
-                _REACT_(i_spec_i))
-        call integration_data%add_jac_contrib( &
-              _JACID_(jac_id), &
-              _yield_(i_spec_d) * rate)
-      end do
-    end do
-
-  end subroutine jac_contrib
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get the reaction rate and rate constant for a given model state. The
-  !! definition of the rate and rate constant depends on the extending type.
-  !! THIS FUNCTION IS ONLY FOR TESTING.
-  subroutine get_test_info(this, phlex_state, rate, rate_const, property_set)
-
-    !> Reaction data
-    class(rxn_CMAQ_OH_HNO3_t), intent(in) :: this
-    !> Current model state
-    type(phlex_state_t), intent(in) :: phlex_state
-    !> Reaction rate (definition depends on extending type)
-    real(kind=dp), intent(out) :: rate
-    !> Rate constant (definition depends on extending type)
-    real(kind=dp), intent(out) :: rate_const
-    !> Reaction properties
-    type(property_t), pointer, intent(out) :: property_set
-
-    integer(kind=i_kind) :: i_spec
-
-    rate_const = this%rate_const(phlex_state)
-    rate = rate_const
-    do i_spec=1, _NUM_REACT_
-      rate = rate * phlex_state%state_var(_REACT_(i_spec))
-    end do
-    property_set => this%property_set
-
-  end subroutine get_test_info
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Calculate the reaction rate constant
-  real(kind=dp) function rate_const(this, phlex_state)
-
-    !> Reaction data
-    class(rxn_CMAQ_OH_HNO3_t), intent(in) :: this
-    !> Current model state
-    type(phlex_state_t), intent(in) :: phlex_state
-
-    integer(kind=i_kind) :: i_spec
-    real(kind=dp) :: k0, k2, k3
-    real(kind=dp), parameter :: M = 1.0d6
-    real(kind=dp), parameter :: D = 300.0d0
-    real(kind=dp) :: conv
-
-    ! k0
-    if (_k0_B_.eq.real(0.0, kind=dp)) then
-      k0 = _k0_A_*exp(_k0_C_/ &
-          phlex_state%env_state%temp)
-    else
-      k0 = _k0_A_*exp(_k0_C_/ &
-          phlex_state%env_state%temp)* &
-          (phlex_state%env_state%temp/D)**_k0_B_
-    end if
-
-    ! k2
-    if (_k2_B_.eq.real(0.0, kind=dp)) then
-      k2 = _k2_A_*exp(_k2_C_/ &
-          phlex_state%env_state%temp)
-    else
-      k2 = _k2_A_*exp(_k2_C_/ &
-          phlex_state%env_state%temp)* &
-          (phlex_state%env_state%temp/D)**_k2_B_
-    end if
-
-    ! k3
-    if (_k3_B_.eq.real(0.0, kind=dp)) then
-      k3 = _k3_A_*exp(_k3_C_/ &
-          phlex_state%env_state%temp)
-    else
-      k3 = _k3_A_*exp(_k3_C_/ &
-          phlex_state%env_state%temp)* &
-          (phlex_state%env_state%temp/D)**_k3_B_
-    end if
-
-    ! Convert from #/cc -> ppm
-    conv = _CONV_ * &
-            phlex_state%env_state%pressure / phlex_state%env_state%temp
-    
-    k3 = k3*M*conv
-    rate_const = k0 + k3 / (1.0d0 + k3/k2)
-    rate_const = rate_const * conv**(_NUM_REACT_-1)
-
-  end function rate_const
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+#undef _NUM_REACT_
+#undef _NUM_PROD_
+#undef _k0_A_
+#undef _k0_B_
+#undef _k0_C_
+#undef _k2_A_
+#undef _k2_B_
+#undef _k2_C_
+#undef _k3_A_
+#undef _k3_B_
+#undef _k3_C_
+#undef _CONV_
+#undef _RATE_CONSTANT_
+#undef _NUM_INT_PROP_
+#undef _NUM_REAL_PROP_
+#undef _REACT_
+#undef _PROD_
+#undef _DERIV_ID_
+#undef _JAC_ID_
+#undef _yield_
+#undef _INT_DATA_SIZE_
+#undef _REAL_DATA_SIZE_
 end module pmc_rxn_CMAQ_OH_HNO3

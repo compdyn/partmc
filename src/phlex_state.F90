@@ -7,6 +7,7 @@
 
 !> The phlex_state_t structure and associated subroutines.
 module pmc_phlex_state
+#define PHLEX_STATE_NUM_ENV_PARAM 2
 
   use pmc_mpi
   use pmc_util,                       only : die_msg, string_t
@@ -26,6 +27,10 @@ module pmc_phlex_state
   !!
   !! Temporal state of the model
   type phlex_state_t
+    !> Environmental state array. This array will include one entry
+    !! for every environmental variable requried to solve the 
+    !! chemical mechanism(s)
+    real(kind=dp), allocatable :: env_var(:)
     !> State variable array. This array includes one entry for each
     !! variable whose state will be solved for during the mechanism
     !! integration.
@@ -37,29 +42,9 @@ module pmc_phlex_state
     type(aero_rep_state_ptr), allocatable :: aero_rep_state(:)
     !> Environmental conditions
     type(env_state_t), pointer :: env_state
-    !> Rxn phase being solved
-    integer(kind=i_kind) :: rxn_phase = 0
-    !> Identifier that can be used by expensive, repeated functions to
-    !! determine whether the concentrations have changed since the last
-    !! time they were called
-    integer(kind=i_kind) :: conc_id = 1
-    !> Identifier that can be used by expensive, repeated functions to
-    !! determine whether the environment has changed since the last
-    !! time they were called
-    integer(kind=i_kind) :: env_id = 1
   contains
-    !> Reset the concentration state identifier
-    procedure :: reset_conc_id
-    !> Reset the environmental state identifier
-    procedure :: reset_env_id
-    !> Check for a match with the unique concentration state identifier.
-    !! If the values do not match, the passed value is updated to hold
-    !! the current state id.
-    procedure :: check_conc_id
-    !> Check for a match with the unique environmental state identifier.
-    !! If the values do not match, the passed value is updated to hold
-    !! the current state id.
-    procedure :: check_env_id
+    !> Update the environmental state array
+    procedure :: update_env_state
     !> Determine the size of a binary required to pack a given variable
     procedure :: pack_size
     !> Pack the given value to the buffer, advancing position
@@ -85,88 +70,34 @@ contains
     !> Environmental state
     type(env_state_t), target, intent(in), optional :: env_state
 
+    ! Allocate space for the new object
     allocate(new_obj)
+
+    ! Set the environmental state (if present)
     if (present(env_state)) then
       new_obj%env_state => env_state
     else
       allocate(new_obj%env_state)
     end if
-    call pmc_srand(0,0)
 
+    ! Set up the environmental state array
+    allocate(new_obj%env_var(PHLEX_STATE_NUM_ENV_PARAM))
+  
   end function constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Reset the concentration state identifier. This should be called every
-  !! time the concentrations change (usually in the solver functions).
-  subroutine reset_conc_id(this)
+  !> Update the environmental state array
+  !! TODO make the environmental parameters part of the input data
+  subroutine update_env_state(this)
 
     !> Model state
     class(phlex_state_t), intent(inout) :: this
 
-    this%conc_id = this%conc_id + 1
+    this%env_var(1) = this%env_state%temp               ! Temperature (K)
+    this%env_var(2) = this%env_state%pressure           ! Pressure (Pa)
 
-  end subroutine reset_conc_id
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Reset the environmental state identifier. This should be called every
-  !! time the environmental conditions change (usually before calling the
-  !! chemistry solver).
-  subroutine reset_env_id(this)
-
-    !> Model state
-    class(phlex_state_t), intent(inout) :: this
-
-    this%env_id = this%env_id + 1
-
-  end subroutine reset_env_id
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Compare a value with the unique concentration state identifier. This will
-  !! change every time the concentrations change, and can be used to avoid
-  !! duplicating expensive calculations in the mechanisms.
-  !! If the values do not match, the passed value is updated to hold
-  !! the current state id.
-  logical function check_conc_id(this, id_to_check)
-
-    !> Model state
-    class(phlex_state_t), intent(in) :: this
-    !> ID to compare with concentration id
-    integer(kind=i_kind), intent(inout) :: id_to_check
-
-    if (this%conc_id.eq.id_to_check) then
-      check_conc_id = .true.
-    else
-      id_to_check = this%conc_id
-      check_conc_id = .false.
-    endif
-
-  end function check_conc_id
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Compare a value with the unique environmentalstate identifier. This will
-  !! change every time the environmental conditions change, and can be used to
-  !! avoid duplicating expensive calculations in the mechanisms.
-  !! If the values do not match, the passed value is updated to hold
-  !! the current state id.
-  logical function check_env_id(this, id_to_check)
-
-    !> Model state
-    class(phlex_state_t), intent(in) :: this
-    !> ID to compare with concentration id
-    integer(kind=i_kind), intent(inout) :: id_to_check
-
-    if (this%env_id.eq.id_to_check) then
-      check_env_id = .true.
-    else
-      id_to_check = this%env_id
-      check_env_id = .false.
-    endif
-
-  end function check_env_id
+  end subroutine update_env_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -229,4 +160,5 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+#undef PHLEX_STATE_NUM_ENV_PARAM
 end module pmc_phlex_state

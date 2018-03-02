@@ -64,12 +64,12 @@ contains
   !> Run the phlex-chem box model
   subroutine run_phlex_box(file_list, output_file)
 
-    use pmc_integration_data
-
     !> Input file list
     character(len=:), allocatable :: file_list
     !> Output file name
     character(len=:), allocatable :: output_file
+
+#ifdef FIX_THIS_LATER
 
     type(phlex_core_t), pointer :: phlex_core
     type(phlex_state_t), target :: phlex_state
@@ -215,6 +215,8 @@ contains
         write(7,*) i_time*time_step, model_conc(i_time,:)
       end do
     end if
+
+#endif
 
   end subroutine run_phlex_box 
 

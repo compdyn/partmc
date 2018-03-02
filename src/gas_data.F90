@@ -52,13 +52,21 @@ contains
     !> Phlexible chemistry core
     class(phlex_core_t), intent(in) :: phlex_core
 
-    integer :: i_spec
-    type(string_t), allocatable :: spec_names(:)
+    integer :: i_spec, i_gas_spec, spec_type
+    character(len=:), allocatable :: spec_name
 
-    spec_names = phlex_core%chem_spec_data%spec_names_by_type(GAS_SPEC)
-    allocate(this%name(size(spec_names)))
-    do i_spec = 1, size(this%name)
-      this%name(i_spec) = spec_names(i_spec)%string 
+    allocate(this%name(phlex_core%chem_spec_data%size( &
+            spec_phase=CHEM_SPEC_GAS_PHASE)))
+    i_gas_spec = 0
+    do i_spec = 1, phlex_core%chem_spec_data%size()
+      call assert(329549664, &
+              phlex_core%chem_spec_data%get_type(i_spec, spec_type))
+      if (spec_type.ne.CHEM_SPEC_GAS_PHASE) cycle
+      i_gas_spec = i_gas_spec + 1
+      call assert(622388355, &
+              phlex_core%chem_spec_data%get_name(i_spec, &
+              spec_name))
+      this%name(i_gas_spec) = spec_name
     end do
 
   end subroutine gas_data_initialize

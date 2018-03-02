@@ -56,7 +56,6 @@ module pmc_rxn_data
   use pmc_property
   use pmc_chem_spec_data
   use pmc_phlex_state
-  use pmc_integration_data
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -102,7 +101,7 @@ module pmc_rxn_data
     !! integration, and should contain any information required by the
     !! rate and Jacobian constribution functions that cannot be obtained
     !! from the \c pmc_phlex_state::phlex_state_t object. (integer)
-    integer(kind=i_kind), allocatable, public ::  condensed_data_int(:)
+    integer(kind=i_kind), allocatable, public :: condensed_data_int(:)
   contains
     !> Reaction initialization. Takes species, phase and reaction parameters
     !! and packs required information into the condensed data arrays for use
@@ -112,26 +111,10 @@ module pmc_rxn_data
     !! at the beginning of a model run after all the input files have been
     !! read in.
     procedure(initialize), deferred :: initialize
-    !> Indicate the elements of the Jacobian matrix that are populated by
-    !! this reaction
-    procedure(get_used_jac_elem), deferred :: get_used_jac_elem
-    !> Update the indexes used during integration
-    procedure(update_integration_ids), deferred :: update_integration_ids
-    !> Calculate the contribution to the time derivative vector. The current 
-    !! model state is provided for species concentrations, aerosol state and 
-    !! environmental variables. All other parameters must have been saved to the
-    !! reaction data instance during initialization.
-    !> Get the elements of the Jacobian that are populated by this reaction
-    procedure(func_contrib), deferred :: func_contrib
-    !> Calculate the contribution of this reaction to the Jacobian matrix.
-    !! The current model state is provided for species concentrations and 
-    !! aerosol state. All other parameters must have been saved to the reaction 
-    !! data instance during initialization.
-    procedure(jac_contrib), deferred :: jac_contrib
-    !> Get the reaction rate and rate constant for a given model state. The
-    !! definition of the rate and rate constant depends on the extending type.
-    !! THIS FUNCTION IS ONLY FOR TESTING.
-    procedure(get_test_info), deferred :: get_test_info
+    !> Build rate constant expression
+    procedure(build_rate_const_expr), deferred :: build_rate_const_expr
+    !> Build time derivative expression
+    procedure(build_deriv_expr), deferred :: build_deriv_expr
     !> Check the phase of the reaction against the phase being solved for.
     !! During GAS_RXN integrations, only GAS_RXN reactions are solved.
     !! During AERO_RXN integrations, only AERO_RXN and GAS_AERO_RXN
@@ -178,83 +161,38 @@ interface
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Indicate which Jacobian elements are populated by this reaction
-  subroutine get_used_jac_elem(this, use_jac_elem)
-    import :: rxn_data_t, i_kind
+    !> Build rate constant expression
+    function build_rate_const_expr(this, rxn_id) result (expr)
+      import :: rxn_data_t, i_kind
 
-    !> Reaction data
-    class(rxn_data_t), intent(in) :: this
-    !> Matrix of flags indicating whether to include Jacobian elements
-    !! in the sparse matrix
-    integer(kind=i_kind), allocatable, intent(inout) :: use_jac_elem(:,:)
+      !> Rate constant expression
+      character(len=:), allocatable :: expr
+      !> Reaction data
+      class(rxn_data_t), intent(in) :: this
+      !> Reaction id in mechanism
+      integer(kind=i_kind), intent(in) :: rxn_id
 
-  end subroutine get_used_jac_elem
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Update indexes used during integration
-  subroutine update_integration_ids(this, integration_data)
-    import :: rxn_data_t, integration_data_t
-
-    !> Reaction data
-    class(rxn_data_t), intent(inout) :: this
-    !> Integration data
-    class(integration_data_t), intent(in) :: integration_data
-
-  end subroutine update_integration_ids
+    end function build_rate_const_expr
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Calculate the contribution to the time derivative vector. The current 
-  !! model state is provided for species concentrations, aerosol state and 
-  !! environmental variables. All other parameters must have been saved to the
-  !! reaction data instance during initialization.
-  subroutine func_contrib(this, integration_data) 
-    import :: rxn_data_t, integration_data_t
+    !> Build time derivative expression
+    function build_deriv_expr(this, rxn_id, spec_id, chem_spec_data) &
+                    result (expr)
+      import :: rxn_data_t, i_kind, chem_spec_data_t
 
-    !> Reaction data
-    class(rxn_data_t), intent(in) :: this
-    !> Integration data
-    class(integration_data_t), intent(inout) :: integration_data
+      !> Contribution to time derivative expression for species spec_id
+      character(len=:), allocatable :: expr
+      !> Reaction data
+      class(rxn_data_t), intent(in) :: this
+      !> Reaction id in mechanism
+      integer(kind=i_kind), intent(in) :: rxn_id
+      !> Species id to get contribution for
+      integer(kind=i_kind), intent(in) :: spec_id
+      ! Chemical species data
+      type(chem_spec_data_t), intent(in) :: chem_spec_data
 
-  end subroutine func_contrib
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Calculate the contribution of this reaction to the Jacobian matrix.
-  !! The current model state is provided for species concentrations and 
-  !! aerosol state. All other parameters must have been saved to the reaction 
-  !! data instance during initialization.
-  subroutine jac_contrib(this, integration_data)
-    import :: rxn_data_t, integration_data_t
-
-    !> Reaction data
-    class(rxn_data_t), intent(in) :: this
-    !> Integration data
-    class(integration_data_t), intent(inout) :: integration_data
-
-  end subroutine jac_contrib
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get the reaction rate and rate constant for a given model state. The
-  !! definition of the rate and rate constant depends on the extending type.
-  !! THIS FUNCTION IS ONLY FOR TESTING.
-  subroutine get_test_info(this, phlex_state, rate, rate_const, property_set)
-    import :: rxn_data_t, phlex_state_t, dp, property_t
-
-    !> Reaction data
-    class(rxn_data_t), intent(in) :: this
-    !> Current model state
-    type(phlex_state_t), intent(in) :: phlex_state
-    !> Reaction rate (definition depends on extending type)
-    real(kind=dp), intent(out) :: rate
-    !> Rate constant (definition depends on extending type)
-    real(kind=dp), intent(out) :: rate_const
-    !> Reaction properties
-    type(property_t), pointer, intent(out) :: property_set
-
-  end subroutine get_test_info
+    end function build_deriv_expr
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

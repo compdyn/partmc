@@ -139,9 +139,9 @@ module pmc_aero_rep_data
     !! This function should only be called during initialization
     procedure(species_state_id), deferred :: &
             species_state_id
-    !> Get the absolute integration tolerance for each variable on the
-    !! pmc_phlex_state::state_var array from this aerosol representation
-    procedure(get_abs_tol), deferred :: get_abs_tol
+    !> Get the non-unique name of a species by it's id in this aerosol
+    !! representation
+    procedure(spec_name_by_id), deferred :: spec_name_by_id
     !> Get an instance of the pmc_aero_rep_state::aero_rep_state_t variable
     !! for this aerosol representation.
     !!
@@ -325,21 +325,20 @@ interface
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the absolute integration tolerance for each variable on the
-  !! pmc_phlex_state::state_var array from this aerosol representation
-  subroutine get_abs_tol(this, chem_spec_data, abs_tol)
-    use pmc_util,                                       only : dp
-    use pmc_chem_spec_data
+  !> Get the non-unique name of a chemical species by it's id in this 
+  !! aerosol representation.
+  function spec_name_by_id(this, aero_rep_spec_id)
+    use pmc_util,                                       only : i_kind
     import :: aero_rep_data_t
 
+    !> Chemical species name
+    character(len=:), allocatable :: spec_name_by_id 
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
-    !> Chemical species data
-    type(chem_spec_data_t), intent(in) :: chem_spec_data
-    !> Absolute integration tolerance
-    real(kind=dp), pointer :: abs_tol(:)
+    !> Indoex of species in this aerosol representation
+    integer(kind=i_kind) :: aero_rep_spec_id
 
-  end subroutine get_abs_tol
+  end function spec_name_by_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

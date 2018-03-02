@@ -41,7 +41,6 @@ module pmc_mechanism_data
   use pmc_rxn_factory
   use pmc_chem_spec_data
   use pmc_phlex_state
-  use pmc_integration_data
 
   implicit none
   private
@@ -50,6 +49,8 @@ module pmc_mechanism_data
 
   !> Reallocation increment
   integer(kind=i_kind), parameter :: REALLOC_INC = 50
+  !> Fixed module file unit
+  integer(kind=i_kind), parameter :: MECH_FILE_UNIT = 16
 
   !> A chemical mechanism
   !!
@@ -62,6 +63,8 @@ module pmc_mechanism_data
     integer(kind=i_kind) :: num_rxn = 0
     !> Mechanism name
     character(len=:), allocatable :: mech_name
+    !> Path and prefix for fixed module output
+    character(len=:), allocatable :: fixed_file_prefix
     !> Reactions
     type(rxn_data_ptr), pointer, public :: rxn_ptr(:) => null()
   contains
@@ -73,16 +76,8 @@ module pmc_mechanism_data
     procedure :: name => get_name
     !> Get the size of the species database
     procedure :: size => get_size
-    !> Get the elements of the Jacobian matrix that are populated by 
-    !! the mechanism
-    procedure :: get_used_jac_elem
-    !> Update the indexes used during integration 
-    procedure :: update_integration_ids
-    !> Get constributions of mechanism reactions to the time derivative
-    !! vector
-    procedure :: get_func_contrib
-    !> Get contributions of mechanism reactions to the Jaobian matrix
-    procedure :: get_jac_contrib
+    !> Build a fixed mechanism module
+    procedure :: build_fixed_module
     !> Determine the number of bytes required to pack the given value
     procedure :: pack_size
     !> Packs the given value into the buffer, advancing position
@@ -187,12 +182,16 @@ contains
     type(json_value), pointer, intent(in) :: j_obj
 
     type(json_value), pointer :: child, next
+    character(kind=json_ck, len=:), allocatable :: unicode_str_val
     type(rxn_factory_t) :: rxn_factory
+    logical :: found
 
     ! Cycle through the set of reactions in the json file
     next => null()
-    call json%get(j_obj, 'reactions(1)', child)
-    do while (associated(child))
+   
+    ! Get the reaction set
+    call json%get(j_obj, 'reactions(1)', child, found)
+    do while (associated(child) .and. found)
 
       ! Increase the size of the mechanism
       call this%ensure_size(1)
@@ -205,6 +204,14 @@ contains
       call json%get_next(child, next)
       child => next
     end do
+
+    ! Determine whether and where to build fixed module code
+    call json%get(j_obj, 'build fixed module', unicode_str_val, found)
+    if (found) then
+      call assert_msg(410823202, .not.allocated(this%fixed_file_prefix), &
+              "Received multiple file prefixes for fixed mechanism module.")
+      this%fixed_file_prefix = trim(unicode_str_val)
+    end if
 
 #else
   subroutine load(this)
@@ -263,84 +270,68 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the elements of the Jacobian matrix that are populated by the 
-  !! mechanism
-  subroutine get_used_jac_elem(this, use_jac_elem)
+  !> Build a fixed mechanism module and save it with the specified file prefix
+  subroutine build_fixed_module(this, state_array_size)
 
-    !> Chemical mechanism
+    !> Mechanism data
     class(mechanism_data_t), intent(in) :: this
-    !> Matrix of flags indicating whether the corresponding Jacobian element
-    !! should be included in the sparse matrix
-    integer(kind=i_kind), allocatable, intent(inout) :: use_jac_elem(:,:)
+    !> Size of the state array
+    integer(kind=i_kind), intent(in) :: state_array_size
 
+    ! Output file name
+    character(len=:), allocatable :: file_name
+    ! File unit
+    integer(kind=i_kind) :: U = MECH_FILE_UNIT
+    ! Counters
     integer(kind=i_kind) :: i_rxn
+    ! Temporary string for building file lines
+    character(len=:), allocatable :: str_temp
 
+    ! Determine whether to create fixed module
+    if (.not.allocated(this%fixed_file_prefix)) return
+
+    ! Open the output file
+    file_name = trim(this%fixed_file_prefix)//"_mechanism.F90"
+    open(unit=U, file=file_name, status="replace", action="write")
+
+    write(*,*) "Building output file: "//file_name
+
+    write(U,*) "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    write(U,*) "!! ",trim(this%mech_name)," fixed mechanism module"
+    write(U,*) "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    write(U,*) ""
+    write(U,*) "module mech_"//trim(this%mech_name)
+    write(U,*) ""
+    write(U,*) "  use pmc_util,                                   only : i_kind, dp"
+    write(U,*) "  implicit none"
+    write(U,*) ""
+    write(U,*) "  integer(kind=i_kind), parameter :: NUM_RXN = ", this%num_rxn
+    write(U,*) "  integer(kind=i_kind), parameter :: NUM_VAR = ", state_array_size
+    write(U,*) "  real(kind=dp) :: RATE_CONST(NUM_RXN)"
+    write(U,*) "  real(kind=dp) :: DERIV(NUM_VAR)"
+    write(U,*) ""
+    write(U,*) "contains"
+    write(U,*) ""
+    write(U,*) "  subroutine calc_rate_const(temp_K, press_atm)"
+    write(U,*) ""
+    write(U,*) "    real(kind=dp), intent(in) :: temp_K"
+    write(U,*) "    real(kind=dp), intent(in) :: press_atm"
+    write(U,*) ""
+    write(U,*) "    real(kind=dp) :: press_Pa = press_atm * 101325"
+    write(U,*) ""
     do i_rxn = 1, this%num_rxn
-      call this%rxn_ptr(i_rxn)%val%get_used_jac_elem(use_jac_elem)
+      str_temp = this%rxn_ptr(i_rxn)%val%build_rate_const_expr(i_rxn)
+    write(U,*) "    RATE_CONST("//trim(to_string(i_rxn))//") = "//trim(str_temp)
     end do
+    write(U,*) ""
+    write(U,*) "  end subroutine calc_rate_const"
 
-  end subroutine get_used_jac_elem
+    write(U,*) ""
+    write(U,*) "end module mech_"//trim(this%mech_name)
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    close(U)
 
-  !> Update the indexes used during integration
-  subroutine update_integration_ids(this, integration_data)
-
-    !> Chemical mechanism
-    class(mechanism_data_t), intent(in) :: this
-    !> Integation data
-    class(integration_data_t), intent(in) :: integration_data
-
-    integer(kind=i_kind) :: i_rxn
-
-    do i_rxn = 1, this%num_rxn
-      call this%rxn_ptr(i_rxn)%val%update_integration_ids(integration_data)
-    end do
-
-  end subroutine update_integration_ids
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get contributions of the mechanism reactions to the time derivative
-  !! vector
-  subroutine get_func_contrib(this, integration_data)
-
-    !> Chemical mechanism
-    class(mechanism_data_t), intent(in) :: this
-    !> Integration data
-    type(integration_data_t), intent(inout) :: integration_data
-
-    integer(kind=i_kind) :: i_rxn
-
-    do i_rxn = 1, this%num_rxn
-      if (this%rxn_ptr(i_rxn)%val%check_phase( &
-              integration_data%phlex_state%rxn_phase)) then
-        call this%rxn_ptr(i_rxn)%val%func_contrib(integration_data)
-      end if
-    end do
-
-  end subroutine get_func_contrib
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get contributions of the mechanism reactions to the Jacobian matrix
-  subroutine get_jac_contrib(this, integration_data)
-
-    !> Chemical mechanism
-    class(mechanism_data_t), intent(in) :: this
-    !> Integration data
-    type(integration_data_t), intent(inout) :: integration_data
-
-    integer(kind=i_kind) :: i_rxn
-
-    do i_rxn = 1, this%num_rxn
-      if (this%rxn_ptr(i_rxn)%val%check_phase( &
-              integration_data%phlex_state%rxn_phase)) then
-        call this%rxn_ptr(i_rxn)%val%jac_contrib(integration_data)
-      end if
-    end do
-
-  end subroutine get_jac_contrib
+  end subroutine build_fixed_module
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

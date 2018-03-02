@@ -119,7 +119,7 @@ if(ENABLE_SUNDIALS)
     DOC "SUNDIALS KLU library"
     PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib /usr/local/lib)
   set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB} ${SUNDIALS_KLU_LIB})
-  set(SUNDIALS_SRC src/condense_solver.c src/integrate.c)
+  set(SUNDIALS_SRC src/condense_solver.c)
   include_directories(${SUNDIALS_INCLUDE_DIR})
   add_definitions(-DPMC_USE_SUNDIALS)
 endif()
@@ -316,11 +316,11 @@ set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 ######################################################################
 # partmc library
 
-set(REACTIONS_SRC src/rxns/rxn_arrhenius.F90
-	src/rxns/rxn_troe.F90
-	src/rxns/rxn_CMAQ_H2O2.F90
-	src/rxns/rxn_CMAQ_OH_HNO3.F90
-	src/rxns/rxn_photolysis.F90)
+set(REACTIONS_SRC src/rxns/rxn_arrhenius.F90 src/rxns/rxn_arrhenius.c
+	src/rxns/rxn_troe.F90 src/rxns/rxn_troe.c
+	src/rxns/rxn_CMAQ_H2O2.F90 src/rxns/rxn_CMAQ_H2O2.c
+	src/rxns/rxn_CMAQ_OH_HNO3.F90 src/rxns/rxn_CMAQ_OH_HNO3.c
+	src/rxns/rxn_photolysis.F90 src/rxns/rxn_photolysis.c)
 set(AEROSOL_REPS_SRC src/aero_reps/aero_rep_single_particle.F90 
    src/aero_reps/aero_rep_single_particle_state.F90)
 
@@ -342,9 +342,10 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
   src/property.F90 src/chem_spec_data.F90 src/aero_rep_state.F90
   src/rxn_data.F90 src/phlex_state.F90 src/mechanism_data.F90
-  src/phlex_core.F90 src/integration_data.F90 src/aero_rep_data.F90
+  src/phlex_core.F90 src/phlex_solver_data.F90 src/aero_rep_data.F90
   src/aero_phase_data.F90 src/aero_rep_factory.F90 
-  src/phlex_interface.F90 src/rxn_factory.F90
+  src/phlex_interface.F90 src/rxn_factory.F90 src/rxn_solver.c
+  src/phlex_solver.c
   ${AEROSOL_REPS_SRC}
   ${REACTIONS_SRC}
   ${SUNDIALS_SRC} ${GSL_SRC}

@@ -16,7 +16,6 @@ program pmc_test_rxn_data
   use pmc_phlex_state
   use pmc_chem_spec_data
   use pmc_rxn_data
-  use pmc_integration_data
   use pmc_mpi
 #ifdef PMC_USE_JSON
   use json_module
@@ -55,11 +54,8 @@ contains
     type(rxn_data_ptr) :: rxn_test(3)
     type(phlex_core_t), pointer :: phlex_core
     type(c_ptr) :: phlex_core_c_ptr
-    procedure(integration_data_deriv_func), pointer :: deriv_func_ptr => null()
-    procedure(integration_data_jac_func), pointer :: jac_func_ptr => null()
     type(phlex_state_t), pointer :: phlex_state
     type(chem_spec_data_t) :: spec_data
-    type(integration_data_t), pointer :: integration_data => null()
 
 #ifdef PMC_USE_JSON
     type(json_core), pointer :: json
@@ -81,7 +77,7 @@ contains
     real(kind=c_double) :: curr_time
     real(kind=dp), pointer :: deriv(:)
     real(kind=dp), pointer :: jac(:)
-    type(c_ptr) :: state_array_c_p, deriv_c_p, jac_c_p, integration_data_c_p
+    type(c_ptr) :: state_array_c_p
 
     build_rxn_data_set_test = .false.
 
@@ -187,6 +183,8 @@ contains
     do i=1,3
       call rxn_test(i)%val%initialize(spec_data)
     end do
+
+#ifdef FIX_THIS_LATER
 
     ! Get the Jacobian elements used
     allocate(use_jac_elem(spec_data%size(), spec_data%size()))
@@ -385,31 +383,11 @@ contains
     j_spec = spec_data%gas_state_id(other_spec_name)
     call assert(272556981, integration_data%get_jac_elem(i_spec, &
             j_spec).eq.test_real)
-
+#endif
 #endif
     build_rxn_data_set_test = .true.
 
   end function build_rxn_data_set_test
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Time derivative function
-  subroutine test_deriv_func(integration_data)
-
-    !> Pointer to integration data
-    type(integration_data_t), pointer, intent(inout) :: integration_data
-
-  end subroutine test_deriv_func
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Time derivative function
-  subroutine test_jac_func(integration_data)
-
-    !> Pointer to integration data
-    type(integration_data_t), pointer, intent(inout) :: integration_data
-
-  end subroutine test_jac_func
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

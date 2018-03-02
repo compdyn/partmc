@@ -183,13 +183,15 @@ module pmc_rxn_factory
   use pmc_rxn_CMAQ_OH_HNO3
   use pmc_rxn_photolysis
 
+  use iso_c_binding
+
   implicit none
   private
 
   public :: rxn_factory_t
 
   !> Identifiers for reaction types - used by binary packing/unpacking 
-  !! functions
+  !! functions 
   integer(kind=i_kind), parameter :: RXN_ARRHENIUS = 1
   integer(kind=i_kind), parameter :: RXN_TROE = 2
   integer(kind=i_kind), parameter :: RXN_CMAQ_H2O2 = 3
@@ -206,6 +208,8 @@ module pmc_rxn_factory
     procedure :: create
     !> Create a new chemical reaction from input data
     procedure :: load
+    !> Get the reaction type
+    procedure :: get_type
     !> Determine the number of bytes required to pack a given reaction
     procedure :: pack_size
     !> Pack a given reaction to the buffer, advancing the position
@@ -296,6 +300,33 @@ contains
     call warn_msg(979827016, "No support for input files.")
 #endif
   end function load
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the reaction type as a RxnType
+  integer(kind=i_kind) function get_type(this, rxn) result (rxn_type)
+
+    !> Reaction factory
+    class(rxn_factory_t) :: this
+    !> Reaction to get type of
+    class(rxn_data_t), intent(in) :: rxn
+
+    select type (rxn)
+      type is (rxn_arrhenius_t)
+        rxn_type = RXN_ARRHENIUS
+      type is (rxn_troe_t)
+        rxn_type = RXN_TROE
+      type is (rxn_CMAQ_H2O2_t)
+        rxn_type = RXN_CMAQ_H2O2
+      type is (rxn_CMAQ_OH_HNO3_t)
+        rxn_type = RXN_CMAQ_OH_HNO3
+      type is (rxn_photolysis_t)
+        rxn_type = RXN_PHOTOLYSIS
+      class default
+        call die_msg(343941184, "Trying to pack reaction of unknown type.")
+    end select
+
+  end function get_type
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

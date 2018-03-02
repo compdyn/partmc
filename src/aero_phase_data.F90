@@ -96,8 +96,8 @@ module pmc_aero_phase_data
     procedure :: name => get_name
     !> Get property data associated with this phase
     procedure :: get_property_set
-    !> Get a list of species names in this phase
-    procedure :: get_species_names
+    !> Get the name of a species in this phase
+    procedure :: get_species_name
     !> Get an aerosol species id within the phase.
     !!
     !! The species id \f$i_{spec} = 1...n_{spec}\f$ where \f$n_{spec}\f$ is
@@ -212,22 +212,21 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get a list of the aerosol phase species names
-  function get_species_names(this) result (species)
+  !> Get an aerosol phase species name
+  function get_species_name(this, spec_id) result (spec_name)
 
     !> A list of species in this phase
-    type(string_t), allocatable :: species(:)
+    character(len=:), allocatable :: spec_name
     !> Aerosol phase data
     class(aero_phase_data_t), intent(in) :: this
+    !> Index of the species in the phase
+    integer(kind=i_kind), intent(in) :: spec_id
 
-    integer(kind=i_kind) :: i_spec
+    if (spec_id.gt.0 .and. spec_id.le.this%num_spec) then
+      spec_name = this%spec_name(spec_id)%string
+    end if
 
-    allocate(species(this%num_spec))
-    do i_spec = 1, this%num_spec
-      species(i_spec)%string = this%spec_name(i_spec)%string
-    end do
-
-  end function get_species_names
+  end function get_species_name
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -1,6 +1,10 @@
 {
   "pmc-data" : [
     {
+      "type" : "RELATIVE_TOLERANCE",
+      "value" : 1.0E-04
+    },
+    {
       "name" : "NO2",
       "type" : "GAS_SPEC",
       "absolute integration tolerance" : 1.0E-03

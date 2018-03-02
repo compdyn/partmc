@@ -15,7 +15,7 @@ module pmc_monarch
   use pmc_phlex_state
   use pmc_chem_spec_data
   use pmc_property
-  use pmc_integration_data
+  use pmc_phlex_solver_data
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -66,7 +66,7 @@ contains
     !> Ending index for chemical species in the MONARCH tracer array
     integer, optional :: ending_id
 
-    type(integration_data_t), pointer :: integration_data
+    type(phlex_solver_data_t), pointer :: phlex_solver_data
     character(len=:), allocatable :: buffer
     integer(kind=i_kind) :: pos, pack_size
     integer(kind=i_kind) :: i_spec
@@ -75,7 +75,7 @@ contains
     real(kind=dp) :: comp_start, comp_end
 
     ! Check for an available solver
-    call assert_msg(332298164, integration_data%is_solver_available(), &
+    call assert_msg(332298164, phlex_solver_data%is_solver_available(), &
             "No solver available")
 
     ! Initialize the time-invariant model data on each node

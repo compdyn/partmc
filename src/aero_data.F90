@@ -847,9 +847,8 @@ contains
 
     do i_spec = 1, num_spec
       this%name(i_spec) = spec_names(i_spec)%string
-      property_set => &
-          phlex_core%chem_spec_data%get_property_set(spec_names(i_spec)%string)
-      if (.not. associated(property_set)) then
+      if (.not.phlex_core%chem_spec_data%get_property_set( &
+        spec_names(i_spec)%string, property_set)) then
         call die_msg(934844845, "Missing property set for aerosol species "//&
              spec_names(i_spec)%string)
       end if

@@ -56,7 +56,7 @@ contains
     character(len=:), allocatable :: key_name
     integer(kind=i_kind) :: var_type
 
-    integer(kind=i_kind) :: temp_int
+    integer(kind=i_kind) :: temp_int, spec_phase
     real(kind=dp) :: temp_real
     logical :: temp_logical
     character(len=:), allocatable :: temp_string
@@ -140,8 +140,10 @@ contains
 
     ! Check the properties associated with the chemical species
     key_name = "my first species"
-    call assert(839073838, spec_data%get_type(key_name).eq.GAS_SPEC)
-    spec_props => spec_data%get_property_set(key_name)
+    call assert(968643104, spec_data%get_phase(key_name, spec_phase))
+    call assert(839073838, spec_phase.eq.CHEM_SPEC_GAS_PHASE)
+    
+    call assert(342495274, spec_data%get_property_set(key_name, spec_props))
 
     key_name = "MW"
     call assert(446925196, spec_props%get_real(key_name, temp_real))
@@ -181,8 +183,10 @@ contains
     call assert(910373086, temp_int.eq.4)
 
     key_name = "my second species"
-    call assert(529754002, spec_data%get_type(key_name).eq.AERO_SPEC)
-    spec_props => spec_data%get_property_set(key_name)
+    call assert(519369724, spec_data%get_phase(key_name, spec_phase))
+    call assert(529754002, spec_phase.eq.CHEM_SPEC_AERO_PHASE)
+    
+    call assert(451454846, spec_data%get_property_set(key_name, spec_props))
 
     key_name = "MW"
     call assert(307022846, spec_props%get_real(key_name, temp_real))
@@ -223,7 +227,8 @@ contains
 
     do i_spec=1, 125
       key_name = "species "//trim(to_string(i_spec))
-      call assert(232390422, spec_data%get_type(key_name).eq.GAS_SPEC)
+      call assert(225364917, spec_data%get_phase(key_name, spec_phase))
+      call assert(232390422, spec_phase.eq.CHEM_SPEC_GAS_PHASE)
     end do
 #endif
     passed = .true.

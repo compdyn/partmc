@@ -41,13 +41,13 @@ contains
   !> Run all pmc_aero_rep_data tests
   logical function run_pmc_aero_rep_data_tests() result(passed)
 
-    use pmc_integration_data
+    use pmc_phlex_solver_data
 
-    type(integration_data_t), pointer :: integration_data
+    type(phlex_solver_data_t), pointer :: phlex_solver_data
 
-    integration_data => integration_data_t()
+    phlex_solver_data => phlex_solver_data_t()
 
-    if (integration_data%is_solver_available()) then
+    if (phlex_solver_data%is_solver_available()) then
       passed = build_aero_rep_data_set_test()
     else
       call warn_msg(594028423, "No solver available")

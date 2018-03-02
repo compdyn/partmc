@@ -17,7 +17,7 @@ RUN curl -LO http://faculty.cse.tamu.edu/davis/SuiteSparse/SuiteSparse-5.1.0.tar
     && tar -zxvf SuiteSparse-5.1.0.tar.gz \
     && export CXX=/usr/bin/cc \
     && cd SuiteSparse \
-    && make install INSTALL=/usr/local BLAS='-L/lib64 -lopenblas'
+    && make install INSTALL=/usr/local BLAS="-L/lib64 -lopenblas"
 
 # Install SUNDIALS with sparse matrix functionality
 RUN curl -LO https://computation.llnl.gov/projects/sundials/download/cvodes-3.1.0.tar.gz \
@@ -25,7 +25,9 @@ RUN curl -LO https://computation.llnl.gov/projects/sundials/download/cvodes-3.1.
     && cd cvodes-3.1.0 \
     && mkdir build \
     && cd build \
-    && cmake -D KLU_ENABLE:BOOL=TRUE -D KLU_LIBRARY_DIR=/usr/local/lib -D KLU_INCLUDE_DIR=/usr/local/include .. \
+    && cmake -D CMAKE_BUILD_TYPE=release \
+#    && cmake -D CMAKE_BUILD_TYPE=debug -D CMAKE_C_FLAGS_DEBUG="-g -pg" -D CMAKE_EXE_LINKER_FLAGS_DEBUG="-pg" -D CMAKE_MODULE_LINKER_FLAGS_DEBUG="-pg" -D CMAKE_SHARED_LINKER_FLAGS_DEBUG="-pg" \
+     -D KLU_ENABLE:BOOL=TRUE -D KLU_LIBRARY_DIR=/usr/local/lib -D KLU_INCLUDE_DIR=/usr/local/include .. \
     && make install
 
 # Install json-fortran
@@ -43,5 +45,6 @@ COPY . /partmc/
 
 RUN mkdir build \
     && cd build \
-    && cmake -D ENABLE_SUNDIALS:BOOL=TRUE -D SUNDIALS_CVODE_LIB=/usr/local/lib/libsundials_cvodes.so -D SUNDIALS_INCLUDE_DIR=/usr/local/include /partmc \
+    && cmake -D CMAKE_BUILD_TYPE=debug -D CMAKE_C_FLAGS_DEBUG="-g -pg" -D CMAKE_Fortran_FLAGS_DEBUG="-g -pg" -D CMAKE_MODULE_LINKER_FLAGS="-pg" \
+    -D ENABLE_SUNDIALS:BOOL=TRUE -D SUNDIALS_CVODE_LIB=/usr/local/lib/libsundials_cvodes.so -D SUNDIALS_INCLUDE_DIR=/usr/local/include /partmc \
     && make

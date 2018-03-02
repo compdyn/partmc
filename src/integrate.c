@@ -29,6 +29,7 @@
 #include <sunlinsol/sunlinsol_klu.h>    /* KLU SUNLinearSolver                  */
 #include <cvodes/cvodes_direct.h>       /* CVDls interface                      */
 #include <sundials/sundials_types.h>    /* definition of type realtype          */
+#include <sundials/sundials_math.h>     /* SUNDIALS math function macros        */
 #endif
 
 /// Flag to disallow negative concentrations
@@ -77,12 +78,6 @@
 #define PMC_INTEGRATION_SET_PRECONDITIONER     17
 #endif
 
-// Macros for accessing N_Vector and DlsMat elements with Fortran-type indices
-/// Ith numbers components 1..NEQ
-#define Ith(v,i)    NV_Ith_S(v,i-1)
-/// IJth numbers rows,cols 1..NEQ
-#define IJth(A,i,j) SM_ELEMENT_D(A,i-1,j-1)
-
 /* Type : UserData
  * contains preconditioner blocks, pivot arrays, and void pointer to send to fortran 
  * functions.
@@ -93,7 +88,6 @@ typedef struct {
   void *sysdata;
   SUNMatrix jac_init;
 } *UserData;
-
 
 /* Fortran support subroutines */
 #ifndef DOXYGEN_SKIP_DOC

@@ -7,6 +7,7 @@
 
 !> The integration_data_t structure and associated subroutines.
 module pmc_integration_data
+#define PMC_MAKE_FAST
 
   use pmc_constants,                  only : i_kind, dp
   use pmc_util,                       only : assert_msg, to_string, die_msg
@@ -16,6 +17,17 @@ module pmc_integration_data
 
   implicit none
   private
+
+#ifdef PMC_MAKE_FAST
+  !> Maximum size of the time derivative array
+  integer(kind=i_kind), parameter :: MAX_DERIV_SIZE = 200
+  !> Maximum size of the spare Jacobian matrix array
+  integer(kind=i_kind), parameter :: MAX_JAC_SIZE = 1000
+  ! Time derivative being calculated f(t,y)
+  real(kind=dp) :: deriv_fix(MAX_DERIV_SIZE)
+  ! Sparse Jacobian matrix being calculated J(t,y)
+  real(kind=dp) :: jac_fix(MAX_JAC_SIZE)
+#endif
 
   !> Default relative tolerance for integration
   real(kind=dp), parameter :: PMC_INTEGRATION_DEFAULT_REL_TOL = 1.0D-8
@@ -251,6 +263,17 @@ contains
     ! Row ids in c SUNMatrix start at 0
     new_obj%jac_row_ids_c(:) = int(jac_row_ids(:)-1, kind=c_int)
 
+#ifdef PMC_MAKE_FAST
+    call assert_msg(588926535, MAX_DERIV_SIZE.ge.new_obj%n_deriv_elem, &
+            "Insufficient space for time derivative array. Need "// &
+            trim(to_string(new_obj%n_deriv_elem))//" but only have "// &
+            trim(to_string(MAX_DERIV_SIZE)))
+    call assert_msg(354665821, MAX_JAC_SIZE.ge.new_obj%n_jac_elem, &
+            "Insufficient space for sparse Jacobian matrix array. Need "// &
+            trim(to_string(new_obj%n_jac_elem))//" but only have "// &
+            trim(to_string(MAX_JAC_SIZE)))
+#endif
+
   end function constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -374,10 +397,19 @@ contains
     integration_data%phlex_state%state_var(:) = real(state_array(:), kind=dp)
 
     ! Reset the time derivative
+#ifdef PMC_MAKE_FAST
+    deriv_fix(:) = 0.0
+#else
     integration_data%deriv(:) = 0.0
+#endif    
 
     ! Calculate the time derivative
     call integration_data%deriv_func_ptr(integration_data)
+
+#ifdef PMC_MAKE_FAST
+    integration_data%deriv(1:integration_data%n_deriv_elem) = &
+            deriv_fix(1:integration_data%n_deriv_elem)
+#endif
 
   end subroutine deriv_func
 
@@ -424,10 +456,19 @@ contains
     integration_data%phlex_state%state_var(:) = real(state_array(:), kind=dp)
 
     ! Reset the Jacobian matrix
+#ifdef PMC_MAKE_FAST
+    jac_fix(:) = 0.0
+#else
     integration_data%jac(:) = 0.0
+#endif
 
     ! Calculate the Jacobian matrix
     call integration_data%jac_func_ptr(integration_data)
+
+#ifdef PMC_MAKE_FAST
+    integration_data%jac(1:integration_data%n_jac_elem) = &
+            jac_fix(1:integration_data%n_jac_elem)
+#endif
 
   end subroutine jac_func
 
@@ -554,13 +595,18 @@ contains
   subroutine add_deriv_contrib(this, spec_id, contrib_value)
 
     !> Integration data
-    class(integration_data_t), intent(in) :: this
+    class(integration_data_t), intent(inout) :: this
     !> Species ID to add contribution for
     integer(kind=i_kind), intent(in) :: spec_id
     !> Contribution value to add
     real(kind=dp), intent(in) :: contrib_value
 
+    if (contrib_value.eq.real(0.0, kind=dp)) return
+#ifdef PMC_MAKE_FAST
+    deriv_fix(spec_id) = deriv_fix(spec_id) + contrib_value
+#else
     this%deriv(spec_id) = this%deriv(spec_id) + contrib_value
+#endif
 
   end subroutine add_deriv_contrib
 
@@ -570,13 +616,18 @@ contains
   subroutine add_jac_contrib(this, jac_id, contrib_value)
 
     !> Integration data
-    class(integration_data_t), intent(in) :: this
+    class(integration_data_t), intent(inout) :: this
     !> Index in the sparse Jacobian data array to add contribution to
     integer(kind=i_kind), intent(in) :: jac_id
     !> Contribution value to add
     real(kind=dp), intent(in) :: contrib_value
 
+    if (contrib_value.eq.real(0.0, kind=dp)) return
+#ifdef PMC_MAKE_FAST
+    jac_fix(jac_id) = jac_fix(jac_id) + contrib_value
+#else
     this%jac(jac_id) = this%jac(jac_id) + contrib_value
+#endif
 
   end subroutine add_jac_contrib
 
@@ -623,7 +674,11 @@ contains
     !> Species id
     integer(kind=i_kind), intent(in) :: spec_id
 
+#ifdef PMC_MAKE_FAST
+    val = deriv_fix(spec_id)
+#else
     val = this%deriv(spec_id)
+#endif
 
   end function get_deriv_elem
 
@@ -649,7 +704,11 @@ contains
     do i_elem = this%jac_col_ptrs_c(indep_spec_id) + 1, &
             this%jac_col_ptrs_c(indep_spec_id+1)
       if (this%jac_row_ids_c(i_elem).eq.dep_spec_id-1) then
+#ifdef PMC_MAKE_FAST
+        val = jac_fix(i_elem)
+#else
         val = this%jac(i_elem)
+#endif
       end if
     end do
 
@@ -691,7 +750,11 @@ contains
     !> Integration data
     class(integration_data_t), intent(inout) :: this
 
+#ifdef PMC_MAKE_FAST
+    deriv_fix(:) = 0.0
+#else
     this%deriv(:) = 0.0
+#endif
 
   end subroutine reset_deriv
 
@@ -703,7 +766,11 @@ contains
     !> Integration data
     class(integration_data_t), intent(inout) :: this
 
+#ifdef PMC_MAKE_FAST
+    jac_fix(:) = 0.0
+#else
     this%jac(:) = 0.0
+#endif
 
   end subroutine reset_jac
 

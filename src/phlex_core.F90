@@ -76,7 +76,8 @@ module pmc_phlex_core
   use pmc_phlex_state
   use pmc_chem_spec_data
   use pmc_mechanism_data
-  use pmc_integration_data
+  use pmc_rxn_data
+  use pmc_phlex_solver_data
   use pmc_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_aero_phase_data
@@ -85,9 +86,6 @@ module pmc_phlex_core
   private
 
   public :: phlex_core_t
-
-  !> Relative tolerance for calculating J(t,y) terms
-  real(kind=dp), parameter :: JAC_TOL = 1.0e-3
 
   !> Part-MC model data
   !!
@@ -101,8 +99,19 @@ module pmc_phlex_core
     type(aero_rep_data_ptr), pointer :: aero_rep(:)
     !> Aerosol phases
     type(aero_phase_data_ptr), pointer :: aero_phase(:)
-    !> Integration data
-    type(integration_data_t), pointer :: integration_data => null()
+    !> Size of the state array
+    integer(kind=i_kind), private :: state_array_size
+    !> Flag to split gas- and aerosol-phase reactions
+    !! (for large aerosol representations, like single-particle)
+    logical, private :: split_gas_aero = .false.
+    !> Relative integration tolerance TODO move to solver data object
+    real(kind=dp), private :: rel_tol = 0.0
+    !> Solver data (gas-phase reactions)
+    type(phlex_solver_data_t), pointer, private :: solver_data_gas => null()
+    !> Solver data (aerosol-phase reactions)
+    type(phlex_solver_data_t), pointer, private :: solver_data_aero => null()
+    !> Solver data (mixed gas- and aerosol-phase reactions)
+    type(phlex_solver_data_t), pointer, private :: solver_data_gas_aero => null()
   contains
     !> Load a set of configuration files
     procedure :: load_files
@@ -128,6 +137,10 @@ module pmc_phlex_core
     procedure :: add_aero_phase
     !> Get a new model state variable
     procedure :: new_state
+    !> Initialize the solver
+    procedure, private :: solver_initialize
+    !> Set a photolysis rate
+    procedure :: set_photo_rate
     !> Run the chemical mechanisms
     procedure :: solve
     !> Determine the number of bytes required to pack the variable
@@ -314,6 +327,7 @@ contains
 
     character(kind=json_ck, len=:), allocatable :: key, unicode_str_val
     character(len=:), allocatable :: str_val
+    real(kind=json_rk) :: real_val
     logical :: file_exists
 
     type(aero_phase_data_ptr), pointer :: new_aero_phase(:)
@@ -386,6 +400,15 @@ contains
             deallocate(this%aero_phase)
             this%aero_phase => new_aero_phase
           end if
+        ! TODO move to phlex_solver_data_t function
+        else if (str_val.eq.'RELATIVE_TOLERANCE') then
+          call json%get(j_obj, 'value', real_val, found)
+          call assert_msg(761842352, found, "Missing value for relative tolerance")
+          call assert_msg(162564706, real_val.gt.0.0.and.real_val.lt.1.0, &
+                  "Invalid relative tolerance: "//trim(to_string(real(real_val, kind=dp))))
+          this%rel_tol = real(real_val, kind=dp)
+        else if (str_val.eq.'SPLIT_GAS_AERO') then
+          this%split_gas_aero = .true.
         else
           call die_msg(448039776, "Received invalid json input object type: "//&
                   str_val)
@@ -411,23 +434,14 @@ contains
     !> Model data
     class(phlex_core_t), target, intent(inout) :: this
 
-    integer(kind=i_kind) :: i_mech, i_phase, i_aero_rep, i_state_var
-    procedure(integration_data_deriv_func), pointer :: deriv_func_ptr
-    procedure(integration_data_jac_func), pointer :: jac_func_ptr
-    type(c_ptr) :: this_c
-    real(kind=dp), pointer :: abs_tol(:)
-    type(phlex_core_t), pointer :: this_ptr
-    integer(kind=i_kind), allocatable :: use_jac_elem(:,:)
-    integer(kind=i_kind) :: n_jac_elem, i_spec, j_spec, i_elem
-    integer(kind=i_kind), pointer :: n_jac_col_elem(:)
-    integer(kind=i_kind), pointer :: jac_row_ids(:)
-
-    this_ptr => this
-    deriv_func_ptr => calc_derivative
-    jac_func_ptr => calc_jacobian
+    ! Indices for iteration
+    integer(kind=i_kind) :: i_mech, i_phase, i_aero_rep, i_state_var, i_spec
+   
+    ! Species name for looking up properties
+    character(len=:), allocatable :: spec_name
 
     ! Get the next index on the state array after the gas-phase species
-    i_state_var = this%chem_spec_data%num_spec_by_type(GAS_SPEC) + 1
+    i_state_var = this%chem_spec_data%size(spec_phase=CHEM_SPEC_GAS_PHASE) + 1
 
     ! Initialize the aerosol phases
     do i_phase = 1, size(this%aero_phase)
@@ -441,60 +455,16 @@ contains
       i_state_var = i_state_var + this%aero_rep(i_aero_rep)%val%size()
     end do
 
-    ! Set i_state_var to hold the size of the state array, instead of the next index
-    i_state_var = i_state_var - 1
+    ! Set the size of the state array
+    this%state_array_size = i_state_var - 1
 
     ! Initialize the mechanisms
     do i_mech = 1, size(this%mechanism)
       call this%mechanism(i_mech)%initialize(this%chem_spec_data)
     end do
 
-    ! Get elements to include in the sparse Jacobian matrix
-    allocate(use_jac_elem(i_state_var, i_state_var))
-    use_jac_elem(:,:) = 0
-    do i_mech = 1, size(this%mechanism)
-      call this%mechanism(i_mech)%get_used_jac_elem(use_jac_elem)
-    end do
-    n_jac_elem = 0
-    do i_spec = 1, i_state_var
-      do j_spec = 1, i_state_var
-        if (use_jac_elem(i_spec, j_spec).gt.0) n_jac_elem = n_jac_elem + 1
-      end do
-    end do
-    allocate(n_jac_col_elem(i_state_var))
-    allocate(jac_row_ids(n_jac_elem))
-    i_elem = 0
-    n_jac_col_elem(:) = 0
-    do j_spec = 1, i_state_var
-      do i_spec = 1, i_state_var
-        if (use_jac_elem(i_spec, j_spec).gt.0) then
-          i_elem = i_elem + 1
-          n_jac_col_elem(j_spec) = n_jac_col_elem(j_spec) + 1
-          jac_row_ids(i_elem) = i_spec
-        end if
-      end do
-    end do
-    deallocate(use_jac_elem)
-
-    ! Set up the integrator
-    this_c = c_loc(this_ptr)
-    allocate(abs_tol(i_state_var))
-    call this%chem_spec_data%gas_abs_tol(abs_tol)
-    do i_aero_rep = 1, size(this%aero_rep)
-      call this%aero_rep(i_aero_rep)%val%get_abs_tol(this%chem_spec_data, &
-              abs_tol)
-    end do
-    this%integration_data => integration_data_t(this_c, deriv_func_ptr, &
-            jac_func_ptr, abs_tol, n_jac_elem, n_jac_col_elem, jac_row_ids)
-
-    ! Update the time derivative and Jacobian indexes
-    do i_mech = 1, size(this%mechanism)
-      call this%mechanism(i_mech)%update_integration_ids(this%integration_data)
-    end do
-
-    deallocate(abs_tol)
-    deallocate(n_jac_col_elem)
-    deallocate(jac_row_ids)
+    ! Initialize the solver
+    call this%solver_initialize()
 
   end subroutine initialize
 
@@ -682,11 +652,7 @@ contains
     new_state => phlex_state_t()
 
     ! Set up the state variable array
-    state_size = this%chem_spec_data%size()
-    do i_rep = 1, size(this%aero_rep)
-      state_size = state_size + this%aero_rep(i_rep)%val%size()
-    end do
-    allocate(new_state%state_var(state_size))
+    allocate(new_state%state_var(this%state_array_size))
 
     ! Create the aerosol representation states
     allocate(new_state%aero_rep_state(size(this%aero_rep)))
@@ -695,6 +661,122 @@ contains
     end do
 
   end function new_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Initialize the solver
+  subroutine solver_initialize(this)
+
+    !> Chemical model
+    class(phlex_core_t), intent(inout) :: this
+ 
+    ! Indices for loops
+    integer(kind=i_kind) :: i_state_var, i_aero_rep, i_spec
+    ! Absolute integration tolerances
+    ! (Values for non-solver species will be ignored)
+    real(kind=dp), allocatable :: abs_tol(:)
+    ! Variable types
+    integer(kind=i_kind), pointer :: var_type(:)
+    ! Current species name
+    character(len=:), allocatable :: spec_name
+    ! Species type id
+    integer(kind=i_kind) :: spec_type
+
+    ! Get the variable types and absolute tolerances for the state array species
+    allocate(abs_tol(this%state_array_size))
+    allocate(var_type(this%state_array_size))
+    i_state_var = 0
+    do i_spec = 1, this%chem_spec_data%size()
+      call assert(525410636, this%chem_spec_data%get_type(i_spec, spec_type))
+      if (spec_type.ne.CHEM_SPEC_GAS_PHASE) cycle
+      i_state_var = i_state_var + 1
+      call assert(716433999, &
+              this%chem_spec_data%get_abs_tol(i_spec, abs_tol(i_state_var)))
+      call assert(888496437, &
+              this%chem_spec_data%get_type(i_spec, var_type(i_state_var)))
+    end do
+    do i_aero_rep = 1, size(this%aero_rep)
+      do i_spec = 1, this%aero_rep(i_aero_rep)%val%size()
+        i_state_var = i_state_var + 1
+        spec_name = this%aero_rep(i_aero_rep)%val%spec_name_by_id(i_spec)
+        call assert(709716453, &
+                this%chem_spec_data%get_abs_tol(spec_name, abs_tol(i_state_var)))
+        call assert(257084300, &
+                this%chem_spec_data%get_type(spec_name, var_type(i_state_var)))
+      end do
+    end do
+
+    ! Set up either two solvers (gas and aerosol) or one solver (combined)
+    if (this%split_gas_aero) then
+
+      ! Create the new solver data objects
+      this%solver_data_gas => phlex_solver_data_t()
+      this%solver_data_aero => phlex_solver_data_t()
+    
+      ! Set custom relative integration tolerance, if present
+      if (this%rel_tol.ne.0.0) then
+        this%solver_data_gas%rel_tol = this%rel_tol
+        this%solver_data_aero%rel_tol = this%rel_tol
+      end if
+
+      ! Initialize the solvers
+      call this%solver_data_gas%initialize( &
+                var_type,               & ! State array variable types
+                abs_tol,                & ! Absolute tolerances for each state variable
+                this%mechanism,         & ! Pointer to the mechanisms
+                GAS_RXN                 & ! Reaction phase
+                )
+      call this%solver_data_aero%initialize( &
+                var_type,               & ! State array variable types
+                abs_tol,                & ! Absolute tolerances for each state variable
+                this%mechanism,         & ! Pointer to the mechanisms
+                AERO_RXN                & ! Reaction phase
+                )
+    else
+
+      ! Create a new solver data object
+      this%solver_data_gas_aero => phlex_solver_data_t()
+
+      ! Initialize the solver
+      call this%solver_data_gas_aero%initialize( &
+                var_type,               & ! State array variable types
+                abs_tol,                & ! Absolute tolerances for each state variable
+                this%mechanism,         & ! Pointer to the mechanisms
+                GAS_AERO_RXN            & ! Reaction phase
+                )
+      
+      ! Set custom relative integration tolerance, if present
+      if (this%rel_tol.ne.0.0) then
+        this%solver_data_gas_aero%rel_tol = this%rel_tol
+      end if
+    
+    end if
+
+  end subroutine solver_initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Set a photolysis rate constant. This function should be called by an
+  !! external photolysis module to update the photolysis rate constants when
+  !! necessary using an photo id provided by the external module during 
+  !! intialization.
+  subroutine set_photo_rate(this, photo_id, base_rate)
+
+    !> Chemical model
+    class(phlex_core_t), intent(in) :: this
+    !> Id used to find reactions to update
+    integer(kind=i_kind), intent(in) :: photo_id
+    !> New base (unscaled) photolysis rate constant
+    real(kind=dp), intent(in) :: base_rate
+
+    if (associated(this%solver_data_gas)) &
+            call this%solver_data_gas%set_photo_rate(photo_id, base_rate)
+    if (associated(this%solver_data_aero)) &
+            call this%solver_data_aero%set_photo_rate(photo_id, base_rate)
+    if (associated(this%solver_data_gas_aero)) &
+            call this%solver_data_gas_aero%set_photo_rate(photo_id, base_rate)
+
+  end subroutine set_photo_rate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -715,31 +797,40 @@ contains
     !! GAS_RXN, AERO_RXN, GAS_AERO_RXN
     integer(kind=i_kind), intent(in), optional :: rxn_phase
 
-    integer(kind=i_kind) :: solver_status, phase
+    ! Phase to solve
+    integer(kind=i_kind) :: phase
+    ! Pointer to solver data
+    type(phlex_solver_data_t), pointer :: solver
 
+    ! Get the phase(s) to solve for
     if (present(rxn_phase)) then
       phase = rxn_phase
     else
       phase = GAS_AERO_RXN
     end if
 
-    if (phase.ne.GAS_RXN .and. &
-        phase.ne.AERO_RXN .and. &
-        phase.ne.GAS_AERO_RXN) then
+    ! Determine the solver to use
+    if (phase.eq.GAS_RXN) then
+        solver => this%solver_data_gas
+    else if (phase.eq.AERO_RXN) then
+        solver => this%solver_data_aero
+    else if (phase.eq.GAS_AERO_RXN) then
+        solver => this%solver_data_gas_aero
+    else
       call die_msg(704896254, "Invalid rxn phase specified for chemistry "// &
               "solver: "//to_string(phase))
     end if
 
-    phlex_state%rxn_phase = phase
+    ! Update the environmental state array
+    ! TODO May move this into the solver functions to allow user vary
+    ! environmental parameters with time during the chemistry time step
+    call phlex_state%update_env_state()
 
-    ! Run integration
-    solver_status = this%integration_data%solve(phlex_state, time_step)
+    ! Make sure the requested solver was loaded
+    call assert_msg(730097030, associated(solver), "Invalid solver requested")
 
-    ! Evaluate the solver status
-    call this%integration_data%check_status(solver_status)
-
-    ! Keep concentrations positive
-    phlex_state%state_var(:) = MAX(phlex_state%state_var(:), real(0.0, kind=dp))
+    ! Run the integration
+    call solver%solve(phlex_state, real(0.0, kind=dp), time_step)
 
   end subroutine solve
 
@@ -764,6 +855,9 @@ contains
       pack_size = pack_size + aero_rep_factory%pack_size(aero_rep)
       end associate
     end do
+    pack_size = pack_size + &
+                pmc_mpi_pack_size_integer(this%state_array_size) + &
+                pmc_mpi_pack_size_logical(this%split_gas_aero)
 
   end function pack_size
 
@@ -794,6 +888,8 @@ contains
       call aero_rep_factory%bin_pack(aero_rep, buffer, pos)
       end associate
     end do
+    call pmc_mpi_pack_integer(this%state_array_size, buffer, pos)
+    call pmc_mpi_pack_logical(this%split_gas_aero, buffer, pos)
     call assert(184050835, &
          pos - prev_position <= this%pack_size())
 #endif
@@ -827,61 +923,19 @@ contains
     do i_rep = 1, num_rep
       this%aero_rep(i_rep)%val => aero_rep_factory%bin_unpack(buffer, pos)
     end do
+    call pmc_mpi_unpack_integer(this%state_array_size, buffer, pos)
+    call pmc_mpi_unpack_logical(this%split_gas_aero, buffer, pos)
     call assert(291557168, &
          pos - prev_position <= this%pack_size())
+
+    ! Initialize the solver
+    ! TODO figure out how to pack the solver - could be the only thing
+    ! that needs to be passed to other nodes
+    call this%solver_initialize()
+ 
 #endif
 
   end subroutine bin_unpack
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Calculate the time derivative f(t,y)
-  subroutine calc_derivative(integration_data)
-
-    use iso_c_binding
-
-    !> Integration data
-    type(integration_data_t), pointer, intent(inout) :: integration_data
-
-    type(phlex_core_t), pointer :: phlex_core
-    integer(kind=i_kind) :: i_mech
-
-    call c_f_pointer(integration_data%phlex_core_c_ptr, phlex_core)
-
-    ! Generate a unique concentration state id
-    call integration_data%phlex_state%reset_conc_id()
-
-    ! Calculate f(t,y)
-    do i_mech=1, size(phlex_core%mechanism)
-      call phlex_core%mechanism(i_mech)%get_func_contrib(integration_data)
-    end do
-
-  end subroutine calc_derivative
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Calculate the Jacobian matrix J(t,y)
-  subroutine calc_jacobian(integration_data)
-
-    use iso_c_binding
-
-    !> Integration data
-    type(integration_data_t), pointer, intent(inout) :: integration_data
-
-    type(phlex_core_t), pointer :: phlex_core
-    integer(kind=i_kind) :: i_mech
-
-    call c_f_pointer(integration_data%phlex_core_c_ptr, phlex_core)
-
-    ! Generate a unique concentration state id
-    call integration_data%phlex_state%reset_conc_id()
-
-    ! Calculate J(t,y)
-    do i_mech=1, size(phlex_core%mechanism)
-      call phlex_core%mechanism(i_mech)%get_jac_contrib(integration_data)
-    end do
-
-  end subroutine calc_jacobian
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -906,7 +960,6 @@ contains
     do i_mech=1, size(this%mechanism)
       call this%mechanism(i_mech)%print(f_unit)
     end do
-    call this%integration_data%print(f_unit)
 
   end subroutine do_print
 

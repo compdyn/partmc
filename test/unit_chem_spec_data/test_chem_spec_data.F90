@@ -56,14 +56,14 @@ contains
     character(len=:), allocatable :: key_name
     integer(kind=i_kind) :: var_type
 
-    integer(kind=i_kind) :: temp_int, spec_phase
+    integer(kind=i_kind) :: temp_int, spec_phase, spec_type
     real(kind=dp) :: temp_real
     logical :: temp_logical
     character(len=:), allocatable :: temp_string
 
     json_string = '{ "pmc-data" : [{'//new_line//&
             '  "name" : "my first species",'//new_line//&
-            '  "type" : "GAS_SPEC",'//new_line//&
+            '  "type" : "CHEM_SPEC",'//new_line//&
             '  "MW" : 123.43,'//new_line//&
             '  "density" : 1.3e-8,'//new_line//&
             '  "UNIFAC params" : {'//new_line//&
@@ -80,7 +80,9 @@ contains
 
             ',{'//new_line//&
             '  "name" : "my second species",'//new_line//&
-            '  "type" : "AERO_SPEC",'//new_line//&
+            '  "type" : "CHEM_SPEC",'//new_line//&
+            '  "tracer type" : "PSSA",'//new_line//&
+            '  "phase" : "AEROSOL",'//new_line//&
             '  "MW" : 75.298,'//new_line//&
             '  "density" : 4.2e-9,'//new_line//&
             '  "UNIFAC params" : {'//new_line//&
@@ -96,13 +98,16 @@ contains
             '},'//new_line//&
             '{'//new_line//&
             '  "name" : "my first species",'//new_line//&
-            '  "type" : "GAS_SPEC",'//new_line//&
+            '  "type" : "CHEM_SPEC",'//new_line//&
+            '  "phase" : "GAS",'//new_line//&
             '  "HLC" : 12.3e1,'//new_line//&
             '  "MONARCH id" : 121'//new_line//&
             '},'//new_line//&
             '{'//new_line//&
             '  "name" : "my second species",'//new_line//&
-            '  "type" : "AERO_SPEC",'//new_line//&
+            '  "type" : "CHEM_SPEC",'//new_line//&
+            '  "phase" : "AEROSOL",'//new_line//&
+            '  "tracer type" : "PSSA",'//new_line//&
             '  "HLC" : 13.7e1,'//new_line//&
             '  "MONARCH id" : 82'//new_line//&
             '}'//new_line
@@ -110,7 +115,7 @@ contains
     ! Include extra species to test the expandable array functionality
     do i_spec=1, 125
       json_string = json_string//',{ "name" : "species '//trim(to_string(i_spec))//&
-              '", "type" : "GAS_SPEC" }'
+              '", "type" : "CHEM_SPEC" }'
     end do
     json_string = json_string//']}'
 
@@ -142,7 +147,9 @@ contains
     key_name = "my first species"
     call assert(968643104, spec_data%get_phase(key_name, spec_phase))
     call assert(839073838, spec_phase.eq.CHEM_SPEC_GAS_PHASE)
-    
+    call assert(745634015, spec_data%get_type(key_name, spec_type))
+    call assert(689700990, spec_type.eq.CHEM_SPEC_VARIABLE)
+
     call assert(342495274, spec_data%get_property_set(key_name, spec_props))
 
     key_name = "MW"
@@ -185,6 +192,8 @@ contains
     key_name = "my second species"
     call assert(519369724, spec_data%get_phase(key_name, spec_phase))
     call assert(529754002, spec_phase.eq.CHEM_SPEC_AERO_PHASE)
+    call assert(351292716, spec_data%get_type(key_name, spec_type))
+    call assert(116127412, spec_type.eq.CHEM_SPEC_PSSA)
     
     call assert(451454846, spec_data%get_property_set(key_name, spec_props))
 

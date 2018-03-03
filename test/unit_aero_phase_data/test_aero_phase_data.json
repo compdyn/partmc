@@ -20,31 +20,38 @@
 },
 {
 	"name" : "species a",
-	"type" : "AERO_SPEC"
+	"type" : "CHEM_SPEC",
+	"phase" : "AEROSOL"
 },
 {
 	"name" : "species b",
-	"type" : "AERO_SPEC"
+	"type" : "CHEM_SPEC",
+	"phase" : "AEROSOL"
 },
 {
 	"name" : "species c",
-	"type" : "AERO_SPEC"
+	"type" : "CHEM_SPEC",
+	"phase" : "AEROSOL"
 },
 {
 	"name" : "species d",
-	"type" : "AERO_SPEC"
+	"type" : "CHEM_SPEC",
+	"phase" : "AEROSOL"
 },
 {
 	"name" : "species e",
-	"type" : "AERO_SPEC"
+	"type" : "CHEM_SPEC",
+	"phase" : "AEROSOL"
 },
 {
 	"name" : "species f",
-	"type" : "AERO_SPEC"
+	"type" : "CHEM_SPEC",
+	"phase" : "AEROSOL"
 },
 {
 	"name" : "species g",
-	"type" : "AERO_SPEC"
+	"type" : "CHEM_SPEC",
+	"phase" : "AEROSOL"
 }
 	]
 }

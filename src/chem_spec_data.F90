@@ -305,13 +305,17 @@ contains
     integer(kind=json_ik) :: var_type
 
     character(len=:), allocatable :: spec_name, str_val
-    integer(kind=i_kind) :: spec_type = CHEM_SPEC_UNKNOWN_TYPE
-    integer(kind=i_kind) :: spec_phase = CHEM_SPEC_UNKNOWN_PHASE
+    integer(kind=i_kind) :: spec_type
+    integer(kind=i_kind) :: spec_phase
     type(property_t), pointer :: property_set
 
     allocate(property_set)
     property_set = property_t()
 
+    ! Initialize type and phase
+    spec_type = CHEM_SPEC_UNKNOWN_TYPE
+    spec_phase = CHEM_SPEC_UNKNOWN_PHASE
+    
     next => null()
     call json%get_child(j_obj, child)
     do while (associated(child))
@@ -321,7 +325,7 @@ contains
                 "Received non-string species name")
         call json%get(child, unicode_str_val)
         spec_name = unicode_str_val
-      else if (key.eq."type") then
+      else if (key.eq."tracer type") then
         if (var_type.ne.json_string) call die_msg(249541360, &
                 "Received non-string species type")
         call json%get(child, unicode_str_val)
@@ -349,7 +353,7 @@ contains
           call die_msg(603704146, "Unknown chemical species phase: "// &
                   str_val)
         end if
-      else
+      else if (key.ne."type") then
         call property_set%load(json, child, .false.)
       end if
       call json%get_next(child, next)
@@ -685,13 +689,39 @@ contains
     integer(kind=i_kind), optional, intent(in) :: file_unit
 
     integer(kind=i_kind) :: i_spec
-    integer(kind=i_kind) :: f_unit = 6
+    integer(kind=i_kind) :: f_unit
+    character(len=:), allocatable :: spec_phase, spec_type
 
+    f_unit = 6
     if (present(file_unit)) f_unit = file_unit
 
     write(f_unit,*) "Number of species: ", this%num_spec
     do i_spec = 1, this%num_spec
+      select case (this%spec_type(i_spec))
+        case (CHEM_SPEC_UNKNOWN_TYPE)
+          spec_type = "unknown"
+        case (CHEM_SPEC_VARIABLE)
+          spec_type = "variable"
+        case (CHEM_SPEC_CONSTANT)
+          spec_type = "constant"
+        case (CHEM_SPEC_PSSA)
+          spec_type = "PSSA"
+        case default
+          spec_type = "invalid"
+      end select
+      select case (this%spec_phase(i_spec))
+        case (CHEM_SPEC_UNKNOWN_PHASE)
+          spec_phase = "unknown"
+        case (CHEM_SPEC_GAS_PHASE)
+          spec_phase = "gas"
+        case (CHEM_SPEC_AERO_PHASE)
+          spec_phase = "aerosol"
+        case default
+          spec_phase = "invalid"
+      end select
+
       write(f_unit,*) "  ", this%spec_name(i_spec)%string
+      write(f_unit,*) "    phase: ", spec_phase, "; type: ", spec_type
       call this%property_set(i_spec)%print(f_unit)
     end do
 

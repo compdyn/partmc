@@ -289,8 +289,7 @@ contains
   !! The valid values for \b type are:
   !!
   !!   - \subpage input_format_mechanism "MECHANISM"
-  !!   - \subpage input_format_species "GAS_SPEC"
-  !!   - \subpage input_format_species "AERO_SPEC"
+  !!   - \subpage input_format_species "CHEM_SPEC"
   !!   - \subpage input_format_aero_phase "AERO_PHASE"
   !!   - \subpage input_format_aero_rep "AERO_REP_*"
   !!
@@ -370,9 +369,7 @@ contains
             i_mech = size(this%mechanism)
           end if
           call this%mechanism(i_mech)%load(json, j_obj)
-        else if (str_val.eq.'GAS_SPEC') then
-          call this%chem_spec_data%load(json, j_obj)
-        else if (str_val.eq.'AERO_SPEC') then
+        else if (str_val.eq.'CHEM_SPEC') then
           call this%chem_spec_data%load(json, j_obj)
         else if (str_val(1:8).eq.'AERO_REP') then
           aero_rep_ptr%val => aero_rep_factory%load(json, j_obj)

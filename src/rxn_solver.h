@@ -19,10 +19,12 @@
 
 // arrhenius
 void * rxn_arrhenius_get_used_jac_elem(void *rxn_data, bool **jac_struct);
+void * rxn_arrhenius_update_ids(int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_arrhenius_update_env_state(realtype *env_data, void *rxn_data);
 void * rxn_arrhenius_calc_deriv_contrib(realtype *state, realtype *deriv, void *rxn_data);
 void * rxn_arrhenius_calc_jac_contrib(realtype *state, realtype *J, void *rxn_data);
 void * rxn_arrhenius_skip(void *rxn_data);
+void * rxn_arrhenius_print(void *rxn_data);
 
 // CMAQ_H2O2
 void * rxn_CMAQ_H2O2_get_used_jac_elem(void *rxn_data, bool **jac_struct);

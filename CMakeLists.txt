@@ -158,14 +158,14 @@ set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES mechanisms_run)
 
 do_unit_test(property "PASS")
 do_unit_test(chem_spec_data "PASS")
-do_unit_test(rxn_data "PASS")
 do_unit_test(aero_phase_data "PASS")
 if(ENABLE_JSON)
   do_unit_test(aero_rep_data "PASS")
   do_unit_test(phlex_core "PASS")
 endif()
 
-add_test(test_chemistry_1 ${CMAKE_BINARY_DIR}/test_run/chemistry/test_chemistry_1.sh)
+add_test(test_rxn_arrhenius ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_arrhenius.sh)
+
 if (ENABLE_JSON AND ENABLE_SUNDIALS)
   add_test(test_chemistry_cb05cl_ae5 ${CMAKE_BINARY_DIR}/test_run/chemistry/test_chemistry_cb05cl_ae5.sh)
   #add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh)
@@ -445,10 +445,9 @@ target_link_libraries(unit_test_chem_spec_data partmclib)
 ######################################################################
 # test_rxn_data
 
-add_executable(unit_test_rxn_data test/unit_rxn_data/test_rxn_data_child.F90
-  test/unit_rxn_data/test_rxn_data.F90)
+add_executable(test_rxn_arrhenius test/unit_rxn_data/test_rxn_arrhenius.F90)
 
-target_link_libraries(unit_test_rxn_data partmclib)
+target_link_libraries(test_rxn_arrhenius partmclib)
 
 ######################################################################
 # test_phlex_core

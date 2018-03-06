@@ -22,42 +22,41 @@
 
 /** \brief Get the Jacobian elements used by a particular reaction
  *
- * \param rxn_data A pointer to the reaction data
+ * \param model_data A pointer to the model data
  * \param jac_struct A 2D array of flags indicating which Jacobian elements
  *                   may be used
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_get_used_jac_elem(void *rxn_data, bool **jac_struct)
+void * rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct)
 {
 
   // Get the number of reactions
-  int *int_ptr = (int*) rxn_data;
-  int n_rxn = *(int_ptr++);
+  int *rxn_data = (int*) (model_data->rxn_data);
+  int n_rxn = *(rxn_data++);
 
   // Loop through the reactions to determine the Jacobian elements used
   // advancing the rxn_data pointer each time
   for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
 
     // Get the reaction type
-    int rxn_type = *(int_ptr++);
-    rxn_data = (void*) int_ptr;
+    int rxn_type = *(rxn_data++);
 
     // Call the appropriate function
     switch (rxn_type) {
       case RXN_ARRHENIUS :
-        rxn_data = rxn_arrhenius_get_used_jac_elem(rxn_data, jac_struct);
+        rxn_data = (int*) rxn_arrhenius_get_used_jac_elem((void*) rxn_data, jac_struct);
         break;
       case RXN_CMAQ_H2O2 :
-        rxn_data = rxn_CMAQ_H2O2_get_used_jac_elem(rxn_data, jac_struct);
+        rxn_data = (int*) rxn_CMAQ_H2O2_get_used_jac_elem((void*) rxn_data, jac_struct);
         break;
       case RXN_CMAQ_OH_HNO3 :
-        rxn_data = rxn_CMAQ_OH_HNO3_get_used_jac_elem(rxn_data, jac_struct);
+        rxn_data = (int*) rxn_CMAQ_OH_HNO3_get_used_jac_elem((void*) rxn_data, jac_struct);
         break;
       case RXN_PHOTOLYSIS :
-        rxn_data = rxn_photolysis_get_used_jac_elem(rxn_data, jac_struct);
+        rxn_data = (int*) rxn_photolysis_get_used_jac_elem((void*) rxn_data, jac_struct);
         break;
       case RXN_TROE :
-        rxn_data = rxn_troe_get_used_jac_elem(rxn_data, jac_struct);
+        rxn_data = (int*) rxn_troe_get_used_jac_elem((void*) rxn_data, jac_struct);
         break;
     }
   }
@@ -65,41 +64,81 @@ void * rxn_get_used_jac_elem(void *rxn_data, bool **jac_struct)
   return rxn_data;
 }
 
-/** \brief Update reaction data for new environmental state
+/** \brief Update the time derivative and Jacobian array ids
  *
- * \param env Pointer to the environmental state array
- * \param rxn_data Pointer to the reaction data
+ * \param model_data Pointer to the model data
+ * \param deriv_ids Ids for state variables on the time derivative array
+ * \param jac_ids Ids for state variables on the Jacobian array
  */
-void rxn_update_env_state(double *env, void *rxn_data)
+void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids)
 {
 
   // Get the number of reactions
-  int *int_ptr = (int*) rxn_data;
-  int n_rxn = *(int_ptr++);
+  int *rxn_data = (int*) (model_data->rxn_data);
+  int n_rxn = *(rxn_data++);
 
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
 
     // Get the reaction type
-    int rxn_type = *(int_ptr++);
-    rxn_data = (void*) int_ptr;
+    int rxn_type = *(rxn_data++);
 
     // Call the appropriate function
     switch (rxn_type) {
       case RXN_ARRHENIUS :
-        rxn_data = rxn_arrhenius_update_env_state(env, rxn_data);
+        rxn_data = (int*) rxn_arrhenius_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
         break;
       case RXN_CMAQ_H2O2 :
-        rxn_data = rxn_CMAQ_H2O2_update_env_state(env, rxn_data);
+   //     rxn_data = (int*) rxn_CMAQ_H2O2_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
         break;
       case RXN_CMAQ_OH_HNO3 :
-        rxn_data = rxn_CMAQ_OH_HNO3_update_env_state(env, rxn_data);
+   //     rxn_data = (int*) rxn_CMAQ_OH_HNO3_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
         break;
       case RXN_PHOTOLYSIS :
-        rxn_data = rxn_photolysis_update_env_state(env, rxn_data);
+   //     rxn_data = (int*) rxn_photolysis_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
         break;
       case RXN_TROE :
-        rxn_data = rxn_troe_update_env_state(env, rxn_data);
+   //     rxn_data = (int*) rxn_troe_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
+        break;
+    }
+  } 
+}
+
+
+/** \brief Update reaction data for new environmental state
+ *
+ * \param model_data Pointer to the model data
+ * \param env Pointer to the environmental state array
+ */
+void rxn_update_env_state(ModelData *model_data, double *env)
+{
+
+  // Get the number of reactions
+  int *rxn_data = (int*) (model_data->rxn_data);
+  int n_rxn = *(rxn_data++);
+
+  // Loop through the reactions advancing the rxn_data pointer each time
+  for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
+
+    // Get the reaction type
+    int rxn_type = *(rxn_data++);
+
+    // Call the appropriate function
+    switch (rxn_type) {
+      case RXN_ARRHENIUS :
+        rxn_data = (int*) rxn_arrhenius_update_env_state(env, (void*) rxn_data);
+        break;
+      case RXN_CMAQ_H2O2 :
+        rxn_data = (int*) rxn_CMAQ_H2O2_update_env_state(env, (void*) rxn_data);
+        break;
+      case RXN_CMAQ_OH_HNO3 :
+        rxn_data = (int*) rxn_CMAQ_OH_HNO3_update_env_state(env, (void*) rxn_data);
+        break;
+      case RXN_PHOTOLYSIS :
+        rxn_data = (int*) rxn_photolysis_update_env_state(env, (void*) rxn_data);
+        break;
+      case RXN_TROE :
+        rxn_data = (int*) rxn_troe_update_env_state(env, (void*) rxn_data);
         break;
     }
   } 
@@ -118,38 +157,36 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv)
   realtype *deriv_data = N_VGetArrayPointer(deriv);
   
   // Get the number of reactions
-  void *rxn_data = model_data->rxn_data;
-  int *int_ptr = (int*) rxn_data;
-  int n_rxn = *(int_ptr++);
+  int *rxn_data = (int*) (model_data->rxn_data);
+  int n_rxn = *(rxn_data++);
 
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
 
     // Get the reaction type
-    int rxn_type = *(int_ptr++);
-    rxn_data = (void*) int_ptr;
+    int rxn_type = *(rxn_data++);
 
     // Call the appropriate function
     switch (rxn_type) {
       case RXN_ARRHENIUS :
-        rxn_data = rxn_arrhenius_calc_deriv_contrib(model_data->state, 
-			deriv_data, rxn_data);
+        rxn_data = (int*) rxn_arrhenius_calc_deriv_contrib(model_data->state, 
+			deriv_data, (void*) rxn_data);
         break;
       case RXN_CMAQ_H2O2 :
-        rxn_data = rxn_CMAQ_H2O2_calc_deriv_contrib(model_data->state, 
-			deriv_data, rxn_data);
+        rxn_data = (int*) rxn_CMAQ_H2O2_calc_deriv_contrib(model_data->state, 
+			deriv_data, (void*) rxn_data);
         break;
       case RXN_CMAQ_OH_HNO3 :
-        rxn_data = rxn_CMAQ_OH_HNO3_calc_deriv_contrib(model_data->state,
-		       deriv_data, rxn_data);
+        rxn_data = (int*) rxn_CMAQ_OH_HNO3_calc_deriv_contrib(model_data->state,
+		       deriv_data, (void*) rxn_data);
         break;
       case RXN_PHOTOLYSIS :
-        rxn_data = rxn_photolysis_calc_deriv_contrib(model_data->state,
-		       deriv_data, rxn_data);
+        rxn_data = (int*) rxn_photolysis_calc_deriv_contrib(model_data->state,
+		       deriv_data, (void*) rxn_data);
         break;
       case RXN_TROE :
-        rxn_data = rxn_troe_calc_deriv_contrib(model_data->state, 
-		       deriv_data, rxn_data);
+        rxn_data = (int*) rxn_troe_calc_deriv_contrib(model_data->state, 
+		       deriv_data, (void*) rxn_data);
         break;
     }
   } 
@@ -167,38 +204,36 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J)
   realtype *J_data = SM_DATA_S(J);
   
   // Get the number of reactions
-  void *rxn_data = model_data->rxn_data;
-  int *int_ptr = (int*) rxn_data;
-  int n_rxn = *(int_ptr++);
+  int *rxn_data = (int*) (model_data->rxn_data);
+  int n_rxn = *(rxn_data++);
 
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
 
     // Get the reaction type
-    int rxn_type = *(int_ptr++);
-    rxn_data = (void*) int_ptr;
+    int rxn_type = *(rxn_data++);
 
     // Call the appropriate function
     switch (rxn_type) {
       case RXN_ARRHENIUS :
-        rxn_data = rxn_arrhenius_calc_jac_contrib(model_data->state, 
-			J_data, rxn_data);
+        rxn_data = (int*) rxn_arrhenius_calc_jac_contrib(model_data->state, 
+			J_data, (void*) rxn_data);
         break;
       case RXN_CMAQ_H2O2 :
-        rxn_data = rxn_CMAQ_H2O2_calc_jac_contrib(model_data->state, 
-			J_data, rxn_data);
+        rxn_data = (int*) rxn_CMAQ_H2O2_calc_jac_contrib(model_data->state, 
+			J_data, (void*) rxn_data);
         break;
       case RXN_CMAQ_OH_HNO3 :
-        rxn_data = rxn_CMAQ_OH_HNO3_calc_jac_contrib(model_data->state,
-		       J_data, rxn_data);
+        rxn_data = (int*) rxn_CMAQ_OH_HNO3_calc_jac_contrib(model_data->state,
+		       J_data, (void*) rxn_data);
         break;
       case RXN_PHOTOLYSIS :
-        rxn_data = rxn_photolysis_calc_jac_contrib(model_data->state,
-		       J_data, rxn_data);
+        rxn_data = (int*) rxn_photolysis_calc_jac_contrib(model_data->state,
+		       J_data, (void*) rxn_data);
         break;
       case RXN_TROE :
-        rxn_data = rxn_troe_calc_jac_contrib(model_data->state, 
-		       J_data, rxn_data);
+        rxn_data = (int*) rxn_troe_calc_jac_contrib(model_data->state, 
+		       J_data, (void*) rxn_data);
         break;
     }
   }  
@@ -219,17 +254,17 @@ void rxn_add_condensed_data(int rxn_type, int n_int_param,
 		int n_float_param, int *int_param, double *float_param, void *solver_data)
 {
   ModelData *model_data = (ModelData*) &(((SolverData*)solver_data)->model_data);
-  int *int_ptr = model_data->nxt_rxn;
+  int *rxn_data = (int*) (model_data->nxt_rxn);
 
   // Add the reaction type
-  *(int_ptr++) = rxn_type;
+  *(rxn_data++) = rxn_type;
 
   // Add integer parameters
-  for (; int_param>0; int_param--) *(int_ptr++) = *(int_param++);
+  for (; n_int_param>0; n_int_param--) *(rxn_data++) = *(int_param++);
 
   // Add floating-point parameters
-  realtype *flt_ptr = (realtype*) int_ptr;
-  for (; float_param>0; float_param--) *(flt_ptr++) = (realtype) *(float_param++);
+  realtype *flt_ptr = (realtype*) rxn_data;
+  for (; n_float_param>0; n_float_param--) *(flt_ptr++) = (realtype) *(float_param++);
 
   // Set the pointer for the next free space in rxn_data
   model_data->nxt_rxn = (void*) flt_ptr;
@@ -247,34 +282,61 @@ void rxn_set_photo_rate(int photo_id, double base_rate, void *solver_data)
   ModelData *model_data = (ModelData*) &(((SolverData*)solver_data)->model_data);
 
   // Get the number of reactions
-  int *int_ptr = (int*) (model_data->rxn_data);
-  int n_rxn = *(int_ptr++);
+  int *rxn_data = (int*) (model_data->rxn_data);
+  int n_rxn = *(rxn_data++);
 
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
 
     // Get the reaction type
-    int rxn_type = *(int_ptr++);
-    void *rxn_data = (void*) int_ptr;
+    int rxn_type = *(rxn_data++);
 
     // Call the appropriate function
     switch (rxn_type) {
       case RXN_ARRHENIUS :
-        rxn_data = rxn_arrhenius_skip(rxn_data);
+        rxn_data = (int*) rxn_arrhenius_skip((void*)rxn_data);
         break;
       case RXN_CMAQ_H2O2 :
-        rxn_data = rxn_CMAQ_H2O2_skip(rxn_data);
+        rxn_data = (int*) rxn_CMAQ_H2O2_skip((void*)rxn_data);
         break;
       case RXN_CMAQ_OH_HNO3 :
-        rxn_data = rxn_CMAQ_OH_HNO3_skip(rxn_data);
+        rxn_data = (int*) rxn_CMAQ_OH_HNO3_skip((void*)rxn_data);
         break;
       case RXN_PHOTOLYSIS :
-        rxn_data = rxn_photolysis_set_photo_rate(photo_id, (realtype) base_rate, rxn_data);
+        rxn_data = (int*) rxn_photolysis_set_photo_rate(photo_id, (realtype) base_rate, (void*)rxn_data);
         break;
       case RXN_TROE :
-        rxn_data = rxn_troe_skip(rxn_data);
+        rxn_data = (int*) rxn_troe_skip((void*)rxn_data);
         break;
     }
-  }  
+  } 
 }
 
+/** \brief Print the reaction data
+ *
+ * \param solver_data Pointer to the solver data
+ */
+void rxn_print_data(void *solver_data)
+{
+  ModelData *model_data = (ModelData*) &(((SolverData*)solver_data)->model_data);
+
+  // Get the number of reactions
+  int *rxn_data = (int*) (model_data->rxn_data);
+  int n_rxn = *(rxn_data++);
+
+  printf("\n\nReaction data\n\nnumber of reactions: %d\n\n", n_rxn);
+
+  // Loop through the reactions advancing the rxn_data pointer each time
+  for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
+
+    // Get the reaction type
+    int rxn_type = *(rxn_data++);
+
+    // Call the appropriate function
+    switch (rxn_type) {
+      case RXN_ARRHENIUS :
+        rxn_data = (int*) rxn_arrhenius_print((void*)rxn_data);
+	break;
+    }
+  }
+}

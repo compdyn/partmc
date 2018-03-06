@@ -51,9 +51,10 @@ typedef struct {
 } SolverData;
 
 /* Functions called by phlex-chem */
-void * solver_initialize(int n_state_var, int *var_type, double *abstol,
-		double reltol, int max_steps, int max_conv_fails, 
-		int n_rxn, int n_int_param, int n_float_param);
+void * solver_new(int n_state_var, int *var_type, int n_rxn, int n_int_param, 
+		int n_float_param);
+void solver_initialize(void *solver_data, double *abs_tol, double rel_tol, int max_steps, 
+		int max_conv_fails); 
 int solver_run(void *solver_data, double *state, double *env, double t_initial,
 		double t_final);
 void rxn_add_condensed_data(int rxn_type, int n_int_param, 
@@ -66,14 +67,16 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *model_data,
 		N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
 
 /* SUNDIALS support functions */
-SUNMatrix get_jac_init(int n_dep_var, void *rxn_data);
+SUNMatrix get_jac_init(SolverData *solver_data);
 int check_flag(void *flag_value, char *func_name, int opt);
 void check_flag_fail(void *flag_value, char *func_name, int opt);
-void * rxn_get_used_jac_elem(void *rxn_data, bool **jac_struct);
-void rxn_update_env_state(double *env, void *rxn_data);
+void * rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct);
+void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids); 
+void rxn_update_env_state(ModelData *model_data, double *env);
 void rxn_calc_deriv(ModelData *model_data, N_Vector deriv);
 void rxn_calc_jac(ModelData *model_data, SUNMatrix J);
 void rxn_set_photo_rate(int rxn_id, double base_rate, void *solver_data);
+void rxn_print_data(void *solver_data);
 #endif
 
 #endif

@@ -23,55 +23,84 @@
 #define CHEM_SPEC_CONSTANT 2
 #define CHEM_SPEC_PSSA 3
 
-/** \brief Solver initialization
+/** \brief Get a new solver object
  *
- * Allocate and initialize solver objects
- * 
+ * Return a pointer to a new SolverData object
+ *
  * \param n_state_var Number of variables on the state array
  * \param var_type Pointer to array of state variable types (solver, constant, PSSA)
- * \param abstol Pointer to array of absolute tolerances
- * \param reltol Relative integration tolerance
- * \param max_steps Maximum number of internal integration steps
- * \param max_conv_fails Maximum number of convergence failures
  * \param n_rxn Number of reactions to include
  * \param n_int_param Total number of integer reaction parameters
  * \param n_float_param Total number of floating-point reaction parameters
- * \return Pointer to an initialized SolverData object
+ * \return Pointer to the new SolverData object
  */
-void * solver_initialize(int n_state_var, int *var_type, double *abstol,
-		double reltol, int max_steps, int max_conv_fails, 
-		int n_rxn, int n_int_param, int n_float_param)
+void * solver_new(int n_state_var, int *var_type, int n_rxn, int n_int_param, 
+		int n_float_param)
 {
-#ifdef PMC_USE_SUNDIALS
-  SolverData *sd;		// new SolverData object
-  int flag;			// return code from SUNDIALS functions
-  int n_dep_var;		// number of dependent variables
-  int i_dep_var; 		// index of dependent variables in loops
-
   // Create the SolverData object
-  sd = (SolverData*) malloc(sizeof(SolverData));
+  SolverData *sd = (SolverData*) malloc(sizeof(SolverData));
 
   // Save the number of state variables
   sd->model_data.n_state_var = n_state_var;
 
-  // Get the number of solver variables
-  n_dep_var = 0;
-  for (int i; i<n_state_var; i++) 
-    if (var_type[i]==CHEM_SPEC_VARIABLE) (n_dep_var)++;
-
   // Add the variable types to the solver data
-  sd->model_data.var_type = var_type;
+  sd->model_data.var_type = (int*) malloc(n_state_var * sizeof(int));
+  for (int i=0; i<n_state_var; i++)
+    sd->model_data.var_type[i] = var_type[i];
+
+  // Get the number of solver variables
+  int n_dep_var = 0;
+  for (int i=0; i<n_state_var; i++) 
+    if (var_type[i]==CHEM_SPEC_VARIABLE) n_dep_var++;
 
   // Set up the solver variable array
   sd->y = N_VNew_Serial(n_dep_var);
 
   // Allocate space for the reaction data and set the number
-  // of reactions
-  sd->model_data.rxn_data = (void*) malloc(n_int_param * sizeof(int) + 
-		  n_float_param * sizeof(realtype));
+  // of reactions (including one int for the number of reactions
+  // and one int per reaction to store the reaction type)
+  sd->model_data.rxn_data = (void*) malloc(
+		  (n_int_param + 1 + n_state_var) * sizeof(int) 
+		  + n_float_param * sizeof(realtype));
   int *ptr = sd->model_data.rxn_data;
   ptr[0] = n_rxn;
   sd->model_data.nxt_rxn = (void*) &(ptr[1]);
+
+  // Return a pointer to the new SolverData object
+  return (void*) sd;
+
+}
+
+/** \brief Solver initialization
+ *
+ * Allocate and initialize solver objects
+ * 
+ * \param solver_data Pointer to a SolverData object
+ * \param abs_tol Pointer to array of absolute tolerances
+ * \param rel_tol Relative integration tolerance
+ * \param max_steps Maximum number of internal integration steps
+ * \param max_conv_fails Maximum number of convergence failures
+ * \return Pointer to an initialized SolverData object
+ */
+void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
+	       int max_steps, int max_conv_fails)
+{
+#ifdef PMC_USE_SUNDIALS
+  SolverData *sd;		// SolverData object
+  int flag;			// return code from SUNDIALS functions
+  int n_dep_var;		// number of dependent variables
+  int i_dep_var; 		// index of dependent variables in loops
+  int n_state_var; 		// number of variables on the state array
+  int *var_type;		// state variable types
+
+  // Get a pointer to the SolverData
+  sd = (SolverData*) solver_data;
+
+  // Get the number of total and dependent variables on the state array,
+  // and the type of each state variable
+  n_state_var = sd->model_data.n_state_var;
+  n_dep_var = NV_LENGTH_S(sd->y);
+  var_type = sd->model_data.var_type;
 
   // Create a new solver object
   sd->cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
@@ -88,11 +117,11 @@ void * solver_initialize(int n_state_var, int *var_type, double *abstol,
   check_flag_fail(&flag, "CVodeInit", 1);
 
   // Set the relative and absolute tolerances
-  N_Vector abstol_nv = N_VNew_Serial(n_dep_var);
+  N_Vector abs_tol_nv = N_VNew_Serial(n_dep_var);
   i_dep_var = 0;
   for (int i=0; i<n_state_var; i++)
-    if (var_type[i]==CHEM_SPEC_VARIABLE) NV_Ith_S(abstol_nv, i_dep_var++) = (realtype) abstol[i];
-  flag = CVodeSVtolerances(sd->cvode_mem, (realtype) reltol, abstol_nv);
+    if (var_type[i]==CHEM_SPEC_VARIABLE) NV_Ith_S(abs_tol_nv, i_dep_var++) = (realtype) abs_tol[i];
+  flag = CVodeSVtolerances(sd->cvode_mem, (realtype) rel_tol, abs_tol_nv);
   check_flag_fail(&flag, "CVodeSVtolerances", 1);
 
   // Set the maximum number of iterations
@@ -104,7 +133,7 @@ void * solver_initialize(int n_state_var, int *var_type, double *abstol,
   check_flag_fail(&flag, "CVodeSetMaxConvFails", 1);
 
   // Get the structure of the Jacobian matrix
-  SUNMatrix J = get_jac_init(n_dep_var, sd->model_data.rxn_data);
+  SUNMatrix J = get_jac_init(sd);
   sd->model_data.J_init = SUNMatClone(J);
   SUNMatCopy(J, sd->model_data.J_init);
 
@@ -120,11 +149,6 @@ void * solver_initialize(int n_state_var, int *var_type, double *abstol,
   flag = CVDlsSetJacFn(sd->cvode_mem, Jac);
   check_flag_fail(&flag, "CVDlsSetJacFn", 1);
 
-  // Return a pointer to the initialized solver data
-  return (void *) sd;
-
-#else
-  return NULL;
 #endif
 }
 
@@ -145,7 +169,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 
   // Update the dependent variables
   for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++)
-    if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) NV_Ith_S(sd->y,i_dep_var++) = state[i_spec];
+    if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) 
+      NV_Ith_S(sd->y,i_dep_var++) = (realtype) state[i_spec];
 
   // Update model data pointers
   sd->model_data.state = state;
@@ -154,7 +179,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // Update reaction data for new environmental state
   // (This is set up to assume the environmental variables do not change during
   //  solving. This can be changed in the future if necessary.)
-  rxn_update_env_state(env, sd->model_data.rxn_data);
+  rxn_update_env_state(&(sd->model_data), env);
 
   // Reinitialize the solver
   int flag = CVodeReInit(sd->cvode_mem, t_initial, sd->y);
@@ -167,7 +192,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 
   // Update the species concentrations on the state array
   for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++)
-    if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) NV_Ith_S(sd->y,i_dep_var++) = state[i_spec];
+    if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) state[i_spec] = (double) NV_Ith_S(sd->y,i_dep_var++);
 
   return PHLEX_SOLVER_SUCCESS;
 #else
@@ -247,11 +272,10 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *model_data,
 
 /** \brief Create a sparse Jacobian matrix based on model data
  *
- * \param n_dep_var Number of dependent variables
- * \param rxn_data A pointer to the reaction data
+ * \param solver_data A pointer to the SolverData
  * \return Sparse Jacobian matrix with all possible non-zero elements intialized to 1.0
  */
-SUNMatrix get_jac_init(int n_dep_var, void *rxn_data)
+SUNMatrix get_jac_init(SolverData *solver_data)
 {
   int n_rxn;			/* number of reactions in the mechanism 
   				 * (stored in first position in *rxn_data) */
@@ -259,23 +283,30 @@ SUNMatrix get_jac_init(int n_dep_var, void *rxn_data)
 				 * elements that could be used. */
   sunindextype n_jac_elem; 	/* number of potentially non-zero Jacobian elements */
 
+  // Number of variables on the state array (these are the ids the reactions are initialized with)
+  int n_state_var = solver_data->model_data.n_state_var;
+
   // Set up the 2D array of flags
-  jac_struct = (bool**) malloc(sizeof(bool*) * n_dep_var);
-  for (int i_spec=0; i_spec<n_dep_var; i_spec++) {
-    jac_struct[i_spec] = (bool*) malloc(sizeof(bool) * n_dep_var);
-    for (int j_spec=0; j_spec<n_dep_var; j_spec++) jac_struct[i_spec][j_spec] = false;
+  jac_struct = (bool**) malloc(sizeof(int*) * n_state_var);
+  for (int i_spec=0; i_spec < n_state_var; i_spec++) {
+    jac_struct[i_spec] = (bool*) malloc(sizeof(int) * n_state_var);
+    for (int j_spec=0; j_spec < n_state_var; j_spec++) jac_struct[i_spec][j_spec] = false;
   }
 
   // Fill in the 2D array of flags with Jacobian elements used by the
   // mechanism reactions
-  rxn_get_used_jac_elem(rxn_data, jac_struct);
+  rxn_get_used_jac_elem(&(solver_data->model_data), jac_struct);
 
   // Determine the number of non-zero Jacobian elements
-  for (int i=0, n_jac_elem = 0; i<n_dep_var; i++)
-    for (int j=0; j<n_dep_var; j++)
-      if (jac_struct[i][j]==true) n_jac_elem++;
+  n_jac_elem = 0;
+  for (int i=0; i<n_state_var; i++)
+    for (int j=0; j<n_state_var; j++)
+      if (jac_struct[i][j]==true &&
+	  solver_data->model_data.var_type[i]==CHEM_SPEC_VARIABLE &&
+	  solver_data->model_data.var_type[j]==CHEM_SPEC_VARIABLE) n_jac_elem++;
 
   // Initialize the sparse matrix
+  int n_dep_var = NV_LENGTH_S(solver_data->y);
   SUNMatrix M = SUNSparseMatrix(n_dep_var, n_dep_var, n_jac_elem, CSC_MAT);
 
   // Set the column and row indices
@@ -283,7 +314,7 @@ SUNMatrix get_jac_init(int n_dep_var, void *rxn_data)
   for (; i_col<n_dep_var; i_col++) {
     (SM_INDEXPTRS_S(M))[i_col] = i_elem;
     for (int i_row=0; i_row<n_dep_var; i_row++) {
-      if (jac_struct[i_col][i_row]==true) {
+      if (jac_struct[i_row][i_col]==true) {
 	(SM_DATA_S(M))[i_elem] = (realtype) 1.0;
 	(SM_INDEXVALS_S(M))[i_elem++] = i_row;
       }
@@ -291,9 +322,34 @@ SUNMatrix get_jac_init(int n_dep_var, void *rxn_data)
   }
   (SM_INDEXPTRS_S(M))[i_col] = i_elem;
 
-  // Free the memory used for the 2D array of flags
+  // Build the set of time derivative ids
+  int *deriv_ids = (int*) malloc(sizeof(int) * n_state_var);
+  for (int i_spec=0, i_dep_var=0; i_spec < n_state_var; i_spec++)
+    if (solver_data->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) {
+      deriv_ids[i_spec] = i_dep_var++;
+    } else {
+      deriv_ids[i_spec] = -1;
+    }
+
+  // Build the set of Jacobian ids
+  int **jac_ids = (int**) jac_struct;
+  for (int i_ind=0, i_jac_elem=0; i_ind < n_state_var; i_ind++)
+    for (int i_dep=0; i_dep < n_state_var; i_dep++)
+      if (solver_data->model_data.var_type[i_dep]==CHEM_SPEC_VARIABLE &&
+          solver_data->model_data.var_type[i_ind]==CHEM_SPEC_VARIABLE &&
+	  jac_struct[i_dep][i_ind]==true) {
+	jac_ids[i_dep][i_ind] = i_jac_elem++;
+      } else {
+	jac_ids[i_dep][i_ind] = -1;
+      }
+
+  // Update the ids in the reaction data
+  rxn_update_ids(&(solver_data->model_data), deriv_ids, jac_ids);
+
+  // Free the memory used
   for (int i_spec=0; i_spec<n_dep_var; i_spec++) free(jac_struct[i_spec]);
   free(jac_struct);
+  free(deriv_ids);
 
   return M;
     

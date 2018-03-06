@@ -91,8 +91,6 @@ module pmc_rxn_arrhenius
 #define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + _NUM_PROD_ + x)
 #define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_ + 2*(_NUM_REACT_+_NUM_PROD_) + x)
 #define _yield_(x) this%condensed_data_real(_NUM_REAL_PROP_ + x)
-#define _INT_DATA_SIZE_ (_NUM_INT_PROP_+(_NUM_REACT_*2)*(_NUM_REACT_+_NUM_PROD_))
-#define _REAL_DATA_SIZE_ (_NUM_REAL_PROP_+_NUM_PROD_)
 
   public :: rxn_arrhenius_t
 
@@ -176,9 +174,12 @@ contains
     ! Space in this example is allocated for two sets of inidices for the 
     ! reactants and products, one molecular property for each reactant, 
     ! yields for the products and three reaction parameters.
-    allocate(this%condensed_data_int(_INT_DATA_SIZE_))
-    allocate(this%condensed_data_real(_REAL_DATA_SIZE_))
-    
+    allocate(this%condensed_data_int(_NUM_INT_PROP_ + &
+            (i_spec * 3) * (i_spec + products%size())))
+    allocate(this%condensed_data_real(_NUM_REAL_PROP_ + products%size()))
+    this%condensed_data_int(:) = int(0, kind=i_kind)
+    this%condensed_data_real(:) = real(0.0, kind=dp)
+
     ! Save the size of the reactant and product arrays (for reactions where these
     ! can vary)
     _NUM_REACT_ = i_spec
@@ -409,6 +410,4 @@ contains
 #undef _DERIV_ID_
 #undef _JAC_ID_
 #undef _yield_
-#undef _INT_DATA_SIZE_
-#undef _REAL_DATA_SIZE_
 end module pmc_rxn_arrhenius

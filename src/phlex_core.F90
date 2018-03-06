@@ -676,16 +676,16 @@ contains
     integer(kind=i_kind), pointer :: var_type(:)
     ! Current species name
     character(len=:), allocatable :: spec_name
-    ! Species type id
-    integer(kind=i_kind) :: spec_type
+    ! Species phase
+    integer(kind=i_kind) :: spec_phase
 
     ! Get the variable types and absolute tolerances for the state array species
     allocate(abs_tol(this%state_array_size))
     allocate(var_type(this%state_array_size))
     i_state_var = 0
     do i_spec = 1, this%chem_spec_data%size()
-      call assert(525410636, this%chem_spec_data%get_type(i_spec, spec_type))
-      if (spec_type.ne.CHEM_SPEC_GAS_PHASE) cycle
+      call assert(340050281, this%chem_spec_data%get_phase(i_spec, spec_phase))
+      if (spec_phase.ne.CHEM_SPEC_GAS_PHASE) cycle
       i_state_var = i_state_var + 1
       call assert(716433999, &
               this%chem_spec_data%get_abs_tol(i_spec, abs_tol(i_state_var)))
@@ -703,6 +703,12 @@ contains
       end do
     end do
 
+    ! Make sure absolute tolerance and variable type arrays are completely filled
+    call assert_msg(501609702, i_state_var.eq.this%state_array_size, &
+            "Internal error. Filled "//trim(to_string(i_state_var))//" of "//&
+            trim(to_string(this%state_array_size))//" elements of absolute "//&
+            "tolerance and variable type arrays")
+
     ! Set up either two solvers (gas and aerosol) or one solver (combined)
     if (this%split_gas_aero) then
 
@@ -711,7 +717,7 @@ contains
       this%solver_data_aero => phlex_solver_data_t()
     
       ! Set custom relative integration tolerance, if present
-      if (this%rel_tol.ne.0.0) then
+      if (this%rel_tol.ne.real(0.0, kind=dp)) then
         this%solver_data_gas%rel_tol = this%rel_tol
         this%solver_data_aero%rel_tol = this%rel_tol
       end if
@@ -734,6 +740,11 @@ contains
       ! Create a new solver data object
       this%solver_data_gas_aero => phlex_solver_data_t()
 
+      ! Set custom relative integration tolerance, if present
+      if (this%rel_tol.ne.0.0) then
+        this%solver_data_gas_aero%rel_tol = this%rel_tol
+      end if
+    
       ! Initialize the solver
       call this%solver_data_gas_aero%initialize( &
                 var_type,               & ! State array variable types
@@ -742,12 +753,11 @@ contains
                 GAS_AERO_RXN            & ! Reaction phase
                 )
       
-      ! Set custom relative integration tolerance, if present
-      if (this%rel_tol.ne.0.0) then
-        this%solver_data_gas_aero%rel_tol = this%rel_tol
-      end if
-    
     end if
+
+    ! Free allocated memory
+    deallocate(var_type)
+    deallocate(abs_tol)
 
   end subroutine solver_initialize
 
@@ -952,6 +962,7 @@ contains
     write(f_unit,*) "*********************"
     write(f_unit,*) "** Phlex core data **"
     write(f_unit,*) "*********************"
+    write(f_unit,*) "Relative integration tolerance: ", this%rel_tol
     call this%chem_spec_data%print(f_unit)
     write(f_unit,*) "Number of mechanisms: ", size(this%mechanism)
     do i_mech=1, size(this%mechanism)

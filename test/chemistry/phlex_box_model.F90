@@ -72,7 +72,7 @@ contains
 #ifdef FIX_THIS_LATER
 
     type(phlex_core_t), pointer :: phlex_core
-    type(phlex_state_t), target :: phlex_state
+    type(phlex_state_t), pointer:: phlex_state
     type(integration_data_t), pointer :: integration_data
 
     character, allocatable :: buffer(:)

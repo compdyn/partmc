@@ -66,7 +66,7 @@ module pmc_mechanism_data
     !> Path and prefix for fixed module output
     character(len=:), allocatable :: fixed_file_prefix
     !> Reactions
-    type(rxn_data_ptr), pointer, public :: rxn_ptr(:) => null()
+    type(rxn_data_ptr), pointer :: rxn_ptr(:) => null()
   contains
     !> Load reactions from an input file
     procedure :: load
@@ -76,6 +76,8 @@ module pmc_mechanism_data
     procedure :: name => get_name
     !> Get the size of the species database
     procedure :: size => get_size
+    !> Get a reaction by its index
+    procedure :: get_rxn
     !> Build a fixed mechanism module
     procedure :: build_fixed_module
     !> Determine the number of bytes required to pack the given value
@@ -253,6 +255,26 @@ contains
     get_size = this%num_rxn
 
   end function get_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get a reaction by its index
+  function get_rxn(this, rxn_id) result (rxn_ptr)
+
+    !> Pointer to the reaction
+    class(rxn_data_t), pointer :: rxn_ptr
+    !> Mechanism data
+    class(mechanism_data_t), intent(in) :: this
+    !> Reaction index
+    integer(kind=i_kind), intent(in) :: rxn_id
+
+    call assert_msg(129484547, rxn_id.gt.0 .and. rxn_id .le. this%num_rxn, &
+            "Invalid reaction id: "//trim(to_string(rxn_id))//&
+            "exptected a value between 1 and "//trim(to_string(this%num_rxn)))
+
+    rxn_ptr => this%rxn_ptr(rxn_id)%val
+
+  end function get_rxn
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

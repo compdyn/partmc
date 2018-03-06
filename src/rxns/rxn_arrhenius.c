@@ -10,7 +10,7 @@
 */
 #include "../rxn_solver.h"
 
-// TODO Lookup environmental indicies during initialization
+// TODO Lookup environmental indices during initialization
 #define _TEMPERATURE_K_ env_data[0]
 #define _PRESSURE_PA_ env_data[1]
 
@@ -25,8 +25,8 @@
 #define _RATE_CONSTANT_ float_data[6]
 #define _NUM_INT_PROP_ 2
 #define _NUM_FLOAT_PROP_ 7
-#define _REACT_(x) int_data[_NUM_INT_PROP_ + x]
-#define _PROD_(x) int_data[_NUM_INT_PROP_ + _NUM_REACT_ + x]
+#define _REACT_(x) (int_data[_NUM_INT_PROP_ + x]-1)
+#define _PROD_(x) (int_data[_NUM_INT_PROP_ + _NUM_REACT_ + x]-1)
 #define _DERIV_ID_(x) int_data[_NUM_INT_PROP_ + _NUM_REACT_ + _NUM_PROD_ + x]
 #define _JAC_ID_(x) int_data[_NUM_INT_PROP_ + 2*(_NUM_REACT_+_NUM_PROD_) + x]
 #define _yield_(x) float_data[_NUM_FLOAT_PROP_ + x]
@@ -47,15 +47,46 @@ void * rxn_arrhenius_get_used_jac_elem(void *rxn_data, bool **jac_struct)
 
   for (int i_ind = 0; i_ind < _NUM_REACT_; i_ind++) {
     for (int i_dep = 0; i_dep < _NUM_REACT_; i_dep++) {
-      jac_struct[i_dep][i_ind] = true;
+      jac_struct[_REACT_(i_dep)][_REACT_(i_ind)] = true;
     }
     for (int i_dep = 0; i_dep < _NUM_PROD_; i_dep++) {
-      jac_struct[i_dep][i_ind] = true;
+      jac_struct[_PROD_(i_dep)][_REACT_(i_ind)] = true;
     }
   }
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }  
+
+/** \brief Update the time derivative and Jacbobian array indices
+ *
+ * \param deriv_ids Id of each state variable in the derivative array
+ * \param jac_ids Id of each state variable combo in the Jacobian array
+ * \param rxn_data Pointer to the reaction data
+ * \return The rxn_data pointer advanced by the size of the reaction data
+ */
+void * rxn_arrhenius_update_ids(int *deriv_ids, int **jac_ids, void *rxn_data)
+{
+  int *int_data = (int*) rxn_data;
+  realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
+
+  // Update the time derivative ids
+  for (int i=0; i < _NUM_REACT_; i++)
+	  _DERIV_ID_(i) = deriv_ids[_REACT_(i)];
+  for (int i=0; i < _NUM_PROD_; i++)
+	  _DERIV_ID_(i + _NUM_REACT_) = deriv_ids[_PROD_(i)];
+
+  // Update the Jacobian ids
+  int i_jac = 0;
+  for (int i_ind = 0; i_ind < _NUM_REACT_; i_ind++) {
+    for (int i_dep = 0; i_dep < _NUM_REACT_; i_dep++) {
+      _JAC_ID_(i_jac++) = jac_ids[_REACT_(i_dep)][_REACT_(i_ind)];
+    }
+    for (int i_dep = 0; i_dep < _NUM_PROD_; i_dep++) {
+      _JAC_ID_(i_jac++) = jac_ids[_PROD_(i_dep)][_REACT_(i_ind)];
+    }
+  }
+  return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
+}
 
 /** \brief Update reaction data for new environmental conditions
  *
@@ -102,10 +133,14 @@ void * rxn_arrhenius_calc_deriv_contrib(realtype *state, realtype *deriv,
   // Add contributions to the time derivative
   if (rate!=ZERO) {
     int i_dep_var = 0;
-    for (int i_spec=0; i_spec<_NUM_REACT_; i_spec++) 
-	    deriv[_DERIV_ID_(i_dep_var++)] -= rate;
-    for (int i_spec=0; i_spec<_NUM_REACT_; i_spec++) 
-	    deriv[_DERIV_ID_(i_dep_var++)] += rate*_yield_(i_spec);
+    for (int i_spec=0; i_spec<_NUM_REACT_; i_spec++, i_dep_var++) {
+      if (_DERIV_ID_(i_dep_var) < 0) continue; 
+      deriv[_DERIV_ID_(i_dep_var)] -= rate;
+    }
+    for (int i_spec=0; i_spec<_NUM_PROD_; i_spec++, i_dep_var++) {
+      if (_DERIV_ID_(i_dep_var) < 0) continue; 
+      deriv[_DERIV_ID_(i_dep_var)] += rate*_yield_(i_spec);
+    }
   }
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
@@ -132,12 +167,16 @@ void * rxn_arrhenius_calc_jac_contrib(realtype *state, realtype *J,
   // Add contributions to the Jacobian
   if (rate!=ZERO) {
     int i_elem = 0;
-    for (int i_dep=0; i_dep<_NUM_REACT_; i_dep++)
-      for (int i_ind=0; i_ind<_NUM_REACT_; i_ind++)
-	J[_JAC_ID_(i_elem++)] -= rate / state[_REACT_(i_ind)];
-    for (int i_dep=0; i_dep<_NUM_PROD_; i_dep++)
-      for (int i_ind=0; i_ind<_NUM_REACT_; i_ind++)
-	J[_JAC_ID_(i_elem++)] += _yield_(i_dep) * rate / state[_REACT_(i_ind)];
+    for (int i_ind=0; i_ind<_NUM_REACT_; i_ind++) {
+      for (int i_dep=0; i_dep<_NUM_REACT_; i_dep++, i_elem++) {
+	if (_JAC_ID_(i_elem) < 0) continue;
+	J[_JAC_ID_(i_elem)] -= rate / state[_REACT_(i_ind)];
+      }
+      for (int i_dep=0; i_dep<_NUM_PROD_; i_dep++, i_elem++) {
+	if (_JAC_ID_(i_elem) < 0) continue;
+	J[_JAC_ID_(i_elem)] += _yield_(i_dep) * rate / state[_REACT_(i_ind)];
+      }
+    }
   }
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
@@ -154,6 +193,25 @@ void * rxn_arrhenius_skip(void *rxn_data)
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
+  return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
+}
+
+/** \brief Print the Arrhenius reaction parameters
+ *
+ * \param rxn_data Pointer to the reaction data
+ * \return The rxn_data pointer advanced by the size of the reaction data
+ */
+void * rxn_arrhenius_print(void *rxn_data)
+{
+  int *int_data = (int*) rxn_data;
+  realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
+
+  printf("\n\nArrhenius reaction\n");
+  for (int i=0; i<_INT_DATA_SIZE_; i++) 
+    printf("  int param %d = %d\n", i, int_data[i]);
+  for (int i=0; i<_FLOAT_DATA_SIZE_; i++)
+    printf("  float param %d = %le\n", i, float_data[i]);
+ 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
 

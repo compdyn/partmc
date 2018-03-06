@@ -115,7 +115,7 @@ void * rxn_troe_calc_deriv_contrib(double *state, double *deriv,
     int i_dep_var = 0;
     for (int i_spec=0; i_spec<_NUM_REACT_; i_spec++) 
 	    deriv[_DERIV_ID_(i_dep_var++)] -= rate;
-    for (int i_spec=0; i_spec<_NUM_REACT_; i_spec++) 
+    for (int i_spec=0; i_spec<_NUM_PROD_; i_spec++) 
 	    deriv[_DERIV_ID_(i_dep_var++)] += rate*_yield_(i_spec);
   }
 

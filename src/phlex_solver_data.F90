@@ -36,30 +36,37 @@ module pmc_phlex_solver_data
 
   !> Interface to c ODE solver functions
   interface
-    !> Solver initialization
-    type(c_ptr) function solver_initialize(n_state_var, var_type, &
-                    abstol, reltol, max_steps, max_conv_fails, &
+    !> Get a new solver 
+    type(c_ptr) function solver_new(n_state_var, var_type, &
                     n_rxn, n_int_param, n_float_param) bind (c)
       use iso_c_binding
       !> Number of variables on the state array (including const, PSSA, etc.)
       integer(kind=c_int), value :: n_state_var
       !> Pointer to array of state variable types (solver, constant, PSSA)
       type(c_ptr), value :: var_type
-      !> Pointer to array of absolute toleracnes
-      type(c_ptr), value :: abstol
-      !> Relative integration tolerance
-      real(kind=c_double), value :: reltol
-      !> Maximum number of internal integration steps
-      integer(kind=c_int), value :: max_steps
-      !> Maximum number of convergence failures
-      integer(kind=c_int), value :: max_conv_fails
       !> Number of reactions to solve
       integer(kind=c_int), value :: n_rxn
       !> Total number of integer parameters for all reactions
       integer(kind=c_int), value :: n_int_param
       !> Total number of floating-point parameters for all reactions
       integer(kind=c_int), value :: n_float_param
-    end function solver_initialize
+    end function solver_new
+
+    !> Solver initialization
+    subroutine solver_initialize(solver_data, abs_tol, rel_tol, max_steps, &
+                    max_conv_fails) bind (c)
+      use iso_c_binding
+      !> Pointer to a SolverData object
+      type(c_ptr), value :: solver_data
+      !> Pointer to array of absolute toleracnes
+      type(c_ptr), value :: abs_tol
+      !> Relative integration tolerance
+      real(kind=c_double), value :: rel_tol
+      !> Maximum number of internal integration steps
+      integer(kind=c_int), value :: max_steps
+      !> Maximum number of convergence failures
+      integer(kind=c_int), value :: max_conv_fails
+    end subroutine solver_initialize
   
     !> Run the solver
     integer(kind=c_int) function solver_run(solver_data, state, env, &
@@ -177,6 +184,8 @@ contains
     !! GAS_RXN, AERO_RXN, GAS_AERO_RXN
     integer(kind=i_kind), intent(in) :: rxn_phase
 
+    ! Variable types
+    integer(kind=c_int), pointer :: var_type_c(:)
     ! Absolute tolerances
     real(kind=c_double), pointer :: abs_tol_c(:)
     ! Indices for iteration
@@ -189,72 +198,77 @@ contains
     integer(kind=c_int), pointer :: int_param(:)
     ! Floating point parameters being transfered
     real(kind=c_double), pointer :: float_param(:)
-    ! Reaction phase to include
-    integer(kind=i_kind) :: phase
     ! Number of reactions
-    integer(kind=c_int) :: n_rxn = 0
+    integer(kind=c_int) :: n_rxn
     ! Number of integer reaction parameters
-    integer(kind=c_int) :: n_int_param = 0
+    integer(kind=c_int) :: n_int_param
     ! Number of floating-point reaction parameters
-    integer(kind=c_int) :: n_float_param = 0
+    integer(kind=c_int) :: n_float_param
 
-    ! Set the absolute tolerances
+    ! Make sure the variable type and absolute tolerance arrays are of 
+    ! equal length
+    call assert_msg(825843466, size(abs_tol).eq.size(var_type), &
+            "Mismatched absolute tolerance and variable type arrays: "// &
+            "abs_tol size: "//trim(to_string(size(abs_tol)))// &
+            "; var_type: "//trim(to_string(size(var_type))))
+
+    ! Set the absolute tolerance and variable type arrays
+    allocate(var_type_c(size(var_type)))
     allocate(abs_tol_c(size(abs_tol)))
+    var_type_c(:) = int(var_type(:), kind=c_int)
     abs_tol_c(:) = real(abs_tol(:), kind=c_double)
+
+    ! Initialize the counters
+    n_rxn = 0
+    n_int_param = 0
+    n_float_param = 0
 
     ! Calculate the number of reactions and the size of the condensed data
     do i_mech=1, size(mechanisms)
-      do i_rxn=1, size(mechanisms(i_mech)%rxn_ptr)
-        select case (mechanisms(i_mech)%rxn_ptr(i_rxn)%val%rxn_phase)
+      do i_rxn=1, mechanisms(i_mech)%size()
+        associate (rxn => mechanisms(i_mech)%get_rxn(i_rxn))
+        select case (rxn%rxn_phase)
           case (GAS_RXN)
-            if (phase.eq.AERO_RXN) cycle
+            if (rxn_phase.eq.AERO_RXN) cycle
           case (AERO_RXN)
-            if (phase.eq.GAS_RXN) cycle
+            if (rxn_phase.eq.GAS_RXN) cycle
           case (GAS_AERO_RXN)
-            if (phase.eq.GAS_RXN) cycle
+            if (rxn_phase.eq.GAS_RXN) cycle
         end select
         n_rxn = n_rxn + 1
-        associate (rxn => mechanisms(i_mech)%rxn_ptr(i_rxn)%val)
         n_int_param = n_int_param + size(rxn%condensed_data_int)
         n_float_param = n_float_param + size(rxn%condensed_data_real)
         end associate
       end do
     end do
 
-    ! Initialize the solver
-    this%solver_c_ptr = solver_initialize( &
-            size(var_type),                             & ! Size of the state variable
-            c_loc(var_type),                            & ! Variable types
-            c_loc(abs_tol_c),                           & ! Absolute tolerances
-            real(this%rel_tol, kind=c_double),          & ! Relative tolerance
-            int(this%max_steps, kind=c_int),            & ! Maximum number of integration steps
-            int(this%max_conv_fails, kind=c_int),       & ! Maximum number of convergence failures
+    ! Get a new solver object
+    this%solver_c_ptr = solver_new( &
+            int(size(var_type_c), kind=c_int),          & ! Size of the state variable
+            c_loc(var_type_c),                          & ! Variable types
             n_rxn,                                      & ! Number of reactions
             n_int_param,                                & ! Number of integer parameters
             n_float_param                               & ! Number of floating-point parameters
             )
 
-    ! Free memory allocated for solver initialization
-    deallocate(abs_tol_c)
-
     ! Add all the condensed reaction data to the solver data block for reactions
     ! of the specified phase
     do i_mech=1, size(mechanisms)
-      do i_rxn=1, size(mechanisms(i_mech)%rxn_ptr)
+      do i_rxn=1, mechanisms(i_mech)%size()
+        
+        ! Assign rxn to the current reaction
+        associate (rxn => mechanisms(i_mech)%get_rxn(i_rxn))
         
         ! Check reaction phase
-        select case (mechanisms(i_mech)%rxn_ptr(i_rxn)%val%rxn_phase)
+        select case (rxn%rxn_phase)
           case (GAS_RXN)
-            if (phase.eq.AERO_RXN) cycle
+            if (rxn_phase.eq.AERO_RXN) cycle
           case (AERO_RXN)
-            if (phase.eq.GAS_RXN) cycle
+            if (rxn_phase.eq.GAS_RXN) cycle
           case (GAS_AERO_RXN)
-            if (phase.eq.GAS_RXN) cycle
+            if (rxn_phase.eq.GAS_RXN) cycle
         end select
 
-        ! Assign rxn to the current reaction
-        associate (rxn => mechanisms(i_mech)%rxn_ptr(i_rxn)%val)
-        
         ! Load temporary data arrays
         allocate(int_param(size(rxn%condensed_data_int)))
         allocate(float_param(size(rxn%condensed_data_real)))
@@ -278,6 +292,19 @@ contains
         end associate
       end do
     end do
+
+    ! Initialize the solver
+    call solver_initialize( &
+            this%solver_c_ptr,                          & ! Pointer to solver data
+            c_loc(abs_tol_c),                           & ! Absolute tolerances
+            real(this%rel_tol, kind=c_double),          & ! Relative tolerance
+            int(this%max_steps, kind=c_int),            & ! Maximum number of integration steps
+            int(this%max_conv_fails, kind=c_int)        & ! Maximum number of convergence failures
+            )
+
+    ! Free memory allocated for solver initialization
+    deallocate(abs_tol_c)
+    deallocate(var_type_c)
 
   end subroutine initialize
 

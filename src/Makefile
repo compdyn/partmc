@@ -18,6 +18,7 @@ PMC_MODULES =                           \
   aero_weight.o                 \
   aero_weight_array.o           \
   bin_grid.o                    \
+  chamber.o                     \
   coag_kernel.o                 \
   coag_kernel_additive.o        \
   coag_kernel_brown.o           \
@@ -105,6 +106,8 @@ aero_weight_array.o: util.o constants.o rand.o spec_file.o \
 
 bin_grid.o: constants.o util.o spec_file.o mpi.o netcdf.o
 
+chamber.o: aero_data.o constants.o env_state.o spec_file.o
+
 coag_kernel.o: env_state.o bin_grid.o aero_particle.o \
      aero_data.o aero_weight.o aero_weight_array.o coag_kernel_sedi.o \
      coag_kernel_additive.o coag_kernel_constant.o \
@@ -173,7 +176,7 @@ output.o: bin_grid.o aero_data.o aero_state.o aero_binned.o \
 rand.o: util.o constants.o mpi.o
 
 scenario.o: gas_state.o aero_dist.o util.o env_state.o \
-     aero_state.o spec_file.o aero_data.o gas_data.o mpi.o
+     aero_state.o spec_file.o aero_data.o gas_data.o mpi.o chamber.o
 
 spec_file.o: spec_line.o util.o
 

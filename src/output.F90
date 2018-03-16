@@ -365,8 +365,6 @@ contains
     !!     processes that computed the data)
 
 #ifdef PMC_USE_WRF
-    !write(filename,'(a,a,i3.3,a,i3.3,a,i3.3,a,i8.8,a)') trim(prefix), &
-    !     '_',env_state%ix,'_',env_state%iy,'_',env_state%iz,'_', index,'.nc'
     write(filename,'(a,a,i3.3,a,i3.3,a,i8.8,a)') trim(prefix), &
          '_',env_state%ix,'_',env_state%iy,'_', index,'.nc'
 #else
@@ -375,28 +373,32 @@ contains
 #endif
 
 #ifdef PMC_USE_WRF
-if (env_state%iz == 1) then
-#endif
+    if (env_state%iz == 1) then
+       call pmc_nc_open_write(filename, ncid)
+       call pmc_nc_write_info(ncid, uuid, &
+            "WRF-PartMC version " // trim(PARTMC_VERSION), write_rank, write_n_proc)
+       call write_time(ncid, time, del_t, index)
+       call pmc_nc_write_integer(ncid, i_repeat, "repeat", &
+            description="repeat number of this simulation (starting from 1)")
+    else
+       call pmc_nc_check_msg(nf90_open(filename, NF90_WRITE, ncid), &
+            "opening " // trim(filename) // " for writing")
+    end if
+#else
     call pmc_nc_open_write(filename, ncid)
     call pmc_nc_write_info(ncid, uuid, &
          "PartMC version " // trim(PARTMC_VERSION), write_rank, write_n_proc)
     call write_time(ncid, time, del_t, index)
     call pmc_nc_write_integer(ncid, i_repeat, "repeat", &
          description="repeat number of this simulation (starting from 1)")
-#ifdef PMC_USE_WRF
-else
-    call pmc_nc_check_msg(nf90_open(filename, NF90_WRITE, ncid), &
-         "opening " // trim(filename) // " for reading")
-end if
 #endif
 
-! FIXME: We can do better here
 #ifdef PMC_USE_WRF
-    call pmc_nc_check_msg(nf90_redef(ncid),'in define mode')
+    call pmc_nc_check_msg(nf90_redef(ncid),'in define mode for level')
     write(group_name,'(a,i2.2)') 'level_', env_state%iz
-    call pmc_nc_check_msg(nf90_def_grp(ncid,group_name,ncid_group), &
-         'creating group')
-    call pmc_nc_check_msg(nf90_enddef(ncid),'end define mode')
+    call pmc_nc_check_msg(nf90_def_grp(ncid, group_name, ncid_group), &
+         'creating level group')
+    call pmc_nc_check_msg(nf90_enddef(ncid),'end define mode for level')
     call env_state_output_netcdf(env_state, ncid_group)
     call gas_data_output_netcdf(gas_data, ncid_group)
     call gas_state_output_netcdf(gas_state, ncid_group, gas_data)

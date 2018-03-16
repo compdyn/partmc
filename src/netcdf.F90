@@ -777,15 +777,15 @@ contains
     ! Inquire for the dimension IDs
     call pmc_nc_check(nf90_inquire_variable(ncid, varid, dimids=dimids))
     ! Loop over all the dimensions to get their lengths
-    do dim = 1, 4
+    do dim = 1,4
        call pmc_nc_check(nf90_inquire_dimension(ncid, dimids(dim), &
             len=dim_size(dim)))
     end do
 
     ! Now allocate an array to hold the value
     if (allocated(var)) deallocate(var)
-    allocate(var(dim_size(1),dim_size(2),dim_size(3),dim_size(4)))
-    call pmc_nc_check(nf90_get_var(ncid,varid,values=var))
+    allocate(var(dim_size(1), dim_size(2), dim_size(3), dim_size(4)))
+    call pmc_nc_check(nf90_get_var(ncid, varid, values=var))
 
   end subroutine pmc_nc_get_4d_var_real
 
@@ -827,15 +827,15 @@ contains
     ! Inquire for the dimension IDs
     call pmc_nc_check(nf90_inquire_variable(ncid, varid, dimids=dimids))
     ! Loop over all the dimensions to get their lengths
-    do dim = 1, 4
+    do dim = 1,4
        call pmc_nc_check(nf90_inquire_dimension(ncid, dimids(dim), &
             len=dim_size(dim)))
     end do
 
     ! Now allocate an array to hold the value
     if (allocated(var)) deallocate(var)
-    allocate(var(dim_size(1),dim_size(2),dim_size(3),dim_size(4)))
-    call pmc_nc_check(nf90_get_var(ncid,varid,values=var))
+    allocate(var(dim_size(1), dim_size(2), dim_size(3), dim_size(4)))
+    call pmc_nc_check(nf90_get_var(ncid, varid, values=var))
 
   end subroutine pmc_nc_get_4d_var_int
 
@@ -877,15 +877,15 @@ contains
     ! Inquire for the dimension IDs
     call pmc_nc_check(nf90_inquire_variable(ncid, varid, dimids=dimids))
     ! Loop over all the dimensions to get their lengths
-    do dim = 1, 3
+    do dim = 1,3
        call pmc_nc_check(nf90_inquire_dimension(ncid, dimids(dim), &
             len=dim_size(dim)))
     end do
 
     ! Now allocate an array to hold the value
     if (allocated(var)) deallocate(var)
-    allocate(var(dim_size(1),dim_size(2),dim_size(3)))
-    call pmc_nc_check(nf90_get_var(ncid,varid,values=var))
+    allocate(var(dim_size(1), dim_size(2), dim_size(3)))
+    call pmc_nc_check(nf90_get_var(ncid, varid, values=var))
 
   end subroutine pmc_nc_get_3d_var_real
 
@@ -923,5 +923,7 @@ contains
          "getting variable " // trim(name))
 
   end subroutine pmc_nc_read_real_3d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_netcdf

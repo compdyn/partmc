@@ -664,6 +664,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Get the weight class for an aero_mode.
+  integer function aero_mode_get_weight_class(aero_mode)
+
+    !> Aero_mode to get weight class for.
+    type(aero_mode_t) :: aero_mode
+
+    aero_mode_get_weight_class = aero_mode%weight_class
+
+  end function aero_mode_get_weight_class
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Read volume fractions from a data file.
   subroutine spec_file_read_vol_frac(file, aero_data, vol_frac, vol_frac_std)
 
@@ -878,6 +890,7 @@ contains
     character(len=SPEC_LINE_MAX_VAR_LEN) :: tmp_str, mode_type, diam_type_str
     character(len=SPEC_LINE_MAX_VAR_LEN) :: mass_frac_filename
     character(len=SPEC_LINE_MAX_VAR_LEN) :: size_dist_filename
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: weight_class_name
     type(spec_line_t) :: line
     type(spec_file_t) :: mass_frac_file, size_dist_file
     real(kind=dp) :: diam, temp, pressure
@@ -985,7 +998,10 @@ contains
        tmp_str = line%data(1) ! hack to avoid gfortran warning
        aero_mode%name = tmp_str(1:AERO_MODE_NAME_LEN)
        aero_mode%source = aero_data_source_by_name(aero_data, aero_mode%name)
-       call spec_file_read_integer(file, 'class', aero_mode%weight_class)
+       call spec_file_read_string(file, 'class', weight_class_name)
+       print*, trim(aero_mode%name), trim(weight_class_name)
+       aero_mode%weight_class = aero_data_weight_class_by_name(aero_data, &
+            weight_class_name)
        call spec_file_read_string(file, 'mass_frac', mass_frac_filename)
        call spec_file_open(mass_frac_filename, mass_frac_file)
        call spec_file_read_vol_frac(mass_frac_file, aero_data, &

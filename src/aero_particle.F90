@@ -165,6 +165,24 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  subroutine aero_particle_get_component_sources(aero_particle, source_list)
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Number of components from each source.
+    integer, intent(inout) :: source_list(:)
+
+    integer :: i_comp, i_source
+
+    do i_comp = 1,aero_particle_n_components(aero_particle)
+       i_source = aero_particle%component(i_comp)%source_id
+       source_list(i_source) = source_list(i_source) + 1
+    end do
+
+  end subroutine aero_particle_get_component_sources
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Sets the aerosol particle volumes.
   subroutine aero_particle_set_vols(aero_particle, vols)
 
@@ -869,6 +887,8 @@ contains
     !> Result particle.
     type(aero_particle_t), intent(inout) :: aero_particle_new
 
+    integer :: n_comp_1, n_comp_2
+
     call assert(203741686, size(aero_particle_1%vol) &
          == size(aero_particle_2%vol))
     aero_particle_new%vol = aero_particle_1%vol + aero_particle_2%vol
@@ -902,7 +922,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Return the number of aerosol components, or -1 if uninitialized.
-  integer function aero_particle_n_components(particle)
+  elemental integer function aero_particle_n_components(particle)
 
     !> Value to pack.
     type(aero_particle_t), intent(in) :: particle
@@ -922,6 +942,8 @@ contains
 
     !> Value to pack.
     type(aero_particle_t), intent(in) :: val
+
+    integer :: i
 
     pmc_mpi_pack_size_aero_particle = &
          pmc_mpi_pack_size_real_array(val%vol) &

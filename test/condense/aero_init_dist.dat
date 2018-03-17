@@ -1,5 +1,6 @@
 # page 430 Seinfeld & Pandis: remote continental
 mode_name init_small
+weight_class_name init_small
 mass_frac aero_init_comp.dat      # composition proportions of species
 diam_type geometric             # type of diameter specified
 mode_type log_normal              # type of distribution
@@ -9,6 +10,7 @@ log10_geom_std_dev 0.161          # log_10 of geometric std dev of diameter
 
 # page 430 Seinfeld & Pandis: remote continental
 mode_name init_large
+weight_class_name init_large
 mass_frac aero_init_comp.dat      # composition proportions of species
 diam_type geometric             # type of diameter specified
 mode_type log_normal              # type of distribution

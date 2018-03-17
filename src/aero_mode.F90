@@ -998,8 +998,7 @@ contains
        tmp_str = line%data(1) ! hack to avoid gfortran warning
        aero_mode%name = tmp_str(1:AERO_MODE_NAME_LEN)
        aero_mode%source = aero_data_source_by_name(aero_data, aero_mode%name)
-       call spec_file_read_string(file, 'class', weight_class_name)
-       print*, trim(aero_mode%name), trim(weight_class_name)
+       call spec_file_read_string(file, 'weight_class_name', weight_class_name)
        aero_mode%weight_class = aero_data_weight_class_by_name(aero_data, &
             weight_class_name)
        call spec_file_read_string(file, 'mass_frac', mass_frac_filename)

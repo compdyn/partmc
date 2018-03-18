@@ -495,7 +495,7 @@ contains
              call spec_file_read_aero_state_weighting_type(file, &
                   run_part_opt%weighting_type, run_part_opt%weighting_exponent)
           else
-             run_part_opt%weighting_type = AERO_STATE_WEIGHT_NUMMASS_SOURCE
+             run_part_opt%weighting_type = AERO_STATE_WEIGHT_NUMMASS_SPECIFIED
              run_part_opt%weighting_exponent = 0.0d0
           end if
        end if

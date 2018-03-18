@@ -477,7 +477,8 @@ contains
             run_part_opt%do_nucleation)
        if (run_part_opt%do_nucleation) then
           call spec_file_read_nucleate_type(file, aero_data, &
-               run_part_opt%nucleate_type, run_part_opt%nucleate_source)
+               run_part_opt%nucleate_type, run_part_opt%nucleate_source, &
+               run_part_opt%nucleate_weight_class)
        else
           run_part_opt%nucleate_type = NUCLEATE_TYPE_INVALID
        end if

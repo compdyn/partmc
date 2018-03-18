@@ -2884,7 +2884,6 @@ contains
 
     do i_part = 1,n_part
        aero_particle%vol = aero_particle_mass(i_part, :) / aero_data%density
-       ! Reassemble components
        allocate(aero_particle%component(aero_component_len(i_part)))
        do i_comp = 1,aero_component_len(i_part)
           aero_particle%component(i_comp)%source_id = &
@@ -2926,6 +2925,7 @@ contains
             aero_data)))
 
        call aero_state_add_particle(aero_state, aero_particle, aero_data)
+       deallocate(aero_particle%component)
     end do
 
     call pmc_nc_read_integer_1d(ncid, aero_removed_id, &

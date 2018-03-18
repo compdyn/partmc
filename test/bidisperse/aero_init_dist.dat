@@ -7,7 +7,7 @@ num_conc 1e9                    # particle number concentration (#/m^3)
 diam 2e-5                       # particle diameter (m)
 
 mode_name init2                 # name of mode source
-weight_classname init2          # weight class name
+weight_class_name init2          # weight class name
 mass_frac aero_init_comp.dat    # species mass fractions
 diam_type geometric             # type of diameter specified
 mode_type mono                  # type of mode

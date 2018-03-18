@@ -74,7 +74,7 @@ module pmc_mechanism_data
     procedure :: initialize
     !> Get the mechanism name
     procedure :: name => get_name
-    !> Get the size of the species database
+    !> Get the size of the reaction database
     procedure :: size => get_size
     !> Get a reaction by its index
     procedure :: get_rxn

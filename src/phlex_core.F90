@@ -138,7 +138,7 @@ module pmc_phlex_core
     !> Get a new model state variable
     procedure :: new_state
     !> Initialize the solver
-    procedure, private :: solver_initialize
+    procedure :: solver_initialize
     !> Set a photolysis rate
     procedure :: set_photo_rate
     !> Run the chemical mechanisms
@@ -460,9 +460,6 @@ contains
       call this%mechanism(i_mech)%initialize(this%chem_spec_data)
     end do
 
-    ! Initialize the solver
-    call this%solver_initialize()
-
   end subroutine initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -765,7 +762,7 @@ contains
 
   !> Set a photolysis rate constant. This function should be called by an
   !! external photolysis module to update the photolysis rate constants when
-  !! necessary using an photo id provided by the external module during 
+  !! necessary using a photo id provided by the external module during 
   !! intialization.
   subroutine set_photo_rate(this, photo_id, base_rate)
 
@@ -968,6 +965,19 @@ contains
     do i_mech=1, size(this%mechanism)
       call this%mechanism(i_mech)%print(f_unit)
     end do
+    write(f_unit,*) "*** Solver Data ***"
+    if (associated(this%solver_data_gas)) then
+      write(f_unit,*) "  * Gas Solver *"
+      call this%solver_data_gas%print()
+    end if
+    if (associated(this%solver_data_aero)) then
+      write(f_unit,*) "  * Aerosol Solver *"
+      call this%solver_data_aero%print()
+    end if
+    if (associated(this%solver_data_gas_aero)) then
+      write(f_unit,*) "  * Gas and Aerosol Solver *"
+      call this%solver_data_gas_aero%print()
+    end if
 
   end subroutine do_print
 

@@ -24,12 +24,13 @@
 #define _kinf_C_ float_data[5]
 #define _Fc_ float_data[6]
 #define _N_ float_data[7]
-#define _CONV_ float_data[8]
-#define _RATE_CONSTANT_ float_data[9]
+#define _SCALING_ float_data[8]
+#define _CONV_ float_data[9]
+#define _RATE_CONSTANT_ float_data[10]
 #define _NUM_INT_PROP_ 2
-#define _NUM_FLOAT_PROP_ 10
-#define _REACT_(x) int_data[_NUM_INT_PROP_ + x]
-#define _PROD_(x) int_data[_NUM_INT_PROP_ + _NUM_REACT_ + x]
+#define _NUM_FLOAT_PROP_ 11
+#define _REACT_(x) (int_data[_NUM_INT_PROP_ + x]-1)
+#define _PROD_(x) (int_data[_NUM_INT_PROP_ + _NUM_REACT_ + x]-1)
 #define _DERIV_ID_(x) int_data[_NUM_INT_PROP_ + _NUM_REACT_ + _NUM_PROD_ + x]
 #define _JAC_ID_(x) int_data[_NUM_INT_PROP_ + 2*(_NUM_REACT_+_NUM_PROD_) + x]
 #define _yield_(x) float_data[_NUM_FLOAT_PROP_ + x]
@@ -50,15 +51,46 @@ void * rxn_troe_get_used_jac_elem(void *rxn_data, bool **jac_struct)
 
   for (int i_ind = 0; i_ind < _NUM_REACT_; i_ind++) {
     for (int i_dep = 0; i_dep < _NUM_REACT_; i_dep++) {
-      jac_struct[i_dep][i_ind] = true;
+      jac_struct[_REACT_(i_dep)][_REACT_(i_ind)] = true;
     }
     for (int i_dep = 0; i_dep < _NUM_PROD_; i_dep++) {
-      jac_struct[i_dep][i_ind] = true;
+      jac_struct[_PROD_(i_dep)][_REACT_(i_ind)] = true;
     }
   }
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }  
+
+/** \brief Update the time derivative and Jacbobian array indices
+ *
+ * \param deriv_ids Id of each state variable in the derivative array
+ * \param jac_ids Id of each state variable combo in the Jacobian array
+ * \param rxn_data Pointer to the reaction data
+ * \return The rxn_data pointer advanced by the size of the reaction data
+ */
+void * rxn_troe_update_ids(int *deriv_ids, int **jac_ids, void *rxn_data)
+{
+  int *int_data = (int*) rxn_data;
+  realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
+
+  // Update the time derivative ids
+  for (int i=0; i < _NUM_REACT_; i++)
+	  _DERIV_ID_(i) = deriv_ids[_REACT_(i)];
+  for (int i=0; i < _NUM_PROD_; i++)
+	  _DERIV_ID_(i + _NUM_REACT_) = deriv_ids[_PROD_(i)];
+
+  // Update the Jacobian ids
+  int i_jac = 0;
+  for (int i_ind = 0; i_ind < _NUM_REACT_; i_ind++) {
+    for (int i_dep = 0; i_dep < _NUM_REACT_; i_dep++) {
+      _JAC_ID_(i_jac++) = jac_ids[_REACT_(i_dep)][_REACT_(i_ind)];
+    }
+    for (int i_dep = 0; i_dep < _NUM_PROD_; i_dep++) {
+      _JAC_ID_(i_jac++) = jac_ids[_PROD_(i_dep)][_REACT_(i_ind)];
+    }
+  }
+  return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
+}
 
 /** \brief Update reaction data for new environmental conditions
  *
@@ -69,15 +101,15 @@ void * rxn_troe_get_used_jac_elem(void *rxn_data, bool **jac_struct)
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_troe_update_env_state(double *env_data, void *rxn_data)
+void * rxn_troe_update_env_state(realtype *env_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
   // Calculate the rate constant in (#/cc)
-  // k = ([M]*k0 / (1 + k0/kinf)) * Fc^(1 / (1/N + log(k0/kinf)^2))
+  // k = (k0[M] / (1 + k0[M]/kinf)) * Fc^(1/(1+(1/N*log(k0[M]/kinf))^2))
   realtype conv = _CONV_ * _PRESSURE_PA_ / _TEMPERATURE_K_;
-  realtype k0 = _k0_A_
+  realtype k0 = _k0_A_ // [M] is included in _k0_A_
 	  * (_k0_C_==ZERO ? ONE : SUNRexp(_k0_C_/_TEMPERATURE_K_))
 	  * (_k0_B_==ZERO ? ONE : SUNRpowerR(_TEMPERATURE_K_/((realtype)300.0), _k0_B_))
 	  * conv;
@@ -86,8 +118,9 @@ void * rxn_troe_update_env_state(double *env_data, void *rxn_data)
 	  * (_kinf_B_==ZERO ? ONE : SUNRpowerR(_TEMPERATURE_K_/((realtype)300.0), _kinf_B_))
 	  );
   _RATE_CONSTANT_ = (k0 / (ONE + kinf))
-	  * SUNRpowerR(_Fc_, (ONE / (ONE/_N_ + SUNRpowerI((log10(kinf)),2))))
-	  * SUNRpowerI(conv, _NUM_REACT_-1);
+	  * SUNRpowerR(_Fc_, (ONE / (ONE + SUNRpowerI(log10(kinf)/_N_,2))))
+	  * SUNRpowerI(conv, _NUM_REACT_-1)
+	  * _SCALING_;
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
@@ -113,10 +146,14 @@ void * rxn_troe_calc_deriv_contrib(double *state, double *deriv,
   // Add contributions to the time derivative
   if (rate!=ZERO) {
     int i_dep_var = 0;
-    for (int i_spec=0; i_spec<_NUM_REACT_; i_spec++) 
-	    deriv[_DERIV_ID_(i_dep_var++)] -= rate;
-    for (int i_spec=0; i_spec<_NUM_PROD_; i_spec++) 
-	    deriv[_DERIV_ID_(i_dep_var++)] += rate*_yield_(i_spec);
+    for (int i_spec=0; i_spec<_NUM_REACT_; i_spec++, i_dep_var++) {
+      if (_DERIV_ID_(i_dep_var) < 0) continue; 
+      deriv[_DERIV_ID_(i_dep_var)] -= rate;
+    }
+    for (int i_spec=0; i_spec<_NUM_PROD_; i_spec++, i_dep_var++) {
+      if (_DERIV_ID_(i_dep_var) < 0) continue; 
+      deriv[_DERIV_ID_(i_dep_var)] += rate*_yield_(i_spec);
+    }
   }
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
@@ -130,7 +167,7 @@ void * rxn_troe_calc_deriv_contrib(double *state, double *deriv,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_troe_calc_jac_contrib(double *state, double *J,
+void * rxn_troe_calc_jac_contrib(realtype *state, realtype *J,
 		void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
@@ -143,12 +180,16 @@ void * rxn_troe_calc_jac_contrib(double *state, double *J,
   // Add contributions to the Jacobian
   if (rate!=ZERO) {
     int i_elem = 0;
-    for (int i_dep=0; i_dep<_NUM_REACT_; i_dep++)
-      for (int i_ind=0; i_ind<_NUM_REACT_; i_ind++)
-	J[_JAC_ID_(i_elem++)] -= rate / state[_REACT_(i_ind)];
-    for (int i_dep=0; i_dep<_NUM_PROD_; i_dep++)
-      for (int i_ind=0; i_ind<_NUM_REACT_; i_ind++)
-	J[_JAC_ID_(i_elem++)] += _yield_(i_dep) * rate / state[_REACT_(i_ind)];
+    for (int i_ind=0; i_ind<_NUM_REACT_; i_ind++) {
+      for (int i_dep=0; i_dep<_NUM_REACT_; i_dep++, i_elem++) {
+	if (_JAC_ID_(i_elem) < 0) continue;
+	J[_JAC_ID_(i_elem)] -= rate / state[_REACT_(i_ind)];
+      }
+      for (int i_dep=0; i_dep<_NUM_PROD_; i_dep++, i_elem++) {
+	if (_JAC_ID_(i_elem) < 0) continue;
+	J[_JAC_ID_(i_elem)] += _yield_(i_dep) * rate / state[_REACT_(i_ind)];
+      }
+    }
   }
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
@@ -168,6 +209,25 @@ void * rxn_troe_skip(void *rxn_data)
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
 
+/** \brief Print the Troe reaction parameters
+ *
+ * \param rxn_data Pointer to the reaction data
+ * \return The rxn_data pointer advanced by the size of the reaction data
+ */
+void * rxn_troe_print(void *rxn_data)
+{
+  int *int_data = (int*) rxn_data;
+  realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
+
+  printf("\n\nTroe reaction\n");
+  for (int i=0; i<_INT_DATA_SIZE_; i++) 
+    printf("  int param %d = %d\n", i, int_data[i]);
+  for (int i=0; i<_FLOAT_DATA_SIZE_; i++)
+    printf("  float param %d = %le\n", i, float_data[i]);
+ 
+  return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
+}
+
 #undef _TEMPERATURE_K_
 #undef _PRESSURE_PA_
 
@@ -181,6 +241,7 @@ void * rxn_troe_skip(void *rxn_data)
 #undef _kinf_C_
 #undef _Fc_
 #undef _N_
+#undef _SCALING_
 #undef _CONV_
 #undef _RATE_CONSTANT_
 #undef _NUM_INT_PROP_

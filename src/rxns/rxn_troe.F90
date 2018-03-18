@@ -10,7 +10,7 @@
 !! Troe (fall-off) reaction rate constant equations take the form:
 !!
 !! \f[
-!!   \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{(1/N+[log_{10}k_0[\mbox{M}]/k_{\inf}]^2)^{-1}}
+!!   \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}}
 !! \f]
 !!
 !! where \f$k_0\f$ is the low-pressure limiting rate constant, \f$k_{\inf}\f$
@@ -88,10 +88,11 @@ module pmc_rxn_troe
 #define _kinf_C_ this%condensed_data_real(6)
 #define _Fc_ this%condensed_data_real(7)
 #define _N_ this%condensed_data_real(8)
-#define _CONV_ this%condensed_data_real(9)
-#define _RATE_CONSTANT_ this%condensed_data_real(10)
+#define _SCALING_ this%condensed_data_real(9)
+#define _CONV_ this%condensed_data_real(10)
+#define _RATE_CONSTANT_ this%condensed_data_real(11)
 #define _NUM_INT_PROP_ 2
-#define _NUM_REAL_PROP_ 10
+#define _NUM_REAL_PROP_ 11
 #define _REACT_(x) this%condensed_data_int(_NUM_INT_PROP_ + x)
 #define _PROD_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + x)
 #define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + _NUM_PROD_ + x)
@@ -154,13 +155,13 @@ contains
     real(kind=dp) :: temp_real
 
     ! Get the species involved
-    if (.not. associated(this%property_set)) call die_msg(255324828, &
+    if (.not. associated(this%property_set)) call die_msg(510658779, &
             "Missing property set needed to initialize reaction")
     key_name = "reactants"
-    call assert_msg(229463444, this%property_set%get_property_t(key_name, reactants), &
+    call assert_msg(852878121, this%property_set%get_property_t(key_name, reactants), &
             "Troe reaction is missing reactants")
     key_name = "products"
-    call assert_msg(729857837, this%property_set%get_property_t(key_name, products), &
+    call assert_msg(965196466, this%property_set%get_property_t(key_name, products), &
             "Troe reaction is missing products")
 
     ! Count the number of reactants (including those with a qty specified)
@@ -182,6 +183,8 @@ contains
     allocate(this%condensed_data_int(_NUM_INT_PROP_ + &
             (i_spec * 3) * (i_spec + products%size())))
     allocate(this%condensed_data_real(_NUM_REAL_PROP_ + products%size()))
+    this%condensed_data_int(:) = int(0, kind=i_kind)
+    this%condensed_data_real(:) = real(0.0, kind=dp)
     
     ! Save the size of the reactant and product arrays (for reactions where these
     ! can vary)
@@ -226,10 +229,10 @@ contains
       _N_ = 1.0
     end if
     key_name = "time unit"
+    _SCALING_ = real(1.0, kind=dp)
     if (this%property_set%get_string(key_name, string_val)) then
       if (trim(string_val).eq."MIN") then
-        _k0_A_ = _k0_A_ / 60.0
-        _kinf_A_ = _kinf_A_ / 60.0
+        _SCALING_ = real(1.0d0/60.0d0, kind=dp)
       end if
     endif
   
@@ -338,6 +341,7 @@ contains
 #undef _kinf_C_
 #undef _Fc_
 #undef _N_
+#undef _SCALING_
 #undef _CONV_
 #undef _RATE_CONSTANT_
 #undef _NUM_INT_PROP_

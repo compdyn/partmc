@@ -92,10 +92,11 @@ module pmc_rxn_CMAQ_OH_HNO3
 #define _k3_A_ this%condensed_data_real(7)
 #define _k3_B_ this%condensed_data_real(8)
 #define _k3_C_ this%condensed_data_real(9)
-#define _CONV_ this%condensed_data_real(10)
-#define _RATE_CONSTANT_ this%condensed_data_real(11)
+#define _SCALING_ this%condensed_data_real(10)
+#define _CONV_ this%condensed_data_real(11)
+#define _RATE_CONSTANT_ this%condensed_data_real(12)
 #define _NUM_INT_PROP_ 2
-#define _NUM_REAL_PROP_ 11
+#define _NUM_REAL_PROP_ 12
 #define _REACT_(x) this%condensed_data_int(_NUM_INT_PROP_ + x)
 #define _PROD_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + x)
 #define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + _NUM_PROD_ + x)
@@ -158,13 +159,13 @@ contains
     real(kind=dp) :: temp_real
 
     ! Get the species involved
-    if (.not. associated(this%property_set)) call die_msg(255324828, &
+    if (.not. associated(this%property_set)) call die_msg(141282130, &
             "Missing property set needed to initialize reaction")
     key_name = "reactants"
-    call assert_msg(250060521, this%property_set%get_property_t(key_name, reactants), &
+    call assert_msg(700968321, this%property_set%get_property_t(key_name, reactants), &
             "CMAQ OH+HNO3 reaction is missing reactants")
     key_name = "products"
-    call assert_msg(304540307, this%property_set%get_property_t(key_name, products), &
+    call assert_msg(195761916, this%property_set%get_property_t(key_name, products), &
             "CMAQ OH+HNO3 reaction is missing products")
 
     ! Count the number of reactants (including those with a qty specified)
@@ -172,7 +173,7 @@ contains
     i_spec = 0
     do while (reactants%get_key(spec_name))
       ! Get properties included with this reactant in the reaction data
-      call assert(243342975, reactants%get_property_t(val=spec_props))
+      call assert(472972858, reactants%get_property_t(val=spec_props))
       key_name = "qty"
       if (spec_props%get_int(key_name, temp_int)) i_spec = i_spec+temp_int-1
       call reactants%iter_next()
@@ -186,6 +187,8 @@ contains
     allocate(this%condensed_data_int(_NUM_INT_PROP_ + &
             (i_spec * 3) * (i_spec + products%size())))
     allocate(this%condensed_data_real(_NUM_REAL_PROP_ + products%size()))
+    this%condensed_data_int(:) = int(0, kind=i_kind)
+    this%condensed_data_real(:) = real(0.0, kind=dp)
     
     ! Save the size of the reactant and product arrays (for reactions where these
     ! can vary)
@@ -234,11 +237,10 @@ contains
       _k3_C_ = 0.0
     end if
     key_name = "time unit"
+    _SCALING_ = real(1.0, kind=dp)
     if (this%property_set%get_string(key_name, string_val)) then
       if (trim(string_val).eq."MIN") then
-        _k0_A_ = _k0_A_ / 60.0
-        _k2_A_ = _k2_A_ / 60.0
-        _k3_A_ = _k3_A_ / 60.0
+        _SCALING_ = real(1.0d0/60.0d0, kind=dp)
       end if
     endif
   
@@ -258,7 +260,7 @@ contains
               "Missing CMAQ OH HNO3 reactant: "//spec_name)
 
       ! Get properties included with this reactant in the reaction data
-      call assert(796763915, reactants%get_property_t(val=spec_props))
+      call assert(469614085, reactants%get_property_t(val=spec_props))
       key_name = "qty"
       if (spec_props%get_int(key_name, temp_int)) then
         do i_qty = 1, temp_int - 1
@@ -284,7 +286,7 @@ contains
               "Missing CMAQ OH HNO3 product: "//spec_name)
 
       ! Get properties included with this product in the reaction data
-      call assert(451185800, products%get_property_t(val=spec_props))
+      call assert(641676523, products%get_property_t(val=spec_props))
       key_name = "yield"
       if (spec_props%get_real(key_name, temp_real)) then
         _yield_(i_spec) = temp_real
@@ -348,6 +350,7 @@ contains
 #undef _k3_A_
 #undef _k3_B_
 #undef _k3_C_
+#undef _SCALING_
 #undef _CONV_
 #undef _RATE_CONSTANT_
 #undef _NUM_INT_PROP_

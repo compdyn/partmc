@@ -89,6 +89,8 @@ public :: rxn_photolysis_t
     procedure :: build_rate_const_expr
     !> Build time derivative expression
     procedure :: build_deriv_expr
+    !> Set the photo id for this reaction
+    procedure :: set_photo_id
     !> Get the reaction property set
     procedure :: get_property_set
   end type rxn_photolysis_t
@@ -136,13 +138,13 @@ contains
     real(kind=dp) :: temp_real
 
     ! Get the species involved
-    if (.not. associated(this%property_set)) call die_msg(255324828, &
+    if (.not. associated(this%property_set)) call die_msg(408416753, &
             "Missing property set needed to initialize reaction")
     key_name = "reactants"
-    call assert_msg(250060521, this%property_set%get_property_t(key_name, reactants), &
+    call assert_msg(415586594, this%property_set%get_property_t(key_name, reactants), &
             "Photolysis reaction is missing reactants")
     key_name = "products"
-    call assert_msg(304540307, this%property_set%get_property_t(key_name, products), &
+    call assert_msg(180421290, this%property_set%get_property_t(key_name, products), &
             "Photolysis reaction is missing products")
 
     ! Count the number of reactants (including those with a qty specified)
@@ -150,7 +152,7 @@ contains
     i_spec = 0
     do while (reactants%get_key(spec_name))
       ! Get properties included with this reactant in the reaction data
-      call assert(243342975, reactants%get_property_t(val=spec_props))
+      call assert(240165383, reactants%get_property_t(val=spec_props))
       key_name = "qty"
       if (spec_props%get_int(key_name, temp_int)) i_spec = i_spec+temp_int-1
       call reactants%iter_next()
@@ -164,6 +166,8 @@ contains
     allocate(this%condensed_data_int(_NUM_INT_PROP_ + &
             (i_spec * 3) * (i_spec + products%size())))
     allocate(this%condensed_data_real(_NUM_REAL_PROP_ + products%size()))
+    this%condensed_data_int(:) = int(0, kind=i_kind)
+    this%condensed_data_real(:) = real(0.0, kind=dp)
     
     ! Save the size of the reactant and product arrays (for reactions where these
     ! can vary)
@@ -173,8 +177,8 @@ contains
     ! Get reaction parameters (it might be easiest to keep these at the beginning
     ! of the condensed data array, so they can be accessed using compliler flags)
     key_name = "rate const"
-    if (.not. this%property_set%get_real(key_name, _RATE_CONSTANT_)) then
-      _RATE_CONSTANT_ = real(0.0, kind=dp)
+    if (.not. this%property_set%get_real(key_name, _BASE_RATE_)) then
+      _BASE_RATE_ = real(0.0, kind=dp)
     end if
     key_name = "scaling factor"
     if (.not. this%property_set%get_real(key_name, _SCALING_)) then
@@ -190,11 +194,11 @@ contains
       _REACT_(i_spec) = chem_spec_data%gas_state_id(spec_name)
 
       ! Make sure the species exists
-      call assert_msg(929298013, _REACT_(i_spec).gt.0, &
+      call assert_msg(747277322, _REACT_(i_spec).gt.0, &
               "Missing photolysis reactant: "//spec_name)
 
       ! Get properties included with this reactant in the reaction data
-      call assert(796763915, reactants%get_property_t(val=spec_props))
+      call assert(231542303, reactants%get_property_t(val=spec_props))
       key_name = "qty"
       if (spec_props%get_int(key_name, temp_int)) then
         do i_qty = 1, temp_int - 1
@@ -224,7 +228,7 @@ contains
               "Missing photolysis product: "//spec_name)
 
       ! Get properties included with this product in the reaction data
-      call assert(451185800, products%get_property_t(val=spec_props))
+      call assert(173703744, products%get_property_t(val=spec_props))
       key_name = "yield"
       if (spec_props%get_real(key_name, temp_real)) then
         _yield_(i_spec) = temp_real
@@ -288,7 +292,7 @@ contains
 
     _PHOTO_ID_ = photo_id
 
-  end subroutine
+  end subroutine set_photo_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

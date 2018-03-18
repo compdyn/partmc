@@ -165,6 +165,10 @@ if(ENABLE_JSON)
 endif()
 
 add_test(test_rxn_arrhenius ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_arrhenius.sh)
+add_test(test_rxn_CMAQ_H2O2 ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_CMAQ_H2O2.sh)
+add_test(test_rxn_CMAQ_OH_HNO3 ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_CMAQ_OH_HNO3.sh)
+add_test(test_rxn_photolysis ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_photolysis.sh)
+add_test(test_rxn_troe ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_troe.sh)
 
 if (ENABLE_JSON AND ENABLE_SUNDIALS)
   add_test(test_chemistry_cb05cl_ae5 ${CMAKE_BINARY_DIR}/test_run/chemistry/test_chemistry_cb05cl_ae5.sh)
@@ -446,8 +450,15 @@ target_link_libraries(unit_test_chem_spec_data partmclib)
 # test_rxn_data
 
 add_executable(test_rxn_arrhenius test/unit_rxn_data/test_rxn_arrhenius.F90)
-
 target_link_libraries(test_rxn_arrhenius partmclib)
+add_executable(test_rxn_CMAQ_H2O2 test/unit_rxn_data/test_rxn_CMAQ_H2O2.F90)
+target_link_libraries(test_rxn_CMAQ_H2O2 partmclib)
+add_executable(test_rxn_CMAQ_OH_HNO3 test/unit_rxn_data/test_rxn_CMAQ_OH_HNO3.F90)
+target_link_libraries(test_rxn_CMAQ_OH_HNO3 partmclib)
+add_executable(test_rxn_photolysis test/unit_rxn_data/test_rxn_photolysis.F90)
+target_link_libraries(test_rxn_photolysis partmclib)
+add_executable(test_rxn_troe test/unit_rxn_data/test_rxn_troe.F90)
+target_link_libraries(test_rxn_troe partmclib)
 
 ######################################################################
 # test_phlex_core

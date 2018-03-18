@@ -3,14 +3,16 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_test_arrhenius program
+!> The pmc_test_photolysis program
 
-!> Test of arrhenius reaction module
-program pmc_test_arrhenius
+!> Test of photolysis reaction module
+program pmc_test_photolysis
 
   use pmc_util,                         only: i_kind, dp, assert, &
                                               almost_equal, string_t, &
                                               warn_msg
+  use pmc_rxn_data
+  use pmc_rxn_photolysis
   use pmc_phlex_core
   use pmc_phlex_state
 #ifdef PMC_USE_JSON
@@ -26,10 +28,10 @@ program pmc_test_arrhenius
   ! initialize mpi
   call pmc_mpi_init()
 
-  if (run_arrhenius_tests()) then
-    write(*,*) "Arrhenius reaction tests - PASS"
+  if (run_photolysis_tests()) then
+    write(*,*) "Photolysis reaction tests - PASS"
   else
-    write(*,*) "Arrhenius reaction tests - FAIL"
+    write(*,*) "Photolysis reaction tests - FAIL"
   end if
 
 contains
@@ -37,7 +39,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Run all pmc_chem_mech_solver tests
-  logical function run_arrhenius_tests() result(passed)
+  logical function run_photolysis_tests() result(passed)
 
     use pmc_phlex_solver_data
 
@@ -46,13 +48,13 @@ contains
     phlex_solver_data => phlex_solver_data_t()
 
     if (phlex_solver_data%is_solver_available()) then
-      passed = run_arrhenius_test()
+      passed = run_photolysis_test()
     else
       call warn_msg(398972036, "No solver available")
       passed = .true.
     end if
 
-  end function run_arrhenius_tests
+  end function run_photolysis_tests
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -62,8 +64,8 @@ contains
   !!
   !!   A -k1-> B -k2-> C
   !!
-  !! where k1 and k2 are Arrhenius reaction rate constants.
-  logical function run_arrhenius_test()
+  !! where k1 and k2 are Photolysis reaction rate constants.
+  logical function run_photolysis_test()
 
     use pmc_constants
 
@@ -74,29 +76,28 @@ contains
 
     real(kind=dp), dimension(0:NUM_TIME_STEP, 3) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_A, idx_B, idx_C
-    character(len=:), allocatable :: key
-    integer(kind=i_kind) :: i_time, i_spec
+    character(len=:), allocatable :: key, str_val
+    integer(kind=i_kind) :: i_time, i_spec, i_rxn_photo_A, i_mech, i_rxn, i_photo_A
     real(kind=dp) :: time_step, time
+    class(rxn_data_t), pointer :: rxn
 
     ! Parameters for calculating true concentrations
-    real(kind=dp) :: k1, k2, temp, pressure
+    real(kind=dp) :: k1, k2, temp, pressure, photo_rate_1
 
-    run_arrhenius_test = .true.
+    run_photolysis_test = .true.
 
     ! Set the rate constants (for calculating the true value)
     temp = 272.5d0
     pressure = 101253.3d0
-    k1 = 1.0d0
-    k1 = k1 + 1476.0d0 * exp( -5.5d-21 / (const%boltzmann * temp) ) * &
-            (temp/300.0d0)**(150.0d0) * (1.0d0 + 0.15d0 * pressure) / 60.0d0
-    k2 = 21.0d0 * exp( -4000.0d0/temp ) * (temp/315.0d0)**(11.0d0) * &
-            (1.0d0 + 0.05d0 * pressure)
+    photo_rate_1 = 0.954d0
+    k1 = photo_rate_1
+    k2 = 1.0d-02 * 12.3d0
 
     ! Set output time step (s)
     time_step = 1.0
 
-    ! Get the arrhenius reaction mechanism json file
-    input_file_path = 'test_arrhenius_config.json'
+    ! Get the photolysis reaction mechanism json file
+    input_file_path = 'test_photolysis_config.json'
 
     ! Construct a phlex_core variable
     phlex_core => phlex_core_t(input_file_path)
@@ -104,7 +105,26 @@ contains
     ! Initialize the model
     call phlex_core%initialize()
 
-    ! Initialize the solver
+    ! Find the photo A reaction
+    key = "photo id"
+    i_photo_A = 342
+    i_rxn_photo_A = 0
+    do i_mech = 1, size(phlex_core%mechanism)
+      do i_rxn = 1, phlex_core%mechanism(i_mech)%size()
+        rxn => phlex_core%mechanism(i_mech)%get_rxn(i_rxn)
+        if (rxn%property_set%get_string(key, str_val)) then
+          if (trim(str_val).eq."photo A") then
+            i_rxn_photo_A = i_rxn
+            select type (rxn_photo => rxn)
+              class is (rxn_photolysis_t)
+                call rxn_photo%set_photo_id(i_photo_A)
+            end select
+          end if
+        end if
+      end do
+    end do
+    call assert(350883249, i_rxn_photo_A.eq.1)
+
     call phlex_core%solver_initialize()
 
     ! Get a model state variable
@@ -137,6 +157,9 @@ contains
     ! Set the initial concentrations in the model
     phlex_state%state_var(:) = model_conc(0,:)
 
+    ! Set the photo B rate
+    call phlex_core%set_photo_rate(i_photo_A, photo_rate_1)
+
     ! Integrate the mechanism
     do i_time = 1, NUM_TIME_STEP
 
@@ -155,7 +178,7 @@ contains
     end do
 
     ! Save the results
-    open(unit=7, file="out/arrhenius_results.txt", status="replace", action="write")
+    open(unit=7, file="out/photolysis_results.txt", status="replace", action="write")
     do i_time = 0, NUM_TIME_STEP
       write(7,*) i_time*time_step, &
             ' ', true_conc(i_time, idx_A),' ', model_conc(i_time, idx_A), &
@@ -175,10 +198,10 @@ contains
       end do
     end do
 
-    run_arrhenius_test = .true.
+    run_photolysis_test = .true.
 
-  end function run_arrhenius_test
+  end function run_photolysis_test
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end program pmc_test_arrhenius
+end program pmc_test_photolysis

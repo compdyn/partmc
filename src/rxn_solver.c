@@ -89,16 +89,16 @@ void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids)
         rxn_data = (int*) rxn_arrhenius_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
         break;
       case RXN_CMAQ_H2O2 :
-   //     rxn_data = (int*) rxn_CMAQ_H2O2_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
+        rxn_data = (int*) rxn_CMAQ_H2O2_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
         break;
       case RXN_CMAQ_OH_HNO3 :
-   //     rxn_data = (int*) rxn_CMAQ_OH_HNO3_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
+        rxn_data = (int*) rxn_CMAQ_OH_HNO3_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
         break;
       case RXN_PHOTOLYSIS :
-   //     rxn_data = (int*) rxn_photolysis_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
+        rxn_data = (int*) rxn_photolysis_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
         break;
       case RXN_TROE :
-   //     rxn_data = (int*) rxn_troe_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
+        rxn_data = (int*) rxn_troe_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
         break;
     }
   } 
@@ -336,6 +336,18 @@ void rxn_print_data(void *solver_data)
     switch (rxn_type) {
       case RXN_ARRHENIUS :
         rxn_data = (int*) rxn_arrhenius_print((void*)rxn_data);
+	break;
+      case RXN_CMAQ_H2O2 :
+        rxn_data = (int*) rxn_CMAQ_H2O2_print((void*)rxn_data);
+	break;
+      case RXN_CMAQ_OH_HNO3 :
+        rxn_data = (int*) rxn_CMAQ_OH_HNO3_print((void*)rxn_data);
+	break;
+      case RXN_PHOTOLYSIS :
+        rxn_data = (int*) rxn_photolysis_print((void*)rxn_data);
+	break;
+      case RXN_TROE :
+        rxn_data = (int*) rxn_troe_print((void*)rxn_data);
 	break;
     }
   }

@@ -114,6 +114,13 @@ module pmc_phlex_solver_data
       type(c_ptr), value :: solver_data
     end subroutine rxn_set_photo_rate
 
+    !> Print the solver data
+    subroutine rxn_print_data(solver_data) bind(c)
+      use iso_c_binding
+      !> Solver data
+      type(c_ptr), value :: solver_data
+    end subroutine rxn_print_data
+
   end interface
 
   !> Solver data
@@ -141,6 +148,8 @@ module pmc_phlex_solver_data
     procedure :: solve
     !> Checks whether a solver is available
     procedure :: is_solver_available
+    !> Print the solver data
+    procedure :: print => do_print
   end type phlex_solver_data_t
 
   ! Constructor for phlex_solver_data_t
@@ -274,7 +283,7 @@ contains
         allocate(float_param(size(rxn%condensed_data_real)))
         int_param(:) = int(rxn%condensed_data_int(:), kind=c_int)
         float_param(:) = real(rxn%condensed_data_real(:), kind=c_double)
-        
+       
         ! Send the condensed data to the solver
         call rxn_add_condensed_data ( &
                 rxn_factory%get_type(rxn),      & ! Reaction type
@@ -373,6 +382,18 @@ contains
 #endif
 
   end function is_solver_available
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Print the solver data
+  subroutine do_print(this)
+
+    !> Solver data
+    class(phlex_solver_data_t), intent(in) :: this
+
+    call rxn_print_data(this%solver_c_ptr)
+
+  end subroutine do_print
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

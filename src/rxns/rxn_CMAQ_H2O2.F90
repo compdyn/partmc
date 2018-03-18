@@ -81,7 +81,6 @@ module pmc_rxn_CMAQ_H2O2
 
 #define _NUM_REACT_ this%condensed_data_int(1)
 #define _NUM_PROD_ this%condensed_data_int(2)
-#define _ENV_UID_ this%condensed_data_int(3)
 #define _k1_A_ this%condensed_data_real(1)
 #define _k1_B_ this%condensed_data_real(2)
 #define _k1_C_ this%condensed_data_real(3)
@@ -157,10 +156,10 @@ contains
     if (.not. associated(this%property_set)) call die_msg(255324828, &
             "Missing property set needed to initialize reaction")
     key_name = "reactants"
-    call assert_msg(250060521, this%property_set%get_property_t(key_name, reactants), &
+    call assert_msg(940945637, this%property_set%get_property_t(key_name, reactants), &
             "CMAQ H2O2 reaction is missing reactants")
     key_name = "products"
-    call assert_msg(304540307, this%property_set%get_property_t(key_name, products), &
+    call assert_msg(435739232, this%property_set%get_property_t(key_name, products), &
             "CMAQ H2O2 reaction is missing products")
 
     ! Count the number of reactants (including those with a qty specified)
@@ -168,7 +167,7 @@ contains
     i_spec = 0
     do while (reactants%get_key(spec_name))
       ! Get properties included with this reactant in the reaction data
-      call assert(243342975, reactants%get_property_t(val=spec_props))
+      call assert(952475195, reactants%get_property_t(val=spec_props))
       key_name = "qty"
       if (spec_props%get_int(key_name, temp_int)) i_spec = i_spec+temp_int-1
       call reactants%iter_next()
@@ -182,7 +181,9 @@ contains
     allocate(this%condensed_data_int(_NUM_INT_PROP_ + &
             (i_spec * 3) * (i_spec + products%size())))
     allocate(this%condensed_data_real(_NUM_REAL_PROP_ + products%size()))
-    
+    this%condensed_data_int(:) = int(0, kind=i_kind)
+    this%condensed_data_real(:) = real(0.0, kind=dp)
+
     ! Save the size of the reactant and product arrays (for reactions where these
     ! can vary)
     _NUM_REACT_ = i_spec
@@ -267,7 +268,7 @@ contains
               "Missing CMAQ H2O2 product: "//spec_name)
 
       ! Get properties included with this product in the reaction data
-      call assert(451185800, products%get_property_t(val=spec_props))
+      call assert(267035567, products%get_property_t(val=spec_props))
       key_name = "yield"
       if (spec_props%get_real(key_name, temp_real)) then
         _yield_(i_spec) = temp_real
@@ -322,7 +323,6 @@ contains
 
 #undef _NUM_REACT_
 #undef _NUM_PROD_
-#undef _ENV_UID_
 #undef _k1_A_
 #undef _k1_B_
 #undef _k1_C_

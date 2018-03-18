@@ -306,7 +306,7 @@ contains
       do j_spec = 1, num_spec
         unique_names(i_spec + j_spec - 1)%string = &
                 phase_name//'.'// &
-                this%aero_phase(i_phase)%val%get_species_name(i_spec)
+                this%aero_phase(i_phase)%val%get_species_name(j_spec)
       end do
       i_spec = i_spec + num_spec
     end do

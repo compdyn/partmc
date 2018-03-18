@@ -125,6 +125,9 @@ contains
       call assert_msg(885541843, allocated(unique_names), rep_name)
       call assert_msg(206819761, size(unique_names).eq.8, rep_name)
       do i_spec = 1, size(unique_names)
+        write(*,*) unique_names(i_spec)%string
+      end do
+      do i_spec = 1, size(unique_names)
         call assert_msg(142263656, aero_rep%state_id_by_unique_name(&
                 unique_names(i_spec)%string).gt.0, rep_name)
         do j_spec = 1, size(unique_names)

@@ -1,12 +1,12 @@
 {
 	"pmc-data" : [
-		{ "name" : "peanut butter", "type" : "GAS_SPEC", "MW" : 12.75},
-		{ "name" : "jelly", "type" : "GAS_SPEC", "MW" : 42.5},
-		{ "name" : "sanwich", "type" : "GAS_SPEC", "MW" : 13.58},
-		{ "name" : "snack", "type" : "GAS_SPEC", "MW" : 185.39},
-		{ "name" : "oreo", "type" : "GAS_SPEC", "MW" : 12.45},
-		{ "name" : "extra lid", "type" : "GAS_SPEC"},
-		{ "name" : "lunch", "type" : "GAS_SPEC"},
+		{ "name" : "peanut butter", "type" : "CHEM_SPEC", "MW" : 12.75},
+		{ "name" : "jelly", "type" : "CHEM_SPEC", "MW" : 42.5},
+		{ "name" : "sanwich", "type" : "CHEM_SPEC", "MW" : 13.58},
+		{ "name" : "snack", "type" : "CHEM_SPEC", "MW" : 185.39},
+		{ "name" : "oreo", "type" : "CHEM_SPEC", "MW" : 12.45},
+		{ "name" : "extra lid", "type" : "CHEM_SPEC"},
+		{ "name" : "lunch", "type" : "CHEM_SPEC"},
 		{ 
 			"name" : "lunch mechanism", 
 			"type" : "MECHANISM",

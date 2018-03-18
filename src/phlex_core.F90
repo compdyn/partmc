@@ -951,7 +951,7 @@ contains
     !> File unit for output
     integer(kind=i_kind), optional :: file_unit
 
-    integer(kind=i_kind) :: i_mech
+    integer(kind=i_kind) :: i_phase, i_mech
     integer(kind=i_kind) :: f_unit=6
 
     if (present(file_unit)) f_unit = file_unit
@@ -961,6 +961,11 @@ contains
     write(f_unit,*) "*********************"
     write(f_unit,*) "Relative integration tolerance: ", this%rel_tol
     call this%chem_spec_data%print(f_unit)
+    write(*,*) "*** Aerosol Phases ***"
+    do i_phase=1, size(this%aero_phase)
+      call this%aero_phase(i_phase)%val%print()
+    end do
+    write(*,*) "*** Mechanisms ***"
     write(f_unit,*) "Number of mechanisms: ", size(this%mechanism)
     do i_mech=1, size(this%mechanism)
       call this%mechanism(i_mech)%print(f_unit)

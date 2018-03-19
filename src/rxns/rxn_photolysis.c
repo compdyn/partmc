@@ -227,6 +227,27 @@ void * rxn_photolysis_print(void *rxn_data)
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
 
+/** \brief Return the reaction rate for the current conditions
+ *
+ * \param rxn_data Pointer to the reaction data
+ * \param state Pointer to the state array
+ * \param env Pointer to the environmental state array
+ * \param rate Pointer to a double value to store the calculated rate
+ * \return The rxn_data pointer advanced by the size of the reaction data
+ */
+void * rxn_photolysis_get_rate(void *rxn_data, realtype *state, realtype *env, realtype *rate)
+{
+  int *int_data = (int*) rxn_data;
+  realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
+
+  // Calculate the reaction rate
+  rxn_photolysis_update_env_state(env, rxn_data);
+  *rate = _RATE_CONSTANT_;
+  for (int i_spec=0; i_spec<_NUM_REACT_; i_spec++) *rate *= state[_REACT_(i_spec)];
+
+  return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
+}
+
 #undef _TEMPERATURE_K_
 #undef _PRESSURE_PA_
 

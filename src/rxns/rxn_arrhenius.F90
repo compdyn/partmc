@@ -174,7 +174,7 @@ contains
     ! reactants and products, one molecular property for each reactant, 
     ! yields for the products and three reaction parameters.
     allocate(this%condensed_data_int(_NUM_INT_PROP_ + &
-            (i_spec * 3) * (i_spec + products%size())))
+            (i_spec + 2) * (i_spec + products%size())))
     allocate(this%condensed_data_real(_NUM_REAL_PROP_ + products%size()))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)

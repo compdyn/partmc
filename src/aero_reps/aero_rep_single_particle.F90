@@ -530,8 +530,6 @@ contains
     ! Calculate the surface area density (m^2/m^3)
     surface_area_conc = 3.0 * v_p / r_t
 
-    write(*,*) v_p, v_t, r_t, surface_area_conc
-
     ! Calculate jac_contrib
     if (present(jac_contrib)) then
       jac_contrib(:) = real(0.0, kind=dp)

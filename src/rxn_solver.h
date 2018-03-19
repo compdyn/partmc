@@ -25,6 +25,7 @@ void * rxn_arrhenius_calc_deriv_contrib(realtype *state, realtype *deriv, void *
 void * rxn_arrhenius_calc_jac_contrib(realtype *state, realtype *J, void *rxn_data);
 void * rxn_arrhenius_skip(void *rxn_data);
 void * rxn_arrhenius_print(void *rxn_data);
+void * rxn_arrhenius_get_rate(void *rxn_data, realtype *state, realtype *env, realtype *rate);
 
 // CMAQ_H2O2
 void * rxn_CMAQ_H2O2_get_used_jac_elem(void *rxn_data, bool **jac_struct);
@@ -34,6 +35,7 @@ void * rxn_CMAQ_H2O2_calc_deriv_contrib(realtype *state, realtype *deriv, void *
 void * rxn_CMAQ_H2O2_calc_jac_contrib(realtype *state, realtype *J, void *rxn_data);
 void * rxn_CMAQ_H2O2_skip(void *rxn_data);
 void * rxn_CMAQ_H2O2_print(void *rxn_data);
+void * rxn_CMAQ_H2O2_get_rate(void *rxn_data, realtype *state, realtype *env, realtype *rate);
 
 // CMAQ_OH_HNO3
 void * rxn_CMAQ_OH_HNO3_get_used_jac_elem(void *rxn_data, bool **jac_struct);
@@ -43,6 +45,7 @@ void * rxn_CMAQ_OH_HNO3_calc_deriv_contrib(realtype *state, realtype *deriv, voi
 void * rxn_CMAQ_OH_HNO3_calc_jac_contrib(realtype *state, realtype *J, void *rxn_data);
 void * rxn_CMAQ_OH_HNO3_skip(void *rxn_data);
 void * rxn_CMAQ_OH_HNO3_print(void *rxn_data);
+void * rxn_CMAQ_OH_HNO3_get_rate(void *rxn_data, realtype *state, realtype *env, realtype *rate);
 
 // photolysis
 void * rxn_photolysis_get_used_jac_elem(void *rxn_data, bool **jac_struct);
@@ -53,6 +56,7 @@ void * rxn_photolysis_calc_jac_contrib(realtype *state, realtype *J, void *rxn_d
 void * rxn_photolysis_set_photo_rate(int photo_id, realtype base_rate, void *rxn_data);
 void * rxn_photolysis_skip(void *rxn_data);
 void * rxn_photolysis_print(void *rxn_data);
+void * rxn_photolysis_get_rate(void *rxn_data, realtype *state, realtype *env, realtype *rate);
 
 // troe
 void * rxn_troe_get_used_jac_elem(void *rxn_data, bool **jac_struct);
@@ -62,6 +66,7 @@ void * rxn_troe_calc_deriv_contrib(realtype *state, realtype *deriv, void *rxn_d
 void * rxn_troe_calc_jac_contrib(realtype *state, realtype *J, void *rxn_data);
 void * rxn_troe_skip(void *rxn_data);
 void * rxn_troe_print(void *rxn_data);
+void * rxn_troe_get_rate(void *rxn_data, realtype *state, realtype *env, realtype *rate);
 
 
 #endif

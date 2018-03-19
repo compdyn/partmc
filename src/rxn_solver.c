@@ -352,3 +352,54 @@ void rxn_print_data(void *solver_data)
     }
   }
 }
+
+/*** \brief Calculate the mechanism reaction rates for the current conditions
+ *
+ * \param solver_data Solver data
+ * \param state State array
+ * \param env Environmental state array
+ * \param n_rxn Pointer to a int that will hold the number of reactions
+ * \return Pointer to an array of rates of size n_rxn
+ */
+double * rxn_get_rates(void *solver_data, double *state, double *env, int *n_rxn)
+{
+  ModelData *model_data = (ModelData*) &(((SolverData*)solver_data)->model_data);
+
+  // Get the number of reactions
+  int *rxn_data = (int*) (model_data->rxn_data);
+  *n_rxn = *(rxn_data++);
+
+  // Allocate space for the rate array
+  double *rates = (double*) malloc(sizeof(double)*(*n_rxn));
+
+  // Loop through the reactions advancing the rxn_data pointer each time
+  for (int i_rxn=0; i_rxn<*n_rxn; i_rxn++) {
+
+    // Get the reaction type
+    int rxn_type = *(rxn_data++);
+
+    realtype rate = 0.0;
+
+    // Call the appropriate function
+    switch (rxn_type) {
+      case RXN_ARRHENIUS :
+        rxn_data = (int*) rxn_arrhenius_get_rate((void*)rxn_data, state, env, &(rate));
+	break;
+      case RXN_CMAQ_H2O2 :
+        rxn_data = (int*) rxn_CMAQ_H2O2_get_rate((void*)rxn_data, state, env, &(rate));
+	break;
+      case RXN_CMAQ_OH_HNO3 :
+        rxn_data = (int*) rxn_CMAQ_OH_HNO3_get_rate((void*)rxn_data, state, env, &(rate));
+	break;
+      case RXN_PHOTOLYSIS :
+        rxn_data = (int*) rxn_photolysis_get_rate((void*)rxn_data, state, env, &(rate));
+	break;
+      case RXN_TROE :
+        rxn_data = (int*) rxn_troe_get_rate((void*)rxn_data, state, env, &(rate));
+	break;
+    }
+    rates[i_rxn] = (double) rate;
+  }
+  return rates;
+}
+

@@ -121,6 +121,21 @@ module pmc_phlex_solver_data
       type(c_ptr), value :: solver_data
     end subroutine rxn_print_data
 
+    !> Get the current reaction rates
+    function rxn_get_rates(solver_data, state, env, n_rxn) bind(c)
+      use iso_c_binding
+      !> Reaction rates
+      type(c_ptr) :: rxn_get_rates
+      !> Solver data
+      type(c_ptr), value :: solver_data
+      !> Pointer to the state array
+      type(c_ptr), value :: state
+      !> Pointer to the environmental state array
+      type(c_ptr), value :: env
+      !> Number of reactions
+      integer(kind=c_int) :: n_rxn
+    end function rxn_get_rates
+
   end interface
 
   !> Solver data
@@ -148,6 +163,8 @@ module pmc_phlex_solver_data
     procedure :: solve
     !> Checks whether a solver is available
     procedure :: is_solver_available
+    !> Get the current reaction rates
+    procedure :: get_rates
     !> Print the solver data
     procedure :: print => do_print
   end type phlex_solver_data_t
@@ -283,7 +300,7 @@ contains
         allocate(float_param(size(rxn%condensed_data_real)))
         int_param(:) = int(rxn%condensed_data_int(:), kind=c_int)
         float_param(:) = real(rxn%condensed_data_real(:), kind=c_double)
-       
+      
         ! Send the condensed data to the solver
         call rxn_add_condensed_data ( &
                 rxn_factory%get_type(rxn),      & ! Reaction type
@@ -382,6 +399,35 @@ contains
 #endif
 
   end function is_solver_available
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the current reaction rates
+  function get_rates(this, phlex_state)
+
+    !> Reaction rates
+    real(kind=dp), allocatable :: get_rates(:)
+    !> Solver data
+    class(phlex_solver_data_t), intent(in) :: this
+    !> Model state
+    type(phlex_state_t), pointer, intent(in) :: phlex_state
+
+    real(kind=c_double), pointer :: rates(:)
+    type(c_ptr) :: rates_c_ptr
+    integer(kind=c_int) :: n_rxn
+
+    rates_c_ptr = rxn_get_rates(                &
+            this%solver_c_ptr,                  & ! Pointer to solver data
+            c_loc(phlex_state%state_var),       & ! Pointer to state array
+            c_loc(phlex_state%env_var),         & ! Pointer to environmental variables
+            n_rxn                               & ! Number of reactions
+            )
+    call c_f_pointer(rates_c_ptr, rates, [n_rxn])
+    allocate(get_rates(n_rxn))
+    get_rates(:) = real(rates(:), kind=dp)
+    deallocate(rates)
+
+  end function get_rates
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

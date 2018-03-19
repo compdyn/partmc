@@ -125,6 +125,7 @@ contains
     end do
     call assert(350883249, i_rxn_photo_A.eq.1)
 
+    ! Initialize the solver
     call phlex_core%solver_initialize()
 
     ! Get a model state variable

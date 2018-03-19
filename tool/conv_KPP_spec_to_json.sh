@@ -23,7 +23,7 @@ sed -i '' -E 's/[[:space:]]+/ /g' $SPEC_FILE
 sed -i '' -E 's/^[[:space:]]+//g' $SPEC_FILE
 
 # find species and convert to json
-sed -i '' -E "s/^[[:space:]]*([[:alpha:]][[:alnum:]]*)[[:space:]]*\=.*$/  {\\$NL    \"name\" : \"\1\",\\$NL    \"type\" : \"GAS_SPEC\"\\$NL  },/g" $SPEC_FILE
+sed -i '' -E "s/^[[:space:]]*([[:alpha:]][[:alnum:]]*)[[:space:]]*\=.*$/  {\\$NL    \"name\" : \"\1\",\\$NL    \"type\" : \"CHEM_SPEC\"\\$NL  },/g" $SPEC_FILE
 
 # header
 sed -i '' -E "1s/^/{ \"pmc-data\" : [\\$NL/g" $SPEC_FILE

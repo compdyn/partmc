@@ -59,6 +59,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 		double t_final);
 void rxn_add_condensed_data(int rxn_type, int n_int_param, 
 		int n_float_param, int *int_param, double *float_param, void *solver_data);
+double * rxn_get_rates(void *solver_data, double *state, double *env, int *n_rxn);
 
 #ifdef PMC_USE_SUNDIALS
 /* Functions called by the solver */

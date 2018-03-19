@@ -118,6 +118,13 @@ module pmc_chem_spec_data
     !! \c pmc_aero_rep_data::aero_rep_data_t::species_state_id() for a
     !! particular \ref phlex_aero_rep "aerosol representation".
     procedure :: gas_state_id
+    !> Get the name of a gas-phase species in the \c
+    !! pmc_phlex_state::phlex_state_t::state_var array.  Note that
+    !! aerosol-phase species names on the \c
+    !! pmc_phlex_state::phlex_state_t::state_var array must be accessed from
+    !! \c pmc_aero_rep_data::aero_rep_data_t::species_state_id() for a
+    !! particular \ref phlex_aero_rep "aerosol representation".
+    procedure :: gas_state_name
     !> Print out the species data
     procedure :: print => do_print
 
@@ -677,6 +684,39 @@ contains
     gas_state_id = 0
 
   end function gas_state_id
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get a gas-phase species name in the \c
+  !! pmc_phlex_state::phlex_state_t::state_var array.  Note that
+  !! aerosol-phase species names on the \c
+  !! pmc_phlex_state::phlex_state_t::state_var array must be accessed from
+  !! \c pmc_aero_rep_data::aero_rep_data_t::species_state_id() for a
+  !! particular \ref phlex_aero_rep "aerosol representation". Returns a valid
+  !! state array index if the species is found, or 0 otherwise
+  function gas_state_name(this, spec_id) result(spec_name)
+
+    !> Species name
+    character(len=:), allocatable :: spec_name
+    !> Species dataset
+    class(chem_spec_data_t), intent(in) :: this
+    !> Species id
+    integer(kind=i_kind), intent(in) :: spec_id
+
+    integer(kind=i_kind) :: gas_state_id, i_spec
+    
+    gas_state_id = 0
+    do i_spec = 1, this%num_spec
+      if (this%spec_phase(i_spec).eq.CHEM_SPEC_GAS_PHASE) &
+              gas_state_id = gas_state_id + 1
+      if (gas_state_id.eq.spec_id) then
+        spec_name = trim(this%spec_name(i_spec)%string)
+        return
+      end if
+    end do
+    spec_name = ""
+
+  end function gas_state_name
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -6,402 +6,402 @@
     },
     {
       "name" : "NO2",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "NO",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "O",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "O3",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "NO3",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "O1D",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "OH",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "HO2",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "N2O5",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "HNO3",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "HONO",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "PNA",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "H2O2",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "XO2",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "XO2N",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "NTR",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "ROOH",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "FORM",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "ALD2",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "ALDX",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "PAR",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "CO",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "MEO2",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "MEPX",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "MEOH",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "HCO3",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "FACD",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "C2O3",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "PAN",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "PACD",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "AACD",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "CXO3",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "PANX",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "ROR",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "OLE",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "ETH",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "IOLE",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "TOL",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "CRES",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "TO2",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "TOLRO2",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "OPEN",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "CRO",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "MGLY",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "XYL",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "XYLRO2",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "ISOP",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "ISPD",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "ISOPRXN",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "TERP",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "TRPRXN",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "SO2",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "SULF",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "SULRXN",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "ETOH",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "ETHA",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "CL2",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "CL",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "HOCL",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "CLO",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "FMCL",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "HCL",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "TOLNRXN",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "TOLHRXN",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "XYLNRXN",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "XYLHRXN",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "BENZENE",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "BENZRO2",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "BNZNRXN",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "BNZHRXN",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "SESQ",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "SESQRXN",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "M",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "O2",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "N2",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "H2O",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "CH4",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "H2",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     },
     {
       "name" : "N2O",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03
     },
     {
       "name" : "DUMMY",
-      "type" : "GAS_SPEC",
+      "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E+00
     }
 ]}

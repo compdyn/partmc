@@ -149,6 +149,8 @@ module pmc_phlex_core
     procedure :: bin_pack
     !> Unpack the given variable from a buffer, advancing position
     procedure :: bin_unpack
+    !> Get the current reaction rates
+    procedure :: get_rxn_rates
     !> Print the core data
     procedure :: print => do_print
   end type phlex_core_t
@@ -943,13 +945,35 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !>  Get the current reaction rates
+  function get_rxn_rates(this, phlex_state)
+
+    !> Current reaction rates
+    real(kind=dp), allocatable :: get_rxn_rates(:)
+    !> Core data
+    class(phlex_core_t), intent(in) :: this
+    !> Model state
+    type(phlex_state_t), pointer, intent(in) :: phlex_state
+
+    if (associated(this%solver_data_gas)) then
+      get_rxn_rates = this%solver_data_gas%get_rates(phlex_state)
+    else if (associated(this%solver_data_aero)) then
+      get_rxn_rates = this%solver_data_aero%get_rates(phlex_state)
+    else if (associated(this%solver_data_gas_aero)) then
+      get_rxn_rates = this%solver_data_gas_aero%get_rates(phlex_state)
+    end if
+
+  end function get_rxn_rates
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Print the core data
   subroutine do_print(this, file_unit)
 
     !> Core data
-    class(phlex_core_t) :: this
+    class(phlex_core_t), intent(in) :: this
     !> File unit for output
-    integer(kind=i_kind), optional :: file_unit
+    integer(kind=i_kind), intent(in), optional :: file_unit
 
     integer(kind=i_kind) :: i_phase, i_mech
     integer(kind=i_kind) :: f_unit=6
@@ -961,28 +985,15 @@ contains
     write(f_unit,*) "*********************"
     write(f_unit,*) "Relative integration tolerance: ", this%rel_tol
     call this%chem_spec_data%print(f_unit)
-    write(*,*) "*** Aerosol Phases ***"
+    write(f_unit,*) "*** Aerosol Phases ***"
     do i_phase=1, size(this%aero_phase)
       call this%aero_phase(i_phase)%val%print()
     end do
-    write(*,*) "*** Mechanisms ***"
+    write(f_unit,*) "*** Mechanisms ***"
     write(f_unit,*) "Number of mechanisms: ", size(this%mechanism)
     do i_mech=1, size(this%mechanism)
       call this%mechanism(i_mech)%print(f_unit)
     end do
-    write(f_unit,*) "*** Solver Data ***"
-    if (associated(this%solver_data_gas)) then
-      write(f_unit,*) "  * Gas Solver *"
-      call this%solver_data_gas%print()
-    end if
-    if (associated(this%solver_data_aero)) then
-      write(f_unit,*) "  * Aerosol Solver *"
-      call this%solver_data_aero%print()
-    end if
-    if (associated(this%solver_data_gas_aero)) then
-      write(f_unit,*) "  * Gas and Aerosol Solver *"
-      call this%solver_data_gas_aero%print()
-    end if
 
   end subroutine do_print
 

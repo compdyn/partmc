@@ -1111,6 +1111,104 @@ contains
 
   !> Allocate or reallocate the given array to ensure it is of the
   !> given size, preserving any data and/or initializing to 0.
+  subroutine ensure_real_array_3d_size(x, n1, n2, n3, only_grow)
+
+    !> Array of real numbers.
+    real(kind=dp), intent(inout), allocatable :: x(:, :, :)
+    !> Desired first size of array.
+    integer, intent(in) :: n1
+    !> Desired second size of array.
+    integer, intent(in) :: n2
+    !> Desired third size of array.
+    integer, intent(in) :: n3
+    !> Whether to only increase the array size (default .true.).
+    logical, intent(in), optional :: only_grow
+
+    integer :: new_n1, new_n2, new_n3, n1_min, n2_min, n3_min
+    real(kind=dp), allocatable :: tmp_x(:, :, :)
+
+    if (allocated(x)) then
+       new_n1 = n1
+       new_n2 = n2
+       new_n3 = n3
+       if (present(only_grow)) then
+          new_n1 = max(new_n1, size(x, 1))
+          new_n2 = max(new_n2, size(x, 2))
+          new_n3 = max(new_n3, size(x, 3))
+       end if
+       if ((size(x, 1) /= new_n1) .or. (size(x, 2) /= new_n2) &
+            .or. (size(x,3) /= new_n3)) then
+          allocate(tmp_x(new_n1, new_n2, new_n3))
+          n1_min = min(new_n1, size(x, 1))
+          n2_min = min(new_n2, size(x, 2))
+          n3_min = min(new_n3, size(x, 3))
+          tmp_x = 0d0
+          tmp_x(1:n1_min, 1:n2_min, 1:n3_min) = x(1:n1_min, 1:n2_min, 1:n3_min)
+          call move_alloc(tmp_x, x)
+       end if
+    else
+       allocate(x(n1, n2, n3))
+       x = 0d0
+    end if
+
+  end subroutine ensure_real_array_3d_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocate or reallocate the given array to ensure it is of the
+  !> given size, preserving any data and/or initializing to 0.
+  subroutine ensure_real_array_4d_size(x, n1, n2, n3, n4, only_grow)
+
+    !> Array of real numbers.
+    real(kind=dp), intent(inout), allocatable :: x(:, :, :, :)
+    !> Desired first size of array.
+    integer, intent(in) :: n1
+    !> Desired second size of array.
+    integer, intent(in) :: n2
+    !> Desired third size of array.
+    integer, intent(in) :: n3
+    !> Desired fourth size of array.
+    integer, intent(in) :: n4
+    !> Whether to only increase the array size (default .true.).
+    logical, intent(in), optional :: only_grow
+
+    integer :: new_n1, new_n2, new_n3, new_n4, n1_min, n2_min, n3_min, n4_min
+    real(kind=dp), allocatable :: tmp_x(:, :, :, :)
+
+    if (allocated(x)) then
+       new_n1 = n1
+       new_n2 = n2
+       new_n3 = n3
+       new_n4 = n4
+       if (present(only_grow)) then
+          new_n1 = max(new_n1, size(x, 1))
+          new_n2 = max(new_n2, size(x, 2))
+          new_n3 = max(new_n3, size(x, 3))
+          new_n4 = max(new_n4, size(x, 4))
+       end if
+       if ((size(x, 1) /= new_n1) .or. (size(x, 2) /= new_n2) &
+            .or. (size(x, 3) /= new_n3) .or. (size(x, 4) /= new_n4)) then
+          allocate(tmp_x(new_n1, new_n2, new_n3, new_n4))
+          n1_min = min(new_n1, size(x, 1))
+          n2_min = min(new_n2, size(x, 2))
+          n3_min = min(new_n3, size(x, 3))
+          n4_min = min(new_n4, size(x, 4))
+          tmp_x = 0d0
+          tmp_x(1:n1_min, 1:n2_min, 1:n3_min, 1:n4_min) = x(1:n1_min, &
+               1:n2_min, 1:n3_min, 1:n4_min)
+          call move_alloc(tmp_x, x)
+       end if
+    else
+       allocate(x(n1, n2, n3, n4))
+       x = 0d0
+    end if
+
+  end subroutine ensure_real_array_4d_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocate or reallocate the given array to ensure it is of the
+  !> given size, preserving any data and/or initializing to 0.
   subroutine ensure_integer_array_size(x, n, only_grow)
 
     !> Array of integer numbers.
@@ -1180,6 +1278,104 @@ contains
     end if
 
   end subroutine ensure_integer_array_2d_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocate or reallocate the given array to ensure it is of the
+  !> given size, preserving any data and/or initializing to 0.
+  subroutine ensure_integer_array_3d_size(x, n1, n2, n3, only_grow)
+
+    !> Array of integer numbers.
+    integer, intent(inout), allocatable :: x(:, :, :)
+    !> Desired first size of array.
+    integer, intent(in) :: n1
+    !> Desired second size of array.
+    integer, intent(in) :: n2
+    !> Desired third size of array.
+    integer, intent(in) :: n3
+    !> Whether to only increase the array size (default .true.).
+    logical, intent(in), optional :: only_grow
+
+    integer :: new_n1, new_n2, new_n3, n1_min, n2_min, n3_min
+    integer, allocatable :: tmp_x(:, :, :)
+
+    if (allocated(x)) then
+       new_n1 = n1
+       new_n2 = n2
+       new_n3 = n3
+       if (present(only_grow)) then
+          new_n1 = max(new_n1, size(x, 1))
+          new_n2 = max(new_n2, size(x, 2))
+          new_n3 = max(new_n2, size(x, 3))
+       end if
+       if ((size(x, 1) /= new_n1) .or. (size(x, 2) /= new_n2) &
+            .or. (size(x,3) /= new_n3)) then
+          allocate(tmp_x(new_n1, new_n2, new_n3))
+          n1_min = min(new_n1, size(x, 1))
+          n2_min = min(new_n2, size(x, 2))
+          n3_min = min(new_n3, size(x, 3))
+          tmp_x = 0
+          tmp_x(1:n1_min, 1:n2_min, 1:n3_min) = x(1:n1_min, 1:n2_min, 1:n3_min)
+          call move_alloc(tmp_x, x)
+       end if
+    else
+       allocate(x(n1, n2, n3))
+       x = 0
+    end if
+
+  end subroutine ensure_integer_array_3d_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Allocate or reallocate the given array to ensure it is of the
+  !> given size, preserving any data and/or initializing to 0.
+  subroutine ensure_integer_array_4d_size(x, n1, n2, n3, n4, only_grow)
+
+    !> Array of integer numbers.
+    integer, intent(inout), allocatable :: x(:, :, :, :)
+    !> Desired first size of array.
+    integer, intent(in) :: n1
+    !> Desired second size of array.
+    integer, intent(in) :: n2
+    !> Desired third size of array.
+    integer, intent(in) :: n3
+    !> Desired fourth size of array.
+    integer, intent(in) :: n4
+    !> Whether to only increase the array size (default .true.).
+    logical, intent(in), optional :: only_grow
+
+    integer :: new_n1, new_n2, new_n3, new_n4, n1_min, n2_min, n3_min, n4_min
+    integer, allocatable :: tmp_x(:, :, :, :)
+
+    if (allocated(x)) then
+       new_n1 = n1
+       new_n2 = n2
+       new_n3 = n3
+       new_n4 = n4
+       if (present(only_grow)) then
+          new_n1 = max(new_n1, size(x, 1))
+          new_n2 = max(new_n2, size(x, 2))
+          new_n3 = max(new_n3, size(x, 3))
+          new_n4 = max(new_n4, size(x, 4))
+       end if
+       if ((size(x, 1) /= new_n1) .or. (size(x, 2) /= new_n2) &
+            .or. (size(x, 3) /= new_n3) .or. (size(x, 4) /= new_n4)) then
+          allocate(tmp_x(new_n1, new_n2, new_n3, new_n4))
+          n1_min = min(new_n1, size(x, 1))
+          n2_min = min(new_n2, size(x, 2))
+          n3_min = min(new_n3, size(x, 3))
+          n4_min = min(new_n4, size(x, 4))
+          tmp_x = 0
+          tmp_x(1:n1_min, 1:n2_min, 1:n3_min, 1:n4_min) = x(1:n1_min, &
+               1:n2_min, 1:n3_min, 1:n4_min)
+          call move_alloc(tmp_x, x)
+       end if
+    else
+       allocate(x(n1, n2, n3, n4))
+       x = 0
+    end if
+
+  end subroutine ensure_integer_array_4d_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

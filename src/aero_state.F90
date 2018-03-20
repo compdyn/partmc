@@ -1578,7 +1578,7 @@ contains
              global_n_part &
                   = aero_state_total_particles_all_procs(aero_state, i_group, &
                   i_class)
-#endif;
+#endif
              do while ((real(global_n_part, kind=dp) &
                   < aero_state%n_part_ideal(i_group, i_class) / 2d0) &
                   .and. (global_n_part > 0))

@@ -425,7 +425,7 @@ contains
             action="write")
     open(PHLEX_FILE_UNIT, file="out/cb05cl_ae5_phlex_results.txt", status="replace", &
             action="write")
-    n_gas_spec = phlex_core%chem_spec_data%size(spec_type=CHEM_SPEC_GAS_PHASE)
+    n_gas_spec = phlex_core%chem_spec_data%size(spec_phase=CHEM_SPEC_GAS_PHASE)
     allocate(phlex_spec_names(n_gas_spec))
     do i_spec = 1, n_gas_spec
       phlex_spec_names(i_spec)%string = phlex_core%chem_spec_data%gas_state_name(i_spec)

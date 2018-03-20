@@ -10,6 +10,11 @@
     "absolute tolerance" : 1.0e-30
   },
   {
+    "name" : "D",
+    "type" : "CHEM_SPEC",
+    "tracer type" : "CONSTANT"
+  },
+  {
     "name" : "B",
     "type" : "CHEM_SPEC",
     "absolute tolerance" : 1.0e-30
@@ -26,7 +31,8 @@
       {
 	"type" : "ARRHENIUS",
 	"reactants" : {
-	  "A" : {}
+	  "A" : {},
+	  "D" : {}
 	},
 	"products" : {
 	  "B" : {}
@@ -52,7 +58,8 @@
 	  "B" : {}
 	},
 	"products" : {
-	  "C" : {}
+	  "C" : {},
+	  "D" : {}
 	},
 	"A" : 21.0,
 	"C" : -4000.0,

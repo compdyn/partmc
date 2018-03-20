@@ -216,9 +216,9 @@ contains
     !> Name of species to add
     character(len=:), allocatable, intent(in) :: spec_name
     !> State variable type
-    integer(kind=i_kind), intent(in) :: spec_type
+    integer(kind=i_kind), intent(inout) :: spec_type
     !> Species phase
-    integer(kind=i_kind), intent(in) :: spec_phase
+    integer(kind=i_kind), intent(inout) :: spec_phase
     !> Property set for new species
     type(property_t), intent(inout), optional :: property_set
 
@@ -226,20 +226,26 @@ contains
 
     ! if the species exists, append the new data
     if (this%find(spec_name, i_spec)) then
-      
+     
       ! Check for a type mismatch
+      if (spec_type.eq.CHEM_SPEC_UNKNOWN_TYPE) &
+              spec_type = this%spec_type(i_spec)
       call assert_msg(596247182, &
               this%spec_type(i_spec).eq.CHEM_SPEC_UNKNOWN_TYPE &
               .or.spec_type.eq.this%spec_type(i_spec), &
               "Type mismatch for species "//spec_name)
 
       ! Check for a phase mismatch
+      if (spec_phase.eq.CHEM_SPEC_UNKNOWN_PHASE) &
+              spec_phase = this%spec_phase(i_spec)
       call assert_msg(612991075, &
               this%spec_phase(i_spec).eq.CHEM_SPEC_UNKNOWN_PHASE &
               .or.spec_phase.eq.this%spec_phase(i_spec), &
               "Phase mismatch for species "//spec_name)
 
       ! Update the species properties
+      this%spec_type(i_spec) = spec_type
+      this%spec_phase(i_spec) = spec_phase
       call this%property_set(i_spec)%update(property_set)
 
     ! ... otherwise, create a new species

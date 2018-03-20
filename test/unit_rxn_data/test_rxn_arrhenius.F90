@@ -60,9 +60,10 @@ contains
   !!
   !! The mechanism is of the form:
   !!
-  !!   A -k1-> B -k2-> C
+  !!   A + D -k1-> B -k2-> C + D
   !!
-  !! where k1 and k2 are Arrhenius reaction rate constants.
+  !! where k1 and k2 are Arrhenius reaction rate constants, and D
+  !! is a constant species.
   logical function run_arrhenius_test()
 
     use pmc_constants
@@ -72,22 +73,24 @@ contains
     character(len=:), allocatable :: input_file_path
     type(string_t), allocatable, dimension(:) :: output_file_path
 
-    real(kind=dp), dimension(0:NUM_TIME_STEP, 3) :: model_conc, true_conc
-    integer(kind=i_kind) :: idx_A, idx_B, idx_C
+    real(kind=dp), dimension(0:NUM_TIME_STEP, 4) :: model_conc, true_conc
+    integer(kind=i_kind) :: idx_A, idx_B, idx_C, idx_D
     character(len=:), allocatable :: key
     integer(kind=i_kind) :: i_time, i_spec
-    real(kind=dp) :: time_step, time
+    real(kind=dp) :: conc_D, time_step, time
 
     ! Parameters for calculating true concentrations
-    real(kind=dp) :: k1, k2, temp, pressure
+    real(kind=dp) :: k1, k2, temp, pressure, conv
 
     run_arrhenius_test = .true.
 
     ! Set the rate constants (for calculating the true value)
     temp = 272.5d0
     pressure = 101253.3d0
-    k1 = 1.0d0
-    k1 = k1 + 1476.0d0 * exp( -5.5d-21 / (const%boltzmann * temp) ) * &
+    conv = const%avagadro / const%univ_gas_const * 10.0d0**(-12.0d0) * &
+            pressure / temp
+    conc_D = 1.2d0 / conv
+    k1 = conc_D * conv + 1476.0d0 * exp( -5.5d-21 / (const%boltzmann * temp) ) * &
             (temp/300.0d0)**(150.0d0) * (1.0d0 + 0.15d0 * pressure) / 60.0d0
     k2 = 21.0d0 * exp( -4000.0d0/temp ) * (temp/315.0d0)**(11.0d0) * &
             (1.0d0 + 0.05d0 * pressure)
@@ -122,16 +125,20 @@ contains
     idx_B = phlex_core%chem_spec_data%gas_state_id(key);
     key = "C"
     idx_C = phlex_core%chem_spec_data%gas_state_id(key);
+    key = "D"
+    idx_D = phlex_core%chem_spec_data%gas_state_id(key);
 
     ! Make sure the expected species are in the model
     call assert(629811894, idx_A.gt.0)
     call assert(226395220, idx_B.gt.0)
     call assert(338713565, idx_C.gt.0)
+    call assert(714734564, idx_D.gt.0)
 
     ! Save the initial concentrations
     true_conc(0,idx_A) = 1.0
     true_conc(0,idx_B) = 0.0
     true_conc(0,idx_C) = 0.0
+    true_conc(0,idx_D) = conc_D
     model_conc(0,:) = true_conc(0,:)
 
     ! Set the initial concentrations in the model
@@ -151,7 +158,7 @@ contains
               (exp(-k1*time) - exp(-k2*time))
       true_conc(i_time,idx_C) = true_conc(0,idx_A) * &
              (1.0 + (k1*exp(-k2*time) - k2*exp(-k1*time))/(k2-k1))
-
+      true_conc(i_time,idx_D) = true_conc(0,idx_D)
     end do
 
     ! Save the results
@@ -160,7 +167,8 @@ contains
       write(7,*) i_time*time_step, &
             ' ', true_conc(i_time, idx_A),' ', model_conc(i_time, idx_A), &
             ' ', true_conc(i_time, idx_B),' ', model_conc(i_time, idx_B), &
-            ' ', true_conc(i_time, idx_C),' ', model_conc(i_time, idx_C)
+            ' ', true_conc(i_time, idx_C),' ', model_conc(i_time, idx_C), &
+            ' ', true_conc(i_time, idx_D),' ', model_conc(i_time, idx_D)
     end do
     close(7)
 

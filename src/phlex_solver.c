@@ -342,14 +342,18 @@ SUNMatrix get_jac_init(SolverData *solver_data)
 
   // Set the column and row indices
   int i_col=0, i_elem=0;
-  for (; i_col<n_dep_var; i_col++) {
+  for (int i=0; i<n_state_var; i++) {
+    if (solver_data->model_data.var_type[i]!=CHEM_SPEC_VARIABLE) continue;
     (SM_INDEXPTRS_S(M))[i_col] = i_elem;
-    for (int i_row=0; i_row<n_dep_var; i_row++) {
-      if (jac_struct[i_row][i_col]==true) {
+    for (int j=0, i_row=0; j<n_state_var; j++) {
+      if (solver_data->model_data.var_type[j]!=CHEM_SPEC_VARIABLE) continue;
+      if (jac_struct[j][i]==true) {
 	(SM_DATA_S(M))[i_elem] = (realtype) 1.0;
 	(SM_INDEXVALS_S(M))[i_elem++] = i_row;
       }
+      i_row++;
     }
+    i_col++;
   }
   (SM_INDEXPTRS_S(M))[i_col] = i_elem;
 

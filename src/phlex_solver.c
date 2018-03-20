@@ -37,14 +37,23 @@
 void * solver_new(int n_state_var, int *var_type, int n_rxn, int n_int_param, 
 		int n_float_param)
 {
+#ifdef PMC_USE_SUNDIALS
   // Create the SolverData object
   SolverData *sd = (SolverData*) malloc(sizeof(SolverData));
+  if (sd==NULL) {
+    printf("\n\nERROR allocating space for SolverData\n\n");
+    exit(1);
+  }
 
   // Save the number of state variables
   sd->model_data.n_state_var = n_state_var;
 
   // Add the variable types to the solver data
   sd->model_data.var_type = (int*) malloc(n_state_var * sizeof(int));
+  if (sd->model_data.var_type==NULL) {
+    printf("\n\nERROR allocating space for variable types\n\n");
+    exit(1);
+  }
   for (int i=0; i<n_state_var; i++)
     sd->model_data.var_type[i] = var_type[i];
 
@@ -60,15 +69,21 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn, int n_int_param,
   // of reactions (including one int for the number of reactions
   // and one int per reaction to store the reaction type)
   sd->model_data.rxn_data = (void*) malloc(
-		  (n_int_param + 1 + n_state_var) * sizeof(int) 
+		  (n_int_param + 1 + n_rxn) * sizeof(int) 
 		  + n_float_param * sizeof(realtype));
+  if (sd->model_data.rxn_data==NULL) {
+    printf("\n\nERROR allocating space for reaction data\n\n");
+    exit(1);
+  }
   int *ptr = sd->model_data.rxn_data;
   ptr[0] = n_rxn;
   sd->model_data.nxt_rxn = (void*) &(ptr[1]);
 
   // Return a pointer to the new SolverData object
   return (void*) sd;
-
+#else
+  return NULL;
+#endif
 }
 
 /** \brief Solver initialization
@@ -252,7 +267,15 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *model_data,
   // Reset the Jacobian dimensions
   if (SM_NNZ_S(J)<SM_NNZ_S(md->J_init)) {
     SM_INDEXVALS_S(J) = realloc(SM_INDEXVALS_S(J), SM_NNZ_S(md->J_init)*sizeof(sunindextype));
+    if (SM_INDEXVALS_S(J)==NULL) {
+      printf("\n\nERROR allocating space for sparse matrix index values\n\n");
+      exit(1);
+    }
     SM_DATA_S(J) = realloc(SM_DATA_S(J), SM_NNZ_S(md->J_init)*sizeof(realtype));
+    if (SM_DATA_S(J)==NULL) {
+      printf("\n\nERROR allocating space for sparse matrix data\n\n");
+      exit(1);
+    }
   }
   SM_NNZ_S(J) = SM_NNZ_S(md->J_init);
   for (int i=0; i<SM_NNZ_S(J); i++) {
@@ -288,8 +311,16 @@ SUNMatrix get_jac_init(SolverData *solver_data)
 
   // Set up the 2D array of flags
   jac_struct = (bool**) malloc(sizeof(int*) * n_state_var);
+  if (jac_struct==NULL) {
+    printf("\n\nERROR allocating space for jacobian structure array\n\n");
+    exit(1);
+  }
   for (int i_spec=0; i_spec < n_state_var; i_spec++) {
     jac_struct[i_spec] = (bool*) malloc(sizeof(int) * n_state_var);
+    if (jac_struct[i_spec]==NULL) {
+      printf("\n\nERROR allocating space for jacobian structure array row %d\n\n", i_spec);
+      exit(1);
+    }
     for (int j_spec=0; j_spec < n_state_var; j_spec++) jac_struct[i_spec][j_spec] = false;
   }
 
@@ -324,6 +355,10 @@ SUNMatrix get_jac_init(SolverData *solver_data)
 
   // Build the set of time derivative ids
   int *deriv_ids = (int*) malloc(sizeof(int) * n_state_var);
+  if (deriv_ids==NULL) {
+    printf("\n\nERROR allocating space for derivative ids\n\n");
+    exit(1);
+  }
   for (int i_spec=0, i_dep_var=0; i_spec < n_state_var; i_spec++)
     if (solver_data->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) {
       deriv_ids[i_spec] = i_dep_var++;

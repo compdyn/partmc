@@ -60,7 +60,6 @@ void * rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct)
         break;
     }
   }
-
   return rxn_data;
 }
 
@@ -101,9 +100,8 @@ void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids)
         rxn_data = (int*) rxn_troe_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
         break;
     }
-  } 
+  }
 }
-
 
 /** \brief Update reaction data for new environmental state
  *
@@ -143,7 +141,6 @@ void rxn_update_env_state(ModelData *model_data, double *env)
     }
   } 
 }
-
 
 /** \brief Calculate the time derivative f(t,y)
  *
@@ -241,6 +238,8 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J)
 
 #endif
 
+
+
 /** \brief Add condensed data to the condensed data block of memory
  *
  * \param rxn_type Reaction type
@@ -256,6 +255,8 @@ void rxn_add_condensed_data(int rxn_type, int n_int_param,
   ModelData *model_data = (ModelData*) &(((SolverData*)solver_data)->model_data);
   int *rxn_data = (int*) (model_data->nxt_rxn);
 
+#ifdef PMC_USE_SUNDIALS
+
   // Add the reaction type
   *(rxn_data++) = rxn_type;
 
@@ -269,6 +270,7 @@ void rxn_add_condensed_data(int rxn_type, int n_int_param,
   // Set the pointer for the next free space in rxn_data
   model_data->nxt_rxn = (void*) flt_ptr;
 
+#endif
 }
 
 /** \brief Set a photolysis reaction's base rate constant
@@ -280,6 +282,8 @@ void rxn_add_condensed_data(int rxn_type, int n_int_param,
 void rxn_set_photo_rate(int photo_id, double base_rate, void *solver_data)
 {
   ModelData *model_data = (ModelData*) &(((SolverData*)solver_data)->model_data);
+
+#ifdef PMC_USE_SUNDIALS
 
   // Get the number of reactions
   int *rxn_data = (int*) (model_data->rxn_data);
@@ -309,7 +313,8 @@ void rxn_set_photo_rate(int photo_id, double base_rate, void *solver_data)
         rxn_data = (int*) rxn_troe_skip((void*)rxn_data);
         break;
     }
-  } 
+  }
+#endif 
 }
 
 /** \brief Print the reaction data
@@ -323,6 +328,8 @@ void rxn_print_data(void *solver_data)
   // Get the number of reactions
   int *rxn_data = (int*) (model_data->rxn_data);
   int n_rxn = *(rxn_data++);
+
+#ifdef PMC_USE_SUNDIALS
 
   printf("\n\nReaction data\n\nnumber of reactions: %d\n\n", n_rxn);
 
@@ -351,6 +358,7 @@ void rxn_print_data(void *solver_data)
 	break;
     }
   }
+#endif
 }
 
 /*** \brief Calculate the mechanism reaction rates for the current conditions
@@ -371,7 +379,12 @@ double * rxn_get_rates(void *solver_data, double *state, double *env, int *n_rxn
 
   // Allocate space for the rate array
   double *rates = (double*) malloc(sizeof(double)*(*n_rxn));
+  if (rates==NULL) {
+    printf("\n\nERROR allocating space for rates\n\n");
+    exit(1);
+  }
 
+#ifdef PMC_USE_SUNDIALS
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn=0; i_rxn<*n_rxn; i_rxn++) {
 
@@ -400,6 +413,8 @@ double * rxn_get_rates(void *solver_data, double *state, double *env, int *n_rxn
     }
     rates[i_rxn] = (double) rate;
   }
+#endif
+
   return rates;
 }
 

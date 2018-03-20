@@ -8,6 +8,8 @@
 /** \file
  * \brief CMAQ_OH_HNO3 reaction solver functions
 */
+#ifdef PMC_USE_SUNDIALS
+
 #include "../rxn_solver.h"
 
 // TODO Lookup environmental indicies during initialization
@@ -275,3 +277,5 @@ void * rxn_CMAQ_OH_HNO3_get_rate(void *rxn_data, realtype *state, realtype *env,
 #undef _yield_
 #undef _INT_DATA_SIZE_
 #undef _FLOAT_DATA_SIZE_
+
+#endif

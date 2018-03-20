@@ -42,7 +42,8 @@
   {
     "name" : "CH4",
     "type" : "CHEM_SPEC",
-    "init conc" : 1.85
+    "init conc" : 1.85,
+    "tracer type" : "CONSTANT"
   },
   {
     "name" : "CL",
@@ -378,26 +379,31 @@
   {
     "name" : "O2",
     "type" : "CHEM_SPEC",
-    "init conc" : 2.095E05
+    "init conc" : 2.095E05,
+    "tracer type" : "CONSTANT"
   },
   {
     "name" : "H2O",
     "type" : "CHEM_SPEC",
-    "init conc" : 1.0E03
+    "init conc" : 1.0E03,
+    "tracer type" : "CONSTANT"
   },
   {
     "name" : "H2",
     "type" : "CHEM_SPEC",
-    "init conc" : 5.6E-01
+    "init conc" : 5.6E-01,
+    "tracer type" : "CONSTANT"
   },
   {
     "name" : "M",
     "type" : "CHEM_SPEC",
-    "init conc" : 1.0E06
+    "init conc" : 1.0E06,
+    "tracer type" : "CONSTANT"
   },
   {
     "name" : "N2",
     "type" : "CHEM_SPEC",
-    "init conc" : 7.808E05
+    "init conc" : 7.808E05,
+    "tracer type" : "CONSTANT"
   }
 ]}

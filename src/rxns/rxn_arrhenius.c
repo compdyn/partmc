@@ -8,6 +8,8 @@
 /** \file
  * \brief Arrhenius reaction solver functions
 */
+#ifdef PMC_USE_SUNDIALS
+
 #include "../rxn_solver.h"
 
 // TODO Lookup environmental indices during initialization
@@ -257,3 +259,5 @@ void * rxn_arrhenius_get_rate(void *rxn_data, realtype *state, realtype *env, re
 #undef _yield_
 #undef _INT_DATA_SIZE_
 #undef _FLOAT_DATA_SIZE_
+
+#endif

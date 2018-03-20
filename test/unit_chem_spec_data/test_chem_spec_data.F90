@@ -140,6 +140,9 @@ contains
       call json%get_next(j_next, j_spec)
     end do
 
+    ! Initialize the dataset
+    call spec_data%initialize()
+
     ! Check the final data set has the correct number of species
     call assert(280079471, spec_data%size().eq.127)
 

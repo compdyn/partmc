@@ -439,6 +439,9 @@ contains
     ! Species name for looking up properties
     character(len=:), allocatable :: spec_name
 
+    ! Initialize the species database
+    call this%chem_spec_data%initialize()
+
     ! Get the next index on the state array after the gas-phase species
     i_state_var = this%chem_spec_data%size(spec_phase=CHEM_SPEC_GAS_PHASE) + 1
 

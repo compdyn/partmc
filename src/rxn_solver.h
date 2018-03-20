@@ -15,6 +15,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+#ifdef PMC_USE_SUNDIALS
+
 /* Header files with a description of contents used */
 
 // arrhenius
@@ -68,5 +70,5 @@ void * rxn_troe_skip(void *rxn_data);
 void * rxn_troe_print(void *rxn_data);
 void * rxn_troe_get_rate(void *rxn_data, realtype *state, realtype *env, realtype *rate);
 
-
+#endif
 #endif

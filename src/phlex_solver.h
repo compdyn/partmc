@@ -14,7 +14,7 @@
 #include <stdlib.h>
 
 /* Header files with a description of contents used */
-#if defined(PMC_USE_SUNDIALS)
+#ifdef PMC_USE_SUNDIALS
 #include <cvodes/cvodes.h>               /* Protoypes for CVODE fcts., consts.  */
 #include <nvector/nvector_serial.h>      /* Serial N_Vector types, fcts, macros */
 #include <sunmatrix/sunmatrix_sparse.h>  /* sparse SUNMatrix                    */
@@ -35,7 +35,9 @@ typedef enum {false, true} bool;
 typedef struct {
   int n_state_var;	// number of state variables (>=NV_LENGTH_S(y))
   int *var_type;	// pointer to array of state variable types (solver, constant, PSSA)
+#ifdef PMC_USE_SUNDIALS
   SUNMatrix J_init;	// sparse Jacobian matrix with used elements initialized to 1.0
+#endif
   double *state;	// Pointer to the state array
   double *env;		// Pointer to the environmental state array
   void *rxn_data;	// Pointer to reaction parameters
@@ -45,7 +47,9 @@ typedef struct {
 
 /* Solver data structure */
 typedef struct {
+#ifdef PMC_USE_SUNDIALS
   N_Vector y;		// vector of solver variables
+#endif
   void *cvode_mem;	// CVodeMem object
   ModelData model_data; // Model data (used during initialization and solving)
 } SolverData;

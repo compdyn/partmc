@@ -17,6 +17,7 @@ program pmc_test_cb05cl_ae5
                                               to_string, warn_assert_msg
   use pmc_phlex_core
   use pmc_phlex_state
+  use pmc_phlex_solver_data
   use pmc_chem_spec_data
   use pmc_rxn_data
   use pmc_rxn_photolysis
@@ -46,6 +47,8 @@ program pmc_test_cb05cl_ae5
   integer(kind=i_kind), parameter :: NUM_EBI_PHOTO_RXN = 23
   ! Small number for minimum concentrations
   real(kind=dp), parameter :: SMALL_NUM = 1.0d-30
+  ! Used to check availability of a solver  
+  type(phlex_solver_data_t), pointer :: phlex_solver_data
 
 #ifdef DEBUG
   integer(kind=i_kind), parameter :: DEBUG_UNIT = 13
@@ -53,7 +56,11 @@ program pmc_test_cb05cl_ae5
   open(unit=DEBUG_UNIT, file="out/debug_cb05cl_ae.txt", status="replace", action="write")
 #endif
 
-  if (run_cb05cl_ae5_tests()) then
+  phlex_solver_data => phlex_solver_data_t()
+
+  if (.not.phlex_solver_data%is_solver_available()) then
+    write(*,*) "CB5 mechanism test - no solver available - PASS"
+  else if (run_cb05cl_ae5_tests()) then
     write(*,*) "CB5 mechanism tests - PASS"
   else
     write(*,*) "CB5 mechanism tests - FAIL"

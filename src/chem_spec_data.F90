@@ -85,6 +85,8 @@ module pmc_chem_spec_data
     procedure :: load
     !> Get the number of species with specified conditions
     procedure :: size => get_size
+    !> Initialize the species set
+    procedure :: initialize
     !> Check if a species name is in the set of chemical species
     procedure :: exists
     !> Get the name of a species
@@ -222,16 +224,22 @@ contains
 
     integer(kind=i_kind) :: i_spec
 
-    ! check for a valid phase
-    call assert_msg(821623290, spec_phase.ne.CHEM_SPEC_UNKNOWN_PHASE, &
-            "Received unknown species type for :"//spec_name)
-    
     ! if the species exists, append the new data
     if (this%find(spec_name, i_spec)) then
-      call assert_msg(596247182, spec_type.eq.this%spec_type(i_spec), &
-          "Type mismatch for species "//spec_name)
-      call assert_msg(612991075, spec_phase.eq.this%spec_phase(i_spec), &
-          "Phase mismatch for species "//spec_name)
+      
+      ! Check for a type mismatch
+      call assert_msg(596247182, &
+              this%spec_type(i_spec).eq.CHEM_SPEC_UNKNOWN_TYPE &
+              .or.spec_type.eq.this%spec_type(i_spec), &
+              "Type mismatch for species "//spec_name)
+
+      ! Check for a phase mismatch
+      call assert_msg(612991075, &
+              this%spec_phase(i_spec).eq.CHEM_SPEC_UNKNOWN_PHASE &
+              .or.spec_phase.eq.this%spec_phase(i_spec), &
+              "Phase mismatch for species "//spec_name)
+
+      ! Update the species properties
       call this%property_set(i_spec)%update(property_set)
 
     ! ... otherwise, create a new species
@@ -367,10 +375,6 @@ contains
       child => next
     end do
 
-    ! Set default values for type and phase
-    if (spec_type.eq.CHEM_SPEC_UNKNOWN_TYPE) spec_type = CHEM_SPEC_VARIABLE
-    if (spec_phase.eq.CHEM_SPEC_UNKNOWN_PHASE) spec_phase = CHEM_SPEC_GAS_PHASE
-
     ! Add or update the species data
     call this%add(spec_name, spec_type, spec_phase, property_set)
 #else
@@ -417,6 +421,31 @@ contains
     end if
 
   end function get_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Initialize the species set
+  subroutine initialize(this)
+
+    !> Species database
+    class(chem_spec_data_t), intent(inout) :: this
+
+    ! Species index
+    integer(kind=i_kind) :: i_spec
+
+    do i_spec = 1, this%num_spec
+
+      ! Set default value for type
+      if (this%spec_type(i_spec).eq.CHEM_SPEC_UNKNOWN_TYPE) &
+              this%spec_type(i_spec) = CHEM_SPEC_VARIABLE
+      
+      ! Set default value for phase
+      if (this%spec_phase(i_spec).eq.CHEM_SPEC_UNKNOWN_PHASE) &
+              this%spec_phase(i_spec) = CHEM_SPEC_GAS_PHASE
+
+    end do
+
+  end subroutine initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

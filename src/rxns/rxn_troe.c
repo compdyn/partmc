@@ -8,6 +8,8 @@
 /** \file
  * \brief Troe reaction solver functions
 */
+#ifdef PMC_USE_SUNDIALS
+
 #include "../rxn_solver.h"
 
 // TODO Lookup environmental indicies during initialization
@@ -274,3 +276,5 @@ void * rxn_troe_get_rate(void *rxn_data, realtype *state, realtype *env, realtyp
 #undef _yield_
 #undef _INT_DATA_SIZE_
 #undef _FLOAT_DATA_SIZE_
+
+#endif

@@ -14,7 +14,7 @@ while [ true ]
 do
   echo Attempt $counter
 
-if ! ../../test_chemistry_cb05cl_ae5; then 
+if ! ../../../test_chemistry_eqsam; then 
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then

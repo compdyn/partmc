@@ -82,6 +82,7 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv);
 void rxn_calc_jac(ModelData *model_data, SUNMatrix J);
 void rxn_set_photo_rate(int rxn_id, double base_rate, void *solver_data);
 void rxn_print_data(void *solver_data);
+static void solver_print_stats(void *cvode_mem);
 #endif
 
 #endif

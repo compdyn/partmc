@@ -1,0 +1,35 @@
+{
+	"pmc-data" : [
+		{
+			"type" : "AERO_REP_SINGLE_PARTICLE"
+		},
+		{
+			"name" : "aqueous aerosol",
+			"type" : "AERO_PHASE",
+			"species" : [
+				"Na_p",
+				"HSO4_m",
+				"SO4_mm",
+				"NH4_p",
+				"NO3_m",
+				"Cl_m",
+				"K_p",
+				"Ca_pp",
+				"Mg_pp",
+				"H2O_aq",
+				"H_p",
+				"OH_m",
+				"NaCl",
+				"(Na)2SO4",
+				"NaNO3",
+				"(NH4)2SO4",
+				"NH4NO3",
+				"NH4Cl",
+				"H2SO4_aq",
+				"NH4HSO4",
+				"NaHSO4",
+				"(NH4)3H(SO4)2"
+			]
+		}
+	]
+}

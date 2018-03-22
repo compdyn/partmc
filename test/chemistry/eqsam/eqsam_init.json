@@ -1,0 +1,139 @@
+{
+"notes" : "EQSAM chemistry is based on eqsam_v03d.f90",
+"pmc-data" :[
+	{
+		"name" : "Na_p",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "HSO4_m",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "SO4_mm",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "NH4_p",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "NO3_m",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "Cl_m",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "K_p",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "Ca_pp",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "Mg_pp",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "HCl",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "HNO3",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "NH3",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "H2SO4",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "H2O",
+		"type" : "CHEM_SPEC",
+		"init conc" : 10000.0
+	},
+	{
+		"name" : "H2O_aq",
+		"type" : "CHEM_SPEC",
+		"init conc" : 100.0
+	},
+	{
+		"name" : "H_p",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "OH_m",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "NaCl",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "(Na)2SO4",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "NaNO3",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "(NH4)2SO4",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "NH4NO3",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "NH4Cl",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "H2SO4_aq",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "NH4HSO4",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "NaHSO4",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "(NH4)3H(SO4)2",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	}
+]}

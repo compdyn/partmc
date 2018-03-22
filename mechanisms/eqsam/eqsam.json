@@ -1,0 +1,307 @@
+{
+"notes" : "EQSAM chemistry is based on eqsam_v03d.f90",
+"pmc-data" :[
+	{
+		"name" : "Na_p",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "sodium ion"
+	},
+	{
+		"name" : "HSO4_m",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "bisulfate ion"
+	},
+	{
+		"name" : "SO4_mm",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "sulfate ion"
+	},
+	{
+		"name" : "NH4_p",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "ammonium ion"
+	},
+	{
+		"name" : "NO3_m",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "nitrate ion"
+	},
+	{
+		"name" : "Cl_m",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "chloride ion"
+	},
+	{
+		"name" : "K_p",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "potassium ion"
+	},
+	{
+		"name" : "Ca_pp",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "calcium ion"
+	},
+	{
+		"name" : "Mg_pp",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "magnesium ion"
+	},
+	{
+		"name" : "HCl",
+		"type" : "CHEM_SPEC",
+		"phase" : "GAS",
+		"description" : "hydrochloric acid"
+	},
+	{
+		"name" : "HNO3",
+		"type" : "CHEM_SPEC",
+		"phase" : "GAS",
+		"description" : "nitric acid"
+	},
+	{
+		"name" : "NH3",
+		"type" : "CHEM_SPEC",
+		"phase" : "GAS",
+		"description" : "ammonia"
+	},
+	{
+		"name" : "H2SO4",
+		"type" : "CHEM_SPEC",
+		"phase" : "GAS",
+		"description" : "hydrochloric acid"
+	},
+	{
+		"name" : "H2O",
+		"type" : "CHEM_SPEC",
+		"phase" : "GAS",
+		"description" : "water vapor"
+	},
+	{
+		"name" : "H2O_aq",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "aerosol water"
+	},
+	{
+		"name" : "H_p",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "hydronium ion"
+	},
+	{
+		"name" : "OH_m",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "hydroxide ion"
+	},
+	{
+		"name" : "NaCl",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "sodium chloride"
+	},
+	{
+		"name" : "(Na)2SO4",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "sodium sulfate"
+	},
+	{
+		"name" : "NaNO3",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "sodium nitrate"
+	},
+	{
+		"name" : "(NH4)2SO4",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "ammonium sulfate"
+	},
+	{
+		"name" : "NH4NO3",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "ammonium nitrate"
+	},
+	{
+		"name" : "NH4Cl",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "ammonium chloride"
+	},
+	{
+		"name" : "H2SO4_aq",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "condensed sulfuric acid"
+	},
+	{
+		"name" : "NH4HSO4",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "ammonium bisulfate"
+	},
+	{
+		"name" : "NaHSO4",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "sodium bisulfate"
+	},
+	{
+		"name" : "(NH4)3H(SO4)2",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"description" : "ammonium sulfate salt"
+	},
+	{
+		"name" : "eqsam",
+		"type" : "MECHANISM",
+		"reactions" : [
+			{
+				"reactants" : { "HCl" : {} },
+				"products" : { "HCl_aq" : {} },
+				"type" : "PHASE_TRANSFER"
+			},
+			{
+				"reactants" : { "HNO3" : {} },
+				"products" : { "HNO3_aq" : {} },
+				"type" : "PHASE_TRANSFER"
+			},
+			{
+				"reactants" : { "NH3" : {} },
+				"products" : { "NH3_aq" : {} },
+				"type" : "PHASE_TRANSFER"
+			},
+			{
+				"reactants" : { "H2SO4" : {} },
+				"products" : { "H2SO4_aq" : {} },
+				"type" : "PHASE_TRANSFER"
+			},
+			{
+				"reactants" : { "H2O" : {} },
+				"products" : { "H2O_aq" : {} },
+				"type" : "PHASE_TRANSFER"
+			},
+			{
+				"reactants" : { "HCl_aq" : {} },
+				"products" : { "H_p" : {}, "Cl_m" : {} },
+				"type" : "EQUIL",
+                                "K_298" : 0.0,
+				"A" : 0.0,
+				"B": 0.0
+			},
+			{
+				"reactants" : { "HNO3_aq" : {} },
+				"products" : { "H_p" : {}, "NO3_m" : {} },
+				"type" : "EQUIL",
+                                "K_298" : 0.0,
+				"A" : 0.0,
+				"B": 0.0
+			},
+			{
+				"reactants" : { "NH3_aq" : {} },
+				"products" : { "NH4_p" : {}, "H_p" : {} },
+				"type" : "EQUIL",
+                                "K_298" : 0.0,
+				"A" : 0.0,
+				"B": 0.0
+			},
+			{
+				"reactants" : { "H2SO4_aq" : {} },
+				"products" : { "H_p" : {}, "HSO4_m" : {} },
+				"type" : "EQUIL",
+                                "K_298" : 0.0,
+				"A" : 0.0,
+				"B": 0.0
+			},
+			{
+				"reactants" : { "H2O_aq" : {} },
+				"products" : { "H_p" : {}, "OH_m" : {} },
+				"type" : "EQUIL",
+                                "K_298" : 0.0,
+				"A" : 0.0,
+				"B": 0.0
+			},
+			{
+				"reactants" : { "NaCl" : {} },
+				"products" : { "Na_p" : {}, "Cl_m" : {} },
+				"type" : "EQUIL",
+                                "K_298" : 0.0,
+				"A" : 0.0,
+				"B": 0.0
+			},
+			{
+				"reactants" : { "(Na)2SO4" : {} },
+				"products" : { "Na_p" : { "yield" : 2 }, "SO4_mm" : {} },
+				"type" : "EQUIL",
+                                "K_298" : 0.0,
+				"A" : 0.0,
+				"B": 0.0
+			},
+			{
+				"reactants" : { "NaNO3" : {} },
+				"products" : { "Na_p" : {}, "NO3_m" : {} },
+				"type" : "EQUIL",
+                                "K_298" : 0.0,
+				"A" : 0.0,
+				"B": 0.0
+			},
+			{
+				"reactants" : { "(NH4)2SO4" : {} },
+				"products" : { "NH4_p" : { "yield" : 2 }, "SO4_mm" : {} },
+				"type" : "EQUIL",
+                                "K_298" : 0.0,
+				"A" : 0.0,
+				"B": 0.0
+			},
+			{
+				"reactants" : { "NH4NO3" : {} },
+				"products" : { "NH4_p" : {}, "NO3_m" : {} },
+				"type" : "EQUIL",
+                                "K_298" : 0.0,
+				"A" : 0.0,
+				"B": 0.0
+			},
+			{
+				"reactants" : { "NH4Cl" : {} },
+				"products" : { "NH4_p" : {}, "Cl_m" : {} },
+				"type" : "EQUIL",
+                                "K_298" : 0.0,
+				"A" : 0.0,
+				"B": 0.0
+			},
+			{
+				"reactants" : { "NH4HSO4" : {} },
+				"products" : { "NH4_p" : {}, "HSO4_m" : {} },
+				"type" : "EQUIL",
+                                "K_298" : 0.0,
+				"A" : 0.0,
+				"B": 0.0
+			},
+			{
+				"reactants" : { "NaHSO4" : {} },
+				"products" : { "Na_p" : {}, "HSO4_m" : {} },
+				"type" : "EQUIL",
+                                "K_298" : 0.0,
+				"A" : 0.0,
+				"B": 0.0
+			},
+			{
+				"reactants" : { "(NH4)3H(SO4)2" : {} },
+				"products" : { "NH4_p" : { "yield" : 3 }, "SO4_mm" : {"yield" : 2} },
+				"type" : "EQUIL",
+                                "K_298" : 0.0,
+				"A" : 0.0,
+				"B": 0.0
+			}
+]}

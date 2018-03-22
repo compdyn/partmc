@@ -209,6 +209,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++)
     if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) state[i_spec] = (double) NV_Ith_S(sd->y,i_dep_var++);
 
+  //solver_print_stats(sd->cvode_mem);
+
   return PHLEX_SOLVER_SUCCESS;
 #else
   return PHLEX_SOLVER_FAIL;
@@ -435,5 +437,39 @@ void check_flag_fail(void *flag_value, char *func_name, int opt)
   if (check_flag(flag_value, func_name, opt)==PHLEX_SOLVER_FAIL) {
     exit(EXIT_FAILURE);
   }
+}
+
+/** \brief Print solver statistics
+ *
+ * \param cvode_mem Solver object
+ */
+static void solver_print_stats(void *cvode_mem)
+{
+  long int nst, nfe, nsetups, nje, nfeLS, nni, ncfn, netf, nge;
+  int flag;
+
+  flag = CVodeGetNumSteps(cvode_mem, &nst);
+  if (check_flag(&flag, "CVodeGetNumSteps", 1)==PHLEX_SOLVER_FAIL) return;
+  flag = CVodeGetNumRhsEvals(cvode_mem, &nfe);
+  if (check_flag(&flag, "CVodeGetNumRhsEvals", 1)==PHLEX_SOLVER_FAIL) return;
+  flag = CVodeGetNumLinSolvSetups(cvode_mem, &nsetups);
+  if (check_flag(&flag, "CVodeGetNumLinSolveSetups", 1)==PHLEX_SOLVER_FAIL) return;
+  flag = CVodeGetNumErrTestFails(cvode_mem, &netf);
+  if (check_flag(&flag, "CVodeGetNumErrTestFails", 1)==PHLEX_SOLVER_FAIL) return;
+  flag = CVodeGetNumNonlinSolvIters(cvode_mem, &nni);
+  if (check_flag(&flag, "CVodeGetNonlinSolvIters", 1)==PHLEX_SOLVER_FAIL) return;
+  flag = CVodeGetNumNonlinSolvConvFails(cvode_mem, &ncfn);
+  if (check_flag(&flag, "CVodeGetNumNonlinSolvConvFails", 1)==PHLEX_SOLVER_FAIL) return;
+  flag = CVDlsGetNumJacEvals(cvode_mem, &nje);
+  if (check_flag(&flag, "CVDlsGetNumJacEvals", 1)==PHLEX_SOLVER_FAIL) return;
+  flag = CVDlsGetNumRhsEvals(cvode_mem, &nfeLS);
+  if (check_flag(&flag, "CVDlsGetNumRhsEvals", 1)==PHLEX_SOLVER_FAIL) return;
+  flag = CVodeGetNumGEvals(cvode_mem, &nge);
+  if (check_flag(&flag, "CVodeGetNumGEvals", 1)==PHLEX_SOLVER_FAIL) return;
+
+  printf("\nSUNDIALS Solver Statistics:\n");
+  printf("number of steps = %-6ld RHS evals = %-6ld LS setups = %-6ld\n", nst, nfe, nsetups);
+  printf("error test fails = %-6ld LS iters = %-6ld NLS iters = %-6ld\n", netf, nni, ncfn);
+  printf("NL conv fails = %-6ld Jac evals = %-6ld RHS evals = %-6ld G evals = %-6ld\n", ncfn, nje, nfeLS, nge);
 }
 #endif

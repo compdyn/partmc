@@ -1,0 +1,7 @@
+{
+	"pmc-files" : [
+		"../../../mechanisms_run/eqsam_v03d/eqsam_v03d_spec.json",
+		"eqsam_init.json",
+		"eqsam_aero_rep.json"
+	]
+}

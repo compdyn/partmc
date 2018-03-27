@@ -603,16 +603,23 @@ contains
     type(json_value), pointer, intent(in) :: j_obj
 
     type(json_value), pointer :: child, next, species
-    character(kind=json_ck, len=:), allocatable :: key
+    character(kind=json_ck, len=:), allocatable :: key, unicode_str_val
+    integer(kind=json_ik) :: var_type
 
     this%property_set => property_t()
 
     next => null()
     call json%get_child(j_obj, child)
     do while (associated(child))
-      call json%info(child, name=key)
-      if (key.ne."type" .and. key.ne."name") &
-              call this%property_set%load(json, child, .false.)
+      call json%info(child, name=key, var_type=var_type)
+      if (key.eq."name") then
+        call assert_msg(196193896, var_type.eq.json_string, &
+                "Received non-string value for aerosol rep name")
+        call json%get(child, unicode_str_val)
+        this%rep_name = unicode_str_val
+      else if (key.ne."type") then
+        call this%property_set%load(json, child, .false.)
+      end if
       call json%get_next(child, next)
       child => next
     end do

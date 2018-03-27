@@ -200,7 +200,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   int flag = CVodeReInit(sd->cvode_mem, t_initial, sd->y);
   check_flag_fail(&flag, "CVodeReInit", 1);
 
- // Run the solver
+  // Run the solver
   realtype t_rt = (realtype) t_initial;
   flag = CVode(sd->cvode_mem, (realtype) t_final, sd->y, &t_rt, CV_NORMAL);
   if (check_flag(&flag, "CVode", 1)==PHLEX_SOLVER_FAIL) return PHLEX_SOLVER_FAIL;

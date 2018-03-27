@@ -1,6 +1,7 @@
 {
 	"pmc-data" : [
 		{
+			"name" : "single particle",
 			"type" : "AERO_REP_SINGLE_PARTICLE"
 		},
 		{
@@ -26,6 +27,9 @@
 				"NH4NO3",
 				"NH4Cl",
 				"H2SO4_aq",
+				"NH3_aq",
+				"HNO3_aq",
+				"HCl_aq",
 				"NH4HSO4",
 				"NaHSO4",
 				"(NH4)3H(SO4)2"

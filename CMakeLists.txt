@@ -172,6 +172,7 @@ add_test(test_rxn_troe ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_troe.sh)
 
 if (ENABLE_JSON AND ENABLE_SUNDIALS)
   add_test(test_chemistry_cb05cl_ae5 ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5.sh)
+  add_test(test_chemistry_eqsam_v03d ${CMAKE_BINARY_DIR}/test_run/chemistry/eqsam_v03d/test_chemistry_eqsam_v03d.sh)
   #add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh)
 endif()
 
@@ -423,6 +424,18 @@ add_executable(test_chemistry_cb05cl_ae5 test/chemistry/cb05cl_ae5/test_cb05cl_a
 	test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
 
 target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
+
+######################################################################
+# test_chemistry_eqsam_v03d
+
+set(EQSAM_V03D
+	test/chemistry/eqsam_v03d/eqsam_v03d.F90
+	)
+
+add_executable(test_chemistry_eqsam_v03d test/chemistry/eqsam_v03d/test_eqsam_v03d.F90
+	${EQSAM_V03D})
+
+target_link_libraries(test_chemistry_eqsam_v03d partmclib)
 
 ######################################################################
 # MONARCH interface

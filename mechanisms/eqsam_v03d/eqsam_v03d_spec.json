@@ -1,0 +1,210 @@
+{
+"notes" : "EQSAM chemistry is based on eqsam_v03d.f90",
+"pmc-data" :[
+	{
+		"name" : "Na_p",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 2200,
+		"description" : "sodium ion"
+	},
+	{
+		"name" : "HSO4_m",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 1800,
+		"description" : "bisulfate ion"
+	},
+	{
+		"name" : "SO4_mm",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 1800,
+		"description" : "sulfate ion"
+	},
+	{
+		"name" : "NH4_p",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 1800,
+		"description" : "ammonium ion"
+	},
+	{
+		"name" : "NO3_m",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 1800,
+		"description" : "nitrate ion"
+	},
+	{
+		"name" : "Cl_m",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 2200,
+		"description" : "chloride ion"
+	},
+	{
+		"name" : "K_p",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 2600,
+		"description" : "potassium ion"
+	},
+	{
+		"name" : "Ca_pp",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 2600,
+		"description" : "calcium ion"
+	},
+	{
+		"name" : "Mg_pp",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 2600,
+		"description" : "magnesium ion"
+	},
+	{
+		"name" : "HCl",
+		"type" : "CHEM_SPEC",
+		"phase" : "GAS",
+		"description" : "hydrochloric acid"
+	},
+	{
+		"name" : "HNO3",
+		"type" : "CHEM_SPEC",
+		"phase" : "GAS",
+		"description" : "nitric acid"
+	},
+	{
+		"name" : "NH3",
+		"type" : "CHEM_SPEC",
+		"phase" : "GAS",
+		"description" : "ammonia"
+	},
+	{
+		"name" : "H2SO4",
+		"type" : "CHEM_SPEC",
+		"phase" : "GAS",
+		"description" : "hydrochloric acid"
+	},
+	{
+		"name" : "H2O",
+		"type" : "CHEM_SPEC",
+		"phase" : "GAS",
+		"description" : "water vapor"
+	},
+	{
+		"name" : "H2O_aq",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 1000,
+		"description" : "aerosol water"
+	},
+	{
+		"name" : "H_p",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 1000,
+		"description" : "hydronium ion"
+	},
+	{
+		"name" : "OH_m",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 1000,
+		"description" : "hydroxide ion"
+	},
+	{
+		"name" : "NaCl",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 2200,
+		"description" : "sodium chloride"
+	},
+	{
+		"name" : "(Na)2SO4",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 2200,
+		"description" : "sodium sulfate"
+	},
+	{
+		"name" : "NaNO3",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 2200,
+		"description" : "sodium nitrate"
+	},
+	{
+		"name" : "(NH4)2SO4",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 2200,
+		"description" : "ammonium sulfate"
+	},
+	{
+		"name" : "NH4NO3",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 2200,
+		"description" : "ammonium nitrate"
+	},
+	{
+		"name" : "NH4Cl",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 2200,
+		"description" : "ammonium chloride"
+	},
+	{
+		"name" : "H2SO4_aq",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 1800,
+		"description" : "condensed sulfuric acid"
+	},
+	{
+		"name" : "NH3_aq",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 1800,
+		"description" : "condensed ammonia"
+	},
+	{
+		"name" : "HNO3_aq",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 1800,
+		"description" : "condensed nitric acid"
+	},
+	{
+		"name" : "HCl_aq",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 1800,
+		"description" : "condensed hydrochloric acid"
+	},
+	{
+		"name" : "NH4HSO4",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 2200,
+		"description" : "ammonium bisulfate"
+	},
+	{
+		"name" : "NaHSO4",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 2200,
+		"description" : "sodium bisulfate"
+	},
+	{
+		"name" : "(NH4)3H(SO4)2",
+		"type" : "CHEM_SPEC",
+		"phase" : "AEROSOL",
+		"density" : 2200,
+		"description" : "ammonium sulfate salt"
+	}
+		
+]}

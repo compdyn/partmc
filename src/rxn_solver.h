@@ -14,6 +14,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <xmmintrin.h>
+
+#define _RXN_PREFETCH_(addr) _mm_prefetch(((char*)(addr)), _MM_HINT_T0)
 
 #ifdef PMC_USE_SUNDIALS
 

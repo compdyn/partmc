@@ -122,6 +122,21 @@
 		"init conc" : 1.0
 	},
 	{
+		"name" : "HCl_aq",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "HNO3_aq",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
+		"name" : "NH3_aq",
+		"type" : "CHEM_SPEC",
+		"init conc" : 1.0
+	},
+	{
 		"name" : "NH4HSO4",
 		"type" : "CHEM_SPEC",
 		"init conc" : 1.0

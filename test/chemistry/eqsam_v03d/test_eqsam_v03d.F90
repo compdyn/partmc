@@ -29,7 +29,6 @@ program pmc_test_eqsam_v03d
 #endif
 
   ! EBI Solver
-  use module_bsc_chem_data
 
   implicit none
 

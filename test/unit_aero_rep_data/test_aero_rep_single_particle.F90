@@ -72,8 +72,6 @@ contains
     type(string_t), allocatable :: rep_names(:)
     character(len=:), allocatable :: rep_name, spec_name, phase_name
     type(string_t), allocatable :: file_list(:), unique_names(:)
-    real(kind=dp) :: surf_conc, v_t, v_p, r_t, jac_true
-    real(kind=dp), allocatable :: jac_contrib(:)
 
     character, allocatable :: buffer(:)
     integer(kind=i_kind) :: pos, pack_size
@@ -83,12 +81,11 @@ contains
     phlex_core => phlex_core_t()
 
     allocate(file_list(1))
-    file_list(1)%string = 'test_run/unit_aero_rep_data/test_aero_rep_data.json'
+    file_list(1)%string = 'test_run/unit_aero_rep_data/test_aero_rep_single_particle.json'
 
     call phlex_core%load(file_list)
     call phlex_core%initialize()
     phlex_state => phlex_core%new_state()
-    allocate(jac_contrib(size(phlex_state%state_var)))
 
     ! Set up the list of aerosol representation names
     ! !!! Add new aero_rep_data_t extending types here !!!
@@ -179,69 +176,6 @@ contains
       i_spec = i_spec_list(1)
       call assert_msg(291101806, i_spec.gt.0, rep_name)
       phlex_state%state_var(i_spec) = 8.5
-
-      ! Test the surface area 
-      jac_contrib(:) = 0.0
-      phase_name = "my test phase two"
-      i_phase = aero_rep%phase_id(phase_name)
-      call assert_msg(626765157, i_phase.gt.0, rep_name)
-      surf_conc = aero_rep%surface_area_conc(0, i_phase, phlex_state)
-      call assert_msg(790204515, surf_conc .eq. &
-            aero_rep%surface_area_conc(i_phase, 0, phlex_state, jac_contrib) &
-            , rep_name)
-      v_p = 3.0 * 4.5 + 4.0 * 5.5 + 5.0 * 6.5 
-      v_t = 1.0 * 1.5 + 2.0 * 2.5 + 3.0 * 3.5 + v_p + &
-            2.0 * 7.5 + 5.0 * 8.5
-      r_t = (3.0/4.0 * v_t/const%pi)**(1.0/3.0)
-      call assert_msg(528621322, almost_equal(surf_conc, 3.0*v_p/r_t), rep_name)
-      phase_name = "my test phase two"
-      spec_name = "species c"
-      i_spec_list = aero_rep%species_state_id(phase_name, spec_name)
-      i_spec = i_spec_list(1)
-      jac_true = (3.0 * r_t * 3.0 - 3.0 * v_p * &
-              1.0/3.0 * (3.0/4.0 * v_t/const%pi)**(1.0/3.0) * 3.0)/r_t**2
-      call assert_msg(593916845, jac_true .eq. jac_contrib(i_spec), rep_name)
-      phase_name = "my last test phase"
-      spec_name = "species e"
-      i_spec_list = aero_rep%species_state_id(phase_name, spec_name)
-      i_spec = i_spec_list(1)
-      jac_true =  (-3.0 * v_p * &
-              1.0/3.0 * (3.0/4.0 * v_t/const%pi)**(1.0/3.0) * 5.0)/r_t**2
-      call assert_msg(638320312, jac_true .eq. jac_contrib(i_spec), rep_name)
-
-      ! Test the species surface area 
-      jac_contrib(:) = 0.0
-      phase_name = "my test phase two"
-      spec_name = "species c"
-      i_phase = aero_rep%phase_id(phase_name)
-      i_spec_list = aero_rep%aero_phase(i_phase)%val%spec_id(spec_name)
-      i_spec = i_spec_list(1)
-      call assert_msg(136045982, i_phase.gt.0, rep_name)
-      surf_conc = aero_rep%species_surface_area_conc(i_phase, i_spec, phlex_state)
-      call assert_msg(530839576, surf_conc .eq. &
-            aero_rep%species_surface_area_conc(i_phase, i_spec, phlex_state, &
-            jac_contrib), rep_name)
-      v_p = 3.0 * 4.5
-      v_t = 1.0 * 1.5 + 2.0 * 2.5 + 3.0 * 3.5 + &
-            v_p + 4.0 * 5.5 + 5.0 * 6.5 + &  
-            2.0 * 7.5 + 5.0 * 8.5
-      r_t = (3.0/4.0 * v_t/const%pi)**(1.0/3.0)
-      call assert_msg(299485340, surf_conc .eq. 3.0*v_p/r_t, rep_name)
-      phase_name = "my test phase two"
-      spec_name = "species c"
-      i_spec_list = aero_rep%species_state_id(phase_name, spec_name)
-      i_spec = i_spec_list(1)
-      jac_true = (3.0 * r_t * 3.0 - 3.0 * v_p * &
-              1.0/3.0 * (3.0/4.0 * v_t/const%pi)**(1.0/3.0) * 3.0)/r_t**2
-      call assert_msg(413709219, jac_true .eq. jac_contrib(i_spec), rep_name)
-      phase_name = "my last test phase"
-      spec_name = "species e"
-      i_spec_list = aero_rep%species_state_id(phase_name, spec_name)
-      i_spec = i_spec_list(1)
-      jac_true =  (-3.0 * v_p * &
-              1.0/3.0 * (3.0/4.0 * v_t/const%pi)**(1.0/3.0) * 5.0)/r_t**2
-      call assert_msg(190978063, jac_true .eq. jac_contrib(i_spec), rep_name)
-
 
     end do
 

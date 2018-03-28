@@ -6,7 +6,7 @@
  *
 */
 /** \file
- * \brief Header file for solver functions
+ * \brief Header file for reaction solver functions
 */
 #ifndef RXN_SOLVER_H_
 #define RXN_SOLVER_H_
@@ -19,8 +19,6 @@
 #define _RXN_PREFETCH_(addr) _mm_prefetch(((char*)(addr)), _MM_HINT_T0)
 
 #ifdef PMC_USE_SUNDIALS
-
-/* Header files with a description of contents used */
 
 // arrhenius
 void * rxn_arrhenius_get_used_jac_elem(void *rxn_data, bool **jac_struct);

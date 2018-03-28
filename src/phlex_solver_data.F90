@@ -16,6 +16,8 @@ module pmc_phlex_solver_data
   use pmc_mechanism_data
   use pmc_rxn_data
   use pmc_rxn_factory
+  use pmc_aero_rep_data
+  use pmc_aero_rep_factory
 
   use iso_c_binding
 
@@ -38,7 +40,9 @@ module pmc_phlex_solver_data
   interface
     !> Get a new solver 
     type(c_ptr) function solver_new(n_state_var, var_type, &
-                    n_rxn, n_int_param, n_float_param) bind (c)
+                    n_rxn, n_rxn_int_param, n_rxn_float_param, &
+                    n_aero_rep, n_aero_rep_int_param, &
+                    n_aero_rep_float_param) bind (c)
       use iso_c_binding
       !> Number of variables on the state array (including const, PSSA, etc.)
       integer(kind=c_int), value :: n_state_var
@@ -47,9 +51,15 @@ module pmc_phlex_solver_data
       !> Number of reactions to solve
       integer(kind=c_int), value :: n_rxn
       !> Total number of integer parameters for all reactions
-      integer(kind=c_int), value :: n_int_param
+      integer(kind=c_int), value :: n_rxn_int_param
       !> Total number of floating-point parameters for all reactions
-      integer(kind=c_int), value :: n_float_param
+      integer(kind=c_int), value :: n_rxn_float_param
+      !> Number of aerosol representations
+      integer(kind=c_int), value :: n_aero_rep
+      !> Total number of integer parameters for all aerosol representations
+      integer(kind=c_int), value :: n_aero_rep_int_param
+      !> Total number of floating-point parameters for all aerosol representations
+      integer(kind=c_int), value :: n_aero_rep_float_param
     end function solver_new
 
     !> Solver initialization
@@ -84,7 +94,7 @@ module pmc_phlex_solver_data
       real(kind=c_double), value :: t_final
     end function solver_run
 
-    !> Add condensed data to the solver data block
+    !> Add condensed reaction data to the solver data block
     subroutine rxn_add_condensed_data(rxn_type, n_int_param, &
                     n_float_param, int_param, float_param, solver_data) &
                     bind (c)
@@ -136,6 +146,45 @@ module pmc_phlex_solver_data
       integer(kind=c_int) :: n_rxn
     end function rxn_get_rates
 
+    !> Add condensed aerosol representation data to the solver data block
+    subroutine aero_rep_add_condensed_data(aero_rep_type, n_int_param, &
+                  n_float_param, int_param, float_param, solver_data) bind(c)
+      use iso_c_binding
+      !> Aerosol representation type
+      integer(kind=c_int), value :: aero_rep_type
+      !> Number of integer parameters to add
+      integer(kind=c_int), value :: n_int_param
+      !> Number of floating-point parameters to add
+      integer(kind=c_int), value :: n_float_param
+      !> Pointer to the integer parameter array
+      type(c_ptr), value :: int_param
+      !> Pointer to the floating-point parameter array
+      type(c_ptr), value :: float_param
+      !> Pointer to the solver data
+      type(c_ptr), value :: solver_data
+    end subroutine aero_rep_add_condensed_data
+
+    !> Update aerosol representation data
+    subroutine aero_rep_update_data(aero_rep_type, update_type, update_data, &
+                    solver_data) bind(c)
+      use iso_c_binding
+      !> Aerosol representation type to update
+      integer(kind=c_int), value :: aero_rep_type
+      !> Type of update to perform
+      integer(kind=c_int), value :: update_type
+      !> Data need to perform the update
+      type(c_ptr), value :: update_data
+      !> Pointer to the solver data
+      type(c_ptr), value :: solver_data
+    end subroutine aero_rep_update_data
+
+    !> Print the aerosol representation data
+    subroutine aero_rep_print_data(solver_data) bind(c)
+      use iso_c_binding
+      !> Pointer to the solver data
+      type(c_ptr), value :: solver_data
+    end subroutine aero_rep_print_data
+
   end interface
 
   !> Solver data
@@ -159,6 +208,8 @@ module pmc_phlex_solver_data
     procedure :: initialize
     !> Set a photolysis rate constant
     procedure :: set_photo_rate
+    !> Update aerosol representation data
+    procedure :: update_aero_rep_data
     !> Integrate over a given time step
     procedure :: solve
     !> Checks whether a solver is available
@@ -192,7 +243,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize the solver
-  subroutine initialize(this, var_type, abs_tol, mechanisms, rxn_phase)
+  subroutine initialize(this, var_type, abs_tol, mechanisms, aero_reps, &
+                  rxn_phase)
 
     !> Solver data
     class(phlex_solver_data_t), intent(inout) :: this
@@ -205,6 +257,8 @@ contains
     real(kind=dp), allocatable, intent(in) :: abs_tol(:)
     !> Mechanisms to include in solver
     type(mechanism_data_t), pointer, intent(in) :: mechanisms(:)
+    !> Aerosol representations to include
+    type(aero_rep_data_ptr), pointer, intent(in) :: aero_reps(:)
     !> Reactions phase to solve -- gas, aerosol, or both (default)
     !! Use parameters in pmc_rxn_data to specify phase:
     !! GAS_RXN, AERO_RXN, GAS_AERO_RXN
@@ -215,11 +269,15 @@ contains
     ! Absolute tolerances
     real(kind=c_double), pointer :: abs_tol_c(:)
     ! Indices for iteration
-    integer(kind=i_kind) :: i_mech, i_rxn
+    integer(kind=i_kind) :: i_mech, i_rxn, i_aero_rep
     ! Reaction pointer
     class(rxn_data_t), pointer :: rxn
     ! Reaction factory object for getting reaction type
     type(rxn_factory_t) :: rxn_factory
+    ! Aerosol representation pointer
+    class(aero_rep_data_t), pointer :: aero_rep
+    ! Aerosol representation factory object for getting aerosol representation type
+    type(aero_rep_factory_t) :: aero_rep_factory
     ! Integer parameters being transfered
     integer(kind=c_int), pointer :: int_param(:)
     ! Floating point parameters being transfered
@@ -227,9 +285,15 @@ contains
     ! Number of reactions
     integer(kind=c_int) :: n_rxn
     ! Number of integer reaction parameters
-    integer(kind=c_int) :: n_int_param
+    integer(kind=c_int) :: n_rxn_int_param
     ! Number of floating-point reaction parameters
-    integer(kind=c_int) :: n_float_param
+    integer(kind=c_int) :: n_rxn_float_param
+    ! Number of aerosol representations
+    integer(kind=c_int) :: n_aero_rep
+    ! Number of integer aerosol representation parameters
+    integer(kind=c_int) :: n_aero_rep_int_param
+    ! Number of floating-point reaction parameters
+    integer(kind=c_int) :: n_aero_rep_float_param
 
     ! Make sure the variable type and absolute tolerance arrays are of 
     ! equal length
@@ -246,8 +310,8 @@ contains
 
     ! Initialize the counters
     n_rxn = 0
-    n_int_param = 0
-    n_float_param = 0
+    n_rxn_int_param = 0
+    n_rxn_float_param = 0
 
     ! Calculate the number of reactions and the size of the condensed data
     do i_mech=1, size(mechanisms)
@@ -262,10 +326,25 @@ contains
             if (rxn_phase.eq.GAS_RXN) cycle
         end select
         n_rxn = n_rxn + 1
-        n_int_param = n_int_param + size(rxn%condensed_data_int)
-        n_float_param = n_float_param + size(rxn%condensed_data_real)
+        n_rxn_int_param = n_rxn_int_param + size(rxn%condensed_data_int)
+        n_rxn_float_param = n_rxn_float_param + size(rxn%condensed_data_real)
         end associate
       end do
+    end do
+
+    ! Initialize the counters
+    n_aero_rep = size(aero_reps)
+    n_aero_rep_int_param = 0
+    n_aero_rep_float_param = 0
+
+    ! Calculate the size of the aerosol representations condensed data
+    do i_aero_rep=1, n_aero_rep
+      associate (aero_rep => aero_reps(i_aero_rep)%val)
+      n_aero_rep_int_param = n_aero_rep_int_param + &
+              size(aero_rep%condensed_data_int)
+      n_aero_rep_float_param = n_aero_rep_float_param + &
+              size(aero_rep%condensed_data_real)
+      end associate
     end do
 
     ! Get a new solver object
@@ -273,8 +352,11 @@ contains
             int(size(var_type_c), kind=c_int),          & ! Size of the state variable
             c_loc(var_type_c),                          & ! Variable types
             n_rxn,                                      & ! Number of reactions
-            n_int_param,                                & ! Number of integer parameters
-            n_float_param                               & ! Number of floating-point parameters
+            n_rxn_int_param,                            & ! Number of rxn data integer parameters
+            n_rxn_float_param,                          & ! Number of rxn data floating-point parameters
+            n_aero_rep,                                 & ! Number of aerosol representations
+            n_aero_rep_int_param,                       & ! Number of aerosol representation data integer parameters
+            n_aero_rep_float_param                      & ! Number of aerosol representation data real parameters
             )
 
     ! Add all the condensed reaction data to the solver data block for reactions
@@ -303,12 +385,12 @@ contains
       
         ! Send the condensed data to the solver
         call rxn_add_condensed_data ( &
-                rxn_factory%get_type(rxn),      & ! Reaction type
-                size(int_param),                & ! Size of integer parameter array
-                size(float_param),              & ! Size of floating-point parameter array
-                c_loc(int_param),               & ! Pointer to integer parameter array
-                c_loc(float_param),             & ! Pointer to floating-point parameter array
-                this%solver_c_ptr               & ! Pointer to solver data
+                int(rxn_factory%get_type(rxn), kind=c_int),     & ! Reaction type
+                int(size(int_param), kind=c_int),               & ! Size of integer parameter array
+                int(size(float_param), kind=c_int),             & ! Size of floating-point parameter array
+                c_loc(int_param),                               & ! Pointer to integer parameter array
+                c_loc(float_param),                             & ! Pointer to floating-point parameter array
+                this%solver_c_ptr                               & ! Pointer to solver data
                 )
 
         ! Deallocate temporary arrays
@@ -317,6 +399,36 @@ contains
 
         end associate
       end do
+    end do
+
+    ! Add all the condensed aerosol representation data to the solver data block
+    do i_aero_rep=1, size(aero_reps)
+
+      ! Assign aero_rep to the current aerosol representation
+      associate (aero_rep => aero_reps(i_aero_rep)%val)
+
+      ! Load temporary data arrays
+      allocate(int_param(size(aero_rep%condensed_data_int)))
+      allocate(float_param(size(aero_rep%condensed_data_real)))
+      int_param(:) = int(aero_rep%condensed_data_int(:), kind=c_int)
+      float_param(:) = real(aero_rep%condensed_data_real(:), kind=c_double)
+
+      ! Send the condensed data to the solver
+      call aero_rep_add_condensed_data ( &
+              int(aero_rep_factory%get_type(aero_rep), kind=c_int), & 
+                                                                  ! Aerosol representation type
+              int(size(int_param), kind=c_int),                 & ! Size of the integer parameter array
+              int(size(float_param), kind=c_int),               & ! Size of the floating-point parameter array
+              c_loc(int_param),                                 & ! Pointer to the integer parameter array
+              c_loc(float_param),                               & ! Pointer to the floating-point parameter array
+              this%solver_c_ptr                                 & ! Pointer to solver data
+              )
+
+      ! Deallocate temporary arrays
+      deallocate(int_param)
+      deallocate(float_param)
+
+      end associate
     end do
 
     ! Initialize the solver
@@ -354,6 +466,31 @@ contains
             )
 
   end subroutine set_photo_rate
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Update aerosol representation data based on data passed from the host
+  !! model related to aerosol properties
+  subroutine update_aero_rep_data(this, aero_rep_type, update_type, &
+                  update_data)
+
+    !> Solver data
+    class(phlex_solver_data_t), intent(inout) :: this
+    !> Aerosol representation type
+    integer(kind=i_kind), intent(in) :: aero_rep_type
+    !> Aerosol representation-specific update type
+    integer(kind=i_kind), intent(in) :: update_type
+    !> Data required to perform update
+    type(c_ptr), intent(in) :: update_data
+
+    call aero_rep_update_data( &
+            int(aero_rep_type, kind=c_int),     & ! Aerosol representation type
+            int(update_type, kind=c_int),       & ! Update type
+            update_data,                        & ! Data needed to perform update
+            this%solver_c_ptr                   & ! Pointer to solver data
+            )
+
+  end subroutine update_aero_rep_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -438,6 +575,7 @@ contains
     class(phlex_solver_data_t), intent(in) :: this
 
     call rxn_print_data(this%solver_c_ptr)
+    call aero_rep_print_data(this%solver_c_ptr)
 
   end subroutine do_print
 

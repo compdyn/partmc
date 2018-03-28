@@ -55,6 +55,7 @@ module pmc_rxn_data
   use pmc_util,                       only : die_msg, string_t
   use pmc_property
   use pmc_chem_spec_data
+  use pmc_aero_rep_data
   use pmc_phlex_state
 #ifdef PMC_USE_MPI
   use mpi
@@ -149,13 +150,15 @@ interface
   !! This routine should be called once for each reaction
   !! at the beginning of a model run after all the input files have been
   !! read in.
-  subroutine initialize(this, chem_spec_data)
-    import :: rxn_data_t, chem_spec_data_t
+  subroutine initialize(this, chem_spec_data, aero_rep)
+    import :: rxn_data_t, chem_spec_data_t, aero_rep_data_ptr
 
     !> Reaction data
     class(rxn_data_t), intent(inout) :: this
     !> Chemical species data
     type(chem_spec_data_t), intent(in) :: chem_spec_data
+    !> Aerosol representations
+    class(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
 
   end subroutine initialize
 

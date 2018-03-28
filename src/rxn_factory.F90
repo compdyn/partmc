@@ -307,7 +307,7 @@ contains
   integer(kind=i_kind) function get_type(this, rxn) result (rxn_type)
 
     !> Reaction factory
-    class(rxn_factory_t) :: this
+    class(rxn_factory_t), intent(in) :: this
     !> Reaction to get type of
     class(rxn_data_t), intent(in) :: rxn
 
@@ -323,7 +323,7 @@ contains
       type is (rxn_photolysis_t)
         rxn_type = RXN_PHOTOLYSIS
       class default
-        call die_msg(343941184, "Trying to pack reaction of unknown type.")
+        call die_msg(343941184, "Unknown reaction type.")
     end select
 
   end function get_type

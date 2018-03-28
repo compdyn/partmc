@@ -41,6 +41,7 @@ module pmc_mechanism_data
   use pmc_rxn_factory
   use pmc_chem_spec_data
   use pmc_phlex_state
+  use pmc_aero_rep_data
 
   implicit none
   private
@@ -229,17 +230,19 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize the mechanism
-  subroutine initialize(this, chem_spec_data)
+  subroutine initialize(this, chem_spec_data, aero_rep_data)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(inout) :: this
     !> Chemical species data
     type(chem_spec_data_t), intent(in) :: chem_spec_data
+    !> Aerosol representation data
+    class(aero_rep_data_ptr), pointer, intent(in) :: aero_rep_data(:)
 
     integer(kind=i_kind) :: i_rxn
 
     do i_rxn = 1, this%num_rxn
-      call this%rxn_ptr(i_rxn)%val%initialize(chem_spec_data)
+      call this%rxn_ptr(i_rxn)%val%initialize(chem_spec_data, aero_rep_data)
     end do
 
   end subroutine initialize

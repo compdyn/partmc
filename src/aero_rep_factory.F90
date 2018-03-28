@@ -6,7 +6,7 @@
 !> The pmc_aero_rep_factory module.
 
 !> \page phlex_aero_rep_add Phlexible Module for Chemistry: Adding an Aerosol Representation
-!!
+!!  TODO update
 !! Adding an \ref phlex_aero_rep "aerosol representation" to the \ref
 !! phlex_chem "phlex-chem" module can be done in the following steps:
 !!
@@ -218,6 +218,8 @@ module pmc_aero_rep_factory
     procedure :: create
     !> Create a new aerosol representation from input data
     procedure :: load
+    !> Get the aerosol representation type
+    procedure :: get_type
     !> Determine the number of bytes required to pack an given aerosol
     !! representation
     procedure :: pack_size
@@ -294,6 +296,25 @@ contains
     call warn_msg(723960750, "No support for input files.")
 #endif
   end function load
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the aerosol reaction type
+  integer(kind=i_kind) function get_type(this, aero_rep) result(aero_rep_type)
+
+    !> Aerosol representation factory
+    class(aero_rep_factory_t), intent(in) :: this
+    !> Aerosol representation to get the type of
+    class(aero_rep_data_t), intent(in) :: aero_rep
+
+    select type (aero_rep)
+      type is (aero_rep_single_particle_t)
+        aero_rep_type = AERO_REP_SINGLE_PARTICLE
+      class default
+        call die_msg(865927801, "Unknown aerosol representation type")
+    end select
+
+  end function get_type
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

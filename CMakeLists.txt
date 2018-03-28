@@ -160,17 +160,16 @@ do_unit_test(property "PASS")
 do_unit_test(chem_spec_data "PASS")
 do_unit_test(aero_phase_data "PASS")
 if(ENABLE_JSON)
-  do_unit_test(aero_rep_data "PASS")
+  do_unit_test(aero_rep_single_particle "PASS")
   do_unit_test(phlex_core "PASS")
 endif()
 
-add_test(test_rxn_arrhenius ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_arrhenius.sh)
-add_test(test_rxn_CMAQ_H2O2 ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_CMAQ_H2O2.sh)
-add_test(test_rxn_CMAQ_OH_HNO3 ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_CMAQ_OH_HNO3.sh)
-add_test(test_rxn_photolysis ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_photolysis.sh)
-add_test(test_rxn_troe ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_troe.sh)
-
 if (ENABLE_JSON AND ENABLE_SUNDIALS)
+  add_test(test_rxn_arrhenius ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_arrhenius.sh)
+  add_test(test_rxn_CMAQ_H2O2 ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_CMAQ_H2O2.sh)
+  add_test(test_rxn_CMAQ_OH_HNO3 ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_CMAQ_OH_HNO3.sh)
+  add_test(test_rxn_photolysis ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_photolysis.sh)
+  add_test(test_rxn_troe ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_troe.sh)
   add_test(test_chemistry_cb05cl_ae5 ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5.sh)
   add_test(test_chemistry_eqsam_v03d ${CMAKE_BINARY_DIR}/test_run/chemistry/eqsam_v03d/test_chemistry_eqsam_v03d.sh)
   #add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh)
@@ -326,8 +325,8 @@ set(REACTIONS_SRC src/rxns/rxn_arrhenius.F90 src/rxns/rxn_arrhenius.c
 	src/rxns/rxn_CMAQ_H2O2.F90 src/rxns/rxn_CMAQ_H2O2.c
 	src/rxns/rxn_CMAQ_OH_HNO3.F90 src/rxns/rxn_CMAQ_OH_HNO3.c
 	src/rxns/rxn_photolysis.F90 src/rxns/rxn_photolysis.c)
-set(AEROSOL_REPS_SRC src/aero_reps/aero_rep_single_particle.F90 
-   src/aero_reps/aero_rep_single_particle_state.F90)
+set(AEROSOL_REPS_SRC src/aero_reps/aero_rep_single_particle.F90
+        src/aero_reps/aero_rep_single_particle.c)	
 
 add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/integer_rmap.F90 src/integer_rmap2.F90 src/aero_sorted.F90
@@ -345,12 +344,12 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/aero_particle.F90 src/aero_particle_array.F90 src/mpi.F90
   src/netcdf.F90 src/aero_info.F90 src/aero_info_array.F90
   src/nucleate.F90 src/condense.F90 src/fractal.F90 src/chamber.F90
-  src/property.F90 src/chem_spec_data.F90 src/aero_rep_state.F90
+  src/property.F90 src/chem_spec_data.F90
   src/rxn_data.F90 src/phlex_state.F90 src/mechanism_data.F90
   src/phlex_core.F90 src/phlex_solver_data.F90 src/aero_rep_data.F90
   src/aero_phase_data.F90 src/aero_rep_factory.F90 
   src/phlex_interface.F90 src/rxn_factory.F90 src/rxn_solver.c
-  src/phlex_solver.c
+  src/aero_rep_solver.c src/phlex_solver.c
   ${AEROSOL_REPS_SRC}
   ${REACTIONS_SRC}
   ${SUNDIALS_SRC} ${GSL_SRC}
@@ -488,11 +487,12 @@ add_executable(unit_test_aero_phase_data test/unit_aero_phase_data/test_aero_pha
 target_link_libraries(unit_test_aero_phase_data partmclib)
 
 ######################################################################
-# test_aero_rep_data
+# test_aero_rep_single_particle
 
-add_executable(unit_test_aero_rep_data test/unit_aero_rep_data/test_aero_rep_data.F90)
+add_executable(unit_test_aero_rep_single_particle 
+	test/unit_aero_rep_data/test_aero_rep_single_particle.F90)
 
-target_link_libraries(unit_test_aero_rep_data partmclib)
+target_link_libraries(unit_test_aero_rep_single_particle partmclib)
 
 ######################################################################
 # test_chem_mech_solver

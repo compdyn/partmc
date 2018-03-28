@@ -453,7 +453,7 @@ contains
     ! Initialize the aerosol representations
     do i_aero_rep = 1, size(this%aero_rep)
       call this%aero_rep(i_aero_rep)%val%initialize(this%aero_phase, &
-              i_state_var, i_aero_rep, this%chem_spec_data)
+              i_state_var, this%chem_spec_data)
       i_state_var = i_state_var + this%aero_rep(i_aero_rep)%val%size()
     end do
 
@@ -462,7 +462,8 @@ contains
 
     ! Initialize the mechanisms
     do i_mech = 1, size(this%mechanism)
-      call this%mechanism(i_mech)%initialize(this%chem_spec_data)
+      call this%mechanism(i_mech)%initialize(this%chem_spec_data, &
+              this%aero_rep)
     end do
 
   end subroutine initialize
@@ -653,12 +654,6 @@ contains
     ! Set up the state variable array
     allocate(new_state%state_var(this%state_array_size))
 
-    ! Create the aerosol representation states
-    allocate(new_state%aero_rep_state(size(this%aero_rep)))
-    do i_rep = 1, size(this%aero_rep)
-      new_state%aero_rep_state(i_rep)%val => this%aero_rep(i_rep)%val%new_state()
-    end do
-
   end function new_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -729,12 +724,14 @@ contains
                 var_type,               & ! State array variable types
                 abs_tol,                & ! Absolute tolerances for each state variable
                 this%mechanism,         & ! Pointer to the mechanisms
+                this%aero_rep,          & ! Pointer to the aerosol representations
                 GAS_RXN                 & ! Reaction phase
                 )
       call this%solver_data_aero%initialize( &
                 var_type,               & ! State array variable types
                 abs_tol,                & ! Absolute tolerances for each state variable
                 this%mechanism,         & ! Pointer to the mechanisms
+                this%aero_rep,          & ! Pointer to the aerosol representations
                 AERO_RXN                & ! Reaction phase
                 )
     else
@@ -752,6 +749,7 @@ contains
                 var_type,               & ! State array variable types
                 abs_tol,                & ! Absolute tolerances for each state variable
                 this%mechanism,         & ! Pointer to the mechanisms
+                this%aero_rep,          & ! Pointer to the aerosol representations
                 GAS_AERO_RXN            & ! Reaction phase
                 )
       

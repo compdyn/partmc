@@ -12,7 +12,6 @@ module pmc_phlex_state
   use pmc_mpi
   use pmc_util,                       only : die_msg, string_t
   use pmc_env_state
-  use pmc_aero_rep_state
   use pmc_rand
 #ifdef PMC_USE_MPI
   use mpi
@@ -35,11 +34,6 @@ module pmc_phlex_state
     !! variable whose state will be solved for during the mechanism
     !! integration.
     real(kind=dp), allocatable :: state_var(:)
-    !> Aerosol representation states. This should contain time-varying
-    !! information related to an aerosol representation. Each element
-    !! in this array should correspond to an element with the same index
-    !! in the phlex_core%aero_rep(:) array.
-    type(aero_rep_state_ptr), allocatable :: aero_rep_state(:)
     !> Environmental conditions
     type(env_state_t), pointer :: env_state
   contains

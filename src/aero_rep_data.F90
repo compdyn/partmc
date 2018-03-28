@@ -13,18 +13,8 @@
 !! type of aerosol representation used by an external model (e.g., binned,
 !! modal, single particle). This derived type can either calculate the aerosol
 !! microphysics directly, or use the microphysics results of the host model to
-!! update the \ref phlex_aero_phase "aerosol phase" states in the chemistry
+!! update the update the aerosol representation data required by the chemistry
 !! module.
-!!
-!! The \c aero_rep_data_t type includes three deferred functions for
-!! calculating physical aerosol conditions &mdash; surface area
-!! concentration, species surface area concentration, and Kelvin Effect
-!! vapor pressure scaling. Each type extending \c aero_rep_data_t should
-!! provide these three functions. As more physical aerosol parameter functions
-!! are required by specific reaction types, overridable type-bound procedures
-!! should be added to the \c aero_rep_data_t type, whose default action is to
-!! throw an error, so that only extending types that override the new
-!! procedure can be used by reactions that require it.
 !!
 !! The available aerosol representations are:
 !!  - \ref phlex_aero_rep_single_particle "Single Particle"
@@ -142,24 +132,6 @@ module pmc_aero_rep_data
     !> Get the non-unique name of a species by it's id in this aerosol
     !! representation
     procedure(spec_name_by_id), deferred :: spec_name_by_id
-    !> Get an instance of the pmc_aero_rep_state::aero_rep_state_t variable
-    !! for this aerosol representation.
-    !!
-    !! See phlex_aero_rep_state "Aerosol Representation States" for details.
-    procedure(new_state), deferred :: new_state
-    !> Get surface area concentration (m^2/m^3) between two phases. One phase
-    !! may be set to 0 to indicate the gas phase, or both phases may be
-    !! aerosol phases.
-    procedure(surface_area_conc), deferred :: &
-            surface_area_conc
-    !> Get the surface area concentration for a specific aerosol species
-    !! (m^2/m^3) between a specified aerosol phase and the gas phase.
-    procedure(species_surface_area_conc), deferred :: &
-            species_surface_area_conc
-    !> Get the Kelvin effect vapor pressure adjustment for a particular 
-    !! species (unitless)
-    procedure(kelvin_effect), deferred :: &
-            kelvin_effect
     !> Get the name of the aerosol representation
     procedure :: name => get_name
     !> Get a phase id in this aerosol representation. This id should be used
@@ -204,7 +176,7 @@ interface
   !! the input files have been read in. It ensures all data required during
   !! the model run are included in the condensed data arrays.
   subroutine initialize(this, aero_phase_set, &
-                spec_state_id, aero_state_id, chem_spec_data)
+                spec_state_id, chem_spec_data)
     use pmc_util,                                     only : i_kind
     use pmc_chem_spec_data
     use pmc_aero_phase_data
@@ -218,9 +190,6 @@ interface
     !> Beginning state id for this aerosol representation in the
     !! \c pmc_phlex_state::phlex_state_t::state_var array
     integer(kind=i_kind), intent(in) :: spec_state_id
-    !> Index for this representation in then 
-    !! \c pmc_phlex_state::phlex_state_t::aero_rep_state array
-    integer(kind=i_kind), intent(in) :: aero_state_id
     !> Chemical species data
     type(chem_spec_data_t), intent(in) :: chem_spec_data
 
@@ -339,110 +308,6 @@ interface
     integer(kind=i_kind) :: aero_rep_spec_id
 
   end function spec_name_by_id
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get an instance of the pmc_aero_rep_state::aero_rep_state_t variable
-  !! for this aerosol representation.
-  !!
-  !! See phlex_aero_rep_state "Aerosol Representation States" for details.
-  function new_state(this) result (aero_rep_state)
-    use pmc_aero_rep_state
-    import :: aero_rep_data_t
-
-    !> Aerosol representation state
-    class(aero_rep_state_t), pointer :: aero_rep_state
-    !> Aerosol representation data
-    class(aero_rep_data_t), intent(in) :: this
-
-  end function new_state
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get surface area concentration (m^2/m^3) between two phases. One phase
-  !! may be set to 0 to indicate the gas phase, or both phases may be
-  !! aerosol phases.
-  function surface_area_conc(this, i_phase1, i_phase2, &
-                    phlex_state, jac_contrib)
-    use pmc_util,                                     only : dp, i_kind
-    use pmc_phlex_state
-    import :: aero_rep_data_t
-
-    !> Surface area concentration
-    real(kind=dp) :: surface_area_conc
-    !> Aerosol representation data
-    class(aero_rep_data_t), intent(in) :: this
-    !> First aerosol phase index. Use \c aero_rep_data_t%phase_id() to get this
-    !! index
-    integer(kind=i_kind), intent(in) :: i_phase1
-    !> Second aerosol phase index. Use \c aero_rep_data_t%phase_id() to get this
-    !! index
-    integer(kind=i_kind), intent(in) :: i_phase2
-    !> Model state
-    type(phlex_state_t), intent(in) :: phlex_state
-    !> Contribution to Jacobian matrix. An array of the same size as the
-    !! \c pmc_phlex_state::phlex_state_t::state_var array that, when present,
-    !! will be filled with the partial derivatives of the result of this
-    !! calculation by each state variable.
-    real(kind=dp), allocatable, intent(inout), optional :: jac_contrib(:)
-
-  end function surface_area_conc
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get the surface area concentration for a specific aerosol species
-  !! (m^2/m^3) between a specified aerosol phase and the gas phase.
-  function species_surface_area_conc(this, i_phase, &
-                    i_spec, phlex_state, jac_contrib) result(surface_area_conc)
-    use pmc_util,                                     only : dp, i_kind
-    use pmc_phlex_state
-    import :: aero_rep_data_t
-
-    !> Surface area concentration
-    real(kind=dp) :: surface_area_conc
-    !> Aerosol representation data
-    class(aero_rep_data_t), intent(in) :: this
-    !> Aerosol phase id. Use the \c phase_id() function of \c aero_rep_data_t
-    !! to get this index.
-    integer(kind=i_kind), intent(in) :: i_phase
-    !> Species id
-    integer(kind=i_kind), intent(in) :: i_spec
-    !> Model state
-    type(phlex_state_t), intent(in) :: phlex_state
-    !> Contribution to Jacobian matrix. An array of the same size as the
-    !! \c pmc_phlex_state::phlex_state_t::state_var array that, when present,
-    !! will be filled with the partial derivatives of the result of this
-    !! calculation by each state variable.
-    real(kind=dp), allocatable, intent(inout), optional :: jac_contrib(:)
-
-  end function species_surface_area_conc
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            
-  !> Get the Kelvin effect vapor pressure adjustment for a particular species 
-  !! (unitless)
-  function kelvin_effect(this, i_spec, phlex_state, jac_contrib)
-    use pmc_util,                                     only : dp, i_kind
-    use pmc_phlex_state
-    import :: aero_rep_data_t
-
-    !> Vapor pressure scaling
-    real(kind=dp) :: kelvin_effect
-    !> Aerosol representation data
-    class(aero_rep_data_t), intent(in) :: this
-    !> Species index. This index is the index of species \f$s\f$ in phase
-    !! \f$p\f$ and should be found using the \c spec_id() function of
-    !! \c aero_phase_t.
-    integer(kind=i_kind), intent(in) :: i_spec
-    !> Model state
-    type(phlex_state_t), intent(in) :: phlex_state
-    !> Contribution to Jacobian matrix. An array of the same size as the
-    !! \c pmc_phlex_state::phlex_state_t::state_var array that, when present,
-    !! will be filled with the partial derivatives of the result of this
-    !! calculation by each state variable.
-    real(kind=dp), allocatable, intent(inout), optional :: jac_contrib(:)
-
-  end function kelvin_effect
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

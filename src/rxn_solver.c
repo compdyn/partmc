@@ -272,6 +272,11 @@ void rxn_add_condensed_data(int rxn_type, int n_int_param,
 
 /** \brief Set a photolysis reaction's base rate constant
  *
+ * TODO Incorporate this into a generic rxn_update_data() function that
+ * gets passed a rxn_type, a rxn-specific update_type (that the individual
+ * rxns will interperet), and a void pointer with any data that needs to be 
+ * used in the update.
+ *
  * \param photo_id Index used to find photolysis reactions to update
  * \param base_rate New base rate constant
  * \param solver_data Pointer to solver data

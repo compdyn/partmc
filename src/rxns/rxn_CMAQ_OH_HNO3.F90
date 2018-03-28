@@ -77,6 +77,7 @@ module pmc_rxn_CMAQ_OH_HNO3
   use pmc_chem_spec_data
   use pmc_property
   use pmc_phlex_state
+  use pmc_aero_rep_data
 
   implicit none
   private
@@ -144,12 +145,14 @@ contains
   !! at the beginning of a model run after all the input files have been
   !! read in. It ensures all data required during the model run are included
   !! in the condensed data arrays.
-  subroutine initialize(this, chem_spec_data)
+  subroutine initialize(this, chem_spec_data, aero_rep)
     
     !> Reaction data
     class(rxn_CMAQ_OH_HNO3_t), intent(inout) :: this
     !> Chemical species data
     type(chem_spec_data_t), intent(in) :: chem_spec_data
+    !> Aerosol representations
+    class(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
 
     type(property_t), pointer :: spec_props, reactants, products
     character(len=:), allocatable :: key_name, spec_name, string_val

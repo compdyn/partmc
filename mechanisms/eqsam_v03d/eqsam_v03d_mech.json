@@ -6,28 +6,28 @@
 		"type" : "MECHANISM",
 		"reactions" : [
 			{
-				"reactants" : { "HCl" : {} },
-				"products" : { "HCl_aq" : {} },
+				"gas-phase species" : "HCl",
+				"aerosol-phase species" : "HCl_aq",
 				"type" : "PHASE_TRANSFER"
 			},
 			{
-				"reactants" : { "HNO3" : {} },
-				"products" : { "HNO3_aq" : {} },
+				"gas-phase species" : "HNO3",
+				"aerosol-phase species" : "HNO3_aq",
 				"type" : "PHASE_TRANSFER"
 			},
 			{
-				"reactants" : { "NH3" : {} },
-				"products" : { "NH3_aq" : {} },
+				"gas-phase species" : "NH3",
+				"aerosol-phase species" : "NH3_aq",
 				"type" : "PHASE_TRANSFER"
 			},
 			{
-				"reactants" : { "H2SO4" : {} },
-				"products" : { "H2SO4_aq" : {} },
+				"gas-phase species" : "H2SO4",
+				"aerosol-phase species" : "H2SO4_aq",
 				"type" : "PHASE_TRANSFER"
 			},
 			{
-				"reactants" : { "H2O" : {} },
-				"products" : { "H2O_aq" : {} },
+				"gas-phase species" : "H2O",
+				"aerosol-phase species" : "H2O_aq",
 				"type" : "PHASE_TRANSFER"
 			},
 			{

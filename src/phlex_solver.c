@@ -34,8 +34,9 @@
  * \param n_float_param Total number of floating-point reaction parameters
  * \return Pointer to the new SolverData object
  */
-void * solver_new(int n_state_var, int *var_type, int n_rxn, int n_int_param, 
-		int n_float_param)
+void * solver_new(int n_state_var, int *var_type, int n_rxn, int n_rxn_int_param, 
+		int n_rxn_float_param, int n_aero_rep, int n_aero_rep_int_param,
+		int n_aero_rep_float_param)
 {
 #ifdef PMC_USE_SUNDIALS
   // Create the SolverData object
@@ -69,8 +70,8 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn, int n_int_param,
   // of reactions (including one int for the number of reactions
   // and one int per reaction to store the reaction type)
   sd->model_data.rxn_data = (void*) malloc(
-		  (n_int_param + 1 + n_rxn) * sizeof(int) 
-		  + n_float_param * sizeof(realtype));
+		  (n_rxn_int_param + 1 + n_rxn) * sizeof(int) 
+		  + n_rxn_float_param * sizeof(realtype));
   if (sd->model_data.rxn_data==NULL) {
     printf("\n\nERROR allocating space for reaction data\n\n");
     exit(1);
@@ -78,6 +79,22 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn, int n_int_param,
   int *ptr = sd->model_data.rxn_data;
   ptr[0] = n_rxn;
   sd->model_data.nxt_rxn = (void*) &(ptr[1]);
+
+  // Allocate space for the aerosol representation data and set
+  // the number of aerosol representations (including one int
+  // for the number of aerosol representations and one int per
+  // aerosol representation to store the aerosol representation
+  // type)
+  sd->model_data.aero_rep_data = (void*) malloc(
+		  (n_aero_rep_int_param + 1 + n_aero_rep) * sizeof(int)
+		  + n_aero_rep_float_param * sizeof(realtype));
+  if (sd->model_data.rxn_data==NULL) {
+    printf("\n\nERROR allocating space for aerosol representation data\n\n");
+    exit(1);
+  }
+  ptr = sd->model_data.aero_rep_data;
+  ptr[0] = n_aero_rep;
+  sd->model_data.nxt_aero_rep = (void*) &(ptr[1]);
 
   // Return a pointer to the new SolverData object
   return (void*) sd;
@@ -191,9 +208,10 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   sd->model_data.state = state;
   sd->model_data.env = env;
 
-  // Update reaction data for new environmental state
+  // Update data for new environmental state
   // (This is set up to assume the environmental variables do not change during
   //  solving. This can be changed in the future if necessary.)
+  aero_rep_update_env_state(&(sd->model_data), env);
   rxn_update_env_state(&(sd->model_data), env);
 
   // Reinitialize the solver
@@ -472,4 +490,16 @@ static void solver_print_stats(void *cvode_mem)
   printf("error test fails = %-6ld LS iters = %-6ld NLS iters = %-6ld\n", netf, nni, ncfn);
   printf("NL conv fails = %-6ld Jac evals = %-6ld RHS evals = %-6ld G evals = %-6ld\n", ncfn, nje, nfeLS, nge);
 }
+
+/** \brief Free a SolverData object
+ *
+ * \param solver_data Pointer to the SolverData object to free
+ */
+void solver_free(void *solver_data)
+{
+
+  // TODO finish this
+
+}
+
 #endif

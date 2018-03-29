@@ -82,15 +82,17 @@ void aero_rep_update_env_state(ModelData *model_data, double *env)
  *
  * \param model_data Pointer to the model data (state, env, aero_rep)
  * \param aero_rep_idx Index of aerosol representation to use for calculation
+ * \param aero_phase_idx Index of the aerosol phase within the aerosol representation
  * \param radius Pointer to hold effective particle radius (m)
- * \param partial_deriv Set of partial derivatives dr/dy
+ * \return A pointer to a set of partial derivatives dr/dy, or a NULL pointer if no
+ *         partial derivatives exist
  */
-void aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx, double *radius,
-		N_Vector partial_deriv)
+void * aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx, int aero_phase_idx,
+		double *radius)
 {
 
-  // Get a pointer to the partial derivative data
-  realtype *partial_data = N_VGetArrayPointer(partial_deriv);
+  // Set up a pointer for the partial derivatives
+  void *partial_deriv = NULL;
 
   // Get the number of aerosol representations
   int *aero_rep_data = (int*) (model_data->aero_rep_data);
@@ -117,9 +119,10 @@ void aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx, doub
   switch (aero_rep_type) {
     case AERO_REP_SINGLE_PARTICLE :
       aero_rep_data = (int*) aero_rep_single_particle_get_effective_radius(
-		      radius, partial_data, (void*) aero_rep_data);
+		      aero_phase_idx, radius, partial_deriv, (void*) aero_rep_data);
       break;
   }
+  return partial_deriv;
 }
 
 /** \brief Get the particle number concentration
@@ -129,15 +132,17 @@ void aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx, doub
  *
  * \param model_data Pointer to the model data (state, env, aero_rep)
  * \param aero_rep_idx Index of aerosol representation to use for calculation
+ * \param aero_phase_ids Index of the aerosol phase within the aerosol representation
  * \param number_conc Pointer to hold calculated number concentration, n (#/cm^3)
- * \param partial_deriv Set of partial derivatives dn/dy
+ * \return A pointer to a set of partial derivatives dr/dy, or a NULL pointer if no
+ *         partial derivatives exist
  */
-void aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx, double *number_conc,
-		N_Vector partial_deriv)
+void * aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx, int aero_phase_idx,
+		double *number_conc)
 {
 
-  // Get a pointer to the partial derivative data
-  realtype *partial_data = N_VGetArrayPointer(partial_deriv);
+  // Set up a pointer for the partial derivatives
+  void *partial_deriv = NULL;
 
   // Get the number of aerosol representations
   int *aero_rep_data = (int*) (model_data->aero_rep_data);
@@ -164,11 +169,55 @@ void aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx, double *n
   switch (aero_rep_type) {
     case AERO_REP_SINGLE_PARTICLE :
       aero_rep_data = (int*) aero_rep_single_particle_get_number_conc( 
-		      number_conc, partial_data, (void*) aero_rep_data);
+		      aero_phase_idx, number_conc, partial_deriv, (void*) aero_rep_data);
       break;
   }
+  return partial_deriv;
 }
 
+/** \brief Check whether aerosol concentrations are per-particle or total for each phase
+ *
+ * \param model_data Pointer to the model data (state, env, aero_rep)
+ * \param aero_rep_idx Index of aerosol representation to use for calculation
+ * \param aero_phase_ids Index of the aerosol phase within the aerosol representation
+ * \return 0 for per-particle; 1 for total for each phase
+ */
+int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx, int aero_phase_idx)
+{
+
+  // Initialize the aerosol concentration type
+  int aero_conc_type = 0;
+
+  // Get the number of aerosol representations
+  int *aero_rep_data = (int*) (model_data->aero_rep_data);
+  int n_aero_rep = *(aero_rep_data++);
+
+  // Loop through the aerosol representations to find the one requested
+  for (int i_aero_rep=0; i_aero_rep<aero_rep_idx; i_aero_rep++) {
+
+    // Get the aerosol representation type
+    int aero_rep_type = *(aero_rep_data++);
+
+    // Advance the pointer to the next aerosol representation
+    switch (aero_rep_type) {
+      case AERO_REP_SINGLE_PARTICLE :
+	aero_rep_data = (int*) aero_rep_single_particle_skip((void*) aero_rep_data);
+        break;
+    }
+  }
+
+  // Get the aerosol representation type
+  int aero_rep_type = *(aero_rep_data++);
+
+  // Get the type of aerosol concentration
+  switch (aero_rep_type) {
+    case AERO_REP_SINGLE_PARTICLE :
+      aero_rep_data = (int*) aero_rep_single_particle_get_aero_conc_type( 
+		      aero_phase_idx, &aero_conc_type, (void*) aero_rep_data);
+      break;
+  }
+  return aero_conc_type;
+}
 #endif
 
 /** \brief Add condensed data to the condensed data block for aerosol representations

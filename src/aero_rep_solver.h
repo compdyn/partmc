@@ -20,8 +20,11 @@
 // single particle
 void * aero_rep_single_particle_get_dependencies(void *aero_rep_data, bool *state_flags);
 void * aero_rep_single_particle_update_env_state(double *env_data, void *aero_rep_data);
-void * aero_rep_single_particle_get_effective_radius(double *radius, double *partial_deriv, void *aero_rep_data);
-void * aero_rep_single_particle_get_number_conc(double *number_conc, double *partial_deriv, void *aero_rep_data);
+void * aero_rep_single_particle_get_effective_radius(int aero_phase_idx, double *radius, 
+		double *partial_deriv, void *aero_rep_data);
+void * aero_rep_single_particle_get_number_conc(int aero_phase_idx, double *number_conc, 
+		double *partial_deriv, void *aero_rep_data);
+void * aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx, int *aero_conc_type, void *aero_rep_data);
 void * aero_rep_single_particle_update_data(int update_type, void *update_data, void *aero_rep_data);
 void * aero_rep_single_particle_print(void *aero_rep_data);
 void * aero_rep_single_particle_skip(void *aero_rep_data);

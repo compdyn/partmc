@@ -62,14 +62,17 @@ void * aero_rep_single_particle_update_env_state(double *env_data, void *aero_re
 /** Get the effective particle radius
  *
  * The single particle radius is set by the aerosol model prior to solving the chemistry. 
- * Thus, all dr/dy are zero.
+ * Thus, all dr/dy are zero. Also, there is only one set of particles in the single particle
+ * representation, so the phase index is not used.
  *
+ * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param radius Effective particle radius (m)
  * \param partial_deriv dr/dy where y are species on the state array
  * \param aero_rep_data Pointer to the aerosol representation data
  * \return The aero_rep_data pointer advanced by the size of the aerosol representation
  */
-void * aero_rep_single_particle_get_effective_radius(double *radius, double *partial_deriv, void *aero_rep_data)
+void * aero_rep_single_particle_get_effective_radius(int aero_phase_idx, double *radius, 
+		double *partial_deriv, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
@@ -82,14 +85,17 @@ void * aero_rep_single_particle_get_effective_radius(double *radius, double *par
 /** Get the particle number concentration
  *
  * This single particle number concentration is set by the aerosol model prior to solving the chemistry.
- * Thus, all dn/dy are zero.
+ * Thus, all dn/dy are zero. Also, there is only one set of particles in the single particle representation,
+ * so the phase index is not used.
  *
+ * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param number_conc Particle number concentration (#/cm^3)
  * \param partial_deriv dn/dy where y are the species on the state array
  * \param aero_rep_data Pointer to the aerosol representation data
  * \return The aero_rep_data pointer advanced by the size of the aerosol representation
  */
-void * aero_rep_single_particle_get_number_conc(double *number_conc, double *partial_deriv, void *aero_rep_data)
+void * aero_rep_single_particle_get_number_conc(int aero_phase_idx, double *number_conc, 
+		double *partial_deriv, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
@@ -99,6 +105,26 @@ void * aero_rep_single_particle_get_number_conc(double *number_conc, double *par
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
 
+/** Get the type of aerosol concentration type used.
+ *
+ * Single particle concentrations are per-particle.
+ *
+ * \param aero_phase_idx Index of the aerosol phase within the representation
+ * \param aero_conc_type Pointer to int that will hold the concentration type code
+ * \param aero_rep_data Pointer to the aerosol representation data
+ * \return The aero_rep_data pointer advanced by the size of the aerosol representation
+ */
+void * aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx, int *aero_conc_type, 
+		void *aero_rep_data)
+{
+  int *int_data = (int*) aero_rep_data;
+  realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
+
+  *aero_conc_type = 0;
+
+  return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
+}
+  
 /** Update the aerosol representation data
  *
  *  The single particle aerosol representation has two update types:

@@ -74,13 +74,19 @@ module pmc_rxn_phase_transfer
 #define _C_ this%condensed_data_real(6)
 #define _c_rms_alpha_ this%condensed_data_real(7)
 #define _equil_const_ this%condensed_data_real(8)
+#define _CONV_ this%condensed_data_real(9)
+#define _MW_ this%condensed_data_real(10)
+#define _ug_m3_TO_ppm_ this%condensed_data_real(11)
 #define _NUM_AERO_PHASE_ this%condensed_data_int(1)
 #define _GAS_SPEC_ this%condensed_data_int(2)
 #define _NUM_INT_PROP_ 2
-#define _NUM_REAL_PROP_ 8
+#define _NUM_REAL_PROP_ 11
 #define _AERO_SPEC_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
-#define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_AERO_PHASE_+x)
-#define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+2*_NUM_AERO_PHASE_+x)
+#define _AERO_WATER_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_AERO_PHASE_+x)
+#define _AERO_PHASE_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+2*_NUM_AERO_PHASE_+x)
+#define _AERO_REP_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+3*_NUM_AERO_PHASE_+x)
+#define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+4*_NUM_AERO_PHASE_+x)
+#define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+1+5*_NUM_AERO_PHASE_+x)
 
   public :: rxn_phase_transfer_t
 
@@ -133,10 +139,12 @@ contains
     class(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
 
     type(property_t), pointer :: spec_props
-    character(len=:), allocatable :: key_name, spec_name, string_val
+    character(len=:), allocatable :: key_name, spec_name, water_name, phase_name, &
+            string_val
     integer(kind=i_kind) :: i_spec, i_qty, i_aero_rep, i_aero_phase, n_aero_ids
     integer(kind=i_kind) :: i_aero_id
-    integer(kind=i_kind), allocatable :: aero_spec_ids
+    integer(kind=i_kind), allocatable :: aero_spec_ids(:)
+    integer(kind=i_kind), allocatable :: water_spec_ids(:)
 
     integer(kind=i_kind) :: temp_int
     real(kind=dp) :: temp_real, N_star
@@ -159,14 +167,14 @@ contains
     n_aero_ids = 0
     do i_aero_rep = 1, size(aero_rep)
       do i_aero_phase = 1, size(aero_rep(i_aero_rep)%val%aero_phase)
-        phase_name = aero_rep(i_aerp_rep)%val%aero_phase(i_aero_phase)%val%name()
+        phase_name = aero_rep(i_aero_rep)%val%aero_phase(i_aero_phase)%val%name()
         aero_spec_ids = aero_rep(i_aero_rep)%val%species_state_id(phase_name, spec_name)
         if (allocated(aero_spec_ids)) n_aero_ids = n_aero_ids + size(aero_spec_ids)
       end do
     end do
 
     ! Allocate space in the condensed data arrays
-    allocate(this%condensed_data_int(_NUM_INT_PROP_ + n_aero_ids * 4)
+    allocate(this%condensed_data_int(_NUM_INT_PROP_ + 1 + n_aero_ids * 10))
     allocate(this%condensed_data_real(_NUM_REAL_PROP_))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
@@ -174,14 +182,41 @@ contains
     ! Set the number of aerosol-species instances
     _NUM_AERO_PHASE_ = n_aero_ids
 
+    ! Get the properties required of the aerosol species
+    call assert_msg(669162256, &
+            chem_spec_data%get_property_set(spec_name, spec_props), &
+            "Missing properties required for phase-transfer of "// &
+            "aerosol-phase species "//trim(spec_name))
+
+    ! Get the aerosol species molecular weight
+    key_name = "MW"
+    call assert_msg(209812557, spec_props%get_real(key_name, _MW_), &
+            "Missing property 'MW' for aerosol species "//trim(spec_name)// &
+            " required for phase-transfer reaction")
+
+    ! Set the #/cc -> ppm conversion prefactor (multiply by P/T to get conversion)
+    _CONV_ = const%univ_gas_const / _MW_
+
+    ! Get the aerosol-phase water species
+    key_name = "aerosol-phase water"
+    call assert_msg(374667967, &
+            this%property_set%get_string(key_name, water_name), &
+            "Missing aerosol-phase water in phase-transfer reaction")
+
     ! Set the ids of each aerosol-phase species instance
     i_aero_id = 1
     do i_aero_rep = 1, size(aero_rep)
       do i_aero_phase = 1, size(aero_rep(i_aero_rep)%val%aero_phase)
-        phase_name = aero_rep(i_aerp_rep)%val%aero_phase(i_aero_phase)%val%name()
+        phase_name = aero_rep(i_aero_rep)%val%aero_phase(i_aero_phase)%val%name()
         aero_spec_ids = aero_rep(i_aero_rep)%val%species_state_id(phase_name, spec_name)
+        water_spec_ids = aero_rep(i_aero_rep)%val%species_state_id(phase_name, water_name)
+        call assert_msg(798976697, size(aero_spec_ids).eq.size(water_spec_ids), &
+                "Different number of water and aerosol species in phase-transfer reaction")
         do i_spec = 1, size(aero_spec_ids)
-          _AERO_SPEC_ID_(i_aero_id) = aero_spec_ids(i_spec)
+          _AERO_SPEC_(i_aero_id) = aero_spec_ids(i_spec)
+          _AERO_WATER_(i_aero_id) = water_spec_ids(i_spec)
+          _AERO_PHASE_ID_(i_aero_id) = i_aero_phase
+          _AERO_REP_ID_(i_aero_id) = i_aero_rep
           i_aero_id = i_aero_id + 1
         end do
       end do
@@ -204,15 +239,15 @@ contains
             "Missing gas-phase species in phase-transfer reaction")
 
     ! Save the index of this species in the state variable array
-    _REACT_ = chem_spec_data%gas_state_id(spec_name)
+    _GAS_SPEC_ = chem_spec_data%gas_state_id(spec_name)
 
     ! Make sure the species exists
-    call assert_msg(751684145, _REACT_.gt.0, &
+    call assert_msg(751684145, _GAS_SPEC_.gt.0, &
             "Missing phase-transfer gas-phase species: "//spec_name)
 
     ! Get the required properties for the gas-phase species
     call assert_msg(757296139, &
-            chem_spec_data%get_property_set(_REACT_, spec_props), &
+            chem_spec_data%get_property_set(_GAS_SPEC_, spec_props), &
             "Missing properties required for phase-transfer of "// &
             "gas-phase species "//trim(spec_name))
 
@@ -246,7 +281,7 @@ contains
     
     ! Calculate the constant portion of c_rms [m/(K^2*s)]
     key_name = "MW"
-    call assert_msg(469582180, spec_prop%get_real(key_name, temp_real), &
+    call assert_msg(469582180, spec_props%get_real(key_name, temp_real), &
             "Missing molecular weight for species "//spec_name)
     _pre_c_rms_ = sqrt(8.0*const%univ_gas_const/(const%pi*temp_real))
 
@@ -301,9 +336,15 @@ contains
 #undef _equil_const_
 #undef _NUM_AERO_PHASE_
 #undef _GAS_SPEC_
+#undef _CONV_
+#undef _MW_
+#undef _ug_m3_TO_ppm_
 #undef _NUM_INT_PROP_
 #undef _NUM_REAL_PROP_
 #undef _AERO_SPEC_
+#undef _AERO_WATER_
+#undef _AERO_PHASE_ID_
+#undef _AERO_REP_ID_
 #undef _DERIV_ID_
 #undef _JAC_ID_
 end module pmc_rxn_phase_transfer

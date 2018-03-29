@@ -321,10 +321,11 @@ set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 # partmc library
 
 set(REACTIONS_SRC src/rxns/rxn_arrhenius.F90 src/rxns/rxn_arrhenius.c
-	src/rxns/rxn_troe.F90 src/rxns/rxn_troe.c
 	src/rxns/rxn_CMAQ_H2O2.F90 src/rxns/rxn_CMAQ_H2O2.c
 	src/rxns/rxn_CMAQ_OH_HNO3.F90 src/rxns/rxn_CMAQ_OH_HNO3.c
-	src/rxns/rxn_photolysis.F90 src/rxns/rxn_photolysis.c)
+	src/rxns/rxn_phase_transfer.F90 src/rxns/rxn_phase_transfer.c
+	src/rxns/rxn_photolysis.F90 src/rxns/rxn_photolysis.c
+	src/rxns/rxn_troe.F90 src/rxns/rxn_troe.c)
 set(AEROSOL_REPS_SRC src/aero_reps/aero_rep_single_particle.F90
         src/aero_reps/aero_rep_single_particle.c)	
 

@@ -565,6 +565,15 @@ contains
     call pmc_nc_read_real(ncid, env_state%longitude, "longitude")
     call pmc_nc_read_real(ncid, env_state%latitude, "latitude")
     call pmc_nc_read_real(ncid, env_state%altitude, "altitude")
+#ifdef PMC_USE_WRF
+    call pmc_nc_read_real(ncid, env_state%z_min, "bottom_boundary_altitude")
+    call pmc_nc_read_real(ncid, env_state%z_max, "top_boundary_altitude")
+    call pmc_nc_read_real(ncid, env_state%rrho, "specific_volume")
+    call pmc_nc_read_integer(ncid,env_state%ix,"x_index")
+    call pmc_nc_read_integer(ncid,env_state%iy,"y_index")
+    call pmc_nc_read_integer(ncid,env_state%iz,"z_index")
+    call pmc_nc_read_real(ncid, env_state%diff_coef, "eddy_diff")
+#endif
     call pmc_nc_read_real(ncid, env_state%start_time, &
          "start_time_of_day")
     call pmc_nc_read_integer(ncid, env_state%start_day, &

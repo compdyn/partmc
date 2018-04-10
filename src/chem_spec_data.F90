@@ -92,6 +92,8 @@ module pmc_chem_spec_data
     !> Get the name of a species
     procedure :: get_name
 
+    ! TODO Remove all "find by id" functions to force search by name only
+    ! and possibly add an iterator for working with all chemical species
     procedure :: get_property_set_by_name
     procedure :: get_property_set_by_id
     !> Get a species properties
@@ -712,9 +714,10 @@ contains
     
     gas_state_id = 0
     do i_spec = 1, this%num_spec
-      if (this%spec_phase(i_spec).eq.CHEM_SPEC_GAS_PHASE) &
+      if (this%spec_phase(i_spec).eq.CHEM_SPEC_GAS_PHASE) then
               gas_state_id = gas_state_id + 1
-      if (trim(spec_name).eq.trim(this%spec_name(i_spec)%string)) return
+        if (trim(spec_name).eq.trim(this%spec_name(i_spec)%string)) return
+      end if
     end do
     gas_state_id = 0
 

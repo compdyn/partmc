@@ -255,12 +255,12 @@ void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
 
 /** \brief Update aerosol representation data
  *
- * \param aero_rep_type_to_update Aerosol representation type to update
+ * \param aero_rep_id ID of aerosol representation to update
  * \param update_type Aerosol representation-specific update type
  * \param update_data Pointer to data needed for update
  * \param solver_data Pointer to solver data
  */
-void aero_rep_update_data(int aero_rep_type_to_update, int update_type, void *update_data,
+void aero_rep_update_data(int aero_rep_id, int update_type, void *update_data,
 		void *solver_data)
 {
   ModelData *model_data = (ModelData*) &(((SolverData*)solver_data)->model_data);
@@ -268,26 +268,37 @@ void aero_rep_update_data(int aero_rep_type_to_update, int update_type, void *up
 #ifdef PMC_USE_SUNDIALS
 
   // Get the number of aerosol representations
-  int *aero_rep_data = (int*) (model_data->nxt_aero_rep);
+  int *aero_rep_data = (int*) (model_data->aero_rep_data);
   int n_aero_rep = *(aero_rep_data++);
 
-  // Loop through the aerosol representations to update the requested representation
-  // type's data, advancing the aero_rep_data pointer each time
-  for (int i_aero_rep=0; i_aero_rep<n_aero_rep; i_aero_rep++) {
+  // Loop through the aerosol representations to find the requested representation
+  // data, advancing the aero_rep_data pointer each time
+  int i_aero_rep = 0;
+  for (; i_aero_rep<n_aero_rep && i_aero_rep<aero_rep_id; i_aero_rep++) {
 
     // Get the aerosol representation type
     int aero_rep_type = *(aero_rep_data++);
 
-    // Update the data of the requested type
+    // Skip reaction
     switch (aero_rep_type) {
       case AERO_REP_SINGLE_PARTICLE :
-	if (aero_rep_type == aero_rep_type_to_update) {
-	  aero_rep_data = (int*) aero_rep_single_particle_update_data(update_type, 
-			  update_data, (void*)aero_rep_data);
-	} else {
-	  aero_rep_data = (int*) aero_rep_single_particle_skip((void*)aero_rep_data);
-	}
+	aero_rep_data = (int*) aero_rep_single_particle_skip((void*)aero_rep_data);
     }
+  }
+
+  if (i_aero_rep==n_aero_rep) {
+    printf("\nERROR: invalid aerosol representation index: %d out of %d\n", aero_rep_id, n_aero_rep);
+    exit(1);
+  }
+
+  // Get the aerosol representation type
+  int aero_rep_type = *(aero_rep_data++);
+
+  // Update the data of specified representation
+  switch (aero_rep_type) {
+    case AERO_REP_SINGLE_PARTICLE :
+      aero_rep_data = (int*) aero_rep_single_particle_update_data(update_type, 
+			  update_data, (void*)aero_rep_data);
   }
 #endif
 }

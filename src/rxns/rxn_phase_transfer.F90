@@ -39,7 +39,7 @@
 !! required. Only one gas- and one aerosol-phase species are allowed per
 !! phase-transfer reaction. Additionally, gas-phase species must include
 !! parameters named "diffusion coeff", which specifies the diffusion
-!! coefficient in (\f$m^2s^{-1}\f$), and "MW", which specifies the molecular
+!! coefficient in (\f$m^2s^{-1}\f$), and "molecular weight", which specifies the molecular
 !! weight of the species in (kg/mol). They may optionally include the
 !! parameter "N star", which will be used to calculate the mass accomodation
 !! coefficient. When this parameter is not included, the mass accomodation
@@ -189,12 +189,12 @@ contains
             "aerosol-phase species "//trim(spec_name))
 
     ! Get the aerosol species molecular weight
-    key_name = "MW"
+    key_name = "molecular weight"
     call assert_msg(209812557, spec_props%get_real(key_name, _MW_), &
             "Missing property 'MW' for aerosol species "//trim(spec_name)// &
             " required for phase-transfer reaction")
 
-    ! Set the #/cc -> ppm conversion prefactor (multiply by P/T to get conversion)
+    ! Set the ug/m3 -> ppm conversion prefactor (multiply by T/P to get conversion)
     _CONV_ = const%univ_gas_const / _MW_
 
     ! Get the aerosol-phase water species
@@ -247,7 +247,7 @@ contains
 
     ! Get the required properties for the gas-phase species
     call assert_msg(757296139, &
-            chem_spec_data%get_property_set(_GAS_SPEC_, spec_props), &
+            chem_spec_data%get_property_set(spec_name, spec_props), &
             "Missing properties required for phase-transfer of "// &
             "gas-phase species "//trim(spec_name))
 
@@ -259,7 +259,7 @@ contains
     ! and condensed tropospheric aqueous mechanism and its application."
     ! J. Geophys. Res. 108, 4426. doi:10.1029/2002JD002202
     key_name = "N star"
-    if (spec_props%get_real(key_name, N_star)) then
+    if (spec_props%get_real(key_name, N_star)) then     
       ! enthalpy change (kcal mol-1)
       _del_H_ = real(- 10.0d0*(N_star-1.0d0) + &
               7.53d0*(N_star**(2.0d0/3.0d0)-1.0d0) - 1.0d0, kind=dp)
@@ -280,7 +280,7 @@ contains
             "Missing diffusion coefficient for species "//spec_name)
     
     ! Calculate the constant portion of c_rms [m/(K^2*s)]
-    key_name = "MW"
+    key_name = "molecular weight"
     call assert_msg(469582180, spec_props%get_real(key_name, temp_real), &
             "Missing molecular weight for species "//spec_name)
     _pre_c_rms_ = sqrt(8.0*const%univ_gas_const/(const%pi*temp_real))

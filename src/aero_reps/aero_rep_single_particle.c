@@ -23,7 +23,7 @@
 #define _INT_DATA_SIZE_ (_NUM_INT_PARAM_)
 #define _FLOAT_DATA_SIZE_ (_NUM_FLOAT_PARAM_)
 
-// Update types
+// Update types (These must match values in aero_rep_single_particle.F90)
 #define UPDATE_RADIUS 0
 #define UPDATE_NUMBER_CONC 1
 

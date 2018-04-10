@@ -30,8 +30,11 @@
  * \param n_state_var Number of variables on the state array
  * \param var_type Pointer to array of state variable types (solver, constant, PSSA)
  * \param n_rxn Number of reactions to include
- * \param n_int_param Total number of integer reaction parameters
- * \param n_float_param Total number of floating-point reaction parameters
+ * \param n_rxn_int_param Total number of integer reaction parameters
+ * \param n_rxn_float_param Total number of floating-point reaction parameters
+ * \param n_aero_rep Number of aerosol representations
+ * \param n_aero_rep_int_param Total number of integer aerosol representation parameters
+ * \param n_aero_rep_float_param Total number of floating-point aerosol representation parameters
  * \return Pointer to the new SolverData object
  */
 void * solver_new(int n_state_var, int *var_type, int n_rxn, int n_rxn_int_param, 

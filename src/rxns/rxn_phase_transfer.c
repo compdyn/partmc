@@ -18,8 +18,6 @@
 
 // Universal gas constant (J/mol/K)
 #define _UNIV_GAS_CONST_ 8.314472
-// Universal gas constant (L*atm/mol/K)
-#define _UNIV_GAS_CONST_LAMK_ 0.08205736
 // Small number
 #define _SMALL_NUMBER_ 1.0e-30
 
@@ -35,13 +33,13 @@
 #define _MW_ float_data[9]
 #define _ug_m3_TO_ppm_ float_data[10]
 #define _NUM_AERO_PHASE_ int_data[0]
-#define _GAS_SPEC_ int_data[1]
+#define _GAS_SPEC_ (int_data[1]-1)
 #define _NUM_INT_PROP_ 2
 #define _NUM_FLOAT_PROP_ 11
 #define _AERO_SPEC_(x) (int_data[_NUM_INT_PROP_ + x]-1)
 #define _AERO_WATER_(x) (int_data[_NUM_INT_PROP_ + _NUM_AERO_PHASE_ + x]-1)
-#define _AERO_PHASE_ID_(x) int_data[_NUM_INT_PROP_ + 2*_NUM_AERO_PHASE_ + x]
-#define _AERO_REP_ID_(x) int_data[_NUM_INT_PROP_ + 3*(_NUM_AERO_PHASE_) + x]
+#define _AERO_PHASE_ID_(x) (int_data[_NUM_INT_PROP_ + 2*_NUM_AERO_PHASE_ + x]-1)
+#define _AERO_REP_ID_(x) (int_data[_NUM_INT_PROP_ + 3*(_NUM_AERO_PHASE_) + x]-1)
 #define _DERIV_ID_(x) int_data[_NUM_INT_PROP_ + 4*(_NUM_AERO_PHASE_) + x]
 #define _JAC_ID_(x) int_data[_NUM_INT_PROP_ + 1 + 5*(_NUM_AERO_PHASE_) + x]
 #define _INT_DATA_SIZE_ (_NUM_INT_PROP_+1+(10*_NUM_AERO_PHASE_))
@@ -128,15 +126,15 @@ void * rxn_phase_transfer_update_env_state(realtype *env_data, void *rxn_data)
   _c_rms_alpha_ = _pre_c_rms_ * sqrt(_TEMPERATURE_K_) * mass_acc;
 
   // Calculate the Henry's Law equilibrium rate constant in units of
-  // (ug_x/ug_H2O/atm) where x is the aerosol-phase species
+  // (ug_x/ug_H2O/ppm) where x is the aerosol-phase species
   if (_C_==0.0) {
-    _equil_const_ = _A_ * _MW_ / 1000.0;
+    _equil_const_ = _A_ * _MW_ / 1.0e9;
   } else {
-    _equil_const_ = _A_ * exp(_C_ * (1.0 - _TEMPERATURE_K_/298.0)) * _MW_ / 1000.0;
+    _equil_const_ = _A_ * exp(_C_ * (1.0/_TEMPERATURE_K_ - 1.0/298.0)) * _MW_ / 1.0e9;
   }
 
   // Calculate the conversion from ug/m^3 -> ppm
-  _ug_m3_TO_ppm_ = _CONV_ * _PRESSURE_PA_ / _TEMPERATURE_K_;
+  _ug_m3_TO_ppm_ = _CONV_ * _TEMPERATURE_K_ / _PRESSURE_PA_;
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
@@ -189,8 +187,10 @@ void * rxn_phase_transfer_calc_deriv_contrib(ModelData *model_data, realtype *de
     realtype cond_rate = 1.0/(radius*radius/(3.0*_Dg_) + 4.0*radius/(3.0*_c_rms_alpha_));
   
     // Calculate the evaporation rate constant (1/s)
-    realtype evap_rate = (cond_rate/(_UNIV_GAS_CONST_LAMK_ * _TEMPERATURE_K_)) / 
-	    (_equil_const_ * state[_AERO_WATER_(i_phase)]);
+    // cond_rate / (  ugm3->ppm             *          K_eq           * [H2O]_a       )
+    //     1/s      * ug_x * 1/m3 * 1/ppm_x * ug_H2O * ppm_x * 1/ug_x * m3 * 1/ug_H2O
+    realtype evap_rate = cond_rate / (_ug_m3_TO_ppm_ *
+	    _equil_const_ * state[_AERO_WATER_(i_phase)]);
 
     // Calculate gas-phase condensation rate (ppm/s)
     cond_rate *= state[_GAS_SPEC_];
@@ -264,26 +264,31 @@ void * rxn_phase_transfer_calc_jac_contrib(ModelData *model_data, realtype *J,
     realtype cond_rate = 1.0/(radius*radius/(3.0*_Dg_) + 4.0*radius/(3.0*_c_rms_alpha_));
   
     // Calculate the evaporation rate constant (1/s)
-    realtype evap_rate = (cond_rate/(_UNIV_GAS_CONST_LAMK_ * _TEMPERATURE_K_)) / _equil_const_;
+    // cond_rate / (  ugm3->ppm             *          K_eq           * [H2O]_a       )
+    //     1/s      * ug_x * 1/m3 * 1/ppm_x * ug_H2O * ppm_x * 1/ug_x * m3 * 1/ug_H2O
+    realtype evap_rate = cond_rate / (_ug_m3_TO_ppm_ *
+	    _equil_const_ * state[_AERO_WATER_(i_phase)]);
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
     if (aero_conc_type==0) {
       // Scale the changes to the gas-phase by the number of particles for per-particle 
       // aerosol concentrations
-      J[_JAC_ID_(1+i_phase*3+1)] += number_conc * evap_rate * _ug_m3_TO_ppm_ / state[_AERO_WATER_(i_phase)];
-      J[_JAC_ID_(1+i_phase*3+3)] += number_conc * evap_rate * _ug_m3_TO_ppm_ * state[_AERO_SPEC_(i_phase)];
+      J[_JAC_ID_(1+i_phase*3+1)] += number_conc * evap_rate * _ug_m3_TO_ppm_;
+      J[_JAC_ID_(1+i_phase*3+3)] += - number_conc * evap_rate * _ug_m3_TO_ppm_ * 
+	      state[_AERO_SPEC_(i_phase)] / state[_AERO_WATER_(i_phase)];
       J[_JAC_ID_(0)] -= number_conc * cond_rate;
     } else {
       // No scaling for aerosol concentrations with total mass per aerosol phase
-      J[_JAC_ID_(1+i_phase*3+1)] += evap_rate * _ug_m3_TO_ppm_ / state[_AERO_WATER_(i_phase)];
-      J[_JAC_ID_(1+i_phase*3+3)] += evap_rate * _ug_m3_TO_ppm_ * state[_AERO_SPEC_(i_phase)];
+      J[_JAC_ID_(1+i_phase*3+1)] += evap_rate * _ug_m3_TO_ppm_;
+      J[_JAC_ID_(1+i_phase*3+3)] += - evap_rate * _ug_m3_TO_ppm_ * 
+	      state[_AERO_SPEC_(i_phase)] / state[_AERO_WATER_(i_phase)];
       J[_JAC_ID_(0)] -= cond_rate;
     }
 
     // Change in the aerosol-phase species is condensation - evaporation (ug/m^3/s)
     J[_JAC_ID_(1+i_phase*3)] += cond_rate / _ug_m3_TO_ppm_;
-    J[_JAC_ID_(1+i_phase*3+2)] -= evap_rate / state[_AERO_WATER_(i_phase)];
-    J[_JAC_ID_(1+i_phase*3+4)] -= evap_rate * state[_AERO_SPEC_(i_phase)];
+    J[_JAC_ID_(1+i_phase*3+2)] -= evap_rate; 
+    J[_JAC_ID_(1+i_phase*3+4)] -= - evap_rate * state[_AERO_SPEC_(i_phase)] / state[_AERO_WATER_(i_phase)];
   
   }
 

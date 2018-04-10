@@ -240,7 +240,8 @@ interface
   !! \f$u\f$ on the \c pmc_phlex_state::phlex_state_t::state_var array,
   !! \f$x_u\f$ is the index of the first variable for this aerosol
   !! representation on the state array and \f$n\f$ is the total number of
-  !! variables on the state array from this aerosol representation.
+  !! variables on the state array from this aerosol representation. This 
+  !! function returns zero if the unique name is not found.
   function state_id_by_unique_name(this, unique_name) result (spec_id)
     use pmc_util,                                     only : i_kind
     import :: aero_rep_data_t

@@ -47,6 +47,10 @@ module pmc_aero_rep_single_particle
 #define _NUM_INT_PROP_ 0
 #define _NUM_REAL_PROP_ 2
   
+  ! Update types (These must match values in aero_rep_single_particle.c)
+  integer(kind=i_kind), parameter, public :: UPDATE_RADIUS = 0
+  integer(kind=i_kind), parameter, public :: UPDATE_NUMBER_CONC = 1
+
   public :: aero_rep_single_particle_t
 
   !> Single particle aerosol representation

@@ -22,6 +22,7 @@
 #define CHEM_SPEC_VARIABLE 1
 #define CHEM_SPEC_CONSTANT 2
 #define CHEM_SPEC_PSSA 3
+#define CHEM_SPEC_ACTIVITY_COEFF 4
 
 /** \brief Get a new solver object
  *

@@ -101,11 +101,12 @@ contains
     character(len=:), allocatable :: phlex_input_file
 
     character(len=:), allocatable :: key, str_val, spec_name, phase_name, rep_name
-    integer(kind=i_kind) :: i_mech, i_spec, n_spec, int_val
+    integer(kind=i_kind) :: i_mech, i_spec, n_spec, int_val, i_state_elem
     real(kind=dp) :: real_val, init_conc
     type(property_t), pointer :: prop_set
     class(aero_rep_data_t), pointer :: aero_rep
     integer(kind=i_kind), allocatable :: spec_ids(:)
+    class(string_t), allocatable :: unique_names(:)
 
     !!!!!!!!!!!!!!!!!!!!!!!
     !!! EQSAM variables !!!
@@ -180,10 +181,12 @@ contains
                   spec_name)
           phlex_state%state_var(int_val) = real_val
         case (CHEM_SPEC_AERO_PHASE)
-          spec_ids = aero_rep%species_state_id(phase_name, spec_name)
-          call assert_msg(284639316, size(spec_ids).eq.1, &
+          unique_names = aero_rep%unique_names( &
+                  phase_name = phase_name, spec_name = spec_name)
+          call assert_msg(284639316, size(unique_names).eq.1, &
                   "Cannot find aerosol-phase species "//spec_name)
-          phlex_state%state_var(spec_ids(1)) = real_val
+          i_state_elem = aero_rep%spec_state_id(unique_names(1)%string)
+          phlex_state%state_var(i_state_elem) = real_val
         case default
           call die_msg(837607961, "Unknown type for species "//spec_name)
       end select
@@ -343,14 +346,17 @@ contains
     character(len=*), intent(in) :: spec_name
 
     character(len=:), allocatable :: spec_name_def
-    integer(kind=i_kind), allocatable :: spec_ids(:)
+    class(string_t), allocatable :: unique_names(:)
+    integer(kind=i_kind) :: i_state_elem
 
     spec_name_def = spec_name
 
-    spec_ids = aero_rep%species_state_id(phase_name, spec_name_def)
-    call assert_msg(159511319, size(spec_ids).eq.1, &
-            "Cannot find aerosol species: "//trim(spec_name))
-    get_eqsam_aero_conc = phlex_state%state_var(spec_ids(1))
+    unique_names = aero_rep%unique_names( &
+            phase_name = phase_name, spec_name = spec_name_def)
+    call assert_msg(370434317, size(unique_names).eq.1, &
+                  "Cannot find aerosol-phase species "//spec_name)
+    i_state_elem = aero_rep%spec_state_id(unique_names(1)%string)
+    get_eqsam_aero_conc = phlex_state%state_var(i_state_elem)
 
   end function get_eqsam_aero_conc
 

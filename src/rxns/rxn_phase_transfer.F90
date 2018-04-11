@@ -55,7 +55,8 @@ module pmc_rxn_phase_transfer
 
   use pmc_constants,                        only: const
   use pmc_util,                             only: i_kind, dp, to_string, &
-                                                  assert, assert_msg, die_msg
+                                                  assert, assert_msg, die_msg, &
+                                                  string_t
   use pmc_rxn_data
   use pmc_chem_spec_data
   use pmc_property
@@ -82,11 +83,13 @@ module pmc_rxn_phase_transfer
 #define _NUM_INT_PROP_ 2
 #define _NUM_REAL_PROP_ 11
 #define _AERO_SPEC_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
-#define _AERO_WATER_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_AERO_PHASE_+x)
-#define _AERO_PHASE_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+2*_NUM_AERO_PHASE_+x)
-#define _AERO_REP_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+3*_NUM_AERO_PHASE_+x)
-#define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+4*_NUM_AERO_PHASE_+x)
-#define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+1+5*_NUM_AERO_PHASE_+x)
+#define _AERO_SPEC_ACT_COEFF_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_AERO_PHASE_+x)
+#define _AERO_WATER_(x) this%condensed_data_int(_NUM_INT_PROP_+2*_NUM_AERO_PHASE_+x)
+#define _AERO_WATER_ACT_COEFF_(x) this%condensed_data_int(_NUM_INT_PROP_+3*_NUM_AERO_PHASE_+x)
+#define _AERO_PHASE_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+4*_NUM_AERO_PHASE_+x)
+#define _AERO_REP_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+5*_NUM_AERO_PHASE_+x)
+#define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+6*_NUM_AERO_PHASE_+x)
+#define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+1+7*_NUM_AERO_PHASE_+x)
 
   public :: rxn_phase_transfer_t
 
@@ -143,6 +146,7 @@ contains
             string_val
     integer(kind=i_kind) :: i_spec, i_qty, i_aero_rep, i_aero_phase, n_aero_ids
     integer(kind=i_kind) :: i_aero_id
+    class(string_t), allocatable :: unique_spec_names(:), unique_water_names(:)
     integer(kind=i_kind), allocatable :: aero_spec_ids(:)
     integer(kind=i_kind), allocatable :: water_spec_ids(:)
 
@@ -153,28 +157,57 @@ contains
     if (.not. associated(this%property_set)) call die_msg(318525776, &
             "Missing property set needed to initialize reaction")
 
-    ! Get the aerosol-phase species and find the required species properties and index
+    ! Get the aerosol phase name
+    key_name = "aerosol phase"
+    call assert_msg(448087197, &
+            this%property_set%get_string(key_name, phase_name), &
+            "Missing aerosol phase in phase-transfer reaction")
+
+    ! Get the aerosol-phase species name
     key_name = "aerosol-phase species"
     call assert_msg(797902545, &
             this%property_set%get_string(key_name, spec_name), &
             "Missing aerosol-phase species in phase-transfer reaction")
 
-    ! Get the number of phases that include the aerosol-phase species
+    ! Get the aerosol-phase water name
+    key_name = "aerosol-phase water"
+    call assert_msg(386889865, &
+            this%property_set%get_string(key_name, water_name), &
+            "Missing aerosol-phase water in phase-transfer reaction")
+
+    ! Check for aerosol representations
     call assert_msg(234155350, associated(aero_rep), &
             "Missing aerosol representation for phase transfer reaction")
     call assert_msg(207961800, size(aero_rep).gt.0, &
             "Missing aerosol representation for phase transfer reaction")
+    
+    ! Count the instances of this phase/species pair
     n_aero_ids = 0
     do i_aero_rep = 1, size(aero_rep)
-      do i_aero_phase = 1, size(aero_rep(i_aero_rep)%val%aero_phase)
-        phase_name = aero_rep(i_aero_rep)%val%aero_phase(i_aero_phase)%val%name()
-        aero_spec_ids = aero_rep(i_aero_rep)%val%species_state_id(phase_name, spec_name)
-        if (allocated(aero_spec_ids)) n_aero_ids = n_aero_ids + size(aero_spec_ids)
-      end do
+
+      ! Get the unique names in this aerosol representation for the 
+      ! partitioning species and aerosol-phase water
+      unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
+              phase_name = phase_name, spec_name = spec_name)
+      unique_water_names = aero_rep(i_aero_rep)%val%unique_names( &
+              phase_name = phase_name, spec_name = water_name)
+
+      ! Skip aerosol representations that do not contain this phase
+      if (.not.allocated(unique_spec_names)) cycle
+
+      ! Check the size of the unique name lists
+      call assert_msg(598091463, size(unique_spec_names).eq. &
+              size(unique_water_names), "Missing species "// &
+              spec_name//" or "//water_name//" in phase "//phase_name// &
+              " or improper implementation of aerosol phase in aerosol "// &
+              "representation")
+ 
+      ! Add these instances to the list     
+      n_aero_ids = n_aero_ids + size(unique_spec_names)
     end do
 
     ! Allocate space in the condensed data arrays
-    allocate(this%condensed_data_int(_NUM_INT_PROP_ + 1 + n_aero_ids * 10))
+    allocate(this%condensed_data_int(_NUM_INT_PROP_ + 1 + n_aero_ids * 12))
     allocate(this%condensed_data_real(_NUM_REAL_PROP_))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
@@ -206,19 +239,33 @@ contains
     ! Set the ids of each aerosol-phase species instance
     i_aero_id = 1
     do i_aero_rep = 1, size(aero_rep)
-      do i_aero_phase = 1, size(aero_rep(i_aero_rep)%val%aero_phase)
-        phase_name = aero_rep(i_aero_rep)%val%aero_phase(i_aero_phase)%val%name()
-        aero_spec_ids = aero_rep(i_aero_rep)%val%species_state_id(phase_name, spec_name)
-        water_spec_ids = aero_rep(i_aero_rep)%val%species_state_id(phase_name, water_name)
-        call assert_msg(798976697, size(aero_spec_ids).eq.size(water_spec_ids), &
-                "Different number of water and aerosol species in phase-transfer reaction")
-        do i_spec = 1, size(aero_spec_ids)
-          _AERO_SPEC_(i_aero_id) = aero_spec_ids(i_spec)
-          _AERO_WATER_(i_aero_id) = water_spec_ids(i_spec)
-          _AERO_PHASE_ID_(i_aero_id) = i_aero_phase
-          _AERO_REP_ID_(i_aero_id) = i_aero_rep
-          i_aero_id = i_aero_id + 1
-        end do
+        
+      ! Get the unique names in this aerosol representation for the 
+      ! partitioning species and aerosol-phase water
+      unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
+              phase_name = phase_name, spec_name = spec_name)
+      unique_water_names = aero_rep(i_aero_rep)%val%unique_names( &
+              phase_name = phase_name, spec_name = water_name)
+     
+      ! Add the species concentration and activity coefficient ids to
+      ! the condensed data 
+      do i_spec = 1, size(unique_spec_names)
+        _AERO_SPEC_(i_aero_id) = &
+              aero_rep(i_aero_rep)%val%spec_state_id( &
+              unique_spec_names(i_spec)%string)
+        _AERO_SPEC_ACT_COEFF_(i_aero_id) = &
+              aero_rep(i_aero_rep)%val%activity_coeff_state_id( &
+              unique_spec_names(i_spec)%string)
+        _AERO_WATER_(i_aero_id) = &
+              aero_rep(i_aero_rep)%val%spec_state_id( &
+              unique_water_names(i_spec)%string)
+        _AERO_WATER_ACT_COEFF_(i_aero_id) = &
+              aero_rep(i_aero_rep)%val%activity_coeff_state_id( &
+              unique_water_names(i_spec)%string)
+        _AERO_PHASE_ID_(i_aero_id) = &
+              aero_rep(i_aero_rep)%val%phase_id(phase_name)
+        _AERO_REP_ID_(i_aero_id) = i_aero_rep
+        i_aero_id = i_aero_id + 1
       end do
     end do
 
@@ -334,15 +381,17 @@ contains
 #undef _C_
 #undef _c_rms_alpha_
 #undef _equil_const_
-#undef _NUM_AERO_PHASE_
-#undef _GAS_SPEC_
 #undef _CONV_
 #undef _MW_
 #undef _ug_m3_TO_ppm_
+#undef _NUM_AERO_PHASE_
+#undef _GAS_SPEC_
 #undef _NUM_INT_PROP_
 #undef _NUM_REAL_PROP_
 #undef _AERO_SPEC_
+#undef _AERO_SPEC_ACT_COEFF_
 #undef _AERO_WATER_
+#undef _AERO_WATER_ACT_COEFF_
 #undef _AERO_PHASE_ID_
 #undef _AERO_REP_ID_
 #undef _DERIV_ID_

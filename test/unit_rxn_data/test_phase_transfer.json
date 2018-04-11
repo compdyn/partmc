@@ -55,6 +55,7 @@
       {
 	"type" : "PHASE_TRANSFER",
 	"gas-phase species" : "O3",
+	"aerosol phase" : "aqueous aerosol",
 	"aerosol-phase species" : "O3_aq",
 	"aerosol-phase water" : "H2O_aq",
 	"A" : 1.14e-2,
@@ -63,6 +64,7 @@
       {
 	"type" : "PHASE_TRANSFER",
 	"gas-phase species" : "H2O2",
+	"aerosol phase" : "aqueous aerosol",
 	"aerosol-phase species" : "H2O2_aq",
 	"aerosol-phase water" : "H2O_aq",
 	"A" : 1.025e5,

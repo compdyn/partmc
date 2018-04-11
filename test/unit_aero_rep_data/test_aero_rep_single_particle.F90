@@ -68,7 +68,6 @@ contains
 #ifdef PMC_USE_JSON
 
     integer(kind=i_kind) :: i_rep, i_spec, j_spec, rep_id, i_phase
-    integer(kind=i_kind), allocatable :: i_spec_list(:)
     type(string_t), allocatable :: rep_names(:)
     character(len=:), allocatable :: rep_name, spec_name, phase_name
     type(string_t), allocatable :: file_list(:), unique_names(:)
@@ -122,12 +121,12 @@ contains
       call assert_msg(885541843, allocated(unique_names), rep_name)
       call assert_msg(206819761, size(unique_names).eq.8, rep_name)
       do i_spec = 1, size(unique_names)
-        call assert_msg(142263656, aero_rep%state_id_by_unique_name(&
+        call assert_msg(142263656, aero_rep%spec_state_id(&
                 unique_names(i_spec)%string).gt.0, rep_name)
         do j_spec = 1, size(unique_names)
           if (i_spec.eq.j_spec) cycle
-          call assert_msg(414662586, aero_rep%state_id_by_unique_name(&
-                  unique_names(i_spec)%string) .ne. aero_rep%state_id_by_unique_name(&
+          call assert_msg(414662586, aero_rep%spec_state_id(&
+                  unique_names(i_spec)%string) .ne. aero_rep%spec_state_id(&
                   unique_names(j_spec)%string), rep_name)
         end do
       end do
@@ -135,45 +134,45 @@ contains
       ! Set the species concentrations
       phase_name = "my test phase one"
       spec_name = "species a"
-      i_spec_list = aero_rep%species_state_id(phase_name, spec_name)
-      i_spec = i_spec_list(1)
+      unique_names = aero_rep%unique_names(phase_name = phase_name, spec_name = spec_name)
+      i_spec = aero_rep%spec_state_id(unique_names(1)%string)
       call assert_msg(258227897, i_spec.gt.0, rep_name)
       phlex_state%state_var(i_spec) = 1.5
       spec_name = "species b"
-      i_spec_list = aero_rep%species_state_id(phase_name, spec_name)
-      i_spec = i_spec_list(1)
+      unique_names = aero_rep%unique_names(phase_name = phase_name, spec_name = spec_name)
+      i_spec = aero_rep%spec_state_id(unique_names(1)%string)
       call assert_msg(418308482, i_spec.gt.0, rep_name)
       phlex_state%state_var(i_spec) = 2.5
       spec_name = "species c"
-      i_spec_list = aero_rep%species_state_id(phase_name, spec_name)
-      i_spec = i_spec_list(1)
+      unique_names = aero_rep%unique_names(phase_name = phase_name, spec_name = spec_name)
+      i_spec = aero_rep%spec_state_id(unique_names(1)%string)
       call assert_msg(420214016, i_spec.gt.0, rep_name)
       phlex_state%state_var(i_spec) = 3.5
       phase_name = "my test phase two"
       spec_name = "species c"
-      i_spec_list = aero_rep%species_state_id(phase_name, spec_name)
-      i_spec = i_spec_list(1)
+      unique_names = aero_rep%unique_names(phase_name = phase_name, spec_name = spec_name)
+      i_spec = aero_rep%spec_state_id(unique_names(1)%string)
       call assert_msg(416855243, i_spec.gt.0, rep_name)
       phlex_state%state_var(i_spec) = 4.5
       spec_name = "species d"
-      i_spec_list = aero_rep%species_state_id(phase_name, spec_name)
-      i_spec = i_spec_list(1)
+      unique_names = aero_rep%unique_names(phase_name = phase_name, spec_name = spec_name)
+      i_spec = aero_rep%spec_state_id(unique_names(1)%string)
       call assert_msg(578389067, i_spec.gt.0, rep_name)
       phlex_state%state_var(i_spec) = 5.5
       spec_name = "species e"
-      i_spec_list = aero_rep%species_state_id(phase_name, spec_name)
-      i_spec = i_spec_list(1)
+      unique_names = aero_rep%unique_names(phase_name = phase_name, spec_name = spec_name)
+      i_spec = aero_rep%spec_state_id(unique_names(1)%string)
       call assert_msg(147314014, i_spec.gt.0, rep_name)
       phlex_state%state_var(i_spec) = 6.5
       phase_name = "my last test phase"
       spec_name = "species b"
-      i_spec_list = aero_rep%species_state_id(phase_name, spec_name)
-      i_spec = i_spec_list(1)
+      unique_names = aero_rep%unique_names(phase_name = phase_name, spec_name = spec_name)
+      i_spec = aero_rep%spec_state_id(unique_names(1)%string)
       call assert_msg(401514617, i_spec.gt.0, rep_name)
       phlex_state%state_var(i_spec) = 7.5
       spec_name = "species e"
-      i_spec_list = aero_rep%species_state_id(phase_name, spec_name)
-      i_spec = i_spec_list(1)
+      unique_names = aero_rep%unique_names(phase_name = phase_name, spec_name = spec_name)
+      i_spec = aero_rep%spec_state_id(unique_names(1)%string)
       call assert_msg(291101806, i_spec.gt.0, rep_name)
       phlex_state%state_var(i_spec) = 8.5
 

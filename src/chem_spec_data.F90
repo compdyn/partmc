@@ -49,11 +49,12 @@ module pmc_chem_spec_data
 
   public :: chem_spec_data_t 
 
-  !> State variable types (Must match StateVarType c enum defined in phlex_solver.h)
+  !> State variable types (Must match values in phlex_solver.c)
   integer(kind=i_kind), parameter, public :: CHEM_SPEC_UNKNOWN_TYPE = 0
   integer(kind=i_kind), parameter, public :: CHEM_SPEC_VARIABLE = 1
   integer(kind=i_kind), parameter, public :: CHEM_SPEC_CONSTANT = 2
   integer(kind=i_kind), parameter, public :: CHEM_SPEC_PSSA = 3
+  integer(kind=i_kind), parameter, public :: CHEM_SPEC_ACTIVITY_COEFF = 4
 
   !> Species phase
   integer(kind=i_kind), parameter, public :: CHEM_SPEC_UNKNOWN_PHASE = 0
@@ -119,14 +120,14 @@ module pmc_chem_spec_data
     !! pmc_phlex_state::phlex_state_t::state_var array.  Note that
     !! aerosol-phase species indices on the \c
     !! pmc_phlex_state::phlex_state_t::state_var array must be accessed from
-    !! \c pmc_aero_rep_data::aero_rep_data_t::species_state_id() for a
+    !! \c pmc_aero_rep_data::aero_rep_data_t::spec_state_id() for a
     !! particular \ref phlex_aero_rep "aerosol representation".
     procedure :: gas_state_id
     !> Get the name of a gas-phase species in the \c
     !! pmc_phlex_state::phlex_state_t::state_var array.  Note that
     !! aerosol-phase species names on the \c
     !! pmc_phlex_state::phlex_state_t::state_var array must be accessed from
-    !! \c pmc_aero_rep_data::aero_rep_data_t::species_state_id() for a
+    !! \c pmc_aero_rep_data::aero_rep_data_t::spec_state_id() for a
     !! particular \ref phlex_aero_rep "aerosol representation".
     procedure :: gas_state_name
     !> Print out the species data
@@ -700,7 +701,7 @@ contains
   !! pmc_phlex_state::phlex_state_t::state_var array.  Note that
   !! aerosol-phase species indices on the \c
   !! pmc_phlex_state::phlex_state_t::state_var array must be accessed from
-  !! \c pmc_aero_rep_data::aero_rep_data_t::species_state_id() for a
+  !! \c pmc_aero_rep_data::aero_rep_data_t::spec_state_id() for a
   !! particular \ref phlex_aero_rep "aerosol representation". Returns a valid
   !! state array index if the species is found, or 0 otherwise
   integer(kind=i_kind) function gas_state_id(this, spec_name)
@@ -729,7 +730,7 @@ contains
   !! pmc_phlex_state::phlex_state_t::state_var array.  Note that
   !! aerosol-phase species names on the \c
   !! pmc_phlex_state::phlex_state_t::state_var array must be accessed from
-  !! \c pmc_aero_rep_data::aero_rep_data_t::species_state_id() for a
+  !! \c pmc_aero_rep_data::aero_rep_data_t::spec_state_id() for a
   !! particular \ref phlex_aero_rep "aerosol representation". Returns a valid
   !! state array index if the species is found, or 0 otherwise
   function gas_state_name(this, spec_id) result(spec_name)

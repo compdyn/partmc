@@ -649,12 +649,33 @@ contains
     !> Chemical model
     class(phlex_core_t), intent(in) :: this
 
-    integer(kind=i_kind) :: state_size, i_rep
+    class(aero_rep_data_t), pointer :: rep
+    class(string_t), allocatable :: unique_names(:)
+    integer(kind=i_kind) :: i_state_elem, i_rep, i_name
 
     new_state => phlex_state_t()
 
     ! Set up the state variable array
     allocate(new_state%state_var(this%state_array_size))
+
+    ! Set species concentrations to zero
+    new_state%state_var(:) = 0.0
+
+    ! Set activity coefficients to 1.0
+    do i_rep = 1, size(this%aero_rep)
+      
+      rep => this%aero_rep(i_rep)%val
+
+      ! Get the aerosol species
+      unique_names = rep%unique_names()
+
+      ! Set the activity coefficients
+      do i_name = 1, size(unique_names)
+        i_state_elem = rep%activity_coeff_state_id(unique_names(i_name)%string)
+        new_state%state_var(i_state_elem) = real(1.0d0, kind=dp)
+      end do
+
+    end do
 
   end function new_state
 
@@ -678,10 +699,14 @@ contains
     ! Species phase
     integer(kind=i_kind) :: spec_phase
 
-    ! Get the variable types and absolute tolerances for the state array species
+    ! Allocate space for the variable types and absolute tolerances
     allocate(abs_tol(this%state_array_size))
     allocate(var_type(this%state_array_size))
+    
+    ! Start at the first state array element
     i_state_var = 0
+
+    ! Add gas-phase species variable types and absolute tolerances
     do i_spec = 1, this%chem_spec_data%size()
       call assert(340050281, this%chem_spec_data%get_phase(i_spec, spec_phase))
       if (spec_phase.ne.CHEM_SPEC_GAS_PHASE) cycle
@@ -691,14 +716,22 @@ contains
       call assert(888496437, &
               this%chem_spec_data%get_type(i_spec, var_type(i_state_var)))
     end do
+
+    ! Loop through aerosol representations
     do i_aero_rep = 1, size(this%aero_rep)
-      do i_spec = 1, this%aero_rep(i_aero_rep)%val%size()
+      ! Set aerosol-phase species variable types and absolute tolerances
+      ! TODO Move this to the aerosol representations, so they have control
+      ! of their portion on the state array and what is stored there
+      do i_spec = 1, this%aero_rep(i_aero_rep)%val%size() / 2
         i_state_var = i_state_var + 1
         spec_name = this%aero_rep(i_aero_rep)%val%spec_name_by_id(i_spec)
         call assert(709716453, &
                 this%chem_spec_data%get_abs_tol(spec_name, abs_tol(i_state_var)))
         call assert(257084300, &
                 this%chem_spec_data%get_type(spec_name, var_type(i_state_var)))
+        i_state_var = i_state_var + 1
+        abs_tol(i_state_var) = 0.0
+        var_type(i_state_var) = CHEM_SPEC_ACTIVITY_COEFF
       end do
     end do
 

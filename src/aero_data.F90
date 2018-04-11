@@ -879,7 +879,7 @@ contains
         this%source_name(i_spec) = ""
       end if
       this%phlex_spec_id(i_spec) = &
-          aero_rep%state_id_by_unique_name(spec_names(i_spec)%string)
+          aero_rep%spec_state_id(spec_names(i_spec)%string)
     end do
 
   end subroutine aero_data_initialize 

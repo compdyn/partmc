@@ -91,44 +91,37 @@ module pmc_aero_rep_data
     procedure(get_size), deferred :: size
     !> Get a list of unique names for each element on the
     !! \c pmc_phlex_state::phlex_state_t::state_var array for this aerosol
-    !! representation.
+    !! representation. The list may be restricted to a particular phase and/or
+    !! aerosol species by including the phase_name and spec_name arguments.
     procedure(unique_names), deferred :: unique_names
     !> Get a species id on the \c pmc_phlex_state::phlex_state_t::state_var
-    !! array by unique name. These are unique ids for each variable on the
+    !! array by unique name. These are unique ids for each element on the
     !! state array for this \ref phlex_aero_rep  "aerosol representation" and
     !! are numbered:
     !!
     !!   \f$x_u = x_f ... (x_f+n-1)\f$
     !!
-    !! where \f$x_u\f$ is the id of the variable corresponding to unique name
-    !! \f$u\f$ on the \c pmc_phlex_state::phlex_state_t::state_var array,
-    !! \f$x_u\f$ is the index of the first variable for this aerosol
-    !! representation on the state array and \f$n\f$ is the total number of
-    !! variables on the state array from this aerosol representation.
-    procedure(state_id_by_unique_name), deferred :: &
-            state_id_by_unique_name
-    !> Get a set of ids on the \c pmc_phlex_state::phlex_state_t::state_var
-    !! array for a particular aerosol species. These are unique ids for each
-    !! variable on the state array that correspond to a particular species in
-    !! this \ref phlex_aero_rep "aerosol representation" and are numbered:
+    !! where \f$x_u\f$ is the id of the element corresponding to concentration
+    !! of the species with unique name \f$u\f$ on the \c
+    !! pmc_phlex_state::phlex_state_t::state_var array, \f$x_f\f$ is the index
+    !! of the first element for this aerosol representation on the state array
+    !! and \f$n\f$ is the total number of variables on the state array from
+    !! this aerosol representation.
+    procedure(spec_state_id), deferred :: spec_state_id
+    !> Get the id on the \c pmc_phlex_state::phlex_state_t::state_var array
+    !! corresponding to a species activity coefficient by its unique name.
+    !! These are unique ids for each variable on the state array for this
+    !! \ref phlex_aero_rep  "aerosol representation" and are numbered:
     !!
-    !!   \f$x_{si} \in x_f ... (x_f+n-1)\f$
+    !!   \f$x_u = x_f ... (x_f+n-1)\f$
     !!
-    !! where \f$x_{si}\f$ is the index of species \f$s\f$ in phase instance
-    !! \f$i\f$, \f$x_f\f$ is the index of the first variable for this aerosol
-    !! representation on the \c pmc_phlex_state:phlex_state_t::state_var array
-    !! and \f$n\f$ is the total number of variables on the state array for
-    !! this aerosol representation. The size of the returned array will be:
-    !!
-    !!   \f$\text{size} = \sum_p n_p\f$
-    !!
-    !! where \f$n_p\f$ is the number of instances of phase \f$p\f$ in this
-    !! aerosol representation. If species \f$s\f$ is not present in phase
-    !! \f$p\f$ then \f$x_{si} \equiv 0 \quad \forall i \in p\f$.
-    !! 
-    !! This function should only be called during initialization
-    procedure(species_state_id), deferred :: &
-            species_state_id
+    !! where \f$x_u\f$ is the id of the element corresponding to the activity
+    !! coefficient for the species with unique name \f$u\f$ on the \c
+    !! pmc_phlex_state::phlex_state_t::state_var array, \f$x_f\f$ is the index
+    !!  of the first element for this aerosolrepresentation on the state array
+    !! and \f$n\f$ is the total number of variables on the state array from
+    !! this aerosol representation.
+    procedure(activity_coeff_state_id), deferred :: activity_coeff_state_id
     !> Get the non-unique name of a species by it's id in this aerosol
     !! representation
     procedure(spec_name_by_id), deferred :: spec_name_by_id
@@ -216,7 +209,7 @@ interface
   !> Get a list of unique names for each element on the
   !! \c pmc_phlex_state::phlex_state_t::state_var array for this aerosol
   !! representation.
-  function unique_names(this) 
+  function unique_names(this, phase_name, spec_name)
     use pmc_util,                                     only : string_t
     import :: aero_rep_data_t
 
@@ -224,25 +217,29 @@ interface
     type(string_t), allocatable :: unique_names(:)
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
+    !> Aerosol phase name
+    character(len=:), allocatable, optional, intent(in) :: phase_name
+    !> Aerosol-phase species name
+    character(len=:), allocatable, optional, intent(in) :: spec_name
 
   end function unique_names
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a species id on the \c pmc_phlex_state::phlex_state_t::state_var
-  !! array by unique name. These are unique ids for each variable on the
+  !! array by unique name. These are unique ids for each element on the
   !! state array for this \ref phlex_aero_rep  "aerosol representation" and
   !! are numbered:
   !!
   !!   \f$x_u = x_f ... (x_f+n-1)\f$
   !!
-  !! where \f$x_u\f$ is the id of the variable corresponding to unique name
-  !! \f$u\f$ on the \c pmc_phlex_state::phlex_state_t::state_var array,
-  !! \f$x_u\f$ is the index of the first variable for this aerosol
-  !! representation on the state array and \f$n\f$ is the total number of
-  !! variables on the state array from this aerosol representation. This 
-  !! function returns zero if the unique name is not found.
-  function state_id_by_unique_name(this, unique_name) result (spec_id)
+  !! where \f$x_u\f$ is the id of the element corresponding to concentration
+  !! of the species with unique name \f$u\f$ on the \c
+  !! pmc_phlex_state::phlex_state_t::state_var array, \f$x_f\f$ is the index
+  !! of the first element for this aerosol representation on the state array
+  !! and \f$n\f$ is the total number of variables on the state array from
+  !! this aerosol representation.
+  function spec_state_id(this, unique_name) result (spec_id)
     use pmc_util,                                     only : i_kind
     import :: aero_rep_data_t
 
@@ -253,45 +250,35 @@ interface
     !> Unique name
     character(len=:), allocatable, intent(in) :: unique_name
 
-  end function state_id_by_unique_name
+  end function spec_state_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get a set of ids on the \c pmc_phlex_state::phlex_state_t::state_var
-  !! array for a particular aerosol species. These are unique ids for each
-  !! variable on the state array that correspond to a particular species in
-  !! this \ref phlex_aero_rep "aerosol representation" and are numbered:
+  !> Get the id on the \c pmc_phlex_state::phlex_state_t::state_var array
+  !! corresponding to a species activity coefficient by its unique name.
+  !! These are unique ids for each variable on the state array for this
+  !! \ref phlex_aero_rep  "aerosol representation" and are numbered:
   !!
-  !!   \f$x_{si} \in x_f ... (x_f+n-1)\f$
+  !!   \f$x_u = x_f ... (x_f+n-1)\f$
   !!
-  !! where \f$x_{si}\f$ is the index of species \f$s\f$ in phase instance
-  !! \f$i\f$, \f$x_f\f$ is the index of the first variable for this aerosol
-  !! representation on the \c pmc_phlex_state:phlex_state_t::state_var array
-  !! and \f$n\f$ is the total number of variables on the state array for
-  !! this aerosol representation. The size of the returned array will be:
-  !!
-  !!   \f$\text{size} = \sum_p n_p\f$
-  !!
-  !! where \f$n_p\f$ is the number of instances of phase \f$p\f$ in this
-  !! aerosol representation. If species \f$s\f$ is not present in phase
-  !! \f$p\f$ then \f$x_{si} \equiv 0 \quad \forall i \in p\f$.
-  !! 
-  !! This function should only be called during initialization
-  function species_state_id(this, phase_name, &
-                    species_name) result(spec_index)
+  !! where \f$x_u\f$ is the id of the element corresponding to the activity
+  !! coefficient for the species with unique name \f$u\f$ on the \c
+  !! pmc_phlex_state::phlex_state_t::state_var array, \f$x_f\f$ is the index
+  !!  of the first element for this aerosolrepresentation on the state array
+  !! and \f$n\f$ is the total number of variables on the state array from
+  !! this aerosol representation.
+  function activity_coeff_state_id(this, unique_name) result (spec_id)
     use pmc_util,                                     only : i_kind
     import :: aero_rep_data_t
 
-    !> Species index array
-    integer(kind=i_kind), allocatable :: spec_index(:)
+    !> Species state id
+    integer(kind=i_kind) :: spec_id
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
-    !> Aerosol phase
-    character(len=:), allocatable, intent(in) :: phase_name
-    !> Species name
-    character(len=:), allocatable, intent(in) :: species_name
+    !> Unique name
+    character(len=:), allocatable, intent(in) :: unique_name
 
-  end function species_state_id
+  end function activity_coeff_state_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

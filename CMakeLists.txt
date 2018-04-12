@@ -321,12 +321,33 @@ set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 ######################################################################
 # partmc library
 
-set(REACTIONS_SRC src/rxns/rxn_arrhenius.F90 src/rxns/rxn_arrhenius.c
-	src/rxns/rxn_CMAQ_H2O2.F90 src/rxns/rxn_CMAQ_H2O2.c
-	src/rxns/rxn_CMAQ_OH_HNO3.F90 src/rxns/rxn_CMAQ_OH_HNO3.c
-	src/rxns/rxn_phase_transfer.F90 src/rxns/rxn_phase_transfer.c
-	src/rxns/rxn_photolysis.F90 src/rxns/rxn_photolysis.c
-	src/rxns/rxn_troe.F90 src/rxns/rxn_troe.c)
+set(REACTIONS_F_SRC 
+	src/rxns/rxn_aqueous_equilibrium.F90
+	src/rxns/rxn_arrhenius.F90
+	src/rxns/rxn_CMAQ_H2O2.F90
+	src/rxns/rxn_CMAQ_OH_HNO3.F90
+	src/rxns/rxn_phase_transfer.F90
+	src/rxns/rxn_photolysis.F90
+	src/rxns/rxn_troe.F90)
+
+if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
+	set(REACTIONS_F_FLAGS "-extend_source -warn truncated_source")
+elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
+	set(REACTIONS_F_FLAGS "-ffree-line-length-none")
+endif()
+
+set_source_files_properties(${REACTIONS_F_SRC} PROPERTIES COMPILE_FLAGS
+	${REACTIONS_F_FLAGS})
+
+set(REACTIONS_SRC ${REACTIONS_F_SRC}
+	src/rxns/rxn_aqueous_equilibrium.c
+	src/rxns/rxn_arrhenius.c
+	src/rxns/rxn_CMAQ_H2O2.c
+	src/rxns/rxn_CMAQ_OH_HNO3.c
+	src/rxns/rxn_phase_transfer.c
+	src/rxns/rxn_photolysis.c
+	src/rxns/rxn_troe.c)
+
 set(AEROSOL_REPS_SRC src/aero_reps/aero_rep_single_particle.F90
         src/aero_reps/aero_rep_single_particle.c)	
 

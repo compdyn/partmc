@@ -177,6 +177,7 @@ module pmc_rxn_factory
 #endif
 
   ! Use all reaction modules
+  use pmc_rxn_aqueous_equilibrium
   use pmc_rxn_arrhenius
   use pmc_rxn_troe
   use pmc_rxn_CMAQ_H2O2
@@ -199,6 +200,7 @@ module pmc_rxn_factory
   integer(kind=i_kind), parameter :: RXN_CMAQ_OH_HNO3 = 4
   integer(kind=i_kind), parameter :: RXN_PHOTOLYSIS = 5
   integer(kind=i_kind), parameter :: RXN_PHASE_TRANSFER = 6
+  integer(kind=i_kind), parameter :: RXN_AQUEOUS_EQUILIBRIUM = 7
 
   !> Factory type for chemical reactions
   !!
@@ -250,6 +252,8 @@ contains
         new_obj => rxn_photolysis_t()
       case ("PHASE_TRANSFER")
         new_obj => rxn_phase_transfer_t()
+      case ("AQUEOUS_EQUILIBRIUM")
+        new_obj => rxn_aqueous_equilibrium_t()
       case default
         call die_msg(367114278, "Unknown chemical reaction type: " &
                 //type_name) 
@@ -328,6 +332,8 @@ contains
         rxn_type = RXN_PHOTOLYSIS
       type is (rxn_phase_transfer_t)
         rxn_type = RXN_PHASE_TRANSFER
+      type is (rxn_aqueous_equilibrium_t)
+        rxn_type = RXN_AQUEOUS_EQUILIBRIUM
       class default
         call die_msg(343941184, "Unknown reaction type.")
     end select
@@ -382,6 +388,8 @@ contains
         rxn_type = RXN_PHOTOLYSIS
       type is (rxn_phase_transfer_t)
         rxn_type = RXN_PHASE_TRANSFER
+      type is (rxn_aqueous_equilibrium_t)
+        rxn_type = RXN_AQUEOUS_EQUILIBRIUM
       class default
         call die_msg(343941184, "Trying to pack reaction of unknown type.")
     end select
@@ -425,6 +433,8 @@ contains
         rxn => rxn_photolysis_t()
       case (RXN_PHASE_TRANSFER)
         rxn => rxn_phase_transfer_t()
+      case (RXN_AQUEOUS_EQUILIBRIUM)
+        rxn => rxn_aqueous_equilibrium_t()
       case default
         call die_msg(659290342, "Trying to unpack reaction of unknown type:"// &
                 to_string(rxn_type))

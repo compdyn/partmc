@@ -170,6 +170,7 @@ int condense_solver(int neq, double *x_f, double *abstol_f, double reltol_f,
  * \param user_data A pointer to user-provided data.
  * \return A result code (0 is success).
  */
+void condense_vf_f(int neq, realtype t, double *y_f, double *y_dot);
 static int condense_vf(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 {
 	realtype *y_data, *ydot_data;
@@ -285,6 +286,7 @@ static int condense_solver_Setup(CVodeMem cv_mem, int convfail, N_Vector ypred,
  * \param fcur The current vector field vector.
  * \return A result code (0 is success).
  */
+void condense_jac_solve_f(int neq, double t, double *ycur_f, double *fcur_f, double *b_f, double gamma);
 static int condense_solver_Solve(CVodeMem cv_mem, N_Vector b, N_Vector weight,
 				 N_Vector ycur, N_Vector fcur)
 {

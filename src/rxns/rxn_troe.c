@@ -127,6 +127,22 @@ void * rxn_troe_update_env_state(realtype *env_data, void *rxn_data)
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
 
+/** \brief Do pre-derivative calculations
+ *
+ * Nothing to do for troe reactions
+ *
+ * \param model_data Pointer to the model data, including the state array
+ * \param rxn_data Pointer to the reaction data
+ * \return The rxn_data pointer advanced by the size of the reaction data
+ */
+void * rxn_troe_pre_calc(ModelData *model_data, void *rxn_data)
+{
+  int *int_data = (int*) rxn_data;
+  realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
+
+  return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
+}
+
 /** \brief Calculate contributions to the time derivative f(t,y) from this
  * reaction.
  *

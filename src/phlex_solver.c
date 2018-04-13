@@ -259,6 +259,9 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *model_data)
   // Initialize the derivative
   for (int i_spec=0; i_spec<NV_LENGTH_S(deriv); i_spec++) NV_DATA_S(deriv)[i_spec] = ZERO;
 
+  // Run pre-derivative calculations
+  rxn_pre_calc(md);
+
   // Calculate the time derivative f(t,y)
   rxn_calc_deriv(md, deriv);
 
@@ -309,6 +312,9 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *model_data,
   for (int i=0; i<=SM_NP_S(J); i++) {
     (SM_INDEXPTRS_S(J))[i] = (SM_INDEXPTRS_S(md->J_init))[i];
   } 
+
+  // Run pre-Jacobian calculations
+  rxn_pre_calc(md);
 
   // Calculate the Jacobian
   rxn_calc_jac(md, J);

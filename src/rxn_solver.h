@@ -4,6 +4,9 @@
  *
  * Header file for reaction functions
  *
+ * TODO Automatically generate rxn_solver.c and rxn_solver.h code
+ * maybe using cmake?
+ *
 */
 /** \file
  * \brief Header file for reaction solver functions
@@ -24,6 +27,7 @@
 void * rxn_aqueous_equilibrium_get_used_jac_elem(void *rxn_data, bool **jac_struct);
 void * rxn_aqueous_equilibrium_update_ids(int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_aqueous_equilibrium_update_env_state(realtype *env_data, void *rxn_data);
+void * rxn_aqueous_equilibrium_pre_calc(ModelData *model_data, void *rxn_data);
 void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data, realtype *deriv, void *rxn_data);
 void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data, realtype *J, void *rxn_data);
 void * rxn_aqueous_equilibrium_skip(void *rxn_data);
@@ -34,6 +38,7 @@ void * rxn_aqueous_equilibrium_get_rate(void *rxn_data, realtype *state, realtyp
 void * rxn_arrhenius_get_used_jac_elem(void *rxn_data, bool **jac_struct);
 void * rxn_arrhenius_update_ids(int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_arrhenius_update_env_state(realtype *env_data, void *rxn_data);
+void * rxn_arrhenius_pre_calc(ModelData *model_data, void *rxn_data);
 void * rxn_arrhenius_calc_deriv_contrib(realtype *state, realtype *deriv, void *rxn_data);
 void * rxn_arrhenius_calc_jac_contrib(realtype *state, realtype *J, void *rxn_data);
 void * rxn_arrhenius_skip(void *rxn_data);
@@ -44,6 +49,7 @@ void * rxn_arrhenius_get_rate(void *rxn_data, realtype *state, realtype *env, re
 void * rxn_CMAQ_H2O2_get_used_jac_elem(void *rxn_data, bool **jac_struct);
 void * rxn_CMAQ_H2O2_update_ids(int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_CMAQ_H2O2_update_env_state(realtype *env_data, void *rxn_data);
+void * rxn_CMAQ_H2O2_pre_calc(ModelData *model_data, void *rxn_data);
 void * rxn_CMAQ_H2O2_calc_deriv_contrib(realtype *state, realtype *deriv, void *rxn_data);
 void * rxn_CMAQ_H2O2_calc_jac_contrib(realtype *state, realtype *J, void *rxn_data);
 void * rxn_CMAQ_H2O2_skip(void *rxn_data);
@@ -54,6 +60,7 @@ void * rxn_CMAQ_H2O2_get_rate(void *rxn_data, realtype *state, realtype *env, re
 void * rxn_CMAQ_OH_HNO3_get_used_jac_elem(void *rxn_data, bool **jac_struct);
 void * rxn_CMAQ_OH_HNO3_update_ids(int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_CMAQ_OH_HNO3_update_env_state(realtype *env_data, void *rxn_data);
+void * rxn_CMAQ_OH_HNO3_pre_calc(ModelData *model_data, void *rxn_data);
 void * rxn_CMAQ_OH_HNO3_calc_deriv_contrib(realtype *state, realtype *deriv, void *rxn_data);
 void * rxn_CMAQ_OH_HNO3_calc_jac_contrib(realtype *state, realtype *J, void *rxn_data);
 void * rxn_CMAQ_OH_HNO3_skip(void *rxn_data);
@@ -64,6 +71,7 @@ void * rxn_CMAQ_OH_HNO3_get_rate(void *rxn_data, realtype *state, realtype *env,
 void * rxn_phase_transfer_get_used_jac_elem(void *rxn_data, bool **jac_struct);
 void * rxn_phase_transfer_update_ids(int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_phase_transfer_update_env_state(realtype *env_data, void *rxn_data);
+void * rxn_phase_transfer_pre_calc(ModelData *model_data, void *rxn_data);
 void * rxn_phase_transfer_calc_deriv_contrib(ModelData *model_data, realtype *deriv, void *rxn_data);
 void * rxn_phase_transfer_calc_jac_contrib(ModelData *model_data, realtype *J, void *rxn_data);
 void * rxn_phase_transfer_skip(void *rxn_data);
@@ -74,6 +82,7 @@ void * rxn_phase_transfer_get_rate(void *rxn_data, realtype *state, realtype *en
 void * rxn_photolysis_get_used_jac_elem(void *rxn_data, bool **jac_struct);
 void * rxn_photolysis_update_ids(int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_photolysis_update_env_state(realtype *env_data, void *rxn_data);
+void * rxn_photolysis_pre_calc(ModelData *model_data, void *rxn_data);
 void * rxn_photolysis_calc_deriv_contrib(realtype *state, realtype *deriv, void *rxn_data);
 void * rxn_photolysis_calc_jac_contrib(realtype *state, realtype *J, void *rxn_data);
 void * rxn_photolysis_set_photo_rate(int photo_id, realtype base_rate, void *rxn_data);
@@ -85,6 +94,7 @@ void * rxn_photolysis_get_rate(void *rxn_data, realtype *state, realtype *env, r
 void * rxn_troe_get_used_jac_elem(void *rxn_data, bool **jac_struct);
 void * rxn_troe_update_ids(int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_troe_update_env_state(realtype *env_data, void *rxn_data);
+void * rxn_troe_pre_calc(ModelData *model_data, void *rxn_data);
 void * rxn_troe_calc_deriv_contrib(realtype *state, realtype *deriv, void *rxn_data);
 void * rxn_troe_calc_jac_contrib(realtype *state, realtype *J, void *rxn_data);
 void * rxn_troe_skip(void *rxn_data);

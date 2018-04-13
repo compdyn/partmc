@@ -162,6 +162,56 @@ void rxn_update_env_state(ModelData *model_data, double *env)
   } 
 }
 
+/** \brif Do pre-derivative/Jacobian calculations
+ *
+ * Update the model state based on sub-model calculations. These can,
+ * for example, update activity coefficients based on species concentrations,
+ * calculate PSSA species concentrations, partition aerosol water, etc.
+ *
+ * TODO Unlike the derivative calculations, the order of these operations
+ * matters. Find a way to abstract operation order. Maybe during intialization
+ * each reaction can specify it's dependencies and which state variables it will
+ * change and the order can be determined from this at run time.
+ *
+ * \param model_data Pointer to the model data (state, env, rxn)
+ */
+void rxn_pre_calc(ModelData *model_data)
+{
+  
+  // Get the number of reactions
+  int *rxn_data = (int*) (model_data->rxn_data);
+  int n_rxn = *(rxn_data++);
+
+  // Loop through the reactions advancing the rxn_data pointer each time
+  for (int rxn_type = *(rxn_data++); rxn_data < (int*) model_data->nxt_rxn; rxn_type = *(rxn_data++)) {
+
+    // Call the appropriate function
+    switch (rxn_type) {
+      case RXN_AQUEOUS_EQUILIBRIUM :
+        rxn_data = (int*) rxn_aqueous_equilibrium_pre_calc(model_data, (void*) rxn_data);
+        break;
+      case RXN_ARRHENIUS :
+        rxn_data = (int*) rxn_arrhenius_pre_calc(model_data, (void*) rxn_data);
+        break;
+      case RXN_CMAQ_H2O2 :
+        rxn_data = (int*) rxn_CMAQ_H2O2_pre_calc(model_data, (void*) rxn_data);
+        break;
+      case RXN_CMAQ_OH_HNO3 :
+        rxn_data = (int*) rxn_CMAQ_OH_HNO3_pre_calc(model_data, (void*) rxn_data);
+        break;
+      case RXN_PHASE_TRANSFER :
+        rxn_data = (int*) rxn_phase_transfer_pre_calc(model_data, (void*) rxn_data);
+        break;
+      case RXN_PHOTOLYSIS :
+        rxn_data = (int*) rxn_photolysis_pre_calc(model_data, (void*) rxn_data);
+        break;
+      case RXN_TROE :
+        rxn_data = (int*) rxn_troe_pre_calc(model_data, (void*) rxn_data);
+        break;
+    }
+  } 
+}
+
 /** \brief Calculate the time derivative f(t,y)
  *
  * \param model_data Pointer to the model data (state, env, rxn)

@@ -240,7 +240,7 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data, realtype 
 
     // If not aerosol water is present, no reaction occurs
     if (state[_WATER_(i_phase)] < _SMALL_NUMBER_) {
-      i_jac += _NUM_REACT_ + _NUM_PROD_;
+      i_jac += (_NUM_REACT_ + _NUM_PROD_) * (_NUM_REACT_ + _NUM_PROD_ + 1);
       continue;
     }
 
@@ -260,7 +260,7 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data, realtype 
 
     // No Jac contributions to add if the rates are zero
     if ((forward_rate - reverse_rate)==0.0) {
-      i_jac += (_NUM_REACT_+_NUM_PROD_)*(_NUM_REACT_+_NUM_PROD_+1);
+      i_jac += (_NUM_REACT_ + _NUM_PROD_) * (_NUM_REACT_ + _NUM_PROD_ + 1);
       continue;
     }
 
@@ -282,12 +282,12 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data, realtype 
     for (int i_prod_ind = 0; i_prod_ind < _NUM_PROD_; i_prod_ind++) {
       for (int i_react_dep = 0; i_react_dep < _NUM_REACT_; i_react_dep++) {
 	if (_JAC_ID_(i_jac)<0) {i_jac++; continue;}
-        J[_JAC_ID_(i_jac++)] += (reverse_rate) / state[_REACT_(i_phase*_NUM_PROD_+i_prod_ind)] / 
+        J[_JAC_ID_(i_jac++)] += (reverse_rate) / state[_PROD_(i_phase*_NUM_PROD_+i_prod_ind)] / 
 		_mass_frac_TO_M_(i_react_dep) * state[_WATER_(i_phase)];
       }
       for (int i_prod_dep = 0; i_prod_dep < _NUM_PROD_; i_prod_dep++) {
 	if (_JAC_ID_(i_jac)<0) {i_jac++; continue;}
-        J[_JAC_ID_(i_jac++)] += (-reverse_rate) / state[_REACT_(i_phase*_NUM_PROD_+i_prod_ind)] / 
+        J[_JAC_ID_(i_jac++)] += (-reverse_rate) / state[_PROD_(i_phase*_NUM_PROD_+i_prod_ind)] / 
 		_mass_frac_TO_M_(_NUM_REACT_ + i_prod_dep) * state[_WATER_(i_phase)];
       }
     }
@@ -295,11 +295,11 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data, realtype 
     // Add dependence on aerosol-phase water for reactants and products
     for (int i_react_dep = 0; i_react_dep < _NUM_REACT_; i_react_dep++) {
       if (_JAC_ID_(i_jac)<0) {i_jac++; continue;}
-      J[_JAC_ID_(i_jac++)] += (reverse_rate) / _mass_frac_TO_M_(i_react_dep);
+      J[_JAC_ID_(i_jac++)] += (reverse_rate-forward_rate) / _mass_frac_TO_M_(i_react_dep);
     }
     for (int i_prod_dep = 0; i_prod_dep < _NUM_PROD_; i_prod_dep++) {
       if (_JAC_ID_(i_jac)<0) {i_jac++; continue;}
-      J[_JAC_ID_(i_jac++)] += (-reverse_rate) / _mass_frac_TO_M_(_NUM_REACT_ + i_prod_dep);
+      J[_JAC_ID_(i_jac++)] += (forward_rate-reverse_rate) / _mass_frac_TO_M_(_NUM_REACT_ + i_prod_dep);
     }
 
   }

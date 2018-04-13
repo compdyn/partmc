@@ -175,7 +175,7 @@ contains
 
     do i_spec = 1, this%num_spec
       if (.not.chem_spec_data%exists(this%spec_name(i_spec)%string)) then
-        call die_msg(589987734, "Aerosol phase species "// &
+        call die_msg(589987734, "Aerosol-phase species "// &
             trim(this%spec_name(i_spec)%string)//" missing in chem_spec_data.")
       end if
     end do

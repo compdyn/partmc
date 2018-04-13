@@ -194,6 +194,7 @@ contains
 
     ! Count the number of species per phase instance (including species
     ! with a "qty" specified)
+    call reactants%iter_reset()
     num_react = 0
     do while (reactants%get_key(spec_name))
       ! Get properties included with this reactant in the reaction data
@@ -204,6 +205,7 @@ contains
       call reactants%iter_next()
       num_react = num_react + 1
     end do
+    call products%iter_reset()
     num_prod = 0
     do while (products%get_key(spec_name))
       ! Get properties included with this product in the reaction data

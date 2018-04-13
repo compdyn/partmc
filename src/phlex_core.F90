@@ -1070,6 +1070,9 @@ contains
       call this%mechanism(i_mech)%print(f_unit)
     end do
 
+    if (associated(this%solver_data_gas)) call this%solver_data_gas%print()
+    if (associated(this%solver_data_gas_aero)) call this%solver_data_gas_aero%print()
+
   end subroutine do_print
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -101,5 +101,16 @@ void * rxn_troe_skip(void *rxn_data);
 void * rxn_troe_print(void *rxn_data);
 void * rxn_troe_get_rate(void *rxn_data, realtype *state, realtype *env, realtype *rate);
 
+// ZSR_aerosol_water
+void * rxn_ZSR_aerosol_water_get_used_jac_elem(void *rxn_data, bool **jac_struct);
+void * rxn_ZSR_aerosol_water_update_ids(int *deriv_ids, int **jac_ids, void *rxn_data);
+void * rxn_ZSR_aerosol_water_update_env_state(realtype *env_data, void *rxn_data);
+void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data);
+void * rxn_ZSR_aerosol_water_calc_deriv_contrib(ModelData *model_data, realtype *deriv, void *rxn_data);
+void * rxn_ZSR_aerosol_water_calc_jac_contrib(ModelData *model_data, realtype *J, void *rxn_data);
+void * rxn_ZSR_aerosol_water_skip(void *rxn_data);
+void * rxn_ZSR_aerosol_water_print(void *rxn_data);
+void * rxn_ZSR_aerosol_water_get_rate(void *rxn_data, realtype *state, realtype *env, realtype *rate);
+
 #endif
 #endif

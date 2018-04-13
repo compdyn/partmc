@@ -329,7 +329,8 @@ set(REACTIONS_F_SRC
 	src/rxns/rxn_CMAQ_OH_HNO3.F90
 	src/rxns/rxn_phase_transfer.F90
 	src/rxns/rxn_photolysis.F90
-	src/rxns/rxn_troe.F90)
+	src/rxns/rxn_troe.F90
+	src/rxns/rxn_ZSR_aerosol_water.F90)
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
 	set(REACTIONS_F_FLAGS "-extend_source -warn truncated_source")
@@ -347,7 +348,8 @@ set(REACTIONS_SRC ${REACTIONS_F_SRC}
 	src/rxns/rxn_CMAQ_OH_HNO3.c
 	src/rxns/rxn_phase_transfer.c
 	src/rxns/rxn_photolysis.c
-	src/rxns/rxn_troe.c)
+	src/rxns/rxn_troe.c
+	src/rxns/rxn_ZSR_aerosol_water.c)
 
 set(AEROSOL_REPS_SRC src/aero_reps/aero_rep_single_particle.F90
         src/aero_reps/aero_rep_single_particle.c)	

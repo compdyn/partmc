@@ -19,6 +19,7 @@
 #define RXN_PHOTOLYSIS 5
 #define RXN_PHASE_TRANSFER 6
 #define RXN_AQUEOUS_EQUILIBRIUM 7
+#define RXN_ZSR_AEROSOL_WATER 8
 
 #ifdef PMC_USE_SUNDIALS
 
@@ -65,6 +66,9 @@ void * rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct)
         break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_get_used_jac_elem((void*) rxn_data, jac_struct);
+        break;
+      case RXN_ZSR_AEROSOL_WATER :
+        rxn_data = (int*) rxn_ZSR_aerosol_water_get_used_jac_elem((void*) rxn_data, jac_struct);
         break;
     }
   }
@@ -113,6 +117,9 @@ void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids)
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
         break;
+      case RXN_ZSR_AEROSOL_WATER :
+        rxn_data = (int*) rxn_ZSR_aerosol_water_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
+        break;
     }
   }
 }
@@ -157,6 +164,9 @@ void rxn_update_env_state(ModelData *model_data, double *env)
         break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_update_env_state(env, (void*) rxn_data);
+        break;
+      case RXN_ZSR_AEROSOL_WATER :
+        rxn_data = (int*) rxn_ZSR_aerosol_water_update_env_state(env, (void*) rxn_data);
         break;
     }
   } 
@@ -207,6 +217,9 @@ void rxn_pre_calc(ModelData *model_data)
         break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_pre_calc(model_data, (void*) rxn_data);
+        break;
+      case RXN_ZSR_AEROSOL_WATER :
+        rxn_data = (int*) rxn_ZSR_aerosol_water_pre_calc(model_data, (void*) rxn_data);
         break;
     }
   } 
@@ -259,6 +272,10 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv)
         break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_calc_deriv_contrib(model_data->state, 
+		       deriv_data, (void*) rxn_data);
+        break;
+      case RXN_ZSR_AEROSOL_WATER :
+        rxn_data = (int*) rxn_ZSR_aerosol_water_calc_deriv_contrib(model_data,
 		       deriv_data, (void*) rxn_data);
         break;
     }
@@ -315,6 +332,10 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J)
         break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_calc_jac_contrib(model_data->state, 
+		       J_data, (void*) rxn_data);
+        break;
+      case RXN_ZSR_AEROSOL_WATER :
+        rxn_data = (int*) rxn_ZSR_aerosol_water_calc_jac_contrib(model_data,
 		       J_data, (void*) rxn_data);
         break;
     }
@@ -408,6 +429,9 @@ void rxn_set_photo_rate(int photo_id, double base_rate, void *solver_data)
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_skip((void*)rxn_data);
         break;
+      case RXN_ZSR_AEROSOL_WATER :
+        rxn_data = (int*) rxn_ZSR_aerosol_water_skip((void*)rxn_data);
+        break;
     }
   }
 #endif 
@@ -457,6 +481,9 @@ void rxn_print_data(void *solver_data)
 	break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_print((void*)rxn_data);
+	break;
+      case RXN_ZSR_AEROSOL_WATER :
+        rxn_data = (int*) rxn_ZSR_aerosol_water_print((void*)rxn_data);
 	break;
     }
   }
@@ -517,6 +544,9 @@ double * rxn_get_rates(void *solver_data, double *state, double *env, int *n_rxn
 	break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_get_rate((void*)rxn_data, state, env, &(rate));
+	break;
+      case RXN_ZSR_AEROSOL_WATER :
+        rxn_data = (int*) rxn_ZSR_aerosol_water_get_rate((void*)rxn_data, state, env, &(rate));
 	break;
     }
     rates[i_rxn] = (double) rate;

@@ -184,6 +184,7 @@ module pmc_rxn_factory
   use pmc_rxn_CMAQ_OH_HNO3
   use pmc_rxn_photolysis
   use pmc_rxn_phase_transfer
+  use pmc_rxn_ZSR_aerosol_water
 
   use iso_c_binding
 
@@ -201,6 +202,7 @@ module pmc_rxn_factory
   integer(kind=i_kind), parameter :: RXN_PHOTOLYSIS = 5
   integer(kind=i_kind), parameter :: RXN_PHASE_TRANSFER = 6
   integer(kind=i_kind), parameter :: RXN_AQUEOUS_EQUILIBRIUM = 7
+  integer(kind=i_kind), parameter :: RXN_ZSR_AEROSOL_WATER = 8
 
   !> Factory type for chemical reactions
   !!
@@ -254,6 +256,8 @@ contains
         new_obj => rxn_phase_transfer_t()
       case ("AQUEOUS_EQUILIBRIUM")
         new_obj => rxn_aqueous_equilibrium_t()
+      case ("ZSR_AEROSOL_WATER")
+        new_obj => rxn_ZSR_aerosol_water_t()
       case default
         call die_msg(367114278, "Unknown chemical reaction type: " &
                 //type_name) 
@@ -334,6 +338,8 @@ contains
         rxn_type = RXN_PHASE_TRANSFER
       type is (rxn_aqueous_equilibrium_t)
         rxn_type = RXN_AQUEOUS_EQUILIBRIUM
+      type is (rxn_ZSR_aerosol_water_t)
+        rxn_type = RXN_ZSR_AEROSOL_WATER
       class default
         call die_msg(343941184, "Unknown reaction type.")
     end select
@@ -390,6 +396,8 @@ contains
         rxn_type = RXN_PHASE_TRANSFER
       type is (rxn_aqueous_equilibrium_t)
         rxn_type = RXN_AQUEOUS_EQUILIBRIUM
+      type is (rxn_ZSR_aerosol_water_t)
+        rxn_type = RXN_ZSR_AEROSOL_WATER
       class default
         call die_msg(343941184, "Trying to pack reaction of unknown type.")
     end select
@@ -435,6 +443,8 @@ contains
         rxn => rxn_phase_transfer_t()
       case (RXN_AQUEOUS_EQUILIBRIUM)
         rxn => rxn_aqueous_equilibrium_t()
+      case (RXN_ZSR_AEROSOL_WATER)
+        rxn => rxn_ZSR_aerosol_water_t()
       case default
         call die_msg(659290342, "Trying to unpack reaction of unknown type:"// &
                 to_string(rxn_type))

@@ -7,47 +7,134 @@
 
 !> \page phlex_rxn_ZSR_aerosol_water Phlexible Mechanism for Chemistry: ZSR Aerosol Water Reaction
 !!
-!! ZSR aerosol water reactions are based on Henry's Law equilibrium constants
-!! whose equations take the form:
+!! ZSR aerosol water reactions calculate equilibrium aerosol water content
+!! based on the Zdanovski-Stokes-Robinson mixing rule \cite{Stokes1966,
+!! Jacobson1996} in the following generalized format:
 !!
 !! \f[
-!!   Ae^{C({1/T-1/298})}
+!!   W = \sum\limits_{i=0}^{n}\frac{1000 M_i}{MW_i m_{i}(a_w)}
 !! \f]
 !!
-!! where \f$A\f$ is the pre-exponential factor (\f$s^{-1}\f$), \f$C\f$ is a
-!! constant and \f$T\f$ is the temperature (K). Uptake kinetics are based on
-!! the particle size, the gas-phase species diffusion coefficient and
-!! molecular weight, and \f$N^{*}\f$, which is used to calculate the mass
-!! accomodation coefficient. Details of the calculations can be found in:
-!!
-!! Ervens, B., et al., 2003. "CAPRAM 2.4 (MODAC mechanism): An extended
-!! and condensed tropospheric aqueous mechanism and its application."
-!! J. Geophys. Res. 108, 4426. doi:10.1029/2002JD002202
+!! where \f$M\f$ is the concentration of binary electrolyte \f$i\f$ 
+!! (\f$\mu g m^{-3}\f$) with molecular weight \f$MW_i\f$ (g/mol) and 
+!! molality \f$m_{i}\f$ at a given water activity \f$a_w\f$ (RH; 0-1)
+!! contributing to the total aerosol water content \f$W\f$ 
+!! (\f$\mu g m^{-3}\f$).
 !!
 !! Input data for ZSR aerosol water equations should take the form :
 !! \code{.json}
 !!   {
 !!     "type" : "ZSR_AEROSOL_WATER",
-!!     "A" : 123.45,
-!!     "C" : 123.45,
-!!     "gas-phase species" : "my gas spec",
-!!     "aerosol-phase species" : "my aero spec"
+!!     "aerosol phase" : "my aero phase",
+!!     "gas-phase water" : "H2O",
+!!     "aerosol-phase water" : "H2O_aq",
+!!     "ion pairs" : {
+!!       "Na2SO4" : {
+!!         "type" : "JACOBSON",
+!!         "ions" : {
+!!           "Nap" : { "qty" : 2 },
+!!           "SO4mm" : {}
+!!         },
+!!         "Y_j" : [-3.295311e3, 3.188349e4, -1.305168e5, 2.935608e5],
+!!         "low RH" : 51.0
+!!       },
+!!       "H2SO4" : {
+!!         "type" : "EQSAM",
+!!         "ions" : {
+!!           "SO4mm" : {}
+!!         },
+!!         "NW" : 4.5,
+!!         "ZW" : 0.5,
+!!         "MW" : 98.0
+!!       }
 !!       ...
+!!     }
 !!   }
 !! \endcode
-!! The key-value pairs \b gas-phase species, and \b aerosol-phase species are
-!! required. Only one gas- and one aerosol-phase species are allowed per
-!! ZSR aerosol water reaction. Additionally, gas-phase species must include
-!! parameters named "diffusion coeff", which specifies the diffusion
-!! coefficient in (\f$m^2s^{-1}\f$), and "molecular weight", which specifies the molecular
-!! weight of the species in (kg/mol). They may optionally include the
-!! parameter "N star", which will be used to calculate the mass accomodation
-!! coefficient. When this parameter is not included, the mass accomodation
-!! coefficient is assumed to be 1.0.
+!! The key-value pair \b "aerosol phase" is required to specify the aerosol
+!! phase for which to calculate water content. Key-value pairs 
+!! \b "gas-phase water" and \b "aerosol-phase water" must also be present and
+!! specify the names for the water species in each phase. The final required
+!! key-value pair is \b "ion pairs" which should contain a set of key-value
+!! pairs where the key of each member of the set is the name of a binary
+!! electrolyte and the contents contain parameters required to estimate
+!! the contribution of the this electrolyte to total aerosol water. The
+!! name of the electrolyte may or may not refer to an actual aerosol-phase
+!! species.
 !!
-!! When \b A is not included, it is assumed to be 1.0, when \b C is not
-!! included, it is assumed to be 0.0.
-
+!! Each binary electrolyte must include a \b "type" that refers to a method
+!! of calculating ion-pair contributions to aerosol water. Valid values for
+!! \b "type" are "JACOBSON" and "EQSAM". These are described next.
+!!
+!! Aerosol water from ion pairs with type "JACOBSON" use equations (28) and
+!! (29) in Jacobson et al. \cite{Jacobson1996} where experimentally determined
+!! binary solution molalities are fit to a polynomial as:
+!!
+!! \f[
+!!   \sqrt{m_{i}(a_w)} = Y_0 + Y_1 a_w + Y_2 a_w^2 + Y_3 a_w^3 + ...,
+!! \f]
+!!
+!! where \f$Y_j\f$ are the fitting parameters. Thus, \f$m_i(a_w)\f$ is
+!! calculated at each time step, assuming constant \f$a_w\f$. These values
+!! must be included in a key-value pair \b "Y_j" whose value is an array
+!! with the \f$Y_j\f$ parameters. The size of the array corresponds to the
+!! order of the polynomial equation, which must be greater than 1. The
+!! key-value pair \b "low RH" is required to specify the lowest RH for which
+!! this fit is valid. This value for RH will be used for all lower RH in
+!! calculations of \f$m_i(a_w)\f$ as per Jacobson et al. \cite{1996}.
+!!
+!! The key-value pair "ions" must contain the set of ions this binary
+!! electrolyte includes. Each species must correspond to a species present in
+!! \b "aerosol phase" and  have a \b "charge" parameter that specifies their
+!! charge (uncharged species are not permitted in this set) and a 
+!! \b "molecular weight" (g/mol) property. Ions without a \b "qty" specified
+!! are assumed to appear once in the binary electrolyte. The total
+!! molecular weight for the binary electrolye \f$MW_i\f$ is calculated as a 
+!! sum of its ionic components, and the ion species concentrations are used
+!! to determine the \f$M_i\f$ during integration.
+!!
+!! For the above example, the following input data should be present:
+!! \code{.json}
+!! {
+!!   "name" : "H2O",
+!!   "type" : "CHEM_SPEC",
+!!   "phase" : "GAS",
+!! },  
+!! {
+!!   "name" : "Nap",
+!!   "type" : "CHEM_SPEC",
+!!   "phase" : "AEROSOL",
+!!   "charge" : 1,
+!!   "molecular weight" : 22.9898
+!! },
+!! {
+!!   "name" : "SO4mm",
+!!   "type" : "CHEM_SPEC",
+!!   "phase" : "AEROSOL",
+!!   "charge" : -2
+!!   "molecular weight" : 96.06
+!! },
+!! {
+!!   "name" : "my aero phase",
+!!   "type" : "AERO_PHASE",
+!!   "species" : ["Nap", "SO4mm", H2O_aq"]
+!! }
+!!
+!! Aerosol water from ion pairs with type "EQSAM" use the parameterization of
+!! Metzger et al. \cite{Metzget2002} for aerosol water content:
+!!
+!! \f[
+!!   \sqrt{m_{i}(a_w)} = (NW_i MW_{H2O}/MW_i 1/(a_w-1))^{ZW_i}
+!! \f]
+!!
+!! where \f$NW_i\f$ and \f$ZW_i\f$ are fitting parameters \cite{Metger2002},
+!! and must be provided in key-value pairs \b "NW" and \b "ZW", along with the
+!! binary electrolyte molecular weight \b "MW" (g/mol). The key-value pair
+!! \b "ions" must contain a set of ions that can be summed to calculate
+!! \f$M_i\f$ at runtime.
+!!
+!! TODO Find a way to incorporate the "regimes" in EQSAM
+!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !> The rxn_ZSR_aerosol_water_t type and associated functions. 
@@ -67,29 +154,30 @@ module pmc_rxn_ZSR_aerosol_water
   implicit none
   private
 
-#define _del_H_ this%condensed_data_real(1)
-#define _del_S_ this%condensed_data_real(2)
-#define _Dg_ this%condensed_data_real(3)
-#define _pre_c_rms_ this%condensed_data_real(4)
-#define _A_ this%condensed_data_real(5)
-#define _C_ this%condensed_data_real(6)
-#define _c_rms_alpha_ this%condensed_data_real(7)
-#define _equil_const_ this%condensed_data_real(8)
-#define _CONV_ this%condensed_data_real(9)
-#define _MW_ this%condensed_data_real(10)
-#define _ug_m3_TO_ppm_ this%condensed_data_real(11)
-#define _NUM_AERO_PHASE_ this%condensed_data_int(1)
-#define _GAS_SPEC_ this%condensed_data_int(2)
-#define _NUM_INT_PROP_ 2
-#define _NUM_REAL_PROP_ 11
-#define _AERO_SPEC_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
-#define _AERO_SPEC_ACT_COEFF_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_AERO_PHASE_+x)
-#define _AERO_WATER_(x) this%condensed_data_int(_NUM_INT_PROP_+2*_NUM_AERO_PHASE_+x)
-#define _AERO_WATER_ACT_COEFF_(x) this%condensed_data_int(_NUM_INT_PROP_+3*_NUM_AERO_PHASE_+x)
-#define _AERO_PHASE_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+4*_NUM_AERO_PHASE_+x)
-#define _AERO_REP_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+5*_NUM_AERO_PHASE_+x)
-#define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+6*_NUM_AERO_PHASE_+x)
-#define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+1+7*_NUM_AERO_PHASE_+x)
+#define _NUM_PHASE_ this%condensed_data_int(1)
+#define _GAS_WATER_ID_ this%condensed_data_int(2)
+#define _AERO_WATER_ID_ this%condensed_data_int(3)
+#define _NUM_ION_PAIR_ this%condensed_data_int(4)
+#define _TOTAL_INT_PARAM_ this%condensed_data_int(5)
+#define _TOTAL_FLOAT_PARAM_ this%condensed_data_int(6)
+#define _NUM_INT_PROP_ 6
+#define _NUM_REAL_PROP_ 0
+#define _PHASE_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
+#define _PAIR_INT_PARAM_LOC_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_PHASE_+x)
+#define _PAIR_FLOAT_PARAM_LOC_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_PHASE_+_NUM_ION_PAIR_+x)
+#define _TYPE_(x) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x))
+#define _JACOB_NUM_CATION_(x) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+1)
+#define _JACOB_NUM_ANION_(x) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+2)
+#define _JACOB_CATION_ID_(x) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+3)
+#define _JACOB_ANION_ID_(x) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+4)
+#define _JACOB_NUM_Y_(x) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+5)
+#define _EQSAM_NUM_ION_(x) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x))
+#define _EQSAM_ION_ID_(x,y) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+1+y)
+#define _JACOB_low_RH_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x))
+#define _JACOB_Y_(x,y) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+1+y)
+#define _EQSAM_NW_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x))
+#define _EQSAM_ZW_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+1)
+#define _EQSAM_MW_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+2)
 
   public :: rxn_ZSR_aerosol_water_t
 
@@ -141,196 +229,6 @@ contains
     !> Aerosol representations
     class(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
 
-    type(property_t), pointer :: spec_props
-    character(len=:), allocatable :: key_name, spec_name, water_name, phase_name, &
-            string_val
-    integer(kind=i_kind) :: i_spec, i_qty, i_aero_rep, i_aero_phase, n_aero_ids
-    integer(kind=i_kind) :: i_aero_id
-    class(string_t), allocatable :: unique_spec_names(:), unique_water_names(:)
-    integer(kind=i_kind), allocatable :: aero_spec_ids(:)
-    integer(kind=i_kind), allocatable :: water_spec_ids(:)
-
-    integer(kind=i_kind) :: temp_int
-    real(kind=dp) :: temp_real, N_star
-
-    ! Get the property set
-    if (.not. associated(this%property_set)) call die_msg(318525776, &
-            "Missing property set needed to initialize reaction")
-
-    ! Get the aerosol phase name
-    key_name = "aerosol phase"
-    call assert_msg(448087197, &
-            this%property_set%get_string(key_name, phase_name), &
-            "Missing aerosol phase in ZSR aerosol water reaction")
-
-    ! Get the aerosol-phase species name
-    key_name = "aerosol-phase species"
-    call assert_msg(797902545, &
-            this%property_set%get_string(key_name, spec_name), &
-            "Missing aerosol-phase species in ZSR aerosol water reaction")
-
-    ! Get the aerosol-phase water name
-    key_name = "aerosol-phase water"
-    call assert_msg(386889865, &
-            this%property_set%get_string(key_name, water_name), &
-            "Missing aerosol-phase water in ZSR aerosol water reaction")
-
-    ! Check for aerosol representations
-    call assert_msg(234155350, associated(aero_rep), &
-            "Missing aerosol representation for ZSR aerosol water reaction")
-    call assert_msg(207961800, size(aero_rep).gt.0, &
-            "Missing aerosol representation for ZSR aerosol water reaction")
-    
-    ! Count the instances of this phase/species pair
-    n_aero_ids = 0
-    do i_aero_rep = 1, size(aero_rep)
-
-      ! Get the unique names in this aerosol representation for the 
-      ! partitioning species and aerosol-phase water
-      unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
-              phase_name = phase_name, spec_name = spec_name)
-      unique_water_names = aero_rep(i_aero_rep)%val%unique_names( &
-              phase_name = phase_name, spec_name = water_name)
-
-      ! Skip aerosol representations that do not contain this phase
-      if (.not.allocated(unique_spec_names)) cycle
-
-      ! Check the size of the unique name lists
-      call assert_msg(598091463, size(unique_spec_names).eq. &
-              size(unique_water_names), "Missing species "// &
-              spec_name//" or "//water_name//" in phase "//phase_name// &
-              " or improper implementation of aerosol phase in aerosol "// &
-              "representation")
- 
-      ! Add these instances to the list     
-      n_aero_ids = n_aero_ids + size(unique_spec_names)
-    end do
-
-    ! Allocate space in the condensed data arrays
-    allocate(this%condensed_data_int(_NUM_INT_PROP_ + 1 + n_aero_ids * 12))
-    allocate(this%condensed_data_real(_NUM_REAL_PROP_))
-    this%condensed_data_int(:) = int(0, kind=i_kind)
-    this%condensed_data_real(:) = real(0.0, kind=dp)
-
-    ! Set the number of aerosol-species instances
-    _NUM_AERO_PHASE_ = n_aero_ids
-
-    ! Get the properties required of the aerosol species
-    call assert_msg(669162256, &
-            chem_spec_data%get_property_set(spec_name, spec_props), &
-            "Missing properties required for ZSR aerosol water of "// &
-            "aerosol-phase species "//trim(spec_name))
-
-    ! Get the aerosol species molecular weight
-    key_name = "molecular weight"
-    call assert_msg(209812557, spec_props%get_real(key_name, _MW_), &
-            "Missing property 'MW' for aerosol species "//trim(spec_name)// &
-            " required for ZSR aerosol water reaction")
-
-    ! Set the ug/m3 -> ppm conversion prefactor (multiply by T/P to get conversion)
-    _CONV_ = const%univ_gas_const / _MW_
-
-    ! Get the aerosol-phase water species
-    key_name = "aerosol-phase water"
-    call assert_msg(374667967, &
-            this%property_set%get_string(key_name, water_name), &
-            "Missing aerosol-phase water in ZSR aerosol water reaction")
-
-    ! Set the ids of each aerosol-phase species instance
-    i_aero_id = 1
-    do i_aero_rep = 1, size(aero_rep)
-        
-      ! Get the unique names in this aerosol representation for the 
-      ! partitioning species and aerosol-phase water
-      unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
-              phase_name = phase_name, spec_name = spec_name)
-      unique_water_names = aero_rep(i_aero_rep)%val%unique_names( &
-              phase_name = phase_name, spec_name = water_name)
-     
-      ! Add the species concentration and activity coefficient ids to
-      ! the condensed data 
-      do i_spec = 1, size(unique_spec_names)
-        _AERO_SPEC_(i_aero_id) = &
-              aero_rep(i_aero_rep)%val%spec_state_id( &
-              unique_spec_names(i_spec)%string)
-        _AERO_SPEC_ACT_COEFF_(i_aero_id) = &
-              aero_rep(i_aero_rep)%val%activity_coeff_state_id( &
-              unique_spec_names(i_spec)%string)
-        _AERO_WATER_(i_aero_id) = &
-              aero_rep(i_aero_rep)%val%spec_state_id( &
-              unique_water_names(i_spec)%string)
-        _AERO_WATER_ACT_COEFF_(i_aero_id) = &
-              aero_rep(i_aero_rep)%val%activity_coeff_state_id( &
-              unique_water_names(i_spec)%string)
-        _AERO_PHASE_ID_(i_aero_id) = &
-              aero_rep(i_aero_rep)%val%phase_id(phase_name)
-        _AERO_REP_ID_(i_aero_id) = i_aero_rep
-        i_aero_id = i_aero_id + 1
-      end do
-    end do
-
-    ! Get reaction parameters 
-    key_name = "A"
-    if (.not. this%property_set%get_real(key_name, _A_)) then
-      _A_ = 1.0
-    end if
-    key_name = "C"
-    if (.not. this%property_set%get_real(key_name, _C_)) then
-      _C_ = 0.0
-    end if
-
-    ! Get the gas-phase species and find the required species properties and index
-    key_name = "gas-phase species"
-    call assert_msg(847983010, &
-            this%property_set%get_string(key_name, spec_name), &
-            "Missing gas-phase species in ZSR aerosol water reaction")
-
-    ! Save the index of this species in the state variable array
-    _GAS_SPEC_ = chem_spec_data%gas_state_id(spec_name)
-
-    ! Make sure the species exists
-    call assert_msg(751684145, _GAS_SPEC_.gt.0, &
-            "Missing ZSR aerosol water gas-phase species: "//spec_name)
-
-    ! Get the required properties for the gas-phase species
-    call assert_msg(757296139, &
-            chem_spec_data%get_property_set(spec_name, spec_props), &
-            "Missing properties required for ZSR aerosol water of "// &
-            "gas-phase species "//trim(spec_name))
-
-    ! Get N* to calculate the mass accomodation coefficient. If it is not
-    ! present, set _del_H_ and _del_S_ to zero to indicate a mass accomodation
-    ! coefficient of 1.0
-    ! Mass accomodation equation is based on equations in:
-    ! Ervens, B., et al., 2003. "CAPRAM 2.4 (MODAC mechanism): An extended
-    ! and condensed tropospheric aqueous mechanism and its application."
-    ! J. Geophys. Res. 108, 4426. doi:10.1029/2002JD002202
-    key_name = "N star"
-    if (spec_props%get_real(key_name, N_star)) then     
-      ! enthalpy change (kcal mol-1)
-      _del_H_ = real(- 10.0d0*(N_star-1.0d0) + &
-              7.53d0*(N_star**(2.0d0/3.0d0)-1.0d0) - 1.0d0, kind=dp)
-      ! entropy change (cal mol-1)
-      _del_S_ = real(- 32.0d0*(N_star-1.0d0) + &
-              9.21d0*(N_star**(2.0d0/3.0d0)-1.0d0) - 1.3d0, kind=dp)
-      ! Convert dH and dS to (J mol-1)
-      _del_H_ = real(_del_H_ * 4184.0d0, kind=dp)
-      _del_S_ = real(_del_S_ * 4.184d0, kind=dp)
-    else
-      _del_H_ = real(0.0, kind=dp)
-      _del_S_ = real(0.0, kind=dp)
-    end if
-
-    ! Get the diffusion coefficient (m^2/s)
-    key_name = "diffusion coeff"
-    call assert_msg(100205531, spec_props%get_real(key_name, _Dg_), &
-            "Missing diffusion coefficient for species "//spec_name)
-    
-    ! Calculate the constant portion of c_rms [m/(K^2*s)]
-    key_name = "molecular weight"
-    call assert_msg(469582180, spec_props%get_real(key_name, temp_real), &
-            "Missing molecular weight for species "//spec_name)
-    _pre_c_rms_ = sqrt(8.0*const%univ_gas_const/(const%pi*temp_real))
 
   end subroutine initialize
 
@@ -373,27 +271,29 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef _del_H_
-#undef _del_S_
-#undef _Dg_
-#undef _pre_c_rms_
-#undef _A_
-#undef _C_
-#undef _c_rms_alpha_
-#undef _equil_const_
-#undef _CONV_
-#undef _MW_
-#undef _ug_m3_TO_ppm_
-#undef _NUM_AERO_PHASE_
-#undef _GAS_SPEC_
+#undef _NUM_PHASE_
+#undef _GAS_WATER_ID_
+#undef _AERO_WATER_ID_
+#undef _NUM_ION_PAIR_
+#undef _TOTAL_INT_PARAM_
+#undef _TOTAL_FLOAT_PARAM_
 #undef _NUM_INT_PROP_
 #undef _NUM_REAL_PROP_
-#undef _AERO_SPEC_
-#undef _AERO_SPEC_ACT_COEFF_
-#undef _AERO_WATER_
-#undef _AERO_WATER_ACT_COEFF_
-#undef _AERO_PHASE_ID_
-#undef _AERO_REP_ID_
-#undef _DERIV_ID_
-#undef _JAC_ID_
+#undef _PHASE_ID_
+#undef _PAIR_INT_PARAM_LOC_
+#undef _PAIR_FLOAT_PARAM_LOC_
+#undef _TYPE_
+#undef _JACOB_NUM_CATION_
+#undef _JACOB_NUM_ANION_
+#undef _JACOB_CATION_ID_
+#undef _JACOB_ANION_ID_
+#undef _JACOB_NUM_Y_
+#undef _EQSAM_NUM_ION_
+#undef _EQSAM_ION_ID_
+#undef _JACOB_low_RH_
+#undef _JACOB_Y_
+#undef _EQSAM_NW_
+#undef _EQSAM_ZW_
+#undef _EQSAM_MW_
+
 end module pmc_rxn_ZSR_aerosol_water

@@ -153,14 +153,17 @@ module pmc_rxn_ZSR_aerosol_water
 
   implicit none
   private
+#define ACT_CALC_JACOBSON 1
+#define ACT_CALC_EQSAM 2
 
 #define _NUM_PHASE_ this%condensed_data_int(1)
 #define _GAS_WATER_ID_ this%condensed_data_int(2)
 #define _NUM_ION_PAIR_ this%condensed_data_int(3)
 #define _TOTAL_INT_PARAM_ this%condensed_data_int(4)
 #define _TOTAL_FLOAT_PARAM_ this%condensed_data_int(5)
+#define _ppm_TO_RH_ this%condensed_data_real(1)
 #define _NUM_INT_PROP_ 5
-#define _NUM_REAL_PROP_ 0
+#define _NUM_REAL_PROP_ 1
 #define _PHASE_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
 #define _PAIR_INT_PARAM_LOC_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_PHASE_+x)
 #define _PAIR_FLOAT_PARAM_LOC_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_PHASE_+_NUM_ION_PAIR_+x)
@@ -173,10 +176,13 @@ module pmc_rxn_ZSR_aerosol_water
 #define _EQSAM_NUM_ION_(x) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x))
 #define _EQSAM_ION_ID_(x,y) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+1+y)
 #define _JACOB_low_RH_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x))
-#define _JACOB_Y_(x,y) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+1+y)
+#define _JACOB_CATION_MW_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+1)
+#define _JACOB_ANION_MW_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+2)
+#define _JACOB_Y_(x,y) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+3+y)
 #define _EQSAM_NW_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x))
 #define _EQSAM_ZW_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+1)
-#define _EQSAM_MW_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+2)
+#define _EQSAM_ION_PAIR_MW_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+2)
+#define _EQSAM_ION_MW_(x,y) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+3+y)
 
   public :: rxn_ZSR_aerosol_water_t
 
@@ -235,8 +241,8 @@ contains
     integer(kind=i_kind) :: n_phase, n_ion_pair, n_int_param, n_float_param
     integer(kind=i_kind) :: i_aero_rep, i_phase, i_ion_pair, i_ion, i_spec, &
             i_sub_prop
-    integer(kind=i_kind) :: qty, int_val
-    real(kind=dp) :: charge, total_charge, real_val
+    integer(kind=i_kind) :: qty, int_val, charge, total_charge
+    real(kind=dp) :: real_val, molecular_weight
     class(string_t), allocatable :: unique_spec_names(:)
     character(len=:), allocatable :: str_type, ion_pair_name, ion_name
 
@@ -311,7 +317,7 @@ contains
                 "calculation for ion pair '"//ion_pair_name//"' in "// &
                 "ZSR aerosol water reaction.")
 
-        n_float_param = n_float_param + 1 + sub_props%size()
+        n_float_param = n_float_param + 3 + sub_props%size()
         n_int_param = n_int_param + 6
 
       else if (str_type.eq."EQSAM") then
@@ -329,7 +335,7 @@ contains
                 "calculation for ion pair '"//ion_pair_name// &
                 "' in ZSR aerosol water reaction.")
 
-        n_float_param = n_float_param + 3
+        n_float_param = n_float_param + 3 + sub_props%size()
         n_int_param = n_int_param + 2 + sub_props%size()
 
       else
@@ -418,7 +424,10 @@ contains
 
       ! Get the number of parameters according to activity calculation type
       if (str_type.eq."JACOBSON") then
-        
+       
+        ! Set the type
+        _TYPE_(i_ion_pair) = ACT_CALC_JACOBSON
+
         ! Get the Y_j parameters
         key_name = "Y_j"
         call assert(227500762, ion_pair%get_property_t(key_name, sub_props))
@@ -438,7 +447,8 @@ contains
                 ion_pair_name//"' in ZSR aerosol water reaction.")
         _JACOB_low_RH_(i_ion_pair) = real_val
 
-        ! Get the number and id of the ions
+        ! Get the number and id of the ions and the ion-pair molecular weight
+        molecular_weight = 0.0
         key_name = "ions"
         call assert_msg(661006818, ion_pair%get_property_t(key_name, ions), &
                 "Mission ions for Jacobson activity calculation for ion "// &
@@ -463,21 +473,31 @@ contains
             if (sub_props%get_int(key_name, int_val)) qty = int_val 
           end if 
 
-          ! Add the charge from this species
+          ! Get the species properties
           call assert_msg(315479897, &
                   chem_spec_data%get_property_set(ion_name, spec_props), &
                   "Missing species properties for ion '"//ion_name// &
                   "' in ZSR aerosol water reaction.")
           
+          ! Add the molecular weight
+          key_name = "molecular weight"
+          call assert_msg(897812513, &
+                  spec_props%get_real(key_name, molecular_weight), &
+                  "Missing molecular weight for ion '"//ion_name// &
+                  "' in ZSR aerosol water reaction.")
+
+          ! Add the charge from this species
           key_name = "charge"
-          call assert_msg(310667885, spec_props%get_real(key_name, charge), &
+          call assert_msg(310667885, spec_props%get_int(key_name, charge), &
                   "Missing charge for ion '"//ion_name//"' in ZSR "// &
                   "aerosol water reaction.")
 
           if (charge.gt.0) then
             _JACOB_NUM_CATION_(i_ion_pair) = qty
-          else if (charge.lt.0) then
+            _JACOB_CATION_MW_(i_ion_pair) = molecular_weight
+         else if (charge.lt.0) then
             _JACOB_NUM_ANION_(i_ion_pair) = qty
+            _JACOB_ANION_MW_(i_ion_pair) = molecular_weight
           else
             call die_msg(899416917, "Neutral species '"//ion_name// &
                     "' not allowed in ZSR aerosol water reaction ion pair")
@@ -535,10 +555,13 @@ contains
                 " in ZSR aerosol water reaction. Total charge: "// &
                 trim(to_string(total_charge)))
 
-        n_float_param = n_float_param + 1 + _JACOB_NUM_Y_(i_ion_pair)
+        n_float_param = n_float_param + 3 + _JACOB_NUM_Y_(i_ion_pair)
         n_int_param = n_int_param + 6
 
       else if (str_type.eq."EQSAM") then
+
+        ! Set the type
+        _TYPE_(i_ion_pair) = ACT_CALC_EQSAM
 
         ! Get the required parameters for calculating activity
         key_name = "NW"
@@ -555,7 +578,7 @@ contains
 
         key_name = "MW"
         call assert_msg(272128568, &
-                ion_pair%get_real(key_name, _EQSAM_MW_(i_ion_pair)), &
+                ion_pair%get_real(key_name, _EQSAM_ION_PAIR_MW_(i_ion_pair)), &
                 "Missing parameter MW for ion pair '"//ion_pair_name// &
                 "' in ZSR aerosol water reaction.")
 
@@ -568,6 +591,20 @@ contains
           
           ! Get the ion name
           call assert(849711956, ions%get_key(ion_name))
+
+          ! Get the species properties
+          call assert_msg(826137761, &
+                  chem_spec_data%get_property_set(ion_name, spec_props), &
+                  "Missing species properties for ion '"//ion_name// &
+                  "' in ZSR aerosol water reaction.")
+          
+          ! Add the molecular weight
+          key_name = "molecular weight"
+          call assert_msg(598142298, &
+                  spec_props%get_real(key_name, molecular_weight), &
+                  "Missing molecular weight for ion '"//ion_name// &
+                  "' in ZSR aerosol water reaction.")
+          _EQSAM_ION_MW_(i_ion_pair, i_ion) = molecular_weight
 
           ! Set the ion id (relative to water within the specified phase)
           i_phase = 1
@@ -598,7 +635,7 @@ contains
             trim(to_string(i_phase)))
         end do
 
-        n_float_param = n_float_param + 3
+        n_float_param = n_float_param + 3 + _EQSAM_NUM_ION_(i_ion_pair)
         n_int_param = n_int_param + 2 + _EQSAM_NUM_ION_(i_ion_pair)
 
       else
@@ -607,6 +644,9 @@ contains
 
       call ion_pairs%iter_next()
     end do
+
+    call assert(859412771, n_int_param.eq._TOTAL_INT_PARAM_)
+    call assert(568314442, n_float_param.eq._TOTAL_FLOAT_PARAM_)
       
   end subroutine initialize
 
@@ -649,11 +689,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+#undef ACT_TYPE_JACOBSON
+#undef ACT_TYPE_EQSAM
+
 #undef _NUM_PHASE_
 #undef _GAS_WATER_ID_
 #undef _NUM_ION_PAIR_
 #undef _TOTAL_INT_PARAM_
 #undef _TOTAL_FLOAT_PARAM_
+#undef _ppm_TO_RH_
 #undef _NUM_INT_PROP_
 #undef _NUM_REAL_PROP_
 #undef _PHASE_ID_
@@ -668,9 +712,12 @@ contains
 #undef _EQSAM_NUM_ION_
 #undef _EQSAM_ION_ID_
 #undef _JACOB_low_RH_
+#undef _JACOB_CATION_MW_
+#undef _JACOB_ANION_MW_
 #undef _JACOB_Y_
 #undef _EQSAM_NW_
 #undef _EQSAM_ZW_
-#undef _EQSAM_MW_
+#undef _EQSAM_ION_PAIR_MW_
+#undef _EQSAM_ION_MW_
 
 end module pmc_rxn_ZSR_aerosol_water

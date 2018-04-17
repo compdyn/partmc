@@ -16,38 +16,41 @@
 #define _TEMPERATURE_K_ env_data[0]
 #define _PRESSURE_PA_ env_data[1]
 
-// Universal gas constant (J/mol/K)
-#define _UNIV_GAS_CONST_ 8.314472
-// Small number
-#define _SMALL_NUMBER_ 1.0e-30
+#define ACT_TYPE_JACOBSON 1
+#define ACT_TYPE_EQSAM 2
 
-#define _del_H_ float_data[0]
-#define _del_S_ float_data[1]
-#define _Dg_ float_data[2]
-#define _pre_c_rms_ float_data[3]
-#define _A_ float_data[4]
-#define _C_ float_data[5]
-#define _c_rms_alpha_ float_data[6]
-#define _equil_const_ float_data[7]
-#define _CONV_ float_data[8]
-#define _MW_ float_data[9]
-#define _ug_m3_TO_ppm_ float_data[10]
-#define _NUM_AERO_PHASE_ int_data[0]
-#define _GAS_SPEC_ (int_data[1]-1)
-#define _NUM_INT_PROP_ 2
-#define _NUM_FLOAT_PROP_ 11
-#define _AERO_SPEC_(x) (int_data[_NUM_INT_PROP_ + x]-1)
-#define _AERO_SPEC_ACT_COEFF_(x) (int_data[_NUM_INT_PROP_ + _NUM_AERO_PHASE_ + x]-1)
-#define _AERO_WATER_(x) (int_data[_NUM_INT_PROP_ + 2*_NUM_AERO_PHASE_ + x]-1)
-#define _AERO_WATER_ACT_COEFF_(x) (int_data[_NUM_INT_PROP_ + 3*_NUM_AERO_PHASE_ + x]-1)
-#define _AERO_PHASE_ID_(x) (int_data[_NUM_INT_PROP_ + 4*_NUM_AERO_PHASE_ + x]-1)
-#define _AERO_REP_ID_(x) (int_data[_NUM_INT_PROP_ + 5*(_NUM_AERO_PHASE_) + x]-1)
-#define _DERIV_ID_(x) int_data[_NUM_INT_PROP_ + 6*(_NUM_AERO_PHASE_) + x]
-#define _JAC_ID_(x) int_data[_NUM_INT_PROP_ + 1 + 7*(_NUM_AERO_PHASE_) + x]
-#define _INT_DATA_SIZE_ (_NUM_INT_PROP_+1+(12*_NUM_AERO_PHASE_))
-#define _FLOAT_DATA_SIZE_ (_NUM_FLOAT_PROP_)
+#define _NUM_PHASE_ (int_data[0])
+#define _GAS_WATER_ID_ (int_data[1]-1)
+#define _NUM_ION_PAIR_ (int_data[2])
+#define _INT_DATA_SIZE_ (int_data[3])
+#define _FLOAT_DATA_SIZE_ (int_data[4])
+#define _ppm_TO_RH_ (float_data[0])
+#define _NUM_INT_PROP_ 5
+#define _NUM_REAL_PROP_ 1
+#define _PHASE_ID_(x) (int_data[_NUM_INT_PROP_+x]-1)
+#define _PAIR_INT_PARAM_LOC_(x) (int_data[_NUM_INT_PROP_+_NUM_PHASE_+x])
+#define _PAIR_FLOAT_PARAM_LOC_(x) (int_data[_NUM_INT_PROP_+_NUM_PHASE_+_NUM_ION_PAIR_+x])
+#define _TYPE_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)])
+#define _JACOB_NUM_CATION_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+1])
+#define _JACOB_NUM_ANION_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+2])
+#define _JACOB_CATION_ID_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+3])
+#define _JACOB_ANION_ID_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+4])
+#define _JACOB_NUM_Y_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+5])
+#define _EQSAM_NUM_ION_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)])
+#define _EQSAM_ION_ID_(x,y) (int_data[_PAIR_INT_PARAM_LOC_(x)+1+y])
+#define _JACOB_low_RH_(x) (float_data[_PAIR_FLOAT_PARAM_LOC_(x)])
+#define _JACOB_CATION_MW_(x) (float_data[_PAIR_FLOAT_PARAM_LOC_(x)+1])
+#define _JACOB_ANION_MW_(x) (float_data[_PAIR_FLOAT_PARAM_LOC_(x)+2])
+#define _JACOB_Y_(x,y) (float_data[_PAIR_FLOAT_PARAM_LOC_(x)+3+y])
+#define _EQSAM_NW_(x) (float_data[_PAIR_FLOAT_PARAM_LOC_(x)])
+#define _EQSAM_ZW_(x) (float_data[_PAIR_FLOAT_PARAM_LOC_(x)+1])
+#define _EQSAM_ION_PAIR_MW_(x) (float_data[_PAIR_FLOAT_PARAM_LOC_(x)+2])
+#define _EQSAM_ION_MW_(x,y) (float_data[_PAIR_FLOAT_PARAM_LOC_(x)+3+y])
+
 
 /** \brief Flag Jacobian elements used by this reaction
+ *
+ * ZSR aerosol water reactions are assumed to be at equilibrium
  *
  * \param rxn_data A pointer to the reaction data
  * \param jac_struct 2D array of flags indicating potentially non-zero 
@@ -59,19 +62,12 @@ void * rxn_ZSR_aerosol_water_get_used_jac_elem(void *rxn_data, bool **jac_struct
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
-  jac_struct[_GAS_SPEC_][_GAS_SPEC_] = true;
-  for (int i_aero_phase = 0; i_aero_phase < _NUM_AERO_PHASE_; i_aero_phase++) {
-    jac_struct[_AERO_SPEC_(i_aero_phase)][_GAS_SPEC_] = true;
-    jac_struct[_GAS_SPEC_][_AERO_SPEC_(i_aero_phase)] = true;
-    jac_struct[_AERO_SPEC_(i_aero_phase)][_AERO_SPEC_(i_aero_phase)] = true;
-    jac_struct[_GAS_SPEC_][_AERO_WATER_(i_aero_phase)] = true;
-    jac_struct[_AERO_SPEC_(i_aero_phase)][_AERO_WATER_(i_aero_phase)] = true;
-  }
-
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }  
 
 /** \brief Update the time derivative and Jacbobian array indices
+ *
+ * ZSR aerosol water reactions are assumed to be at equilibrium
  *
  * \param deriv_ids Id of each state variable in the derivative array
  * \param jac_ids Id of each state variable combo in the Jacobian array
@@ -83,28 +79,10 @@ void * rxn_ZSR_aerosol_water_update_ids(int *deriv_ids, int **jac_ids, void *rxn
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
-  // Update the time derivative ids
-  _DERIV_ID_(0) = deriv_ids[_GAS_SPEC_];
-  for (int i=0; i < _NUM_AERO_PHASE_; i++)
-	  _DERIV_ID_(i + 1) = deriv_ids[_AERO_SPEC_(i)];
-
-  // Update the Jacobian ids
-  int i_jac = 0;
-  _JAC_ID_(i_jac++) = jac_ids[_GAS_SPEC_][_GAS_SPEC_];  
-  for (int i_aero_phase = 0; i_aero_phase < _NUM_AERO_PHASE_; i_aero_phase++) {
-      _JAC_ID_(i_jac++) = jac_ids[_AERO_SPEC_(i_aero_phase)][_GAS_SPEC_];
-      _JAC_ID_(i_jac++) = jac_ids[_GAS_SPEC_][_AERO_SPEC_(i_aero_phase)];
-      _JAC_ID_(i_jac++) = jac_ids[_AERO_SPEC_(i_aero_phase)][_AERO_SPEC_(i_aero_phase)];
-      _JAC_ID_(i_jac++) = jac_ids[_GAS_SPEC_][_AERO_WATER_(i_aero_phase)];
-      _JAC_ID_(i_jac++) = jac_ids[_AERO_SPEC_(i_aero_phase)][_AERO_WATER_(i_aero_phase)];
-    }
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
 
 /** \brief Update reaction data for new environmental conditions
- *
- * For ZSR Aerosol Water reaction this only involves recalculating the rate 
- * constant.
  *
  * \param env_data Pointer to the environmental state array
  * \param rxn_data Pointer to the reaction data
@@ -115,35 +93,21 @@ void * rxn_ZSR_aerosol_water_update_env_state(realtype *env_data, void *rxn_data
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
-  // Calculate the mass accomodation coefficient if the N* parameter
-  // was provided, otherwise set it to 1.0
-  realtype mass_acc = 1.0;
-  if (_del_H_!=0.0 || _del_S_!=0.0) {
-    realtype del_G = _del_H_ - _TEMPERATURE_K_ * _del_S_; 
-    mass_acc = exp(-del_G/(_UNIV_GAS_CONST_ * _TEMPERATURE_K_));
-    mass_acc = mass_acc / (1.0 + mass_acc);
-  }
+  // Calculate _ppm_TO_RH_
+  // From MOSAIC code - reference to Seinfeld & Pandis page 181
+  // TODO Figure out how to have consistent RH<->ppm conversions
+  realtype t_steam = 373.15; 				// steam temperature (K)
+  realtype a = 1.0 - t_steam/_TEMPERATURE_K_;
 
-  // Save c_rms * mass_acc for use in mass transfer rate calc
-  _c_rms_alpha_ = _pre_c_rms_ * sqrt(_TEMPERATURE_K_) * mass_acc;
-
-  // Calculate the Henry's Law equilibrium rate constant in units of
-  // (ug_x/ug_H2O/ppm) where x is the aerosol-phase species
-  if (_C_==0.0) {
-    _equil_const_ = _A_ * _MW_ / 1.0e9;
-  } else {
-    _equil_const_ = _A_ * exp(_C_ * (1.0/_TEMPERATURE_K_ - 1.0/298.0)) * _MW_ / 1.0e9;
-  }
-
-  // Calculate the conversion from ug/m^3 -> ppm
-  _ug_m3_TO_ppm_ = _CONV_ * _TEMPERATURE_K_ / _PRESSURE_PA_;
+  a = (((-0.1299*a - 0.6445)*a - 1.976)*a + 13.3185)*a;
+  realtype water_vp = 101325.0 * exp(a); 			// (Pa)
+  
+  _ppm_TO_RH_ = _PRESSURE_PA_ / water_vp / 1000000.0;		// (1/ppm)
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
 
 /** \brief Do pre-derivative calculations
- *
- * Nothing to do for ZSR_aerosol_water reactions
  *
  * \param model_data Pointer to the model data, including the state array
  * \param rxn_data Pointer to the reaction data
@@ -151,8 +115,62 @@ void * rxn_ZSR_aerosol_water_update_env_state(realtype *env_data, void *rxn_data
  */
 void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
 {
+  realtype *state = model_data->state;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
+
+  // Calculate the water activity---i.e., relative humidity (0-1)
+  realtype a_w = _ppm_TO_RH_ * state[_GAS_WATER_ID_];
+
+  // Calculate the total aerosol water for each instance of the aerosol phase
+  for (int i_phase=0; i_phase<_NUM_PHASE_; i_phase++) {
+    realtype *water = &(state[_PHASE_ID_(i_phase)]);
+    *water = 0.0;
+
+    // Get the contribution from each ion pair
+    for (int i_ion_pair=0; i_ion_pair<_NUM_ION_PAIR_; i_ion_pair++) {
+      
+      realtype molality;
+
+      // Determine which type of activity calculation should be used
+      switch (_TYPE_(i_ion_pair)) {
+
+	// Jacobson et al. (1996)
+	case ACT_TYPE_JACOBSON :
+
+          // Calculate the molality of the pure binary ion pair solution
+	  molality = 0.0;
+          for (int i_order=0; i_order<_JACOB_NUM_Y_(i_ion_pair); i_order++) 
+		  molality += _JACOB_Y_(i_ion_pair, i_order) * pow(a_w,i_order);
+          molality *= molality; // (mol/kg)
+
+	  // Calculate the water associated with this ion pair
+          realtype cation = state[_PHASE_ID_(i_phase)+_JACOB_CATION_ID_(i_ion_pair)]
+		  /_JACOB_NUM_CATION_(i_ion_pair)/_JACOB_CATION_MW_(i_ion_pair);
+          realtype anion = state[_PHASE_ID_(i_phase)+_JACOB_ANION_ID_(i_ion_pair)]
+		  /_JACOB_NUM_ANION_(i_ion_pair)/_JACOB_ANION_MW_(i_ion_pair); // (umol/m3)
+	  *water += (cation>anion ? anion : cation) / molality / 1000.0; // (ug/m3)
+          
+	  break;
+
+	// EQSAM (Metger et al., 2002)
+	case ACT_TYPE_EQSAM :
+
+	  // Calculate the molality of the ion pair
+	  molality = (_EQSAM_NW_(i_ion_pair) * 55.51 * 18.01 / _EQSAM_ION_PAIR_MW_(i_ion_pair) *
+		  (1.0 / (a_w-1.0)));
+	  molality = pow(molality, _EQSAM_ZW_(i_ion_pair)); // (mol/kg)
+
+	  // Calculate the water associated with this ion pair
+	  for (int i_ion=0; i_ion<_EQSAM_NUM_ION_(i_ion_pair); i_ion++) {
+            *water += state[_PHASE_ID_(i_phase)+_EQSAM_ION_ID_(i_ion_pair,i_ion)]
+		    /_EQSAM_ION_MW_(i_ion_pair,i_ion) * 18.01 / molality;
+	  }
+
+	  break;
+      }
+    }
+  }
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
@@ -168,70 +186,8 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
 void * rxn_ZSR_aerosol_water_calc_deriv_contrib(ModelData *model_data, realtype *deriv,
 		void *rxn_data)
 {
-  realtype *state = model_data->state;
-  realtype *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
-
-  // Calculate derivative contributions for each aerosol phase
-  for (int i_phase=0; i_phase<_NUM_AERO_PHASE_; i_phase++) {
-
-    // If not aerosol water is present, no transfer occurs
-    if (state[_AERO_WATER_(i_phase)] < _SMALL_NUMBER_) continue;
-
-    // Get the particle effective radius (m)
-    realtype radius;
-    aero_rep_get_effective_radius(
-		  model_data,			// model data
-		  _AERO_REP_ID_(i_phase),	// aerosol representation index
-		  _AERO_PHASE_ID_(i_phase),	// aerosol phase index
-		  &radius);			// particle effective radius (m)
-   
-    // Get the particle number concentration (#/cc)
-    realtype number_conc;
-    aero_rep_get_number_conc(
-		  model_data,			// model data
-		  _AERO_REP_ID_(i_phase),	// aerosol representation index
-		  _AERO_PHASE_ID_(i_phase),	// aerosol phase index
-		  &number_conc);		// particle number concentration (#/cc)
-
-    // Check the aerosol concentration type (per-particle or total per-phase mass)
-    int aero_conc_type = aero_rep_get_aero_conc_type(
-		  model_data,			// model data
-		  _AERO_REP_ID_(i_phase),	// aerosol representation index
-		  _AERO_PHASE_ID_(i_phase));	// aerosol phase index
-
-    // Calculate the rate constant for diffusion limited mass transfer to the aerosol phase (1/s)
-    realtype cond_rate = 1.0/(radius*radius/(3.0*_Dg_) + 4.0*radius/(3.0*_c_rms_alpha_));
-  
-    // Calculate the evaporation rate constant (1/s)
-    // cond_rate / (  ugm3->ppm             *          K_eq           * [H2O]_a       )
-    //     1/s      * ug_x * 1/m3 * 1/ppm_x * ug_H2O * ppm_x * 1/ug_x * m3 * 1/ug_H2O
-    realtype evap_rate = cond_rate / (_ug_m3_TO_ppm_ *
-	    _equil_const_ * state[_AERO_WATER_(i_phase)]);
-
-    // Calculate gas-phase condensation rate (ppm/s)
-    cond_rate *= state[_GAS_SPEC_];
-
-    // Calculate aerosol-phase evaporation rate (ug/m^3/s)
-    evap_rate *= state[_AERO_SPEC_(i_phase)] * state[_AERO_SPEC_ACT_COEFF_(i_phase)];
-
-    // Change in the gas-phase is evaporation - condensation (ppm/s)
-    if (_DERIV_ID_(0)>=0) {
-      if (aero_conc_type==0) {
-        // Scale the changes to the gas-phase by the number of particles for per-particle 
-        // aerosol concentrations
-        deriv[_DERIV_ID_(0)] += number_conc * (evap_rate * _ug_m3_TO_ppm_ - cond_rate);
-      } else {
-        // No scaling for aerosol concentrations with total mass per aerosol phase
-        deriv[_DERIV_ID_(0)] += evap_rate * _ug_m3_TO_ppm_ - cond_rate;
-      }
-    }
-
-    // Change in the aerosol-phase species is condensation - evaporation (ug/m^3/s)
-    if (_DERIV_ID_(1+i_phase)>=0) deriv[_DERIV_ID_(1+i_phase)] += cond_rate / _ug_m3_TO_ppm_ - evap_rate;
-
-  }
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 
@@ -247,76 +203,8 @@ void * rxn_ZSR_aerosol_water_calc_deriv_contrib(ModelData *model_data, realtype 
 void * rxn_ZSR_aerosol_water_calc_jac_contrib(ModelData *model_data, realtype *J,
 		void *rxn_data)
 {
-  realtype *state = model_data->state;
-  realtype *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
-
-  // Calculate derivative contributions for each aerosol phase
-  for (int i_phase=0; i_phase<_NUM_AERO_PHASE_; i_phase++) {
-
-    // If not aerosol water is present, no transfer occurs
-    if (state[_AERO_WATER_(i_phase)] < _SMALL_NUMBER_) continue;
-
-    // Get the particle effective radius (m)
-    realtype radius;
-    aero_rep_get_effective_radius(
-		  model_data,			// model data
-		  _AERO_REP_ID_(i_phase),	// aerosol representation index
-		  _AERO_PHASE_ID_(i_phase),	// aerosol phase index
-		  &radius);			// particle effective radius (m)
-   
-    // Get the particle number concentration (#/cc)
-    realtype number_conc;
-    aero_rep_get_number_conc(
-		  model_data,			// model data
-		  _AERO_REP_ID_(i_phase),	// aerosol representation index
-		  _AERO_PHASE_ID_(i_phase),	// aerosol phase index
-		  &number_conc);		// particle number concentration (#/cc)
-
-    // Check the aerosol concentration type (per-particle or total per-phase mass)
-    int aero_conc_type = aero_rep_get_aero_conc_type(
-		  model_data,			// model data
-		  _AERO_REP_ID_(i_phase),	// aerosol representation index
-		  _AERO_PHASE_ID_(i_phase));	// aerosol phase index
-
-    // Calculate the rate constant for diffusion limited mass transfer to the aerosol phase (1/s)
-    realtype cond_rate = 1.0/(radius*radius/(3.0*_Dg_) + 4.0*radius/(3.0*_c_rms_alpha_));
-  
-    // Calculate the evaporation rate constant (1/s)
-    // cond_rate / (  ugm3->ppm             *          K_eq           * [H2O]_a       )
-    //     1/s      * ug_x * 1/m3 * 1/ppm_x * ug_H2O * ppm_x * 1/ug_x * m3 * 1/ug_H2O
-    realtype evap_rate = cond_rate / (_ug_m3_TO_ppm_ *
-	    _equil_const_ * state[_AERO_WATER_(i_phase)]);
-
-    // Change in the gas-phase is evaporation - condensation (ppm/s)
-    if (aero_conc_type==0) {
-      // Scale the changes to the gas-phase by the number of particles for per-particle 
-      // aerosol concentrations
-      if (_JAC_ID_(1+i_phase*3+1)>=0) 
-	      J[_JAC_ID_(1+i_phase*3+1)] += number_conc * evap_rate * _ug_m3_TO_ppm_;
-      if (_JAC_ID_(1+i_phase*3+3)>=0) 
-	      J[_JAC_ID_(1+i_phase*3+3)] += - number_conc * evap_rate * _ug_m3_TO_ppm_ * 
-	      state[_AERO_SPEC_(i_phase)] * state[_AERO_SPEC_ACT_COEFF_(i_phase)] 
-	      / state[_AERO_WATER_(i_phase)];
-      if (_JAC_ID_(0)>=0) J[_JAC_ID_(0)] -= number_conc * cond_rate;
-    } else {
-      // No scaling for aerosol concentrations with total mass per aerosol phase
-      if (_JAC_ID_(1+i_phase*3+1)>=0) J[_JAC_ID_(1+i_phase*3+1)] += evap_rate * _ug_m3_TO_ppm_;
-      if (_JAC_ID_(1+i_phase*3+3)>=0) J[_JAC_ID_(1+i_phase*3+3)] += - evap_rate * _ug_m3_TO_ppm_ * 
-	      state[_AERO_SPEC_(i_phase)] * state[_AERO_SPEC_ACT_COEFF_(i_phase)] 
-	      / state[_AERO_WATER_(i_phase)];
-      if (_JAC_ID_(0)>=0) J[_JAC_ID_(0)] -= cond_rate;
-    }
-
-    // Change in the aerosol-phase species is condensation - evaporation (ug/m^3/s)
-    if (_JAC_ID_(1+i_phase*3)>=0) J[_JAC_ID_(1+i_phase*3)] += cond_rate / _ug_m3_TO_ppm_;
-    if (_JAC_ID_(1+i_phase*3+2)>=0) J[_JAC_ID_(1+i_phase*3+2)] -= evap_rate; 
-    if (_JAC_ID_(1+i_phase*3+4)>=0) J[_JAC_ID_(1+i_phase*3+4)] -= - evap_rate * 
-	    state[_AERO_SPEC_(i_phase)] * state[_AERO_SPEC_ACT_COEFF_(i_phase)]
-	    / state[_AERO_WATER_(i_phase)];
-  
-  }
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 
@@ -356,8 +244,7 @@ void * rxn_ZSR_aerosol_water_print(void *rxn_data)
 
 /** \brief Return the reaction rate for the current conditions
  *
- * ZSR aerosol water reactions have a rate for each aerosol phase they affect
- * TODO figure out how to include these reactions in the rate functions
+ * ZSR aerosol water reactions are assumed to be at equilibrium
  *
  * \param rxn_data Pointer to the reaction data
  * \param state Pointer to the state array
@@ -378,33 +265,35 @@ void * rxn_ZSR_aerosol_water_get_rate(void *rxn_data, realtype *state, realtype 
 #undef _TEMPERATURE_K_
 #undef _PRESSURE_PA_
 
-#undef _UNIV_GAS_CONST_
-#undef _SMALL_NUMBER_
+#undef ACT_TYPE_JACOBSON
+#undef ACT_TYPE_EQSAM
 
-#undef _del_H_
-#undef _del_S_
-#undef _Dg_
-#undef _pre_c_rms_
-#undef _A_
-#undef _C_
-#undef _c_rms_alpha_
-#undef _equil_const_
-#undef _NUM_AERO_PHASE_
-#undef _GAS_SPEC_
-#undef _CONV_
-#undef _MW_
-#undef _ug_m3_TO_ppm_
-#undef _NUM_INT_PROP_
-#undef _NUM_FLOAT_PROP_
-#undef _AERO_SPEC_
-#undef _AERO_SPEC_ACT_COEFF_
-#undef _AERO_WATER_
-#undef _AERO_WATER_ACT_COEFF_
-#undef _AERO_PHASE_ID_
-#undef _AERO_REP_ID_
-#undef _DERIV_ID_
-#undef _JAC_ID_
+#undef _NUM_PHASE_
+#undef _GAS_WATER_ID_
+#undef _NUM_ION_PAIR_
 #undef _INT_DATA_SIZE_
 #undef _FLOAT_DATA_SIZE_
+#undef _ppm_TO_RH_
+#undef _NUM_INT_PROP_
+#undef _NUM_REAL_PROP_
+#undef _PHASE_ID_
+#undef _PAIR_INT_PARAM_LOC_
+#undef _PAIR_FLOAT_PARAM_LOC_
+#undef _TYPE_
+#undef _JACOB_NUM_CATION_
+#undef _JACOB_NUM_ANION_
+#undef _JACOB_CATION_ID_
+#undef _JACOB_ANION_ID_
+#undef _JACOB_NUM_Y_
+#undef _EQSAM_NUM_ION_
+#undef _EQSAM_ION_ID_
+#undef _JACOB_low_RH_
+#undef _JACOB_CATION_MW_
+#undef _JACOB_ANION_MW_
+#undef _JACOB_Y_
+#undef _EQSAM_NW_
+#undef _EQSAM_ZW_
+#undef _EQSAM_ION_PAIR_MW_
+#undef _EQSAM_ION_MW_
 
 #endif

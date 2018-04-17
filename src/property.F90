@@ -527,6 +527,11 @@ contains
           sub_prop = property_t()
           call sub_prop%load(json, child, .true.)
           call this%put(prop_key, sub_prop)
+        case (json_array)
+          allocate(sub_prop)
+          sub_prop = property_t()
+          call sub_prop%load(json, child, .true.)
+          call this%put(prop_key, sub_prop)
         case default
       end select
       if (as_object) call json%get_next(child, next)

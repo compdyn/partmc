@@ -156,11 +156,10 @@ module pmc_rxn_ZSR_aerosol_water
 
 #define _NUM_PHASE_ this%condensed_data_int(1)
 #define _GAS_WATER_ID_ this%condensed_data_int(2)
-#define _AERO_WATER_ID_ this%condensed_data_int(3)
-#define _NUM_ION_PAIR_ this%condensed_data_int(4)
-#define _TOTAL_INT_PARAM_ this%condensed_data_int(5)
-#define _TOTAL_FLOAT_PARAM_ this%condensed_data_int(6)
-#define _NUM_INT_PROP_ 6
+#define _NUM_ION_PAIR_ this%condensed_data_int(3)
+#define _TOTAL_INT_PARAM_ this%condensed_data_int(4)
+#define _TOTAL_FLOAT_PARAM_ this%condensed_data_int(5)
+#define _NUM_INT_PROP_ 5
 #define _NUM_REAL_PROP_ 0
 #define _PHASE_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
 #define _PAIR_INT_PARAM_LOC_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_PHASE_+x)
@@ -229,7 +228,386 @@ contains
     !> Aerosol representations
     class(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
 
+    type(property_t), pointer :: spec_props, ion_pairs, ion_pair, sub_props, &
+            ions
+    character(len=:), allocatable :: key_name, water_name, spec_name, &
+            phase_name, string_val
+    integer(kind=i_kind) :: n_phase, n_ion_pair, n_int_param, n_float_param
+    integer(kind=i_kind) :: i_aero_rep, i_phase, i_ion_pair, i_ion, i_spec, &
+            i_sub_prop
+    integer(kind=i_kind) :: qty, int_val
+    real(kind=dp) :: charge, total_charge, real_val
+    class(string_t), allocatable :: unique_spec_names(:)
+    character(len=:), allocatable :: str_type, ion_pair_name, ion_name
 
+    ! Get the reaction property set
+    if (.not. associated(this%property_set)) call die_msg(344693903, &
+            "Missing property set needed to initialize ZSR aerosol water"// &
+            " reaction.")
+
+    ! Get the aerosol phase name
+    key_name = "aerosol phase"
+    call assert_msg(613734060, &
+            this%property_set%get_string(key_name, phase_name), &
+            "Missing aerosol phase in ZSR aerosol water reaction.")
+
+    ! Count the instances of the aerosol phase
+    n_phase = 0
+    do i_aero_rep = 1, size(aero_rep)
+
+      ! Get the number of instances of the phase in this representation
+      n_phase = n_phase + &
+              aero_rep(i_aero_rep)%val%num_phase_instances(phase_name)
+
+    end do
+
+    call assert_msg(450206321, n_phase.gt.0, &
+            "Aerosol phase '"//phase_name//"' not present in any aerosol "// &
+            "representation for ZSR aerosol water reaction.")
+
+    ! Get the ion pairs
+    key_name = "ion pairs"
+    call assert_msg(640916964, &
+            this%property_set%get_property_t(key_name, ion_pairs), &
+            "Missing ion pairs in ZSR aerosol water reaction.")
+
+    ! Count the ion pairs
+    n_ion_pair = ion_pairs%size()
+    call assert_msg(743158990, n_ion_pair .gt. 0, &
+            "Empty ion pair set in ZSR aerosol water reaction.")
+
+    ! Get the number of parameters required for each ion pair
+    n_int_param = _NUM_INT_PROP_ + n_phase + 2*n_ion_pair
+    n_float_param = 0
+    call ion_pairs%iter_reset()
+    do i_ion_pair = 1, n_ion_pair
+  
+      ! Get the name of the ion pair
+      call assert(476976534, ion_pairs%get_key(ion_pair_name))
+
+      ! Get the ion pair properties
+      call assert_msg(280814432, ion_pairs%get_property_t(val=ion_pair), &
+              "Missing ion pair properties for '"//ion_pair_name// &
+              "' in ZSR aerosol water reaction.")
+
+      ! Get the activity calculation type
+      key_name = "type"
+      call assert_msg(334930304, ion_pair%get_string(key_name, str_type), &
+              "Missing activity calculation type for ion pair '"// &
+              ion_pair_name//"' in ZSR aerosol water reaction.")
+
+      ! Get the number of parameters according to activity calculation type
+      if (str_type.eq."JACOBSON") then
+        
+        ! Get the number of Y_j parameters
+        key_name = "Y_j"
+        call assert_msg(286454243, &
+                ion_pair%get_property_t(key_name, sub_props), &
+                "Missing Y_j parameters for Jacobson activity calculation "// &
+                "for ion pair '"//ion_pair_name//"'.")
+
+        call assert_msg(495036486, sub_props%size().gt.0, &
+                "Insufficient Y_j parameters for Jacobson activity "// &
+                "calculation for ion pair '"//ion_pair_name//"' in "// &
+                "ZSR aerosol water reaction.")
+
+        n_float_param = n_float_param + 1 + sub_props%size()
+        n_int_param = n_int_param + 6
+
+      else if (str_type.eq."EQSAM") then
+
+        ! Get the number of ions
+        key_name = "ions"
+        call assert_msg(244982851, &
+                ion_pair%get_property_t(key_name, sub_props), &
+                "Mission ions for EQSAM activity calculation for ion "// &
+                "pair '"//ion_pair_name//"' in ZSR aerosol water "// &
+                "reaction.")
+        
+        call assert_msg(849524804, sub_props%size().gt.0, &
+                "Insufficient ions specified for EQSAM activity "// &
+                "calculation for ion pair '"//ion_pair_name// &
+                "' in ZSR aerosol water reaction.")
+
+        n_float_param = n_float_param + 3
+        n_int_param = n_int_param + 2 + sub_props%size()
+
+      else
+        call die_msg(704759248, "Invalid activity type specified for ZSR "// &
+                "aerosol water reaction: '"//str_type//"'")
+      end if
+
+      call ion_pairs%iter_next()
+    end do
+
+
+    ! Allocate space in the condensed data arrays
+    allocate(this%condensed_data_int(n_int_param))
+    allocate(this%condensed_data_real(n_float_param))
+    this%condensed_data_int(:) = int(0, kind=i_kind)
+    this%condensed_data_real(:) = real(0.0, kind=dp)
+
+    ! Set some data dimensions
+    _NUM_PHASE_  = n_phase
+    _NUM_ION_PAIR_ = n_ion_pair
+    _TOTAL_INT_PARAM_ = n_int_param
+    _TOTAL_FLOAT_PARAM_ = n_float_param
+
+
+    ! Set the gas-phase water species
+    key_name = "gas-phase water"
+    call assert_msg(386389634, &
+            this%property_set%get_string(key_name, spec_name), &
+            "Missing gas-phase water species name in ZSR aerosol water "// &
+            "reaction.")
+
+    _GAS_WATER_ID_ = chem_spec_data%gas_state_id(spec_name)
+    
+    call assert_msg(709909577, _GAS_WATER_ID_ .gt. 0, &
+            "Cannot find gas-phase water species '"//spec_name//"' for "// &
+            "ZSR aerosol water reaction.")
+    
+    ! Set the aerosol-water species
+    key_name = "aerosol-phase water"
+    call assert_msg(771445226, &
+            this%property_set%get_string(key_name, spec_name), &
+            "Missing aerosol-phase water species name in ZSR aerosol "// &
+            "water reaction.")
+
+    ! Make the _PHASE_ID_(x) hold the state id of aerosol water in each
+    ! phase instance. Then the aerosol water id is 1, and the ion
+    ! ids will be relative to the water id in each phase.
+    i_phase = 1
+    do i_aero_rep = 1, size(aero_rep)
+      unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
+              phase_name = phase_name, spec_name = spec_name)
+      if (.not.allocated(unique_spec_names)) cycle
+      do i_spec = 1, size(unique_spec_names)
+        _PHASE_ID_(i_phase) = aero_rep(i_aero_rep)%val%spec_state_id( &
+                unique_spec_names(i_spec)%string)
+        call assert(204327668, _PHASE_ID_(i_phase).gt.0)
+        i_phase = i_phase + 1
+      end do
+    end do
+    i_phase = i_phase - 1
+    call assert_msg(418435744, i_phase.eq._NUM_PHASE_, &
+            "Incorrect number of aerosol water instances in ZSR aerosol "// &
+            "water reaction. Expected "//trim(to_string(_NUM_PHASE_))// &
+            " but got "//trim(to_string(i_phase)))
+
+    ! Save the ion-pair parameters
+    n_int_param = _NUM_INT_PROP_ + _NUM_PHASE_ + 2*_NUM_ION_PAIR_
+    n_float_param = 0
+    call ion_pairs%iter_reset()
+    do i_ion_pair = 1, n_ion_pair
+   
+      ! Get the name of the ion pair
+      call assert(476976534, ion_pairs%get_key(ion_pair_name))
+
+      ! Get the ion pair properties
+      call assert(660267400, ion_pairs%get_property_t(val=ion_pair))
+
+      ! Set the location of this ion pair's parameters in the condensed data
+      ! arrays.
+      _PAIR_INT_PARAM_LOC_(i_ion_pair) = n_int_param + 1
+      _PAIR_FLOAT_PARAM_LOC_(i_ion_pair) = n_float_param + 1
+
+      ! Get the activity calculation type
+      key_name = "type"
+      call assert(288245799, ion_pair%get_string(key_name, str_type))
+
+      ! Get the number of parameters according to activity calculation type
+      if (str_type.eq."JACOBSON") then
+        
+        ! Get the Y_j parameters
+        key_name = "Y_j"
+        call assert(227500762, ion_pair%get_property_t(key_name, sub_props))
+        _JACOB_NUM_Y_(i_ion_pair) = sub_props%size()
+        call sub_props%iter_reset()
+        do i_sub_prop = 1, sub_props%size()
+          call assert_msg(149509565, sub_props%get_real(val=real_val), &
+                  "Invalid Y parameter for ion pair '"// &
+                  ion_pair_name//"' in ZSR aerosol water reaction.")
+          _JACOB_Y_(i_ion_pair, i_sub_prop) = real_val
+        end do
+
+        ! Get the low RH value
+        key_name = "low RH"
+        call assert_msg(462500894, ion_pair%get_real(key_name, real_val), &
+                "Missing 'low RH' value for ion pair '"// &
+                ion_pair_name//"' in ZSR aerosol water reaction.")
+        _JACOB_low_RH_(i_ion_pair) = real_val
+
+        ! Get the number and id of the ions
+        key_name = "ions"
+        call assert_msg(661006818, ion_pair%get_property_t(key_name, ions), &
+                "Mission ions for Jacobson activity calculation for ion "// &
+                "pair '"//ion_pair_name//"' in ZSR aerosol water "// &
+                "reaction.")
+        call assert_msg(880831496, ions%size().eq.2, &
+                "Invalid number of unique ions specified for ion pair '"// &
+                ion_pair_name//"' in for Jacobson activity "// &
+                "calculation in ZSR aerosol water reaction. Expected 2 "// &
+                "got "//trim(to_string(ions%size())))
+        call ions%iter_reset()
+        total_charge = 0
+        do i_ion = 1, 2
+        
+          ! Get the ion name
+          call assert(849711956, ions%get_key(ion_name))
+
+          ! Get the qty, if specified
+          qty = 1
+          if (ions%get_property_t(val=sub_props)) then
+            key_name = "qty"
+            if (sub_props%get_int(key_name, int_val)) qty = int_val 
+          end if 
+
+          ! Add the charge from this species
+          call assert_msg(315479897, &
+                  chem_spec_data%get_property_set(ion_name, spec_props), &
+                  "Missing species properties for ion '"//ion_name// &
+                  "' in ZSR aerosol water reaction.")
+          
+          key_name = "charge"
+          call assert_msg(310667885, spec_props%get_real(key_name, charge), &
+                  "Missing charge for ion '"//ion_name//"' in ZSR "// &
+                  "aerosol water reaction.")
+
+          if (charge.gt.0) then
+            _JACOB_NUM_CATION_(i_ion_pair) = qty
+          else if (charge.lt.0) then
+            _JACOB_NUM_ANION_(i_ion_pair) = qty
+          else
+            call die_msg(899416917, "Neutral species '"//ion_name// &
+                    "' not allowed in ZSR aerosol water reaction ion pair")
+          end if
+
+          ! Add contribution to total charge
+          total_charge = total_charge + qty * charge
+
+          ! Get the state ids for this species
+          i_phase = 1
+          do i_aero_rep = 1, size(aero_rep)
+            unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
+                    phase_name = phase_name, spec_name = ion_name)
+            if (.not.allocated(unique_spec_names)) cycle
+            do i_spec = 1, size(unique_spec_names)
+              if (charge.gt.1) then
+                if (i_phase.eq.1) then
+                  _JACOB_CATION_ID_(i_ion_pair) = &
+                          aero_rep(i_aero_rep)%val%spec_state_id( &
+                          unique_spec_names(i_spec)%string) - &
+                          _PHASE_ID_(i_phase)
+                else
+                  call assert(473680545, _JACOB_CATION_ID_(i_ion_pair).eq. &
+                          aero_rep(i_aero_rep)%val%spec_state_id( &
+                          unique_spec_names(i_spec)%string) - &
+                          _PHASE_ID_(i_phase))
+                end if
+              else
+                if (i_phase.eq.1) then
+                  _JACOB_ANION_ID_(i_ion_pair) = &
+                          aero_rep(i_aero_rep)%val%spec_state_id( &
+                          unique_spec_names(i_spec)%string) - &
+                          _PHASE_ID_(i_phase)
+                else
+                  call assert(234155524, _JACOB_ANION_ID_(i_ion_pair).eq. &
+                          aero_rep(i_aero_rep)%val%spec_state_id( &
+                          unique_spec_names(i_spec)%string) - &
+                          _PHASE_ID_(i_phase))
+                end if
+              end if
+              i_phase = i_phase + 1
+            end do
+          end do
+          i_phase = i_phase - 1
+          call assert_msg(623684811, i_phase.eq._NUM_PHASE_, &
+            "Incorrect number of instances of ion species '"// &
+            ion_name//"' in ZSR aerosol water reaction. Expected "// &
+            trim(to_string(_NUM_PHASE_))//" but got "// &
+            trim(to_string(i_phase)))
+
+        end do
+    
+        call assert_msg(319151390, total_charge.eq.0, &
+                "Charge imbalance for ion pair '"//ion_pair_name// &
+                " in ZSR aerosol water reaction. Total charge: "// &
+                trim(to_string(total_charge)))
+
+        n_float_param = n_float_param + 1 + _JACOB_NUM_Y_(i_ion_pair)
+        n_int_param = n_int_param + 6
+
+      else if (str_type.eq."EQSAM") then
+
+        ! Get the required parameters for calculating activity
+        key_name = "NW"
+        call assert_msg(692339107, &
+                ion_pair%get_real(key_name, _EQSAM_NW_(i_ion_pair)), &
+                "Missing parameter NW for ion pair '"//ion_pair_name// &
+                "' in ZSR aerosol water reaction.")
+
+        key_name = "ZW"
+        call assert_msg(894917625, &
+                ion_pair%get_real(key_name, _EQSAM_ZW_(i_ion_pair)), &
+                "Missing parameter ZW for ion pair '"//ion_pair_name// &
+                "' in ZSR aerosol water reaction.")
+
+        key_name = "MW"
+        call assert_msg(272128568, &
+                ion_pair%get_real(key_name, _EQSAM_MW_(i_ion_pair)), &
+                "Missing parameter MW for ion pair '"//ion_pair_name// &
+                "' in ZSR aerosol water reaction.")
+
+        ! Get the number and id of ions
+        key_name = "ions"
+        call assert(381088140, ion_pairs%get_property_t(key_name, ions))
+        _EQSAM_NUM_ION_(i_ion_pair) = sub_props%size()
+        call ions%iter_reset()
+        do i_ion = 1, ions%size()
+          
+          ! Get the ion name
+          call assert(849711956, ions%get_key(ion_name))
+
+          ! Set the ion id (relative to water within the specified phase)
+          i_phase = 1
+          do i_aero_rep = 1, size(aero_rep)
+            unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
+                    phase_name = phase_name, spec_name = ion_name)
+            if (.not.allocated(unique_spec_names)) cycle
+            do i_spec = 1, size(unique_spec_names)
+              if (i_phase.eq.1) then
+                _EQSAM_ION_ID_(i_ion_pair,i_ion) = &
+                        aero_rep(i_aero_rep)%val%spec_state_id( &
+                        unique_spec_names(i_spec)%string) - &
+                        _PHASE_ID_(i_phase)
+              else
+                call assert(973648240, _EQSAM_ION_ID_(i_ion_pair,i_ion) .eq. &
+                        aero_rep(i_aero_rep)%val%spec_state_id( &
+                        unique_spec_names(i_spec)%string) - &
+                        _PHASE_ID_(i_phase))
+              end if
+              i_phase = i_phase + 1
+            end do
+          end do
+          i_phase = i_phase - 1
+          call assert_msg(900921350, i_phase.eq._NUM_PHASE_, &
+            "Incorrect number of instances of ion species '"// &
+            ion_name//"' in ZSR aerosol water reaction. Expected "// &
+            trim(to_string(_NUM_PHASE_))//" but got "// &
+            trim(to_string(i_phase)))
+        end do
+
+        n_float_param = n_float_param + 3
+        n_int_param = n_int_param + 2 + _EQSAM_NUM_ION_(i_ion_pair)
+
+      else
+        call die_msg(186680407, "Internal error.")
+      end if
+
+      call ion_pairs%iter_next()
+    end do
+      
   end subroutine initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -273,7 +651,6 @@ contains
 
 #undef _NUM_PHASE_
 #undef _GAS_WATER_ID_
-#undef _AERO_WATER_ID_
 #undef _NUM_ION_PAIR_
 #undef _TOTAL_INT_PARAM_
 #undef _TOTAL_FLOAT_PARAM_

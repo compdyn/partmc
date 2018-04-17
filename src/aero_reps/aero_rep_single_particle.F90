@@ -114,6 +114,8 @@ module pmc_aero_rep_single_particle
     !> Get the non-unique name of a species in this aerosol representation by
     !! id.
     procedure :: spec_name_by_id
+    !> Get the number of instances of an aerosol phase in this representation
+    procedure :: num_phase_instances
 
   end type aero_rep_single_particle_t
 
@@ -386,6 +388,32 @@ contains
     end do
 
   end function spec_name_by_id
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the number of instances of a specified aerosol phase. In the single
+  !! particle representation, if an aerosol phase is present, it has only
+  !! one instance.
+  function num_phase_instances(this, phase_name)
+
+    !> Number of instances of the aerosol phase
+    integer(kind=i_kind) :: num_phase_instances
+    !> Aerosol representation data
+    class(aero_rep_single_particle_t), intent(in) :: this
+    !> Aerosol phase name
+    character(len=:), allocatable, intent(in) :: phase_name
+
+    integer(kind=i_kind) :: i_phase
+
+    num_phase_instances = 0
+    do i_phase = 1, size(this%aero_phase)
+      if (this%aero_phase(i_phase)%val%name().eq.phase_name) then
+        num_phase_instances = 1
+        return
+      end if
+    end do
+
+  end function num_phase_instances
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

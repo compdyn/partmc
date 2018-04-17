@@ -125,6 +125,8 @@ module pmc_aero_rep_data
     !> Get the non-unique name of a species by it's id in this aerosol
     !! representation
     procedure(spec_name_by_id), deferred :: spec_name_by_id
+    !> Get the number of instances of an aerosol phase
+    procedure(num_phase_instances), deferred :: num_phase_instances
     !> Get the name of the aerosol representation
     procedure :: name => get_name
     !> Get a phase id in this aerosol representation. This id should be used
@@ -296,6 +298,22 @@ interface
     integer(kind=i_kind) :: aero_rep_spec_id
 
   end function spec_name_by_id
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the number of instances of a specified aerosol phase
+  function num_phase_instances(this, phase_name)
+    use pmc_util,                                       only : i_kind
+    import :: aero_rep_data_t
+
+    !> Number of instances of the aerosol phase
+    integer(kind=i_kind) :: num_phase_instances
+    !> Aerosol representation data
+    class(aero_rep_data_t), intent(in) :: this
+    !> Aerosol phase name
+    character(len=:), allocatable, intent(in) :: phase_name
+
+  end function num_phase_instances
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

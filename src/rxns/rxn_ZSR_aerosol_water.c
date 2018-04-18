@@ -28,16 +28,16 @@
 #define _NUM_INT_PROP_ 5
 #define _NUM_REAL_PROP_ 1
 #define _PHASE_ID_(x) (int_data[_NUM_INT_PROP_+x]-1)
-#define _PAIR_INT_PARAM_LOC_(x) (int_data[_NUM_INT_PROP_+_NUM_PHASE_+x])
-#define _PAIR_FLOAT_PARAM_LOC_(x) (int_data[_NUM_INT_PROP_+_NUM_PHASE_+_NUM_ION_PAIR_+x])
+#define _PAIR_INT_PARAM_LOC_(x) (int_data[_NUM_INT_PROP_+_NUM_PHASE_+x]-1)
+#define _PAIR_FLOAT_PARAM_LOC_(x) (int_data[_NUM_INT_PROP_+_NUM_PHASE_+_NUM_ION_PAIR_+x]-1)
 #define _TYPE_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)])
 #define _JACOB_NUM_CATION_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+1])
 #define _JACOB_NUM_ANION_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+2])
 #define _JACOB_CATION_ID_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+3])
 #define _JACOB_ANION_ID_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+4])
 #define _JACOB_NUM_Y_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+5])
-#define _EQSAM_NUM_ION_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)])
-#define _EQSAM_ION_ID_(x,y) (int_data[_PAIR_INT_PARAM_LOC_(x)+1+y])
+#define _EQSAM_NUM_ION_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+1])
+#define _EQSAM_ION_ID_(x,y) (int_data[_PAIR_INT_PARAM_LOC_(x)+2+y])
 #define _JACOB_low_RH_(x) (float_data[_PAIR_FLOAT_PARAM_LOC_(x)])
 #define _JACOB_CATION_MW_(x) (float_data[_PAIR_FLOAT_PARAM_LOC_(x)+1])
 #define _JACOB_ANION_MW_(x) (float_data[_PAIR_FLOAT_PARAM_LOC_(x)+2])
@@ -102,7 +102,7 @@ void * rxn_ZSR_aerosol_water_update_env_state(realtype *env_data, void *rxn_data
   a = (((-0.1299*a - 0.6445)*a - 1.976)*a + 13.3185)*a;
   realtype water_vp = 101325.0 * exp(a); 			// (Pa)
   
-  _ppm_TO_RH_ = _PRESSURE_PA_ / water_vp / 1000000.0;		// (1/ppm)
+  _ppm_TO_RH_ = _PRESSURE_PA_ / water_vp / 1.0e6;		// (1/ppm)
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
@@ -131,6 +131,7 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
     for (int i_ion_pair=0; i_ion_pair<_NUM_ION_PAIR_; i_ion_pair++) {
       
       realtype molality;
+      realtype j_aw;
 
       // Determine which type of activity calculation should be used
       switch (_TYPE_(i_ion_pair)) {
@@ -138,10 +139,13 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
 	// Jacobson et al. (1996)
 	case ACT_TYPE_JACOBSON :
 
+          // Determine whether to use the minimum RH in the calculation
+          j_aw = a_w>_JACOB_low_RH_(i_ion_pair) ? a_w : _JACOB_low_RH_(i_ion_pair);
+
           // Calculate the molality of the pure binary ion pair solution
 	  molality = 0.0;
           for (int i_order=0; i_order<_JACOB_NUM_Y_(i_ion_pair); i_order++) 
-		  molality += _JACOB_Y_(i_ion_pair, i_order) * pow(a_w,i_order);
+		  molality += _JACOB_Y_(i_ion_pair, i_order) * pow(j_aw,i_order);
           molality *= molality; // (mol/kg)
 
 	  // Calculate the water associated with this ion pair
@@ -149,7 +153,7 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
 		  /_JACOB_NUM_CATION_(i_ion_pair)/_JACOB_CATION_MW_(i_ion_pair);
           realtype anion = state[_PHASE_ID_(i_phase)+_JACOB_ANION_ID_(i_ion_pair)]
 		  /_JACOB_NUM_ANION_(i_ion_pair)/_JACOB_ANION_MW_(i_ion_pair); // (umol/m3)
-	  *water += (cation>anion ? anion : cation) / molality / 1000.0; // (ug/m3)
+	  *water += (cation>anion ? anion : cation) / molality * 1000.0; // (ug/m3)
           
 	  break;
 
@@ -158,13 +162,13 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
 
 	  // Calculate the molality of the ion pair
 	  molality = (_EQSAM_NW_(i_ion_pair) * 55.51 * 18.01 / _EQSAM_ION_PAIR_MW_(i_ion_pair) *
-		  (1.0 / (a_w-1.0)));
+		  (1.0/a_w-1.0));
 	  molality = pow(molality, _EQSAM_ZW_(i_ion_pair)); // (mol/kg)
 
 	  // Calculate the water associated with this ion pair
 	  for (int i_ion=0; i_ion<_EQSAM_NUM_ION_(i_ion_pair); i_ion++) {
             *water += state[_PHASE_ID_(i_phase)+_EQSAM_ION_ID_(i_ion_pair,i_ion)]
-		    /_EQSAM_ION_MW_(i_ion_pair,i_ion) * 18.01 / molality;
+		    /_EQSAM_ION_MW_(i_ion_pair,i_ion) / molality * 1000.0; // (ug/m3);
 	  }
 
 	  break;

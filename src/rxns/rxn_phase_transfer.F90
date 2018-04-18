@@ -207,7 +207,7 @@ contains
     end do
 
     ! Allocate space in the condensed data arrays
-    allocate(this%condensed_data_int(_NUM_INT_PROP_ + 1 + n_aero_ids * 12))
+    allocate(this%condensed_data_int(_NUM_INT_PROP_ + 2 + n_aero_ids * 12))
     allocate(this%condensed_data_real(_NUM_REAL_PROP_))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)

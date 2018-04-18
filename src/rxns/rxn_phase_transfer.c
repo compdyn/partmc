@@ -44,7 +44,7 @@
 #define _AERO_REP_ID_(x) (int_data[_NUM_INT_PROP_ + 5*(_NUM_AERO_PHASE_) + x]-1)
 #define _DERIV_ID_(x) int_data[_NUM_INT_PROP_ + 6*(_NUM_AERO_PHASE_) + x]
 #define _JAC_ID_(x) int_data[_NUM_INT_PROP_ + 1 + 7*(_NUM_AERO_PHASE_) + x]
-#define _INT_DATA_SIZE_ (_NUM_INT_PROP_+1+(12*_NUM_AERO_PHASE_))
+#define _INT_DATA_SIZE_ (_NUM_INT_PROP_+2+(12*_NUM_AERO_PHASE_))
 #define _FLOAT_DATA_SIZE_ (_NUM_FLOAT_PROP_)
 
 /** \brief Flag Jacobian elements used by this reaction
@@ -98,6 +98,7 @@ void * rxn_phase_transfer_update_ids(int *deriv_ids, int **jac_ids, void *rxn_da
       _JAC_ID_(i_jac++) = jac_ids[_GAS_SPEC_][_AERO_WATER_(i_aero_phase)];
       _JAC_ID_(i_jac++) = jac_ids[_AERO_SPEC_(i_aero_phase)][_AERO_WATER_(i_aero_phase)];
     }
+
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
 
@@ -201,6 +202,9 @@ void * rxn_phase_transfer_calc_deriv_contrib(ModelData *model_data, realtype *de
 		  _AERO_REP_ID_(i_phase),	// aerosol representation index
 		  _AERO_PHASE_ID_(i_phase));	// aerosol phase index
 
+    // If the radius or number concentration are zero, no transfer occurs
+    if (radius < _SMALL_NUMBER_ || number_conc < _SMALL_NUMBER_) continue;
+
     // Calculate the rate constant for diffusion limited mass transfer to the aerosol phase (1/s)
     realtype cond_rate = 1.0/(radius*radius/(3.0*_Dg_) + 4.0*radius/(3.0*_c_rms_alpha_));
   
@@ -280,6 +284,9 @@ void * rxn_phase_transfer_calc_jac_contrib(ModelData *model_data, realtype *J,
 		  _AERO_REP_ID_(i_phase),	// aerosol representation index
 		  _AERO_PHASE_ID_(i_phase));	// aerosol phase index
 
+    // If the radius or number concentration are zero, no transfer occurs
+    if (radius < _SMALL_NUMBER_ || number_conc < _SMALL_NUMBER_) continue;
+
     // Calculate the rate constant for diffusion limited mass transfer to the aerosol phase (1/s)
     realtype cond_rate = 1.0/(radius*radius/(3.0*_Dg_) + 4.0*radius/(3.0*_c_rms_alpha_));
   
@@ -293,26 +300,26 @@ void * rxn_phase_transfer_calc_jac_contrib(ModelData *model_data, realtype *J,
     if (aero_conc_type==0) {
       // Scale the changes to the gas-phase by the number of particles for per-particle 
       // aerosol concentrations
-      if (_JAC_ID_(1+i_phase*3+1)>=0) 
-	      J[_JAC_ID_(1+i_phase*3+1)] += number_conc * evap_rate * _ug_m3_TO_ppm_;
-      if (_JAC_ID_(1+i_phase*3+3)>=0) 
-	      J[_JAC_ID_(1+i_phase*3+3)] += - number_conc * evap_rate * _ug_m3_TO_ppm_ * 
+      if (_JAC_ID_(1+i_phase*5+1)>=0) 
+	      J[_JAC_ID_(1+i_phase*5+1)] += number_conc * evap_rate * _ug_m3_TO_ppm_;
+      if (_JAC_ID_(1+i_phase*5+3)>=0) 
+	      J[_JAC_ID_(1+i_phase*5+3)] += - number_conc * evap_rate * _ug_m3_TO_ppm_ * 
 	      state[_AERO_SPEC_(i_phase)] * state[_AERO_SPEC_ACT_COEFF_(i_phase)] 
 	      / state[_AERO_WATER_(i_phase)];
       if (_JAC_ID_(0)>=0) J[_JAC_ID_(0)] -= number_conc * cond_rate;
     } else {
       // No scaling for aerosol concentrations with total mass per aerosol phase
-      if (_JAC_ID_(1+i_phase*3+1)>=0) J[_JAC_ID_(1+i_phase*3+1)] += evap_rate * _ug_m3_TO_ppm_;
-      if (_JAC_ID_(1+i_phase*3+3)>=0) J[_JAC_ID_(1+i_phase*3+3)] += - evap_rate * _ug_m3_TO_ppm_ * 
+      if (_JAC_ID_(1+i_phase*5+1)>=0) J[_JAC_ID_(1+i_phase*5+1)] += evap_rate * _ug_m3_TO_ppm_;
+      if (_JAC_ID_(1+i_phase*5+3)>=0) J[_JAC_ID_(1+i_phase*5+3)] += - evap_rate * _ug_m3_TO_ppm_ * 
 	      state[_AERO_SPEC_(i_phase)] * state[_AERO_SPEC_ACT_COEFF_(i_phase)] 
 	      / state[_AERO_WATER_(i_phase)];
       if (_JAC_ID_(0)>=0) J[_JAC_ID_(0)] -= cond_rate;
     }
 
     // Change in the aerosol-phase species is condensation - evaporation (ug/m^3/s)
-    if (_JAC_ID_(1+i_phase*3)>=0) J[_JAC_ID_(1+i_phase*3)] += cond_rate / _ug_m3_TO_ppm_;
-    if (_JAC_ID_(1+i_phase*3+2)>=0) J[_JAC_ID_(1+i_phase*3+2)] -= evap_rate; 
-    if (_JAC_ID_(1+i_phase*3+4)>=0) J[_JAC_ID_(1+i_phase*3+4)] -= - evap_rate * 
+    if (_JAC_ID_(1+i_phase*5)>=0) J[_JAC_ID_(1+i_phase*5)] += cond_rate / _ug_m3_TO_ppm_;
+    if (_JAC_ID_(1+i_phase*5+2)>=0) J[_JAC_ID_(1+i_phase*5+2)] -= evap_rate; 
+    if (_JAC_ID_(1+i_phase*5+4)>=0) J[_JAC_ID_(1+i_phase*5+4)] -= - evap_rate * 
 	    state[_AERO_SPEC_(i_phase)] * state[_AERO_SPEC_ACT_COEFF_(i_phase)]
 	    / state[_AERO_WATER_(i_phase)];
   

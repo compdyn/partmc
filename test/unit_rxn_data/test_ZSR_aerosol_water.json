@@ -1,0 +1,84 @@
+{
+  "note" : "Test data for ZSR aerosol water calculation. Parameters for JACOBSON molality calculation are from Jacobson et al., 1996 Table 2 for NaCl (CaCl2 is used in the test just to test the code when different numbers of cations and anions are present.) Parameters for EQSAM molality calculation are from EQSAM_v03d for NaCl",
+  "pmc-data" : [
+  {
+    "name" : "H2O",
+    "type" : "CHEM_SPEC"
+  },
+  {
+    "name" : "Na_p",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "charge" : 1,
+    "molecular weight" : 22.9898
+  },
+  {
+    "name" : "Cl_m",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "charge" : -1,
+    "molecular weight" : 35.453
+  },
+  {
+    "name" : "Ca_pp",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "charge" : 2,
+    "molecular weight" : 40.078
+  },
+  {
+    "name" : "H2O_aq",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL"
+  },
+  {
+    "name" : "aqueous aerosol",
+    "type" : "AERO_PHASE",
+    "species" : ["Na_p", "Cl_m", "Ca_pp", "H2O_aq"]
+  },
+  {
+    "type" : "AERO_REP_SINGLE_PARTICLE",
+    "name" : "my aero rep 1"
+  },
+  {
+    "type" : "AERO_REP_SINGLE_PARTICLE",
+    "name" : "my aero rep 2"
+  },
+  {
+    "type" : "AERO_REP_SINGLE_PARTICLE",
+    "name" : "my aero rep 3"
+  },
+  {
+    "name" : "ZSR aerosol water",
+    "type" : "MECHANISM",
+    "reactions" : [
+      {
+	"type" : "ZSR_AEROSOL_WATER",
+	"aerosol phase" : "aqueous aerosol",
+	"gas-phase water" : "H2O",
+	"aerosol-phase water" : "H2O_aq",
+	"ion pairs" : {
+	  "NaCl" : {
+            "type" : "EQSAM",
+	    "ions" : {
+	      "Cl_m" : {}
+	    },
+	    "NW" : 2.0,
+	    "ZW" : 0.67,
+	    "MW" : 58.5
+	  },
+	  "CaCl2" : {
+	    "type" : "JACOBSON",
+	    "ions" : {
+	      "Ca_pp" : {},
+	      "Cl_m" : { "qty" : 2 }
+	    },
+	    "Y_j" : [-1.918004e2, 2.001540e3, -8.557205e3, 1.987670e4, -2.717192e4, 2.187103e4, -9.591577e3, 1.763672e3],
+	    "low RH" : 0.43
+	  }
+	}
+      }
+    ]
+  }
+  ]
+}

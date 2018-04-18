@@ -70,11 +70,11 @@ contains
     character(len=:), allocatable :: input_file_path
     type(string_t), allocatable, dimension(:) :: output_file_path
 
-    real(kind=dp), dimension(0:NUM_TIME_STEP, 18) :: model_conc, true_conc
+    real(kind=dp), dimension(0:NUM_TIME_STEP, 54) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_A, idx_B, idx_C, idx_D, idx_E, idx_F, idx_G, idx_H
     integer(kind=i_kind) :: idx_A_act, idx_B_act, idx_C_act, idx_D_act, idx_E_act, &
             idx_F_act, idx_G_act, idx_H_act
-    integer(kind=i_kind) :: idx_H2O, idx_H2O_act, idx_phase
+    integer(kind=i_kind) :: idx_H2O, idx_H2O_act, idx_phase, idx_aero_rep
     character(len=:), allocatable :: key
     integer(kind=i_kind) :: i_time, i_spec
     real(kind=dp) :: time_step, time
@@ -119,36 +119,37 @@ contains
     call phlex_state%update_env_state()
 
     ! Find the aerosol representation
-    call assert(750324390, size(phlex_core%aero_rep).eq.1)
+    call assert(750324390, size(phlex_core%aero_rep).eq.3)
+    idx_aero_rep = 2
 
     ! Get species indices
     key = "aqueous aerosol.A"
-    idx_A = phlex_core%aero_rep(1)%val%spec_state_id(key);
-    idx_A_act = phlex_core%aero_rep(1)%val%activity_coeff_state_id(key);
+    idx_A = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_A_act = phlex_core%aero_rep(idx_aero_rep)%val%activity_coeff_state_id(key);
     key = "aqueous aerosol.B"
-    idx_B = phlex_core%aero_rep(1)%val%spec_state_id(key);
-    idx_B_act = phlex_core%aero_rep(1)%val%activity_coeff_state_id(key);
+    idx_B = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_B_act = phlex_core%aero_rep(idx_aero_rep)%val%activity_coeff_state_id(key);
     key = "aqueous aerosol.C"
-    idx_C = phlex_core%aero_rep(1)%val%spec_state_id(key);
-    idx_C_act = phlex_core%aero_rep(1)%val%activity_coeff_state_id(key);
+    idx_C = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_C_act = phlex_core%aero_rep(idx_aero_rep)%val%activity_coeff_state_id(key);
     key = "aqueous aerosol.D"
-    idx_D = phlex_core%aero_rep(1)%val%spec_state_id(key);
-    idx_D_act = phlex_core%aero_rep(1)%val%activity_coeff_state_id(key);
+    idx_D = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_D_act = phlex_core%aero_rep(idx_aero_rep)%val%activity_coeff_state_id(key);
     key = "aqueous aerosol.E"
-    idx_E = phlex_core%aero_rep(1)%val%spec_state_id(key);
-    idx_E_act = phlex_core%aero_rep(1)%val%activity_coeff_state_id(key);
+    idx_E = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_E_act = phlex_core%aero_rep(idx_aero_rep)%val%activity_coeff_state_id(key);
     key = "aqueous aerosol.F"
-    idx_F = phlex_core%aero_rep(1)%val%spec_state_id(key);
-    idx_F_act = phlex_core%aero_rep(1)%val%activity_coeff_state_id(key);
+    idx_F = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_F_act = phlex_core%aero_rep(idx_aero_rep)%val%activity_coeff_state_id(key);
     key = "aqueous aerosol.G"
-    idx_G = phlex_core%aero_rep(1)%val%spec_state_id(key);
-    idx_G_act = phlex_core%aero_rep(1)%val%activity_coeff_state_id(key);
+    idx_G = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_G_act = phlex_core%aero_rep(idx_aero_rep)%val%activity_coeff_state_id(key);
     key = "aqueous aerosol.H"
-    idx_H = phlex_core%aero_rep(1)%val%spec_state_id(key);
-    idx_H_act = phlex_core%aero_rep(1)%val%activity_coeff_state_id(key);
+    idx_H = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_H_act = phlex_core%aero_rep(idx_aero_rep)%val%activity_coeff_state_id(key);
     key = "aqueous aerosol.H2O_aq"
-    idx_H2O = phlex_core%aero_rep(1)%val%spec_state_id(key);
-    idx_H2O_act = phlex_core%aero_rep(1)%val%activity_coeff_state_id(key);
+    idx_H2O = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_H2O_act = phlex_core%aero_rep(idx_aero_rep)%val%activity_coeff_state_id(key);
 
     ! Make sure the expected species are in the model
     call assert(503629528, idx_A.gt.0)
@@ -171,6 +172,7 @@ contains
     call assert(893611110, idx_H2O_act.gt.0)
 
     ! Save the initial concentrations
+    true_conc(:,:) = 0.0
     true_conc(0,idx_A) = 13.5
     true_conc(:,idx_A_act) = 1.0
     true_conc(0,idx_B) = 0.0

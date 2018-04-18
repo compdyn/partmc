@@ -476,8 +476,11 @@ contains
     type(json_value), pointer :: child, next, species
     character(kind=json_ck, len=:), allocatable :: key, unicode_str_val
     integer(kind=json_ik) :: var_type
+    logical :: found_name
 
     this%property_set => property_t()
+
+    found_name = .false.
 
     next => null()
     call json%get_child(j_obj, child)
@@ -488,12 +491,15 @@ contains
                 "Received non-string value for aerosol rep name")
         call json%get(child, unicode_str_val)
         this%rep_name = unicode_str_val
+        found_name = .true.
       else if (key.ne."type") then
         call this%property_set%load(json, child, .false.)
       end if
       call json%get_next(child, next)
       child => next
     end do
+    call assert_msg(420903951, found_name, &
+            "Received unnamed aerosol representation.")
 #else
   subroutine load(this)
 

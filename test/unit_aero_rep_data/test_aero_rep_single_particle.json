@@ -1,7 +1,8 @@
 {
 	"pmc-data" : [
 {
-	"type" : "AERO_REP_SINGLE_PARTICLE"
+	"type" : "AERO_REP_SINGLE_PARTICLE",
+	"name" : "AERO_REP_SINGLE_PARTICLE"
 },
 {
 	"name" : "my test phase one",

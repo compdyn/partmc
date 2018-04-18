@@ -72,7 +72,16 @@
     "species" : ["A", "B", "C", "D", "E", "F", "G", "H", "H2O_aq"]
   },
   {
-    "type" : "AERO_REP_SINGLE_PARTICLE"
+    "type" : "AERO_REP_SINGLE_PARTICLE",
+    "name" : "my aero rep 1"
+  },
+  {
+    "type" : "AERO_REP_SINGLE_PARTICLE",
+    "name" : "my aero rep 2"
+  },
+  {
+    "type" : "AERO_REP_SINGLE_PARTICLE",
+    "name" : "my aero rep 3"
   },
   {
     "name" : "aqueous equilibrium",

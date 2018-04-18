@@ -46,7 +46,16 @@
     "species" : ["O3_aq", "H2O2_aq", "H2O_aq"]
   },
   {
-    "type" : "AERO_REP_SINGLE_PARTICLE"
+    "type" : "AERO_REP_SINGLE_PARTICLE",
+    "name" : "my aero rep 1"
+  },
+  {
+    "type" : "AERO_REP_SINGLE_PARTICLE",
+    "name" : "my aero rep 2"
+  },
+  {
+    "type" : "AERO_REP_SINGLE_PARTICLE",
+    "name" : "my aero rep 3"
   },
   {
     "name" : "phase transfer",

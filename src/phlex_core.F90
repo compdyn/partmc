@@ -1050,7 +1050,7 @@ contains
     !> File unit for output
     integer(kind=i_kind), intent(in), optional :: file_unit
 
-    integer(kind=i_kind) :: i_phase, i_mech
+    integer(kind=i_kind) :: i_phase, i_aero_rep, i_mech
     integer(kind=i_kind) :: f_unit=6
 
     if (present(file_unit)) f_unit = file_unit
@@ -1063,6 +1063,11 @@ contains
     write(f_unit,*) "*** Aerosol Phases ***"
     do i_phase=1, size(this%aero_phase)
       call this%aero_phase(i_phase)%val%print()
+    end do
+    write(f_unit,*) "*** Aerosol Representations ***"
+    do i_aero_rep=1, size(this%aero_rep)
+      write(f_unit,*) "Aerosol representation ", i_aero_rep
+      call this%aero_rep(i_aero_rep)%val%print()
     end do
     write(f_unit,*) "*** Mechanisms ***"
     write(f_unit,*) "Number of mechanisms: ", size(this%mechanism)

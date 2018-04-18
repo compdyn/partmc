@@ -5,6 +5,8 @@
 !> \file
 !> The pmc_rxn_ZSR_aerosol_water module.
 
+! TODO Incorporate deliquesence calculations
+
 !> \page phlex_rxn_ZSR_aerosol_water Phlexible Mechanism for Chemistry: ZSR Aerosol Water Reaction
 !!
 !! ZSR aerosol water reactions calculate equilibrium aerosol water content
@@ -36,7 +38,7 @@
 !!           "SO4mm" : {}
 !!         },
 !!         "Y_j" : [-3.295311e3, 3.188349e4, -1.305168e5, 2.935608e5],
-!!         "low RH" : 51.0
+!!         "low RH" : 0.51
 !!       },
 !!       "H2SO4" : {
 !!         "type" : "EQSAM",
@@ -79,9 +81,9 @@
 !! must be included in a key-value pair \b "Y_j" whose value is an array
 !! with the \f$Y_j\f$ parameters. The size of the array corresponds to the
 !! order of the polynomial equation, which must be greater than 1. The
-!! key-value pair \b "low RH" is required to specify the lowest RH for which
-!! this fit is valid. This value for RH will be used for all lower RH in
-!! calculations of \f$m_i(a_w)\f$ as per Jacobson et al. \cite{1996}.
+!! key-value pair \b "low RH" is required to specify the lowest RH (0-1) 
+!! for which this fit is valid. This value for RH will be used for all lower
+!! RH in calculations of \f$m_i(a_w)\f$ as per Jacobson et al. \cite{1996}.
 !!
 !! The key-value pair "ions" must contain the set of ions this binary
 !! electrolyte includes. Each species must correspond to a species present in
@@ -173,16 +175,16 @@ module pmc_rxn_ZSR_aerosol_water
 #define _JACOB_CATION_ID_(x) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+3)
 #define _JACOB_ANION_ID_(x) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+4)
 #define _JACOB_NUM_Y_(x) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+5)
-#define _EQSAM_NUM_ION_(x) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x))
+#define _EQSAM_NUM_ION_(x) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+1)
 #define _EQSAM_ION_ID_(x,y) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+1+y)
 #define _JACOB_low_RH_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x))
 #define _JACOB_CATION_MW_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+1)
 #define _JACOB_ANION_MW_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+2)
-#define _JACOB_Y_(x,y) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+3+y)
+#define _JACOB_Y_(x,y) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+2+y)
 #define _EQSAM_NW_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x))
 #define _EQSAM_ZW_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+1)
 #define _EQSAM_ION_PAIR_MW_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+2)
-#define _EQSAM_ION_MW_(x,y) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+3+y)
+#define _EQSAM_ION_MW_(x,y) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+2+y)
 
   public :: rxn_ZSR_aerosol_water_t
 
@@ -284,7 +286,7 @@ contains
 
     ! Get the number of parameters required for each ion pair
     n_int_param = _NUM_INT_PROP_ + n_phase + 2*n_ion_pair
-    n_float_param = 0
+    n_float_param = _NUM_REAL_PROP_
     call ion_pairs%iter_reset()
     do i_ion_pair = 1, n_ion_pair
   
@@ -359,7 +361,6 @@ contains
     _TOTAL_INT_PARAM_ = n_int_param
     _TOTAL_FLOAT_PARAM_ = n_float_param
 
-
     ! Set the gas-phase water species
     key_name = "gas-phase water"
     call assert_msg(386389634, &
@@ -403,7 +404,7 @@ contains
 
     ! Save the ion-pair parameters
     n_int_param = _NUM_INT_PROP_ + _NUM_PHASE_ + 2*_NUM_ION_PAIR_
-    n_float_param = 0
+    n_float_param = _NUM_REAL_PROP_
     call ion_pairs%iter_reset()
     do i_ion_pair = 1, n_ion_pair
    
@@ -438,6 +439,7 @@ contains
                   "Invalid Y parameter for ion pair '"// &
                   ion_pair_name//"' in ZSR aerosol water reaction.")
           _JACOB_Y_(i_ion_pair, i_sub_prop) = real_val
+          call sub_props%iter_next()
         end do
 
         ! Get the low RH value
@@ -548,6 +550,9 @@ contains
             trim(to_string(_NUM_PHASE_))//" but got "// &
             trim(to_string(i_phase)))
 
+          ! Get the next ion
+          call ions%iter_next()
+
         end do
     
         call assert_msg(319151390, total_charge.eq.0, &
@@ -584,8 +589,8 @@ contains
 
         ! Get the number and id of ions
         key_name = "ions"
-        call assert(381088140, ion_pairs%get_property_t(key_name, ions))
-        _EQSAM_NUM_ION_(i_ion_pair) = sub_props%size()
+        call assert(381088140, ion_pair%get_property_t(key_name, ions))
+        _EQSAM_NUM_ION_(i_ion_pair) = ions%size()
         call ions%iter_reset()
         do i_ion = 1, ions%size()
           
@@ -633,6 +638,10 @@ contains
             ion_name//"' in ZSR aerosol water reaction. Expected "// &
             trim(to_string(_NUM_PHASE_))//" but got "// &
             trim(to_string(i_phase)))
+
+           ! Get the next ion
+           call ions%iter_next()
+
         end do
 
         n_float_param = n_float_param + 3 + _EQSAM_NUM_ION_(i_ion_pair)

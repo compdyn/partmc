@@ -193,7 +193,10 @@ void rxn_pre_calc(ModelData *model_data)
   int n_rxn = *(rxn_data++);
 
   // Loop through the reactions advancing the rxn_data pointer each time
-  for (int rxn_type = *(rxn_data++); rxn_data < (int*) model_data->nxt_rxn; rxn_type = *(rxn_data++)) {
+  for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
+
+    // Get the reaction type
+    int rxn_type = *(rxn_data++);
 
     // Call the appropriate function
     switch (rxn_type) {
@@ -241,7 +244,10 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv)
   int n_rxn = *(rxn_data++);
 
   // Loop through the reactions advancing the rxn_data pointer each time
-  for (int rxn_type = *(rxn_data++); rxn_data < (int*) model_data->nxt_rxn; rxn_type = *(rxn_data++)) {
+  for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
+
+    // Get the reaction type
+    int rxn_type = *(rxn_data++);
 
     // Call the appropriate function
     switch (rxn_type) {

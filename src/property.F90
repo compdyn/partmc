@@ -176,29 +176,34 @@ contains
     type(property_link_t), pointer :: new_link, sub_link
     class(*), pointer :: curr_val
 
-    ! Look for the key in the existing properties
-    new_link => this%get(key)
+    ! If this is an array element, the key will be empty
+    if (allocated(key).and.len(key).ge.1) then
+   
+      ! Look for the key in the existing properties
+      new_link => this%get(key)
 
-    ! Do not allow overwrites of existing properties, but allow sub-sets
-    ! of properties to be appended
-    if (associated(new_link)) then
-      curr_val => new_link%val
-      select type (curr_val)
-      class is (property_t)
-        select type (val)
+      ! Do not allow overwrites of existing properties, but allow sub-sets
+      ! of properties to be appended
+      if (associated(new_link)) then
+        curr_val => new_link%val
+        select type (curr_val)
         class is (property_t)
-          sub_link => val%first_link
-          do while (associated(sub_link))
-            call curr_val%put(sub_link%key_name, sub_link%val)
-            sub_link => sub_link%next_link
-          end do
+          select type (val)
+          class is (property_t)
+            sub_link => val%first_link
+            do while (associated(sub_link))
+              call curr_val%put(sub_link%key_name, sub_link%val)
+              sub_link => sub_link%next_link
+            end do
+          class default
+            call die_msg(698012538, "Property type mismatch for "//key)
+          end select
         class default
-          call die_msg(698012538, "Property type mismatch for "//key)
+          call die_msg(359604264, "Trying to overwrite property "//key)
         end select
-      class default
-        call die_msg(359604264, "Trying to overwrite property "//key)
-      end select
-      return
+        return
+      end if
+
     end if
 
     ! If the key does not exist in the property dataset,

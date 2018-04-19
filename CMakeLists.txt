@@ -324,6 +324,7 @@ set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 # partmc library
 
 set(REACTIONS_F_SRC 
+	src/rxns/rxn_activity.F90
 	src/rxns/rxn_aqueous_equilibrium.F90
 	src/rxns/rxn_arrhenius.F90
 	src/rxns/rxn_CMAQ_H2O2.F90
@@ -343,6 +344,7 @@ set_source_files_properties(${REACTIONS_F_SRC} PROPERTIES COMPILE_FLAGS
 	${REACTIONS_F_FLAGS})
 
 set(REACTIONS_SRC ${REACTIONS_F_SRC}
+	src/rxns/rxn_activity.c
 	src/rxns/rxn_aqueous_equilibrium.c
 	src/rxns/rxn_arrhenius.c
 	src/rxns/rxn_CMAQ_H2O2.c

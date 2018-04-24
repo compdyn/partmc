@@ -20,7 +20,7 @@
 #define RXN_PHASE_TRANSFER 6
 #define RXN_AQUEOUS_EQUILIBRIUM 7
 #define RXN_ZSR_AEROSOL_WATER 8
-#define RXN_ACTIVITY 9
+#define RXN_PDFITE_ACTIVITY 9
 
 #ifdef PMC_USE_SUNDIALS
 
@@ -47,8 +47,8 @@ void * rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct)
 
     // Call the appropriate function
     switch (rxn_type) {
-      case RXN_ACTIVITY:
-        rxn_data = (int*) rxn_activity_get_used_jac_elem((void*) rxn_data, jac_struct);
+      case RXN_PDFITE_ACTIVITY:
+        rxn_data = (int*) rxn_PDFiTE_activity_get_used_jac_elem((void*) rxn_data, jac_struct);
         break;
       case RXN_AQUEOUS_EQUILIBRIUM :
         rxn_data = (int*) rxn_aqueous_equilibrium_get_used_jac_elem((void*) rxn_data, jac_struct);
@@ -100,8 +100,8 @@ void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids)
 
     // Call the appropriate function
     switch (rxn_type) {
-      case RXN_ACTIVITY :
-        rxn_data = (int*) rxn_activity_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
+      case RXN_PDFITE_ACTIVITY :
+        rxn_data = (int*) rxn_PDFiTE_activity_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
         break;
       case RXN_AQUEOUS_EQUILIBRIUM :
         rxn_data = (int*) rxn_aqueous_equilibrium_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
@@ -151,8 +151,8 @@ void rxn_update_env_state(ModelData *model_data, double *env)
 
     // Call the appropriate function
     switch (rxn_type) {
-      case RXN_ACTIVITY :
-        rxn_data = (int*) rxn_activity_update_env_state(env, (void*) rxn_data);
+      case RXN_PDFITE_ACTIVITY :
+        rxn_data = (int*) rxn_PDFiTE_activity_update_env_state(env, (void*) rxn_data);
         break;
       case RXN_AQUEOUS_EQUILIBRIUM :
         rxn_data = (int*) rxn_aqueous_equilibrium_update_env_state(env, (void*) rxn_data);
@@ -210,8 +210,8 @@ void rxn_pre_calc(ModelData *model_data)
 
     // Call the appropriate function
     switch (rxn_type) {
-      case RXN_ACTIVITY :
-        rxn_data = (int*) rxn_activity_pre_calc(model_data, (void*) rxn_data);
+      case RXN_PDFITE_ACTIVITY :
+        rxn_data = (int*) rxn_PDFiTE_activity_pre_calc(model_data, (void*) rxn_data);
         break;
       case RXN_AQUEOUS_EQUILIBRIUM :
         rxn_data = (int*) rxn_aqueous_equilibrium_pre_calc(model_data, (void*) rxn_data);
@@ -264,8 +264,8 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv)
 
     // Call the appropriate function
     switch (rxn_type) {
-      case RXN_ACTIVITY :
-        rxn_data = (int*) rxn_activity_calc_deriv_contrib(model_data, 
+      case RXN_PDFITE_ACTIVITY :
+        rxn_data = (int*) rxn_PDFiTE_activity_calc_deriv_contrib(model_data, 
 			deriv_data, (void*) rxn_data);
         break;
       case RXN_AQUEOUS_EQUILIBRIUM :
@@ -328,8 +328,8 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J)
 
     // Call the appropriate function
     switch (rxn_type) {
-      case RXN_ACTIVITY :
-        rxn_data = (int*) rxn_activity_calc_jac_contrib(model_data, 
+      case RXN_PDFITE_ACTIVITY :
+        rxn_data = (int*) rxn_PDFiTE_activity_calc_jac_contrib(model_data, 
 			J_data, (void*) rxn_data);
         break;
       case RXN_AQUEOUS_EQUILIBRIUM :
@@ -435,8 +435,8 @@ void rxn_set_photo_rate(int photo_id, double base_rate, void *solver_data)
 
     // Call the appropriate function
     switch (rxn_type) {
-      case RXN_ACTIVITY :
-        rxn_data = (int*) rxn_activity_skip((void*)rxn_data);
+      case RXN_PDFITE_ACTIVITY :
+        rxn_data = (int*) rxn_PDFiTE_activity_skip((void*)rxn_data);
         break;
       case RXN_AQUEOUS_EQUILIBRIUM :
         rxn_data = (int*) rxn_aqueous_equilibrium_skip((void*)rxn_data);
@@ -491,8 +491,8 @@ void rxn_print_data(void *solver_data)
 
     // Call the appropriate function
     switch (rxn_type) {
-      case RXN_ACTIVITY :
-        rxn_data = (int*) rxn_activity_print((void*)rxn_data);
+      case RXN_PDFITE_ACTIVITY :
+        rxn_data = (int*) rxn_PDFiTE_activity_print((void*)rxn_data);
 	break;
       case RXN_AQUEOUS_EQUILIBRIUM :
         rxn_data = (int*) rxn_aqueous_equilibrium_print((void*)rxn_data);
@@ -557,8 +557,8 @@ double * rxn_get_rates(void *solver_data, double *state, double *env, int *n_rxn
 
     // Call the appropriate function
     switch (rxn_type) {
-      case RXN_ACTIVITY :
-        rxn_data = (int*) rxn_activity_get_rate((void*)rxn_data, state, env, &(rate));
+      case RXN_PDFITE_ACTIVITY :
+        rxn_data = (int*) rxn_PDFiTE_activity_get_rate((void*)rxn_data, state, env, &(rate));
 	break;
       case RXN_AQUEOUS_EQUILIBRIUM :
         rxn_data = (int*) rxn_aqueous_equilibrium_get_rate((void*)rxn_data, state, env, &(rate));

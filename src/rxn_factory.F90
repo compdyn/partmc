@@ -177,7 +177,7 @@ module pmc_rxn_factory
 #endif
 
   ! Use all reaction modules
-  use pmc_rxn_activity
+  use pmc_rxn_PDFiTE_activity
   use pmc_rxn_aqueous_equilibrium
   use pmc_rxn_arrhenius
   use pmc_rxn_troe
@@ -204,7 +204,7 @@ module pmc_rxn_factory
   integer(kind=i_kind), parameter :: RXN_PHASE_TRANSFER = 6
   integer(kind=i_kind), parameter :: RXN_AQUEOUS_EQUILIBRIUM = 7
   integer(kind=i_kind), parameter :: RXN_ZSR_AEROSOL_WATER = 8
-  integer(kind=i_kind), parameter :: RXN_ACTIVITY = 9
+  integer(kind=i_kind), parameter :: RXN_PDFITE_ACTIVITY = 9
 
   !> Factory type for chemical reactions
   !!
@@ -260,8 +260,8 @@ contains
         new_obj => rxn_aqueous_equilibrium_t()
       case ("ZSR_AEROSOL_WATER")
         new_obj => rxn_ZSR_aerosol_water_t()
-      case ("ACTIVITY")
-        new_obj => rxn_activity_t()
+      case ("PDFITE_ACTIVITY")
+        new_obj => rxn_PDFiTE_activity_t()
       case default
         call die_msg(367114278, "Unknown chemical reaction type: " &
                 //type_name) 
@@ -344,8 +344,8 @@ contains
         rxn_type = RXN_AQUEOUS_EQUILIBRIUM
       type is (rxn_ZSR_aerosol_water_t)
         rxn_type = RXN_ZSR_AEROSOL_WATER
-      type is (rxn_activity_t)
-        rxn_type = RXN_ACTIVITY
+      type is (rxn_PDFiTE_activity_t)
+        rxn_type = RXN_PDFITE_ACTIVITY
       class default
         call die_msg(343941184, "Unknown reaction type.")
     end select
@@ -404,8 +404,8 @@ contains
         rxn_type = RXN_AQUEOUS_EQUILIBRIUM
       type is (rxn_ZSR_aerosol_water_t)
         rxn_type = RXN_ZSR_AEROSOL_WATER
-      type is (rxn_activity_t)
-        rxn_type = RXN_ACTIVITY
+      type is (rxn_PDFiTE_activity_t)
+        rxn_type = RXN_PDFITE_ACTIVITY
       class default
         call die_msg(343941184, "Trying to pack reaction of unknown type.")
     end select
@@ -453,8 +453,8 @@ contains
         rxn => rxn_aqueous_equilibrium_t()
       case (RXN_ZSR_AEROSOL_WATER)
         rxn => rxn_ZSR_aerosol_water_t()
-      case (RXN_ACTIVITY)
-        rxn => rxn_activity_t()
+      case (RXN_PDFITE_ACTIVITY)
+        rxn => rxn_PDFiTE_activity_t()
       case default
         call die_msg(659290342, "Trying to unpack reaction of unknown type:"// &
                 to_string(rxn_type))

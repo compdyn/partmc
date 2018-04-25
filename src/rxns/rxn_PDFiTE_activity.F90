@@ -10,7 +10,7 @@
 !! PDFiTE activity reactions calculate aerosol-phase species activities using
 !! Taylor series to describe partial derivatives of mean activity coefficients
 !! for ternary solutions, as described in \cite{Topping2009}. Thus, the mean
-!! binary activity coefficients for electrolytes are calculated according to
+!! binary activity coefficients for ion_pairs are calculated according to
 !! eq. 15 in \cite{Topping2009}. The values are then available to aqueous-
 !! phase reactions during solving.
 !!
@@ -21,39 +21,52 @@
 !!     "gas-phase water" : "H2O",
 !!     "aerosol-phase water" : "H2O_aq",
 !!     "aerosol phase" : "my aero phase",
-!!     "electrolytes" : {
-!!       "Na2SO4_aq" : {
-!!         "ions" : {
-!!           "Na_p" : { "qty" : 2 },
-!!           "SO4_mm" : {}
-!!         },
-!!         "interactions" : {
-!!           "Na2SO4_aq" : [3.188349e4, -1.305168e5, 2.935608e5],
-!!           "H2SO4_aq" : [-3.295311e3, 3.188349e4, -1.305168e5, 2.935608e5],
-!!           "HHSO4_aq" : [412.423566, 1.412e-3, 2.421e7]
-!!         }
-!!       },
-!!       "H2SO4_aq" : {
-!!         "ions" : {
-!!           "H_pp" : { "qty" : 2},
-!!           "SO4_mm" : {}
-!!         },
-!!         "interactions" : {
-!!           "H2SO4_aq" : [4.3124e3, -1.35e2, -32.6254e7, 32.4120],
-!!           "Na2SO4_aq" : [-1.35e2, -32.6254e7, 32.4120],
-!!           "HHSO4_aq" : [-1.493857e4, 3.50193, -3.401929858e3, 2.92345023]
-!!         }
-!!       },
-!!       "HHSO4_aq" : {
-!!         "ions" : {
-!!           "H_pp" : {},
-!!           "HSO4m" : {}
-!!         },
-!!         "interactions" : {
-!!           "HHSO4_aq" : [-1.35e2, -32.6254e7, 32.4120],
-!!           "Na2SO4_aq" : [31.24205, -1.35e2, -32.6254e7, 32.4120],
-!!           "H2SO4_aq" : [-2.312412,  3.50193, -3.401929858e3, 2.92345023]
-!!         }
+!!     "calculate for" : {
+!!       "H-NO3" : {
+!!         "interactions" : [
+!!           {
+!!             "ion pair" : "H-NO3",
+!!             "min RH" : 0.0,
+!!             "max RH" : 0.1,
+!!             "B" : [ 0.925113 ]
+!!           },
+!!           {
+!!             "ion pair" : "H-NO3",
+!!             "min RH" : 0.1,
+!!             "max RH" : 0.4,
+!!             "B" : [ 0.12091, 13.497, -67.771, 144.01, -117.97 ]
+!!           },
+!!           {
+!!             "ion pair" : "H-NO3",
+!!             "min RH" : 0.4,
+!!             "max RH" : 0.9,
+!!             "B" : [ 1.3424, -0.8197, -0.52983, -0.37335 ]
+!!           },
+!!           {
+!!             "ion pair" : "H-NO3",
+!!             "min RH" : 0.9,
+!!             "max RH" : 1.0,
+!!             "B" : [ -0.3506505 ] 
+!!           },
+!!           {
+!!             "ion pair" : "NH4-NO3",
+!!             "min RH" : 0.0,
+!!             "max RH" : 0.1,
+!!             "B" : [ -11.93308 ]
+!!           },
+!!           {
+!!             "ion pair" : "NH4-NO3",
+!!             "min RH" : 0.1,
+!!             "max RH" : 0.99,
+!!             "B" : [ -17.0372, 59.232, -86.312, 44.04 ]
+!!           },
+!!           {
+!!             "ion pair" : "NH4-NO3",
+!!             "min RH" : 0.99,
+!!             "max RH" : 1.0,
+!!             "B" : [ -0.2599432 ] 
+!!           }
+!!         ]
 !!       }
 !!       ...
 !!     }
@@ -63,24 +76,31 @@
 !! phase for which to calculate activity coefficients. The key-value pairs
 !! \b "gas-phase water" and \b "aerosol-phase water" must also be present
 !! and specify the names for the water species in each phase. The final
-!! required key-value pair is \b "electrolytes", which should contain a set of
-!! key-value pairs where the key of each member of the set is the name of a
-!! binary electrolyte and the contents contain parameters required to estimate
-!! their activity coefficients. The name of the electrolyte must refer to an
-!! actual species in the specified aerosol phase.
+!! required key-value pair is \b "calculated for", which should contain a set
+!! of ion pairs that activity coefficients will be calculated for.
 !!
-!! Each binary electrolyte must include a set of exactly two \b "ions" that
-!! must also be present in the specified aerosol phase, must have a non-zero
-!! \b "charge" parameter and a \b "molecular weight". If a \b "qty" is not
-!! specified, it is assumed to be 1. The net charge must be zero.
+!! The key names in this set must correspond to ion pairs that are present in
+!! the specified aerosol phase. The values must contain a key-value pair
+!! named \b "interactions" which includes an array of ion-pair interactions
+!! used to calculate equation 15 in \cite{Topping2009}.
 !!
-!! Each binary electrolyte must also have an \b "interactions" parameter that
-!! has exactly one entry for every other binary electrolyte in the the
-!! PDFiTE_activity reaction, where the key is the an electrolyte name, and the
-!! value is an array containing at least one polynomial coefficient. The list
-!! must also include exactly one entry with a key name of the electrolyte
-!! itself where the parameters can be used to calculate \f$\gamma_x_0\f$
-!! (Table 5 in  \cite{Topping2009}).
+!! Each element in the \b interactions array must include an \b "ion pair"
+!! that exists in the specified aerosol phase, a \b "min RH" and \b "max RH"
+!! that specify the bounds for which the fitted curve is valid, and an array
+!! of \b B values that specify the polynomial coefficients B0, B1, B2, ...
+!! as shown in equation 19 in \cite{Topping2009}. At least one polynomial
+!! coefficient must be present.
+!!
+!! If at least one interaction with an ion pair is included, enough
+!! interactions with that ion pair must be included to cover the entire RH
+!! range (0.0-1.0). Interactions are assume to cover the range (minRH, maxRH],
+!! except for the lowest RH interaction, which covers th range [0.0, maxRH].
+!!
+!! When the interacting ion pair is the same as the ion-pair for which the
+!! mean binary activity coefficient is being calculated, the interaction
+!! parameters are used to calculate \f$ln(\gamma_A^0(RH))\f$. Otherwise, the
+!! parameters are used to calculate
+!! \f$\frac{dln(gamma_A))}{d(N_{B,M}N_{B,x})}\f$.
 !!
 !! For the above example, the following input data should be present:
 !! \code{.json}
@@ -95,49 +115,48 @@
 !!   "phase" : "AEROSOL",
 !! },  
 !! {
-!!   "name" : "Na_p",
+!!   "name" : "H_p",
 !!   "type" : "CHEM_SPEC",
 !!   "phase" : "AEROSOL",
 !!   "charge" : 1,
-!!   "molecular weight" : 22.9898
+!!   "molecular weight" : 1.008
 !! },
 !! {
-!!   "name" : "SO4_mm",
+!!   "name" : "NH4_p",
 !!   "type" : "CHEM_SPEC",
 !!   "phase" : "AEROSOL",
-!!   "charge" : -2
-!!   "molecular weight" : 96.06
+!!   "charge" : 1,
+!!   "molecular weight" : 18.04
 !! },
 !! {
-!!   "name" : "HSO4_m",
+!!   "name" : "NO3_m",
 !!   "type" : "CHEM_SPEC",
 !!   "phase" : "AEROSOL",
 !!   "charge" : -1
-!!   "molecular weight" : 97.06
+!!   "molecular weight" : 62.0049
 !! },
 !! {
-!!   "name" : "H2SO4_aq",
+!!   "name" : "NH4-NO3",
 !!   "type" : "CHEM_SPEC",
-!!   "phase" : "AEROSOL",
-!!   "molecular weight" : 98.06
+!!   "tracer type" : "ION_PAIR",
+!!   "ions" : {
+!!     "NH4_p" : {},
+!!     "NO3_m" : {}
+!!   }
 !! },
 !! {
-!!   "name" : "HHSO4_aq",
+!!   "name" : "H-NO3",
 !!   "type" : "CHEM_SPEC",
-!!   "phase" : "AEROSOL",
-!!   "note" : "this species is only present for activity calculations"
-!!   "molecular weight" : 98.06
-!! },
-!! {
-!!   "name" : "Na2SO4_aq",
-!!   "type" : "CHEM_SPEC",
-!!   "phase" : "AEROSOL",
-!!   "molecular weight" : 142.04
+!!   "tracer type" : "ION_PAIR",
+!!   "ions" : {
+!!     "H_p" : {},
+!!     "NO3_m" : {}
+!!   }
 !! },
 !! {
 !!   "name" : "my aero phase",
 !!   "type" : "AERO_PHASE",
-!!   "species" : ["Na_p", "SO4_mm", "HSO4_m", "Na2SO4_aq", "H2SO4_aq", "HHSO4_aq", "H2O_aq"]
+!!   "species" : ["H_p", "NO3_m", "NH4_p", "NH4-NO3", "H-NO3", "H2O_aq"]
 !! }
 !!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -161,30 +180,31 @@ module pmc_rxn_PDFiTE_activity
 
 #define _NUM_PHASE_ this%condensed_data_int(1)
 #define _GAS_WATER_ID_ this%condensed_data_int(2)
-#define _NUM_ELECTROLYTES_ this%condensed_data_int(3)
+#define _NUM_ION_PAIRS_ this%condensed_data_int(3)
 #define _TOTAL_INT_PARAM_ this%condensed_data_int(4)
 #define _TOTAL_FLOAT_PARAM_ this%condensed_data_int(5)
 #define _ppm_TO_RH_ this%condensed_data_real(1)
 #define _NUM_INT_PROP_ 5
 #define _NUM_REAL_PROP_ 1
 #define _PHASE_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
-#define _ELECT_INT_PARAM_LOC_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_PHASE_+x)
-#define _ELECT_FLOAT_PARAM_LOC_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_PHASE_+_NUM_ELECTROLYTES_+x)
-#define _ELECTROLYTE_ID_(x) this%condensed_data_int(_ELECT_INT_PARAM_LOC_(x))
-#define _ELECTROLYTE_ACT_ID_(x) this%condensed_data_int(_ELECT_INT_PARAM_LOC_(x)+1)
-#define _NUM_CATION_(x) this%condensed_data_int(_ELECT_INT_PARAM_LOC_(x)+2)
-#define _NUM_ANION_(x) this%condensed_data_int(_ELECT_INT_PARAM_LOC_(x)+3)
-#define _CATION_ID_(x) this%condensed_data_int(_ELECT_INT_PARAM_LOC_(x)+4)
-#define _ANION_ID_(x) this%condensed_data_int(_ELECT_INT_PARAM_LOC_(x)+5)
-#define _NUM_B_(x,y) this%condensed_data_int(_ELECT_INT_PARAM_LOC_(x)+5+y)
-#define _INTER_SPEC_ID_(x,y) this%condensed_data_int(_ELECT_INT_PARAM_LOC_(x)+5+_NUM_ELECTROLYTES_+y)
-#define _B0_LOC_(x,y) this%condensed_data_int(_ELECT_INT_PARAM_LOC_(x)+5+2*(_NUM_ELECTROLYTES_)+y)
-#define _ELECTROLYTE_MW_(x) this%condensed_data_real(_ELECT_FLOAT_PARAM_LOC_(x))
-#define _CATION_MW_(x) this%condensed_data_real(_ELECT_FLOAT_PARAM_LOC_(x)+1)
-#define _ANION_MW_(x) this%condensed_data_real(_ELECT_FLOAT_PARAM_LOC_(x)+2)
-#define _CATION_N_(x) this%condensed_data_real(_ELECT_FLOAT_PARAM_LOC_(x)+3)
-#define _ANION_N_(x) this%condensed_data_real(_ELECT_FLOAT_PARAM_LOC_(x)+4)
-#define _B_z_(x,y,z) this%condensed_data_real(_B0_LOC_(x,y)-1+z)
+#define _PAIR_INT_PARAM_LOC_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_PHASE_+x)
+#define _PAIR_FLOAT_PARAM_LOC_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_PHASE_+_NUM_ION_PAIRS_+x)
+#define _ION_PAIR_ACT_ID_(x) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x))
+#define _NUM_CATION_(x) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+1)
+#define _NUM_ANION_(x) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+2)
+#define _CATION_ID_(x) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+3)
+#define _ANION_ID_(x) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+4)
+#define _NUM_INTER_(x) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+5)
+#define _NUM_B_(x,y) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+5+y)
+#define _INTER_SPEC_ID_(x,y) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+5+_NUM_INTER_(x)+y)
+#define _INTER_SPEC_LOC_(x,y) this%condensed_data_int(_PAIR_INT_PARAM_LOC_(x)+5+2*(_NUM_INTER_(x))+y)
+#define _CATION_MW_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x))
+#define _ANION_MW_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+1)
+#define _CATION_N_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+2)
+#define _ANION_N_(x) this%condensed_data_real(_PAIR_FLOAT_PARAM_LOC_(x)+3)
+#define _MIN_RH_(x,y) this%condensed_data_real(_INTER_SPEC_LOC_(x,y))
+#define _MAX_RH_(x,y) this%condensed_data_real(_INTER_SPEC_LOC_(x,y)+1)
+#define _B_z_(x,y,z) this%condensed_data_real(_INTER_SPEC_LOC_(x,y)+1+z)
 
   public :: rxn_PDFiTE_activity_t
 
@@ -236,19 +256,20 @@ contains
     !> Aerosol representations
     class(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
 
-    type(property_t), pointer :: spec_props, electrolytes, electrolyte, &
-            sub_props, ions, interactions
+    type(property_t), pointer :: spec_props, ion_pairs, ion_pair, &
+            sub_props, ions, interactions, interaction, poly_coeffs
     character(len=:), allocatable :: key_name, water_name, spec_name, &
             phase_name, string_val, inter_spec_name
-    integer(kind=i_kind) :: n_phase, n_electrolyte, n_int_param, n_float_param
-    integer(kind=i_kind) :: i_aero_rep, i_phase, i_electrolyte, i_ion, i_spec, &
-            i_sub_prop, i_interaction
-    integer(kind=i_kind) :: qty, int_val, charge, total_charge
-    real(kind=dp) :: real_val, molecular_weight
+    integer(kind=i_kind) :: n_phase, n_ion_pair, n_int_param, n_float_param
+    integer(kind=i_kind) :: i_aero_rep, i_phase, i_ion_pair, i_ion, i_spec, &
+            i_poly_coeff, i_interaction, j_ion_pair, j_interaction
+    integer(kind=i_kind) :: qty, int_val, charge, total_charge, tracer_type
+    real(kind=dp) :: real_val, molecular_weight, min_RH, max_RH
     class(string_t), allocatable :: unique_spec_names(:)
-    character(len=:), allocatable :: electrolyte_name, ion_name
-    type(string_t), allocatable :: electrolyte_names(:)
-    integer(kind=i_kind), allocatable :: num_param(:)
+    character(len=:), allocatable :: ion_pair_name, ion_name
+    type(string_t), allocatable :: ion_pair_names(:), temp_ion_pair_names(:)
+    integer(kind=i_kind), allocatable :: num_inter(:)
+    real(kind=dp), allocatable :: rh_range(:)
 
     ! Get the reaction property set
     if (.not. associated(this%property_set)) call die_msg(101529793, &
@@ -275,84 +296,134 @@ contains
             "Aerosol phase '"//phase_name//"' not present in any aerosol "// &
             "representation for PDFiTE activity reaction.")
 
-    ! Get the electrolytes
-    key_name = "electrolytes"
+    ! Get the ion pairs to calculate mean binary activity coefficients for
+    key_name = "calculate for"
     call assert_msg(258251605, &
-            this%property_set%get_property_t(key_name, electrolytes), &
-            "Missing electrolytess in PDFiTE activity reaction.")
+            this%property_set%get_property_t(key_name, ion_pairs), &
+            "Missing ion pairs to calculate activity for in PDFiTE "// &
+            " activity reaction.")
 
-    ! Count the electrolytess
-    n_electrolyte = electrolytes%size()
-    call assert_msg(479529522, n_electrolyte .gt. 0, &
+    ! Count the ion pairs to calculate activity coefficients for
+    n_ion_pair = ion_pairs%size()
+    call assert_msg(479529522, n_ion_pair .gt. 0, &
             "Empty ion pair set in PDFiTE activity reaction.")
 
-    ! Allocate space for the electrolyte names and array to check for their
+    ! Allocate space for the ion pair names and array to check for their
     ! interaction parameters
-    allocate(electrolyte_names(n_electrolyte))
-    allocate(num_param(n_electrolyte))
+    allocate(ion_pair_names(n_ion_pair))
 
     ! Get the number of parameters required for each ion pair
-    n_int_param = _NUM_INT_PROP_ + n_phase + 2*n_electrolyte
-    n_float_param = _NUM_REAL_PROP_ + 5*n_electrolyte
-    call electrolytes%iter_reset()
-    do i_electrolyte = 1, n_electrolyte
+    ! Adding space for INT_PROPS and phase state ids
+    n_int_param = _NUM_INT_PROP_ + n_phase
+    ! Adding space for REAL_PROPS
+    n_float_param = _NUM_REAL_PROP_
+    call ion_pairs%iter_reset()
+    do i_ion_pair = 1, n_ion_pair
   
-      ! Get the name of the electrolyte
-      call assert(680654801, electrolytes%get_key(electrolyte_name))
-      electrolyte_names(i_electrolyte)%string = electrolyte_name
+      ! Get the name of the ion_pair
+      call assert(680654801, ion_pairs%get_key(ion_pair_name))
+      ion_pair_names(i_ion_pair)%string = ion_pair_name
 
-      ! Get the electrolyte properties
-      call assert_msg(287766741, electrolytes%get_property_t(val=electrolyte), &
-              "Missing electrolyte properties for '"//electrolyte_name// &
+      ! Get the ion_pair properties
+      call assert_msg(287766741, ion_pairs%get_property_t(val=ion_pair), &
+              "Missing ion pair properties for '"//ion_pair_name// &
               "' in PDFiTE activity reaction.")
 
       ! Get the interactions
       key_name = "interactions"
       call assert_msg(883233319, &
-              electrolyte%get_property_t(key_name, interactions), &
-              "Missing interaction parameters for '"//electrolyte_name// &
+              ion_pair%get_property_t(key_name, interactions), &
+              "Missing interaction parameters for '"//ion_pair_name// &
               "' in PDFiTE activity reaction.")
 
-      ! Check the number of interactions
-      call assert_msg(977304560, &
-              interactions%size().eq.n_electrolyte, &
-              "Incorrect number of interaction parameters for species '"// &
-              electrolyte_name//"' in PDFiTE activity reaction. Expected "// &
-              to_string(n_electrolyte)//" but got "//to_string(interactions%size()))
-
+      ! Loop through the interaction set and count the parameters for each
       call interactions%iter_reset()
       do i_interaction = 1, interactions%size()
 
-        ! Get the number of B_z parameters
-        call assert_msg(552282009, &
-                interactions%get_property_t(val=sub_props), &
-                "Missing polynomial coefficients for PDFiTE activity calculation "// &
-                "for electrolyte '"//electrolyte_name//"'.")
+        ! Get the current interaction
+        call assert(347348920, interactions%get_property_t(val=interaction))
 
-        call assert_msg(320927773, sub_props%size().gt.0, &
+        ! Get the name of the interacting ion pair for use in error messages
+        key_name = "ion pair"
+        call assert_msg(924945098, &
+                interaction%get_string(key_name, inter_spec_name), &
+                "Missing interaction species name for ion pair '"// &
+                ion_pair_name//"' in PD-FiTE activity reaction")
+
+        ! Get the set of polynomial coefficients
+        key_name = "B"
+        call assert_msg(157416082, &
+                interaction%get_property_t(key_name, poly_coeffs), &
+                "Missing 'B' array of polynomial coefficients for ion "// &
+                "pair '"//inter_spec_name//"' in activity coefficient "// &
+                "calculation for ion pair '"//ion_pair_name//"' in "// &
+                "PD-FiTE activity reaction.")
+
+        ! Check the number of polynomial coefficients
+        call assert_msg(320927773, poly_coeffs%size().gt.0, &
                 "Insufficient polynomial coefficients for PDFiTE activity "// &
-                "calculation for electrolyte '"//electrolyte_name//"'.")
+                "calculation for ion_pair '"//ion_pair_name//"'.")
 
-        n_float_param = n_float_param + sub_props%size()
+        ! Adding space for minRH, maxRH, B[]
+        n_float_param = n_float_param + 2 + poly_coeffs%size()
+        
+        ! Adding space for size(B[]), interacting species id, location of
+        ! interaction parameters
         n_int_param = n_int_param + 3
+
+        ! Make sure that this ion pair is in the list of ion pairs. If not,
+        ! add it to the list.
+        do j_ion_pair = 1, size(ion_pair_names)
+          if (inter_spec_name.eq.ion_pair_names(j_ion_pair)%string) exit
+          if (j_ion_pair.eq.size(ion_pair_names)) then
+            allocate(temp_ion_pair_names(j_ion_pair))
+            forall (i_spec=1:j_ion_pair)
+              temp_ion_pair_names(i_spec)%string = &
+                    ion_pair_names(i_spec)%string
+            end forall
+            deallocate(ion_pair_names)
+            allocate(ion_pair_names(j_ion_pair+1))
+            forall (i_spec=1:j_ion_pair)
+              ion_pair_names(i_spec)%string = &
+                    temp_ion_pair_names(i_spec)%string
+            end forall
+            deallocate(temp_ion_pair_names)
+            ion_pair_names(j_ion_pair+1)%string = inter_spec_name
+          end if
+        end do
 
         call interactions%iter_next()
       end do
 
-      n_int_param = n_int_param + 6
-
-      call electrolytes%iter_next()
+      call ion_pairs%iter_next()
     end do
+
+    ! Update the number of ion pairs to include those from interactions that
+    ! activity coefficients are not calculated for
+    n_ion_pair = size(ion_pair_names)
+
+    ! Adding space for locations of int and float data for each ion pair,
+    ! ion pair activity coefficient state id, number of cations and anions,
+    ! state ids of cation and anion, and the number of interactions
+    n_int_param = n_int_param + 8*n_ion_pair
+    ! Adding space for MW of the cation and anion, and cation and anion
+    ! concentrations (for use during solving)
+    n_float_param = n_float_param + 4*n_ion_pair
+    
+    ! Allocate space for an array used to make sure all ion pair interactions
+    ! are included and the RH range is covered for each
+    allocate(num_inter(n_ion_pair))
+    allocate(rh_range(n_ion_pair))
 
     ! Allocate space in the condensed data arrays
     allocate(this%condensed_data_int(n_int_param))
     allocate(this%condensed_data_real(n_float_param))
-    this%condensed_data_int(:) = int(0, kind=i_kind)
-    this%condensed_data_real(:) = real(0.0, kind=dp)
+    this%condensed_data_int(:) = int(9999, kind=i_kind)
+    this%condensed_data_real(:) = real(9999.0, kind=dp)
 
     ! Set some data dimensions
     _NUM_PHASE_  = n_phase
-    _NUM_ELECTROLYTES_ = n_electrolyte
+    _NUM_ION_PAIRS_ = n_ion_pair
     _TOTAL_INT_PARAM_ = n_int_param
     _TOTAL_FLOAT_PARAM_ = n_float_param
 
@@ -397,37 +468,34 @@ contains
             "activity reaction. Expected "//trim(to_string(_NUM_PHASE_))// &
             " but got "//trim(to_string(i_phase)))
 
-    ! Save the electrolyte parameters
-    n_int_param = _NUM_INT_PROP_ + _NUM_PHASE_ + 2*_NUM_ELECTROLYTES_
+    ! Save the ion_pair parameters
+    n_int_param = _NUM_INT_PROP_ + _NUM_PHASE_ + 2*_NUM_ION_PAIRS_
     n_float_param = _NUM_REAL_PROP_
-    call electrolytes%iter_reset()
-    do i_electrolyte = 1, n_electrolyte
+    call ion_pairs%iter_reset()
+    do i_ion_pair = 1, n_ion_pair
    
-      ! Get the name of the electrolyte
-      call assert(806720958, electrolytes%get_key(electrolyte_name))
+      ! Get the name of the ion_pair
+      ion_pair_name = ion_pair_names(i_ion_pair)%string
 
-      ! Get the electrolyte properties
-      call assert(520886936, electrolytes%get_property_t(val=electrolyte))
-
-      ! Set the location of this electrolyte's parameters in the condensed data
+      ! Set the location of this ion_pair's parameters in the condensed data
       ! arrays.
-      _ELECT_INT_PARAM_LOC_(i_electrolyte) = n_int_param + 1
-      _ELECT_FLOAT_PARAM_LOC_(i_electrolyte) = n_float_param + 1
+      _PAIR_INT_PARAM_LOC_(i_ion_pair) = n_int_param + 1
+      _PAIR_FLOAT_PARAM_LOC_(i_ion_pair) = n_float_param + 1
 
-      ! Get the state ids for this electrolyte
+      ! Get the activity coefficient state ids for this ion_pair
       i_phase = 1
       do i_aero_rep = 1, size(aero_rep)
         unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
-                phase_name = phase_name, spec_name = electrolyte_name)
+                phase_name = phase_name, spec_name = ion_pair_name)
         if (.not.allocated(unique_spec_names)) cycle
         do i_spec = 1, size(unique_spec_names)
           if (i_phase.eq.1) then
-            _ELECTROLYTE_ID_(i_electrolyte) = &
+            _ION_PAIR_ACT_ID_(i_ion_pair) = &
                     aero_rep(i_aero_rep)%val%spec_state_id( &
                     unique_spec_names(i_spec)%string) - &
                     _PHASE_ID_(i_phase)
           else
-            call assert(142173386, _ELECTROLYTE_ID_(i_electrolyte).eq. &
+            call assert(142173386, _ION_PAIR_ACT_ID_(i_ion_pair).eq. &
                     aero_rep(i_aero_rep)%val%spec_state_id( &
                     unique_spec_names(i_spec)%string) - &
                     _PHASE_ID_(i_phase))
@@ -437,35 +505,36 @@ contains
       end do
       i_phase = i_phase - 1
       call assert_msg(700406338, i_phase.eq._NUM_PHASE_, &
-              "Incorrect number of instances of ion species '"// &
-              ion_name//"' in PDFiTE activity reaction. Expected "// &
+              "Incorrect number of instances of ion pair '"// &
+              ion_pair_name//"' in PDFiTE activity reaction. Expected "// &
               trim(to_string(_NUM_PHASE_))//" but got "// &
               trim(to_string(i_phase)))
         
-      ! Get the electrolyte species properties
+      ! Get the ion_pair species properties
       call assert_msg(737691158, &
-              chem_spec_data%get_property_set(electrolyte_name, spec_props), &
-              "Missing species properties for electrolyte '"// &
-              electrolyte_name//"' in PDFiTE activity reaction.")
+              chem_spec_data%get_property_set(ion_pair_name, ion_pair), &
+              "Missing species properties for ion pair '"// &
+              ion_pair_name//"' in PDFiTE activity reaction.")
 
-      ! Set the electrolyte molecular weight
-      key_name = "molecular weight"
-      call assert_msg(380583485, &
-              spec_props%get_real(key_name, _ELECTROLYTE_MW_(i_electrolyte)), &
-              "Missing molecular weight for electrolyte '"// &
-              electrolyte_name//"' in PDFiTE activity reaction.")
+      ! Make sure the specified ion pair is of the right tracer type
+      call assert(667033398, &
+              chem_spec_data%get_type(ion_pair_name, tracer_type))
+      call assert_msg(153203913, tracer_type.eq.CHEM_SPEC_ACTIVITY_COEFF, &
+              "Ion pair '"//ion_pair_name//"' must have a tracer type '"// &
+              "ION_PAIR' to participate in a PD-FiTE activity reaction.")
 
       ! Get the number and id of the ions and their molecular weights
       key_name = "ions"
-      call assert_msg(974596824, electrolyte%get_property_t(key_name, ions), &
-              "Mission ions for electrolyte '"//electrolyte_name// &
+      call assert_msg(974596824, ion_pair%get_property_t(key_name, ions), &
+              "Mission ions for ion pair '"//ion_pair_name// &
               "' in PDFiTE activity reaction.")
 
       call assert_msg(852202160, ions%size().eq.2, &
-              "Invalid number of unique ions specified for electrolyte '"// &
-              electrolyte_name//"' in for PDFiTE in activity reaction. "// &
+              "Invalid number of unique ions specified for ion pair '"// &
+              ion_pair_name//"' in for PDFiTE in activity reaction. "// &
               "Expected 2 got "//trim(to_string(ions%size())))
 
+      ! TODO Consider moving some of the ion data validation to pmc_chem_spec_data
       call ions%iter_reset()
       total_charge = 0
       do i_ion = 1, 2
@@ -500,11 +569,11 @@ contains
                 "activity reaction.")
 
         if (charge.gt.0) then
-          _NUM_CATION_(i_electrolyte) = qty
-          _CATION_MW_(i_electrolyte) = molecular_weight
+          _NUM_CATION_(i_ion_pair) = qty
+          _CATION_MW_(i_ion_pair) = molecular_weight
         else if (charge.lt.0) then
-          _NUM_ANION_(i_electrolyte) = qty
-          _ANION_MW_(i_electrolyte) = molecular_weight
+          _NUM_ANION_(i_ion_pair) = qty
+          _ANION_MW_(i_ion_pair) = molecular_weight
         else
           call die_msg(939555855, "Neutral species '"//ion_name// &
                   "' not allowed in PDFiTE activity reaction ion pair")
@@ -520,26 +589,26 @@ contains
                   phase_name = phase_name, spec_name = ion_name)
           if (.not.allocated(unique_spec_names)) cycle
           do i_spec = 1, size(unique_spec_names)
-            if (charge.gt.1) then
+            if (charge.gt.0) then
               if (i_phase.eq.1) then
-                _CATION_ID_(i_electrolyte) = &
+                _CATION_ID_(i_ion_pair) = &
                         aero_rep(i_aero_rep)%val%spec_state_id( &
                         unique_spec_names(i_spec)%string) - &
                         _PHASE_ID_(i_phase)
               else
-                call assert(425726370, _CATION_ID_(i_electrolyte).eq. &
+                call assert(425726370, _CATION_ID_(i_ion_pair).eq. &
                         aero_rep(i_aero_rep)%val%spec_state_id( &
                         unique_spec_names(i_spec)%string) - &
                         _PHASE_ID_(i_phase))
               end if
             else
               if (i_phase.eq.1) then
-                _ANION_ID_(i_electrolyte) = &
+                _ANION_ID_(i_ion_pair) = &
                         aero_rep(i_aero_rep)%val%spec_state_id( &
                         unique_spec_names(i_spec)%string) - &
                         _PHASE_ID_(i_phase)
               else
-                call assert(192466600, _ANION_ID_(i_electrolyte).eq. &
+                call assert(192466600, _ANION_ID_(i_ion_pair).eq. &
                         aero_rep(i_aero_rep)%val%spec_state_id( &
                         unique_spec_names(i_spec)%string) - &
                         _PHASE_ID_(i_phase))
@@ -561,67 +630,172 @@ contains
       end do
     
       call assert_msg(415650051, total_charge.eq.0, &
-              "Charge imbalance for electrolyte '"//electrolyte_name// &
+              "Charge imbalance for ion_pair '"//ion_pair_name// &
               " in PDFiTE activity reaction. Total charge: "// &
               trim(to_string(total_charge)))
 
-      ! Get the interaction parameters
-      n_float_param = n_float_param + 5
-      num_param(:) = 0
-      call interactions%iter_reset()
-      do i_interaction = 1, interactions%size()
+      n_float_param = n_float_param + 4
+      n_int_param = n_int_param + 6
 
-        ! Set the location of the B_z parameters
-        _B0_LOC_(i_electrolyte, i_interaction) = n_float_param + 1
+      ! The first portion of ion_pair_names holds species for which
+      ! activity coefficients are calculated
+      if (i_ion_pair.le.ion_pairs%size()) then
+        call assert(362061689, ion_pairs%get_key(string_val))
+        call assert(444603372, string_val.eq.ion_pair_name)
 
-        ! Get the number of B_z parameters
-        call assert(329488069, interactions%get_property_t(val=sub_props))
-        _NUM_B_(i_electrolyte, i_interaction) = sub_props%size()
-          
-        ! Get the name of the interacting species
-        call assert_msg(220815620, sub_props%get_key(inter_spec_name), &
-                "Missing interacting species name for electrolyte '"// &
-                electrolyte_name//"' in PDFiTE activity reaction.")
+        ! Get the ion_pair properties
+        call assert(520886936, ion_pairs%get_property_t(val=ion_pair))
+        ! Set the number of interactions for this ion pair
+        _NUM_INTER_(i_ion_pair) = interactions%size()
 
-        ! Mark the species as having parameters and get the id of the
-        ! electrolyte
-        do i_spec = 1, size(electrolyte_names)
-          if (electrolyte_names(i_spec)%string.eq.inter_spec_name) then
-            num_param(i_spec) = num_param(i_spec) + 1
-            _INTER_SPEC_ID_(i_electrolyte,i_interaction) = i_spec
-            exit
-          end if
-        end do
+        ! Get the interaction parameters
+        num_inter(:) = 0
+        call interactions%iter_reset()
+        do i_interaction = 1, interactions%size()
 
-        ! Get the B_z parameters
-        call sub_props%iter_reset()
-        do i_sub_prop = 1, sub_props%size()
-          call assert_msg(988796931, sub_props%get_real(val=real_val), &
-                  "Invalid polynomial coefficient for electrolyte '"// &
-                  electrolyte_name//"' in PDFiTE activity reaction.")
-          _B_z_(i_electrolyte, i_interaction, i_sub_prop) = real_val
-          call sub_props%iter_next()
-        end do
+          ! Set the location of the interaction float parameters
+          _INTER_SPEC_LOC_(i_ion_pair, i_interaction) = n_float_param + 1
+
+          ! Get the current interaction
+          call assert(105466070, interactions%get_property_t(val=interaction))
+
+          ! Get the name of the interacting species
+          key_name = "ion pair"
+          call assert_msg(220815620, &
+                  interaction%get_string(key_name, inter_spec_name), &
+                  "Missing interacting species name for ion pair '"// &
+                  ion_pair_name//"' in PDFiTE activity reaction.")
+
+          ! Mark the species as having an interaction and get the id of the
+          ! ion_pair in the 'calculate for' list
+          do i_spec = 1, size(ion_pair_names)
+            if (ion_pair_names(i_spec)%string.eq.inter_spec_name) then
+              num_inter(i_spec) = num_inter(i_spec) + 1
+              _INTER_SPEC_ID_(i_ion_pair,i_interaction) = i_spec
+              exit
+            end if
+          end do
+
+          ! Set the minimum RH value
+          key_name = "min RH"
+          call assert_msg(519674084, &
+                  interaction%get_real(key_name, &
+                  _MIN_RH_(i_ion_pair, i_interaction)), &
+                  "Missing minimum RH value for ion pair '"// &
+                  ion_pair_name//"' interaction with '"//inter_spec_name// &
+                  "' in PD-FiTE activity reaction.")
+          min_RH = _MIN_RH_(i_ion_pair, i_interaction)
+          call assert_msg(294172408, &
+                  min_RH.ge.real(0.0, kind=dp).and. &
+                  min_RH.lt.real(1.0, kind=dp), &
+                  "Invalid value for minimum RH for ion pair '"// &
+                  ion_pair_name//"' interaction with '"//inter_spec_name// &
+                  "' in PD-FiTE activity reaction: "//to_string(min_RH))
+
+          ! Set the maximum RH value
+          key_name = "max RH"
+          call assert_msg(649525712, &
+                  interaction%get_real(key_name, &
+                  _MAX_RH_(i_ion_pair, i_interaction)), &
+                  "Missing maximum RH value for ion pair '"// &
+                  ion_pair_name//"' interaction with '"//inter_spec_name// &
+                  "' in PD-FiTE activity reaction.")
+          max_RH = _MAX_RH_(i_ion_pair, i_interaction)
+          call assert_msg(840423507, &
+                  max_RH.gt.real(0.0, kind=dp).and. &
+                  max_RH.le.real(1.0, kind=dp), &
+                  "Invalid value for maximum RH for ion pair '"// &
+                  ion_pair_name//"' interaction with '"//inter_spec_name// &
+                  "' in PD-FiTE activity reaction: "//to_string(max_RH))
+
+          ! Get the number of B_z parameters
+          key_name = "B"
+          call assert(981216440, &
+                  interaction%get_property_t(key_name, poly_coeffs)) 
+          _NUM_B_(i_ion_pair, i_interaction) = poly_coeffs%size()
+         
+          ! Get the B_z parameters
+          call poly_coeffs%iter_reset()
+          do i_poly_coeff = 1, poly_coeffs%size()
+            call assert_msg(988796931, poly_coeffs%get_real(val=real_val), &
+                    "Invalid polynomial coefficient for ion_pair '"// &
+                    ion_pair_name//"' interaction with '"//inter_spec_name// &
+                    "' in PDFiTE activity reaction.")
+            _B_z_(i_ion_pair, i_interaction, i_poly_coeff) = real_val
+            call poly_coeffs%iter_next()
+          end do
   
-        n_float_param = n_float_param + _NUM_B_(i_electrolyte, i_interaction)
-      
-        call interactions%iter_next()
-      end do
-      
-      ! Check that all the interactions were included exactly once
-      do i_spec = 1, size(num_param)
-        call assert_msg(793223082, num_param(i_spec).eq.1, &
-                "Incorrect number of interaction parameters between "// &
-                "electrolyte '"//electrolyte_name//"' and '"// &
-                electrolyte_names(i_spec)%string//"' in PDFiTE activity "// &
-                "reaction: "//to_string(num_param(i_spec))//".")
-      end do
+          n_float_param = n_float_param + 2 + _NUM_B_(i_ion_pair, i_interaction)
+          n_int_param = n_int_param + 3
 
-      n_int_param = n_int_param + 5 + 3*(_NUM_ELECTROLYTES_)
+          call interactions%iter_next()
+        end do
+      
+        ! Check that all the interactions were included at least once
+        do i_spec = 1, size(num_inter)
+          call assert_msg(793223082, num_inter(i_spec).ge.1, &
+                  "Missing interaction parameters between ion_pair '"// &
+                  ion_pair_name//"' and '"//ion_pair_names(i_spec)%string// &
+                  "' in PDFiTE activity reaction: "// &
+                  to_string(num_inter(i_spec))//".")
+        end do
 
-      call electrolytes%iter_next()
+        ! Make sure no interactions with the same ion pair overlap in 
+        ! their RH ranges and that the entire RH range (0.0-1.0) is covered.
+        ! Treat ranges as R = (minRH,maxRH] to avoid overlap at boundaries
+        rh_range(:) = 0.0
+        do i_interaction = 1, _NUM_INTER_(i_ion_pair)
+          
+          ! Check for RH range overlaps with other interactions with this
+          ! ion pair
+          do j_interaction = i_interaction+1, _NUM_INTER_(i_ion_pair)
+            if (_INTER_SPEC_ID_(i_ion_pair, i_interaction).ne. &
+                    _INTER_SPEC_ID_(i_ion_pair, j_interaction)) cycle
+            call assert_msg(858420675, &
+                    _MIN_RH_(i_ion_pair, i_interaction).ge. &
+                    _MAX_RH_(i_ion_pair, j_interaction).or. &
+                    _MAX_RH_(i_ion_pair, i_interaction).le. &
+                    _MIN_RH_(i_ion_pair, j_interaction), &
+                    "Overlapping RH range for interactions for ion pair '"// &
+                    ion_pair_name//"' in PD-FiTE activity reaction.")
+          end do
+
+          ! Add the constribution from this interaction to RH coverage for
+          ! the interacting ion pair
+          rh_range(_INTER_SPEC_ID_(i_ion_pair, i_interaction)) = &
+                  rh_range(_INTER_SPEC_ID_(i_ion_pair, i_interaction)) + &
+                  (_MAX_RH_(i_ion_pair, i_interaction) - &
+                   _MIN_RH_(i_ion_pair, i_interaction))
+        end do
+
+        ! Make sure the entire RH range is covered
+        do i_spec = 1, size(rh_range)
+          call assert_msg(370258071, &
+                  rh_range(i_spec).eq.real(1.0, kind=dp), &
+                  "Incomplete RH coverage for interaction with ion pair '"// &
+                  ion_pair_names(i_spec)%string//"' for '"//ion_pair_name// &
+                  "' PD-FiTE activity coefficient calculation.")
+        end do
+      
+        call ion_pairs%iter_next()
+
+      ! The last portion of ion_pair_names includes ion pairs that are
+      ! included in the interactions but for which acitivty coefficients
+      ! are not calculated
+      else
+
+        ! Set the number of interactions to zero to indicate not to calculate
+        ! activity coefficients for this ion pair
+        _NUM_INTER_(i_ion_pair) = 0
+
+      end if
+
     end do
 
+    call this%print()
+          
+    write(*,*) n_int_param, _TOTAL_INT_PARAM_
+    write(*,*) n_float_param, _TOTAL_FLOAT_PARAM_
     call assert(938415336, n_int_param.eq._TOTAL_INT_PARAM_)
     call assert(433208931, n_float_param.eq._TOTAL_FLOAT_PARAM_)
       
@@ -668,29 +842,30 @@ contains
 
 #undef _NUM_PHASE_
 #undef _GAS_WATER_ID_
-#undef _NUM_ELECTROLYTES_
+#undef _NUM_ION_PAIRS_
 #undef _TOTAL_INT_PARAM_
 #undef _TOTAL_FLOAT_PARAM_
 #undef _ppm_TO_RH_
 #undef _NUM_INT_PROP_
 #undef _NUM_REAL_PROP_
 #undef _PHASE_ID_
-#undef _ELECT_INT_PARAM_LOC_
-#undef _ELECT_FLOAT_PARAM_LOC_
-#undef _ELECTROLYTE_ID_
-#undef _ELECTROLYTE_ACT_ID_
+#undef _PAIR_INT_PARAM_LOC_
+#undef _PAIR_FLOAT_PARAM_LOC_
+#undef _ION_PAIR_ACT_ID_
 #undef _NUM_CATION_
 #undef _NUM_ANION_
 #undef _CATION_ID_
 #undef _ANION_ID_
+#undef _NUM_INTER_
 #undef _NUM_B_
 #undef _INTER_SPEC_ID_
-#undef _B0_LOC_
-#undef _ELECTROLYTE_MW_
+#undef _INTER_SPEC_LOC_
 #undef _CATION_MW_
 #undef _ANION_MW_
 #undef _CATION_N_
 #undef _ANION_N_
+#undef _MIN_RH_
+#undef _MAX_RH_
 #undef _B_z_
 
 end module pmc_rxn_PDFiTE_activity

@@ -97,20 +97,6 @@ module pmc_aero_rep_single_particle
     !! and \f$n\f$ is the total number of variables on the state array from
     !! this aerosol representation.
     procedure :: spec_state_id
-    !> Get the id on the \c pmc_phlex_state::phlex_state_t::state_var array
-    !! corresponding to a species activity coefficient by its unique name.
-    !! These are unique ids for each variable on the state array for this
-    !! \ref phlex_aero_rep  "aerosol representation" and are numbered:
-    !!
-    !!   \f$x_u = x_f ... (x_f+n-1)\f$
-    !!
-    !! where \f$x_u\f$ is the id of the element corresponding to the activity
-    !! coefficient for the species with unique name \f$u\f$ on the \c
-    !! pmc_phlex_state::phlex_state_t::state_var array, \f$x_f\f$ is the index
-    !!  of the first element for this aerosolrepresentation on the state array
-    !! and \f$n\f$ is the total number of variables on the state array from
-    !! this aerosol representation.
-    procedure :: activity_coeff_state_id
     !> Get the non-unique name of a species in this aerosol representation by
     !! id.
     procedure :: spec_name_by_id
@@ -215,10 +201,6 @@ contains
       state_size = state_size + this%aero_phase(i_phase)%val%size()
     end do
 
-    ! Include space for an activity coefficient and a species concetration
-    ! for each aerosol species
-    state_size = 2 * state_size
-
   end function get_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -230,7 +212,7 @@ contains
   !! 
   !! For a single particle representation, the unique names will be the
   !! phase name with the species name separated by a '.'
-  function unique_names(this, phase_name, spec_name)
+  function unique_names(this, phase_name, tracer_type, spec_name)
 
     !> List of unique names
     type(string_t), allocatable :: unique_names(:)
@@ -238,10 +220,13 @@ contains
     class(aero_rep_single_particle_t), intent(in) :: this
     !> Aerosol phase name
     character(len=:), allocatable, optional, intent(in) :: phase_name
+    !> Aerosol-phase species tracer type
+    integer(kind=i_kind), optional, intent(in) :: tracer_type
     !> Aerosol-phase species name
     character(len=:), allocatable, optional, intent(in) :: spec_name
 
     integer(kind=i_kind) :: num_spec, i_spec, j_spec, i_phase
+    integer(kind=i_kind) :: curr_tracer_type
     character(len=:), allocatable :: curr_phase_name, curr_spec_name
     
     ! Count the number of unique names
@@ -251,11 +236,19 @@ contains
       if (present(phase_name)) then
         if (phase_name.ne.curr_phase_name) cycle
       end if
-      if (present(spec_name)) then
+      if (present(spec_name).or.present(tracer_type)) then
         do j_spec = 1, this%aero_phase(i_phase)%val%size()
           curr_spec_name = &
                   this%aero_phase(i_phase)%val%get_species_name(j_spec)
-          if (spec_name.eq.curr_spec_name) num_spec = num_spec + 1
+          curr_tracer_type = &
+                  this%aero_phase(i_phase)%val%get_species_type(j_spec)
+          if (present(spec_name)) then
+            if (spec_name.ne.curr_spec_name) cycle
+          end if
+          if (present(tracer_type)) then
+            if (tracer_type.ne.curr_tracer_type) cycle
+          end if
+          num_spec = num_spec + 1
         end do
       else
         num_spec = num_spec + this%aero_phase(i_phase)%val%size()
@@ -274,8 +267,13 @@ contains
       do j_spec = 1, num_spec
         curr_spec_name = &
                 this%aero_phase(i_phase)%val%get_species_name(j_spec)
+        curr_tracer_type = &
+                this%aero_phase(i_phase)%val%get_species_type(j_spec)
         if (present(spec_name)) then
           if (spec_name.ne.curr_spec_name) cycle
+        end if
+        if (present(tracer_type)) then
+          if (tracer_type.ne.curr_tracer_type) cycle
         end if
         unique_names(i_spec)%string = &
                 curr_phase_name//'.'//curr_spec_name
@@ -316,50 +314,12 @@ contains
     unique_names = this%unique_names()
     do i_spec = 1, size(unique_names)
       if (unique_names(i_spec)%string .eq. unique_name) then
-        spec_id = this%phase_state_id(1) + (i_spec - 1) * 2
+        spec_id = this%phase_state_id(1) + i_spec - 1
         return
       end if
     end do
 
   end function spec_state_id
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get the id on the \c pmc_phlex_state::phlex_state_t::state_var array
-  !! corresponding to a species activity coefficient by its unique name.
-  !! These are unique ids for each variable on the state array for this
-  !! \ref phlex_aero_rep  "aerosol representation" and are numbered:
-  !!
-  !!   \f$x_u = x_f ... (x_f+n-1)\f$
-  !!
-  !! where \f$x_u\f$ is the id of the element corresponding to the activity
-  !! coefficient for the species with unique name \f$u\f$ on the \c
-  !! pmc_phlex_state::phlex_state_t::state_var array, \f$x_f\f$ is the index
-  !!  of the first element for this aerosolrepresentation on the state array
-  !! and \f$n\f$ is the total number of variables on the state array from
-  !! this aerosol representation.
-  function activity_coeff_state_id(this, unique_name) result (spec_id)
-
-    !> Species state id
-    integer(kind=i_kind) :: spec_id
-    !> Aerosol representation data
-    class(aero_rep_single_particle_t), intent(in) :: this
-    !> Unique name
-    character(len=:), allocatable, intent(in) :: unique_name
-
-    type(string_t), allocatable :: unique_names(:)
-    integer(kind=i_kind) :: i_spec
-
-    spec_id = 0
-    unique_names = this%unique_names()
-    do i_spec = 1, size(unique_names)
-      if (unique_names(i_spec)%string .eq. unique_name) then
-        spec_id = this%phase_state_id(1) + (i_spec - 1) * 2 + 1
-        return
-      end if
-    end do
-
-  end function activity_coeff_state_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -666,12 +666,12 @@ contains
       
       rep => this%aero_rep(i_rep)%val
 
-      ! Get the aerosol species
-      unique_names = rep%unique_names()
+      ! Get the ion pairs for which activity coefficients can be calculated
+      unique_names = rep%unique_names(tracer_type = CHEM_SPEC_ACTIVITY_COEFF)
 
-      ! Set the activity coefficients
+      ! Set the activity coefficients to 1.0 as default
       do i_name = 1, size(unique_names)
-        i_state_elem = rep%activity_coeff_state_id(unique_names(i_name)%string)
+        i_state_elem = rep%spec_state_id(unique_names(i_name)%string)
         new_state%state_var(i_state_elem) = real(1.0d0, kind=dp)
       end do
 
@@ -722,16 +722,13 @@ contains
       ! Set aerosol-phase species variable types and absolute tolerances
       ! TODO Move this to the aerosol representations, so they have control
       ! of their portion on the state array and what is stored there
-      do i_spec = 1, this%aero_rep(i_aero_rep)%val%size() / 2
+      do i_spec = 1, this%aero_rep(i_aero_rep)%val%size()
         i_state_var = i_state_var + 1
         spec_name = this%aero_rep(i_aero_rep)%val%spec_name_by_id(i_spec)
         call assert(709716453, &
                 this%chem_spec_data%get_abs_tol(spec_name, abs_tol(i_state_var)))
         call assert(257084300, &
                 this%chem_spec_data%get_type(spec_name, var_type(i_state_var)))
-        i_state_var = i_state_var + 1
-        abs_tol(i_state_var) = 0.0
-        var_type(i_state_var) = CHEM_SPEC_ACTIVITY_COEFF
       end do
     end do
 

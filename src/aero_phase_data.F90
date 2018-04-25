@@ -89,6 +89,8 @@ module pmc_aero_phase_data
     !! functions of the aerosol phase that cannot be obtained
     !! from the \c pmc_phlex_state::phlex_state_t object. (integer)
     integer(kind=i_kind), allocatable ::  condensed_data_int(:)
+    !> Pointer to the set of chemical species data
+    type(chem_spec_data_t), pointer :: chem_spec_data
   contains
     !> Aerosol representation initialization
     procedure :: initialize
@@ -98,7 +100,10 @@ module pmc_aero_phase_data
     procedure :: get_property_set
     !> Get the name of a species in this phase
     procedure :: get_species_name
+    !> Get the species type
+    procedure :: get_species_type
     !> Get an aerosol species id within the phase.
+    !! TODO switch to use iterators and species names instead of ids
     !!
     !! The species id \f$i_{spec} = 1...n_{spec}\f$ where \f$n_{spec}\f$ is
     !! number of species in this phase.
@@ -169,7 +174,7 @@ contains
     !> Aerosol phase data
     class(aero_phase_data_t), intent(inout) :: this
     !> Chemical species data
-    type(chem_spec_data_t), intent(in) :: chem_spec_data
+    type(chem_spec_data_t), target, intent(in) :: chem_spec_data
 
     integer(kind=i_kind) :: i_spec
 
@@ -179,6 +184,8 @@ contains
             trim(this%spec_name(i_spec)%string)//" missing in chem_spec_data.")
       end if
     end do
+
+    this%chem_spec_data => chem_spec_data
 
   end subroutine initialize
 
@@ -215,7 +222,7 @@ contains
   !> Get an aerosol phase species name
   function get_species_name(this, spec_id) result (spec_name)
 
-    !> A list of species in this phase
+    !> The name of a species in this phase
     character(len=:), allocatable :: spec_name
     !> Aerosol phase data
     class(aero_phase_data_t), intent(in) :: this
@@ -227,6 +234,25 @@ contains
     end if
 
   end function get_species_name
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get an aerosol phase species type
+  function get_species_type(this, spec_id) result (spec_type)
+
+    !> The type of a species in this phase
+    integer(kind=i_kind) :: spec_type
+    !> Aerosol phase data
+    class(aero_phase_data_t), intent(in) :: this
+    !> Index of the species in the phase
+    integer(kind=i_kind), intent(in) :: spec_id
+
+    if (spec_id.gt.0 .and. spec_id.le.this%num_spec) then
+      call assert(255786656, this%chem_spec_data%get_type( &
+            this%spec_name(spec_id)%string, spec_type))
+    end if
+
+  end function get_species_type
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

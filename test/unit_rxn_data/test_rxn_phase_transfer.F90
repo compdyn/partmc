@@ -76,10 +76,9 @@ contains
     character(len=:), allocatable :: input_file_path
     type(string_t), allocatable, dimension(:) :: output_file_path
 
-    real(kind=dp), dimension(0:NUM_TIME_STEP, 20) :: model_conc, true_conc
+    real(kind=dp), dimension(0:NUM_TIME_STEP, 11) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_phase, idx_aero_rep
-    integer(kind=i_kind) :: idx_O3, idx_O3_aq, idx_H2O2, idx_H2O2_aq, idx_H2O_aq, &
-            idx_O3_act, idx_H2O2_act, idx_H2O_act
+    integer(kind=i_kind) :: idx_O3, idx_O3_aq, idx_H2O2, idx_H2O2_aq, idx_H2O_aq
     character(len=:), allocatable :: key
     integer(kind=i_kind) :: i_time, i_spec
     real(kind=dp) :: time_step, time
@@ -146,36 +145,27 @@ contains
     idx_O3 = phlex_core%chem_spec_data%gas_state_id(key);
     key = "aqueous aerosol.O3_aq"
     idx_O3_aq = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
-    idx_O3_act = phlex_core%aero_rep(idx_aero_rep)%val%activity_coeff_state_id(key);
     key = "H2O2"
     idx_H2O2 = phlex_core%chem_spec_data%gas_state_id(key);
     key = "aqueous aerosol.H2O2_aq"
     idx_H2O2_aq = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
-    idx_H2O2_act = phlex_core%aero_rep(idx_aero_rep)%val%activity_coeff_state_id(key);
     key = "aqueous aerosol.H2O_aq"
     idx_H2O_aq = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
-    idx_H2O_act = phlex_core%aero_rep(idx_aero_rep)%val%activity_coeff_state_id(key);
 
     ! Make sure the expected species are in the model
     call assert(202593939, idx_O3.gt.0)
     call assert(262338032, idx_O3_aq.gt.0)
-    call assert(227485914, idx_O3_act.gt.0)
     call assert(374656377, idx_H2O2.gt.0)
     call assert(704441571, idx_H2O2_aq.gt.0)
-    call assert(222221607, idx_H2O2_act.gt.0)
     call assert(758921357, idx_H2O_aq.gt.0)
-    call assert(617015201, idx_H2O_act.gt.0)
 
     ! Save the initial concentrations
     true_conc(:,:) = 0.0
     true_conc(0,idx_O3) = 0.0
     true_conc(0,idx_O3_aq) = 1.0e-3
-    true_conc(:,idx_O3_act) = 1.0
     true_conc(0,idx_H2O2) = 1.0
     true_conc(0,idx_H2O2_aq) = 0.0
-    true_conc(:,idx_H2O2_act) = 1.0
     true_conc(0,idx_H2O_aq) = 1.4e-2
-    true_conc(:,idx_H2O_act) = 1.0
     model_conc(0,:) = true_conc(0,:)
 
     ! Determine the M -> ppm conversion using the total aerosol water
@@ -264,7 +254,7 @@ contains
 
     ! Analyze the results
     do i_time = 1, NUM_TIME_STEP
-      do i_spec = 1, 14
+      do i_spec = 1, 11
         ! Only check the second phase
         if (i_spec.ge.2.and.i_spec.le.8) cycle
         call assert_msg(114526423, &

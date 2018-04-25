@@ -67,9 +67,14 @@
     "phase" : "AEROSOL"
   },
   {
+    "name" : "B-C",
+    "type" : "CHEM_SPEC",
+    "tracer type" : "ION_PAIR"
+  },
+  {
     "name" : "aqueous aerosol",
     "type" : "AERO_PHASE",
-    "species" : ["A", "B", "C", "D", "E", "F", "G", "H", "H2O_aq"]
+    "species" : ["A", "B", "C", "D", "E", "F", "G", "H", "H2O_aq", "B-C"]
   },
   {
     "type" : "AERO_REP_SINGLE_PARTICLE",
@@ -94,6 +99,7 @@
 	"A" : 1.14e-2,
 	"C" : 2300.0,
 	"k_reverse" : 0.32,
+        "ion pair" : "B-C",
 	"reactants" : {
 		"A" : { "qty" : 2 }
         },

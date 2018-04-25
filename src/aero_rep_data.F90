@@ -108,20 +108,6 @@ module pmc_aero_rep_data
     !! and \f$n\f$ is the total number of variables on the state array from
     !! this aerosol representation.
     procedure(spec_state_id), deferred :: spec_state_id
-    !> Get the id on the \c pmc_phlex_state::phlex_state_t::state_var array
-    !! corresponding to a species activity coefficient by its unique name.
-    !! These are unique ids for each variable on the state array for this
-    !! \ref phlex_aero_rep  "aerosol representation" and are numbered:
-    !!
-    !!   \f$x_u = x_f ... (x_f+n-1)\f$
-    !!
-    !! where \f$x_u\f$ is the id of the element corresponding to the activity
-    !! coefficient for the species with unique name \f$u\f$ on the \c
-    !! pmc_phlex_state::phlex_state_t::state_var array, \f$x_f\f$ is the index
-    !!  of the first element for this aerosolrepresentation on the state array
-    !! and \f$n\f$ is the total number of variables on the state array from
-    !! this aerosol representation.
-    procedure(activity_coeff_state_id), deferred :: activity_coeff_state_id
     !> Get the non-unique name of a species by it's id in this aerosol
     !! representation
     procedure(spec_name_by_id), deferred :: spec_name_by_id
@@ -211,8 +197,8 @@ interface
   !> Get a list of unique names for each element on the
   !! \c pmc_phlex_state::phlex_state_t::state_var array for this aerosol
   !! representation.
-  function unique_names(this, phase_name, spec_name)
-    use pmc_util,                                     only : string_t
+  function unique_names(this, phase_name, tracer_type, spec_name)
+    use pmc_util,                                     only : string_t, i_kind
     import :: aero_rep_data_t
 
     !> List of unique names
@@ -221,6 +207,8 @@ interface
     class(aero_rep_data_t), intent(in) :: this
     !> Aerosol phase name
     character(len=:), allocatable, optional, intent(in) :: phase_name
+    !> Tracer type
+    integer(kind=i_kind), optional, intent(in) :: tracer_type
     !> Aerosol-phase species name
     character(len=:), allocatable, optional, intent(in) :: spec_name
 

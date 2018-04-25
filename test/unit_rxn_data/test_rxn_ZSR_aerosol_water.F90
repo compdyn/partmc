@@ -75,7 +75,7 @@ contains
     character(len=:), allocatable :: input_file_path
     type(string_t), allocatable, dimension(:) :: output_file_path
 
-    real(kind=dp), dimension(0:NUM_RH_STEP, 25) :: model_conc, true_conc
+    real(kind=dp), dimension(0:NUM_RH_STEP, 13) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_phase, idx_aero_rep
     integer(kind=i_kind) :: idx_H2O, idx_Na_p, idx_Na_p_act, idx_Cl_m, idx_Cl_m_act, &
            idx_Ca_pp, idx_Ca_pp_act, idx_H2O_aq,  idx_H2O_act
@@ -126,39 +126,27 @@ contains
     idx_H2O = phlex_core%chem_spec_data%gas_state_id(key);
     key = "aqueous aerosol.H2O_aq"
     idx_H2O_aq = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
-    idx_H2O_act = phlex_core%aero_rep(idx_aero_rep)%val%activity_coeff_state_id(key);
     key = "aqueous aerosol.Na_p"
     idx_Na_p = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
-    idx_Na_p_act = phlex_core%aero_rep(idx_aero_rep)%val%activity_coeff_state_id(key);
     key = "aqueous aerosol.Cl_m"
     idx_Cl_m = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
-    idx_Cl_m_act = phlex_core%aero_rep(idx_aero_rep)%val%activity_coeff_state_id(key);
     key = "aqueous aerosol.Ca_pp"
     idx_Ca_pp = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
-    idx_Ca_pp_act = phlex_core%aero_rep(idx_aero_rep)%val%activity_coeff_state_id(key);
 
     ! Make sure the expected species are in the model
     call assert(213525011, idx_H2O.gt.0)
     call assert(943368106, idx_H2O_aq.gt.0)
-    call assert(155686452, idx_H2O_act.gt.0)
     call assert(202996397, idx_Na_p.gt.0)
-    call assert(315314742, idx_Na_p_act.gt.0)
     call assert(427633087, idx_Cl_m.gt.0)
-    call assert(487377180, idx_Cl_m_act.gt.0)
     call assert(317220276, idx_Ca_pp.gt.0)
-    call assert(147063372, idx_Ca_pp_act.gt.0)
 
     ! Save the initial concentrations
     true_conc(:,:) = 0.0
     true_conc(:,idx_H2O) = 0.0
     true_conc(:,idx_H2O_aq) = 0.0
-    true_conc(:,idx_H2O_act) = 1.0
     true_conc(:,idx_Na_p) = 2.5
-    true_conc(:,idx_Na_p_act) = 1.0
     true_conc(:,idx_Cl_m) = 5.3
-    true_conc(:,idx_Cl_m_act) = 0.0
     true_conc(:,idx_Ca_pp) = 1.3
-    true_conc(:,idx_Ca_pp_act) = 0.0
     model_conc(:,:) = true_conc(:,:)
 
     ! Set up the ppm->RH (0-1) conversion
@@ -219,7 +207,7 @@ contains
 
     ! Analyze the results
     do i_RH = 1, NUM_RH_STEP
-      do i_spec = 1, 17
+      do i_spec = 1, 13
         ! Skip the first aerosol phase
         if (i_spec.ge.2.and.i_spec.le.9) cycle
         call assert_msg(106356995, &

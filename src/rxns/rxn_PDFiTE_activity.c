@@ -18,30 +18,31 @@
 
 #define _NUM_PHASE_ (int_data[0])
 #define _GAS_WATER_ID_ (int_data[1]-1)
-#define _NUM_ELECTROLYTES_ (int_data[2])
+#define _NUM_ION_PAIRS_ (int_data[2])
 #define _INT_DATA_SIZE_ (int_data[3])
 #define _FLOAT_DATA_SIZE_ (int_data[4])
 #define _ppm_TO_RH_ (float_data[0])
 #define _NUM_INT_PROP_ 5
 #define _NUM_REAL_PROP_ 1
 #define _PHASE_ID_(x) (int_data[_NUM_INT_PROP_+x]-1)
-#define _ELECT_INT_PARAM_LOC_(x) (int_data[_NUM_INT_PROP_+_NUM_PHASE_+x]-1)
-#define _ELECT_FLOAT_PARAM_LOC_(x) (int_data[_NUM_INT_PROP_+_NUM_PHASE_+_NUM_ELECTROLYTES_+x]-1)
-#define _ELECTROLYTE_ID_(x) (int_data[_ELECT_INT_PARAM_LOC_(x)]-1)
-#define _ELECTROLYTE_ACT_ID_(x) (int_data[_ELECT_INT_PARAM_LOC_(x)+1]-1)
-#define _NUM_CATION_(x) (int_data[_ELECT_INT_PARAM_LOC_(x)+2])
-#define _NUM_ANION_(x) (int_data[_ELECT_INT_PARAM_LOC_(x)+3])
-#define _CATION_ID_(x) (int_data[_ELECT_INT_PARAM_LOC_(x)+4])
-#define _ANION_ID_(x) (int_data[_ELECT_INT_PARAM_LOC_(x)+5])
-#define _NUM_B_(x,y) (int_data[_ELECT_INT_PARAM_LOC_(x)+6+y])
-#define _INTER_SPEC_ID_(x,y) (int_data[_ELECT_INT_PARAM_LOC_(x)+6+_NUM_ELECTROLYTES_+y]-1)
-#define _B0_LOC_(x,y) (int_data[_ELECT_INT_PARAM_LOC_(x)+6+2*(_NUM_ELECTROLYTES_)+y])
-#define _ELECTROLYTE_MW_(x) (float_data[_ELECT_FLOAT_PARAM_LOC_(x)])
-#define _CATION_MW_(x) (float_data[_ELECT_FLOAT_PARAM_LOC_(x)+1])
-#define _ANION_MW_(x) (float_data[_ELECT_FLOAT_PARAM_LOC_(x)+2])
-#define _CATION_N_(x) (float_data[_ELECT_FLOAT_PARAM_LOC_(x)+3])
-#define _ANION_N_(x) (float_data[_ELECT_FLOAT_PARAM_LOC_(x)+4])
-#define _B_z_(x,y,z) (float_data[_B0_LOC_(x,y)+z])
+#define _PAIR_INT_PARAM_LOC_(x) (int_data[_NUM_INT_PROP_+_NUM_PHASE_+x]-1)
+#define _PAIR_FLOAT_PARAM_LOC_(x) (int_data[_NUM_INT_PROP_+_NUM_PHASE_+_NUM_ION_PAIRS_+x]-1)
+#define _ION_PAIR_ACT_ID_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)]-1)
+#define _NUM_CATION_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+1])
+#define _NUM_ANION_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+2])
+#define _CATION_ID_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+3])
+#define _ANION_ID_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+4])
+#define _NUM_INTER_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+5])
+#define _NUM_B_(x,y) (int_data[_PAIR_INT_PARAM_LOC_(x)+6+y])
+#define _INTER_SPEC_ID_(x,y) (int_data[_PAIR_INT_PARAM_LOC_(x)+6+_NUM_INTER_(x)+y]-1)
+#define _INTER_SPEC_LOC_(x,y) (int_data[_PAIR_INT_PARAM_LOC_(x)+6+2*(_NUM_INTER_(x))+y])
+#define _CATION_MW_(x) (float_data[_PAIR_FLOAT_PARAM_LOC_(x)])
+#define _ANION_MW_(x) (float_data[_PAIR_FLOAT_PARAM_LOC_(x)+1])
+#define _CATION_N_(x) (float_data[_PAIR_FLOAT_PARAM_LOC_(x)+2])
+#define _ANION_N_(x) (float_data[_PAIR_FLOAT_PARAM_LOC_(x)+3])
+#define _MIN_RH_(x,y) (float_data[_INTER_SPEC_LOC_(x,y)])
+#define _MAX_RH_(x,y) (float_data[_INTER_SPEC_LOC_(x,y)+1])
+#define _B_z_(x,y,z) (float_data[_INTER_SPEC_LOC_(x,y)+2+z])
 
 
 /** \brief Flag Jacobian elements used by this reaction
@@ -118,62 +119,71 @@ void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
   // Calculate the water activity---i.e., relative humidity (0-1)
   realtype a_w = _ppm_TO_RH_ * state[_GAS_WATER_ID_];
 
-  // Calculate electrolyte activity coefficients in each phase
+  // Calculate ion_pair activity coefficients in each phase
   for (int i_phase=0; i_phase<_NUM_PHASE_; i_phase++) {
 
     // Initialize omega' (defined below)
     realtype omega_prime = 0.0;
     
     // Calculate the number of moles of each ion and omega' for the phase
-    for (int i_electrolyte=0; i_electrolyte<_NUM_ELECTROLYTES_; i_electrolyte++) {
+    for (int i_ion_pair=0; i_ion_pair<_NUM_ION_PAIRS_; i_ion_pair++) {
       
       // N (mol_i/m3) = c_i (ug/m3) / 10^6 (ug/g) / MW_i (ug/umol) 
-      _CATION_N_(i_electrolyte) = state[_PHASE_ID_(i_phase)+_CATION_ID_(i_electrolyte)]
-	      /_CATION_MW_(i_electrolyte)/1000000.0;
-      _ANION_N_(i_electrolyte) = state[_PHASE_ID_(i_phase)+_ANION_ID_(i_electrolyte)]
-	      /_ANION_MW_(i_electrolyte)/1000000.0;
+      _CATION_N_(i_ion_pair) = state[_PHASE_ID_(i_phase)+_CATION_ID_(i_ion_pair)]
+	      /_CATION_MW_(i_ion_pair)/1000000.0;
+      _ANION_N_(i_ion_pair) = state[_PHASE_ID_(i_phase)+_ANION_ID_(i_ion_pair)]
+	      /_ANION_MW_(i_ion_pair)/1000000.0;
 
       // Calculate omega' (eq. 14 in \cite{Topping2009}) as
       //   v_e^C = 2 * ( v_cation + v_anion) * N_cation * N_anion
       // where v_x is the stoichiometric coefficient for species x in
-      // the electrolyte and N_x is its concentration summed across all
-      // electrolytes.
+      // the ion_pair and N_x is its concentration summed across all
+      // ion_pairs.
       // For each activity coefficient
       //   omega = omega' - omega_x
-      // where omega_x is the contribution of electrolyte x to omega'
-      omega_prime += 2.0 * ( _NUM_CATION_(i_electrolyte) + 
-          _NUM_ANION_(i_electrolyte) ) * _CATION_N_(i_electrolyte) * 
-          _ANION_N_(i_electrolyte);
+      // where omega_x is the contribution of ion_pair x to omega'
+      omega_prime += 2.0 * ( _NUM_CATION_(i_ion_pair) + 
+          _NUM_ANION_(i_ion_pair) ) * _CATION_N_(i_ion_pair) * 
+          _ANION_N_(i_ion_pair);
     
-    } // Loop on primary electrolyte
+    } // Loop on primary ion_pair
 
     // Calculate the activity coefficient
-    for (int i_electrolyte=0; i_electrolyte<_NUM_ELECTROLYTES_; i_electrolyte++) {
+    for (int i_ion_pair=0; i_ion_pair<_NUM_ION_PAIRS_; i_ion_pair++) {
+
+      // If there are no interactions, the remaining ion pairs will not
+      // have activity calculations (they only participate in interactions)
+      if (_NUM_INTER_(i_ion_pair)==0) break;
 
       // Initialize ln(gamma)
       realtype ln_gamma = 0.0;
 
-      // Add contributions from each interacting electrolyte
-      for (int i_inter=0; i_inter<_NUM_ELECTROLYTES_; i_inter++) {
+      // Add contributions from each interacting ion_pair
+      for (int i_inter=0; i_inter<_NUM_INTER_(i_ion_pair); i_inter++) {
 
-        // Get the electrolyte id of the interacting species
-        int j_electrolyte = _INTER_SPEC_ID_(i_electrolyte, i_inter);
+        // Only include interactions in the correct RH range
+        // where the range is in (minRH, maxRH]
+        if (a_w<=_MIN_RH_(i_ion_pair, i_inter) || 
+                  a_w>_MAX_RH_(i_ion_pair, i_inter)) continue;
 
-        // Calculate omega for this electrolyte
+        // Get the ion_pair id of the interacting species
+        int j_ion_pair = _INTER_SPEC_ID_(i_ion_pair, i_inter);
+
+        // Calculate omega for this ion_pair
         // (eq. 15 in \cite{Topping2009})
-        realtype omega = omega_prime - 2.0 * ( _NUM_CATION_(i_electrolyte) + 
-        _NUM_ANION_(i_electrolyte) ) * _CATION_N_(i_electrolyte) * 
-        _ANION_N_(i_electrolyte);
+        realtype omega = omega_prime - 2.0 * ( _NUM_CATION_(i_ion_pair) + 
+        _NUM_ANION_(i_ion_pair) ) * _CATION_N_(i_ion_pair) * 
+        _ANION_N_(i_ion_pair);
 
         // Calculate ln_gamma_inter
         realtype ln_gamma_inter = 0.0;
-        for (int i_B=0; i_B<_NUM_B_(i_electrolyte, i_inter); i_B++) {
-          ln_gamma_inter += _B_z_(i_electrolyte, i_inter, i_B) * pow(a_w, i_B);
+        for (int i_B=0; i_B<_NUM_B_(i_ion_pair, i_inter); i_B++) {
+          ln_gamma_inter += _B_z_(i_ion_pair, i_inter, i_B) * pow(a_w, i_B);
         }
 
         // If this is the "self" interaction, ln_gamma_inter is ln(gamma_0A)
         // (eq. 15 in \cite{Topping2009})
-        if (i_electrolyte == j_electrolyte) {
+        if (i_ion_pair == j_ion_pair) {
          
           // Add contribution to ln(gamma_A) from ln(gamma_0A)
           ln_gamma += ln_gamma_inter;
@@ -182,18 +192,18 @@ void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
         // (eq. 15 in \cite{Topping2009})
         else {
       
-          // Add contribution to ln(gamma_A) from interacting electrolyte
-          ln_gamma += ln_gamma_inter * _CATION_N_(j_electrolyte) *
-                   _ANION_N_(j_electrolyte) / omega;
+          // Add contribution to ln(gamma_A) from interacting ion_pair
+          ln_gamma += ln_gamma_inter * _CATION_N_(j_ion_pair) *
+                   _ANION_N_(j_ion_pair) / omega;
 
         }
 
-      } // Loop on interacting electrolytes
+      } // Loop on interacting ion_pairs
 
-      // Set the electrolyte activity
-      state[_ELECTROLYTE_ACT_ID_(i_electrolyte)] = exp(ln_gamma);
+      // Set the ion_pair activity
+      state[_ION_PAIR_ACT_ID_(i_ion_pair)] = exp(ln_gamma);
 
-    } // Loop on primary electrolytes
+    } // Loop on primary ion_pairs
 
   } // Loop on aerosol phases
 
@@ -292,28 +302,30 @@ void * rxn_PDFiTE_activity_get_rate(void *rxn_data, realtype *state, realtype *e
 
 #undef _NUM_PHASE_
 #undef _GAS_WATER_ID_
-#undef _NUM_ELECTROLYTES_
+#undef _NUM_ION_PAIRS_
 #undef _INT_DATA_SIZE_
 #undef _FLOAT_DATA_SIZE_
 #undef _ppm_TO_RH_
 #undef _NUM_INT_PROP_
 #undef _NUM_REAL_PROP_
 #undef _PHASE_ID_
-#undef _ELECT_INT_PARAM_LOC_
-#undef _ELECT_FLOAT_PARAM_LOC_
-#undef _ELECTROLYTE_ID_
-#undef _ELECTROLYTE_ACT_ID_
+#undef _PAIR_INT_PARAM_LOC_
+#undef _PAIR_FLOAT_PARAM_LOC_
+#undef _ION_PAIR_ACT_ID_
 #undef _NUM_CATION_
 #undef _NUM_ANION_
 #undef _CATION_ID_
 #undef _ANION_ID_
+#undef _NUM_INTER_
 #undef _NUM_B_
-#undef _B0_LOC_
-#undef _ELECTROLYTE_MW_
+#undef _INTER_SPEC_ID_
+#undef _INTER_SPEC_LOC_
 #undef _CATION_MW_
 #undef _ANION_MW_
 #undef _CATION_N_
 #undef _ANION_N_
+#undef _MIN_RH_
+#undef _MAX_RH_
 #undef _B_z_
 
 #endif

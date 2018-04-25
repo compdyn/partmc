@@ -35,6 +35,7 @@
 !!     "phase" : "my aqueous phase",
 !!     "time unit" : "MIN",
 !!     "aqueous-phase water" : "H2O_aq",
+!!     "ion pair" : "spec3-spec4",
 !!     "reactants" : {
 !!       "spec1" : {},
 !!       "spec2" : { "qty" : 2 },
@@ -53,11 +54,14 @@
 !! reaction equation. Reactant and product species must be present in the
 !! specified phase and include a \b "molecular weight" parameter. The
 !! parameter \b  "aqueous-phase water" is required and must be the name of the
-!! aerosol-phase species that is used for water.
+!! aerosol-phase species that is used for water. The parameter \b "ion pair"
+!! is optional. When it is include its value must be the name of an ion pair
+!! that is present in the specified aerosol phase. Its mean binary activity
+!! coefficient will be applied to the reverse reaction.
 !!
-!! When \b A is not included, it is assumed
-!! to be 1.0, when \b C is not included, it is assumed to be 0.0. The reverse
-!! reaction rate constant \b k_reverse is required.
+!! When \b A is not included, it is assumed to be 1.0, when \b C is not
+!! included, it is assumed to be 0.0. The reverse reaction rate constant
+!! \b k_reverse is required.
 !!
 !! The unit for time is assumed to be s, but inclusion of the optional 
 !! key-value pair \b "time unit" = "MIN" can be used to indicate a rate
@@ -92,13 +96,11 @@ module pmc_rxn_aqueous_equilibrium
 #define _NUM_INT_PROP_ 3
 #define _NUM_REAL_PROP_ 4
 #define _REACT_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
-#define _REACT_ACT_COEFF_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_REACT_*_NUM_AERO_PHASE_+x)
-#define _PROD_(x) this%condensed_data_int(_NUM_INT_PROP_+2*_NUM_REACT_*_NUM_AERO_PHASE_+x)
-#define _PROD_ACT_COEFF_(x) this%condensed_data_int(_NUM_INT_PROP_+(_NUM_PROD_+2*_NUM_REACT_)*_NUM_AERO_PHASE_+x)
-#define _WATER_(x) this%condensed_data_int(_NUM_INT_PROP_+2*(_NUM_REACT_+_NUM_PROD_)*_NUM_AERO_PHASE_+x)
-#define _WATER_ACT_COEFF_(x) this%condensed_data_int(_NUM_INT_PROP_+(2*(_NUM_REACT_+_NUM_PROD_)+1)*_NUM_AERO_PHASE_+x)
-#define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+(2*(_NUM_REACT_+_NUM_PROD_)+2)*_NUM_AERO_PHASE_+x)
-#define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+(3*(_NUM_REACT_+_NUM_PROD_)+2)*_NUM_AERO_PHASE_+x)
+#define _PROD_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_REACT_*_NUM_AERO_PHASE_+x)
+#define _WATER_(x) this%condensed_data_int(_NUM_INT_PROP_+(_NUM_REACT_+_NUM_PROD_)*_NUM_AERO_PHASE_+x)
+#define _ACTIVITY_COEFF_(x) this%condensed_data_int(_NUM_INT_PROP_+(_NUM_REACT_+_NUM_PROD_+1)*_NUM_AERO_PHASE_+x)
+#define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+(_NUM_REACT_+_NUM_PROD_+2)*_NUM_AERO_PHASE_+x)
+#define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+(2*(_NUM_REACT_+_NUM_PROD_)+2)*_NUM_AERO_PHASE_+x)
 #define _mass_frac_TO_M_(x) this%condensed_data_real(_NUM_REAL_PROP_+x)
 
   public :: rxn_aqueous_equilibrium_t
@@ -153,7 +155,7 @@ contains
 
     type(property_t), pointer :: spec_props, reactants, products
     character(len=:), allocatable :: key_name, spec_name, water_name, phase_name, &
-            string_val
+            string_val, ion_pair_name
     integer(kind=i_kind) :: i_spec, j_spec, i_qty, i_aero_rep, i_aero_phase, n_aero_ids
     integer(kind=i_kind) :: i_aero_id, num_spec_per_phase, num_phase, num_react, num_prod
     class(string_t), allocatable :: unique_names(:)
@@ -161,7 +163,7 @@ contains
     integer(kind=i_kind), allocatable :: aero_spec_ids(:)
     integer(kind=i_kind), allocatable :: water_spec_ids(:)
 
-    integer(kind=i_kind) :: temp_int
+    integer(kind=i_kind) :: temp_int, tracer_type
     real(kind=dp) :: temp_real, N_star
 
     ! Get the property set
@@ -249,7 +251,7 @@ contains
 
     ! Allocate space in the condensed data arrays
     allocate(this%condensed_data_int(_NUM_INT_PROP_ + &
-            num_phase * (num_spec_per_phase * (num_spec_per_phase + 4) + 2)))
+            num_phase * (num_spec_per_phase * (num_spec_per_phase + 3) + 2)))
     allocate(this%condensed_data_real(_NUM_REAL_PROP_ + &
             num_spec_per_phase))
     this%condensed_data_int(:) = int(0, kind=i_kind)
@@ -358,6 +360,13 @@ contains
 
     end do
 
+    ! Check for an ion pair to use for the activity coefficient of the reverse
+    ! reaction
+    key_name = "ion pair"
+    if (.not. this%property_set%get_string(key_name, ion_pair_name)) then
+        ion_pair_name = ""
+    end if
+
     ! Set the state array indices for the reactants, products and water
     i_aero_phase = 0
     do i_aero_rep = 1, size(aero_rep)
@@ -373,14 +382,45 @@ contains
       ! each product and reactant
       num_phase = size(unique_names)
 
-      ! Save the state ids for aerosol water concentration and activity coeff.
+      ! Save the state ids for aerosol water concentration
       do i_spec = 1, num_phase
         _WATER_(i_aero_phase + i_spec) = aero_rep(i_aero_rep)%val%spec_state_id( &
                 unique_names(i_spec)%string)
-        _WATER_ACT_COEFF_(i_aero_phase + i_spec) = &
-                aero_rep(i_aero_rep)%val%activity_coeff_state_id( &
-                unique_names(i_spec)%string)
       end do
+
+      ! If an ion pair was specified, save its id for each phase instance
+      if (ion_pair_name.ne."") then
+     
+        ! Get the unique names for the ion pair
+        unique_names = aero_rep(i_aero_rep)%val%unique_names( &
+                phase_name = phase_name, spec_name = ion_pair_name)
+
+        ! Make sure the right number of instances are present
+        call assert_msg(298310186, size(unique_names).eq.num_phase, &
+                "Incorrect instances of ion pair '"//ion_pair_name// &
+                "' in phase '"//phase_name// &
+                "' in an aqueous equilibrium reaction")
+
+        ! Make sure the specified ion pair is of the right tracer type
+        call assert(690720371, &
+                chem_spec_data%get_type(ion_pair_name, tracer_type))
+        call assert_msg(450743055, tracer_type.eq.CHEM_SPEC_ACTIVITY_COEFF, &
+                "Ion pair '"//ion_pair_name//"' must have type "// &
+                "'ION_PAIR' to be used as an ion pair in an aqueous "// &
+                "equilibrium reaction.")
+
+        ! Save the ion pair id
+        do i_spec = 1, num_phase
+          _ACTIVITY_COEFF_(i_aero_phase + i_spec) = &
+                  aero_rep(i_aero_rep)%val%spec_state_id( &
+                  unique_names(i_spec)%string)
+        end do
+
+      else
+        do i_spec = 1, num_phase
+          _ACTIVITY_COEFF_(i_aero_phase + i_spec) = 0
+        end do
+      end if
 
       ! Loop through the reactants
       do i_spec = 1, _NUM_REACT_
@@ -394,14 +434,11 @@ contains
                 "Incorrect instances of reactant '"//react_names(i_spec)%string// &
                 "' in phase '"//phase_name//"' in an aqueous equilibrium reaction")
 
-        ! Save the state ids for the reactant concentration and activity coeff.
+        ! Save the state ids for the reactant concentration
         ! IDs are grouped by phase instance: R1(phase1), R2(phase1), ..., R1(phase2)...
         do j_spec = 1, num_phase
           _REACT_((i_aero_phase+j_spec-1)*_NUM_REACT_ + i_spec) = &
                   aero_rep(i_aero_rep)%val%spec_state_id( &
-                  unique_names(j_spec)%string)
-          _REACT_ACT_COEFF_((i_aero_phase+j_spec-1)*_NUM_REACT_ + i_spec) = &
-                  aero_rep(i_aero_rep)%val%activity_coeff_state_id( &
                   unique_names(j_spec)%string)
         end do
       end do
@@ -418,14 +455,11 @@ contains
                 "Incorrect instances of product '"//prod_names(i_spec)%string// &
                 "' in phase '"//phase_name//"' in an aqueous equilibrium reaction")
 
-        ! Save the state ids for the product concentration and activity coeff.
+        ! Save the state ids for the product concentration
         ! IDs are grouped by phase instance: P1(phase1), P2(phase1), ..., P1(phase2)...
         do j_spec = 1, num_phase
           _PROD_((i_aero_phase+j_spec-1)*_NUM_PROD_ + i_spec) = &
                   aero_rep(i_aero_rep)%val%spec_state_id( &
-                  unique_names(j_spec)%string)
-          _PROD_ACT_COEFF_((i_aero_phase+j_spec-1)*_NUM_PROD_ + i_spec) = &
-                  aero_rep(i_aero_rep)%val%activity_coeff_state_id( &
                   unique_names(j_spec)%string)
         end do
       end do
@@ -486,11 +520,9 @@ contains
 #undef _NUM_INT_PROP_
 #undef _NUM_REAL_PROP_
 #undef _REACT_
-#undef _REACT_ACT_COEFF_
 #undef _PROD_
-#undef _PROD_ACT_COEFF_
 #undef _WATER_
-#undef _WATER_ACT_COEFF_
+#undef _ACTIVITY_COEFF_
 #undef _DERIV_ID_
 #undef _JAC_ID_
 #undef _mass_frac_TO_M_

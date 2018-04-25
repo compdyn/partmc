@@ -29,15 +29,13 @@
 #define _NUM_INT_PROP_ 3
 #define _NUM_FLOAT_PROP_ 4
 #define _REACT_(x) (int_data[_NUM_INT_PROP_+x]-1)
-#define _REACT_ACT_COEFF_(x) (int_data[_NUM_INT_PROP_+_NUM_REACT_*_NUM_AERO_PHASE_+x]-1)
-#define _PROD_(x) (int_data[_NUM_INT_PROP_+2*(_NUM_REACT_*_NUM_AERO_PHASE_)+x]-1)
-#define _PROD_ACT_COEFF_(x) (int_data[_NUM_INT_PROP_+(_NUM_PROD_+2*_NUM_REACT_)*_NUM_AERO_PHASE_+x]-1)
-#define _WATER_(x) (int_data[_NUM_INT_PROP_+2*(_NUM_REACT_+_NUM_PROD_)*_NUM_AERO_PHASE_+x]-1)
-#define _WATER_ACT_COEFF_(x) (int_data[_NUM_INT_PROP_+(2*(_NUM_REACT_+_NUM_PROD_)+1)*_NUM_AERO_PHASE_+x]-1)
-#define _DERIV_ID_(x) (int_data[_NUM_INT_PROP_+(2*(_NUM_REACT_+_NUM_PROD_)+2)*_NUM_AERO_PHASE_+x])
-#define _JAC_ID_(x) (int_data[_NUM_INT_PROP_+(3*(_NUM_REACT_+_NUM_PROD_)+2)*_NUM_AERO_PHASE_+x])
+#define _PROD_(x) (int_data[_NUM_INT_PROP_+_NUM_REACT_*_NUM_AERO_PHASE_+x]-1)
+#define _WATER_(x) (int_data[_NUM_INT_PROP_+(_NUM_REACT_+_NUM_PROD_)*_NUM_AERO_PHASE_+x]-1)
+#define _ACTIVITY_COEFF_(x) (int_data[_NUM_INT_PROP_+(_NUM_REACT_+_NUM_PROD_+1)*_NUM_AERO_PHASE_+x]-1)
+#define _DERIV_ID_(x) (int_data[_NUM_INT_PROP_+(_NUM_REACT_+_NUM_PROD_+2)*_NUM_AERO_PHASE_+x])
+#define _JAC_ID_(x) (int_data[_NUM_INT_PROP_+(2*(_NUM_REACT_+_NUM_PROD_)+2)*_NUM_AERO_PHASE_+x])
 #define _mass_frac_TO_M_(x) (float_data[_NUM_FLOAT_PROP_+x])
-#define _INT_DATA_SIZE_ (_NUM_INT_PROP_+((_NUM_REACT_+_NUM_PROD_)*(_NUM_REACT_+_NUM_PROD_+4)+2)*_NUM_AERO_PHASE_)
+#define _INT_DATA_SIZE_ (_NUM_INT_PROP_+((_NUM_REACT_+_NUM_PROD_)*(_NUM_REACT_+_NUM_PROD_+3)+2)*_NUM_AERO_PHASE_)
 #define _FLOAT_DATA_SIZE_ (_NUM_FLOAT_PROP_+_NUM_PROD_+_NUM_REACT_)
 
 /** \brief Flag Jacobian elements used by this reaction
@@ -206,15 +204,15 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data, realtyp
     realtype forward_rate = _k_forward_;
     for (int i_react = 0; i_react < _NUM_REACT_; i_react++)
 	    forward_rate *= state[_REACT_(i_phase*_NUM_REACT_+i_react)] * 
-		    state[_REACT_ACT_COEFF_(i_phase*_NUM_REACT_+i_react)] *
 		    _mass_frac_TO_M_(i_react) / state[_WATER_(i_phase)];
 
     // Calculate the reverse rate (M/s)
     realtype reverse_rate = _k_reverse_;
     for (int i_prod = 0; i_prod < _NUM_PROD_; i_prod++)
 	    reverse_rate *= state[_PROD_(i_phase*_NUM_PROD_+i_prod)] * 
-		    state[_PROD_ACT_COEFF_(i_phase*_NUM_PROD_+i_prod)] *
 		    _mass_frac_TO_M_(_NUM_REACT_+i_prod) / state[_WATER_(i_phase)];
+    if (_ACTIVITY_COEFF_(i_phase)>=0) reverse_rate *= 
+            state[_ACTIVITY_COEFF_(i_phase)];
 
     // Reactants change as (reverse - forward) (ug/m3/s)
     for (int i_react = 0; i_react < _NUM_REACT_; i_react++) {
@@ -264,15 +262,15 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data, realtype 
     realtype forward_rate = _k_forward_;
     for (int i_react = 0; i_react < _NUM_REACT_; i_react++)
 	    forward_rate *= state[_REACT_(i_phase*_NUM_REACT_+i_react)] * 
-		    state[_REACT_ACT_COEFF_(i_phase*_NUM_REACT_+i_react)] *
 		    _mass_frac_TO_M_(i_react) / state[_WATER_(i_phase)];
 
     // Calculate the reverse rate (M/s)
     realtype reverse_rate = _k_reverse_;
     for (int i_prod = 0; i_prod < _NUM_PROD_; i_prod++)
 	    reverse_rate *= state[_PROD_(i_phase*_NUM_PROD_+i_prod)] * 
-		    state[_PROD_ACT_COEFF_(i_phase*_NUM_PROD_+i_prod)] *
 		    _mass_frac_TO_M_(_NUM_REACT_+i_prod) / state[_WATER_(i_phase)];
+    if (_ACTIVITY_COEFF_(i_phase)>=0) reverse_rate *= 
+            state[_ACTIVITY_COEFF_(i_phase)];
 
     // No Jac contributions to add if the rates are zero
     if ((forward_rate - reverse_rate)==0.0) {
@@ -392,11 +390,9 @@ void * rxn_aqueous_equilibrium_get_rate(void *rxn_data, realtype *state, realtyp
 #undef _NUM_INT_PROP_
 #undef _NUM_FLOAT_PROP_
 #undef _REACT_
-#undef _REACT_ACT_COEFF_
 #undef _PROD_
-#undef _PROD_ACT_COEFF_
 #undef _WATER_
-#undef _WATER_ACT_COEFF_
+#undef _ACTIVITY_COEFF_
 #undef _DERIV_ID_
 #undef _JAC_ID_
 #undef _mass_frac_TO_M_

@@ -1,0 +1,192 @@
+{
+  "note" : "Test case for the PD-FiTE activity coefficient taken from equations 16 and 17",
+  "note1" : "and data in tables 3-5 in Topping et al., 2009",
+  "pmc-data" : [
+  {
+    "name" : "H2O",
+    "type" : "CHEM_SPEC"
+  },
+  {
+    "name" : "H2O_aq",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL"
+  },
+  {
+    "name" : "H_p",
+    "type" : "CHEM_SPEC",
+    "charge" : 1,
+    "phase" : "AEROSOL",
+    "molecular weight" : 1.008
+  },
+  {
+    "name" : "NH4_p",
+    "type" : "CHEM_SPEC",
+    "charge" : 1,
+    "phase" : "AEROSOL",
+    "molecular weight" : 18.04
+  },
+  {
+    "name" : "SO4_mm",
+    "type" : "CHEM_SPEC",
+    "charge" : -2,
+    "phase" : "AEROSOL",
+    "molecular weight" : 96.06
+  },
+  {
+    "name" : "NO3_m",
+    "type" : "CHEM_SPEC",
+    "charge" : -1,
+    "phase" : "AEROSOL",
+    "molecular weight" : 62.0049
+  },
+  {
+    "name" : "(NH4)2-SO4",
+    "type" : "CHEM_SPEC",
+    "tracer type" : "ION_PAIR",
+    "ions" : {
+      "NH4_p" : { "qty" : 2 },
+      "SO4_mm" : {}
+    }
+  },
+  {
+    "name" : "NH4-NO3",
+    "type" : "CHEM_SPEC",
+    "tracer type" : "ION_PAIR",
+    "ions" : {
+      "NH4_p" : {},
+      "NO3_m" : {}
+    }
+  },
+  {
+    "name" : "H-NO3",
+    "type" : "CHEM_SPEC",
+    "tracer type" : "ION_PAIR",
+    "ions" : {
+      "H_p" : {},
+      "NO3_m" : {}
+    }
+  },
+  {
+    "name" : "H2-SO4",
+    "type" : "CHEM_SPEC",
+    "tracer type" : "ION_PAIR",
+    "ions" : {
+      "H_p" : { "qty" : 2 },
+      "SO4_mm" : {}
+    }
+  },
+  {
+    "name" : "aqueous aerosol",
+    "type" : "AERO_PHASE",
+    "species" : ["H2O_aq", "H_p", "NH4_p", "SO4_mm", "NO3_m", "(NH4)2-SO4", "NH4-NO3", "H-NO3", "H2-SO4"]
+  },
+  {
+    "type" : "AERO_REP_SINGLE_PARTICLE",
+    "name" : "my aero rep 1"
+  },
+  {
+    "type" : "AERO_REP_SINGLE_PARTICLE",
+    "name" : "my aero rep 2"
+  },
+  {
+    "type" : "AERO_REP_SINGLE_PARTICLE",
+    "name" : "my aero rep 3"
+  },
+  {
+    "name" : "PD-FiTE activity coefficient",
+    "type" : "MECHANISM",
+    "reactions" : [
+      {
+	"type" : "PDFITE_ACTIVITY",
+	"gas-phase water" : "H2O",
+        "aerosol-phase water" : "H2O_aq",
+	"aerosol phase" : "aqueous aerosol",
+        "calculate for" : {
+          "H-NO3" : {
+            "interactions" : [
+              {
+                "ion pair": "H-NO3",
+                "min RH" : 0.0,
+                "max RH" : 0.1,
+                "B" : [ 0.925113 ]
+              },
+              {
+                "ion pair": "H-NO3",
+                "min RH" : 0.1,
+                "max RH" : 0.4,
+                "B" : [ 0.12091, 13.497, -67.771, 144.01, -117.97 ]
+              },
+              {
+                "ion pair" : "H-NO3",
+                "min RH" : 0.4,
+                "max RH" : 0.9,
+                "B" : [ 1.3424, -0.8197, -0.52983, -0.37335 ]
+              },
+              {
+                "ion pair" : "H-NO3",
+                "min RH" : 0.9,
+                "max RH" : 1.0,
+                "B" : [ -0.0966645 ]
+              },
+              {
+                "ion pair" : "H2-SO4",
+                "min RH" : 0.0,
+                "max RH" : 0.1,
+                "B" : [ 7.0531446 ]
+              },
+              {
+                "ion pair" : "H2-SO4",
+                "min RH" : 0.1,
+                "max RH" : 0.99,
+                "B" : [ 9.3948, -26.808, 35.7654, -18.5094 ]
+              },
+              {
+                "ion pair" : "H2-SO4",
+                "min RH" : 0.99,
+                "max RH" : 1.0,
+                "B" : [ -0.0511038 ]
+              },
+              {
+                "ion pair" : "(NH4)2-SO4",
+                "min RH" : 0.0,
+                "max RH" : 0.1,
+                "B" : [ -31.136334 ]
+              },
+              {
+                "ion pair" : "(NH4)2-SO4",
+                "min RH" : 0.1,
+                "max RH" : 0.99,
+                "B" : [ -40.4136, 108.798, -170.346, 100.926 ]
+              },
+              {
+                "ion pair" : "(NH4)2-SO4",
+                "min RH" : 0.99,
+                "max RH" : 1.0,
+                "B" : [ -1.7312977 ]
+              },
+              {
+                "ion pair" : "NH4-NO3",
+                "min RH" : 0.0,
+                "max RH" : 0.1,
+                "B" : [ -11.93308 ]
+              },
+              {
+                "ion pair" : "NH4-NO3",
+                "min RH" : 0.1,
+                "max RH" : 0.99,
+                "B" : [ -17.0372, 59.232, -86.312, 44.04 ]
+              },
+              {
+                "ion pair" : "NH4-NO3",
+                "min RH" : 0.99,
+                "max RH" : 1.0,
+                "B" : [ -0.2599432 ]
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+  ]
+}

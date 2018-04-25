@@ -359,6 +359,9 @@ contains
           spec_type = CHEM_SPEC_CONSTANT
         else if (unicode_str_val.eq."PSSA") then
           spec_type = CHEM_SPEC_PSSA
+        else if (unicode_str_val.eq."ION_PAIR") then
+          spec_type = CHEM_SPEC_ACTIVITY_COEFF
+          spec_phase = CHEM_SPEC_AERO_PHASE
         else
           str_val = unicode_str_val
           call die_msg(171550163, "Unknown chemical species type: "// &
@@ -369,6 +372,9 @@ contains
                 "Received non-string species phase")
         call json%get(child, unicode_str_val)
         if (unicode_str_val.eq."GAS") then
+          call assert_msg(334314929, spec_type.ne.CHEM_SPEC_ACTIVITY_COEFF, &
+                "Activity coefficients and ion pairs cannot be gas-phase "// &
+                "species.")
           spec_phase = CHEM_SPEC_GAS_PHASE
         else if (unicode_str_val.eq."AEROSOL") then
           spec_phase = CHEM_SPEC_AERO_PHASE

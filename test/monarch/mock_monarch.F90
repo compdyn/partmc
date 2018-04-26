@@ -159,7 +159,7 @@ contains
     integer :: i_spec
 
     ! Open the output file
-    open(RESULTS_FILE_UNIT, file=output_file, status="new", action="write")
+    open(RESULTS_FILE_UNIT, file=output_file, status="replace", action="write")
 
     ! Initialize MPI
     call pmc_mpi_init()

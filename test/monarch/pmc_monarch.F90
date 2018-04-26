@@ -128,6 +128,9 @@ contains
 #endif
     end if
 
+    ! Initialize the solver on all nodes
+    call phlex_core%solver_initialize()
+
     ! Create a state variable on each node
     phlex_state = phlex_core%new_state()
 

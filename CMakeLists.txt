@@ -176,7 +176,7 @@ if (ENABLE_JSON AND ENABLE_SUNDIALS)
   add_test(test_rxn_ZSR_aerosol_water ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_ZSR_aerosol_water.sh)
   add_test(test_chemistry_cb05cl_ae5 ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5.sh)
   add_test(test_chemistry_eqsam_v03d ${CMAKE_BINARY_DIR}/test_run/chemistry/eqsam_v03d/test_chemistry_eqsam_v03d.sh)
-  #add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh)
+  add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh)
 endif()
 
 add_test(test_additive_1 ${CMAKE_BINARY_DIR}/test_run/additive/test_additive_1.sh)

@@ -2,15 +2,15 @@
   "pmc-data" : [
     {
       "name" : "A",
-      "type" : "GAS_SPEC"
+      "type" : "CHEM_SPEC"
     },
     {
       "name" : "B",
-      "type" : "GAS_SPEC"
+      "type" : "CHEM_SPEC"
     },
     {
       "name" : "C",
-      "type" : "GAS_SPEC"
+      "type" : "CHEM_SPEC"
     },
     {
       "name" : "consecutive",

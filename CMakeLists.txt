@@ -355,7 +355,21 @@ set(REACTIONS_SRC ${REACTIONS_F_SRC}
 	src/rxns/rxn_troe.c
 	src/rxns/rxn_ZSR_aerosol_water.c)
 
-set(AEROSOL_REPS_SRC src/aero_reps/aero_rep_single_particle.F90
+set(AEROSOL_REPS_F_SRC
+        src/aero_reps/aero_rep_modal_mass.F90
+        src/aero_reps/aero_rep_single_particle.F90)
+
+if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
+        set(AEROSOL_REPS_F_FLAGS "-extend_source -warn truncated_source")
+elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
+        set(AEROSOL_REPS_F_FLAGS "-ffree-line-length-none")
+endif()
+
+set_source_files_properties(${AEROSOL_REPS_F_SRC} PROPERTIES COMPILE_FLAGS
+        ${AEROSOL_REPS_F_FLAGS})
+
+      set(AEROSOL_REPS_SRC ${AEROSOL_REPS_F_SRC}
+        src/aero_reps/aero_rep_modal_mass.c
         src/aero_reps/aero_rep_single_particle.c)	
 
 add_library(partmclib src/aero_state.F90 src/integer_varray.F90

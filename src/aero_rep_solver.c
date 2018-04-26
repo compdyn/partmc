@@ -13,7 +13,7 @@
 
 // Aerosol representations (Must match parameters defined in pmc_aero_rep_factory
 #define AERO_REP_SINGLE_PARTICLE 1
-#define AERO_REP_BINNED 2
+#define AERO_REP_MODAL_MASS      2
 
 #ifdef PMC_USE_SUNDIALS
 
@@ -39,6 +39,9 @@ void * aero_rep_get_dependencies(ModelData *model_data, bool *state_flags)
 
     // Call the appropriate function
     switch (aero_rep_type) {
+      case AERO_REP_MODAL_MASS :
+	aero_rep_data = (int*) aero_rep_modal_mass_get_dependencies((void*) aero_rep_data, state_flags);
+        break;
       case AERO_REP_SINGLE_PARTICLE :
 	aero_rep_data = (int*) aero_rep_single_particle_get_dependencies((void*) aero_rep_data, state_flags);
         break;
@@ -68,6 +71,9 @@ void aero_rep_update_env_state(ModelData *model_data, double *env)
 
     // Call the appropriate function
     switch (aero_rep_type) {
+      case AERO_REP_MODAL_MASS :
+	aero_rep_data = (int*) aero_rep_modal_mass_update_env_state(env, (void*) aero_rep_data);
+        break;
       case AERO_REP_SINGLE_PARTICLE :
 	aero_rep_data = (int*) aero_rep_single_particle_update_env_state(env, (void*) aero_rep_data);
         break;
@@ -106,6 +112,9 @@ void * aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx, in
 
     // Advance the pointer to the next aerosol representation
     switch (aero_rep_type) {
+      case AERO_REP_MODAL_MASS :
+	aero_rep_data = (int*) aero_rep_modal_mass_skip((void*) aero_rep_data);
+        break;
       case AERO_REP_SINGLE_PARTICLE :
 	aero_rep_data = (int*) aero_rep_single_particle_skip((void*) aero_rep_data);
         break;
@@ -117,6 +126,10 @@ void * aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx, in
 
   // Get the particle radius and set of partial derivatives
   switch (aero_rep_type) {
+    case AERO_REP_MODAL_MASS :
+      aero_rep_data = (int*) aero_rep_modal_mass_get_effective_radius(
+		      aero_phase_idx, radius, partial_deriv, (void*) aero_rep_data);
+      break;
     case AERO_REP_SINGLE_PARTICLE :
       aero_rep_data = (int*) aero_rep_single_particle_get_effective_radius(
 		      aero_phase_idx, radius, partial_deriv, (void*) aero_rep_data);
@@ -156,6 +169,9 @@ void * aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx, int aer
 
     // Advance the pointer to the next aerosol representation
     switch (aero_rep_type) {
+      case AERO_REP_MODAL_MASS :
+	aero_rep_data = (int*) aero_rep_modal_mass_skip((void*) aero_rep_data);
+        break;
       case AERO_REP_SINGLE_PARTICLE :
 	aero_rep_data = (int*) aero_rep_single_particle_skip((void*) aero_rep_data);
         break;
@@ -167,6 +183,10 @@ void * aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx, int aer
 
   // Get the particle number concentration
   switch (aero_rep_type) {
+    case AERO_REP_MODAL_MASS :
+      aero_rep_data = (int*) aero_rep_modal_mass_get_number_conc( 
+		      aero_phase_idx, number_conc, partial_deriv, (void*) aero_rep_data);
+      break;
     case AERO_REP_SINGLE_PARTICLE :
       aero_rep_data = (int*) aero_rep_single_particle_get_number_conc( 
 		      aero_phase_idx, number_conc, partial_deriv, (void*) aero_rep_data);
@@ -200,6 +220,9 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx, int aer
 
     // Advance the pointer to the next aerosol representation
     switch (aero_rep_type) {
+      case AERO_REP_MODAL_MASS :
+	aero_rep_data = (int*) aero_rep_modal_mass_skip((void*) aero_rep_data);
+        break;
       case AERO_REP_SINGLE_PARTICLE :
 	aero_rep_data = (int*) aero_rep_single_particle_skip((void*) aero_rep_data);
         break;
@@ -211,6 +234,10 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx, int aer
 
   // Get the type of aerosol concentration
   switch (aero_rep_type) {
+    case AERO_REP_MODAL_MASS :
+      aero_rep_data = (int*) aero_rep_modal_mass_get_aero_conc_type( 
+		      aero_phase_idx, &aero_conc_type, (void*) aero_rep_data);
+      break;
     case AERO_REP_SINGLE_PARTICLE :
       aero_rep_data = (int*) aero_rep_single_particle_get_aero_conc_type( 
 		      aero_phase_idx, &aero_conc_type, (void*) aero_rep_data);
@@ -296,9 +323,14 @@ void aero_rep_update_data(int aero_rep_id, int update_type, void *update_data,
 
   // Update the data of specified representation
   switch (aero_rep_type) {
+    case AERO_REP_MODAL_MASS :
+      aero_rep_data = (int*) aero_rep_modal_mass_update_data(update_type, 
+			  update_data, (void*)aero_rep_data);
+      break;
     case AERO_REP_SINGLE_PARTICLE :
       aero_rep_data = (int*) aero_rep_single_particle_update_data(update_type, 
 			  update_data, (void*)aero_rep_data);
+      break;
   }
 #endif
 }
@@ -327,6 +359,9 @@ void aero_rep_print_data(void *solver_data)
 
     // Call the appropriate printing function
     switch (aero_rep_type) {
+      case AERO_REP_MODAL_MASS :
+	aero_rep_data = (int*) aero_rep_modal_mass_print((void*)aero_rep_data);
+	break;
       case AERO_REP_SINGLE_PARTICLE :
 	aero_rep_data = (int*) aero_rep_single_particle_print((void*)aero_rep_data);
 	break;

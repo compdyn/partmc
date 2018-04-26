@@ -27,7 +27,7 @@
 #define _PHASE_ID_(x) (int_data[_NUM_INT_PROP_+x]-1)
 #define _PAIR_INT_PARAM_LOC_(x) (int_data[_NUM_INT_PROP_+_NUM_PHASE_+x]-1)
 #define _PAIR_FLOAT_PARAM_LOC_(x) (int_data[_NUM_INT_PROP_+_NUM_PHASE_+_NUM_ION_PAIRS_+x]-1)
-#define _ION_PAIR_ACT_ID_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)]-1)
+#define _ION_PAIR_ACT_ID_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)])
 #define _NUM_CATION_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+1])
 #define _NUM_ANION_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+2])
 #define _CATION_ID_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+3])
@@ -35,7 +35,7 @@
 #define _NUM_INTER_(x) (int_data[_PAIR_INT_PARAM_LOC_(x)+5])
 #define _NUM_B_(x,y) (int_data[_PAIR_INT_PARAM_LOC_(x)+6+y])
 #define _INTER_SPEC_ID_(x,y) (int_data[_PAIR_INT_PARAM_LOC_(x)+6+_NUM_INTER_(x)+y]-1)
-#define _INTER_SPEC_LOC_(x,y) (int_data[_PAIR_INT_PARAM_LOC_(x)+6+2*(_NUM_INTER_(x))+y])
+#define _INTER_SPEC_LOC_(x,y) (int_data[_PAIR_INT_PARAM_LOC_(x)+6+2*(_NUM_INTER_(x))+y]-1)
 #define _CATION_MW_(x) (float_data[_PAIR_FLOAT_PARAM_LOC_(x)])
 #define _ANION_MW_(x) (float_data[_PAIR_FLOAT_PARAM_LOC_(x)+1])
 #define _CATION_N_(x) (float_data[_PAIR_FLOAT_PARAM_LOC_(x)+2])
@@ -119,6 +119,11 @@ void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
   // Calculate the water activity---i.e., relative humidity (0-1)
   realtype a_w = _ppm_TO_RH_ * state[_GAS_WATER_ID_];
 
+  // Keep a_w within 0-1
+  // TODO Filter =( try to remove
+  if (a_w<0.0) a_w = 0.0;
+  if (a_w>1.0) a_w = 1.0;
+
   // Calculate ion_pair activity coefficients in each phase
   for (int i_phase=0; i_phase<_NUM_PHASE_; i_phase++) {
 
@@ -155,6 +160,12 @@ void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
       // have activity calculations (they only participate in interactions)
       if (_NUM_INTER_(i_ion_pair)==0) break;
 
+      // Calculate omega for this ion_pair
+      // (eq. 15 in \cite{Topping2009})
+      realtype omega = omega_prime - 2.0 * ( _NUM_CATION_(i_ion_pair) + 
+      _NUM_ANION_(i_ion_pair) ) * _CATION_N_(i_ion_pair) * 
+      _ANION_N_(i_ion_pair);
+
       // Initialize ln(gamma)
       realtype ln_gamma = 0.0;
 
@@ -162,18 +173,17 @@ void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
       for (int i_inter=0; i_inter<_NUM_INTER_(i_ion_pair); i_inter++) {
 
         // Only include interactions in the correct RH range
-        // where the range is in (minRH, maxRH]
-        if (a_w<=_MIN_RH_(i_ion_pair, i_inter) || 
-                  a_w>_MAX_RH_(i_ion_pair, i_inter)) continue;
+        // where the range is in (minRH, maxRH] except when a_w = 0.0
+        // where the range is in [0.0, maxRH]
+        if ((a_w<=_MIN_RH_(i_ion_pair, i_inter) || 
+             a_w>_MAX_RH_(i_ion_pair, i_inter))
+            &&
+            !(a_w<=0.0 && 
+             _MIN_RH_(i_ion_pair, i_inter)<=0.0)
+           ) continue;
 
         // Get the ion_pair id of the interacting species
         int j_ion_pair = _INTER_SPEC_ID_(i_ion_pair, i_inter);
-
-        // Calculate omega for this ion_pair
-        // (eq. 15 in \cite{Topping2009})
-        realtype omega = omega_prime - 2.0 * ( _NUM_CATION_(i_ion_pair) + 
-        _NUM_ANION_(i_ion_pair) ) * _CATION_N_(i_ion_pair) * 
-        _ANION_N_(i_ion_pair);
 
         // Calculate ln_gamma_inter
         realtype ln_gamma_inter = 0.0;
@@ -191,17 +201,21 @@ void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
         // ... otherwise it is d(ln(gamma_A))/g(N_B,M N_B,x)
         // (eq. 15 in \cite{Topping2009})
         else {
-      
-          // Add contribution to ln(gamma_A) from interacting ion_pair
-          ln_gamma += ln_gamma_inter * _CATION_N_(j_ion_pair) *
-                   _ANION_N_(j_ion_pair) / omega;
+
+          // Add contribution to ln(gamma_A) from interacting ion_pair.
+          // When omega == 0, N_cation or N_anion must be 0, so
+          // skip to avoid divide by zero errors
+          if (omega>0.0) {      
+            ln_gamma += ln_gamma_inter * _CATION_N_(j_ion_pair) *
+                     _ANION_N_(j_ion_pair) / omega;
+          }
 
         }
 
       } // Loop on interacting ion_pairs
 
       // Set the ion_pair activity
-      state[_ION_PAIR_ACT_ID_(i_ion_pair)] = exp(ln_gamma);
+      state[_PHASE_ID_(i_phase) + _ION_PAIR_ACT_ID_(i_ion_pair)] = exp(ln_gamma);
 
     } // Loop on primary ion_pairs
 

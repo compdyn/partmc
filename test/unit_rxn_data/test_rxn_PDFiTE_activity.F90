@@ -82,9 +82,11 @@ contains
     real(kind=dp) :: time_step, time, ppm_to_RH, omega, ln_gamma
     real(kind=dp) :: HNO3_LRH_B0, HNO3_LRH_B1, HNO3_LRH_B2, HNO3_LRH_B3, HNO3_LRH_B4
     real(kind=dp) :: HNO3_HRH_B0, HNO3_HRH_B1, HNO3_HRH_B2, HNO3_HRH_B3
+    real(kind=dp) :: HNO3_SHRH_B0, HNO3_SHRH_B1, HNO3_SHRH_B2, HNO3_SHRH_B3
     real(kind=dp) :: H2SO4_B0, H2SO4_B1, H2SO4_B2, H2SO4_B3
     real(kind=dp) :: NH42SO4_B0, NH42SO4_B1, NH42SO4_B2, NH42SO4_B3
     real(kind=dp) :: NH4NO3_B0, NH4NO3_B1, NH4NO3_B2, NH4NO3_B3
+    real(kind=dp) :: H_p_mol_m3, NH4_p_mol_m3, SO4_mm_mol_m3, NO3_m_mol_m3
 
     ! Parameters for calculating true concentrations
     real(kind=dp) :: temp, pressure, a_w 
@@ -157,13 +159,13 @@ contains
     call assert(272503747, idx_H2_SO4.gt.0)
 
     ! Save the initial concentrations
-    true_conc(:,:)            = 0.0
-    true_conc(:,idx_H2O)      = 1.0
-    true_conc(:,idx_H2O_aq)   = 1.0
-    true_conc(:,idx_H_p)      = 1.0
-    true_conc(:,idx_NH4_p)    = 1.0
-    true_conc(:,idx_SO4_mm)   = 1.0
-    true_conc(:,idx_NO3_m)    = 1.0
+    true_conc(:,:)            = 0.0d0
+    true_conc(:,idx_H2O)      = 0.0d0
+    true_conc(:,idx_H2O_aq)   = 1.0d0 ! TODO remove from reaction parameters
+    true_conc(:,idx_H_p)      = 1.0d-9
+    true_conc(:,idx_NH4_p)    = 0.62d0
+    true_conc(:,idx_SO4_mm)   = 0.25d0
+    true_conc(:,idx_NO3_m)    = 0.13d0
     true_conc(:,idx_NH42_SO4) = 1.0
     true_conc(:,idx_NH4_NO3)  = 1.0
     true_conc(:,idx_H_NO3)    = 1.0
@@ -184,6 +186,12 @@ contains
     HNO3_HRH_B1 = -0.8197
     HNO3_HRH_B2 = -0.52983
     HNO3_HRH_B3 = -0.37335
+
+    ! H-NO3 0.9 - 0.99 RH
+    HNO3_SHRH_B0 = -1420.5
+    HNO3_SHRH_B1 = 4467.9
+    HNO3_SHRH_B2 = -4682.7
+    HNO3_SHRH_B3 = 1635.1
 
     ! H2-SO4
     H2SO4_B0 = 9.3948
@@ -217,8 +225,9 @@ contains
     ! Integrate the mechanism
     do i_RH = 1, NUM_RH_STEP
 
-      ! Set the RH
-      a_w = real(1.0, kind=dp)/(NUM_RH_STEP-1)*(i_RH-1)
+      ! Set the RH (Stay slightly away from transitions to avoid
+      ! discrepancies in RH calc from [H2O]_g (ppm)
+      a_w = real(1.0, kind=dp)/(NUM_RH_STEP-1)*(i_RH-1) + 1.0d-10
       true_conc(i_RH, idx_H2O) = a_w / ppm_to_RH
       phlex_state%state_var(idx_H2O) = true_conc(i_RH, idx_H2O)
 
@@ -228,10 +237,17 @@ contains
 
       ! Calculate the mean binary activity for H-NO3
 
+      ! Convert concentrations to ug/m^3 -> mol/m^3
+      ! (ug/m^3) * (ug/umol) * (umol/mol)
+      H_p_mol_m3    = true_conc(i_RH, idx_H_p)    / 1.008d0   * 1.0d-6
+      NH4_p_mol_m3  = true_conc(i_RH, idx_NH4_p)  / 18.04d0   * 1.0d-6
+      SO4_mm_mol_m3 = true_conc(i_RH, idx_SO4_mm) / 96.06d0   * 1.0d-6
+      NO3_m_mol_m3  = true_conc(i_RH, idx_NO3_m)  / 62.0049d0 * 1.0d-6
+
       ! Calculate omega
-      omega = 6.0d0 * true_conc(i_RH,idx_H_p)   * true_conc(i_RH,idx_SO4_mm) + &
-              6.0d0 * true_conc(i_RH,idx_NH4_p) * true_conc(i_RH,idx_SO4_mm) + &
-              4.0d0 * true_conc(i_RH,idx_NH4_p) * true_conc(i_RH,idx_NO3_m)
+      omega = 6.0d0 * H_p_mol_m3   * SO4_mm_mol_m3 + &
+              6.0d0 * NH4_p_mol_m3 * SO4_mm_mol_m3 + &
+              4.0d0 * NH4_p_mol_m3 * NO3_m_mol_m3
 
       ! Contribution to ln(gamma_HNO3) from ln(gamma_0_HNO3)
       if (a_w.le.0.1d0) then
@@ -243,52 +259,55 @@ contains
       else if (a_w.le.0.9d0) then
         ln_gamma = HNO3_HRH_B0 + HNO3_HRH_B1*a_w + HNO3_HRH_B2*a_w**2 + &
                     HNO3_HRH_B3*a_w**3
+      else if (a_w.le.0.99d0) then
+        ln_gamma = HNO3_SHRH_B0 + HNO3_SHRH_B1*a_w + HNO3_SHRH_B2*a_w**2 + &
+                    HNO3_SHRH_B3*a_w**3
       else
-        ln_gamma = HNO3_HRH_B0 + HNO3_HRH_B1*0.9d0 + HNO3_HRH_B2*0.9d0**2 + &
-                    HNO3_HRH_B3*0.9d0**3
+        ln_gamma = HNO3_SHRH_B0 + HNO3_SHRH_B1*0.99d0 + HNO3_SHRH_B2*0.99d0**2 + &
+                    HNO3_SHRH_B3*0.99d0**3
       end if
 
       ! ... from (d(ln(gamma_HNO3))/d(N_Hp N_SO4mm) N_Hp N_SO4mm) / omega
       if (a_w.le.0.1d0) then
-        ln_gamma = ln_gamma + true_conc(i_RH,idx_H_p) * true_conc(i_RH,idx_SO4_mm) / omega * &
+        ln_gamma = ln_gamma + H_p_mol_m3 * SO4_mm_mol_m3 / omega * &
                    ( H2SO4_B0 + H2SO4_B1*0.1d0 + H2SO4_B2*0.1d0**2 + &
                    H2SO4_B3*0.1d0**3 )
       else if (a_w.le.0.99d0) then
-        ln_gamma = ln_gamma + true_conc(i_RH,idx_H_p) * true_conc(i_RH,idx_SO4_mm) / omega * &
+        ln_gamma = ln_gamma + H_p_mol_m3 * SO4_mm_mol_m3 / omega * &
                    ( H2SO4_B0 + H2SO4_B1*a_w + H2SO4_B2*a_w**2 + &
                    H2SO4_B3*a_w**3 )
       else
-        ln_gamma = ln_gamma + true_conc(i_RH,idx_H_p) * true_conc(i_RH,idx_SO4_mm) / omega * &
+        ln_gamma = ln_gamma + H_p_mol_m3 * SO4_mm_mol_m3 / omega * &
                    ( H2SO4_B0 + H2SO4_B1*0.99d0 + H2SO4_B2*0.99d0**2 + &
                    H2SO4_B3*0.99d0**3 )
       end if
 
       ! ... from (d(ln(gamma_HNO3))/d(N_NH4p N_SO4mm) N_NH4p N_SO4mm) / omega
       if (a_w.le.0.1d0) then
-        ln_gamma = ln_gamma + true_conc(i_RH,idx_NH4_p) * true_conc(i_RH,idx_SO4_mm) / omega * &
+        ln_gamma = ln_gamma + NH4_p_mol_m3 * SO4_mm_mol_m3 / omega * &
                    ( NH42SO4_B0 + NH42SO4_B1*0.1d0 + NH42SO4_B2*0.1d0**2 + &
                    NH42SO4_B3*0.1d0**3 )
       else if (a_w.le.0.99d0) then
-        ln_gamma = ln_gamma + true_conc(i_RH,idx_NH4_p) * true_conc(i_RH,idx_SO4_mm) / omega * &
+        ln_gamma = ln_gamma + NH4_p_mol_m3 * SO4_mm_mol_m3 / omega * &
                    ( NH42SO4_B0 + NH42SO4_B1*a_w + NH42SO4_B2*a_w**2 + &
                    NH42SO4_B3*a_w**3 )
       else
-        ln_gamma = ln_gamma + true_conc(i_RH,idx_NH4_p) * true_conc(i_RH,idx_SO4_mm) / omega * &
+        ln_gamma = ln_gamma + NH4_p_mol_m3 * SO4_mm_mol_m3 / omega * &
                    ( NH42SO4_B0 + NH42SO4_B1*0.99d0 + NH42SO4_B2*0.99d0**2 + &
                    NH42SO4_B3*0.99d0**3 )
       end if
 
       ! ... from (d(ln(gamma_HNO3))/d(N_NH4p N_NO3m) N_NH4p N_NO3m) / omega
       if (a_w.le.0.1d0) then
-        ln_gamma = ln_gamma + true_conc(i_RH,idx_NH4_p) * true_conc(i_RH,idx_NO3_m) / omega * &
+        ln_gamma = ln_gamma + NH4_p_mol_m3 * NO3_m_mol_m3 / omega * &
                    ( NH4NO3_B0 + NH4NO3_B1*0.1d0 + NH4NO3_B2*0.1d0**2 + &
                    NH4NO3_B3*0.1d0**3 )
       else if (a_w.le.0.99d0) then
-        ln_gamma = ln_gamma + true_conc(i_RH,idx_NH4_p) * true_conc(i_RH,idx_NO3_m) / omega * &
+        ln_gamma = ln_gamma + NH4_p_mol_m3 * NO3_m_mol_m3 / omega * &
                    ( NH4NO3_B0 + NH4NO3_B1*a_w + NH4NO3_B2*a_w**2 + &
                    NH4NO3_B3*a_w**3 )
       else
-        ln_gamma = ln_gamma + true_conc(i_RH,idx_NH4_p) * true_conc(i_RH,idx_NO3_m) / omega * &
+        ln_gamma = ln_gamma + NH4_p_mol_m3 * NO3_m_mol_m3 / omega * &
                    ( NH4NO3_B0 + NH4NO3_B1*0.99d0 + NH4NO3_B2*0.99d0**2 + &
                    NH4NO3_B3*0.99d0**3 )
       end if
@@ -301,7 +320,8 @@ contains
     ! Save the results
     open(unit=7, file="out/PDFiTE_activity_results.txt", status="replace", action="write")
     do i_RH = 0, NUM_RH_STEP
-      write(7,*) i_RH*time_step, &
+      a_w = real(1.0, kind=dp)/(NUM_RH_STEP-1)*(i_RH-1) + 1.0d-10
+      write(7,*) a_w, &
             ' ', true_conc(i_RH, idx_H2O),' ',      model_conc(i_RH, idx_H2O), &
             ' ', true_conc(i_RH, idx_H2O_aq),' ',   model_conc(i_RH, idx_H2O_aq), &
             ' ', true_conc(i_RH, idx_H_p),' ',      model_conc(i_RH, idx_H_p), &
@@ -317,10 +337,11 @@ contains
 
     ! Analyze the results
     do i_RH = 1, NUM_RH_STEP
-      do i_spec = 1, size(model_conc,2)  
-        call assert_msg(510461551, &
+      do i_spec = 1, size(model_conc,2) 
+        if (i_spec.ne.1.and.(i_spec.lt.11.or.i_spec.gt.19)) cycle 
+        call assert_msg(266724378, &
           almost_equal(model_conc(i_RH, i_spec), true_conc(i_RH, i_spec), &
-          real(1.0e-2, kind=dp)), "time: "//to_string(i_RH)//"; species: "// &
+          real(1.0e-2, kind=dp)), "RH step: "//to_string(i_RH)//"; species: "// &
           to_string(i_spec)//"; mod: "//to_string(model_conc(i_RH, i_spec))// &
           "; true: "//to_string(true_conc(i_RH, i_spec)))
       end do

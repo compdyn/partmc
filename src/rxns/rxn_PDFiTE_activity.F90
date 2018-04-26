@@ -792,10 +792,6 @@ contains
 
     end do
 
-    call this%print()
-          
-    write(*,*) n_int_param, _TOTAL_INT_PARAM_
-    write(*,*) n_float_param, _TOTAL_FLOAT_PARAM_
     call assert(938415336, n_int_param.eq._TOTAL_INT_PARAM_)
     call assert(433208931, n_float_param.eq._TOTAL_FLOAT_PARAM_)
       

@@ -16,16 +16,27 @@
 #define _TEMPERATURE_K_ env_data[0]
 #define _PRESSURE_PA_ env_data[1]
 
-#define _RADIUS_ float_data[0]
-#define _NUMBER_CONC_ float_data[1]
-#define _NUM_INT_PARAM_ 0
-#define _NUM_FLOAT_PARAM_ 2
-#define _INT_DATA_SIZE_ (_NUM_INT_PARAM_)
-#define _FLOAT_DATA_SIZE_ (_NUM_FLOAT_PARAM_)
+#define _NUM_MODE_ (int_data[0])
+#define _INT_DATA_SIZE_ (int_data[1])
+#define _FLOAT_DATA_SIZE_ (int_data[2])
+#define _NUM_INT_PARAM_ 3
+#define _NUM_FLOAT_PARAM_ 0
+#define _MODE_INT_PARAM_LOC_(x) (int_data[_NUM_INT_PARAM_+x]-1)
+#define _MODE_FLOAT_PARAM_LOC_(x) (int_data[_NUM_INT_PARAM_+_NUM_MODE_+x]-1)
+#define _NUM_PHASE_(x) (int_data[_MODE_INT_PARAM_LOC_(x)])
+#define _PHASE_INT_PARAM_LOC_(x,y) (int_data[_MODE_INT_PARAM_LOC_(x)+1+y]-1)
+#define _PHASE_FLOAT_PARAM_LOC_(x,y) (int_data[_MODE_INT_PARAM_LOC_(x)+1+_NUM_PHASE_(x)+y]-1)
+#define _NUM_SPEC_(x,y) (int_data[_PHASE_INT_PARAM_LOC_(x,y)])
+#define _SPEC_STATE_ID_(x,y,z) (int_data[_PHASE_INT_PARAM_LOC_(x,y)+1+z]-1)
+#define _GMD_(x) (float_data[_MODE_FLOAT_PARAM_LOC_(x)])
+#define _GSD_(x) (float_data[_MODE_FLOAT_PARAM_LOC_(x)+1])
+#define _NUMBER_CONC_(x) (float_data[_MODE_FLOAT_PARAM_LOC_(x)+2])
+#define _EFFECTIVE_RADIUS_(x) (float_data[_MODE_FLOAT_PARAM_LOC_(x)+3])
+#define _DENSITY_(x,y,z) (float_data[_PHASE_FLOAT_PARAM_LOC_(x,y)+z])
 
 // Update types (These must match values in aero_rep_modal_mass.F90)
-#define UPDATE_RADIUS 0
-#define UPDATE_NUMBER_CONC 1
+#define UPDATE_GMD 0
+#define UPDATE_GSD 1
 
 /** \brief Flag elements on the state array used by this aerosol representation
  *
@@ -59,11 +70,54 @@ void * aero_rep_modal_mass_update_env_state(double *env_data, void *aero_rep_dat
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
 
+/** Update aerosol representation data for a new state
+ *
+ * The modal mass aerosol representation recalculates effective radius and number
+ * concentration for each new state. 
+ *
+ * \param model_data Pointer to the model data, including the state array
+ * \param aero_rep_data Pointer to the aerosol representation data
+ * \return The aero_rep_data pointer advanced by the size of the aerosol representation
+ */
+void * aero_rep_modal_mass_update_state(ModelData *model_data, void *aero_rep_data)
+{
+  int *int_data = (int*) aero_rep_data;
+  realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
+
+  // Loop through the modes and calculate effective radius and number concentration
+  for (int i_mode=0; i_mode<_NUM_MODE_; i_mode++) {
+
+    // Calculate effective radius
+    _EFFECTIVE_RADIUS_(i_mode) = exp(_GMD_(i_mode) + 5.0/2.0*_GSD_(i_mode));
+
+    // Sum the volumes of each species in the mode
+    realtype volume = 0.0;
+    for (int i_phase=0; i_phase<_NUM_PHASE_(i_mode); i_phase++)
+      for (int i_spec=0; i_spec<_NUM_SPEC_(i_mode, i_phase); i_spec++)
+        volume += _DENSITY_(i_mode, i_phase, i_spec) * 
+                model_data->state[_SPEC_STATE_ID_(i_mode, i_phase, i_spec)];
+  
+    // Calculate the number concentration based on the total mode volume  
+    _NUMBER_CONC_(i_mode) = volume * 3.0 / (4.0*M_PI) * 
+            exp(2.0*_GMD_(i_mode) + 9.0/2.0*_GSD_(i_mode));
+
+  }
+
+  return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
+}
+
 /** Get the effective particle radius
  *
- * The modal mass radius is set by the aerosol model prior to solving the chemistry. 
- * Thus, all dr/dy are zero. Also, there is only one set of particles in the modal mass
- * representation, so the phase index is not used.
+ * The modal mass effective radius is calculated for a log-normal distribution
+ * where the geometric mean diameter (\f$\mu\f$) and geometric standard
+ * deviation (\f$S\f$) are set by the aerosol model prior to solving the
+ * chemistry. Thus, all dr/dy are zero. The effective radius is calculated as:
+ *
+ * \f$[
+ *      r_e = e^{\mu+\frac{5}{2}S}
+ * ]\f$
+ *
+ * FIXME Check and add reference
  *
  * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param radius Effective particle radius (m)
@@ -77,16 +131,26 @@ void * aero_rep_modal_mass_get_effective_radius(int aero_phase_idx, double *radi
   int *int_data = (int*) aero_rep_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
-  *radius = _RADIUS_;
+  int i_mode = 0;
+  for(; aero_phase_idx>=0; aero_phase_idx-=_NUM_PHASE_(i_mode++));
+  *radius = _EFFECTIVE_RADIUS_(--i_mode);
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
 
 /** Get the particle number concentration
  *
- * This modal mass number concentration is set by the aerosol model prior to solving the chemistry.
- * Thus, all dn/dy are zero. Also, there is only one set of particles in the modal mass representation,
- * so the phase index is not used.
+ * The modal mass number concentration is calculated using the total mass in
+ * the specified mode assuming a log-normal distribution of fixed geometric
+ * mean diameter (\f$\mu\f$) and geometric standard deviation (\f$S\f$):
+ * \f$[
+ *      N = \frac{3}{4\pi}Ve^{-3\mu-\frac{9}{2}S}
+ *      V = \sum_i{\rho_im_i}
+ * \f$]
+ * where \f$\rho_i\f$ and \f$m_i\f$ are the density and total mass of species
+ * \f$i\f$ in the specified mode.
+ *
+ * FIXME Check and add reference
  *
  * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param number_conc Particle number concentration (#/cm^3)
@@ -100,14 +164,16 @@ void * aero_rep_modal_mass_get_number_conc(int aero_phase_idx, double *number_co
   int *int_data = (int*) aero_rep_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
-  *number_conc = _NUMBER_CONC_;
+  int i_mode = 0;
+  for(; aero_phase_idx>=0; aero_phase_idx-=_NUM_PHASE_(i_mode++));
+  *number_conc = _NUMBER_CONC_(--i_mode);
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
 
 /** Get the type of aerosol concentration type used.
  *
- * Modal mass concentrations are per-particle.
+ * Modal mass concentrations are per-mode.
  *
  * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param aero_conc_type Pointer to int that will hold the concentration type code
@@ -120,7 +186,7 @@ void * aero_rep_modal_mass_get_aero_conc_type(int aero_phase_idx, int *aero_conc
   int *int_data = (int*) aero_rep_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
-  *aero_conc_type = 0;
+  *aero_conc_type = 1;
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
@@ -129,11 +195,13 @@ void * aero_rep_modal_mass_get_aero_conc_type(int aero_phase_idx, int *aero_conc
  *
  *  The modal mass aerosol representation has two update types:
  *
- *  UPDATE_RADIUS : where the update data should point to a single floating-point
- *  variable holding the new particle radius
+ *  UPDATE_GMD : where the update data should point to an int indicating the
+ *  mode id to update followed by a floating-point variable holding the new
+ *  geometric mean diameter
  *
- *  UPDATE_NUMBER_CONC : where the update data should point to a single floating-point
- *  variable holding the new particle number concentration
+ *  UPDATE_GSD : where the update data should point to an int indicating the
+ *  mode id to update followed by a floating-point variable holding the new
+ *  geometric standard deviation
  *
  * \param update_type The type of update to perform
  * \param update_data Pointer to the data required for the update
@@ -145,12 +213,14 @@ void * aero_rep_modal_mass_update_data(int update_type, void *update_data, void 
   int *int_data = (int*) aero_rep_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
+  int *i_mode = (int*)update_data;
+  
   switch (update_type) {
-    case UPDATE_RADIUS :
-      _RADIUS_ = *((realtype*)update_data);
+    case UPDATE_GMD :
+      _GMD_(*i_mode) = *((realtype*)(i_mode+1));
       break;
-    case UPDATE_NUMBER_CONC:
-      _NUMBER_CONC_ = *((realtype*)update_data);
+    case UPDATE_GSD :
+      _GSD_(*i_mode) = *((realtype*)(i_mode+1));
       break;
   }
 
@@ -191,13 +261,22 @@ void * aero_rep_modal_mass_skip(void *aero_rep_data)
 
 #undef _TEMPERATURE_K_
 #undef _PRESSURE_PA_
-#undef _RADIUS_
-#undef _NUMBER_CONC_
-#undef _NUM_INT_PARAM_
-#undef _NUM_FLOAT_PARAM_
+#undef _NUM_MODE_
 #undef _INT_DATA_SIZE_
 #undef _FLOAT_DATA_SIZE_
-#undef UPDATE_RADIUS
-#undef UPDATE_NUMBER_CONC
+#undef _NUM_INT_PARAM_
+#undef _NUM_FLOAT_PARAM_
+#undef _MODE_INT_PARAM_LOC_
+#undef _MODE_FLOAT_PARAM_LOC_
+#undef _NUM_PHASE_
+#undef _PHASE_INT_PARAM_LOC_
+#undef _PHASE_FLOAT_PARAM_LOC_
+#undef _NUM_SPEC_
+#undef _SPEC_STATE_ID_
+#undef _GMD_
+#undef _GSD_
+#undef _NUMBER_CONC_
+#undef _EFFECTIVE_RADIUS_
+#undef _DENSITY_
 
 #endif

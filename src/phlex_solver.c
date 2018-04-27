@@ -262,6 +262,9 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *model_data)
   // Initialize the derivative
   for (int i_spec=0; i_spec<NV_LENGTH_S(deriv); i_spec++) NV_DATA_S(deriv)[i_spec] = ZERO;
 
+  // Update the aerosol representations
+  aero_rep_update_state(md);
+
   // Run pre-derivative calculations
   rxn_pre_calc(md);
 
@@ -288,6 +291,12 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *model_data,
 		N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)
 {
   ModelData *md = (ModelData*) model_data;
+
+  // Update the aerosol representations
+  aero_rep_update_state(md);
+
+  // Run pre-derivative calculations
+  rxn_pre_calc(md);
 
   // Update the state array with the current dependent variable values
   for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++)

@@ -81,6 +81,38 @@ void aero_rep_update_env_state(ModelData *model_data, double *env)
   }
 }
 
+/** \brief Update the aerosol representations for a new state
+ *
+ * \param model_data Pointer to the model data
+ */
+void aero_rep_update_state(ModelData *model_data)
+{
+
+  // Get the number of aerosol representations
+  int *aero_rep_data = (int*) (model_data->aero_rep_data);
+  int n_aero_rep = *(aero_rep_data++);
+
+  // Loop through the aerosol representations to update the state
+  // advancing the aero_rep_data pointer each time
+  for (int i_aero_rep=0; i_aero_rep<n_aero_rep; i_aero_rep++) {
+
+    // Get the aerosol representation type
+    int aero_rep_type = *(aero_rep_data++);
+
+    // Call the appropriate function
+    switch (aero_rep_type) {
+      case AERO_REP_MODAL_MASS :
+	aero_rep_data = (int*) aero_rep_modal_mass_update_state(model_data, 
+                  (void*) aero_rep_data);
+        break;
+      case AERO_REP_SINGLE_PARTICLE :
+	aero_rep_data = (int*) aero_rep_single_particle_update_state(model_data, 
+                  (void*) aero_rep_data);
+        break;
+    }
+  }
+}
+
 /** \brief Get the effective particle radius
  *
  * Calculates particle radius r (m), as well as the set of dr/dy where y are 

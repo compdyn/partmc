@@ -59,6 +59,22 @@ void * aero_rep_single_particle_update_env_state(double *env_data, void *aero_re
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
 
+/** Update aerosol representation data for a new state
+ *
+ * The single particle aerosol representation does not use model state
+ *
+ * \param model_data Pointer to the model data, include the state array
+ * \param aero_rep_data Pointer to the aerosol representation data
+ * \return The aero_rep_data pointer advanced by the size of the aerosol representation
+ */
+void * aero_rep_single_particle_update_state(ModelData *model_data, void *aero_rep_data)
+{
+  int *int_data = (int*) aero_rep_data;
+  realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
+
+  return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
+}
+
 /** Get the effective particle radius
  *
  * The single particle radius is set by the aerosol model prior to solving the chemistry. 

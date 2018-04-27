@@ -99,6 +99,7 @@ void rxn_print_data(void *solver_data);
 /* Aerosol representation solver functions */
 void * aero_rep_get_dependencies(ModelData *model_data, bool *state_flags);
 void aero_rep_update_env_state(ModelData *model_data, double *env);
+void aero_rep_update_state(ModelData *model_data);
 void * aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx, int aero_phase_idx,
 		double *radius);
 void * aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx, int aero_phase_idx, 

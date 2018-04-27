@@ -1,0 +1,83 @@
+{
+	"pmc-data" : [
+{
+	"type" : "AERO_REP_MODAL_MASS",
+	"name" : "my modal mass aerosol rep",
+        "modes" : 
+        {
+          "mixed mode" :
+          {
+            "phases" : [ "my test phase one", "my test phase two" ],
+            "geometric mean diameter" : 1.2e-6,
+            "geometric standard deviation" : 1.2
+          },
+          "single phase mode" :
+          {
+            "phases" : [ "my last test phase" ],
+            "geometric mean diameter" : 9.3e-7,
+            "geometric standard deviation" : 0.9
+          }
+        }
+},
+{
+	"name" : "my test phase one",
+	"type" : "AERO_PHASE",
+	"species" : ["species a", "species b", "species c"],
+	"some property" : 12.2
+},
+{
+	"name" : "my test phase two",
+	"type" : "AERO_PHASE",
+	"species" : ["species c", "species d", "species e"],
+	"some other property" : false
+},
+{
+	"name" : "my last test phase",
+	"type" : "AERO_PHASE",
+	"species" : ["species b", "species e"],
+	"some property" : 13.75
+},
+{
+	"name" : "species a",
+	"type" : "CHEM_SPEC",
+	"phase" : "AEROSOL",
+	"density" : 1.0
+},
+{
+	"name" : "species b",
+	"type" : "CHEM_SPEC",
+	"phase" : "AEROSOL",
+	"density" : 2.0
+},
+{
+	"name" : "species c",
+	"type" : "CHEM_SPEC",
+	"phase" : "AEROSOL",
+	"density" : 3.0
+},
+{
+	"name" : "species d",
+	"type" : "CHEM_SPEC",
+	"phase" : "AEROSOL",
+	"density" : 4.0
+},
+{
+	"name" : "species e",
+	"type" : "CHEM_SPEC",
+	"phase" : "AEROSOL",
+	"density" : 5.0
+},
+{
+	"name" : "species f",
+	"type" : "CHEM_SPEC",
+	"phase" : "AEROSOL",
+	"density" : 6.0
+},
+{
+	"name" : "species g",
+	"type" : "CHEM_SPEC",
+	"phase" : "AEROSOL",
+	"density" : 7.0
+}
+	]
+}

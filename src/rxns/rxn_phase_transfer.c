@@ -179,6 +179,7 @@ void * rxn_phase_transfer_calc_deriv_contrib(ModelData *model_data, realtype *de
     if (state[_AERO_WATER_(i_phase)] < _SMALL_NUMBER_) continue;
 
     // Get the particle effective radius (m)
+    // FIXME check whether effective radius is the correct radius to use
     realtype radius;
     aero_rep_get_effective_radius(
 		  model_data,			// model data

@@ -67,10 +67,10 @@ module pmc_aero_rep_modal_mass
 #define _MODE_INT_PARAM_LOC_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
 #define _MODE_REAL_PARAM_LOC_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_MODE_+x)
 #define _NUM_PHASE_(x) this%condensed_data_int(_MODE_INT_PARAM_LOC_(x))
-#define _PHASE_INT_PARAM_LOC_(x,y) this%condensed_data_int(_MODE_INT_PARAM_LOC_(x)+1+y)
-#define _PHASE_REAL_PARAM_LOC_(x,y) this%condensed_data_int(_MODE_INT_PARAM_LOC_(x)+1+_NUM_PHASE_(x)+y)
+#define _PHASE_INT_PARAM_LOC_(x,y) this%condensed_data_int(_MODE_INT_PARAM_LOC_(x)+y)
+#define _PHASE_REAL_PARAM_LOC_(x,y) this%condensed_data_int(_MODE_INT_PARAM_LOC_(x)+_NUM_PHASE_(x)+y)
 #define _NUM_SPEC_(x,y) this%condensed_data_int(_PHASE_INT_PARAM_LOC_(x,y))
-#define _SPEC_STATE_ID_(x,y,z) this%condensed_data_int(_PHASE_INT_PARAM_LOC_(x,y)+1+z)
+#define _SPEC_STATE_ID_(x,y,z) this%condensed_data_int(_PHASE_INT_PARAM_LOC_(x,y)+z)
 #define _GMD_(x) this%condensed_data_real(_MODE_REAL_PARAM_LOC_(x))
 #define _GSD_(x) this%condensed_data_real(_MODE_REAL_PARAM_LOC_(x)+1)
 #define _NUMBER_CONC_(x) this%condensed_data_real(_MODE_REAL_PARAM_LOC_(x)+2)
@@ -177,7 +177,7 @@ contains
     !> Chemical species data
     type(chem_spec_data_t), intent(in) :: chem_spec_data
 
-    type(property_t), pointer :: modes, phases, spec_props
+    type(property_t), pointer :: modes, mode, phases, spec_props
     integer(kind=i_kind) :: i_mode, i_phase, j_phase, k_phase, i_spec
     integer(kind=i_kind) :: curr_spec_state_id
     integer(kind=i_kind) :: num_spec, num_phase
@@ -205,7 +205,7 @@ contains
     num_phase = 0
     num_spec = 0
     call modes%iter_reset()
-    do i_mode = 1, _NUM_MODE_
+    do i_mode = 1, modes%size()
     
       ! Get the mode name
       call assert(867378489, modes%get_key(key_name))
@@ -213,14 +213,20 @@ contains
               "modal mass aerosol representation '"//this%rep_name//"'")
       this%mode_name(i_mode)%string = key_name
 
+      ! Get the mode properties
+      call assert_msg(517138327, modes%get_property_t(val=mode), &
+              "Invalid structure for mode '"//this%mode_name(i_mode)%string// &
+              "' in modal mass aerosol representation '"//this%rep_name//"'")
+
       ! Add space for the mode data locations and phase count
       n_int_param = n_int_param + 3
 
       ! Add space for the GMD, GSD, number concentration, and effective radius
       n_float_param = n_float_param + 4
-
+ 
       ! Get the set of phases
-      call assert_msg(815518058, modes%get_property_t(val=phases), &
+      key_name = "phases"
+      call assert_msg(815518058, mode%get_property_t(key_name, phases), &
               "Missing phases for mode '"//this%mode_name(i_mode)%string// &
               "' in modal mass aerosol representation '"//this%rep_name//"'")
 
@@ -250,7 +256,7 @@ contains
           if (phase_name.eq.aero_phase_set(j_phase)%val%name()) then
             
             ! Add the species from this phase to the running total
-            num_spec = num_spec + this%aero_phase(i_phase)%val%size()
+            num_spec = num_spec + aero_phase_set(j_phase)%val%size()
             
             ! Add space for each species state id
             n_int_param = n_int_param + aero_phase_set(j_phase)%val%size()
@@ -258,6 +264,7 @@ contains
             ! Add space for each species density
             n_float_param = n_float_param + aero_phase_set(j_phase)%val%size()
 
+            exit
           else if (j_phase.eq.size(aero_phase_set)) then
             call die_msg(652391420, "Non-existant aerosol phase '"// &
                     phase_name//"' specified for mode '"// &
@@ -290,8 +297,8 @@ contains
     ! counting the phases in each mode
     i_phase = 1
     curr_spec_state_id = spec_state_id
-    n_int_param = _NUM_INT_PROP_+2*_NUM_MODE_
-    n_float_param = _NUM_REAL_PROP_
+    n_int_param = _NUM_INT_PROP_+2*_NUM_MODE_+1
+    n_float_param = _NUM_REAL_PROP_+1
     call modes%iter_reset()
     do i_mode = 1, _NUM_MODE_
     
@@ -299,26 +306,46 @@ contains
       _MODE_INT_PARAM_LOC_(i_mode) = n_int_param
       _MODE_REAL_PARAM_LOC_(i_mode) = n_float_param
 
+      ! Get the mode properties
+      call assert(394743663, modes%get_property_t(val=mode))
+
       ! Get the geometric mean diameter
       key_name = "geometric mean diameter"
-      call assert_msg(414771933, modes%get_real(key_name, _GMD_(i_mode)), &
+      call assert_msg(414771933, mode%get_real(key_name, _GMD_(i_mode)), &
               "Missing geometric mean diameter in mode '"// &
               this%mode_name(i_mode)%string// &
               "' in modal mass aerosol representation '"//this%rep_name//"'")
 
       ! Get the geometric standard deviation
       key_name = "geometric standard deviation"
-      call assert_msg(163265059, modes%get_real(key_name, _GSD_(i_mode)), &
+      call assert_msg(163265059, mode%get_real(key_name, _GSD_(i_mode)), &
               "Missing geometric standard deviation in mode '"// &
               this%mode_name(i_mode)%string// &
               "' in modal mass aerosol representation '"//this%rep_name//"'")
 
       ! Get the set of phases
-      call assert(712411046, modes%get_property_t(val=phases))
+      key_name = "phases"
+      call assert(712411046, mode%get_property_t(key_name, phases))
+
+      ! Save the number of phases
+      _NUM_PHASE_(i_mode) = phases%size()
+
+      ! Add space for the number of phases and the phase data locations
+      n_int_param = n_int_param + 1 + 2*_NUM_PHASE_(i_mode)
+
+      ! Add space for GMD, GSD, number concentration and effective radius
+      n_float_param = n_float_param + 4
 
       ! Loop through the phase names, look them up, and add them to the list
       call phases%iter_reset()
       do j_phase = 1, phases%size()
+
+        ! Set the data locations for this mode
+        _PHASE_INT_PARAM_LOC_(i_mode, j_phase) = n_int_param
+        _PHASE_REAL_PARAM_LOC_(i_mode, j_phase) = n_float_param
+
+        ! Add space for the number of species
+        n_int_param = n_int_param + 1
 
         ! Get the phase name
         call assert(775801035, phases%get_string(val=phase_name))
@@ -333,11 +360,14 @@ contains
             ! Save the starting id for this phase on the state array
             this%phase_state_id(i_phase) = curr_spec_state_id
 
+            ! Save the number of species
+            _NUM_SPEC_(i_mode, j_phase) = this%aero_phase(k_phase)%val%size()
+
             ! Loop through the species in this phase
-            do i_spec = 1, this%aero_phase(k_phase)%val%size()
+            do i_spec = 1, _NUM_SPEC_(i_mode, j_phase)
             
               ! Save the species state ids for this phase
-              _SPEC_STATE_ID_(i_mode, i_phase, i_spec) = curr_spec_state_id
+              _SPEC_STATE_ID_(i_mode, j_phase, i_spec) = curr_spec_state_id
               curr_spec_state_id = curr_spec_state_id + 1
             
               ! Get the property set for this species
@@ -352,7 +382,7 @@ contains
               ! Get the species density
               key_name = "density"
               call assert_msg(821683338, spec_props%get_real(key_name, &
-                      _DENSITY_(i_mode, i_phase, i_spec)), &
+                      _DENSITY_(i_mode, j_phase, i_spec)), &
                       "Missing density for aerosol species '"// &
                       this%aero_phase(k_phase)%val%get_species_name(i_spec)// &
                       "' in phase '"//this%aero_phase(k_phase)%val%name()// &
@@ -368,30 +398,21 @@ contains
             n_float_param = n_float_param + this%aero_phase(k_phase)%val%size()
 
             i_phase = i_phase + 1
-
+            exit
           else if (k_phase.eq.size(aero_phase_set)) then
             call die_msg(652391420, "Internal error.")
           end if
         end do
 
-        ! Add space for phase data locations and number of species
-        n_int_param = n_int_param + 3
-
         call phases%iter_next()
       end do
-
-      ! Add space for mode data locations and number of phases
-      n_int_param = n_int_param + 3
-
-      ! Add space for GMD, GSD, number concentration and effective radius
-      n_float_param = n_float_param + 4
 
       call modes%iter_next()
     end do
 
     ! Check the data sizes
-    call assert(951534966, n_int_param.eq._INT_DATA_SIZE_)
-    call assert(325387136, n_float_param.eq._REAL_DATA_SIZE_)
+    call assert(951534966, n_int_param.eq._INT_DATA_SIZE_+1)
+    call assert(325387136, n_float_param.eq._REAL_DATA_SIZE_+1)
 
   end subroutine initialize
 

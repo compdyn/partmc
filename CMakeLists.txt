@@ -161,6 +161,7 @@ do_unit_test(chem_spec_data "PASS")
 do_unit_test(aero_phase_data "PASS")
 if(ENABLE_JSON)
   do_unit_test(aero_rep_single_particle "PASS")
+  do_unit_test(aero_rep_modal_mass "PASS")
   do_unit_test(phlex_core "PASS")
 endif()
 
@@ -545,6 +546,14 @@ add_executable(unit_test_aero_rep_single_particle
 	test/unit_aero_rep_data/test_aero_rep_single_particle.F90)
 
 target_link_libraries(unit_test_aero_rep_single_particle partmclib)
+
+######################################################################
+# test_aero_rep_modal_mass
+
+add_executable(unit_test_aero_rep_modal_mass
+	test/unit_aero_rep_data/test_aero_rep_modal_mass.F90)
+
+target_link_libraries(unit_test_aero_rep_modal_mass partmclib)
 
 ######################################################################
 # test_chem_mech_solver

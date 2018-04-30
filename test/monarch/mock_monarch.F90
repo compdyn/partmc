@@ -9,7 +9,7 @@
 program mock_monarch
 
   use pmc_util,                                 only : assert_msg
-  use pmc_monarch
+  use pmc_monarch_interface
   use pmc_mpi
 
   implicit none
@@ -72,12 +72,17 @@ program mock_monarch
   !! is tracked in MONARCH
   real :: start_time = 360.0
 
+  !> !!! Add to MONARCH variables !!!
+  type(monarch_interface_t), pointer :: pmc_interface
+
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! Mock model setup and evaluation variables !
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Path to phlex-chem input file list
+  !> Phlex-chem input file file
   character(len=:), allocatable :: phlex_input_file
+  !> PartMC-phlex <-> MONARCH interface configuration file
+  character(len=:), allocatable :: interface_input_file
   !> Path to results file
   character(len=:), allocatable :: output_file
  
@@ -86,8 +91,9 @@ program mock_monarch
 
 
   ! Check the command line arguments
-  call assert_msg(129432506, command_argument_count().eq.2, "Usage: "// &
-          "./mock_monarch phlex_input_file_list.json output_file.txt")
+  call assert_msg(129432506, command_argument_count().eq.3, "Usage: "// &
+          "./mock_monarch phlex_input_file_list.json "// &
+          "interface_input_file.json output_file.txt")
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! **** Add to MONARCH during initialization **** !
@@ -98,17 +104,23 @@ program mock_monarch
   call assert_msg(678165802, status_code.eq.0, "Error getting PartMC-phlex "//&
           "configuration file name")
   phlex_input_file = trim(arg)
-  call pmc_initialize(phlex_input_file, START_PHLEX_ID, END_PHLEX_ID)
+  call get_command_argument(2, arg, status=status_code)
+  call assert_msg(664104564, status_code.eq.0, "Error getting PartMC-phlex "//&
+          "<-> MONARCH interface configuration file name")
+  interface_input_file = trim(arg)
+  pmc_interface => monarch_interface_t(phlex_input_file, interface_input_file, &
+          START_PHLEX_ID, END_PHLEX_ID)
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! **** end initialization modification **** !
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   ! Initialize the mock model
-  call get_command_argument(2, arg, status=status_code)
+  call get_command_argument(3, arg, status=status_code)
   call assert_msg(234156729, status_code.eq.0, "Error getting output file name")
   output_file = trim(arg)
   call model_initialize(output_file)
+  call pmc_interface%get_init_conc(species_conc)
 
   ! Run the model
   do i_time=0, NUM_TIME_STEP
@@ -118,18 +130,18 @@ program mock_monarch
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     call output_results(start_time)
-    call pmc_integrate(start_time,        & ! Starting time (min)
-                       TIME_STEP,         & ! Time step (min)
-                       I_W,               & ! Starting W->E grid cell
-                       I_E,               & ! Ending W->E grid cell
-                       I_S,               & ! Starting S->N grid cell
-                       I_N,               & ! Ending S->N grid cell
-                       temperature,       & ! Temperature (K)
-                       species_conc,      & ! Tracer array
-                       water_conc,        & ! Water concentrations (kg_H2O/kg_air)
-                       WATER_VAPOR_ID,    & ! Index in water_conc() corresponding to water vapor
-                       air_density,       & ! Air density (kg_air/m^3)
-                       pressure)            ! Air pressure (Pa)   
+    call pmc_interface%integrate(start_time,        & ! Starting time (min)
+                                 TIME_STEP,         & ! Time step (min)
+                                 I_W,               & ! Starting W->E grid cell
+                                 I_E,               & ! Ending W->E grid cell
+                                 I_S,               & ! Starting S->N grid cell
+                                 I_N,               & ! Ending S->N grid cell
+                                 temperature,       & ! Temperature (K)
+                                 species_conc,      & ! Tracer array
+                                 water_conc,        & ! Water concentrations (kg_H2O/kg_air)
+                                 WATER_VAPOR_ID,    & ! Index in water_conc() corresponding to water vapor
+                                 air_density,       & ! Air density (kg_air/m^3)
+                                 pressure)            ! Air pressure (Pa)   
     start_time = start_time + TIME_STEP
   
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -172,8 +184,6 @@ contains
     air_density(:,:,:) = 1.225
     pressure(:,:,:) = 101325.0
 
-    species_conc(:,:,:,START_PHLEX_ID) = 1.0 ! Species A
-
   end subroutine model_initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -184,7 +194,8 @@ contains
     !> Current model time (min since midnight)
     real, intent(in) :: curr_time
 
-    write(RESULTS_FILE_UNIT, *) curr_time, species_conc(10,15,1,START_PHLEX_ID:)
+    write(RESULTS_FILE_UNIT, *) curr_time, &
+            species_conc(10,15,1,START_PHLEX_ID:END_PHLEX_ID)
 
   end subroutine output_results
 

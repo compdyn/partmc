@@ -1,0 +1,24 @@
+{
+  "notes" : "Map for simple mechanism species",
+  "monarch-data" : 
+  [
+    {
+      "name" : "Simple mechanism species map",
+      "type" : "SPECIES_MAP",
+      "gas-phase species" : {
+        "A" : { "monarch id" : 2 },
+        "B" : { "monarch id" : 1 },
+        "C" : { "monarch id" : 3 }
+      }
+    },
+    {
+      "name" : "Initial concentrations for simple mechanism",
+      "type" : "INIT_CONC",
+      "gas-phase species" : {
+        "A" : { "init conc" : 1.0 },
+        "B" : { "init conc" : 0.0 },
+        "C" : { "init conc" : 0.0 }
+      }
+    }
+  ]
+}

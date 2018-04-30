@@ -14,7 +14,7 @@ while [ true ]
 do
   echo Attempt $counter
 
-  if ! ../../mock_monarch config_simple.json out/results_simple.txt; then 
+  if ! ../../mock_monarch config_simple.json interface_simple.json out/results_simple.txt; then 
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then

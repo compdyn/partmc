@@ -485,7 +485,7 @@ target_link_libraries(test_chemistry_eqsam_v03d partmclib)
 # MONARCH interface
 
 add_executable(mock_monarch test/monarch/mock_monarch.F90
-	test/monarch/pmc_monarch.F90)
+	test/monarch/pmc_monarch_interface.F90)
 
 target_link_libraries(mock_monarch partmclib)
 

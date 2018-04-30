@@ -411,6 +411,7 @@ contains
     type(property_link_t), pointer :: link
 
     found = .false.
+    val => null()
     if (present(key)) then
       link => pmc_property_get(this, key)
       if (.not. associated(link)) return

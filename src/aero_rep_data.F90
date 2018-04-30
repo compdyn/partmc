@@ -229,6 +229,8 @@ interface
   !! of the first element for this aerosol representation on the state array
   !! and \f$n\f$ is the total number of variables on the state array from
   !! this aerosol representation.
+  !!
+  !! If the name is not found, the return value is 0.
   function spec_state_id(this, unique_name) result (spec_id)
     use pmc_util,                                     only : i_kind
     import :: aero_rep_data_t
@@ -257,6 +259,8 @@ interface
   !!  of the first element for this aerosolrepresentation on the state array
   !! and \f$n\f$ is the total number of variables on the state array from
   !! this aerosol representation.
+  !!
+  !! If the name is not found, the return value is 0.
   function activity_coeff_state_id(this, unique_name) result (spec_id)
     use pmc_util,                                     only : i_kind
     import :: aero_rep_data_t

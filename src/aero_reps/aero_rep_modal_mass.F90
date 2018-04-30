@@ -75,7 +75,7 @@ module pmc_aero_rep_modal_mass
 #define _GSD_(x) this%condensed_data_real(_MODE_REAL_PARAM_LOC_(x)+1)
 #define _NUMBER_CONC_(x) this%condensed_data_real(_MODE_REAL_PARAM_LOC_(x)+2)
 #define _EFFECTIVE_RADUIS_(x) this%condensed_data_real(_MODE_REAL_PARAM_LOC_(x)+3)
-#define _DENSITY_(x,y,z) this%condensed_data_real(_PHASE_REAL_PARAM_LOC_(x,y)+z)
+#define _DENSITY_(x,y,z) this%condensed_data_real(_PHASE_REAL_PARAM_LOC_(x,y)-1+z)
 
   ! Update types (These must match values in aero_rep_modal_mass.c)
   integer(kind=i_kind), parameter, public :: UPDATE_GMD = 0
@@ -372,10 +372,10 @@ contains
             
               ! Get the property set for this species
               call assert_msg(741499484, chem_spec_data%get_property_set( &
-                      this%aero_phase(k_phase)%val%get_species_name(i_spec), spec_props), &
+                      this%aero_phase(i_phase)%val%get_species_name(i_spec), spec_props), &
                       "Missing property set for aerosol species '"// &
-                      this%aero_phase(k_phase)%val%get_species_name(i_spec)// &
-                      "' in phase '"//this%aero_phase(k_phase)%val%name()// &
+                      this%aero_phase(i_phase)%val%get_species_name(i_spec)// &
+                      "' in phase '"//this%aero_phase(i_phase)%val%name()// &
                       this%mode_name(i_mode)%string// &
                       "' in modal mass aerosol representation '"//this%rep_name//"'")
 
@@ -384,8 +384,8 @@ contains
               call assert_msg(821683338, spec_props%get_real(key_name, &
                       _DENSITY_(i_mode, j_phase, i_spec)), &
                       "Missing density for aerosol species '"// &
-                      this%aero_phase(k_phase)%val%get_species_name(i_spec)// &
-                      "' in phase '"//this%aero_phase(k_phase)%val%name()// &
+                      this%aero_phase(i_phase)%val%get_species_name(i_spec)// &
+                      "' in phase '"//this%aero_phase(i_phase)%val%name()// &
                       this%mode_name(i_mode)%string// &
                       "' in modal mass aerosol representation '"//this%rep_name//"'")
                       

@@ -1,0 +1,36 @@
+{
+  "notes" : "Gas- and aerosol-phase MONARCH species that are not part of the base CB05 mechanism",
+  "pmc-data" : [
+    {
+      "name" : "NH3",
+      "type" : "CHEM_SPEC",
+      "description" : "ammonia"
+    },
+    {
+      "name" : "DMS",
+      "type" : "CHEM_SPEC",
+      "description" : "dimethylsulfide"
+    },
+    {
+      "name" : "ISOPP1G",
+      "type" : "CHEM_SPEC",
+      "description" : "1st product of isoprene oxidation in 2-product SOA scheme."
+    },
+    {
+      "name" : "ISOPP2G",
+      "type" : "CHEM_SPEC",
+      "description" : "2nd product of isoprene oxidation in 2-product SOA scheme."
+    },
+    {
+      "name" : "APINP1G",
+      "type" : "CHEM_SPEC",
+      "description" : "1st product of alpha-pinene oxidation in 2-product SOA scheme."
+    },
+    {
+      "name" : "APINP2G",
+      "type" : "CHEM_SPEC",
+      "description" : "2nd product of alpha-pinene oxidation in 2-product SOA scheme."
+    }
+  ]
+}
+

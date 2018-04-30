@@ -38,7 +38,9 @@ module pmc_monarch_interface
     type(phlex_core_t), pointer :: phlex_core 
     !> Phlex-chem state
     type(phlex_state_t), pointer :: phlex_state
-    !> MONACH <-> PartMC species map
+    !> MONARCH species names
+    type(string_t), allocatable :: monarch_species_names(:)
+    !> MONARCH <-> PartMC species map
     integer(kind=i_kind), allocatable :: map_monarch_id(:), map_phlex_id(:)
     !> PartMC-phlex ids for initial concentrations
     integer(kind=i_kind), allocatable :: init_conc_phlex_id(:)
@@ -59,6 +61,8 @@ module pmc_monarch_interface
     procedure :: integrate
     !> Get initial concentrations (for testing only)
     procedure :: get_init_conc
+    !> Get monarch species names and ids (for testing only)
+    procedure :: get_MONARCH_species
     !> Load interface data from a set of input files
     procedure, private :: load
     !> Create the PartMC <-> MONARCH species map
@@ -414,7 +418,8 @@ contains
       num_spec = num_spec + aero_species_list%size()
     end if
 
-    ! Set up the species map
+    ! Set up the species map and MONARCH names array
+    allocate(this%monarch_species_names(num_spec))
     allocate(this%map_monarch_id(num_spec))
     allocate(this%map_phlex_id(num_spec))
 
@@ -422,6 +427,8 @@ contains
     call gas_species_list%iter_reset()
     i_spec = 1
     do while (gas_species_list%get_key(spec_name))
+
+      this%monarch_species_names(i_spec)%string = spec_name
 
       call assert_msg(599522862, &
               gas_species_list%get_property_t(val=species_data), &
@@ -455,6 +462,8 @@ contains
       call aero_species_list%iter_reset()
       do while(aero_species_list%get_key(spec_name))
 
+        this%monarch_species_names(i_spec)%string = spec_name
+        
         call assert_msg(567689501, &
                 aero_species_list%get_property_t(val=species_data), &
                 "Missing species data for '"//spec_name//"' in " //&
@@ -628,6 +637,23 @@ contains
     end forall
 
   end subroutine get_init_conc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the MONARCH species names and indices (for testing only)
+  subroutine get_MONARCH_species(this, species_names, MONARCH_ids)
+
+    !> PartMC-phlex <-> MONARCH interface
+    class(monarch_interface_t) :: this
+    !> Set of MONARCH species names
+    type(string_t), allocatable, intent(out) :: species_names(:)
+    !> MONARCH tracer ids
+    integer(kind=i_kind), allocatable, intent(out) :: MONARCH_ids(:)
+
+    species_names = this%monarch_species_names
+    MONARCH_ids = this%map_monarch_id
+
+  end subroutine get_MONARCH_species
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -18,6 +18,8 @@ program mock_monarch
   integer, parameter :: OUTPUT_FILE_UNIT = 6
   !> File unit for model results
   integer, parameter :: RESULTS_FILE_UNIT = 15
+  !> File unit for script generation
+  integer, parameter :: SCRIPTS_FILE_UNIT = 15
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! Parameters for mock MONARCH model !
@@ -83,8 +85,8 @@ program mock_monarch
   character(len=:), allocatable :: phlex_input_file
   !> PartMC-phlex <-> MONARCH interface configuration file
   character(len=:), allocatable :: interface_input_file
-  !> Path to results file
-  character(len=:), allocatable :: output_file
+  !> Results file prefix
+  character(len=:), allocatable :: output_file_prefix
  
   character(len=500) :: arg
   integer :: status_code, i_time
@@ -93,7 +95,7 @@ program mock_monarch
   ! Check the command line arguments
   call assert_msg(129432506, command_argument_count().eq.3, "Usage: "// &
           "./mock_monarch phlex_input_file_list.json "// &
-          "interface_input_file.json output_file.txt")
+          "interface_input_file.json output_file_prefix")
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! **** Add to MONARCH during initialization **** !
@@ -117,9 +119,9 @@ program mock_monarch
 
   ! Initialize the mock model
   call get_command_argument(3, arg, status=status_code)
-  call assert_msg(234156729, status_code.eq.0, "Error getting output file name")
-  output_file = trim(arg)
-  call model_initialize(output_file)
+  call assert_msg(234156729, status_code.eq.0, "Error getting output file prefix")
+  output_file_prefix = trim(arg)
+  call model_initialize(output_file_prefix)
   call pmc_interface%get_init_conc(species_conc)
 
   ! Run the model
@@ -152,7 +154,11 @@ program mock_monarch
 
   write(*,*) "Model run time: ", comp_time, " s"
 
-  call output_results(start_time)
+  ! Output results and scripts
+  if (pmc_mpi_rank().eq.0) then
+    call output_results(start_time)
+    call create_gnuplot_script(pmc_interface, output_file_prefix)
+  end if
 
   ! TODO evaluate results
 
@@ -163,15 +169,18 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize the mock model
-  subroutine model_initialize(output_file)
+  subroutine model_initialize(file_prefix)
 
-    !> Path to output file
-    character(len=:), allocatable, intent(in) :: output_file
+    !> File prefix for model results
+    character(len=:), allocatable, intent(in) :: file_prefix
 
     integer :: i_spec
+    character(len=:), allocatable :: file_name
+
+    file_name = file_prefix//"_results.txt"
 
     ! Open the output file
-    open(RESULTS_FILE_UNIT, file=output_file, status="replace", action="write")
+    open(RESULTS_FILE_UNIT, file=file_name, status="replace", action="write")
 
     ! Initialize MPI
     call pmc_mpi_init()
@@ -198,6 +207,47 @@ contains
             species_conc(10,15,1,START_PHLEX_ID:END_PHLEX_ID)
 
   end subroutine output_results
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    
+  !> Create a gnuplot script for viewing species concentrations
+  subroutine create_gnuplot_script(pmc_interface, file_prefix)
+
+    !> PartMC-phlex <-> MONARCH interface
+    type(monarch_interface_t), intent(in) :: pmc_interface
+    !> File prefix for gnuplot script
+    character(len=:), allocatable :: file_prefix
+
+    type(string_t), allocatable :: species_names(:)
+    integer(kind=i_kind), allocatable :: tracer_ids(:)
+    character(len=:), allocatable :: file_name
+    integer(kind=i_kind) :: i_spec
+
+    ! Get the species names and ids
+    call pmc_interface%get_MONARCH_species(species_names, tracer_ids)
+
+    ! Adjust the tracer ids to match the results file
+    tracer_ids(:) = tracer_ids(:) - START_PHLEX_ID + 2
+
+    ! Create the gnuplot script
+    file_name = file_prefix//".conf"
+    open(unit=SCRIPTS_FILE_UNIT, file=file_name, status="replace", action="write")
+    write(SCRIPTS_FILE_UNIT,*) "# "//file_name
+    write(SCRIPTS_FILE_UNIT,*) "# Run as: gnuplot "//file_name
+    write(SCRIPTS_FILE_UNIT,*) "set terminal png truecolor"
+    write(SCRIPTS_FILE_UNIT,*) "set autoscale"
+    do i_spec = 1, size(species_names)
+      write(SCRIPTS_FILE_UNIT,*) "set output '"//file_prefix//"_"// &
+              species_names(i_spec)%string//".png'"
+      write(SCRIPTS_FILE_UNIT,*) "plot\"
+      write(SCRIPTS_FILE_UNIT,*) " '"//file_prefix//"_results.txt'\"
+      write(SCRIPTS_FILE_UNIT,*) " using 1:"// &
+              trim(to_string(tracer_ids(i_spec)))//" title '"// &
+              species_names(i_spec)%string//" (MONARCH)'"
+    end do
+    close(SCRIPTS_FILE_UNIT)
+    
+  end subroutine create_gnuplot_script
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

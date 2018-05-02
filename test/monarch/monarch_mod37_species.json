@@ -1,5 +1,5 @@
 {
-  "notes" : "Gas- and aerosol-phase MONARCH species that are not part of the base CB05 mechanism",
+  "description" : "Gas- and aerosol-phase MONARCH species that are not part of the base CB05 mechanism but are included in the 'mod37' configuration",
   "pmc-data" : [
     {
       "name" : "NH3",

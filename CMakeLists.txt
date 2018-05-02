@@ -161,7 +161,7 @@ do_unit_test(chem_spec_data "PASS")
 do_unit_test(aero_phase_data "PASS")
 if(ENABLE_JSON)
   do_unit_test(aero_rep_single_particle "PASS")
-  do_unit_test(aero_rep_modal_mass "PASS")
+  do_unit_test(aero_rep_modal_binned_mass "PASS")
   do_unit_test(phlex_core "PASS")
 endif()
 
@@ -358,7 +358,7 @@ set(REACTIONS_SRC ${REACTIONS_F_SRC}
 	src/rxns/rxn_ZSR_aerosol_water.c)
 
 set(AEROSOL_REPS_F_SRC
-        src/aero_reps/aero_rep_modal_mass.F90
+        src/aero_reps/aero_rep_modal_binned_mass.F90
         src/aero_reps/aero_rep_single_particle.F90)
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
@@ -371,7 +371,7 @@ set_source_files_properties(${AEROSOL_REPS_F_SRC} PROPERTIES COMPILE_FLAGS
         ${AEROSOL_REPS_F_FLAGS})
 
       set(AEROSOL_REPS_SRC ${AEROSOL_REPS_F_SRC}
-        src/aero_reps/aero_rep_modal_mass.c
+        src/aero_reps/aero_rep_modal_binned_mass.c
         src/aero_reps/aero_rep_single_particle.c)	
 
 add_library(partmclib src/aero_state.F90 src/integer_varray.F90
@@ -549,12 +549,12 @@ add_executable(unit_test_aero_rep_single_particle
 target_link_libraries(unit_test_aero_rep_single_particle partmclib)
 
 ######################################################################
-# test_aero_rep_modal_mass
+# test_aero_rep_modal_binned_mass
 
-add_executable(unit_test_aero_rep_modal_mass
-	test/unit_aero_rep_data/test_aero_rep_modal_mass.F90)
+add_executable(unit_test_aero_rep_modal_binned_mass
+	test/unit_aero_rep_data/test_aero_rep_modal_binned_mass.F90)
 
-target_link_libraries(unit_test_aero_rep_modal_mass partmclib)
+target_link_libraries(unit_test_aero_rep_modal_binned_mass partmclib)
 
 ######################################################################
 # test_chem_mech_solver

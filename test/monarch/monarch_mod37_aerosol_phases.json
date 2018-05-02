@@ -1,0 +1,48 @@
+{
+  "description" : "These aerosol phases correspond to the MONARCH 'mod37' configuration",
+  "pmc-data" : [
+    {
+      "name" : "dust",
+      "type": "AERO_PHASE",
+      "species" : [ "lumped dust species" ],
+      "notes" : {
+        "MLD 02/05/2018" : "consider replacing this with a set of inorganic species"
+      }
+    },
+    {
+      "name" : "sea salt",
+      "type" : "AERO_PHASE",
+      "species" : [ "lumped sea salt species" ],
+      "notes" : {
+        "MLD 02/05/2018" : "consider replacing with H2O, Na+, Cl-"
+      }
+    },
+    {
+      "name" : "organic matter",
+      "type" : "AERO_PHASE",
+      "species" : [ "PM_phob", "PM_phil", "ISOP_aero_1", "ISOP_aero_2", "TERP_aero_1", "TERP_aero_2" ]
+    },
+    {
+      "name" : "black carbon",
+      "type" : "AERO_PHASE",
+      "species" : [ "BC" ]
+    },
+    {
+      "name" : "sulfate",
+      "type" : "AERO_PHASE",
+      "species" : [ "H2O_aq", "H_p", "OH_m",
+                    "H2SO4_aq", "SO4_mm", "HSO4_m", 
+                    "HNO3_aq", "NO3_m",
+                    "NH3_aq", "NH4_p",
+                    "(NH4)2-SO4", "NH4-NO3", "H-NO3", "H2-SO4"
+                  ],
+      "description" : "Aqueous sulfate aerosol phase for SO4--NO3--NH3 aerosol"
+    },
+    {
+      "name" : "other PM",
+      "type" : "AERO_PHASE",
+      "species" : [ "other PM" ],
+      "description" : "unspecified particulate matter"
+    }
+  ]
+}

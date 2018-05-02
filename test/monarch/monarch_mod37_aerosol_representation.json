@@ -1,0 +1,62 @@
+{
+  "description" : "This is the mass-based MONARCH aerosol representation for the 'mod37' configuration",
+  "pmc-data" : [
+    {
+      "name" : "MONARCH mass-based modal/binned aerosol representation",
+      "type" : "AERO_REP_MODAL_BINNED_MASS",
+      "modes/bins" :
+      {
+        "dust" :
+        {
+          "type" : "BINNED",
+          "phases" : [ "dust" ],
+          "bins" : 8,
+          "minimum diameter" : 1.0e-7,
+          "maximum diameter" : 1.0e-5,
+          "scale" : "LOG"
+        },
+        "sea salt" : 
+        {
+          "type" : "BINNED",
+          "phases" : [ "sea salt" ],
+          "bins" : 8,
+          "minimum diameter" : "look up",
+          "maximum diameter" : "look up",
+          "scale" : "LOG"
+        },
+        "organic matter" : 
+        {
+          "type" : "MODAL",
+          "phases" : [ "organic matter" ],
+          "shape" : "LOG_NORMAL",
+          "geometric mean diameter" : "look up",
+          "geometeric standard deviation" : "look up"
+        },
+        "black carbon" :
+        {
+          "type" : "MODAL",
+          "phases" : [ "black carbon" ],
+          "shape" : "LOG_NORMAL",
+          "geometric mean diameter" : "look up",
+          "geometric standard deviation" : "look up"
+        },
+        "sulfate" :
+        {
+          "type" : "MODAL",
+          "phases" : [ "sulfate" ],
+          "shape" : "LOG_NORMAL",
+          "geometric mean diameter" : "look up",
+          "geometric standard deviation" : "look up"
+        },
+        "other PM" : 
+        {
+          "type" : "MODAL",
+          "phases" : [ "other PM" ],
+          "shape" : "LOG_NORMAL",
+          "geometric mean diameter" : "look up",
+          "geometric standard deviation" : "look up"
+        }
+      }
+    }
+  ]
+}

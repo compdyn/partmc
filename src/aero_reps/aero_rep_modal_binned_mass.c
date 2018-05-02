@@ -16,25 +16,44 @@
 #define _TEMPERATURE_K_ env_data[0]
 #define _PRESSURE_PA_ env_data[1]
 
-#define _NUM_MODE_ (int_data[0])
+#define BINNED 1
+#define MODAL 2
+
+#define _NUM_SECTION_ (int_data[0])
 #define _INT_DATA_SIZE_ (int_data[1])
 #define _FLOAT_DATA_SIZE_ (int_data[2])
 #define _NUM_INT_PARAM_ 3
 #define _NUM_FLOAT_PARAM_ 0
 #define _MODE_INT_PARAM_LOC_(x) (int_data[_NUM_INT_PARAM_+x]-1)
-#define _MODE_FLOAT_PARAM_LOC_(x) (int_data[_NUM_INT_PARAM_+_NUM_MODE_+x]-1)
-#define _NUM_PHASE_(x) (int_data[_MODE_INT_PARAM_LOC_(x)])
-#define _PHASE_INT_PARAM_LOC_(x,y) (int_data[_MODE_INT_PARAM_LOC_(x)+1+y]-1)
-#define _PHASE_FLOAT_PARAM_LOC_(x,y) (int_data[_MODE_INT_PARAM_LOC_(x)+1+_NUM_PHASE_(x)+y]-1)
+#define _MODE_FLOAT_PARAM_LOC_(x) (int_data[_NUM_INT_PARAM_+_NUM_SECTION_+x]-1)
+#define _SECTION_TYPE_(x) (int_data[_MODE_INT_PARAM_LOC_(x)])
+
+// For sections, _NUM_BINS_ = 1
+#define _NUM_BINS_(x) (int_data[_MODE_INT_PARAM_LOC_(x)+1])
+
+#define _NUM_PHASE_(x) (int_data[_MODE_INT_PARAM_LOC_(x)+2])
+#define _PHASE_INT_PARAM_LOC_(x,y) (int_data[_MODE_INT_PARAM_LOC_(x)+3+y]-1)
+#define _PHASE_FLOAT_PARAM_LOC_(x,y) (int_data[_MODE_INT_PARAM_LOC_(x)+3+_NUM_PHASE_(x)+y]-1)
 #define _NUM_SPEC_(x,y) (int_data[_PHASE_INT_PARAM_LOC_(x,y)])
-#define _SPEC_STATE_ID_(x,y,z) (int_data[_PHASE_INT_PARAM_LOC_(x,y)+1+z]-1)
-#define _GMD_(x) (float_data[_MODE_FLOAT_PARAM_LOC_(x)])
-#define _GSD_(x) (float_data[_MODE_FLOAT_PARAM_LOC_(x)+1])
-#define _NUMBER_CONC_(x) (float_data[_MODE_FLOAT_PARAM_LOC_(x)+2])
-#define _EFFECTIVE_RADIUS_(x) (float_data[_MODE_FLOAT_PARAM_LOC_(x)+3])
+
+// Species state ids - for modes, b=0
+#define _SPEC_STATE_ID_(x,y,b,z) (int_data[_PHASE_INT_PARAM_LOC_(x,y)+b*(_NUM_SPEC_(x,y))+1+z]-1)
+
+// GMD and bin diameter are stored in the same position - for modes, b=0
+#define _GMD_(x,b) (float_data[_MODE_FLOAT_PARAM_LOC_(x)+b*4])
+#define _BIN_Dp_(x,b) (float_data[_MODE_FLOAT_PARAM_LOC_(x)+b*4])
+
+// GSD - only used for modes, b=0
+#define _GSD_(x,b) (float_data[_MODE_FLOAT_PARAM_LOC_(x)+b*4+1])
+
+// Real-time number concentration - used for modes and bins - for modes, b=0
+#define _NUMBER_CONC_(x,b) (float_data[_MODE_FLOAT_PARAM_LOC_(x)+b*4+2])
+
+// Real-time effective radius - only used for modes, b=0
+#define _EFFECTIVE_RADIUS_(x,b) (float_data[_MODE_FLOAT_PARAM_LOC_(x)+b*4+3])
 #define _DENSITY_(x,y,z) (float_data[_PHASE_FLOAT_PARAM_LOC_(x,y)+z])
 
-// Update types (These must match values in aero_rep_modal_mass.F90)
+// Update types (These must match values in aero_rep_modal_binned_mass.F90)
 #define UPDATE_GMD 0
 #define UPDATE_GSD 1
 
@@ -46,7 +65,7 @@
  * \param state_flags Array of flags indicating state array elements used
  * \return The aero_rep_data pointer advanced by the size of the aerosol representation data
  */
-void * aero_rep_modal_mass_get_dependencies(void *aero_rep_data, bool *state_flags)
+void * aero_rep_modal_binned_mass_get_dependencies(void *aero_rep_data, bool *state_flags)
 {
   int *int_data = (int*) aero_rep_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
@@ -62,7 +81,7 @@ void * aero_rep_modal_mass_get_dependencies(void *aero_rep_data, bool *state_fla
  * \param aero_rep_data Pointer to the aerosol representation data
  * \return The aero_rep_data pointer advanced by the size of the aerosol representation
  */
-void * aero_rep_modal_mass_update_env_state(double *env_data, void *aero_rep_data)
+void * aero_rep_modal_binned_mass_update_env_state(double *env_data, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
@@ -79,27 +98,56 @@ void * aero_rep_modal_mass_update_env_state(double *env_data, void *aero_rep_dat
  * \param aero_rep_data Pointer to the aerosol representation data
  * \return The aero_rep_data pointer advanced by the size of the aerosol representation
  */
-void * aero_rep_modal_mass_update_state(ModelData *model_data, void *aero_rep_data)
+void * aero_rep_modal_binned_mass_update_state(ModelData *model_data, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
   // Loop through the modes and calculate effective radius and number concentration
-  for (int i_mode=0; i_mode<_NUM_MODE_; i_mode++) {
+  for (int i_section=0; i_section<_NUM_SECTION_; i_section++) {
 
-    // Calculate effective radius
-    _EFFECTIVE_RADIUS_(i_mode) = exp(_GMD_(i_mode) + 5.0/2.0*_GSD_(i_mode));
+    realtype volume;
+    switch (_SECTION_TYPE_(i_section)) {
+      
+      // Mode
+      case (MODAL) : 
+    
+        // Sum the volumes of each species in the mode
+        volume = 0.0;
+        for (int i_phase=0; i_phase<_NUM_PHASE_(i_section); i_phase++)
+          for (int i_spec=0; i_spec<_NUM_SPEC_(i_section, i_phase); i_spec++)
+            volume += _DENSITY_(i_section, i_phase, i_spec) * 
+                    model_data->state[_SPEC_STATE_ID_(i_section, i_phase, 0, i_spec)];
+ 
+        // Calculate effective radius
+        _EFFECTIVE_RADIUS_(i_section,0) = exp(_GMD_(i_section,0) + 5.0/2.0*_GSD_(i_section,0));
 
-    // Sum the volumes of each species in the mode
-    realtype volume = 0.0;
-    for (int i_phase=0; i_phase<_NUM_PHASE_(i_mode); i_phase++)
-      for (int i_spec=0; i_spec<_NUM_SPEC_(i_mode, i_phase); i_spec++)
-        volume += _DENSITY_(i_mode, i_phase, i_spec) * 
-                model_data->state[_SPEC_STATE_ID_(i_mode, i_phase, i_spec)];
-  
-    // Calculate the number concentration based on the total mode volume  
-    _NUMBER_CONC_(i_mode) = volume * 3.0 / (4.0*M_PI) * 
-            exp(2.0*_GMD_(i_mode) + 9.0/2.0*_GSD_(i_mode));
+        // Calculate the number concentration based on the total mode volume  
+        _NUMBER_CONC_(i_section,0) = volume * 3.0 / (4.0*M_PI) * 
+                exp(2.0*_GMD_(i_section,0) + 9.0/2.0*_GSD_(i_section,0));
+
+        break;
+
+      // Bins
+      case (BINNED) :
+
+        // Loop through the bins
+        for (int i_bin=0; i_bin<_NUM_BINS_(i_section); i_bin++) {
+          
+          // Sum the volumes of each species in the bin
+          volume = 0.0;
+          for (int i_phase=0; i_phase<_NUM_PHASE_(i_section); i_phase++)
+            for (int i_spec=0; i_spec<_NUM_SPEC_(i_section, i_phase); i_spec++)
+              volume += _DENSITY_(i_section, i_phase, i_spec) * 
+                      model_data->state[_SPEC_STATE_ID_(i_section, i_phase, i_bin, i_spec)];
+ 
+          // Calculate the number concentration based on the total bin volume
+          _NUMBER_CONC_(i_section, i_bin) = volume * 3.0 / (4.0*M_PI) *
+                  pow(_BIN_Dp_(i_section, i_bin)/1.0, 3.0);
+        }
+
+        break;
+    }
 
   }
 
@@ -125,15 +173,22 @@ void * aero_rep_modal_mass_update_state(ModelData *model_data, void *aero_rep_da
  * \param aero_rep_data Pointer to the aerosol representation data
  * \return The aero_rep_data pointer advanced by the size of the aerosol representation
  */
-void * aero_rep_modal_mass_get_effective_radius(int aero_phase_idx, double *radius, 
+void * aero_rep_modal_binned_mass_get_effective_radius(int aero_phase_idx, double *radius, 
 		double *partial_deriv, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
-  int i_mode = 0;
-  for(; aero_phase_idx>=0; aero_phase_idx-=_NUM_PHASE_(i_mode++));
-  *radius = _EFFECTIVE_RADIUS_(--i_mode);
+  for (int i_section=0; i_section<_NUM_SECTION_; i_section++) {
+    for (int i_bin=0; i_bin<_NUM_BINS_(i_section); i_bin++) {
+      aero_phase_idx-=_NUM_PHASE_(i_section);
+      if (aero_phase_idx<0) {
+        *radius = _EFFECTIVE_RADIUS_(i_section, i_bin);
+        i_section = _NUM_SECTION_;
+        break;
+      }
+    }
+  }
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
@@ -158,15 +213,22 @@ void * aero_rep_modal_mass_get_effective_radius(int aero_phase_idx, double *radi
  * \param aero_rep_data Pointer to the aerosol representation data
  * \return The aero_rep_data pointer advanced by the size of the aerosol representation
  */
-void * aero_rep_modal_mass_get_number_conc(int aero_phase_idx, double *number_conc, 
+void * aero_rep_modal_binned_mass_get_number_conc(int aero_phase_idx, double *number_conc, 
 		double *partial_deriv, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
-  int i_mode = 0;
-  for(; aero_phase_idx>=0; aero_phase_idx-=_NUM_PHASE_(i_mode++));
-  *number_conc = _NUMBER_CONC_(--i_mode);
+  for (int i_section=0; i_section<_NUM_SECTION_; i_section++) {
+    for (int i_bin=0; i_bin<_NUM_BINS_(i_section); i_bin++) {
+      aero_phase_idx-=_NUM_PHASE_(i_section);
+      if (aero_phase_idx<0) {
+        *number_conc = _NUMBER_CONC_(i_section, i_bin);
+        i_section = _NUM_SECTION_;
+        break;
+      }
+    }
+  }
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
@@ -180,7 +242,7 @@ void * aero_rep_modal_mass_get_number_conc(int aero_phase_idx, double *number_co
  * \param aero_rep_data Pointer to the aerosol representation data
  * \return The aero_rep_data pointer advanced by the size of the aerosol representation
  */
-void * aero_rep_modal_mass_get_aero_conc_type(int aero_phase_idx, int *aero_conc_type, 
+void * aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx, int *aero_conc_type, 
 		void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
@@ -208,20 +270,22 @@ void * aero_rep_modal_mass_get_aero_conc_type(int aero_phase_idx, int *aero_conc
  * \param aero_rep_data Pointer to the aerosol representation data
  * \return The aero_rep_data pointer advanced by the size of the aerosol representation
  */
-void * aero_rep_modal_mass_update_data(int update_type, void *update_data, void *aero_rep_data)
+void * aero_rep_modal_binned_mass_update_data(int update_type, void *update_data, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
-  int *i_mode = (int*)update_data;
-  
-  switch (update_type) {
-    case UPDATE_GMD :
-      _GMD_(*i_mode) = *((realtype*)(i_mode+1));
-      break;
-    case UPDATE_GSD :
-      _GSD_(*i_mode) = *((realtype*)(i_mode+1));
-      break;
+  int *i_section = (int*)update_data;
+
+  if (_SECTION_TYPE_(*i_section)==MODAL) {  
+    switch (update_type) {
+      case UPDATE_GMD :
+        _GMD_(*i_section,0) = *((realtype*)(i_section+1));
+        break;
+      case UPDATE_GSD :
+        _GSD_(*i_section,0) = *((realtype*)(i_section+1));
+        break;
+    }
   }
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
@@ -232,7 +296,7 @@ void * aero_rep_modal_mass_update_data(int update_type, void *update_data, void 
  * \param aero_rep_data Pointer to the aerosol representation data
  * \return The aero_rep_data pointer advanced by the size of the aerosol representation data
  */
-void * aero_rep_modal_mass_print(void *aero_rep_data)
+void * aero_rep_modal_binned_mass_print(void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
@@ -251,7 +315,7 @@ void * aero_rep_modal_mass_print(void *aero_rep_data)
  * \param aero_rep_data Pointer to the aerosol representation data
  * \return The aero_rep_data pointer advanced by the size of the aerosol representation data
  */
-void * aero_rep_modal_mass_skip(void *aero_rep_data)
+void * aero_rep_modal_binned_mass_skip(void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
@@ -259,21 +323,26 @@ void * aero_rep_modal_mass_skip(void *aero_rep_data)
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
 
+#undef BINNED
+#undef MODAL
 #undef _TEMPERATURE_K_
 #undef _PRESSURE_PA_
-#undef _NUM_MODE_
+#undef _NUM_SECTION_
 #undef _INT_DATA_SIZE_
 #undef _FLOAT_DATA_SIZE_
 #undef _NUM_INT_PARAM_
 #undef _NUM_FLOAT_PARAM_
 #undef _MODE_INT_PARAM_LOC_
 #undef _MODE_FLOAT_PARAM_LOC_
+#undef _SECTION_TYPE_
+#undef _NUM_BINS_
 #undef _NUM_PHASE_
 #undef _PHASE_INT_PARAM_LOC_
 #undef _PHASE_FLOAT_PARAM_LOC_
 #undef _NUM_SPEC_
 #undef _SPEC_STATE_ID_
 #undef _GMD_
+#undef _BIN_Dp_
 #undef _GSD_
 #undef _NUMBER_CONC_
 #undef _EFFECTIVE_RADIUS_

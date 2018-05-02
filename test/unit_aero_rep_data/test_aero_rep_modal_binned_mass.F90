@@ -14,7 +14,7 @@ program pmc_test_aero_rep_data
   use pmc_phlex_core
   use pmc_phlex_state
   use pmc_aero_rep_data
-  use pmc_aero_rep_modal_mass
+  use pmc_aero_rep_modal_binned_mass
 #ifdef PMC_USE_JSON
   use json_module
 #endif
@@ -79,7 +79,7 @@ contains
     phlex_core => phlex_core_t()
 
     allocate(file_list(1))
-    file_list(1)%string = 'test_run/unit_aero_rep_data/test_aero_rep_modal_mass.json'
+    file_list(1)%string = 'test_run/unit_aero_rep_data/test_aero_rep_modal_binned_mass.json'
 
     call phlex_core%load(file_list)
     call phlex_core%initialize()
@@ -90,20 +90,20 @@ contains
     rep_id = 1
 
     ! Check the aerosol representation getter functions
-    rep_name = "my modal mass aerosol rep"
+    rep_name = "my modal/binned mass aerosol rep"
     call assert_msg(520898201, phlex_core%find_aero_rep(rep_name, rep_id), rep_name)
     call assert_msg(633216546, rep_id .gt. 0, rep_name)
     call assert_msg(745534891, phlex_core%find_aero_rep(rep_name, aero_rep), rep_name)
     call assert_msg(575377987, associated(aero_rep), rep_name)
     select type (aero_rep)
-      type is (aero_rep_modal_mass_t)
+      type is (aero_rep_modal_binned_mass_t)
       class default
         call die_msg(570113680, rep_name)
     end select
     aero_rep => phlex_core%aero_rep(rep_id)%val
     call assert_msg(347382524, associated(aero_rep), rep_name)
     select type (aero_rep)
-      type is (aero_rep_modal_mass_t)
+      type is (aero_rep_modal_binned_mass_t)
       class default
         call die_msg(742176118, rep_name)
     end select
@@ -111,7 +111,7 @@ contains
     ! Check the unique name functions
     unique_names = aero_rep%unique_names()
     call assert_msg(282826419, allocated(unique_names), rep_name)
-    call assert_msg(114575049, size(unique_names).eq.8, rep_name)
+    call assert_msg(114575049, size(unique_names).eq.48, rep_name)
     do i_spec = 1, size(unique_names)
       call assert_msg(339211739, aero_rep%spec_state_id(&
               unique_names(i_spec)%string).gt.0, rep_name)
@@ -122,6 +122,11 @@ contains
                 unique_names(j_spec)%string), rep_name)
       end do
     end do
+    call assert(314287517, unique_names(1)%string.eq."mixed mode.my test phase one.species a")
+    call assert(949345550, unique_names(5)%string.eq."mixed mode.my test phase two.species d")
+    call assert(444139145, unique_names(8)%string.eq."single phase mode.my last test phase.species e")
+    call assert(208973841, unique_names(25)%string.eq."binned aerosol.6.my test phase one.species b")
+    call assert(386300586, unique_names(47)%string.eq."binned aerosol.8.my last test phase.species b")
 
     ! Set the species concentrations
     phase_name = "my test phase one"

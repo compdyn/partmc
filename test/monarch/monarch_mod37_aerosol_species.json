@@ -1,0 +1,176 @@
+{
+  "description" : "These aerosol species and ion pairs are needed for the MONARCH 'mod37' configuration",
+  "pmc-data" : [
+    {
+      "name" : "lumped dust species",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL"
+    },
+    {
+      "name" : "lumped sea salt species",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL"
+    },
+    {
+      "name" : "PM_phob",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "description" : "lumped hydrophobic particulate matter"
+    },
+    {
+      "name" : "PM_phil",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "description" : "lumped hydrophilic particulate matter"
+    },
+    {
+      "name" : "ISOP_aero_1",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "description" : "First isoprene SOA species in 2-product scheme"
+    },
+    {
+      "name" : "ISOP_aero_2",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "description" : "Second isoprene SOA species in 2-product scheme"
+    },
+    {
+      "name" : "TERP_aero_1",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "description" : "First monoterpene SOA species in 2-product scheme"
+    },
+    {
+      "name" : "TERP_aero_2",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "description" : "Second monoterpene SOA species in 2-product scheme"
+    },
+    {
+      "name" : "BC",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "description" : "black carbon"
+    },
+    {
+      "name" : "H2O_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "molecular weight" : 18.01528,
+      "decscription" : "aerosol-phase water"
+    },
+    {
+      "name" : "H_p",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "charge" : 1,
+      "molecular weight" : 1.008,
+      "description" : "hydronium ion"
+    },
+    {
+      "name" : "OH_m",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "charge" : -1,
+      "molecular weight" : 17.008,
+      "description" : "hydroxide ion"
+    },
+    {
+      "name" : "H2SO4_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "molecular weight" : 98.079,
+      "description" : "undissociated aqueous-phase sulfuric acid"
+    },
+    {
+      "name" : "SO4_mm",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "charge" : -2,
+      "molecular weight" : 96.063,
+      "description" : "sulfate ion"
+    },
+    {
+      "name" : "HSO4_m",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "charge" : -1,
+      "molecular weight" : 97.069,
+      "description" : "bisulfate ion"
+    },
+    {
+      "name" : "HNO3_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "molecular weight" : 63.0129,
+      "description" : "undissociated aqueous-phase nitric acid"
+    },
+    {
+      "name" : "NO3_m",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "charge" : -1,
+      "molecular weight" : 62.0049,
+      "description" : "nitrate ion"
+    },
+    {
+      "name" : "NH3_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "molecular weight" : 17.031,
+      "description" : "aqueous ammonia (neutral)"
+    },
+    {
+      "name" : "NH4_p",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "charge": 1,
+      "molecular weight" : 18.039,
+      "description" : "ammonium ion"
+    },
+    {
+      "name" : "(NH4)2-SO4",
+      "type" : "CHEM_SPEC",
+      "tracer type" : "ION_PAIR",
+      "ions" : {
+        "NH4_p" : { "qty" : 2 },
+        "SO4_mm" : {}
+      }
+    },
+    {
+      "name" : "NH4-NO3",
+      "type" : "CHEM_SPEC",
+      "tracer type" : "ION_PAIR",
+      "ions" : {
+        "NH4_p" : {},
+        "NO3_m" : {}
+      }
+    },
+    {
+      "name" : "H-NO3",
+      "type" : "CHEM_SPEC",
+      "tracer type" : "ION_PAIR",
+      "ions" : {
+        "H_p" : {},
+        "NO3_m" : {}
+      }
+    },
+    {
+      "name" : "H2-SO4",
+      "type" : "CHEM_SPEC",
+      "tracer type" : "ION_PAIR",
+      "ions" : {
+        "H_p" : { "qty" : 2 },
+        "SO4_mm" : {}
+      }
+    },
+    {
+      "name" : "other PM",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "molecular weight" : 100.0,
+      "description" : "unspecified particulate matter"
+    }
+  ]
+}

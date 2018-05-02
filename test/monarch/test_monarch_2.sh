@@ -14,7 +14,7 @@ while [ true ]
 do
   echo Attempt $counter
 
-  if ! ../../mock_monarch config_monarch_chem.json interface_monarch_chem.json out/monarch_chem; then 
+  if ! ../../mock_monarch config_monarch_mod37.json interface_monarch_mod37.json out/monarch_mod37; then 
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then

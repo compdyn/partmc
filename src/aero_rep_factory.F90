@@ -198,7 +198,7 @@ module pmc_aero_rep_factory
 
   ! Use all aerosol representation modules
   use pmc_aero_rep_single_particle
-  use pmc_aero_rep_modal_mass
+  use pmc_aero_rep_modal_binned_mass
 
   implicit none
   private
@@ -207,8 +207,8 @@ module pmc_aero_rep_factory
 
   !> Identifiers for aerosol representations - used by binary packing/unpacking 
   !! functions
-  integer(kind=i_kind), parameter :: AERO_REP_SINGLE_PARTICLE = 1
-  integer(kind=i_kind), parameter :: AERO_REP_MODAL_MASS      = 2
+  integer(kind=i_kind), parameter :: AERO_REP_SINGLE_PARTICLE   = 1
+  integer(kind=i_kind), parameter :: AERO_REP_MODAL_BINNED_MASS = 2
 
   !> Factory type for aerosol representations
   !!
@@ -248,8 +248,8 @@ contains
     new_obj => null()
 
     select case (type_name)
-      case ("AERO_REP_MODAL_MASS")
-        new_obj => aero_rep_modal_mass_t()
+      case ("AERO_REP_MODAL_BINNED_MASS")
+        new_obj => aero_rep_modal_binned_mass_t()
       case ("AERO_REP_SINGLE_PARTICLE")
         new_obj => aero_rep_single_particle_t()
       case default
@@ -312,8 +312,8 @@ contains
     class(aero_rep_data_t), intent(in) :: aero_rep
 
     select type (aero_rep)
-      type is (aero_rep_modal_mass_t)
-        aero_rep_type = AERO_REP_MODAL_MASS
+      type is (aero_rep_modal_binned_mass_t)
+        aero_rep_type = AERO_REP_MODAL_BINNED_MASS
       type is (aero_rep_single_particle_t)
         aero_rep_type = AERO_REP_SINGLE_PARTICLE
       class default
@@ -358,8 +358,8 @@ contains
 
     prev_position = pos
     select type (aero_rep)
-      type is (aero_rep_modal_mass_t)
-        aero_rep_type = AERO_REP_MODAL_MASS
+      type is (aero_rep_modal_binned_mass_t)
+        aero_rep_type = AERO_REP_MODAL_BINNED_MASS
       type is (aero_rep_single_particle_t)
         aero_rep_type = AERO_REP_SINGLE_PARTICLE
       class default
@@ -393,8 +393,8 @@ contains
     prev_position = pos
     call pmc_mpi_unpack_integer(buffer, pos, aero_rep_type)
     select case (aero_rep_type)
-      case (AERO_REP_MODAL_MASS)
-        aero_rep => aero_rep_modal_mass_t()
+      case (AERO_REP_MODAL_BINNED_MASS)
+        aero_rep => aero_rep_modal_binned_mass_t()
       case (AERO_REP_SINGLE_PARTICLE)
         aero_rep => aero_rep_single_particle_t()
       case default

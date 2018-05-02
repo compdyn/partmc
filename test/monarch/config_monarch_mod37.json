@@ -2,7 +2,9 @@
   "pmc-files" : [
     "../../mechanisms_run/cb05cl_ae5/cb05cl_ae5_mechanism.json",
     "../../mechanisms_run/cb05cl_ae5/cb05cl_ae5_species.json",
-    "monarch_species.json"
+    "monarch_mod37_species.json",
+    "monarch_mod37_aerosol_species.json",
+    "monarch_mod37_aerosol_phases.json"
   ]
 }
 

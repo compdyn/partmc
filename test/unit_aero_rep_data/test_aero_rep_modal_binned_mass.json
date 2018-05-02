@@ -1,21 +1,34 @@
 {
 	"pmc-data" : [
 {
-	"type" : "AERO_REP_MODAL_MASS",
-	"name" : "my modal mass aerosol rep",
-        "modes" : 
+	"type" : "AERO_REP_MODAL_BINNED_MASS",
+	"name" : "my modal/binned mass aerosol rep",
+        "modes/bins" : 
         {
           "mixed mode" :
           {
+            "type" : "MODAL",
             "phases" : [ "my test phase one", "my test phase two" ],
+            "shape" : "LOG_NORMAL",
             "geometric mean diameter" : 1.2e-6,
             "geometric standard deviation" : 1.2
           },
           "single phase mode" :
           {
+            "type" : "MODAL",
             "phases" : [ "my last test phase" ],
+            "shape" : "LOG_NORMAL",
             "geometric mean diameter" : 9.3e-7,
             "geometric standard deviation" : 0.9
+          },
+          "binned aerosol" :
+          {
+            "type" : "BINNED",
+            "phases" : [ "my test phase one", "my last test phase" ],
+            "bins" : 8,
+            "minimum diameter" : 8.0e-9,
+            "maximum diameter" : 1.0e-6,
+            "scale" : "LOG"
           }
         }
 },

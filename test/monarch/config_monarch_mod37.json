@@ -4,7 +4,10 @@
     "../../mechanisms_run/cb05cl_ae5/cb05cl_ae5_species.json",
     "monarch_mod37_species.json",
     "monarch_mod37_aerosol_species.json",
-    "monarch_mod37_aerosol_phases.json"
+    "monarch_mod37_aerosol_phases.json",
+    "monarch_mod37_aerosol_representation.json",
+    "monarch_mod37_inorganic_partitioning.json",
+    "monarch_mod37_inorganic_rxns.json"
   ]
 }
 

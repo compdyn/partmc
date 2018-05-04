@@ -4,7 +4,7 @@
     {
       "name" : "dust",
       "type": "AERO_PHASE",
-      "species" : [ "lumped dust species" ],
+      "species" : [ "lumped high-density dust species", "lumped low-density dust species" ],
       "notes" : {
         "MLD 02/05/2018" : "consider replacing this with a set of inorganic species"
       }
@@ -25,10 +25,10 @@
     {
       "name" : "black carbon",
       "type" : "AERO_PHASE",
-      "species" : [ "BC" ]
+      "species" : [ "BC_phob", "BC_phil" ]
     },
     {
-      "name" : "sulfate",
+      "name" : "aqueous sulfate",
       "type" : "AERO_PHASE",
       "species" : [ "H2O_aq", "H_p", "OH_m",
                     "H2SO4_aq", "SO4_mm", "HSO4_m", 
@@ -41,7 +41,7 @@
     {
       "name" : "other PM",
       "type" : "AERO_PHASE",
-      "species" : [ "other PM" ],
+      "species" : [ "other PM", "other other PM" ],
       "description" : "unspecified particulate matter"
     }
   ]

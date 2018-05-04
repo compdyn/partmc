@@ -219,6 +219,7 @@ contains
     integer(kind=i_kind) :: curr_spec_state_id
     integer(kind=i_kind) :: num_phase, num_bin
     integer(kind=i_kind) :: n_int_param, n_float_param
+    integer(kind=i_kind) :: spec_type
     character(len=:), allocatable :: key_name, phase_name, sect_type, str_val
     real(kind=dp) :: min_Dp, max_Dp, d_log_Dp
 
@@ -526,19 +527,27 @@ contains
                         "Missing property set for aerosol species '"// &
                         this%aero_phase(i_phase)%val%get_species_name(i_spec)// &
                         "' in phase '"//this%aero_phase(i_phase)%val%name()// &
+                        "' of mode/bin '"// &
                         this%section_name(i_section)%string// &
                         "' in modal/binned mass aerosol representation '"//this%rep_name//"'")
 
-                ! Get the species density
-                key_name = "density"
-                call assert_msg(821683338, spec_props%get_real(key_name, &
-                        _DENSITY_(i_section, j_phase, i_spec)), &
-                        "Missing density for aerosol species '"// &
-                        this%aero_phase(i_phase)%val%get_species_name(i_spec)// &
-                        "' in phase '"//this%aero_phase(i_phase)%val%name()// &
-                        this%section_name(i_section)%string// &
-                        "' in modal/binned mass aerosol representation '"//this%rep_name//"'")
-                      
+                ! Get the species density (expect for ion-pair activity species)
+                call assert(874736323, chem_spec_data%get_type( &
+                        this%aero_phase(i_phase)%val%get_species_name( i_spec), spec_type))
+                if (spec_type.eq.CHEM_SPEC_ACTIVITY_COEFF) then
+                    _DENSITY_(i_section, j_phase, i_spec) = 0.0
+                else
+                  key_name = "density"
+                  call assert_msg(821683338, spec_props%get_real(key_name, &
+                          _DENSITY_(i_section, j_phase, i_spec)), &
+                          "Missing density for aerosol species '"// &
+                          this%aero_phase(i_phase)%val%get_species_name(i_spec)// &
+                          "' in phase '"//this%aero_phase(i_phase)%val%name()// &
+                          "' of mode/bin '"// &
+                          this%section_name(i_section)%string// &
+                          "' in modal/binned mass aerosol representation '"//this%rep_name//"'")
+                end if
+
               end do
 
               ! Add space for species state ids

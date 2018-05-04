@@ -132,6 +132,7 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
       
       realtype molality;
       realtype j_aw;
+      realtype conc;
 
       // Determine which type of activity calculation should be used
       switch (_TYPE_(i_ion_pair)) {
@@ -153,7 +154,9 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
 		  /_JACOB_NUM_CATION_(i_ion_pair)/_JACOB_CATION_MW_(i_ion_pair);
           realtype anion = state[_PHASE_ID_(i_phase)+_JACOB_ANION_ID_(i_ion_pair)]
 		  /_JACOB_NUM_ANION_(i_ion_pair)/_JACOB_ANION_MW_(i_ion_pair); // (umol/m3)
-	  *water += (cation>anion ? anion : cation) / molality * 1000.0; // (ug/m3)
+	  conc = (cation>anion ? anion : cation);
+          conc = (conc>0.0 ? conc : 0.0);
+          *water += conc / molality * 1000.0; // (ug/m3)
           
 	  break;
 
@@ -167,8 +170,9 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
 
 	  // Calculate the water associated with this ion pair
 	  for (int i_ion=0; i_ion<_EQSAM_NUM_ION_(i_ion_pair); i_ion++) {
-            *water += state[_PHASE_ID_(i_phase)+_EQSAM_ION_ID_(i_ion_pair,i_ion)]
-		    /_EQSAM_ION_MW_(i_ion_pair,i_ion) / molality * 1000.0; // (ug/m3);
+	    conc = state[_PHASE_ID_(i_phase)+_EQSAM_ION_ID_(i_ion_pair,i_ion)];
+            conc = (conc>0.0 ? conc : 0.0);
+            *water += conc / _EQSAM_ION_MW_(i_ion_pair,i_ion) / molality * 1000.0; // (ug/m3);
 	  }
 
 	  break;

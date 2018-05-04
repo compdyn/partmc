@@ -5,6 +5,7 @@
     {
       "name" : "Simple mechanism species map",
       "type" : "SPECIES_MAP",
+      "gas-phase water" : "A",
       "gas-phase species" : {
         "A" : { "monarch id" : 2 },
         "B" : { "monarch id" : 1 },

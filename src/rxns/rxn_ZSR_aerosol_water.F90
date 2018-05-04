@@ -515,7 +515,7 @@ contains
                     phase_name = phase_name, spec_name = ion_name)
             if (.not.allocated(unique_spec_names)) cycle
             do i_spec = 1, size(unique_spec_names)
-              if (charge.gt.1) then
+              if (charge.gt.0) then
                 if (i_phase.eq.1) then
                   _JACOB_CATION_ID_(i_ion_pair) = &
                           aero_rep(i_aero_rep)%val%spec_state_id( &

@@ -52,6 +52,8 @@ module pmc_monarch_interface
     integer(kind=i_kind) :: tracer_ending_id
     !> PartMC-phlex <-> MONARCH species map input data
     type(property_t), pointer :: species_map_data
+    !> Gas-phase water id in PartMC-phlex
+    integer(kind=i_kind) :: gas_phase_water_id
     !> Initial concentration data
     type(property_t), pointer :: init_conc_data
     !> Interface input data
@@ -110,6 +112,7 @@ contains
     character(len=:), allocatable :: buffer
     integer(kind=i_kind) :: pos, pack_size
     integer(kind=i_kind) :: i_spec
+    type(string_t), allocatable :: unique_names(:)
 
     ! Computation time variable
     real(kind=dp) :: comp_start, comp_end
@@ -256,6 +259,8 @@ contains
           this%phlex_state%state_var(:) = 0.0
           this%phlex_state%state_var(this%map_phlex_id(:)) = &
                   MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
+          this%phlex_state%state_var(this%gas_phase_water_id) = &
+                  water_conc(i,j,k_flip,water_vapor_index)
 
           ! Start the computation timer
           if (MONARCH_NODE.eq.0 .and. i.eq.i_start .and. j.eq.j_start &
@@ -277,7 +282,7 @@ contains
           ! Update the MONARCH tracer array with new species concentrations
           MONARCH_conc(i,j,k_flip,this%map_monarch_id(:)) = &
                   this%phlex_state%state_var(this%map_phlex_id(:))
- 
+
         end do
       end do
     end do
@@ -403,6 +408,7 @@ contains
     type(property_t), pointer :: gas_species_list, aero_species_list, species_data
     character(len=:), allocatable :: key_name, spec_name, rep_name
     integer(kind=i_kind) :: i_spec, i_aero_rep, num_spec
+    logical :: rep_found
 
     ! Get the gas-phase species ids
     key_name = "gas-phase species"
@@ -422,6 +428,16 @@ contains
     allocate(this%monarch_species_names(num_spec))
     allocate(this%map_monarch_id(num_spec))
     allocate(this%map_phlex_id(num_spec))
+
+    ! Set the gas-phase water id
+    key_name = "gas-phase water"
+    call assert_msg(413656652, &
+            this%species_map_data%get_string(key_name, spec_name), &
+            "Missing gas-phase water species for MONARCH interface.")
+    this%gas_phase_water_id = &
+            this%phlex_core%chem_spec_data%gas_state_id(spec_name)
+    call assert_msg(910692272, this%gas_phase_water_id.gt.0, &
+            "Could not find gas-phase water species '"//spec_name//"'.")
 
     ! Loop through the gas-phase species and set up the map      
     call gas_species_list%iter_reset()
@@ -489,13 +505,17 @@ contains
 
         ! Find the species PartMC id
         this%map_phlex_id(i_spec) = 0
+        rep_found = .false.
         do i_aero_rep = 1, size(this%phlex_core%aero_rep)
           if (rep_name.eq.this%phlex_core%aero_rep(i_aero_rep)%val%rep_name) then
+            rep_found = .true.
             this%map_phlex_id(i_spec) = &
                     this%phlex_core%aero_rep(i_aero_rep &
-                    )%val%spec_state_id(rep_name)
+                    )%val%spec_state_id(spec_name)
           end if
         end do
+        call assert_msg(377850668, rep_found, "Could not find aerosol "// &
+                "representation '"//rep_name//"'")
         call assert_msg(887136850, this%map_phlex_id(i_spec) .gt. 0, &
                 "Could not find aerosol species '"//spec_name//"' in "// &
                 "aerosol representation '"//rep_name//"'.")
@@ -518,6 +538,7 @@ contains
     type(property_t), pointer :: gas_species_list, aero_species_list, species_data
     character(len=:), allocatable :: key_name, spec_name, rep_name
     integer(kind=i_kind) :: i_spec, i_aero_rep, num_spec
+    logical :: rep_found
 
     num_spec = 0
 
@@ -592,13 +613,17 @@ contains
 
         ! Find the species PartMC id
         this%init_conc_phlex_id(i_spec) = 0
+        rep_found = .false.
         do i_aero_rep = 1, size(this%phlex_core%aero_rep)
           if (rep_name.eq.this%phlex_core%aero_rep(i_aero_rep)%val%rep_name) then
+            rep_found = .true.
             this%init_conc_phlex_id(i_spec) = &
                     this%phlex_core%aero_rep(i_aero_rep &
-                    )%val%spec_state_id(rep_name)
+                    )%val%spec_state_id(spec_name)
           end if
         end do
+        call assert_msg(258814777, rep_found, "Could not find aerosol "// &
+                "representation '"//rep_name//"'")
         call assert_msg(437149649, this%init_conc_phlex_id(i_spec) .gt. 0, &
                 "Could not find aerosol species '"//spec_name//"' in "// &
                 "aerosol representation '"//rep_name//"'.")

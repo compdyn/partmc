@@ -9,8 +9,6 @@
 !! MONARCH CB5 code and the Phlex-chem version and compares the output.
 program pmc_test_cb05cl_ae5
 
-#define DEBUG
-     
   use pmc_constants,                    only: const
   use pmc_util,                         only: i_kind, dp, assert, assert_msg, &
                                               almost_equal, string_t, &

@@ -194,7 +194,7 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data, realtyp
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase=0, i_deriv = 0; i_phase<_NUM_AERO_PHASE_; i_phase++) {
 
-    // If not aerosol water is present, no reaction occurs
+    // If no aerosol water is present, no reaction occurs
     if (state[_WATER_(i_phase)] < _SMALL_NUMBER_) {
       i_deriv += _NUM_REACT_ + _NUM_PROD_;
       continue;
@@ -281,12 +281,12 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data, realtype 
     // Add dependence on reactants for reactants and products (forward reaction) 
     for (int i_react_ind = 0; i_react_ind < _NUM_REACT_; i_react_ind++) {
       for (int i_react_dep = 0; i_react_dep < _NUM_REACT_; i_react_dep++) {
-	if (_JAC_ID_(i_jac)<0) {i_jac++; continue;}
+	if (_JAC_ID_(i_jac)<0 || forward_rate==0.0) {i_jac++; continue;}
         J[_JAC_ID_(i_jac++)] += (-forward_rate) / state[_REACT_(i_phase*_NUM_REACT_+i_react_ind)] / 
 		_mass_frac_TO_M_(i_react_dep) * state[_WATER_(i_phase)];
       }
       for (int i_prod_dep = 0; i_prod_dep < _NUM_PROD_; i_prod_dep++) {
-	if (_JAC_ID_(i_jac)<0) {i_jac++; continue;}
+	if (_JAC_ID_(i_jac)<0 || forward_rate==0.0) {i_jac++; continue;}
         J[_JAC_ID_(i_jac++)] += (forward_rate) / state[_REACT_(i_phase*_NUM_REACT_+i_react_ind)] / 
 		_mass_frac_TO_M_(_NUM_REACT_ + i_prod_dep) * state[_WATER_(i_phase)];
       }
@@ -295,12 +295,12 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data, realtype 
     // Add dependence on products for reactants and products (reverse reaction) 
     for (int i_prod_ind = 0; i_prod_ind < _NUM_PROD_; i_prod_ind++) {
       for (int i_react_dep = 0; i_react_dep < _NUM_REACT_; i_react_dep++) {
-	if (_JAC_ID_(i_jac)<0) {i_jac++; continue;}
+	if (_JAC_ID_(i_jac)<0 || reverse_rate==0.0) {i_jac++; continue;}
         J[_JAC_ID_(i_jac++)] += (reverse_rate) / state[_PROD_(i_phase*_NUM_PROD_+i_prod_ind)] / 
 		_mass_frac_TO_M_(i_react_dep) * state[_WATER_(i_phase)];
       }
       for (int i_prod_dep = 0; i_prod_dep < _NUM_PROD_; i_prod_dep++) {
-	if (_JAC_ID_(i_jac)<0) {i_jac++; continue;}
+	if (_JAC_ID_(i_jac)<0 || reverse_rate==0.0) {i_jac++; continue;}
         J[_JAC_ID_(i_jac++)] += (-reverse_rate) / state[_PROD_(i_phase*_NUM_PROD_+i_prod_ind)] / 
 		_mass_frac_TO_M_(_NUM_REACT_ + i_prod_dep) * state[_WATER_(i_phase)];
       }

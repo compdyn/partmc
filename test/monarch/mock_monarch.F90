@@ -204,7 +204,8 @@ contains
     real, intent(in) :: curr_time
 
     write(RESULTS_FILE_UNIT, *) curr_time, &
-            species_conc(10,15,1,START_PHLEX_ID:END_PHLEX_ID)
+            species_conc(10,15,1,START_PHLEX_ID:END_PHLEX_ID), &
+            water_conc(10,15,1,WATER_VAPOR_ID)
 
   end subroutine output_results
 
@@ -221,7 +222,7 @@ contains
     type(string_t), allocatable :: species_names(:)
     integer(kind=i_kind), allocatable :: tracer_ids(:)
     character(len=:), allocatable :: file_name
-    integer(kind=i_kind) :: i_spec
+    integer(kind=i_kind) :: i_spec, tracer_id
 
     ! Get the species names and ids
     call pmc_interface%get_MONARCH_species(species_names, tracer_ids)
@@ -245,6 +246,12 @@ contains
               trim(to_string(tracer_ids(i_spec)))//" title '"// &
               species_names(i_spec)%string//" (MONARCH)'"
     end do
+    tracer_id = END_PHLEX_ID - START_PHLEX_ID + 3
+    write(SCRIPTS_FILE_UNIT,*) "set output '"//file_prefix//"_H2O.png'"
+    write(SCRIPTS_FILE_UNIT,*) "plot\"
+    write(SCRIPTS_FILE_UNIT,*) " '"//file_prefix//"_results.txt'\"
+    write(SCRIPTS_FILE_UNIT,*) " using 1:"// &
+            trim(to_string(tracer_id))//" title 'H2O (MONARCH)'"
     close(SCRIPTS_FILE_UNIT)
     
   end subroutine create_gnuplot_script

@@ -1,62 +1,102 @@
 {
-  "description" : "These aerosol species and ion pairs are needed for the MONARCH 'mod37' configuration",
+  "description" : [
+    "These aerosol species and ion pairs are needed for the MONARCH 'mod37' configuration",
+    "Densities are taken from Spada et al. (2015) manuscript - ",
+    "'Global Aerosols in the online multiscale NMMB/BSC Chemical Transport Model",
+    "or estimated from bulk densities."
+  ],
   "pmc-data" : [
     {
-      "name" : "lumped dust species",
+      "name" : "lumped high-density dust species",
       "type" : "CHEM_SPEC",
-      "phase" : "AEROSOL"
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
+      "density" : 2.65
+    },
+    {
+      "name" : "lumped low-density dust species",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
+      "density" : 2.65
     },
     {
       "name" : "lumped sea salt species",
       "type" : "CHEM_SPEC",
-      "phase" : "AEROSOL"
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
+      "density" : 2.16
     },
     {
       "name" : "PM_phob",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
+      "density" : 1.80,
       "description" : "lumped hydrophobic particulate matter"
     },
     {
       "name" : "PM_phil",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
+      "density" : 1.80,
       "description" : "lumped hydrophilic particulate matter"
     },
     {
       "name" : "ISOP_aero_1",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
+      "density" : 1.80,
       "description" : "First isoprene SOA species in 2-product scheme"
     },
     {
       "name" : "ISOP_aero_2",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
+      "density" : 1.80,
       "description" : "Second isoprene SOA species in 2-product scheme"
     },
     {
       "name" : "TERP_aero_1",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
+      "density" : 1.80,
       "description" : "First monoterpene SOA species in 2-product scheme"
     },
     {
       "name" : "TERP_aero_2",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
+      "density" : 1.80,
       "description" : "Second monoterpene SOA species in 2-product scheme"
     },
     {
-      "name" : "BC",
+      "name" : "BC_phob",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
-      "description" : "black carbon"
+      "absolute integration tolerance" : 1.0E-03,
+      "density" : 1.00,
+      "description" : "hydrophobic black carbon"
+    },
+    {
+      "name" : "BC_phil",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
+      "density" : 1.00,
+      "description" : "hydrophilic black carbon"
     },
     {
       "name" : "H2O_aq",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
+      "density" : 1.00,
       "molecular weight" : 18.01528,
       "decscription" : "aerosol-phase water"
     },
@@ -64,7 +104,9 @@
       "name" : "H_p",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
       "charge" : 1,
+      "density" : 1.00,
       "molecular weight" : 1.008,
       "description" : "hydronium ion"
     },
@@ -72,7 +114,9 @@
       "name" : "OH_m",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
       "charge" : -1,
+      "density" : 1.00,
       "molecular weight" : 17.008,
       "description" : "hydroxide ion"
     },
@@ -80,6 +124,8 @@
       "name" : "H2SO4_aq",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
+      "density" : 1.70,
       "molecular weight" : 98.079,
       "description" : "undissociated aqueous-phase sulfuric acid"
     },
@@ -87,7 +133,9 @@
       "name" : "SO4_mm",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
       "charge" : -2,
+      "density" : 1.70,
       "molecular weight" : 96.063,
       "description" : "sulfate ion"
     },
@@ -95,7 +143,9 @@
       "name" : "HSO4_m",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
       "charge" : -1,
+      "density" : 1.70,
       "molecular weight" : 97.069,
       "description" : "bisulfate ion"
     },
@@ -103,6 +153,8 @@
       "name" : "HNO3_aq",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
+      "density" : 1.51,
       "molecular weight" : 63.0129,
       "description" : "undissociated aqueous-phase nitric acid"
     },
@@ -110,7 +162,9 @@
       "name" : "NO3_m",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
       "charge" : -1,
+      "density" : 1.51,
       "molecular weight" : 62.0049,
       "description" : "nitrate ion"
     },
@@ -118,6 +172,8 @@
       "name" : "NH3_aq",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
+      "density" : 0.73,
       "molecular weight" : 17.031,
       "description" : "aqueous ammonia (neutral)"
     },
@@ -125,7 +181,9 @@
       "name" : "NH4_p",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
       "charge": 1,
+      "density" : 0.73,
       "molecular weight" : 18.039,
       "description" : "ammonium ion"
     },
@@ -169,8 +227,19 @@
       "name" : "other PM",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
       "molecular weight" : 100.0,
-      "description" : "unspecified particulate matter"
+      "density" : 1.80,
+      "description" : "unspecified particulate matter FIXME"
+    },
+    {
+      "name" : "other other PM",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "absolute integration tolerance" : 1.0E-03,
+      "molecular weight" : 100.0,
+      "density" : 1.80,
+      "description" : "second unspecified particulate matter species FIXME"
     }
   ]
 }

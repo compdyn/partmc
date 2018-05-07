@@ -256,7 +256,6 @@ contains
         call die_msg(792930166, "Unknown aerosol representation type: " &
                 //type_name) 
     end select
-    new_obj%rep_name = type_name
 
   end function create
 
@@ -276,15 +275,15 @@ contains
     type(json_value), pointer, intent(in) :: j_obj
 
     type(json_value), pointer :: child
-    character(kind=json_ck, len=:), allocatable :: key, unicode_type_name
+    character(kind=json_ck, len=:), allocatable :: key, unicode_name
     character(len=:), allocatable :: type_name
     logical(kind=json_lk) :: found
 
     new_obj => null()
 
-    call json%get(j_obj, "type", unicode_type_name, found)
+    call json%get(j_obj, "type", unicode_name, found)
     call assert_msg(904082395, found, 'Missing aerosol representation type.')
-    type_name = unicode_type_name
+    type_name = unicode_name
     new_obj => this%create(type_name)    
     call new_obj%load(json, j_obj)
 #else

@@ -225,8 +225,6 @@ contains
     equil_G = (total_init / (Keq_3 + 1.0d0)) * &
             true_conc(0,idx_H2O) * 35.67d0 / 1000.0d0
 
-    call phlex_core%print()
-
     ! Set the initial state in the model
     phlex_state%state_var(:) = model_conc(0,:)
 

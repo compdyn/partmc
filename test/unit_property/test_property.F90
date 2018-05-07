@@ -76,6 +76,7 @@ contains
     call sub_set%put(key_name, "nlsd98*)@ur soi87")
     key_name = "sub_prop"
     call prop_set%put(key_name, sub_set)
+    deallocate(sub_set)
 
     ! Check the values of the individual links
     key_name = "int_prop"
@@ -121,6 +122,9 @@ contains
     call assert(682164874, sub_set%get_string(key_name, temp_string))
     call assert(154911046, temp_string.eq."nlsd98*)@ur soi87")
 
+    ! Deallocate the property set
+    deallocate(prop_set)
+
     build_property_set_test = .true.
 
   end function build_property_set_test
@@ -165,8 +169,7 @@ contains
     call json%parse(j_obj, json_string)
 
     ! Initialize a property set
-    allocate(props)
-    props = property_t()
+    props => property_t()
 
     ! Load the property set with data in the JSON string
     ! passed as a JSON object so that all the data is loaded
@@ -226,11 +229,11 @@ contains
  
     ! Reload the JSON string to try passing individual key-value pairs to the
     ! property_t%load function
+    call json%destroy(j_obj)
     call json%parse(j_obj, json_string)
 
     ! Initialize a new property set variable
-    allocate(prop2)
-    prop2 = property_t()
+    prop2 => property_t()
 
     ! Only send the two real elements to property_t%load()
     next => null()
@@ -257,8 +260,11 @@ contains
     call assert(838618319, prop2%get_real(key_name, temp_real))
     call assert(268403514, temp_real.eq.129523.23d3)
     
+    deallocate(props)
+    deallocate(prop2)
     deallocate(key_name)
     call json%destroy(j_obj)
+    deallocate(json)
 
 #endif
     load_property_set_test = .true.
@@ -304,6 +310,7 @@ contains
     call sub_set%put(key_name, "nlsd98*)@ur soi87")
     key_name = "sub_prop"
     call orig_set%put(key_name, sub_set)
+    deallocate(sub_set)
 
     ! Create a property set to update with
     update_set => property_t()
@@ -316,15 +323,18 @@ contains
     call sub_set%put(key_name, 1.6784d-14)
     key_name = "sub_prop"
     call update_set%put(key_name, sub_set)
+    deallocate(sub_set)
+    
     sub_set => property_t()
     key_name = "new_sub_real_prop"
     call sub_set%put(key_name, 5239.60d1)
     key_name = "new_sub_prop"
     call update_set%put(key_name, sub_set)
+    deallocate(sub_set)
 
     ! Update the original property data set
     call orig_set%update(update_set)
-    update_set => null()
+    deallocate(update_set)
 
     ! Move the property set to the destination variable
     dest_set => property_t()
@@ -383,6 +393,8 @@ contains
     call assert(417248505, sub_set%get_real(key_name, temp_real))
     call assert(772652986, temp_real.eq.5239.60d1)
 
+    deallocate(orig_set)
+    deallocate(dest_set)
     move_update_property_set_test = .true.
 
  end function move_update_property_set_test 

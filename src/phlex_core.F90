@@ -378,7 +378,9 @@ contains
         else if (str_val(1:8).eq.'AERO_REP') then
           aero_rep_ptr%val => aero_rep_factory%load(json, j_obj)
           str_val = aero_rep_ptr%val%name()
+          write(*,*) "aero rep name: ", aero_rep_ptr%val%name()
           if (this%find_aero_rep(str_val, i_rep)) then
+            deallocate(aero_rep_ptr%val)
             call this%aero_rep(i_rep)%val%load(json, j_obj)
           else
             allocate(new_aero_rep(size(this%aero_rep)+1))
@@ -449,14 +451,18 @@ contains
 
     ! Initialize the aerosol phases
     do i_phase = 1, size(this%aero_phase)
+      call assert(254948966, associated(this%aero_phase(i_phase)%val))
+      write(*,*) "aero phase ", i_phase, " size ", this%aero_phase(i_phase)%val%size()
       call this%aero_phase(i_phase)%val%initialize(this%chem_spec_data)
     end do
 
     ! Initialize the aerosol representations
     do i_aero_rep = 1, size(this%aero_rep)
+      call assert(251590193, associated(this%aero_rep(i_aero_rep)%val))
       call this%aero_rep(i_aero_rep)%val%initialize(this%aero_phase, &
               i_state_var, this%chem_spec_data)
       i_state_var = i_state_var + this%aero_rep(i_aero_rep)%val%size()
+      write(*,*) "aero rep ", i_aero_rep, " size ", this%aero_rep(i_aero_rep)%val%size()
     end do
 
     ! Set the size of the state array
@@ -722,6 +728,8 @@ contains
       ! Set aerosol-phase species variable types and absolute tolerances
       ! TODO Move this to the aerosol representations, so they have control
       ! of their portion on the state array and what is stored there
+      write(*,*) "rep ", i_aero_rep, " size ", this%aero_rep(i_aero_rep)%val%size()
+      call assert(666823548, associated(this%aero_rep(i_aero_rep)%val))
       do i_spec = 1, this%aero_rep(i_aero_rep)%val%size()
         i_state_var = i_state_var + 1
         spec_name = this%aero_rep(i_aero_rep)%val%spec_name_by_id(i_spec)

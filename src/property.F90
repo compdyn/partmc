@@ -174,6 +174,7 @@ contains
     class(*), intent(in) :: val
 
     type(property_link_t), pointer :: new_link, sub_link
+    type(property_t), allocatable :: sub_prop_set
     class(*), pointer :: curr_val
 
     ! If this is an array element, the key will be empty
@@ -206,9 +207,26 @@ contains
 
     end if
 
+    ! Create a new link. For property_t sub-property sets,
+    ! copy the passed value to a new object
+    select type (val)
+    class is (property_t)
+      allocate(sub_prop_set)
+      sub_link => val%first_link
+      do while (associated(sub_link))
+        call sub_prop_set%put(sub_link%key_name, sub_link%val)
+        sub_link => sub_link%next_link
+      end do
+      new_link => property_link_t(key, sub_prop_set)
+      sub_prop_set%first_link => null()
+      sub_prop_set%last_link => null()
+      deallocate(sub_prop_set)
+    class default
+      new_link => property_link_t(key, val)
+    end select
+
     ! If the key does not exist in the property dataset,
     ! create a new link to add it.
-    new_link => property_link_t(key, val)
     if (.not.associated(this%first_link)) then
       this%first_link => new_link
       this%last_link => this%first_link
@@ -529,15 +547,15 @@ contains
           str_val = unicode_val
           call this%put(prop_key, str_val)
         case (json_object)
-          allocate(sub_prop)
-          sub_prop = property_t()
+          sub_prop => property_t()
           call sub_prop%load(json, child, .true.)
           call this%put(prop_key, sub_prop)
+          deallocate(sub_prop)
         case (json_array)
-          allocate(sub_prop)
-          sub_prop = property_t()
+          sub_prop => property_t()
           call sub_prop%load(json, child, .true.)
           call this%put(prop_key, sub_prop)
+          deallocate(sub_prop)
         case default
       end select
       if (as_object) call json%get_next(child, next)
@@ -603,6 +621,7 @@ contains
     type(property_t), intent(inout) :: this
 
     type(property_link_t), pointer :: curr, next
+    class(*), pointer :: curr_val
 
     next => this%first_link
     do while (associated(next))
@@ -672,6 +691,7 @@ contains
         allocate(str_val)
         str_val%string = val
         allocate(this%val, source=str_val)
+        deallocate(str_val)
         return
       class default
         call die_msg(728532218, "Unsupported property type")
@@ -808,19 +828,8 @@ contains
 
     class(*), pointer :: this_val
 
-    ! Intel compiler has a problem deallocating in the select type block
-    logical :: dealloc
-
-    dealloc = .false.
-    if (associated(this%val)) then
-      this_val => this%val
-      select type (this_val)
-        class is (property_t)
-          dealloc = .true.
-      end select
-    end if
-
-    if (dealloc) deallocate(this_val)
+    this_val => this%val
+    deallocate(this_val)
     if (allocated(this%key_name)) deallocate(this%key_name)
 
   end subroutine pmc_property_link_final

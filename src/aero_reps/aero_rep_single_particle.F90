@@ -166,6 +166,8 @@ contains
     ! Allocate condensed data arrays
     allocate(this%condensed_data_int(_NUM_INT_PROP_))
     allocate(this%condensed_data_real(_NUM_REAL_PROP_))
+    this%condensed_data_int(:) = int(0, kind=i_kind)
+    this%condensed_data_real(:) = real(0.0, kind=dp)
 
     ! Set indexes
     allocate(this%phase_state_id(size(this%aero_phase)))

@@ -1,0 +1,109 @@
+{
+  "notes" : [
+    "PD-FiTE activity calculations for aqueous aerosol species. Parameters from tables 3 and 4 in",
+    "Topping et al. 2009."
+  ],
+  "pmc-data" : [
+    {
+      "name" : "MONARCH mod37",
+      "type" : "MECHANISM",
+      "reactions" : [
+        {
+          "type" : "PDFITE_ACTIVITY",
+          "gas-phase water" : "H2O",
+          "aerosol-phase water" : "H2O_aq",
+          "aerosol phase" : "aqueous sulfate",
+          "calculate for" : {
+          "H-NO3" : {
+            "interactions" : [
+              {
+                "ion pair": "H-NO3",
+                "min RH" : 0.0,
+                "max RH" : 0.1,
+                "B" : [ 0.925113 ]
+              },
+              {
+                "ion pair": "H-NO3",
+                "min RH" : 0.1,
+                "max RH" : 0.4,
+                "B" : [ 0.12091, 13.497, -67.771, 144.01, -117.97 ]
+              },
+              {
+                "ion pair" : "H-NO3",
+                "min RH" : 0.4,
+                "max RH" : 0.9,
+                "B" : [ 1.3424, -0.8197, -0.52983, -0.37335 ]
+              },
+              {
+                "ion pair" : "H-NO3",
+                "min RH" : 0.9,
+                "max RH" : 0.99,
+                "B" : [ -1420.5, 4467.9, -4682.7, 1635.1 ]
+              },
+              {
+                "ion pair" : "H-NO3",
+                "min RH" : 0.99,
+                "max RH" : 1.0,
+                "B" : [ -0.257375 ]
+              },
+              {
+                "ion pair" : "H2-SO4",
+                "min RH" : 0.0,
+                "max RH" : 0.1,
+                "B" : [ 7.0531446 ]
+              },
+              {
+                "ion pair" : "H2-SO4",
+                "min RH" : 0.1,
+                "max RH" : 0.99,
+                "B" : [ 9.3948, -26.808, 35.7654, -18.5094 ]
+              },
+              {
+                "ion pair" : "H2-SO4",
+                "min RH" : 0.99,
+                "max RH" : 1.0,
+                "B" : [ -0.0511038 ]
+              },
+              {
+                "ion pair" : "(NH4)2-SO4",
+                "min RH" : 0.0,
+                "max RH" : 0.1,
+                "B" : [ -31.136334 ]
+              },
+              {
+                "ion pair" : "(NH4)2-SO4",
+                "min RH" : 0.1,
+                "max RH" : 0.99,
+                "B" : [ -40.4136, 108.798, -170.346, 100.926 ]
+              },
+              {
+                "ion pair" : "(NH4)2-SO4",
+                "min RH" : 0.99,
+                "max RH" : 1.0,
+                "B" : [ -1.7312977 ]
+              },
+              {
+                "ion pair" : "NH4-NO3",
+                "min RH" : 0.0,
+                "max RH" : 0.1,
+                "B" : [ -11.93308 ]
+              },
+              {
+                "ion pair" : "NH4-NO3",
+                "min RH" : 0.1,
+                "max RH" : 0.99,
+                "B" : [ -17.0372, 59.232, -86.312, 44.04 ]
+              },
+              {
+                "ion pair" : "NH4-NO3",
+                "min RH" : 0.99,
+                "max RH" : 1.0,
+                "B" : [ -0.2599432 ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

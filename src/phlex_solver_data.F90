@@ -31,7 +31,7 @@ module pmc_phlex_solver_data
   !> Default max number of integration steps
   integer(kind=i_kind), parameter :: PMC_SOLVER_DEFAULT_MAX_STEPS = 10000000
   !> Default maximum number of integration convergence failures
-  integer(kind=i_kind), parameter :: PMC_SOLVER_DEFAULT_MAX_CONV_FAILS = 10
+  integer(kind=i_kind), parameter :: PMC_SOLVER_DEFAULT_MAX_CONV_FAILS = 10000
 
   !> Result code indicating successful completion
   integer, parameter :: PMC_SOLVER_SUCCESS = 0

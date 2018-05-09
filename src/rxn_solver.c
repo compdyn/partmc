@@ -246,7 +246,7 @@ void rxn_pre_calc(ModelData *model_data)
  * \param model_data Pointer to the model data (state, env, rxn)
  * \param deriv NVector to hold the calculated vector
  */
-void rxn_calc_deriv(ModelData *model_data, N_Vector deriv)
+void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, double time_step)
 {
   
   // Get a pointer to the derivative data
@@ -268,9 +268,10 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv)
         rxn_data = (int*) rxn_PDFiTE_activity_calc_deriv_contrib(model_data, 
 			deriv_data, (void*) rxn_data);
         break;
+      // TODO add time step to all reactions
       case RXN_AQUEOUS_EQUILIBRIUM :
         rxn_data = (int*) rxn_aqueous_equilibrium_calc_deriv_contrib(model_data, 
-			deriv_data, (void*) rxn_data);
+			deriv_data, (void*) rxn_data, time_step);
         break;
       case RXN_ARRHENIUS :
         rxn_data = (int*) rxn_arrhenius_calc_deriv_contrib(model_data->state, 
@@ -310,7 +311,7 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv)
  * \param model_data Pointer to the model data (state, env, rxn)
  * \param J Jacobian to be calculated
  */
-void rxn_calc_jac(ModelData *model_data, SUNMatrix J)
+void rxn_calc_jac(ModelData *model_data, SUNMatrix J, double time_step)
 {
 
   // Get a pointer to the Jacobian data
@@ -332,9 +333,10 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J)
         rxn_data = (int*) rxn_PDFiTE_activity_calc_jac_contrib(model_data, 
 			J_data, (void*) rxn_data);
         break;
+      // TODO add time step to all reactions
       case RXN_AQUEOUS_EQUILIBRIUM :
         rxn_data = (int*) rxn_aqueous_equilibrium_calc_jac_contrib(model_data, 
-			J_data, (void*) rxn_data);
+			J_data, (void*) rxn_data, time_step);
         break;
       case RXN_ARRHENIUS :
         rxn_data = (int*) rxn_arrhenius_calc_jac_contrib(model_data->state, 

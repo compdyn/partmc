@@ -92,8 +92,8 @@ void * rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct);
 void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids); 
 void rxn_update_env_state(ModelData *model_data, double *env);
 void rxn_pre_calc(ModelData *model_data);
-void rxn_calc_deriv(ModelData *model_data, N_Vector deriv);
-void rxn_calc_jac(ModelData *model_data, SUNMatrix J);
+void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, double time_step);
+void rxn_calc_jac(ModelData *model_data, SUNMatrix J, double time_step);
 void rxn_print_data(void *solver_data);
 
 /* Aerosol representation solver functions */

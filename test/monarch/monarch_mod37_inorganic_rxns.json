@@ -28,20 +28,6 @@
           "type" : "AQUEOUS_EQUILIBRIUM",
           "aerosol phase" : "aqueous sulfate",
           "aerosol-phase water" : "H2O_aq",
-          "A" : 1000.0,
-          "k_reverse" : 5.0e10,
-          "reactants" : {
-            "H2SO4_aq" : {}
-          },
-          "products" : {
-            "HSO4_m" : {},
-            "H_p" : {}
-          }
-        },
-        {
-          "type" : "AQUEOUS_EQUILIBRIUM",
-          "aerosol phase" : "aqueous sulfate",
-          "aerosol-phase water" : "H2O_aq",
           "A" : 1.02e-2,
           "C" : 2700.0,
           "k_reverse" : 1.0e11,
@@ -50,6 +36,20 @@
           },
           "products": {
             "SO4_mm" : {},
+            "H_p" : {}
+          }
+        },
+        {
+          "type" : "AQUEOUS_EQUILIBRIUM",
+          "aerosol phase" : "aqueous sulfate",
+          "aerosol-phase water" : "H2O_aq",
+          "A" : 1000.0,
+          "k_reverse" : 5.0e10,
+          "reactants" : {
+            "H2SO4_aq" : {}
+          },
+          "products" : {
+            "HSO4_m" : {},
             "H_p" : {}
           }
         },

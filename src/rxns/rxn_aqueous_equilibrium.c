@@ -96,7 +96,7 @@ void * rxn_aqueous_equilibrium_update_ids(int *deriv_ids, int **jac_ids, void *r
   for (int i_phase = 0, i_deriv = 0; i_phase < _NUM_AERO_PHASE_; i_phase++) {
     for (int i_react = 0; i_react < _NUM_REACT_; i_react++)
       _DERIV_ID_(i_deriv++) = deriv_ids[_REACT_(i_phase*_NUM_REACT_+i_react)];
-    for (int i_prod = 0; i_prod < _NUM_REACT_; i_prod++)
+    for (int i_prod = 0; i_prod < _NUM_PROD_; i_prod++)
       _DERIV_ID_(i_deriv++) = deriv_ids[_PROD_(i_phase*_NUM_PROD_+i_prod)];
   }
 
@@ -181,10 +181,11 @@ void * rxn_aqueous_equilibrium_pre_calc(ModelData *model_data, void *rxn_data)
  * \param state Pointer to the state array
  * \param deriv Pointer to the time derivative to add contributions to
  * \param rxn_data Pointer to the reaction data
+ * \param time_step Current time step of the itegrator (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data, realtype *deriv,
-		void *rxn_data)
+		void *rxn_data, double time_step)
 {
   realtype *state = model_data->state;
   realtype *env_data = model_data->env;
@@ -202,15 +203,17 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data, realtyp
 
     // Calculate the forward rate (M/s)
     realtype forward_rate = _k_forward_;
-    for (int i_react = 0; i_react < _NUM_REACT_; i_react++)
-	    forward_rate *= state[_REACT_(i_phase*_NUM_REACT_+i_react)] * 
-		    _mass_frac_TO_M_(i_react) / state[_WATER_(i_phase)];
+    for (int i_react = 0; i_react < _NUM_REACT_; i_react++) {
+      forward_rate *= state[_REACT_(i_phase*_NUM_REACT_+i_react)] * 
+              _mass_frac_TO_M_(i_react) / state[_WATER_(i_phase)];
+    }
 
     // Calculate the reverse rate (M/s)
     realtype reverse_rate = _k_reverse_;
-    for (int i_prod = 0; i_prod < _NUM_PROD_; i_prod++)
-	    reverse_rate *= state[_PROD_(i_phase*_NUM_PROD_+i_prod)] * 
-		    _mass_frac_TO_M_(_NUM_REACT_+i_prod) / state[_WATER_(i_phase)];
+    for (int i_prod = 0; i_prod < _NUM_PROD_; i_prod++) {
+      reverse_rate *= state[_PROD_(i_phase*_NUM_PROD_+i_prod)] * 
+              _mass_frac_TO_M_(_NUM_REACT_+i_prod) / state[_WATER_(i_phase)];
+    }
     if (_ACTIVITY_COEFF_(i_phase)>=0) reverse_rate *= 
             state[_ACTIVITY_COEFF_(i_phase)];
 
@@ -239,10 +242,11 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data, realtyp
  * \param state Pointer to the state array
  * \param J Pointer to the sparse Jacobian matrix to add contributions to
  * \param rxn_data Pointer to the reaction data
+ * \param time_step Current time step of the itegrator (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data, realtype *J,
-		void *rxn_data)
+		void *rxn_data, double time_step)
 {
   realtype *state = model_data->state;
   realtype *env_data = model_data->env;
@@ -260,15 +264,17 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data, realtype 
 
     // Calculate the forward rate (M/s)
     realtype forward_rate = _k_forward_;
-    for (int i_react = 0; i_react < _NUM_REACT_; i_react++)
-	    forward_rate *= state[_REACT_(i_phase*_NUM_REACT_+i_react)] * 
-		    _mass_frac_TO_M_(i_react) / state[_WATER_(i_phase)];
+    for (int i_react = 0; i_react < _NUM_REACT_; i_react++) {
+      forward_rate *= state[_REACT_(i_phase*_NUM_REACT_+i_react)] * 
+              _mass_frac_TO_M_(i_react) / state[_WATER_(i_phase)];
+    }
 
     // Calculate the reverse rate (M/s)
     realtype reverse_rate = _k_reverse_;
-    for (int i_prod = 0; i_prod < _NUM_PROD_; i_prod++)
-	    reverse_rate *= state[_PROD_(i_phase*_NUM_PROD_+i_prod)] * 
-		    _mass_frac_TO_M_(_NUM_REACT_+i_prod) / state[_WATER_(i_phase)];
+    for (int i_prod = 0; i_prod < _NUM_PROD_; i_prod++) {
+      reverse_rate *= state[_PROD_(i_phase*_NUM_PROD_+i_prod)] * 
+              _mass_frac_TO_M_(_NUM_REACT_+i_prod) / state[_WATER_(i_phase)];
+    }
     if (_ACTIVITY_COEFF_(i_phase)>=0) reverse_rate *= 
             state[_ACTIVITY_COEFF_(i_phase)];
 

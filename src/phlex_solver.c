@@ -142,8 +142,8 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   sd->cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
   check_flag_fail((void *)sd->cvode_mem, "CVodeCreate", 0);
 
-  // Set the model data
-  flag = CVodeSetUserData(sd->cvode_mem, &(sd->model_data));
+  // Set the solver data
+  flag = CVodeSetUserData(sd->cvode_mem, sd);
   check_flag_fail(&flag, "CVodeSetUserData", 1);
 
   /* Call CVodeInit to initialize the integrator memory and specify the
@@ -225,7 +225,10 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // Run the solver
   realtype t_rt = (realtype) t_initial;
   flag = CVode(sd->cvode_mem, (realtype) t_final, sd->y, &t_rt, CV_NORMAL);
-  if (check_flag(&flag, "CVode", 1)==PHLEX_SOLVER_FAIL) return PHLEX_SOLVER_FAIL;
+  if (check_flag(&flag, "CVode", 1)==PHLEX_SOLVER_FAIL) {
+    solver_print_stats(sd->cvode_mem);
+    return PHLEX_SOLVER_FAIL;
+  }
 
   // Update the species concentrations on the state array
   for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++)
@@ -248,16 +251,23 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
  * \param t Current model time (s)
  * \param y Dependent variable array
  * \param deriv Time derivative vector f(t,y) to calculate
- * \param model_data Pointer to the model data
+ * \param solver_data Pointer to the solver data
  * \return Status code
  */
-int f(realtype t, N_Vector y, N_Vector deriv, void *model_data)
+int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 {
-  ModelData *md = (ModelData*) model_data;
+  SolverData *sd = (SolverData*) solver_data;
+  ModelData *md = &(sd->model_data);
+  realtype time_step;
 
   // Update the state array with the current dependent variable values
-  for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++)
-    if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) md->state[i_spec] = NV_DATA_S(y)[i_dep_var++];
+  // Signal a recoverable error (positive return value) for negative concentrations.
+  for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
+    if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
+      if (NV_DATA_S(y)[i_dep_var] < 0.0) return 1;
+      md->state[i_spec] = NV_DATA_S(y)[i_dep_var++];
+    }
+  }
 
   // Initialize the derivative
   for (int i_spec=0; i_spec<NV_LENGTH_S(deriv); i_spec++) NV_DATA_S(deriv)[i_spec] = ZERO;
@@ -268,8 +278,11 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *model_data)
   // Run pre-derivative calculations
   rxn_pre_calc(md);
 
+  // Get the current integrator time step (s)
+  CVodeGetCurrentStep(sd->cvode_mem, &time_step);
+  
   // Calculate the time derivative f(t,y)
-  rxn_calc_deriv(md, deriv);
+  rxn_calc_deriv(md, deriv, (double) time_step);
 
   return (0);
 
@@ -281,16 +294,18 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *model_data)
  * \param y Dependent variable array
  * \param deriv Time derivative vector f(t,y)
  * \param J Jacobian to calculate
- * \param model_data Pointer to the model data
+ * \param solver_data Pointer to the solver data
  * \param tmp1 Unused vector
  * \param tmp2 Unused vector
  * \param tmp3 Unused vector
  * \return Status code
  */
-int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *model_data,
+int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 		N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)
 {
-  ModelData *md = (ModelData*) model_data;
+  SolverData *sd = (SolverData*) solver_data;
+  ModelData *md = &(sd->model_data);
+  realtype time_step;
 
   // Update the aerosol representations
   aero_rep_update_state(md);
@@ -299,8 +314,12 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *model_data,
   rxn_pre_calc(md);
 
   // Update the state array with the current dependent variable values
-  for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++)
-    if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) md->state[i_spec] = NV_DATA_S(y)[i_dep_var++];
+  for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
+    if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
+      if (NV_DATA_S(y)[i_dep_var] < 0.0) return 1;
+      md->state[i_spec] = NV_DATA_S(y)[i_dep_var++];
+    }
+  }
 
   // TODO Figure out how to keep the Jacobian from being redimensioned
   // Reset the Jacobian dimensions
@@ -328,8 +347,11 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *model_data,
   // Run pre-Jacobian calculations
   rxn_pre_calc(md);
 
+  // Get the current integrator time step (s)
+  CVodeGetCurrentStep(sd->cvode_mem, &time_step);
+  
   // Calculate the Jacobian
-  rxn_calc_jac(md, J);
+  rxn_calc_jac(md, J, time_step);
 
   return (0);
 
@@ -457,7 +479,7 @@ int check_flag(void *flag_value, char *func_name, int opt)
   /* Check if flag < 0 */
   else if (opt == 1) {
     err_flag = (int *) flag_value;
-    if (err_flag < 0) {
+    if (*err_flag < 0) {
       fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed with flag = %d\n\n",
 		      func_name, *err_flag);
       return PHLEX_SOLVER_FAIL;

@@ -122,7 +122,8 @@ program mock_monarch
   call assert_msg(234156729, status_code.eq.0, "Error getting output file prefix")
   output_file_prefix = trim(arg)
   call model_initialize(output_file_prefix)
-  call pmc_interface%get_init_conc(species_conc)
+  call pmc_interface%get_init_conc(species_conc, water_conc, WATER_VAPOR_ID, &
+          air_density)
 
   ! Run the model
   do i_time=0, NUM_TIME_STEP

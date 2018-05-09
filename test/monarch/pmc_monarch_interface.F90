@@ -260,7 +260,8 @@ contains
           this%phlex_state%state_var(this%map_phlex_id(:)) = &
                   MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
           this%phlex_state%state_var(this%gas_phase_water_id) = &
-                  water_conc(i,j,k_flip,water_vapor_index)
+                  water_conc(i,j,k_flip,water_vapor_index) * &
+                  air_density(i,k,j) * 1.0d9
 
           ! Start the computation timer
           if (MONARCH_NODE.eq.0 .and. i.eq.i_start .and. j.eq.j_start &
@@ -638,18 +639,29 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get initial concentrations for the moch MONARCH model (for testing only)
-  subroutine get_init_conc(this, MONARCH_conc)
+  subroutine get_init_conc(this, MONARCH_conc, MONARCH_water_conc, &
+      WATER_VAPOR_ID, MONARCH_air_density)
 
     !> PartMC-phlex <-> MONARCH interface
     class(monarch_interface_t) :: this
     !> MONARCH species concentrations to update
     real, intent(inout) :: MONARCH_conc(:,:,:,:)
+    !> Atmospheric water concentrations (kg_H2O/kg_air)
+    real, intent(out) :: MONARCH_water_conc(:,:,:,:)
+    !> Index in water_conc corresponding to water vapor
+    integer, intent(in) :: WATER_VAPOR_ID
+    !> Air density (kg_air/m^3)
+    real, intent(out) :: MONARCH_air_density(:,:,:)
 
-    integer(kind=i_kind) :: i_spec
+    integer(kind=i_kind) :: i_spec, water_id
 
     ! Reset the species concentrations in PMC and MONARCH
     this%phlex_state%state_var(:) = 0.0
     MONARCH_conc(:,:,:,:) = 0.0
+    MONARCH_water_conc(:,:,:,WATER_VAPOR_ID) = 0.0
+
+    ! Set the air density to a nominal value
+    MONARCH_air_density(:,:,:) = 1.225
 
     ! Set initial concentrations in PMC
     this%phlex_state%state_var(this%init_conc_phlex_id(:)) = &
@@ -660,6 +672,11 @@ contains
       MONARCH_conc(:,:,:,this%map_monarch_id(i_spec)) = &
               this%phlex_state%state_var(this%map_phlex_id(i_spec))
     end forall
+
+    ! Set the relative humidity
+    MONARCH_water_conc(:,:,:,WATER_VAPOR_ID) = &
+            this%phlex_state%state_var(this%gas_phase_water_id) * &
+            1.0d-9 / 1.225d0
 
   end subroutine get_init_conc
 

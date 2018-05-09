@@ -243,7 +243,6 @@ contains
 
     do i_rxn = 1, this%num_rxn
       call assert(340397127, associated(this%rxn_ptr(i_rxn)%val))
-      write(*,*) i_rxn
       call this%rxn_ptr(i_rxn)%val%initialize(chem_spec_data, aero_rep_data)
     end do
 

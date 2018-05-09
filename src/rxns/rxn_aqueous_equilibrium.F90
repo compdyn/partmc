@@ -314,7 +314,7 @@ contains
         react_names(i_spec)%string = spec_name
 
         ! Use the MW to calculate the mass frac -> M conversion
-        _mass_frac_TO_M_(i_spec) = 1.0d0/temp_real
+        _mass_frac_TO_M_(i_spec) = 1.0d3/temp_real
 
       end do
 
@@ -351,7 +351,7 @@ contains
         prod_names(i_spec)%string = spec_name
 
         ! Use the MW to calculate the mass frac -> M conversion
-        _mass_frac_TO_M_(_NUM_REACT_ + i_spec) = 1.0d0/temp_real
+        _mass_frac_TO_M_(_NUM_REACT_ + i_spec) = 1.0d3/temp_real
 
       end do
 

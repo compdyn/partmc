@@ -51,6 +51,8 @@ program mock_monarch
   integer, parameter :: NUM_TIME_STEP = 100
   !> Index for water vapor in water_conc()
   integer, parameter :: WATER_VAPOR_ID = 5
+  !> Start time
+  real, parameter :: START_TIME = 360.0
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! State variables for mock MONARCH model !
@@ -72,7 +74,11 @@ program mock_monarch
 
   !> Starting time for mock model run (min since midnight) TODO check how time
   !! is tracked in MONARCH
-  real :: start_time = 360.0
+  real :: curr_time = START_TIME
+  
+  !> Plot start time is after first call to solve chemistry, so initial 
+  !! concentrations do not affect y-axis scaling
+  real :: plot_start_time = START_TIME + TIME_STEP
 
   !> !!! Add to MONARCH variables !!!
   type(monarch_interface_t), pointer :: pmc_interface
@@ -132,8 +138,8 @@ program mock_monarch
     ! **** Add to MONARCH during runtime for each time step **** !
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    call output_results(start_time)
-    call pmc_interface%integrate(start_time,        & ! Starting time (min)
+    call output_results(curr_time)
+    call pmc_interface%integrate(curr_time,        & ! Starting time (min)
                                  TIME_STEP,         & ! Time step (min)
                                  I_W,               & ! Starting W->E grid cell
                                  I_E,               & ! Ending W->E grid cell
@@ -145,7 +151,7 @@ program mock_monarch
                                  WATER_VAPOR_ID,    & ! Index in water_conc() corresponding to water vapor
                                  air_density,       & ! Air density (kg_air/m^3)
                                  pressure)            ! Air pressure (Pa)   
-    start_time = start_time + TIME_STEP
+    curr_time = curr_time + TIME_STEP
   
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! **** end runtime modification **** !
@@ -157,8 +163,9 @@ program mock_monarch
 
   ! Output results and scripts
   if (pmc_mpi_rank().eq.0) then
-    call output_results(start_time)
-    call create_gnuplot_script(pmc_interface, output_file_prefix)
+    call output_results(curr_time)
+    call create_gnuplot_script(pmc_interface, output_file_prefix, &
+            plot_start_time, curr_time)
   end if
 
   ! TODO evaluate results
@@ -213,17 +220,22 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     
   !> Create a gnuplot script for viewing species concentrations
-  subroutine create_gnuplot_script(pmc_interface, file_prefix)
+  subroutine create_gnuplot_script(pmc_interface, file_prefix, start_time, &
+            end_time)
 
     !> PartMC-phlex <-> MONARCH interface
     type(monarch_interface_t), intent(in) :: pmc_interface
     !> File prefix for gnuplot script
     character(len=:), allocatable :: file_prefix
+    !> Plot start time
+    real :: start_time
+    !> Plot end time
+    real :: end_time
 
     type(string_t), allocatable :: species_names(:)
     integer(kind=i_kind), allocatable :: tracer_ids(:)
-    character(len=:), allocatable :: file_name
-    integer(kind=i_kind) :: i_spec, tracer_id
+    character(len=:), allocatable :: file_name, spec_name
+    integer(kind=i_kind) :: i_char, i_spec, tracer_id
 
     ! Get the species names and ids
     call pmc_interface%get_MONARCH_species(species_names, tracer_ids)
@@ -238,9 +250,13 @@ contains
     write(SCRIPTS_FILE_UNIT,*) "# Run as: gnuplot "//file_name
     write(SCRIPTS_FILE_UNIT,*) "set terminal png truecolor"
     write(SCRIPTS_FILE_UNIT,*) "set autoscale"
+    write(SCRIPTS_FILE_UNIT,*) "set xrange [", start_time, ":", end_time, "]"
     do i_spec = 1, size(species_names)
+      spec_name = species_names(i_spec)%string
+      forall (i_char = 1:len(spec_name), spec_name(i_char:i_char).eq.'/') &
+                spec_name(i_char:i_char) = '_'
       write(SCRIPTS_FILE_UNIT,*) "set output '"//file_prefix//"_"// &
-              species_names(i_spec)%string//".png'"
+              spec_name//".png'"
       write(SCRIPTS_FILE_UNIT,*) "plot\"
       write(SCRIPTS_FILE_UNIT,*) " '"//file_prefix//"_results.txt'\"
       write(SCRIPTS_FILE_UNIT,*) " using 1:"// &

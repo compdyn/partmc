@@ -791,6 +791,8 @@ contains
           spec_type = "constant"
         case (CHEM_SPEC_PSSA)
           spec_type = "PSSA"
+        case (CHEM_SPEC_ACTIVITY_COEFF)
+          spec_type = "binary activity coefficient"
         case default
           spec_type = "invalid"
       end select

@@ -1051,8 +1051,9 @@ contains
     !> File unit for output
     integer(kind=i_kind), intent(in), optional :: file_unit
 
-    integer(kind=i_kind) :: i_phase, i_aero_rep, i_mech
+    integer(kind=i_kind) :: i_gas_spec, i_spec, i_phase, i_aero_rep, i_mech
     integer(kind=i_kind) :: f_unit=6
+    type(string_t), allocatable :: state_names(:), rep_spec_names(:)
 
     if (present(file_unit)) f_unit = file_unit
 
@@ -1075,6 +1076,27 @@ contains
     do i_mech=1, size(this%mechanism)
       call this%mechanism(i_mech)%print(f_unit)
     end do
+    write(f_unit,*) "*** State Array ***"
+    write(f_unit,*) "Number of species on the state array: ", this%state_array_size
+    allocate(state_names(this%state_array_size))
+    i_spec = 1
+    do i_gas_spec = 1, this%chem_spec_data%size(spec_phase=CHEM_SPEC_GAS_PHASE)
+      i_spec = i_gas_spec
+      state_names(i_spec)%string = this%chem_spec_data%gas_state_name(i_gas_spec)
+    end do
+    write(f_unit,*) "Gas-phase species: ", i_spec
+    do i_aero_rep = 1, size(this%aero_rep)
+      rep_spec_names = this%aero_rep(i_aero_rep)%val%unique_names()
+      state_names(i_spec+1:i_spec+size(rep_spec_names)) = rep_spec_names(:)
+      i_spec = i_spec + size(rep_spec_names)
+      write(f_unit,*) "Aerosol rep ", this%aero_rep(i_aero_rep)%val%rep_name, &
+              " species: ", size(rep_spec_names)
+      deallocate(rep_spec_names)
+    end do
+    do i_spec = 1, size(state_names)
+      write(f_unit,*) i_spec, state_names(i_spec)%string
+    end do
+    deallocate(state_names)
 
     if (associated(this%solver_data_gas)) call this%solver_data_gas%print()
     if (associated(this%solver_data_gas_aero)) call this%solver_data_gas_aero%print()

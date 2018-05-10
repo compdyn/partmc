@@ -31,6 +31,7 @@
           "A" : 1.02e-2,
           "C" : 2700.0,
           "k_reverse" : 1.0e11,
+          "ion pair" : "H2-SO4",
           "reactants" : {
             "HSO4_m" : {}
           },
@@ -45,6 +46,7 @@
           "aerosol-phase water" : "H2O_aq",
           "A" : 1000.0,
           "k_reverse" : 5.0e10,
+          "ion pair" : "H-HSO4",
           "reactants" : {
             "H2SO4_aq" : {}
           },
@@ -60,6 +62,7 @@
           "A" : 3.17e-7,
           "C" : -560.0,
           "k_reverse" : 3.4e10,
+          "ion pair" : "NH4/H",
           "reactants" : {
             "NH3_aq" : {},
             "H2O_aq" : {}
@@ -76,6 +79,7 @@
           "A" : 22.0,
           "C" : 1800.0,
           "k_reverse" : 5.0e10,
+          "ion pair" : "H-NO3",
           "reactants" : {
             "HNO3_aq" : {}
           },

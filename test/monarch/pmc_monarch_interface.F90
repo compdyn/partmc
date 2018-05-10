@@ -65,6 +65,8 @@ module pmc_monarch_interface
     procedure :: get_init_conc
     !> Get monarch species names and ids (for testing only)
     procedure :: get_MONARCH_species
+    !> Print the PartMC-phlex data
+    procedure :: print => do_print
     !> Load interface data from a set of input files
     procedure, private :: load
     !> Create the PartMC <-> MONARCH species map
@@ -696,6 +698,18 @@ contains
     MONARCH_ids = this%map_monarch_id
 
   end subroutine get_MONARCH_species
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Print the PartMC-phlex data
+  subroutine do_print(this)
+
+    !> PartMC-phlex <-> MONARCH interface
+    class(monarch_interface_t) :: this
+
+    call this%phlex_core%print()
+
+  end subroutine do_print
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

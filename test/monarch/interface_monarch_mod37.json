@@ -123,7 +123,11 @@
         "sulfate.aqueous sulfate.H2SO4_aq" :             { "monarch id" : 203, "aerosol representation name" : "MONARCH mass-based" },
         "sulfate.aqueous sulfate.HSO4_m" :               { "monarch id" : 204, "aerosol representation name" : "MONARCH mass-based" },
         "sulfate.aqueous sulfate.HNO3_aq" :              { "monarch id" : 205, "aerosol representation name" : "MONARCH mass-based" },
-        "sulfate.aqueous sulfate.NH3_aq" :               { "monarch id" : 206, "aerosol representation name" : "MONARCH mass-based" }
+        "sulfate.aqueous sulfate.NH3_aq" :               { "monarch id" : 206, "aerosol representation name" : "MONARCH mass-based" },
+        "sulfate.aqueous sulfate.H-NO3" :                { "monarch id" : 207, "aerosol representation name" : "MONARCH mass-based" },
+        "sulfate.aqueous sulfate.H2-SO4" :               { "monarch id" : 208, "aerosol representation name" : "MONARCH mass-based" },
+        "sulfate.aqueous sulfate.H-HSO4" :               { "monarch id" : 209, "aerosol representation name" : "MONARCH mass-based" },
+        "sulfate.aqueous sulfate.NH4/H" :                { "monarch id" : 210, "aerosol representation name" : "MONARCH mass-based" }
       }
     },
     {

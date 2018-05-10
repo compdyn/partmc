@@ -7,6 +7,7 @@
     "monarch_mod37_aerosol_phases.json",
     "monarch_mod37_aerosol_representation.json",
     "monarch_mod37_inorganic_partitioning.json",
+    "monarch_mod37_aerosol_activity.json",
     "monarch_mod37_inorganic_rxns.json"
   ]
 }

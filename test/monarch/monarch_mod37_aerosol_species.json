@@ -225,6 +225,24 @@
       }
     },
     {
+      "name" : "H-HSO4",
+      "type" : "CHEM_SPEC",
+      "tracer type" : "ION_PAIR",
+      "ions" : {
+        "H_p" : {},
+        "HSO4_m" : {}
+      }
+    },
+    {
+      "name" : "NH4/H",
+      "type" : "CHEM_SPEC",
+      "tracer type" : "ION_PAIR",
+      "ions" : {
+        "NH4_p" : {},
+        "OH_m" : {}
+      }
+    },
+    {
       "name" : "other PM",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",

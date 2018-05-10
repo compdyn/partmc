@@ -167,7 +167,7 @@ module pmc_rxn_PDFiTE_activity
   use pmc_constants,                        only: const
   use pmc_util,                             only: i_kind, dp, to_string, &
                                                   assert, assert_msg, die_msg, &
-                                                  string_t
+                                                  string_t, warn_assert_msg
   use pmc_rxn_data
   use pmc_chem_spec_data
   use pmc_property
@@ -312,6 +312,17 @@ contains
     ! interaction parameters
     allocate(ion_pair_names(n_ion_pair))
 
+    ! Set the ion pair names
+    call ion_pairs%iter_reset()
+    do i_ion_pair = 1, n_ion_pair
+
+      ! Get the name of the ion_pair
+      call assert(497564051, ion_pairs%get_key(ion_pair_name))
+      ion_pair_names(i_ion_pair)%string = ion_pair_name
+
+      call ion_pairs%iter_next()
+    end do
+
     ! Get the number of parameters required for each ion pair
     ! Adding space for INT_PROPS and phase state ids
     n_int_param = _NUM_INT_PROP_ + n_phase
@@ -322,7 +333,6 @@ contains
   
       ! Get the name of the ion_pair
       call assert(680654801, ion_pairs%get_key(ion_pair_name))
-      ion_pair_names(i_ion_pair)%string = ion_pair_name
 
       ! Get the ion_pair properties
       call assert_msg(287766741, ion_pairs%get_property_t(val=ion_pair), &
@@ -645,6 +655,11 @@ contains
 
         ! Get the ion_pair properties
         call assert(520886936, ion_pairs%get_property_t(val=ion_pair))
+      
+        ! Get the interactions
+        key_name = "interactions"
+        call assert(216229321, ion_pair%get_property_t(key_name,interactions))
+
         ! Set the number of interactions for this ion pair
         _NUM_INTER_(i_ion_pair) = interactions%size()
 
@@ -733,11 +748,11 @@ contains
       
         ! Check that all the interactions were included at least once
         do i_spec = 1, size(num_inter)
-          call assert_msg(793223082, num_inter(i_spec).ge.1, &
+          call warn_assert_msg(793223082, num_inter(i_spec).ge.1, &
                   "Missing interaction parameters between ion_pair '"// &
                   ion_pair_name//"' and '"//ion_pair_names(i_spec)%string// &
                   "' in PDFiTE activity reaction: "// &
-                  to_string(num_inter(i_spec))//".")
+                  trim(to_string(num_inter(i_spec)))//".")
         end do
 
         ! Make sure no interactions with the same ion pair overlap in 
@@ -771,7 +786,7 @@ contains
         ! Make sure the entire RH range is covered
         do i_spec = 1, size(rh_range)
           call assert_msg(370258071, &
-                  rh_range(i_spec).eq.real(1.0, kind=dp), &
+                  rh_range(i_spec).eq.real(1.0, kind=dp).or.num_inter(i_spec).eq.0, &
                   "Incomplete RH coverage for interaction with ion pair '"// &
                   ion_pair_names(i_spec)%string//"' for '"//ion_pair_name// &
                   "' PD-FiTE activity coefficient calculation.")

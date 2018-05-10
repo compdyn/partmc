@@ -21,6 +21,7 @@
 #define RXN_AQUEOUS_EQUILIBRIUM 7
 #define RXN_ZSR_AEROSOL_WATER 8
 #define RXN_PDFITE_ACTIVITY 9
+#define RXN_SIMPOL_PHASE_TRANSFER 10
 
 #ifdef PMC_USE_SUNDIALS
 
@@ -67,6 +68,9 @@ void * rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct)
         break;
       case RXN_PHOTOLYSIS :
         rxn_data = (int*) rxn_photolysis_get_used_jac_elem((void*) rxn_data, jac_struct);
+        break;
+      case RXN_SIMPOL_PHASE_TRANSFER :
+        rxn_data = (int*) rxn_SIMPOL_phase_transfer_get_used_jac_elem((void*) rxn_data, jac_struct);
         break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_get_used_jac_elem((void*) rxn_data, jac_struct);
@@ -121,6 +125,9 @@ void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids)
       case RXN_PHOTOLYSIS :
         rxn_data = (int*) rxn_photolysis_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
         break;
+      case RXN_SIMPOL_PHASE_TRANSFER :
+        rxn_data = (int*) rxn_SIMPOL_phase_transfer_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
+        break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
         break;
@@ -171,6 +178,9 @@ void rxn_update_env_state(ModelData *model_data, double *env)
         break;
       case RXN_PHOTOLYSIS :
         rxn_data = (int*) rxn_photolysis_update_env_state(env, (void*) rxn_data);
+        break;
+      case RXN_SIMPOL_PHASE_TRANSFER :
+        rxn_data = (int*) rxn_SIMPOL_phase_transfer_update_env_state(env, (void*) rxn_data);
         break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_update_env_state(env, (void*) rxn_data);
@@ -230,6 +240,9 @@ void rxn_pre_calc(ModelData *model_data)
         break;
       case RXN_PHOTOLYSIS :
         rxn_data = (int*) rxn_photolysis_pre_calc(model_data, (void*) rxn_data);
+        break;
+      case RXN_SIMPOL_PHASE_TRANSFER :
+        rxn_data = (int*) rxn_SIMPOL_phase_transfer_pre_calc(model_data, (void*) rxn_data);
         break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_pre_calc(model_data, (void*) rxn_data);
@@ -292,6 +305,10 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, double time_step)
         break;
       case RXN_PHOTOLYSIS :
         rxn_data = (int*) rxn_photolysis_calc_deriv_contrib(model_data->state,
+		       deriv_data, (void*) rxn_data);
+        break;
+      case RXN_SIMPOL_PHASE_TRANSFER :
+        rxn_data = (int*) rxn_SIMPOL_phase_transfer_calc_deriv_contrib(model_data, 
 		       deriv_data, (void*) rxn_data);
         break;
       case RXN_TROE :
@@ -357,6 +374,10 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J, double time_step)
         break;
       case RXN_PHOTOLYSIS :
         rxn_data = (int*) rxn_photolysis_calc_jac_contrib(model_data->state,
+		       J_data, (void*) rxn_data);
+        break;
+      case RXN_SIMPOL_PHASE_TRANSFER :
+        rxn_data = (int*) rxn_SIMPOL_phase_transfer_calc_jac_contrib(model_data,
 		       J_data, (void*) rxn_data);
         break;
       case RXN_TROE :
@@ -458,6 +479,9 @@ void rxn_set_photo_rate(int photo_id, double base_rate, void *solver_data)
       case RXN_PHOTOLYSIS :
         rxn_data = (int*) rxn_photolysis_set_photo_rate(photo_id, (realtype) base_rate, (void*)rxn_data);
         break;
+      case RXN_SIMPOL_PHASE_TRANSFER :
+        rxn_data = (int*) rxn_SIMPOL_phase_transfer_skip((void*)rxn_data);
+        break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_skip((void*)rxn_data);
         break;
@@ -513,6 +537,9 @@ void rxn_print_data(void *solver_data)
 	break;
       case RXN_PHOTOLYSIS :
         rxn_data = (int*) rxn_photolysis_print((void*)rxn_data);
+	break;
+      case RXN_SIMPOL_PHASE_TRANSFER :
+        rxn_data = (int*) rxn_SIMPOL_phase_transfer_print((void*)rxn_data);
 	break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_print((void*)rxn_data);
@@ -579,6 +606,9 @@ double * rxn_get_rates(void *solver_data, double *state, double *env, int *n_rxn
 	break;
       case RXN_PHOTOLYSIS :
         rxn_data = (int*) rxn_photolysis_get_rate((void*)rxn_data, state, env, &(rate));
+	break;
+      case RXN_SIMPOL_PHASE_TRANSFER :
+        rxn_data = (int*) rxn_SIMPOL_phase_transfer_get_rate((void*)rxn_data, state, env, &(rate));
 	break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_get_rate((void*)rxn_data, state, env, &(rate));

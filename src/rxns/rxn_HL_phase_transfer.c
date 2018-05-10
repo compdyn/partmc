@@ -52,7 +52,7 @@
  *                   Jacobian elements
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_phase_transfer_get_used_jac_elem(void *rxn_data, bool **jac_struct)
+void * rxn_HL_phase_transfer_get_used_jac_elem(void *rxn_data, bool **jac_struct)
 {
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
@@ -76,7 +76,7 @@ void * rxn_phase_transfer_get_used_jac_elem(void *rxn_data, bool **jac_struct)
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_phase_transfer_update_ids(int *deriv_ids, int **jac_ids, void *rxn_data)
+void * rxn_HL_phase_transfer_update_ids(int *deriv_ids, int **jac_ids, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
@@ -109,7 +109,7 @@ void * rxn_phase_transfer_update_ids(int *deriv_ids, int **jac_ids, void *rxn_da
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_phase_transfer_update_env_state(realtype *env_data, void *rxn_data)
+void * rxn_HL_phase_transfer_update_env_state(realtype *env_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
@@ -148,7 +148,7 @@ void * rxn_phase_transfer_update_env_state(realtype *env_data, void *rxn_data)
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_phase_transfer_pre_calc(ModelData *model_data, void *rxn_data)
+void * rxn_HL_phase_transfer_pre_calc(ModelData *model_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
@@ -164,7 +164,7 @@ void * rxn_phase_transfer_pre_calc(ModelData *model_data, void *rxn_data)
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_phase_transfer_calc_deriv_contrib(ModelData *model_data, realtype *deriv,
+void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data, realtype *deriv,
 		void *rxn_data)
 {
   realtype *state = model_data->state;
@@ -247,7 +247,7 @@ void * rxn_phase_transfer_calc_deriv_contrib(ModelData *model_data, realtype *de
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_phase_transfer_calc_jac_contrib(ModelData *model_data, realtype *J,
+void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data, realtype *J,
 		void *rxn_data)
 {
   realtype *state = model_data->state;
@@ -330,7 +330,7 @@ void * rxn_phase_transfer_calc_jac_contrib(ModelData *model_data, realtype *J,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_phase_transfer_skip(void *rxn_data)
+void * rxn_HL_phase_transfer_skip(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
@@ -343,7 +343,7 @@ void * rxn_phase_transfer_skip(void *rxn_data)
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_phase_transfer_print(void *rxn_data)
+void * rxn_HL_phase_transfer_print(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
@@ -368,7 +368,7 @@ void * rxn_phase_transfer_print(void *rxn_data)
  * \param rate Pointer to a double value to store the calculated rate
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_phase_transfer_get_rate(void *rxn_data, realtype *state, realtype *env, realtype *rate)
+void * rxn_HL_phase_transfer_get_rate(void *rxn_data, realtype *state, realtype *env, realtype *rate)
 {
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);

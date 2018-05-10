@@ -3,9 +3,9 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_rxn_phase_transfer module.
+!> The pmc_rxn_HL_phase_transfer module.
 
-!> \page phlex_rxn_phase_transfer Phlexible Mechanism for Chemistry: Phase-Transfer Reaction
+!> \page phlex_rxn_HL_phase_transfer Phlexible Mechanism for Chemistry: Phase-Transfer Reaction
 !!
 !! Phase transfer reactions are based on Henry's Law equilibrium constants
 !! whose equations take the form:
@@ -27,7 +27,7 @@
 !! Input data for Phase transfer equations should take the form :
 !! \code{.json}
 !!   {
-!!     "type" : "PHASE_TRANSFER",
+!!     "type" : "HL_PHASE_TRANSFER",
 !!     "A" : 123.45,
 !!     "C" : 123.45,
 !!     "gas-phase species" : "my gas spec",
@@ -50,8 +50,8 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!> The rxn_phase_transfer_t type and associated functions. 
-module pmc_rxn_phase_transfer
+!> The rxn_HL_phase_transfer_t type and associated functions. 
+module pmc_rxn_HL_phase_transfer
 
   use pmc_constants,                        only: const
   use pmc_util,                             only: i_kind, dp, to_string, &
@@ -89,10 +89,10 @@ module pmc_rxn_phase_transfer
 #define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+4*_NUM_AERO_PHASE_+x)
 #define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+1+5*_NUM_AERO_PHASE_+x)
 
-  public :: rxn_phase_transfer_t
+  public :: rxn_HL_phase_transfer_t
 
   !> Generic test reaction data type
-  type, extends(rxn_data_t) :: rxn_phase_transfer_t
+  type, extends(rxn_data_t) :: rxn_HL_phase_transfer_t
   contains
     !> Reaction initialization
     procedure :: initialize
@@ -100,12 +100,12 @@ module pmc_rxn_phase_transfer
     procedure :: build_rate_const_expr
     !> Build time derivative expression
     procedure :: build_deriv_expr
-  end type rxn_phase_transfer_t
+  end type rxn_HL_phase_transfer_t
 
-  !> Constructor for rxn_phase_transfer_t
-  interface rxn_phase_transfer_t
+  !> Constructor for rxn_HL_phase_transfer_t
+  interface rxn_HL_phase_transfer_t
     procedure :: constructor
-  end interface rxn_phase_transfer_t
+  end interface rxn_HL_phase_transfer_t
 
 contains
 
@@ -115,7 +115,7 @@ contains
   function constructor() result(new_obj)
 
     !> A new reaction instance
-    type(rxn_phase_transfer_t), pointer :: new_obj
+    type(rxn_HL_phase_transfer_t), pointer :: new_obj
 
     allocate(new_obj)
     new_obj%rxn_phase = AERO_RXN
@@ -133,7 +133,7 @@ contains
   subroutine initialize(this, chem_spec_data, aero_rep)
     
     !> Reaction data
-    class(rxn_phase_transfer_t), intent(inout) :: this
+    class(rxn_HL_phase_transfer_t), intent(inout) :: this
     !> Chemical species data
     type(chem_spec_data_t), intent(in) :: chem_spec_data
     !> Aerosol representations
@@ -334,7 +334,7 @@ contains
     !> Rate constant expression
     character(len=:), allocatable :: expr
     !> Reaction data
-    class(rxn_phase_transfer_t), intent(in) :: this
+    class(rxn_HL_phase_transfer_t), intent(in) :: this
     !> Reaction id in mechanism
     integer(kind=i_kind), intent(in) :: rxn_id
 
@@ -351,7 +351,7 @@ contains
     !> Contribution to time derivative expression for species spec_id
     character(len=:), allocatable :: expr
     !> Reaction data
-    class(rxn_phase_transfer_t), intent(in) :: this
+    class(rxn_HL_phase_transfer_t), intent(in) :: this
     !> Reaction id in mechanism
     integer(kind=i_kind), intent(in) :: rxn_id
     !> Species id to get contribution for
@@ -386,4 +386,4 @@ contains
 #undef _AERO_REP_ID_
 #undef _DERIV_ID_
 #undef _JAC_ID_
-end module pmc_rxn_phase_transfer
+end module pmc_rxn_HL_phase_transfer

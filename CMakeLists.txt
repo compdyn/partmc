@@ -171,7 +171,7 @@ if (ENABLE_JSON AND ENABLE_SUNDIALS)
   add_test(test_rxn_CMAQ_H2O2 ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_CMAQ_H2O2.sh)
   add_test(test_rxn_CMAQ_OH_HNO3 ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_CMAQ_OH_HNO3.sh)
   add_test(test_rxn_PDFiTE_activity ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_PDFiTE_activity.sh)
-  add_test(test_rxn_phase_transfer ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_phase_transfer.sh)
+  add_test(test_rxn_HL_phase_transfer ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_HL_phase_transfer.sh)
   add_test(test_rxn_photolysis ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_photolysis.sh)
   add_test(test_rxn_troe ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_troe.sh)
   add_test(test_rxn_ZSR_aerosol_water ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_ZSR_aerosol_water.sh)
@@ -332,7 +332,7 @@ set(REACTIONS_F_SRC
 	src/rxns/rxn_arrhenius.F90
 	src/rxns/rxn_CMAQ_H2O2.F90
 	src/rxns/rxn_CMAQ_OH_HNO3.F90
-	src/rxns/rxn_phase_transfer.F90
+	src/rxns/rxn_HL_phase_transfer.F90
 	src/rxns/rxn_photolysis.F90
 	src/rxns/rxn_troe.F90
 	src/rxns/rxn_ZSR_aerosol_water.F90)
@@ -352,7 +352,7 @@ set(REACTIONS_SRC ${REACTIONS_F_SRC}
 	src/rxns/rxn_arrhenius.c
 	src/rxns/rxn_CMAQ_H2O2.c
 	src/rxns/rxn_CMAQ_OH_HNO3.c
-	src/rxns/rxn_phase_transfer.c
+	src/rxns/rxn_HL_phase_transfer.c
 	src/rxns/rxn_photolysis.c
 	src/rxns/rxn_troe.c
 	src/rxns/rxn_ZSR_aerosol_water.c)
@@ -517,8 +517,8 @@ add_executable(test_rxn_CMAQ_OH_HNO3 test/unit_rxn_data/test_rxn_CMAQ_OH_HNO3.F9
 target_link_libraries(test_rxn_CMAQ_OH_HNO3 partmclib)
 add_executable(test_rxn_PDFiTE_activity test/unit_rxn_data/test_rxn_PDFiTE_activity.F90)
 target_link_libraries(test_rxn_PDFiTE_activity partmclib)
-add_executable(test_rxn_phase_transfer test/unit_rxn_data/test_rxn_phase_transfer.F90)
-target_link_libraries(test_rxn_phase_transfer partmclib)
+add_executable(test_rxn_HL_phase_transfer test/unit_rxn_data/test_rxn_HL_phase_transfer.F90)
+target_link_libraries(test_rxn_HL_phase_transfer partmclib)
 add_executable(test_rxn_photolysis test/unit_rxn_data/test_rxn_photolysis.F90)
 target_link_libraries(test_rxn_photolysis partmclib)
 add_executable(test_rxn_troe test/unit_rxn_data/test_rxn_troe.F90)

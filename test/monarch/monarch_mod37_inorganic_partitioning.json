@@ -25,7 +25,7 @@
       "type" : "MECHANISM",
       "reactions" : [
         {
-         "type" : "PHASE_TRANSFER",
+         "type" : "HL_PHASE_TRANSFER",
          "gas-phase species" : "HNO3",
          "aerosol phase" : "aqueous sulfate",
           "aerosol-phase species" : "HNO3_aq",
@@ -34,7 +34,7 @@
           "C" : 8700.0
         },
         {
-          "type" : "PHASE_TRANSFER",
+          "type" : "HL_PHASE_TRANSFER",
           "gas-phase species" : "NH3",
           "aerosol phase" : "aqueous sulfate",
           "aerosol-phase species" : "NH3_aq",

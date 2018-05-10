@@ -58,11 +58,11 @@
     "name" : "my aero rep 3"
   },
   {
-    "name" : "phase transfer",
+    "name" : "Henry's Law phase transfer",
     "type" : "MECHANISM",
     "reactions" : [
       {
-	"type" : "PHASE_TRANSFER",
+	"type" : "HL_PHASE_TRANSFER",
 	"gas-phase species" : "O3",
 	"aerosol phase" : "aqueous aerosol",
 	"aerosol-phase species" : "O3_aq",
@@ -71,7 +71,7 @@
 	"C" : 2300.0
       },
       {
-	"type" : "PHASE_TRANSFER",
+	"type" : "HL_PHASE_TRANSFER",
 	"gas-phase species" : "H2O2",
 	"aerosol phase" : "aqueous aerosol",
 	"aerosol-phase species" : "H2O2_aq",

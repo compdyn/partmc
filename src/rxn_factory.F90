@@ -184,7 +184,7 @@ module pmc_rxn_factory
   use pmc_rxn_CMAQ_H2O2
   use pmc_rxn_CMAQ_OH_HNO3
   use pmc_rxn_photolysis
-  use pmc_rxn_phase_transfer
+  use pmc_rxn_HL_phase_transfer
   use pmc_rxn_ZSR_aerosol_water
 
   use iso_c_binding
@@ -201,7 +201,7 @@ module pmc_rxn_factory
   integer(kind=i_kind), parameter :: RXN_CMAQ_H2O2 = 3
   integer(kind=i_kind), parameter :: RXN_CMAQ_OH_HNO3 = 4
   integer(kind=i_kind), parameter :: RXN_PHOTOLYSIS = 5
-  integer(kind=i_kind), parameter :: RXN_PHASE_TRANSFER = 6
+  integer(kind=i_kind), parameter :: RXN_HL_PHASE_TRANSFER = 6
   integer(kind=i_kind), parameter :: RXN_AQUEOUS_EQUILIBRIUM = 7
   integer(kind=i_kind), parameter :: RXN_ZSR_AEROSOL_WATER = 8
   integer(kind=i_kind), parameter :: RXN_PDFITE_ACTIVITY = 9
@@ -254,8 +254,8 @@ contains
         new_obj => rxn_CMAQ_OH_HNO3_t()
       case ("PHOTOLYSIS")
         new_obj => rxn_photolysis_t()
-      case ("PHASE_TRANSFER")
-        new_obj => rxn_phase_transfer_t()
+      case ("HL_PHASE_TRANSFER")
+        new_obj => rxn_HL_phase_transfer_t()
       case ("AQUEOUS_EQUILIBRIUM")
         new_obj => rxn_aqueous_equilibrium_t()
       case ("ZSR_AEROSOL_WATER")
@@ -338,8 +338,8 @@ contains
         rxn_type = RXN_CMAQ_OH_HNO3
       type is (rxn_photolysis_t)
         rxn_type = RXN_PHOTOLYSIS
-      type is (rxn_phase_transfer_t)
-        rxn_type = RXN_PHASE_TRANSFER
+      type is (rxn_HL_phase_transfer_t)
+        rxn_type = RXN_HL_PHASE_TRANSFER
       type is (rxn_aqueous_equilibrium_t)
         rxn_type = RXN_AQUEOUS_EQUILIBRIUM
       type is (rxn_ZSR_aerosol_water_t)
@@ -398,8 +398,8 @@ contains
         rxn_type = RXN_CMAQ_OH_HNO3
       type is (rxn_photolysis_t)
         rxn_type = RXN_PHOTOLYSIS
-      type is (rxn_phase_transfer_t)
-        rxn_type = RXN_PHASE_TRANSFER
+      type is (rxn_HL_phase_transfer_t)
+        rxn_type = RXN_HL_PHASE_TRANSFER
       type is (rxn_aqueous_equilibrium_t)
         rxn_type = RXN_AQUEOUS_EQUILIBRIUM
       type is (rxn_ZSR_aerosol_water_t)
@@ -447,8 +447,8 @@ contains
         rxn => rxn_CMAQ_OH_HNO3_t()
       case (RXN_PHOTOLYSIS)
         rxn => rxn_photolysis_t()
-      case (RXN_PHASE_TRANSFER)
-        rxn => rxn_phase_transfer_t()
+      case (RXN_HL_PHASE_TRANSFER)
+        rxn => rxn_HL_phase_transfer_t()
       case (RXN_AQUEOUS_EQUILIBRIUM)
         rxn => rxn_aqueous_equilibrium_t()
       case (RXN_ZSR_AEROSOL_WATER)

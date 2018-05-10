@@ -3,10 +3,10 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_test_phase_transfer program
+!> The pmc_test_HL_phase_transfer program
 
-!> Test of phase_transfer reaction module
-program pmc_test_phase_transfer
+!> Test of HL_phase_transfer reaction module
+program pmc_test_HL_phase_transfer
 
   use iso_c_binding
 
@@ -30,10 +30,10 @@ program pmc_test_phase_transfer
   ! initialize mpi
   call pmc_mpi_init()
 
-  if (run_phase_transfer_tests()) then
-    write(*,*) "Phase transfer reaction tests - PASS"
+  if (run_HL_phase_transfer_tests()) then
+    write(*,*) "Henry's Law phase transfer reaction tests - PASS"
   else
-    write(*,*) "Phase transfer reaction tests - FAIL"
+    write(*,*) "Henry's Law phase transfer reaction tests - FAIL"
   end if
 
 contains
@@ -41,7 +41,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Run all pmc_chem_mech_solver tests
-  logical function run_phase_transfer_tests() result(passed)
+  logical function run_HL_phase_transfer_tests() result(passed)
 
     use pmc_phlex_solver_data
 
@@ -50,13 +50,13 @@ contains
     phlex_solver_data => phlex_solver_data_t()
 
     if (phlex_solver_data%is_solver_available()) then
-      passed = run_phase_transfer_test()
+      passed = run_HL_phase_transfer_test()
     else
       call warn_msg(713064651, "No solver available")
       passed = .true.
     end if
 
-  end function run_phase_transfer_tests
+  end function run_HL_phase_transfer_tests
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -67,7 +67,7 @@ contains
   !! (Ervens, B., et al., 2003. "CAPRAM 2.4 (MODAC mechanism) : An extended
   !! and condensed tropospheric aqueous phase mechanism and its
   !! application." J. Geophys. Res. 108, 4426. doi:10.1029/2002JD002202
-  logical function run_phase_transfer_test()
+  logical function run_HL_phase_transfer_test()
 
     use pmc_constants
 
@@ -91,7 +91,7 @@ contains
     real(kind=dp) :: temp, pressure 
     real(kind=dp), target :: radius, number_conc
 
-    run_phase_transfer_test = .true.
+    run_HL_phase_transfer_test = .true.
 
     ! Set the environmental and aerosol test conditions
     temp = 272.5d0              ! temperature (K)
@@ -106,8 +106,8 @@ contains
     ! Set output time step (s)
     time_step = 1.0d-13
 
-    ! Get the phase_transfer reaction mechanism json file
-    input_file_path = 'test_phase_transfer_config.json'
+    ! Get the HL_phase_transfer reaction mechanism json file
+    input_file_path = 'test_HL_phase_transfer_config.json'
 
     ! Construct a phlex_core variable
     phlex_core => phlex_core_t(input_file_path)
@@ -241,7 +241,7 @@ contains
     end do
 
     ! Save the results
-    open(unit=7, file="out/phase_transfer_results.txt", status="replace", action="write")
+    open(unit=7, file="out/HL_phase_transfer_results.txt", status="replace", action="write")
     do i_time = 0, NUM_TIME_STEP
       write(7,*) i_time*time_step, &
             ' ', true_conc(i_time, idx_O3),' ', model_conc(i_time, idx_O3), &
@@ -265,10 +265,10 @@ contains
       end do
     end do
 
-    run_phase_transfer_test = .true.
+    run_HL_phase_transfer_test = .true.
 
-  end function run_phase_transfer_test
+  end function run_HL_phase_transfer_test
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end program pmc_test_phase_transfer
+end program pmc_test_HL_phase_transfer

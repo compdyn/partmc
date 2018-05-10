@@ -14,7 +14,7 @@ while [ true ]
 do
   echo Attempt $counter
 
-if ! ../../test_rxn_phase_transfer; then 
+if ! ../../test_rxn_HL_phase_transfer; then 
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then

@@ -277,6 +277,63 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx, int aer
   }
   return aero_conc_type;
 }
+
+/** \brief Get the total mass of an aerosol phase in this representation
+ *
+ * Calculates total aerosol phase mass, m(ug/m^3), as well as the set of dm/dy
+ * where y are variables on the solver state array.
+ *
+ * \param model_data Pointer to the model data (state, env, aero_rep)
+ * \param aero_rep_idx Index of aerosol representation to use for calculation
+ * \param aero_phase_ids Index of the aerosol phase within the aerosol representation
+ * \param aero_phase_mass Pointer to hold calculated aerosol-phase mass (ug/m^3)
+ * \return A pointer to a set of partial derivatives dr/dy, or a NULL pointer if no
+ *         partial derivatives exist
+ */
+void * aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx, int aero_phase_idx,
+		double *aero_phase_mass)
+{
+
+  // Set up a pointer for the partial derivatives
+  void *partial_deriv = NULL;
+
+  // Get the number of aerosol representations
+  int *aero_rep_data = (int*) (model_data->aero_rep_data);
+  int n_aero_rep = *(aero_rep_data++);
+
+  // Loop through the aerosol representations to find the one requested
+  for (int i_aero_rep=0; i_aero_rep<aero_rep_idx; i_aero_rep++) {
+
+    // Get the aerosol representation type
+    int aero_rep_type = *(aero_rep_data++);
+
+    // Advance the pointer to the next aerosol representation
+    switch (aero_rep_type) {
+      case AERO_REP_MODAL_BINNED_MASS :
+	aero_rep_data = (int*) aero_rep_modal_binned_mass_skip((void*) aero_rep_data);
+        break;
+      case AERO_REP_SINGLE_PARTICLE :
+	aero_rep_data = (int*) aero_rep_single_particle_skip((void*) aero_rep_data);
+        break;
+    }
+  }
+
+  // Get the aerosol representation type
+  int aero_rep_type = *(aero_rep_data++);
+
+  // Get the particle number concentration
+  switch (aero_rep_type) {
+    case AERO_REP_MODAL_BINNED_MASS :
+      aero_rep_data = (int*) aero_rep_modal_binned_mass_get_aero_phase_mass( 
+		      aero_phase_idx, aero_phase_mass, partial_deriv, (void*) aero_rep_data);
+      break;
+    case AERO_REP_SINGLE_PARTICLE :
+      aero_rep_data = (int*) aero_rep_single_particle_get_aero_phase_mass( 
+		      aero_phase_idx, aero_phase_mass, partial_deriv, (void*) aero_rep_data);
+      break;
+  }
+  return partial_deriv;
+}
 #endif
 
 /** \brief Add condensed data to the condensed data block for aerosol representations

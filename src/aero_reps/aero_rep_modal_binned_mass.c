@@ -51,7 +51,12 @@
 
 // Real-time effective radius - only used for modes, b=0
 #define _EFFECTIVE_RADIUS_(x,b) (float_data[_MODE_FLOAT_PARAM_LOC_(x)+b*4+3])
-#define _DENSITY_(x,y,z) (float_data[_PHASE_FLOAT_PARAM_LOC_(x,y)+z])
+
+// Real-time phase mass (ug/m^3) - used for modes and bins - for modes, b=0
+#define _AERO_PHASE_MASS_(x,y,b) (float_data[_PHASE_FLOAT_PARAM_LOC_(x,y)+b])
+
+// Species density
+#define _DENSITY_(x,y,z) (float_data[_PHASE_FLOAT_PARAM_LOC_(x,y)+_NUM_BINS_(x)+z])
 
 // Update types (These must match values in aero_rep_modal_binned_mass.F90)
 #define UPDATE_GMD 0
@@ -106,7 +111,7 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data, void *aero
   // Loop through the modes and calculate effective radius and number concentration
   for (int i_section=0; i_section<_NUM_SECTION_; i_section++) {
 
-    realtype volume;
+    realtype volume, mass;
     switch (_SECTION_TYPE_(i_section)) {
       
       // Mode
@@ -114,10 +119,17 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data, void *aero
     
         // Sum the volumes of each species in the mode
         volume = 0.0;
-        for (int i_phase=0; i_phase<_NUM_PHASE_(i_section); i_phase++)
-          for (int i_spec=0; i_spec<_NUM_SPEC_(i_section, i_phase); i_spec++)
+        for (int i_phase=0; i_phase<_NUM_PHASE_(i_section); i_phase++) {
+          mass = 0.0;
+          for (int i_spec=0; i_spec<_NUM_SPEC_(i_section, i_phase); i_spec++){
             volume += _DENSITY_(i_section, i_phase, i_spec) * 
                     model_data->state[_SPEC_STATE_ID_(i_section, i_phase, 0, i_spec)];
+            mass += model_data->state[_SPEC_STATE_ID_(i_section, i_phase, 0, i_spec)];
+          }
+
+          // Set the aerosol-phase mass
+          _AERO_PHASE_MASS_(i_section, i_phase, 0) = mass;
+        }
  
         // Calculate effective radius
         _EFFECTIVE_RADIUS_(i_section,0) = exp(_GMD_(i_section,0) + 5.0/2.0*_GSD_(i_section,0));
@@ -136,11 +148,18 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data, void *aero
           
           // Sum the volumes of each species in the bin
           volume = 0.0;
-          for (int i_phase=0; i_phase<_NUM_PHASE_(i_section); i_phase++)
-            for (int i_spec=0; i_spec<_NUM_SPEC_(i_section, i_phase); i_spec++)
+          for (int i_phase=0; i_phase<_NUM_PHASE_(i_section); i_phase++) {
+            mass = 0.0;
+            for (int i_spec=0; i_spec<_NUM_SPEC_(i_section, i_phase); i_spec++) {
               volume += _DENSITY_(i_section, i_phase, i_spec) * 
                       model_data->state[_SPEC_STATE_ID_(i_section, i_phase, i_bin, i_spec)];
- 
+              mass += model_data->state[_SPEC_STATE_ID_(i_section, i_phase, 0, i_spec)];
+            }
+
+            // Set the aerosol-phase mass
+            _AERO_PHASE_MASS_(i_section, i_phase, i_bin) = mass;
+          }
+
           // Calculate the number concentration based on the total bin volume
           _NUMBER_CONC_(i_section, i_bin) = volume * 3.0 / (4.0*M_PI) *
                   pow(_BIN_Dp_(i_section, i_bin)/1.0, 3.0);
@@ -253,6 +272,36 @@ void * aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx, int *ae
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
   
+/** Get the total mass in an aerosol phase
+ *
+ * \param aero_phase_idx Index of the aerosol phase within the representation
+ * \param aero_phase_mass Total mass in the aerosol phase (ug/m^3)
+ * \param partial_deriv dn/dy where y are the species on the state array
+ * \param aero_rep_data Pointer to the aerosol representation data
+ * \return The aero_rep_data pointer advanced by the size of the aerosol representation
+ */
+void * aero_rep_modal_binned_mass_get_aero_phase_mass(int aero_phase_idx, double *aero_phase_mass,
+		double *partial_deriv, void *aero_rep_data)
+{
+  int *int_data = (int*) aero_rep_data;
+  realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
+
+  for (int i_section=0; i_section<_NUM_SECTION_; i_section++) {
+    for (int i_phase=0; i_phase<_NUM_PHASE_(i_section); i_section++) {
+      for (int i_bin=0; i_bin<_NUM_BINS_(i_section); i_bin++) {
+        if (aero_phase_idx==0) {
+          *aero_phase_mass = _AERO_PHASE_MASS_(i_section, i_phase, i_bin);
+          i_section = _NUM_SECTION_;
+          break;
+        }
+        aero_phase_idx-=1;
+      }
+    }
+  }
+
+  return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
+}
+
 /** Update the aerosol representation data
  *
  *  The modal mass aerosol representation has two update types:
@@ -346,6 +395,7 @@ void * aero_rep_modal_binned_mass_skip(void *aero_rep_data)
 #undef _GSD_
 #undef _NUMBER_CONC_
 #undef _EFFECTIVE_RADIUS_
+#undef _AERO_PHASE_MASS_
 #undef _DENSITY_
 
 #endif

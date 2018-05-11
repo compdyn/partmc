@@ -73,23 +73,24 @@ module pmc_rxn_SIMPOL_phase_transfer
 #define _del_S_ this%condensed_data_real(2)
 #define _Dg_ this%condensed_data_real(3)
 #define _pre_c_rms_ this%condensed_data_real(4)
-#define _A_ this%condensed_data_real(5)
-#define _C_ this%condensed_data_real(6)
-#define _c_rms_alpha_ this%condensed_data_real(7)
-#define _equil_const_ this%condensed_data_real(8)
-#define _CONV_ this%condensed_data_real(9)
-#define _MW_ this%condensed_data_real(10)
-#define _ug_m3_TO_ppm_ this%condensed_data_real(11)
+#define _B1_ this%condensed_data_real(5)
+#define _B2_ this%condensed_data_real(6)
+#define _B3_ this%condensed_data_real(7)
+#define _B4_ this%condensed_data_real(8)
+#define _c_rms_alpha_ this%condensed_data_real(9)
+#define _equil_const_ this%condensed_data_real(10)
+#define _CONV_ this%condensed_data_real(11)
+#define _MW_ this%condensed_data_real(12)
+#define _ug_m3_TO_ppm_ this%condensed_data_real(13)
 #define _NUM_AERO_PHASE_ this%condensed_data_int(1)
 #define _GAS_SPEC_ this%condensed_data_int(2)
 #define _NUM_INT_PROP_ 2
-#define _NUM_REAL_PROP_ 11
+#define _NUM_REAL_PROP_ 13
 #define _AERO_SPEC_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
-#define _AERO_WATER_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_AERO_PHASE_+x)
-#define _AERO_PHASE_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+2*_NUM_AERO_PHASE_+x)
-#define _AERO_REP_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+3*_NUM_AERO_PHASE_+x)
-#define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+4*_NUM_AERO_PHASE_+x)
-#define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+1+5*_NUM_AERO_PHASE_+x)
+#define _AERO_PHASE_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_AERO_PHASE_+x)
+#define _AERO_REP_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+2*_NUM_AERO_PHASE_+x)
+#define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+3*_NUM_AERO_PHASE_+x)
+#define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+1+4*_NUM_AERO_PHASE_+x)
 
   public :: rxn_SIMPOL_phase_transfer_t
 
@@ -141,44 +142,37 @@ contains
     !> Aerosol representations
     class(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
 
-    type(property_t), pointer :: spec_props
-    character(len=:), allocatable :: key_name, spec_name, water_name, phase_name, &
+    type(property_t), pointer :: spec_props, b_params
+    character(len=:), allocatable :: key_name, spec_name, phase_name, &
             string_val
     integer(kind=i_kind) :: i_spec, i_qty, i_aero_rep, i_aero_phase, n_aero_ids
     integer(kind=i_kind) :: i_aero_id
-    class(string_t), allocatable :: unique_spec_names(:), unique_water_names(:)
+    class(string_t), allocatable :: unique_spec_names(:)
     integer(kind=i_kind), allocatable :: aero_spec_ids(:)
-    integer(kind=i_kind), allocatable :: water_spec_ids(:)
 
     integer(kind=i_kind) :: temp_int
     real(kind=dp) :: temp_real, N_star
 
     ! Get the property set
-    if (.not. associated(this%property_set)) call die_msg(318525776, &
+    if (.not. associated(this%property_set)) call die_msg(382913491, &
             "Missing property set needed to initialize reaction")
 
     ! Get the aerosol phase name
     key_name = "aerosol phase"
-    call assert_msg(448087197, &
+    call assert_msg(325074932, &
             this%property_set%get_string(key_name, phase_name), &
             "Missing aerosol phase in phase-transfer reaction")
 
     ! Get the aerosol-phase species name
     key_name = "aerosol-phase species"
-    call assert_msg(797902545, &
+    call assert_msg(988456388, &
             this%property_set%get_string(key_name, spec_name), &
             "Missing aerosol-phase species in phase-transfer reaction")
 
-    ! Get the aerosol-phase water name
-    key_name = "aerosol-phase water"
-    call assert_msg(386889865, &
-            this%property_set%get_string(key_name, water_name), &
-            "Missing aerosol-phase water in phase-transfer reaction")
-
     ! Check for aerosol representations
-    call assert_msg(234155350, associated(aero_rep), &
+    call assert_msg(260518827, associated(aero_rep), &
             "Missing aerosol representation for phase transfer reaction")
-    call assert_msg(207961800, size(aero_rep).gt.0, &
+    call assert_msg(590304021, size(aero_rep).gt.0, &
             "Missing aerosol representation for phase transfer reaction")
     
     ! Count the instances of this phase/species pair
@@ -186,28 +180,19 @@ contains
     do i_aero_rep = 1, size(aero_rep)
 
       ! Get the unique names in this aerosol representation for the 
-      ! partitioning species and aerosol-phase water
+      ! partitioning species 
       unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
               phase_name = phase_name, spec_name = spec_name)
-      unique_water_names = aero_rep(i_aero_rep)%val%unique_names( &
-              phase_name = phase_name, spec_name = water_name)
 
       ! Skip aerosol representations that do not contain this phase
       if (.not.allocated(unique_spec_names)) cycle
 
-      ! Check the size of the unique name lists
-      call assert_msg(598091463, size(unique_spec_names).eq. &
-              size(unique_water_names), "Missing species "// &
-              spec_name//" or "//water_name//" in phase "//phase_name// &
-              " or improper implementation of aerosol phase in aerosol "// &
-              "representation")
- 
       ! Add these instances to the list     
       n_aero_ids = n_aero_ids + size(unique_spec_names)
     end do
 
     ! Allocate space in the condensed data arrays
-    allocate(this%condensed_data_int(_NUM_INT_PROP_ + 2 + n_aero_ids * 10))
+    allocate(this%condensed_data_int(_NUM_INT_PROP_ + 2 + n_aero_ids * 7))
     allocate(this%condensed_data_real(_NUM_REAL_PROP_))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
@@ -216,36 +201,28 @@ contains
     _NUM_AERO_PHASE_ = n_aero_ids
 
     ! Get the properties required of the aerosol species
-    call assert_msg(669162256, &
+    call assert_msg(162662115, &
             chem_spec_data%get_property_set(spec_name, spec_props), &
             "Missing properties required for phase-transfer of "// &
             "aerosol-phase species "//trim(spec_name))
 
     ! Get the aerosol species molecular weight
     key_name = "molecular weight"
-    call assert_msg(209812557, spec_props%get_real(key_name, _MW_), &
+    call assert_msg(839930958, spec_props%get_real(key_name, _MW_), &
             "Missing property 'MW' for aerosol species "//trim(spec_name)// &
             " required for phase-transfer reaction")
 
     ! Set the ug/m3 -> ppm conversion prefactor (multiply by T/P to get conversion)
     _CONV_ = const%univ_gas_const / _MW_
 
-    ! Get the aerosol-phase water species
-    key_name = "aerosol-phase water"
-    call assert_msg(374667967, &
-            this%property_set%get_string(key_name, water_name), &
-            "Missing aerosol-phase water in phase-transfer reaction")
-
     ! Set the ids of each aerosol-phase species instance
     i_aero_id = 1
     do i_aero_rep = 1, size(aero_rep)
         
       ! Get the unique names in this aerosol representation for the 
-      ! partitioning species and aerosol-phase water
+      ! partitioning species
       unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
               phase_name = phase_name, spec_name = spec_name)
-      unique_water_names = aero_rep(i_aero_rep)%val%unique_names( &
-              phase_name = phase_name, spec_name = water_name)
      
       ! Add the species concentration and activity coefficient ids to
       ! the condensed data 
@@ -253,9 +230,6 @@ contains
         _AERO_SPEC_(i_aero_id) = &
               aero_rep(i_aero_rep)%val%spec_state_id( &
               unique_spec_names(i_spec)%string)
-        _AERO_WATER_(i_aero_id) = &
-              aero_rep(i_aero_rep)%val%spec_state_id( &
-              unique_water_names(i_spec)%string)
         _AERO_PHASE_ID_(i_aero_id) = &
               aero_rep(i_aero_rep)%val%phase_id(phase_name)
         _AERO_REP_ID_(i_aero_id) = i_aero_rep
@@ -263,19 +237,36 @@ contains
       end do
     end do
 
-    ! Get reaction parameters 
-    key_name = "A"
-    if (.not. this%property_set%get_real(key_name, _A_)) then
-      _A_ = 1.0
-    end if
-    key_name = "C"
-    if (.not. this%property_set%get_real(key_name, _C_)) then
-      _C_ = 0.0
-    end if
+    ! Get the SIMPOL.1 parameters 
+    key_name = "B"
+    call assert_msg(882881186, &
+            this%property_set%get_property_t(key_name, b_params), &
+            "Missing 'B' parameters for SIMPOL.1 vapor pressure "// &
+            "calculation in phase transfer reaction of "//spec_name)
+    call assert_msg(654885723, b_params%size().eq.4, &
+            "Incorrect number of 'B' parameters for SIMPOL.1 vapor "// &
+            "pressure calculation in phase transfer reactions of "// &
+            spec_name)
+    call b_params%iter_reset()
+    call assert_msg(694024883, b_params%get_real(val = _B1_), &
+            "Got non-real 'B' parameter in phase transfer reaction of "// &
+            spec_name)
+    call b_params%iter_next()
+    call assert_msg(231316411, b_params%get_real(val = _B2_), &
+            "Got non-real 'B' parameter in phase transfer reaction of "// &
+            spec_name)
+    call b_params%iter_next()
+    call assert_msg(126167907, b_params%get_real(val = _B3_), &
+            "Got non-real 'B' parameter in phase transfer reaction of "// &
+            spec_name)
+    call b_params%iter_next()
+    call assert_msg(573535753, b_params%get_real(val = _B4_), &
+            "Got non-real 'B' parameter in phase transfer reaction of "// &
+            spec_name)
 
     ! Get the gas-phase species and find the required species properties and index
     key_name = "gas-phase species"
-    call assert_msg(847983010, &
+    call assert_msg(740333884, &
             this%property_set%get_string(key_name, spec_name), &
             "Missing gas-phase species in phase-transfer reaction")
 
@@ -283,11 +274,11 @@ contains
     _GAS_SPEC_ = chem_spec_data%gas_state_id(spec_name)
 
     ! Make sure the species exists
-    call assert_msg(751684145, _GAS_SPEC_.gt.0, &
+    call assert_msg(551477581, _GAS_SPEC_.gt.0, &
             "Missing phase-transfer gas-phase species: "//spec_name)
 
     ! Get the required properties for the gas-phase species
-    call assert_msg(757296139, &
+    call assert_msg(611221674, &
             chem_spec_data%get_property_set(spec_name, spec_props), &
             "Missing properties required for phase-transfer of "// &
             "gas-phase species "//trim(spec_name))
@@ -317,12 +308,12 @@ contains
 
     ! Get the diffusion coefficient (m^2/s)
     key_name = "diffusion coeff"
-    call assert_msg(100205531, spec_props%get_real(key_name, _Dg_), &
+    call assert_msg(948176709, spec_props%get_real(key_name, _Dg_), &
             "Missing diffusion coefficient for species "//spec_name)
     
     ! Calculate the constant portion of c_rms [m/(K^2*s)]
     key_name = "molecular weight"
-    call assert_msg(469582180, spec_props%get_real(key_name, temp_real), &
+    call assert_msg(272813400, spec_props%get_real(key_name, temp_real), &
             "Missing molecular weight for species "//spec_name)
     _pre_c_rms_ = sqrt(8.0*const%univ_gas_const/(const%pi*temp_real))
 
@@ -371,8 +362,10 @@ contains
 #undef _del_S_
 #undef _Dg_
 #undef _pre_c_rms_
-#undef _A_
-#undef _C_
+#undef _B1_
+#undef _B2_
+#undef _B3_
+#undef _B4_
 #undef _c_rms_alpha_
 #undef _equil_const_
 #undef _CONV_
@@ -383,7 +376,6 @@ contains
 #undef _NUM_INT_PROP_
 #undef _NUM_REAL_PROP_
 #undef _AERO_SPEC_
-#undef _AERO_WATER_
 #undef _AERO_PHASE_ID_
 #undef _AERO_REP_ID_
 #undef _DERIV_ID_

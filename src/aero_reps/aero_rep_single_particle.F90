@@ -42,10 +42,16 @@ module pmc_aero_rep_single_particle
   implicit none
   private
 
+#define _NUM_PHASE_ this%condensed_data_int(1)
+#define _TOTAL_INT_PARAM_ this%condensed_data_int(2)
 #define _RADIUS_ this%condensed_data_real(1)
 #define _NUMBER_CONC_ this%condensed_data_real(2)
-#define _NUM_INT_PROP_ 0
+#define _NUM_INT_PROP_ 2
 #define _NUM_REAL_PROP_ 2
+#define _PHASE_INT_PARAM_LOC_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
+#define _NUM_SPEC_(x) this%condensed_data_int(_PHASE_INT_PARAM_LOC_(x))
+#define _SPEC_STATE_ID_(x,y) this%condensed_data_int(_PHASE_INT_PARAM_LOC_(x)+x)
+#define _AERO_PHASE_MASS_(x) this%condensed_data_real(_NUM_FLOAT_PROP_+x)
   
   ! Update types (These must match values in aero_rep_single_particle.c)
   integer(kind=i_kind), parameter, public :: UPDATE_RADIUS = 0
@@ -149,32 +155,50 @@ contains
     type(property_t), pointer :: spec_props
     real(kind=dp) :: density
     character(len=:), allocatable :: key, spec_name
+    integer(kind=i_kind) :: num_int_param, num_float_param
+
+    ! Start off the counters
+    num_int_param = _NUM_INT_PROP_
+    num_float_param = _NUM_REAL_PROP_
 
     ! Assume all phases will be applied once to each particle
     allocate(this%aero_phase(size(aero_phase_set)))
     do i_phase = 1, size(aero_phase_set)
       allocate(this%aero_phase(i_phase)%val)
       this%aero_phase(i_phase)%val = aero_phase_set(i_phase)%val
-    end do
 
-    ! Get the total number of species across all phases
-    num_spec = 0
-    do i_phase = 1, size(this%aero_phase)
-      num_spec = num_spec + this%aero_phase(i_phase)%val%size()
+      ! Add space for phase parameter location, number of species and
+      ! species state ids
+      num_int_param = num_int_param + 2 + &
+              this%aero_phase(i_phase)%val%size()
+
+      ! Add space for aerosol phase mass
+      num_float_param = num_float_param + 1
     end do
 
     ! Allocate condensed data arrays
-    allocate(this%condensed_data_int(_NUM_INT_PROP_))
-    allocate(this%condensed_data_real(_NUM_REAL_PROP_))
+    allocate(this%condensed_data_int(num_int_param))
+    allocate(this%condensed_data_real(num_float_param))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
 
-    ! Set indexes
+    ! Set the number of int parameters
+    _TOTAL_INT_PARAM_ = num_int_param
+
+    ! Set phase parameter locations, size and ids
     allocate(this%phase_state_id(size(this%aero_phase)))
     curr_id = spec_state_id
+    num_int_param = _NUM_INT_PROP_ + 1
     do i_phase = 1, size(this%aero_phase)
+      _PHASE_INT_PARAM_LOC_(i_phase) = num_int_param
+      _NUM_SPEC_(i_phase) = this%aero_phase(i_phase)%val%size()
       this%phase_state_id(i_phase) = curr_id
-      curr_id = curr_id + this%aero_phase(i_phase)%val%size()
+      curr_id = curr_id + _NUM_SPEC_(i_phase)
+      do i_spec = 1, _NUM_SPEC_(i_phase)
+        _SPEC_STATE_ID_(i_phase, i_spec) = &
+                this%phase_state_id(i_phase) + i_spec - 1
+      end do
+      num_int_param = num_int_param + 1 + _NUM_SPEC_(i_phase)
     end do
 
   end subroutine initialize
@@ -379,9 +403,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+#undef _NUM_PHASE_
+#undef _TOTAL_INT_PARAM_
 #undef _RADIUS_
 #undef _NUMBER_CONC_
 #undef _NUM_INT_PROP_
 #undef _NUM_REAL_PROP_
+#undef _PHASE_INT_PARAM_LOC_
+#undef _NUM_SPEC_
+#undef _SPEC_STATE_ID_
+#undef _AERO_PHASE_MASS_
 
 end module pmc_aero_rep_single_particle

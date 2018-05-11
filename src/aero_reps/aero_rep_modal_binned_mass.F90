@@ -111,7 +111,11 @@ module pmc_aero_rep_modal_binned_mass
 ! Real-time effective radius - only used for modesi, b=1
 #define _EFFECTIVE_RADIUS_(x,b) this%condensed_data_real(_MODE_REAL_PARAM_LOC_(x)+(b-1)*4+3)
 
-#define _DENSITY_(x,y,z) this%condensed_data_real(_PHASE_REAL_PARAM_LOC_(x,y)-1+z)
+! Real-time aerosol phase mass - used for modes and bins - for modes, b=1
+#define _AERO_PHASE_MASS_(x,y,b) this%condensed_data_real(_PHASE_REAL_PARAM_LOC_(x,y)-1+b)
+
+! Species density
+#define _DENSITY_(x,y,z) this%condensed_data_real(_PHASE_REAL_PARAM_LOC_(x,y)-1+_NUM_BINS_(x)+z)
 
   ! Update types (These must match values in aero_rep_modal_binned_mass.c)
   integer(kind=i_kind), parameter, public :: UPDATE_GMD = 0
@@ -328,8 +332,9 @@ contains
             n_int_param = n_int_param + &
                     aero_phase_set(j_phase)%val%size() * num_bin
 
-            ! Add space for each species density
-            n_float_param = n_float_param + aero_phase_set(j_phase)%val%size()
+            ! Add space for total aerosol phase mass and each species density
+            n_float_param = n_float_param + num_bin + &
+                    aero_phase_set(j_phase)%val%size()
 
             exit
           else if (j_phase.eq.size(aero_phase_set)) then
@@ -556,8 +561,9 @@ contains
               i_phase = i_phase + 1
             end do
 
-            ! Add space for species densities
-            n_float_param = n_float_param + aero_phase_set(k_phase)%val%size()
+            ! Add space for aerosol phase mass and species densities
+            n_float_param = n_float_param + _NUM_BINS_(i_section) + &
+                    aero_phase_set(k_phase)%val%size()
 
             exit
           else if (k_phase.eq.size(aero_phase_set)) then
@@ -847,6 +853,7 @@ contains
 #undef _GSD_
 #undef _NUMBER_CONC_
 #undef _EFFECTIVE_RADUIS_
+#undef _AERO_PHASE_MASS_
 #undef _DENSITY_
 
 end module pmc_aero_rep_modal_binned_mass

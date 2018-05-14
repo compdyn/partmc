@@ -36,11 +36,15 @@
  * \param n_aero_rep Number of aerosol representations
  * \param n_aero_rep_int_param Total number of integer aerosol representation parameters
  * \param n_aero_rep_float_param Total number of floating-point aerosol representation parameters
+ * \param n_sub_model Number of sub models
+ * \param n_sub_model_int_param Total number of integer sub model parameters
+ * \param n_sub_model_float_param Total number of floating-point sub model parameters
  * \return Pointer to the new SolverData object
  */
 void * solver_new(int n_state_var, int *var_type, int n_rxn, int n_rxn_int_param, 
 		int n_rxn_float_param, int n_aero_rep, int n_aero_rep_int_param,
-		int n_aero_rep_float_param)
+		int n_aero_rep_float_param, int n_sub_model, int n_sub_model_int_param,
+                int n_sub_model_float_param)
 {
 #ifdef PMC_USE_SUNDIALS
   // Create the SolverData object
@@ -99,6 +103,20 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn, int n_rxn_int_param
   ptr = sd->model_data.aero_rep_data;
   ptr[0] = n_aero_rep;
   sd->model_data.nxt_aero_rep = (void*) &(ptr[1]);
+
+  // Allocate space for the sub model data and set the number of sub models
+  // (including one int for the number of sub models and one int per sub
+  // model to store the sub model type)
+  sd->model_data.sub_model_data = (void*) malloc(
+                  (n_sub_model_int_param + 1 + n_sub_model) * sizeof(int)
+                  + n_sub_model_float_param * sizeof(realtype));
+  if (sd->model_data.sub_model_data==NULL) {
+    printf("\n\nERROR allocating space for sub model data\n\n");
+    exit(1);
+  }
+  ptr = sd->model_data.sub_model_data;
+  ptr[0] = n_sub_model;
+  sd->model_data.nxt_sub_model = (void*) &(ptr[1]);
 
   // Return a pointer to the new SolverData object
   return (void*) sd;
@@ -216,6 +234,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // (This is set up to assume the environmental variables do not change during
   //  solving. This can be changed in the future if necessary.)
   aero_rep_update_env_state(&(sd->model_data), env);
+  sub_model_update_env_state(&(sd->model_data), env);
   rxn_update_env_state(&(sd->model_data), env);
 
   // Reinitialize the solver
@@ -235,6 +254,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) state[i_spec] = (double) NV_Ith_S(sd->y,i_dep_var++);
 
   // Re-run the pre-derivative calculations to update equilibrium species
+  sub_model_calculate(&(sd->model_data));
   rxn_pre_calc(&(sd->model_data));
 
   //solver_print_stats(sd->cvode_mem);
@@ -275,6 +295,9 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   // Update the aerosol representations
   aero_rep_update_state(md);
 
+  // Run the sub models
+  sub_model_calculate(md);
+
   // Run pre-derivative calculations
   rxn_pre_calc(md);
 
@@ -307,12 +330,6 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   ModelData *md = &(sd->model_data);
   realtype time_step;
 
-  // Update the aerosol representations
-  aero_rep_update_state(md);
-
-  // Run pre-derivative calculations
-  rxn_pre_calc(md);
-
   // Update the state array with the current dependent variable values
   for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
     if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
@@ -343,6 +360,12 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   for (int i=0; i<=SM_NP_S(J); i++) {
     (SM_INDEXPTRS_S(J))[i] = (SM_INDEXPTRS_S(md->J_init))[i];
   } 
+
+  // Update the aerosol representations
+  aero_rep_update_state(md);
+
+  // Run the sub models
+  sub_model_calculate(md);
 
   // Run pre-Jacobian calculations
   rxn_pre_calc(md);

@@ -376,6 +376,21 @@ set_source_files_properties(${AEROSOL_REPS_F_SRC} PROPERTIES COMPILE_FLAGS
         src/aero_reps/aero_rep_modal_binned_mass.c
         src/aero_reps/aero_rep_single_particle.c)	
 
+      set(SUB_MODELS_F_SRC
+        src/sub_models/sub_model_UNIFAC.F90)
+
+if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
+        set(SUB_MODELS_F_FLAGS "-extend_source -warn truncated_source")
+elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
+        set(SUB_MODELS_F_FLAGS "-ffree-line-length-none")
+endif()
+
+set_source_files_properties(${SUB_MODELS_F_SRC} PROPERTIES COMPILE_FLAGS
+        ${SUB_MODELS_F_FLAGS})
+
+      set(SUB_MODELS_SRC ${SUB_MODELS_F_SRC}
+        src/sub_models/sub_model_UNIFAC.c)	
+
 add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/integer_rmap.F90 src/integer_rmap2.F90 src/aero_sorted.F90
   src/aero_binned.F90 src/bin_grid.F90 src/constants.F90
@@ -397,8 +412,10 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/phlex_core.F90 src/phlex_solver_data.F90 src/aero_rep_data.F90
   src/aero_phase_data.F90 src/aero_rep_factory.F90 
   src/phlex_interface.F90 src/rxn_factory.F90 src/rxn_solver.c
-  src/aero_rep_solver.c src/phlex_solver.c
+  src/aero_rep_solver.c src/phlex_solver.c src/sub_model_data.F90
+  src/sub_model_factory.F90 src/sub_model_solver.c
   ${AEROSOL_REPS_SRC}
+  ${SUB_MODELS_SRC}
   ${REACTIONS_SRC}
   ${SUNDIALS_SRC} ${GSL_SRC}
   ${C_SORT_SRC})

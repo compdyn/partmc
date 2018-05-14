@@ -185,6 +185,7 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data, void *aero
  * ]\f$
  *
  * FIXME Check and add reference
+ * FIXME Add derivative calculation
  *
  * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param radius Effective particle radius (m)
@@ -225,6 +226,7 @@ void * aero_rep_modal_binned_mass_get_effective_radius(int aero_phase_idx, doubl
  * \f$i\f$ in the specified mode.
  *
  * FIXME Check and add reference
+ * FIXME Add derivative calculation
  *
  * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param number_conc Particle number concentration (#/cm^3)
@@ -273,6 +275,8 @@ void * aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx, int *ae
 }
   
 /** Get the total mass in an aerosol phase
+ *
+ * FIXME Add derivative calculation
  *
  * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param aero_phase_mass Total mass in the aerosol phase (ug/m^3)

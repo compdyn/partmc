@@ -27,7 +27,7 @@
 !! chemistry for each single particle in the \c pmc_aero_particle_array::aero_particle_array_t variable
 !! sequentially.
 
-!> The abstract aero_rep_single_particle_t structure and associated subroutines.
+!> The aero_rep_single_particle_t type and associated subroutines.
 module pmc_aero_rep_single_particle
 
   use pmc_util,                                  only: dp, i_kind, &

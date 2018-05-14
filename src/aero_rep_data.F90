@@ -437,8 +437,11 @@ contains
   !!     "some parameter" : 123.34,
   !!     "some other parameter" : true,
   !!     "nested parameters" : {
-  !!        "sub param 1" : 12.43,
-  !!        "sub param other" : "some text"
+  !!       "sub param 1" : 12.43,
+  !!       "sub param other" : "some text",
+  !!       ...
+  !!     },
+  !!     ...
   !!   },
   !!   ...
   !! ]}
@@ -465,7 +468,7 @@ contains
     !> JSON object
     type(json_value), pointer, intent(in) :: j_obj
 
-    type(json_value), pointer :: child, next, species
+    type(json_value), pointer :: child, next
     character(kind=json_ck, len=:), allocatable :: key, unicode_str_val
     integer(kind=json_ik) :: var_type
     logical :: found_name

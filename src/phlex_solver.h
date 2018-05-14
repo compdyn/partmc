@@ -46,6 +46,9 @@ typedef struct {
   void *aero_rep_data;	// Pointer to aerosol representation parameters
   void *nxt_aero_rep;	// Pointer to element of aero_rep_data in which to store
   			// the next set of reaction data
+  void *sub_model_data; // Pointer to the sub model parameters
+  void *nxt_sub_model;  // Pointer to the element of sub_model_data in which to
+                        // store the next set of sub model data
 } ModelData;
 
 /* Solver data structure */
@@ -60,7 +63,8 @@ typedef struct {
 /* Functions called by phlex-chem */
 void * solver_new(int n_state_var, int *var_type, int n_rxn, int n_rxn_int_param, 
 		int n_rxn_float_param, int n_aero_rep, int n_aero_rep_int_param,
-		int n_aero_rep_float_param);
+		int n_aero_rep_float_param, int n_sub_model, int n_sub_model_int_param,
+                int n_sub_model_float_param);
 void solver_initialize(void *solver_data, double *abs_tol, double rel_tol, int max_steps, 
 		int max_conv_fails); 
 int solver_run(void *solver_data, double *state, double *env, double t_initial,
@@ -108,6 +112,12 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx, int aer
 void * aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx, int aero_phase_idx, 
 		double *aero_phase_mass);
 void aero_rep_print_data(void *solver_data);
+
+/* Sub model solver functions */
+void sub_model_update_env_state(ModelData *model_data, double *env);
+void sub_model_calculate(ModelData *model_data);
+void sub_model_print(ModelData *model_data);
+
 #endif
 
 #endif

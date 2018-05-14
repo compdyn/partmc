@@ -181,7 +181,7 @@
 !! \endcode
 !!
 
-!> The abstract aero_rep_factory_t structure and associated subroutines.
+!> The aero_rep_factory_t type and associated subroutines.
 module pmc_aero_rep_factory
 
   use pmc_constants,                  only : i_kind, dp

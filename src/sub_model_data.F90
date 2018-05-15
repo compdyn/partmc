@@ -77,6 +77,8 @@ module pmc_sub_model_data
     !! the input files have been read in. It ensures all data required
     !! during the model run are included in the condensed data arrays.
     procedure(initialize), deferred :: initialize
+    !> Get the name of the sub model
+    procedure :: name => get_name
     !> Determine the number of bytes required to pack the sub-model data
     procedure :: pack_size
     !> Packs the sub model into the buffer, advancing position
@@ -124,6 +126,20 @@ interface
 end interface
 
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the name of the sub model
+  function get_name(this)
+
+    !> Sub model name
+    character(len=:), allocatable :: get_name
+    !> Sub model data
+    class(sub_model_data_t), intent(in) :: this
+
+    get_name = this%model_name
+
+  end function get_name
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

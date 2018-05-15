@@ -1,0 +1,104 @@
+{
+  "notes" : [
+    "Example is for a n-butanol water mixture, from:",
+    "Marcolli and Peter, ACP 5(2), 1501-1527, 2005. (fig 3a)"
+  ],
+  "pmc-data" : [
+  {
+    "type" : "RELATIVE_TOLERANCE",
+    "value" : 1.0e-30
+  },
+  {
+    "name" : "n-butanol",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "molecular weight" : 74.12,
+    "UNIFAC groups" : {
+      "OH" : 1,
+      "CH2(-OH)" : 1,
+      "CH2(hydrophobic tail)" : 2,
+      "CH3(hydrophobic tail)" : 1
+    }
+  },
+  {
+    "name" : "water",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "molecular weight" : 18.01,
+    "UNIFAC groups" : {
+      "H2O" : 1
+    }
+  },
+  {
+    "name" : "n-butanol/water mixture",
+    "type" : "AERO_PHASE",
+    "species" : [ "n-butanol", "water" ]
+  },
+  {
+    "name" : "my aero rep",
+    "type" : "AERO_REP_SINGLE_PARTICLE"
+  },
+  {
+    "name" : "my second aero rep",
+    "type" : "AERO_REP_SINGLE_PARTICLE"
+  },
+  {
+    "name" : "my last aero rep",
+    "type" : "AERO_REP_SINGLE_PARTICLE"
+  },
+  {
+    "name" : "n-butanol/water activity",
+    "type" : "SUB_MODEL_UNIFAC",
+    "phases" : [ "n-butanol/water mixture" ],
+    "functional groups" : {
+      "CH2(-OH)" : {
+        "main group" : "CHn(-OH)",
+        "volume param" : 0.6744,
+        "surface param" : 0.540
+      },
+      "CH2(hydrophobic tail)" : {
+        "main group" : "CHn(hydrophobic tail)",
+        "volume param" : 0.6744,
+        "surface param" : 0.540
+      },
+      "CH3(hydrophobic tail)" : {
+        "main group" : "CHn(hydrophobic tail)",
+        "volume param" : 0.9011,
+        "surface param" : 0.848
+      },
+      "H2O" : {
+        "main group" : "H2O",
+        "volume param" : 0.9200,
+        "surface param" : 1.400
+      }
+    },
+    "main groups" : {
+      "CHn(-OH)" : {
+        "interactions with" : {
+          "OH" : 986.5,
+          "H2O" : 2314
+        }
+      },
+      "CHn(hydrophobic tails)" : {
+        "interactions with" : {
+          "OH" : 986.5,
+          "H2O" : 1325
+        }
+      },
+      "OH" : {
+        "interactions with" : {
+          "CHn(-OH)" : 156.4,
+          "CHn(hydrophobic tails)" : 156.4,
+          "H2O" : 276.4
+        }
+      },
+      "H2O" : {
+        "interactions with" : {
+          "CHn(-OH)" : -89.71,
+          "CHn(hydrophobic tails)" : 362.1,
+          "OH" : -153.0
+        }
+      }
+    }
+  }
+]}

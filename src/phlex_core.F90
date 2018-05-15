@@ -78,6 +78,8 @@ module pmc_phlex_core
   use pmc_mechanism_data
   use pmc_rxn_data
   use pmc_phlex_solver_data
+  use pmc_sub_model_data
+  use pmc_sub_model_factory
   use pmc_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_aero_phase_data
@@ -95,6 +97,8 @@ module pmc_phlex_core
     type(mechanism_data_t), pointer :: mechanism(:)
     !> Chemical species data
     type(chem_spec_data_t), pointer :: chem_spec_data
+    !> Sub models
+    type(sub_model_data_ptr), pointer :: sub_model(:)
     !> Aerosol representations
     type(aero_rep_data_ptr), pointer :: aero_rep(:)
     !> Aerosol phases
@@ -123,6 +127,14 @@ module pmc_phlex_core
     procedure :: find_mechanism
     !> Add a mechanism to the model
     procedure :: add_mechanism
+    !> Find a sub model index by name
+    procedure :: find_sub_model_id_by_name
+    !> Find a sub model by name
+    procedure :: find_sub_model_by_name
+    !> Find a sub model or it's id
+    generic :: find_sub_model => find_sub_model_id_by_name, find_sub_model_by_name
+    !> Add a sub model to the model
+    procedure :: add_sub_model
     !> Find an aerosol representation index by name
     procedure :: find_aero_rep_id_by_name
     !> Find an aerosol representation by name
@@ -179,6 +191,7 @@ contains
     new_obj%chem_spec_data => chem_spec_data_t()
     allocate(new_obj%aero_phase(0))
     allocate(new_obj%aero_rep(0))
+    allocate(new_obj%sub_model(0))
 
     if (present(input_file_path)) then
       call new_obj%load_files(input_file_path)
@@ -333,14 +346,18 @@ contains
     real(kind=json_rk) :: real_val
     logical :: file_exists
 
-    type(aero_phase_data_ptr), pointer :: new_aero_phase(:)
+    type(sub_model_data_ptr), pointer :: new_sub_model(:)
+    type(sub_model_factory_t) :: sub_model_factory
+    type(sub_model_data_ptr) :: sub_model_ptr
+
     type(aero_rep_data_ptr), pointer :: new_aero_rep(:)
     type(aero_rep_factory_t) :: aero_rep_factory
-
-    type(aero_phase_data_t), pointer :: aero_phase
     type(aero_rep_data_ptr) :: aero_rep_ptr
 
-    integer(kind=i_kind) :: i_rep, i_phase
+    type(aero_phase_data_ptr), pointer :: new_aero_phase(:)
+    type(aero_phase_data_t), pointer :: aero_phase
+
+    integer(kind=i_kind) :: i_sub_model, i_rep, i_phase
     logical :: found
 
     j_obj => null()
@@ -402,6 +419,19 @@ contains
             deallocate(this%aero_phase)
             this%aero_phase => new_aero_phase
           end if
+        else if (str_val(1:9).eq.'SUB_MODEL') then
+          sub_model_ptr%val => sub_model_factory%load(json, j_obj)
+          str_val = sub_model_ptr%val%name()
+          if (this%find_sub_model(str_val, i_sub_model)) then
+            deallocate(sub_model_ptr%val)
+            call this%sub_model(i_sub_model)%val%load(json, j_obj)
+          else
+            allocate(new_sub_model(size(this%sub_model)+1))
+            new_sub_model(1:size(this%sub_model)) = this%sub_model(1:size(this%sub_model))
+            new_sub_model(size(new_sub_model))%val => sub_model_ptr%val
+            deallocate(this%sub_model)
+            this%sub_model => new_sub_model
+          end if
         ! TODO move to phlex_solver_data_t function
         else if (str_val.eq.'RELATIVE_TOLERANCE') then
           call json%get(j_obj, 'value', real_val, found)
@@ -437,7 +467,8 @@ contains
     class(phlex_core_t), target, intent(inout) :: this
 
     ! Indices for iteration
-    integer(kind=i_kind) :: i_mech, i_phase, i_aero_rep, i_state_var, i_spec
+    integer(kind=i_kind) :: i_mech, i_phase, i_aero_rep, i_sub_model
+    integer(kind=i_kind) :: i_state_var, i_spec
    
     ! Species name for looking up properties
     character(len=:), allocatable :: spec_name
@@ -460,6 +491,13 @@ contains
       call this%aero_rep(i_aero_rep)%val%initialize(this%aero_phase, &
               i_state_var, this%chem_spec_data)
       i_state_var = i_state_var + this%aero_rep(i_aero_rep)%val%size()
+    end do
+
+    ! Initialize the sub models
+    do i_sub_model = 1, size(this%sub_model)
+      call assert(565644925, associated(this%sub_model(i_sub_model)%val))
+      call this%sub_model(i_sub_model)%val%initialize(this%aero_rep, &
+                this%chem_spec_data)
     end do
 
     ! Set the size of the state array
@@ -520,6 +558,80 @@ contains
     this%mechanism => new_mechanism
 
   end subroutine add_mechanism
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Find an sub model id by name in the model data
+  logical function find_sub_model_id_by_name(this, sub_model_name, &
+                  sub_model_id) result(found)
+
+    !> Model data
+    class(phlex_core_t), intent(in) :: this
+    !> Sub model name to search for
+    character(len=:), allocatable, intent(in) :: sub_model_name
+    !> Index of the sub model in the array
+    integer(kind=i_kind), intent(out) :: sub_model_id
+
+    found = .false.
+    sub_model_id = 0
+    if (size(this%sub_model).eq.0) return
+
+    do sub_model_id = 1, size(this%sub_model)
+      if (this%sub_model(sub_model_id)%val%name().eq.sub_model_name) then
+        found = .true.
+        return
+      end if
+    end do
+    sub_model_id = 0
+
+  end function find_sub_model_id_by_name
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Find an sub model by name in the model data
+  logical function find_sub_model_by_name(this, sub_model_name, sub_model) &
+                  result(found)
+
+    !> Model data
+    class(phlex_core_t), intent(in) :: this
+    !> Sub model name to search for
+    character(len=:), allocatable, intent(in) :: sub_model_name
+    !> Sub model
+    class(sub_model_data_t), pointer, intent(out) :: sub_model
+
+    integer(kind=i_kind) :: sub_model_id
+
+    sub_model => null()
+    found = this%find_sub_model_id_by_name(sub_model_name, sub_model_id)
+    if (.not.found) return
+    
+    sub_model => this%sub_model(sub_model_id)%val
+
+  end function find_sub_model_by_name
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Add a sub model to the model data
+  subroutine add_sub_model(this, sub_model_name)
+
+    !> Model data
+    class(phlex_core_t), intent(inout) :: this
+    !> Sub model name
+    character(len=:), allocatable, intent(in) :: sub_model_name
+
+    type(sub_model_data_ptr), pointer :: new_sub_model(:)
+    type(sub_model_factory_t) :: sub_model_factory
+
+    allocate(new_sub_model(size(this%sub_model)+1))
+
+    new_sub_model(1:size(this%sub_model)) = &
+            this%sub_model(1:size(this%sub_model))
+    new_sub_model(size(new_sub_model))%val => sub_model_factory%create(sub_model_name)
+
+    deallocate(this%sub_model)
+    this%sub_model => new_sub_model
+
+  end subroutine add_sub_model
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -691,7 +803,7 @@ contains
     class(phlex_core_t), intent(inout) :: this
  
     ! Indices for loops
-    integer(kind=i_kind) :: i_state_var, i_aero_rep, i_spec
+    integer(kind=i_kind) :: i_state_var, i_aero_rep, i_spec, i_sub_model
     ! Absolute integration tolerances
     ! (Values for non-solver species will be ignored)
     real(kind=dp), allocatable :: abs_tol(:)
@@ -925,16 +1037,23 @@ contains
     class(phlex_core_t), intent(in) :: this
     
     type(aero_rep_factory_t) :: aero_rep_factory
-    integer(kind=i_kind) :: i_mech, i_rep
+    type(sub_model_factory_t) :: sub_model_factory
+    integer(kind=i_kind) :: i_mech, i_rep, i_sub_model
 
     pack_size =  pmc_mpi_pack_size_integer(size(this%mechanism)) + &
-                 pmc_mpi_pack_size_integer(size(this%aero_rep))
+                 pmc_mpi_pack_size_integer(size(this%aero_rep)) + &
+                 pmc_mpi_pack_size_integer(size(this%sub_model))
     do i_mech = 1, size(this%mechanism)
       pack_size = pack_size + this%mechanism(i_mech)%pack_size()
     end do
     do i_rep = 1, size(this%aero_rep)
       associate (aero_rep => this%aero_rep(i_rep)%val)
       pack_size = pack_size + aero_rep_factory%pack_size(aero_rep)
+      end associate
+    end do
+    do i_sub_model = 1, size(this%sub_model)
+      associate (sub_model => this%sub_model(i_sub_model)%val)
+      pack_size = pacK_size + sub_model_factory%pack_size(sub_model)
       end associate
     end do
     pack_size = pack_size + &
@@ -957,17 +1076,24 @@ contains
 
 #ifdef PMC_USE_MPI
     type(aero_rep_factory_t) :: aero_rep_factory
-    integer :: i_mech, i_rep, prev_position
+    type(sub_model_factory_t) :: sub_model_factory
+    integer(kind=i_kind) :: i_mech, i_rep, i_sub_model, prev_position
 
     prev_position = pos
     call pmc_mpi_pack_integer(buffer, pos, size(this%mechanism))
     call pmc_mpi_pack_integer(buffer, pos, size(this%aero_rep))
+    call pmc_mpi_pack_integer(buffer, pos, size(this%sub_model))
     do i_mech = 1, size(this%mechanism)
       call this%mechanism(i_mech)%bin_pack(buffer, pos)
     end do
     do i_rep = 1, size(this%aero_rep)
       associate (aero_rep => this%aero_rep(i_rep)%val)
       call aero_rep_factory%bin_pack(aero_rep, buffer, pos)
+      end associate
+    end do
+    do i_sub_model = 1, size(this%sub_model)
+      associate (sub_model => this%sub_model(i_sub_model)%val)
+      call sub_model_factory%bin_pack(sub_model, buffer, pos)
       end associate
     end do
     call pmc_mpi_pack_integer(this%state_array_size, buffer, pos)
@@ -992,18 +1118,26 @@ contains
 
 #ifdef PMC_USE_MPI
     type(aero_rep_factory_t) :: aero_rep_factory
-    integer :: i_mech, i_rep, prev_position, num_mech, num_rep
+    type(sub_model_factory_t) :: sub_model_factory
+    integer(kind=i_kind) :: i_mech, i_rep, i_sub_model, prev_position
+    integer(kind=i_kind) :: num_mech, num_rep, num_sub_model
 
     prev_position = pos
     call pmc_mpi_unpack_integer(buffer, pos, num_mech)
     call pmc_mpi_unpack_integer(buffer, pos, num_rep)
+    call pmc_mpi_unpack_integer(buffer, pos, num_sub_model)
     allocate(this%mechanism(num_mech))
     allocate(this%aero_rep(num_rep))
+    allocate(this%sub_model(num_sub_model))
     do i_mech = 1, num_mech
       call this%mechanism(i_mech)%bin_unpack(buffer, pos)
     end do
     do i_rep = 1, num_rep
       this%aero_rep(i_rep)%val => aero_rep_factory%bin_unpack(buffer, pos)
+    end do
+    do i_sub_model = 1, num_sub_model
+      this%sub_model(i_sub_model)%val => &
+              sub_model_factory%bin_unpack(buffer, pos)
     end do
     call pmc_mpi_unpack_integer(this%state_array_size, buffer, pos)
     call pmc_mpi_unpack_logical(this%split_gas_aero, buffer, pos)

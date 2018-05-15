@@ -15,12 +15,100 @@
 !!  { "pmc-data" : [
 !!    {
 !!      "type" : "SUB_MODEL_UNIFAC",
-!!      TODO finish
+!!      "phases" : [
+!!        "some phase",
+!!        "some other phase"
+!!      ],
+!!      "functional groups" : {
+!!        "CH3" : {
+!!          "main group" : "CH2",
+!!          "volume param" : 0.9011,
+!!          "surface param" : 0.8480
+!!        },
+!!        "CH2" : {
+!!          "main group" : "CH2",
+!!          "volume param" : 0.6744,
+!!          "surface param" : 0.5400
+!!        },
+!!        "CH=CH" : {
+!!          "main group" : "C=C",
+!!          "volume param" : 1.1167,
+!!          "suface param" : 0.8670
+!!        }
+!!      },
+!!      "main groups" : {
+!!        "CH2" : {
+!!          "interactions with" : {
+!!            "C=C" : -35.36
+!!          }
+!!        },
+!!        "C=C" : {
+!!          "interactions with" : {
+!!            "CH2" : 86.02
+!!          }
+!!        }
+!!      }
 !!    },
 !!    ...
 !!  ]}
 !! \endcode
 !! The key-value pair \b type is required and must be \b SUB_MODEL_UNIFAC.
+!! The key-value pair \b phases is also required, and its value must be an
+!! array of strings that correspond to valid 
+!! \ref phlex_aero_phase "aerosol phases". The key-value pair \b "functional
+!! groups" is also required, and must contain a set of key-value pairs whose
+!! keys are the names of UNIFAC functions groups, and whose values are a set
+!! of key value pairs that contain, at minimum:
+!!   - \b "main group" : a string that corresponds to a key in the \b
+!!                       "main groups" set.
+!!   - \b "volume param" : the floating-point volume parameter for this 
+!!                         functional group.
+!!   - \b "surface param" : this floating-point surface parameter for this
+!!                          functional group.
+!! The last required key-value pair is \b "main groups" whose value must
+!! be a set of key-value pairs whose keys are the names of the UNIFAC main
+!! groups and whose values are a set key-pairs that contain, at minimum,
+!! \b "interaction with" whose value is a set of key-value pairs whose keys
+!! are the names of the other \b "main groups" and whose values are the
+!! floating-point interation parameters for that interaction. Each main group
+!! may contain up to one interaction with each other main group, and may
+!! not contain an interaction with itself. Missing interactions are assumed
+!! to be 0.0.
+!!
+!! Species in the specified phase for whom acitivity coefficients will be
+!! calculated must contain a key-value pair \b "UNIFAC groups" whose value
+!! is a set of key value pairs that correspond with members of the
+!! \b "functional groups" set and whose values are the integer number of
+!! instances of a particular functional group in this species. For the
+!! above example UNIFAC model, the following species would be valid and
+!! included in activity coefficient calculations:
+!! \code{.json}
+!! { "pmc-data" : [
+!!   {
+!!     "name" : "my species",
+!!     "type" : "CHEM_SPEC",
+!!     "phase" : "AEROSOL",
+!!     "UNIFAC groups" : {
+!!       "CH3" : 4,
+!!       "C=C" : 1
+!!     }
+!!   },
+!!   {
+!!     "name" : "my other species",
+!!     "type" : "CHEM_SPEC",
+!!     "phase" : "AEROSOL",
+!!     "UNIFAC groups" : {
+!!       "CH3" : 2,
+!!       "CH2" : 4
+!!     },
+!!   },
+!!   {
+!!     "name" : "some phase",
+!!     "type" : "AERO_PHASE",
+!!     "species" : { "my species", "my other species" }
+!!   }
+!! ]}
+!! \endcode
 
 !> The sub_model_UNIFAC_t type and assocatiated subroutines
 module pmc_sub_model_UNIFAC

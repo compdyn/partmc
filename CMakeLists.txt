@@ -175,6 +175,7 @@ if (ENABLE_JSON AND ENABLE_SUNDIALS)
   add_test(test_rxn_photolysis ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_photolysis.sh)
   add_test(test_rxn_troe ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_troe.sh)
   add_test(test_rxn_ZSR_aerosol_water ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_ZSR_aerosol_water.sh)
+  add_test(test_sub_model_UNIFAC ${CMAKE_BINARY_DIR}/test_run/unit_sub_model_data/test_UNIFAC.sh)
   add_test(test_chemistry_cb05cl_ae5 ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5.sh)
   add_test(test_chemistry_eqsam_v03d ${CMAKE_BINARY_DIR}/test_run/chemistry/eqsam_v03d/test_chemistry_eqsam_v03d.sh)
   add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh)
@@ -544,6 +545,12 @@ add_executable(test_rxn_troe test/unit_rxn_data/test_rxn_troe.F90)
 target_link_libraries(test_rxn_troe partmclib)
 add_executable(test_rxn_ZSR_aerosol_water test/unit_rxn_data/test_rxn_ZSR_aerosol_water.F90)
 target_link_libraries(test_rxn_ZSR_aerosol_water partmclib)
+
+######################################################################
+# test_sub_model_data
+
+add_executable(test_sub_model_UNIFAC test/unit_sub_model_data/test_sub_model_UNIFAC.F90)
+target_link_libraries(test_sub_model_UNIFAC partmclib)
 
 ######################################################################
 # test_phlex_core

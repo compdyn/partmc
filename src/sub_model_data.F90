@@ -106,16 +106,19 @@ interface
   !! once for each sub model at the beginning of the model run after all
   !! the input files have been read in. It ensures all data required
   !! during the model run are included in the condensed data arrays.
-  subroutine initialize(this, aero_rep_set, chem_spec_data)
+  subroutine initialize(this, aero_rep_set, aero_phase_set, chem_spec_data)
     
     use pmc_chem_spec_data
     use pmc_aero_rep_data
+    use pmc_aero_phase_data
     import :: sub_model_data_t
 
     !> Sub model data
     class(sub_model_data_t), intent(inout) :: this
     !> The set of aerosol representations
     type(aero_rep_data_ptr), pointer, intent(in) :: aero_rep_set(:)
+    !> The set of aerosol phases
+    type(aero_phase_data_ptr), pointer, intent(in) :: aero_phase_set(:)
     !> Chemical species data
     type(chem_spec_data_t), intent(in) :: chem_spec_data
 
@@ -289,12 +292,22 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Print the sub model data
-  subroutine do_print(this)
+  subroutine do_print(this, file_unit)
 
     !> Sub model data
     class(sub_model_data_t), intent(in) :: this
+    !> File unit for output
+    integer(kind=i_kind), optional :: file_unit
 
-    if (associated(this%property_set)) call this%property_set%print()
+    integer(kind=i_kind) :: f_unit = 6
+
+    if (present(file_unit)) f_unit = file_unit
+    write(f_unit,*) "*** Sub Model ***"
+    if (associated(this%property_set)) call this%property_set%print(f_unit)
+    if (allocated(this%condensed_data_int)) &
+      write(f_unit,*) "  *** condensed data int: ", this%condensed_data_int(:)
+    if (allocated(this%condensed_data_real)) &
+      write(f_unit,*) "  *** condensed data real: ", this%condensed_data_real(:)
 
   end subroutine do_print
 

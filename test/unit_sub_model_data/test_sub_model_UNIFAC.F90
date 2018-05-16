@@ -94,16 +94,6 @@ contains
     real(kind=dp), parameter, dimension(num_group) :: Q_k = [ 0.540,  0.540,  0.848,  1.200,  1.400  ]
 
     ! Group interactions (a_mn in eq. 9)
-!    real(kind=dp), parameter, dimension(num_group, num_group) :: a_mn = reshape( [&
-            ! CH2(-OH) CH2(phb) CH3(phb)      OH      H2O
-!                  0.0,     0.0,     0.0,   986.5,  2314.0,   & ! CH2(-OH)
-!                  0.0,     0.0,     0.0,   986.5,  1325.0,   & ! CH2(phb)
-!                  0.0,     0.0,     0.0,   986.5,  1325.0,   & ! CH3(phb)
-!                156.4,   156.4,   156.4,     0.0,   276.4,   & ! OH
-!               -89.71,   362.1,   362.1,  -153.0,     0.0 ], & ! H2O
-!            [num_group, num_group] )
-
-    ! Group interactions (a_mn in eq. 9)
     real(kind=dp), parameter, dimension(num_group, num_group) :: a_mn = reshape( [&
             ! CH2(-OH) CH2(phb) CH3(phb)      OH      H2O
                   0.0,     0.0,     0.0,   156.4,  -89.71,   & ! CH2(-OH)

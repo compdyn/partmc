@@ -497,7 +497,7 @@ contains
     do i_sub_model = 1, size(this%sub_model)
       call assert(565644925, associated(this%sub_model(i_sub_model)%val))
       call this%sub_model(i_sub_model)%val%initialize(this%aero_rep, &
-                this%chem_spec_data)
+                this%aero_phase, this%chem_spec_data)
     end do
 
     ! Set the size of the state array
@@ -1186,6 +1186,7 @@ contains
     integer(kind=i_kind), intent(in), optional :: file_unit
 
     integer(kind=i_kind) :: i_gas_spec, i_spec, i_phase, i_aero_rep, i_mech
+    integer(kind=i_kind) :: i_sub_model
     integer(kind=i_kind) :: f_unit=6
     type(string_t), allocatable :: state_names(:), rep_spec_names(:)
 
@@ -1198,12 +1199,17 @@ contains
     call this%chem_spec_data%print(f_unit)
     write(f_unit,*) "*** Aerosol Phases ***"
     do i_phase=1, size(this%aero_phase)
-      call this%aero_phase(i_phase)%val%print()
+      call this%aero_phase(i_phase)%val%print(f_unit)
     end do
     write(f_unit,*) "*** Aerosol Representations ***"
     do i_aero_rep=1, size(this%aero_rep)
       write(f_unit,*) "Aerosol representation ", i_aero_rep
-      call this%aero_rep(i_aero_rep)%val%print()
+      call this%aero_rep(i_aero_rep)%val%print(f_unit)
+    end do
+    write(f_unit,*) "*** Sub Models ***"
+    do i_sub_model=1, size(this%sub_model)
+      write(f_unit,*) "Sub model: ", i_sub_model
+      call this%sub_model(i_sub_model)%val%print(f_unit)
     end do
     write(f_unit,*) "*** Mechanisms ***"
     write(f_unit,*) "Number of mechanisms: ", size(this%mechanism)

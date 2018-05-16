@@ -509,12 +509,21 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Print the aerosol representation data
-  subroutine do_print(this)
+  subroutine do_print(this, file_unit)
 
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
+    !> File unit for output
+    integer(kind=i_kind), optional :: file_unit
 
-    if (associated(this%property_set)) call this%property_set%print()
+    integer(kind=i_kind) :: f_unit = 6
+
+    if (present(file_unit)) f_unit = file_unit
+    if (associated(this%property_set)) call this%property_set%print(f_unit)
+    if (allocated(this%condensed_data_int)) &
+      write(f_unit,*) " *** condensed data int: ", this%condensed_data_int(:)
+    if (allocated(this%condensed_data_real)) &
+      write(f_unit,*) " *** condensed data real: ", this%condensed_data_real(:)
 
   end subroutine do_print
 

@@ -405,22 +405,26 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Print out the aerosol phase data
-  subroutine do_print(this)
+  subroutine do_print(this, file_unit)
 
     !> Aerosol phase data
     class(aero_phase_data_t), intent(in) :: this
+    ! File unit for output
+    integer(kind=i_kind), optional :: file_unit
 
+    integer(kind=i_kind) :: f_unit = 6
     integer(kind=i_kind) :: i_spec
 
-    write(*,*) "Aerosol phase: ", this%phase_name
-    write(*,*) "Number of species: ", this%num_spec
-    write(*,*) "Species: ["
+    if (present(file_unit)) f_unit = file_unit
+    write(f_unit,*) "Aerosol phase: ", this%phase_name
+    write(f_unit,*) "Number of species: ", this%num_spec
+    write(f_unit,*) "Species: ["
     do i_spec = 1, this%num_spec 
       write(*,*) this%spec_name(i_spec)%string
     end do
-    write(*,*) "]"
-    call this%property_set%print()
-    write(*,*) "End aerosol phase: ", this%phase_name
+    write(f_unit,*) "]"
+    call this%property_set%print(f_unit)
+    write(f_unit,*) "End aerosol phase: ", this%phase_name
 
   end subroutine do_print
 

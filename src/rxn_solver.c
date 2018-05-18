@@ -126,7 +126,7 @@ void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids)
         rxn_data = (int*) rxn_photolysis_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
         break;
       case RXN_SIMPOL_PHASE_TRANSFER :
-        rxn_data = (int*) rxn_SIMPOL_phase_transfer_update_ids(deriv_ids, jac_ids, (void*) rxn_data);
+        rxn_data = (int*) rxn_SIMPOL_phase_transfer_update_ids(model_data, deriv_ids, jac_ids, (void*) rxn_data);
         break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_update_ids(deriv_ids, jac_ids, (void*) rxn_data);

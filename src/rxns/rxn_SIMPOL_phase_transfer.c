@@ -39,11 +39,12 @@
 #define _NUM_INT_PROP_ 2
 #define _NUM_FLOAT_PROP_ 13
 #define _AERO_SPEC_(x) (int_data[_NUM_INT_PROP_ + x]-1)
-#define _AERO_PHASE_ID_(x) (int_data[_NUM_INT_PROP_ + _NUM_AERO_PHASE_ + x]-1)
-#define _AERO_REP_ID_(x) (int_data[_NUM_INT_PROP_ + 2*(_NUM_AERO_PHASE_) + x]-1)
-#define _DERIV_ID_(x) int_data[_NUM_INT_PROP_ + 3*(_NUM_AERO_PHASE_) + x]
-#define _JAC_ID_(x) int_data[_NUM_INT_PROP_ + 1 + 4*(_NUM_AERO_PHASE_) + x]
-#define _INT_DATA_SIZE_ (_NUM_INT_PROP_+2+(7*_NUM_AERO_PHASE_))
+#define _AERO_ACT_ID_(x) (int_data[_NUM_INT_PROP_ + _NUM_AERO_PHASE_ + x])
+#define _AERO_PHASE_ID_(x) (int_data[_NUM_INT_PROP_ + 2*_NUM_AERO_PHASE_ + x]-1)
+#define _AERO_REP_ID_(x) (int_data[_NUM_INT_PROP_ + 3*(_NUM_AERO_PHASE_) + x]-1)
+#define _DERIV_ID_(x) int_data[_NUM_INT_PROP_ + 4*(_NUM_AERO_PHASE_) + x]
+#define _JAC_ID_(x) int_data[_NUM_INT_PROP_ + 1 + 5*(_NUM_AERO_PHASE_) + x]
+#define _INT_DATA_SIZE_ (_NUM_INT_PROP_+2+(8*_NUM_AERO_PHASE_))
 #define _FLOAT_DATA_SIZE_ (_NUM_FLOAT_PROP_)
 
 /** \brief Flag Jacobian elements used by this reaction
@@ -70,12 +71,14 @@ void * rxn_SIMPOL_phase_transfer_get_used_jac_elem(void *rxn_data, bool **jac_st
 
 /** \brief Update the time derivative and Jacbobian array indices
  *
+ * \param model_data Pointer to the model data for finding sub model ids
  * \param deriv_ids Id of each state variable in the derivative array
  * \param jac_ids Id of each state variable combo in the Jacobian array
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_SIMPOL_phase_transfer_update_ids(int *deriv_ids, int **jac_ids, void *rxn_data)
+void * rxn_SIMPOL_phase_transfer_update_ids(ModelData *model_data, int *deriv_ids, 
+    int **jac_ids, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
@@ -93,6 +96,14 @@ void * rxn_SIMPOL_phase_transfer_update_ids(int *deriv_ids, int **jac_ids, void 
       _JAC_ID_(i_jac++) = jac_ids[_GAS_SPEC_][_AERO_SPEC_(i_aero_phase)];
       _JAC_ID_(i_jac++) = jac_ids[_AERO_SPEC_(i_aero_phase)][_AERO_SPEC_(i_aero_phase)];
     }
+
+  // Find activity coefficient ids, if they exist
+  // TODO Don't hard-code sub model ids
+  for (int i_aero_phase = 0; i_aero_phase < _NUM_AERO_PHASE_; i_aero_phase++) {
+    int aero_state_id = _AERO_SPEC_(i_aero_phase);
+    _AERO_ACT_ID_(i_aero_phase) = 
+      sub_model_get_parameter_id(model_data, 1, (void*) (&aero_state_id));
+  }
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
@@ -225,9 +236,14 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data, realt
     // Calculate gas-phase condensation rate (ppm/s)
     cond_rate *= state[_GAS_SPEC_];
 
+    // Get the activity coefficient (if one exists)
+    realtype act_coeff = 1.0;
+    if (_AERO_ACT_ID_(i_phase)>-1) {
+      act_coeff = sub_model_get_parameter_value(model_data, _AERO_ACT_ID_(i_phase));
+    }
+
     // Calculate aerosol-phase evaporation rate (ug/m^3/s)
-    // FIXME Add activity coefficient from sub-module
-    evap_rate *= state[_AERO_SPEC_(i_phase)];
+    evap_rate *= state[_AERO_SPEC_(i_phase)] * act_coeff;
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
     if (_DERIV_ID_(0)>=0) {
@@ -309,25 +325,29 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data, realtyp
     //     1/s      * m3 * 1/ug_x * ug_x * 1/m3
     realtype evap_rate = cond_rate / (_equil_const_ * aero_phase_mass);
 
+    // Get the activity coefficient (if one exists)
+    realtype act_coeff = 1.0;
+    if (_AERO_ACT_ID_(i_phase)>-1) {
+      act_coeff = sub_model_get_parameter_value(model_data, _AERO_ACT_ID_(i_phase));
+    }
+
     // Change in the gas-phase is evaporation - condensation (ppm/s)
     if (aero_conc_type==0) {
       // Scale the changes to the gas-phase by the number of particles for per-particle 
       // aerosol concentrations
-      // FIXME Add activity coefficient from sub-module
       if (_JAC_ID_(1+i_phase*3+1)>=0) 
-	      J[_JAC_ID_(1+i_phase*3+1)] += number_conc * evap_rate * _ug_m3_TO_ppm_;
+	      J[_JAC_ID_(1+i_phase*3+1)] += number_conc * evap_rate * _ug_m3_TO_ppm_ * act_coeff;
       if (_JAC_ID_(0)>=0) J[_JAC_ID_(0)] -= number_conc * cond_rate;
     } else {
       // No scaling for aerosol concentrations with total mass per aerosol phase
-      // FIXME Add activity coefficient from sub-module
-      if (_JAC_ID_(1+i_phase*3+1)>=0) J[_JAC_ID_(1+i_phase*3+1)] += evap_rate * _ug_m3_TO_ppm_;
+      if (_JAC_ID_(1+i_phase*3+1)>=0) J[_JAC_ID_(1+i_phase*3+1)] += evap_rate * _ug_m3_TO_ppm_ 
+              * act_coeff;
       if (_JAC_ID_(0)>=0) J[_JAC_ID_(0)] -= cond_rate;
     }
 
     // Change in the aerosol-phase species is condensation - evaporation (ug/m^3/s)
-    // FIXME Add activity coefficient from sub-module
     if (_JAC_ID_(1+i_phase*3)>=0) J[_JAC_ID_(1+i_phase*3)] += cond_rate / _ug_m3_TO_ppm_;
-    if (_JAC_ID_(1+i_phase*3+2)>=0) J[_JAC_ID_(1+i_phase*3+2)] -= evap_rate; 
+    if (_JAC_ID_(1+i_phase*3+2)>=0) J[_JAC_ID_(1+i_phase*3+2)] -= evap_rate * act_coeff; 
   
   }
 
@@ -412,6 +432,7 @@ void * rxn_SIMPOL_phase_transfer_get_rate(void *rxn_data, realtype *state, realt
 #undef _NUM_INT_PROP_
 #undef _NUM_FLOAT_PROP_
 #undef _AERO_SPEC_
+#undef _AERO_ACT_ID_
 #undef _AERO_PHASE_ID_
 #undef _AERO_REP_ID_
 #undef _DERIV_ID_

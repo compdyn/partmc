@@ -102,8 +102,9 @@ void * rxn_photolysis_print(void *rxn_data);
 void * rxn_photolysis_get_rate(void *rxn_data, realtype *state, realtype *env, realtype *rate);
 
 // SIMPOL_phase_transfer
+// TODO Figure out if it's worth changning all reactions to accept ModelData for id updates
 void * rxn_SIMPOL_phase_transfer_get_used_jac_elem(void *rxn_data, bool **jac_struct);
-void * rxn_SIMPOL_phase_transfer_update_ids(int *deriv_ids, int **jac_ids, void *rxn_data);
+void * rxn_SIMPOL_phase_transfer_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_SIMPOL_phase_transfer_update_env_state(realtype *env_data, void *rxn_data);
 void * rxn_SIMPOL_phase_transfer_pre_calc(ModelData *model_data, void *rxn_data);
 void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data, realtype *deriv, void *rxn_data);

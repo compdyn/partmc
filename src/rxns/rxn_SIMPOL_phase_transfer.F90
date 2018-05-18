@@ -87,10 +87,11 @@ module pmc_rxn_SIMPOL_phase_transfer
 #define _NUM_INT_PROP_ 2
 #define _NUM_REAL_PROP_ 13
 #define _AERO_SPEC_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
-#define _AERO_PHASE_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_AERO_PHASE_+x)
-#define _AERO_REP_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+2*_NUM_AERO_PHASE_+x)
-#define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+3*_NUM_AERO_PHASE_+x)
-#define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+1+4*_NUM_AERO_PHASE_+x)
+#define _AERO_ACT_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_AERO_PHASE_+x)
+#define _AERO_PHASE_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+2*_NUM_AERO_PHASE_+x)
+#define _AERO_REP_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+3*_NUM_AERO_PHASE_+x)
+#define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+4*_NUM_AERO_PHASE_+x)
+#define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+1+5*_NUM_AERO_PHASE_+x)
 
   public :: rxn_SIMPOL_phase_transfer_t
 
@@ -192,7 +193,7 @@ contains
     end do
 
     ! Allocate space in the condensed data arrays
-    allocate(this%condensed_data_int(_NUM_INT_PROP_ + 2 + n_aero_ids * 7))
+    allocate(this%condensed_data_int(_NUM_INT_PROP_ + 2 + n_aero_ids * 8))
     allocate(this%condensed_data_real(_NUM_REAL_PROP_))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
@@ -376,6 +377,7 @@ contains
 #undef _NUM_INT_PROP_
 #undef _NUM_REAL_PROP_
 #undef _AERO_SPEC_
+#undef _AERO_ACT_ID_
 #undef _AERO_PHASE_ID_
 #undef _AERO_REP_ID_
 #undef _DERIV_ID_

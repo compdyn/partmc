@@ -266,6 +266,7 @@ contains
       mass_frac = i_mass_frac * mass_frac_step
       mole_frac = (1.0d0-mass_frac)/mw_water / &
         ((1.0d0-mass_frac)/mw_water + mass_frac/mw_butanol)
+      calc_conc(i_mass_frac, :) = 0.0d0
       calc_conc(i_mass_frac, idx_butanol) = (1.0d0 - mole_frac) * mw_butanol
       calc_conc(i_mass_frac, idx_water)   = mole_frac * mw_water
       model_conc(i_mass_frac,:) = calc_conc(i_mass_frac,:)

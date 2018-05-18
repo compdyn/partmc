@@ -344,8 +344,8 @@ contains
     ! Allocate condensed data arrays
     allocate(this%condensed_data_int(num_int_data))
     allocate(this%condensed_data_real(num_real_data))
-    this%condensed_data_int(:) = int(0, kind=i_kind)
-    this%condensed_data_real(:) = real(0.0, kind=dp)
+    this%condensed_data_int(:) = int(999999, kind=i_kind)
+    this%condensed_data_real(:) = real(999999.0, kind=dp)
 
     ! Set sub model dimensions
     _NUM_UNIQUE_PHASE_ = num_unique_phase
@@ -535,6 +535,11 @@ contains
           call assert_msg(511238330, spec_groups%size().gt.0, &
                   "Received empty set of UNIFAC groups for species '"// &
                   spec_name//"'")
+
+          ! Initialize the number of groups for this species
+          do i_group = 1, size(group_names)
+            _v_ik_(i_UNIFAC_phase, curr_spec_id, i_group) = 0
+          end do
 
           ! Set the functional groups (v_ik) Eq. 6
           ! and the r_i, q_i, and l_i parameters

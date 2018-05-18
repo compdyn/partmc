@@ -34,7 +34,7 @@ module pmc_sub_model_factory
   public :: sub_model_factory_t
 
   !> Identifiers for sub models - used by binary packing/unpacking functions
-  integer(kind=i_kind), parameter :: SUB_MODEL_UNIFAC = 1
+  integer(kind=i_kind), parameter, public :: SUB_MODEL_UNIFAC = 1
 
   !> Factory type for sub models
   !!

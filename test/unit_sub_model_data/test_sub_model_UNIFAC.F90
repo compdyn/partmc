@@ -64,19 +64,24 @@ contains
   !!
   logical function run_UNIFAC_test()
 
+    use iso_c_binding
     use pmc_constants
+    use pmc_sub_model_factory
 
     type(phlex_core_t), pointer :: phlex_core
     type(phlex_state_t), target :: phlex_state
     character(len=:), allocatable :: input_file_path
     type(string_t), allocatable, dimension(:) :: output_file_path
 
-    real(kind=dp), dimension(0:NUM_MASS_FRAC_STEP, 6) :: model_conc, calc_conc
-    real(kind=dp), dimension(0:NUM_MASS_FRAC_STEP, 6) :: model_activity, calc_activity
+    real(kind=dp), dimension(0:NUM_MASS_FRAC_STEP, 15) :: model_conc, calc_conc
+    real(kind=dp), dimension(0:NUM_MASS_FRAC_STEP, 15) :: model_activity, calc_activity
     integer(kind=i_kind) :: idx_butanol, idx_water
+    integer(kind=c_int), target :: idx_butanol_c, idx_water_c
+    integer(kind=c_int), target :: idx_butanol_act_c, idx_water_act_c
     character(len=:), allocatable :: key
     integer(kind=i_kind) :: i_mass_frac, i_spec, i_aero_rep
     real(kind=dp) :: mass_frac_step, mole_frac, mass_frac
+    type(c_ptr) :: identifiers
 
     ! Parameters for calculating true concentrations
     real(kind=dp) :: temperature, pressure
@@ -242,6 +247,18 @@ contains
     call assert(486977094, idx_butanol.gt.0)
     call assert(881770688, idx_water.gt.0)
 
+    ! Get the parameter id for the activity coefficients
+    idx_butanol_c = int(idx_butanol-1, kind=c_int)
+    identifiers = c_loc(idx_butanol_c)
+    idx_butanol_act_c = phlex_core%get_sub_model_parameter_id(SUB_MODEL_UNIFAC, &
+              identifiers)
+    idx_water_c = int(idx_water-1, kind=c_int)
+    identifiers = c_loc(idx_water_c)
+    idx_water_act_c = phlex_core%get_sub_model_parameter_id(SUB_MODEL_UNIFAC, &
+              identifiers)
+    call assert(875073956, idx_butanol_act_c.gt.-1)
+    call assert(703463813, idx_water_act_c.gt.-1)
+
     ! Integrate the mechanism
     do i_mass_frac = 0, NUM_MASS_FRAC_STEP
 
@@ -257,8 +274,14 @@ contains
       phlex_state%state_var(:) = model_conc(i_mass_frac,:)
 
       ! Get the modeled conc
-      ! TODO finish
+      call phlex_core%solve(phlex_state, real(1.0, kind=dp))
       model_activity(i_mass_frac,:) = 0.0d0
+      model_activity(i_mass_frac, idx_butanol) = &
+              real(phlex_core%get_sub_model_parameter_value(idx_butanol_act_c), kind=dp) &
+              * phlex_state%state_var(idx_butanol)
+      model_activity(i_mass_frac, idx_water) = &
+              real(phlex_core%get_sub_model_parameter_value(idx_water_act_c), kind=dp) &
+              * phlex_state%state_var(idx_water)
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !!! Get the UNIFAC activities !!!
@@ -368,8 +391,18 @@ contains
         call assert_msg(666095395, &
           almost_equal(get_water_activity_fig3a(mass_frac), calc_activity(i_mass_frac, idx_water), &
           real(1.0e-1, kind=dp)), "mole_frac: "//trim(to_string(i_mass_frac))//"; species: water"// &
-          "; mod: "//trim(to_string(get_water_activity_fig3a(mass_frac)))// &
+          "; from plot: "//trim(to_string(get_water_activity_fig3a(mass_frac)))// &
           "; calc: "//trim(to_string(calc_activity(i_mass_frac, idx_water))))
+        call assert_msg(744508507, &
+          almost_equal(model_activity(i_mass_frac, idx_water), calc_activity(i_mass_frac, idx_water), &
+          real(1.0e-2, kind=dp)), "mole_frac: "//trim(to_string(i_mass_frac))//"; species: water"// &
+          "; mod: "//trim(to_string(model_activity(i_mass_frac, idx_water)))// &
+          "; calc: "//trim(to_string(calc_activity(i_mass_frac, idx_water))))
+        call assert_msg(222508237, &
+          almost_equal(model_activity(i_mass_frac, idx_butanol), calc_activity(i_mass_frac, idx_butanol), &
+          real(1.0e-2, kind=dp)), "mole_frac: "//trim(to_string(i_mass_frac))//"; species: butanol"// &
+          "; mod: "//trim(to_string(model_activity(i_mass_frac, idx_butanol)))// &
+          "; calc: "//trim(to_string(calc_activity(i_mass_frac, idx_butanol))))
       end if
     end do
 

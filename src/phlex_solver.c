@@ -88,6 +88,9 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn, int n_rxn_int_param
   ptr[0] = n_rxn;
   sd->model_data.nxt_rxn = (void*) &(ptr[1]);
 
+  // If there are no reactions, flag the solver not to run
+  sd->no_solve = (n_rxn==0);
+
   // Allocate space for the aerosol representation data and set
   // the number of aerosol representations (including one int
   // for the number of aerosol representations and one int per
@@ -243,10 +246,12 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 
   // Run the solver
   realtype t_rt = (realtype) t_initial;
-  flag = CVode(sd->cvode_mem, (realtype) t_final, sd->y, &t_rt, CV_NORMAL);
-  if (check_flag(&flag, "CVode", 1)==PHLEX_SOLVER_FAIL) {
-    solver_print_stats(sd->cvode_mem);
-    return PHLEX_SOLVER_FAIL;
+  if (!sd->no_solve) {
+    flag = CVode(sd->cvode_mem, (realtype) t_final, sd->y, &t_rt, CV_NORMAL);
+    if (check_flag(&flag, "CVode", 1)==PHLEX_SOLVER_FAIL) {
+      solver_print_stats(sd->cvode_mem);
+      return PHLEX_SOLVER_FAIL;
+    }
   }
 
   // Update the species concentrations on the state array

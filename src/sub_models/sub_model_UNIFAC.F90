@@ -139,7 +139,9 @@ module pmc_sub_model_UNIFAC
 
 #define _NUM_UNIQUE_PHASE_ this%condensed_data_int(1)
 #define _NUM_GROUP_ this%condensed_data_int(2)
-#define _NUM_INT_PROP_ 2
+#define _TOTAL_INT_PROP_ this%condensed_data_int(3)
+#define _TOTAL_REAL_PROP_ this%condensed_data_int(4)
+#define _NUM_INT_PROP_ 4
 #define _NUM_REAL_PROP_ 0
 #define _PHASE_INT_LOC_(p) this%condensed_data_int(_NUM_INT_PROP_+p)
 #define _PHASE_REAL_LOC_(p) this%condensed_data_int(_NUM_INT_PROP_+_NUM_UNIQUE_PHASE_+p)
@@ -152,12 +154,15 @@ module pmc_sub_model_UNIFAC
 
 #define _Q_k_(k) this%condensed_data_real(k)
 #define _R_k_(k) this%condensed_data_real(_NUM_GROUP_+k)
-#define _a_mn_(m,n) this%condensed_data_real((m+1)*_NUM_GROUP_+n)
-#define _PSI_mn_(m,n) this%condensed_data_real((m+1+_NUM_GROUP_)*_NUM_GROUP_+n)
+#define _THETA_m_(m) this%condensed_data_real(2*_NUM_GROUP_+k)
+#define _a_mn_(m,n) this%condensed_data_real((m+2)*_NUM_GROUP_+n)
+#define _PSI_mn_(m,n) this%condensed_data_real((m+2+_NUM_GROUP_)*_NUM_GROUP_+n)
 #define _r_i_(p,i) this%condensed_data_real(_PHASE_REAL_LOC_(p)+i-1)
 #define _q_i_(p,i) this%condensed_data_real(_PHASE_REAL_LOC_(p)+_NUM_SPEC_(p)+i-1)
 #define _l_i_(p,i) this%condensed_data_real(_PHASE_REAL_LOC_(p)+2*_NUM_SPEC_(p)+i-1)
-#define _ln_GAMMA_ik_(p,i,k) this%condensed_data_real(_PHASE_REAL_LOC_(p)+(i-1)*_NUM_GROUP_+3*_NUM_SPEC_(p)+k-1)
+#define _MW_i_(p,i) this%condensed_data_real(_PHASE_REAL_LOC_(p)+3*_NUM_SPEC_(p)+i-1)
+#define _X_i_(p,i) this%condensed_data_real(_PHASE_REAL_LOC_(p)+4*_NUM_SPEC_(p)+i-1)
+#define _ln_GAMMA_ik_(p,i,k) this%condensed_data_real(_PHASE_REAL_LOC_(p)+(i-1)*_NUM_GROUP_+5*_NUM_SPEC_(p)+k-1)
 #define _gamma_i_(p,c,i) this%condensed_data_real(_PHASE_INST_REAL_LOC_(p,c)+i-1)
 
   ! Update types (These must match values in sub_model_UNIFAC.c)
@@ -323,7 +328,7 @@ contains
     num_int_data =   _NUM_INT_PROP_              & ! int props
                      + 2*num_unique_phase          ! PHASE_INT_LOC, PHASE_REAL_LOC
     num_real_data =  _NUM_REAL_PROP_             & ! real props
-                     + 2*num_group               & ! Q_k, R_k
+                     + 3*num_group               & ! Q_k, R_k, THETA_m
                      + 2*num_group*num_group       ! a_mn, PSI_mn
     do i_UNIFAC_phase = 1, num_unique_phase
       num_int_data = num_int_data + 2                    & ! NUM_PHASE_INSTANCE, NUM_SPEC
@@ -331,7 +336,7 @@ contains
                      + num_phase_spec(i_UNIFAC_phase)    & ! SPEC_ID
                      + num_phase_spec(i_UNIFAC_phase) * num_group          ! v_ik
       num_real_data = num_real_data &
-                     + 3*num_phase_spec(i_UNIFAC_phase)  & ! r_i, q_i, l_i
+                     + 5*num_phase_spec(i_UNIFAC_phase)  & ! r_i, q_i, l_i, MW_i, X_i
                      + num_phase_spec(i_UNIFAC_phase) * num_group        & ! ln_GAMMA_ik
                      + num_phase_spec(i_UNIFAC_phase) * num_phase_inst(i_UNIFAC_phase)    ! gamma
     end do
@@ -345,12 +350,14 @@ contains
     ! Set sub model dimensions
     _NUM_UNIQUE_PHASE_ = num_unique_phase
     _NUM_GROUP_ = num_group
-    
+    _TOTAL_INT_PROP_ = size(this%condensed_data_int)
+    _TOTAL_REAL_PROP_ = size(this%condensed_data_real)
+
     ! Set data locations
     num_int_data =   _NUM_INT_PROP_              & ! int props
                      + 2*num_unique_phase          ! PHASE_INT_LOC, PHASE_REAL_LOC
     num_real_data =  _NUM_REAL_PROP_             & ! real props
-                     + 2*num_group               & ! Q_k, R_k
+                     + 3*num_group               & ! Q_k, R_k, THETA_m
                      + 2*num_group*num_group       ! a_mn, PSI_mn
     do i_UNIFAC_phase = 1, num_unique_phase
       _PHASE_INT_LOC_(i_UNIFAC_phase) = num_int_data + 1
@@ -360,7 +367,7 @@ contains
                      + num_phase_spec(i_UNIFAC_phase)    & ! SPEC_ID
                      + num_phase_spec(i_UNIFAC_phase) * num_group          ! v_ik
       num_real_data = num_real_data &
-                     + 3*num_phase_spec(i_UNIFAC_phase)  & ! r_i, q_i, l_i
+                     + 5*num_phase_spec(i_UNIFAC_phase)  & ! r_i, q_i, l_i, MW_i, X_i
                      + num_phase_spec(i_UNIFAC_phase) * num_group          ! ln_GAMMA_ik
       do i_phase_inst = 1, num_phase_inst(i_UNIFAC_phase)
         _PHASE_INST_REAL_LOC_(i_UNIFAC_phase, i_phase_inst) = num_real_data + 1
@@ -516,6 +523,14 @@ contains
         if (spec_props%get_property_t(key_name, spec_groups)) then
           curr_spec_id = curr_spec_id + 1
 
+          ! Get the molecular weight
+          key_name = "molecular weight"
+          call assert_msg(421151319, &
+                  spec_props%get_real(key_name, &
+                  _MW_i_(i_UNIFAC_phase, curr_spec_id)), &
+                  "Missing molecular weight for UNIFAC species '"// &
+                  spec_name//"'")
+
           ! Check the number of UNIFAC groups
           call assert_msg(511238330, spec_groups%size().gt.0, &
                   "Received empty set of UNIFAC groups for species '"// &
@@ -603,8 +618,6 @@ contains
       end do
     end do 
       
-    call this%print()
-
     ! Clean up
     deallocate(num_phase_inst)
     deallocate(num_phase_spec)
@@ -620,6 +633,8 @@ contains
 
 #undef _NUM_UNIQUE_PHASE_
 #undef _NUM_GROUP_
+#undef _TOTAL_INT_PROP_
+#undef _TOTAL_REAL_PROP_
 #undef _NUM_INT_PROP_
 #undef _NUM_REAL_PROP_
 #undef _PHASE_INT_LOC_
@@ -633,11 +648,14 @@ contains
 
 #undef _Q_k_
 #undef _R_k_
+#undef _THETA_m_
 #undef _a_mn_
 #undef _PSI_mn_
 #undef _r_i_
 #undef _q_i_
 #undef _l_i_
+#undef _MW_i_
+#undef _X_i_
 #undef _ln_GAMMA_ik_
 #undef _gamma_i_
 end module pmc_sub_model_UNIFAC

@@ -157,6 +157,10 @@ module pmc_phlex_core
     procedure :: update_aero_rep_data
     !> Run the chemical mechanisms
     procedure :: solve
+    !> Get the id of a sub model parameter in the solver data
+    procedure :: get_sub_model_parameter_id
+    !> Get the value of a sub model parameter in the curren solver data
+    procedure :: get_sub_model_parameter_value
     !> Determine the number of bytes required to pack the variable
     procedure :: pack_size
     !> Pack the given variable into a buffer, advancing position
@@ -873,6 +877,7 @@ contains
                 abs_tol,                & ! Absolute tolerances for each state variable
                 this%mechanism,         & ! Pointer to the mechanisms
                 this%aero_rep,          & ! Pointer to the aerosol representations
+                this%sub_model,         & ! Pointer to the sub models
                 GAS_RXN                 & ! Reaction phase
                 )
       call this%solver_data_aero%initialize( &
@@ -880,6 +885,7 @@ contains
                 abs_tol,                & ! Absolute tolerances for each state variable
                 this%mechanism,         & ! Pointer to the mechanisms
                 this%aero_rep,          & ! Pointer to the aerosol representations
+                this%sub_model,         & ! Pointer to the sub models
                 AERO_RXN                & ! Reaction phase
                 )
     else
@@ -898,6 +904,7 @@ contains
                 abs_tol,                & ! Absolute tolerances for each state variable
                 this%mechanism,         & ! Pointer to the mechanisms
                 this%aero_rep,          & ! Pointer to the aerosol representations
+                this%sub_model,         & ! Pointer to the sub models
                 GAS_AERO_RXN            & ! Reaction phase
                 )
       
@@ -1174,6 +1181,65 @@ contains
     end if
 
   end function get_rxn_rates
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the id of a sub model parameter in the solver data
+  function get_sub_model_parameter_id(this, sub_model_type, identifiers) &
+      result (parameter_id)
+
+    use iso_c_binding
+
+    !> Parameter id
+    integer(kind=c_int) :: parameter_id
+    !> Core data
+    class(phlex_core_t), intent(in) :: this
+    !> Sub model type
+    integer(kind=i_kind), intent(in) :: sub_model_type
+    !> Identifiers needed by the sub model to find a parameter
+    type(c_ptr), intent(in) :: identifiers
+
+    if (associated(this%solver_data_gas)) then
+      parameter_id = this%solver_data_gas%get_sub_model_parameter_id( &
+              sub_model_type, identifiers)
+    else if (associated(this%solver_data_aero)) then
+      parameter_id = this%solver_data_aero%get_sub_model_parameter_id( &
+              sub_model_type, identifiers)
+    else if (associated(this%solver_data_gas_aero)) then
+      parameter_id = this%solver_data_gas_aero%get_sub_model_parameter_id( &
+              sub_model_type, identifiers)
+    end if
+
+  end function get_sub_model_parameter_id
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the value associated with a sub model parameter for the current
+  !! solver state
+  function get_sub_model_parameter_value(this, parameter_id) &
+      result (parameter_value)
+
+    use iso_c_binding
+
+    !> Parameter value
+    real(kind=dp) :: parameter_value
+    !> Core data
+    class(phlex_core_t), intent(in) :: this
+    !> Parameter id
+    integer(kind=c_int), intent(in) :: parameter_id
+
+    if (associated(this%solver_data_gas)) then
+      parameter_value = this%solver_data_gas%get_sub_model_parameter_value( &
+              parameter_id)
+    else if (associated(this%solver_data_aero)) then
+      parameter_value = this%solver_data_aero%get_sub_model_parameter_value( &
+              parameter_id)
+    else if (associated(this%solver_data_gas_aero)) then
+      parameter_value = this%solver_data_gas_aero%get_sub_model_parameter_value( &
+              parameter_id)
+    end if
+
+  end function get_sub_model_parameter_value
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

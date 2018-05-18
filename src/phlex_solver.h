@@ -58,6 +58,8 @@ typedef struct {
 #endif
   void *cvode_mem;	// CVodeMem object
   ModelData model_data; // Model data (used during initialization and solving)
+  bool no_solve;        // Flag to indicate whether to run the solver needs to be
+                        // run. Set to true when no reactions are present.
 } SolverData;
 
 /* Functions called by phlex-chem */
@@ -72,6 +74,10 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 void rxn_add_condensed_data(int rxn_type, int n_int_param, 
 		int n_float_param, int *int_param, double *float_param, void *solver_data);
 double * rxn_get_rates(void *solver_data, double *state, double *env, int *n_rxn);
+void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
+		int n_float_param, int *int_param, double *float_param, void *solver_data);
+int sub_model_get_parameter_id_sd(void *solver_data, int sub_model_type, void *identifiers);
+double sub_model_get_parameter_value_sd(void *solver_data, int parameter_id);
 void rxn_set_photo_rate(int rxn_id, double base_rate, void *solver_data);
 void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
 		int n_float_param, int *int_param, double *float_param, void *solver_data);
@@ -115,6 +121,8 @@ void aero_rep_print_data(void *solver_data);
 
 /* Sub model solver functions */
 void sub_model_update_env_state(ModelData *model_data, double *env);
+int sub_model_get_parameter_id(ModelData *model_data, int type, void *identifiers);
+realtype sub_model_get_parameter_value(ModelData *model_data, int parameter_id);
 void sub_model_calculate(ModelData *model_data);
 void sub_model_print(ModelData *model_data);
 

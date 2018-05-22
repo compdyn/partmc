@@ -68,6 +68,7 @@ module pmc_phlex_solver_data
       !> Total number of integer parameters for all sub models
       integer(kind=c_int), value :: n_sub_model_int_param
       !> Total number of floating-point parameters for all sub models
+      integer(kind=c_int), value :: n_sub_model_float_param
     end function solver_new
 
     !> Solver initialization

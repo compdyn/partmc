@@ -173,6 +173,7 @@ if (ENABLE_JSON AND ENABLE_SUNDIALS)
   add_test(test_rxn_PDFiTE_activity ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_PDFiTE_activity.sh)
   add_test(test_rxn_HL_phase_transfer ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_HL_phase_transfer.sh)
   add_test(test_rxn_photolysis ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_photolysis.sh)
+  add_test(test_rxn_SIMPOL_phase_transfer ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_SIMPOL_phase_transfer.sh)
   add_test(test_rxn_troe ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_troe.sh)
   add_test(test_rxn_ZSR_aerosol_water ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_ZSR_aerosol_water.sh)
   add_test(test_sub_model_UNIFAC ${CMAKE_BINARY_DIR}/test_run/unit_sub_model_data/test_UNIFAC.sh)
@@ -411,7 +412,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/property.F90 src/chem_spec_data.F90
   src/rxn_data.F90 src/phlex_state.F90 src/mechanism_data.F90
   src/phlex_core.F90 src/phlex_solver_data.F90 src/aero_rep_data.F90
-  src/aero_phase_data.F90 src/aero_rep_factory.F90 
+  src/aero_phase_data.F90 src/aero_phase_solver.c src/aero_rep_factory.F90 
   src/phlex_interface.F90 src/rxn_factory.F90 src/rxn_solver.c
   src/aero_rep_solver.c src/phlex_solver.c src/sub_model_data.F90
   src/sub_model_factory.F90 src/sub_model_solver.c
@@ -541,6 +542,8 @@ add_executable(test_rxn_HL_phase_transfer test/unit_rxn_data/test_rxn_HL_phase_t
 target_link_libraries(test_rxn_HL_phase_transfer partmclib)
 add_executable(test_rxn_photolysis test/unit_rxn_data/test_rxn_photolysis.F90)
 target_link_libraries(test_rxn_photolysis partmclib)
+add_executable(test_rxn_SIMPOL_phase_transfer test/unit_rxn_data/test_rxn_SIMPOL_phase_transfer.F90)
+target_link_libraries(test_rxn_SIMPOL_phase_transfer partmclib)
 add_executable(test_rxn_troe test/unit_rxn_data/test_rxn_troe.F90)
 target_link_libraries(test_rxn_troe partmclib)
 add_executable(test_rxn_ZSR_aerosol_water test/unit_rxn_data/test_rxn_ZSR_aerosol_water.F90)

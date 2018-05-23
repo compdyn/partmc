@@ -3,7 +3,8 @@
     "These aerosol species and ion pairs are needed for the MONARCH 'mod37' configuration",
     "Densities are taken from Spada et al. (2015) manuscript - ",
     "'Global Aerosols in the online multiscale NMMB/BSC Chemical Transport Model",
-    "or estimated from bulk densities."
+    "or estimated from bulk densities.",
+    "TODO check about molecular weights"
   ],
   "pmc-data" : [
     {
@@ -11,6 +12,7 @@
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
       "absolute integration tolerance" : 1.0E-05,
+      "molecular weight" : 0.1,
       "density" : 2.65
     },
     {
@@ -18,6 +20,7 @@
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
       "absolute integration tolerance" : 1.0E-05,
+      "molecular weight" : 0.1,
       "density" : 2.65
     },
     {
@@ -25,6 +28,7 @@
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
       "absolute integration tolerance" : 1.0E-05,
+      "molecular weight" : 0.1,
       "density" : 2.16
     },
     {
@@ -33,7 +37,9 @@
       "phase" : "AEROSOL",
       "absolute integration tolerance" : 1.0E-05,
       "density" : 1.80,
-      "description" : "lumped hydrophobic particulate matter"
+      "molecular weight" : 0.41475,
+      "description" : "lumped hydrophobic particulate matter",
+      "note" : "Using C30H54 for molecular weight. TODO find best surrogate"
     },
     {
       "name" : "PM_phil",
@@ -41,7 +47,9 @@
       "phase" : "AEROSOL",
       "absolute integration tolerance" : 1.0E-05,
       "density" : 1.80,
-      "description" : "lumped hydrophilic particulate matter"
+      "molecular weight" : 0.28448,
+      "description" : "lumped hydrophilic particulate matter",
+      "note" : "Using C18H36O2 for molecular weight. TODO find best surrogate"
     },
     {
       "name" : "ISOP_aero_1",
@@ -49,7 +57,9 @@
       "phase" : "AEROSOL",
       "absolute integration tolerance" : 1.0E-05,
       "density" : 1.80,
-      "description" : "First isoprene SOA species in 2-product scheme"
+      "molecular weight" : 0.08806,
+      "description" : "First isoprene SOA species in 2-product scheme",
+      "note" : "Using ketopropanoic acid for molecular weight. TODO find best surrogate"
     },
     {
       "name" : "ISOP_aero_2",
@@ -57,7 +67,9 @@
       "phase" : "AEROSOL",
       "absolute integration tolerance" : 1.0E-05,
       "density" : 1.80,
-      "description" : "Second isoprene SOA species in 2-product scheme"
+      "molecular weight" : 0.09003,
+      "description" : "Second isoprene SOA species in 2-product scheme",
+      "note" : "Using oxalic acid for molecular weight. TODO find best surrogate"
     },
     {
       "name" : "TERP_aero_1",
@@ -65,7 +77,12 @@
       "phase" : "AEROSOL",
       "absolute integration tolerance" : 1.0E-05,
       "density" : 1.80,
-      "description" : "First monoterpene SOA species in 2-product scheme"
+      "molecular weight" : 0.17025,
+      "description" : "First monoterpene SOA species in 2-product scheme",
+      "note" : [
+        "Using 2-hydroxy-3-isopropyl-6-methyl-cyclohexanone for molecular weight",
+        "TODO find best surrogate"
+      ]
     },
     {
       "name" : "TERP_aero_2",
@@ -73,7 +90,9 @@
       "phase" : "AEROSOL",
       "absolute integration tolerance" : 1.0E-05,
       "density" : 1.80,
-      "description" : "Second monoterpene SOA species in 2-product scheme"
+      "molecular weight" : 0.202162,
+      "description" : "Second monoterpene SOA species in 2-product scheme",
+      "note" : "Using 2-methyl-5-carboxy-2,4-hexodienoic acid. TODO find best surrogate"
     },
     {
       "name" : "BC_phob",
@@ -81,6 +100,7 @@
       "phase" : "AEROSOL",
       "absolute integration tolerance" : 1.0E-05,
       "density" : 1.00,
+      "molecular weight" : 0.1,
       "description" : "hydrophobic black carbon"
     },
     {
@@ -89,6 +109,7 @@
       "phase" : "AEROSOL",
       "absolute integration tolerance" : 1.0E-05,
       "density" : 1.00,
+      "molecular weight" : 0.1,
       "description" : "hydrophilic black carbon"
     },
     {

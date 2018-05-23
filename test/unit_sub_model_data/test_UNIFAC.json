@@ -13,6 +13,7 @@
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
     "molecular weight" : 74.12,
+    "density" : 1.0,
     "UNIFAC groups" : {
       "OH" : 1,
       "CH2(-OH)" : 1,
@@ -25,6 +26,7 @@
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
     "molecular weight" : 18.01,
+    "density" : 1.0,
     "UNIFAC groups" : {
       "H2O" : 1
     }
@@ -34,6 +36,7 @@
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
     "molecular weight" : 32.04,
+    "density" : 1.0,
     "notes" : "just here for testing multiple phase calculations"
   },
   {

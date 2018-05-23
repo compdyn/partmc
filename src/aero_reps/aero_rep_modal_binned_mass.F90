@@ -90,13 +90,12 @@ module pmc_aero_rep_modal_binned_mass
 ! For modes, _NUM_BINS_ = 1
 #define _NUM_BINS_(x) this%condensed_data_int(_MODE_INT_PARAM_LOC_(x)+1)
 
+! Number of aerosol phases in this mode/bin set
 #define _NUM_PHASE_(x) this%condensed_data_int(_MODE_INT_PARAM_LOC_(x)+2)
-#define _PHASE_INT_PARAM_LOC_(x,y) this%condensed_data_int(_MODE_INT_PARAM_LOC_(x)+2+y)
-#define _PHASE_REAL_PARAM_LOC_(x,y) this%condensed_data_int(_MODE_INT_PARAM_LOC_(x)+2+_NUM_PHASE_(x)+y)
-#define _NUM_SPEC_(x,y) this%condensed_data_int(_PHASE_INT_PARAM_LOC_(x,y))
 
-! Species state ids - for modes, b=1
-#define _SPEC_STATE_ID_(x,y,b,z) this%condensed_data_int(_PHASE_INT_PARAM_LOC_(x,y)+(b-1)*_NUM_SPEC_(x,y)+z)
+! Phase state and model data ids
+#define _PHASE_STATE_ID_(x,y,b) this%condensed_data_int(_MODE_INT_PARAM_LOC_(x)+2+(b-1)*_NUM_PHASE_(x)+y)
+#define _PHASE_MODEL_DATA_ID_(x,y,b) this%condensed_data_int(_MODE_INT_PARAM_LOC_(x)+2+_NUM_BINS_(x)*_NUM_PHASE_(x)+(b-1)*_NUM_PHASE_(x)+y)
 
 ! GMD and bin diameter are stored in the same position - for modes, b=1
 #define _GMD_(x,b) this%condensed_data_real(_MODE_REAL_PARAM_LOC_(x)+(b-1)*4)
@@ -112,10 +111,10 @@ module pmc_aero_rep_modal_binned_mass
 #define _EFFECTIVE_RADIUS_(x,b) this%condensed_data_real(_MODE_REAL_PARAM_LOC_(x)+(b-1)*4+3)
 
 ! Real-time aerosol phase mass - used for modes and bins - for modes, b=1
-#define _AERO_PHASE_MASS_(x,y,b) this%condensed_data_real(_PHASE_REAL_PARAM_LOC_(x,y)-1+b)
+#define _AERO_PHASE_MASS_(x,y,b) this%condensed_data_real(_MODE_REAL_PARAM_LOC_(x)+4*_NUM_BINS_(x)+(b-1)*_NUM_PHASE_(x)+y-1)
 
-! Species density
-#define _DENSITY_(x,y,z) this%condensed_data_real(_PHASE_REAL_PARAM_LOC_(x,y)-1+_NUM_BINS_(x)+z)
+! Real-time aerosol phase average MW - used for modes and bins - for modes, b=0
+#define _AERO_PHASE_AVG_MW_(x,y,b) this%condensed_data_real(_MODE_REAL_PARAM_LOC_(x)+(4+_NUM_PHASE_(x))*_NUM_BINS_(x)+(b-1)*_NUM_PHASE_(x)+y-1)
 
   ! Update types (These must match values in aero_rep_modal_binned_mass.c)
   integer(kind=i_kind), parameter, public :: UPDATE_GMD = 0
@@ -290,8 +289,8 @@ contains
               this%rep_name//"'")
       end if 
 
-      ! Add space for the mode/bin type, mode data locations, number of bins
-      ! and phase count
+      ! Add space for the mode/bin type, number of bins, and phase count
+      ! and parameter locations
       n_int_param = n_int_param + 5
 
       ! Add space for the GMD, GSD, number concentration, and effective radius
@@ -310,12 +309,9 @@ contains
               "' in modal/binned mass aerosol representation '"//this%rep_name//"'")
       num_phase = num_phase + phases%size() * num_bin
 
-      ! Loop through the phases and count the species
+      ! Loop through the phases and make sure they exist
       call phases%iter_reset()
       do i_phase = 1, phases%size()
-
-        ! Add space for phase data locations and number of species
-        n_int_param = n_int_param + 3
 
         ! Get the phase name
         call assert_msg(393427582, phases%get_string(val=phase_name), &
@@ -324,17 +320,15 @@ contains
                 "' in modal/binned mass aerosol representation '"// &
                 this%rep_name//"'")
         
-        ! Find the aerosol phase and add space for the species variables
+        ! Find the aerosol phase and add space for its variables
         do j_phase = 1, size(aero_phase_set)
           if (phase_name.eq.aero_phase_set(j_phase)%val%name()) then
             
-            ! Add space for each species state id
-            n_int_param = n_int_param + &
-                    aero_phase_set(j_phase)%val%size() * num_bin
+            ! Add space for the phase state and model data ids
+            n_int_param = n_int_param + 2 * num_bin
 
-            ! Add space for total aerosol phase mass and each species density
-            n_float_param = n_float_param + num_bin + &
-                    aero_phase_set(j_phase)%val%size()
+            ! Add space for total aerosol phase mass and average MW,
+            n_float_param = n_float_param + 2 * num_bin
 
             exit
           else if (j_phase.eq.size(aero_phase_set)) then
@@ -482,9 +476,8 @@ contains
       ! Save the number of phases
       _NUM_PHASE_(i_section) = phases%size()
 
-      ! Add space for the mode/bin type, number of bins, number of phases and
-      ! the phase data locations
-      n_int_param = n_int_param + 3 + 2*_NUM_PHASE_(i_section)
+      ! Add space for the mode/bin type, number of bins, and number of phases
+      n_int_param = n_int_param + 3
 
       ! Add space for GMD, GSD, number concentration and effective radius
       n_float_param = n_float_param + 4 * _NUM_BINS_(i_section)
@@ -493,13 +486,6 @@ contains
       call phases%iter_reset()
       do j_phase = 1, phases%size()
 
-        ! Set the data locations for this mode
-        _PHASE_INT_PARAM_LOC_(i_section, j_phase) = n_int_param
-        _PHASE_REAL_PARAM_LOC_(i_section, j_phase) = n_float_param
-
-        ! Add space for the number of species
-        n_int_param = n_int_param + 1
-
         ! Get the phase name
         call assert(775801035, phases%get_string(val=phase_name))
         
@@ -507,9 +493,6 @@ contains
         do k_phase = 1, size(aero_phase_set)
           if (phase_name.eq.aero_phase_set(k_phase)%val%name()) then
             
-            ! Save the number of species
-            _NUM_SPEC_(i_section, j_phase) = aero_phase_set(k_phase)%val%size()
-
             ! Loop through the bins
             do i_bin = 1, _NUM_BINS_(i_section)
 
@@ -518,52 +501,23 @@ contains
 
               ! Save the starting id for this phase on the state array
               this%phase_state_id(i_phase) = curr_spec_state_id
+              _PHASE_STATE_ID_(i_section, j_phase, i_bin) = curr_spec_state_id
 
-              ! Loop through the species in this phase
-              do i_spec = 1, _NUM_SPEC_(i_section, j_phase)
-            
-                ! Save the species state ids for this phase
-                _SPEC_STATE_ID_(i_section, j_phase, i_bin, i_spec) = curr_spec_state_id
-                curr_spec_state_id = curr_spec_state_id + 1
-            
-                ! Get the property set for this species
-                call assert_msg(741499484, chem_spec_data%get_property_set( &
-                        this%aero_phase(i_phase)%val%get_species_name( i_spec), spec_props), &
-                        "Missing property set for aerosol species '"// &
-                        this%aero_phase(i_phase)%val%get_species_name(i_spec)// &
-                        "' in phase '"//this%aero_phase(i_phase)%val%name()// &
-                        "' of mode/bin '"// &
-                        this%section_name(i_section)%string// &
-                        "' in modal/binned mass aerosol representation '"//this%rep_name//"'")
+              ! Increment the state id by the size of the phase
+              curr_spec_state_id = curr_spec_state_id + &
+                        aero_phase_set(k_phase)%val%size()
 
-                ! Get the species density (expect for ion-pair activity species)
-                call assert(874736323, chem_spec_data%get_type( &
-                        this%aero_phase(i_phase)%val%get_species_name( i_spec), spec_type))
-                if (spec_type.eq.CHEM_SPEC_ACTIVITY_COEFF) then
-                    _DENSITY_(i_section, j_phase, i_spec) = 0.0
-                else
-                  key_name = "density"
-                  call assert_msg(821683338, spec_props%get_real(key_name, &
-                          _DENSITY_(i_section, j_phase, i_spec)), &
-                          "Missing density for aerosol species '"// &
-                          this%aero_phase(i_phase)%val%get_species_name(i_spec)// &
-                          "' in phase '"//this%aero_phase(i_phase)%val%name()// &
-                          "' of mode/bin '"// &
-                          this%section_name(i_section)%string// &
-                          "' in modal/binned mass aerosol representation '"//this%rep_name//"'")
-                end if
-
-              end do
-
-              ! Add space for species state ids
-              n_int_param = n_int_param + this%aero_phase(i_phase)%val%size()
+              ! Save the phase model data id
+              _PHASE_MODEL_DATA_ID_(i_section, j_phase, i_bin) = k_phase
 
               i_phase = i_phase + 1
             end do
 
-            ! Add space for aerosol phase mass and species densities
-            n_float_param = n_float_param + _NUM_BINS_(i_section) + &
-                    aero_phase_set(k_phase)%val%size()
+            ! Add space for aerosol phase state and model data ids
+            n_int_param = n_int_param + 2*_NUM_BINS_(i_section)
+
+            ! Add space for aerosol phase mass and average MW
+            n_float_param = n_float_param + 2*_NUM_BINS_(i_section)
 
             exit
           else if (k_phase.eq.size(aero_phase_set)) then
@@ -576,6 +530,8 @@ contains
 
       call sections%iter_next()
     end do
+
+    call this%print()
 
     ! Check the data sizes
     call assert(951534966, i_phase-1.eq.num_phase)
@@ -844,9 +800,8 @@ contains
 #undef _SECTION_TYPE_
 #undef _NUM_BINS_
 #undef _NUM_PHASE_
-#undef _PHASE_INT_PARAM_LOC_
-#undef _PHASE_REAL_PARAM_LOC_
-#undef _NUM_SPEC_
+#undef _PHASE_STATE_ID_
+#undef _PHASE_MODEL_DATA_ID_
 #undef _SPEC_STATE_ID_
 #undef _GMD_
 #undef _BIN_Dp_
@@ -854,6 +809,6 @@ contains
 #undef _NUMBER_CONC_
 #undef _EFFECTIVE_RADUIS_
 #undef _AERO_PHASE_MASS_
-#undef _DENSITY_
+#undef _AERO_PHASE_AVG_MW_
 
 end module pmc_aero_rep_modal_binned_mass

@@ -33,6 +33,9 @@
  * \param n_rxn Number of reactions to include
  * \param n_rxn_int_param Total number of integer reaction parameters
  * \param n_rxn_float_param Total number of floating-point reaction parameters
+ * \param n_aero_phase Number of aerosol phases
+ * \param n_aero_phase_int_param Total number of integer aerosol phase parameters
+ * \param n_aero_phase_float_param Total number of floating-point aerosol phase parameters
  * \param n_aero_rep Number of aerosol representations
  * \param n_aero_rep_int_param Total number of integer aerosol representation parameters
  * \param n_aero_rep_float_param Total number of floating-point aerosol representation parameters
@@ -42,7 +45,8 @@
  * \return Pointer to the new SolverData object
  */
 void * solver_new(int n_state_var, int *var_type, int n_rxn, int n_rxn_int_param, 
-		int n_rxn_float_param, int n_aero_rep, int n_aero_rep_int_param,
+		int n_rxn_float_param, int n_aero_phase, int n_aero_phase_int_param,
+                int n_aero_phase_float_param, int n_aero_rep, int n_aero_rep_int_param,
 		int n_aero_rep_float_param, int n_sub_model, int n_sub_model_int_param,
                 int n_sub_model_float_param)
 {
@@ -91,6 +95,20 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn, int n_rxn_int_param
   // If there are no reactions, flag the solver not to run
   sd->no_solve = (n_rxn==0);
 
+  // Allocate space for the aerosol phase data and st the number
+  // of aerosol phases (including one int for the number of
+  // phases)
+  sd->model_data.aero_phase_data = (void*) malloc(
+                  (n_aero_phase_int_param + 1) * sizeof(int)
+                  + n_aero_phase_float_param * sizeof(realtype));
+  if (sd->model_data.aero_phase_data==NULL) {
+    printf("\n\nERROR allocating space for aerosol phase data\n\n");
+    exit(1);
+  }
+  ptr = sd->model_data.aero_phase_data;
+  ptr[0] = n_aero_phase;
+  sd->model_data.nxt_aero_phase = (void*) &(ptr[1]);
+
   // Allocate space for the aerosol representation data and set
   // the number of aerosol representations (including one int
   // for the number of aerosol representations and one int per
@@ -99,7 +117,7 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn, int n_rxn_int_param
   sd->model_data.aero_rep_data = (void*) malloc(
 		  (n_aero_rep_int_param + 1 + n_aero_rep) * sizeof(int)
 		  + n_aero_rep_float_param * sizeof(realtype));
-  if (sd->model_data.rxn_data==NULL) {
+  if (sd->model_data.aero_rep_data==NULL) {
     printf("\n\nERROR allocating space for aerosol representation data\n\n");
     exit(1);
   }

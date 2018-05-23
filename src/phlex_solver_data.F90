@@ -16,6 +16,7 @@ module pmc_phlex_solver_data
   use pmc_mechanism_data
   use pmc_rxn_data
   use pmc_rxn_factory
+  use pmc_aero_phase_data
   use pmc_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_sub_model_data
@@ -43,9 +44,11 @@ module pmc_phlex_solver_data
     !> Get a new solver 
     type(c_ptr) function solver_new(n_state_var, var_type, &
                     n_rxn, n_rxn_int_param, n_rxn_float_param, &
-                    n_aero_rep, n_aero_rep_int_param, &
-                    n_aero_rep_float_param, n_sub_model, &
-                    n_sub_model_int_param, n_sub_model_float_param) bind (c)
+                    n_aero_phase, n_aero_phase_int_param, &
+                    n_aero_phase_float_param, n_aero_rep, &
+                    n_aero_rep_int_param, n_aero_rep_float_param, &
+                    n_sub_model, n_sub_model_int_param, &
+                    n_sub_model_float_param) bind (c)
       use iso_c_binding
       !> Number of variables on the state array (including const, PSSA, etc.)
       integer(kind=c_int), value :: n_state_var
@@ -57,6 +60,12 @@ module pmc_phlex_solver_data
       integer(kind=c_int), value :: n_rxn_int_param
       !> Total number of floating-point parameters for all reactions
       integer(kind=c_int), value :: n_rxn_float_param
+      !> Number of aerosol phases 
+      integer(kind=c_int), value :: n_aero_phase
+      !> Total number of integer parameters for all aerosol phases
+      integer(kind=c_int), value :: n_aero_phase_int_param
+      !> Total number of floating-point parameters for all aerosol phases
+      integer(kind=c_int), value :: n_aero_phase_float_param
       !> Number of aerosol representations
       integer(kind=c_int), value :: n_aero_rep
       !> Total number of integer parameters for all aerosol representations
@@ -199,6 +208,22 @@ module pmc_phlex_solver_data
       integer(kind=c_int), value :: parameter_id
     end function sub_model_get_parameter_value_sd
 
+    !> Add condensed aerosol phase data to the solver data block
+    subroutine aero_phase_add_condensed_data(n_int_param, n_float_param, &
+                  int_param, float_param, solver_data) bind(c)
+      use iso_c_binding
+      !> Number of integer parameters to add
+      integer(kind=c_int), value :: n_int_param
+      !> Number of floating-point parameters to add
+      integer(kind=c_int), value :: n_float_param
+      !> Pointer to the integer parameter array
+      type(c_ptr), value :: int_param
+      !> Pointer to the floating-point parameter array
+      type(c_ptr), value :: float_param
+      !> Pointer to the solver data
+      type(c_ptr), value :: solver_data
+    end subroutine aero_phase_add_condensed_data
+
     !> Add condensed aerosol representation data to the solver data block
     subroutine aero_rep_add_condensed_data(aero_rep_type, n_int_param, &
                   n_float_param, int_param, float_param, solver_data) bind(c)
@@ -300,8 +325,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize the solver
-  subroutine initialize(this, var_type, abs_tol, mechanisms, aero_reps, &
-                  sub_models, rxn_phase)
+  subroutine initialize(this, var_type, abs_tol, mechanisms, aero_phases, &
+                  aero_reps, sub_models, rxn_phase)
 
     !> Solver data
     class(phlex_solver_data_t), intent(inout) :: this
@@ -314,6 +339,8 @@ contains
     real(kind=dp), allocatable, intent(in) :: abs_tol(:)
     !> Mechanisms to include in solver
     type(mechanism_data_t), pointer, intent(in) :: mechanisms(:)
+    !> Aerosol phases to include
+    type(aero_phase_data_ptr), pointer, intent(in) :: aero_phases(:)
     !> Aerosol representations to include
     type(aero_rep_data_ptr), pointer, intent(in) :: aero_reps(:)
     !> Sub models to include
@@ -328,7 +355,7 @@ contains
     ! Absolute tolerances
     real(kind=c_double), pointer :: abs_tol_c(:)
     ! Indices for iteration
-    integer(kind=i_kind) :: i_mech, i_rxn, i_aero_rep, i_sub_model
+    integer(kind=i_kind) :: i_mech, i_rxn, i_aero_phase, i_aero_rep, i_sub_model
     ! Reaction pointer
     class(rxn_data_t), pointer :: rxn
     ! Reaction factory object for getting reaction type
@@ -351,11 +378,17 @@ contains
     integer(kind=c_int) :: n_rxn_int_param
     ! Number of floating-point reaction parameters
     integer(kind=c_int) :: n_rxn_float_param
+    ! Number of aerosol phases
+    integer(kind=c_int) :: n_aero_phase
+    ! Number of integer aerosol phase  parameters
+    integer(kind=c_int) :: n_aero_phase_int_param
+    ! Number of floating-point aerosol phase parameters
+    integer(kind=c_int) :: n_aero_phase_float_param
     ! Number of aerosol representations
     integer(kind=c_int) :: n_aero_rep
     ! Number of integer aerosol representation parameters
     integer(kind=c_int) :: n_aero_rep_int_param
-    ! Number of floating-point reaction parameters
+    ! Number of floating-point aerosol representation parameters
     integer(kind=c_int) :: n_aero_rep_float_param
     ! Number of sub models
     integer(kind=c_int) :: n_sub_model
@@ -401,7 +434,22 @@ contains
       end do
     end do
 
-    ! Initialize the counters
+    ! Initialize the aerosol phase counters
+    n_aero_phase = size(aero_phases)
+    n_aero_phase_int_param = 0
+    n_aero_phase_float_param = 0
+
+    ! Calculate the size of the aerosol phases condensed data
+    do i_aero_phase=1, n_aero_phase
+      associate (aero_phase => aero_phases(i_aero_phase)%val)
+      n_aero_phase_int_param = n_aero_phase_int_param + &
+              size(aero_phase%condensed_data_int)
+      n_aero_phase_float_param = n_aero_phase_float_param + &
+              size(aero_phase%condensed_data_real)
+      end associate
+    end do
+
+    ! Initialize the aerosol representation counters
     n_aero_rep = size(aero_reps)
     n_aero_rep_int_param = 0
     n_aero_rep_float_param = 0
@@ -438,6 +486,9 @@ contains
             n_rxn,                                      & ! Number of reactions
             n_rxn_int_param,                            & ! Number of rxn data integer parameters
             n_rxn_float_param,                          & ! Number of rxn data floating-point parameters
+            n_aero_phase,                               & ! Number of aerosol phases
+            n_aero_phase_int_param,                     & ! Number of aerosol phase data integer parameters
+            n_aero_phase_float_param,                   & ! Number of aerosol phase data real parameters
             n_aero_rep,                                 & ! Number of aerosol representations
             n_aero_rep_int_param,                       & ! Number of aerosol representation data integer parameters
             n_aero_rep_float_param,                     & ! Number of aerosol representation data real parameters
@@ -486,6 +537,34 @@ contains
 
         end associate
       end do
+    end do
+
+    ! Add all the condensed aerosol phase data to the solver data block
+    do i_aero_phase=1, size(aero_phases)
+
+      ! Assign aero_phase to the current aerosol phase
+      associate (aero_phase => aero_phases(i_aero_phase)%val)
+
+      ! Load temporary data arrays
+      allocate(int_param(size(aero_phase%condensed_data_int)))
+      allocate(float_param(size(aero_phase%condensed_data_real)))
+      int_param(:) = int(aero_phase%condensed_data_int(:), kind=c_int)
+      float_param(:) = real(aero_phase%condensed_data_real(:), kind=c_double)
+
+      ! Send the condensed data to the solver
+      call aero_phase_add_condensed_data ( &
+              int(size(int_param), kind=c_int),                 & ! Size of the integer parameter array
+              int(size(float_param), kind=c_int),               & ! Size of the floating-point parameter array
+              c_loc(int_param),                                 & ! Pointer to the integer parameter array
+              c_loc(float_param),                               & ! Pointer to the floating-point parameter array
+              this%solver_c_ptr                                 & ! Pointer to solver data
+              )
+
+      ! Deallocate temporary arrays
+      deallocate(int_param)
+      deallocate(float_param)
+
+      end associate
     end do
 
     ! Add all the condensed aerosol representation data to the solver data block

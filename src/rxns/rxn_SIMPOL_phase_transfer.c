@@ -40,10 +40,10 @@
 #define _NUM_FLOAT_PROP_ 13
 #define _AERO_SPEC_(x) (int_data[_NUM_INT_PROP_ + x]-1)
 #define _AERO_ACT_ID_(x) (int_data[_NUM_INT_PROP_ + _NUM_AERO_PHASE_ + x])
-#define _AERO_PHASE_ID_(x) (int_data[_NUM_INT_PROP_ + 2*_NUM_AERO_PHASE_ + x]-1)
+#define _AERO_PHASE_ID_(x) (int_data[_NUM_INT_PROP_ + 2*(_NUM_AERO_PHASE_) + x]-1)
 #define _AERO_REP_ID_(x) (int_data[_NUM_INT_PROP_ + 3*(_NUM_AERO_PHASE_) + x]-1)
-#define _DERIV_ID_(x) int_data[_NUM_INT_PROP_ + 4*(_NUM_AERO_PHASE_) + x]
-#define _JAC_ID_(x) int_data[_NUM_INT_PROP_ + 1 + 5*(_NUM_AERO_PHASE_) + x]
+#define _DERIV_ID_(x) (int_data[_NUM_INT_PROP_ + 4*(_NUM_AERO_PHASE_) + x])
+#define _JAC_ID_(x) (int_data[_NUM_INT_PROP_ + 1 + 5*(_NUM_AERO_PHASE_) + x])
 #define _INT_DATA_SIZE_ (_NUM_INT_PROP_+2+(8*_NUM_AERO_PHASE_))
 #define _FLOAT_DATA_SIZE_ (_NUM_FLOAT_PROP_)
 
@@ -140,18 +140,20 @@ void * rxn_SIMPOL_phase_transfer_update_env_state(realtype *env_data, void *rxn_
                 + _B4_ * log(_TEMPERATURE_K_);
   vp = 101325.0 * pow(10, vp);
 
-  // Calculate the partitioning coefficient K (m^3/ug) such that for
-  // partitioning species X:
-  //   [X]_gas = [X]_aero * activity_coeff_X / (K_x * [total]_aero
-  // where all concentrations are in (ug/m^3) and [total]_aero is the total
-  // mass in the aerosol phase containing X.
-  _equil_const_ = _CONV_                // (Pa*m^3)/(g*K)
-                  / vp                  // Pa
-                  * _TEMPERATURE_K_     // K
-                  * 1.0e-6;             // g/ug
-
-  // Calculate the conversion from ug/m^3 -> ppm
+  // Calculate the conversion from ug_x/m^3 -> ppm_x
   _ug_m3_TO_ppm_ = _CONV_ * _TEMPERATURE_K_ / _PRESSURE_PA_;
+
+  // Calculate the partitioning coefficient K_eq (ppm_x/ug_x*ug_tot/kg_tot) such that for
+  // partitioning species X at equilibrium:
+  //   [X]_gas = [X]_aero * activity_coeff_X * K_eq * MW_tot_aero / [tot]_aero
+  // where 'tot' indicates all species within an aerosol phase combined
+  // with []_gas in (ppm) and []_aero in (ug/m^3)
+  _equil_const_ = vp                    // (Pa_x*mol_tot/mol_x)
+                  / _PRESSURE_PA_       // (1/Pa_air)
+                  / _MW_                // (mol_x/kg_x)  
+                  * 1.0e6;             // 1.0e6ppm_x*Pa_air/Pa_x * 1.0e-9kg_x/ug_x * 1.0e9ug_tot/kg_tot
+
+  rxn_SIMPOL_phase_transfer_print( rxn_data );
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
@@ -216,22 +218,26 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data, realt
 
     // Get the total mass of the aerosol phase
     realtype aero_phase_mass;
+    realtype aero_phase_avg_MW;
     aero_rep_get_aero_phase_mass(
                   model_data,                   // model data
                   _AERO_REP_ID_(i_phase),       // aerosol representation index
                   _AERO_PHASE_ID_(i_phase),     // aerosol phase index
-                  &aero_phase_mass);            // total aerosol-phase mass
+                  &aero_phase_mass,             // total aerosol-phase mass
+                  &aero_phase_avg_MW);          // average MW in the aerosol phase
 
-    // If the radius or number concentration are zero, no transfer occurs
-    if (radius < _SMALL_NUMBER_ || number_conc < _SMALL_NUMBER_) continue;
+    // If the radius, number concentration, or aerosol-phase mass are zero,
+    // no transfer occurs
+    if (radius < _SMALL_NUMBER_ || number_conc < _SMALL_NUMBER_
+        || aero_phase_mass < _SMALL_NUMBER_) continue;
 
     // Calculate the rate constant for diffusion limited mass transfer to the aerosol phase (1/s)
     realtype cond_rate = 1.0/(radius*radius/(3.0*_Dg_) + 4.0*radius/(3.0*_c_rms_alpha_));
   
-    // Calculate the evaporation rate constant (1/s)
-    // cond_rate / (  K_eq        * [H2O]_a       )
-    //     1/s      * m3 * 1/ug_x * ug_x * 1/m3
-    realtype evap_rate = cond_rate / (_equil_const_ * aero_phase_mass);
+    // Calculate the evaporation rate constant (ppm_x*m^3/ug_x/s)
+    // cond_rate / (  K_eq                                     * MW_tot           / mass_tot     )
+    //     1/s      * ppm_x * mol_tot / ug_x * ug_tot / kg_tot * kg_tot / mol_tot * m^3 / ug_tot )
+    realtype evap_rate = cond_rate / (_equil_const_ * aero_phase_avg_MW / aero_phase_mass);
 
     // Calculate gas-phase condensation rate (ppm/s)
     cond_rate *= state[_GAS_SPEC_];
@@ -308,22 +314,26 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data, realtyp
 
     // Get the total mass of the aerosol phase
     realtype aero_phase_mass;
+    realtype aero_phase_avg_MW;
     aero_rep_get_aero_phase_mass(
                   model_data,                   // model data
                   _AERO_REP_ID_(i_phase),       // aerosol representation index
                   _AERO_PHASE_ID_(i_phase),     // aerosol phase index
-                  &aero_phase_mass);            // total aerosol-phase mass
+                  &aero_phase_mass,             // total aerosol-phase mass
+                  &aero_phase_avg_MW);          // average MW in the aerosol phase
 
-    // If the radius or number concentration are zero, no transfer occurs
-    if (radius < _SMALL_NUMBER_ || number_conc < _SMALL_NUMBER_) continue;
+    // If the radius, number concentration, or aerosol-phase mass are zero,
+    // no transfer occurs
+    if (radius < _SMALL_NUMBER_ || number_conc < _SMALL_NUMBER_
+        || aero_phase_mass < _SMALL_NUMBER_) continue;
 
     // Calculate the rate constant for diffusion limited mass transfer to the aerosol phase (1/s)
     realtype cond_rate = 1.0/(radius*radius/(3.0*_Dg_) + 4.0*radius/(3.0*_c_rms_alpha_));
   
-    // Calculate the evaporation rate constant (1/s)
-    // cond_rate / (  K_eq        * [H2O]_a       )
-    //     1/s      * m3 * 1/ug_x * ug_x * 1/m3
-    realtype evap_rate = cond_rate / (_equil_const_ * aero_phase_mass);
+    // Calculate the evaporation rate constant (ppm_x*m^3/ug_x/s)
+    // cond_rate / (  K_eq                                     * MW_tot           / mass_tot     )
+    //     1/s      * ppm_x * mol_tot / ug_x * ug_tot / kg_tot * kg_tot / mol_tot * m^3 / ug_tot )
+    realtype evap_rate = cond_rate / (_equil_const_ * aero_phase_avg_MW / aero_phase_mass);
 
     // Get the activity coefficient (if one exists)
     realtype act_coeff = 1.0;

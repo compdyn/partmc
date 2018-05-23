@@ -43,9 +43,12 @@ typedef struct {
   void *rxn_data;	// Pointer to reaction parameters
   void *nxt_rxn;	// Pointer to element of rxn_data in which to store next
  			// set of reaction data
+  void *aero_phase_data;// Pointer to aerosol phase parameters
+  void *nxt_aero_phase; // Pointer to element of aero_phase_data in which to store
+                        // the next set of aerosol phase data
   void *aero_rep_data;	// Pointer to aerosol representation parameters
   void *nxt_aero_rep;	// Pointer to element of aero_rep_data in which to store
-  			// the next set of reaction data
+  			// the next set of aerosol representation data
   void *sub_model_data; // Pointer to the sub model parameters
   void *nxt_sub_model;  // Pointer to the element of sub_model_data in which to
                         // store the next set of sub model data
@@ -64,7 +67,8 @@ typedef struct {
 
 /* Functions called by phlex-chem */
 void * solver_new(int n_state_var, int *var_type, int n_rxn, int n_rxn_int_param, 
-		int n_rxn_float_param, int n_aero_rep, int n_aero_rep_int_param,
+		int n_rxn_float_param, int n_aero_phase, int n_aero_phase_int_param, 
+                int n_aero_phase_float_param, int n_aero_rep, int n_aero_rep_int_param,
 		int n_aero_rep_float_param, int n_sub_model, int n_sub_model_int_param,
                 int n_sub_model_float_param);
 void solver_initialize(void *solver_data, double *abs_tol, double rel_tol, int max_steps, 
@@ -79,6 +83,8 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
 int sub_model_get_parameter_id_sd(void *solver_data, int sub_model_type, void *identifiers);
 double sub_model_get_parameter_value_sd(void *solver_data, int parameter_id);
 void rxn_set_photo_rate(int rxn_id, double base_rate, void *solver_data);
+void aero_phase_add_condensed_data(int n_int_param, int n_float_param, int *int_param, 
+                double *float_param, void *solver_data);
 void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
 		int n_float_param, int *int_param, double *float_param, void *solver_data);
 void aero_rep_update_data(int aero_rep_type_to_update, int update_type, void *update_data,
@@ -106,6 +112,14 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, double time_step);
 void rxn_calc_jac(ModelData *model_data, SUNMatrix J, double time_step);
 void rxn_print_data(void *solver_data);
 
+/* Aerosol phase solver functions */
+void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx, realtype *state_var,
+                realtype *mass, realtype *MW);
+void * aero_phase_get_volume(ModelData *model_data, int aero_phase_idx, realtype *state_var,
+                realtype *volume);
+void * aero_phase_find(ModelData *model_data, int int_aero_phase_idx);
+void * aero_phase_skip(void *aero_phase_data);
+
 /* Aerosol representation solver functions */
 void * aero_rep_get_dependencies(ModelData *model_data, bool *state_flags);
 void aero_rep_update_env_state(ModelData *model_data, double *env);
@@ -116,7 +130,7 @@ void * aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx, int aer
 		double *number_conc);
 int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx, int aero_phase_idx);
 void * aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx, int aero_phase_idx, 
-		double *aero_phase_mass);
+		double *aero_phase_mass, double *aero_phase_avg_MW);
 void aero_rep_print_data(void *solver_data);
 
 /* Sub model solver functions */

@@ -28,16 +28,15 @@
 #define _MODE_FLOAT_PARAM_LOC_(x) (int_data[_NUM_INT_PARAM_+_NUM_SECTION_+x]-1)
 #define _SECTION_TYPE_(x) (int_data[_MODE_INT_PARAM_LOC_(x)])
 
-// For sections, _NUM_BINS_ = 1
+// For modes, _NUM_BINS_ = 1
 #define _NUM_BINS_(x) (int_data[_MODE_INT_PARAM_LOC_(x)+1])
 
+// Number of aerosol phases in this mode/bin set
 #define _NUM_PHASE_(x) (int_data[_MODE_INT_PARAM_LOC_(x)+2])
-#define _PHASE_INT_PARAM_LOC_(x,y) (int_data[_MODE_INT_PARAM_LOC_(x)+3+y]-1)
-#define _PHASE_FLOAT_PARAM_LOC_(x,y) (int_data[_MODE_INT_PARAM_LOC_(x)+3+_NUM_PHASE_(x)+y]-1)
-#define _NUM_SPEC_(x,y) (int_data[_PHASE_INT_PARAM_LOC_(x,y)])
 
-// Species state ids - for modes, b=0
-#define _SPEC_STATE_ID_(x,y,b,z) (int_data[_PHASE_INT_PARAM_LOC_(x,y)+b*(_NUM_SPEC_(x,y))+1+z]-1)
+// Phase state and model data ids
+#define _PHASE_STATE_ID_(x,y,b) (int_data[_MODE_INT_PARAM_LOC_(x)+3+b*_NUM_PHASE_(x)+y]-1)
+#define _PHASE_MODEL_DATA_ID_(x,y,b) (int_data[_MODE_INT_PARAM_LOC_(x)+3+_NUM_BINS_(x)*_NUM_PHASE_(x)+b*_NUM_PHASE_(x)+y]-1)
 
 // GMD and bin diameter are stored in the same position - for modes, b=0
 #define _GMD_(x,b) (float_data[_MODE_FLOAT_PARAM_LOC_(x)+b*4])
@@ -53,10 +52,10 @@
 #define _EFFECTIVE_RADIUS_(x,b) (float_data[_MODE_FLOAT_PARAM_LOC_(x)+b*4+3])
 
 // Real-time phase mass (ug/m^3) - used for modes and bins - for modes, b=0
-#define _AERO_PHASE_MASS_(x,y,b) (float_data[_PHASE_FLOAT_PARAM_LOC_(x,y)+b])
+#define _AERO_PHASE_MASS_(x,y,b) (float_data[_MODE_FLOAT_PARAM_LOC_(x)+4*_NUM_BINS_(x)+b*_NUM_PHASE_(x)+y])
 
-// Species density
-#define _DENSITY_(x,y,z) (float_data[_PHASE_FLOAT_PARAM_LOC_(x,y)+_NUM_BINS_(x)+z])
+// Real-time phase average MW (kg/mol) - used for modes and bins - for modes, b=0
+#define _AERO_PHASE_AVG_MW_(x,y,b) (float_data[_MODE_FLOAT_PARAM_LOC_(x)+(4+_NUM_PHASE_(x))*_NUM_BINS_(x)+b*_NUM_PHASE_(x)+y])
 
 // Update types (These must match values in aero_rep_modal_binned_mass.F90)
 #define UPDATE_GMD 0
@@ -111,7 +110,7 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data, void *aero
   // Loop through the modes and calculate effective radius and number concentration
   for (int i_section=0; i_section<_NUM_SECTION_; i_section++) {
 
-    realtype volume, mass;
+    realtype volume, mass, moles;
     switch (_SECTION_TYPE_(i_section)) {
       
       // Mode
@@ -120,15 +119,22 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data, void *aero
         // Sum the volumes of each species in the mode
         volume = 0.0;
         for (int i_phase=0; i_phase<_NUM_PHASE_(i_section); i_phase++) {
-          mass = 0.0;
-          for (int i_spec=0; i_spec<_NUM_SPEC_(i_section, i_phase); i_spec++){
-            volume += _DENSITY_(i_section, i_phase, i_spec) * 
-                    model_data->state[_SPEC_STATE_ID_(i_section, i_phase, 0, i_spec)];
-            mass += model_data->state[_SPEC_STATE_ID_(i_section, i_phase, 0, i_spec)];
-          }
+          
+          // Get a pointer to the phase on the state array
+          realtype *state = (realtype*) (model_data->state);
+          state += _PHASE_STATE_ID_(i_section, i_phase, 0);
 
-          // Set the aerosol-phase mass
-          _AERO_PHASE_MASS_(i_section, i_phase, 0) = mass;
+          // Set the aerosol-phase mass and average MW
+          aero_phase_get_mass(model_data, _PHASE_MODEL_DATA_ID_(i_section, i_phase, 0),
+                    state, &(_AERO_PHASE_MASS_(i_section, i_phase, 0)),
+                    &(_AERO_PHASE_AVG_MW_(i_section, i_phase, 0)));
+          
+          // Get the phase volume
+          realtype phase_volume = 0.0;
+          aero_phase_get_volume(model_data, _PHASE_MODEL_DATA_ID_(i_section, i_phase, 0),
+                    state, &phase_volume);
+          volume += phase_volume;
+        
         }
  
         // Calculate effective radius
@@ -149,15 +155,22 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data, void *aero
           // Sum the volumes of each species in the bin
           volume = 0.0;
           for (int i_phase=0; i_phase<_NUM_PHASE_(i_section); i_phase++) {
-            mass = 0.0;
-            for (int i_spec=0; i_spec<_NUM_SPEC_(i_section, i_phase); i_spec++) {
-              volume += _DENSITY_(i_section, i_phase, i_spec) * 
-                      model_data->state[_SPEC_STATE_ID_(i_section, i_phase, i_bin, i_spec)];
-              mass += model_data->state[_SPEC_STATE_ID_(i_section, i_phase, 0, i_spec)];
-            }
+          
+            // Get a pointer to the phase on the state array
+            realtype *state = (realtype*) (model_data->state);
+            state += _PHASE_STATE_ID_(i_section, i_phase, i_bin);
 
-            // Set the aerosol-phase mass
-            _AERO_PHASE_MASS_(i_section, i_phase, i_bin) = mass;
+            // Set the aerosol-phase mass and average MW
+            aero_phase_get_mass(model_data, _PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
+                      state, &(_AERO_PHASE_MASS_(i_section, i_phase, i_bin)),
+                      &(_AERO_PHASE_AVG_MW_(i_section, i_phase, i_bin)));
+          
+            // Get the phase volume
+            realtype phase_volume = 0.0;
+            aero_phase_get_volume(model_data, _PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
+                      state, &phase_volume);
+            volume += phase_volume;
+        
           }
 
           // Calculate the number concentration based on the total bin volume
@@ -280,12 +293,13 @@ void * aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx, int *ae
  *
  * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param aero_phase_mass Total mass in the aerosol phase (ug/m^3)
+ * \param aero_phase_avg_MW Average molecular weight in the aerosol phase (kg/mol)
  * \param partial_deriv dn/dy where y are the species on the state array
  * \param aero_rep_data Pointer to the aerosol representation data
  * \return The aero_rep_data pointer advanced by the size of the aerosol representation
  */
 void * aero_rep_modal_binned_mass_get_aero_phase_mass(int aero_phase_idx, double *aero_phase_mass,
-		double *partial_deriv, void *aero_rep_data)
+		double *aero_phase_avg_MW, double *partial_deriv, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
@@ -295,6 +309,7 @@ void * aero_rep_modal_binned_mass_get_aero_phase_mass(int aero_phase_idx, double
       for (int i_bin=0; i_bin<_NUM_BINS_(i_section); i_bin++) {
         if (aero_phase_idx==0) {
           *aero_phase_mass = _AERO_PHASE_MASS_(i_section, i_phase, i_bin);
+          *aero_phase_avg_MW = _AERO_PHASE_AVG_MW_(i_section, i_phase, i_bin);
           i_section = _NUM_SECTION_;
           break;
         }
@@ -390,16 +405,14 @@ void * aero_rep_modal_binned_mass_skip(void *aero_rep_data)
 #undef _SECTION_TYPE_
 #undef _NUM_BINS_
 #undef _NUM_PHASE_
-#undef _PHASE_INT_PARAM_LOC_
-#undef _PHASE_FLOAT_PARAM_LOC_
-#undef _NUM_SPEC_
-#undef _SPEC_STATE_ID_
+#undef _PHASE_STATE_ID_
+#undef _PHASE_MODEL_DATA_ID_
 #undef _GMD_
 #undef _BIN_Dp_
 #undef _GSD_
 #undef _NUMBER_CONC_
 #undef _EFFECTIVE_RADIUS_
 #undef _AERO_PHASE_MASS_
-#undef _DENSITY_
+#undef _AERO_PHASE_AVG_MW_
 
 #endif

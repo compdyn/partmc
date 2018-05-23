@@ -32,7 +32,8 @@ module pmc_aero_rep_single_particle
 
   use pmc_util,                                  only: dp, i_kind, &
                                                        string_t, assert_msg, &
-                                                       die_msg, to_string
+                                                       die_msg, to_string, &
+                                                       assert
   use pmc_property
   use pmc_chem_spec_data
   use pmc_aero_rep_data
@@ -43,16 +44,15 @@ module pmc_aero_rep_single_particle
   private
 
 #define _NUM_PHASE_ this%condensed_data_int(1)
-#define _TOTAL_INT_PARAM_ this%condensed_data_int(2)
 #define _RADIUS_ this%condensed_data_real(1)
 #define _NUMBER_CONC_ this%condensed_data_real(2)
-#define _NUM_INT_PROP_ 2
+#define _NUM_INT_PROP_ 1
 #define _NUM_REAL_PROP_ 2
-#define _PHASE_INT_PARAM_LOC_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
-#define _NUM_SPEC_(x) this%condensed_data_int(_PHASE_INT_PARAM_LOC_(x))
-#define _SPEC_STATE_ID_(x,y) this%condensed_data_int(_PHASE_INT_PARAM_LOC_(x)+x)
-#define _AERO_PHASE_MASS_(x) this%condensed_data_real(_NUM_FLOAT_PROP_+x)
-  
+#define _PHASE_STATE_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
+#define _PHASE_MODEL_DATA_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_PHASE_+x)
+#define _AERO_PHASE_MASS_(x) this%condensed_data_real(_NUM_REAL_PROP_+x)
+#define _AERO_PHASE_AVG_MW_(x) this%condensed_data_real(_NUM_REAL_PROP_+_NUM_PHASE_+x)
+
   ! Update types (These must match values in aero_rep_single_particle.c)
   integer(kind=i_kind), parameter, public :: UPDATE_RADIUS = 0
   integer(kind=i_kind), parameter, public :: UPDATE_NUMBER_CONC = 1
@@ -158,22 +158,14 @@ contains
     integer(kind=i_kind) :: num_int_param, num_float_param
 
     ! Start off the counters
-    num_int_param = _NUM_INT_PROP_
-    num_float_param = _NUM_REAL_PROP_
+    num_int_param = _NUM_INT_PROP_ + 2*size(aero_phase_set)
+    num_float_param = _NUM_REAL_PROP_ + 2*size(aero_phase_set)
 
     ! Assume all phases will be applied once to each particle
     allocate(this%aero_phase(size(aero_phase_set)))
     do i_phase = 1, size(aero_phase_set)
       allocate(this%aero_phase(i_phase)%val)
       this%aero_phase(i_phase)%val = aero_phase_set(i_phase)%val
-
-      ! Add space for phase parameter location, number of species and
-      ! species state ids
-      num_int_param = num_int_param + 2 + &
-              this%aero_phase(i_phase)%val%size()
-
-      ! Add space for aerosol phase mass
-      num_float_param = num_float_param + 1
     end do
 
     ! Allocate condensed data arrays
@@ -182,23 +174,15 @@ contains
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
 
-    ! Set the number of int parameters
-    _TOTAL_INT_PARAM_ = num_int_param
-
-    ! Set phase parameter locations, size and ids
-    allocate(this%phase_state_id(size(this%aero_phase)))
+    ! Set phase state and model data ids
+    _NUM_PHASE_ = size(this%aero_phase)
+    allocate(this%phase_state_id(_NUM_PHASE_))
     curr_id = spec_state_id
-    num_int_param = _NUM_INT_PROP_ + 1
-    do i_phase = 1, size(this%aero_phase)
-      _PHASE_INT_PARAM_LOC_(i_phase) = num_int_param
-      _NUM_SPEC_(i_phase) = this%aero_phase(i_phase)%val%size()
+    do i_phase = 1, _NUM_PHASE_
       this%phase_state_id(i_phase) = curr_id
-      curr_id = curr_id + _NUM_SPEC_(i_phase)
-      do i_spec = 1, _NUM_SPEC_(i_phase)
-        _SPEC_STATE_ID_(i_phase, i_spec) = &
-                this%phase_state_id(i_phase) + i_spec - 1
-      end do
-      num_int_param = num_int_param + 1 + _NUM_SPEC_(i_phase)
+      curr_id = curr_id + aero_phase_set(i_phase)%val%size()
+      _PHASE_STATE_ID_(i_phase) = this%phase_state_id(i_phase)
+      _PHASE_MODEL_DATA_ID_(i_phase) = i_phase     
     end do
 
   end subroutine initialize
@@ -404,14 +388,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #undef _NUM_PHASE_
-#undef _TOTAL_INT_PARAM_
 #undef _RADIUS_
 #undef _NUMBER_CONC_
 #undef _NUM_INT_PROP_
 #undef _NUM_REAL_PROP_
-#undef _PHASE_INT_PARAM_LOC_
-#undef _NUM_SPEC_
-#undef _SPEC_STATE_ID_
+#undef _PHASE_STATE_ID_
+#undef _PHASE_MODEL_DATA_ID_
 #undef _AERO_PHASE_MASS_
+#undef _AERO_PHASE_AVG_MW_
 
 end module pmc_aero_rep_single_particle

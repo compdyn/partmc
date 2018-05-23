@@ -26,43 +26,50 @@
 	"name" : "species a",
 	"type" : "CHEM_SPEC",
 	"phase" : "AEROSOL",
-	"density" : 1.0
+	"density" : 1.0,
+        "molecular weight" : 1.0
 },
 {
 	"name" : "species b",
 	"type" : "CHEM_SPEC",
 	"phase" : "AEROSOL",
-	"density" : 2.0
+	"density" : 2.0,
+        "molecular weight" : 11.0
 },
 {
 	"name" : "species c",
 	"type" : "CHEM_SPEC",
 	"phase" : "AEROSOL",
-	"density" : 3.0
+	"density" : 3.0,
+        "molecular weight" : 36.2
 },
 {
 	"name" : "species d",
 	"type" : "CHEM_SPEC",
 	"phase" : "AEROSOL",
-	"density" : 4.0
+	"density" : 4.0,
+        "molecular weight" : 42.1
 },
 {
 	"name" : "species e",
 	"type" : "CHEM_SPEC",
 	"phase" : "AEROSOL",
-	"density" : 5.0
+	"density" : 5.0,
+        "molecular weight" : 52.3
 },
 {
 	"name" : "species f",
 	"type" : "CHEM_SPEC",
 	"phase" : "AEROSOL",
-	"density" : 6.0
+	"density" : 6.0,
+        "molecular weight" : 623.2
 },
 {
 	"name" : "species g",
 	"type" : "CHEM_SPEC",
 	"phase" : "AEROSOL",
-	"density" : 7.0
+	"density" : 7.0,
+        "molecular weight" : 72.3
 }
 	]
 }

@@ -27,7 +27,7 @@ void * aero_rep_modal_binned_mass_get_number_conc(int aero_phase_idx, double *nu
 		double *partial_deriv, void *aero_rep_data);
 void * aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx, int *aero_conc_type, void *aero_rep_data);
 void * aero_rep_modal_binned_mass_get_aero_phase_mass(int aero_phase_idx, double *aero_phase_mass,
-                double *partial_deriv,  void *aero_rep_data);
+                double *aero_phase_avg_MW, double *partial_deriv,  void *aero_rep_data);
 void * aero_rep_modal_binned_mass_update_data(int update_type, void *update_data, void *aero_rep_data);
 void * aero_rep_modal_binned_mass_print(void *aero_rep_data);
 void * aero_rep_modal_binned_mass_skip(void *aero_rep_data);
@@ -42,7 +42,7 @@ void * aero_rep_single_particle_get_number_conc(int aero_phase_idx, double *numb
 		double *partial_deriv, void *aero_rep_data);
 void * aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx, int *aero_conc_type, void *aero_rep_data);
 void * aero_rep_single_particle_get_aero_phase_mass(int aero_phase_idx, double *aero_phase_mass,
-                double *partial_deriv,  void *aero_rep_data);
+                double *aero_phase_avg_MW, double *partial_deriv,  void *aero_rep_data);
 void * aero_rep_single_particle_update_data(int update_type, void *update_data, void *aero_rep_data);
 void * aero_rep_single_particle_print(void *aero_rep_data);
 void * aero_rep_single_particle_skip(void *aero_rep_data);

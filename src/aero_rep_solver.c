@@ -287,11 +287,12 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx, int aer
  * \param aero_rep_idx Index of aerosol representation to use for calculation
  * \param aero_phase_ids Index of the aerosol phase within the aerosol representation
  * \param aero_phase_mass Pointer to hold calculated aerosol-phase mass (ug/m^3)
+ * \param aero_phase_avg_MW Pointer to hold calculated average MW in the aerosol phase (kg/mol)
  * \return A pointer to a set of partial derivatives dr/dy, or a NULL pointer if no
  *         partial derivatives exist
  */
 void * aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx, int aero_phase_idx,
-		double *aero_phase_mass)
+		double *aero_phase_mass, double *aero_phase_avg_MW)
 {
 
   // Set up a pointer for the partial derivatives
@@ -325,11 +326,13 @@ void * aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx, int
   switch (aero_rep_type) {
     case AERO_REP_MODAL_BINNED_MASS :
       aero_rep_data = (int*) aero_rep_modal_binned_mass_get_aero_phase_mass( 
-		      aero_phase_idx, aero_phase_mass, partial_deriv, (void*) aero_rep_data);
+		      aero_phase_idx, aero_phase_mass, aero_phase_avg_MW, 
+                      partial_deriv, (void*) aero_rep_data);
       break;
     case AERO_REP_SINGLE_PARTICLE :
       aero_rep_data = (int*) aero_rep_single_particle_get_aero_phase_mass( 
-		      aero_phase_idx, aero_phase_mass, partial_deriv, (void*) aero_rep_data);
+		      aero_phase_idx, aero_phase_mass, aero_phase_avg_MW, 
+                      partial_deriv, (void*) aero_rep_data);
       break;
   }
   return partial_deriv;

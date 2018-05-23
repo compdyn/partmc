@@ -11,6 +11,7 @@
     "diffusion coeff" : 1.48E-05,
     "N star" : 1.89,
     "molecular weight" : 48.0,
+    "density" : 1.0,
     "absolute tolerance" : 1.0e-20
   },
   {
@@ -18,6 +19,7 @@
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
     "molecular weight" : 48.0,
+    "density" : 1.0,
     "absolute tolerance" : 1.0e-20
   },
   {
@@ -26,6 +28,7 @@
     "diffusion coeff" : 1.46E-05,
     "N star" : 1.74,
     "molecular weight" : 34,
+    "density" : 1.0,
     "absolute tolerance" : 1.0e-20
   },
   {
@@ -33,12 +36,15 @@
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
     "molecular weight" : 34.0147,
+    "density" : 1.0,
     "absolute tolerance" : 1.0e-20
   },
   {
     "name" : "H2O_aq",
     "type" : "CHEM_SPEC",
-    "phase" : "AEROSOL"
+    "phase" : "AEROSOL",
+    "density" : 1.0,
+    "molecular weight" : 18.01
   },
   {
     "name" : "aqueous aerosol",

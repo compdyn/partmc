@@ -55,6 +55,13 @@ module pmc_aero_phase_data
   implicit none
   private
 
+#define _NUM_STATE_VAR_ this%condensed_data_int(1)
+#define _NUM_INT_PROP_ 1
+#define _NUM_REAL_PROP_ 0
+#define _SPEC_TYPE_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
+#define _MW_(x) this%condensed_data_real(_NUM_REAL_PROP_+x)
+#define _DENSITY_(x) this%condensed_data_real(_NUM_REAL_PROP_+_NUM_STATE_VAR_+x)
+
   public :: aero_phase_data_t, aero_phase_data_ptr
 
   !> Reallocation increment
@@ -83,16 +90,16 @@ module pmc_aero_phase_data
     !! integration, and should contain any information required by the
     !! functions of the aerosol phase that cannot be obtained
     !! from the \c pmc_phlex_state::phlex_state_t object. (floating-point)
-    real(kind=dp), allocatable :: condensed_data_real(:)
+    real(kind=dp), allocatable, public :: condensed_data_real(:)
     !> Condensed phase data. Theses arrays will be available during
     !! integration, and should contain any information required by the
     !! functions of the aerosol phase that cannot be obtained
     !! from the \c pmc_phlex_state::phlex_state_t object. (integer)
-    integer(kind=i_kind), allocatable ::  condensed_data_int(:)
+    integer(kind=i_kind), allocatable, public ::  condensed_data_int(:)
     !> Pointer to the set of chemical species data
     type(chem_spec_data_t), pointer :: chem_spec_data
   contains
-    !> Aerosol representation initialization
+    !> Aerosol phase initialization
     procedure :: initialize
     !> Get the name of the aerosol phase
     procedure :: name => get_name
@@ -108,8 +115,6 @@ module pmc_aero_phase_data
     !! The species id \f$i_{spec} = 1...n_{spec}\f$ where \f$n_{spec}\f$ is
     !! number of species in this phase.
     procedure :: spec_id
-    !> Get the total mass in a phase (ug/m^3)
-    procedure :: total_mass
     !> Determine the number of bytes required to pack the given value
     procedure :: pack_size
     !> Packs the given value into the buffer, advancing position
@@ -176,15 +181,64 @@ contains
     !> Chemical species data
     type(chem_spec_data_t), target, intent(in) :: chem_spec_data
 
+    type(property_t), pointer :: spec_props
     integer(kind=i_kind) :: i_spec
+    character(len=:), allocatable :: key_name
 
-    do i_spec = 1, this%num_spec
-      if (.not.chem_spec_data%exists(this%spec_name(i_spec)%string)) then
-        call die_msg(589987734, "Aerosol-phase species "// &
-            trim(this%spec_name(i_spec)%string)//" missing in chem_spec_data.")
+    ! Allocate space for the condensed data arrays
+    allocate(this%condensed_data_int(_NUM_INT_PROP_+this%num_spec))
+    allocate(this%condensed_data_real(_NUM_REAL_PROP_+2*this%num_spec))
+
+    ! Set the number of species
+    _NUM_STATE_VAR_ = this%num_spec
+
+    ! Find the aerosol-phase species, and save their needed properties    
+    do i_spec = 1, _NUM_STATE_VAR_
+    
+      ! Get the species properties
+      call assert_msg(140971956, chem_spec_data%get_property_set( &
+              this%spec_name(i_spec)%string, spec_props), &
+              "Missing property set for species '"// &
+              this%spec_name(i_spec)%string// &
+              "' in aerosol phase '"//this%phase_name//"'")
+
+      ! Get the species type
+      call assert_msg(129442398, chem_spec_data%get_type( &
+              this%spec_name(i_spec)%string, _SPEC_TYPE_(i_spec)), &
+              "Missing type for species '"// &
+              this%spec_name(i_spec)%string// &
+              "' in aerosol phase '"//this%phase_name//"'")
+
+      if (_SPEC_TYPE_(i_spec).eq.CHEM_SPEC_VARIABLE .or. &
+          _SPEC_TYPE_(i_spec).eq.CHEM_SPEC_CONSTANT .or. &
+          _SPEC_TYPE_(i_spec).eq.CHEM_SPEC_PSSA) then
+          
+        ! Get the molecular weight
+        key_name = "molecular weight"
+        call assert_msg(512254139, &
+                spec_props%get_real(key_name, _MW_(i_spec)), &
+                "Missing molecular weight for species '"// &
+                this%spec_name(i_spec)%string// &
+                "' in aerosol phase '"//this%phase_name//"'")
+
+        ! Get the density
+        key_name = "density"
+        call assert_msg(224966878, &
+                spec_props%get_real(key_name, _DENSITY_(i_spec)), &
+                "Missing density for species '"// &
+                this%spec_name(i_spec)%string// &
+                "' in aerosol phase '"//this%phase_name//"'")
+      
+      else
+        
+        _MW_(i_spec) = 0.0
+        _DENSITY_(i_spec) = 0.0
+
       end if
+
     end do
 
+    ! Save a pointer to the chemical species data
     this%chem_spec_data => chem_spec_data
 
   end subroutine initialize
@@ -501,27 +555,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the total mass in a phase based on the model state (ug/m^3)
-  real(kind=dp) function total_mass(this, phlex_state, state_id)
-
-    !> Aerosol phase data
-    class(aero_phase_data_t), intent(in) :: this
-    !> Current model state
-    type(phlex_state_t), intent(in) :: phlex_state
-    !> Beginning id in the state array for phase
-    integer(kind=i_kind), intent(in) :: state_id
-
-    integer :: i_spec
-
-    total_mass = real(0.0, kind=dp)
-    do i_spec = 0, this%num_spec-1
-      total_mass = total_mass + phlex_state%state_var(state_id + i_spec)
-    end do
-
-  end function total_mass
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Determine the size of a binary required to pack the aerosol 
   !! representation data
   integer(kind=i_kind) function pack_size(this)
@@ -580,5 +613,12 @@ contains
   end subroutine bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#undef _NUM_STATE_VAR_
+#undef _NUM_INT_PROP_
+#undef _NUM_REAL_PROP_
+#undef _SPEC_TYPE_
+#undef _MW_
+#undef _DENSITY_
 
 end module pmc_aero_phase_data

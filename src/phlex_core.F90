@@ -876,6 +876,7 @@ contains
                 var_type,               & ! State array variable types
                 abs_tol,                & ! Absolute tolerances for each state variable
                 this%mechanism,         & ! Pointer to the mechanisms
+                this%aero_phase,        & ! Pointer to the aerosol phases
                 this%aero_rep,          & ! Pointer to the aerosol representations
                 this%sub_model,         & ! Pointer to the sub models
                 GAS_RXN                 & ! Reaction phase
@@ -884,6 +885,7 @@ contains
                 var_type,               & ! State array variable types
                 abs_tol,                & ! Absolute tolerances for each state variable
                 this%mechanism,         & ! Pointer to the mechanisms
+                this%aero_phase,        & ! Pointer to the aerosol phases
                 this%aero_rep,          & ! Pointer to the aerosol representations
                 this%sub_model,         & ! Pointer to the sub models
                 AERO_RXN                & ! Reaction phase
@@ -903,6 +905,7 @@ contains
                 var_type,               & ! State array variable types
                 abs_tol,                & ! Absolute tolerances for each state variable
                 this%mechanism,         & ! Pointer to the mechanisms
+                this%aero_phase,        & ! Pointer to the aerosol phases
                 this%aero_rep,          & ! Pointer to the aerosol representations
                 this%sub_model,         & ! Pointer to the sub models
                 GAS_AERO_RXN            & ! Reaction phase

@@ -9,13 +9,16 @@
   {
     "name" : "H2O_aq",
     "type" : "CHEM_SPEC",
-    "phase" : "AEROSOL"
+    "phase" : "AEROSOL",
+    "density" : 1.0,
+    "molecular weight" : 18.01
   },
   {
     "name" : "H_p",
     "type" : "CHEM_SPEC",
     "charge" : 1,
     "phase" : "AEROSOL",
+    "density" : 1.0,
     "molecular weight" : 1.008
   },
   {
@@ -23,6 +26,7 @@
     "type" : "CHEM_SPEC",
     "charge" : 1,
     "phase" : "AEROSOL",
+    "density" : 1.0,
     "molecular weight" : 18.04
   },
   {
@@ -30,6 +34,7 @@
     "type" : "CHEM_SPEC",
     "charge" : -2,
     "phase" : "AEROSOL",
+    "density" : 1.0,
     "molecular weight" : 96.06
   },
   {
@@ -37,6 +42,7 @@
     "type" : "CHEM_SPEC",
     "charge" : -1,
     "phase" : "AEROSOL",
+    "density" : 1.0,
     "molecular weight" : 62.0049
   },
   {

@@ -48,7 +48,15 @@
 !!
 !! The key-value pair \b B is also required and must have a value of an array
 !! of exactly four members that specifies the SIMPOL parameters for the
-!! partitioning species.
+!! partitioning species. The \b B parameters can be obtained by summing the
+!! contributions of each functional group present in the partitioning species
+!! to the overall \f$B_{n,i}\f$ for species \f$i\f$, such that:
+!! \f[
+!!   B_{n,i} = \sum_{k} \nu_{k,i} B_{n,k} \forall n \in [1...4]
+!! \f]
+!! where \f$\nu_{k,i}\f$ is the number of functional groups \f$k\f$ in species
+!! \f$i\f$ and the parameters \f$B_{n,k}\f$ for each functional group \f$k\f$
+!! can be found in table 5 of Pankow and Asher (2008).
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -214,7 +222,9 @@ contains
             " required for phase-transfer reaction")
 
     ! Set the ug/m3 -> ppm conversion prefactor (multiply by T/P to get conversion)
-    _CONV_ = const%univ_gas_const / _MW_
+    ! (ppm_x*Pa_air*m^3/K/ug_x) = Pa_air*m^3/mol_air/K * mol_x/kg_x * 1.0e-9kg_x/ug_x 
+    !                       * 1.0e6ppm_x*mol_air/mol_x
+    _CONV_ = const%univ_gas_const / _MW_ / 1.0e3
 
     ! Set the ids of each aerosol-phase species instance
     i_aero_id = 1

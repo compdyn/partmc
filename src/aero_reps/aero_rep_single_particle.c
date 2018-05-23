@@ -17,17 +17,16 @@
 #define _PRESSURE_PA_ env_data[1]
 
 #define _NUM_PHASE_ int_data[0]
-#define _TOTAL_INT_PARAM_ int_data[1]
 #define _RADIUS_ float_data[0]
 #define _NUMBER_CONC_ float_data[1]
-#define _NUM_INT_PARAM_ 2
+#define _NUM_INT_PARAM_ 1
 #define _NUM_FLOAT_PARAM_ 2
-#define _PHASE_INT_PARAM_LOC_(x) (int_data[_NUM_INT_PARAM_+x])
-#define _NUM_SPEC_(x) (int_data[_PHASE_INT_PARAM_LOC_(x)-1])
-#define _SPEC_STATE_ID_(x,y) (int_data[_PHASE_INT_PARAM_LOC_(x)+y]-1)
+#define _PHASE_STATE_ID_(x) (int_data[_NUM_INT_PARAM_+x]-1)
+#define _PHASE_MODEL_DATA_ID_(x) (int_data[_NUM_INT_PARAM_+_NUM_PHASE_+x]-1)
 #define _AERO_PHASE_MASS_(x) (float_data[_NUM_FLOAT_PARAM_+x])
-#define _INT_DATA_SIZE_ (_TOTAL_INT_PARAM_)
-#define _FLOAT_DATA_SIZE_ (_NUM_FLOAT_PARAM_+_NUM_PHASE_)
+#define _AERO_PHASE_AVG_MW_(x) (float_data[_NUM_FLOAT_PARAM_+_NUM_PHASE_+x])
+#define _INT_DATA_SIZE_ (_NUM_INT_PARAM_+2*_NUM_PHASE_)
+#define _FLOAT_DATA_SIZE_ (_NUM_FLOAT_PARAM_+2*_NUM_PHASE_)
 
 // Update types (These must match values in aero_rep_single_particle.F90)
 #define UPDATE_RADIUS 0
@@ -67,7 +66,7 @@ void * aero_rep_single_particle_update_env_state(double *env_data, void *aero_re
 
 /** Update aerosol representation data for a new state
  *
- * The single particle aerosol representation does not use model state
+ * Updates the mass and average MW for each aerosol phase in the particle
  *
  * \param model_data Pointer to the model data, include the state array
  * \param aero_rep_data Pointer to the aerosol representation data
@@ -80,11 +79,14 @@ void * aero_rep_single_particle_update_state(ModelData *model_data, void *aero_r
 
   // Calculate the total aerosol phase masses
   for (int i_phase=0; i_phase<_NUM_PHASE_; i_phase++) {
-    realtype mass = 0.0;
-    for (int i_spec=0; i_spec<_NUM_SPEC_(i_phase); i_spec++){
-      mass += model_data->state[_SPEC_STATE_ID_(i_phase, i_spec)];
-    }
-    _AERO_PHASE_MASS_(i_phase) = mass;
+
+    // Get a pointer to the phase on the state array
+    realtype *state_var = (realtype*) (model_data->state);
+    state_var += _PHASE_STATE_ID_(i_phase);
+
+    // Get the mass and average MW
+    aero_phase_get_mass(model_data, _PHASE_MODEL_DATA_ID_(i_phase), state_var, 
+               &(_AERO_PHASE_MASS_(i_phase)), &(_AERO_PHASE_AVG_MW_(i_phase)));
   }
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
@@ -160,17 +162,19 @@ void * aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx, int *aero
  *
  * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param aero_phase_mass Total mass in the aerosol phase (ug/m^3)
+ * \param aero_phase_avg_MW Average molecular weight in the aerosol phase (kg/mol)
  * \param partial_deriv dn/dy where y are the species on the state array
  * \param aero_rep_data Pointer to the aerosol representation data
  * \return The aero_rep_data pointer advanced by the size of the aerosol representation
  */
 void * aero_rep_single_particle_get_aero_phase_mass(int aero_phase_idx, double *aero_phase_mass,
-		double *partial_deriv, void *aero_rep_data)
+		double *aero_phase_avg_MW, double *partial_deriv, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
   *aero_phase_mass = _AERO_PHASE_MASS_(aero_phase_idx);
+  *aero_phase_avg_MW = _AERO_PHASE_AVG_MW_(aero_phase_idx);
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
@@ -243,15 +247,14 @@ void * aero_rep_single_particle_skip(void *aero_rep_data)
 #undef _PRESSURE_PA_
 
 #undef _NUM_PHASE_
-#undef _TOTAL_INT_PARAM_
 #undef _RADIUS_
 #undef _NUMBER_CONC_
 #undef _NUM_INT_PARAM_
 #undef _NUM_FLOAT_PARAM_
-#undef _PHASE_INT_PARAM_LOC_
-#undef _NUM_SPEC_
-#undef _SPEC_STATE_ID_
+#undef _PHASE_STATE_ID_
+#undef _PHASE_MODEL_DATA_ID_
 #undef _AERO_PHASE_MASS_
+#undef _AERO_PHASE_AVG_MW_
 #undef _INT_DATA_SIZE_
 #undef _FLOAT_DATA_SIZE_
 

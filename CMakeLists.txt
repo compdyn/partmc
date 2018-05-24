@@ -334,6 +334,7 @@ set(REACTIONS_F_SRC
 	src/rxns/rxn_arrhenius.F90
 	src/rxns/rxn_CMAQ_H2O2.F90
 	src/rxns/rxn_CMAQ_OH_HNO3.F90
+	src/rxns/rxn_condensed_phase_arrhenius.F90
 	src/rxns/rxn_HL_phase_transfer.F90
 	src/rxns/rxn_photolysis.F90
         src/rxns/rxn_SIMPOL_phase_transfer.F90
@@ -355,6 +356,7 @@ set(REACTIONS_SRC ${REACTIONS_F_SRC}
 	src/rxns/rxn_arrhenius.c
 	src/rxns/rxn_CMAQ_H2O2.c
 	src/rxns/rxn_CMAQ_OH_HNO3.c
+	src/rxns/rxn_condensed_phase_arrhenius.c
 	src/rxns/rxn_HL_phase_transfer.c
 	src/rxns/rxn_photolysis.c
         src/rxns/rxn_SIMPOL_phase_transfer.c

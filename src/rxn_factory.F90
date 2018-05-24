@@ -187,6 +187,7 @@ module pmc_rxn_factory
   use pmc_rxn_HL_phase_transfer
   use pmc_rxn_ZSR_aerosol_water
   use pmc_rxn_SIMPOL_phase_transfer
+  use pmc_rxn_condensed_phase_arrhenius
 
   use iso_c_binding
 
@@ -207,6 +208,7 @@ module pmc_rxn_factory
   integer(kind=i_kind), parameter :: RXN_ZSR_AEROSOL_WATER = 8
   integer(kind=i_kind), parameter :: RXN_PDFITE_ACTIVITY = 9
   integer(kind=i_kind), parameter :: RXN_SIMPOL_PHASE_TRANSFER = 10
+  integer(kind=i_kind), parameter :: RXN_CONDENSED_PHASE_ARRHENIUS = 11
 
   !> Factory type for chemical reactions
   !!
@@ -266,6 +268,8 @@ contains
         new_obj => rxn_PDFiTE_activity_t()
       case ("SIMPOL_PHASE_TRANSFER")
         new_obj => rxn_SIMPOL_phase_transfer_t()
+      case ("CONDENSED_PHASE_ARRHENIUS")
+        new_obj => rxn_condensed_phase_arrhenius_t()
       case default
         call die_msg(367114278, "Unknown chemical reaction type: " &
                 //type_name) 
@@ -352,6 +356,8 @@ contains
         rxn_type = RXN_PDFITE_ACTIVITY
       type is (rxn_SIMPOL_phase_transfer_t)
         rxn_type = RXN_SIMPOL_PHASE_TRANSFER
+      type is (rxn_condensed_phase_arrhenius_t)
+        rxn_type = RXN_CONDENSED_PHASE_ARRHENIUS
       class default
         call die_msg(343941184, "Unknown reaction type.")
     end select
@@ -414,6 +420,8 @@ contains
         rxn_type = RXN_PDFITE_ACTIVITY
       type is (rxn_SIMPOL_phase_transfer_t)
         rxn_type = RXN_SIMPOL_PHASE_TRANSFER
+      type is (rxn_condensed_phase_arrhenius_t)
+        rxn_type = RXN_CONDENSED_PHASE_ARRHENIUS
       class default
         call die_msg(343941184, "Trying to pack reaction of unknown type.")
     end select
@@ -465,6 +473,8 @@ contains
         rxn => rxn_PDFiTE_activity_t()
       case (RXN_SIMPOL_PHASE_TRANSFER)
         rxn => rxn_SIMPOL_phase_transfer_t()
+      case (RXN_CONDENSED_PHASE_ARRHENIUS)
+        rxn => rxn_condensed_phase_arrhenius_t()
       case default
         call die_msg(659290342, "Trying to unpack reaction of unknown type:"// &
                 to_string(rxn_type))

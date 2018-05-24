@@ -305,11 +305,12 @@ void * aero_rep_modal_binned_mass_get_aero_phase_mass(int aero_phase_idx, double
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
   for (int i_section=0; i_section<_NUM_SECTION_; i_section++) {
-    for (int i_phase=0; i_phase<_NUM_PHASE_(i_section); i_section++) {
+    for (int i_phase=0; i_phase<_NUM_PHASE_(i_section); i_phase++) {
       for (int i_bin=0; i_bin<_NUM_BINS_(i_section); i_bin++) {
         if (aero_phase_idx==0) {
           *aero_phase_mass = _AERO_PHASE_MASS_(i_section, i_phase, i_bin);
           *aero_phase_avg_MW = _AERO_PHASE_AVG_MW_(i_section, i_phase, i_bin);
+          i_phase = _NUM_PHASE_(i_section);
           i_section = _NUM_SECTION_;
           break;
         }

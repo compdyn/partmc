@@ -1,0 +1,137 @@
+{
+  "notes" : [
+    "2-product SOA scheme from MONARCH model. Based on Tsigaridis and Kanakidou (2007).",
+    "Details in Spada et al. (2013) in prep for Geosci. Model Dev.",
+    "Gas-phase rate constants taken from CB05 reactions with same reactants",
+    "TODO the CB05 reactions should be updated/removed to avoid competition with SOA scheme",
+    "Clausius clapyron parameters (C* and -dH/R) converted to SIMPOL.1 paramaters"
+  ],
+  "pmc-data" : [
+    {
+      "name" : "ISOP-P1",
+      "type" : "CHEM_SPEC",
+      "molecular weight" : 0.08806,
+      "diffusion coeff" : 1.2e-5,
+      "description" : "gas-phase product from isoprene oxidation by OH",
+      "notes" : [
+        "TODO get actual gas-phase diffusion coefficient",
+        "see notes on ISOP-P1_aero species"
+      ]
+    },
+    {
+      "name" : "ISOP-P2",
+      "type" : "CHEM_SPEC",
+      "molecular weight" : 0.09003,
+      "diffusion coeff" : 1.2e-5,
+      "description" : "gas-phase product from isoprene oxidation by O3",
+      "notes" : [
+        "TODO get actual gas-phase diffusion coefficient",
+        "see notes on ISOP-P2_aero species"
+      ]
+    },
+    {
+      "name" : "TERP-P1",
+      "type" : "CHEM_SPEC",
+      "molecular weight" : 0.17025,
+      "diffusion coeff" : 1.2e-5,
+      "description" : "gas-phase product from monoterpene oxidation by OH",
+      "notes" : [
+        "TODO get actual gas-phase diffusion coefficient",
+        "see notes on TERP-P1_aero species"
+      ]
+    },
+    {
+      "name" : "TERP-P2",
+      "type" : "CHEM_SPEC",
+      "molecular weight" : 0.202162,
+      "diffusion coeff" : 1.2e-5,
+      "description" : "gas-phase product from monoterpene oxidation by O3",
+      "notes" : [
+        "TODO get actual gas-phase diffusion coefficient",
+        "see notes on TERP-P2_aero species"
+      ]
+    },
+    {
+      "name" : "2 Product SOA scheme",
+      "type" : "MECHANISM",
+      "reactions" : [
+        {
+          "type" : "ARRHENIUS",
+          "reactants" : {
+            "OH" : {},
+            "ISOP" : {}
+          },
+          "products" : {
+            "ISOP-P1" : { "yield" : 0.192 }
+          },
+          "A" : 2.54e-11,
+          "C" : 407.6
+        },
+        {
+          "type" : "ARRHENIUS",
+          "reactants" : {
+            "O3" : {},
+            "ISOP" : {}
+          },
+          "products" : {
+            "ISOP-P2" : { "yield" : 0.215 }
+          },
+          "A" : 7.86e-15,
+          "C" : -1912.0
+        },
+        {
+          "type" : "ARRHENIUS",
+          "reactants" : {
+            "OH" : {},
+            "TERP": {}
+          },
+          "products" : {
+            "TERP-P1" : { "yield" : 0.0288 }
+          },
+          "A" : 1.5e-11,
+          "C" : 449.0
+        },
+        {
+          "type" : "ARRHENIUS",
+          "reactants" : {
+            "O3" : {},
+            "TERP" : {}
+          },
+          "products" : {
+            "TERP-P2" : { "yield" : 0.232 }
+          },
+          "A" : 1.2e-15,
+          "C" : -821.0
+        },
+        {
+          "type" : "SIMPOL_PHASE_TRANSFER",
+          "gas-phase species" : "ISOP-P1",
+          "aerosol phase" : "organic matter",
+          "aerosol-phase species" : "ISOP-P1_aero",
+          "B" : [ 3.81e3, -2.13e1, 0.0, 0.0 ]
+        },
+        {
+          "type" : "SIMPOL_PHASE_TRANSFER",
+          "gas-phase species" : "ISOP-P2",
+          "aerosol phase" : "organic matter",
+          "aerosol-phase species" : "ISOP-P2_aero",
+          "B" : [ 3.81e3, -2.09e1, 0.0, 0.0 ]
+        },
+        {
+          "type" : "SIMPOL_PHASE_TRANSFER",
+          "gas-phase species" : "TERP-P1",
+          "aerosol phase" : "organic matter",
+          "aerosol-phase species" : "TERP-P1_aero",
+          "B" : [ 2.19e3, -1.75e1, 0.0, 0.0 ]
+        },
+        {
+          "type" : "SIMPOL_PHASE_TRANSFER",
+          "gas-phase species" : "TERP-P2",
+          "aerosol phase" : "organic matter",
+          "aerosol-phase species" : "TERP-P2_aero",
+          "B" : [ 2.19e3, -1.53e1, 0.0, 0.0 ]
+        }
+      ]
+    }
+  ]
+}

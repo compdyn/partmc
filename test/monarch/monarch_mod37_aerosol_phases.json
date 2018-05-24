@@ -20,7 +20,7 @@
     {
       "name" : "organic matter",
       "type" : "AERO_PHASE",
-      "species" : [ "PM_phob", "PM_phil", "ISOP_aero_1", "ISOP_aero_2", "TERP_aero_1", "TERP_aero_2" ]
+      "species" : [ "PM_phob", "PM_phil", "ISOP-P1_aero", "ISOP-P2_aero", "TERP-P1_aero", "TERP-P2_aero" ]
     },
     {
       "name" : "black carbon",

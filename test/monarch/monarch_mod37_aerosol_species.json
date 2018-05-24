@@ -52,27 +52,33 @@
       "note" : "Using C18H36O2 for molecular weight. TODO find best surrogate"
     },
     {
-      "name" : "ISOP_aero_1",
+      "name" : "ISOP-P1_aero",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
       "absolute integration tolerance" : 1.0E-05,
       "density" : 1.80,
       "molecular weight" : 0.08806,
       "description" : "First isoprene SOA species in 2-product scheme",
-      "note" : "Using ketopropanoic acid for molecular weight. TODO find best surrogate"
+      "note" : [
+        "Using ketopropanoic acid for molecular weight. TODO find best surrogate",
+        "TODO update SIMPOL parameters based on MW of new surrogate"
+      ]
     },
     {
-      "name" : "ISOP_aero_2",
+      "name" : "ISOP-P2_aero",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
       "absolute integration tolerance" : 1.0E-05,
       "density" : 1.80,
       "molecular weight" : 0.09003,
       "description" : "Second isoprene SOA species in 2-product scheme",
-      "note" : "Using oxalic acid for molecular weight. TODO find best surrogate"
+      "note" : [
+        "Using oxalic acid for molecular weight. TODO find best surrogate",
+        "TODO update SIMPOL parameters based on MW of new surrogate"
+      ]
     },
     {
-      "name" : "TERP_aero_1",
+      "name" : "TERP-P1_aero",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
       "absolute integration tolerance" : 1.0E-05,
@@ -81,18 +87,22 @@
       "description" : "First monoterpene SOA species in 2-product scheme",
       "note" : [
         "Using 2-hydroxy-3-isopropyl-6-methyl-cyclohexanone for molecular weight",
-        "TODO find best surrogate"
+        "TODO find best surrogate",
+        "TODO update SIMPOL parameters based on MW of new surrogate"
       ]
     },
     {
-      "name" : "TERP_aero_2",
+      "name" : "TERP-P2_aero",
       "type" : "CHEM_SPEC",
       "phase" : "AEROSOL",
       "absolute integration tolerance" : 1.0E-05,
       "density" : 1.80,
       "molecular weight" : 0.202162,
       "description" : "Second monoterpene SOA species in 2-product scheme",
-      "note" : "Using 2-methyl-5-carboxy-2,4-hexodienoic acid. TODO find best surrogate"
+      "note" : [
+        "Using 2-methyl-5-carboxy-2,4-hexodienoic acid. TODO find best surrogate",
+        "TODO update SIMPOL parameters based on MW of new surrogate"
+      ]
     },
     {
       "name" : "BC_phob",

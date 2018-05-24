@@ -531,8 +531,6 @@ contains
       call sections%iter_next()
     end do
 
-    call this%print()
-
     ! Check the data sizes
     call assert(951534966, i_phase-1.eq.num_phase)
     call assert(951534966, n_int_param.eq._INT_DATA_SIZE_+1)

@@ -25,7 +25,7 @@
     "name" : "H2O_aq",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
-    "molecular weight" : 0.001801,
+    "molecular weight" : 0.01801,
     "density" : 1.0,
     "absolute tolerance" : 1.0e-20
   },

@@ -31,9 +31,9 @@ program pmc_test_SIMPOL_phase_transfer
   call pmc_mpi_init()
 
   if (run_SIMPOL_phase_transfer_tests()) then
-    write(*,*) "Henry's Law phase transfer reaction tests - PASS"
+    write(*,*) "SIMPOL phase transfer reaction tests - PASS"
   else
-    write(*,*) "Henry's Law phase transfer reaction tests - FAIL"
+    write(*,*) "SIMPOL phase transfer reaction tests - FAIL"
   end if
 
 contains
@@ -99,6 +99,7 @@ contains
     real(kind=dp), target :: radius, number_conc
     real(kind=dp), parameter :: MW_ethanol = 0.04607
     real(kind=dp), parameter :: MW_H2O = 0.01801
+    real(kind=dp), parameter :: Dg_ethanol = 9.50d-6
 
     run_SIMPOL_phase_transfer_test = .true.
 
@@ -115,7 +116,7 @@ contains
                          - 4.96E-01 * log(temperature) )
 
     ! Set output time step (s)
-    time_step = 1.0d-12
+    time_step = 1.0d-11
 
     ! Get the SIMPOL_phase_transfer reaction mechanism json file
     input_file_path = 'test_SIMPOL_phase_transfer_config.json'
@@ -179,7 +180,7 @@ contains
     alpha = exp(-del_G/(const%univ_gas_const*temperature))
     alpha = alpha / (1.0d0 + alpha)
     crms = sqrt(8.0d0*const%univ_gas_const*temperature/(const%pi*46.07d0))
-    k_forward = number_conc * ((radius**2 / (3.0d0 * 1.48d-5) + 4.0d0 * radius / &
+    k_forward = number_conc * ((radius**2 / (3.0d0 * Dg_ethanol) + 4.0d0 * radius / &
             (3.0d0 * crms * alpha))**(-1))                                      ! (1/s)
 
     ! Determine the equilibrium concentrations
@@ -195,7 +196,7 @@ contains
 
     ! Calculate the backwards rate constant based on the equilibrium conditions
     ! and the forward rate
-    k_backward = k_forward / ( equil_ethanol )                             ! (1/s)
+    k_backward = k_forward / ( equil_ethanol/ugm3_to_ppm/equil_ethanol_aq ) ! (1/s)
     
     ! Set the initial state in the model
     phlex_state%state_var(:) = model_conc(0,:)
@@ -237,11 +238,11 @@ contains
       do i_spec = 1, 5
         ! Only check the second phase
         if (i_spec.ge.2.and.i_spec.le.3) cycle
-!        call assert_msg(162705801, &
-!          almost_equal(model_conc(i_time, i_spec), true_conc(i_time, i_spec), &
-!          real(1.0e-2, kind=dp)), "time: "//to_string(i_time)//"; species: "// &
-!          to_string(i_spec)//"; mod: "//to_string(model_conc(i_time, i_spec))// &
-!          "; true: "//to_string(true_conc(i_time, i_spec)))
+        call assert_msg(162705801, &
+          almost_equal(model_conc(i_time, i_spec), true_conc(i_time, i_spec), &
+          real(1.0e-2, kind=dp)), "time: "//to_string(i_time)//"; species: "// &
+          to_string(i_spec)//"; mod: "//to_string(model_conc(i_time, i_spec))// &
+          "; true: "//to_string(true_conc(i_time, i_spec)))
       end do
     end do
 

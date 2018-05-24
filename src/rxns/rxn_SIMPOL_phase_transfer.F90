@@ -326,7 +326,7 @@ contains
     key_name = "molecular weight"
     call assert_msg(272813400, spec_props%get_real(key_name, temp_real), &
             "Missing molecular weight for species "//spec_name)
-    _pre_c_rms_ = sqrt(8.0*const%univ_gas_const/(const%pi*temp_real))
+    _pre_c_rms_ = sqrt(8.0*const%univ_gas_const/(const%pi*temp_real*1.0e3))
 
   end subroutine initialize
 

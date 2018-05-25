@@ -231,6 +231,7 @@ contains
     do i_aero_rep = 1, size(aero_rep)
 
       ! Check for the specified phase in this aero rep
+      ! TODO use num_phase_instances function here and to set num_phase
       if (aero_rep(i_aero_rep)%val%phase_id(phase_name).eq.0) cycle
 
       ! Get the unique names for aerosol-phase water
@@ -383,6 +384,7 @@ contains
       num_phase = size(unique_names)
 
       ! Save the state ids for aerosol water concentration
+      ! TODO change i_spec to i_phase_inst here and for reactants and products
       do i_spec = 1, num_phase
         _WATER_(i_aero_phase + i_spec) = aero_rep(i_aero_rep)%val%spec_state_id( &
                 unique_names(i_spec)%string)

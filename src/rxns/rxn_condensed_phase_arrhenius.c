@@ -23,20 +23,22 @@
 #define _NUM_PROD_ (int_data[1])
 #define _NUM_AERO_PHASE_ (int_data[2])
 #define _A_ (float_data[0])
-#define _C_ (float_data[1])
-#define _k_reverse_ (float_data[2])
-#define _k_forward_ (float_data[3])
+#define _B_ (float_data[1])
+#define _C_ (float_data[2])
+#define _D_ (float_data[3])
+#define _E_ (float_data[4])
+#define _RATE_CONSTANT_ (float_data[5])
 #define _NUM_INT_PROP_ 3
-#define _NUM_FLOAT_PROP_ 4
+#define _NUM_FLOAT_PROP_ 6
 #define _REACT_(x) (int_data[_NUM_INT_PROP_+x]-1)
 #define _PROD_(x) (int_data[_NUM_INT_PROP_+_NUM_REACT_*_NUM_AERO_PHASE_+x]-1)
 #define _WATER_(x) (int_data[_NUM_INT_PROP_+(_NUM_REACT_+_NUM_PROD_)*_NUM_AERO_PHASE_+x]-1)
-#define _ACTIVITY_COEFF_(x) (int_data[_NUM_INT_PROP_+(_NUM_REACT_+_NUM_PROD_+1)*_NUM_AERO_PHASE_+x]-1)
-#define _DERIV_ID_(x) (int_data[_NUM_INT_PROP_+(_NUM_REACT_+_NUM_PROD_+2)*_NUM_AERO_PHASE_+x])
-#define _JAC_ID_(x) (int_data[_NUM_INT_PROP_+(2*(_NUM_REACT_+_NUM_PROD_)+2)*_NUM_AERO_PHASE_+x])
-#define _mass_frac_TO_M_(x) (float_data[_NUM_FLOAT_PROP_+x])
-#define _INT_DATA_SIZE_ (_NUM_INT_PROP_+((_NUM_REACT_+_NUM_PROD_)*(_NUM_REACT_+_NUM_PROD_+3)+2)*_NUM_AERO_PHASE_)
-#define _FLOAT_DATA_SIZE_ (_NUM_FLOAT_PROP_+_NUM_PROD_+_NUM_REACT_)
+#define _DERIV_ID_(x) (int_data[_NUM_INT_PROP_+(_NUM_REACT_+_NUM_PROD_+1)*_NUM_AERO_PHASE_+x])
+#define _JAC_ID_(x) (int_data[_NUM_INT_PROP_+(2*(_NUM_REACT_+_NUM_PROD_)+1)*_NUM_AERO_PHASE_+x])
+#define _yield_(x) (float_data[_NUM_FLOAT_PROP_+x])
+#define _ugm3_TO_molm3_(x) (float_data[_NUM_FLOAT_PROP_+_NUM_REACT_+_NUM_PROD_+x])
+#define _INT_DATA_SIZE_ (_NUM_INT_PROP_+((_NUM_REACT_+_NUM_PROD_)*(_NUM_REACT_+3)+1)*_NUM_AERO_PHASE_)
+#define _FLOAT_DATA_SIZE_ (_NUM_FLOAT_PROP_+2*(_NUM_PROD_+_NUM_REACT_))
 
 /** \brief Flag Jacobian elements used by this reaction
  *
@@ -53,7 +55,7 @@ void * rxn_condensed_phase_arrhenius_get_used_jac_elem(void *rxn_data, bool **ja
   // Loop over all the instances of the specified phase
   for (int i_phase = 0; i_phase < _NUM_AERO_PHASE_; i_phase++) {
     
-    // Add dependence on reactants for reactants and products (forward reaction) 
+    // Add dependence on reactants for reactants and products
     for (int i_react_ind = i_phase*_NUM_REACT_; i_react_ind < (i_phase+1)*_NUM_REACT_; i_react_ind++) {
       for (int i_react_dep = i_phase*_NUM_REACT_; i_react_dep < (i_phase+1)*_NUM_REACT_; i_react_dep++)
         jac_struct[_REACT_(i_react_dep)][_REACT_(i_react_ind)] = true;
@@ -61,19 +63,13 @@ void * rxn_condensed_phase_arrhenius_get_used_jac_elem(void *rxn_data, bool **ja
         jac_struct[_PROD_(i_prod_dep)][_REACT_(i_react_ind)] = true;
     }
 
-    // Add dependence on products for reactants and products (reverse reaction) 
-    for (int i_prod_ind = i_phase*_NUM_PROD_; i_prod_ind < (i_phase+1)*_NUM_PROD_; i_prod_ind++) {
+    // Add dependence on aerosol-phase water for reactants and products in aqueous reactions
+    if (_WATER_(i_phase)>=0) {
       for (int i_react_dep = i_phase*_NUM_REACT_; i_react_dep < (i_phase+1)*_NUM_REACT_; i_react_dep++)
-        jac_struct[_REACT_(i_react_dep)][_PROD_(i_prod_ind)] = true;
+        jac_struct[_REACT_(i_react_dep)][_WATER_(i_phase)] = true;
       for (int i_prod_dep = i_phase*_NUM_PROD_; i_prod_dep < (i_phase+1)*_NUM_PROD_; i_prod_dep++)
-        jac_struct[_PROD_(i_prod_dep)][_PROD_(i_prod_ind)] = true;
+        jac_struct[_PROD_(i_prod_dep)][_WATER_(i_phase)] = true;
     }
-
-    // Add dependence on aerosol-phase water for reactants and products
-    for (int i_react_dep = i_phase*_NUM_REACT_; i_react_dep < (i_phase+1)*_NUM_REACT_; i_react_dep++)
-      jac_struct[_REACT_(i_react_dep)][_WATER_(i_phase)] = true;
-    for (int i_prod_dep = i_phase*_NUM_PROD_; i_prod_dep < (i_phase+1)*_NUM_PROD_; i_prod_dep++)
-      jac_struct[_PROD_(i_prod_dep)][_WATER_(i_phase)] = true;
 
   }
 
@@ -103,7 +99,7 @@ void * rxn_condensed_phase_arrhenius_update_ids(int *deriv_ids, int **jac_ids, v
   // Update the Jacobian ids
   for (int i_phase = 0, i_jac = 0; i_phase < _NUM_AERO_PHASE_; i_phase++) {
     
-    // Add dependence on reactants for reactants and products (forward reaction) 
+    // Add dependence on reactants for reactants and products 
     for (int i_react_ind = i_phase*_NUM_REACT_; i_react_ind < (i_phase+1)*_NUM_REACT_; i_react_ind++) {
       for (int i_react_dep = i_phase*_NUM_REACT_; i_react_dep < (i_phase+1)*_NUM_REACT_; i_react_dep++)
         _JAC_ID_(i_jac++) = jac_ids[_REACT_(i_react_dep)][_REACT_(i_react_ind)];
@@ -111,19 +107,19 @@ void * rxn_condensed_phase_arrhenius_update_ids(int *deriv_ids, int **jac_ids, v
         _JAC_ID_(i_jac++) = jac_ids[_PROD_(i_prod_dep)][_REACT_(i_react_ind)];
     }
 
-    // Add dependence on products for reactants and products (reverse reaction) 
-    for (int i_prod_ind = i_phase*_NUM_PROD_; i_prod_ind < (i_phase+1)*_NUM_PROD_; i_prod_ind++) {
-      for (int i_react_dep = i_phase*_NUM_REACT_; i_react_dep < (i_phase+1)*_NUM_REACT_; i_react_dep++)
-        _JAC_ID_(i_jac++) = jac_ids[_REACT_(i_react_dep)][_PROD_(i_prod_ind)];
-      for (int i_prod_dep = i_phase*_NUM_PROD_; i_prod_dep < (i_phase+1)*_NUM_PROD_; i_prod_dep++)
-        _JAC_ID_(i_jac++) = jac_ids[_PROD_(i_prod_dep)][_PROD_(i_prod_ind)];
-    }
-
     // Add dependence on aerosol-phase water for reactants and products
     for (int i_react_dep = i_phase*_NUM_REACT_; i_react_dep < (i_phase+1)*_NUM_REACT_; i_react_dep++)
-      _JAC_ID_(i_jac++) = jac_ids[_REACT_(i_react_dep)][_WATER_(i_phase)];
+      if (_WATER_(i_phase)>=0) {
+        _JAC_ID_(i_jac++) = jac_ids[_REACT_(i_react_dep)][_WATER_(i_phase)];
+      } else {
+        _JAC_ID_(i_jac++) = -1;
+      }
     for (int i_prod_dep = i_phase*_NUM_PROD_; i_prod_dep < (i_phase+1)*_NUM_PROD_; i_prod_dep++)
-      _JAC_ID_(i_jac++) = jac_ids[_PROD_(i_prod_dep)][_WATER_(i_phase)];
+      if (_WATER_(i_phase)>=0) {
+        _JAC_ID_(i_jac++) = jac_ids[_PROD_(i_prod_dep)][_WATER_(i_phase)];
+      } else {
+        _JAC_ID_(i_jac++) = -1;
+      }
 
   }
   
@@ -145,16 +141,11 @@ void * rxn_condensed_phase_arrhenius_update_env_state(realtype *env_data, void *
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
-  // Calculate the equilibrium constant (assumes reactant and product concentrations in M)
-  realtype equil_const;
-  if (_C_==0.0) {
-    equil_const = _A_;
-  } else {
-    equil_const = _A_ * exp(_C_ * (1.0/_TEMPERATURE_K_ - 1.0/298.0));
-  }
-
-  // Set the forward rate constant
-  _k_forward_ = equil_const * _k_reverse_;
+  // Calculate the rate constant in (M or mol/m3)
+  // k = A*exp(C/T) * (T/D)^B * (1+E*P)
+  _RATE_CONSTANT_ = _A_ * SUNRexp(_C_/_TEMPERATURE_K_)
+          * (_B_==ZERO ? ONE : SUNRpowerR(_TEMPERATURE_K_/_D_, _B_))
+          * (_E_==ZERO ? ONE : (ONE + _E_*_PRESSURE_PA_));
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
@@ -195,40 +186,38 @@ void * rxn_condensed_phase_arrhenius_calc_deriv_contrib(ModelData *model_data, r
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase=0, i_deriv = 0; i_phase<_NUM_AERO_PHASE_; i_phase++) {
 
-    // If no aerosol water is present, no reaction occurs
-    if (state[_WATER_(i_phase)] < _SMALL_NUMBER_) {
-      i_deriv += _NUM_REACT_ + _NUM_PROD_;
-      continue;
+    // If this is an aqueous reaction, get the unit conversion from mol/m3 -> M
+    realtype unit_conv = 1.0;
+    if (_WATER_(i_phase)>=0) {
+      unit_conv = state[_WATER_(i_phase)] * 1.0e-9; // convert from ug/m3 -> L/m3
+
+      // For aqueous reactions, if no aerosol water is present, no reaction occurs
+      if (unit_conv < _SMALL_NUMBER_) {
+        i_deriv += _NUM_REACT_ + _NUM_PROD_;
+        continue;
+      }
+      unit_conv = 1.0/unit_conv;
     }
 
-    // Calculate the forward rate (M/s)
-    realtype forward_rate = _k_forward_;
+    // Calculate the reaction rate rate (M/s or mol/m3/s)
+    realtype rate = _RATE_CONSTANT_;
     for (int i_react = 0; i_react < _NUM_REACT_; i_react++) {
-      forward_rate *= state[_REACT_(i_phase*_NUM_REACT_+i_react)] * 
-              _mass_frac_TO_M_(i_react) / state[_WATER_(i_phase)];
+      rate *= state[_REACT_(i_phase*_NUM_REACT_+i_react)] * 
+              _ugm3_TO_molm3_(i_react) * unit_conv;
     }
 
-    // Calculate the reverse rate (M/s)
-    realtype reverse_rate = _k_reverse_;
-    for (int i_prod = 0; i_prod < _NUM_PROD_; i_prod++) {
-      reverse_rate *= state[_PROD_(i_phase*_NUM_PROD_+i_prod)] * 
-              _mass_frac_TO_M_(_NUM_REACT_+i_prod) / state[_WATER_(i_phase)];
-    }
-    if (_ACTIVITY_COEFF_(i_phase)>=0) reverse_rate *= 
-            state[_ACTIVITY_COEFF_(i_phase)];
-
-    // Reactants change as (reverse - forward) (ug/m3/s)
+    // Reactant change
     for (int i_react = 0; i_react < _NUM_REACT_; i_react++) {
       if (_DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
-      deriv[_DERIV_ID_(i_deriv++)] += (reverse_rate - forward_rate) /
-	      _mass_frac_TO_M_(i_react) * state[_WATER_(i_phase)];
+      deriv[_DERIV_ID_(i_deriv++)] -= rate /
+	      (_ugm3_TO_molm3_(i_react) * unit_conv);
     }
 
-    // Products change as (forward - reverse) (ug/m3/s)
+    // Products change
     for (int i_prod = 0; i_prod < _NUM_PROD_; i_prod++) {
       if (_DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
-      deriv[_DERIV_ID_(i_deriv++)] += (forward_rate - reverse_rate) /
-	      _mass_frac_TO_M_(_NUM_REACT_+i_prod) * state[_WATER_(i_phase)];
+      deriv[_DERIV_ID_(i_deriv++)] += rate * _yield_(i_prod) /
+	      (_ugm3_TO_molm3_(_NUM_REACT_+i_prod) * unit_conv);
     }
 
   }
@@ -256,70 +245,56 @@ void * rxn_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data, rea
   // Calculate Jacobian contributions for each aerosol phase
   for (int i_phase=0, i_jac = 0; i_phase<_NUM_AERO_PHASE_; i_phase++) {
 
-    // If not aerosol water is present, no reaction occurs
-    if (state[_WATER_(i_phase)] < _SMALL_NUMBER_) {
-      i_jac += (_NUM_REACT_ + _NUM_PROD_) * (_NUM_REACT_ + _NUM_PROD_ + 1);
-      continue;
+    // If this is an aqueous reaction, get the unit conversion from mol/m3 -> M
+    realtype unit_conv = 1.0;
+    if (_WATER_(i_phase)>=0) {
+      unit_conv = state[_WATER_(i_phase)] * 1.0e-9; // convert from ug/m3 -> L/m3
+
+      // For aqueous reactions, if no aerosol water is present, no reaction occurs
+      if (unit_conv < _SMALL_NUMBER_) {
+        i_jac += (_NUM_REACT_ + _NUM_PROD_) * (_NUM_REACT_ + 1);
+        continue;
+      }
+      unit_conv = 1.0/unit_conv;
     }
 
-    // Calculate the forward rate (M/s)
-    realtype forward_rate = _k_forward_;
+    // Calculate the reaction rate rate (M/s or mol/m3/s)
+    realtype rate = _RATE_CONSTANT_;
     for (int i_react = 0; i_react < _NUM_REACT_; i_react++) {
-      forward_rate *= state[_REACT_(i_phase*_NUM_REACT_+i_react)] * 
-              _mass_frac_TO_M_(i_react) / state[_WATER_(i_phase)];
+      rate *= state[_REACT_(i_phase*_NUM_REACT_+i_react)] * 
+              _ugm3_TO_molm3_(i_react) * unit_conv;
     }
 
-    // Calculate the reverse rate (M/s)
-    realtype reverse_rate = _k_reverse_;
-    for (int i_prod = 0; i_prod < _NUM_PROD_; i_prod++) {
-      reverse_rate *= state[_PROD_(i_phase*_NUM_PROD_+i_prod)] * 
-              _mass_frac_TO_M_(_NUM_REACT_+i_prod) / state[_WATER_(i_phase)];
-    }
-    if (_ACTIVITY_COEFF_(i_phase)>=0) reverse_rate *= 
-            state[_ACTIVITY_COEFF_(i_phase)];
-
-    // No Jac contributions to add if the rates are zero
-    if ((forward_rate - reverse_rate)==0.0) {
-      i_jac += (_NUM_REACT_ + _NUM_PROD_) * (_NUM_REACT_ + _NUM_PROD_ + 1);
+    // No Jac contributions to add if the rate is zero
+    if (rate==0.0) {
+      i_jac += (_NUM_REACT_ + _NUM_PROD_) * (_NUM_REACT_ + 1);
       continue;
     }
 
-    // Add dependence on reactants for reactants and products (forward reaction) 
+    // Add dependence on reactants for reactants and products 
     for (int i_react_ind = 0; i_react_ind < _NUM_REACT_; i_react_ind++) {
       for (int i_react_dep = 0; i_react_dep < _NUM_REACT_; i_react_dep++) {
-	if (_JAC_ID_(i_jac)<0 || forward_rate==0.0) {i_jac++; continue;}
-        J[_JAC_ID_(i_jac++)] += (-forward_rate) / state[_REACT_(i_phase*_NUM_REACT_+i_react_ind)] / 
-		_mass_frac_TO_M_(i_react_dep) * state[_WATER_(i_phase)];
+	if (_JAC_ID_(i_jac)<0) {i_jac++; continue;}
+        J[_JAC_ID_(i_jac++)] -= rate / state[_REACT_(i_phase*_NUM_REACT_+i_react_ind)] / 
+	        (_ugm3_TO_molm3_(i_react_dep) * unit_conv);
       }
       for (int i_prod_dep = 0; i_prod_dep < _NUM_PROD_; i_prod_dep++) {
-	if (_JAC_ID_(i_jac)<0 || forward_rate==0.0) {i_jac++; continue;}
-        J[_JAC_ID_(i_jac++)] += (forward_rate) / state[_REACT_(i_phase*_NUM_REACT_+i_react_ind)] / 
-		_mass_frac_TO_M_(_NUM_REACT_ + i_prod_dep) * state[_WATER_(i_phase)];
+	if (_JAC_ID_(i_jac)<0) {i_jac++; continue;}
+        J[_JAC_ID_(i_jac++)] += rate / state[_REACT_(i_phase*_NUM_REACT_+i_react_ind)] / 
+	        (_ugm3_TO_molm3_(_NUM_REACT_+i_prod_dep) * unit_conv);
       }
     }
 
-    // Add dependence on products for reactants and products (reverse reaction) 
-    for (int i_prod_ind = 0; i_prod_ind < _NUM_PROD_; i_prod_ind++) {
-      for (int i_react_dep = 0; i_react_dep < _NUM_REACT_; i_react_dep++) {
-	if (_JAC_ID_(i_jac)<0 || reverse_rate==0.0) {i_jac++; continue;}
-        J[_JAC_ID_(i_jac++)] += (reverse_rate) / state[_PROD_(i_phase*_NUM_PROD_+i_prod_ind)] / 
-		_mass_frac_TO_M_(i_react_dep) * state[_WATER_(i_phase)];
-      }
-      for (int i_prod_dep = 0; i_prod_dep < _NUM_PROD_; i_prod_dep++) {
-	if (_JAC_ID_(i_jac)<0 || reverse_rate==0.0) {i_jac++; continue;}
-        J[_JAC_ID_(i_jac++)] += (-reverse_rate) / state[_PROD_(i_phase*_NUM_PROD_+i_prod_ind)] / 
-		_mass_frac_TO_M_(_NUM_REACT_ + i_prod_dep) * state[_WATER_(i_phase)];
-      }
-    }
-
-    // Add dependence on aerosol-phase water for reactants and products
+    // Add dependence on aerosol-phase water for reactants and products in aqueous reactions
     for (int i_react_dep = 0; i_react_dep < _NUM_REACT_; i_react_dep++) {
       if (_JAC_ID_(i_jac)<0) {i_jac++; continue;}
-      J[_JAC_ID_(i_jac++)] += (reverse_rate-forward_rate) / _mass_frac_TO_M_(i_react_dep);
+      J[_JAC_ID_(i_jac++)] += (_NUM_REACT_-1) *rate / state[_WATER_(i_phase)] /
+	        (_ugm3_TO_molm3_(i_react_dep) * unit_conv);
     }
     for (int i_prod_dep = 0; i_prod_dep < _NUM_PROD_; i_prod_dep++) {
       if (_JAC_ID_(i_jac)<0) {i_jac++; continue;}
-      J[_JAC_ID_(i_jac++)] += (forward_rate-reverse_rate) / _mass_frac_TO_M_(_NUM_REACT_ + i_prod_dep);
+      J[_JAC_ID_(i_jac++)] -= (_NUM_REACT_-1) * rate / state[_WATER_(i_phase)] /
+	        (_ugm3_TO_molm3_(_NUM_REACT_+i_prod_dep) * unit_conv);
     }
 
   }
@@ -390,18 +365,20 @@ void * rxn_condensed_phase_arrhenius_get_rate(void *rxn_data, realtype *state, r
 #undef _NUM_PROD_
 #undef _NUM_AERO_PHASE_
 #undef _A_
+#undef _B_
 #undef _C_
-#undef _k_reverse_
-#undef _k_forward_
+#undef _D_
+#undef _E_
+#undef _RATE_CONSTANT_
 #undef _NUM_INT_PROP_
 #undef _NUM_FLOAT_PROP_
 #undef _REACT_
 #undef _PROD_
 #undef _WATER_
-#undef _ACTIVITY_COEFF_
 #undef _DERIV_ID_
 #undef _JAC_ID_
-#undef _mass_frac_TO_M_
+#undef _yield_
+#undef _ugm3_TO_molm3_
 #undef _INT_DATA_SIZE_
 #undef _FLOAT_DATA_SIZE_
 

@@ -315,11 +315,17 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data, realtype 
     // Add dependence on aerosol-phase water for reactants and products
     for (int i_react_dep = 0; i_react_dep < _NUM_REACT_; i_react_dep++) {
       if (_JAC_ID_(i_jac)<0) {i_jac++; continue;}
-      J[_JAC_ID_(i_jac++)] += (reverse_rate-forward_rate) / _mass_frac_TO_M_(i_react_dep);
+      J[_JAC_ID_(i_jac++)] += ( forward_rate * (_NUM_REACT_-1) 
+                                - reverse_rate * (_NUM_PROD_-1) )
+                                / state[_WATER_(i_phase)]
+                                / _mass_frac_TO_M_(i_react_dep);
     }
     for (int i_prod_dep = 0; i_prod_dep < _NUM_PROD_; i_prod_dep++) {
       if (_JAC_ID_(i_jac)<0) {i_jac++; continue;}
-      J[_JAC_ID_(i_jac++)] += (forward_rate-reverse_rate) / _mass_frac_TO_M_(_NUM_REACT_ + i_prod_dep);
+      J[_JAC_ID_(i_jac++)] -= ( forward_rate * (_NUM_REACT_-1)
+                                - reverse_rate * (_NUM_PROD_-1) )
+                                / state[_WATER_(i_phase)]
+                                / _mass_frac_TO_M_(_NUM_REACT_ + i_prod_dep);
     }
 
   }

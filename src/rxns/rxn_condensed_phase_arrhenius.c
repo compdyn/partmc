@@ -36,9 +36,9 @@
 #define _DERIV_ID_(x) (int_data[_NUM_INT_PROP_+(_NUM_REACT_+_NUM_PROD_+1)*_NUM_AERO_PHASE_+x])
 #define _JAC_ID_(x) (int_data[_NUM_INT_PROP_+(2*(_NUM_REACT_+_NUM_PROD_)+1)*_NUM_AERO_PHASE_+x])
 #define _yield_(x) (float_data[_NUM_FLOAT_PROP_+x])
-#define _ugm3_TO_molm3_(x) (float_data[_NUM_FLOAT_PROP_+_NUM_REACT_+_NUM_PROD_+x])
+#define _ugm3_TO_molm3_(x) (float_data[_NUM_FLOAT_PROP_+_NUM_PROD_+x])
 #define _INT_DATA_SIZE_ (_NUM_INT_PROP_+((_NUM_REACT_+_NUM_PROD_)*(_NUM_REACT_+3)+1)*_NUM_AERO_PHASE_)
-#define _FLOAT_DATA_SIZE_ (_NUM_FLOAT_PROP_+2*(_NUM_PROD_+_NUM_REACT_))
+#define _FLOAT_DATA_SIZE_ (_NUM_FLOAT_PROP_+2*_NUM_PROD_+_NUM_REACT_)
 
 /** \brief Flag Jacobian elements used by this reaction
  *
@@ -280,7 +280,8 @@ void * rxn_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data, rea
       }
       for (int i_prod_dep = 0; i_prod_dep < _NUM_PROD_; i_prod_dep++) {
 	if (_JAC_ID_(i_jac)<0) {i_jac++; continue;}
-        J[_JAC_ID_(i_jac++)] += rate / state[_REACT_(i_phase*_NUM_REACT_+i_react_ind)] / 
+        J[_JAC_ID_(i_jac++)] += rate * _yield_(i_prod_dep) / 
+                state[_REACT_(i_phase*_NUM_REACT_+i_react_ind)] / 
 	        (_ugm3_TO_molm3_(_NUM_REACT_+i_prod_dep) * unit_conv);
       }
     }
@@ -288,12 +289,13 @@ void * rxn_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data, rea
     // Add dependence on aerosol-phase water for reactants and products in aqueous reactions
     for (int i_react_dep = 0; i_react_dep < _NUM_REACT_; i_react_dep++) {
       if (_JAC_ID_(i_jac)<0) {i_jac++; continue;}
-      J[_JAC_ID_(i_jac++)] += (_NUM_REACT_-1) *rate / state[_WATER_(i_phase)] /
+      J[_JAC_ID_(i_jac++)] += (_NUM_REACT_-1) * rate / state[_WATER_(i_phase)] /
 	        (_ugm3_TO_molm3_(i_react_dep) * unit_conv);
     }
     for (int i_prod_dep = 0; i_prod_dep < _NUM_PROD_; i_prod_dep++) {
       if (_JAC_ID_(i_jac)<0) {i_jac++; continue;}
-      J[_JAC_ID_(i_jac++)] -= (_NUM_REACT_-1) * rate / state[_WATER_(i_phase)] /
+      J[_JAC_ID_(i_jac++)] -= (_NUM_REACT_-1) * rate * _yield_(i_prod_dep) / 
+                state[_WATER_(i_phase)] /
 	        (_ugm3_TO_molm3_(_NUM_REACT_+i_prod_dep) * unit_conv);
     }
 

@@ -56,7 +56,7 @@
 !! 1.0.
 !!
 !! Units for the reactants and products must be specified using the key
-!! \b units and can be either "M" or "ug/m3". If units of "M" are specified,
+!! \b units and can be either "M" or "mol m-3". If units of "M" are specified,
 !! a key-value pair \b "aerosol-phase water" must also be included whose value
 !! is a string specifying the name for water in the aerosol phase.
 !!
@@ -110,7 +110,7 @@ module pmc_rxn_condensed_phase_arrhenius
 #define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+(_NUM_REACT_+_NUM_PROD_+1)*_NUM_AERO_PHASE_+x)
 #define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+(2*(_NUM_REACT_+_NUM_PROD_)+1)*_NUM_AERO_PHASE_+x)
 #define _yield_(x) this%condensed_data_real(_NUM_REAL_PROP_+x)
-#define _ugm3_TO_molm3_(x) this%condensed_data_real(_NUM_REAL_PROP_+_NUM_REACT_+_NUM_PROD_+x)
+#define _ugm3_TO_molm3_(x) this%condensed_data_real(_NUM_REAL_PROP_+_NUM_PROD_+x)
 
   public :: rxn_condensed_phase_arrhenius_t
 
@@ -233,7 +233,7 @@ contains
     allocate(this%condensed_data_int(_NUM_INT_PROP_ + &
             num_phase * (num_spec_per_phase * (num_react + 3) + 1)))
     allocate(this%condensed_data_real(_NUM_REAL_PROP_ + &
-            num_spec_per_phase * 2))
+            num_spec_per_phase + num_prod))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
 
@@ -247,12 +247,12 @@ contains
     if (.not. this%property_set%get_real(key_name, _A_)) then
       _A_ = 1.0
     end if
-    key_name = "time_unit"
+    key_name = "time unit"
     if (this%property_set%get_string(key_name, temp_string)) then
       if (trim(temp_string).eq."MIN") then
         _A_ = _A_ / 60.0
       else
-        call assert_msg(390870843, temp_string.eq."s", &
+        call assert_msg(390870843, trim(temp_string).eq."s", &
                 "Received invalid time unit: '"//temp_string//"' in "// &
                 "condnesed-phase Arrhenius reaction. Valid units are "// &
                 "'MIN' and 's'.")
@@ -337,15 +337,18 @@ contains
            "Missing properties required for condensed-phase Arrhenius "// &
            "reaction involving species '"//trim(spec_name)//"'")
 
+      ! Increment the product counter
+      i_spec = i_spec + 1
+      
       ! Get the molecular weight
       key_name = "molecular weight"
       call assert_msg(504705211, spec_props%get_real(key_name, temp_real), &
            "Missing 'molecular weight' for species '"//trim(spec_name)// &
            "' in condensed phase Arrhenius reaction.")
 
-      ! Increment the product counter
-      i_spec = i_spec + 1
-      
+      ! Use the MW to calculate the ug/m3 -> mol/m3 conversion
+      _ugm3_TO_molm3_(_NUM_REACT_+i_spec) = 1.0d-9/temp_real
+
       ! Set properties for each occurance of a reactant in the rxn equation
       call assert(846924553, products%get_property_t(val=spec_props))
       key_name = "yield"
@@ -358,9 +361,6 @@ contains
       ! Add the product name to the list
       prod_names(i_spec)%string = spec_name
 
-      ! Use the MW to calculate the ug/m3 -> mol/m3 conversion
-      _ugm3_TO_molm3_(i_spec) = 1.0d-9/temp_real
-
       ! Go to the next product
       call products%iter_next()
 
@@ -372,7 +372,7 @@ contains
     call assert_msg(348722817, &
             this%property_set%get_string(key_name, temp_string), &
             "Missing units for condensed-phase Arrhenius reaction.")
-    if (temp_string.eq."ug/m3") then
+    if (trim(temp_string).eq."mol m-3") then
       is_aqueous = .false.
       key_name = "aerosol-phase water"
       call assert_msg(767767240, &
@@ -380,7 +380,7 @@ contains
               "Aerosol-phase water specified for non-aqueous condensed-"// &
               "phase Arrhenius reaction. Change units to 'M' or remove "// &
               "aerosol-phase water")
-    else if (temp_string.eq."M") then
+    else if (trim(temp_string).eq."M") then
       is_aqueous = .true.
       key_name = "aerosol-phase water"
       call assert_msg(199910264, &
@@ -390,7 +390,7 @@ contains
     else
       call die_msg(161772048, "Received invalid units for condensed-"// &
               "phase Arrhenius reaction: '"//temp_string//"'. Valid "// &
-              "units are 'ug/m3' or 'M'.")
+              "units are 'mol m-3' or 'M'.")
     end if
 
     ! Set the state array indices for the reactants, products and water
@@ -419,7 +419,7 @@ contains
         do i_phase_inst = 1, num_phase
           _WATER_(i_aero_phase + i_phase_inst) = &
                   aero_rep(i_aero_rep)%val%spec_state_id( &
-                  unique_names(i_spec)%string)
+                  unique_names(i_phase_inst)%string)
         end do
 
       else

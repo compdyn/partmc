@@ -1,0 +1,169 @@
+{
+  "note" : "Test mechanism for aqueous equilibrium reactions",
+  "pmc-data" : [
+   {
+    "type" : "RELATIVE_TOLERANCE",
+    "value" : 1.0e-15
+  },
+  {
+    "name" : "A",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "molecular weight" : 0.1572,
+    "density" : 1.0,
+    "absolute tolerance" : 1.0e-20
+  },
+  {
+    "name" : "B",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "molecular weight" : 0.0219,
+    "density" : 1.0,
+    "absolute tolerance" : 1.0e-20
+  },
+  {
+    "name" : "C",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "molecular weight" : 0.2049,
+    "density" : 1.0,
+    "absolute tolerance" : 1.0e-20
+  },
+  {
+    "name" : "D",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "molecular weight" : 0.0345,
+    "density" : 1.0,
+    "tracer type" : "CONSTANT"
+  },
+  {
+    "name" : "H2O_aq",
+    "type" : "CHEM_SPEC",
+    "phase" : "AEROSOL",
+    "density" : 1.0,
+    "molecular weight" : 0.01801
+  },
+  {
+    "name" : "aqueous aerosol",
+    "type" : "AERO_PHASE",
+    "species" : ["A", "B", "C", "D", "H2O_aq"]
+  },
+  {
+    "name" : "organic aerosol",
+    "type" : "AERO_PHASE",
+    "species" : ["A", "B", "C", "D"]
+  },
+  {
+    "type" : "AERO_REP_SINGLE_PARTICLE",
+    "name" : "my aero rep 1"
+  },
+  {
+    "type" : "AERO_REP_SINGLE_PARTICLE",
+    "name" : "my aero rep 2"
+  },
+  {
+    "type" : "AERO_REP_SINGLE_PARTICLE",
+    "name" : "my aero rep 3"
+  },
+  {
+    "name" : "condensed phase Arrhenius",
+    "type" : "MECHANISM",
+    "reactions" : [
+      {
+	"type" : "CONDENSED_PHASE_ARRHENIUS",
+        "aerosol phase" : "aqueous aerosol",
+        "aerosol-phase water" : "H2O_aq",
+        "units" : "M", 
+        "reactants" : {
+	  "A" : {},
+	  "D" : {}
+	},
+	"products" : {
+	  "B" : {}
+	}
+      },
+      {
+	"type" : "CONDENSED_PHASE_ARRHENIUS",
+        "aerosol phase" : "aqueous aerosol",
+        "aerosol-phase water" : "H2O_aq",
+        "units" : "M", 
+	"reactants" : {
+	  "A" : {}
+	},
+	"products" : {
+	  "B" : {}
+	},
+	"A" : 1476.0,
+	"Ea" : 5.5e-21,
+	"B" : 150.0,
+	"E" : 0.15,
+	"time unit" : "MIN"
+      },
+      {
+	"type" : "CONDENSED_PHASE_ARRHENIUS",
+        "aerosol phase" : "aqueous aerosol",
+        "aerosol-phase water" : "H2O_aq",
+        "units" : "M", 
+	"reactants" : {
+	  "B" : {}
+	},
+	"products" : {
+	  "C" : {},
+	  "D" : {}
+	},
+	"A" : 21.0,
+	"C" : -4000.0,
+	"B" : 11.0,
+	"D" : 315.0,
+	"E" : 0.05
+      },
+      {
+	"type" : "CONDENSED_PHASE_ARRHENIUS",
+        "aerosol phase" : "organic aerosol",
+        "units" : "mol m-3", 
+        "reactants" : {
+	  "A" : {},
+	  "D" : {}
+	},
+	"products" : {
+	  "B" : {}
+	}
+      },
+      {
+	"type" : "CONDENSED_PHASE_ARRHENIUS",
+        "aerosol phase" : "organic aerosol",
+        "units" : "mol m-3", 
+	"reactants" : {
+	  "A" : {}
+	},
+	"products" : {
+	  "B" : {}
+	},
+	"A" : 1476.0,
+	"Ea" : 5.5e-21,
+	"B" : 150.0,
+	"E" : 0.15,
+	"time unit" : "MIN"
+      },
+      {
+	"type" : "CONDENSED_PHASE_ARRHENIUS",
+        "aerosol phase" : "organic aerosol",
+        "units" : "mol m-3", 
+	"reactants" : {
+	  "B" : {}
+	},
+	"products" : {
+	  "C" : {},
+	  "D" : {}
+	},
+	"A" : 21.0,
+	"C" : -4000.0,
+	"B" : 11.0,
+	"D" : 315.0,
+	"E" : 0.05
+      }
+    ]
+  }
+  ]
+}

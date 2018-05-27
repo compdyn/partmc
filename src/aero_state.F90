@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2017 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2018 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -985,18 +985,25 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the diameters of all particles.
-  function aero_state_diameters(aero_state, aero_data)
+  function aero_state_diameters(aero_state, aero_data, include, exclude)
 
     !> Aerosol state.
     type(aero_state_t), intent(in) :: aero_state
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
+    !> Species names to include in the diameter.
+    character(len=*), optional, intent(in) :: include(:)
+    !> Species names to exclude in the diameter.
+    character(len=*), optional, intent(in) :: exclude(:)
 
     !> Return diameters array (m).
     real(kind=dp) :: aero_state_diameters(aero_state_n_part(aero_state))
 
-    aero_state_diameters = aero_particle_diameter( &
-         aero_state%apa%particle(1:aero_state_n_part(aero_state)), aero_data)
+    !> Per-particle volume of included components
+    real(kind=dp) :: volumes(aero_state_n_part(aero_state))
+
+    volumes = aero_state_volumes(aero_state, aero_data, include, exclude)
+    aero_state_diameters = rad2diam(sphere_vol2rad(volumes))
 
   end function aero_state_diameters
 

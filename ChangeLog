@@ -1,6 +1,9 @@
 
 2.5.0 - XXXX-XX-XX
 
+  * Add `include,exclude` parameters to `aero_state_diameters()`
+    (Matt West).
+
   * Add Docker build and TravisCI support (Matt West).
 
 2.4.0 - 2017-02-14

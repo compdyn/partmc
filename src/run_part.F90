@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2012, 2018 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -80,6 +80,8 @@ module pmc_run_part
      logical :: do_mosaic
      !> Whether to do aqueous chemistry
      logical :: do_aq_chem
+     !> Whether to output aqueous chemistry rates.
+     logical :: do_output_aq_rates
      !> Whether to compute optical properties.
      logical :: do_optical
      !> Repeat number of run.
@@ -154,6 +156,7 @@ contains
     type(env_state_t) :: old_env_state
     integer :: n_time, i_time, i_time_start, pre_i_time
     integer :: i_state, i_state_netcdf, i_output
+    real(kind=dp), allocatable :: aq_chem_rates(:,:,:)
 
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()

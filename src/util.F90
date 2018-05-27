@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2015 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2015, 2018 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -776,6 +776,23 @@ contains
     real_to_string = adjustl(ret_val)
 
   end function real_to_string
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert a real to a string format, checking if it is actually an integer.
+  character(len=PMC_UTIL_CONVERT_STRING_LEN) function &
+       real_or_integer_to_string(val)
+
+    !> Value to convert.
+    real(kind=dp), intent(in) :: val
+
+    if (dble(int(val)) == val) then
+       real_or_integer_to_string = integer_to_string(int(val))
+    else
+       real_or_integer_to_string = real_to_string(val)
+    end if
+
+  end function real_or_integer_to_string
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

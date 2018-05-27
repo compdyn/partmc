@@ -1,4 +1,4 @@
-! Copyright (C) 2015 Matthew Dawson
+! Copyright (C) 2015, 2018 Matthew Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -123,6 +123,135 @@ contains
     call aq_chem_gas_spec_to_PMC(aq_spec_data, aq_state, gas_state)
 
   end subroutine aq_chem_timestep
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Output reaction rates to a NetCDF file.
+  subroutine aq_chem_rates_output_netcdf(env_state, aq_mech_data, &
+       aq_spec_data, aq_state_init, gas_data, gas_state, aero_data, &
+       aero_state, ncid)
+
+    !> Environment state
+    type(env_state_t), intent(in) :: env_state
+    !> Aqueous chemistry mechanism
+    type(aq_mech_data_t), intent(in), target :: aq_mech_data
+    !> Aqueous chemistry related species data
+    type(aq_spec_data_t), intent(in), target :: aq_spec_data
+    !> Aqueous chemistry state containing initial and constant species concentrations
+    type(aq_state_t), intent(inout) :: aq_state_init
+    !> Gas data
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Aerosol data
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state
+    type(aero_state_t), intent(inout) :: aero_state
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    real(kind=dp), allocatable :: aq_chem_rates_forward(:,:), &
+         aq_chem_rates_backward(:,:), aq_chem_rates_conv_factors(:,:)
+
+    call aq_chem_compute_rates(env_state, aq_mech_data, aq_spec_data, &
+         aq_state_init, gas_data, gas_state, aero_data, aero_state, &
+         aq_chem_rates_forward, aq_chem_rates_backward, &
+         aq_chem_rates_conv_factors)
+
+    call aq_mech_data_to_string_array(aq_mech_data, aq_spec_data)
+
+    
+    
+  end subroutine aq_chem_compute_rates
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Compute instantaneous rates for aqueous chemistry.
+  subroutine aq_chem_compute_rates(env_state, aq_mech_data, aq_spec_data, &
+       aq_state_init, gas_data, gas_state, aero_data, aero_state, &
+       aq_chem_rates)
+
+    !> Environment state
+    type(env_state_t), intent(in) :: env_state
+    !> Aqueous chemistry mechanism
+    type(aq_mech_data_t), intent(in), target :: aq_mech_data
+    !> Aqueous chemistry related species data
+    type(aq_spec_data_t), intent(in), target :: aq_spec_data
+    !> Aqueous chemistry state containing initial and constant species concentrations
+    type(aq_state_t), intent(inout) :: aq_state_init
+    !> Gas data
+    type(gas_data_t), intent(in) :: gas_data
+    !> Gas state
+    type(gas_state_t), intent(inout) :: gas_state
+    !> Aerosol data
+    type(aero_data_t), intent(in) :: aero_data
+    !> Aerosol state
+    type(aero_state_t), intent(inout) :: aero_state
+    !> Aqueous chemistry reaction forward rates
+    real(kind=dp), intent(inout), allocatable :: aq_chem_rates_forward(:,:)
+    !> Aqueous chemistry reaction backward rates
+    real(kind=dp), intent(inout), allocatable :: aq_chem_rates_backward(:,:)
+    !> Aqueous chemistry reaction conversion factors
+    real(kind=dp), intent(inout), allocatable :: aq_chem_rates_conv_factors(:,:)
+
+    integer :: i_part
+    type(aq_state_t) :: aq_state
+
+    if (allocated(aq_chem_rates_forward)) then
+       deallocate(aq_chem_rates_forward)
+    end if
+    if (allocated(aq_chem_rates_backward)) then
+       deallocate(aq_chem_rates_backward)
+    end if
+    if (allocated(aq_chem_rates_conv_factors)) then
+       deallocate(aq_chem_rates_conv_factors)
+    end if
+    allocate(aq_chem_rates_forward &
+         (aero_state_total_particles(aero_state), aq_mech_data%n_rxn))
+    allocate(aq_chem_rates_backward &
+         (aero_state_total_particles(aero_state), aq_mech_data%n_rxn))
+    allocate(aq_chem_rates_conv_factors &
+         (aero_state_total_particles(aero_state), aq_mech_data%n_rxn))
+
+    ! Water must be a species to do aqueous chemistry
+    if (aero_data%i_water.eq.0) then
+        call die_msg(462591520, 'Water must be an aerosol-phase ' &
+            // 'species to do aqueous chemistry.')
+    endif
+
+    ! Reset the aqueous chemistry species concentrations to start
+    ! with initial and constant concentrations
+    call aq_state_copy(aq_state_init, aq_state)
+
+    ! Map PMC gas-phase species to aqueous chemistry species
+    call aq_chem_gas_spec_from_PMC(aq_spec_data, aq_state, gas_state)
+
+    ! Cycle through each particle and do the aqueous chemistry
+    do i_part=1,aero_state%apa%n_part
+
+        ! Skip particles that have too little condensed water
+        ! ( 5d-19 m^3 corresponds to ~ 1um diameter particle of water)
+        if (aero_state%apa%particle(i_part)%vol(aero_data%i_water).le.5d-19) then
+            cycle
+        endif
+
+        ! Map PMC aerosol-phase species to aqueous chemistry species
+        call aq_chem_aero_spec_from_PMC(aq_spec_data, aq_state, aero_data, &
+            aero_state%apa%particle(i_part))
+
+        ! Set the number and size of the particles in this aero_particle_t variable
+        aq_state%n_particle = aero_weight_array_num_conc(aero_state%awa, &
+                                aero_state%apa%particle(i_part)) / 1d6 ! (#/cc)
+        aq_state%radius = aero_particle_radius(aero_state%apa%particle(i_part)) ! (m)
+
+        ! Solve aqueous chemistry mechanism
+        call aq_rates_for_particle(aq_state, aq_mech_data, aq_spec_data, &
+             env_state, aq_chem_rates_forward(i_part,:), &
+             aq_chem_rates_backward(i_part,:), &
+             aq_chem_rates_conv_factors(i_part,:))
+    end do
+
+  end subroutine aq_chem_compute_rates
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

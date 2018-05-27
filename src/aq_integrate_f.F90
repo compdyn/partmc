@@ -192,7 +192,8 @@ contains
         write(*,*)  "Particle Radius (m) = ", aq_integrate_data%radius
         curr_temp = (aq_integrate_data%temp_initial + aq_integrate_data%temp_final)/2.0
         write(*,*)  "HL conversion factor (atm*L/mol; approx.) = ", &
-            aq_integrate_get_gas_conversion_factor(aq_integrate_data, curr_temp)
+             aq_integrate_get_gas_conversion_factor(aq_integrate_data%radius, &
+             aq_integrate_data%n_particle, curr_temp)
         write(*,*)  " "
         call pmc_aq_state_print(aq_state, aq_spec_data)
         call aq_mech_data_print(aq_mech_data, aq_spec_data)
@@ -340,7 +341,8 @@ contains
                     * curr_time / sysdata_p%del_t
 
     ! Get conversion factor for gas-phase species in phase-transfer reactions
-    conv_factor = aq_integrate_get_gas_conversion_factor(sysdata_p, curr_temp)
+    conv_factor = aq_integrate_get_gas_conversion_factor(sysdata_p%radius, &
+         sysdata_p%n_particle, curr_temp)
 
     ! Calculate f(t,y)
     do i=1, sysdata_p%aq_mech_data%n_rxn
@@ -460,7 +462,8 @@ contains
                     * curr_time / sysdata_p%del_t
 
     ! Get conversion factor for gas-phase species in phase-transfer reactions
-    conv_factor = aq_integrate_get_gas_conversion_factor(sysdata_p, curr_temp)
+    conv_factor = aq_integrate_get_gas_conversion_factor(sysdata_p%radius, &
+         sysdata_p%n_particle, curr_temp)
 
     ! Calculate J(t,y)
     do i=1, sysdata_p%aq_mech_data%n_rxn
@@ -552,11 +555,89 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Calculate conversion factor for gas phase species in phase-transfer reactions
-  real(kind=dp) function aq_integrate_get_gas_conversion_factor(sysdata_p, temp)
+  !> Compute the reaction rates for a single particle.
+  subroutine aq_rates_for_particle(aq_state, aq_mech_data, aq_spec_data, &
+       env_state, aq_chem_rates)
 
-    !> System data
-    type(aq_integrate_data_t), pointer, intent(in) :: sysdata_p
+    !> Aq. Phase Species State
+    type(aq_state_t), intent(inout) :: aq_state
+    !> Aq. Phase Mechanism data.
+    type(aq_mech_data_t), intent(in), target :: aq_mech_data
+    !> Aq. Phase Species data.
+    type(aq_spec_data_t), intent(in), target :: aq_spec_data
+    !> Environment state.
+    type(env_state_t), intent(in) :: env_state
+    !> Aqueous chemistry reaction forward rates
+    real(kind=dp), intent(out) :: aq_chem_rates_forward(aq_mech_data%n_rxn)
+    !> Aqueous chemistry reaction backward rates
+    real(kind=dp), intent(out) :: aq_chem_rates_backward(aq_mech_data%n_rxn)
+    !> Aqueous chemistry reaction conversion factors
+    real(kind=dp), intent(out) :: aq_chem_rates_conv_factor(aq_mech_data%n_rxn)
+
+    ! forward and backward rate constants
+    real(kind=dp) :: rc_forward, rc_backward
+    ! conversion factor for gas-phase species in phase-transfer reactions
+    real(kind=dp) :: conv_factor, curr_conv_factor
+
+    integer :: i, j, species_index
+    real(kind=dp) :: forward_rate, backward_rate
+    real(kind=dp) :: ret_val
+
+    ! Get conversion factor for gas-phase species in phase-transfer reactions
+    conv_factor = aq_integrate_get_gas_conversion_factor(aq_state%radius, &
+         aq_state%n_particle, env_state%temp)
+
+    ! Calculate f(t,y)
+    do i=1, aq_mech_data%n_rxn
+
+        ! Get rate constant for reaction i
+        ret_val = aq_rxn_data_get_rate_constant(rc_forward, rc_backward, &
+             aq_mech_data%rxn(i), aq_spec_data, env_state%temp, &
+             env_state%solar_zenith_angle, aq_state%radius)
+        if (ret_val.ne.0) then
+            call die_msg(619532274, "error getting rate constant for rxn: " // &
+                         trim(integer_to_string(i)))
+        endif
+
+        ! Calculate the forward rate for rxn i
+        forward_rate = rc_forward
+        do j=1, size(aq_mech_data%rxn(i)%reactant)
+            forward_rate = forward_rate * aq_state%mix_rat(aq_mech_data%rxn(i)%reactant(j))
+        enddo
+
+        ! Calculate the backward rate for rxn i
+        backward_rate = rc_backward
+        do j=1, size(aq_mech_data%rxn(i)%product)
+            backward_rate = backward_rate * aq_state%mix_rat(aq_mech_data%rxn(i)%product(j))
+        enddo
+
+        ! If this is a phase-transfer reaction, the change in gas-phase
+        ! reactant concentration must be converted to units of atm/s
+        if (trim(aq_rxn_data_get_class_name(aq_mech_data%rxn(i)%class_index)) &
+            .eq. "HENRY") then
+            curr_conv_factor = conv_factor
+        else
+            curr_conv_factor = 1.0
+        endif
+
+        aq_chem_rates_forward(i) = forward_rate
+        aq_chem_rates_backward(i) = backward_rate
+        aq_chem_rates_conv_factor(i) = curr_conv_factor
+
+     enddo
+
+   end subroutine aq_rates_for_particle
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Calculate conversion factor for gas phase species in phase-transfer reactions
+  real(kind=dp) function aq_integrate_get_gas_conversion_factor(radius, &
+       n_particle, temp)
+
+    !> Particle radius (m)
+    real(kind=dp), intent(in) :: radius
+    !> Particle number concentration (#/cc)
+    real(kind=dp), intent(in) :: n_particle
     !> current temperature (K)
     real(kind=dp), intent(in) :: temp
     !> Gas constant (cc*atm/K/mol)
@@ -574,7 +655,7 @@ contains
     !!       * [particle](particle/cc) * R_gas(cc*atm/K/mol) * T(K)
     !!
     aq_integrate_get_gas_conversion_factor = 1000.0 * 4.0/3.0 * const%pi &
-            * sysdata_p%radius**3.0 * sysdata_p%n_particle * R_gas * temp
+            * radius**3.0 * n_particle * R_gas * temp
 
   end function aq_integrate_get_gas_conversion_factor
 

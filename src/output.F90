@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2015 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2015, 2018 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -282,7 +282,8 @@ contains
   !> Write the current state for a single process. Do not call this
   !> subroutine directly, but rather call output_state().
   subroutine output_state_to_file(prefix, aero_data, aero_state, gas_data, &
-       gas_state, env_state, index, time, del_t, i_repeat, record_removals, &
+       gas_state, env_state, do_output_aq_rates, aq_mech_data, aq_spec_data, &
+       aq_state_init, index, time, del_t, i_repeat, record_removals, &
        record_optical, uuid, write_rank, write_n_proc)
 
     !> Prefix of state file.
@@ -297,6 +298,14 @@ contains
     type(gas_state_t), intent(in) :: gas_state
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Whether to output aqueous chemistry rates.
+    logical :: do_output_aq_rates
+    !> Aqueous chemistry mechanism
+    type(aq_mech_data_t), intent(in), target :: aq_mech_data
+    !> Aqueous chemistry related species data
+    type(aq_spec_data_t), intent(in), target :: aq_spec_data
+    !> Aqueous chemistry state containing initial and constant species concentrations
+    type(aq_state_t), intent(in) :: aq_state_init
     !> Filename index.
     integer, intent(in) :: index
     !> Current time (s).
@@ -381,6 +390,11 @@ contains
     call aero_data_output_netcdf(aero_data, ncid)
     call aero_state_output_netcdf(aero_state, ncid, aero_data, &
          record_removals, record_optical)
+    if (do_output_aq_rates) then
+       call aq_chem_rates_output_netcdf(env_state, aq_mech_data, &
+            aq_spec_data, aq_state_init, gas_data, gas_state, aero_data, &
+            aero_state, ncid)
+    end if
 
     call pmc_nc_check(nf90_close(ncid))
 

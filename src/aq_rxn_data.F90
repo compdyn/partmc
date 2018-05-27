@@ -20,6 +20,7 @@ module pmc_aq_rxn_data
   integer, parameter :: AQ_RXN_DATA_ID_MAX_LEN = 100
   integer, parameter :: AQ_RXN_DATA_NUM_CLASS = 3
   integer, parameter :: AQ_RXN_DATA_NUM_RATE = 4
+  integer, parameter :: AQ_RXN_STRING_MAX_LEN = 1000
 
   !> Class names
   character(len=AQ_RXN_DATA_ID_MAX_LEN), parameter, dimension(AQ_RXN_DATA_NUM_CLASS) :: &
@@ -335,6 +336,65 @@ contains
     end select
 
   end function aq_rxn_data_get_rate_constant
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert a reaction to a string.
+  character(len=AQ_RXN_STRING_MAX_LEN) function aq_rxn_to_string(val, &
+       aq_spec_data)
+
+    !> Value to convert.
+    type(aq_rxn_data_t), intent(in) :: val
+    !> Aqueous chemistry related species data.
+    type(aq_spec_data_t), intent(in) :: aq_spec_data
+
+    character(len=AQ_RXN_STRING_MAX_LEN) :: ret_val
+    character(len=PMC_UTIL_CONVERT_STRING_LEN) :: yield
+    integer :: i
+
+    ret_val = ""
+    ret_val = trim(ret_val) &
+         // trim(aq_rxn_data_get_class_name(val%class_index)) // ":"
+
+    do i = 1,size(val%reactant)
+       if (i > 1) then
+          ret_val = trim(ret_val) // " +"
+       end if
+       ret_val = trim(ret_val) // " " &
+            // trim(aq_spec_data%name(val%reactant(i))) &
+            // "(" // trim(integer_to_string(val%reactant(i))) // ")"
+    end do
+
+    ret_val = trim(ret_val) // " ==>"
+
+    do i = 1,size(val%product)
+       if (i > 1) then
+          ret_val = trim(ret_val) // " +"
+       end if
+       if (val%prod_yield(i) == 1d0) then
+          yield = ""
+       else
+          yield = trim(real_or_integer_to_string(val%prod_yield(i))) // "*"
+       end if
+       ret_val = trim(ret_val) // " " &
+            // trim(yield) // trim(aq_spec_data%name(val%product(i))) &
+            // "(" // trim(integer_to_string(val%product(i))) // ")"
+    end do
+
+    ret_val = trim(ret_val) // " ; rate " &
+         // trim(aq_rxn_data_get_rate_name(val%rate_index)) // ":"
+
+    do i = 1,size(val%rate_param)
+       if (i > 1) then
+          ret_val = trim(ret_val) // ","
+       end if
+       ret_val = trim(ret_val) // " " &
+            // trim(real_or_integer_to_string(val%rate_param(i)))
+    end do
+    
+    aq_rxn_to_string = adjustl(ret_val)
+
+  end function aq_rxn_to_string
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

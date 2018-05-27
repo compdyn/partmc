@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2012 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2012, 2018 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -390,6 +390,8 @@ contains
     !!   (requires SUNDIALS and MOSAIC support to be compiled in; 
     !!   cannont be used simultaneously with MOSAIC) If \c do_aq_chem
     !!   is \c yes, then the following parameters must also be provided:
+    !!   - \b do_output_aq_rates (logical): whether to output aqueous
+    !!     chemistry reaction rates
     !!   - \subpage input_format_aq_mech_data
     !!   - \subpage input_format_aq_spec_data
     !!   - \subpage input_format_aq_spec_map
@@ -562,6 +564,9 @@ contains
             call spec_file_die_msg(616533748, file, &
               'cannot run mosaic and aqueous chemistry mechanism simultaneously')
           endif
+
+          call spec_file_read_logical(file, 'do_output_aq_rates', &
+               run_part_opt%do_output_aq_rates)
 
           call spec_file_read_string(file, 'aq_mech', sub_filename)
           call aq_rxn_file_open(sub_filename, aq_rxn_file)

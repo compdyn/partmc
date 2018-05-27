@@ -318,6 +318,25 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
+  subroutine aq_mech_data_to_string_array(val, aq_spec_data)
+
+    !> Value to convert.
+    type(aq_mech_data_t), intent(in) :: val
+    !> Aqueous chemistry related species data.
+    type(aq_spec_data_t), intent(in) :: aq_spec_data
+
+    integer :: i
+
+    do i = 1,val%n_rxn
+       write(*,*) trim(integer_to_string(i)) // ": " &
+            // trim(aq_rxn_to_string(val%rxn(i), aq_spec_data))
+    end do
+
+  end subroutine aq_mech_data_to_string_array
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_aq_mech_data(val)
 
     !> Value to pack.
@@ -550,12 +569,3 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end module pmc_aq_mech_data
-
-
-
-
-
-
-
-
-

@@ -1,6 +1,8 @@
 
 2.5.0 - XXXX-XX-XX
 
+  * Shift NetCDF CMake rules to `tool/netcdf.cmake` (Matt West).
+
   * Add `include,exclude` parameters to `aero_state_diameters()`
     (Matt West).
 

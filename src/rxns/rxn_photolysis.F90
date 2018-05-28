@@ -9,12 +9,12 @@
 !!
 !! Photolysis reactions take the form:
 !!
-!! \f[
-!!   \mbox{X} + h\nu \to \mbox{Y_1} ( + \mbox{Y_2} \dots )
-!! \f]
+!! \ch{
+!!   X + hv -> Y_{1} ( + Y_2 \dots )
+!! }
 !!
-!! where \f$\mbox{X}\f$ is the species being photolyzed, and
-!! \f$\mbox{Y_n}\f$ are the photolysis products.
+!! where \ch{X} is the species being photolyzed, and
+!! \ch{Y_n} are the photolysis products.
 !!
 !! Photolysis rate constants (including the \f$h\nu\f$ term) can be constant
 !! or set from an external photolysis module using the

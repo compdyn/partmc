@@ -9,12 +9,12 @@
 !!
 !! A special CMAQ rate constant for the reactions:
 !!
-!! \f[
-!!   \mbox{HO_2} + \mbox{HO_2} -> \mbox{H_2O_2}
-!! \f]
-!! \f[
-!!   \mbox{HO_2} + \mbox{HO_2} + \mbox{H_2O} -> \mbox{H_2O_2}
-!! \f]
+!! \f{ch}{
+!!   HO2 + HO2 -> H2O2
+!! \f}
+!! \f{ch}{
+!!   HO2 + HO2 + H2O -> H2O2
+!! \f}
 !!
 !! takes the form:
 !!

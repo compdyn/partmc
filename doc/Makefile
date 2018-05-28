@@ -5,8 +5,8 @@ GRAPHVIZ_FILE = partmc_modules.gv
 GRAPHVIZ_PDF = $(patsubst %.gv,%.pdf,$(GRAPHVIZ_FILE))
 DOC_INDEX = html/index.html
 
-ALL_FSRC = $(wildcard ../src/*.F90 ../src/aero_reps/*.F90 ../src/rxns/*.F90)
-ALL_CSRC = $(wildcard ../src/*.c)
+ALL_FSRC = $(wildcard ../src/*.F90 ../src/aero_reps/*.F90 ../src/rxns/*.F90 ../src/sub_models/*.F90)
+ALL_CSRC = $(wildcard ../src/*.c ../src/aero_reps/*.c ../src/rxns/*.c ../src/sub_models/*.c)
 ALL_SRC = $(ALL_FSRC) $(ALL_CSRC)
 
 PARTMC_FSRC = $(filter-out ../src/extract_% ../src/numeric_% ../src/bin_average_% ../src/getopt.%,$(ALL_FSRC))

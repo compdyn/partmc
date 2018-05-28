@@ -9,9 +9,9 @@
 !!
 !! A special CMAQ rate constant for the reactions:
 !!
-!! \f[
-!!   \mbox{OH} + \mbox{HNO3} -> \mbox{NO_3} + \mbox{H_2O}
-!! \f]
+!! \f{ch}{
+!!   OH + HNO3 -> NO3 + H2O
+!! \f}
 !!
 !! takes the form:
 !!

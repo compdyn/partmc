@@ -14,7 +14,8 @@
 !! \f]
 !!
 !! where \f$A\f$ is the pre-exponential factor 
-!! (\f$[\mbox{\#/cm^{3}}]^{-(n-1)} s^{-1}\f$), \f$n\f$ is the number of
+!! (\f$(\mbox{\SI[mode=text]{}{\#.cm^{-3}}})^{-(n-1)}\f$\SI{\per\second}),
+!! \f$n\f$ is the number of
 !! reactants, \f$E_a\f$ is the activation energy (J), \f$k_b\f$ is the
 !! Boltzmann constant (J/K), \f$D\f$ (K), \f$B\f$ (unitless) and \f$E\f$
 !! (\f$Pa^{-1}\f$) are reaction parameters, \f$T\f$ is the temperature (K),

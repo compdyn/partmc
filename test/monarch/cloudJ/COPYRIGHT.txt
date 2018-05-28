@@ -1,0 +1,1 @@
+Fast-J code, including developments such as Cloud-J, is distributed under GNU General Public License version 3.0 (GPLv3). A copy of the GNU public license is at http://sourceforge.net/p/webrtcbench/code/ci/default/tree/COPYING

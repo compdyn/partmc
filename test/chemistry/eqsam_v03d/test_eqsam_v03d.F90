@@ -106,7 +106,7 @@ contains
     type(property_t), pointer :: prop_set
     class(aero_rep_data_t), pointer :: aero_rep
     integer(kind=i_kind), allocatable :: spec_ids(:)
-    class(string_t), allocatable :: unique_names(:)
+    class(string_t), allocatable :: spec_names(:), unique_names(:)
 
     !!!!!!!!!!!!!!!!!!!!!!!
     !!! EQSAM variables !!!
@@ -167,28 +167,28 @@ contains
     phase_name = "aqueous aerosol"
     rep_name = "single particle"
     call assert(522998221, phlex_core%find_aero_rep(rep_name, aero_rep))
-    n_spec = phlex_core%chem_spec_data%size()
-    do i_spec = 1, n_spec
+    spec_names = phlex_core%chem_spec_data%get_spec_names()
+    do i_spec = 1, size(spec_names)
       call assert(929748071, phlex_core%chem_spec_data%get_property_set( &
-              i_spec, prop_set))
-      call assert(159599700, phlex_core%chem_spec_data%get_name(i_spec, spec_name))
+              spec_names(i_spec)%string, prop_set))
       call assert(368608641, prop_set%get_real(key, real_val))
-      call assert(514801839, phlex_core%chem_spec_data%get_phase(i_spec, int_val))
+      call assert(514801839, phlex_core%chem_spec_data%get_phase( &
+              spec_names(i_spec)%string, int_val))
       select case (int_val)
         case (CHEM_SPEC_GAS_PHASE)
-          int_val = phlex_core%chem_spec_data%gas_state_id(spec_name)
+          int_val = phlex_core%chem_spec_data%gas_state_id(spec_names(i_spec)%string)
           call assert_msg(891348329, int_val.gt.0, "Cannot find gas-phase species "// &
-                  spec_name)
+                  spec_names(i_spec)%string)
           phlex_state%state_var(int_val) = real_val
         case (CHEM_SPEC_AERO_PHASE)
           unique_names = aero_rep%unique_names( &
-                  phase_name = phase_name, spec_name = spec_name)
+                  phase_name = phase_name, spec_name = spec_names(i_spec)%string)
           call assert_msg(284639316, size(unique_names).eq.1, &
-                  "Cannot find aerosol-phase species "//spec_name)
+                  "Cannot find aerosol-phase species "//spec_names(i_spec)%string)
           i_state_elem = aero_rep%spec_state_id(unique_names(1)%string)
           phlex_state%state_var(i_state_elem) = real_val
         case default
-          call die_msg(837607961, "Unknown type for species "//spec_name)
+          call die_msg(837607961, "Unknown type for species "//spec_names(i_spec)%string)
       end select
     end do
  

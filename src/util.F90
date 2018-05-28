@@ -38,6 +38,9 @@ module pmc_util
   type string_t
     !> String value
     character(len=:), allocatable :: string
+  contains
+    !> Finalize a string object
+    final :: string_t_finalize
   end type string_t
 
   !> Constructor for string_t
@@ -61,6 +64,18 @@ contains
     new_obj%string = val
 
   end function string_t_constructor
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Finalize a string object
+  elemental subroutine string_t_finalize(this)
+
+    !> String
+    type(string_t), intent(inout) :: this
+
+    if (allocated(this%string)) deallocate(this%string)
+
+  end subroutine string_t_finalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -42,7 +42,7 @@ contains
   !> Build chemical species data test
   logical function build_chem_spec_data_test() result(passed)
 
-    type(chem_spec_data_t) :: spec_data
+    type(chem_spec_data_t), pointer :: spec_data
     integer(kind=i_kind) :: i_spec
 #ifdef PMC_USE_JSON
     character(len=:), allocatable :: json_string
@@ -59,7 +59,6 @@ contains
     integer(kind=i_kind) :: temp_int, spec_phase, spec_type
     real(kind=dp) :: temp_real
     logical :: temp_logical
-    character(len=:), allocatable :: temp_string
 
     json_string = '{ "pmc-data" : [{'//new_line//&
             '  "name" : "my first species",'//new_line//&
@@ -120,7 +119,7 @@ contains
     json_string = json_string//']}'
 
     ! Allocate a species data set with space for 15 species
-    spec_data = chem_spec_data_t(15)
+    spec_data => chem_spec_data_t(15)
 
     ! The starting size of a species dataset should be zero
     call assert(146416775, spec_data%size().eq.0)
@@ -139,6 +138,12 @@ contains
       j_next => j_spec
       call json%get_next(j_next, j_spec)
     end do
+    
+    ! deallocate json variables
+    call j_file%destroy()
+    deallocate(json_string)
+    call json%destroy()
+    deallocate(json)
 
     ! Initialize the dataset
     call spec_data%initialize()
@@ -242,6 +247,10 @@ contains
       call assert(225364917, spec_data%get_phase(key_name, spec_phase))
       call assert(232390422, spec_phase.eq.CHEM_SPEC_GAS_PHASE)
     end do
+
+    deallocate(key_name)
+    deallocate(spec_data)
+
 #endif
     passed = .true.
 

@@ -355,43 +355,7 @@ contains
     !> Chemical species data
     type(chem_spec_data_t), intent(in) :: chem_spec_data
 
-    integer(kind=i_kind) :: i_spec
-
-    integer(kind=i_kind) :: yield_int
-    real(kind=dp) :: yield_real
-    character(len=:), allocatable :: spec_name
-
     expr = ""
-    yield_int = int(0, kind=i_kind)
-
-    do i_spec = 1, _NUM_REACT_
-      if (chem_spec_data%get_name(i_spec, spec_name)) then
-        expr = expr//trim(spec_name)//"*"
-      end if
-    end do
-
-    do i_spec = 1, _NUM_REACT_
-      if (_REACT_(i_spec).eq.spec_id) yield_int = yield_int - 1
-    end do
-    
-    yield_real = real(yield_int, kind=i_kind)
-
-    do i_spec = 1, _NUM_PROD_
-      if (_PROD_(i_spec).eq.spec_id) then
-        yield_int = yield_int + int(_yield_(i_spec), kind=i_kind)
-        yield_real = yield_real + _yield_(i_spec)
-      end if
-    end do
-
-    if (yield_real.ne.real(yield_int, kind=dp)) then
-      expr = "("//trim(to_string(yield_real))//"*"//expr//")"
-    else
-      if (yield_int.eq.0) then
-        expr = ""
-      else
-        expr = "("//trim(to_string(yield_int))//"*"//expr//")"
-      end if
-    end if
     
   end function build_deriv_expr
 

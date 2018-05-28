@@ -10,7 +10,7 @@
 !! Chemical species in the \ref phlex_chem "phlex-chem" module are gas- or
 !! aerosol-phase species that can participate in chemical or phase-transfer
 !! reactions in the \ref phlex_mechanism "mechanism(s)". Each species must
-!! have a unique name (the same species name cannot be used for a gas-phase
+!! have a unique name (the same name cannot be used for a gas-phase
 !! species and an aerosol-phase species). Chemical species may be present
 !! either in the gas-phase or any number of \ref phlex_aero_phase
 !! "aerosol phases". For example, an aerosol-phase chemical species may be
@@ -19,11 +19,11 @@
 !!
 !! Chemical species data include physical constants and species-specific
 !! model parameters that are used during initialization to assemble reaction
-!! data for use during the model run. Note that chemical species data are
-!! **only** available during initialization, and when using MPI are not passed
-!! to child nodes. The primary node will, however, have access to data in the
-!! \c pmc_phlex_core::phlex_core_t::chem_spec_data object for outputing model
-!! data (e.g., species names).
+!! and sub-model data for use during solving. Note that chemical species data
+!! are  **only** available during initialization, and when using MPI are not
+!! passed to child nodes. The primary node will, however, have access to data
+!! in the \c pmc_phlex_core::phlex_core_t::chem_spec_data object for outputing
+!! model data (e.g., species names).
 !!
 !! The input format for chemical species can be found \ref
 !! input_format_species "here".
@@ -84,38 +84,22 @@ module pmc_chem_spec_data
   contains
     !> Load species from an input file
     procedure :: load
-    !> Get the number of species with specified conditions
-    procedure :: size => get_size
     !> Initialize the species set
     procedure :: initialize
+    !> Get the number of species with specified conditions
+    procedure :: size => get_size
     !> Check if a species name is in the set of chemical species
     procedure :: exists
-    !> Get the name of a species
-    procedure :: get_name
-
-    ! TODO Remove all "find by id" functions to force search by name only
-    ! and possibly add an iterator for working with all chemical species
-    procedure :: get_property_set_by_name
-    procedure :: get_property_set_by_id
+    !> Get a list of species names
+    procedure :: get_spec_names
     !> Get a species properties
-    generic :: get_property_set => get_property_set_by_name, &
-            get_property_set_by_id
-    
-    procedure :: get_type_by_name
-    procedure :: get_type_by_id
+    procedure :: get_property_set
     !> Get a species type
-    generic :: get_type => get_type_by_name, get_type_by_id
-    
-    procedure :: get_phase_by_name
-    procedure :: get_phase_by_id
+    procedure :: get_type
     !> Get a species phase
-    generic :: get_phase => get_phase_by_name, get_phase_by_id
-    
-    procedure :: get_abs_tol_by_name
-    procedure :: get_abs_tol_by_id
+    procedure :: get_phase
     !> Get the absolute integration tolerance of a species
-    generic :: get_abs_tol => get_abs_tol_by_name, get_abs_tol_by_id
-    
+    procedure :: get_abs_tol
     !> Get a gas-phase species index in the \c
     !! pmc_phlex_state::phlex_state_t::state_var array.  Note that
     !! aerosol-phase species indices on the \c
@@ -132,13 +116,15 @@ module pmc_chem_spec_data
     procedure :: gas_state_name
     !> Print out the species data
     procedure :: print => do_print
+    !> Finalize the chemical species data
+    final :: finalize
 
     ! Private functions
-    !> Add a species
-    procedure, private :: add
     !> Ensure there is enough room in the species dataset to add a
     !! specified number of species
     procedure, private :: ensure_size
+    !> Add a species
+    procedure, private :: add
     !> Find a species index by name
     procedure, private :: find
   end type chem_spec_data_t
@@ -173,110 +159,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Ensure there is enough room in the species dataset to add a specified
-  !! number of species
-  subroutine ensure_size(this, num_spec)
-
-    !> Species dataset
-    class(chem_spec_data_t), intent(inout) :: this
-    !> Number of new species to ensure space for
-    integer(i_kind), intent(in) :: num_spec
-
-    integer :: new_size
-    type(string_t), pointer :: new_name(:)
-    integer(kind=i_kind), pointer :: new_type(:)
-    integer(kind=i_kind), pointer :: new_phase(:)
-    type(property_t), pointer :: new_property_set(:)
-
-    if (size(this%spec_name) .ge. this%num_spec + num_spec) return
-    new_size = this%num_spec + num_spec + REALLOC_INC
-    allocate(new_name(new_size))
-    allocate(new_type(new_size))
-    allocate(new_phase(new_size))
-    allocate(new_property_set(new_size))
-    new_name(1:this%num_spec) = this%spec_name(1:this%num_spec)
-    new_type(1:this%num_spec) = this%spec_type(1:this%num_spec)
-    new_phase(1:this%num_spec) = this%spec_phase(1:this%num_spec)
-    call this%property_set(1:this%num_spec)%move(new_property_set(1:this%num_spec))
-    deallocate(this%spec_name)
-    deallocate(this%spec_type)
-    deallocate(this%spec_phase)
-    deallocate(this%property_set)
-    this%spec_name => new_name
-    this%spec_type => new_type
-    this%spec_phase => new_phase
-    this%property_set => new_property_set
-
-  end subroutine ensure_size
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Add a new chemical species
-  subroutine add(this, spec_name, spec_type, spec_phase, property_set)
-
-    !> Species dataset
-    class(chem_spec_data_t), intent(inout) :: this
-    !> Name of species to add
-    character(len=:), allocatable, intent(in) :: spec_name
-    !> State variable type
-    integer(kind=i_kind), intent(inout) :: spec_type
-    !> Species phase
-    integer(kind=i_kind), intent(inout) :: spec_phase
-    !> Property set for new species
-    type(property_t), intent(inout), optional :: property_set
-
-    integer(kind=i_kind) :: i_spec
-
-    ! if the species exists, append the new data
-    if (this%find(spec_name, i_spec)) then
-     
-      ! Check for a type mismatch
-      if (spec_type.eq.CHEM_SPEC_UNKNOWN_TYPE) &
-              spec_type = this%spec_type(i_spec)
-      call assert_msg(596247182, &
-              this%spec_type(i_spec).eq.CHEM_SPEC_UNKNOWN_TYPE &
-              .or.spec_type.eq.this%spec_type(i_spec), &
-              "Type mismatch for species "//spec_name)
-
-      ! Check for a phase mismatch
-      if (spec_phase.eq.CHEM_SPEC_UNKNOWN_PHASE) &
-              spec_phase = this%spec_phase(i_spec)
-      call assert_msg(612991075, &
-              this%spec_phase(i_spec).eq.CHEM_SPEC_UNKNOWN_PHASE &
-              .or.spec_phase.eq.this%spec_phase(i_spec), &
-              "Phase mismatch for species "//spec_name)
-
-      ! Update the species properties
-      this%spec_type(i_spec) = spec_type
-      this%spec_phase(i_spec) = spec_phase
-      call this%property_set(i_spec)%update(property_set)
-
-    ! ... otherwise, create a new species
-    else
-      call this%ensure_size(1)
-      this%num_spec = this%num_spec + 1
-      this%spec_name(this%num_spec) = string_t(spec_name)
-      this%spec_type(this%num_spec) = spec_type
-      this%spec_phase(this%num_spec) = spec_phase
-      if (present(property_set)) then
-        this%property_set(this%num_spec) = property_set
-      else
-        this%property_set(this%num_spec) = property_t()
-      end if
-    end if
-
-  end subroutine add
-          
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> \page input_format_species Input JSON Object Format: Chemical Species
   !!
   !! A \c json object containing information about a \ref phlex_species
-  !! "chemical species" of the form:
+  !! "chemical species" has the following format:
   !! \code{.json} 
   !! { "pmc-data" : [
   !!   {
   !!     "name" : "my species name",
+  !!     "type" : "CHEM_SPEC",
   !!     "phase" : "SPEC_PHASE",
   !!     "type" : "SPEC_TYPE",
   !!     "some property" : 123.34,
@@ -289,6 +180,7 @@ contains
   !!   },
   !!   {
   !!     "name" : "my species name",
+  !!     "type" : "CHEM_SPEC",
   !!     "phase" : "SPEC_PHASE",
   !!     "type" : "SPEC_TYPE",
   !!     "some property" : 123.34,
@@ -299,17 +191,21 @@ contains
   !! \endcode
   !! The key-value pair \b name is required and must contain the unique name
   !! used for this species in the \ref input_format_mechanism
-  !! "mechanism object". (The same name may not be used for a gas species and
-  !! an aerosol species.) The key-value pair \b phase is also required and its
-  !! value must be \b GAS or \b AEROSOL. The \b type must be \b VARIABLE, 
-  !! \b CONSTANT or \b PSSA, however if a \b type is not specified, it will
-  !! be assumed to be \b VARIABLE.
+  !! "mechanism object". (The same name cannot be used for a gas-phase species
+  !! and an aerosol-phase species.) The key-value pair \b type is also
+  !! required, and must be \b CHEM_SPEC.
   !!
-  !! All remaining data are
-  !! optional and may include any valid \c json value, including nested
-  !! objects. Multilple entries with the same species name will be merged
-  !! into a single species, but duplicate property names for the same species
-  !! will cause an error.
+  !! The key-value pair \b phase specifies the
+  !! phase in which the species exists and can be \b GAS or \b AEROSOL. When
+  !! the \b phase is not specified, it is assumed to be \b GAS. The \b type
+  !! can be \b VARIABLE, \b CONSTANT or \b PSSA. When a \b type is not
+  !! specified, it is assumed to be \b VARIABLE.
+  !!
+  !! All remaining data are optional and may include any valid \c json value,
+  !! including nested objects. Multilple entries with the same species name
+  !! will be merged into a single species, but duplicate property names for
+  !! the same species will cause an error. However, nested objects with the
+  !! same key name will be merged, if possible.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -329,26 +225,31 @@ contains
     integer(kind=json_ik) :: var_type
 
     character(len=:), allocatable :: spec_name, str_val
-    integer(kind=i_kind) :: spec_type
-    integer(kind=i_kind) :: spec_phase
+    integer(kind=i_kind) :: spec_type, spec_phase
     type(property_t), pointer :: property_set
 
-    allocate(property_set)
-    property_set = property_t()
+    ! allocate space for the species property set
+    property_set => property_t()
 
-    ! Initialize type and phase
+    ! initialize type and phase
     spec_type = CHEM_SPEC_UNKNOWN_TYPE
     spec_phase = CHEM_SPEC_UNKNOWN_PHASE
-    
+   
+    ! cycle through the species properties to find the name, type and phase
+    ! and load the remaining data into the species property set
     next => null()
     call json%get_child(j_obj, child)
     do while (associated(child))
       call json%info(child, name=key, var_type=var_type)
+      
+      ! species name
       if (key.eq."name") then
         if (var_type.ne.json_string) call die_msg(181339359, &
                 "Received non-string species name")
         call json%get(child, unicode_str_val)
         spec_name = unicode_str_val
+      
+      ! variable type
       else if (key.eq."tracer type") then
         if (var_type.ne.json_string) call die_msg(249541360, &
                 "Received non-string species type")
@@ -367,6 +268,8 @@ contains
           call die_msg(171550163, "Unknown chemical species type: "// &
                   str_val)
         end if
+      
+      ! species phase
       else if (key.eq."phase") then
         if (var_type.ne.json_string) call die_msg(273466657, &
                 "Received non-string species phase")
@@ -383,15 +286,21 @@ contains
           call die_msg(603704146, "Unknown chemical species phase: "// &
                   str_val)
         end if
+
+      ! load remaining properties into the species property set
       else if (key.ne."type") then
         call property_set%load(json, child, .false.)
       end if
+
       call json%get_next(child, next)
       child => next
     end do
 
     ! Add or update the species data
     call this%add(spec_name, spec_type, spec_phase, property_set)
+
+    ! deallocate the temporary property set
+    deallocate(property_set)
 #else
   subroutine load(this)
 
@@ -401,6 +310,31 @@ contains
     call warn_msg(627397948, "No support for input files")
 #endif
   end subroutine load
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Initialize the species set
+  subroutine initialize(this)
+
+    !> Species database
+    class(chem_spec_data_t), intent(inout) :: this
+
+    ! Species index
+    integer(kind=i_kind) :: i_spec
+
+    do i_spec = 1, this%num_spec
+
+      ! Set default value for type
+      if (this%spec_type(i_spec).eq.CHEM_SPEC_UNKNOWN_TYPE) &
+              this%spec_type(i_spec) = CHEM_SPEC_VARIABLE
+      
+      ! Set default value for phase
+      if (this%spec_phase(i_spec).eq.CHEM_SPEC_UNKNOWN_PHASE) &
+              this%spec_phase(i_spec) = CHEM_SPEC_GAS_PHASE
+
+    end do
+
+  end subroutine initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -439,31 +373,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Initialize the species set
-  subroutine initialize(this)
-
-    !> Species database
-    class(chem_spec_data_t), intent(inout) :: this
-
-    ! Species index
-    integer(kind=i_kind) :: i_spec
-
-    do i_spec = 1, this%num_spec
-
-      ! Set default value for type
-      if (this%spec_type(i_spec).eq.CHEM_SPEC_UNKNOWN_TYPE) &
-              this%spec_type(i_spec) = CHEM_SPEC_VARIABLE
-      
-      ! Set default value for phase
-      if (this%spec_phase(i_spec).eq.CHEM_SPEC_UNKNOWN_PHASE) &
-              this%spec_phase(i_spec) = CHEM_SPEC_GAS_PHASE
-
-    end do
-
-  end subroutine initialize
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Check if a species name is in the set of chemical species
   logical function exists(this, spec_name) result (found)
 
@@ -481,53 +390,63 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the name of a species. Returns true if the species is found, and 
-  !! false otherwise.
-  logical function get_name(this, spec_id, spec_name)
+  !> Get a list of species names
+  !!
+  !! If a type or phase are specified, only species with the specified values
+  !! are returned. Otherwise, all species names are returned.
+  function get_spec_names(this, spec_type, spec_phase) result (spec_names)
 
+    !> Species names
+    type(string_t), allocatable :: spec_names(:)
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
-    !> Species id
-    integer(kind=i_kind), intent(in) :: spec_id
-    !> Species name
-    character(len=:), allocatable, intent(out) :: spec_name
+    !> State variable type for the species
+    integer(kind=i_kind), intent(in), optional :: spec_type
+    !> Phase of the species
+    integer(kind=i_kind), intent(in), optional :: spec_phase
 
-    get_name = .false.
-    if (spec_id.lt.0.or.spec_id.gt.this%num_spec) return
-    spec_name = this%spec_name(spec_id)%string
-    get_name = .true.
+    ! species index and counter
+    integer(kind=i_kind) :: i_spec, num_spec
 
-  end function get_name
+    ! add up the number of species
+    if (present(spec_type).or.present(spec_phase)) then
+      num_spec = 0
+      do i_spec = 1, this%num_spec
+        if (present(spec_type)) then
+          if (spec_type.ne.this%spec_type(i_spec)) cycle
+        end if
+        if (present(spec_phase)) then
+          if (spec_phase.ne.this%spec_phase(i_spec)) cycle
+        end if
+        num_spec = num_spec + 1
+      end do
+    else
+      num_spec = this%num_spec
+    end if
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! Allocate space for the list
+    allocate(spec_names(num_spec))
 
-  !> Get the index of a chemical species by name. Returns true if the species
-  !! is found or false otherwise.
-  logical function find(this, spec_name, spec_id)
-
-    !> Species dataset
-    class(chem_spec_data_t), intent(in) :: this
-    !> Species name
-    character(len=:), allocatable, intent(in) :: spec_name
-    !> Species id
-    integer(kind=i_kind), intent(out) :: spec_id
-
-    find = .true.
-    do spec_id = 1, this%num_spec
-      if (this%spec_name(spec_id)%string .eq. spec_name) then
-        return
+    ! Add species names to the list
+    num_spec = 0
+    do i_spec = 1, this%num_spec
+      if (present(spec_type)) then
+        if (spec_type.ne.this%spec_type(i_spec)) cycle
       end if
+      if (present(spec_phase)) then
+        if (spec_phase.ne.this%spec_phase(i_spec)) cycle
+      end if
+      num_spec = num_spec + 1
+      spec_names(num_spec)%string = this%spec_name(i_spec)%string
     end do
-    find = .false.
-    spec_id = 0
 
-  end function find
+  end function get_spec_names
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a species property set. Returns true if the species is found, or
   !! false otherwise.
-  logical function get_property_set_by_name(this, spec_name, property_set) &
+  logical function get_property_set(this, spec_name, property_set) &
                   result (found)
 
     !> Species dataset
@@ -543,32 +462,13 @@ contains
     found = this%find(spec_name, spec_id)
     if (found) property_set => this%property_set(spec_id)
 
-  end function get_property_set_by_name
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get a species property set by species id. Returns true if the species is
-  !! found, or false otherwise.
-  logical function get_property_set_by_id(this, spec_id, property_set) &
-                  result (found)
-
-    !> Species dataset
-    class(chem_spec_data_t), intent(in) :: this
-    !> Species id to find properties of
-    integer(kind=i_kind), intent(in) :: spec_id
-    !> Pointer to species properties
-    type(property_t), pointer, intent(out) :: property_set
-
-    found = spec_id.gt.0 .and. spec_id.le.this%num_spec
-    if (found) property_set => this%property_set(spec_id)
-
-  end function get_property_set_by_id
+  end function get_property_set
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a species type by species name. Returns true if the species is found
   !! or false otherwise.
-  logical function get_type_by_name(this, spec_name, spec_type) result (found)
+  logical function get_type(this, spec_name, spec_type) result (found)
 
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
@@ -583,32 +483,13 @@ contains
     found = this%find(spec_name, spec_id)
     if (found) spec_type = this%spec_type(spec_id)
 
-  end function get_type_by_name
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get a species type by id. Returns true if the species is found, or false
-  !! otherwise.
-  logical function get_type_by_id(this, spec_id, spec_type) result (found)
-
-    !> Species dataset
-    class(chem_spec_data_t), intent(in) :: this
-    !> Species id to find properties of
-    integer(kind=i_kind), intent(in) :: spec_id
-    !> Species type
-    integer(kind=i_kind), intent(out) :: spec_type
-
-    spec_type = CHEM_SPEC_UNKNOWN_TYPE
-    found = spec_id.gt.0 .and. spec_id.le.this%num_spec
-    if (found) spec_type = this%spec_type(spec_id)
-
-  end function get_type_by_id
+  end function get_type
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a species phase by name. Returns true if the species is found, or
   !! false otherwise.
-  logical function get_phase_by_name(this, spec_name, spec_phase) &
+  logical function get_phase(this, spec_name, spec_phase) &
                   result (found)
 
     !> Species dataset
@@ -624,38 +505,19 @@ contains
     found = this%find(spec_name, spec_id)
     if (found) spec_phase = this%spec_phase(spec_id)
 
-  end function get_phase_by_name
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get a species phase by id. Returns true if the species is found, or 
-  !! false otherwise
-  logical function get_phase_by_id(this, spec_id, spec_phase) result (found)
-
-    !> Species dataset
-    class(chem_spec_data_t), intent(in) :: this
-    !> Species id to find properties of
-    integer(kind=i_kind), intent(in) :: spec_id
-    !> Species phase
-    integer(kind=i_kind), intent(out) :: spec_phase
-
-    spec_phase = CHEM_SPEC_UNKNOWN_PHASE
-    found = spec_id.gt.0 .and. spec_id.le.this%num_spec
-    if (found) spec_phase = this%spec_phase(spec_id)
-
-  end function get_phase_by_id
+  end function get_phase
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the absolute integration tolerance of a species by name. Returns 
   !! true if the species is found, or false otherwise.
-  logical function get_abs_tol_by_name(this, spec_name, abs_tol) &
+  logical function get_abs_tol(this, spec_name, abs_tol) &
                   result (found)
 
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
     !> Species name
-    character(len=:), allocatable :: spec_name
+    character(len=:), allocatable, intent(in) :: spec_name
     !> Absolute integration tolerance
     real(kind=dp), intent(out) :: abs_tol
 
@@ -672,34 +534,7 @@ contains
       end if
     end if
 
-  end function get_abs_tol_by_name
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get the absolute integration tolerance of a species by id, Returns true
-  !! if the species is found, or false otherwise.
-  logical function get_abs_tol_by_id(this, spec_id, abs_tol) result (found)
-
-    !> Species dataset
-    class(chem_spec_data_t), intent(in) :: this
-    !> Species name
-    integer(kind=i_kind), intent(in) :: spec_id
-    !> Absolute integration tolerance
-    real(kind=dp), intent(out) :: abs_tol
-
-    character(len=:), allocatable :: key
-    real(kind=dp) :: val
-
-    abs_tol = DEFAULT_ABS_TOL
-    key = "absolute integration tolerance"
-    found = spec_id.gt.0 .and. spec_id.le.this%num_spec
-    if (found) then
-      if (this%property_set(spec_id)%get_real(key, val)) then
-        abs_tol = val
-      end if
-    end if
-
-  end function get_abs_tol_by_id
+  end function get_abs_tol
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -813,6 +648,141 @@ contains
     end do
 
   end subroutine do_print
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Finalize the chemical species data
+  elemental subroutine finalize(this)
+
+    !> Species dataset
+    type(chem_spec_data_t), intent(inout) :: this
+
+    deallocate(this%spec_name)
+    deallocate(this%spec_type)
+    deallocate(this%spec_phase)
+    deallocate(this%property_set)
+
+  end subroutine finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Ensure there is enough room in the species dataset to add a specified
+  !! number of species
+  subroutine ensure_size(this, num_spec)
+
+    !> Species dataset
+    class(chem_spec_data_t), intent(inout) :: this
+    !> Number of new species to ensure space for
+    integer(i_kind), intent(in) :: num_spec
+
+    integer :: new_size
+    type(string_t), pointer :: new_name(:)
+    integer(kind=i_kind), pointer :: new_type(:)
+    integer(kind=i_kind), pointer :: new_phase(:)
+    type(property_t), pointer :: new_property_set(:)
+
+    if (size(this%spec_name) .ge. this%num_spec + num_spec) return
+    new_size = this%num_spec + num_spec + REALLOC_INC
+    allocate(new_name(new_size))
+    allocate(new_type(new_size))
+    allocate(new_phase(new_size))
+    allocate(new_property_set(new_size))
+    new_name(1:this%num_spec) = this%spec_name(1:this%num_spec)
+    new_type(1:this%num_spec) = this%spec_type(1:this%num_spec)
+    new_phase(1:this%num_spec) = this%spec_phase(1:this%num_spec)
+    call this%property_set(1:this%num_spec)%move(new_property_set(1:this%num_spec))
+    deallocate(this%spec_name)
+    deallocate(this%spec_type)
+    deallocate(this%spec_phase)
+    deallocate(this%property_set)
+    this%spec_name => new_name
+    this%spec_type => new_type
+    this%spec_phase => new_phase
+    this%property_set => new_property_set
+
+  end subroutine ensure_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Add a new chemical species
+  subroutine add(this, spec_name, spec_type, spec_phase, property_set)
+
+    !> Species dataset
+    class(chem_spec_data_t), intent(inout) :: this
+    !> Name of species to add
+    character(len=:), allocatable, intent(in) :: spec_name
+    !> State variable type
+    integer(kind=i_kind), intent(inout) :: spec_type
+    !> Species phase
+    integer(kind=i_kind), intent(inout) :: spec_phase
+    !> Property set for new species
+    type(property_t), intent(inout), optional :: property_set
+
+    integer(kind=i_kind) :: i_spec
+
+    ! if the species exists, append the new data
+    if (this%find(spec_name, i_spec)) then
+     
+      ! Check for a type mismatch
+      if (spec_type.eq.CHEM_SPEC_UNKNOWN_TYPE) &
+              spec_type = this%spec_type(i_spec)
+      call assert_msg(596247182, &
+              this%spec_type(i_spec).eq.CHEM_SPEC_UNKNOWN_TYPE &
+              .or.spec_type.eq.this%spec_type(i_spec), &
+              "Type mismatch for species "//spec_name)
+
+      ! Check for a phase mismatch
+      if (spec_phase.eq.CHEM_SPEC_UNKNOWN_PHASE) &
+              spec_phase = this%spec_phase(i_spec)
+      call assert_msg(612991075, &
+              this%spec_phase(i_spec).eq.CHEM_SPEC_UNKNOWN_PHASE &
+              .or.spec_phase.eq.this%spec_phase(i_spec), &
+              "Phase mismatch for species "//spec_name)
+
+      ! Update the species properties
+      this%spec_type(i_spec) = spec_type
+      this%spec_phase(i_spec) = spec_phase
+      call this%property_set(i_spec)%update(property_set)
+
+    ! ... otherwise, create a new species
+    else
+      call this%ensure_size(1)
+      this%num_spec = this%num_spec + 1
+      this%spec_name(this%num_spec)%string = spec_name
+      this%spec_type(this%num_spec) = spec_type
+      this%spec_phase(this%num_spec) = spec_phase
+      if (present(property_set)) then
+        call property_set%move(this%property_set(this%num_spec))
+      else
+        this%property_set(this%num_spec) = property_t()
+      end if
+    end if
+
+  end subroutine add
+          
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the index of a chemical species by name. Returns true if the species
+  !! is found or false otherwise.
+  logical function find(this, spec_name, spec_id)
+
+    !> Species dataset
+    class(chem_spec_data_t), intent(in) :: this
+    !> Species name
+    character(len=:), allocatable, intent(in) :: spec_name
+    !> Species id
+    integer(kind=i_kind), intent(out) :: spec_id
+
+    find = .true.
+    do spec_id = 1, this%num_spec
+      if (this%spec_name(spec_id)%string .eq. spec_name) then
+        return
+      end if
+    end do
+    find = .false.
+    spec_id = 0
+
+  end function find
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

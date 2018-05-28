@@ -163,6 +163,7 @@ contains
     integer(kind=i_kind), allocatable :: ebi_rxn_map(:), kpp_rxn_map(:)
     integer(kind=i_kind), allocatable :: ebi_spec_map(:), kpp_spec_map(:)
     type(string_t) :: str_temp
+    type(string_t), allocatable :: spec_names(:)
 
     ! Arrays to hold starting concentrations
     real(kind=dp), allocatable :: ebi_init(:), kpp_init(:), phlex_init(:)
@@ -644,23 +645,23 @@ contains
     write(PHLEX_FILE_UNIT,*) "# Run as: gnuplot plot_cb05cl_ae5.conf"
     write(PHLEX_FILE_UNIT,*) "set terminal png truecolor"
     write(PHLEX_FILE_UNIT,*) "set autoscale"
-    do i_spec = 1, phlex_core%chem_spec_data%size()
-      call assert(476528007, phlex_core%chem_spec_data%get_name(i_spec, spec_name))
-      write(PHLEX_FILE_UNIT,*) "set output 'cb05cl_ae5_"//spec_name//".png'"
+    spec_names = phlex_core%chem_spec_data%get_spec_names()
+    do i_spec = 1, size(spec_names)
+      write(PHLEX_FILE_UNIT,*) "set output 'cb05cl_ae5_"//trim(spec_names(i_spec)%string)//".png'"
       write(PHLEX_FILE_UNIT,*) "plot\"
       if (ebi_spec_map(i_spec).gt.0) then
         write(PHLEX_FILE_UNIT,*) " 'cb05cl_ae5_ebi_results.txt'\"
         write(PHLEX_FILE_UNIT,*) " using 1:"//trim(to_string(ebi_spec_map(i_spec)+1))//" title '"// &
-              spec_name//" (ebi)',\"
+              trim(spec_names(i_spec)%string)//" (ebi)',\"
       end if
       if (kpp_spec_map(i_spec).gt.0) then
         write(PHLEX_FILE_UNIT,*) " 'cb05cl_ae5_kpp_results.txt'\"
         write(PHLEX_FILE_UNIT,*) " using 1:"//trim(to_string(kpp_spec_map(i_spec)+1))//" title '"// &
-              spec_name//" (kpp)',\"
+              trim(spec_names(i_spec)%string)//" (kpp)',\"
       end if
       write(PHLEX_FILE_UNIT,*) " 'cb05cl_ae5_phlex_results.txt'\"
       write(PHLEX_FILE_UNIT,*) " using 1:"//trim(to_string(i_spec+1))//" title '"// &
-              spec_name//" (phlex)'"
+              trim(spec_names(i_spec)%string)//" (phlex)'"
     end do
     close(PHLEX_FILE_UNIT)
     

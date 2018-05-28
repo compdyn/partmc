@@ -815,8 +815,9 @@ contains
     integer(kind=i_kind), pointer :: var_type(:)
     ! Current species name
     character(len=:), allocatable :: spec_name
-    ! Species phase
-    integer(kind=i_kind) :: spec_phase
+    ! Gas-phase species names
+    type(string_t), allocatable :: gas_spec_names(:)
+
 
     ! Allocate space for the variable types and absolute tolerances
     allocate(abs_tol(this%state_array_size))
@@ -826,14 +827,17 @@ contains
     i_state_var = 0
 
     ! Add gas-phase species variable types and absolute tolerances
-    do i_spec = 1, this%chem_spec_data%size()
-      call assert(340050281, this%chem_spec_data%get_phase(i_spec, spec_phase))
-      if (spec_phase.ne.CHEM_SPEC_GAS_PHASE) cycle
+    gas_spec_names = &
+            this%chem_spec_data%get_spec_names(spec_phase = &
+            CHEM_SPEC_GAS_PHASE)
+    do i_spec = 1, size(gas_spec_names)
       i_state_var = i_state_var + 1
       call assert(716433999, &
-              this%chem_spec_data%get_abs_tol(i_spec, abs_tol(i_state_var)))
+              this%chem_spec_data%get_abs_tol(gas_spec_names(i_spec)%string, &
+              abs_tol(i_state_var)))
       call assert(888496437, &
-              this%chem_spec_data%get_type(i_spec, var_type(i_state_var)))
+              this%chem_spec_data%get_type(gas_spec_names(i_spec)%string, &
+              var_type(i_state_var)))
     end do
 
     ! Loop through aerosol representations

@@ -44,7 +44,7 @@ contains
   logical function build_property_set_test()
 
     type(property_t), pointer :: prop_set, sub_set
-    character(len=:), allocatable :: str_val, key_name
+    character(len=:), allocatable :: key_name
 
     integer(kind=i_kind) :: temp_int
     real(kind=dp) :: temp_real
@@ -122,8 +122,10 @@ contains
     call assert(682164874, sub_set%get_string(key_name, temp_string))
     call assert(154911046, temp_string.eq."nlsd98*)@ur soi87")
 
-    ! Deallocate the property set
+    ! Deallocate variables
     deallocate(prop_set)
+    deallocate(key_name)
+    deallocate(temp_string)
 
     build_property_set_test = .true.
 
@@ -263,6 +265,8 @@ contains
     deallocate(props)
     deallocate(prop2)
     deallocate(key_name)
+    deallocate(unicode_key_name)
+    deallocate(temp_string)
     call json%destroy(j_obj)
     deallocate(json)
 
@@ -276,7 +280,7 @@ contains
   logical function move_update_property_set_test()
 
     type(property_t), pointer :: orig_set, dest_set, sub_set, update_set
-    character(len=:), allocatable :: str_val, key_name
+    character(len=:), allocatable :: key_name
 
     integer(kind=i_kind) :: temp_int
     real(kind=dp) :: temp_real
@@ -395,6 +399,9 @@ contains
 
     deallocate(orig_set)
     deallocate(dest_set)
+    deallocate(key_name)
+    deallocate(temp_string)
+
     move_update_property_set_test = .true.
 
  end function move_update_property_set_test 

@@ -49,7 +49,8 @@ contains
   logical function build_aero_phase_data_set_test()
 
     type(aero_phase_data_t), pointer :: aero_phase_data
-    type(aero_phase_data_t), allocatable :: aero_phase_data_set(:)
+    type(aero_phase_data_ptr), allocatable :: aero_phase_data_set(:)
+    type(aero_phase_data_ptr), allocatable :: aero_phase_passed_data_set(:)
     type(chem_spec_data_t), pointer :: chem_spec_data
 #ifdef PMC_USE_JSON
     type(json_file) :: j_file
@@ -80,8 +81,8 @@ contains
     i_spec = 1
     do while (associated(j_obj))
       if (i_phase.le.3) then
-        aero_phase_data_set(i_phase) = aero_phase_data_t()
-        call aero_phase_data_set(i_phase)%load(json, j_obj)
+        aero_phase_data_set(i_phase)%val => aero_phase_data_t()
+        call aero_phase_data_set(i_phase)%val%load(json, j_obj)
         i_phase = i_phase + 1
       else
         call chem_spec_data%load(json, j_obj)
@@ -94,84 +95,83 @@ contains
     call assert(680635018, i_phase.eq.4)
     call assert(964927420, i_spec.eq.8)
 
-    call assert(679181779, aero_phase_data_set(1)%name().eq."my test phase one")
-    call assert(793291680, aero_phase_data_set(2)%name().eq."my test phase two")
-    call assert(905610025, aero_phase_data_set(3)%name().eq."my last test phase")
+    call assert(679181779, aero_phase_data_set(1)%val%name().eq."my test phase one")
+    call assert(793291680, aero_phase_data_set(2)%val%name().eq."my test phase two")
+    call assert(905610025, aero_phase_data_set(3)%val%name().eq."my last test phase")
 
-    property_set => aero_phase_data_set(1)%get_property_set()
+    property_set => aero_phase_data_set(1)%val%get_property_set()
     key = "some property"
     call assert(313789343, property_set%get_real(key, temp_real))
     call assert(364910356, almost_equal(temp_real, real(12.2, kind=dp)))
 
-    property_set => aero_phase_data_set(2)%get_property_set()
+    property_set => aero_phase_data_set(2)%val%get_property_set()
     key = "some other property"
     call assert(867210283, property_set%get_logical(key, temp_logical))
     call assert(979528628, .not.temp_logical)
 
-    property_set => aero_phase_data_set(3)%get_property_set()
+    property_set => aero_phase_data_set(3)%val%get_property_set()
     key = "some property"
     call assert(191846974, property_set%get_real(key, temp_real))
     call assert(304165319, almost_equal(temp_real, real(13.75, kind=dp)))
 
-    call aero_phase_data_set(1)%initialize(chem_spec_data)
-    call aero_phase_data_set(2)%initialize(chem_spec_data)
-    call aero_phase_data_set(3)%initialize(chem_spec_data)
+    call aero_phase_data_set(1)%val%initialize(chem_spec_data)
+    call aero_phase_data_set(2)%val%initialize(chem_spec_data)
+    call aero_phase_data_set(3)%val%initialize(chem_spec_data)
 
-    call assert(814209333, aero_phase_data_set(1)%size().eq.3)
-    call assert(863424812, aero_phase_data_set(2)%size().eq.3)
-    call assert(358218407, aero_phase_data_set(3)%size().eq.2)
+    call assert(814209333, aero_phase_data_set(1)%val%size().eq.3)
+    call assert(863424812, aero_phase_data_set(2)%val%size().eq.3)
+    call assert(358218407, aero_phase_data_set(3)%val%size().eq.2)
 
-    call assert(278773971, aero_phase_data_set(1)%size().eq.3)
-    call assert(608559165, aero_phase_data_set(2)%size().eq.3)
-    call assert(438402261, aero_phase_data_set(3)%size().eq.2)
-
-    key = "species a"
-    call assert(780621603, aero_phase_data_set(1)%spec_id(key).ne.0)
-    key = "species b"
-    call assert(610464699, aero_phase_data_set(1)%spec_id(key).ne.0)
-    key = "species c"
-    call assert(722783044, aero_phase_data_set(1)%spec_id(key).ne.0)
-    key = "species d"
-    call assert(552626140, aero_phase_data_set(1)%spec_id(key).eq.0)
-
-    key = "species c"
-    call assert(947419734, aero_phase_data_set(2)%spec_id(key).ne.0)
-    key = "species d"
-    call assert(777262830, aero_phase_data_set(2)%spec_id(key).ne.0)
-    key = "species e"
-    call assert(889581175, aero_phase_data_set(2)%spec_id(key).ne.0)
-    key = "species f"
-    call assert(154473773, aero_phase_data_set(2)%spec_id(key).eq.0)
-
-    key = "species b"
-    call assert(549267367, aero_phase_data_set(3)%spec_id(key).ne.0)
-    key = "species e"
-    call assert(379110463, aero_phase_data_set(3)%spec_id(key).ne.0)
-    key = "species a"
-    call assert(544003060, aero_phase_data_set(3)%spec_id(key).eq.0)
+    call assert(278773971, aero_phase_data_set(1)%val%size().eq.3)
+    call assert(608559165, aero_phase_data_set(2)%val%size().eq.3)
+    call assert(438402261, aero_phase_data_set(3)%val%size().eq.2)
 
 #ifdef PMC_USE_MPI
     pack_size = 0
     do i_phase = 1, 3
-      pack_size = pack_size + aero_phase_data_set(i_phase)%pack_size()
+      pack_size = pack_size + aero_phase_data_set(i_phase)%val%pack_size()
     end do
     allocate(buffer(pack_size))
     pos = 0
     do i_phase = 1, 3
-      call aero_phase_data_set(i_phase)%bin_pack(buffer, pos)
-      deallocate(aero_phase_data_set)
-      allocate(aero_phase_data_set(3))
+      call aero_phase_data_set(i_phase)%val%bin_pack(buffer, pos)
     end do
+    allocate(aero_phase_passed_data_set(3))
     pos = 0
     do i_phase = 1, 3
-      call aero_phase_data_set(i_phase)%bin_unpack(buffer, pos)
+      aero_phase_passed_data_set(i_phase)%val => aero_phase_data_t()
+      call aero_phase_passed_data_set(i_phase)%val%bin_unpack(buffer, pos)
     end do
+    do i_phase = 1, 3
+      call assert(165060871, &
+        size(aero_phase_data_set(i_phase)%val%condensed_data_real).eq.
+        size(aero_phase_passed_data_set(i_phase)%val%condensed_data_real))
+      do i_prop = 1, size(aero_phase_data_set(i_phase)%val%condensed_data_real)
+        call assert(513997759, &
+          aero_phase_data_set(i_phase)%val%condensed_data_real(i_prop).eq. &
+          aero_phase_passed_data_set(i_phase)%val%condensed_data_real(i_prop))
+      end do
+      call assert(104315834, &
+        size(aero_phase_data_set(i_phase)%val%condensed_data_int).eq.
+        size(aero_phase_passed_data_set(i_phase)%val%condensed_data_int))
+      do i_prop = 1, size(aero_phase_data_set(i_phase)%val%condensed_data_int)
+        call assert(834158929, &
+          aero_phase_data_set(i_phase)%val%condensed_data_int(i_prop).eq. &
+          aero_phase_passed_data_set(i_phase)%val%condensed_data_int(i_prop))
+      end do
+    end do
+    deallocate(aero_phase_passed_data_set)
 #endif
 
-    ! If condensed data arrays are used for aerosol phases in the future, put
-    ! tests for passed info here
 
-#endif  
+#endif 
+
+    call j_file%destroy()
+    call json%destroy(j_obj)
+    deallocate(json)
+    deallocate(aero_phase_data_set)
+    deallocate(chem_spec_data)
+
     build_aero_phase_data_set_test = .true.
 
   end function build_aero_phase_data_set_test

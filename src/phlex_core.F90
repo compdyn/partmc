@@ -420,6 +420,7 @@ contains
             allocate(new_aero_phase(size(this%aero_phase)+1))
             new_aero_phase(1:size(this%aero_phase)) = this%aero_phase(1:size(this%aero_phase))
             new_aero_phase(size(new_aero_phase))%val => aero_phase
+            call this%aero_phase(:)%dereference()
             deallocate(this%aero_phase)
             this%aero_phase => new_aero_phase
           end if

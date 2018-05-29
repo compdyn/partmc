@@ -226,7 +226,7 @@ contains
     type(property_t), pointer :: func_groups, func_group
     type(property_t), pointer :: main_groups, main_group
     type(property_t), pointer :: spec_groups, interactions
-    character(len=:), allocatable :: key_name, spec_name, phase_name
+    character(len=:), allocatable :: key_name, phase_name
     character(len=:), allocatable :: string_val, inter_group_name
     character(len=:), allocatable :: main_group_name, spec_group_name
     integer(kind=i_kind) :: i_spec, i_phase, i_rep, i_main_group, i_group
@@ -245,6 +245,7 @@ contains
     type(string_t), allocatable :: main_group_names(:)
     type(string_t), allocatable :: group_names(:)
     type(string_t), allocatable :: unique_names(:)
+    type(string_t), allocatable :: spec_names(:)
     real(kind=dp) :: q_i, r_i
     real(kind=dp) :: inter_param
     real(kind=dp), allocatable :: main_group_interactions(:,:)
@@ -299,15 +300,17 @@ contains
           found = .true.
           unique_phase_set_id(i_UNIFAC_phase) = i_phase
           num_phase_spec(i_UNIFAC_phase) = 0
-          do i_spec = 1, aero_phase_set(i_phase)%val%size()
-            spec_name = aero_phase_set(i_phase)%val%get_species_name(i_spec)
+          spec_names = aero_phase_set(i_phase)%val%get_species_names()
+          do i_spec = 1, size(spec_names)
             call assert(698678581, &
-                    chem_spec_data%get_property_set(spec_name, spec_props))
+                    chem_spec_data%get_property_set( &
+                    spec_names(i_spec)%string, spec_props))
             if (spec_props%get_property_t(key_name, spec_groups)) then
               num_phase_spec(i_UNIFAC_phase) = &
                       num_phase_spec(i_UNIFAC_phase) + 1
             end if
           end do
+          deallocate(spec_names)
         end if
       end do
       call assert_msg(835247755, found, "Cannot find aerosol phase '"// &
@@ -511,12 +514,13 @@ contains
       ! Set the properties for each species in the phase
       curr_spec_id = 0
       phase_ids_set = .false.
-      do i_spec = 1, aero_phase_set(i_phase)%val%size()
-        spec_name = aero_phase_set(i_phase)%val%get_species_name(i_spec)
+      spec_names = aero_phase_set(i_phase)%val%get_species_names()
+      do i_spec = 1, size(spec_names)
         
         ! Get the species properties
         call assert(698678581, &
-                chem_spec_data%get_property_set(spec_name, spec_props))
+                chem_spec_data%get_property_set( &
+                spec_names(i_spec)%string, spec_props))
         
         ! Check if this is a UNIFAC species, and get its groups
         key_name = "UNIFAC groups"
@@ -529,12 +533,12 @@ contains
                   spec_props%get_real(key_name, &
                   _MW_i_(i_UNIFAC_phase, curr_spec_id)), &
                   "Missing molecular weight for UNIFAC species '"// &
-                  spec_name//"'")
+                  spec_names(i_spec)%string//"'")
 
           ! Check the number of UNIFAC groups
           call assert_msg(511238330, spec_groups%size().gt.0, &
                   "Received empty set of UNIFAC groups for species '"// &
-                  spec_name//"'")
+                  spec_names(i_spec)%string//"'")
 
           ! Initialize the number of groups for this species
           do i_group = 1, size(group_names)
@@ -552,7 +556,7 @@ contains
             ! Get the number of this group for this species
             call assert_msg(429888360, spec_groups%get_int(val = num_spec_group), &
                     "Received non-integer number of UNIFAC groups for '"// &
-                    spec_name//"'")
+                    spec_names(i_spec)%string//"'")
 
             ! Locate the group in the set of functional groups
             ! and set the v_ik parameter
@@ -566,7 +570,7 @@ contains
             end do
             call assert_msg(175022713, found, &
                     "Invalid UNIFAC functional group specified for '"// &
-                    spec_name//"'")
+                    spec_names(i_spec)%string//"'")
 
             ! Set the surface area (q_i) and volume (r_i) parameter for this
             ! species
@@ -596,7 +600,8 @@ contains
             curr_phase_inst_id = 0
             do i_rep = 1, size(aero_rep_set)
               unique_names = aero_rep_set(i_rep)%val%unique_names( &
-                      phase_name = phase_name, spec_name = spec_name )
+                      phase_name = phase_name, &
+                      spec_name = spec_names(i_spec)%string )
               do i_instance = 1, size(unique_names)
                 curr_phase_inst_id = curr_phase_inst_id + 1
                 _PHASE_INST_ID_(i_UNIFAC_phase, curr_phase_inst_id) = &
@@ -609,7 +614,8 @@ contains
           else
             do i_rep = 1, size(aero_rep_set)
               unique_names = aero_rep_set(i_rep)%val%unique_names( &
-                      phase_name = phase_name, spec_name = spec_name )
+                      phase_name = phase_name, &
+                      spec_name = spec_names(i_spec)%string )
               if (size(unique_names).gt.0) then
                 _SPEC_ID_(i_UNIFAC_phase, curr_spec_id) = &
                         aero_rep_set(i_rep)%val%spec_state_id( &

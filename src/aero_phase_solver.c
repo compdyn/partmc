@@ -17,14 +17,14 @@
 #define CHEM_SPEC_PSSA 3
 #define CHEM_SPEC_ACTIVITY_COEFF 4
 
-#define _NUM_STATE_VAR_ (int_data[0])
-#define _NUM_INT_PROP_ 1
-#define _NUM_FLOAT_PROP_ 0
-#define _SPEC_TYPE_(x) (int_data[_NUM_INT_PROP_+x])
-#define _MW_(x) (float_data[_NUM_FLOAT_PROP_+x])
-#define _DENSITY_(x) (float_data[_NUM_FLOAT_PROP_+_NUM_STATE_VAR_+x])
-#define _INT_DATA_SIZE_ (_NUM_INT_PROP_+_NUM_STATE_VAR_)
-#define _FLOAT_DATA_SIZE_ (_NUM_FLOAT_PROP_+2*_NUM_STATE_VAR_)
+#define NUM_STATE_VAR_ (int_data[0])
+#define NUM_INT_PROP_ 1
+#define NUM_FLOAT_PROP_ 0
+#define SPEC_TYPE_(x) (int_data[NUM_INT_PROP_+x])
+#define MW_(x) (float_data[NUM_FLOAT_PROP_+x])
+#define DENSITY_(x) (float_data[NUM_FLOAT_PROP_+NUM_STATE_VAR_+x])
+#define INT_DATA_SIZE_ (NUM_INT_PROP_+NUM_STATE_VAR_)
+#define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+2*NUM_STATE_VAR_)
 
 #ifdef PMC_USE_SUNDIALS
 
@@ -33,13 +33,16 @@
  * \param model_data Pointer to the model data (state, env, aero_phase)
  * \param aero_phase_idx Index of the aerosol phase to use in the calculation
  * \param state_var Pointer the aerosol phase on the state variable array
- * \param mass Pointer to hold total aerosol phase mass (ug/m^3 or ug/particle)
- * \param MW Pointer to hold average MW of the aerosol phase (kg/mol)
- * \return A pointer to a set of partial derivatives dm/dy, or a NULL pointer if no
- *         partial derivatives exist
+ * \param mass Pointer to hold total aerosol phase mass 
+ *             (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$ or
+ *              \f$\mbox{\si{\micro\gram\per particle}}\f$)
+ * \param MW Pointer to hold average MW of the aerosol phase 
+ *           (\f$\mbox{\si{\kilogram\per\mol}}\f$)
+ * \return A pointer to a set of partial derivatives \f$\frac{dm}{dy}\f$, or a
+ *         NULL pointer if no partial derivatives exist
  */
-void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx, realtype *state_var,
-                realtype *mass, realtype *MW)
+void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx, 
+        realtype *state_var, realtype *mass, realtype *MW)
 {
 
   // Set up a pointer for the partial derivatives
@@ -47,22 +50,22 @@ void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx, realtype *
 
   // Get the requested aerosol phase data
   int *int_data = (int*) aero_phase_find(model_data, aero_phase_idx);
-  realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
+  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
 
   // Sum the mass and MW
   *mass = 0.0;
   *MW = 0.0;
-  for (int i_spec=0; i_spec<_NUM_STATE_VAR_; i_spec++) {
-    if (_SPEC_TYPE_(i_spec)==CHEM_SPEC_VARIABLE ||
-        _SPEC_TYPE_(i_spec)==CHEM_SPEC_CONSTANT ||
-        _SPEC_TYPE_(i_spec)==CHEM_SPEC_PSSA) {
+  for (int i_spec=0; i_spec<NUM_STATE_VAR_; i_spec++) {
+    if (SPEC_TYPE_(i_spec)==CHEM_SPEC_VARIABLE ||
+        SPEC_TYPE_(i_spec)==CHEM_SPEC_CONSTANT ||
+        SPEC_TYPE_(i_spec)==CHEM_SPEC_PSSA) {
       *mass += state_var[i_spec];
-      *MW += state_var[i_spec] / _MW_(i_spec);
+      *MW += state_var[i_spec] / MW_(i_spec);
     }
   }
   *MW = *mass / *MW;
 
-  return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
+  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
 /** \brief Get the volume of an aerosol phase
@@ -70,12 +73,14 @@ void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx, realtype *
  * \param model_data Pointer to the model data (state, env, aero_phase)
  * \param aero_phase_idx Index of the aerosol phase to use in the calculation
  * \param state_var Pointer to the aerosol phase on the state variable array
- * \param volume Pointer to hold the aerosol phase volume (m^3/m^3 or m^3/particle)
- * \return A pointer to a set of partial derivatives dv/dy, or a NULL pointer if no
- *         partial derivatives exist
+ * \param volume Pointer to hold the aerosol phase volume 
+ *               (\f$\mbox{\si{\cubic\metre\per\cubic\metre}}\f$ or 
+ *                \f$\mbox{\si{\cubic\metre\per particle}}\f$)
+ * \return A pointer to a set of partial derivatives \f$\frac{dv}{dy}\f$, or
+ *         a NULL pointer if no partial derivatives exist
  */
-void * aero_phase_get_volume(ModelData *model_data, int aero_phase_idx, realtype *state_var,
-                realtype *volume)
+void * aero_phase_get_volume(ModelData *model_data, int aero_phase_idx, 
+          realtype *state_var, realtype *volume)
 {
 
   // Set up a pointer for the partial derivatives
@@ -83,19 +88,19 @@ void * aero_phase_get_volume(ModelData *model_data, int aero_phase_idx, realtype
 
   // Get the requested aerosol phase data
   int *int_data = (int*) aero_phase_find(model_data, aero_phase_idx);
-  realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
+  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
 
   // Sum the mass and MW
   *volume = 0.0;
-  for (int i_spec=0; i_spec<_NUM_STATE_VAR_; i_spec++) {
-    if (_SPEC_TYPE_(i_spec)==CHEM_SPEC_VARIABLE ||
-        _SPEC_TYPE_(i_spec)==CHEM_SPEC_CONSTANT ||
-        _SPEC_TYPE_(i_spec)==CHEM_SPEC_PSSA) {
-      *volume += state_var[i_spec] / 1.0e9 / _DENSITY_(i_spec);;
+  for (int i_spec=0; i_spec<NUM_STATE_VAR_; i_spec++) {
+    if (SPEC_TYPE_(i_spec)==CHEM_SPEC_VARIABLE ||
+        SPEC_TYPE_(i_spec)==CHEM_SPEC_CONSTANT ||
+        SPEC_TYPE_(i_spec)==CHEM_SPEC_PSSA) {
+      *volume += state_var[i_spec] / 1.0e9 / DENSITY_(i_spec);;
     }
   }
 
-  return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
+  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
 /** \brief Find an aerosol phase in the list
@@ -126,14 +131,15 @@ void * aero_phase_find(ModelData *model_data, int aero_phase_idx)
 /** \brief Skip over an aerosol phase
  *
  * \param aero_phase_data Pointer to the aerosol phase to skip over
- * \return The aero_phase_data pointer advanced by the size of the aerosol phase
+ * \return The aero_phase_data pointer advanced by the size of the aerosol
+ *         phase
  */
 void * aero_phase_skip(void *aero_phase_data)
 {
   int *int_data = (int*) aero_phase_data;
-  realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
+  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
 
-  return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
+  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
 #endif
@@ -149,7 +155,8 @@ void * aero_phase_skip(void *aero_phase_data)
 void aero_phase_add_condensed_data(int n_int_param, int n_float_param,
               int *int_param, double *float_param, void *solver_data)
 {
-  ModelData *model_data = (ModelData*) &(((SolverData*)solver_data)->model_data);
+  ModelData *model_data = 
+          (ModelData*) &(((SolverData*)solver_data)->model_data);
   int *aero_phase_data = (int*) (model_data->nxt_aero_phase);
 
 #ifdef PMC_USE_SUNDIALS
@@ -159,7 +166,8 @@ void aero_phase_add_condensed_data(int n_int_param, int n_float_param,
 
   // Add the floating-point parameters
   realtype *flt_ptr = (realtype*) aero_phase_data;
-  for (; n_float_param>0; n_float_param--) *(flt_ptr++) = (realtype) *(float_param++);
+  for (; n_float_param>0; n_float_param--) 
+          *(flt_ptr++) = (realtype) *(float_param++);
 
   // Set the pointer for the next free space in aero_phase_data;
   model_data->nxt_aero_phase = (void*) flt_ptr;
@@ -167,12 +175,12 @@ void aero_phase_add_condensed_data(int n_int_param, int n_float_param,
 #endif
 }
 
-#undef _NUM_STATE_VAR_
-#undef _NUM_INT_PROP_
-#undef _NUM_FLOAT_PROP_
-#undef _SPEC_TYPE_
-#undef _MW_
-#undef _DENSITY_
-#undef _INT_DATA_SIZE_
-#undef _FLOAT_DATA_SIZE_
+#undef NUM_STATE_VAR_
+#undef NUM_INT_PROP_
+#undef NUM_FLOAT_PROP_
+#undef SPEC_TYPE_
+#undef MW_
+#undef DENSITY_
+#undef INT_DATA_SIZE_
+#undef FLOAT_DATA_SIZE_
 

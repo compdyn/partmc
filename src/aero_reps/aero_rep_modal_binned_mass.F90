@@ -590,7 +590,8 @@ contains
                             i_section, i_bin
     integer(kind=i_kind) :: curr_tracer_type
     character(len=:), allocatable :: curr_section_name, curr_phase_name, &
-                                     curr_spec_name, curr_bin_str
+                                     curr_bin_str
+    type(string_t), allocatable :: spec_names(:)
     
     ! Count the number of unique names
     num_spec = 0
@@ -604,13 +605,13 @@ contains
 
       ! Filter by spec name and/or tracer type
       if (present(spec_name).or.present(tracer_type)) then
-        do j_spec = 1, this%aero_phase(i_phase)%val%size()
-          curr_spec_name = &
-                  this%aero_phase(i_phase)%val%get_species_name(j_spec)
+        spec_names = this%aero_phase(i_phase)%val%get_species_names()
+        do j_spec = 1, size(spec_names)
           curr_tracer_type = &
-                  this%aero_phase(i_phase)%val%get_species_type(j_spec)
+                  this%aero_phase(i_phase)%val%get_species_type( &
+                  spec_names(j_spec)%string)
           if (present(spec_name)) then
-            if (spec_name.ne.curr_spec_name) cycle
+            if (spec_name.ne.spec_names(j_spec)%string) cycle
           end if
           if (present(tracer_type)) then
             if (tracer_type.ne.curr_tracer_type) cycle
@@ -648,6 +649,9 @@ contains
           end if
         end if
 
+        ! Get the species names in this phase
+        spec_names = this%aero_phase(i_phase)%val%get_species_names()
+
         ! Loop through the bins (one iteration for modes)
         do i_bin = 1, _NUM_BINS_(i_section)
 
@@ -662,25 +666,23 @@ contains
           num_spec = this%aero_phase(i_phase)%val%size()
           do j_spec = 1, num_spec
 
-            ! Get the species name
-            curr_spec_name = &
-                  this%aero_phase(i_phase)%val%get_species_name(j_spec)
-        
             ! Filter by species name
             if (present(spec_name)) then
-              if (spec_name.ne.curr_spec_name) cycle
+              if (spec_name.ne.spec_names(j_spec)%string) cycle
             end if
 
             ! Filter by species tracer type
             if (present(tracer_type)) then
               curr_tracer_type = &
-                  this%aero_phase(i_phase)%val%get_species_type(j_spec)
+                  this%aero_phase(i_phase)%val%get_species_type( &
+                  spec_names(j_spec)%string)
               if (tracer_type.ne.curr_tracer_type) cycle
             end if
 
             ! Add the unique name for this species
             unique_names(i_spec)%string = curr_section_name//"."// &
-                  curr_bin_str//curr_phase_name//'.'//curr_spec_name
+                  curr_bin_str//curr_phase_name//'.'// &
+                  spec_names(j_spec)%string
           
             i_spec = i_spec + 1
           end do
@@ -689,6 +691,9 @@ contains
           i_phase = i_phase + 1
         
         end do
+
+        deallocate(spec_names)
+
       end do
     end do
 
@@ -747,15 +752,20 @@ contains
 
     ! Indices for iterators
     integer(kind=i_kind) :: i_spec, j_spec, i_phase
-    
+   
+    ! species names in the aerosol phase
+    type(string_t), allocatable :: spec_names(:)
+
     i_spec = 1
     do i_phase = 1, size(this%aero_phase)
+      spec_names = this%aero_phase(i_phase)%val%get_species_names()
       do j_spec = 1, this%aero_phase(i_phase)%val%size()
         if (i_spec.eq.aero_rep_spec_id) then
-          spec_name_by_id = this%aero_phase(i_phase)%val%get_species_name(j_spec)
+          spec_name_by_id = spec_names(j_spec)%string
         end if
         i_spec = i_spec + 1
       end do
+      deallocate(spec_names)
     end do
 
   end function spec_name_by_id

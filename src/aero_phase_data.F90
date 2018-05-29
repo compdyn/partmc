@@ -7,31 +7,36 @@
 
 !> \page phlex_aero_phase Phlexible Module for Chemistry: Aerosol Phase
 !!
-!! An aerosol phase describes a unique chemical phase within an aerosol. It is
-!! designed to abstract the chemistry from the particular \ref phlex_aero_rep
-!! "aerosol representation" used (e.g., bins, modes, single particles). The
-!! general idea is that a set of aerosol phases will be made available (by
-!! loading them from an \ref input_format_aero_phase "input file".) Each phase
-!! will be defined by a fixed set of \ref phlex_species "chemical species".
+!! An \c pmc_aero_phase_data::aero_phase_data_t object describes a distinct
+!! chemical phase within an aerosol. It is designed to allow the
+!! implementation of the chemical and mass transfer processes to be
+!! independent of the particular \ref phlex_aero_rep "aerosol representation"
+!! used (e.g., bins, modes, single particles).
 !!
-!! Reactions in the chemical mechanism will have the ability to specify, by
-!! name, the phase they take place in, and which species in that phase are
-!! involved. (How they decide this is up to the particular \ref 
-!! phlex_rxn "reaction type".) 
+!! A single \ref phlex_aero_phase "aerosol phase" may be present in several
+!! \ref phlex_aero_rep "aerosol representations" (e.g., an aqueous phase in a
+!! binned and a single-particle representation), but the \ref phlex_species
+!! "chemical species" associated with a particular phase are constant
+!! throughout the model run. Once loaded, \ref phlex_aero_phase
+!! "aerosol phases" are made available to any \ref input_format_aero_rep
+!! "aerosol representations" that want to implement them. 
+!! \ref phlex_aero_rep "Aerosol representations" are able to specify which
+!! phases they implement and how many instances of that phase are present in
+!! the \ref phlex_aero_rep "aerosol representation". For example, a binned
+!! representation with 10 bins may implement 10 aqueous phases and 10 organic
+!! phases, whereas a single  particle representation with a concentric shell
+!! structure of 3 layers may implement 3 of each phase (assuming the chemistry
+!! is solved for each particle individually).
 !!
-!! \ref phlex_aero_rep "Aerosol representations" will be able to specify 
-!! which phases they will implement and how many instances of that phase
-!! will be present. For example, a binned representation with 10 bins may
-!! implement 10 aqueous phases and 10 organic phases, while a single 
-!! particle representation with a concentric shell structure of 3 layers
-!! may implement 3 of each phase (assuming the chemistry is solved for each
-!! single particle individually).
-!!
-!! Any physical aerosol parameters, such as the surface area between phases,
-!! or the Kelvin effect vapor pressure scaling, required by a chemical
-!! reaction will be provided by the aerosol representation through deferred
-!! type-bound procedures of the abstract \c
-!! pmc_aero_rep_data::aero_rep_data_t type.
+!! The set of \ref phlex_aero_phase "aerosol phases" is made available to the
+!! \ref phlex_mechanism "mechanism(s)" during model intialization. Reactions
+!! in the chemical mechanism are able to specify, by name, the phase
+!! in which they take place, and which species in that phase are involved.
+!! (How they decide this is up to the particular \ref  phlex_rxn
+!! "reaction type".)  Any physical aerosol parameters, such as the surface
+!! area between phases, the particle radius, or the number concentration,
+!! required by a chemical reaction will be provided by the \ref phlex_aero_rep 
+!! "aerosol representation" at run time.
 !!
 !! The input format for an aerosol phase can be found \ref
 !! input_format_aero_phase "here".
@@ -55,12 +60,12 @@ module pmc_aero_phase_data
   implicit none
   private
 
-#define _NUM_STATE_VAR_ this%condensed_data_int(1)
-#define _NUM_INT_PROP_ 1
-#define _NUM_REAL_PROP_ 0
-#define _SPEC_TYPE_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
-#define _MW_(x) this%condensed_data_real(_NUM_REAL_PROP_+x)
-#define _DENSITY_(x) this%condensed_data_real(_NUM_REAL_PROP_+_NUM_STATE_VAR_+x)
+#define NUM_STATE_VAR_ this%condensed_data_int(1)
+#define NUM_INT_PROP_ 1
+#define NUM_REAL_PROP_ 0
+#define SPEC_TYPE_(x) this%condensed_data_int(NUM_INT_PROP_+x)
+#define MW_(x) this%condensed_data_real(NUM_REAL_PROP_+x)
+#define DENSITY_(x) this%condensed_data_real(NUM_REAL_PROP_+NUM_STATE_VAR_+x)
 
   public :: aero_phase_data_t, aero_phase_data_ptr
 
@@ -78,62 +83,56 @@ module pmc_aero_phase_data
     integer(kind=i_kind) :: num_spec = 0
     !> Species names. These are species that are present in the aerosol
     !! phase. These species must exist in the \c
-    !! pmc_chem_spec::chem_spec_data_t variable during initialization.
+    !! pmc_phlex_core::phlex_core_t::chem_spec_data variable during
+    !! initialization.
     type(string_t), pointer :: spec_name(:) => null()
     !> Aerosol phase parameters. These will be available during 
-    !! initialization, but not during integration. All information required
-    !! by functions of the aerosol representation related to a phase must be 
-    !! saved by the \c pmc_aero_rep_data::aero_rep_data_t-exdending type in
-    !! the condensed data arrays.
+    !! initialization, but not during solving. 
     type(property_t), pointer :: property_set => null()
     !> Condensed phase data. Theses arrays will be available during
-    !! integration, and should contain any information required by the
+    !! solving, and should contain any information required by the
     !! functions of the aerosol phase that cannot be obtained
     !! from the \c pmc_phlex_state::phlex_state_t object. (floating-point)
     real(kind=dp), allocatable, public :: condensed_data_real(:)
     !> Condensed phase data. Theses arrays will be available during
-    !! integration, and should contain any information required by the
+    !! solving, and should contain any information required by the
     !! functions of the aerosol phase that cannot be obtained
     !! from the \c pmc_phlex_state::phlex_state_t object. (integer)
     integer(kind=i_kind), allocatable, public ::  condensed_data_int(:)
     !> Pointer to the set of chemical species data
     type(chem_spec_data_t), pointer :: chem_spec_data
   contains
+    !> Load data from an input file
+    procedure :: load
     !> Aerosol phase initialization
     procedure :: initialize
     !> Get the name of the aerosol phase
     procedure :: name => get_name
+    !> Get the number of species in the phase
+    procedure :: size => get_size
     !> Get property data associated with this phase
     procedure :: get_property_set
-    !> Get the name of a species in this phase
-    procedure :: get_species_name
-    !> Get the species type
+    !> Get a list of species names in this phase
+    procedure :: get_species_names
+    !> Get a species type by name
     procedure :: get_species_type
-    !> Get an aerosol species id within the phase.
-    !! TODO switch to use iterators and species names instead of ids
-    !!
-    !! The species id \f$i_{spec} = 1...n_{spec}\f$ where \f$n_{spec}\f$ is
-    !! number of species in this phase.
-    procedure :: spec_id
     !> Determine the number of bytes required to pack the given value
     procedure :: pack_size
     !> Packs the given value into the buffer, advancing position
     procedure :: bin_pack
     !> Unpacks the given value from the buffer, advancing position
     procedure :: bin_unpack
-    !> Load data from an input file
-    procedure :: load
-    !> Get the number of species in the phase
-    procedure :: size => get_size
     !> Print the aerosol phase data
     procedure :: print => do_print
+    !> Finalize the aerosol phase data
+    final :: finalize
 
     ! Private functions
-    !> Add a species
-    procedure, private :: add
     !> Ensure there is enough room in the species dataset to add a specified
     !! number of species
     procedure, private :: ensure_size
+    !> Add a species
+    procedure, private :: add
     !> Find a species index by name
     procedure, private :: find
   end type aero_phase_data_t
@@ -146,6 +145,11 @@ module pmc_aero_phase_data
   !> Pointer type for building arrays
   type aero_phase_data_ptr
     type(aero_phase_data_t), pointer :: val
+  contains
+    !> Dereference the pointer
+    procedure :: dereference
+    !> Finalize the pointer
+    final :: ptr_finalize
   end type aero_phase_data_ptr
 
 contains
@@ -173,6 +177,125 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> \page input_format_aero_phase Input JSON Object Format: Aerosol Phase
+  !!
+  !! A \c json object containing information about an \ref phlex_aero_phase
+  !! "aerosol phase" has the following format:
+  !! \code{.json}
+  !! { "pmc-data" : [
+  !!   {
+  !!     "name" : "my aerosol phase"
+  !!     "type" : "AERO_PHASE"
+  !!     "species" : [
+  !!       "a species",
+  !!       "another species",
+  !!       ...
+  !!     ],
+  !!     ...
+  !!   },
+  !!   ...
+  !! ]}
+  !! \endcode
+  !! The key-value pair \b name is required and must contain the unique name
+  !! used for this \ref phlex_aero_phase "aerosol phase" in the \ref 
+  !! input_format_mechanism "mechanism". The key-value pair \b type is also
+  !! required and its value must be \b AERO_PHASE. 
+  !!
+  !! A list of species names should be included in a key-value pair named
+  !! \b species whose value is an array of species names. These names must
+  !! correspond to \ref input_format_species "chemcical species" names.
+  !! \ref input_format_species "Chemical species" included in the \b species
+  !! array must have a \b phase of \b AEROSOL and must include key value pairs
+  !! \b molecular \b weight (\f$\mbox{\si{\kilogram\per\mole}}\f$) and \b
+  !! density (\f$\mbox{\si{\kilogram\per\cubic\metre}}\f$).
+  !!
+  !! All other data is optional and may include any valid \c json value.
+  !! Multiple entries with the same aerosol phase \b name will be merged into
+  !! a single phase, but duplicate property names for the same phase will
+  !! cause an error.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Load species from an input file
+#ifdef PMC_USE_JSON
+  subroutine load(this, json, j_obj)
+
+    !> Aerosol phase data
+    class(aero_phase_data_t), intent(inout) :: this
+    !> JSON core
+    type(json_core), pointer, intent(in) :: json
+    !> JSON object
+    type(json_value), pointer, intent(in) :: j_obj
+
+    type(json_value), pointer :: child, next, species
+    character(kind=json_ck, len=:), allocatable :: key, unicode_str_val
+    integer(kind=i_kind) :: var_type
+
+    character(len=:), allocatable :: phase_name, str_val
+    type(property_t), pointer :: property_set
+
+    ! allocate space for the phase property set
+    property_set => property_t()
+
+    ! cycle through the phase properties to find the name and species
+    ! and load the remaining data into the phase property set
+    next => null()
+    call json%get_child(j_obj, child)
+    do while (associated(child))
+      call json%info(child, name=key, var_type=var_type)
+      
+      ! phase name
+      if (key.eq."name") then
+        if (var_type.ne.json_string) call die_msg(429142134, &
+                "Received non-string aerosol phase name.")
+        call json%get(child, unicode_str_val)
+        this%phase_name = unicode_str_val
+      
+      ! chemical species in the phase
+      else if (key.eq."species") then
+        if (var_type.ne.json_array) call die_msg(293312378, &
+                "Received non-array list of aerosol phase species: "//&
+                to_string(var_type))
+        call json%get_child(child, species)
+        do while (associated(species))
+          call json%info(species, var_type=var_type)
+          if (var_type.ne.json_string) call die_msg(669858868, &
+                  "Received non-string aerosol phase species name.")
+          call json%get(species, unicode_str_val)
+          str_val = unicode_str_val
+          call this%add(str_val)
+          call json%get_next(species, next)
+          species => next
+        end do
+
+      ! load remaining properties into the phase property set
+      else if (key.ne."type") then
+        call property_set%load(json, child, .false.)
+      end if 
+
+      call json%get_next(child, next)
+      child => next
+    end do
+  
+    ! save the property set
+    if (associated(this%property_set)) then
+      call this%property_set%update(property_set)
+      deallocate (property_set)
+    else 
+      this%property_set => property_set
+    end if
+#else
+  subroutine load(this)
+
+    !> Aerosol phase data
+    class(aero_phase_data_t), intent(in) :: this
+
+    call warn_msg(236665532, "No support for input files.")
+#endif
+  end subroutine load
+   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Initialize the aerosol phase data, validating species names.
   subroutine initialize(this, chem_spec_data)
 
@@ -186,14 +309,14 @@ contains
     character(len=:), allocatable :: key_name
 
     ! Allocate space for the condensed data arrays
-    allocate(this%condensed_data_int(_NUM_INT_PROP_+this%num_spec))
-    allocate(this%condensed_data_real(_NUM_REAL_PROP_+2*this%num_spec))
+    allocate(this%condensed_data_int(NUM_INT_PROP_+this%num_spec))
+    allocate(this%condensed_data_real(NUM_REAL_PROP_+2*this%num_spec))
 
     ! Set the number of species
-    _NUM_STATE_VAR_ = this%num_spec
+    NUM_STATE_VAR_ = this%num_spec
 
     ! Find the aerosol-phase species, and save their needed properties    
-    do i_spec = 1, _NUM_STATE_VAR_
+    do i_spec = 1, NUM_STATE_VAR_
     
       ! Get the species properties
       call assert_msg(140971956, chem_spec_data%get_property_set( &
@@ -204,19 +327,21 @@ contains
 
       ! Get the species type
       call assert_msg(129442398, chem_spec_data%get_type( &
-              this%spec_name(i_spec)%string, _SPEC_TYPE_(i_spec)), &
+              this%spec_name(i_spec)%string, SPEC_TYPE_(i_spec)), &
               "Missing type for species '"// &
               this%spec_name(i_spec)%string// &
               "' in aerosol phase '"//this%phase_name//"'")
 
-      if (_SPEC_TYPE_(i_spec).eq.CHEM_SPEC_VARIABLE .or. &
-          _SPEC_TYPE_(i_spec).eq.CHEM_SPEC_CONSTANT .or. &
-          _SPEC_TYPE_(i_spec).eq.CHEM_SPEC_PSSA) then
+      ! get the molecular weight and density of species
+      ! present in the phase
+      if (SPEC_TYPE_(i_spec).eq.CHEM_SPEC_VARIABLE .or. &
+          SPEC_TYPE_(i_spec).eq.CHEM_SPEC_CONSTANT .or. &
+          SPEC_TYPE_(i_spec).eq.CHEM_SPEC_PSSA) then
           
         ! Get the molecular weight
         key_name = "molecular weight"
         call assert_msg(512254139, &
-                spec_props%get_real(key_name, _MW_(i_spec)), &
+                spec_props%get_real(key_name, MW_(i_spec)), &
                 "Missing molecular weight for species '"// &
                 this%spec_name(i_spec)%string// &
                 "' in aerosol phase '"//this%phase_name//"'")
@@ -224,15 +349,16 @@ contains
         ! Get the density
         key_name = "density"
         call assert_msg(224966878, &
-                spec_props%get_real(key_name, _DENSITY_(i_spec)), &
+                spec_props%get_real(key_name, DENSITY_(i_spec)), &
                 "Missing density for species '"// &
                 this%spec_name(i_spec)%string// &
                 "' in aerosol phase '"//this%phase_name//"'")
       
+      ! activity coefficients do not need molecular weight or density
       else
         
-        _MW_(i_spec) = 0.0
-        _DENSITY_(i_spec) = 0.0
+        MW_(i_spec) = 0.0
+        DENSITY_(i_spec) = 0.0
 
       end if
 
@@ -259,6 +385,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Get the number of species in the phase
+  integer(kind=i_kind) function get_size(this) result(num_spec)
+
+    !> Aerosol phase data
+    class(aero_phase_data_t), intent(in) :: this
+
+    num_spec = this%num_spec
+
+  end function get_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Get the aerosol phase property set
   function get_property_set(this) result (property_set)
 
@@ -274,187 +412,106 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get an aerosol phase species name
-  function get_species_name(this, spec_id) result (spec_name)
+  function get_species_names(this) result (spec_names)
 
-    !> The name of a species in this phase
-    character(len=:), allocatable :: spec_name
+    !> Names of species in this phase
+    type(string_t), allocatable :: spec_names(:)
     !> Aerosol phase data
     class(aero_phase_data_t), intent(in) :: this
-    !> Index of the species in the phase
-    integer(kind=i_kind), intent(in) :: spec_id
 
-    if (spec_id.gt.0 .and. spec_id.le.this%num_spec) then
-      spec_name = this%spec_name(spec_id)%string
-    end if
+    integer(kind=i_kind) :: i_spec
 
-  end function get_species_name
+    allocate(spec_names(this%num_spec))
+    do i_spec = 1, this%num_spec
+      spec_names(i_spec)%string = this%spec_name(i_spec)%string
+    end do
+
+  end function get_species_names
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get an aerosol phase species type
-  function get_species_type(this, spec_id) result (spec_type)
+  function get_species_type(this, spec_name) result (spec_type)
 
     !> The type of a species in this phase
     integer(kind=i_kind) :: spec_type
     !> Aerosol phase data
     class(aero_phase_data_t), intent(in) :: this
-    !> Index of the species in the phase
-    integer(kind=i_kind), intent(in) :: spec_id
+    !> Name of the species
+    character(len=:), allocatable, intent(in) :: spec_name
 
-    if (spec_id.gt.0 .and. spec_id.le.this%num_spec) then
-      call assert(255786656, this%chem_spec_data%get_type( &
-            this%spec_name(spec_id)%string, spec_type))
-    end if
+    call assert_msg(163269315, this%find(spec_name).gt.0, &
+            "Species '"//spec_name//"' is not in aerosol phase '"// &
+            this%phase_name//"'.")
+    call assert(255786656, this%chem_spec_data%get_type(spec_name, spec_type))
 
   end function get_species_type
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get an aerosol species id within the phase.
-  !!
-  !! The species id \f$i_{spec} = 1...n_{spec}\f$ where \f$n_{spec}\f$ is
-  !! number of species in this phase.
-  integer(kind=i_kind) function spec_id(this, spec_name) &
-          result (id)
+  !> Determine the size of a binary required to pack the aerosol 
+  !! representation data
+  integer(kind=i_kind) function pack_size(this)
 
-    !> Aerosol phase data
+    !> Aerosol representation data
     class(aero_phase_data_t), intent(in) :: this
-    !> Chemical species name
-    character(len=:), allocatable, intent(in) :: spec_name
+    
+    pack_size = &
+            pmc_mpi_pack_size_integer(this%num_spec) + &
+            pmc_mpi_pack_size_real_array(this%condensed_data_real) + &
+            pmc_mpi_pack_size_integer_array(this%condensed_data_int)
 
-    id = this%find(spec_name)
-
-  end function spec_id
+  end function pack_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> \page input_format_aero_phase Input JSON Object Format: Aerosol Phase
-  !!
-  !! A \c json object containing information about an \ref phlex_aero_phase
-  !! "aerosol phase" of the form:
-  !! \code{.json}
-  !! { "pmc-data" : [
-  !!   {
-  !!     "name" : "my aerosol phase"
-  !!     "type" : "AERO_PHASE"
-  !!     "species" : [
-  !!       "a species",
-  !!       "another species",
-  !!       ...
-  !!     ],
-  !!     ...
-  !!   },
-  !!   ...
-  !! ]}
-  !! \endcode
-  !! The key-value pair \b name is required and must contain the unique name
-  !! used for this \ref phlex_aero_phase "aerosol phase" in the \ref 
-  !! input_format_mechanism "mechanism object". A single phase may be 
-  !! present in several \ref input_format_aero_rep 
-  !! "aerosol representation objects" (e.g., an aqueous phase in
-  !! a binned and a single-particle representation), but the 
-  !! \ref input_format_species "species" associated with a
-  !! particular phase will be constant throughout the model run. Once loaded
-  !! an aerosol phase will be available to any \ref input_format_aero_rep
-  !! "aerosol representations" that want to implement it.
-  !!
-  !! It is important to note that the purpose of having an \ref
-  !! phlex_aero_phase "aerosol phase" in addition to an \ref phlex_aero_rep
-  !! "aerosol representation" type is to permit abstraction of the chemistry
-  !! and aerosol micro-physics. This allows a single "aqueous" \ref
-  !! phlex_aero_phase "phase" to be used to perform aqueous aerosol chemistry,
-  !! regardless of the number of aerosol representations (or their interal
-  !! bins, modes, particles, etc.).
-  !!
-  !! The key-value pair \b type is also required and its value must be
-  !! \b AERO_PHASE. A list of species names should be included in a key-value
-  !! pair named \b species whose value is an array of species names. These
-  !! names must correspond to an existing \ref input_format_species "species"
-  !! \b name. All other data is optional and may include any valid \c json
-  !! value, including nested objects. Multiple entries with the same aerosol
-  !! phase \b name will be merged into a single phase, but duplicate property
-  !! names for the same phase will cause an error.
+  !> Pack the given value to the buffer, advancing position
+  subroutine bin_pack(this, buffer, pos)
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Load species from an input file
-#ifdef PMC_USE_JSON
-  subroutine load(this, json, j_obj)
-
-    !> Aerosol phase data
-    class(aero_phase_data_t), intent(inout) :: this
-    !> JSON core
-    type(json_core), pointer, intent(in) :: json
-    !> JSON object
-    type(json_value), pointer, intent(in) :: j_obj
-
-    type(json_value), pointer :: child, next, species
-    character(kind=json_ck, len=:), allocatable :: key, unicode_str_val
-    integer(kind=i_kind) :: var_type
-
-    character(len=:), allocatable :: phase_name, str_val
-    type(property_t), pointer :: property_set
-
-    allocate(property_set)
-    property_set = property_t()
-
-    next => null()
-    call json%get_child(j_obj, child)
-    do while (associated(child))
-      call json%info(child, name=key, var_type=var_type)
-      if (key.eq."name") then
-        if (var_type.ne.json_string) call die_msg(429142134, &
-                "Received non-string aerosol phase name.")
-        call json%get(child, unicode_str_val)
-        this%phase_name = unicode_str_val
-      else if (key.eq."species") then
-        if (var_type.ne.json_array) call die_msg(293312378, &
-                "Received non-array list of aerosol phase species: "//&
-                to_string(var_type))
-        call json%get_child(child, species)
-        do while (associated(species))
-          call json%info(species, var_type=var_type)
-          if (var_type.ne.json_string) call die_msg(669858868, &
-                  "Received non-string aerosol phase species name.")
-          call json%get(species, unicode_str_val)
-          str_val = unicode_str_val
-          call this%add(str_val)
-          call json%get_next(species, next)
-          species => next
-        end do
-      else if (key.ne."type") then
-        call property_set%load(json, child, .false.)
-      end if 
-      call json%get_next(child, next)
-      child => next
-    end do
-  
-    if (associated(this%property_set)) then
-      call this%property_set%update(property_set)
-    else 
-      this%property_set => property_set
-    end if
-#else
-  subroutine load(this)
-
-    !> Aerosol phase data
+    !> Aerosol representation data
     class(aero_phase_data_t), intent(in) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
 
-    call warn_msg(236665532, "No support for input files.")
+#ifdef PMC_USE_MPI
+    integer :: prev_position
+
+    prev_position = pos
+    call pmc_mpi_pack_integer(buffer, pos, this%num_spec)
+    call pmc_mpi_pack_real_array(buffer, pos, this%condensed_data_real)
+    call pmc_mpi_pack_integer_array(buffer, pos, this%condensed_data_int)
+    call assert(561436372, &
+         pos - prev_position <= this%pack_size())
 #endif
-  end subroutine load
-   
+
+  end subroutine bin_pack
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the number of species in the phase
-  integer(kind=i_kind) function get_size(this) result(num_spec)
+  !> Unpack the given value from the buffer, advancing position
+  subroutine bin_unpack(this, buffer, pos)
 
-    !> Aerosol phase data
-    class(aero_phase_data_t), intent(in) :: this
+    !> Aerosol representation data
+    class(aero_phase_data_t), intent(out) :: this
+    !> Memory buffer
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position
+    integer, intent(inout) :: pos
 
-    num_spec = this%num_spec
+#ifdef PMC_USE_MPI
+    integer :: prev_position
 
-  end function get_size
+    prev_position = pos
+    call pmc_mpi_unpack_integer(buffer, pos, this%num_spec)
+    call pmc_mpi_unpack_real_array(buffer, pos, this%condensed_data_real)
+    call pmc_mpi_unpack_integer_array(buffer, pos, this%condensed_data_int)
+    call assert(219217030, &
+         pos - prev_position <= this%pack_size())
+#endif
+
+  end subroutine bin_unpack
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -484,27 +541,21 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Add a new chemical species to the phase
-  subroutine add(this, spec_name)
+  !> Finalize the aerosol phase data
+  elemental subroutine finalize(this)
 
     !> Aerosol phase data
-    class(aero_phase_data_t), intent(inout) :: this
-    !> Name of the species to add
-    character(len=:), allocatable, intent(in) :: spec_name
+    type(aero_phase_data_t), intent(inout) :: this
 
-    integer(kind=i_kind) :: i_spec
+    if (allocated(this%phase_name))    deallocate(this%phase_name)
+    if (associated(this%spec_name))    deallocate(this%spec_name)
+    if (associated(this%property_set)) deallocate(this%property_set)
+    if (allocated(this%condensed_data_real)) &
+                                       deallocate(this%condensed_data_real)
+    if (allocated(this%condensed_data_int)) &
+                                       deallocate(this%condensed_data_int)
 
-    i_spec = this%find(spec_name)
-    if (i_spec.ne.0) then
-      call warn_msg(980242449, "Species "//spec_name//&
-              " added more than once to phase "//this%name())
-      return
-    end if
-    call this%ensure_size(1)
-    this%num_spec = this%num_spec + 1
-    this%spec_name(this%num_spec) = string_t(spec_name)
-
-  end subroutine add
+  end subroutine finalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -531,8 +582,32 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the index of an aerosol-phase species by name. Return 0 if the species
-  !! is not found
+  !> Add a new chemical species to the phase
+  subroutine add(this, spec_name)
+
+    !> Aerosol phase data
+    class(aero_phase_data_t), intent(inout) :: this
+    !> Name of the species to add
+    character(len=:), allocatable, intent(in) :: spec_name
+
+    integer(kind=i_kind) :: i_spec
+
+    i_spec = this%find(spec_name)
+    if (i_spec.ne.0) then
+      call warn_msg(980242449, "Species "//spec_name//&
+              " added more than once to phase "//this%name())
+      return
+    end if
+    call this%ensure_size(1)
+    this%num_spec = this%num_spec + 1
+    this%spec_name(this%num_spec)%string = spec_name
+
+  end subroutine add
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the index of an aerosol-phase species by name. Return 0 if the
+  !! species is not found
   integer(kind=i_kind) function find(this, spec_name) &
                   result (spec_id)
 
@@ -555,70 +630,35 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Determine the size of a binary required to pack the aerosol 
-  !! representation data
-  integer(kind=i_kind) function pack_size(this)
+  !> Dereference a pointer
+  elemental subroutine dereference(this)
 
-    !> Aerosol representation data
-    class(aero_phase_data_t), intent(in) :: this
-    
-    pack_size = pmc_mpi_pack_size_integer(this%num_spec)
+    !> Pointer to aerosol phase data
+    class(aero_phase_data_ptr), intent(inout) :: this
 
-  end function pack_size
+    this%val => null()
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Pack the given value to the buffer, advancing position
-  subroutine bin_pack(this, buffer, pos)
-
-    !> Aerosol representation data
-    class(aero_phase_data_t), intent(in) :: this
-    !> Memory buffer
-    character, intent(inout) :: buffer(:)
-    !> Current buffer position
-    integer, intent(inout) :: pos
-
-#ifdef PMC_USE_MPI
-    integer :: prev_position
-
-    prev_position = pos
-    call pmc_mpi_pack_integer(buffer, pos, this%num_spec)
-    call assert(561436372, &
-         pos - prev_position <= this%pack_size())
-#endif
-
-  end subroutine bin_pack
+  end subroutine dereference
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Unpack the given value from the buffer, advancing position
-  subroutine bin_unpack(this, buffer, pos)
+  !> Finalize a pointer to aerosol phase data
+  elemental subroutine ptr_finalize(this)
 
-    !> Aerosol representation data
-    class(aero_phase_data_t), intent(out) :: this
-    !> Memory buffer
-    character, intent(inout) :: buffer(:)
-    !> Current buffer position
-    integer, intent(inout) :: pos
+    !> Pointer to aerosol phase data
+    type(aero_phase_data_ptr), intent(inout) :: this
 
-#ifdef PMC_USE_MPI
-    integer :: prev_position
+    if (associated(this%val)) deallocate(this%val)
 
-    prev_position = pos
-    call pmc_mpi_unpack_integer(buffer, pos, this%num_spec)
-    call assert(219217030, &
-         pos - prev_position <= this%pack_size())
-#endif
-
-  end subroutine bin_unpack
+  end subroutine ptr_finalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef _NUM_STATE_VAR_
-#undef _NUM_INT_PROP_
-#undef _NUM_REAL_PROP_
-#undef _SPEC_TYPE_
-#undef _MW_
-#undef _DENSITY_
+#undef NUM_STATE_VAR_
+#undef NUM_INT_PROP_
+#undef NUM_REAL_PROP_
+#undef SPEC_TYPE_
+#undef MW_
+#undef DENSITY_
 
 end module pmc_aero_phase_data

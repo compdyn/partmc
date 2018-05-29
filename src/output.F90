@@ -871,6 +871,7 @@ contains
     integer :: ncid_group
     integer :: k
 
+#ifdef PMC_USE_WRF
     write(filename,'(a,a,i3.3,a,i3.3,a,i8.8,a)') trim(prefix), &
          '_', env_state(1)%ix, '_', env_state(1)%iy, '_', index, '.nc'
     call pmc_nc_open_write(filename, ncid)
@@ -894,6 +895,7 @@ contains
     end do
 
     call pmc_nc_check(nf90_close(ncid))
+#endif
 
   end subroutine output_column_to_file
 

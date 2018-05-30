@@ -5,21 +5,19 @@
 !> \file
 !> The pmc_sub_model_data module.
 
-!> \page phlex_sub_model Phlexible Mechanism for Chemistry: Sub Model (general)
+!> \page phlex_sub_model Phlexible Module for Chemistry: Sub Model (general)
 !!
 !! A sub model is used during solving to calculate parameters based on the
 !! current model state for use by reactions.
 !!
 !! The available sub models are:
-!!  - \ref phlex_sub_model_UNIFAC "UNIFAC Activity Coefficients"
-!!  - \ref phlex_sub_model_ZSR "Zdanovskii-Stokes-Robinson Aerosol Water"
-!!  - \ref phlex_sub_model_PDFITE "PD-FiTE Activity Coefficients"
+!!  - \subpage phlex_sub_model_UNIFAC "UNIFAC Activity Coefficients"
 !!
-!! The general input format for a sub-model can be found \ref
-!! input_format_sub_model "here".
+!! The general input format for a sub-model can be found
+!! \subpage input_format_sub_model "here".
 !!
 !! General instructions for adding a new aerosol representation can be found
-!! \ref phlex_sub_model_add "here".
+!! \subpage phlex_sub_model_add "here".
 
 !> The abstract sub_model_data_t structure and associated subroutines.
 module pmc_sub_model_data
@@ -93,7 +91,7 @@ module pmc_sub_model_data
 
   !> Pointer to sub_model_data_t extending types
   type :: sub_model_data_ptr
-    class(sub_model_data_t), pointer :: val
+    class(sub_model_data_t), pointer :: val => null()
   end type sub_model_data_ptr
 
 interface

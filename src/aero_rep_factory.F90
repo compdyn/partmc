@@ -6,7 +6,9 @@
 !> The pmc_aero_rep_factory module.
 
 !> \page phlex_aero_rep_add Phlexible Module for Chemistry: Adding an Aerosol Representation
-!!  TODO update
+!! 
+!! NOTE: These instructions are out-of-date. TODO update
+!!
 !! Adding an \ref phlex_aero_rep "aerosol representation" to the \ref
 !! phlex_chem "phlex-chem" module can be done in the following steps:
 !!
@@ -205,8 +207,8 @@ module pmc_aero_rep_factory
 
   public :: aero_rep_factory_t
 
-  !> Identifiers for aerosol representations - used by binary packing/unpacking 
-  !! functions
+  !> Identifiers for aerosol representations - used by binary
+  !! packing/unpacking functions
   integer(kind=i_kind), parameter :: AERO_REP_SINGLE_PARTICLE   = 1
   integer(kind=i_kind), parameter :: AERO_REP_MODAL_BINNED_MASS = 2
 
@@ -225,7 +227,8 @@ module pmc_aero_rep_factory
     !> Determine the number of bytes required to pack an given aerosol
     !! representation
     procedure :: pack_size
-    !> Pack a given aerosol representation to the buffer, advancing the position
+    !> Pack a given aerosol representation to the buffer, advancing the 
+    !! position
     procedure :: bin_pack
     !> Unpack a aerosol representation from the buffer, advancing the position
     procedure :: bin_unpack
@@ -243,7 +246,7 @@ contains
     !> Aerosol representation factory
     class(aero_rep_factory_t), intent(in) :: this
     !> Name of the aerosol representation
-    character(len=:), allocatable :: type_name
+    character(len=:), allocatable, intent(in) :: type_name
 
     new_obj => null()
 
@@ -327,7 +330,7 @@ contains
   integer(kind=i_kind) function pack_size(this, aero_rep)
 
     !> Aerosol representation factory
-    class(aero_rep_factory_t) :: this
+    class(aero_rep_factory_t), intent(in) :: this
     !> Aerosol representation to pack
     class(aero_rep_data_t), intent(in) :: aero_rep
 
@@ -362,7 +365,8 @@ contains
       type is (aero_rep_single_particle_t)
         aero_rep_type = AERO_REP_SINGLE_PARTICLE
       class default
-        call die_msg(278244560, "Trying to pack aerosol representation of unknown type.")
+        call die_msg(278244560, &
+                "Trying to pack aerosol representation of unknown type.")
     end select
     call pmc_mpi_pack_integer(buffer, pos, aero_rep_type)
     call aero_rep%bin_pack(buffer, pos)
@@ -397,7 +401,8 @@ contains
       case (AERO_REP_SINGLE_PARTICLE)
         aero_rep => aero_rep_single_particle_t()
       case default
-        call die_msg(106634417, "Trying to unpack aerosol representation of unknown type:"// &
+        call die_msg(106634417, &
+                "Trying to unpack aerosol representation of unknown type:"// &
                 to_string(aero_rep_type))
     end select
     call aero_rep%bin_unpack(buffer, pos)

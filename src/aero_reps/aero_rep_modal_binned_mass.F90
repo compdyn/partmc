@@ -9,30 +9,31 @@
 !!
 !! The modal/binned mass aerosol representation includes a set of sections/bins
 !! that are made up of one or more \ref phlex_aero_phase "aerosol phases." The
-!! \c json object for this \ref phlex_aero_rep "aerosol representation" is of
-!! the form:
+!! \c json object for this \ref phlex_aero_rep "aerosol representation" has the
+!! following format:
 !! \code{.json}
 !!  { "pmc-data" : [
 !!    {
+!!      "name" : "my modal/binned aero rep",
 !!      "type" : "AERO_REP_MODAL_BINNED_MASS",
-!!      "sections/bins" : 
+!!      "modes/bins" : 
 !!      {
 !!        "dust" : 
 !!        {
-!!          "type" : "MODAL",
-!!          "phases" : [ "insoluble", "organic", "aqueous" ],
-!!          "shape" : "LOG_NORMAL",
-!!          "geometric mean diameter" : 1.2e-6,
-!!          "geometric standard deviation" : 1.2
-!!        },
-!!        "depeche" :
-!!        {
 !!          "type" : "BINNED",
-!!          "phases" : [ "moody", "listless" ],
+!!          "phases" : [ "insoluble", "organic", "aqueous" ],
 !!          "bins" : 8,
 !!          "minimum diameter" : 0.8e-9,
 !!          "maximum deviation" : 1.0e-6,
 !!          "scale" : "LOG"
+!!        },
+!!        "depeche" :
+!!        {
+!!          "type" : "MODAL",
+!!          "phases" : [ "moody", "listless" ],
+!!          "shape" : "LOG_NORMAL",
+!!          "geometric mean diameter" : 1.2e-6,
+!!          "geometric standard deviation" : 1.2
 !!        }
 !!      }
 !!    },
@@ -40,25 +41,25 @@
 !!  ]}
 !! \endcode
 !! The key-value pair \b type is required and must be
-!! \b AERO_REP_MODAL_BINNED_MASS. The key-value pair \b "sections/bins" is also
-!! required and must contain a set of at each one uniquely named mode or
-!! bin-set key-value pairs whose values specify a \b type that must be either
-!! 'MODAL' or 'BINNED' and an array of \b phases that correspond to existing
+!! \b AERO_REP_MODAL_BINNED_MASS. The key-value pair \b modes/bins is also
+!! required and must contain a set of at least one uniquely named mode or
+!! bin-set key-value pair whose value(s) specify a \b type that must be either
+!! \b MODAL or \b BINNED and an array of \b phases that correspond to existing
 !! \ref phlex_aero_phase "aerosol phase" objects. Each phase will be present
 !! once within a mode or once within each bin in a bin-set.
 !!
-!! Modes must also specify a distribution \b shape which must be 'LOG_NORMAL'
-!! (this available shapes may be expanded in the future). Log-normal sections
-!! must include a \b "geometric mean diameter" (m) and a 
-!! \b "geometric standard deviation" (unitless) that will be used along with
-!! the mass concetration of species in each phase and their densities to 
-!! calculate a lognormal distribution for each mode at runtime.
+!! Modes must also specify a distribution \b shape which must be \b LOG_NORMAL
+!! (the available shapes may be expanded in the future). Log-normal sections
+!! must include a \b geometric \b mean \b diameter (m) and a \b geometric 
+!! \b standard \b deviation (unitless) that will be used along with the mass
+!! concentration of species in each phase and their densities to calculate a
+!! lognormal distribution for each mode at runtime.
 !!
-!! Bin sets must specify the number of \b bins, a \b "minimum diameter" and
-!! \b "maximum diameter" and a \b scale, which must be 'LOG' or 'LINEAR'. The
-!! number concentration will be calculated at run-time based on the total
-!! mass (and thus volume) of each bin and the diameter of particles in that
-!! bin.
+!! Bin sets must specify the number of \b bins, a \b minimum \b diameter (m),
+!! a \b maximum \b diameter (m) and a \b scale, which must be \b LOG or 
+!! \b LINEAR. The number concentration will be calculated at run-time based on
+!! the total mass of each bin, the species densities and the diameter of
+!! particles in that bin.
 
 !> The abstract aero_rep_modal_binned_mass_t structure and associated subroutines.
 module pmc_aero_rep_modal_binned_mass
@@ -78,43 +79,43 @@ module pmc_aero_rep_modal_binned_mass
 #define BINNED 1
 #define MODAL 2
 
-#define _NUM_SECTION_ this%condensed_data_int(1)
-#define _INT_DATA_SIZE_ this%condensed_data_int(2)
-#define _REAL_DATA_SIZE_ this%condensed_data_int(3)
-#define _NUM_INT_PROP_ 3
-#define _NUM_REAL_PROP_ 0
-#define _MODE_INT_PARAM_LOC_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
-#define _MODE_REAL_PARAM_LOC_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_SECTION_+x)
-#define _SECTION_TYPE_(x) this%condensed_data_int(_MODE_INT_PARAM_LOC_(x))
+#define NUM_SECTION_ this%condensed_data_int(1)
+#define INT_DATA_SIZE_ this%condensed_data_int(2)
+#define REAL_DATA_SIZE_ this%condensed_data_int(3)
+#define NUM_INT_PROP_ 3
+#define NUM_REAL_PROP_ 0
+#define MODE_INT_PROP_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+x)
+#define MODE_REAL_PROP_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_SECTION_+x)
+#define SECTION_TYPE_(x) this%condensed_data_int(MODE_INT_PROP_LOC_(x))
 
-! For modes, _NUM_BINS_ = 1
-#define _NUM_BINS_(x) this%condensed_data_int(_MODE_INT_PARAM_LOC_(x)+1)
+! For modes, NUM_BINS_ = 1
+#define NUM_BINS_(x) this%condensed_data_int(MODE_INT_PROP_LOC_(x)+1)
 
 ! Number of aerosol phases in this mode/bin set
-#define _NUM_PHASE_(x) this%condensed_data_int(_MODE_INT_PARAM_LOC_(x)+2)
+#define NUM_PHASE_(x) this%condensed_data_int(MODE_INT_PROP_LOC_(x)+2)
 
 ! Phase state and model data ids
-#define _PHASE_STATE_ID_(x,y,b) this%condensed_data_int(_MODE_INT_PARAM_LOC_(x)+2+(b-1)*_NUM_PHASE_(x)+y)
-#define _PHASE_MODEL_DATA_ID_(x,y,b) this%condensed_data_int(_MODE_INT_PARAM_LOC_(x)+2+_NUM_BINS_(x)*_NUM_PHASE_(x)+(b-1)*_NUM_PHASE_(x)+y)
+#define PHASE_STATE_ID_(x,y,b) this%condensed_data_int(MODE_INT_PROP_LOC_(x)+2+(b-1)*NUM_PHASE_(x)+y)
+#define PHASE_MODEL_DATA_ID_(x,y,b) this%condensed_data_int(MODE_INT_PROP_LOC_(x)+2+NUM_BINS_(x)*NUM_PHASE_(x)+(b-1)*NUM_PHASE_(x)+y)
 
 ! GMD and bin diameter are stored in the same position - for modes, b=1
-#define _GMD_(x,b) this%condensed_data_real(_MODE_REAL_PARAM_LOC_(x)+(b-1)*4)
-#define _BIN_Dp_(x,b) this%condensed_data_real(_MODE_REAL_PARAM_LOC_(x)+(b-1)*4)
+#define GMD_(x,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(b-1)*4)
+#define BIN_DP_(x,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(b-1)*4)
 
 ! GSD - only used for modes, b=1
-#define _GSD_(x,b) this%condensed_data_real(_MODE_REAL_PARAM_LOC_(x)+(b-1)*4+1)
+#define GSD_(x,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(b-1)*4+1)
 
 ! Real-time number concetration - used for modes and bins - for modes, b=1
-#define _NUMBER_CONC_(x,b) this%condensed_data_real(_MODE_REAL_PARAM_LOC_(x)+(b-1)*4+2)
+#define NUMBER_CONC_(x,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(b-1)*4+2)
 
 ! Real-time effective radius - only used for modesi, b=1
-#define _EFFECTIVE_RADIUS_(x,b) this%condensed_data_real(_MODE_REAL_PARAM_LOC_(x)+(b-1)*4+3)
+#define EFFECTIVE_RADIUS_(x,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(b-1)*4+3)
 
 ! Real-time aerosol phase mass - used for modes and bins - for modes, b=1
-#define _AERO_PHASE_MASS_(x,y,b) this%condensed_data_real(_MODE_REAL_PARAM_LOC_(x)+4*_NUM_BINS_(x)+(b-1)*_NUM_PHASE_(x)+y-1)
+#define PHASE_MASS_(x,y,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+4*NUM_BINS_(x)+(b-1)*NUM_PHASE_(x)+y-1)
 
 ! Real-time aerosol phase average MW - used for modes and bins - for modes, b=0
-#define _AERO_PHASE_AVG_MW_(x,y,b) this%condensed_data_real(_MODE_REAL_PARAM_LOC_(x)+(4+_NUM_PHASE_(x))*_NUM_BINS_(x)+(b-1)*_NUM_PHASE_(x)+y-1)
+#define PHASE_AVG_MW_(x,y,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(4+NUM_PHASE_(x))*NUM_BINS_(x)+(b-1)*NUM_PHASE_(x)+y-1)
 
   ! Update types (These must match values in aero_rep_modal_binned_mass.c)
   integer(kind=i_kind), parameter, public :: UPDATE_GMD = 0
@@ -151,28 +152,32 @@ module pmc_aero_rep_modal_binned_mass
     !! representation. The list may be restricted to a particular phase and/or
     !! aerosol species by including the phase_name and spec_name arguments.
     !! 
-    !! For a modal/binned mass representation, the unique names will be the
-    !! phase name with the species name separated by a '.'
+    !! For a modal/binned mass representation, the unique names for bins are:
+    !!   - "bin name.bin #.phase name.species name"
+    !!
+    !! ... and for modes are:
+    !!   - "mode name.phase name.species name"
     procedure :: unique_names
     !> Get a species id on the \c pmc_phlex_state::phlex_state_t::state_var
-    !! array by unique name. These are unique ids for each element on the
-    !! state array for this \ref phlex_aero_rep  "aerosol representation" and
+    !! array by its unique name. These are unique ids for each element on the
+    !! state array for this \ref phlex_aero_rep "aerosol representation" and
     !! are numbered:
     !!
-    !!   \f$x_u = x_f ... (x_f+n-1)\f$
+    !!   \f[x_u \in x_f ... (x_f+n-1)\f]
     !!
-    !! where \f$x_u\f$ is the id of the element corresponding to concentration
-    !! of the species with unique name \f$u\f$ on the \c
+    !! where \f$x_u\f$ is the id of the element corresponding to the species
+    !! with unique name \f$u\f$ on the \c
     !! pmc_phlex_state::phlex_state_t::state_var array, \f$x_f\f$ is the index
     !! of the first element for this aerosol representation on the state array
     !! and \f$n\f$ is the total number of variables on the state array from
     !! this aerosol representation.
     procedure :: spec_state_id
-    !> Get the non-unique name of a species in this aerosol representation by
-    !! id.
-    procedure :: spec_name_by_id
+    !> Get the non-unique name of a species by its unique name
+    procedure :: spec_name
     !> Get the number of instances of an aerosol phase in this representation
     procedure :: num_phase_instances
+    !> Finalize the aerosol representation
+    final :: finalize
 
   end type aero_rep_modal_binned_mass_t
 
@@ -227,8 +232,8 @@ contains
     real(kind=dp) :: min_Dp, max_Dp, d_log_Dp
 
     ! Determine the size of the condensed data arrays
-    n_int_param = _NUM_INT_PROP_
-    n_float_param = _NUM_REAL_PROP_
+    n_int_param = NUM_INT_PROP_
+    n_float_param = NUM_REAL_PROP_
 
     ! Get the set of sections/bin-sets
     key_name = "modes/bins"
@@ -355,24 +360,24 @@ contains
     allocate(this%condensed_data_real(n_float_param))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
-    _INT_DATA_SIZE_ = n_int_param
-    _REAL_DATA_SIZE_ = n_float_param
+    INT_DATA_SIZE_ = n_int_param
+    REAL_DATA_SIZE_ = n_float_param
 
     ! Set the number of sections
-    _NUM_SECTION_ = sections%size()
+    NUM_SECTION_ = sections%size()
 
     ! Loop through the sections, adding names and distribution parameters and
     ! counting the phases in each section
     i_phase = 1
     curr_spec_state_id = spec_state_id
-    n_int_param = _NUM_INT_PROP_+2*_NUM_SECTION_+1
-    n_float_param = _NUM_REAL_PROP_+1
+    n_int_param = NUM_INT_PROP_+2*NUM_SECTION_+1
+    n_float_param = NUM_REAL_PROP_+1
     call sections%iter_reset()
-    do i_section = 1, _NUM_SECTION_
+    do i_section = 1, NUM_SECTION_
     
       ! Set the data locations for this mode
-      _MODE_INT_PARAM_LOC_(i_section) = n_int_param
-      _MODE_REAL_PARAM_LOC_(i_section) = n_float_param
+      MODE_INT_PROP_LOC_(i_section) = n_int_param
+      MODE_REAL_PROP_LOC_(i_section) = n_float_param
 
       ! Get the mode/bin properties
       call assert(394743663, sections%get_property_t(val=section))
@@ -381,28 +386,28 @@ contains
       key_name = "type"
       call assert(667058653, section%get_string(key_name, sect_type))
       if (sect_type.eq."MODAL") then
-        _SECTION_TYPE_(i_section) = MODAL
+        SECTION_TYPE_(i_section) = MODAL
       else if (sect_type.eq."BINNED") then
-        _SECTION_TYPE_(i_section) = BINNED
+        SECTION_TYPE_(i_section) = BINNED
       else
         call die_msg(256924433, "Internal error")
       end if
 
       ! Get the number of bins (or set to 1 for a mode)      
-      _NUM_BINS_(i_section) = 1
-      if (_SECTION_TYPE_(i_section).eq.BINNED) then
+      NUM_BINS_(i_section) = 1
+      if (SECTION_TYPE_(i_section).eq.BINNED) then
         key_name = "bins"
-        call assert(315215287, section%get_int(key_name, _NUM_BINS_(i_section)))
+        call assert(315215287, section%get_int(key_name, NUM_BINS_(i_section)))
       end if
 
       ! Get mode parameters
-      if (_SECTION_TYPE_(i_section).eq.MODAL) then
+      if (SECTION_TYPE_(i_section).eq.MODAL) then
         
         ! Get the geometric mean diameter
         key_name = "geometric mean diameter"
         call assert_msg(414771933, &
                 section%get_real(key_name, &
-                _GMD_(i_section, _NUM_BINS_(i_section))), &
+                GMD_(i_section, NUM_BINS_(i_section))), &
                 "Missing geometric mean diameter in mode '"// &
                 this%section_name(i_section)%string// &
                 "' in modal/binned mass aerosol representation '"// &
@@ -412,14 +417,20 @@ contains
         key_name = "geometric standard deviation"
         call assert_msg(163265059, &
                 section%get_real(key_name, &
-                _GSD_(i_section, _NUM_BINS_(i_section))), &
+                GSD_(i_section, NUM_BINS_(i_section))), &
                 "Missing geometric standard deviation in mode '"// &
                 this%section_name(i_section)%string// &
                 "' in modal/binned mass aerosol representation '"// &
                 this%rep_name//"'")
 
+        ! Calculate the effective radius (m)
+        ! (See aero_rep_modal_binned_mass_get_effective_radius for details)
+        EFFECTIVE_RADIUS_(i_section, NUM_BINS_(i_section)) = &
+                GMD_(i_section, NUM_BINS_(i_section)) / 2.0d0 * &
+                exp(5.0d0/2.0d0*(GSD_(i_section, NUM_BINS_(i_section)))**2) 
+
       ! Get bin parameters
-      else if (_SECTION_TYPE_(i_section).eq.BINNED) then
+      else if (SECTION_TYPE_(i_section).eq.BINNED) then
 
         ! Get the minimum diameter (m)
         key_name = "minimum diameter"
@@ -447,14 +458,14 @@ contains
 
         ! Assign the bin diameters
         if (str_val.eq."LINEAR") then
-          do i_bin = 1, _NUM_BINS_(i_section)
-            _BIN_Dp_(i_section,i_bin) = min_Dp + &
-                    (i_bin-1) * (max_Dp-min_Dp)/(_NUM_BINS_(i_section)-1)
+          do i_bin = 1, NUM_BINS_(i_section)
+            BIN_DP_(i_section,i_bin) = min_Dp + &
+                    (i_bin-1) * (max_Dp-min_Dp)/(NUM_BINS_(i_section)-1)
           end do
         else if (str_val.eq."LOG") then
-          d_log_Dp = (log10(max_Dp)-log10(min_Dp))/(_NUM_BINS_(i_section)-1)
-          do i_bin = 1, _NUM_BINS_(i_section)
-            _BIN_Dp_(i_section,i_bin) = 10.0d0**( log10(min_Dp) + &
+          d_log_Dp = (log10(max_Dp)-log10(min_Dp))/(NUM_BINS_(i_section)-1)
+          do i_bin = 1, NUM_BINS_(i_section)
+            BIN_DP_(i_section,i_bin) = 10.0d0**( log10(min_Dp) + &
                     (i_bin-1) * d_log_Dp )
           end do
         else
@@ -465,7 +476,7 @@ contains
         end if
 
         ! Set the effective radius
-        _EFFECTIVE_RADIUS_(i_section,i_bin) = _BIN_Dp_(i_section,i_bin)
+        EFFECTIVE_RADIUS_(i_section,i_bin) = BIN_DP_(i_section,i_bin)
 
       end if
 
@@ -474,13 +485,13 @@ contains
       call assert(712411046, section%get_property_t(key_name, phases))
 
       ! Save the number of phases
-      _NUM_PHASE_(i_section) = phases%size()
+      NUM_PHASE_(i_section) = phases%size()
 
       ! Add space for the mode/bin type, number of bins, and number of phases
       n_int_param = n_int_param + 3
 
       ! Add space for GMD, GSD, number concentration and effective radius
-      n_float_param = n_float_param + 4 * _NUM_BINS_(i_section)
+      n_float_param = n_float_param + 4 * NUM_BINS_(i_section)
 
       ! Loop through the phase names, look them up, and add them to the list
       call phases%iter_reset()
@@ -494,30 +505,30 @@ contains
           if (phase_name.eq.aero_phase_set(k_phase)%val%name()) then
             
             ! Loop through the bins
-            do i_bin = 1, _NUM_BINS_(i_section)
+            do i_bin = 1, NUM_BINS_(i_section)
 
               ! Add the aerosol phase to the list
               this%aero_phase(i_phase) = aero_phase_set(k_phase)
 
               ! Save the starting id for this phase on the state array
               this%phase_state_id(i_phase) = curr_spec_state_id
-              _PHASE_STATE_ID_(i_section, j_phase, i_bin) = curr_spec_state_id
+              PHASE_STATE_ID_(i_section, j_phase, i_bin) = curr_spec_state_id
 
               ! Increment the state id by the size of the phase
               curr_spec_state_id = curr_spec_state_id + &
                         aero_phase_set(k_phase)%val%size()
 
               ! Save the phase model data id
-              _PHASE_MODEL_DATA_ID_(i_section, j_phase, i_bin) = k_phase
+              PHASE_MODEL_DATA_ID_(i_section, j_phase, i_bin) = k_phase
 
               i_phase = i_phase + 1
             end do
 
             ! Add space for aerosol phase state and model data ids
-            n_int_param = n_int_param + 2*_NUM_BINS_(i_section)
+            n_int_param = n_int_param + 2*NUM_BINS_(i_section)
 
             ! Add space for aerosol phase mass and average MW
-            n_float_param = n_float_param + 2*_NUM_BINS_(i_section)
+            n_float_param = n_float_param + 2*NUM_BINS_(i_section)
 
             exit
           else if (k_phase.eq.size(aero_phase_set)) then
@@ -533,8 +544,8 @@ contains
 
     ! Check the data sizes
     call assert(951534966, i_phase-1.eq.num_phase)
-    call assert(951534966, n_int_param.eq._INT_DATA_SIZE_+1)
-    call assert(325387136, n_float_param.eq._REAL_DATA_SIZE_+1)
+    call assert(951534966, n_int_param.eq.INT_DATA_SIZE_+1)
+    call assert(325387136, n_float_param.eq.REAL_DATA_SIZE_+1)
 
   end subroutine initialize
 
@@ -571,8 +582,11 @@ contains
   !! representation. The list may be restricted to a particular phase and/or
   !! aerosol species by including the phase_name and spec_name arguments.
   !! 
-  !! For a modal/binned mass representation, the unique names will be the
-  !! phase name with the species name separated by a '.'
+  !! For a modal/binned mass representation, the unique names for bins are:
+  !!   - "bin name.bin #.phase name.species name"
+  !!
+  !! ... and for modes are:
+  !!   - "mode name.phase name.species name"
   function unique_names(this, phase_name, tracer_type, spec_name)
 
     !> List of unique names
@@ -630,13 +644,13 @@ contains
     ! Loop through the modes/bin sets
     i_phase = 1
     i_spec = 1
-    do i_section = 1, _NUM_SECTION_
+    do i_section = 1, NUM_SECTION_
 
       ! Get the current section name
       curr_section_name = this%section_name(i_section)%string
 
       ! Loop through the phases for this mode/bin set
-      do j_phase = 1, _NUM_PHASE_(i_section)
+      do j_phase = 1, NUM_PHASE_(i_section)
 
         ! Set the current phase name
         curr_phase_name = this%aero_phase(i_phase)%val%name()
@@ -644,7 +658,7 @@ contains
         ! Filter by phase name
         if (present(phase_name)) then
           if (phase_name.ne.curr_phase_name) then
-            i_phase = i_phase + _NUM_BINS_(i_section)
+            i_phase = i_phase + NUM_BINS_(i_section)
             cycle
           end if
         end if
@@ -653,10 +667,10 @@ contains
         spec_names = this%aero_phase(i_phase)%val%get_species_names()
 
         ! Loop through the bins (one iteration for modes)
-        do i_bin = 1, _NUM_BINS_(i_section)
+        do i_bin = 1, NUM_BINS_(i_section)
 
           ! Set the current bin label (except for single bins or mode)
-          if (_NUM_BINS_(i_section).gt.1) then
+          if (NUM_BINS_(i_section).gt.1) then
             curr_bin_str = trim(to_string(i_bin))//"."
           else
             curr_bin_str = ""
@@ -702,14 +716,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a species id on the \c pmc_phlex_state::phlex_state_t::state_var
-  !! array by unique name. These are unique ids for each element on the
-  !! state array for this \ref phlex_aero_rep  "aerosol representation" and
+  !! array by its unique name. These are unique ids for each element on the
+  !! state array for this \ref phlex_aero_rep "aerosol representation" and
   !! are numbered:
   !!
-  !!   \f$x_u = x_f ... (x_f+n-1)\f$
+  !!   \f[x_u \in x_f ... (x_f+n-1)\f]
   !!
-  !! where \f$x_u\f$ is the id of the element corresponding to concentration
-  !! of the species with unique name \f$u\f$ on the \c
+  !! where \f$x_u\f$ is the id of the element corresponding to the species
+  !! with unique name \f$u\f$ on the \c
   !! pmc_phlex_state::phlex_state_t::state_var array, \f$x_f\f$ is the index
   !! of the first element for this aerosol representation on the state array
   !! and \f$n\f$ is the total number of variables on the state array from
@@ -739,16 +753,15 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the non-unique name of a species in this aerosol representation by
-  !! id.
-  function spec_name_by_id(this, aero_rep_spec_id)
+  !> Get the non-unique name of a species by its unique name
+  function spec_name(this, unique_name)
 
     !> Chemical species name
-    character(len=:), allocatable :: spec_name_by_id
+    character(len=:), allocatable :: spec_name
     !> Aerosol representation data
     class(aero_rep_modal_binned_mass_t), intent(in) :: this
-    !> Indoex of species in this aerosol representation
-    integer(kind=i_kind) :: aero_rep_spec_id
+    !> Unique name of the species in this aerosol representation
+    character(len=:), allocatable :: unique_name
 
     ! Indices for iterators
     integer(kind=i_kind) :: i_spec, j_spec, i_phase
@@ -756,19 +769,26 @@ contains
     ! species names in the aerosol phase
     type(string_t), allocatable :: spec_names(:)
 
+    ! unique name list
+    type(string_t), allocatable :: unique_names(:)
+
+    unique_names = this%unique_names()
+
     i_spec = 1
     do i_phase = 1, size(this%aero_phase)
       spec_names = this%aero_phase(i_phase)%val%get_species_names()
       do j_spec = 1, this%aero_phase(i_phase)%val%size()
-        if (i_spec.eq.aero_rep_spec_id) then
-          spec_name_by_id = spec_names(j_spec)%string
+        if (unique_name.eq.unique_names(i_spec)%string) then
+          spec_name = spec_names(j_spec)%string
         end if
         i_spec = i_spec + 1
       end do
       deallocate(spec_names)
     end do
 
-  end function spec_name_by_id
+    deallocate(unique_names)
+
+  end function spec_name
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -796,27 +816,47 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Finalize the aerosol representation
+  elemental subroutine finalize(this)
+
+    !> Aerosol representation data
+    type(aero_rep_modal_binned_mass_t), intent(inout) :: this
+
+    if (allocated(this%rep_name)) deallocate(this%rep_name)
+    if (allocated(this%aero_phase)) then
+      ! The core will deallocate the aerosol phases
+      call this%aero_phase(:)%dereference()
+      deallocate(this%aero_phase)
+    end if
+    if (associated(this%property_set)) deallocate(this%property_set)
+    if (allocated(this%condensed_data_real)) deallocate(this%condensed_data_real)
+    if (allocated(this%condensed_data_int)) deallocate(this%condensed_data_int)
+
+  end subroutine finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #undef BINNED
 #undef MODAL
-#undef _NUM_SECTION_
-#undef _INT_DATA_SIZE_
-#undef _REAL_DATA_SIZE_
-#undef _NUM_INT_PROP_
-#undef _NUM_REAL_PROP_
-#undef _MODE_INT_PARAM_LOC_
-#undef _MODE_REAL_PARAM_LOC_
-#undef _SECTION_TYPE_
-#undef _NUM_BINS_
-#undef _NUM_PHASE_
-#undef _PHASE_STATE_ID_
-#undef _PHASE_MODEL_DATA_ID_
-#undef _SPEC_STATE_ID_
-#undef _GMD_
-#undef _BIN_Dp_
-#undef _GSD_
-#undef _NUMBER_CONC_
-#undef _EFFECTIVE_RADUIS_
-#undef _AERO_PHASE_MASS_
-#undef _AERO_PHASE_AVG_MW_
+#undef NUM_SECTION_
+#undef INT_DATA_SIZE_
+#undef REAL_DATA_SIZE_
+#undef NUM_INT_PROP_
+#undef NUM_REAL_PROP_
+#undef MODE_INT_PROP_LOC_
+#undef MODE_REAL_PROP_LOC_
+#undef SECTION_TYPE_
+#undef NUM_BINS_
+#undef NUM_PHASE_
+#undef PHASE_STATE_ID_
+#undef PHASE_MODEL_DATA_ID_
+#undef SPEC_STATE_ID_
+#undef GMD_
+#undef BIN_DP_
+#undef GSD_
+#undef NUMBER_CONC_
+#undef EFFECTIVE_RADIUS_
+#undef PHASE_MASS_
+#undef PHASE_AVG_MW_
 
 end module pmc_aero_rep_modal_binned_mass

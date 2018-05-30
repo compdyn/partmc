@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_troe module.
 
-!> \page phlex_rxn_troe Phlexible Mechanism for Chemistry: Troe Reaction
+!> \page phlex_rxn_troe Phlexible Module for Chemistry: Troe Reaction
 !!
 !! Troe (fall-off) reaction rate constant equations take the form:
 !!

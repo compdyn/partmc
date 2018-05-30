@@ -9,23 +9,25 @@
 !!
 !! The single particle aerosol representation is for use with a PartMC
 !! particle-resolved run. The \c json object for this \ref phlex_aero_rep
-!! "aerosol representation" is of the form:
+!! "aerosol representation" has the following format:
 !! \code{.json}
 !!  { "pmc-data" : [
 !!    {
+!!      "name" : "my single particle aero rep",
 !!      "type" : "AERO_REP_SINGLE_PARTICLE"
 !!    },
 !!    ...
 !!  ]}
 !! \endcode
-!! The only key-value pair required is the \b type, which must be \b
-!! AERO_REP_SINGLE_PARTICLE. This representation assumes that every
-!! \ref input_format_aero_phase "aerosol phase object" available will be
-!! present once in each particle, and that integration of the
-!! \ref input_format_mechanism "chemical mechanisms" at each time step will
-!! solve the gas-phase first then do phase-transfer and aerosol-phase
-!! chemistry for each single particle in the \c pmc_aero_particle_array::aero_particle_array_t variable
-!! sequentially.
+!! The key-value pair \b type is required and must be \b 
+!! AERO_REP_SINGLE_PARTICLE. This representation assumes that every \ref
+!! input_format_aero_phase "aerosol phase" available will be present
+!! once in each particle, and that the \ref input_format_mechanism
+!! "chemical mechanisms" will be solved at each time step first for the
+!! gas-phase then for phase-transfer and aerosol-phase chemistry for each
+!! single particle in the \c  pmc_aero_particle_array::aero_particle_array_t
+!! variable sequentially. This may be changed in the future to solve for all
+!! particles simultaneously.
 
 !> The aero_rep_single_particle_t type and associated subroutines.
 module pmc_aero_rep_single_particle
@@ -43,15 +45,15 @@ module pmc_aero_rep_single_particle
   implicit none
   private
 
-#define _NUM_PHASE_ this%condensed_data_int(1)
-#define _RADIUS_ this%condensed_data_real(1)
-#define _NUMBER_CONC_ this%condensed_data_real(2)
-#define _NUM_INT_PROP_ 1
-#define _NUM_REAL_PROP_ 2
-#define _PHASE_STATE_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
-#define _PHASE_MODEL_DATA_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_PHASE_+x)
-#define _AERO_PHASE_MASS_(x) this%condensed_data_real(_NUM_REAL_PROP_+x)
-#define _AERO_PHASE_AVG_MW_(x) this%condensed_data_real(_NUM_REAL_PROP_+_NUM_PHASE_+x)
+#define NUM_PHASE_ this%condensed_data_int(1)
+#define RADIUS_ this%condensed_data_real(1)
+#define NUMBER_CONC_ this%condensed_data_real(2)
+#define NUM_INT_PROP_ 1
+#define NUM_REAL_PROP_ 2
+#define PHASE_STATE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+x)
+#define PHASE_MODEL_DATA_ID_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_PHASE_+x)
+#define PHASE_MASS_(x) this%condensed_data_real(NUM_REAL_PROP_+x)
+#define PHASE_AVG_MW_(x) this%condensed_data_real(NUM_REAL_PROP_+NUM_PHASE_+x)
 
   ! Update types (These must match values in aero_rep_single_particle.c)
   integer(kind=i_kind), parameter, public :: UPDATE_RADIUS = 0
@@ -90,25 +92,26 @@ module pmc_aero_rep_single_particle
     !! phase name with the species name separated by a '.'
     procedure :: unique_names
     !> Get a species id on the \c pmc_phlex_state::phlex_state_t::state_var
-    !! array by unique name. These are unique ids for each element on the
-    !! state array for this \ref phlex_aero_rep  "aerosol representation" and
+    !! array by its unique name. These are unique ids for each element on the
+    !! state array for this \ref phlex_aero_rep "aerosol representation" and
     !! are numbered:
     !!
-    !!   \f$x_u = x_f ... (x_f+n-1)\f$
+    !!   \f[x_u \in x_f ... (x_f+n-1)\f]
     !!
-    !! where \f$x_u\f$ is the id of the element corresponding to concentration
-    !! of the species with unique name \f$u\f$ on the \c
+    !! where \f$x_u\f$ is the id of the element corresponding to the species
+    !! with unique name \f$u\f$ on the \c
     !! pmc_phlex_state::phlex_state_t::state_var array, \f$x_f\f$ is the index
     !! of the first element for this aerosol representation on the state array
     !! and \f$n\f$ is the total number of variables on the state array from
     !! this aerosol representation.
     procedure :: spec_state_id
-    !> Get the non-unique name of a species in this aerosol representation by
-    !! id.
-    procedure :: spec_name_by_id
+    !> Get the non-unique name of a species by its unique name
+    procedure :: spec_name
     !> Get the number of instances of an aerosol phase in this representation
     procedure :: num_phase_instances
-
+    !> Finalize the aerosol representation
+    final :: finalize
+  
   end type aero_rep_single_particle_t
 
   ! Constructor for aero_rep_single_particle_t
@@ -158,14 +161,13 @@ contains
     integer(kind=i_kind) :: num_int_param, num_float_param
 
     ! Start off the counters
-    num_int_param = _NUM_INT_PROP_ + 2*size(aero_phase_set)
-    num_float_param = _NUM_REAL_PROP_ + 2*size(aero_phase_set)
+    num_int_param = NUM_INT_PROP_ + 2*size(aero_phase_set)
+    num_float_param = NUM_REAL_PROP_ + 2*size(aero_phase_set)
 
     ! Assume all phases will be applied once to each particle
     allocate(this%aero_phase(size(aero_phase_set)))
     do i_phase = 1, size(aero_phase_set)
-      allocate(this%aero_phase(i_phase)%val)
-      this%aero_phase(i_phase)%val = aero_phase_set(i_phase)%val
+      this%aero_phase(i_phase) = aero_phase_set(i_phase)
     end do
 
     ! Allocate condensed data arrays
@@ -175,14 +177,14 @@ contains
     this%condensed_data_real(:) = real(0.0, kind=dp)
 
     ! Set phase state and model data ids
-    _NUM_PHASE_ = size(this%aero_phase)
-    allocate(this%phase_state_id(_NUM_PHASE_))
+    NUM_PHASE_ = size(this%aero_phase)
+    allocate(this%phase_state_id(NUM_PHASE_))
     curr_id = spec_state_id
-    do i_phase = 1, _NUM_PHASE_
+    do i_phase = 1, NUM_PHASE_
       this%phase_state_id(i_phase) = curr_id
       curr_id = curr_id + aero_phase_set(i_phase)%val%size()
-      _PHASE_STATE_ID_(i_phase) = this%phase_state_id(i_phase)
-      _PHASE_MODEL_DATA_ID_(i_phase) = i_phase     
+      PHASE_STATE_ID_(i_phase) = this%phase_state_id(i_phase)
+      PHASE_MODEL_DATA_ID_(i_phase) = i_phase     
     end do
 
   end subroutine initialize
@@ -299,14 +301,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a species id on the \c pmc_phlex_state::phlex_state_t::state_var
-  !! array by unique name. These are unique ids for each element on the
-  !! state array for this \ref phlex_aero_rep  "aerosol representation" and
+  !! array by its unique name. These are unique ids for each element on the
+  !! state array for this \ref phlex_aero_rep "aerosol representation" and
   !! are numbered:
   !!
-  !!   \f$x_u = x_f ... (x_f+n-1)\f$
+  !!   \f[x_u \in x_f ... (x_f+n-1)\f]
   !!
-  !! where \f$x_u\f$ is the id of the element corresponding to concentration
-  !! of the species with unique name \f$u\f$ on the \c
+  !! where \f$x_u\f$ is the id of the element corresponding to the species
+  !! with unique name \f$u\f$ on the \c
   !! pmc_phlex_state::phlex_state_t::state_var array, \f$x_f\f$ is the index
   !! of the first element for this aerosol representation on the state array
   !! and \f$n\f$ is the total number of variables on the state array from
@@ -338,14 +340,14 @@ contains
 
   !> Get the non-unique name of a species in this aerosol representation by
   !! id.
-  function spec_name_by_id(this, aero_rep_spec_id)
+  function spec_name(this, unique_name)
 
     !> Chemical species name
-    character(len=:), allocatable :: spec_name_by_id
+    character(len=:), allocatable :: spec_name
     !> Aerosol representation data
     class(aero_rep_single_particle_t), intent(in) :: this
-    !> Indoex of species in this aerosol representation
-    integer(kind=i_kind) :: aero_rep_spec_id
+    !> Unique name of the species in this aerosol representation
+    character(len=:), allocatable :: unique_name
 
     ! Indices for iterators
     integer(kind=i_kind) :: i_spec, j_spec, i_phase
@@ -353,19 +355,26 @@ contains
     ! Species in aerosol phase
     type(string_t), allocatable :: spec_names(:)
 
+    ! Unique name list
+    type(string_t), allocatable :: unique_names(:)
+
+    unique_names = this%unique_names()
+
     i_spec = 1
     do i_phase = 1, size(this%aero_phase)
       spec_names = this%aero_phase(i_phase)%val%get_species_names()
       do j_spec = 1, size(spec_names)
-        if (i_spec.eq.aero_rep_spec_id) then
-          spec_name_by_id = spec_names(j_spec)%string
+        if (unique_name.eq.unique_names(i_spec)%string) then
+          spec_name = spec_names(j_spec)%string
         end if
         i_spec = i_spec + 1
       end do
       deallocate(spec_names)
     end do
 
-  end function spec_name_by_id
+    deallocate(unique_names)
+
+  end function spec_name
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -395,14 +404,34 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef _NUM_PHASE_
-#undef _RADIUS_
-#undef _NUMBER_CONC_
-#undef _NUM_INT_PROP_
-#undef _NUM_REAL_PROP_
-#undef _PHASE_STATE_ID_
-#undef _PHASE_MODEL_DATA_ID_
-#undef _AERO_PHASE_MASS_
-#undef _AERO_PHASE_AVG_MW_
+  !> Finalize the aerosol representation
+  elemental subroutine finalize(this)
+
+    !> Aerosol representation data
+    type(aero_rep_single_particle_t), intent(inout) :: this
+
+    if (allocated(this%rep_name)) deallocate(this%rep_name)
+    if (allocated(this%aero_phase)) then
+      ! The core will deallocate the aerosol phases
+      call this%aero_phase(:)%dereference()
+      deallocate(this%aero_phase)
+    end if
+    if (associated(this%property_set)) deallocate(this%property_set)
+    if (allocated(this%condensed_data_real)) deallocate(this%condensed_data_real)
+    if (allocated(this%condensed_data_int)) deallocate(this%condensed_data_int)
+
+  end subroutine finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#undef NUM_PHASE_
+#undef RADIUS_
+#undef NUMBER_CONC_
+#undef NUM_INT_PROP_
+#undef NUM_REAL_PROP_
+#undef PHASE_STATE_ID_
+#undef PHASE_MODEL_DATA_ID_
+#undef PHASE_MASS_
+#undef PHASE_AVG_MW_
 
 end module pmc_aero_rep_single_particle

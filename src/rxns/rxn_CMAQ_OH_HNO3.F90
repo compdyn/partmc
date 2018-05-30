@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_CMAQ_OH_HNO3 module.
 
-!> \page phlex_rxn_CMAQ_OH_HNO3 Phlexible Mechanism for Chemistry: Special CMAQ Reaction for OH+HNO3
+!> \page phlex_rxn_CMAQ_OH_HNO3 Phlexible Module for Chemistry: Special CMAQ Reaction for OH+HNO3
 !!
 !! A special CMAQ rate constant for the reactions:
 !!

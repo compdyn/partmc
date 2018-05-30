@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_aqueous_equilibrium module.
 
-!> \page phlex_rxn_aqueous_equilibrium Phlexible Mechanism for Chemistry: Phase-Transfer Reaction
+!> \page phlex_rxn_aqueous_equilibrium Phlexible Module for Chemistry: Phase-Transfer Reaction
 !!
 !! Aqueous equilibrium reactions are calculated as forward and reverse
 !! reactions, based on a provided reverse reaction rate constant and the
@@ -231,8 +231,7 @@ contains
     do i_aero_rep = 1, size(aero_rep)
 
       ! Check for the specified phase in this aero rep
-      ! TODO use num_phase_instances function here and to set num_phase
-      if (aero_rep(i_aero_rep)%val%phase_id(phase_name).eq.0) cycle
+      if (aero_rep(i_aero_rep)%val%num_phase_instances(phase_name).eq.0) cycle
 
       ! Get the unique names for aerosol-phase water
       unique_names = aero_rep(i_aero_rep)%val%unique_names( &
@@ -373,7 +372,7 @@ contains
     do i_aero_rep = 1, size(aero_rep)
 
       ! Check for the specified phase in this aero rep
-      if (aero_rep(i_aero_rep)%val%phase_id(phase_name).eq.0) cycle
+      if (aero_rep(i_aero_rep)%val%num_phase_instances(phase_name).eq.0) cycle
 
       ! Get the unique names for aerosol-phase water
       unique_names = aero_rep(i_aero_rep)%val%unique_names( &

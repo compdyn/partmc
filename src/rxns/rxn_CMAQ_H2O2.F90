@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_CMAQ_H2O2 module.
 
-!> \page phlex_rxn_CMAQ_H2O2 Phlexible Mechanism for Chemistry: Special CMAQ Reaction for H2O2
+!> \page phlex_rxn_CMAQ_H2O2 Phlexible Module for Chemistry: Special CMAQ Reaction for H2O2
 !!
 !! A special CMAQ rate constant for the reactions:
 !!

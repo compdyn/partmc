@@ -54,6 +54,8 @@ contains
       passed = .true.
     end if
 
+    deallocate(phlex_solver_data)
+
   end function run_pmc_aero_rep_data_tests
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -184,13 +186,8 @@ contains
     call assert(848319807, .not.phlex_core%find_aero_rep(rep_name, aero_rep))
     call assert(343113402, .not.associated(aero_rep))
 
-
-
-#ifdef PMC_USE_MPI
-#endif
-
-    ! If condensed data arrays are used for aerosol phases in the future, put
-    ! tests for passed info here
+    deallocate(phlex_state)
+    deallocate(phlex_core)
 
 #endif  
     build_aero_rep_data_set_test = .true.

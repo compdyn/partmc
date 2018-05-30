@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_arrhenius module.
 
-!> \page phlex_rxn_arrhenius Phlexible Mechanism for Chemistry: Arrhenius Reaction
+!> \page phlex_rxn_arrhenius Phlexible Module for Chemistry: Arrhenius Reaction
 !!
 !! Arrhenius-like reaction rate constant equations can take the form:
 !!

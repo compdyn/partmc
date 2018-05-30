@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_HL_phase_transfer module.
 
-!> \page phlex_rxn_HL_phase_transfer Phlexible Mechanism for Chemistry: Phase-Transfer Reaction
+!> \page phlex_rxn_HL_phase_transfer Phlexible Module for Chemistry: Phase-Transfer Reaction
 !!
 !! Phase transfer reactions are based on Henry's Law equilibrium constants
 !! whose equations take the form:
@@ -147,6 +147,7 @@ contains
     class(string_t), allocatable :: unique_spec_names(:), unique_water_names(:)
     integer(kind=i_kind), allocatable :: aero_spec_ids(:)
     integer(kind=i_kind), allocatable :: water_spec_ids(:)
+    integer(kind=i_kind), allocatable :: phase_ids(:)
 
     integer(kind=i_kind) :: temp_int
     real(kind=dp) :: temp_real, N_star
@@ -244,7 +245,10 @@ contains
               phase_name = phase_name, spec_name = spec_name)
       unique_water_names = aero_rep(i_aero_rep)%val%unique_names( &
               phase_name = phase_name, spec_name = water_name)
-     
+    
+      ! Get the phase ids for this aerosol phase
+      phase_ids = aero_rep(i_aero_rep)%val%phase_ids(phase_name)
+
       ! Add the species concentration and activity coefficient ids to
       ! the condensed data 
       do i_spec = 1, size(unique_spec_names)
@@ -254,8 +258,7 @@ contains
         _AERO_WATER_(i_aero_id) = &
               aero_rep(i_aero_rep)%val%spec_state_id( &
               unique_water_names(i_spec)%string)
-        _AERO_PHASE_ID_(i_aero_id) = &
-              aero_rep(i_aero_rep)%val%phase_id(phase_name)
+        _AERO_PHASE_ID_(i_aero_id) = phase_ids(i_spec)
         _AERO_REP_ID_(i_aero_id) = i_aero_rep
         i_aero_id = i_aero_id + 1
       end do

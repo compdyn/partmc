@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_data module.
 
-!> \page phlex_rxn Phlexible Module for Chemistry: Reactions
+!> \page phlex_rxn Phlexible Module for Chemistry: Reactions (general)
 !!
 !! A reaction represents a transformation of the model state due to a physical
 !! or chemical process that occurs within a phase (gas or \ref
@@ -36,16 +36,22 @@
 !! Valid reaction types include:
 !!
 !!   - \subpage phlex_rxn_arrhenius "Arrhenius"
-!!   - \subpage phlex_rxn_troe "Troe (fall-off)"
+!!   - \subpage phlex_rxn_aqueous_equilibrium "Aqueous-phase Equilibrium"
 !!   - \subpage phlex_rxn_CMAQ_H2O2 "CMAQ special reaction type for 2HO2 (+ H2O) -> H2O2"
 !!   - \subpage phlex_rxn_CMAQ_OH_HNO3 "CMAQ special reaction type for OH + HNO3 -> NO3 + H2O"
+!!   - \subpage phlex_rxn_condensed_phase_arrhenius "Condensed-Phase Arrhenius"
+!!   - \subpage phlex_rxn_HL_phase_transfer "Henry's Law Phase Transfer"
+!!   - \subpage phlex_rxn_PDFITE_activity "PD-FiTE Activity"
+!!   - \subpage phlex_rxn_SIMPOL_phase_transfer "SIMPOL.1 Phase Transfer"
 !!   - \subpage phlex_rxn_photolysis "Photolysis"
+!!   - \subpage phlex_rxn_troe "Troe (fall-off)"
+!!   - \subpage phlex_rxn_ZSR_aerosol_water "ZSR Aerosol Water"
 !!
-!! The general input format for a reaction can be found \ref input_format_rxn
+!! The general input format for a reaction can be found \subpage input_format_rxn
 !! "here".
 !!
-!! General instructions for adding a new reaction type can be found \ref
-!! phlex_rxn_add "here".
+!! General instructions for adding a new reaction type can be found
+!! \subpage phlex_rxn_add "here".
 
 !> The rxn_data_t structure and associated subroutines.
 module pmc_rxn_data
@@ -136,7 +142,7 @@ module pmc_rxn_data
 
   !> Pointer type for building arrays of mixed reactions
   type :: rxn_data_ptr
-    class(rxn_data_t), pointer :: val
+    class(rxn_data_t), pointer :: val => null()
   end type rxn_data_ptr
 
 interface
@@ -340,10 +346,16 @@ contains
   !! to a valid reaction type. Valid reaction types include:
   !!
   !!   - \subpage phlex_rxn_arrhenius "Arrhenius"
-  !!   - \subpage phlex_rxn_troe "Troe (fall-off)"
+  !!   - \subpage phlex_rxn_aqueous_equilibrium "Aqueous-phase Equilibrium"
   !!   - \subpage phlex_rxn_CMAQ_H2O2 "CMAQ special reaction type for 2HO2 (+ H2O) -> H2O2"
   !!   - \subpage phlex_rxn_CMAQ_OH_HNO3 "CMAQ special reaction type for OH + HNO3 -> NO3 + H2O"
+  !!   - \subpage phlex_rxn_condensed_phase_arrhenius "Condensed-Phase Arrhenius"
+  !!   - \subpage phlex_rxn_HL_phase_transfer "Henry's Law Phase Transfer"
+  !!   - \subpage phlex_rxn_PDFITE_activity "PD-FiTE Activity"
+  !!   - \subpage phlex_rxn_SIMPOL_phase_transfer "SIMPOL.1 Phase Transfer"
   !!   - \subpage phlex_rxn_photolysis "Photolysis"
+  !!   - \subpage phlex_rxn_troe "Troe (fall-off)"
+  !!   - \subpage phlex_rxn_ZSR_aerosol_water "ZSR Aerosol Water"
   !! 
   !! All remaining data are optional and may include any valid \c json value, 
   !! including nested objects. However, extending types (i.e. reactions) will

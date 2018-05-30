@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_SIMPOL_phase_transfer module.
 
-!> \page phlex_rxn_SIMPOL_phase_transfer Phlexible Mechanism for Chemistry: Phase-Transfer Reaction
+!> \page phlex_rxn_SIMPOL_phase_transfer Phlexible Module for Chemistry: Phase-Transfer Reaction
 !!
 !! SIMPOL phase transfer reactions are based on the SIMPOL model 
 !! calculations of vapor pressure, gas-phase diffusion to a particle's
@@ -158,6 +158,7 @@ contains
     integer(kind=i_kind) :: i_aero_id
     class(string_t), allocatable :: unique_spec_names(:)
     integer(kind=i_kind), allocatable :: aero_spec_ids(:)
+    integer(kind=i_kind), allocatable :: phase_ids(:)
 
     integer(kind=i_kind) :: temp_int
     real(kind=dp) :: temp_real, N_star
@@ -235,14 +236,16 @@ contains
       unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
               phase_name = phase_name, spec_name = spec_name)
      
+      ! Get the phase ids for this aerosol phase
+      phase_ids = aero_rep(i_aero_rep)%val%phase_ids(phase_name)
+
       ! Add the species concentration and activity coefficient ids to
       ! the condensed data 
       do i_spec = 1, size(unique_spec_names)
         _AERO_SPEC_(i_aero_id) = &
               aero_rep(i_aero_rep)%val%spec_state_id( &
               unique_spec_names(i_spec)%string)
-        _AERO_PHASE_ID_(i_aero_id) = &
-              aero_rep(i_aero_rep)%val%phase_id(phase_name)
+        _AERO_PHASE_ID_(i_aero_id) = phase_ids(i_spec)
         _AERO_REP_ID_(i_aero_id) = i_aero_rep
         i_aero_id = i_aero_id + 1
       end do

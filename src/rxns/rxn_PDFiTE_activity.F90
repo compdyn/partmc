@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_PDFiTE_activity module.
 
-!> \page phlex_rxn_PDFiTE_activity Phlexible Mechanism for Chemistry: PDFiTE Activity Reaction
+!> \page phlex_rxn_PDFiTE_activity Phlexible Module for Chemistry: PDFiTE Activity Reaction
 !!
 !! PDFiTE activity reactions calculate aerosol-phase species activities using
 !! Taylor series to describe partial derivatives of mean activity coefficients

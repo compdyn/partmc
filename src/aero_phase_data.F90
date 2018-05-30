@@ -144,7 +144,7 @@ module pmc_aero_phase_data
 
   !> Pointer type for building arrays
   type aero_phase_data_ptr
-    type(aero_phase_data_t), pointer :: val
+    type(aero_phase_data_t), pointer :: val => null()
   contains
     !> Dereference the pointer
     procedure :: dereference
@@ -630,7 +630,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Dereference a pointer
+  !> Dereference a pointer to aerosol phase data
   elemental subroutine dereference(this)
 
     !> Pointer to aerosol phase data

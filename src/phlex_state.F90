@@ -35,7 +35,10 @@ module pmc_phlex_state
     !! integration.
     real(kind=dp), allocatable :: state_var(:)
     !> Environmental conditions
-    type(env_state_t), pointer :: env_state
+    type(env_state_t), pointer :: env_state => null()
+    !> Flag indicating whether the env_state object is owned by the
+    !! state object
+    logical, private :: owns_env_state = .false.
   contains
     !> Update the environmental state array
     procedure :: update_env_state
@@ -45,6 +48,8 @@ module pmc_phlex_state
     procedure :: bin_pack
     !> Unpack the given value from the buffer, advancing position
     procedure :: bin_unpack
+    !> Finalize the state
+    final :: finalize
   end type phlex_state_t
 
   ! Constructor for phlex_state_t
@@ -72,6 +77,7 @@ contains
       new_obj%env_state => env_state
     else
       allocate(new_obj%env_state)
+      new_obj%owns_env_state = .true.
     end if
 
     ! Set up the environmental state array
@@ -151,6 +157,21 @@ contains
 #endif
 
    end subroutine bin_unpack
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Finalize the state
+  elemental subroutine finalize(this)
+
+    !> Phlex model state
+    type(phlex_state_t), intent(inout) :: this
+
+    if (allocated(this%env_var)) deallocate(this%env_var)
+    if (allocated(this%state_var)) deallocate(this%state_var)
+    if (associated(this%env_state) .and. this%owns_env_state) &
+            deallocate(this%env_state)
+
+  end subroutine finalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -94,15 +94,15 @@ module pmc_phlex_core
   !! Contains all time-invariant data for a Part-MC model run.
   type :: phlex_core_t
     !> Chemical mechanisms
-    type(mechanism_data_t), pointer :: mechanism(:)
+    type(mechanism_data_t), pointer :: mechanism(:) => null()
     !> Chemical species data
-    type(chem_spec_data_t), pointer :: chem_spec_data
+    type(chem_spec_data_t), pointer :: chem_spec_data => null()
     !> Sub models
-    type(sub_model_data_ptr), pointer :: sub_model(:)
+    type(sub_model_data_ptr), pointer :: sub_model(:) => null()
     !> Aerosol representations
-    type(aero_rep_data_ptr), pointer :: aero_rep(:)
+    type(aero_rep_data_ptr), pointer :: aero_rep(:) => null()
     !> Aerosol phases
-    type(aero_phase_data_ptr), pointer :: aero_phase(:)
+    type(aero_phase_data_ptr), pointer :: aero_phase(:) => null()
     !> Size of the state array
     integer(kind=i_kind), private :: state_array_size
     !> Flag to split gas- and aerosol-phase reactions
@@ -171,6 +171,8 @@ module pmc_phlex_core
     procedure :: get_rxn_rates
     !> Print the core data
     procedure :: print => do_print
+    !> Finalize the core
+    final :: finalize
   end type phlex_core_t
 
   !> Constructor for phlex_core_t
@@ -406,8 +408,10 @@ contains
             allocate(new_aero_rep(size(this%aero_rep)+1))
             new_aero_rep(1:size(this%aero_rep)) = this%aero_rep(1:size(this%aero_rep))
             new_aero_rep(size(new_aero_rep))%val => aero_rep_ptr%val
+            call this%aero_rep(:)%dereference()
             deallocate(this%aero_rep)
             this%aero_rep => new_aero_rep
+            call aero_rep_ptr%dereference()
           end if
         else if (str_val.eq.'AERO_PHASE') then
           aero_phase => aero_phase_data_t()
@@ -454,7 +458,9 @@ contains
         call json%get_next(j_next, j_obj)
       end do
       call j_file%destroy()
+      call json%destroy()
     end do
+    deallocate(json)
 #else
     call warn_msg(350136328, "No support for input files.");
 #endif
@@ -706,6 +712,7 @@ contains
             this%aero_rep(1:size(this%aero_rep))
     new_aero_rep(size(new_aero_rep))%val => aero_rep_factory%create(rep_name)
 
+    call this%aero_rep(:)%dereference()
     deallocate(this%aero_rep)
     this%aero_rep => new_aero_rep
 
@@ -818,6 +825,8 @@ contains
     character(len=:), allocatable :: spec_name
     ! Gas-phase species names
     type(string_t), allocatable :: gas_spec_names(:)
+    ! Aerosol species
+    type(string_t), allocatable :: unique_names(:)
 
 
     ! Allocate space for the variable types and absolute tolerances
@@ -847,9 +856,11 @@ contains
       ! TODO Move this to the aerosol representations, so they have control
       ! of their portion on the state array and what is stored there
       call assert(666823548, associated(this%aero_rep(i_aero_rep)%val))
+      unique_names = this%aero_rep(i_aero_rep)%val%unique_names()
       do i_spec = 1, this%aero_rep(i_aero_rep)%val%size()
         i_state_var = i_state_var + 1
-        spec_name = this%aero_rep(i_aero_rep)%val%spec_name_by_id(i_spec)
+        spec_name = this%aero_rep(i_aero_rep)%val%spec_name( &
+                  unique_names(i_spec)%string)
         call assert(709716453, &
                 this%chem_spec_data%get_abs_tol(spec_name, abs_tol(i_state_var)))
         call assert(257084300, &
@@ -1316,6 +1327,25 @@ contains
     if (associated(this%solver_data_gas_aero)) call this%solver_data_gas_aero%print()
 
   end subroutine do_print
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Finalize the core
+  elemental subroutine finalize(this)
+
+    !> Phlex-core data
+    type(phlex_core_t), intent(inout) :: this
+
+    if (associated(this%mechanism)) deallocate(this%mechanism)
+    if (associated(this%chem_spec_data)) deallocate(this%chem_spec_data)
+    if (associated(this%sub_model)) deallocate(this%sub_model)
+    if (associated(this%aero_rep)) deallocate(this%aero_rep)
+    if (associated(this%aero_phase)) deallocate(this%aero_phase)
+    if (associated(this%solver_data_gas)) deallocate(this%solver_data_gas)
+    if (associated(this%solver_data_aero)) deallocate(this%solver_data_aero)
+    if (associated(this%solver_data_gas_aero)) deallocate(this%solver_data_gas_aero)
+
+  end subroutine finalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

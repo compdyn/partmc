@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_condensed_phase_arrhenius module.
 
-!> \page phlex_rxn_condensed_phase_arrhenius Phlexible Mechanism for Chemistry: Condensed-Phase Arrhenius Reaction
+!> \page phlex_rxn_condensed_phase_arrhenius Phlexible Module for Chemistry: Condensed-Phase Arrhenius Reaction
 !!
 !! Condensed-phase Arrhenius reactions are calculated based on an Arrhenius-
 !! like rate constant that takes the form:

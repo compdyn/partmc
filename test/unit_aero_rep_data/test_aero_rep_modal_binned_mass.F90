@@ -54,6 +54,8 @@ contains
       passed = .true.
     end if
 
+    deallocate(phlex_solver_data)
+
   end function run_pmc_aero_rep_data_tests
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -179,6 +181,10 @@ contains
     call assert(654108602, .not.phlex_core%find_aero_rep(rep_name, aero_rep))
     call assert(366369046, .not.associated(aero_rep))
 
+    deallocate(file_list)
+    deallocate(phlex_state)
+    deallocate(phlex_core)
+    
 #endif
     build_aero_rep_data_set_test = .true.
 

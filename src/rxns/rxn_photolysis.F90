@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_rxn_photolysis module.
 
-!> \page phlex_rxn_photolysis Phlexible Mechanism for Chemistry: Photolysis
+!> \page phlex_rxn_photolysis Phlexible Module for Chemistry: Photolysis
 !!
 !! Photolysis reactions take the form:
 !!

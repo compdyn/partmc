@@ -35,15 +35,15 @@
 !!  
 !! Valid reaction types include:
 !!
-!!   - \subpage phlex_rxn_arrhenius "Arrhenius"
 !!   - \subpage phlex_rxn_aqueous_equilibrium "Aqueous-phase Equilibrium"
+!!   - \subpage phlex_rxn_arrhenius "Arrhenius"
 !!   - \subpage phlex_rxn_CMAQ_H2O2 "CMAQ special reaction type for 2HO2 (+ H2O) -> H2O2"
 !!   - \subpage phlex_rxn_CMAQ_OH_HNO3 "CMAQ special reaction type for OH + HNO3 -> NO3 + H2O"
 !!   - \subpage phlex_rxn_condensed_phase_arrhenius "Condensed-Phase Arrhenius"
 !!   - \subpage phlex_rxn_HL_phase_transfer "Henry's Law Phase Transfer"
 !!   - \subpage phlex_rxn_PDFiTE_activity "PD-FiTE Activity"
-!!   - \subpage phlex_rxn_SIMPOL_phase_transfer "SIMPOL.1 Phase Transfer"
 !!   - \subpage phlex_rxn_photolysis "Photolysis"
+!!   - \subpage phlex_rxn_SIMPOL_phase_transfer "SIMPOL.1 Phase Transfer"
 !!   - \subpage phlex_rxn_troe "Troe (fall-off)"
 !!   - \subpage phlex_rxn_ZSR_aerosol_water "ZSR Aerosol Water"
 !!

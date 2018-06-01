@@ -801,6 +801,8 @@ contains
         new_state%state_var(i_state_elem) = real(1.0d0, kind=dp)
       end do
 
+      deallocate(unique_names)
+
     end do
 
   end function new_state

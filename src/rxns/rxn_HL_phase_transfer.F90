@@ -20,6 +20,21 @@
 !! molecular weight, and \f$N^{*}\f$, which is used to calculate the mass
 !! accomodation coefficient. Details of the calculations can be found in:
 !!
+!!
+!! Mass accomodation coefficients are calculated as:
+!!
+!! \f[
+!!   \Delta H_{obs} = -10 \times (N^*-1) + 7.53 \times (N^(*2/3)-1) - 0.1 \times 10 \mbox{\si{kcal.M^{-1}}}
+!! \f]
+!! \f[
+!!   \Delta S_{obs} = -13 \times (N^*-1) - 19 \times (N^*-1) + 9.21 \times (N^{*2/3}-1) - 0.1 \times 13 \mbox{\si{cal.M^{-1}.K^{-1}}}
+!! \f]
+!! \f[
+!!   \frac{\alpha}{1-\alpha} = e^{\frac{-\Delta G^{\*}}{RT}}
+!! \f]
+!!
+!! Details of the mass accomodation and calculations can be found in:
+!!
 !! Ervens, B., et al., 2003. "CAPRAM 2.4 (MODAC mechanism): An extended
 !! and condensed tropospheric aqueous mechanism and its application."
 !! J. Geophys. Res. 108, 4426. doi:10.1029/2002JD002202

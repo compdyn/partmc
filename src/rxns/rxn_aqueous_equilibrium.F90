@@ -5,27 +5,21 @@
 !> \file
 !> The pmc_rxn_aqueous_equilibrium module.
 
-!> \page phlex_rxn_aqueous_equilibrium Phlexible Module for Chemistry: Phase-Transfer Reaction
+!> \page phlex_rxn_aqueous_equilibrium Phlexible Module for Chemistry: Aqueous-Phase Equilibrium
 !!
 !! Aqueous equilibrium reactions are calculated as forward and reverse
-!! reactions, based on a provided reverse reaction rate constant and the
-!! equilibrium constant that takes the form:
+!! reactions. The reverse rate constant must be provided as part of the input
+!! data and the forward rate constant is calculated using the provided
+!! reverse rate constant and an equilibrium constant of the following format:
 !!
 !! \f[
 !!   Ae^{C({1/T-1/298})}
 !! \f]
 !!
 !! where \f$A\f$ is the pre-exponential factor (\f$s^{-1}\f$), \f$C\f$ is a
-!! constant and \f$T\f$ is the temperature (K). Uptake kinetics are based on
-!! the particle size, the gas-phase species diffusion coefficient and
-!! molecular weight, and \f$N^{*}\f$, which is used to calculate the mass
-!! accomodation coefficient. Details of the calculations can be found in:
+!! constant and \f$T\f$ is the temperature (K).
 !!
-!! Ervens, B., et al., 2003. "CAPRAM 2.4 (MODAC mechanism): An extended
-!! and condensed tropospheric aqueous mechanism and its application."
-!! J. Geophys. Res. 108, 4426. doi:10.1029/2002JD002202
-!!
-!! Input data for Aqueous equilibrium equations should take the form :
+!! Input data for aqueous equilibrium equations should take the form :
 !! \code{.json}
 !!   {
 !!     "type" : "AQUEOUS_EQUILIBRIUM",
@@ -52,10 +46,10 @@
 !! The key-value pairs \b reactants and \b products are required. Reactants
 !! and products without a \b qty value are assumed to appear once in the
 !! reaction equation. Reactant and product species must be present in the
-!! specified phase and include a \b "molecular weight" parameter. The
-!! parameter \b  "aqueous-phase water" is required and must be the name of the
-!! aerosol-phase species that is used for water. The parameter \b "ion pair"
-!! is optional. When it is include its value must be the name of an ion pair
+!! specified phase and include a \b molecular \b weight parameter. The
+!! parameter \b aqueous-phase \b water is required and must be the name of the
+!! aerosol-phase species that is used for water. The parameter \b ion \b pair
+!! is optional. When it is included its value must be the name of an ion pair
 !! that is present in the specified aerosol phase. Its mean binary activity
 !! coefficient will be applied to the reverse reaction.
 !!
@@ -64,8 +58,8 @@
 !! \b k_reverse is required.
 !!
 !! The unit for time is assumed to be s, but inclusion of the optional 
-!! key-value pair \b "time unit" = "MIN" can be used to indicate a rate
-!! with min as the time unit.
+!! key-value pair \b time \b unit = \b MIN can be used to indicate a rate with
+!! min as the time unit.
 !!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -86,22 +80,22 @@ module pmc_rxn_aqueous_equilibrium
   implicit none
   private
 
-#define _NUM_REACT_ this%condensed_data_int(1)
-#define _NUM_PROD_ this%condensed_data_int(2)
-#define _NUM_AERO_PHASE_ this%condensed_data_int(3)
-#define _A_ this%condensed_data_real(1)
-#define _C_ this%condensed_data_real(2)
-#define _k_reverse_ this%condensed_data_real(3)
-#define _k_forward_ this%condensed_data_real(4)
-#define _NUM_INT_PROP_ 3
-#define _NUM_REAL_PROP_ 4
-#define _REACT_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
-#define _PROD_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_REACT_*_NUM_AERO_PHASE_+x)
-#define _WATER_(x) this%condensed_data_int(_NUM_INT_PROP_+(_NUM_REACT_+_NUM_PROD_)*_NUM_AERO_PHASE_+x)
-#define _ACTIVITY_COEFF_(x) this%condensed_data_int(_NUM_INT_PROP_+(_NUM_REACT_+_NUM_PROD_+1)*_NUM_AERO_PHASE_+x)
-#define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+(_NUM_REACT_+_NUM_PROD_+2)*_NUM_AERO_PHASE_+x)
-#define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+(2*(_NUM_REACT_+_NUM_PROD_)+2)*_NUM_AERO_PHASE_+x)
-#define _mass_frac_TO_M_(x) this%condensed_data_real(_NUM_REAL_PROP_+x)
+#define NUM_REACT_ this%condensed_data_int(1)
+#define NUM_PROD_ this%condensed_data_int(2)
+#define NUM_AERO_PHASE_ this%condensed_data_int(3)
+#define A_ this%condensed_data_real(1)
+#define C_ this%condensed_data_real(2)
+#define RATE_CONST_REVERSE_ this%condensed_data_real(3)
+#define RATE_CONST_FORWARD_ this%condensed_data_real(4)
+#define NUM_INT_PROP_ 3
+#define NUM_REAL_PROP_ 4
+#define REACT_(x) this%condensed_data_int(NUM_INT_PROP_+x)
+#define PROD_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_REACT_*NUM_AERO_PHASE_+x)
+#define WATER_(x) this%condensed_data_int(NUM_INT_PROP_+(NUM_REACT_+NUM_PROD_)*NUM_AERO_PHASE_+x)
+#define ACTIVITY_COEFF_(x) this%condensed_data_int(NUM_INT_PROP_+(NUM_REACT_+NUM_PROD_+1)*NUM_AERO_PHASE_+x)
+#define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_+(NUM_REACT_+NUM_PROD_+2)*NUM_AERO_PHASE_+x)
+#define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+(2*(NUM_REACT_+NUM_PROD_)+2)*NUM_AERO_PHASE_+x)
+#define MASS_FRAC_TO_M_(x) this%condensed_data_real(NUM_REAL_PROP_+x)
 
   public :: rxn_aqueous_equilibrium_t
 
@@ -110,6 +104,8 @@ module pmc_rxn_aqueous_equilibrium
   contains
     !> Reaction initialization
     procedure :: initialize
+    !> Finalize the reaction
+    final :: finalize
   end type rxn_aqueous_equilibrium_t
 
   !> Constructor for rxn_aqueous_equilibrium_t
@@ -147,17 +143,15 @@ contains
     class(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
 
     type(property_t), pointer :: spec_props, reactants, products
-    character(len=:), allocatable :: key_name, spec_name, water_name, phase_name, &
-            string_val, ion_pair_name
-    integer(kind=i_kind) :: i_spec, j_spec, i_qty, i_aero_rep, i_aero_phase, n_aero_ids
-    integer(kind=i_kind) :: i_aero_id, num_spec_per_phase, num_phase, num_react, num_prod
-    class(string_t), allocatable :: unique_names(:)
-    class(string_t), allocatable :: react_names(:), prod_names(:)
-    integer(kind=i_kind), allocatable :: aero_spec_ids(:)
-    integer(kind=i_kind), allocatable :: water_spec_ids(:)
-
-    integer(kind=i_kind) :: temp_int, tracer_type
+    character(len=:), allocatable :: key_name, spec_name, water_name, &
+            phase_name, string_val, ion_pair_name
+    integer(kind=i_kind) :: i_phase_inst, j_spec, i_qty, i_aero_rep, i_aero_phase, &
+            n_aero_ids, i_aero_id, num_spec_per_phase, num_phase, &
+            num_react, num_prod, temp_int, tracer_type
     real(kind=dp) :: temp_real, N_star
+    class(string_t), allocatable :: unique_names(:), react_names(:), &
+            prod_names(:)
+    integer(kind=i_kind), allocatable :: aero_spec_ids(:), water_spec_ids(:)
 
     ! Get the property set
     if (.not. associated(this%property_set)) call die_msg(206493887, &
@@ -240,48 +234,50 @@ contains
       ! (One instance per unique water name)
       num_phase = num_phase + size(unique_names)
 
+      deallocate(unique_names)
+
     end do
 
     ! Allocate space in the condensed data arrays
-    allocate(this%condensed_data_int(_NUM_INT_PROP_ + &
+    allocate(this%condensed_data_int(NUM_INT_PROP_ + &
             num_phase * (num_spec_per_phase * (num_spec_per_phase + 3) + 2)))
-    allocate(this%condensed_data_real(_NUM_REAL_PROP_ + &
+    allocate(this%condensed_data_real(NUM_REAL_PROP_ + &
             num_spec_per_phase))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
 
     ! Set the number of products, reactants and aerosol phase instances
-    _NUM_REACT_ = num_react
-    _NUM_PROD_ = num_prod
-    _NUM_AERO_PHASE_ = num_phase
+    NUM_REACT_ = num_react
+    NUM_PROD_ = num_prod
+    NUM_AERO_PHASE_ = num_phase
 
     ! Get the rate constant parameters
     key_name = "A"
-    if (.not. this%property_set%get_real(key_name, _A_)) then
-      _A_ = 1.0
+    if (.not. this%property_set%get_real(key_name, A_)) then
+      A_ = 1.0
     end if
     key_name = "C"
-    if (.not. this%property_set%get_real(key_name, _C_)) then
-      _C_ = 0.0
+    if (.not. this%property_set%get_real(key_name, C_)) then
+      C_ = 0.0
     end if
     key_name = "k_reverse"
     call assert_msg(519823533, &
-            this%property_set%get_real(key_name, _k_reverse_), &
+            this%property_set%get_real(key_name, RATE_CONST_REVERSE_), &
             "Missing 'k_reverse' for aqueous equilibrium reaction")
     key_name = "time_unit"
     if (this%property_set%get_string(key_name, string_val)) then
       if (trim(string_val).eq."MIN") then
-        _k_reverse_ = _k_reverse_ / 60.0
+        RATE_CONST_REVERSE_ = RATE_CONST_REVERSE_ / 60.0
       end if
     end if
 
     ! Set up an array to the reactant, product and water names
-    allocate(react_names(_NUM_REACT_))
-    allocate(prod_names(_NUM_PROD_))
+    allocate(react_names(NUM_REACT_))
+    allocate(prod_names(NUM_PROD_))
 
     ! Get the chemical properties for the reactants
     call reactants%iter_reset()
-    i_spec = 0
+    i_phase_inst = 0
     do while (reactants%get_key(spec_name))
 
       ! Get the reactant species properties
@@ -301,13 +297,13 @@ contains
       key_name = "qty"
       if (.not.spec_props%get_int(key_name, temp_int)) temp_int = 1
       do i_qty = 1, temp_int
-        i_spec = i_spec + 1
+        i_phase_inst = i_phase_inst + 1
 
         ! Add the reactant name to the list
-        react_names(i_spec)%string = spec_name
+        react_names(i_phase_inst)%string = spec_name
 
         ! Use the MW to calculate the mass frac -> M conversion
-        _mass_frac_TO_M_(i_spec) = 1.0d3/temp_real
+        MASS_FRAC_TO_M_(i_phase_inst) = 1.0d3/temp_real
 
       end do
 
@@ -318,7 +314,7 @@ contains
 
     ! Get the chemical properties for the products
     call products%iter_reset()
-    i_spec = 0
+    i_phase_inst = 0
     do while (products%get_key(spec_name))
 
       ! Get the product species properties
@@ -338,13 +334,13 @@ contains
       key_name = "qty"
       if (.not.spec_props%get_int(key_name, temp_int)) temp_int = 1
       do i_qty = 1, temp_int
-        i_spec = i_spec + 1
+        i_phase_inst = i_phase_inst + 1
 
         ! Add the product name to the list
-        prod_names(i_spec)%string = spec_name
+        prod_names(i_phase_inst)%string = spec_name
 
         ! Use the MW to calculate the mass frac -> M conversion
-        _mass_frac_TO_M_(_NUM_REACT_ + i_spec) = 1.0d3/temp_real
+        MASS_FRAC_TO_M_(NUM_REACT_ + i_phase_inst) = 1.0d3/temp_real
 
       end do
 
@@ -376,11 +372,13 @@ contains
       num_phase = size(unique_names)
 
       ! Save the state ids for aerosol water concentration
-      ! TODO change i_spec to i_phase_inst here and for reactants and products
-      do i_spec = 1, num_phase
-        _WATER_(i_aero_phase + i_spec) = aero_rep(i_aero_rep)%val%spec_state_id( &
-                unique_names(i_spec)%string)
+      do i_phase_inst = 1, num_phase
+        WATER_(i_aero_phase + i_phase_inst) = &
+                aero_rep(i_aero_rep)%val%spec_state_id( &
+                unique_names(i_phase_inst)%string)
       end do
+
+      deallocate(unique_names)
 
       ! If an ion pair was specified, save its id for each phase instance
       if (ion_pair_name.ne."") then
@@ -404,58 +402,74 @@ contains
                 "equilibrium reaction.")
 
         ! Save the ion pair id
-        do i_spec = 1, num_phase
-          _ACTIVITY_COEFF_(i_aero_phase + i_spec) = &
+        do i_phase_inst = 1, num_phase
+          ACTIVITY_COEFF_(i_aero_phase + i_phase_inst) = &
                   aero_rep(i_aero_rep)%val%spec_state_id( &
-                  unique_names(i_spec)%string)
+                  unique_names(i_phase_inst)%string)
         end do
 
+        deallocate(unique_names)
+
       else
-        do i_spec = 1, num_phase
-          _ACTIVITY_COEFF_(i_aero_phase + i_spec) = 0
+        do i_phase_inst = 1, num_phase
+          ACTIVITY_COEFF_(i_aero_phase + i_phase_inst) = 0
         end do
       end if
 
       ! Loop through the reactants
-      do i_spec = 1, _NUM_REACT_
+      do i_phase_inst = 1, NUM_REACT_
 
         ! Get the unique names for the reactants
         unique_names = aero_rep(i_aero_rep)%val%unique_names( &
-                phase_name = phase_name, spec_name = react_names(i_spec)%string)
+                phase_name = phase_name, &
+                spec_name = react_names(i_phase_inst)%string)
 
         ! Make sure the right number of instances are present
         call assert_msg(280008989, size(unique_names).eq.num_phase, &
-                "Incorrect instances of reactant '"//react_names(i_spec)%string// &
-                "' in phase '"//phase_name//"' in an aqueous equilibrium reaction")
+                "Incorrect instances of reactant '"// &
+                react_names(i_phase_inst)%string// &
+                "' in phase '"//phase_name// &
+                "' in an aqueous equilibrium reaction")
 
         ! Save the state ids for the reactant concentration
-        ! IDs are grouped by phase instance: R1(phase1), R2(phase1), ..., R1(phase2)...
+        ! IDs are grouped by phase instance: 
+        !    R1(phase1), R2(phase1), ..., R1(phase2)...
         do j_spec = 1, num_phase
-          _REACT_((i_aero_phase+j_spec-1)*_NUM_REACT_ + i_spec) = &
+          REACT_((i_aero_phase+j_spec-1)*NUM_REACT_ + i_phase_inst) = &
                   aero_rep(i_aero_rep)%val%spec_state_id( &
                   unique_names(j_spec)%string)
         end do
+        
+        deallocate(unique_names)
+
       end do
 
       ! Loop through the products
-      do i_spec = 1, _NUM_PROD_
+      do i_phase_inst = 1, NUM_PROD_
 
         ! Get the unique names for the products
         unique_names = aero_rep(i_aero_rep)%val%unique_names( &
-                phase_name = phase_name, spec_name = prod_names(i_spec)%string)
+                phase_name = phase_name, &
+                spec_name = prod_names(i_phase_inst)%string)
 
         ! Make sure the right number of instances are present
         call assert_msg(557959349, size(unique_names).eq.num_phase, &
-                "Incorrect instances of product '"//prod_names(i_spec)%string// &
-                "' in phase '"//phase_name//"' in an aqueous equilibrium reaction")
+                "Incorrect instances of product '"// &
+                prod_names(i_phase_inst)%string// &
+                "' in phase '"//phase_name// &
+                "' in an aqueous equilibrium reaction")
 
         ! Save the state ids for the product concentration
-        ! IDs are grouped by phase instance: P1(phase1), P2(phase1), ..., P1(phase2)...
+        ! IDs are grouped by phase instance:
+        !    P1(phase1), P2(phase1), ..., P1(phase2)...
         do j_spec = 1, num_phase
-          _PROD_((i_aero_phase+j_spec-1)*_NUM_PROD_ + i_spec) = &
+          PROD_((i_aero_phase+j_spec-1)*NUM_PROD_ + i_phase_inst) = &
                   aero_rep(i_aero_rep)%val%spec_state_id( &
                   unique_names(j_spec)%string)
         end do
+
+        deallocate(unique_names)
+
       end do
 
       ! Increment the index offset for the next aerosol representation
@@ -467,20 +481,37 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef _NUM_REACT_
-#undef _NUM_PROD_
-#undef _NUM_AERO_PHASE_
-#undef _A_
-#undef _C_
-#undef _k_reverse_
-#undef _k_forward_
-#undef _NUM_INT_PROP_
-#undef _NUM_REAL_PROP_
-#undef _REACT_
-#undef _PROD_
-#undef _WATER_
-#undef _ACTIVITY_COEFF_
-#undef _DERIV_ID_
-#undef _JAC_ID_
-#undef _mass_frac_TO_M_
+  !> Finalize the reaction
+  elemental subroutine finalize(this)
+
+    !> Reaction data
+    type(rxn_aqueous_equilibrium_t), intent(inout) :: this
+
+    if (associated(this%property_set)) &
+            deallocate(this%property_set)
+    if (allocated(this%condensed_data_real)) &
+            deallocate(this%condensed_data_real)
+    if (allocated(this%condensed_data_int)) &
+            deallocate(this%condensed_data_int)
+
+  end subroutine finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#undef NUM_REACT_
+#undef NUM_PROD_
+#undef NUM_AERO_PHASE_
+#undef A_
+#undef C_
+#undef RATE_CONST_REVERSE_
+#undef RATE_CONST_FORWARD_
+#undef NUM_INT_PROP_
+#undef NUM_REAL_PROP_
+#undef REACT_
+#undef PROD_
+#undef WATER_
+#undef ACTIVITY_COEFF_
+#undef DERIV_ID_
+#undef JAC_ID_
+#undef MASS_FRAC_TO_M_
 end module pmc_rxn_aqueous_equilibrium

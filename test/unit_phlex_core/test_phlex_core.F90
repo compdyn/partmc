@@ -64,10 +64,10 @@ contains
     call assert(589233468, phlex_core%find_mechanism(key_name, i_mech))
 
     ! Check the mechanism name
-    call assert(636308667, phlex_core%mechanism(i_mech)%name().eq."lunch mechanism")
+    call assert(636308667, phlex_core%mechanism(i_mech)%val%name().eq."lunch mechanism")
 
     ! Make sure all three reactions were loaded
-    call assert(360948482, phlex_core%mechanism(i_mech)%size().eq.3)
+    call assert(360948482, phlex_core%mechanism(i_mech)%val%size().eq.3)
 
     load_phlex_core_test = .true.
 

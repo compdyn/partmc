@@ -94,7 +94,7 @@ module pmc_phlex_core
   !! Contains all time-invariant data for a Part-MC model run.
   type :: phlex_core_t
     !> Chemical mechanisms
-    type(mechanism_data_t), pointer :: mechanism(:) => null()
+    type(mechanism_data_ptr), pointer :: mechanism(:) => null()
     !> Chemical species data
     type(chem_spec_data_t), pointer :: chem_spec_data => null()
     !> Sub models
@@ -151,8 +151,8 @@ module pmc_phlex_core
     procedure :: new_state
     !> Initialize the solver
     procedure :: solver_initialize
-    !> Set a photolysis rate
-    procedure :: set_photo_rate
+    !> Update reaction data
+    procedure :: update_rxn_data
     !> Update aerosol representation data
     procedure :: update_aero_rep_data
     !> Run the chemical mechanisms
@@ -167,8 +167,6 @@ module pmc_phlex_core
     procedure :: bin_pack
     !> Unpack the given variable from a buffer, advancing position
     procedure :: bin_unpack
-    !> Get the current reaction rates
-    procedure :: get_rxn_rates
     !> Print the core data
     procedure :: print => do_print
     !> Finalize the core
@@ -395,7 +393,7 @@ contains
             call this%add_mechanism(str_val)
             i_mech = size(this%mechanism)
           end if
-          call this%mechanism(i_mech)%load(json, j_obj)
+          call this%mechanism(i_mech)%val%load(json, j_obj)
         else if (str_val.eq.'CHEM_SPEC') then
           call this%chem_spec_data%load(json, j_obj)
         else if (str_val(1:8).eq.'AERO_REP') then
@@ -516,7 +514,7 @@ contains
 
     ! Initialize the mechanisms
     do i_mech = 1, size(this%mechanism)
-      call this%mechanism(i_mech)%initialize(this%chem_spec_data, &
+      call this%mechanism(i_mech)%val%initialize(this%chem_spec_data, &
               this%aero_rep)
     end do
 
@@ -537,7 +535,7 @@ contains
     found = .false.
     
     do mech_id = 1, size(this%mechanism)
-      if (this%mechanism(mech_id)%name().eq.mech_name) then
+      if (this%mechanism(mech_id)%val%name().eq.mech_name) then
         found = .true.
         return
       end if
@@ -556,15 +554,16 @@ contains
     !> Mechanism name
     character(len=:), allocatable, intent(in) :: mech_name
 
-    type(mechanism_data_t), pointer :: new_mechanism(:)
+    type(mechanism_data_ptr), pointer :: new_mechanism(:)
 
     allocate(new_mechanism(size(this%mechanism)+1))
 
     new_mechanism(1:size(this%mechanism)) = &
             this%mechanism(1:size(this%mechanism))
 
-    new_mechanism(size(new_mechanism)) = mechanism_data_t(mech_name)
+    new_mechanism(size(new_mechanism))%val => mechanism_data_t(mech_name)
 
+    call this%mechanism(:)%dereference()
     deallocate(this%mechanism)
     this%mechanism => new_mechanism
 
@@ -937,29 +936,27 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Set a photolysis rate constant. This function should be called by an
-  !! external photolysis module to update the photolysis rate constants when
-  !! necessary using a photo id provided by the external module during 
-  !! intialization.
-  !! TODO change this to a generic update_rxn_data function, similar to
-  !! the update_aero_rep_data function
-  subroutine set_photo_rate(this, photo_id, base_rate)
+  !> Update data associated with a reaction. This function should be called
+  !! when reaction parameters need updated from the host model. For example,
+  !! this function can be called to update photolysis rates from a host
+  !! model's photolysis module.
+  subroutine update_rxn_data(this, update_data)
+
+    use iso_c_binding
 
     !> Chemical model
     class(phlex_core_t), intent(in) :: this
-    !> Id used to find reactions to update
-    integer(kind=i_kind), intent(in) :: photo_id
-    !> New base (unscaled) photolysis rate constant
-    real(kind=dp), intent(in) :: base_rate
+    !> Update data
+    class(rxn_update_data_t), intent(in) :: update_data
 
     if (associated(this%solver_data_gas)) &
-            call this%solver_data_gas%set_photo_rate(photo_id, base_rate)
+            call this%solver_data_gas%update_rxn_data(update_data)
     if (associated(this%solver_data_aero)) &
-            call this%solver_data_aero%set_photo_rate(photo_id, base_rate)
+            call this%solver_data_aero%update_rxn_data(update_data)
     if (associated(this%solver_data_gas_aero)) &
-            call this%solver_data_gas_aero%set_photo_rate(photo_id, base_rate)
+            call this%solver_data_gas_aero%update_rxn_data(update_data)
 
-  end subroutine set_photo_rate
+  end subroutine update_rxn_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1070,7 +1067,7 @@ contains
                  pmc_mpi_pack_size_integer(size(this%aero_rep)) + &
                  pmc_mpi_pack_size_integer(size(this%sub_model))
     do i_mech = 1, size(this%mechanism)
-      pack_size = pack_size + this%mechanism(i_mech)%pack_size()
+      pack_size = pack_size + this%mechanism(i_mech)%val%pack_size()
     end do
     do i_rep = 1, size(this%aero_rep)
       associate (aero_rep => this%aero_rep(i_rep)%val)
@@ -1110,7 +1107,7 @@ contains
     call pmc_mpi_pack_integer(buffer, pos, size(this%aero_rep))
     call pmc_mpi_pack_integer(buffer, pos, size(this%sub_model))
     do i_mech = 1, size(this%mechanism)
-      call this%mechanism(i_mech)%bin_pack(buffer, pos)
+      call this%mechanism(i_mech)%val%bin_pack(buffer, pos)
     end do
     do i_rep = 1, size(this%aero_rep)
       associate (aero_rep => this%aero_rep(i_rep)%val)
@@ -1156,7 +1153,8 @@ contains
     allocate(this%aero_rep(num_rep))
     allocate(this%sub_model(num_sub_model))
     do i_mech = 1, num_mech
-      call this%mechanism(i_mech)%bin_unpack(buffer, pos)
+      allocate(this%mechanism(i_mech)%val)
+      call this%mechanism(i_mech)%val%bin_unpack(buffer, pos)
     end do
     do i_rep = 1, num_rep
       this%aero_rep(i_rep)%val => aero_rep_factory%bin_unpack(buffer, pos)
@@ -1178,28 +1176,6 @@ contains
 #endif
 
   end subroutine bin_unpack
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !>  Get the current reaction rates
-  function get_rxn_rates(this, phlex_state)
-
-    !> Current reaction rates
-    real(kind=dp), allocatable :: get_rxn_rates(:)
-    !> Core data
-    class(phlex_core_t), intent(in) :: this
-    !> Model state
-    type(phlex_state_t), pointer, intent(in) :: phlex_state
-
-    if (associated(this%solver_data_gas)) then
-      get_rxn_rates = this%solver_data_gas%get_rates(phlex_state)
-    else if (associated(this%solver_data_aero)) then
-      get_rxn_rates = this%solver_data_aero%get_rates(phlex_state)
-    else if (associated(this%solver_data_gas_aero)) then
-      get_rxn_rates = this%solver_data_gas_aero%get_rates(phlex_state)
-    end if
-
-  end function get_rxn_rates
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1299,7 +1275,7 @@ contains
     write(f_unit,*) "*** Mechanisms ***"
     write(f_unit,*) "Number of mechanisms: ", size(this%mechanism)
     do i_mech=1, size(this%mechanism)
-      call this%mechanism(i_mech)%print(f_unit)
+      call this%mechanism(i_mech)%val%print(f_unit)
     end do
     write(f_unit,*) "*** State Array ***"
     write(f_unit,*) "Number of species on the state array: ", this%state_array_size

@@ -178,10 +178,11 @@ void * rxn_SIMPOL_phase_transfer_pre_calc(ModelData *model_data, void *rxn_data)
  * \param model_data Pointer to the model data, including the state array
  * \param deriv Pointer to the time derivative to add contributions to
  * \param rxn_data Pointer to the reaction data
+ * \param time_step Current time step being computed (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data, realtype *deriv,
-		void *rxn_data)
+void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
+          realtype *deriv, void *rxn_data, double time_step)
 {
   realtype *state = model_data->state;
   realtype *env_data = model_data->env;
@@ -270,13 +271,14 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data, realt
 
 /** \brief Calculate contributions to the Jacobian from this reaction
  *
- * \param state Pointer to the state array
+ * \param model_data Pointer to the model data
  * \param J Pointer to the sparse Jacobian matrix to add contributions to
  * \param rxn_data Pointer to the reaction data
+ * \param time_step Current time step being calculated (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data, realtype *J,
-		void *rxn_data)
+          void *rxn_data, double time_step)
 {
   realtype *state = model_data->state;
   realtype *env_data = model_data->env;
@@ -388,27 +390,6 @@ void * rxn_SIMPOL_phase_transfer_print(void *rxn_data)
   for (int i=0; i<_FLOAT_DATA_SIZE_; i++)
     printf("  float param %d = %le\n", i, float_data[i]);
  
-  return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
-}
-
-/** \brief Return the reaction rate for the current conditions
- *
- * Phase-transfer reactions have a rate for each aerosol phase they affect
- * TODO figure out how to include these reactions in the rate functions
- *
- * \param rxn_data Pointer to the reaction data
- * \param state Pointer to the state array
- * \param env Pointer to the environmental state array
- * \param rate Pointer to a double value to store the calculated rate
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-void * rxn_SIMPOL_phase_transfer_get_rate(void *rxn_data, realtype *state, realtype *env, realtype *rate)
-{
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
-
-  *rate = 0.0;
-
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
 

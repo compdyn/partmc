@@ -46,7 +46,7 @@ module pmc_mechanism_data
   implicit none
   private
 
-  public :: mechanism_data_t
+  public :: mechanism_data_t, mechanism_data_ptr
 
   !> Reallocation increment
   integer(kind=i_kind), parameter :: REALLOC_INC = 50
@@ -89,6 +89,8 @@ module pmc_mechanism_data
     procedure :: bin_unpack
     !> Print the mechanism data
     procedure :: print => do_print
+    !> Finalize the mechanism
+    final :: finalize
 
     ! Private functions
     !> Ensure there is enough room in the reaction dataset to add a
@@ -100,6 +102,16 @@ module pmc_mechanism_data
   interface mechanism_data_t
     procedure :: constructor
   end interface mechanism_data_t
+
+  !> Pointer type for building arrays
+  type mechanism_data_ptr
+    type(mechanism_data_t), pointer :: val => null()
+  contains
+    !> Dereference the pointer
+    procedure :: dereference
+    !> Finalize the pointer
+    final :: ptr_finalize
+  end type mechanism_data_ptr
 
 contains
 
@@ -143,6 +155,7 @@ contains
     new_size = this%num_rxn + num_rxn + REALLOC_INC
     allocate(new_rxn_ptr(new_size))
     new_rxn_ptr(1:this%num_rxn) = this%rxn_ptr(1:this%num_rxn)
+    call this%rxn_ptr(:)%dereference()
     deallocate(this%rxn_ptr)
     this%rxn_ptr => new_rxn_ptr
 
@@ -345,10 +358,6 @@ contains
     write(U,*) ""
     write(U,*) "    real(kind=dp) :: press_Pa = press_atm * 101325"
     write(U,*) ""
-    do i_rxn = 1, this%num_rxn
-      str_temp = this%rxn_ptr(i_rxn)%val%build_rate_const_expr(i_rxn)
-    write(U,*) "    RATE_CONST("//trim(to_string(i_rxn))//") = "//trim(str_temp)
-    end do
     write(U,*) ""
     write(U,*) "  end subroutine calc_rate_const"
 
@@ -461,6 +470,44 @@ contains
     write(f_unit,*) "End mechanism: "//trim(this%name())
 
   end subroutine do_print
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Finalize the mechanism
+  elemental subroutine finalize(this)
+
+    !> Mechanism data
+    type(mechanism_data_t), intent(inout) :: this
+
+    if (allocated(this%mech_name))         deallocate(this%mech_name)
+    if (allocated(this%fixed_file_prefix)) deallocate(this%fixed_file_prefix)
+    if (associated(this%rxn_ptr))          deallocate(this%rxn_ptr)
+
+  end subroutine finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Dereference a pointer to a mechanism
+  elemental subroutine dereference(this)
+
+    !> Pointer to the mechanism
+    class(mechanism_data_ptr), intent(inout) :: this
+
+    this%val => null()
+
+  end subroutine dereference
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Finalize a pointer to mechanism data
+  elemental subroutine ptr_finalize(this)
+
+    !> Pointer to mechanism data
+    type(mechanism_data_ptr), intent(inout) :: this
+
+    if (associated(this%val)) deallocate(this%val)
+
+  end subroutine ptr_finalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

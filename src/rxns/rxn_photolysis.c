@@ -58,12 +58,14 @@ void * rxn_photolysis_get_used_jac_elem(void *rxn_data, bool **jac_struct)
 
 /** \brief Update the time derivative and Jacbobian array indices
  *
+ * \param model_data Pointer to the model data
  * \param deriv_ids Id of each state variable in the derivative array
  * \param jac_ids Id of each state variable combo in the Jacobian array
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_photolysis_update_ids(int *deriv_ids, int **jac_ids, void *rxn_data)
+void * rxn_photolysis_update_ids(ModelData *model_data, int *deriv_ids,
+          int **jac_ids, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
@@ -87,21 +89,31 @@ void * rxn_photolysis_update_ids(int *deriv_ids, int **jac_ids, void *rxn_data)
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
 
-/** \brief Set the base base photolysis rate constant
+/** \brief Update reaction data
  *
- * \param photo_id Unique id used by external photolysis modules to find
- *       photolysis reactions
- * \param base_rate New value for the base photolysis rate constant
+ * Photolysis reactions can have their base (pre-scaling) rate constants updated
+ * from the host model based on the calculations of an external photolysis 
+ * module. The structure of the update data is:
+ *
+ *  - \b int photo_id (Id of one or more photolysis reactions set by the host
+ *       model using the pmc_rxn_photolysis::rxn_photolysis_t::set_photo_id
+ *       function prior to initializing the solver.)
+ *  - \b double rate_const (New pre-scaling rate constant.)
+ *
+ * \param update_data Pointer to the updated reaction data
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_photolysis_set_photo_rate(int photo_id, realtype base_rate, void *rxn_data)
+void * rxn_photolysis_update_data(void *update_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
+  int *photo_id = (int*) update_data;
+  double *base_rate = (double*) &(photo_id[1]);
+
   // Set the base photolysis rate constant (except for rxns where no id has been set)
-  if (photo_id==_PHOTO_ID_ && _PHOTO_ID_!=0) _BASE_RATE_ = base_rate;
+  if (*photo_id==_PHOTO_ID_ && _PHOTO_ID_!=0) _BASE_RATE_ = (realtype) *base_rate;
 
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
@@ -145,14 +157,16 @@ void * rxn_photolysis_pre_calc(ModelData *model_data, void *rxn_data)
 /** \brief Calculate contributions to the time derivative f(t,y) from this
  * reaction.
  *
- * \param state Pointer to the state array
+ * \param model_data Pointer to the model data, including the state array
  * \param deriv Pointer to the time derivative to add contributions to
  * \param rxn_data Pointer to the reaction data
+ * \param time_step Current time step being computed (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_photolysis_calc_deriv_contrib(realtype *state, realtype *deriv,
-		void *rxn_data)
+void * rxn_photolysis_calc_deriv_contrib(ModelData *model_data,
+          realtype *deriv, void *rxn_data, double time_step)
 {
+  realtype *state = model_data->state;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
@@ -179,14 +193,16 @@ void * rxn_photolysis_calc_deriv_contrib(realtype *state, realtype *deriv,
 
 /** \brief Calculate contributions to the Jacobian from this reaction
  *
- * \param state Pointer to the state array
+ * \param model_data Pointer to the model data
  * \param J Pointer to the sparse Jacobian matrix to add contributions to
  * \param rxn_data Pointer to the reaction data
+ * \param time_step Current time step being calculated (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_photolysis_calc_jac_contrib(realtype *state, realtype *J,
-		void *rxn_data)
+void * rxn_photolysis_calc_jac_contrib(ModelData *model_data, realtype *J,
+          void *rxn_data, double time_step)
 {
+  realtype *state = model_data->state;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
@@ -245,25 +261,33 @@ void * rxn_photolysis_print(void *rxn_data)
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
 
-/** \brief Return the reaction rate for the current conditions
+/** \brief Create update data for new photolysis rates
  *
- * \param rxn_data Pointer to the reaction data
- * \param state Pointer to the state array
- * \param env Pointer to the environmental state array
- * \param rate Pointer to a double value to store the calculated rate
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \return Pointer to a new rate update data object
  */
-void * rxn_photolysis_get_rate(void *rxn_data, realtype *state, realtype *env, realtype *rate)
+void * rxn_photolysis_create_rate_update_data()
 {
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
+  int *update_data = (int*) malloc(sizeof(int) + sizeof(double));
+  if (update_data==NULL) {
+    printf("\n\nERROR allocating space for photolysis update data\n\n");
+    exit(1);
+  }
+  return (void*) update_data;
+}
 
-  // Calculate the reaction rate
-  rxn_photolysis_update_env_state(env, rxn_data);
-  *rate = _RATE_CONSTANT_;
-  for (int i_spec=0; i_spec<_NUM_REACT_; i_spec++) *rate *= state[_REACT_(i_spec)];
-
-  return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
+/** \brief Set rate update data
+ *
+ * \param update_data Pointer to an allocated rate update data object
+ * \param photo_id Id of photolysis reactions to update
+ * \param base_rate New pre-scaling photolysis rate
+ */
+void rxn_photolysis_set_rate_update_data(void *update_data, int photo_id,
+          double base_rate)
+{
+  int *new_photo_id = (int*) update_data;
+  double *new_base_rate = (double*) &(new_photo_id[1]);
+  *new_photo_id = photo_id;
+  *new_base_rate = base_rate;
 }
 
 #undef _TEMPERATURE_K_

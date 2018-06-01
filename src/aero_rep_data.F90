@@ -327,7 +327,7 @@ contains
     integer(kind=json_ik) :: var_type
     logical :: found_name
 
-    ! allocate space for the aerosol representation  property set
+    ! allocate space for the aerosol representation property set
     this%property_set => property_t()
 
     found_name = .false.
@@ -485,6 +485,7 @@ contains
     integer(kind=i_kind) :: f_unit = 6
 
     if (present(file_unit)) f_unit = file_unit
+    write(f_unit,*) "*** Aerosol Representation: ",trim(this%rep_name)," ***"
     if (associated(this%property_set)) call this%property_set%print(f_unit)
     if (allocated(this%condensed_data_int)) &
       write(f_unit,*) " *** condensed data int: ", this%condensed_data_int(:)

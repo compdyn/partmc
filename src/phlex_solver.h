@@ -57,7 +57,10 @@ typedef struct {
 /* Solver data structure */
 typedef struct {
 #ifdef PMC_USE_SUNDIALS
+  N_Vector abs_tol_nv;  // abosolute tolerance vector
   N_Vector y;		// vector of solver variables
+  SUNLinearSolver ls;   // linear solver
+  SUNMatrix J;          // Jacobian matrix
 #endif
   void *cvode_mem;	// CVodeMem object
   ModelData model_data; // Model data (used during initialization and solving)
@@ -77,12 +80,11 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 		double t_final);
 void rxn_add_condensed_data(int rxn_type, int n_int_param, 
 		int n_float_param, int *int_param, double *float_param, void *solver_data);
-double * rxn_get_rates(void *solver_data, double *state, double *env, int *n_rxn);
 void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
 		int n_float_param, int *int_param, double *float_param, void *solver_data);
 int sub_model_get_parameter_id_sd(void *solver_data, int sub_model_type, void *identifiers);
 double sub_model_get_parameter_value_sd(void *solver_data, int parameter_id);
-void rxn_set_photo_rate(int rxn_id, double base_rate, void *solver_data);
+void rxn_update_data(int update_rxn_type, void *update_data, void *solver_data);
 void aero_phase_add_condensed_data(int n_int_param, int n_float_param, int *int_param, 
                 double *float_param, void *solver_data);
 void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
@@ -90,6 +92,12 @@ void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
 void aero_rep_update_data(int aero_rep_type_to_update, int update_type, void *update_data,
 		void *solver_data);
 void solver_free(void *solver_data);
+void model_free(ModelData model_data);
+
+/* Update functions */
+void rxn_free_update_data(void *update_data); 
+void * rxn_photolysis_create_rate_update_data();
+void rxn_photolysis_set_rate_update_data(void *update_data, int photo_id, double base_rate);
 
 #ifdef PMC_USE_SUNDIALS
 /* Functions called by the solver */

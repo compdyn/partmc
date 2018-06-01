@@ -62,6 +62,8 @@ module pmc_rxn_photolysis
   use pmc_phlex_state
   use pmc_aero_rep_data
 
+  use iso_c_binding
+
   implicit none
   private
 
@@ -79,27 +81,73 @@ module pmc_rxn_photolysis
 #define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_ + 2*(_NUM_REACT_+_NUM_PROD_) + x)
 #define _yield_(x) this%condensed_data_real(_NUM_REAL_PROP_ + x)
 
-public :: rxn_photolysis_t
+public :: rxn_photolysis_t, rxn_update_data_photolysis_rate_t
 
   !> Generic test reaction data type
   type, extends(rxn_data_t) :: rxn_photolysis_t
   contains
     !> Reaction initialization
     procedure :: initialize
-    !> Build rate constant expression
-    procedure :: build_rate_const_expr
-    !> Build time derivative expression
-    procedure :: build_deriv_expr
     !> Set the photo id for this reaction
     procedure :: set_photo_id
     !> Get the reaction property set
     procedure :: get_property_set
+    !> Finalize the reaction
+    final :: finalize
   end type rxn_photolysis_t
 
   !> Constructor for rxn_photolysis_t
   interface rxn_photolysis_t
     procedure :: constructor
   end interface rxn_photolysis_t
+
+  !> Photolysis rate update object
+  type, extends(rxn_update_data_t) :: rxn_update_data_photolysis_rate_t
+  private
+    logical :: is_malloced = .false.
+  contains
+    !> Update the rate data
+    procedure :: set_rate => update_data_rate_set
+    !> Finalize the rate update data
+    final :: update_data_rate_finalize
+  end type rxn_update_data_photolysis_rate_t
+
+  !> Constructor for rxn_update_data_photolysis_rate_t
+  interface rxn_update_data_photolysis_rate_t
+    procedure :: update_data_rate_constructor
+  end interface rxn_update_data_photolysis_rate_t
+
+  !> Interface to c reaction functions
+  interface
+
+    !> Allocate space for a rate update
+    function rxn_photolysis_create_rate_update_data() result (update_data) &
+              bind (c)
+      use iso_c_binding
+      !> Allocated update_data object
+      type(c_ptr) :: update_data
+    end function rxn_photolysis_create_rate_update_data
+
+    !> Set a new photolysis rate
+    subroutine rxn_photolysis_set_rate_update_data(update_data, photo_id, &
+              base_rate) bind (c)
+      use iso_c_binding
+      !> Update data
+      type(c_ptr), value :: update_data
+      !> Photo id from pmc_rxn_photolysis::rxn_photolysis_t::set_photo_id
+      integer(kind=c_int), value :: photo_id
+      !> New pre-scaling base photolysis rate
+      real(kind=c_double), value :: base_rate
+    end subroutine rxn_photolysis_set_rate_update_data
+  
+    !> Free an update rate data object
+    pure subroutine rxn_free_update_data(update_data) bind (c)
+      use iso_c_binding
+      !> Update data
+      type(c_ptr), value :: update_data
+    end subroutine rxn_free_update_data
+
+  end interface
 
 contains
 
@@ -247,43 +295,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Build rate constant expression
-  function build_rate_const_expr(this, rxn_id) result (expr)
-
-    !> Rate constant expression
-    character(len=:), allocatable :: expr
-    !> Reaction data
-    class(rxn_photolysis_t), intent(in) :: this
-    !> Reaction id in mechanism
-    integer(kind=i_kind), intent(in) :: rxn_id
-
-    expr = ""
-
-  end function build_rate_const_expr
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Build time derivative expression
-  function build_deriv_expr(this, rxn_id, spec_id, chem_spec_data) &
-                  result (expr)
-
-    !> Contribution to time derivative expression for species spec_id
-    character(len=:), allocatable :: expr
-    !> Reaction data
-    class(rxn_photolysis_t), intent(in) :: this
-    !> Reaction id in mechanism
-    integer(kind=i_kind), intent(in) :: rxn_id
-    !> Species id to get contribution for
-    integer(kind=i_kind), intent(in) :: spec_id
-    ! Chemical species data
-    type(chem_spec_data_t), intent(in) :: chem_spec_data
-
-    expr = ""
-
-  end function build_deriv_expr
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Set an id for this reaction that can be used by an external photolysis
   !! module to update the base (unscaled) rate constant during the model run.
   subroutine set_photo_id(this, photo_id)
@@ -310,6 +321,69 @@ contains
     prop_set => this%property_set
 
   end function get_property_set
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Finalize the reaction
+  elemental subroutine finalize(this)
+
+    !> Reaction data
+    type(rxn_photolysis_t), intent(inout) :: this
+
+    if (associated(this%property_set))  deallocate(this%property_set)
+    if (allocated(this%condensed_data_real)) &
+                                        deallocate(this%condensed_data_real)
+    if (allocated(this%condensed_data_int)) &
+                                        deallocate(this%condensed_data_int)
+
+  end subroutine finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get packed update data for photolysis rate constants
+  subroutine update_data_rate_set(this, photo_id, base_rate)
+
+    use iso_c_binding
+
+    !> Update data
+    class(rxn_update_data_photolysis_rate_t), intent(inout) :: this
+    !> Photo id from pmc_rxn_photolysis::rxn_photolysis_t::set_photo_id
+    integer(kind=i_kind), intent(in) :: photo_id
+    !> Updated pre-scaling photolysis rate
+    real(kind=dp), intent(in) :: base_rate
+
+    call rxn_photolysis_set_rate_update_data(this%get_data(), photo_id, &
+            base_rate)
+
+  end subroutine update_data_rate_set
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Constructor for rxn_update_data_photolysis_rate_t
+  function update_data_rate_constructor(rxn_type) result(new_obj)
+
+    !> New update data object
+    type(rxn_update_data_photolysis_rate_t) :: new_obj
+    !> Reaction type id
+    integer(kind=i_kind), intent(in) :: rxn_type
+
+    new_obj%rxn_type = int(rxn_type, kind=c_int)
+    new_obj%update_data = rxn_photolysis_create_rate_update_data()
+    new_obj%is_malloced = .true.
+
+  end function update_data_rate_constructor
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Finalize an update data object
+  elemental subroutine update_data_rate_finalize(this)
+
+    !> Update data object to free
+    type(rxn_update_data_photolysis_rate_t), intent(inout) :: this
+
+    if (this%is_malloced) call rxn_free_update_data(this%update_data)
+
+  end subroutine update_data_rate_finalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

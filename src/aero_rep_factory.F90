@@ -284,11 +284,17 @@ contains
 
     new_obj => null()
 
+    ! get the aerosol representation type
     call json%get(j_obj, "type", unicode_name, found)
     call assert_msg(904082395, found, 'Missing aerosol representation type.')
     type_name = unicode_name
+
+    ! create a new aerosol representation
     new_obj => this%create(type_name)    
+
+    ! load aerosol representation parameters from the json object
     call new_obj%load(json, j_obj)
+
 #else
   function load(this) result (new_obj)
 

@@ -101,10 +101,6 @@ module pmc_rxn_arrhenius
   contains
     !> Reaction initialization
     procedure :: initialize
-    !> Build rate constant expression
-    procedure :: build_rate_const_expr
-    !> Build time derivative expression
-    procedure :: build_deriv_expr
   end type rxn_arrhenius_t
 
   !> Constructor for rxn_arrhenius_t
@@ -285,79 +281,6 @@ contains
     end do
 
   end subroutine initialize
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Build rate constant expression
-  function build_rate_const_expr(this, rxn_id) result (expr)
-
-    !> Rate constant expression
-    character(len=:), allocatable :: expr
-    !> Reaction data
-    class(rxn_arrhenius_t), intent(in) :: this
-    !> Reaction id in mechanism
-    integer(kind=i_kind), intent(in) :: rxn_id
-
-    ! Conversion factor (#/cc) -> ppm
-    real(kind=dp) :: conv
-
-    ! Convert from #/cc -> ppm
-    conv = _CONV_**(_NUM_REACT_-1)
-   
-    expr = ""
-
-    if (_A_.eq.real(0.0, kind=dp)) return
-
-    ! A term with conversion to ppm
-    expr = trim(to_string(conv*_A_))
-    if (_NUM_REACT_.eq.2) then
-      expr = expr//"*(press_atm/temp_K)"
-    else if (_NUM_REACT_.gt.2) then
-      expr = expr//"*(press_atm/temp_K)**("// &
-              trim(to_string(_NUM_REACT_-1))//")"
-    end if
-    
-    ! C term
-    if (_C_.ne.real(0.0, kind=dp)) then
-      expr = expr//"*exp("// &
-              trim(to_string(_C_))//"/temp_K)"
-    end if
-
-    ! B term
-    if (_B_.ne.real(0.0, kind=dp)) then
-      expr = expr//"*(temp_K/"// &
-              trim(to_string(_D_))//")**("// &
-              trim(to_string(_B_))//")"
-    end if
-    
-    ! E term
-    if (_E_.ne.real(0.0, kind=dp)) then
-      expr = expr//"*(1.0+"// &
-              trim(to_string(_E_))//"*press_Pa)"
-    end if
-
-  end function build_rate_const_expr
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Build time derivative expression
-  function build_deriv_expr(this, rxn_id, spec_id, chem_spec_data) &
-                  result (expr)
-
-    !> Contribution to time derivative expression for species spec_id
-    character(len=:), allocatable :: expr
-    !> Reaction data
-    class(rxn_arrhenius_t), intent(in) :: this
-    !> Reaction id in mechanism
-    integer(kind=i_kind), intent(in) :: rxn_id
-    !> Species id to get contribution for
-    integer(kind=i_kind), intent(in) :: spec_id
-    !> Chemical species data
-    type(chem_spec_data_t), intent(in) :: chem_spec_data
-
-    expr = ""
-    
-  end function build_deriv_expr
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

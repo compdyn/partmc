@@ -131,16 +131,16 @@ module pmc_phlex_solver_data
       type(c_ptr), value :: solver_data
     end subroutine rxn_add_condensed_data
 
-    !> Update a photolysis rate constant
-    subroutine rxn_set_photo_rate(photo_id, base_rate, solver_data) bind(c)
+    !> Update reaction data
+    subroutine rxn_update_data(rxn_type, update_data, solver_data) bind(c)
       use iso_c_binding
-      !> Id used to identify reactions to update
-      integer(kind=c_int), value :: photo_id
-      !> Base (unscaled) photolysis rate
-      real(kind=c_double), value :: base_rate
+      !> Reaction type to updateto update
+      integer(kind=c_int), value :: rxn_type
+      !> Data required by reaction for updates
+      type(c_ptr), value :: update_data
       !> Solver data
       type(c_ptr), value :: solver_data
-    end subroutine rxn_set_photo_rate
+    end subroutine rxn_update_data
 
     !> Print the solver data
     subroutine rxn_print_data(solver_data) bind(c)
@@ -148,21 +148,6 @@ module pmc_phlex_solver_data
       !> Solver data
       type(c_ptr), value :: solver_data
     end subroutine rxn_print_data
-
-    !> Get the current reaction rates
-    function rxn_get_rates(solver_data, state, env, n_rxn) bind(c)
-      use iso_c_binding
-      !> Reaction rates
-      type(c_ptr) :: rxn_get_rates
-      !> Solver data
-      type(c_ptr), value :: solver_data
-      !> Pointer to the state array
-      type(c_ptr), value :: state
-      !> Pointer to the environmental state array
-      type(c_ptr), value :: env
-      !> Number of reactions
-      integer(kind=c_int) :: n_rxn
-    end function rxn_get_rates
 
     !> Add condensed sub model data to the solver data block
     subroutine sub_model_add_condensed_data(sub_model_type, n_int_param, &
@@ -263,6 +248,13 @@ module pmc_phlex_solver_data
       type(c_ptr), value :: solver_data
     end subroutine aero_rep_print_data
 
+    !> Free the memory associated with a solver
+    pure subroutine solver_free(solver_data) bind(c)
+      use iso_c_binding
+      !> Pointer to the solver data
+      type(c_ptr), value :: solver_data
+    end subroutine solver_free
+
   end interface
 
   !> Solver data
@@ -281,25 +273,27 @@ module pmc_phlex_solver_data
     integer(kind=i_kind), public :: max_steps = PMC_SOLVER_DEFAULT_MAX_STEPS
     !> Maximum number of convergence failures
     integer(kind=i_kind), public :: max_conv_fails = PMC_SOLVER_DEFAULT_MAX_CONV_FAILS
+    !> Flag indicating whether the solver was intialized
+    logical :: initialized = .false.
   contains
     !> Initialize the solver
     procedure :: initialize
-    !> Set a photolysis rate constant
-    procedure :: set_photo_rate
+    !> Update reactions data
+    procedure :: update_rxn_data
     !> Update aerosol representation data
     procedure :: update_aero_rep_data
     !> Integrate over a given time step
     procedure :: solve
     !> Checks whether a solver is available
     procedure :: is_solver_available
-    !> Get the current reaction rates
-    procedure :: get_rates
     !> Get a parameter id
     procedure :: get_sub_model_parameter_id
     !> Get a current parameter value
     procedure :: get_sub_model_parameter_value
     !> Print the solver data
     procedure :: print => do_print
+    !> Finalize the solver data
+    final :: finalize
   end type phlex_solver_data_t
 
   ! Constructor for phlex_solver_data_t
@@ -338,7 +332,7 @@ contains
     !! species will be ignored by the solver.
     real(kind=dp), allocatable, intent(in) :: abs_tol(:)
     !> Mechanisms to include in solver
-    type(mechanism_data_t), pointer, intent(in) :: mechanisms(:)
+    type(mechanism_data_ptr), pointer, intent(in) :: mechanisms(:)
     !> Aerosol phases to include
     type(aero_phase_data_ptr), pointer, intent(in) :: aero_phases(:)
     !> Aerosol representations to include
@@ -417,8 +411,8 @@ contains
 
     ! Calculate the number of reactions and the size of the condensed data
     do i_mech=1, size(mechanisms)
-      do i_rxn=1, mechanisms(i_mech)%size()
-        associate (rxn => mechanisms(i_mech)%get_rxn(i_rxn))
+      do i_rxn=1, mechanisms(i_mech)%val%size()
+        associate (rxn => mechanisms(i_mech)%val%get_rxn(i_rxn))
         select case (rxn%rxn_phase)
           case (GAS_RXN)
             if (rxn_phase.eq.AERO_RXN) cycle
@@ -500,10 +494,10 @@ contains
     ! Add all the condensed reaction data to the solver data block for reactions
     ! of the specified phase
     do i_mech=1, size(mechanisms)
-      do i_rxn=1, mechanisms(i_mech)%size()
+      do i_rxn=1, mechanisms(i_mech)%val%size()
         
         ! Assign rxn to the current reaction
-        associate (rxn => mechanisms(i_mech)%get_rxn(i_rxn))
+        associate (rxn => mechanisms(i_mech)%val%get_rxn(i_rxn))
         
         ! Check reaction phase
         select case (rxn%rxn_phase)
@@ -636,6 +630,9 @@ contains
             int(this%max_conv_fails, kind=c_int)        & ! Maximum number of convergence failures
             )
 
+    ! Flag the solver as initialized
+    this%initialized = .true.
+
     ! Free memory allocated for solver initialization
     deallocate(abs_tol_c)
     deallocate(var_type_c)
@@ -644,24 +641,21 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Set a base (unscaled) photolysis rate constant based on the index
-  !! provided by an external phototlysis module during intialization.
-  subroutine set_photo_rate(this, photo_id, base_rate)
+  !> Update reaction data
+  subroutine update_rxn_data(this, update_data)
 
     !> Solver data
     class(phlex_solver_data_t), intent(inout) :: this
-    !> Id to use to identify reactions to update
-    integer(kind=i_kind), intent(in) :: photo_id
-    !> New base (unscaled) photolysis rate
-    real(kind=dp), intent(in) :: base_rate
+    !> Update data
+    class(rxn_update_data_t), intent(in) :: update_data
 
-    call rxn_set_photo_rate( &
-            int(photo_id, kind=c_int),          & ! Id of photo rate to update
-            real(base_rate, kind=c_double),     & ! New value for the base photo rate constant
+    call rxn_update_data( &
+            update_data%get_type(),             & ! Reaction type to update
+            update_data%get_data(),             & ! Data needed to perform update 
             this%solver_c_ptr                   & ! Pointer to solver data
             )
 
-  end subroutine set_photo_rate
+  end subroutine update_rxn_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -735,35 +729,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the current reaction rates
-  function get_rates(this, phlex_state)
-
-    !> Reaction rates
-    real(kind=dp), allocatable :: get_rates(:)
-    !> Solver data
-    class(phlex_solver_data_t), intent(in) :: this
-    !> Model state
-    type(phlex_state_t), pointer, intent(in) :: phlex_state
-
-    real(kind=c_double), pointer :: rates(:)
-    type(c_ptr) :: rates_c_ptr
-    integer(kind=c_int) :: n_rxn
-
-    rates_c_ptr = rxn_get_rates(                &
-            this%solver_c_ptr,                  & ! Pointer to solver data
-            c_loc(phlex_state%state_var),       & ! Pointer to state array
-            c_loc(phlex_state%env_var),         & ! Pointer to environmental variables
-            n_rxn                               & ! Number of reactions
-            )
-    call c_f_pointer(rates_c_ptr, rates, [n_rxn])
-    allocate(get_rates(n_rxn))
-    get_rates(:) = real(rates(:), kind=dp)
-    deallocate(rates)
-
-  end function get_rates
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Get a sub model parameter id
   !!
   !! Returns the id for use with sub_model_get_parameter_value to get a current 
@@ -831,6 +796,18 @@ contains
     call aero_rep_print_data(this%solver_c_ptr)
 
   end subroutine do_print
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Finalize the solver data
+  elemental subroutine finalize(this)
+
+    !> Solver data
+    type(phlex_solver_data_t), intent(inout) :: this
+
+    if (this%initialized) call solver_free(this%solver_c_ptr)
+
+  end subroutine finalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

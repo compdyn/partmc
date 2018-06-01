@@ -19,6 +19,7 @@ program pmc_test_cb05cl_ae5
   use pmc_chem_spec_data
   use pmc_rxn_data
   use pmc_rxn_photolysis
+  use pmc_rxn_factory
   use pmc_property
 #ifdef PMC_USE_JSON
   use json_module
@@ -165,9 +166,14 @@ contains
     type(string_t) :: str_temp
     type(string_t), allocatable :: spec_names(:)
 
+    ! Variables to set photolysis rates
+    type(rxn_factory_t) :: rxn_factory
+    type(rxn_update_data_photolysis_rate_t) :: rate_update
+
     ! Arrays to hold starting concentrations
     real(kind=dp), allocatable :: ebi_init(:), kpp_init(:), phlex_init(:)
 
+    ! D
     passed = .false.
    
     ! Set the #/cc -> ppm conversion factor
@@ -248,8 +254,8 @@ contains
 
     ! Set the photolysis rate ids
     key = "rxn id"
-    do i_rxn = 1, phlex_core%mechanism(i_mech)%size()
-      rxn => phlex_core%mechanism(i_mech)%get_rxn(i_rxn)
+    do i_rxn = 1, phlex_core%mechanism(i_mech)%val%size()
+      rxn => phlex_core%mechanism(i_mech)%val%get_rxn(i_rxn)
       select type(rxn) 
         type is (rxn_photolysis_t)
           call assert(265614917, rxn%property_set%get_string(key, string_val))
@@ -304,14 +310,17 @@ contains
     ! Set O2 + hv rate constant to 0 in KPP (not present in ebi version)
     KPP_PHOTO_RATES(1) = 0.0
     ! Set the phlex-chem photolysis rate constants
-    call phlex_core%set_photo_rate(1, real(0.0001, kind=dp))
+    call rxn_factory%new_update_data(rate_update)
+    call rate_update%set_rate(1, real(0.0001, kind=dp))
+    call phlex_core%update_rxn_data(rate_update)
 
     ! Make sure the right number of reactions is present
     ! (KPP includes two Cl rxns with rate constants set to zero that are not
     !  present in phlex-chem)
-    call assert_msg(396732632, phlex_core%mechanism(i_mech)%size().eq.186, &
+    call assert_msg(396732632, &
+            phlex_core%mechanism(i_mech)%val%size().eq.186, &
             "Wrong number of phlex-chem reactions: "// &
-            trim(to_string(phlex_core%mechanism(i_mech)%size())))
+            trim(to_string(phlex_core%mechanism(i_mech)%val%size())))
 
     ! Set the initial concentrations
     key = "init conc"
@@ -438,13 +447,13 @@ contains
 
     ! Set up the reaction map between phlex-chem, kpp and ebi solvers
     key = "rxn id"
-    allocate(ebi_rxn_map(phlex_core%mechanism(i_mech)%size()))
+    allocate(ebi_rxn_map(phlex_core%mechanism(i_mech)%val%size()))
     ebi_rxn_map(:) = 0
-    allocate(kpp_rxn_map(phlex_core%mechanism(i_mech)%size()))
+    allocate(kpp_rxn_map(phlex_core%mechanism(i_mech)%val%size()))
     kpp_rxn_map(:) = 0
     call get_kpp_rxn_labels(kpp_rxn_labels)
-    do i_rxn = 1, phlex_core%mechanism(i_mech)%size()
-      rxn => phlex_core%mechanism(i_mech)%get_rxn(i_rxn)
+    do i_rxn = 1, phlex_core%mechanism(i_mech)%val%size()
+      rxn => phlex_core%mechanism(i_mech)%val%get_rxn(i_rxn)
       call assert_msg(917216189, associated(rxn), "Missing rxn "//to_string(i_rxn))
       call assert(656034097, rxn%property_set%get_string(key, string_val))
       do i_ebi_rxn = 1, NRXNS 
@@ -1179,7 +1188,6 @@ contains
 
     real(kind=dp) :: KPP_VDOT(KPP_NVAR)               
     integer(kind=i_kind) :: i_ebi_spec, i_kpp_spec, i_phlex_spec, i_mech, i_rxn
-    real(kind=dp), allocatable :: phlex_rates(:)
     type(string_t) :: spec_name
 
     character(len=:), allocatable :: key
@@ -1194,23 +1202,6 @@ contains
     ! Find the phlex-core mechanism
     key = "cb05cl_ae5"
     call assert(331333207, phlex_core%find_mechanism(key, i_mech))
-
-    ! Get the current reaction rates
-    phlex_rates = phlex_core%get_rxn_rates(phlex_state)    
-    call assert_msg(743625443, size(phlex_rates).eq.phlex_core%mechanism(i_mech)%size(), &
-            "Rate array is wrong size. Expected "// &
-            to_string(phlex_core%mechanism(i_mech)%size())// &
-            " but got "//to_string(size(phlex_rates)))
-
-    ! Compare the calculated rates
-    ! phlex <-> KPP
-    do i_rxn = 1, phlex_core%mechanism(i_mech)%size()
-      if ((.not.almost_equal(KPP_A(kpp_rxn_map(i_rxn))*conv, phlex_rates(i_rxn), 1.0d-2))) then
-        write(*,*) "Rxn(", trim(RXLABEL(ebi_rxn_map(i_rxn))), ") rate: (kpp):", &
-              KPP_A(kpp_rxn_map(i_rxn))*conv, " (ebi):", EBI_RXRAT(ebi_rxn_map(i_rxn))/60.0d0, &
-              " (phlex):", phlex_rates(i_rxn)
-      end if
-    end do
 
     ! Compare the calculated rates
     ! EBI <-> KPP

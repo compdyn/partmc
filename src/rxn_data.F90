@@ -41,14 +41,14 @@
 !!   - \subpage phlex_rxn_CMAQ_OH_HNO3 "CMAQ special reaction type for OH + HNO3 -> NO3 + H2O"
 !!   - \subpage phlex_rxn_condensed_phase_arrhenius "Condensed-Phase Arrhenius"
 !!   - \subpage phlex_rxn_HL_phase_transfer "Henry's Law Phase Transfer"
-!!   - \subpage phlex_rxn_PDFITE_activity "PD-FiTE Activity"
+!!   - \subpage phlex_rxn_PDFiTE_activity "PD-FiTE Activity"
 !!   - \subpage phlex_rxn_SIMPOL_phase_transfer "SIMPOL.1 Phase Transfer"
 !!   - \subpage phlex_rxn_photolysis "Photolysis"
 !!   - \subpage phlex_rxn_troe "Troe (fall-off)"
 !!   - \subpage phlex_rxn_ZSR_aerosol_water "ZSR Aerosol Water"
 !!
-!! The general input format for a reaction can be found \subpage input_format_rxn
-!! "here".
+!! The general input format for a reaction can be found
+!! \subpage input_format_rxn "here".
 !!
 !! General instructions for adding a new reaction type can be found
 !! \subpage phlex_rxn_add "here".
@@ -70,10 +70,12 @@ module pmc_rxn_data
   use json_module
 #endif
 
+  use iso_c_binding
+
   implicit none
   private
 
-  public :: rxn_data_t, rxn_data_ptr
+  public :: rxn_data_t, rxn_data_ptr, rxn_update_data_t
 
   !> Gas-phase reaction
   integer(kind=i_kind), parameter, public :: GAS_RXN = 1
@@ -118,10 +120,8 @@ module pmc_rxn_data
     !! at the beginning of a model run after all the input files have been
     !! read in.
     procedure(initialize), deferred :: initialize
-    !> Build rate constant expression
-    procedure(build_rate_const_expr), deferred :: build_rate_const_expr
-    !> Build time derivative expression
-    procedure(build_deriv_expr), deferred :: build_deriv_expr
+    !> Load data from an input file
+    procedure :: load
     !> Check the phase of the reaction against the phase being solved for.
     !! During GAS_RXN integrations, only GAS_RXN reactions are solved.
     !! During AERO_RXN integrations, only AERO_RXN and GAS_AERO_RXN
@@ -134,8 +134,6 @@ module pmc_rxn_data
     procedure :: bin_pack
     !> Unpacks the given value from the buffer, advancing position
     procedure :: bin_unpack
-    !> Load data from an input file
-    procedure :: load
     !> Print the reaction data
     procedure :: print => do_print
   end type rxn_data_t
@@ -143,7 +141,25 @@ module pmc_rxn_data
   !> Pointer type for building arrays of mixed reactions
   type :: rxn_data_ptr
     class(rxn_data_t), pointer :: val => null()
+  contains
+    !> Dereference the pointer
+    procedure :: dereference
+    !> Finalize the pointer
+    final :: ptr_finalize
   end type rxn_data_ptr
+
+  !> Update cookie
+  type, abstract :: rxn_update_data_t
+    !> Reaction type
+    integer(kind=c_int) :: rxn_type
+    !> Update data
+    type(c_ptr) :: update_data
+  contains
+    !> Get the reaction type
+    procedure :: get_type => rxn_update_data_get_type
+    !> Get the update data
+    procedure :: get_data => rxn_update_data_get_data
+  end type rxn_update_data_t
 
 interface
 
@@ -170,44 +186,120 @@ interface
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    !> Build rate constant expression
-    function build_rate_const_expr(this, rxn_id) result (expr)
-      import :: rxn_data_t, i_kind
-
-      !> Rate constant expression
-      character(len=:), allocatable :: expr
-      !> Reaction data
-      class(rxn_data_t), intent(in) :: this
-      !> Reaction id in mechanism
-      integer(kind=i_kind), intent(in) :: rxn_id
-
-    end function build_rate_const_expr
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-    !> Build time derivative expression
-    function build_deriv_expr(this, rxn_id, spec_id, chem_spec_data) &
-                    result (expr)
-      import :: rxn_data_t, i_kind, chem_spec_data_t
-
-      !> Contribution to time derivative expression for species spec_id
-      character(len=:), allocatable :: expr
-      !> Reaction data
-      class(rxn_data_t), intent(in) :: this
-      !> Reaction id in mechanism
-      integer(kind=i_kind), intent(in) :: rxn_id
-      !> Species id to get contribution for
-      integer(kind=i_kind), intent(in) :: spec_id
-      ! Chemical species data
-      type(chem_spec_data_t), intent(in) :: chem_spec_data
-
-    end function build_deriv_expr
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 end interface
 
 contains
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> \page input_format_rxn Input JSON Object Format: Reaction (general)
+  !! 
+  !! A \c json object containing information about a chemical reaction or 
+  !! physical process in the gas phase, in an \ref phlex_aero_phase 
+  !! "aerosol phase", or between two phases (phase-transfer). \ref phlex_rxn
+  !! "Reactions" are used to build \ref phlex_mechanism "mechanisms" and are
+  !! only found within an input \ref input_format_mechanism "mechanism object"
+  !! in an array labelled \b reactions.
+  !! \code{.json}
+  !! { "pmc-data" : [
+  !!   {
+  !!     "name" : "my mechanism",
+  !!     "type" : "MECHANISM",
+  !!     "reactions" : [
+  !!     {
+  !!       "type" : "REACTION_TYPE",
+  !!       "reactants" : {
+  !!         "some species" : {},
+  !!         "another species" : { "qty" : 2 }
+  !!       },
+  !!       "products" : {
+  !!         "product species" : { "yield" : 0.42 },
+  !!         "another prod species" : {}
+  !!       },
+  !!       "some parameter" : 123.34,
+  !!       "some other parameter" : true,
+  !!       "nested parameters" : {
+  !!          "sub param 1" : 12.43,
+  !!          "sub param other" : "some text"
+  !!       },
+  !!       ...
+  !!     },
+  !!     {
+  !!       "type" : "REACTION_TYPE",
+  !!       "reactants" : {
+  !!         "that one species" : { "qty" : 3 }
+  !!       },
+  !!       "some parameter" : 123.34,
+  !!       ...
+  !!     },
+  !!     ...
+  !!   ]},
+  !!   ...
+  !! ]}
+  !! \endcode
+  !! The key-value pair \b type is required and its value must correspond
+  !! to a valid reaction type. Valid reaction types include:
+  !!
+  !!   - \subpage phlex_rxn_arrhenius "ARRHENIUS"
+  !!   - \subpage phlex_rxn_aqueous_equilibrium "AQUEOUS_EQUILIBRIUM"
+  !!   - \subpage phlex_rxn_CMAQ_H2O2 "CMAQ_H2O2"
+  !!   - \subpage phlex_rxn_CMAQ_OH_HNO3 "CMAQ_OH_HNO3"
+  !!   - \subpage phlex_rxn_condensed_phase_arrhenius "CONDENSED_PHASE_ARRHENIUS"
+  !!   - \subpage phlex_rxn_HL_phase_transfer "HL_PHASE_TRANSFER"
+  !!   - \subpage phlex_rxn_PDFiTE_activity "PDFITE_ACTIVITY"
+  !!   - \subpage phlex_rxn_SIMPOL_phase_transfer "SIMPOL_PHASE_TRANSFER"
+  !!   - \subpage phlex_rxn_photolysis "PHOTOLYSIS"
+  !!   - \subpage phlex_rxn_troe "TROE"
+  !!   - \subpage phlex_rxn_ZSR_aerosol_water "ZSR_AEROSOL_WATER"
+  !! 
+  !! All remaining data are optional and may include any valid \c json value, 
+  !! including nested objects. However, extending types (i.e. reactions) will
+  !! have specific requirements for the remaining data. Additionally it is
+  !! recommended to use the above format for reactants and products when
+  !! developing derived types that extend \c rxn_data_t, and to use \b type
+  !! values that match the name of the extending derived-type. For example, the 
+  !! reaction type \c rxn_photolysis_t would have a \b type of \b PHOTOLYSIS.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Load reactions from an input file
+#ifdef PMC_USE_JSON
+  subroutine load(this, json, j_obj)
+
+    !> Reaction data
+    class(rxn_data_t), intent(out) :: this
+    !> JSON core
+    type(json_core), pointer, intent(in) :: json
+    !> JSON object
+    type(json_value), pointer, intent(in) :: j_obj
+
+    type(json_value), pointer :: child, next, species
+    character(kind=json_ck, len=:), allocatable :: key
+
+    ! allocate space for the reaction property set
+    this%property_set => property_t()
+
+    ! cycle through the reaction properties, loading them into the reaction
+    ! property set
+    next => null()
+    call json%get_child(j_obj, child)
+    do while (associated(child))
+      call json%info(child, name=key)
+      if (key.ne."rxn type") call this%property_set%load(json, child, .false.)
+      
+      call json%get_next(child, next)
+      child => next
+    end do
+#else
+  subroutine load(this)
+
+    !> Reaction data
+    class(rxn_data_t), intent(inout) :: this
+
+    call warn_msg(332862889, "No support for input files")
+#endif
+
+  end subroutine load
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -297,113 +389,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> \page input_format_rxn Input JSON Object Format: Reaction (general)
-  !! 
-  !! A \c json object containing information about a chemical reaction or 
-  !! physical process in the gas phase, in an \ref phlex_aero_phase 
-  !! "aerosol phase", or between two phases (phase-transfer). \ref phlex_rxn
-  !! "Reactions" are used to build \ref phlex_mechanism "mechanisms" and are
-  !! only found within an input \ref input_format_mechanism "mechanism object"
-  !! in an array labelled \b reactions.
-  !! \code{.json}
-  !! { "pmc-data" : [
-  !!   {
-  !!     "name" : "my mechanism",
-  !!     "type" : "MECHANISM",
-  !!     "reactions" : [
-  !!     {
-  !!       "type" : "REACTION_TYPE",
-  !!       "reactants" : {
-  !!         "some species" : {},
-  !!         "another species" : { "qty" : 2 }
-  !!       },
-  !!       "products" : {
-  !!         "product species" : { "yield" : 0.42 },
-  !!         "another prod species" : {}
-  !!       },
-  !!       "some parameter" : 123.34,
-  !!       "some other parameter" : true,
-  !!       "nested parameters" : {
-  !!          "sub param 1" : 12.43,
-  !!          "sub param other" : "some text"
-  !!       },
-  !!       ...
-  !!     },
-  !!     {
-  !!       "type" : "REACTION_TYPE",
-  !!       "reactants" : {
-  !!         "that one species" : { "qty" : 3 }
-  !!       },
-  !!       "some parameter" : 123.34,
-  !!       ...
-  !!     },
-  !!     ...
-  !!   ]},
-  !!   ...
-  !! ]}
-  !! \endcode
-  !! The key-value pair \b type is required and its value must correspond
-  !! to a valid reaction type. Valid reaction types include:
-  !!
-  !!   - \subpage phlex_rxn_arrhenius "Arrhenius"
-  !!   - \subpage phlex_rxn_aqueous_equilibrium "Aqueous-phase Equilibrium"
-  !!   - \subpage phlex_rxn_CMAQ_H2O2 "CMAQ special reaction type for 2HO2 (+ H2O) -> H2O2"
-  !!   - \subpage phlex_rxn_CMAQ_OH_HNO3 "CMAQ special reaction type for OH + HNO3 -> NO3 + H2O"
-  !!   - \subpage phlex_rxn_condensed_phase_arrhenius "Condensed-Phase Arrhenius"
-  !!   - \subpage phlex_rxn_HL_phase_transfer "Henry's Law Phase Transfer"
-  !!   - \subpage phlex_rxn_PDFITE_activity "PD-FiTE Activity"
-  !!   - \subpage phlex_rxn_SIMPOL_phase_transfer "SIMPOL.1 Phase Transfer"
-  !!   - \subpage phlex_rxn_photolysis "Photolysis"
-  !!   - \subpage phlex_rxn_troe "Troe (fall-off)"
-  !!   - \subpage phlex_rxn_ZSR_aerosol_water "ZSR Aerosol Water"
-  !! 
-  !! All remaining data are optional and may include any valid \c json value, 
-  !! including nested objects. However, extending types (i.e. reactions) will
-  !! have specific requirements for the remaining data. Additionally it is
-  !! recommended to use the above format for reactants and products when
-  !! developing derived types that extend \c rxn_data_t, and to use \b type
-  !! values that match the name of the extending derived-type. For example, the 
-  !! reaction type \c rxn_photolysis_t would have a \b type of \b PHOTOLYSIS.
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Load reactions from an input file
-#ifdef PMC_USE_JSON
-  subroutine load(this, json, j_obj)
-
-    !> Reaction data
-    class(rxn_data_t), intent(out) :: this
-    !> JSON core
-    type(json_core), pointer, intent(in) :: json
-    !> JSON object
-    type(json_value), pointer, intent(in) :: j_obj
-
-    type(json_value), pointer :: child, next, species
-    character(kind=json_ck, len=:), allocatable :: key
-
-    this%property_set => property_t()
-
-    next => null()
-    call json%get_child(j_obj, child)
-    do while (associated(child))
-      call json%info(child, name=key)
-      if (key.ne."rxn type") call this%property_set%load(json, child, .false.)
-      call json%get_next(child, next)
-      child => next
-    end do
-#else
-  subroutine load(this)
-
-    !> Reaction data
-    class(rxn_data_t), intent(inout) :: this
-
-    call warn_msg(332862889, "No support for input files")
-#endif
-
-  end subroutine load
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Print the reaction data
   subroutine do_print(this, file_unit)
 
@@ -422,6 +407,58 @@ contains
     if (allocated(this%condensed_data_real)) &
       write (f_unit,*) "  *** condensed data real: ", this%condensed_data_real(:)
   end subroutine do_print
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Dereference a pointer to a reaction
+  elemental subroutine dereference(this)
+
+    !> Pointer to a reaction
+    class(rxn_data_ptr), intent(inout) :: this
+
+    this%val => null()
+
+  end subroutine dereference
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Finalize a pointer to a reaction
+  elemental subroutine ptr_finalize(this)
+    
+    !> Pointer to a reaction
+    type(rxn_data_ptr), intent(inout) :: this
+
+    if (associated(this%val)) deallocate(this%val)
+
+  end subroutine ptr_finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the update data reaction type
+  function rxn_update_data_get_type(this) result(rxn_type)
+
+    !> Reaction type
+    integer(kind=c_int) :: rxn_type
+    !> Update data
+    class(rxn_update_data_t), intent(in) :: this
+
+    rxn_type = this%rxn_type
+
+  end function rxn_update_data_get_type
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the update data
+  function rxn_update_data_get_data(this) result(update_data)
+
+    !> Update data ptr
+    type(c_ptr) :: update_data
+    !> Update data
+    class(rxn_update_data_t), intent(in) :: this
+
+    update_data = this%update_data
+
+  end function rxn_update_data_get_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -7,6 +7,8 @@
 
 !> \page phlex_rxn_add Phlexible Module for Chemistry: Adding a Reaction Type
 !!
+!! \b Note: these instructions are out-of-date. TODO update
+!!
 !! Adding a \ref phlex_rxn "reaction" to the \ref phlex_chem "phlex-chem"
 !! module can be done in the following steps:
 !!
@@ -198,17 +200,17 @@ module pmc_rxn_factory
 
   !> Identifiers for reaction types - used by binary packing/unpacking 
   !! functions 
-  integer(kind=i_kind), parameter :: RXN_ARRHENIUS = 1
-  integer(kind=i_kind), parameter :: RXN_TROE = 2
-  integer(kind=i_kind), parameter :: RXN_CMAQ_H2O2 = 3
-  integer(kind=i_kind), parameter :: RXN_CMAQ_OH_HNO3 = 4
-  integer(kind=i_kind), parameter :: RXN_PHOTOLYSIS = 5
-  integer(kind=i_kind), parameter :: RXN_HL_PHASE_TRANSFER = 6
-  integer(kind=i_kind), parameter :: RXN_AQUEOUS_EQUILIBRIUM = 7
-  integer(kind=i_kind), parameter :: RXN_ZSR_AEROSOL_WATER = 8
-  integer(kind=i_kind), parameter :: RXN_PDFITE_ACTIVITY = 9
-  integer(kind=i_kind), parameter :: RXN_SIMPOL_PHASE_TRANSFER = 10
-  integer(kind=i_kind), parameter :: RXN_CONDENSED_PHASE_ARRHENIUS = 11
+  integer(kind=i_kind), parameter, public :: RXN_ARRHENIUS = 1
+  integer(kind=i_kind), parameter, public :: RXN_TROE = 2
+  integer(kind=i_kind), parameter, public :: RXN_CMAQ_H2O2 = 3
+  integer(kind=i_kind), parameter, public :: RXN_CMAQ_OH_HNO3 = 4
+  integer(kind=i_kind), parameter, public :: RXN_PHOTOLYSIS = 5
+  integer(kind=i_kind), parameter, public :: RXN_HL_PHASE_TRANSFER = 6
+  integer(kind=i_kind), parameter, public :: RXN_AQUEOUS_EQUILIBRIUM = 7
+  integer(kind=i_kind), parameter, public :: RXN_ZSR_AEROSOL_WATER = 8
+  integer(kind=i_kind), parameter, public :: RXN_PDFITE_ACTIVITY = 9
+  integer(kind=i_kind), parameter, public :: RXN_SIMPOL_PHASE_TRANSFER = 10
+  integer(kind=i_kind), parameter, public :: RXN_CONDENSED_PHASE_ARRHENIUS = 11
 
   !> Factory type for chemical reactions
   !!
@@ -222,6 +224,8 @@ module pmc_rxn_factory
     procedure :: load
     !> Get the reaction type
     procedure :: get_type
+    !> Get a new update data object
+    procedure :: new_update_data
     !> Determine the number of bytes required to pack a given reaction
     procedure :: pack_size
     !> Pack a given reaction to the buffer, advancing the position
@@ -366,6 +370,25 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Get a new update data object
+  subroutine new_update_data(this, update_data) 
+
+    !> Reaction factory
+    class(rxn_factory_t), intent(in) :: this
+    !> Update data object
+    class(rxn_update_data_t), intent(out) :: update_data
+
+    select type (update_data)
+      type is (rxn_update_data_photolysis_rate_t)
+        update_data = rxn_update_data_photolysis_rate_t(RXN_PHOTOLYSIS)
+      class default
+        call die_msg(239438576, "Internal error - update data type missing.")
+    end select
+
+  end subroutine new_update_data
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Determine the size of a binary required to pack a reaction
   integer(kind=i_kind) function pack_size(this, rxn)
 
@@ -476,7 +499,8 @@ contains
       case (RXN_CONDENSED_PHASE_ARRHENIUS)
         rxn => rxn_condensed_phase_arrhenius_t()
       case default
-        call die_msg(659290342, "Trying to unpack reaction of unknown type:"// &
+        call die_msg(659290342, &
+                "Trying to unpack reaction of unknown type:"// &
                 to_string(rxn_type))
     end select
     call rxn%bin_unpack(buffer, pos)

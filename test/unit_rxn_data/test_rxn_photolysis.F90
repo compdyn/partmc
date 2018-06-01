@@ -13,12 +13,15 @@ program pmc_test_photolysis
                                               warn_msg
   use pmc_rxn_data
   use pmc_rxn_photolysis
+  use pmc_rxn_factory
   use pmc_phlex_core
   use pmc_phlex_state
 #ifdef PMC_USE_JSON
   use json_module
 #endif
   use pmc_mpi
+
+  use iso_c_binding
 
   implicit none
 
@@ -54,6 +57,8 @@ contains
       passed = .true.
     end if
 
+    deallocate(phlex_solver_data)
+
   end function run_photolysis_tests
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -70,7 +75,7 @@ contains
     use pmc_constants
 
     type(phlex_core_t), pointer :: phlex_core
-    type(phlex_state_t), target :: phlex_state
+    type(phlex_state_t), pointer :: phlex_state
     character(len=:), allocatable :: input_file_path
     type(string_t), allocatable, dimension(:) :: output_file_path
 
@@ -80,6 +85,10 @@ contains
     integer(kind=i_kind) :: i_time, i_spec, i_rxn_photo_A, i_mech, i_rxn, i_photo_A
     real(kind=dp) :: time_step, time
     class(rxn_data_t), pointer :: rxn
+
+    ! For setting rates
+    type(rxn_factory_t) :: rxn_factory
+    type(rxn_update_data_photolysis_rate_t) :: rate_update
 
     ! Parameters for calculating true concentrations
     real(kind=dp) :: k1, k2, temp, pressure, photo_rate_1
@@ -110,8 +119,8 @@ contains
     i_photo_A = 342
     i_rxn_photo_A = 0
     do i_mech = 1, size(phlex_core%mechanism)
-      do i_rxn = 1, phlex_core%mechanism(i_mech)%size()
-        rxn => phlex_core%mechanism(i_mech)%get_rxn(i_rxn)
+      do i_rxn = 1, phlex_core%mechanism(i_mech)%val%size()
+        rxn => phlex_core%mechanism(i_mech)%val%get_rxn(i_rxn)
         if (rxn%property_set%get_string(key, str_val)) then
           if (trim(str_val).eq."photo A") then
             i_rxn_photo_A = i_rxn
@@ -129,7 +138,7 @@ contains
     call phlex_core%solver_initialize()
 
     ! Get a model state variable
-    phlex_state = phlex_core%new_state()
+    phlex_state => phlex_core%new_state()
 
     ! Set the environmental conditions
     phlex_state%env_state%temp = temp
@@ -159,7 +168,9 @@ contains
     phlex_state%state_var(:) = model_conc(0,:)
 
     ! Set the photo B rate
-    call phlex_core%set_photo_rate(i_photo_A, photo_rate_1)
+    call rxn_factory%new_update_data(rate_update)
+    call rate_update%set_rate(i_photo_A, photo_rate_1)
+    call phlex_core%update_rxn_data(rate_update)
 
     ! Integrate the mechanism
     do i_time = 1, NUM_TIME_STEP
@@ -198,6 +209,9 @@ contains
           "; true: "//to_string(true_conc(i_time, i_spec)))
       end do
     end do
+
+    deallocate(phlex_state)
+    deallocate(phlex_core)
 
     run_photolysis_test = .true.
 

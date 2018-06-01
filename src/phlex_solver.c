@@ -171,15 +171,15 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   // Get a pointer to the SolverData
   sd = (SolverData*) solver_data;
 
+  // Create a new solver object
+  sd->cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
+  check_flag_fail((void *)sd->cvode_mem, "CVodeCreate", 0);
+
   // Get the number of total and dependent variables on the state array,
   // and the type of each state variable
   n_state_var = sd->model_data.n_state_var;
   n_dep_var = NV_LENGTH_S(sd->y);
   var_type = sd->model_data.var_type;
-
-  // Create a new solver object
-  sd->cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
-  check_flag_fail((void *)sd->cvode_mem, "CVodeCreate", 0);
 
   // Set the solver data
   flag = CVodeSetUserData(sd->cvode_mem, sd);
@@ -192,11 +192,11 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   check_flag_fail(&flag, "CVodeInit", 1);
 
   // Set the relative and absolute tolerances
-  N_Vector abs_tol_nv = N_VNew_Serial(n_dep_var);
+  sd->abs_tol_nv = N_VNew_Serial(n_dep_var);
   i_dep_var = 0;
   for (int i=0; i<n_state_var; i++)
-    if (var_type[i]==CHEM_SPEC_VARIABLE) NV_Ith_S(abs_tol_nv, i_dep_var++) = (realtype) abs_tol[i];
-  flag = CVodeSVtolerances(sd->cvode_mem, (realtype) rel_tol, abs_tol_nv);
+    if (var_type[i]==CHEM_SPEC_VARIABLE) NV_Ith_S(sd->abs_tol_nv, i_dep_var++) = (realtype) abs_tol[i];
+  flag = CVodeSVtolerances(sd->cvode_mem, (realtype) rel_tol, sd->abs_tol_nv);
   check_flag_fail(&flag, "CVodeSVtolerances", 1);
 
   // Set the maximum number of iterations
@@ -208,16 +208,16 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   check_flag_fail(&flag, "CVodeSetMaxConvFails", 1);
 
   // Get the structure of the Jacobian matrix
-  SUNMatrix J = get_jac_init(sd);
-  sd->model_data.J_init = SUNMatClone(J);
-  SUNMatCopy(J, sd->model_data.J_init);
+  sd->J = get_jac_init(sd);
+  sd->model_data.J_init = SUNMatClone(sd->J);
+  SUNMatCopy(sd->J, sd->model_data.J_init);
 
   // Create a KLU SUNLinearSolver
-  SUNLinearSolver LS = SUNKLU(sd->y, J);
-  check_flag_fail((void*) LS, "SUNKLU", 0);
+  sd->ls = SUNKLU(sd->y, sd->J);
+  check_flag_fail((void*) sd->ls, "SUNKLU", 0);
 
   // Attach the linear solver and Jacobian to the CVodeMem object
-  flag = CVDlsSetLinearSolver(sd->cvode_mem, LS, J);
+  flag = CVDlsSetLinearSolver(sd->cvode_mem, sd->ls, sd->J);
   check_flag_fail(&flag, "CVDlsSetLinearSolver", 1);
 
   // Set the Jacobian function to Jac
@@ -581,15 +581,66 @@ static void solver_print_stats(void *cvode_mem)
   printf("NL conv fails = %-6ld Jac evals = %-6ld RHS evals = %-6ld G evals = %-6ld\n", ncfn, nje, nfeLS, nge);
 }
 
+#endif
+
 /** \brief Free a SolverData object
  *
  * \param solver_data Pointer to the SolverData object to free
  */
 void solver_free(void *solver_data)
 {
+  SolverData *sd = (SolverData*) solver_data;
+ 
+#ifdef PMC_USE_SUNDIALS
+  // free the SUNDIALS solver
+  CVodeFree(&(sd->cvode_mem));
 
-  // TODO finish this
+  // free the absolute tolerance vector
+  N_VDestroy(sd->abs_tol_nv);
+
+  // free the derivative vector
+  N_VDestroy(sd->y);
+
+  // destroy the Jacobian marix
+  SUNMatDestroy(sd->J);
+
+  // free the linear solver
+  SUNLinSolFree(sd->ls);
+#endif
+
+  // Free the allocated ModelData
+  model_free(sd->model_data);
+
+  // free the SolverData object
+  free(sd);
 
 }
 
+/** \brief Free a ModelData object
+ *
+ * \param model_data Pointer to the ModelData object to free
+ */
+void model_free(ModelData model_data)
+{
+
+#ifdef PMC_USE_SUNDIALS
+  // Destroy the initialized Jacbobian matrix
+  SUNMatDestroy(model_data.J_init);
 #endif
+  free(model_data.var_type);
+  free(model_data.rxn_data);
+  free(model_data.aero_phase_data);
+  free(model_data.aero_rep_data);
+  free(model_data.sub_model_data);
+
+}
+
+/** \brief Free update data
+ *
+ * \param update_data Object to free
+ */
+void solver_free_update_data(void *update_data)
+{
+  free(update_data);
+}
+

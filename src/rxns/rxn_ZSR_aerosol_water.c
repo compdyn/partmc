@@ -69,12 +69,14 @@ void * rxn_ZSR_aerosol_water_get_used_jac_elem(void *rxn_data, bool **jac_struct
  *
  * ZSR aerosol water reactions are assumed to be at equilibrium
  *
+ * \param model_data Pointer to the model data
  * \param deriv_ids Id of each state variable in the derivative array
  * \param jac_ids Id of each state variable combo in the Jacobian array
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_ZSR_aerosol_water_update_ids(int *deriv_ids, int **jac_ids, void *rxn_data)
+void * rxn_ZSR_aerosol_water_update_ids(ModelData *model_data, int *deriv_ids,
+          int **jac_ids, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
@@ -189,11 +191,13 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
  * \param model_data Pointer to the model data, including the state array
  * \param deriv Pointer to the time derivative to add contributions to
  * \param rxn_data Pointer to the reaction data
+ * \param time_step Current time step being computed (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_ZSR_aerosol_water_calc_deriv_contrib(ModelData *model_data, realtype *deriv,
-		void *rxn_data)
+void * rxn_ZSR_aerosol_water_calc_deriv_contrib(ModelData *model_data,
+          realtype *deriv, void *rxn_data, double time_step)
 {
+  realtype *state = model_data->state;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
@@ -203,14 +207,16 @@ void * rxn_ZSR_aerosol_water_calc_deriv_contrib(ModelData *model_data, realtype 
 
 /** \brief Calculate contributions to the Jacobian from this reaction
  *
- * \param state Pointer to the state array
+ * \param model_data Pointer to the model data
  * \param J Pointer to the sparse Jacobian matrix to add contributions to
  * \param rxn_data Pointer to the reaction data
+ * \param time_step Current time step being calculated (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 void * rxn_ZSR_aerosol_water_calc_jac_contrib(ModelData *model_data, realtype *J,
-		void *rxn_data)
+          void *rxn_data, double time_step)
 {
+  realtype *state = model_data->state;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
 
@@ -247,26 +253,6 @@ void * rxn_ZSR_aerosol_water_print(void *rxn_data)
   for (int i=0; i<_FLOAT_DATA_SIZE_; i++)
     printf("  float param %d = %le\n", i, float_data[i]);
  
-  return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
-}
-
-/** \brief Return the reaction rate for the current conditions
- *
- * ZSR aerosol water reactions are assumed to be at equilibrium
- *
- * \param rxn_data Pointer to the reaction data
- * \param state Pointer to the state array
- * \param env Pointer to the environmental state array
- * \param rate Pointer to a double value to store the calculated rate
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-void * rxn_ZSR_aerosol_water_get_rate(void *rxn_data, realtype *state, realtype *env, realtype *rate)
-{
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
-
-  *rate = 0.0;
-
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
 

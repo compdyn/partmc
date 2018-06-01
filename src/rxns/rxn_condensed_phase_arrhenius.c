@@ -78,12 +78,14 @@ void * rxn_condensed_phase_arrhenius_get_used_jac_elem(void *rxn_data, bool **ja
 
 /** \brief Update the time derivative and Jacbobian array indices
  *
+ * \param model_data Pointer to the model data
  * \param deriv_ids Id of each state variable in the derivative array
  * \param jac_ids Id of each state variable combo in the Jacobian array
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_condensed_phase_arrhenius_update_ids(int *deriv_ids, int **jac_ids, void *rxn_data)
+void * rxn_condensed_phase_arrhenius_update_ids(ModelData *model_data, int *deriv_ids,
+          int **jac_ids, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
@@ -169,14 +171,14 @@ void * rxn_condensed_phase_arrhenius_pre_calc(ModelData *model_data, void *rxn_d
 /** \brief Calculate contributions to the time derivative f(t,y) from this
  * reaction.
  *
- * \param state Pointer to the state array
+ * \param model_data Pointer to the model data, including the state array
  * \param deriv Pointer to the time derivative to add contributions to
  * \param rxn_data Pointer to the reaction data
  * \param time_step Current time step of the itegrator (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_condensed_phase_arrhenius_calc_deriv_contrib(ModelData *model_data, realtype *deriv,
-		void *rxn_data, double time_step)
+void * rxn_condensed_phase_arrhenius_calc_deriv_contrib(ModelData *model_data,
+          realtype *deriv, void *rxn_data, double time_step)
 {
   realtype *state = model_data->state;
   realtype *env_data = model_data->env;
@@ -228,14 +230,14 @@ void * rxn_condensed_phase_arrhenius_calc_deriv_contrib(ModelData *model_data, r
 
 /** \brief Calculate contributions to the Jacobian from this reaction
  *
- * \param state Pointer to the state array
+ * \param model_data Pointer to the model data
  * \param J Pointer to the sparse Jacobian matrix to add contributions to
  * \param rxn_data Pointer to the reaction data
  * \param time_step Current time step of the itegrator (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data, realtype *J,
-		void *rxn_data, double time_step)
+void * rxn_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data,
+          realtype *J, void *rxn_data, double time_step)
 {
   realtype *state = model_data->state;
   realtype *env_data = model_data->env;
@@ -334,27 +336,6 @@ void * rxn_condensed_phase_arrhenius_print(void *rxn_data)
   for (int i=0; i<_FLOAT_DATA_SIZE_; i++)
     printf("  float param %d = %le\n", i, float_data[i]);
  
-  return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
-}
-
-/** \brief Return the reaction rate for the current conditions
- *
- * Condensed-phase Arrhenius reactions have a rate for each aerosol phase they affect
- * TODO figure out how to include these reactions in the rate functions
- *
- * \param rxn_data Pointer to the reaction data
- * \param state Pointer to the state array
- * \param env Pointer to the environmental state array
- * \param rate Pointer to a double value to store the calculated rate
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-void * rxn_condensed_phase_arrhenius_get_rate(void *rxn_data, realtype *state, realtype *env, realtype *rate)
-{
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[_INT_DATA_SIZE_]);
-
-  *rate = 0.0;
-
   return (void*) &(float_data[_FLOAT_DATA_SIZE_]);
 }
 

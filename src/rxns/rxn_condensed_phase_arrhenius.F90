@@ -119,10 +119,6 @@ module pmc_rxn_condensed_phase_arrhenius
   contains
     !> Reaction initialization
     procedure :: initialize
-    !> Build rate constant expression
-    procedure :: build_rate_const_expr
-    !> Build time derivative expression
-    procedure :: build_deriv_expr
   end type rxn_condensed_phase_arrhenius_t
 
   !> Constructor for rxn_condensed_phase_arrhenius_t
@@ -479,43 +475,6 @@ contains
     end do
 
   end subroutine initialize
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Build rate constant expression
-  function build_rate_const_expr(this, rxn_id) result (expr)
-
-    !> Rate constant expression
-    character(len=:), allocatable :: expr
-    !> Reaction data
-    class(rxn_condensed_phase_arrhenius_t), intent(in) :: this
-    !> Reaction id in mechanism
-    integer(kind=i_kind), intent(in) :: rxn_id
-
-    expr = ""
-
-  end function build_rate_const_expr
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Build time derivative expression
-  function build_deriv_expr(this, rxn_id, spec_id, chem_spec_data) &
-                  result (expr)
-
-    !> Contribution to time derivative expression for species spec_id
-    character(len=:), allocatable :: expr
-    !> Reaction data
-    class(rxn_condensed_phase_arrhenius_t), intent(in) :: this
-    !> Reaction id in mechanism
-    integer(kind=i_kind), intent(in) :: rxn_id
-    !> Species id to get contribution for
-    integer(kind=i_kind), intent(in) :: spec_id
-    !> Chemical species data
-    type(chem_spec_data_t), intent(in) :: chem_spec_data
-
-    expr = ""
-
-  end function build_deriv_expr
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

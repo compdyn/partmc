@@ -1,0 +1,274 @@
+\hypertarget{namespacepmc__aero__particle__array}{}\section{pmc\+\_\+aero\+\_\+particle\+\_\+array Module Reference}
+\label{namespacepmc__aero__particle__array}\index{pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}}
+
+
+The \mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}} structure and assoicated subroutines.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em 1-\/D array of particles, used by aero\+\_\+state to store the particles. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+elemental integer function \mbox{\hyperlink{namespacepmc__aero__particle__array_a07eb4b0a376bb87a889b7d9070f46b90}{aero\+\_\+particle\+\_\+array\+\_\+n\+\_\+part}} (aero\+\_\+particle\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Return the current number of particles. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__particle__array_aba7d47622753636d93746a4cbe3c0222}{aero\+\_\+particle\+\_\+array\+\_\+zero}} (aero\+\_\+particle\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Resets an aero\+\_\+particle\+\_\+array to contain zero particles. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__particle__array_a72e276df4d9db217ea0b63eb8d518d1b}{aero\+\_\+particle\+\_\+array\+\_\+realloc}} (aero\+\_\+particle\+\_\+array, new\+\_\+length)
+\begin{DoxyCompactList}\small\item\em Changes the given aero\+\_\+particle\+\_\+array to exactly the given new\+\_\+length. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__particle__array_a49841804057f30972e8c2c855c0a8a27}{aero\+\_\+particle\+\_\+array\+\_\+enlarge}} (aero\+\_\+particle\+\_\+array, n)
+\begin{DoxyCompactList}\small\item\em Possibly enlarges the given array, ensuring that it is at least of size n. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__particle__array_a0b023fbb97338eae021e719a3044b66a}{aero\+\_\+particle\+\_\+array\+\_\+shrink}} (aero\+\_\+particle\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Possibly shrinks the storage of the given array, ensuring that it can still store the allocated particles. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__particle__array_ab73b42afceadd849d5ec2764a00f352b}{aero\+\_\+particle\+\_\+array\+\_\+add\+\_\+particle}} (aero\+\_\+particle\+\_\+array, aero\+\_\+particle)
+\begin{DoxyCompactList}\small\item\em Adds the given particle to the end of the array. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__particle__array_ae9235097ccd6e404376698476935f1d8}{aero\+\_\+particle\+\_\+array\+\_\+remove\+\_\+particle}} (aero\+\_\+particle\+\_\+array, index)
+\begin{DoxyCompactList}\small\item\em Removes the particle at the given index. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__aero__particle__array_a290d3188932591b977cef41dd912a335}{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+apa}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__particle__array_a5a1cb513ef2be5a52af19464a8a17a3f}{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+particle\+\_\+array}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__particle__array_a291741b0c1a43833d01c1e90fce5848b}{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+particle\+\_\+array}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__particle__array_a6f4a60d073f866cb41a593de26778dd3}{aero\+\_\+particle\+\_\+array\+\_\+check}} (aero\+\_\+particle\+\_\+array, aero\+\_\+data, continue\+\_\+on\+\_\+error)
+\begin{DoxyCompactList}\small\item\em Check that the particle array data is consistent. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}} structure and assoicated subroutines. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__aero__particle__array_ab73b42afceadd849d5ec2764a00f352b}\label{namespacepmc__aero__particle__array_ab73b42afceadd849d5ec2764a00f352b}} 
+\index{pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}!aero\+\_\+particle\+\_\+array\+\_\+add\+\_\+particle@{aero\+\_\+particle\+\_\+array\+\_\+add\+\_\+particle}}
+\index{aero\+\_\+particle\+\_\+array\+\_\+add\+\_\+particle@{aero\+\_\+particle\+\_\+array\+\_\+add\+\_\+particle}!pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+particle\+\_\+array\+\_\+add\+\_\+particle()}{aero\_particle\_array\_add\_particle()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+particle\+\_\+array\+::aero\+\_\+particle\+\_\+array\+\_\+add\+\_\+particle (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}), intent(inout)}]{aero\+\_\+particle\+\_\+array,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{aero\+\_\+particle }\end{DoxyParamCaption})}
+
+
+
+Adds the given particle to the end of the array. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+particle\+\_\+array} & Array to add to.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+particle} & Particle to add. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 160 of file aero\+\_\+particle\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__particle__array_a6f4a60d073f866cb41a593de26778dd3}\label{namespacepmc__aero__particle__array_a6f4a60d073f866cb41a593de26778dd3}} 
+\index{pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}!aero\+\_\+particle\+\_\+array\+\_\+check@{aero\+\_\+particle\+\_\+array\+\_\+check}}
+\index{aero\+\_\+particle\+\_\+array\+\_\+check@{aero\+\_\+particle\+\_\+array\+\_\+check}!pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+particle\+\_\+array\+\_\+check()}{aero\_particle\_array\_check()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+particle\+\_\+array\+::aero\+\_\+particle\+\_\+array\+\_\+check (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+particle\+\_\+array,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{logical, intent(in)}]{continue\+\_\+on\+\_\+error }\end{DoxyParamCaption})}
+
+
+
+Check that the particle array data is consistent. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+particle\+\_\+array} & Aerosol particle array to check.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em continue\+\_\+on\+\_\+error} & Whether to continue despite error. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 281 of file aero\+\_\+particle\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__particle__array_a49841804057f30972e8c2c855c0a8a27}\label{namespacepmc__aero__particle__array_a49841804057f30972e8c2c855c0a8a27}} 
+\index{pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}!aero\+\_\+particle\+\_\+array\+\_\+enlarge@{aero\+\_\+particle\+\_\+array\+\_\+enlarge}}
+\index{aero\+\_\+particle\+\_\+array\+\_\+enlarge@{aero\+\_\+particle\+\_\+array\+\_\+enlarge}!pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+particle\+\_\+array\+\_\+enlarge()}{aero\_particle\_array\_enlarge()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+particle\+\_\+array\+::aero\+\_\+particle\+\_\+array\+\_\+enlarge (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}), intent(inout)}]{aero\+\_\+particle\+\_\+array,  }\item[{integer, intent(in)}]{n }\end{DoxyParamCaption})}
+
+
+
+Possibly enlarges the given array, ensuring that it is at least of size n. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+particle\+\_\+array} & Array to enlarge.\\
+\hline
+\mbox{\tt in}  & {\em n} & Minimum new size of array. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 118 of file aero\+\_\+particle\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__particle__array_a07eb4b0a376bb87a889b7d9070f46b90}\label{namespacepmc__aero__particle__array_a07eb4b0a376bb87a889b7d9070f46b90}} 
+\index{pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}!aero\+\_\+particle\+\_\+array\+\_\+n\+\_\+part@{aero\+\_\+particle\+\_\+array\+\_\+n\+\_\+part}}
+\index{aero\+\_\+particle\+\_\+array\+\_\+n\+\_\+part@{aero\+\_\+particle\+\_\+array\+\_\+n\+\_\+part}!pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+particle\+\_\+array\+\_\+n\+\_\+part()}{aero\_particle\_array\_n\_part()}}
+{\footnotesize\ttfamily elemental integer function pmc\+\_\+aero\+\_\+particle\+\_\+array\+::aero\+\_\+particle\+\_\+array\+\_\+n\+\_\+part (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+particle\+\_\+array }\end{DoxyParamCaption})}
+
+
+
+Return the current number of particles. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+particle\+\_\+array} & Aerosol particle array. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 54 of file aero\+\_\+particle\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__particle__array_a72e276df4d9db217ea0b63eb8d518d1b}\label{namespacepmc__aero__particle__array_a72e276df4d9db217ea0b63eb8d518d1b}} 
+\index{pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}!aero\+\_\+particle\+\_\+array\+\_\+realloc@{aero\+\_\+particle\+\_\+array\+\_\+realloc}}
+\index{aero\+\_\+particle\+\_\+array\+\_\+realloc@{aero\+\_\+particle\+\_\+array\+\_\+realloc}!pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+particle\+\_\+array\+\_\+realloc()}{aero\_particle\_array\_realloc()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+particle\+\_\+array\+::aero\+\_\+particle\+\_\+array\+\_\+realloc (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}), intent(inout)}]{aero\+\_\+particle\+\_\+array,  }\item[{integer, intent(in)}]{new\+\_\+length }\end{DoxyParamCaption})}
+
+
+
+Changes the given aero\+\_\+particle\+\_\+array to exactly the given new\+\_\+length. 
+
+This function should not be called directly, but rather use \mbox{\hyperlink{namespacepmc__aero__particle__array_a49841804057f30972e8c2c855c0a8a27}{aero\+\_\+particle\+\_\+array\+\_\+enlarge()}} or \mbox{\hyperlink{namespacepmc__aero__particle__array_a0b023fbb97338eae021e719a3044b66a}{aero\+\_\+particle\+\_\+array\+\_\+shrink()}}.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+particle\+\_\+array} & Array to reallocate.\\
+\hline
+\mbox{\tt in}  & {\em new\+\_\+length} & New length of the array. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 89 of file aero\+\_\+particle\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__particle__array_ae9235097ccd6e404376698476935f1d8}\label{namespacepmc__aero__particle__array_ae9235097ccd6e404376698476935f1d8}} 
+\index{pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}!aero\+\_\+particle\+\_\+array\+\_\+remove\+\_\+particle@{aero\+\_\+particle\+\_\+array\+\_\+remove\+\_\+particle}}
+\index{aero\+\_\+particle\+\_\+array\+\_\+remove\+\_\+particle@{aero\+\_\+particle\+\_\+array\+\_\+remove\+\_\+particle}!pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+particle\+\_\+array\+\_\+remove\+\_\+particle()}{aero\_particle\_array\_remove\_particle()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+particle\+\_\+array\+::aero\+\_\+particle\+\_\+array\+\_\+remove\+\_\+particle (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}), intent(inout)}]{aero\+\_\+particle\+\_\+array,  }\item[{integer, intent(in)}]{index }\end{DoxyParamCaption})}
+
+
+
+Removes the particle at the given index. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+particle\+\_\+array} & Array to remove from.\\
+\hline
+\mbox{\tt in}  & {\em index} & Index of particle to remove. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 180 of file aero\+\_\+particle\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__particle__array_a0b023fbb97338eae021e719a3044b66a}\label{namespacepmc__aero__particle__array_a0b023fbb97338eae021e719a3044b66a}} 
+\index{pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}!aero\+\_\+particle\+\_\+array\+\_\+shrink@{aero\+\_\+particle\+\_\+array\+\_\+shrink}}
+\index{aero\+\_\+particle\+\_\+array\+\_\+shrink@{aero\+\_\+particle\+\_\+array\+\_\+shrink}!pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+particle\+\_\+array\+\_\+shrink()}{aero\_particle\_array\_shrink()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+particle\+\_\+array\+::aero\+\_\+particle\+\_\+array\+\_\+shrink (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}), intent(inout)}]{aero\+\_\+particle\+\_\+array }\end{DoxyParamCaption})}
+
+
+
+Possibly shrinks the storage of the given array, ensuring that it can still store the allocated particles. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+particle\+\_\+array} & Array to shrink. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 140 of file aero\+\_\+particle\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__particle__array_aba7d47622753636d93746a4cbe3c0222}\label{namespacepmc__aero__particle__array_aba7d47622753636d93746a4cbe3c0222}} 
+\index{pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}!aero\+\_\+particle\+\_\+array\+\_\+zero@{aero\+\_\+particle\+\_\+array\+\_\+zero}}
+\index{aero\+\_\+particle\+\_\+array\+\_\+zero@{aero\+\_\+particle\+\_\+array\+\_\+zero}!pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+particle\+\_\+array\+\_\+zero()}{aero\_particle\_array\_zero()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+particle\+\_\+array\+::aero\+\_\+particle\+\_\+array\+\_\+zero (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}), intent(inout)}]{aero\+\_\+particle\+\_\+array }\end{DoxyParamCaption})}
+
+
+
+Resets an aero\+\_\+particle\+\_\+array to contain zero particles. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+particle\+\_\+array} & Structure to reset. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 70 of file aero\+\_\+particle\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__particle__array_a5a1cb513ef2be5a52af19464a8a17a3f}\label{namespacepmc__aero__particle__array_a5a1cb513ef2be5a52af19464a8a17a3f}} 
+\index{pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}!pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+particle\+\_\+array}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+particle\+\_\+array}!pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+particle\+\_\+array()}{pmc\_mpi\_pack\_aero\_particle\_array()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+particle\+\_\+array\+::pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+particle\+\_\+array (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Packs the given value into the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 225 of file aero\+\_\+particle\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__particle__array_a290d3188932591b977cef41dd912a335}\label{namespacepmc__aero__particle__array_a290d3188932591b977cef41dd912a335}} 
+\index{pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}!pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+apa@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+apa}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+apa@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+apa}!pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+apa()}{pmc\_mpi\_pack\_size\_apa()}}
+{\footnotesize\ttfamily integer function pmc\+\_\+aero\+\_\+particle\+\_\+array\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+apa (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Determines the number of bytes required to pack the given value. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 204 of file aero\+\_\+particle\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__particle__array_a291741b0c1a43833d01c1e90fce5848b}\label{namespacepmc__aero__particle__array_a291741b0c1a43833d01c1e90fce5848b}} 
+\index{pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}!pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+particle\+\_\+array}}
+\index{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+particle\+\_\+array}!pmc\+\_\+aero\+\_\+particle\+\_\+array@{pmc\+\_\+aero\+\_\+particle\+\_\+array}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+particle\+\_\+array()}{pmc\_mpi\_unpack\_aero\_particle\_array()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+particle\+\_\+array\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+particle\+\_\+array (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}), intent(inout)}]{val }\end{DoxyParamCaption})}
+
+
+
+Unpacks the given value from the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in,out}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 252 of file aero\+\_\+particle\+\_\+array.\+F90.
+

@@ -1,0 +1,66 @@
+\hypertarget{mechanism__data_8_f90}{}\section{mechanism\+\_\+data.\+F90 File Reference}
+\label{mechanism__data_8_f90}\index{mechanism\+\_\+data.\+F90@{mechanism\+\_\+data.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__mechanism__data}{pmc\+\_\+mechanism\+\_\+data}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+interface \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t}{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em A chemical mechanism. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t}{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em A chemical mechanism. \end{DoxyCompactList}\item 
+type \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__ptr}{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+ptr}}
+\begin{DoxyCompactList}\small\item\em Pointer type for building arrays. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__mechanism__data}{pmc\+\_\+mechanism\+\_\+data}}
+\begin{DoxyCompactList}\small\item\em The \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t}{mechanism\+\_\+data\+\_\+t}} structure and associated subroutines. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+type(mechanism\+\_\+data\+\_\+t) function, pointer \mbox{\hyperlink{namespacepmc__mechanism__data_a35bbe32d1c1cb03b3add4d988d3f80e6}{pmc\+\_\+mechanism\+\_\+data\+::constructor}} (mech\+\_\+name, init\+\_\+size)
+\begin{DoxyCompactList}\small\item\em Constructor for \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t}{mechanism\+\_\+data\+\_\+t}}. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mechanism__data_abe6f1501c5d5d66d04993b54b142521f}{pmc\+\_\+mechanism\+\_\+data\+::ensure\+\_\+size}} (this, num\+\_\+rxn)
+\begin{DoxyCompactList}\small\item\em Ensure there is enough room in the reaction dataset to add a specified number of reactions. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mechanism__data_a7ada5b071666b6eaf2fde27f8866cbdf}{pmc\+\_\+mechanism\+\_\+data\+::load}} (this, json, j\+\_\+obj)
+\begin{DoxyCompactList}\small\item\em Load a chemical mechanism from an input file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mechanism__data_af37833fbb878f0add05d26cdbaa5cd33}{pmc\+\_\+mechanism\+\_\+data\+::initialize}} (this, chem\+\_\+spec\+\_\+data, aero\+\_\+rep\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Initialize the mechanism. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind) function \mbox{\hyperlink{namespacepmc__mechanism__data_ad347eb7b2faed074dd4a83a35f6a3559}{pmc\+\_\+mechanism\+\_\+data\+::get\+\_\+size}} (this)
+\begin{DoxyCompactList}\small\item\em Get the current size of the chemical mechanism. \end{DoxyCompactList}\item 
+class(rxn\+\_\+data\+\_\+t) function, pointer \mbox{\hyperlink{namespacepmc__mechanism__data_af57977440b3989fba90251b16afbb65a}{pmc\+\_\+mechanism\+\_\+data\+::get\+\_\+rxn}} (this, rxn\+\_\+id)
+\begin{DoxyCompactList}\small\item\em Get a reaction by its index. \end{DoxyCompactList}\item 
+character(len=\+:) function, allocatable \mbox{\hyperlink{namespacepmc__mechanism__data_a181513498181e44bd8e3d9cc4aa648e7}{pmc\+\_\+mechanism\+\_\+data\+::get\+\_\+name}} (this)
+\begin{DoxyCompactList}\small\item\em Get the name of the mechanism. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mechanism__data_af51515f018cda6a9b93b9f0b23362574}{pmc\+\_\+mechanism\+\_\+data\+::build\+\_\+fixed\+\_\+module}} (this, state\+\_\+array\+\_\+size)
+\begin{DoxyCompactList}\small\item\em Build a fixed mechanism module and save it with the specified file prefix. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind) function \mbox{\hyperlink{namespacepmc__mechanism__data_a3b72bf41eb5c1c7f0e9d93f00dc837ae}{pmc\+\_\+mechanism\+\_\+data\+::pack\+\_\+size}} (this)
+\begin{DoxyCompactList}\small\item\em Determine the size of a binary required to pack the mechanism. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mechanism__data_a3cecaca4b8f5a851fadd25ad82468c82}{pmc\+\_\+mechanism\+\_\+data\+::bin\+\_\+pack}} (this, buffer, pos)
+\begin{DoxyCompactList}\small\item\em Pack the given value to the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mechanism__data_a24709e6abb0a63249db0eec686f64387}{pmc\+\_\+mechanism\+\_\+data\+::bin\+\_\+unpack}} (this, buffer, pos)
+\begin{DoxyCompactList}\small\item\em Unpack the given value to the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mechanism__data_a6a010f3dccb9fb0ac7682f5a1bef3d12}{pmc\+\_\+mechanism\+\_\+data\+::do\+\_\+print}} (this, file\+\_\+unit)
+\begin{DoxyCompactList}\small\item\em Print the mechanism data. \end{DoxyCompactList}\item 
+elemental subroutine \mbox{\hyperlink{namespacepmc__mechanism__data_ad685960e0431b5b2d9c3b952777c0145}{pmc\+\_\+mechanism\+\_\+data\+::finalize}} (this)
+\begin{DoxyCompactList}\small\item\em Finalize the mechanism. \end{DoxyCompactList}\item 
+elemental subroutine \mbox{\hyperlink{namespacepmc__mechanism__data_acb9f7c490ea7619fdf383db20023202d}{pmc\+\_\+mechanism\+\_\+data\+::dereference}} (this)
+\begin{DoxyCompactList}\small\item\em Dereference a pointer to a mechanism. \end{DoxyCompactList}\item 
+elemental subroutine \mbox{\hyperlink{namespacepmc__mechanism__data_ad03843746b59d1b24473475c733a9571}{pmc\+\_\+mechanism\+\_\+data\+::ptr\+\_\+finalize}} (this)
+\begin{DoxyCompactList}\small\item\em Finalize a pointer to mechanism data. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer(kind=i\+\_\+kind), parameter \mbox{\hyperlink{namespacepmc__mechanism__data_aef2ce48961a795851e8e21d560de452f}{pmc\+\_\+mechanism\+\_\+data\+::realloc\+\_\+inc}} = 50
+\begin{DoxyCompactList}\small\item\em Reallocation increment. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind), parameter \mbox{\hyperlink{namespacepmc__mechanism__data_a93f8a07cd95177a3ace0557137076622}{pmc\+\_\+mechanism\+\_\+data\+::mech\+\_\+file\+\_\+unit}} = 16
+\begin{DoxyCompactList}\small\item\em Fixed module file unit. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__mechanism__data}{pmc\+\_\+mechanism\+\_\+data}} module. 
+

@@ -1,0 +1,371 @@
+\hypertarget{namespacepmc__phlex__solver__data}{}\section{pmc\+\_\+phlex\+\_\+solver\+\_\+data Module Reference}
+\label{namespacepmc__phlex__solver__data}\index{pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}}
+
+
+The \mbox{\hyperlink{structpmc__phlex__solver__data_1_1phlex__solver__data__t}{phlex\+\_\+solver\+\_\+data\+\_\+t}} structure and associated subroutines.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+interface \mbox{\hyperlink{interfacepmc__phlex__solver__data_1_1aero__phase__add__condensed__data}{aero\+\_\+phase\+\_\+add\+\_\+condensed\+\_\+data}}
+\begin{DoxyCompactList}\small\item\em Add condensed aerosol phase data to the solver data block. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{interfacepmc__phlex__solver__data_1_1aero__rep__add__condensed__data}{aero\+\_\+rep\+\_\+add\+\_\+condensed\+\_\+data}}
+\begin{DoxyCompactList}\small\item\em Add condensed aerosol representation data to the solver data block. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{interfacepmc__phlex__solver__data_1_1aero__rep__print__data}{aero\+\_\+rep\+\_\+print\+\_\+data}}
+\begin{DoxyCompactList}\small\item\em Print the aerosol representation data. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{interfacepmc__phlex__solver__data_1_1aero__rep__update__data}{aero\+\_\+rep\+\_\+update\+\_\+data}}
+\begin{DoxyCompactList}\small\item\em Update aerosol representation data. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{structpmc__phlex__solver__data_1_1phlex__solver__data__t}{phlex\+\_\+solver\+\_\+data\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Solver data. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{interfacepmc__phlex__solver__data_1_1rxn__add__condensed__data}{rxn\+\_\+add\+\_\+condensed\+\_\+data}}
+\begin{DoxyCompactList}\small\item\em Add condensed reaction data to the solver data block. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{interfacepmc__phlex__solver__data_1_1rxn__print__data}{rxn\+\_\+print\+\_\+data}}
+\begin{DoxyCompactList}\small\item\em Print the solver data. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{interfacepmc__phlex__solver__data_1_1rxn__update__data}{rxn\+\_\+update\+\_\+data}}
+\begin{DoxyCompactList}\small\item\em Update reaction data. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{interfacepmc__phlex__solver__data_1_1solver__free}{solver\+\_\+free}}
+\begin{DoxyCompactList}\small\item\em Free the memory associated with a solver. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{interfacepmc__phlex__solver__data_1_1solver__initialize}{solver\+\_\+initialize}}
+\begin{DoxyCompactList}\small\item\em Solver initialization. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{interfacepmc__phlex__solver__data_1_1solver__new}{solver\+\_\+new}}
+\begin{DoxyCompactList}\small\item\em Interface to c O\+DE solver functions. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{interfacepmc__phlex__solver__data_1_1solver__run}{solver\+\_\+run}}
+\begin{DoxyCompactList}\small\item\em Run the solver. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{interfacepmc__phlex__solver__data_1_1sub__model__add__condensed__data}{sub\+\_\+model\+\_\+add\+\_\+condensed\+\_\+data}}
+\begin{DoxyCompactList}\small\item\em Add condensed sub model data to the solver data block. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{interfacepmc__phlex__solver__data_1_1sub__model__get__parameter__id__sd}{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+id\+\_\+sd}}
+\begin{DoxyCompactList}\small\item\em Get a sub model parameter id. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{interfacepmc__phlex__solver__data_1_1sub__model__get__parameter__value__sd}{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+value\+\_\+sd}}
+\begin{DoxyCompactList}\small\item\em Get a sub model parameter value. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+type(\mbox{\hyperlink{structpmc__phlex__solver__data_1_1phlex__solver__data__t}{phlex\+\_\+solver\+\_\+data\+\_\+t}}) function, pointer \mbox{\hyperlink{namespacepmc__phlex__solver__data_a30e0f4b080777d62bb7ee6c91f8612f5}{constructor}} ()
+\begin{DoxyCompactList}\small\item\em Constructor for \mbox{\hyperlink{structpmc__phlex__solver__data_1_1phlex__solver__data__t}{phlex\+\_\+solver\+\_\+data\+\_\+t}}. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__phlex__solver__data_ad82755c7a410cb104af0926103fec0ab}{initialize}} (this, var\+\_\+type, abs\+\_\+tol, mechanisms, aero\+\_\+phases, aero\+\_\+reps, sub\+\_\+models, rxn\+\_\+phase)
+\begin{DoxyCompactList}\small\item\em Initialize the solver. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__phlex__solver__data_ae05845ca2e0a3a239fa99a4e192c0dbb}{update\+\_\+rxn\+\_\+data}} (this, update\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Update reaction data. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__phlex__solver__data_a01cf4ead58b0d4c2e250705bb54b1136}{update\+\_\+aero\+\_\+rep\+\_\+data}} (this, aero\+\_\+rep\+\_\+id, update\+\_\+type, update\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Update aerosol representation data based on data passed from the host model related to aerosol properties. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__phlex__solver__data_a9c7300944e2df22a9a4d3592679e7eca}{solve}} (this, phlex\+\_\+state, t\+\_\+initial, t\+\_\+final)
+\begin{DoxyCompactList}\small\item\em Solve the mechanism(s) for a specified timestep. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__phlex__solver__data_a74602731d9d435e9a16380c93bbc2073}{is\+\_\+solver\+\_\+available}} (this)
+\begin{DoxyCompactList}\small\item\em Check whether a solver is available for the integration. \end{DoxyCompactList}\item 
+integer(kind=c\+\_\+int) function \mbox{\hyperlink{namespacepmc__phlex__solver__data_a9af2b98e55136169b2ad7a82dbb14a0e}{get\+\_\+sub\+\_\+model\+\_\+parameter\+\_\+id}} (this, sub\+\_\+model\+\_\+type, identifiers)
+\begin{DoxyCompactList}\small\item\em Get a sub model parameter id. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__phlex__solver__data_a01c236fc4f27615b63e278dee75bebf2}{get\+\_\+sub\+\_\+model\+\_\+parameter\+\_\+value}} (this, parameter\+\_\+id)
+\begin{DoxyCompactList}\small\item\em Get a sub model parameter. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__phlex__solver__data_a471de3023e1bb6f999905cc0870d37f5}{do\+\_\+print}} (this)
+\begin{DoxyCompactList}\small\item\em Print the solver data. \end{DoxyCompactList}\item 
+elemental subroutine \mbox{\hyperlink{namespacepmc__phlex__solver__data_afd20da14fccfdeabce1c2d4ffed4aec2}{finalize}} (this)
+\begin{DoxyCompactList}\small\item\em Finalize the solver data. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+real(kind=dp), parameter \mbox{\hyperlink{namespacepmc__phlex__solver__data_a680944ec13286ae1045e6d9ba2e630b6}{pmc\+\_\+solver\+\_\+default\+\_\+rel\+\_\+tol}} = 1.\+0\+D-\/8
+\begin{DoxyCompactList}\small\item\em Default relative tolerance for integration. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind), parameter \mbox{\hyperlink{namespacepmc__phlex__solver__data_a62a47f32de1d137a90a46c5fb6716347}{pmc\+\_\+solver\+\_\+default\+\_\+max\+\_\+steps}} = 10000000
+\begin{DoxyCompactList}\small\item\em Default max number of integration steps. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind), parameter \mbox{\hyperlink{namespacepmc__phlex__solver__data_ad1ee88ba9b3c6a966bacb508b9be226b}{pmc\+\_\+solver\+\_\+default\+\_\+max\+\_\+conv\+\_\+fails}} = 10000
+\begin{DoxyCompactList}\small\item\em Default maximum number of integration convergence failures. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__phlex__solver__data_a0f2dcefeefc3ce9e4eb9e337c5203054}{pmc\+\_\+solver\+\_\+success}} = 0
+\begin{DoxyCompactList}\small\item\em Result code indicating successful completion. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{structpmc__phlex__solver__data_1_1phlex__solver__data__t}{phlex\+\_\+solver\+\_\+data\+\_\+t}} structure and associated subroutines. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__phlex__solver__data_a30e0f4b080777d62bb7ee6c91f8612f5}\label{namespacepmc__phlex__solver__data_a30e0f4b080777d62bb7ee6c91f8612f5}} 
+\index{pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}!constructor@{constructor}}
+\index{constructor@{constructor}!pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}}
+\subsubsection{\texorpdfstring{constructor()}{constructor()}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__phlex__solver__data_1_1phlex__solver__data__t}{phlex\+\_\+solver\+\_\+data\+\_\+t}}) function, pointer pmc\+\_\+phlex\+\_\+solver\+\_\+data\+::constructor (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Constructor for \mbox{\hyperlink{structpmc__phlex__solver__data_1_1phlex__solver__data__t}{phlex\+\_\+solver\+\_\+data\+\_\+t}}. 
+
+\begin{DoxyReturn}{Returns}
+New solver variable 
+\end{DoxyReturn}
+Allocate space for the new object 
+
+Definition at line 310 of file phlex\+\_\+solver\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__phlex__solver__data_a471de3023e1bb6f999905cc0870d37f5}\label{namespacepmc__phlex__solver__data_a471de3023e1bb6f999905cc0870d37f5}} 
+\index{pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}!do\+\_\+print@{do\+\_\+print}}
+\index{do\+\_\+print@{do\+\_\+print}!pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}}
+\subsubsection{\texorpdfstring{do\+\_\+print()}{do\_print()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+phlex\+\_\+solver\+\_\+data\+::do\+\_\+print (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__phlex__solver__data_1_1phlex__solver__data__t}{phlex\+\_\+solver\+\_\+data\+\_\+t}}), intent(in)}]{this }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Print the solver data. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Solver data \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 791 of file phlex\+\_\+solver\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__phlex__solver__data_afd20da14fccfdeabce1c2d4ffed4aec2}\label{namespacepmc__phlex__solver__data_afd20da14fccfdeabce1c2d4ffed4aec2}} 
+\index{pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}!finalize@{finalize}}
+\index{finalize@{finalize}!pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}}
+\subsubsection{\texorpdfstring{finalize()}{finalize()}}
+{\footnotesize\ttfamily elemental subroutine pmc\+\_\+phlex\+\_\+solver\+\_\+data\+::finalize (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__phlex__solver__data_1_1phlex__solver__data__t}{phlex\+\_\+solver\+\_\+data\+\_\+t}}), intent(inout)}]{this }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Finalize the solver data. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em this} & Solver data \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 804 of file phlex\+\_\+solver\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__phlex__solver__data_a9af2b98e55136169b2ad7a82dbb14a0e}\label{namespacepmc__phlex__solver__data_a9af2b98e55136169b2ad7a82dbb14a0e}} 
+\index{pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}!get\+\_\+sub\+\_\+model\+\_\+parameter\+\_\+id@{get\+\_\+sub\+\_\+model\+\_\+parameter\+\_\+id}}
+\index{get\+\_\+sub\+\_\+model\+\_\+parameter\+\_\+id@{get\+\_\+sub\+\_\+model\+\_\+parameter\+\_\+id}!pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}}
+\subsubsection{\texorpdfstring{get\+\_\+sub\+\_\+model\+\_\+parameter\+\_\+id()}{get\_sub\_model\_parameter\_id()}}
+{\footnotesize\ttfamily integer(kind=c\+\_\+int) function pmc\+\_\+phlex\+\_\+solver\+\_\+data\+::get\+\_\+sub\+\_\+model\+\_\+parameter\+\_\+id (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__phlex__solver__data_1_1phlex__solver__data__t}{phlex\+\_\+solver\+\_\+data\+\_\+t}}), intent(in)}]{this,  }\item[{integer(kind=i\+\_\+kind), intent(in)}]{sub\+\_\+model\+\_\+type,  }\item[{type(c\+\_\+ptr), intent(in)}]{identifiers }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get a sub model parameter id. 
+
+Returns the id for use with sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+value to get a current sub-\/model parameter from the solver data
+
+\begin{DoxyReturn}{Returns}
+The parameter id
+\end{DoxyReturn}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Solver data\\
+\hline
+\mbox{\tt in}  & {\em sub\+\_\+model\+\_\+type} & Sub-\/model type\\
+\hline
+\mbox{\tt in}  & {\em identifiers} & Identifiers required by the sub-\/model \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 738 of file phlex\+\_\+solver\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__phlex__solver__data_a01c236fc4f27615b63e278dee75bebf2}\label{namespacepmc__phlex__solver__data_a01c236fc4f27615b63e278dee75bebf2}} 
+\index{pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}!get\+\_\+sub\+\_\+model\+\_\+parameter\+\_\+value@{get\+\_\+sub\+\_\+model\+\_\+parameter\+\_\+value}}
+\index{get\+\_\+sub\+\_\+model\+\_\+parameter\+\_\+value@{get\+\_\+sub\+\_\+model\+\_\+parameter\+\_\+value}!pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}}
+\subsubsection{\texorpdfstring{get\+\_\+sub\+\_\+model\+\_\+parameter\+\_\+value()}{get\_sub\_model\_parameter\_value()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+phlex\+\_\+solver\+\_\+data\+::get\+\_\+sub\+\_\+model\+\_\+parameter\+\_\+value (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__phlex__solver__data_1_1phlex__solver__data__t}{phlex\+\_\+solver\+\_\+data\+\_\+t}}), intent(in)}]{this,  }\item[{integer(kind=c\+\_\+int), intent(in)}]{parameter\+\_\+id }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get a sub model parameter. 
+
+Returns the value associate with a sub model output, based on the current solver state.
+
+\begin{DoxyReturn}{Returns}
+Value of the parameter
+\end{DoxyReturn}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Solver data\\
+\hline
+\mbox{\tt in}  & {\em parameter\+\_\+id} & Parameter id \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 768 of file phlex\+\_\+solver\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__phlex__solver__data_ad82755c7a410cb104af0926103fec0ab}\label{namespacepmc__phlex__solver__data_ad82755c7a410cb104af0926103fec0ab}} 
+\index{pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}!initialize@{initialize}}
+\index{initialize@{initialize}!pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}}
+\subsubsection{\texorpdfstring{initialize()}{initialize()}}
+{\footnotesize\ttfamily subroutine \mbox{\hyperlink{interfacepmc__aero__rep__data_1_1initialize}{pmc\+\_\+phlex\+\_\+solver\+\_\+data\+::initialize}} (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__phlex__solver__data_1_1phlex__solver__data__t}{phlex\+\_\+solver\+\_\+data\+\_\+t}}), intent(inout)}]{this,  }\item[{integer(kind=i\+\_\+kind), dimension(\+:), intent(in), pointer}]{var\+\_\+type,  }\item[{real(kind=dp), dimension(\+:), intent(in), allocatable}]{abs\+\_\+tol,  }\item[{type(\mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__ptr}{mechanism\+\_\+data\+\_\+ptr}}), dimension(\+:), intent(in), pointer}]{mechanisms,  }\item[{type(\mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__ptr}{aero\+\_\+phase\+\_\+data\+\_\+ptr}}), dimension(\+:), intent(in), pointer}]{aero\+\_\+phases,  }\item[{type(\mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__ptr}{aero\+\_\+rep\+\_\+data\+\_\+ptr}}), dimension(\+:), intent(in), pointer}]{aero\+\_\+reps,  }\item[{type(\mbox{\hyperlink{structpmc__sub__model__data_1_1sub__model__data__ptr}{sub\+\_\+model\+\_\+data\+\_\+ptr}}), dimension(\+:), intent(in), pointer}]{sub\+\_\+models,  }\item[{integer(kind=i\+\_\+kind), intent(in)}]{rxn\+\_\+phase }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Initialize the solver. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em this} & Solver data\\
+\hline
+\mbox{\tt in}  & {\em var\+\_\+type} & Variable type for each species in the state array. This array must be of the same length as the state array.\\
+\hline
+\mbox{\tt in}  & {\em abs\+\_\+tol} & Absolute tolerance for each species in the state array. This array must be of the same length as the state array. Values for C\+O\+N\+ST and P\+S\+SA species will be ignored by the solver.\\
+\hline
+\mbox{\tt in}  & {\em mechanisms} & Mechanisms to include in solver\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+phases} & Aerosol phases to include\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+reps} & Aerosol representations to include\\
+\hline
+\mbox{\tt in}  & {\em sub\+\_\+models} & Sub models to include\\
+\hline
+\mbox{\tt in}  & {\em rxn\+\_\+phase} & Reactions phase to solve -- gas, aerosol, or both (default) Use parameters in \mbox{\hyperlink{namespacepmc__rxn__data}{pmc\+\_\+rxn\+\_\+data}} to specify phase\+: G\+A\+S\+\_\+\+R\+XN, A\+E\+R\+O\+\_\+\+R\+XN, G\+A\+S\+\_\+\+A\+E\+R\+O\+\_\+\+R\+XN \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 324 of file phlex\+\_\+solver\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__phlex__solver__data_a74602731d9d435e9a16380c93bbc2073}\label{namespacepmc__phlex__solver__data_a74602731d9d435e9a16380c93bbc2073}} 
+\index{pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}!is\+\_\+solver\+\_\+available@{is\+\_\+solver\+\_\+available}}
+\index{is\+\_\+solver\+\_\+available@{is\+\_\+solver\+\_\+available}!pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}}
+\subsubsection{\texorpdfstring{is\+\_\+solver\+\_\+available()}{is\_solver\_available()}}
+{\footnotesize\ttfamily logical function pmc\+\_\+phlex\+\_\+solver\+\_\+data\+::is\+\_\+solver\+\_\+available (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__phlex__solver__data_1_1phlex__solver__data__t}{phlex\+\_\+solver\+\_\+data\+\_\+t}}), intent(in)}]{this }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Check whether a solver is available for the integration. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Solver data \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 718 of file phlex\+\_\+solver\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__phlex__solver__data_a9c7300944e2df22a9a4d3592679e7eca}\label{namespacepmc__phlex__solver__data_a9c7300944e2df22a9a4d3592679e7eca}} 
+\index{pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}!solve@{solve}}
+\index{solve@{solve}!pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}}
+\subsubsection{\texorpdfstring{solve()}{solve()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+phlex\+\_\+solver\+\_\+data\+::solve (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__phlex__solver__data_1_1phlex__solver__data__t}{phlex\+\_\+solver\+\_\+data\+\_\+t}}), intent(inout)}]{this,  }\item[{type(\mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t}{phlex\+\_\+state\+\_\+t}}), intent(inout), target}]{phlex\+\_\+state,  }\item[{real(kind=dp), intent(in)}]{t\+\_\+initial,  }\item[{real(kind=dp), intent(in)}]{t\+\_\+final }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Solve the mechanism(s) for a specified timestep. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em this} & Solver data\\
+\hline
+\mbox{\tt in,out}  & {\em phlex\+\_\+state} & Model state\\
+\hline
+\mbox{\tt in}  & {\em t\+\_\+initial} & Start time (s)\\
+\hline
+\mbox{\tt in}  & {\em t\+\_\+final} & End time (s) \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 689 of file phlex\+\_\+solver\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__phlex__solver__data_a01cf4ead58b0d4c2e250705bb54b1136}\label{namespacepmc__phlex__solver__data_a01cf4ead58b0d4c2e250705bb54b1136}} 
+\index{pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}!update\+\_\+aero\+\_\+rep\+\_\+data@{update\+\_\+aero\+\_\+rep\+\_\+data}}
+\index{update\+\_\+aero\+\_\+rep\+\_\+data@{update\+\_\+aero\+\_\+rep\+\_\+data}!pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}}
+\subsubsection{\texorpdfstring{update\+\_\+aero\+\_\+rep\+\_\+data()}{update\_aero\_rep\_data()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+phlex\+\_\+solver\+\_\+data\+::update\+\_\+aero\+\_\+rep\+\_\+data (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__phlex__solver__data_1_1phlex__solver__data__t}{phlex\+\_\+solver\+\_\+data\+\_\+t}}), intent(inout)}]{this,  }\item[{integer(kind=i\+\_\+kind), intent(in)}]{aero\+\_\+rep\+\_\+id,  }\item[{integer(kind=i\+\_\+kind), intent(in)}]{update\+\_\+type,  }\item[{type(c\+\_\+ptr), intent(in)}]{update\+\_\+data }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Update aerosol representation data based on data passed from the host model related to aerosol properties. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em this} & Solver data\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+rep\+\_\+id} & Aerosol representation id\\
+\hline
+\mbox{\tt in}  & {\em update\+\_\+type} & Aerosol representation-\/specific update type\\
+\hline
+\mbox{\tt in}  & {\em update\+\_\+data} & Data required to perform update \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 666 of file phlex\+\_\+solver\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__phlex__solver__data_ae05845ca2e0a3a239fa99a4e192c0dbb}\label{namespacepmc__phlex__solver__data_ae05845ca2e0a3a239fa99a4e192c0dbb}} 
+\index{pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}!update\+\_\+rxn\+\_\+data@{update\+\_\+rxn\+\_\+data}}
+\index{update\+\_\+rxn\+\_\+data@{update\+\_\+rxn\+\_\+data}!pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}}
+\subsubsection{\texorpdfstring{update\+\_\+rxn\+\_\+data()}{update\_rxn\_data()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+phlex\+\_\+solver\+\_\+data\+::update\+\_\+rxn\+\_\+data (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__phlex__solver__data_1_1phlex__solver__data__t}{phlex\+\_\+solver\+\_\+data\+\_\+t}}), intent(inout)}]{this,  }\item[{class(\mbox{\hyperlink{structpmc__rxn__data_1_1rxn__update__data__t}{rxn\+\_\+update\+\_\+data\+\_\+t}}), intent(in)}]{update\+\_\+data }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Update reaction data. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em this} & Solver data\\
+\hline
+\mbox{\tt in}  & {\em update\+\_\+data} & Update data \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 646 of file phlex\+\_\+solver\+\_\+data.\+F90.
+
+
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{namespacepmc__phlex__solver__data_ad1ee88ba9b3c6a966bacb508b9be226b}\label{namespacepmc__phlex__solver__data_ad1ee88ba9b3c6a966bacb508b9be226b}} 
+\index{pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}!pmc\+\_\+solver\+\_\+default\+\_\+max\+\_\+conv\+\_\+fails@{pmc\+\_\+solver\+\_\+default\+\_\+max\+\_\+conv\+\_\+fails}}
+\index{pmc\+\_\+solver\+\_\+default\+\_\+max\+\_\+conv\+\_\+fails@{pmc\+\_\+solver\+\_\+default\+\_\+max\+\_\+conv\+\_\+fails}!pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}}
+\subsubsection{\texorpdfstring{pmc\+\_\+solver\+\_\+default\+\_\+max\+\_\+conv\+\_\+fails}{pmc\_solver\_default\_max\_conv\_fails}}
+{\footnotesize\ttfamily integer(kind=i\+\_\+kind), parameter pmc\+\_\+phlex\+\_\+solver\+\_\+data\+::pmc\+\_\+solver\+\_\+default\+\_\+max\+\_\+conv\+\_\+fails = 10000\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Default maximum number of integration convergence failures. 
+
+
+
+Definition at line 37 of file phlex\+\_\+solver\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__phlex__solver__data_a62a47f32de1d137a90a46c5fb6716347}\label{namespacepmc__phlex__solver__data_a62a47f32de1d137a90a46c5fb6716347}} 
+\index{pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}!pmc\+\_\+solver\+\_\+default\+\_\+max\+\_\+steps@{pmc\+\_\+solver\+\_\+default\+\_\+max\+\_\+steps}}
+\index{pmc\+\_\+solver\+\_\+default\+\_\+max\+\_\+steps@{pmc\+\_\+solver\+\_\+default\+\_\+max\+\_\+steps}!pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}}
+\subsubsection{\texorpdfstring{pmc\+\_\+solver\+\_\+default\+\_\+max\+\_\+steps}{pmc\_solver\_default\_max\_steps}}
+{\footnotesize\ttfamily integer(kind=i\+\_\+kind), parameter pmc\+\_\+phlex\+\_\+solver\+\_\+data\+::pmc\+\_\+solver\+\_\+default\+\_\+max\+\_\+steps = 10000000\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Default max number of integration steps. 
+
+
+
+Definition at line 35 of file phlex\+\_\+solver\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__phlex__solver__data_a680944ec13286ae1045e6d9ba2e630b6}\label{namespacepmc__phlex__solver__data_a680944ec13286ae1045e6d9ba2e630b6}} 
+\index{pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}!pmc\+\_\+solver\+\_\+default\+\_\+rel\+\_\+tol@{pmc\+\_\+solver\+\_\+default\+\_\+rel\+\_\+tol}}
+\index{pmc\+\_\+solver\+\_\+default\+\_\+rel\+\_\+tol@{pmc\+\_\+solver\+\_\+default\+\_\+rel\+\_\+tol}!pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}}
+\subsubsection{\texorpdfstring{pmc\+\_\+solver\+\_\+default\+\_\+rel\+\_\+tol}{pmc\_solver\_default\_rel\_tol}}
+{\footnotesize\ttfamily real(kind=dp), parameter pmc\+\_\+phlex\+\_\+solver\+\_\+data\+::pmc\+\_\+solver\+\_\+default\+\_\+rel\+\_\+tol = 1.\+0\+D-\/8\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Default relative tolerance for integration. 
+
+
+
+Definition at line 33 of file phlex\+\_\+solver\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__phlex__solver__data_a0f2dcefeefc3ce9e4eb9e337c5203054}\label{namespacepmc__phlex__solver__data_a0f2dcefeefc3ce9e4eb9e337c5203054}} 
+\index{pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}!pmc\+\_\+solver\+\_\+success@{pmc\+\_\+solver\+\_\+success}}
+\index{pmc\+\_\+solver\+\_\+success@{pmc\+\_\+solver\+\_\+success}!pmc\+\_\+phlex\+\_\+solver\+\_\+data@{pmc\+\_\+phlex\+\_\+solver\+\_\+data}}
+\subsubsection{\texorpdfstring{pmc\+\_\+solver\+\_\+success}{pmc\_solver\_success}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+phlex\+\_\+solver\+\_\+data\+::pmc\+\_\+solver\+\_\+success = 0\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Result code indicating successful completion. 
+
+
+
+Definition at line 40 of file phlex\+\_\+solver\+\_\+data.\+F90.
+

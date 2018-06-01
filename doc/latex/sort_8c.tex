@@ -1,0 +1,68 @@
+\hypertarget{sort_8c}{}\section{sort.\+c File Reference}
+\label{sort_8c}\index{sort.\+c@{sort.\+c}}
+
+
+Wrapper routines for C qsort.  
+
+
+Include dependency graph for sort.\+c\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=128pt]{sort_8c__incl}
+\end{center}
+\end{figure}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \mbox{\hyperlink{sort_8c_acc6ca42e434864858bef8a9eca55747c}{pair\+\_\+compare}} (const void $\ast$a, const void $\ast$b)
+\begin{DoxyCompactList}\small\item\em Helper function for \mbox{\hyperlink{sort_8c_a43c0f4e0b5f59ccc76938ced1aa4c360}{integer\+\_\+sort\+\_\+c()}} \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{sort_8c_a43c0f4e0b5f59ccc76938ced1aa4c360}{integer\+\_\+sort\+\_\+c}} (int n, int $\ast$data, int $\ast$perm)
+\begin{DoxyCompactList}\small\item\em Sort the given data array and return the permutation. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Wrapper routines for C qsort. 
+
+
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{sort_8c_a43c0f4e0b5f59ccc76938ced1aa4c360}\label{sort_8c_a43c0f4e0b5f59ccc76938ced1aa4c360}} 
+\index{sort.\+c@{sort.\+c}!integer\+\_\+sort\+\_\+c@{integer\+\_\+sort\+\_\+c}}
+\index{integer\+\_\+sort\+\_\+c@{integer\+\_\+sort\+\_\+c}!sort.\+c@{sort.\+c}}
+\subsubsection{\texorpdfstring{integer\+\_\+sort\+\_\+c()}{integer\_sort\_c()}}
+{\footnotesize\ttfamily int integer\+\_\+sort\+\_\+c (\begin{DoxyParamCaption}\item[{int}]{n,  }\item[{int $\ast$}]{data,  }\item[{int $\ast$}]{perm }\end{DoxyParamCaption})}
+
+
+
+Sort the given data array and return the permutation. 
+
+On return the {\ttfamily data} array is sorted and the {\ttfamily perm} array contains the permutation, so that {\ttfamily new\+\_\+data\mbox{[}i\mbox{]} = data\mbox{[}perm\mbox{[}i\mbox{]}\mbox{]}}, where {\ttfamily data} is the original data and {\ttfamily new\+\_\+data} is the sorted data.
+
+
+\begin{DoxyParams}{Parameters}
+{\em n} & The length of {\ttfamily data} and {\ttfamily perm}. \\
+\hline
+{\em data} & The data array (sorted on return). \\
+\hline
+{\em perm} & The permutation on return\+: {\ttfamily new\+\_\+data\mbox{[}i\mbox{]} = data\mbox{[}perm\mbox{[}i\mbox{]}\mbox{]}}. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 40 of file sort.\+c.
+
+\mbox{\Hypertarget{sort_8c_acc6ca42e434864858bef8a9eca55747c}\label{sort_8c_acc6ca42e434864858bef8a9eca55747c}} 
+\index{sort.\+c@{sort.\+c}!pair\+\_\+compare@{pair\+\_\+compare}}
+\index{pair\+\_\+compare@{pair\+\_\+compare}!sort.\+c@{sort.\+c}}
+\subsubsection{\texorpdfstring{pair\+\_\+compare()}{pair\_compare()}}
+{\footnotesize\ttfamily int pair\+\_\+compare (\begin{DoxyParamCaption}\item[{const void $\ast$}]{a,  }\item[{const void $\ast$}]{b }\end{DoxyParamCaption})}
+
+
+
+Helper function for \mbox{\hyperlink{sort_8c_a43c0f4e0b5f59ccc76938ced1aa4c360}{integer\+\_\+sort\+\_\+c()}} 
+
+
+
+Definition at line 14 of file sort.\+c.
+

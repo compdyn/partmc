@@ -1,0 +1,2347 @@
+\hypertarget{input_format_ss_spec_file}{}\section{Spec File Format}\label{input_format_ss_spec_file}
+The input file format is plain text\+:
+
+\mbox{\hyperlink{spec_file_format}{Spec File Format}}
+
+When running Part\+MC with the command {\ttfamily partmc input.\+spec} the first line of the {\ttfamily input.\+spec} file must define the {\ttfamily run\+\_\+type} with\+: 
+\begin{DoxyPre}
+ run\_type <type>
+ \end{DoxyPre}
+ where {\ttfamily $<$type$>$} is one of {\ttfamily particle}, {\ttfamily exact}, or {\ttfamily sectional}. This determines the type of run as well as the format of the remainder of the spec file. The rest of the spec file is described by\+:
+
+\mbox{\hyperlink{input_format_particle}{Particle-\/resolved simulation}}
+
+\mbox{\hyperlink{input_format_exact}{Exact (analytical) solution}}
+
+\mbox{\hyperlink{input_format_sectional}{Sectional model simulation}}\hypertarget{input_format_ss_json}{}\section{J\+S\+O\+N File Format}\label{input_format_ss_json}
+Beginning with the \mbox{\hyperlink{phlex_chem}{Phlexible Module for Chemistry}}, {\ttfamily json} format is used as an alternative input file format\+:
+
+\href{https://www.json.org}{\tt www.\+json.\+org}
+
+Two types of {\ttfamily json} input files are used by \mbox{\hyperlink{phlex_chem}{phlex-\/chem}}\+:
+
+\mbox{\hyperlink{input_format_phlex_file_list}{Phlex-\/chem file list}}
+
+\mbox{\hyperlink{input_format_phlex_config}{Phlex-\/chem configuration data}}
+
+Typically, one \mbox{\hyperlink{input_format_phlex_file_list}{file list}} file is used for a Part\+MC run, which includes paths to multiple \mbox{\hyperlink{input_format_phlex_config}{configuration}} files containing the \mbox{\hyperlink{phlex_chem}{phlex-\/chem}} configuration data. When running stand-\/alone Part\+MC, the path to the \mbox{\hyperlink{input_format_phlex_file_list}{file list}} file is included in the spec file. When using the Part\+MC library, the path to the \mbox{\hyperlink{input_format_phlex_file_list}{file list}} file can be passed as an argument to the {\ttfamily \mbox{\hyperlink{structpmc__phlex__core_1_1phlex__core__t}{pmc\+\_\+phlex\+\_\+core\+::phlex\+\_\+core\+\_\+t}}} constructor. \hypertarget{spec_file_format}{}\section{Input File Format\+: Spec File Format}\label{spec_file_format}
+All Part\+MC input files are in a text format. Each line consists of a {\bfseries parameter name}, followed by the {\bfseries parameter value}, and an optional comment starting with the \# character. Blank lines and comment-\/only lines are permitted, and everything on a line after a \# is completely ignored.
+
+Parameter names are strings (normally lowercase) without spaces, such as {\ttfamily output\+\_\+prefix} or {\ttfamily del\+\_\+t}. The case of parameter names is significant. The order of parameters in a file is not arbitrary. Instead, they must come in the prescribed order and cannot be skipped or rearranged.
+
+The parameter types are\+:
+\begin{DoxyItemize}
+\item {\bfseries string\+:} a single string without spaces (case is significant)
+\item {\bfseries logical\+:} a true/false value that can be the exact values \char`\"{}yes\char`\"{}, \char`\"{}y\char`\"{}, \char`\"{}true\char`\"{}, \char`\"{}t\char`\"{}, or \char`\"{}1\char`\"{} (for true values), or \char`\"{}no\char`\"{}, \char`\"{}n\char`\"{}, \char`\"{}false\char`\"{}, \char`\"{}f\char`\"{}, or \char`\"{}0\char`\"{} (for false values
+\item {\bfseries integer\+:} a positive or negative integer (depending on whether Part\+MC was compiled as 32bit or 64bit the maximum size will vary)
+\item {\bfseries real\+:} a floating point real number in Fortran syntax, e.\+g. -\/1.\+45, 5.\+27e10 (the available precision and range is that of whatever double precision meant during the compilation)
+\item {\bfseries complex\+:} two real numbers separated by a space, giving the real and imaginary parts of a complex number, respectively
+\item {\bfseries real array}\+: a list of real numbers separated by spaces, giving the entries of the array 
+\end{DoxyItemize}\hypertarget{input_format_particle}{}\section{Input File Format\+: Particle-\/\+Resolved Simulation}\label{input_format_particle}
+Run a Monte Carlo simulation.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\end{DoxyParams}
+See \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} for the input file text format.
+
+A particle-\/resolved simulation spec file has the parameters\+:
+\begin{DoxyItemize}
+\item {\bfseries run\+\_\+type} (string)\+: must be {\ttfamily particle} 
+\item {\bfseries output\+\_\+prefix} (string)\+: prefix of the output filenames --- see \mbox{\hyperlink{output_format}{Output File Format}} for the full name format
+\item {\bfseries n\+\_\+repeat} (integer)\+: number of repeats
+\item {\bfseries n\+\_\+part} (integer)\+: number of computational particles to simulate (actual number used will vary between {\ttfamily n\+\_\+part / 2} and {\ttfamily n\+\_\+part $\ast$ 2} if {\ttfamily allow\+\_\+doubling} and {\ttfamily allow\+\_\+halving} are {\ttfamily yes})
+\item {\bfseries restart} (logical)\+: whether to restart the simulation from a saved output data file. If {\ttfamily restart} is {\ttfamily yes}, then the following parameters must also be provided\+:
+\begin{DoxyItemize}
+\item {\bfseries restart\+\_\+file} (string)\+: name of file from which to load restart data, which must be a Part\+MC output Net\+C\+DF file
+\end{DoxyItemize}
+\item {\bfseries t\+\_\+max} (real, unit s)\+: total simulation time
+\item {\bfseries del\+\_\+t} (real, unit s)\+: timestep size
+\item {\bfseries t\+\_\+output} (real, unit s)\+: the interval on which to output data to disk (see \mbox{\hyperlink{output_format}{Output File Format}})
+\item {\bfseries t\+\_\+progress} (real, unit s)\+: the interval on which to write summary information to the screen while running
+\item {\bfseries do\+\_\+phlex\+\_\+chem} (logical)\+: whether to run the {\bfseries Phlexible module for Chemistry} (requires J\+S\+ON and S\+U\+N\+D\+I\+A\+LS support to be compiled in). If {\ttfamily do\+\_\+phlex\+\_\+chem} is {\ttfamily yes}, then the following parameters must also be provided\+:
+\begin{DoxyItemize}
+\item {\bfseries phlex\+\_\+config} (string)\+: name of file containing a list of {\bfseries phlex-\/chem} configuration files. File format should be \mbox{\hyperlink{input_format_phlex_config}{Input File Format\+: Phlex-\/\+Chem Configuration Data}}
+\end{DoxyItemize}
+\item {\bfseries gas\+\_\+data} (string)\+: name of file from which to read the gas material data (only provide if {\ttfamily restart} and {\ttfamily do\+\_\+phlex\+\_\+chem} are {\ttfamily no}) --- the file format should be \mbox{\hyperlink{input_format_gas_data}{Input File Format\+: Gas Material Data}}
+\item {\bfseries gas\+\_\+init} (string)\+: name of file from which to read the initial gas state at the start of the simulation (only provide option if {\ttfamily restart} is {\ttfamily no}) --- the file format should be \mbox{\hyperlink{input_format_gas_state}{Input File Format\+: Gas State}}
+\item {\bfseries aerosol\+\_\+data} (string)\+: name of file from which to read the aerosol material data (only provide if {\ttfamily restart} and do\+\_\+phlex\+\_\+chem are {\ttfamily no}) --- the file format should be \mbox{\hyperlink{input_format_aero_data}{Input File Format\+: Aerosol Material Data}}
+\item {\bfseries do\+\_\+fractal} (logical)\+: whether to consider particles as fractal agglomerates. If {\ttfamily do\+\_\+fractal} is {\ttfamily no}, then all the particles are treated as spherical. If {\ttfamily do\+\_\+fractal} is {\ttfamily yes}, then the following parameters must also be provided\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{input_format_fractal}{Input File Format\+: Fractal Data}}
+\end{DoxyItemize}
+\item {\bfseries aerosol\+\_\+init} (string)\+: filename containing the initial aerosol state at the start of the simulation (only provide option if {\ttfamily restart} is {\ttfamily no}) --- the file format should be \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}}
+\item \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}}
+\item \mbox{\hyperlink{input_format_env_state}{Input File Format\+: Environment State}}
+\item {\bfseries do\+\_\+coagulation} (logical)\+: whether to perform particle coagulation. If {\ttfamily do\+\_\+coagulation} is {\ttfamily yes}, then the following parameters must also be provided\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{input_format_coag_kernel}{Input File Format\+: Coagulation Kernel}}
+\end{DoxyItemize}
+\item {\bfseries do\+\_\+condensation} (logical)\+: whether to perform explicit water condensation (requires S\+U\+N\+D\+I\+A\+LS support to be compiled in; cannot be used simultaneously with M\+O\+S\+A\+IC). If {\ttfamily do\+\_\+condensation} is {\ttfamily yes}, then the following parameters must also be provided\+:
+\begin{DoxyItemize}
+\item {\bfseries do\+\_\+init\+\_\+equilibriate} (logical)\+: whether to equilibriate the water content of each particle before starting the simulation
+\end{DoxyItemize}
+\item {\bfseries do\+\_\+mosaic} (logical)\+: whether to use the M\+O\+S\+A\+IC chemistry code (requires support to be compiled in; cannot be used simultaneously with condensation). If {\ttfamily do\+\_\+mosaic} is {\ttfamily yes}, then the following parameters must also be provided\+:
+\begin{DoxyItemize}
+\item {\bfseries do\+\_\+optical} (logical)\+: whether to compute optical properties of the aersol particles for the output files --- see output\+\_\+format\+\_\+aero\+\_\+state
+\end{DoxyItemize}
+\item {\bfseries do\+\_\+nucleation} (logical)\+: whether to perform particle nucleation. If {\ttfamily do\+\_\+nucleation} is {\ttfamily yes}, then the following parameters must also be provided\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{input_format_nucleate}{Input File Format\+: Nucleation Parameterization}}
+\end{DoxyItemize}
+\item {\bfseries rand\+\_\+init} (integer)\+: if greater than zero then use as the seed for the random number generator, or if zero then generate a random seed for the random number generator --- two simulations on the same machine with the same seed (greater than 0) will produce identical output
+\item {\bfseries allow\+\_\+doubling} (logical)\+: if {\ttfamily yes}, then whenever the number of simulated particles falls below {\ttfamily n\+\_\+part / 2}, every particle is duplicated to give better statistics
+\item {\bfseries allow\+\_\+halving} (logical)\+: if {\ttfamily yes}, then whenever the number of simulated particles rises above {\ttfamily n\+\_\+part $\ast$ 2}, half of the particles are removed (chosen randomly) to reduce the computational expense
+\item {\bfseries do\+\_\+select\+\_\+weighting} (logical)\+: whether to explicitly select the weighting scheme. If {\ttfamily do\+\_\+select\+\_\+weighting} is {\ttfamily yes}, then the following parameters must also be provided\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{input_format_weight_type}{Input File Format\+: Type of aerosol size distribution weighting functions.}}
+\end{DoxyItemize}
+\item {\bfseries record\+\_\+removals} (logical)\+: whether to record information about aerosol particles removed from the simulation --- see \mbox{\hyperlink{output_format_aero_removed}{Output File Format\+: Aerosol Particle Removal Information}}
+\item {\bfseries do\+\_\+parallel} (logical)\+: whether to run in parallel mode (requires M\+PI support to be compiled in). If {\ttfamily do\+\_\+parallel} is {\ttfamily yes}, then the following parameters must also be provided\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{input_format_output}{Input File Format\+: Output Type}}
+\item {\bfseries mix\+\_\+timescale} (real, unit s)\+: timescale on which to mix aerosol particle information amongst processes in an attempt to keep the aerosol state consistent (the mixing rate is inverse to {\ttfamily mix\+\_\+timescale})
+\item {\bfseries gas\+\_\+average} (logical)\+: whether to average the gas state amongst processes each timestep, to ensure uniform gas concentrations
+\item {\bfseries env\+\_\+average} (logical)\+: whether to average the environment state amongst processes each timestep, to ensure a uniform environment
+\item \mbox{\hyperlink{input_format_parallel_coag}{Input File Format\+: Parallel Coagulation Type}} 
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{input_format_gas_state}{}\subsection{Input File Format\+: Gas State}\label{input_format_gas_state}
+Read gas state from the file named on the line read from file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & File to read gas state from.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data.\\
+\hline
+\mbox{\tt in,out}  & {\em gas\+\_\+state} & Gas data to read.\\
+\hline
+\end{DoxyParams}
+A gas state input file must consist of one line per gas species, with each line having the species name followed by the species mixing ratio in ppb (parts per billion). The valid species names are those specfied by the \mbox{\hyperlink{input_format_gas_data}{Input File Format\+: Gas Material Data}} file, but not all species have to be listed. Any missing species will have mixing ratios of zero. For example, a gas state file could contain\+: 
+\begin{DoxyPre}
+ \# gas  mixing ratio (ppb)
+ H2SO4  0
+ HNO3   1
+ HCl    0.7
+ NH3    0.5
+ \end{DoxyPre}
+
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{output_format_gas_state}{Output File Format\+: Gas State}} --- the corresponding output format
+\item \mbox{\hyperlink{input_format_gas_data}{Input File Format\+: Gas Material Data}} --- the gas species list and material data 
+\end{DoxyItemize}\hypertarget{input_format_fractal}{}\subsection{Input File Format\+: Fractal Data}\label{input_format_fractal}
+Read fractal specification from a spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in,out}  & {\em fractal} & Fractal parameters.\\
+\hline
+\end{DoxyParams}
+The fractal parameters are all held constant for the simulation, and they are the same for all the particles.
+
+The fractal data file is specified by the parameters\+:
+\begin{DoxyItemize}
+\item {\bfseries frac\+\_\+dim} $d_{\rm f}$ (real, dimensionless)\+: the fractal dimension (3 for spherical and less than 3 for agglomerate)
+\item {\bfseries prime\+\_\+radius} $R_0$ (real, unit m)\+: radius of primary particles
+\item {\bfseries vol\+\_\+fill\+\_\+factor} $f$ (real, dimensionless)\+: the volume filling factor which accounts for the fact that even in a most closely packed structure the spherical monomers can occupy only 74\% of the available volume (1 for compact structure)
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{output_format_fractal}{Output File Format\+: Fractal Data}} --- the corresponding output format 
+\end{DoxyItemize}\hypertarget{input_format_aero_dist}{}\subsection{Input File Format\+: Aerosol Distribution}\label{input_format_aero_dist}
+Read continuous aerosol distribution composed of several modes.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file to read data from.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+data} & Aero\+\_\+data data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+dist} & Aerosol dist.\\
+\hline
+\end{DoxyParams}
+
+
+An aerosol distribution file consists of zero or more modes, each in the format described by \mbox{\hyperlink{input_format_aero_mode}{Input File Format\+: Aerosol Distribution Mode}}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_aero_mode}{Input File Format\+: Aerosol Distribution Mode}} --- the format for each mode of an aerosol distribution 
+\end{DoxyItemize}\hypertarget{input_format_aero_mode}{}\subsubsection{Input File Format\+: Aerosol Distribution Mode}\label{input_format_aero_mode}
+Read one mode of an aerosol distribution (number concentration, volume fractions, and mode shape).
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+data} & Aero\+\_\+data data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+mode} & Aerosol mode.\\
+\hline
+ & {\em eof} & If eof instead of reading data.\\
+\hline
+\end{DoxyParams}
+An aerosol distribution mode has the parameters\+: 
+\begin{DoxyItemize}
+\item {\bfseries mode\+\_\+name} (string)\+: the name of the mode (for informational purposes only) 
+\item {\bfseries mass\+\_\+frac} (string)\+: name of file from which to read the species mass fractions --- the file format should be \mbox{\hyperlink{input_format_mass_frac}{Input File Format\+: Aerosol Mass Fractions}} 
+\item {\bfseries diam\+\_\+type} (string)\+: the type of diameter for the mode --- must be one of\+: {\ttfamily geometric} for geometric diameter; or {\ttfamily mobility} for mobility equivalent diameter 
+\item if {\ttfamily diam\+\_\+type} is {\ttfamily mobility} then the following parameters are\+: 
+\begin{DoxyItemize}
+\item {\bfseries temp} (real, unit K)\+: the temperate at which the mobility diameters were measured 
+\item {\bfseries pressure} (real, unit Pa)\+: the pressure at which the mobility diameters were measured 
+\end{DoxyItemize}
+\item {\bfseries mode\+\_\+type} (string)\+: the functional form of the mode --- must be one of\+: {\ttfamily log\+\_\+normal} for a log-\/normal distribution; {\ttfamily exp} for an exponential distribution; {\ttfamily mono} for a mono-\/disperse distribution; or {\ttfamily sampled} for a sampled distribution 
+\item if {\ttfamily mode\+\_\+type} is {\ttfamily log\+\_\+normal} then the mode distribution shape is \[ n(\log D) {\rm d}\log D = \frac{N_{\rm total}}{\sqrt{2\pi} \log \sigma_{\rm g}} \exp\left(\frac{(\log D - \log D_{\rm gn})^2}{2 \log ^2 \sigma_{\rm g}}\right) {\rm d}\log D \] and the following parameters are\+: 
+\begin{DoxyItemize}
+\item {\bfseries num\+\_\+conc} (real, unit 1/m$^\wedge$3)\+: the total number concentration $N_{\rm total}$ of the mode 
+\item {\bfseries geom\+\_\+mean\+\_\+diam} (real, unit m)\+: the geometric mean diameter $D_{\rm gn}$ 
+\item {\bfseries log10\+\_\+geom\+\_\+std\+\_\+dev} (real, dimensionless)\+: $\log_{10}$ of the geometric standard deviation $\sigma_{\rm g}$ of the diameter 
+\end{DoxyItemize}
+\item if {\ttfamily mode\+\_\+type} is {\ttfamily exp} then the mode distribution shape is \[ n(v) {\rm d}v = \frac{N_{\rm total}}{v_{\rm \mu}} \exp\left(- \frac{v}{v_{\rm \mu}}\right) {\rm d}v \] and the following parameters are\+: 
+\begin{DoxyItemize}
+\item {\bfseries num\+\_\+conc} (real, unit 1/m$^\wedge$3)\+: the total number concentration $N_{\rm total}$ of the mode 
+\item {\bfseries diam\+\_\+at\+\_\+mean\+\_\+vol} (real, unit m)\+: the diameter $D_{\rm \mu}$ such that $v_{\rm \mu} = \frac{\pi}{6} D^3_{\rm \mu}$ 
+\end{DoxyItemize}
+\item if {\ttfamily mode\+\_\+type} is {\ttfamily mono} then the mode distribution shape is a delta distribution at diameter $D_0$ and the following parameters are\+: 
+\begin{DoxyItemize}
+\item {\bfseries num\+\_\+conc} (real, unit 1/m$^\wedge$3)\+: the total number concentration $N_{\rm total}$ of the mode 
+\item {\bfseries radius} (real, unit m)\+: the radius $R_0$ of the particles, so that $D_0 = 2 R_0$ 
+\end{DoxyItemize}
+\item if {\ttfamily mode\+\_\+type} is {\ttfamily sampled} then the mode distribution shape is piecewise constant (in log-\/diameter coordinates) and the following parameters are\+: 
+\begin{DoxyItemize}
+\item {\bfseries size\+\_\+dist} (string)\+: name of file from which to read the size distribution --- the file format should be \mbox{\hyperlink{input_format_size_dist}{Input File Format\+: Size Distribution}} 
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+Example\+: 
+\begin{DoxyPre}
+ mode\_name diesel          \# mode name (descriptive only)
+ mass\_frac comp\_diesel.dat \# mass fractions in each aerosol particle
+ mode\_type log\_normal      \# type of distribution
+ num\_conc 1.6e8            \# particle number density (\#/m^3)
+ geom\_mean\_diam 2.5e-8     \# geometric mean diameter (m)
+ log10\_geom\_std\_dev 0.24   \# log\_10 of geometric standard deviation
+ \end{DoxyPre}
+
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} --- the format for a complete aerosol distribution with several modes
+\item \mbox{\hyperlink{input_format_mass_frac}{Input File Format\+: Aerosol Mass Fractions}} --- the format for the mass fractions file 
+\end{DoxyItemize}\hypertarget{input_format_mass_frac}{}\subsection{Input File Format\+: Aerosol Mass Fractions}\label{input_format_mass_frac}
+Read volume fractions from a data file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file to read mass fractions from.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aero\+\_\+data data.\\
+\hline
+\mbox{\tt in,out}  & {\em vol\+\_\+frac} & Aerosol species volume fractions.\\
+\hline
+\mbox{\tt in,out}  & {\em vol\+\_\+frac\+\_\+std} & Aerosol species volume fraction standard deviations.\\
+\hline
+\end{DoxyParams}
+An aerosol mass fractions file must consist of one line per aerosol species, with each line having the species name followed by the species mass fraction in each aerosol particle. The valid species names are those specfied by the \mbox{\hyperlink{input_format_aero_data}{Input File Format\+: Aerosol Material Data}} file, but not all species have to be listed. Any missing species will have proportions of zero. If the proportions do not sum to 1 then they will be normalized before use. For example, a mass fractions file file could contain\+: 
+\begin{DoxyPre}
+ \# species   proportion
+ OC          0.3
+ BC          0.7
+ \end{DoxyPre}
+ indicating that the particles are 30\% organic carbon and 70\% black carbon.
+
+Optionally, the standard deviation can also be provided for each species as a second number on each line. For example, 
+\begin{DoxyPre}
+ \# species   proportion std\_dev
+ OC          0.3        0.1
+ BC          0.7        0.2
+ \end{DoxyPre}
+ indicates that the particles are on average 30\% OC and 70\% BC, but may vary to have particles with 20\% OC and 80\% BC, or 40\% OC and 60\% BC, for example. The standard deviations will be normalized by the sum of the proportions.
+
+Either all species in a given file must have standard deviations or none of them can.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} --- the format for a complete aerosol distribution with several modes
+\item \mbox{\hyperlink{input_format_aero_mode}{Input File Format\+: Aerosol Distribution Mode}} --- the format for each mode of an aerosol distribution 
+\end{DoxyItemize}\hypertarget{input_format_size_dist}{}\subsection{Input File Format\+: Size Distribution}\label{input_format_size_dist}
+Read a size distribution from a data file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file to read size distribution from.\\
+\hline
+\mbox{\tt in,out}  & {\em sample\+\_\+radius} & Sample radius values (m).\\
+\hline
+\mbox{\tt in,out}  & {\em sample\+\_\+num\+\_\+conc} & Sample number concentrations (m$^\wedge$\{-\/3\}).\\
+\hline
+\end{DoxyParams}
+A size distribution file must consist of two lines\+:
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily diam} and be followed by $N + 1$ space-\/separated real scalars, giving the diameters $D_1,\ldots,D_{N+1}$ of bin edges (m) --- these must be in increasing order, so $D_i < D_{i+1}$
+\item the second line must begin with {\ttfamily num\+\_\+conc} and be followed by $N$ space-\/separated real scalars, giving the number concenrations $C_1,\ldots,C_N$ in each bin (\#/m$^\wedge$3) --- $C_i$ is the total number concentrations of particles with diameters in $[D_i, D_{i+1}]$
+\end{DoxyItemize}
+
+The resulting size distribution is taken to be piecewise constant in log-\/diameter coordinates.
+
+Example\+: a size distribution could be\+: 
+\begin{DoxyPre}
+ diam 1e-7 1e-6 1e-5  \# bin edge diameters (m)
+ num\_conc 1e9 1e8     \# bin number concentrations (m^\{-3\})
+ \end{DoxyPre}
+ This distribution has 1e9 particles per cubic meter with diameters between 0.\+1 micron and 1 micron, and 1e8 particles per cubic meter with diameters between 1 micron and 10 micron.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} --- the format for a complete aerosol distribution with several modes
+\item \mbox{\hyperlink{input_format_aero_mode}{Input File Format\+: Aerosol Distribution Mode}} --- the format for each mode of an aerosol distribution 
+\end{DoxyItemize}\hypertarget{input_format_scenario}{}\subsection{Input File Format\+: Scenario}\label{input_format_scenario}
+Read environment data from an spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data values.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em scenario} & Scenario data.\\
+\hline
+\end{DoxyParams}
+The scenario parameters are\+: 
+\begin{DoxyItemize}
+\item {\bfseries temp\+\_\+profile} (string)\+: the name of the file from which to read the temperature profile --- the file format should be \mbox{\hyperlink{input_format_temp_profile}{Input File Format\+: Temperature Profile}} 
+\item {\bfseries pressure\+\_\+profile} (string)\+: the name of the file from which to read the pressure profile --- the file format should be \mbox{\hyperlink{input_format_pressure_profile}{Input File Format\+: Pressure Profile}} 
+\item {\bfseries height\+\_\+profile} (string)\+: the name of the file from which to read the mixing layer height profile --- the file format should be \mbox{\hyperlink{input_format_height_profile}{Input File Format\+: Mixing Layer Height Profile}} 
+\item {\bfseries gas\+\_\+emissions} (string)\+: the name of the file from which to read the gas emissions profile --- the file format should be \mbox{\hyperlink{input_format_gas_profile}{Input File Format\+: Gas Profile}} 
+\item {\bfseries gas\+\_\+background} (string)\+: the name of the file from which to read the gas background profile --- the file format should be \mbox{\hyperlink{input_format_gas_profile}{Input File Format\+: Gas Profile}} 
+\item {\bfseries aero\+\_\+emissions} (string)\+: the name of the file from which to read the aerosol emissions profile --- the file format should be \mbox{\hyperlink{input_format_aero_dist_profile}{Input File Format\+: Aerosol Distribution Profile}} 
+\item {\bfseries aero\+\_\+background} (string)\+: the name of the file from which to read the aerosol background profile --- the file format should be \mbox{\hyperlink{input_format_aero_dist_profile}{Input File Format\+: Aerosol Distribution Profile}} 
+\item {\bfseries loss\+\_\+function} (string)\+: the type of loss function --- must be one of\+: {\ttfamily none} for no particle loss, {\ttfamily constant} for constant loss rate, {\ttfamily volume} for particle loss proportional to particle volume, {\ttfamily drydep} for particle loss proportional to dry deposition velocity, or {\ttfamily chamber} for a chamber model. If {\ttfamily loss\+\_\+function} is {\ttfamily chamber}, then the following parameters must also be provided\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{input_format_chamber}{Input File Format\+: Chamber}} 
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format 
+\end{DoxyItemize}\hypertarget{input_format_temp_profile}{}\subsubsection{Input File Format\+: Temperature Profile}\label{input_format_temp_profile}
+A temperature profile input file must consist of two lines\+:
+
+
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the temperature set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily temp} and should be followed by $N$ space-\/separated real scalars, giving the temperatures (in K) at the corresponding times
+\end{DoxyItemize}
+
+The temperature profile is linearly interpolated between the specified times, while before the first time it takes the first temperature value and after the last time it takes the last temperature value.
+
+Example\+: 
+\begin{DoxyPre}
+ time  0    600  1800  \# time (in s) after simulation start
+ temp  270  290  280   \# temperature (in K)
+ \end{DoxyPre}
+ Here the temperature starts at 270~K at the start of the simulation, rises to 290~K after 10~min, and then falls again to 280~K at 30~min. Between these times the temperature is linearly interpolated, while after 30~min it is held constant at 280~K.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}} --- the environment data containing the temperature profile 
+\end{DoxyItemize}\hypertarget{input_format_pressure_profile}{}\subsubsection{Input File Format\+: Pressure Profile}\label{input_format_pressure_profile}
+A pressure profile input file must consist of two lines\+:
+
+
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the pressure set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily pressure} and should be followed by $N$ space-\/separated real scalars, giving the pressures (in Pa) at the corresponding times
+\end{DoxyItemize}
+
+The pressure profile is linearly interpolated between the specified times, while before the first time it takes the first pressure value and after the last time it takes the last pressure value.
+
+Example\+: 
+\begin{DoxyPre}
+ time      0    600  1800  \# time (in s) after simulation start
+ pressure  1e5  9e4  7.5e4 \# pressure (in Pa)
+ \end{DoxyPre}
+ Here the pressure starts at 1e5~Pa at the start of the simulation, decreases to 9e4~Pa after 10~min, and then decreases further to 7.\+5e4~Pa at 30~min. Between these times the pressure is linearly interpolated, while after 30~min it is held constant at 7.\+5e4~Pa.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}} --- the environment data containing the pressure profile 
+\end{DoxyItemize}\hypertarget{input_format_height_profile}{}\subsubsection{Input File Format\+: Mixing Layer Height Profile}\label{input_format_height_profile}
+A mixing layer height profile input file must consist of two lines\+:
+
+
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the height set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily height} and should be followed by $N$ space-\/separated real scalars, giving the mixing layer heights (in m) at the corresponding times
+\end{DoxyItemize}
+
+The mixing layer height profile is linearly interpolated between the specified times, while before the first time it takes the first height value and after the last time it takes the last height value.
+
+Example\+: 
+\begin{DoxyPre}
+ time    0    600   1800  \# time (in s) after simulation start
+ height  500  1000  800   \# mixing layer height (in m)
+ \end{DoxyPre}
+ Here the mixing layer height starts at 500~m at the start of the simulation, rises to 1000~m after 10~min, and then falls again to 800~m at 30~min. Between these times the mixing layer height is linearly interpolated, while after 30~min it is held constant at 800~m.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}} --- the environment data containing the mixing layer height profile 
+\end{DoxyItemize}\hypertarget{input_format_gas_profile}{}\subsubsection{Input File Format\+: Gas Profile}\label{input_format_gas_profile}
+Read an array of gas states with associated times and rates from the file named on the line read from the given file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data.\\
+\hline
+ & {\em times} & Times (s).\\
+\hline
+ & {\em rates} & Rates (s$^\wedge$\{-\/1\}).\\
+\hline
+ & {\em gas\+\_\+states} & Gas states.\\
+\hline
+\end{DoxyParams}
+A gas profile input file must consist of three or more lines, consisting of\+:
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the gas set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily rate} and should be followed by $N$ space-\/separated real scalars, giving the values at the corresponding times
+\item the third and subsequent lines specify gas species, one species per line, with each line beginning with the species name and followed by $N$ space-\/separated scalars giving the gas state of that species at the corresponding times
+\end{DoxyItemize}
+
+The units and meanings of the rate and species lines depends on the type of gas profile\+:
+\begin{DoxyItemize}
+\item emissions gas profiles have dimensionless rates that are used to scale the species rates and species giving emission rates with units of mol/(m$^\wedge$2 s) --- the emission rate is divided by the current mixing layer height to give a per-\/volume emission rate
+\item background gas profiles have rates with units s$^\wedge$\{-\/1\} that are dilution rates and species with units of ppb (parts per billion) that are the background mixing ratios
+\end{DoxyItemize}
+
+The species names must be those specified by the \mbox{\hyperlink{input_format_gas_data}{Input File Format\+: Gas Material Data}}. Any species not listed are taken to be zero.
+
+Between the specified times the gas profile is interpolated step-\/wise and kept constant at its last value. That is, if the times are $t_i$, the rates are $r_i$, and the gas states are $g_i$ (all with $i = 1,\ldots,n$), then between times $t_i$ and $t_{i+1}$ the gas state is constant at $r_i g_i$. Before time $t_1$ the gas state is $r_1 g_1$, while after time $t_n$ it is $r_n g_n$.
+
+Example\+: an emissions gas profile could be\+: 
+\begin{DoxyPre}
+ time   0       600     1800    \# time (in s) after simulation start
+ rate   1       0.5     1       \# scaling factor
+ H2SO4  0       0       0       \# emission rate in mol/(m^2 s)
+ SO2    4e-9    5.6e-9  5e-9    \# emission rate in mol/(m^2 s)
+ \end{DoxyPre}
+ Here there are no emissions of $\rm H_2SO_4$, while $\rm SO_2$ starts out being emitted at $4\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$ at the start of the simulation, before falling to a rate of $2.8\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$ at 10~min (note the scaling of 0.\+5), and then rising again to $5\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$ after 30~min. Between 0~min and 10~min the emissions are the same as at 0~min, while between 10~min and 30~min they are the same as at 10~min. After 30~min they are held constant at their final value.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_gas_data}{Input File Format\+: Gas Material Data}} --- the gas species list and material data 
+\end{DoxyItemize}\hypertarget{input_format_gas_profile}{}\subsubsection{Input File Format\+: Gas Profile}\label{input_format_gas_profile}
+Read an array of gas states with associated times and rates from the file named on the line read from the given file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data.\\
+\hline
+ & {\em times} & Times (s).\\
+\hline
+ & {\em rates} & Rates (s$^\wedge$\{-\/1\}).\\
+\hline
+ & {\em gas\+\_\+states} & Gas states.\\
+\hline
+\end{DoxyParams}
+A gas profile input file must consist of three or more lines, consisting of\+:
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the gas set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily rate} and should be followed by $N$ space-\/separated real scalars, giving the values at the corresponding times
+\item the third and subsequent lines specify gas species, one species per line, with each line beginning with the species name and followed by $N$ space-\/separated scalars giving the gas state of that species at the corresponding times
+\end{DoxyItemize}
+
+The units and meanings of the rate and species lines depends on the type of gas profile\+:
+\begin{DoxyItemize}
+\item emissions gas profiles have dimensionless rates that are used to scale the species rates and species giving emission rates with units of mol/(m$^\wedge$2 s) --- the emission rate is divided by the current mixing layer height to give a per-\/volume emission rate
+\item background gas profiles have rates with units s$^\wedge$\{-\/1\} that are dilution rates and species with units of ppb (parts per billion) that are the background mixing ratios
+\end{DoxyItemize}
+
+The species names must be those specified by the \mbox{\hyperlink{input_format_gas_data}{Input File Format\+: Gas Material Data}}. Any species not listed are taken to be zero.
+
+Between the specified times the gas profile is interpolated step-\/wise and kept constant at its last value. That is, if the times are $t_i$, the rates are $r_i$, and the gas states are $g_i$ (all with $i = 1,\ldots,n$), then between times $t_i$ and $t_{i+1}$ the gas state is constant at $r_i g_i$. Before time $t_1$ the gas state is $r_1 g_1$, while after time $t_n$ it is $r_n g_n$.
+
+Example\+: an emissions gas profile could be\+: 
+\begin{DoxyPre}
+ time   0       600     1800    \# time (in s) after simulation start
+ rate   1       0.5     1       \# scaling factor
+ H2SO4  0       0       0       \# emission rate in mol/(m^2 s)
+ SO2    4e-9    5.6e-9  5e-9    \# emission rate in mol/(m^2 s)
+ \end{DoxyPre}
+ Here there are no emissions of $\rm H_2SO_4$, while $\rm SO_2$ starts out being emitted at $4\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$ at the start of the simulation, before falling to a rate of $2.8\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$ at 10~min (note the scaling of 0.\+5), and then rising again to $5\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$ after 30~min. Between 0~min and 10~min the emissions are the same as at 0~min, while between 10~min and 30~min they are the same as at 10~min. After 30~min they are held constant at their final value.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_gas_data}{Input File Format\+: Gas Material Data}} --- the gas species list and material data 
+\end{DoxyItemize}\hypertarget{input_format_aero_dist_profile}{}\subsubsection{Input File Format\+: Aerosol Distribution Profile}\label{input_format_aero_dist_profile}
+Read an array of aero\+\_\+dists with associated times and rates from the given file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file to read data from.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+data} & Aero data.\\
+\hline
+ & {\em times} & Times (s).\\
+\hline
+ & {\em rates} & Rates (s$^\wedge$\{-\/1\}).\\
+\hline
+ & {\em aero\+\_\+dists} & Aero dists.\\
+\hline
+\end{DoxyParams}
+An aerosol distribution profile input file must consist of three lines\+:
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the aerosol distrbution set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily rate} and should be followed by $N$ space-\/separated real scalars, giving the values at the corresponding times
+\item the third line must begin with {\ttfamily dist} and should be followed by $N$ space-\/separated filenames, each specifying an aerosol distribution in the format \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} at the corresponding time
+\end{DoxyItemize}
+
+The units of the {\ttfamily rate} line depend on the type of aerosol distribution profile\+:
+\begin{DoxyItemize}
+\item Emissions aerosol profiles have rates with units m/s --- the aerosol distribution number concentrations are multiplied by the rate to give an emission rate with unit \#/(m$^\wedge$2 s) which is then divided by the current mixing layer height to give a per-\/volume emission rate.
+\item Background aerosol profiles have rates with units $\rm s^{-1}$, which is the dilution rate between the background and the simulated air parcel. That is, if the simulated number concentration is $N$ and the background number concentration is $N_{\rm back}$, then dilution is modeled as $\dot{N} = r N_{\rm back} - r N$, where $r$ is the rate.
+\end{DoxyItemize}
+
+Between the specified times the aerosol profile is interpolated step-\/wise and kept constant at its last value. That is, if the times are $t_i$, the rates are $r_i$, and the aerosol distributions are $a_i$ (all with $i = 1,\ldots,n$), then between times $t_i$ and $t_{i+1}$ the aerosol state is constant at $r_i a_i$. Before time $t_1$ the aerosol state is $r_1 a_1$, while after time $t_n$ it is $r_n a_n$.
+
+Example\+: an emissions aerosol profile could be\+: 
+\begin{DoxyPre}
+ time  0          600        1800       \# time (in s) after sim start
+ rate  1          0.5        1          \# scaling factor in m/s
+ dist  dist1.dat  dist2.dat  dist3.dat  \# aerosol distribution files
+ \end{DoxyPre}
+ Here the emissions between 0~min and 10~min are given by {\ttfamily dist1.\+dat} (with the number concentration interpreted as having units 1/(m$^\wedge$2 s)), the emissions between 10~min and 30~min are given by {\ttfamily dist2.\+dat} (scaled by 0.\+5), while the emissions after 30~min are given by {\ttfamily dist3.\+dat}.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_aero_data}{Input File Format\+: Aerosol Material Data}} --- the aerosol species list and material data
+\item \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} --- the format of the instantaneous aerosol distribution files 
+\end{DoxyItemize}\hypertarget{input_format_aero_dist_profile}{}\subsubsection{Input File Format\+: Aerosol Distribution Profile}\label{input_format_aero_dist_profile}
+Read an array of aero\+\_\+dists with associated times and rates from the given file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file to read data from.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+data} & Aero data.\\
+\hline
+ & {\em times} & Times (s).\\
+\hline
+ & {\em rates} & Rates (s$^\wedge$\{-\/1\}).\\
+\hline
+ & {\em aero\+\_\+dists} & Aero dists.\\
+\hline
+\end{DoxyParams}
+An aerosol distribution profile input file must consist of three lines\+:
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the aerosol distrbution set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily rate} and should be followed by $N$ space-\/separated real scalars, giving the values at the corresponding times
+\item the third line must begin with {\ttfamily dist} and should be followed by $N$ space-\/separated filenames, each specifying an aerosol distribution in the format \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} at the corresponding time
+\end{DoxyItemize}
+
+The units of the {\ttfamily rate} line depend on the type of aerosol distribution profile\+:
+\begin{DoxyItemize}
+\item Emissions aerosol profiles have rates with units m/s --- the aerosol distribution number concentrations are multiplied by the rate to give an emission rate with unit \#/(m$^\wedge$2 s) which is then divided by the current mixing layer height to give a per-\/volume emission rate.
+\item Background aerosol profiles have rates with units $\rm s^{-1}$, which is the dilution rate between the background and the simulated air parcel. That is, if the simulated number concentration is $N$ and the background number concentration is $N_{\rm back}$, then dilution is modeled as $\dot{N} = r N_{\rm back} - r N$, where $r$ is the rate.
+\end{DoxyItemize}
+
+Between the specified times the aerosol profile is interpolated step-\/wise and kept constant at its last value. That is, if the times are $t_i$, the rates are $r_i$, and the aerosol distributions are $a_i$ (all with $i = 1,\ldots,n$), then between times $t_i$ and $t_{i+1}$ the aerosol state is constant at $r_i a_i$. Before time $t_1$ the aerosol state is $r_1 a_1$, while after time $t_n$ it is $r_n a_n$.
+
+Example\+: an emissions aerosol profile could be\+: 
+\begin{DoxyPre}
+ time  0          600        1800       \# time (in s) after sim start
+ rate  1          0.5        1          \# scaling factor in m/s
+ dist  dist1.dat  dist2.dat  dist3.dat  \# aerosol distribution files
+ \end{DoxyPre}
+ Here the emissions between 0~min and 10~min are given by {\ttfamily dist1.\+dat} (with the number concentration interpreted as having units 1/(m$^\wedge$2 s)), the emissions between 10~min and 30~min are given by {\ttfamily dist2.\+dat} (scaled by 0.\+5), while the emissions after 30~min are given by {\ttfamily dist3.\+dat}.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_aero_data}{Input File Format\+: Aerosol Material Data}} --- the aerosol species list and material data
+\item \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} --- the format of the instantaneous aerosol distribution files 
+\end{DoxyItemize}\hypertarget{input_format_chamber}{}\subsubsection{Input File Format\+: Chamber}\label{input_format_chamber}
+Read chamber specification from a spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in,out}  & {\em chamber} & Chamber data.\\
+\hline
+\end{DoxyParams}
+The chamber model is specified by the parameters\+:
+\begin{DoxyItemize}
+\item {\bfseries chamber\+\_\+vol} (real, unit m$^\wedge$3)\+: the volume of the chamber
+\item {\bfseries area\+\_\+diffuse} (real, unit m$^\wedge$2)\+: the surface area in the chamber available for wall diffusion deposition (the total surface area)
+\item {\bfseries area\+\_\+sedi} (real, unit m$^\wedge$2)\+: the surface area in the chamber available for sedimentation deposition (the floor area)
+\item {\bfseries prefactor\+\_\+\+BL} (real, unit m)\+: the coefficient $k_{\rm D}$ in the model $ \delta = k_{\rm D}(D/D_0)^a $ for boundary-\/layer thickness $ \delta $
+\item {\bfseries exponent\+\_\+\+BL} (real, dimensionless)\+: the exponent $a$ in the model $ \delta = k_{\rm D}(D/D_0)^a $ for boundary-\/layer thickness $ \delta $
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}} --- the prescribed profiles of other environment data 
+\end{DoxyItemize}\hypertarget{input_format_env_state}{}\subsection{Input File Format\+: Environment State}\label{input_format_env_state}
+Read environment specification from a spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in,out}  & {\em env\+\_\+state} & Environment data.\\
+\hline
+\end{DoxyParams}
+The environment parameters are divided into those specified at the start of the simulation and then either held constant or computed for the rest of the simulation, and those parameters given as prescribed profiles for the entire simulation duration. The variables below are for the first type --- for the prescribed profiles see \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}}.
+
+The environment state is specified by the parameters\+:
+\begin{DoxyItemize}
+\item {\bfseries rel\+\_\+humidity} (real, dimensionless)\+: the relative humidity (0 is completely unsaturated and 1 is fully saturated)
+\item {\bfseries latitude} (real, unit degrees\+\_\+north)\+: the latitude of the simulation location
+\item {\bfseries longitude} (real, unit degrees\+\_\+east)\+: the longitude of the simulation location
+\item {\bfseries altitude} (real, unit m)\+: the altitude of the simulation location
+\item {\bfseries start\+\_\+time} (real, unit s)\+: the time-\/of-\/day of the start of the simulation (in seconds past midnight)
+\item {\bfseries start\+\_\+day} (integer)\+: the day-\/of-\/year of the start of the simulation (starting from 1 on the first day of the year)
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{output_format_env_state}{Output File Format\+: Environment State}} --- the corresponding output format
+\item \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}} --- the prescribed profiles of other environment data 
+\end{DoxyItemize}\hypertarget{input_format_coag_kernel}{}\subsection{Input File Format\+: Coagulation Kernel}\label{input_format_coag_kernel}
+Read the specification for a kernel type from a spec file and generate it.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt out}  & {\em coag\+\_\+kernel\+\_\+type} & Kernel type.\\
+\hline
+\end{DoxyParams}
+The coagulation kernel is specified by the parameter\+:
+\begin{DoxyItemize}
+\item {\bfseries coag\+\_\+kernel} (string)\+: the type of coagulation kernel --- must be one of\+: {\ttfamily sedi} for the gravitational sedimentation kernel; {\ttfamily additive} for the additive kernel; {\ttfamily constant} for the constant kernel; {\ttfamily brown} for the Brownian kernel, or {\ttfamily zero} for no coagulation
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format 
+\end{DoxyItemize}\hypertarget{input_format_nucleate}{}\subsection{Input File Format\+: Nucleation Parameterization}\label{input_format_nucleate}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt out}  & {\em nucleate\+\_\+type} & Nucleate type.\\
+\hline
+\mbox{\tt out}  & {\em nucleate\+\_\+source} & Nucleate source number.\\
+\hline
+\end{DoxyParams}
+The nucleation parameterization is specified by the parameter\+:
+\begin{DoxyItemize}
+\item {\bfseries nucleate} (string)\+: the type of nucleation parameterization --- must be one of\+: \char`\"{}none\char`\"{} for no nucleation; or \char`\"{}sulf\+\_\+acid\char`\"{} for the \mbox{\hyperlink{namespacepmc__nucleate_a417a8f6c4fbc4f588ac915a173b2fda2}{nucleate\+\_\+sulf\+\_\+acid()}} parameterization
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format 
+\end{DoxyItemize}\hypertarget{input_format_weight_type}{}\subsection{Input File Format\+: Type of aerosol size distribution weighting functions.}\label{input_format_weight_type}
+Read the specification for a weighting type from a spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt out}  & {\em weighting\+\_\+type} & Aerosol weighting scheme.\\
+\hline
+\mbox{\tt out}  & {\em exponent} & Exponent for power-\/law weighting (only used if {\ttfamily weight\+\_\+type} is {\ttfamily A\+E\+R\+O\+\_\+\+S\+T\+A\+T\+E\+\_\+\+W\+E\+I\+G\+H\+T\+\_\+\+P\+O\+W\+ER}).\\
+\hline
+\end{DoxyParams}
+The weighting function is specified by the parameters\+:
+\begin{DoxyItemize}
+\item {\bfseries weight\+\_\+type} (string)\+: the type of weighting function --- must be one of\+: {\ttfamily flat} for flat weighting, {\ttfamily flat\+\_\+source} for flat weighting by source, {\ttfamily power} for power weighting, {\ttfamily power\+\_\+source} for power source weighting, {\ttfamily nummass} for number and mass weighting, and {\ttfamily nummass\+\_\+source} for number and mass weighting by source. If {\ttfamily weight\+\_\+type} is {\ttfamily power} or {\ttfamily power\+\_\+source} then the next parameter must also be provided\+:
+\begin{DoxyItemize}
+\item {\bfseries weighting\+\_\+exponent} (real)\+: the exponent for {\ttfamily power} or {\ttfamily power\+\_\+source}. Setting the {\ttfamily exponent} to 0 is equivalent to no weighting, while setting the exponent negative uses more computational particles at larger diameters and setting the exponent positive uses more computaitonal partilces at smaller diameters; in practice exponents between 0 and -\/3 are most useful.
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format 
+\end{DoxyItemize}\hypertarget{input_format_output}{}\subsection{Input File Format\+: Output Type}\label{input_format_output}
+Read the specification for an output type from a spec file and generate it.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt out}  & {\em output\+\_\+type} & Kernel type.\\
+\hline
+\end{DoxyParams}
+The output type is specified by the parameter\+:
+\begin{DoxyItemize}
+\item {\bfseries output\+\_\+type} (string)\+: type of disk output --- must be one of\+: {\ttfamily central} to write one file per process, but all written by process 0; {\ttfamily dist} for every process to write its own state file; or {\ttfamily single} to transfer all data to process 0 and write a single unified output file
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format 
+\end{DoxyItemize}\hypertarget{input_format_parallel_coag}{}\subsection{Input File Format\+: Parallel Coagulation Type}\label{input_format_parallel_coag}
+Read the specification for a parallel coagulation type from a spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt out}  & {\em parallel\+\_\+coag\+\_\+type} & Kernel type.\\
+\hline
+\end{DoxyParams}
+The output type is specified by the parameter\+:
+\begin{DoxyItemize}
+\item {\bfseries parallel\+\_\+coag} (string)\+: type of parallel coagulation --- must be one of\+: {\ttfamily local} for only within-\/process coagulation or {\ttfamily dist} to have all processes perform coagulation globally, requesting particles from other processes as needed
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format 
+\end{DoxyItemize}\hypertarget{input_format_exact}{}\section{Exact (Analytical) Solution}\label{input_format_exact}
+Run an exact solution simulation.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\end{DoxyParams}
+The coagulation kernel and initial distribution must be matched for an exact solution to exist. The valid choices are\+:
+
+\tabulinesep=1mm
+\begin{longtabu} spread 0pt [c]{*{2}{|X[-1]}|}
+\hline
+\rowcolor{\tableheadbgcolor}\textbf{ Coagulation kernel }&\textbf{ Initial aerosol distribution }\\\cline{1-2}
+\endfirsthead
+\hline
+\endfoot
+\hline
+\rowcolor{\tableheadbgcolor}\textbf{ Coagulation kernel }&\textbf{ Initial aerosol distribution }\\\cline{1-2}
+\endhead
+Additive &Single exponential mode \\\cline{1-2}
+Constant &Single exponential mode \\\cline{1-2}
+Zero &Anything \\\cline{1-2}
+\end{longtabu}
+
+
+See \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} for the input file text format.
+
+An exact (analytical) simulation spec file has the parameters\+:
+\begin{DoxyItemize}
+\item {\bfseries run\+\_\+type} (string)\+: must be {\ttfamily exact} 
+\item {\bfseries output\+\_\+prefix} (string)\+: prefix of the output filenames --- the filenames will be of the form {\ttfamily P\+R\+E\+F\+I\+X\+\_\+\+S\+S\+S\+S\+S\+S\+S\+S.\+nc} where {\ttfamily S\+S\+S\+S\+S\+S\+SS} is is the eight-\/digit output index (starting at 1 and incremented each time the state is output)
+\item {\bfseries t\+\_\+max} (real, unit s)\+: total simulation time
+\item {\bfseries t\+\_\+output} (real, unit s)\+: the interval on which to output data to disk and to print progress information to the screen (see \mbox{\hyperlink{output_format}{Output File Format}})
+\item \mbox{\hyperlink{input_format_diam_bin_grid}{Input File Format\+: Diameter Axis Bin Grid}}
+\item {\bfseries gas\+\_\+data} (string)\+: name of file from which to read the gas material data --- the file format should be \mbox{\hyperlink{input_format_gas_data}{Input File Format\+: Gas Material Data}}
+\item {\bfseries aerosol\+\_\+data} (string)\+: name of file from which to read the aerosol material data --- the file format should be \mbox{\hyperlink{input_format_aero_data}{Input File Format\+: Aerosol Material Data}}
+\item {\bfseries do\+\_\+fractal} (logical)\+: whether to consider particles as fractal agglomerates. If {\ttfamily do\+\_\+fractal} is {\ttfamily no}, then all the particles are treated as spherical. If {\ttfamily do\+\_\+fractal} is {\ttfamily yes}, then the following parameters must also be provided\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{input_format_fractal}{Input File Format\+: Fractal Data}}
+\end{DoxyItemize}
+\item {\bfseries aerosol\+\_\+init} (string)\+: filename containing the initial aerosol state at the start of the simulation --- the file format should be \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}}
+\item \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}}
+\item \mbox{\hyperlink{input_format_env_state}{Input File Format\+: Environment State}}
+\item {\bfseries do\+\_\+coagulation} (logical)\+: whether to perform particle coagulation. If {\ttfamily do\+\_\+coagulation} is {\ttfamily yes}, then the following parameters must also be provided\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{input_format_coag_kernel}{Input File Format\+: Coagulation Kernel}}
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+Example\+: 
+\begin{DoxyPre}
+ run\_type exact                  \# exact solution
+ output\_prefix additive\_exact    \# prefix of output files\end{DoxyPre}
+
+
+
+\begin{DoxyPre} t\_max 600                       \# total simulation time (s)
+ t\_output 60                     \# output interval (0 disables) (s)\end{DoxyPre}
+
+
+
+\begin{DoxyPre} n\_bin 160                       \# number of bins
+ d\_min 1e-8                      \# minimum diameter (m)
+ d\_max 1e-3                      \# maximum diameter (m)\end{DoxyPre}
+
+
+
+\begin{DoxyPre} gas\_data gas\_data.dat           \# file containing gas data\end{DoxyPre}
+
+
+
+\begin{DoxyPre} aerosol\_data aero\_data.dat      \# file containing aerosol data
+ do\_fractal no                   \# whether to do fractal treatment
+ aerosol\_init aero\_init\_dist.dat \# aerosol initial condition file\end{DoxyPre}
+
+
+
+\begin{DoxyPre} temp\_profile temp.dat           \# temperature profile file
+ height\_profile height.dat       \# height profile file
+ gas\_emissions gas\_emit.dat      \# gas emissions file
+ gas\_background gas\_back.dat     \# background gas mixing ratios file
+ aero\_emissions aero\_emit.dat    \# aerosol emissions file
+ aero\_background aero\_back.dat   \# aerosol background file\end{DoxyPre}
+
+
+
+\begin{DoxyPre} rel\_humidity 0.999              \# initial relative humidity (1)
+ pressure 1e5                    \# initial pressure (Pa)
+ latitude 0                      \# latitude (degrees, -90 to 90)
+ longitude 0                     \# longitude (degrees, -180 to 180)
+ altitude 0                      \# altitude (m)
+ start\_time 0                    \# start time (s since 00:00 UTC)
+ start\_day 1                     \# start day of year (UTC)\end{DoxyPre}
+
+
+
+\begin{DoxyPre} do\_coagulation yes              \# whether to do coagulation (yes/no)
+ kernel additive                 \# Additive coagulation kernel
+ \end{DoxyPre}
+ \hypertarget{input_format_diam_bin_grid}{}\subsection{Input File Format\+: Diameter Axis Bin Grid}\label{input_format_diam_bin_grid}
+Read the specification for a radius bin\+\_\+grid from a spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in,out}  & {\em bin\+\_\+grid} & Radius bin grid.\\
+\hline
+\end{DoxyParams}
+The diameter bin grid is logarithmic, consisting of $n_{\rm bin}$ bins with centers $c_i$ ( $i = 1,\ldots,n_{\rm bin}$) and edges $e_i$ ( $i = 1,\ldots,(n_{\rm bin} + 1)$) such that $e_{i+1}/e_i$ is a constant and $c_i/e_i = \sqrt{e_{i+1}/e_i}$. That is, $\ln(e_i)$ are uniformly spaced and $\ln(c_i)$ are the arithmetic centers.
+
+The diameter axis bin grid is specified by the parameters\+:
+\begin{DoxyItemize}
+\item {\bfseries n\+\_\+bin} (integer)\+: The number of bins $n_{\rm bin}$.
+\item {\bfseries d\+\_\+min} (real, unit m)\+: The left edge of the left-\/most bin, $e_1$.
+\item {\bfseries d\+\_\+max} (real, unit m)\+: The right edge of the right-\/most bin, $e_{n_{\rm bin} + 1}$.
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{output_format_diam_bin_grid}{Output File Format\+: Diameter Bin Grid Data}} --- the corresponding output format 
+\end{DoxyItemize}\hypertarget{input_format_gas_data}{}\subsection{Input File Format\+: Gas Material Data}\label{input_format_gas_data}
+Read gas data from a .spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file to read data from.\\
+\hline
+\mbox{\tt in,out}  & {\em gas\+\_\+data} & Gas data.\\
+\hline
+\end{DoxyParams}
+A gas material data file must consist of one line per gas species, with each line having the species name. This specifies which species are to be recognized as gases. For example, a {\ttfamily gas\+\_\+data} file could contain\+: 
+\begin{DoxyPre}
+ H2SO4
+ HNO3
+ HCl
+ NH3
+ \end{DoxyPre}
+
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{output_format_gas_data}{Output File Format\+: Gas Material Data}} --- the corresponding output format 
+\end{DoxyItemize}\hypertarget{input_format_aero_data}{}\subsection{Input File Format\+: Aerosol Material Data}\label{input_format_aero_data}
+Read aero\+\_\+data specification from a spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file to read data from.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+data} & Aero\+\_\+data data.\\
+\hline
+\end{DoxyParams}
+A aerosol material data file must consist of one line per aerosol species, with each line having\+:
+\begin{DoxyItemize}
+\item species name (string)
+\item density (real, unit kg/m$^\wedge$3)
+\item ions per fully dissociated molecule (integer) -\/ used to compute kappa value if the corresponding kappa value is zero
+\item molecular weight (real, unit kg/mol)
+\item kappa hygroscopicity parameter (real, dimensionless) -\/ if zero, then inferred from the ions value
+\end{DoxyItemize}
+
+This specifies both which species are to be recognized as aerosol consituents, as well as their physical properties. For example, an aerosol material data file could contain\+: 
+\begin{DoxyPre}
+ \# species  dens (kg/m^3)   ions (1)    molec wght (kg/mole)   kappa (1)
+ SO4        1800            0           96e-3                  0.65
+ NO3        1800            0           62e-3                  0.65
+ Cl         2200            1           35.5e-3                0
+ NH4        1800            0           18e-3                  0.65
+ \end{DoxyPre}
+
+
+Note that it is an error to specify a non-\/zero number of ions and a non-\/zero kappa value for a species. If both values are zero then that species has zero hygroscopicity parameter. If exactly one of kappa or ions is non-\/zero then the non-\/zero value is used and the zero value is ignored.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{output_format_aero_data}{Output File Format\+: Aerosol Material Data}} --- the corresponding output format 
+\end{DoxyItemize}\hypertarget{input_format_fractal}{}\subsection{Input File Format\+: Fractal Data}\label{input_format_fractal}
+Read fractal specification from a spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in,out}  & {\em fractal} & Fractal parameters.\\
+\hline
+\end{DoxyParams}
+The fractal parameters are all held constant for the simulation, and they are the same for all the particles.
+
+The fractal data file is specified by the parameters\+:
+\begin{DoxyItemize}
+\item {\bfseries frac\+\_\+dim} $d_{\rm f}$ (real, dimensionless)\+: the fractal dimension (3 for spherical and less than 3 for agglomerate)
+\item {\bfseries prime\+\_\+radius} $R_0$ (real, unit m)\+: radius of primary particles
+\item {\bfseries vol\+\_\+fill\+\_\+factor} $f$ (real, dimensionless)\+: the volume filling factor which accounts for the fact that even in a most closely packed structure the spherical monomers can occupy only 74\% of the available volume (1 for compact structure)
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{output_format_fractal}{Output File Format\+: Fractal Data}} --- the corresponding output format 
+\end{DoxyItemize}\hypertarget{input_format_aero_dist}{}\subsection{Input File Format\+: Aerosol Distribution}\label{input_format_aero_dist}
+Read continuous aerosol distribution composed of several modes.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file to read data from.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+data} & Aero\+\_\+data data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+dist} & Aerosol dist.\\
+\hline
+\end{DoxyParams}
+
+
+An aerosol distribution file consists of zero or more modes, each in the format described by \mbox{\hyperlink{input_format_aero_mode}{Input File Format\+: Aerosol Distribution Mode}}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_aero_mode}{Input File Format\+: Aerosol Distribution Mode}} --- the format for each mode of an aerosol distribution 
+\end{DoxyItemize}\hypertarget{input_format_aero_mode}{}\subsubsection{Input File Format\+: Aerosol Distribution Mode}\label{input_format_aero_mode}
+Read one mode of an aerosol distribution (number concentration, volume fractions, and mode shape).
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+data} & Aero\+\_\+data data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+mode} & Aerosol mode.\\
+\hline
+ & {\em eof} & If eof instead of reading data.\\
+\hline
+\end{DoxyParams}
+An aerosol distribution mode has the parameters\+: 
+\begin{DoxyItemize}
+\item {\bfseries mode\+\_\+name} (string)\+: the name of the mode (for informational purposes only) 
+\item {\bfseries mass\+\_\+frac} (string)\+: name of file from which to read the species mass fractions --- the file format should be \mbox{\hyperlink{input_format_mass_frac}{Input File Format\+: Aerosol Mass Fractions}} 
+\item {\bfseries diam\+\_\+type} (string)\+: the type of diameter for the mode --- must be one of\+: {\ttfamily geometric} for geometric diameter; or {\ttfamily mobility} for mobility equivalent diameter 
+\item if {\ttfamily diam\+\_\+type} is {\ttfamily mobility} then the following parameters are\+: 
+\begin{DoxyItemize}
+\item {\bfseries temp} (real, unit K)\+: the temperate at which the mobility diameters were measured 
+\item {\bfseries pressure} (real, unit Pa)\+: the pressure at which the mobility diameters were measured 
+\end{DoxyItemize}
+\item {\bfseries mode\+\_\+type} (string)\+: the functional form of the mode --- must be one of\+: {\ttfamily log\+\_\+normal} for a log-\/normal distribution; {\ttfamily exp} for an exponential distribution; {\ttfamily mono} for a mono-\/disperse distribution; or {\ttfamily sampled} for a sampled distribution 
+\item if {\ttfamily mode\+\_\+type} is {\ttfamily log\+\_\+normal} then the mode distribution shape is \[ n(\log D) {\rm d}\log D = \frac{N_{\rm total}}{\sqrt{2\pi} \log \sigma_{\rm g}} \exp\left(\frac{(\log D - \log D_{\rm gn})^2}{2 \log ^2 \sigma_{\rm g}}\right) {\rm d}\log D \] and the following parameters are\+: 
+\begin{DoxyItemize}
+\item {\bfseries num\+\_\+conc} (real, unit 1/m$^\wedge$3)\+: the total number concentration $N_{\rm total}$ of the mode 
+\item {\bfseries geom\+\_\+mean\+\_\+diam} (real, unit m)\+: the geometric mean diameter $D_{\rm gn}$ 
+\item {\bfseries log10\+\_\+geom\+\_\+std\+\_\+dev} (real, dimensionless)\+: $\log_{10}$ of the geometric standard deviation $\sigma_{\rm g}$ of the diameter 
+\end{DoxyItemize}
+\item if {\ttfamily mode\+\_\+type} is {\ttfamily exp} then the mode distribution shape is \[ n(v) {\rm d}v = \frac{N_{\rm total}}{v_{\rm \mu}} \exp\left(- \frac{v}{v_{\rm \mu}}\right) {\rm d}v \] and the following parameters are\+: 
+\begin{DoxyItemize}
+\item {\bfseries num\+\_\+conc} (real, unit 1/m$^\wedge$3)\+: the total number concentration $N_{\rm total}$ of the mode 
+\item {\bfseries diam\+\_\+at\+\_\+mean\+\_\+vol} (real, unit m)\+: the diameter $D_{\rm \mu}$ such that $v_{\rm \mu} = \frac{\pi}{6} D^3_{\rm \mu}$ 
+\end{DoxyItemize}
+\item if {\ttfamily mode\+\_\+type} is {\ttfamily mono} then the mode distribution shape is a delta distribution at diameter $D_0$ and the following parameters are\+: 
+\begin{DoxyItemize}
+\item {\bfseries num\+\_\+conc} (real, unit 1/m$^\wedge$3)\+: the total number concentration $N_{\rm total}$ of the mode 
+\item {\bfseries radius} (real, unit m)\+: the radius $R_0$ of the particles, so that $D_0 = 2 R_0$ 
+\end{DoxyItemize}
+\item if {\ttfamily mode\+\_\+type} is {\ttfamily sampled} then the mode distribution shape is piecewise constant (in log-\/diameter coordinates) and the following parameters are\+: 
+\begin{DoxyItemize}
+\item {\bfseries size\+\_\+dist} (string)\+: name of file from which to read the size distribution --- the file format should be \mbox{\hyperlink{input_format_size_dist}{Input File Format\+: Size Distribution}} 
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+Example\+: 
+\begin{DoxyPre}
+ mode\_name diesel          \# mode name (descriptive only)
+ mass\_frac comp\_diesel.dat \# mass fractions in each aerosol particle
+ mode\_type log\_normal      \# type of distribution
+ num\_conc 1.6e8            \# particle number density (\#/m^3)
+ geom\_mean\_diam 2.5e-8     \# geometric mean diameter (m)
+ log10\_geom\_std\_dev 0.24   \# log\_10 of geometric standard deviation
+ \end{DoxyPre}
+
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} --- the format for a complete aerosol distribution with several modes
+\item \mbox{\hyperlink{input_format_mass_frac}{Input File Format\+: Aerosol Mass Fractions}} --- the format for the mass fractions file 
+\end{DoxyItemize}\hypertarget{input_format_mass_frac}{}\subsection{Input File Format\+: Aerosol Mass Fractions}\label{input_format_mass_frac}
+Read volume fractions from a data file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file to read mass fractions from.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aero\+\_\+data data.\\
+\hline
+\mbox{\tt in,out}  & {\em vol\+\_\+frac} & Aerosol species volume fractions.\\
+\hline
+\mbox{\tt in,out}  & {\em vol\+\_\+frac\+\_\+std} & Aerosol species volume fraction standard deviations.\\
+\hline
+\end{DoxyParams}
+An aerosol mass fractions file must consist of one line per aerosol species, with each line having the species name followed by the species mass fraction in each aerosol particle. The valid species names are those specfied by the \mbox{\hyperlink{input_format_aero_data}{Input File Format\+: Aerosol Material Data}} file, but not all species have to be listed. Any missing species will have proportions of zero. If the proportions do not sum to 1 then they will be normalized before use. For example, a mass fractions file file could contain\+: 
+\begin{DoxyPre}
+ \# species   proportion
+ OC          0.3
+ BC          0.7
+ \end{DoxyPre}
+ indicating that the particles are 30\% organic carbon and 70\% black carbon.
+
+Optionally, the standard deviation can also be provided for each species as a second number on each line. For example, 
+\begin{DoxyPre}
+ \# species   proportion std\_dev
+ OC          0.3        0.1
+ BC          0.7        0.2
+ \end{DoxyPre}
+ indicates that the particles are on average 30\% OC and 70\% BC, but may vary to have particles with 20\% OC and 80\% BC, or 40\% OC and 60\% BC, for example. The standard deviations will be normalized by the sum of the proportions.
+
+Either all species in a given file must have standard deviations or none of them can.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} --- the format for a complete aerosol distribution with several modes
+\item \mbox{\hyperlink{input_format_aero_mode}{Input File Format\+: Aerosol Distribution Mode}} --- the format for each mode of an aerosol distribution 
+\end{DoxyItemize}\hypertarget{input_format_size_dist}{}\subsection{Input File Format\+: Size Distribution}\label{input_format_size_dist}
+Read a size distribution from a data file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file to read size distribution from.\\
+\hline
+\mbox{\tt in,out}  & {\em sample\+\_\+radius} & Sample radius values (m).\\
+\hline
+\mbox{\tt in,out}  & {\em sample\+\_\+num\+\_\+conc} & Sample number concentrations (m$^\wedge$\{-\/3\}).\\
+\hline
+\end{DoxyParams}
+A size distribution file must consist of two lines\+:
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily diam} and be followed by $N + 1$ space-\/separated real scalars, giving the diameters $D_1,\ldots,D_{N+1}$ of bin edges (m) --- these must be in increasing order, so $D_i < D_{i+1}$
+\item the second line must begin with {\ttfamily num\+\_\+conc} and be followed by $N$ space-\/separated real scalars, giving the number concenrations $C_1,\ldots,C_N$ in each bin (\#/m$^\wedge$3) --- $C_i$ is the total number concentrations of particles with diameters in $[D_i, D_{i+1}]$
+\end{DoxyItemize}
+
+The resulting size distribution is taken to be piecewise constant in log-\/diameter coordinates.
+
+Example\+: a size distribution could be\+: 
+\begin{DoxyPre}
+ diam 1e-7 1e-6 1e-5  \# bin edge diameters (m)
+ num\_conc 1e9 1e8     \# bin number concentrations (m^\{-3\})
+ \end{DoxyPre}
+ This distribution has 1e9 particles per cubic meter with diameters between 0.\+1 micron and 1 micron, and 1e8 particles per cubic meter with diameters between 1 micron and 10 micron.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} --- the format for a complete aerosol distribution with several modes
+\item \mbox{\hyperlink{input_format_aero_mode}{Input File Format\+: Aerosol Distribution Mode}} --- the format for each mode of an aerosol distribution 
+\end{DoxyItemize}\hypertarget{input_format_scenario}{}\subsection{Input File Format\+: Scenario}\label{input_format_scenario}
+Read environment data from an spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data values.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em scenario} & Scenario data.\\
+\hline
+\end{DoxyParams}
+The scenario parameters are\+: 
+\begin{DoxyItemize}
+\item {\bfseries temp\+\_\+profile} (string)\+: the name of the file from which to read the temperature profile --- the file format should be \mbox{\hyperlink{input_format_temp_profile}{Input File Format\+: Temperature Profile}} 
+\item {\bfseries pressure\+\_\+profile} (string)\+: the name of the file from which to read the pressure profile --- the file format should be \mbox{\hyperlink{input_format_pressure_profile}{Input File Format\+: Pressure Profile}} 
+\item {\bfseries height\+\_\+profile} (string)\+: the name of the file from which to read the mixing layer height profile --- the file format should be \mbox{\hyperlink{input_format_height_profile}{Input File Format\+: Mixing Layer Height Profile}} 
+\item {\bfseries gas\+\_\+emissions} (string)\+: the name of the file from which to read the gas emissions profile --- the file format should be \mbox{\hyperlink{input_format_gas_profile}{Input File Format\+: Gas Profile}} 
+\item {\bfseries gas\+\_\+background} (string)\+: the name of the file from which to read the gas background profile --- the file format should be \mbox{\hyperlink{input_format_gas_profile}{Input File Format\+: Gas Profile}} 
+\item {\bfseries aero\+\_\+emissions} (string)\+: the name of the file from which to read the aerosol emissions profile --- the file format should be \mbox{\hyperlink{input_format_aero_dist_profile}{Input File Format\+: Aerosol Distribution Profile}} 
+\item {\bfseries aero\+\_\+background} (string)\+: the name of the file from which to read the aerosol background profile --- the file format should be \mbox{\hyperlink{input_format_aero_dist_profile}{Input File Format\+: Aerosol Distribution Profile}} 
+\item {\bfseries loss\+\_\+function} (string)\+: the type of loss function --- must be one of\+: {\ttfamily none} for no particle loss, {\ttfamily constant} for constant loss rate, {\ttfamily volume} for particle loss proportional to particle volume, {\ttfamily drydep} for particle loss proportional to dry deposition velocity, or {\ttfamily chamber} for a chamber model. If {\ttfamily loss\+\_\+function} is {\ttfamily chamber}, then the following parameters must also be provided\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{input_format_chamber}{Input File Format\+: Chamber}} 
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format 
+\end{DoxyItemize}\hypertarget{input_format_temp_profile}{}\subsubsection{Input File Format\+: Temperature Profile}\label{input_format_temp_profile}
+A temperature profile input file must consist of two lines\+:
+
+
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the temperature set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily temp} and should be followed by $N$ space-\/separated real scalars, giving the temperatures (in K) at the corresponding times
+\end{DoxyItemize}
+
+The temperature profile is linearly interpolated between the specified times, while before the first time it takes the first temperature value and after the last time it takes the last temperature value.
+
+Example\+: 
+\begin{DoxyPre}
+ time  0    600  1800  \# time (in s) after simulation start
+ temp  270  290  280   \# temperature (in K)
+ \end{DoxyPre}
+ Here the temperature starts at 270~K at the start of the simulation, rises to 290~K after 10~min, and then falls again to 280~K at 30~min. Between these times the temperature is linearly interpolated, while after 30~min it is held constant at 280~K.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}} --- the environment data containing the temperature profile 
+\end{DoxyItemize}\hypertarget{input_format_pressure_profile}{}\subsubsection{Input File Format\+: Pressure Profile}\label{input_format_pressure_profile}
+A pressure profile input file must consist of two lines\+:
+
+
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the pressure set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily pressure} and should be followed by $N$ space-\/separated real scalars, giving the pressures (in Pa) at the corresponding times
+\end{DoxyItemize}
+
+The pressure profile is linearly interpolated between the specified times, while before the first time it takes the first pressure value and after the last time it takes the last pressure value.
+
+Example\+: 
+\begin{DoxyPre}
+ time      0    600  1800  \# time (in s) after simulation start
+ pressure  1e5  9e4  7.5e4 \# pressure (in Pa)
+ \end{DoxyPre}
+ Here the pressure starts at 1e5~Pa at the start of the simulation, decreases to 9e4~Pa after 10~min, and then decreases further to 7.\+5e4~Pa at 30~min. Between these times the pressure is linearly interpolated, while after 30~min it is held constant at 7.\+5e4~Pa.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}} --- the environment data containing the pressure profile 
+\end{DoxyItemize}\hypertarget{input_format_height_profile}{}\subsubsection{Input File Format\+: Mixing Layer Height Profile}\label{input_format_height_profile}
+A mixing layer height profile input file must consist of two lines\+:
+
+
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the height set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily height} and should be followed by $N$ space-\/separated real scalars, giving the mixing layer heights (in m) at the corresponding times
+\end{DoxyItemize}
+
+The mixing layer height profile is linearly interpolated between the specified times, while before the first time it takes the first height value and after the last time it takes the last height value.
+
+Example\+: 
+\begin{DoxyPre}
+ time    0    600   1800  \# time (in s) after simulation start
+ height  500  1000  800   \# mixing layer height (in m)
+ \end{DoxyPre}
+ Here the mixing layer height starts at 500~m at the start of the simulation, rises to 1000~m after 10~min, and then falls again to 800~m at 30~min. Between these times the mixing layer height is linearly interpolated, while after 30~min it is held constant at 800~m.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}} --- the environment data containing the mixing layer height profile 
+\end{DoxyItemize}\hypertarget{input_format_gas_profile}{}\subsubsection{Input File Format\+: Gas Profile}\label{input_format_gas_profile}
+Read an array of gas states with associated times and rates from the file named on the line read from the given file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data.\\
+\hline
+ & {\em times} & Times (s).\\
+\hline
+ & {\em rates} & Rates (s$^\wedge$\{-\/1\}).\\
+\hline
+ & {\em gas\+\_\+states} & Gas states.\\
+\hline
+\end{DoxyParams}
+A gas profile input file must consist of three or more lines, consisting of\+:
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the gas set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily rate} and should be followed by $N$ space-\/separated real scalars, giving the values at the corresponding times
+\item the third and subsequent lines specify gas species, one species per line, with each line beginning with the species name and followed by $N$ space-\/separated scalars giving the gas state of that species at the corresponding times
+\end{DoxyItemize}
+
+The units and meanings of the rate and species lines depends on the type of gas profile\+:
+\begin{DoxyItemize}
+\item emissions gas profiles have dimensionless rates that are used to scale the species rates and species giving emission rates with units of mol/(m$^\wedge$2 s) --- the emission rate is divided by the current mixing layer height to give a per-\/volume emission rate
+\item background gas profiles have rates with units s$^\wedge$\{-\/1\} that are dilution rates and species with units of ppb (parts per billion) that are the background mixing ratios
+\end{DoxyItemize}
+
+The species names must be those specified by the \mbox{\hyperlink{input_format_gas_data}{Input File Format\+: Gas Material Data}}. Any species not listed are taken to be zero.
+
+Between the specified times the gas profile is interpolated step-\/wise and kept constant at its last value. That is, if the times are $t_i$, the rates are $r_i$, and the gas states are $g_i$ (all with $i = 1,\ldots,n$), then between times $t_i$ and $t_{i+1}$ the gas state is constant at $r_i g_i$. Before time $t_1$ the gas state is $r_1 g_1$, while after time $t_n$ it is $r_n g_n$.
+
+Example\+: an emissions gas profile could be\+: 
+\begin{DoxyPre}
+ time   0       600     1800    \# time (in s) after simulation start
+ rate   1       0.5     1       \# scaling factor
+ H2SO4  0       0       0       \# emission rate in mol/(m^2 s)
+ SO2    4e-9    5.6e-9  5e-9    \# emission rate in mol/(m^2 s)
+ \end{DoxyPre}
+ Here there are no emissions of $\rm H_2SO_4$, while $\rm SO_2$ starts out being emitted at $4\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$ at the start of the simulation, before falling to a rate of $2.8\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$ at 10~min (note the scaling of 0.\+5), and then rising again to $5\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$ after 30~min. Between 0~min and 10~min the emissions are the same as at 0~min, while between 10~min and 30~min they are the same as at 10~min. After 30~min they are held constant at their final value.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_gas_data}{Input File Format\+: Gas Material Data}} --- the gas species list and material data 
+\end{DoxyItemize}\hypertarget{input_format_gas_profile}{}\subsubsection{Input File Format\+: Gas Profile}\label{input_format_gas_profile}
+Read an array of gas states with associated times and rates from the file named on the line read from the given file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data.\\
+\hline
+ & {\em times} & Times (s).\\
+\hline
+ & {\em rates} & Rates (s$^\wedge$\{-\/1\}).\\
+\hline
+ & {\em gas\+\_\+states} & Gas states.\\
+\hline
+\end{DoxyParams}
+A gas profile input file must consist of three or more lines, consisting of\+:
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the gas set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily rate} and should be followed by $N$ space-\/separated real scalars, giving the values at the corresponding times
+\item the third and subsequent lines specify gas species, one species per line, with each line beginning with the species name and followed by $N$ space-\/separated scalars giving the gas state of that species at the corresponding times
+\end{DoxyItemize}
+
+The units and meanings of the rate and species lines depends on the type of gas profile\+:
+\begin{DoxyItemize}
+\item emissions gas profiles have dimensionless rates that are used to scale the species rates and species giving emission rates with units of mol/(m$^\wedge$2 s) --- the emission rate is divided by the current mixing layer height to give a per-\/volume emission rate
+\item background gas profiles have rates with units s$^\wedge$\{-\/1\} that are dilution rates and species with units of ppb (parts per billion) that are the background mixing ratios
+\end{DoxyItemize}
+
+The species names must be those specified by the \mbox{\hyperlink{input_format_gas_data}{Input File Format\+: Gas Material Data}}. Any species not listed are taken to be zero.
+
+Between the specified times the gas profile is interpolated step-\/wise and kept constant at its last value. That is, if the times are $t_i$, the rates are $r_i$, and the gas states are $g_i$ (all with $i = 1,\ldots,n$), then between times $t_i$ and $t_{i+1}$ the gas state is constant at $r_i g_i$. Before time $t_1$ the gas state is $r_1 g_1$, while after time $t_n$ it is $r_n g_n$.
+
+Example\+: an emissions gas profile could be\+: 
+\begin{DoxyPre}
+ time   0       600     1800    \# time (in s) after simulation start
+ rate   1       0.5     1       \# scaling factor
+ H2SO4  0       0       0       \# emission rate in mol/(m^2 s)
+ SO2    4e-9    5.6e-9  5e-9    \# emission rate in mol/(m^2 s)
+ \end{DoxyPre}
+ Here there are no emissions of $\rm H_2SO_4$, while $\rm SO_2$ starts out being emitted at $4\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$ at the start of the simulation, before falling to a rate of $2.8\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$ at 10~min (note the scaling of 0.\+5), and then rising again to $5\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$ after 30~min. Between 0~min and 10~min the emissions are the same as at 0~min, while between 10~min and 30~min they are the same as at 10~min. After 30~min they are held constant at their final value.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_gas_data}{Input File Format\+: Gas Material Data}} --- the gas species list and material data 
+\end{DoxyItemize}\hypertarget{input_format_aero_dist_profile}{}\subsubsection{Input File Format\+: Aerosol Distribution Profile}\label{input_format_aero_dist_profile}
+Read an array of aero\+\_\+dists with associated times and rates from the given file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file to read data from.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+data} & Aero data.\\
+\hline
+ & {\em times} & Times (s).\\
+\hline
+ & {\em rates} & Rates (s$^\wedge$\{-\/1\}).\\
+\hline
+ & {\em aero\+\_\+dists} & Aero dists.\\
+\hline
+\end{DoxyParams}
+An aerosol distribution profile input file must consist of three lines\+:
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the aerosol distrbution set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily rate} and should be followed by $N$ space-\/separated real scalars, giving the values at the corresponding times
+\item the third line must begin with {\ttfamily dist} and should be followed by $N$ space-\/separated filenames, each specifying an aerosol distribution in the format \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} at the corresponding time
+\end{DoxyItemize}
+
+The units of the {\ttfamily rate} line depend on the type of aerosol distribution profile\+:
+\begin{DoxyItemize}
+\item Emissions aerosol profiles have rates with units m/s --- the aerosol distribution number concentrations are multiplied by the rate to give an emission rate with unit \#/(m$^\wedge$2 s) which is then divided by the current mixing layer height to give a per-\/volume emission rate.
+\item Background aerosol profiles have rates with units $\rm s^{-1}$, which is the dilution rate between the background and the simulated air parcel. That is, if the simulated number concentration is $N$ and the background number concentration is $N_{\rm back}$, then dilution is modeled as $\dot{N} = r N_{\rm back} - r N$, where $r$ is the rate.
+\end{DoxyItemize}
+
+Between the specified times the aerosol profile is interpolated step-\/wise and kept constant at its last value. That is, if the times are $t_i$, the rates are $r_i$, and the aerosol distributions are $a_i$ (all with $i = 1,\ldots,n$), then between times $t_i$ and $t_{i+1}$ the aerosol state is constant at $r_i a_i$. Before time $t_1$ the aerosol state is $r_1 a_1$, while after time $t_n$ it is $r_n a_n$.
+
+Example\+: an emissions aerosol profile could be\+: 
+\begin{DoxyPre}
+ time  0          600        1800       \# time (in s) after sim start
+ rate  1          0.5        1          \# scaling factor in m/s
+ dist  dist1.dat  dist2.dat  dist3.dat  \# aerosol distribution files
+ \end{DoxyPre}
+ Here the emissions between 0~min and 10~min are given by {\ttfamily dist1.\+dat} (with the number concentration interpreted as having units 1/(m$^\wedge$2 s)), the emissions between 10~min and 30~min are given by {\ttfamily dist2.\+dat} (scaled by 0.\+5), while the emissions after 30~min are given by {\ttfamily dist3.\+dat}.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_aero_data}{Input File Format\+: Aerosol Material Data}} --- the aerosol species list and material data
+\item \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} --- the format of the instantaneous aerosol distribution files 
+\end{DoxyItemize}\hypertarget{input_format_aero_dist_profile}{}\subsubsection{Input File Format\+: Aerosol Distribution Profile}\label{input_format_aero_dist_profile}
+Read an array of aero\+\_\+dists with associated times and rates from the given file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file to read data from.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+data} & Aero data.\\
+\hline
+ & {\em times} & Times (s).\\
+\hline
+ & {\em rates} & Rates (s$^\wedge$\{-\/1\}).\\
+\hline
+ & {\em aero\+\_\+dists} & Aero dists.\\
+\hline
+\end{DoxyParams}
+An aerosol distribution profile input file must consist of three lines\+:
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the aerosol distrbution set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily rate} and should be followed by $N$ space-\/separated real scalars, giving the values at the corresponding times
+\item the third line must begin with {\ttfamily dist} and should be followed by $N$ space-\/separated filenames, each specifying an aerosol distribution in the format \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} at the corresponding time
+\end{DoxyItemize}
+
+The units of the {\ttfamily rate} line depend on the type of aerosol distribution profile\+:
+\begin{DoxyItemize}
+\item Emissions aerosol profiles have rates with units m/s --- the aerosol distribution number concentrations are multiplied by the rate to give an emission rate with unit \#/(m$^\wedge$2 s) which is then divided by the current mixing layer height to give a per-\/volume emission rate.
+\item Background aerosol profiles have rates with units $\rm s^{-1}$, which is the dilution rate between the background and the simulated air parcel. That is, if the simulated number concentration is $N$ and the background number concentration is $N_{\rm back}$, then dilution is modeled as $\dot{N} = r N_{\rm back} - r N$, where $r$ is the rate.
+\end{DoxyItemize}
+
+Between the specified times the aerosol profile is interpolated step-\/wise and kept constant at its last value. That is, if the times are $t_i$, the rates are $r_i$, and the aerosol distributions are $a_i$ (all with $i = 1,\ldots,n$), then between times $t_i$ and $t_{i+1}$ the aerosol state is constant at $r_i a_i$. Before time $t_1$ the aerosol state is $r_1 a_1$, while after time $t_n$ it is $r_n a_n$.
+
+Example\+: an emissions aerosol profile could be\+: 
+\begin{DoxyPre}
+ time  0          600        1800       \# time (in s) after sim start
+ rate  1          0.5        1          \# scaling factor in m/s
+ dist  dist1.dat  dist2.dat  dist3.dat  \# aerosol distribution files
+ \end{DoxyPre}
+ Here the emissions between 0~min and 10~min are given by {\ttfamily dist1.\+dat} (with the number concentration interpreted as having units 1/(m$^\wedge$2 s)), the emissions between 10~min and 30~min are given by {\ttfamily dist2.\+dat} (scaled by 0.\+5), while the emissions after 30~min are given by {\ttfamily dist3.\+dat}.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_aero_data}{Input File Format\+: Aerosol Material Data}} --- the aerosol species list and material data
+\item \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} --- the format of the instantaneous aerosol distribution files 
+\end{DoxyItemize}\hypertarget{input_format_chamber}{}\subsubsection{Input File Format\+: Chamber}\label{input_format_chamber}
+Read chamber specification from a spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in,out}  & {\em chamber} & Chamber data.\\
+\hline
+\end{DoxyParams}
+The chamber model is specified by the parameters\+:
+\begin{DoxyItemize}
+\item {\bfseries chamber\+\_\+vol} (real, unit m$^\wedge$3)\+: the volume of the chamber
+\item {\bfseries area\+\_\+diffuse} (real, unit m$^\wedge$2)\+: the surface area in the chamber available for wall diffusion deposition (the total surface area)
+\item {\bfseries area\+\_\+sedi} (real, unit m$^\wedge$2)\+: the surface area in the chamber available for sedimentation deposition (the floor area)
+\item {\bfseries prefactor\+\_\+\+BL} (real, unit m)\+: the coefficient $k_{\rm D}$ in the model $ \delta = k_{\rm D}(D/D_0)^a $ for boundary-\/layer thickness $ \delta $
+\item {\bfseries exponent\+\_\+\+BL} (real, dimensionless)\+: the exponent $a$ in the model $ \delta = k_{\rm D}(D/D_0)^a $ for boundary-\/layer thickness $ \delta $
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}} --- the prescribed profiles of other environment data 
+\end{DoxyItemize}\hypertarget{input_format_env_state}{}\subsection{Input File Format\+: Environment State}\label{input_format_env_state}
+Read environment specification from a spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in,out}  & {\em env\+\_\+state} & Environment data.\\
+\hline
+\end{DoxyParams}
+The environment parameters are divided into those specified at the start of the simulation and then either held constant or computed for the rest of the simulation, and those parameters given as prescribed profiles for the entire simulation duration. The variables below are for the first type --- for the prescribed profiles see \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}}.
+
+The environment state is specified by the parameters\+:
+\begin{DoxyItemize}
+\item {\bfseries rel\+\_\+humidity} (real, dimensionless)\+: the relative humidity (0 is completely unsaturated and 1 is fully saturated)
+\item {\bfseries latitude} (real, unit degrees\+\_\+north)\+: the latitude of the simulation location
+\item {\bfseries longitude} (real, unit degrees\+\_\+east)\+: the longitude of the simulation location
+\item {\bfseries altitude} (real, unit m)\+: the altitude of the simulation location
+\item {\bfseries start\+\_\+time} (real, unit s)\+: the time-\/of-\/day of the start of the simulation (in seconds past midnight)
+\item {\bfseries start\+\_\+day} (integer)\+: the day-\/of-\/year of the start of the simulation (starting from 1 on the first day of the year)
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{output_format_env_state}{Output File Format\+: Environment State}} --- the corresponding output format
+\item \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}} --- the prescribed profiles of other environment data 
+\end{DoxyItemize}\hypertarget{input_format_coag_kernel}{}\subsection{Input File Format\+: Coagulation Kernel}\label{input_format_coag_kernel}
+Read the specification for a kernel type from a spec file and generate it.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt out}  & {\em coag\+\_\+kernel\+\_\+type} & Kernel type.\\
+\hline
+\end{DoxyParams}
+The coagulation kernel is specified by the parameter\+:
+\begin{DoxyItemize}
+\item {\bfseries coag\+\_\+kernel} (string)\+: the type of coagulation kernel --- must be one of\+: {\ttfamily sedi} for the gravitational sedimentation kernel; {\ttfamily additive} for the additive kernel; {\ttfamily constant} for the constant kernel; {\ttfamily brown} for the Brownian kernel, or {\ttfamily zero} for no coagulation
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format 
+\end{DoxyItemize}\hypertarget{input_format_sectional}{}\section{Sectional Model Simulation}\label{input_format_sectional}
+Run a sectional code simulation.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\end{DoxyParams}
+See \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} for the input file text format.
+
+A sectional simulation spec file has the parameters\+:
+\begin{DoxyItemize}
+\item {\bfseries run\+\_\+type} (string)\+: must be {\ttfamily sectional} 
+\item {\bfseries output\+\_\+prefix} (string)\+: prefix of the output filenames --- the filenames will be of the form {\ttfamily P\+R\+E\+F\+I\+X\+\_\+\+S\+S\+S\+S\+S\+S\+S\+S.\+nc} where {\ttfamily S\+S\+S\+S\+S\+S\+SS} is is the eight-\/digit output index (starting at 1 and incremented each time the state is output)
+\item {\bfseries del\+\_\+t} (real, unit s)\+: timestep size
+\item {\bfseries t\+\_\+output} (real, unit s)\+: the interval on which to output data to disk (see \mbox{\hyperlink{output_format}{Output File Format}})
+\item {\bfseries t\+\_\+progress} (real, unit s)\+: the interval on which to write summary information to the screen while running
+\item \mbox{\hyperlink{input_format_diam_bin_grid}{Input File Format\+: Diameter Axis Bin Grid}}
+\item {\bfseries gas\+\_\+data} (string)\+: name of file from which to read the gas material data --- the file format should be \mbox{\hyperlink{input_format_gas_data}{Input File Format\+: Gas Material Data}}
+\item {\bfseries aerosol\+\_\+data} (string)\+: name of file from which to read the aerosol material data --- the file format should be \mbox{\hyperlink{input_format_aero_data}{Input File Format\+: Aerosol Material Data}}
+\item {\bfseries do\+\_\+fractal} (logical)\+: whether to consider particles as fractal agglomerates. If {\ttfamily do\+\_\+fractal} is {\ttfamily no}, then all the particles are treated as spherical. If {\ttfamily do\+\_\+fractal} is {\ttfamily yes}, then the following parameters must also be provided\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{input_format_fractal}{Input File Format\+: Fractal Data}}
+\end{DoxyItemize}
+\item {\bfseries aerosol\+\_\+init} (string)\+: filename containing the initial aerosol state at the start of the simulation --- the file format should be \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}}
+\item \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}}
+\item \mbox{\hyperlink{input_format_env_state}{Input File Format\+: Environment State}}
+\item {\bfseries do\+\_\+coagulation} (logical)\+: whether to perform particle coagulation. If {\ttfamily do\+\_\+coagulation} is {\ttfamily yes}, then the following parameters must also be provided\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{input_format_coag_kernel}{Input File Format\+: Coagulation Kernel}}
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+Example\+: 
+\begin{DoxyPre}
+ run\_type sectional              \# sectional code run
+ output\_prefix brown\_sect        \# prefix of output files\end{DoxyPre}
+
+
+
+\begin{DoxyPre} t\_max 86400                     \# total simulation time (s)
+ del\_t 60                        \# timestep (s)
+ t\_output 3600                   \# output interval (0 disables) (s)
+ t\_progress 600                  \# progress printing interval (0 disables) (s)\end{DoxyPre}
+
+
+
+\begin{DoxyPre} n\_bin 220                       \# number of bins
+ d\_min 1e-10                     \# minimum diameter (m)
+ d\_max 1e-4                      \# maximum diameter (m)\end{DoxyPre}
+
+
+
+\begin{DoxyPre} gas\_data gas\_data.dat           \# file containing gas data
+ aerosol\_data aero\_data.dat      \# file containing aerosol data
+ do\_fractal no                   \# whether to do fractal treatment
+ aerosol\_init aero\_init\_dist.dat \# initial aerosol distribution\end{DoxyPre}
+
+
+
+\begin{DoxyPre} temp\_profile temp.dat           \# temperature profile file
+ height\_profile height.dat       \# height profile file
+ gas\_emissions gas\_emit.dat      \# gas emissions file
+ gas\_background gas\_back.dat     \# background gas mixing ratios file
+ aero\_emissions aero\_emit.dat    \# aerosol emissions file
+ aero\_background aero\_back.dat   \# aerosol background file\end{DoxyPre}
+
+
+
+\begin{DoxyPre} rel\_humidity 0.999              \# initial relative humidity (1)
+ pressure 1e5                    \# initial pressure (Pa)
+ latitude 0                      \# latitude (degrees\_north, -90 to 90)
+ longitude 0                     \# longitude (degrees\_east, -180 to 180)
+ altitude 0                      \# altitude (m)
+ start\_time 0                    \# start time (s since 00:00 UTC)
+ start\_day 1                     \# start day of year (UTC)\end{DoxyPre}
+
+
+
+\begin{DoxyPre} do\_coagulation yes              \# whether to do coagulation (yes/no)
+ kernel brown                    \# coagulation kernel
+ \end{DoxyPre}
+ \hypertarget{input_format_diam_bin_grid}{}\subsection{Input File Format\+: Diameter Axis Bin Grid}\label{input_format_diam_bin_grid}
+Read the specification for a radius bin\+\_\+grid from a spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in,out}  & {\em bin\+\_\+grid} & Radius bin grid.\\
+\hline
+\end{DoxyParams}
+The diameter bin grid is logarithmic, consisting of $n_{\rm bin}$ bins with centers $c_i$ ( $i = 1,\ldots,n_{\rm bin}$) and edges $e_i$ ( $i = 1,\ldots,(n_{\rm bin} + 1)$) such that $e_{i+1}/e_i$ is a constant and $c_i/e_i = \sqrt{e_{i+1}/e_i}$. That is, $\ln(e_i)$ are uniformly spaced and $\ln(c_i)$ are the arithmetic centers.
+
+The diameter axis bin grid is specified by the parameters\+:
+\begin{DoxyItemize}
+\item {\bfseries n\+\_\+bin} (integer)\+: The number of bins $n_{\rm bin}$.
+\item {\bfseries d\+\_\+min} (real, unit m)\+: The left edge of the left-\/most bin, $e_1$.
+\item {\bfseries d\+\_\+max} (real, unit m)\+: The right edge of the right-\/most bin, $e_{n_{\rm bin} + 1}$.
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{output_format_diam_bin_grid}{Output File Format\+: Diameter Bin Grid Data}} --- the corresponding output format 
+\end{DoxyItemize}\hypertarget{input_format_gas_data}{}\subsection{Input File Format\+: Gas Material Data}\label{input_format_gas_data}
+Read gas data from a .spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file to read data from.\\
+\hline
+\mbox{\tt in,out}  & {\em gas\+\_\+data} & Gas data.\\
+\hline
+\end{DoxyParams}
+A gas material data file must consist of one line per gas species, with each line having the species name. This specifies which species are to be recognized as gases. For example, a {\ttfamily gas\+\_\+data} file could contain\+: 
+\begin{DoxyPre}
+ H2SO4
+ HNO3
+ HCl
+ NH3
+ \end{DoxyPre}
+
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{output_format_gas_data}{Output File Format\+: Gas Material Data}} --- the corresponding output format 
+\end{DoxyItemize}\hypertarget{input_format_aero_data}{}\subsection{Input File Format\+: Aerosol Material Data}\label{input_format_aero_data}
+Read aero\+\_\+data specification from a spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file to read data from.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+data} & Aero\+\_\+data data.\\
+\hline
+\end{DoxyParams}
+A aerosol material data file must consist of one line per aerosol species, with each line having\+:
+\begin{DoxyItemize}
+\item species name (string)
+\item density (real, unit kg/m$^\wedge$3)
+\item ions per fully dissociated molecule (integer) -\/ used to compute kappa value if the corresponding kappa value is zero
+\item molecular weight (real, unit kg/mol)
+\item kappa hygroscopicity parameter (real, dimensionless) -\/ if zero, then inferred from the ions value
+\end{DoxyItemize}
+
+This specifies both which species are to be recognized as aerosol consituents, as well as their physical properties. For example, an aerosol material data file could contain\+: 
+\begin{DoxyPre}
+ \# species  dens (kg/m^3)   ions (1)    molec wght (kg/mole)   kappa (1)
+ SO4        1800            0           96e-3                  0.65
+ NO3        1800            0           62e-3                  0.65
+ Cl         2200            1           35.5e-3                0
+ NH4        1800            0           18e-3                  0.65
+ \end{DoxyPre}
+
+
+Note that it is an error to specify a non-\/zero number of ions and a non-\/zero kappa value for a species. If both values are zero then that species has zero hygroscopicity parameter. If exactly one of kappa or ions is non-\/zero then the non-\/zero value is used and the zero value is ignored.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{output_format_aero_data}{Output File Format\+: Aerosol Material Data}} --- the corresponding output format 
+\end{DoxyItemize}\hypertarget{input_format_fractal}{}\subsection{Input File Format\+: Fractal Data}\label{input_format_fractal}
+Read fractal specification from a spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in,out}  & {\em fractal} & Fractal parameters.\\
+\hline
+\end{DoxyParams}
+The fractal parameters are all held constant for the simulation, and they are the same for all the particles.
+
+The fractal data file is specified by the parameters\+:
+\begin{DoxyItemize}
+\item {\bfseries frac\+\_\+dim} $d_{\rm f}$ (real, dimensionless)\+: the fractal dimension (3 for spherical and less than 3 for agglomerate)
+\item {\bfseries prime\+\_\+radius} $R_0$ (real, unit m)\+: radius of primary particles
+\item {\bfseries vol\+\_\+fill\+\_\+factor} $f$ (real, dimensionless)\+: the volume filling factor which accounts for the fact that even in a most closely packed structure the spherical monomers can occupy only 74\% of the available volume (1 for compact structure)
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{output_format_fractal}{Output File Format\+: Fractal Data}} --- the corresponding output format 
+\end{DoxyItemize}\hypertarget{input_format_aero_dist}{}\subsection{Input File Format\+: Aerosol Distribution}\label{input_format_aero_dist}
+Read continuous aerosol distribution composed of several modes.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file to read data from.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+data} & Aero\+\_\+data data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+dist} & Aerosol dist.\\
+\hline
+\end{DoxyParams}
+
+
+An aerosol distribution file consists of zero or more modes, each in the format described by \mbox{\hyperlink{input_format_aero_mode}{Input File Format\+: Aerosol Distribution Mode}}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_aero_mode}{Input File Format\+: Aerosol Distribution Mode}} --- the format for each mode of an aerosol distribution 
+\end{DoxyItemize}\hypertarget{input_format_aero_mode}{}\subsubsection{Input File Format\+: Aerosol Distribution Mode}\label{input_format_aero_mode}
+Read one mode of an aerosol distribution (number concentration, volume fractions, and mode shape).
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+data} & Aero\+\_\+data data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+mode} & Aerosol mode.\\
+\hline
+ & {\em eof} & If eof instead of reading data.\\
+\hline
+\end{DoxyParams}
+An aerosol distribution mode has the parameters\+: 
+\begin{DoxyItemize}
+\item {\bfseries mode\+\_\+name} (string)\+: the name of the mode (for informational purposes only) 
+\item {\bfseries mass\+\_\+frac} (string)\+: name of file from which to read the species mass fractions --- the file format should be \mbox{\hyperlink{input_format_mass_frac}{Input File Format\+: Aerosol Mass Fractions}} 
+\item {\bfseries diam\+\_\+type} (string)\+: the type of diameter for the mode --- must be one of\+: {\ttfamily geometric} for geometric diameter; or {\ttfamily mobility} for mobility equivalent diameter 
+\item if {\ttfamily diam\+\_\+type} is {\ttfamily mobility} then the following parameters are\+: 
+\begin{DoxyItemize}
+\item {\bfseries temp} (real, unit K)\+: the temperate at which the mobility diameters were measured 
+\item {\bfseries pressure} (real, unit Pa)\+: the pressure at which the mobility diameters were measured 
+\end{DoxyItemize}
+\item {\bfseries mode\+\_\+type} (string)\+: the functional form of the mode --- must be one of\+: {\ttfamily log\+\_\+normal} for a log-\/normal distribution; {\ttfamily exp} for an exponential distribution; {\ttfamily mono} for a mono-\/disperse distribution; or {\ttfamily sampled} for a sampled distribution 
+\item if {\ttfamily mode\+\_\+type} is {\ttfamily log\+\_\+normal} then the mode distribution shape is \[ n(\log D) {\rm d}\log D = \frac{N_{\rm total}}{\sqrt{2\pi} \log \sigma_{\rm g}} \exp\left(\frac{(\log D - \log D_{\rm gn})^2}{2 \log ^2 \sigma_{\rm g}}\right) {\rm d}\log D \] and the following parameters are\+: 
+\begin{DoxyItemize}
+\item {\bfseries num\+\_\+conc} (real, unit 1/m$^\wedge$3)\+: the total number concentration $N_{\rm total}$ of the mode 
+\item {\bfseries geom\+\_\+mean\+\_\+diam} (real, unit m)\+: the geometric mean diameter $D_{\rm gn}$ 
+\item {\bfseries log10\+\_\+geom\+\_\+std\+\_\+dev} (real, dimensionless)\+: $\log_{10}$ of the geometric standard deviation $\sigma_{\rm g}$ of the diameter 
+\end{DoxyItemize}
+\item if {\ttfamily mode\+\_\+type} is {\ttfamily exp} then the mode distribution shape is \[ n(v) {\rm d}v = \frac{N_{\rm total}}{v_{\rm \mu}} \exp\left(- \frac{v}{v_{\rm \mu}}\right) {\rm d}v \] and the following parameters are\+: 
+\begin{DoxyItemize}
+\item {\bfseries num\+\_\+conc} (real, unit 1/m$^\wedge$3)\+: the total number concentration $N_{\rm total}$ of the mode 
+\item {\bfseries diam\+\_\+at\+\_\+mean\+\_\+vol} (real, unit m)\+: the diameter $D_{\rm \mu}$ such that $v_{\rm \mu} = \frac{\pi}{6} D^3_{\rm \mu}$ 
+\end{DoxyItemize}
+\item if {\ttfamily mode\+\_\+type} is {\ttfamily mono} then the mode distribution shape is a delta distribution at diameter $D_0$ and the following parameters are\+: 
+\begin{DoxyItemize}
+\item {\bfseries num\+\_\+conc} (real, unit 1/m$^\wedge$3)\+: the total number concentration $N_{\rm total}$ of the mode 
+\item {\bfseries radius} (real, unit m)\+: the radius $R_0$ of the particles, so that $D_0 = 2 R_0$ 
+\end{DoxyItemize}
+\item if {\ttfamily mode\+\_\+type} is {\ttfamily sampled} then the mode distribution shape is piecewise constant (in log-\/diameter coordinates) and the following parameters are\+: 
+\begin{DoxyItemize}
+\item {\bfseries size\+\_\+dist} (string)\+: name of file from which to read the size distribution --- the file format should be \mbox{\hyperlink{input_format_size_dist}{Input File Format\+: Size Distribution}} 
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+Example\+: 
+\begin{DoxyPre}
+ mode\_name diesel          \# mode name (descriptive only)
+ mass\_frac comp\_diesel.dat \# mass fractions in each aerosol particle
+ mode\_type log\_normal      \# type of distribution
+ num\_conc 1.6e8            \# particle number density (\#/m^3)
+ geom\_mean\_diam 2.5e-8     \# geometric mean diameter (m)
+ log10\_geom\_std\_dev 0.24   \# log\_10 of geometric standard deviation
+ \end{DoxyPre}
+
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} --- the format for a complete aerosol distribution with several modes
+\item \mbox{\hyperlink{input_format_mass_frac}{Input File Format\+: Aerosol Mass Fractions}} --- the format for the mass fractions file 
+\end{DoxyItemize}\hypertarget{input_format_mass_frac}{}\subsection{Input File Format\+: Aerosol Mass Fractions}\label{input_format_mass_frac}
+Read volume fractions from a data file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file to read mass fractions from.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aero\+\_\+data data.\\
+\hline
+\mbox{\tt in,out}  & {\em vol\+\_\+frac} & Aerosol species volume fractions.\\
+\hline
+\mbox{\tt in,out}  & {\em vol\+\_\+frac\+\_\+std} & Aerosol species volume fraction standard deviations.\\
+\hline
+\end{DoxyParams}
+An aerosol mass fractions file must consist of one line per aerosol species, with each line having the species name followed by the species mass fraction in each aerosol particle. The valid species names are those specfied by the \mbox{\hyperlink{input_format_aero_data}{Input File Format\+: Aerosol Material Data}} file, but not all species have to be listed. Any missing species will have proportions of zero. If the proportions do not sum to 1 then they will be normalized before use. For example, a mass fractions file file could contain\+: 
+\begin{DoxyPre}
+ \# species   proportion
+ OC          0.3
+ BC          0.7
+ \end{DoxyPre}
+ indicating that the particles are 30\% organic carbon and 70\% black carbon.
+
+Optionally, the standard deviation can also be provided for each species as a second number on each line. For example, 
+\begin{DoxyPre}
+ \# species   proportion std\_dev
+ OC          0.3        0.1
+ BC          0.7        0.2
+ \end{DoxyPre}
+ indicates that the particles are on average 30\% OC and 70\% BC, but may vary to have particles with 20\% OC and 80\% BC, or 40\% OC and 60\% BC, for example. The standard deviations will be normalized by the sum of the proportions.
+
+Either all species in a given file must have standard deviations or none of them can.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} --- the format for a complete aerosol distribution with several modes
+\item \mbox{\hyperlink{input_format_aero_mode}{Input File Format\+: Aerosol Distribution Mode}} --- the format for each mode of an aerosol distribution 
+\end{DoxyItemize}\hypertarget{input_format_size_dist}{}\subsection{Input File Format\+: Size Distribution}\label{input_format_size_dist}
+Read a size distribution from a data file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file to read size distribution from.\\
+\hline
+\mbox{\tt in,out}  & {\em sample\+\_\+radius} & Sample radius values (m).\\
+\hline
+\mbox{\tt in,out}  & {\em sample\+\_\+num\+\_\+conc} & Sample number concentrations (m$^\wedge$\{-\/3\}).\\
+\hline
+\end{DoxyParams}
+A size distribution file must consist of two lines\+:
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily diam} and be followed by $N + 1$ space-\/separated real scalars, giving the diameters $D_1,\ldots,D_{N+1}$ of bin edges (m) --- these must be in increasing order, so $D_i < D_{i+1}$
+\item the second line must begin with {\ttfamily num\+\_\+conc} and be followed by $N$ space-\/separated real scalars, giving the number concenrations $C_1,\ldots,C_N$ in each bin (\#/m$^\wedge$3) --- $C_i$ is the total number concentrations of particles with diameters in $[D_i, D_{i+1}]$
+\end{DoxyItemize}
+
+The resulting size distribution is taken to be piecewise constant in log-\/diameter coordinates.
+
+Example\+: a size distribution could be\+: 
+\begin{DoxyPre}
+ diam 1e-7 1e-6 1e-5  \# bin edge diameters (m)
+ num\_conc 1e9 1e8     \# bin number concentrations (m^\{-3\})
+ \end{DoxyPre}
+ This distribution has 1e9 particles per cubic meter with diameters between 0.\+1 micron and 1 micron, and 1e8 particles per cubic meter with diameters between 1 micron and 10 micron.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} --- the format for a complete aerosol distribution with several modes
+\item \mbox{\hyperlink{input_format_aero_mode}{Input File Format\+: Aerosol Distribution Mode}} --- the format for each mode of an aerosol distribution 
+\end{DoxyItemize}\hypertarget{input_format_scenario}{}\subsection{Input File Format\+: Scenario}\label{input_format_scenario}
+Read environment data from an spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data values.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em scenario} & Scenario data.\\
+\hline
+\end{DoxyParams}
+The scenario parameters are\+: 
+\begin{DoxyItemize}
+\item {\bfseries temp\+\_\+profile} (string)\+: the name of the file from which to read the temperature profile --- the file format should be \mbox{\hyperlink{input_format_temp_profile}{Input File Format\+: Temperature Profile}} 
+\item {\bfseries pressure\+\_\+profile} (string)\+: the name of the file from which to read the pressure profile --- the file format should be \mbox{\hyperlink{input_format_pressure_profile}{Input File Format\+: Pressure Profile}} 
+\item {\bfseries height\+\_\+profile} (string)\+: the name of the file from which to read the mixing layer height profile --- the file format should be \mbox{\hyperlink{input_format_height_profile}{Input File Format\+: Mixing Layer Height Profile}} 
+\item {\bfseries gas\+\_\+emissions} (string)\+: the name of the file from which to read the gas emissions profile --- the file format should be \mbox{\hyperlink{input_format_gas_profile}{Input File Format\+: Gas Profile}} 
+\item {\bfseries gas\+\_\+background} (string)\+: the name of the file from which to read the gas background profile --- the file format should be \mbox{\hyperlink{input_format_gas_profile}{Input File Format\+: Gas Profile}} 
+\item {\bfseries aero\+\_\+emissions} (string)\+: the name of the file from which to read the aerosol emissions profile --- the file format should be \mbox{\hyperlink{input_format_aero_dist_profile}{Input File Format\+: Aerosol Distribution Profile}} 
+\item {\bfseries aero\+\_\+background} (string)\+: the name of the file from which to read the aerosol background profile --- the file format should be \mbox{\hyperlink{input_format_aero_dist_profile}{Input File Format\+: Aerosol Distribution Profile}} 
+\item {\bfseries loss\+\_\+function} (string)\+: the type of loss function --- must be one of\+: {\ttfamily none} for no particle loss, {\ttfamily constant} for constant loss rate, {\ttfamily volume} for particle loss proportional to particle volume, {\ttfamily drydep} for particle loss proportional to dry deposition velocity, or {\ttfamily chamber} for a chamber model. If {\ttfamily loss\+\_\+function} is {\ttfamily chamber}, then the following parameters must also be provided\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{input_format_chamber}{Input File Format\+: Chamber}} 
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format 
+\end{DoxyItemize}\hypertarget{input_format_temp_profile}{}\subsubsection{Input File Format\+: Temperature Profile}\label{input_format_temp_profile}
+A temperature profile input file must consist of two lines\+:
+
+
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the temperature set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily temp} and should be followed by $N$ space-\/separated real scalars, giving the temperatures (in K) at the corresponding times
+\end{DoxyItemize}
+
+The temperature profile is linearly interpolated between the specified times, while before the first time it takes the first temperature value and after the last time it takes the last temperature value.
+
+Example\+: 
+\begin{DoxyPre}
+ time  0    600  1800  \# time (in s) after simulation start
+ temp  270  290  280   \# temperature (in K)
+ \end{DoxyPre}
+ Here the temperature starts at 270~K at the start of the simulation, rises to 290~K after 10~min, and then falls again to 280~K at 30~min. Between these times the temperature is linearly interpolated, while after 30~min it is held constant at 280~K.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}} --- the environment data containing the temperature profile 
+\end{DoxyItemize}\hypertarget{input_format_pressure_profile}{}\subsubsection{Input File Format\+: Pressure Profile}\label{input_format_pressure_profile}
+A pressure profile input file must consist of two lines\+:
+
+
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the pressure set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily pressure} and should be followed by $N$ space-\/separated real scalars, giving the pressures (in Pa) at the corresponding times
+\end{DoxyItemize}
+
+The pressure profile is linearly interpolated between the specified times, while before the first time it takes the first pressure value and after the last time it takes the last pressure value.
+
+Example\+: 
+\begin{DoxyPre}
+ time      0    600  1800  \# time (in s) after simulation start
+ pressure  1e5  9e4  7.5e4 \# pressure (in Pa)
+ \end{DoxyPre}
+ Here the pressure starts at 1e5~Pa at the start of the simulation, decreases to 9e4~Pa after 10~min, and then decreases further to 7.\+5e4~Pa at 30~min. Between these times the pressure is linearly interpolated, while after 30~min it is held constant at 7.\+5e4~Pa.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}} --- the environment data containing the pressure profile 
+\end{DoxyItemize}\hypertarget{input_format_height_profile}{}\subsubsection{Input File Format\+: Mixing Layer Height Profile}\label{input_format_height_profile}
+A mixing layer height profile input file must consist of two lines\+:
+
+
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the height set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily height} and should be followed by $N$ space-\/separated real scalars, giving the mixing layer heights (in m) at the corresponding times
+\end{DoxyItemize}
+
+The mixing layer height profile is linearly interpolated between the specified times, while before the first time it takes the first height value and after the last time it takes the last height value.
+
+Example\+: 
+\begin{DoxyPre}
+ time    0    600   1800  \# time (in s) after simulation start
+ height  500  1000  800   \# mixing layer height (in m)
+ \end{DoxyPre}
+ Here the mixing layer height starts at 500~m at the start of the simulation, rises to 1000~m after 10~min, and then falls again to 800~m at 30~min. Between these times the mixing layer height is linearly interpolated, while after 30~min it is held constant at 800~m.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}} --- the environment data containing the mixing layer height profile 
+\end{DoxyItemize}\hypertarget{input_format_gas_profile}{}\subsubsection{Input File Format\+: Gas Profile}\label{input_format_gas_profile}
+Read an array of gas states with associated times and rates from the file named on the line read from the given file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data.\\
+\hline
+ & {\em times} & Times (s).\\
+\hline
+ & {\em rates} & Rates (s$^\wedge$\{-\/1\}).\\
+\hline
+ & {\em gas\+\_\+states} & Gas states.\\
+\hline
+\end{DoxyParams}
+A gas profile input file must consist of three or more lines, consisting of\+:
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the gas set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily rate} and should be followed by $N$ space-\/separated real scalars, giving the values at the corresponding times
+\item the third and subsequent lines specify gas species, one species per line, with each line beginning with the species name and followed by $N$ space-\/separated scalars giving the gas state of that species at the corresponding times
+\end{DoxyItemize}
+
+The units and meanings of the rate and species lines depends on the type of gas profile\+:
+\begin{DoxyItemize}
+\item emissions gas profiles have dimensionless rates that are used to scale the species rates and species giving emission rates with units of mol/(m$^\wedge$2 s) --- the emission rate is divided by the current mixing layer height to give a per-\/volume emission rate
+\item background gas profiles have rates with units s$^\wedge$\{-\/1\} that are dilution rates and species with units of ppb (parts per billion) that are the background mixing ratios
+\end{DoxyItemize}
+
+The species names must be those specified by the \mbox{\hyperlink{input_format_gas_data}{Input File Format\+: Gas Material Data}}. Any species not listed are taken to be zero.
+
+Between the specified times the gas profile is interpolated step-\/wise and kept constant at its last value. That is, if the times are $t_i$, the rates are $r_i$, and the gas states are $g_i$ (all with $i = 1,\ldots,n$), then between times $t_i$ and $t_{i+1}$ the gas state is constant at $r_i g_i$. Before time $t_1$ the gas state is $r_1 g_1$, while after time $t_n$ it is $r_n g_n$.
+
+Example\+: an emissions gas profile could be\+: 
+\begin{DoxyPre}
+ time   0       600     1800    \# time (in s) after simulation start
+ rate   1       0.5     1       \# scaling factor
+ H2SO4  0       0       0       \# emission rate in mol/(m^2 s)
+ SO2    4e-9    5.6e-9  5e-9    \# emission rate in mol/(m^2 s)
+ \end{DoxyPre}
+ Here there are no emissions of $\rm H_2SO_4$, while $\rm SO_2$ starts out being emitted at $4\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$ at the start of the simulation, before falling to a rate of $2.8\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$ at 10~min (note the scaling of 0.\+5), and then rising again to $5\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$ after 30~min. Between 0~min and 10~min the emissions are the same as at 0~min, while between 10~min and 30~min they are the same as at 10~min. After 30~min they are held constant at their final value.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_gas_data}{Input File Format\+: Gas Material Data}} --- the gas species list and material data 
+\end{DoxyItemize}\hypertarget{input_format_gas_profile}{}\subsubsection{Input File Format\+: Gas Profile}\label{input_format_gas_profile}
+Read an array of gas states with associated times and rates from the file named on the line read from the given file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data.\\
+\hline
+ & {\em times} & Times (s).\\
+\hline
+ & {\em rates} & Rates (s$^\wedge$\{-\/1\}).\\
+\hline
+ & {\em gas\+\_\+states} & Gas states.\\
+\hline
+\end{DoxyParams}
+A gas profile input file must consist of three or more lines, consisting of\+:
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the gas set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily rate} and should be followed by $N$ space-\/separated real scalars, giving the values at the corresponding times
+\item the third and subsequent lines specify gas species, one species per line, with each line beginning with the species name and followed by $N$ space-\/separated scalars giving the gas state of that species at the corresponding times
+\end{DoxyItemize}
+
+The units and meanings of the rate and species lines depends on the type of gas profile\+:
+\begin{DoxyItemize}
+\item emissions gas profiles have dimensionless rates that are used to scale the species rates and species giving emission rates with units of mol/(m$^\wedge$2 s) --- the emission rate is divided by the current mixing layer height to give a per-\/volume emission rate
+\item background gas profiles have rates with units s$^\wedge$\{-\/1\} that are dilution rates and species with units of ppb (parts per billion) that are the background mixing ratios
+\end{DoxyItemize}
+
+The species names must be those specified by the \mbox{\hyperlink{input_format_gas_data}{Input File Format\+: Gas Material Data}}. Any species not listed are taken to be zero.
+
+Between the specified times the gas profile is interpolated step-\/wise and kept constant at its last value. That is, if the times are $t_i$, the rates are $r_i$, and the gas states are $g_i$ (all with $i = 1,\ldots,n$), then between times $t_i$ and $t_{i+1}$ the gas state is constant at $r_i g_i$. Before time $t_1$ the gas state is $r_1 g_1$, while after time $t_n$ it is $r_n g_n$.
+
+Example\+: an emissions gas profile could be\+: 
+\begin{DoxyPre}
+ time   0       600     1800    \# time (in s) after simulation start
+ rate   1       0.5     1       \# scaling factor
+ H2SO4  0       0       0       \# emission rate in mol/(m^2 s)
+ SO2    4e-9    5.6e-9  5e-9    \# emission rate in mol/(m^2 s)
+ \end{DoxyPre}
+ Here there are no emissions of $\rm H_2SO_4$, while $\rm SO_2$ starts out being emitted at $4\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$ at the start of the simulation, before falling to a rate of $2.8\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$ at 10~min (note the scaling of 0.\+5), and then rising again to $5\times 10^{-9}\rm\ mol\ m^{-2}\ s^{-1}$ after 30~min. Between 0~min and 10~min the emissions are the same as at 0~min, while between 10~min and 30~min they are the same as at 10~min. After 30~min they are held constant at their final value.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_gas_data}{Input File Format\+: Gas Material Data}} --- the gas species list and material data 
+\end{DoxyItemize}\hypertarget{input_format_aero_dist_profile}{}\subsubsection{Input File Format\+: Aerosol Distribution Profile}\label{input_format_aero_dist_profile}
+Read an array of aero\+\_\+dists with associated times and rates from the given file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file to read data from.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+data} & Aero data.\\
+\hline
+ & {\em times} & Times (s).\\
+\hline
+ & {\em rates} & Rates (s$^\wedge$\{-\/1\}).\\
+\hline
+ & {\em aero\+\_\+dists} & Aero dists.\\
+\hline
+\end{DoxyParams}
+An aerosol distribution profile input file must consist of three lines\+:
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the aerosol distrbution set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily rate} and should be followed by $N$ space-\/separated real scalars, giving the values at the corresponding times
+\item the third line must begin with {\ttfamily dist} and should be followed by $N$ space-\/separated filenames, each specifying an aerosol distribution in the format \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} at the corresponding time
+\end{DoxyItemize}
+
+The units of the {\ttfamily rate} line depend on the type of aerosol distribution profile\+:
+\begin{DoxyItemize}
+\item Emissions aerosol profiles have rates with units m/s --- the aerosol distribution number concentrations are multiplied by the rate to give an emission rate with unit \#/(m$^\wedge$2 s) which is then divided by the current mixing layer height to give a per-\/volume emission rate.
+\item Background aerosol profiles have rates with units $\rm s^{-1}$, which is the dilution rate between the background and the simulated air parcel. That is, if the simulated number concentration is $N$ and the background number concentration is $N_{\rm back}$, then dilution is modeled as $\dot{N} = r N_{\rm back} - r N$, where $r$ is the rate.
+\end{DoxyItemize}
+
+Between the specified times the aerosol profile is interpolated step-\/wise and kept constant at its last value. That is, if the times are $t_i$, the rates are $r_i$, and the aerosol distributions are $a_i$ (all with $i = 1,\ldots,n$), then between times $t_i$ and $t_{i+1}$ the aerosol state is constant at $r_i a_i$. Before time $t_1$ the aerosol state is $r_1 a_1$, while after time $t_n$ it is $r_n a_n$.
+
+Example\+: an emissions aerosol profile could be\+: 
+\begin{DoxyPre}
+ time  0          600        1800       \# time (in s) after sim start
+ rate  1          0.5        1          \# scaling factor in m/s
+ dist  dist1.dat  dist2.dat  dist3.dat  \# aerosol distribution files
+ \end{DoxyPre}
+ Here the emissions between 0~min and 10~min are given by {\ttfamily dist1.\+dat} (with the number concentration interpreted as having units 1/(m$^\wedge$2 s)), the emissions between 10~min and 30~min are given by {\ttfamily dist2.\+dat} (scaled by 0.\+5), while the emissions after 30~min are given by {\ttfamily dist3.\+dat}.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_aero_data}{Input File Format\+: Aerosol Material Data}} --- the aerosol species list and material data
+\item \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} --- the format of the instantaneous aerosol distribution files 
+\end{DoxyItemize}\hypertarget{input_format_aero_dist_profile}{}\subsubsection{Input File Format\+: Aerosol Distribution Profile}\label{input_format_aero_dist_profile}
+Read an array of aero\+\_\+dists with associated times and rates from the given file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file to read data from.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+data} & Aero data.\\
+\hline
+ & {\em times} & Times (s).\\
+\hline
+ & {\em rates} & Rates (s$^\wedge$\{-\/1\}).\\
+\hline
+ & {\em aero\+\_\+dists} & Aero dists.\\
+\hline
+\end{DoxyParams}
+An aerosol distribution profile input file must consist of three lines\+:
+\begin{DoxyItemize}
+\item the first line must begin with {\ttfamily time} and should be followed by $N$ space-\/separated real scalars, giving the times (in s after the start of the simulation) of the aerosol distrbution set points --- the times must be in increasing order
+\item the second line must begin with {\ttfamily rate} and should be followed by $N$ space-\/separated real scalars, giving the values at the corresponding times
+\item the third line must begin with {\ttfamily dist} and should be followed by $N$ space-\/separated filenames, each specifying an aerosol distribution in the format \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} at the corresponding time
+\end{DoxyItemize}
+
+The units of the {\ttfamily rate} line depend on the type of aerosol distribution profile\+:
+\begin{DoxyItemize}
+\item Emissions aerosol profiles have rates with units m/s --- the aerosol distribution number concentrations are multiplied by the rate to give an emission rate with unit \#/(m$^\wedge$2 s) which is then divided by the current mixing layer height to give a per-\/volume emission rate.
+\item Background aerosol profiles have rates with units $\rm s^{-1}$, which is the dilution rate between the background and the simulated air parcel. That is, if the simulated number concentration is $N$ and the background number concentration is $N_{\rm back}$, then dilution is modeled as $\dot{N} = r N_{\rm back} - r N$, where $r$ is the rate.
+\end{DoxyItemize}
+
+Between the specified times the aerosol profile is interpolated step-\/wise and kept constant at its last value. That is, if the times are $t_i$, the rates are $r_i$, and the aerosol distributions are $a_i$ (all with $i = 1,\ldots,n$), then between times $t_i$ and $t_{i+1}$ the aerosol state is constant at $r_i a_i$. Before time $t_1$ the aerosol state is $r_1 a_1$, while after time $t_n$ it is $r_n a_n$.
+
+Example\+: an emissions aerosol profile could be\+: 
+\begin{DoxyPre}
+ time  0          600        1800       \# time (in s) after sim start
+ rate  1          0.5        1          \# scaling factor in m/s
+ dist  dist1.dat  dist2.dat  dist3.dat  \# aerosol distribution files
+ \end{DoxyPre}
+ Here the emissions between 0~min and 10~min are given by {\ttfamily dist1.\+dat} (with the number concentration interpreted as having units 1/(m$^\wedge$2 s)), the emissions between 10~min and 30~min are given by {\ttfamily dist2.\+dat} (scaled by 0.\+5), while the emissions after 30~min are given by {\ttfamily dist3.\+dat}.
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_aero_data}{Input File Format\+: Aerosol Material Data}} --- the aerosol species list and material data
+\item \mbox{\hyperlink{input_format_aero_dist}{Input File Format\+: Aerosol Distribution}} --- the format of the instantaneous aerosol distribution files 
+\end{DoxyItemize}\hypertarget{input_format_chamber}{}\subsubsection{Input File Format\+: Chamber}\label{input_format_chamber}
+Read chamber specification from a spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in,out}  & {\em chamber} & Chamber data.\\
+\hline
+\end{DoxyParams}
+The chamber model is specified by the parameters\+:
+\begin{DoxyItemize}
+\item {\bfseries chamber\+\_\+vol} (real, unit m$^\wedge$3)\+: the volume of the chamber
+\item {\bfseries area\+\_\+diffuse} (real, unit m$^\wedge$2)\+: the surface area in the chamber available for wall diffusion deposition (the total surface area)
+\item {\bfseries area\+\_\+sedi} (real, unit m$^\wedge$2)\+: the surface area in the chamber available for sedimentation deposition (the floor area)
+\item {\bfseries prefactor\+\_\+\+BL} (real, unit m)\+: the coefficient $k_{\rm D}$ in the model $ \delta = k_{\rm D}(D/D_0)^a $ for boundary-\/layer thickness $ \delta $
+\item {\bfseries exponent\+\_\+\+BL} (real, dimensionless)\+: the exponent $a$ in the model $ \delta = k_{\rm D}(D/D_0)^a $ for boundary-\/layer thickness $ \delta $
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}} --- the prescribed profiles of other environment data 
+\end{DoxyItemize}\hypertarget{input_format_env_state}{}\subsection{Input File Format\+: Environment State}\label{input_format_env_state}
+Read environment specification from a spec file.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in,out}  & {\em env\+\_\+state} & Environment data.\\
+\hline
+\end{DoxyParams}
+The environment parameters are divided into those specified at the start of the simulation and then either held constant or computed for the rest of the simulation, and those parameters given as prescribed profiles for the entire simulation duration. The variables below are for the first type --- for the prescribed profiles see \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}}.
+
+The environment state is specified by the parameters\+:
+\begin{DoxyItemize}
+\item {\bfseries rel\+\_\+humidity} (real, dimensionless)\+: the relative humidity (0 is completely unsaturated and 1 is fully saturated)
+\item {\bfseries latitude} (real, unit degrees\+\_\+north)\+: the latitude of the simulation location
+\item {\bfseries longitude} (real, unit degrees\+\_\+east)\+: the longitude of the simulation location
+\item {\bfseries altitude} (real, unit m)\+: the altitude of the simulation location
+\item {\bfseries start\+\_\+time} (real, unit s)\+: the time-\/of-\/day of the start of the simulation (in seconds past midnight)
+\item {\bfseries start\+\_\+day} (integer)\+: the day-\/of-\/year of the start of the simulation (starting from 1 on the first day of the year)
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format
+\item \mbox{\hyperlink{output_format_env_state}{Output File Format\+: Environment State}} --- the corresponding output format
+\item \mbox{\hyperlink{input_format_scenario}{Input File Format\+: Scenario}} --- the prescribed profiles of other environment data 
+\end{DoxyItemize}\hypertarget{input_format_coag_kernel}{}\subsection{Input File Format\+: Coagulation Kernel}\label{input_format_coag_kernel}
+Read the specification for a kernel type from a spec file and generate it.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt out}  & {\em coag\+\_\+kernel\+\_\+type} & Kernel type.\\
+\hline
+\end{DoxyParams}
+The coagulation kernel is specified by the parameter\+:
+\begin{DoxyItemize}
+\item {\bfseries coag\+\_\+kernel} (string)\+: the type of coagulation kernel --- must be one of\+: {\ttfamily sedi} for the gravitational sedimentation kernel; {\ttfamily additive} for the additive kernel; {\ttfamily constant} for the constant kernel; {\ttfamily brown} for the Brownian kernel, or {\ttfamily zero} for no coagulation
+\end{DoxyItemize}
+
+See also\+:
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{spec_file_format}{Input File Format\+: Spec File Format}} --- the input file text format 
+\end{DoxyItemize}\hypertarget{input_format_phlex_file_list}{}\section{Input File Format\+: Phlex-\/\+Chem Configuration File List}\label{input_format_phlex_file_list}
+A list of files containing configuration data for the \mbox{\hyperlink{phlex_chem}{Phlexible Module for Chemistry}}. The file should be in {\ttfamily json} format and the general structure should be the following\+:
+
+
+\begin{DoxyCode}
+\{ "pmc-files" : [
+  "file\_one.json",
+  "some\_dir/file\_two.json",
+  ...
+]\}
+\end{DoxyCode}
+ The file should contain a single key-\/value pair named {\bfseries pmc-\/files} whose value is an array of {\bfseries strings} with paths to the set of \mbox{\hyperlink{input_format_phlex_config}{configuration}} files to load. Input files should be in {\ttfamily json} format. \hypertarget{input_format_phlex_config}{}\section{Input File Format\+: Phlex-\/\+Chem Configuration Data}\label{input_format_phlex_config}
+Configuration data for the \mbox{\hyperlink{phlex_chem}{Phlexible Module for Chemistry}}. The files are in {\ttfamily json} format and their general structure should be the following\+:
+
+
+\begin{DoxyCode}
+\{ "pmc-data" : [
+  \{
+    "type" : "OBJECT\_TYPE",
+    ...
+  \},
+  \{
+    "type" : "OBJECT\_TYPE",
+    ...
+  \},
+  ...
+]\}
+\end{DoxyCode}
+ Each input file should contain exactly one {\ttfamily json} object with a single key-\/value pair {\bfseries pmc-\/data} whose value is an array of {\ttfamily json} objects. Additional top-\/level key-\/value pairs will be ignored. Each of the {\ttfamily json} objects in the {\bfseries pmc-\/data} array must contain a key-\/value pair {\bfseries type} whose value is a string referenceing a valid Part\+MC object.
+
+The valid values for {\bfseries type} are\+:
+
+
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{input_format_mechanism}{M\+E\+C\+H\+A\+N\+I\+SM}}
+\item \mbox{\hyperlink{input_format_species}{C\+H\+E\+M\+\_\+\+S\+P\+EC}}
+\item \mbox{\hyperlink{input_format_aero_phase}{A\+E\+R\+O\+\_\+\+P\+H\+A\+SE}}
+\item \mbox{\hyperlink{input_format_aero_rep}{A\+E\+R\+O\+\_\+\+R\+E\+P\+\_\+$\ast$}}
+\end{DoxyItemize}
+
+The arrangement of objects within the {\bfseries pmc-\/data} array and between input files is arbitrary. Additionally, some objects, such as \mbox{\hyperlink{input_format_species}{chemical species}} and \mbox{\hyperlink{input_format_mechanism}{mechanisms}} may be split into multiple objects within the {\bfseries pmc-\/data} array and/or between files, and will be combined based on their unique name. This flexibility is provided so that the chemical mechanism data can be organized in a way that makes sense to the designer of the mechanism. For example, files could be split based on species source (biogenic, fossil fuel, etc.) or based on properties (molecular weight, density, etc.) or any combination of criteria. However, if a single property of an object (e.\+g., the molecular weight of a chemical species) is set in more than one location, this will cause an error. \hypertarget{input_format_mechanism}{}\subsection{Input J\+S\+ON Object Format\+: Mechanism}\label{input_format_mechanism}
+A {\ttfamily json} object containing information about a \mbox{\hyperlink{phlex_mechanism}{chemical mechanism}} of the form\+:
+
+
+\begin{DoxyCode}
+\{ "pmc-data" : [
+  \{
+    "name" : "my mechanism",
+    "type" : "MECHANISM",
+    "reactions" : [
+      ...
+    ]
+  \}
+]\}
+\end{DoxyCode}
+ A \mbox{\hyperlink{phlex_mechanism}{mechanism}} object must have a unique {\bfseries name}, a {\bfseries type} of {\bfseries M\+E\+C\+H\+A\+N\+I\+SM} and an array of \mbox{\hyperlink{input_format_rxn}{reaction objects}} labelled {\bfseries reactions}. Mechanism data may be split into multiple mechanism objects -\/ they will be combined based on the mechanism name. \hypertarget{input_format_species}{}\subsection{Input J\+S\+ON Object Format\+: Chemical Species}\label{input_format_species}
+A {\ttfamily json} object containing information about a \mbox{\hyperlink{phlex_species}{chemical species}} has the following format\+:
+
+
+\begin{DoxyCode}
+\{ "pmc-data" : [
+  \{
+    "name" : "my species name",
+    "type" : "CHEM\_SPEC",
+    "phase" : "SPEC\_PHASE",
+    "type" : "SPEC\_TYPE",
+    "some property" : 123.34,
+    "some other property" : true,
+    "nested properties" : \{
+       "sub prop 1" : 12.43,
+       "sub prop other" : "some text"
+    \},
+    ...
+  \},
+  \{
+    "name" : "my species name",
+    "type" : "CHEM\_SPEC",
+    "phase" : "SPEC\_PHASE",
+    "type" : "SPEC\_TYPE",
+    "some property" : 123.34,
+    ...
+  \},
+  ...
+]\}
+\end{DoxyCode}
+ The key-\/value pair {\bfseries name} is required and must contain the unique name used for this species in the \mbox{\hyperlink{input_format_mechanism}{mechanism object}}. (The same name cannot be used for a gas-\/phase species and an aerosol-\/phase species.) The key-\/value pair {\bfseries type} is also required, and must be {\bfseries C\+H\+E\+M\+\_\+\+S\+P\+EC}.
+
+The key-\/value pair {\bfseries phase} specifies the phase in which the species exists and can be {\bfseries G\+AS} or {\bfseries A\+E\+R\+O\+S\+OL}. When the {\bfseries phase} is not specified, it is assumed to be {\bfseries G\+AS}. The {\bfseries type} can be {\bfseries V\+A\+R\+I\+A\+B\+LE}, {\bfseries C\+O\+N\+S\+T\+A\+NT} or {\bfseries P\+S\+SA}. When a {\bfseries type} is not specified, it is assumed to be {\bfseries V\+A\+R\+I\+A\+B\+LE}.
+
+All remaining data are optional and may include any valid {\ttfamily json} value, including nested objects. Multilple entries with the same species name will be merged into a single species, but duplicate property names for the same species will cause an error. However, nested objects with the same key name will be merged, if possible. \hypertarget{input_format_aero_phase}{}\subsection{Input J\+S\+ON Object Format\+: Aerosol Phase}\label{input_format_aero_phase}
+A {\ttfamily json} object containing information about an \mbox{\hyperlink{phlex_aero_phase}{aerosol phase}} has the following format\+:
+
+
+\begin{DoxyCode}
+\{ "pmc-data" : [
+  \{
+    "name" : "my aerosol phase"
+    "type" : "AERO\_PHASE"
+    "species" : [
+      "a species",
+      "another species",
+      ...
+    ],
+    ...
+  \},
+  ...
+]\}
+\end{DoxyCode}
+ The key-\/value pair {\bfseries name} is required and must contain the unique name used for this \mbox{\hyperlink{phlex_aero_phase}{aerosol phase}} in the \mbox{\hyperlink{input_format_mechanism}{mechanism}}. The key-\/value pair {\bfseries type} is also required and its value must be {\bfseries A\+E\+R\+O\+\_\+\+P\+H\+A\+SE}.
+
+A list of species names should be included in a key-\/value pair named {\bfseries species} whose value is an array of species names. These names must correspond to \mbox{\hyperlink{input_format_species}{chemcical species}} names. \mbox{\hyperlink{input_format_species}{Chemical species}} included in the {\bfseries species} array must have a {\bfseries phase} of {\bfseries A\+E\+R\+O\+S\+OL} and must include key value pairs {\bfseries molecular} {\bfseries weight} ( $\mbox{\si{\kilogram\per\mole}}$) and {\bfseries density} ( $\mbox{\si{\kilogram\per\cubic\metre}}$).
+
+All other data is optional and may include any valid {\ttfamily json} value. Multiple entries with the same aerosol phase {\bfseries name} will be merged into a single phase, but duplicate property names for the same phase will cause an error. \hypertarget{input_format_aero_rep}{}\subsection{Input J\+S\+ON Object Format\+: Aerosol Representation (general)}\label{input_format_aero_rep}
+A {\ttfamily json} object containing information about an \mbox{\hyperlink{phlex_aero_rep}{aerosol representation}} has the following format\+:
+
+
+\begin{DoxyCode}
+\{ "pmc-data" : [
+  \{
+    "name" : "my aero rep",
+    "type" : "AERO\_REP\_TYPE",
+    "some parameter" : 123.34,
+    "some other parameter" : true,
+    "nested parameters" : \{
+      "sub param 1" : 12.43,
+      "sub param other" : "some text",
+      ...
+    \},
+    ...
+  \},
+  ...
+]\}
+\end{DoxyCode}
+ Aerosol representations must have a unique {\bfseries name} that will be used to identify the aerosol representation during initialization. The key-\/value pair {\bfseries type} is also required and must correspond to a valid aerosol representation type. These include\+:
+
+
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{phlex_aero_rep_single_particle}{A\+E\+R\+O\+\_\+\+R\+E\+P\+\_\+\+S\+I\+N\+G\+L\+E\+\_\+\+P\+A\+R\+T\+I\+C\+LE}}
+\item \mbox{\hyperlink{phlex_aero_rep_modal_binned_mass}{A\+E\+R\+O\+\_\+\+R\+E\+P\+\_\+\+M\+O\+D\+A\+L\+\_\+\+B\+I\+N\+N\+E\+D\+\_\+\+M\+A\+SS}}
+\end{DoxyItemize}
+
+All remaining data are optional and may include any valid {\ttfamily json} value. However, extending types will have specific requirements for the remaining data. \hypertarget{phlex_aero_rep_single_particle}{}\subsubsection{Phlexible Module for Chemistry\+: Single Particle Aerosol Representation}\label{phlex_aero_rep_single_particle}
+The single particle aerosol representation is for use with a Part\+MC particle-\/resolved run. The {\ttfamily json} object for this \mbox{\hyperlink{phlex_aero_rep}{aerosol representation}} has the following format\+:
+
+
+\begin{DoxyCode}
+\{ "pmc-data" : [
+  \{
+    "name" : "my single particle aero rep",
+    "type" : "AERO\_REP\_SINGLE\_PARTICLE"
+  \},
+  ...
+]\}
+\end{DoxyCode}
+ The key-\/value pair {\bfseries type} is required and must be {\bfseries A\+E\+R\+O\+\_\+\+R\+E\+P\+\_\+\+S\+I\+N\+G\+L\+E\+\_\+\+P\+A\+R\+T\+I\+C\+LE}. This representation assumes that every \mbox{\hyperlink{input_format_aero_phase}{aerosol phase}} available will be present once in each particle, and that the \mbox{\hyperlink{input_format_mechanism}{chemical mechanisms}} will be solved at each time step first for the gas-\/phase then for phase-\/transfer and aerosol-\/phase chemistry for each single particle in the {\ttfamily \mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{pmc\+\_\+aero\+\_\+particle\+\_\+array\+::aero\+\_\+particle\+\_\+array\+\_\+t}}} variable sequentially. This may be changed in the future to solve for all particles simultaneously. \hypertarget{phlex_aero_rep_modal_binned_mass}{}\subsubsection{Phlexible Module for Chemistry\+: Modal/\+Binned Mass Aerosol Representation}\label{phlex_aero_rep_modal_binned_mass}
+The modal/binned mass aerosol representation includes a set of sections/bins that are made up of one or more \mbox{\hyperlink{phlex_aero_phase}{aerosol phases.}} The {\ttfamily json} object for this \mbox{\hyperlink{phlex_aero_rep}{aerosol representation}} has the following format\+:
+
+
+\begin{DoxyCode}
+\{ "pmc-data" : [
+  \{
+    "name" : "my modal/binned aero rep",
+    "type" : "AERO\_REP\_MODAL\_BINNED\_MASS",
+    "modes/bins" : 
+    \{
+      "dust" : 
+      \{
+        "type" : "BINNED",
+        "phases" : [ "insoluble", "organic", "aqueous" ],
+        "bins" : 8,
+        "minimum diameter" : 0.8e-9,
+        "maximum deviation" : 1.0e-6,
+        "scale" : "LOG"
+      \},
+      "depeche" :
+      \{
+        "type" : "MODAL",
+        "phases" : [ "moody", "listless" ],
+        "shape" : "LOG\_NORMAL",
+        "geometric mean diameter" : 1.2e-6,
+        "geometric standard deviation" : 1.2
+      \}
+    \}
+  \},
+  ...
+]\}
+\end{DoxyCode}
+ The key-\/value pair {\bfseries type} is required and must be {\bfseries A\+E\+R\+O\+\_\+\+R\+E\+P\+\_\+\+M\+O\+D\+A\+L\+\_\+\+B\+I\+N\+N\+E\+D\+\_\+\+M\+A\+SS}. The key-\/value pair {\bfseries modes/bins} is also required and must contain a set of at least one uniquely named mode or bin-\/set key-\/value pair whose value(s) specify a {\bfseries type} that must be either {\bfseries M\+O\+D\+AL} or {\bfseries B\+I\+N\+N\+ED} and an array of {\bfseries phases} that correspond to existing \mbox{\hyperlink{phlex_aero_phase}{aerosol phase}} objects. Each phase will be present once within a mode or once within each bin in a bin-\/set.
+
+Modes must also specify a distribution {\bfseries shape} which must be {\bfseries L\+O\+G\+\_\+\+N\+O\+R\+M\+AL} (the available shapes may be expanded in the future). Log-\/normal sections must include a {\bfseries geometric} {\bfseries mean} {\bfseries diameter} (m) and a {\bfseries geometric} {\bfseries standard} {\bfseries deviation} (unitless) that will be used along with the mass concentration of species in each phase and their densities to calculate a lognormal distribution for each mode at runtime.
+
+Bin sets must specify the number of {\bfseries bins}, a {\bfseries minimum} {\bfseries diameter} (m), a {\bfseries maximum} {\bfseries diameter} (m) and a {\bfseries scale}, which must be {\bfseries L\+OG} or {\bfseries L\+I\+N\+E\+AR}. The number concentration will be calculated at run-\/time based on the total mass of each bin, the species densities and the diameter of particles in that bin. \hypertarget{input_format_phlex_file_list}{}\section{Input File Format\+: Phlex-\/\+Chem Configuration File List}\label{input_format_phlex_file_list}
+A list of files containing configuration data for the \mbox{\hyperlink{phlex_chem}{Phlexible Module for Chemistry}}. The file should be in {\ttfamily json} format and the general structure should be the following\+:
+
+
+\begin{DoxyCode}
+\{ "pmc-files" : [
+  "file\_one.json",
+  "some\_dir/file\_two.json",
+  ...
+]\}
+\end{DoxyCode}
+ The file should contain a single key-\/value pair named {\bfseries pmc-\/files} whose value is an array of {\bfseries strings} with paths to the set of \mbox{\hyperlink{input_format_phlex_config}{configuration}} files to load. Input files should be in {\ttfamily json} format. \hypertarget{input_format_phlex_file_list}{}\section{Input File Format\+: Phlex-\/\+Chem Configuration File List}\label{input_format_phlex_file_list}
+A list of files containing configuration data for the \mbox{\hyperlink{phlex_chem}{Phlexible Module for Chemistry}}. The file should be in {\ttfamily json} format and the general structure should be the following\+:
+
+
+\begin{DoxyCode}
+\{ "pmc-files" : [
+  "file\_one.json",
+  "some\_dir/file\_two.json",
+  ...
+]\}
+\end{DoxyCode}
+ The file should contain a single key-\/value pair named {\bfseries pmc-\/files} whose value is an array of {\bfseries strings} with paths to the set of \mbox{\hyperlink{input_format_phlex_config}{configuration}} files to load. Input files should be in {\ttfamily json} format. \hypertarget{input_format_phlex_file_list}{}\section{Input File Format\+: Phlex-\/\+Chem Configuration File List}\label{input_format_phlex_file_list}
+A list of files containing configuration data for the \mbox{\hyperlink{phlex_chem}{Phlexible Module for Chemistry}}. The file should be in {\ttfamily json} format and the general structure should be the following\+:
+
+
+\begin{DoxyCode}
+\{ "pmc-files" : [
+  "file\_one.json",
+  "some\_dir/file\_two.json",
+  ...
+]\}
+\end{DoxyCode}
+ The file should contain a single key-\/value pair named {\bfseries pmc-\/files} whose value is an array of {\bfseries strings} with paths to the set of \mbox{\hyperlink{input_format_phlex_config}{configuration}} files to load. Input files should be in {\ttfamily json} format. 

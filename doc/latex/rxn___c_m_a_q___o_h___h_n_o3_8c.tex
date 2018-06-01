@@ -1,0 +1,551 @@
+\hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c}{}\section{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c File Reference}
+\label{rxn___c_m_a_q___o_h___h_n_o3_8c}\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+
+
+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3 reaction solver functions.  
+
+
+Include dependency graph for rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{rxn___c_m_a_q___o_h___h_n_o3_8c__incl}
+\end{center}
+\end{figure}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_ad869247669cecc183aa5fe2bca4f12c8}{\+\_\+\+T\+E\+M\+P\+E\+R\+A\+T\+U\+R\+E\+\_\+\+K\+\_\+}}~env\+\_\+data\mbox{[}0\mbox{]}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_af5f7c44c3b7dd0d49ec7415e58f97bf1}{\+\_\+\+P\+R\+E\+S\+S\+U\+R\+E\+\_\+\+P\+A\+\_\+}}~env\+\_\+data\mbox{[}1\mbox{]}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_aee1fee52189b85b8a55162815b7eb2ab}{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}}~int\+\_\+data\mbox{[}0\mbox{]}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a0ab2d7e00e334b5c52335f26ef6025e8}{\+\_\+\+N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}}~int\+\_\+data\mbox{[}1\mbox{]}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_aabb54c582f3555126b59cb089e4be16c}{\+\_\+k0\+\_\+\+A\+\_\+}}~float\+\_\+data\mbox{[}0\mbox{]}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a2e85b17924fcae4e8ac7d13cd5ad9dc3}{\+\_\+k0\+\_\+\+B\+\_\+}}~float\+\_\+data\mbox{[}1\mbox{]}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a33edc6e996141c7b128a12cde9624602}{\+\_\+k0\+\_\+\+C\+\_\+}}~float\+\_\+data\mbox{[}2\mbox{]}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_aa61819ddc6aaa6275030c0ada2664978}{\+\_\+k2\+\_\+\+A\+\_\+}}~float\+\_\+data\mbox{[}3\mbox{]}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a9eb83934d412685a55de48b3bdb7684b}{\+\_\+k2\+\_\+\+B\+\_\+}}~float\+\_\+data\mbox{[}4\mbox{]}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a3ae107fbcbf31082a1331399405d37cc}{\+\_\+k2\+\_\+\+C\+\_\+}}~float\+\_\+data\mbox{[}5\mbox{]}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a8b4546ebf122cbb02546529b836b0082}{\+\_\+k3\+\_\+\+A\+\_\+}}~float\+\_\+data\mbox{[}6\mbox{]}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_aeb1fb7f92103c077d7bcb66d5f474e72}{\+\_\+k3\+\_\+\+B\+\_\+}}~float\+\_\+data\mbox{[}7\mbox{]}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a37af87fd701822f9086631cb96cb217d}{\+\_\+k3\+\_\+\+C\+\_\+}}~float\+\_\+data\mbox{[}8\mbox{]}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a44b5bdc8cf91427e717c13d7c925db84}{\+\_\+\+S\+C\+A\+L\+I\+N\+G\+\_\+}}~float\+\_\+data\mbox{[}9\mbox{]}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a8d22506f8671e195690022c44d319caf}{\+\_\+\+C\+O\+N\+V\+\_\+}}~float\+\_\+data\mbox{[}10\mbox{]}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a90fa57a01e99ca76df9ef2ac521667ec}{\+\_\+\+R\+A\+T\+E\+\_\+\+C\+O\+N\+S\+T\+A\+N\+T\+\_\+}}~float\+\_\+data\mbox{[}11\mbox{]}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a54f7194dc6a244f7eb7a78f88b3362ba}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}}~2
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a3b137ec2100bbbde391a3ce68b216ec6}{\+\_\+\+N\+U\+M\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+R\+O\+P\+\_\+}}~12
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a2465fb6c1cce932a0bb29dac2975ee64}{\+\_\+\+R\+E\+A\+C\+T\+\_\+}}(x)~(int\+\_\+data\mbox{[}\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8_f90_a54f7194dc6a244f7eb7a78f88b3362ba}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}} + x\mbox{]}-\/1)
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_ad730666d44e45e220232510d9e15ec79}{\+\_\+\+P\+R\+O\+D\+\_\+}}(x)~(int\+\_\+data\mbox{[}\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8_f90_a54f7194dc6a244f7eb7a78f88b3362ba}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}} + \mbox{\hyperlink{rxn__troe_8_f90_aee1fee52189b85b8a55162815b7eb2ab}{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}} + x\mbox{]}-\/1)
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a8df20fa2e866ca68998160fdeef08b19}{\+\_\+\+D\+E\+R\+I\+V\+\_\+\+I\+D\+\_\+}}(x)~int\+\_\+data\mbox{[}\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8_f90_a54f7194dc6a244f7eb7a78f88b3362ba}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}} + \mbox{\hyperlink{rxn__troe_8_f90_aee1fee52189b85b8a55162815b7eb2ab}{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}} + \mbox{\hyperlink{rxn__troe_8_f90_a0ab2d7e00e334b5c52335f26ef6025e8}{\+\_\+\+N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}} + x\mbox{]}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_af0ecfa7b0240c903b78101cd3e4ac0c7}{\+\_\+\+J\+A\+C\+\_\+\+I\+D\+\_\+}}(x)~int\+\_\+data\mbox{[}\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8_f90_a54f7194dc6a244f7eb7a78f88b3362ba}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}} + 2$\ast$(\mbox{\hyperlink{rxn__troe_8_f90_aee1fee52189b85b8a55162815b7eb2ab}{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}}+\mbox{\hyperlink{rxn__troe_8_f90_a0ab2d7e00e334b5c52335f26ef6025e8}{\+\_\+\+N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}}) + x\mbox{]}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a767b378bc7f42ea6f251cd44b8bc09da}{\+\_\+yield\+\_\+}}(x)~float\+\_\+data\mbox{[}\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8c_a3b137ec2100bbbde391a3ce68b216ec6}{\+\_\+\+N\+U\+M\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+R\+O\+P\+\_\+}} + x\mbox{]}
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a00385e0f5cea591af4ecb4e8cdd98801}{\+\_\+\+I\+N\+T\+\_\+\+D\+A\+T\+A\+\_\+\+S\+I\+Z\+E\+\_\+}}~(\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8_f90_a54f7194dc6a244f7eb7a78f88b3362ba}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}}+(\mbox{\hyperlink{rxn__troe_8_f90_aee1fee52189b85b8a55162815b7eb2ab}{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}}+2)$\ast$(\mbox{\hyperlink{rxn__troe_8_f90_aee1fee52189b85b8a55162815b7eb2ab}{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}}+\mbox{\hyperlink{rxn__troe_8_f90_a0ab2d7e00e334b5c52335f26ef6025e8}{\+\_\+\+N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}}))
+\item 
+\#define \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a803e77549d5f86671ab09075fd07b4ea}{\+\_\+\+F\+L\+O\+A\+T\+\_\+\+D\+A\+T\+A\+\_\+\+S\+I\+Z\+E\+\_\+}}~(\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8c_a3b137ec2100bbbde391a3ce68b216ec6}{\+\_\+\+N\+U\+M\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+R\+O\+P\+\_\+}}+\mbox{\hyperlink{rxn__troe_8_f90_a0ab2d7e00e334b5c52335f26ef6025e8}{\+\_\+\+N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}})
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void $\ast$ \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a380d0dcdf1144f076a80d102df88cc70}{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+get\+\_\+used\+\_\+jac\+\_\+elem}} (void $\ast$rxn\+\_\+data, \mbox{\hyperlink{phlex__solver_8h_af6a258d8f3ee5206d682d799316314b1}{bool}} $\ast$$\ast$jac\+\_\+struct)
+\begin{DoxyCompactList}\small\item\em Flag Jacobian elements used by this reaction. \end{DoxyCompactList}\item 
+void $\ast$ \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a862425dcf8dcbd4bbd982fc2787e18b6}{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+update\+\_\+ids}} (\mbox{\hyperlink{struct_model_data}{Model\+Data}} $\ast$model\+\_\+data, int $\ast$deriv\+\_\+ids, int $\ast$$\ast$jac\+\_\+ids, void $\ast$rxn\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Update the time derivative and Jacbobian array indices. \end{DoxyCompactList}\item 
+void $\ast$ \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_ac0aa70f4dc22320fe8192c35926949ea}{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+update\+\_\+env\+\_\+state}} (realtype $\ast$env\+\_\+data, void $\ast$rxn\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Update reaction data for new environmental conditions. \end{DoxyCompactList}\item 
+void $\ast$ \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_aabb3e79d5db669a6472502071266db04}{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+pre\+\_\+calc}} (\mbox{\hyperlink{struct_model_data}{Model\+Data}} $\ast$model\+\_\+data, void $\ast$rxn\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Do pre-\/derivative calculations. \end{DoxyCompactList}\item 
+void $\ast$ \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a6f1bf94e70a06c06a1612d35afcc1ec9}{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+calc\+\_\+deriv\+\_\+contrib}} (\mbox{\hyperlink{struct_model_data}{Model\+Data}} $\ast$model\+\_\+data, realtype $\ast$deriv, void $\ast$rxn\+\_\+data, double time\+\_\+step)
+\begin{DoxyCompactList}\small\item\em Calculate contributions to the time derivative f(t,y) from this reaction. \end{DoxyCompactList}\item 
+void $\ast$ \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a2211f1a7d291e335de43668e15588e4a}{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+calc\+\_\+jac\+\_\+contrib}} (\mbox{\hyperlink{struct_model_data}{Model\+Data}} $\ast$model\+\_\+data, realtype $\ast$J, void $\ast$rxn\+\_\+data, double time\+\_\+step)
+\begin{DoxyCompactList}\small\item\em Calculate contributions to the Jacobian from this reaction. \end{DoxyCompactList}\item 
+void $\ast$ \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_a79844f604799b5225c087953def9d1bd}{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+skip}} (void $\ast$rxn\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Advance the reaction data pointer to the next reaction. \end{DoxyCompactList}\item 
+void $\ast$ \mbox{\hyperlink{rxn___c_m_a_q___o_h___h_n_o3_8c_ae39c80da85bdbf71efa9da97868c0418}{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+print}} (void $\ast$rxn\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Print the C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3 reaction parameters. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3 reaction solver functions. 
+
+
+
+\subsection{Macro Definition Documentation}
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a8d22506f8671e195690022c44d319caf}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a8d22506f8671e195690022c44d319caf}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+\+C\+O\+N\+V\+\_\+@{\+\_\+\+C\+O\+N\+V\+\_\+}}
+\index{\+\_\+\+C\+O\+N\+V\+\_\+@{\+\_\+\+C\+O\+N\+V\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+\+C\+O\+N\+V\+\_\+}{\_CONV\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+C\+O\+N\+V\+\_\+~float\+\_\+data\mbox{[}10\mbox{]}}
+
+
+
+Definition at line 31 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a8df20fa2e866ca68998160fdeef08b19}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a8df20fa2e866ca68998160fdeef08b19}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+\+D\+E\+R\+I\+V\+\_\+\+I\+D\+\_\+@{\+\_\+\+D\+E\+R\+I\+V\+\_\+\+I\+D\+\_\+}}
+\index{\+\_\+\+D\+E\+R\+I\+V\+\_\+\+I\+D\+\_\+@{\+\_\+\+D\+E\+R\+I\+V\+\_\+\+I\+D\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+\+D\+E\+R\+I\+V\+\_\+\+I\+D\+\_\+}{\_DERIV\_ID\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+D\+E\+R\+I\+V\+\_\+\+I\+D\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~int\+\_\+data\mbox{[}\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8_f90_a54f7194dc6a244f7eb7a78f88b3362ba}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}} + \mbox{\hyperlink{rxn__troe_8_f90_aee1fee52189b85b8a55162815b7eb2ab}{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}} + \mbox{\hyperlink{rxn__troe_8_f90_a0ab2d7e00e334b5c52335f26ef6025e8}{\+\_\+\+N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}} + x\mbox{]}}
+
+
+
+Definition at line 37 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a803e77549d5f86671ab09075fd07b4ea}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a803e77549d5f86671ab09075fd07b4ea}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+\+F\+L\+O\+A\+T\+\_\+\+D\+A\+T\+A\+\_\+\+S\+I\+Z\+E\+\_\+@{\+\_\+\+F\+L\+O\+A\+T\+\_\+\+D\+A\+T\+A\+\_\+\+S\+I\+Z\+E\+\_\+}}
+\index{\+\_\+\+F\+L\+O\+A\+T\+\_\+\+D\+A\+T\+A\+\_\+\+S\+I\+Z\+E\+\_\+@{\+\_\+\+F\+L\+O\+A\+T\+\_\+\+D\+A\+T\+A\+\_\+\+S\+I\+Z\+E\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+\+F\+L\+O\+A\+T\+\_\+\+D\+A\+T\+A\+\_\+\+S\+I\+Z\+E\+\_\+}{\_FLOAT\_DATA\_SIZE\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+F\+L\+O\+A\+T\+\_\+\+D\+A\+T\+A\+\_\+\+S\+I\+Z\+E\+\_\+~(\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8c_a3b137ec2100bbbde391a3ce68b216ec6}{\+\_\+\+N\+U\+M\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+R\+O\+P\+\_\+}}+\mbox{\hyperlink{rxn__troe_8_f90_a0ab2d7e00e334b5c52335f26ef6025e8}{\+\_\+\+N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}})}
+
+
+
+Definition at line 41 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a00385e0f5cea591af4ecb4e8cdd98801}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a00385e0f5cea591af4ecb4e8cdd98801}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+\+I\+N\+T\+\_\+\+D\+A\+T\+A\+\_\+\+S\+I\+Z\+E\+\_\+@{\+\_\+\+I\+N\+T\+\_\+\+D\+A\+T\+A\+\_\+\+S\+I\+Z\+E\+\_\+}}
+\index{\+\_\+\+I\+N\+T\+\_\+\+D\+A\+T\+A\+\_\+\+S\+I\+Z\+E\+\_\+@{\+\_\+\+I\+N\+T\+\_\+\+D\+A\+T\+A\+\_\+\+S\+I\+Z\+E\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+\+I\+N\+T\+\_\+\+D\+A\+T\+A\+\_\+\+S\+I\+Z\+E\+\_\+}{\_INT\_DATA\_SIZE\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+I\+N\+T\+\_\+\+D\+A\+T\+A\+\_\+\+S\+I\+Z\+E\+\_\+~(\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8_f90_a54f7194dc6a244f7eb7a78f88b3362ba}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}}+(\mbox{\hyperlink{rxn__troe_8_f90_aee1fee52189b85b8a55162815b7eb2ab}{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}}+2)$\ast$(\mbox{\hyperlink{rxn__troe_8_f90_aee1fee52189b85b8a55162815b7eb2ab}{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}}+\mbox{\hyperlink{rxn__troe_8_f90_a0ab2d7e00e334b5c52335f26ef6025e8}{\+\_\+\+N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}}))}
+
+
+
+Definition at line 40 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_af0ecfa7b0240c903b78101cd3e4ac0c7}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_af0ecfa7b0240c903b78101cd3e4ac0c7}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+\+J\+A\+C\+\_\+\+I\+D\+\_\+@{\+\_\+\+J\+A\+C\+\_\+\+I\+D\+\_\+}}
+\index{\+\_\+\+J\+A\+C\+\_\+\+I\+D\+\_\+@{\+\_\+\+J\+A\+C\+\_\+\+I\+D\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+\+J\+A\+C\+\_\+\+I\+D\+\_\+}{\_JAC\_ID\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+J\+A\+C\+\_\+\+I\+D\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~int\+\_\+data\mbox{[}\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8_f90_a54f7194dc6a244f7eb7a78f88b3362ba}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}} + 2$\ast$(\mbox{\hyperlink{rxn__troe_8_f90_aee1fee52189b85b8a55162815b7eb2ab}{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}}+\mbox{\hyperlink{rxn__troe_8_f90_a0ab2d7e00e334b5c52335f26ef6025e8}{\+\_\+\+N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}}) + x\mbox{]}}
+
+
+
+Definition at line 38 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_aabb54c582f3555126b59cb089e4be16c}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_aabb54c582f3555126b59cb089e4be16c}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+k0\+\_\+\+A\+\_\+@{\+\_\+k0\+\_\+\+A\+\_\+}}
+\index{\+\_\+k0\+\_\+\+A\+\_\+@{\+\_\+k0\+\_\+\+A\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+k0\+\_\+\+A\+\_\+}{\_k0\_A\_}}
+{\footnotesize\ttfamily \#define \+\_\+k0\+\_\+\+A\+\_\+~float\+\_\+data\mbox{[}0\mbox{]}}
+
+
+
+Definition at line 21 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a2e85b17924fcae4e8ac7d13cd5ad9dc3}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a2e85b17924fcae4e8ac7d13cd5ad9dc3}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+k0\+\_\+\+B\+\_\+@{\+\_\+k0\+\_\+\+B\+\_\+}}
+\index{\+\_\+k0\+\_\+\+B\+\_\+@{\+\_\+k0\+\_\+\+B\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+k0\+\_\+\+B\+\_\+}{\_k0\_B\_}}
+{\footnotesize\ttfamily \#define \+\_\+k0\+\_\+\+B\+\_\+~float\+\_\+data\mbox{[}1\mbox{]}}
+
+
+
+Definition at line 22 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a33edc6e996141c7b128a12cde9624602}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a33edc6e996141c7b128a12cde9624602}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+k0\+\_\+\+C\+\_\+@{\+\_\+k0\+\_\+\+C\+\_\+}}
+\index{\+\_\+k0\+\_\+\+C\+\_\+@{\+\_\+k0\+\_\+\+C\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+k0\+\_\+\+C\+\_\+}{\_k0\_C\_}}
+{\footnotesize\ttfamily \#define \+\_\+k0\+\_\+\+C\+\_\+~float\+\_\+data\mbox{[}2\mbox{]}}
+
+
+
+Definition at line 23 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_aa61819ddc6aaa6275030c0ada2664978}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_aa61819ddc6aaa6275030c0ada2664978}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+k2\+\_\+\+A\+\_\+@{\+\_\+k2\+\_\+\+A\+\_\+}}
+\index{\+\_\+k2\+\_\+\+A\+\_\+@{\+\_\+k2\+\_\+\+A\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+k2\+\_\+\+A\+\_\+}{\_k2\_A\_}}
+{\footnotesize\ttfamily \#define \+\_\+k2\+\_\+\+A\+\_\+~float\+\_\+data\mbox{[}3\mbox{]}}
+
+
+
+Definition at line 24 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a9eb83934d412685a55de48b3bdb7684b}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a9eb83934d412685a55de48b3bdb7684b}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+k2\+\_\+\+B\+\_\+@{\+\_\+k2\+\_\+\+B\+\_\+}}
+\index{\+\_\+k2\+\_\+\+B\+\_\+@{\+\_\+k2\+\_\+\+B\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+k2\+\_\+\+B\+\_\+}{\_k2\_B\_}}
+{\footnotesize\ttfamily \#define \+\_\+k2\+\_\+\+B\+\_\+~float\+\_\+data\mbox{[}4\mbox{]}}
+
+
+
+Definition at line 25 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a3ae107fbcbf31082a1331399405d37cc}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a3ae107fbcbf31082a1331399405d37cc}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+k2\+\_\+\+C\+\_\+@{\+\_\+k2\+\_\+\+C\+\_\+}}
+\index{\+\_\+k2\+\_\+\+C\+\_\+@{\+\_\+k2\+\_\+\+C\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+k2\+\_\+\+C\+\_\+}{\_k2\_C\_}}
+{\footnotesize\ttfamily \#define \+\_\+k2\+\_\+\+C\+\_\+~float\+\_\+data\mbox{[}5\mbox{]}}
+
+
+
+Definition at line 26 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a8b4546ebf122cbb02546529b836b0082}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a8b4546ebf122cbb02546529b836b0082}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+k3\+\_\+\+A\+\_\+@{\+\_\+k3\+\_\+\+A\+\_\+}}
+\index{\+\_\+k3\+\_\+\+A\+\_\+@{\+\_\+k3\+\_\+\+A\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+k3\+\_\+\+A\+\_\+}{\_k3\_A\_}}
+{\footnotesize\ttfamily \#define \+\_\+k3\+\_\+\+A\+\_\+~float\+\_\+data\mbox{[}6\mbox{]}}
+
+
+
+Definition at line 27 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_aeb1fb7f92103c077d7bcb66d5f474e72}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_aeb1fb7f92103c077d7bcb66d5f474e72}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+k3\+\_\+\+B\+\_\+@{\+\_\+k3\+\_\+\+B\+\_\+}}
+\index{\+\_\+k3\+\_\+\+B\+\_\+@{\+\_\+k3\+\_\+\+B\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+k3\+\_\+\+B\+\_\+}{\_k3\_B\_}}
+{\footnotesize\ttfamily \#define \+\_\+k3\+\_\+\+B\+\_\+~float\+\_\+data\mbox{[}7\mbox{]}}
+
+
+
+Definition at line 28 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a37af87fd701822f9086631cb96cb217d}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a37af87fd701822f9086631cb96cb217d}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+k3\+\_\+\+C\+\_\+@{\+\_\+k3\+\_\+\+C\+\_\+}}
+\index{\+\_\+k3\+\_\+\+C\+\_\+@{\+\_\+k3\+\_\+\+C\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+k3\+\_\+\+C\+\_\+}{\_k3\_C\_}}
+{\footnotesize\ttfamily \#define \+\_\+k3\+\_\+\+C\+\_\+~float\+\_\+data\mbox{[}8\mbox{]}}
+
+
+
+Definition at line 29 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a3b137ec2100bbbde391a3ce68b216ec6}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a3b137ec2100bbbde391a3ce68b216ec6}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+\+N\+U\+M\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+R\+O\+P\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+R\+O\+P\+\_\+}}
+\index{\+\_\+\+N\+U\+M\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+R\+O\+P\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+R\+O\+P\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+\+N\+U\+M\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+R\+O\+P\+\_\+}{\_NUM\_FLOAT\_PROP\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+N\+U\+M\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+R\+O\+P\+\_\+~12}
+
+
+
+Definition at line 34 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a54f7194dc6a244f7eb7a78f88b3362ba}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a54f7194dc6a244f7eb7a78f88b3362ba}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}}
+\index{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}{\_NUM\_INT\_PROP\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+~2}
+
+
+
+Definition at line 33 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a0ab2d7e00e334b5c52335f26ef6025e8}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a0ab2d7e00e334b5c52335f26ef6025e8}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+\+N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}}
+\index{\+\_\+\+N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+\+N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}{\_NUM\_PROD\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+~int\+\_\+data\mbox{[}1\mbox{]}}
+
+
+
+Definition at line 20 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_aee1fee52189b85b8a55162815b7eb2ab}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_aee1fee52189b85b8a55162815b7eb2ab}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}}
+\index{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}{\_NUM\_REACT\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+~int\+\_\+data\mbox{[}0\mbox{]}}
+
+
+
+Definition at line 19 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_af5f7c44c3b7dd0d49ec7415e58f97bf1}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_af5f7c44c3b7dd0d49ec7415e58f97bf1}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+\+P\+R\+E\+S\+S\+U\+R\+E\+\_\+\+P\+A\+\_\+@{\+\_\+\+P\+R\+E\+S\+S\+U\+R\+E\+\_\+\+P\+A\+\_\+}}
+\index{\+\_\+\+P\+R\+E\+S\+S\+U\+R\+E\+\_\+\+P\+A\+\_\+@{\+\_\+\+P\+R\+E\+S\+S\+U\+R\+E\+\_\+\+P\+A\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+\+P\+R\+E\+S\+S\+U\+R\+E\+\_\+\+P\+A\+\_\+}{\_PRESSURE\_PA\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+P\+R\+E\+S\+S\+U\+R\+E\+\_\+\+P\+A\+\_\+~env\+\_\+data\mbox{[}1\mbox{]}}
+
+
+
+Definition at line 17 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_ad730666d44e45e220232510d9e15ec79}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_ad730666d44e45e220232510d9e15ec79}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+\+P\+R\+O\+D\+\_\+@{\+\_\+\+P\+R\+O\+D\+\_\+}}
+\index{\+\_\+\+P\+R\+O\+D\+\_\+@{\+\_\+\+P\+R\+O\+D\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+\+P\+R\+O\+D\+\_\+}{\_PROD\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+P\+R\+O\+D\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~(int\+\_\+data\mbox{[}\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8_f90_a54f7194dc6a244f7eb7a78f88b3362ba}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}} + \mbox{\hyperlink{rxn__troe_8_f90_aee1fee52189b85b8a55162815b7eb2ab}{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}} + x\mbox{]}-\/1)}
+
+
+
+Definition at line 36 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a90fa57a01e99ca76df9ef2ac521667ec}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a90fa57a01e99ca76df9ef2ac521667ec}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+\+R\+A\+T\+E\+\_\+\+C\+O\+N\+S\+T\+A\+N\+T\+\_\+@{\+\_\+\+R\+A\+T\+E\+\_\+\+C\+O\+N\+S\+T\+A\+N\+T\+\_\+}}
+\index{\+\_\+\+R\+A\+T\+E\+\_\+\+C\+O\+N\+S\+T\+A\+N\+T\+\_\+@{\+\_\+\+R\+A\+T\+E\+\_\+\+C\+O\+N\+S\+T\+A\+N\+T\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+\+R\+A\+T\+E\+\_\+\+C\+O\+N\+S\+T\+A\+N\+T\+\_\+}{\_RATE\_CONSTANT\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+R\+A\+T\+E\+\_\+\+C\+O\+N\+S\+T\+A\+N\+T\+\_\+~float\+\_\+data\mbox{[}11\mbox{]}}
+
+
+
+Definition at line 32 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a2465fb6c1cce932a0bb29dac2975ee64}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a2465fb6c1cce932a0bb29dac2975ee64}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+\+R\+E\+A\+C\+T\+\_\+@{\+\_\+\+R\+E\+A\+C\+T\+\_\+}}
+\index{\+\_\+\+R\+E\+A\+C\+T\+\_\+@{\+\_\+\+R\+E\+A\+C\+T\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+\+R\+E\+A\+C\+T\+\_\+}{\_REACT\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+R\+E\+A\+C\+T\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~(int\+\_\+data\mbox{[}\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8_f90_a54f7194dc6a244f7eb7a78f88b3362ba}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}} + x\mbox{]}-\/1)}
+
+
+
+Definition at line 35 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a44b5bdc8cf91427e717c13d7c925db84}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a44b5bdc8cf91427e717c13d7c925db84}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+\+S\+C\+A\+L\+I\+N\+G\+\_\+@{\+\_\+\+S\+C\+A\+L\+I\+N\+G\+\_\+}}
+\index{\+\_\+\+S\+C\+A\+L\+I\+N\+G\+\_\+@{\+\_\+\+S\+C\+A\+L\+I\+N\+G\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+\+S\+C\+A\+L\+I\+N\+G\+\_\+}{\_SCALING\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+S\+C\+A\+L\+I\+N\+G\+\_\+~float\+\_\+data\mbox{[}9\mbox{]}}
+
+
+
+Definition at line 30 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_ad869247669cecc183aa5fe2bca4f12c8}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_ad869247669cecc183aa5fe2bca4f12c8}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+\+T\+E\+M\+P\+E\+R\+A\+T\+U\+R\+E\+\_\+\+K\+\_\+@{\+\_\+\+T\+E\+M\+P\+E\+R\+A\+T\+U\+R\+E\+\_\+\+K\+\_\+}}
+\index{\+\_\+\+T\+E\+M\+P\+E\+R\+A\+T\+U\+R\+E\+\_\+\+K\+\_\+@{\+\_\+\+T\+E\+M\+P\+E\+R\+A\+T\+U\+R\+E\+\_\+\+K\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+\+T\+E\+M\+P\+E\+R\+A\+T\+U\+R\+E\+\_\+\+K\+\_\+}{\_TEMPERATURE\_K\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+T\+E\+M\+P\+E\+R\+A\+T\+U\+R\+E\+\_\+\+K\+\_\+~env\+\_\+data\mbox{[}0\mbox{]}}
+
+
+
+Definition at line 16 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a767b378bc7f42ea6f251cd44b8bc09da}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a767b378bc7f42ea6f251cd44b8bc09da}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!\+\_\+yield\+\_\+@{\+\_\+yield\+\_\+}}
+\index{\+\_\+yield\+\_\+@{\+\_\+yield\+\_\+}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+yield\+\_\+}{\_yield\_}}
+{\footnotesize\ttfamily \#define \+\_\+yield\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~float\+\_\+data\mbox{[}\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8c_a3b137ec2100bbbde391a3ce68b216ec6}{\+\_\+\+N\+U\+M\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+R\+O\+P\+\_\+}} + x\mbox{]}}
+
+
+
+Definition at line 39 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a6f1bf94e70a06c06a1612d35afcc1ec9}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a6f1bf94e70a06c06a1612d35afcc1ec9}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+calc\+\_\+deriv\+\_\+contrib@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+calc\+\_\+deriv\+\_\+contrib}}
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+calc\+\_\+deriv\+\_\+contrib@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+calc\+\_\+deriv\+\_\+contrib}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+calc\+\_\+deriv\+\_\+contrib()}{rxn\_CMAQ\_OH\_HNO3\_calc\_deriv\_contrib()}}
+{\footnotesize\ttfamily void$\ast$ rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+calc\+\_\+deriv\+\_\+contrib (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{struct_model_data}{Model\+Data}} $\ast$}]{model\+\_\+data,  }\item[{realtype $\ast$}]{deriv,  }\item[{void $\ast$}]{rxn\+\_\+data,  }\item[{double}]{time\+\_\+step }\end{DoxyParamCaption})}
+
+
+
+Calculate contributions to the time derivative f(t,y) from this reaction. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em model\+\_\+data} & Pointer to the model data \\
+\hline
+{\em deriv} & Pointer to the time derivative to add contributions to \\
+\hline
+{\em rxn\+\_\+data} & Pointer to the reaction data \\
+\hline
+{\em time\+\_\+step} & Current time step being computed (s) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The rxn\+\_\+data pointer advanced by the size of the reaction data 
+\end{DoxyReturn}
+
+
+Definition at line 157 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a2211f1a7d291e335de43668e15588e4a}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a2211f1a7d291e335de43668e15588e4a}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+calc\+\_\+jac\+\_\+contrib@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+calc\+\_\+jac\+\_\+contrib}}
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+calc\+\_\+jac\+\_\+contrib@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+calc\+\_\+jac\+\_\+contrib}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+calc\+\_\+jac\+\_\+contrib()}{rxn\_CMAQ\_OH\_HNO3\_calc\_jac\_contrib()}}
+{\footnotesize\ttfamily void$\ast$ rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+calc\+\_\+jac\+\_\+contrib (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{struct_model_data}{Model\+Data}} $\ast$}]{model\+\_\+data,  }\item[{realtype $\ast$}]{J,  }\item[{void $\ast$}]{rxn\+\_\+data,  }\item[{double}]{time\+\_\+step }\end{DoxyParamCaption})}
+
+
+
+Calculate contributions to the Jacobian from this reaction. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em model\+\_\+data} & Pointer to the model data \\
+\hline
+{\em J} & Pointer to the sparse Jacobian matrix to add contributions to \\
+\hline
+{\em rxn\+\_\+data} & Pointer to the reaction data \\
+\hline
+{\em time\+\_\+step} & Current time step being calculated (s) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The rxn\+\_\+data pointer advanced by the size of the reaction data 
+\end{DoxyReturn}
+
+
+Definition at line 193 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a380d0dcdf1144f076a80d102df88cc70}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a380d0dcdf1144f076a80d102df88cc70}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+get\+\_\+used\+\_\+jac\+\_\+elem@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+get\+\_\+used\+\_\+jac\+\_\+elem}}
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+get\+\_\+used\+\_\+jac\+\_\+elem@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+get\+\_\+used\+\_\+jac\+\_\+elem}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+get\+\_\+used\+\_\+jac\+\_\+elem()}{rxn\_CMAQ\_OH\_HNO3\_get\_used\_jac\_elem()}}
+{\footnotesize\ttfamily void$\ast$ rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+get\+\_\+used\+\_\+jac\+\_\+elem (\begin{DoxyParamCaption}\item[{void $\ast$}]{rxn\+\_\+data,  }\item[{\mbox{\hyperlink{phlex__solver_8h_af6a258d8f3ee5206d682d799316314b1}{bool}} $\ast$$\ast$}]{jac\+\_\+struct }\end{DoxyParamCaption})}
+
+
+
+Flag Jacobian elements used by this reaction. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em rxn\+\_\+data} & A pointer to the reaction data \\
+\hline
+{\em jac\+\_\+struct} & 2D array of flags indicating potentially non-\/zero Jacobian elements \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The rxn\+\_\+data pointer advanced by the size of the reaction data 
+\end{DoxyReturn}
+
+
+Definition at line 50 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_aabb3e79d5db669a6472502071266db04}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_aabb3e79d5db669a6472502071266db04}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+pre\+\_\+calc@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+pre\+\_\+calc}}
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+pre\+\_\+calc@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+pre\+\_\+calc}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+pre\+\_\+calc()}{rxn\_CMAQ\_OH\_HNO3\_pre\_calc()}}
+{\footnotesize\ttfamily void$\ast$ rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+pre\+\_\+calc (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{struct_model_data}{Model\+Data}} $\ast$}]{model\+\_\+data,  }\item[{void $\ast$}]{rxn\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Do pre-\/derivative calculations. 
+
+Nothing to do for C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3 reactions
+
+
+\begin{DoxyParams}{Parameters}
+{\em model\+\_\+data} & Pointer to the model data, including the state array \\
+\hline
+{\em rxn\+\_\+data} & Pointer to the reaction data \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The rxn\+\_\+data pointer advanced by the size of the reaction data 
+\end{DoxyReturn}
+
+
+Definition at line 140 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_ae39c80da85bdbf71efa9da97868c0418}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_ae39c80da85bdbf71efa9da97868c0418}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+print@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+print}}
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+print@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+print}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+print()}{rxn\_CMAQ\_OH\_HNO3\_print()}}
+{\footnotesize\ttfamily void$\ast$ rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+print (\begin{DoxyParamCaption}\item[{void $\ast$}]{rxn\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Print the C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3 reaction parameters. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em rxn\+\_\+data} & Pointer to the reaction data \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The rxn\+\_\+data pointer advanced by the size of the reaction data 
+\end{DoxyReturn}
+
+
+Definition at line 241 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a79844f604799b5225c087953def9d1bd}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a79844f604799b5225c087953def9d1bd}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+skip@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+skip}}
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+skip@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+skip}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+skip()}{rxn\_CMAQ\_OH\_HNO3\_skip()}}
+{\footnotesize\ttfamily void$\ast$ rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+skip (\begin{DoxyParamCaption}\item[{void $\ast$}]{rxn\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Advance the reaction data pointer to the next reaction. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em rxn\+\_\+data} & Pointer to the reaction data \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The rxn\+\_\+data pointer advanced by the size of the reaction data 
+\end{DoxyReturn}
+
+
+Definition at line 228 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_ac0aa70f4dc22320fe8192c35926949ea}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_ac0aa70f4dc22320fe8192c35926949ea}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+update\+\_\+env\+\_\+state@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+update\+\_\+env\+\_\+state}}
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+update\+\_\+env\+\_\+state@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+update\+\_\+env\+\_\+state}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+update\+\_\+env\+\_\+state()}{rxn\_CMAQ\_OH\_HNO3\_update\_env\_state()}}
+{\footnotesize\ttfamily void$\ast$ rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+update\+\_\+env\+\_\+state (\begin{DoxyParamCaption}\item[{realtype $\ast$}]{env\+\_\+data,  }\item[{void $\ast$}]{rxn\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Update reaction data for new environmental conditions. 
+
+For C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3 reaction this only involves recalculating the rate constant.
+
+
+\begin{DoxyParams}{Parameters}
+{\em env\+\_\+data} & Pointer to the environmental state array \\
+\hline
+{\em rxn\+\_\+data} & Pointer to the reaction data \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The rxn\+\_\+data pointer advanced by the size of the reaction data 
+\end{DoxyReturn}
+
+
+Definition at line 109 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+
+\mbox{\Hypertarget{rxn___c_m_a_q___o_h___h_n_o3_8c_a862425dcf8dcbd4bbd982fc2787e18b6}\label{rxn___c_m_a_q___o_h___h_n_o3_8c_a862425dcf8dcbd4bbd982fc2787e18b6}} 
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+update\+\_\+ids@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+update\+\_\+ids}}
+\index{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+update\+\_\+ids@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+update\+\_\+ids}!rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c@{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c}}
+\subsubsection{\texorpdfstring{rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+update\+\_\+ids()}{rxn\_CMAQ\_OH\_HNO3\_update\_ids()}}
+{\footnotesize\ttfamily void$\ast$ rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3\+\_\+update\+\_\+ids (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{struct_model_data}{Model\+Data}} $\ast$}]{model\+\_\+data,  }\item[{int $\ast$}]{deriv\+\_\+ids,  }\item[{int $\ast$$\ast$}]{jac\+\_\+ids,  }\item[{void $\ast$}]{rxn\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Update the time derivative and Jacbobian array indices. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em model\+\_\+data} & Pointer to the model data \\
+\hline
+{\em deriv\+\_\+ids} & Id of each state variable in the derivative array \\
+\hline
+{\em jac\+\_\+ids} & Id of each state variable combo in the Jacobian array \\
+\hline
+{\em rxn\+\_\+data} & Pointer to the reaction data \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The rxn\+\_\+data pointer advanced by the size of the reaction data 
+\end{DoxyReturn}
+
+
+Definition at line 75 of file rxn\+\_\+\+C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3.\+c.
+

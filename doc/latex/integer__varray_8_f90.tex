@@ -1,0 +1,45 @@
+\hypertarget{integer__varray_8_f90}{}\section{integer\+\_\+varray.\+F90 File Reference}
+\label{integer__varray_8_f90}\index{integer\+\_\+varray.\+F90@{integer\+\_\+varray.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__integer__varray}{pmc\+\_\+integer\+\_\+varray}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{pmc\+\_\+integer\+\_\+varray\+::integer\+\_\+varray\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em A variable-\/length 1D array of integers. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__integer__varray}{pmc\+\_\+integer\+\_\+varray}}
+\begin{DoxyCompactList}\small\item\em The \mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}} structure and assocated subroutines. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+elemental integer function \mbox{\hyperlink{namespacepmc__integer__varray_aac024cead9772e37f130bdc79254cdd5}{pmc\+\_\+integer\+\_\+varray\+::integer\+\_\+varray\+\_\+n\+\_\+entry}} (integer\+\_\+varray)
+\begin{DoxyCompactList}\small\item\em Return the current number of entries. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__varray_a56e39f9ee34a4092a5c32b74b85494bc}{pmc\+\_\+integer\+\_\+varray\+::integer\+\_\+varray\+\_\+realloc}} (integer\+\_\+varray, new\+\_\+length)
+\begin{DoxyCompactList}\small\item\em Changes the given integer\+\_\+varray to exactly the given new\+\_\+length. \end{DoxyCompactList}\item 
+elemental subroutine \mbox{\hyperlink{namespacepmc__integer__varray_a374e54ec508c92316da539cb8f0d8a0f}{pmc\+\_\+integer\+\_\+varray\+::integer\+\_\+varray\+\_\+zero}} (integer\+\_\+varray)
+\begin{DoxyCompactList}\small\item\em Resets an integer\+\_\+varray to have zero entries. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__varray_af17a55e72739f42ea30171ba6b236309}{pmc\+\_\+integer\+\_\+varray\+::integer\+\_\+varray\+\_\+enlarge}} (integer\+\_\+varray, n)
+\begin{DoxyCompactList}\small\item\em Enlarges the given array so that it is at least of size n. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__varray_a8c78aecfc2429aeca30d230222f69a1e}{pmc\+\_\+integer\+\_\+varray\+::integer\+\_\+varray\+\_\+shrink}} (integer\+\_\+varray)
+\begin{DoxyCompactList}\small\item\em Possibly shrinks the storage of the given array, ensuring that it can still store the used entries. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__varray_af69220e955a17e34968b502ba58301e0}{pmc\+\_\+integer\+\_\+varray\+::integer\+\_\+varray\+\_\+append}} (integer\+\_\+varray, val)
+\begin{DoxyCompactList}\small\item\em Adds the given number to the end of the array. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__varray_a1a230c2b3f0b3c7374c02a9ddafed40b}{pmc\+\_\+integer\+\_\+varray\+::integer\+\_\+varray\+\_\+remove\+\_\+entry}} (integer\+\_\+varray, index)
+\begin{DoxyCompactList}\small\item\em Removes the entry at the given index, repacking values to maintain contiguous data. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__integer__varray_a81d1258f19bf83286f41a25913d87094}{pmc\+\_\+integer\+\_\+varray\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+integer\+\_\+varray}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__varray_a4983f303a12ec1ff340ff2f2b738ed4d}{pmc\+\_\+integer\+\_\+varray\+::pmc\+\_\+mpi\+\_\+pack\+\_\+integer\+\_\+varray}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__varray_a1cbb70e367cc28d2b7ee33490466f3ff}{pmc\+\_\+integer\+\_\+varray\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+integer\+\_\+varray}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__integer__varray}{pmc\+\_\+integer\+\_\+varray}} module. 
+

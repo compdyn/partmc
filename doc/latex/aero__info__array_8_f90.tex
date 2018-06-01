@@ -1,0 +1,47 @@
+\hypertarget{aero__info__array_8_f90}{}\section{aero\+\_\+info\+\_\+array.\+F90 File Reference}
+\label{aero__info__array_8_f90}\index{aero\+\_\+info\+\_\+array.\+F90@{aero\+\_\+info\+\_\+array.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__aero__info__array}{pmc\+\_\+aero\+\_\+info\+\_\+array}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__aero__info__array_1_1aero__info__array__t}{pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em 1-\/D arrays of aero\+\_\+info\+\_\+t structure. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__aero__info__array}{pmc\+\_\+aero\+\_\+info\+\_\+array}}
+\begin{DoxyCompactList}\small\item\em The \mbox{\hyperlink{structpmc__aero__info__array_1_1aero__info__array__t}{aero\+\_\+info\+\_\+array\+\_\+t}} structure and assoicated subroutines. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+elemental integer function \mbox{\hyperlink{namespacepmc__aero__info__array_a0704e78a0bc96744d181384d88dff2ee}{pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+n\+\_\+item}} (aero\+\_\+info\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Return the current number of items. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__info__array_aceb12e9f541f4df8ab3c5d4a37e75072}{pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+zero}} (aero\+\_\+info\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Sets an aero\+\_\+info\+\_\+array to contain zero data. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__info__array_a4ce2e5c40bd09ddd7b86c03089bd828d}{pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+realloc}} (aero\+\_\+info\+\_\+array, new\+\_\+length)
+\begin{DoxyCompactList}\small\item\em Changes the given aero\+\_\+info\+\_\+array to exactly the given new\+\_\+length. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__info__array_a0ae4f267424b779e7b985ecda84ced0e}{pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+enlarge\+\_\+to}} (aero\+\_\+info\+\_\+array, n)
+\begin{DoxyCompactList}\small\item\em Possibly enlarges the given array, ensuring that it is at least of size n. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__info__array_a650cc8280450e226b94303abeeddaf6a}{pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+shrink}} (aero\+\_\+info\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Possibly shrinks the storage of the given array, ensuring that it can still store the allocated particles. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__info__array_a6a9a944a44aa3d2baf2442c9d90648b3}{pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+add\+\_\+aero\+\_\+info}} (aero\+\_\+info\+\_\+array, aero\+\_\+info)
+\begin{DoxyCompactList}\small\item\em Adds the given aero\+\_\+info to the end of the array. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__info__array_a60ce5d65642024604428bd7a6764ac70}{pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+remove\+\_\+aero\+\_\+info}} (aero\+\_\+info\+\_\+array, index)
+\begin{DoxyCompactList}\small\item\em Removes the aero\+\_\+info at the given index. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__info__array_a40802e262efd0945b1bf37cf548b4bb3}{pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+add}} (aero\+\_\+info\+\_\+array, aero\+\_\+info\+\_\+array\+\_\+delta)
+\begin{DoxyCompactList}\small\item\em Adds {\ttfamily aero\+\_\+info\+\_\+array\+\_\+delta} to the end of {\ttfamily aero\+\_\+info\+\_\+array}. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__aero__info__array_a80e0fdcb7ccd8fde3594259863523ed9}{pmc\+\_\+aero\+\_\+info\+\_\+array\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aia}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__info__array_a7991a20a1777310cb3eff21efc188a99}{pmc\+\_\+aero\+\_\+info\+\_\+array\+::pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+info\+\_\+array}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__info__array_a1439690489e5c170ecc3b85db4f6cbd4}{pmc\+\_\+aero\+\_\+info\+\_\+array\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+info\+\_\+array}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__aero__info__array}{pmc\+\_\+aero\+\_\+info\+\_\+array}} module. 
+

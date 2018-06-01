@@ -1,0 +1,269 @@
+\hypertarget{namespacepmc__aero__dist}{}\section{pmc\+\_\+aero\+\_\+dist Module Reference}
+\label{namespacepmc__aero__dist}\index{pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}}
+
+
+The \mbox{\hyperlink{structpmc__aero__dist_1_1aero__dist__t}{aero\+\_\+dist\+\_\+t}} structure and associated subroutines.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__aero__dist_1_1aero__dist__t}{aero\+\_\+dist\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em A complete aerosol distribution, consisting of several modes. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+elemental integer function \mbox{\hyperlink{namespacepmc__aero__dist_a2a730d12e3dc3d0c51d7aff80bd30e35}{aero\+\_\+dist\+\_\+n\+\_\+mode}} (aero\+\_\+dist)
+\begin{DoxyCompactList}\small\item\em Return the number of modes. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__aero__dist_a1976c9bd301379b91f6c14668315bacf}{aero\+\_\+dist\+\_\+total\+\_\+num\+\_\+conc}} (aero\+\_\+dist)
+\begin{DoxyCompactList}\small\item\em Returns the total number concentration of a distribution. (\#/m$^\wedge$3) \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__aero__dist_abc6bb98e0bbd18394c4c9f146d0337f0}{aero\+\_\+dist\+\_\+number}} (aero\+\_\+dist, aero\+\_\+weight)
+\begin{DoxyCompactList}\small\item\em Returns the total number of particles of a distribution. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__dist_a59a20aa0065ae63e35a55c8079ce9d66}{aero\+\_\+dist\+\_\+num\+\_\+conc}} (aero\+\_\+dist, bin\+\_\+grid, aero\+\_\+data, num\+\_\+conc)
+\begin{DoxyCompactList}\small\item\em Return the binned number concentration for an aero\+\_\+dist. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__dist_a876b60eece43d39ab4d5c09a5a5d22d7}{aero\+\_\+dist\+\_\+vol\+\_\+conc}} (aero\+\_\+dist, bin\+\_\+grid, aero\+\_\+data, vol\+\_\+conc)
+\begin{DoxyCompactList}\small\item\em Return the binned per-\/species volume concentration for an aero\+\_\+dist. \end{DoxyCompactList}\item 
+elemental logical function \mbox{\hyperlink{namespacepmc__aero__dist_acb52a306c5fd713a1a76f66ef21b22d9}{aero\+\_\+dist\+\_\+contains\+\_\+aero\+\_\+mode\+\_\+type}} (aero\+\_\+dist, aero\+\_\+mode\+\_\+type)
+\begin{DoxyCompactList}\small\item\em Whether any of the modes are of the given type. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__dist_a1fe0b780b71145acb4892b597f9218a5}{aero\+\_\+dist\+\_\+interp\+\_\+1d}} (aero\+\_\+dist\+\_\+list, time\+\_\+list, rate\+\_\+list, time, aero\+\_\+dist, rate)
+\begin{DoxyCompactList}\small\item\em Determine the current aero\+\_\+dist and rate by interpolating at the current time with the lists of aero\+\_\+dists and rates. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__aero__dist_ac204813ce47a796777984e68f0e50dc7}{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+dist}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__dist_a33ef1e6098d7956dbdac21b37adfb337}{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+dist}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__dist_a2a10f585be3b1cb326f523a68219dfa4}{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+dist}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{structpmc__aero__dist_1_1aero__dist__t}{aero\+\_\+dist\+\_\+t}} structure and associated subroutines. 
+
+The initial size distributions are computed as number densities, so they can be used for both sectional and particle-\/resolved simulations. The routine dist\+\_\+to\+\_\+n() converts a number concentration distribution to an actual number of particles ready for a particle-\/resolved simulation.
+
+Initial distributions should be normalized so that {\ttfamily sum(n\+\_\+den) = 1/log\+\_\+width}. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__aero__dist_acb52a306c5fd713a1a76f66ef21b22d9}\label{namespacepmc__aero__dist_acb52a306c5fd713a1a76f66ef21b22d9}} 
+\index{pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}!aero\+\_\+dist\+\_\+contains\+\_\+aero\+\_\+mode\+\_\+type@{aero\+\_\+dist\+\_\+contains\+\_\+aero\+\_\+mode\+\_\+type}}
+\index{aero\+\_\+dist\+\_\+contains\+\_\+aero\+\_\+mode\+\_\+type@{aero\+\_\+dist\+\_\+contains\+\_\+aero\+\_\+mode\+\_\+type}!pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}}
+\subsubsection{\texorpdfstring{aero\+\_\+dist\+\_\+contains\+\_\+aero\+\_\+mode\+\_\+type()}{aero\_dist\_contains\_aero\_mode\_type()}}
+{\footnotesize\ttfamily elemental logical function pmc\+\_\+aero\+\_\+dist\+::aero\+\_\+dist\+\_\+contains\+\_\+aero\+\_\+mode\+\_\+type (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__dist_1_1aero__dist__t}{aero\+\_\+dist\+\_\+t}}), intent(in)}]{aero\+\_\+dist,  }\item[{integer, intent(in)}]{aero\+\_\+mode\+\_\+type }\end{DoxyParamCaption})}
+
+
+
+Whether any of the modes are of the given type. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+dist} & Aerosol distribution.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+mode\+\_\+type} & Aerosol mode type to test for. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 155 of file aero\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__dist_a1fe0b780b71145acb4892b597f9218a5}\label{namespacepmc__aero__dist_a1fe0b780b71145acb4892b597f9218a5}} 
+\index{pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}!aero\+\_\+dist\+\_\+interp\+\_\+1d@{aero\+\_\+dist\+\_\+interp\+\_\+1d}}
+\index{aero\+\_\+dist\+\_\+interp\+\_\+1d@{aero\+\_\+dist\+\_\+interp\+\_\+1d}!pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}}
+\subsubsection{\texorpdfstring{aero\+\_\+dist\+\_\+interp\+\_\+1d()}{aero\_dist\_interp\_1d()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+dist\+::aero\+\_\+dist\+\_\+interp\+\_\+1d (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__dist_1_1aero__dist__t}{aero\+\_\+dist\+\_\+t}}), dimension(\+:), intent(in)}]{aero\+\_\+dist\+\_\+list,  }\item[{real(kind=dp), dimension(size(aero\+\_\+dist\+\_\+list)), intent(in)}]{time\+\_\+list,  }\item[{real(kind=dp), dimension(size(aero\+\_\+dist\+\_\+list)), intent(in)}]{rate\+\_\+list,  }\item[{real(kind=dp), intent(in)}]{time,  }\item[{type(\mbox{\hyperlink{structpmc__aero__dist_1_1aero__dist__t}{aero\+\_\+dist\+\_\+t}}), intent(inout)}]{aero\+\_\+dist,  }\item[{real(kind=dp), intent(out)}]{rate }\end{DoxyParamCaption})}
+
+
+
+Determine the current aero\+\_\+dist and rate by interpolating at the current time with the lists of aero\+\_\+dists and rates. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+dist\+\_\+list} & Gas states.\\
+\hline
+\mbox{\tt in}  & {\em time\+\_\+list} & Times (s).\\
+\hline
+\mbox{\tt in}  & {\em rate\+\_\+list} & Rates (s$^\wedge$\{-\/1\}).\\
+\hline
+\mbox{\tt in}  & {\em time} & Current time (s).\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+dist} & Current gas state.\\
+\hline
+\mbox{\tt out}  & {\em rate} & Current rate (s$^\wedge$\{-\/1\}). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 177 of file aero\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__dist_a2a730d12e3dc3d0c51d7aff80bd30e35}\label{namespacepmc__aero__dist_a2a730d12e3dc3d0c51d7aff80bd30e35}} 
+\index{pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}!aero\+\_\+dist\+\_\+n\+\_\+mode@{aero\+\_\+dist\+\_\+n\+\_\+mode}}
+\index{aero\+\_\+dist\+\_\+n\+\_\+mode@{aero\+\_\+dist\+\_\+n\+\_\+mode}!pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}}
+\subsubsection{\texorpdfstring{aero\+\_\+dist\+\_\+n\+\_\+mode()}{aero\_dist\_n\_mode()}}
+{\footnotesize\ttfamily elemental integer function pmc\+\_\+aero\+\_\+dist\+::aero\+\_\+dist\+\_\+n\+\_\+mode (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__dist_1_1aero__dist__t}{aero\+\_\+dist\+\_\+t}}), intent(in)}]{aero\+\_\+dist }\end{DoxyParamCaption})}
+
+
+
+Return the number of modes. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+dist} & Aero data structure. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 44 of file aero\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__dist_a59a20aa0065ae63e35a55c8079ce9d66}\label{namespacepmc__aero__dist_a59a20aa0065ae63e35a55c8079ce9d66}} 
+\index{pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}!aero\+\_\+dist\+\_\+num\+\_\+conc@{aero\+\_\+dist\+\_\+num\+\_\+conc}}
+\index{aero\+\_\+dist\+\_\+num\+\_\+conc@{aero\+\_\+dist\+\_\+num\+\_\+conc}!pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}}
+\subsubsection{\texorpdfstring{aero\+\_\+dist\+\_\+num\+\_\+conc()}{aero\_dist\_num\_conc()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+dist\+::aero\+\_\+dist\+\_\+num\+\_\+conc (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__dist_1_1aero__dist__t}{aero\+\_\+dist\+\_\+t}}), intent(in)}]{aero\+\_\+dist,  }\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{real(kind=dp), dimension(bin\+\_\+grid\+\_\+size(bin\+\_\+grid)), intent(out)}]{num\+\_\+conc }\end{DoxyParamCaption})}
+
+
+
+Return the binned number concentration for an aero\+\_\+dist. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+dist} & Aero dist for which to compute number concentration.\\
+\hline
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt out}  & {\em num\+\_\+conc} & Number concentration (\#(ln(r))d(ln(r))). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 99 of file aero\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__dist_abc6bb98e0bbd18394c4c9f146d0337f0}\label{namespacepmc__aero__dist_abc6bb98e0bbd18394c4c9f146d0337f0}} 
+\index{pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}!aero\+\_\+dist\+\_\+number@{aero\+\_\+dist\+\_\+number}}
+\index{aero\+\_\+dist\+\_\+number@{aero\+\_\+dist\+\_\+number}!pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}}
+\subsubsection{\texorpdfstring{aero\+\_\+dist\+\_\+number()}{aero\_dist\_number()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+aero\+\_\+dist\+::aero\+\_\+dist\+\_\+number (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__dist_1_1aero__dist__t}{aero\+\_\+dist\+\_\+t}}), intent(in)}]{aero\+\_\+dist,  }\item[{type(\mbox{\hyperlink{structpmc__aero__weight_1_1aero__weight__t}{aero\+\_\+weight\+\_\+t}}), intent(in)}]{aero\+\_\+weight }\end{DoxyParamCaption})}
+
+
+
+Returns the total number of particles of a distribution. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+dist} & Aerosol distribution.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+weight} & Aerosol weight. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 78 of file aero\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__dist_a1976c9bd301379b91f6c14668315bacf}\label{namespacepmc__aero__dist_a1976c9bd301379b91f6c14668315bacf}} 
+\index{pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}!aero\+\_\+dist\+\_\+total\+\_\+num\+\_\+conc@{aero\+\_\+dist\+\_\+total\+\_\+num\+\_\+conc}}
+\index{aero\+\_\+dist\+\_\+total\+\_\+num\+\_\+conc@{aero\+\_\+dist\+\_\+total\+\_\+num\+\_\+conc}!pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}}
+\subsubsection{\texorpdfstring{aero\+\_\+dist\+\_\+total\+\_\+num\+\_\+conc()}{aero\_dist\_total\_num\_conc()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+aero\+\_\+dist\+::aero\+\_\+dist\+\_\+total\+\_\+num\+\_\+conc (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__dist_1_1aero__dist__t}{aero\+\_\+dist\+\_\+t}}), intent(in)}]{aero\+\_\+dist }\end{DoxyParamCaption})}
+
+
+
+Returns the total number concentration of a distribution. (\#/m$^\wedge$3) 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+dist} & Aerosol distribution. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 60 of file aero\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__dist_a876b60eece43d39ab4d5c09a5a5d22d7}\label{namespacepmc__aero__dist_a876b60eece43d39ab4d5c09a5a5d22d7}} 
+\index{pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}!aero\+\_\+dist\+\_\+vol\+\_\+conc@{aero\+\_\+dist\+\_\+vol\+\_\+conc}}
+\index{aero\+\_\+dist\+\_\+vol\+\_\+conc@{aero\+\_\+dist\+\_\+vol\+\_\+conc}!pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}}
+\subsubsection{\texorpdfstring{aero\+\_\+dist\+\_\+vol\+\_\+conc()}{aero\_dist\_vol\_conc()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+dist\+::aero\+\_\+dist\+\_\+vol\+\_\+conc (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__dist_1_1aero__dist__t}{aero\+\_\+dist\+\_\+t}}), intent(in)}]{aero\+\_\+dist,  }\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{real(kind=dp), dimension(bin\+\_\+grid\+\_\+size(bin\+\_\+grid),          aero\+\_\+data\+\_\+n\+\_\+spec(aero\+\_\+data)), intent(out)}]{vol\+\_\+conc }\end{DoxyParamCaption})}
+
+
+
+Return the binned per-\/species volume concentration for an aero\+\_\+dist. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+dist} & Aero dist for which to compute volume concentration.\\
+\hline
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt out}  & {\em vol\+\_\+conc} & Volume concentration (V(ln(r))d(ln(r))). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 127 of file aero\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__dist_a33ef1e6098d7956dbdac21b37adfb337}\label{namespacepmc__aero__dist_a33ef1e6098d7956dbdac21b37adfb337}} 
+\index{pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}!pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+dist@{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+dist}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+dist@{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+dist}!pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+dist()}{pmc\_mpi\_pack\_aero\_dist()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+dist\+::pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+dist (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{type(\mbox{\hyperlink{structpmc__aero__dist_1_1aero__dist__t}{aero\+\_\+dist\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Packs the given value into the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 419 of file aero\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__dist_ac204813ce47a796777984e68f0e50dc7}\label{namespacepmc__aero__dist_ac204813ce47a796777984e68f0e50dc7}} 
+\index{pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}!pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+dist@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+dist}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+dist@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+dist}!pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+dist()}{pmc\_mpi\_pack\_size\_aero\_dist()}}
+{\footnotesize\ttfamily integer function pmc\+\_\+aero\+\_\+dist\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+dist (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__dist_1_1aero__dist__t}{aero\+\_\+dist\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Determines the number of bytes required to pack the given value. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 397 of file aero\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__dist_a2a10f585be3b1cb326f523a68219dfa4}\label{namespacepmc__aero__dist_a2a10f585be3b1cb326f523a68219dfa4}} 
+\index{pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}!pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+dist@{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+dist}}
+\index{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+dist@{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+dist}!pmc\+\_\+aero\+\_\+dist@{pmc\+\_\+aero\+\_\+dist}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+dist()}{pmc\_mpi\_unpack\_aero\_dist()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+dist\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+dist (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{type(\mbox{\hyperlink{structpmc__aero__dist_1_1aero__dist__t}{aero\+\_\+dist\+\_\+t}}), intent(inout)}]{val }\end{DoxyParamCaption})}
+
+
+
+Unpacks the given value from the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in,out}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 449 of file aero\+\_\+dist.\+F90.
+

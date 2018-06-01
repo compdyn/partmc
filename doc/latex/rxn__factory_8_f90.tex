@@ -1,0 +1,64 @@
+\hypertarget{rxn__factory_8_f90}{}\section{rxn\+\_\+factory.\+F90 File Reference}
+\label{rxn__factory_8_f90}\index{rxn\+\_\+factory.\+F90@{rxn\+\_\+factory.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__rxn__factory}{pmc\+\_\+rxn\+\_\+factory}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__rxn__factory_1_1rxn__factory__t}{pmc\+\_\+rxn\+\_\+factory\+::rxn\+\_\+factory\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Factory type for chemical reactions. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__rxn__factory}{pmc\+\_\+rxn\+\_\+factory}}
+\begin{DoxyCompactList}\small\item\em The abstract \mbox{\hyperlink{structpmc__rxn__factory_1_1rxn__factory__t}{rxn\+\_\+factory\+\_\+t}} structure and associated subroutines. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+class(rxn\+\_\+data\+\_\+t) function, pointer \mbox{\hyperlink{namespacepmc__rxn__factory_ad742376c2dae968c0aec048674112073}{pmc\+\_\+rxn\+\_\+factory\+::create}} (this, type\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Create a new chemical reaction by type name. \end{DoxyCompactList}\item 
+class(rxn\+\_\+data\+\_\+t) function, pointer \mbox{\hyperlink{namespacepmc__rxn__factory_a57a62f05f6c35bc0fe5136416bd6de88}{pmc\+\_\+rxn\+\_\+factory\+::load}} (this, json, j\+\_\+obj)
+\begin{DoxyCompactList}\small\item\em Load an aerosol represenation from input data. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind) function \mbox{\hyperlink{namespacepmc__rxn__factory_a1cad0d2e8d6f63fa8c0372b2b564535b}{pmc\+\_\+rxn\+\_\+factory\+::get\+\_\+type}} (this, rxn)
+\begin{DoxyCompactList}\small\item\em Get the reaction type as a Rxn\+Type. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__rxn__factory_a212a3d8e44d9a4a79f9969ba0af02133}{pmc\+\_\+rxn\+\_\+factory\+::new\+\_\+update\+\_\+data}} (this, update\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Get a new update data object. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind) function \mbox{\hyperlink{namespacepmc__rxn__factory_a7e211932d81d6b402bffe60e03d72b72}{pmc\+\_\+rxn\+\_\+factory\+::pack\+\_\+size}} (this, rxn)
+\begin{DoxyCompactList}\small\item\em Determine the size of a binary required to pack a reaction. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__rxn__factory_a5d87b219d8a0537b7b37d08d4e2e72e0}{pmc\+\_\+rxn\+\_\+factory\+::bin\+\_\+pack}} (this, rxn, buffer, pos)
+\begin{DoxyCompactList}\small\item\em Pack the given value to the buffer, advancing position. \end{DoxyCompactList}\item 
+class(rxn\+\_\+data\+\_\+t) function, pointer \mbox{\hyperlink{namespacepmc__rxn__factory_a35c01465a02ea6217cf674e06b17fd2f}{pmc\+\_\+rxn\+\_\+factory\+::bin\+\_\+unpack}} (this, buffer, pos)
+\begin{DoxyCompactList}\small\item\em Unpack the given value to the buffer, advancing position. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__rxn__factory_a8982f1039d9dbeb96d3417eb30e356a0}{pmc\+\_\+rxn\+\_\+factory\+::rxn\+\_\+arrhenius}} = 1
+\begin{DoxyCompactList}\small\item\em Identifiers for reaction types -\/ used by binary packing/unpacking functions. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__rxn__factory_a5142ca027ce9f54cc7c4e49542e9bd0e}{pmc\+\_\+rxn\+\_\+factory\+::rxn\+\_\+troe}} = 2
+\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__rxn__factory_a776416a03ead756bd1cd206f93b763a6}{pmc\+\_\+rxn\+\_\+factory\+::rxn\+\_\+cmaq\+\_\+h2o2}} = 3
+\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__rxn__factory_aeb0e4677c84b942a0f1867a218a15404}{pmc\+\_\+rxn\+\_\+factory\+::rxn\+\_\+cmaq\+\_\+oh\+\_\+hno3}} = 4
+\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__rxn__factory_a0b06d4f20aae6434f216c79c418b256f}{pmc\+\_\+rxn\+\_\+factory\+::rxn\+\_\+photolysis}} = 5
+\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__rxn__factory_a8bf11f3e9a41f57cdb9232682785ff4d}{pmc\+\_\+rxn\+\_\+factory\+::rxn\+\_\+hl\+\_\+phase\+\_\+transfer}} = 6
+\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__rxn__factory_a55e52865bc0c395f5cd41bfd3ef382e0}{pmc\+\_\+rxn\+\_\+factory\+::rxn\+\_\+aqueous\+\_\+equilibrium}} = 7
+\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__rxn__factory_a67e274f604a27f1d65091919ee92e105}{pmc\+\_\+rxn\+\_\+factory\+::rxn\+\_\+zsr\+\_\+aerosol\+\_\+water}} = 8
+\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__rxn__factory_a3f039b0ac4cb1d88973935c55c763588}{pmc\+\_\+rxn\+\_\+factory\+::rxn\+\_\+pdfite\+\_\+activity}} = 9
+\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__rxn__factory_a1ba2b8ba97a5327f1dcdafd63538b7a6}{pmc\+\_\+rxn\+\_\+factory\+::rxn\+\_\+simpol\+\_\+phase\+\_\+transfer}} = 10
+\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__rxn__factory_ab0ee1f4ac771d7eaedf88c5e10118a5b}{pmc\+\_\+rxn\+\_\+factory\+::rxn\+\_\+condensed\+\_\+phase\+\_\+arrhenius}} = 11
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__rxn__factory}{pmc\+\_\+rxn\+\_\+factory}} module. 
+

@@ -1,0 +1,43 @@
+\hypertarget{integer__rmap_8_f90}{}\section{integer\+\_\+rmap.\+F90 File Reference}
+\label{integer__rmap_8_f90}\index{integer\+\_\+rmap.\+F90@{integer\+\_\+rmap.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__integer__rmap}{pmc\+\_\+integer\+\_\+rmap}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__integer__rmap_1_1integer__rmap__t}{pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em A map from integers to integers, together with its multi-\/valued inverse. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__integer__rmap}{pmc\+\_\+integer\+\_\+rmap}}
+\begin{DoxyCompactList}\small\item\em The \mbox{\hyperlink{structpmc__integer__rmap_1_1integer__rmap__t}{integer\+\_\+rmap\+\_\+t}} structure and assocated subroutines. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+elemental subroutine \mbox{\hyperlink{namespacepmc__integer__rmap_a8e55a1b6d41e1cec7c05c2f2f89e2603}{pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+set\+\_\+range}} (integer\+\_\+rmap, n\+\_\+range)
+\begin{DoxyCompactList}\small\item\em Sets the maximum range of the forward map. \end{DoxyCompactList}\item 
+elemental subroutine \mbox{\hyperlink{namespacepmc__integer__rmap_a16f57781b90da0777f54a2070b3f4bc4}{pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+zero}} (integer\+\_\+rmap)
+\begin{DoxyCompactList}\small\item\em Resets an integer\+\_\+rmap to have no mappings. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__rmap_a0f7f546f381ee5750d589783bb7e1d89}{pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+append}} (integer\+\_\+rmap, i\+\_\+range)
+\begin{DoxyCompactList}\small\item\em Set the map value of the next free domain value to {\ttfamily i\+\_\+range}. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__rmap_aab0f22157b45282c06a9c96132755c36}{pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+change}} (integer\+\_\+rmap, i\+\_\+domain, i\+\_\+range)
+\begin{DoxyCompactList}\small\item\em Change the map value of {\ttfamily i\+\_\+domain} to {\ttfamily i\+\_\+range}. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__rmap_a01351bbea0a74eb2a4b0f970cbb4ae85}{pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+remove}} (integer\+\_\+rmap, i\+\_\+domain)
+\begin{DoxyCompactList}\small\item\em Replace the map at the given {\ttfamily i\+\_\+domain} with the map value of the last entry, and delete the last entry. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__rmap_ada6b75ea8b1fbe6d86029e707fa4dcaa}{pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+check}} (integer\+\_\+rmap, name, n\+\_\+domain, n\+\_\+range, continue\+\_\+on\+\_\+error)
+\begin{DoxyCompactList}\small\item\em Check that the data is consistent. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__integer__rmap_abea71acd80972ef2286adaf3a124b1c0}{pmc\+\_\+integer\+\_\+rmap\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+integer\+\_\+rmap}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__rmap_a3fe52c5b53b166a04a637aa40a1250ef}{pmc\+\_\+integer\+\_\+rmap\+::pmc\+\_\+mpi\+\_\+pack\+\_\+integer\+\_\+rmap}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__rmap_a3603985157c28d502225dd090ff2f44a}{pmc\+\_\+integer\+\_\+rmap\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+integer\+\_\+rmap}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__integer__rmap}{pmc\+\_\+integer\+\_\+rmap}} module. 
+

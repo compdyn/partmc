@@ -1,0 +1,576 @@
+\hypertarget{namespacepmc__scenario}{}\section{pmc\+\_\+scenario Module Reference}
+\label{namespacepmc__scenario}\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+
+
+The \mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}} structure and associated subroutines.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Scenario data. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__scenario_a9ba2febb35bfe14fe1ce49994de7fdb9}{scenario\+\_\+init\+\_\+env\+\_\+state}} (scenario, env\+\_\+state, time)
+\begin{DoxyCompactList}\small\item\em Initialize the time-\/dependent contents of the environment. Thereafter \mbox{\hyperlink{namespacepmc__scenario_a88ccdf6c90762496ecbb93e45cc92bb7}{scenario\+\_\+update\+\_\+env\+\_\+state()}} should be used. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__scenario_a88ccdf6c90762496ecbb93e45cc92bb7}{scenario\+\_\+update\+\_\+env\+\_\+state}} (scenario, env\+\_\+state, time)
+\begin{DoxyCompactList}\small\item\em Update time-\/dependent contents of the environment. \mbox{\hyperlink{namespacepmc__scenario_a9ba2febb35bfe14fe1ce49994de7fdb9}{scenario\+\_\+init\+\_\+env\+\_\+state()}} should have been called at the start. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__scenario_a8da20291ae6441134e5f1788a906e96b}{scenario\+\_\+update\+\_\+gas\+\_\+state}} (scenario, delta\+\_\+t, env\+\_\+state, old\+\_\+env\+\_\+state, gas\+\_\+data, gas\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Do gas emissions and background dilution. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__scenario_a6d0621141b705a051b14761430d385ca}{scenario\+\_\+update\+\_\+aero\+\_\+state}} (scenario, delta\+\_\+t, env\+\_\+state, old\+\_\+env\+\_\+state, aero\+\_\+data, aero\+\_\+state, n\+\_\+emit, n\+\_\+dil\+\_\+in, n\+\_\+dil\+\_\+out, allow\+\_\+doubling, allow\+\_\+halving)
+\begin{DoxyCompactList}\small\item\em Do emissions and background dilution for a particle aerosol distribution. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__scenario_aa8ca6c77c94665bdbf4c4f25e2dd1523}{scenario\+\_\+update\+\_\+aero\+\_\+binned}} (scenario, delta\+\_\+t, env\+\_\+state, old\+\_\+env\+\_\+state, bin\+\_\+grid, aero\+\_\+data, aero\+\_\+binned)
+\begin{DoxyCompactList}\small\item\em Do emissions and background dilution from the environment for a binned aerosol distribution. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__scenario_ab60e2eeb66ae8849ad11923d76a9bd7f}{scenario\+\_\+loss\+\_\+rate}} (scenario, vol, density, aero\+\_\+data, env\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Evaluate a loss rate function. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__scenario_adbc0c60c8638d7bc02416577dedf89ac}{scenario\+\_\+loss\+\_\+rate\+\_\+dry\+\_\+dep}} (vol, density, aero\+\_\+data, env\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Compute and return the dry deposition rate for a given particle. All equations used here are written in detail in the file {\ttfamily doc/deposition/deposition.\+tex}. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__scenario_a3b3b510051adbe1f82741b50ea7d5857}{scenario\+\_\+loss\+\_\+rate\+\_\+max}} (scenario, vol, aero\+\_\+data, env\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Compute and return the max loss rate function for a given volume. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__scenario_a5b6292cb3c74aba853700581ea964bc0}{scenario\+\_\+loss\+\_\+rate\+\_\+bin\+\_\+max}} (scenario, bin\+\_\+grid, aero\+\_\+data, env\+\_\+state, loss\+\_\+max)
+\begin{DoxyCompactList}\small\item\em Compute an upper bound on the maximum kernel value for each bin. Value over\+\_\+scale is multiplied to the maximum sampled value to get the upper bound. A tighter bound may be reached if over\+\_\+scale is smaller, but that also risks falling below a kernel value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__scenario_a275a4562c174d7090db3120235d4e97f}{scenario\+\_\+particle\+\_\+loss}} (scenario, delta\+\_\+t, aero\+\_\+data, aero\+\_\+state, env\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Performs stochastic particle loss for one time-\/step. If a particle {\ttfamily i\+\_\+part} has a \mbox{\hyperlink{namespacepmc__scenario_ab60e2eeb66ae8849ad11923d76a9bd7f}{scenario\+\_\+loss\+\_\+rate()}} value of rate, then the probability p will be removed by this function is {\ttfamily 1 -\/ exp(-\/delta\+\_\+t$\ast$rate)}. Uses an accept-\/reject algorithm for efficiency, in which a particle is first sampled with rate {\ttfamily 1 -\/ exp(-\/delta\+\_\+t$\ast$over\+\_\+rate) } and then accepted with rate {\ttfamily (1 -\/ exp(-\/delta\+\_\+t$\ast$rate))/(1 -\/ exp(-\/delta\+\_\+t$\ast$over\+\_\+rate))}. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__scenario_ab3b05e77d36cc1b27c10ebd8d315df61}{scenario\+\_\+try\+\_\+single\+\_\+particle\+\_\+loss}} (scenario, delta\+\_\+t, aero\+\_\+data, aero\+\_\+state, env\+\_\+state, i\+\_\+part, over\+\_\+prob)
+\begin{DoxyCompactList}\small\item\em Test a candidate particle to see if it should be removed, and remove if necessary. Particle is removed with probability (1d0 -\/ exp(-\/delta\+\_\+t$\ast$rate))/over\+\_\+prob, where rate is the loss function evaluated for the given particle. \end{DoxyCompactList}\item 
+elemental logical function \mbox{\hyperlink{namespacepmc__scenario_afaea66be4e0e1ec9a4b80a2fda61f972}{scenario\+\_\+contains\+\_\+aero\+\_\+mode\+\_\+type}} (scenario, aero\+\_\+mode\+\_\+type)
+\begin{DoxyCompactList}\small\item\em Whether any of the contained aerosol modes are of the given type. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__scenario_a135753482d6e0a63cf3947e6e017c618}{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+scenario}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__scenario_a93772962c3e78b32063cb735d357878a}{pmc\+\_\+mpi\+\_\+pack\+\_\+scenario}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__scenario_afddd83d6cfc65b32e3cce01d70ecdf85}{pmc\+\_\+mpi\+\_\+unpack\+\_\+scenario}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__scenario_a2b2e63100da1707d0529fc22239daa8e}{scenario\+\_\+loss\+\_\+function\+\_\+invalid}} = 0
+\begin{DoxyCompactList}\small\item\em Type code for an undefined or invalid loss function. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__scenario_a698827c1bd003fdbf988b3813305322e}{scenario\+\_\+loss\+\_\+function\+\_\+none}} = 1
+\begin{DoxyCompactList}\small\item\em Type code for a zero loss function. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__scenario_a860cf47bb81e54f7ef8bc666bf7c76f0}{scenario\+\_\+loss\+\_\+function\+\_\+constant}} = 2
+\begin{DoxyCompactList}\small\item\em Type code for a constant loss function. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__scenario_ad3122dfa9b3c59624cdef63b4ebd807d}{scenario\+\_\+loss\+\_\+function\+\_\+volume}} = 3
+\begin{DoxyCompactList}\small\item\em Type code for a loss rate function proportional to particle volume. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__scenario_a44b0747589f4aac5fb700b51d0861cd0}{scenario\+\_\+loss\+\_\+function\+\_\+drydep}} = 4
+\begin{DoxyCompactList}\small\item\em Type code for a loss rate function based on dry deposition. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__scenario_a0e9c46d308800f28d977960a1d5918ae}{scenario\+\_\+loss\+\_\+function\+\_\+chamber}} = 5
+\begin{DoxyCompactList}\small\item\em Type code for a loss rate function for chamber experiments. \end{DoxyCompactList}\item 
+real(kind=dp), parameter \mbox{\hyperlink{namespacepmc__scenario_a9a75d68d9d307fb489fed7ff06735c39}{scenario\+\_\+loss\+\_\+alg\+\_\+threshold}} = 1.\+0d0
+\begin{DoxyCompactList}\small\item\em Parameter to switch between algorithms for particle loss. A value of 0 will always use the naive algorithm, and a value of 1 will always use the accept-\/reject algorithm. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}} structure and associated subroutines. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__scenario_a93772962c3e78b32063cb735d357878a}\label{namespacepmc__scenario_a93772962c3e78b32063cb735d357878a}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!pmc\+\_\+mpi\+\_\+pack\+\_\+scenario@{pmc\+\_\+mpi\+\_\+pack\+\_\+scenario}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+scenario@{pmc\+\_\+mpi\+\_\+pack\+\_\+scenario}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+scenario()}{pmc\_mpi\_pack\_scenario()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+scenario\+::pmc\+\_\+mpi\+\_\+pack\+\_\+scenario (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{type(\mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Packs the given value into the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 1041 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_a135753482d6e0a63cf3947e6e017c618}\label{namespacepmc__scenario_a135753482d6e0a63cf3947e6e017c618}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+scenario@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+scenario}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+scenario@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+scenario}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+scenario()}{pmc\_mpi\_pack\_size\_scenario()}}
+{\footnotesize\ttfamily integer function pmc\+\_\+scenario\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+scenario (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Determines the number of bytes required to pack the given value. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 985 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_afddd83d6cfc65b32e3cce01d70ecdf85}\label{namespacepmc__scenario_afddd83d6cfc65b32e3cce01d70ecdf85}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!pmc\+\_\+mpi\+\_\+unpack\+\_\+scenario@{pmc\+\_\+mpi\+\_\+unpack\+\_\+scenario}}
+\index{pmc\+\_\+mpi\+\_\+unpack\+\_\+scenario@{pmc\+\_\+mpi\+\_\+unpack\+\_\+scenario}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+unpack\+\_\+scenario()}{pmc\_mpi\_unpack\_scenario()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+scenario\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+scenario (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{type(\mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}}), intent(inout)}]{val }\end{DoxyParamCaption})}
+
+
+
+Unpacks the given value from the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in,out}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 1100 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_afaea66be4e0e1ec9a4b80a2fda61f972}\label{namespacepmc__scenario_afaea66be4e0e1ec9a4b80a2fda61f972}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!scenario\+\_\+contains\+\_\+aero\+\_\+mode\+\_\+type@{scenario\+\_\+contains\+\_\+aero\+\_\+mode\+\_\+type}}
+\index{scenario\+\_\+contains\+\_\+aero\+\_\+mode\+\_\+type@{scenario\+\_\+contains\+\_\+aero\+\_\+mode\+\_\+type}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{scenario\+\_\+contains\+\_\+aero\+\_\+mode\+\_\+type()}{scenario\_contains\_aero\_mode\_type()}}
+{\footnotesize\ttfamily elemental logical function pmc\+\_\+scenario\+::scenario\+\_\+contains\+\_\+aero\+\_\+mode\+\_\+type (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}}), intent(in)}]{scenario,  }\item[{integer, intent(in)}]{aero\+\_\+mode\+\_\+type }\end{DoxyParamCaption})}
+
+
+
+Whether any of the contained aerosol modes are of the given type. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em scenario} & Scenario data.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+mode\+\_\+type} & Aerosol mode type to test for. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 735 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_a9ba2febb35bfe14fe1ce49994de7fdb9}\label{namespacepmc__scenario_a9ba2febb35bfe14fe1ce49994de7fdb9}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!scenario\+\_\+init\+\_\+env\+\_\+state@{scenario\+\_\+init\+\_\+env\+\_\+state}}
+\index{scenario\+\_\+init\+\_\+env\+\_\+state@{scenario\+\_\+init\+\_\+env\+\_\+state}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{scenario\+\_\+init\+\_\+env\+\_\+state()}{scenario\_init\_env\_state()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+scenario\+::scenario\+\_\+init\+\_\+env\+\_\+state (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}}), intent(in)}]{scenario,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(inout)}]{env\+\_\+state,  }\item[{real(kind=dp), intent(in)}]{time }\end{DoxyParamCaption})}
+
+
+
+Initialize the time-\/dependent contents of the environment. Thereafter \mbox{\hyperlink{namespacepmc__scenario_a88ccdf6c90762496ecbb93e45cc92bb7}{scenario\+\_\+update\+\_\+env\+\_\+state()}} should be used. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em scenario} & Scenario data.\\
+\hline
+\mbox{\tt in,out}  & {\em env\+\_\+state} & Environment state to update.\\
+\hline
+\mbox{\tt in}  & {\em time} & Current time (s). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 111 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_ab60e2eeb66ae8849ad11923d76a9bd7f}\label{namespacepmc__scenario_ab60e2eeb66ae8849ad11923d76a9bd7f}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!scenario\+\_\+loss\+\_\+rate@{scenario\+\_\+loss\+\_\+rate}}
+\index{scenario\+\_\+loss\+\_\+rate@{scenario\+\_\+loss\+\_\+rate}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{scenario\+\_\+loss\+\_\+rate()}{scenario\_loss\_rate()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+scenario\+::scenario\+\_\+loss\+\_\+rate (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}}), intent(in)}]{scenario,  }\item[{real(kind=dp), intent(in)}]{vol,  }\item[{real(kind=dp), intent(in)}]{density,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state }\end{DoxyParamCaption})}
+
+
+
+Evaluate a loss rate function. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em scenario} & Scenario data.\\
+\hline
+\mbox{\tt in}  & {\em vol} & Volume of particle (m$^\wedge$3).\\
+\hline
+\mbox{\tt in}  & {\em density} & Density of particle (kg/m$^\wedge$3).\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 381 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_a5b6292cb3c74aba853700581ea964bc0}\label{namespacepmc__scenario_a5b6292cb3c74aba853700581ea964bc0}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!scenario\+\_\+loss\+\_\+rate\+\_\+bin\+\_\+max@{scenario\+\_\+loss\+\_\+rate\+\_\+bin\+\_\+max}}
+\index{scenario\+\_\+loss\+\_\+rate\+\_\+bin\+\_\+max@{scenario\+\_\+loss\+\_\+rate\+\_\+bin\+\_\+max}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{scenario\+\_\+loss\+\_\+rate\+\_\+bin\+\_\+max()}{scenario\_loss\_rate\_bin\_max()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+scenario\+::scenario\+\_\+loss\+\_\+rate\+\_\+bin\+\_\+max (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}}), intent(in)}]{scenario,  }\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{real(kind=dp), dimension(bin\+\_\+grid\+\_\+size(bin\+\_\+grid)), intent(out)}]{loss\+\_\+max }\end{DoxyParamCaption})}
+
+
+
+Compute an upper bound on the maximum kernel value for each bin. Value over\+\_\+scale is multiplied to the maximum sampled value to get the upper bound. A tighter bound may be reached if over\+\_\+scale is smaller, but that also risks falling below a kernel value. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em scenario} & Scenario data.\\
+\hline
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin\+\_\+grid.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt out}  & {\em loss\+\_\+max} & Maximum loss vals. \\
+\hline
+\end{DoxyParams}
+Number of sample points per bin.
+
+Over-\/estimation scale factor parameter. 
+
+Definition at line 563 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_adbc0c60c8638d7bc02416577dedf89ac}\label{namespacepmc__scenario_adbc0c60c8638d7bc02416577dedf89ac}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!scenario\+\_\+loss\+\_\+rate\+\_\+dry\+\_\+dep@{scenario\+\_\+loss\+\_\+rate\+\_\+dry\+\_\+dep}}
+\index{scenario\+\_\+loss\+\_\+rate\+\_\+dry\+\_\+dep@{scenario\+\_\+loss\+\_\+rate\+\_\+dry\+\_\+dep}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{scenario\+\_\+loss\+\_\+rate\+\_\+dry\+\_\+dep()}{scenario\_loss\_rate\_dry\_dep()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+scenario\+::scenario\+\_\+loss\+\_\+rate\+\_\+dry\+\_\+dep (\begin{DoxyParamCaption}\item[{real(kind=dp), intent(in)}]{vol,  }\item[{real(kind=dp), intent(in)}]{density,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state }\end{DoxyParamCaption})}
+
+
+
+Compute and return the dry deposition rate for a given particle. All equations used here are written in detail in the file {\ttfamily doc/deposition/deposition.\+tex}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em vol} & Particle volume (m$^\wedge$3).\\
+\hline
+\mbox{\tt in}  & {\em density} & Particle density (kg m$^\wedge$-\/3).\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 427 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_a3b3b510051adbe1f82741b50ea7d5857}\label{namespacepmc__scenario_a3b3b510051adbe1f82741b50ea7d5857}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!scenario\+\_\+loss\+\_\+rate\+\_\+max@{scenario\+\_\+loss\+\_\+rate\+\_\+max}}
+\index{scenario\+\_\+loss\+\_\+rate\+\_\+max@{scenario\+\_\+loss\+\_\+rate\+\_\+max}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{scenario\+\_\+loss\+\_\+rate\+\_\+max()}{scenario\_loss\_rate\_max()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+scenario\+::scenario\+\_\+loss\+\_\+rate\+\_\+max (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}}), intent(in)}]{scenario,  }\item[{real(kind=dp), intent(in)}]{vol,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state }\end{DoxyParamCaption})}
+
+
+
+Compute and return the max loss rate function for a given volume. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em scenario} & Scenario data.\\
+\hline
+\mbox{\tt in}  & {\em vol} & Particle volume (m$^\wedge$3).\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state. \\
+\hline
+\end{DoxyParams}
+Number of density sample points. 
+
+Definition at line 526 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_a275a4562c174d7090db3120235d4e97f}\label{namespacepmc__scenario_a275a4562c174d7090db3120235d4e97f}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!scenario\+\_\+particle\+\_\+loss@{scenario\+\_\+particle\+\_\+loss}}
+\index{scenario\+\_\+particle\+\_\+loss@{scenario\+\_\+particle\+\_\+loss}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{scenario\+\_\+particle\+\_\+loss()}{scenario\_particle\_loss()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+scenario\+::scenario\+\_\+particle\+\_\+loss (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}}), intent(in)}]{scenario,  }\item[{real(kind=dp), intent(in)}]{delta\+\_\+t,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state }\end{DoxyParamCaption})}
+
+
+
+Performs stochastic particle loss for one time-\/step. If a particle {\ttfamily i\+\_\+part} has a \mbox{\hyperlink{namespacepmc__scenario_ab60e2eeb66ae8849ad11923d76a9bd7f}{scenario\+\_\+loss\+\_\+rate()}} value of rate, then the probability p will be removed by this function is {\ttfamily 1 -\/ exp(-\/delta\+\_\+t$\ast$rate)}. Uses an accept-\/reject algorithm for efficiency, in which a particle is first sampled with rate {\ttfamily 1 -\/ exp(-\/delta\+\_\+t$\ast$over\+\_\+rate) } and then accepted with rate {\ttfamily (1 -\/ exp(-\/delta\+\_\+t$\ast$rate))/(1 -\/ exp(-\/delta\+\_\+t$\ast$over\+\_\+rate))}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em scenario} & Scenario data.\\
+\hline
+\mbox{\tt in}  & {\em delta\+\_\+t} & Time increment to update over.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 609 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_ab3b05e77d36cc1b27c10ebd8d315df61}\label{namespacepmc__scenario_ab3b05e77d36cc1b27c10ebd8d315df61}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!scenario\+\_\+try\+\_\+single\+\_\+particle\+\_\+loss@{scenario\+\_\+try\+\_\+single\+\_\+particle\+\_\+loss}}
+\index{scenario\+\_\+try\+\_\+single\+\_\+particle\+\_\+loss@{scenario\+\_\+try\+\_\+single\+\_\+particle\+\_\+loss}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{scenario\+\_\+try\+\_\+single\+\_\+particle\+\_\+loss()}{scenario\_try\_single\_particle\_loss()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+scenario\+::scenario\+\_\+try\+\_\+single\+\_\+particle\+\_\+loss (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}}), intent(in)}]{scenario,  }\item[{real(kind=dp), intent(in)}]{delta\+\_\+t,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{integer, intent(in)}]{i\+\_\+part,  }\item[{real(kind=dp), intent(in)}]{over\+\_\+prob }\end{DoxyParamCaption})}
+
+
+
+Test a candidate particle to see if it should be removed, and remove if necessary. Particle is removed with probability (1d0 -\/ exp(-\/delta\+\_\+t$\ast$rate))/over\+\_\+prob, where rate is the loss function evaluated for the given particle. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em scenario} & Scenario data.\\
+\hline
+\mbox{\tt in}  & {\em delta\+\_\+t} & Time increment to update over.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em i\+\_\+part} & Index of particle to attempt removal\\
+\hline
+\mbox{\tt in}  & {\em over\+\_\+prob} & Overestimated removal probability used previously \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 694 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_aa8ca6c77c94665bdbf4c4f25e2dd1523}\label{namespacepmc__scenario_aa8ca6c77c94665bdbf4c4f25e2dd1523}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!scenario\+\_\+update\+\_\+aero\+\_\+binned@{scenario\+\_\+update\+\_\+aero\+\_\+binned}}
+\index{scenario\+\_\+update\+\_\+aero\+\_\+binned@{scenario\+\_\+update\+\_\+aero\+\_\+binned}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{scenario\+\_\+update\+\_\+aero\+\_\+binned()}{scenario\_update\_aero\_binned()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+scenario\+::scenario\+\_\+update\+\_\+aero\+\_\+binned (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}}), intent(in)}]{scenario,  }\item[{real(kind=dp), intent(in)}]{delta\+\_\+t,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{old\+\_\+env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__binned_1_1aero__binned__t}{aero\+\_\+binned\+\_\+t}}), intent(inout)}]{aero\+\_\+binned }\end{DoxyParamCaption})}
+
+
+
+Do emissions and background dilution from the environment for a binned aerosol distribution. 
+
+See \mbox{\hyperlink{namespacepmc__scenario_a8da20291ae6441134e5f1788a906e96b}{scenario\+\_\+update\+\_\+gas\+\_\+state()}} for a description of the model.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em scenario} & Scenario data.\\
+\hline
+\mbox{\tt in}  & {\em delta\+\_\+t} & Time increment to update over.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Current environment.\\
+\hline
+\mbox{\tt in}  & {\em old\+\_\+env\+\_\+state} & Previous environment.\\
+\hline
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aero data values.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+binned} & Aero binned to update. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 332 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_a6d0621141b705a051b14761430d385ca}\label{namespacepmc__scenario_a6d0621141b705a051b14761430d385ca}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!scenario\+\_\+update\+\_\+aero\+\_\+state@{scenario\+\_\+update\+\_\+aero\+\_\+state}}
+\index{scenario\+\_\+update\+\_\+aero\+\_\+state@{scenario\+\_\+update\+\_\+aero\+\_\+state}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{scenario\+\_\+update\+\_\+aero\+\_\+state()}{scenario\_update\_aero\_state()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+scenario\+::scenario\+\_\+update\+\_\+aero\+\_\+state (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}}), intent(in)}]{scenario,  }\item[{real(kind=dp), intent(in)}]{delta\+\_\+t,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{old\+\_\+env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{integer, intent(out)}]{n\+\_\+emit,  }\item[{integer, intent(out)}]{n\+\_\+dil\+\_\+in,  }\item[{integer, intent(out)}]{n\+\_\+dil\+\_\+out,  }\item[{logical, intent(in)}]{allow\+\_\+doubling,  }\item[{logical, intent(in)}]{allow\+\_\+halving }\end{DoxyParamCaption})}
+
+
+
+Do emissions and background dilution for a particle aerosol distribution. 
+
+See \mbox{\hyperlink{namespacepmc__scenario_a8da20291ae6441134e5f1788a906e96b}{scenario\+\_\+update\+\_\+gas\+\_\+state()}} for a description of the model. We additionally scale the number concentration to account for temperature changes.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em scenario} & Scenario data.\\
+\hline
+\mbox{\tt in}  & {\em delta\+\_\+t} & Time increment to update over.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Current environment.\\
+\hline
+\mbox{\tt in}  & {\em old\+\_\+env\+\_\+state} & Previous environment.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aero data values.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aero state to update.\\
+\hline
+\mbox{\tt out}  & {\em n\+\_\+emit} & Number of emitted particles.\\
+\hline
+\mbox{\tt out}  & {\em n\+\_\+dil\+\_\+in} & Number of diluted-\/in particles.\\
+\hline
+\mbox{\tt out}  & {\em n\+\_\+dil\+\_\+out} & Number of diluted-\/out particles.\\
+\hline
+\mbox{\tt in}  & {\em allow\+\_\+doubling} & Whether to allow doubling of the population.\\
+\hline
+\mbox{\tt in}  & {\em allow\+\_\+halving} & Whether to allow halving of the population. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 259 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_a88ccdf6c90762496ecbb93e45cc92bb7}\label{namespacepmc__scenario_a88ccdf6c90762496ecbb93e45cc92bb7}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!scenario\+\_\+update\+\_\+env\+\_\+state@{scenario\+\_\+update\+\_\+env\+\_\+state}}
+\index{scenario\+\_\+update\+\_\+env\+\_\+state@{scenario\+\_\+update\+\_\+env\+\_\+state}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{scenario\+\_\+update\+\_\+env\+\_\+state()}{scenario\_update\_env\_state()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+scenario\+::scenario\+\_\+update\+\_\+env\+\_\+state (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}}), intent(in)}]{scenario,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(inout)}]{env\+\_\+state,  }\item[{real(kind=dp), intent(in)}]{time }\end{DoxyParamCaption})}
+
+
+
+Update time-\/dependent contents of the environment. \mbox{\hyperlink{namespacepmc__scenario_a9ba2febb35bfe14fe1ce49994de7fdb9}{scenario\+\_\+init\+\_\+env\+\_\+state()}} should have been called at the start. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em scenario} & Scenario data.\\
+\hline
+\mbox{\tt in,out}  & {\em env\+\_\+state} & Environment state to update.\\
+\hline
+\mbox{\tt in}  & {\em time} & Current time (s). \\
+\hline
+\end{DoxyParams}
+Ambient water vapor pressure (Pa).
+
+Ambient pressure (Pa)
+
+Ambient temperature (K) 
+
+Definition at line 134 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_a8da20291ae6441134e5f1788a906e96b}\label{namespacepmc__scenario_a8da20291ae6441134e5f1788a906e96b}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!scenario\+\_\+update\+\_\+gas\+\_\+state@{scenario\+\_\+update\+\_\+gas\+\_\+state}}
+\index{scenario\+\_\+update\+\_\+gas\+\_\+state@{scenario\+\_\+update\+\_\+gas\+\_\+state}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{scenario\+\_\+update\+\_\+gas\+\_\+state()}{scenario\_update\_gas\_state()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+scenario\+::scenario\+\_\+update\+\_\+gas\+\_\+state (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}}), intent(in)}]{scenario,  }\item[{real(kind=dp), intent(in)}]{delta\+\_\+t,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{old\+\_\+env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}}), intent(in)}]{gas\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__gas__state_1_1gas__state__t}{gas\+\_\+state\+\_\+t}}), intent(inout)}]{gas\+\_\+state }\end{DoxyParamCaption})}
+
+
+
+Do gas emissions and background dilution. 
+
+Emissions are given as an areal rate $e(t)$, and then divided by the current box height $h(t)$ to obtain a volume rate. There is also a dimensionless rate scaling $r(t)$. All input functions are asusumed constant over the timestep, so the concentration $c(t)$ change is given by \[ c(t) = c(0) + \frac{r t}{h} e. \]
+
+We model dilution by considering a gas concentration $c(t)$ in a box of height $h(t)$, subject to first-\/order dilution with a rate $\lambda(t)$. Then the effective dilution rate is \[ \lambda_{\rm eff}(t) = \lambda(t) + \frac{\dot{h}(t)}{h(t)} \] and the evolution of $c(t)$ is given by \[ \dot{c}(t) = - \lambda_{\rm eff}(t) c(t). \] Solving this with separation of variables gives \[ \frac{c(t)}{c(0)} = \frac{h(0)}{h(t)} \exp\left( - \int_0^t \lambda(t)\,dt\right). \] If we define $p = c(t)/c(0)$ to be the remaining proportion of the initial concentration, and $b$ to be the constant background concentration, then we have \[ c(t) = p(t) c(0) + (1 - p(t)) b. \] We assume constant $\lambda$ and we only do entrainment with increasing height $h(t)$, so we have \[ p(t) = \min\left(1, \frac{h(0)}{h(t)}\right) \exp(-\lambda t). \]
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em scenario} & Scenario data.\\
+\hline
+\mbox{\tt in}  & {\em delta\+\_\+t} & Time increment to update over.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Current environment.\\
+\hline
+\mbox{\tt in}  & {\em old\+\_\+env\+\_\+state} & Previous environment.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data values.\\
+\hline
+\mbox{\tt in,out}  & {\em gas\+\_\+state} & Gas state to update. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 209 of file scenario.\+F90.
+
+
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{namespacepmc__scenario_a9a75d68d9d307fb489fed7ff06735c39}\label{namespacepmc__scenario_a9a75d68d9d307fb489fed7ff06735c39}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!scenario\+\_\+loss\+\_\+alg\+\_\+threshold@{scenario\+\_\+loss\+\_\+alg\+\_\+threshold}}
+\index{scenario\+\_\+loss\+\_\+alg\+\_\+threshold@{scenario\+\_\+loss\+\_\+alg\+\_\+threshold}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{scenario\+\_\+loss\+\_\+alg\+\_\+threshold}{scenario\_loss\_alg\_threshold}}
+{\footnotesize\ttfamily real(kind=dp), parameter pmc\+\_\+scenario\+::scenario\+\_\+loss\+\_\+alg\+\_\+threshold = 1.\+0d0}
+
+
+
+Parameter to switch between algorithms for particle loss. A value of 0 will always use the naive algorithm, and a value of 1 will always use the accept-\/reject algorithm. 
+
+
+
+Definition at line 41 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_a0e9c46d308800f28d977960a1d5918ae}\label{namespacepmc__scenario_a0e9c46d308800f28d977960a1d5918ae}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!scenario\+\_\+loss\+\_\+function\+\_\+chamber@{scenario\+\_\+loss\+\_\+function\+\_\+chamber}}
+\index{scenario\+\_\+loss\+\_\+function\+\_\+chamber@{scenario\+\_\+loss\+\_\+function\+\_\+chamber}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{scenario\+\_\+loss\+\_\+function\+\_\+chamber}{scenario\_loss\_function\_chamber}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+scenario\+::scenario\+\_\+loss\+\_\+function\+\_\+chamber = 5}
+
+
+
+Type code for a loss rate function for chamber experiments. 
+
+
+
+Definition at line 36 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_a860cf47bb81e54f7ef8bc666bf7c76f0}\label{namespacepmc__scenario_a860cf47bb81e54f7ef8bc666bf7c76f0}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!scenario\+\_\+loss\+\_\+function\+\_\+constant@{scenario\+\_\+loss\+\_\+function\+\_\+constant}}
+\index{scenario\+\_\+loss\+\_\+function\+\_\+constant@{scenario\+\_\+loss\+\_\+function\+\_\+constant}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{scenario\+\_\+loss\+\_\+function\+\_\+constant}{scenario\_loss\_function\_constant}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+scenario\+::scenario\+\_\+loss\+\_\+function\+\_\+constant = 2}
+
+
+
+Type code for a constant loss function. 
+
+
+
+Definition at line 30 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_a44b0747589f4aac5fb700b51d0861cd0}\label{namespacepmc__scenario_a44b0747589f4aac5fb700b51d0861cd0}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!scenario\+\_\+loss\+\_\+function\+\_\+drydep@{scenario\+\_\+loss\+\_\+function\+\_\+drydep}}
+\index{scenario\+\_\+loss\+\_\+function\+\_\+drydep@{scenario\+\_\+loss\+\_\+function\+\_\+drydep}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{scenario\+\_\+loss\+\_\+function\+\_\+drydep}{scenario\_loss\_function\_drydep}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+scenario\+::scenario\+\_\+loss\+\_\+function\+\_\+drydep = 4}
+
+
+
+Type code for a loss rate function based on dry deposition. 
+
+
+
+Definition at line 34 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_a2b2e63100da1707d0529fc22239daa8e}\label{namespacepmc__scenario_a2b2e63100da1707d0529fc22239daa8e}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!scenario\+\_\+loss\+\_\+function\+\_\+invalid@{scenario\+\_\+loss\+\_\+function\+\_\+invalid}}
+\index{scenario\+\_\+loss\+\_\+function\+\_\+invalid@{scenario\+\_\+loss\+\_\+function\+\_\+invalid}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{scenario\+\_\+loss\+\_\+function\+\_\+invalid}{scenario\_loss\_function\_invalid}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+scenario\+::scenario\+\_\+loss\+\_\+function\+\_\+invalid = 0}
+
+
+
+Type code for an undefined or invalid loss function. 
+
+
+
+Definition at line 26 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_a698827c1bd003fdbf988b3813305322e}\label{namespacepmc__scenario_a698827c1bd003fdbf988b3813305322e}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!scenario\+\_\+loss\+\_\+function\+\_\+none@{scenario\+\_\+loss\+\_\+function\+\_\+none}}
+\index{scenario\+\_\+loss\+\_\+function\+\_\+none@{scenario\+\_\+loss\+\_\+function\+\_\+none}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{scenario\+\_\+loss\+\_\+function\+\_\+none}{scenario\_loss\_function\_none}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+scenario\+::scenario\+\_\+loss\+\_\+function\+\_\+none = 1}
+
+
+
+Type code for a zero loss function. 
+
+
+
+Definition at line 28 of file scenario.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__scenario_ad3122dfa9b3c59624cdef63b4ebd807d}\label{namespacepmc__scenario_ad3122dfa9b3c59624cdef63b4ebd807d}} 
+\index{pmc\+\_\+scenario@{pmc\+\_\+scenario}!scenario\+\_\+loss\+\_\+function\+\_\+volume@{scenario\+\_\+loss\+\_\+function\+\_\+volume}}
+\index{scenario\+\_\+loss\+\_\+function\+\_\+volume@{scenario\+\_\+loss\+\_\+function\+\_\+volume}!pmc\+\_\+scenario@{pmc\+\_\+scenario}}
+\subsubsection{\texorpdfstring{scenario\+\_\+loss\+\_\+function\+\_\+volume}{scenario\_loss\_function\_volume}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+scenario\+::scenario\+\_\+loss\+\_\+function\+\_\+volume = 3}
+
+
+
+Type code for a loss rate function proportional to particle volume. 
+
+
+
+Definition at line 32 of file scenario.\+F90.
+

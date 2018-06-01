@@ -1,0 +1,49 @@
+\hypertarget{namespacepmc__exact__soln}{}\section{pmc\+\_\+exact\+\_\+soln Module Reference}
+\label{namespacepmc__exact__soln}\index{pmc\+\_\+exact\+\_\+soln@{pmc\+\_\+exact\+\_\+soln}}
+
+
+Exact solutions for various simulations.  
+
+
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__exact__soln_aa2501f679b533b8505491ecf6a2aa8f1}{exact\+\_\+soln}} (bin\+\_\+grid, aero\+\_\+data, do\+\_\+coagulation, coag\+\_\+kernel\+\_\+type, aero\+\_\+dist\+\_\+init, scenario, env\+\_\+state, time, aero\+\_\+binned)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Exact solutions for various simulations. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__exact__soln_aa2501f679b533b8505491ecf6a2aa8f1}\label{namespacepmc__exact__soln_aa2501f679b533b8505491ecf6a2aa8f1}} 
+\index{pmc\+\_\+exact\+\_\+soln@{pmc\+\_\+exact\+\_\+soln}!exact\+\_\+soln@{exact\+\_\+soln}}
+\index{exact\+\_\+soln@{exact\+\_\+soln}!pmc\+\_\+exact\+\_\+soln@{pmc\+\_\+exact\+\_\+soln}}
+\subsubsection{\texorpdfstring{exact\+\_\+soln()}{exact\_soln()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+exact\+\_\+soln\+::exact\+\_\+soln (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{logical, intent(in)}]{do\+\_\+coagulation,  }\item[{integer, intent(in)}]{coag\+\_\+kernel\+\_\+type,  }\item[{type(\mbox{\hyperlink{structpmc__aero__dist_1_1aero__dist__t}{aero\+\_\+dist\+\_\+t}}), intent(in)}]{aero\+\_\+dist\+\_\+init,  }\item[{type(\mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}}), intent(in)}]{scenario,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{real(kind=dp), intent(in)}]{time,  }\item[{type(\mbox{\hyperlink{structpmc__aero__binned_1_1aero__binned__t}{aero\+\_\+binned\+\_\+t}}), intent(inout)}]{aero\+\_\+binned }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em do\+\_\+coagulation} & Whether to do coagulation.\\
+\hline
+\mbox{\tt in}  & {\em coag\+\_\+kernel\+\_\+type} & Coagulation kernel type.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+dist\+\_\+init} & Initial distribution.\\
+\hline
+\mbox{\tt in}  & {\em scenario} & Environment data.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em time} & Current time (s).\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+binned} & Output state. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 31 of file exact\+\_\+soln.\+F90.
+

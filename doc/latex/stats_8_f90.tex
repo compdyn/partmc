@@ -1,0 +1,69 @@
+\hypertarget{stats_8_f90}{}\section{stats.\+F90 File Reference}
+\label{stats_8_f90}\index{stats.\+F90@{stats.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__stats}{pmc\+\_\+stats}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__stats_1_1stats__t}{pmc\+\_\+stats\+::stats\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Structure for online computation of mean and variance. \end{DoxyCompactList}\item 
+type \mbox{\hyperlink{structpmc__stats_1_1stats__1d__t}{pmc\+\_\+stats\+::stats\+\_\+1d\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Structure for online computation of 1D arrays of mean and variance. \end{DoxyCompactList}\item 
+type \mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{pmc\+\_\+stats\+::stats\+\_\+2d\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Structure for online computation of 2D arrays of mean and variance. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__stats}{pmc\+\_\+stats}}
+\begin{DoxyCompactList}\small\item\em The {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__t}{stats\+\_\+t}}} type and associated subroutines. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_ac5750dcd5d754124f53223d4072344c1}{pmc\+\_\+stats\+::stats\+\_\+clear}} (stats)
+\begin{DoxyCompactList}\small\item\em Clear data statistics collected so far. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_ac0cd9c69e90ebd760939ce802a889f94}{pmc\+\_\+stats\+::stats\+\_\+1d\+\_\+clear}} (stats)
+\begin{DoxyCompactList}\small\item\em Clear data statistics collected so far. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a4416bf7fadf595f6954554bcda94f144}{pmc\+\_\+stats\+::stats\+\_\+2d\+\_\+clear}} (stats)
+\begin{DoxyCompactList}\small\item\em Clear data statistics collected so far. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a09e09f5a5169acdc4fbeb28b83586fa5}{pmc\+\_\+stats\+::stats\+\_\+add}} (stats, data)
+\begin{DoxyCompactList}\small\item\em Add a new data value to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__t}{stats\+\_\+t}}} structure. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a39445eed819e5c2e7fdd867855e23fc6}{pmc\+\_\+stats\+::stats\+\_\+1d\+\_\+add}} (stats, data)
+\begin{DoxyCompactList}\small\item\em Add all new data values to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__1d__t}{stats\+\_\+1d\+\_\+t}}} structure. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a4e469252e2fa292137c09f0a86fcafc7}{pmc\+\_\+stats\+::stats\+\_\+1d\+\_\+add\+\_\+entry}} (stats, data, i)
+\begin{DoxyCompactList}\small\item\em Add a new single data value to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__1d__t}{stats\+\_\+1d\+\_\+t}}} structure. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_adf44b0b2ca237de63a455f077ad5c51e}{pmc\+\_\+stats\+::stats\+\_\+2d\+\_\+add}} (stats, data)
+\begin{DoxyCompactList}\small\item\em Add all new data values to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}} structure. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a130511c11730c58ad4e4a75eece0330b}{pmc\+\_\+stats\+::stats\+\_\+2d\+\_\+add\+\_\+row}} (stats, data, i)
+\begin{DoxyCompactList}\small\item\em Add a row of new data values to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}} structure. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a3d4adead65ab33601c8d28a1edb89755}{pmc\+\_\+stats\+::stats\+\_\+2d\+\_\+add\+\_\+col}} (stats, data, j)
+\begin{DoxyCompactList}\small\item\em Add a column of new data values to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}} structure. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_ab357ab9aa317d0059079eb870bfc17eb}{pmc\+\_\+stats\+::stats\+\_\+2d\+\_\+add\+\_\+entry}} (stats, data, i, j)
+\begin{DoxyCompactList}\small\item\em Add a single new data value to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}} structure. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__stats_a9cecea8dc7d64a4b8800f09e7bc2d54f}{pmc\+\_\+stats\+::stats\+\_\+conf\+\_\+95\+\_\+offset}} (stats)
+\begin{DoxyCompactList}\small\item\em Compute the 95\% confidence interval offset from the mean. \end{DoxyCompactList}\item 
+real(kind=dp) function, dimension(size(stats\%n)) \mbox{\hyperlink{namespacepmc__stats_abb0f22506fbe1564d5dfe9b348967e3f}{pmc\+\_\+stats\+::stats\+\_\+1d\+\_\+conf\+\_\+95\+\_\+offset}} (stats)
+\begin{DoxyCompactList}\small\item\em Compute the 95\% confidence interval offset from the mean. \end{DoxyCompactList}\item 
+real(kind=dp) function, dimension(size(stats\%n, 1), size(stats\%n, 2)) \mbox{\hyperlink{namespacepmc__stats_a4b54545fdbc6ea7302c947217f65a3cf}{pmc\+\_\+stats\+::stats\+\_\+2d\+\_\+conf\+\_\+95\+\_\+offset}} (stats)
+\begin{DoxyCompactList}\small\item\em Compute the 95\% confidence interval offset from the mean. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a03fc23e0f58ef39a98b3fab675f7ec2f}{pmc\+\_\+stats\+::update\+\_\+mean\+\_\+var}} (mean, var, data, n)
+\begin{DoxyCompactList}\small\item\em Compute a running average and variance. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__stats_a60b9373973781e467921c5e7558a57f9}{pmc\+\_\+stats\+::student\+\_\+t\+\_\+95\+\_\+coeff}} (n\+\_\+sample)
+\begin{DoxyCompactList}\small\item\em Return a fairly tight upper-\/bound on the Student\textquotesingle{}s t coefficient for the 95\% confidence interval. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__stats_a4ef20f4ac022e62933d3ed80e4041b88}{pmc\+\_\+stats\+::conf\+\_\+95\+\_\+offset}} (var, n\+\_\+sample)
+\begin{DoxyCompactList}\small\item\em 95\% confidence interval offset from mean. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a7bd7c2f154323bb763f7bfa0f6e6f9a1}{pmc\+\_\+stats\+::stats\+\_\+output\+\_\+netcdf}} (stats, \mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, name, unit)
+\begin{DoxyCompactList}\small\item\em Write statistics (mean and 95\% conf. int.) to a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a644ef48950c748f3ab3a3d9276186c21}{pmc\+\_\+stats\+::stats\+\_\+1d\+\_\+output\+\_\+netcdf}} (stats, \mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, name, dim\+\_\+name, unit)
+\begin{DoxyCompactList}\small\item\em Write statistics (mean and 95\% conf. int.) to a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_ad17733f0597dca5b088f1f4b6d99ded8}{pmc\+\_\+stats\+::stats\+\_\+2d\+\_\+output\+\_\+netcdf}} (stats, \mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, name, dim\+\_\+name\+\_\+1, dim\+\_\+name\+\_\+2, unit)
+\begin{DoxyCompactList}\small\item\em Write statistics (mean and 95\% conf. int.) to a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a64f09d5c5d2f28d8e7351b5cc14a9848}{pmc\+\_\+stats\+::stats\+\_\+1d\+\_\+output\+\_\+text}} (stats, filename, dim)
+\begin{DoxyCompactList}\small\item\em Write statistics (mean and 95\% conf. int.) to a text file. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__stats}{pmc\+\_\+stats}} module. 
+

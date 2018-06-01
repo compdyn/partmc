@@ -1,0 +1,54 @@
+\hypertarget{namespacepmc__run__exact}{}\section{pmc\+\_\+run\+\_\+exact Module Reference}
+\label{namespacepmc__run__exact}\index{pmc\+\_\+run\+\_\+exact@{pmc\+\_\+run\+\_\+exact}}
+
+
+Exact solution simulation.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__run__exact_1_1run__exact__opt__t}{run\+\_\+exact\+\_\+opt\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Options controlling the execution of \mbox{\hyperlink{namespacepmc__run__exact_a8db86b29e1aee6d3aa9f2e922dd1eb97}{run\+\_\+exact()}}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__run__exact_a8db86b29e1aee6d3aa9f2e922dd1eb97}{run\+\_\+exact}} (bin\+\_\+grid, scenario, env\+\_\+state, aero\+\_\+data, aero\+\_\+dist\+\_\+init, gas\+\_\+data, run\+\_\+exact\+\_\+opt)
+\begin{DoxyCompactList}\small\item\em Run an exact simulation. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Exact solution simulation. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__run__exact_a8db86b29e1aee6d3aa9f2e922dd1eb97}\label{namespacepmc__run__exact_a8db86b29e1aee6d3aa9f2e922dd1eb97}} 
+\index{pmc\+\_\+run\+\_\+exact@{pmc\+\_\+run\+\_\+exact}!run\+\_\+exact@{run\+\_\+exact}}
+\index{run\+\_\+exact@{run\+\_\+exact}!pmc\+\_\+run\+\_\+exact@{pmc\+\_\+run\+\_\+exact}}
+\subsubsection{\texorpdfstring{run\+\_\+exact()}{run\_exact()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+run\+\_\+exact\+::run\+\_\+exact (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{type(\mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}}), intent(in)}]{scenario,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(inout)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__dist_1_1aero__dist__t}{aero\+\_\+dist\+\_\+t}}), intent(in)}]{aero\+\_\+dist\+\_\+init,  }\item[{type(\mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}}), intent(in)}]{gas\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__run__exact_1_1run__exact__opt__t}{run\+\_\+exact\+\_\+opt\+\_\+t}}), intent(in)}]{run\+\_\+exact\+\_\+opt }\end{DoxyParamCaption})}
+
+
+
+Run an exact simulation. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt in}  & {\em scenario} & Environment data.\\
+\hline
+\mbox{\tt in,out}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+dist\+\_\+init} & Initial aerosol distribution.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data.\\
+\hline
+\mbox{\tt in}  & {\em run\+\_\+exact\+\_\+opt} & Options. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 46 of file run\+\_\+exact.\+F90.
+

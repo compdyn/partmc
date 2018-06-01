@@ -1,0 +1,84 @@
+\hypertarget{chem__spec__data_8_f90}{}\section{chem\+\_\+spec\+\_\+data.\+F90 File Reference}
+\label{chem__spec__data_8_f90}\index{chem\+\_\+spec\+\_\+data.\+F90@{chem\+\_\+spec\+\_\+data.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__chem__spec__data}{pmc\+\_\+chem\+\_\+spec\+\_\+data}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+interface \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Chemical species data. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Chemical species data. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__chem__spec__data}{pmc\+\_\+chem\+\_\+spec\+\_\+data}}
+\begin{DoxyCompactList}\small\item\em The \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t}{chem\+\_\+spec\+\_\+data\+\_\+t}} structure and associated subroutines. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+type(chem\+\_\+spec\+\_\+data\+\_\+t) function, pointer \mbox{\hyperlink{namespacepmc__chem__spec__data_a2f8149f3510f9754aa917e7bce1467cb}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::constructor}} (init\+\_\+size)
+\begin{DoxyCompactList}\small\item\em Constructor for \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t}{chem\+\_\+spec\+\_\+data\+\_\+t}}. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__chem__spec__data_a7115fe0b984c30ebb2dcc3ace92a7c7d}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::load}} (this, json, j\+\_\+obj)
+\begin{DoxyCompactList}\small\item\em Load species from an input file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__chem__spec__data_acf9c162e6310c8b0dbf3ee1b47a80f85}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::initialize}} (this)
+\begin{DoxyCompactList}\small\item\em Initialize the species set. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind) function \mbox{\hyperlink{namespacepmc__chem__spec__data_a37e8dbcc45d70654ab71aea9980405fe}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::get\+\_\+size}} (this, spec\+\_\+type, spec\+\_\+phase)
+\begin{DoxyCompactList}\small\item\em Get the number of species with the given properties. If no properties are specified, return the total number of species. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__chem__spec__data_a79f0ac8d379625ad9a96f52db1a972c4}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::exists}} (this, spec\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Check if a species name is in the set of chemical species. \end{DoxyCompactList}\item 
+type(string\+\_\+t) function, dimension(\+:), allocatable \mbox{\hyperlink{namespacepmc__chem__spec__data_aa41b3bc7544b5080624c9025768c3f3b}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::get\+\_\+spec\+\_\+names}} (this, spec\+\_\+type, spec\+\_\+phase)
+\begin{DoxyCompactList}\small\item\em Get a list of species names. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__chem__spec__data_a046d71071a7e6a8511e9920d6aea8052}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::get\+\_\+property\+\_\+set}} (this, spec\+\_\+name, property\+\_\+set)
+\begin{DoxyCompactList}\small\item\em Get a species property set. Returns true if the species is found, or false otherwise. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__chem__spec__data_a5a66d5eac7fdf70683cd8ffce529a45c}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::get\+\_\+type}} (this, spec\+\_\+name, spec\+\_\+type)
+\begin{DoxyCompactList}\small\item\em Get a species type by species name. Returns true if the species is found or false otherwise. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__chem__spec__data_a2b05b142c1087393cf6504823601c8d5}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::get\+\_\+phase}} (this, spec\+\_\+name, spec\+\_\+phase)
+\begin{DoxyCompactList}\small\item\em Get a species phase by name. Returns true if the species is found, or false otherwise. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__chem__spec__data_a671b3e9a1bfbb6be6cbbd775a3ac1cb1}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::get\+\_\+abs\+\_\+tol}} (this, spec\+\_\+name, abs\+\_\+tol)
+\begin{DoxyCompactList}\small\item\em Get the absolute integration tolerance of a species by name. Returns true if the species is found, or false otherwise. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind) function \mbox{\hyperlink{namespacepmc__chem__spec__data_a13c05c41c6d75707fc67de54acf5c783}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::gas\+\_\+state\+\_\+id}} (this, spec\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Get a gas-\/phase species index in the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array. Note that aerosol-\/phase species indices on the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array must be accessed from {\ttfamily \mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__t_a6dcaf48caeaaed60aa065a0fac6c7ffc}{pmc\+\_\+aero\+\_\+rep\+\_\+data\+::aero\+\_\+rep\+\_\+data\+\_\+t\+::spec\+\_\+state\+\_\+id()}}} for a particular \mbox{\hyperlink{phlex_aero_rep}{aerosol representation}}. Returns a valid state array index if the species is found, or 0 otherwise. \end{DoxyCompactList}\item 
+character(len=\+:) function, allocatable \mbox{\hyperlink{namespacepmc__chem__spec__data_a118f0f70c5bf5c1bba0651831083d2c1}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::gas\+\_\+state\+\_\+name}} (this, spec\+\_\+id)
+\begin{DoxyCompactList}\small\item\em Get a gas-\/phase species name in the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array. Note that aerosol-\/phase species names on the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array must be accessed from {\ttfamily \mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__t_a6dcaf48caeaaed60aa065a0fac6c7ffc}{pmc\+\_\+aero\+\_\+rep\+\_\+data\+::aero\+\_\+rep\+\_\+data\+\_\+t\+::spec\+\_\+state\+\_\+id()}}} for a particular \mbox{\hyperlink{phlex_aero_rep}{aerosol representation}}. Returns a valid state array index if the species is found, or 0 otherwise. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__chem__spec__data_a241ef4f3c9e0a1968b339df331ca8d64}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::do\+\_\+print}} (this, file\+\_\+unit)
+\begin{DoxyCompactList}\small\item\em Print out the species data. \end{DoxyCompactList}\item 
+elemental subroutine \mbox{\hyperlink{namespacepmc__chem__spec__data_ac14765515e7b7e1ed204998684e5412e}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::finalize}} (this)
+\begin{DoxyCompactList}\small\item\em Finalize the chemical species data. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__chem__spec__data_aee2a5f3c45a7fd6b4e51a7286022379d}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::ensure\+\_\+size}} (this, num\+\_\+spec)
+\begin{DoxyCompactList}\small\item\em Ensure there is enough room in the species dataset to add a specified number of species. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__chem__spec__data_a09de56593d91886a82053ee6052bce52}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::add}} (this, spec\+\_\+name, spec\+\_\+type, spec\+\_\+phase, property\+\_\+set)
+\begin{DoxyCompactList}\small\item\em Add a new chemical species. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__chem__spec__data_a94efcf0206ad02470c47712887ab0eaa}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::find}} (this, spec\+\_\+name, spec\+\_\+id)
+\begin{DoxyCompactList}\small\item\em Get the index of a chemical species by name. Returns true if the species is found or false otherwise. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__chem__spec__data_ae7eff771bed84dc4299dd62c51b815d4}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+unknown\+\_\+type}} = 0
+\begin{DoxyCompactList}\small\item\em State variable types (Must match values in \mbox{\hyperlink{phlex__solver_8c}{phlex\+\_\+solver.\+c}}) \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__chem__spec__data_a4185155315475e6460a4e37385298daf}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+variable}} = 1
+\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__chem__spec__data_a0bf400fe217f79a52fcf4d1cc19f1ddc}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+constant}} = 2
+\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__chem__spec__data_adf3fa2aa29982546ef1d89f3587e97ca}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+pssa}} = 3
+\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__chem__spec__data_a889aa5b1d886de2d985a0c159ed3cc07}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+activity\+\_\+coeff}} = 4
+\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__chem__spec__data_a54930626ee81dd6c28d24dc6efd2f1f7}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+unknown\+\_\+phase}} = 0
+\begin{DoxyCompactList}\small\item\em Species phase. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__chem__spec__data_ac8acedb2cfaed6968979fc1cc59e76a6}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+gas\+\_\+phase}} = 1
+\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__chem__spec__data_a1076e0bc8b754d3cf8e43333e92afc81}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+aero\+\_\+phase}} = 2
+\item 
+integer(kind=i\+\_\+kind), parameter \mbox{\hyperlink{namespacepmc__chem__spec__data_a869f58a8ab2b2fa3818d101900a4a746}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::realloc\+\_\+inc}} = 50
+\begin{DoxyCompactList}\small\item\em Reallocation increment. \end{DoxyCompactList}\item 
+real(kind=dp), parameter \mbox{\hyperlink{namespacepmc__chem__spec__data_a7e43218888c66701bf61abf475882116}{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::default\+\_\+abs\+\_\+tol}} = 1.\+0e-\/14
+\begin{DoxyCompactList}\small\item\em Default absolute integration tolerance. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__chem__spec__data}{pmc\+\_\+chem\+\_\+spec\+\_\+data}} module. 
+

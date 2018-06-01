@@ -1,0 +1,44 @@
+\hypertarget{chamber_8_f90}{}\section{chamber.\+F90 File Reference}
+\label{chamber_8_f90}\index{chamber.\+F90@{chamber.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__chamber}{pmc\+\_\+chamber}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__chamber_1_1chamber__t}{pmc\+\_\+chamber\+::chamber\+\_\+t}}
+\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__chamber}{pmc\+\_\+chamber}}
+\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__chamber_a2460ba62fd341138dcd48ab0ce8d2ee0}{pmc\+\_\+chamber\+::chamber\+\_\+diff\+\_\+coef}} (vol, aero\+\_\+data, temp, pressure)
+\begin{DoxyCompactList}\small\item\em Based on Eq. 23 in Naumann 2003 J. Aerosol. Sci. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__chamber_a915f3d6e535e4f3a792faf470e74aa59}{pmc\+\_\+chamber\+::chamber\+\_\+diff\+\_\+bl\+\_\+thick}} (chamber, vol, aero\+\_\+data, temp, pressure)
+\begin{DoxyCompactList}\small\item\em Calculate diffusional boundary layer thickness. Based on Eq. 40 in Naumann 2003 J. Aerosol. Sci. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__chamber_a0a0fd4cf1b9ff4af75d0df89cf2c0c4e}{pmc\+\_\+chamber\+::chamber\+\_\+loss\+\_\+rate\+\_\+wall}} (chamber, vol, aero\+\_\+data, env\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Calculate the loss rate due to wall diffusion in chamber. Based on Eq. 37a in Naumann 2003 J. Aerosol. Sci. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__chamber_adfd6bc1ce1607e8180e56f2420c3fb0f}{pmc\+\_\+chamber\+::chamber\+\_\+loss\+\_\+rate\+\_\+sedi}} (chamber, vol, density, aero\+\_\+data, env\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Calculate the loss rate due to sedimentation in chamber. Based on Eq. 37b in Naumann 2003 J. Aerosol. Sci. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__chamber_a0605211b3a313af86170ab1e7240c336}{pmc\+\_\+chamber\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+chamber}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__chamber_af292d166f534af98e8c56c9b45d82909}{pmc\+\_\+chamber\+::pmc\+\_\+mpi\+\_\+pack\+\_\+chamber}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__chamber_a20b7398d417e3934836033c151046fe7}{pmc\+\_\+chamber\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+chamber}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+real(kind=dp), parameter \mbox{\hyperlink{namespacepmc__chamber_a1ce68b9e5f462ab5f363ba40ee8a2a2b}{pmc\+\_\+chamber\+::chamber\+\_\+unit\+\_\+diff\+\_\+coef}} = 1d0
+\begin{DoxyCompactList}\small\item\em Unit translational diffusion coefficient (m$^\wedge$2 s$^\wedge$\{-\/1\}). \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__chamber}{pmc\+\_\+chamber}} module. 
+

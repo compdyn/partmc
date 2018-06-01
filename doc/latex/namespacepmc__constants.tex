@@ -1,0 +1,85 @@
+\hypertarget{namespacepmc__constants}{}\section{pmc\+\_\+constants Module Reference}
+\label{namespacepmc__constants}\index{pmc\+\_\+constants@{pmc\+\_\+constants}}
+
+
+Physical constants.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__constants_1_1const__t}{const\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Physical constants. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__constants_a396b7709ed4da67dac74cb46a1466ed6}{dp}} = kind(0.d0)
+\begin{DoxyCompactList}\small\item\em Kind of a double precision real number. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__constants_a0588e47a1de113908772c0566ff3496f}{dc}} = \mbox{\hyperlink{namespacepmc__constants_a396b7709ed4da67dac74cb46a1466ed6}{dp}}
+\begin{DoxyCompactList}\small\item\em Kind of a double precision complex number. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__constants_ad57f27d7f8ba14bb7c713f6603c3a532}{i\+\_\+kind}} = kind(1)
+\begin{DoxyCompactList}\small\item\em Kind of an integer. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__constants_1_1const__t}{const\+\_\+t}}), save \mbox{\hyperlink{namespacepmc__constants_a9235496969530bdb34cac4c63c1a56ed}{const}}
+\begin{DoxyCompactList}\small\item\em Fixed variable for accessing the constant\textquotesingle{}s values. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Physical constants. 
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{namespacepmc__constants_a9235496969530bdb34cac4c63c1a56ed}\label{namespacepmc__constants_a9235496969530bdb34cac4c63c1a56ed}} 
+\index{pmc\+\_\+constants@{pmc\+\_\+constants}!const@{const}}
+\index{const@{const}!pmc\+\_\+constants@{pmc\+\_\+constants}}
+\subsubsection{\texorpdfstring{const}{const}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__constants_1_1const__t}{const\+\_\+t}}), save pmc\+\_\+constants\+::const}
+
+
+
+Fixed variable for accessing the constant\textquotesingle{}s values. 
+
+To access a constant in a subroutine you should {\ttfamily use \mbox{\hyperlink{namespacepmc__constants}{pmc\+\_\+constants}}} and then the constant value is accessed with {\ttfamily const\%pi} or similar. Note that the type is called {\ttfamily \mbox{\hyperlink{structpmc__constants_1_1const__t}{const\+\_\+t}}} (with a trailing \+\_\+t) but the single saved variable to access them is just called {\ttfamily const}. 
+
+Definition at line 73 of file constants.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__constants_a0588e47a1de113908772c0566ff3496f}\label{namespacepmc__constants_a0588e47a1de113908772c0566ff3496f}} 
+\index{pmc\+\_\+constants@{pmc\+\_\+constants}!dc@{dc}}
+\index{dc@{dc}!pmc\+\_\+constants@{pmc\+\_\+constants}}
+\subsubsection{\texorpdfstring{dc}{dc}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+constants\+::dc = \mbox{\hyperlink{namespacepmc__constants_a396b7709ed4da67dac74cb46a1466ed6}{dp}}}
+
+
+
+Kind of a double precision complex number. 
+
+
+
+Definition at line 14 of file constants.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__constants_a396b7709ed4da67dac74cb46a1466ed6}\label{namespacepmc__constants_a396b7709ed4da67dac74cb46a1466ed6}} 
+\index{pmc\+\_\+constants@{pmc\+\_\+constants}!dp@{dp}}
+\index{dp@{dp}!pmc\+\_\+constants@{pmc\+\_\+constants}}
+\subsubsection{\texorpdfstring{dp}{dp}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+constants\+::dp = kind(0.d0)}
+
+
+
+Kind of a double precision real number. 
+
+
+
+Definition at line 12 of file constants.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__constants_ad57f27d7f8ba14bb7c713f6603c3a532}\label{namespacepmc__constants_ad57f27d7f8ba14bb7c713f6603c3a532}} 
+\index{pmc\+\_\+constants@{pmc\+\_\+constants}!i\+\_\+kind@{i\+\_\+kind}}
+\index{i\+\_\+kind@{i\+\_\+kind}!pmc\+\_\+constants@{pmc\+\_\+constants}}
+\subsubsection{\texorpdfstring{i\+\_\+kind}{i\_kind}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+constants\+::i\+\_\+kind = kind(1)}
+
+
+
+Kind of an integer. 
+
+
+
+Definition at line 17 of file constants.\+F90.
+

@@ -1,0 +1,60 @@
+\hypertarget{bin__grid_8_f90}{}\section{bin\+\_\+grid.\+F90 File Reference}
+\label{bin__grid_8_f90}\index{bin\+\_\+grid.\+F90@{bin\+\_\+grid.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__bin__grid}{pmc\+\_\+bin\+\_\+grid}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{pmc\+\_\+bin\+\_\+grid\+::bin\+\_\+grid\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em 1D grid, either logarithmic or linear. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__bin__grid}{pmc\+\_\+bin\+\_\+grid}}
+\begin{DoxyCompactList}\small\item\em The \mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}} structure and associated subroutines. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+elemental integer function \mbox{\hyperlink{namespacepmc__bin__grid_add81887392bce2b981cecd3cfe553a5f}{pmc\+\_\+bin\+\_\+grid\+::bin\+\_\+grid\+\_\+size}} (bin\+\_\+grid)
+\begin{DoxyCompactList}\small\item\em Return the number of bins in the grid, or -\/1 if the bin grid is not allocated. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__bin__grid_abc23e1f905843cf09accd4dc7275ab5b}{pmc\+\_\+bin\+\_\+grid\+::vol\+\_\+to\+\_\+lnr}} (r, f\+\_\+vol, f\+\_\+lnr)
+\begin{DoxyCompactList}\small\item\em Convert a concentration f(vol)d(vol) to f(ln(r))d(ln(r)) where vol = 4/3 pi r$^\wedge$3. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__bin__grid_a32e33f03578d23808536c09a6211a286}{pmc\+\_\+bin\+\_\+grid\+::bin\+\_\+grid\+\_\+make}} (bin\+\_\+grid, type, n\+\_\+bin, min, max)
+\begin{DoxyCompactList}\small\item\em Generates the bin grid given the range and number of bins. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__bin__grid_a132c58d7b2762a65c43ede00ef90d41d}{pmc\+\_\+bin\+\_\+grid\+::bin\+\_\+grid\+\_\+find}} (bin\+\_\+grid, val)
+\begin{DoxyCompactList}\small\item\em Find the bin number that contains a given value. \end{DoxyCompactList}\item 
+real(kind=dp) function, dimension(bin\+\_\+grid\+\_\+size(x\+\_\+bin\+\_\+grid)) \mbox{\hyperlink{namespacepmc__bin__grid_a89431948ddfba118694e7ef50b09d32b}{pmc\+\_\+bin\+\_\+grid\+::bin\+\_\+grid\+\_\+histogram\+\_\+1d}} (x\+\_\+bin\+\_\+grid, x\+\_\+data, weight\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Make a histogram with of the given weighted data, scaled by the bin sizes. \end{DoxyCompactList}\item 
+real(kind=dp) function, dimension(bin\+\_\+grid\+\_\+size(x\+\_\+bin\+\_\+grid), bin\+\_\+grid\+\_\+size(y\+\_\+bin\+\_\+grid)) \mbox{\hyperlink{namespacepmc__bin__grid_aca186db5214b8baadd1dd1dae1be5d98}{pmc\+\_\+bin\+\_\+grid\+::bin\+\_\+grid\+\_\+histogram\+\_\+2d}} (x\+\_\+bin\+\_\+grid, x\+\_\+data, y\+\_\+bin\+\_\+grid, y\+\_\+data, weight\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Make a 2D histogram with of the given weighted data, scaled by the bin sizes. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__bin__grid_af316422f9bd046e6172d94efcea4a84f}{pmc\+\_\+bin\+\_\+grid\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+bin\+\_\+grid}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__bin__grid_a83f71861916da3f47f6baac24cf45010}{pmc\+\_\+bin\+\_\+grid\+::pmc\+\_\+mpi\+\_\+pack\+\_\+bin\+\_\+grid}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__bin__grid_a0cc8644ef392c33e58b296f03899f5f5}{pmc\+\_\+bin\+\_\+grid\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+bin\+\_\+grid}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__bin__grid_a7a3956cc26b9ca8736fb65b47a1f8b67}{pmc\+\_\+bin\+\_\+grid\+::pmc\+\_\+mpi\+\_\+allequal\+\_\+bin\+\_\+grid}} (val)
+\begin{DoxyCompactList}\small\item\em Check whether all processors have the same value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__bin__grid_a1e67dd0b3773b15d0d5523887106bcb1}{pmc\+\_\+bin\+\_\+grid\+::bin\+\_\+grid\+\_\+netcdf\+\_\+dim}} (bin\+\_\+grid, \mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, dim\+\_\+name, unit, dimid, long\+\_\+name, scale)
+\begin{DoxyCompactList}\small\item\em Write a bin grid dimension to the given Net\+C\+DF file if it is not already present and in any case return the associated dimid. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__bin__grid_a00d8227bfb4b1e12eca6f5317dd4fd78}{pmc\+\_\+bin\+\_\+grid\+::bin\+\_\+grid\+\_\+output\+\_\+netcdf}} (bin\+\_\+grid, \mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, dim\+\_\+name, unit, long\+\_\+name, scale)
+\begin{DoxyCompactList}\small\item\em Write a bin grid to the given Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__bin__grid_a962c49d1900bde86c51da0e40d7b6110}{pmc\+\_\+bin\+\_\+grid\+::bin\+\_\+grid\+\_\+input\+\_\+netcdf}} (bin\+\_\+grid, \mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, dim\+\_\+name, scale)
+\begin{DoxyCompactList}\small\item\em Read full state. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__bin__grid_a1cbd1db8f8656cd463a3316504fb8ff1}{pmc\+\_\+bin\+\_\+grid\+::bin\+\_\+grid\+\_\+type\+\_\+invalid}} = 0
+\begin{DoxyCompactList}\small\item\em Invalid type of bin grid. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__bin__grid_a2132d94b8aad57a55efc8f8356690148}{pmc\+\_\+bin\+\_\+grid\+::bin\+\_\+grid\+\_\+type\+\_\+log}} = 1
+\begin{DoxyCompactList}\small\item\em Logarithmically spaced bin grid. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__bin__grid_ae02a160719a835f7ee0c048539c257cd}{pmc\+\_\+bin\+\_\+grid\+::bin\+\_\+grid\+\_\+type\+\_\+linear}} = 2
+\begin{DoxyCompactList}\small\item\em Linearly spaced bin grid. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__bin__grid}{pmc\+\_\+bin\+\_\+grid}} module. 
+

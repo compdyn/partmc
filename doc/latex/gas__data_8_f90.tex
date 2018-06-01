@@ -1,0 +1,48 @@
+\hypertarget{gas__data_8_f90}{}\section{gas\+\_\+data.\+F90 File Reference}
+\label{gas__data_8_f90}\index{gas\+\_\+data.\+F90@{gas\+\_\+data.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__gas__data}{pmc\+\_\+gas\+\_\+data}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Constant gas data. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__gas__data}{pmc\+\_\+gas\+\_\+data}}
+\begin{DoxyCompactList}\small\item\em The \mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}} structure and associated subroutines. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__gas__data_af46c599614532ddd2e6741a0a7bed14e}{pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+initialize}} (this, phlex\+\_\+core)
+\begin{DoxyCompactList}\small\item\em Initialize the \mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}} instance from phlex\+\_\+core data. \end{DoxyCompactList}\item 
+elemental integer function \mbox{\hyperlink{namespacepmc__gas__data_a6d07e1703ded54713052541e011ecd9f}{pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+n\+\_\+spec}} (gas\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Return the number of gas species. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__gas__data_abda315c8ecc2afa6bc10d648140c4258}{pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+spec\+\_\+by\+\_\+name}} (gas\+\_\+data, name)
+\begin{DoxyCompactList}\small\item\em Returns the number of the species in gas with the given name, or returns 0 if there is no such species. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__gas__data_afb086646f86c38de197f098dafac1ddb}{pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+set\+\_\+mosaic\+\_\+map}} (gas\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Fills in gas\+\_\+data\%mosaic\+\_\+index. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__gas__data_a53801cb841f5a4c6fe9618de7e33637f}{pmc\+\_\+gas\+\_\+data\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+gas\+\_\+data}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__gas__data_a50ae39f0438bbc196fc40825dde0385e}{pmc\+\_\+gas\+\_\+data\+::pmc\+\_\+mpi\+\_\+pack\+\_\+gas\+\_\+data}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__gas__data_af9c9ad522a84e72e20e052adad31c24d}{pmc\+\_\+gas\+\_\+data\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+gas\+\_\+data}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__gas__data_a6df4c6edda1d1134595d124321b4f308}{pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+netcdf\+\_\+dim\+\_\+gas\+\_\+species}} (gas\+\_\+data, \mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, dimid\+\_\+gas\+\_\+species)
+\begin{DoxyCompactList}\small\item\em Write the gas species dimension to the given Net\+C\+DF file if it is not already present and in any case return the associated dimid. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__gas__data_a1777fe2ed855a4b26c45287e166a0940}{pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+input\+\_\+netcdf}} (gas\+\_\+data, \mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}})
+\begin{DoxyCompactList}\small\item\em Read full state. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__gas__data_a0d310b1185398e90f841bb9c3c83d3a9}{pmc\+\_\+gas\+\_\+data\+::gas\+\_\+name\+\_\+len}} = 100
+\begin{DoxyCompactList}\small\item\em Maximum length of the name of a gas. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__gas__data}{pmc\+\_\+gas\+\_\+data}} module. 
+

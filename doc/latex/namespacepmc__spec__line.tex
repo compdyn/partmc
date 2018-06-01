@@ -1,0 +1,145 @@
+\hypertarget{namespacepmc__spec__line}{}\section{pmc\+\_\+spec\+\_\+line Module Reference}
+\label{namespacepmc__spec__line}\index{pmc\+\_\+spec\+\_\+line@{pmc\+\_\+spec\+\_\+line}}
+
+
+A single line of formatted test for input.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__spec__line_1_1spec__line__t}{spec\+\_\+line\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em A single line of input data, split at whitespace. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__line_a1db0d0ef2b767a6540419a294120851e}{spec\+\_\+line\+\_\+set\+\_\+size}} (spec\+\_\+line, n\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Sets the number of data elements in the line. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__line_ae8dbd59b9a8d4aa132d5931c8cae419f}{spec\+\_\+line\+\_\+strip\+\_\+comment}} (string)
+\begin{DoxyCompactList}\small\item\em Strip the comments from a string. Comments are everything after the first \# character. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__line_a8bcfccca38c2d4044b3ab638b119f108}{spec\+\_\+line\+\_\+tabs\+\_\+to\+\_\+spaces}} (string)
+\begin{DoxyCompactList}\small\item\em Expand all tabs in a string into single spaces (one tab makes one space). \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__line_a70e8cfe2c200d354b7c3ab329854b260}{spec\+\_\+line\+\_\+strip\+\_\+leading\+\_\+spaces}} (string)
+\begin{DoxyCompactList}\small\item\em Strip leading spaces from a string. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__spec__line_ae50dbe2c181c483be6cfc87cd3a217d0}{spec\+\_\+line\+\_\+max\+\_\+len}} = 10000
+\begin{DoxyCompactList}\small\item\em Maximum size of a single line. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__spec__line_a54f3958fcd2d7924fc1b9659e5442876}{spec\+\_\+line\+\_\+max\+\_\+var\+\_\+len}} = 300
+\begin{DoxyCompactList}\small\item\em Maximum size of a variable. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A single line of formatted test for input. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__spec__line_a1db0d0ef2b767a6540419a294120851e}\label{namespacepmc__spec__line_a1db0d0ef2b767a6540419a294120851e}} 
+\index{pmc\+\_\+spec\+\_\+line@{pmc\+\_\+spec\+\_\+line}!spec\+\_\+line\+\_\+set\+\_\+size@{spec\+\_\+line\+\_\+set\+\_\+size}}
+\index{spec\+\_\+line\+\_\+set\+\_\+size@{spec\+\_\+line\+\_\+set\+\_\+size}!pmc\+\_\+spec\+\_\+line@{pmc\+\_\+spec\+\_\+line}}
+\subsubsection{\texorpdfstring{spec\+\_\+line\+\_\+set\+\_\+size()}{spec\_line\_set\_size()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+spec\+\_\+line\+::spec\+\_\+line\+\_\+set\+\_\+size (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__spec__line_1_1spec__line__t}{spec\+\_\+line\+\_\+t}}), intent(inout)}]{spec\+\_\+line,  }\item[{integer, intent(in)}]{n\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Sets the number of data elements in the line. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em spec\+\_\+line} & Struct to alloc.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+data} & Number of data items. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 40 of file spec\+\_\+line.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__spec__line_ae8dbd59b9a8d4aa132d5931c8cae419f}\label{namespacepmc__spec__line_ae8dbd59b9a8d4aa132d5931c8cae419f}} 
+\index{pmc\+\_\+spec\+\_\+line@{pmc\+\_\+spec\+\_\+line}!spec\+\_\+line\+\_\+strip\+\_\+comment@{spec\+\_\+line\+\_\+strip\+\_\+comment}}
+\index{spec\+\_\+line\+\_\+strip\+\_\+comment@{spec\+\_\+line\+\_\+strip\+\_\+comment}!pmc\+\_\+spec\+\_\+line@{pmc\+\_\+spec\+\_\+line}}
+\subsubsection{\texorpdfstring{spec\+\_\+line\+\_\+strip\+\_\+comment()}{spec\_line\_strip\_comment()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+spec\+\_\+line\+::spec\+\_\+line\+\_\+strip\+\_\+comment (\begin{DoxyParamCaption}\item[{character(len=$\ast$), intent(inout)}]{string }\end{DoxyParamCaption})}
+
+
+
+Strip the comments from a string. Comments are everything after the first \# character. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em string} & Complete input string. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 57 of file spec\+\_\+line.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__spec__line_a70e8cfe2c200d354b7c3ab329854b260}\label{namespacepmc__spec__line_a70e8cfe2c200d354b7c3ab329854b260}} 
+\index{pmc\+\_\+spec\+\_\+line@{pmc\+\_\+spec\+\_\+line}!spec\+\_\+line\+\_\+strip\+\_\+leading\+\_\+spaces@{spec\+\_\+line\+\_\+strip\+\_\+leading\+\_\+spaces}}
+\index{spec\+\_\+line\+\_\+strip\+\_\+leading\+\_\+spaces@{spec\+\_\+line\+\_\+strip\+\_\+leading\+\_\+spaces}!pmc\+\_\+spec\+\_\+line@{pmc\+\_\+spec\+\_\+line}}
+\subsubsection{\texorpdfstring{spec\+\_\+line\+\_\+strip\+\_\+leading\+\_\+spaces()}{spec\_line\_strip\_leading\_spaces()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+spec\+\_\+line\+::spec\+\_\+line\+\_\+strip\+\_\+leading\+\_\+spaces (\begin{DoxyParamCaption}\item[{character(len=$\ast$), intent(inout)}]{string }\end{DoxyParamCaption})}
+
+
+
+Strip leading spaces from a string. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em string} & Complete input string. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 93 of file spec\+\_\+line.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__spec__line_a8bcfccca38c2d4044b3ab638b119f108}\label{namespacepmc__spec__line_a8bcfccca38c2d4044b3ab638b119f108}} 
+\index{pmc\+\_\+spec\+\_\+line@{pmc\+\_\+spec\+\_\+line}!spec\+\_\+line\+\_\+tabs\+\_\+to\+\_\+spaces@{spec\+\_\+line\+\_\+tabs\+\_\+to\+\_\+spaces}}
+\index{spec\+\_\+line\+\_\+tabs\+\_\+to\+\_\+spaces@{spec\+\_\+line\+\_\+tabs\+\_\+to\+\_\+spaces}!pmc\+\_\+spec\+\_\+line@{pmc\+\_\+spec\+\_\+line}}
+\subsubsection{\texorpdfstring{spec\+\_\+line\+\_\+tabs\+\_\+to\+\_\+spaces()}{spec\_line\_tabs\_to\_spaces()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+spec\+\_\+line\+::spec\+\_\+line\+\_\+tabs\+\_\+to\+\_\+spaces (\begin{DoxyParamCaption}\item[{character(len=$\ast$), intent(inout)}]{string }\end{DoxyParamCaption})}
+
+
+
+Expand all tabs in a string into single spaces (one tab makes one space). 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em string} & Complete input string. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 75 of file spec\+\_\+line.\+F90.
+
+
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{namespacepmc__spec__line_ae50dbe2c181c483be6cfc87cd3a217d0}\label{namespacepmc__spec__line_ae50dbe2c181c483be6cfc87cd3a217d0}} 
+\index{pmc\+\_\+spec\+\_\+line@{pmc\+\_\+spec\+\_\+line}!spec\+\_\+line\+\_\+max\+\_\+len@{spec\+\_\+line\+\_\+max\+\_\+len}}
+\index{spec\+\_\+line\+\_\+max\+\_\+len@{spec\+\_\+line\+\_\+max\+\_\+len}!pmc\+\_\+spec\+\_\+line@{pmc\+\_\+spec\+\_\+line}}
+\subsubsection{\texorpdfstring{spec\+\_\+line\+\_\+max\+\_\+len}{spec\_line\_max\_len}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+spec\+\_\+line\+::spec\+\_\+line\+\_\+max\+\_\+len = 10000}
+
+
+
+Maximum size of a single line. 
+
+
+
+Definition at line 14 of file spec\+\_\+line.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__spec__line_a54f3958fcd2d7924fc1b9659e5442876}\label{namespacepmc__spec__line_a54f3958fcd2d7924fc1b9659e5442876}} 
+\index{pmc\+\_\+spec\+\_\+line@{pmc\+\_\+spec\+\_\+line}!spec\+\_\+line\+\_\+max\+\_\+var\+\_\+len@{spec\+\_\+line\+\_\+max\+\_\+var\+\_\+len}}
+\index{spec\+\_\+line\+\_\+max\+\_\+var\+\_\+len@{spec\+\_\+line\+\_\+max\+\_\+var\+\_\+len}!pmc\+\_\+spec\+\_\+line@{pmc\+\_\+spec\+\_\+line}}
+\subsubsection{\texorpdfstring{spec\+\_\+line\+\_\+max\+\_\+var\+\_\+len}{spec\_line\_max\_var\_len}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+spec\+\_\+line\+::spec\+\_\+line\+\_\+max\+\_\+var\+\_\+len = 300}
+
+
+
+Maximum size of a variable. 
+
+
+
+Definition at line 16 of file spec\+\_\+line.\+F90.
+

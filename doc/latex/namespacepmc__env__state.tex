@@ -1,0 +1,379 @@
+\hypertarget{namespacepmc__env__state}{}\section{pmc\+\_\+env\+\_\+state Module Reference}
+\label{namespacepmc__env__state}\index{pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}}
+
+
+The \mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}} structure and associated subroutines.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Current environment state. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__env__state_a8a28c313cebdbb76a6bf2fb278a8addf}{env\+\_\+state\+\_\+add}} (env\+\_\+state, env\+\_\+state\+\_\+delta)
+\begin{DoxyCompactList}\small\item\em env\+\_\+state += env\+\_\+state\+\_\+delta \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__env__state_a2fe48038c4d8f58d369fb68e2e94ed49}{env\+\_\+state\+\_\+scale}} (env\+\_\+state, alpha)
+\begin{DoxyCompactList}\small\item\em env\+\_\+state $\ast$= alpha \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__env__state_a961f64db61820e148e7a85f93755180b}{env\+\_\+state\+\_\+change\+\_\+water\+\_\+volume}} (env\+\_\+state, dv)
+\begin{DoxyCompactList}\small\item\em Adds the given water volume to the water vapor and updates all environment quantities. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__env__state_abc5a1b93ea4a56a1b20c4fc3177b2ab4}{env\+\_\+state\+\_\+sat\+\_\+vapor\+\_\+pressure}} (env\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Computes the current saturation vapor pressure (Pa). \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__env__state_a9ff224fb49c16b4bfe0ae896d9c278f2}{env\+\_\+state\+\_\+air\+\_\+den}} (env\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Air density (kg m$^\wedge$\{-\/3\}). \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__env__state_a71d24aa32a9f0f3cbb919654fc588039}{env\+\_\+state\+\_\+air\+\_\+molar\+\_\+den}} (env\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Air molar density (mol m$^\wedge$\{-\/3\}). \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__env__state_a400b3cc0c7eeee1a0b88f59ea59a8568}{env\+\_\+state\+\_\+a}} (env\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Condensation $A$ parameter. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__env__state_a8069f202b6375dd2a08448f818673673}{env\+\_\+state\+\_\+ppb\+\_\+to\+\_\+conc}} (env\+\_\+state, ppb)
+\begin{DoxyCompactList}\small\item\em Convert (ppb) to (molecules m$^\wedge$\{-\/3\}). \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__env__state_ad49196e422e5bc68ec531a4804eef4f2}{env\+\_\+state\+\_\+conc\+\_\+to\+\_\+ppb}} (env\+\_\+state, conc)
+\begin{DoxyCompactList}\small\item\em Convert (molecules m$^\wedge$\{-\/3\}) to (ppb). \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__env__state_afd588fc925707d56dbe301556e82dfc8}{env\+\_\+state\+\_\+mix}} (val)
+\begin{DoxyCompactList}\small\item\em Average val over all processes. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__env__state_aa3ca5b0885819b41abc09c607ee28e7f}{env\+\_\+state\+\_\+reduce\+\_\+avg}} (val)
+\begin{DoxyCompactList}\small\item\em Average val over all processes, with the result only on the root process. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__env__state_ade49d8dfe1865485f6648200824a8aa2}{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+env\+\_\+state}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__env__state_a480b54f036d88d6640bf278ce8677987}{pmc\+\_\+mpi\+\_\+pack\+\_\+env\+\_\+state}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__env__state_a29321768e4beec8bedc30f795b89a945}{pmc\+\_\+mpi\+\_\+unpack\+\_\+env\+\_\+state}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__env__state_a4c7aa1ae763cf16b0380f1bcaaa4bff5}{pmc\+\_\+mpi\+\_\+reduce\+\_\+avg\+\_\+env\+\_\+state}} (val, val\+\_\+avg)
+\begin{DoxyCompactList}\small\item\em Computes the average of val across all processes, storing the result in val\+\_\+avg on the root process. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__env__state_a0d8b675986137899087a12f1c7abe24b}{env\+\_\+state\+\_\+input\+\_\+netcdf}} (env\+\_\+state, \mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}})
+\begin{DoxyCompactList}\small\item\em Read full state. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}} structure and associated subroutines. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__env__state_a400b3cc0c7eeee1a0b88f59ea59a8568}\label{namespacepmc__env__state_a400b3cc0c7eeee1a0b88f59ea59a8568}} 
+\index{pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}!env\+\_\+state\+\_\+a@{env\+\_\+state\+\_\+a}}
+\index{env\+\_\+state\+\_\+a@{env\+\_\+state\+\_\+a}!pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}}
+\subsubsection{\texorpdfstring{env\+\_\+state\+\_\+a()}{env\_state\_a()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+env\+\_\+state\+::env\+\_\+state\+\_\+a (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state }\end{DoxyParamCaption})}
+
+
+
+Condensation $A$ parameter. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 184 of file env\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__env__state_a8a28c313cebdbb76a6bf2fb278a8addf}\label{namespacepmc__env__state_a8a28c313cebdbb76a6bf2fb278a8addf}} 
+\index{pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}!env\+\_\+state\+\_\+add@{env\+\_\+state\+\_\+add}}
+\index{env\+\_\+state\+\_\+add@{env\+\_\+state\+\_\+add}!pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}}
+\subsubsection{\texorpdfstring{env\+\_\+state\+\_\+add()}{env\_state\_add()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+env\+\_\+state\+::env\+\_\+state\+\_\+add (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(inout)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state\+\_\+delta }\end{DoxyParamCaption})}
+
+
+
+env\+\_\+state += env\+\_\+state\+\_\+delta 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em env\+\_\+state} & Environment.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state\+\_\+delta} & Increment. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 64 of file env\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__env__state_a9ff224fb49c16b4bfe0ae896d9c278f2}\label{namespacepmc__env__state_a9ff224fb49c16b4bfe0ae896d9c278f2}} 
+\index{pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}!env\+\_\+state\+\_\+air\+\_\+den@{env\+\_\+state\+\_\+air\+\_\+den}}
+\index{env\+\_\+state\+\_\+air\+\_\+den@{env\+\_\+state\+\_\+air\+\_\+den}!pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}}
+\subsubsection{\texorpdfstring{env\+\_\+state\+\_\+air\+\_\+den()}{env\_state\_air\_den()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+env\+\_\+state\+::env\+\_\+state\+\_\+air\+\_\+den (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state }\end{DoxyParamCaption})}
+
+
+
+Air density (kg m$^\wedge$\{-\/3\}). 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 158 of file env\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__env__state_a71d24aa32a9f0f3cbb919654fc588039}\label{namespacepmc__env__state_a71d24aa32a9f0f3cbb919654fc588039}} 
+\index{pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}!env\+\_\+state\+\_\+air\+\_\+molar\+\_\+den@{env\+\_\+state\+\_\+air\+\_\+molar\+\_\+den}}
+\index{env\+\_\+state\+\_\+air\+\_\+molar\+\_\+den@{env\+\_\+state\+\_\+air\+\_\+molar\+\_\+den}!pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}}
+\subsubsection{\texorpdfstring{env\+\_\+state\+\_\+air\+\_\+molar\+\_\+den()}{env\_state\_air\_molar\_den()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+env\+\_\+state\+::env\+\_\+state\+\_\+air\+\_\+molar\+\_\+den (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state }\end{DoxyParamCaption})}
+
+
+
+Air molar density (mol m$^\wedge$\{-\/3\}). 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 171 of file env\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__env__state_a961f64db61820e148e7a85f93755180b}\label{namespacepmc__env__state_a961f64db61820e148e7a85f93755180b}} 
+\index{pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}!env\+\_\+state\+\_\+change\+\_\+water\+\_\+volume@{env\+\_\+state\+\_\+change\+\_\+water\+\_\+volume}}
+\index{env\+\_\+state\+\_\+change\+\_\+water\+\_\+volume@{env\+\_\+state\+\_\+change\+\_\+water\+\_\+volume}!pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}}
+\subsubsection{\texorpdfstring{env\+\_\+state\+\_\+change\+\_\+water\+\_\+volume()}{env\_state\_change\_water\_volume()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+env\+\_\+state\+::env\+\_\+state\+\_\+change\+\_\+water\+\_\+volume (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(inout)}]{env\+\_\+state,  }\item[{real(kind=dp), intent(in)}]{dv }\end{DoxyParamCaption})}
+
+
+
+Adds the given water volume to the water vapor and updates all environment quantities. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em env\+\_\+state} & Environment state to update.\\
+\hline
+\mbox{\tt in}  & {\em dv} & Volume concentration of water added (m$^\wedge$3/m$^\wedge$3). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 115 of file env\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__env__state_ad49196e422e5bc68ec531a4804eef4f2}\label{namespacepmc__env__state_ad49196e422e5bc68ec531a4804eef4f2}} 
+\index{pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}!env\+\_\+state\+\_\+conc\+\_\+to\+\_\+ppb@{env\+\_\+state\+\_\+conc\+\_\+to\+\_\+ppb}}
+\index{env\+\_\+state\+\_\+conc\+\_\+to\+\_\+ppb@{env\+\_\+state\+\_\+conc\+\_\+to\+\_\+ppb}!pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}}
+\subsubsection{\texorpdfstring{env\+\_\+state\+\_\+conc\+\_\+to\+\_\+ppb()}{env\_state\_conc\_to\_ppb()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+env\+\_\+state\+::env\+\_\+state\+\_\+conc\+\_\+to\+\_\+ppb (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{real(kind=dp), intent(in)}]{conc }\end{DoxyParamCaption})}
+
+
+
+Convert (molecules m$^\wedge$\{-\/3\}) to (ppb). 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em conc} & Concentration (molecules m$^\wedge$\{-\/3\}). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 212 of file env\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__env__state_a0d8b675986137899087a12f1c7abe24b}\label{namespacepmc__env__state_a0d8b675986137899087a12f1c7abe24b}} 
+\index{pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}!env\+\_\+state\+\_\+input\+\_\+netcdf@{env\+\_\+state\+\_\+input\+\_\+netcdf}}
+\index{env\+\_\+state\+\_\+input\+\_\+netcdf@{env\+\_\+state\+\_\+input\+\_\+netcdf}!pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}}
+\subsubsection{\texorpdfstring{env\+\_\+state\+\_\+input\+\_\+netcdf()}{env\_state\_input\_netcdf()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+env\+\_\+state\+::env\+\_\+state\+\_\+input\+\_\+netcdf (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(inout)}]{env\+\_\+state,  }\item[{integer, intent(in)}]{ncid }\end{DoxyParamCaption})}
+
+
+
+Read full state. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em env\+\_\+state} & Environment state to read.\\
+\hline
+\mbox{\tt in}  & {\em ncid} & Net\+C\+DF file ID, in data mode. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 489 of file env\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__env__state_afd588fc925707d56dbe301556e82dfc8}\label{namespacepmc__env__state_afd588fc925707d56dbe301556e82dfc8}} 
+\index{pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}!env\+\_\+state\+\_\+mix@{env\+\_\+state\+\_\+mix}}
+\index{env\+\_\+state\+\_\+mix@{env\+\_\+state\+\_\+mix}!pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}}
+\subsubsection{\texorpdfstring{env\+\_\+state\+\_\+mix()}{env\_state\_mix()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+env\+\_\+state\+::env\+\_\+state\+\_\+mix (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(inout)}]{val }\end{DoxyParamCaption})}
+
+
+
+Average val over all processes. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em val} & Value to average. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 276 of file env\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__env__state_a8069f202b6375dd2a08448f818673673}\label{namespacepmc__env__state_a8069f202b6375dd2a08448f818673673}} 
+\index{pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}!env\+\_\+state\+\_\+ppb\+\_\+to\+\_\+conc@{env\+\_\+state\+\_\+ppb\+\_\+to\+\_\+conc}}
+\index{env\+\_\+state\+\_\+ppb\+\_\+to\+\_\+conc@{env\+\_\+state\+\_\+ppb\+\_\+to\+\_\+conc}!pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}}
+\subsubsection{\texorpdfstring{env\+\_\+state\+\_\+ppb\+\_\+to\+\_\+conc()}{env\_state\_ppb\_to\_conc()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+env\+\_\+state\+::env\+\_\+state\+\_\+ppb\+\_\+to\+\_\+conc (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{real(kind=dp), intent(in)}]{ppb }\end{DoxyParamCaption})}
+
+
+
+Convert (ppb) to (molecules m$^\wedge$\{-\/3\}). 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em ppb} & Mixing ratio (ppb). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 197 of file env\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__env__state_aa3ca5b0885819b41abc09c607ee28e7f}\label{namespacepmc__env__state_aa3ca5b0885819b41abc09c607ee28e7f}} 
+\index{pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}!env\+\_\+state\+\_\+reduce\+\_\+avg@{env\+\_\+state\+\_\+reduce\+\_\+avg}}
+\index{env\+\_\+state\+\_\+reduce\+\_\+avg@{env\+\_\+state\+\_\+reduce\+\_\+avg}!pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}}
+\subsubsection{\texorpdfstring{env\+\_\+state\+\_\+reduce\+\_\+avg()}{env\_state\_reduce\_avg()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+env\+\_\+state\+::env\+\_\+state\+\_\+reduce\+\_\+avg (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(inout)}]{val }\end{DoxyParamCaption})}
+
+
+
+Average val over all processes, with the result only on the root process. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em val} & Value to average. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 298 of file env\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__env__state_abc5a1b93ea4a56a1b20c4fc3177b2ab4}\label{namespacepmc__env__state_abc5a1b93ea4a56a1b20c4fc3177b2ab4}} 
+\index{pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}!env\+\_\+state\+\_\+sat\+\_\+vapor\+\_\+pressure@{env\+\_\+state\+\_\+sat\+\_\+vapor\+\_\+pressure}}
+\index{env\+\_\+state\+\_\+sat\+\_\+vapor\+\_\+pressure@{env\+\_\+state\+\_\+sat\+\_\+vapor\+\_\+pressure}!pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}}
+\subsubsection{\texorpdfstring{env\+\_\+state\+\_\+sat\+\_\+vapor\+\_\+pressure()}{env\_state\_sat\_vapor\_pressure()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+env\+\_\+state\+::env\+\_\+state\+\_\+sat\+\_\+vapor\+\_\+pressure (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state }\end{DoxyParamCaption})}
+
+
+
+Computes the current saturation vapor pressure (Pa). 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 144 of file env\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__env__state_a2fe48038c4d8f58d369fb68e2e94ed49}\label{namespacepmc__env__state_a2fe48038c4d8f58d369fb68e2e94ed49}} 
+\index{pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}!env\+\_\+state\+\_\+scale@{env\+\_\+state\+\_\+scale}}
+\index{env\+\_\+state\+\_\+scale@{env\+\_\+state\+\_\+scale}!pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}}
+\subsubsection{\texorpdfstring{env\+\_\+state\+\_\+scale()}{env\_state\_scale()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+env\+\_\+state\+::env\+\_\+state\+\_\+scale (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(inout)}]{env\+\_\+state,  }\item[{real(kind=dp), intent(in)}]{alpha }\end{DoxyParamCaption})}
+
+
+
+env\+\_\+state $\ast$= alpha 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em env\+\_\+state} & Environment.\\
+\hline
+\mbox{\tt in}  & {\em alpha} & Scale factor. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 90 of file env\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__env__state_a480b54f036d88d6640bf278ce8677987}\label{namespacepmc__env__state_a480b54f036d88d6640bf278ce8677987}} 
+\index{pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}!pmc\+\_\+mpi\+\_\+pack\+\_\+env\+\_\+state@{pmc\+\_\+mpi\+\_\+pack\+\_\+env\+\_\+state}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+env\+\_\+state@{pmc\+\_\+mpi\+\_\+pack\+\_\+env\+\_\+state}!pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+env\+\_\+state()}{pmc\_mpi\_pack\_env\_state()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+env\+\_\+state\+::pmc\+\_\+mpi\+\_\+pack\+\_\+env\+\_\+state (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{class(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Packs the given value into the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 344 of file env\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__env__state_ade49d8dfe1865485f6648200824a8aa2}\label{namespacepmc__env__state_ade49d8dfe1865485f6648200824a8aa2}} 
+\index{pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}!pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+env\+\_\+state@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+env\+\_\+state}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+env\+\_\+state@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+env\+\_\+state}!pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+env\+\_\+state()}{pmc\_mpi\_pack\_size\_env\_state()}}
+{\footnotesize\ttfamily integer function pmc\+\_\+env\+\_\+state\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+env\+\_\+state (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Determines the number of bytes required to pack the given value. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 321 of file env\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__env__state_a4c7aa1ae763cf16b0380f1bcaaa4bff5}\label{namespacepmc__env__state_a4c7aa1ae763cf16b0380f1bcaaa4bff5}} 
+\index{pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}!pmc\+\_\+mpi\+\_\+reduce\+\_\+avg\+\_\+env\+\_\+state@{pmc\+\_\+mpi\+\_\+reduce\+\_\+avg\+\_\+env\+\_\+state}}
+\index{pmc\+\_\+mpi\+\_\+reduce\+\_\+avg\+\_\+env\+\_\+state@{pmc\+\_\+mpi\+\_\+reduce\+\_\+avg\+\_\+env\+\_\+state}!pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+reduce\+\_\+avg\+\_\+env\+\_\+state()}{pmc\_mpi\_reduce\_avg\_env\_state()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+env\+\_\+state\+::pmc\+\_\+mpi\+\_\+reduce\+\_\+avg\+\_\+env\+\_\+state (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{val,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(inout)}]{val\+\_\+avg }\end{DoxyParamCaption})}
+
+
+
+Computes the average of val across all processes, storing the result in val\+\_\+avg on the root process. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em val} & Value to average.\\
+\hline
+\mbox{\tt in,out}  & {\em val\+\_\+avg} & Result. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 411 of file env\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__env__state_a29321768e4beec8bedc30f795b89a945}\label{namespacepmc__env__state_a29321768e4beec8bedc30f795b89a945}} 
+\index{pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}!pmc\+\_\+mpi\+\_\+unpack\+\_\+env\+\_\+state@{pmc\+\_\+mpi\+\_\+unpack\+\_\+env\+\_\+state}}
+\index{pmc\+\_\+mpi\+\_\+unpack\+\_\+env\+\_\+state@{pmc\+\_\+mpi\+\_\+unpack\+\_\+env\+\_\+state}!pmc\+\_\+env\+\_\+state@{pmc\+\_\+env\+\_\+state}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+unpack\+\_\+env\+\_\+state()}{pmc\_mpi\_unpack\_env\_state()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+env\+\_\+state\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+env\+\_\+state (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{class(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(inout)}]{val }\end{DoxyParamCaption})}
+
+
+
+Unpacks the given value from the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in,out}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 377 of file env\+\_\+state.\+F90.
+

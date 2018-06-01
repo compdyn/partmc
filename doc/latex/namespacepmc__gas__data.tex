@@ -1,0 +1,250 @@
+\hypertarget{namespacepmc__gas__data}{}\section{pmc\+\_\+gas\+\_\+data Module Reference}
+\label{namespacepmc__gas__data}\index{pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}}
+
+
+The \mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}} structure and associated subroutines.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Constant gas data. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__gas__data_af46c599614532ddd2e6741a0a7bed14e}{gas\+\_\+data\+\_\+initialize}} (this, phlex\+\_\+core)
+\begin{DoxyCompactList}\small\item\em Initialize the \mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}} instance from phlex\+\_\+core data. \end{DoxyCompactList}\item 
+elemental integer function \mbox{\hyperlink{namespacepmc__gas__data_a6d07e1703ded54713052541e011ecd9f}{gas\+\_\+data\+\_\+n\+\_\+spec}} (gas\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Return the number of gas species. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__gas__data_abda315c8ecc2afa6bc10d648140c4258}{gas\+\_\+data\+\_\+spec\+\_\+by\+\_\+name}} (gas\+\_\+data, name)
+\begin{DoxyCompactList}\small\item\em Returns the number of the species in gas with the given name, or returns 0 if there is no such species. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__gas__data_afb086646f86c38de197f098dafac1ddb}{gas\+\_\+data\+\_\+set\+\_\+mosaic\+\_\+map}} (gas\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Fills in gas\+\_\+data\%mosaic\+\_\+index. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__gas__data_a53801cb841f5a4c6fe9618de7e33637f}{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+gas\+\_\+data}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__gas__data_a50ae39f0438bbc196fc40825dde0385e}{pmc\+\_\+mpi\+\_\+pack\+\_\+gas\+\_\+data}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__gas__data_af9c9ad522a84e72e20e052adad31c24d}{pmc\+\_\+mpi\+\_\+unpack\+\_\+gas\+\_\+data}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__gas__data_a6df4c6edda1d1134595d124321b4f308}{gas\+\_\+data\+\_\+netcdf\+\_\+dim\+\_\+gas\+\_\+species}} (gas\+\_\+data, \mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, dimid\+\_\+gas\+\_\+species)
+\begin{DoxyCompactList}\small\item\em Write the gas species dimension to the given Net\+C\+DF file if it is not already present and in any case return the associated dimid. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__gas__data_a1777fe2ed855a4b26c45287e166a0940}{gas\+\_\+data\+\_\+input\+\_\+netcdf}} (gas\+\_\+data, \mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}})
+\begin{DoxyCompactList}\small\item\em Read full state. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__gas__data_a0d310b1185398e90f841bb9c3c83d3a9}{gas\+\_\+name\+\_\+len}} = 100
+\begin{DoxyCompactList}\small\item\em Maximum length of the name of a gas. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}} structure and associated subroutines. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__gas__data_af46c599614532ddd2e6741a0a7bed14e}\label{namespacepmc__gas__data_af46c599614532ddd2e6741a0a7bed14e}} 
+\index{pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}!gas\+\_\+data\+\_\+initialize@{gas\+\_\+data\+\_\+initialize}}
+\index{gas\+\_\+data\+\_\+initialize@{gas\+\_\+data\+\_\+initialize}!pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}}
+\subsubsection{\texorpdfstring{gas\+\_\+data\+\_\+initialize()}{gas\_data\_initialize()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+initialize (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}}), intent(inout)}]{this,  }\item[{class(\mbox{\hyperlink{structpmc__phlex__core_1_1phlex__core__t}{phlex\+\_\+core\+\_\+t}}), intent(in)}]{phlex\+\_\+core }\end{DoxyParamCaption})}
+
+
+
+Initialize the \mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}} instance from phlex\+\_\+core data. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em this} & Gas-\/phase species data\\
+\hline
+\mbox{\tt in}  & {\em phlex\+\_\+core} & Phlexible chemistry core \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 49 of file gas\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__gas__data_a1777fe2ed855a4b26c45287e166a0940}\label{namespacepmc__gas__data_a1777fe2ed855a4b26c45287e166a0940}} 
+\index{pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}!gas\+\_\+data\+\_\+input\+\_\+netcdf@{gas\+\_\+data\+\_\+input\+\_\+netcdf}}
+\index{gas\+\_\+data\+\_\+input\+\_\+netcdf@{gas\+\_\+data\+\_\+input\+\_\+netcdf}!pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}}
+\subsubsection{\texorpdfstring{gas\+\_\+data\+\_\+input\+\_\+netcdf()}{gas\_data\_input\_netcdf()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+input\+\_\+netcdf (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}}), intent(inout)}]{gas\+\_\+data,  }\item[{integer, intent(in)}]{ncid }\end{DoxyParamCaption})}
+
+
+
+Read full state. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em gas\+\_\+data} & Gas\+\_\+data to read.\\
+\hline
+\mbox{\tt in}  & {\em ncid} & Net\+C\+DF file ID, in data mode. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 384 of file gas\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__gas__data_a6d07e1703ded54713052541e011ecd9f}\label{namespacepmc__gas__data_a6d07e1703ded54713052541e011ecd9f}} 
+\index{pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}!gas\+\_\+data\+\_\+n\+\_\+spec@{gas\+\_\+data\+\_\+n\+\_\+spec}}
+\index{gas\+\_\+data\+\_\+n\+\_\+spec@{gas\+\_\+data\+\_\+n\+\_\+spec}!pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}}
+\subsubsection{\texorpdfstring{gas\+\_\+data\+\_\+n\+\_\+spec()}{gas\_data\_n\_spec()}}
+{\footnotesize\ttfamily elemental integer function pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+n\+\_\+spec (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}}), intent(in)}]{gas\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Return the number of gas species. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em gas\+\_\+data} & Aero data structure. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 76 of file gas\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__gas__data_a6df4c6edda1d1134595d124321b4f308}\label{namespacepmc__gas__data_a6df4c6edda1d1134595d124321b4f308}} 
+\index{pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}!gas\+\_\+data\+\_\+netcdf\+\_\+dim\+\_\+gas\+\_\+species@{gas\+\_\+data\+\_\+netcdf\+\_\+dim\+\_\+gas\+\_\+species}}
+\index{gas\+\_\+data\+\_\+netcdf\+\_\+dim\+\_\+gas\+\_\+species@{gas\+\_\+data\+\_\+netcdf\+\_\+dim\+\_\+gas\+\_\+species}!pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}}
+\subsubsection{\texorpdfstring{gas\+\_\+data\+\_\+netcdf\+\_\+dim\+\_\+gas\+\_\+species()}{gas\_data\_netcdf\_dim\_gas\_species()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+netcdf\+\_\+dim\+\_\+gas\+\_\+species (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}}), intent(in)}]{gas\+\_\+data,  }\item[{integer, intent(in)}]{ncid,  }\item[{integer, intent(out)}]{dimid\+\_\+gas\+\_\+species }\end{DoxyParamCaption})}
+
+
+
+Write the gas species dimension to the given Net\+C\+DF file if it is not already present and in any case return the associated dimid. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas\+\_\+data structure.\\
+\hline
+\mbox{\tt in}  & {\em ncid} & Net\+C\+DF file ID, in data mode.\\
+\hline
+\mbox{\tt out}  & {\em dimid\+\_\+gas\+\_\+species} & Dimid of the species dimension. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 294 of file gas\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__gas__data_afb086646f86c38de197f098dafac1ddb}\label{namespacepmc__gas__data_afb086646f86c38de197f098dafac1ddb}} 
+\index{pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}!gas\+\_\+data\+\_\+set\+\_\+mosaic\+\_\+map@{gas\+\_\+data\+\_\+set\+\_\+mosaic\+\_\+map}}
+\index{gas\+\_\+data\+\_\+set\+\_\+mosaic\+\_\+map@{gas\+\_\+data\+\_\+set\+\_\+mosaic\+\_\+map}!pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}}
+\subsubsection{\texorpdfstring{gas\+\_\+data\+\_\+set\+\_\+mosaic\+\_\+map()}{gas\_data\_set\_mosaic\_map()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+set\+\_\+mosaic\+\_\+map (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}}), intent(inout)}]{gas\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Fills in gas\+\_\+data\%mosaic\+\_\+index. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em gas\+\_\+data} & Gas data. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 121 of file gas\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__gas__data_abda315c8ecc2afa6bc10d648140c4258}\label{namespacepmc__gas__data_abda315c8ecc2afa6bc10d648140c4258}} 
+\index{pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}!gas\+\_\+data\+\_\+spec\+\_\+by\+\_\+name@{gas\+\_\+data\+\_\+spec\+\_\+by\+\_\+name}}
+\index{gas\+\_\+data\+\_\+spec\+\_\+by\+\_\+name@{gas\+\_\+data\+\_\+spec\+\_\+by\+\_\+name}!pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}}
+\subsubsection{\texorpdfstring{gas\+\_\+data\+\_\+spec\+\_\+by\+\_\+name()}{gas\_data\_spec\_by\_name()}}
+{\footnotesize\ttfamily integer function pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+spec\+\_\+by\+\_\+name (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}}), intent(in)}]{gas\+\_\+data,  }\item[{character(len=$\ast$), intent(in)}]{name }\end{DoxyParamCaption})}
+
+
+
+Returns the number of the species in gas with the given name, or returns 0 if there is no such species. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data.\\
+\hline
+\mbox{\tt in}  & {\em name} & Name of species to find. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 93 of file gas\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__gas__data_a50ae39f0438bbc196fc40825dde0385e}\label{namespacepmc__gas__data_a50ae39f0438bbc196fc40825dde0385e}} 
+\index{pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}!pmc\+\_\+mpi\+\_\+pack\+\_\+gas\+\_\+data@{pmc\+\_\+mpi\+\_\+pack\+\_\+gas\+\_\+data}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+gas\+\_\+data@{pmc\+\_\+mpi\+\_\+pack\+\_\+gas\+\_\+data}!pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+gas\+\_\+data()}{pmc\_mpi\_pack\_gas\_data()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+gas\+\_\+data\+::pmc\+\_\+mpi\+\_\+pack\+\_\+gas\+\_\+data (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{type(\mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Packs the given value into the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 243 of file gas\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__gas__data_a53801cb841f5a4c6fe9618de7e33637f}\label{namespacepmc__gas__data_a53801cb841f5a4c6fe9618de7e33637f}} 
+\index{pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}!pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+gas\+\_\+data@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+gas\+\_\+data}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+gas\+\_\+data@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+gas\+\_\+data}!pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+gas\+\_\+data()}{pmc\_mpi\_pack\_size\_gas\_data()}}
+{\footnotesize\ttfamily integer function pmc\+\_\+gas\+\_\+data\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+gas\+\_\+data (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Determines the number of bytes required to pack the given value. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 229 of file gas\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__gas__data_af9c9ad522a84e72e20e052adad31c24d}\label{namespacepmc__gas__data_af9c9ad522a84e72e20e052adad31c24d}} 
+\index{pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}!pmc\+\_\+mpi\+\_\+unpack\+\_\+gas\+\_\+data@{pmc\+\_\+mpi\+\_\+unpack\+\_\+gas\+\_\+data}}
+\index{pmc\+\_\+mpi\+\_\+unpack\+\_\+gas\+\_\+data@{pmc\+\_\+mpi\+\_\+unpack\+\_\+gas\+\_\+data}!pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+unpack\+\_\+gas\+\_\+data()}{pmc\_mpi\_unpack\_gas\_data()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+gas\+\_\+data\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+gas\+\_\+data (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{type(\mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}}), intent(inout)}]{val }\end{DoxyParamCaption})}
+
+
+
+Unpacks the given value from the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in,out}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 267 of file gas\+\_\+data.\+F90.
+
+
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{namespacepmc__gas__data_a0d310b1185398e90f841bb9c3c83d3a9}\label{namespacepmc__gas__data_a0d310b1185398e90f841bb9c3c83d3a9}} 
+\index{pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}!gas\+\_\+name\+\_\+len@{gas\+\_\+name\+\_\+len}}
+\index{gas\+\_\+name\+\_\+len@{gas\+\_\+name\+\_\+len}!pmc\+\_\+gas\+\_\+data@{pmc\+\_\+gas\+\_\+data}}
+\subsubsection{\texorpdfstring{gas\+\_\+name\+\_\+len}{gas\_name\_len}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+gas\+\_\+data\+::gas\+\_\+name\+\_\+len = 100}
+
+
+
+Maximum length of the name of a gas. 
+
+
+
+Definition at line 22 of file gas\+\_\+data.\+F90.
+

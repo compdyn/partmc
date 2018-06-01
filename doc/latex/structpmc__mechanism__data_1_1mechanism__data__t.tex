@@ -1,0 +1,289 @@
+\hypertarget{structpmc__mechanism__data_1_1mechanism__data__t}{}\section{pmc\+\_\+mechanism\+\_\+data\+:\+:mechanism\+\_\+data\+\_\+t Interface Reference}
+\label{structpmc__mechanism__data_1_1mechanism__data__t}\index{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}}
+
+
+A chemical mechanism.  
+
+
+\subsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+procedure \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t_a63432c95da41c0b5ac7fe8b2ccd367b5}{load}}
+\begin{DoxyCompactList}\small\item\em Load reactions from an input file. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t_a147eb491f912f12d6f5b83fedaec784c}{initialize}}
+\begin{DoxyCompactList}\small\item\em Initialize the mechanism. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t_a4d2a950ab7e95db1ad544ef2a5f71b1a}{name}} =$>$ \mbox{\hyperlink{namespacepmc__mechanism__data_a181513498181e44bd8e3d9cc4aa648e7}{get\+\_\+name}}
+\begin{DoxyCompactList}\small\item\em Get the mechanism name. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t_a019c60641d25ae7cb745e8b23b961d82}{size}} =$>$ \mbox{\hyperlink{interfacepmc__aero__rep__data_1_1get__size}{get\+\_\+size}}
+\begin{DoxyCompactList}\small\item\em Get the size of the reaction database. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t_a3081f703c90ce4c40eba462587e8df49}{get\+\_\+rxn}}
+\begin{DoxyCompactList}\small\item\em Get a reaction by its index. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t_a1c26d74d038b372e679d99382e638634}{build\+\_\+fixed\+\_\+module}}
+\begin{DoxyCompactList}\small\item\em Build a fixed mechanism module. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t_a7393e85521f0ef422928cee1f2a504cc}{pack\+\_\+size}}
+\begin{DoxyCompactList}\small\item\em Determine the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t_a383287cafc8b57495c481f97ac577d80}{bin\+\_\+pack}}
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t_a85691b1893fe9c2f2ad58c1747af328a}{bin\+\_\+unpack}}
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t_abee10acc3f41c9109ddf72e8ee9ec8e6}{print}} =$>$ \mbox{\hyperlink{namespacepmc__mechanism__data_a6a010f3dccb9fb0ac7682f5a1bef3d12}{do\+\_\+print}}
+\begin{DoxyCompactList}\small\item\em Print the mechanism data. \end{DoxyCompactList}\item 
+final \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t_a24764a5da7a07cd331fa0f7e8fa521d8}{finalize}}
+\begin{DoxyCompactList}\small\item\em Finalize the mechanism. \end{DoxyCompactList}\item 
+procedure, private \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t_af637da1f2811f6100588a49c55fbc951}{ensure\+\_\+size}}
+\begin{DoxyCompactList}\small\item\em Ensure there is enough room in the reaction dataset to add a specified number of reactions. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+integer(kind=i\+\_\+kind) \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t_a755798bd522ac8a02aa80be61ebf9883}{num\+\_\+rxn}} = 0
+\begin{DoxyCompactList}\small\item\em Number of reactions. \end{DoxyCompactList}\item 
+character(len=\+:), allocatable \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t_aae0c666a1bf3bcf20da4804eee4b0257}{mech\+\_\+name}}
+\begin{DoxyCompactList}\small\item\em Mechanism name. \end{DoxyCompactList}\item 
+character(len=\+:), allocatable \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t_a3ebbe584c57e24f47ac8f6b0cb5a9da4}{fixed\+\_\+file\+\_\+prefix}}
+\begin{DoxyCompactList}\small\item\em Path and prefix for fixed module output. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__rxn__data_1_1rxn__data__ptr}{rxn\+\_\+data\+\_\+ptr}}), dimension(\+:), pointer \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t_ae58d8744533b4144cec67da07bd30183}{rxn\+\_\+ptr}} =$>$ null()
+\begin{DoxyCompactList}\small\item\em Reactions. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A chemical mechanism. 
+
+Instances of \mbox{\hyperlink{structpmc__mechanism__data_1_1mechanism__data__t}{mechanism\+\_\+data\+\_\+t}} represent complete \mbox{\hyperlink{phlex_mechanism}{Phlexible Module for Chemistry\+: Chemical Mechanism}} chemical mechanisms (e.\+g., C\+A\+C\+M/\+M\+P\+M\+PO, C\+B-\/5, E\+Q\+S\+AM). Multiple mechanisms may be used during one model run and will be solved simultaneously. 
+
+Definition at line 61 of file mechanism\+\_\+data.\+F90.
+
+
+
+\subsection{Member Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{structpmc__mechanism__data_1_1mechanism__data__t_a383287cafc8b57495c481f97ac577d80}\label{structpmc__mechanism__data_1_1mechanism__data__t_a383287cafc8b57495c481f97ac577d80}} 
+\index{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}!bin\+\_\+pack@{bin\+\_\+pack}}
+\index{bin\+\_\+pack@{bin\+\_\+pack}!pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{bin\+\_\+pack()}{bin\_pack()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t\+::bin\+\_\+pack (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Packs the given value into the buffer, advancing position. 
+
+
+
+Definition at line 87 of file mechanism\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__mechanism__data_1_1mechanism__data__t_a85691b1893fe9c2f2ad58c1747af328a}\label{structpmc__mechanism__data_1_1mechanism__data__t_a85691b1893fe9c2f2ad58c1747af328a}} 
+\index{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}!bin\+\_\+unpack@{bin\+\_\+unpack}}
+\index{bin\+\_\+unpack@{bin\+\_\+unpack}!pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{bin\+\_\+unpack()}{bin\_unpack()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t\+::bin\+\_\+unpack (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Unpacks the given value from the buffer, advancing position. 
+
+
+
+Definition at line 89 of file mechanism\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__mechanism__data_1_1mechanism__data__t_a1c26d74d038b372e679d99382e638634}\label{structpmc__mechanism__data_1_1mechanism__data__t_a1c26d74d038b372e679d99382e638634}} 
+\index{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}!build\+\_\+fixed\+\_\+module@{build\+\_\+fixed\+\_\+module}}
+\index{build\+\_\+fixed\+\_\+module@{build\+\_\+fixed\+\_\+module}!pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{build\+\_\+fixed\+\_\+module()}{build\_fixed\_module()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t\+::build\+\_\+fixed\+\_\+module (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Build a fixed mechanism module. 
+
+
+
+Definition at line 83 of file mechanism\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__mechanism__data_1_1mechanism__data__t_af637da1f2811f6100588a49c55fbc951}\label{structpmc__mechanism__data_1_1mechanism__data__t_af637da1f2811f6100588a49c55fbc951}} 
+\index{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}!ensure\+\_\+size@{ensure\+\_\+size}}
+\index{ensure\+\_\+size@{ensure\+\_\+size}!pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{ensure\+\_\+size()}{ensure\_size()}}
+{\footnotesize\ttfamily procedure, private pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t\+::ensure\+\_\+size (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Ensure there is enough room in the reaction dataset to add a specified number of reactions. 
+
+
+
+Definition at line 98 of file mechanism\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__mechanism__data_1_1mechanism__data__t_a24764a5da7a07cd331fa0f7e8fa521d8}\label{structpmc__mechanism__data_1_1mechanism__data__t_a24764a5da7a07cd331fa0f7e8fa521d8}} 
+\index{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}!finalize@{finalize}}
+\index{finalize@{finalize}!pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{finalize()}{finalize()}}
+{\footnotesize\ttfamily final pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t\+::finalize (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [final]}, {\ttfamily [private]}}
+
+
+
+Finalize the mechanism. 
+
+
+
+Definition at line 93 of file mechanism\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__mechanism__data_1_1mechanism__data__t_a3081f703c90ce4c40eba462587e8df49}\label{structpmc__mechanism__data_1_1mechanism__data__t_a3081f703c90ce4c40eba462587e8df49}} 
+\index{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}!get\+\_\+rxn@{get\+\_\+rxn}}
+\index{get\+\_\+rxn@{get\+\_\+rxn}!pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{get\+\_\+rxn()}{get\_rxn()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t\+::get\+\_\+rxn (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get a reaction by its index. 
+
+
+
+Definition at line 81 of file mechanism\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__mechanism__data_1_1mechanism__data__t_a147eb491f912f12d6f5b83fedaec784c}\label{structpmc__mechanism__data_1_1mechanism__data__t_a147eb491f912f12d6f5b83fedaec784c}} 
+\index{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}!initialize@{initialize}}
+\index{initialize@{initialize}!pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{initialize()}{initialize()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t\+::initialize (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Initialize the mechanism. 
+
+
+
+Definition at line 75 of file mechanism\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__mechanism__data_1_1mechanism__data__t_a63432c95da41c0b5ac7fe8b2ccd367b5}\label{structpmc__mechanism__data_1_1mechanism__data__t_a63432c95da41c0b5ac7fe8b2ccd367b5}} 
+\index{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}!load@{load}}
+\index{load@{load}!pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{load()}{load()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t\+::load (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Load reactions from an input file. 
+
+
+
+Definition at line 73 of file mechanism\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__mechanism__data_1_1mechanism__data__t_a4d2a950ab7e95db1ad544ef2a5f71b1a}\label{structpmc__mechanism__data_1_1mechanism__data__t_a4d2a950ab7e95db1ad544ef2a5f71b1a}} 
+\index{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}!name@{name}}
+\index{name@{name}!pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{name()}{name()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t\+::name (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the mechanism name. 
+
+
+
+Definition at line 77 of file mechanism\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__mechanism__data_1_1mechanism__data__t_a7393e85521f0ef422928cee1f2a504cc}\label{structpmc__mechanism__data_1_1mechanism__data__t_a7393e85521f0ef422928cee1f2a504cc}} 
+\index{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}!pack\+\_\+size@{pack\+\_\+size}}
+\index{pack\+\_\+size@{pack\+\_\+size}!pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{pack\+\_\+size()}{pack\_size()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t\+::pack\+\_\+size (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Determine the number of bytes required to pack the given value. 
+
+
+
+Definition at line 85 of file mechanism\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__mechanism__data_1_1mechanism__data__t_abee10acc3f41c9109ddf72e8ee9ec8e6}\label{structpmc__mechanism__data_1_1mechanism__data__t_abee10acc3f41c9109ddf72e8ee9ec8e6}} 
+\index{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}!print@{print}}
+\index{print@{print}!pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{print()}{print()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t\+::print (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Print the mechanism data. 
+
+
+
+Definition at line 91 of file mechanism\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__mechanism__data_1_1mechanism__data__t_a019c60641d25ae7cb745e8b23b961d82}\label{structpmc__mechanism__data_1_1mechanism__data__t_a019c60641d25ae7cb745e8b23b961d82}} 
+\index{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}!size@{size}}
+\index{size@{size}!pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{size()}{size()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t\+::size (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the size of the reaction database. 
+
+
+
+Definition at line 79 of file mechanism\+\_\+data.\+F90.
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structpmc__mechanism__data_1_1mechanism__data__t_a3ebbe584c57e24f47ac8f6b0cb5a9da4}\label{structpmc__mechanism__data_1_1mechanism__data__t_a3ebbe584c57e24f47ac8f6b0cb5a9da4}} 
+\index{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}!fixed\+\_\+file\+\_\+prefix@{fixed\+\_\+file\+\_\+prefix}}
+\index{fixed\+\_\+file\+\_\+prefix@{fixed\+\_\+file\+\_\+prefix}!pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{fixed\+\_\+file\+\_\+prefix}{fixed\_file\_prefix}}
+{\footnotesize\ttfamily character(len=\+:), allocatable pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t\+::fixed\+\_\+file\+\_\+prefix\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Path and prefix for fixed module output. 
+
+
+
+Definition at line 68 of file mechanism\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__mechanism__data_1_1mechanism__data__t_aae0c666a1bf3bcf20da4804eee4b0257}\label{structpmc__mechanism__data_1_1mechanism__data__t_aae0c666a1bf3bcf20da4804eee4b0257}} 
+\index{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}!mech\+\_\+name@{mech\+\_\+name}}
+\index{mech\+\_\+name@{mech\+\_\+name}!pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{mech\+\_\+name}{mech\_name}}
+{\footnotesize\ttfamily character(len=\+:), allocatable pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t\+::mech\+\_\+name\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Mechanism name. 
+
+
+
+Definition at line 66 of file mechanism\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__mechanism__data_1_1mechanism__data__t_a755798bd522ac8a02aa80be61ebf9883}\label{structpmc__mechanism__data_1_1mechanism__data__t_a755798bd522ac8a02aa80be61ebf9883}} 
+\index{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}!num\+\_\+rxn@{num\+\_\+rxn}}
+\index{num\+\_\+rxn@{num\+\_\+rxn}!pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{num\+\_\+rxn}{num\_rxn}}
+{\footnotesize\ttfamily integer(kind=i\+\_\+kind) pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t\+::num\+\_\+rxn = 0\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Number of reactions. 
+
+
+
+Definition at line 64 of file mechanism\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__mechanism__data_1_1mechanism__data__t_ae58d8744533b4144cec67da07bd30183}\label{structpmc__mechanism__data_1_1mechanism__data__t_ae58d8744533b4144cec67da07bd30183}} 
+\index{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}!rxn\+\_\+ptr@{rxn\+\_\+ptr}}
+\index{rxn\+\_\+ptr@{rxn\+\_\+ptr}!pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t@{pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{rxn\+\_\+ptr}{rxn\_ptr}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__rxn__data_1_1rxn__data__ptr}{rxn\+\_\+data\+\_\+ptr}}), dimension(\+:), pointer pmc\+\_\+mechanism\+\_\+data\+::mechanism\+\_\+data\+\_\+t\+::rxn\+\_\+ptr =$>$ null()\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Reactions. 
+
+
+
+Definition at line 70 of file mechanism\+\_\+data.\+F90.
+
+
+
+The documentation for this interface was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{mechanism__data_8_f90}{mechanism\+\_\+data.\+F90}}\end{DoxyCompactItemize}

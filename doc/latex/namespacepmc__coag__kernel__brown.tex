@@ -1,0 +1,119 @@
+\hypertarget{namespacepmc__coag__kernel__brown}{}\section{pmc\+\_\+coag\+\_\+kernel\+\_\+brown Module Reference}
+\label{namespacepmc__coag__kernel__brown}\index{pmc\+\_\+coag\+\_\+kernel\+\_\+brown@{pmc\+\_\+coag\+\_\+kernel\+\_\+brown}}
+
+
+Brownian coagulation kernel.  
+
+
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coag__kernel__brown_a88a16189fef47e9f6fdb1f8c5ad6030a}{kernel\+\_\+brown}} (aero\+\_\+particle\+\_\+1, aero\+\_\+particle\+\_\+2, aero\+\_\+data, env\+\_\+state, k)
+\begin{DoxyCompactList}\small\item\em Compute the Brownian coagulation kernel. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coag__kernel__brown_a928b39a678ff6d18c4794e313257f771}{kernel\+\_\+brown\+\_\+minmax}} (v1, v2, aero\+\_\+data, env\+\_\+state, k\+\_\+min, k\+\_\+max)
+\begin{DoxyCompactList}\small\item\em Compute the minimum and maximum Brownian coagulation kernel. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coag__kernel__brown_af427aeba502e7eb29067289245b3515f}{kernel\+\_\+brown\+\_\+helper}} (vol\+\_\+i, den\+\_\+i, vol\+\_\+j, den\+\_\+j, aero\+\_\+data, temp, pressure, bckernel)
+\begin{DoxyCompactList}\small\item\em Helper function that does the actual Brownian kernel computation. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Brownian coagulation kernel. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__coag__kernel__brown_a88a16189fef47e9f6fdb1f8c5ad6030a}\label{namespacepmc__coag__kernel__brown_a88a16189fef47e9f6fdb1f8c5ad6030a}} 
+\index{pmc\+\_\+coag\+\_\+kernel\+\_\+brown@{pmc\+\_\+coag\+\_\+kernel\+\_\+brown}!kernel\+\_\+brown@{kernel\+\_\+brown}}
+\index{kernel\+\_\+brown@{kernel\+\_\+brown}!pmc\+\_\+coag\+\_\+kernel\+\_\+brown@{pmc\+\_\+coag\+\_\+kernel\+\_\+brown}}
+\subsubsection{\texorpdfstring{kernel\+\_\+brown()}{kernel\_brown()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coag\+\_\+kernel\+\_\+brown\+::kernel\+\_\+brown (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{aero\+\_\+particle\+\_\+1,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{aero\+\_\+particle\+\_\+2,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{real(kind=dp), intent(out)}]{k }\end{DoxyParamCaption})}
+
+
+
+Compute the Brownian coagulation kernel. 
+
+Uses equation (15.\+33) of M. Z. Jacobson, Fundamentals of Atmospheric Modeling Second Edition, Cambridge University Press, 2005.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+particle\+\_\+1} & First particle.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+particle\+\_\+2} & Second particle.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt out}  & {\em k} & Kernel k(a,b) (m$^\wedge$3/s). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 28 of file coag\+\_\+kernel\+\_\+brown.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coag__kernel__brown_af427aeba502e7eb29067289245b3515f}\label{namespacepmc__coag__kernel__brown_af427aeba502e7eb29067289245b3515f}} 
+\index{pmc\+\_\+coag\+\_\+kernel\+\_\+brown@{pmc\+\_\+coag\+\_\+kernel\+\_\+brown}!kernel\+\_\+brown\+\_\+helper@{kernel\+\_\+brown\+\_\+helper}}
+\index{kernel\+\_\+brown\+\_\+helper@{kernel\+\_\+brown\+\_\+helper}!pmc\+\_\+coag\+\_\+kernel\+\_\+brown@{pmc\+\_\+coag\+\_\+kernel\+\_\+brown}}
+\subsubsection{\texorpdfstring{kernel\+\_\+brown\+\_\+helper()}{kernel\_brown\_helper()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coag\+\_\+kernel\+\_\+brown\+::kernel\+\_\+brown\+\_\+helper (\begin{DoxyParamCaption}\item[{real(kind=dp), intent(in)}]{vol\+\_\+i,  }\item[{real(kind=dp), intent(in)}]{den\+\_\+i,  }\item[{real(kind=dp), intent(in)}]{vol\+\_\+j,  }\item[{real(kind=dp), intent(in)}]{den\+\_\+j,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{real(kind=dp), intent(in)}]{temp,  }\item[{real(kind=dp), intent(in)}]{pressure,  }\item[{real(kind=dp), intent(out)}]{bckernel }\end{DoxyParamCaption})}
+
+
+
+Helper function that does the actual Brownian kernel computation. 
+
+Helper function. Do not call directly. Instead use \mbox{\hyperlink{namespacepmc__coag__kernel__brown_a88a16189fef47e9f6fdb1f8c5ad6030a}{kernel\+\_\+brown()}}.
+
+Uses equation (15.\+33) of M. Z. Jacobson, Fundamentals of Atmospheric Modeling Second Edition, Cambridge University Press, 2005.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em vol\+\_\+i} & Volume of first particle (m$^\wedge$3).\\
+\hline
+\mbox{\tt in}  & {\em den\+\_\+i} & Density of first particle (kg/m$^\wedge$3).\\
+\hline
+\mbox{\tt in}  & {\em vol\+\_\+j} & Volume of second particle (m$^\wedge$3).\\
+\hline
+\mbox{\tt in}  & {\em den\+\_\+j} & Density of second particle (kg/m$^\wedge$3).\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em temp} & Temperature (K).\\
+\hline
+\mbox{\tt in}  & {\em pressure} & Pressure (Pa).\\
+\hline
+\mbox{\tt out}  & {\em bckernel} & Kernel k(a,b) (m$^\wedge$3/s). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 113 of file coag\+\_\+kernel\+\_\+brown.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coag__kernel__brown_a928b39a678ff6d18c4794e313257f771}\label{namespacepmc__coag__kernel__brown_a928b39a678ff6d18c4794e313257f771}} 
+\index{pmc\+\_\+coag\+\_\+kernel\+\_\+brown@{pmc\+\_\+coag\+\_\+kernel\+\_\+brown}!kernel\+\_\+brown\+\_\+minmax@{kernel\+\_\+brown\+\_\+minmax}}
+\index{kernel\+\_\+brown\+\_\+minmax@{kernel\+\_\+brown\+\_\+minmax}!pmc\+\_\+coag\+\_\+kernel\+\_\+brown@{pmc\+\_\+coag\+\_\+kernel\+\_\+brown}}
+\subsubsection{\texorpdfstring{kernel\+\_\+brown\+\_\+minmax()}{kernel\_brown\_minmax()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coag\+\_\+kernel\+\_\+brown\+::kernel\+\_\+brown\+\_\+minmax (\begin{DoxyParamCaption}\item[{real(kind=dp), intent(in)}]{v1,  }\item[{real(kind=dp), intent(in)}]{v2,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{real(kind=dp), intent(out)}]{k\+\_\+min,  }\item[{real(kind=dp), intent(out)}]{k\+\_\+max }\end{DoxyParamCaption})}
+
+
+
+Compute the minimum and maximum Brownian coagulation kernel. 
+
+Finds the minimum and maximum kernel values between particles of volumes v1 and v2, by sampling over possible densities.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em v1} & Volume of first particle (m$^\wedge$3).\\
+\hline
+\mbox{\tt in}  & {\em v2} & Volume of second particle (m$^\wedge$3).\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt out}  & {\em k\+\_\+min} & Minimum kernel value (m$^\wedge$3/s).\\
+\hline
+\mbox{\tt out}  & {\em k\+\_\+max} & Maximum kernel value (m$^\wedge$3/s). \\
+\hline
+\end{DoxyParams}
+Number of density sample points. 
+
+Definition at line 59 of file coag\+\_\+kernel\+\_\+brown.\+F90.
+

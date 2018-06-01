@@ -1,0 +1,117 @@
+\hypertarget{structpmc__integer__rmap2_1_1integer__rmap2__t}{}\section{pmc\+\_\+integer\+\_\+rmap2\+:\+:integer\+\_\+rmap2\+\_\+t Type Reference}
+\label{structpmc__integer__rmap2_1_1integer__rmap2__t}\index{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t@{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t}}
+
+
+A map $\mathbb{Z} \to \mathbb{Z} \times \mathbb{Z}$, together with its multi-\/valued inverse.  
+
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}) \mbox{\hyperlink{structpmc__integer__rmap2_1_1integer__rmap2__t_af38ad1ec8549c4893f2a4b66835d476b}{forward1}}
+\begin{DoxyCompactList}\small\item\em Forward map to first range (single valued). \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}) \mbox{\hyperlink{structpmc__integer__rmap2_1_1integer__rmap2__t_ab86feff304de6f8984330975d869df4f}{forward2}}
+\begin{DoxyCompactList}\small\item\em Forward map to second range (single valued). \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}), dimension(\+:, \+:), allocatable \mbox{\hyperlink{structpmc__integer__rmap2_1_1integer__rmap2__t_a78d779decd5d0e3b31cd33dfea9f51db}{inverse}}
+\begin{DoxyCompactList}\small\item\em Inverse map (multi-\/valued). \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}) \mbox{\hyperlink{structpmc__integer__rmap2_1_1integer__rmap2__t_a9d5bd604d5740f0ce3fade5bccba2f8c}{index}}
+\begin{DoxyCompactList}\small\item\em Forward map to inverse map entries (single valued). \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A map $\mathbb{Z} \to \mathbb{Z} \times \mathbb{Z}$, together with its multi-\/valued inverse. 
+
+The forward map takes an integer $i$ in the domain $\{1, \ldots, N_{\rm d}\}$ to integers $(j_1,j_2)$ in the range $\{1, \ldots, N_{\rm r,1} \times \{1, \ldots, N_{\rm r,2}\}$. This is stored with {\ttfamily j\+\_\+1 = integer\+\_\+rmap2\%forward1\%entry(i)} and {\ttfamily j\+\_\+2 = integer\+\_\+rmap2\%forward2\%entry(i)}. This map is not assumed to be one-\/to-\/one or onto.
+
+The inverse map is multi-\/valued, with {\ttfamily integer\+\_\+rmap2\%inverse(j\+\_\+1, j\+\_\+2)} containing all the inverses of $(j_1, j_2)$. The entry numbers in the inverse map are given by {\ttfamily inverse\+\_\+rmap\%index}. The relationships between the forward and reverse maps are as follows.
+
+Given {\ttfamily i}, let\+: 
+\begin{DoxyPre}
+ j\_1 = integer\_rmap2\%forward1\%entry(i)
+ j\_2 = integer\_rmap2\%forward2\%entry(i)
+ k = integer\_rmap2\%index\%entry(i)
+ \end{DoxyPre}
+ Then\+: 
+\begin{DoxyPre}
+ integer\_rmap2\%inverse(j\_1, j\_2)\%entry(k) == i
+ \end{DoxyPre}
+
+
+Alternatively, given {\ttfamily j\+\_\+1}, {\ttfamily j\+\_\+2} and {\ttfamily k}, let\+: 
+\begin{DoxyPre}
+ i = integer\_rmap2\%inverse(j\_1, j\_2)\%entry(k)
+ \end{DoxyPre}
+ Then\+: 
+\begin{DoxyPre}
+ integer\_rmap2\%forward1\%entry(i) == j\_1
+ integer\_rmap2\%forward2\%entry(i) == j\_2
+ integer\_rmap2\%index\%entry(i) == k
+ \end{DoxyPre}
+ 
+
+Definition at line 53 of file integer\+\_\+rmap2.\+F90.
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structpmc__integer__rmap2_1_1integer__rmap2__t_af38ad1ec8549c4893f2a4b66835d476b}\label{structpmc__integer__rmap2_1_1integer__rmap2__t_af38ad1ec8549c4893f2a4b66835d476b}} 
+\index{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t@{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t}!forward1@{forward1}}
+\index{forward1@{forward1}!pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t@{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t}}
+\subsubsection{\texorpdfstring{forward1}{forward1}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}) pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t\+::forward1}
+
+
+
+Forward map to first range (single valued). 
+
+
+
+Definition at line 55 of file integer\+\_\+rmap2.\+F90.
+
+\mbox{\Hypertarget{structpmc__integer__rmap2_1_1integer__rmap2__t_ab86feff304de6f8984330975d869df4f}\label{structpmc__integer__rmap2_1_1integer__rmap2__t_ab86feff304de6f8984330975d869df4f}} 
+\index{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t@{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t}!forward2@{forward2}}
+\index{forward2@{forward2}!pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t@{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t}}
+\subsubsection{\texorpdfstring{forward2}{forward2}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}) pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t\+::forward2}
+
+
+
+Forward map to second range (single valued). 
+
+
+
+Definition at line 57 of file integer\+\_\+rmap2.\+F90.
+
+\mbox{\Hypertarget{structpmc__integer__rmap2_1_1integer__rmap2__t_a9d5bd604d5740f0ce3fade5bccba2f8c}\label{structpmc__integer__rmap2_1_1integer__rmap2__t_a9d5bd604d5740f0ce3fade5bccba2f8c}} 
+\index{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t@{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t}!index@{index}}
+\index{index@{index}!pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t@{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t}}
+\subsubsection{\texorpdfstring{index}{index}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}) pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t\+::index}
+
+
+
+Forward map to inverse map entries (single valued). 
+
+
+
+Definition at line 61 of file integer\+\_\+rmap2.\+F90.
+
+\mbox{\Hypertarget{structpmc__integer__rmap2_1_1integer__rmap2__t_a78d779decd5d0e3b31cd33dfea9f51db}\label{structpmc__integer__rmap2_1_1integer__rmap2__t_a78d779decd5d0e3b31cd33dfea9f51db}} 
+\index{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t@{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t}!inverse@{inverse}}
+\index{inverse@{inverse}!pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t@{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t}}
+\subsubsection{\texorpdfstring{inverse}{inverse}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}), dimension(\+:, \+:), allocatable pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t\+::inverse}
+
+
+
+Inverse map (multi-\/valued). 
+
+
+
+Definition at line 59 of file integer\+\_\+rmap2.\+F90.
+
+
+
+The documentation for this type was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{integer__rmap2_8_f90}{integer\+\_\+rmap2.\+F90}}\end{DoxyCompactItemize}

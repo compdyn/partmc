@@ -1,0 +1,78 @@
+\hypertarget{spec__file_8_f90}{}\section{spec\+\_\+file.\+F90 File Reference}
+\label{spec__file_8_f90}\index{spec\+\_\+file.\+F90@{spec\+\_\+file.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__spec__file}{pmc\+\_\+spec\+\_\+file}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__spec__file_1_1spec__file__t}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em An input file with extra data for printing messages. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__spec__file}{pmc\+\_\+spec\+\_\+file}}
+\begin{DoxyCompactList}\small\item\em Reading formatted text input. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_ac24abec0f3c3e539debe886ddc775e1e}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+die\+\_\+msg}} (code, file, msg)
+\begin{DoxyCompactList}\small\item\em Exit with an error message containing filename and line number. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_a5aa135a96d6a58a77a3b662942666146}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+assert\+\_\+msg}} (code, file, condition\+\_\+ok, msg)
+\begin{DoxyCompactList}\small\item\em Exit with an error message containing filename and line number if {\ttfamily condition\+\_\+ok} is {\ttfamily }.false. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_a43c0fc75a0548567dae0812159a0288e}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+open}} (filename, file)
+\begin{DoxyCompactList}\small\item\em Open a spec file for reading. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_a430ebeed3523661d0f5bc18d682c1cc5}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+close}} (file)
+\begin{DoxyCompactList}\small\item\em Close a spec file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_a1225f44ce38aaf0343dd74cf7435770a}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+read\+\_\+line\+\_\+raw}} (file, line, eof)
+\begin{DoxyCompactList}\small\item\em Read a single line from a spec file, signaling if we have hit E\+OF. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_a01c2274e2a58d5b7a83d3997d36742d6}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+read\+\_\+next\+\_\+data\+\_\+line}} (file, line, eof)
+\begin{DoxyCompactList}\small\item\em Read the next line from the spec file that contains useful data (stripping comments and blank lines). \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_ae544104f5a2984285c893055469e264c}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+read\+\_\+line}} (file, line, eof)
+\begin{DoxyCompactList}\small\item\em Read a spec\+\_\+line from the spec\+\_\+file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_a859907e4e40a0d2451a4d6d2c740f956}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+read\+\_\+line\+\_\+no\+\_\+eof}} (file, line)
+\begin{DoxyCompactList}\small\item\em Read a spec\+\_\+line from the spec\+\_\+file. This will always succeed or error out, so should only be called if we know there should be a valid line coming. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_aaf63e06c4ae6bef1b2417aadf81ae413}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+read\+\_\+line\+\_\+list}} (file, max\+\_\+lines, line\+\_\+list)
+\begin{DoxyCompactList}\small\item\em Read a list of spec\+\_\+lines from a file, stopping at max\+\_\+lines or E\+OF, whichever comes first. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_a68af556f3f33d455a7ff86d8fff1c660}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+read\+\_\+line\+\_\+array}} (file, max\+\_\+lines, line\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Read an array of spec\+\_\+lines from a file, stopping at max\+\_\+lines or E\+OF. All lines must have the same number of elements. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_a4f11fc0e28f7b8831efcb65ef879bfc4}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+check\+\_\+line\+\_\+name}} (file, line, name)
+\begin{DoxyCompactList}\small\item\em Check that the name of the line data is as given. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_adf9e4ee5ff71cbe408fea47ec1342414}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+check\+\_\+name}} (file, name, read\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Checks that the read\+\_\+name is the same as name. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_a397be4f827824ae1c71b46d3f93060c1}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+check\+\_\+line\+\_\+length}} (file, line, length)
+\begin{DoxyCompactList}\small\item\em Check that the length of the line data is as given. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_ad019e654ad6a62c42f62af8ce5b1c0b8}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+check\+\_\+read\+\_\+iostat}} (file, ios, type)
+\begin{DoxyCompactList}\small\item\em Check the I\+O\+S\+T\+AT and error if it is bad. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__spec__file_a1c773de3382d01f1bd47ede8e0e78717}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+string\+\_\+to\+\_\+integer}} (file, string)
+\begin{DoxyCompactList}\small\item\em Convert a string to an integer. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__spec__file_aa9a3ea2d69a3e47a827dc9b91baa559a}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+string\+\_\+to\+\_\+real}} (file, string)
+\begin{DoxyCompactList}\small\item\em Convert a string to an real. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__spec__file_a3e48df131612d60a35f57a85ae708089}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+string\+\_\+to\+\_\+logical}} (file, string)
+\begin{DoxyCompactList}\small\item\em Convert a string to an logical. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_abee8b3b0c53f2d8484854da58d49901e}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+read\+\_\+integer}} (file, name, var)
+\begin{DoxyCompactList}\small\item\em Read an integer from a spec file that must have the given name. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_a2e83c0bd910f7d477fd5b5b7f6bb056b}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+read\+\_\+real}} (file, name, var)
+\begin{DoxyCompactList}\small\item\em Read a real number from a spec file that must have the given name. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_a4ad9aabbf3f21185cd6a140d2a237930}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+read\+\_\+logical}} (file, name, var)
+\begin{DoxyCompactList}\small\item\em Read a logical from a spec file that must have a given name. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_aac30a013e7ca64803b5190439f924626}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+read\+\_\+string}} (file, name, var)
+\begin{DoxyCompactList}\small\item\em Read a string from a spec file that must have a given name. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_a94e4dc72801e7c59f87a9df27ac7e417}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+read\+\_\+complex}} (file, name, var)
+\begin{DoxyCompactList}\small\item\em Read a complex number from a spec file that must have the given name. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_aaa4270afb530ff92767b3892d3a6e553}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+read\+\_\+real\+\_\+named\+\_\+array}} (file, max\+\_\+lines, names, vals)
+\begin{DoxyCompactList}\small\item\em Read an array of named lines with real data. All lines must have the same number of data elements. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__spec__file_a6b4270f4f50e810affcab6aecd42e867}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+read\+\_\+timed\+\_\+real\+\_\+array}} (file, name, times, vals)
+\begin{DoxyCompactList}\small\item\em Read an a time-\/indexed array of real data. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__spec__file_a5297f39208d828141ed9b268484360a5}{pmc\+\_\+spec\+\_\+file\+::spec\+\_\+file\+\_\+max\+\_\+list\+\_\+lines}} = 1000
+\begin{DoxyCompactList}\small\item\em Maximum number of lines in an array. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__spec__file}{pmc\+\_\+spec\+\_\+file}} module. 
+

@@ -130,11 +130,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize the reaction data, validating component data and loading
-  !! any required information from reactant, product and reaction 
-  !! property_t objects. This routine should be called once for each reaction
-  !! at the beginning of a model run after all the input files have been
-  !! read in. It ensures all data required during the model run are included
-  !! in the condensed data arrays.
+  !! any required information into the condensed data arrays for use during
+  !! solving
   subroutine initialize(this, chem_spec_data, aero_rep)
     
     !> Reaction data

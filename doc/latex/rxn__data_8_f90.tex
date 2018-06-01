@@ -1,0 +1,60 @@
+\hypertarget{rxn__data_8_f90}{}\section{rxn\+\_\+data.\+F90 File Reference}
+\label{rxn__data_8_f90}\index{rxn\+\_\+data.\+F90@{rxn\+\_\+data.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__rxn__data}{pmc\+\_\+rxn\+\_\+data}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__rxn__data_1_1rxn__data__t}{pmc\+\_\+rxn\+\_\+data\+::rxn\+\_\+data\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Abstract reaction data type. \end{DoxyCompactList}\item 
+type \mbox{\hyperlink{structpmc__rxn__data_1_1rxn__data__ptr}{pmc\+\_\+rxn\+\_\+data\+::rxn\+\_\+data\+\_\+ptr}}
+\begin{DoxyCompactList}\small\item\em Pointer type for building arrays of mixed reactions. \end{DoxyCompactList}\item 
+type \mbox{\hyperlink{structpmc__rxn__data_1_1rxn__update__data__t}{pmc\+\_\+rxn\+\_\+data\+::rxn\+\_\+update\+\_\+data\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Update cookie. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{interfacepmc__rxn__data_1_1initialize}{pmc\+\_\+rxn\+\_\+data\+::initialize}}
+\begin{DoxyCompactList}\small\item\em Reaction initialization. Takes species, phase and reaction parameters and packs required information into the condensed data arrays for use during the model run. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__rxn__data}{pmc\+\_\+rxn\+\_\+data}}
+\begin{DoxyCompactList}\small\item\em The \mbox{\hyperlink{structpmc__rxn__data_1_1rxn__data__t}{rxn\+\_\+data\+\_\+t}} structure and associated subroutines. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__rxn__data_abfbacb2e0a28ac87aa328f1f10dd4d8d}{pmc\+\_\+rxn\+\_\+data\+::load}} (this, json, j\+\_\+obj)
+\begin{DoxyCompactList}\small\item\em Load reactions from an input file. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__rxn__data_a17716152aaaf50baf0bb3f07e9ede935}{pmc\+\_\+rxn\+\_\+data\+::check\+\_\+phase}} (this, rxn\+\_\+phase)
+\begin{DoxyCompactList}\small\item\em Check the phase of the reaction against the phase being solved for. During G\+A\+S\+\_\+\+R\+XN integrations, only G\+A\+S\+\_\+\+R\+XN reactions are solved. During A\+E\+R\+O\+\_\+\+R\+XN integrations, only A\+E\+R\+O\+\_\+\+R\+XN and G\+A\+S\+\_\+\+A\+E\+R\+O\+\_\+\+R\+XN reactions are solved. During G\+A\+S\+\_\+\+A\+E\+R\+O\+\_\+\+R\+XN integrations, all reactions are solved. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind) function \mbox{\hyperlink{namespacepmc__rxn__data_a0341adf3312d7d9b72c09ec6ec8aa869}{pmc\+\_\+rxn\+\_\+data\+::pack\+\_\+size}} (this)
+\begin{DoxyCompactList}\small\item\em Determine the size of a binary required to pack the reaction data. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__rxn__data_a397299ecd34b75d7ad2d796c4aceb359}{pmc\+\_\+rxn\+\_\+data\+::bin\+\_\+pack}} (this, buffer, pos)
+\begin{DoxyCompactList}\small\item\em Pack the given value to the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__rxn__data_a34d8d3f14de156535b1d784d320f459b}{pmc\+\_\+rxn\+\_\+data\+::bin\+\_\+unpack}} (this, buffer, pos)
+\begin{DoxyCompactList}\small\item\em Unpack the given value from the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__rxn__data_ae01999e646da4760c3c3f4a9f7a48b59}{pmc\+\_\+rxn\+\_\+data\+::do\+\_\+print}} (this, file\+\_\+unit)
+\begin{DoxyCompactList}\small\item\em Print the reaction data. \end{DoxyCompactList}\item 
+elemental subroutine \mbox{\hyperlink{namespacepmc__rxn__data_a40c9f4798445877bcb9f78ccbbf0d231}{pmc\+\_\+rxn\+\_\+data\+::dereference}} (this)
+\begin{DoxyCompactList}\small\item\em Dereference a pointer to a reaction. \end{DoxyCompactList}\item 
+elemental subroutine \mbox{\hyperlink{namespacepmc__rxn__data_a3115ac7ab9ddc7e122ec1bb8df18500a}{pmc\+\_\+rxn\+\_\+data\+::ptr\+\_\+finalize}} (this)
+\begin{DoxyCompactList}\small\item\em Finalize a pointer to a reaction. \end{DoxyCompactList}\item 
+integer(kind=c\+\_\+int) function \mbox{\hyperlink{namespacepmc__rxn__data_af7376f50bad1c8b21e68568ed7dfdf81}{pmc\+\_\+rxn\+\_\+data\+::rxn\+\_\+update\+\_\+data\+\_\+get\+\_\+type}} (this)
+\begin{DoxyCompactList}\small\item\em Get the update data reaction type. \end{DoxyCompactList}\item 
+type(c\+\_\+ptr) function \mbox{\hyperlink{namespacepmc__rxn__data_a5eb5b555b9ce82e70a70568f33e97b46}{pmc\+\_\+rxn\+\_\+data\+::rxn\+\_\+update\+\_\+data\+\_\+get\+\_\+data}} (this)
+\begin{DoxyCompactList}\small\item\em Get the update data. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__rxn__data_a111b121911199623f10770744af6488f}{pmc\+\_\+rxn\+\_\+data\+::gas\+\_\+rxn}} = 1
+\begin{DoxyCompactList}\small\item\em Gas-\/phase reaction. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__rxn__data_aa70ce267bb3565e338327b106143ba5f}{pmc\+\_\+rxn\+\_\+data\+::gas\+\_\+aero\+\_\+rxn}} = 2
+\begin{DoxyCompactList}\small\item\em Mixed-\/phase (gas and aerosol) reaction. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind), parameter, public \mbox{\hyperlink{namespacepmc__rxn__data_a5f312af427a9f94444065a1fb53289ce}{pmc\+\_\+rxn\+\_\+data\+::aero\+\_\+rxn}} = 3
+\begin{DoxyCompactList}\small\item\em Aerosol-\/phase reaction. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__rxn__data}{pmc\+\_\+rxn\+\_\+data}} module. 
+

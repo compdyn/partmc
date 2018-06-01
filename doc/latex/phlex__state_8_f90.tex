@@ -1,0 +1,53 @@
+\hypertarget{phlex__state_8_f90}{}\section{phlex\+\_\+state.\+F90 File Reference}
+\label{phlex__state_8_f90}\index{phlex\+\_\+state.\+F90@{phlex\+\_\+state.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__phlex__state}{pmc\+\_\+phlex\+\_\+state}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+interface \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Model state. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Model state. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__phlex__state}{pmc\+\_\+phlex\+\_\+state}}
+\begin{DoxyCompactList}\small\item\em The \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t}{phlex\+\_\+state\+\_\+t}} structure and associated subroutines. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{phlex__state_8_f90_a6cf7eb4806e31aff84f46b1f83307bde}{P\+H\+L\+E\+X\+\_\+\+S\+T\+A\+T\+E\+\_\+\+N\+U\+M\+\_\+\+E\+N\+V\+\_\+\+P\+A\+R\+AM}}~2
+\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+type(phlex\+\_\+state\+\_\+t) function, pointer \mbox{\hyperlink{namespacepmc__phlex__state_af303f5284fd8e824bef403c5a1b93603}{pmc\+\_\+phlex\+\_\+state\+::constructor}} (env\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Constructor for \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t}{phlex\+\_\+state\+\_\+t}}. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__phlex__state_aaf068a64f451138607dc89796065f06f}{pmc\+\_\+phlex\+\_\+state\+::update\+\_\+env\+\_\+state}} (this)
+\begin{DoxyCompactList}\small\item\em Update the environmental state array T\+O\+DO make the environmental parameters part of the input data. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind) function \mbox{\hyperlink{namespacepmc__phlex__state_a58739e1d06ecd1cfe62aa5463602dacd}{pmc\+\_\+phlex\+\_\+state\+::pack\+\_\+size}} (this)
+\begin{DoxyCompactList}\small\item\em Determine the size of a binary required to pack a given variable. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__phlex__state_ada3a9947f2dc64ffcd190bb17979fa47}{pmc\+\_\+phlex\+\_\+state\+::bin\+\_\+pack}} (this, buffer, pos)
+\begin{DoxyCompactList}\small\item\em Pack the given value to the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__phlex__state_a9ee8fdc8ccba764c81837d8a00de6f80}{pmc\+\_\+phlex\+\_\+state\+::bin\+\_\+unpack}} (this, buffer, pos)
+\begin{DoxyCompactList}\small\item\em Unpack the given value to the buffer, advancing position. \end{DoxyCompactList}\item 
+elemental subroutine \mbox{\hyperlink{namespacepmc__phlex__state_abf02a2ecb17713c79ca09e71abbb7c07}{pmc\+\_\+phlex\+\_\+state\+::finalize}} (this)
+\begin{DoxyCompactList}\small\item\em Finalize the state. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__phlex__state}{pmc\+\_\+phlex\+\_\+state}} module. 
+
+
+
+\subsection{Macro Definition Documentation}
+\mbox{\Hypertarget{phlex__state_8_f90_a6cf7eb4806e31aff84f46b1f83307bde}\label{phlex__state_8_f90_a6cf7eb4806e31aff84f46b1f83307bde}} 
+\index{phlex\+\_\+state.\+F90@{phlex\+\_\+state.\+F90}!P\+H\+L\+E\+X\+\_\+\+S\+T\+A\+T\+E\+\_\+\+N\+U\+M\+\_\+\+E\+N\+V\+\_\+\+P\+A\+R\+AM@{P\+H\+L\+E\+X\+\_\+\+S\+T\+A\+T\+E\+\_\+\+N\+U\+M\+\_\+\+E\+N\+V\+\_\+\+P\+A\+R\+AM}}
+\index{P\+H\+L\+E\+X\+\_\+\+S\+T\+A\+T\+E\+\_\+\+N\+U\+M\+\_\+\+E\+N\+V\+\_\+\+P\+A\+R\+AM@{P\+H\+L\+E\+X\+\_\+\+S\+T\+A\+T\+E\+\_\+\+N\+U\+M\+\_\+\+E\+N\+V\+\_\+\+P\+A\+R\+AM}!phlex\+\_\+state.\+F90@{phlex\+\_\+state.\+F90}}
+\subsubsection{\texorpdfstring{P\+H\+L\+E\+X\+\_\+\+S\+T\+A\+T\+E\+\_\+\+N\+U\+M\+\_\+\+E\+N\+V\+\_\+\+P\+A\+R\+AM}{PHLEX\_STATE\_NUM\_ENV\_PARAM}}
+{\footnotesize\ttfamily \#define P\+H\+L\+E\+X\+\_\+\+S\+T\+A\+T\+E\+\_\+\+N\+U\+M\+\_\+\+E\+N\+V\+\_\+\+P\+A\+R\+AM~2}
+

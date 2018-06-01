@@ -1,0 +1,597 @@
+\hypertarget{namespacepmc__aero__weight__array}{}\section{pmc\+\_\+aero\+\_\+weight\+\_\+array Module Reference}
+\label{namespacepmc__aero__weight__array}\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+
+
+The \mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}} structure and associated subroutines.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em An array of aerosol size distribution weighting functions. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__weight__array_ae550d4421da58c4fa79291f274881c13}{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+sizes}} (aero\+\_\+weight\+\_\+array, n\+\_\+group, n\+\_\+class)
+\begin{DoxyCompactList}\small\item\em Sets the number of weight groups and classes. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__weight__array_a4886dd503446783dd264db9c8986d38f}{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+flat}} (aero\+\_\+weight\+\_\+array, n\+\_\+class)
+\begin{DoxyCompactList}\small\item\em Allocates an {\ttfamily aero\+\_\+weight\+\_\+array} as flat weightings. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__weight__array_acee7592ccd5029f699596be244cbef2e}{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+power}} (aero\+\_\+weight\+\_\+array, n\+\_\+class, exponent)
+\begin{DoxyCompactList}\small\item\em Allocates an {\ttfamily aero\+\_\+weight\+\_\+array} as power weightings. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__weight__array_a98611587acf3064873a39d6cd128d4c8}{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+nummass}} (aero\+\_\+weight\+\_\+array, n\+\_\+class)
+\begin{DoxyCompactList}\small\item\em Allocates an {\ttfamily aero\+\_\+weight\+\_\+array} as joint flat/power-\/3 weightings.. \end{DoxyCompactList}\item 
+elemental subroutine \mbox{\hyperlink{namespacepmc__aero__weight__array_a4faf647ac7900cdcac273e4167e8e088}{aero\+\_\+weight\+\_\+array\+\_\+normalize}} (aero\+\_\+weight\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Normalizes the {\ttfamily aero\+\_\+weight\+\_\+array} to a non-\/zero value. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__aero__weight__array_ac03a66965bebb2e5b699f16acc021962}{aero\+\_\+weight\+\_\+array\+\_\+n\+\_\+group}} (aero\+\_\+weight\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Return the number of weight groups. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__aero__weight__array_a51061757ff964272d7375d50a99d07a7}{aero\+\_\+weight\+\_\+array\+\_\+n\+\_\+class}} (aero\+\_\+weight\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Return the number of weight classes. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__weight__array_a5ecd5778c018848c999ef89b28f5940f}{aero\+\_\+weight\+\_\+array\+\_\+scale}} (aero\+\_\+weight\+\_\+array, factor)
+\begin{DoxyCompactList}\small\item\em Scale the weights by the given factor, so {\ttfamily new\+\_\+weight = old\+\_\+weight $\ast$ factor}. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__weight__array_ac29cb102e3495fadc37eca9347b519b5}{aero\+\_\+weight\+\_\+array\+\_\+combine}} (aero\+\_\+weight\+\_\+array, aero\+\_\+weight\+\_\+array\+\_\+delta)
+\begin{DoxyCompactList}\small\item\em Combine {\ttfamily aero\+\_\+weight\+\_\+array\+\_\+delta} into {\ttfamily aero\+\_\+weight\+\_\+array} with a harmonic mean. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__weight__array_ab91ec24f000d4b6503e6817a84f2da11}{aero\+\_\+weight\+\_\+array\+\_\+shift}} (aero\+\_\+weight\+\_\+array\+\_\+from, aero\+\_\+weight\+\_\+array\+\_\+to, sample\+\_\+prop, overwrite\+\_\+to)
+\begin{DoxyCompactList}\small\item\em Adjust source and destination weights to reflect moving {\ttfamily sample\+\_\+prop} proportion of particles from {\ttfamily aero\+\_\+weight\+\_\+array\+\_\+from} to {\ttfamily aero\+\_\+weight\+\_\+array\+\_\+to}. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__aero__weight__array_adb38b8169574f5d8e3fa131ccdf1dcb4}{aero\+\_\+weight\+\_\+array\+\_\+single\+\_\+num\+\_\+conc}} (aero\+\_\+weight\+\_\+array, aero\+\_\+particle, aero\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Compute the number concentration for a particle (m$^\wedge$\{-\/3\}). \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__aero__weight__array_a8a39b084f2952ba5f1068eadac2c48ed}{aero\+\_\+weight\+\_\+array\+\_\+num\+\_\+conc\+\_\+at\+\_\+radius}} (aero\+\_\+weight\+\_\+array, i\+\_\+class, radius)
+\begin{DoxyCompactList}\small\item\em Compute the total number concentration at a given radius (m$^\wedge$3). \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__aero__weight__array_a58a8646015dbbed5447fe415353b8e29}{aero\+\_\+weight\+\_\+array\+\_\+num\+\_\+conc}} (aero\+\_\+weight\+\_\+array, aero\+\_\+particle, aero\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Compute the number concentration for a particle (m$^\wedge$\{-\/3\}). \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__aero__weight__array_ad145b87a8e1a71fda62dadb01b4cff39}{aero\+\_\+weight\+\_\+array\+\_\+check\+\_\+flat}} (aero\+\_\+weight\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Check whether a given aero\+\_\+weight array is flat in total. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__weight__array_aad4535065f56a39ce8da5717f0c334fd}{aero\+\_\+weight\+\_\+array\+\_\+check\+\_\+monotonicity}} (aero\+\_\+weight\+\_\+array, monotone\+\_\+increasing, monotone\+\_\+decreasing)
+\begin{DoxyCompactList}\small\item\em Determine whether all weight functions in an array are monotone increasing, monotone decreasing, or neither. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__weight__array_a3a1055fc4a1be729c0b32fc114ddffd2}{aero\+\_\+weight\+\_\+array\+\_\+minmax\+\_\+num\+\_\+conc}} (aero\+\_\+weight\+\_\+array, i\+\_\+class, radius\+\_\+1, radius\+\_\+2, num\+\_\+conc\+\_\+min, num\+\_\+conc\+\_\+max)
+\begin{DoxyCompactList}\small\item\em Compute the maximum and minimum number concentrations between the given radii. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__aero__weight__array_a0a5faf6c66a3b2e8bddd70ac19db2927}{aero\+\_\+weight\+\_\+array\+\_\+rand\+\_\+group}} (aero\+\_\+weight\+\_\+array, i\+\_\+class, radius)
+\begin{DoxyCompactList}\small\item\em Choose a random group at the given radius, with probability inversely proportional to group weight at that radius. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__weight__array_a9bc50db61d65311b62b7bae73bf7c917}{spec\+\_\+file\+\_\+read\+\_\+aero\+\_\+weight\+\_\+array}} (file, aero\+\_\+weight\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Read an aero\+\_\+weight\+\_\+array from a spec file. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__aero__weight__array_a1fe03c483b391b7fa2d7201b3868f9b8}{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+weight\+\_\+array}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__weight__array_a0e7bdd9d7cf073e1d57c331a46a90d3a}{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+weight\+\_\+array}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__weight__array_a8f07bda93e7ef86eb3f39034f8b8e5f2}{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+weight\+\_\+array}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__weight__array_a7b61181ea630c3bf41cf13124c206226}{aero\+\_\+weight\+\_\+netcdf\+\_\+dim\+\_\+aero\+\_\+weight\+\_\+group}} (aero\+\_\+weight\+\_\+array, \mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, dimid\+\_\+aero\+\_\+weight\+\_\+group)
+\begin{DoxyCompactList}\small\item\em Write the {\ttfamily aero\+\_\+weight\+\_\+group} dimension to the given Net\+C\+DF file if it is not already present and in any case return the associated dimid. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__weight__array_a2a35954eccffa6d2706b58fe27dde736}{aero\+\_\+weight\+\_\+netcdf\+\_\+dim\+\_\+aero\+\_\+weight\+\_\+class}} (aero\+\_\+weight\+\_\+array, \mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, dimid\+\_\+aero\+\_\+weight\+\_\+class)
+\begin{DoxyCompactList}\small\item\em Write the {\ttfamily aero\+\_\+weight\+\_\+class} dimension to the given Net\+C\+DF file if it is not already present and in any case return the associated dimid. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__weight__array_a11210bfed165f0953131f08759fca5a0}{aero\+\_\+weight\+\_\+array\+\_\+input\+\_\+netcdf}} (aero\+\_\+weight\+\_\+array, \mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}})
+\begin{DoxyCompactList}\small\item\em Read full aero\+\_\+weight\+\_\+array. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}} structure and associated subroutines. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_ad145b87a8e1a71fda62dadb01b4cff39}\label{namespacepmc__aero__weight__array_ad145b87a8e1a71fda62dadb01b4cff39}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+array\+\_\+check\+\_\+flat@{aero\+\_\+weight\+\_\+array\+\_\+check\+\_\+flat}}
+\index{aero\+\_\+weight\+\_\+array\+\_\+check\+\_\+flat@{aero\+\_\+weight\+\_\+array\+\_\+check\+\_\+flat}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+array\+\_\+check\+\_\+flat()}{aero\_weight\_array\_check\_flat()}}
+{\footnotesize\ttfamily logical function pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+check\+\_\+flat (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+weight\+\_\+array }\end{DoxyParamCaption})}
+
+
+
+Check whether a given aero\+\_\+weight array is flat in total. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+weight\+\_\+array} & Aerosol weight array. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 277 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_aad4535065f56a39ce8da5717f0c334fd}\label{namespacepmc__aero__weight__array_aad4535065f56a39ce8da5717f0c334fd}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+array\+\_\+check\+\_\+monotonicity@{aero\+\_\+weight\+\_\+array\+\_\+check\+\_\+monotonicity}}
+\index{aero\+\_\+weight\+\_\+array\+\_\+check\+\_\+monotonicity@{aero\+\_\+weight\+\_\+array\+\_\+check\+\_\+monotonicity}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+array\+\_\+check\+\_\+monotonicity()}{aero\_weight\_array\_check\_monotonicity()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+check\+\_\+monotonicity (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+weight\+\_\+array,  }\item[{logical, intent(out)}]{monotone\+\_\+increasing,  }\item[{logical, intent(out)}]{monotone\+\_\+decreasing }\end{DoxyParamCaption})}
+
+
+
+Determine whether all weight functions in an array are monotone increasing, monotone decreasing, or neither. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+weight\+\_\+array} & Aerosol weight array.\\
+\hline
+\mbox{\tt out}  & {\em monotone\+\_\+increasing} & Whether all weights are monotone increasing.\\
+\hline
+\mbox{\tt out}  & {\em monotone\+\_\+decreasing} & Whether all weights are monotone decreasing. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 306 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_ac29cb102e3495fadc37eca9347b519b5}\label{namespacepmc__aero__weight__array_ac29cb102e3495fadc37eca9347b519b5}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+array\+\_\+combine@{aero\+\_\+weight\+\_\+array\+\_\+combine}}
+\index{aero\+\_\+weight\+\_\+array\+\_\+combine@{aero\+\_\+weight\+\_\+array\+\_\+combine}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+array\+\_\+combine()}{aero\_weight\_array\_combine()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+combine (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(inout)}]{aero\+\_\+weight\+\_\+array,  }\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+weight\+\_\+array\+\_\+delta }\end{DoxyParamCaption})}
+
+
+
+Combine {\ttfamily aero\+\_\+weight\+\_\+array\+\_\+delta} into {\ttfamily aero\+\_\+weight\+\_\+array} with a harmonic mean. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+weight\+\_\+array} & Aerosol weight array to combine into.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+weight\+\_\+array\+\_\+delta} & Aerosol weight array to combine from. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 177 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_a11210bfed165f0953131f08759fca5a0}\label{namespacepmc__aero__weight__array_a11210bfed165f0953131f08759fca5a0}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+array\+\_\+input\+\_\+netcdf@{aero\+\_\+weight\+\_\+array\+\_\+input\+\_\+netcdf}}
+\index{aero\+\_\+weight\+\_\+array\+\_\+input\+\_\+netcdf@{aero\+\_\+weight\+\_\+array\+\_\+input\+\_\+netcdf}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+array\+\_\+input\+\_\+netcdf()}{aero\_weight\_array\_input\_netcdf()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+input\+\_\+netcdf (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(inout)}]{aero\+\_\+weight\+\_\+array,  }\item[{integer, intent(in)}]{ncid }\end{DoxyParamCaption})}
+
+
+
+Read full aero\+\_\+weight\+\_\+array. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+weight\+\_\+array} & Aero weight array to read.\\
+\hline
+\mbox{\tt in}  & {\em ncid} & Net\+C\+DF file ID, in data mode. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 671 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_a3a1055fc4a1be729c0b32fc114ddffd2}\label{namespacepmc__aero__weight__array_a3a1055fc4a1be729c0b32fc114ddffd2}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+array\+\_\+minmax\+\_\+num\+\_\+conc@{aero\+\_\+weight\+\_\+array\+\_\+minmax\+\_\+num\+\_\+conc}}
+\index{aero\+\_\+weight\+\_\+array\+\_\+minmax\+\_\+num\+\_\+conc@{aero\+\_\+weight\+\_\+array\+\_\+minmax\+\_\+num\+\_\+conc}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+array\+\_\+minmax\+\_\+num\+\_\+conc()}{aero\_weight\_array\_minmax\_num\_conc()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+minmax\+\_\+num\+\_\+conc (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+weight\+\_\+array,  }\item[{integer, intent(in)}]{i\+\_\+class,  }\item[{real(kind=dp), intent(in)}]{radius\+\_\+1,  }\item[{real(kind=dp), intent(in)}]{radius\+\_\+2,  }\item[{real(kind=dp), intent(out)}]{num\+\_\+conc\+\_\+min,  }\item[{real(kind=dp), intent(out)}]{num\+\_\+conc\+\_\+max }\end{DoxyParamCaption})}
+
+
+
+Compute the maximum and minimum number concentrations between the given radii. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+weight\+\_\+array} & Aerosol weight array.\\
+\hline
+\mbox{\tt in}  & {\em i\+\_\+class} & Weight class.\\
+\hline
+\mbox{\tt in}  & {\em radius\+\_\+1} & First radius.\\
+\hline
+\mbox{\tt in}  & {\em radius\+\_\+2} & Second radius.\\
+\hline
+\mbox{\tt out}  & {\em num\+\_\+conc\+\_\+min} & Minimum number concentration.\\
+\hline
+\mbox{\tt out}  & {\em num\+\_\+conc\+\_\+max} & Maximum number concentration. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 340 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_a51061757ff964272d7375d50a99d07a7}\label{namespacepmc__aero__weight__array_a51061757ff964272d7375d50a99d07a7}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+array\+\_\+n\+\_\+class@{aero\+\_\+weight\+\_\+array\+\_\+n\+\_\+class}}
+\index{aero\+\_\+weight\+\_\+array\+\_\+n\+\_\+class@{aero\+\_\+weight\+\_\+array\+\_\+n\+\_\+class}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+array\+\_\+n\+\_\+class()}{aero\_weight\_array\_n\_class()}}
+{\footnotesize\ttfamily integer function pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+n\+\_\+class (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+weight\+\_\+array }\end{DoxyParamCaption})}
+
+
+
+Return the number of weight classes. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+weight\+\_\+array} & Aerosol weight array. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 148 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_ac03a66965bebb2e5b699f16acc021962}\label{namespacepmc__aero__weight__array_ac03a66965bebb2e5b699f16acc021962}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+array\+\_\+n\+\_\+group@{aero\+\_\+weight\+\_\+array\+\_\+n\+\_\+group}}
+\index{aero\+\_\+weight\+\_\+array\+\_\+n\+\_\+group@{aero\+\_\+weight\+\_\+array\+\_\+n\+\_\+group}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+array\+\_\+n\+\_\+group()}{aero\_weight\_array\_n\_group()}}
+{\footnotesize\ttfamily integer function pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+n\+\_\+group (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+weight\+\_\+array }\end{DoxyParamCaption})}
+
+
+
+Return the number of weight groups. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+weight\+\_\+array} & Aerosol weight array. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 136 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_a4faf647ac7900cdcac273e4167e8e088}\label{namespacepmc__aero__weight__array_a4faf647ac7900cdcac273e4167e8e088}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+array\+\_\+normalize@{aero\+\_\+weight\+\_\+array\+\_\+normalize}}
+\index{aero\+\_\+weight\+\_\+array\+\_\+normalize@{aero\+\_\+weight\+\_\+array\+\_\+normalize}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+array\+\_\+normalize()}{aero\_weight\_array\_normalize()}}
+{\footnotesize\ttfamily elemental subroutine pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+normalize (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(inout)}]{aero\+\_\+weight\+\_\+array }\end{DoxyParamCaption})}
+
+
+
+Normalizes the {\ttfamily aero\+\_\+weight\+\_\+array} to a non-\/zero value. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+weight\+\_\+array} & Aerosol weight array. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 124 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_a58a8646015dbbed5447fe415353b8e29}\label{namespacepmc__aero__weight__array_a58a8646015dbbed5447fe415353b8e29}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+array\+\_\+num\+\_\+conc@{aero\+\_\+weight\+\_\+array\+\_\+num\+\_\+conc}}
+\index{aero\+\_\+weight\+\_\+array\+\_\+num\+\_\+conc@{aero\+\_\+weight\+\_\+array\+\_\+num\+\_\+conc}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+array\+\_\+num\+\_\+conc()}{aero\_weight\_array\_num\_conc()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+num\+\_\+conc (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+weight\+\_\+array,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{aero\+\_\+particle,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Compute the number concentration for a particle (m$^\wedge$\{-\/3\}). 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+weight\+\_\+array} & Aerosol weight array.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+particle} & Aerosol particle to compute number concentration for.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 259 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_a8a39b084f2952ba5f1068eadac2c48ed}\label{namespacepmc__aero__weight__array_a8a39b084f2952ba5f1068eadac2c48ed}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+array\+\_\+num\+\_\+conc\+\_\+at\+\_\+radius@{aero\+\_\+weight\+\_\+array\+\_\+num\+\_\+conc\+\_\+at\+\_\+radius}}
+\index{aero\+\_\+weight\+\_\+array\+\_\+num\+\_\+conc\+\_\+at\+\_\+radius@{aero\+\_\+weight\+\_\+array\+\_\+num\+\_\+conc\+\_\+at\+\_\+radius}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+array\+\_\+num\+\_\+conc\+\_\+at\+\_\+radius()}{aero\_weight\_array\_num\_conc\_at\_radius()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+num\+\_\+conc\+\_\+at\+\_\+radius (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+weight\+\_\+array,  }\item[{integer, intent(in)}]{i\+\_\+class,  }\item[{real(kind=dp), intent(in)}]{radius }\end{DoxyParamCaption})}
+
+
+
+Compute the total number concentration at a given radius (m$^\wedge$3). 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+weight\+\_\+array} & Aerosol weight array.\\
+\hline
+\mbox{\tt in}  & {\em i\+\_\+class} & Weight class number.\\
+\hline
+\mbox{\tt in}  & {\em radius} & Radius to compute number concentration at (m). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 234 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_a0a5faf6c66a3b2e8bddd70ac19db2927}\label{namespacepmc__aero__weight__array_a0a5faf6c66a3b2e8bddd70ac19db2927}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+array\+\_\+rand\+\_\+group@{aero\+\_\+weight\+\_\+array\+\_\+rand\+\_\+group}}
+\index{aero\+\_\+weight\+\_\+array\+\_\+rand\+\_\+group@{aero\+\_\+weight\+\_\+array\+\_\+rand\+\_\+group}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+array\+\_\+rand\+\_\+group()}{aero\_weight\_array\_rand\_group()}}
+{\footnotesize\ttfamily integer function pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+rand\+\_\+group (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+weight\+\_\+array,  }\item[{integer, intent(in)}]{i\+\_\+class,  }\item[{real(kind=dp), intent(in)}]{radius }\end{DoxyParamCaption})}
+
+
+
+Choose a random group at the given radius, with probability inversely proportional to group weight at that radius. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+weight\+\_\+array} & Aerosol weight array.\\
+\hline
+\mbox{\tt in}  & {\em i\+\_\+class} & Weight class to select from.\\
+\hline
+\mbox{\tt in}  & {\em radius} & Radius to sample group at (m). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 376 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_a5ecd5778c018848c999ef89b28f5940f}\label{namespacepmc__aero__weight__array_a5ecd5778c018848c999ef89b28f5940f}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+array\+\_\+scale@{aero\+\_\+weight\+\_\+array\+\_\+scale}}
+\index{aero\+\_\+weight\+\_\+array\+\_\+scale@{aero\+\_\+weight\+\_\+array\+\_\+scale}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+array\+\_\+scale()}{aero\_weight\_array\_scale()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+scale (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(inout)}]{aero\+\_\+weight\+\_\+array,  }\item[{real(kind=dp), intent(in)}]{factor }\end{DoxyParamCaption})}
+
+
+
+Scale the weights by the given factor, so {\ttfamily new\+\_\+weight = old\+\_\+weight $\ast$ factor}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+weight\+\_\+array} & Aerosol weight array to scale.\\
+\hline
+\mbox{\tt in}  & {\em factor} & Factor to scale by. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 161 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_a4886dd503446783dd264db9c8986d38f}\label{namespacepmc__aero__weight__array_a4886dd503446783dd264db9c8986d38f}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+flat@{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+flat}}
+\index{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+flat@{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+flat}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+flat()}{aero\_weight\_array\_set\_flat()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+flat (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(out)}]{aero\+\_\+weight\+\_\+array,  }\item[{integer, intent(in)}]{n\+\_\+class }\end{DoxyParamCaption})}
+
+
+
+Allocates an {\ttfamily aero\+\_\+weight\+\_\+array} as flat weightings. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em aero\+\_\+weight\+\_\+array} & Aerosol weight array.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+class} & Number of weight classes. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 67 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_a98611587acf3064873a39d6cd128d4c8}\label{namespacepmc__aero__weight__array_a98611587acf3064873a39d6cd128d4c8}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+nummass@{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+nummass}}
+\index{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+nummass@{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+nummass}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+nummass()}{aero\_weight\_array\_set\_nummass()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+nummass (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(out)}]{aero\+\_\+weight\+\_\+array,  }\item[{integer, intent(in)}]{n\+\_\+class }\end{DoxyParamCaption})}
+
+
+
+Allocates an {\ttfamily aero\+\_\+weight\+\_\+array} as joint flat/power-\/3 weightings.. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em aero\+\_\+weight\+\_\+array} & Aerosol weight array.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+class} & Number of weight classes. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 104 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_acee7592ccd5029f699596be244cbef2e}\label{namespacepmc__aero__weight__array_acee7592ccd5029f699596be244cbef2e}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+power@{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+power}}
+\index{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+power@{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+power}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+power()}{aero\_weight\_array\_set\_power()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+power (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(out)}]{aero\+\_\+weight\+\_\+array,  }\item[{integer, intent(in)}]{n\+\_\+class,  }\item[{real(kind=dp), intent(in)}]{exponent }\end{DoxyParamCaption})}
+
+
+
+Allocates an {\ttfamily aero\+\_\+weight\+\_\+array} as power weightings. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em aero\+\_\+weight\+\_\+array} & Aerosol weight array.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+class} & Number of weight classes.\\
+\hline
+\mbox{\tt in}  & {\em exponent} & Exponent for power-\/law. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 85 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_ae550d4421da58c4fa79291f274881c13}\label{namespacepmc__aero__weight__array_ae550d4421da58c4fa79291f274881c13}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+sizes@{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+sizes}}
+\index{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+sizes@{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+sizes}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+sizes()}{aero\_weight\_array\_set\_sizes()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+set\+\_\+sizes (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(inout)}]{aero\+\_\+weight\+\_\+array,  }\item[{integer, intent(in)}]{n\+\_\+group,  }\item[{integer, intent(in)}]{n\+\_\+class }\end{DoxyParamCaption})}
+
+
+
+Sets the number of weight groups and classes. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+weight\+\_\+array} & Aerosol weight array.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+group} & Number of weight groups.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+class} & Number of weight classes. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 48 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_ab91ec24f000d4b6503e6817a84f2da11}\label{namespacepmc__aero__weight__array_ab91ec24f000d4b6503e6817a84f2da11}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+array\+\_\+shift@{aero\+\_\+weight\+\_\+array\+\_\+shift}}
+\index{aero\+\_\+weight\+\_\+array\+\_\+shift@{aero\+\_\+weight\+\_\+array\+\_\+shift}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+array\+\_\+shift()}{aero\_weight\_array\_shift()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+shift (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(inout)}]{aero\+\_\+weight\+\_\+array\+\_\+from,  }\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(inout)}]{aero\+\_\+weight\+\_\+array\+\_\+to,  }\item[{real(kind=dp), intent(in)}]{sample\+\_\+prop,  }\item[{logical, intent(in), optional}]{overwrite\+\_\+to }\end{DoxyParamCaption})}
+
+
+
+Adjust source and destination weights to reflect moving {\ttfamily sample\+\_\+prop} proportion of particles from {\ttfamily aero\+\_\+weight\+\_\+array\+\_\+from} to {\ttfamily aero\+\_\+weight\+\_\+array\+\_\+to}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+weight\+\_\+array\+\_\+from} & Aerosol weight array to shift from.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+weight\+\_\+array\+\_\+to} & Aerosol weight array to shift to.\\
+\hline
+\mbox{\tt in}  & {\em sample\+\_\+prop} & Proportion of particles being transfered.\\
+\hline
+\mbox{\tt in}  & {\em overwrite\+\_\+to} & Whether to overwrite the destination weight (default\+: no). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 195 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_adb38b8169574f5d8e3fa131ccdf1dcb4}\label{namespacepmc__aero__weight__array_adb38b8169574f5d8e3fa131ccdf1dcb4}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+array\+\_\+single\+\_\+num\+\_\+conc@{aero\+\_\+weight\+\_\+array\+\_\+single\+\_\+num\+\_\+conc}}
+\index{aero\+\_\+weight\+\_\+array\+\_\+single\+\_\+num\+\_\+conc@{aero\+\_\+weight\+\_\+array\+\_\+single\+\_\+num\+\_\+conc}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+array\+\_\+single\+\_\+num\+\_\+conc()}{aero\_weight\_array\_single\_num\_conc()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+single\+\_\+num\+\_\+conc (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+weight\+\_\+array,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{aero\+\_\+particle,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Compute the number concentration for a particle (m$^\wedge$\{-\/3\}). 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+weight\+\_\+array} & Aerosol weight array.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+particle} & Aerosol particle to compute number concentration for.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 215 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_a2a35954eccffa6d2706b58fe27dde736}\label{namespacepmc__aero__weight__array_a2a35954eccffa6d2706b58fe27dde736}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+netcdf\+\_\+dim\+\_\+aero\+\_\+weight\+\_\+class@{aero\+\_\+weight\+\_\+netcdf\+\_\+dim\+\_\+aero\+\_\+weight\+\_\+class}}
+\index{aero\+\_\+weight\+\_\+netcdf\+\_\+dim\+\_\+aero\+\_\+weight\+\_\+class@{aero\+\_\+weight\+\_\+netcdf\+\_\+dim\+\_\+aero\+\_\+weight\+\_\+class}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+netcdf\+\_\+dim\+\_\+aero\+\_\+weight\+\_\+class()}{aero\_weight\_netcdf\_dim\_aero\_weight\_class()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+netcdf\+\_\+dim\+\_\+aero\+\_\+weight\+\_\+class (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+weight\+\_\+array,  }\item[{integer, intent(in)}]{ncid,  }\item[{integer, intent(out)}]{dimid\+\_\+aero\+\_\+weight\+\_\+class }\end{DoxyParamCaption})}
+
+
+
+Write the {\ttfamily aero\+\_\+weight\+\_\+class} dimension to the given Net\+C\+DF file if it is not already present and in any case return the associated dimid. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+weight\+\_\+array} & Aero\+\_\+weight structure array.\\
+\hline
+\mbox{\tt in}  & {\em ncid} & Net\+C\+DF file ID, in data mode.\\
+\hline
+\mbox{\tt out}  & {\em dimid\+\_\+aero\+\_\+weight\+\_\+class} & Dimid of the species dimension. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 572 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_a7b61181ea630c3bf41cf13124c206226}\label{namespacepmc__aero__weight__array_a7b61181ea630c3bf41cf13124c206226}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!aero\+\_\+weight\+\_\+netcdf\+\_\+dim\+\_\+aero\+\_\+weight\+\_\+group@{aero\+\_\+weight\+\_\+netcdf\+\_\+dim\+\_\+aero\+\_\+weight\+\_\+group}}
+\index{aero\+\_\+weight\+\_\+netcdf\+\_\+dim\+\_\+aero\+\_\+weight\+\_\+group@{aero\+\_\+weight\+\_\+netcdf\+\_\+dim\+\_\+aero\+\_\+weight\+\_\+group}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{aero\+\_\+weight\+\_\+netcdf\+\_\+dim\+\_\+aero\+\_\+weight\+\_\+group()}{aero\_weight\_netcdf\_dim\_aero\_weight\_group()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+netcdf\+\_\+dim\+\_\+aero\+\_\+weight\+\_\+group (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+weight\+\_\+array,  }\item[{integer, intent(in)}]{ncid,  }\item[{integer, intent(out)}]{dimid\+\_\+aero\+\_\+weight\+\_\+group }\end{DoxyParamCaption})}
+
+
+
+Write the {\ttfamily aero\+\_\+weight\+\_\+group} dimension to the given Net\+C\+DF file if it is not already present and in any case return the associated dimid. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+weight\+\_\+array} & Aero\+\_\+weight structure array.\\
+\hline
+\mbox{\tt in}  & {\em ncid} & Net\+C\+DF file ID, in data mode.\\
+\hline
+\mbox{\tt out}  & {\em dimid\+\_\+aero\+\_\+weight\+\_\+group} & Dimid of the species dimension. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 526 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_a0e7bdd9d7cf073e1d57c331a46a90d3a}\label{namespacepmc__aero__weight__array_a0e7bdd9d7cf073e1d57c331a46a90d3a}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+weight\+\_\+array}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+weight\+\_\+array}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+weight\+\_\+array()}{pmc\_mpi\_pack\_aero\_weight\_array()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+weight\+\_\+array\+::pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+weight\+\_\+array (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Packs the given value into the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 449 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_a1fe03c483b391b7fa2d7201b3868f9b8}\label{namespacepmc__aero__weight__array_a1fe03c483b391b7fa2d7201b3868f9b8}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+weight\+\_\+array}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+weight\+\_\+array}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+weight\+\_\+array()}{pmc\_mpi\_pack\_size\_aero\_weight\_array()}}
+{\footnotesize\ttfamily integer function pmc\+\_\+aero\+\_\+weight\+\_\+array\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+weight\+\_\+array (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Determines the number of bytes required to pack the given value. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 420 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_a8f07bda93e7ef86eb3f39034f8b8e5f2}\label{namespacepmc__aero__weight__array_a8f07bda93e7ef86eb3f39034f8b8e5f2}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+weight\+\_\+array}}
+\index{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+weight\+\_\+array}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+weight\+\_\+array()}{pmc\_mpi\_unpack\_aero\_weight\_array()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+weight\+\_\+array\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+weight\+\_\+array (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(inout)}]{val }\end{DoxyParamCaption})}
+
+
+
+Unpacks the given value from the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in,out}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 484 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__weight__array_a9bc50db61d65311b62b7bae73bf7c917}\label{namespacepmc__aero__weight__array_a9bc50db61d65311b62b7bae73bf7c917}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}!spec\+\_\+file\+\_\+read\+\_\+aero\+\_\+weight\+\_\+array@{spec\+\_\+file\+\_\+read\+\_\+aero\+\_\+weight\+\_\+array}}
+\index{spec\+\_\+file\+\_\+read\+\_\+aero\+\_\+weight\+\_\+array@{spec\+\_\+file\+\_\+read\+\_\+aero\+\_\+weight\+\_\+array}!pmc\+\_\+aero\+\_\+weight\+\_\+array@{pmc\+\_\+aero\+\_\+weight\+\_\+array}}
+\subsubsection{\texorpdfstring{spec\+\_\+file\+\_\+read\+\_\+aero\+\_\+weight\+\_\+array()}{spec\_file\_read\_aero\_weight\_array()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+weight\+\_\+array\+::spec\+\_\+file\+\_\+read\+\_\+aero\+\_\+weight\+\_\+array (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__spec__file_1_1spec__file__t}{spec\+\_\+file\+\_\+t}}), intent(inout)}]{file,  }\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(inout)}]{aero\+\_\+weight\+\_\+array }\end{DoxyParamCaption})}
+
+
+
+Read an aero\+\_\+weight\+\_\+array from a spec file. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em file} & Spec file.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+weight\+\_\+array} & Aerosol weight array. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 399 of file aero\+\_\+weight\+\_\+array.\+F90.
+

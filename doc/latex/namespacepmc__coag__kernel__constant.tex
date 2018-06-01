@@ -1,0 +1,133 @@
+\hypertarget{namespacepmc__coag__kernel__constant}{}\section{pmc\+\_\+coag\+\_\+kernel\+\_\+constant Module Reference}
+\label{namespacepmc__coag__kernel__constant}\index{pmc\+\_\+coag\+\_\+kernel\+\_\+constant@{pmc\+\_\+coag\+\_\+kernel\+\_\+constant}}
+
+
+Constant coagulation kernel.  
+
+
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coag__kernel__constant_ab7d28977bf4b5b1a3a7bdd716c496679}{kernel\+\_\+constant}} (aero\+\_\+particle\+\_\+1, aero\+\_\+particle\+\_\+2, aero\+\_\+data, env\+\_\+state, k)
+\begin{DoxyCompactList}\small\item\em Constant coagulation kernel. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coag__kernel__constant_a1ebc8d04a6618fad647e4dcd9c21bb6a}{kernel\+\_\+constant\+\_\+minmax}} (v1, v2, aero\+\_\+data, env\+\_\+state, k\+\_\+min, k\+\_\+max)
+\begin{DoxyCompactList}\small\item\em Minimum and maximum values of the constant coagulation kernel. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coag__kernel__constant_a9b2f8e22413812fde935ce8afaca32d9}{soln\+\_\+constant\+\_\+exp}} (bin\+\_\+grid, aero\+\_\+data, time, num\+\_\+conc, radius\+\_\+at\+\_\+mean\+\_\+vol, env\+\_\+state, aero\+\_\+binned)
+\begin{DoxyCompactList}\small\item\em Exact solution with a constant coagulation kernel and an exponential initial condition. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+real(kind=dp), parameter \mbox{\hyperlink{namespacepmc__coag__kernel__constant_a26b296df0f2d1dd4d6f3f848b371b408}{beta\+\_\+0}} = 0.\+25d0 / (60d0 $\ast$ 2d8)
+\begin{DoxyCompactList}\small\item\em Coefficient for constant kernel. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Constant coagulation kernel. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__coag__kernel__constant_ab7d28977bf4b5b1a3a7bdd716c496679}\label{namespacepmc__coag__kernel__constant_ab7d28977bf4b5b1a3a7bdd716c496679}} 
+\index{pmc\+\_\+coag\+\_\+kernel\+\_\+constant@{pmc\+\_\+coag\+\_\+kernel\+\_\+constant}!kernel\+\_\+constant@{kernel\+\_\+constant}}
+\index{kernel\+\_\+constant@{kernel\+\_\+constant}!pmc\+\_\+coag\+\_\+kernel\+\_\+constant@{pmc\+\_\+coag\+\_\+kernel\+\_\+constant}}
+\subsubsection{\texorpdfstring{kernel\+\_\+constant()}{kernel\_constant()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coag\+\_\+kernel\+\_\+constant\+::kernel\+\_\+constant (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{aero\+\_\+particle\+\_\+1,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{aero\+\_\+particle\+\_\+2,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{real(kind=dp), intent(out)}]{k }\end{DoxyParamCaption})}
+
+
+
+Constant coagulation kernel. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+particle\+\_\+1} & First particle.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+particle\+\_\+2} & Second particle.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt out}  & {\em k} & Coagulation kernel. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 31 of file coag\+\_\+kernel\+\_\+constant.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coag__kernel__constant_a1ebc8d04a6618fad647e4dcd9c21bb6a}\label{namespacepmc__coag__kernel__constant_a1ebc8d04a6618fad647e4dcd9c21bb6a}} 
+\index{pmc\+\_\+coag\+\_\+kernel\+\_\+constant@{pmc\+\_\+coag\+\_\+kernel\+\_\+constant}!kernel\+\_\+constant\+\_\+minmax@{kernel\+\_\+constant\+\_\+minmax}}
+\index{kernel\+\_\+constant\+\_\+minmax@{kernel\+\_\+constant\+\_\+minmax}!pmc\+\_\+coag\+\_\+kernel\+\_\+constant@{pmc\+\_\+coag\+\_\+kernel\+\_\+constant}}
+\subsubsection{\texorpdfstring{kernel\+\_\+constant\+\_\+minmax()}{kernel\_constant\_minmax()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coag\+\_\+kernel\+\_\+constant\+::kernel\+\_\+constant\+\_\+minmax (\begin{DoxyParamCaption}\item[{real(kind=dp), intent(in)}]{v1,  }\item[{real(kind=dp), intent(in)}]{v2,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{real(kind=dp), intent(out)}]{k\+\_\+min,  }\item[{real(kind=dp), intent(out)}]{k\+\_\+max }\end{DoxyParamCaption})}
+
+
+
+Minimum and maximum values of the constant coagulation kernel. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em v1} & Volume of first particle.\\
+\hline
+\mbox{\tt in}  & {\em v2} & Volume of second particle.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt out}  & {\em k\+\_\+min} & Coagulation kernel minimum value.\\
+\hline
+\mbox{\tt out}  & {\em k\+\_\+max} & Coagulation kernel maximum value. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 51 of file coag\+\_\+kernel\+\_\+constant.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coag__kernel__constant_a9b2f8e22413812fde935ce8afaca32d9}\label{namespacepmc__coag__kernel__constant_a9b2f8e22413812fde935ce8afaca32d9}} 
+\index{pmc\+\_\+coag\+\_\+kernel\+\_\+constant@{pmc\+\_\+coag\+\_\+kernel\+\_\+constant}!soln\+\_\+constant\+\_\+exp@{soln\+\_\+constant\+\_\+exp}}
+\index{soln\+\_\+constant\+\_\+exp@{soln\+\_\+constant\+\_\+exp}!pmc\+\_\+coag\+\_\+kernel\+\_\+constant@{pmc\+\_\+coag\+\_\+kernel\+\_\+constant}}
+\subsubsection{\texorpdfstring{soln\+\_\+constant\+\_\+exp()}{soln\_constant\_exp()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coag\+\_\+kernel\+\_\+constant\+::soln\+\_\+constant\+\_\+exp (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{real(kind=dp), intent(in)}]{time,  }\item[{real(kind=dp), intent(in)}]{num\+\_\+conc,  }\item[{real(kind=dp), intent(in)}]{radius\+\_\+at\+\_\+mean\+\_\+vol,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__binned_1_1aero__binned__t}{aero\+\_\+binned\+\_\+t}}), intent(inout)}]{aero\+\_\+binned }\end{DoxyParamCaption})}
+
+
+
+Exact solution with a constant coagulation kernel and an exponential initial condition. 
+
+Given input paramaters $R$ and $N_0$ we let the mean volume be $v_\mu = \frac{4\pi}{3} R^3$ and define the rescaled time $\tau = N_0 \beta_0 t$, where $\beta_0$ is the fixed constant kernel value. We also set the parameter $\lambda = 1$. Then the solution is \[ n(D,t) \ {\rm d}\ln D = \frac{\pi}{2} D^3 \frac{N_0}{v_\mu} \frac{4}{(\tau + 2)^2} \exp\left(-\frac{v}{v_\mu} \frac{2}{\tau + 2} \exp(-\lambda \tau) - \lambda \tau\right) {\rm d}\ln D \] This thus has initial condition \[ n(D,t) \ {\rm d}\ln D = \frac{\pi}{2} D^3 \frac{N_0}{v_\mu} \exp\left(-\frac{v}{v_\mu}\right) {\rm d}\ln D \]
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em time} & Current time.\\
+\hline
+\mbox{\tt in}  & {\em num\+\_\+conc} & Particle number concentration (\#/m$^\wedge$3).\\
+\hline
+\mbox{\tt in}  & {\em radius\+\_\+at\+\_\+mean\+\_\+vol} & Mean init radius (m).\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+binned} & Output state. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 94 of file coag\+\_\+kernel\+\_\+constant.\+F90.
+
+
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{namespacepmc__coag__kernel__constant_a26b296df0f2d1dd4d6f3f848b371b408}\label{namespacepmc__coag__kernel__constant_a26b296df0f2d1dd4d6f3f848b371b408}} 
+\index{pmc\+\_\+coag\+\_\+kernel\+\_\+constant@{pmc\+\_\+coag\+\_\+kernel\+\_\+constant}!beta\+\_\+0@{beta\+\_\+0}}
+\index{beta\+\_\+0@{beta\+\_\+0}!pmc\+\_\+coag\+\_\+kernel\+\_\+constant@{pmc\+\_\+coag\+\_\+kernel\+\_\+constant}}
+\subsubsection{\texorpdfstring{beta\+\_\+0}{beta\_0}}
+{\footnotesize\ttfamily real(kind=dp), parameter pmc\+\_\+coag\+\_\+kernel\+\_\+constant\+::beta\+\_\+0 = 0.\+25d0 / (60d0 $\ast$ 2d8)}
+
+
+
+Coefficient for constant kernel. 
+
+
+
+Definition at line 22 of file coag\+\_\+kernel\+\_\+constant.\+F90.
+

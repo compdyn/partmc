@@ -1,0 +1,47 @@
+\hypertarget{aero__particle__array_8_f90}{}\section{aero\+\_\+particle\+\_\+array.\+F90 File Reference}
+\label{aero__particle__array_8_f90}\index{aero\+\_\+particle\+\_\+array.\+F90@{aero\+\_\+particle\+\_\+array.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__aero__particle__array}{pmc\+\_\+aero\+\_\+particle\+\_\+array}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{pmc\+\_\+aero\+\_\+particle\+\_\+array\+::aero\+\_\+particle\+\_\+array\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em 1-\/D array of particles, used by aero\+\_\+state to store the particles. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__aero__particle__array}{pmc\+\_\+aero\+\_\+particle\+\_\+array}}
+\begin{DoxyCompactList}\small\item\em The \mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}} structure and assoicated subroutines. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+elemental integer function \mbox{\hyperlink{namespacepmc__aero__particle__array_a07eb4b0a376bb87a889b7d9070f46b90}{pmc\+\_\+aero\+\_\+particle\+\_\+array\+::aero\+\_\+particle\+\_\+array\+\_\+n\+\_\+part}} (aero\+\_\+particle\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Return the current number of particles. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__particle__array_aba7d47622753636d93746a4cbe3c0222}{pmc\+\_\+aero\+\_\+particle\+\_\+array\+::aero\+\_\+particle\+\_\+array\+\_\+zero}} (aero\+\_\+particle\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Resets an aero\+\_\+particle\+\_\+array to contain zero particles. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__particle__array_a72e276df4d9db217ea0b63eb8d518d1b}{pmc\+\_\+aero\+\_\+particle\+\_\+array\+::aero\+\_\+particle\+\_\+array\+\_\+realloc}} (aero\+\_\+particle\+\_\+array, new\+\_\+length)
+\begin{DoxyCompactList}\small\item\em Changes the given aero\+\_\+particle\+\_\+array to exactly the given new\+\_\+length. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__particle__array_a49841804057f30972e8c2c855c0a8a27}{pmc\+\_\+aero\+\_\+particle\+\_\+array\+::aero\+\_\+particle\+\_\+array\+\_\+enlarge}} (aero\+\_\+particle\+\_\+array, n)
+\begin{DoxyCompactList}\small\item\em Possibly enlarges the given array, ensuring that it is at least of size n. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__particle__array_a0b023fbb97338eae021e719a3044b66a}{pmc\+\_\+aero\+\_\+particle\+\_\+array\+::aero\+\_\+particle\+\_\+array\+\_\+shrink}} (aero\+\_\+particle\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Possibly shrinks the storage of the given array, ensuring that it can still store the allocated particles. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__particle__array_ab73b42afceadd849d5ec2764a00f352b}{pmc\+\_\+aero\+\_\+particle\+\_\+array\+::aero\+\_\+particle\+\_\+array\+\_\+add\+\_\+particle}} (aero\+\_\+particle\+\_\+array, aero\+\_\+particle)
+\begin{DoxyCompactList}\small\item\em Adds the given particle to the end of the array. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__particle__array_ae9235097ccd6e404376698476935f1d8}{pmc\+\_\+aero\+\_\+particle\+\_\+array\+::aero\+\_\+particle\+\_\+array\+\_\+remove\+\_\+particle}} (aero\+\_\+particle\+\_\+array, index)
+\begin{DoxyCompactList}\small\item\em Removes the particle at the given index. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__aero__particle__array_a290d3188932591b977cef41dd912a335}{pmc\+\_\+aero\+\_\+particle\+\_\+array\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+apa}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__particle__array_a5a1cb513ef2be5a52af19464a8a17a3f}{pmc\+\_\+aero\+\_\+particle\+\_\+array\+::pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+particle\+\_\+array}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__particle__array_a291741b0c1a43833d01c1e90fce5848b}{pmc\+\_\+aero\+\_\+particle\+\_\+array\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+particle\+\_\+array}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__particle__array_a6f4a60d073f866cb41a593de26778dd3}{pmc\+\_\+aero\+\_\+particle\+\_\+array\+::aero\+\_\+particle\+\_\+array\+\_\+check}} (aero\+\_\+particle\+\_\+array, aero\+\_\+data, continue\+\_\+on\+\_\+error)
+\begin{DoxyCompactList}\small\item\em Check that the particle array data is consistent. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__aero__particle__array}{pmc\+\_\+aero\+\_\+particle\+\_\+array}} module. 
+

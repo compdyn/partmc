@@ -1,0 +1,220 @@
+\hypertarget{namespacepmc__run__part}{}\section{pmc\+\_\+run\+\_\+part Module Reference}
+\label{namespacepmc__run__part}\index{pmc\+\_\+run\+\_\+part@{pmc\+\_\+run\+\_\+part}}
+
+
+Monte Carlo simulation.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__run__part_1_1run__part__opt__t}{run\+\_\+part\+\_\+opt\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Options controlling the execution of \mbox{\hyperlink{namespacepmc__run__part_af2f5c765b1f86663d85b7ca882325eca}{run\+\_\+part()}}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__run__part_af2f5c765b1f86663d85b7ca882325eca}{run\+\_\+part}} (scenario, env\+\_\+state, aero\+\_\+data, aero\+\_\+state, gas\+\_\+data, gas\+\_\+state, run\+\_\+part\+\_\+opt, phlex\+\_\+core)
+\begin{DoxyCompactList}\small\item\em Do a particle-\/resolved Monte Carlo simulation. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__run__part_a78a61c036c01bfc2a51ef82319cfa1ef}{print\+\_\+part\+\_\+progress}} (i\+\_\+repeat, t\+\_\+sim\+\_\+elapsed, n\+\_\+part, n\+\_\+coag, n\+\_\+emit, n\+\_\+dil\+\_\+in, n\+\_\+dil\+\_\+out, n\+\_\+nuc, t\+\_\+wall\+\_\+elapsed, t\+\_\+wall\+\_\+remain)
+\begin{DoxyCompactList}\small\item\em Print the current simulation progress to the screen. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__run__part_ae9658ba7f39866fd66db89befeb7e24d}{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+run\+\_\+part\+\_\+opt}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__run__part_ab2ea939c65074559a8e6f98626ec07b7}{pmc\+\_\+mpi\+\_\+pack\+\_\+run\+\_\+part\+\_\+opt}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__run__part_ab6674f0051ea8191191000e82158faa1}{pmc\+\_\+mpi\+\_\+unpack\+\_\+run\+\_\+part\+\_\+opt}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__run__part_a278a5ae0d4e066b778b5d58f6a95679c}{parallel\+\_\+coag\+\_\+type\+\_\+invalid}} = 0
+\begin{DoxyCompactList}\small\item\em Type code for undefined or invalid parallel coagulation method. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__run__part_a17a6185240300cc792ac0542cfcf0437}{parallel\+\_\+coag\+\_\+type\+\_\+local}} = 1
+\begin{DoxyCompactList}\small\item\em Type code for local parallel coagulation. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__run__part_a0225a153cd9f702143b136eee13adc47}{parallel\+\_\+coag\+\_\+type\+\_\+dist}} = 2
+\begin{DoxyCompactList}\small\item\em Type code for distributed parallel coagulation. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Monte Carlo simulation. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__run__part_ab2ea939c65074559a8e6f98626ec07b7}\label{namespacepmc__run__part_ab2ea939c65074559a8e6f98626ec07b7}} 
+\index{pmc\+\_\+run\+\_\+part@{pmc\+\_\+run\+\_\+part}!pmc\+\_\+mpi\+\_\+pack\+\_\+run\+\_\+part\+\_\+opt@{pmc\+\_\+mpi\+\_\+pack\+\_\+run\+\_\+part\+\_\+opt}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+run\+\_\+part\+\_\+opt@{pmc\+\_\+mpi\+\_\+pack\+\_\+run\+\_\+part\+\_\+opt}!pmc\+\_\+run\+\_\+part@{pmc\+\_\+run\+\_\+part}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+run\+\_\+part\+\_\+opt()}{pmc\_mpi\_pack\_run\_part\_opt()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+run\+\_\+part\+::pmc\+\_\+mpi\+\_\+pack\+\_\+run\+\_\+part\+\_\+opt (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{type(\mbox{\hyperlink{structpmc__run__part_1_1run__part__opt__t}{run\+\_\+part\+\_\+opt\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Packs the given value into the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 460 of file run\+\_\+part.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__run__part_ae9658ba7f39866fd66db89befeb7e24d}\label{namespacepmc__run__part_ae9658ba7f39866fd66db89befeb7e24d}} 
+\index{pmc\+\_\+run\+\_\+part@{pmc\+\_\+run\+\_\+part}!pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+run\+\_\+part\+\_\+opt@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+run\+\_\+part\+\_\+opt}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+run\+\_\+part\+\_\+opt@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+run\+\_\+part\+\_\+opt}!pmc\+\_\+run\+\_\+part@{pmc\+\_\+run\+\_\+part}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+run\+\_\+part\+\_\+opt()}{pmc\_mpi\_pack\_size\_run\_part\_opt()}}
+{\footnotesize\ttfamily integer function pmc\+\_\+run\+\_\+part\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+run\+\_\+part\+\_\+opt (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__run__part_1_1run__part__opt__t}{run\+\_\+part\+\_\+opt\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Determines the number of bytes required to pack the given value. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 419 of file run\+\_\+part.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__run__part_ab6674f0051ea8191191000e82158faa1}\label{namespacepmc__run__part_ab6674f0051ea8191191000e82158faa1}} 
+\index{pmc\+\_\+run\+\_\+part@{pmc\+\_\+run\+\_\+part}!pmc\+\_\+mpi\+\_\+unpack\+\_\+run\+\_\+part\+\_\+opt@{pmc\+\_\+mpi\+\_\+unpack\+\_\+run\+\_\+part\+\_\+opt}}
+\index{pmc\+\_\+mpi\+\_\+unpack\+\_\+run\+\_\+part\+\_\+opt@{pmc\+\_\+mpi\+\_\+unpack\+\_\+run\+\_\+part\+\_\+opt}!pmc\+\_\+run\+\_\+part@{pmc\+\_\+run\+\_\+part}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+unpack\+\_\+run\+\_\+part\+\_\+opt()}{pmc\_mpi\_unpack\_run\_part\_opt()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+run\+\_\+part\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+run\+\_\+part\+\_\+opt (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{type(\mbox{\hyperlink{structpmc__run__part_1_1run__part__opt__t}{run\+\_\+part\+\_\+opt\+\_\+t}}), intent(inout)}]{val }\end{DoxyParamCaption})}
+
+
+
+Unpacks the given value from the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in,out}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 511 of file run\+\_\+part.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__run__part_a78a61c036c01bfc2a51ef82319cfa1ef}\label{namespacepmc__run__part_a78a61c036c01bfc2a51ef82319cfa1ef}} 
+\index{pmc\+\_\+run\+\_\+part@{pmc\+\_\+run\+\_\+part}!print\+\_\+part\+\_\+progress@{print\+\_\+part\+\_\+progress}}
+\index{print\+\_\+part\+\_\+progress@{print\+\_\+part\+\_\+progress}!pmc\+\_\+run\+\_\+part@{pmc\+\_\+run\+\_\+part}}
+\subsubsection{\texorpdfstring{print\+\_\+part\+\_\+progress()}{print\_part\_progress()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+run\+\_\+part\+::print\+\_\+part\+\_\+progress (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{i\+\_\+repeat,  }\item[{real(kind=dp), intent(in)}]{t\+\_\+sim\+\_\+elapsed,  }\item[{integer, intent(in)}]{n\+\_\+part,  }\item[{integer, intent(in)}]{n\+\_\+coag,  }\item[{integer, intent(in)}]{n\+\_\+emit,  }\item[{integer, intent(in)}]{n\+\_\+dil\+\_\+in,  }\item[{integer, intent(in)}]{n\+\_\+dil\+\_\+out,  }\item[{integer, intent(in)}]{n\+\_\+nuc,  }\item[{real(kind=dp), intent(in)}]{t\+\_\+wall\+\_\+elapsed,  }\item[{real(kind=dp), intent(in)}]{t\+\_\+wall\+\_\+remain }\end{DoxyParamCaption})}
+
+
+
+Print the current simulation progress to the screen. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em i\+\_\+repeat} & Repeat number of simulation.\\
+\hline
+\mbox{\tt in}  & {\em t\+\_\+sim\+\_\+elapsed} & Elapsed simulation time (s).\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+part} & Number of particles.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+coag} & Number of coagulated particles since last progress printing.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+emit} & Number of emitted particles since last progress printing.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+dil\+\_\+in} & Number of diluted-\/in particles since last progress printing.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+dil\+\_\+out} & Number of diluted-\/out particles since last progress printing.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+nuc} & Number of nucleated particles since last progress printing.\\
+\hline
+\mbox{\tt in}  & {\em t\+\_\+wall\+\_\+elapsed} & Elapsed wall time (s).\\
+\hline
+\mbox{\tt in}  & {\em t\+\_\+wall\+\_\+remain} & Estimated remaining wall time (s). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 375 of file run\+\_\+part.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__run__part_af2f5c765b1f86663d85b7ca882325eca}\label{namespacepmc__run__part_af2f5c765b1f86663d85b7ca882325eca}} 
+\index{pmc\+\_\+run\+\_\+part@{pmc\+\_\+run\+\_\+part}!run\+\_\+part@{run\+\_\+part}}
+\index{run\+\_\+part@{run\+\_\+part}!pmc\+\_\+run\+\_\+part@{pmc\+\_\+run\+\_\+part}}
+\subsubsection{\texorpdfstring{run\+\_\+part()}{run\_part()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+run\+\_\+part\+::run\+\_\+part (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}}), intent(in)}]{scenario,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(inout)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}}), intent(in)}]{gas\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__gas__state_1_1gas__state__t}{gas\+\_\+state\+\_\+t}}), intent(inout)}]{gas\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__run__part_1_1run__part__opt__t}{run\+\_\+part\+\_\+opt\+\_\+t}}), intent(in)}]{run\+\_\+part\+\_\+opt,  }\item[{type(\mbox{\hyperlink{structpmc__phlex__core_1_1phlex__core__t}{phlex\+\_\+core\+\_\+t}}), intent(in), optional, pointer}]{phlex\+\_\+core }\end{DoxyParamCaption})}
+
+
+
+Do a particle-\/resolved Monte Carlo simulation. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em scenario} & Environment state.\\
+\hline
+\mbox{\tt in,out}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data.\\
+\hline
+\mbox{\tt in,out}  & {\em gas\+\_\+state} & Gas state.\\
+\hline
+\mbox{\tt in}  & {\em run\+\_\+part\+\_\+opt} & Monte Carlo options.\\
+\hline
+\mbox{\tt in}  & {\em phlex\+\_\+core} & Phlexible chemistry core \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 113 of file run\+\_\+part.\+F90.
+
+
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{namespacepmc__run__part_a0225a153cd9f702143b136eee13adc47}\label{namespacepmc__run__part_a0225a153cd9f702143b136eee13adc47}} 
+\index{pmc\+\_\+run\+\_\+part@{pmc\+\_\+run\+\_\+part}!parallel\+\_\+coag\+\_\+type\+\_\+dist@{parallel\+\_\+coag\+\_\+type\+\_\+dist}}
+\index{parallel\+\_\+coag\+\_\+type\+\_\+dist@{parallel\+\_\+coag\+\_\+type\+\_\+dist}!pmc\+\_\+run\+\_\+part@{pmc\+\_\+run\+\_\+part}}
+\subsubsection{\texorpdfstring{parallel\+\_\+coag\+\_\+type\+\_\+dist}{parallel\_coag\_type\_dist}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+run\+\_\+part\+::parallel\+\_\+coag\+\_\+type\+\_\+dist = 2}
+
+
+
+Type code for distributed parallel coagulation. 
+
+
+
+Definition at line 40 of file run\+\_\+part.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__run__part_a278a5ae0d4e066b778b5d58f6a95679c}\label{namespacepmc__run__part_a278a5ae0d4e066b778b5d58f6a95679c}} 
+\index{pmc\+\_\+run\+\_\+part@{pmc\+\_\+run\+\_\+part}!parallel\+\_\+coag\+\_\+type\+\_\+invalid@{parallel\+\_\+coag\+\_\+type\+\_\+invalid}}
+\index{parallel\+\_\+coag\+\_\+type\+\_\+invalid@{parallel\+\_\+coag\+\_\+type\+\_\+invalid}!pmc\+\_\+run\+\_\+part@{pmc\+\_\+run\+\_\+part}}
+\subsubsection{\texorpdfstring{parallel\+\_\+coag\+\_\+type\+\_\+invalid}{parallel\_coag\_type\_invalid}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+run\+\_\+part\+::parallel\+\_\+coag\+\_\+type\+\_\+invalid = 0}
+
+
+
+Type code for undefined or invalid parallel coagulation method. 
+
+
+
+Definition at line 36 of file run\+\_\+part.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__run__part_a17a6185240300cc792ac0542cfcf0437}\label{namespacepmc__run__part_a17a6185240300cc792ac0542cfcf0437}} 
+\index{pmc\+\_\+run\+\_\+part@{pmc\+\_\+run\+\_\+part}!parallel\+\_\+coag\+\_\+type\+\_\+local@{parallel\+\_\+coag\+\_\+type\+\_\+local}}
+\index{parallel\+\_\+coag\+\_\+type\+\_\+local@{parallel\+\_\+coag\+\_\+type\+\_\+local}!pmc\+\_\+run\+\_\+part@{pmc\+\_\+run\+\_\+part}}
+\subsubsection{\texorpdfstring{parallel\+\_\+coag\+\_\+type\+\_\+local}{parallel\_coag\_type\_local}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+run\+\_\+part\+::parallel\+\_\+coag\+\_\+type\+\_\+local = 1}
+
+
+
+Type code for local parallel coagulation. 
+
+
+
+Definition at line 38 of file run\+\_\+part.\+F90.
+

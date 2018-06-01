@@ -1,0 +1,628 @@
+\hypertarget{namespacepmc__coagulation__dist}{}\section{pmc\+\_\+coagulation\+\_\+dist Module Reference}
+\label{namespacepmc__coagulation__dist}\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+
+
+Parallel aerosol particle coagulation with M\+PI.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__coagulation__dist_1_1request__t}{request\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em A single outstanding request for a remote particle. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_afb4f993c6a05a78eac5532dc2eea2fca}{request\+\_\+allocate}} (request)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a3a30ae518446f11900156387e90adc91}{request\+\_\+deallocate}} (request)
+\begin{DoxyCompactList}\small\item\em Deallocate a request object and set it to be invalid. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__coagulation__dist_a2177c5bb512ea9262020b6928f2b5cba}{request\+\_\+is\+\_\+active}} (request)
+\begin{DoxyCompactList}\small\item\em Whether the given reqest object is currectly active. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_ae16e2850c2b268d077e91fac1f254660}{mc\+\_\+coag\+\_\+dist}} (coag\+\_\+kernel\+\_\+type, env\+\_\+state, aero\+\_\+data, aero\+\_\+state, del\+\_\+t, tot\+\_\+n\+\_\+samp, tot\+\_\+n\+\_\+coag)
+\begin{DoxyCompactList}\small\item\em Do coagulation for time del\+\_\+t. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_aa22e4e811fa31c5cd6049b4f216ac512}{coag\+\_\+dist\+\_\+recv}} (requests, env\+\_\+state, aero\+\_\+weight\+\_\+total, aero\+\_\+data, aero\+\_\+state, accept\+\_\+factors, coag\+\_\+kernel\+\_\+type, tot\+\_\+n\+\_\+coag, magnitudes, procs\+\_\+done)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_af4c13796261cf2c77fd2209a6d550184}{add\+\_\+coagulation\+\_\+requests}} (aero\+\_\+state, requests, n\+\_\+parts, local\+\_\+bin, remote\+\_\+bin, n\+\_\+samps, samps\+\_\+remaining)
+\item 
+logical function \mbox{\hyperlink{namespacepmc__coagulation__dist_a343ec0694b50e82dc5d833f42c9ed359}{any\+\_\+requests\+\_\+active}} (requests)
+\begin{DoxyCompactList}\small\item\em Returns {\ttfamily }.true. if any of the requests are active, otherwise returns {\ttfamily }.false. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a651e57c3eb431e54cc014e0121d700aa}{find\+\_\+rand\+\_\+remote\+\_\+proc}} (n\+\_\+parts, remote\+\_\+bin, remote\+\_\+proc)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a16eacae36a5a5a01dc3bbfdd96f7bdb3}{update\+\_\+n\+\_\+samps}} (n\+\_\+samps, local\+\_\+bin, remote\+\_\+bin, samps\+\_\+remaining)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a99ffd44c548887bda417e61c67ea0bbc}{send\+\_\+request\+\_\+particle}} (remote\+\_\+proc, remote\+\_\+bin)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_addc40be25e3ef491aa13a10e628afbf9}{recv\+\_\+request\+\_\+particle}} (aero\+\_\+state)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a6fd21d148a797e93278b9ca7347b2040}{send\+\_\+return\+\_\+no\+\_\+particle}} (dest\+\_\+proc, i\+\_\+bin)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a189b1c8e85725b70f1b80f44cdf8a2e1}{recv\+\_\+return\+\_\+no\+\_\+particle}} (requests, aero\+\_\+data, aero\+\_\+state)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_af9f9db875f5df9d3e69ce63accf95d98}{send\+\_\+return\+\_\+req\+\_\+particle}} (aero\+\_\+particle, i\+\_\+bin, dest\+\_\+proc)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a0e6ac760034791004d9e50f77c786ed4}{recv\+\_\+return\+\_\+req\+\_\+particle}} (requests, env\+\_\+state, aero\+\_\+weight\+\_\+total, aero\+\_\+data, aero\+\_\+state, accept\+\_\+factors, coag\+\_\+kernel\+\_\+type, tot\+\_\+n\+\_\+coag, magnitudes)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a2d80a8bdea3206f51071cbd58ac39e50}{send\+\_\+return\+\_\+unreq\+\_\+particle}} (aero\+\_\+particle, dest\+\_\+proc)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a14c2a349dca62ade3455519ee9495562}{recv\+\_\+return\+\_\+unreq\+\_\+particle}} (aero\+\_\+state, aero\+\_\+data)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a1e9943ac016e1a33aea378a2c03475c2}{send\+\_\+done}} (dest\+\_\+proc)
+\begin{DoxyCompactList}\small\item\em Send a message saying that this process is finished with its coagulation. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_aabf7ad0c151fc3f2bd7f9adad6791cc2}{recv\+\_\+done}} (procs\+\_\+done)
+\begin{DoxyCompactList}\small\item\em Receive a done message. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a8a5dfc3b2ce4151e0b4010978fa5afa1}{generate\+\_\+n\+\_\+samps}} (n\+\_\+parts, del\+\_\+t, bin\+\_\+grid, aero\+\_\+weight\+\_\+array, k\+\_\+max, n\+\_\+samps, accept\+\_\+factors)
+\begin{DoxyCompactList}\small\item\em generate the number of samples to do per bin pair. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a08afcc602f062f98712051fc31d30527}{coagulate\+\_\+dist}} (aero\+\_\+data, aero\+\_\+state, aero\+\_\+particle\+\_\+1, aero\+\_\+particle\+\_\+2, remote\+\_\+proc, aero\+\_\+weight\+\_\+total, magnitudes, remove\+\_\+1, remove\+\_\+2)
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__coagulation__dist_abb819d699f6444884920ff2d74ec6029}{coag\+\_\+dist\+\_\+outgoing\+\_\+buffer\+\_\+size}} = 1000000
+\begin{DoxyCompactList}\small\item\em Size of the outgoing buffer for {\ttfamily bsend} (bytes). \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__coagulation__dist_ab3e4473a732c373efcf8ab530122cae8}{coag\+\_\+dist\+\_\+max\+\_\+buffer\+\_\+size}} = 10000
+\begin{DoxyCompactList}\small\item\em Size of send and receive buffer for each message (bytes). \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__coagulation__dist_ad7130affac816ec06993cec78d709373}{coag\+\_\+dist\+\_\+max\+\_\+requests}} = 1
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__coagulation__dist_ab6b1e6f6a55e57f278333e999c39e410}{coag\+\_\+dist\+\_\+tag\+\_\+request\+\_\+particle}} = 5321
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__coagulation__dist_abbe8d538b4d2ecf332192cee8127f15d}{coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+req\+\_\+particle}} = 5322
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__coagulation__dist_aae979dd8e66e985362f2063f669f36dc}{coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+unreq\+\_\+particle}} = 5323
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__coagulation__dist_a2d3fbb1c25d95ef5333fa20db3f5eaf0}{coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+no\+\_\+particle}} = 5324
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__coagulation__dist_ae077b985386ed347d8b4f7791a9cbfcf}{coag\+\_\+dist\+\_\+tag\+\_\+done}} = 5325
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Parallel aerosol particle coagulation with M\+PI. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_af4c13796261cf2c77fd2209a6d550184}\label{namespacepmc__coagulation__dist_af4c13796261cf2c77fd2209a6d550184}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!add\+\_\+coagulation\+\_\+requests@{add\+\_\+coagulation\+\_\+requests}}
+\index{add\+\_\+coagulation\+\_\+requests@{add\+\_\+coagulation\+\_\+requests}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{add\+\_\+coagulation\+\_\+requests()}{add\_coagulation\_requests()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+\_\+dist\+::add\+\_\+coagulation\+\_\+requests (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__coagulation__dist_1_1request__t}{request\+\_\+t}}), dimension(\mbox{\hyperlink{namespacepmc__coagulation__dist_ad7130affac816ec06993cec78d709373}{coag\+\_\+dist\+\_\+max\+\_\+requests}}), intent(inout)}]{requests,  }\item[{integer, dimension(\+:,\+:), intent(in)}]{n\+\_\+parts,  }\item[{integer, intent(inout)}]{local\+\_\+bin,  }\item[{integer, intent(inout)}]{remote\+\_\+bin,  }\item[{integer, dimension(\+:,\+:), intent(inout)}]{n\+\_\+samps,  }\item[{logical, intent(inout)}]{samps\+\_\+remaining }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+\mbox{\tt in,out}  & {\em requests} & Array of outstanding requests.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+parts} & Number of particles per bin per process.\\
+\hline
+\mbox{\tt in,out}  & {\em local\+\_\+bin} & Bin index of first particle we need to coagulate.\\
+\hline
+\mbox{\tt in,out}  & {\em remote\+\_\+bin} & Bin index of second particle we need to coagulate.\\
+\hline
+\mbox{\tt in,out}  & {\em n\+\_\+samps} & Number of samples remaining per bin pair\\
+\hline
+\mbox{\tt in,out}  & {\em samps\+\_\+remaining} & Whether there are still coagulation samples that need to be done. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 303 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_a343ec0694b50e82dc5d833f42c9ed359}\label{namespacepmc__coagulation__dist_a343ec0694b50e82dc5d833f42c9ed359}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!any\+\_\+requests\+\_\+active@{any\+\_\+requests\+\_\+active}}
+\index{any\+\_\+requests\+\_\+active@{any\+\_\+requests\+\_\+active}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{any\+\_\+requests\+\_\+active()}{any\_requests\_active()}}
+{\footnotesize\ttfamily logical function pmc\+\_\+coagulation\+\_\+dist\+::any\+\_\+requests\+\_\+active (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__coagulation__dist_1_1request__t}{request\+\_\+t}}), dimension(\mbox{\hyperlink{namespacepmc__coagulation__dist_ad7130affac816ec06993cec78d709373}{coag\+\_\+dist\+\_\+max\+\_\+requests}}), intent(inout)}]{requests }\end{DoxyParamCaption})}
+
+
+
+Returns {\ttfamily }.true. if any of the requests are active, otherwise returns {\ttfamily }.false. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em requests} & Array of outstanding requests. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 358 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_aa22e4e811fa31c5cd6049b4f216ac512}\label{namespacepmc__coagulation__dist_aa22e4e811fa31c5cd6049b4f216ac512}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!coag\+\_\+dist\+\_\+recv@{coag\+\_\+dist\+\_\+recv}}
+\index{coag\+\_\+dist\+\_\+recv@{coag\+\_\+dist\+\_\+recv}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{coag\+\_\+dist\+\_\+recv()}{coag\_dist\_recv()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+\_\+dist\+::coag\+\_\+dist\+\_\+recv (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__coagulation__dist_1_1request__t}{request\+\_\+t}}), dimension(\mbox{\hyperlink{namespacepmc__coagulation__dist_ad7130affac816ec06993cec78d709373}{coag\+\_\+dist\+\_\+max\+\_\+requests}}), intent(inout)}]{requests,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+weight\+\_\+total,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{real(kind=dp), dimension(\+:,\+:), intent(in)}]{accept\+\_\+factors,  }\item[{integer, intent(in)}]{coag\+\_\+kernel\+\_\+type,  }\item[{integer, intent(inout)}]{tot\+\_\+n\+\_\+coag,  }\item[{real(kind=dp), dimension(\+:,\+:), intent(in)}]{magnitudes,  }\item[{logical, dimension(\+:), intent(inout)}]{procs\+\_\+done }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em requests} & Array of outstanding requests.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+weight\+\_\+total} & Total weighting functions.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+\mbox{\tt in}  & {\em accept\+\_\+factors} & Accept scale factors per bin pair (1).\\
+\hline
+\mbox{\tt in}  & {\em coag\+\_\+kernel\+\_\+type} & Coagulation kernel type.\\
+\hline
+\mbox{\tt in,out}  & {\em tot\+\_\+n\+\_\+coag} & Number of coagulation events.\\
+\hline
+\mbox{\tt in}  & {\em magnitudes} & Computational volumes on all processes.\\
+\hline
+\mbox{\tt in,out}  & {\em procs\+\_\+done} & Which processes are finished with coagulation. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 251 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_a08afcc602f062f98712051fc31d30527}\label{namespacepmc__coagulation__dist_a08afcc602f062f98712051fc31d30527}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!coagulate\+\_\+dist@{coagulate\+\_\+dist}}
+\index{coagulate\+\_\+dist@{coagulate\+\_\+dist}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{coagulate\+\_\+dist()}{coagulate\_dist()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+\_\+dist\+::coagulate\+\_\+dist (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{aero\+\_\+particle\+\_\+1,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{aero\+\_\+particle\+\_\+2,  }\item[{integer, intent(in)}]{remote\+\_\+proc,  }\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+weight\+\_\+total,  }\item[{real(kind=dp), dimension(\+:,\+:), intent(in)}]{magnitudes,  }\item[{logical, intent(out)}]{remove\+\_\+1,  }\item[{logical, intent(out)}]{remove\+\_\+2 }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+particle\+\_\+1} & First particle to coagulate.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+particle\+\_\+2} & Second particle to coagulate.\\
+\hline
+\mbox{\tt in}  & {\em remote\+\_\+proc} & Remote process that the particle came from.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+weight\+\_\+total} & Total weight across all processes.\\
+\hline
+\mbox{\tt in}  & {\em magnitudes} & Computational volumes on all processes (m$^\wedge$3).\\
+\hline
+\mbox{\tt out}  & {\em remove\+\_\+1} & Whether to remove aero\+\_\+particle\+\_\+1 after the coagulation.\\
+\hline
+\mbox{\tt out}  & {\em remove\+\_\+2} & Whether to remove aero\+\_\+particle\+\_\+2 after the coagulation. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 888 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_a651e57c3eb431e54cc014e0121d700aa}\label{namespacepmc__coagulation__dist_a651e57c3eb431e54cc014e0121d700aa}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!find\+\_\+rand\+\_\+remote\+\_\+proc@{find\+\_\+rand\+\_\+remote\+\_\+proc}}
+\index{find\+\_\+rand\+\_\+remote\+\_\+proc@{find\+\_\+rand\+\_\+remote\+\_\+proc}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{find\+\_\+rand\+\_\+remote\+\_\+proc()}{find\_rand\_remote\_proc()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+\_\+dist\+::find\+\_\+rand\+\_\+remote\+\_\+proc (\begin{DoxyParamCaption}\item[{integer, dimension(\+:,\+:), intent(in)}]{n\+\_\+parts,  }\item[{integer, intent(in)}]{remote\+\_\+bin,  }\item[{integer, intent(out)}]{remote\+\_\+proc }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em n\+\_\+parts} & Number of particles per bin per process.\\
+\hline
+\mbox{\tt in}  & {\em remote\+\_\+bin} & Remote bin number.\\
+\hline
+\mbox{\tt out}  & {\em remote\+\_\+proc} & Remote process number chosen at random. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 377 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_a8a5dfc3b2ce4151e0b4010978fa5afa1}\label{namespacepmc__coagulation__dist_a8a5dfc3b2ce4151e0b4010978fa5afa1}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!generate\+\_\+n\+\_\+samps@{generate\+\_\+n\+\_\+samps}}
+\index{generate\+\_\+n\+\_\+samps@{generate\+\_\+n\+\_\+samps}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{generate\+\_\+n\+\_\+samps()}{generate\_n\_samps()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+\_\+dist\+::generate\+\_\+n\+\_\+samps (\begin{DoxyParamCaption}\item[{integer, dimension(\+:,\+:), intent(in)}]{n\+\_\+parts,  }\item[{real(kind=dp), intent(in)}]{del\+\_\+t,  }\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+weight\+\_\+array,  }\item[{real(kind=dp), dimension(\+:,\+:), intent(in)}]{k\+\_\+max,  }\item[{integer, dimension(\+:,\+:), intent(out)}]{n\+\_\+samps,  }\item[{real(kind=dp), dimension(\+:,\+:), intent(out)}]{accept\+\_\+factors }\end{DoxyParamCaption})}
+
+
+
+generate the number of samples to do per bin pair. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em n\+\_\+parts} & Number of particles per bin on all processes.\\
+\hline
+\mbox{\tt in}  & {\em del\+\_\+t} & Timestep.\\
+\hline
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+weight\+\_\+array} & Weighting function array.\\
+\hline
+\mbox{\tt in}  & {\em k\+\_\+max} & Maximum kernel.\\
+\hline
+\mbox{\tt out}  & {\em n\+\_\+samps} & Number of samples to do per bin pair.\\
+\hline
+\mbox{\tt out}  & {\em accept\+\_\+factors} & Accept scale factors per bin pair (1). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 848 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_ae16e2850c2b268d077e91fac1f254660}\label{namespacepmc__coagulation__dist_ae16e2850c2b268d077e91fac1f254660}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!mc\+\_\+coag\+\_\+dist@{mc\+\_\+coag\+\_\+dist}}
+\index{mc\+\_\+coag\+\_\+dist@{mc\+\_\+coag\+\_\+dist}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{mc\+\_\+coag\+\_\+dist()}{mc\_coag\_dist()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+\_\+dist\+::mc\+\_\+coag\+\_\+dist (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{coag\+\_\+kernel\+\_\+type,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{real(kind=dp), intent(in)}]{del\+\_\+t,  }\item[{integer, intent(out)}]{tot\+\_\+n\+\_\+samp,  }\item[{integer, intent(out)}]{tot\+\_\+n\+\_\+coag }\end{DoxyParamCaption})}
+
+
+
+Do coagulation for time del\+\_\+t. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em coag\+\_\+kernel\+\_\+type} & Coagulation kernel type.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+\mbox{\tt in}  & {\em del\+\_\+t} & Timestep.\\
+\hline
+\mbox{\tt out}  & {\em tot\+\_\+n\+\_\+samp} & Total number of samples tested.\\
+\hline
+\mbox{\tt out}  & {\em tot\+\_\+n\+\_\+coag} & Number of coagulation events. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 106 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_aabf7ad0c151fc3f2bd7f9adad6791cc2}\label{namespacepmc__coagulation__dist_aabf7ad0c151fc3f2bd7f9adad6791cc2}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!recv\+\_\+done@{recv\+\_\+done}}
+\index{recv\+\_\+done@{recv\+\_\+done}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{recv\+\_\+done()}{recv\_done()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+\_\+dist\+::recv\+\_\+done (\begin{DoxyParamCaption}\item[{logical, dimension(\+:), intent(inout)}]{procs\+\_\+done }\end{DoxyParamCaption})}
+
+
+
+Receive a done message. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em procs\+\_\+done} & Which processes are finished with coagulation. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 816 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_addc40be25e3ef491aa13a10e628afbf9}\label{namespacepmc__coagulation__dist_addc40be25e3ef491aa13a10e628afbf9}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!recv\+\_\+request\+\_\+particle@{recv\+\_\+request\+\_\+particle}}
+\index{recv\+\_\+request\+\_\+particle@{recv\+\_\+request\+\_\+particle}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{recv\+\_\+request\+\_\+particle()}{recv\_request\_particle()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+\_\+dist\+::recv\+\_\+request\+\_\+particle (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aero state. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 461 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_a189b1c8e85725b70f1b80f44cdf8a2e1}\label{namespacepmc__coagulation__dist_a189b1c8e85725b70f1b80f44cdf8a2e1}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!recv\+\_\+return\+\_\+no\+\_\+particle@{recv\+\_\+return\+\_\+no\+\_\+particle}}
+\index{recv\+\_\+return\+\_\+no\+\_\+particle@{recv\+\_\+return\+\_\+no\+\_\+particle}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{recv\+\_\+return\+\_\+no\+\_\+particle()}{recv\_return\_no\_particle()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+\_\+dist\+::recv\+\_\+return\+\_\+no\+\_\+particle (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__coagulation__dist_1_1request__t}{request\+\_\+t}}), dimension(\mbox{\hyperlink{namespacepmc__coagulation__dist_ad7130affac816ec06993cec78d709373}{coag\+\_\+dist\+\_\+max\+\_\+requests}}), intent(inout)}]{requests,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em requests} & Array of outstanding requests.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 536 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_a0e6ac760034791004d9e50f77c786ed4}\label{namespacepmc__coagulation__dist_a0e6ac760034791004d9e50f77c786ed4}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!recv\+\_\+return\+\_\+req\+\_\+particle@{recv\+\_\+return\+\_\+req\+\_\+particle}}
+\index{recv\+\_\+return\+\_\+req\+\_\+particle@{recv\+\_\+return\+\_\+req\+\_\+particle}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{recv\+\_\+return\+\_\+req\+\_\+particle()}{recv\_return\_req\_particle()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+\_\+dist\+::recv\+\_\+return\+\_\+req\+\_\+particle (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__coagulation__dist_1_1request__t}{request\+\_\+t}}), dimension(\mbox{\hyperlink{namespacepmc__coagulation__dist_ad7130affac816ec06993cec78d709373}{coag\+\_\+dist\+\_\+max\+\_\+requests}}), intent(inout)}]{requests,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+weight\+\_\+total,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{real(kind=dp), dimension(\+:,\+:), intent(in)}]{accept\+\_\+factors,  }\item[{integer, intent(in)}]{coag\+\_\+kernel\+\_\+type,  }\item[{integer, intent(inout)}]{tot\+\_\+n\+\_\+coag,  }\item[{real(kind=dp), dimension(\+:,\+:), intent(in)}]{magnitudes }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em requests} & Array of outstanding requests.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+weight\+\_\+total} & Total weighting array.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+\mbox{\tt in}  & {\em accept\+\_\+factors} & Accept scale factors per bin pair (1).\\
+\hline
+\mbox{\tt in}  & {\em coag\+\_\+kernel\+\_\+type} & Coagulation kernel type.\\
+\hline
+\mbox{\tt in,out}  & {\em tot\+\_\+n\+\_\+coag} & Number of coagulation events.\\
+\hline
+\mbox{\tt in}  & {\em magnitudes} & Computational volumes on all processes. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 627 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_a14c2a349dca62ade3455519ee9495562}\label{namespacepmc__coagulation__dist_a14c2a349dca62ade3455519ee9495562}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!recv\+\_\+return\+\_\+unreq\+\_\+particle@{recv\+\_\+return\+\_\+unreq\+\_\+particle}}
+\index{recv\+\_\+return\+\_\+unreq\+\_\+particle@{recv\+\_\+return\+\_\+unreq\+\_\+particle}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{recv\+\_\+return\+\_\+unreq\+\_\+particle()}{recv\_return\_unreq\_particle()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+\_\+dist\+::recv\+\_\+return\+\_\+unreq\+\_\+particle (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 754 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_afb4f993c6a05a78eac5532dc2eea2fca}\label{namespacepmc__coagulation__dist_afb4f993c6a05a78eac5532dc2eea2fca}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!request\+\_\+allocate@{request\+\_\+allocate}}
+\index{request\+\_\+allocate@{request\+\_\+allocate}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{request\+\_\+allocate()}{request\_allocate()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+\_\+dist\+::request\+\_\+allocate (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__coagulation__dist_1_1request__t}{request\+\_\+t}}), intent(out)}]{request }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em request} & Request object to allocate. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 69 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_a3a30ae518446f11900156387e90adc91}\label{namespacepmc__coagulation__dist_a3a30ae518446f11900156387e90adc91}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!request\+\_\+deallocate@{request\+\_\+deallocate}}
+\index{request\+\_\+deallocate@{request\+\_\+deallocate}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{request\+\_\+deallocate()}{request\_deallocate()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+\_\+dist\+::request\+\_\+deallocate (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__coagulation__dist_1_1request__t}{request\+\_\+t}}), intent(inout)}]{request }\end{DoxyParamCaption})}
+
+
+
+Deallocate a request object and set it to be invalid. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em request} & Request object to deallocate \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 81 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_a2177c5bb512ea9262020b6928f2b5cba}\label{namespacepmc__coagulation__dist_a2177c5bb512ea9262020b6928f2b5cba}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!request\+\_\+is\+\_\+active@{request\+\_\+is\+\_\+active}}
+\index{request\+\_\+is\+\_\+active@{request\+\_\+is\+\_\+active}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{request\+\_\+is\+\_\+active()}{request\_is\_active()}}
+{\footnotesize\ttfamily logical function pmc\+\_\+coagulation\+\_\+dist\+::request\+\_\+is\+\_\+active (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__coagulation__dist_1_1request__t}{request\+\_\+t}}), intent(in)}]{request }\end{DoxyParamCaption})}
+
+
+
+Whether the given reqest object is currectly active. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em request} & Request object to test for activeness. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 93 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_a1e9943ac016e1a33aea378a2c03475c2}\label{namespacepmc__coagulation__dist_a1e9943ac016e1a33aea378a2c03475c2}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!send\+\_\+done@{send\+\_\+done}}
+\index{send\+\_\+done@{send\+\_\+done}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{send\+\_\+done()}{send\_done()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+\_\+dist\+::send\+\_\+done (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{dest\+\_\+proc }\end{DoxyParamCaption})}
+
+
+
+Send a message saying that this process is finished with its coagulation. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em dest\+\_\+proc} & Process to send the message to. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 796 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_a99ffd44c548887bda417e61c67ea0bbc}\label{namespacepmc__coagulation__dist_a99ffd44c548887bda417e61c67ea0bbc}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!send\+\_\+request\+\_\+particle@{send\+\_\+request\+\_\+particle}}
+\index{send\+\_\+request\+\_\+particle@{send\+\_\+request\+\_\+particle}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{send\+\_\+request\+\_\+particle()}{send\_request\_particle()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+\_\+dist\+::send\+\_\+request\+\_\+particle (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{remote\+\_\+proc,  }\item[{integer, intent(in)}]{remote\+\_\+bin }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em remote\+\_\+proc} & Remote process number.\\
+\hline
+\mbox{\tt in}  & {\em remote\+\_\+bin} & Remote bin number. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 434 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_a6fd21d148a797e93278b9ca7347b2040}\label{namespacepmc__coagulation__dist_a6fd21d148a797e93278b9ca7347b2040}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!send\+\_\+return\+\_\+no\+\_\+particle@{send\+\_\+return\+\_\+no\+\_\+particle}}
+\index{send\+\_\+return\+\_\+no\+\_\+particle@{send\+\_\+return\+\_\+no\+\_\+particle}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{send\+\_\+return\+\_\+no\+\_\+particle()}{send\_return\_no\_particle()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+\_\+dist\+::send\+\_\+return\+\_\+no\+\_\+particle (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{dest\+\_\+proc,  }\item[{integer, intent(in)}]{i\+\_\+bin }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em dest\+\_\+proc} & Process number to send message to.\\
+\hline
+\mbox{\tt in}  & {\em i\+\_\+bin} & Bin number where there was no particle. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 509 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_af9f9db875f5df9d3e69ce63accf95d98}\label{namespacepmc__coagulation__dist_af9f9db875f5df9d3e69ce63accf95d98}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!send\+\_\+return\+\_\+req\+\_\+particle@{send\+\_\+return\+\_\+req\+\_\+particle}}
+\index{send\+\_\+return\+\_\+req\+\_\+particle@{send\+\_\+return\+\_\+req\+\_\+particle}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{send\+\_\+return\+\_\+req\+\_\+particle()}{send\_return\_req\_particle()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+\_\+dist\+::send\+\_\+return\+\_\+req\+\_\+particle (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{aero\+\_\+particle,  }\item[{integer, intent(in)}]{i\+\_\+bin,  }\item[{integer, intent(in)}]{dest\+\_\+proc }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+particle} & Aero particle to send.\\
+\hline
+\mbox{\tt in}  & {\em i\+\_\+bin} & Bin that the particle is in.\\
+\hline
+\mbox{\tt in}  & {\em dest\+\_\+proc} & Process number to send particle to. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 593 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_a2d80a8bdea3206f51071cbd58ac39e50}\label{namespacepmc__coagulation__dist_a2d80a8bdea3206f51071cbd58ac39e50}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!send\+\_\+return\+\_\+unreq\+\_\+particle@{send\+\_\+return\+\_\+unreq\+\_\+particle}}
+\index{send\+\_\+return\+\_\+unreq\+\_\+particle@{send\+\_\+return\+\_\+unreq\+\_\+particle}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{send\+\_\+return\+\_\+unreq\+\_\+particle()}{send\_return\_unreq\_particle()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+\_\+dist\+::send\+\_\+return\+\_\+unreq\+\_\+particle (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{aero\+\_\+particle,  }\item[{integer, intent(in)}]{dest\+\_\+proc }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+particle} & Aero particle to send.\\
+\hline
+\mbox{\tt in}  & {\em dest\+\_\+proc} & Process to send the particle to. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 726 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_a16eacae36a5a5a01dc3bbfdd96f7bdb3}\label{namespacepmc__coagulation__dist_a16eacae36a5a5a01dc3bbfdd96f7bdb3}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!update\+\_\+n\+\_\+samps@{update\+\_\+n\+\_\+samps}}
+\index{update\+\_\+n\+\_\+samps@{update\+\_\+n\+\_\+samps}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{update\+\_\+n\+\_\+samps()}{update\_n\_samps()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+\_\+dist\+::update\+\_\+n\+\_\+samps (\begin{DoxyParamCaption}\item[{integer, dimension(\+:,\+:), intent(inout)}]{n\+\_\+samps,  }\item[{integer, intent(inout)}]{local\+\_\+bin,  }\item[{integer, intent(inout)}]{remote\+\_\+bin,  }\item[{logical, intent(inout)}]{samps\+\_\+remaining }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em n\+\_\+samps} & Number of samples remaining per bin pair\\
+\hline
+\mbox{\tt in,out}  & {\em local\+\_\+bin} & Bin index of first particle we need to coagulate.\\
+\hline
+\mbox{\tt in,out}  & {\em remote\+\_\+bin} & Bin index of second particle we need to coagulate.\\
+\hline
+\mbox{\tt in,out}  & {\em samps\+\_\+remaining} & Whether there are still coagulation samples that need to be done. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 397 of file coagulation\+\_\+dist.\+F90.
+
+
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_ab3e4473a732c373efcf8ab530122cae8}\label{namespacepmc__coagulation__dist_ab3e4473a732c373efcf8ab530122cae8}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!coag\+\_\+dist\+\_\+max\+\_\+buffer\+\_\+size@{coag\+\_\+dist\+\_\+max\+\_\+buffer\+\_\+size}}
+\index{coag\+\_\+dist\+\_\+max\+\_\+buffer\+\_\+size@{coag\+\_\+dist\+\_\+max\+\_\+buffer\+\_\+size}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{coag\+\_\+dist\+\_\+max\+\_\+buffer\+\_\+size}{coag\_dist\_max\_buffer\_size}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+coagulation\+\_\+dist\+::coag\+\_\+dist\+\_\+max\+\_\+buffer\+\_\+size = 10000}
+
+
+
+Size of send and receive buffer for each message (bytes). 
+
+The biggest message type will be one of the particle-\/sending types, for which we need \mbox{\hyperlink{namespacepmc__aero__particle_a1f0365c14bb9b38724842c598cb152ed}{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+particle()}}, plus a couple of integers or something. At the moment this means something like (10 + n\+\_\+spec) reals, (3 + 2) integers, which for n\+\_\+spec = 20 gives a size of 260 bytes. 
+
+Definition at line 39 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_ad7130affac816ec06993cec78d709373}\label{namespacepmc__coagulation__dist_ad7130affac816ec06993cec78d709373}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!coag\+\_\+dist\+\_\+max\+\_\+requests@{coag\+\_\+dist\+\_\+max\+\_\+requests}}
+\index{coag\+\_\+dist\+\_\+max\+\_\+requests@{coag\+\_\+dist\+\_\+max\+\_\+requests}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{coag\+\_\+dist\+\_\+max\+\_\+requests}{coag\_dist\_max\_requests}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+coagulation\+\_\+dist\+::coag\+\_\+dist\+\_\+max\+\_\+requests = 1}
+
+
+
+Definition at line 40 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_abb819d699f6444884920ff2d74ec6029}\label{namespacepmc__coagulation__dist_abb819d699f6444884920ff2d74ec6029}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!coag\+\_\+dist\+\_\+outgoing\+\_\+buffer\+\_\+size@{coag\+\_\+dist\+\_\+outgoing\+\_\+buffer\+\_\+size}}
+\index{coag\+\_\+dist\+\_\+outgoing\+\_\+buffer\+\_\+size@{coag\+\_\+dist\+\_\+outgoing\+\_\+buffer\+\_\+size}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{coag\+\_\+dist\+\_\+outgoing\+\_\+buffer\+\_\+size}{coag\_dist\_outgoing\_buffer\_size}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+coagulation\+\_\+dist\+::coag\+\_\+dist\+\_\+outgoing\+\_\+buffer\+\_\+size = 1000000}
+
+
+
+Size of the outgoing buffer for {\ttfamily bsend} (bytes). 
+
+F\+I\+X\+ME\+: check that this size is big enough. It must be large enough to handle the required number of messages of the given sizes, plus M\+P\+I\+\_\+\+B\+S\+E\+N\+D\+\_\+\+O\+V\+E\+R\+H\+E\+AD per message, plus some extra room because it\textquotesingle{}s only kind of a circular buffer --- the messages themselves aren\textquotesingle{}t allowed to wrap around then end, so we might need extra space up to the size of the largest message type. 
+
+Definition at line 31 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_ae077b985386ed347d8b4f7791a9cbfcf}\label{namespacepmc__coagulation__dist_ae077b985386ed347d8b4f7791a9cbfcf}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!coag\+\_\+dist\+\_\+tag\+\_\+done@{coag\+\_\+dist\+\_\+tag\+\_\+done}}
+\index{coag\+\_\+dist\+\_\+tag\+\_\+done@{coag\+\_\+dist\+\_\+tag\+\_\+done}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{coag\+\_\+dist\+\_\+tag\+\_\+done}{coag\_dist\_tag\_done}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+coagulation\+\_\+dist\+::coag\+\_\+dist\+\_\+tag\+\_\+done = 5325}
+
+
+
+Definition at line 45 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_ab6b1e6f6a55e57f278333e999c39e410}\label{namespacepmc__coagulation__dist_ab6b1e6f6a55e57f278333e999c39e410}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!coag\+\_\+dist\+\_\+tag\+\_\+request\+\_\+particle@{coag\+\_\+dist\+\_\+tag\+\_\+request\+\_\+particle}}
+\index{coag\+\_\+dist\+\_\+tag\+\_\+request\+\_\+particle@{coag\+\_\+dist\+\_\+tag\+\_\+request\+\_\+particle}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{coag\+\_\+dist\+\_\+tag\+\_\+request\+\_\+particle}{coag\_dist\_tag\_request\_particle}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+coagulation\+\_\+dist\+::coag\+\_\+dist\+\_\+tag\+\_\+request\+\_\+particle = 5321}
+
+
+
+Definition at line 41 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_a2d3fbb1c25d95ef5333fa20db3f5eaf0}\label{namespacepmc__coagulation__dist_a2d3fbb1c25d95ef5333fa20db3f5eaf0}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+no\+\_\+particle@{coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+no\+\_\+particle}}
+\index{coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+no\+\_\+particle@{coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+no\+\_\+particle}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+no\+\_\+particle}{coag\_dist\_tag\_return\_no\_particle}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+coagulation\+\_\+dist\+::coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+no\+\_\+particle = 5324}
+
+
+
+Definition at line 44 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_abbe8d538b4d2ecf332192cee8127f15d}\label{namespacepmc__coagulation__dist_abbe8d538b4d2ecf332192cee8127f15d}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+req\+\_\+particle@{coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+req\+\_\+particle}}
+\index{coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+req\+\_\+particle@{coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+req\+\_\+particle}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+req\+\_\+particle}{coag\_dist\_tag\_return\_req\_particle}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+coagulation\+\_\+dist\+::coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+req\+\_\+particle = 5322}
+
+
+
+Definition at line 42 of file coagulation\+\_\+dist.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation__dist_aae979dd8e66e985362f2063f669f36dc}\label{namespacepmc__coagulation__dist_aae979dd8e66e985362f2063f669f36dc}} 
+\index{pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}!coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+unreq\+\_\+particle@{coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+unreq\+\_\+particle}}
+\index{coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+unreq\+\_\+particle@{coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+unreq\+\_\+particle}!pmc\+\_\+coagulation\+\_\+dist@{pmc\+\_\+coagulation\+\_\+dist}}
+\subsubsection{\texorpdfstring{coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+unreq\+\_\+particle}{coag\_dist\_tag\_return\_unreq\_particle}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+coagulation\+\_\+dist\+::coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+unreq\+\_\+particle = 5323}
+
+
+
+Definition at line 43 of file coagulation\+\_\+dist.\+F90.
+

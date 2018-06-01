@@ -1,0 +1,229 @@
+\hypertarget{structpmc__aero__data_1_1aero__data__t}{}\section{pmc\+\_\+aero\+\_\+data\+:\+:aero\+\_\+data\+\_\+t Type Reference}
+\label{structpmc__aero__data_1_1aero__data__t}\index{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}}
+
+
+Aerosol material properties and associated data.  
+
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+procedure \mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t_a7c85cc32aa34208d32d039be9e7c803d}{initialize}} =$>$ \mbox{\hyperlink{namespacepmc__aero__data_a8496aa9cb03cd761a535fe6afb381059}{aero\+\_\+data\+\_\+initialize}}
+\begin{DoxyCompactList}\small\item\em Initialize the \mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}} variable with phlex chem data. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+integer \mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t_a9a0224c67a8eda60c33da1c389b47069}{i\+\_\+water}}
+\begin{DoxyCompactList}\small\item\em Water species number (0 if water is not a species). \end{DoxyCompactList}\item 
+character(len=\mbox{\hyperlink{namespacepmc__aero__data_a05ba86cdbb1bbbacbbc41cce6eba6474}{aero\+\_\+name\+\_\+len}}), dimension(\+:), allocatable \mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t_afb8febbf8e8e40a57e0be7a992282dd8}{name}}
+\begin{DoxyCompactList}\small\item\em Length {\ttfamily aero\+\_\+data\+\_\+n\+\_\+spec(aero\+\_\+data)}, species names. \end{DoxyCompactList}\item 
+integer, dimension(\+:), allocatable \mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t_a200054b5f1899b689afdc41530ae6079}{mosaic\+\_\+index}}
+\begin{DoxyCompactList}\small\item\em Length {\ttfamily aero\+\_\+data\+\_\+n\+\_\+spec(aero\+\_\+data)}, mosaic\+\_\+index(i) a positive integer giving the mosaic index of species i, or 0 if there is no match. \end{DoxyCompactList}\item 
+real(kind=dp), dimension(\+:), allocatable \mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t_a727518f99245c84dd49d6ea8debe16d1}{density}}
+\begin{DoxyCompactList}\small\item\em Length {\ttfamily aero\+\_\+data\+\_\+n\+\_\+spec(aero\+\_\+data)}, densities (kg m$^\wedge$\{-\/3\}). \end{DoxyCompactList}\item 
+integer, dimension(\+:), allocatable \mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t_aed40573e7ffe47eb946d7ce3d7d82a4b}{num\+\_\+ions}}
+\begin{DoxyCompactList}\small\item\em Length {\ttfamily aero\+\_\+data\+\_\+n\+\_\+spec(aero\+\_\+data)}, number of ions in solute. \end{DoxyCompactList}\item 
+real(kind=dp), dimension(\+:), allocatable \mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t_a1e6d9d31b8ffae0f058fa46ffc4622d6}{molec\+\_\+weight}}
+\begin{DoxyCompactList}\small\item\em Length {\ttfamily aero\+\_\+data\+\_\+n\+\_\+spec(aero\+\_\+data)}, molecular weights (kg mol$^\wedge$\{-\/1\}). \end{DoxyCompactList}\item 
+real(kind=dp), dimension(\+:), allocatable \mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t_a1a44377e0d260e056ab1ed92dfa0294f}{kappa}}
+\begin{DoxyCompactList}\small\item\em Length {\ttfamily aero\+\_\+data\+\_\+n\+\_\+spec(aero\+\_\+data)}, kappas (1). \end{DoxyCompactList}\item 
+character(len=\mbox{\hyperlink{namespacepmc__aero__data_adceb28b9bf685995bdcb53cacb52ee42}{aero\+\_\+source\+\_\+name\+\_\+len}}), dimension(\+:), allocatable \mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t_a5a54390ff06344e606f8b4e91af74d68}{source\+\_\+name}}
+\begin{DoxyCompactList}\small\item\em Length {\ttfamily aero\+\_\+data\+\_\+n\+\_\+source(aero\+\_\+data)}, source names. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__fractal_1_1fractal__t}{fractal\+\_\+t}}) \mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t_a74d88532c928f879e1e968499fb6e5fa}{fractal}}
+\begin{DoxyCompactList}\small\item\em Fractal particle parameters. \end{DoxyCompactList}\item 
+integer \mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t_a377ad92d11dddaf84a6be051bd6a3bae}{phlex\+\_\+rep\+\_\+id}}
+\begin{DoxyCompactList}\small\item\em Phlexible chemistry aerosol representation id. \end{DoxyCompactList}\item 
+integer, dimension(\+:), allocatable \mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t_af2cad1cddc2382a0758b399928e96742}{phlex\+\_\+spec\+\_\+id}}
+\begin{DoxyCompactList}\small\item\em Aerosol species ids on the phlex chem state array. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Aerosol material properties and associated data. 
+
+The data in this structure is constant, as it represents physical quantities that cannot change over time.
+
+Each aerosol species is identified by an index {\ttfamily i = 1,...,aero\+\_\+data\+\_\+n\+\_\+spec(aero\+\_\+data)}. Then {\ttfamily name(i)} is the name of that species, {\ttfamily density(i)} is its density, etc. The ordering of the species is arbitrary and should not be relied upon (currently it is the order in the species data file). The only exception is that it is possible to find out which species is water from the {\ttfamily i\+\_\+water} variable.
+
+The names of the aerosol species are not important to Part\+MC, as only the material properties are used. The names are used for input and output, and also for communication with M\+O\+S\+A\+IC. For the M\+O\+S\+A\+IC interface to work correctly the species must be named the same, but without the {\ttfamily \+\_\+a} suffix. 
+
+Definition at line 45 of file aero\+\_\+data.\+F90.
+
+
+
+\subsection{Member Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{structpmc__aero__data_1_1aero__data__t_a7c85cc32aa34208d32d039be9e7c803d}\label{structpmc__aero__data_1_1aero__data__t_a7c85cc32aa34208d32d039be9e7c803d}} 
+\index{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}!initialize@{initialize}}
+\index{initialize@{initialize}!pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{initialize()}{initialize()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t\+::initialize (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Initialize the \mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}} variable with phlex chem data. 
+
+
+
+Definition at line 71 of file aero\+\_\+data.\+F90.
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structpmc__aero__data_1_1aero__data__t_a727518f99245c84dd49d6ea8debe16d1}\label{structpmc__aero__data_1_1aero__data__t_a727518f99245c84dd49d6ea8debe16d1}} 
+\index{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}!density@{density}}
+\index{density@{density}!pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{density}{density}}
+{\footnotesize\ttfamily real(kind=dp), dimension(\+:), allocatable pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t\+::density}
+
+
+
+Length {\ttfamily aero\+\_\+data\+\_\+n\+\_\+spec(aero\+\_\+data)}, densities (kg m$^\wedge$\{-\/3\}). 
+
+
+
+Definition at line 54 of file aero\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__data_1_1aero__data__t_a74d88532c928f879e1e968499fb6e5fa}\label{structpmc__aero__data_1_1aero__data__t_a74d88532c928f879e1e968499fb6e5fa}} 
+\index{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}!fractal@{fractal}}
+\index{fractal@{fractal}!pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{fractal}{fractal}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__fractal_1_1fractal__t}{fractal\+\_\+t}}) pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t\+::fractal}
+
+
+
+Fractal particle parameters. 
+
+
+
+Definition at line 64 of file aero\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__data_1_1aero__data__t_a9a0224c67a8eda60c33da1c389b47069}\label{structpmc__aero__data_1_1aero__data__t_a9a0224c67a8eda60c33da1c389b47069}} 
+\index{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}!i\+\_\+water@{i\+\_\+water}}
+\index{i\+\_\+water@{i\+\_\+water}!pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{i\+\_\+water}{i\_water}}
+{\footnotesize\ttfamily integer pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t\+::i\+\_\+water}
+
+
+
+Water species number (0 if water is not a species). 
+
+
+
+Definition at line 47 of file aero\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__data_1_1aero__data__t_a1a44377e0d260e056ab1ed92dfa0294f}\label{structpmc__aero__data_1_1aero__data__t_a1a44377e0d260e056ab1ed92dfa0294f}} 
+\index{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}!kappa@{kappa}}
+\index{kappa@{kappa}!pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{kappa}{kappa}}
+{\footnotesize\ttfamily real(kind=dp), dimension(\+:), allocatable pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t\+::kappa}
+
+
+
+Length {\ttfamily aero\+\_\+data\+\_\+n\+\_\+spec(aero\+\_\+data)}, kappas (1). 
+
+
+
+Definition at line 60 of file aero\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__data_1_1aero__data__t_a1e6d9d31b8ffae0f058fa46ffc4622d6}\label{structpmc__aero__data_1_1aero__data__t_a1e6d9d31b8ffae0f058fa46ffc4622d6}} 
+\index{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}!molec\+\_\+weight@{molec\+\_\+weight}}
+\index{molec\+\_\+weight@{molec\+\_\+weight}!pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{molec\+\_\+weight}{molec\_weight}}
+{\footnotesize\ttfamily real(kind=dp), dimension(\+:), allocatable pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t\+::molec\+\_\+weight}
+
+
+
+Length {\ttfamily aero\+\_\+data\+\_\+n\+\_\+spec(aero\+\_\+data)}, molecular weights (kg mol$^\wedge$\{-\/1\}). 
+
+
+
+Definition at line 58 of file aero\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__data_1_1aero__data__t_a200054b5f1899b689afdc41530ae6079}\label{structpmc__aero__data_1_1aero__data__t_a200054b5f1899b689afdc41530ae6079}} 
+\index{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}!mosaic\+\_\+index@{mosaic\+\_\+index}}
+\index{mosaic\+\_\+index@{mosaic\+\_\+index}!pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{mosaic\+\_\+index}{mosaic\_index}}
+{\footnotesize\ttfamily integer, dimension(\+:), allocatable pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t\+::mosaic\+\_\+index}
+
+
+
+Length {\ttfamily aero\+\_\+data\+\_\+n\+\_\+spec(aero\+\_\+data)}, mosaic\+\_\+index(i) a positive integer giving the mosaic index of species i, or 0 if there is no match. 
+
+
+
+Definition at line 52 of file aero\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__data_1_1aero__data__t_afb8febbf8e8e40a57e0be7a992282dd8}\label{structpmc__aero__data_1_1aero__data__t_afb8febbf8e8e40a57e0be7a992282dd8}} 
+\index{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}!name@{name}}
+\index{name@{name}!pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{name}{name}}
+{\footnotesize\ttfamily character(len=\mbox{\hyperlink{namespacepmc__aero__data_a05ba86cdbb1bbbacbbc41cce6eba6474}{aero\+\_\+name\+\_\+len}}), dimension(\+:), allocatable pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t\+::name}
+
+
+
+Length {\ttfamily aero\+\_\+data\+\_\+n\+\_\+spec(aero\+\_\+data)}, species names. 
+
+
+
+Definition at line 49 of file aero\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__data_1_1aero__data__t_aed40573e7ffe47eb946d7ce3d7d82a4b}\label{structpmc__aero__data_1_1aero__data__t_aed40573e7ffe47eb946d7ce3d7d82a4b}} 
+\index{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}!num\+\_\+ions@{num\+\_\+ions}}
+\index{num\+\_\+ions@{num\+\_\+ions}!pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{num\+\_\+ions}{num\_ions}}
+{\footnotesize\ttfamily integer, dimension(\+:), allocatable pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t\+::num\+\_\+ions}
+
+
+
+Length {\ttfamily aero\+\_\+data\+\_\+n\+\_\+spec(aero\+\_\+data)}, number of ions in solute. 
+
+
+
+Definition at line 56 of file aero\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__data_1_1aero__data__t_a377ad92d11dddaf84a6be051bd6a3bae}\label{structpmc__aero__data_1_1aero__data__t_a377ad92d11dddaf84a6be051bd6a3bae}} 
+\index{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}!phlex\+\_\+rep\+\_\+id@{phlex\+\_\+rep\+\_\+id}}
+\index{phlex\+\_\+rep\+\_\+id@{phlex\+\_\+rep\+\_\+id}!pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{phlex\+\_\+rep\+\_\+id}{phlex\_rep\_id}}
+{\footnotesize\ttfamily integer pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t\+::phlex\+\_\+rep\+\_\+id}
+
+
+
+Phlexible chemistry aerosol representation id. 
+
+
+
+Definition at line 66 of file aero\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__data_1_1aero__data__t_af2cad1cddc2382a0758b399928e96742}\label{structpmc__aero__data_1_1aero__data__t_af2cad1cddc2382a0758b399928e96742}} 
+\index{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}!phlex\+\_\+spec\+\_\+id@{phlex\+\_\+spec\+\_\+id}}
+\index{phlex\+\_\+spec\+\_\+id@{phlex\+\_\+spec\+\_\+id}!pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{phlex\+\_\+spec\+\_\+id}{phlex\_spec\_id}}
+{\footnotesize\ttfamily integer, dimension(\+:), allocatable pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t\+::phlex\+\_\+spec\+\_\+id}
+
+
+
+Aerosol species ids on the phlex chem state array. 
+
+
+
+Definition at line 68 of file aero\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__data_1_1aero__data__t_a5a54390ff06344e606f8b4e91af74d68}\label{structpmc__aero__data_1_1aero__data__t_a5a54390ff06344e606f8b4e91af74d68}} 
+\index{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}!source\+\_\+name@{source\+\_\+name}}
+\index{source\+\_\+name@{source\+\_\+name}!pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{source\+\_\+name}{source\_name}}
+{\footnotesize\ttfamily character(len=\mbox{\hyperlink{namespacepmc__aero__data_adceb28b9bf685995bdcb53cacb52ee42}{aero\+\_\+source\+\_\+name\+\_\+len}}), dimension(\+:), allocatable pmc\+\_\+aero\+\_\+data\+::aero\+\_\+data\+\_\+t\+::source\+\_\+name}
+
+
+
+Length {\ttfamily aero\+\_\+data\+\_\+n\+\_\+source(aero\+\_\+data)}, source names. 
+
+
+
+Definition at line 62 of file aero\+\_\+data.\+F90.
+
+
+
+The documentation for this type was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{aero__data_8_f90}{aero\+\_\+data.\+F90}}\end{DoxyCompactItemize}

@@ -1,0 +1,686 @@
+\hypertarget{namespacepmc__aero__mode}{}\section{pmc\+\_\+aero\+\_\+mode Module Reference}
+\label{namespacepmc__aero__mode}\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+
+
+The \mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t}{aero\+\_\+mode\+\_\+t}} structure and associated subroutines.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t}{aero\+\_\+mode\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em An aerosol size distribution mode. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+character(len=\mbox{\hyperlink{namespacepmc__aero__mode_a267ddc1551b2f71a22191d1c14577227}{aero\+\_\+mode\+\_\+type\+\_\+len}}) function \mbox{\hyperlink{namespacepmc__aero__mode_abbf5d1701e0dacb20f4b15ed2c21263d}{aero\+\_\+mode\+\_\+type\+\_\+to\+\_\+string}} (type)
+\begin{DoxyCompactList}\small\item\em Return a string representation of a kernel type. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__aero__mode_a0ad3b898ec31340554222a17865f44fc}{aero\+\_\+mode\+\_\+total\+\_\+num\+\_\+conc}} (aero\+\_\+mode)
+\begin{DoxyCompactList}\small\item\em Returns the total number concentration of a mode. (\#/m$^\wedge$3) \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__mode_a81402ddac6d037dc9667b04d4e534e74}{num\+\_\+conc\+\_\+log\+\_\+normal}} (total\+\_\+num\+\_\+conc, geom\+\_\+mean\+\_\+radius, log10\+\_\+sigma\+\_\+g, bin\+\_\+grid, num\+\_\+conc)
+\begin{DoxyCompactList}\small\item\em Compute a log-\/normal distribution. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__mode_a486d23e34343f1b23fff025be1889602}{vol\+\_\+conc\+\_\+log\+\_\+normal}} (total\+\_\+num\+\_\+conc, geom\+\_\+mean\+\_\+radius, log10\+\_\+sigma\+\_\+g, bin\+\_\+grid, aero\+\_\+data, vol\+\_\+conc)
+\begin{DoxyCompactList}\small\item\em Compute a log-\/normal distribution in volume. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__mode_afcef101dd62d9eea52e00a12bd36550e}{num\+\_\+conc\+\_\+exp}} (total\+\_\+num\+\_\+conc, radius\+\_\+at\+\_\+mean\+\_\+vol, bin\+\_\+grid, aero\+\_\+data, num\+\_\+conc)
+\begin{DoxyCompactList}\small\item\em Exponential distribution in volume. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__mode_aa6ef6e2dc2790945150c453a171da9b5}{vol\+\_\+conc\+\_\+exp}} (total\+\_\+num\+\_\+conc, radius\+\_\+at\+\_\+mean\+\_\+vol, bin\+\_\+grid, aero\+\_\+data, vol\+\_\+conc)
+\begin{DoxyCompactList}\small\item\em Exponential distribution in volume. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__mode_a234df72199670a154160bba53306c150}{num\+\_\+conc\+\_\+mono}} (total\+\_\+num\+\_\+conc, radius, bin\+\_\+grid, num\+\_\+conc)
+\begin{DoxyCompactList}\small\item\em Mono-\/disperse distribution. Normalized so that sum(num\+\_\+conc(k) $\ast$ log\+\_\+width) = 1. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__mode_ad917c92b4e26574185aa1fa1de3ce361}{vol\+\_\+conc\+\_\+mono}} (total\+\_\+num\+\_\+conc, radius, bin\+\_\+grid, aero\+\_\+data, vol\+\_\+conc)
+\begin{DoxyCompactList}\small\item\em Mono-\/disperse distribution in volume. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__mode_afd98aa0b0cb1ee7e41347a0162b7c2ee}{num\+\_\+conc\+\_\+sampled}} (sample\+\_\+radius, sample\+\_\+num\+\_\+conc, bin\+\_\+grid, num\+\_\+conc)
+\begin{DoxyCompactList}\small\item\em Sampled distribution, not normalized. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__mode_a4526110f9b901d8cdcebdd9862ee9cb2}{vol\+\_\+conc\+\_\+sampled}} (sample\+\_\+radius, sample\+\_\+num\+\_\+conc, bin\+\_\+grid, aero\+\_\+data, vol\+\_\+conc)
+\begin{DoxyCompactList}\small\item\em Sampled distribution in volume. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__mode_ab66d248f61d08547c4acd818f6a57dc2}{aero\+\_\+mode\+\_\+num\+\_\+conc}} (aero\+\_\+mode, bin\+\_\+grid, aero\+\_\+data, num\+\_\+conc)
+\begin{DoxyCompactList}\small\item\em Return the binned number concentration for an aero\+\_\+mode. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__mode_a2f932ab06c4f3ebb225150803cb41e67}{aero\+\_\+mode\+\_\+vol\+\_\+conc}} (aero\+\_\+mode, bin\+\_\+grid, aero\+\_\+data, vol\+\_\+conc)
+\begin{DoxyCompactList}\small\item\em Return the binned per-\/species volume concentration for an aero\+\_\+mode. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__mode_a3ed922890993f9d3f7b0bdbd0a60e802}{aero\+\_\+mode\+\_\+weighted\+\_\+sampled\+\_\+num\+\_\+conc}} (aero\+\_\+mode, aero\+\_\+weight, weighted\+\_\+num\+\_\+conc)
+\begin{DoxyCompactList}\small\item\em Compute weighted sampled number concentrations. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__aero__mode_aa2bc2252ff28ddb14f953f554a9afd62}{aero\+\_\+mode\+\_\+number}} (aero\+\_\+mode, aero\+\_\+weight)
+\begin{DoxyCompactList}\small\item\em Return the total number of computational particles for an {\ttfamily aero\+\_\+mode}. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__mode_aff49b68e86fb9ba501fb2d33ba8a7a46}{aero\+\_\+mode\+\_\+sample\+\_\+radius}} (aero\+\_\+mode, aero\+\_\+data, aero\+\_\+weight, radius)
+\begin{DoxyCompactList}\small\item\em Return a radius randomly sampled from the mode distribution. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__mode_aa79b2639f969c59afff4508ef90fdf67}{aero\+\_\+mode\+\_\+sample\+\_\+vols}} (aero\+\_\+mode, total\+\_\+vol, vols)
+\begin{DoxyCompactList}\small\item\em Return an array of volumes randomly sampled from the volume fractions. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__aero__mode_a1e69cce7379ea06939d1181b8486288a}{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+mode}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__mode_a33ac48c507ea64a72353c01a32dc43c1}{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+mode}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__mode_a2c5e4a5984c400daaa6b5723662122f3}{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+mode}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__aero__mode_ae84b8139739f7f4a21f52621b68f8b3b}{aero\+\_\+mode\+\_\+name\+\_\+len}} = 300
+\begin{DoxyCompactList}\small\item\em Maximum length of a mode name. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__aero__mode_a267ddc1551b2f71a22191d1c14577227}{aero\+\_\+mode\+\_\+type\+\_\+len}} = 20
+\begin{DoxyCompactList}\small\item\em Maximum length of a mode type. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__aero__mode_ae914213ae545288187869448e9a7c9c8}{aero\+\_\+mode\+\_\+type\+\_\+invalid}} = 0
+\begin{DoxyCompactList}\small\item\em Type code for an undefined or invalid mode. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__aero__mode_a936200d0b3116d7e58d32e7b43ac4789}{aero\+\_\+mode\+\_\+type\+\_\+log\+\_\+normal}} = 1
+\begin{DoxyCompactList}\small\item\em Type code for a log-\/normal mode. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__aero__mode_af8ac2864bbbcbbb395efddac6ae2ac7f}{aero\+\_\+mode\+\_\+type\+\_\+exp}} = 2
+\begin{DoxyCompactList}\small\item\em Type code for an exponential mode. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__aero__mode_a2a5e08b4bbed0947335c38a0a3791f6c}{aero\+\_\+mode\+\_\+type\+\_\+mono}} = 3
+\begin{DoxyCompactList}\small\item\em Type code for a mono-\/disperse mode. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__aero__mode_a86073e0512631b231222d9442877828b}{aero\+\_\+mode\+\_\+type\+\_\+sampled}} = 4
+\begin{DoxyCompactList}\small\item\em Type code for a sampled mode. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__aero__mode_a077d0096a03191f4143833e2ae2282cf}{aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+invalid}} = 0
+\begin{DoxyCompactList}\small\item\em Type code for an undefined for invalid diameter type. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__aero__mode_ac8c82b18cfaa8e5b9725d7e891f57ed7}{aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+geometric}} = 1
+\begin{DoxyCompactList}\small\item\em Type code for geometric diameter. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__aero__mode_add8ce2fd804c423ed56bee1f62273804}{aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+mobility}} = 2
+\begin{DoxyCompactList}\small\item\em Type code for mobility equivalent diameter. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t}{aero\+\_\+mode\+\_\+t}} structure and associated subroutines. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__aero__mode_ab66d248f61d08547c4acd818f6a57dc2}\label{namespacepmc__aero__mode_ab66d248f61d08547c4acd818f6a57dc2}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!aero\+\_\+mode\+\_\+num\+\_\+conc@{aero\+\_\+mode\+\_\+num\+\_\+conc}}
+\index{aero\+\_\+mode\+\_\+num\+\_\+conc@{aero\+\_\+mode\+\_\+num\+\_\+conc}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{aero\+\_\+mode\+\_\+num\+\_\+conc()}{aero\_mode\_num\_conc()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+num\+\_\+conc (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t}{aero\+\_\+mode\+\_\+t}}), intent(in)}]{aero\+\_\+mode,  }\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{real(kind=dp), dimension(bin\+\_\+grid\+\_\+size(bin\+\_\+grid)), intent(out)}]{num\+\_\+conc }\end{DoxyParamCaption})}
+
+
+
+Return the binned number concentration for an aero\+\_\+mode. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+mode} & Aero mode for which to compute number concentration.\\
+\hline
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt out}  & {\em num\+\_\+conc} & Number concentration (\#(ln(r))d(ln(r))). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 378 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_aa2bc2252ff28ddb14f953f554a9afd62}\label{namespacepmc__aero__mode_aa2bc2252ff28ddb14f953f554a9afd62}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!aero\+\_\+mode\+\_\+number@{aero\+\_\+mode\+\_\+number}}
+\index{aero\+\_\+mode\+\_\+number@{aero\+\_\+mode\+\_\+number}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{aero\+\_\+mode\+\_\+number()}{aero\_mode\_number()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+number (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t}{aero\+\_\+mode\+\_\+t}}), intent(in)}]{aero\+\_\+mode,  }\item[{type(\mbox{\hyperlink{structpmc__aero__weight_1_1aero__weight__t}{aero\+\_\+weight\+\_\+t}}), intent(in)}]{aero\+\_\+weight }\end{DoxyParamCaption})}
+
+
+
+Return the total number of computational particles for an {\ttfamily aero\+\_\+mode}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+mode} & Aero\+\_\+mode to sample radius from.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+weight} & Aero weight. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 495 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_aff49b68e86fb9ba501fb2d33ba8a7a46}\label{namespacepmc__aero__mode_aff49b68e86fb9ba501fb2d33ba8a7a46}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!aero\+\_\+mode\+\_\+sample\+\_\+radius@{aero\+\_\+mode\+\_\+sample\+\_\+radius}}
+\index{aero\+\_\+mode\+\_\+sample\+\_\+radius@{aero\+\_\+mode\+\_\+sample\+\_\+radius}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{aero\+\_\+mode\+\_\+sample\+\_\+radius()}{aero\_mode\_sample\_radius()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+sample\+\_\+radius (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t}{aero\+\_\+mode\+\_\+t}}), intent(in)}]{aero\+\_\+mode,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__weight_1_1aero__weight__t}{aero\+\_\+weight\+\_\+t}}), intent(in)}]{aero\+\_\+weight,  }\item[{real(kind=dp), intent(out)}]{radius }\end{DoxyParamCaption})}
+
+
+
+Return a radius randomly sampled from the mode distribution. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+mode} & Aero\+\_\+mode to sample radius from.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+weight} & Aero weight.\\
+\hline
+\mbox{\tt out}  & {\em radius} & Sampled radius (m). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 549 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_aa79b2639f969c59afff4508ef90fdf67}\label{namespacepmc__aero__mode_aa79b2639f969c59afff4508ef90fdf67}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!aero\+\_\+mode\+\_\+sample\+\_\+vols@{aero\+\_\+mode\+\_\+sample\+\_\+vols}}
+\index{aero\+\_\+mode\+\_\+sample\+\_\+vols@{aero\+\_\+mode\+\_\+sample\+\_\+vols}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{aero\+\_\+mode\+\_\+sample\+\_\+vols()}{aero\_mode\_sample\_vols()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+sample\+\_\+vols (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t}{aero\+\_\+mode\+\_\+t}}), intent(in)}]{aero\+\_\+mode,  }\item[{real(kind=dp), intent(in)}]{total\+\_\+vol,  }\item[{real(kind=dp), dimension(size(aero\+\_\+mode\%vol\+\_\+frac)), intent(out)}]{vols }\end{DoxyParamCaption})}
+
+
+
+Return an array of volumes randomly sampled from the volume fractions. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+mode} & Aero\+\_\+mode to sample from.\\
+\hline
+\mbox{\tt in}  & {\em total\+\_\+vol} & Total volume (m$^\wedge$3).\\
+\hline
+\mbox{\tt out}  & {\em vols} & Sampled volumes (m$^\wedge$3). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 630 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_a0ad3b898ec31340554222a17865f44fc}\label{namespacepmc__aero__mode_a0ad3b898ec31340554222a17865f44fc}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!aero\+\_\+mode\+\_\+total\+\_\+num\+\_\+conc@{aero\+\_\+mode\+\_\+total\+\_\+num\+\_\+conc}}
+\index{aero\+\_\+mode\+\_\+total\+\_\+num\+\_\+conc@{aero\+\_\+mode\+\_\+total\+\_\+num\+\_\+conc}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{aero\+\_\+mode\+\_\+total\+\_\+num\+\_\+conc()}{aero\_mode\_total\_num\_conc()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+total\+\_\+num\+\_\+conc (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t}{aero\+\_\+mode\+\_\+t}}), intent(in)}]{aero\+\_\+mode }\end{DoxyParamCaption})}
+
+
+
+Returns the total number concentration of a mode. (\#/m$^\wedge$3) 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+mode} & Aerosol mode. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 108 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_abbf5d1701e0dacb20f4b15ed2c21263d}\label{namespacepmc__aero__mode_abbf5d1701e0dacb20f4b15ed2c21263d}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!aero\+\_\+mode\+\_\+type\+\_\+to\+\_\+string@{aero\+\_\+mode\+\_\+type\+\_\+to\+\_\+string}}
+\index{aero\+\_\+mode\+\_\+type\+\_\+to\+\_\+string@{aero\+\_\+mode\+\_\+type\+\_\+to\+\_\+string}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{aero\+\_\+mode\+\_\+type\+\_\+to\+\_\+string()}{aero\_mode\_type\_to\_string()}}
+{\footnotesize\ttfamily character(len=\mbox{\hyperlink{namespacepmc__aero__mode_a267ddc1551b2f71a22191d1c14577227}{aero\+\_\+mode\+\_\+type\+\_\+len}}) function pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+type\+\_\+to\+\_\+string (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{type }\end{DoxyParamCaption})}
+
+
+
+Return a string representation of a kernel type. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em type} & Aero mode type. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 84 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_a2f932ab06c4f3ebb225150803cb41e67}\label{namespacepmc__aero__mode_a2f932ab06c4f3ebb225150803cb41e67}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!aero\+\_\+mode\+\_\+vol\+\_\+conc@{aero\+\_\+mode\+\_\+vol\+\_\+conc}}
+\index{aero\+\_\+mode\+\_\+vol\+\_\+conc@{aero\+\_\+mode\+\_\+vol\+\_\+conc}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{aero\+\_\+mode\+\_\+vol\+\_\+conc()}{aero\_mode\_vol\_conc()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+vol\+\_\+conc (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t}{aero\+\_\+mode\+\_\+t}}), intent(in)}]{aero\+\_\+mode,  }\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{real(kind=dp), dimension(bin\+\_\+grid\+\_\+size(bin\+\_\+grid),          aero\+\_\+data\+\_\+n\+\_\+spec(aero\+\_\+data)), intent(out)}]{vol\+\_\+conc }\end{DoxyParamCaption})}
+
+
+
+Return the binned per-\/species volume concentration for an aero\+\_\+mode. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+mode} & Aero mode for which to compute volume concentration.\\
+\hline
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt out}  & {\em vol\+\_\+conc} & Volume concentration (V(ln(r))d(ln(r))). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 413 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_a3ed922890993f9d3f7b0bdbd0a60e802}\label{namespacepmc__aero__mode_a3ed922890993f9d3f7b0bdbd0a60e802}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!aero\+\_\+mode\+\_\+weighted\+\_\+sampled\+\_\+num\+\_\+conc@{aero\+\_\+mode\+\_\+weighted\+\_\+sampled\+\_\+num\+\_\+conc}}
+\index{aero\+\_\+mode\+\_\+weighted\+\_\+sampled\+\_\+num\+\_\+conc@{aero\+\_\+mode\+\_\+weighted\+\_\+sampled\+\_\+num\+\_\+conc}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{aero\+\_\+mode\+\_\+weighted\+\_\+sampled\+\_\+num\+\_\+conc()}{aero\_mode\_weighted\_sampled\_num\_conc()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+weighted\+\_\+sampled\+\_\+num\+\_\+conc (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t}{aero\+\_\+mode\+\_\+t}}), intent(in)}]{aero\+\_\+mode,  }\item[{type(\mbox{\hyperlink{structpmc__aero__weight_1_1aero__weight__t}{aero\+\_\+weight\+\_\+t}}), intent(in)}]{aero\+\_\+weight,  }\item[{real(kind=dp), dimension(\+:), intent(out)}]{weighted\+\_\+num\+\_\+conc }\end{DoxyParamCaption})}
+
+
+
+Compute weighted sampled number concentrations. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+mode} & Aerosol mode.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+weight} & Aerosol weight.\\
+\hline
+\mbox{\tt out}  & {\em weighted\+\_\+num\+\_\+conc} & Weighted number concentration \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 458 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_afcef101dd62d9eea52e00a12bd36550e}\label{namespacepmc__aero__mode_afcef101dd62d9eea52e00a12bd36550e}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!num\+\_\+conc\+\_\+exp@{num\+\_\+conc\+\_\+exp}}
+\index{num\+\_\+conc\+\_\+exp@{num\+\_\+conc\+\_\+exp}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{num\+\_\+conc\+\_\+exp()}{num\_conc\_exp()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+mode\+::num\+\_\+conc\+\_\+exp (\begin{DoxyParamCaption}\item[{real(kind=dp), intent(in)}]{total\+\_\+num\+\_\+conc,  }\item[{real(kind=dp), intent(in)}]{radius\+\_\+at\+\_\+mean\+\_\+vol,  }\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{real(kind=dp), dimension(bin\+\_\+grid\+\_\+size(bin\+\_\+grid)), intent(out)}]{num\+\_\+conc }\end{DoxyParamCaption})}
+
+
+
+Exponential distribution in volume. 
+
+\[ n(v) = \frac{1}{\rm mean-vol} \exp(- v / {\rm mean-vol}) \] Normalized so that sum(num\+\_\+conc(k) $\ast$ log\+\_\+width) = 1
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em total\+\_\+num\+\_\+conc} & Total number concentration of the mode (m$^\wedge$\{-\/3\}).\\
+\hline
+\mbox{\tt in}  & {\em radius\+\_\+at\+\_\+mean\+\_\+vol} & Radius at mean volume (m).\\
+\hline
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt out}  & {\em num\+\_\+conc} & Number concentration (\#(ln(r))d(ln(r))). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 196 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_a81402ddac6d037dc9667b04d4e534e74}\label{namespacepmc__aero__mode_a81402ddac6d037dc9667b04d4e534e74}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!num\+\_\+conc\+\_\+log\+\_\+normal@{num\+\_\+conc\+\_\+log\+\_\+normal}}
+\index{num\+\_\+conc\+\_\+log\+\_\+normal@{num\+\_\+conc\+\_\+log\+\_\+normal}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{num\+\_\+conc\+\_\+log\+\_\+normal()}{num\_conc\_log\_normal()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+mode\+::num\+\_\+conc\+\_\+log\+\_\+normal (\begin{DoxyParamCaption}\item[{real(kind=dp), intent(in)}]{total\+\_\+num\+\_\+conc,  }\item[{real(kind=dp), intent(in)}]{geom\+\_\+mean\+\_\+radius,  }\item[{real(kind=dp), intent(in)}]{log10\+\_\+sigma\+\_\+g,  }\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{real(kind=dp), dimension(bin\+\_\+grid\+\_\+size(bin\+\_\+grid)), intent(out)}]{num\+\_\+conc }\end{DoxyParamCaption})}
+
+
+
+Compute a log-\/normal distribution. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em total\+\_\+num\+\_\+conc} & Total number concentration of the mode (m$^\wedge$\{-\/3\}).\\
+\hline
+\mbox{\tt in}  & {\em geom\+\_\+mean\+\_\+radius} & Geometric mean radius (m).\\
+\hline
+\mbox{\tt in}  & {\em log10\+\_\+sigma\+\_\+g} & log\+\_\+10(geom. std. dev.) (1).\\
+\hline
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt out}  & {\em num\+\_\+conc} & Number concentration (\#(ln(r))d(ln(r))). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 131 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_a234df72199670a154160bba53306c150}\label{namespacepmc__aero__mode_a234df72199670a154160bba53306c150}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!num\+\_\+conc\+\_\+mono@{num\+\_\+conc\+\_\+mono}}
+\index{num\+\_\+conc\+\_\+mono@{num\+\_\+conc\+\_\+mono}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{num\+\_\+conc\+\_\+mono()}{num\_conc\_mono()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+mode\+::num\+\_\+conc\+\_\+mono (\begin{DoxyParamCaption}\item[{real(kind=dp), intent(in)}]{total\+\_\+num\+\_\+conc,  }\item[{real(kind=dp), intent(in)}]{radius,  }\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{real(kind=dp), dimension(bin\+\_\+grid\+\_\+size(bin\+\_\+grid)), intent(out)}]{num\+\_\+conc }\end{DoxyParamCaption})}
+
+
+
+Mono-\/disperse distribution. Normalized so that sum(num\+\_\+conc(k) $\ast$ log\+\_\+width) = 1. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em total\+\_\+num\+\_\+conc} & Total number concentration of the mode (m$^\wedge$\{-\/3\}).\\
+\hline
+\mbox{\tt in}  & {\em radius} & Radius of each particle (m$^\wedge$3).\\
+\hline
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt out}  & {\em num\+\_\+conc} & Number concentration (\#(ln(r))d(ln(r))). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 251 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_afd98aa0b0cb1ee7e41347a0162b7c2ee}\label{namespacepmc__aero__mode_afd98aa0b0cb1ee7e41347a0162b7c2ee}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!num\+\_\+conc\+\_\+sampled@{num\+\_\+conc\+\_\+sampled}}
+\index{num\+\_\+conc\+\_\+sampled@{num\+\_\+conc\+\_\+sampled}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{num\+\_\+conc\+\_\+sampled()}{num\_conc\_sampled()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+mode\+::num\+\_\+conc\+\_\+sampled (\begin{DoxyParamCaption}\item[{real(kind=dp), dimension(\+:), intent(in)}]{sample\+\_\+radius,  }\item[{real(kind=dp), dimension(\+:), intent(in)}]{sample\+\_\+num\+\_\+conc,  }\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{real(kind=dp), dimension(bin\+\_\+grid\+\_\+size(bin\+\_\+grid)), intent(out)}]{num\+\_\+conc }\end{DoxyParamCaption})}
+
+
+
+Sampled distribution, not normalized. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em sample\+\_\+radius} & Sampled radius bin edges (m).\\
+\hline
+\mbox{\tt in}  & {\em sample\+\_\+num\+\_\+conc} & Sampled number concentrations (m$^\wedge$\{-\/3\}).\\
+\hline
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt out}  & {\em num\+\_\+conc} & Number concentration (\#(ln(r))d(ln(r))). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 308 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_a33ac48c507ea64a72353c01a32dc43c1}\label{namespacepmc__aero__mode_a33ac48c507ea64a72353c01a32dc43c1}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+mode@{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+mode}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+mode@{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+mode}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+mode()}{pmc\_mpi\_pack\_aero\_mode()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+mode\+::pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+mode (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{type(\mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t}{aero\+\_\+mode\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Packs the given value into the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 1124 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_a1e69cce7379ea06939d1181b8486288a}\label{namespacepmc__aero__mode_a1e69cce7379ea06939d1181b8486288a}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+mode@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+mode}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+mode@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+mode}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+mode()}{pmc\_mpi\_pack\_size\_aero\_mode()}}
+{\footnotesize\ttfamily integer function pmc\+\_\+aero\+\_\+mode\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+mode (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t}{aero\+\_\+mode\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Determines the number of bytes required to pack the given value. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 1102 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_a2c5e4a5984c400daaa6b5723662122f3}\label{namespacepmc__aero__mode_a2c5e4a5984c400daaa6b5723662122f3}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+mode@{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+mode}}
+\index{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+mode@{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+mode}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+mode()}{pmc\_mpi\_unpack\_aero\_mode()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+mode\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+mode (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{type(\mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t}{aero\+\_\+mode\+\_\+t}}), intent(inout)}]{val }\end{DoxyParamCaption})}
+
+
+
+Unpacks the given value from the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in,out}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 1156 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_aa6ef6e2dc2790945150c453a171da9b5}\label{namespacepmc__aero__mode_aa6ef6e2dc2790945150c453a171da9b5}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!vol\+\_\+conc\+\_\+exp@{vol\+\_\+conc\+\_\+exp}}
+\index{vol\+\_\+conc\+\_\+exp@{vol\+\_\+conc\+\_\+exp}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{vol\+\_\+conc\+\_\+exp()}{vol\_conc\_exp()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+mode\+::vol\+\_\+conc\+\_\+exp (\begin{DoxyParamCaption}\item[{real(kind=dp), intent(in)}]{total\+\_\+num\+\_\+conc,  }\item[{real(kind=dp), intent(in)}]{radius\+\_\+at\+\_\+mean\+\_\+vol,  }\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{real(kind=dp), dimension(bin\+\_\+grid\+\_\+size(bin\+\_\+grid)), intent(out)}]{vol\+\_\+conc }\end{DoxyParamCaption})}
+
+
+
+Exponential distribution in volume. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em total\+\_\+num\+\_\+conc} & Total number concentration of the mode (m$^\wedge$\{-\/3\}).\\
+\hline
+\mbox{\tt in}  & {\em radius\+\_\+at\+\_\+mean\+\_\+vol} & Radius at mean volume (m).\\
+\hline
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt out}  & {\em vol\+\_\+conc} & Volume concentration (V(ln(r))d(ln(r))). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 226 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_a486d23e34343f1b23fff025be1889602}\label{namespacepmc__aero__mode_a486d23e34343f1b23fff025be1889602}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!vol\+\_\+conc\+\_\+log\+\_\+normal@{vol\+\_\+conc\+\_\+log\+\_\+normal}}
+\index{vol\+\_\+conc\+\_\+log\+\_\+normal@{vol\+\_\+conc\+\_\+log\+\_\+normal}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{vol\+\_\+conc\+\_\+log\+\_\+normal()}{vol\_conc\_log\_normal()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+mode\+::vol\+\_\+conc\+\_\+log\+\_\+normal (\begin{DoxyParamCaption}\item[{real(kind=dp), intent(in)}]{total\+\_\+num\+\_\+conc,  }\item[{real(kind=dp), intent(in)}]{geom\+\_\+mean\+\_\+radius,  }\item[{real(kind=dp), intent(in)}]{log10\+\_\+sigma\+\_\+g,  }\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{real(kind=dp), dimension(bin\+\_\+grid\+\_\+size(bin\+\_\+grid)), intent(out)}]{vol\+\_\+conc }\end{DoxyParamCaption})}
+
+
+
+Compute a log-\/normal distribution in volume. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em total\+\_\+num\+\_\+conc} & Total number concentration of the mode (m$^\wedge$\{-\/3\}).\\
+\hline
+\mbox{\tt in}  & {\em geom\+\_\+mean\+\_\+radius} & Geometric mean radius (m).\\
+\hline
+\mbox{\tt in}  & {\em log10\+\_\+sigma\+\_\+g} & log\+\_\+10(geom. std. dev.) (1).\\
+\hline
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt out}  & {\em vol\+\_\+conc} & Volume concentration (V(ln(r))d(ln(r))). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 165 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_ad917c92b4e26574185aa1fa1de3ce361}\label{namespacepmc__aero__mode_ad917c92b4e26574185aa1fa1de3ce361}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!vol\+\_\+conc\+\_\+mono@{vol\+\_\+conc\+\_\+mono}}
+\index{vol\+\_\+conc\+\_\+mono@{vol\+\_\+conc\+\_\+mono}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{vol\+\_\+conc\+\_\+mono()}{vol\_conc\_mono()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+mode\+::vol\+\_\+conc\+\_\+mono (\begin{DoxyParamCaption}\item[{real(kind=dp), intent(in)}]{total\+\_\+num\+\_\+conc,  }\item[{real(kind=dp), intent(in)}]{radius,  }\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{real(kind=dp), dimension(bin\+\_\+grid\+\_\+size(bin\+\_\+grid)), intent(out)}]{vol\+\_\+conc }\end{DoxyParamCaption})}
+
+
+
+Mono-\/disperse distribution in volume. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em total\+\_\+num\+\_\+conc} & Total number concentration of the mode (m$^\wedge$\{-\/3\}).\\
+\hline
+\mbox{\tt in}  & {\em radius} & Radius of each particle (m$^\wedge$3).\\
+\hline
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt out}  & {\em vol\+\_\+conc} & Volume concentration (V(ln(r))d(ln(r))). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 278 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_a4526110f9b901d8cdcebdd9862ee9cb2}\label{namespacepmc__aero__mode_a4526110f9b901d8cdcebdd9862ee9cb2}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!vol\+\_\+conc\+\_\+sampled@{vol\+\_\+conc\+\_\+sampled}}
+\index{vol\+\_\+conc\+\_\+sampled@{vol\+\_\+conc\+\_\+sampled}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{vol\+\_\+conc\+\_\+sampled()}{vol\_conc\_sampled()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+mode\+::vol\+\_\+conc\+\_\+sampled (\begin{DoxyParamCaption}\item[{real(kind=dp), dimension(\+:), intent(in)}]{sample\+\_\+radius,  }\item[{real(kind=dp), dimension(\+:), intent(in)}]{sample\+\_\+num\+\_\+conc,  }\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{real(kind=dp), dimension(bin\+\_\+grid\+\_\+size(bin\+\_\+grid)), intent(out)}]{vol\+\_\+conc }\end{DoxyParamCaption})}
+
+
+
+Sampled distribution in volume. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em sample\+\_\+radius} & Sampled radius bin edges (m).\\
+\hline
+\mbox{\tt in}  & {\em sample\+\_\+num\+\_\+conc} & Sampled number concentrations (m$^\wedge$\{-\/3\}).\\
+\hline
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt out}  & {\em vol\+\_\+conc} & Volume concentration (V(ln(r))d(ln(r))). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 354 of file aero\+\_\+mode.\+F90.
+
+
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{namespacepmc__aero__mode_ac8c82b18cfaa8e5b9725d7e891f57ed7}\label{namespacepmc__aero__mode_ac8c82b18cfaa8e5b9725d7e891f57ed7}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+geometric@{aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+geometric}}
+\index{aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+geometric@{aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+geometric}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+geometric}{aero\_mode\_diam\_type\_geometric}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+geometric = 1}
+
+
+
+Type code for geometric diameter. 
+
+
+
+Definition at line 42 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_a077d0096a03191f4143833e2ae2282cf}\label{namespacepmc__aero__mode_a077d0096a03191f4143833e2ae2282cf}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+invalid@{aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+invalid}}
+\index{aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+invalid@{aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+invalid}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+invalid}{aero\_mode\_diam\_type\_invalid}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+invalid = 0}
+
+
+
+Type code for an undefined for invalid diameter type. 
+
+
+
+Definition at line 40 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_add8ce2fd804c423ed56bee1f62273804}\label{namespacepmc__aero__mode_add8ce2fd804c423ed56bee1f62273804}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+mobility@{aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+mobility}}
+\index{aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+mobility@{aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+mobility}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+mobility}{aero\_mode\_diam\_type\_mobility}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+diam\+\_\+type\+\_\+mobility = 2}
+
+
+
+Type code for mobility equivalent diameter. 
+
+
+
+Definition at line 44 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_ae84b8139739f7f4a21f52621b68f8b3b}\label{namespacepmc__aero__mode_ae84b8139739f7f4a21f52621b68f8b3b}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!aero\+\_\+mode\+\_\+name\+\_\+len@{aero\+\_\+mode\+\_\+name\+\_\+len}}
+\index{aero\+\_\+mode\+\_\+name\+\_\+len@{aero\+\_\+mode\+\_\+name\+\_\+len}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{aero\+\_\+mode\+\_\+name\+\_\+len}{aero\_mode\_name\_len}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+name\+\_\+len = 300}
+
+
+
+Maximum length of a mode name. 
+
+
+
+Definition at line 24 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_af8ac2864bbbcbbb395efddac6ae2ac7f}\label{namespacepmc__aero__mode_af8ac2864bbbcbbb395efddac6ae2ac7f}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!aero\+\_\+mode\+\_\+type\+\_\+exp@{aero\+\_\+mode\+\_\+type\+\_\+exp}}
+\index{aero\+\_\+mode\+\_\+type\+\_\+exp@{aero\+\_\+mode\+\_\+type\+\_\+exp}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{aero\+\_\+mode\+\_\+type\+\_\+exp}{aero\_mode\_type\_exp}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+type\+\_\+exp = 2}
+
+
+
+Type code for an exponential mode. 
+
+
+
+Definition at line 33 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_ae914213ae545288187869448e9a7c9c8}\label{namespacepmc__aero__mode_ae914213ae545288187869448e9a7c9c8}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!aero\+\_\+mode\+\_\+type\+\_\+invalid@{aero\+\_\+mode\+\_\+type\+\_\+invalid}}
+\index{aero\+\_\+mode\+\_\+type\+\_\+invalid@{aero\+\_\+mode\+\_\+type\+\_\+invalid}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{aero\+\_\+mode\+\_\+type\+\_\+invalid}{aero\_mode\_type\_invalid}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+type\+\_\+invalid = 0}
+
+
+
+Type code for an undefined or invalid mode. 
+
+
+
+Definition at line 29 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_a267ddc1551b2f71a22191d1c14577227}\label{namespacepmc__aero__mode_a267ddc1551b2f71a22191d1c14577227}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!aero\+\_\+mode\+\_\+type\+\_\+len@{aero\+\_\+mode\+\_\+type\+\_\+len}}
+\index{aero\+\_\+mode\+\_\+type\+\_\+len@{aero\+\_\+mode\+\_\+type\+\_\+len}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{aero\+\_\+mode\+\_\+type\+\_\+len}{aero\_mode\_type\_len}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+type\+\_\+len = 20}
+
+
+
+Maximum length of a mode type. 
+
+
+
+Definition at line 26 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_a936200d0b3116d7e58d32e7b43ac4789}\label{namespacepmc__aero__mode_a936200d0b3116d7e58d32e7b43ac4789}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!aero\+\_\+mode\+\_\+type\+\_\+log\+\_\+normal@{aero\+\_\+mode\+\_\+type\+\_\+log\+\_\+normal}}
+\index{aero\+\_\+mode\+\_\+type\+\_\+log\+\_\+normal@{aero\+\_\+mode\+\_\+type\+\_\+log\+\_\+normal}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{aero\+\_\+mode\+\_\+type\+\_\+log\+\_\+normal}{aero\_mode\_type\_log\_normal}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+type\+\_\+log\+\_\+normal = 1}
+
+
+
+Type code for a log-\/normal mode. 
+
+
+
+Definition at line 31 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_a2a5e08b4bbed0947335c38a0a3791f6c}\label{namespacepmc__aero__mode_a2a5e08b4bbed0947335c38a0a3791f6c}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!aero\+\_\+mode\+\_\+type\+\_\+mono@{aero\+\_\+mode\+\_\+type\+\_\+mono}}
+\index{aero\+\_\+mode\+\_\+type\+\_\+mono@{aero\+\_\+mode\+\_\+type\+\_\+mono}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{aero\+\_\+mode\+\_\+type\+\_\+mono}{aero\_mode\_type\_mono}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+type\+\_\+mono = 3}
+
+
+
+Type code for a mono-\/disperse mode. 
+
+
+
+Definition at line 35 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__mode_a86073e0512631b231222d9442877828b}\label{namespacepmc__aero__mode_a86073e0512631b231222d9442877828b}} 
+\index{pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}!aero\+\_\+mode\+\_\+type\+\_\+sampled@{aero\+\_\+mode\+\_\+type\+\_\+sampled}}
+\index{aero\+\_\+mode\+\_\+type\+\_\+sampled@{aero\+\_\+mode\+\_\+type\+\_\+sampled}!pmc\+\_\+aero\+\_\+mode@{pmc\+\_\+aero\+\_\+mode}}
+\subsubsection{\texorpdfstring{aero\+\_\+mode\+\_\+type\+\_\+sampled}{aero\_mode\_type\_sampled}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+type\+\_\+sampled = 4}
+
+
+
+Type code for a sampled mode. 
+
+
+
+Definition at line 37 of file aero\+\_\+mode.\+F90.
+

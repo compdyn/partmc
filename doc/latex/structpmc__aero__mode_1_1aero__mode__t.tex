@@ -1,0 +1,187 @@
+\hypertarget{structpmc__aero__mode_1_1aero__mode__t}{}\section{pmc\+\_\+aero\+\_\+mode\+:\+:aero\+\_\+mode\+\_\+t Type Reference}
+\label{structpmc__aero__mode_1_1aero__mode__t}\index{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}}
+
+
+An aerosol size distribution mode.  
+
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+character(len=\mbox{\hyperlink{namespacepmc__aero__mode_ae84b8139739f7f4a21f52621b68f8b3b}{aero\+\_\+mode\+\_\+name\+\_\+len}}) \mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t_abed615c819c004f8c8d9a3c6344ee1bb}{name}}
+\begin{DoxyCompactList}\small\item\em Mode name, used to track particle sources. \end{DoxyCompactList}\item 
+integer \mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t_a98bd0880e3031493eba1c08644bef788}{type}}
+\begin{DoxyCompactList}\small\item\em Mode type (given by module constants). \end{DoxyCompactList}\item 
+real(kind=dp) \mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t_a06669595ee6345caf6b7b4c39aa91fd6}{char\+\_\+radius}}
+\begin{DoxyCompactList}\small\item\em Characteristic radius, with meaning dependent on mode type (m). \end{DoxyCompactList}\item 
+real(kind=dp) \mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t_a365f9259ec7d4dd6c5a263b4f705b8e0}{log10\+\_\+std\+\_\+dev\+\_\+radius}}
+\begin{DoxyCompactList}\small\item\em Log base 10 of geometric standard deviation of radius, (m). \end{DoxyCompactList}\item 
+real(kind=dp), dimension(\+:), allocatable \mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t_abe8c0d5e3a49d9da93fb1b0b5d3c3dd0}{sample\+\_\+radius}}
+\begin{DoxyCompactList}\small\item\em Sample bin radii \mbox{[}length {\ttfamily (N + 1)}\mbox{]} (m). \end{DoxyCompactList}\item 
+real(kind=dp), dimension(\+:), allocatable \mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t_a1c5ca42a2671596e2e635d1bb9ad6e75}{sample\+\_\+num\+\_\+conc}}
+\begin{DoxyCompactList}\small\item\em Sample bin number concentrations \mbox{[}length {\ttfamily N}\mbox{]} (m$^\wedge$\{-\/3\}). \end{DoxyCompactList}\item 
+real(kind=dp) \mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t_afffe6af2aced02a8f50cddf8e6c3b71b}{num\+\_\+conc}}
+\begin{DoxyCompactList}\small\item\em Total number concentration of mode (\#/m$^\wedge$3). \end{DoxyCompactList}\item 
+real(kind=dp), dimension(\+:), allocatable \mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t_a916fd39b4601c6df6248bf0c6c86391e}{vol\+\_\+frac}}
+\begin{DoxyCompactList}\small\item\em Species fractions by volume \mbox{[}length {\ttfamily aero\+\_\+data\+\_\+n\+\_\+spec(aero\+\_\+data)}\mbox{]} (1). \end{DoxyCompactList}\item 
+real(kind=dp), dimension(\+:), allocatable \mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t_acccfc1b80d36d84c8c437271810e5c76}{vol\+\_\+frac\+\_\+std}}
+\begin{DoxyCompactList}\small\item\em Species fraction standard deviation \mbox{[}length {\ttfamily aero\+\_\+data\+\_\+n\+\_\+spec(aero\+\_\+data)}\mbox{]} (1). \end{DoxyCompactList}\item 
+integer \mbox{\hyperlink{structpmc__aero__mode_1_1aero__mode__t_a45c2763552f691a96adffa91af895bf6}{source}}
+\begin{DoxyCompactList}\small\item\em Source number. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+An aerosol size distribution mode. 
+
+Each mode is assumed to be fully internally mixed so that every particle has the same composition. The composition is stored in {\ttfamily vol\+\_\+frac}, while the other parameters define the size distribution (with {\ttfamily type} defining the type of size distribution function). See \mbox{\hyperlink{input_format_mass_frac}{Input File Format\+: Aerosol Mass Fractions}} for descriptions of the parameters relevant to each mode type. 
+
+Definition at line 54 of file aero\+\_\+mode.\+F90.
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structpmc__aero__mode_1_1aero__mode__t_a06669595ee6345caf6b7b4c39aa91fd6}\label{structpmc__aero__mode_1_1aero__mode__t_a06669595ee6345caf6b7b4c39aa91fd6}} 
+\index{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}!char\+\_\+radius@{char\+\_\+radius}}
+\index{char\+\_\+radius@{char\+\_\+radius}!pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}}
+\subsubsection{\texorpdfstring{char\+\_\+radius}{char\_radius}}
+{\footnotesize\ttfamily real(kind=dp) pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t\+::char\+\_\+radius}
+
+
+
+Characteristic radius, with meaning dependent on mode type (m). 
+
+
+
+Definition at line 60 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__mode_1_1aero__mode__t_a365f9259ec7d4dd6c5a263b4f705b8e0}\label{structpmc__aero__mode_1_1aero__mode__t_a365f9259ec7d4dd6c5a263b4f705b8e0}} 
+\index{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}!log10\+\_\+std\+\_\+dev\+\_\+radius@{log10\+\_\+std\+\_\+dev\+\_\+radius}}
+\index{log10\+\_\+std\+\_\+dev\+\_\+radius@{log10\+\_\+std\+\_\+dev\+\_\+radius}!pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}}
+\subsubsection{\texorpdfstring{log10\+\_\+std\+\_\+dev\+\_\+radius}{log10\_std\_dev\_radius}}
+{\footnotesize\ttfamily real(kind=dp) pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t\+::log10\+\_\+std\+\_\+dev\+\_\+radius}
+
+
+
+Log base 10 of geometric standard deviation of radius, (m). 
+
+
+
+Definition at line 62 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__mode_1_1aero__mode__t_abed615c819c004f8c8d9a3c6344ee1bb}\label{structpmc__aero__mode_1_1aero__mode__t_abed615c819c004f8c8d9a3c6344ee1bb}} 
+\index{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}!name@{name}}
+\index{name@{name}!pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}}
+\subsubsection{\texorpdfstring{name}{name}}
+{\footnotesize\ttfamily character(len=\mbox{\hyperlink{namespacepmc__aero__mode_ae84b8139739f7f4a21f52621b68f8b3b}{aero\+\_\+mode\+\_\+name\+\_\+len}}) pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t\+::name}
+
+
+
+Mode name, used to track particle sources. 
+
+
+
+Definition at line 56 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__mode_1_1aero__mode__t_afffe6af2aced02a8f50cddf8e6c3b71b}\label{structpmc__aero__mode_1_1aero__mode__t_afffe6af2aced02a8f50cddf8e6c3b71b}} 
+\index{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}!num\+\_\+conc@{num\+\_\+conc}}
+\index{num\+\_\+conc@{num\+\_\+conc}!pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}}
+\subsubsection{\texorpdfstring{num\+\_\+conc}{num\_conc}}
+{\footnotesize\ttfamily real(kind=dp) pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t\+::num\+\_\+conc}
+
+
+
+Total number concentration of mode (\#/m$^\wedge$3). 
+
+
+
+Definition at line 68 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__mode_1_1aero__mode__t_a1c5ca42a2671596e2e635d1bb9ad6e75}\label{structpmc__aero__mode_1_1aero__mode__t_a1c5ca42a2671596e2e635d1bb9ad6e75}} 
+\index{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}!sample\+\_\+num\+\_\+conc@{sample\+\_\+num\+\_\+conc}}
+\index{sample\+\_\+num\+\_\+conc@{sample\+\_\+num\+\_\+conc}!pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}}
+\subsubsection{\texorpdfstring{sample\+\_\+num\+\_\+conc}{sample\_num\_conc}}
+{\footnotesize\ttfamily real(kind=dp), dimension(\+:), allocatable pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t\+::sample\+\_\+num\+\_\+conc}
+
+
+
+Sample bin number concentrations \mbox{[}length {\ttfamily N}\mbox{]} (m$^\wedge$\{-\/3\}). 
+
+
+
+Definition at line 66 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__mode_1_1aero__mode__t_abe8c0d5e3a49d9da93fb1b0b5d3c3dd0}\label{structpmc__aero__mode_1_1aero__mode__t_abe8c0d5e3a49d9da93fb1b0b5d3c3dd0}} 
+\index{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}!sample\+\_\+radius@{sample\+\_\+radius}}
+\index{sample\+\_\+radius@{sample\+\_\+radius}!pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}}
+\subsubsection{\texorpdfstring{sample\+\_\+radius}{sample\_radius}}
+{\footnotesize\ttfamily real(kind=dp), dimension(\+:), allocatable pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t\+::sample\+\_\+radius}
+
+
+
+Sample bin radii \mbox{[}length {\ttfamily (N + 1)}\mbox{]} (m). 
+
+
+
+Definition at line 64 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__mode_1_1aero__mode__t_a45c2763552f691a96adffa91af895bf6}\label{structpmc__aero__mode_1_1aero__mode__t_a45c2763552f691a96adffa91af895bf6}} 
+\index{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}!source@{source}}
+\index{source@{source}!pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}}
+\subsubsection{\texorpdfstring{source}{source}}
+{\footnotesize\ttfamily integer pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t\+::source}
+
+
+
+Source number. 
+
+
+
+Definition at line 75 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__mode_1_1aero__mode__t_a98bd0880e3031493eba1c08644bef788}\label{structpmc__aero__mode_1_1aero__mode__t_a98bd0880e3031493eba1c08644bef788}} 
+\index{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}!type@{type}}
+\index{type@{type}!pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}}
+\subsubsection{\texorpdfstring{type}{type}}
+{\footnotesize\ttfamily integer pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t\+::type}
+
+
+
+Mode type (given by module constants). 
+
+
+
+Definition at line 58 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__mode_1_1aero__mode__t_a916fd39b4601c6df6248bf0c6c86391e}\label{structpmc__aero__mode_1_1aero__mode__t_a916fd39b4601c6df6248bf0c6c86391e}} 
+\index{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}!vol\+\_\+frac@{vol\+\_\+frac}}
+\index{vol\+\_\+frac@{vol\+\_\+frac}!pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}}
+\subsubsection{\texorpdfstring{vol\+\_\+frac}{vol\_frac}}
+{\footnotesize\ttfamily real(kind=dp), dimension(\+:), allocatable pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t\+::vol\+\_\+frac}
+
+
+
+Species fractions by volume \mbox{[}length {\ttfamily aero\+\_\+data\+\_\+n\+\_\+spec(aero\+\_\+data)}\mbox{]} (1). 
+
+
+
+Definition at line 70 of file aero\+\_\+mode.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__mode_1_1aero__mode__t_acccfc1b80d36d84c8c437271810e5c76}\label{structpmc__aero__mode_1_1aero__mode__t_acccfc1b80d36d84c8c437271810e5c76}} 
+\index{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}!vol\+\_\+frac\+\_\+std@{vol\+\_\+frac\+\_\+std}}
+\index{vol\+\_\+frac\+\_\+std@{vol\+\_\+frac\+\_\+std}!pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t@{pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t}}
+\subsubsection{\texorpdfstring{vol\+\_\+frac\+\_\+std}{vol\_frac\_std}}
+{\footnotesize\ttfamily real(kind=dp), dimension(\+:), allocatable pmc\+\_\+aero\+\_\+mode\+::aero\+\_\+mode\+\_\+t\+::vol\+\_\+frac\+\_\+std}
+
+
+
+Species fraction standard deviation \mbox{[}length {\ttfamily aero\+\_\+data\+\_\+n\+\_\+spec(aero\+\_\+data)}\mbox{]} (1). 
+
+
+
+Definition at line 73 of file aero\+\_\+mode.\+F90.
+
+
+
+The documentation for this type was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{aero__mode_8_f90}{aero\+\_\+mode.\+F90}}\end{DoxyCompactItemize}

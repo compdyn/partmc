@@ -1,0 +1,107 @@
+\hypertarget{namespacepmc__phlex__interface}{}\section{pmc\+\_\+phlex\+\_\+interface Module Reference}
+\label{namespacepmc__phlex__interface}\index{pmc\+\_\+phlex\+\_\+interface@{pmc\+\_\+phlex\+\_\+interface}}
+
+
+An interface between Part\+MC and the Phlexible Module for Chemistry.  
+
+
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__phlex__interface_aa62d09e99d1e6d81cd9ab31e4fec3db4}{pmc\+\_\+phlex\+\_\+interface\+\_\+solve}} (phlex\+\_\+core, phlex\+\_\+state, aero\+\_\+data, aero\+\_\+state, gas\+\_\+data, gas\+\_\+state, del\+\_\+t)
+\begin{DoxyCompactList}\small\item\em Run the Phlexible chemistry module for the current Part\+MC state. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__phlex__interface_a856f9c1fb3526353bd573ab1e4a5ae5f}{pmc\+\_\+phlex\+\_\+interface\+\_\+set\+\_\+phlex\+\_\+conc}} (aero\+\_\+data, aero\+\_\+particle, phlex\+\_\+core, phlex\+\_\+state, num\+\_\+conc)
+\begin{DoxyCompactList}\small\item\em Set the Phlexible chemistry aerosol-\/phase species concentrations. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__phlex__interface_a40607ba7c1278c70d004bbcdef0cc4d1}{pmc\+\_\+phlex\+\_\+interface\+\_\+get\+\_\+phlex\+\_\+conc}} (aero\+\_\+data, aero\+\_\+particle, phlex\+\_\+core, phlex\+\_\+state, num\+\_\+conc)
+\begin{DoxyCompactList}\small\item\em Get the Phlexible chemistry aerosol-\/phase species concentrations. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+An interface between Part\+MC and the Phlexible Module for Chemistry. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__phlex__interface_a40607ba7c1278c70d004bbcdef0cc4d1}\label{namespacepmc__phlex__interface_a40607ba7c1278c70d004bbcdef0cc4d1}} 
+\index{pmc\+\_\+phlex\+\_\+interface@{pmc\+\_\+phlex\+\_\+interface}!pmc\+\_\+phlex\+\_\+interface\+\_\+get\+\_\+phlex\+\_\+conc@{pmc\+\_\+phlex\+\_\+interface\+\_\+get\+\_\+phlex\+\_\+conc}}
+\index{pmc\+\_\+phlex\+\_\+interface\+\_\+get\+\_\+phlex\+\_\+conc@{pmc\+\_\+phlex\+\_\+interface\+\_\+get\+\_\+phlex\+\_\+conc}!pmc\+\_\+phlex\+\_\+interface@{pmc\+\_\+phlex\+\_\+interface}}
+\subsubsection{\texorpdfstring{pmc\+\_\+phlex\+\_\+interface\+\_\+get\+\_\+phlex\+\_\+conc()}{pmc\_phlex\_interface\_get\_phlex\_conc()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+phlex\+\_\+interface\+::pmc\+\_\+phlex\+\_\+interface\+\_\+get\+\_\+phlex\+\_\+conc (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(inout)}]{aero\+\_\+particle,  }\item[{type(\mbox{\hyperlink{structpmc__phlex__core_1_1phlex__core__t}{phlex\+\_\+core\+\_\+t}}), intent(in)}]{phlex\+\_\+core,  }\item[{type(\mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t}{phlex\+\_\+state\+\_\+t}}), intent(inout)}]{phlex\+\_\+state,  }\item[{real(kind=dp), intent(in)}]{num\+\_\+conc }\end{DoxyParamCaption})}
+
+
+
+Get the Phlexible chemistry aerosol-\/phase species concentrations. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol particle\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+particle} & Aerosol data\\
+\hline
+\mbox{\tt in}  & {\em phlex\+\_\+core} & Phlexible chemistry core\\
+\hline
+\mbox{\tt in,out}  & {\em phlex\+\_\+state} & Phlexible chemistry state\\
+\hline
+\mbox{\tt in}  & {\em num\+\_\+conc} & Number concentration particle weighting \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 122 of file phlex\+\_\+interface.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__phlex__interface_a856f9c1fb3526353bd573ab1e4a5ae5f}\label{namespacepmc__phlex__interface_a856f9c1fb3526353bd573ab1e4a5ae5f}} 
+\index{pmc\+\_\+phlex\+\_\+interface@{pmc\+\_\+phlex\+\_\+interface}!pmc\+\_\+phlex\+\_\+interface\+\_\+set\+\_\+phlex\+\_\+conc@{pmc\+\_\+phlex\+\_\+interface\+\_\+set\+\_\+phlex\+\_\+conc}}
+\index{pmc\+\_\+phlex\+\_\+interface\+\_\+set\+\_\+phlex\+\_\+conc@{pmc\+\_\+phlex\+\_\+interface\+\_\+set\+\_\+phlex\+\_\+conc}!pmc\+\_\+phlex\+\_\+interface@{pmc\+\_\+phlex\+\_\+interface}}
+\subsubsection{\texorpdfstring{pmc\+\_\+phlex\+\_\+interface\+\_\+set\+\_\+phlex\+\_\+conc()}{pmc\_phlex\_interface\_set\_phlex\_conc()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+phlex\+\_\+interface\+::pmc\+\_\+phlex\+\_\+interface\+\_\+set\+\_\+phlex\+\_\+conc (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{aero\+\_\+particle,  }\item[{type(\mbox{\hyperlink{structpmc__phlex__core_1_1phlex__core__t}{phlex\+\_\+core\+\_\+t}}), intent(in)}]{phlex\+\_\+core,  }\item[{type(\mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t}{phlex\+\_\+state\+\_\+t}}), intent(inout)}]{phlex\+\_\+state,  }\item[{real(kind=dp), intent(in)}]{num\+\_\+conc }\end{DoxyParamCaption})}
+
+
+
+Set the Phlexible chemistry aerosol-\/phase species concentrations. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol particle\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+particle} & Aerosol data\\
+\hline
+\mbox{\tt in}  & {\em phlex\+\_\+core} & Phlexible chemistry core\\
+\hline
+\mbox{\tt in,out}  & {\em phlex\+\_\+state} & Phlexible chemistry state\\
+\hline
+\mbox{\tt in}  & {\em num\+\_\+conc} & Number concentration particle weighting \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 86 of file phlex\+\_\+interface.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__phlex__interface_aa62d09e99d1e6d81cd9ab31e4fec3db4}\label{namespacepmc__phlex__interface_aa62d09e99d1e6d81cd9ab31e4fec3db4}} 
+\index{pmc\+\_\+phlex\+\_\+interface@{pmc\+\_\+phlex\+\_\+interface}!pmc\+\_\+phlex\+\_\+interface\+\_\+solve@{pmc\+\_\+phlex\+\_\+interface\+\_\+solve}}
+\index{pmc\+\_\+phlex\+\_\+interface\+\_\+solve@{pmc\+\_\+phlex\+\_\+interface\+\_\+solve}!pmc\+\_\+phlex\+\_\+interface@{pmc\+\_\+phlex\+\_\+interface}}
+\subsubsection{\texorpdfstring{pmc\+\_\+phlex\+\_\+interface\+\_\+solve()}{pmc\_phlex\_interface\_solve()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+phlex\+\_\+interface\+::pmc\+\_\+phlex\+\_\+interface\+\_\+solve (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__phlex__core_1_1phlex__core__t}{phlex\+\_\+core\+\_\+t}}), intent(in)}]{phlex\+\_\+core,  }\item[{type(\mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t}{phlex\+\_\+state\+\_\+t}}), intent(inout)}]{phlex\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}}), intent(in)}]{gas\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__gas__state_1_1gas__state__t}{gas\+\_\+state\+\_\+t}}), intent(inout)}]{gas\+\_\+state,  }\item[{real(kind=dp), intent(in)}]{del\+\_\+t }\end{DoxyParamCaption})}
+
+
+
+Run the Phlexible chemistry module for the current Part\+MC state. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em phlex\+\_\+core} & Phlexible chemistry core\\
+\hline
+\mbox{\tt in,out}  & {\em phlex\+\_\+state} & Phlexible chemistry state\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data\\
+\hline
+\mbox{\tt in,out}  & {\em gas\+\_\+state} & Gas state\\
+\hline
+\mbox{\tt in}  & {\em del\+\_\+t} & Time step (s) \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 31 of file phlex\+\_\+interface.\+F90.
+

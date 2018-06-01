@@ -1,0 +1,1264 @@
+A reaction represents a transformation of the model state due to a physical or chemical process that occurs within a phase (gas or \mbox{\hyperlink{phlex_aero_phase}{aerosol}}) or across the interface between two phases. In the \mbox{\hyperlink{phlex_chem}{phlex-\/chem}} model, reactions are grouped into \mbox{\hyperlink{phlex_mechanism}{mechanisms}}, which are solved over time-\/steps specified by the host model.
+
+The primary function of a reaction in the \mbox{\hyperlink{phlex_chem}{phlex-\/chem}} model is to provide the solver with contributions to the time derivative and Jacobian matrix for \mbox{\hyperlink{phlex_species}{chemical species}} concentrations based on the current model state described in a {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t}}} object.
+
+Specific reaction types extend the abstract {\ttfamily \mbox{\hyperlink{structpmc__rxn__data_1_1rxn__data__t}{pmc\+\_\+rxn\+\_\+data\+::rxn\+\_\+data\+\_\+t}}} type and generally accept a set of reactants and products whose names correspond to \mbox{\hyperlink{phlex_species}{chemical species}} names, as well as a set of reaction parameters needed to describe a particular reaction. During initialization, a reaction will have access to its set of parameters as well as the parameters of any \mbox{\hyperlink{phlex_species}{species}} and \mbox{\hyperlink{phlex_aero_rep}{aerosol phase}} in the \mbox{\hyperlink{phlex_chem}{phlex-\/chem}} model, however this information will not be available during a model run. The information required by the reaction instance to calculate its contribution to the time derivatve and Jacobian matrix must therefore be packed into the condensed data arrays of the {\ttfamily pmc\+\_\+rep\+\_\+data\+::rep\+\_\+data\+\_\+t} object during intialization.
+
+Valid reaction types include\+:
+
+
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{phlex_rxn_arrhenius}{Arrhenius}}
+\item \mbox{\hyperlink{phlex_rxn_aqueous_equilibrium}{Aqueous-\/phase Equilibrium}}
+\item \mbox{\hyperlink{phlex_rxn_CMAQ_H2O2}{C\+M\+AQ special reaction type for 2\+H\+O2 (+ H2O) -\/$>$ H2\+O2}}
+\item \mbox{\hyperlink{phlex_rxn_CMAQ_OH_HNO3}{C\+M\+AQ special reaction type for OH + H\+N\+O3 -\/$>$ N\+O3 + H2O}}
+\item \mbox{\hyperlink{phlex_rxn_condensed_phase_arrhenius}{Condensed-\/\+Phase Arrhenius}}
+\item \mbox{\hyperlink{phlex_rxn_HL_phase_transfer}{Henry\textquotesingle{}s Law Phase Transfer}}
+\item \mbox{\hyperlink{phlex_rxn_PDFiTE_activity}{P\+D-\/\+Fi\+TE Activity}}
+\item \mbox{\hyperlink{phlex_rxn_SIMPOL_phase_transfer}{S\+I\+M\+P\+OL.1 Phase Transfer}}
+\item \mbox{\hyperlink{phlex_rxn_photolysis}{Photolysis}}
+\item \mbox{\hyperlink{phlex_rxn_troe}{Troe (fall-\/off)}}
+\item \mbox{\hyperlink{phlex_rxn_ZSR_aerosol_water}{Z\+SR Aerosol Water}}
+\end{DoxyItemize}
+
+The general input format for a reaction can be found \mbox{\hyperlink{input_format_rxn}{here}}.
+
+General instructions for adding a new reaction type can be found \mbox{\hyperlink{phlex_rxn_add}{here}}. \hypertarget{phlex_rxn_arrhenius}{}\section{Phlexible Module for Chemistry\+: Arrhenius Reaction}\label{phlex_rxn_arrhenius}
+Arrhenius-\/like reaction rate constant equations are calculated as follows\+:
+
+\[ Ae^{(\frac{-E_a}{k_bT})}(\frac{T}{D})^B(1.0+E*P) \]
+
+where $A$ is the pre-\/exponential factor ( $(\mbox{\si{\#.cm^{-3}}})^{-(n-1)}\mbox{\si{\per\second}}$), $n$ is the number of reactants, $E_a$ is the activation energy (J), $k_b$ is the Boltzmann constant (J/K), $D$ (K), $B$ (unitless) and $E$ ( $Pa^{-1}$) are reaction parameters, $T$ is the temperature (K), and $P$ is the pressure (Pa). The first two terms are described in Finlayson-\/\+Pitts and Pitts (2000) \cite{Finlayson-Pitts2000} . The final term is included to accomodate C\+M\+AQ E\+BI solver type 7 rate constants.
+
+Input data for Arrhenius equations has the following format\+: 
+\begin{DoxyCode}
+\{
+  "type" : "ARRHENIUS",
+  "A" : 123.45,
+  "Ea" : 123.45,
+  "B"  : 1.3,
+  "D"  : 300.0,
+  "E"  : 0.6E-5,
+  "time unit" : "MIN",
+  "reactants" : \{
+    "spec1" : \{\},
+    "spec2" : \{ "qty" : 2 \},
+    ...
+  \},
+  "products" : \{
+    "spec3" : \{\},
+    "spec4" : \{ "yield" : 0.65 \},
+    ...
+  \}
+\}
+\end{DoxyCode}
+ The key-\/value pairs {\bfseries reactants}, and {\bfseries products} are required. Reactants without a {\bfseries qty} value are assumed to appear once in the reaction equation. Products without a specified {\bfseries yield} are assumed to have a {\bfseries yield} of 1.\+0.
+
+Optionally, a parameter {\bfseries C} may be included, and is taken to equal $\frac{-E_a}{k_b}$. Note that either {\bfseries Ea} or {\bfseries C} may be included, but not both. When neither {\bfseries Ea} or {\bfseries C} are included, they are assumed to be 0.\+0. When {\bfseries A} is not included, it is assumed to be 1.\+0, when {\bfseries D} is not included, it is assumed to be 300.\+0 K, when {\bfseries B} is not included, it is assumed to be 0.\+0, and when {\bfseries E} is not included, it is assumed to be 0.\+0. The unit for time is assumed to be s, but inclusion of the optional key-\/value pair {\bfseries time} {\bfseries unit} = {\bfseries M\+IN} can be used to indicate a rate with min as the time unit. \hypertarget{phlex_rxn_aqueous_equilibrium}{}\section{Phlexible Module for Chemistry\+: Phase-\/\+Transfer Reaction}\label{phlex_rxn_aqueous_equilibrium}
+Aqueous equilibrium reactions are calculated as forward and reverse reactions, based on a provided reverse reaction rate constant and the equilibrium constant that takes the form\+:
+
+\[ Ae^{C({1/T-1/298})} \]
+
+where $A$ is the pre-\/exponential factor ( $s^{-1}$), $C$ is a constant and $T$ is the temperature (K). Uptake kinetics are based on the particle size, the gas-\/phase species diffusion coefficient and molecular weight, and $N^{*}$, which is used to calculate the mass accomodation coefficient. Details of the calculations can be found in\+:
+
+Ervens, B., et al., 2003. \char`\"{}\+C\+A\+P\+R\+A\+M 2.\+4 (\+M\+O\+D\+A\+C mechanism)\+: An extended
+ and condensed tropospheric aqueous mechanism and its application.\char`\"{} J. Geophys. Res. 108, 4426. doi\+:10.\+1029/2002\+J\+D002202
+
+Input data for Aqueous equilibrium equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "AQUEOUS\_EQUILIBRIUM",
+  "A" : 123.45,
+  "C" : 123.45,
+  "k\_reverse" : 123.45,
+  "phase" : "my aqueous phase",
+  "time unit" : "MIN",
+  "aqueous-phase water" : "H2O\_aq",
+  "ion pair" : "spec3-spec4",
+  "reactants" : \{
+    "spec1" : \{\},
+    "spec2" : \{ "qty" : 2 \},
+    ...
+  \},
+  "products" : \{
+    "spec3" : \{\},
+    "spec4" : \{ "qty" : 0.65 \},
+    ...
+  \}
+  ...
+\}
+\end{DoxyCode}
+ The key-\/value pairs {\bfseries reactants} and {\bfseries products} are required. Reactants and products without a {\bfseries qty} value are assumed to appear once in the reaction equation. Reactant and product species must be present in the specified phase and include a {\bfseries \char`\"{}molecular weight\char`\"{}} parameter. The parameter {\bfseries \char`\"{}aqueous-\/phase water\char`\"{}} is required and must be the name of the aerosol-\/phase species that is used for water. The parameter {\bfseries \char`\"{}ion pair\char`\"{}} is optional. When it is include its value must be the name of an ion pair that is present in the specified aerosol phase. Its mean binary activity coefficient will be applied to the reverse reaction.
+
+When {\bfseries A} is not included, it is assumed to be 1.\+0, when {\bfseries C} is not included, it is assumed to be 0.\+0. The reverse reaction rate constant {\bfseries k\+\_\+reverse} is required.
+
+The unit for time is assumed to be s, but inclusion of the optional key-\/value pair {\bfseries \char`\"{}time unit\char`\"{}} = \char`\"{}\+M\+I\+N\char`\"{} can be used to indicate a rate with min as the time unit. \hypertarget{phlex_rxn_CMAQ_H2O2}{}\section{Phlexible Module for Chemistry\+: Special C\+M\+AQ Reaction for H2\+O2}\label{phlex_rxn_CMAQ_H2O2}
+A special C\+M\+AQ rate constant for the reactions\+:
+
+\begin{ch} HO2 + HO2 -> H2O2 \end{ch} \begin{ch} HO2 + HO2 + H2O -> H2O2 \end{ch}
+
+takes the form\+:
+
+\[ k=k_1+k_2[\mbox{M}] \]
+
+where $k_1$ and $k_2$ are \mbox{\hyperlink{phlex_rxn_arrhenius}{Arrhenius}} rate constants with $D=300$ and $E=0$, and $[\mbox{M}]$ is the density of air (taken to be $10^6$ ppm; Gipson and Young, 1999).
+
+Input data for C\+M\+AQ H2\+O2 equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "CMAQ\_H2O2",
+  "k1\_A" : 5.6E-12,
+  "k1\_B" : -1.8,
+  "k1\_C" : 180.0,
+  "k2\_A" : 3.4E-12,
+  "k2\_B" : -1.6,
+  "k2\_C" : 104.1,
+  "time unit" : "MIN",
+  "reactants" : \{
+    "spec1" : \{\},
+    "spec2" : \{ "qty" : 2 \},
+    ...
+  \},
+  "products" : \{
+    "spec3" : \{\},
+    "spec4" : \{ "yield" : 0.65 \},
+    ...
+  \}
+\}
+\end{DoxyCode}
+ The key-\/value pairs {\bfseries reactants}, and {\bfseries products} are required. Reactants without a {\bfseries qty} value are assumed to appear once in the reaction equation. Products without a specified {\bfseries yield} are assumed to have a {\bfseries yield} of 1.\+0.
+
+The two sets of parameters beginning with {\bfseries k1\+\_\+} and {\bfseries k2\+\_\+} are the \mbox{\hyperlink{phlex_rxn_arrhenius}{Arrhenius}} parameters for the $k_1$ and $k_2$ rate constants, respectively. When not present, {\bfseries \+\_\+A} parameters are assumed to be 1.\+0, {\bfseries \+\_\+B} to be 0.\+0, and {\bfseries \+\_\+C} to be 0.\+0.
+
+The unit for time is assumed to be s, but inclusion of the optional key-\/value pair {\bfseries \char`\"{}time unit\char`\"{}} = \char`\"{}\+M\+I\+N\char`\"{} can be used to indicate a rate with min as the time unit. \hypertarget{phlex_rxn_CMAQ_OH_HNO3}{}\section{Phlexible Module for Chemistry\+: Special C\+M\+AQ Reaction for O\+H+\+H\+N\+O3}\label{phlex_rxn_CMAQ_OH_HNO3}
+A special C\+M\+AQ rate constant for the reactions\+:
+
+\begin{ch} OH + HNO3 -> NO3 + H2O \end{ch}
+
+takes the form\+:
+
+\[ k=k_0+(\frac{k_3[\mbox{M}]}{1+k_3[\mbox{M}]/k_2}) \]
+
+where $k_0$, $k_2$ and $k_3$ are \mbox{\hyperlink{phlex_rxn_arrhenius}{Arrhenius}} rate constants with $D=300$ and $E=0$, and $[\mbox{M}]$ is the density of air (taken to be $10^6$ ppm; Gipson and Young, 1999).
+
+Input data for C\+M\+AQ O\+H+\+H\+N\+O3 equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "CMAQ\_OH\_HNO3",
+  "k0\_A" : 5.6E-12,
+  "k0\_B" : -1.8,
+  "k0\_C" : 180.0,
+  "k2\_A" : 3.4E-12,
+  "k2\_B" : -1.6,
+  "k2\_C" : 104.1,
+  "k3\_A" : 3.2E-11,
+  "k3\_B" : -1.5,
+  "k3\_C" : 92.0,
+  "time unit" : "MIN"
+  "reactants" : \{
+    "spec1" : \{\},
+    "spec2" : \{ "qty" : 2 \},
+    ...
+  \},
+  "products" : \{
+    "spec3" : \{\},
+    "spec4" : \{ "yield" : 0.65 \},
+    ...
+  \}
+\}
+\end{DoxyCode}
+ The key-\/value pairs {\bfseries reactants}, and {\bfseries products} are required. Reactants without a {\bfseries qty} value are assumed to appear once in the reaction equation. Products without a specified {\bfseries yield} are assumed to have a {\bfseries yield} of 1.\+0.
+
+The three sets of parameters beginning with {\bfseries k0\+\_\+}, {\bfseries k2\+\_\+}, and {\bfseries k3\+\_\+}, are the \mbox{\hyperlink{phlex_rxn_arrhenius}{Arrhenius}} parameters for the $k_0$, $k_2$ and $k_3$ rate constants, respectively. When not present, {\bfseries \+\_\+A} parameters are assumed to be 1.\+0, {\bfseries \+\_\+B} to be 0.\+0, and {\bfseries \+\_\+C} to be 0.\+0.
+
+The unit for time is assumed to be s, but inclusion of the optional key-\/value pair {\bfseries \char`\"{}time unit\char`\"{}} = \char`\"{}\+M\+I\+N\char`\"{} can be used to indicate a rate with min as the time unit. \hypertarget{phlex_rxn_condensed_phase_arrhenius}{}\section{Phlexible Module for Chemistry\+: Condensed-\/\+Phase Arrhenius Reaction}\label{phlex_rxn_condensed_phase_arrhenius}
+Condensed-\/phase Arrhenius reactions are calculated based on an Arrhenius-\/ like rate constant that takes the form\+:
+
+\[ Ae^{(\frac{-E_a}{k_bT})}(\frac{T}{D})^B(1.0+E*P) \]
+
+where $A$ is the pre-\/exponential factor ( $[\mbox{U}]^{-(n-1)} s^{-1}$), $U$ is the unit of the reactants and products, which can be $M$ for aqueous-\/phase reactions or \{\} for all other condensed-\/phase reactions, $n$ is the number of reactants, $E_a$ is the activation energy (J), $k_b$ is the Boltzmann constant (J/K), $D$ (K), $B$ (unitless) and $E$ ( $Pa^{-1}$) are reaction parameters, $T$ is the temperature (K), and $P$ is the pressure (Pa). The first two terms are described in Finlayson-\/\+Pitts and Pitts (2000). The final term is included to accomodate C\+M\+AQ E\+BI solver type 7 rate constants.
+
+Input data for condensed-\/phase Arrhenius equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "CONDENSED\_PHASE\_ARRHENIUS",
+  "A" : 123.45,
+  "Ea" : 123.45,
+  "B"  : 1.3,
+  "D"  : 300.0,
+  "E"  : 0.6E-5,
+  "units" : "M",
+  "time unit" : "MIN",
+  "aerosol phase" : "my aqueous phase",
+  "aerosol-phase water" : "H2O\_aq",
+  "reactants" : \{
+    "spec1" : \{\},
+    "spec2" : \{ "qty" : 2 \},
+    ...
+  \},
+  "products" : \{
+    "spec3" : \{\},
+    "spec4" : \{ "yield" : 0.65 \},
+    ...
+  \}
+\}
+\end{DoxyCode}
+ The key-\/value pairs {\bfseries reactants}, and {\bfseries products} are required. Reactants without a {\bfseries qty} value are assumed to appear once in the reaction equation. Products without a specified {\bfseries yield} are assumed to have a {\bfseries yield} of 1.\+0.
+
+Units for the reactants and products must be specified using the key {\bfseries units} and can be either \char`\"{}\+M\char`\"{} or \char`\"{}mol m-\/3\char`\"{}. If units of \char`\"{}\+M\char`\"{} are specified, a key-\/value pair {\bfseries \char`\"{}aerosol-\/phase water\char`\"{}} must also be included whose value is a string specifying the name for water in the aerosol phase.
+
+The unit for time is assumed to be s, but inclusion of the optional key-\/value pair {\bfseries \char`\"{}time unit\char`\"{}} = \char`\"{}\+M\+I\+N\char`\"{} can be used to indicate a rate with min as the time unit.
+
+The key-\/value pair {\bfseries \char`\"{}aerosol phase\char`\"{}} is required and must specify the name of the aerosol-\/phase in which the reaction occurs.
+
+Optionally, a parameter {\bfseries C} may be included, and is taken to equal $\frac{-E_a}{k_b}$. Note that either {\bfseries Ea} or {\bfseries C} may be included, but not both. When neither {\bfseries Ea} or {\bfseries C} are included, they are assumed to be 0.\+0. When {\bfseries A} is not included, it is assumed to be 1.\+0, when {\bfseries D} is not included, it is assumed to be 300.\+0 K, when {\bfseries B} is not included, it is assumed to be 0.\+0, and when {\bfseries E} is not included, it is assumed to be 0.\+0. \hypertarget{phlex_rxn_HL_phase_transfer}{}\section{Phlexible Module for Chemistry\+: Phase-\/\+Transfer Reaction}\label{phlex_rxn_HL_phase_transfer}
+Phase transfer reactions are based on Henry\textquotesingle{}s Law equilibrium constants whose equations take the form\+:
+
+\[ Ae^{C({1/T-1/298})} \]
+
+where $A$ is the pre-\/exponential factor ( $s^{-1}$), $C$ is a constant and $T$ is the temperature (K). Uptake kinetics are based on the particle size, the gas-\/phase species diffusion coefficient and molecular weight, and $N^{*}$, which is used to calculate the mass accomodation coefficient. Details of the calculations can be found in\+:
+
+Ervens, B., et al., 2003. \char`\"{}\+C\+A\+P\+R\+A\+M 2.\+4 (\+M\+O\+D\+A\+C mechanism)\+: An extended
+ and condensed tropospheric aqueous mechanism and its application.\char`\"{} J. Geophys. Res. 108, 4426. doi\+:10.\+1029/2002\+J\+D002202
+
+Input data for Phase transfer equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "HL\_PHASE\_TRANSFER",
+  "A" : 123.45,
+  "C" : 123.45,
+  "gas-phase species" : "my gas spec",
+  "aerosol-phase species" : "my aero spec"
+    ...
+\}
+\end{DoxyCode}
+ The key-\/value pairs {\bfseries gas-\/phase} species, and {\bfseries aerosol-\/phase} species are required. Only one gas-\/ and one aerosol-\/phase species are allowed per phase-\/transfer reaction. Additionally, gas-\/phase species must include parameters named \char`\"{}diffusion coeff\char`\"{}, which specifies the diffusion coefficient in ( $m^2s^{-1}$), and \char`\"{}molecular weight\char`\"{}, which specifies the molecular weight of the species in (kg/mol). They may optionally include the parameter \char`\"{}\+N star\char`\"{}, which will be used to calculate the mass accomodation coefficient. When this parameter is not included, the mass accomodation coefficient is assumed to be 1.\+0.
+
+When {\bfseries A} is not included, it is assumed to be 1.\+0, when {\bfseries C} is not included, it is assumed to be 0.\+0. \hypertarget{phlex_rxn_PDFiTE_activity}{}\section{Phlexible Module for Chemistry\+: P\+D\+Fi\+TE Activity Reaction}\label{phlex_rxn_PDFiTE_activity}
+P\+D\+Fi\+TE activity reactions calculate aerosol-\/phase species activities using Taylor series to describe partial derivatives of mean activity coefficients for ternary solutions, as described in {\bfseries [Topping2009]}\}. Thus, the mean binary activity coefficients for ion\+\_\+pairs are calculated according to eq. 15 in {\bfseries [Topping2009]}\}. The values are then available to aqueous-\/ phase reactions during solving.
+
+Input data for P\+D\+Fi\+TE activity equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "PDFITE\_ACTIVITY",
+  "gas-phase water" : "H2O",
+  "aerosol-phase water" : "H2O\_aq",
+  "aerosol phase" : "my aero phase",
+  "calculate for" : \{
+    "H-NO3" : \{
+      "interactions" : [
+        \{
+          "ion pair" : "H-NO3",
+          "min RH" : 0.0,
+          "max RH" : 0.1,
+          "B" : [ 0.925113 ]
+        \},
+        \{
+          "ion pair" : "H-NO3",
+          "min RH" : 0.1,
+          "max RH" : 0.4,
+          "B" : [ 0.12091, 13.497, -67.771, 144.01, -117.97 ]
+        \},
+        \{
+          "ion pair" : "H-NO3",
+          "min RH" : 0.4,
+          "max RH" : 0.9,
+          "B" : [ 1.3424, -0.8197, -0.52983, -0.37335 ]
+        \},
+        \{
+          "ion pair" : "H-NO3",
+          "min RH" : 0.9,
+          "max RH" : 1.0,
+          "B" : [ -0.3506505 ] 
+        \},
+        \{
+          "ion pair" : "NH4-NO3",
+          "min RH" : 0.0,
+          "max RH" : 0.1,
+          "B" : [ -11.93308 ]
+        \},
+        \{
+          "ion pair" : "NH4-NO3",
+          "min RH" : 0.1,
+          "max RH" : 0.99,
+          "B" : [ -17.0372, 59.232, -86.312, 44.04 ]
+        \},
+        \{
+          "ion pair" : "NH4-NO3",
+          "min RH" : 0.99,
+          "max RH" : 1.0,
+          "B" : [ -0.2599432 ] 
+        \}
+      ]
+    \}
+    ...
+  \}
+\}
+\end{DoxyCode}
+ The key-\/value pair {\bfseries \char`\"{}aerosol phase\char`\"{}} is required to specify the aerosol phase for which to calculate activity coefficients. The key-\/value pairs {\bfseries \char`\"{}gas-\/phase water\char`\"{}} and {\bfseries \char`\"{}aerosol-\/phase water\char`\"{}} must also be present and specify the names for the water species in each phase. The final required key-\/value pair is {\bfseries \char`\"{}calculated for\char`\"{}}, which should contain a set of ion pairs that activity coefficients will be calculated for.
+
+The key names in this set must correspond to ion pairs that are present in the specified aerosol phase. The values must contain a key-\/value pair named {\bfseries \char`\"{}interactions\char`\"{}} which includes an array of ion-\/pair interactions used to calculate equation 15 in {\bfseries [Topping2009]}\}.
+
+Each element in the {\bfseries interactions} array must include an {\bfseries \char`\"{}ion pair\char`\"{}} that exists in the specified aerosol phase, a {\bfseries \char`\"{}min R\+H\char`\"{}} and {\bfseries \char`\"{}max R\+H\char`\"{}} that specify the bounds for which the fitted curve is valid, and an array of {\bfseries B} values that specify the polynomial coefficients B0, B1, B2, ... as shown in equation 19 in {\bfseries [Topping2009]}\}. At least one polynomial coefficient must be present.
+
+If at least one interaction with an ion pair is included, enough interactions with that ion pair must be included to cover the entire RH range (0.\+0-\/1.\+0). Interactions are assume to cover the range (min\+RH, max\+RH\mbox{]}, except for the lowest RH interaction, which covers th range \mbox{[}0.\+0, max\+RH\mbox{]}.
+
+When the interacting ion pair is the same as the ion-\/pair for which the mean binary activity coefficient is being calculated, the interaction parameters are used to calculate $ln(\gamma_A^0(RH))$. Otherwise, the parameters are used to calculate $\frac{dln(gamma_A))}{d(N_{B,M}N_{B,x})}$.
+
+For the above example, the following input data should be present\+: 
+\begin{DoxyCode}
+\{
+  "name" : "H2O",
+  "type" : "CHEM\_SPEC",
+  "phase" : "GAS",
+\},  
+\{
+  "name" : "H2O\_aq",
+  "type" : "CHEM\_SPEC",
+  "phase" : "AEROSOL",
+\},  
+\{
+  "name" : "H\_p",
+  "type" : "CHEM\_SPEC",
+  "phase" : "AEROSOL",
+  "charge" : 1,
+  "molecular weight" : 1.008
+\},
+\{
+  "name" : "NH4\_p",
+  "type" : "CHEM\_SPEC",
+  "phase" : "AEROSOL",
+  "charge" : 1,
+  "molecular weight" : 18.04
+\},
+\{
+  "name" : "NO3\_m",
+  "type" : "CHEM\_SPEC",
+  "phase" : "AEROSOL",
+  "charge" : -1
+  "molecular weight" : 62.0049
+\},
+\{
+  "name" : "NH4-NO3",
+  "type" : "CHEM\_SPEC",
+  "tracer type" : "ION\_PAIR",
+  "ions" : \{
+    "NH4\_p" : \{\},
+    "NO3\_m" : \{\}
+  \}
+\},
+\{
+  "name" : "H-NO3",
+  "type" : "CHEM\_SPEC",
+  "tracer type" : "ION\_PAIR",
+  "ions" : \{
+    "H\_p" : \{\},
+    "NO3\_m" : \{\}
+  \}
+\},
+\{
+  "name" : "my aero phase",
+  "type" : "AERO\_PHASE",
+  "species" : ["H\_p", "NO3\_m", "NH4\_p", "NH4-NO3", "H-NO3", "H2O\_aq"]
+\}
+\end{DoxyCode}
+\hypertarget{phlex_rxn_SIMPOL_phase_transfer}{}\section{Phlexible Module for Chemistry\+: Phase-\/\+Transfer Reaction}\label{phlex_rxn_SIMPOL_phase_transfer}
+S\+I\+M\+P\+OL phase transfer reactions are based on the S\+I\+M\+P\+OL model calculations of vapor pressure, gas-\/phase diffusion to a particle\textquotesingle{}s surface, and condensed-\/phase activity.
+
+Vapor pressure are calculated according to\+:
+
+Pankow and Asher, 2008. "S\+I\+M\+P\+O\+L.\+1\+: A simple group contribution method for predicting vapor pressures and enthalpies of vaporization of multi-\/ functional organic compounds." Atmos. Chem. Phys., 8, 2773-\/2796.
+
+Mass accomodation coefficient calculations are based on equations 2-\/4 in\+:
+
+Ervens, B., et al., 2003. \char`\"{}\+C\+A\+P\+R\+A\+M 2.\+4 (\+M\+O\+D\+A\+C mechanism)\+: An extended
+ and condensed tropospheric aqueous mechanism and its application.\char`\"{} J. Geophys. Res. 108, 4426. doi\+:10.\+1029/2002\+J\+D002202
+
+Input data for S\+I\+M\+P\+OL phase transfer equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "SIMPOL\_PHASE\_TRANSFER",
+  "gas-phase species" : "my gas spec",
+  "aerosol phase" : "my aero phase",
+  "aerosol-phase species" : "my aero spec",
+  "B" : [ 123.2e3, -41.24, 2951.2, -1.245e-4 ]
+    ...
+\}
+\end{DoxyCode}
+ The key-\/value pairs {\bfseries \char`\"{}gas-\/phase species\char`\"{}}, {\bfseries \char`\"{}aerosol phase\char`\"{}} and {\bfseries \char`\"{}aerosol-\/phase species\char`\"{}} are required. Only one gas-\/ and one aerosol-\/phase species are allowed per phase-\/transfer reaction. Additionally, gas-\/phase species must include parameters named {\bfseries \char`\"{}diffusion coeff\char`\"{}}, which specifies the diffusion coefficient in ( $m^2s^{-1}$), and \char`\"{}molecular weight\char`\"{}, which specifies the molecular weight of the species in (kg/mol). They may optionally include the parameter \char`\"{}\+N star\char`\"{}, which will be used to calculate the mass accomodation coefficient. When this parameter is not included, the mass accomodation coefficient is assumed to be 1.\+0.
+
+The key-\/value pair {\bfseries B} is also required and must have a value of an array of exactly four members that specifies the S\+I\+M\+P\+OL parameters for the partitioning species. The {\bfseries B} parameters can be obtained by summing the contributions of each functional group present in the partitioning species to the overall $B_{n,i}$ for species $i$, such that\+: \[ B_{n,i} = \sum_{k} \nu_{k,i} B_{n,k} \forall n \in [1...4] \] where $\nu_{k,i}$ is the number of functional groups $k$ in species $i$ and the parameters $B_{n,k}$ for each functional group $k$ can be found in table 5 of Pankow and Asher (2008). \hypertarget{phlex_rxn_photolysis}{}\section{Phlexible Module for Chemistry\+: Photolysis}\label{phlex_rxn_photolysis}
+Photolysis reactions take the form\+:
+
+\{ X + hv -\/$>$ Y\+\_\+\{1\} ( + Y\+\_\+2  ) \}
+
+where \{X\} is the species being photolyzed, and \{Y\+\_\+n\} are the photolysis products.
+
+Photolysis rate constants (including the $h\nu$ term) can be constant or set from an external photolysis module using the {\ttfamily pmc\+\_\+rxn\+\_\+photolysis\+::rxn\+\_\+photolysis\+\_\+t\+::set\+\_\+rate\+\_\+const()} function. External modules can use the {\ttfamily \mbox{\hyperlink{structpmc__rxn__photolysis_1_1rxn__photolysis__t_a4af30a86fec5ca621eae12b191214630}{pmc\+\_\+rxn\+\_\+photolysis\+::rxn\+\_\+photolysis\+\_\+t\+::get\+\_\+property\+\_\+set()}}} function during initilialization to access any needed reaction parameters.
+
+Input data for Photolysis equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "PHOTOLYSIS",
+  "reactants" : \{
+    "spec1" : \{\}
+  \},
+  "products" : \{
+    "spec2" : \{\},
+    "spec3" : \{ "yield" : 0.65 \},
+    ...
+  \},
+  "rate const" : 12.5,
+\}
+\end{DoxyCode}
+ The key-\/value pairs {\bfseries reactants}, and {\bfseries products} are required. There must be exactly one key-\/value pair in the {\bfseries reactants} object whose name is the species being photolyzed and whose value is an empty {\ttfamily json} object. Any number of products may be present. Products without a specified {\bfseries yield} are assumed to have a {\bfseries yield} of 1.\+0. The {\bfseries \char`\"{}rate const\char`\"{}} is optional and can be used to set a rate constant (including the $h\nu$ term) that remains constant throughout the model run. All other data is optional and will be available to external photolysis modules during initialization. Rate constants should be in units of $s^{-1}$. \hypertarget{phlex_rxn_troe}{}\section{Phlexible Module for Chemistry\+: Troe Reaction}\label{phlex_rxn_troe}
+Troe (fall-\/off) reaction rate constant equations take the form\+:
+
+\[ \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \]
+
+where $k_0$ is the low-\/pressure limiting rate constant, $k_{\inf}$ is the high-\/pressure limiting rate constant, $[\mbox{M}]$ is the density of air (taken to be $10^6$ ppm), and $F_C$ and $N$ are parameters that determine the shape of the fall-\/off curve, and are typically 0.\+6 and 1.\+0, respectively (Finalyson-\/\+Pitts and Pitts, 2000; Gipson and Young, 1999). $k_0$ and $k_{\inf}$ are assumed to be \mbox{\hyperlink{phlex_rxn_arrhenius}{Arrhenius}} rate constants with $D=300$ and $E=0$.
+
+Input data for Troe equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "TROE",
+  "k0\_A" : 5.6E-12,
+  "k0\_B" : -1.8,
+  "k0\_C" : 180.0,
+  "kinf\_A" : 3.4E-12,
+  "kinf\_B" : -1.6,
+  "kinf\_C" : 104.1,
+  "Fc"  : 0.7,
+  "N"  : 0.9,
+  "time unit" : "MIN",
+  "reactants" : \{
+    "spec1" : \{\},
+    "spec2" : \{ "qty" : 2 \},
+    ...
+  \},
+  "products" : \{
+    "spec3" : \{\},
+    "spec4" : \{ "yield" : 0.65 \},
+    ...
+  \}
+\}
+\end{DoxyCode}
+ The key-\/value pairs {\bfseries reactants}, and {\bfseries products} are required. Reactants without a {\bfseries qty} value are assumed to appear once in the reaction equation. Products without a specified {\bfseries yield} are assumed to have a {\bfseries yield} of 1.\+0.
+
+The two sets of parameters beginning with {\bfseries k0\+\_\+} and {\bfseries kinf\+\_\+} are the \mbox{\hyperlink{phlex_rxn_arrhenius}{Arrhenius}} parameters for the $k_0$ and $k_{\inf}$ rate constants, respectively. When not present, {\bfseries \+\_\+A} parameters are assumed to be 1.\+0, {\bfseries \+\_\+B} to be 0.\+0, {\bfseries \+\_\+C} to be 0.\+0, {\bfseries Fc} to be 0.\+6 and {\bfseries N} to be 1.\+0.
+
+The unit for time is assumed to be s, but inclusion of the optional key-\/value pair {\bfseries \char`\"{}time unit\char`\"{}} = \char`\"{}\+M\+I\+N\char`\"{} can be used to indicate a rate with min as the time unit. \hypertarget{phlex_rxn_ZSR_aerosol_water}{}\section{Phlexible Module for Chemistry\+: Z\+SR Aerosol Water Reaction}\label{phlex_rxn_ZSR_aerosol_water}
+Z\+SR aerosol water reactions calculate equilibrium aerosol water content based on the Zdanovski-\/\+Stokes-\/\+Robinson mixing rule {\bfseries [Stokes1966]}, Jacobson1996\} in the following generalized format\+:
+
+\[ W = \sum\limits_{i=0}^{n}\frac{1000 M_i}{MW_i m_{i}(a_w)} \]
+
+where $M$ is the concentration of binary electrolyte $i$ ( $\mu g m^{-3}$) with molecular weight $MW_i$ (g/mol) and molality $m_{i}$ at a given water activity $a_w$ (RH; 0-\/1) contributing to the total aerosol water content $W$ ( $\mu g m^{-3}$).
+
+Input data for Z\+SR aerosol water equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "ZSR\_AEROSOL\_WATER",
+  "aerosol phase" : "my aero phase",
+  "gas-phase water" : "H2O",
+  "aerosol-phase water" : "H2O\_aq",
+  "ion pairs" : \{
+    "Na2SO4" : \{
+      "type" : "JACOBSON",
+      "ions" : \{
+        "Nap" : \{ "qty" : 2 \},
+        "SO4mm" : \{\}
+      \},
+      "Y\_j" : [-3.295311e3, 3.188349e4, -1.305168e5, 2.935608e5],
+      "low RH" : 0.51
+    \},
+    "H2SO4" : \{
+      "type" : "EQSAM",
+      "ions" : \{
+        "SO4mm" : \{\}
+      \},
+      "NW" : 4.5,
+      "ZW" : 0.5,
+      "MW" : 98.0
+    \}
+    ...
+  \}
+\}
+\end{DoxyCode}
+ The key-\/value pair {\bfseries \char`\"{}aerosol phase\char`\"{}} is required to specify the aerosol phase for which to calculate water content. Key-\/value pairs {\bfseries \char`\"{}gas-\/phase water\char`\"{}} and {\bfseries \char`\"{}aerosol-\/phase water\char`\"{}} must also be present and specify the names for the water species in each phase. The final required key-\/value pair is {\bfseries \char`\"{}ion pairs\char`\"{}} which should contain a set of key-\/value pairs where the key of each member of the set is the name of a binary electrolyte and the contents contain parameters required to estimate the contribution of the this electrolyte to total aerosol water. The name of the electrolyte may or may not refer to an actual aerosol-\/phase species.
+
+Each binary electrolyte must include a {\bfseries \char`\"{}type\char`\"{}} that refers to a method of calculating ion-\/pair contributions to aerosol water. Valid values for {\bfseries \char`\"{}type\char`\"{}} are \char`\"{}\+J\+A\+C\+O\+B\+S\+O\+N\char`\"{} and \char`\"{}\+E\+Q\+S\+A\+M\char`\"{}. These are described next.
+
+Aerosol water from ion pairs with type \char`\"{}\+J\+A\+C\+O\+B\+S\+O\+N\char`\"{} use equations (28) and (29) in Jacobson et al. {\bfseries [Jacobson1996]}\} where experimentally determined binary solution molalities are fit to a polynomial as\+:
+
+\[ \sqrt{m_{i}(a_w)} = Y_0 + Y_1 a_w + Y_2 a_w^2 + Y_3 a_w^3 + ..., \]
+
+where $Y_j$ are the fitting parameters. Thus, $m_i(a_w)$ is calculated at each time step, assuming constant $a_w$. These values must be included in a key-\/value pair {\bfseries \char`\"{}\+Y\+\_\+j\char`\"{}} whose value is an array with the $Y_j$ parameters. The size of the array corresponds to the order of the polynomial equation, which must be greater than 1. The key-\/value pair {\bfseries \char`\"{}low R\+H\char`\"{}} is required to specify the lowest RH (0-\/1) for which this fit is valid. This value for RH will be used for all lower RH in calculations of $m_i(a_w)$ as per Jacobson et al. {\bfseries [1996]}\}.
+
+The key-\/value pair \char`\"{}ions\char`\"{} must contain the set of ions this binary electrolyte includes. Each species must correspond to a species present in {\bfseries \char`\"{}aerosol phase\char`\"{}} and have a {\bfseries \char`\"{}charge\char`\"{}} parameter that specifies their charge (uncharged species are not permitted in this set) and a {\bfseries \char`\"{}molecular weight\char`\"{}} (g/mol) property. Ions without a {\bfseries \char`\"{}qty\char`\"{}} specified are assumed to appear once in the binary electrolyte. The total molecular weight for the binary electrolye $MW_i$ is calculated as a sum of its ionic components, and the ion species concentrations are used to determine the $M_i$ during integration.
+
+For the above example, the following input data should be present\+: 
+\begin{DoxyCode}
+\{
+  "name" : "H2O",
+  "type" : "CHEM\_SPEC",
+  "phase" : "GAS",
+\},  
+\{
+  "name" : "Nap",
+  "type" : "CHEM\_SPEC",
+  "phase" : "AEROSOL",
+  "charge" : 1,
+  "molecular weight" : 22.9898
+\},
+\{
+  "name" : "SO4mm",
+  "type" : "CHEM\_SPEC",
+  "phase" : "AEROSOL",
+  "charge" : -2
+  "molecular weight" : 96.06
+\},
+\{
+  "name" : "my aero phase",
+  "type" : "AERO\_PHASE",
+  "species" : ["Nap", "SO4mm", H2O\_aq"]
+\}
+
+Aerosol water from ion pairs with type "EQSAM" use the parameterization of
+Metzger et al. \(\backslash\)cite\{Metzget2002\} for aerosol water content:
+
+\(\backslash\)f[
+  \(\backslash\)sqrt\{m\_\{i\}(a\_w)\} = (NW\_i MW\_\{H2O\}/MW\_i 1/(a\_w-1))^\{ZW\_i\}
+\(\backslash\)f]
+
+where \(\backslash\)f$NW\_i\(\backslash\)f$ and \(\backslash\)f$ZW\_i\(\backslash\)f$ are fitting parameters \(\backslash\)cite\{Metger2002\},
+and must be provided in key-value pairs \(\backslash\)b "NW" and \(\backslash\)b "ZW", along with the
+binary electrolyte molecular weight \(\backslash\)b "MW" (g/mol). The key-value pair
+\(\backslash\)b "ions" must contain a set of ions that can be summed to calculate
+\(\backslash\)f$M\_i\(\backslash\)f$ at runtime.
+
+TODO Find a way to incorporate the "regimes" in EQSAM
+\end{DoxyCode}
+\hypertarget{input_format_rxn}{}\section{Input J\+S\+ON Object Format\+: Reaction (general)}\label{input_format_rxn}
+A {\ttfamily json} object containing information about a chemical reaction or physical process in the gas phase, in an \mbox{\hyperlink{phlex_aero_phase}{aerosol phase}}, or between two phases (phase-\/transfer). \mbox{\hyperlink{phlex_rxn}{Reactions}} are used to build \mbox{\hyperlink{phlex_mechanism}{mechanisms}} and are only found within an input \mbox{\hyperlink{input_format_mechanism}{mechanism object}} in an array labelled {\bfseries reactions}.
+
+
+\begin{DoxyCode}
+\{ "pmc-data" : [
+  \{
+    "name" : "my mechanism",
+    "type" : "MECHANISM",
+    "reactions" : [
+    \{
+      "type" : "REACTION\_TYPE",
+      "reactants" : \{
+        "some species" : \{\},
+        "another species" : \{ "qty" : 2 \}
+      \},
+      "products" : \{
+        "product species" : \{ "yield" : 0.42 \},
+        "another prod species" : \{\}
+      \},
+      "some parameter" : 123.34,
+      "some other parameter" : true,
+      "nested parameters" : \{
+         "sub param 1" : 12.43,
+         "sub param other" : "some text"
+      \},
+      ...
+    \},
+    \{
+      "type" : "REACTION\_TYPE",
+      "reactants" : \{
+        "that one species" : \{ "qty" : 3 \}
+      \},
+      "some parameter" : 123.34,
+      ...
+    \},
+    ...
+  ]\},
+  ...
+]\}
+\end{DoxyCode}
+ The key-\/value pair {\bfseries type} is required and its value must correspond to a valid reaction type. Valid reaction types include\+:
+
+
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{phlex_rxn_arrhenius}{A\+R\+R\+H\+E\+N\+I\+US}}
+\item \mbox{\hyperlink{phlex_rxn_aqueous_equilibrium}{A\+Q\+U\+E\+O\+U\+S\+\_\+\+E\+Q\+U\+I\+L\+I\+B\+R\+I\+UM}}
+\item \mbox{\hyperlink{phlex_rxn_CMAQ_H2O2}{C\+M\+A\+Q\+\_\+\+H2\+O2}}
+\item \mbox{\hyperlink{phlex_rxn_CMAQ_OH_HNO3}{C\+M\+A\+Q\+\_\+\+O\+H\+\_\+\+H\+N\+O3}}
+\item \mbox{\hyperlink{phlex_rxn_condensed_phase_arrhenius}{C\+O\+N\+D\+E\+N\+S\+E\+D\+\_\+\+P\+H\+A\+S\+E\+\_\+\+A\+R\+R\+H\+E\+N\+I\+US}}
+\item \mbox{\hyperlink{phlex_rxn_HL_phase_transfer}{H\+L\+\_\+\+P\+H\+A\+S\+E\+\_\+\+T\+R\+A\+N\+S\+F\+ER}}
+\item \mbox{\hyperlink{phlex_rxn_PDFiTE_activity}{P\+D\+F\+I\+T\+E\+\_\+\+A\+C\+T\+I\+V\+I\+TY}}
+\item \mbox{\hyperlink{phlex_rxn_SIMPOL_phase_transfer}{S\+I\+M\+P\+O\+L\+\_\+\+P\+H\+A\+S\+E\+\_\+\+T\+R\+A\+N\+S\+F\+ER}}
+\item \mbox{\hyperlink{phlex_rxn_photolysis}{P\+H\+O\+T\+O\+L\+Y\+S\+IS}}
+\item \mbox{\hyperlink{phlex_rxn_troe}{T\+R\+OE}}
+\item \mbox{\hyperlink{phlex_rxn_ZSR_aerosol_water}{Z\+S\+R\+\_\+\+A\+E\+R\+O\+S\+O\+L\+\_\+\+W\+A\+T\+ER}}
+\end{DoxyItemize}
+
+All remaining data are optional and may include any valid {\ttfamily json} value, including nested objects. However, extending types (i.\+e. reactions) will have specific requirements for the remaining data. Additionally it is recommended to use the above format for reactants and products when developing derived types that extend {\ttfamily \mbox{\hyperlink{structpmc__rxn__data_1_1rxn__data__t}{rxn\+\_\+data\+\_\+t}}}, and to use {\bfseries type} values that match the name of the extending derived-\/type. For example, the reaction type {\ttfamily rxn\+\_\+photolysis\+\_\+t} would have a {\bfseries type} of {\bfseries P\+H\+O\+T\+O\+L\+Y\+S\+IS}. \hypertarget{phlex_rxn_arrhenius}{}\subsection{Phlexible Module for Chemistry\+: Arrhenius Reaction}\label{phlex_rxn_arrhenius}
+Arrhenius-\/like reaction rate constant equations are calculated as follows\+:
+
+\[ Ae^{(\frac{-E_a}{k_bT})}(\frac{T}{D})^B(1.0+E*P) \]
+
+where $A$ is the pre-\/exponential factor ( $(\mbox{\si{\#.cm^{-3}}})^{-(n-1)}\mbox{\si{\per\second}}$), $n$ is the number of reactants, $E_a$ is the activation energy (J), $k_b$ is the Boltzmann constant (J/K), $D$ (K), $B$ (unitless) and $E$ ( $Pa^{-1}$) are reaction parameters, $T$ is the temperature (K), and $P$ is the pressure (Pa). The first two terms are described in Finlayson-\/\+Pitts and Pitts (2000) \cite{Finlayson-Pitts2000} . The final term is included to accomodate C\+M\+AQ E\+BI solver type 7 rate constants.
+
+Input data for Arrhenius equations has the following format\+: 
+\begin{DoxyCode}
+\{
+  "type" : "ARRHENIUS",
+  "A" : 123.45,
+  "Ea" : 123.45,
+  "B"  : 1.3,
+  "D"  : 300.0,
+  "E"  : 0.6E-5,
+  "time unit" : "MIN",
+  "reactants" : \{
+    "spec1" : \{\},
+    "spec2" : \{ "qty" : 2 \},
+    ...
+  \},
+  "products" : \{
+    "spec3" : \{\},
+    "spec4" : \{ "yield" : 0.65 \},
+    ...
+  \}
+\}
+\end{DoxyCode}
+ The key-\/value pairs {\bfseries reactants}, and {\bfseries products} are required. Reactants without a {\bfseries qty} value are assumed to appear once in the reaction equation. Products without a specified {\bfseries yield} are assumed to have a {\bfseries yield} of 1.\+0.
+
+Optionally, a parameter {\bfseries C} may be included, and is taken to equal $\frac{-E_a}{k_b}$. Note that either {\bfseries Ea} or {\bfseries C} may be included, but not both. When neither {\bfseries Ea} or {\bfseries C} are included, they are assumed to be 0.\+0. When {\bfseries A} is not included, it is assumed to be 1.\+0, when {\bfseries D} is not included, it is assumed to be 300.\+0 K, when {\bfseries B} is not included, it is assumed to be 0.\+0, and when {\bfseries E} is not included, it is assumed to be 0.\+0. The unit for time is assumed to be s, but inclusion of the optional key-\/value pair {\bfseries time} {\bfseries unit} = {\bfseries M\+IN} can be used to indicate a rate with min as the time unit. \hypertarget{phlex_rxn_aqueous_equilibrium}{}\subsection{Phlexible Module for Chemistry\+: Phase-\/\+Transfer Reaction}\label{phlex_rxn_aqueous_equilibrium}
+Aqueous equilibrium reactions are calculated as forward and reverse reactions, based on a provided reverse reaction rate constant and the equilibrium constant that takes the form\+:
+
+\[ Ae^{C({1/T-1/298})} \]
+
+where $A$ is the pre-\/exponential factor ( $s^{-1}$), $C$ is a constant and $T$ is the temperature (K). Uptake kinetics are based on the particle size, the gas-\/phase species diffusion coefficient and molecular weight, and $N^{*}$, which is used to calculate the mass accomodation coefficient. Details of the calculations can be found in\+:
+
+Ervens, B., et al., 2003. \char`\"{}\+C\+A\+P\+R\+A\+M 2.\+4 (\+M\+O\+D\+A\+C mechanism)\+: An extended
+ and condensed tropospheric aqueous mechanism and its application.\char`\"{} J. Geophys. Res. 108, 4426. doi\+:10.\+1029/2002\+J\+D002202
+
+Input data for Aqueous equilibrium equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "AQUEOUS\_EQUILIBRIUM",
+  "A" : 123.45,
+  "C" : 123.45,
+  "k\_reverse" : 123.45,
+  "phase" : "my aqueous phase",
+  "time unit" : "MIN",
+  "aqueous-phase water" : "H2O\_aq",
+  "ion pair" : "spec3-spec4",
+  "reactants" : \{
+    "spec1" : \{\},
+    "spec2" : \{ "qty" : 2 \},
+    ...
+  \},
+  "products" : \{
+    "spec3" : \{\},
+    "spec4" : \{ "qty" : 0.65 \},
+    ...
+  \}
+  ...
+\}
+\end{DoxyCode}
+ The key-\/value pairs {\bfseries reactants} and {\bfseries products} are required. Reactants and products without a {\bfseries qty} value are assumed to appear once in the reaction equation. Reactant and product species must be present in the specified phase and include a {\bfseries \char`\"{}molecular weight\char`\"{}} parameter. The parameter {\bfseries \char`\"{}aqueous-\/phase water\char`\"{}} is required and must be the name of the aerosol-\/phase species that is used for water. The parameter {\bfseries \char`\"{}ion pair\char`\"{}} is optional. When it is include its value must be the name of an ion pair that is present in the specified aerosol phase. Its mean binary activity coefficient will be applied to the reverse reaction.
+
+When {\bfseries A} is not included, it is assumed to be 1.\+0, when {\bfseries C} is not included, it is assumed to be 0.\+0. The reverse reaction rate constant {\bfseries k\+\_\+reverse} is required.
+
+The unit for time is assumed to be s, but inclusion of the optional key-\/value pair {\bfseries \char`\"{}time unit\char`\"{}} = \char`\"{}\+M\+I\+N\char`\"{} can be used to indicate a rate with min as the time unit. \hypertarget{phlex_rxn_CMAQ_H2O2}{}\subsection{Phlexible Module for Chemistry\+: Special C\+M\+AQ Reaction for H2\+O2}\label{phlex_rxn_CMAQ_H2O2}
+A special C\+M\+AQ rate constant for the reactions\+:
+
+\begin{ch} HO2 + HO2 -> H2O2 \end{ch} \begin{ch} HO2 + HO2 + H2O -> H2O2 \end{ch}
+
+takes the form\+:
+
+\[ k=k_1+k_2[\mbox{M}] \]
+
+where $k_1$ and $k_2$ are \mbox{\hyperlink{phlex_rxn_arrhenius}{Arrhenius}} rate constants with $D=300$ and $E=0$, and $[\mbox{M}]$ is the density of air (taken to be $10^6$ ppm; Gipson and Young, 1999).
+
+Input data for C\+M\+AQ H2\+O2 equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "CMAQ\_H2O2",
+  "k1\_A" : 5.6E-12,
+  "k1\_B" : -1.8,
+  "k1\_C" : 180.0,
+  "k2\_A" : 3.4E-12,
+  "k2\_B" : -1.6,
+  "k2\_C" : 104.1,
+  "time unit" : "MIN",
+  "reactants" : \{
+    "spec1" : \{\},
+    "spec2" : \{ "qty" : 2 \},
+    ...
+  \},
+  "products" : \{
+    "spec3" : \{\},
+    "spec4" : \{ "yield" : 0.65 \},
+    ...
+  \}
+\}
+\end{DoxyCode}
+ The key-\/value pairs {\bfseries reactants}, and {\bfseries products} are required. Reactants without a {\bfseries qty} value are assumed to appear once in the reaction equation. Products without a specified {\bfseries yield} are assumed to have a {\bfseries yield} of 1.\+0.
+
+The two sets of parameters beginning with {\bfseries k1\+\_\+} and {\bfseries k2\+\_\+} are the \mbox{\hyperlink{phlex_rxn_arrhenius}{Arrhenius}} parameters for the $k_1$ and $k_2$ rate constants, respectively. When not present, {\bfseries \+\_\+A} parameters are assumed to be 1.\+0, {\bfseries \+\_\+B} to be 0.\+0, and {\bfseries \+\_\+C} to be 0.\+0.
+
+The unit for time is assumed to be s, but inclusion of the optional key-\/value pair {\bfseries \char`\"{}time unit\char`\"{}} = \char`\"{}\+M\+I\+N\char`\"{} can be used to indicate a rate with min as the time unit. \hypertarget{phlex_rxn_CMAQ_OH_HNO3}{}\subsection{Phlexible Module for Chemistry\+: Special C\+M\+AQ Reaction for O\+H+\+H\+N\+O3}\label{phlex_rxn_CMAQ_OH_HNO3}
+A special C\+M\+AQ rate constant for the reactions\+:
+
+\begin{ch} OH + HNO3 -> NO3 + H2O \end{ch}
+
+takes the form\+:
+
+\[ k=k_0+(\frac{k_3[\mbox{M}]}{1+k_3[\mbox{M}]/k_2}) \]
+
+where $k_0$, $k_2$ and $k_3$ are \mbox{\hyperlink{phlex_rxn_arrhenius}{Arrhenius}} rate constants with $D=300$ and $E=0$, and $[\mbox{M}]$ is the density of air (taken to be $10^6$ ppm; Gipson and Young, 1999).
+
+Input data for C\+M\+AQ O\+H+\+H\+N\+O3 equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "CMAQ\_OH\_HNO3",
+  "k0\_A" : 5.6E-12,
+  "k0\_B" : -1.8,
+  "k0\_C" : 180.0,
+  "k2\_A" : 3.4E-12,
+  "k2\_B" : -1.6,
+  "k2\_C" : 104.1,
+  "k3\_A" : 3.2E-11,
+  "k3\_B" : -1.5,
+  "k3\_C" : 92.0,
+  "time unit" : "MIN"
+  "reactants" : \{
+    "spec1" : \{\},
+    "spec2" : \{ "qty" : 2 \},
+    ...
+  \},
+  "products" : \{
+    "spec3" : \{\},
+    "spec4" : \{ "yield" : 0.65 \},
+    ...
+  \}
+\}
+\end{DoxyCode}
+ The key-\/value pairs {\bfseries reactants}, and {\bfseries products} are required. Reactants without a {\bfseries qty} value are assumed to appear once in the reaction equation. Products without a specified {\bfseries yield} are assumed to have a {\bfseries yield} of 1.\+0.
+
+The three sets of parameters beginning with {\bfseries k0\+\_\+}, {\bfseries k2\+\_\+}, and {\bfseries k3\+\_\+}, are the \mbox{\hyperlink{phlex_rxn_arrhenius}{Arrhenius}} parameters for the $k_0$, $k_2$ and $k_3$ rate constants, respectively. When not present, {\bfseries \+\_\+A} parameters are assumed to be 1.\+0, {\bfseries \+\_\+B} to be 0.\+0, and {\bfseries \+\_\+C} to be 0.\+0.
+
+The unit for time is assumed to be s, but inclusion of the optional key-\/value pair {\bfseries \char`\"{}time unit\char`\"{}} = \char`\"{}\+M\+I\+N\char`\"{} can be used to indicate a rate with min as the time unit. \hypertarget{phlex_rxn_condensed_phase_arrhenius}{}\subsection{Phlexible Module for Chemistry\+: Condensed-\/\+Phase Arrhenius Reaction}\label{phlex_rxn_condensed_phase_arrhenius}
+Condensed-\/phase Arrhenius reactions are calculated based on an Arrhenius-\/ like rate constant that takes the form\+:
+
+\[ Ae^{(\frac{-E_a}{k_bT})}(\frac{T}{D})^B(1.0+E*P) \]
+
+where $A$ is the pre-\/exponential factor ( $[\mbox{U}]^{-(n-1)} s^{-1}$), $U$ is the unit of the reactants and products, which can be $M$ for aqueous-\/phase reactions or \{\} for all other condensed-\/phase reactions, $n$ is the number of reactants, $E_a$ is the activation energy (J), $k_b$ is the Boltzmann constant (J/K), $D$ (K), $B$ (unitless) and $E$ ( $Pa^{-1}$) are reaction parameters, $T$ is the temperature (K), and $P$ is the pressure (Pa). The first two terms are described in Finlayson-\/\+Pitts and Pitts (2000). The final term is included to accomodate C\+M\+AQ E\+BI solver type 7 rate constants.
+
+Input data for condensed-\/phase Arrhenius equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "CONDENSED\_PHASE\_ARRHENIUS",
+  "A" : 123.45,
+  "Ea" : 123.45,
+  "B"  : 1.3,
+  "D"  : 300.0,
+  "E"  : 0.6E-5,
+  "units" : "M",
+  "time unit" : "MIN",
+  "aerosol phase" : "my aqueous phase",
+  "aerosol-phase water" : "H2O\_aq",
+  "reactants" : \{
+    "spec1" : \{\},
+    "spec2" : \{ "qty" : 2 \},
+    ...
+  \},
+  "products" : \{
+    "spec3" : \{\},
+    "spec4" : \{ "yield" : 0.65 \},
+    ...
+  \}
+\}
+\end{DoxyCode}
+ The key-\/value pairs {\bfseries reactants}, and {\bfseries products} are required. Reactants without a {\bfseries qty} value are assumed to appear once in the reaction equation. Products without a specified {\bfseries yield} are assumed to have a {\bfseries yield} of 1.\+0.
+
+Units for the reactants and products must be specified using the key {\bfseries units} and can be either \char`\"{}\+M\char`\"{} or \char`\"{}mol m-\/3\char`\"{}. If units of \char`\"{}\+M\char`\"{} are specified, a key-\/value pair {\bfseries \char`\"{}aerosol-\/phase water\char`\"{}} must also be included whose value is a string specifying the name for water in the aerosol phase.
+
+The unit for time is assumed to be s, but inclusion of the optional key-\/value pair {\bfseries \char`\"{}time unit\char`\"{}} = \char`\"{}\+M\+I\+N\char`\"{} can be used to indicate a rate with min as the time unit.
+
+The key-\/value pair {\bfseries \char`\"{}aerosol phase\char`\"{}} is required and must specify the name of the aerosol-\/phase in which the reaction occurs.
+
+Optionally, a parameter {\bfseries C} may be included, and is taken to equal $\frac{-E_a}{k_b}$. Note that either {\bfseries Ea} or {\bfseries C} may be included, but not both. When neither {\bfseries Ea} or {\bfseries C} are included, they are assumed to be 0.\+0. When {\bfseries A} is not included, it is assumed to be 1.\+0, when {\bfseries D} is not included, it is assumed to be 300.\+0 K, when {\bfseries B} is not included, it is assumed to be 0.\+0, and when {\bfseries E} is not included, it is assumed to be 0.\+0. \hypertarget{phlex_rxn_HL_phase_transfer}{}\subsection{Phlexible Module for Chemistry\+: Phase-\/\+Transfer Reaction}\label{phlex_rxn_HL_phase_transfer}
+Phase transfer reactions are based on Henry\textquotesingle{}s Law equilibrium constants whose equations take the form\+:
+
+\[ Ae^{C({1/T-1/298})} \]
+
+where $A$ is the pre-\/exponential factor ( $s^{-1}$), $C$ is a constant and $T$ is the temperature (K). Uptake kinetics are based on the particle size, the gas-\/phase species diffusion coefficient and molecular weight, and $N^{*}$, which is used to calculate the mass accomodation coefficient. Details of the calculations can be found in\+:
+
+Ervens, B., et al., 2003. \char`\"{}\+C\+A\+P\+R\+A\+M 2.\+4 (\+M\+O\+D\+A\+C mechanism)\+: An extended
+ and condensed tropospheric aqueous mechanism and its application.\char`\"{} J. Geophys. Res. 108, 4426. doi\+:10.\+1029/2002\+J\+D002202
+
+Input data for Phase transfer equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "HL\_PHASE\_TRANSFER",
+  "A" : 123.45,
+  "C" : 123.45,
+  "gas-phase species" : "my gas spec",
+  "aerosol-phase species" : "my aero spec"
+    ...
+\}
+\end{DoxyCode}
+ The key-\/value pairs {\bfseries gas-\/phase} species, and {\bfseries aerosol-\/phase} species are required. Only one gas-\/ and one aerosol-\/phase species are allowed per phase-\/transfer reaction. Additionally, gas-\/phase species must include parameters named \char`\"{}diffusion coeff\char`\"{}, which specifies the diffusion coefficient in ( $m^2s^{-1}$), and \char`\"{}molecular weight\char`\"{}, which specifies the molecular weight of the species in (kg/mol). They may optionally include the parameter \char`\"{}\+N star\char`\"{}, which will be used to calculate the mass accomodation coefficient. When this parameter is not included, the mass accomodation coefficient is assumed to be 1.\+0.
+
+When {\bfseries A} is not included, it is assumed to be 1.\+0, when {\bfseries C} is not included, it is assumed to be 0.\+0. \hypertarget{phlex_rxn_PDFiTE_activity}{}\subsection{Phlexible Module for Chemistry\+: P\+D\+Fi\+TE Activity Reaction}\label{phlex_rxn_PDFiTE_activity}
+P\+D\+Fi\+TE activity reactions calculate aerosol-\/phase species activities using Taylor series to describe partial derivatives of mean activity coefficients for ternary solutions, as described in {\bfseries [Topping2009]}\}. Thus, the mean binary activity coefficients for ion\+\_\+pairs are calculated according to eq. 15 in {\bfseries [Topping2009]}\}. The values are then available to aqueous-\/ phase reactions during solving.
+
+Input data for P\+D\+Fi\+TE activity equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "PDFITE\_ACTIVITY",
+  "gas-phase water" : "H2O",
+  "aerosol-phase water" : "H2O\_aq",
+  "aerosol phase" : "my aero phase",
+  "calculate for" : \{
+    "H-NO3" : \{
+      "interactions" : [
+        \{
+          "ion pair" : "H-NO3",
+          "min RH" : 0.0,
+          "max RH" : 0.1,
+          "B" : [ 0.925113 ]
+        \},
+        \{
+          "ion pair" : "H-NO3",
+          "min RH" : 0.1,
+          "max RH" : 0.4,
+          "B" : [ 0.12091, 13.497, -67.771, 144.01, -117.97 ]
+        \},
+        \{
+          "ion pair" : "H-NO3",
+          "min RH" : 0.4,
+          "max RH" : 0.9,
+          "B" : [ 1.3424, -0.8197, -0.52983, -0.37335 ]
+        \},
+        \{
+          "ion pair" : "H-NO3",
+          "min RH" : 0.9,
+          "max RH" : 1.0,
+          "B" : [ -0.3506505 ] 
+        \},
+        \{
+          "ion pair" : "NH4-NO3",
+          "min RH" : 0.0,
+          "max RH" : 0.1,
+          "B" : [ -11.93308 ]
+        \},
+        \{
+          "ion pair" : "NH4-NO3",
+          "min RH" : 0.1,
+          "max RH" : 0.99,
+          "B" : [ -17.0372, 59.232, -86.312, 44.04 ]
+        \},
+        \{
+          "ion pair" : "NH4-NO3",
+          "min RH" : 0.99,
+          "max RH" : 1.0,
+          "B" : [ -0.2599432 ] 
+        \}
+      ]
+    \}
+    ...
+  \}
+\}
+\end{DoxyCode}
+ The key-\/value pair {\bfseries \char`\"{}aerosol phase\char`\"{}} is required to specify the aerosol phase for which to calculate activity coefficients. The key-\/value pairs {\bfseries \char`\"{}gas-\/phase water\char`\"{}} and {\bfseries \char`\"{}aerosol-\/phase water\char`\"{}} must also be present and specify the names for the water species in each phase. The final required key-\/value pair is {\bfseries \char`\"{}calculated for\char`\"{}}, which should contain a set of ion pairs that activity coefficients will be calculated for.
+
+The key names in this set must correspond to ion pairs that are present in the specified aerosol phase. The values must contain a key-\/value pair named {\bfseries \char`\"{}interactions\char`\"{}} which includes an array of ion-\/pair interactions used to calculate equation 15 in {\bfseries [Topping2009]}\}.
+
+Each element in the {\bfseries interactions} array must include an {\bfseries \char`\"{}ion pair\char`\"{}} that exists in the specified aerosol phase, a {\bfseries \char`\"{}min R\+H\char`\"{}} and {\bfseries \char`\"{}max R\+H\char`\"{}} that specify the bounds for which the fitted curve is valid, and an array of {\bfseries B} values that specify the polynomial coefficients B0, B1, B2, ... as shown in equation 19 in {\bfseries [Topping2009]}\}. At least one polynomial coefficient must be present.
+
+If at least one interaction with an ion pair is included, enough interactions with that ion pair must be included to cover the entire RH range (0.\+0-\/1.\+0). Interactions are assume to cover the range (min\+RH, max\+RH\mbox{]}, except for the lowest RH interaction, which covers th range \mbox{[}0.\+0, max\+RH\mbox{]}.
+
+When the interacting ion pair is the same as the ion-\/pair for which the mean binary activity coefficient is being calculated, the interaction parameters are used to calculate $ln(\gamma_A^0(RH))$. Otherwise, the parameters are used to calculate $\frac{dln(gamma_A))}{d(N_{B,M}N_{B,x})}$.
+
+For the above example, the following input data should be present\+: 
+\begin{DoxyCode}
+\{
+  "name" : "H2O",
+  "type" : "CHEM\_SPEC",
+  "phase" : "GAS",
+\},  
+\{
+  "name" : "H2O\_aq",
+  "type" : "CHEM\_SPEC",
+  "phase" : "AEROSOL",
+\},  
+\{
+  "name" : "H\_p",
+  "type" : "CHEM\_SPEC",
+  "phase" : "AEROSOL",
+  "charge" : 1,
+  "molecular weight" : 1.008
+\},
+\{
+  "name" : "NH4\_p",
+  "type" : "CHEM\_SPEC",
+  "phase" : "AEROSOL",
+  "charge" : 1,
+  "molecular weight" : 18.04
+\},
+\{
+  "name" : "NO3\_m",
+  "type" : "CHEM\_SPEC",
+  "phase" : "AEROSOL",
+  "charge" : -1
+  "molecular weight" : 62.0049
+\},
+\{
+  "name" : "NH4-NO3",
+  "type" : "CHEM\_SPEC",
+  "tracer type" : "ION\_PAIR",
+  "ions" : \{
+    "NH4\_p" : \{\},
+    "NO3\_m" : \{\}
+  \}
+\},
+\{
+  "name" : "H-NO3",
+  "type" : "CHEM\_SPEC",
+  "tracer type" : "ION\_PAIR",
+  "ions" : \{
+    "H\_p" : \{\},
+    "NO3\_m" : \{\}
+  \}
+\},
+\{
+  "name" : "my aero phase",
+  "type" : "AERO\_PHASE",
+  "species" : ["H\_p", "NO3\_m", "NH4\_p", "NH4-NO3", "H-NO3", "H2O\_aq"]
+\}
+\end{DoxyCode}
+\hypertarget{phlex_rxn_SIMPOL_phase_transfer}{}\subsection{Phlexible Module for Chemistry\+: Phase-\/\+Transfer Reaction}\label{phlex_rxn_SIMPOL_phase_transfer}
+S\+I\+M\+P\+OL phase transfer reactions are based on the S\+I\+M\+P\+OL model calculations of vapor pressure, gas-\/phase diffusion to a particle\textquotesingle{}s surface, and condensed-\/phase activity.
+
+Vapor pressure are calculated according to\+:
+
+Pankow and Asher, 2008. "S\+I\+M\+P\+O\+L.\+1\+: A simple group contribution method for predicting vapor pressures and enthalpies of vaporization of multi-\/ functional organic compounds." Atmos. Chem. Phys., 8, 2773-\/2796.
+
+Mass accomodation coefficient calculations are based on equations 2-\/4 in\+:
+
+Ervens, B., et al., 2003. \char`\"{}\+C\+A\+P\+R\+A\+M 2.\+4 (\+M\+O\+D\+A\+C mechanism)\+: An extended
+ and condensed tropospheric aqueous mechanism and its application.\char`\"{} J. Geophys. Res. 108, 4426. doi\+:10.\+1029/2002\+J\+D002202
+
+Input data for S\+I\+M\+P\+OL phase transfer equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "SIMPOL\_PHASE\_TRANSFER",
+  "gas-phase species" : "my gas spec",
+  "aerosol phase" : "my aero phase",
+  "aerosol-phase species" : "my aero spec",
+  "B" : [ 123.2e3, -41.24, 2951.2, -1.245e-4 ]
+    ...
+\}
+\end{DoxyCode}
+ The key-\/value pairs {\bfseries \char`\"{}gas-\/phase species\char`\"{}}, {\bfseries \char`\"{}aerosol phase\char`\"{}} and {\bfseries \char`\"{}aerosol-\/phase species\char`\"{}} are required. Only one gas-\/ and one aerosol-\/phase species are allowed per phase-\/transfer reaction. Additionally, gas-\/phase species must include parameters named {\bfseries \char`\"{}diffusion coeff\char`\"{}}, which specifies the diffusion coefficient in ( $m^2s^{-1}$), and \char`\"{}molecular weight\char`\"{}, which specifies the molecular weight of the species in (kg/mol). They may optionally include the parameter \char`\"{}\+N star\char`\"{}, which will be used to calculate the mass accomodation coefficient. When this parameter is not included, the mass accomodation coefficient is assumed to be 1.\+0.
+
+The key-\/value pair {\bfseries B} is also required and must have a value of an array of exactly four members that specifies the S\+I\+M\+P\+OL parameters for the partitioning species. The {\bfseries B} parameters can be obtained by summing the contributions of each functional group present in the partitioning species to the overall $B_{n,i}$ for species $i$, such that\+: \[ B_{n,i} = \sum_{k} \nu_{k,i} B_{n,k} \forall n \in [1...4] \] where $\nu_{k,i}$ is the number of functional groups $k$ in species $i$ and the parameters $B_{n,k}$ for each functional group $k$ can be found in table 5 of Pankow and Asher (2008). \hypertarget{phlex_rxn_photolysis}{}\subsection{Phlexible Module for Chemistry\+: Photolysis}\label{phlex_rxn_photolysis}
+Photolysis reactions take the form\+:
+
+\{ X + hv -\/$>$ Y\+\_\+\{1\} ( + Y\+\_\+2  ) \}
+
+where \{X\} is the species being photolyzed, and \{Y\+\_\+n\} are the photolysis products.
+
+Photolysis rate constants (including the $h\nu$ term) can be constant or set from an external photolysis module using the {\ttfamily pmc\+\_\+rxn\+\_\+photolysis\+::rxn\+\_\+photolysis\+\_\+t\+::set\+\_\+rate\+\_\+const()} function. External modules can use the {\ttfamily \mbox{\hyperlink{structpmc__rxn__photolysis_1_1rxn__photolysis__t_a4af30a86fec5ca621eae12b191214630}{pmc\+\_\+rxn\+\_\+photolysis\+::rxn\+\_\+photolysis\+\_\+t\+::get\+\_\+property\+\_\+set()}}} function during initilialization to access any needed reaction parameters.
+
+Input data for Photolysis equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "PHOTOLYSIS",
+  "reactants" : \{
+    "spec1" : \{\}
+  \},
+  "products" : \{
+    "spec2" : \{\},
+    "spec3" : \{ "yield" : 0.65 \},
+    ...
+  \},
+  "rate const" : 12.5,
+\}
+\end{DoxyCode}
+ The key-\/value pairs {\bfseries reactants}, and {\bfseries products} are required. There must be exactly one key-\/value pair in the {\bfseries reactants} object whose name is the species being photolyzed and whose value is an empty {\ttfamily json} object. Any number of products may be present. Products without a specified {\bfseries yield} are assumed to have a {\bfseries yield} of 1.\+0. The {\bfseries \char`\"{}rate const\char`\"{}} is optional and can be used to set a rate constant (including the $h\nu$ term) that remains constant throughout the model run. All other data is optional and will be available to external photolysis modules during initialization. Rate constants should be in units of $s^{-1}$. \hypertarget{phlex_rxn_troe}{}\subsection{Phlexible Module for Chemistry\+: Troe Reaction}\label{phlex_rxn_troe}
+Troe (fall-\/off) reaction rate constant equations take the form\+:
+
+\[ \frac{k_0[\mbox{M}]}{1+k_0[\mbox{M}]/k_{\inf}}F_C^{1+(1/N[log_{10}(k_0[\mbox{M}]/k_{\inf})]^2)^{-1}} \]
+
+where $k_0$ is the low-\/pressure limiting rate constant, $k_{\inf}$ is the high-\/pressure limiting rate constant, $[\mbox{M}]$ is the density of air (taken to be $10^6$ ppm), and $F_C$ and $N$ are parameters that determine the shape of the fall-\/off curve, and are typically 0.\+6 and 1.\+0, respectively (Finalyson-\/\+Pitts and Pitts, 2000; Gipson and Young, 1999). $k_0$ and $k_{\inf}$ are assumed to be \mbox{\hyperlink{phlex_rxn_arrhenius}{Arrhenius}} rate constants with $D=300$ and $E=0$.
+
+Input data for Troe equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "TROE",
+  "k0\_A" : 5.6E-12,
+  "k0\_B" : -1.8,
+  "k0\_C" : 180.0,
+  "kinf\_A" : 3.4E-12,
+  "kinf\_B" : -1.6,
+  "kinf\_C" : 104.1,
+  "Fc"  : 0.7,
+  "N"  : 0.9,
+  "time unit" : "MIN",
+  "reactants" : \{
+    "spec1" : \{\},
+    "spec2" : \{ "qty" : 2 \},
+    ...
+  \},
+  "products" : \{
+    "spec3" : \{\},
+    "spec4" : \{ "yield" : 0.65 \},
+    ...
+  \}
+\}
+\end{DoxyCode}
+ The key-\/value pairs {\bfseries reactants}, and {\bfseries products} are required. Reactants without a {\bfseries qty} value are assumed to appear once in the reaction equation. Products without a specified {\bfseries yield} are assumed to have a {\bfseries yield} of 1.\+0.
+
+The two sets of parameters beginning with {\bfseries k0\+\_\+} and {\bfseries kinf\+\_\+} are the \mbox{\hyperlink{phlex_rxn_arrhenius}{Arrhenius}} parameters for the $k_0$ and $k_{\inf}$ rate constants, respectively. When not present, {\bfseries \+\_\+A} parameters are assumed to be 1.\+0, {\bfseries \+\_\+B} to be 0.\+0, {\bfseries \+\_\+C} to be 0.\+0, {\bfseries Fc} to be 0.\+6 and {\bfseries N} to be 1.\+0.
+
+The unit for time is assumed to be s, but inclusion of the optional key-\/value pair {\bfseries \char`\"{}time unit\char`\"{}} = \char`\"{}\+M\+I\+N\char`\"{} can be used to indicate a rate with min as the time unit. \hypertarget{phlex_rxn_ZSR_aerosol_water}{}\subsection{Phlexible Module for Chemistry\+: Z\+SR Aerosol Water Reaction}\label{phlex_rxn_ZSR_aerosol_water}
+Z\+SR aerosol water reactions calculate equilibrium aerosol water content based on the Zdanovski-\/\+Stokes-\/\+Robinson mixing rule {\bfseries [Stokes1966]}, Jacobson1996\} in the following generalized format\+:
+
+\[ W = \sum\limits_{i=0}^{n}\frac{1000 M_i}{MW_i m_{i}(a_w)} \]
+
+where $M$ is the concentration of binary electrolyte $i$ ( $\mu g m^{-3}$) with molecular weight $MW_i$ (g/mol) and molality $m_{i}$ at a given water activity $a_w$ (RH; 0-\/1) contributing to the total aerosol water content $W$ ( $\mu g m^{-3}$).
+
+Input data for Z\+SR aerosol water equations should take the form \+: 
+\begin{DoxyCode}
+\{
+  "type" : "ZSR\_AEROSOL\_WATER",
+  "aerosol phase" : "my aero phase",
+  "gas-phase water" : "H2O",
+  "aerosol-phase water" : "H2O\_aq",
+  "ion pairs" : \{
+    "Na2SO4" : \{
+      "type" : "JACOBSON",
+      "ions" : \{
+        "Nap" : \{ "qty" : 2 \},
+        "SO4mm" : \{\}
+      \},
+      "Y\_j" : [-3.295311e3, 3.188349e4, -1.305168e5, 2.935608e5],
+      "low RH" : 0.51
+    \},
+    "H2SO4" : \{
+      "type" : "EQSAM",
+      "ions" : \{
+        "SO4mm" : \{\}
+      \},
+      "NW" : 4.5,
+      "ZW" : 0.5,
+      "MW" : 98.0
+    \}
+    ...
+  \}
+\}
+\end{DoxyCode}
+ The key-\/value pair {\bfseries \char`\"{}aerosol phase\char`\"{}} is required to specify the aerosol phase for which to calculate water content. Key-\/value pairs {\bfseries \char`\"{}gas-\/phase water\char`\"{}} and {\bfseries \char`\"{}aerosol-\/phase water\char`\"{}} must also be present and specify the names for the water species in each phase. The final required key-\/value pair is {\bfseries \char`\"{}ion pairs\char`\"{}} which should contain a set of key-\/value pairs where the key of each member of the set is the name of a binary electrolyte and the contents contain parameters required to estimate the contribution of the this electrolyte to total aerosol water. The name of the electrolyte may or may not refer to an actual aerosol-\/phase species.
+
+Each binary electrolyte must include a {\bfseries \char`\"{}type\char`\"{}} that refers to a method of calculating ion-\/pair contributions to aerosol water. Valid values for {\bfseries \char`\"{}type\char`\"{}} are \char`\"{}\+J\+A\+C\+O\+B\+S\+O\+N\char`\"{} and \char`\"{}\+E\+Q\+S\+A\+M\char`\"{}. These are described next.
+
+Aerosol water from ion pairs with type \char`\"{}\+J\+A\+C\+O\+B\+S\+O\+N\char`\"{} use equations (28) and (29) in Jacobson et al. {\bfseries [Jacobson1996]}\} where experimentally determined binary solution molalities are fit to a polynomial as\+:
+
+\[ \sqrt{m_{i}(a_w)} = Y_0 + Y_1 a_w + Y_2 a_w^2 + Y_3 a_w^3 + ..., \]
+
+where $Y_j$ are the fitting parameters. Thus, $m_i(a_w)$ is calculated at each time step, assuming constant $a_w$. These values must be included in a key-\/value pair {\bfseries \char`\"{}\+Y\+\_\+j\char`\"{}} whose value is an array with the $Y_j$ parameters. The size of the array corresponds to the order of the polynomial equation, which must be greater than 1. The key-\/value pair {\bfseries \char`\"{}low R\+H\char`\"{}} is required to specify the lowest RH (0-\/1) for which this fit is valid. This value for RH will be used for all lower RH in calculations of $m_i(a_w)$ as per Jacobson et al. {\bfseries [1996]}\}.
+
+The key-\/value pair \char`\"{}ions\char`\"{} must contain the set of ions this binary electrolyte includes. Each species must correspond to a species present in {\bfseries \char`\"{}aerosol phase\char`\"{}} and have a {\bfseries \char`\"{}charge\char`\"{}} parameter that specifies their charge (uncharged species are not permitted in this set) and a {\bfseries \char`\"{}molecular weight\char`\"{}} (g/mol) property. Ions without a {\bfseries \char`\"{}qty\char`\"{}} specified are assumed to appear once in the binary electrolyte. The total molecular weight for the binary electrolye $MW_i$ is calculated as a sum of its ionic components, and the ion species concentrations are used to determine the $M_i$ during integration.
+
+For the above example, the following input data should be present\+: 
+\begin{DoxyCode}
+\{
+  "name" : "H2O",
+  "type" : "CHEM\_SPEC",
+  "phase" : "GAS",
+\},  
+\{
+  "name" : "Nap",
+  "type" : "CHEM\_SPEC",
+  "phase" : "AEROSOL",
+  "charge" : 1,
+  "molecular weight" : 22.9898
+\},
+\{
+  "name" : "SO4mm",
+  "type" : "CHEM\_SPEC",
+  "phase" : "AEROSOL",
+  "charge" : -2
+  "molecular weight" : 96.06
+\},
+\{
+  "name" : "my aero phase",
+  "type" : "AERO\_PHASE",
+  "species" : ["Nap", "SO4mm", H2O\_aq"]
+\}
+
+Aerosol water from ion pairs with type "EQSAM" use the parameterization of
+Metzger et al. \(\backslash\)cite\{Metzget2002\} for aerosol water content:
+
+\(\backslash\)f[
+  \(\backslash\)sqrt\{m\_\{i\}(a\_w)\} = (NW\_i MW\_\{H2O\}/MW\_i 1/(a\_w-1))^\{ZW\_i\}
+\(\backslash\)f]
+
+where \(\backslash\)f$NW\_i\(\backslash\)f$ and \(\backslash\)f$ZW\_i\(\backslash\)f$ are fitting parameters \(\backslash\)cite\{Metger2002\},
+and must be provided in key-value pairs \(\backslash\)b "NW" and \(\backslash\)b "ZW", along with the
+binary electrolyte molecular weight \(\backslash\)b "MW" (g/mol). The key-value pair
+\(\backslash\)b "ions" must contain a set of ions that can be summed to calculate
+\(\backslash\)f$M\_i\(\backslash\)f$ at runtime.
+
+TODO Find a way to incorporate the "regimes" in EQSAM
+\end{DoxyCode}
+\hypertarget{phlex_rxn_add}{}\section{Phlexible Module for Chemistry\+: Adding a Reaction Type}\label{phlex_rxn_add}
+{\bfseries Note\+:} these instructions are out-\/of-\/date. T\+O\+DO update
+
+Adding a \mbox{\hyperlink{phlex_rxn}{reaction}} to the \mbox{\hyperlink{phlex_chem}{phlex-\/chem}} module can be done in the following steps\+:
+
+\subsection*{Step 1. Create a new reaction module}
+
+The module should be placed in the {\ttfamily /src/rxns} folder and extent the abstract {\ttfamily \mbox{\hyperlink{structpmc__rxn__data_1_1rxn__data__t}{pmc\+\_\+rxn\+\_\+data\+::rxn\+\_\+data\+\_\+t}}} type, overriding all deferred functions, and providing a constructor that returns a pointer to a newly allocated instance of the new type\+:
+
+
+\begin{DoxyCode}
+\textcolor{keyword}{module} rxn\_foo
+
+  \textcolor{keywordtype}{use }...
+
+  \textcolor{keywordtype}{implicit none}
+  \textcolor{keywordtype}{private}
+
+  \textcolor{keywordtype}{public} :: rxn\_foo\_t
+
+  \textcolor{keyword}{type}, \textcolor{keyword}{extends}(\mbox{\hyperlink{structpmc__rxn__data_1_1rxn__data__t}{rxn\_data\_t}}) :: rxn\_foo\_t
+  \textcolor{keyword}{contains}
+     ... (all \textcolor{keywordtype}{deferred} functions) ...
+\textcolor{keyword}{  end type }rxn\_foo\_t
+
+  \textcolor{comment}{! Constructor}
+  \textcolor{keyword}{interface} rxn\_foo\_t
+    \textcolor{keywordtype}{procedure} :: constructor
+\textcolor{keyword}{  end interface }rxn\_foo\_t
+
+\textcolor{keyword}{contains}
+
+\textcolor{keyword}{  function }\mbox{\hyperlink{namespacepmc__aero__phase__data_ae2a9e6bfb1747e2ace93ab3fadd55530}{constructor}}() \textcolor{keyword}{result}(new\_obj)
+    \textcolor{keywordtype}{type}(rxn\_foo\_t), \textcolor{keywordtype}{pointer} :: new\_obj
+    \textcolor{keyword}{allocate}(new\_obj)
+\textcolor{keyword}{  end function }\mbox{\hyperlink{namespacepmc__aero__phase__data_ae2a9e6bfb1747e2ace93ab3fadd55530}{constructor}}
+
+  ...
+
+\textcolor{keyword}{end module }pmc\_rxn\_foo
+\end{DoxyCode}
+
+
+\subsection*{Step 2. Add the reaction to the {\ttfamily \mbox{\hyperlink{namespacepmc__rxn__factory}{pmc\+\_\+rxn\+\_\+factory}}} module}
+
+
+\begin{DoxyCode}
+\textcolor{keyword}{module} \mbox{\hyperlink{namespacepmc__rxn__factory}{pmc\_rxn\_factory}}
+
+ ...
+
+ \textcolor{comment}{! Use all reaction modules}
+ ...
+ \textcolor{keywordtype}{use }pmc\_rxn\_foo
+
+ ...
+\textcolor{comment}{}
+\textcolor{comment}{ !> Identifiers for reaction types - used by binary packing/unpacking }
+\textcolor{comment}{ !! functions}
+ ...
+ \textcolor{keywordtype}{integer(kind=i\_kind)}, \textcolor{keywordtype}{parameter} :: RXN\_FOO = 32
+
+ ...
+\textcolor{comment}{}
+\textcolor{comment}{ !> Create a new chemical reaction by type name}
+\textcolor{keyword}{ function }\mbox{\hyperlink{namespacepmc__aero__rep__factory_a72db65ee6fcec381e8315f2de1601953}{create}}(this, type\_name) \textcolor{keyword}{result} (new\_obj)
+   ...
+   \textcolor{keywordflow}{select case} (type\_name)
+     ...
+     \textcolor{keywordflow}{case} (\textcolor{stringliteral}{"FOO"})
+       new\_obj => rxn\_foo\_t()
+   ...
+\textcolor{keyword}{ end function }\mbox{\hyperlink{namespacepmc__aero__rep__factory_a72db65ee6fcec381e8315f2de1601953}{create}}
+
+ ...
+\textcolor{comment}{}
+\textcolor{comment}{ !> Pack the given value to the buffer, advancing position}
+\textcolor{keyword}{ subroutine }\mbox{\hyperlink{namespacepmc__aero__phase__data_a3ee028d1595f33610a4359ddeb5fe249}{bin\_pack}}(this, rxn, buffer, pos)
+   ...
+   \textcolor{keywordflow}{select type} (rxn)
+     ...
+\textcolor{keywordflow}{     type is} (rxn\_foo\_t)
+       rxn\_type = rxn\_foo
+   ...
+\textcolor{keyword}{ end subroutine }\mbox{\hyperlink{namespacepmc__aero__phase__data_a3ee028d1595f33610a4359ddeb5fe249}{bin\_pack}}
+
+ ...
+\textcolor{comment}{}
+\textcolor{comment}{ !> Unpack the given value to the buffer, advancing position}
+\textcolor{keyword}{ function }\mbox{\hyperlink{namespacepmc__aero__phase__data_ab248ad8c703acdfc5f771aaca4671218}{bin\_unpack}}(this, buffer, pos) \textcolor{keyword}{result} (rxn)
+   ...
+   \textcolor{keywordflow}{select case} (rxn\_type)
+     ...
+     \textcolor{keywordflow}{case} (rxn\_foo)
+       rxn => rxn\_foo\_t()
+   ...
+\textcolor{keyword}{ end function }\mbox{\hyperlink{namespacepmc__aero__phase__data_ab248ad8c703acdfc5f771aaca4671218}{bin\_unpack}}
+
+ ...
+
+\textcolor{keyword}{end module }pmc\_rxn\_factory
+\end{DoxyCode}
+
+
+\section*{Step 4. Add the new module to the C\+Make\+List file in the root directory.}
+
+
+\begin{DoxyCode}
+...
+
+# partmc library
+
+set(REACTIONS 
+    ...
+    src/rxns/pmc\_foo.F90
+)
+
+...
+\end{DoxyCode}
+
+
+\subsection*{Step 5. Add unit tests for the new {\ttfamily rxn\+\_\+foo\+\_\+t} type}
+
+Unit testing should cover, at minimum, the initialization, time derivative and Jacbian matrix functions, and in general 80\% code coverage is recommended. Some examples can be found in the {\ttfamily /src/test} folder.
+
+\subsection*{Step 6. Update documentation}
+
+T\+O\+DO finish...
+
+\subsection*{Usage}
+
+The new \mbox{\hyperlink{phlex_rxn}{reaction type}} is now ready to use. To include a reaction of this type in a \mbox{\hyperlink{phlex_mechanism}{mechanism}}, add a \mbox{\hyperlink{input_format_rxn}{reaction object}} to a new or existing \mbox{\hyperlink{input_format_phlex_config}{phlex-\/chem configuration file}} as part of a \mbox{\hyperlink{input_format_mechanism}{mechanism object}}. The reaction should have a {\bfseries type} corresponding to the newly created reaction type, along with any required parameters\+:
+
+
+\begin{DoxyCode}
+\{ "pmc-data" : [
+  \{
+    "name" : "my mechanism",
+    "type" : "MECHANISM",
+    "reactions" : [
+      \{
+        "type" : "FOO",
+        ...
+      \},
+      ...
+    ]
+  \},
+  ...
+]\}
+\end{DoxyCode}
+ 

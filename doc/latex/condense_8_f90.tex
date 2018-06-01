@@ -1,0 +1,84 @@
+\hypertarget{condense_8_f90}{}\section{condense.\+F90 File Reference}
+\label{condense_8_f90}\index{condense.\+F90@{condense.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__condense}{pmc\+\_\+condense}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__condense_1_1condense__rates__inputs__t}{pmc\+\_\+condense\+::condense\+\_\+rates\+\_\+inputs\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use structure for storing the inputs for the rate-\/calculation function. \end{DoxyCompactList}\item 
+type \mbox{\hyperlink{structpmc__condense_1_1condense__rates__outputs__t}{pmc\+\_\+condense\+::condense\+\_\+rates\+\_\+outputs\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use structure for storing the outputs from the rate-\/calculation function. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__condense}{pmc\+\_\+condense}}
+\begin{DoxyCompactList}\small\item\em Water condensation onto aerosol particles. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__condense_a45e6b6e779962d0671313395a22a3ef6}{pmc\+\_\+condense\+::condense\+\_\+particles}} (aero\+\_\+state, aero\+\_\+data, env\+\_\+state\+\_\+initial, env\+\_\+state\+\_\+final, del\+\_\+t)
+\begin{DoxyCompactList}\small\item\em Do condensation to all the particles for a given time interval, including updating the environment to account for the lost water vapor. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__condense_afc45edd4ee290a743c722977accc1f5c}{pmc\+\_\+condense\+::condense\+\_\+check\+\_\+solve}} (value)
+\begin{DoxyCompactList}\small\item\em Check the return code from the \mbox{\hyperlink{condense__solver_8c_a2b18e4f55610de6bcaf2a7eb954cf7aa}{condense\+\_\+solver()}} function. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__condense_a2ec10eca18f9bc6bd906329e1574afef}{pmc\+\_\+condense\+::condense\+\_\+rates}} (inputs, outputs)
+\begin{DoxyCompactList}\small\item\em Compute the rate of change of particle diameter and relative humidity for a single particle, together with the derivatives of the rates with respect to the input variables. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__condense_a2e3c9253c59b92f29d8458f127e3014e}{pmc\+\_\+condense\+::condense\+\_\+vf\+\_\+f}} (n\+\_\+eqn, time, state\+\_\+p, state\+\_\+dot\+\_\+p)
+\begin{DoxyCompactList}\small\item\em Compute the condensation rates (Ddot and Hdot) at the current value of the state (D and H). \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__condense_a31f63a235637d397e5f29aa2333db17d}{pmc\+\_\+condense\+::condense\+\_\+jac}} (n\+\_\+eqn, time, state\+\_\+p, d\+Ddot\+\_\+dD, d\+Ddot\+\_\+dH, d\+Hdot\+\_\+dD, d\+Hdot\+\_\+dH)
+\begin{DoxyCompactList}\small\item\em Compute the Jacobian given by the derivatives of the condensation rates (Ddot and Hdot) with respect to the input variables (D and H). \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__condense_a08898f52fc6ece673be5cf7afec66e44}{pmc\+\_\+condense\+::condense\+\_\+jac\+\_\+solve\+\_\+f}} (n\+\_\+eqn, time, state\+\_\+p, state\+\_\+dot\+\_\+p, rhs\+\_\+p, gamma)
+\begin{DoxyCompactList}\small\item\em Solve the system $ Pz = r $ where $ P = I - \gamma J $ and $ J = \partial f / \partial y $. The solution is returned in the $ r $ vector. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__condense_a9439c40ef474d3165689e6c7989ae652}{pmc\+\_\+condense\+::condense\+\_\+equilib\+\_\+particle}} (env\+\_\+state, aero\+\_\+data, aero\+\_\+particle)
+\begin{DoxyCompactList}\small\item\em Determine the water equilibrium state of a single particle. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__condense_a460fbe02310735e79dc7711a8b048fe2}{pmc\+\_\+condense\+::condense\+\_\+equilib\+\_\+particles}} (env\+\_\+state, aero\+\_\+data, aero\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Call \mbox{\hyperlink{namespacepmc__condense_a9439c40ef474d3165689e6c7989ae652}{condense\+\_\+equilib\+\_\+particle()}} on each particle in the aerosol to ensure that every particle has its water content in equilibrium. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+logical, parameter \mbox{\hyperlink{namespacepmc__condense_ac7de3176ecbf47a23e0278ff57fed802}{pmc\+\_\+condense\+::condense\+\_\+do\+\_\+test\+\_\+jac\+\_\+solve}} = .false.
+\begin{DoxyCompactList}\small\item\em Whether to numerically test the Jacobian-\/solve function during execution (for debugging only). \end{DoxyCompactList}\item 
+logical, parameter \mbox{\hyperlink{namespacepmc__condense_ab969e806479179fa28b147414b3677a1}{pmc\+\_\+condense\+::condense\+\_\+do\+\_\+test\+\_\+counts}} = .false.
+\begin{DoxyCompactList}\small\item\em Whether to print call-\/counts for helper routines during execution (for debugging only). \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__condense_ae609c2a0547a2fc09bb22c5e05eaee80}{pmc\+\_\+condense\+::pmc\+\_\+condense\+\_\+solver\+\_\+success}} = 0
+\begin{DoxyCompactList}\small\item\em Result code indicating successful completion. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__condense_a361258031530fbffce78f9296be23482}{pmc\+\_\+condense\+::pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+y}} = 1
+\begin{DoxyCompactList}\small\item\em Result code indicating failure to allocate {\ttfamily y} vector. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__condense_a27e346e39aa2e4388fb4cdb05009d947}{pmc\+\_\+condense\+::pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+abstol}} = 2
+\begin{DoxyCompactList}\small\item\em Result code indicating failure to allocate {\ttfamily abstol} vector. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__condense_aced2822f651922c373256516609512b5}{pmc\+\_\+condense\+::pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+cvode\+\_\+mem}} = 3
+\begin{DoxyCompactList}\small\item\em Result code indicating failure to create the solver. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__condense_a152d39c4bae310586811b62dad524762}{pmc\+\_\+condense\+::pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+cvode}} = 4
+\begin{DoxyCompactList}\small\item\em Result code indicating failure to initialize the solver. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__condense_a728628df918109b721d5ac51252ee397}{pmc\+\_\+condense\+::pmc\+\_\+condense\+\_\+solver\+\_\+svtol}} = 5
+\begin{DoxyCompactList}\small\item\em Result code indicating failure to set tolerances. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__condense_acf6e894f8461ba22f0e7b8d4b55bdbdb}{pmc\+\_\+condense\+::pmc\+\_\+condense\+\_\+solver\+\_\+set\+\_\+max\+\_\+steps}} = 6
+\begin{DoxyCompactList}\small\item\em Result code indicating failure to set maximum steps. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__condense_a72475de47c696e1ac0386f8f0881dba3}{pmc\+\_\+condense\+::pmc\+\_\+condense\+\_\+solver\+\_\+fail}} = 7
+\begin{DoxyCompactList}\small\item\em Result code indicating failure of the solver. \end{DoxyCompactList}\item 
+type(aero\+\_\+data\+\_\+t) \mbox{\hyperlink{namespacepmc__condense_ae50824c600d52bf42b1ba4662d5ca40e}{pmc\+\_\+condense\+::condense\+\_\+saved\+\_\+aero\+\_\+data}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable for storing the aerosol data during calls to the O\+DE solver. \end{DoxyCompactList}\item 
+type(env\+\_\+state\+\_\+t) \mbox{\hyperlink{namespacepmc__condense_af55aca988067bd27f35a3c34e2f5a4cd}{pmc\+\_\+condense\+::condense\+\_\+saved\+\_\+env\+\_\+state\+\_\+initial}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable for storing the initial environment state during calls to the O\+DE solver. \end{DoxyCompactList}\item 
+real(kind=dp) \mbox{\hyperlink{namespacepmc__condense_a0a1155d88faa2b061fd371090165aad1}{pmc\+\_\+condense\+::condense\+\_\+saved\+\_\+tdot}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable for storing the rate of change of the temperature during calls to the O\+DE solver. \end{DoxyCompactList}\item 
+real(kind=dp) \mbox{\hyperlink{namespacepmc__condense_a5bdbeab5c023573ed2f0a37bfa718f83}{pmc\+\_\+condense\+::condense\+\_\+saved\+\_\+pdot}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable for storing the rate of change of the pressure during calls to the O\+DE solver. \end{DoxyCompactList}\item 
+real(kind=dp), dimension(\+:), allocatable \mbox{\hyperlink{namespacepmc__condense_a0829dc0e51b0c9843bfd0e3c36432a19}{pmc\+\_\+condense\+::condense\+\_\+saved\+\_\+kappa}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable for storing the per-\/particle kappa values during calls to the O\+DE solver. \end{DoxyCompactList}\item 
+real(kind=dp), dimension(\+:), allocatable \mbox{\hyperlink{namespacepmc__condense_a30c34390a80570ea680b53c2ab971b50}{pmc\+\_\+condense\+::condense\+\_\+saved\+\_\+d\+\_\+dry}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable for storing the per-\/particle dry diameters during calls to the O\+DE solver. \end{DoxyCompactList}\item 
+real(kind=dp), dimension(\+:), allocatable \mbox{\hyperlink{namespacepmc__condense_ae5922bfbd484efd47db5593f15d0c0f4}{pmc\+\_\+condense\+::condense\+\_\+saved\+\_\+num\+\_\+conc}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable for storing the per-\/particle number concentrations during calls to the O\+DE solver. \end{DoxyCompactList}\item 
+integer, save \mbox{\hyperlink{namespacepmc__condense_af51c8e3d30352bcf05b09da63797f908}{pmc\+\_\+condense\+::condense\+\_\+count\+\_\+vf}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable for counting calls to the vector field subroutine. \end{DoxyCompactList}\item 
+integer, save \mbox{\hyperlink{namespacepmc__condense_ab362439e7fd220994e7da1bd4658d21d}{pmc\+\_\+condense\+::condense\+\_\+count\+\_\+solve}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable for counting calls to the Jacobian-\/solving subroutine. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__condense}{pmc\+\_\+condense}} module. 
+

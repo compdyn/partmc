@@ -1,0 +1,19 @@
+The Phlexible Module for Chemistry (\mbox{\hyperlink{phlex_chem}{phlex-\/chem}}) is a module within Part\+MC designed to provide a flexible framework for incorporating chemical mechanisms into Part\+MC or another host model. In general, the \mbox{\hyperlink{phlex_chem}{phlex-\/chem}} module solves one or more \mbox{\hyperlink{phlex_mechanism}{mechanisms}} composed of a set of \mbox{\hyperlink{phlex_rxn}{reactions}} over a time-\/step specified by the host model. \mbox{\hyperlink{phlex_rxn}{Reactions}} can take place in the gas phase, in one of several \mbox{\hyperlink{phlex_aero_phase}{aerosol phases}}, or across an interface between phases (gas or aerosol). The \mbox{\hyperlink{phlex_chem}{phlex-\/chem}} module is designed to work with any \mbox{\hyperlink{phlex_aero_rep}{aerosol representation}} used by the host model (e.\+g., binned, modal, single particle) by abstracting the chemistry from the \mbox{\hyperlink{phlex_aero_rep}{aerosol representation}} through the use of custom extending types of the abstract {\ttfamily pmc\+\_\+aero\+\_\+rep\+::aero\+\_\+rep\+\_\+t} type that implement a set of \mbox{\hyperlink{phlex_aero_phase}{aerosol phases}} based on the configuration of the host model.
+
+The \mbox{\hyperlink{phlex_chem}{phlex-\/chem}} module uses \mbox{\hyperlink{input_format_ss_json}{json input files}} to load \mbox{\hyperlink{input_format_species}{chemical species}}, \mbox{\hyperlink{input_format_mechanism}{mechanisms}}, \mbox{\hyperlink{input_format_aero_phase}{aerosol phases}}, and \mbox{\hyperlink{input_format_aero_rep}{aerosol representations}} at runtime. This allows a user to modify any of these data without recompiling the model, permits host models to choose which mechanisms to solve based on model conditions, and allows multiple mechanisms to be solved simultaneously.
+
+\section*{Usage}
+
+\subsection*{Compiling}
+
+To include the \mbox{\hyperlink{phlex_chem}{phlex-\/chem}} module in the Part\+MC library, set the ccmake flags {\ttfamily E\+N\+A\+B\+L\+E\+\_\+\+J\+S\+ON} and {\ttfamily E\+N\+A\+B\+L\+E\+\_\+\+S\+U\+N\+D\+I\+A\+LS} to {\ttfamily ON}. (\href{http://www.llnl.gov/casc/sundials/}{\tt S\+U\+N\+D\+I\+A\+LS} and \href{https://github.com/jacobwilliams/json-fortran}{\tt json-\/fortran} must be installed).
+
+\subsection*{Part\+MC scenarios}
+
+Using \mbox{\hyperlink{phlex_chem}{phlex-\/chem}} in a Part\+MC scenario requires modifying the \mbox{\hyperlink{input_format}{spec file}} and providing a \mbox{\hyperlink{input_format_phlex_file_list}{phlex-\/chem file list}} file and one or more \mbox{\hyperlink{input_format_phlex_config}{phlex-\/chem configuration}} files that describe the \mbox{\hyperlink{phlex_species}{chemical species}}, \mbox{\hyperlink{phlex_mechanism}{mechanism(s)}}, \mbox{\hyperlink{phlex_aero_phase}{aerosol phase(s)}}, and \mbox{\hyperlink{phlex_aero_rep}{aerosol representation(s)}}. A description of the input files required for a Part\+MC run can be found \mbox{\hyperlink{input_format}{here}}.
+
+\subsection*{Phlex-\/chem in another host model}
+
+Incorporating the \mbox{\hyperlink{phlex_chem}{phlex-\/chem}} module into another host model can be done in the following steps\+:
+
+T\+O\+DO\+: Finish 

@@ -1,0 +1,174 @@
+\hypertarget{structpmc__aero__sorted_1_1aero__sorted__t}{}\section{pmc\+\_\+aero\+\_\+sorted\+:\+:aero\+\_\+sorted\+\_\+t Type Reference}
+\label{structpmc__aero__sorted_1_1aero__sorted__t}\index{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t@{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t}}
+
+
+Sorting of particles into bins.  
+
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}) \mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t_a24abbe3d25ce85ae642a5b8a7b4fb8c4}{bin\+\_\+grid}}
+\begin{DoxyCompactList}\small\item\em Bin grid for sorting. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__integer__rmap2_1_1integer__rmap2__t}{integer\+\_\+rmap2\+\_\+t}}) \mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t_af5e884a86b1e2bf41ea5a0c148e7e4dc}{size\+\_\+class}}
+\begin{DoxyCompactList}\small\item\em Map of size bin and weight class numbers. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__integer__rmap2_1_1integer__rmap2__t}{integer\+\_\+rmap2\+\_\+t}}) \mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t_ab4759ff075d006823e7f184e75f0ccac}{group\+\_\+class}}
+\begin{DoxyCompactList}\small\item\em Map of weight group and weight class numbers. \end{DoxyCompactList}\item 
+logical \mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t_a456b905e4323d7ef610762e6c137d7df}{coag\+\_\+kernel\+\_\+bounds\+\_\+valid}}
+\begin{DoxyCompactList}\small\item\em Whether coagulation kernel bounds are valid. \end{DoxyCompactList}\item 
+real(kind=dp), dimension(\+:,\+:), allocatable \mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t_ac65ea636b68c3d2717b20288bb8142c3}{coag\+\_\+kernel\+\_\+min}}
+\begin{DoxyCompactList}\small\item\em Coagulation kernel lower bound \mbox{[}{\ttfamily bin\+\_\+grid\+\_\+size(bin\+\_\+grid) x bin\+\_\+grid\+\_\+size(bin\+\_\+grid)}\mbox{]}. \end{DoxyCompactList}\item 
+real(kind=dp), dimension(\+:,\+:), allocatable \mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t_a94dc9faf9bcc17ffb2d02ca9b0a5b04f}{coag\+\_\+kernel\+\_\+max}}
+\begin{DoxyCompactList}\small\item\em Coagulation kernel upper bound \mbox{[}{\ttfamily bin\+\_\+grid\+\_\+size(bin\+\_\+grid) x bin\+\_\+grid\+\_\+size(bin\+\_\+grid)}\mbox{]}. \end{DoxyCompactList}\item 
+logical \mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t_aced0affcf4290ecdaf8e9b7dbb221ee8}{removal\+\_\+rate\+\_\+bounds\+\_\+valid}}
+\begin{DoxyCompactList}\small\item\em Whether particle removal rate bounds are valid. \end{DoxyCompactList}\item 
+real(kind=dp), dimension(\+:), allocatable \mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t_aace29ce6a2e834ba7a7d1730f00e96d7}{removal\+\_\+rate\+\_\+max}}
+\begin{DoxyCompactList}\small\item\em Particle removal rate upper bound \mbox{[}{\ttfamily bin\+\_\+grid\+\_\+size(bin\+\_\+grid)}\mbox{]}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Sorting of particles into bins. 
+
+Two different bin-\/sortings are maintained, one per size bin and weight class, and the other per weight group and weight class.
+
+A particle can thus be identified by its position {\ttfamily i\+\_\+part} in an {\ttfamily aero\+\_\+particle\+\_\+array\+\_\+t}, or by an entry in one of the two sortings.
+
+For example, for size bin {\ttfamily i\+\_\+bin} and weight class {\ttfamily i\+\_\+class}, the number of particles with this size and class are 
+\begin{DoxyPre}
+ n = integer\_varray\_n\_entry(aero\_sortedsize\_classinverse(i\_bin, i\_class))
+ \end{DoxyPre}
+ For particle number {\ttfamily i\+\_\+entry} in this size/class bin, the particle number is 
+\begin{DoxyPre}
+ i\_part = aero\_sorted\%size\_class\%inverse(i\_bin, i\_class)\%entry(i\_entry)
+ \end{DoxyPre}
+ For particle number {\ttfamily i\+\_\+part}, the size bin and weight class are 
+\begin{DoxyPre}
+ i\_bin = aero\_sorted\%size\_class\%forward1\%entry(i\_part)
+ i\_class = aero\_sorted\%size\_class\%forward2\%entry(i\_part)
+ \end{DoxyPre}
+
+
+Similar relationships hold for {\ttfamily aero\+\_\+sorted\%group\+\_\+class} which sorts particles per weight group/class. 
+
+Definition at line 47 of file aero\+\_\+sorted.\+F90.
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structpmc__aero__sorted_1_1aero__sorted__t_a24abbe3d25ce85ae642a5b8a7b4fb8c4}\label{structpmc__aero__sorted_1_1aero__sorted__t_a24abbe3d25ce85ae642a5b8a7b4fb8c4}} 
+\index{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t@{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t}!bin\+\_\+grid@{bin\+\_\+grid}}
+\index{bin\+\_\+grid@{bin\+\_\+grid}!pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t@{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t}}
+\subsubsection{\texorpdfstring{bin\+\_\+grid}{bin\_grid}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}) pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t\+::bin\+\_\+grid}
+
+
+
+Bin grid for sorting. 
+
+
+
+Definition at line 49 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__sorted_1_1aero__sorted__t_a456b905e4323d7ef610762e6c137d7df}\label{structpmc__aero__sorted_1_1aero__sorted__t_a456b905e4323d7ef610762e6c137d7df}} 
+\index{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t@{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t}!coag\+\_\+kernel\+\_\+bounds\+\_\+valid@{coag\+\_\+kernel\+\_\+bounds\+\_\+valid}}
+\index{coag\+\_\+kernel\+\_\+bounds\+\_\+valid@{coag\+\_\+kernel\+\_\+bounds\+\_\+valid}!pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t@{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t}}
+\subsubsection{\texorpdfstring{coag\+\_\+kernel\+\_\+bounds\+\_\+valid}{coag\_kernel\_bounds\_valid}}
+{\footnotesize\ttfamily logical pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t\+::coag\+\_\+kernel\+\_\+bounds\+\_\+valid}
+
+
+
+Whether coagulation kernel bounds are valid. 
+
+
+
+Definition at line 55 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__sorted_1_1aero__sorted__t_a94dc9faf9bcc17ffb2d02ca9b0a5b04f}\label{structpmc__aero__sorted_1_1aero__sorted__t_a94dc9faf9bcc17ffb2d02ca9b0a5b04f}} 
+\index{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t@{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t}!coag\+\_\+kernel\+\_\+max@{coag\+\_\+kernel\+\_\+max}}
+\index{coag\+\_\+kernel\+\_\+max@{coag\+\_\+kernel\+\_\+max}!pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t@{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t}}
+\subsubsection{\texorpdfstring{coag\+\_\+kernel\+\_\+max}{coag\_kernel\_max}}
+{\footnotesize\ttfamily real(kind=dp), dimension(\+:,\+:), allocatable pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t\+::coag\+\_\+kernel\+\_\+max}
+
+
+
+Coagulation kernel upper bound \mbox{[}{\ttfamily bin\+\_\+grid\+\_\+size(bin\+\_\+grid) x bin\+\_\+grid\+\_\+size(bin\+\_\+grid)}\mbox{]}. 
+
+
+
+Definition at line 61 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__sorted_1_1aero__sorted__t_ac65ea636b68c3d2717b20288bb8142c3}\label{structpmc__aero__sorted_1_1aero__sorted__t_ac65ea636b68c3d2717b20288bb8142c3}} 
+\index{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t@{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t}!coag\+\_\+kernel\+\_\+min@{coag\+\_\+kernel\+\_\+min}}
+\index{coag\+\_\+kernel\+\_\+min@{coag\+\_\+kernel\+\_\+min}!pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t@{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t}}
+\subsubsection{\texorpdfstring{coag\+\_\+kernel\+\_\+min}{coag\_kernel\_min}}
+{\footnotesize\ttfamily real(kind=dp), dimension(\+:,\+:), allocatable pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t\+::coag\+\_\+kernel\+\_\+min}
+
+
+
+Coagulation kernel lower bound \mbox{[}{\ttfamily bin\+\_\+grid\+\_\+size(bin\+\_\+grid) x bin\+\_\+grid\+\_\+size(bin\+\_\+grid)}\mbox{]}. 
+
+
+
+Definition at line 58 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__sorted_1_1aero__sorted__t_ab4759ff075d006823e7f184e75f0ccac}\label{structpmc__aero__sorted_1_1aero__sorted__t_ab4759ff075d006823e7f184e75f0ccac}} 
+\index{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t@{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t}!group\+\_\+class@{group\+\_\+class}}
+\index{group\+\_\+class@{group\+\_\+class}!pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t@{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t}}
+\subsubsection{\texorpdfstring{group\+\_\+class}{group\_class}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__integer__rmap2_1_1integer__rmap2__t}{integer\+\_\+rmap2\+\_\+t}}) pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t\+::group\+\_\+class}
+
+
+
+Map of weight group and weight class numbers. 
+
+
+
+Definition at line 53 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__sorted_1_1aero__sorted__t_aced0affcf4290ecdaf8e9b7dbb221ee8}\label{structpmc__aero__sorted_1_1aero__sorted__t_aced0affcf4290ecdaf8e9b7dbb221ee8}} 
+\index{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t@{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t}!removal\+\_\+rate\+\_\+bounds\+\_\+valid@{removal\+\_\+rate\+\_\+bounds\+\_\+valid}}
+\index{removal\+\_\+rate\+\_\+bounds\+\_\+valid@{removal\+\_\+rate\+\_\+bounds\+\_\+valid}!pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t@{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t}}
+\subsubsection{\texorpdfstring{removal\+\_\+rate\+\_\+bounds\+\_\+valid}{removal\_rate\_bounds\_valid}}
+{\footnotesize\ttfamily logical pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t\+::removal\+\_\+rate\+\_\+bounds\+\_\+valid}
+
+
+
+Whether particle removal rate bounds are valid. 
+
+
+
+Definition at line 63 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__sorted_1_1aero__sorted__t_aace29ce6a2e834ba7a7d1730f00e96d7}\label{structpmc__aero__sorted_1_1aero__sorted__t_aace29ce6a2e834ba7a7d1730f00e96d7}} 
+\index{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t@{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t}!removal\+\_\+rate\+\_\+max@{removal\+\_\+rate\+\_\+max}}
+\index{removal\+\_\+rate\+\_\+max@{removal\+\_\+rate\+\_\+max}!pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t@{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t}}
+\subsubsection{\texorpdfstring{removal\+\_\+rate\+\_\+max}{removal\_rate\_max}}
+{\footnotesize\ttfamily real(kind=dp), dimension(\+:), allocatable pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t\+::removal\+\_\+rate\+\_\+max}
+
+
+
+Particle removal rate upper bound \mbox{[}{\ttfamily bin\+\_\+grid\+\_\+size(bin\+\_\+grid)}\mbox{]}. 
+
+
+
+Definition at line 65 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__sorted_1_1aero__sorted__t_af5e884a86b1e2bf41ea5a0c148e7e4dc}\label{structpmc__aero__sorted_1_1aero__sorted__t_af5e884a86b1e2bf41ea5a0c148e7e4dc}} 
+\index{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t@{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t}!size\+\_\+class@{size\+\_\+class}}
+\index{size\+\_\+class@{size\+\_\+class}!pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t@{pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t}}
+\subsubsection{\texorpdfstring{size\+\_\+class}{size\_class}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__integer__rmap2_1_1integer__rmap2__t}{integer\+\_\+rmap2\+\_\+t}}) pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+t\+::size\+\_\+class}
+
+
+
+Map of size bin and weight class numbers. 
+
+
+
+Definition at line 51 of file aero\+\_\+sorted.\+F90.
+
+
+
+The documentation for this type was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{aero__sorted_8_f90}{aero\+\_\+sorted.\+F90}}\end{DoxyCompactItemize}

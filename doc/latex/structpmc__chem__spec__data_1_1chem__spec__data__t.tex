@@ -1,0 +1,369 @@
+\hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t}{}\section{pmc\+\_\+chem\+\_\+spec\+\_\+data\+:\+:chem\+\_\+spec\+\_\+data\+\_\+t Interface Reference}
+\label{structpmc__chem__spec__data_1_1chem__spec__data__t}\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+
+
+Chemical species data.  
+
+
+\subsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+procedure \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_a661c3af278f7376aac94456d587735fd}{load}}
+\begin{DoxyCompactList}\small\item\em Load species from an input file. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_a2704024171c40dd51bf5531cc361599b}{initialize}}
+\begin{DoxyCompactList}\small\item\em Initialize the species set. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_aeb134a3cef81735b01958f69b55a4f2c}{size}} =$>$ \mbox{\hyperlink{namespacepmc__chem__spec__data_a37e8dbcc45d70654ab71aea9980405fe}{get\+\_\+size}}
+\begin{DoxyCompactList}\small\item\em Get the number of species with specified conditions. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_a3ef3439dda7eeb3c0b66dcfcd85f1f7e}{exists}}
+\begin{DoxyCompactList}\small\item\em Check if a species name is in the set of chemical species. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_aca931c6b8ed36734d2503111adaec3f9}{get\+\_\+spec\+\_\+names}}
+\begin{DoxyCompactList}\small\item\em Get a list of species names. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_aecce227b9c2bbc20fbb3e47002b29703}{get\+\_\+property\+\_\+set}}
+\begin{DoxyCompactList}\small\item\em Get a species properties. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_a26512052ad9188877fe7207eb3e09f77}{get\+\_\+type}}
+\begin{DoxyCompactList}\small\item\em Get a species type. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_a2cea3052f2b2eb6b4182dcb2f78b7f75}{get\+\_\+phase}}
+\begin{DoxyCompactList}\small\item\em Get a species phase. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_a64a1a70b0ef5888b46487db019cb1c0e}{get\+\_\+abs\+\_\+tol}}
+\begin{DoxyCompactList}\small\item\em Get the absolute integration tolerance of a species. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_a50c6a5901e93ffbda0785731156c0fa3}{gas\+\_\+state\+\_\+id}}
+\begin{DoxyCompactList}\small\item\em Get a gas-\/phase species index in the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array. Note that aerosol-\/phase species indices on the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array must be accessed from {\ttfamily \mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__t_a6dcaf48caeaaed60aa065a0fac6c7ffc}{pmc\+\_\+aero\+\_\+rep\+\_\+data\+::aero\+\_\+rep\+\_\+data\+\_\+t\+::spec\+\_\+state\+\_\+id()}}} for a particular \mbox{\hyperlink{phlex_aero_rep}{aerosol representation}}. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_ab43a6f3cc64bf210fc386334d36efa31}{gas\+\_\+state\+\_\+name}}
+\begin{DoxyCompactList}\small\item\em Get the name of a gas-\/phase species in the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array. Note that aerosol-\/phase species names on the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array must be accessed from {\ttfamily \mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__t_a6dcaf48caeaaed60aa065a0fac6c7ffc}{pmc\+\_\+aero\+\_\+rep\+\_\+data\+::aero\+\_\+rep\+\_\+data\+\_\+t\+::spec\+\_\+state\+\_\+id()}}} for a particular \mbox{\hyperlink{phlex_aero_rep}{aerosol representation}}. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_a3a0969f7711a884e66bd0cccbea9a95e}{print}} =$>$ \mbox{\hyperlink{namespacepmc__chem__spec__data_a241ef4f3c9e0a1968b339df331ca8d64}{do\+\_\+print}}
+\begin{DoxyCompactList}\small\item\em Print out the species data. \end{DoxyCompactList}\item 
+final \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_abe90c93d2601cb47a064604eb077e1e7}{finalize}}
+\begin{DoxyCompactList}\small\item\em Finalize the chemical species data. \end{DoxyCompactList}\item 
+procedure, private \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_acd920b7fc3f5146f52091f6c8172d4f9}{ensure\+\_\+size}}
+\begin{DoxyCompactList}\small\item\em Ensure there is enough room in the species dataset to add a specified number of species. \end{DoxyCompactList}\item 
+procedure, private \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_a4c187446dfaf46c8395bbdcd4db03244}{add}}
+\begin{DoxyCompactList}\small\item\em Add a species. \end{DoxyCompactList}\item 
+procedure, private \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_af6e3628cbd26bd3f8f67228cb879a293}{find}}
+\begin{DoxyCompactList}\small\item\em Find a species index by name. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+integer(kind=i\+\_\+kind) \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_ac04758f9b8613d5bab6651bff6677991}{num\+\_\+spec}} = 0
+\begin{DoxyCompactList}\small\item\em Number of species. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__util_1_1string__t}{string\+\_\+t}}), dimension(\+:), pointer \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_a7906c514431eca9e46b20e14ba2f3b12}{spec\+\_\+name}} =$>$ null()
+\begin{DoxyCompactList}\small\item\em Species name. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind), dimension(\+:), pointer \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_a9af0469b68b5ea93042b4e397360021f}{spec\+\_\+type}} =$>$ null()
+\begin{DoxyCompactList}\small\item\em Species type. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind), dimension(\+:), pointer \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_a6aa1c219f847bc11c5794b5c6438233a}{spec\+\_\+phase}} =$>$ null()
+\begin{DoxyCompactList}\small\item\em Species phase. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), dimension(\+:), pointer \mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t_a46aefac03209ea59cd2068f653f361b9}{property\+\_\+set}} =$>$ null()
+\begin{DoxyCompactList}\small\item\em Species property set. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Chemical species data. 
+
+Time-\/invariant data related to a \mbox{\hyperlink{phlex_species}{chemical species}} 
+
+Definition at line 72 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+
+
+\subsection{Member Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_a4c187446dfaf46c8395bbdcd4db03244}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_a4c187446dfaf46c8395bbdcd4db03244}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!add@{add}}
+\index{add@{add}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{add()}{add()}}
+{\footnotesize\ttfamily procedure, private pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::add (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Add a species. 
+
+
+
+Definition at line 127 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_acd920b7fc3f5146f52091f6c8172d4f9}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_acd920b7fc3f5146f52091f6c8172d4f9}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!ensure\+\_\+size@{ensure\+\_\+size}}
+\index{ensure\+\_\+size@{ensure\+\_\+size}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{ensure\+\_\+size()}{ensure\_size()}}
+{\footnotesize\ttfamily procedure, private pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::ensure\+\_\+size (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Ensure there is enough room in the species dataset to add a specified number of species. 
+
+
+
+Definition at line 125 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_a3ef3439dda7eeb3c0b66dcfcd85f1f7e}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_a3ef3439dda7eeb3c0b66dcfcd85f1f7e}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!exists@{exists}}
+\index{exists@{exists}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{exists()}{exists()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::exists (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Check if a species name is in the set of chemical species. 
+
+
+
+Definition at line 92 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_abe90c93d2601cb47a064604eb077e1e7}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_abe90c93d2601cb47a064604eb077e1e7}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!finalize@{finalize}}
+\index{finalize@{finalize}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{finalize()}{finalize()}}
+{\footnotesize\ttfamily final pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::finalize (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [final]}, {\ttfamily [private]}}
+
+
+
+Finalize the chemical species data. 
+
+
+
+Definition at line 120 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_af6e3628cbd26bd3f8f67228cb879a293}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_af6e3628cbd26bd3f8f67228cb879a293}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!find@{find}}
+\index{find@{find}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{find()}{find()}}
+{\footnotesize\ttfamily procedure, private pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::find (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Find a species index by name. 
+
+
+
+Definition at line 129 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_a50c6a5901e93ffbda0785731156c0fa3}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_a50c6a5901e93ffbda0785731156c0fa3}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!gas\+\_\+state\+\_\+id@{gas\+\_\+state\+\_\+id}}
+\index{gas\+\_\+state\+\_\+id@{gas\+\_\+state\+\_\+id}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{gas\+\_\+state\+\_\+id()}{gas\_state\_id()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::gas\+\_\+state\+\_\+id (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get a gas-\/phase species index in the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array. Note that aerosol-\/phase species indices on the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array must be accessed from {\ttfamily \mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__t_a6dcaf48caeaaed60aa065a0fac6c7ffc}{pmc\+\_\+aero\+\_\+rep\+\_\+data\+::aero\+\_\+rep\+\_\+data\+\_\+t\+::spec\+\_\+state\+\_\+id()}}} for a particular \mbox{\hyperlink{phlex_aero_rep}{aerosol representation}}. 
+
+
+
+Definition at line 109 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_ab43a6f3cc64bf210fc386334d36efa31}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_ab43a6f3cc64bf210fc386334d36efa31}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!gas\+\_\+state\+\_\+name@{gas\+\_\+state\+\_\+name}}
+\index{gas\+\_\+state\+\_\+name@{gas\+\_\+state\+\_\+name}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{gas\+\_\+state\+\_\+name()}{gas\_state\_name()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::gas\+\_\+state\+\_\+name (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the name of a gas-\/phase species in the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array. Note that aerosol-\/phase species names on the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array must be accessed from {\ttfamily \mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__t_a6dcaf48caeaaed60aa065a0fac6c7ffc}{pmc\+\_\+aero\+\_\+rep\+\_\+data\+::aero\+\_\+rep\+\_\+data\+\_\+t\+::spec\+\_\+state\+\_\+id()}}} for a particular \mbox{\hyperlink{phlex_aero_rep}{aerosol representation}}. 
+
+
+
+Definition at line 116 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_a64a1a70b0ef5888b46487db019cb1c0e}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_a64a1a70b0ef5888b46487db019cb1c0e}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!get\+\_\+abs\+\_\+tol@{get\+\_\+abs\+\_\+tol}}
+\index{get\+\_\+abs\+\_\+tol@{get\+\_\+abs\+\_\+tol}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{get\+\_\+abs\+\_\+tol()}{get\_abs\_tol()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::get\+\_\+abs\+\_\+tol (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the absolute integration tolerance of a species. 
+
+
+
+Definition at line 102 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_a2cea3052f2b2eb6b4182dcb2f78b7f75}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_a2cea3052f2b2eb6b4182dcb2f78b7f75}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!get\+\_\+phase@{get\+\_\+phase}}
+\index{get\+\_\+phase@{get\+\_\+phase}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{get\+\_\+phase()}{get\_phase()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::get\+\_\+phase (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get a species phase. 
+
+
+
+Definition at line 100 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_aecce227b9c2bbc20fbb3e47002b29703}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_aecce227b9c2bbc20fbb3e47002b29703}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!get\+\_\+property\+\_\+set@{get\+\_\+property\+\_\+set}}
+\index{get\+\_\+property\+\_\+set@{get\+\_\+property\+\_\+set}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{get\+\_\+property\+\_\+set()}{get\_property\_set()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::get\+\_\+property\+\_\+set (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get a species properties. 
+
+
+
+Definition at line 96 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_aca931c6b8ed36734d2503111adaec3f9}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_aca931c6b8ed36734d2503111adaec3f9}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!get\+\_\+spec\+\_\+names@{get\+\_\+spec\+\_\+names}}
+\index{get\+\_\+spec\+\_\+names@{get\+\_\+spec\+\_\+names}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{get\+\_\+spec\+\_\+names()}{get\_spec\_names()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::get\+\_\+spec\+\_\+names (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get a list of species names. 
+
+
+
+Definition at line 94 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_a26512052ad9188877fe7207eb3e09f77}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_a26512052ad9188877fe7207eb3e09f77}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!get\+\_\+type@{get\+\_\+type}}
+\index{get\+\_\+type@{get\+\_\+type}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{get\+\_\+type()}{get\_type()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::get\+\_\+type (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get a species type. 
+
+
+
+Definition at line 98 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_a2704024171c40dd51bf5531cc361599b}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_a2704024171c40dd51bf5531cc361599b}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!initialize@{initialize}}
+\index{initialize@{initialize}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{initialize()}{initialize()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::initialize (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Initialize the species set. 
+
+
+
+Definition at line 88 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_a661c3af278f7376aac94456d587735fd}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_a661c3af278f7376aac94456d587735fd}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!load@{load}}
+\index{load@{load}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{load()}{load()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::load (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Load species from an input file. 
+
+
+
+Definition at line 86 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_a3a0969f7711a884e66bd0cccbea9a95e}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_a3a0969f7711a884e66bd0cccbea9a95e}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!print@{print}}
+\index{print@{print}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{print()}{print()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::print (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Print out the species data. 
+
+
+
+Definition at line 118 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_aeb134a3cef81735b01958f69b55a4f2c}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_aeb134a3cef81735b01958f69b55a4f2c}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!size@{size}}
+\index{size@{size}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{size()}{size()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::size (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the number of species with specified conditions. 
+
+
+
+Definition at line 90 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_ac04758f9b8613d5bab6651bff6677991}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_ac04758f9b8613d5bab6651bff6677991}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!num\+\_\+spec@{num\+\_\+spec}}
+\index{num\+\_\+spec@{num\+\_\+spec}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{num\+\_\+spec}{num\_spec}}
+{\footnotesize\ttfamily integer(kind=i\+\_\+kind) pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::num\+\_\+spec = 0\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Number of species. 
+
+
+
+Definition at line 75 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_a46aefac03209ea59cd2068f653f361b9}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_a46aefac03209ea59cd2068f653f361b9}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!property\+\_\+set@{property\+\_\+set}}
+\index{property\+\_\+set@{property\+\_\+set}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{property\+\_\+set}{property\_set}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), dimension(\+:), pointer pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::property\+\_\+set =$>$ null()\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Species property set. 
+
+
+
+Definition at line 83 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_a7906c514431eca9e46b20e14ba2f3b12}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_a7906c514431eca9e46b20e14ba2f3b12}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!spec\+\_\+name@{spec\+\_\+name}}
+\index{spec\+\_\+name@{spec\+\_\+name}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{spec\+\_\+name}{spec\_name}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__util_1_1string__t}{string\+\_\+t}}), dimension(\+:), pointer pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::spec\+\_\+name =$>$ null()\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Species name. 
+
+
+
+Definition at line 77 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_a6aa1c219f847bc11c5794b5c6438233a}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_a6aa1c219f847bc11c5794b5c6438233a}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!spec\+\_\+phase@{spec\+\_\+phase}}
+\index{spec\+\_\+phase@{spec\+\_\+phase}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{spec\+\_\+phase}{spec\_phase}}
+{\footnotesize\ttfamily integer(kind=i\+\_\+kind), dimension(\+:), pointer pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::spec\+\_\+phase =$>$ null()\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Species phase. 
+
+
+
+Definition at line 81 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__chem__spec__data_1_1chem__spec__data__t_a9af0469b68b5ea93042b4e397360021f}\label{structpmc__chem__spec__data_1_1chem__spec__data__t_a9af0469b68b5ea93042b4e397360021f}} 
+\index{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}!spec\+\_\+type@{spec\+\_\+type}}
+\index{spec\+\_\+type@{spec\+\_\+type}!pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t@{pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{spec\+\_\+type}{spec\_type}}
+{\footnotesize\ttfamily integer(kind=i\+\_\+kind), dimension(\+:), pointer pmc\+\_\+chem\+\_\+spec\+\_\+data\+::chem\+\_\+spec\+\_\+data\+\_\+t\+::spec\+\_\+type =$>$ null()\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Species type. 
+
+
+
+Definition at line 79 of file chem\+\_\+spec\+\_\+data.\+F90.
+
+
+
+The documentation for this interface was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{chem__spec__data_8_f90}{chem\+\_\+spec\+\_\+data.\+F90}}\end{DoxyCompactItemize}

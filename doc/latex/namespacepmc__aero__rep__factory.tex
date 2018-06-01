@@ -1,0 +1,210 @@
+\hypertarget{namespacepmc__aero__rep__factory}{}\section{pmc\+\_\+aero\+\_\+rep\+\_\+factory Module Reference}
+\label{namespacepmc__aero__rep__factory}\index{pmc\+\_\+aero\+\_\+rep\+\_\+factory@{pmc\+\_\+aero\+\_\+rep\+\_\+factory}}
+
+
+The \mbox{\hyperlink{structpmc__aero__rep__factory_1_1aero__rep__factory__t}{aero\+\_\+rep\+\_\+factory\+\_\+t}} type and associated subroutines.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__aero__rep__factory_1_1aero__rep__factory__t}{aero\+\_\+rep\+\_\+factory\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Factory type for aerosol representations. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+class(\mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__t}{aero\+\_\+rep\+\_\+data\+\_\+t}}) function, pointer \mbox{\hyperlink{namespacepmc__aero__rep__factory_a72db65ee6fcec381e8315f2de1601953}{create}} (this, type\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Create a new aerosol representation by type name. \end{DoxyCompactList}\item 
+class(\mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__t}{aero\+\_\+rep\+\_\+data\+\_\+t}}) function, pointer \mbox{\hyperlink{namespacepmc__aero__rep__factory_a5c9800b3f829b58b00472eaa3622d23c}{load}} (this, json, j\+\_\+obj)
+\begin{DoxyCompactList}\small\item\em Load an aerosol represenation based on its type. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind) function \mbox{\hyperlink{namespacepmc__aero__rep__factory_aac521bd3a37de6b47b812d4f1ceb5bb1}{get\+\_\+type}} (this, aero\+\_\+rep)
+\begin{DoxyCompactList}\small\item\em Get the aerosol reaction type. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind) function \mbox{\hyperlink{namespacepmc__aero__rep__factory_ac1e17208623751a66e657d083e327ebd}{pack\+\_\+size}} (this, aero\+\_\+rep)
+\begin{DoxyCompactList}\small\item\em Determine the size of a binary required to pack an aerosol representation. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__rep__factory_a02df230770bd6e28c72b368d4d824788}{bin\+\_\+pack}} (this, aero\+\_\+rep, buffer, pos)
+\begin{DoxyCompactList}\small\item\em Pack the given value to the buffer, advancing position. \end{DoxyCompactList}\item 
+class(\mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__t}{aero\+\_\+rep\+\_\+data\+\_\+t}}) function, pointer \mbox{\hyperlink{namespacepmc__aero__rep__factory_a21bfc8099556674323743966b31846b2}{bin\+\_\+unpack}} (this, buffer, pos)
+\begin{DoxyCompactList}\small\item\em Unpack the given value to the buffer, advancing position. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer(kind=i\+\_\+kind), parameter \mbox{\hyperlink{namespacepmc__aero__rep__factory_aa1580bb537129ddd255b271666133c84}{aero\+\_\+rep\+\_\+single\+\_\+particle}} = 1
+\begin{DoxyCompactList}\small\item\em Identifiers for aerosol representations -\/ used by binary packing/unpacking functions. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind), parameter \mbox{\hyperlink{namespacepmc__aero__rep__factory_a26fa93012c30cd32b47383811765e08b}{aero\+\_\+rep\+\_\+modal\+\_\+binned\+\_\+mass}} = 2
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{structpmc__aero__rep__factory_1_1aero__rep__factory__t}{aero\+\_\+rep\+\_\+factory\+\_\+t}} type and associated subroutines. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__aero__rep__factory_a02df230770bd6e28c72b368d4d824788}\label{namespacepmc__aero__rep__factory_a02df230770bd6e28c72b368d4d824788}} 
+\index{pmc\+\_\+aero\+\_\+rep\+\_\+factory@{pmc\+\_\+aero\+\_\+rep\+\_\+factory}!bin\+\_\+pack@{bin\+\_\+pack}}
+\index{bin\+\_\+pack@{bin\+\_\+pack}!pmc\+\_\+aero\+\_\+rep\+\_\+factory@{pmc\+\_\+aero\+\_\+rep\+\_\+factory}}
+\subsubsection{\texorpdfstring{bin\+\_\+pack()}{bin\_pack()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+rep\+\_\+factory\+::bin\+\_\+pack (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__aero__rep__factory_1_1aero__rep__factory__t}{aero\+\_\+rep\+\_\+factory\+\_\+t}}), intent(in)}]{this,  }\item[{class(\mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__t}{aero\+\_\+rep\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+rep,  }\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{pos }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Pack the given value to the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Aerosol representation factory\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+rep} & Aerosol representation to pack\\
+\hline
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer\\
+\hline
+\mbox{\tt in,out}  & {\em pos} & Current buffer position \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 354 of file aero\+\_\+rep\+\_\+factory.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__rep__factory_a21bfc8099556674323743966b31846b2}\label{namespacepmc__aero__rep__factory_a21bfc8099556674323743966b31846b2}} 
+\index{pmc\+\_\+aero\+\_\+rep\+\_\+factory@{pmc\+\_\+aero\+\_\+rep\+\_\+factory}!bin\+\_\+unpack@{bin\+\_\+unpack}}
+\index{bin\+\_\+unpack@{bin\+\_\+unpack}!pmc\+\_\+aero\+\_\+rep\+\_\+factory@{pmc\+\_\+aero\+\_\+rep\+\_\+factory}}
+\subsubsection{\texorpdfstring{bin\+\_\+unpack()}{bin\_unpack()}}
+{\footnotesize\ttfamily class(\mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__t}{aero\+\_\+rep\+\_\+data\+\_\+t}}) function, pointer pmc\+\_\+aero\+\_\+rep\+\_\+factory\+::bin\+\_\+unpack (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__aero__rep__factory_1_1aero__rep__factory__t}{aero\+\_\+rep\+\_\+factory\+\_\+t}}), intent(in)}]{this,  }\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{pos }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Unpack the given value to the buffer, advancing position. 
+
+\begin{DoxyReturn}{Returns}
+Unpacked aerosol representation
+\end{DoxyReturn}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Aerosol representation factory\\
+\hline
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer\\
+\hline
+\mbox{\tt in,out}  & {\em pos} & Current buffer position \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 389 of file aero\+\_\+rep\+\_\+factory.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__rep__factory_a72db65ee6fcec381e8315f2de1601953}\label{namespacepmc__aero__rep__factory_a72db65ee6fcec381e8315f2de1601953}} 
+\index{pmc\+\_\+aero\+\_\+rep\+\_\+factory@{pmc\+\_\+aero\+\_\+rep\+\_\+factory}!create@{create}}
+\index{create@{create}!pmc\+\_\+aero\+\_\+rep\+\_\+factory@{pmc\+\_\+aero\+\_\+rep\+\_\+factory}}
+\subsubsection{\texorpdfstring{create()}{create()}}
+{\footnotesize\ttfamily class(\mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__t}{aero\+\_\+rep\+\_\+data\+\_\+t}}) function, pointer pmc\+\_\+aero\+\_\+rep\+\_\+factory\+::create (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__aero__rep__factory_1_1aero__rep__factory__t}{aero\+\_\+rep\+\_\+factory\+\_\+t}}), intent(in)}]{this,  }\item[{character(len=\+:), intent(in), allocatable}]{type\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Create a new aerosol representation by type name. 
+
+\begin{DoxyReturn}{Returns}
+An aerosol representation
+\end{DoxyReturn}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Aerosol representation factory\\
+\hline
+\mbox{\tt in}  & {\em type\+\_\+name} & Name of the aerosol representation \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 243 of file aero\+\_\+rep\+\_\+factory.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__rep__factory_aac521bd3a37de6b47b812d4f1ceb5bb1}\label{namespacepmc__aero__rep__factory_aac521bd3a37de6b47b812d4f1ceb5bb1}} 
+\index{pmc\+\_\+aero\+\_\+rep\+\_\+factory@{pmc\+\_\+aero\+\_\+rep\+\_\+factory}!get\+\_\+type@{get\+\_\+type}}
+\index{get\+\_\+type@{get\+\_\+type}!pmc\+\_\+aero\+\_\+rep\+\_\+factory@{pmc\+\_\+aero\+\_\+rep\+\_\+factory}}
+\subsubsection{\texorpdfstring{get\+\_\+type()}{get\_type()}}
+{\footnotesize\ttfamily integer(kind=i\+\_\+kind) function pmc\+\_\+aero\+\_\+rep\+\_\+factory\+::get\+\_\+type (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__aero__rep__factory_1_1aero__rep__factory__t}{aero\+\_\+rep\+\_\+factory\+\_\+t}}), intent(in)}]{this,  }\item[{class(\mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__t}{aero\+\_\+rep\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+rep }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the aerosol reaction type. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Aerosol representation factory\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+rep} & Aerosol representation to get the type of \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 316 of file aero\+\_\+rep\+\_\+factory.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__rep__factory_a5c9800b3f829b58b00472eaa3622d23c}\label{namespacepmc__aero__rep__factory_a5c9800b3f829b58b00472eaa3622d23c}} 
+\index{pmc\+\_\+aero\+\_\+rep\+\_\+factory@{pmc\+\_\+aero\+\_\+rep\+\_\+factory}!load@{load}}
+\index{load@{load}!pmc\+\_\+aero\+\_\+rep\+\_\+factory@{pmc\+\_\+aero\+\_\+rep\+\_\+factory}}
+\subsubsection{\texorpdfstring{load()}{load()}}
+{\footnotesize\ttfamily class(\mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__t}{aero\+\_\+rep\+\_\+data\+\_\+t}}) function, pointer pmc\+\_\+aero\+\_\+rep\+\_\+factory\+::load (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__aero__rep__factory_1_1aero__rep__factory__t}{aero\+\_\+rep\+\_\+factory\+\_\+t}}), intent(in)}]{this,  }\item[{type(json\+\_\+core), intent(in), pointer}]{json,  }\item[{type(json\+\_\+value), intent(in), pointer}]{j\+\_\+obj }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Load an aerosol represenation based on its type. 
+
+\begin{DoxyReturn}{Returns}
+An aerosol representation
+\end{DoxyReturn}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Aerosol representation factory\\
+\hline
+\mbox{\tt in}  & {\em json} & J\+S\+ON core\\
+\hline
+\mbox{\tt in}  & {\em j\+\_\+obj} & J\+S\+ON object \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 270 of file aero\+\_\+rep\+\_\+factory.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__rep__factory_ac1e17208623751a66e657d083e327ebd}\label{namespacepmc__aero__rep__factory_ac1e17208623751a66e657d083e327ebd}} 
+\index{pmc\+\_\+aero\+\_\+rep\+\_\+factory@{pmc\+\_\+aero\+\_\+rep\+\_\+factory}!pack\+\_\+size@{pack\+\_\+size}}
+\index{pack\+\_\+size@{pack\+\_\+size}!pmc\+\_\+aero\+\_\+rep\+\_\+factory@{pmc\+\_\+aero\+\_\+rep\+\_\+factory}}
+\subsubsection{\texorpdfstring{pack\+\_\+size()}{pack\_size()}}
+{\footnotesize\ttfamily integer(kind=i\+\_\+kind) function pmc\+\_\+aero\+\_\+rep\+\_\+factory\+::pack\+\_\+size (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__aero__rep__factory_1_1aero__rep__factory__t}{aero\+\_\+rep\+\_\+factory\+\_\+t}}), intent(in)}]{this,  }\item[{class(\mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__t}{aero\+\_\+rep\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+rep }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Determine the size of a binary required to pack an aerosol representation. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Aerosol representation factory\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+rep} & Aerosol representation to pack \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 337 of file aero\+\_\+rep\+\_\+factory.\+F90.
+
+
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{namespacepmc__aero__rep__factory_a26fa93012c30cd32b47383811765e08b}\label{namespacepmc__aero__rep__factory_a26fa93012c30cd32b47383811765e08b}} 
+\index{pmc\+\_\+aero\+\_\+rep\+\_\+factory@{pmc\+\_\+aero\+\_\+rep\+\_\+factory}!aero\+\_\+rep\+\_\+modal\+\_\+binned\+\_\+mass@{aero\+\_\+rep\+\_\+modal\+\_\+binned\+\_\+mass}}
+\index{aero\+\_\+rep\+\_\+modal\+\_\+binned\+\_\+mass@{aero\+\_\+rep\+\_\+modal\+\_\+binned\+\_\+mass}!pmc\+\_\+aero\+\_\+rep\+\_\+factory@{pmc\+\_\+aero\+\_\+rep\+\_\+factory}}
+\subsubsection{\texorpdfstring{aero\+\_\+rep\+\_\+modal\+\_\+binned\+\_\+mass}{aero\_rep\_modal\_binned\_mass}}
+{\footnotesize\ttfamily integer(kind=i\+\_\+kind), parameter pmc\+\_\+aero\+\_\+rep\+\_\+factory\+::aero\+\_\+rep\+\_\+modal\+\_\+binned\+\_\+mass = 2\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Definition at line 213 of file aero\+\_\+rep\+\_\+factory.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__rep__factory_aa1580bb537129ddd255b271666133c84}\label{namespacepmc__aero__rep__factory_aa1580bb537129ddd255b271666133c84}} 
+\index{pmc\+\_\+aero\+\_\+rep\+\_\+factory@{pmc\+\_\+aero\+\_\+rep\+\_\+factory}!aero\+\_\+rep\+\_\+single\+\_\+particle@{aero\+\_\+rep\+\_\+single\+\_\+particle}}
+\index{aero\+\_\+rep\+\_\+single\+\_\+particle@{aero\+\_\+rep\+\_\+single\+\_\+particle}!pmc\+\_\+aero\+\_\+rep\+\_\+factory@{pmc\+\_\+aero\+\_\+rep\+\_\+factory}}
+\subsubsection{\texorpdfstring{aero\+\_\+rep\+\_\+single\+\_\+particle}{aero\_rep\_single\_particle}}
+{\footnotesize\ttfamily integer(kind=i\+\_\+kind), parameter pmc\+\_\+aero\+\_\+rep\+\_\+factory\+::aero\+\_\+rep\+\_\+single\+\_\+particle = 1\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Identifiers for aerosol representations -\/ used by binary packing/unpacking functions. 
+
+
+
+Definition at line 212 of file aero\+\_\+rep\+\_\+factory.\+F90.
+

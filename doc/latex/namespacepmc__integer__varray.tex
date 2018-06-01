@@ -1,0 +1,249 @@
+\hypertarget{namespacepmc__integer__varray}{}\section{pmc\+\_\+integer\+\_\+varray Module Reference}
+\label{namespacepmc__integer__varray}\index{pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}}
+
+
+The \mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}} structure and assocated subroutines.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em A variable-\/length 1D array of integers. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+elemental integer function \mbox{\hyperlink{namespacepmc__integer__varray_aac024cead9772e37f130bdc79254cdd5}{integer\+\_\+varray\+\_\+n\+\_\+entry}} (integer\+\_\+varray)
+\begin{DoxyCompactList}\small\item\em Return the current number of entries. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__varray_a56e39f9ee34a4092a5c32b74b85494bc}{integer\+\_\+varray\+\_\+realloc}} (integer\+\_\+varray, new\+\_\+length)
+\begin{DoxyCompactList}\small\item\em Changes the given integer\+\_\+varray to exactly the given new\+\_\+length. \end{DoxyCompactList}\item 
+elemental subroutine \mbox{\hyperlink{namespacepmc__integer__varray_a374e54ec508c92316da539cb8f0d8a0f}{integer\+\_\+varray\+\_\+zero}} (integer\+\_\+varray)
+\begin{DoxyCompactList}\small\item\em Resets an integer\+\_\+varray to have zero entries. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__varray_af17a55e72739f42ea30171ba6b236309}{integer\+\_\+varray\+\_\+enlarge}} (integer\+\_\+varray, n)
+\begin{DoxyCompactList}\small\item\em Enlarges the given array so that it is at least of size n. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__varray_a8c78aecfc2429aeca30d230222f69a1e}{integer\+\_\+varray\+\_\+shrink}} (integer\+\_\+varray)
+\begin{DoxyCompactList}\small\item\em Possibly shrinks the storage of the given array, ensuring that it can still store the used entries. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__varray_af69220e955a17e34968b502ba58301e0}{integer\+\_\+varray\+\_\+append}} (integer\+\_\+varray, val)
+\begin{DoxyCompactList}\small\item\em Adds the given number to the end of the array. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__varray_a1a230c2b3f0b3c7374c02a9ddafed40b}{integer\+\_\+varray\+\_\+remove\+\_\+entry}} (integer\+\_\+varray, index)
+\begin{DoxyCompactList}\small\item\em Removes the entry at the given index, repacking values to maintain contiguous data. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__integer__varray_a81d1258f19bf83286f41a25913d87094}{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+integer\+\_\+varray}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__varray_a4983f303a12ec1ff340ff2f2b738ed4d}{pmc\+\_\+mpi\+\_\+pack\+\_\+integer\+\_\+varray}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__varray_a1cbb70e367cc28d2b7ee33490466f3ff}{pmc\+\_\+mpi\+\_\+unpack\+\_\+integer\+\_\+varray}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}} structure and assocated subroutines. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__integer__varray_af69220e955a17e34968b502ba58301e0}\label{namespacepmc__integer__varray_af69220e955a17e34968b502ba58301e0}} 
+\index{pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}!integer\+\_\+varray\+\_\+append@{integer\+\_\+varray\+\_\+append}}
+\index{integer\+\_\+varray\+\_\+append@{integer\+\_\+varray\+\_\+append}!pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}}
+\subsubsection{\texorpdfstring{integer\+\_\+varray\+\_\+append()}{integer\_varray\_append()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+integer\+\_\+varray\+::integer\+\_\+varray\+\_\+append (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}), intent(inout)}]{integer\+\_\+varray,  }\item[{integer, intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Adds the given number to the end of the array. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em integer\+\_\+varray} & Array to add to.\\
+\hline
+\mbox{\tt in}  & {\em val} & Value to add. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 132 of file integer\+\_\+varray.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__integer__varray_af17a55e72739f42ea30171ba6b236309}\label{namespacepmc__integer__varray_af17a55e72739f42ea30171ba6b236309}} 
+\index{pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}!integer\+\_\+varray\+\_\+enlarge@{integer\+\_\+varray\+\_\+enlarge}}
+\index{integer\+\_\+varray\+\_\+enlarge@{integer\+\_\+varray\+\_\+enlarge}!pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}}
+\subsubsection{\texorpdfstring{integer\+\_\+varray\+\_\+enlarge()}{integer\_varray\_enlarge()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+integer\+\_\+varray\+::integer\+\_\+varray\+\_\+enlarge (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}), intent(inout)}]{integer\+\_\+varray,  }\item[{integer, intent(in)}]{n }\end{DoxyParamCaption})}
+
+
+
+Enlarges the given array so that it is at least of size n. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em integer\+\_\+varray} & Array to enlarge.\\
+\hline
+\mbox{\tt in}  & {\em n} & Minimum new size of array. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 91 of file integer\+\_\+varray.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__integer__varray_aac024cead9772e37f130bdc79254cdd5}\label{namespacepmc__integer__varray_aac024cead9772e37f130bdc79254cdd5}} 
+\index{pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}!integer\+\_\+varray\+\_\+n\+\_\+entry@{integer\+\_\+varray\+\_\+n\+\_\+entry}}
+\index{integer\+\_\+varray\+\_\+n\+\_\+entry@{integer\+\_\+varray\+\_\+n\+\_\+entry}!pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}}
+\subsubsection{\texorpdfstring{integer\+\_\+varray\+\_\+n\+\_\+entry()}{integer\_varray\_n\_entry()}}
+{\footnotesize\ttfamily elemental integer function pmc\+\_\+integer\+\_\+varray\+::integer\+\_\+varray\+\_\+n\+\_\+entry (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}), intent(in)}]{integer\+\_\+varray }\end{DoxyParamCaption})}
+
+
+
+Return the current number of entries. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em integer\+\_\+varray} & Array. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 31 of file integer\+\_\+varray.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__integer__varray_a56e39f9ee34a4092a5c32b74b85494bc}\label{namespacepmc__integer__varray_a56e39f9ee34a4092a5c32b74b85494bc}} 
+\index{pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}!integer\+\_\+varray\+\_\+realloc@{integer\+\_\+varray\+\_\+realloc}}
+\index{integer\+\_\+varray\+\_\+realloc@{integer\+\_\+varray\+\_\+realloc}!pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}}
+\subsubsection{\texorpdfstring{integer\+\_\+varray\+\_\+realloc()}{integer\_varray\_realloc()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+integer\+\_\+varray\+::integer\+\_\+varray\+\_\+realloc (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}), intent(inout)}]{integer\+\_\+varray,  }\item[{integer, intent(in)}]{new\+\_\+length }\end{DoxyParamCaption})}
+
+
+
+Changes the given integer\+\_\+varray to exactly the given new\+\_\+length. 
+
+This function should not be called directly, but rather use \mbox{\hyperlink{namespacepmc__integer__varray_af17a55e72739f42ea30171ba6b236309}{integer\+\_\+varray\+\_\+enlarge()}}, \mbox{\hyperlink{namespacepmc__integer__varray_a8c78aecfc2429aeca30d230222f69a1e}{integer\+\_\+varray\+\_\+shrink()}}.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em integer\+\_\+varray} & Array to reallocate.\\
+\hline
+\mbox{\tt in}  & {\em new\+\_\+length} & New length of the array. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 50 of file integer\+\_\+varray.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__integer__varray_a1a230c2b3f0b3c7374c02a9ddafed40b}\label{namespacepmc__integer__varray_a1a230c2b3f0b3c7374c02a9ddafed40b}} 
+\index{pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}!integer\+\_\+varray\+\_\+remove\+\_\+entry@{integer\+\_\+varray\+\_\+remove\+\_\+entry}}
+\index{integer\+\_\+varray\+\_\+remove\+\_\+entry@{integer\+\_\+varray\+\_\+remove\+\_\+entry}!pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}}
+\subsubsection{\texorpdfstring{integer\+\_\+varray\+\_\+remove\+\_\+entry()}{integer\_varray\_remove\_entry()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+integer\+\_\+varray\+::integer\+\_\+varray\+\_\+remove\+\_\+entry (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}), intent(inout)}]{integer\+\_\+varray,  }\item[{integer, intent(in)}]{index }\end{DoxyParamCaption})}
+
+
+
+Removes the entry at the given index, repacking values to maintain contiguous data. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em integer\+\_\+varray} & Array to remove from.\\
+\hline
+\mbox{\tt in}  & {\em index} & Index of entry to remove. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 152 of file integer\+\_\+varray.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__integer__varray_a8c78aecfc2429aeca30d230222f69a1e}\label{namespacepmc__integer__varray_a8c78aecfc2429aeca30d230222f69a1e}} 
+\index{pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}!integer\+\_\+varray\+\_\+shrink@{integer\+\_\+varray\+\_\+shrink}}
+\index{integer\+\_\+varray\+\_\+shrink@{integer\+\_\+varray\+\_\+shrink}!pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}}
+\subsubsection{\texorpdfstring{integer\+\_\+varray\+\_\+shrink()}{integer\_varray\_shrink()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+integer\+\_\+varray\+::integer\+\_\+varray\+\_\+shrink (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}), intent(inout)}]{integer\+\_\+varray }\end{DoxyParamCaption})}
+
+
+
+Possibly shrinks the storage of the given array, ensuring that it can still store the used entries. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em integer\+\_\+varray} & Array to shrink. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 113 of file integer\+\_\+varray.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__integer__varray_a374e54ec508c92316da539cb8f0d8a0f}\label{namespacepmc__integer__varray_a374e54ec508c92316da539cb8f0d8a0f}} 
+\index{pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}!integer\+\_\+varray\+\_\+zero@{integer\+\_\+varray\+\_\+zero}}
+\index{integer\+\_\+varray\+\_\+zero@{integer\+\_\+varray\+\_\+zero}!pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}}
+\subsubsection{\texorpdfstring{integer\+\_\+varray\+\_\+zero()}{integer\_varray\_zero()}}
+{\footnotesize\ttfamily elemental subroutine pmc\+\_\+integer\+\_\+varray\+::integer\+\_\+varray\+\_\+zero (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}), intent(inout)}]{integer\+\_\+varray }\end{DoxyParamCaption})}
+
+
+
+Resets an integer\+\_\+varray to have zero entries. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em integer\+\_\+varray} & Structure to zero. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 76 of file integer\+\_\+varray.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__integer__varray_a4983f303a12ec1ff340ff2f2b738ed4d}\label{namespacepmc__integer__varray_a4983f303a12ec1ff340ff2f2b738ed4d}} 
+\index{pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}!pmc\+\_\+mpi\+\_\+pack\+\_\+integer\+\_\+varray@{pmc\+\_\+mpi\+\_\+pack\+\_\+integer\+\_\+varray}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+integer\+\_\+varray@{pmc\+\_\+mpi\+\_\+pack\+\_\+integer\+\_\+varray}!pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+integer\+\_\+varray()}{pmc\_mpi\_pack\_integer\_varray()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+integer\+\_\+varray\+::pmc\+\_\+mpi\+\_\+pack\+\_\+integer\+\_\+varray (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Packs the given value into the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 200 of file integer\+\_\+varray.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__integer__varray_a81d1258f19bf83286f41a25913d87094}\label{namespacepmc__integer__varray_a81d1258f19bf83286f41a25913d87094}} 
+\index{pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}!pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+integer\+\_\+varray@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+integer\+\_\+varray}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+integer\+\_\+varray@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+integer\+\_\+varray}!pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+integer\+\_\+varray()}{pmc\_mpi\_pack\_size\_integer\_varray()}}
+{\footnotesize\ttfamily integer function pmc\+\_\+integer\+\_\+varray\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+integer\+\_\+varray (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Determines the number of bytes required to pack the given value. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 177 of file integer\+\_\+varray.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__integer__varray_a1cbb70e367cc28d2b7ee33490466f3ff}\label{namespacepmc__integer__varray_a1cbb70e367cc28d2b7ee33490466f3ff}} 
+\index{pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}!pmc\+\_\+mpi\+\_\+unpack\+\_\+integer\+\_\+varray@{pmc\+\_\+mpi\+\_\+unpack\+\_\+integer\+\_\+varray}}
+\index{pmc\+\_\+mpi\+\_\+unpack\+\_\+integer\+\_\+varray@{pmc\+\_\+mpi\+\_\+unpack\+\_\+integer\+\_\+varray}!pmc\+\_\+integer\+\_\+varray@{pmc\+\_\+integer\+\_\+varray}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+unpack\+\_\+integer\+\_\+varray()}{pmc\_mpi\_unpack\_integer\_varray()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+integer\+\_\+varray\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+integer\+\_\+varray (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}), intent(inout)}]{val }\end{DoxyParamCaption})}
+
+
+
+Unpacks the given value from the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in,out}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 230 of file integer\+\_\+varray.\+F90.
+

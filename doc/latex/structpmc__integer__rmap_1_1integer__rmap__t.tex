@@ -1,0 +1,99 @@
+\hypertarget{structpmc__integer__rmap_1_1integer__rmap__t}{}\section{pmc\+\_\+integer\+\_\+rmap\+:\+:integer\+\_\+rmap\+\_\+t Type Reference}
+\label{structpmc__integer__rmap_1_1integer__rmap__t}\index{pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+t@{pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+t}}
+
+
+A map from integers to integers, together with its multi-\/valued inverse.  
+
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}) \mbox{\hyperlink{structpmc__integer__rmap_1_1integer__rmap__t_a1a1b17cd7c4ecab183cdc4d6ff4124bf}{forward}}
+\begin{DoxyCompactList}\small\item\em Forward map (single valued). \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}), dimension(\+:), allocatable \mbox{\hyperlink{structpmc__integer__rmap_1_1integer__rmap__t_ad3d3ed1f13dda7d95d31dc9b20011288}{inverse}}
+\begin{DoxyCompactList}\small\item\em Inverse map (multi-\/valued). \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}) \mbox{\hyperlink{structpmc__integer__rmap_1_1integer__rmap__t_a49514d00b7b652b8e4ab83e448259bb7}{index}}
+\begin{DoxyCompactList}\small\item\em Forward map to inverse map entries (single valued). \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A map from integers to integers, together with its multi-\/valued inverse. 
+
+The forward map takes integer $i$ in the domain 1,...,n\+\_\+domain to an integer $j$ in the range 1,...,n\+\_\+range. This is stored with {\ttfamily j = integer\+\_\+rmap\%forward\%entry(i)}. This map will generally not be one-\/to-\/one or onto.
+
+The inverse map is multi-\/valued, with {\ttfamily integer\+\_\+rmap\%inverse(j)} containing all the inverses of $j$. The entries in the inverse map are given by {\ttfamily inverse\+\_\+rmap\%index}. The relationships between the forward and reverse maps are as follows.
+
+Given $i$, let\+: 
+\begin{DoxyPre}
+ j = integer\_rmap\%forward\%entry(i)
+ k = integer\_rmap\%index\%entry(i)
+ \end{DoxyPre}
+ Then\+: 
+\begin{DoxyPre}
+ integer\_rmap\%inverse(j)\%entry(k) == i
+ \end{DoxyPre}
+
+
+Alternatively, given $j$ and $k$, let\+: 
+\begin{DoxyPre}
+ i = integer\_rmap\%inverse(j)\%entry(k)
+ \end{DoxyPre}
+ Then\+: 
+\begin{DoxyPre}
+ integer\_rmap\%forward\%entry(i) == j
+ integer\_rmap\%index\%entry(i) == k
+ \end{DoxyPre}
+ 
+
+Definition at line 49 of file integer\+\_\+rmap.\+F90.
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structpmc__integer__rmap_1_1integer__rmap__t_a1a1b17cd7c4ecab183cdc4d6ff4124bf}\label{structpmc__integer__rmap_1_1integer__rmap__t_a1a1b17cd7c4ecab183cdc4d6ff4124bf}} 
+\index{pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+t@{pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+t}!forward@{forward}}
+\index{forward@{forward}!pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+t@{pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+t}}
+\subsubsection{\texorpdfstring{forward}{forward}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}) pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+t\+::forward}
+
+
+
+Forward map (single valued). 
+
+
+
+Definition at line 51 of file integer\+\_\+rmap.\+F90.
+
+\mbox{\Hypertarget{structpmc__integer__rmap_1_1integer__rmap__t_a49514d00b7b652b8e4ab83e448259bb7}\label{structpmc__integer__rmap_1_1integer__rmap__t_a49514d00b7b652b8e4ab83e448259bb7}} 
+\index{pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+t@{pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+t}!index@{index}}
+\index{index@{index}!pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+t@{pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+t}}
+\subsubsection{\texorpdfstring{index}{index}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}) pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+t\+::index}
+
+
+
+Forward map to inverse map entries (single valued). 
+
+
+
+Definition at line 55 of file integer\+\_\+rmap.\+F90.
+
+\mbox{\Hypertarget{structpmc__integer__rmap_1_1integer__rmap__t_ad3d3ed1f13dda7d95d31dc9b20011288}\label{structpmc__integer__rmap_1_1integer__rmap__t_ad3d3ed1f13dda7d95d31dc9b20011288}} 
+\index{pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+t@{pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+t}!inverse@{inverse}}
+\index{inverse@{inverse}!pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+t@{pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+t}}
+\subsubsection{\texorpdfstring{inverse}{inverse}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__integer__varray_1_1integer__varray__t}{integer\+\_\+varray\+\_\+t}}), dimension(\+:), allocatable pmc\+\_\+integer\+\_\+rmap\+::integer\+\_\+rmap\+\_\+t\+::inverse}
+
+
+
+Inverse map (multi-\/valued). 
+
+
+
+Definition at line 53 of file integer\+\_\+rmap.\+F90.
+
+
+
+The documentation for this type was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{integer__rmap_8_f90}{integer\+\_\+rmap.\+F90}}\end{DoxyCompactItemize}

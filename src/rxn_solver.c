@@ -235,7 +235,7 @@ void rxn_update_env_state(ModelData *model_data, double *env)
   } 
 }
 
-/** \brif Do pre-derivative/Jacobian calculations
+/** \brief Do pre-derivative/Jacobian calculations
  *
  * Update the model state based on sub-model calculations. These can,
  * for example, update activity coefficients based on species concentrations,

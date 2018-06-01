@@ -1,0 +1,53 @@
+\hypertarget{interfacepmc__aero__rep__data_1_1spec__state__id}{}\section{pmc\+\_\+aero\+\_\+rep\+\_\+data\+:\+:spec\+\_\+state\+\_\+id Interface Reference}
+\label{interfacepmc__aero__rep__data_1_1spec__state__id}\index{pmc\+\_\+aero\+\_\+rep\+\_\+data\+::spec\+\_\+state\+\_\+id@{pmc\+\_\+aero\+\_\+rep\+\_\+data\+::spec\+\_\+state\+\_\+id}}
+
+
+Get a species id on the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array by unique name. These are unique ids for each element on the state array for this \mbox{\hyperlink{phlex_aero_rep}{aerosol representation}} and are numbered\+:  
+
+
+\subsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+integer(kind=i\+\_\+kind) function \mbox{\hyperlink{interfacepmc__aero__rep__data_1_1spec__state__id_a0ea7f29bcd2b13b0eed257e6f7fc99b3}{spec\+\_\+state\+\_\+id}} (this, unique\+\_\+name)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Get a species id on the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array by unique name. These are unique ids for each element on the state array for this \mbox{\hyperlink{phlex_aero_rep}{aerosol representation}} and are numbered\+: 
+
+\[x_u \in x_f ... (x_f+n-1)\]
+
+where $x_u$ is the id of the element corresponding to the species with unique name $u$ on the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array, $x_f$ is the index of the first element for this aerosol representation on the state array and $n$ is the total number of variables on the state array from this aerosol representation.
+
+If the name is not found, the return value is 0. 
+
+Definition at line 225 of file aero\+\_\+rep\+\_\+data.\+F90.
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{interfacepmc__aero__rep__data_1_1spec__state__id_a0ea7f29bcd2b13b0eed257e6f7fc99b3}\label{interfacepmc__aero__rep__data_1_1spec__state__id_a0ea7f29bcd2b13b0eed257e6f7fc99b3}} 
+\index{pmc\+\_\+aero\+\_\+rep\+\_\+data\+::spec\+\_\+state\+\_\+id@{pmc\+\_\+aero\+\_\+rep\+\_\+data\+::spec\+\_\+state\+\_\+id}!spec\+\_\+state\+\_\+id@{spec\+\_\+state\+\_\+id}}
+\index{spec\+\_\+state\+\_\+id@{spec\+\_\+state\+\_\+id}!pmc\+\_\+aero\+\_\+rep\+\_\+data\+::spec\+\_\+state\+\_\+id@{pmc\+\_\+aero\+\_\+rep\+\_\+data\+::spec\+\_\+state\+\_\+id}}
+\subsubsection{\texorpdfstring{spec\+\_\+state\+\_\+id()}{spec\_state\_id()}}
+{\footnotesize\ttfamily integer(kind=i\+\_\+kind) function pmc\+\_\+aero\+\_\+rep\+\_\+data\+::spec\+\_\+state\+\_\+id\+::spec\+\_\+state\+\_\+id (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__t}{aero\+\_\+rep\+\_\+data\+\_\+t}}), intent(in)}]{this,  }\item[{character(len=\+:), intent(in), allocatable}]{unique\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+\begin{DoxyReturn}{Returns}
+Species state id
+\end{DoxyReturn}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Aerosol representation data\\
+\hline
+\mbox{\tt in}  & {\em unique\+\_\+name} & Unique name \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 226 of file aero\+\_\+rep\+\_\+data.\+F90.
+
+
+
+The documentation for this interface was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{aero__rep__data_8_f90}{aero\+\_\+rep\+\_\+data.\+F90}}\end{DoxyCompactItemize}

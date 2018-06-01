@@ -1,0 +1,571 @@
+\hypertarget{namespacepmc__stats}{}\section{pmc\+\_\+stats Module Reference}
+\label{namespacepmc__stats}\index{pmc\+\_\+stats@{pmc\+\_\+stats}}
+
+
+The {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__t}{stats\+\_\+t}}} type and associated subroutines.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__stats_1_1stats__1d__t}{stats\+\_\+1d\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Structure for online computation of 1D arrays of mean and variance. \end{DoxyCompactList}\item 
+type \mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Structure for online computation of 2D arrays of mean and variance. \end{DoxyCompactList}\item 
+type \mbox{\hyperlink{structpmc__stats_1_1stats__t}{stats\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Structure for online computation of mean and variance. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_ac5750dcd5d754124f53223d4072344c1}{stats\+\_\+clear}} (stats)
+\begin{DoxyCompactList}\small\item\em Clear data statistics collected so far. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_ac0cd9c69e90ebd760939ce802a889f94}{stats\+\_\+1d\+\_\+clear}} (stats)
+\begin{DoxyCompactList}\small\item\em Clear data statistics collected so far. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a4416bf7fadf595f6954554bcda94f144}{stats\+\_\+2d\+\_\+clear}} (stats)
+\begin{DoxyCompactList}\small\item\em Clear data statistics collected so far. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a09e09f5a5169acdc4fbeb28b83586fa5}{stats\+\_\+add}} (stats, data)
+\begin{DoxyCompactList}\small\item\em Add a new data value to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__t}{stats\+\_\+t}}} structure. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a39445eed819e5c2e7fdd867855e23fc6}{stats\+\_\+1d\+\_\+add}} (stats, data)
+\begin{DoxyCompactList}\small\item\em Add all new data values to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__1d__t}{stats\+\_\+1d\+\_\+t}}} structure. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a4e469252e2fa292137c09f0a86fcafc7}{stats\+\_\+1d\+\_\+add\+\_\+entry}} (stats, data, i)
+\begin{DoxyCompactList}\small\item\em Add a new single data value to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__1d__t}{stats\+\_\+1d\+\_\+t}}} structure. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_adf44b0b2ca237de63a455f077ad5c51e}{stats\+\_\+2d\+\_\+add}} (stats, data)
+\begin{DoxyCompactList}\small\item\em Add all new data values to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}} structure. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a130511c11730c58ad4e4a75eece0330b}{stats\+\_\+2d\+\_\+add\+\_\+row}} (stats, data, i)
+\begin{DoxyCompactList}\small\item\em Add a row of new data values to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}} structure. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a3d4adead65ab33601c8d28a1edb89755}{stats\+\_\+2d\+\_\+add\+\_\+col}} (stats, data, j)
+\begin{DoxyCompactList}\small\item\em Add a column of new data values to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}} structure. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_ab357ab9aa317d0059079eb870bfc17eb}{stats\+\_\+2d\+\_\+add\+\_\+entry}} (stats, data, i, j)
+\begin{DoxyCompactList}\small\item\em Add a single new data value to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}} structure. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__stats_a9cecea8dc7d64a4b8800f09e7bc2d54f}{stats\+\_\+conf\+\_\+95\+\_\+offset}} (stats)
+\begin{DoxyCompactList}\small\item\em Compute the 95\% confidence interval offset from the mean. \end{DoxyCompactList}\item 
+real(kind=dp) function, dimension(size(stats\%n)) \mbox{\hyperlink{namespacepmc__stats_abb0f22506fbe1564d5dfe9b348967e3f}{stats\+\_\+1d\+\_\+conf\+\_\+95\+\_\+offset}} (stats)
+\begin{DoxyCompactList}\small\item\em Compute the 95\% confidence interval offset from the mean. \end{DoxyCompactList}\item 
+real(kind=dp) function, dimension(size(stats\%n, 1), size(stats\%n, 2)) \mbox{\hyperlink{namespacepmc__stats_a4b54545fdbc6ea7302c947217f65a3cf}{stats\+\_\+2d\+\_\+conf\+\_\+95\+\_\+offset}} (stats)
+\begin{DoxyCompactList}\small\item\em Compute the 95\% confidence interval offset from the mean. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a03fc23e0f58ef39a98b3fab675f7ec2f}{update\+\_\+mean\+\_\+var}} (mean, var, data, n)
+\begin{DoxyCompactList}\small\item\em Compute a running average and variance. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__stats_a60b9373973781e467921c5e7558a57f9}{student\+\_\+t\+\_\+95\+\_\+coeff}} (n\+\_\+sample)
+\begin{DoxyCompactList}\small\item\em Return a fairly tight upper-\/bound on the Student\textquotesingle{}s t coefficient for the 95\% confidence interval. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__stats_a4ef20f4ac022e62933d3ed80e4041b88}{conf\+\_\+95\+\_\+offset}} (var, n\+\_\+sample)
+\begin{DoxyCompactList}\small\item\em 95\% confidence interval offset from mean. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a7bd7c2f154323bb763f7bfa0f6e6f9a1}{stats\+\_\+output\+\_\+netcdf}} (stats, \mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, name, unit)
+\begin{DoxyCompactList}\small\item\em Write statistics (mean and 95\% conf. int.) to a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a644ef48950c748f3ab3a3d9276186c21}{stats\+\_\+1d\+\_\+output\+\_\+netcdf}} (stats, \mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, name, dim\+\_\+name, unit)
+\begin{DoxyCompactList}\small\item\em Write statistics (mean and 95\% conf. int.) to a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_ad17733f0597dca5b088f1f4b6d99ded8}{stats\+\_\+2d\+\_\+output\+\_\+netcdf}} (stats, \mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, name, dim\+\_\+name\+\_\+1, dim\+\_\+name\+\_\+2, unit)
+\begin{DoxyCompactList}\small\item\em Write statistics (mean and 95\% conf. int.) to a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__stats_a64f09d5c5d2f28d8e7351b5cc14a9848}{stats\+\_\+1d\+\_\+output\+\_\+text}} (stats, filename, dim)
+\begin{DoxyCompactList}\small\item\em Write statistics (mean and 95\% conf. int.) to a text file. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__t}{stats\+\_\+t}}} type and associated subroutines. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__stats_a4ef20f4ac022e62933d3ed80e4041b88}\label{namespacepmc__stats_a4ef20f4ac022e62933d3ed80e4041b88}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!conf\+\_\+95\+\_\+offset@{conf\+\_\+95\+\_\+offset}}
+\index{conf\+\_\+95\+\_\+offset@{conf\+\_\+95\+\_\+offset}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{conf\+\_\+95\+\_\+offset()}{conf\_95\_offset()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+stats\+::conf\+\_\+95\+\_\+offset (\begin{DoxyParamCaption}\item[{real(kind=dp), intent(in)}]{var,  }\item[{integer, intent(in)}]{n\+\_\+sample }\end{DoxyParamCaption})}
+
+
+
+95\% confidence interval offset from mean. 
+
+If {\ttfamily mean} and {\ttfamily var} are the sample mean and sample variance of {\ttfamily n} data values, then 
+\begin{DoxyPre}
+ offset = conf\_95\_offset(var, n)
+ \end{DoxyPre}
+ means that the 95\% confidence interval for the mean is {\ttfamily \mbox{[}mean -\/ offset, mean + offset\mbox{]}}.
+
+If {\ttfamily n\+\_\+sample} is one or less then zero is returned.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em var} & Sample variance of data.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+sample} & Number of samples.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Return offset from mean for the 95\% confidence interval. 
+\end{DoxyReturn}
+
+
+Definition at line 552 of file stats.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__stats_a39445eed819e5c2e7fdd867855e23fc6}\label{namespacepmc__stats_a39445eed819e5c2e7fdd867855e23fc6}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!stats\+\_\+1d\+\_\+add@{stats\+\_\+1d\+\_\+add}}
+\index{stats\+\_\+1d\+\_\+add@{stats\+\_\+1d\+\_\+add}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{stats\+\_\+1d\+\_\+add()}{stats\_1d\_add()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+stats\+::stats\+\_\+1d\+\_\+add (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__stats_1_1stats__1d__t}{stats\+\_\+1d\+\_\+t}}), intent(inout)}]{stats,  }\item[{real(kind=dp), dimension(\+:), intent(in)}]{data }\end{DoxyParamCaption})}
+
+
+
+Add all new data values to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__1d__t}{stats\+\_\+1d\+\_\+t}}} structure. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em stats} & Statistics structure to add to.\\
+\hline
+\mbox{\tt in}  & {\em data} & Data values to add. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 109 of file stats.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__stats_a4e469252e2fa292137c09f0a86fcafc7}\label{namespacepmc__stats_a4e469252e2fa292137c09f0a86fcafc7}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!stats\+\_\+1d\+\_\+add\+\_\+entry@{stats\+\_\+1d\+\_\+add\+\_\+entry}}
+\index{stats\+\_\+1d\+\_\+add\+\_\+entry@{stats\+\_\+1d\+\_\+add\+\_\+entry}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{stats\+\_\+1d\+\_\+add\+\_\+entry()}{stats\_1d\_add\_entry()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+stats\+::stats\+\_\+1d\+\_\+add\+\_\+entry (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__stats_1_1stats__1d__t}{stats\+\_\+1d\+\_\+t}}), intent(inout)}]{stats,  }\item[{real(kind=dp), intent(in)}]{data,  }\item[{integer, intent(in)}]{i }\end{DoxyParamCaption})}
+
+
+
+Add a new single data value to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__1d__t}{stats\+\_\+1d\+\_\+t}}} structure. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em stats} & Statistics structure to add to.\\
+\hline
+\mbox{\tt in}  & {\em data} & Data value to add.\\
+\hline
+\mbox{\tt in}  & {\em i} & Index of data value to add. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 141 of file stats.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__stats_ac0cd9c69e90ebd760939ce802a889f94}\label{namespacepmc__stats_ac0cd9c69e90ebd760939ce802a889f94}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!stats\+\_\+1d\+\_\+clear@{stats\+\_\+1d\+\_\+clear}}
+\index{stats\+\_\+1d\+\_\+clear@{stats\+\_\+1d\+\_\+clear}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{stats\+\_\+1d\+\_\+clear()}{stats\_1d\_clear()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+stats\+::stats\+\_\+1d\+\_\+clear (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__stats_1_1stats__1d__t}{stats\+\_\+1d\+\_\+t}}), intent(inout)}]{stats }\end{DoxyParamCaption})}
+
+
+
+Clear data statistics collected so far. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em stats} & Statistics structure to clear. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 62 of file stats.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__stats_abb0f22506fbe1564d5dfe9b348967e3f}\label{namespacepmc__stats_abb0f22506fbe1564d5dfe9b348967e3f}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!stats\+\_\+1d\+\_\+conf\+\_\+95\+\_\+offset@{stats\+\_\+1d\+\_\+conf\+\_\+95\+\_\+offset}}
+\index{stats\+\_\+1d\+\_\+conf\+\_\+95\+\_\+offset@{stats\+\_\+1d\+\_\+conf\+\_\+95\+\_\+offset}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{stats\+\_\+1d\+\_\+conf\+\_\+95\+\_\+offset()}{stats\_1d\_conf\_95\_offset()}}
+{\footnotesize\ttfamily real(kind=dp) function, dimension(size(stats\%n)) pmc\+\_\+stats\+::stats\+\_\+1d\+\_\+conf\+\_\+95\+\_\+offset (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__stats_1_1stats__1d__t}{stats\+\_\+1d\+\_\+t}}), intent(in)}]{stats }\end{DoxyParamCaption})}
+
+
+
+Compute the 95\% confidence interval offset from the mean. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em stats} & Statistics structure to find confidence interval for.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Return offset so that \mbox{[}mean -\/ offset, mean + offset\mbox{]} is the 95\% confidence interval. 
+\end{DoxyReturn}
+
+
+Definition at line 316 of file stats.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__stats_a644ef48950c748f3ab3a3d9276186c21}\label{namespacepmc__stats_a644ef48950c748f3ab3a3d9276186c21}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!stats\+\_\+1d\+\_\+output\+\_\+netcdf@{stats\+\_\+1d\+\_\+output\+\_\+netcdf}}
+\index{stats\+\_\+1d\+\_\+output\+\_\+netcdf@{stats\+\_\+1d\+\_\+output\+\_\+netcdf}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{stats\+\_\+1d\+\_\+output\+\_\+netcdf()}{stats\_1d\_output\_netcdf()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+stats\+::stats\+\_\+1d\+\_\+output\+\_\+netcdf (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__stats_1_1stats__1d__t}{stats\+\_\+1d\+\_\+t}}), intent(in)}]{stats,  }\item[{integer, intent(in)}]{ncid,  }\item[{character(len=$\ast$), intent(in)}]{name,  }\item[{character(len=$\ast$), intent(in), optional}]{dim\+\_\+name,  }\item[{character(len=$\ast$), intent(in), optional}]{unit }\end{DoxyParamCaption})}
+
+
+
+Write statistics (mean and 95\% conf. int.) to a Net\+C\+DF file. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em stats} & Statistics structure to write.\\
+\hline
+\mbox{\tt in}  & {\em ncid} & Net\+C\+DF file ID, in data mode.\\
+\hline
+\mbox{\tt in}  & {\em name} & Variable name in Net\+C\+DF file.\\
+\hline
+\mbox{\tt in}  & {\em dim\+\_\+name} & Net\+C\+DF dimension name for the variable.\\
+\hline
+\mbox{\tt in}  & {\em unit} & Unit of variable. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 595 of file stats.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__stats_a64f09d5c5d2f28d8e7351b5cc14a9848}\label{namespacepmc__stats_a64f09d5c5d2f28d8e7351b5cc14a9848}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!stats\+\_\+1d\+\_\+output\+\_\+text@{stats\+\_\+1d\+\_\+output\+\_\+text}}
+\index{stats\+\_\+1d\+\_\+output\+\_\+text@{stats\+\_\+1d\+\_\+output\+\_\+text}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{stats\+\_\+1d\+\_\+output\+\_\+text()}{stats\_1d\_output\_text()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+stats\+::stats\+\_\+1d\+\_\+output\+\_\+text (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__stats_1_1stats__1d__t}{stats\+\_\+1d\+\_\+t}}), intent(in)}]{stats,  }\item[{character(len=$\ast$), intent(in)}]{filename,  }\item[{real(kind=dp), dimension(\+:), intent(in)}]{dim }\end{DoxyParamCaption})}
+
+
+
+Write statistics (mean and 95\% conf. int.) to a text file. 
+
+The format has three columns\+: {\ttfamily dim mean ci\+\_\+offset} where {\ttfamily dim} is the optional dimension argument, {\ttfamily mean} is the mean value and {\ttfamily ci\+\_\+offset} is the 95\% confidence interval offset, so the 95\% CI is {\ttfamily mean -\/ ci\+\_\+offset, mean + ci\+\_\+offset}.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em stats} & Statistics structure to write.\\
+\hline
+\mbox{\tt in}  & {\em filename} & Filename to write to.\\
+\hline
+\mbox{\tt in}  & {\em dim} & Dimension array (independent variable). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 651 of file stats.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__stats_adf44b0b2ca237de63a455f077ad5c51e}\label{namespacepmc__stats_adf44b0b2ca237de63a455f077ad5c51e}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!stats\+\_\+2d\+\_\+add@{stats\+\_\+2d\+\_\+add}}
+\index{stats\+\_\+2d\+\_\+add@{stats\+\_\+2d\+\_\+add}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{stats\+\_\+2d\+\_\+add()}{stats\_2d\_add()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+stats\+::stats\+\_\+2d\+\_\+add (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}), intent(inout)}]{stats,  }\item[{real(kind=dp), dimension(\+:, \+:), intent(in)}]{data }\end{DoxyParamCaption})}
+
+
+
+Add all new data values to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}} structure. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em stats} & Statistics structure to add to.\\
+\hline
+\mbox{\tt in}  & {\em data} & Data values to add. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 163 of file stats.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__stats_a3d4adead65ab33601c8d28a1edb89755}\label{namespacepmc__stats_a3d4adead65ab33601c8d28a1edb89755}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!stats\+\_\+2d\+\_\+add\+\_\+col@{stats\+\_\+2d\+\_\+add\+\_\+col}}
+\index{stats\+\_\+2d\+\_\+add\+\_\+col@{stats\+\_\+2d\+\_\+add\+\_\+col}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{stats\+\_\+2d\+\_\+add\+\_\+col()}{stats\_2d\_add\_col()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+stats\+::stats\+\_\+2d\+\_\+add\+\_\+col (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}), intent(inout)}]{stats,  }\item[{real(kind=dp), dimension(\+:), intent(in)}]{data,  }\item[{integer, intent(in)}]{j }\end{DoxyParamCaption})}
+
+
+
+Add a column of new data values to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}} structure. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em stats} & Statistics structure to add to.\\
+\hline
+\mbox{\tt in}  & {\em data} & Data values to add.\\
+\hline
+\mbox{\tt in}  & {\em j} & Column of data value to add. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 236 of file stats.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__stats_ab357ab9aa317d0059079eb870bfc17eb}\label{namespacepmc__stats_ab357ab9aa317d0059079eb870bfc17eb}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!stats\+\_\+2d\+\_\+add\+\_\+entry@{stats\+\_\+2d\+\_\+add\+\_\+entry}}
+\index{stats\+\_\+2d\+\_\+add\+\_\+entry@{stats\+\_\+2d\+\_\+add\+\_\+entry}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{stats\+\_\+2d\+\_\+add\+\_\+entry()}{stats\_2d\_add\_entry()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+stats\+::stats\+\_\+2d\+\_\+add\+\_\+entry (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}), intent(inout)}]{stats,  }\item[{real(kind=dp), intent(in)}]{data,  }\item[{integer, intent(in)}]{i,  }\item[{integer, intent(in)}]{j }\end{DoxyParamCaption})}
+
+
+
+Add a single new data value to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}} structure. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em stats} & Statistics structure to add to.\\
+\hline
+\mbox{\tt in}  & {\em data} & Data values to add.\\
+\hline
+\mbox{\tt in}  & {\em i} & First index of data value to add.\\
+\hline
+\mbox{\tt in}  & {\em j} & Second index of data value to add. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 274 of file stats.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__stats_a130511c11730c58ad4e4a75eece0330b}\label{namespacepmc__stats_a130511c11730c58ad4e4a75eece0330b}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!stats\+\_\+2d\+\_\+add\+\_\+row@{stats\+\_\+2d\+\_\+add\+\_\+row}}
+\index{stats\+\_\+2d\+\_\+add\+\_\+row@{stats\+\_\+2d\+\_\+add\+\_\+row}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{stats\+\_\+2d\+\_\+add\+\_\+row()}{stats\_2d\_add\_row()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+stats\+::stats\+\_\+2d\+\_\+add\+\_\+row (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}), intent(inout)}]{stats,  }\item[{real(kind=dp), dimension(\+:), intent(in)}]{data,  }\item[{integer, intent(in)}]{i }\end{DoxyParamCaption})}
+
+
+
+Add a row of new data values to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}} structure. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em stats} & Statistics structure to add to.\\
+\hline
+\mbox{\tt in}  & {\em data} & Data values to add.\\
+\hline
+\mbox{\tt in}  & {\em i} & Row of data value to add. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 198 of file stats.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__stats_a4416bf7fadf595f6954554bcda94f144}\label{namespacepmc__stats_a4416bf7fadf595f6954554bcda94f144}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!stats\+\_\+2d\+\_\+clear@{stats\+\_\+2d\+\_\+clear}}
+\index{stats\+\_\+2d\+\_\+clear@{stats\+\_\+2d\+\_\+clear}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{stats\+\_\+2d\+\_\+clear()}{stats\_2d\_clear()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+stats\+::stats\+\_\+2d\+\_\+clear (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}), intent(inout)}]{stats }\end{DoxyParamCaption})}
+
+
+
+Clear data statistics collected so far. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em stats} & Statistics structure to clear. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 78 of file stats.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__stats_a4b54545fdbc6ea7302c947217f65a3cf}\label{namespacepmc__stats_a4b54545fdbc6ea7302c947217f65a3cf}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!stats\+\_\+2d\+\_\+conf\+\_\+95\+\_\+offset@{stats\+\_\+2d\+\_\+conf\+\_\+95\+\_\+offset}}
+\index{stats\+\_\+2d\+\_\+conf\+\_\+95\+\_\+offset@{stats\+\_\+2d\+\_\+conf\+\_\+95\+\_\+offset}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{stats\+\_\+2d\+\_\+conf\+\_\+95\+\_\+offset()}{stats\_2d\_conf\_95\_offset()}}
+{\footnotesize\ttfamily real(kind=dp) function, dimension(size(stats\%n, 1),          size(stats\%n, 2)) pmc\+\_\+stats\+::stats\+\_\+2d\+\_\+conf\+\_\+95\+\_\+offset (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}), intent(in)}]{stats }\end{DoxyParamCaption})}
+
+
+
+Compute the 95\% confidence interval offset from the mean. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em stats} & Statistics structure to find confidence interval for.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Return offset so that \mbox{[}mean -\/ offset, mean + offset\mbox{]} is the 95\% confidence interval. 
+\end{DoxyReturn}
+
+
+Definition at line 336 of file stats.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__stats_ad17733f0597dca5b088f1f4b6d99ded8}\label{namespacepmc__stats_ad17733f0597dca5b088f1f4b6d99ded8}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!stats\+\_\+2d\+\_\+output\+\_\+netcdf@{stats\+\_\+2d\+\_\+output\+\_\+netcdf}}
+\index{stats\+\_\+2d\+\_\+output\+\_\+netcdf@{stats\+\_\+2d\+\_\+output\+\_\+netcdf}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{stats\+\_\+2d\+\_\+output\+\_\+netcdf()}{stats\_2d\_output\_netcdf()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+stats\+::stats\+\_\+2d\+\_\+output\+\_\+netcdf (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__stats_1_1stats__2d__t}{stats\+\_\+2d\+\_\+t}}), intent(in)}]{stats,  }\item[{integer, intent(in)}]{ncid,  }\item[{character(len=$\ast$), intent(in)}]{name,  }\item[{character(len=$\ast$), intent(in), optional}]{dim\+\_\+name\+\_\+1,  }\item[{character(len=$\ast$), intent(in), optional}]{dim\+\_\+name\+\_\+2,  }\item[{character(len=$\ast$), intent(in), optional}]{unit }\end{DoxyParamCaption})}
+
+
+
+Write statistics (mean and 95\% conf. int.) to a Net\+C\+DF file. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em stats} & Statistics structure to write.\\
+\hline
+\mbox{\tt in}  & {\em ncid} & Net\+C\+DF file ID, in data mode.\\
+\hline
+\mbox{\tt in}  & {\em name} & Variable name in Net\+C\+DF file.\\
+\hline
+\mbox{\tt in}  & {\em dim\+\_\+name\+\_\+1} & First Net\+C\+DF dimension name for the variable.\\
+\hline
+\mbox{\tt in}  & {\em dim\+\_\+name\+\_\+2} & Second Net\+C\+DF dimension name for the variable.\\
+\hline
+\mbox{\tt in}  & {\em unit} & Unit of variable. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 619 of file stats.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__stats_a09e09f5a5169acdc4fbeb28b83586fa5}\label{namespacepmc__stats_a09e09f5a5169acdc4fbeb28b83586fa5}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!stats\+\_\+add@{stats\+\_\+add}}
+\index{stats\+\_\+add@{stats\+\_\+add}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{stats\+\_\+add()}{stats\_add()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+stats\+::stats\+\_\+add (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__stats_1_1stats__t}{stats\+\_\+t}}), intent(inout)}]{stats,  }\item[{real(kind=dp), intent(in)}]{data }\end{DoxyParamCaption})}
+
+
+
+Add a new data value to a {\ttfamily \mbox{\hyperlink{structpmc__stats_1_1stats__t}{stats\+\_\+t}}} structure. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em stats} & Statistics structure to add to.\\
+\hline
+\mbox{\tt in}  & {\em data} & Data value to add. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 94 of file stats.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__stats_ac5750dcd5d754124f53223d4072344c1}\label{namespacepmc__stats_ac5750dcd5d754124f53223d4072344c1}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!stats\+\_\+clear@{stats\+\_\+clear}}
+\index{stats\+\_\+clear@{stats\+\_\+clear}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{stats\+\_\+clear()}{stats\_clear()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+stats\+::stats\+\_\+clear (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__stats_1_1stats__t}{stats\+\_\+t}}), intent(inout)}]{stats }\end{DoxyParamCaption})}
+
+
+
+Clear data statistics collected so far. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em stats} & Statistics structure to clear. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 50 of file stats.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__stats_a9cecea8dc7d64a4b8800f09e7bc2d54f}\label{namespacepmc__stats_a9cecea8dc7d64a4b8800f09e7bc2d54f}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!stats\+\_\+conf\+\_\+95\+\_\+offset@{stats\+\_\+conf\+\_\+95\+\_\+offset}}
+\index{stats\+\_\+conf\+\_\+95\+\_\+offset@{stats\+\_\+conf\+\_\+95\+\_\+offset}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{stats\+\_\+conf\+\_\+95\+\_\+offset()}{stats\_conf\_95\_offset()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+stats\+::stats\+\_\+conf\+\_\+95\+\_\+offset (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__stats_1_1stats__t}{stats\+\_\+t}}), intent(in)}]{stats }\end{DoxyParamCaption})}
+
+
+
+Compute the 95\% confidence interval offset from the mean. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em stats} & Statistics structure to find confidence interval for.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Return offset so that \mbox{[}mean -\/ offset, mean + offset\mbox{]} is the 95\% confidence interval. 
+\end{DoxyReturn}
+
+
+Definition at line 300 of file stats.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__stats_a7bd7c2f154323bb763f7bfa0f6e6f9a1}\label{namespacepmc__stats_a7bd7c2f154323bb763f7bfa0f6e6f9a1}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!stats\+\_\+output\+\_\+netcdf@{stats\+\_\+output\+\_\+netcdf}}
+\index{stats\+\_\+output\+\_\+netcdf@{stats\+\_\+output\+\_\+netcdf}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{stats\+\_\+output\+\_\+netcdf()}{stats\_output\_netcdf()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+stats\+::stats\+\_\+output\+\_\+netcdf (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__stats_1_1stats__t}{stats\+\_\+t}}), intent(in)}]{stats,  }\item[{integer, intent(in)}]{ncid,  }\item[{character(len=$\ast$), intent(in)}]{name,  }\item[{character(len=$\ast$), intent(in), optional}]{unit }\end{DoxyParamCaption})}
+
+
+
+Write statistics (mean and 95\% conf. int.) to a Net\+C\+DF file. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em stats} & Statistics structure to write.\\
+\hline
+\mbox{\tt in}  & {\em ncid} & Net\+C\+DF file ID, in data mode.\\
+\hline
+\mbox{\tt in}  & {\em name} & Variable name in Net\+C\+DF file.\\
+\hline
+\mbox{\tt in}  & {\em unit} & Unit of variable. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 575 of file stats.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__stats_a60b9373973781e467921c5e7558a57f9}\label{namespacepmc__stats_a60b9373973781e467921c5e7558a57f9}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!student\+\_\+t\+\_\+95\+\_\+coeff@{student\+\_\+t\+\_\+95\+\_\+coeff}}
+\index{student\+\_\+t\+\_\+95\+\_\+coeff@{student\+\_\+t\+\_\+95\+\_\+coeff}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{student\+\_\+t\+\_\+95\+\_\+coeff()}{student\_t\_95\_coeff()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+stats\+::student\+\_\+t\+\_\+95\+\_\+coeff (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{n\+\_\+sample }\end{DoxyParamCaption})}
+
+
+
+Return a fairly tight upper-\/bound on the Student\textquotesingle{}s t coefficient for the 95\% confidence interval. 
+
+The number of degrees of freedom is one less than {\ttfamily n\+\_\+sample}. If a set of $n$ numbers has sample mean $\mu$ and sample standard deviation $\sigma$, then the 95\% confidence interval for the mean is $[\mu - r\sigma/\sqrt{n}, \mu + r\sigma/\sqrt{n}]$, where {\ttfamily r = student\+\_\+t\+\_\+95\+\_\+coeff(n\+\_\+sample)}.
+
+The method used here was written by MW on 2011-\/05-\/01, based on the following empirical observation. If $f(\nu) = t_{0.95,\nu}$ is the function we want, where $\nu = n - 1$ is the number of degrees-\/of-\/freedom, then set $g(\nu) = f(\nu) - L$, where $L = \Phi^{-1}(0.975)$ is the limiting value given by the Gaussian C\+DF $\Phi$. We observe numerically that $g'(\nu) < -1$ and $g'(\nu) \to -1$ as $\nu \to \infty$. Thus $g(\nu)$ is well-\/approximated by $A/\nu$ for some $A$. Furthermore, if $g(\nu^*) = A^*/\nu$, then $g(\nu) < A^*/\nu$ for $\nu > \nu^*$. We thus have $f(\nu) \le (f(\nu^*) - L) (\nu^* / \nu) + L$ for $\nu \ge \nu^*$. By using a sequence of known $(\nu^*, f(\nu^*))$ pairs we can thus construct a fairly tight upper bound.
+
+This implementation has an error of below 0.\+1\% for all values of {\ttfamily n\+\_\+sample}.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em n\+\_\+sample} & Number of samples. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 511 of file stats.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__stats_a03fc23e0f58ef39a98b3fab675f7ec2f}\label{namespacepmc__stats_a03fc23e0f58ef39a98b3fab675f7ec2f}} 
+\index{pmc\+\_\+stats@{pmc\+\_\+stats}!update\+\_\+mean\+\_\+var@{update\+\_\+mean\+\_\+var}}
+\index{update\+\_\+mean\+\_\+var@{update\+\_\+mean\+\_\+var}!pmc\+\_\+stats@{pmc\+\_\+stats}}
+\subsubsection{\texorpdfstring{update\+\_\+mean\+\_\+var()}{update\_mean\_var()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+stats\+::update\+\_\+mean\+\_\+var (\begin{DoxyParamCaption}\item[{real(kind=dp), intent(inout)}]{mean,  }\item[{real(kind=dp), intent(inout)}]{var,  }\item[{real(kind=dp), intent(in)}]{data,  }\item[{integer, intent(in)}]{n }\end{DoxyParamCaption})}
+
+
+
+Compute a running average and variance. 
+
+Given a sequence of data {\ttfamily x(i)} for {\ttfamily i = 1,...,n}, this should be called like 
+\begin{DoxyPre}
+ do i = 1,n
+   call update\_mean\_var(mean, var, x(i), i)
+ end do
+ \end{DoxyPre}
+ After each call the variables {\ttfamily mean} and {\ttfamily var} will be the sample mean and sample variance of the sequence elements up to {\ttfamily i}.
+
+This computes the sample mean and sample variance using a recurrence. The initial sample mean is $m_1 = x_1$ and the initial sample variance is $v_1 = 0$ for $n = 1$, and then for $n \ge 2$ we use the mean update \[ m_n = m_{n-1} + \frac{x_n - m_{n-1}}{n} \] and the variance update \[ v_n = \frac{n - 2}{n - 1} v_{n-1} + \frac{(x_n - m_{n-1})^2}{n}. \] Then $m_n$ and $v_n$ are the sample mean and sample variance for $\{x_1,\ldots,x_n\}$ for each $n$.
+
+The derivation of these formulas begins with the definitions for the running total \[ t_n = \sum_{i=1}^n x_i \] and running sum of square differences \[ s_n = \sum_{i=1}^n (x_i - m_n)^2. \] Then the running mean is $m_n = \frac{t_n}{n}$, the running population variance is $p_n = \frac{1}{n} \left( s_n - n m_n^2 \right)$, and the running sample variance $v_n = \frac{1}{n - 1} \left( s_n - n m_n^2 \right)$.
+
+We can then compute the mean update above, and observing that \[ s_n = \sum_{i=1}^n x_i^2 - n m_n^2 \] we can compute the sum-\/of-\/square-\/dfferences update identity \[ s_n = s_{n-1} + \frac{n - 1}{n} (x_n - m_{n-1})^2. \] The algorithm then follows immediately. The population variance update is given by \[ p_n = \frac{n-1}{n} p_{n-1} + \frac{(x_n - m_n)(x_n - m_{n-1})}{n} = \frac{n-1}{n} p_{n-1} + \frac{n-1}{n^2} (x_n - m_{n-1})^2. \]
+
+This algorithm (in a form where $m_n$ and $s_n$ are tracked) originally appeared in\+:
+
+B. P. Welford \mbox{[}1962\mbox{]} \char`\"{}\+Note on a Method for Calculating Corrected
+ Sums of Squares and Products\char`\"{}, Technometrics 4(3), 419-\/420.
+
+Numerical tests performed by M. West on 2012-\/04-\/12 seem to indicate that there is no substantial difference between tracking $s_n$ versus $v_n$.
+
+The same method (tracking $m_n$ and $s_n$) is presented on page 232 in Section 4.\+2.\+2 of Knuth\+:
+
+D. E. Knuth \mbox{[}1988\mbox{]} \char`\"{}\+The Art of Computer Programming, Volume 2\+:
+ Seminumerical Algorithms\char`\"{}, third edition, Addison Wesley Longman, I\+S\+BN 0-\/201-\/89684-\/2.
+
+An analysis of the error introduced by different variance computation methods is given in\+:
+
+T. F. Chan, G. H. Golub, and R. J. Le\+Veque \mbox{[}1983\mbox{]} \char`\"{}\+Algorithms for
+ Computing the Sample Variance\+: Analysis and Recommendations\char`\"{}, The American Statistician 37(3), 242-\/247.
+
+The relative error in $s_n$ of Welford\textquotesingle{}s method (tracking $m_n$ and $s_n$) is of order $n \kappa \epsilon$, where $\epsilon$ is the machine precision and $\kappa$ is the condition number for the problem, which is given by \[ \kappa = \frac{\|x\|_2}{\sqrt{s_n}} = \sqrt{1 + \frac{m_n^2}{p_n}} \approx \frac{m_n}{p_n}. \]
+
+This analysis was apparently first given in\+:
+
+T. F. C. Chan and J. G. Lewis \mbox{[}1978\mbox{]} \char`\"{}\+Rounding error analysis of
+ algorithms for computing means and standard deviations\char`\"{}, Technical Report No. 284, The Johns Hopkins University, Department of Mathematical Sciences.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em mean} & Mean value to update (on entry $m_{n-1}$, on exit $m_n$).\\
+\hline
+\mbox{\tt in,out}  & {\em var} & Variance value to update (on entry $v_{n-1}$, on exit $v_n$).\\
+\hline
+\mbox{\tt in}  & {\em data} & Data value $x_n$.\\
+\hline
+\mbox{\tt in}  & {\em n} & Number $n$ of this data value. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 456 of file stats.\+F90.
+

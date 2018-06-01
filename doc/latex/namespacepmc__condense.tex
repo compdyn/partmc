@@ -1,0 +1,555 @@
+\hypertarget{namespacepmc__condense}{}\section{pmc\+\_\+condense Module Reference}
+\label{namespacepmc__condense}\index{pmc\+\_\+condense@{pmc\+\_\+condense}}
+
+
+Water condensation onto aerosol particles.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__condense_1_1condense__rates__inputs__t}{condense\+\_\+rates\+\_\+inputs\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use structure for storing the inputs for the rate-\/calculation function. \end{DoxyCompactList}\item 
+type \mbox{\hyperlink{structpmc__condense_1_1condense__rates__outputs__t}{condense\+\_\+rates\+\_\+outputs\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use structure for storing the outputs from the rate-\/calculation function. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__condense_a45e6b6e779962d0671313395a22a3ef6}{condense\+\_\+particles}} (aero\+\_\+state, aero\+\_\+data, env\+\_\+state\+\_\+initial, env\+\_\+state\+\_\+final, del\+\_\+t)
+\begin{DoxyCompactList}\small\item\em Do condensation to all the particles for a given time interval, including updating the environment to account for the lost water vapor. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__condense_afc45edd4ee290a743c722977accc1f5c}{condense\+\_\+check\+\_\+solve}} (value)
+\begin{DoxyCompactList}\small\item\em Check the return code from the \mbox{\hyperlink{condense__solver_8c_a2b18e4f55610de6bcaf2a7eb954cf7aa}{condense\+\_\+solver()}} function. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__condense_a2ec10eca18f9bc6bd906329e1574afef}{condense\+\_\+rates}} (inputs, outputs)
+\begin{DoxyCompactList}\small\item\em Compute the rate of change of particle diameter and relative humidity for a single particle, together with the derivatives of the rates with respect to the input variables. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__condense_a2e3c9253c59b92f29d8458f127e3014e}{condense\+\_\+vf\+\_\+f}} (n\+\_\+eqn, time, state\+\_\+p, state\+\_\+dot\+\_\+p)
+\begin{DoxyCompactList}\small\item\em Compute the condensation rates (Ddot and Hdot) at the current value of the state (D and H). \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__condense_a31f63a235637d397e5f29aa2333db17d}{condense\+\_\+jac}} (n\+\_\+eqn, time, state\+\_\+p, d\+Ddot\+\_\+dD, d\+Ddot\+\_\+dH, d\+Hdot\+\_\+dD, d\+Hdot\+\_\+dH)
+\begin{DoxyCompactList}\small\item\em Compute the Jacobian given by the derivatives of the condensation rates (Ddot and Hdot) with respect to the input variables (D and H). \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__condense_a08898f52fc6ece673be5cf7afec66e44}{condense\+\_\+jac\+\_\+solve\+\_\+f}} (n\+\_\+eqn, time, state\+\_\+p, state\+\_\+dot\+\_\+p, rhs\+\_\+p, gamma)
+\begin{DoxyCompactList}\small\item\em Solve the system $ Pz = r $ where $ P = I - \gamma J $ and $ J = \partial f / \partial y $. The solution is returned in the $ r $ vector. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__condense_a9439c40ef474d3165689e6c7989ae652}{condense\+\_\+equilib\+\_\+particle}} (env\+\_\+state, aero\+\_\+data, aero\+\_\+particle)
+\begin{DoxyCompactList}\small\item\em Determine the water equilibrium state of a single particle. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__condense_a460fbe02310735e79dc7711a8b048fe2}{condense\+\_\+equilib\+\_\+particles}} (env\+\_\+state, aero\+\_\+data, aero\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Call \mbox{\hyperlink{namespacepmc__condense_a9439c40ef474d3165689e6c7989ae652}{condense\+\_\+equilib\+\_\+particle()}} on each particle in the aerosol to ensure that every particle has its water content in equilibrium. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+logical, parameter \mbox{\hyperlink{namespacepmc__condense_ac7de3176ecbf47a23e0278ff57fed802}{condense\+\_\+do\+\_\+test\+\_\+jac\+\_\+solve}} = .false.
+\begin{DoxyCompactList}\small\item\em Whether to numerically test the Jacobian-\/solve function during execution (for debugging only). \end{DoxyCompactList}\item 
+logical, parameter \mbox{\hyperlink{namespacepmc__condense_ab969e806479179fa28b147414b3677a1}{condense\+\_\+do\+\_\+test\+\_\+counts}} = .false.
+\begin{DoxyCompactList}\small\item\em Whether to print call-\/counts for helper routines during execution (for debugging only). \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__condense_ae609c2a0547a2fc09bb22c5e05eaee80}{pmc\+\_\+condense\+\_\+solver\+\_\+success}} = 0
+\begin{DoxyCompactList}\small\item\em Result code indicating successful completion. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__condense_a361258031530fbffce78f9296be23482}{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+y}} = 1
+\begin{DoxyCompactList}\small\item\em Result code indicating failure to allocate {\ttfamily y} vector. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__condense_a27e346e39aa2e4388fb4cdb05009d947}{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+abstol}} = 2
+\begin{DoxyCompactList}\small\item\em Result code indicating failure to allocate {\ttfamily abstol} vector. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__condense_aced2822f651922c373256516609512b5}{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+cvode\+\_\+mem}} = 3
+\begin{DoxyCompactList}\small\item\em Result code indicating failure to create the solver. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__condense_a152d39c4bae310586811b62dad524762}{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+cvode}} = 4
+\begin{DoxyCompactList}\small\item\em Result code indicating failure to initialize the solver. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__condense_a728628df918109b721d5ac51252ee397}{pmc\+\_\+condense\+\_\+solver\+\_\+svtol}} = 5
+\begin{DoxyCompactList}\small\item\em Result code indicating failure to set tolerances. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__condense_acf6e894f8461ba22f0e7b8d4b55bdbdb}{pmc\+\_\+condense\+\_\+solver\+\_\+set\+\_\+max\+\_\+steps}} = 6
+\begin{DoxyCompactList}\small\item\em Result code indicating failure to set maximum steps. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__condense_a72475de47c696e1ac0386f8f0881dba3}{pmc\+\_\+condense\+\_\+solver\+\_\+fail}} = 7
+\begin{DoxyCompactList}\small\item\em Result code indicating failure of the solver. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}) \mbox{\hyperlink{namespacepmc__condense_ae50824c600d52bf42b1ba4662d5ca40e}{condense\+\_\+saved\+\_\+aero\+\_\+data}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable for storing the aerosol data during calls to the O\+DE solver. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}) \mbox{\hyperlink{namespacepmc__condense_af55aca988067bd27f35a3c34e2f5a4cd}{condense\+\_\+saved\+\_\+env\+\_\+state\+\_\+initial}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable for storing the initial environment state during calls to the O\+DE solver. \end{DoxyCompactList}\item 
+real(kind=dp) \mbox{\hyperlink{namespacepmc__condense_a0a1155d88faa2b061fd371090165aad1}{condense\+\_\+saved\+\_\+tdot}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable for storing the rate of change of the temperature during calls to the O\+DE solver. \end{DoxyCompactList}\item 
+real(kind=dp) \mbox{\hyperlink{namespacepmc__condense_a5bdbeab5c023573ed2f0a37bfa718f83}{condense\+\_\+saved\+\_\+pdot}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable for storing the rate of change of the pressure during calls to the O\+DE solver. \end{DoxyCompactList}\item 
+real(kind=dp), dimension(\+:), allocatable \mbox{\hyperlink{namespacepmc__condense_a0829dc0e51b0c9843bfd0e3c36432a19}{condense\+\_\+saved\+\_\+kappa}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable for storing the per-\/particle kappa values during calls to the O\+DE solver. \end{DoxyCompactList}\item 
+real(kind=dp), dimension(\+:), allocatable \mbox{\hyperlink{namespacepmc__condense_a30c34390a80570ea680b53c2ab971b50}{condense\+\_\+saved\+\_\+d\+\_\+dry}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable for storing the per-\/particle dry diameters during calls to the O\+DE solver. \end{DoxyCompactList}\item 
+real(kind=dp), dimension(\+:), allocatable \mbox{\hyperlink{namespacepmc__condense_ae5922bfbd484efd47db5593f15d0c0f4}{condense\+\_\+saved\+\_\+num\+\_\+conc}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable for storing the per-\/particle number concentrations during calls to the O\+DE solver. \end{DoxyCompactList}\item 
+integer, save \mbox{\hyperlink{namespacepmc__condense_af51c8e3d30352bcf05b09da63797f908}{condense\+\_\+count\+\_\+vf}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable for counting calls to the vector field subroutine. \end{DoxyCompactList}\item 
+integer, save \mbox{\hyperlink{namespacepmc__condense_ab362439e7fd220994e7da1bd4658d21d}{condense\+\_\+count\+\_\+solve}}
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable for counting calls to the Jacobian-\/solving subroutine. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Water condensation onto aerosol particles. 
+
+The model here assumes that the temperature $ T $ and pressure $ p $ are prescribed as functions of time, while water content per-\/particle and relative humidity are to be calculated by integrating their rates of change.
+
+The state of the system is defined by the per-\/particle wet diameters $ D_i $ and the relative humidity $ H $. The state vector stores these in the order $ (D_1,\ldots,D_n,H) $. The time-\/derivative of the state vector and the Jacobian (derivative of the time-\/derivative with repsect to the state) all conform to this ordering.
+
+The S\+U\+N\+D\+I\+A\+LS O\+DE solver is used to compute the system evolution using an implicit method. The system Jacobian is explicitly inverveted as its structure is very simple.
+
+All equations used in this file are written in detail in the file {\ttfamily doc/condense.\+tex}. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__condense_afc45edd4ee290a743c722977accc1f5c}\label{namespacepmc__condense_afc45edd4ee290a743c722977accc1f5c}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!condense\+\_\+check\+\_\+solve@{condense\+\_\+check\+\_\+solve}}
+\index{condense\+\_\+check\+\_\+solve@{condense\+\_\+check\+\_\+solve}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{condense\+\_\+check\+\_\+solve()}{condense\_check\_solve()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+condense\+::condense\+\_\+check\+\_\+solve (\begin{DoxyParamCaption}\item[{integer(kind=c\+\_\+int), intent(in)}]{value }\end{DoxyParamCaption})}
+
+
+
+Check the return code from the \mbox{\hyperlink{condense__solver_8c_a2b18e4f55610de6bcaf2a7eb954cf7aa}{condense\+\_\+solver()}} function. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em value} & Return code to check. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 332 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_a9439c40ef474d3165689e6c7989ae652}\label{namespacepmc__condense_a9439c40ef474d3165689e6c7989ae652}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!condense\+\_\+equilib\+\_\+particle@{condense\+\_\+equilib\+\_\+particle}}
+\index{condense\+\_\+equilib\+\_\+particle@{condense\+\_\+equilib\+\_\+particle}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{condense\+\_\+equilib\+\_\+particle()}{condense\_equilib\_particle()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+condense\+::condense\+\_\+equilib\+\_\+particle (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(inout)}]{aero\+\_\+particle }\end{DoxyParamCaption})}
+
+
+
+Determine the water equilibrium state of a single particle. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+particle} & Particle. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 703 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_a460fbe02310735e79dc7711a8b048fe2}\label{namespacepmc__condense_a460fbe02310735e79dc7711a8b048fe2}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!condense\+\_\+equilib\+\_\+particles@{condense\+\_\+equilib\+\_\+particles}}
+\index{condense\+\_\+equilib\+\_\+particles@{condense\+\_\+equilib\+\_\+particles}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{condense\+\_\+equilib\+\_\+particles()}{condense\_equilib\_particles()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+condense\+::condense\+\_\+equilib\+\_\+particles (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(inout)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state }\end{DoxyParamCaption})}
+
+
+
+Call \mbox{\hyperlink{namespacepmc__condense_a9439c40ef474d3165689e6c7989ae652}{condense\+\_\+equilib\+\_\+particle()}} on each particle in the aerosol to ensure that every particle has its water content in equilibrium. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 747 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_a31f63a235637d397e5f29aa2333db17d}\label{namespacepmc__condense_a31f63a235637d397e5f29aa2333db17d}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!condense\+\_\+jac@{condense\+\_\+jac}}
+\index{condense\+\_\+jac@{condense\+\_\+jac}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{condense\+\_\+jac()}{condense\_jac()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+condense\+::condense\+\_\+jac (\begin{DoxyParamCaption}\item[{integer(kind=c\+\_\+int), intent(in)}]{n\+\_\+eqn,  }\item[{real(kind=c\+\_\+double), intent(in)}]{time,  }\item[{type(c\+\_\+ptr), intent(in)}]{state\+\_\+p,  }\item[{real(kind=dp), dimension(n\+\_\+eqn -\/ 1), intent(out)}]{d\+Ddot\+\_\+dD,  }\item[{real(kind=dp), dimension(n\+\_\+eqn -\/ 1), intent(out)}]{d\+Ddot\+\_\+dH,  }\item[{real(kind=dp), dimension(n\+\_\+eqn -\/ 1), intent(out)}]{d\+Hdot\+\_\+dD,  }\item[{real(kind=dp), intent(out)}]{d\+Hdot\+\_\+dH }\end{DoxyParamCaption})}
+
+
+
+Compute the Jacobian given by the derivatives of the condensation rates (Ddot and Hdot) with respect to the input variables (D and H). 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em n\+\_\+eqn} & Length of state vector.\\
+\hline
+\mbox{\tt in}  & {\em time} & Current time (s).\\
+\hline
+\mbox{\tt in}  & {\em state\+\_\+p} & Pointer to current state vector.\\
+\hline
+\mbox{\tt out}  & {\em dddot\+\_\+dd} & Derivative of Ddot with respect to D.\\
+\hline
+\mbox{\tt out}  & {\em dddot\+\_\+dh} & Derivative of Ddot with respect to H.\\
+\hline
+\mbox{\tt out}  & {\em dhdot\+\_\+dd} & Derivative of Hdot with respect to D.\\
+\hline
+\mbox{\tt out}  & {\em dhdot\+\_\+dh} & Derivative of Hdot with respect to H. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 568 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_a08898f52fc6ece673be5cf7afec66e44}\label{namespacepmc__condense_a08898f52fc6ece673be5cf7afec66e44}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!condense\+\_\+jac\+\_\+solve\+\_\+f@{condense\+\_\+jac\+\_\+solve\+\_\+f}}
+\index{condense\+\_\+jac\+\_\+solve\+\_\+f@{condense\+\_\+jac\+\_\+solve\+\_\+f}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{condense\+\_\+jac\+\_\+solve\+\_\+f()}{condense\_jac\_solve\_f()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+condense\+::condense\+\_\+jac\+\_\+solve\+\_\+f (\begin{DoxyParamCaption}\item[{integer(kind=c\+\_\+int), intent(in), value}]{n\+\_\+eqn,  }\item[{real(kind=c\+\_\+double), intent(in), value}]{time,  }\item[{type(c\+\_\+ptr), intent(in), value}]{state\+\_\+p,  }\item[{type(c\+\_\+ptr), intent(in), value}]{state\+\_\+dot\+\_\+p,  }\item[{type(c\+\_\+ptr), intent(in), value}]{rhs\+\_\+p,  }\item[{real(kind=c\+\_\+double), intent(in), value}]{gamma }\end{DoxyParamCaption})}
+
+
+
+Solve the system $ Pz = r $ where $ P = I - \gamma J $ and $ J = \partial f / \partial y $. The solution is returned in the $ r $ vector. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em n\+\_\+eqn} & Length of state vector.\\
+\hline
+\mbox{\tt in}  & {\em time} & Current time (s).\\
+\hline
+\mbox{\tt in}  & {\em state\+\_\+p} & Pointer to current state vector.\\
+\hline
+\mbox{\tt in}  & {\em state\+\_\+dot\+\_\+p} & Pointer to current state derivative vector.\\
+\hline
+\mbox{\tt in}  & {\em rhs\+\_\+p} & Pointer to right-\/hand-\/side vector.\\
+\hline
+\mbox{\tt in}  & {\em gamma} & Value of {\ttfamily gamma} scalar parameter. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 627 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_a45e6b6e779962d0671313395a22a3ef6}\label{namespacepmc__condense_a45e6b6e779962d0671313395a22a3ef6}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!condense\+\_\+particles@{condense\+\_\+particles}}
+\index{condense\+\_\+particles@{condense\+\_\+particles}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{condense\+\_\+particles()}{condense\_particles()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+condense\+::condense\+\_\+particles (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state\+\_\+initial,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(inout)}]{env\+\_\+state\+\_\+final,  }\item[{real(kind=dp), intent(in)}]{del\+\_\+t }\end{DoxyParamCaption})}
+
+
+
+Do condensation to all the particles for a given time interval, including updating the environment to account for the lost water vapor. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state\+\_\+initial} & Environment state at the start of the timestep.\\
+\hline
+\mbox{\tt in,out}  & {\em env\+\_\+state\+\_\+final} & Environment state at the end of the timestep. The rel\+\_\+humid value will be ignored and overwritten with the condensation-\/computed value.\\
+\hline
+\mbox{\tt in}  & {\em del\+\_\+t} & Total time to integrate. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 149 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_a2ec10eca18f9bc6bd906329e1574afef}\label{namespacepmc__condense_a2ec10eca18f9bc6bd906329e1574afef}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!condense\+\_\+rates@{condense\+\_\+rates}}
+\index{condense\+\_\+rates@{condense\+\_\+rates}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{condense\+\_\+rates()}{condense\_rates()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+condense\+::condense\+\_\+rates (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__condense_1_1condense__rates__inputs__t}{condense\+\_\+rates\+\_\+inputs\+\_\+t}}), intent(in)}]{inputs,  }\item[{type(\mbox{\hyperlink{structpmc__condense_1_1condense__rates__outputs__t}{condense\+\_\+rates\+\_\+outputs\+\_\+t}}), intent(out)}]{outputs }\end{DoxyParamCaption})}
+
+
+
+Compute the rate of change of particle diameter and relative humidity for a single particle, together with the derivatives of the rates with respect to the input variables. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em inputs} & Inputs to rates.\\
+\hline
+\mbox{\tt out}  & {\em outputs} & Outputs rates. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 372 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_a2e3c9253c59b92f29d8458f127e3014e}\label{namespacepmc__condense_a2e3c9253c59b92f29d8458f127e3014e}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!condense\+\_\+vf\+\_\+f@{condense\+\_\+vf\+\_\+f}}
+\index{condense\+\_\+vf\+\_\+f@{condense\+\_\+vf\+\_\+f}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{condense\+\_\+vf\+\_\+f()}{condense\_vf\_f()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+condense\+::condense\+\_\+vf\+\_\+f (\begin{DoxyParamCaption}\item[{integer(kind=c\+\_\+int), intent(in), value}]{n\+\_\+eqn,  }\item[{real(kind=c\+\_\+double), intent(in), value}]{time,  }\item[{type(c\+\_\+ptr), intent(in), value}]{state\+\_\+p,  }\item[{type(c\+\_\+ptr), intent(in), value}]{state\+\_\+dot\+\_\+p }\end{DoxyParamCaption})}
+
+
+
+Compute the condensation rates (Ddot and Hdot) at the current value of the state (D and H). 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em n\+\_\+eqn} & Length of state vector.\\
+\hline
+\mbox{\tt in}  & {\em time} & Current time (s).\\
+\hline
+\mbox{\tt in}  & {\em state\+\_\+p} & Pointer to state data.\\
+\hline
+\mbox{\tt in}  & {\em state\+\_\+dot\+\_\+p} & Pointer to state\+\_\+dot data. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 510 of file condense.\+F90.
+
+
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{namespacepmc__condense_ab362439e7fd220994e7da1bd4658d21d}\label{namespacepmc__condense_ab362439e7fd220994e7da1bd4658d21d}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!condense\+\_\+count\+\_\+solve@{condense\+\_\+count\+\_\+solve}}
+\index{condense\+\_\+count\+\_\+solve@{condense\+\_\+count\+\_\+solve}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{condense\+\_\+count\+\_\+solve}{condense\_count\_solve}}
+{\footnotesize\ttfamily integer, save pmc\+\_\+condense\+::condense\+\_\+count\+\_\+solve}
+
+
+
+Internal-\/use variable for counting calls to the Jacobian-\/solving subroutine. 
+
+
+
+Definition at line 138 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_af51c8e3d30352bcf05b09da63797f908}\label{namespacepmc__condense_af51c8e3d30352bcf05b09da63797f908}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!condense\+\_\+count\+\_\+vf@{condense\+\_\+count\+\_\+vf}}
+\index{condense\+\_\+count\+\_\+vf@{condense\+\_\+count\+\_\+vf}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{condense\+\_\+count\+\_\+vf}{condense\_count\_vf}}
+{\footnotesize\ttfamily integer, save pmc\+\_\+condense\+::condense\+\_\+count\+\_\+vf}
+
+
+
+Internal-\/use variable for counting calls to the vector field subroutine. 
+
+
+
+Definition at line 135 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_ab969e806479179fa28b147414b3677a1}\label{namespacepmc__condense_ab969e806479179fa28b147414b3677a1}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!condense\+\_\+do\+\_\+test\+\_\+counts@{condense\+\_\+do\+\_\+test\+\_\+counts}}
+\index{condense\+\_\+do\+\_\+test\+\_\+counts@{condense\+\_\+do\+\_\+test\+\_\+counts}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{condense\+\_\+do\+\_\+test\+\_\+counts}{condense\_do\_test\_counts}}
+{\footnotesize\ttfamily logical, parameter pmc\+\_\+condense\+::condense\+\_\+do\+\_\+test\+\_\+counts = .false.}
+
+
+
+Whether to print call-\/counts for helper routines during execution (for debugging only). 
+
+
+
+Definition at line 46 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_ac7de3176ecbf47a23e0278ff57fed802}\label{namespacepmc__condense_ac7de3176ecbf47a23e0278ff57fed802}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!condense\+\_\+do\+\_\+test\+\_\+jac\+\_\+solve@{condense\+\_\+do\+\_\+test\+\_\+jac\+\_\+solve}}
+\index{condense\+\_\+do\+\_\+test\+\_\+jac\+\_\+solve@{condense\+\_\+do\+\_\+test\+\_\+jac\+\_\+solve}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{condense\+\_\+do\+\_\+test\+\_\+jac\+\_\+solve}{condense\_do\_test\_jac\_solve}}
+{\footnotesize\ttfamily logical, parameter pmc\+\_\+condense\+::condense\+\_\+do\+\_\+test\+\_\+jac\+\_\+solve = .false.}
+
+
+
+Whether to numerically test the Jacobian-\/solve function during execution (for debugging only). 
+
+
+
+Definition at line 43 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_ae50824c600d52bf42b1ba4662d5ca40e}\label{namespacepmc__condense_ae50824c600d52bf42b1ba4662d5ca40e}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!condense\+\_\+saved\+\_\+aero\+\_\+data@{condense\+\_\+saved\+\_\+aero\+\_\+data}}
+\index{condense\+\_\+saved\+\_\+aero\+\_\+data@{condense\+\_\+saved\+\_\+aero\+\_\+data}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{condense\+\_\+saved\+\_\+aero\+\_\+data}{condense\_saved\_aero\_data}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}) pmc\+\_\+condense\+::condense\+\_\+saved\+\_\+aero\+\_\+data}
+
+
+
+Internal-\/use variable for storing the aerosol data during calls to the O\+DE solver. 
+
+
+
+Definition at line 113 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_a30c34390a80570ea680b53c2ab971b50}\label{namespacepmc__condense_a30c34390a80570ea680b53c2ab971b50}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!condense\+\_\+saved\+\_\+d\+\_\+dry@{condense\+\_\+saved\+\_\+d\+\_\+dry}}
+\index{condense\+\_\+saved\+\_\+d\+\_\+dry@{condense\+\_\+saved\+\_\+d\+\_\+dry}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{condense\+\_\+saved\+\_\+d\+\_\+dry}{condense\_saved\_d\_dry}}
+{\footnotesize\ttfamily real(kind=dp), dimension(\+:), allocatable pmc\+\_\+condense\+::condense\+\_\+saved\+\_\+d\+\_\+dry}
+
+
+
+Internal-\/use variable for storing the per-\/particle dry diameters during calls to the O\+DE solver. 
+
+
+
+Definition at line 128 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_af55aca988067bd27f35a3c34e2f5a4cd}\label{namespacepmc__condense_af55aca988067bd27f35a3c34e2f5a4cd}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!condense\+\_\+saved\+\_\+env\+\_\+state\+\_\+initial@{condense\+\_\+saved\+\_\+env\+\_\+state\+\_\+initial}}
+\index{condense\+\_\+saved\+\_\+env\+\_\+state\+\_\+initial@{condense\+\_\+saved\+\_\+env\+\_\+state\+\_\+initial}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{condense\+\_\+saved\+\_\+env\+\_\+state\+\_\+initial}{condense\_saved\_env\_state\_initial}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}) pmc\+\_\+condense\+::condense\+\_\+saved\+\_\+env\+\_\+state\+\_\+initial}
+
+
+
+Internal-\/use variable for storing the initial environment state during calls to the O\+DE solver. 
+
+
+
+Definition at line 116 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_a0829dc0e51b0c9843bfd0e3c36432a19}\label{namespacepmc__condense_a0829dc0e51b0c9843bfd0e3c36432a19}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!condense\+\_\+saved\+\_\+kappa@{condense\+\_\+saved\+\_\+kappa}}
+\index{condense\+\_\+saved\+\_\+kappa@{condense\+\_\+saved\+\_\+kappa}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{condense\+\_\+saved\+\_\+kappa}{condense\_saved\_kappa}}
+{\footnotesize\ttfamily real(kind=dp), dimension(\+:), allocatable pmc\+\_\+condense\+::condense\+\_\+saved\+\_\+kappa}
+
+
+
+Internal-\/use variable for storing the per-\/particle kappa values during calls to the O\+DE solver. 
+
+
+
+Definition at line 125 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_ae5922bfbd484efd47db5593f15d0c0f4}\label{namespacepmc__condense_ae5922bfbd484efd47db5593f15d0c0f4}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!condense\+\_\+saved\+\_\+num\+\_\+conc@{condense\+\_\+saved\+\_\+num\+\_\+conc}}
+\index{condense\+\_\+saved\+\_\+num\+\_\+conc@{condense\+\_\+saved\+\_\+num\+\_\+conc}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{condense\+\_\+saved\+\_\+num\+\_\+conc}{condense\_saved\_num\_conc}}
+{\footnotesize\ttfamily real(kind=dp), dimension(\+:), allocatable pmc\+\_\+condense\+::condense\+\_\+saved\+\_\+num\+\_\+conc}
+
+
+
+Internal-\/use variable for storing the per-\/particle number concentrations during calls to the O\+DE solver. 
+
+
+
+Definition at line 131 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_a5bdbeab5c023573ed2f0a37bfa718f83}\label{namespacepmc__condense_a5bdbeab5c023573ed2f0a37bfa718f83}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!condense\+\_\+saved\+\_\+pdot@{condense\+\_\+saved\+\_\+pdot}}
+\index{condense\+\_\+saved\+\_\+pdot@{condense\+\_\+saved\+\_\+pdot}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{condense\+\_\+saved\+\_\+pdot}{condense\_saved\_pdot}}
+{\footnotesize\ttfamily real(kind=dp) pmc\+\_\+condense\+::condense\+\_\+saved\+\_\+pdot}
+
+
+
+Internal-\/use variable for storing the rate of change of the pressure during calls to the O\+DE solver. 
+
+
+
+Definition at line 122 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_a0a1155d88faa2b061fd371090165aad1}\label{namespacepmc__condense_a0a1155d88faa2b061fd371090165aad1}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!condense\+\_\+saved\+\_\+tdot@{condense\+\_\+saved\+\_\+tdot}}
+\index{condense\+\_\+saved\+\_\+tdot@{condense\+\_\+saved\+\_\+tdot}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{condense\+\_\+saved\+\_\+tdot}{condense\_saved\_tdot}}
+{\footnotesize\ttfamily real(kind=dp) pmc\+\_\+condense\+::condense\+\_\+saved\+\_\+tdot}
+
+
+
+Internal-\/use variable for storing the rate of change of the temperature during calls to the O\+DE solver. 
+
+
+
+Definition at line 119 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_a72475de47c696e1ac0386f8f0881dba3}\label{namespacepmc__condense_a72475de47c696e1ac0386f8f0881dba3}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!pmc\+\_\+condense\+\_\+solver\+\_\+fail@{pmc\+\_\+condense\+\_\+solver\+\_\+fail}}
+\index{pmc\+\_\+condense\+\_\+solver\+\_\+fail@{pmc\+\_\+condense\+\_\+solver\+\_\+fail}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{pmc\+\_\+condense\+\_\+solver\+\_\+fail}{pmc\_condense\_solver\_fail}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+condense\+::pmc\+\_\+condense\+\_\+solver\+\_\+fail = 7}
+
+
+
+Result code indicating failure of the solver. 
+
+
+
+Definition at line 63 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_a27e346e39aa2e4388fb4cdb05009d947}\label{namespacepmc__condense_a27e346e39aa2e4388fb4cdb05009d947}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+abstol@{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+abstol}}
+\index{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+abstol@{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+abstol}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+abstol}{pmc\_condense\_solver\_init\_abstol}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+condense\+::pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+abstol = 2}
+
+
+
+Result code indicating failure to allocate {\ttfamily abstol} vector. 
+
+
+
+Definition at line 53 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_a152d39c4bae310586811b62dad524762}\label{namespacepmc__condense_a152d39c4bae310586811b62dad524762}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+cvode@{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+cvode}}
+\index{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+cvode@{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+cvode}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+cvode}{pmc\_condense\_solver\_init\_cvode}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+condense\+::pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+cvode = 4}
+
+
+
+Result code indicating failure to initialize the solver. 
+
+
+
+Definition at line 57 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_aced2822f651922c373256516609512b5}\label{namespacepmc__condense_aced2822f651922c373256516609512b5}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+cvode\+\_\+mem@{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+cvode\+\_\+mem}}
+\index{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+cvode\+\_\+mem@{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+cvode\+\_\+mem}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+cvode\+\_\+mem}{pmc\_condense\_solver\_init\_cvode\_mem}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+condense\+::pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+cvode\+\_\+mem = 3}
+
+
+
+Result code indicating failure to create the solver. 
+
+
+
+Definition at line 55 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_a361258031530fbffce78f9296be23482}\label{namespacepmc__condense_a361258031530fbffce78f9296be23482}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+y@{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+y}}
+\index{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+y@{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+y}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+y}{pmc\_condense\_solver\_init\_y}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+condense\+::pmc\+\_\+condense\+\_\+solver\+\_\+init\+\_\+y = 1}
+
+
+
+Result code indicating failure to allocate {\ttfamily y} vector. 
+
+
+
+Definition at line 51 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_acf6e894f8461ba22f0e7b8d4b55bdbdb}\label{namespacepmc__condense_acf6e894f8461ba22f0e7b8d4b55bdbdb}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!pmc\+\_\+condense\+\_\+solver\+\_\+set\+\_\+max\+\_\+steps@{pmc\+\_\+condense\+\_\+solver\+\_\+set\+\_\+max\+\_\+steps}}
+\index{pmc\+\_\+condense\+\_\+solver\+\_\+set\+\_\+max\+\_\+steps@{pmc\+\_\+condense\+\_\+solver\+\_\+set\+\_\+max\+\_\+steps}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{pmc\+\_\+condense\+\_\+solver\+\_\+set\+\_\+max\+\_\+steps}{pmc\_condense\_solver\_set\_max\_steps}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+condense\+::pmc\+\_\+condense\+\_\+solver\+\_\+set\+\_\+max\+\_\+steps = 6}
+
+
+
+Result code indicating failure to set maximum steps. 
+
+
+
+Definition at line 61 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_ae609c2a0547a2fc09bb22c5e05eaee80}\label{namespacepmc__condense_ae609c2a0547a2fc09bb22c5e05eaee80}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!pmc\+\_\+condense\+\_\+solver\+\_\+success@{pmc\+\_\+condense\+\_\+solver\+\_\+success}}
+\index{pmc\+\_\+condense\+\_\+solver\+\_\+success@{pmc\+\_\+condense\+\_\+solver\+\_\+success}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{pmc\+\_\+condense\+\_\+solver\+\_\+success}{pmc\_condense\_solver\_success}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+condense\+::pmc\+\_\+condense\+\_\+solver\+\_\+success = 0}
+
+
+
+Result code indicating successful completion. 
+
+
+
+Definition at line 49 of file condense.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__condense_a728628df918109b721d5ac51252ee397}\label{namespacepmc__condense_a728628df918109b721d5ac51252ee397}} 
+\index{pmc\+\_\+condense@{pmc\+\_\+condense}!pmc\+\_\+condense\+\_\+solver\+\_\+svtol@{pmc\+\_\+condense\+\_\+solver\+\_\+svtol}}
+\index{pmc\+\_\+condense\+\_\+solver\+\_\+svtol@{pmc\+\_\+condense\+\_\+solver\+\_\+svtol}!pmc\+\_\+condense@{pmc\+\_\+condense}}
+\subsubsection{\texorpdfstring{pmc\+\_\+condense\+\_\+solver\+\_\+svtol}{pmc\_condense\_solver\_svtol}}
+{\footnotesize\ttfamily integer, parameter pmc\+\_\+condense\+::pmc\+\_\+condense\+\_\+solver\+\_\+svtol = 5}
+
+
+
+Result code indicating failure to set tolerances. 
+
+
+
+Definition at line 59 of file condense.\+F90.
+

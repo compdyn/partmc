@@ -1,0 +1,226 @@
+\hypertarget{namespacepmc__mosaic}{}\section{pmc\+\_\+mosaic Module Reference}
+\label{namespacepmc__mosaic}\index{pmc\+\_\+mosaic@{pmc\+\_\+mosaic}}
+
+
+Interface to the M\+O\+S\+A\+IC aerosol and gas phase chemistry code.  
+
+
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+logical function \mbox{\hyperlink{namespacepmc__mosaic_a22592fd57cef945bbb2ef2e49bc0f05c}{mosaic\+\_\+support}} ()
+\begin{DoxyCompactList}\small\item\em Whether M\+O\+S\+A\+IC support is compiled in. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mosaic_a1cdd76ef5164c35b7fe46b4fe3c2b044}{mosaic\+\_\+init}} (env\+\_\+state, aero\+\_\+data, del\+\_\+t, do\+\_\+optical)
+\begin{DoxyCompactList}\small\item\em Initialize all M\+O\+S\+A\+IC data-\/structures. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mosaic_a0165a7096d2674446d32c4ad0193eca0}{mosaic\+\_\+cleanup}} ()
+\begin{DoxyCompactList}\small\item\em Clean-\/up after running M\+O\+S\+A\+IC, deallocating memory. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mosaic_a2f4a894b5b6a349f83df026675a64940}{mosaic\+\_\+from\+\_\+partmc}} (env\+\_\+state, aero\+\_\+data, aero\+\_\+state, gas\+\_\+data, gas\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Map all data Part\+MC -\/$>$ M\+O\+S\+A\+IC. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mosaic_aa1b93b04307f0290a3ccf15d4453c473}{mosaic\+\_\+to\+\_\+partmc}} (env\+\_\+state, aero\+\_\+data, aero\+\_\+state, gas\+\_\+data, gas\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Map all data M\+O\+S\+A\+IC -\/$>$ Part\+MC. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mosaic_a6a1b2f55bf5d07b18be883ad7163d44d}{mosaic\+\_\+timestep}} (env\+\_\+state, aero\+\_\+data, aero\+\_\+state, gas\+\_\+data, gas\+\_\+state, do\+\_\+optical)
+\begin{DoxyCompactList}\small\item\em Do one timestep with M\+O\+S\+A\+IC. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mosaic_a61a35578a797d028e4b5ee2287400a32}{mosaic\+\_\+aero\+\_\+optical}} (env\+\_\+state, aero\+\_\+data, aero\+\_\+state, gas\+\_\+data, gas\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Compute the optical properties of each aerosol particle. F\+I\+X\+ME\+: currently disabled. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mosaic_ad8eceb54892d3b14dd765db53d260d63}{mosaic\+\_\+aero\+\_\+optical\+\_\+init}} (env\+\_\+state, aero\+\_\+data, aero\+\_\+state, gas\+\_\+data, gas\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Compute the optical properties of each aerosol particle for initial timestep. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Interface to the M\+O\+S\+A\+IC aerosol and gas phase chemistry code. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__mosaic_a61a35578a797d028e4b5ee2287400a32}\label{namespacepmc__mosaic_a61a35578a797d028e4b5ee2287400a32}} 
+\index{pmc\+\_\+mosaic@{pmc\+\_\+mosaic}!mosaic\+\_\+aero\+\_\+optical@{mosaic\+\_\+aero\+\_\+optical}}
+\index{mosaic\+\_\+aero\+\_\+optical@{mosaic\+\_\+aero\+\_\+optical}!pmc\+\_\+mosaic@{pmc\+\_\+mosaic}}
+\subsubsection{\texorpdfstring{mosaic\+\_\+aero\+\_\+optical()}{mosaic\_aero\_optical()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+mosaic\+::mosaic\+\_\+aero\+\_\+optical (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}}), intent(in)}]{gas\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__gas__state_1_1gas__state__t}{gas\+\_\+state\+\_\+t}}), intent(in)}]{gas\+\_\+state }\end{DoxyParamCaption})}
+
+
+
+Compute the optical properties of each aerosol particle. F\+I\+X\+ME\+: currently disabled. 
+
+At the moment we are computing the aerosol optical properties every timestep from withing mosaic\+\_\+timestep. This decision should be re-\/evaluated at some point in the future.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+state} & Gas state. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 432 of file mosaic.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__mosaic_ad8eceb54892d3b14dd765db53d260d63}\label{namespacepmc__mosaic_ad8eceb54892d3b14dd765db53d260d63}} 
+\index{pmc\+\_\+mosaic@{pmc\+\_\+mosaic}!mosaic\+\_\+aero\+\_\+optical\+\_\+init@{mosaic\+\_\+aero\+\_\+optical\+\_\+init}}
+\index{mosaic\+\_\+aero\+\_\+optical\+\_\+init@{mosaic\+\_\+aero\+\_\+optical\+\_\+init}!pmc\+\_\+mosaic@{pmc\+\_\+mosaic}}
+\subsubsection{\texorpdfstring{mosaic\+\_\+aero\+\_\+optical\+\_\+init()}{mosaic\_aero\_optical\_init()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+mosaic\+::mosaic\+\_\+aero\+\_\+optical\+\_\+init (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}}), intent(in)}]{gas\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__gas__state_1_1gas__state__t}{gas\+\_\+state\+\_\+t}}), intent(in)}]{gas\+\_\+state }\end{DoxyParamCaption})}
+
+
+
+Compute the optical properties of each aerosol particle for initial timestep. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+state} & Gas state. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 490 of file mosaic.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__mosaic_a0165a7096d2674446d32c4ad0193eca0}\label{namespacepmc__mosaic_a0165a7096d2674446d32c4ad0193eca0}} 
+\index{pmc\+\_\+mosaic@{pmc\+\_\+mosaic}!mosaic\+\_\+cleanup@{mosaic\+\_\+cleanup}}
+\index{mosaic\+\_\+cleanup@{mosaic\+\_\+cleanup}!pmc\+\_\+mosaic@{pmc\+\_\+mosaic}}
+\subsubsection{\texorpdfstring{mosaic\+\_\+cleanup()}{mosaic\_cleanup()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+mosaic\+::mosaic\+\_\+cleanup (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Clean-\/up after running M\+O\+S\+A\+IC, deallocating memory. 
+
+
+
+Definition at line 130 of file mosaic.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__mosaic_a2f4a894b5b6a349f83df026675a64940}\label{namespacepmc__mosaic_a2f4a894b5b6a349f83df026675a64940}} 
+\index{pmc\+\_\+mosaic@{pmc\+\_\+mosaic}!mosaic\+\_\+from\+\_\+partmc@{mosaic\+\_\+from\+\_\+partmc}}
+\index{mosaic\+\_\+from\+\_\+partmc@{mosaic\+\_\+from\+\_\+partmc}!pmc\+\_\+mosaic@{pmc\+\_\+mosaic}}
+\subsubsection{\texorpdfstring{mosaic\+\_\+from\+\_\+partmc()}{mosaic\_from\_partmc()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+mosaic\+::mosaic\+\_\+from\+\_\+partmc (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(in)}]{aero\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}}), intent(in)}]{gas\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__gas__state_1_1gas__state__t}{gas\+\_\+state\+\_\+t}}), intent(in)}]{gas\+\_\+state }\end{DoxyParamCaption})}
+
+
+
+Map all data Part\+MC -\/$>$ M\+O\+S\+A\+IC. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+state} & Gas state. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 148 of file mosaic.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__mosaic_a1cdd76ef5164c35b7fe46b4fe3c2b044}\label{namespacepmc__mosaic_a1cdd76ef5164c35b7fe46b4fe3c2b044}} 
+\index{pmc\+\_\+mosaic@{pmc\+\_\+mosaic}!mosaic\+\_\+init@{mosaic\+\_\+init}}
+\index{mosaic\+\_\+init@{mosaic\+\_\+init}!pmc\+\_\+mosaic@{pmc\+\_\+mosaic}}
+\subsubsection{\texorpdfstring{mosaic\+\_\+init()}{mosaic\_init()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+mosaic\+::mosaic\+\_\+init (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(inout)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{real(kind=dp), intent(in)}]{del\+\_\+t,  }\item[{logical, intent(in)}]{do\+\_\+optical }\end{DoxyParamCaption})}
+
+
+
+Initialize all M\+O\+S\+A\+IC data-\/structures. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em del\+\_\+t} & Timestep for coagulation.\\
+\hline
+\mbox{\tt in}  & {\em do\+\_\+optical} & Whether to compute optical properties. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 38 of file mosaic.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__mosaic_a22592fd57cef945bbb2ef2e49bc0f05c}\label{namespacepmc__mosaic_a22592fd57cef945bbb2ef2e49bc0f05c}} 
+\index{pmc\+\_\+mosaic@{pmc\+\_\+mosaic}!mosaic\+\_\+support@{mosaic\+\_\+support}}
+\index{mosaic\+\_\+support@{mosaic\+\_\+support}!pmc\+\_\+mosaic@{pmc\+\_\+mosaic}}
+\subsubsection{\texorpdfstring{mosaic\+\_\+support()}{mosaic\_support()}}
+{\footnotesize\ttfamily logical function pmc\+\_\+mosaic\+::mosaic\+\_\+support (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Whether M\+O\+S\+A\+IC support is compiled in. 
+
+
+
+Definition at line 25 of file mosaic.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__mosaic_a6a1b2f55bf5d07b18be883ad7163d44d}\label{namespacepmc__mosaic_a6a1b2f55bf5d07b18be883ad7163d44d}} 
+\index{pmc\+\_\+mosaic@{pmc\+\_\+mosaic}!mosaic\+\_\+timestep@{mosaic\+\_\+timestep}}
+\index{mosaic\+\_\+timestep@{mosaic\+\_\+timestep}!pmc\+\_\+mosaic@{pmc\+\_\+mosaic}}
+\subsubsection{\texorpdfstring{mosaic\+\_\+timestep()}{mosaic\_timestep()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+mosaic\+::mosaic\+\_\+timestep (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(inout)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}}), intent(in)}]{gas\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__gas__state_1_1gas__state__t}{gas\+\_\+state\+\_\+t}}), intent(inout)}]{gas\+\_\+state,  }\item[{logical, intent(in)}]{do\+\_\+optical }\end{DoxyParamCaption})}
+
+
+
+Do one timestep with M\+O\+S\+A\+IC. 
+
+We currently also compute aerosol optical properties within this subroutine. In principle this could be done at data analysis time, rather than inside the timestepper. It\textquotesingle{}s not clear if this really matters, however. Because of this \mbox{\hyperlink{namespacepmc__mosaic_a61a35578a797d028e4b5ee2287400a32}{mosaic\+\_\+aero\+\_\+optical()}} is currently disabled.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data.\\
+\hline
+\mbox{\tt in,out}  & {\em gas\+\_\+state} & Gas state.\\
+\hline
+\mbox{\tt in}  & {\em do\+\_\+optical} & Whether to compute optical properties. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 368 of file mosaic.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__mosaic_aa1b93b04307f0290a3ccf15d4453c473}\label{namespacepmc__mosaic_aa1b93b04307f0290a3ccf15d4453c473}} 
+\index{pmc\+\_\+mosaic@{pmc\+\_\+mosaic}!mosaic\+\_\+to\+\_\+partmc@{mosaic\+\_\+to\+\_\+partmc}}
+\index{mosaic\+\_\+to\+\_\+partmc@{mosaic\+\_\+to\+\_\+partmc}!pmc\+\_\+mosaic@{pmc\+\_\+mosaic}}
+\subsubsection{\texorpdfstring{mosaic\+\_\+to\+\_\+partmc()}{mosaic\_to\_partmc()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+mosaic\+::mosaic\+\_\+to\+\_\+partmc (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(inout)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}}), intent(in)}]{gas\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__gas__state_1_1gas__state__t}{gas\+\_\+state\+\_\+t}}), intent(inout)}]{gas\+\_\+state }\end{DoxyParamCaption})}
+
+
+
+Map all data M\+O\+S\+A\+IC -\/$>$ Part\+MC. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+\mbox{\tt in}  & {\em gas\+\_\+data} & Gas data.\\
+\hline
+\mbox{\tt in,out}  & {\em gas\+\_\+state} & Gas state. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 274 of file mosaic.\+F90.
+

@@ -1,0 +1,44 @@
+\hypertarget{aero__rep__factory_8_f90}{}\section{aero\+\_\+rep\+\_\+factory.\+F90 File Reference}
+\label{aero__rep__factory_8_f90}\index{aero\+\_\+rep\+\_\+factory.\+F90@{aero\+\_\+rep\+\_\+factory.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__aero__rep__factory}{pmc\+\_\+aero\+\_\+rep\+\_\+factory}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__aero__rep__factory_1_1aero__rep__factory__t}{pmc\+\_\+aero\+\_\+rep\+\_\+factory\+::aero\+\_\+rep\+\_\+factory\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Factory type for aerosol representations. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__aero__rep__factory}{pmc\+\_\+aero\+\_\+rep\+\_\+factory}}
+\begin{DoxyCompactList}\small\item\em The \mbox{\hyperlink{structpmc__aero__rep__factory_1_1aero__rep__factory__t}{aero\+\_\+rep\+\_\+factory\+\_\+t}} type and associated subroutines. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+class(aero\+\_\+rep\+\_\+data\+\_\+t) function, pointer \mbox{\hyperlink{namespacepmc__aero__rep__factory_a72db65ee6fcec381e8315f2de1601953}{pmc\+\_\+aero\+\_\+rep\+\_\+factory\+::create}} (this, type\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Create a new aerosol representation by type name. \end{DoxyCompactList}\item 
+class(aero\+\_\+rep\+\_\+data\+\_\+t) function, pointer \mbox{\hyperlink{namespacepmc__aero__rep__factory_a5c9800b3f829b58b00472eaa3622d23c}{pmc\+\_\+aero\+\_\+rep\+\_\+factory\+::load}} (this, json, j\+\_\+obj)
+\begin{DoxyCompactList}\small\item\em Load an aerosol represenation based on its type. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind) function \mbox{\hyperlink{namespacepmc__aero__rep__factory_aac521bd3a37de6b47b812d4f1ceb5bb1}{pmc\+\_\+aero\+\_\+rep\+\_\+factory\+::get\+\_\+type}} (this, aero\+\_\+rep)
+\begin{DoxyCompactList}\small\item\em Get the aerosol reaction type. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind) function \mbox{\hyperlink{namespacepmc__aero__rep__factory_ac1e17208623751a66e657d083e327ebd}{pmc\+\_\+aero\+\_\+rep\+\_\+factory\+::pack\+\_\+size}} (this, aero\+\_\+rep)
+\begin{DoxyCompactList}\small\item\em Determine the size of a binary required to pack an aerosol representation. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__rep__factory_a02df230770bd6e28c72b368d4d824788}{pmc\+\_\+aero\+\_\+rep\+\_\+factory\+::bin\+\_\+pack}} (this, aero\+\_\+rep, buffer, pos)
+\begin{DoxyCompactList}\small\item\em Pack the given value to the buffer, advancing position. \end{DoxyCompactList}\item 
+class(aero\+\_\+rep\+\_\+data\+\_\+t) function, pointer \mbox{\hyperlink{namespacepmc__aero__rep__factory_a21bfc8099556674323743966b31846b2}{pmc\+\_\+aero\+\_\+rep\+\_\+factory\+::bin\+\_\+unpack}} (this, buffer, pos)
+\begin{DoxyCompactList}\small\item\em Unpack the given value to the buffer, advancing position. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer(kind=i\+\_\+kind), parameter \mbox{\hyperlink{namespacepmc__aero__rep__factory_aa1580bb537129ddd255b271666133c84}{pmc\+\_\+aero\+\_\+rep\+\_\+factory\+::aero\+\_\+rep\+\_\+single\+\_\+particle}} = 1
+\begin{DoxyCompactList}\small\item\em Identifiers for aerosol representations -\/ used by binary packing/unpacking functions. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind), parameter \mbox{\hyperlink{namespacepmc__aero__rep__factory_a26fa93012c30cd32b47383811765e08b}{pmc\+\_\+aero\+\_\+rep\+\_\+factory\+::aero\+\_\+rep\+\_\+modal\+\_\+binned\+\_\+mass}} = 2
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__aero__rep__factory}{pmc\+\_\+aero\+\_\+rep\+\_\+factory}} module. 
+

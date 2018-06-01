@@ -1,0 +1,86 @@
+\hypertarget{coagulation__dist_8_f90}{}\section{coagulation\+\_\+dist.\+F90 File Reference}
+\label{coagulation__dist_8_f90}\index{coagulation\+\_\+dist.\+F90@{coagulation\+\_\+dist.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__coagulation__dist}{pmc\+\_\+coagulation\+\_\+dist}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__coagulation__dist_1_1request__t}{pmc\+\_\+coagulation\+\_\+dist\+::request\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em A single outstanding request for a remote particle. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__coagulation__dist}{pmc\+\_\+coagulation\+\_\+dist}}
+\begin{DoxyCompactList}\small\item\em Parallel aerosol particle coagulation with M\+PI. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_afb4f993c6a05a78eac5532dc2eea2fca}{pmc\+\_\+coagulation\+\_\+dist\+::request\+\_\+allocate}} (request)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a3a30ae518446f11900156387e90adc91}{pmc\+\_\+coagulation\+\_\+dist\+::request\+\_\+deallocate}} (request)
+\begin{DoxyCompactList}\small\item\em Deallocate a request object and set it to be invalid. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__coagulation__dist_a2177c5bb512ea9262020b6928f2b5cba}{pmc\+\_\+coagulation\+\_\+dist\+::request\+\_\+is\+\_\+active}} (request)
+\begin{DoxyCompactList}\small\item\em Whether the given reqest object is currectly active. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_ae16e2850c2b268d077e91fac1f254660}{pmc\+\_\+coagulation\+\_\+dist\+::mc\+\_\+coag\+\_\+dist}} (coag\+\_\+kernel\+\_\+type, env\+\_\+state, aero\+\_\+data, aero\+\_\+state, del\+\_\+t, tot\+\_\+n\+\_\+samp, tot\+\_\+n\+\_\+coag)
+\begin{DoxyCompactList}\small\item\em Do coagulation for time del\+\_\+t. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_aa22e4e811fa31c5cd6049b4f216ac512}{pmc\+\_\+coagulation\+\_\+dist\+::coag\+\_\+dist\+\_\+recv}} (requests, env\+\_\+state, aero\+\_\+weight\+\_\+total, aero\+\_\+data, aero\+\_\+state, accept\+\_\+factors, coag\+\_\+kernel\+\_\+type, tot\+\_\+n\+\_\+coag, magnitudes, procs\+\_\+done)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_af4c13796261cf2c77fd2209a6d550184}{pmc\+\_\+coagulation\+\_\+dist\+::add\+\_\+coagulation\+\_\+requests}} (aero\+\_\+state, requests, n\+\_\+parts, local\+\_\+bin, remote\+\_\+bin, n\+\_\+samps, samps\+\_\+remaining)
+\item 
+logical function \mbox{\hyperlink{namespacepmc__coagulation__dist_a343ec0694b50e82dc5d833f42c9ed359}{pmc\+\_\+coagulation\+\_\+dist\+::any\+\_\+requests\+\_\+active}} (requests)
+\begin{DoxyCompactList}\small\item\em Returns {\ttfamily }.true. if any of the requests are active, otherwise returns {\ttfamily }.false. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a651e57c3eb431e54cc014e0121d700aa}{pmc\+\_\+coagulation\+\_\+dist\+::find\+\_\+rand\+\_\+remote\+\_\+proc}} (n\+\_\+parts, remote\+\_\+bin, remote\+\_\+proc)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a16eacae36a5a5a01dc3bbfdd96f7bdb3}{pmc\+\_\+coagulation\+\_\+dist\+::update\+\_\+n\+\_\+samps}} (n\+\_\+samps, local\+\_\+bin, remote\+\_\+bin, samps\+\_\+remaining)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a99ffd44c548887bda417e61c67ea0bbc}{pmc\+\_\+coagulation\+\_\+dist\+::send\+\_\+request\+\_\+particle}} (remote\+\_\+proc, remote\+\_\+bin)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_addc40be25e3ef491aa13a10e628afbf9}{pmc\+\_\+coagulation\+\_\+dist\+::recv\+\_\+request\+\_\+particle}} (aero\+\_\+state)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a6fd21d148a797e93278b9ca7347b2040}{pmc\+\_\+coagulation\+\_\+dist\+::send\+\_\+return\+\_\+no\+\_\+particle}} (dest\+\_\+proc, i\+\_\+bin)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a189b1c8e85725b70f1b80f44cdf8a2e1}{pmc\+\_\+coagulation\+\_\+dist\+::recv\+\_\+return\+\_\+no\+\_\+particle}} (requests, aero\+\_\+data, aero\+\_\+state)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_af9f9db875f5df9d3e69ce63accf95d98}{pmc\+\_\+coagulation\+\_\+dist\+::send\+\_\+return\+\_\+req\+\_\+particle}} (aero\+\_\+particle, i\+\_\+bin, dest\+\_\+proc)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a0e6ac760034791004d9e50f77c786ed4}{pmc\+\_\+coagulation\+\_\+dist\+::recv\+\_\+return\+\_\+req\+\_\+particle}} (requests, env\+\_\+state, aero\+\_\+weight\+\_\+total, aero\+\_\+data, aero\+\_\+state, accept\+\_\+factors, coag\+\_\+kernel\+\_\+type, tot\+\_\+n\+\_\+coag, magnitudes)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a2d80a8bdea3206f51071cbd58ac39e50}{pmc\+\_\+coagulation\+\_\+dist\+::send\+\_\+return\+\_\+unreq\+\_\+particle}} (aero\+\_\+particle, dest\+\_\+proc)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a14c2a349dca62ade3455519ee9495562}{pmc\+\_\+coagulation\+\_\+dist\+::recv\+\_\+return\+\_\+unreq\+\_\+particle}} (aero\+\_\+state, aero\+\_\+data)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a1e9943ac016e1a33aea378a2c03475c2}{pmc\+\_\+coagulation\+\_\+dist\+::send\+\_\+done}} (dest\+\_\+proc)
+\begin{DoxyCompactList}\small\item\em Send a message saying that this process is finished with its coagulation. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_aabf7ad0c151fc3f2bd7f9adad6791cc2}{pmc\+\_\+coagulation\+\_\+dist\+::recv\+\_\+done}} (procs\+\_\+done)
+\begin{DoxyCompactList}\small\item\em Receive a done message. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a8a5dfc3b2ce4151e0b4010978fa5afa1}{pmc\+\_\+coagulation\+\_\+dist\+::generate\+\_\+n\+\_\+samps}} (n\+\_\+parts, del\+\_\+t, bin\+\_\+grid, aero\+\_\+weight\+\_\+array, k\+\_\+max, n\+\_\+samps, accept\+\_\+factors)
+\begin{DoxyCompactList}\small\item\em generate the number of samples to do per bin pair. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation__dist_a08afcc602f062f98712051fc31d30527}{pmc\+\_\+coagulation\+\_\+dist\+::coagulate\+\_\+dist}} (aero\+\_\+data, aero\+\_\+state, aero\+\_\+particle\+\_\+1, aero\+\_\+particle\+\_\+2, remote\+\_\+proc, aero\+\_\+weight\+\_\+total, magnitudes, remove\+\_\+1, remove\+\_\+2)
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__coagulation__dist_abb819d699f6444884920ff2d74ec6029}{pmc\+\_\+coagulation\+\_\+dist\+::coag\+\_\+dist\+\_\+outgoing\+\_\+buffer\+\_\+size}} = 1000000
+\begin{DoxyCompactList}\small\item\em Size of the outgoing buffer for {\ttfamily bsend} (bytes). \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__coagulation__dist_ab3e4473a732c373efcf8ab530122cae8}{pmc\+\_\+coagulation\+\_\+dist\+::coag\+\_\+dist\+\_\+max\+\_\+buffer\+\_\+size}} = 10000
+\begin{DoxyCompactList}\small\item\em Size of send and receive buffer for each message (bytes). \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__coagulation__dist_ad7130affac816ec06993cec78d709373}{pmc\+\_\+coagulation\+\_\+dist\+::coag\+\_\+dist\+\_\+max\+\_\+requests}} = 1
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__coagulation__dist_ab6b1e6f6a55e57f278333e999c39e410}{pmc\+\_\+coagulation\+\_\+dist\+::coag\+\_\+dist\+\_\+tag\+\_\+request\+\_\+particle}} = 5321
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__coagulation__dist_abbe8d538b4d2ecf332192cee8127f15d}{pmc\+\_\+coagulation\+\_\+dist\+::coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+req\+\_\+particle}} = 5322
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__coagulation__dist_aae979dd8e66e985362f2063f669f36dc}{pmc\+\_\+coagulation\+\_\+dist\+::coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+unreq\+\_\+particle}} = 5323
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__coagulation__dist_a2d3fbb1c25d95ef5333fa20db3f5eaf0}{pmc\+\_\+coagulation\+\_\+dist\+::coag\+\_\+dist\+\_\+tag\+\_\+return\+\_\+no\+\_\+particle}} = 5324
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__coagulation__dist_ae077b985386ed347d8b4f7791a9cbfcf}{pmc\+\_\+coagulation\+\_\+dist\+::coag\+\_\+dist\+\_\+tag\+\_\+done}} = 5325
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__coagulation__dist}{pmc\+\_\+coagulation\+\_\+dist}} module. 
+

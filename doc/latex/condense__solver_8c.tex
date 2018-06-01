@@ -1,0 +1,391 @@
+\hypertarget{condense__solver_8c}{}\section{condense\+\_\+solver.\+c File Reference}
+\label{condense__solver_8c}\index{condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}}
+
+
+Interface to S\+U\+N\+D\+I\+A\+LS O\+DE solver library for condensation.  
+
+
+Include dependency graph for condense\+\_\+solver.\+c\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{condense__solver_8c__incl}
+\end{center}
+\end{figure}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{condense__solver_8c_a2b6a61ef0a444f81c2b5a26fd3a00533}{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+U\+C\+C\+E\+SS}}~0
+\begin{DoxyCompactList}\small\item\em Result code indicating successful completion. \end{DoxyCompactList}\item 
+\#define \mbox{\hyperlink{condense__solver_8c_a35591e3eef4bb8fa2c687e7c60f36666}{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+Y}}~1
+\begin{DoxyCompactList}\small\item\em Result code indicating failure to allocate {\ttfamily y} vector. \end{DoxyCompactList}\item 
+\#define \mbox{\hyperlink{condense__solver_8c_ae4d1cb1faee371367a49f7f050bd1cc6}{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+A\+B\+S\+T\+OL}}~2
+\begin{DoxyCompactList}\small\item\em Result code indicating failure to allocate {\ttfamily abstol} vector. \end{DoxyCompactList}\item 
+\#define \mbox{\hyperlink{condense__solver_8c_afd5dff4358a87d5e885d1f39a2e12bb4}{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+C\+V\+O\+D\+E\+\_\+\+M\+EM}}~3
+\begin{DoxyCompactList}\small\item\em Result code indicating failure to create the solver. \end{DoxyCompactList}\item 
+\#define \mbox{\hyperlink{condense__solver_8c_a80d3a02f906477f71992a07fd1b8a845}{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+C\+V\+O\+DE}}~4
+\begin{DoxyCompactList}\small\item\em Result code indicating failure to initialize the solver. \end{DoxyCompactList}\item 
+\#define \mbox{\hyperlink{condense__solver_8c_a3738129f0c60c970685c01cf8e41cdc8}{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+V\+T\+OL}}~5
+\begin{DoxyCompactList}\small\item\em Result code indicating failure to set tolerances. \end{DoxyCompactList}\item 
+\#define \mbox{\hyperlink{condense__solver_8c_a56bed7ce7eb912e305247d2be0b0544a}{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+E\+T\+\_\+\+M\+A\+X\+\_\+\+S\+T\+E\+PS}}~6
+\begin{DoxyCompactList}\small\item\em Result code indicating failure to set maximum steps. \end{DoxyCompactList}\item 
+\#define \mbox{\hyperlink{condense__solver_8c_a16ba2dbeec3f08da75f73c9f4eb76e0e}{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+F\+A\+IL}}~7
+\begin{DoxyCompactList}\small\item\em Result code indicating failure of the solver. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+static int \mbox{\hyperlink{condense__solver_8c_a3365b96c6d93e9785fa20f50f7e2b5cc}{condense\+\_\+vf}} (realtype t, N\+\_\+\+Vector y, N\+\_\+\+Vector ydot, void $\ast$user\+\_\+data)
+\item 
+static int \mbox{\hyperlink{condense__solver_8c_a40f0d62933cd217d61673fe2cf0645de}{condense\+\_\+check\+\_\+flag}} (void $\ast$flagvalue, char $\ast$funcname, int opt)
+\begin{DoxyCompactList}\small\item\em Check the return value from a S\+U\+N\+D\+I\+A\+LS call. \end{DoxyCompactList}\item 
+static int \mbox{\hyperlink{condense__solver_8c_a66c6dacc667f714946505baae28ddc27}{condense\+\_\+solver\+\_\+\+Init}} (C\+Vode\+Mem cv\+\_\+mem)
+\begin{DoxyCompactList}\small\item\em Initialization routine for the O\+DE linear equation solver. \end{DoxyCompactList}\item 
+static int \mbox{\hyperlink{condense__solver_8c_afc5466f9b5625dc644263a3444fdba2e}{condense\+\_\+solver\+\_\+\+Setup}} (C\+Vode\+Mem cv\+\_\+mem, int convfail, N\+\_\+\+Vector ypred, N\+\_\+\+Vector fpred, booleantype $\ast$jcur\+Ptr, N\+\_\+\+Vector vtemp1, N\+\_\+\+Vector vtemp2, N\+\_\+\+Vector vtemp3)
+\begin{DoxyCompactList}\small\item\em Setup routine for the O\+DE linear equation solver. \end{DoxyCompactList}\item 
+static int \mbox{\hyperlink{condense__solver_8c_a5eefd9a9c1186cc9a581405c550b7303}{condense\+\_\+solver\+\_\+\+Solve}} (C\+Vode\+Mem cv\+\_\+mem, N\+\_\+\+Vector b, N\+\_\+\+Vector weight, N\+\_\+\+Vector ycur, N\+\_\+\+Vector fcur)
+\item 
+static int \mbox{\hyperlink{condense__solver_8c_a91769e0f8b6f59f569df45a785fdc080}{condense\+\_\+solver\+\_\+\+Free}} (C\+Vode\+Mem cv\+\_\+mem)
+\begin{DoxyCompactList}\small\item\em Finalization routine for the O\+DE linear equation solver. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{condense__solver_8c_a2b18e4f55610de6bcaf2a7eb954cf7aa}{condense\+\_\+solver}} (int neq, double $\ast$x\+\_\+f, double $\ast$abstol\+\_\+f, double reltol\+\_\+f, double t\+\_\+initial\+\_\+f, double t\+\_\+final\+\_\+f)
+\begin{DoxyCompactList}\small\item\em Call the O\+DE solver. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{condense__solver_8c_a521817e2581651c35a8dd250038abbad}{condense\+\_\+vf\+\_\+f}} (int neq, realtype t, double $\ast$y\+\_\+f, double $\ast$y\+\_\+dot)
+\begin{DoxyCompactList}\small\item\em The O\+DE vector field to integrate. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{condense__solver_8c_afe18e8df89061c0a11b28b92cbae1855}{condense\+\_\+jac\+\_\+solve\+\_\+f}} (int neq, double t, double $\ast$ycur\+\_\+f, double $\ast$fcur\+\_\+f, double $\ast$b\+\_\+f, double gamma)
+\begin{DoxyCompactList}\small\item\em Linear solver routine for use by the O\+DE solver. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Interface to S\+U\+N\+D\+I\+A\+LS O\+DE solver library for condensation. 
+
+
+
+\subsection{Macro Definition Documentation}
+\mbox{\Hypertarget{condense__solver_8c_a16ba2dbeec3f08da75f73c9f4eb76e0e}\label{condense__solver_8c_a16ba2dbeec3f08da75f73c9f4eb76e0e}} 
+\index{condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}!P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+F\+A\+IL@{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+F\+A\+IL}}
+\index{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+F\+A\+IL@{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+F\+A\+IL}!condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+F\+A\+IL}{PMC\_CONDENSE\_SOLVER\_FAIL}}
+{\footnotesize\ttfamily \#define P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+F\+A\+IL~7}
+
+
+
+Result code indicating failure of the solver. 
+
+
+
+Definition at line 40 of file condense\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{condense__solver_8c_ae4d1cb1faee371367a49f7f050bd1cc6}\label{condense__solver_8c_ae4d1cb1faee371367a49f7f050bd1cc6}} 
+\index{condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}!P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+A\+B\+S\+T\+OL@{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+A\+B\+S\+T\+OL}}
+\index{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+A\+B\+S\+T\+OL@{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+A\+B\+S\+T\+OL}!condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+A\+B\+S\+T\+OL}{PMC\_CONDENSE\_SOLVER\_INIT\_ABSTOL}}
+{\footnotesize\ttfamily \#define P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+A\+B\+S\+T\+OL~2}
+
+
+
+Result code indicating failure to allocate {\ttfamily abstol} vector. 
+
+
+
+Definition at line 25 of file condense\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{condense__solver_8c_a80d3a02f906477f71992a07fd1b8a845}\label{condense__solver_8c_a80d3a02f906477f71992a07fd1b8a845}} 
+\index{condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}!P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+C\+V\+O\+DE@{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+C\+V\+O\+DE}}
+\index{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+C\+V\+O\+DE@{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+C\+V\+O\+DE}!condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+C\+V\+O\+DE}{PMC\_CONDENSE\_SOLVER\_INIT\_CVODE}}
+{\footnotesize\ttfamily \#define P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+C\+V\+O\+DE~4}
+
+
+
+Result code indicating failure to initialize the solver. 
+
+
+
+Definition at line 31 of file condense\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{condense__solver_8c_afd5dff4358a87d5e885d1f39a2e12bb4}\label{condense__solver_8c_afd5dff4358a87d5e885d1f39a2e12bb4}} 
+\index{condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}!P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+C\+V\+O\+D\+E\+\_\+\+M\+EM@{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+C\+V\+O\+D\+E\+\_\+\+M\+EM}}
+\index{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+C\+V\+O\+D\+E\+\_\+\+M\+EM@{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+C\+V\+O\+D\+E\+\_\+\+M\+EM}!condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+C\+V\+O\+D\+E\+\_\+\+M\+EM}{PMC\_CONDENSE\_SOLVER\_INIT\_CVODE\_MEM}}
+{\footnotesize\ttfamily \#define P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+\+C\+V\+O\+D\+E\+\_\+\+M\+EM~3}
+
+
+
+Result code indicating failure to create the solver. 
+
+
+
+Definition at line 28 of file condense\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{condense__solver_8c_a35591e3eef4bb8fa2c687e7c60f36666}\label{condense__solver_8c_a35591e3eef4bb8fa2c687e7c60f36666}} 
+\index{condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}!P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+Y@{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+Y}}
+\index{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+Y@{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+Y}!condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+Y}{PMC\_CONDENSE\_SOLVER\_INIT\_Y}}
+{\footnotesize\ttfamily \#define P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+I\+N\+I\+T\+\_\+Y~1}
+
+
+
+Result code indicating failure to allocate {\ttfamily y} vector. 
+
+
+
+Definition at line 22 of file condense\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{condense__solver_8c_a56bed7ce7eb912e305247d2be0b0544a}\label{condense__solver_8c_a56bed7ce7eb912e305247d2be0b0544a}} 
+\index{condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}!P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+E\+T\+\_\+\+M\+A\+X\+\_\+\+S\+T\+E\+PS@{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+E\+T\+\_\+\+M\+A\+X\+\_\+\+S\+T\+E\+PS}}
+\index{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+E\+T\+\_\+\+M\+A\+X\+\_\+\+S\+T\+E\+PS@{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+E\+T\+\_\+\+M\+A\+X\+\_\+\+S\+T\+E\+PS}!condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+E\+T\+\_\+\+M\+A\+X\+\_\+\+S\+T\+E\+PS}{PMC\_CONDENSE\_SOLVER\_SET\_MAX\_STEPS}}
+{\footnotesize\ttfamily \#define P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+E\+T\+\_\+\+M\+A\+X\+\_\+\+S\+T\+E\+PS~6}
+
+
+
+Result code indicating failure to set maximum steps. 
+
+
+
+Definition at line 37 of file condense\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{condense__solver_8c_a2b6a61ef0a444f81c2b5a26fd3a00533}\label{condense__solver_8c_a2b6a61ef0a444f81c2b5a26fd3a00533}} 
+\index{condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}!P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+U\+C\+C\+E\+SS@{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+U\+C\+C\+E\+SS}}
+\index{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+U\+C\+C\+E\+SS@{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+U\+C\+C\+E\+SS}!condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+U\+C\+C\+E\+SS}{PMC\_CONDENSE\_SOLVER\_SUCCESS}}
+{\footnotesize\ttfamily \#define P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+U\+C\+C\+E\+SS~0}
+
+
+
+Result code indicating successful completion. 
+
+
+
+Definition at line 19 of file condense\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{condense__solver_8c_a3738129f0c60c970685c01cf8e41cdc8}\label{condense__solver_8c_a3738129f0c60c970685c01cf8e41cdc8}} 
+\index{condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}!P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+V\+T\+OL@{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+V\+T\+OL}}
+\index{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+V\+T\+OL@{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+V\+T\+OL}!condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+V\+T\+OL}{PMC\_CONDENSE\_SOLVER\_SVTOL}}
+{\footnotesize\ttfamily \#define P\+M\+C\+\_\+\+C\+O\+N\+D\+E\+N\+S\+E\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+V\+T\+OL~5}
+
+
+
+Result code indicating failure to set tolerances. 
+
+
+
+Definition at line 34 of file condense\+\_\+solver.\+c.
+
+
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{condense__solver_8c_a40f0d62933cd217d61673fe2cf0645de}\label{condense__solver_8c_a40f0d62933cd217d61673fe2cf0645de}} 
+\index{condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}!condense\+\_\+check\+\_\+flag@{condense\+\_\+check\+\_\+flag}}
+\index{condense\+\_\+check\+\_\+flag@{condense\+\_\+check\+\_\+flag}!condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{condense\+\_\+check\+\_\+flag()}{condense\_check\_flag()}}
+{\footnotesize\ttfamily static int condense\+\_\+check\+\_\+flag (\begin{DoxyParamCaption}\item[{void $\ast$}]{flagvalue,  }\item[{char $\ast$}]{funcname,  }\item[{int}]{opt }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Check the return value from a S\+U\+N\+D\+I\+A\+LS call. 
+
+
+\begin{DoxyItemize}
+\item {\ttfamily opt == 0} means S\+U\+N\+D\+I\+A\+LS function allocates memory so check if {\ttfamily flagvalue} is not a {\ttfamily N\+U\+LL} pointer.
+\item {\ttfamily opt == 1} means S\+U\+N\+D\+I\+A\+LS function returns a flag so check if the {\ttfamily int} pointed to by {\ttfamily flagvalue} has {\ttfamily flag $>$= 0}.
+\item {\ttfamily opt == 2} means function allocates memory so check if {\ttfamily flagvalue} is not a {\ttfamily N\+U\+LL} pointer.
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em flagvalue} & A pointer to check (either for {\ttfamily N\+U\+LL}, or as an {\ttfamily int} pointer giving the flag value). \\
+\hline
+{\em funcname} & A string giving the function name returning this result code. \\
+\hline
+{\em opt} & A flag indicating the type of check to perform. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A result code (0 is success). 
+\end{DoxyReturn}
+
+
+Definition at line 219 of file condense\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{condense__solver_8c_afe18e8df89061c0a11b28b92cbae1855}\label{condense__solver_8c_afe18e8df89061c0a11b28b92cbae1855}} 
+\index{condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}!condense\+\_\+jac\+\_\+solve\+\_\+f@{condense\+\_\+jac\+\_\+solve\+\_\+f}}
+\index{condense\+\_\+jac\+\_\+solve\+\_\+f@{condense\+\_\+jac\+\_\+solve\+\_\+f}!condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{condense\+\_\+jac\+\_\+solve\+\_\+f()}{condense\_jac\_solve\_f()}}
+{\footnotesize\ttfamily void condense\+\_\+jac\+\_\+solve\+\_\+f (\begin{DoxyParamCaption}\item[{int}]{neq,  }\item[{double}]{t,  }\item[{double $\ast$}]{ycur\+\_\+f,  }\item[{double $\ast$}]{fcur\+\_\+f,  }\item[{double $\ast$}]{b\+\_\+f,  }\item[{double}]{gamma }\end{DoxyParamCaption})}
+
+
+
+Linear solver routine for use by the O\+DE solver. 
+
+Should solve the system $(I - \gamma J) x = b$, where $J$ is the current vector field Jacobian, $\gamma$ is a given scalar, and $b$ is a given vector.
+
+
+\begin{DoxyParams}{Parameters}
+{\em cv\+\_\+mem} & The {\ttfamily C\+V\+O\+DE} solver parameter structure. \\
+\hline
+{\em b} & The right-\/hand-\/side of the linear system. \\
+\hline
+{\em weight} & \\
+\hline
+{\em ycur} & The current state vector. \\
+\hline
+{\em fcur} & The current vector field vector. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A result code (0 is success). 
+\end{DoxyReturn}
+\mbox{\Hypertarget{condense__solver_8c_a2b18e4f55610de6bcaf2a7eb954cf7aa}\label{condense__solver_8c_a2b18e4f55610de6bcaf2a7eb954cf7aa}} 
+\index{condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}!condense\+\_\+solver@{condense\+\_\+solver}}
+\index{condense\+\_\+solver@{condense\+\_\+solver}!condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{condense\+\_\+solver()}{condense\_solver()}}
+{\footnotesize\ttfamily int condense\+\_\+solver (\begin{DoxyParamCaption}\item[{int}]{neq,  }\item[{double $\ast$}]{x\+\_\+f,  }\item[{double $\ast$}]{abstol\+\_\+f,  }\item[{double}]{reltol\+\_\+f,  }\item[{double}]{t\+\_\+initial\+\_\+f,  }\item[{double}]{t\+\_\+final\+\_\+f }\end{DoxyParamCaption})}
+
+
+
+Call the O\+DE solver. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em neq} & The number of equations. \\
+\hline
+{\em x\+\_\+f} & A pointer to a vector of {\ttfamily neq} variables, giving the initial state vector on entry and the final state vector on exit. \\
+\hline
+{\em abstol\+\_\+f} & A pointer to a vector of {\ttfamily neq} variables, giving the absolute error tolerance for the corresponding state vector component. \\
+\hline
+{\em reltol\+\_\+f} & The scalar relative tolerance. \\
+\hline
+{\em t\+\_\+initial\+\_\+f} & The initial time (s). \\
+\hline
+{\em t\+\_\+final\+\_\+f} & The final time (s). \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A result code (0 is success). 
+\end{DoxyReturn}
+
+
+Definition at line 73 of file condense\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{condense__solver_8c_a91769e0f8b6f59f569df45a785fdc080}\label{condense__solver_8c_a91769e0f8b6f59f569df45a785fdc080}} 
+\index{condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}!condense\+\_\+solver\+\_\+\+Free@{condense\+\_\+solver\+\_\+\+Free}}
+\index{condense\+\_\+solver\+\_\+\+Free@{condense\+\_\+solver\+\_\+\+Free}!condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{condense\+\_\+solver\+\_\+\+Free()}{condense\_solver\_Free()}}
+{\footnotesize\ttfamily static int condense\+\_\+solver\+\_\+\+Free (\begin{DoxyParamCaption}\item[{C\+Vode\+Mem}]{cv\+\_\+mem }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Finalization routine for the O\+DE linear equation solver. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em cv\+\_\+mem} & The {\ttfamily C\+V\+O\+DE} solver parameter structure. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 330 of file condense\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{condense__solver_8c_a66c6dacc667f714946505baae28ddc27}\label{condense__solver_8c_a66c6dacc667f714946505baae28ddc27}} 
+\index{condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}!condense\+\_\+solver\+\_\+\+Init@{condense\+\_\+solver\+\_\+\+Init}}
+\index{condense\+\_\+solver\+\_\+\+Init@{condense\+\_\+solver\+\_\+\+Init}!condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{condense\+\_\+solver\+\_\+\+Init()}{condense\_solver\_Init()}}
+{\footnotesize\ttfamily static int condense\+\_\+solver\+\_\+\+Init (\begin{DoxyParamCaption}\item[{C\+Vode\+Mem}]{cv\+\_\+mem }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Initialization routine for the O\+DE linear equation solver. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em cv\+\_\+mem} & The {\ttfamily C\+V\+O\+DE} solver parameter structure. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A result code (0 is success). 
+\end{DoxyReturn}
+
+
+Definition at line 252 of file condense\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{condense__solver_8c_afc5466f9b5625dc644263a3444fdba2e}\label{condense__solver_8c_afc5466f9b5625dc644263a3444fdba2e}} 
+\index{condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}!condense\+\_\+solver\+\_\+\+Setup@{condense\+\_\+solver\+\_\+\+Setup}}
+\index{condense\+\_\+solver\+\_\+\+Setup@{condense\+\_\+solver\+\_\+\+Setup}!condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{condense\+\_\+solver\+\_\+\+Setup()}{condense\_solver\_Setup()}}
+{\footnotesize\ttfamily static int condense\+\_\+solver\+\_\+\+Setup (\begin{DoxyParamCaption}\item[{C\+Vode\+Mem}]{cv\+\_\+mem,  }\item[{int}]{convfail,  }\item[{N\+\_\+\+Vector}]{ypred,  }\item[{N\+\_\+\+Vector}]{fpred,  }\item[{booleantype $\ast$}]{jcur\+Ptr,  }\item[{N\+\_\+\+Vector}]{vtemp1,  }\item[{N\+\_\+\+Vector}]{vtemp2,  }\item[{N\+\_\+\+Vector}]{vtemp3 }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Setup routine for the O\+DE linear equation solver. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em cv\+\_\+mem} & The {\ttfamily C\+V\+O\+DE} solver parameter structure. \\
+\hline
+{\em convfail} & \\
+\hline
+{\em ypred} & \\
+\hline
+{\em fpred} & \\
+\hline
+{\em jcur\+Ptr} & \\
+\hline
+{\em vtemp1} & \\
+\hline
+{\em vtemp2} & \\
+\hline
+{\em vtemp3} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A result code (0 is success). 
+\end{DoxyReturn}
+
+
+Definition at line 269 of file condense\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{condense__solver_8c_a5eefd9a9c1186cc9a581405c550b7303}\label{condense__solver_8c_a5eefd9a9c1186cc9a581405c550b7303}} 
+\index{condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}!condense\+\_\+solver\+\_\+\+Solve@{condense\+\_\+solver\+\_\+\+Solve}}
+\index{condense\+\_\+solver\+\_\+\+Solve@{condense\+\_\+solver\+\_\+\+Solve}!condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{condense\+\_\+solver\+\_\+\+Solve()}{condense\_solver\_Solve()}}
+{\footnotesize\ttfamily static int condense\+\_\+solver\+\_\+\+Solve (\begin{DoxyParamCaption}\item[{C\+Vode\+Mem}]{cv\+\_\+mem,  }\item[{N\+\_\+\+Vector}]{b,  }\item[{N\+\_\+\+Vector}]{weight,  }\item[{N\+\_\+\+Vector}]{ycur,  }\item[{N\+\_\+\+Vector}]{fcur }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Definition at line 290 of file condense\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{condense__solver_8c_a3365b96c6d93e9785fa20f50f7e2b5cc}\label{condense__solver_8c_a3365b96c6d93e9785fa20f50f7e2b5cc}} 
+\index{condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}!condense\+\_\+vf@{condense\+\_\+vf}}
+\index{condense\+\_\+vf@{condense\+\_\+vf}!condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{condense\+\_\+vf()}{condense\_vf()}}
+{\footnotesize\ttfamily static int condense\+\_\+vf (\begin{DoxyParamCaption}\item[{realtype}]{t,  }\item[{N\+\_\+\+Vector}]{y,  }\item[{N\+\_\+\+Vector}]{ydot,  }\item[{void $\ast$}]{user\+\_\+data }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Definition at line 174 of file condense\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{condense__solver_8c_a521817e2581651c35a8dd250038abbad}\label{condense__solver_8c_a521817e2581651c35a8dd250038abbad}} 
+\index{condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}!condense\+\_\+vf\+\_\+f@{condense\+\_\+vf\+\_\+f}}
+\index{condense\+\_\+vf\+\_\+f@{condense\+\_\+vf\+\_\+f}!condense\+\_\+solver.\+c@{condense\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{condense\+\_\+vf\+\_\+f()}{condense\_vf\_f()}}
+{\footnotesize\ttfamily void condense\+\_\+vf\+\_\+f (\begin{DoxyParamCaption}\item[{int}]{neq,  }\item[{realtype}]{t,  }\item[{double $\ast$}]{y\+\_\+f,  }\item[{double $\ast$}]{y\+\_\+dot }\end{DoxyParamCaption})}
+
+
+
+The O\+DE vector field to integrate. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em t} & The current time (s). \\
+\hline
+{\em y} & The state vector. \\
+\hline
+{\em ydot} & The rate of change of the state vector. \\
+\hline
+{\em user\+\_\+data} & A pointer to user-\/provided data. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A result code (0 is success). 
+\end{DoxyReturn}

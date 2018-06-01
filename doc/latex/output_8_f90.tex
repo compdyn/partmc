@@ -1,0 +1,57 @@
+\hypertarget{output_8_f90}{}\section{output.\+F90 File Reference}
+\label{output_8_f90}\index{output.\+F90@{output.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__output}{pmc\+\_\+output}} module.  
+
+
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__output}{pmc\+\_\+output}}
+\begin{DoxyCompactList}\small\item\em Write data in Net\+C\+DF format. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__output_a3450534dae32c9b056de1292c80e0472}{pmc\+\_\+output\+::output\+\_\+state}} (prefix, output\+\_\+type, aero\+\_\+data, aero\+\_\+state, gas\+\_\+data, gas\+\_\+state, env\+\_\+state, index, time, del\+\_\+t, i\+\_\+repeat, record\+\_\+removals, record\+\_\+optical, uuid)
+\begin{DoxyCompactList}\small\item\em Write the current state. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__output_a28f96c3135783c6d5357fb82bbc77b3e}{pmc\+\_\+output\+::make\+\_\+filename}} (filename, prefix, suffix, index, i\+\_\+repeat, write\+\_\+rank, write\+\_\+n\+\_\+proc)
+\begin{DoxyCompactList}\small\item\em Make a filename from a given prefix and other information. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__output_a3ca0a8e4963dc8daf105db36fedda4ea}{pmc\+\_\+output\+::write\+\_\+time}} (\mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, time, del\+\_\+t, index)
+\begin{DoxyCompactList}\small\item\em Helper routine to write time variables. Do not call directly. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__output_a103f78373256be1b8718a1da9d46da8d}{pmc\+\_\+output\+::send\+\_\+output\+\_\+state\+\_\+central}} (aero\+\_\+state, gas\+\_\+state, env\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Send the state for the \char`\"{}central\char`\"{} output method to the root process. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__output_a500e8f765493908b09510fcf8b497e3e}{pmc\+\_\+output\+::recv\+\_\+output\+\_\+state\+\_\+central}} (prefix, aero\+\_\+data, gas\+\_\+data, index, time, del\+\_\+t, i\+\_\+repeat, record\+\_\+removals, record\+\_\+optical, uuid, remote\+\_\+proc)
+\begin{DoxyCompactList}\small\item\em Receive the state for the \char`\"{}central\char`\"{} output method on the root process. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__output_a2ff47cdec429fe8017c81142579dbf01}{pmc\+\_\+output\+::input\+\_\+state}} (filename, index, time, del\+\_\+t, i\+\_\+repeat, uuid, aero\+\_\+data, aero\+\_\+state, gas\+\_\+data, gas\+\_\+state, env\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Read the current state. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__output_ae4a4e34f6d1c462b463d453659adc2c6}{pmc\+\_\+output\+::input\+\_\+filename\+\_\+list}} (prefix, filename\+\_\+list)
+\begin{DoxyCompactList}\small\item\em Find all Net\+C\+DF (.nc) filenames that match the given prefix. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__output_ac7e633e29c4be7b105c968977e1ea3eb}{pmc\+\_\+output\+::input\+\_\+n\+\_\+files}} (prefix, n\+\_\+repeat, n\+\_\+index)
+\begin{DoxyCompactList}\small\item\em Find the number of repeats and indices for the given prefix. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__output_aaeb4ae95909c840a46222d7a1183014c}{pmc\+\_\+output\+::output\+\_\+sectional}} (prefix, bin\+\_\+grid, aero\+\_\+data, aero\+\_\+binned, gas\+\_\+data, gas\+\_\+state, env\+\_\+state, index, time, del\+\_\+t, uuid)
+\begin{DoxyCompactList}\small\item\em Write the current sectional data. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__output_aa408179ae00883a023ad1087057b01ef}{pmc\+\_\+output\+::input\+\_\+sectional}} (filename, index, time, del\+\_\+t, uuid, bin\+\_\+grid, aero\+\_\+data, aero\+\_\+binned, gas\+\_\+data, gas\+\_\+state, env\+\_\+state)
+\begin{DoxyCompactList}\small\item\em Input sectional data. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+character(len=100), parameter \mbox{\hyperlink{namespacepmc__output_a5e58f12b9a77a18071fb7de24524848f}{pmc\+\_\+output\+::partmc\+\_\+version}} = \char`\"{}2.\+4.\+0\char`\"{}
+\begin{DoxyCompactList}\small\item\em Part\+MC verson number. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__output_a3802b8c5d6df146ecc2dd6d5094b122f}{pmc\+\_\+output\+::output\+\_\+type\+\_\+invalid}} = 0
+\begin{DoxyCompactList}\small\item\em Type code for undefined or invalid output. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__output_aab24776fdca2884a7d5886a3f772fe4d}{pmc\+\_\+output\+::output\+\_\+type\+\_\+central}} = 1
+\begin{DoxyCompactList}\small\item\em Type code for centralized output (one file per process, all written by process 0). \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__output_a83a7b3e4fe2b85b24c022d230fa0d012}{pmc\+\_\+output\+::output\+\_\+type\+\_\+dist}} = 2
+\begin{DoxyCompactList}\small\item\em Type code for distributed output (one file per process, written by each process). \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__output_af747821e7522d6b0c5217faa79fc1b01}{pmc\+\_\+output\+::output\+\_\+type\+\_\+single}} = 3
+\begin{DoxyCompactList}\small\item\em Type code for single output (one file for all processes, written by process 0). \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__output_af6ce65b9d2ef20e03fc0ed4a4b478a44}{pmc\+\_\+output\+::tag\+\_\+output\+\_\+state\+\_\+central}} = 4341
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable only. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__output_a7385761091e132dc082a72fa05a83180}{pmc\+\_\+output\+::tag\+\_\+output\+\_\+state\+\_\+single}} = 4342
+\begin{DoxyCompactList}\small\item\em Internal-\/use variable only. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__output}{pmc\+\_\+output}} module. 
+

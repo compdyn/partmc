@@ -1,0 +1,247 @@
+\hypertarget{sub__model__solver_8c}{}\section{sub\+\_\+model\+\_\+solver.\+c File Reference}
+\label{sub__model__solver_8c}\index{sub\+\_\+model\+\_\+solver.\+c@{sub\+\_\+model\+\_\+solver.\+c}}
+
+
+Sub model solver functions.  
+
+
+Include dependency graph for sub\+\_\+model\+\_\+solver.\+c\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{sub__model__solver_8c__incl}
+\end{center}
+\end{figure}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{sub__model__solver_8c_abe344a8755ba09d26ffa38022aea4530}{S\+U\+B\+\_\+\+M\+O\+D\+E\+L\+\_\+\+U\+N\+I\+F\+AC}}~1
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \mbox{\hyperlink{sub__model__solver_8c_a579dbfacc9fc6c518d18902da0abb5e2}{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+id\+\_\+sd}} (void $\ast$solver\+\_\+data, int sub\+\_\+model\+\_\+type, void $\ast$identifiers)
+\begin{DoxyCompactList}\small\item\em Get a pointer to a calcualted sub model parameter. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{sub__model__solver_8c_afee3358537c11f99510cd273061a6a46}{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+id}} (\mbox{\hyperlink{struct_model_data}{Model\+Data}} $\ast$model\+\_\+data, int type, void $\ast$identifiers)
+\begin{DoxyCompactList}\small\item\em Get a pointer to a calcualted sub model parameter. \end{DoxyCompactList}\item 
+double \mbox{\hyperlink{sub__model__solver_8c_a208a61e6e7f4c3b561866fad90fea0fe}{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+value\+\_\+sd}} (void $\ast$solver\+\_\+data, int parameter\+\_\+id)
+\begin{DoxyCompactList}\small\item\em Return a parameter by its index in the sub model data block. \end{DoxyCompactList}\item 
+realtype \mbox{\hyperlink{sub__model__solver_8c_a0fd58c1249135120b69742aa3349a4a4}{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+value}} (\mbox{\hyperlink{struct_model_data}{Model\+Data}} $\ast$model\+\_\+data, int parameter\+\_\+id)
+\begin{DoxyCompactList}\small\item\em Return a parameter by its index in the sub model data block. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{sub__model__solver_8c_af1ebcdce5d7d7728fbb7f62035d823d8}{sub\+\_\+model\+\_\+update\+\_\+env\+\_\+state}} (\mbox{\hyperlink{struct_model_data}{Model\+Data}} $\ast$model\+\_\+data, double $\ast$env)
+\begin{DoxyCompactList}\small\item\em Update sub model data for a new environmental state. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{sub__model__solver_8c_a7f9027610b25bafcc5b6c5af1344dd65}{sub\+\_\+model\+\_\+calculate}} (\mbox{\hyperlink{struct_model_data}{Model\+Data}} $\ast$model\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Perform the sub model calculations for the current model state. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{sub__model__solver_8c_abb89668f80c8c46e736cadc7558d2f3e}{sub\+\_\+model\+\_\+add\+\_\+condensed\+\_\+data}} (int sub\+\_\+model\+\_\+type, int n\+\_\+int\+\_\+param, int n\+\_\+float\+\_\+param, int $\ast$int\+\_\+param, double $\ast$float\+\_\+param, void $\ast$solver\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Add condensed data to the condensed data block for sub models. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{sub__model__solver_8c_a25a4760c54a6a8f8156c83bf4e081761}{sub\+\_\+model\+\_\+print}} (\mbox{\hyperlink{struct_model_data}{Model\+Data}} $\ast$model\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Print the sub model data. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Sub model solver functions. 
+
+
+
+\subsection{Macro Definition Documentation}
+\mbox{\Hypertarget{sub__model__solver_8c_abe344a8755ba09d26ffa38022aea4530}\label{sub__model__solver_8c_abe344a8755ba09d26ffa38022aea4530}} 
+\index{sub\+\_\+model\+\_\+solver.\+c@{sub\+\_\+model\+\_\+solver.\+c}!S\+U\+B\+\_\+\+M\+O\+D\+E\+L\+\_\+\+U\+N\+I\+F\+AC@{S\+U\+B\+\_\+\+M\+O\+D\+E\+L\+\_\+\+U\+N\+I\+F\+AC}}
+\index{S\+U\+B\+\_\+\+M\+O\+D\+E\+L\+\_\+\+U\+N\+I\+F\+AC@{S\+U\+B\+\_\+\+M\+O\+D\+E\+L\+\_\+\+U\+N\+I\+F\+AC}!sub\+\_\+model\+\_\+solver.\+c@{sub\+\_\+model\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{S\+U\+B\+\_\+\+M\+O\+D\+E\+L\+\_\+\+U\+N\+I\+F\+AC}{SUB\_MODEL\_UNIFAC}}
+{\footnotesize\ttfamily \#define S\+U\+B\+\_\+\+M\+O\+D\+E\+L\+\_\+\+U\+N\+I\+F\+AC~1}
+
+
+
+Definition at line 14 of file sub\+\_\+model\+\_\+solver.\+c.
+
+
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{sub__model__solver_8c_abb89668f80c8c46e736cadc7558d2f3e}\label{sub__model__solver_8c_abb89668f80c8c46e736cadc7558d2f3e}} 
+\index{sub\+\_\+model\+\_\+solver.\+c@{sub\+\_\+model\+\_\+solver.\+c}!sub\+\_\+model\+\_\+add\+\_\+condensed\+\_\+data@{sub\+\_\+model\+\_\+add\+\_\+condensed\+\_\+data}}
+\index{sub\+\_\+model\+\_\+add\+\_\+condensed\+\_\+data@{sub\+\_\+model\+\_\+add\+\_\+condensed\+\_\+data}!sub\+\_\+model\+\_\+solver.\+c@{sub\+\_\+model\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{sub\+\_\+model\+\_\+add\+\_\+condensed\+\_\+data()}{sub\_model\_add\_condensed\_data()}}
+{\footnotesize\ttfamily void sub\+\_\+model\+\_\+add\+\_\+condensed\+\_\+data (\begin{DoxyParamCaption}\item[{int}]{sub\+\_\+model\+\_\+type,  }\item[{int}]{n\+\_\+int\+\_\+param,  }\item[{int}]{n\+\_\+float\+\_\+param,  }\item[{int $\ast$}]{int\+\_\+param,  }\item[{double $\ast$}]{float\+\_\+param,  }\item[{void $\ast$}]{solver\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Add condensed data to the condensed data block for sub models. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em sub\+\_\+model\+\_\+type} & Sub model type \\
+\hline
+{\em n\+\_\+int\+\_\+param} & Number of integer parameters \\
+\hline
+{\em n\+\_\+float\+\_\+param} & Number of floating-\/point parameters \\
+\hline
+{\em int\+\_\+param} & Pointer to integer parameter array \\
+\hline
+{\em float\+\_\+param} & Pointer to floating-\/point parameter array \\
+\hline
+{\em solver\+\_\+data} & Pointer to solver data \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 178 of file sub\+\_\+model\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{sub__model__solver_8c_a7f9027610b25bafcc5b6c5af1344dd65}\label{sub__model__solver_8c_a7f9027610b25bafcc5b6c5af1344dd65}} 
+\index{sub\+\_\+model\+\_\+solver.\+c@{sub\+\_\+model\+\_\+solver.\+c}!sub\+\_\+model\+\_\+calculate@{sub\+\_\+model\+\_\+calculate}}
+\index{sub\+\_\+model\+\_\+calculate@{sub\+\_\+model\+\_\+calculate}!sub\+\_\+model\+\_\+solver.\+c@{sub\+\_\+model\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{sub\+\_\+model\+\_\+calculate()}{sub\_model\_calculate()}}
+{\footnotesize\ttfamily void sub\+\_\+model\+\_\+calculate (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{struct_model_data}{Model\+Data}} $\ast$}]{model\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Perform the sub model calculations for the current model state. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em model\+\_\+data} & Pointer to the model data \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 146 of file sub\+\_\+model\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{sub__model__solver_8c_afee3358537c11f99510cd273061a6a46}\label{sub__model__solver_8c_afee3358537c11f99510cd273061a6a46}} 
+\index{sub\+\_\+model\+\_\+solver.\+c@{sub\+\_\+model\+\_\+solver.\+c}!sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+id@{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+id}}
+\index{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+id@{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+id}!sub\+\_\+model\+\_\+solver.\+c@{sub\+\_\+model\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+id()}{sub\_model\_get\_parameter\_id()}}
+{\footnotesize\ttfamily int sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+id (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{struct_model_data}{Model\+Data}} $\ast$}]{model\+\_\+data,  }\item[{int}]{type,  }\item[{void $\ast$}]{identifiers }\end{DoxyParamCaption})}
+
+
+
+Get a pointer to a calcualted sub model parameter. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em model\+\_\+data} & Pointer to the model data \\
+\hline
+{\em type} & Sub model type \\
+\hline
+{\em identifiers} & Pointer to information needed by the sub-\/model to idenify the parameter requested. These must be in the format used by the sub model \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Index of the requested parameter, or -\/1 if it was not found that can be passed to \mbox{\hyperlink{sub__model__solver_8c_a0fd58c1249135120b69742aa3349a4a4}{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+value()}} during solving 
+\end{DoxyReturn}
+
+
+Definition at line 43 of file sub\+\_\+model\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{sub__model__solver_8c_a579dbfacc9fc6c518d18902da0abb5e2}\label{sub__model__solver_8c_a579dbfacc9fc6c518d18902da0abb5e2}} 
+\index{sub\+\_\+model\+\_\+solver.\+c@{sub\+\_\+model\+\_\+solver.\+c}!sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+id\+\_\+sd@{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+id\+\_\+sd}}
+\index{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+id\+\_\+sd@{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+id\+\_\+sd}!sub\+\_\+model\+\_\+solver.\+c@{sub\+\_\+model\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+id\+\_\+sd()}{sub\_model\_get\_parameter\_id\_sd()}}
+{\footnotesize\ttfamily int sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+id\+\_\+sd (\begin{DoxyParamCaption}\item[{void $\ast$}]{solver\+\_\+data,  }\item[{int}]{sub\+\_\+model\+\_\+type,  }\item[{void $\ast$}]{identifiers }\end{DoxyParamCaption})}
+
+
+
+Get a pointer to a calcualted sub model parameter. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em solver\+\_\+data} & Pointer to the solver data \\
+\hline
+{\em sub\+\_\+model\+\_\+type} & Sub model type \\
+\hline
+{\em identifiers} & Pointer to information needed by the sub-\/model to idenify the parameter requested. These must be in the format used by the sub model \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Index of the requested parameter, or -\/1 if it was not found that can be passed to \mbox{\hyperlink{sub__model__solver_8c_a0fd58c1249135120b69742aa3349a4a4}{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+value()}} during solving 
+\end{DoxyReturn}
+
+
+Definition at line 27 of file sub\+\_\+model\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{sub__model__solver_8c_a0fd58c1249135120b69742aa3349a4a4}\label{sub__model__solver_8c_a0fd58c1249135120b69742aa3349a4a4}} 
+\index{sub\+\_\+model\+\_\+solver.\+c@{sub\+\_\+model\+\_\+solver.\+c}!sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+value@{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+value}}
+\index{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+value@{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+value}!sub\+\_\+model\+\_\+solver.\+c@{sub\+\_\+model\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+value()}{sub\_model\_get\_parameter\_value()}}
+{\footnotesize\ttfamily realtype sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+value (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{struct_model_data}{Model\+Data}} $\ast$}]{model\+\_\+data,  }\item[{int}]{parameter\+\_\+id }\end{DoxyParamCaption})}
+
+
+
+Return a parameter by its index in the sub model data block. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em model\+\_\+data} & Pointer to the model data \\
+\hline
+{\em parameter\+\_\+id} & Index of the parameter in the data block \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The parameter value 
+\end{DoxyReturn}
+
+
+Definition at line 109 of file sub\+\_\+model\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{sub__model__solver_8c_a208a61e6e7f4c3b561866fad90fea0fe}\label{sub__model__solver_8c_a208a61e6e7f4c3b561866fad90fea0fe}} 
+\index{sub\+\_\+model\+\_\+solver.\+c@{sub\+\_\+model\+\_\+solver.\+c}!sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+value\+\_\+sd@{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+value\+\_\+sd}}
+\index{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+value\+\_\+sd@{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+value\+\_\+sd}!sub\+\_\+model\+\_\+solver.\+c@{sub\+\_\+model\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+value\+\_\+sd()}{sub\_model\_get\_parameter\_value\_sd()}}
+{\footnotesize\ttfamily double sub\+\_\+model\+\_\+get\+\_\+parameter\+\_\+value\+\_\+sd (\begin{DoxyParamCaption}\item[{void $\ast$}]{solver\+\_\+data,  }\item[{int}]{parameter\+\_\+id }\end{DoxyParamCaption})}
+
+
+
+Return a parameter by its index in the sub model data block. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em solver\+\_\+data} & Pointer to the solver data \\
+\hline
+{\em parameter\+\_\+id} & Index of the parameter in the data block \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The parameter value 
+\end{DoxyReturn}
+
+
+Definition at line 98 of file sub\+\_\+model\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{sub__model__solver_8c_a25a4760c54a6a8f8156c83bf4e081761}\label{sub__model__solver_8c_a25a4760c54a6a8f8156c83bf4e081761}} 
+\index{sub\+\_\+model\+\_\+solver.\+c@{sub\+\_\+model\+\_\+solver.\+c}!sub\+\_\+model\+\_\+print@{sub\+\_\+model\+\_\+print}}
+\index{sub\+\_\+model\+\_\+print@{sub\+\_\+model\+\_\+print}!sub\+\_\+model\+\_\+solver.\+c@{sub\+\_\+model\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{sub\+\_\+model\+\_\+print()}{sub\_model\_print()}}
+{\footnotesize\ttfamily void sub\+\_\+model\+\_\+print (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{struct_model_data}{Model\+Data}} $\ast$}]{model\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Print the sub model data. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em model\+\_\+data} & Pointer to the model data \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 205 of file sub\+\_\+model\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{sub__model__solver_8c_af1ebcdce5d7d7728fbb7f62035d823d8}\label{sub__model__solver_8c_af1ebcdce5d7d7728fbb7f62035d823d8}} 
+\index{sub\+\_\+model\+\_\+solver.\+c@{sub\+\_\+model\+\_\+solver.\+c}!sub\+\_\+model\+\_\+update\+\_\+env\+\_\+state@{sub\+\_\+model\+\_\+update\+\_\+env\+\_\+state}}
+\index{sub\+\_\+model\+\_\+update\+\_\+env\+\_\+state@{sub\+\_\+model\+\_\+update\+\_\+env\+\_\+state}!sub\+\_\+model\+\_\+solver.\+c@{sub\+\_\+model\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{sub\+\_\+model\+\_\+update\+\_\+env\+\_\+state()}{sub\_model\_update\_env\_state()}}
+{\footnotesize\ttfamily void sub\+\_\+model\+\_\+update\+\_\+env\+\_\+state (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{struct_model_data}{Model\+Data}} $\ast$}]{model\+\_\+data,  }\item[{double $\ast$}]{env }\end{DoxyParamCaption})}
+
+
+
+Update sub model data for a new environmental state. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em model\+\_\+data} & Pointer to the model data \\
+\hline
+{\em env} & Pointer to the environmental state array \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 120 of file sub\+\_\+model\+\_\+solver.\+c.
+

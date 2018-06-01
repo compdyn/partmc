@@ -1,0 +1,688 @@
+\hypertarget{namespacepmc__property}{}\section{pmc\+\_\+property Module Reference}
+\label{namespacepmc__property}\index{pmc\+\_\+property@{pmc\+\_\+property}}
+
+
+The \mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}} structure and associated subroutines.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+interface \mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Property link data. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Property data. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+type(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}) function, pointer \mbox{\hyperlink{namespacepmc__property_ac1691fe0d2b767ab79cb3d3e95e9ddba}{constructor}} ()
+\begin{DoxyCompactList}\small\item\em Constructor for \mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}. \end{DoxyCompactList}\item 
+recursive subroutine \mbox{\hyperlink{namespacepmc__property_ad1b94310c9bc21b189955b8ceec4918a}{load}} (this, json, j\+\_\+obj, as\+\_\+object)
+\begin{DoxyCompactList}\small\item\em Load a property set from input data. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__property_a849e58df17633b82032774d0ee63d3c8}{put\+\_\+string}} (this, \mbox{\hyperlink{namespacepmc__property_a733aef8cbd02fbfed19bde913728678e}{key}}, val)
+\begin{DoxyCompactList}\small\item\em Put an element in the property data set. \end{DoxyCompactList}\item 
+recursive subroutine \mbox{\hyperlink{namespacepmc__property_a40b196afb48588fb6286649ae31b97b6}{put}} (this, \mbox{\hyperlink{namespacepmc__property_a733aef8cbd02fbfed19bde913728678e}{key}}, val)
+\begin{DoxyCompactList}\small\item\em Put an element in the property data set. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__property_a7556849d2f132cb4b347a8840ee8434e}{get\+\_\+key}} (this, \mbox{\hyperlink{namespacepmc__property_a733aef8cbd02fbfed19bde913728678e}{key}})
+\begin{DoxyCompactList}\small\item\em Get the key name of the element currently pointed to by the iterator. Returns true if the iterator points to a key-\/value pair; false indicates the list is empty, the iterator was never reset, or the end of the list has been reached. Array elements return true, but have an empty key name. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__property_addbb73ff876bf02aac23350fab5755fd}{get\+\_\+int}} (this, \mbox{\hyperlink{namespacepmc__property_a733aef8cbd02fbfed19bde913728678e}{key}}, val)
+\begin{DoxyCompactList}\small\item\em Get an integer value. The return value is true if the key-\/value pair was found, and false otherwise. If no key name is specified, the current value of the iterator is returned. In this case true indicates a current key-\/value exists; false indicates the list is empty, the iterator was never reset, or the end of the list has been reached. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__property_a97cfe3c7d68a01b1aa164bb25b306a3b}{get\+\_\+real}} (this, \mbox{\hyperlink{namespacepmc__property_a733aef8cbd02fbfed19bde913728678e}{key}}, val)
+\begin{DoxyCompactList}\small\item\em Get a real value. The return value is true if the key-\/value pair was found, and false otherwise. If no key name is specified, the current value of the iterator is returned. In this case true indicates a current key-\/value exists; false indicates the list is empty, the iterator was never reset, or the end of the list has been reached. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__property_a3c3246efe31f72428ecc4d3c6b72304a}{get\+\_\+logical}} (this, \mbox{\hyperlink{namespacepmc__property_a733aef8cbd02fbfed19bde913728678e}{key}}, val)
+\begin{DoxyCompactList}\small\item\em Get a logical value. The return value is true if the key-\/value pair was found, and false otherwise. If no key name is specified, the current value of the iterator is returned. In this case true indicates a current key-\/value exists; false indicates the list is empty, the iterator was never reset, or the end of the list has been reached. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__property_a24b01526021e6f86df84ced42994bdf8}{get\+\_\+string}} (this, \mbox{\hyperlink{namespacepmc__property_a733aef8cbd02fbfed19bde913728678e}{key}}, val)
+\begin{DoxyCompactList}\small\item\em Get a string value. The return value is true if the key-\/value pair was found, and false otherwise. If no key name is specified, the current value of the iterator is returned. In this case true indicates a current key-\/value exists; false indicates the list is empty, the iterator was never reset, or the end of the list has been reached. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__property_a280146ecd87b8624c170babd262c92d3}{get\+\_\+property\+\_\+t}} (this, \mbox{\hyperlink{namespacepmc__property_a733aef8cbd02fbfed19bde913728678e}{key}}, val)
+\begin{DoxyCompactList}\small\item\em Get a property sub-\/set. The return value is true if the key-\/value pair was found, and false otherwise. If no key name is specified, the current value of the iterator is returned. In this case true indicates a current key-\/value exists; false indicates the list is empty, the iterator was never reset, or the end of the list has been reached. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind) function \mbox{\hyperlink{namespacepmc__property_a51142a5a96c616638b781bc56dd808a9}{get\+\_\+size}} (this)
+\begin{DoxyCompactList}\small\item\em Get the number of elements in the property set. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__property_ace8273ce459baf8c3e805c010f66103c}{iter\+\_\+reset}} (this)
+\begin{DoxyCompactList}\small\item\em Initialize the iterator. It will now point to the first property in the dataset, or be N\+U\+LL in the case of an empty property dataset. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__property_a8bde8118d90903ed86a787823b208eb5}{iter\+\_\+next}} (this)
+\begin{DoxyCompactList}\small\item\em Increment the interator. \end{DoxyCompactList}\item 
+elemental subroutine \mbox{\hyperlink{namespacepmc__property_abaf7837b3c0512087cad8e4e9c673b70}{move}} (this, dest)
+\begin{DoxyCompactList}\small\item\em Move data from one \mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}} instance to another. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__property_a5d890d5f6a8fb12ceb429ae3ebc217fe}{update}} (this, source)
+\begin{DoxyCompactList}\small\item\em Update this \mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}} instance with data from another instance. \end{DoxyCompactList}\item 
+recursive subroutine \mbox{\hyperlink{namespacepmc__property_a3f735ac876b8ed0ecd03cc71febb3b66}{do\+\_\+print}} (this, file\+\_\+unit)
+\begin{DoxyCompactList}\small\item\em Print the contents of a property set. \end{DoxyCompactList}\item 
+elemental subroutine \mbox{\hyperlink{namespacepmc__property_a434f27f2ad31e1c571f3a6cef3473a21}{finalize}} (this)
+\begin{DoxyCompactList}\small\item\em Finalize a \mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}} variable. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}}) function, pointer \mbox{\hyperlink{namespacepmc__property_a97d2c3b608eb3421a39442dc9887284e}{get}} (this, \mbox{\hyperlink{namespacepmc__property_a733aef8cbd02fbfed19bde913728678e}{key}})
+\begin{DoxyCompactList}\small\item\em Find a key-\/value pair by key name. Returns a null pointer if the key name is not found. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}}) function, pointer \mbox{\hyperlink{namespacepmc__property_ae7d2bacf90850cee9df295d660cd7e0d}{link\+\_\+constructor}} (\mbox{\hyperlink{namespacepmc__property_a733aef8cbd02fbfed19bde913728678e}{key}}, val)
+\begin{DoxyCompactList}\small\item\em Constructor for \mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}}. \end{DoxyCompactList}\item 
+character(\+:) function, allocatable \mbox{\hyperlink{namespacepmc__property_a733aef8cbd02fbfed19bde913728678e}{key}} (this)
+\begin{DoxyCompactList}\small\item\em Get the key name of a property. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__property_a5833a104f563f288fe180166bc4939b8}{set\+\_\+value}} (this, val)
+\begin{DoxyCompactList}\small\item\em Set the value of a property key-\/value pair. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind) function \mbox{\hyperlink{namespacepmc__property_a5f75da984050d4621460b7530f4edb11}{value\+\_\+int}} (this)
+\begin{DoxyCompactList}\small\item\em Get the int value of a property. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__property_a0ef35a2bc42efede42972be617c65e27}{value\+\_\+real}} (this)
+\begin{DoxyCompactList}\small\item\em Get the real value of a property. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__property_a404e309153854ccab86eb10318fcbdcf}{value\+\_\+logical}} (this)
+\begin{DoxyCompactList}\small\item\em Get the logical value of a property. \end{DoxyCompactList}\item 
+character(\+:) function, pointer \mbox{\hyperlink{namespacepmc__property_ad5dcdbd8450ec28999baff573c4edada}{value\+\_\+string}} (this)
+\begin{DoxyCompactList}\small\item\em Get the string value of a property. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}) function, pointer \mbox{\hyperlink{namespacepmc__property_a793853ad03f64d47abf8df8d637e53c6}{value\+\_\+property\+\_\+t}} (this)
+\begin{DoxyCompactList}\small\item\em Get the \mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}} value of a property. \end{DoxyCompactList}\item 
+recursive subroutine \mbox{\hyperlink{namespacepmc__property_a4a9f323c08b7fe0a6855eade5aadf018}{link\+\_\+do\+\_\+print}} (this, suffix, file\+\_\+unit)
+\begin{DoxyCompactList}\small\item\em Print the contents of a property key-\/value pair. \end{DoxyCompactList}\item 
+elemental subroutine \mbox{\hyperlink{namespacepmc__property_a505daf27678273c75919399361b41805}{link\+\_\+finalize}} (this)
+\begin{DoxyCompactList}\small\item\em Finalize the \mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}} variable. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}} structure and associated subroutines. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__property_ac1691fe0d2b767ab79cb3d3e95e9ddba}\label{namespacepmc__property_ac1691fe0d2b767ab79cb3d3e95e9ddba}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!constructor@{constructor}}
+\index{constructor@{constructor}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{constructor()}{constructor()}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}) function, pointer pmc\+\_\+property\+::constructor (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Constructor for \mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}. 
+
+\begin{DoxyReturn}{Returns}
+A new property set 
+\end{DoxyReturn}
+
+
+Definition at line 130 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a3f735ac876b8ed0ecd03cc71febb3b66}\label{namespacepmc__property_a3f735ac876b8ed0ecd03cc71febb3b66}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!do\+\_\+print@{do\+\_\+print}}
+\index{do\+\_\+print@{do\+\_\+print}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{do\+\_\+print()}{do\_print()}}
+{\footnotesize\ttfamily recursive subroutine pmc\+\_\+property\+::do\+\_\+print (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(in)}]{this,  }\item[{integer(kind=i\+\_\+kind), intent(in), optional}]{file\+\_\+unit }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Print the contents of a property set. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Property dataset\\
+\hline
+\mbox{\tt in}  & {\em file\+\_\+unit} & File unit for output \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 615 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a434f27f2ad31e1c571f3a6cef3473a21}\label{namespacepmc__property_a434f27f2ad31e1c571f3a6cef3473a21}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!finalize@{finalize}}
+\index{finalize@{finalize}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{finalize()}{finalize()}}
+{\footnotesize\ttfamily elemental subroutine pmc\+\_\+property\+::finalize (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(inout)}]{this }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Finalize a \mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}} variable. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em this} & Property dataset \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 642 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a97d2c3b608eb3421a39442dc9887284e}\label{namespacepmc__property_a97d2c3b608eb3421a39442dc9887284e}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!get@{get}}
+\index{get@{get}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{get()}{get()}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}}) function, pointer pmc\+\_\+property\+::get (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(in)}]{this,  }\item[{character(len=\+:), intent(in), allocatable}]{key }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Find a key-\/value pair by key name. Returns a null pointer if the key name is not found. 
+
+\begin{DoxyReturn}{Returns}
+Pointer to property key-\/value pair
+\end{DoxyReturn}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Property dataset\\
+\hline
+\mbox{\tt in}  & {\em key} & Key name to search for \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 663 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_addbb73ff876bf02aac23350fab5755fd}\label{namespacepmc__property_addbb73ff876bf02aac23350fab5755fd}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!get\+\_\+int@{get\+\_\+int}}
+\index{get\+\_\+int@{get\+\_\+int}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{get\+\_\+int()}{get\_int()}}
+{\footnotesize\ttfamily logical function pmc\+\_\+property\+::get\+\_\+int (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(in)}]{this,  }\item[{character(len=\+:), intent(in), optional, allocatable}]{key,  }\item[{integer(kind=i\+\_\+kind), intent(out)}]{val }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get an integer value. The return value is true if the key-\/value pair was found, and false otherwise. If no key name is specified, the current value of the iterator is returned. In this case true indicates a current key-\/value exists; false indicates the list is empty, the iterator was never reset, or the end of the list has been reached. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Property dataset\\
+\hline
+\mbox{\tt in}  & {\em key} & Key name to search for\\
+\hline
+\mbox{\tt out}  & {\em val} & Property value \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 372 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a7556849d2f132cb4b347a8840ee8434e}\label{namespacepmc__property_a7556849d2f132cb4b347a8840ee8434e}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!get\+\_\+key@{get\+\_\+key}}
+\index{get\+\_\+key@{get\+\_\+key}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{get\+\_\+key()}{get\_key()}}
+{\footnotesize\ttfamily logical function pmc\+\_\+property\+::get\+\_\+key (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(in)}]{this,  }\item[{character(len=\+:), intent(out), allocatable}]{key }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the key name of the element currently pointed to by the iterator. Returns true if the iterator points to a key-\/value pair; false indicates the list is empty, the iterator was never reset, or the end of the list has been reached. Array elements return true, but have an empty key name. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Property dataset\\
+\hline
+\mbox{\tt out}  & {\em key} & Key name \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 351 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a3c3246efe31f72428ecc4d3c6b72304a}\label{namespacepmc__property_a3c3246efe31f72428ecc4d3c6b72304a}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!get\+\_\+logical@{get\+\_\+logical}}
+\index{get\+\_\+logical@{get\+\_\+logical}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{get\+\_\+logical()}{get\_logical()}}
+{\footnotesize\ttfamily logical function pmc\+\_\+property\+::get\+\_\+logical (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(in)}]{this,  }\item[{character(len=\+:), intent(in), optional, allocatable}]{key,  }\item[{logical, intent(out)}]{val }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get a logical value. The return value is true if the key-\/value pair was found, and false otherwise. If no key name is specified, the current value of the iterator is returned. In this case true indicates a current key-\/value exists; false indicates the list is empty, the iterator was never reset, or the end of the list has been reached. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Property dataset\\
+\hline
+\mbox{\tt in}  & {\em key} & Key name to search for\\
+\hline
+\mbox{\tt out}  & {\em val} & Property value \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 434 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a280146ecd87b8624c170babd262c92d3}\label{namespacepmc__property_a280146ecd87b8624c170babd262c92d3}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!get\+\_\+property\+\_\+t@{get\+\_\+property\+\_\+t}}
+\index{get\+\_\+property\+\_\+t@{get\+\_\+property\+\_\+t}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{get\+\_\+property\+\_\+t()}{get\_property\_t()}}
+{\footnotesize\ttfamily logical function pmc\+\_\+property\+::get\+\_\+property\+\_\+t (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(in)}]{this,  }\item[{character(len=\+:), intent(in), optional, allocatable}]{key,  }\item[{type(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(out), pointer}]{val }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get a property sub-\/set. The return value is true if the key-\/value pair was found, and false otherwise. If no key name is specified, the current value of the iterator is returned. In this case true indicates a current key-\/value exists; false indicates the list is empty, the iterator was never reset, or the end of the list has been reached. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Property dataset\\
+\hline
+\mbox{\tt in}  & {\em key} & Key name to search for\\
+\hline
+\mbox{\tt out}  & {\em val} & Property value \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 496 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a97cfe3c7d68a01b1aa164bb25b306a3b}\label{namespacepmc__property_a97cfe3c7d68a01b1aa164bb25b306a3b}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!get\+\_\+real@{get\+\_\+real}}
+\index{get\+\_\+real@{get\+\_\+real}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{get\+\_\+real()}{get\_real()}}
+{\footnotesize\ttfamily logical function pmc\+\_\+property\+::get\+\_\+real (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(in)}]{this,  }\item[{character(len=\+:), intent(in), optional, allocatable}]{key,  }\item[{real(kind=dp), intent(out)}]{val }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get a real value. The return value is true if the key-\/value pair was found, and false otherwise. If no key name is specified, the current value of the iterator is returned. In this case true indicates a current key-\/value exists; false indicates the list is empty, the iterator was never reset, or the end of the list has been reached. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Property dataset\\
+\hline
+\mbox{\tt in}  & {\em key} & Key name to search for\\
+\hline
+\mbox{\tt out}  & {\em val} & Property value \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 403 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a51142a5a96c616638b781bc56dd808a9}\label{namespacepmc__property_a51142a5a96c616638b781bc56dd808a9}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!get\+\_\+size@{get\+\_\+size}}
+\index{get\+\_\+size@{get\+\_\+size}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{get\+\_\+size()}{get\_size()}}
+{\footnotesize\ttfamily integer(kind=i\+\_\+kind) function pmc\+\_\+property\+::get\+\_\+size (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(in)}]{this }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the number of elements in the property set. 
+
+\begin{DoxyReturn}{Returns}
+Number of elements in the property set
+\end{DoxyReturn}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Property dataset \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 524 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a24b01526021e6f86df84ced42994bdf8}\label{namespacepmc__property_a24b01526021e6f86df84ced42994bdf8}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!get\+\_\+string@{get\+\_\+string}}
+\index{get\+\_\+string@{get\+\_\+string}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{get\+\_\+string()}{get\_string()}}
+{\footnotesize\ttfamily logical function pmc\+\_\+property\+::get\+\_\+string (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(in)}]{this,  }\item[{character(len=\+:), intent(in), optional, allocatable}]{key,  }\item[{character(len=\+:), intent(out), allocatable}]{val }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get a string value. The return value is true if the key-\/value pair was found, and false otherwise. If no key name is specified, the current value of the iterator is returned. In this case true indicates a current key-\/value exists; false indicates the list is empty, the iterator was never reset, or the end of the list has been reached. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Property dataset\\
+\hline
+\mbox{\tt in}  & {\em key} & Key name to search for\\
+\hline
+\mbox{\tt out}  & {\em val} & Property value \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 465 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a8bde8118d90903ed86a787823b208eb5}\label{namespacepmc__property_a8bde8118d90903ed86a787823b208eb5}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!iter\+\_\+next@{iter\+\_\+next}}
+\index{iter\+\_\+next@{iter\+\_\+next}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{iter\+\_\+next()}{iter\_next()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+property\+::iter\+\_\+next (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(inout)}]{this }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Increment the interator. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em this} & Property dataset \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 558 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_ace8273ce459baf8c3e805c010f66103c}\label{namespacepmc__property_ace8273ce459baf8c3e805c010f66103c}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!iter\+\_\+reset@{iter\+\_\+reset}}
+\index{iter\+\_\+reset@{iter\+\_\+reset}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{iter\+\_\+reset()}{iter\_reset()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+property\+::iter\+\_\+reset (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(inout)}]{this }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Initialize the iterator. It will now point to the first property in the dataset, or be N\+U\+LL in the case of an empty property dataset. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em this} & Property dataset \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 546 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a733aef8cbd02fbfed19bde913728678e}\label{namespacepmc__property_a733aef8cbd02fbfed19bde913728678e}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!key@{key}}
+\index{key@{key}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{key()}{key()}}
+{\footnotesize\ttfamily character(\+:) function, allocatable pmc\+\_\+property\+::key (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}}), intent(in)}]{this }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the key name of a property. 
+
+\begin{DoxyReturn}{Returns}
+Key name
+\end{DoxyReturn}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Property key-\/value pair \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 713 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_ae7d2bacf90850cee9df295d660cd7e0d}\label{namespacepmc__property_ae7d2bacf90850cee9df295d660cd7e0d}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!link\+\_\+constructor@{link\+\_\+constructor}}
+\index{link\+\_\+constructor@{link\+\_\+constructor}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{link\+\_\+constructor()}{link\_constructor()}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}}) function, pointer pmc\+\_\+property\+::link\+\_\+constructor (\begin{DoxyParamCaption}\item[{character(len=\+:), intent(in), allocatable}]{key,  }\item[{class($\ast$), intent(in)}]{val }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Constructor for \mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}}. 
+
+\begin{DoxyReturn}{Returns}
+Pointer to new property key-\/value pair
+\end{DoxyReturn}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em key} & Key name\\
+\hline
+\mbox{\tt in}  & {\em val} & New value \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 694 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a4a9f323c08b7fe0a6855eade5aadf018}\label{namespacepmc__property_a4a9f323c08b7fe0a6855eade5aadf018}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!link\+\_\+do\+\_\+print@{link\+\_\+do\+\_\+print}}
+\index{link\+\_\+do\+\_\+print@{link\+\_\+do\+\_\+print}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{link\+\_\+do\+\_\+print()}{link\_do\_print()}}
+{\footnotesize\ttfamily recursive subroutine pmc\+\_\+property\+::link\+\_\+do\+\_\+print (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}}), intent(in)}]{this,  }\item[{character(len=$\ast$), intent(in)}]{suffix,  }\item[{integer(kind=i\+\_\+kind), intent(in), optional}]{file\+\_\+unit }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Print the contents of a property key-\/value pair. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Property key-\/value pair\\
+\hline
+\mbox{\tt in}  & {\em suffix} & Text to append to the end of the line\\
+\hline
+\mbox{\tt in}  & {\em file\+\_\+unit} & File unit for output \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 889 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a505daf27678273c75919399361b41805}\label{namespacepmc__property_a505daf27678273c75919399361b41805}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!link\+\_\+finalize@{link\+\_\+finalize}}
+\index{link\+\_\+finalize@{link\+\_\+finalize}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{link\+\_\+finalize()}{link\_finalize()}}
+{\footnotesize\ttfamily elemental subroutine pmc\+\_\+property\+::link\+\_\+finalize (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}}), intent(inout)}]{this }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Finalize the \mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}} variable. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em this} & Property key-\/value pair \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 926 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_ad1b94310c9bc21b189955b8ceec4918a}\label{namespacepmc__property_ad1b94310c9bc21b189955b8ceec4918a}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!load@{load}}
+\index{load@{load}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{load()}{load()}}
+{\footnotesize\ttfamily recursive subroutine pmc\+\_\+property\+::load (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(inout)}]{this,  }\item[{type(json\+\_\+core), intent(in), pointer}]{json,  }\item[{type(json\+\_\+value), intent(in), pointer}]{j\+\_\+obj,  }\item[{logical, intent(in)}]{as\+\_\+object }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Load a property set from input data. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em this} & Property dataset\\
+\hline
+\mbox{\tt in}  & {\em json} & J\+S\+ON core\\
+\hline
+\mbox{\tt in}  & {\em j\+\_\+obj} & J\+S\+ON object\\
+\hline
+\mbox{\tt in}  & {\em as\+\_\+object} & Set to true if j\+\_\+obj is a json object to parse, adding all child key-\/value pairs to the data set, or false if j\+\_\+obj is a single key-\/value pair to add to the data set \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 143 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_abaf7837b3c0512087cad8e4e9c673b70}\label{namespacepmc__property_abaf7837b3c0512087cad8e4e9c673b70}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!move@{move}}
+\index{move@{move}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{move()}{move()}}
+{\footnotesize\ttfamily elemental subroutine pmc\+\_\+property\+::move (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(inout)}]{this,  }\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(inout)}]{dest }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Move data from one \mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}} instance to another. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em this} & Property dataset to move\\
+\hline
+\mbox{\tt in,out}  & {\em dest} & Property dataset destination \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 574 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a40b196afb48588fb6286649ae31b97b6}\label{namespacepmc__property_a40b196afb48588fb6286649ae31b97b6}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!put@{put}}
+\index{put@{put}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{put()}{put()}}
+{\footnotesize\ttfamily recursive subroutine pmc\+\_\+property\+::put (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(inout)}]{this,  }\item[{character(len=\+:), intent(in), allocatable}]{key,  }\item[{class($\ast$), intent(in)}]{val }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Put an element in the property data set. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em this} & Property data set\\
+\hline
+\mbox{\tt in}  & {\em key} & New key\\
+\hline
+\mbox{\tt in}  & {\em val} & New value \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 270 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a849e58df17633b82032774d0ee63d3c8}\label{namespacepmc__property_a849e58df17633b82032774d0ee63d3c8}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!put\+\_\+string@{put\+\_\+string}}
+\index{put\+\_\+string@{put\+\_\+string}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{put\+\_\+string()}{put\_string()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+property\+::put\+\_\+string (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(inout)}]{this,  }\item[{character(len=\+:), intent(in), allocatable}]{key,  }\item[{character(len=\+:), intent(in), allocatable}]{val }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Put an element in the property data set. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em this} & Property data set\\
+\hline
+\mbox{\tt in}  & {\em key} & New key\\
+\hline
+\mbox{\tt in}  & {\em val} & New value \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 250 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a5833a104f563f288fe180166bc4939b8}\label{namespacepmc__property_a5833a104f563f288fe180166bc4939b8}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!set\+\_\+value@{set\+\_\+value}}
+\index{set\+\_\+value@{set\+\_\+value}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{set\+\_\+value()}{set\_value()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+property\+::set\+\_\+value (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}}), intent(inout)}]{this,  }\item[{class($\ast$), intent(in)}]{val }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Set the value of a property key-\/value pair. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em this} & Property key-\/value pair\\
+\hline
+\mbox{\tt in}  & {\em val} & New value \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 727 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a5d890d5f6a8fb12ceb429ae3ebc217fe}\label{namespacepmc__property_a5d890d5f6a8fb12ceb429ae3ebc217fe}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!update@{update}}
+\index{update@{update}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{update()}{update()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+property\+::update (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(inout)}]{this,  }\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), intent(inout)}]{source }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Update this \mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}} instance with data from another instance. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em this} & Property dataset to update\\
+\hline
+\mbox{\tt in,out}  & {\em source} & Property dataset to update from \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 595 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a5f75da984050d4621460b7530f4edb11}\label{namespacepmc__property_a5f75da984050d4621460b7530f4edb11}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!value\+\_\+int@{value\+\_\+int}}
+\index{value\+\_\+int@{value\+\_\+int}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{value\+\_\+int()}{value\_int()}}
+{\footnotesize\ttfamily integer(kind=i\+\_\+kind) function pmc\+\_\+property\+::value\+\_\+int (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}}), intent(in)}]{this }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the int value of a property. 
+
+\begin{DoxyReturn}{Returns}
+Value
+\end{DoxyReturn}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Property key-\/value pair \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 772 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a404e309153854ccab86eb10318fcbdcf}\label{namespacepmc__property_a404e309153854ccab86eb10318fcbdcf}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!value\+\_\+logical@{value\+\_\+logical}}
+\index{value\+\_\+logical@{value\+\_\+logical}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{value\+\_\+logical()}{value\_logical()}}
+{\footnotesize\ttfamily logical function pmc\+\_\+property\+::value\+\_\+logical (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}}), intent(in)}]{this }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the logical value of a property. 
+
+\begin{DoxyReturn}{Returns}
+Value
+\end{DoxyReturn}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Property key-\/value pair \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 820 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a793853ad03f64d47abf8df8d637e53c6}\label{namespacepmc__property_a793853ad03f64d47abf8df8d637e53c6}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!value\+\_\+property\+\_\+t@{value\+\_\+property\+\_\+t}}
+\index{value\+\_\+property\+\_\+t@{value\+\_\+property\+\_\+t}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{value\+\_\+property\+\_\+t()}{value\_property\_t()}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}) function, pointer pmc\+\_\+property\+::value\+\_\+property\+\_\+t (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}}), intent(in)}]{this }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the \mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}} value of a property. 
+
+\begin{DoxyReturn}{Returns}
+Value
+\end{DoxyReturn}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Property key-\/value pair \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 866 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_a0ef35a2bc42efede42972be617c65e27}\label{namespacepmc__property_a0ef35a2bc42efede42972be617c65e27}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!value\+\_\+real@{value\+\_\+real}}
+\index{value\+\_\+real@{value\+\_\+real}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{value\+\_\+real()}{value\_real()}}
+{\footnotesize\ttfamily real(kind=dp) function pmc\+\_\+property\+::value\+\_\+real (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}}), intent(in)}]{this }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the real value of a property. 
+
+\begin{DoxyReturn}{Returns}
+Value
+\end{DoxyReturn}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Property key-\/value pair \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 795 of file property.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__property_ad5dcdbd8450ec28999baff573c4edada}\label{namespacepmc__property_ad5dcdbd8450ec28999baff573c4edada}} 
+\index{pmc\+\_\+property@{pmc\+\_\+property}!value\+\_\+string@{value\+\_\+string}}
+\index{value\+\_\+string@{value\+\_\+string}!pmc\+\_\+property@{pmc\+\_\+property}}
+\subsubsection{\texorpdfstring{value\+\_\+string()}{value\_string()}}
+{\footnotesize\ttfamily character(\+:) function, pointer pmc\+\_\+property\+::value\+\_\+string (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}}), intent(in)}]{this }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the string value of a property. 
+
+\begin{DoxyReturn}{Returns}
+Value
+\end{DoxyReturn}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em this} & Property key-\/value pair \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 843 of file property.\+F90.
+

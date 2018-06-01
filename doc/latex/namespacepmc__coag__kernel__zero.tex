@@ -1,0 +1,115 @@
+\hypertarget{namespacepmc__coag__kernel__zero}{}\section{pmc\+\_\+coag\+\_\+kernel\+\_\+zero Module Reference}
+\label{namespacepmc__coag__kernel__zero}\index{pmc\+\_\+coag\+\_\+kernel\+\_\+zero@{pmc\+\_\+coag\+\_\+kernel\+\_\+zero}}
+
+
+Constant kernel equal to zero.  
+
+
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coag__kernel__zero_ac45443a66ef9e7a0dd042ca4e6d2b66d}{kernel\+\_\+zero}} (aero\+\_\+particle\+\_\+1, aero\+\_\+particle\+\_\+2, aero\+\_\+data, env\+\_\+state, k)
+\begin{DoxyCompactList}\small\item\em Zero coagulation kernel. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coag__kernel__zero_ac1a17d46d81c003f44f93eafe195d3c5}{kernel\+\_\+zero\+\_\+minmax}} (v1, v2, aero\+\_\+data, env\+\_\+state, k\+\_\+min, k\+\_\+max)
+\begin{DoxyCompactList}\small\item\em Minimum and maximum of the zero coagulation kernel. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coag__kernel__zero_af04cc325508f88c203c444b94f09cc51}{soln\+\_\+zero}} (bin\+\_\+grid, aero\+\_\+data, time, aero\+\_\+dist\+\_\+init, scenario, env\+\_\+state, aero\+\_\+binned)
+\begin{DoxyCompactList}\small\item\em Exact solution with the zero coagulation kernel. Only useful for testing emissions, background dilution, and proportional loss functions. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Constant kernel equal to zero. 
+
+This is only of interest for the exact solution to the no-\/coagulation, no-\/condensation case that can be used to test emissions and background dilution. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__coag__kernel__zero_ac45443a66ef9e7a0dd042ca4e6d2b66d}\label{namespacepmc__coag__kernel__zero_ac45443a66ef9e7a0dd042ca4e6d2b66d}} 
+\index{pmc\+\_\+coag\+\_\+kernel\+\_\+zero@{pmc\+\_\+coag\+\_\+kernel\+\_\+zero}!kernel\+\_\+zero@{kernel\+\_\+zero}}
+\index{kernel\+\_\+zero@{kernel\+\_\+zero}!pmc\+\_\+coag\+\_\+kernel\+\_\+zero@{pmc\+\_\+coag\+\_\+kernel\+\_\+zero}}
+\subsubsection{\texorpdfstring{kernel\+\_\+zero()}{kernel\_zero()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coag\+\_\+kernel\+\_\+zero\+::kernel\+\_\+zero (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{aero\+\_\+particle\+\_\+1,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{aero\+\_\+particle\+\_\+2,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{real(kind=dp), intent(out)}]{k }\end{DoxyParamCaption})}
+
+
+
+Zero coagulation kernel. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+particle\+\_\+1} & First particle.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+particle\+\_\+2} & Second particle.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt out}  & {\em k} & Coagulation kernel. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 31 of file coag\+\_\+kernel\+\_\+zero.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coag__kernel__zero_ac1a17d46d81c003f44f93eafe195d3c5}\label{namespacepmc__coag__kernel__zero_ac1a17d46d81c003f44f93eafe195d3c5}} 
+\index{pmc\+\_\+coag\+\_\+kernel\+\_\+zero@{pmc\+\_\+coag\+\_\+kernel\+\_\+zero}!kernel\+\_\+zero\+\_\+minmax@{kernel\+\_\+zero\+\_\+minmax}}
+\index{kernel\+\_\+zero\+\_\+minmax@{kernel\+\_\+zero\+\_\+minmax}!pmc\+\_\+coag\+\_\+kernel\+\_\+zero@{pmc\+\_\+coag\+\_\+kernel\+\_\+zero}}
+\subsubsection{\texorpdfstring{kernel\+\_\+zero\+\_\+minmax()}{kernel\_zero\_minmax()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coag\+\_\+kernel\+\_\+zero\+::kernel\+\_\+zero\+\_\+minmax (\begin{DoxyParamCaption}\item[{real(kind=dp), intent(in)}]{v1,  }\item[{real(kind=dp), intent(in)}]{v2,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{real(kind=dp), intent(out)}]{k\+\_\+min,  }\item[{real(kind=dp), intent(out)}]{k\+\_\+max }\end{DoxyParamCaption})}
+
+
+
+Minimum and maximum of the zero coagulation kernel. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em v1} & Volume of first particle.\\
+\hline
+\mbox{\tt in}  & {\em v2} & Volume of second particle.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt out}  & {\em k\+\_\+min} & Coagulation kernel minimum value.\\
+\hline
+\mbox{\tt out}  & {\em k\+\_\+max} & Coagulation kernel maximum value. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 51 of file coag\+\_\+kernel\+\_\+zero.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coag__kernel__zero_af04cc325508f88c203c444b94f09cc51}\label{namespacepmc__coag__kernel__zero_af04cc325508f88c203c444b94f09cc51}} 
+\index{pmc\+\_\+coag\+\_\+kernel\+\_\+zero@{pmc\+\_\+coag\+\_\+kernel\+\_\+zero}!soln\+\_\+zero@{soln\+\_\+zero}}
+\index{soln\+\_\+zero@{soln\+\_\+zero}!pmc\+\_\+coag\+\_\+kernel\+\_\+zero@{pmc\+\_\+coag\+\_\+kernel\+\_\+zero}}
+\subsubsection{\texorpdfstring{soln\+\_\+zero()}{soln\_zero()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coag\+\_\+kernel\+\_\+zero\+::soln\+\_\+zero (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{real(kind=dp), intent(in)}]{time,  }\item[{type(\mbox{\hyperlink{structpmc__aero__dist_1_1aero__dist__t}{aero\+\_\+dist\+\_\+t}}), intent(in)}]{aero\+\_\+dist\+\_\+init,  }\item[{type(\mbox{\hyperlink{structpmc__scenario_1_1scenario__t}{scenario\+\_\+t}}), intent(in)}]{scenario,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__binned_1_1aero__binned__t}{aero\+\_\+binned\+\_\+t}}), intent(inout)}]{aero\+\_\+binned }\end{DoxyParamCaption})}
+
+
+
+Exact solution with the zero coagulation kernel. Only useful for testing emissions, background dilution, and proportional loss functions. 
+
+With only constant-\/rate emissions, dilutionm, and proportional losses the numberdistribution $n(D,t)$ at diameter $D$ and time $t$ satisfies\+: \[ \frac{d n(D,t)}{dt} = k_{\rm emit} n_{\rm emit}(D) + (k_{\rm dilute} + k_{\rm loss}(D)) (n_{\rm back}(D) - n(D,t)) \] together with the initial condition $ n(D,0) = n_0(D) $. Here $n_{\rm emit}(D)$ and $n_{\rm back}(D)$ are emission and background size distributions, with corresponding rates $k_{\rm emit}$ and $k_{\rm dilute}$. An optional loss function $k_{\rm loss}(D)$ can be used to specify a size-\/dependent rate at which particles are lost. All values are taken at time $t = 0$ and held constant, so there is no support for time-\/varying emissions, background dilution, or loss functions.
+
+This is a family of O\+D\+Es parameterized by $D$ with solution\+: \[ n(D,t) = n_{\infty}(D) + (n_0(D) - n_{\infty}(D)) \exp( -(k_{\rm dilute} + k_{\rm loss}(D)) t) \] where the steady state limit is\+: \[ n_{\infty}(D) = n(D,\infty) = n_{\rm back}(D) + \frac{k_{\rm emit}}{k_{\rm dilute} + k_{\rm loss}(D)} n_{\rm emit}(D) \]
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em time} & Current time (s).\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+dist\+\_\+init} & Initial distribution.\\
+\hline
+\mbox{\tt in}  & {\em scenario} & Scenario.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+binned} & Output state. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 107 of file coag\+\_\+kernel\+\_\+zero.\+F90.
+

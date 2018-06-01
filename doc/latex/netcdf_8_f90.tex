@@ -1,0 +1,60 @@
+\hypertarget{netcdf_8_f90}{}\section{netcdf.\+F90 File Reference}
+\label{netcdf_8_f90}\index{netcdf.\+F90@{netcdf.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__netcdf}{pmc\+\_\+netcdf}} module.  
+
+
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__netcdf}{pmc\+\_\+netcdf}}
+\begin{DoxyCompactList}\small\item\em Wrapper functions for Net\+C\+DF. These all take a Net\+C\+DF {\ttfamily ncid} in data mode and return with it again in data mode. Shifting to define mode is handled internally within each subroutine. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_aeb26885b57dbc718ca9d8a8d4cc1660b}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+check}} (status)
+\begin{DoxyCompactList}\small\item\em Check the status of a Net\+C\+DF function call. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_a44641c8551b43500185faf232a8b743f}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+check\+\_\+msg}} (status, error\+\_\+msg)
+\begin{DoxyCompactList}\small\item\em Check the status of a Net\+C\+DF function call and prints the given error message on failure. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_ac9ac86c766cac059b77fb52305ef7258}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+open\+\_\+read}} (filename, \mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}})
+\begin{DoxyCompactList}\small\item\em Open a Net\+C\+DF file for reading. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_a10b4e36fc32903e45fad5a03e01cdeb2}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+open\+\_\+write}} (filename, \mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}})
+\begin{DoxyCompactList}\small\item\em Open a Net\+C\+DF file for writing. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_afd71cfd565645514fd53dce13a3a5958}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+close}} (\mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}})
+\begin{DoxyCompactList}\small\item\em Close a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_a252de5ecdfc83bdde7492cd9800723df}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+write\+\_\+info}} (\mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, uuid, source, write\+\_\+rank, write\+\_\+n\+\_\+proc)
+\begin{DoxyCompactList}\small\item\em Write basic information to a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_ae8b035a6a051f796e82393d51c2739ff}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+read\+\_\+real}} (\mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, var, name, must\+\_\+be\+\_\+present)
+\begin{DoxyCompactList}\small\item\em Read a single real from a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_acdc3a760526d3131efd57ddaff34904d}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+read\+\_\+integer}} (\mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, var, name, must\+\_\+be\+\_\+present)
+\begin{DoxyCompactList}\small\item\em Read a single integer from a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_af964e1e3180f125f1529aa83f4f9fdef}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+read\+\_\+real\+\_\+1d}} (\mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, var, name, must\+\_\+be\+\_\+present)
+\begin{DoxyCompactList}\small\item\em Read a simple real array from a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_a163630aa93ceda585435019762b4e2e0}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+read\+\_\+integer\+\_\+1d}} (\mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, var, name, must\+\_\+be\+\_\+present)
+\begin{DoxyCompactList}\small\item\em Read a simple integer array from a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_a12c72b4b7438c2c715be55c435d8d1fc}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+read\+\_\+real\+\_\+2d}} (\mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, var, name, must\+\_\+be\+\_\+present)
+\begin{DoxyCompactList}\small\item\em Read a simple real 2D array from a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_a1dccd30c85af447ee1bad6bb7a6ad0ab}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+read\+\_\+integer\+\_\+2d}} (\mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, var, name, must\+\_\+be\+\_\+present)
+\begin{DoxyCompactList}\small\item\em Read a simple integer 2D array from a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_aec38f84822ec8fa3ecbed6e69a24d274}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+write\+\_\+atts}} (\mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, varid, unit, long\+\_\+name, standard\+\_\+name, description)
+\begin{DoxyCompactList}\small\item\em Write attributes for a variable to a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_ac319a94ac04f697f1c6623740101016a}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+write\+\_\+real}} (\mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, var, name, unit, long\+\_\+name, standard\+\_\+name, description)
+\begin{DoxyCompactList}\small\item\em Write a single real to a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_a4100434b6509117a5147ee13448f6df2}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+write\+\_\+integer}} (\mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, var, name, unit, long\+\_\+name, standard\+\_\+name, description)
+\begin{DoxyCompactList}\small\item\em Write a single integer to a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_aef9fac46c9e7632344fa29cfb6891f92}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+ensure\+\_\+dim}} (\mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, dim\+\_\+name, dimid, dim\+\_\+size, array\+\_\+dim)
+\begin{DoxyCompactList}\small\item\em Create a dimension if necessary, or check its size if it already exists. In any case return the {\ttfamily dimid}. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_a8dc82ed2d6bf930ffd844ea41d821e4f}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+write\+\_\+real\+\_\+1d}} (\mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, var, name, dimids, dim\+\_\+name, unit, long\+\_\+name, standard\+\_\+name, description)
+\begin{DoxyCompactList}\small\item\em Write a simple real array to a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_ac0d23c48469031f1750e47f7742a78a5}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+write\+\_\+integer\+\_\+1d}} (\mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, var, name, dimids, dim\+\_\+name, unit, long\+\_\+name, standard\+\_\+name, description)
+\begin{DoxyCompactList}\small\item\em Write a simple integer array to a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_af7187da67199411890eafc1fa1cc0ab3}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+write\+\_\+real\+\_\+2d}} (\mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, var, name, dimids, dim\+\_\+name\+\_\+1, dim\+\_\+name\+\_\+2, unit, long\+\_\+name, standard\+\_\+name, description)
+\begin{DoxyCompactList}\small\item\em Write a simple real 2D array to a Net\+C\+DF file. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__netcdf_a948590db9b9b4f73c2da2cc1ed2af6aa}{pmc\+\_\+netcdf\+::pmc\+\_\+nc\+\_\+write\+\_\+integer\+\_\+2d}} (\mbox{\hyperlink{fractal_8_f90_a4e89f3f850921ff84a6dfce8b166ad50}{ncid}}, var, name, dimids, dim\+\_\+name\+\_\+1, dim\+\_\+name\+\_\+2, unit, long\+\_\+name, standard\+\_\+name, description)
+\begin{DoxyCompactList}\small\item\em Write a simple integer 2D array to a Net\+C\+DF file. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__netcdf}{pmc\+\_\+netcdf}} module. 
+

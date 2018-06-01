@@ -1,0 +1,460 @@
+\hypertarget{namespacepmc__aero__sorted}{}\section{pmc\+\_\+aero\+\_\+sorted Module Reference}
+\label{namespacepmc__aero__sorted}\index{pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}}
+
+
+The \mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}} structure and assocated subroutines.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Sorting of particles into bins. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+integer function \mbox{\hyperlink{namespacepmc__aero__sorted_ab9d526ab2c18f3b7ee01dd57cb87c733}{aero\+\_\+sorted\+\_\+n\+\_\+bin}} (aero\+\_\+sorted)
+\begin{DoxyCompactList}\small\item\em Returns the number of size bins. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__aero__sorted_ac4d78c0767389592acbc13d935d8561a}{aero\+\_\+sorted\+\_\+n\+\_\+group}} (aero\+\_\+sorted)
+\begin{DoxyCompactList}\small\item\em Returns the number of weight groups. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__aero__sorted_ae636353a0655df03ed70f4aa894cd11a}{aero\+\_\+sorted\+\_\+n\+\_\+class}} (aero\+\_\+sorted)
+\begin{DoxyCompactList}\small\item\em Returns the number of weight classes. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__sorted_a389f4693b9a0f1323857ddff666b05c5}{aero\+\_\+sorted\+\_\+set\+\_\+bin\+\_\+grid}} (aero\+\_\+sorted, bin\+\_\+grid, n\+\_\+group, n\+\_\+class)
+\begin{DoxyCompactList}\small\item\em Set the bin grid to be used for sorting. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__sorted_a86c04602bda530bf729e36acf607a0cf}{aero\+\_\+sorted\+\_\+discard\+\_\+outside\+\_\+grid}} (aero\+\_\+sorted, aero\+\_\+particle\+\_\+array, aero\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Discard particles that don\textquotesingle{}t fit the bin grid. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__sorted_a05ae0618baddc3764e98024c670cc248}{aero\+\_\+sorted\+\_\+sort\+\_\+particles}} (aero\+\_\+sorted, aero\+\_\+particle\+\_\+array, aero\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Sort the particles. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__sorted_a7d7a0e73c0725fe40ed2ec64c16455db}{aero\+\_\+sorted\+\_\+remake\+\_\+if\+\_\+needed}} (aero\+\_\+sorted, aero\+\_\+particle\+\_\+array, aero\+\_\+data, valid\+\_\+sort, n\+\_\+group, n\+\_\+class, bin\+\_\+grid, all\+\_\+procs\+\_\+same)
+\begin{DoxyCompactList}\small\item\em Remake a sorting if particles are getting too close to the edges. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__aero__sorted_a00a9d9ddcf3ae8d7a793c6a3a6da08d7}{aero\+\_\+sorted\+\_\+particle\+\_\+in\+\_\+bin}} (aero\+\_\+sorted, aero\+\_\+particle, aero\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Find the bin number that contains a given particle. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__sorted_ab76ef898301b54001fdfdfb0ae346bbe}{aero\+\_\+sorted\+\_\+add\+\_\+particle}} (aero\+\_\+sorted, aero\+\_\+particle\+\_\+array, aero\+\_\+particle, aero\+\_\+data, allow\+\_\+resort)
+\begin{DoxyCompactList}\small\item\em Add a new particle to both an aero\+\_\+sorted and the corresponding aero\+\_\+particle\+\_\+array. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__sorted_a3e4e18cdf33430088d88a85c00c55ed8}{aero\+\_\+sorted\+\_\+remove\+\_\+particle}} (aero\+\_\+sorted, aero\+\_\+particle\+\_\+array, i\+\_\+part)
+\begin{DoxyCompactList}\small\item\em Remove a particle from both an aero\+\_\+sorted and the corresponding aero\+\_\+particle\+\_\+array. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__sorted_a19dc894a59b6367f28ef65ddadeede55}{aero\+\_\+sorted\+\_\+move\+\_\+particle}} (aero\+\_\+sorted, i\+\_\+part, new\+\_\+bin, new\+\_\+group, new\+\_\+class)
+\begin{DoxyCompactList}\small\item\em Move a particle to a different bin and group. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__sorted_a3b355838730db411ca1190e2c8fb99a4}{aero\+\_\+sorted\+\_\+check}} (aero\+\_\+sorted, aero\+\_\+particle\+\_\+array, aero\+\_\+data, n\+\_\+group, n\+\_\+class, continue\+\_\+on\+\_\+error)
+\begin{DoxyCompactList}\small\item\em Check sorting. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__aero__sorted_a469c7678b144002576c666dc3bbfd51f}{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+sorted}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__sorted_afdb70af4eedda6bd45f561864a348175}{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+sorted}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__sorted_a42d37f6234ca8cc529ffc5a90c80e85c}{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+sorted}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+real(kind=dp), parameter \mbox{\hyperlink{namespacepmc__aero__sorted_acb40c5cb90b0ff373c45a7558bcca305}{aero\+\_\+sorted\+\_\+bins\+\_\+per\+\_\+decade}} = 10d0
+\begin{DoxyCompactList}\small\item\em How many size bins to use per decade of particle radius. \end{DoxyCompactList}\item 
+real(kind=dp), parameter \mbox{\hyperlink{namespacepmc__aero__sorted_a8d4f2e6bc86816a9514588cfaf6d26b5}{aero\+\_\+sorted\+\_\+bin\+\_\+over\+\_\+factor}} = 10d0
+\begin{DoxyCompactList}\small\item\em Factor to extend size grid beyond largest/smallest particles. \end{DoxyCompactList}\item 
+real(kind=dp), parameter \mbox{\hyperlink{namespacepmc__aero__sorted_add014bc362ca68811406a3fd86b27706}{aero\+\_\+sorted\+\_\+bin\+\_\+safety\+\_\+factor}} = 3d0
+\begin{DoxyCompactList}\small\item\em Size grid extension factor when we should regenerate grid. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}} structure and assocated subroutines. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__aero__sorted_ab76ef898301b54001fdfdfb0ae346bbe}\label{namespacepmc__aero__sorted_ab76ef898301b54001fdfdfb0ae346bbe}} 
+\index{pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}!aero\+\_\+sorted\+\_\+add\+\_\+particle@{aero\+\_\+sorted\+\_\+add\+\_\+particle}}
+\index{aero\+\_\+sorted\+\_\+add\+\_\+particle@{aero\+\_\+sorted\+\_\+add\+\_\+particle}!pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}}
+\subsubsection{\texorpdfstring{aero\+\_\+sorted\+\_\+add\+\_\+particle()}{aero\_sorted\_add\_particle()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+add\+\_\+particle (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}}), intent(inout)}]{aero\+\_\+sorted,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}), intent(inout)}]{aero\+\_\+particle\+\_\+array,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{aero\+\_\+particle,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{logical, intent(in), optional}]{allow\+\_\+resort }\end{DoxyParamCaption})}
+
+
+
+Add a new particle to both an aero\+\_\+sorted and the corresponding aero\+\_\+particle\+\_\+array. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+sorted} & Sorted particle structure.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+particle\+\_\+array} & Aerosol particles.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+particle} & Particle to add.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em allow\+\_\+resort} & Whether to allow a resort due to the add. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 399 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__sorted_a3b355838730db411ca1190e2c8fb99a4}\label{namespacepmc__aero__sorted_a3b355838730db411ca1190e2c8fb99a4}} 
+\index{pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}!aero\+\_\+sorted\+\_\+check@{aero\+\_\+sorted\+\_\+check}}
+\index{aero\+\_\+sorted\+\_\+check@{aero\+\_\+sorted\+\_\+check}!pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}}
+\subsubsection{\texorpdfstring{aero\+\_\+sorted\+\_\+check()}{aero\_sorted\_check()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+check (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}}), intent(in)}]{aero\+\_\+sorted,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+particle\+\_\+array,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{integer, intent(in), optional}]{n\+\_\+group,  }\item[{integer, intent(in), optional}]{n\+\_\+class,  }\item[{logical, intent(in)}]{continue\+\_\+on\+\_\+error }\end{DoxyParamCaption})}
+
+
+
+Check sorting. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+sorted} & Aerosol sorted to check.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+particle\+\_\+array} & Aerosol particles.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+group} & Number of weight groups.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+class} & Number of weight classes.\\
+\hline
+\mbox{\tt in}  & {\em continue\+\_\+on\+\_\+error} & Whether to continue despite error. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 501 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__sorted_a86c04602bda530bf729e36acf607a0cf}\label{namespacepmc__aero__sorted_a86c04602bda530bf729e36acf607a0cf}} 
+\index{pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}!aero\+\_\+sorted\+\_\+discard\+\_\+outside\+\_\+grid@{aero\+\_\+sorted\+\_\+discard\+\_\+outside\+\_\+grid}}
+\index{aero\+\_\+sorted\+\_\+discard\+\_\+outside\+\_\+grid@{aero\+\_\+sorted\+\_\+discard\+\_\+outside\+\_\+grid}!pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}}
+\subsubsection{\texorpdfstring{aero\+\_\+sorted\+\_\+discard\+\_\+outside\+\_\+grid()}{aero\_sorted\_discard\_outside\_grid()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+discard\+\_\+outside\+\_\+grid (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}}), intent(in)}]{aero\+\_\+sorted,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}), intent(inout)}]{aero\+\_\+particle\+\_\+array,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Discard particles that don\textquotesingle{}t fit the bin grid. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+sorted} & Aerosol sorted.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+particle\+\_\+array} & Aerosol particles to discard from.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 155 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__sorted_a19dc894a59b6367f28ef65ddadeede55}\label{namespacepmc__aero__sorted_a19dc894a59b6367f28ef65ddadeede55}} 
+\index{pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}!aero\+\_\+sorted\+\_\+move\+\_\+particle@{aero\+\_\+sorted\+\_\+move\+\_\+particle}}
+\index{aero\+\_\+sorted\+\_\+move\+\_\+particle@{aero\+\_\+sorted\+\_\+move\+\_\+particle}!pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}}
+\subsubsection{\texorpdfstring{aero\+\_\+sorted\+\_\+move\+\_\+particle()}{aero\_sorted\_move\_particle()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+move\+\_\+particle (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}}), intent(inout)}]{aero\+\_\+sorted,  }\item[{integer, intent(in)}]{i\+\_\+part,  }\item[{integer, intent(in)}]{new\+\_\+bin,  }\item[{integer, intent(in)}]{new\+\_\+group,  }\item[{integer, intent(in)}]{new\+\_\+class }\end{DoxyParamCaption})}
+
+
+
+Move a particle to a different bin and group. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+sorted} & Aerosol sorted.\\
+\hline
+\mbox{\tt in}  & {\em i\+\_\+part} & Particle number to move.\\
+\hline
+\mbox{\tt in}  & {\em new\+\_\+bin} & New bin to move particle to.\\
+\hline
+\mbox{\tt in}  & {\em new\+\_\+group} & New weight group to move particle to.\\
+\hline
+\mbox{\tt in}  & {\em new\+\_\+class} & New weight class to move particle to. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 477 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__sorted_ab9d526ab2c18f3b7ee01dd57cb87c733}\label{namespacepmc__aero__sorted_ab9d526ab2c18f3b7ee01dd57cb87c733}} 
+\index{pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}!aero\+\_\+sorted\+\_\+n\+\_\+bin@{aero\+\_\+sorted\+\_\+n\+\_\+bin}}
+\index{aero\+\_\+sorted\+\_\+n\+\_\+bin@{aero\+\_\+sorted\+\_\+n\+\_\+bin}!pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}}
+\subsubsection{\texorpdfstring{aero\+\_\+sorted\+\_\+n\+\_\+bin()}{aero\_sorted\_n\_bin()}}
+{\footnotesize\ttfamily integer function pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+n\+\_\+bin (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}}), intent(in)}]{aero\+\_\+sorted }\end{DoxyParamCaption})}
+
+
+
+Returns the number of size bins. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+sorted} & Aerosol sorting to use. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 81 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__sorted_ae636353a0655df03ed70f4aa894cd11a}\label{namespacepmc__aero__sorted_ae636353a0655df03ed70f4aa894cd11a}} 
+\index{pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}!aero\+\_\+sorted\+\_\+n\+\_\+class@{aero\+\_\+sorted\+\_\+n\+\_\+class}}
+\index{aero\+\_\+sorted\+\_\+n\+\_\+class@{aero\+\_\+sorted\+\_\+n\+\_\+class}!pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}}
+\subsubsection{\texorpdfstring{aero\+\_\+sorted\+\_\+n\+\_\+class()}{aero\_sorted\_n\_class()}}
+{\footnotesize\ttfamily integer function pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+n\+\_\+class (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}}), intent(in)}]{aero\+\_\+sorted }\end{DoxyParamCaption})}
+
+
+
+Returns the number of weight classes. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+sorted} & Aerosol sorting to use. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 105 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__sorted_ac4d78c0767389592acbc13d935d8561a}\label{namespacepmc__aero__sorted_ac4d78c0767389592acbc13d935d8561a}} 
+\index{pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}!aero\+\_\+sorted\+\_\+n\+\_\+group@{aero\+\_\+sorted\+\_\+n\+\_\+group}}
+\index{aero\+\_\+sorted\+\_\+n\+\_\+group@{aero\+\_\+sorted\+\_\+n\+\_\+group}!pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}}
+\subsubsection{\texorpdfstring{aero\+\_\+sorted\+\_\+n\+\_\+group()}{aero\_sorted\_n\_group()}}
+{\footnotesize\ttfamily integer function pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+n\+\_\+group (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}}), intent(in)}]{aero\+\_\+sorted }\end{DoxyParamCaption})}
+
+
+
+Returns the number of weight groups. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+sorted} & Aerosol sorting to use. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 93 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__sorted_a00a9d9ddcf3ae8d7a793c6a3a6da08d7}\label{namespacepmc__aero__sorted_a00a9d9ddcf3ae8d7a793c6a3a6da08d7}} 
+\index{pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}!aero\+\_\+sorted\+\_\+particle\+\_\+in\+\_\+bin@{aero\+\_\+sorted\+\_\+particle\+\_\+in\+\_\+bin}}
+\index{aero\+\_\+sorted\+\_\+particle\+\_\+in\+\_\+bin@{aero\+\_\+sorted\+\_\+particle\+\_\+in\+\_\+bin}!pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}}
+\subsubsection{\texorpdfstring{aero\+\_\+sorted\+\_\+particle\+\_\+in\+\_\+bin()}{aero\_sorted\_particle\_in\_bin()}}
+{\footnotesize\ttfamily integer function pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+particle\+\_\+in\+\_\+bin (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}}), intent(in)}]{aero\+\_\+sorted,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{aero\+\_\+particle,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Find the bin number that contains a given particle. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+sorted} & Aerosol sort.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+particle} & Particle.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 380 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__sorted_a7d7a0e73c0725fe40ed2ec64c16455db}\label{namespacepmc__aero__sorted_a7d7a0e73c0725fe40ed2ec64c16455db}} 
+\index{pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}!aero\+\_\+sorted\+\_\+remake\+\_\+if\+\_\+needed@{aero\+\_\+sorted\+\_\+remake\+\_\+if\+\_\+needed}}
+\index{aero\+\_\+sorted\+\_\+remake\+\_\+if\+\_\+needed@{aero\+\_\+sorted\+\_\+remake\+\_\+if\+\_\+needed}!pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}}
+\subsubsection{\texorpdfstring{aero\+\_\+sorted\+\_\+remake\+\_\+if\+\_\+needed()}{aero\_sorted\_remake\_if\_needed()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+remake\+\_\+if\+\_\+needed (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}}), intent(inout)}]{aero\+\_\+sorted,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}), intent(inout)}]{aero\+\_\+particle\+\_\+array,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{logical, intent(in)}]{valid\+\_\+sort,  }\item[{integer, intent(in), optional}]{n\+\_\+group,  }\item[{integer, intent(in), optional}]{n\+\_\+class,  }\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in), optional}]{bin\+\_\+grid,  }\item[{logical, intent(in), optional}]{all\+\_\+procs\+\_\+same }\end{DoxyParamCaption})}
+
+
+
+Remake a sorting if particles are getting too close to the edges. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+sorted} & Aerosol sorted to (possibly) remake.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+particle\+\_\+array} & Aerosol particles to sort.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em valid\+\_\+sort} & Whether the given aero\+\_\+sorted is valid.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+group} & Number of weight groups.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+class} & Number of weight classes.\\
+\hline
+\mbox{\tt in}  & {\em bin\+\_\+grid} & An optional bin\+\_\+grid to use for the sort.\\
+\hline
+\mbox{\tt in}  & {\em all\+\_\+procs\+\_\+same} & Whether all processors should use the same bin grid. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 216 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__sorted_a3e4e18cdf33430088d88a85c00c55ed8}\label{namespacepmc__aero__sorted_a3e4e18cdf33430088d88a85c00c55ed8}} 
+\index{pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}!aero\+\_\+sorted\+\_\+remove\+\_\+particle@{aero\+\_\+sorted\+\_\+remove\+\_\+particle}}
+\index{aero\+\_\+sorted\+\_\+remove\+\_\+particle@{aero\+\_\+sorted\+\_\+remove\+\_\+particle}!pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}}
+\subsubsection{\texorpdfstring{aero\+\_\+sorted\+\_\+remove\+\_\+particle()}{aero\_sorted\_remove\_particle()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+remove\+\_\+particle (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}}), intent(inout)}]{aero\+\_\+sorted,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}), intent(inout)}]{aero\+\_\+particle\+\_\+array,  }\item[{integer, intent(in)}]{i\+\_\+part }\end{DoxyParamCaption})}
+
+
+
+Remove a particle from both an aero\+\_\+sorted and the corresponding aero\+\_\+particle\+\_\+array. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+sorted} & Sorted particle structure.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+particle\+\_\+array} & Aerosol particles.\\
+\hline
+\mbox{\tt in}  & {\em i\+\_\+part} & Index of particle to remove. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 457 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__sorted_a389f4693b9a0f1323857ddff666b05c5}\label{namespacepmc__aero__sorted_a389f4693b9a0f1323857ddff666b05c5}} 
+\index{pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}!aero\+\_\+sorted\+\_\+set\+\_\+bin\+\_\+grid@{aero\+\_\+sorted\+\_\+set\+\_\+bin\+\_\+grid}}
+\index{aero\+\_\+sorted\+\_\+set\+\_\+bin\+\_\+grid@{aero\+\_\+sorted\+\_\+set\+\_\+bin\+\_\+grid}!pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}}
+\subsubsection{\texorpdfstring{aero\+\_\+sorted\+\_\+set\+\_\+bin\+\_\+grid()}{aero\_sorted\_set\_bin\_grid()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+set\+\_\+bin\+\_\+grid (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}}), intent(inout)}]{aero\+\_\+sorted,  }\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{integer, intent(in)}]{n\+\_\+group,  }\item[{integer, intent(in)}]{n\+\_\+class }\end{DoxyParamCaption})}
+
+
+
+Set the bin grid to be used for sorting. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+sorted} & Aerosol sorted.\\
+\hline
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+group} & Number of weight groups.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+class} & Number of weight classes. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 117 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__sorted_a05ae0618baddc3764e98024c670cc248}\label{namespacepmc__aero__sorted_a05ae0618baddc3764e98024c670cc248}} 
+\index{pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}!aero\+\_\+sorted\+\_\+sort\+\_\+particles@{aero\+\_\+sorted\+\_\+sort\+\_\+particles}}
+\index{aero\+\_\+sorted\+\_\+sort\+\_\+particles@{aero\+\_\+sorted\+\_\+sort\+\_\+particles}!pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}}
+\subsubsection{\texorpdfstring{aero\+\_\+sorted\+\_\+sort\+\_\+particles()}{aero\_sorted\_sort\_particles()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+sort\+\_\+particles (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}}), intent(inout)}]{aero\+\_\+sorted,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+particle\+\_\+array,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Sort the particles. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+sorted} & Aerosol sorted.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+particle\+\_\+array} & Aerosol particles to sort.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 187 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__sorted_afdb70af4eedda6bd45f561864a348175}\label{namespacepmc__aero__sorted_afdb70af4eedda6bd45f561864a348175}} 
+\index{pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}!pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+sorted@{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+sorted}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+sorted@{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+sorted}!pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+sorted()}{pmc\_mpi\_pack\_aero\_sorted()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+sorted\+::pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+sorted (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{type(\mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Packs the given value into the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 584 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__sorted_a469c7678b144002576c666dc3bbfd51f}\label{namespacepmc__aero__sorted_a469c7678b144002576c666dc3bbfd51f}} 
+\index{pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}!pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+sorted@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+sorted}}
+\index{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+sorted@{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+sorted}!pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+sorted()}{pmc\_mpi\_pack\_size\_aero\_sorted()}}
+{\footnotesize\ttfamily integer function pmc\+\_\+aero\+\_\+sorted\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+sorted (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}}), intent(in)}]{val }\end{DoxyParamCaption})}
+
+
+
+Determines the number of bytes required to pack the given value. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 566 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__sorted_a42d37f6234ca8cc529ffc5a90c80e85c}\label{namespacepmc__aero__sorted_a42d37f6234ca8cc529ffc5a90c80e85c}} 
+\index{pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}!pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+sorted@{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+sorted}}
+\index{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+sorted@{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+sorted}!pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}}
+\subsubsection{\texorpdfstring{pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+sorted()}{pmc\_mpi\_unpack\_aero\_sorted()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+aero\+\_\+sorted\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+sorted (\begin{DoxyParamCaption}\item[{character, dimension(\+:), intent(inout)}]{buffer,  }\item[{integer, intent(inout)}]{position,  }\item[{type(\mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}}), intent(inout)}]{val }\end{DoxyParamCaption})}
+
+
+
+Unpacks the given value from the buffer, advancing position. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em buffer} & Memory buffer.\\
+\hline
+\mbox{\tt in,out}  & {\em position} & Current buffer position.\\
+\hline
+\mbox{\tt in,out}  & {\em val} & Value to pack. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 609 of file aero\+\_\+sorted.\+F90.
+
+
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{namespacepmc__aero__sorted_a8d4f2e6bc86816a9514588cfaf6d26b5}\label{namespacepmc__aero__sorted_a8d4f2e6bc86816a9514588cfaf6d26b5}} 
+\index{pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}!aero\+\_\+sorted\+\_\+bin\+\_\+over\+\_\+factor@{aero\+\_\+sorted\+\_\+bin\+\_\+over\+\_\+factor}}
+\index{aero\+\_\+sorted\+\_\+bin\+\_\+over\+\_\+factor@{aero\+\_\+sorted\+\_\+bin\+\_\+over\+\_\+factor}!pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}}
+\subsubsection{\texorpdfstring{aero\+\_\+sorted\+\_\+bin\+\_\+over\+\_\+factor}{aero\_sorted\_bin\_over\_factor}}
+{\footnotesize\ttfamily real(kind=dp), parameter pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+bin\+\_\+over\+\_\+factor = 10d0}
+
+
+
+Factor to extend size grid beyond largest/smallest particles. 
+
+
+
+Definition at line 71 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__sorted_add014bc362ca68811406a3fd86b27706}\label{namespacepmc__aero__sorted_add014bc362ca68811406a3fd86b27706}} 
+\index{pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}!aero\+\_\+sorted\+\_\+bin\+\_\+safety\+\_\+factor@{aero\+\_\+sorted\+\_\+bin\+\_\+safety\+\_\+factor}}
+\index{aero\+\_\+sorted\+\_\+bin\+\_\+safety\+\_\+factor@{aero\+\_\+sorted\+\_\+bin\+\_\+safety\+\_\+factor}!pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}}
+\subsubsection{\texorpdfstring{aero\+\_\+sorted\+\_\+bin\+\_\+safety\+\_\+factor}{aero\_sorted\_bin\_safety\_factor}}
+{\footnotesize\ttfamily real(kind=dp), parameter pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+bin\+\_\+safety\+\_\+factor = 3d0}
+
+
+
+Size grid extension factor when we should regenerate grid. 
+
+
+
+Definition at line 73 of file aero\+\_\+sorted.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__aero__sorted_acb40c5cb90b0ff373c45a7558bcca305}\label{namespacepmc__aero__sorted_acb40c5cb90b0ff373c45a7558bcca305}} 
+\index{pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}!aero\+\_\+sorted\+\_\+bins\+\_\+per\+\_\+decade@{aero\+\_\+sorted\+\_\+bins\+\_\+per\+\_\+decade}}
+\index{aero\+\_\+sorted\+\_\+bins\+\_\+per\+\_\+decade@{aero\+\_\+sorted\+\_\+bins\+\_\+per\+\_\+decade}!pmc\+\_\+aero\+\_\+sorted@{pmc\+\_\+aero\+\_\+sorted}}
+\subsubsection{\texorpdfstring{aero\+\_\+sorted\+\_\+bins\+\_\+per\+\_\+decade}{aero\_sorted\_bins\_per\_decade}}
+{\footnotesize\ttfamily real(kind=dp), parameter pmc\+\_\+aero\+\_\+sorted\+::aero\+\_\+sorted\+\_\+bins\+\_\+per\+\_\+decade = 10d0}
+
+
+
+How many size bins to use per decade of particle radius. 
+
+
+
+Definition at line 69 of file aero\+\_\+sorted.\+F90.
+

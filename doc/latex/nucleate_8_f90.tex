@@ -1,0 +1,33 @@
+\hypertarget{nucleate_8_f90}{}\section{nucleate.\+F90 File Reference}
+\label{nucleate_8_f90}\index{nucleate.\+F90@{nucleate.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__nucleate}{pmc\+\_\+nucleate}} module.  
+
+
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__nucleate}{pmc\+\_\+nucleate}}
+\begin{DoxyCompactList}\small\item\em Aerosol nucleation functions. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__nucleate_ab7689a91cea62cc200e2356b2c201416}{pmc\+\_\+nucleate\+::nucleate}} (nucleate\+\_\+type, nucleate\+\_\+source, env\+\_\+state, gas\+\_\+data, aero\+\_\+data, aero\+\_\+state, gas\+\_\+state, del\+\_\+t, allow\+\_\+doubling, allow\+\_\+halving)
+\begin{DoxyCompactList}\small\item\em Do nucleation of the type given by the first argument. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__nucleate_a417a8f6c4fbc4f588ac915a173b2fda2}{pmc\+\_\+nucleate\+::nucleate\+\_\+sulf\+\_\+acid}} (nucleate\+\_\+source, env\+\_\+state, gas\+\_\+data, aero\+\_\+data, aero\+\_\+state, gas\+\_\+state, del\+\_\+t, allow\+\_\+doubling, allow\+\_\+halving)
+\begin{DoxyCompactList}\small\item\em Nucleate sulfuric acid into aerosol particles, using a power-\/law dependence, for time {\ttfamily del\+\_\+t}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__nucleate_a9b3294f7b14e77755d00cdf9083befe5}{pmc\+\_\+nucleate\+::nucleate\+\_\+type\+\_\+invalid}} = 0
+\begin{DoxyCompactList}\small\item\em Type code for unknown or invalid nucleation type. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__nucleate_a0bc83e4138421dbce4f88810145e181b}{pmc\+\_\+nucleate\+::nucleate\+\_\+type\+\_\+sulf\+\_\+acid}} = 1
+\begin{DoxyCompactList}\small\item\em Type code for H2\+S\+O4 to S\+O4 nucleation with quadratic rate. \end{DoxyCompactList}\item 
+character(len=aero\+\_\+source\+\_\+name\+\_\+len), parameter \mbox{\hyperlink{namespacepmc__nucleate_ac08d8268c41b7f65623b08b460233e9c}{pmc\+\_\+nucleate\+::nucleate\+\_\+source\+\_\+name}} = \char`\"{}nucleate\char`\"{}
+\begin{DoxyCompactList}\small\item\em Source name for nucleated particles. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__nucleate}{pmc\+\_\+nucleate}} module. 
+

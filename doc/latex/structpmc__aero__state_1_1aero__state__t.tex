@@ -1,0 +1,147 @@
+\hypertarget{structpmc__aero__state_1_1aero__state__t}{}\section{pmc\+\_\+aero\+\_\+state\+:\+:aero\+\_\+state\+\_\+t Type Reference}
+\label{structpmc__aero__state_1_1aero__state__t}\index{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t@{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t}}
+
+
+The current collection of aerosol particles.  
+
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+procedure \mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t_ae4c0b9d8e26a78cc678af107994742e0}{n\+\_\+part}} =$>$ \mbox{\hyperlink{namespacepmc__aero__state_a94155bf7fa94e7c3ab722a5a1dacac98}{aero\+\_\+state\+\_\+n\+\_\+part}}
+\begin{DoxyCompactList}\small\item\em Get the number of particles in the aerosol state. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+type(\mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}) \mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t_aa8fd1e1c085328e5590a53b78ccd5083}{apa}}
+\begin{DoxyCompactList}\small\item\em Linear array of particles. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}}) \mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t_a0a9922991b84778a0f7e6746bb5cd007}{aero\+\_\+sorted}}
+\begin{DoxyCompactList}\small\item\em Sorting of particles into size bins and weight groups/classes. \end{DoxyCompactList}\item 
+logical \mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t_a658063f2e8d9bad5f3aca1fb37eac4eb}{valid\+\_\+sort}}
+\begin{DoxyCompactList}\small\item\em Whether the {\ttfamily aero\+\_\+sorted} is a correct sorting. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}) \mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t_a322768c555858c5594926be7bba8133d}{awa}}
+\begin{DoxyCompactList}\small\item\em Weighting functions. \end{DoxyCompactList}\item 
+real(kind=dp), dimension(\+:, \+:), allocatable \mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t_a48717ad80eecaa0e179ae2dd7b081db2}{n\+\_\+part\+\_\+ideal}}
+\begin{DoxyCompactList}\small\item\em Ideal number of computational particles, per weight group and class. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__aero__info__array_1_1aero__info__array__t}{aero\+\_\+info\+\_\+array\+\_\+t}}) \mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t_a2fe4dc14d229409549af2aa7876a974c}{aero\+\_\+info\+\_\+array}}
+\begin{DoxyCompactList}\small\item\em Information on removed particles. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The current collection of aerosol particles. 
+
+The particles in {\ttfamily \mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}} are stored in a single flat array (the {\ttfamily apa} data member), with a sorting into size bins and weight groups/classes possibly stored in the {\ttfamily aero\+\_\+sorted} data member (if {\ttfamily valid\+\_\+sort} is true).
+
+Every time we remove particles we keep track of the particle ID and the action performed in the aero\+\_\+info\+\_\+array\+\_\+t structure. This is typically cleared each time we output data to disk. 
+
+Definition at line 63 of file aero\+\_\+state.\+F90.
+
+
+
+\subsection{Member Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{structpmc__aero__state_1_1aero__state__t_ae4c0b9d8e26a78cc678af107994742e0}\label{structpmc__aero__state_1_1aero__state__t_ae4c0b9d8e26a78cc678af107994742e0}} 
+\index{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t@{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t}!n\+\_\+part@{n\+\_\+part}}
+\index{n\+\_\+part@{n\+\_\+part}!pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t@{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t}}
+\subsubsection{\texorpdfstring{n\+\_\+part()}{n\_part()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t\+::n\+\_\+part (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Get the number of particles in the aerosol state. 
+
+
+
+Definition at line 78 of file aero\+\_\+state.\+F90.
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structpmc__aero__state_1_1aero__state__t_a2fe4dc14d229409549af2aa7876a974c}\label{structpmc__aero__state_1_1aero__state__t_a2fe4dc14d229409549af2aa7876a974c}} 
+\index{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t@{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t}!aero\+\_\+info\+\_\+array@{aero\+\_\+info\+\_\+array}}
+\index{aero\+\_\+info\+\_\+array@{aero\+\_\+info\+\_\+array}!pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t@{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t}}
+\subsubsection{\texorpdfstring{aero\+\_\+info\+\_\+array}{aero\_info\_array}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__aero__info__array_1_1aero__info__array__t}{aero\+\_\+info\+\_\+array\+\_\+t}}) pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t\+::aero\+\_\+info\+\_\+array}
+
+
+
+Information on removed particles. 
+
+
+
+Definition at line 75 of file aero\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__state_1_1aero__state__t_a0a9922991b84778a0f7e6746bb5cd007}\label{structpmc__aero__state_1_1aero__state__t_a0a9922991b84778a0f7e6746bb5cd007}} 
+\index{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t@{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t}!aero\+\_\+sorted@{aero\+\_\+sorted}}
+\index{aero\+\_\+sorted@{aero\+\_\+sorted}!pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t@{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t}}
+\subsubsection{\texorpdfstring{aero\+\_\+sorted}{aero\_sorted}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}}) pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t\+::aero\+\_\+sorted}
+
+
+
+Sorting of particles into size bins and weight groups/classes. 
+
+
+
+Definition at line 67 of file aero\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__state_1_1aero__state__t_aa8fd1e1c085328e5590a53b78ccd5083}\label{structpmc__aero__state_1_1aero__state__t_aa8fd1e1c085328e5590a53b78ccd5083}} 
+\index{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t@{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t}!apa@{apa}}
+\index{apa@{apa}!pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t@{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t}}
+\subsubsection{\texorpdfstring{apa}{apa}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__aero__particle__array_1_1aero__particle__array__t}{aero\+\_\+particle\+\_\+array\+\_\+t}}) pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t\+::apa}
+
+
+
+Linear array of particles. 
+
+
+
+Definition at line 65 of file aero\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__state_1_1aero__state__t_a322768c555858c5594926be7bba8133d}\label{structpmc__aero__state_1_1aero__state__t_a322768c555858c5594926be7bba8133d}} 
+\index{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t@{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t}!awa@{awa}}
+\index{awa@{awa}!pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t@{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t}}
+\subsubsection{\texorpdfstring{awa}{awa}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}) pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t\+::awa}
+
+
+
+Weighting functions. 
+
+
+
+Definition at line 71 of file aero\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__state_1_1aero__state__t_a48717ad80eecaa0e179ae2dd7b081db2}\label{structpmc__aero__state_1_1aero__state__t_a48717ad80eecaa0e179ae2dd7b081db2}} 
+\index{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t@{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t}!n\+\_\+part\+\_\+ideal@{n\+\_\+part\+\_\+ideal}}
+\index{n\+\_\+part\+\_\+ideal@{n\+\_\+part\+\_\+ideal}!pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t@{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t}}
+\subsubsection{\texorpdfstring{n\+\_\+part\+\_\+ideal}{n\_part\_ideal}}
+{\footnotesize\ttfamily real(kind=dp), dimension(\+:, \+:), allocatable pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t\+::n\+\_\+part\+\_\+ideal}
+
+
+
+Ideal number of computational particles, per weight group and class. 
+
+
+
+Definition at line 73 of file aero\+\_\+state.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__state_1_1aero__state__t_a658063f2e8d9bad5f3aca1fb37eac4eb}\label{structpmc__aero__state_1_1aero__state__t_a658063f2e8d9bad5f3aca1fb37eac4eb}} 
+\index{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t@{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t}!valid\+\_\+sort@{valid\+\_\+sort}}
+\index{valid\+\_\+sort@{valid\+\_\+sort}!pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t@{pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t}}
+\subsubsection{\texorpdfstring{valid\+\_\+sort}{valid\_sort}}
+{\footnotesize\ttfamily logical pmc\+\_\+aero\+\_\+state\+::aero\+\_\+state\+\_\+t\+::valid\+\_\+sort}
+
+
+
+Whether the {\ttfamily aero\+\_\+sorted} is a correct sorting. 
+
+
+
+Definition at line 69 of file aero\+\_\+state.\+F90.
+
+
+
+The documentation for this type was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{aero__state_8_f90}{aero\+\_\+state.\+F90}}\end{DoxyCompactItemize}

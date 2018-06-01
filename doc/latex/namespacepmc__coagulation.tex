@@ -1,0 +1,575 @@
+\hypertarget{namespacepmc__coagulation}{}\section{pmc\+\_\+coagulation Module Reference}
+\label{namespacepmc__coagulation}\index{pmc\+\_\+coagulation@{pmc\+\_\+coagulation}}
+
+
+Aerosol particle coagulation.  
+
+
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_ac4aa547a592f79bcd9beed2ed8af6a66}{mc\+\_\+coag}} (coag\+\_\+kernel\+\_\+type, env\+\_\+state, aero\+\_\+data, aero\+\_\+state, del\+\_\+t, tot\+\_\+n\+\_\+samp, tot\+\_\+n\+\_\+coag)
+\begin{DoxyCompactList}\small\item\em Do coagulation for time del\+\_\+t. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a89d4e9f643d866b066134cfea4b68e0f}{mc\+\_\+coag\+\_\+for\+\_\+bin}} (coag\+\_\+kernel\+\_\+type, env\+\_\+state, aero\+\_\+data, aero\+\_\+state, del\+\_\+t, tot\+\_\+n\+\_\+samp, tot\+\_\+n\+\_\+coag, b1, b2, c1, c2)
+\begin{DoxyCompactList}\small\item\em Do coagulation for time del\+\_\+t for the given bins. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a8257679dccc3b287cf254bdd9c810aae}{try\+\_\+per\+\_\+particle\+\_\+coag}} (coag\+\_\+kernel\+\_\+type, k\+\_\+max, env\+\_\+state, aero\+\_\+data, aero\+\_\+state, del\+\_\+t, tot\+\_\+n\+\_\+samp, tot\+\_\+n\+\_\+coag, b1, b2, c1, c2, cc, per\+\_\+particle\+\_\+coag\+\_\+succeeded)
+\begin{DoxyCompactList}\small\item\em Attempt per-\/particle coagulation. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a475dbce9c2097d091a45066282188b3c}{determine\+\_\+target\+\_\+and\+\_\+source}} (aero\+\_\+weight\+\_\+array, bin\+\_\+grid, b1, b2, c1, c2, cc, bt, bs, ct, cs, correct\+\_\+weight\+\_\+ordering)
+\begin{DoxyCompactList}\small\item\em Determine the source and target particle bin/group for per-\/particle coagulation, if possible. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a361de1ab6f07eedb1d66633ba50f3e49}{compute\+\_\+n\+\_\+source}} (n\+\_\+part, k\+\_\+max, del\+\_\+t, n\+\_\+source\+\_\+per\+\_\+target, accept\+\_\+factor)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a52dee0e42bb931daaa05f47cf32bf064}{sample\+\_\+source\+\_\+particle}} (aero\+\_\+state, aero\+\_\+data, env\+\_\+state, coag\+\_\+kernel\+\_\+type, bs, cs, coag\+\_\+particle, n\+\_\+samp\+\_\+mean, accept\+\_\+factor, n\+\_\+samp, n\+\_\+coag, n\+\_\+remove, source\+\_\+particle)
+\begin{DoxyCompactList}\small\item\em Sample coagulation partners for a single coagulation event. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a838d22172600c264f9f656ef20310a90}{coag\+\_\+target\+\_\+with\+\_\+source}} (aero\+\_\+state, aero\+\_\+data, bt, ct, target\+\_\+unif\+\_\+entry, source\+\_\+particle, cc)
+\begin{DoxyCompactList}\small\item\em Coagulate a sampled source particle with a target particle. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_aa26bb6dffadf371d0be17adc22ea653a}{per\+\_\+set\+\_\+coag}} (coag\+\_\+kernel\+\_\+type, k\+\_\+max, env\+\_\+state, aero\+\_\+data, aero\+\_\+state, del\+\_\+t, tot\+\_\+n\+\_\+samp, tot\+\_\+n\+\_\+coag, b1, b2, c1, c2, cc)
+\begin{DoxyCompactList}\small\item\em Do set-\/wise coagulation. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a8df6a73ea4a7e7bedd8b12bf59420628}{compute\+\_\+n\+\_\+samp}} (ni, nj, same\+\_\+bin, k\+\_\+max, del\+\_\+t, n\+\_\+samp\+\_\+mean, n\+\_\+samp, accept\+\_\+factor)
+\begin{DoxyCompactList}\small\item\em Compute the number of samples required for the pair of bins. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a25340bbe4cbc91edfe95036aa4732cbb}{maybe\+\_\+coag\+\_\+pair}} (env\+\_\+state, aero\+\_\+data, aero\+\_\+state, b1, b2, c1, c2, cc, coag\+\_\+kernel\+\_\+type, accept\+\_\+factor, did\+\_\+coag)
+\begin{DoxyCompactList}\small\item\em Choose a random pair for potential coagulation and test its probability of coagulation. If it happens, do the coagulation and update all structures. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a3911bb2973186595a452bffc1bf37e9e}{find\+\_\+rand\+\_\+pair}} (aero\+\_\+sorted, b1, b2, c1, c2, i1, i2)
+\begin{DoxyCompactList}\small\item\em Given {\ttfamily (b1, c1)} and {\ttfamily (b2, c2)}, find a random pair of particles {\ttfamily (b1, c1, i1)} and {\ttfamily (b2, c2, i2)} that are not the same particle particle as each other. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a5cc62e6e5a1af2843681d766563f6364}{coagulate\+\_\+weighting}} (pt1, pt2, ptc, c1, c2, cc, aero\+\_\+data, aero\+\_\+weight\+\_\+array, remove\+\_\+1, remove\+\_\+2, create\+\_\+new, id\+\_\+1\+\_\+lost, id\+\_\+2\+\_\+lost, aero\+\_\+info\+\_\+1, aero\+\_\+info\+\_\+2)
+\begin{DoxyCompactList}\small\item\em Actually coagulate pt1 and pt2 to form ptc and compute weighting effects, including which particles should be lost and which gained. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a8bcb727a5fd3e8551a3139f75b996590}{coagulate}} (aero\+\_\+data, aero\+\_\+state, p1, p2, c1, c2, cc)
+\begin{DoxyCompactList}\small\item\em Join together particles {\ttfamily p1} and {\ttfamily p2}, updating all particle and bin structures to reflect the change. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+real(kind=dp), parameter \mbox{\hyperlink{namespacepmc__coagulation_ae04bc0968f517899ce26a23b550181f5}{coag\+\_\+accel\+\_\+n\+\_\+event}} = 1d0
+\begin{DoxyCompactList}\small\item\em Minimum number of coagulation events per large particle for which accelerated coagulation is used. \end{DoxyCompactList}\item 
+real(kind=dp), parameter \mbox{\hyperlink{namespacepmc__coagulation_a82e17b9c1710579759ee0d0599b9b4f1}{coag\+\_\+accel\+\_\+max\+\_\+cv}} = 0.\+1d0
+\begin{DoxyCompactList}\small\item\em Maximum allowed coefficient-\/of-\/variation due to undersampling in accelerated coagulation. \end{DoxyCompactList}\item 
+real(kind=dp), parameter \mbox{\hyperlink{namespacepmc__coagulation_a56c874842d78c24cc24a82623569418e}{max\+\_\+allowable\+\_\+growth\+\_\+factor}} = 1.\+5d0
+\begin{DoxyCompactList}\small\item\em Maximum allowable growth factor of a target particle volume within one timestep when using accelerated coagulation. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Aerosol particle coagulation. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__coagulation_a838d22172600c264f9f656ef20310a90}\label{namespacepmc__coagulation_a838d22172600c264f9f656ef20310a90}} 
+\index{pmc\+\_\+coagulation@{pmc\+\_\+coagulation}!coag\+\_\+target\+\_\+with\+\_\+source@{coag\+\_\+target\+\_\+with\+\_\+source}}
+\index{coag\+\_\+target\+\_\+with\+\_\+source@{coag\+\_\+target\+\_\+with\+\_\+source}!pmc\+\_\+coagulation@{pmc\+\_\+coagulation}}
+\subsubsection{\texorpdfstring{coag\+\_\+target\+\_\+with\+\_\+source()}{coag\_target\_with\_source()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+::coag\+\_\+target\+\_\+with\+\_\+source (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{integer, intent(in)}]{bt,  }\item[{integer, intent(in)}]{ct,  }\item[{integer, intent(in)}]{target\+\_\+unif\+\_\+entry,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{source\+\_\+particle,  }\item[{integer, intent(in)}]{cc }\end{DoxyParamCaption})}
+
+
+
+Coagulate a sampled source particle with a target particle. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em bt} & Bin of coagulating particle.\\
+\hline
+\mbox{\tt in}  & {\em ct} & Weight class of coagulating particle.\\
+\hline
+\mbox{\tt in}  & {\em target\+\_\+unif\+\_\+entry} & Entry-\/in-\/bin of coagulating particle.\\
+\hline
+\mbox{\tt in}  & {\em source\+\_\+particle} & Sampled particle to coagulate with.\\
+\hline
+\mbox{\tt in}  & {\em cc} & Weight class for coagulated particle. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 474 of file coagulation.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation_a8bcb727a5fd3e8551a3139f75b996590}\label{namespacepmc__coagulation_a8bcb727a5fd3e8551a3139f75b996590}} 
+\index{pmc\+\_\+coagulation@{pmc\+\_\+coagulation}!coagulate@{coagulate}}
+\index{coagulate@{coagulate}!pmc\+\_\+coagulation@{pmc\+\_\+coagulation}}
+\subsubsection{\texorpdfstring{coagulate()}{coagulate()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+::coagulate (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{integer, intent(in)}]{p1,  }\item[{integer, intent(in)}]{p2,  }\item[{integer, intent(in)}]{c1,  }\item[{integer, intent(in)}]{c2,  }\item[{integer, intent(in)}]{cc }\end{DoxyParamCaption})}
+
+
+
+Join together particles {\ttfamily p1} and {\ttfamily p2}, updating all particle and bin structures to reflect the change. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+\mbox{\tt in}  & {\em p1} & First particle index.\\
+\hline
+\mbox{\tt in}  & {\em p2} & Second particle index.\\
+\hline
+\mbox{\tt in}  & {\em c1} & First weight class.\\
+\hline
+\mbox{\tt in}  & {\em c2} & Second weight class.\\
+\hline
+\mbox{\tt in}  & {\em cc} & Coagulated weight class. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 877 of file coagulation.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation_a5cc62e6e5a1af2843681d766563f6364}\label{namespacepmc__coagulation_a5cc62e6e5a1af2843681d766563f6364}} 
+\index{pmc\+\_\+coagulation@{pmc\+\_\+coagulation}!coagulate\+\_\+weighting@{coagulate\+\_\+weighting}}
+\index{coagulate\+\_\+weighting@{coagulate\+\_\+weighting}!pmc\+\_\+coagulation@{pmc\+\_\+coagulation}}
+\subsubsection{\texorpdfstring{coagulate\+\_\+weighting()}{coagulate\_weighting()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+::coagulate\+\_\+weighting (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{pt1,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{pt2,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(inout)}]{ptc,  }\item[{integer, intent(in)}]{c1,  }\item[{integer, intent(in)}]{c2,  }\item[{integer, intent(in)}]{cc,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+weight\+\_\+array,  }\item[{logical, intent(out)}]{remove\+\_\+1,  }\item[{logical, intent(out)}]{remove\+\_\+2,  }\item[{logical, intent(out)}]{create\+\_\+new,  }\item[{logical, intent(out)}]{id\+\_\+1\+\_\+lost,  }\item[{logical, intent(out)}]{id\+\_\+2\+\_\+lost,  }\item[{type(\mbox{\hyperlink{structpmc__aero__info_1_1aero__info__t}{aero\+\_\+info\+\_\+t}}), intent(inout)}]{aero\+\_\+info\+\_\+1,  }\item[{type(\mbox{\hyperlink{structpmc__aero__info_1_1aero__info__t}{aero\+\_\+info\+\_\+t}}), intent(inout)}]{aero\+\_\+info\+\_\+2 }\end{DoxyParamCaption})}
+
+
+
+Actually coagulate pt1 and pt2 to form ptc and compute weighting effects, including which particles should be lost and which gained. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em pt1} & First coagulating aerosol particle.\\
+\hline
+\mbox{\tt in}  & {\em pt2} & Second coagulating aerosol particle.\\
+\hline
+\mbox{\tt in,out}  & {\em ptc} & Combined aerosol particle resulting from coagulation of pt1 and pt2.\\
+\hline
+\mbox{\tt in}  & {\em c1} & First weight class.\\
+\hline
+\mbox{\tt in}  & {\em c2} & Second weight class.\\
+\hline
+\mbox{\tt in}  & {\em cc} & Coagulated weight class.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+weight\+\_\+array} & Aerosol weight array.\\
+\hline
+\mbox{\tt out}  & {\em remove\+\_\+1} & Whether to remove pt1.\\
+\hline
+\mbox{\tt out}  & {\em remove\+\_\+2} & Whether to remove pt2.\\
+\hline
+\mbox{\tt out}  & {\em create\+\_\+new} & Whether to create ptc.\\
+\hline
+\mbox{\tt out}  & {\em id\+\_\+1\+\_\+lost} & Whether the ID of pt1 will be lost due to coagulation.\\
+\hline
+\mbox{\tt out}  & {\em id\+\_\+2\+\_\+lost} & Whether the ID of pt2 will be lost due to coagulation.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+info\+\_\+1} & The removal information associated with pt1.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+info\+\_\+2} & The removal information associated with pt2. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 762 of file coagulation.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation_a8df6a73ea4a7e7bedd8b12bf59420628}\label{namespacepmc__coagulation_a8df6a73ea4a7e7bedd8b12bf59420628}} 
+\index{pmc\+\_\+coagulation@{pmc\+\_\+coagulation}!compute\+\_\+n\+\_\+samp@{compute\+\_\+n\+\_\+samp}}
+\index{compute\+\_\+n\+\_\+samp@{compute\+\_\+n\+\_\+samp}!pmc\+\_\+coagulation@{pmc\+\_\+coagulation}}
+\subsubsection{\texorpdfstring{compute\+\_\+n\+\_\+samp()}{compute\_n\_samp()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+::compute\+\_\+n\+\_\+samp (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{ni,  }\item[{integer, intent(in)}]{nj,  }\item[{logical, intent(in)}]{same\+\_\+bin,  }\item[{real(kind=dp), intent(in)}]{k\+\_\+max,  }\item[{real(kind=dp), intent(in)}]{del\+\_\+t,  }\item[{real(kind=dp), intent(out)}]{n\+\_\+samp\+\_\+mean,  }\item[{integer, intent(out)}]{n\+\_\+samp,  }\item[{real(kind=dp), intent(out)}]{accept\+\_\+factor }\end{DoxyParamCaption})}
+
+
+
+Compute the number of samples required for the pair of bins. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em ni} & Number particles in first bin.\\
+\hline
+\mbox{\tt in}  & {\em nj} & Number particles in second bin.\\
+\hline
+\mbox{\tt in}  & {\em same\+\_\+bin} & Whether first bin is second bin.\\
+\hline
+\mbox{\tt in}  & {\em k\+\_\+max} & Maximum kernel value (s$^\wedge$\{-\/1\} m$^\wedge$3).\\
+\hline
+\mbox{\tt in}  & {\em del\+\_\+t} & Timestep (s).\\
+\hline
+\mbox{\tt out}  & {\em n\+\_\+samp\+\_\+mean} & Mean number of samples per timestep.\\
+\hline
+\mbox{\tt out}  & {\em n\+\_\+samp} & Number of samples per timestep.\\
+\hline
+\mbox{\tt out}  & {\em accept\+\_\+factor} & Scale factor for accept probability (1). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 599 of file coagulation.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation_a361de1ab6f07eedb1d66633ba50f3e49}\label{namespacepmc__coagulation_a361de1ab6f07eedb1d66633ba50f3e49}} 
+\index{pmc\+\_\+coagulation@{pmc\+\_\+coagulation}!compute\+\_\+n\+\_\+source@{compute\+\_\+n\+\_\+source}}
+\index{compute\+\_\+n\+\_\+source@{compute\+\_\+n\+\_\+source}!pmc\+\_\+coagulation@{pmc\+\_\+coagulation}}
+\subsubsection{\texorpdfstring{compute\+\_\+n\+\_\+source()}{compute\_n\_source()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+::compute\+\_\+n\+\_\+source (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{n\+\_\+part,  }\item[{real(kind=dp), intent(in)}]{k\+\_\+max,  }\item[{real(kind=dp), intent(in)}]{del\+\_\+t,  }\item[{real(kind=dp), intent(out)}]{n\+\_\+source\+\_\+per\+\_\+target,  }\item[{real(kind=dp), intent(out)}]{accept\+\_\+factor }\end{DoxyParamCaption})}
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em n\+\_\+part} & Number of particles available as partners.\\
+\hline
+\mbox{\tt in}  & {\em k\+\_\+max} & Maximum coagulation kernel (s$^\wedge$\{-\/1\} m$^\wedge$3).\\
+\hline
+\mbox{\tt in}  & {\em del\+\_\+t} & Timestep (s).\\
+\hline
+\mbox{\tt out}  & {\em n\+\_\+source\+\_\+per\+\_\+target} & Mean number of source particles per target particle.\\
+\hline
+\mbox{\tt out}  & {\em accept\+\_\+factor} & Accept factor for samples. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 313 of file coagulation.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation_a475dbce9c2097d091a45066282188b3c}\label{namespacepmc__coagulation_a475dbce9c2097d091a45066282188b3c}} 
+\index{pmc\+\_\+coagulation@{pmc\+\_\+coagulation}!determine\+\_\+target\+\_\+and\+\_\+source@{determine\+\_\+target\+\_\+and\+\_\+source}}
+\index{determine\+\_\+target\+\_\+and\+\_\+source@{determine\+\_\+target\+\_\+and\+\_\+source}!pmc\+\_\+coagulation@{pmc\+\_\+coagulation}}
+\subsubsection{\texorpdfstring{determine\+\_\+target\+\_\+and\+\_\+source()}{determine\_target\_and\_source()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+::determine\+\_\+target\+\_\+and\+\_\+source (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t}{aero\+\_\+weight\+\_\+array\+\_\+t}}), intent(in)}]{aero\+\_\+weight\+\_\+array,  }\item[{type(\mbox{\hyperlink{structpmc__bin__grid_1_1bin__grid__t}{bin\+\_\+grid\+\_\+t}}), intent(in)}]{bin\+\_\+grid,  }\item[{integer, intent(in)}]{b1,  }\item[{integer, intent(in)}]{b2,  }\item[{integer, intent(in)}]{c1,  }\item[{integer, intent(in)}]{c2,  }\item[{integer, intent(in)}]{cc,  }\item[{integer, intent(out)}]{bt,  }\item[{integer, intent(out)}]{bs,  }\item[{integer, intent(out)}]{ct,  }\item[{integer, intent(out)}]{cs,  }\item[{logical, intent(out)}]{correct\+\_\+weight\+\_\+ordering }\end{DoxyParamCaption})}
+
+
+
+Determine the source and target particle bin/group for per-\/particle coagulation, if possible. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+weight\+\_\+array} & Aero weight array.\\
+\hline
+\mbox{\tt in}  & {\em bin\+\_\+grid} & Bin grid.\\
+\hline
+\mbox{\tt in}  & {\em b1} & First bin number.\\
+\hline
+\mbox{\tt in}  & {\em b2} & Second bin number.\\
+\hline
+\mbox{\tt in}  & {\em c1} & First weight class.\\
+\hline
+\mbox{\tt in}  & {\em c2} & Second weight class.\\
+\hline
+\mbox{\tt in}  & {\em cc} & Coagulated weight class.\\
+\hline
+\mbox{\tt out}  & {\em bt} & Target bin number.\\
+\hline
+\mbox{\tt out}  & {\em bs} & Source bin number.\\
+\hline
+\mbox{\tt out}  & {\em ct} & Target weight class.\\
+\hline
+\mbox{\tt out}  & {\em cs} & Source weight class.\\
+\hline
+\mbox{\tt out}  & {\em correct\+\_\+weight\+\_\+ordering} & Whether the weight ordering is correct for per-\/particle coagulation. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 249 of file coagulation.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation_a3911bb2973186595a452bffc1bf37e9e}\label{namespacepmc__coagulation_a3911bb2973186595a452bffc1bf37e9e}} 
+\index{pmc\+\_\+coagulation@{pmc\+\_\+coagulation}!find\+\_\+rand\+\_\+pair@{find\+\_\+rand\+\_\+pair}}
+\index{find\+\_\+rand\+\_\+pair@{find\+\_\+rand\+\_\+pair}!pmc\+\_\+coagulation@{pmc\+\_\+coagulation}}
+\subsubsection{\texorpdfstring{find\+\_\+rand\+\_\+pair()}{find\_rand\_pair()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+::find\+\_\+rand\+\_\+pair (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__sorted_1_1aero__sorted__t}{aero\+\_\+sorted\+\_\+t}}), intent(in)}]{aero\+\_\+sorted,  }\item[{integer, intent(in)}]{b1,  }\item[{integer, intent(in)}]{b2,  }\item[{integer, intent(in)}]{c1,  }\item[{integer, intent(in)}]{c2,  }\item[{integer, intent(out)}]{i1,  }\item[{integer, intent(out)}]{i2 }\end{DoxyParamCaption})}
+
+
+
+Given {\ttfamily (b1, c1)} and {\ttfamily (b2, c2)}, find a random pair of particles {\ttfamily (b1, c1, i1)} and {\ttfamily (b2, c2, i2)} that are not the same particle particle as each other. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em aero\+\_\+sorted} & Aerosol sorted data.\\
+\hline
+\mbox{\tt in}  & {\em b1} & Bin number of first particle.\\
+\hline
+\mbox{\tt in}  & {\em b2} & Bin number of second particle.\\
+\hline
+\mbox{\tt in}  & {\em c1} & Weight class of first particle.\\
+\hline
+\mbox{\tt in}  & {\em c2} & Weight class of second particle.\\
+\hline
+\mbox{\tt out}  & {\em i1} & First rand particle.\\
+\hline
+\mbox{\tt out}  & {\em i2} & Second rand particle. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 716 of file coagulation.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation_a25340bbe4cbc91edfe95036aa4732cbb}\label{namespacepmc__coagulation_a25340bbe4cbc91edfe95036aa4732cbb}} 
+\index{pmc\+\_\+coagulation@{pmc\+\_\+coagulation}!maybe\+\_\+coag\+\_\+pair@{maybe\+\_\+coag\+\_\+pair}}
+\index{maybe\+\_\+coag\+\_\+pair@{maybe\+\_\+coag\+\_\+pair}!pmc\+\_\+coagulation@{pmc\+\_\+coagulation}}
+\subsubsection{\texorpdfstring{maybe\+\_\+coag\+\_\+pair()}{maybe\_coag\_pair()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+::maybe\+\_\+coag\+\_\+pair (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{integer, intent(in)}]{b1,  }\item[{integer, intent(in)}]{b2,  }\item[{integer, intent(in)}]{c1,  }\item[{integer, intent(in)}]{c2,  }\item[{integer, intent(in)}]{cc,  }\item[{integer, intent(in)}]{coag\+\_\+kernel\+\_\+type,  }\item[{real(kind=dp), intent(in)}]{accept\+\_\+factor,  }\item[{logical, intent(out)}]{did\+\_\+coag }\end{DoxyParamCaption})}
+
+
+
+Choose a random pair for potential coagulation and test its probability of coagulation. If it happens, do the coagulation and update all structures. 
+
+The probability of a coagulation will be taken as {\ttfamily (kernel / k\+\_\+max)}.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+\mbox{\tt in}  & {\em b1} & Bin of first particle.\\
+\hline
+\mbox{\tt in}  & {\em b2} & Bin of second particle.\\
+\hline
+\mbox{\tt in}  & {\em c1} & First weight class.\\
+\hline
+\mbox{\tt in}  & {\em c2} & Second weight class.\\
+\hline
+\mbox{\tt in}  & {\em cc} & Coagulated weight class.\\
+\hline
+\mbox{\tt in}  & {\em coag\+\_\+kernel\+\_\+type} & Coagulation kernel type.\\
+\hline
+\mbox{\tt in}  & {\em accept\+\_\+factor} & Scale factor for accept probability (1).\\
+\hline
+\mbox{\tt out}  & {\em did\+\_\+coag} & Whether a coagulation occured. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 663 of file coagulation.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation_ac4aa547a592f79bcd9beed2ed8af6a66}\label{namespacepmc__coagulation_ac4aa547a592f79bcd9beed2ed8af6a66}} 
+\index{pmc\+\_\+coagulation@{pmc\+\_\+coagulation}!mc\+\_\+coag@{mc\+\_\+coag}}
+\index{mc\+\_\+coag@{mc\+\_\+coag}!pmc\+\_\+coagulation@{pmc\+\_\+coagulation}}
+\subsubsection{\texorpdfstring{mc\+\_\+coag()}{mc\_coag()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+::mc\+\_\+coag (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{coag\+\_\+kernel\+\_\+type,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{real(kind=dp)}]{del\+\_\+t,  }\item[{integer, intent(out)}]{tot\+\_\+n\+\_\+samp,  }\item[{integer, intent(out)}]{tot\+\_\+n\+\_\+coag }\end{DoxyParamCaption})}
+
+
+
+Do coagulation for time del\+\_\+t. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em coag\+\_\+kernel\+\_\+type} & Coagulation kernel type.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+ & {\em del\+\_\+t} & Timestep for coagulation.\\
+\hline
+\mbox{\tt out}  & {\em tot\+\_\+n\+\_\+samp} & Total number of samples tested.\\
+\hline
+\mbox{\tt out}  & {\em tot\+\_\+n\+\_\+coag} & Number of coagulation events. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 45 of file coagulation.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation_a89d4e9f643d866b066134cfea4b68e0f}\label{namespacepmc__coagulation_a89d4e9f643d866b066134cfea4b68e0f}} 
+\index{pmc\+\_\+coagulation@{pmc\+\_\+coagulation}!mc\+\_\+coag\+\_\+for\+\_\+bin@{mc\+\_\+coag\+\_\+for\+\_\+bin}}
+\index{mc\+\_\+coag\+\_\+for\+\_\+bin@{mc\+\_\+coag\+\_\+for\+\_\+bin}!pmc\+\_\+coagulation@{pmc\+\_\+coagulation}}
+\subsubsection{\texorpdfstring{mc\+\_\+coag\+\_\+for\+\_\+bin()}{mc\_coag\_for\_bin()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+::mc\+\_\+coag\+\_\+for\+\_\+bin (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{coag\+\_\+kernel\+\_\+type,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{real(kind=dp)}]{del\+\_\+t,  }\item[{integer, intent(inout)}]{tot\+\_\+n\+\_\+samp,  }\item[{integer, intent(inout)}]{tot\+\_\+n\+\_\+coag,  }\item[{integer, intent(in)}]{b1,  }\item[{integer, intent(in)}]{b2,  }\item[{integer, intent(in)}]{c1,  }\item[{integer, intent(in)}]{c2 }\end{DoxyParamCaption})}
+
+
+
+Do coagulation for time del\+\_\+t for the given bins. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em coag\+\_\+kernel\+\_\+type} & Coagulation kernel type.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+ & {\em del\+\_\+t} & Timestep for coagulation.\\
+\hline
+\mbox{\tt in,out}  & {\em tot\+\_\+n\+\_\+samp} & Total number of samples tested.\\
+\hline
+\mbox{\tt in,out}  & {\em tot\+\_\+n\+\_\+coag} & Number of coagulation events.\\
+\hline
+\mbox{\tt in}  & {\em b1} & First bin number.\\
+\hline
+\mbox{\tt in}  & {\em b2} & Second bin number.\\
+\hline
+\mbox{\tt in}  & {\em c1} & First weight class.\\
+\hline
+\mbox{\tt in}  & {\em c2} & Second weight class. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 103 of file coagulation.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation_aa26bb6dffadf371d0be17adc22ea653a}\label{namespacepmc__coagulation_aa26bb6dffadf371d0be17adc22ea653a}} 
+\index{pmc\+\_\+coagulation@{pmc\+\_\+coagulation}!per\+\_\+set\+\_\+coag@{per\+\_\+set\+\_\+coag}}
+\index{per\+\_\+set\+\_\+coag@{per\+\_\+set\+\_\+coag}!pmc\+\_\+coagulation@{pmc\+\_\+coagulation}}
+\subsubsection{\texorpdfstring{per\+\_\+set\+\_\+coag()}{per\_set\_coag()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+::per\+\_\+set\+\_\+coag (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{coag\+\_\+kernel\+\_\+type,  }\item[{real(kind=dp), intent(in)}]{k\+\_\+max,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{real(kind=dp)}]{del\+\_\+t,  }\item[{integer, intent(inout)}]{tot\+\_\+n\+\_\+samp,  }\item[{integer, intent(inout)}]{tot\+\_\+n\+\_\+coag,  }\item[{integer, intent(in)}]{b1,  }\item[{integer, intent(in)}]{b2,  }\item[{integer, intent(in)}]{c1,  }\item[{integer, intent(in)}]{c2,  }\item[{integer, intent(in)}]{cc }\end{DoxyParamCaption})}
+
+
+
+Do set-\/wise coagulation. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em coag\+\_\+kernel\+\_\+type} & Coagulation kernel type.\\
+\hline
+\mbox{\tt in}  & {\em k\+\_\+max} & Maximum coagulation kernel (s$^\wedge$\{-\/1\} m$^\wedge$3).\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+ & {\em del\+\_\+t} & Timestep for coagulation.\\
+\hline
+\mbox{\tt in,out}  & {\em tot\+\_\+n\+\_\+samp} & Total number of samples tested.\\
+\hline
+\mbox{\tt in,out}  & {\em tot\+\_\+n\+\_\+coag} & Number of coagulation events.\\
+\hline
+\mbox{\tt in}  & {\em b1} & First bin number.\\
+\hline
+\mbox{\tt in}  & {\em b2} & Second bin number.\\
+\hline
+\mbox{\tt in}  & {\em c1} & First weight class.\\
+\hline
+\mbox{\tt in}  & {\em c2} & Second weight class.\\
+\hline
+\mbox{\tt in}  & {\em cc} & Coagulated weight class. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 538 of file coagulation.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation_a52dee0e42bb931daaa05f47cf32bf064}\label{namespacepmc__coagulation_a52dee0e42bb931daaa05f47cf32bf064}} 
+\index{pmc\+\_\+coagulation@{pmc\+\_\+coagulation}!sample\+\_\+source\+\_\+particle@{sample\+\_\+source\+\_\+particle}}
+\index{sample\+\_\+source\+\_\+particle@{sample\+\_\+source\+\_\+particle}!pmc\+\_\+coagulation@{pmc\+\_\+coagulation}}
+\subsubsection{\texorpdfstring{sample\+\_\+source\+\_\+particle()}{sample\_source\_particle()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+::sample\+\_\+source\+\_\+particle (\begin{DoxyParamCaption}\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{integer, intent(in)}]{coag\+\_\+kernel\+\_\+type,  }\item[{integer, intent(in)}]{bs,  }\item[{integer, intent(in)}]{cs,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(in)}]{coag\+\_\+particle,  }\item[{real(kind=dp), intent(in)}]{n\+\_\+samp\+\_\+mean,  }\item[{real(kind=dp), intent(in)}]{accept\+\_\+factor,  }\item[{integer, intent(out)}]{n\+\_\+samp,  }\item[{integer, intent(out)}]{n\+\_\+coag,  }\item[{integer, intent(out)}]{n\+\_\+remove,  }\item[{type(\mbox{\hyperlink{structpmc__aero__particle_1_1aero__particle__t}{aero\+\_\+particle\+\_\+t}}), intent(inout)}]{source\+\_\+particle }\end{DoxyParamCaption})}
+
+
+
+Sample coagulation partners for a single coagulation event. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em coag\+\_\+kernel\+\_\+type} & Coagulation kernel type.\\
+\hline
+\mbox{\tt in}  & {\em bs} & Bin to sample particles from.\\
+\hline
+\mbox{\tt in}  & {\em cs} & Weight class to sample particles from.\\
+\hline
+\mbox{\tt in}  & {\em coag\+\_\+particle} & Aerosol particle that coagulation will be with.\\
+\hline
+\mbox{\tt in}  & {\em n\+\_\+samp\+\_\+mean} & Mean number of samples to use.\\
+\hline
+\mbox{\tt in}  & {\em accept\+\_\+factor} & Probability factor of accepting samples.\\
+\hline
+\mbox{\tt out}  & {\em n\+\_\+samp} & Number of samples used.\\
+\hline
+\mbox{\tt out}  & {\em n\+\_\+coag} & Number of coagulations performed.\\
+\hline
+\mbox{\tt out}  & {\em n\+\_\+remove} & Number of particles removed.\\
+\hline
+\mbox{\tt in,out}  & {\em source\+\_\+particle} & Sampled average coagulation partner particle. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 336 of file coagulation.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation_a8257679dccc3b287cf254bdd9c810aae}\label{namespacepmc__coagulation_a8257679dccc3b287cf254bdd9c810aae}} 
+\index{pmc\+\_\+coagulation@{pmc\+\_\+coagulation}!try\+\_\+per\+\_\+particle\+\_\+coag@{try\+\_\+per\+\_\+particle\+\_\+coag}}
+\index{try\+\_\+per\+\_\+particle\+\_\+coag@{try\+\_\+per\+\_\+particle\+\_\+coag}!pmc\+\_\+coagulation@{pmc\+\_\+coagulation}}
+\subsubsection{\texorpdfstring{try\+\_\+per\+\_\+particle\+\_\+coag()}{try\_per\_particle\_coag()}}
+{\footnotesize\ttfamily subroutine pmc\+\_\+coagulation\+::try\+\_\+per\+\_\+particle\+\_\+coag (\begin{DoxyParamCaption}\item[{integer, intent(in)}]{coag\+\_\+kernel\+\_\+type,  }\item[{real(kind=dp), intent(in)}]{k\+\_\+max,  }\item[{type(\mbox{\hyperlink{structpmc__env__state_1_1env__state__t}{env\+\_\+state\+\_\+t}}), intent(in)}]{env\+\_\+state,  }\item[{type(\mbox{\hyperlink{structpmc__aero__data_1_1aero__data__t}{aero\+\_\+data\+\_\+t}}), intent(in)}]{aero\+\_\+data,  }\item[{type(\mbox{\hyperlink{structpmc__aero__state_1_1aero__state__t}{aero\+\_\+state\+\_\+t}}), intent(inout)}]{aero\+\_\+state,  }\item[{real(kind=dp)}]{del\+\_\+t,  }\item[{integer, intent(inout)}]{tot\+\_\+n\+\_\+samp,  }\item[{integer, intent(inout)}]{tot\+\_\+n\+\_\+coag,  }\item[{integer, intent(in)}]{b1,  }\item[{integer, intent(in)}]{b2,  }\item[{integer, intent(in)}]{c1,  }\item[{integer, intent(in)}]{c2,  }\item[{integer, intent(in)}]{cc,  }\item[{logical, intent(inout)}]{per\+\_\+particle\+\_\+coag\+\_\+succeeded }\end{DoxyParamCaption})}
+
+
+
+Attempt per-\/particle coagulation. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em coag\+\_\+kernel\+\_\+type} & Coagulation kernel type.\\
+\hline
+\mbox{\tt in}  & {\em k\+\_\+max} & Maximum coagulation kernel (s$^\wedge$\{-\/1\} m$^\wedge$3).\\
+\hline
+\mbox{\tt in}  & {\em env\+\_\+state} & Environment state.\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+data} & Aerosol data.\\
+\hline
+\mbox{\tt in,out}  & {\em aero\+\_\+state} & Aerosol state.\\
+\hline
+ & {\em del\+\_\+t} & Timestep for coagulation.\\
+\hline
+\mbox{\tt in,out}  & {\em tot\+\_\+n\+\_\+samp} & Total number of samples tested.\\
+\hline
+\mbox{\tt in,out}  & {\em tot\+\_\+n\+\_\+coag} & Number of coagulation events.\\
+\hline
+\mbox{\tt in}  & {\em b1} & First bin number.\\
+\hline
+\mbox{\tt in}  & {\em b2} & Second bin number.\\
+\hline
+\mbox{\tt in}  & {\em c1} & First weight class.\\
+\hline
+\mbox{\tt in}  & {\em c2} & Second weight class.\\
+\hline
+\mbox{\tt in}  & {\em cc} & Coagulated weight class.\\
+\hline
+\mbox{\tt in,out}  & {\em per\+\_\+particle\+\_\+coag\+\_\+succeeded} & Whether we succeeded in doing per-\/particle coag. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 153 of file coagulation.\+F90.
+
+
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{namespacepmc__coagulation_a82e17b9c1710579759ee0d0599b9b4f1}\label{namespacepmc__coagulation_a82e17b9c1710579759ee0d0599b9b4f1}} 
+\index{pmc\+\_\+coagulation@{pmc\+\_\+coagulation}!coag\+\_\+accel\+\_\+max\+\_\+cv@{coag\+\_\+accel\+\_\+max\+\_\+cv}}
+\index{coag\+\_\+accel\+\_\+max\+\_\+cv@{coag\+\_\+accel\+\_\+max\+\_\+cv}!pmc\+\_\+coagulation@{pmc\+\_\+coagulation}}
+\subsubsection{\texorpdfstring{coag\+\_\+accel\+\_\+max\+\_\+cv}{coag\_accel\_max\_cv}}
+{\footnotesize\ttfamily real(kind=dp), parameter pmc\+\_\+coagulation\+::coag\+\_\+accel\+\_\+max\+\_\+cv = 0.\+1d0}
+
+
+
+Maximum allowed coefficient-\/of-\/variation due to undersampling in accelerated coagulation. 
+
+
+
+Definition at line 33 of file coagulation.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation_ae04bc0968f517899ce26a23b550181f5}\label{namespacepmc__coagulation_ae04bc0968f517899ce26a23b550181f5}} 
+\index{pmc\+\_\+coagulation@{pmc\+\_\+coagulation}!coag\+\_\+accel\+\_\+n\+\_\+event@{coag\+\_\+accel\+\_\+n\+\_\+event}}
+\index{coag\+\_\+accel\+\_\+n\+\_\+event@{coag\+\_\+accel\+\_\+n\+\_\+event}!pmc\+\_\+coagulation@{pmc\+\_\+coagulation}}
+\subsubsection{\texorpdfstring{coag\+\_\+accel\+\_\+n\+\_\+event}{coag\_accel\_n\_event}}
+{\footnotesize\ttfamily real(kind=dp), parameter pmc\+\_\+coagulation\+::coag\+\_\+accel\+\_\+n\+\_\+event = 1d0}
+
+
+
+Minimum number of coagulation events per large particle for which accelerated coagulation is used. 
+
+
+
+Definition at line 30 of file coagulation.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__coagulation_a56c874842d78c24cc24a82623569418e}\label{namespacepmc__coagulation_a56c874842d78c24cc24a82623569418e}} 
+\index{pmc\+\_\+coagulation@{pmc\+\_\+coagulation}!max\+\_\+allowable\+\_\+growth\+\_\+factor@{max\+\_\+allowable\+\_\+growth\+\_\+factor}}
+\index{max\+\_\+allowable\+\_\+growth\+\_\+factor@{max\+\_\+allowable\+\_\+growth\+\_\+factor}!pmc\+\_\+coagulation@{pmc\+\_\+coagulation}}
+\subsubsection{\texorpdfstring{max\+\_\+allowable\+\_\+growth\+\_\+factor}{max\_allowable\_growth\_factor}}
+{\footnotesize\ttfamily real(kind=dp), parameter pmc\+\_\+coagulation\+::max\+\_\+allowable\+\_\+growth\+\_\+factor = 1.\+5d0}
+
+
+
+Maximum allowable growth factor of a target particle volume within one timestep when using accelerated coagulation. 
+
+
+
+Definition at line 36 of file coagulation.\+F90.
+

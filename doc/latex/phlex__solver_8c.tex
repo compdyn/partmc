@@ -1,0 +1,462 @@
+\hypertarget{phlex__solver_8c}{}\section{phlex\+\_\+solver.\+c File Reference}
+\label{phlex__solver_8c}\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+
+
+Interface to c solvers for chemistry.  
+
+
+Include dependency graph for phlex\+\_\+solver.\+c\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{phlex__solver_8c__incl}
+\end{center}
+\end{figure}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{phlex__solver_8c_a504e84af799d6e4ff71fa8b1341e7877}{P\+H\+L\+E\+X\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+U\+C\+C\+E\+SS}}~0
+\item 
+\#define \mbox{\hyperlink{phlex__solver_8c_aa90cec80f230c1a11fc606e231e6bac4}{P\+H\+L\+E\+X\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+F\+A\+IL}}~1
+\item 
+\#define \mbox{\hyperlink{phlex__solver_8c_abc4bad634bb9dd69299f78f9b8e48261}{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+U\+N\+K\+N\+O\+W\+N\+\_\+\+T\+Y\+PE}}~0
+\item 
+\#define \mbox{\hyperlink{phlex__solver_8c_a10e72ce63e142fef6dce2428a7de2580}{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+V\+A\+R\+I\+A\+B\+LE}}~1
+\item 
+\#define \mbox{\hyperlink{phlex__solver_8c_a4f2dfc4527e2984ed67ea6c851ace391}{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+C\+O\+N\+S\+T\+A\+NT}}~2
+\item 
+\#define \mbox{\hyperlink{phlex__solver_8c_aeace301878b189a10ee1804753cb75b9}{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+P\+S\+SA}}~3
+\item 
+\#define \mbox{\hyperlink{phlex__solver_8c_af8e7b2f80c9040a3beef4c680c2ff028}{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+A\+C\+T\+I\+V\+I\+T\+Y\+\_\+\+C\+O\+E\+FF}}~4
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void $\ast$ \mbox{\hyperlink{phlex__solver_8c_a957caf93a7578ac30d5102c1fffeedb4}{solver\+\_\+new}} (int n\+\_\+state\+\_\+var, int $\ast$var\+\_\+type, int n\+\_\+rxn, int n\+\_\+rxn\+\_\+int\+\_\+param, int n\+\_\+rxn\+\_\+float\+\_\+param, int n\+\_\+aero\+\_\+phase, int n\+\_\+aero\+\_\+phase\+\_\+int\+\_\+param, int n\+\_\+aero\+\_\+phase\+\_\+float\+\_\+param, int n\+\_\+aero\+\_\+rep, int n\+\_\+aero\+\_\+rep\+\_\+int\+\_\+param, int n\+\_\+aero\+\_\+rep\+\_\+float\+\_\+param, int n\+\_\+sub\+\_\+model, int n\+\_\+sub\+\_\+model\+\_\+int\+\_\+param, int n\+\_\+sub\+\_\+model\+\_\+float\+\_\+param)
+\begin{DoxyCompactList}\small\item\em Get a new solver object. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{phlex__solver_8c_a599ffdef916b139a1690bfd41aa386b6}{solver\+\_\+initialize}} (void $\ast$solver\+\_\+data, double $\ast$abs\+\_\+tol, double rel\+\_\+tol, int max\+\_\+steps, int max\+\_\+conv\+\_\+fails)
+\begin{DoxyCompactList}\small\item\em Solver initialization. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{phlex__solver_8c_afc5ec8680b419e7ab49530d53a76cee4}{solver\+\_\+run}} (void $\ast$solver\+\_\+data, double $\ast$state, double $\ast$env, double t\+\_\+initial, double t\+\_\+final)
+\begin{DoxyCompactList}\small\item\em Solve for a given timestep. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{phlex__solver_8c_ac55302bc18db0d68d78f543aad6a16c4}{f}} (realtype t, N\+\_\+\+Vector y, N\+\_\+\+Vector deriv, void $\ast$solver\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Compute the time derivative f(t,y) \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{phlex__solver_8c_a13451d507558a61a2353adfed58db468}{Jac}} (realtype t, N\+\_\+\+Vector y, N\+\_\+\+Vector deriv, S\+U\+N\+Matrix J, void $\ast$solver\+\_\+data, N\+\_\+\+Vector tmp1, N\+\_\+\+Vector tmp2, N\+\_\+\+Vector tmp3)
+\begin{DoxyCompactList}\small\item\em Compute the Jacobian. \end{DoxyCompactList}\item 
+S\+U\+N\+Matrix \mbox{\hyperlink{phlex__solver_8c_a5b485fa25356197023889f3795888e98}{get\+\_\+jac\+\_\+init}} (\mbox{\hyperlink{struct_solver_data}{Solver\+Data}} $\ast$solver\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Create a sparse Jacobian matrix based on model data. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{phlex__solver_8c_a08519bb4526ffd3db7f49b33ba7600aa}{check\+\_\+flag}} (void $\ast$flag\+\_\+value, char $\ast$func\+\_\+name, int opt)
+\begin{DoxyCompactList}\small\item\em Check the return value of a S\+U\+N\+D\+I\+A\+LS function. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{phlex__solver_8c_a736da263e758eddff5578b8685edc459}{check\+\_\+flag\+\_\+fail}} (void $\ast$flag\+\_\+value, char $\ast$func\+\_\+name, int opt)
+\begin{DoxyCompactList}\small\item\em Check the return value of a S\+U\+N\+D\+I\+A\+LS function and exit on failure. \end{DoxyCompactList}\item 
+static void \mbox{\hyperlink{phlex__solver_8c_aa27659e81a1e22c9ab59889e8e7cd341}{solver\+\_\+print\+\_\+stats}} (void $\ast$cvode\+\_\+mem)
+\begin{DoxyCompactList}\small\item\em Print solver statistics. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{phlex__solver_8c_a946f57c971834de0c7cb185263cd3c78}{solver\+\_\+free}} (void $\ast$solver\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Free a \mbox{\hyperlink{struct_solver_data}{Solver\+Data}} object. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{phlex__solver_8c_a01ab307718c5b5304fc16472d23d999f}{model\+\_\+free}} (\mbox{\hyperlink{struct_model_data}{Model\+Data}} model\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Free a \mbox{\hyperlink{struct_model_data}{Model\+Data}} object. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{phlex__solver_8c_a97135700d97a42ab3c8c1429513ecb28}{solver\+\_\+free\+\_\+update\+\_\+data}} (void $\ast$update\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Free update data. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Interface to c solvers for chemistry. 
+
+
+
+\subsection{Macro Definition Documentation}
+\mbox{\Hypertarget{phlex__solver_8c_af8e7b2f80c9040a3beef4c680c2ff028}\label{phlex__solver_8c_af8e7b2f80c9040a3beef4c680c2ff028}} 
+\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}!C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+A\+C\+T\+I\+V\+I\+T\+Y\+\_\+\+C\+O\+E\+FF@{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+A\+C\+T\+I\+V\+I\+T\+Y\+\_\+\+C\+O\+E\+FF}}
+\index{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+A\+C\+T\+I\+V\+I\+T\+Y\+\_\+\+C\+O\+E\+FF@{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+A\+C\+T\+I\+V\+I\+T\+Y\+\_\+\+C\+O\+E\+FF}!phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+A\+C\+T\+I\+V\+I\+T\+Y\+\_\+\+C\+O\+E\+FF}{CHEM\_SPEC\_ACTIVITY\_COEFF}}
+{\footnotesize\ttfamily \#define C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+A\+C\+T\+I\+V\+I\+T\+Y\+\_\+\+C\+O\+E\+FF~4}
+
+
+
+Definition at line 25 of file phlex\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{phlex__solver_8c_a4f2dfc4527e2984ed67ea6c851ace391}\label{phlex__solver_8c_a4f2dfc4527e2984ed67ea6c851ace391}} 
+\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}!C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+C\+O\+N\+S\+T\+A\+NT@{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+C\+O\+N\+S\+T\+A\+NT}}
+\index{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+C\+O\+N\+S\+T\+A\+NT@{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+C\+O\+N\+S\+T\+A\+NT}!phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+C\+O\+N\+S\+T\+A\+NT}{CHEM\_SPEC\_CONSTANT}}
+{\footnotesize\ttfamily \#define C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+C\+O\+N\+S\+T\+A\+NT~2}
+
+
+
+Definition at line 23 of file phlex\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{phlex__solver_8c_aeace301878b189a10ee1804753cb75b9}\label{phlex__solver_8c_aeace301878b189a10ee1804753cb75b9}} 
+\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}!C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+P\+S\+SA@{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+P\+S\+SA}}
+\index{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+P\+S\+SA@{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+P\+S\+SA}!phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+P\+S\+SA}{CHEM\_SPEC\_PSSA}}
+{\footnotesize\ttfamily \#define C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+P\+S\+SA~3}
+
+
+
+Definition at line 24 of file phlex\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{phlex__solver_8c_abc4bad634bb9dd69299f78f9b8e48261}\label{phlex__solver_8c_abc4bad634bb9dd69299f78f9b8e48261}} 
+\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}!C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+U\+N\+K\+N\+O\+W\+N\+\_\+\+T\+Y\+PE@{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+U\+N\+K\+N\+O\+W\+N\+\_\+\+T\+Y\+PE}}
+\index{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+U\+N\+K\+N\+O\+W\+N\+\_\+\+T\+Y\+PE@{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+U\+N\+K\+N\+O\+W\+N\+\_\+\+T\+Y\+PE}!phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+U\+N\+K\+N\+O\+W\+N\+\_\+\+T\+Y\+PE}{CHEM\_SPEC\_UNKNOWN\_TYPE}}
+{\footnotesize\ttfamily \#define C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+U\+N\+K\+N\+O\+W\+N\+\_\+\+T\+Y\+PE~0}
+
+
+
+Definition at line 21 of file phlex\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{phlex__solver_8c_a10e72ce63e142fef6dce2428a7de2580}\label{phlex__solver_8c_a10e72ce63e142fef6dce2428a7de2580}} 
+\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}!C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+V\+A\+R\+I\+A\+B\+LE@{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+V\+A\+R\+I\+A\+B\+LE}}
+\index{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+V\+A\+R\+I\+A\+B\+LE@{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+V\+A\+R\+I\+A\+B\+LE}!phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+V\+A\+R\+I\+A\+B\+LE}{CHEM\_SPEC\_VARIABLE}}
+{\footnotesize\ttfamily \#define C\+H\+E\+M\+\_\+\+S\+P\+E\+C\+\_\+\+V\+A\+R\+I\+A\+B\+LE~1}
+
+
+
+Definition at line 22 of file phlex\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{phlex__solver_8c_aa90cec80f230c1a11fc606e231e6bac4}\label{phlex__solver_8c_aa90cec80f230c1a11fc606e231e6bac4}} 
+\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}!P\+H\+L\+E\+X\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+F\+A\+IL@{P\+H\+L\+E\+X\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+F\+A\+IL}}
+\index{P\+H\+L\+E\+X\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+F\+A\+IL@{P\+H\+L\+E\+X\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+F\+A\+IL}!phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{P\+H\+L\+E\+X\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+F\+A\+IL}{PHLEX\_SOLVER\_FAIL}}
+{\footnotesize\ttfamily \#define P\+H\+L\+E\+X\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+F\+A\+IL~1}
+
+
+
+Definition at line 18 of file phlex\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{phlex__solver_8c_a504e84af799d6e4ff71fa8b1341e7877}\label{phlex__solver_8c_a504e84af799d6e4ff71fa8b1341e7877}} 
+\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}!P\+H\+L\+E\+X\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+U\+C\+C\+E\+SS@{P\+H\+L\+E\+X\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+U\+C\+C\+E\+SS}}
+\index{P\+H\+L\+E\+X\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+U\+C\+C\+E\+SS@{P\+H\+L\+E\+X\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+U\+C\+C\+E\+SS}!phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{P\+H\+L\+E\+X\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+U\+C\+C\+E\+SS}{PHLEX\_SOLVER\_SUCCESS}}
+{\footnotesize\ttfamily \#define P\+H\+L\+E\+X\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+U\+C\+C\+E\+SS~0}
+
+
+
+Definition at line 17 of file phlex\+\_\+solver.\+c.
+
+
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{phlex__solver_8c_a08519bb4526ffd3db7f49b33ba7600aa}\label{phlex__solver_8c_a08519bb4526ffd3db7f49b33ba7600aa}} 
+\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}!check\+\_\+flag@{check\+\_\+flag}}
+\index{check\+\_\+flag@{check\+\_\+flag}!phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{check\+\_\+flag()}{check\_flag()}}
+{\footnotesize\ttfamily int check\+\_\+flag (\begin{DoxyParamCaption}\item[{void $\ast$}]{flag\+\_\+value,  }\item[{char $\ast$}]{func\+\_\+name,  }\item[{int}]{opt }\end{DoxyParamCaption})}
+
+
+
+Check the return value of a S\+U\+N\+D\+I\+A\+LS function. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em flag\+\_\+value} & A pointer to check (either for N\+U\+LL, or as an int pointer giving the flag value \\
+\hline
+{\em func\+\_\+name} & A string giving the function name returning this result code \\
+\hline
+{\em opt} & A flag indicating the type of check to perform (0 for N\+U\+LL pointer check; 1 for integer flag check) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Flag indicating P\+H\+L\+E\+X\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+U\+C\+C\+E\+SS or P\+H\+L\+E\+X\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+F\+A\+IL 
+\end{DoxyReturn}
+
+
+Definition at line 514 of file phlex\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{phlex__solver_8c_a736da263e758eddff5578b8685edc459}\label{phlex__solver_8c_a736da263e758eddff5578b8685edc459}} 
+\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}!check\+\_\+flag\+\_\+fail@{check\+\_\+flag\+\_\+fail}}
+\index{check\+\_\+flag\+\_\+fail@{check\+\_\+flag\+\_\+fail}!phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{check\+\_\+flag\+\_\+fail()}{check\_flag\_fail()}}
+{\footnotesize\ttfamily void check\+\_\+flag\+\_\+fail (\begin{DoxyParamCaption}\item[{void $\ast$}]{flag\+\_\+value,  }\item[{char $\ast$}]{func\+\_\+name,  }\item[{int}]{opt }\end{DoxyParamCaption})}
+
+
+
+Check the return value of a S\+U\+N\+D\+I\+A\+LS function and exit on failure. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em flag\+\_\+value} & A pointer to check (either for N\+U\+LL, or as an int pointer giving the flag value \\
+\hline
+{\em func\+\_\+name} & A string giving the function name returning this result code \\
+\hline
+{\em opt} & A flag indicating the type of check to perform (0 for N\+U\+LL pointer check; 1 for integer flag check) \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 543 of file phlex\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{phlex__solver_8c_ac55302bc18db0d68d78f543aad6a16c4}\label{phlex__solver_8c_ac55302bc18db0d68d78f543aad6a16c4}} 
+\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}!f@{f}}
+\index{f@{f}!phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{f()}{f()}}
+{\footnotesize\ttfamily int f (\begin{DoxyParamCaption}\item[{realtype}]{t,  }\item[{N\+\_\+\+Vector}]{y,  }\item[{N\+\_\+\+Vector}]{deriv,  }\item[{void $\ast$}]{solver\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Compute the time derivative f(t,y) 
+
+
+\begin{DoxyParams}{Parameters}
+{\em t} & Current model time (s) \\
+\hline
+{\em y} & Dependent variable array \\
+\hline
+{\em deriv} & Time derivative vector f(t,y) to calculate \\
+\hline
+{\em solver\+\_\+data} & Pointer to the solver data \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Status code 
+\end{DoxyReturn}
+
+
+Definition at line 300 of file phlex\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{phlex__solver_8c_a5b485fa25356197023889f3795888e98}\label{phlex__solver_8c_a5b485fa25356197023889f3795888e98}} 
+\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}!get\+\_\+jac\+\_\+init@{get\+\_\+jac\+\_\+init}}
+\index{get\+\_\+jac\+\_\+init@{get\+\_\+jac\+\_\+init}!phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{get\+\_\+jac\+\_\+init()}{get\_jac\_init()}}
+{\footnotesize\ttfamily S\+U\+N\+Matrix get\+\_\+jac\+\_\+init (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{struct_solver_data}{Solver\+Data}} $\ast$}]{solver\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Create a sparse Jacobian matrix based on model data. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em solver\+\_\+data} & A pointer to the \mbox{\hyperlink{struct_solver_data}{Solver\+Data}} \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Sparse Jacobian matrix with all possible non-\/zero elements intialized to 1.\+0 
+\end{DoxyReturn}
+
+
+Definition at line 411 of file phlex\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{phlex__solver_8c_a13451d507558a61a2353adfed58db468}\label{phlex__solver_8c_a13451d507558a61a2353adfed58db468}} 
+\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}!Jac@{Jac}}
+\index{Jac@{Jac}!phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{Jac()}{Jac()}}
+{\footnotesize\ttfamily int Jac (\begin{DoxyParamCaption}\item[{realtype}]{t,  }\item[{N\+\_\+\+Vector}]{y,  }\item[{N\+\_\+\+Vector}]{deriv,  }\item[{S\+U\+N\+Matrix}]{J,  }\item[{void $\ast$}]{solver\+\_\+data,  }\item[{N\+\_\+\+Vector}]{tmp1,  }\item[{N\+\_\+\+Vector}]{tmp2,  }\item[{N\+\_\+\+Vector}]{tmp3 }\end{DoxyParamCaption})}
+
+
+
+Compute the Jacobian. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em t} & Current model time (s) \\
+\hline
+{\em y} & Dependent variable array \\
+\hline
+{\em deriv} & Time derivative vector f(t,y) \\
+\hline
+{\em J} & Jacobian to calculate \\
+\hline
+{\em solver\+\_\+data} & Pointer to the solver data \\
+\hline
+{\em tmp1} & Unused vector \\
+\hline
+{\em tmp2} & Unused vector \\
+\hline
+{\em tmp3} & Unused vector \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Status code 
+\end{DoxyReturn}
+
+
+Definition at line 349 of file phlex\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{phlex__solver_8c_a01ab307718c5b5304fc16472d23d999f}\label{phlex__solver_8c_a01ab307718c5b5304fc16472d23d999f}} 
+\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}!model\+\_\+free@{model\+\_\+free}}
+\index{model\+\_\+free@{model\+\_\+free}!phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{model\+\_\+free()}{model\_free()}}
+{\footnotesize\ttfamily void model\+\_\+free (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{struct_model_data}{Model\+Data}}}]{model\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Free a \mbox{\hyperlink{struct_model_data}{Model\+Data}} object. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em model\+\_\+data} & Pointer to the \mbox{\hyperlink{struct_model_data}{Model\+Data}} object to free \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 623 of file phlex\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{phlex__solver_8c_a946f57c971834de0c7cb185263cd3c78}\label{phlex__solver_8c_a946f57c971834de0c7cb185263cd3c78}} 
+\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}!solver\+\_\+free@{solver\+\_\+free}}
+\index{solver\+\_\+free@{solver\+\_\+free}!phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{solver\+\_\+free()}{solver\_free()}}
+{\footnotesize\ttfamily void solver\+\_\+free (\begin{DoxyParamCaption}\item[{void $\ast$}]{solver\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Free a \mbox{\hyperlink{struct_solver_data}{Solver\+Data}} object. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em solver\+\_\+data} & Pointer to the \mbox{\hyperlink{struct_solver_data}{Solver\+Data}} object to free \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 590 of file phlex\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{phlex__solver_8c_a97135700d97a42ab3c8c1429513ecb28}\label{phlex__solver_8c_a97135700d97a42ab3c8c1429513ecb28}} 
+\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}!solver\+\_\+free\+\_\+update\+\_\+data@{solver\+\_\+free\+\_\+update\+\_\+data}}
+\index{solver\+\_\+free\+\_\+update\+\_\+data@{solver\+\_\+free\+\_\+update\+\_\+data}!phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{solver\+\_\+free\+\_\+update\+\_\+data()}{solver\_free\_update\_data()}}
+{\footnotesize\ttfamily void solver\+\_\+free\+\_\+update\+\_\+data (\begin{DoxyParamCaption}\item[{void $\ast$}]{update\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Free update data. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em update\+\_\+data} & Object to free \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 642 of file phlex\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{phlex__solver_8c_a599ffdef916b139a1690bfd41aa386b6}\label{phlex__solver_8c_a599ffdef916b139a1690bfd41aa386b6}} 
+\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}!solver\+\_\+initialize@{solver\+\_\+initialize}}
+\index{solver\+\_\+initialize@{solver\+\_\+initialize}!phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{solver\+\_\+initialize()}{solver\_initialize()}}
+{\footnotesize\ttfamily void solver\+\_\+initialize (\begin{DoxyParamCaption}\item[{void $\ast$}]{solver\+\_\+data,  }\item[{double $\ast$}]{abs\+\_\+tol,  }\item[{double}]{rel\+\_\+tol,  }\item[{int}]{max\+\_\+steps,  }\item[{int}]{max\+\_\+conv\+\_\+fails }\end{DoxyParamCaption})}
+
+
+
+Solver initialization. 
+
+Allocate and initialize solver objects
+
+
+\begin{DoxyParams}{Parameters}
+{\em solver\+\_\+data} & Pointer to a \mbox{\hyperlink{struct_solver_data}{Solver\+Data}} object \\
+\hline
+{\em abs\+\_\+tol} & Pointer to array of absolute tolerances \\
+\hline
+{\em rel\+\_\+tol} & Relative integration tolerance \\
+\hline
+{\em max\+\_\+steps} & Maximum number of internal integration steps \\
+\hline
+{\em max\+\_\+conv\+\_\+fails} & Maximum number of convergence failures \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Pointer to an initialized \mbox{\hyperlink{struct_solver_data}{Solver\+Data}} object 
+\end{DoxyReturn}
+
+
+Definition at line 160 of file phlex\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{phlex__solver_8c_a957caf93a7578ac30d5102c1fffeedb4}\label{phlex__solver_8c_a957caf93a7578ac30d5102c1fffeedb4}} 
+\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}!solver\+\_\+new@{solver\+\_\+new}}
+\index{solver\+\_\+new@{solver\+\_\+new}!phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{solver\+\_\+new()}{solver\_new()}}
+{\footnotesize\ttfamily void$\ast$ solver\+\_\+new (\begin{DoxyParamCaption}\item[{int}]{n\+\_\+state\+\_\+var,  }\item[{int $\ast$}]{var\+\_\+type,  }\item[{int}]{n\+\_\+rxn,  }\item[{int}]{n\+\_\+rxn\+\_\+int\+\_\+param,  }\item[{int}]{n\+\_\+rxn\+\_\+float\+\_\+param,  }\item[{int}]{n\+\_\+aero\+\_\+phase,  }\item[{int}]{n\+\_\+aero\+\_\+phase\+\_\+int\+\_\+param,  }\item[{int}]{n\+\_\+aero\+\_\+phase\+\_\+float\+\_\+param,  }\item[{int}]{n\+\_\+aero\+\_\+rep,  }\item[{int}]{n\+\_\+aero\+\_\+rep\+\_\+int\+\_\+param,  }\item[{int}]{n\+\_\+aero\+\_\+rep\+\_\+float\+\_\+param,  }\item[{int}]{n\+\_\+sub\+\_\+model,  }\item[{int}]{n\+\_\+sub\+\_\+model\+\_\+int\+\_\+param,  }\item[{int}]{n\+\_\+sub\+\_\+model\+\_\+float\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Get a new solver object. 
+
+Return a pointer to a new \mbox{\hyperlink{struct_solver_data}{Solver\+Data}} object
+
+
+\begin{DoxyParams}{Parameters}
+{\em n\+\_\+state\+\_\+var} & Number of variables on the state array \\
+\hline
+{\em var\+\_\+type} & Pointer to array of state variable types (solver, constant, P\+S\+SA) \\
+\hline
+{\em n\+\_\+rxn} & Number of reactions to include \\
+\hline
+{\em n\+\_\+rxn\+\_\+int\+\_\+param} & Total number of integer reaction parameters \\
+\hline
+{\em n\+\_\+rxn\+\_\+float\+\_\+param} & Total number of floating-\/point reaction parameters \\
+\hline
+{\em n\+\_\+aero\+\_\+phase} & Number of aerosol phases \\
+\hline
+{\em n\+\_\+aero\+\_\+phase\+\_\+int\+\_\+param} & Total number of integer aerosol phase parameters \\
+\hline
+{\em n\+\_\+aero\+\_\+phase\+\_\+float\+\_\+param} & Total number of floating-\/point aerosol phase parameters \\
+\hline
+{\em n\+\_\+aero\+\_\+rep} & Number of aerosol representations \\
+\hline
+{\em n\+\_\+aero\+\_\+rep\+\_\+int\+\_\+param} & Total number of integer aerosol representation parameters \\
+\hline
+{\em n\+\_\+aero\+\_\+rep\+\_\+float\+\_\+param} & Total number of floating-\/point aerosol representation parameters \\
+\hline
+{\em n\+\_\+sub\+\_\+model} & Number of sub models \\
+\hline
+{\em n\+\_\+sub\+\_\+model\+\_\+int\+\_\+param} & Total number of integer sub model parameters \\
+\hline
+{\em n\+\_\+sub\+\_\+model\+\_\+float\+\_\+param} & Total number of floating-\/point sub model parameters \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Pointer to the new \mbox{\hyperlink{struct_solver_data}{Solver\+Data}} object 
+\end{DoxyReturn}
+
+
+Definition at line 47 of file phlex\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{phlex__solver_8c_aa27659e81a1e22c9ab59889e8e7cd341}\label{phlex__solver_8c_aa27659e81a1e22c9ab59889e8e7cd341}} 
+\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}!solver\+\_\+print\+\_\+stats@{solver\+\_\+print\+\_\+stats}}
+\index{solver\+\_\+print\+\_\+stats@{solver\+\_\+print\+\_\+stats}!phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{solver\+\_\+print\+\_\+stats()}{solver\_print\_stats()}}
+{\footnotesize\ttfamily static void solver\+\_\+print\+\_\+stats (\begin{DoxyParamCaption}\item[{void $\ast$}]{cvode\+\_\+mem }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Print solver statistics. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em cvode\+\_\+mem} & Solver object \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 554 of file phlex\+\_\+solver.\+c.
+
+\mbox{\Hypertarget{phlex__solver_8c_afc5ec8680b419e7ab49530d53a76cee4}\label{phlex__solver_8c_afc5ec8680b419e7ab49530d53a76cee4}} 
+\index{phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}!solver\+\_\+run@{solver\+\_\+run}}
+\index{solver\+\_\+run@{solver\+\_\+run}!phlex\+\_\+solver.\+c@{phlex\+\_\+solver.\+c}}
+\subsubsection{\texorpdfstring{solver\+\_\+run()}{solver\_run()}}
+{\footnotesize\ttfamily int solver\+\_\+run (\begin{DoxyParamCaption}\item[{void $\ast$}]{solver\+\_\+data,  }\item[{double $\ast$}]{state,  }\item[{double $\ast$}]{env,  }\item[{double}]{t\+\_\+initial,  }\item[{double}]{t\+\_\+final }\end{DoxyParamCaption})}
+
+
+
+Solve for a given timestep. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em solver\+\_\+data} & A pointer to the initialized solver data \\
+\hline
+{\em state} & A pointer to the state array \\
+\hline
+{\em env} & A pointer to the array of environmental conditions \\
+\hline
+{\em t\+\_\+initial} & Initial time (s) \\
+\hline
+{\em t\+\_\+final} & (s) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Flag indicating P\+H\+L\+E\+X\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+S\+U\+C\+C\+E\+SS or P\+H\+L\+E\+X\+\_\+\+S\+O\+L\+V\+E\+R\+\_\+\+F\+A\+IL 
+\end{DoxyReturn}
+
+
+Definition at line 239 of file phlex\+\_\+solver.\+c.
+

@@ -1,0 +1,55 @@
+\hypertarget{coagulation_8_f90}{}\section{coagulation.\+F90 File Reference}
+\label{coagulation_8_f90}\index{coagulation.\+F90@{coagulation.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__coagulation}{pmc\+\_\+coagulation}} module.  
+
+
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__coagulation}{pmc\+\_\+coagulation}}
+\begin{DoxyCompactList}\small\item\em Aerosol particle coagulation. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_ac4aa547a592f79bcd9beed2ed8af6a66}{pmc\+\_\+coagulation\+::mc\+\_\+coag}} (coag\+\_\+kernel\+\_\+type, env\+\_\+state, aero\+\_\+data, aero\+\_\+state, del\+\_\+t, tot\+\_\+n\+\_\+samp, tot\+\_\+n\+\_\+coag)
+\begin{DoxyCompactList}\small\item\em Do coagulation for time del\+\_\+t. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a89d4e9f643d866b066134cfea4b68e0f}{pmc\+\_\+coagulation\+::mc\+\_\+coag\+\_\+for\+\_\+bin}} (coag\+\_\+kernel\+\_\+type, env\+\_\+state, aero\+\_\+data, aero\+\_\+state, del\+\_\+t, tot\+\_\+n\+\_\+samp, tot\+\_\+n\+\_\+coag, b1, b2, c1, c2)
+\begin{DoxyCompactList}\small\item\em Do coagulation for time del\+\_\+t for the given bins. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a8257679dccc3b287cf254bdd9c810aae}{pmc\+\_\+coagulation\+::try\+\_\+per\+\_\+particle\+\_\+coag}} (coag\+\_\+kernel\+\_\+type, k\+\_\+max, env\+\_\+state, aero\+\_\+data, aero\+\_\+state, del\+\_\+t, tot\+\_\+n\+\_\+samp, tot\+\_\+n\+\_\+coag, b1, b2, c1, c2, cc, per\+\_\+particle\+\_\+coag\+\_\+succeeded)
+\begin{DoxyCompactList}\small\item\em Attempt per-\/particle coagulation. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a475dbce9c2097d091a45066282188b3c}{pmc\+\_\+coagulation\+::determine\+\_\+target\+\_\+and\+\_\+source}} (aero\+\_\+weight\+\_\+array, bin\+\_\+grid, b1, b2, c1, c2, cc, bt, bs, ct, cs, correct\+\_\+weight\+\_\+ordering)
+\begin{DoxyCompactList}\small\item\em Determine the source and target particle bin/group for per-\/particle coagulation, if possible. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a361de1ab6f07eedb1d66633ba50f3e49}{pmc\+\_\+coagulation\+::compute\+\_\+n\+\_\+source}} (n\+\_\+part, k\+\_\+max, del\+\_\+t, n\+\_\+source\+\_\+per\+\_\+target, accept\+\_\+factor)
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a52dee0e42bb931daaa05f47cf32bf064}{pmc\+\_\+coagulation\+::sample\+\_\+source\+\_\+particle}} (aero\+\_\+state, aero\+\_\+data, env\+\_\+state, coag\+\_\+kernel\+\_\+type, bs, cs, coag\+\_\+particle, n\+\_\+samp\+\_\+mean, accept\+\_\+factor, n\+\_\+samp, n\+\_\+coag, n\+\_\+remove, source\+\_\+particle)
+\begin{DoxyCompactList}\small\item\em Sample coagulation partners for a single coagulation event. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a838d22172600c264f9f656ef20310a90}{pmc\+\_\+coagulation\+::coag\+\_\+target\+\_\+with\+\_\+source}} (aero\+\_\+state, aero\+\_\+data, bt, ct, target\+\_\+unif\+\_\+entry, source\+\_\+particle, cc)
+\begin{DoxyCompactList}\small\item\em Coagulate a sampled source particle with a target particle. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_aa26bb6dffadf371d0be17adc22ea653a}{pmc\+\_\+coagulation\+::per\+\_\+set\+\_\+coag}} (coag\+\_\+kernel\+\_\+type, k\+\_\+max, env\+\_\+state, aero\+\_\+data, aero\+\_\+state, del\+\_\+t, tot\+\_\+n\+\_\+samp, tot\+\_\+n\+\_\+coag, b1, b2, c1, c2, cc)
+\begin{DoxyCompactList}\small\item\em Do set-\/wise coagulation. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a8df6a73ea4a7e7bedd8b12bf59420628}{pmc\+\_\+coagulation\+::compute\+\_\+n\+\_\+samp}} (ni, nj, same\+\_\+bin, k\+\_\+max, del\+\_\+t, n\+\_\+samp\+\_\+mean, n\+\_\+samp, accept\+\_\+factor)
+\begin{DoxyCompactList}\small\item\em Compute the number of samples required for the pair of bins. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a25340bbe4cbc91edfe95036aa4732cbb}{pmc\+\_\+coagulation\+::maybe\+\_\+coag\+\_\+pair}} (env\+\_\+state, aero\+\_\+data, aero\+\_\+state, b1, b2, c1, c2, cc, coag\+\_\+kernel\+\_\+type, accept\+\_\+factor, did\+\_\+coag)
+\begin{DoxyCompactList}\small\item\em Choose a random pair for potential coagulation and test its probability of coagulation. If it happens, do the coagulation and update all structures. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a3911bb2973186595a452bffc1bf37e9e}{pmc\+\_\+coagulation\+::find\+\_\+rand\+\_\+pair}} (aero\+\_\+sorted, b1, b2, c1, c2, i1, i2)
+\begin{DoxyCompactList}\small\item\em Given {\ttfamily (b1, c1)} and {\ttfamily (b2, c2)}, find a random pair of particles {\ttfamily (b1, c1, i1)} and {\ttfamily (b2, c2, i2)} that are not the same particle particle as each other. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a5cc62e6e5a1af2843681d766563f6364}{pmc\+\_\+coagulation\+::coagulate\+\_\+weighting}} (pt1, pt2, ptc, c1, c2, cc, aero\+\_\+data, aero\+\_\+weight\+\_\+array, remove\+\_\+1, remove\+\_\+2, create\+\_\+new, id\+\_\+1\+\_\+lost, id\+\_\+2\+\_\+lost, aero\+\_\+info\+\_\+1, aero\+\_\+info\+\_\+2)
+\begin{DoxyCompactList}\small\item\em Actually coagulate pt1 and pt2 to form ptc and compute weighting effects, including which particles should be lost and which gained. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__coagulation_a8bcb727a5fd3e8551a3139f75b996590}{pmc\+\_\+coagulation\+::coagulate}} (aero\+\_\+data, aero\+\_\+state, p1, p2, c1, c2, cc)
+\begin{DoxyCompactList}\small\item\em Join together particles {\ttfamily p1} and {\ttfamily p2}, updating all particle and bin structures to reflect the change. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+real(kind=dp), parameter \mbox{\hyperlink{namespacepmc__coagulation_ae04bc0968f517899ce26a23b550181f5}{pmc\+\_\+coagulation\+::coag\+\_\+accel\+\_\+n\+\_\+event}} = 1d0
+\begin{DoxyCompactList}\small\item\em Minimum number of coagulation events per large particle for which accelerated coagulation is used. \end{DoxyCompactList}\item 
+real(kind=dp), parameter \mbox{\hyperlink{namespacepmc__coagulation_a82e17b9c1710579759ee0d0599b9b4f1}{pmc\+\_\+coagulation\+::coag\+\_\+accel\+\_\+max\+\_\+cv}} = 0.\+1d0
+\begin{DoxyCompactList}\small\item\em Maximum allowed coefficient-\/of-\/variation due to undersampling in accelerated coagulation. \end{DoxyCompactList}\item 
+real(kind=dp), parameter \mbox{\hyperlink{namespacepmc__coagulation_a56c874842d78c24cc24a82623569418e}{pmc\+\_\+coagulation\+::max\+\_\+allowable\+\_\+growth\+\_\+factor}} = 1.\+5d0
+\begin{DoxyCompactList}\small\item\em Maximum allowable growth factor of a target particle volume within one timestep when using accelerated coagulation. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__coagulation}{pmc\+\_\+coagulation}} module. 
+

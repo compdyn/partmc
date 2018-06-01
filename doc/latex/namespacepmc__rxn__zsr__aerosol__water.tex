@@ -1,0 +1,65 @@
+\hypertarget{namespacepmc__rxn__zsr__aerosol__water}{}\section{pmc\+\_\+rxn\+\_\+zsr\+\_\+aerosol\+\_\+water Module Reference}
+\label{namespacepmc__rxn__zsr__aerosol__water}\index{pmc\+\_\+rxn\+\_\+zsr\+\_\+aerosol\+\_\+water@{pmc\+\_\+rxn\+\_\+zsr\+\_\+aerosol\+\_\+water}}
+
+
+The rxn\+\_\+\+Z\+S\+R\+\_\+aerosol\+\_\+water\+\_\+t type and associated functions.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+interface \mbox{\hyperlink{structpmc__rxn__zsr__aerosol__water_1_1rxn__zsr__aerosol__water__t}{rxn\+\_\+zsr\+\_\+aerosol\+\_\+water\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Generic test reaction data type. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+type(\mbox{\hyperlink{structpmc__rxn__zsr__aerosol__water_1_1rxn__zsr__aerosol__water__t}{rxn\+\_\+zsr\+\_\+aerosol\+\_\+water\+\_\+t}}) function, pointer \mbox{\hyperlink{namespacepmc__rxn__zsr__aerosol__water_a3ceff195484eeb2afb745aeb4ab31ddb}{constructor}} ()
+\begin{DoxyCompactList}\small\item\em Constructor for Z\+SR aerosol water reaction. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__rxn__zsr__aerosol__water_ad28f0d91114d117e54d04c9b3cbe21dc}{initialize}} (this, chem\+\_\+spec\+\_\+data, aero\+\_\+rep)
+\begin{DoxyCompactList}\small\item\em Initialize the reaction data, validating component data and loading any required information into the condensed data arrays for use during solving. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The rxn\+\_\+\+Z\+S\+R\+\_\+aerosol\+\_\+water\+\_\+t type and associated functions. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__rxn__zsr__aerosol__water_a3ceff195484eeb2afb745aeb4ab31ddb}\label{namespacepmc__rxn__zsr__aerosol__water_a3ceff195484eeb2afb745aeb4ab31ddb}} 
+\index{pmc\+\_\+rxn\+\_\+zsr\+\_\+aerosol\+\_\+water@{pmc\+\_\+rxn\+\_\+zsr\+\_\+aerosol\+\_\+water}!constructor@{constructor}}
+\index{constructor@{constructor}!pmc\+\_\+rxn\+\_\+zsr\+\_\+aerosol\+\_\+water@{pmc\+\_\+rxn\+\_\+zsr\+\_\+aerosol\+\_\+water}}
+\subsubsection{\texorpdfstring{constructor()}{constructor()}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__rxn__zsr__aerosol__water_1_1rxn__zsr__aerosol__water__t}{rxn\+\_\+zsr\+\_\+aerosol\+\_\+water\+\_\+t}}) function, pointer pmc\+\_\+rxn\+\_\+zsr\+\_\+aerosol\+\_\+water\+::constructor (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Constructor for Z\+SR aerosol water reaction. 
+
+\begin{DoxyReturn}{Returns}
+A new reaction instance 
+\end{DoxyReturn}
+
+
+Definition at line 209 of file rxn\+\_\+\+Z\+S\+R\+\_\+aerosol\+\_\+water.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__rxn__zsr__aerosol__water_ad28f0d91114d117e54d04c9b3cbe21dc}\label{namespacepmc__rxn__zsr__aerosol__water_ad28f0d91114d117e54d04c9b3cbe21dc}} 
+\index{pmc\+\_\+rxn\+\_\+zsr\+\_\+aerosol\+\_\+water@{pmc\+\_\+rxn\+\_\+zsr\+\_\+aerosol\+\_\+water}!initialize@{initialize}}
+\index{initialize@{initialize}!pmc\+\_\+rxn\+\_\+zsr\+\_\+aerosol\+\_\+water@{pmc\+\_\+rxn\+\_\+zsr\+\_\+aerosol\+\_\+water}}
+\subsubsection{\texorpdfstring{initialize()}{initialize()}}
+{\footnotesize\ttfamily subroutine \mbox{\hyperlink{interfacepmc__aero__rep__data_1_1initialize}{pmc\+\_\+rxn\+\_\+zsr\+\_\+aerosol\+\_\+water\+::initialize}} (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__rxn__zsr__aerosol__water_1_1rxn__zsr__aerosol__water__t}{rxn\+\_\+zsr\+\_\+aerosol\+\_\+water\+\_\+t}}), intent(inout)}]{this,  }\item[{type(\mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t}{chem\+\_\+spec\+\_\+data\+\_\+t}}), intent(in)}]{chem\+\_\+spec\+\_\+data,  }\item[{class(\mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__ptr}{aero\+\_\+rep\+\_\+data\+\_\+ptr}}), dimension(\+:), intent(in), pointer}]{aero\+\_\+rep }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Initialize the reaction data, validating component data and loading any required information into the condensed data arrays for use during solving. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em this} & Reaction data\\
+\hline
+\mbox{\tt in}  & {\em chem\+\_\+spec\+\_\+data} & Chemical species data\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+rep} & Aerosol representations \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 224 of file rxn\+\_\+\+Z\+S\+R\+\_\+aerosol\+\_\+water.\+F90.
+

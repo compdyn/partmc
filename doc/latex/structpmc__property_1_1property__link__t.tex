@@ -1,0 +1,225 @@
+\hypertarget{structpmc__property_1_1property__link__t}{}\section{pmc\+\_\+property\+:\+:property\+\_\+link\+\_\+t Interface Reference}
+\label{structpmc__property_1_1property__link__t}\index{pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}}
+
+
+Property link data.  
+
+
+\subsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+procedure \mbox{\hyperlink{structpmc__property_1_1property__link__t_a0c80b3d389d2619ddba7c05a924f7200}{key}}
+\begin{DoxyCompactList}\small\item\em Get the key name. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__property_1_1property__link__t_af1fda3847e4a911454e6a94e910b2dcc}{set\+\_\+value}}
+\begin{DoxyCompactList}\small\item\em Set the value. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__property_1_1property__link__t_a79b0e9d9be75b18380aa2c888eaf4217}{value\+\_\+int}}
+\begin{DoxyCompactList}\small\item\em Get the int value. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__property_1_1property__link__t_aa73c3f8f6c513212bcfa79cc49d05539}{value\+\_\+real}}
+\begin{DoxyCompactList}\small\item\em Get the real value. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__property_1_1property__link__t_ad4b9e4a004d5cc199d3cc42518c85ad0}{value\+\_\+logical}}
+\begin{DoxyCompactList}\small\item\em Get the logical value. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__property_1_1property__link__t_a5dd8fcdc7cbb8b1acf6b214e5d041bbd}{value\+\_\+string}}
+\begin{DoxyCompactList}\small\item\em Get the string value. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__property_1_1property__link__t_ad34a62f46ff3daa591185c07e8c84938}{value\+\_\+property\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Get the property sub-\/set. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__property_1_1property__link__t_add3f9442af45f91b2d5fe7e8a930df85}{print}} =$>$ \mbox{\hyperlink{namespacepmc__property_a4a9f323c08b7fe0a6855eade5aadf018}{link\+\_\+do\+\_\+print}}
+\begin{DoxyCompactList}\small\item\em Print the contents of a property key-\/value pair. \end{DoxyCompactList}\item 
+final \mbox{\hyperlink{structpmc__property_1_1property__link__t_a7bb9bb28acf068411faf76abddac6823}{link\+\_\+finalize}}
+\begin{DoxyCompactList}\small\item\em Finalize. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+character(\+:), allocatable \mbox{\hyperlink{structpmc__property_1_1property__link__t_a8f95fd4e2cc619c3c4aa9b47ac8883bf}{key\+\_\+name}}
+\begin{DoxyCompactList}\small\item\em Key name. \end{DoxyCompactList}\item 
+class($\ast$), pointer \mbox{\hyperlink{structpmc__property_1_1property__link__t_aaed71cc4fa453bdd77972e6472c06d77}{val}} =$>$ null()
+\begin{DoxyCompactList}\small\item\em Value. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}}), pointer \mbox{\hyperlink{structpmc__property_1_1property__link__t_a98c97c2d921ef44064c03ce3af5ab655}{next\+\_\+link}} =$>$ null()
+\begin{DoxyCompactList}\small\item\em Next link. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Property link data. 
+
+An element of a property data set. Property values can be of any primitive type or be a pointer to a sub-\/set of property data. The \mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}} object is for internal use in the \mbox{\hyperlink{namespacepmc__property}{pmc\+\_\+property}} module. All interactions with property data should be made using \mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}} objects. 
+
+Definition at line 90 of file property.\+F90.
+
+
+
+\subsection{Member Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{structpmc__property_1_1property__link__t_a0c80b3d389d2619ddba7c05a924f7200}\label{structpmc__property_1_1property__link__t_a0c80b3d389d2619ddba7c05a924f7200}} 
+\index{pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}!key@{key}}
+\index{key@{key}!pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}}
+\subsubsection{\texorpdfstring{key()}{key()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+property\+::property\+\_\+link\+\_\+t\+::key (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the key name. 
+
+
+
+Definition at line 100 of file property.\+F90.
+
+\mbox{\Hypertarget{structpmc__property_1_1property__link__t_a7bb9bb28acf068411faf76abddac6823}\label{structpmc__property_1_1property__link__t_a7bb9bb28acf068411faf76abddac6823}} 
+\index{pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}!link\+\_\+finalize@{link\+\_\+finalize}}
+\index{link\+\_\+finalize@{link\+\_\+finalize}!pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}}
+\subsubsection{\texorpdfstring{link\+\_\+finalize()}{link\_finalize()}}
+{\footnotesize\ttfamily final pmc\+\_\+property\+::property\+\_\+link\+\_\+t\+::link\+\_\+finalize (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [final]}, {\ttfamily [private]}}
+
+
+
+Finalize. 
+
+
+
+Definition at line 116 of file property.\+F90.
+
+\mbox{\Hypertarget{structpmc__property_1_1property__link__t_add3f9442af45f91b2d5fe7e8a930df85}\label{structpmc__property_1_1property__link__t_add3f9442af45f91b2d5fe7e8a930df85}} 
+\index{pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}!print@{print}}
+\index{print@{print}!pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}}
+\subsubsection{\texorpdfstring{print()}{print()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+property\+::property\+\_\+link\+\_\+t\+::print (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Print the contents of a property key-\/value pair. 
+
+
+
+Definition at line 114 of file property.\+F90.
+
+\mbox{\Hypertarget{structpmc__property_1_1property__link__t_af1fda3847e4a911454e6a94e910b2dcc}\label{structpmc__property_1_1property__link__t_af1fda3847e4a911454e6a94e910b2dcc}} 
+\index{pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}!set\+\_\+value@{set\+\_\+value}}
+\index{set\+\_\+value@{set\+\_\+value}!pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}}
+\subsubsection{\texorpdfstring{set\+\_\+value()}{set\_value()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+property\+::property\+\_\+link\+\_\+t\+::set\+\_\+value (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Set the value. 
+
+
+
+Definition at line 102 of file property.\+F90.
+
+\mbox{\Hypertarget{structpmc__property_1_1property__link__t_a79b0e9d9be75b18380aa2c888eaf4217}\label{structpmc__property_1_1property__link__t_a79b0e9d9be75b18380aa2c888eaf4217}} 
+\index{pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}!value\+\_\+int@{value\+\_\+int}}
+\index{value\+\_\+int@{value\+\_\+int}!pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}}
+\subsubsection{\texorpdfstring{value\+\_\+int()}{value\_int()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+property\+::property\+\_\+link\+\_\+t\+::value\+\_\+int (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the int value. 
+
+
+
+Definition at line 104 of file property.\+F90.
+
+\mbox{\Hypertarget{structpmc__property_1_1property__link__t_ad4b9e4a004d5cc199d3cc42518c85ad0}\label{structpmc__property_1_1property__link__t_ad4b9e4a004d5cc199d3cc42518c85ad0}} 
+\index{pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}!value\+\_\+logical@{value\+\_\+logical}}
+\index{value\+\_\+logical@{value\+\_\+logical}!pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}}
+\subsubsection{\texorpdfstring{value\+\_\+logical()}{value\_logical()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+property\+::property\+\_\+link\+\_\+t\+::value\+\_\+logical (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the logical value. 
+
+
+
+Definition at line 108 of file property.\+F90.
+
+\mbox{\Hypertarget{structpmc__property_1_1property__link__t_ad34a62f46ff3daa591185c07e8c84938}\label{structpmc__property_1_1property__link__t_ad34a62f46ff3daa591185c07e8c84938}} 
+\index{pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}!value\+\_\+property\+\_\+t@{value\+\_\+property\+\_\+t}}
+\index{value\+\_\+property\+\_\+t@{value\+\_\+property\+\_\+t}!pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}}
+\subsubsection{\texorpdfstring{value\+\_\+property\+\_\+t()}{value\_property\_t()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+property\+::property\+\_\+link\+\_\+t\+::value\+\_\+property\+\_\+t (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the property sub-\/set. 
+
+
+
+Definition at line 112 of file property.\+F90.
+
+\mbox{\Hypertarget{structpmc__property_1_1property__link__t_aa73c3f8f6c513212bcfa79cc49d05539}\label{structpmc__property_1_1property__link__t_aa73c3f8f6c513212bcfa79cc49d05539}} 
+\index{pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}!value\+\_\+real@{value\+\_\+real}}
+\index{value\+\_\+real@{value\+\_\+real}!pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}}
+\subsubsection{\texorpdfstring{value\+\_\+real()}{value\_real()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+property\+::property\+\_\+link\+\_\+t\+::value\+\_\+real (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the real value. 
+
+
+
+Definition at line 106 of file property.\+F90.
+
+\mbox{\Hypertarget{structpmc__property_1_1property__link__t_a5dd8fcdc7cbb8b1acf6b214e5d041bbd}\label{structpmc__property_1_1property__link__t_a5dd8fcdc7cbb8b1acf6b214e5d041bbd}} 
+\index{pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}!value\+\_\+string@{value\+\_\+string}}
+\index{value\+\_\+string@{value\+\_\+string}!pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}}
+\subsubsection{\texorpdfstring{value\+\_\+string()}{value\_string()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+property\+::property\+\_\+link\+\_\+t\+::value\+\_\+string (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the string value. 
+
+
+
+Definition at line 110 of file property.\+F90.
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structpmc__property_1_1property__link__t_a8f95fd4e2cc619c3c4aa9b47ac8883bf}\label{structpmc__property_1_1property__link__t_a8f95fd4e2cc619c3c4aa9b47ac8883bf}} 
+\index{pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}!key\+\_\+name@{key\+\_\+name}}
+\index{key\+\_\+name@{key\+\_\+name}!pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}}
+\subsubsection{\texorpdfstring{key\+\_\+name}{key\_name}}
+{\footnotesize\ttfamily character(\+:), allocatable pmc\+\_\+property\+::property\+\_\+link\+\_\+t\+::key\+\_\+name\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Key name. 
+
+
+
+Definition at line 93 of file property.\+F90.
+
+\mbox{\Hypertarget{structpmc__property_1_1property__link__t_a98c97c2d921ef44064c03ce3af5ab655}\label{structpmc__property_1_1property__link__t_a98c97c2d921ef44064c03ce3af5ab655}} 
+\index{pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}!next\+\_\+link@{next\+\_\+link}}
+\index{next\+\_\+link@{next\+\_\+link}!pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}}
+\subsubsection{\texorpdfstring{next\+\_\+link}{next\_link}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__property_1_1property__link__t}{property\+\_\+link\+\_\+t}}), pointer pmc\+\_\+property\+::property\+\_\+link\+\_\+t\+::next\+\_\+link =$>$ null()\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Next link. 
+
+
+
+Definition at line 97 of file property.\+F90.
+
+\mbox{\Hypertarget{structpmc__property_1_1property__link__t_aaed71cc4fa453bdd77972e6472c06d77}\label{structpmc__property_1_1property__link__t_aaed71cc4fa453bdd77972e6472c06d77}} 
+\index{pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}!val@{val}}
+\index{val@{val}!pmc\+\_\+property\+::property\+\_\+link\+\_\+t@{pmc\+\_\+property\+::property\+\_\+link\+\_\+t}}
+\subsubsection{\texorpdfstring{val}{val}}
+{\footnotesize\ttfamily class($\ast$), pointer pmc\+\_\+property\+::property\+\_\+link\+\_\+t\+::val =$>$ null()\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Value. 
+
+
+
+Definition at line 95 of file property.\+F90.
+
+
+
+The documentation for this interface was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{property_8_f90}{property.\+F90}}\end{DoxyCompactItemize}

@@ -1,0 +1,5 @@
+A mechanism in the \mbox{\hyperlink{phlex_chem}{phlex-\/chem}} module is a set of \mbox{\hyperlink{phlex_rxn}{reactions}} that occur in the gas-\/phase or within one of several \mbox{\hyperlink{phlex_aero_phase}{aerosol phases}} or across an interface between two phases (gas or aerosol). One or several mechanisms may be included in a \mbox{\hyperlink{phlex_chem}{phlex-\/chem}} model run.
+
+Every mechanism in a \mbox{\hyperlink{phlex_chem}{phlex-\/chem}} run will have access to the same set of \mbox{\hyperlink{phlex_species}{chemical species}} and \mbox{\hyperlink{phlex_aero_phase}{aerosol phases}}, so phase and species names must be consistent across all concurrently loaded mechanisms. The division of \mbox{\hyperlink{phlex_rxn}{reactions}} into distinct mechanisms permits a host model to specificy which mechanisms should be solved during a call to {\ttfamily \mbox{\hyperlink{structpmc__phlex__core_1_1phlex__core__t_af0904c4e6ce9e56cb932e06a6fe4066f}{pmc\+\_\+phlex\+\_\+core\+::phlex\+\_\+core\+\_\+t\+::solve()}}}.
+
+The input format for mechanism data can be found \mbox{\hyperlink{input_format_mechanism}{here}}. 

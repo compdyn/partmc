@@ -1,0 +1,65 @@
+\hypertarget{namespacepmc__rxn__pdfite__activity}{}\section{pmc\+\_\+rxn\+\_\+pdfite\+\_\+activity Module Reference}
+\label{namespacepmc__rxn__pdfite__activity}\index{pmc\+\_\+rxn\+\_\+pdfite\+\_\+activity@{pmc\+\_\+rxn\+\_\+pdfite\+\_\+activity}}
+
+
+The rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity\+\_\+t type and associated functions.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+interface \mbox{\hyperlink{structpmc__rxn__pdfite__activity_1_1rxn__pdfite__activity__t}{rxn\+\_\+pdfite\+\_\+activity\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Generic test reaction data type. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+type(\mbox{\hyperlink{structpmc__rxn__pdfite__activity_1_1rxn__pdfite__activity__t}{rxn\+\_\+pdfite\+\_\+activity\+\_\+t}}) function, pointer \mbox{\hyperlink{namespacepmc__rxn__pdfite__activity_a3c0413f9ba4125dfa77c0c1e88b847a1}{constructor}} ()
+\begin{DoxyCompactList}\small\item\em Constructor for activity reaction. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__rxn__pdfite__activity_aabaa82aa9a7850318a120845b3fd8512}{initialize}} (this, chem\+\_\+spec\+\_\+data, aero\+\_\+rep)
+\begin{DoxyCompactList}\small\item\em Initialize the reaction data, validating component data and loading any required information into the condensed data arrays for use during solving. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity\+\_\+t type and associated functions. 
+
+\subsection{Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{namespacepmc__rxn__pdfite__activity_a3c0413f9ba4125dfa77c0c1e88b847a1}\label{namespacepmc__rxn__pdfite__activity_a3c0413f9ba4125dfa77c0c1e88b847a1}} 
+\index{pmc\+\_\+rxn\+\_\+pdfite\+\_\+activity@{pmc\+\_\+rxn\+\_\+pdfite\+\_\+activity}!constructor@{constructor}}
+\index{constructor@{constructor}!pmc\+\_\+rxn\+\_\+pdfite\+\_\+activity@{pmc\+\_\+rxn\+\_\+pdfite\+\_\+activity}}
+\subsubsection{\texorpdfstring{constructor()}{constructor()}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__rxn__pdfite__activity_1_1rxn__pdfite__activity__t}{rxn\+\_\+pdfite\+\_\+activity\+\_\+t}}) function, pointer pmc\+\_\+rxn\+\_\+pdfite\+\_\+activity\+::constructor (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Constructor for activity reaction. 
+
+\begin{DoxyReturn}{Returns}
+A new reaction instance 
+\end{DoxyReturn}
+
+
+Definition at line 229 of file rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90.
+
+\mbox{\Hypertarget{namespacepmc__rxn__pdfite__activity_aabaa82aa9a7850318a120845b3fd8512}\label{namespacepmc__rxn__pdfite__activity_aabaa82aa9a7850318a120845b3fd8512}} 
+\index{pmc\+\_\+rxn\+\_\+pdfite\+\_\+activity@{pmc\+\_\+rxn\+\_\+pdfite\+\_\+activity}!initialize@{initialize}}
+\index{initialize@{initialize}!pmc\+\_\+rxn\+\_\+pdfite\+\_\+activity@{pmc\+\_\+rxn\+\_\+pdfite\+\_\+activity}}
+\subsubsection{\texorpdfstring{initialize()}{initialize()}}
+{\footnotesize\ttfamily subroutine \mbox{\hyperlink{interfacepmc__aero__rep__data_1_1initialize}{pmc\+\_\+rxn\+\_\+pdfite\+\_\+activity\+::initialize}} (\begin{DoxyParamCaption}\item[{class(\mbox{\hyperlink{structpmc__rxn__pdfite__activity_1_1rxn__pdfite__activity__t}{rxn\+\_\+pdfite\+\_\+activity\+\_\+t}}), intent(inout)}]{this,  }\item[{type(\mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t}{chem\+\_\+spec\+\_\+data\+\_\+t}}), intent(in)}]{chem\+\_\+spec\+\_\+data,  }\item[{class(\mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__ptr}{aero\+\_\+rep\+\_\+data\+\_\+ptr}}), dimension(\+:), intent(in), pointer}]{aero\+\_\+rep }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Initialize the reaction data, validating component data and loading any required information into the condensed data arrays for use during solving. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em this} & Reaction data\\
+\hline
+\mbox{\tt in}  & {\em chem\+\_\+spec\+\_\+data} & Chemical species data\\
+\hline
+\mbox{\tt in}  & {\em aero\+\_\+rep} & Aerosol representations \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 244 of file rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90.
+

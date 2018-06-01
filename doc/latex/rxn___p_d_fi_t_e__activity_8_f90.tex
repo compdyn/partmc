@@ -1,0 +1,253 @@
+\hypertarget{rxn___p_d_fi_t_e__activity_8_f90}{}\section{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90 File Reference}
+\label{rxn___p_d_fi_t_e__activity_8_f90}\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+
+
+The pmc\+\_\+rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+interface \mbox{\hyperlink{structpmc__rxn__pdfite__activity_1_1rxn__pdfite__activity__t}{pmc\+\_\+rxn\+\_\+pdfite\+\_\+activity\+::rxn\+\_\+pdfite\+\_\+activity\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Generic test reaction data type. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{structpmc__rxn__pdfite__activity_1_1rxn__pdfite__activity__t}{pmc\+\_\+rxn\+\_\+pdfite\+\_\+activity\+::rxn\+\_\+pdfite\+\_\+activity\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Generic test reaction data type. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__rxn__pdfite__activity}{pmc\+\_\+rxn\+\_\+pdfite\+\_\+activity}}
+\begin{DoxyCompactList}\small\item\em The rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity\+\_\+t type and associated functions. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a98c0f2f4469a3e7669ed9b6a4428e562}{\+\_\+\+N\+U\+M\+\_\+\+P\+H\+A\+S\+E\+\_\+}}~this\%condensed\+\_\+data\+\_\+int(1)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a5e8b9e6b79dd9fd45c70418b6a17d326}{\+\_\+\+G\+A\+S\+\_\+\+W\+A\+T\+E\+R\+\_\+\+I\+D\+\_\+}}~this\%condensed\+\_\+data\+\_\+int(2)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_afceac9fd991600a9e8cbf3827069efd1}{\+\_\+\+N\+U\+M\+\_\+\+I\+O\+N\+\_\+\+P\+A\+I\+R\+S\+\_\+}}~this\%condensed\+\_\+data\+\_\+int(3)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_ab1d6092caf5b82884e8a4b7e90167d7e}{\+\_\+\+T\+O\+T\+A\+L\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+}}~this\%condensed\+\_\+data\+\_\+int(4)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a689993e40ac640d6d3b9ca2801b7e496}{\+\_\+\+T\+O\+T\+A\+L\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+}}~this\%condensed\+\_\+data\+\_\+int(5)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a2b1924d2f6c2ba6351856a2fa822ec91}{\+\_\+ppm\+\_\+\+T\+O\+\_\+\+R\+H\+\_\+}}~this\%condensed\+\_\+data\+\_\+real(1)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a54f7194dc6a244f7eb7a78f88b3362ba}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}}~5
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a242fac7fe42c0d62936c65735dc023a6}{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+L\+\_\+\+P\+R\+O\+P\+\_\+}}~1
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a14a34b71a2574b407c76579444eb9f63}{\+\_\+\+P\+H\+A\+S\+E\+\_\+\+I\+D\+\_\+}}(x)~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8_f90_a54f7194dc6a244f7eb7a78f88b3362ba}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}}+x)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_abbe1689f26b0329d94a96047259b5679}{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8_f90_a54f7194dc6a244f7eb7a78f88b3362ba}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}}+\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_a98c0f2f4469a3e7669ed9b6a4428e562}{\+\_\+\+N\+U\+M\+\_\+\+P\+H\+A\+S\+E\+\_\+}}+x)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a870d0d577e7b4aa4f6ff26a97bef9a71}{\+\_\+\+P\+A\+I\+R\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8_f90_a54f7194dc6a244f7eb7a78f88b3362ba}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}}+\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_a98c0f2f4469a3e7669ed9b6a4428e562}{\+\_\+\+N\+U\+M\+\_\+\+P\+H\+A\+S\+E\+\_\+}}+\mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_afceac9fd991600a9e8cbf3827069efd1}{\+\_\+\+N\+U\+M\+\_\+\+I\+O\+N\+\_\+\+P\+A\+I\+R\+S\+\_\+}}+x)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a70ddcd0de0602ed0deb4c5491f15d218}{\+\_\+\+I\+O\+N\+\_\+\+P\+A\+I\+R\+\_\+\+A\+C\+T\+\_\+\+I\+D\+\_\+}}(x)~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_abbe1689f26b0329d94a96047259b5679}{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x))
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a1960d4ad84b15384265173072921fcc0}{\+\_\+\+N\+U\+M\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+}}(x)~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_abbe1689f26b0329d94a96047259b5679}{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+1)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_af03518d65d8697b2cb5dde604aabd423}{\+\_\+\+N\+U\+M\+\_\+\+A\+N\+I\+O\+N\+\_\+}}(x)~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_abbe1689f26b0329d94a96047259b5679}{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+2)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a8ed4c0224b1b4e640ec136e9ea13da8a}{\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+I\+D\+\_\+}}(x)~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_abbe1689f26b0329d94a96047259b5679}{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+3)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_ac0e0149b40991d7d67e516de0fe35800}{\+\_\+\+A\+N\+I\+O\+N\+\_\+\+I\+D\+\_\+}}(x)~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_abbe1689f26b0329d94a96047259b5679}{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+4)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_af1aac30f931f1688919630c7bf70cba9}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+E\+R\+\_\+}}(x)~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_abbe1689f26b0329d94a96047259b5679}{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+5)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_ae62675b9842513dffe120a5ec304e47c}{\+\_\+\+N\+U\+M\+\_\+\+B\+\_\+}}(x,  y)~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_abbe1689f26b0329d94a96047259b5679}{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+5+y)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a1893e87db25c869603f13250a81b0c5c}{\+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+I\+D\+\_\+}}(x,  y)~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_abbe1689f26b0329d94a96047259b5679}{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+5+\mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_af1aac30f931f1688919630c7bf70cba9}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+E\+R\+\_\+}}(x)+y)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a09165951795c5df7b6ba8d81e3b9d43c}{\+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+L\+O\+C\+\_\+}}(x,  y)~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_abbe1689f26b0329d94a96047259b5679}{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+5+2$\ast$(\mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_af1aac30f931f1688919630c7bf70cba9}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+E\+R\+\_\+}}(x))+y)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a73731f6029d5bdfbeb5b0646926525da}{\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+M\+W\+\_\+}}(x)~this\%condensed\+\_\+data\+\_\+real(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_a870d0d577e7b4aa4f6ff26a97bef9a71}{\+\_\+\+P\+A\+I\+R\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x))
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_acf85becb5ac5e829092eae91447ed336}{\+\_\+\+A\+N\+I\+O\+N\+\_\+\+M\+W\+\_\+}}(x)~this\%condensed\+\_\+data\+\_\+real(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_a870d0d577e7b4aa4f6ff26a97bef9a71}{\+\_\+\+P\+A\+I\+R\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+1)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_ad506f5976c67c7c5f6d9fbbdd4c418aa}{\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+N\+\_\+}}(x)~this\%condensed\+\_\+data\+\_\+real(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_a870d0d577e7b4aa4f6ff26a97bef9a71}{\+\_\+\+P\+A\+I\+R\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+2)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a540e38a308f8dae21ceb7f21a9d4aa97}{\+\_\+\+A\+N\+I\+O\+N\+\_\+\+N\+\_\+}}(x)~this\%condensed\+\_\+data\+\_\+real(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_a870d0d577e7b4aa4f6ff26a97bef9a71}{\+\_\+\+P\+A\+I\+R\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+3)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_ab72d1cce0333d0c2cf06502bc74add66}{\+\_\+\+M\+I\+N\+\_\+\+R\+H\+\_\+}}(x,  y)~this\%condensed\+\_\+data\+\_\+real(\mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a09165951795c5df7b6ba8d81e3b9d43c}{\+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+L\+O\+C\+\_\+}}(x,y))
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a4d44c27077f356c34291feadc52b6520}{\+\_\+\+M\+A\+X\+\_\+\+R\+H\+\_\+}}(x,  y)~this\%condensed\+\_\+data\+\_\+real(\mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a09165951795c5df7b6ba8d81e3b9d43c}{\+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+L\+O\+C\+\_\+}}(x,y)+1)
+\item 
+\#define \mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_acc34fabbff83646fe9437a040ecf8696}{\+\_\+\+B\+\_\+z\+\_\+}}(x,  y,  z)~this\%condensed\+\_\+data\+\_\+real(\mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a09165951795c5df7b6ba8d81e3b9d43c}{\+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+L\+O\+C\+\_\+}}(x,y)+1+z)
+\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+type(rxn\+\_\+pdfite\+\_\+activity\+\_\+t) function, pointer \mbox{\hyperlink{namespacepmc__rxn__pdfite__activity_a3c0413f9ba4125dfa77c0c1e88b847a1}{pmc\+\_\+rxn\+\_\+pdfite\+\_\+activity\+::constructor}} ()
+\begin{DoxyCompactList}\small\item\em Constructor for activity reaction. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__rxn__pdfite__activity_aabaa82aa9a7850318a120845b3fd8512}{pmc\+\_\+rxn\+\_\+pdfite\+\_\+activity\+::initialize}} (this, chem\+\_\+spec\+\_\+data, aero\+\_\+rep)
+\begin{DoxyCompactList}\small\item\em Initialize the reaction data, validating component data and loading any required information into the condensed data arrays for use during solving. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The pmc\+\_\+rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity module. 
+
+
+
+\subsection{Macro Definition Documentation}
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_ac0e0149b40991d7d67e516de0fe35800}\label{rxn___p_d_fi_t_e__activity_8_f90_ac0e0149b40991d7d67e516de0fe35800}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+A\+N\+I\+O\+N\+\_\+\+I\+D\+\_\+@{\+\_\+\+A\+N\+I\+O\+N\+\_\+\+I\+D\+\_\+}}
+\index{\+\_\+\+A\+N\+I\+O\+N\+\_\+\+I\+D\+\_\+@{\+\_\+\+A\+N\+I\+O\+N\+\_\+\+I\+D\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+A\+N\+I\+O\+N\+\_\+\+I\+D\+\_\+}{\_ANION\_ID\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+A\+N\+I\+O\+N\+\_\+\+I\+D\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_abbe1689f26b0329d94a96047259b5679}{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+4)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_acf85becb5ac5e829092eae91447ed336}\label{rxn___p_d_fi_t_e__activity_8_f90_acf85becb5ac5e829092eae91447ed336}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+A\+N\+I\+O\+N\+\_\+\+M\+W\+\_\+@{\+\_\+\+A\+N\+I\+O\+N\+\_\+\+M\+W\+\_\+}}
+\index{\+\_\+\+A\+N\+I\+O\+N\+\_\+\+M\+W\+\_\+@{\+\_\+\+A\+N\+I\+O\+N\+\_\+\+M\+W\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+A\+N\+I\+O\+N\+\_\+\+M\+W\+\_\+}{\_ANION\_MW\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+A\+N\+I\+O\+N\+\_\+\+M\+W\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+real(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_a870d0d577e7b4aa4f6ff26a97bef9a71}{\+\_\+\+P\+A\+I\+R\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+1)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_a540e38a308f8dae21ceb7f21a9d4aa97}\label{rxn___p_d_fi_t_e__activity_8_f90_a540e38a308f8dae21ceb7f21a9d4aa97}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+A\+N\+I\+O\+N\+\_\+\+N\+\_\+@{\+\_\+\+A\+N\+I\+O\+N\+\_\+\+N\+\_\+}}
+\index{\+\_\+\+A\+N\+I\+O\+N\+\_\+\+N\+\_\+@{\+\_\+\+A\+N\+I\+O\+N\+\_\+\+N\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+A\+N\+I\+O\+N\+\_\+\+N\+\_\+}{\_ANION\_N\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+A\+N\+I\+O\+N\+\_\+\+N\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+real(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_a870d0d577e7b4aa4f6ff26a97bef9a71}{\+\_\+\+P\+A\+I\+R\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+3)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_acc34fabbff83646fe9437a040ecf8696}\label{rxn___p_d_fi_t_e__activity_8_f90_acc34fabbff83646fe9437a040ecf8696}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+B\+\_\+z\+\_\+@{\+\_\+\+B\+\_\+z\+\_\+}}
+\index{\+\_\+\+B\+\_\+z\+\_\+@{\+\_\+\+B\+\_\+z\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+B\+\_\+z\+\_\+}{\_B\_z\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+B\+\_\+z\+\_\+(\begin{DoxyParamCaption}\item[{}]{x,  }\item[{}]{y,  }\item[{}]{z }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+real(\mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a09165951795c5df7b6ba8d81e3b9d43c}{\+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+L\+O\+C\+\_\+}}(x,y)+1+z)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_a8ed4c0224b1b4e640ec136e9ea13da8a}\label{rxn___p_d_fi_t_e__activity_8_f90_a8ed4c0224b1b4e640ec136e9ea13da8a}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+I\+D\+\_\+@{\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+I\+D\+\_\+}}
+\index{\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+I\+D\+\_\+@{\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+I\+D\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+I\+D\+\_\+}{\_CATION\_ID\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+I\+D\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_abbe1689f26b0329d94a96047259b5679}{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+3)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_a73731f6029d5bdfbeb5b0646926525da}\label{rxn___p_d_fi_t_e__activity_8_f90_a73731f6029d5bdfbeb5b0646926525da}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+M\+W\+\_\+@{\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+M\+W\+\_\+}}
+\index{\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+M\+W\+\_\+@{\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+M\+W\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+M\+W\+\_\+}{\_CATION\_MW\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+M\+W\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+real(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_a870d0d577e7b4aa4f6ff26a97bef9a71}{\+\_\+\+P\+A\+I\+R\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x))}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_ad506f5976c67c7c5f6d9fbbdd4c418aa}\label{rxn___p_d_fi_t_e__activity_8_f90_ad506f5976c67c7c5f6d9fbbdd4c418aa}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+N\+\_\+@{\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+N\+\_\+}}
+\index{\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+N\+\_\+@{\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+N\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+N\+\_\+}{\_CATION\_N\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+C\+A\+T\+I\+O\+N\+\_\+\+N\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+real(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_a870d0d577e7b4aa4f6ff26a97bef9a71}{\+\_\+\+P\+A\+I\+R\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+2)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_a5e8b9e6b79dd9fd45c70418b6a17d326}\label{rxn___p_d_fi_t_e__activity_8_f90_a5e8b9e6b79dd9fd45c70418b6a17d326}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+G\+A\+S\+\_\+\+W\+A\+T\+E\+R\+\_\+\+I\+D\+\_\+@{\+\_\+\+G\+A\+S\+\_\+\+W\+A\+T\+E\+R\+\_\+\+I\+D\+\_\+}}
+\index{\+\_\+\+G\+A\+S\+\_\+\+W\+A\+T\+E\+R\+\_\+\+I\+D\+\_\+@{\+\_\+\+G\+A\+S\+\_\+\+W\+A\+T\+E\+R\+\_\+\+I\+D\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+G\+A\+S\+\_\+\+W\+A\+T\+E\+R\+\_\+\+I\+D\+\_\+}{\_GAS\_WATER\_ID\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+G\+A\+S\+\_\+\+W\+A\+T\+E\+R\+\_\+\+I\+D\+\_\+~this\%condensed\+\_\+data\+\_\+int(2)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_a1893e87db25c869603f13250a81b0c5c}\label{rxn___p_d_fi_t_e__activity_8_f90_a1893e87db25c869603f13250a81b0c5c}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+I\+D\+\_\+@{\+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+I\+D\+\_\+}}
+\index{\+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+I\+D\+\_\+@{\+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+I\+D\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+I\+D\+\_\+}{\_INTER\_SPEC\_ID\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+I\+D\+\_\+(\begin{DoxyParamCaption}\item[{}]{x,  }\item[{}]{y }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_abbe1689f26b0329d94a96047259b5679}{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+5+\mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_af1aac30f931f1688919630c7bf70cba9}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+E\+R\+\_\+}}(x)+y)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_a09165951795c5df7b6ba8d81e3b9d43c}\label{rxn___p_d_fi_t_e__activity_8_f90_a09165951795c5df7b6ba8d81e3b9d43c}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+L\+O\+C\+\_\+@{\+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+L\+O\+C\+\_\+}}
+\index{\+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+L\+O\+C\+\_\+@{\+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+L\+O\+C\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+L\+O\+C\+\_\+}{\_INTER\_SPEC\_LOC\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+L\+O\+C\+\_\+(\begin{DoxyParamCaption}\item[{}]{x,  }\item[{}]{y }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_abbe1689f26b0329d94a96047259b5679}{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+5+2$\ast$(\mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_af1aac30f931f1688919630c7bf70cba9}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+E\+R\+\_\+}}(x))+y)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_a70ddcd0de0602ed0deb4c5491f15d218}\label{rxn___p_d_fi_t_e__activity_8_f90_a70ddcd0de0602ed0deb4c5491f15d218}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+I\+O\+N\+\_\+\+P\+A\+I\+R\+\_\+\+A\+C\+T\+\_\+\+I\+D\+\_\+@{\+\_\+\+I\+O\+N\+\_\+\+P\+A\+I\+R\+\_\+\+A\+C\+T\+\_\+\+I\+D\+\_\+}}
+\index{\+\_\+\+I\+O\+N\+\_\+\+P\+A\+I\+R\+\_\+\+A\+C\+T\+\_\+\+I\+D\+\_\+@{\+\_\+\+I\+O\+N\+\_\+\+P\+A\+I\+R\+\_\+\+A\+C\+T\+\_\+\+I\+D\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+I\+O\+N\+\_\+\+P\+A\+I\+R\+\_\+\+A\+C\+T\+\_\+\+I\+D\+\_\+}{\_ION\_PAIR\_ACT\_ID\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+I\+O\+N\+\_\+\+P\+A\+I\+R\+\_\+\+A\+C\+T\+\_\+\+I\+D\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_abbe1689f26b0329d94a96047259b5679}{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x))}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_a4d44c27077f356c34291feadc52b6520}\label{rxn___p_d_fi_t_e__activity_8_f90_a4d44c27077f356c34291feadc52b6520}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+M\+A\+X\+\_\+\+R\+H\+\_\+@{\+\_\+\+M\+A\+X\+\_\+\+R\+H\+\_\+}}
+\index{\+\_\+\+M\+A\+X\+\_\+\+R\+H\+\_\+@{\+\_\+\+M\+A\+X\+\_\+\+R\+H\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+M\+A\+X\+\_\+\+R\+H\+\_\+}{\_MAX\_RH\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+M\+A\+X\+\_\+\+R\+H\+\_\+(\begin{DoxyParamCaption}\item[{}]{x,  }\item[{}]{y }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+real(\mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a09165951795c5df7b6ba8d81e3b9d43c}{\+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+L\+O\+C\+\_\+}}(x,y)+1)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_ab72d1cce0333d0c2cf06502bc74add66}\label{rxn___p_d_fi_t_e__activity_8_f90_ab72d1cce0333d0c2cf06502bc74add66}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+M\+I\+N\+\_\+\+R\+H\+\_\+@{\+\_\+\+M\+I\+N\+\_\+\+R\+H\+\_\+}}
+\index{\+\_\+\+M\+I\+N\+\_\+\+R\+H\+\_\+@{\+\_\+\+M\+I\+N\+\_\+\+R\+H\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+M\+I\+N\+\_\+\+R\+H\+\_\+}{\_MIN\_RH\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+M\+I\+N\+\_\+\+R\+H\+\_\+(\begin{DoxyParamCaption}\item[{}]{x,  }\item[{}]{y }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+real(\mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_a09165951795c5df7b6ba8d81e3b9d43c}{\+\_\+\+I\+N\+T\+E\+R\+\_\+\+S\+P\+E\+C\+\_\+\+L\+O\+C\+\_\+}}(x,y))}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_af03518d65d8697b2cb5dde604aabd423}\label{rxn___p_d_fi_t_e__activity_8_f90_af03518d65d8697b2cb5dde604aabd423}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+N\+U\+M\+\_\+\+A\+N\+I\+O\+N\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+A\+N\+I\+O\+N\+\_\+}}
+\index{\+\_\+\+N\+U\+M\+\_\+\+A\+N\+I\+O\+N\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+A\+N\+I\+O\+N\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+N\+U\+M\+\_\+\+A\+N\+I\+O\+N\+\_\+}{\_NUM\_ANION\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+N\+U\+M\+\_\+\+A\+N\+I\+O\+N\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_abbe1689f26b0329d94a96047259b5679}{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+2)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_ae62675b9842513dffe120a5ec304e47c}\label{rxn___p_d_fi_t_e__activity_8_f90_ae62675b9842513dffe120a5ec304e47c}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+N\+U\+M\+\_\+\+B\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+B\+\_\+}}
+\index{\+\_\+\+N\+U\+M\+\_\+\+B\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+B\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+N\+U\+M\+\_\+\+B\+\_\+}{\_NUM\_B\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+N\+U\+M\+\_\+\+B\+\_\+(\begin{DoxyParamCaption}\item[{}]{x,  }\item[{}]{y }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_abbe1689f26b0329d94a96047259b5679}{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+5+y)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_a1960d4ad84b15384265173072921fcc0}\label{rxn___p_d_fi_t_e__activity_8_f90_a1960d4ad84b15384265173072921fcc0}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+N\+U\+M\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+}}
+\index{\+\_\+\+N\+U\+M\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+N\+U\+M\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+}{\_NUM\_CATION\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+N\+U\+M\+\_\+\+C\+A\+T\+I\+O\+N\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_abbe1689f26b0329d94a96047259b5679}{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+1)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_a54f7194dc6a244f7eb7a78f88b3362ba}\label{rxn___p_d_fi_t_e__activity_8_f90_a54f7194dc6a244f7eb7a78f88b3362ba}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}}
+\index{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}{\_NUM\_INT\_PROP\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+~5}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_af1aac30f931f1688919630c7bf70cba9}\label{rxn___p_d_fi_t_e__activity_8_f90_af1aac30f931f1688919630c7bf70cba9}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+E\+R\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+E\+R\+\_\+}}
+\index{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+E\+R\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+E\+R\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+E\+R\+\_\+}{\_NUM\_INTER\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+E\+R\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_abbe1689f26b0329d94a96047259b5679}{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}(x)+5)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_afceac9fd991600a9e8cbf3827069efd1}\label{rxn___p_d_fi_t_e__activity_8_f90_afceac9fd991600a9e8cbf3827069efd1}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+N\+U\+M\+\_\+\+I\+O\+N\+\_\+\+P\+A\+I\+R\+S\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+I\+O\+N\+\_\+\+P\+A\+I\+R\+S\+\_\+}}
+\index{\+\_\+\+N\+U\+M\+\_\+\+I\+O\+N\+\_\+\+P\+A\+I\+R\+S\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+I\+O\+N\+\_\+\+P\+A\+I\+R\+S\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+N\+U\+M\+\_\+\+I\+O\+N\+\_\+\+P\+A\+I\+R\+S\+\_\+}{\_NUM\_ION\_PAIRS\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+N\+U\+M\+\_\+\+I\+O\+N\+\_\+\+P\+A\+I\+R\+S\+\_\+~this\%condensed\+\_\+data\+\_\+int(3)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_a98c0f2f4469a3e7669ed9b6a4428e562}\label{rxn___p_d_fi_t_e__activity_8_f90_a98c0f2f4469a3e7669ed9b6a4428e562}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+N\+U\+M\+\_\+\+P\+H\+A\+S\+E\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+P\+H\+A\+S\+E\+\_\+}}
+\index{\+\_\+\+N\+U\+M\+\_\+\+P\+H\+A\+S\+E\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+P\+H\+A\+S\+E\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+N\+U\+M\+\_\+\+P\+H\+A\+S\+E\+\_\+}{\_NUM\_PHASE\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+N\+U\+M\+\_\+\+P\+H\+A\+S\+E\+\_\+~this\%condensed\+\_\+data\+\_\+int(1)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_a242fac7fe42c0d62936c65735dc023a6}\label{rxn___p_d_fi_t_e__activity_8_f90_a242fac7fe42c0d62936c65735dc023a6}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+L\+\_\+\+P\+R\+O\+P\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+L\+\_\+\+P\+R\+O\+P\+\_\+}}
+\index{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+L\+\_\+\+P\+R\+O\+P\+\_\+@{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+L\+\_\+\+P\+R\+O\+P\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+L\+\_\+\+P\+R\+O\+P\+\_\+}{\_NUM\_REAL\_PROP\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+N\+U\+M\+\_\+\+R\+E\+A\+L\+\_\+\+P\+R\+O\+P\+\_\+~1}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_a870d0d577e7b4aa4f6ff26a97bef9a71}\label{rxn___p_d_fi_t_e__activity_8_f90_a870d0d577e7b4aa4f6ff26a97bef9a71}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+P\+A\+I\+R\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+@{\+\_\+\+P\+A\+I\+R\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}
+\index{\+\_\+\+P\+A\+I\+R\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+@{\+\_\+\+P\+A\+I\+R\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+P\+A\+I\+R\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}{\_PAIR\_FLOAT\_PARAM\_LOC\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+P\+A\+I\+R\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8_f90_a54f7194dc6a244f7eb7a78f88b3362ba}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}}+\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_a98c0f2f4469a3e7669ed9b6a4428e562}{\+\_\+\+N\+U\+M\+\_\+\+P\+H\+A\+S\+E\+\_\+}}+\mbox{\hyperlink{rxn___p_d_fi_t_e__activity_8_f90_afceac9fd991600a9e8cbf3827069efd1}{\+\_\+\+N\+U\+M\+\_\+\+I\+O\+N\+\_\+\+P\+A\+I\+R\+S\+\_\+}}+x)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_abbe1689f26b0329d94a96047259b5679}\label{rxn___p_d_fi_t_e__activity_8_f90_abbe1689f26b0329d94a96047259b5679}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+@{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}}
+\index{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+@{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+}{\_PAIR\_INT\_PARAM\_LOC\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+P\+A\+I\+R\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+\+L\+O\+C\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8_f90_a54f7194dc6a244f7eb7a78f88b3362ba}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}}+\mbox{\hyperlink{rxn___z_s_r__aerosol__water_8c_a98c0f2f4469a3e7669ed9b6a4428e562}{\+\_\+\+N\+U\+M\+\_\+\+P\+H\+A\+S\+E\+\_\+}}+x)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_a14a34b71a2574b407c76579444eb9f63}\label{rxn___p_d_fi_t_e__activity_8_f90_a14a34b71a2574b407c76579444eb9f63}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+P\+H\+A\+S\+E\+\_\+\+I\+D\+\_\+@{\+\_\+\+P\+H\+A\+S\+E\+\_\+\+I\+D\+\_\+}}
+\index{\+\_\+\+P\+H\+A\+S\+E\+\_\+\+I\+D\+\_\+@{\+\_\+\+P\+H\+A\+S\+E\+\_\+\+I\+D\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+P\+H\+A\+S\+E\+\_\+\+I\+D\+\_\+}{\_PHASE\_ID\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+P\+H\+A\+S\+E\+\_\+\+I\+D\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{sub__model___u_n_i_f_a_c_8_f90_a54f7194dc6a244f7eb7a78f88b3362ba}{\+\_\+\+N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}}+x)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_a2b1924d2f6c2ba6351856a2fa822ec91}\label{rxn___p_d_fi_t_e__activity_8_f90_a2b1924d2f6c2ba6351856a2fa822ec91}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+ppm\+\_\+\+T\+O\+\_\+\+R\+H\+\_\+@{\+\_\+ppm\+\_\+\+T\+O\+\_\+\+R\+H\+\_\+}}
+\index{\+\_\+ppm\+\_\+\+T\+O\+\_\+\+R\+H\+\_\+@{\+\_\+ppm\+\_\+\+T\+O\+\_\+\+R\+H\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+ppm\+\_\+\+T\+O\+\_\+\+R\+H\+\_\+}{\_ppm\_TO\_RH\_}}
+{\footnotesize\ttfamily \#define \+\_\+ppm\+\_\+\+T\+O\+\_\+\+R\+H\+\_\+~this\%condensed\+\_\+data\+\_\+real(1)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_a689993e40ac640d6d3b9ca2801b7e496}\label{rxn___p_d_fi_t_e__activity_8_f90_a689993e40ac640d6d3b9ca2801b7e496}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+T\+O\+T\+A\+L\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+@{\+\_\+\+T\+O\+T\+A\+L\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+}}
+\index{\+\_\+\+T\+O\+T\+A\+L\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+@{\+\_\+\+T\+O\+T\+A\+L\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+T\+O\+T\+A\+L\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+}{\_TOTAL\_FLOAT\_PARAM\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+T\+O\+T\+A\+L\+\_\+\+F\+L\+O\+A\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+~this\%condensed\+\_\+data\+\_\+int(5)}
+
+\mbox{\Hypertarget{rxn___p_d_fi_t_e__activity_8_f90_ab1d6092caf5b82884e8a4b7e90167d7e}\label{rxn___p_d_fi_t_e__activity_8_f90_ab1d6092caf5b82884e8a4b7e90167d7e}} 
+\index{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}!\+\_\+\+T\+O\+T\+A\+L\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+@{\+\_\+\+T\+O\+T\+A\+L\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+}}
+\index{\+\_\+\+T\+O\+T\+A\+L\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+@{\+\_\+\+T\+O\+T\+A\+L\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+}!rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90@{rxn\+\_\+\+P\+D\+Fi\+T\+E\+\_\+activity.\+F90}}
+\subsubsection{\texorpdfstring{\+\_\+\+T\+O\+T\+A\+L\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+}{\_TOTAL\_INT\_PARAM\_}}
+{\footnotesize\ttfamily \#define \+\_\+\+T\+O\+T\+A\+L\+\_\+\+I\+N\+T\+\_\+\+P\+A\+R\+A\+M\+\_\+~this\%condensed\+\_\+data\+\_\+int(4)}
+

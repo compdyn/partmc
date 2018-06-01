@@ -1,0 +1,43 @@
+\hypertarget{integer__rmap2_8_f90}{}\section{integer\+\_\+rmap2.\+F90 File Reference}
+\label{integer__rmap2_8_f90}\index{integer\+\_\+rmap2.\+F90@{integer\+\_\+rmap2.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__integer__rmap2}{pmc\+\_\+integer\+\_\+rmap2}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__integer__rmap2_1_1integer__rmap2__t}{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em A map $\mathbb{Z} \to \mathbb{Z} \times \mathbb{Z}$, together with its multi-\/valued inverse. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__integer__rmap2}{pmc\+\_\+integer\+\_\+rmap2}}
+\begin{DoxyCompactList}\small\item\em The \mbox{\hyperlink{structpmc__integer__rmap2_1_1integer__rmap2__t}{integer\+\_\+rmap2\+\_\+t}} structure and assocated subroutines. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+elemental subroutine \mbox{\hyperlink{namespacepmc__integer__rmap2_aa6b57f76f7da55c1c3e6537737bfa221}{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+set\+\_\+ranges}} (integer\+\_\+rmap2, n\+\_\+range\+\_\+1, n\+\_\+range\+\_\+2)
+\begin{DoxyCompactList}\small\item\em Sets the maximum ranges of the forward map. \end{DoxyCompactList}\item 
+elemental subroutine \mbox{\hyperlink{namespacepmc__integer__rmap2_a958ce14f01354b01adabc55480c620ab}{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+zero}} (integer\+\_\+rmap2)
+\begin{DoxyCompactList}\small\item\em Resets an integer\+\_\+rmap2 to have no mappings. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__rmap2_ae9b0fce5017e7fe869e8e408c730f4d3}{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+append}} (integer\+\_\+rmap2, i\+\_\+range\+\_\+1, i\+\_\+range\+\_\+2)
+\begin{DoxyCompactList}\small\item\em Set the map value of the next free domain value to {\ttfamily (i\+\_\+range\+\_\+1, i\+\_\+range\+\_\+2}. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__rmap2_aae3247ef6730522e692d01c18fc5587d}{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+change}} (integer\+\_\+rmap2, i\+\_\+domain, i\+\_\+range\+\_\+1, i\+\_\+range\+\_\+2)
+\begin{DoxyCompactList}\small\item\em Change the map value of {\ttfamily i\+\_\+domain} to {\ttfamily (i\+\_\+range\+\_\+1, i\+\_\+range\+\_\+2)}. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__rmap2_a3f44399fe3fa2f0aec68f32746fa4ccc}{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+remove}} (integer\+\_\+rmap2, i\+\_\+domain)
+\begin{DoxyCompactList}\small\item\em Replace the map at the given {\ttfamily i\+\_\+domain} with the map value of the last entry, and delete the last entry. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__rmap2_a2e4c3d69cb5dbe25f73b328fc08a4c71}{pmc\+\_\+integer\+\_\+rmap2\+::integer\+\_\+rmap2\+\_\+check}} (integer\+\_\+rmap2, name, n\+\_\+domain, n\+\_\+range\+\_\+1, n\+\_\+range\+\_\+2, continue\+\_\+on\+\_\+error)
+\begin{DoxyCompactList}\small\item\em Check that the data is consistent. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__integer__rmap2_a31c142e859b51a8e5a68cd40635c3dff}{pmc\+\_\+integer\+\_\+rmap2\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+integer\+\_\+rmap2}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__rmap2_a10ff7b71918c4a8e48febe2cffe0fbe6}{pmc\+\_\+integer\+\_\+rmap2\+::pmc\+\_\+mpi\+\_\+pack\+\_\+integer\+\_\+rmap2}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__integer__rmap2_a803859f2ba244b1035bba011911a1b31}{pmc\+\_\+integer\+\_\+rmap2\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+integer\+\_\+rmap2}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__integer__rmap2}{pmc\+\_\+integer\+\_\+rmap2}} module. 
+

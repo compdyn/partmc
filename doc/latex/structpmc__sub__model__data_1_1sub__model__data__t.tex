@@ -1,0 +1,220 @@
+\hypertarget{structpmc__sub__model__data_1_1sub__model__data__t}{}\section{pmc\+\_\+sub\+\_\+model\+\_\+data\+:\+:sub\+\_\+model\+\_\+data\+\_\+t Type Reference}
+\label{structpmc__sub__model__data_1_1sub__model__data__t}\index{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}}
+
+
+Abstract sub model data type.  
+
+
+
+
+Inheritance diagram for pmc\+\_\+sub\+\_\+model\+\_\+data\+:\+:sub\+\_\+model\+\_\+data\+\_\+t\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=202pt]{structpmc__sub__model__data_1_1sub__model__data__t__inherit__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+character(len=\+:), allocatable, public \mbox{\hyperlink{structpmc__sub__model__data_1_1sub__model__data__t_a93d525020dba241f6c410e023716c5b3}{model\+\_\+name}}
+\begin{DoxyCompactList}\small\item\em Name of the sub model. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), pointer, public \mbox{\hyperlink{structpmc__sub__model__data_1_1sub__model__data__t_aeb00155797966fc95e75ad14d45e7242}{property\+\_\+set}} =$>$ null()
+\begin{DoxyCompactList}\small\item\em Sub model parameters. These will be available during initialization, but not during integration. All information required by the sub model during solving must be saved by the extending type to the condensed data arrays. \end{DoxyCompactList}\item 
+real(kind=dp), dimension(\+:), allocatable, public \mbox{\hyperlink{structpmc__sub__model__data_1_1sub__model__data__t_afd5cb983e75931ea32d69ec1094890eb}{condensed\+\_\+data\+\_\+real}}
+\begin{DoxyCompactList}\small\item\em Condensed sub model data. These arrays will be available during integration, and should contain any information required by the sub model that cannot be obtained from the \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t}} object. (floating point) \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind), dimension(\+:), allocatable, public \mbox{\hyperlink{structpmc__sub__model__data_1_1sub__model__data__t_af236c8e807d10e3bd5e75fb26e41ea0e}{condensed\+\_\+data\+\_\+int}}
+\begin{DoxyCompactList}\small\item\em Condensed sub model data. These arrays will be available during integration, and should contain any information required by the sub model that cannot be obtained from the \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t}} object. (integer) \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+procedure(\mbox{\hyperlink{interfacepmc__sub__model__data_1_1initialize}{initialize}}), deferred \mbox{\hyperlink{structpmc__sub__model__data_1_1sub__model__data__t_a9c2bb91380875b71d9d662f3f9d475f8}{initialize}}
+\begin{DoxyCompactList}\small\item\em Initialize the sub model data, validating input parameters and loading any required information form the {\ttfamily \mbox{\hyperlink{structpmc__sub__model__data_1_1sub__model__data__t_aeb00155797966fc95e75ad14d45e7242}{sub\+\_\+model\+\_\+data\+\_\+t\+::property\+\_\+set}}}. This routine should be called once for each sub model at the beginning of the model run after all the input files have been read in. It ensures all data required during the model run are included in the condensed data arrays. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__sub__model__data_1_1sub__model__data__t_ad7b52c49ba2d2823ed18029df47ad3e7}{name}} =$>$ \mbox{\hyperlink{namespacepmc__sub__model__data_abb4112b25cd30b34833545bda008a983}{get\+\_\+name}}
+\begin{DoxyCompactList}\small\item\em Get the name of the sub model. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__sub__model__data_1_1sub__model__data__t_ad5fe9fdf0b4435052d5b95a7a7e32fc5}{pack\+\_\+size}}
+\begin{DoxyCompactList}\small\item\em Determine the number of bytes required to pack the sub-\/model data. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__sub__model__data_1_1sub__model__data__t_a1957d5f74720ce4ff42598e1507a6bd8}{bin\+\_\+pack}}
+\begin{DoxyCompactList}\small\item\em Packs the sub model into the buffer, advancing position. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__sub__model__data_1_1sub__model__data__t_ac64112c314ccc408971dec18862d2af4}{bin\+\_\+unpack}}
+\begin{DoxyCompactList}\small\item\em Unpacks the sub model from the buffer, advancing position. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__sub__model__data_1_1sub__model__data__t_a20b5440b33b4dc9b8f73f6a7befe9e1e}{load}}
+\begin{DoxyCompactList}\small\item\em Load data from an input file. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__sub__model__data_1_1sub__model__data__t_a977960f22c91532d4d3e7e4d7e1a51d5}{print}} =$>$ \mbox{\hyperlink{namespacepmc__sub__model__data_aa1a6115c9e5f44ce5e6716748ba06072}{do\+\_\+print}}
+\begin{DoxyCompactList}\small\item\em Print the sub model data. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Abstract sub model data type. 
+
+Time-\/invariant data required by a sub-\/model to perform calculations during solving. Derived types extending \mbox{\hyperlink{structpmc__sub__model__data_1_1sub__model__data__t}{sub\+\_\+model\+\_\+data\+\_\+t}} should be related to specific models or parameterizations. Sub models will have access to the current model state during solving, but will not be able to modify state variables or contribute to derivative arrays directly (this must be done by reactions).
+
+See \mbox{\hyperlink{phlex_sub_model}{Sub Models}} for details. 
+
+Definition at line 51 of file sub\+\_\+model\+\_\+data.\+F90.
+
+
+
+\subsection{Member Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{structpmc__sub__model__data_1_1sub__model__data__t_a1957d5f74720ce4ff42598e1507a6bd8}\label{structpmc__sub__model__data_1_1sub__model__data__t_a1957d5f74720ce4ff42598e1507a6bd8}} 
+\index{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}!bin\+\_\+pack@{bin\+\_\+pack}}
+\index{bin\+\_\+pack@{bin\+\_\+pack}!pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{bin\+\_\+pack()}{bin\_pack()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t\+::bin\+\_\+pack (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Packs the sub model into the buffer, advancing position. 
+
+
+
+Definition at line 83 of file sub\+\_\+model\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__sub__model__data_1_1sub__model__data__t_ac64112c314ccc408971dec18862d2af4}\label{structpmc__sub__model__data_1_1sub__model__data__t_ac64112c314ccc408971dec18862d2af4}} 
+\index{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}!bin\+\_\+unpack@{bin\+\_\+unpack}}
+\index{bin\+\_\+unpack@{bin\+\_\+unpack}!pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{bin\+\_\+unpack()}{bin\_unpack()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t\+::bin\+\_\+unpack (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Unpacks the sub model from the buffer, advancing position. 
+
+
+
+Definition at line 85 of file sub\+\_\+model\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__sub__model__data_1_1sub__model__data__t_a9c2bb91380875b71d9d662f3f9d475f8}\label{structpmc__sub__model__data_1_1sub__model__data__t_a9c2bb91380875b71d9d662f3f9d475f8}} 
+\index{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}!initialize@{initialize}}
+\index{initialize@{initialize}!pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{initialize()}{initialize()}}
+{\footnotesize\ttfamily procedure(\mbox{\hyperlink{interfacepmc__sub__model__data_1_1initialize}{initialize}}), deferred pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t\+::initialize (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Initialize the sub model data, validating input parameters and loading any required information form the {\ttfamily \mbox{\hyperlink{structpmc__sub__model__data_1_1sub__model__data__t_aeb00155797966fc95e75ad14d45e7242}{sub\+\_\+model\+\_\+data\+\_\+t\+::property\+\_\+set}}}. This routine should be called once for each sub model at the beginning of the model run after all the input files have been read in. It ensures all data required during the model run are included in the condensed data arrays. 
+
+
+
+Definition at line 77 of file sub\+\_\+model\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__sub__model__data_1_1sub__model__data__t_a20b5440b33b4dc9b8f73f6a7befe9e1e}\label{structpmc__sub__model__data_1_1sub__model__data__t_a20b5440b33b4dc9b8f73f6a7befe9e1e}} 
+\index{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}!load@{load}}
+\index{load@{load}!pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{load()}{load()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t\+::load (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Load data from an input file. 
+
+
+
+Definition at line 87 of file sub\+\_\+model\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__sub__model__data_1_1sub__model__data__t_ad7b52c49ba2d2823ed18029df47ad3e7}\label{structpmc__sub__model__data_1_1sub__model__data__t_ad7b52c49ba2d2823ed18029df47ad3e7}} 
+\index{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}!name@{name}}
+\index{name@{name}!pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{name()}{name()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t\+::name (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the name of the sub model. 
+
+
+
+Definition at line 79 of file sub\+\_\+model\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__sub__model__data_1_1sub__model__data__t_ad5fe9fdf0b4435052d5b95a7a7e32fc5}\label{structpmc__sub__model__data_1_1sub__model__data__t_ad5fe9fdf0b4435052d5b95a7a7e32fc5}} 
+\index{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}!pack\+\_\+size@{pack\+\_\+size}}
+\index{pack\+\_\+size@{pack\+\_\+size}!pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{pack\+\_\+size()}{pack\_size()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t\+::pack\+\_\+size (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Determine the number of bytes required to pack the sub-\/model data. 
+
+
+
+Definition at line 81 of file sub\+\_\+model\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__sub__model__data_1_1sub__model__data__t_a977960f22c91532d4d3e7e4d7e1a51d5}\label{structpmc__sub__model__data_1_1sub__model__data__t_a977960f22c91532d4d3e7e4d7e1a51d5}} 
+\index{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}!print@{print}}
+\index{print@{print}!pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{print()}{print()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t\+::print (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Print the sub model data. 
+
+
+
+Definition at line 89 of file sub\+\_\+model\+\_\+data.\+F90.
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structpmc__sub__model__data_1_1sub__model__data__t_af236c8e807d10e3bd5e75fb26e41ea0e}\label{structpmc__sub__model__data_1_1sub__model__data__t_af236c8e807d10e3bd5e75fb26e41ea0e}} 
+\index{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}!condensed\+\_\+data\+\_\+int@{condensed\+\_\+data\+\_\+int}}
+\index{condensed\+\_\+data\+\_\+int@{condensed\+\_\+data\+\_\+int}!pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{condensed\+\_\+data\+\_\+int}{condensed\_data\_int}}
+{\footnotesize\ttfamily integer(kind=i\+\_\+kind), dimension(\+:), allocatable, public pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t\+::condensed\+\_\+data\+\_\+int}
+
+
+
+Condensed sub model data. These arrays will be available during integration, and should contain any information required by the sub model that cannot be obtained from the \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t}} object. (integer) 
+
+
+
+Definition at line 69 of file sub\+\_\+model\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__sub__model__data_1_1sub__model__data__t_afd5cb983e75931ea32d69ec1094890eb}\label{structpmc__sub__model__data_1_1sub__model__data__t_afd5cb983e75931ea32d69ec1094890eb}} 
+\index{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}!condensed\+\_\+data\+\_\+real@{condensed\+\_\+data\+\_\+real}}
+\index{condensed\+\_\+data\+\_\+real@{condensed\+\_\+data\+\_\+real}!pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{condensed\+\_\+data\+\_\+real}{condensed\_data\_real}}
+{\footnotesize\ttfamily real(kind=dp), dimension(\+:), allocatable, public pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t\+::condensed\+\_\+data\+\_\+real}
+
+
+
+Condensed sub model data. These arrays will be available during integration, and should contain any information required by the sub model that cannot be obtained from the \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t}} object. (floating point) 
+
+
+
+Definition at line 64 of file sub\+\_\+model\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__sub__model__data_1_1sub__model__data__t_a93d525020dba241f6c410e023716c5b3}\label{structpmc__sub__model__data_1_1sub__model__data__t_a93d525020dba241f6c410e023716c5b3}} 
+\index{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}!model\+\_\+name@{model\+\_\+name}}
+\index{model\+\_\+name@{model\+\_\+name}!pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{model\+\_\+name}{model\_name}}
+{\footnotesize\ttfamily character(len=\+:), allocatable, public pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t\+::model\+\_\+name}
+
+
+
+Name of the sub model. 
+
+
+
+Definition at line 54 of file sub\+\_\+model\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__sub__model__data_1_1sub__model__data__t_aeb00155797966fc95e75ad14d45e7242}\label{structpmc__sub__model__data_1_1sub__model__data__t_aeb00155797966fc95e75ad14d45e7242}} 
+\index{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}!property\+\_\+set@{property\+\_\+set}}
+\index{property\+\_\+set@{property\+\_\+set}!pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t@{pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{property\+\_\+set}{property\_set}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), pointer, public pmc\+\_\+sub\+\_\+model\+\_\+data\+::sub\+\_\+model\+\_\+data\+\_\+t\+::property\+\_\+set =$>$ null()}
+
+
+
+Sub model parameters. These will be available during initialization, but not during integration. All information required by the sub model during solving must be saved by the extending type to the condensed data arrays. 
+
+
+
+Definition at line 59 of file sub\+\_\+model\+\_\+data.\+F90.
+
+
+
+The documentation for this type was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{sub__model__data_8_f90}{sub\+\_\+model\+\_\+data.\+F90}}\end{DoxyCompactItemize}

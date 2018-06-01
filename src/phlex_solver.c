@@ -496,7 +496,7 @@ SUNMatrix get_jac_init(SolverData *solver_data)
   rxn_update_ids(&(solver_data->model_data), deriv_ids, jac_ids);
 
   // Free the memory used
-  for (int i_spec=0; i_spec<n_dep_var; i_spec++) free(jac_struct[i_spec]);
+  for (int i_spec=0; i_spec<n_state_var; i_spec++) free(jac_struct[i_spec]);
   free(jac_struct);
   free(deriv_ids);
 

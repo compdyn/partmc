@@ -1,0 +1,388 @@
+\hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t}{}\section{pmc\+\_\+aero\+\_\+phase\+\_\+data\+:\+:aero\+\_\+phase\+\_\+data\+\_\+t Interface Reference}
+\label{structpmc__aero__phase__data_1_1aero__phase__data__t}\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+
+
+Aerosol phase data type.  
+
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+real(kind=dp), dimension(\+:), allocatable, public \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_ac8b625412bd07cc68a72269bd03c5867}{condensed\+\_\+data\+\_\+real}}
+\begin{DoxyCompactList}\small\item\em Condensed phase data. Theses arrays will be available during solving, and should contain any information required by the functions of the aerosol phase that cannot be obtained from the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t}}} object. (floating-\/point) \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind), dimension(\+:), allocatable, public \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_a4c1266fa3485a8d000082c2dd8b15ee4}{condensed\+\_\+data\+\_\+int}}
+\begin{DoxyCompactList}\small\item\em Condensed phase data. Theses arrays will be available during solving, and should contain any information required by the functions of the aerosol phase that cannot be obtained from the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t}}} object. (integer) \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+procedure \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_abe120a4e3c2d2c03a31a536c1b503f7f}{load}}
+\begin{DoxyCompactList}\small\item\em Load data from an input file. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_add9e3eff795960694ccbb148832f4898}{initialize}}
+\begin{DoxyCompactList}\small\item\em Aerosol phase initialization. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_a7d944272e6081c318da81392fb4d8017}{name}} =$>$ \mbox{\hyperlink{namespacepmc__aero__phase__data_afdcb4ccd85ae85a97eaf71114c14722f}{get\+\_\+name}}
+\begin{DoxyCompactList}\small\item\em Get the name of the aerosol phase. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_a6e30ae0e08bd6733b699750976407c12}{size}} =$>$ \mbox{\hyperlink{namespacepmc__aero__phase__data_acf59c1ac8fbb92b9d922cc94d4a89571}{get\+\_\+size}}
+\begin{DoxyCompactList}\small\item\em Get the number of species in the phase. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_a7ed5f141109b47739621981c92138c07}{get\+\_\+property\+\_\+set}}
+\begin{DoxyCompactList}\small\item\em Get property data associated with this phase. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_ac7fd533ec73f8fe4d31df04c7543d3a3}{get\+\_\+species\+\_\+names}}
+\begin{DoxyCompactList}\small\item\em Get a list of species names in this phase. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_a9a27e08fddd0651f3bf294e55aa47682}{get\+\_\+species\+\_\+type}}
+\begin{DoxyCompactList}\small\item\em Get a species type by name. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_a3fbf468c731830500d01afdb5fa65efe}{pack\+\_\+size}}
+\begin{DoxyCompactList}\small\item\em Determine the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_a4047c051b0c0eb9dfb53455a76e31648}{bin\+\_\+pack}}
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_aa4d86d5681ce2f7e8fe52a6baaa7884d}{bin\+\_\+unpack}}
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_a4ee618a333c0f42bddfb8e0ae575ac36}{print}} =$>$ \mbox{\hyperlink{namespacepmc__aero__phase__data_aaf65be8c5ab43c4930479af66b8632b7}{do\+\_\+print}}
+\begin{DoxyCompactList}\small\item\em Print the aerosol phase data. \end{DoxyCompactList}\item 
+final \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_a2f49623fd9a2c815e772ff84b378cf61}{finalize}}
+\begin{DoxyCompactList}\small\item\em Finalize the aerosol phase data. \end{DoxyCompactList}\item 
+procedure, private \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_abd4628d8c9dcdc3a0840aacd02c76113}{ensure\+\_\+size}}
+\begin{DoxyCompactList}\small\item\em Ensure there is enough room in the species dataset to add a specified number of species. \end{DoxyCompactList}\item 
+procedure, private \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_a60538113eb720a872a59f81d9e8c29c7}{add}}
+\begin{DoxyCompactList}\small\item\em Add a species. \end{DoxyCompactList}\item 
+procedure, private \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_a8eb6cda543ae6883e54a90b6d1d2ec2f}{find}}
+\begin{DoxyCompactList}\small\item\em Find a species index by name. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+character(len=\+:), allocatable \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_a6b432657e1385cc12e69d30d8aee02aa}{phase\+\_\+name}}
+\begin{DoxyCompactList}\small\item\em Name of the aerosol phase. \end{DoxyCompactList}\item 
+integer(kind=i\+\_\+kind) \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_a5d60d405506f43cedb9802a5a082deb5}{num\+\_\+spec}} = 0
+\begin{DoxyCompactList}\small\item\em Number of species in the phase. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__util_1_1string__t}{string\+\_\+t}}), dimension(\+:), pointer \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_a53090761d1563647a5eedcdf09bba7d6}{spec\+\_\+name}} =$>$ null()
+\begin{DoxyCompactList}\small\item\em Species names. These are species that are present in the aerosol phase. These species must exist in the {\ttfamily \mbox{\hyperlink{structpmc__phlex__core_1_1phlex__core__t_aff3bb5cb12638af6de6ee3b8b65a1fb3}{pmc\+\_\+phlex\+\_\+core\+::phlex\+\_\+core\+\_\+t\+::chem\+\_\+spec\+\_\+data}}} variable during initialization. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), pointer \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_a933032cf31aa9181bd253643bca911a7}{property\+\_\+set}} =$>$ null()
+\begin{DoxyCompactList}\small\item\em Aerosol phase parameters. These will be available during initialization, but not during solving. \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t}{chem\+\_\+spec\+\_\+data\+\_\+t}}), pointer \mbox{\hyperlink{structpmc__aero__phase__data_1_1aero__phase__data__t_ab1f0f88ebed688e68925ffa725928bc0}{chem\+\_\+spec\+\_\+data}}
+\begin{DoxyCompactList}\small\item\em Pointer to the set of chemical species data. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Aerosol phase data type. 
+
+\mbox{\hyperlink{phlex_aero_phase}{Aerosol phase}} information. 
+
+Definition at line 78 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+
+
+\subsection{Member Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_a60538113eb720a872a59f81d9e8c29c7}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_a60538113eb720a872a59f81d9e8c29c7}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!add@{add}}
+\index{add@{add}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{add()}{add()}}
+{\footnotesize\ttfamily procedure, private pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::add (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Add a species. 
+
+
+
+Definition at line 135 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_a4047c051b0c0eb9dfb53455a76e31648}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_a4047c051b0c0eb9dfb53455a76e31648}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!bin\+\_\+pack@{bin\+\_\+pack}}
+\index{bin\+\_\+pack@{bin\+\_\+pack}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{bin\+\_\+pack()}{bin\_pack()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::bin\+\_\+pack (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Packs the given value into the buffer, advancing position. 
+
+
+
+Definition at line 122 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_aa4d86d5681ce2f7e8fe52a6baaa7884d}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_aa4d86d5681ce2f7e8fe52a6baaa7884d}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!bin\+\_\+unpack@{bin\+\_\+unpack}}
+\index{bin\+\_\+unpack@{bin\+\_\+unpack}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{bin\+\_\+unpack()}{bin\_unpack()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::bin\+\_\+unpack (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Unpacks the given value from the buffer, advancing position. 
+
+
+
+Definition at line 124 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_abd4628d8c9dcdc3a0840aacd02c76113}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_abd4628d8c9dcdc3a0840aacd02c76113}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!ensure\+\_\+size@{ensure\+\_\+size}}
+\index{ensure\+\_\+size@{ensure\+\_\+size}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{ensure\+\_\+size()}{ensure\_size()}}
+{\footnotesize\ttfamily procedure, private pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::ensure\+\_\+size (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Ensure there is enough room in the species dataset to add a specified number of species. 
+
+
+
+Definition at line 133 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_a2f49623fd9a2c815e772ff84b378cf61}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_a2f49623fd9a2c815e772ff84b378cf61}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!finalize@{finalize}}
+\index{finalize@{finalize}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{finalize()}{finalize()}}
+{\footnotesize\ttfamily final pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::finalize (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [final]}, {\ttfamily [private]}}
+
+
+
+Finalize the aerosol phase data. 
+
+
+
+Definition at line 128 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_a8eb6cda543ae6883e54a90b6d1d2ec2f}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_a8eb6cda543ae6883e54a90b6d1d2ec2f}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!find@{find}}
+\index{find@{find}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{find()}{find()}}
+{\footnotesize\ttfamily procedure, private pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::find (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Find a species index by name. 
+
+
+
+Definition at line 137 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_a7ed5f141109b47739621981c92138c07}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_a7ed5f141109b47739621981c92138c07}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!get\+\_\+property\+\_\+set@{get\+\_\+property\+\_\+set}}
+\index{get\+\_\+property\+\_\+set@{get\+\_\+property\+\_\+set}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{get\+\_\+property\+\_\+set()}{get\_property\_set()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::get\+\_\+property\+\_\+set (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get property data associated with this phase. 
+
+
+
+Definition at line 114 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_ac7fd533ec73f8fe4d31df04c7543d3a3}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_ac7fd533ec73f8fe4d31df04c7543d3a3}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!get\+\_\+species\+\_\+names@{get\+\_\+species\+\_\+names}}
+\index{get\+\_\+species\+\_\+names@{get\+\_\+species\+\_\+names}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{get\+\_\+species\+\_\+names()}{get\_species\_names()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::get\+\_\+species\+\_\+names (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get a list of species names in this phase. 
+
+
+
+Definition at line 116 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_a9a27e08fddd0651f3bf294e55aa47682}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_a9a27e08fddd0651f3bf294e55aa47682}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!get\+\_\+species\+\_\+type@{get\+\_\+species\+\_\+type}}
+\index{get\+\_\+species\+\_\+type@{get\+\_\+species\+\_\+type}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{get\+\_\+species\+\_\+type()}{get\_species\_type()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::get\+\_\+species\+\_\+type (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get a species type by name. 
+
+
+
+Definition at line 118 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_add9e3eff795960694ccbb148832f4898}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_add9e3eff795960694ccbb148832f4898}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!initialize@{initialize}}
+\index{initialize@{initialize}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{initialize()}{initialize()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::initialize (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Aerosol phase initialization. 
+
+
+
+Definition at line 108 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_abe120a4e3c2d2c03a31a536c1b503f7f}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_abe120a4e3c2d2c03a31a536c1b503f7f}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!load@{load}}
+\index{load@{load}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{load()}{load()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::load (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Load data from an input file. 
+
+
+
+Definition at line 106 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_a7d944272e6081c318da81392fb4d8017}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_a7d944272e6081c318da81392fb4d8017}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!name@{name}}
+\index{name@{name}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{name()}{name()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::name (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the name of the aerosol phase. 
+
+
+
+Definition at line 110 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_a3fbf468c731830500d01afdb5fa65efe}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_a3fbf468c731830500d01afdb5fa65efe}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!pack\+\_\+size@{pack\+\_\+size}}
+\index{pack\+\_\+size@{pack\+\_\+size}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{pack\+\_\+size()}{pack\_size()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::pack\+\_\+size (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Determine the number of bytes required to pack the given value. 
+
+
+
+Definition at line 120 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_a4ee618a333c0f42bddfb8e0ae575ac36}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_a4ee618a333c0f42bddfb8e0ae575ac36}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!print@{print}}
+\index{print@{print}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{print()}{print()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::print (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Print the aerosol phase data. 
+
+
+
+Definition at line 126 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_a6e30ae0e08bd6733b699750976407c12}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_a6e30ae0e08bd6733b699750976407c12}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!size@{size}}
+\index{size@{size}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{size()}{size()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::size (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the number of species in the phase. 
+
+
+
+Definition at line 112 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_ab1f0f88ebed688e68925ffa725928bc0}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_ab1f0f88ebed688e68925ffa725928bc0}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!chem\+\_\+spec\+\_\+data@{chem\+\_\+spec\+\_\+data}}
+\index{chem\+\_\+spec\+\_\+data@{chem\+\_\+spec\+\_\+data}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{chem\+\_\+spec\+\_\+data}{chem\_spec\_data}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__chem__spec__data_1_1chem__spec__data__t}{chem\+\_\+spec\+\_\+data\+\_\+t}}), pointer pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::chem\+\_\+spec\+\_\+data\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Pointer to the set of chemical species data. 
+
+
+
+Definition at line 103 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_a4c1266fa3485a8d000082c2dd8b15ee4}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_a4c1266fa3485a8d000082c2dd8b15ee4}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!condensed\+\_\+data\+\_\+int@{condensed\+\_\+data\+\_\+int}}
+\index{condensed\+\_\+data\+\_\+int@{condensed\+\_\+data\+\_\+int}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{condensed\+\_\+data\+\_\+int}{condensed\_data\_int}}
+{\footnotesize\ttfamily integer(kind=i\+\_\+kind), dimension(\+:), allocatable, public pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::condensed\+\_\+data\+\_\+int}
+
+
+
+Condensed phase data. Theses arrays will be available during solving, and should contain any information required by the functions of the aerosol phase that cannot be obtained from the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t}}} object. (integer) 
+
+
+
+Definition at line 101 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_ac8b625412bd07cc68a72269bd03c5867}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_ac8b625412bd07cc68a72269bd03c5867}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!condensed\+\_\+data\+\_\+real@{condensed\+\_\+data\+\_\+real}}
+\index{condensed\+\_\+data\+\_\+real@{condensed\+\_\+data\+\_\+real}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{condensed\+\_\+data\+\_\+real}{condensed\_data\_real}}
+{\footnotesize\ttfamily real(kind=dp), dimension(\+:), allocatable, public pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::condensed\+\_\+data\+\_\+real}
+
+
+
+Condensed phase data. Theses arrays will be available during solving, and should contain any information required by the functions of the aerosol phase that cannot be obtained from the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t}}} object. (floating-\/point) 
+
+
+
+Definition at line 96 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_a5d60d405506f43cedb9802a5a082deb5}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_a5d60d405506f43cedb9802a5a082deb5}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!num\+\_\+spec@{num\+\_\+spec}}
+\index{num\+\_\+spec@{num\+\_\+spec}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{num\+\_\+spec}{num\_spec}}
+{\footnotesize\ttfamily integer(kind=i\+\_\+kind) pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::num\+\_\+spec = 0\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Number of species in the phase. 
+
+
+
+Definition at line 83 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_a6b432657e1385cc12e69d30d8aee02aa}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_a6b432657e1385cc12e69d30d8aee02aa}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!phase\+\_\+name@{phase\+\_\+name}}
+\index{phase\+\_\+name@{phase\+\_\+name}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{phase\+\_\+name}{phase\_name}}
+{\footnotesize\ttfamily character(len=\+:), allocatable pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::phase\+\_\+name\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Name of the aerosol phase. 
+
+
+
+Definition at line 81 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_a933032cf31aa9181bd253643bca911a7}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_a933032cf31aa9181bd253643bca911a7}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!property\+\_\+set@{property\+\_\+set}}
+\index{property\+\_\+set@{property\+\_\+set}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{property\+\_\+set}{property\_set}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__property_1_1property__t}{property\+\_\+t}}), pointer pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::property\+\_\+set =$>$ null()\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Aerosol phase parameters. These will be available during initialization, but not during solving. 
+
+
+
+Definition at line 91 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__phase__data_1_1aero__phase__data__t_a53090761d1563647a5eedcdf09bba7d6}\label{structpmc__aero__phase__data_1_1aero__phase__data__t_a53090761d1563647a5eedcdf09bba7d6}} 
+\index{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}!spec\+\_\+name@{spec\+\_\+name}}
+\index{spec\+\_\+name@{spec\+\_\+name}!pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t@{pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{spec\+\_\+name}{spec\_name}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__util_1_1string__t}{string\+\_\+t}}), dimension(\+:), pointer pmc\+\_\+aero\+\_\+phase\+\_\+data\+::aero\+\_\+phase\+\_\+data\+\_\+t\+::spec\+\_\+name =$>$ null()\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Species names. These are species that are present in the aerosol phase. These species must exist in the {\ttfamily \mbox{\hyperlink{structpmc__phlex__core_1_1phlex__core__t_aff3bb5cb12638af6de6ee3b8b65a1fb3}{pmc\+\_\+phlex\+\_\+core\+::phlex\+\_\+core\+\_\+t\+::chem\+\_\+spec\+\_\+data}}} variable during initialization. 
+
+
+
+Definition at line 88 of file aero\+\_\+phase\+\_\+data.\+F90.
+
+
+
+The documentation for this interface was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{aero__phase__data_8_f90}{aero\+\_\+phase\+\_\+data.\+F90}}\end{DoxyCompactItemize}

@@ -1,0 +1,45 @@
+\hypertarget{aero__dist_8_f90}{}\section{aero\+\_\+dist.\+F90 File Reference}
+\label{aero__dist_8_f90}\index{aero\+\_\+dist.\+F90@{aero\+\_\+dist.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__aero__dist}{pmc\+\_\+aero\+\_\+dist}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+type \mbox{\hyperlink{structpmc__aero__dist_1_1aero__dist__t}{pmc\+\_\+aero\+\_\+dist\+::aero\+\_\+dist\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em A complete aerosol distribution, consisting of several modes. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__aero__dist}{pmc\+\_\+aero\+\_\+dist}}
+\begin{DoxyCompactList}\small\item\em The \mbox{\hyperlink{structpmc__aero__dist_1_1aero__dist__t}{aero\+\_\+dist\+\_\+t}} structure and associated subroutines. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+elemental integer function \mbox{\hyperlink{namespacepmc__aero__dist_a2a730d12e3dc3d0c51d7aff80bd30e35}{pmc\+\_\+aero\+\_\+dist\+::aero\+\_\+dist\+\_\+n\+\_\+mode}} (aero\+\_\+dist)
+\begin{DoxyCompactList}\small\item\em Return the number of modes. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__aero__dist_a1976c9bd301379b91f6c14668315bacf}{pmc\+\_\+aero\+\_\+dist\+::aero\+\_\+dist\+\_\+total\+\_\+num\+\_\+conc}} (aero\+\_\+dist)
+\begin{DoxyCompactList}\small\item\em Returns the total number concentration of a distribution. (\#/m$^\wedge$3) \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__aero__dist_abc6bb98e0bbd18394c4c9f146d0337f0}{pmc\+\_\+aero\+\_\+dist\+::aero\+\_\+dist\+\_\+number}} (aero\+\_\+dist, aero\+\_\+weight)
+\begin{DoxyCompactList}\small\item\em Returns the total number of particles of a distribution. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__dist_a59a20aa0065ae63e35a55c8079ce9d66}{pmc\+\_\+aero\+\_\+dist\+::aero\+\_\+dist\+\_\+num\+\_\+conc}} (aero\+\_\+dist, bin\+\_\+grid, aero\+\_\+data, num\+\_\+conc)
+\begin{DoxyCompactList}\small\item\em Return the binned number concentration for an aero\+\_\+dist. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__dist_a876b60eece43d39ab4d5c09a5a5d22d7}{pmc\+\_\+aero\+\_\+dist\+::aero\+\_\+dist\+\_\+vol\+\_\+conc}} (aero\+\_\+dist, bin\+\_\+grid, aero\+\_\+data, vol\+\_\+conc)
+\begin{DoxyCompactList}\small\item\em Return the binned per-\/species volume concentration for an aero\+\_\+dist. \end{DoxyCompactList}\item 
+elemental logical function \mbox{\hyperlink{namespacepmc__aero__dist_acb52a306c5fd713a1a76f66ef21b22d9}{pmc\+\_\+aero\+\_\+dist\+::aero\+\_\+dist\+\_\+contains\+\_\+aero\+\_\+mode\+\_\+type}} (aero\+\_\+dist, aero\+\_\+mode\+\_\+type)
+\begin{DoxyCompactList}\small\item\em Whether any of the modes are of the given type. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__dist_a1fe0b780b71145acb4892b597f9218a5}{pmc\+\_\+aero\+\_\+dist\+::aero\+\_\+dist\+\_\+interp\+\_\+1d}} (aero\+\_\+dist\+\_\+list, time\+\_\+list, rate\+\_\+list, time, aero\+\_\+dist, rate)
+\begin{DoxyCompactList}\small\item\em Determine the current aero\+\_\+dist and rate by interpolating at the current time with the lists of aero\+\_\+dists and rates. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__aero__dist_ac204813ce47a796777984e68f0e50dc7}{pmc\+\_\+aero\+\_\+dist\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+aero\+\_\+dist}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__dist_a33ef1e6098d7956dbdac21b37adfb337}{pmc\+\_\+aero\+\_\+dist\+::pmc\+\_\+mpi\+\_\+pack\+\_\+aero\+\_\+dist}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__aero__dist_a2a10f585be3b1cb326f523a68219dfa4}{pmc\+\_\+aero\+\_\+dist\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+aero\+\_\+dist}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__aero__dist}{pmc\+\_\+aero\+\_\+dist}} module. 
+

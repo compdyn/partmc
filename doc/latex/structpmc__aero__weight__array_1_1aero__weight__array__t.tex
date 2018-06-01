@@ -1,0 +1,43 @@
+\hypertarget{structpmc__aero__weight__array_1_1aero__weight__array__t}{}\section{pmc\+\_\+aero\+\_\+weight\+\_\+array\+:\+:aero\+\_\+weight\+\_\+array\+\_\+t Type Reference}
+\label{structpmc__aero__weight__array_1_1aero__weight__array__t}\index{pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+t@{pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+t}}
+
+
+An array of aerosol size distribution weighting functions.  
+
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+type(\mbox{\hyperlink{structpmc__aero__weight_1_1aero__weight__t}{aero\+\_\+weight\+\_\+t}}), dimension(\+:, \+:), allocatable \mbox{\hyperlink{structpmc__aero__weight__array_1_1aero__weight__array__t_ad521ea7fd52fa87d57f8f71c2d223e08}{weight}}
+\begin{DoxyCompactList}\small\item\em Aero weight array, {\ttfamily aero\+\_\+weight\+\_\+array\+\_\+n\+\_\+group(aero\+\_\+weight\+\_\+array) x aero\+\_\+weight\+\_\+array\+\_\+n\+\_\+class(aero\+\_\+weight\+\_\+array)}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+An array of aerosol size distribution weighting functions. 
+
+Each particle has a weight group and a weight class, which defines the weighting function associated with it. To determine the actual weight for a particle, the harmonic mean of the weight from each group is computed (for the given class). All particles of a given size within a weight class will thus have the same weight, irrespective of which group they are in. The group is only important when doubling or halving occurs, which takes place for a specific group and class. 
+
+Definition at line 35 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structpmc__aero__weight__array_1_1aero__weight__array__t_ad521ea7fd52fa87d57f8f71c2d223e08}\label{structpmc__aero__weight__array_1_1aero__weight__array__t_ad521ea7fd52fa87d57f8f71c2d223e08}} 
+\index{pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+t@{pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+t}!weight@{weight}}
+\index{weight@{weight}!pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+t@{pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+t}}
+\subsubsection{\texorpdfstring{weight}{weight}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__aero__weight_1_1aero__weight__t}{aero\+\_\+weight\+\_\+t}}), dimension(\+:, \+:), allocatable pmc\+\_\+aero\+\_\+weight\+\_\+array\+::aero\+\_\+weight\+\_\+array\+\_\+t\+::weight}
+
+
+
+Aero weight array, {\ttfamily aero\+\_\+weight\+\_\+array\+\_\+n\+\_\+group(aero\+\_\+weight\+\_\+array) x aero\+\_\+weight\+\_\+array\+\_\+n\+\_\+class(aero\+\_\+weight\+\_\+array)}. 
+
+
+
+Definition at line 38 of file aero\+\_\+weight\+\_\+array.\+F90.
+
+
+
+The documentation for this type was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{aero__weight__array_8_f90}{aero\+\_\+weight\+\_\+array.\+F90}}\end{DoxyCompactItemize}

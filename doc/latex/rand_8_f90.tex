@@ -1,0 +1,61 @@
+\hypertarget{rand_8_f90}{}\section{rand.\+F90 File Reference}
+\label{rand_8_f90}\index{rand.\+F90@{rand.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__rand}{pmc\+\_\+rand}} module.  
+
+
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__rand}{pmc\+\_\+rand}}
+\begin{DoxyCompactList}\small\item\em Random number generators. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \mbox{\hyperlink{namespacepmc__rand_a40da4da741045a9a9ee1ac71aaa17733}{pmc\+\_\+rand\+::pmc\+\_\+srand}} (seed, offset)
+\begin{DoxyCompactList}\small\item\em Initializes the random number generator to the state defined by the given seed plus offset. If the seed is 0 then a seed is auto-\/generated from the current time plus offset. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__rand_a48ab8c38095e258be9faafc7bd59ee35}{pmc\+\_\+rand\+::pmc\+\_\+rand\+\_\+finalize}} ()
+\begin{DoxyCompactList}\small\item\em Cleanup the random number generator. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__rand_ac30aa8df3ca962ead17d9adcaceb7263}{pmc\+\_\+rand\+::pmc\+\_\+random}} ()
+\begin{DoxyCompactList}\small\item\em Returns a random number between 0 and 1. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__rand_afe2e7274c4b89e11909e08b1b1fd0e60}{pmc\+\_\+rand\+::pmc\+\_\+rand\+\_\+int}} (n)
+\begin{DoxyCompactList}\small\item\em Returns a random integer between 1 and n. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__rand_aa92bb8693f9b8ef18c9e4ec820ada63b}{pmc\+\_\+rand\+::prob\+\_\+round}} (val)
+\begin{DoxyCompactList}\small\item\em Round val to {\ttfamily floor(val)} or {\ttfamily ceiling(val)} with probability proportional to the relative distance from {\ttfamily val}. That is, Prob(prob\+\_\+round(val) == floor(val)) = ceil(val) -\/ val. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__rand_a815e907dd53313f0bc950a71c72c5bb4}{pmc\+\_\+rand\+::rand\+\_\+poisson}} (mean)
+\begin{DoxyCompactList}\small\item\em Generate a Poisson-\/distributed random number with the given mean. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__rand_a4f8465fceab04e6f853f484509121fc1}{pmc\+\_\+rand\+::rand\+\_\+binomial}} (n, p)
+\begin{DoxyCompactList}\small\item\em Generate a Binomial-\/distributed random number with the given parameters. \end{DoxyCompactList}\item 
+real(kind=dp) function \mbox{\hyperlink{namespacepmc__rand_ad0761e89156bd0a92a7d3a504d4c95fb}{pmc\+\_\+rand\+::rand\+\_\+normal}} (mean, stddev)
+\begin{DoxyCompactList}\small\item\em Generates a normally distributed random number with the given mean and standard deviation. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__rand_a5ebdbd9553832208d4a3a43112550ca4}{pmc\+\_\+rand\+::rand\+\_\+normal\+\_\+array\+\_\+1d}} (mean, stddev, val)
+\begin{DoxyCompactList}\small\item\em Generates a vector of normally distributed random numbers with the given means and standard deviations. This is a set of normally distributed scalars, not a normally distributed vector. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__rand_a69a67c16e1e0a2ea9946e307775237e8}{pmc\+\_\+rand\+::sample\+\_\+cts\+\_\+pdf}} (pdf)
+\begin{DoxyCompactList}\small\item\em Sample the given continuous probability density function. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__rand_a38a356c6ac89e03417f24d20f31e7d6e}{pmc\+\_\+rand\+::sample\+\_\+disc\+\_\+pdf}} (pdf)
+\begin{DoxyCompactList}\small\item\em Sample the given discrete probability density function. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__rand_aae621f54dd9a485ef6dfc472ecc97206}{pmc\+\_\+rand\+::sample\+\_\+vec\+\_\+cts\+\_\+to\+\_\+disc}} (vec\+\_\+cts, n\+\_\+samp, vec\+\_\+disc)
+\begin{DoxyCompactList}\small\item\em Convert a real-\/valued vector into an integer-\/valued vector by sampling. \end{DoxyCompactList}\item 
+character function \mbox{\hyperlink{namespacepmc__rand_aa7391b756c870846cb14393a37f095df}{pmc\+\_\+rand\+::rand\+\_\+hex\+\_\+char}} ()
+\begin{DoxyCompactList}\small\item\em Generate a random hexadecimal character. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__rand_a2412b4291de3a49c6583e04382762cad}{pmc\+\_\+rand\+::uuid4\+\_\+str}} (uuid)
+\begin{DoxyCompactList}\small\item\em Generate a version 4 U\+U\+ID as a string. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__rand_a50eda03f05afa1016ef7c63910f62abf}{pmc\+\_\+rand\+::pmc\+\_\+uuid\+\_\+len}} = 36
+\begin{DoxyCompactList}\small\item\em Length of a U\+U\+ID string. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__rand_ae92b9bb82c9825f509a7833ba419477b}{pmc\+\_\+rand\+::pmc\+\_\+rand\+\_\+gsl\+\_\+success}} = 0
+\begin{DoxyCompactList}\small\item\em Result code indicating successful completion. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__rand_a61fd879b01560eb3c93b8e8548469c03}{pmc\+\_\+rand\+::pmc\+\_\+rand\+\_\+gsl\+\_\+init\+\_\+fail}} = 1
+\begin{DoxyCompactList}\small\item\em Result code indicating initialization failure. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__rand_aac2309eecd307a2b026d521d5dfdb58c}{pmc\+\_\+rand\+::pmc\+\_\+rand\+\_\+gsl\+\_\+not\+\_\+init}} = 2
+\begin{DoxyCompactList}\small\item\em Result code indicating the generator was not initialized when it should have been. \end{DoxyCompactList}\item 
+integer, parameter \mbox{\hyperlink{namespacepmc__rand_a527b1327bd44917b19920fb8427a04f6}{pmc\+\_\+rand\+::pmc\+\_\+rand\+\_\+gsl\+\_\+already\+\_\+init}} = 3
+\begin{DoxyCompactList}\small\item\em Result code indicating the generator was already initialized when an initialization was attempted. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__rand}{pmc\+\_\+rand}} module. 
+

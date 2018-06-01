@@ -52,6 +52,8 @@ contains
       passed = .true.
     end if
 
+    deallocate(phlex_solver_data)
+
   end function run_arrhenius_tests
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -69,7 +71,7 @@ contains
     use pmc_constants
 
     type(phlex_core_t), pointer :: phlex_core
-    type(phlex_state_t), target :: phlex_state
+    type(phlex_state_t), pointer :: phlex_state
     character(len=:), allocatable :: input_file_path
     type(string_t), allocatable, dimension(:) :: output_file_path
 
@@ -111,7 +113,7 @@ contains
     call phlex_core%solver_initialize()
 
     ! Get a model state variable
-    phlex_state = phlex_core%new_state()
+    phlex_state => phlex_core%new_state()
 
     ! Set the environmental conditions
     phlex_state%env_state%temp = temp
@@ -182,6 +184,9 @@ contains
           "; true: "//to_string(true_conc(i_time, i_spec)))
       end do
     end do
+
+    deallocate(phlex_state)
+    deallocate(phlex_core)
 
     run_arrhenius_test = .true.
 

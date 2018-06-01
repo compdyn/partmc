@@ -1,0 +1,61 @@
+\hypertarget{structpmc__aero__info__array_1_1aero__info__array__t}{}\section{pmc\+\_\+aero\+\_\+info\+\_\+array\+:\+:aero\+\_\+info\+\_\+array\+\_\+t Type Reference}
+\label{structpmc__aero__info__array_1_1aero__info__array__t}\index{pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+t@{pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+t}}
+
+
+1-\/D arrays of aero\+\_\+info\+\_\+t structure.  
+
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+integer \mbox{\hyperlink{structpmc__aero__info__array_1_1aero__info__array__t_af686e922a026366c7c9eb9ed3bfc85ac}{n\+\_\+item}}
+\begin{DoxyCompactList}\small\item\em Number of items in the array (not the same as the length of the allocated memory). \end{DoxyCompactList}\item 
+type(\mbox{\hyperlink{structpmc__aero__info_1_1aero__info__t}{aero\+\_\+info\+\_\+t}}), dimension(\+:), allocatable \mbox{\hyperlink{structpmc__aero__info__array_1_1aero__info__array__t_a53c9429809f4d472083294d758a2852e}{aero\+\_\+info}}
+\begin{DoxyCompactList}\small\item\em Array of aero\+\_\+info\+\_\+t structures. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+1-\/D arrays of aero\+\_\+info\+\_\+t structure. 
+
+This type implements a variable-\/length array of aero\+\_\+info\+\_\+t structures. To give a reasonable tradeoff between frequent re-\/allocs and memory usage, the length of an aero\+\_\+info\+\_\+array is generally a bit longer than the number of particles stored in it. When the array is full then a larger array is allocated with new extra space. As a balance between memory usage and frequency of re-\/allocs the length of the array is currently doubled when necessary and halved when possible.
+
+The true allocated length of the aero\+\_\+info\+\_\+array can be obtained by size(aero\+\_\+info\+\_\+array\%aero\+\_\+info), while the number of used particle slots in it is given by \mbox{\hyperlink{namespacepmc__aero__info__array_a0704e78a0bc96744d181384d88dff2ee}{aero\+\_\+info\+\_\+array\+\_\+n\+\_\+item()}}. 
+
+Definition at line 33 of file aero\+\_\+info\+\_\+array.\+F90.
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structpmc__aero__info__array_1_1aero__info__array__t_a53c9429809f4d472083294d758a2852e}\label{structpmc__aero__info__array_1_1aero__info__array__t_a53c9429809f4d472083294d758a2852e}} 
+\index{pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+t@{pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+t}!aero\+\_\+info@{aero\+\_\+info}}
+\index{aero\+\_\+info@{aero\+\_\+info}!pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+t@{pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+t}}
+\subsubsection{\texorpdfstring{aero\+\_\+info}{aero\_info}}
+{\footnotesize\ttfamily type(\mbox{\hyperlink{structpmc__aero__info_1_1aero__info__t}{aero\+\_\+info\+\_\+t}}), dimension(\+:), allocatable pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+t\+::aero\+\_\+info}
+
+
+
+Array of aero\+\_\+info\+\_\+t structures. 
+
+
+
+Definition at line 38 of file aero\+\_\+info\+\_\+array.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__info__array_1_1aero__info__array__t_af686e922a026366c7c9eb9ed3bfc85ac}\label{structpmc__aero__info__array_1_1aero__info__array__t_af686e922a026366c7c9eb9ed3bfc85ac}} 
+\index{pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+t@{pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+t}!n\+\_\+item@{n\+\_\+item}}
+\index{n\+\_\+item@{n\+\_\+item}!pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+t@{pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+t}}
+\subsubsection{\texorpdfstring{n\+\_\+item}{n\_item}}
+{\footnotesize\ttfamily integer pmc\+\_\+aero\+\_\+info\+\_\+array\+::aero\+\_\+info\+\_\+array\+\_\+t\+::n\+\_\+item}
+
+
+
+Number of items in the array (not the same as the length of the allocated memory). 
+
+
+
+Definition at line 36 of file aero\+\_\+info\+\_\+array.\+F90.
+
+
+
+The documentation for this type was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{aero__info__array_8_f90}{aero\+\_\+info\+\_\+array.\+F90}}\end{DoxyCompactItemize}

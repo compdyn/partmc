@@ -1,0 +1,167 @@
+\hypertarget{rxn__arrhenius_8_f90}{}\section{rxn\+\_\+arrhenius.\+F90 File Reference}
+\label{rxn__arrhenius_8_f90}\index{rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__rxn__arrhenius}{pmc\+\_\+rxn\+\_\+arrhenius}} module.  
+
+
+\subsection*{Data Types}
+\begin{DoxyCompactItemize}
+\item 
+interface \mbox{\hyperlink{structpmc__rxn__arrhenius_1_1rxn__arrhenius__t}{pmc\+\_\+rxn\+\_\+arrhenius\+::rxn\+\_\+arrhenius\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Generic test reaction data type. \end{DoxyCompactList}\item 
+interface \mbox{\hyperlink{structpmc__rxn__arrhenius_1_1rxn__arrhenius__t}{pmc\+\_\+rxn\+\_\+arrhenius\+::rxn\+\_\+arrhenius\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Generic test reaction data type. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__rxn__arrhenius}{pmc\+\_\+rxn\+\_\+arrhenius}}
+\begin{DoxyCompactList}\small\item\em The \mbox{\hyperlink{structpmc__rxn__arrhenius_1_1rxn__arrhenius__t}{rxn\+\_\+arrhenius\+\_\+t}} type and associated functions. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{rxn__arrhenius_8_f90_a05ef845cf6ed7ab9a774440c42af34fa}{N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}}~this\%condensed\+\_\+data\+\_\+int(1)
+\item 
+\#define \mbox{\hyperlink{rxn__arrhenius_8_f90_acf951e890da75cd2d503ed6ce8211fc2}{N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}}~this\%condensed\+\_\+data\+\_\+int(2)
+\item 
+\#define \mbox{\hyperlink{rxn__arrhenius_8_f90_a71700f5633db3f99b43c798b09c60bd2}{A\+\_\+}}~this\%condensed\+\_\+data\+\_\+real(1)
+\item 
+\#define \mbox{\hyperlink{rxn__arrhenius_8_f90_a97097eeee58a37a9710a05f559d84a6b}{B\+\_\+}}~this\%condensed\+\_\+data\+\_\+real(2)
+\item 
+\#define \mbox{\hyperlink{rxn__arrhenius_8_f90_ad010fec48ee67af5ba75e0ec6c3f5ce4}{C\+\_\+}}~this\%condensed\+\_\+data\+\_\+real(3)
+\item 
+\#define \mbox{\hyperlink{rxn__arrhenius_8_f90_abf33a03f27734aa2fcf6119f36390bd9}{D\+\_\+}}~this\%condensed\+\_\+data\+\_\+real(4)
+\item 
+\#define \mbox{\hyperlink{rxn__arrhenius_8_f90_a80ef7c0a31f0dd1900c1d9b0bd3b96cc}{E\+\_\+}}~this\%condensed\+\_\+data\+\_\+real(5)
+\item 
+\#define \mbox{\hyperlink{rxn__arrhenius_8_f90_a91cd74713029c0906e8136c8628d548d}{C\+O\+N\+V\+\_\+}}~this\%condensed\+\_\+data\+\_\+real(6)
+\item 
+\#define \mbox{\hyperlink{rxn__arrhenius_8_f90_a6d62af2f44a112ef5b324cf406a830c2}{R\+A\+T\+E\+\_\+\+C\+O\+N\+S\+T\+A\+N\+T\+\_\+}}~this\%condensed\+\_\+data\+\_\+real(7)
+\item 
+\#define \mbox{\hyperlink{rxn__arrhenius_8_f90_a13ba1b28e3d8a5e60eec52ce6bbabe4f}{N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}}~2
+\item 
+\#define \mbox{\hyperlink{rxn__arrhenius_8_f90_aa9808eb54fa06bcf890dd1aa1fc6ca5b}{N\+U\+M\+\_\+\+R\+E\+A\+L\+\_\+\+P\+R\+O\+P\+\_\+}}~7
+\item 
+\#define \mbox{\hyperlink{rxn__arrhenius_8_f90_ae761e39657aac155d83eae9b338be571}{R\+E\+A\+C\+T\+\_\+}}(x)~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn__arrhenius_8_f90_a13ba1b28e3d8a5e60eec52ce6bbabe4f}{N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}} + x)
+\item 
+\#define \mbox{\hyperlink{rxn__arrhenius_8_f90_a9fda90058c6a41b1dda6ded03321c4da}{P\+R\+O\+D\+\_\+}}(x)~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn__arrhenius_8_f90_a13ba1b28e3d8a5e60eec52ce6bbabe4f}{N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}} + \mbox{\hyperlink{rxn__arrhenius_8_f90_a05ef845cf6ed7ab9a774440c42af34fa}{N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}} + x)
+\item 
+\#define \mbox{\hyperlink{rxn__arrhenius_8_f90_af9fc34858d09e71d3cffd88cf942bdf9}{D\+E\+R\+I\+V\+\_\+\+I\+D\+\_\+}}(x)~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn__arrhenius_8_f90_a13ba1b28e3d8a5e60eec52ce6bbabe4f}{N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}} + \mbox{\hyperlink{rxn__arrhenius_8_f90_a05ef845cf6ed7ab9a774440c42af34fa}{N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}} + \mbox{\hyperlink{rxn__arrhenius_8_f90_acf951e890da75cd2d503ed6ce8211fc2}{N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}} + x)
+\item 
+\#define \mbox{\hyperlink{rxn__arrhenius_8_f90_ab831aae98d4453927c63a93f55ee5a86}{J\+A\+C\+\_\+\+I\+D\+\_\+}}(x)~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn__arrhenius_8_f90_a13ba1b28e3d8a5e60eec52ce6bbabe4f}{N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}} + 2$\ast$(\mbox{\hyperlink{rxn__arrhenius_8_f90_a05ef845cf6ed7ab9a774440c42af34fa}{N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}}+\mbox{\hyperlink{rxn__arrhenius_8_f90_acf951e890da75cd2d503ed6ce8211fc2}{N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}}) + x)
+\item 
+\#define \mbox{\hyperlink{rxn__arrhenius_8_f90_a9ae244708fd9c438bf840ed319733651}{Y\+I\+E\+L\+D\+\_\+}}(x)~this\%condensed\+\_\+data\+\_\+real(\mbox{\hyperlink{rxn__arrhenius_8_f90_aa9808eb54fa06bcf890dd1aa1fc6ca5b}{N\+U\+M\+\_\+\+R\+E\+A\+L\+\_\+\+P\+R\+O\+P\+\_\+}} + x)
+\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+type(rxn\+\_\+arrhenius\+\_\+t) function, pointer \mbox{\hyperlink{namespacepmc__rxn__arrhenius_a01eb485a07b0ebe221eafbd3895e7bb9}{pmc\+\_\+rxn\+\_\+arrhenius\+::constructor}} ()
+\begin{DoxyCompactList}\small\item\em Constructor for Arrhenius reaction. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__rxn__arrhenius_a98fac0a13ca490d21f4b3c0049645c09}{pmc\+\_\+rxn\+\_\+arrhenius\+::initialize}} (this, chem\+\_\+spec\+\_\+data, aero\+\_\+rep)
+\begin{DoxyCompactList}\small\item\em Initialize the reaction data, validating component data and loading any required information into the condensed data arrays for use during solving. \end{DoxyCompactList}\item 
+elemental subroutine \mbox{\hyperlink{namespacepmc__rxn__arrhenius_a88b969b655e039c6d75e80ff1a3cf77f}{pmc\+\_\+rxn\+\_\+arrhenius\+::finalize}} (this)
+\begin{DoxyCompactList}\small\item\em Finalize the reaction. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__rxn__arrhenius}{pmc\+\_\+rxn\+\_\+arrhenius}} module. 
+
+
+
+\subsection{Macro Definition Documentation}
+\mbox{\Hypertarget{rxn__arrhenius_8_f90_a71700f5633db3f99b43c798b09c60bd2}\label{rxn__arrhenius_8_f90_a71700f5633db3f99b43c798b09c60bd2}} 
+\index{rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}!A\+\_\+@{A\+\_\+}}
+\index{A\+\_\+@{A\+\_\+}!rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}}
+\subsubsection{\texorpdfstring{A\+\_\+}{A\_}}
+{\footnotesize\ttfamily \#define A\+\_\+~this\%condensed\+\_\+data\+\_\+real(1)}
+
+\mbox{\Hypertarget{rxn__arrhenius_8_f90_a97097eeee58a37a9710a05f559d84a6b}\label{rxn__arrhenius_8_f90_a97097eeee58a37a9710a05f559d84a6b}} 
+\index{rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}!B\+\_\+@{B\+\_\+}}
+\index{B\+\_\+@{B\+\_\+}!rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}}
+\subsubsection{\texorpdfstring{B\+\_\+}{B\_}}
+{\footnotesize\ttfamily \#define B\+\_\+~this\%condensed\+\_\+data\+\_\+real(2)}
+
+\mbox{\Hypertarget{rxn__arrhenius_8_f90_ad010fec48ee67af5ba75e0ec6c3f5ce4}\label{rxn__arrhenius_8_f90_ad010fec48ee67af5ba75e0ec6c3f5ce4}} 
+\index{rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}!C\+\_\+@{C\+\_\+}}
+\index{C\+\_\+@{C\+\_\+}!rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}}
+\subsubsection{\texorpdfstring{C\+\_\+}{C\_}}
+{\footnotesize\ttfamily \#define C\+\_\+~this\%condensed\+\_\+data\+\_\+real(3)}
+
+\mbox{\Hypertarget{rxn__arrhenius_8_f90_a91cd74713029c0906e8136c8628d548d}\label{rxn__arrhenius_8_f90_a91cd74713029c0906e8136c8628d548d}} 
+\index{rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}!C\+O\+N\+V\+\_\+@{C\+O\+N\+V\+\_\+}}
+\index{C\+O\+N\+V\+\_\+@{C\+O\+N\+V\+\_\+}!rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}}
+\subsubsection{\texorpdfstring{C\+O\+N\+V\+\_\+}{CONV\_}}
+{\footnotesize\ttfamily \#define C\+O\+N\+V\+\_\+~this\%condensed\+\_\+data\+\_\+real(6)}
+
+\mbox{\Hypertarget{rxn__arrhenius_8_f90_abf33a03f27734aa2fcf6119f36390bd9}\label{rxn__arrhenius_8_f90_abf33a03f27734aa2fcf6119f36390bd9}} 
+\index{rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}!D\+\_\+@{D\+\_\+}}
+\index{D\+\_\+@{D\+\_\+}!rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}}
+\subsubsection{\texorpdfstring{D\+\_\+}{D\_}}
+{\footnotesize\ttfamily \#define D\+\_\+~this\%condensed\+\_\+data\+\_\+real(4)}
+
+\mbox{\Hypertarget{rxn__arrhenius_8_f90_af9fc34858d09e71d3cffd88cf942bdf9}\label{rxn__arrhenius_8_f90_af9fc34858d09e71d3cffd88cf942bdf9}} 
+\index{rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}!D\+E\+R\+I\+V\+\_\+\+I\+D\+\_\+@{D\+E\+R\+I\+V\+\_\+\+I\+D\+\_\+}}
+\index{D\+E\+R\+I\+V\+\_\+\+I\+D\+\_\+@{D\+E\+R\+I\+V\+\_\+\+I\+D\+\_\+}!rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}}
+\subsubsection{\texorpdfstring{D\+E\+R\+I\+V\+\_\+\+I\+D\+\_\+}{DERIV\_ID\_}}
+{\footnotesize\ttfamily \#define D\+E\+R\+I\+V\+\_\+\+I\+D\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn__arrhenius_8_f90_a13ba1b28e3d8a5e60eec52ce6bbabe4f}{N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}} + \mbox{\hyperlink{rxn__arrhenius_8_f90_a05ef845cf6ed7ab9a774440c42af34fa}{N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}} + \mbox{\hyperlink{rxn__arrhenius_8_f90_acf951e890da75cd2d503ed6ce8211fc2}{N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}} + x)}
+
+\mbox{\Hypertarget{rxn__arrhenius_8_f90_a80ef7c0a31f0dd1900c1d9b0bd3b96cc}\label{rxn__arrhenius_8_f90_a80ef7c0a31f0dd1900c1d9b0bd3b96cc}} 
+\index{rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}!E\+\_\+@{E\+\_\+}}
+\index{E\+\_\+@{E\+\_\+}!rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}}
+\subsubsection{\texorpdfstring{E\+\_\+}{E\_}}
+{\footnotesize\ttfamily \#define E\+\_\+~this\%condensed\+\_\+data\+\_\+real(5)}
+
+\mbox{\Hypertarget{rxn__arrhenius_8_f90_ab831aae98d4453927c63a93f55ee5a86}\label{rxn__arrhenius_8_f90_ab831aae98d4453927c63a93f55ee5a86}} 
+\index{rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}!J\+A\+C\+\_\+\+I\+D\+\_\+@{J\+A\+C\+\_\+\+I\+D\+\_\+}}
+\index{J\+A\+C\+\_\+\+I\+D\+\_\+@{J\+A\+C\+\_\+\+I\+D\+\_\+}!rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}}
+\subsubsection{\texorpdfstring{J\+A\+C\+\_\+\+I\+D\+\_\+}{JAC\_ID\_}}
+{\footnotesize\ttfamily \#define J\+A\+C\+\_\+\+I\+D\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn__arrhenius_8_f90_a13ba1b28e3d8a5e60eec52ce6bbabe4f}{N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}} + 2$\ast$(\mbox{\hyperlink{rxn__arrhenius_8_f90_a05ef845cf6ed7ab9a774440c42af34fa}{N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}}+\mbox{\hyperlink{rxn__arrhenius_8_f90_acf951e890da75cd2d503ed6ce8211fc2}{N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}}) + x)}
+
+\mbox{\Hypertarget{rxn__arrhenius_8_f90_a13ba1b28e3d8a5e60eec52ce6bbabe4f}\label{rxn__arrhenius_8_f90_a13ba1b28e3d8a5e60eec52ce6bbabe4f}} 
+\index{rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}!N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+@{N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}}
+\index{N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+@{N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}!rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}}
+\subsubsection{\texorpdfstring{N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}{NUM\_INT\_PROP\_}}
+{\footnotesize\ttfamily \#define N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+~2}
+
+\mbox{\Hypertarget{rxn__arrhenius_8_f90_acf951e890da75cd2d503ed6ce8211fc2}\label{rxn__arrhenius_8_f90_acf951e890da75cd2d503ed6ce8211fc2}} 
+\index{rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}!N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+@{N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}}
+\index{N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+@{N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}!rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}}
+\subsubsection{\texorpdfstring{N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+}{NUM\_PROD\_}}
+{\footnotesize\ttfamily \#define N\+U\+M\+\_\+\+P\+R\+O\+D\+\_\+~this\%condensed\+\_\+data\+\_\+int(2)}
+
+\mbox{\Hypertarget{rxn__arrhenius_8_f90_a05ef845cf6ed7ab9a774440c42af34fa}\label{rxn__arrhenius_8_f90_a05ef845cf6ed7ab9a774440c42af34fa}} 
+\index{rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}!N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+@{N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}}
+\index{N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+@{N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}!rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}}
+\subsubsection{\texorpdfstring{N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}{NUM\_REACT\_}}
+{\footnotesize\ttfamily \#define N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+~this\%condensed\+\_\+data\+\_\+int(1)}
+
+\mbox{\Hypertarget{rxn__arrhenius_8_f90_aa9808eb54fa06bcf890dd1aa1fc6ca5b}\label{rxn__arrhenius_8_f90_aa9808eb54fa06bcf890dd1aa1fc6ca5b}} 
+\index{rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}!N\+U\+M\+\_\+\+R\+E\+A\+L\+\_\+\+P\+R\+O\+P\+\_\+@{N\+U\+M\+\_\+\+R\+E\+A\+L\+\_\+\+P\+R\+O\+P\+\_\+}}
+\index{N\+U\+M\+\_\+\+R\+E\+A\+L\+\_\+\+P\+R\+O\+P\+\_\+@{N\+U\+M\+\_\+\+R\+E\+A\+L\+\_\+\+P\+R\+O\+P\+\_\+}!rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}}
+\subsubsection{\texorpdfstring{N\+U\+M\+\_\+\+R\+E\+A\+L\+\_\+\+P\+R\+O\+P\+\_\+}{NUM\_REAL\_PROP\_}}
+{\footnotesize\ttfamily \#define N\+U\+M\+\_\+\+R\+E\+A\+L\+\_\+\+P\+R\+O\+P\+\_\+~7}
+
+\mbox{\Hypertarget{rxn__arrhenius_8_f90_a9fda90058c6a41b1dda6ded03321c4da}\label{rxn__arrhenius_8_f90_a9fda90058c6a41b1dda6ded03321c4da}} 
+\index{rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}!P\+R\+O\+D\+\_\+@{P\+R\+O\+D\+\_\+}}
+\index{P\+R\+O\+D\+\_\+@{P\+R\+O\+D\+\_\+}!rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}}
+\subsubsection{\texorpdfstring{P\+R\+O\+D\+\_\+}{PROD\_}}
+{\footnotesize\ttfamily \#define P\+R\+O\+D\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn__arrhenius_8_f90_a13ba1b28e3d8a5e60eec52ce6bbabe4f}{N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}} + \mbox{\hyperlink{rxn__arrhenius_8_f90_a05ef845cf6ed7ab9a774440c42af34fa}{N\+U\+M\+\_\+\+R\+E\+A\+C\+T\+\_\+}} + x)}
+
+\mbox{\Hypertarget{rxn__arrhenius_8_f90_a6d62af2f44a112ef5b324cf406a830c2}\label{rxn__arrhenius_8_f90_a6d62af2f44a112ef5b324cf406a830c2}} 
+\index{rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}!R\+A\+T\+E\+\_\+\+C\+O\+N\+S\+T\+A\+N\+T\+\_\+@{R\+A\+T\+E\+\_\+\+C\+O\+N\+S\+T\+A\+N\+T\+\_\+}}
+\index{R\+A\+T\+E\+\_\+\+C\+O\+N\+S\+T\+A\+N\+T\+\_\+@{R\+A\+T\+E\+\_\+\+C\+O\+N\+S\+T\+A\+N\+T\+\_\+}!rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}}
+\subsubsection{\texorpdfstring{R\+A\+T\+E\+\_\+\+C\+O\+N\+S\+T\+A\+N\+T\+\_\+}{RATE\_CONSTANT\_}}
+{\footnotesize\ttfamily \#define R\+A\+T\+E\+\_\+\+C\+O\+N\+S\+T\+A\+N\+T\+\_\+~this\%condensed\+\_\+data\+\_\+real(7)}
+
+\mbox{\Hypertarget{rxn__arrhenius_8_f90_ae761e39657aac155d83eae9b338be571}\label{rxn__arrhenius_8_f90_ae761e39657aac155d83eae9b338be571}} 
+\index{rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}!R\+E\+A\+C\+T\+\_\+@{R\+E\+A\+C\+T\+\_\+}}
+\index{R\+E\+A\+C\+T\+\_\+@{R\+E\+A\+C\+T\+\_\+}!rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}}
+\subsubsection{\texorpdfstring{R\+E\+A\+C\+T\+\_\+}{REACT\_}}
+{\footnotesize\ttfamily \#define R\+E\+A\+C\+T\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+int(\mbox{\hyperlink{rxn__arrhenius_8_f90_a13ba1b28e3d8a5e60eec52ce6bbabe4f}{N\+U\+M\+\_\+\+I\+N\+T\+\_\+\+P\+R\+O\+P\+\_\+}} + x)}
+
+\mbox{\Hypertarget{rxn__arrhenius_8_f90_a9ae244708fd9c438bf840ed319733651}\label{rxn__arrhenius_8_f90_a9ae244708fd9c438bf840ed319733651}} 
+\index{rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}!Y\+I\+E\+L\+D\+\_\+@{Y\+I\+E\+L\+D\+\_\+}}
+\index{Y\+I\+E\+L\+D\+\_\+@{Y\+I\+E\+L\+D\+\_\+}!rxn\+\_\+arrhenius.\+F90@{rxn\+\_\+arrhenius.\+F90}}
+\subsubsection{\texorpdfstring{Y\+I\+E\+L\+D\+\_\+}{YIELD\_}}
+{\footnotesize\ttfamily \#define Y\+I\+E\+L\+D\+\_\+(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~this\%condensed\+\_\+data\+\_\+real(\mbox{\hyperlink{rxn__arrhenius_8_f90_aa9808eb54fa06bcf890dd1aa1fc6ca5b}{N\+U\+M\+\_\+\+R\+E\+A\+L\+\_\+\+P\+R\+O\+P\+\_\+}} + x)}
+

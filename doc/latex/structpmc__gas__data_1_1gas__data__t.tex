@@ -1,0 +1,81 @@
+\hypertarget{structpmc__gas__data_1_1gas__data__t}{}\section{pmc\+\_\+gas\+\_\+data\+:\+:gas\+\_\+data\+\_\+t Type Reference}
+\label{structpmc__gas__data_1_1gas__data__t}\index{pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+t@{pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+t}}
+
+
+Constant gas data.  
+
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+procedure \mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t_ab2516df3d61303f31721437a49f3e844}{initialize}} =$>$ \mbox{\hyperlink{namespacepmc__gas__data_af46c599614532ddd2e6741a0a7bed14e}{gas\+\_\+data\+\_\+initialize}}
+\begin{DoxyCompactList}\small\item\em Initialize the \mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}} instance. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+character(len=\mbox{\hyperlink{namespacepmc__gas__data_a0d310b1185398e90f841bb9c3c83d3a9}{gas\+\_\+name\+\_\+len}}), dimension(\+:), allocatable \mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t_aebf4763c4d3619032de66b4bfcb7a3a2}{name}}
+\begin{DoxyCompactList}\small\item\em Species name \mbox{[}length {\ttfamily gas\+\_\+data\+\_\+n\+\_\+spec(gas\+\_\+data)}\mbox{]}. \end{DoxyCompactList}\item 
+integer, dimension(\+:), allocatable \mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t_a966d877df13fc1f0bc63e9c8b66dd2f5}{mosaic\+\_\+index}}
+\begin{DoxyCompactList}\small\item\em Index of the corresponding M\+O\+S\+A\+IC species \mbox{[}length {\ttfamily gas\+\_\+data\+\_\+n\+\_\+spec(gas\+\_\+data)}\mbox{]}. {\ttfamily to\+\_\+mosaic(i)} is the mosaic index of species {\ttfamily i}, or 0 if there is no match. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Constant gas data. 
+
+Each gas species is identified by an integer {\ttfamily i} between 1 and {\ttfamily gas\+\_\+data\+\_\+n\+\_\+spec(gas\+\_\+data)}. Species {\ttfamily i} has name {\ttfamily gas\+\_\+data\%name}(i). The variable gas data describing the current mixing ratios is stored in the gas\+\_\+state\+\_\+t structure, so the mixing ratio of species {\ttfamily i} is gas\+\_\+state\%mix\+\_\+rat(i). 
+
+Definition at line 31 of file gas\+\_\+data.\+F90.
+
+
+
+\subsection{Member Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{structpmc__gas__data_1_1gas__data__t_ab2516df3d61303f31721437a49f3e844}\label{structpmc__gas__data_1_1gas__data__t_ab2516df3d61303f31721437a49f3e844}} 
+\index{pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+t@{pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+t}!initialize@{initialize}}
+\index{initialize@{initialize}!pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+t@{pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{initialize()}{initialize()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+t\+::initialize (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Initialize the \mbox{\hyperlink{structpmc__gas__data_1_1gas__data__t}{gas\+\_\+data\+\_\+t}} instance. 
+
+
+
+Definition at line 40 of file gas\+\_\+data.\+F90.
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structpmc__gas__data_1_1gas__data__t_a966d877df13fc1f0bc63e9c8b66dd2f5}\label{structpmc__gas__data_1_1gas__data__t_a966d877df13fc1f0bc63e9c8b66dd2f5}} 
+\index{pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+t@{pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+t}!mosaic\+\_\+index@{mosaic\+\_\+index}}
+\index{mosaic\+\_\+index@{mosaic\+\_\+index}!pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+t@{pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{mosaic\+\_\+index}{mosaic\_index}}
+{\footnotesize\ttfamily integer, dimension(\+:), allocatable pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+t\+::mosaic\+\_\+index}
+
+
+
+Index of the corresponding M\+O\+S\+A\+IC species \mbox{[}length {\ttfamily gas\+\_\+data\+\_\+n\+\_\+spec(gas\+\_\+data)}\mbox{]}. {\ttfamily to\+\_\+mosaic(i)} is the mosaic index of species {\ttfamily i}, or 0 if there is no match. 
+
+
+
+Definition at line 37 of file gas\+\_\+data.\+F90.
+
+\mbox{\Hypertarget{structpmc__gas__data_1_1gas__data__t_aebf4763c4d3619032de66b4bfcb7a3a2}\label{structpmc__gas__data_1_1gas__data__t_aebf4763c4d3619032de66b4bfcb7a3a2}} 
+\index{pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+t@{pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+t}!name@{name}}
+\index{name@{name}!pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+t@{pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+t}}
+\subsubsection{\texorpdfstring{name}{name}}
+{\footnotesize\ttfamily character(len=\mbox{\hyperlink{namespacepmc__gas__data_a0d310b1185398e90f841bb9c3c83d3a9}{gas\+\_\+name\+\_\+len}}), dimension(\+:), allocatable pmc\+\_\+gas\+\_\+data\+::gas\+\_\+data\+\_\+t\+::name}
+
+
+
+Species name \mbox{[}length {\ttfamily gas\+\_\+data\+\_\+n\+\_\+spec(gas\+\_\+data)}\mbox{]}. 
+
+
+
+Definition at line 33 of file gas\+\_\+data.\+F90.
+
+
+
+The documentation for this type was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{gas__data_8_f90}{gas\+\_\+data.\+F90}}\end{DoxyCompactItemize}

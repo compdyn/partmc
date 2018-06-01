@@ -1,0 +1,173 @@
+\hypertarget{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t}{}\section{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+:\+:aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t Interface Reference}
+\label{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t}\index{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t@{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t}}
+
+
+Single particle aerosol representation.  
+
+
+
+
+Inheritance diagram for pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+:\+:aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=192pt]{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t__inherit__graph}
+\end{center}
+\end{figure}
+\subsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+procedure \mbox{\hyperlink{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_a9074d86ca4cf12ebaea525acf0109a14}{initialize}}
+\begin{DoxyCompactList}\small\item\em Initialize the aerosol representation data, validating component data and loading any required information from the {\ttfamily \mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__t_a87b1bf5cd10a0a2b51390fb24ebf56c5}{aero\+\_\+rep\+\_\+data\+\_\+t\+::property\+\_\+set}}}. This routine should be called once for each aerosol representation at the beginning of a model run after all the input files have been read in. It ensures all data required during the model run are included in the condensed data arrays. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_ac83035311d1527591944931a5c6b75ff}{size}} =$>$ \mbox{\hyperlink{interfacepmc__aero__rep__data_1_1get__size}{get\+\_\+size}}
+\begin{DoxyCompactList}\small\item\em Get the size of the section of the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array required for this aerosol representation. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_aa8ec2b6a9bef271eba50a3a048a90ac8}{unique\+\_\+names}}
+\begin{DoxyCompactList}\small\item\em Get a list of unique names for each element on the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array for this aerosol representation. The list may be restricted to a particular phase and/or aerosol species by including the phase\+\_\+name and spec\+\_\+name arguments. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_abc6e9924cb4d910b501d02308109785d}{spec\+\_\+state\+\_\+id}}
+\begin{DoxyCompactList}\small\item\em Get a species id on the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array by its unique name. These are unique ids for each element on the state array for this \mbox{\hyperlink{phlex_aero_rep}{aerosol representation}} and are numbered\+: \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_a7f7f0656f7d9c9c6713a8b26f0c7f67f}{spec\+\_\+name}}
+\begin{DoxyCompactList}\small\item\em Get the non-\/unique name of a species by its unique name. \end{DoxyCompactList}\item 
+procedure \mbox{\hyperlink{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_a8268ef8bd3ca8e76fd1820492d3b8ce8}{num\+\_\+phase\+\_\+instances}}
+\begin{DoxyCompactList}\small\item\em Get the number of instances of an aerosol phase in this representation. \end{DoxyCompactList}\item 
+final \mbox{\hyperlink{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_a8b15dadc4edee1c9b401c9578e78daf6}{finalize}}
+\begin{DoxyCompactList}\small\item\em Finalize the aerosol representation. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+integer(kind=i\+\_\+kind), dimension(\+:), allocatable \mbox{\hyperlink{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_af8b5f9b96f449c78b9f43845fbf403c4}{phase\+\_\+state\+\_\+id}}
+\begin{DoxyCompactList}\small\item\em Phase state id (only used during initialization. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Additional Inherited Members}
+
+
+\subsection{Detailed Description}
+Single particle aerosol representation. 
+
+Time-\/invariant data related to a single particle aerosol representation. 
+
+Definition at line 67 of file aero\+\_\+rep\+\_\+single\+\_\+particle.\+F90.
+
+
+
+\subsection{Member Function/\+Subroutine Documentation}
+\mbox{\Hypertarget{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_a8b15dadc4edee1c9b401c9578e78daf6}\label{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_a8b15dadc4edee1c9b401c9578e78daf6}} 
+\index{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t@{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t}!finalize@{finalize}}
+\index{finalize@{finalize}!pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t@{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t}}
+\subsubsection{\texorpdfstring{finalize()}{finalize()}}
+{\footnotesize\ttfamily final pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t\+::finalize (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [final]}, {\ttfamily [private]}}
+
+
+
+Finalize the aerosol representation. 
+
+
+
+Definition at line 113 of file aero\+\_\+rep\+\_\+single\+\_\+particle.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_a9074d86ca4cf12ebaea525acf0109a14}\label{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_a9074d86ca4cf12ebaea525acf0109a14}} 
+\index{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t@{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t}!initialize@{initialize}}
+\index{initialize@{initialize}!pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t@{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t}}
+\subsubsection{\texorpdfstring{initialize()}{initialize()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t\+::initialize (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Initialize the aerosol representation data, validating component data and loading any required information from the {\ttfamily \mbox{\hyperlink{structpmc__aero__rep__data_1_1aero__rep__data__t_a87b1bf5cd10a0a2b51390fb24ebf56c5}{aero\+\_\+rep\+\_\+data\+\_\+t\+::property\+\_\+set}}}. This routine should be called once for each aerosol representation at the beginning of a model run after all the input files have been read in. It ensures all data required during the model run are included in the condensed data arrays. 
+
+
+
+Definition at line 77 of file aero\+\_\+rep\+\_\+single\+\_\+particle.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_a8268ef8bd3ca8e76fd1820492d3b8ce8}\label{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_a8268ef8bd3ca8e76fd1820492d3b8ce8}} 
+\index{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t@{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t}!num\+\_\+phase\+\_\+instances@{num\+\_\+phase\+\_\+instances}}
+\index{num\+\_\+phase\+\_\+instances@{num\+\_\+phase\+\_\+instances}!pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t@{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t}}
+\subsubsection{\texorpdfstring{num\+\_\+phase\+\_\+instances()}{num\_phase\_instances()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t\+::num\+\_\+phase\+\_\+instances (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the number of instances of an aerosol phase in this representation. 
+
+
+
+Definition at line 111 of file aero\+\_\+rep\+\_\+single\+\_\+particle.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_ac83035311d1527591944931a5c6b75ff}\label{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_ac83035311d1527591944931a5c6b75ff}} 
+\index{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t@{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t}!size@{size}}
+\index{size@{size}!pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t@{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t}}
+\subsubsection{\texorpdfstring{size()}{size()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t\+::size (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the size of the section of the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array required for this aerosol representation. 
+
+For a single particle representation, the size will correspond to the the sum of the sizes of a single instance of each aerosol phase provided to {\ttfamily \mbox{\hyperlink{namespacepmc__aero__rep__single__particle_a68b301b8be296690e52b600ecaab5125}{aero\+\_\+rep\+\_\+single\+\_\+particle\+::initialize()}}} 
+
+Definition at line 85 of file aero\+\_\+rep\+\_\+single\+\_\+particle.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_a7f7f0656f7d9c9c6713a8b26f0c7f67f}\label{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_a7f7f0656f7d9c9c6713a8b26f0c7f67f}} 
+\index{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t@{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t}!spec\+\_\+name@{spec\+\_\+name}}
+\index{spec\+\_\+name@{spec\+\_\+name}!pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t@{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t}}
+\subsubsection{\texorpdfstring{spec\+\_\+name()}{spec\_name()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t\+::spec\+\_\+name (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get the non-\/unique name of a species by its unique name. 
+
+
+
+Definition at line 109 of file aero\+\_\+rep\+\_\+single\+\_\+particle.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_abc6e9924cb4d910b501d02308109785d}\label{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_abc6e9924cb4d910b501d02308109785d}} 
+\index{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t@{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t}!spec\+\_\+state\+\_\+id@{spec\+\_\+state\+\_\+id}}
+\index{spec\+\_\+state\+\_\+id@{spec\+\_\+state\+\_\+id}!pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t@{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t}}
+\subsubsection{\texorpdfstring{spec\+\_\+state\+\_\+id()}{spec\_state\_id()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t\+::spec\+\_\+state\+\_\+id (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get a species id on the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array by its unique name. These are unique ids for each element on the state array for this \mbox{\hyperlink{phlex_aero_rep}{aerosol representation}} and are numbered\+: 
+
+\[x_u \in x_f ... (x_f+n-1)\]
+
+where $x_u$ is the id of the element corresponding to the species with unique name $u$ on the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array, $x_f$ is the index of the first element for this aerosol representation on the state array and $n$ is the total number of variables on the state array from this aerosol representation. 
+
+Definition at line 107 of file aero\+\_\+rep\+\_\+single\+\_\+particle.\+F90.
+
+\mbox{\Hypertarget{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_aa8ec2b6a9bef271eba50a3a048a90ac8}\label{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_aa8ec2b6a9bef271eba50a3a048a90ac8}} 
+\index{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t@{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t}!unique\+\_\+names@{unique\+\_\+names}}
+\index{unique\+\_\+names@{unique\+\_\+names}!pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t@{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t}}
+\subsubsection{\texorpdfstring{unique\+\_\+names()}{unique\_names()}}
+{\footnotesize\ttfamily procedure pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t\+::unique\+\_\+names (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get a list of unique names for each element on the {\ttfamily \mbox{\hyperlink{structpmc__phlex__state_1_1phlex__state__t_a78835cb552d483ebbfc7a6bc6f756918}{pmc\+\_\+phlex\+\_\+state\+::phlex\+\_\+state\+\_\+t\+::state\+\_\+var}}} array for this aerosol representation. The list may be restricted to a particular phase and/or aerosol species by including the phase\+\_\+name and spec\+\_\+name arguments. 
+
+For a single particle representation, the unique names will be the phase name with the species name separated by a \textquotesingle{}.\textquotesingle{} 
+
+Definition at line 93 of file aero\+\_\+rep\+\_\+single\+\_\+particle.\+F90.
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_af8b5f9b96f449c78b9f43845fbf403c4}\label{structpmc__aero__rep__single__particle_1_1aero__rep__single__particle__t_af8b5f9b96f449c78b9f43845fbf403c4}} 
+\index{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t@{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t}!phase\+\_\+state\+\_\+id@{phase\+\_\+state\+\_\+id}}
+\index{phase\+\_\+state\+\_\+id@{phase\+\_\+state\+\_\+id}!pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t@{pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t}}
+\subsubsection{\texorpdfstring{phase\+\_\+state\+\_\+id}{phase\_state\_id}}
+{\footnotesize\ttfamily integer(kind=i\+\_\+kind), dimension(\+:), allocatable pmc\+\_\+aero\+\_\+rep\+\_\+single\+\_\+particle\+::aero\+\_\+rep\+\_\+single\+\_\+particle\+\_\+t\+::phase\+\_\+state\+\_\+id\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Phase state id (only used during initialization. 
+
+
+
+Definition at line 69 of file aero\+\_\+rep\+\_\+single\+\_\+particle.\+F90.
+
+
+
+The documentation for this interface was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{aero__rep__single__particle_8_f90}{aero\+\_\+rep\+\_\+single\+\_\+particle.\+F90}}\end{DoxyCompactItemize}

@@ -1,0 +1,134 @@
+\hypertarget{mpi_8_f90}{}\section{mpi.\+F90 File Reference}
+\label{mpi_8_f90}\index{mpi.\+F90@{mpi.\+F90}}
+
+
+The \mbox{\hyperlink{namespacepmc__mpi}{pmc\+\_\+mpi}} module.  
+
+
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \mbox{\hyperlink{namespacepmc__mpi}{pmc\+\_\+mpi}}
+\begin{DoxyCompactList}\small\item\em Wrapper functions for M\+PI. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+logical function \mbox{\hyperlink{namespacepmc__mpi_a3509026df8c8ae7c02e1d9b364f4a651}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+support}} ()
+\begin{DoxyCompactList}\small\item\em Whether M\+PI support is compiled in. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_af7b0af100baf65538aecee298e321e0c}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+check\+\_\+ierr}} (ierr)
+\begin{DoxyCompactList}\small\item\em Dies if {\ttfamily ierr} is not ok. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a44c84d31a3ed394dc39113fb8232221f}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+init}} ()
+\begin{DoxyCompactList}\small\item\em Initialize M\+PI. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a9b929bc85dfded58ac602697ab95ef42}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+abort}} (status)
+\begin{DoxyCompactList}\small\item\em Abort the program. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a9c6189f38473985f2db47a9a6ecce869}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+finalize}} ()
+\begin{DoxyCompactList}\small\item\em Shut down M\+PI. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_aa6ae01b0c4da1bc58e67d3f0206812a8}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+barrier}} ()
+\begin{DoxyCompactList}\small\item\em Synchronize all processes. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__mpi_a1ac93b34387cb8dec130a10c4f959e9b}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+rank}} ()
+\begin{DoxyCompactList}\small\item\em Returns the rank of the current process. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__mpi_abc7ec25375502391c6ab03a7459b5cd0}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+size}} ()
+\begin{DoxyCompactList}\small\item\em Returns the total number of processes. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a92cc3237c6fa0152c4da6571ba5fdef9}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+test}} ()
+\begin{DoxyCompactList}\small\item\em Perform basic sanity checks on send/receive. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a8c5c43ef03395c028808ccc21c6afb1b}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+bcast\+\_\+integer}} (val)
+\begin{DoxyCompactList}\small\item\em Broadcast the given value from process 0 to all other processes. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a4cd3eb742c928a5f4f796dd8d76263cc}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+bcast\+\_\+string}} (val)
+\begin{DoxyCompactList}\small\item\em Broadcast the given value from process 0 to all other processes. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_aa53168e6f5f0abea92823b4254e57f70}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+bcast\+\_\+packed}} (val)
+\begin{DoxyCompactList}\small\item\em Broadcast the given value from process 0 to all other processes. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__mpi_a6aecc2f35230f53108b4580ce75afe2d}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+integer}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__mpi_a58c6890069ac044e640bb67211ef9b52}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+real}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__mpi_aa497879e21deb212bd15ee56092de3cd}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+string}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__mpi_a679ca4ddcb8cd9747732378752108fda}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+logical}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__mpi_a95b5f087dc05777d8c4966dc41b19fb1}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+complex}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__mpi_a9e1a99bb575c905e2694fbece029efc1}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+integer\+\_\+array}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__mpi_a6f2847e4b691b9ab8e007da1adb6c54c}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+real\+\_\+array}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__mpi_af8c1a5c67870b10d526b694eb81d1cfd}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+string\+\_\+array}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+integer function \mbox{\hyperlink{namespacepmc__mpi_a2a1623c5cced2ab99048a47dda8c00f1}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+pack\+\_\+size\+\_\+real\+\_\+array\+\_\+2d}} (val)
+\begin{DoxyCompactList}\small\item\em Determines the number of bytes required to pack the given value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a2a91d7e00881e5ca711b2d0e8888c99b}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+pack\+\_\+integer}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a31bf74ee3630d12e15608dc16d564318}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+pack\+\_\+real}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a1e017c3cb891a6b0dbe1076d89ad255a}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+pack\+\_\+string}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a2480cf79bf376716fc38a026b5e01873}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+pack\+\_\+logical}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a5a62099ffca12da0a704c7882eae5a68}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+pack\+\_\+complex}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a79337d426f7bb79e202bef5fa947399e}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+pack\+\_\+integer\+\_\+array}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a1f4e3e18f2df01bd7b78fa8451ee5b71}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+pack\+\_\+real\+\_\+array}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a6516aa6e9b139d7650cafce697c4caa8}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+pack\+\_\+string\+\_\+array}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a505ef0d99feec94b21ea8b3f0011796d}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+pack\+\_\+real\+\_\+array\+\_\+2d}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Packs the given value into the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_abc0278c39a8266c36d75d5801f4d8cf2}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+integer}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_ab35288d7d6b96560d20b4279fe3d5d24}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+real}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a9f7e3c5b0f7f68b520e13d980c9ad29c}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+string}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a888a1c5675835da110e153fbacebb415}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+logical}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_adf7ed9374c30934fce2f30add1b2f703}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+complex}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_ad83634463577bdcc4454e393c77e5b04}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+integer\+\_\+array}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a74007afa0767105d3817670040bb9641}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+real\+\_\+array}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a6c069e4ccb7fa809e8b5ff2a4ec4d6c5}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+string\+\_\+array}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_acbfc2d34ae601607a3e17e33bff99aaa}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+unpack\+\_\+real\+\_\+array\+\_\+2d}} (buffer, position, val)
+\begin{DoxyCompactList}\small\item\em Unpacks the given value from the buffer, advancing position. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a0e9ea8ed3344fb38998a03e334c25a79}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+reduce\+\_\+avg\+\_\+real}} (val, val\+\_\+avg)
+\begin{DoxyCompactList}\small\item\em Computes the average of val across all processes, storing the result in val\+\_\+avg on the root process. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a2be14fe37f7d3675ae0d59207d8cc3b1}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+transfer\+\_\+real}} (from\+\_\+val, to\+\_\+val, from\+\_\+proc, to\+\_\+proc)
+\begin{DoxyCompactList}\small\item\em Transfer the value between the given processes. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a422d1ad4201ca47561e99dcc594207a3}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+transfer\+\_\+integer}} (from\+\_\+val, to\+\_\+val, from\+\_\+proc, to\+\_\+proc)
+\begin{DoxyCompactList}\small\item\em Transfer the value between the given processes. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_ab78b8cedd338fe1f9e39a7a3b6ebee7c}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+reduce\+\_\+sum\+\_\+integer}} (val, val\+\_\+sum)
+\begin{DoxyCompactList}\small\item\em Computes the sum of {\ttfamily val} across all processes, storing the result in {\ttfamily val\+\_\+sum} on the root process. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_ac35b8fc7f2c6fffbd92b4e655f31855c}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+allreduce\+\_\+sum\+\_\+integer}} (val, val\+\_\+sum)
+\begin{DoxyCompactList}\small\item\em Computes the sum of {\ttfamily val} across all processes, storing the result in {\ttfamily val\+\_\+sum} on all processes. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a65e8bc531122712336e66a245ee62665}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+reduce\+\_\+avg\+\_\+real\+\_\+array}} (val, val\+\_\+avg)
+\begin{DoxyCompactList}\small\item\em Computes the average of val across all processes, storing the result in val\+\_\+avg on the root process. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_aaf6103345beb31b7d1a7dfa8c4f6e9a3}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+reduce\+\_\+avg\+\_\+real\+\_\+array\+\_\+2d}} (val, val\+\_\+avg)
+\begin{DoxyCompactList}\small\item\em Computes the average of val across all processes, storing the result in val\+\_\+avg on the root process. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_af48bdae1028cee45478e96081514009c}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+allreduce\+\_\+average\+\_\+real}} (val, val\+\_\+avg)
+\begin{DoxyCompactList}\small\item\em Computes the average of val across all processes, storing the result in val\+\_\+avg on all processes. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_aa8adfc668b04490ada770354659fdc4c}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+allreduce\+\_\+average\+\_\+real\+\_\+array}} (val, val\+\_\+avg)
+\begin{DoxyCompactList}\small\item\em Computes the average of val across all processes, storing the result in val\+\_\+avg on all processes. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_adf0ef14e00e2b7cf522926e5d6b757cb}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+allreduce\+\_\+min\+\_\+integer}} (val, val\+\_\+min)
+\begin{DoxyCompactList}\small\item\em Computes the minimum of val across all processes, storing the result in val\+\_\+min on all processes. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a21063691a7e6791c71a89263c18bd7d4}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+allreduce\+\_\+max\+\_\+integer}} (val, val\+\_\+max)
+\begin{DoxyCompactList}\small\item\em Computes the maximum of val across all processes, storing the result in val\+\_\+max on all processes. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_acd75456e29bd2c7a400b6c050f8e9c04}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+allreduce\+\_\+min\+\_\+real}} (val, val\+\_\+min)
+\begin{DoxyCompactList}\small\item\em Computes the minimum of val across all processes, storing the result in val\+\_\+min on all processes. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a56764a88a85a09a1c97a2ae512415633}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+allreduce\+\_\+max\+\_\+real}} (val, val\+\_\+max)
+\begin{DoxyCompactList}\small\item\em Computes the maximum of val across all processes, storing the result in val\+\_\+max on all processes. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__mpi_aa5850392ee2226b1d9b0387849d33b42}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+allequal\+\_\+integer}} (val)
+\begin{DoxyCompactList}\small\item\em Returns whether all processors have the same value. \end{DoxyCompactList}\item 
+logical function \mbox{\hyperlink{namespacepmc__mpi_a92d80c63cf20c10ce32e2e8e5cb81c18}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+allequal\+\_\+real}} (val)
+\begin{DoxyCompactList}\small\item\em Returns whether all processors have the same value. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_ac7882ff99a49670f3601c32959f517e1}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+alltoall\+\_\+integer}} (send, recv)
+\begin{DoxyCompactList}\small\item\em Does an all-\/to-\/all transfer of integers. \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_af79ceb854ff634f821a291c373810765}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+allgather\+\_\+integer\+\_\+array}} (send, recv)
+\begin{DoxyCompactList}\small\item\em Does an allgather of integer arrays (must be the same size on all processes). \end{DoxyCompactList}\item 
+subroutine \mbox{\hyperlink{namespacepmc__mpi_a999792706377ad2876cbf470df97c26d}{pmc\+\_\+mpi\+::pmc\+\_\+mpi\+\_\+allgather\+\_\+real\+\_\+array}} (send, recv)
+\begin{DoxyCompactList}\small\item\em Does an allgather of real arrays (must be the same size on all processes). \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The \mbox{\hyperlink{namespacepmc__mpi}{pmc\+\_\+mpi}} module. 
+

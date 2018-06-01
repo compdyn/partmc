@@ -8,6 +8,7 @@ doc/condensation/average.pdf
 doc/condensation/condense.pdf
 doc/deposition/deposition.pdf
 doc/html/
+doc/latex/
 doc/partmc_modules.gv
 doc/partmc_modules.pdf
 doc/*.tmp

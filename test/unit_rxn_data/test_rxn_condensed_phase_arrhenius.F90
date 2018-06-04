@@ -77,23 +77,17 @@ contains
 
     type(phlex_core_t), pointer :: phlex_core
     type(phlex_state_t), pointer :: phlex_state
-    character(len=:), allocatable :: input_file_path
+    character(len=:), allocatable :: input_file_path, key
     type(string_t), allocatable, dimension(:) :: output_file_path
 
     integer(kind=i_kind), parameter :: NUM_STATE_VAR = 27
-    real(kind=dp), dimension(0:NUM_TIME_STEP, NUM_STATE_VAR) :: model_conc, true_conc
-    integer(kind=i_kind) :: idx_A_aq, idx_B_aq, idx_C_aq, idx_D_aq, idx_H2O
-    integer(kind=i_kind) :: idx_A_org, idx_B_org, idx_C_org, idx_D_org
-    integer(kind=i_kind) :: idx_aq_phase, idx_org_phase, idx_aero_rep
-    character(len=:), allocatable :: key
-    integer(kind=i_kind) :: i_time, i_spec
-    real(kind=dp) :: time_step, time
-    real(kind=dp) :: conc_D, conc_water
-    real(kind=dp) :: MW_A, MW_B, MW_C, MW_D
-    real(kind=dp) :: k1_aq, k2_aq, k1_org, k2_org
-
-    ! Parameters for calculating true concentrations
-    real(kind=dp) :: temp, pressure 
+    real(kind=dp), dimension(0:NUM_TIME_STEP, NUM_STATE_VAR) :: model_conc, &
+            true_conc
+    integer(kind=i_kind) :: idx_A_aq, idx_B_aq, idx_C_aq, idx_D_aq, idx_H2O, &
+            idx_A_org, idx_B_org, idx_C_org, idx_D_org, idx_aq_phase, &
+            idx_org_phase, idx_aero_rep, i_time, i_spec
+    real(kind=dp) :: time_step, time, conc_D, conc_water, MW_A, MW_B, MW_C, &
+            MW_D, k1_aq, k2_aq, k1_org, k2_org, temp, pressure
 
     run_condensed_phase_arrhenius_test = .true.
 
@@ -206,34 +200,48 @@ contains
       ! Get the analytic concentrations
       time = i_time * time_step
       true_conc(i_time,idx_A_aq) = true_conc(0,idx_A_aq) * exp(-k1_aq*time)
-      true_conc(i_time,idx_B_aq) = true_conc(0,idx_A_aq) * (k1_aq/(k2_aq-k1_aq)) * &
+      true_conc(i_time,idx_B_aq) = true_conc(0,idx_A_aq) * &
+              (k1_aq/(k2_aq-k1_aq)) * &
               (exp(-k1_aq*time) - exp(-k2_aq*time)) * MW_B / MW_A
       true_conc(i_time,idx_C_aq) = true_conc(0,idx_A_aq) * MW_C / MW_A * &
-              (1.0d0 + (k1_aq*exp(-k2_aq*time) - k2_aq*exp(-k1_aq*time))/(k2_aq-k1_aq))
+              (1.0d0 + (k1_aq*exp(-k2_aq*time) - &
+              k2_aq*exp(-k1_aq*time))/(k2_aq-k1_aq))
       true_conc(i_time,idx_D_aq) = true_conc(0,idx_D_aq)
       true_conc(i_time,idx_H2O) = true_conc(0,idx_H2O)
       true_conc(i_time,idx_A_org) = true_conc(0,idx_A_org) * exp(-k1_org*time)
-      true_conc(i_time,idx_B_org) = true_conc(0,idx_A_org) * (k1_org/(k2_org-k1_org)) * &
+      true_conc(i_time,idx_B_org) = true_conc(0,idx_A_org) * &
+              (k1_org/(k2_org-k1_org)) * &
               (exp(-k1_org*time) - exp(-k2_org*time)) * MW_B / MW_A
       true_conc(i_time,idx_C_org) = true_conc(0,idx_A_org) * MW_C / MW_A * &
-              (1.0d0 + (k1_org*exp(-k2_org*time) - k2_org*exp(-k1_org*time))/(k2_org-k1_org))
+              (1.0d0 + (k1_org*exp(-k2_org*time) - &
+              k2_org*exp(-k1_org*time))/(k2_org-k1_org))
       true_conc(i_time,idx_D_org) = true_conc(0,idx_D_org)
 
     end do
 
     ! Save the results
-    open(unit=7, file="out/condensed_phase_arrhenius_results.txt", status="replace", action="write")
+    open(unit=7, file="out/condensed_phase_arrhenius_results.txt", &
+            status="replace", action="write")
     do i_time = 0, NUM_TIME_STEP
       write(7,*) i_time*time_step, &
-            ' ', true_conc(i_time, idx_A_aq),' ', model_conc(i_time, idx_A_aq), &
-            ' ', true_conc(i_time, idx_B_aq),' ', model_conc(i_time, idx_B_aq), &
-            ' ', true_conc(i_time, idx_C_aq),' ', model_conc(i_time, idx_C_aq), &
-            ' ', true_conc(i_time, idx_D_aq),' ', model_conc(i_time, idx_D_aq), &
-            ' ', true_conc(i_time, idx_H2O),' ', model_conc(i_time, idx_H2O), &
-            ' ', true_conc(i_time, idx_A_org),' ', model_conc(i_time, idx_A_org), &
-            ' ', true_conc(i_time, idx_B_org),' ', model_conc(i_time, idx_B_org), &
-            ' ', true_conc(i_time, idx_C_org),' ', model_conc(i_time, idx_C_org), &
-            ' ', true_conc(i_time, idx_D_org),' ', model_conc(i_time, idx_D_org)
+            ' ', true_conc(i_time, idx_A_aq), &
+            ' ', model_conc(i_time, idx_A_aq), &
+            ' ', true_conc(i_time, idx_B_aq), &
+            ' ', model_conc(i_time, idx_B_aq), &
+            ' ', true_conc(i_time, idx_C_aq), &
+            ' ', model_conc(i_time, idx_C_aq), &
+            ' ', true_conc(i_time, idx_D_aq), &
+            ' ', model_conc(i_time, idx_D_aq), &
+            ' ', true_conc(i_time, idx_H2O), &
+            ' ', model_conc(i_time, idx_H2O), &
+            ' ', true_conc(i_time, idx_A_org), &
+            ' ', model_conc(i_time, idx_A_org), &
+            ' ', true_conc(i_time, idx_B_org), &
+            ' ', model_conc(i_time, idx_B_org), &
+            ' ', true_conc(i_time, idx_C_org), &
+            ' ', model_conc(i_time, idx_C_org), &
+            ' ', true_conc(i_time, idx_D_org), &
+            ' ', model_conc(i_time, idx_D_org)
     end do
     close(7)
 
@@ -241,10 +249,11 @@ contains
     do i_time = 1, NUM_TIME_STEP
       do i_spec = 1, size(model_conc, 2)
         call assert_msg(923311346, &
-          almost_equal(model_conc(i_time, i_spec), true_conc(i_time, i_spec), &
-          real(1.0e-2, kind=dp)), "time: "//to_string(i_time)//"; species: "// &
-          to_string(i_spec)//"; mod: "//to_string(model_conc(i_time, i_spec))// &
-          "; true: "//to_string(true_conc(i_time, i_spec)))
+          almost_equal(model_conc(i_time, i_spec),  &
+          true_conc(i_time, i_spec), real(1.0e-2, kind=dp)), "time: "// &
+          to_string(i_time)//"; species: "//to_string(i_spec)//"; mod: "// &
+          to_string(model_conc(i_time, i_spec))//"; true: "// &
+          to_string(true_conc(i_time, i_spec)))
       end do
     end do
 

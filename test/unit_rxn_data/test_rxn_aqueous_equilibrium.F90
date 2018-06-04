@@ -69,25 +69,17 @@ contains
 
     type(phlex_core_t), pointer :: phlex_core
     type(phlex_state_t), pointer :: phlex_state
-    character(len=:), allocatable :: input_file_path
+    character(len=:), allocatable :: input_file_path, key
     type(string_t), allocatable, dimension(:) :: output_file_path
 
     real(kind=dp), dimension(0:NUM_TIME_STEP, 30) :: model_conc, true_conc
-    integer(kind=i_kind) :: idx_A, idx_B, idx_C, idx_D, idx_E, idx_F, idx_G, idx_H
-    integer(kind=i_kind) :: idx_BC_act
-    integer(kind=i_kind) :: idx_H2O, idx_phase, idx_aero_rep
-    character(len=:), allocatable :: key
-    integer(kind=i_kind) :: i_time, i_spec
-    real(kind=dp) :: time_step, time
-    real(kind=dp) :: Keq_1, Keq_2, Keq_3
-    real(kind=dp) :: k1_forward, k2_forward, k3_forward
-    real(kind=dp) :: k1_reverse, k2_reverse, k3_reverse
-    real(kind=dp) :: total_init
-    real(kind=dp) :: equil_A, equil_B, equil_C, equil_D, equil_E, equil_F, equil_G, equil_H
-    real(kind=dp) :: x, x0
-
-    ! Parameters for calculating true concentrations
-    real(kind=dp) :: temp, pressure 
+    integer(kind=i_kind) :: idx_A, idx_B, idx_C, idx_D, idx_E, idx_F, idx_G, &
+            idx_H, idx_BC_act, idx_H2O, idx_phase, idx_aero_rep, i_time, &
+            i_spec
+    real(kind=dp) :: time_step, time, Keq_1, Keq_2, Keq_3, k1_forward, &
+            k2_forward, k3_forward, k1_reverse, k2_reverse, k3_reverse, &
+            total_init, equil_A, equil_B, equil_C, equil_D, equil_E, &
+            equil_F, equil_G, equil_H, x, x0, temp, pressure
     real(kind=dp), target :: radius, number_conc
 
     run_aqueous_equilibrium_test = .true.
@@ -172,21 +164,21 @@ contains
     model_conc(0,:) = true_conc(0,:)
 
     ! Henry's Law equilibrium constants (M/ppm)
-    Keq_1 = 1.14d-2 * exp(2300.0d0 * (1.0d0/temp - 1.0d0/298.0d0))      ! (M^2/M^2)
-    Keq_2 = 12.3                                                        ! (M^3/M^2)
-    Keq_3 = 2.35 * exp(1245.7d0 * (1.0d0/temp - 1.0d0/298.0d0))         ! (M/M)
+    Keq_1 = 1.14d-2 * exp(2300.0d0 * (1.0d0/temp - 1.0d0/298.0d0)) ! (M^2/M^2)
+    Keq_2 = 12.3                                                   ! (M^3/M^2)
+    Keq_3 = 2.35 * exp(1245.7d0 * (1.0d0/temp - 1.0d0/298.0d0))    ! (M/M)
 
     ! Calculate the forward and reverse rate constants for reaction 1
-    k1_reverse = 0.32d0 * true_conc(0,idx_BC_act)                       ! (1/M/s)
-    k1_forward = Keq_1 * k1_reverse                                     ! (1/M/s)
+    k1_reverse = 0.32d0 * true_conc(0,idx_BC_act)                  ! (1/M/s)
+    k1_forward = Keq_1 * k1_reverse                                ! (1/M/s)
 
     ! Calculate the forward and reverse rate constants for reaction 2
-    k2_reverse = 3.25e-3                                                ! (1/M/M/s)
-    k2_forward = Keq_2 * k2_reverse                                     ! (1/M/s)
+    k2_reverse = 3.25e-3                                           ! (1/M/M/s)
+    k2_forward = Keq_2 * k2_reverse                                ! (1/M/s)
 
     ! Calculate the forward and reverse rate constants for reaction 3
-    k3_reverse = 1.56e-4                                                ! (1/s)
-    k3_forward = Keq_3 * k3_reverse                                     ! (1/s)
+    k3_reverse = 1.56e-4                                           ! (1/s)
+    k3_forward = Keq_3 * k3_reverse                                ! (1/s)
 
     ! Determine the equilibrium concentrations (ug/m3)
     ! 
@@ -199,7 +191,8 @@ contains
     total_init = true_conc(0,idx_A)/true_conc(0,idx_H2O) * 1000.0d0/48.0d0
     equil_B = (total_init * (sqrt(1.0d0/Keq_1)-2.0d0) / (1.0d0/Keq_1-4.0d0))
     equil_C = (total_init * (sqrt(1.0d0/Keq_1)-2.0d0) / (1.0d0/Keq_1-4.0d0))
-    equil_A = (total_init * (1.0d0 - 2.0d0*(sqrt(1.0d0/Keq_1)-2.0d0) / (1.0d0/Keq_1-4.0d0)))
+    equil_A = (total_init * (1.0d0 - 2.0d0*(sqrt(1.0d0/Keq_1)-2.0d0) / &
+            (1.0d0/Keq_1-4.0d0)))
 
     ! Reaction 2
     !
@@ -212,8 +205,8 @@ contains
             true_conc(0,idx_H2O) * 27.6d0 / 1000.0d0
     equil_E = (total_init * (sqrt(Keq_2)-2.0d0) / (Keq_2-4.0d0)) * &
             true_conc(0,idx_H2O) * 202.4d0 / 1000.0d0
-    equil_F = (total_init * (1.0d0 - 2.0d0*(sqrt(Keq_2)-2.0d0) / (Keq_2-4.0d0))) * &
-            true_conc(0,idx_H2O) * 28.0d0 / 1000.0d0
+    equil_F = (total_init * (1.0d0 - 2.0d0*(sqrt(Keq_2)-2.0d0) / &
+            (Keq_2-4.0d0))) * true_conc(0,idx_H2O) * 28.0d0 / 1000.0d0
 
     ! Reaction 3
     !
@@ -248,10 +241,14 @@ contains
       ! [A] = ([A_init] - [A_eq]) * exp(-t *(k_f + k_b)) + [A_eq]
       time = i_time * time_step
       x0 = true_conc(0,idx_A) * 1000.0d0 / 48.0d0 / true_conc(0,idx_H2O)
-      x = 2.0 / ((1.0d0+2.0d0/x0)*exp(-2.0d0*(k1_forward*equil_A+k1_reverse*equil_B)*time)-1.0d0)
-      true_conc(i_time,idx_A) = (equil_A + x) * true_conc(0,idx_H2O) * 48.0d0 / 1000.0d0
-      true_conc(i_time,idx_B) = (equil_B - x) * true_conc(0,idx_H2O) * 32.67d0 / 1000.0d0
-      true_conc(i_time,idx_C) = (equil_C - x) * true_conc(0,idx_H2O) * 114.3d0 / 1000.0d0
+      x = 2.0 / ((1.0d0+2.0d0/x0)* &
+              exp(-2.0d0*(k1_forward*equil_A+k1_reverse*equil_B)*time)-1.0d0)
+      true_conc(i_time,idx_A) = &
+              (equil_A + x) * true_conc(0,idx_H2O) * 48.0d0 / 1000.0d0
+      true_conc(i_time,idx_B) = &
+              (equil_B - x) * true_conc(0,idx_H2O) * 32.67d0 / 1000.0d0
+      true_conc(i_time,idx_C) = &
+              (equil_C - x) * true_conc(0,idx_H2O) * 114.3d0 / 1000.0d0
       true_conc(i_time,idx_D) = (true_conc(0,idx_D) - equil_D) * &
               exp(-time * (k2_forward + k2_reverse)) + equil_D
       true_conc(i_time,idx_E) = (true_conc(0,idx_E) - equil_E) * &
@@ -274,7 +271,8 @@ contains
     end do
 
     ! Save the results
-    open(unit=7, file="out/aqueous_equilibrium_results.txt", status="replace", action="write")
+    open(unit=7, file="out/aqueous_equilibrium_results.txt", &
+            status="replace", action="write")
     do i_time = 0, NUM_TIME_STEP
       write(7,*) i_time*time_step, &
             ' ', true_conc(i_time, idx_A),' ', model_conc(i_time, idx_A), &
@@ -292,13 +290,15 @@ contains
     ! Analyze the results
     do i_time = 1, NUM_TIME_STEP
       do i_spec = 1, size(model_conc, 2)
-        ! FIXME Check all species once a true value is found for the 4 component reactions
+        ! FIXME Check all species once a true value is found for the 4 
+        ! component reactions
         if (i_spec.ne.idx_G.and.i_spec.ne.idx_H) cycle
         call assert_msg(380145539, &
-          almost_equal(model_conc(i_time, i_spec), true_conc(i_time, i_spec), &
-          real(1.0e-2, kind=dp)), "time: "//to_string(i_time)//"; species: "// &
-          to_string(i_spec)//"; mod: "//to_string(model_conc(i_time, i_spec))// &
-          "; true: "//to_string(true_conc(i_time, i_spec)))
+          almost_equal(model_conc(i_time, i_spec), &
+          true_conc(i_time, i_spec), real(1.0e-2, kind=dp)), "time: "// &
+          to_string(i_time)//"; species: "//to_string(i_spec)//"; mod: "// &
+          to_string(model_conc(i_time, i_spec))//"; true: "// &
+          to_string(true_conc(i_time, i_spec)))
       end do
     end do
 

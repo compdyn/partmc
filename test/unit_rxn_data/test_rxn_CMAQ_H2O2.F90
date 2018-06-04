@@ -159,7 +159,8 @@ contains
     end do
 
     ! Save the results
-    open(unit=7, file="out/CMAQ_H2O2_results.txt", status="replace", action="write")
+    open(unit=7, file="out/CMAQ_H2O2_results.txt", status="replace", &
+            action="write")
     do i_time = 0, NUM_TIME_STEP
       write(7,*) i_time*time_step, &
             ' ', true_conc(i_time, idx_A),' ', model_conc(i_time, idx_A), &
@@ -172,10 +173,11 @@ contains
     do i_time = 1, NUM_TIME_STEP
       do i_spec = 1, size(model_conc, 2)
         call assert_msg(630036912, &
-          almost_equal(model_conc(i_time, i_spec), true_conc(i_time, i_spec), &
-          real(1.0e-2, kind=dp)), "time: "//to_string(i_time)//"; species: "// &
-          to_string(i_spec)//"; mod: "//to_string(model_conc(i_time, i_spec))// &
-          "; true: "//to_string(true_conc(i_time, i_spec)))
+          almost_equal(model_conc(i_time, i_spec), &
+          true_conc(i_time, i_spec), real(1.0e-2, kind=dp)), "time: "// &
+          to_string(i_time)//"; species: "//to_string(i_spec)//"; mod: "// &
+          to_string(model_conc(i_time, i_spec))//"; true: "// &
+          to_string(true_conc(i_time, i_spec)))
       end do
     end do
 

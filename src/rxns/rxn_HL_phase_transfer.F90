@@ -5,58 +5,75 @@
 !> \file
 !> The pmc_rxn_HL_phase_transfer module.
 
-!> \page phlex_rxn_HL_phase_transfer Phlexible Module for Chemistry: Phase-Transfer Reaction
+!> \page phlex_rxn_HL_phase_transfer Phlexible Module for Chemistry: Henry's Law Phase-Transfer Reaction
 !!
-!! Phase transfer reactions are based on Henry's Law equilibrium constants
-!! whose equations take the form:
+!! Henry's Law phase-trasfer reactions use equilibrium rate constants that
+!! are calculated as:
 !!
 !! \f[
 !!   Ae^{C({1/T-1/298})}
 !! \f]
 !!
-!! where \f$A\f$ is the pre-exponential factor (\f$s^{-1}\f$), \f$C\f$ is a
-!! constant and \f$T\f$ is the temperature (K). Uptake kinetics are based on
-!! the particle size, the gas-phase species diffusion coefficient and
-!! molecular weight, and \f$N^{*}\f$, which is used to calculate the mass
-!! accomodation coefficient. Details of the calculations can be found in:
+!! where \f$A\f$ is the pre-exponential factor 
+!! (\f$\mbox{\si{M.atm^{-1} s^{-1}}}\f$), \f$C\f$ is a constant (unitless) and
+!! \f$T\f$ is the temperature (\f$\mbox{K}\f$). Uptake kinetics are based on
+!! the particle effective radius, \f$r_{eff}\f$ (\f$\mbox{m}\f$), the
+!! condensing species gas-phase diffusion coefficient, \f$D_g\f$ 
+!! (\f$\mbox{\si{\square\metre\per\second}}\f$), its molecular weight \f$MW\f$
+!! (\f$\mbox{\si{\kilo\gram\per\mole}}\f$), and \f$N^{*}\f$, which is
+!! used to calculate the mass accomodation coefficient. 
 !!
-!!
-!! Mass accomodation coefficients are calculated as:
+!! Mass accomodation coefficients and condensation rate constants are
+!! calculated using the method of Ervans et al. (2003) \cite Ervens2003 and
+!! references therein. Mass accomodation coefficients (\f$\alpha\f$) are
+!! calculated as:
 !!
 !! \f[
-!!   \Delta H_{obs} = -10 \times (N^*-1) + 7.53 \times (N^(*2/3)-1) - 0.1 \times 10 \mbox{\si{kcal.M^{-1}}}
+!!   \Delta H_{obs} = -10 \times (N^*-1) + 7.53 \times (N^{*2/3}-1) - 0.1 \times 10 (\mbox{\si{kcal.M^{-1}}})
 !! \f]
 !! \f[
-!!   \Delta S_{obs} = -13 \times (N^*-1) - 19 \times (N^*-1) + 9.21 \times (N^{*2/3}-1) - 0.1 \times 13 \mbox{\si{cal.M^{-1}.K^{-1}}}
+!!   \Delta S_{obs} = -13 \times (N^*-1) - 19 \times (N^*-1) + 9.21 \times (N^{*2/3}-1) - 0.1 \times 13 (\mbox{\si{cal.M^{-1}.K^{-1}}})
 !! \f]
 !! \f[
 !!   \frac{\alpha}{1-\alpha} = e^{\frac{-\Delta G^{\*}}{RT}}
 !! \f]
 !!
-!! Details of the mass accomodation and calculations can be found in:
+!! Forward rate constants are calculated as:
+!! \f[
+!!   k_{f} = (\frac{r^2}{3D_g} + \frac{4r}{3 \langle c \rangle \alpha})
+!! \f]
+!! where \f$r\f$ is the particle radius (\f$\mbox{m}\f$) and 
+!! \f$\langle c \rangle \f$ is the mean speed of the gas-phase molecules:
+!! \f[
+!!   \langle c \rangle = \sqrt{\frac{8RT}{\pi MW}}
+!! \f]
+!! where \f$R\f$ is the ideal gas constant
+!! (\f$\mbox{\si{\joule\per\kelvin\per\mole}}\f$). The particle radius used
+!! to calculate \f$k_{f}\f$ is the effective radius (\f$r_{eff}\f$), which is
+!! taken as the "least-wrong" choice for condensation rates, as it is weighted
+!! to surface area \cite Zender2002 .
 !!
-!! Ervens, B., et al., 2003. "CAPRAM 2.4 (MODAC mechanism): An extended
-!! and condensed tropospheric aqueous mechanism and its application."
-!! J. Geophys. Res. 108, 4426. doi:10.1029/2002JD002202
-!!
-!! Input data for Phase transfer equations should take the form :
+!! Input data for Phase transfer equations have the following format :
 !! \code{.json}
 !!   {
 !!     "type" : "HL_PHASE_TRANSFER",
+!!     "gas-phase species" : "my gas spec",
+!!     "aerosol-phase species" : "my aero spec",
+!!     "areosol phase" : "my aqueous phase",
+!!     "aerosol-phase water" : "H2O_aq",
 !!     "A" : 123.45,
 !!     "C" : 123.45,
-!!     "gas-phase species" : "my gas spec",
-!!     "aerosol-phase species" : "my aero spec"
 !!       ...
 !!   }
 !! \endcode
-!! The key-value pairs \b gas-phase species, and \b aerosol-phase species are
-!! required. Only one gas- and one aerosol-phase species are allowed per
-!! phase-transfer reaction. Additionally, gas-phase species must include
-!! parameters named "diffusion coeff", which specifies the diffusion
-!! coefficient in (\f$m^2s^{-1}\f$), and "molecular weight", which specifies the molecular
-!! weight of the species in (kg/mol). They may optionally include the
-!! parameter "N star", which will be used to calculate the mass accomodation
+!! The key-value pairs \b gas-phase \b species, and \b aerosol-phase
+!! \b species are required. Only one gas- and one aerosol-phase species are
+!! allowed per phase-transfer reaction. Additionally, gas-phase species must
+!! include parameters named \b diffusion \b coeff, which specifies the
+!! diffusion coefficient in \f$\mbox{\si{\square\metre\per\second}}\f$, and
+!! \b molecular \b weight, which specifies the molecular weight of the species
+!! in \f$\mbox{\si{\kilo\gram\per\mole}}\f$. They may optionally include the
+!! parameter \b N \b star, which will be used to calculate the mass accomodation
 !! coefficient. When this parameter is not included, the mass accomodation
 !! coefficient is assumed to be 1.0.
 !!
@@ -70,8 +87,8 @@ module pmc_rxn_HL_phase_transfer
 
   use pmc_constants,                        only: const
   use pmc_util,                             only: i_kind, dp, to_string, &
-                                                  assert, assert_msg, die_msg, &
-                                                  string_t
+                                                  assert, assert_msg, &
+                                                  die_msg, string_t
   use pmc_rxn_data
   use pmc_chem_spec_data
   use pmc_property
@@ -82,27 +99,27 @@ module pmc_rxn_HL_phase_transfer
   implicit none
   private
 
-#define _del_H_ this%condensed_data_real(1)
-#define _del_S_ this%condensed_data_real(2)
-#define _Dg_ this%condensed_data_real(3)
-#define _pre_c_rms_ this%condensed_data_real(4)
-#define _A_ this%condensed_data_real(5)
-#define _C_ this%condensed_data_real(6)
-#define _c_rms_alpha_ this%condensed_data_real(7)
-#define _equil_const_ this%condensed_data_real(8)
-#define _CONV_ this%condensed_data_real(9)
-#define _MW_ this%condensed_data_real(10)
-#define _ug_m3_TO_ppm_ this%condensed_data_real(11)
-#define _NUM_AERO_PHASE_ this%condensed_data_int(1)
-#define _GAS_SPEC_ this%condensed_data_int(2)
-#define _NUM_INT_PROP_ 2
-#define _NUM_REAL_PROP_ 11
-#define _AERO_SPEC_(x) this%condensed_data_int(_NUM_INT_PROP_+x)
-#define _AERO_WATER_(x) this%condensed_data_int(_NUM_INT_PROP_+_NUM_AERO_PHASE_+x)
-#define _AERO_PHASE_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+2*_NUM_AERO_PHASE_+x)
-#define _AERO_REP_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+3*_NUM_AERO_PHASE_+x)
-#define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+4*_NUM_AERO_PHASE_+x)
-#define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_+1+5*_NUM_AERO_PHASE_+x)
+#define DELTA_H_ this%condensed_data_real(1)
+#define DELTA_S_ this%condensed_data_real(2)
+#define DIFF_COEFF_ this%condensed_data_real(3)
+#define PRE_C_AVG_ this%condensed_data_real(4)
+#define A_ this%condensed_data_real(5)
+#define C_ this%condensed_data_real(6)
+#define C_AVG_ALPHA_ this%condensed_data_real(7)
+#define EQUIL_CONST_ this%condensed_data_real(8)
+#define CONV_ this%condensed_data_real(9)
+#define MW_ this%condensed_data_real(10)
+#define UGM3_TO_PPM_ this%condensed_data_real(11)
+#define NUM_AERO_PHASE_ this%condensed_data_int(1)
+#define GAS_SPEC_ this%condensed_data_int(2)
+#define NUM_INT_PROP_ 2
+#define NUM_REAL_PROP_ 11
+#define AERO_SPEC_(x) this%condensed_data_int(NUM_INT_PROP_+x)
+#define AERO_WATER_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_AERO_PHASE_+x)
+#define AERO_PHASE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+2*NUM_AERO_PHASE_+x)
+#define AERO_REP_ID_(x) this%condensed_data_int(NUM_INT_PROP_+3*NUM_AERO_PHASE_+x)
+#define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_+4*NUM_AERO_PHASE_+x)
+#define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+1+5*NUM_AERO_PHASE_+x)
 
   public :: rxn_HL_phase_transfer_t
 
@@ -111,6 +128,8 @@ module pmc_rxn_HL_phase_transfer
   contains
     !> Reaction initialization
     procedure :: initialize
+    !> Finalize the reaction
+    final :: finalize
   end type rxn_HL_phase_transfer_t
 
   !> Constructor for rxn_HL_phase_transfer_t
@@ -148,16 +167,14 @@ contains
     class(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
 
     type(property_t), pointer :: spec_props
-    character(len=:), allocatable :: key_name, spec_name, water_name, phase_name, &
-            string_val
-    integer(kind=i_kind) :: i_spec, i_qty, i_aero_rep, i_aero_phase, n_aero_ids
-    integer(kind=i_kind) :: i_aero_id
-    class(string_t), allocatable :: unique_spec_names(:), unique_water_names(:)
-    integer(kind=i_kind), allocatable :: aero_spec_ids(:)
-    integer(kind=i_kind), allocatable :: water_spec_ids(:)
-    integer(kind=i_kind), allocatable :: phase_ids(:)
-
-    integer(kind=i_kind) :: temp_int
+    character(len=:), allocatable :: key_name, spec_name, water_name, &
+            phase_name, string_val
+    integer(kind=i_kind) :: i_spec, i_qty, i_aero_rep, i_aero_phase, &
+            n_aero_ids, i_aero_id, temp_int
+    class(string_t), allocatable :: unique_spec_names(:), &
+            unique_water_names(:)
+    integer(kind=i_kind), allocatable :: aero_spec_ids(:), &
+            water_spec_ids(:), phase_ids(:)
     real(kind=dp) :: temp_real, N_star
 
     ! Get the property set
@@ -211,16 +228,20 @@ contains
  
       ! Add these instances to the list     
       n_aero_ids = n_aero_ids + size(unique_spec_names)
+
+      deallocate(unique_spec_names)
+      deallocate(unique_water_names)
+
     end do
 
     ! Allocate space in the condensed data arrays
-    allocate(this%condensed_data_int(_NUM_INT_PROP_ + 2 + n_aero_ids * 10))
-    allocate(this%condensed_data_real(_NUM_REAL_PROP_))
+    allocate(this%condensed_data_int(NUM_INT_PROP_ + 2 + n_aero_ids * 10))
+    allocate(this%condensed_data_real(NUM_REAL_PROP_))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
 
     ! Set the number of aerosol-species instances
-    _NUM_AERO_PHASE_ = n_aero_ids
+    NUM_AERO_PHASE_ = n_aero_ids
 
     ! Get the properties required of the aerosol species
     call assert_msg(669162256, &
@@ -230,12 +251,13 @@ contains
 
     ! Get the aerosol species molecular weight
     key_name = "molecular weight"
-    call assert_msg(209812557, spec_props%get_real(key_name, _MW_), &
+    call assert_msg(209812557, spec_props%get_real(key_name, MW_), &
             "Missing property 'MW' for aerosol species "//trim(spec_name)// &
             " required for phase-transfer reaction")
 
-    ! Set the ug/m3 -> ppm conversion prefactor (multiply by T/P to get conversion)
-    _CONV_ = const%univ_gas_const / _MW_
+    ! Set the ug/m3 -> ppm conversion prefactor (multiply by T/P to get 
+    ! conversion)
+    CONV_ = const%univ_gas_const / MW_ / 1.0d3
 
     ! Get the aerosol-phase water species
     key_name = "aerosol-phase water"
@@ -260,39 +282,45 @@ contains
       ! Add the species concentration and activity coefficient ids to
       ! the condensed data 
       do i_spec = 1, size(unique_spec_names)
-        _AERO_SPEC_(i_aero_id) = &
+        AERO_SPEC_(i_aero_id) = &
               aero_rep(i_aero_rep)%val%spec_state_id( &
               unique_spec_names(i_spec)%string)
-        _AERO_WATER_(i_aero_id) = &
+        AERO_WATER_(i_aero_id) = &
               aero_rep(i_aero_rep)%val%spec_state_id( &
               unique_water_names(i_spec)%string)
-        _AERO_PHASE_ID_(i_aero_id) = phase_ids(i_spec)
-        _AERO_REP_ID_(i_aero_id) = i_aero_rep
+        AERO_PHASE_ID_(i_aero_id) = phase_ids(i_spec)
+        AERO_REP_ID_(i_aero_id) = i_aero_rep
         i_aero_id = i_aero_id + 1
       end do
+
+      deallocate(unique_spec_names)
+      deallocate(unique_water_names)
+
     end do
 
     ! Get reaction parameters 
     key_name = "A"
-    if (.not. this%property_set%get_real(key_name, _A_)) then
-      _A_ = 1.0
+    if (.not. this%property_set%get_real(key_name, A_)) then
+      A_ = 1.0
     end if
+    A_ = A_ * 1.0d-6; ! save A in (M/ppm)
     key_name = "C"
-    if (.not. this%property_set%get_real(key_name, _C_)) then
-      _C_ = 0.0
+    if (.not. this%property_set%get_real(key_name, C_)) then
+      C_ = 0.0
     end if
 
-    ! Get the gas-phase species and find the required species properties and index
+    ! Get the gas-phase species and find the required species properties and
+    ! index
     key_name = "gas-phase species"
     call assert_msg(847983010, &
             this%property_set%get_string(key_name, spec_name), &
             "Missing gas-phase species in phase-transfer reaction")
 
     ! Save the index of this species in the state variable array
-    _GAS_SPEC_ = chem_spec_data%gas_state_id(spec_name)
+    GAS_SPEC_ = chem_spec_data%gas_state_id(spec_name)
 
     ! Make sure the species exists
-    call assert_msg(751684145, _GAS_SPEC_.gt.0, &
+    call assert_msg(751684145, GAS_SPEC_.gt.0, &
             "Missing phase-transfer gas-phase species: "//spec_name)
 
     ! Get the required properties for the gas-phase species
@@ -302,7 +330,7 @@ contains
             "gas-phase species "//trim(spec_name))
 
     ! Get N* to calculate the mass accomodation coefficient. If it is not
-    ! present, set _del_H_ and _del_S_ to zero to indicate a mass accomodation
+    ! present, set DELTA_H_ and DELTA_S_ to zero to indicate a mass accomodation
     ! coefficient of 1.0
     ! Mass accomodation equation is based on equations in:
     ! Ervens, B., et al., 2003. "CAPRAM 2.4 (MODAC mechanism): An extended
@@ -311,53 +339,70 @@ contains
     key_name = "N star"
     if (spec_props%get_real(key_name, N_star)) then     
       ! enthalpy change (kcal mol-1)
-      _del_H_ = real(- 10.0d0*(N_star-1.0d0) + &
+      DELTA_H_ = real(- 10.0d0*(N_star-1.0d0) + &
               7.53d0*(N_star**(2.0d0/3.0d0)-1.0d0) - 1.0d0, kind=dp)
       ! entropy change (cal mol-1)
-      _del_S_ = real(- 32.0d0*(N_star-1.0d0) + &
+      DELTA_S_ = real(- 32.0d0*(N_star-1.0d0) + &
               9.21d0*(N_star**(2.0d0/3.0d0)-1.0d0) - 1.3d0, kind=dp)
       ! Convert dH and dS to (J mol-1)
-      _del_H_ = real(_del_H_ * 4184.0d0, kind=dp)
-      _del_S_ = real(_del_S_ * 4.184d0, kind=dp)
+      DELTA_H_ = real(DELTA_H_ * 4184.0d0, kind=dp)
+      DELTA_S_ = real(DELTA_S_ * 4.184d0, kind=dp)
     else
-      _del_H_ = real(0.0, kind=dp)
-      _del_S_ = real(0.0, kind=dp)
+      DELTA_H_ = real(0.0, kind=dp)
+      DELTA_S_ = real(0.0, kind=dp)
     end if
 
     ! Get the diffusion coefficient (m^2/s)
     key_name = "diffusion coeff"
-    call assert_msg(100205531, spec_props%get_real(key_name, _Dg_), &
+    call assert_msg(100205531, spec_props%get_real(key_name, DIFF_COEFF_), &
             "Missing diffusion coefficient for species "//spec_name)
     
     ! Calculate the constant portion of c_rms [m/(K^2*s)]
     key_name = "molecular weight"
     call assert_msg(469582180, spec_props%get_real(key_name, temp_real), &
             "Missing molecular weight for species "//spec_name)
-    _pre_c_rms_ = sqrt(8.0*const%univ_gas_const/(const%pi*temp_real))
+    PRE_C_AVG_ = sqrt(8.0*const%univ_gas_const/(const%pi*temp_real))
 
   end subroutine initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef _del_H_
-#undef _del_S_
-#undef _Dg_
-#undef _pre_c_rms_
-#undef _A_
-#undef _C_
-#undef _c_rms_alpha_
-#undef _equil_const_
-#undef _CONV_
-#undef _MW_
-#undef _ug_m3_TO_ppm_
-#undef _NUM_AERO_PHASE_
-#undef _GAS_SPEC_
-#undef _NUM_INT_PROP_
-#undef _NUM_REAL_PROP_
-#undef _AERO_SPEC_
-#undef _AERO_WATER_
-#undef _AERO_PHASE_ID_
-#undef _AERO_REP_ID_
-#undef _DERIV_ID_
-#undef _JAC_ID_
+  !> Finalize the reaction
+  elemental subroutine finalize(this)
+
+    !> Reaction data
+    type(rxn_HL_phase_transfer_t), intent(inout) :: this
+
+    if (associated(this%property_set)) &
+            deallocate(this%property_set)
+    if (allocated(this%condensed_data_real)) &
+            deallocate(this%condensed_data_real)
+    if (allocated(this%condensed_data_int)) &
+            deallocate(this%condensed_data_int)
+
+  end subroutine finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#undef DELTA_H_
+#undef DELTA_S_
+#undef DIFF_COEFF_
+#undef PRE_C_AVG_
+#undef A_
+#undef C_
+#undef C_AVG_ALPHA_
+#undef EQUIL_CONST_
+#undef CONV_
+#undef MW_
+#undef UGM3_TO_PPM_
+#undef NUM_AERO_PHASE_
+#undef GAS_SPEC_
+#undef NUM_INT_PROP_
+#undef NUM_REAL_PROP_
+#undef AERO_SPEC_
+#undef AERO_WATER_
+#undef AERO_PHASE_ID_
+#undef AERO_REP_ID_
+#undef DERIV_ID_
+#undef JAC_ID_
 end module pmc_rxn_HL_phase_transfer

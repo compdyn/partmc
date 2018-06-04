@@ -56,6 +56,8 @@ contains
       passed = .true.
     end if
 
+    deallocate(phlex_solver_data)
+
   end function run_HL_phase_transfer_tests
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -72,23 +74,18 @@ contains
     use pmc_constants
 
     type(phlex_core_t), pointer :: phlex_core
-    type(phlex_state_t), target :: phlex_state
+    type(phlex_state_t), pointer :: phlex_state
     character(len=:), allocatable :: input_file_path
     type(string_t), allocatable, dimension(:) :: output_file_path
 
     real(kind=dp), dimension(0:NUM_TIME_STEP, 11) :: model_conc, true_conc
-    integer(kind=i_kind) :: idx_phase, idx_aero_rep
-    integer(kind=i_kind) :: idx_O3, idx_O3_aq, idx_H2O2, idx_H2O2_aq, idx_H2O_aq
+    integer(kind=i_kind) :: idx_phase, idx_aero_rep, idx_O3, idx_O3_aq, &
+            idx_H2O2, idx_H2O2_aq, idx_H2O_aq, i_time, i_spec
     character(len=:), allocatable :: key
-    integer(kind=i_kind) :: i_time, i_spec
-    real(kind=dp) :: time_step, time
-    real(kind=dp) :: n_star, del_H, del_S, del_G, alpha, crms, M_to_ppm, ugm3_to_ppm
-    real(kind=dp) :: K_eq_O3, K_eq_H2O2, k_O3_forward, k_O3_backward, k_H2O2_forward, k_H2O2_backward
-    real(kind=dp) :: equil_O3, equil_O3_aq, equil_H2O2, equil_H2O2_aq
-
-
-    ! Parameters for calculating true concentrations
-    real(kind=dp) :: temp, pressure 
+    real(kind=dp) :: time_step, time, n_star, del_H, del_S, del_G, alpha, &
+            crms, M_to_ppm, ugm3_to_ppm, K_eq_O3, K_eq_H2O2, k_O3_forward, &
+            k_O3_backward, k_H2O2_forward, k_H2O2_backward, equil_O3, &
+            equil_O3_aq, equil_H2O2, equil_H2O2_aq, temp, pressure
     real(kind=dp), target :: radius, number_conc
 
     run_HL_phase_transfer_test = .true.
@@ -100,8 +97,10 @@ contains
     number_conc = 1.3e6         ! particle number concentration (#/cc)
 
     ! Henry's Law equilibrium constants (M/ppm)
-    K_eq_O3 = 1.14d-2 * exp(2300.0d0 * (1.0d0/temp - 1.0d0/298.0d0)) / 1.0d6    ! O3 HLC Equil Const (M/ppm)
-    K_eq_H2O2 = 1.025d5 * exp(6340.0d0 * (1.0d0/temp - 1.0d0/298.0d0)) / 1.0d6    ! H2O2 HLC Equil Const (M/ppm)
+    ! O3 HLC Equil Const (M/ppm)
+    K_eq_O3 = 1.14d-2 * exp(2300.0d0 * (1.0d0/temp - 1.0d0/298.0d0)) / 1.0d6
+    ! H2O2 HLC Equil Const (M/ppm)
+    K_eq_H2O2 = 1.025d5 * exp(6340.0d0 * (1.0d0/temp - 1.0d0/298.0d0)) / 1.0d6 
     
     ! Set output time step (s)
     time_step = 1.0d-13
@@ -119,7 +118,7 @@ contains
     call phlex_core%solver_initialize()
 
     ! Get a model state variable
-    phlex_state = phlex_core%new_state()
+    phlex_state => phlex_core%new_state()
 
     ! Set the environmental conditions
     phlex_state%env_state%temp = temp
@@ -174,41 +173,49 @@ contains
 
     ! O3 rate constants
     n_star = 1.89d0
-    del_H = - 10.0d0 * (n_star-1.0d0) + 7.53*(n_star**(2.0d0/3.0d0)-1.0d0) - 1.0d0
-    del_S = - 32.0d0 * (n_star-1.0d0) + 9.21*(n_star**(2.0d0/3.0d0)-1.0d0) - 1.3d0
+    del_H = - 10.0d0 * (n_star-1.0d0) + &
+          7.53*(n_star**(2.0d0/3.0d0)-1.0d0) - 1.0d0
+    del_S = - 32.0d0 * (n_star-1.0d0) + &
+          9.21*(n_star**(2.0d0/3.0d0)-1.0d0) - 1.3d0
     del_G = (del_H - temp * del_S/1000.0d0) * 4184.0d0
     alpha = exp(-del_G/(const%univ_gas_const*temp))
     alpha = alpha / (1.0d0 + alpha)
     crms = sqrt(8.0d0*const%univ_gas_const*temp/(const%pi*48.0d0))
-    k_O3_forward = number_conc * ((radius**2 / (3.0d0 * 1.48d-5) + 4.0d0 * radius / &
-            (3.0d0 * crms * alpha))**(-1))                                      ! (1/s)
-    k_O3_backward = k_O3_forward / (K_eq_O3 * M_to_ppm)                         ! (1/s)
+    k_O3_forward = number_conc * ((radius**2 / (3.0d0 * 1.48d-5) + &
+          4.0d0 * radius / (3.0d0 * crms * alpha))**(-1))           ! (1/s)
+    k_O3_backward = k_O3_forward / (K_eq_O3 * M_to_ppm)             ! (1/s)
 
     ! H2O2 rate constants
     n_star = 1.74d0
-    del_H = - 10.0d0 * (n_star-1.0d0) + 7.53*(n_star**(2.0d0/3.0d0)-1.0d0) - 1.0d0
-    del_S = - 32.0d0 * (n_star-1.0d0) + 9.21*(n_star**(2.0d0/3.0d0)-1.0d0) - 1.3d0
+    del_H = - 10.0d0 * (n_star-1.0d0) + &
+          7.53*(n_star**(2.0d0/3.0d0)-1.0d0) - 1.0d0
+    del_S = - 32.0d0 * (n_star-1.0d0) + &
+          9.21*(n_star**(2.0d0/3.0d0)-1.0d0) - 1.3d0
     del_G = (del_H - temp * del_S/1000.0d0) * 4184.0d0
     alpha = exp(-del_G/(const%univ_gas_const*temp))
     alpha = alpha / (1.0d0 + alpha)
     crms = sqrt(8.0d0*const%univ_gas_const*temp/(const%pi*34.0d0))
-    k_H2O2_forward = number_conc * ((radius**2 / (3.0d0 * 1.46d-5) + 4.0d0 * radius / &
-            (3.0d0 * crms * alpha))**(-1))                                      ! (1/s)
-    k_H2O2_backward = k_H2O2_forward / (K_eq_H2O2 * M_to_ppm)                   ! (1/s)
+    k_H2O2_forward = number_conc * ((radius**2 / (3.0d0 * 1.46d-5) + &
+          4.0d0 * radius / (3.0d0 * crms * alpha))**(-1))           ! (1/s)
+    k_H2O2_backward = k_H2O2_forward / (K_eq_H2O2 * M_to_ppm)       ! (1/s)
 
     ! Determine the equilibrium concentrations
     ! [A_gas] = [A_total] / (1 + 1/K_HL)
     ! [A_aero] = [A_total] / (K_HL + 1)
     ugm3_to_ppm = const%univ_gas_const * temp / (48.0d0 * pressure)
-    equil_O3 = (true_conc(0,idx_O3) + true_conc(0,idx_O3_aq)*number_conc*ugm3_to_ppm) / &
+    equil_O3 = (true_conc(0,idx_O3) + &
+            true_conc(0,idx_O3_aq)*number_conc*ugm3_to_ppm) / &
             (K_eq_O3*M_to_ppm + 1.0d0)
-    equil_O3_aq = (true_conc(0,idx_O3)/ugm3_to_ppm/number_conc + true_conc(0,idx_O3_aq)) / &
+    equil_O3_aq = (true_conc(0,idx_O3)/ugm3_to_ppm/number_conc + &
+            true_conc(0,idx_O3_aq)) / &
             (1.0d0 + 1.0d0/(K_eq_O3*M_to_ppm))
     
     ugm3_to_ppm = const%univ_gas_const * temp / (34.0d0 * pressure)
-    equil_H2O2 = (true_conc(0,idx_H2O2) + true_conc(0,idx_H2O2_aq)*number_conc*ugm3_to_ppm) / &
+    equil_H2O2 = (true_conc(0,idx_H2O2) + &
+            true_conc(0,idx_H2O2_aq)*number_conc*ugm3_to_ppm) / &
             (K_eq_H2O2*M_to_ppm + 1.0d0)
-    equil_H2O2_aq = (true_conc(0,idx_H2O2)/ugm3_to_ppm/number_conc + true_conc(0,idx_H2O2_aq)) / &
+    equil_H2O2_aq = (true_conc(0,idx_H2O2)/ugm3_to_ppm/number_conc + &
+            true_conc(0,idx_H2O2_aq)) / &
             (1.0d0 + 1.0d0/(K_eq_H2O2*M_to_ppm))
 
     ! Set the initial state in the model
@@ -226,8 +233,10 @@ contains
       ! x0 = [A_init_gas] - [A_eq_gas]
       ! [A_gas] = x + [A_eq_gas] = x0exp(-t/tau) + [A_eq_gas]
       ! 1/tau = k_f + k_b
-      ! [A_gas] = ([A_init_gas] - [A_eq_gas]) * exp(-t *(k_f + k_b)) + [A_eq_gas]
-      ! [A_aero] = ([A_init_aero] - [A_eq_aero]) * exp(-t * (k_f + k_b)) + [A_eq_aero]
+      ! [A_gas] = ([A_init_gas] - [A_eq_gas]) 
+      !     * exp(-t *(k_f + k_b)) + [A_eq_gas]
+      ! [A_aero] = ([A_init_aero] - [A_eq_aero]) 
+      !     * exp(-t * (k_f + k_b)) + [A_eq_aero]
       time = i_time * time_step
       true_conc(i_time,idx_O3) = (true_conc(0,idx_O3) - equil_O3) * &
               exp(-time * (k_O3_forward + k_O3_backward)) + equil_O3 
@@ -235,20 +244,27 @@ contains
               exp(-time * (k_O3_forward + k_O3_backward)) + equil_O3_aq
       true_conc(i_time,idx_H2O2) = (true_conc(0,idx_H2O2) - equil_H2O2) * &
               exp(-time * (k_H2O2_forward + k_H2O2_backward)) + equil_H2O2 
-      true_conc(i_time,idx_H2O2_aq) = (true_conc(0,idx_H2O2_aq) - equil_H2O2_aq) * &
+      true_conc(i_time,idx_H2O2_aq) = &
+              (true_conc(0,idx_H2O2_aq) - equil_H2O2_aq) * &
               exp(-time * (k_H2O2_forward + k_H2O2_backward)) + equil_H2O2_aq
       true_conc(i_time,idx_H2O_aq) = true_conc(0,idx_H2O_aq)
     end do
 
     ! Save the results
-    open(unit=7, file="out/HL_phase_transfer_results.txt", status="replace", action="write")
+    open(unit=7, file="out/HL_phase_transfer_results.txt", status="replace", &
+            action="write")
     do i_time = 0, NUM_TIME_STEP
       write(7,*) i_time*time_step, &
-            ' ', true_conc(i_time, idx_O3),' ', model_conc(i_time, idx_O3), &
-            ' ', true_conc(i_time, idx_O3_aq),' ', model_conc(i_time, idx_O3_aq), &
-            ' ', true_conc(i_time, idx_H2O2),' ', model_conc(i_time, idx_H2O2), &
-            ' ', true_conc(i_time, idx_H2O2_aq),' ', model_conc(i_time, idx_H2O2_aq), &
-            ' ', true_conc(i_time, idx_H2O_aq),' ', model_conc(i_time, idx_H2O_aq)
+            ' ', true_conc(i_time, idx_O3), &
+            ' ', model_conc(i_time, idx_O3), &
+            ' ', true_conc(i_time, idx_O3_aq),&
+            ' ', model_conc(i_time, idx_O3_aq), &
+            ' ', true_conc(i_time, idx_H2O2), &
+            ' ', model_conc(i_time, idx_H2O2), &
+            ' ', true_conc(i_time, idx_H2O2_aq), &
+            ' ', model_conc(i_time, idx_H2O2_aq), &
+            ' ', true_conc(i_time, idx_H2O_aq), &
+            ' ', model_conc(i_time, idx_H2O_aq)
     end do
     close(7)
 
@@ -258,12 +274,16 @@ contains
         ! Only check the second phase
         if (i_spec.ge.2.and.i_spec.le.8) cycle
         call assert_msg(114526423, &
-          almost_equal(model_conc(i_time, i_spec), true_conc(i_time, i_spec), &
-          real(1.0e-2, kind=dp)), "time: "//to_string(i_time)//"; species: "// &
-          to_string(i_spec)//"; mod: "//to_string(model_conc(i_time, i_spec))// &
-          "; true: "//to_string(true_conc(i_time, i_spec)))
+          almost_equal(model_conc(i_time, i_spec), &
+          true_conc(i_time, i_spec), real(1.0e-2, kind=dp)), "time: "// &
+          to_string(i_time)//"; species: "//to_string(i_spec)//"; mod: "// &
+          to_string(model_conc(i_time, i_spec))//"; true: "// &
+          to_string(true_conc(i_time, i_spec)))
       end do
     end do
+
+    deallocate(phlex_state)
+    deallocate(phlex_core)
 
     run_HL_phase_transfer_test = .true.
 

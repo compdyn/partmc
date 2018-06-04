@@ -312,11 +312,6 @@ contains
 
     character(len=len(prefix)+100) :: filename
     integer :: ncid
-#ifdef PMC_USE_WRF
-    character(len=50) :: group_name
-    integer :: ncid_group
-    integer :: k
-#endif
 
     !> \page output_format_general Output File Format: General Information
     !!

@@ -7,16 +7,16 @@
 
 !> \page phlex_rxn_CMAQ_H2O2 Phlexible Module for Chemistry: Special CMAQ Reaction for H2O2
 !!
-!! A special CMAQ rate constant for the reactions:
+!! For the reactions:
 !!
-!! \f{ch}{
-!!   HO2 + HO2 -> H2O2
-!! \f}
-!! \f{ch}{
-!!   HO2 + HO2 + H2O -> H2O2
-!! \f}
+!! \f[\mbox{\ch{
+!!   HO2 + HO2 ->[k] H2O2
+!! }}\f]
+!! \f[\mbox{\ch{
+!!   HO2 + HO2 + H2O ->[k] H2O2
+!! }}\f]
 !!
-!! takes the form:
+!! CMAQ rate constants are calculated as:
 !!
 !! \f[
 !!   k=k_1+k_2[\mbox{M}]
@@ -24,9 +24,10 @@
 !!
 !! where \f$k_1\f$ and \f$k_2\f$ are \ref phlex_rxn_arrhenius "Arrhenius" rate
 !! constants with \f$D=300\f$ and \f$E=0\f$, and \f$[\mbox{M}]\f$ is the
-!! density of air (taken to be \f$10^6\f$ ppm; Gipson and Young, 1999).
+!! concentration of air (\f$10^6\f$ ppm) \cite Gipson.
 !!
-!! Input data for CMAQ H2O2 equations should take the form :
+!! Input data for CMAQ \f$\mbox{\ch{H2O2}}\f$ reactions have the following
+!! format:
 !! \code{.json}
 !!   {
 !!     "type" : "CMAQ_H2O2",
@@ -60,7 +61,7 @@
 !! parameters are assumed to be 1.0, \b _B to be 0.0, and \b _C to be 0.0.
 !!
 !! The unit for time is assumed to be s, but inclusion of the optional
-!! key-value pair \b "time unit" = "MIN" can be used to indicate a rate
+!! key-value pair \b time \b unit = \b MIN can be used to indicate a rate
 !! with min as the time unit.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -80,23 +81,23 @@ module pmc_rxn_CMAQ_H2O2
   implicit none
   private
 
-#define _NUM_REACT_ this%condensed_data_int(1)
-#define _NUM_PROD_ this%condensed_data_int(2)
-#define _k1_A_ this%condensed_data_real(1)
-#define _k1_B_ this%condensed_data_real(2)
-#define _k1_C_ this%condensed_data_real(3)
-#define _k2_A_ this%condensed_data_real(4)
-#define _k2_B_ this%condensed_data_real(5)
-#define _k2_C_ this%condensed_data_real(6)
-#define _CONV_ this%condensed_data_real(7)
-#define _RATE_CONSTANT_ this%condensed_data_real(8)
-#define _NUM_INT_PROP_ 2
-#define _NUM_REAL_PROP_ 8
-#define _REACT_(x) this%condensed_data_int(_NUM_INT_PROP_ + x)
-#define _PROD_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + x)
-#define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + _NUM_PROD_ + x)
-#define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_ + 2*(_NUM_REACT_ + _NUM_PROD_) + x)
-#define _yield_(x) this%condensed_data_real(_NUM_REAL_PROP_ + x)
+#define NUM_REACT_ this%condensed_data_int(1)
+#define NUM_PROD_ this%condensed_data_int(2)
+#define k1_A_ this%condensed_data_real(1)
+#define k1_B_ this%condensed_data_real(2)
+#define k1_C_ this%condensed_data_real(3)
+#define k2_A_ this%condensed_data_real(4)
+#define k2_B_ this%condensed_data_real(5)
+#define k2_C_ this%condensed_data_real(6)
+#define CONV_ this%condensed_data_real(7)
+#define RATE_CONSTANT_ this%condensed_data_real(8)
+#define NUM_INT_PROP_ 2
+#define NUM_REAL_PROP_ 8
+#define REACT_(x) this%condensed_data_int(NUM_INT_PROP_ + x)
+#define PROD_(x) this%condensed_data_int(NUM_INT_PROP_ + NUM_REACT_ + x)
+#define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x)
+#define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_ + 2*(NUM_REACT_ + NUM_PROD_) + x)
+#define YIELD_(x) this%condensed_data_real(NUM_REAL_PROP_ + x)
 
 public :: rxn_CMAQ_H2O2_t
 
@@ -105,6 +106,8 @@ public :: rxn_CMAQ_H2O2_t
   contains
     !> Reaction initialization
     procedure :: initialize
+    !> Finalize the reaction
+    final :: finalize
   end type rxn_CMAQ_H2O2_t
 
   !> Constructor for rxn_CMAQ_H2O2_t
@@ -174,56 +177,56 @@ contains
     ! Space in this example is allocated for two sets of inidices for the 
     ! reactants and products, one molecular property for each reactant, 
     ! yields for the products and three reaction parameters.
-    allocate(this%condensed_data_int(_NUM_INT_PROP_ + &
+    allocate(this%condensed_data_int(NUM_INT_PROP_ + &
             (i_spec + 2) * (i_spec + products%size())))
-    allocate(this%condensed_data_real(_NUM_REAL_PROP_ + products%size()))
+    allocate(this%condensed_data_real(NUM_REAL_PROP_ + products%size()))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
 
     ! Save the size of the reactant and product arrays (for reactions where these
     ! can vary)
-    _NUM_REACT_ = i_spec
-    _NUM_PROD_ = products%size()
+    NUM_REACT_ = i_spec
+    NUM_PROD_ = products%size()
 
     ! Set the #/cc -> ppm conversion prefactor
-    _CONV_ = const%avagadro / const%univ_gas_const * 10.0d0**(-12.0d0)
+    CONV_ = const%avagadro / const%univ_gas_const * 10.0d0**(-12.0d0)
 
     ! Get reaction parameters (it might be easiest to keep these at the beginning
     ! of the condensed data array, so they can be accessed using compliler flags)
     key_name = "k1_A"
-    if (.not. this%property_set%get_real(key_name, _k1_A_)) then
-      _k1_A_ = 1.0
+    if (.not. this%property_set%get_real(key_name, k1_A_)) then
+      k1_A_ = 1.0
     end if
     key_name = "k1_B"
-    if (.not. this%property_set%get_real(key_name, _k1_B_)) then
-      _k1_B_ = 0.0
+    if (.not. this%property_set%get_real(key_name, k1_B_)) then
+      k1_B_ = 0.0
     end if
     key_name = "k1_C"
-    if (.not. this%property_set%get_real(key_name, _k1_C_)) then
-      _k1_C_ = 0.0
+    if (.not. this%property_set%get_real(key_name, k1_C_)) then
+      k1_C_ = 0.0
     end if
     key_name = "k2_A"
-    if (.not. this%property_set%get_real(key_name, _k2_A_)) then
-      _k2_A_ = 1.0
+    if (.not. this%property_set%get_real(key_name, k2_A_)) then
+      k2_A_ = 1.0
     end if
     key_name = "k2_B"
-    if (.not. this%property_set%get_real(key_name, _k2_B_)) then
-      _k2_B_ = 0.0
+    if (.not. this%property_set%get_real(key_name, k2_B_)) then
+      k2_B_ = 0.0
     end if
     key_name = "k2_C"
-    if (.not. this%property_set%get_real(key_name, _k2_C_)) then
-      _k2_C_ = 0.0
+    if (.not. this%property_set%get_real(key_name, k2_C_)) then
+      k2_C_ = 0.0
     end if
     key_name = "time unit"
     if (this%property_set%get_string(key_name, string_val)) then
       if (trim(string_val).eq."MIN") then
-        _k1_A_ = _k1_A_ / 60.0
-        _k2_A_ = _k2_A_ / 60.0
+        k1_A_ = k1_A_ / 60.0
+        k2_A_ = k2_A_ / 60.0
       end if
     endif
 
-    ! Include the multiplication of [M]*k2 into _k2_A_
-    _k2_A_ = _k2_A_ * real(1.0d6, kind=dp)
+    ! Include the multiplication of [M]*k2 into k2_A_
+    k2_A_ = k2_A_ * real(1.0d6, kind=dp)
 
     ! Get the indices and chemical properties for the reactants
     call reactants%iter_reset()
@@ -231,10 +234,10 @@ contains
     do while (reactants%get_key(spec_name))
 
       ! Save the index of this species in the state variable array
-      _REACT_(i_spec) = chem_spec_data%gas_state_id(spec_name)
+      REACT_(i_spec) = chem_spec_data%gas_state_id(spec_name)
 
       ! Make sure the species exists
-      call assert_msg(345360993, _REACT_(i_spec).gt.0, &
+      call assert_msg(345360993, REACT_(i_spec).gt.0, &
               "Missing CMAQ H2O2 reactant: "//spec_name)
 
       ! Get properties included with this reactant in the reaction data
@@ -242,7 +245,7 @@ contains
       key_name = "qty"
       if (spec_props%get_int(key_name, temp_int)) then
         do i_qty = 1, temp_int - 1
-          _REACT_(i_spec + i_qty) = _REACT_(i_spec)
+          REACT_(i_spec + i_qty) = REACT_(i_spec)
         end do
         i_spec = i_spec + temp_int - 1
       end if
@@ -257,19 +260,19 @@ contains
     do while (products%get_key(spec_name))
 
       ! Save the index of this species in the state variable array
-      _PROD_(i_spec) = chem_spec_data%gas_state_id(spec_name)
+      PROD_(i_spec) = chem_spec_data%gas_state_id(spec_name)
 
       ! Make sure the species exists
-      call assert_msg(234948182, _PROD_(i_spec).gt.0, &
+      call assert_msg(234948182, PROD_(i_spec).gt.0, &
               "Missing CMAQ H2O2 product: "//spec_name)
 
       ! Get properties included with this product in the reaction data
       call assert(267035567, products%get_property_t(val=spec_props))
       key_name = "yield"
       if (spec_props%get_real(key_name, temp_real)) then
-        _yield_(i_spec) = temp_real
+        YIELD_(i_spec) = temp_real
       else
-        _yield_(i_spec) = 1.0
+        YIELD_(i_spec) = 1.0
       end if
 
       call products%iter_next()
@@ -280,21 +283,38 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef _NUM_REACT_
-#undef _NUM_PROD_
-#undef _k1_A_
-#undef _k1_B_
-#undef _k1_C_
-#undef _k2_A_
-#undef _k2_B_
-#undef _k2_C_
-#undef _CONV_
-#undef _RATE_CONSTANT_
-#undef _NUM_INT_PROP_
-#undef _NUM_REAL_PROP_
-#undef _REACT_
-#undef _PROD_
-#undef _DERIV_ID_
-#undef _JAC_ID_
-#undef _yield_
+  !> Finalize the reaction
+  elemental subroutine finalize(this)
+
+    !> Reaction data
+    type(rxn_CMAQ_H2O2_t), intent(inout) :: this
+
+    if (associated(this%property_set)) &
+            deallocate(this%property_set)
+    if (allocated(this%condensed_data_real)) &
+            deallocate(this%condensed_data_real)
+    if (allocated(this%condensed_data_int)) &
+            deallocate(this%condensed_data_int)
+
+  end subroutine finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#undef NUM_REACT_
+#undef NUM_PROD_
+#undef k1_A_
+#undef k1_B_
+#undef k1_C_
+#undef k2_A_
+#undef k2_B_
+#undef k2_C_
+#undef CONV_
+#undef RATE_CONSTANT_
+#undef NUM_INT_PROP_
+#undef NUM_REAL_PROP_
+#undef REACT_
+#undef PROD_
+#undef DERIV_ID_
+#undef JAC_ID_
+#undef YIELD_
 end module pmc_rxn_CMAQ_H2O2

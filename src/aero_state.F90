@@ -2832,6 +2832,8 @@ contains
        call aero_state_add_particle(aero_state, aero_particle, aero_data)
     end do
 
+    next_id = maxval(aero_id) + 1
+
     call pmc_nc_read_integer_1d(ncid, aero_removed_id, &
          "aero_removed_id", must_be_present=.false.)
     call pmc_nc_read_integer_1d(ncid, aero_removed_action, &

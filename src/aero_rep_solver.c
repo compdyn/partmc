@@ -190,7 +190,7 @@ void * aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
  *
  * \param model_data Pointer to the model data
  * \param aero_rep_idx Index of aerosol representation to use for calculation
- * \param aero_phase_ids Index of the aerosol phase within the aerosol
+ * \param aero_phase_idx Index of the aerosol phase within the aerosol
  *                       representation
  * \param number_conc Pointer to hold calculated number concentration, \f$n\f$
  *                    (\f$\mbox{\si{\#\per\cubic\centi\metre}}\f$)
@@ -251,7 +251,7 @@ void * aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
  *
  * \param model_data Pointer to the model data
  * \param aero_rep_idx Index of aerosol representation to use for calculation
- * \param aero_phase_ids Index of the aerosol phase within the aerosol
+ * \param aero_phase_idx Index of the aerosol phase within the aerosol
  *                       representation
  * \return 0 for per-particle; 1 for total for each phase
  */
@@ -311,7 +311,7 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
  *
  * \param model_data Pointer to the model data
  * \param aero_rep_idx Index of aerosol representation to use for calculation
- * \param aero_phase_ids Index of the aerosol phase within the aerosol 
+ * \param aero_phase_idx Index of the aerosol phase within the aerosol 
  *                       representation
  * \param aero_phase_mass Pointer to hold calculated aerosol-phase mass,
  *                        \f$m\f$

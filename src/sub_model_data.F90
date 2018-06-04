@@ -167,7 +167,7 @@ contains
   !! Sum models must have a unique \b type that corresponds to a valid
   !! sub model type. These include:
   !!
-  !!   - \subpage phlex_sub_model_UNIFAC_activity "UNIFAC Activity"
+  !!   - \subpage phlex_sub_model_UNIFAC "UNIFAC Activity"
   !!
   !! All remaining data are optional and may include and valid \b json value,
   !! including nested objects. However, extending types will have specific

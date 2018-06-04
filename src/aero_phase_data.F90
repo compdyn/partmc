@@ -520,7 +520,7 @@ contains
 
     !> Aerosol phase data
     class(aero_phase_data_t), intent(in) :: this
-    ! File unit for output
+    !> File unit for output
     integer(kind=i_kind), optional :: file_unit
 
     integer(kind=i_kind) :: f_unit = 6

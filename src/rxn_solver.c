@@ -315,6 +315,7 @@ void rxn_pre_calc(ModelData *model_data)
  *
  * \param model_data Pointer to the model data
  * \param deriv NVector to hold the calculated vector
+ * \param time_step Current model time step (s)
  */
 void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, double time_step)
 {
@@ -386,6 +387,7 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, double time_step)
  *
  * \param model_data Pointer to the model data
  * \param J Jacobian to be calculated
+ * \param time_step Current model time step (s)
  */
 void rxn_calc_jac(ModelData *model_data, SUNMatrix J, double time_step)
 {

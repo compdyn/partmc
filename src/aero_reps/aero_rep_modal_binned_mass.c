@@ -251,8 +251,8 @@ void * aero_rep_modal_binned_mass_get_effective_radius(int aero_phase_idx,
  * geometric standard deviation (\f$\tilde{\sigma}_g\f$) are set by the aerosol
  * model prior to solving the chemistry. Thus, all 
  * \f$\frac{\partial n}{\partial y}\f$ are zero. The number concentration is
- * calculated according to the equation given in Table 1 of Zender \cite 
- * Zender2002 :
+ * calculated according to the equation given in Table 1 of Zender
+ * \cite Zender2002 :
  * \f[
  *      n = N_0 = \frac{6V_0}{\pi}\tilde{D}_n^{-3}e^{-9\tilde{\sigma}_g^2/2}
  * \f]

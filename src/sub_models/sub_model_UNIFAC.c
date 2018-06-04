@@ -85,10 +85,12 @@ void * sub_model_UNIFAC_update_ids(void *sub_model_data, int *jac_row)
 
 /** \brief Get the id of a parameter in the condensed data block
  *
- * \param sub_mode_data Pointer to the sub-model data
+ * \param sub_model_data Pointer to the sub-model data
  * \param identifiers For the UNIFAC model, the identifers are just the id
  *                    on the state array of the aerosol-phase species for
  *                    which the acitivty is needed.
+ * \param parameter_id Parameter id for the requested activity coefficient if
+ *                     found
  * \return The sub_model_data pointer advanced by the size of the sub model
  */
 void * sub_model_UNIFAC_get_parameter_id(void *sub_model_data, void *identifiers,
@@ -288,7 +290,8 @@ void * sub_model_UNIFAC_calculate(void *sub_model_data, ModelData *model_data)
  * on the row, this function will add \f$A*frac{dS}{dx}\f$.
  *
  * \param sub_model_data Pointer to the sub-model data
- * \param base_val The derivative 
+ * \param base_val The derivative
+ * \param jac_row Pointer to the Jacobian row to modify 
  */
 void * sub_model_UNIFAC_add_jac_contrib(void *sub_model_data,
          realtype base_val, realtype *jac_row)

@@ -5,6 +5,8 @@
 !> \file
 !> The pmc_rxn_PDFiTE_activity module.
 
+! FIXME Move to a sub model
+
 !> \page phlex_rxn_PDFiTE_activity Phlexible Module for Chemistry: PD-FiTE Activity Reaction
 !!
 !! PD-FiTE activity reactions calculate aerosol-phase species activities using

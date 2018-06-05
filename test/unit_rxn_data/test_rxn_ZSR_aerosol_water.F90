@@ -56,6 +56,8 @@ contains
       passed = .true.
     end if
 
+    deallocate(phlex_solver_data)
+
   end function run_ZSR_aerosol_water_tests
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -71,22 +73,16 @@ contains
     use pmc_constants
 
     type(phlex_core_t), pointer :: phlex_core
-    type(phlex_state_t), target :: phlex_state
-    character(len=:), allocatable :: input_file_path
+    type(phlex_state_t), pointer :: phlex_state
+    character(len=:), allocatable :: input_file_path, key
     type(string_t), allocatable, dimension(:) :: output_file_path
 
     real(kind=dp), dimension(0:NUM_RH_STEP, 13) :: model_conc, true_conc
-    integer(kind=i_kind) :: idx_phase, idx_aero_rep
-    integer(kind=i_kind) :: idx_H2O, idx_Na_p, idx_Na_p_act, idx_Cl_m, idx_Cl_m_act, &
-           idx_Ca_pp, idx_Ca_pp_act, idx_H2O_aq,  idx_H2O_act
-    character(len=:), allocatable :: key
-    integer(kind=i_kind) :: i_RH, i_spec
-    real(kind=dp) :: RH_step, RH
-    real(kind=dp) :: ppm_to_RH
-    real(kind=dp) :: molal_NaCl, molal_CaCl2, NaCl_conc, CaCl2_conc, water_NaCl, water_CaCl2
-
-    ! Parameters for calculating true concentrations
-    real(kind=dp) :: temp, pressure 
+    integer(kind=i_kind) :: idx_H2O, idx_Na_p, idx_Na_p_act, idx_Cl_m, &
+            idx_Cl_m_act, idx_Ca_pp, idx_Ca_pp_act, idx_H2O_aq, idx_H2O_act, &
+            i_RH, i_spec, idx_phase, idx_aero_rep
+    real(kind=dp) :: RH_step, RH, ppm_to_RH, molal_NaCl, molal_CaCl2, &
+            NaCl_conc, CaCl2_conc, water_NaCl, water_CaCl2, temp, pressure 
 
     run_ZSR_aerosol_water_test = .true.
 
@@ -110,7 +106,7 @@ contains
     call phlex_core%solver_initialize()
 
     ! Get a model state variable
-    phlex_state = phlex_core%new_state()
+    phlex_state => phlex_core%new_state()
 
     ! Set the environmental conditions
     phlex_state%env_state%temp = temp
@@ -152,8 +148,8 @@ contains
     ! Set up the ppm->RH (0-1) conversion
     ! (From MOSAIC code, references Seinfeld and Pandis pg. 181)
     ppm_to_RH = 1.0d0 - 373.15d0/temp
-    ppm_to_RH = (((-0.1299d0*ppm_to_RH - 0.6445d0)*ppm_to_RH - 1.976d0)*ppm_to_RH &
-            + 13.3185d0)*ppm_to_RH
+    ppm_to_RH = (((-0.1299d0*ppm_to_RH - 0.6445d0)*ppm_to_RH - 1.976d0)* &
+            ppm_to_RH + 13.3185d0)*ppm_to_RH
     ppm_to_RH = exp(ppm_to_RH)  ! VP of water (atm)
     ppm_to_RH = (pressure/101325.0d0) / ppm_to_RH * 1.0d-6 ! ppm -> RH (0-1)
 
@@ -168,7 +164,8 @@ contains
       phlex_state%state_var(:) = model_conc(i_RH,:)
 
       ! Get the modeled conc
-      call phlex_core%solve(phlex_state, real(1.0, kind=dp)) ! time step is arbitrary - equilibrium calculatuions only
+      ! time step is arbitrary - equilibrium calculatuions only
+      call phlex_core%solve(phlex_state, real(1.0, kind=dp)) 
       model_conc(i_RH,:) = phlex_state%state_var(:)
 
       ! Get the analytic conc
@@ -176,17 +173,24 @@ contains
       !  m_a^(1/2) = Y0 + Y1*aw + Y2*aw^2 + ... (aw = RH)
       RH = i_RH * RH_step
       RH = MAX(RH, 0.43d0)
-      molal_CaCl2 = -1.918004e2 +  2.001540e3 * RH - 8.557205e3 * RH**2 + 1.987670e4 * RH**3 &
-              - 2.717192e4 * RH**4 + 2.187103e4 * RH**5 - 9.591577e3 * RH**6 + 1.763672e3 * RH**7
+      molal_CaCl2 = -1.918004e2 +  2.001540e3 * RH - 8.557205e3 * RH**2 + &
+            1.987670e4 * RH**3 - 2.717192e4 * RH**4 + 2.187103e4 * RH**5 - &
+            9.591577e3 * RH**6 + 1.763672e3 * RH**7
       molal_CaCl2 = molal_CaCl2**2
       ! EQSAM molality (from EQSAM_v03d)
-      !  m_i = (NW_i * MW_H2O/MW_i * (1.0/RH-1.0))^ZW_i   where MW_H2O is defined as 55.51*18.01
+      !  m_i = (NW_i * MW_H2O/MW_i * (1.0/RH-1.0))^ZW_i   
+      !  where MW_H2O is defined as 55.51*18.01
       RH = i_RH * RH_step
-      molal_NaCl = (2.0d0 * 55.51D0 * 18.01d0 / 58.5d0 * (1.0d0/RH - 1.0d0))**0.67d0
-      CaCl2_conc = MIN(true_conc(i_RH,idx_Ca_pp)/40.078d0, true_conc(i_RH,idx_Cl_m)/2.0d0/35.453d0) ! (umol/m^3_air = mol/cm^3_air)
-      NaCl_conc = true_conc(i_RH,idx_Cl_m)/35.453d0 ! (umol/m^3_air = mol/cm^3_air)
+      molal_NaCl = (2.0d0 * 55.51D0 * 18.01d0 / 58.5d0 * &
+              (1.0d0/RH - 1.0d0))**0.67d0
+      CaCl2_conc = MIN(true_conc(i_RH,idx_Ca_pp)/40.078d0, &
+              true_conc(i_RH,idx_Cl_m)/2.0d0/35.453d0) 
+              ! (umol/m^3_air = mol/cm^3_air)
+      NaCl_conc = true_conc(i_RH,idx_Cl_m)/35.453d0 
+              ! (umol/m^3_air = mol/cm^3_air)
       ! Water content is (eq 28 \cite{Jacobson1996}) :
-      ! cw = 1000 / MW_H2O * sum_i (c_i / m_i)   with cw and c_i in (mol_i/cm^3_air) and m_i in (mol_i/kg_H2O)
+      ! cw = 1000 / MW_H2O * sum_i (c_i / m_i)   
+      !   with cw and c_i in (mol_i/cm^3_air) and m_i in (mol_i/kg_H2O)
       water_CaCl2 =  CaCl2_conc / molal_CaCl2 * 1000.0d0 ! (ug_H2O/m^3_air)
       water_NaCl = NaCl_conc / molal_NaCl * 1000.0d0 ! (ug_H2O/m^3_air)
       true_conc(i_RH,idx_H2O_aq) = water_CaCl2 + water_NaCl
@@ -194,14 +198,15 @@ contains
     end do
 
     ! Save the results
-    open(unit=7, file="out/ZSR_aerosol_water_results.txt", status="replace", action="write")
+    open(unit=7, file="out/ZSR_aerosol_water_results.txt", status="replace", &
+            action="write")
     do i_RH = 0, NUM_RH_STEP
       write(7,*) i_RH*RH_step, &
-            ' ', true_conc(i_RH, idx_H2O),' ', model_conc(i_RH, idx_H2O), &
-            ' ', true_conc(i_RH, idx_H2O_aq),' ', model_conc(i_RH, idx_H2O_aq), &
-            ' ', true_conc(i_RH, idx_Na_p),' ', model_conc(i_RH, idx_Na_p), &
-            ' ', true_conc(i_RH, idx_Cl_m),' ', model_conc(i_RH, idx_Cl_m), &
-            ' ', true_conc(i_RH, idx_Ca_pp),' ', model_conc(i_RH, idx_Ca_pp)
+            ' ',true_conc(i_RH, idx_H2O),' ',   model_conc(i_RH, idx_H2O), &
+            ' ',true_conc(i_RH, idx_H2O_aq),' ',model_conc(i_RH, idx_H2O_aq),&
+            ' ',true_conc(i_RH, idx_Na_p),' ',  model_conc(i_RH, idx_Na_p), &
+            ' ',true_conc(i_RH, idx_Cl_m),' ',  model_conc(i_RH, idx_Cl_m), &
+            ' ',true_conc(i_RH, idx_Ca_pp),' ', model_conc(i_RH, idx_Ca_pp)
     end do
     close(7)
 
@@ -213,10 +218,13 @@ contains
         call assert_msg(106356995, &
           almost_equal(model_conc(i_RH, i_spec), true_conc(i_RH, i_spec), &
           real(1.0e-2, kind=dp)), "RH: "//to_string(i_RH)//"; species: "// &
-          to_string(i_spec)//"; mod: "//to_string(model_conc(i_RH, i_spec))// &
+          to_string(i_spec)//"; mod: "//to_string(model_conc(i_RH, i_spec))//&
           "; true: "//to_string(true_conc(i_RH, i_spec)))
       end do
     end do
+
+    deallocate(phlex_state)
+    deallocate(phlex_core)
 
     run_ZSR_aerosol_water_test = .true.
 

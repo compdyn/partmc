@@ -76,22 +76,18 @@ contains
 
     type(phlex_core_t), pointer :: phlex_core
     type(phlex_state_t), pointer :: phlex_state
-    character(len=:), allocatable :: input_file_path
+    character(len=:), allocatable :: input_file_path, key, str_val
     type(string_t), allocatable, dimension(:) :: output_file_path
 
     real(kind=dp), dimension(0:NUM_TIME_STEP, 3) :: model_conc, true_conc
-    integer(kind=i_kind) :: idx_A, idx_B, idx_C
-    character(len=:), allocatable :: key, str_val
-    integer(kind=i_kind) :: i_time, i_spec, i_rxn_photo_A, i_mech, i_rxn, i_photo_A
-    real(kind=dp) :: time_step, time
+    integer(kind=i_kind) :: idx_A, idx_B, idx_C, i_time, i_spec, &
+            i_rxn_photo_A, i_mech, i_rxn, i_photo_A
+    real(kind=dp) :: time_step, time, k1, k2, temp, pressure, photo_rate_1
     class(rxn_data_t), pointer :: rxn
 
     ! For setting rates
     type(rxn_factory_t) :: rxn_factory
     type(rxn_update_data_photolysis_rate_t) :: rate_update
-
-    ! Parameters for calculating true concentrations
-    real(kind=dp) :: k1, k2, temp, pressure, photo_rate_1
 
     run_photolysis_test = .true.
 

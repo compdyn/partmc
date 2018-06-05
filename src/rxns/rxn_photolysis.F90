@@ -9,21 +9,26 @@
 !!
 !! Photolysis reactions take the form:
 !!
-!! \ch{
-!!   X + hv -> Y_{1} ( + Y_2 \dots )
-!! }
+!! \f[\mbox{\ch{
+!!   X + h $\nu$ -> Y_1 ( + Y_2 \dots )
+!! }}\f]
 !!
-!! where \ch{X} is the species being photolyzed, and
-!! \ch{Y_n} are the photolysis products.
+!! where \f$\mbox{\ch{X}}\f$ is the species being photolyzed, and
+!! \f$\mbox{\ch{Y_n}}\f$ are the photolysis products.
 !!
-!! Photolysis rate constants (including the \f$h\nu\f$ term) can be constant
-!! or set from an external photolysis module using the
-!! \c pmc_rxn_photolysis::rxn_photolysis_t::set_rate_const() function.
+!! Photolysis rate constants (including the \f$\mbox{\ch{h $\nu$}}\f$ term)
+!! can be constant or set from an external photolysis module using the
+!! \c pmc_rxn_photolysis::rxn_update_data_photolysis_rate_t object.
 !! External modules can use the
 !! \c pmc_rxn_photolysis::rxn_photolysis_t::get_property_set() function during
-!! initilialization to access any needed reaction parameters.
+!! initilialization to access any needed reaction parameters to identify
+!! certain photolysis reactions. The 
+!! \c pmc_rxn_photolysis::rxn_photolysis_t::set_photo_id() function can be
+!! used during initialization to set an integer id for a particular reaction
+!! that can be used during solving to update the photolysis rate from an
+!! external module.
 !!
-!! Input data for Photolysis equations should take the form :
+!! Input data for photolysis reactions have the following format :
 !! \code{.json}
 !!   {
 !!     "type" : "PHOTOLYSIS",
@@ -36,17 +41,22 @@
 !!       ...
 !!     },
 !!     "rate const" : 12.5,
+!!     "scaling factor" : 1.2,
+!!     ...
 !!   }
 !! \endcode
 !! The key-value pairs \b reactants, and \b products are required. There must
 !! be exactly one key-value pair in the \b reactants object whose name is the
 !! species being photolyzed and whose value is an empty \c json object. Any
 !! number of products may be present. Products without a specified \b yield
-!! are assumed to have a \b yield of 1.0. The \b "rate const" is optional and
+!! are assumed to have a \b yield of 1.0. The \b rate \b const is optional and
 !! can be used to set a rate constant (including the \f$h\nu\f$ term) that
-!! remains constant throughout the model run. All other data is optional and
-!! will be available to external photolysis modules during initialization.
-!! Rate constants should be in units of \f$s^{-1}\f$.
+!! remains constant throughout the model run. The \b scaling \b factor is also
+!! optional, and can be used to set a constant scaling factor for the rate
+!! constant. When the \b scaling \b factor is not provided, it is assumed to
+!! be 1.0. All other data is optional and will be available to external
+!! photolysis modules during initialization. Rate constants are in units of 
+!! \f$s^{-1}\f$.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -67,19 +77,19 @@ module pmc_rxn_photolysis
   implicit none
   private
 
-#define _NUM_REACT_ this%condensed_data_int(1)
-#define _NUM_PROD_ this%condensed_data_int(2)
-#define _PHOTO_ID_ this%condensed_data_int(3)
-#define _BASE_RATE_ this%condensed_data_real(1)
-#define _SCALING_ this%condensed_data_real(2)
-#define _RATE_CONSTANT_ this%condensed_data_real(3)
-#define _NUM_INT_PROP_ 3
-#define _NUM_REAL_PROP_ 3
-#define _REACT_(x) this%condensed_data_int(_NUM_INT_PROP_ + x)
-#define _PROD_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + x)
-#define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + _NUM_PROD_ + x)
-#define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_ + 2*(_NUM_REACT_+_NUM_PROD_) + x)
-#define _yield_(x) this%condensed_data_real(_NUM_REAL_PROP_ + x)
+#define NUM_REACT_ this%condensed_data_int(1)
+#define NUM_PROD_ this%condensed_data_int(2)
+#define PHOTO_ID_ this%condensed_data_int(3)
+#define BASE_RATE_ this%condensed_data_real(1)
+#define SCALING_ this%condensed_data_real(2)
+#define RATE_CONSTANT_ this%condensed_data_real(3)
+#define NUM_INT_PROP_ 3
+#define NUM_REAL_PROP_ 3
+#define REACT_(x) this%condensed_data_int(NUM_INT_PROP_ + x)
+#define PROD_(x) this%condensed_data_int(NUM_INT_PROP_ + NUM_REACT_ + x)
+#define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x)
+#define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_ + 2*(NUM_REACT_+NUM_PROD_) + x)
+#define YIELD_(x) this%condensed_data_real(NUM_REAL_PROP_ + x)
 
 public :: rxn_photolysis_t, rxn_update_data_photolysis_rate_t
 
@@ -189,10 +199,12 @@ contains
     if (.not. associated(this%property_set)) call die_msg(408416753, &
             "Missing property set needed to initialize reaction")
     key_name = "reactants"
-    call assert_msg(415586594, this%property_set%get_property_t(key_name, reactants), &
+    call assert_msg(415586594, &
+            this%property_set%get_property_t(key_name, reactants), &
             "Photolysis reaction is missing reactants")
     key_name = "products"
-    call assert_msg(180421290, this%property_set%get_property_t(key_name, products), &
+    call assert_msg(180421290, &
+            this%property_set%get_property_t(key_name, products), &
             "Photolysis reaction is missing products")
 
     ! Count the number of reactants (including those with a qty specified)
@@ -211,26 +223,27 @@ contains
     ! Space in this example is allocated for two sets of inidices for the 
     ! reactants and products, one molecular property for each reactant, 
     ! yields for the products and three reaction parameters.
-    allocate(this%condensed_data_int(_NUM_INT_PROP_ + &
+    allocate(this%condensed_data_int(NUM_INT_PROP_ + &
             (i_spec + 2) * (i_spec + products%size())))
-    allocate(this%condensed_data_real(_NUM_REAL_PROP_ + products%size()))
+    allocate(this%condensed_data_real(NUM_REAL_PROP_ + products%size()))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
     
-    ! Save the size of the reactant and product arrays (for reactions where these
-    ! can vary)
-    _NUM_REACT_ = i_spec
-    _NUM_PROD_ = products%size()
+    ! Save the size of the reactant and product arrays (for reactions where
+    ! these can vary)
+    NUM_REACT_ = i_spec
+    NUM_PROD_ = products%size()
 
-    ! Get reaction parameters (it might be easiest to keep these at the beginning
-    ! of the condensed data array, so they can be accessed using compliler flags)
+    ! Get reaction parameters (it might be easiest to keep these at the
+    ! beginning of the condensed data array, so they can be accessed using 
+    ! compliler flags)
     key_name = "rate const"
-    if (.not. this%property_set%get_real(key_name, _BASE_RATE_)) then
-      _BASE_RATE_ = real(0.0, kind=dp)
+    if (.not. this%property_set%get_real(key_name, BASE_RATE_)) then
+      BASE_RATE_ = real(0.0, kind=dp)
     end if
     key_name = "scaling factor"
-    if (.not. this%property_set%get_real(key_name, _SCALING_)) then
-      _SCALING_ = real(1.0, kind=dp)
+    if (.not. this%property_set%get_real(key_name, SCALING_)) then
+      SCALING_ = real(1.0, kind=dp)
     end if
 
     ! Get the indices and chemical properties for the reactants
@@ -239,10 +252,10 @@ contains
     do while (reactants%get_key(spec_name))
 
       ! Save the index of this species in the state variable array
-      _REACT_(i_spec) = chem_spec_data%gas_state_id(spec_name)
+      REACT_(i_spec) = chem_spec_data%gas_state_id(spec_name)
 
       ! Make sure the species exists
-      call assert_msg(747277322, _REACT_(i_spec).gt.0, &
+      call assert_msg(747277322, REACT_(i_spec).gt.0, &
               "Missing photolysis reactant: "//spec_name)
 
       ! Get properties included with this reactant in the reaction data
@@ -250,7 +263,7 @@ contains
       key_name = "qty"
       if (spec_props%get_int(key_name, temp_int)) then
         do i_qty = 1, temp_int - 1
-          _REACT_(i_spec + i_qty) = _REACT_(i_spec)
+          REACT_(i_spec + i_qty) = REACT_(i_spec)
         end do
         i_spec = i_spec + temp_int - 1
       end if
@@ -269,19 +282,19 @@ contains
     do while (products%get_key(spec_name))
 
       ! Save the index of this species in the state variable array
-      _PROD_(i_spec) = chem_spec_data%gas_state_id(spec_name)
+      PROD_(i_spec) = chem_spec_data%gas_state_id(spec_name)
 
       ! Make sure the species exists
-      call assert_msg(360988742, _PROD_(i_spec).gt.0, &
+      call assert_msg(360988742, PROD_(i_spec).gt.0, &
               "Missing photolysis product: "//spec_name)
 
       ! Get properties included with this product in the reaction data
       call assert(173703744, products%get_property_t(val=spec_props))
       key_name = "yield"
       if (spec_props%get_real(key_name, temp_real)) then
-        _yield_(i_spec) = temp_real
+        YIELD_(i_spec) = temp_real
       else
-        _yield_(i_spec) = 1.0
+        YIELD_(i_spec) = 1.0
       end if
 
       call products%iter_next()
@@ -301,7 +314,7 @@ contains
     !> Photo id
     integer(kind=i_kind), intent(in) :: photo_id
 
-    _PHOTO_ID_ = photo_id
+    PHOTO_ID_ = photo_id
 
   end subroutine set_photo_id
 
@@ -327,11 +340,12 @@ contains
     !> Reaction data
     type(rxn_photolysis_t), intent(inout) :: this
 
-    if (associated(this%property_set))  deallocate(this%property_set)
+    if (associated(this%property_set)) &
+            deallocate(this%property_set)
     if (allocated(this%condensed_data_real)) &
-                                        deallocate(this%condensed_data_real)
+            deallocate(this%condensed_data_real)
     if (allocated(this%condensed_data_int)) &
-                                        deallocate(this%condensed_data_int)
+            deallocate(this%condensed_data_int)
 
   end subroutine finalize
 
@@ -384,17 +398,17 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef _NUM_REACT_
-#undef _NUM_PROD_
-#undef _PHOTO_ID_
-#undef _BASE_RATE_
-#undef _SCALING_
-#undef _RATE_CONSTANT_
-#undef _NUM_INT_PROP_
-#undef _NUM_REAL_PROP_
-#undef _REACT_
-#undef _PROD_
-#undef _DERIV_ID_
-#undef _JAC_ID_
-#undef _yield_
+#undef NUM_REACT_
+#undef NUM_PROD_
+#undef PHOTO_ID_
+#undef BASE_RATE_
+#undef SCALING_
+#undef RATE_CONSTANT_
+#undef NUM_INT_PROP_
+#undef NUM_REAL_PROP_
+#undef REACT_
+#undef PROD_
+#undef DERIV_ID_
+#undef JAC_ID_
+#undef YIELD_
 end module pmc_rxn_photolysis

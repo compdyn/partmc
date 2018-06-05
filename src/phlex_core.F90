@@ -19,18 +19,20 @@
 !! work with any \ref phlex_aero_rep "aerosol representation" used by the
 !! host model (e.g., binned, modal, single particle) by abstracting the
 !! chemistry from the \ref phlex_aero_rep "aerosol representation" through the
-!! use of custom extending types of the abstract \c pmc_aero_rep::aero_rep_t
-!! type that implement a set of \ref phlex_aero_phase "aerosol phases" based
-!! on the configuration of the host model.
+!! use of custom extending types of the abstract
+!! \c pmc_aero_rep_data::aero_rep_data_t type that implement a set of
+!! \ref phlex_aero_phase "aerosol phases" based on the configuration of the
+!! host model. A set of \ref phlex_sub_model "sub-models" may also be included
+!! to calculate parameters needed by \ref phlex_rxn "reactions" during solving.
 !!
 !! The \ref phlex_chem "phlex-chem" module uses \ref ss_json
 !! "json input files" to load \ref input_format_species "chemical species",
 !! \ref input_format_mechanism "mechanisms", \ref input_format_aero_phase
-!! "aerosol phases", and \ref input_format_aero_rep "aerosol representations"
-!! at runtime. This allows a user to modify any of these data without
-!! recompiling the model, permits host models to choose which mechanisms to
-!! solve based on model conditions, and allows multiple mechanisms to be
-!! solved simultaneously.
+!! "aerosol phases", \ref input_format_aero_rep "aerosol representations",
+!! and \ref input_format_sub_model "sub-models" at runtime. This allows a user
+!! to modify any of these data without recompiling the model, permits host
+!! models to choose which mechanisms to solve based on model conditions, and
+!! allows multiple mechanisms to be solved simultaneously.
 !!
 !! # Usage #
 !! 
@@ -49,9 +51,10 @@
 !! input_format_phlex_file_list "phlex-chem file list" file and one or more
 !! \ref input_format_phlex_config "phlex-chem configuration" files that 
 !! describe the \ref phlex_species "chemical species", \ref phlex_mechanism
-!! "mechanism(s)", \ref phlex_aero_phase "aerosol phase(s)", and \ref
-!! phlex_aero_rep "aerosol representation(s)". A description of the input
-!! files required for a PartMC run can be found \ref input_format "here".
+!! "mechanism(s)", \ref phlex_aero_phase "aerosol phase(s)", \ref
+!! phlex_aero_rep "aerosol representation(s)", and \ref phlex_sub_model
+!! "sub-model(s)". A description of the input files required for a PartMC run
+!! can be found \ref input_format "here".
 !!
 !! ## Phlex-chem in another host model ##
 !!
@@ -127,13 +130,13 @@ module pmc_phlex_core
     procedure :: find_mechanism
     !> Add a mechanism to the model
     procedure :: add_mechanism
-    !> Find a sub model index by name
+    !> Find a sub-model index by name
     procedure :: find_sub_model_id_by_name
-    !> Find a sub model by name
+    !> Find a sub-model by name
     procedure :: find_sub_model_by_name
-    !> Find a sub model or it's id
+    !> Find a sub-model or it's id
     generic :: find_sub_model => find_sub_model_id_by_name, find_sub_model_by_name
-    !> Add a sub model to the model
+    !> Add a sub-model to the model
     procedure :: add_sub_model
     !> Find an aerosol representation index by name
     procedure :: find_aero_rep_id_by_name
@@ -157,9 +160,9 @@ module pmc_phlex_core
     procedure :: update_aero_rep_data
     !> Run the chemical mechanisms
     procedure :: solve
-    !> Get the id of a sub model parameter in the solver data
+    !> Get the id of a sub-model parameter in the solver data
     procedure :: get_sub_model_parameter_id
-    !> Get the value of a sub model parameter in the curren solver data
+    !> Get the value of a sub-model parameter in the curren solver data
     procedure :: get_sub_model_parameter_value
     !> Determine the number of bytes required to pack the variable
     procedure :: pack_size
@@ -436,8 +439,10 @@ contains
             allocate(new_sub_model(size(this%sub_model)+1))
             new_sub_model(1:size(this%sub_model)) = this%sub_model(1:size(this%sub_model))
             new_sub_model(size(new_sub_model))%val => sub_model_ptr%val
+            call this%sub_model(:)%dereference()
             deallocate(this%sub_model)
             this%sub_model => new_sub_model
+            call sub_model_ptr%dereference()
           end if
         ! TODO move to phlex_solver_data_t function
         else if (str_val.eq.'RELATIVE_TOLERANCE') then
@@ -502,7 +507,7 @@ contains
       i_state_var = i_state_var + this%aero_rep(i_aero_rep)%val%size()
     end do
 
-    ! Initialize the sub models
+    ! Initialize the sub-models
     do i_sub_model = 1, size(this%sub_model)
       call assert(565644925, associated(this%sub_model(i_sub_model)%val))
       call this%sub_model(i_sub_model)%val%initialize(this%aero_rep, &
@@ -571,7 +576,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Find an sub model id by name in the model data
+  !> Find an sub-model id by name in the model data
   logical function find_sub_model_id_by_name(this, sub_model_name, &
                   sub_model_id) result(found)
 
@@ -579,7 +584,7 @@ contains
     class(phlex_core_t), intent(in) :: this
     !> Sub model name to search for
     character(len=:), allocatable, intent(in) :: sub_model_name
-    !> Index of the sub model in the array
+    !> Index of the sub-model in the array
     integer(kind=i_kind), intent(out) :: sub_model_id
 
     found = .false.
@@ -598,7 +603,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Find an sub model by name in the model data
+  !> Find an sub-model by name in the model data
   logical function find_sub_model_by_name(this, sub_model_name, sub_model) &
                   result(found)
 
@@ -621,7 +626,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Add a sub model to the model data
+  !> Add a sub-model to the model data
   subroutine add_sub_model(this, sub_model_name)
 
     !> Model data
@@ -895,7 +900,7 @@ contains
                 this%mechanism,         & ! Pointer to the mechanisms
                 this%aero_phase,        & ! Pointer to the aerosol phases
                 this%aero_rep,          & ! Pointer to the aerosol representations
-                this%sub_model,         & ! Pointer to the sub models
+                this%sub_model,         & ! Pointer to the sub-models
                 GAS_RXN                 & ! Reaction phase
                 )
       call this%solver_data_aero%initialize( &
@@ -904,7 +909,7 @@ contains
                 this%mechanism,         & ! Pointer to the mechanisms
                 this%aero_phase,        & ! Pointer to the aerosol phases
                 this%aero_rep,          & ! Pointer to the aerosol representations
-                this%sub_model,         & ! Pointer to the sub models
+                this%sub_model,         & ! Pointer to the sub-models
                 AERO_RXN                & ! Reaction phase
                 )
     else
@@ -924,7 +929,7 @@ contains
                 this%mechanism,         & ! Pointer to the mechanisms
                 this%aero_phase,        & ! Pointer to the aerosol phases
                 this%aero_rep,          & ! Pointer to the aerosol representations
-                this%sub_model,         & ! Pointer to the sub models
+                this%sub_model,         & ! Pointer to the sub-models
                 GAS_AERO_RXN            & ! Reaction phase
                 )
       
@@ -1181,7 +1186,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the id of a sub model parameter in the solver data
+  !> Get the id of a sub-model parameter in the solver data
   function get_sub_model_parameter_id(this, sub_model_type, identifiers) &
       result (parameter_id)
 
@@ -1193,7 +1198,7 @@ contains
     class(phlex_core_t), intent(in) :: this
     !> Sub model type
     integer(kind=i_kind), intent(in) :: sub_model_type
-    !> Identifiers needed by the sub model to find a parameter
+    !> Identifiers needed by the sub-model to find a parameter
     type(c_ptr), intent(in) :: identifiers
 
     if (associated(this%solver_data_gas)) then
@@ -1211,7 +1216,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the value associated with a sub model parameter for the current
+  !> Get the value associated with a sub-model parameter for the current
   !! solver state
   function get_sub_model_parameter_value(this, parameter_id) &
       result (parameter_value)

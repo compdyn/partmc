@@ -167,6 +167,17 @@ module pmc_phlex_solver_data
       type(c_ptr), value :: solver_data
     end subroutine sub_model_add_condensed_data
 
+    !> Update reaction data
+    subroutine sub_model_update_data(sub_model_type, update_data, solver_data) bind(c)
+      use iso_c_binding
+      !> Reaction type to updateto update
+      integer(kind=c_int), value :: sub_model_type
+      !> Data required by reaction for updates
+      type(c_ptr), value :: update_data
+      !> Solver data
+      type(c_ptr), value :: solver_data
+    end subroutine sub_model_update_data
+
     !> Get a sub model parameter id
     function sub_model_get_parameter_id_sd(solver_data, sub_model_type, &
                   identifiers) bind (c)
@@ -278,6 +289,8 @@ module pmc_phlex_solver_data
   contains
     !> Initialize the solver
     procedure :: initialize
+    !> Update sub-model data
+    procedure :: update_sub_model_data
     !> Update reactions data
     procedure :: update_rxn_data
     !> Update aerosol representation data
@@ -638,6 +651,24 @@ contains
     deallocate(var_type_c)
 
   end subroutine initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Update sub-model data
+  subroutine update_sub_model_data(this, update_data)
+
+    !> Solver data
+    class(phlex_solver_data_t), intent(inout) :: this
+    !> Update data
+    class(sub_model_update_data_t), intent(in) :: update_data
+
+    call sub_model_update_data( &
+            update_data%get_type(),             & ! Sub-model type to update
+            update_data%get_data(),             & ! Data needed to perform update
+            this%solver_c_ptr                   & ! Pointer to solver data
+            )
+
+  end subroutine update_sub_model_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

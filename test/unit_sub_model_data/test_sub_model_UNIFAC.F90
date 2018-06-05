@@ -52,6 +52,8 @@ contains
       passed = .true.
     end if
 
+    deallocate(phlex_solver_data)
+
   end function run_UNIFAC_tests
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -69,17 +71,16 @@ contains
     use pmc_sub_model_factory
 
     type(phlex_core_t), pointer :: phlex_core
-    type(phlex_state_t), target :: phlex_state
-    character(len=:), allocatable :: input_file_path
+    type(phlex_state_t), pointer :: phlex_state
+    character(len=:), allocatable :: input_file_path, key
     type(string_t), allocatable, dimension(:) :: output_file_path
 
-    real(kind=dp), dimension(0:NUM_MASS_FRAC_STEP, 15) :: model_conc, calc_conc
-    real(kind=dp), dimension(0:NUM_MASS_FRAC_STEP, 15) :: model_activity, calc_activity
-    integer(kind=i_kind) :: idx_butanol, idx_water
-    integer(kind=c_int), target :: idx_butanol_c, idx_water_c
-    integer(kind=c_int), target :: idx_butanol_act_c, idx_water_act_c
-    character(len=:), allocatable :: key
-    integer(kind=i_kind) :: i_mass_frac, i_spec, i_aero_rep
+    real(kind=dp), dimension(0:NUM_MASS_FRAC_STEP, 15) :: model_conc, &
+            calc_conc, model_activity, calc_activity
+    integer(kind=i_kind) :: idx_butanol, idx_water, i_mass_frac, i_spec, &
+            i_aero_rep
+    integer(kind=c_int), target :: idx_butanol_c, idx_water_c, &
+            idx_butanol_act_c, idx_water_act_c
     real(kind=dp) :: mass_frac_step, mole_frac, mass_frac
     type(c_ptr) :: identifiers
 
@@ -226,7 +227,7 @@ contains
     call phlex_core%solver_initialize()
 
     ! Get a model state variable
-    phlex_state = phlex_core%new_state()
+    phlex_state => phlex_core%new_state()
 
     ! Set the environmental conditions
     phlex_state%env_state%temp = temperature
@@ -406,6 +407,9 @@ contains
           "; calc: "//trim(to_string(calc_activity(i_mass_frac, idx_butanol))))
       end if
     end do
+
+    deallocate(phlex_state)
+    deallocate(phlex_core)
 
     run_UNIFAC_test = .true.
 

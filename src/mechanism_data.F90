@@ -56,8 +56,8 @@ module pmc_mechanism_data
   !> A chemical mechanism
   !!
   !! Instances of mechanism_data_t represent complete \ref phlex_mechanism 
-  !! chemical mechanisms (e.g., CACM/MPMPO, CB-5, EQSAM). Multiple mechanisms
-  !! may be used during one model run and will be solved simultaneously.
+  !! chemical mechanism. Multiple mechanisms  may be used during one model run
+  !! and will be solved simultaneously.
   type :: mechanism_data_t
     private
     !> Number of reactions
@@ -79,8 +79,6 @@ module pmc_mechanism_data
     procedure :: size => get_size
     !> Get a reaction by its index
     procedure :: get_rxn
-    !> Build a fixed mechanism module
-    procedure :: build_fixed_module
     !> Determine the number of bytes required to pack the given value
     procedure :: pack_size
     !> Packs the given value into the buffer, advancing position
@@ -166,7 +164,7 @@ contains
   !> \page input_format_mechanism Input JSON Object Format: Mechanism
   !!
   !! A \c json object containing information about a \ref phlex_mechanism
-  !! "chemical mechanism" of the form:
+  !! "chemical mechanism" has the following format :
   !! \code{.json}
   !! { "pmc-data" : [
   !!   {
@@ -181,8 +179,8 @@ contains
   !! A \ref phlex_mechanism "mechanism" object must have a unique \b name, 
   !! a \b type of \b MECHANISM and an array of \ref input_format_rxn
   !! "reaction objects" labelled \b reactions. Mechanism data may be split
-  !! into multiple mechanism objects - they will be combined based on the
-  !! mechanism name.
+  !! into multiple mechanism objects across input files - they will be
+  !! combined based on the mechanism name.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -306,67 +304,6 @@ contains
     mech_name = this%mech_name
 
   end function get_name
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Build a fixed mechanism module and save it with the specified file prefix
-  subroutine build_fixed_module(this, state_array_size)
-
-    !> Mechanism data
-    class(mechanism_data_t), intent(in) :: this
-    !> Size of the state array
-    integer(kind=i_kind), intent(in) :: state_array_size
-
-    ! Output file name
-    character(len=:), allocatable :: file_name
-    ! File unit
-    integer(kind=i_kind) :: U = MECH_FILE_UNIT
-    ! Counters
-    integer(kind=i_kind) :: i_rxn
-    ! Temporary string for building file lines
-    character(len=:), allocatable :: str_temp
-
-    ! Determine whether to create fixed module
-    if (.not.allocated(this%fixed_file_prefix)) return
-
-    ! Open the output file
-    file_name = trim(this%fixed_file_prefix)//"_mechanism.F90"
-    open(unit=U, file=file_name, status="replace", action="write")
-
-    write(*,*) "Building output file: "//file_name
-
-    write(U,*) "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    write(U,*) "!! ",trim(this%mech_name)," fixed mechanism module"
-    write(U,*) "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    write(U,*) ""
-    write(U,*) "module mech_"//trim(this%mech_name)
-    write(U,*) ""
-    write(U,*) "  use pmc_util,                                   only : i_kind, dp"
-    write(U,*) "  implicit none"
-    write(U,*) ""
-    write(U,*) "  integer(kind=i_kind), parameter :: NUM_RXN = ", this%num_rxn
-    write(U,*) "  integer(kind=i_kind), parameter :: NUM_VAR = ", state_array_size
-    write(U,*) "  real(kind=dp) :: RATE_CONST(NUM_RXN)"
-    write(U,*) "  real(kind=dp) :: DERIV(NUM_VAR)"
-    write(U,*) ""
-    write(U,*) "contains"
-    write(U,*) ""
-    write(U,*) "  subroutine calc_rate_const(temp_K, press_atm)"
-    write(U,*) ""
-    write(U,*) "    real(kind=dp), intent(in) :: temp_K"
-    write(U,*) "    real(kind=dp), intent(in) :: press_atm"
-    write(U,*) ""
-    write(U,*) "    real(kind=dp) :: press_Pa = press_atm * 101325"
-    write(U,*) ""
-    write(U,*) ""
-    write(U,*) "  end subroutine calc_rate_const"
-
-    write(U,*) ""
-    write(U,*) "end module mech_"//trim(this%mech_name)
-
-    close(U)
-
-  end subroutine build_fixed_module
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

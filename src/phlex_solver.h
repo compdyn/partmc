@@ -78,12 +78,13 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol, int m
 		int max_conv_fails); 
 int solver_run(void *solver_data, double *state, double *env, double t_initial,
 		double t_final);
-void rxn_add_condensed_data(int rxn_type, int n_int_param, 
-		int n_float_param, int *int_param, double *float_param, void *solver_data);
 void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
 		int n_float_param, int *int_param, double *float_param, void *solver_data);
+void sub_model_update_data(int update_sub_model_type, void *update_data, void *solver_data);
 int sub_model_get_parameter_id_sd(void *solver_data, int sub_model_type, void *identifiers);
 double sub_model_get_parameter_value_sd(void *solver_data, int parameter_id);
+void rxn_add_condensed_data(int rxn_type, int n_int_param, 
+		int n_float_param, int *int_param, double *float_param, void *solver_data);
 void rxn_update_data(int update_rxn_type, void *update_data, void *solver_data);
 void aero_phase_add_condensed_data(int n_int_param, int n_float_param, int *int_param, 
                 double *float_param, void *solver_data);

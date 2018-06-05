@@ -199,6 +199,56 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
 #endif
 }
 
+/** \brief Update sub-model data
+ *
+ * Update data for one or more sub-models. Sub-models of a certain type are
+ * passed a void pointer to updated data that must be in the format specified
+ * by the sub-model type. This data could be used to find specific sub-models
+ * of the specified type and change some model parameter(s).
+ *
+ * \param update_sub_model_type Type of the sub-model
+ * \param update_data Pointer to updated data to pass to the sub-model
+ * \param solver_data Pointer to solver data
+ */
+void sub_model_update_data(int update_sub_model_type, void *update_data, 
+          void *solver_data)
+{
+  ModelData *model_data = 
+          (ModelData*) &(((SolverData*)solver_data)->model_data);
+
+#ifdef PMC_USE_SUNDIALS
+
+  // Get the number of sub models
+  int *sub_model_data = (int*) (model_data->sub_model_data);
+  int n_sub_model = *(sub_model_data++);
+
+  // Loop through the sub models advancing the sub_model_data pointer each time
+  for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
+
+    // Get the sub model type
+    int sub_model_type = *(sub_model_data++);
+
+    // Skip sub-models of other types
+    if (sub_model_type!=update_sub_model_type) {
+      switch (sub_model_type) {
+        case SUB_MODEL_UNIFAC :
+          sub_model_data = (int*) sub_model_UNIFAC_skip((void*) sub_model_data);
+          break;
+      }
+
+    // ... otherwise, call the update function for sub-model types that have 
+    // then
+    } else {
+      switch (sub_model_type) {
+        case SUB_MODEL_UNIFAC :
+          sub_model_data = (int*) sub_model_UNIFAC_skip((void*) sub_model_data);
+          break;
+      }
+    }
+  }
+#endif
+}
+
 /** \brief Print the sub model data
  * \param model_data Pointer to the model data
  */

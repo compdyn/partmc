@@ -9,8 +9,8 @@
 !!
 !! The UNIFAC activity coefficient sub model calculates activity coefficients
 !! for species in an aerosol phase based on the current aerosol phase
-!! composition. The \c json object for this \ref phlex_sub_model "sub model"
-!! is of the form:
+!! composition \cite Marcolli2005. The \c json object for this 
+!! \ref phlex_sub_model "sub model" has the following format :
 !! \code{.json}
 !!  { "pmc-data" : [
 !!    {
@@ -55,30 +55,30 @@
 !! The key-value pair \b type is required and must be \b SUB_MODEL_UNIFAC.
 !! The key-value pair \b phases is also required, and its value must be an
 !! array of strings that correspond to valid 
-!! \ref phlex_aero_phase "aerosol phases". The key-value pair \b "functional
-!! groups" is also required, and must contain a set of key-value pairs whose
+!! \ref phlex_aero_phase "aerosol phases". The key-value pair \b functional
+!! \b groups is also required, and must contain a set of key-value pairs whose
 !! keys are the names of UNIFAC functions groups, and whose values are a set
 !! of key value pairs that contain, at minimum:
-!!   - \b "main group" : a string that corresponds to a key in the \b
-!!                       "main groups" set.
-!!   - \b "volume param" : the floating-point volume parameter for this 
+!!   - \b main \b group : a string that corresponds to a key in the \b
+!!                       main \b groups set.
+!!   - \b volume \b param : the floating-point volume parameter for this 
 !!                         functional group.
-!!   - \b "surface param" : this floating-point surface parameter for this
+!!   - \b surface \b param : this floating-point surface parameter for this
 !!                          functional group.
-!! The last required key-value pair is \b "main groups" whose value must
+!! The last required key-value pair is \b main \b groups whose value must
 !! be a set of key-value pairs whose keys are the names of the UNIFAC main
 !! groups and whose values are a set key-pairs that contain, at minimum,
-!! \b "interaction with" whose value is a set of key-value pairs whose keys
-!! are the names of the other \b "main groups" and whose values are the
+!! \b interaction \b with whose value is a set of key-value pairs whose keys
+!! are the names of the other \b main \b groups and whose values are the
 !! floating-point interation parameters for that interaction. Each main group
 !! may contain up to one interaction with each other main group, and may
 !! not contain an interaction with itself. Missing interactions are assumed
 !! to be 0.0.
 !!
 !! Species in the specified phase for whom acitivity coefficients will be
-!! calculated must contain a key-value pair \b "UNIFAC groups" whose value
+!! calculated must contain a key-value pair \b UNIFAC \b groups whose value
 !! is a set of key value pairs that correspond with members of the
-!! \b "functional groups" set and whose values are the integer number of
+!! \b functional \b groups set and whose values are the integer number of
 !! instances of a particular functional group in this species. For the
 !! above example UNIFAC model, the following species would be valid and
 !! included in activity coefficient calculations:
@@ -116,7 +116,7 @@
 !! in turn, was based original code received from Pierre Tulet, who got it
 !! from Betty Pun who (it seems) got it from Pradeep Saxena. The UNIFAC
 !! module is part of the Model to Predict the Multi-phase Partitioning of
-!! Organics (Griffif et al., JGR 110, D05304, 2005 doi: 10.1029/2004JD005219)
+!! Organics (Griffin et al., JGR 110, D05304, 2005 doi: 10.1029/2004JD005219)
 !!
 !! Equations referenced are from Marcolli and Peter, ACP 5(2), 1501-1527, 
 !! 2005, and variable names roughly follow their naming scheme.
@@ -137,33 +137,33 @@ module pmc_sub_model_UNIFAC
   implicit none
   private
 
-#define _NUM_UNIQUE_PHASE_ this%condensed_data_int(1)
-#define _NUM_GROUP_ this%condensed_data_int(2)
-#define _TOTAL_INT_PROP_ this%condensed_data_int(3)
-#define _TOTAL_REAL_PROP_ this%condensed_data_int(4)
-#define _NUM_INT_PROP_ 4
-#define _NUM_REAL_PROP_ 0
-#define _PHASE_INT_LOC_(p) this%condensed_data_int(_NUM_INT_PROP_+p)
-#define _PHASE_REAL_LOC_(p) this%condensed_data_int(_NUM_INT_PROP_+_NUM_UNIQUE_PHASE_+p)
-#define _NUM_PHASE_INSTANCE_(p) this%condensed_data_int(_PHASE_INT_LOC_(p))
-#define _NUM_SPEC_(p) this%condensed_data_int(_PHASE_INT_LOC_(p)+1)
-#define _PHASE_INST_REAL_LOC_(p,c) this%condensed_data_int(_PHASE_INT_LOC_(p)+1+c)
-#define _PHASE_INST_ID_(p,c) this%condensed_data_int(_PHASE_INT_LOC_(p)+1+_NUM_PHASE_INSTANCE_(p)+c)
-#define _SPEC_ID_(p,i) this%condensed_data_int(_PHASE_INT_LOC_(p)+1+2*_NUM_PHASE_INSTANCE_(p)+i)
-#define _v_ik_(p,i,k) this%condensed_data_int(_PHASE_INT_LOC_(p)+1+2*_NUM_PHASE_INSTANCE_(p)+k*_NUM_SPEC_(p)+i)
+#define NUM_UNIQUE_PHASE_ this%condensed_data_int(1)
+#define NUM_GROUP_ this%condensed_data_int(2)
+#define TOTAL_INT_PROP_ this%condensed_data_int(3)
+#define TOTAL_REAL_PROP_ this%condensed_data_int(4)
+#define NUM_INT_PROP_ 4
+#define NUM_REAL_PROP_ 0
+#define PHASE_INT_LOC_(p) this%condensed_data_int(NUM_INT_PROP_+p)
+#define PHASE_FLOAT_LOC_(p) this%condensed_data_int(NUM_INT_PROP_+NUM_UNIQUE_PHASE_+p)
+#define NUM_PHASE_INSTANCE_(p) this%condensed_data_int(PHASE_INT_LOC_(p))
+#define NUM_SPEC_(p) this%condensed_data_int(PHASE_INT_LOC_(p)+1)
+#define PHASE_INST_REAL_LOC_(p,c) this%condensed_data_int(PHASE_INT_LOC_(p)+1+c)
+#define PHASE_INST_ID_(p,c) this%condensed_data_int(PHASE_INT_LOC_(p)+1+NUM_PHASE_INSTANCE_(p)+c)
+#define SPEC_ID_(p,i) this%condensed_data_int(PHASE_INT_LOC_(p)+1+2*NUM_PHASE_INSTANCE_(p)+i)
+#define V_IK_(p,i,k) this%condensed_data_int(PHASE_INT_LOC_(p)+1+2*NUM_PHASE_INSTANCE_(p)+k*NUM_SPEC_(p)+i)
 
-#define _Q_k_(k) this%condensed_data_real(k)
-#define _R_k_(k) this%condensed_data_real(_NUM_GROUP_+k)
-#define _THETA_m_(m) this%condensed_data_real(2*_NUM_GROUP_+k)
-#define _a_mn_(m,n) this%condensed_data_real((m+2)*_NUM_GROUP_+n)
-#define _PSI_mn_(m,n) this%condensed_data_real((m+2+_NUM_GROUP_)*_NUM_GROUP_+n)
-#define _r_i_(p,i) this%condensed_data_real(_PHASE_REAL_LOC_(p)+i-1)
-#define _q_i_(p,i) this%condensed_data_real(_PHASE_REAL_LOC_(p)+_NUM_SPEC_(p)+i-1)
-#define _l_i_(p,i) this%condensed_data_real(_PHASE_REAL_LOC_(p)+2*_NUM_SPEC_(p)+i-1)
-#define _MW_i_(p,i) this%condensed_data_real(_PHASE_REAL_LOC_(p)+3*_NUM_SPEC_(p)+i-1)
-#define _X_i_(p,i) this%condensed_data_real(_PHASE_REAL_LOC_(p)+4*_NUM_SPEC_(p)+i-1)
-#define _ln_GAMMA_ik_(p,i,k) this%condensed_data_real(_PHASE_REAL_LOC_(p)+(i-1)*_NUM_GROUP_+5*_NUM_SPEC_(p)+k-1)
-#define _gamma_i_(p,c,i) this%condensed_data_real(_PHASE_INST_REAL_LOC_(p,c)+i-1)
+#define Q_K_(k) this%condensed_data_real(k)
+#define R_K_(k) this%condensed_data_real(NUM_GROUP_+k)
+#define THETA_M_(m) this%condensed_data_real(2*NUM_GROUP_+k)
+#define A_MN_(m,n) this%condensed_data_real((m+2)*NUM_GROUP_+n)
+#define PSI_MN_(m,n) this%condensed_data_real((m+2+NUM_GROUP_)*NUM_GROUP_+n)
+#define R_I_(p,i) this%condensed_data_real(PHASE_FLOAT_LOC_(p)+i-1)
+#define Q_I_(p,i) this%condensed_data_real(PHASE_FLOAT_LOC_(p)+NUM_SPEC_(p)+i-1)
+#define L_I_(p,i) this%condensed_data_real(PHASE_FLOAT_LOC_(p)+2*NUM_SPEC_(p)+i-1)
+#define MW_I_(p,i) this%condensed_data_real(PHASE_FLOAT_LOC_(p)+3*NUM_SPEC_(p)+i-1)
+#define X_I_(p,i) this%condensed_data_real(PHASE_FLOAT_LOC_(p)+4*NUM_SPEC_(p)+i-1)
+#define LN_GAMMA_IK_(p,i,k) this%condensed_data_real(PHASE_FLOAT_LOC_(p)+(i-1)*NUM_GROUP_+5*NUM_SPEC_(p)+k-1)
+#define GAMMA_I_(p,c,i) this%condensed_data_real(PHASE_INST_REAL_LOC_(p,c)+i-1)
 
   ! Update types (These must match values in sub_model_UNIFAC.c)
   ! (none for now)
@@ -182,6 +182,8 @@ module pmc_sub_model_UNIFAC
     !! the input files have been read in. It ensures all data required
     !! during the model run are included in the condensed data arrays.
     procedure :: initialize
+    !> Finalize the sub-model
+    final :: finalize
   end type sub_model_UNIFAC_t
 
   ! Constructor for sub_model_UNIFAC_t
@@ -328,11 +330,11 @@ contains
     end do
 
     ! Size of condensed data arrays
-    num_int_data =   _NUM_INT_PROP_              & ! int props
-                     + 2*num_unique_phase          ! PHASE_INT_LOC, PHASE_REAL_LOC
-    num_real_data =  _NUM_REAL_PROP_             & ! real props
-                     + 3*num_group               & ! Q_k, R_k, THETA_m
-                     + 2*num_group*num_group       ! a_mn, PSI_mn
+    num_int_data =   NUM_INT_PROP_           & ! int props
+                     + 2*num_unique_phase       ! PHASE_INT_LOC, PHASE_REAL_LOC
+    num_real_data =  NUM_REAL_PROP_          & ! real props
+                     + 3*num_group            & ! Q_k, R_k, THETA_m
+                     + 2*num_group*num_group    ! a_mn, PSI_mn
     do i_UNIFAC_phase = 1, num_unique_phase
       num_int_data = num_int_data + 2                    & ! NUM_PHASE_INSTANCE, NUM_SPEC
                      + 2*num_phase_inst(i_UNIFAC_phase)  & ! PHASE_INST_REAL_LOC, PHASE_INST_ID
@@ -351,20 +353,20 @@ contains
     this%condensed_data_real(:) = real(999999.0, kind=dp)
 
     ! Set sub model dimensions
-    _NUM_UNIQUE_PHASE_ = num_unique_phase
-    _NUM_GROUP_ = num_group
-    _TOTAL_INT_PROP_ = size(this%condensed_data_int)
-    _TOTAL_REAL_PROP_ = size(this%condensed_data_real)
+    NUM_UNIQUE_PHASE_ = num_unique_phase
+    NUM_GROUP_ = num_group
+    TOTAL_INT_PROP_ = size(this%condensed_data_int)
+    TOTAL_REAL_PROP_ = size(this%condensed_data_real)
 
     ! Set data locations
-    num_int_data =   _NUM_INT_PROP_              & ! int props
+    num_int_data =   NUM_INT_PROP_              & ! int props
                      + 2*num_unique_phase          ! PHASE_INT_LOC, PHASE_REAL_LOC
-    num_real_data =  _NUM_REAL_PROP_             & ! real props
+    num_real_data =  NUM_REAL_PROP_             & ! real props
                      + 3*num_group               & ! Q_k, R_k, THETA_m
                      + 2*num_group*num_group       ! a_mn, PSI_mn
     do i_UNIFAC_phase = 1, num_unique_phase
-      _PHASE_INT_LOC_(i_UNIFAC_phase) = num_int_data + 1
-      _PHASE_REAL_LOC_(i_UNIFAC_phase) = num_real_data + 1
+      PHASE_INT_LOC_(i_UNIFAC_phase) = num_int_data + 1
+      PHASE_FLOAT_LOC_(i_UNIFAC_phase) = num_real_data + 1
       num_int_data = num_int_data + 2                    & ! NUM_PHASE_INSTANCE, NUM_SPEC
                      + 2*num_phase_inst(i_UNIFAC_phase)  & ! PHASE_INST_REAL_LOC, PHASE_INST_ID
                      + num_phase_spec(i_UNIFAC_phase)    & ! SPEC_ID
@@ -373,15 +375,15 @@ contains
                      + 5*num_phase_spec(i_UNIFAC_phase)  & ! r_i, q_i, l_i, MW_i, X_i
                      + num_phase_spec(i_UNIFAC_phase) * num_group          ! ln_GAMMA_ik
       do i_phase_inst = 1, num_phase_inst(i_UNIFAC_phase)
-        _PHASE_INST_REAL_LOC_(i_UNIFAC_phase, i_phase_inst) = num_real_data + 1
+        PHASE_INST_REAL_LOC_(i_UNIFAC_phase, i_phase_inst) = num_real_data + 1
         num_real_data = num_real_data + num_phase_spec(i_UNIFAC_phase)     ! gamma
       end do
     end do
 
     ! Set phase dimensions
-    do i_UNIFAC_phase = 1, _NUM_UNIQUE_PHASE_
-      _NUM_SPEC_(i_UNIFAC_phase) = num_phase_spec(i_UNIFAC_phase)
-      _NUM_PHASE_INSTANCE_(i_UNIFAC_phase) = num_phase_inst(i_UNIFAC_phase)
+    do i_UNIFAC_phase = 1, NUM_UNIQUE_PHASE_
+      NUM_SPEC_(i_UNIFAC_phase) = num_phase_spec(i_UNIFAC_phase)
+      NUM_PHASE_INSTANCE_(i_UNIFAC_phase) = num_phase_inst(i_UNIFAC_phase)
     end do
 
     ! Set the main group names
@@ -448,10 +450,10 @@ contains
     end do
 
     ! Set the functional group parameters
-    allocate(group_names(_NUM_GROUP_))
-    allocate(main_group_id(_NUM_GROUP_))
+    allocate(group_names(NUM_GROUP_))
+    allocate(main_group_id(NUM_GROUP_))
     call func_groups%iter_reset()
-    do i_group = 1, _NUM_GROUP_
+    do i_group = 1, NUM_GROUP_
 
       ! Save the group name
       call assert(803878279, func_groups%get_key(group_names(i_group)%string))
@@ -464,14 +466,14 @@ contains
       ! Set the group volume parameter (R_k) Eq. 6
       key_name = "volume param"
       call assert_msg(549012632, &
-              func_group%get_real(key_name, _R_k_(i_group)), &
+              func_group%get_real(key_name, R_K_(i_group)), &
               "Missing volume parameter in functional group '"// &
               group_names(i_group)%string//"' in UNIFAC model.")
 
       ! Set the group volume parameter (Q_k) Eq. 6
       key_name = "surface param"
       call assert_msg(127348854, &
-              func_group%get_real(key_name, _Q_k_(i_group)), &
+              func_group%get_real(key_name, Q_K_(i_group)), &
               "Missing surface parameter in functional group '"// &
               group_names(i_group)%string//"' in UNIFAC model.")
 
@@ -499,15 +501,15 @@ contains
     end do
 
     ! Set the group interaction parameters
-    do m = 1, _NUM_GROUP_
-      do n = 1, _NUM_GROUP_
-        _a_mn_(m,n) = main_group_interactions(main_group_id(m), &
+    do m = 1, NUM_GROUP_
+      do n = 1, NUM_GROUP_
+        A_MN_(m,n) = main_group_interactions(main_group_id(m), &
                                               main_group_id(n))
       end do
     end do
 
     ! Set up parameters for each phase
-    do i_UNIFAC_phase = 1, _NUM_UNIQUE_PHASE_
+    do i_UNIFAC_phase = 1, NUM_UNIQUE_PHASE_
       phase_name = phase_names(i_UNIFAC_phase)%string
       i_phase = unique_phase_set_id(i_UNIFAC_phase)
 
@@ -531,7 +533,7 @@ contains
           key_name = "molecular weight"
           call assert_msg(421151319, &
                   spec_props%get_real(key_name, &
-                  _MW_i_(i_UNIFAC_phase, curr_spec_id)), &
+                  MW_I_(i_UNIFAC_phase, curr_spec_id)), &
                   "Missing molecular weight for UNIFAC species '"// &
                   spec_names(i_spec)%string//"'")
 
@@ -542,7 +544,7 @@ contains
 
           ! Initialize the number of groups for this species
           do i_group = 1, size(group_names)
-            _v_ik_(i_UNIFAC_phase, curr_spec_id, i_group) = 0
+            V_IK_(i_UNIFAC_phase, curr_spec_id, i_group) = 0
           end do
 
           ! Set the functional groups (v_ik) Eq. 6
@@ -564,7 +566,7 @@ contains
             do i_group = 1, size(group_names)
               if (group_names(i_group)%string.eq.spec_group_name) then
                 found = .true.
-                _v_ik_(i_UNIFAC_phase, curr_spec_id,i_group) = num_spec_group
+                V_IK_(i_UNIFAC_phase, curr_spec_id,i_group) = num_spec_group
                 exit
               end if
             end do
@@ -576,19 +578,19 @@ contains
             ! species
             r_i = real(0.0, kind=dp)
             q_i = real(0.0, kind=dp)
-            do i_group = 1, _NUM_GROUP_
-              r_i = r_i + _R_k_(i_group) &
-                      * real(_v_ik_(i_UNIFAC_phase ,curr_spec_id, i_group), &
+            do i_group = 1, NUM_GROUP_
+              r_i = r_i + R_K_(i_group) &
+                      * real(V_IK_(i_UNIFAC_phase ,curr_spec_id, i_group), &
                              kind=dp)
-              q_i = q_i + _Q_k_(i_group) &
-                      * real(_v_ik_(i_UNIFAC_phase, curr_spec_id, i_group), &
+              q_i = q_i + Q_K_(i_group) &
+                      * real(V_IK_(i_UNIFAC_phase, curr_spec_id, i_group), &
                              kind=dp)
             end do
-            _r_i_(i_UNIFAC_phase, curr_spec_id) = r_i
-            _q_i_(i_UNIFAC_phase, curr_spec_id) = q_i
+            R_I_(i_UNIFAC_phase, curr_spec_id) = r_i
+            Q_I_(i_UNIFAC_phase, curr_spec_id) = q_i
 
             ! Set the l_i parameter for this species (Eq. 5)
-            _l_i_(i_UNIFAC_phase, curr_spec_id) = 5.0d0 &
+            L_I_(i_UNIFAC_phase, curr_spec_id) = 5.0d0 &
                     * ( r_i - q_i )  - ( r_i - 1.0d0 )
 
             call spec_groups%iter_next()
@@ -604,12 +606,12 @@ contains
                       spec_name = spec_names(i_spec)%string )
               do i_instance = 1, size(unique_names)
                 curr_phase_inst_id = curr_phase_inst_id + 1
-                _PHASE_INST_ID_(i_UNIFAC_phase, curr_phase_inst_id) = &
+                PHASE_INST_ID_(i_UNIFAC_phase, curr_phase_inst_id) = &
                         aero_rep_set(i_rep)%val%spec_state_id( &
                         unique_names(i_instance)%string)
               end do
             end do
-            _SPEC_ID_(i_UNIFAC_phase, curr_spec_id) = 0
+            SPEC_ID_(i_UNIFAC_phase, curr_spec_id) = 0
             phase_ids_set = .true.
           else
             do i_rep = 1, size(aero_rep_set)
@@ -617,10 +619,10 @@ contains
                       phase_name = phase_name, &
                       spec_name = spec_names(i_spec)%string )
               if (size(unique_names).gt.0) then
-                _SPEC_ID_(i_UNIFAC_phase, curr_spec_id) = &
+                SPEC_ID_(i_UNIFAC_phase, curr_spec_id) = &
                         aero_rep_set(i_rep)%val%spec_state_id( &
                         unique_names(1)%string) - &
-                        _PHASE_INST_ID_(i_UNIFAC_phase, 1)
+                        PHASE_INST_ID_(i_UNIFAC_phase, 1)
                 exit
               end if
             end do 
@@ -642,31 +644,50 @@ contains
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef _NUM_UNIQUE_PHASE_
-#undef _NUM_GROUP_
-#undef _TOTAL_INT_PROP_
-#undef _TOTAL_REAL_PROP_
-#undef _NUM_INT_PROP_
-#undef _NUM_REAL_PROP_
-#undef _PHASE_INT_LOC_
-#undef _PHASE_REAL_LOC_
-#undef _NUM_PHASE_INSTANCE_
-#undef _NUM_SPEC_
-#undef _PHASE_INST_REAL_LOC_
-#undef _PHASE_INST_ID_
-#undef _SPEC_ID_
-#undef _v_ik_
+  !> Finalize the sub-model
+  elemental subroutine finalize(this)
 
-#undef _Q_k_
-#undef _R_k_
-#undef _THETA_m_
-#undef _a_mn_
-#undef _PSI_mn_
-#undef _r_i_
-#undef _q_i_
-#undef _l_i_
-#undef _MW_i_
-#undef _X_i_
-#undef _ln_GAMMA_ik_
-#undef _gamma_i_
+    !> Sub-model data
+    type(sub_model_UNIFAC_t), intent(inout) :: this
+
+    if (associated(this%property_set)) &
+            deallocate(this%property_set)
+    if (allocated(this%model_name)) &
+            deallocate(this%model_name)
+    if (allocated(this%condensed_data_real)) &
+            deallocate(this%condensed_data_real)
+    if (allocated(this%condensed_data_int)) &
+            deallocate(this%condensed_data_int)
+
+  end subroutine finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#undef NUM_UNIQUE_PHASE_
+#undef NUM_GROUP_
+#undef TOTAL_INT_PROP_
+#undef TOTAL_REAL_PROP_
+#undef NUM_INT_PROP_
+#undef NUM_REAL_PROP_
+#undef PHASE_INT_LOC_
+#undef PHASE_FLOAT_LOC_
+#undef NUM_PHASE_INSTANCE_
+#undef NUM_SPEC_
+#undef PHASE_INST_REAL_LOC_
+#undef PHASE_INST_ID_
+#undef SPEC_ID_
+#undef V_IK_
+
+#undef Q_K_
+#undef R_K_
+#undef THETA_M_
+#undef A_MN_
+#undef PSI_MN_
+#undef R_I_
+#undef Q_I_
+#undef L_I_
+#undef MW_I_
+#undef X_I_
+#undef LN_GAMMA_IK_
+#undef GAMMA_I_
 end module pmc_sub_model_UNIFAC

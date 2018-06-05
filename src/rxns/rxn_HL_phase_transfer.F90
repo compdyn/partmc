@@ -38,7 +38,7 @@
 !!   \frac{\alpha}{1-\alpha} = e^{\frac{-\Delta G^{\*}}{RT}}
 !! \f]
 !!
-!! Forward rate constants are calculated as:
+!! Condensation rate constants are calculated as:
 !! \f[
 !!   k_{f} = (\frac{r^2}{3D_g} + \frac{4r}{3 \langle c \rangle \alpha})
 !! \f]
@@ -73,9 +73,9 @@
 !! diffusion coefficient in \f$\mbox{\si{\square\metre\per\second}}\f$, and
 !! \b molecular \b weight, which specifies the molecular weight of the species
 !! in \f$\mbox{\si{\kilo\gram\per\mole}}\f$. They may optionally include the
-!! parameter \b N \b star, which will be used to calculate the mass accomodation
-!! coefficient. When this parameter is not included, the mass accomodation
-!! coefficient is assumed to be 1.0.
+!! parameter \b N \b star, which will be used to calculate the mass
+!! accomodation coefficient. When this parameter is not included, the mass
+!! accomodation coefficient is assumed to be 1.0.
 !!
 !! When \b A is not included, it is assumed to be 1.0, when \b C is not
 !! included, it is assumed to be 0.0.

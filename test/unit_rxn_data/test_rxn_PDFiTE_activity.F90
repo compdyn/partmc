@@ -56,6 +56,8 @@ contains
       passed = .true.
     end if
 
+    deallocate(phlex_solver_data)
+
   end function run_PDFiTE_activity_tests
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -69,27 +71,22 @@ contains
     use pmc_constants
 
     type(phlex_core_t), pointer :: phlex_core
-    type(phlex_state_t), target :: phlex_state
-    character(len=:), allocatable :: input_file_path
+    type(phlex_state_t), pointer :: phlex_state
+    character(len=:), allocatable :: input_file_path, key
     type(string_t), allocatable, dimension(:) :: output_file_path
 
     real(kind=dp), dimension(0:NUM_RH_STEP, 28) :: model_conc, true_conc
-    integer(kind=i_kind) :: idx_H2O, idx_H2O_aq, idx_H_p, idx_NH4_p, idx_SO4_mm, &
-            idx_NO3_m, idx_NH42_SO4, idx_NH4_NO3, idx_H_NO3, idx_H2_SO4 
-    integer(kind=i_kind) :: idx_phase, idx_aero_rep
-    character(len=:), allocatable :: key
-    integer(kind=i_kind) :: i_RH, i_spec
-    real(kind=dp) :: time_step, time, ppm_to_RH, omega, ln_gamma
-    real(kind=dp) :: HNO3_LRH_B0, HNO3_LRH_B1, HNO3_LRH_B2, HNO3_LRH_B3, HNO3_LRH_B4
-    real(kind=dp) :: HNO3_HRH_B0, HNO3_HRH_B1, HNO3_HRH_B2, HNO3_HRH_B3
-    real(kind=dp) :: HNO3_SHRH_B0, HNO3_SHRH_B1, HNO3_SHRH_B2, HNO3_SHRH_B3
-    real(kind=dp) :: H2SO4_B0, H2SO4_B1, H2SO4_B2, H2SO4_B3
-    real(kind=dp) :: NH42SO4_B0, NH42SO4_B1, NH42SO4_B2, NH42SO4_B3
-    real(kind=dp) :: NH4NO3_B0, NH4NO3_B1, NH4NO3_B2, NH4NO3_B3
-    real(kind=dp) :: H_p_mol_m3, NH4_p_mol_m3, SO4_mm_mol_m3, NO3_m_mol_m3
-
-    ! Parameters for calculating true concentrations
-    real(kind=dp) :: temp, pressure, a_w 
+    integer(kind=i_kind) :: idx_H2O, idx_H2O_aq, idx_H_p, idx_NH4_p, &
+            idx_SO4_mm, idx_NO3_m, idx_NH42_SO4, idx_NH4_NO3, idx_H_NO3, &
+            idx_H2_SO4,  idx_phase, idx_aero_rep, i_RH, i_spec
+    real(kind=dp) :: time_step, time, ppm_to_RH, omega, ln_gamma, &
+            HNO3_LRH_B0, HNO3_LRH_B1, HNO3_LRH_B2, HNO3_LRH_B3, HNO3_LRH_B4, &
+            HNO3_HRH_B0, HNO3_HRH_B1, HNO3_HRH_B2, HNO3_HRH_B3, &
+            HNO3_SHRH_B0, HNO3_SHRH_B1, HNO3_SHRH_B2, HNO3_SHRH_B3, &
+            H2SO4_B0, H2SO4_B1, H2SO4_B2, H2SO4_B3, NH42SO4_B0, NH42SO4_B1, &
+            NH42SO4_B2, NH42SO4_B3, NH4NO3_B0, NH4NO3_B1, NH4NO3_B2, &
+            NH4NO3_B3, H_p_mol_m3, NH4_p_mol_m3, SO4_mm_mol_m3, &
+            NO3_m_mol_m3, temp, pressure, a_w 
 
     run_PDFiTE_activity_test = .true.
 
@@ -113,7 +110,7 @@ contains
     call phlex_core%solver_initialize()
 
     ! Get a model state variable
-    phlex_state = phlex_core%new_state()
+    phlex_state => phlex_core%new_state()
 
     ! Set the environmental conditions
     phlex_state%env_state%temp = temp
@@ -214,8 +211,8 @@ contains
     ! Set up the ppm->RH (0-1) conversion
     ! (From MOSAIC code, references Seinfeld and Pandis pg. 181)
     ppm_to_RH = 1.0d0 - 373.15d0/temp
-    ppm_to_RH = (((-0.1299d0*ppm_to_RH - 0.6445d0)*ppm_to_RH - 1.976d0)*ppm_to_RH &
-            + 13.3185d0)*ppm_to_RH
+    ppm_to_RH = (((-0.1299d0*ppm_to_RH - 0.6445d0)*ppm_to_RH - 1.976d0)* &
+            ppm_to_RH + 13.3185d0)*ppm_to_RH
     ppm_to_RH = exp(ppm_to_RH)  ! VP of water (atm)
     ppm_to_RH = (pressure/101325.0d0) / ppm_to_RH * 1.0d-6 ! ppm -> RH (0-1)
 
@@ -263,8 +260,8 @@ contains
         ln_gamma = HNO3_SHRH_B0 + HNO3_SHRH_B1*a_w + HNO3_SHRH_B2*a_w**2 + &
                     HNO3_SHRH_B3*a_w**3
       else
-        ln_gamma = HNO3_SHRH_B0 + HNO3_SHRH_B1*0.99d0 + HNO3_SHRH_B2*0.99d0**2 + &
-                    HNO3_SHRH_B3*0.99d0**3
+        ln_gamma = HNO3_SHRH_B0 + HNO3_SHRH_B1*0.99d0 + &
+                    HNO3_SHRH_B2*0.99d0**2 + HNO3_SHRH_B3*0.99d0**3
       end if
 
       ! ... from (d(ln(gamma_HNO3))/d(N_Hp N_SO4mm) N_Hp N_SO4mm) / omega
@@ -318,20 +315,31 @@ contains
     end do
 
     ! Save the results
-    open(unit=7, file="out/PDFiTE_activity_results.txt", status="replace", action="write")
+    open(unit=7, file="out/PDFiTE_activity_results.txt", status="replace", &
+            action="write")
     do i_RH = 0, NUM_RH_STEP
       a_w = real(1.0, kind=dp)/(NUM_RH_STEP-1)*(i_RH-1) + 1.0d-10
       write(7,*) a_w, &
-            ' ', true_conc(i_RH, idx_H2O),' ',      model_conc(i_RH, idx_H2O), &
-            ' ', true_conc(i_RH, idx_H2O_aq),' ',   model_conc(i_RH, idx_H2O_aq), &
-            ' ', true_conc(i_RH, idx_H_p),' ',      model_conc(i_RH, idx_H_p), &
-            ' ', true_conc(i_RH, idx_NH4_p),' ',    model_conc(i_RH, idx_NH4_p), &
-            ' ', true_conc(i_RH, idx_SO4_mm),' ',   model_conc(i_RH, idx_SO4_mm), &
-            ' ', true_conc(i_RH, idx_NO3_m),' ',    model_conc(i_RH, idx_NO3_m), &
-            ' ', true_conc(i_RH, idx_NH42_SO4),' ', model_conc(i_RH, idx_NH42_SO4), &
-            ' ', true_conc(i_RH, idx_NH4_NO3),' ',  model_conc(i_RH, idx_NH4_NO3), &
-            ' ', true_conc(i_RH, idx_H_NO3),' ',    model_conc(i_RH, idx_H_NO3), &
-            ' ', true_conc(i_RH, idx_H2_SO4),' ',   model_conc(i_RH, idx_H2_SO4)
+            ' ', true_conc(i_RH, idx_H2O),      &
+            ' ', model_conc(i_RH, idx_H2O),     &
+            ' ', true_conc(i_RH, idx_H2O_aq),   &
+            ' ', model_conc(i_RH, idx_H2O_aq),  &
+            ' ', true_conc(i_RH, idx_H_p),      &
+            ' ', model_conc(i_RH, idx_H_p),     &
+            ' ', true_conc(i_RH, idx_NH4_p),    &
+            ' ', model_conc(i_RH, idx_NH4_p),   &
+            ' ', true_conc(i_RH, idx_SO4_mm),   &
+            ' ', model_conc(i_RH, idx_SO4_mm),  &
+            ' ', true_conc(i_RH, idx_NO3_m),    &
+            ' ', model_conc(i_RH, idx_NO3_m),   &
+            ' ', true_conc(i_RH, idx_NH42_SO4), &
+            ' ', model_conc(i_RH, idx_NH42_SO4),&
+            ' ', true_conc(i_RH, idx_NH4_NO3),  &
+            ' ', model_conc(i_RH, idx_NH4_NO3), &
+            ' ', true_conc(i_RH, idx_H_NO3),    &
+            ' ', model_conc(i_RH, idx_H_NO3),   &
+            ' ', true_conc(i_RH, idx_H2_SO4),   &
+            ' ', model_conc(i_RH, idx_H2_SO4)
     end do
     close(7)
 
@@ -341,11 +349,15 @@ contains
         if (i_spec.ne.1.and.(i_spec.lt.11.or.i_spec.gt.19)) cycle 
         call assert_msg(266724378, &
           almost_equal(model_conc(i_RH, i_spec), true_conc(i_RH, i_spec), &
-          real(1.0e-2, kind=dp)), "RH step: "//to_string(i_RH)//"; species: "// &
-          to_string(i_spec)//"; mod: "//to_string(model_conc(i_RH, i_spec))// &
-          "; true: "//to_string(true_conc(i_RH, i_spec)))
+          real(1.0e-2, kind=dp)), "RH step: "//to_string(i_RH)// &
+          "; species: "//to_string(i_spec)//"; mod: "// &
+          to_string(model_conc(i_RH, i_spec))//"; true: "// &
+          to_string(true_conc(i_RH, i_spec)))
       end do
     end do
+
+    deallocate(phlex_state)
+    deallocate(phlex_core)
 
     run_PDFiTE_activity_test = .true.
 

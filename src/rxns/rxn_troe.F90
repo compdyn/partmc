@@ -15,14 +15,13 @@
 !!
 !! where \f$k_0\f$ is the low-pressure limiting rate constant, \f$k_{\inf}\f$
 !! is the high-pressure limiting rate constant, \f$[\mbox{M}]\f$ is the
-!! density of air (taken to be \f$10^6\f$ ppm), and \f$F_C\f$ and \f$N\f$
-!! are parameters that determine the shape of the fall-off curve, and are
-!! typically 0.6 and 1.0, respectively (Finalyson-Pitts and Pitts, 2000;
-!! Gipson and Young, 1999). \f$k_0\f$ and \f$k_{\inf}\f$ are assumed to be
-!! \ref phlex_rxn_arrhenius "Arrhenius" rate constants with \f$D=300\f$ and
-!! \f$E=0\f$.
+!! density of air (\f$10^6\f$ ppm), and \f$F_C\f$ and \f$N\f$ are parameters
+!! that determine the shape of the fall-off curve, and are typically 0.6 and 
+!! 1.0, respectively \cite Finlayson-Pitts2000 \cite Gipson. \f$k_0\f$ and 
+!! \f$k_{\inf}\f$ are calculated as \ref phlex_rxn_arrhenius "Arrhenius" rate
+!! constants with \f$D=300\f$ and \f$E=0\f$.
 !!
-!! Input data for Troe equations should take the form :
+!! Input data for Troe reactions have the following format :
 !! \code{.json}
 !!   {
 !!     "type" : "TROE",
@@ -59,7 +58,7 @@
 !! to be 0.6 and \b N to be 1.0.
 !!
 !! The unit for time is assumed to be s, but inclusion of the optional
-!! key-value pair \b "time unit" = "MIN" can be used to indicate a rate
+!! key-value pair \b time \b unit = \b MIN can be used to indicate a rate
 !! with min as the time unit.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -79,26 +78,26 @@ module pmc_rxn_troe
   implicit none
   private
 
-#define _NUM_REACT_ this%condensed_data_int(1)
-#define _NUM_PROD_ this%condensed_data_int(2)
-#define _k0_A_ this%condensed_data_real(1)
-#define _k0_B_ this%condensed_data_real(2)
-#define _k0_C_ this%condensed_data_real(3)
-#define _kinf_A_ this%condensed_data_real(4)
-#define _kinf_B_ this%condensed_data_real(5)
-#define _kinf_C_ this%condensed_data_real(6)
-#define _Fc_ this%condensed_data_real(7)
-#define _N_ this%condensed_data_real(8)
-#define _SCALING_ this%condensed_data_real(9)
-#define _CONV_ this%condensed_data_real(10)
-#define _RATE_CONSTANT_ this%condensed_data_real(11)
-#define _NUM_INT_PROP_ 2
-#define _NUM_REAL_PROP_ 11
-#define _REACT_(x) this%condensed_data_int(_NUM_INT_PROP_ + x)
-#define _PROD_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + x)
-#define _DERIV_ID_(x) this%condensed_data_int(_NUM_INT_PROP_ + _NUM_REACT_ + _NUM_PROD_ + x)
-#define _JAC_ID_(x) this%condensed_data_int(_NUM_INT_PROP_ + 2*(_NUM_REACT_+_NUM_PROD_) + x)
-#define _yield_(x) this%condensed_data_real(_NUM_REAL_PROP_ + x)
+#define NUM_REACT_ this%condensed_data_int(1)
+#define NUM_PROD_ this%condensed_data_int(2)
+#define K0_A_ this%condensed_data_real(1)
+#define K0_B_ this%condensed_data_real(2)
+#define K0_C_ this%condensed_data_real(3)
+#define KINF_A_ this%condensed_data_real(4)
+#define KINF_B_ this%condensed_data_real(5)
+#define KINF_C_ this%condensed_data_real(6)
+#define FC_ this%condensed_data_real(7)
+#define N_ this%condensed_data_real(8)
+#define SCALING_ this%condensed_data_real(9)
+#define CONV_ this%condensed_data_real(10)
+#define RATE_CONSTANT_ this%condensed_data_real(11)
+#define NUM_INT_PROP_ 2
+#define NUM_REAL_PROP_ 11
+#define REACT_(x) this%condensed_data_int(NUM_INT_PROP_ + x)
+#define PROD_(x) this%condensed_data_int(NUM_INT_PROP_ + NUM_REACT_ + x)
+#define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x)
+#define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_ + 2*(NUM_REACT_+NUM_PROD_) + x)
+#define YIELD_(x) this%condensed_data_real(NUM_REAL_PROP_ + x)
 
 public :: rxn_troe_t
 
@@ -107,6 +106,8 @@ public :: rxn_troe_t
   contains
     !> Reaction initialization
     procedure :: initialize
+    !> Finalize the reaction
+    final :: finalize
   end type rxn_troe_t
 
   !> Constructor for rxn_troe_t
@@ -154,10 +155,12 @@ contains
     if (.not. associated(this%property_set)) call die_msg(510658779, &
             "Missing property set needed to initialize reaction")
     key_name = "reactants"
-    call assert_msg(852878121, this%property_set%get_property_t(key_name, reactants), &
+    call assert_msg(852878121, &
+            this%property_set%get_property_t(key_name, reactants), &
             "Troe reaction is missing reactants")
     key_name = "products"
-    call assert_msg(965196466, this%property_set%get_property_t(key_name, products), &
+    call assert_msg(965196466, &
+            this%property_set%get_property_t(key_name, products), &
             "Troe reaction is missing products")
 
     ! Count the number of reactants (including those with a qty specified)
@@ -176,64 +179,65 @@ contains
     ! Space in this example is allocated for two sets of inidices for the 
     ! reactants and products, one molecular property for each reactant, 
     ! yields for the products and three reaction parameters.
-    allocate(this%condensed_data_int(_NUM_INT_PROP_ + &
+    allocate(this%condensed_data_int(NUM_INT_PROP_ + &
             (i_spec + 2) * (i_spec + products%size())))
-    allocate(this%condensed_data_real(_NUM_REAL_PROP_ + products%size()))
+    allocate(this%condensed_data_real(NUM_REAL_PROP_ + products%size()))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
     
-    ! Save the size of the reactant and product arrays (for reactions where these
-    ! can vary)
-    _NUM_REACT_ = i_spec
-    _NUM_PROD_ = products%size()
+    ! Save the size of the reactant and product arrays (for reactions where
+    ! these can vary)
+    NUM_REACT_ = i_spec
+    NUM_PROD_ = products%size()
 
     ! Set the #/cc -> ppm conversion prefactor
-    _CONV_ = const%avagadro / const%univ_gas_const * 10.0d0**(-12.0d0)
+    CONV_ = const%avagadro / const%univ_gas_const * 10.0d0**(-12.0d0)
 
-    ! Get reaction parameters (it might be easiest to keep these at the beginning
-    ! of the condensed data array, so they can be accessed using compliler flags)
+    ! Get reaction parameters (it might be easiest to keep these at the
+    ! beginning of the condensed data array, so they can be accessed using
+    ! compliler flags)
     key_name = "k0_A"
-    if (.not. this%property_set%get_real(key_name, _k0_A_)) then
-      _k0_A_ = 1.0
+    if (.not. this%property_set%get_real(key_name, K0_A_)) then
+      K0_A_ = 1.0
     end if
     key_name = "k0_B"
-    if (.not. this%property_set%get_real(key_name, _k0_B_)) then
-      _k0_B_ = 0.0
+    if (.not. this%property_set%get_real(key_name, K0_B_)) then
+      K0_B_ = 0.0
     end if
     key_name = "k0_C"
-    if (.not. this%property_set%get_real(key_name, _k0_C_)) then
-      _k0_C_ = 0.0
+    if (.not. this%property_set%get_real(key_name, K0_C_)) then
+      K0_C_ = 0.0
     end if
     key_name = "kinf_A"
-    if (.not. this%property_set%get_real(key_name, _kinf_A_)) then
-      _kinf_A_ = 1.0
+    if (.not. this%property_set%get_real(key_name, KINF_A_)) then
+      KINF_A_ = 1.0
     end if
     key_name = "kinf_B"
-    if (.not. this%property_set%get_real(key_name, _kinf_B_)) then
-      _kinf_B_ = 0.0
+    if (.not. this%property_set%get_real(key_name, KINF_B_)) then
+      KINF_B_ = 0.0
     end if
     key_name = "kinf_C"
-    if (.not. this%property_set%get_real(key_name, _kinf_C_)) then
-      _kinf_C_ = 0.0
+    if (.not. this%property_set%get_real(key_name, KINF_C_)) then
+      KINF_C_ = 0.0
     end if
     key_name = "Fc"
-    if (.not. this%property_set%get_real(key_name, _Fc_)) then
-      _Fc_ = 0.6
+    if (.not. this%property_set%get_real(key_name, FC_)) then
+      FC_ = 0.6
     end if
     key_name = "N"
-    if (.not. this%property_set%get_real(key_name, _N_)) then
-      _N_ = 1.0
+    if (.not. this%property_set%get_real(key_name, N_)) then
+      N_ = 1.0
     end if
     key_name = "time unit"
-    _SCALING_ = real(1.0, kind=dp)
+    SCALING_ = real(1.0, kind=dp)
     if (this%property_set%get_string(key_name, string_val)) then
       if (trim(string_val).eq."MIN") then
-        _SCALING_ = real(1.0d0/60.0d0, kind=dp)
+        SCALING_ = real(1.0d0/60.0d0, kind=dp)
       end if
     endif
   
-    ! Include [M] in _k0_A_
-    _k0_A_ = _k0_A_ * real(1.0d6, kind=dp)
+    ! Include [M] in K0_A_
+    K0_A_ = K0_A_ * real(1.0d6, kind=dp)
 
     ! Get the indices and chemical properties for the reactants
     call reactants%iter_reset()
@@ -241,10 +245,10 @@ contains
     do while (reactants%get_key(spec_name))
 
       ! Save the index of this species in the state variable array
-      _REACT_(i_spec) = chem_spec_data%gas_state_id(spec_name)
+      REACT_(i_spec) = chem_spec_data%gas_state_id(spec_name)
 
       ! Make sure the species exists
-      call assert_msg(595701751, _REACT_(i_spec).gt.0, &
+      call assert_msg(595701751, REACT_(i_spec).gt.0, &
               "Missing Troe reactant: "//spec_name)
 
       ! Get properties included with this reactant in the reaction data
@@ -252,7 +256,7 @@ contains
       key_name = "qty"
       if (spec_props%get_int(key_name, temp_int)) then
         do i_qty = 1, temp_int - 1
-          _REACT_(i_spec + i_qty) = _REACT_(i_spec)
+          REACT_(i_spec + i_qty) = REACT_(i_spec)
         end do
         i_spec = i_spec + temp_int - 1
       end if
@@ -267,19 +271,19 @@ contains
     do while (products%get_key(spec_name))
 
       ! Save the index of this species in the state variable array
-      _PROD_(i_spec) = chem_spec_data%gas_state_id(spec_name)
+      PROD_(i_spec) = chem_spec_data%gas_state_id(spec_name)
 
       ! Make sure the species exists
-      call assert_msg(480024633, _PROD_(i_spec).gt.0, &
+      call assert_msg(480024633, PROD_(i_spec).gt.0, &
               "Missing Troe product: "//spec_name)
 
       ! Get properties included with this product in the reaction data
       call assert(393355097, products%get_property_t(val=spec_props))
       key_name = "yield"
       if (spec_props%get_real(key_name, temp_real)) then
-        _yield_(i_spec) = temp_real
+        YIELD_(i_spec) = temp_real
       else
-        _yield_(i_spec) = 1.0
+        YIELD_(i_spec) = 1.0
       end if
 
       call products%iter_next()
@@ -290,24 +294,41 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef _NUM_REACT_
-#undef _NUM_PROD_
-#undef _k0_A_
-#undef _k0_B_
-#undef _k0_C_
-#undef _kinf_A_
-#undef _kinf_B_
-#undef _kinf_C_
-#undef _Fc_
-#undef _N_
-#undef _SCALING_
-#undef _CONV_
-#undef _RATE_CONSTANT_
-#undef _NUM_INT_PROP_
-#undef _NUM_REAL_PROP_
-#undef _REACT_
-#undef _PROD_
-#undef _DERIV_ID_
-#undef _JAC_ID_
-#undef _yield_
+  !> Finalize the reaction
+  elemental subroutine finalize(this)
+
+    !> Reaction data
+    type(rxn_troe_t), intent(inout) :: this
+
+    if (associated(this%property_set)) &
+            deallocate(this%property_set)
+    if (allocated(this%condensed_data_real)) &
+            deallocate(this%condensed_data_real)
+    if (allocated(this%condensed_data_int)) &
+            deallocate(this%condensed_data_int)
+
+  end subroutine finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#undef NUM_REACT_
+#undef NUM_PROD_
+#undef K0_A_
+#undef K0_B_
+#undef K0_C_
+#undef KINF_A_
+#undef KINF_B_
+#undef KINF_C_
+#undef FC_
+#undef N_
+#undef SCALING_
+#undef CONV_
+#undef RATE_CONSTANT_
+#undef NUM_INT_PROP_
+#undef NUM_REAL_PROP_
+#undef REACT_
+#undef PROD_
+#undef DERIV_ID_
+#undef JAC_ID_
+#undef YIELD_
 end module pmc_rxn_troe

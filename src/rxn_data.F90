@@ -30,7 +30,7 @@
 !! however this information will not be available during a model run. The
 !! information required by the reaction instance to calculate its contribution
 !! to the time derivatve and Jacobian matrix must therefore be packed into
-!! the condensed data arrays of the \c pmc_rep_data::rep_data_t object during
+!! the condensed data arrays of the \c pmc_rxn_data::rxn_data_t object during
 !! intialization.
 !!  
 !! Valid reaction types include:

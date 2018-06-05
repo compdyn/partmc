@@ -52,6 +52,8 @@ contains
       passed = .true.
     end if
 
+    deallocate(phlex_solver_data)
+
   end function run_troe_tests
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -68,18 +70,14 @@ contains
     use pmc_constants
 
     type(phlex_core_t), pointer :: phlex_core
-    type(phlex_state_t), target :: phlex_state
-    character(len=:), allocatable :: input_file_path
+    type(phlex_state_t), pointer :: phlex_state
+    character(len=:), allocatable :: input_file_path, key
     type(string_t), allocatable, dimension(:) :: output_file_path
 
     real(kind=dp), dimension(0:NUM_TIME_STEP, 3) :: model_conc, true_conc
-    integer(kind=i_kind) :: idx_A, idx_B, idx_C
-    character(len=:), allocatable :: key
-    integer(kind=i_kind) :: i_time, i_spec
-    real(kind=dp) :: time_step, time
-
-    ! Parameters for calculating true concentrations
-    real(kind=dp) :: k1, k2, air_conc, temp, pressure, k_0, k_inf, conv
+    integer(kind=i_kind) :: idx_A, idx_B, idx_C, i_time, i_spec
+    real(kind=dp) :: time_step, time, k1, k2, air_conc, temp, pressure, k_0, &
+            k_inf, conv
 
     run_troe_test = .true.
 
@@ -93,10 +91,12 @@ contains
     k_inf = k_0 / 1.0d0
     k1 = k_0/(1+k_inf) * 0.6d0**(1.0d0/(1.0d0 + (log10(k_inf)/1.0)**(2)))
     
-    k_0 = air_conc * 1.2d-12 * exp( 3.0d0/temp) * (temp/300.0d0)**(167.0d0) * conv
+    k_0 = air_conc * 1.2d-12 * exp( 3.0d0/temp) * (temp/300.0d0)**(167.0d0) &
+            * conv
     k_inf = 136.0d0 * exp( 24.0d0/temp) * (temp/300.0d0)**(5.0d0)
     k_inf = k_0 / k_inf
-    k2 = k_0/(1+k_inf) * 0.9d0**(1.0d0/(1.0d0 + (log10(k_inf)/0.8d0)**(2)))/60.0d0
+    k2 = k_0/(1+k_inf) * 0.9d0**(1.0d0/(1.0d0 + &
+            (log10(k_inf)/0.8d0)**(2)))/60.0d0
 
     ! Set output time step (s)
     time_step = 1.0
@@ -114,7 +114,7 @@ contains
     call phlex_core%solver_initialize()
 
     ! Get a model state variable
-    phlex_state = phlex_core%new_state()
+    phlex_state => phlex_core%new_state()
 
     ! Set the environmental conditions
     phlex_state%env_state%temp = temp
@@ -161,7 +161,8 @@ contains
     end do
 
     ! Save the results
-    open(unit=7, file="out/troe_results.txt", status="replace", action="write")
+    open(unit=7, file="out/troe_results.txt", status="replace", &
+            action="write")
     do i_time = 0, NUM_TIME_STEP
       write(7,*) i_time*time_step, &
             ' ', true_conc(i_time, idx_A),' ', model_conc(i_time, idx_A), &
@@ -174,12 +175,16 @@ contains
     do i_time = 1, NUM_TIME_STEP
       do i_spec = 1, size(model_conc, 2)
         call assert_msg(734121688, &
-          almost_equal(model_conc(i_time, i_spec), true_conc(i_time, i_spec), &
-          real(1.0e-2, kind=dp)), "time: "//to_string(i_time)//"; species: "// &
-          to_string(i_spec)//"; mod: "//to_string(model_conc(i_time, i_spec))// &
-          "; true: "//to_string(true_conc(i_time, i_spec)))
+          almost_equal(model_conc(i_time, i_spec), &
+          true_conc(i_time, i_spec), real(1.0e-2, kind=dp)), "time: "// &
+          to_string(i_time)//"; species: "//to_string(i_spec)//"; mod: "// &
+          to_string(model_conc(i_time, i_spec))//"; true: "// &
+          to_string(true_conc(i_time, i_spec)))
       end do
     end do
+
+    deallocate(phlex_state)
+    deallocate(phlex_core)
 
     run_troe_test = .true.
 

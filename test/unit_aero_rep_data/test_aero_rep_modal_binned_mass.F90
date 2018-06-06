@@ -69,7 +69,7 @@ contains
 
 #ifdef PMC_USE_JSON
 
-    integer(kind=i_kind) :: i_spec, j_spec, rep_id, i_phase
+    integer(kind=i_kind) :: i_spec, j_spec, i_phase
     character(len=:), allocatable :: rep_name, spec_name, phase_name
     type(string_t), allocatable :: file_list(:), unique_names(:)
 
@@ -87,27 +87,14 @@ contains
     call phlex_core%initialize()
     phlex_state => phlex_core%new_state()
 
-    ! Check the number of aerosol representations in the core
-    call assert(413391868, size(phlex_core%aero_rep) .eq. 1)
-    rep_id = 1
-
     ! Check the aerosol representation getter functions
     rep_name = "my modal/binned mass aerosol rep"
-    call assert_msg(520898201, phlex_core%find_aero_rep(rep_name, rep_id), rep_name)
-    call assert_msg(633216546, rep_id .gt. 0, rep_name)
-    call assert_msg(745534891, phlex_core%find_aero_rep(rep_name, aero_rep), rep_name)
+    call assert_msg(745534891, phlex_core%get_aero_rep(rep_name, aero_rep), rep_name)
     call assert_msg(575377987, associated(aero_rep), rep_name)
     select type (aero_rep)
       type is (aero_rep_modal_binned_mass_t)
       class default
         call die_msg(570113680, rep_name)
-    end select
-    aero_rep => phlex_core%aero_rep(rep_id)%val
-    call assert_msg(347382524, associated(aero_rep), rep_name)
-    select type (aero_rep)
-      type is (aero_rep_modal_binned_mass_t)
-      class default
-        call die_msg(742176118, rep_name)
     end select
 
     ! Check the unique name functions
@@ -176,9 +163,7 @@ contains
     phlex_state%state_var(i_spec) = 8.5
 
     rep_name = "AERO_REP_BAD_NAME"
-    call assert(764521413, .not.phlex_core%find_aero_rep(rep_name, rep_id))
-    call assert(541790257, rep_id .eq. 0)
-    call assert(654108602, .not.phlex_core%find_aero_rep(rep_name, aero_rep))
+    call assert(654108602, .not.phlex_core%get_aero_rep(rep_name, aero_rep))
     call assert(366369046, .not.associated(aero_rep))
 
     deallocate(file_list)

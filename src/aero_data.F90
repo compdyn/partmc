@@ -62,8 +62,8 @@ module pmc_aero_data
      character(len=AERO_SOURCE_NAME_LEN), allocatable :: source_name(:)
      !> Fractal particle parameters.
      type(fractal_t) :: fractal
-     !> Phlexible chemistry aerosol representation id
-     integer :: phlex_rep_id
+     !> Phlexible chemistry aerosol representation pointer
+     class(aero_rep_data_t), pointer :: aero_rep_ptr
      !> Aerosol species ids on the phlex chem state array
      integer, allocatable :: phlex_spec_id(:)
   contains
@@ -820,7 +820,6 @@ contains
     !> Phlexible chemistry core
     type(phlex_core_t), intent(in) :: phlex_core
 
-    class(aero_rep_data_t), pointer :: aero_rep
     character(len=:), allocatable :: rep_name, prop_name, source_name
     type(string_t), allocatable :: spec_names(:)
     integer :: num_spec, i_spec
@@ -828,13 +827,12 @@ contains
     integer(kind=i_kind), allocatable :: phlex_id(:)
 
     rep_name = "PartMC single particle"
-    if (.not.phlex_core%find_aero_rep(rep_name, this%phlex_rep_id)) then
+    if (.not.phlex_core%get_aero_rep(rep_name, this%aero_rep_ptr)) then
       call die_msg(418509983, "Missing 'PartMC single particle' aerosol "// &
               "representation.")
     end if
-    aero_rep => phlex_core%aero_rep(this%phlex_rep_id)%val
 
-    spec_names = aero_rep%unique_names()
+    spec_names = this%aero_rep_ptr%unique_names()
     num_spec = size(spec_names)
     allocate(this%name(num_spec))
     allocate(this%mosaic_index(num_spec))
@@ -879,7 +877,7 @@ contains
         this%source_name(i_spec) = ""
       end if
       this%phlex_spec_id(i_spec) = &
-          aero_rep%spec_state_id(spec_names(i_spec)%string)
+          this%aero_rep_ptr%spec_state_id(spec_names(i_spec)%string)
     end do
 
   end subroutine aero_data_initialize 

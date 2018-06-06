@@ -69,7 +69,7 @@ contains
 
 #ifdef PMC_USE_JSON
 
-    integer(kind=i_kind) :: i_rep, i_spec, j_spec, rep_id, i_phase
+    integer(kind=i_kind) :: i_spec, j_spec, i_rep, i_phase
     type(string_t), allocatable :: rep_names(:)
     character(len=:), allocatable :: rep_name, spec_name, phase_name
     type(string_t), allocatable :: file_list(:), unique_names(:)
@@ -93,29 +93,17 @@ contains
     allocate(rep_names(1))
     rep_names(1)%string = "AERO_REP_SINGLE_PARTICLE"
 
-    ! Check the number of aerosol representations in the core
-    call assert(154970920, size(phlex_core%aero_rep) .eq. size(rep_names))
-
     ! Loop through all the aerosol representations
     do i_rep = 1, size(rep_names)
     
       ! Check the aerosol representation getter functions
       rep_name = rep_names(i_rep)%string
-      call assert_msg(253854173, phlex_core%find_aero_rep(rep_name, rep_id), rep_name)
-      call assert_msg(362813745, rep_id .gt. 0, rep_name)
-      call assert_msg(589355969, phlex_core%find_aero_rep(rep_name, aero_rep), rep_name)
-      call assert_msg(191203602, associated(aero_rep), rep_name)
+      call assert_msg(253854173, phlex_core%get_aero_rep(rep_name, aero_rep), rep_name)
+      call assert_msg(362813745, associated(aero_rep), rep_name)
       select type (aero_rep)
         type is (aero_rep_single_particle_t)
         class default
           call die_msg(519535557, rep_name)
-      end select
-      aero_rep => phlex_core%aero_rep(rep_id)%val
-      call assert_msg(240871376, associated(aero_rep), rep_name)
-      select type (aero_rep)
-        type is (aero_rep_single_particle_t)
-        class default
-          call die_msg(625136356, rep_name)
       end select
 
       ! Check the unique name functions
@@ -181,10 +169,8 @@ contains
     end do
 
     rep_name = "AERO_REP_BAD_NAME"
-    call assert(676257369, .not.phlex_core%find_aero_rep(rep_name, rep_id))
-    call assert(453526213, rep_id .eq. 0)
-    call assert(848319807, .not.phlex_core%find_aero_rep(rep_name, aero_rep))
-    call assert(343113402, .not.associated(aero_rep))
+    call assert(676257369, .not.phlex_core%get_aero_rep(rep_name, aero_rep))
+    call assert(453526213, .not.associated(aero_rep))
 
     deallocate(phlex_state)
     deallocate(phlex_core)

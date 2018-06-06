@@ -15,6 +15,7 @@ program pmc_test_aqueous_equilibrium
                                               warn_msg
   use pmc_phlex_core
   use pmc_phlex_state
+  use pmc_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_aero_rep_single_particle
 #ifdef PMC_USE_JSON
@@ -72,10 +73,10 @@ contains
     character(len=:), allocatable :: input_file_path, key
     type(string_t), allocatable, dimension(:) :: output_file_path
 
+    class(aero_rep_data_t), pointer :: aero_rep_ptr
     real(kind=dp), dimension(0:NUM_TIME_STEP, 30) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_A, idx_B, idx_C, idx_D, idx_E, idx_F, idx_G, &
-            idx_H, idx_BC_act, idx_H2O, idx_phase, idx_aero_rep, i_time, &
-            i_spec
+            idx_H, idx_BC_act, idx_H2O, idx_phase, i_time, i_spec
     real(kind=dp) :: time_step, time, Keq_1, Keq_2, Keq_3, k1_forward, &
             k2_forward, k3_forward, k1_reverse, k2_reverse, k3_reverse, &
             total_init, equil_A, equil_B, equil_C, equil_D, equil_E, &
@@ -112,30 +113,30 @@ contains
     call phlex_state%update_env_state()
 
     ! Find the aerosol representation
-    call assert(750324390, size(phlex_core%aero_rep).eq.3)
-    idx_aero_rep = 2
+    key = "my aero rep 2"
+    call assert(750324390, phlex_core%get_aero_rep(key, aero_rep_ptr))
 
     ! Get species indices
     key = "aqueous aerosol.A"
-    idx_A = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_A = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.B"
-    idx_B = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_B = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.C"
-    idx_C = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_C = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.B-C"
-    idx_BC_act = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_BC_act = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.D"
-    idx_D = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_D = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.E"
-    idx_E = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_E = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.F"
-    idx_F = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_F = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.G"
-    idx_G = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_G = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.H"
-    idx_H = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_H = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.H2O_aq"
-    idx_H2O = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_H2O = aero_rep_ptr%spec_state_id(key);
 
     ! Make sure the expected species are in the model
     call assert(503629528, idx_A.gt.0)

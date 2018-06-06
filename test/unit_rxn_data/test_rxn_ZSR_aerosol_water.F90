@@ -15,6 +15,7 @@ program pmc_test_ZSR_aerosol_water
                                               warn_msg
   use pmc_phlex_core
   use pmc_phlex_state
+  use pmc_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_aero_rep_single_particle
 #ifdef PMC_USE_JSON
@@ -77,10 +78,11 @@ contains
     character(len=:), allocatable :: input_file_path, key
     type(string_t), allocatable, dimension(:) :: output_file_path
 
+    class(aero_rep_data_t), pointer :: aero_rep_ptr
     real(kind=dp), dimension(0:NUM_RH_STEP, 13) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_H2O, idx_Na_p, idx_Na_p_act, idx_Cl_m, &
             idx_Cl_m_act, idx_Ca_pp, idx_Ca_pp_act, idx_H2O_aq, idx_H2O_act, &
-            i_RH, i_spec, idx_phase, idx_aero_rep
+            i_RH, i_spec, idx_phase
     real(kind=dp) :: RH_step, RH, ppm_to_RH, molal_NaCl, molal_CaCl2, &
             NaCl_conc, CaCl2_conc, water_NaCl, water_CaCl2, temp, pressure 
 
@@ -114,20 +116,20 @@ contains
     call phlex_state%update_env_state()
 
     ! Find the aerosol representation
-    call assert(110830690, size(phlex_core%aero_rep).eq.3)
-    idx_aero_rep = 2
+    key = "my aero rep 2"
+    call assert(110830690, phlex_core%get_aero_rep(key, aero_rep_ptr))
 
     ! Get species indices
     key = "H2O"
     idx_H2O = phlex_core%chem_spec_data%gas_state_id(key);
     key = "aqueous aerosol.H2O_aq"
-    idx_H2O_aq = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_H2O_aq = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.Na_p"
-    idx_Na_p = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_Na_p = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.Cl_m"
-    idx_Cl_m = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_Cl_m = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.Ca_pp"
-    idx_Ca_pp = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_Ca_pp = aero_rep_ptr%spec_state_id(key);
 
     ! Make sure the expected species are in the model
     call assert(213525011, idx_H2O.gt.0)

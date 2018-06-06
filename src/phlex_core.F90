@@ -101,9 +101,9 @@ module pmc_phlex_core
     !> Chemical species data
     type(chem_spec_data_t), pointer :: chem_spec_data => null()
     !> Sub models
-    type(sub_model_data_ptr), pointer :: sub_model(:) => null()
+    type(sub_model_data_ptr), pointer, private :: sub_model(:) => null()
     !> Aerosol representations
-    type(aero_rep_data_ptr), pointer :: aero_rep(:) => null()
+    type(aero_rep_data_ptr), pointer, private :: aero_rep(:) => null()
     !> Aerosol phases
     type(aero_phase_data_ptr), pointer :: aero_phase(:) => null()
     !> Size of the state array
@@ -127,28 +127,13 @@ module pmc_phlex_core
     procedure :: load
     !> Initialize the model
     procedure :: initialize
-    !> Get a pointer to a mechanism by its name
+    !> Get a pointer to a mechanism by name
     procedure :: get_mechanism
+    !> Get a pointer to a sub-model by name
+    procedure :: get_sub_model
+    !> Get a pointer to an aerosol representation by name
+    procedure :: get_aero_rep
     
-    
-    !> Find a sub-model index by name
-    procedure :: find_sub_model_id_by_name
-    !> Find a sub-model by name
-    procedure :: find_sub_model_by_name
-    !> Find a sub-model or it's id
-    generic :: find_sub_model => find_sub_model_id_by_name, &
-            find_sub_model_by_name
-    !> Add a sub-model to the model
-    procedure :: add_sub_model
-    !> Find an aerosol representation index by name
-    procedure :: find_aero_rep_id_by_name
-    !> Find an aerosol representation by name
-    procedure :: find_aero_rep_by_name
-    !> Find an aerosol representation or it's id
-    generic :: find_aero_rep => find_aero_rep_id_by_name, &
-            find_aero_rep_by_name
-    !> Add an aerosol representation to the model
-    procedure :: add_aero_rep
     !> Find an aerosol phase by name
     procedure :: find_aero_phase
     !> Add an aerosol phase to the model
@@ -181,6 +166,10 @@ module pmc_phlex_core
     ! Private functions
     !> Add a mechanism to the model
     procedure, private :: add_mechanism
+    !> Add a sub-model to the model
+    procedure, private :: add_sub_model
+    !> Add an aerosol representation to the model
+    procedure, private :: add_aero_rep
   end type phlex_core_t
 
   !> Constructor for phlex_core_t
@@ -366,15 +355,17 @@ contains
     type(sub_model_data_ptr), pointer :: new_sub_model(:)
     type(sub_model_factory_t) :: sub_model_factory
     type(sub_model_data_ptr) :: sub_model_ptr
+    class(sub_model_data_t), pointer :: existing_sub_model_ptr
 
     type(aero_rep_data_ptr), pointer :: new_aero_rep(:)
     type(aero_rep_factory_t) :: aero_rep_factory
     type(aero_rep_data_ptr) :: aero_rep_ptr
+    class(aero_rep_data_t), pointer :: existing_aero_rep_ptr
 
     type(aero_phase_data_ptr), pointer :: new_aero_phase(:)
     type(aero_phase_data_t), pointer :: aero_phase
 
-    integer(kind=i_kind) :: i_sub_model, i_rep, i_phase
+    integer(kind=i_kind) :: i_rep, i_phase
     logical :: found
 
     j_obj => null()
@@ -412,9 +403,9 @@ contains
         else if (str_val(1:8).eq.'AERO_REP') then
           aero_rep_ptr%val => aero_rep_factory%load(json, j_obj)
           str_val = aero_rep_ptr%val%name()
-          if (this%find_aero_rep(str_val, i_rep)) then
+          if (this%get_aero_rep(str_val, existing_aero_rep_ptr)) then
             deallocate(aero_rep_ptr%val)
-            call this%aero_rep(i_rep)%val%load(json, j_obj)
+            call existing_aero_rep_ptr%load(json, j_obj)
           else
             allocate(new_aero_rep(size(this%aero_rep)+1))
             new_aero_rep(1:size(this%aero_rep)) = this%aero_rep(1:size(this%aero_rep))
@@ -442,9 +433,9 @@ contains
         else if (str_val(1:9).eq.'SUB_MODEL') then
           sub_model_ptr%val => sub_model_factory%load(json, j_obj)
           str_val = sub_model_ptr%val%name()
-          if (this%find_sub_model(str_val, i_sub_model)) then
+          if (this%get_sub_model(str_val, existing_sub_model_ptr)) then
             deallocate(sub_model_ptr%val)
-            call this%sub_model(i_sub_model)%val%load(json, j_obj)
+            call existing_sub_model_ptr%load(json, j_obj)
           else
             allocate(new_sub_model(size(this%sub_model)+1))
             new_sub_model(1:size(this%sub_model)) = this%sub_model(1:size(this%sub_model))
@@ -588,36 +579,9 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Find an sub-model id by name in the model data
-  logical function find_sub_model_id_by_name(this, sub_model_name, &
-                  sub_model_id) result(found)
-
-    !> Model data
-    class(phlex_core_t), intent(in) :: this
-    !> Sub model name to search for
-    character(len=:), allocatable, intent(in) :: sub_model_name
-    !> Index of the sub-model in the array
-    integer(kind=i_kind), intent(out) :: sub_model_id
-
-    found = .false.
-    sub_model_id = 0
-    if (size(this%sub_model).eq.0) return
-
-    do sub_model_id = 1, size(this%sub_model)
-      if (this%sub_model(sub_model_id)%val%name().eq.sub_model_name) then
-        found = .true.
-        return
-      end if
-    end do
-    sub_model_id = 0
-
-  end function find_sub_model_id_by_name
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Find an sub-model by name in the model data
-  logical function find_sub_model_by_name(this, sub_model_name, sub_model) &
-                  result(found)
+  logical function get_sub_model(this, sub_model_name, sub_model) &
+            result (found)
 
     !> Model data
     class(phlex_core_t), intent(in) :: this
@@ -626,15 +590,20 @@ contains
     !> Sub model
     class(sub_model_data_t), pointer, intent(out) :: sub_model
 
-    integer(kind=i_kind) :: sub_model_id
+    integer(kind=i_kind) :: i_sub_model
 
+    found = .false.
     sub_model => null()
-    found = this%find_sub_model_id_by_name(sub_model_name, sub_model_id)
-    if (.not.found) return
-    
-    sub_model => this%sub_model(sub_model_id)%val
+    if (.not.associated(this%sub_model)) return
+    do i_sub_model = 1, size(this%sub_model)
+      if (this%sub_model(i_sub_model)%val%name().eq.sub_model_name) then
+        sub_model => this%sub_model(i_sub_model)%val
+        found = .true.
+        return
+      end if
+    end do
 
-  end function find_sub_model_by_name
+  end function get_sub_model
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -662,52 +631,30 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Find an aerosol representation id by name in the model data
-  logical function find_aero_rep_id_by_name(this, rep_name, rep_id) &
-                  result(found)
+  !> Get a pointer to an aerosol representation by name in the model data
+  logical function get_aero_rep(this, aero_rep_name, aero_rep) result(found)
 
     !> Model data
     class(phlex_core_t), intent(in) :: this
     !> Aerosol representation name to search for
-    character(len=:), allocatable, intent(in) :: rep_name
-    !> Index of the representation in the array
-    integer(kind=i_kind), intent(out) :: rep_id
+    character(len=:), allocatable, intent(in) :: aero_rep_name
+    !> Aerosol representation
+    class(aero_rep_data_t), pointer, intent(out) :: aero_rep
+
+    integer(kind=i_kind) :: i_aero_rep
 
     found = .false.
-    rep_id = 0
-    if (size(this%aero_rep).eq.0) return
-
-    do rep_id = 1, size(this%aero_rep)
-      if (this%aero_rep(rep_id)%val%name().eq.rep_name) then
+    aero_rep => null()
+    if (.not.associated(this%aero_rep)) return
+    do i_aero_rep = 1, size(this%aero_rep)
+      if (this%aero_rep(i_aero_rep)%val%name().eq.aero_rep_name) then
+        aero_rep => this%aero_rep(i_aero_rep)%val
         found = .true.
         return
       end if
     end do
-    rep_id = 0
 
-  end function find_aero_rep_id_by_name
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Find an aerosol representation by name in the model data
-  logical function find_aero_rep_by_name(this, rep_name, rep) result(found)
-
-    !> Model data
-    class(phlex_core_t), intent(in) :: this
-    !> Aerosol representation name to search for
-    character(len=:), allocatable, intent(in) :: rep_name
-    !> Aerosol representation
-    class(aero_rep_data_t), pointer, intent(out) :: rep
-
-    integer(kind=i_kind) :: rep_id
-
-    rep => null()
-    found = this%find_aero_rep_id_by_name(rep_name, rep_id)
-    if (.not.found) return
-    
-    rep => this%aero_rep(rep_id)%val
-
-  end function find_aero_rep_by_name
+  end function get_aero_rep
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

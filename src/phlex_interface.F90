@@ -98,7 +98,7 @@ contains
     integer(kind=i_kind) :: i_spec
 
     ! Set the aerosol representation state in phlex chem
-    associate (aero_rep => phlex_core%aero_rep(aero_data%phlex_rep_id)%val)
+    associate (aero_rep => aero_data%aero_rep_ptr)
 
     select type (aero_rep)
       type is (aero_rep_single_particle_t)
@@ -134,7 +134,7 @@ contains
     integer(kind=i_kind) :: i_spec
 
     ! Disassociate the aerosol representation state in phlex chem
-    associate (aero_rep => phlex_core%aero_rep(aero_data%phlex_rep_id)%val)
+    associate (aero_rep => aero_data%aero_rep_ptr)
 
     select type (aero_rep)
       type is (aero_rep_single_particle_t)

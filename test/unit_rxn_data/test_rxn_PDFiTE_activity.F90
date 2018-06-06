@@ -15,6 +15,7 @@ program pmc_test_PDFiTE_activity
                                               warn_msg
   use pmc_phlex_core
   use pmc_phlex_state
+  use pmc_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_aero_rep_single_particle
 #ifdef PMC_USE_JSON
@@ -75,10 +76,11 @@ contains
     character(len=:), allocatable :: input_file_path, key
     type(string_t), allocatable, dimension(:) :: output_file_path
 
+    class(aero_rep_data_t), pointer :: aero_rep_ptr
     real(kind=dp), dimension(0:NUM_RH_STEP, 28) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_H2O, idx_H2O_aq, idx_H_p, idx_NH4_p, &
             idx_SO4_mm, idx_NO3_m, idx_NH42_SO4, idx_NH4_NO3, idx_H_NO3, &
-            idx_H2_SO4,  idx_phase, idx_aero_rep, i_RH, i_spec
+            idx_H2_SO4,  idx_phase, i_RH, i_spec
     real(kind=dp) :: time_step, time, ppm_to_RH, omega, ln_gamma, &
             HNO3_LRH_B0, HNO3_LRH_B1, HNO3_LRH_B2, HNO3_LRH_B3, HNO3_LRH_B4, &
             HNO3_HRH_B0, HNO3_HRH_B1, HNO3_HRH_B2, HNO3_HRH_B3, &
@@ -118,30 +120,30 @@ contains
     call phlex_state%update_env_state()
 
     ! Find the aerosol representation
-    call assert(917299782, size(phlex_core%aero_rep).eq.3)
-    idx_aero_rep = 2
+    key = "my aero rep 2"
+    call assert(917299782, phlex_core%get_aero_rep(key, aero_rep_ptr))
 
     ! Get species indices
     key = "H2O"
     idx_H2O = phlex_core%chem_spec_data%gas_state_id(key);
     key = "aqueous aerosol.H2O_aq"
-    idx_H2O_aq = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_H2O_aq = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.H_p"
-    idx_H_p = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_H_p = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.NH4_p"
-    idx_NH4_p = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_NH4_p = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.SO4_mm"
-    idx_SO4_mm = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_SO4_mm = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.NO3_m"
-    idx_NO3_m = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_NO3_m = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.(NH4)2-SO4"
-    idx_NH42_SO4 = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_NH42_SO4 = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.NH4-NO3"
-    idx_NH4_NO3 = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_NH4_NO3 = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.H-NO3"
-    idx_H_NO3 = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_H_NO3 = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.H2-SO4"
-    idx_H2_SO4 = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_H2_SO4 = aero_rep_ptr%spec_state_id(key);
 
     ! Make sure the expected species are in the model
     call assert(447873764, idx_H2O.gt.0)

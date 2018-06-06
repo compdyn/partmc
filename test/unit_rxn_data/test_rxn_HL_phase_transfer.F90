@@ -15,6 +15,7 @@ program pmc_test_HL_phase_transfer
                                               warn_msg
   use pmc_phlex_core
   use pmc_phlex_state
+  use pmc_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_aero_rep_single_particle
 #ifdef PMC_USE_JSON
@@ -78,6 +79,7 @@ contains
     character(len=:), allocatable :: input_file_path
     type(string_t), allocatable, dimension(:) :: output_file_path
 
+    class(aero_rep_data_t), pointer :: aero_rep_ptr
     real(kind=dp), dimension(0:NUM_TIME_STEP, 11) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_phase, idx_aero_rep, idx_O3, idx_O3_aq, &
             idx_H2O2, idx_H2O2_aq, idx_H2O_aq, i_time, i_spec
@@ -121,16 +123,14 @@ contains
     call phlex_core%initialize()
 
     ! Find the aerosol representation
-    call assert(116793129, size(phlex_core%aero_rep).eq.3)
-    idx_aero_rep = 1
-    associate (aero_rep => phlex_core%aero_rep(idx_aero_rep)%val)
-      select type (aero_rep)
-        type is (aero_rep_single_particle_t)
-          call aero_rep%set_id(aero_rep_external_id)
-        class default
-          call die_msg(866102326, "Incorrect aerosol representation type")
-      end select
-    end associate
+    key = "my aero rep 2"
+    call assert(116793129, phlex_core%get_aero_rep(key, aero_rep_ptr))
+    select type (aero_rep_ptr)
+      type is (aero_rep_single_particle_t)
+        call aero_rep_ptr%set_id(aero_rep_external_id)
+      class default
+        call die_msg(866102326, "Incorrect aerosol representation type")
+    end select
 
     ! Initialize the solver
     call phlex_core%solver_initialize()
@@ -155,13 +155,13 @@ contains
     key = "O3"
     idx_O3 = phlex_core%chem_spec_data%gas_state_id(key);
     key = "aqueous aerosol.O3_aq"
-    idx_O3_aq = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_O3_aq = aero_rep_ptr%spec_state_id(key);
     key = "H2O2"
     idx_H2O2 = phlex_core%chem_spec_data%gas_state_id(key);
     key = "aqueous aerosol.H2O2_aq"
-    idx_H2O2_aq = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_H2O2_aq = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.H2O_aq"
-    idx_H2O_aq = phlex_core%aero_rep(idx_aero_rep)%val%spec_state_id(key);
+    idx_H2O_aq = aero_rep_ptr%spec_state_id(key);
 
     ! Make sure the expected species are in the model
     call assert(202593939, idx_O3.gt.0)

@@ -13,6 +13,7 @@ program pmc_test_sub_module_UNIFAC
                                               warn_msg
   use pmc_phlex_core
   use pmc_phlex_state
+  use pmc_aero_rep_data
 #ifdef PMC_USE_JSON
   use json_module
 #endif
@@ -75,10 +76,10 @@ contains
     character(len=:), allocatable :: input_file_path, key
     type(string_t), allocatable, dimension(:) :: output_file_path
 
+    class(aero_rep_data_t), pointer :: aero_rep_ptr
     real(kind=dp), dimension(0:NUM_MASS_FRAC_STEP, 15) :: model_conc, &
             calc_conc, model_activity, calc_activity
-    integer(kind=i_kind) :: idx_butanol, idx_water, i_mass_frac, i_spec, &
-            i_aero_rep
+    integer(kind=i_kind) :: idx_butanol, idx_water, i_mass_frac, i_spec
     integer(kind=c_int), target :: idx_butanol_c, idx_water_c, &
             idx_butanol_act_c, idx_water_act_c
     real(kind=dp) :: mass_frac_step, mole_frac, mass_frac
@@ -235,14 +236,14 @@ contains
     call phlex_state%update_env_state()
 
     ! Find the aerosol representation
-    call assert(217936937, size(phlex_core%aero_rep).eq.3)
-    i_aero_rep = 2
+    key = "my second aero rep"
+    call assert(217936937, phlex_core%get_aero_rep(key, aero_rep_ptr))
 
     ! Get species indices
     key = "n-butanol/water mixture.n-butanol"
-    idx_butanol = phlex_core%aero_rep(i_aero_rep)%val%spec_state_id(key);
+    idx_butanol = aero_rep_ptr%spec_state_id(key);
     key = "n-butanol/water mixture.water"
-    idx_water = phlex_core%aero_rep(i_aero_rep)%val%spec_state_id(key);
+    idx_water = aero_rep_ptr%spec_state_id(key);
 
     ! Make sure the expected species are in the model
     call assert(486977094, idx_butanol.gt.0)

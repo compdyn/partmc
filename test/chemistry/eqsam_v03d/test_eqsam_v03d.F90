@@ -166,7 +166,7 @@ contains
     key = "init conc"
     phase_name = "aqueous aerosol"
     rep_name = "single particle"
-    call assert(522998221, phlex_core%find_aero_rep(rep_name, aero_rep))
+    call assert(522998221, phlex_core%get_aero_rep(rep_name, aero_rep))
     spec_names = phlex_core%chem_spec_data%get_spec_names()
     do i_spec = 1, size(spec_names)
       call assert(929748071, phlex_core%chem_spec_data%get_property_set( &

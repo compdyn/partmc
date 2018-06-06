@@ -202,6 +202,8 @@ module pmc_aero_rep_factory
   use pmc_aero_rep_single_particle
   use pmc_aero_rep_modal_binned_mass
 
+  use iso_c_binding
+
   implicit none
   private
 
@@ -224,6 +226,8 @@ module pmc_aero_rep_factory
     procedure :: load
     !> Get the aerosol representation type
     procedure :: get_type
+    !> Get a new update data object
+    procedure :: new_update_data
     !> Determine the number of bytes required to pack an given aerosol
     !! representation
     procedure :: pack_size
@@ -329,6 +333,29 @@ contains
     end select
 
   end function get_type
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get a new update data object
+  subroutine new_update_data(this, update_data)
+
+    !> Aerosol representation factory
+    class(aero_rep_factory_t), intent(in) :: this
+    !> Update data object
+    class(aero_rep_update_data_t), intent(out) :: update_data
+
+    select type (update_data)
+      type is (aero_rep_update_data_single_particle_radius_t)
+        update_data = aero_rep_update_data_single_particle_radius_t( &
+                AERO_REP_SINGLE_PARTICLE)
+      type is (aero_rep_update_data_single_particle_number_t)
+        update_data = aero_rep_update_data_single_particle_number_t( &
+                AERO_REP_SINGLE_PARTICLE)
+      class default
+        call die_msg(916635086, "Internal error - update data type missing.")
+    end select
+
+  end subroutine new_update_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

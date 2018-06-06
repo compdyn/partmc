@@ -42,13 +42,16 @@ module pmc_aero_rep_single_particle
   use pmc_aero_phase_data
   use pmc_phlex_state
 
+  use iso_c_binding
+
   implicit none
   private
 
 #define NUM_PHASE_ this%condensed_data_int(1)
+#define AERO_REP_ID_ this%condensed_data_int(2)
 #define RADIUS_ this%condensed_data_real(1)
 #define NUMBER_CONC_ this%condensed_data_real(2)
-#define NUM_INT_PROP_ 1
+#define NUM_INT_PROP_ 2
 #define NUM_REAL_PROP_ 2
 #define PHASE_STATE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define PHASE_MODEL_DATA_ID_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_PHASE_+x)
@@ -59,7 +62,9 @@ module pmc_aero_rep_single_particle
   integer(kind=i_kind), parameter, public :: UPDATE_RADIUS = 0
   integer(kind=i_kind), parameter, public :: UPDATE_NUMBER_CONC = 1
 
-  public :: aero_rep_single_particle_t
+  public :: aero_rep_single_particle_t, &
+            aero_rep_update_data_single_particle_radius_t, &
+            aero_rep_update_data_single_particle_number_t
 
   !> Single particle aerosol representation
   !!
@@ -75,6 +80,9 @@ module pmc_aero_rep_single_particle
     !! the input files have been read in. It ensures all data required during
     !! the model run are included in the condensed data arrays.
     procedure :: initialize
+    !> Set an id for this aerosol representation for use with updates from
+    !! external modules
+    procedure :: set_id
     !> Get the size of the section of the
     !! \c pmc_phlex_state::phlex_state_t::state_var array required for this
     !! aerosol representation.
@@ -118,6 +126,94 @@ module pmc_aero_rep_single_particle
   interface aero_rep_single_particle_t
     procedure :: constructor
   end interface aero_rep_single_particle_t
+
+  !> Single particle update radius object
+  type, extends(aero_rep_update_data_t) :: &
+            aero_rep_update_data_single_particle_radius_t
+  private
+    logical :: is_malloced = .false.
+  contains
+    !> Update the radius
+    procedure :: set_radius => update_data_set_radius
+    !> Finalize the radius update data
+    final :: update_data_radius_finalize
+  end type aero_rep_update_data_single_particle_radius_t
+
+  !> Constructor for aero_rep_update_data_single_particle_radius_t
+  interface aero_rep_update_data_single_particle_radius_t
+    procedure :: update_data_radius_constructor
+  end interface aero_rep_update_data_single_particle_radius_t
+
+  !> Single particle update number concentration object
+  type, extends(aero_rep_update_data_t) :: &
+            aero_rep_update_data_single_particle_number_t
+  private
+    logical :: is_malloced = .false.
+  contains
+    !> Update the number
+    procedure :: set_number => update_data_set_number
+    !> Finalize the number update data
+    final :: update_data_number_finalize
+  end type aero_rep_update_data_single_particle_number_t
+
+  !> Constructor for aero_rep_update_data_single_particle_number_t
+  interface aero_rep_update_data_single_particle_number_t
+    procedure :: update_data_number_constructor
+  end interface aero_rep_update_data_single_particle_number_t
+
+  !> Interface to c aerosol representation functions
+  interface
+
+    !> Allocate space for a radius update
+    function aero_rep_single_particle_create_radius_update_data() &
+              result (update_data) bind (c)
+      use iso_c_binding
+      !> Allocated update_data object
+      type(c_ptr) :: update_data
+    end function aero_rep_single_particle_create_radius_update_data
+
+    !> Set a new particle radius
+    subroutine aero_rep_single_particle_set_radius_update_data(update_data, &
+              aero_rep_id, radius) bind (c)
+      use iso_c_binding
+      !> Update data
+      type(c_ptr), value :: update_data
+      !> Aerosol representation id from 
+      !! pmc_aero_rep_single_particle::aero_rep_single_particle_t::set_id
+      integer(kind=c_int), value :: aero_rep_id
+      !> New radius (m)
+      real(kind=c_double), value :: radius
+    end subroutine aero_rep_single_particle_set_radius_update_data
+
+    !> Allocate space for a number update
+    function aero_rep_single_particle_create_number_update_data() &
+              result (update_data) bind (c)
+      use iso_c_binding
+      !> Allocated update_data object
+      type(c_ptr) :: update_data
+    end function aero_rep_single_particle_create_number_update_data
+
+    !> Set a new particle number concentration
+    subroutine aero_rep_single_particle_set_number_update_data(update_data, &
+              aero_rep_id, number_conc) bind (c)
+      use iso_c_binding
+      !> Update data
+      type(c_ptr), value :: update_data
+      !> Aerosol representation id from 
+      !! pmc_aero_rep_single_particle::aero_rep_single_particle_t::set_id
+      integer(kind=c_int), value :: aero_rep_id
+      !> New number (m)
+      real(kind=c_double), value :: number_conc
+    end subroutine aero_rep_single_particle_set_number_update_data
+
+    !> Free an update data object
+    pure subroutine aero_rep_free_update_data(update_data) bind (c)
+      use iso_c_binding
+      !> Update data
+      type(c_ptr), value :: update_data
+    end subroutine aero_rep_free_update_data
+
+  end interface
 
 contains
 
@@ -188,6 +284,21 @@ contains
     end do
 
   end subroutine initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Set an id for this aerosol representation that can be used by external
+  !! modules to update the particle radius and number concentration
+  subroutine set_id(this, new_id)
+
+    !> Aerosol representation data
+    class(aero_rep_single_particle_t), intent(inout) :: this
+    !> New id
+    integer(kind=i_kind), intent(in) :: new_id
+
+    AERO_REP_ID_ = new_id
+
+  end subroutine set_id
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -424,7 +535,102 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Constructor for aero_rep_update_data_single_particle_radius_t
+  function update_data_radius_constructor(aero_rep_type) result(new_obj)
+
+    !> New update data object
+    type(aero_rep_update_data_single_particle_radius_t) :: new_obj
+    !> Aerosol representaiton id
+    integer(kind=i_kind), intent(in) :: aero_rep_type
+
+    new_obj%aero_rep_type = int(aero_rep_type, kind=c_int)
+    new_obj%update_data = aero_rep_single_particle_create_radius_update_data()
+    new_obj%is_malloced = .true.
+
+  end function update_data_radius_constructor
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Set packed update data for particle radius
+  subroutine update_data_set_radius(this, aero_rep_id, radius)
+
+    !> Update data
+    class(aero_rep_update_data_single_particle_radius_t), intent(inout) :: &
+            this
+    !> Aerosol representation id from
+    !! pmc_aero_rep_single_particle::aero_rep_single_particle_t::set_id
+    integer(kind=i_kind), intent(in) :: aero_rep_id
+    !> Updated radius
+    real(kind=dp), intent(in) :: radius
+
+    call aero_rep_single_particle_set_radius_update_data(this%get_data(), &
+            aero_rep_id, radius)
+
+  end subroutine update_data_set_radius
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Finalize a radius update data object
+  elemental subroutine update_data_radius_finalize(this)
+
+    !> Update data object to free
+    type(aero_rep_update_data_single_particle_radius_t), intent(inout) :: this
+
+    if (this%is_malloced) call aero_rep_free_update_data(this%update_data)
+
+  end subroutine update_data_radius_finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Constructor for aero_rep_update_data_single_particle_number_t
+  function update_data_number_constructor(aero_rep_type) result(new_obj)
+
+    !> New update data object
+    type(aero_rep_update_data_single_particle_number_t) :: new_obj
+    !> Aerosol representaiton id
+    integer(kind=i_kind), intent(in) :: aero_rep_type
+
+    new_obj%aero_rep_type = int(aero_rep_type, kind=c_int)
+    new_obj%update_data = aero_rep_single_particle_create_number_update_data()
+    new_obj%is_malloced = .true.
+
+  end function update_data_number_constructor
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Set packed update data for particle number
+  subroutine update_data_set_number(this, aero_rep_id, number_conc)
+
+    !> Update data
+    class(aero_rep_update_data_single_particle_number_t), intent(inout) :: &
+            this
+    !> Aerosol representation id from
+    !! pmc_aero_rep_single_particle::aero_rep_single_particle_t::set_id
+    integer(kind=i_kind), intent(in) :: aero_rep_id
+    !> Updated number
+    real(kind=dp), intent(in) :: number_conc
+
+    call aero_rep_single_particle_set_number_update_data(this%get_data(), &
+            aero_rep_id, number_conc)
+
+  end subroutine update_data_set_number
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Finalize a number update data object
+  elemental subroutine update_data_number_finalize(this)
+
+    !> Update data object to free
+    type(aero_rep_update_data_single_particle_number_t), intent(inout) :: this
+
+    if (this%is_malloced) call aero_rep_free_update_data(this%update_data)
+
+  end subroutine update_data_number_finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #undef NUM_PHASE_
+#undef AERO_REP_ID_
 #undef RADIUS_
 #undef NUMBER_CONC_
 #undef NUM_INT_PROP_

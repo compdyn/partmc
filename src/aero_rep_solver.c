@@ -411,12 +411,11 @@ void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
 
 /** \brief Update aerosol representation data
  *
- * \param aero_rep_id ID of aerosol representation to update
- * \param update_type Aerosol representation-specific update type
+ * \param update_aero_rep_type Aerosol representation type to update
  * \param update_data Pointer to data needed for update
  * \param solver_data Pointer to solver data
  */
-void aero_rep_update_data(int aero_rep_id, int update_type, void *update_data,
+void aero_rep_update_data(int update_aero_rep_type, void *update_data,
 		void *solver_data)
 {
   ModelData *model_data = (ModelData*)
@@ -428,46 +427,38 @@ void aero_rep_update_data(int aero_rep_id, int update_type, void *update_data,
   int *aero_rep_data = (int*) (model_data->aero_rep_data);
   int n_aero_rep = *(aero_rep_data++);
 
-  // Loop through the aerosol representations to find the requested
-  // representation data, advancing the aero_rep_data pointer each time
-  int i_aero_rep = 0;
-  for (; i_aero_rep<n_aero_rep && i_aero_rep<aero_rep_id; i_aero_rep++) {
+  // Loop through the aerosol representations advancing the pointer each time
+  for (int i_aero_rep=0; i_aero_rep<n_aero_rep; i_aero_rep++) {
 
     // Get the aerosol representation type
     int aero_rep_type = *(aero_rep_data++);
 
-    // Skip reaction
-    switch (aero_rep_type) {
-      case AERO_REP_MODAL_BINNED_MASS :
-	aero_rep_data = (int*) aero_rep_modal_binned_mass_skip(
-                  (void*)aero_rep_data);
-        break;
-      case AERO_REP_SINGLE_PARTICLE :
-	aero_rep_data = (int*) aero_rep_single_particle_skip(
-                  (void*)aero_rep_data);
-        break;
+    // Skip aerosol representations of other types
+    if (aero_rep_type!=update_aero_rep_type) {
+      switch (aero_rep_type) {
+        case AERO_REP_MODAL_BINNED_MASS :
+	  aero_rep_data = (int*) aero_rep_modal_binned_mass_skip(
+                    (void*)aero_rep_data);
+          break;
+        case AERO_REP_SINGLE_PARTICLE :
+	  aero_rep_data = (int*) aero_rep_single_particle_skip(
+                    (void*)aero_rep_data);
+          break;
+      }
+
+    // ... otherwise, call the update function for reaction types that have them
+    } else {
+      switch (aero_rep_type) {
+        case AERO_REP_MODAL_BINNED_MASS :
+          aero_rep_data = (int*) aero_rep_modal_binned_mass_update_data( 
+	    		  (void*)update_data, (void*)aero_rep_data);
+          break;
+        case AERO_REP_SINGLE_PARTICLE :
+          aero_rep_data = (int*) aero_rep_single_particle_update_data( 
+	    		  (void*)update_data, (void*)aero_rep_data);
+          break;
+      }
     }
-  }
-
-  if (i_aero_rep==n_aero_rep) {
-    printf("\nERROR: invalid aerosol representation index: %d out of %d\n",
-              aero_rep_id, n_aero_rep);
-    exit(1);
-  }
-
-  // Get the aerosol representation type
-  int aero_rep_type = *(aero_rep_data++);
-
-  // Update the data of specified representation
-  switch (aero_rep_type) {
-    case AERO_REP_MODAL_BINNED_MASS :
-      aero_rep_data = (int*) aero_rep_modal_binned_mass_update_data(update_type, 
-			  update_data, (void*)aero_rep_data);
-      break;
-    case AERO_REP_SINGLE_PARTICLE :
-      aero_rep_data = (int*) aero_rep_single_particle_update_data(update_type, 
-			  update_data, (void*)aero_rep_data);
-      break;
   }
 #endif
 }
@@ -509,5 +500,14 @@ void aero_rep_print_data(void *solver_data)
     }
   }
 #endif
+}
+
+/** \brief Free an update data object
+ *
+ * \param update_data Object to free
+ */
+void aero_rep_free_update_data(void *update_data)
+{
+  free(update_data);
 }
 

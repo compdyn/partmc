@@ -134,7 +134,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the sub-model type as a constant
-  integer(kind=i_kind) function get_type(this, sub_model) result (sub_model_data_type)
+  integer(kind=i_kind) function get_type(this, sub_model) &
+            result (sub_model_data_type)
 
     !> Sub-model factory
     class(sub_model_factory_t), intent(in) :: this

@@ -16,10 +16,14 @@
 #define TEMPERATURE_K_ env_data[0]
 #define PRESSURE_PA_ env_data[1]
 
+#define UPDATE_RADIUS 0
+#define UPDATE_NUMBER 1
+
 #define NUM_PHASE_ int_data[0]
+#define AERO_REP_ID_ int_data[1]
 #define RADIUS_ float_data[0]
 #define NUMBER_CONC_ float_data[1]
-#define NUM_INT_PROP_ 1
+#define NUM_INT_PROP_ 2
 #define NUM_FLOAT_PROP_ 2
 #define PHASE_STATE_ID_(x) (int_data[NUM_INT_PROP_+x]-1)
 #define PHASE_MODEL_DATA_ID_(x) (int_data[NUM_INT_PROP_+NUM_PHASE_+x]-1)
@@ -27,10 +31,6 @@
 #define PHASE_AVG_MW_(x) (float_data[NUM_FLOAT_PROP_+NUM_PHASE_+x])
 #define INT_DATA_SIZE_ (NUM_INT_PROP_+2*NUM_PHASE_)
 #define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+2*NUM_PHASE_)
-
-// Update types (These must match values in aero_rep_single_particle.F90)
-#define UPDATE_RADIUS 0
-#define UPDATE_NUMBER_CONC 1
 
 /** \brief Flag elements on the state array used by this aerosol representation
  *
@@ -208,37 +208,42 @@ void * aero_rep_single_particle_get_aero_phase_mass(int aero_phase_idx,
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
-/** \brief Update the aerosol representation data
+/** \brief Update aerosol representation data
  *
- *  The single particle aerosol representation has two update types:
+ * Single particle aerosol representation update data is structured as follows:
  *
- *   - \b UPDATE_RADIUS : where the update data should point to a single
- *  floating-point variable holding the new particle radius, \f$r\f$
- *  (\f$\mbox{\si{metre}}\f$)
+ *  - \b int aero_rep_id (Id of one or more aerosol representations set by the
+ *       host model using the 
+ *       pmc_aero_rep_single_particle::aero_rep_single_particle_t::set_id
+ *       function prior to initializing the solver.)
+ *  - \b int update_type (Type of update to perform. Can be UPDATE_RADIUS or
+ *       UPDATE_NUMBER.)
+ *  - \b double new_value (Either the new radius (m) or the new number
+ *       concentration (\f$\mbox{\si{\#\per\cubic\centi\metre}}\f$).)
  *
- *   - \b UPDATE_NUMBER_CONC : where the update data should point to a single
- *  floating-point variable holding the new particle number concentration,
- *  \f$n\f$ (\f$\mbox{\si{\#\per\cubic\centi\metre}}\f$)
- *
- * \param update_type The type of update to perform
- * \param update_data Pointer to the data required for the update
+ * \param update_data Pointer to the updated aerosol representation data
  * \param aero_rep_data Pointer to the aerosol representation data
  * \return The aero_rep_data pointer advanced by the size of the aerosol
- *         representation
+ *        representaiton data
  */
-void * aero_rep_single_particle_update_data(int update_type, void *update_data,
+void * aero_rep_single_particle_update_data(void *update_data,
           void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
 
-  switch (update_type) {
-    case UPDATE_RADIUS :
-      RADIUS_ = *((realtype*)update_data);
-      break;
-    case UPDATE_NUMBER_CONC:
-      NUMBER_CONC_ = *((realtype*)update_data);
-      break;
+  int *aero_rep_id = (int*) update_data;
+  int *update_type = (int*) &(aero_rep_id[1]);
+  double *new_value = (double*) &(update_type[1]);
+
+  // Set the new radius or number concentration for matching aerosol
+  // representations
+  if (*aero_rep_id==AERO_REP_ID_ && AERO_REP_ID_!=0) {
+    if (*update_type==UPDATE_RADIUS) {
+      RADIUS_ = (realtype) *new_value;
+    } else if (*update_type==UPDATE_NUMBER) {
+      NUMBER_CONC_ = (realtype) *new_value;
+    }
   }
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
@@ -278,10 +283,76 @@ void * aero_rep_single_particle_skip(void *aero_rep_data)
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
+/** \brief Create update data for new particle radius
+ *
+ * \return Pointer to a new radius update data object
+ */
+void * aero_rep_single_particle_create_radius_update_data()
+{
+  int *update_data = (int*) malloc(2*sizeof(int) + sizeof(double));
+  if (update_data==NULL) {
+    printf("\n\nERROR allocating space for radius update data\n\n");
+    exit(1);
+  }
+  return (void*) update_data;
+}
+
+/** \brief Set radius update data
+ *
+ * \param update_data Pointer to an allocated radius update data object
+ * \param aero_rep_id Id of the aerosol representation(s) to update
+ * \param radius New particle radius
+ */
+void aero_rep_single_particle_set_radius_update_data(void *update_data,
+          int aero_rep_id, double radius)
+{
+  int *new_aero_rep_id = (int*) update_data;
+  int *update_type = (int*) &(new_aero_rep_id[1]);
+  double *new_radius = (double*) &(update_type[1]);
+  *new_aero_rep_id = aero_rep_id;
+  *update_type = UPDATE_RADIUS;
+  *new_radius = radius;
+}
+          
+/** \brief Create update data for new particle number
+ *
+ * \return Pointer to a new number update data object
+ */
+void * aero_rep_single_particle_create_number_update_data()
+{
+  int *update_data = (int*) malloc(2*sizeof(int) + sizeof(double));
+  if (update_data==NULL) {
+    printf("\n\nERROR allocating space for number update data\n\n");
+    exit(1);
+  }
+  return (void*) update_data;
+}
+
+/** \brief Set number update data
+ *
+ * \param update_data Pointer to an allocated number update data object
+ * \param aero_rep_id Id of the aerosol representation(s) to update
+ * \param number_conc New particle number
+ */
+void aero_rep_single_particle_set_number_update_data(void *update_data,
+          int aero_rep_id, double number_conc)
+{
+  int *new_aero_rep_id = (int*) update_data;
+  int *update_type = (int*) &(new_aero_rep_id[1]);
+  double *new_number_conc = (double*) &(update_type[1]);
+  *new_aero_rep_id = aero_rep_id;
+  *update_type = UPDATE_NUMBER;
+  *new_number_conc = number_conc;
+}
+          
 #undef TEMPERATURE_K_
 #undef PRESSURE_PA_
 
+#undef UPDATE_RADIUS
+#undef UPDATE_NUMBER
+
 #undef NUM_PHASE_
+#undef AERO_REP_ID_
 #undef RADIUS_
 #undef NUMBER_CONC_
 #undef NUM_INT_PROP_

@@ -90,15 +90,29 @@ void aero_phase_add_condensed_data(int n_int_param, int n_float_param, int *int_
                 double *float_param, void *solver_data);
 void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
 		int n_float_param, int *int_param, double *float_param, void *solver_data);
-void aero_rep_update_data(int aero_rep_type_to_update, int update_type, void *update_data,
-		void *solver_data);
+void aero_rep_update_data(int update_aero_rep_type, void *update_data, void *solver_data);
 void solver_free(void *solver_data);
 void model_free(ModelData model_data);
 
 /* Update functions */
 void rxn_free_update_data(void *update_data); 
 void * rxn_photolysis_create_rate_update_data();
-void rxn_photolysis_set_rate_update_data(void *update_data, int photo_id, double base_rate);
+void rxn_photolysis_set_rate_update_data(void *update_data, int photo_id,
+          double base_rate);
+
+void aero_rep_free_update_data(void *update_data); 
+void * aero_rep_single_particle_create_radius_update_data();
+void aero_rep_single_particle_set_radius_update_data(void *update_data,
+          int aero_rep_id, double radius);
+void * aero_rep_single_particle_create_number_update_data();
+void aero_rep_single_particle_set_number_update_data(void *update_data,
+          int aero_rep_id, double number_conc);
+void * aero_rep_modal_binned_mass_create_gmd_update_data();
+void aero_rep_modal_binned_mass_set_gmd_update_data(void *update_data,
+          int aero_rep_id, int section_id, double gmd);
+void * aero_rep_modal_binned_mass_create_gsd_update_data();
+void aero_rep_modal_binned_mass_set_gsd_update_data(void *update_data,
+          int aero_rep_id, int section_id, double gsd);
 
 #ifdef PMC_USE_SUNDIALS
 /* Functions called by the solver */

@@ -40,10 +40,12 @@ module pmc_aero_rep_data
   use json_module
 #endif
 
+  use iso_c_binding
+
   implicit none
   private
 
-  public :: aero_rep_data_t, aero_rep_data_ptr
+  public :: aero_rep_data_t, aero_rep_data_ptr, aero_rep_update_data_t
 
   !> Abstract aerosol representation data type
   !!
@@ -137,6 +139,19 @@ module pmc_aero_rep_data
     !> Finalize the pointer
     final :: ptr_finalize
   end type aero_rep_data_ptr
+
+  !> Update cookie
+  type, abstract :: aero_rep_update_data_t
+    !> Aerosol representation type
+    integer(kind=c_int) :: aero_rep_type
+    !> Update data
+    type(c_ptr) :: update_data
+  contains
+    !> Get the aerosol representation type
+    procedure :: get_type => aero_rep_update_data_get_type
+    !> Get the update data
+    procedure :: get_data => aero_rep_update_data_get_data
+  end type aero_rep_update_data_t
 
 interface
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -517,6 +532,34 @@ contains
     if (associated(this%val)) deallocate(this%val)
 
   end subroutine ptr_finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the update data aerosol representation type
+  function aero_rep_update_data_get_type(this) result (aero_rep_type)
+
+    !> Aerosol representation type
+    integer(kind=c_int) :: aero_rep_type
+    !> Update data
+    class(aero_rep_update_data_t), intent(in) :: this
+
+    aero_rep_type = this%aero_rep_type
+
+  end function aero_rep_update_data_get_type
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the update data
+  function aero_rep_update_data_get_data(this) result (update_data)
+
+    !> Update data ptr
+    type(c_ptr) :: update_data
+    !> Update data
+    class(aero_rep_update_data_t), intent(in) :: this
+
+    update_data = this%update_data
+
+  end function aero_rep_update_data_get_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

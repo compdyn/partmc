@@ -102,6 +102,12 @@ contains
     real(kind=dp), parameter :: MW_H2O = 0.01801
     real(kind=dp), parameter :: Dg_ethanol = 9.50d-6
 
+    ! For setting particle radius and number concentration
+    type(aero_rep_factory_t) :: aero_rep_factory
+    type(aero_rep_update_data_single_particle_radius_t) :: radius_update
+    type(aero_rep_update_data_single_particle_number_t) :: number_update
+    integer(kind=i_kind), parameter :: aero_rep_external_id = 42
+
     run_SIMPOL_phase_transfer_test = .true.
 
     ! Set the environmental and aerosol test conditions
@@ -128,6 +134,18 @@ contains
     ! Initialize the model
     call phlex_core%initialize()
 
+    ! Find the aerosol representation
+    call assert(209301925, size(phlex_core%aero_rep).eq.3)
+    idx_aero_rep = 1
+    associate (aero_rep => phlex_core%aero_rep(idx_aero_rep)%val)
+      select type (aero_rep)
+        type is (aero_rep_single_particle_t)
+          call aero_rep%set_id(aero_rep_external_id)
+        class default
+          call die_msg(261298847, "Incorrect aerosol representation type")
+      end select
+    end associate
+
     ! Initialize the solver
     call phlex_core%solver_initialize()
 
@@ -139,19 +157,13 @@ contains
     phlex_state%env_state%pressure = pressure
     call phlex_state%update_env_state()
 
-    ! Find the aerosol representation
-    call assert(209301925, size(phlex_core%aero_rep).eq.3)
-    idx_aero_rep = 1
-
     ! Update the aerosol representation
-    call phlex_core%update_aero_rep_data( &
-            idx_aero_rep, &
-            UPDATE_RADIUS, &
-            c_loc(radius))
-    call phlex_core%update_aero_rep_data( &
-            idx_aero_rep, &
-            UPDATE_NUMBER_CONC, &
-            c_loc(number_conc))
+    call aero_rep_factory%new_update_data(radius_update)
+    call aero_rep_factory%new_update_data(number_update)
+    call radius_update%set_radius(aero_rep_external_id, radius)
+    call number_update%set_number(aero_rep_external_id, number_conc)
+    call phlex_core%update_aero_rep_data(radius_update)
+    call phlex_core%update_aero_rep_data(number_update)
 
     ! Get species indices
     key = "ethanol"

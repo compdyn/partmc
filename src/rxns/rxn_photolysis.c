@@ -112,8 +112,7 @@ void * rxn_photolysis_update_data(void *update_data, void *rxn_data)
   int *photo_id = (int*) update_data;
   double *base_rate = (double*) &(photo_id[1]);
 
-  // Set the base photolysis rate constant (except for rxns where no id has been
-  // set)
+  // Set the base photolysis rate constants for matching reactions
   if (*photo_id==PHOTO_ID_ && PHOTO_ID_!=0) 
           BASE_RATE_ = (realtype) *base_rate;
 

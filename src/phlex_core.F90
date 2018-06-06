@@ -949,8 +949,6 @@ contains
   !! model's photolysis module.
   subroutine update_rxn_data(this, update_data)
 
-    use iso_c_binding
-
     !> Chemical model
     class(phlex_core_t), intent(in) :: this
     !> Update data
@@ -972,33 +970,19 @@ contains
   !! the aerosol condensed data needs updated based on changes in, e.g., 
   !! particle size or number concentration. The update types are aerosol-
   !! representation specific.
-  subroutine update_aero_rep_data(this, aero_rep_id,  update_type, update_data)
-
-    use iso_c_binding
+  subroutine update_aero_rep_data(this, update_data)
 
     !> Chemical model
     class(phlex_core_t), intent(in) :: this
-    !> Aerosol representation index
-    integer(kind=i_kind), intent(in) :: aero_rep_id
-    !> Update type id (see aero_rep_data_t extending types)
-    integer(kind=i_kind), intent(in) :: update_type
-    !> Pointer to new data (the shape of this data depends on the aerosol
-    !! representation and update types)
-    type(c_ptr), intent(in) :: update_data
+    !> Update data
+    class(aero_rep_update_data_t), intent(in) :: update_data
 
-    call assert_msg(846304731, aero_rep_id.gt.0.and. &
-            aero_rep_id.le.size(this%aero_rep), "Invalid aerosol "//&
-            "representation index: "//trim(to_string(aero_rep_id)))
-    
     if (associated(this%solver_data_gas)) &
-            call this%solver_data_gas%update_aero_rep_data(aero_rep_id, &
-            update_type, update_data)
+            call this%solver_data_gas%update_aero_rep_data(update_data)
     if (associated(this%solver_data_aero)) &
-            call this%solver_data_aero%update_aero_rep_data(aero_rep_id, &
-            update_type, update_data)
+            call this%solver_data_aero%update_aero_rep_data(update_data)
     if (associated(this%solver_data_gas_aero)) &
-            call this%solver_data_gas_aero%update_aero_rep_data(aero_rep_id, &
-            update_type, update_data)
+            call this%solver_data_gas_aero%update_aero_rep_data(update_data)
     
   end subroutine update_aero_rep_data
 

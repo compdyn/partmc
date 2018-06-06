@@ -351,10 +351,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get packed update data for photolysis rate constants
+  !> Set packed update data for photolysis rate constants
   subroutine update_data_rate_set(this, photo_id, base_rate)
-
-    use iso_c_binding
 
     !> Update data
     class(rxn_update_data_photolysis_rate_t), intent(inout) :: this

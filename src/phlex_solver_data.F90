@@ -239,16 +239,14 @@ module pmc_phlex_solver_data
     end subroutine aero_rep_add_condensed_data
 
     !> Update aerosol representation data
-    subroutine aero_rep_update_data(aero_rep_id, update_type, update_data, &
-                    solver_data) bind(c)
+    subroutine aero_rep_update_data(aero_rep_type, update_data, solver_data) &
+              bind(c)
       use iso_c_binding
-      !> Aerosol representation to update
-      integer(kind=c_int), value :: aero_rep_id
-      !> Type of update to perform
-      integer(kind=c_int), value :: update_type
-      !> Data need to perform the update
+      !> Aerosol representation type to updateto update
+      integer(kind=c_int), value :: aero_rep_type
+      !> Data required by aerosol representation for updates
       type(c_ptr), value :: update_data
-      !> Pointer to the solver data
+      !> Solver data
       type(c_ptr), value :: solver_data
     end subroutine aero_rep_update_data
 
@@ -692,22 +690,16 @@ contains
 
   !> Update aerosol representation data based on data passed from the host
   !! model related to aerosol properties
-  subroutine update_aero_rep_data(this, aero_rep_id, update_type, &
-                  update_data)
+  subroutine update_aero_rep_data(this, update_data)
 
     !> Solver data
     class(phlex_solver_data_t), intent(inout) :: this
-    !> Aerosol representation id
-    integer(kind=i_kind), intent(in) :: aero_rep_id
-    !> Aerosol representation-specific update type
-    integer(kind=i_kind), intent(in) :: update_type
-    !> Data required to perform update
-    type(c_ptr), intent(in) :: update_data
+    !> Update data
+    class(aero_rep_update_data_t), intent(in) :: update_data
 
     call aero_rep_update_data( &
-            int(aero_rep_id-1, kind=c_int),     & ! Aerosol representation id
-            int(update_type, kind=c_int),       & ! Update type
-            update_data,                        & ! Data needed to perform update
+            update_data%get_type(),             & ! Aerosol representation type
+            update_data%get_data(),             & ! Data needed to perform update
             this%solver_c_ptr                   & ! Pointer to solver data
             )
 

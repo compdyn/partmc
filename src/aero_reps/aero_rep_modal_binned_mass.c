@@ -16,13 +16,17 @@
 #define TEMPERATURE_K_ env_data[0]
 #define PRESSURE_PA_ env_data[1]
 
+#define UPDATE_GMD 0
+#define UPDATE_GSD 1
+
 #define BINNED 1
 #define MODAL 2
 
 #define NUM_SECTION_ (int_data[0])
 #define INT_DATA_SIZE_ (int_data[1])
 #define FLOAT_DATA_SIZE_ (int_data[2])
-#define NUM_INT_PROP_ 3
+#define AERO_REP_ID_ (int_data[3])
+#define NUM_INT_PROP_ 4
 #define NUM_FLOAT_PROP_ 0
 #define MODE_INT_PROP_LOC_(x) (int_data[NUM_INT_PROP_+x]-1)
 #define MODE_FLOAT_PROP_LOC_(x) (int_data[NUM_INT_PROP_+NUM_SECTION_+x]-1)
@@ -56,10 +60,6 @@
 
 // Real-time phase average MW (kg/mol) - used for modes and bins - for modes, b=0
 #define PHASE_AVG_MW_(x,y,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+(4+NUM_PHASE_(x))*NUM_BINS_(x)+b*NUM_PHASE_(x)+y])
-
-// Update types (These must match values in aero_rep_modal_binned_mass.F90)
-#define UPDATE_GMD 0
-#define UPDATE_GSD 1
 
 /** \brief Flag elements on the state array used by this aerosol representation
  *
@@ -353,38 +353,39 @@ void * aero_rep_modal_binned_mass_get_aero_phase_mass(int aero_phase_idx,
 
 /** \brief Update the aerosol representation data
  *
- *  The modal mass aerosol representation has two update types:
+ * The model mass aerosol representation update data is structured as follows:
  *
- *   - \b UPDATE_GMD : where the update data should point to an int indicating
- *  the mode id to update followed by a floating-point variable holding the new
- *  geometric mean diameter (m)
+ *  - \b int aero_rep_id (Id of one or more aerosol representations set by the
+ *       host model using the
+ *       pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::set_id
+ *       function prior to initializing the solver.)
+ *  - \b int update_type (Type of update to perform. Can be UPDATE_GMD or
+ *       UPDATE_GSD.)
+ *  - \b int section_id (Index of the mode to update.)
+ *  - \b double new_value (Either the new GMD (m) or the new GSD (unitless).)
  *
- *   - \b UPDATE_GSD : where the update data should point to an int indicating
- *  the mode id to update followed by a floating-point variable holding the new
- *  geometric standard deviation (unitless)
- *
- * \param update_type The type of update to perform
- * \param update_data Pointer to the data required for the update
+ * \param update_data Pointer to the updated aerosol representation data
  * \param aero_rep_data Pointer to the aerosol representation data
  * \return The aero_rep_data pointer advanced by the size of the aerosol
- *         representation
+ *        representation data
  */
-void * aero_rep_modal_binned_mass_update_data(int update_type,
-          void *update_data, void *aero_rep_data)
+void * aero_rep_modal_binned_mass_update_data(void *update_data,
+          void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
 
-  int *i_section = (int*)update_data;
+  int *aero_rep_id = (int*) update_data;
+  int *update_type = (int*) &(aero_rep_id[1]);
+  int *section_id = (int*) &(update_type[1]);
+  double *new_value = (double*) &(section_id[1]);
 
-  if (SECTION_TYPE_(*i_section)==MODAL) {  
-    switch (update_type) {
-      case UPDATE_GMD :
-        GMD_(*i_section,0) = *((realtype*)(i_section+1));
-        break;
-      case UPDATE_GSD :
-        GSD_(*i_section,0) = *((realtype*)(i_section+1));
-        break;
+  // Set the new GMD or GSD for matching aerosol representations
+  if (*aero_rep_id==AERO_REP_ID_ && AERO_REP_ID_!=0) {
+    if (*update_type==UPDATE_GMD) {
+      GMD_(*section_id,0) = (realtype) *new_value;
+    } else if (*update_type==UPDATE_GSD) {
+      GSD_(*section_id,0) = (realtype) *new_value;
     }
   }
 
@@ -425,13 +426,87 @@ void * aero_rep_modal_binned_mass_skip(void *aero_rep_data)
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
+/** \brief Create update data for new GMD
+ *
+ * \return Pointer to a new GMD update data object
+ */
+void * aero_rep_modal_binned_mass_create_gmd_update_data()
+{
+  int *update_data = (int*) malloc(3*sizeof(int) + sizeof(double));
+  if (update_data==NULL) {
+    printf("\n\nERROR allocating space for GMD update data.\n\n");
+    exit(1);
+  }
+  return (void*) update_data;
+}
+
+/** \brief Set GMD update data
+ *
+ * \param update_data Pointer to an allocated GMD update data object
+ * \param aero_rep_id Id of the aerosol representation(s) to update
+ * \param section_id Id of the mode to update
+ * \param gmd New mode GMD (m)
+ */
+void aero_rep_modal_binned_mass_set_gmd_update_data(void *update_data,
+          int aero_rep_id, int section_id, double gmd)
+{
+  int *new_aero_rep_id = (int*) update_data;
+  int *update_type = (int*) &(new_aero_rep_id[1]);
+  int *new_section_id = (int*) &(update_type[1]);
+  double *new_GMD = (double*) &(new_section_id[1]);
+  *new_aero_rep_id = aero_rep_id;
+  *update_type = UPDATE_GMD;
+  *new_section_id = section_id;
+  *new_GMD = gmd;
+}
+
+/** \brief Create update data for new GSD
+ *
+ * \return Pointer to a new GSD update data object
+ */
+void * aero_rep_modal_binned_mass_create_gsd_update_data()
+{
+  int *update_data = (int*) malloc(3*sizeof(int) + sizeof(double));
+  if (update_data==NULL) {
+    printf("\n\nERROR allocating space for GSD update data.\n\n");
+    exit(1);
+  }
+  return (void*) update_data;
+}
+
+/** \brief Set GSD update data
+ *
+ * \param update_data Pointer to an allocated GSD update data object
+ * \param aero_rep_id Id of the aerosol representation(s) to update
+ * \param section_id Id of the mode to update
+ * \param gsd New mode GSD (unitless)
+ */
+void aero_rep_modal_binned_mass_set_gsd_update_data(void *update_data,
+          int aero_rep_id, int section_id, double gsd)
+{
+  int *new_aero_rep_id = (int*) update_data;
+  int *update_type = (int*) &(new_aero_rep_id[1]);
+  int *new_section_id = (int*) &(update_type[1]);
+  double *new_GSD = (double*) &(new_section_id[1]);
+  *new_aero_rep_id = aero_rep_id;
+  *update_type = UPDATE_GSD;
+  *new_section_id = section_id;
+  *new_GSD = gsd;
+}
+
 #undef BINNED
 #undef MODAL
+
 #undef TEMPERATURE_K_
 #undef PRESSURE_PA_
+
+#undef UPDATE_GSD
+#undef UPDATE_GMD
+
 #undef NUM_SECTION_
 #undef INT_DATA_SIZE_
 #undef FLOAT_DATA_SIZE_
+#undef AERO_REP_ID_
 #undef NUM_INT_PROP_
 #undef NUM_FLOAT_PROP_
 #undef MODE_INT_PROP_LOC_

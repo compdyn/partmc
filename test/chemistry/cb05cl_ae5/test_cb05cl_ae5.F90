@@ -17,6 +17,7 @@ program pmc_test_cb05cl_ae5
   use pmc_phlex_state
   use pmc_phlex_solver_data
   use pmc_chem_spec_data
+  use pmc_mechanism_data
   use pmc_rxn_data
   use pmc_rxn_photolysis
   use pmc_rxn_factory
@@ -157,7 +158,7 @@ contains
     type(property_t), pointer :: prop_set
     character(len=:), allocatable :: key, spec_name, string_val, phlex_input_file
     real(kind=dp) :: real_val, phlex_rate, phlex_rate_const
-    integer(kind=i_kind) :: i_spec, j_spec, i_mech, i_rxn, i_ebi_rxn, i_kpp_rxn, &
+    integer(kind=i_kind) :: i_spec, j_spec, i_rxn, i_ebi_rxn, i_kpp_rxn, &
             i_time, i_repeat, n_gas_spec
 
     integer(kind=i_kind) :: i_M, i_O2, i_N2, i_H2O, i_CH4, i_H2
@@ -165,6 +166,9 @@ contains
     integer(kind=i_kind), allocatable :: ebi_spec_map(:), kpp_spec_map(:)
     type(string_t) :: str_temp
     type(string_t), allocatable :: spec_names(:)
+
+    ! Pointer to the mechanism
+    type(mechanism_data_t), pointer :: mechanism
 
     ! Variables to set photolysis rates
     type(rxn_factory_t) :: rxn_factory
@@ -250,12 +254,12 @@ contains
    
     ! Find the CB5 mechanism
     key = "cb05cl_ae5"
-    call assert(418262750, phlex_core%find_mechanism(key, i_mech))
+    call assert(418262750, phlex_core%get_mechanism(key, mechanism))
 
     ! Set the photolysis rate ids
     key = "rxn id"
-    do i_rxn = 1, phlex_core%mechanism(i_mech)%val%size()
-      rxn => phlex_core%mechanism(i_mech)%val%get_rxn(i_rxn)
+    do i_rxn = 1, mechanism%size()
+      rxn => mechanism%get_rxn(i_rxn)
       select type(rxn) 
         type is (rxn_photolysis_t)
           call assert(265614917, rxn%property_set%get_string(key, string_val))
@@ -317,10 +321,9 @@ contains
     ! Make sure the right number of reactions is present
     ! (KPP includes two Cl rxns with rate constants set to zero that are not
     !  present in phlex-chem)
-    call assert_msg(396732632, &
-            phlex_core%mechanism(i_mech)%val%size().eq.186, &
+    call assert_msg(396732632, mechanism%size().eq.186, &
             "Wrong number of phlex-chem reactions: "// &
-            trim(to_string(phlex_core%mechanism(i_mech)%val%size())))
+            trim(to_string(mechanism%size())))
 
     ! Set the initial concentrations
     key = "init conc"
@@ -447,13 +450,13 @@ contains
 
     ! Set up the reaction map between phlex-chem, kpp and ebi solvers
     key = "rxn id"
-    allocate(ebi_rxn_map(phlex_core%mechanism(i_mech)%val%size()))
+    allocate(ebi_rxn_map(mechanism%size()))
     ebi_rxn_map(:) = 0
-    allocate(kpp_rxn_map(phlex_core%mechanism(i_mech)%val%size()))
+    allocate(kpp_rxn_map(mechanism%size()))
     kpp_rxn_map(:) = 0
     call get_kpp_rxn_labels(kpp_rxn_labels)
-    do i_rxn = 1, phlex_core%mechanism(i_mech)%val%size()
-      rxn => phlex_core%mechanism(i_mech)%val%get_rxn(i_rxn)
+    do i_rxn = 1, mechanism%size()
+      rxn => mechanism%get_rxn(i_rxn)
       call assert_msg(917216189, associated(rxn), "Missing rxn "//to_string(i_rxn))
       call assert(656034097, rxn%property_set%get_string(key, string_val))
       do i_ebi_rxn = 1, NRXNS 
@@ -1187,7 +1190,7 @@ contains
     integer(kind=i_kind), allocatable :: kpp_rxn_map(:)
 
     real(kind=dp) :: KPP_VDOT(KPP_NVAR)               
-    integer(kind=i_kind) :: i_ebi_spec, i_kpp_spec, i_phlex_spec, i_mech, i_rxn
+    integer(kind=i_kind) :: i_ebi_spec, i_kpp_spec, i_phlex_spec, i_rxn
     type(string_t) :: spec_name
 
     character(len=:), allocatable :: key
@@ -1198,10 +1201,6 @@ contains
 
     call EXT_HRRATES()
     call EXT_HRPRODLOSS()
-
-    ! Find the phlex-core mechanism
-    key = "cb05cl_ae5"
-    call assert(331333207, phlex_core%find_mechanism(key, i_mech))
 
     ! Compare the calculated rates
     ! EBI <-> KPP

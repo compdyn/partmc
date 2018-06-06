@@ -70,7 +70,8 @@ module pmc_phlex_solver_data
       integer(kind=c_int), value :: n_aero_rep
       !> Total number of integer parameters for all aerosol representations
       integer(kind=c_int), value :: n_aero_rep_int_param
-      !> Total number of floating-point parameters for all aerosol representations
+      !> Total number of floating-point parameters for all aerosol
+      !! representations
       integer(kind=c_int), value :: n_aero_rep_float_param
       !> Number of sub models
       integer(kind=c_int), value :: n_sub_model
@@ -168,7 +169,8 @@ module pmc_phlex_solver_data
     end subroutine sub_model_add_condensed_data
 
     !> Update reaction data
-    subroutine sub_model_update_data(sub_model_type, update_data, solver_data) bind(c)
+    subroutine sub_model_update_data(sub_model_type, update_data, &
+              solver_data) bind(c)
       use iso_c_binding
       !> Reaction type to updateto update
       integer(kind=c_int), value :: sub_model_type
@@ -281,7 +283,8 @@ module pmc_phlex_solver_data
     !> Maximum number of timesteps
     integer(kind=i_kind), public :: max_steps = PMC_SOLVER_DEFAULT_MAX_STEPS
     !> Maximum number of convergence failures
-    integer(kind=i_kind), public :: max_conv_fails = PMC_SOLVER_DEFAULT_MAX_CONV_FAILS
+    integer(kind=i_kind), public :: max_conv_fails = &
+            PMC_SOLVER_DEFAULT_MAX_CONV_FAILS
     !> Flag indicating whether the solver was intialized
     logical :: initialized = .false.
   contains
@@ -367,7 +370,8 @@ contains
     type(rxn_factory_t) :: rxn_factory
     ! Aerosol representation pointer
     class(aero_rep_data_t), pointer :: aero_rep
-    ! Aerosol representation factory object for getting aerosol representation type
+    ! Aerosol representation factory object for getting aerosol 
+    ! representation type
     type(aero_rep_factory_t) :: aero_rep_factory
     ! Sub model pointer
     class(sub_model_data_t), pointer :: sub_model
@@ -486,24 +490,24 @@ contains
 
     ! Get a new solver object
     this%solver_c_ptr = solver_new( &
-            int(size(var_type_c), kind=c_int),          & ! Size of the state variable
-            c_loc(var_type_c),                          & ! Variable types
-            n_rxn,                                      & ! Number of reactions
-            n_rxn_int_param,                            & ! Number of rxn data integer parameters
-            n_rxn_float_param,                          & ! Number of rxn data floating-point parameters
-            n_aero_phase,                               & ! Number of aerosol phases
-            n_aero_phase_int_param,                     & ! Number of aerosol phase data integer parameters
-            n_aero_phase_float_param,                   & ! Number of aerosol phase data real parameters
-            n_aero_rep,                                 & ! Number of aerosol representations
-            n_aero_rep_int_param,                       & ! Number of aerosol representation data integer parameters
-            n_aero_rep_float_param,                     & ! Number of aerosol representation data real parameters
-            n_sub_model,                                & ! Number of sub models
-            n_sub_model_int_param,                      & ! Number of sub model integer parameters
-            n_sub_model_float_param                     & ! Number of sub model floating-point parameters
+            int(size(var_type_c), kind=c_int), & ! Size of the state variable
+            c_loc(var_type_c),                 & ! Variable types
+            n_rxn,                             & ! # of reactions
+            n_rxn_int_param,                   & ! # of rxn data int params
+            n_rxn_float_param,                 & ! # of rxn data real params
+            n_aero_phase,                      & ! # of aero phases
+            n_aero_phase_int_param,            & ! # of aero phase int params
+            n_aero_phase_float_param,          & ! # of aero phase real params
+            n_aero_rep,                        & ! # of aero reps
+            n_aero_rep_int_param,              & ! # of aero rep int params
+            n_aero_rep_float_param,            & ! # of aero rep real params
+            n_sub_model,                       & ! # of sub models
+            n_sub_model_int_param,             & ! # of sub model int params
+            n_sub_model_float_param            & ! # of sub model real params
             )
 
-    ! Add all the condensed reaction data to the solver data block for reactions
-    ! of the specified phase
+    ! Add all the condensed reaction data to the solver data block for
+    ! reactions of the specified phase
     do i_mech=1, size(mechanisms)
       do i_rxn=1, mechanisms(i_mech)%val%size()
         
@@ -528,12 +532,12 @@ contains
       
         ! Send the condensed data to the solver
         call rxn_add_condensed_data ( &
-                int(rxn_factory%get_type(rxn), kind=c_int),     & ! Reaction type
-                int(size(int_param), kind=c_int),               & ! Size of integer parameter array
-                int(size(float_param), kind=c_int),             & ! Size of floating-point parameter array
-                c_loc(int_param),                               & ! Pointer to integer parameter array
-                c_loc(float_param),                             & ! Pointer to floating-point parameter array
-                this%solver_c_ptr                               & ! Pointer to solver data
+                int(rxn_factory%get_type(rxn), kind=c_int),& ! Rxn type
+                int(size(int_param), kind=c_int),          & ! Int array size
+                int(size(float_param), kind=c_int),        & ! Real array size
+                c_loc(int_param),                          & ! Int array ptr
+                c_loc(float_param),                        & ! Real array ptr
+                this%solver_c_ptr                          & ! Solver data ptr
                 )
 
         ! Deallocate temporary arrays
@@ -558,11 +562,11 @@ contains
 
       ! Send the condensed data to the solver
       call aero_phase_add_condensed_data ( &
-              int(size(int_param), kind=c_int),                 & ! Size of the integer parameter array
-              int(size(float_param), kind=c_int),               & ! Size of the floating-point parameter array
-              c_loc(int_param),                                 & ! Pointer to the integer parameter array
-              c_loc(float_param),                               & ! Pointer to the floating-point parameter array
-              this%solver_c_ptr                                 & ! Pointer to solver data
+              int(size(int_param), kind=c_int),   & ! Int array size
+              int(size(float_param), kind=c_int), & ! Real array size
+              c_loc(int_param),                   & ! Int array ptr
+              c_loc(float_param),                 & ! Real array ptr
+              this%solver_c_ptr                   & ! Solver data ptr
               )
 
       ! Deallocate temporary arrays
@@ -572,7 +576,8 @@ contains
       end associate
     end do
 
-    ! Add all the condensed aerosol representation data to the solver data block
+    ! Add all the condensed aerosol representation data to the solver data
+    ! block
     do i_aero_rep=1, size(aero_reps)
 
       ! Assign aero_rep to the current aerosol representation
@@ -587,12 +592,12 @@ contains
       ! Send the condensed data to the solver
       call aero_rep_add_condensed_data ( &
               int(aero_rep_factory%get_type(aero_rep), kind=c_int), & 
-                                                                  ! Aerosol representation type
-              int(size(int_param), kind=c_int),                 & ! Size of the integer parameter array
-              int(size(float_param), kind=c_int),               & ! Size of the floating-point parameter array
-              c_loc(int_param),                                 & ! Pointer to the integer parameter array
-              c_loc(float_param),                               & ! Pointer to the floating-point parameter array
-              this%solver_c_ptr                                 & ! Pointer to solver data
+                                                    ! Aero rep type
+              int(size(int_param), kind=c_int),   & ! Int array size
+              int(size(float_param), kind=c_int), & ! Real array size
+              c_loc(int_param),                   & ! Int array ptr
+              c_loc(float_param),                 & ! Real array ptr
+              this%solver_c_ptr                   & ! Solver data ptr
               )
 
       ! Deallocate temporary arrays
@@ -617,12 +622,12 @@ contains
       ! Send the condensed data to the solver
       call sub_model_add_condensed_data ( &
               int(sub_model_factory%get_type(sub_model), kind=c_int), & 
-                                                                  ! Sub model type
-              int(size(int_param), kind=c_int),                 & ! Size of the integer parameter array
-              int(size(float_param), kind=c_int),               & ! Size of the floating-point parameter array
-              c_loc(int_param),                                 & ! Pointer to the integer parameter array
-              c_loc(float_param),                               & ! Pointer to the floating-point parameter array
-              this%solver_c_ptr                                 & ! Pointer to solver data
+                                                    ! Sub model type
+              int(size(int_param), kind=c_int),   & ! Int array size
+              int(size(float_param), kind=c_int), & ! Real array size
+              c_loc(int_param),                   & ! Int array ptr
+              c_loc(float_param),                 & ! Real array ptr
+              this%solver_c_ptr                   & ! Solver data ptr
               )
 
       ! Deallocate temporary arrays
@@ -634,11 +639,11 @@ contains
 
     ! Initialize the solver
     call solver_initialize( &
-            this%solver_c_ptr,                          & ! Pointer to solver data
-            c_loc(abs_tol_c),                           & ! Absolute tolerances
-            real(this%rel_tol, kind=c_double),          & ! Relative tolerance
-            int(this%max_steps, kind=c_int),            & ! Maximum number of integration steps
-            int(this%max_conv_fails, kind=c_int)        & ! Maximum number of convergence failures
+            this%solver_c_ptr,                  & ! Pointer to solver data
+            c_loc(abs_tol_c),                   & ! Absolute tolerances
+            real(this%rel_tol, kind=c_double),  & ! Relative tolerance
+            int(this%max_steps, kind=c_int),    & ! Max # of integration steps
+            int(this%max_conv_fails, kind=c_int)& ! Max # of convergence fails
             )
 
     ! Flag the solver as initialized
@@ -661,9 +666,9 @@ contains
     class(sub_model_update_data_t), intent(in) :: update_data
 
     call sub_model_update_data( &
-            update_data%get_type(),             & ! Sub-model type to update
-            update_data%get_data(),             & ! Data needed to perform update
-            this%solver_c_ptr                   & ! Pointer to solver data
+            update_data%get_type(),     & ! Sub-model type to update
+            update_data%get_data(),     & ! Data needed to perform update
+            this%solver_c_ptr           & ! Pointer to solver data
             )
 
   end subroutine update_sub_model_data
@@ -679,9 +684,9 @@ contains
     class(rxn_update_data_t), intent(in) :: update_data
 
     call rxn_update_data( &
-            update_data%get_type(),             & ! Reaction type to update
-            update_data%get_data(),             & ! Data needed to perform update 
-            this%solver_c_ptr                   & ! Pointer to solver data
+            update_data%get_type(),     & ! Reaction type to update
+            update_data%get_data(),     & ! Data needed to perform update 
+            this%solver_c_ptr           & ! Pointer to solver data
             )
 
   end subroutine update_rxn_data
@@ -698,9 +703,9 @@ contains
     class(aero_rep_update_data_t), intent(in) :: update_data
 
     call aero_rep_update_data( &
-            update_data%get_type(),             & ! Aerosol representation type
-            update_data%get_data(),             & ! Data needed to perform update
-            this%solver_c_ptr                   & ! Pointer to solver data
+            update_data%get_type(),     & ! Aerosol representation type
+            update_data%get_data(),     & ! Data needed to perform update
+            this%solver_c_ptr           & ! Pointer to solver data
             )
 
   end subroutine update_aero_rep_data
@@ -723,11 +728,11 @@ contains
     
     ! Run the solver
     solver_status = solver_run( &
-            this%solver_c_ptr,                  & ! Pointer to intialized solver
-            c_loc(phlex_state%state_var),       & ! Pointer to state array
-            c_loc(phlex_state%env_var),         & ! Pointer to environmental variables
-            real(t_initial, kind=c_double),     & ! Start time (s)
-            real(t_final, kind=c_double)        & ! Final time (s)
+            this%solver_c_ptr,              & ! Pointer to intialized solver
+            c_loc(phlex_state%state_var),   & ! Pointer to state array
+            c_loc(phlex_state%env_var),     & ! Pointer to environmental vars
+            real(t_initial, kind=c_double), & ! Start time (s)
+            real(t_final, kind=c_double)    & ! Final time (s)
             )
 
     call assert_msg(997420005, solver_status.eq.0, "Solver failed");
@@ -754,8 +759,8 @@ contains
 
   !> Get a sub model parameter id
   !!
-  !! Returns the id for use with sub_model_get_parameter_value to get a current 
-  !! sub-model parameter from the solver data
+  !! Returns the id for use with sub_model_get_parameter_value to get a
+  !! current sub-model parameter from the solver data
   function get_sub_model_parameter_id(this, sub_model_type, identifiers) &
       result (parameter_id)
 
@@ -773,9 +778,9 @@ contains
     sub_model_type_c = int(sub_model_type, kind=c_int)
 
     parameter_id = sub_model_get_parameter_id_sd( &
-            this%solver_c_ptr,                     & ! Pointer to solver data
-            sub_model_type_c,                      & ! Sub model type
-            identifiers                            & ! Indentifiers needed
+            this%solver_c_ptr,          & ! Pointer to solver data
+            sub_model_type_c,           & ! Sub model type
+            identifiers                 & ! Indentifiers needed
             )
 
   end function get_sub_model_parameter_id
@@ -799,8 +804,8 @@ contains
     real(kind=c_double) :: parameter_value_c
 
     parameter_value_c = sub_model_get_parameter_value_sd( &
-            this%solver_c_ptr,                  & ! Pointer to solver data
-            parameter_id                        & ! Id of the parameter
+            this%solver_c_ptr,          & ! Pointer to solver data
+            parameter_id                & ! Id of the parameter
             )
 
     parameter_value = real(parameter_value_c, kind=dp)

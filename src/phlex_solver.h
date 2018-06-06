@@ -34,9 +34,11 @@ typedef enum {false, true} bool;
 /* Model data structure */
 typedef struct {
   int n_state_var;	// number of state variables (>=NV_LENGTH_S(y))
-  int *var_type;	// pointer to array of state variable types (solver, constant, PSSA)
+  int *var_type;	// pointer to array of state variable types (solver,
+                        // constant, PSSA)
 #ifdef PMC_USE_SUNDIALS
-  SUNMatrix J_init;	// sparse Jacobian matrix with used elements initialized to 1.0
+  SUNMatrix J_init;	// sparse Jacobian matrix with used elements
+                        // initialized to 1.0
 #endif
   double *state;	// Pointer to the state array
   double *env;		// Pointer to the environmental state array
@@ -69,28 +71,35 @@ typedef struct {
 } SolverData;
 
 /* Functions called by phlex-chem */
-void * solver_new(int n_state_var, int *var_type, int n_rxn, int n_rxn_int_param, 
-		int n_rxn_float_param, int n_aero_phase, int n_aero_phase_int_param, 
-                int n_aero_phase_float_param, int n_aero_rep, int n_aero_rep_int_param,
-		int n_aero_rep_float_param, int n_sub_model, int n_sub_model_int_param,
-                int n_sub_model_float_param);
-void solver_initialize(void *solver_data, double *abs_tol, double rel_tol, int max_steps, 
-		int max_conv_fails); 
+void * solver_new(int n_state_var, int *var_type, int n_rxn,
+          int n_rxn_int_param, int n_rxn_float_param, int n_aero_phase,
+          int n_aero_phase_int_param, int n_aero_phase_float_param,
+          int n_aero_rep, int n_aero_rep_int_param, int n_aero_rep_float_param,
+          int n_sub_model, int n_sub_model_int_param,
+          int n_sub_model_float_param);
+void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
+          int max_steps, int max_conv_fails); 
 int solver_run(void *solver_data, double *state, double *env, double t_initial,
-		double t_final);
+	  double t_final);
 void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
-		int n_float_param, int *int_param, double *float_param, void *solver_data);
-void sub_model_update_data(int update_sub_model_type, void *update_data, void *solver_data);
-int sub_model_get_parameter_id_sd(void *solver_data, int sub_model_type, void *identifiers);
+	  int n_float_param, int *int_param, double *float_param,
+          void *solver_data);
+void sub_model_update_data(int update_sub_model_type, void *update_data,
+          void *solver_data);
+int sub_model_get_parameter_id_sd(void *solver_data, int sub_model_type,
+          void *identifiers);
 double sub_model_get_parameter_value_sd(void *solver_data, int parameter_id);
 void rxn_add_condensed_data(int rxn_type, int n_int_param, 
-		int n_float_param, int *int_param, double *float_param, void *solver_data);
+	  int n_float_param, int *int_param, double *float_param,
+          void *solver_data);
 void rxn_update_data(int update_rxn_type, void *update_data, void *solver_data);
-void aero_phase_add_condensed_data(int n_int_param, int n_float_param, int *int_param, 
-                double *float_param, void *solver_data);
+void aero_phase_add_condensed_data(int n_int_param, int n_float_param,
+          int *int_param, double *float_param, void *solver_data);
 void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
-		int n_float_param, int *int_param, double *float_param, void *solver_data);
-void aero_rep_update_data(int update_aero_rep_type, void *update_data, void *solver_data);
+	  int n_float_param, int *int_param, double *float_param,
+          void *solver_data);
+void aero_rep_update_data(int update_aero_rep_type, void *update_data,
+          void *solver_data);
 void solver_free(void *solver_data);
 void model_free(ModelData model_data);
 
@@ -136,10 +145,10 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J, double time_step);
 void rxn_print_data(void *solver_data);
 
 /* Aerosol phase solver functions */
-void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx, realtype *state_var,
-                realtype *mass, realtype *MW);
-void * aero_phase_get_volume(ModelData *model_data, int aero_phase_idx, realtype *state_var,
-                realtype *volume);
+void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
+          realtype *state_var, realtype *mass, realtype *MW);
+void * aero_phase_get_volume(ModelData *model_data, int aero_phase_idx,
+          realtype *state_var, realtype *volume);
 void * aero_phase_find(ModelData *model_data, int int_aero_phase_idx);
 void * aero_phase_skip(void *aero_phase_data);
 
@@ -147,18 +156,21 @@ void * aero_phase_skip(void *aero_phase_data);
 void * aero_rep_get_dependencies(ModelData *model_data, bool *state_flags);
 void aero_rep_update_env_state(ModelData *model_data, double *env);
 void aero_rep_update_state(ModelData *model_data);
-void * aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx, int aero_phase_idx,
-		double *radius);
-void * aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx, int aero_phase_idx, 
-		double *number_conc);
-int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx, int aero_phase_idx);
-void * aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx, int aero_phase_idx, 
-		double *aero_phase_mass, double *aero_phase_avg_MW);
+void * aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
+          int aero_phase_idx, double *radius);
+void * aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
+          int aero_phase_idx, double *number_conc);
+int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
+          int aero_phase_idx);
+void * aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
+          int aero_phase_idx, double *aero_phase_mass,
+          double *aero_phase_avg_MW);
 void aero_rep_print_data(void *solver_data);
 
 /* Sub model solver functions */
 void sub_model_update_env_state(ModelData *model_data, double *env);
-int sub_model_get_parameter_id(ModelData *model_data, int type, void *identifiers);
+int sub_model_get_parameter_id(ModelData *model_data, int type,
+          void *identifiers);
 realtype sub_model_get_parameter_value(ModelData *model_data, int parameter_id);
 void sub_model_calculate(ModelData *model_data);
 void sub_model_print(ModelData *model_data);

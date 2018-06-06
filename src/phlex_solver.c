@@ -29,26 +29,32 @@
  * Return a pointer to a new SolverData object
  *
  * \param n_state_var Number of variables on the state array
- * \param var_type Pointer to array of state variable types (solver, constant, PSSA)
+ * \param var_type Pointer to array of state variable types (solver, constant,
+ *                 PSSA)
  * \param n_rxn Number of reactions to include
  * \param n_rxn_int_param Total number of integer reaction parameters
  * \param n_rxn_float_param Total number of floating-point reaction parameters
  * \param n_aero_phase Number of aerosol phases
- * \param n_aero_phase_int_param Total number of integer aerosol phase parameters
- * \param n_aero_phase_float_param Total number of floating-point aerosol phase parameters
+ * \param n_aero_phase_int_param Total number of integer aerosol phase
+ *                               parameters
+ * \param n_aero_phase_float_param Total number of floating-point aerosol phase
+ *                                 parameters
  * \param n_aero_rep Number of aerosol representations
- * \param n_aero_rep_int_param Total number of integer aerosol representation parameters
- * \param n_aero_rep_float_param Total number of floating-point aerosol representation parameters
+ * \param n_aero_rep_int_param Total number of integer aerosol representation
+ *                             parameters
+ * \param n_aero_rep_float_param Total number of floating-point aerosol
+ *                               representation parameters
  * \param n_sub_model Number of sub models
  * \param n_sub_model_int_param Total number of integer sub model parameters
- * \param n_sub_model_float_param Total number of floating-point sub model parameters
+ * \param n_sub_model_float_param Total number of floating-point sub model
+ *                                parameters
  * \return Pointer to the new SolverData object
  */
-void * solver_new(int n_state_var, int *var_type, int n_rxn, int n_rxn_int_param, 
-		int n_rxn_float_param, int n_aero_phase, int n_aero_phase_int_param,
-                int n_aero_phase_float_param, int n_aero_rep, int n_aero_rep_int_param,
-		int n_aero_rep_float_param, int n_sub_model, int n_sub_model_int_param,
-                int n_sub_model_float_param)
+void * solver_new(int n_state_var, int *var_type, int n_rxn,
+          int n_rxn_int_param, int n_rxn_float_param, int n_aero_phase,
+          int n_aero_phase_int_param, int n_aero_phase_float_param,
+          int n_aero_rep, int n_aero_rep_int_param, int n_aero_rep_float_param,
+          int n_sub_model, int n_sub_model_int_param, int n_sub_model_float_param)
 {
 #ifdef PMC_USE_SUNDIALS
   // Create the SolverData object
@@ -195,7 +201,8 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   sd->abs_tol_nv = N_VNew_Serial(n_dep_var);
   i_dep_var = 0;
   for (int i=0; i<n_state_var; i++)
-    if (var_type[i]==CHEM_SPEC_VARIABLE) NV_Ith_S(sd->abs_tol_nv, i_dep_var++) = (realtype) abs_tol[i];
+    if (var_type[i]==CHEM_SPEC_VARIABLE)
+            NV_Ith_S(sd->abs_tol_nv, i_dep_var++) = (realtype) abs_tol[i];
   flag = CVodeSVtolerances(sd->cvode_mem, (realtype) rel_tol, sd->abs_tol_nv);
   check_flag_fail(&flag, "CVodeSVtolerances", 1);
 
@@ -274,7 +281,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 
   // Update the species concentrations on the state array
   for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++)
-    if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) state[i_spec] = (double) NV_Ith_S(sd->y,i_dep_var++);
+    if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) 
+            state[i_spec] = (double) NV_Ith_S(sd->y,i_dep_var++);
 
   // Re-run the pre-derivative calculations to update equilibrium species
   sub_model_calculate(&(sd->model_data));
@@ -313,7 +321,8 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   }
 
   // Initialize the derivative
-  for (int i_spec=0; i_spec<NV_LENGTH_S(deriv); i_spec++) NV_DATA_S(deriv)[i_spec] = ZERO;
+  for (int i_spec=0; i_spec<NV_LENGTH_S(deriv); i_spec++)
+          NV_DATA_S(deriv)[i_spec] = ZERO;
 
   // Update the aerosol representations
   aero_rep_update_state(md);
@@ -364,7 +373,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   // TODO Figure out how to keep the Jacobian from being redimensioned
   // Reset the Jacobian dimensions
   if (SM_NNZ_S(J)<SM_NNZ_S(md->J_init)) {
-    SM_INDEXVALS_S(J) = realloc(SM_INDEXVALS_S(J), SM_NNZ_S(md->J_init)*sizeof(sunindextype));
+    SM_INDEXVALS_S(J) = realloc(SM_INDEXVALS_S(J),
+              SM_NNZ_S(md->J_init)*sizeof(sunindextype));
     if (SM_INDEXVALS_S(J)==NULL) {
       printf("\n\nERROR allocating space for sparse matrix index values\n\n");
       exit(1);
@@ -406,7 +416,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 /** \brief Create a sparse Jacobian matrix based on model data
  *
  * \param solver_data A pointer to the SolverData
- * \return Sparse Jacobian matrix with all possible non-zero elements intialized to 1.0
+ * \return Sparse Jacobian matrix with all possible non-zero elements intialize
+ *         to 1.0
  */
 SUNMatrix get_jac_init(SolverData *solver_data)
 {
@@ -414,9 +425,11 @@ SUNMatrix get_jac_init(SolverData *solver_data)
   				 * (stored in first position in *rxn_data) */
   bool **jac_struct;		/* structure of Jacobian with flags to indicate
 				 * elements that could be used. */
-  sunindextype n_jac_elem; 	/* number of potentially non-zero Jacobian elements */
+  sunindextype n_jac_elem; 	/* number of potentially non-zero Jacobian
+                                   elements */
 
-  // Number of variables on the state array (these are the ids the reactions are initialized with)
+  // Number of variables on the state array (these are the ids the reactions
+  // are initialized with)
   int n_state_var = solver_data->model_data.n_state_var;
 
   // Set up the 2D array of flags
@@ -428,10 +441,12 @@ SUNMatrix get_jac_init(SolverData *solver_data)
   for (int i_spec=0; i_spec < n_state_var; i_spec++) {
     jac_struct[i_spec] = (bool*) malloc(sizeof(int) * n_state_var);
     if (jac_struct[i_spec]==NULL) {
-      printf("\n\nERROR allocating space for jacobian structure array row %d\n\n", i_spec);
+      printf("\n\nERROR allocating space for jacobian structure array "
+                "row %d\n\n", i_spec);
       exit(1);
     }
-    for (int j_spec=0; j_spec < n_state_var; j_spec++) jac_struct[i_spec][j_spec] = false;
+    for (int j_spec=0; j_spec < n_state_var; j_spec++)
+            jac_struct[i_spec][j_spec] = false;
   }
 
   // Fill in the 2D array of flags with Jacobian elements used by the
@@ -506,9 +521,11 @@ SUNMatrix get_jac_init(SolverData *solver_data)
 
 /** \brief Check the return value of a SUNDIALS function
  *
- * \param flag_value A pointer to check (either for NULL, or as an int pointer giving the flag value
+ * \param flag_value A pointer to check (either for NULL, or as an int pointer
+ *                   giving the flag value
  * \param func_name A string giving the function name returning this result code
- * \param opt A flag indicating the type of check to perform (0 for NULL pointer check; 1 for integer flag check)
+ * \param opt A flag indicating the type of check to perform (0 for NULL
+ *            pointer check; 1 for integer flag check)
  * \return Flag indicating PHLEX_SOLVER_SUCCESS or PHLEX_SOLVER_FAIL
  */
 int check_flag(void *flag_value, char *func_name, int opt)
@@ -536,9 +553,11 @@ int check_flag(void *flag_value, char *func_name, int opt)
 
 /** \brief Check the return value of a SUNDIALS function and exit on failure
  *
- * \param flag_value A pointer to check (either for NULL, or as an int pointer giving the flag value
+ * \param flag_value A pointer to check (either for NULL, or as an int pointer
+ *                   giving the flag value
  * \param func_name A string giving the function name returning this result code
- * \param opt A flag indicating the type of check to perform (0 for NULL pointer check; 1 for integer flag check)
+ * \param opt A flag indicating the type of check to perform (0 for NULL
+ *            pointer check; 1 for integer flag check)
  */
 void check_flag_fail(void *flag_value, char *func_name, int opt)
 {
@@ -557,28 +576,40 @@ static void solver_print_stats(void *cvode_mem)
   int flag;
 
   flag = CVodeGetNumSteps(cvode_mem, &nst);
-  if (check_flag(&flag, "CVodeGetNumSteps", 1)==PHLEX_SOLVER_FAIL) return;
+  if (check_flag(&flag, "CVodeGetNumSteps", 1)==PHLEX_SOLVER_FAIL)
+          return;
   flag = CVodeGetNumRhsEvals(cvode_mem, &nfe);
-  if (check_flag(&flag, "CVodeGetNumRhsEvals", 1)==PHLEX_SOLVER_FAIL) return;
+  if (check_flag(&flag, "CVodeGetNumRhsEvals", 1)==PHLEX_SOLVER_FAIL)
+          return;
   flag = CVodeGetNumLinSolvSetups(cvode_mem, &nsetups);
-  if (check_flag(&flag, "CVodeGetNumLinSolveSetups", 1)==PHLEX_SOLVER_FAIL) return;
+  if (check_flag(&flag, "CVodeGetNumLinSolveSetups", 1)==PHLEX_SOLVER_FAIL)
+          return;
   flag = CVodeGetNumErrTestFails(cvode_mem, &netf);
-  if (check_flag(&flag, "CVodeGetNumErrTestFails", 1)==PHLEX_SOLVER_FAIL) return;
+  if (check_flag(&flag, "CVodeGetNumErrTestFails", 1)==PHLEX_SOLVER_FAIL)
+          return;
   flag = CVodeGetNumNonlinSolvIters(cvode_mem, &nni);
-  if (check_flag(&flag, "CVodeGetNonlinSolvIters", 1)==PHLEX_SOLVER_FAIL) return;
+  if (check_flag(&flag, "CVodeGetNonlinSolvIters", 1)==PHLEX_SOLVER_FAIL)
+          return;
   flag = CVodeGetNumNonlinSolvConvFails(cvode_mem, &ncfn);
-  if (check_flag(&flag, "CVodeGetNumNonlinSolvConvFails", 1)==PHLEX_SOLVER_FAIL) return;
+  if (check_flag(&flag, "CVodeGetNumNonlinSolvConvFails", 1)==PHLEX_SOLVER_FAIL)
+          return;
   flag = CVDlsGetNumJacEvals(cvode_mem, &nje);
-  if (check_flag(&flag, "CVDlsGetNumJacEvals", 1)==PHLEX_SOLVER_FAIL) return;
+  if (check_flag(&flag, "CVDlsGetNumJacEvals", 1)==PHLEX_SOLVER_FAIL)
+          return;
   flag = CVDlsGetNumRhsEvals(cvode_mem, &nfeLS);
-  if (check_flag(&flag, "CVDlsGetNumRhsEvals", 1)==PHLEX_SOLVER_FAIL) return;
+  if (check_flag(&flag, "CVDlsGetNumRhsEvals", 1)==PHLEX_SOLVER_FAIL)
+          return;
   flag = CVodeGetNumGEvals(cvode_mem, &nge);
-  if (check_flag(&flag, "CVodeGetNumGEvals", 1)==PHLEX_SOLVER_FAIL) return;
+  if (check_flag(&flag, "CVodeGetNumGEvals", 1)==PHLEX_SOLVER_FAIL)
+          return;
 
   printf("\nSUNDIALS Solver Statistics:\n");
-  printf("number of steps = %-6ld RHS evals = %-6ld LS setups = %-6ld\n", nst, nfe, nsetups);
-  printf("error test fails = %-6ld LS iters = %-6ld NLS iters = %-6ld\n", netf, nni, ncfn);
-  printf("NL conv fails = %-6ld Jac evals = %-6ld RHS evals = %-6ld G evals = %-6ld\n", ncfn, nje, nfeLS, nge);
+  printf("number of steps = %-6ld RHS evals = %-6ld LS setups = %-6ld\n", nst,
+            nfe, nsetups);
+  printf("error test fails = %-6ld LS iters = %-6ld NLS iters = %-6ld\n", netf,
+            nni, ncfn);
+  printf("NL conv fails = %-6ld Jac evals = %-6ld RHS evals = %-6ld G evals ="
+            " %-6ld\n", ncfn, nje, nfeLS, nge);
 }
 
 #endif

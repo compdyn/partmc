@@ -14,6 +14,7 @@ program pmc_test_photolysis
   use pmc_rxn_data
   use pmc_rxn_photolysis
   use pmc_rxn_factory
+  use pmc_mechanism_data
   use pmc_phlex_core
   use pmc_phlex_state
 #ifdef PMC_USE_JSON
@@ -81,11 +82,12 @@ contains
 
     real(kind=dp), dimension(0:NUM_TIME_STEP, 3) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_A, idx_B, idx_C, i_time, i_spec, &
-            i_rxn_photo_A, i_mech, i_rxn, i_photo_A
+            i_rxn_photo_A, i_rxn, i_photo_A
     real(kind=dp) :: time_step, time, k1, k2, temp, pressure, photo_rate_1
     class(rxn_data_t), pointer :: rxn
 
     ! For setting rates
+    type(mechanism_data_t), pointer :: mechanism
     type(rxn_factory_t) :: rxn_factory
     type(rxn_update_data_photolysis_rate_t) :: rate_update
 
@@ -110,13 +112,16 @@ contains
     ! Initialize the model
     call phlex_core%initialize()
 
+    ! Find the mechanism
+    key = "photolysis"
+    call assert(214488774, phlex_core%get_mechanism(key, mechanism))
+
     ! Find the photo A reaction
     key = "photo id"
     i_photo_A = 342
     i_rxn_photo_A = 0
-    do i_mech = 1, size(phlex_core%mechanism)
-      do i_rxn = 1, phlex_core%mechanism(i_mech)%val%size()
-        rxn => phlex_core%mechanism(i_mech)%val%get_rxn(i_rxn)
+    do i_rxn = 1, mechanism%size()
+        rxn => mechanism%get_rxn(i_rxn)
         if (rxn%property_set%get_string(key, str_val)) then
           if (trim(str_val).eq."photo A") then
             i_rxn_photo_A = i_rxn
@@ -127,7 +132,6 @@ contains
           end if
         end if
       end do
-    end do
     call assert(350883249, i_rxn_photo_A.eq.1)
 
     ! Initialize the solver

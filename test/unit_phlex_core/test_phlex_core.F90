@@ -11,6 +11,7 @@ program pmc_test_phlex_core
   use pmc_util,                         only: i_kind, dp, assert, &
                                               almost_equal, string_t
   use pmc_phlex_core
+  use pmc_mechanism_data
 #ifdef PMC_USE_JSON
   use json_module
 #endif
@@ -43,8 +44,8 @@ contains
   logical function load_phlex_core_test()
 
     type(phlex_core_t), pointer :: phlex_core
+    type(mechanism_data_t), pointer :: mechanism
     character(len=:), allocatable :: input_file_path
-    integer :: i_mech
     character(len=:), allocatable :: key_name
 
     load_phlex_core_test = .false.
@@ -56,18 +57,15 @@ contains
     ! Check the number of species in the model
     call assert(822520018, phlex_core%chem_spec_data%size().eq.7)
 
-    ! Make sure one mechanism has been loaded
-    call assert(533327223, size(phlex_core%mechanism).eq.1)
-
     ! Get the mechanism index
     key_name = "lunch mechanism"
-    call assert(589233468, phlex_core%find_mechanism(key_name, i_mech))
+    call assert(589233468, phlex_core%get_mechanism(key_name, mechanism))
 
     ! Check the mechanism name
-    call assert(636308667, phlex_core%mechanism(i_mech)%val%name().eq."lunch mechanism")
+    call assert(636308667, mechanism%name().eq."lunch mechanism")
 
     ! Make sure all three reactions were loaded
-    call assert(360948482, phlex_core%mechanism(i_mech)%val%size().eq.3)
+    call assert(360948482, mechanism%size().eq.3)
 
     load_phlex_core_test = .true.
 

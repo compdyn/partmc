@@ -97,7 +97,7 @@ module pmc_phlex_core
   !! Contains all time-invariant data for a Part-MC model run.
   type :: phlex_core_t
     !> Chemical mechanisms
-    type(mechanism_data_ptr), pointer :: mechanism(:) => null()
+    type(mechanism_data_ptr), pointer, private :: mechanism(:) => null()
     !> Chemical species data
     type(chem_spec_data_t), pointer :: chem_spec_data => null()
     !> Sub models
@@ -118,7 +118,8 @@ module pmc_phlex_core
     !> Solver data (aerosol-phase reactions)
     type(phlex_solver_data_t), pointer, private :: solver_data_aero => null()
     !> Solver data (mixed gas- and aerosol-phase reactions)
-    type(phlex_solver_data_t), pointer, private :: solver_data_gas_aero => null()
+    type(phlex_solver_data_t), pointer, private :: solver_data_gas_aero => &
+            null()
   contains
     !> Load a set of configuration files
     procedure :: load_files
@@ -126,16 +127,17 @@ module pmc_phlex_core
     procedure :: load
     !> Initialize the model
     procedure :: initialize
-    !> Find a mechanism by name
-    procedure :: find_mechanism
-    !> Add a mechanism to the model
-    procedure :: add_mechanism
+    !> Get a pointer to a mechanism by its name
+    procedure :: get_mechanism
+    
+    
     !> Find a sub-model index by name
     procedure :: find_sub_model_id_by_name
     !> Find a sub-model by name
     procedure :: find_sub_model_by_name
     !> Find a sub-model or it's id
-    generic :: find_sub_model => find_sub_model_id_by_name, find_sub_model_by_name
+    generic :: find_sub_model => find_sub_model_id_by_name, &
+            find_sub_model_by_name
     !> Add a sub-model to the model
     procedure :: add_sub_model
     !> Find an aerosol representation index by name
@@ -143,7 +145,8 @@ module pmc_phlex_core
     !> Find an aerosol representation by name
     procedure :: find_aero_rep_by_name
     !> Find an aerosol representation or it's id
-    generic :: find_aero_rep => find_aero_rep_id_by_name, find_aero_rep_by_name
+    generic :: find_aero_rep => find_aero_rep_id_by_name, &
+            find_aero_rep_by_name
     !> Add an aerosol representation to the model
     procedure :: add_aero_rep
     !> Find an aerosol phase by name
@@ -174,6 +177,10 @@ module pmc_phlex_core
     procedure :: print => do_print
     !> Finalize the core
     final :: finalize
+    
+    ! Private functions
+    !> Add a mechanism to the model
+    procedure, private :: add_mechanism
   end type phlex_core_t
 
   !> Constructor for phlex_core_t
@@ -261,7 +268,8 @@ contains
     call j_file%load_file(filename = input_file_path)
     call j_file%get('pmc-files(1)', j_obj, found)
     call assert_msg(405149265, found, &
-            "Could not find pmc-files object in input file: "//input_file_path)
+            "Could not find pmc-files object in input file: "// &
+            input_file_path)
     call j_file%info('pmc-files', n_children = num_files)
     call assert_msg(411804027, num_files.gt.0, &
             "No file names were found in "//input_file_path)
@@ -342,7 +350,7 @@ contains
     !> Part-MC input file paths
     type(string_t), allocatable, intent(in) :: input_file_path(:)
 
-    integer(kind=i_kind) :: i_file, i_mech
+    integer(kind=i_kind) :: i_file
 #ifdef PMC_USE_JSON
     type(json_core), pointer :: json
     type(json_file) :: j_file
@@ -352,6 +360,8 @@ contains
     character(len=:), allocatable :: str_val
     real(kind=json_rk) :: real_val
     logical :: file_exists
+
+    type(mechanism_data_t), pointer :: mech_ptr
 
     type(sub_model_data_ptr), pointer :: new_sub_model(:)
     type(sub_model_factory_t) :: sub_model_factory
@@ -392,11 +402,11 @@ contains
           call assert_msg(822680732, found, "Missing mechanism name in file "//&
                   input_file_path(i_file)%string)
           str_val = unicode_str_val
-          if (.not.this%find_mechanism(str_val, i_mech)) then
+          if (.not.this%get_mechanism(str_val, mech_ptr)) then
             call this%add_mechanism(str_val)
-            i_mech = size(this%mechanism)
+            call assert(105816325, this%get_mechanism(str_val, mech_ptr))
           end if
-          call this%mechanism(i_mech)%val%load(json, j_obj)
+          call mech_ptr%load(json, j_obj)
         else if (str_val.eq.'CHEM_SPEC') then
           call this%chem_spec_data%load(json, j_obj)
         else if (str_val(1:8).eq.'AERO_REP') then
@@ -527,27 +537,29 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Find a mechanism by name in the model data
-  logical function find_mechanism(this, mech_name, mech_id) result(found)
+  !> Get a pointer to a mechanism by name in the model data
+  logical function get_mechanism(this, mech_name, mech_ptr) result(found)
 
     !> Model data
     class(phlex_core_t), intent(in) :: this
     !> Mechanism name to search for
     character(len=:), allocatable, intent(in) :: mech_name
-    !> Index of mechanism in the array
-    integer(kind=i_kind), intent(out) :: mech_id
+    !> Pointer to the mechanism
+    type(mechanism_data_t), pointer, intent(out) :: mech_ptr
+
+    integer(kind=i_kind) :: i_mech
 
     found = .false.
-    
-    do mech_id = 1, size(this%mechanism)
-      if (this%mechanism(mech_id)%val%name().eq.mech_name) then
+    mech_ptr => null()
+    do i_mech = 1, size(this%mechanism)
+      if (this%mechanism(i_mech)%val%name().eq.mech_name) then
         found = .true.
+        mech_ptr => this%mechanism(i_mech)%val
         return
       end if
     end do
-    mech_id = 0
 
-  end function find_mechanism
+  end function get_mechanism
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

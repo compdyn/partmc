@@ -81,16 +81,16 @@
 !> The rxn_condensed_phase_arrhenius_t type and associated functions. 
 module pmc_rxn_condensed_phase_arrhenius
 
+  use pmc_aero_phase_data
+  use pmc_aero_rep_data
+  use pmc_chem_spec_data
   use pmc_constants,                        only: const
+  use pmc_phlex_state
+  use pmc_property
+  use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &
                                                   assert, assert_msg, &
                                                   die_msg, string_t
-  use pmc_rxn_data
-  use pmc_chem_spec_data
-  use pmc_property
-  use pmc_phlex_state
-  use pmc_aero_rep_data
-  use pmc_aero_phase_data
 
   implicit none
   private

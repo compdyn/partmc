@@ -16,12 +16,12 @@
 /* Header files with a description of contents used */
 #ifdef PMC_USE_SUNDIALS
 #include <cvodes/cvodes.h>               /* Protoypes for CVODE fcts., consts.  */
-#include <nvector/nvector_serial.h>      /* Serial N_Vector types, fcts, macros */
-#include <sunmatrix/sunmatrix_sparse.h>  /* sparse SUNMatrix                    */
-#include <sunlinsol/sunlinsol_klu.h>     /* KLU SUNLinearSolver                 */
 #include <cvodes/cvodes_direct.h>        /* CVDls interface                     */
-#include <sundials/sundials_types.h>     /* definition of types                 */
+#include <nvector/nvector_serial.h>      /* Serial N_Vector types, fcts, macros */
 #include <sundials/sundials_math.h>      /* SUNDIALS math function macros       */
+#include <sundials/sundials_types.h>     /* definition of types                 */
+#include <sunlinsol/sunlinsol_klu.h>     /* KLU SUNLinearSolver                 */
+#include <sunmatrix/sunmatrix_sparse.h>  /* sparse SUNMatrix                    */
 #endif
 
 /* Math constants */

@@ -66,16 +66,16 @@
 !> The rxn_aqueous_equilibrium_t type and associated functions. 
 module pmc_rxn_aqueous_equilibrium
 
+  use pmc_aero_phase_data
+  use pmc_aero_rep_data
+  use pmc_chem_spec_data
   use pmc_constants,                        only: const
+  use pmc_phlex_state
+  use pmc_property
+  use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &
                                                   assert, assert_msg, die_msg, &
                                                   string_t
-  use pmc_rxn_data
-  use pmc_chem_spec_data
-  use pmc_property
-  use pmc_phlex_state
-  use pmc_aero_rep_data
-  use pmc_aero_phase_data
 
   implicit none
   private
@@ -145,9 +145,9 @@ contains
     type(property_t), pointer :: spec_props, reactants, products
     character(len=:), allocatable :: key_name, spec_name, water_name, &
             phase_name, string_val, ion_pair_name
-    integer(kind=i_kind) :: i_phase_inst, j_spec, i_qty, i_aero_rep, i_aero_phase, &
-            n_aero_ids, i_aero_id, num_spec_per_phase, num_phase, &
-            num_react, num_prod, temp_int, tracer_type
+    integer(kind=i_kind) :: i_phase_inst, j_spec, i_qty, i_aero_rep, &
+            i_aero_phase, n_aero_ids, i_aero_id, num_spec_per_phase, &
+            num_phase, num_react, num_prod, temp_int, tracer_type
     real(kind=dp) :: temp_real, N_star
     class(string_t), allocatable :: unique_names(:), react_names(:), &
             prod_names(:)

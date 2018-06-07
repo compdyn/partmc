@@ -72,6 +72,8 @@ contains
     ! Make sure all three reactions were loaded
     call assert(360948482, mechanism%size().eq.3)
 
+    deallocate(phlex_core)
+
     load_phlex_core_test = .true.
 
   end function load_phlex_core_test

@@ -13,17 +13,17 @@
 !> The sub_model_factory_t type and associated subroutines
 module pmc_sub_model_factory
 
-  use pmc_constants,                    only : i_kind, dp
-  use pmc_util,                         only : die_msg, string_t, assert_msg, &
-                                               warn_msg
-  use pmc_sub_model_data
-  use pmc_mpi
 #ifdef PMC_USE_JSON
   use json_module
 #endif
 #ifdef PMC_USE_MPI
   use mpi
 #endif
+  use pmc_constants,                    only : i_kind, dp
+  use pmc_mpi
+  use pmc_sub_model_data
+  use pmc_util,                         only : die_msg, string_t, assert_msg, &
+                                               warn_msg
 
   ! Use all sub-models
   use pmc_sub_model_UNIFAC

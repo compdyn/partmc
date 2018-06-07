@@ -8,8 +8,8 @@
 /** \file
  * \brief Aerosol representation functions
  */
-#include "phlex_solver.h"
 #include "aero_rep_solver.h"
+#include "phlex_solver.h"
 
 // Aerosol representations (Must match parameters defined in pmc_aero_rep_factory
 #define AERO_REP_SINGLE_PARTICLE   1

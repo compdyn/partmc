@@ -10,10 +10,10 @@
  */
 #ifndef AERO_REP_SOLVER_H_
 #define AERO_REP_SOLVER_H_
-#include "phlex_solver.h"
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include "phlex_solver.h"
 
 #ifdef PMC_USE_SUNDIALS
 

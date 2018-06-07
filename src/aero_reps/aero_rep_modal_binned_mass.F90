@@ -64,14 +64,14 @@
 !> The abstract aero_rep_modal_binned_mass_t structure and associated subroutines.
 module pmc_aero_rep_modal_binned_mass
 
+  use pmc_aero_phase_data
+  use pmc_aero_rep_data
+  use pmc_chem_spec_data
+  use pmc_phlex_state
+  use pmc_property
   use pmc_util,                               only: dp, i_kind, &
                                                     string_t, assert_msg, &
                                                     assert, die_msg, to_string
-  use pmc_property
-  use pmc_chem_spec_data
-  use pmc_aero_rep_data
-  use pmc_aero_phase_data
-  use pmc_phlex_state
 
   use iso_c_binding
 
@@ -409,14 +409,17 @@ contains
       ! Get the set of phases
       key_name = "phases"
       call assert_msg(815518058, section%get_property_t(key_name, phases), &
-              "Missing phases for mode '"//this%section_name(i_section)%string// &
-              "' in modal/binned mass aerosol representation '"//this%rep_name//"'")
+              "Missing phases for mode '"// &
+              this%section_name(i_section)%string// &
+              "' in modal/binned mass aerosol representation '"// &
+              this%rep_name//"'")
 
       ! Add the phases to the counter
       call assert_msg(772593427, phases%size().gt.0, &
               "No phases specified for mode '"// &
               this%section_name(i_section)%string// &
-              "' in modal/binned mass aerosol representation '"//this%rep_name//"'")
+              "' in modal/binned mass aerosol representation '"// &
+              this%rep_name//"'")
       num_phase = num_phase + phases%size() * num_bin
 
       ! Loop through the phases and make sure they exist
@@ -980,9 +983,12 @@ contains
       call this%aero_phase(:)%dereference()
       deallocate(this%aero_phase)
     end if
-    if (associated(this%property_set)) deallocate(this%property_set)
-    if (allocated(this%condensed_data_real)) deallocate(this%condensed_data_real)
-    if (allocated(this%condensed_data_int)) deallocate(this%condensed_data_int)
+    if (associated(this%property_set)) &
+            deallocate(this%property_set)
+    if (allocated(this%condensed_data_real)) &
+            deallocate(this%condensed_data_real)
+    if (allocated(this%condensed_data_int)) &
+            deallocate(this%condensed_data_int)
 
   end subroutine finalize
 

@@ -67,25 +67,25 @@
 !> The phlex_core_t structure and associated subroutines.
 module pmc_phlex_core
 
-  use pmc_constants,                  only : i_kind, dp
-  use pmc_mpi
-  use pmc_util,                       only : die_msg, string_t
-#ifdef PMC_USE_MPI
-  use mpi
-#endif
 #ifdef PMC_USE_JSON
   use json_module
 #endif
-  use pmc_phlex_state
-  use pmc_chem_spec_data
-  use pmc_mechanism_data
-  use pmc_rxn_data
-  use pmc_phlex_solver_data
-  use pmc_sub_model_data
-  use pmc_sub_model_factory
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
+  use pmc_aero_phase_data
   use pmc_aero_rep_data
   use pmc_aero_rep_factory
-  use pmc_aero_phase_data
+  use pmc_chem_spec_data
+  use pmc_constants,                  only : i_kind, dp
+  use pmc_mechanism_data
+  use pmc_mpi
+  use pmc_phlex_solver_data
+  use pmc_phlex_state
+  use pmc_rxn_data
+  use pmc_sub_model_data
+  use pmc_sub_model_factory
+  use pmc_util,                       only : die_msg, string_t
 
   implicit none
   private
@@ -112,7 +112,7 @@ module pmc_phlex_core
     !> Flag to split gas- and aerosol-phase reactions
     !! (for large aerosol representations, like single-particle)
     logical :: split_gas_aero = .false.
-    !> Relative integration tolerance TODO move to solver data object
+    !> Relative integration tolerance 
     real(kind=dp) :: rel_tol = 0.0
     !> Solver data (gas-phase reactions)
     type(phlex_solver_data_t), pointer :: solver_data_gas => null()
@@ -127,26 +127,26 @@ module pmc_phlex_core
     procedure :: load
     !> Initialize the model
     procedure :: initialize
+    !> Get a pointer to an aerosol phase by name
+    procedure :: get_aero_phase
+    !> Get a pointer to an aerosol representation by name
+    procedure :: get_aero_rep
     !> Get a pointer to the set of chemical species
     procedure :: get_chem_spec_data
     !> Get a pointer to a mechanism by name
     procedure :: get_mechanism
     !> Get a pointer to a sub-model by name
     procedure :: get_sub_model
-    !> Get a pointer to an aerosol representation by name
-    procedure :: get_aero_rep
-    !> Get a pointer to an aerosol phase by name
-    procedure :: get_aero_phase
     !> Get a new model state variable
     procedure :: new_state
     !> Initialize the solver
     procedure :: solver_initialize
+    !> Update aerosol representation data
+    procedure :: update_aero_rep_data
     !> Update reaction data
     procedure :: update_rxn_data
     !> Update sub-model data
     procedure :: update_sub_model_data
-    !> Update aerosol representation data
-    procedure :: update_aero_rep_data
     !> Run the chemical mechanisms
     procedure :: solve
     !> Get the id of a sub-model parameter in the solver data
@@ -165,14 +165,14 @@ module pmc_phlex_core
     final :: finalize
     
     ! Private functions
+    !> Add an aerosol phase to the model
+    procedure, private :: add_aero_phase
+    !> Add an aerosol representation to the model
+    procedure, private :: add_aero_rep
     !> Add a mechanism to the model
     procedure, private :: add_mechanism
     !> Add a sub-model to the model
     procedure, private :: add_sub_model
-    !> Add an aerosol representation to the model
-    procedure, private :: add_aero_rep
-    !> Add an aerosol phase to the model
-    procedure, private :: add_aero_phase
   end type phlex_core_t
 
   !> Constructor for phlex_core_t
@@ -243,11 +243,11 @@ contains
 
     logical(kind=json_lk) :: found
     character(kind=json_ck, len=:), allocatable :: key, unicode_str_val
-
     integer(kind=json_ik) :: i_file, num_files
     type(string_t), allocatable :: file_list(:)
     logical :: file_exists
 
+    ! load the file containing the paths to the configuration files
     call j_file%initialize()
     call j_file%get_core(json)
     call assert_msg(394951135, allocated(input_file_path), &
@@ -258,6 +258,8 @@ contains
     call assert_msg(433777575, file_exists, "Cannot find file: "//&
             input_file_path)
     call j_file%load_file(filename = input_file_path)
+
+    ! get the set of configuration file names
     call j_file%get('pmc-files(1)', j_obj, found)
     call assert_msg(405149265, found, &
             "Could not find pmc-files object in input file: "// &
@@ -265,7 +267,11 @@ contains
     call j_file%info('pmc-files', n_children = num_files)
     call assert_msg(411804027, num_files.gt.0, &
             "No file names were found in "//input_file_path)
+
+    ! allocate space for the configurtaion file names
     allocate(file_list(num_files))
+
+    ! cycle through the list of file names, adding each to the list
     j_next => null()
     i_file = 1
     do while (associated(j_obj))
@@ -275,9 +281,13 @@ contains
       call json%get_next(j_obj, j_next)
       j_obj => j_next
     end do
+
+    ! free the json file
     call j_file%destroy()
 
+    ! load all the configuration files
     call this%load(file_list)
+
 #else
     call warn_msg(171627969, "No support for input files.");
 #endif
@@ -288,9 +298,9 @@ contains
 
   !> \page input_format_phlex_config Input File Format: Phlex-Chem Configuration Data
   !!
-  !! Configuration data for the \ref phlex_chem "Phlexible Module for Chemistry".
-  !! The files are in \c json format and their general structure
-  !! should be the following:
+  !! Configuration data for the 
+  !! \ref phlex_chem "Phlexible Module for Chemistry". The files are in
+  !! \c json format and their general structure should be the following:
   !! \code{.json}
   !! { "pmc-data" : [
   !!   {
@@ -308,7 +318,7 @@ contains
   !! key-value pair \b pmc-data whose value is an array of \c json objects.
   !! Additional top-level key-value pairs will be ignored. Each of the \c json
   !! objects in the \b pmc-data array must contain a key-value pair \b type
-  !! whose value is a string referenceing a valid PartMC object.
+  !! whose value is a string referencing a valid PartMC object.
   !!
   !! The valid values for \b type are:
   !!
@@ -316,6 +326,7 @@ contains
   !!   - \subpage input_format_species "CHEM_SPEC"
   !!   - \subpage input_format_aero_phase "AERO_PHASE"
   !!   - \subpage input_format_aero_rep "AERO_REP_*"
+  !!   - \subpage input_format_sub_model "SUB_MODEL_*"
   !!
   !! The arrangement of objects within the \b pmc-data array and between input
   !! files is arbitrary. Additionally, some objects, such as \ref 
@@ -351,29 +362,36 @@ contains
     character(kind=json_ck, len=:), allocatable :: key, unicode_str_val
     character(len=:), allocatable :: str_val
     real(kind=json_rk) :: real_val
-    logical :: file_exists
+    logical :: file_exists, found
 
+    ! mechansim
     type(mechanism_data_t), pointer :: mech_ptr
 
+    ! sub models
     type(sub_model_data_ptr), pointer :: new_sub_model(:)
     type(sub_model_factory_t) :: sub_model_factory
     type(sub_model_data_ptr) :: sub_model_ptr
     class(sub_model_data_t), pointer :: existing_sub_model_ptr
 
+    ! aerosol representations
     type(aero_rep_data_ptr), pointer :: new_aero_rep(:)
     type(aero_rep_factory_t) :: aero_rep_factory
     type(aero_rep_data_ptr) :: aero_rep_ptr
     class(aero_rep_data_t), pointer :: existing_aero_rep_ptr
 
+    ! aerosol phases
     type(aero_phase_data_ptr), pointer :: new_aero_phase(:)
     class(aero_phase_data_t), pointer :: aero_phase, existing_aero_phase
 
-    logical :: found
-
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    !!! cycle through the list of configuration files !!!
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     j_obj => null()
     j_next => null()
     allocate(json)
     do i_file = 1, size(input_file_path)
+      
+      ! load the configuration file
       call j_file%initialize()
       call j_file%get_core(json)
       call assert_msg(366175417, allocated(input_file_path(i_file)%string), &
@@ -384,88 +402,147 @@ contains
       call assert_msg(910660557, file_exists, "Cannot file file: "// &
               input_file_path(i_file)%string)
       call j_file%load_file(filename = input_file_path(i_file)%string)
+
+      ! get the phlex-chem objects
       call j_file%get('pmc-data(1)', j_obj)
       do while (associated(j_obj))
+
+        ! get the object type and load data into the appropriate phlex-chem
+        ! derived type
         call json%get(j_obj, 'type', unicode_str_val, found)
-        call assert_msg(689470331, found, "Missing type in json input file "//&
+        call assert_msg(689470331, found, &
+                "Missing type in json input file "// &
                 input_file_path(i_file)%string)
         str_val = unicode_str_val
+
+        !!!!!!!!!!!!!!!!!!!!!!!!
+        !!! load a mechanism !!!
+        !!!!!!!!!!!!!!!!!!!!!!!!
         if (str_val.eq.'MECHANISM') then
           call json%get(j_obj, 'name', unicode_str_val, found)
-          call assert_msg(822680732, found, "Missing mechanism name in file "//&
+          call assert_msg(822680732, found, &
+                  "Missing mechanism name in file "// &
                   input_file_path(i_file)%string)
           str_val = unicode_str_val
+
+          ! if a mechanism with the same name already exists, add data to it
+          ! otherwise, add a new mechanism
           if (.not.this%get_mechanism(str_val, mech_ptr)) then
             call this%add_mechanism(str_val)
             call assert(105816325, this%get_mechanism(str_val, mech_ptr))
           end if
           call mech_ptr%load(json, j_obj)
+
+        ! load a chemical species
         else if (str_val.eq.'CHEM_SPEC') then
           call this%chem_spec_data%load(json, j_obj)
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !!! load an aerosol representation !!!
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         else if (str_val(1:8).eq.'AERO_REP') then
           aero_rep_ptr%val => aero_rep_factory%load(json, j_obj)
           str_val = aero_rep_ptr%val%name()
+
+          ! if an aerosol representation with the same name already exists, 
+          ! add data to it. otherwise, add a new aerosol representation
           if (this%get_aero_rep(str_val, existing_aero_rep_ptr)) then
             deallocate(aero_rep_ptr%val)
             call existing_aero_rep_ptr%load(json, j_obj)
           else
             allocate(new_aero_rep(size(this%aero_rep)+1))
-            new_aero_rep(1:size(this%aero_rep)) = this%aero_rep(1:size(this%aero_rep))
+            new_aero_rep(1:size(this%aero_rep)) = &
+                    this%aero_rep(1:size(this%aero_rep))
             new_aero_rep(size(new_aero_rep))%val => aero_rep_ptr%val
             call this%aero_rep(:)%dereference()
             deallocate(this%aero_rep)
             this%aero_rep => new_aero_rep
             call aero_rep_ptr%dereference()
           end if
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !!! load an aerosol phase !!!
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         else if (str_val.eq.'AERO_PHASE') then
           aero_phase => aero_phase_data_t()
           call aero_phase%load(json, j_obj)
           str_val = aero_phase%name()
+          
+          ! if an aerosol phase with the same name already exists, add data to
+          ! it. otherwise, add a new aerosol phase
           if (this%get_aero_phase(str_val, existing_aero_phase)) then
             deallocate(aero_phase)
             call existing_aero_phase%load(json, j_obj)
           else
             allocate(new_aero_phase(size(this%aero_phase)+1))
-            new_aero_phase(1:size(this%aero_phase)) = this%aero_phase(1:size(this%aero_phase))
+            new_aero_phase(1:size(this%aero_phase)) = &
+                    this%aero_phase(1:size(this%aero_phase))
             new_aero_phase(size(new_aero_phase))%val => aero_phase
             call this%aero_phase(:)%dereference()
             deallocate(this%aero_phase)
             this%aero_phase => new_aero_phase
           end if
+
+        !!!!!!!!!!!!!!!!!!!!!!!!
+        !!! load a sub-model !!!
+        !!!!!!!!!!!!!!!!!!!!!!!!
         else if (str_val(1:9).eq.'SUB_MODEL') then
           sub_model_ptr%val => sub_model_factory%load(json, j_obj)
           str_val = sub_model_ptr%val%name()
+          
+          ! if an sub-model with the same name already exists, add data to it.
+          ! otherwise, add a new sub-model
           if (this%get_sub_model(str_val, existing_sub_model_ptr)) then
             deallocate(sub_model_ptr%val)
             call existing_sub_model_ptr%load(json, j_obj)
           else
             allocate(new_sub_model(size(this%sub_model)+1))
-            new_sub_model(1:size(this%sub_model)) = this%sub_model(1:size(this%sub_model))
+            new_sub_model(1:size(this%sub_model)) = &
+                    this%sub_model(1:size(this%sub_model))
             new_sub_model(size(new_sub_model))%val => sub_model_ptr%val
             call this%sub_model(:)%dereference()
             deallocate(this%sub_model)
             this%sub_model => new_sub_model
             call sub_model_ptr%dereference()
           end if
-        ! TODO move to phlex_solver_data_t function
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !!! set the relative tolerance for the model !!!
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         else if (str_val.eq.'RELATIVE_TOLERANCE') then
           call json%get(j_obj, 'value', real_val, found)
-          call assert_msg(761842352, found, "Missing value for relative tolerance")
+          call assert_msg(761842352, found, &
+                  "Missing value for relative tolerance")
           call assert_msg(162564706, real_val.gt.0.0.and.real_val.lt.1.0, &
-                  "Invalid relative tolerance: "//trim(to_string(real(real_val, kind=dp))))
+                  "Invalid relative tolerance: "// &
+                  trim(to_string(real(real_val, kind=dp))))
           this%rel_tol = real(real_val, kind=dp)
+        
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !!! set whether to solve gas and aerosol phases separately !!!
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         else if (str_val.eq.'SPLIT_GAS_AERO') then
           this%split_gas_aero = .true.
+        
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !!! fail on invalid object type !!!
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         else
-          call die_msg(448039776, "Received invalid json input object type: "//&
-                  str_val)
+          call die_msg(448039776, &
+                  "Received invalid json input object type: "//str_val)
         end if
+        
+        ! get the next object
         j_next => j_obj
         call json%get_next(j_next, j_obj)
       end do
+
+      ! reset the json objects
       call j_file%destroy()
       call json%destroy()
     end do
+
+    ! free the json core
     deallocate(json)
 #else
     call warn_msg(350136328, "No support for input files.");
@@ -530,6 +607,61 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Get a pointer to an aerosol phase by name
+  logical function get_aero_phase(this, aero_phase_name, aero_phase) &
+            result (found)
+
+    !> Model data
+    class(phlex_core_t), intent(in) :: this
+    !> Aerosol phase name to search for
+    character(len=:), allocatable, intent(in) :: aero_phase_name
+    !> Pointer to the aerosol phase
+    type(aero_phase_data_t), pointer, intent(out) :: aero_phase
+
+    integer(kind=i_kind) :: i_aero_phase
+
+    found = .false.
+    aero_phase => null()
+    if (.not.associated(this%aero_phase)) return
+    do i_aero_phase = 1, size(this%aero_phase)
+      if (this%aero_phase(i_aero_phase)%val%name().eq.aero_phase_name) then
+        found = .true.
+        aero_phase => this%aero_phase(i_aero_phase)%val
+        return
+      end if
+    end do
+
+  end function get_aero_phase
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get a pointer to an aerosol representation by name
+  logical function get_aero_rep(this, aero_rep_name, aero_rep) result (found)
+
+    !> Model data
+    class(phlex_core_t), intent(in) :: this
+    !> Aerosol representation name to search for
+    character(len=:), allocatable, intent(in) :: aero_rep_name
+    !> Aerosol representation
+    class(aero_rep_data_t), pointer, intent(out) :: aero_rep
+
+    integer(kind=i_kind) :: i_aero_rep
+
+    found = .false.
+    aero_rep => null()
+    if (.not.associated(this%aero_rep)) return
+    do i_aero_rep = 1, size(this%aero_rep)
+      if (this%aero_rep(i_aero_rep)%val%name().eq.aero_rep_name) then
+        aero_rep => this%aero_rep(i_aero_rep)%val
+        found = .true.
+        return
+      end if
+    end do
+
+  end function get_aero_rep
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Get a pointer to the chemical species data
   logical function get_chem_spec_data(this, chem_spec_data) result (found)
 
@@ -573,31 +705,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Add a chemical mechanism to the model data
-  subroutine add_mechanism(this, mech_name)
-
-    !> Model data
-    class(phlex_core_t), intent(inout) :: this
-    !> Mechanism name
-    character(len=:), allocatable, intent(in) :: mech_name
-
-    type(mechanism_data_ptr), pointer :: new_mechanism(:)
-
-    allocate(new_mechanism(size(this%mechanism)+1))
-
-    new_mechanism(1:size(this%mechanism)) = &
-            this%mechanism(1:size(this%mechanism))
-
-    new_mechanism(size(new_mechanism))%val => mechanism_data_t(mech_name)
-
-    call this%mechanism(:)%dereference()
-    deallocate(this%mechanism)
-    this%mechanism => new_mechanism
-
-  end subroutine add_mechanism
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Find an sub-model by name
   logical function get_sub_model(this, sub_model_name, sub_model) &
             result (found)
@@ -623,134 +730,6 @@ contains
     end do
 
   end function get_sub_model
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Add a sub-model to the model data
-  subroutine add_sub_model(this, sub_model_name)
-
-    !> Model data
-    class(phlex_core_t), intent(inout) :: this
-    !> Sub model name
-    character(len=:), allocatable, intent(in) :: sub_model_name
-
-    type(sub_model_data_ptr), pointer :: new_sub_model(:)
-    type(sub_model_factory_t) :: sub_model_factory
-
-    allocate(new_sub_model(size(this%sub_model)+1))
-
-    new_sub_model(1:size(this%sub_model)) = &
-            this%sub_model(1:size(this%sub_model))
-    new_sub_model(size(new_sub_model))%val => sub_model_factory%create(sub_model_name)
-
-    deallocate(this%sub_model)
-    this%sub_model => new_sub_model
-
-  end subroutine add_sub_model
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get a pointer to an aerosol representation by name
-  logical function get_aero_rep(this, aero_rep_name, aero_rep) result (found)
-
-    !> Model data
-    class(phlex_core_t), intent(in) :: this
-    !> Aerosol representation name to search for
-    character(len=:), allocatable, intent(in) :: aero_rep_name
-    !> Aerosol representation
-    class(aero_rep_data_t), pointer, intent(out) :: aero_rep
-
-    integer(kind=i_kind) :: i_aero_rep
-
-    found = .false.
-    aero_rep => null()
-    if (.not.associated(this%aero_rep)) return
-    do i_aero_rep = 1, size(this%aero_rep)
-      if (this%aero_rep(i_aero_rep)%val%name().eq.aero_rep_name) then
-        aero_rep => this%aero_rep(i_aero_rep)%val
-        found = .true.
-        return
-      end if
-    end do
-
-  end function get_aero_rep
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Add a aerosol representation to the model data
-  subroutine add_aero_rep(this, rep_name)
-
-    !> Model data
-    class(phlex_core_t), intent(inout) :: this
-    !> Aerosol representation name
-    character(len=:), allocatable, intent(in) :: rep_name
-
-    type(aero_rep_data_ptr), pointer :: new_aero_rep(:)
-    type(aero_rep_factory_t) :: aero_rep_factory
-
-    allocate(new_aero_rep(size(this%aero_rep)+1))
-
-    new_aero_rep(1:size(this%aero_rep)) = &
-            this%aero_rep(1:size(this%aero_rep))
-    new_aero_rep(size(new_aero_rep))%val => aero_rep_factory%create(rep_name)
-
-    call this%aero_rep(:)%dereference()
-    deallocate(this%aero_rep)
-    this%aero_rep => new_aero_rep
-
-  end subroutine add_aero_rep
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get a pointer to an aerosol phase by name
-  logical function get_aero_phase(this, aero_phase_name, aero_phase) &
-            result (found)
-
-    !> Model data
-    class(phlex_core_t), intent(in) :: this
-    !> Aerosol phase name to search for
-    character(len=:), allocatable, intent(in) :: aero_phase_name
-    !> Pointer to the aerosol phase
-    type(aero_phase_data_t), pointer, intent(out) :: aero_phase
-
-    integer(kind=i_kind) :: i_aero_phase
-
-    found = .false.
-    aero_phase => null()
-    if (.not.associated(this%aero_phase)) return
-    do i_aero_phase = 1, size(this%aero_phase)
-      if (this%aero_phase(i_aero_phase)%val%name().eq.aero_phase_name) then
-        found = .true.
-        aero_phase => this%aero_phase(i_aero_phase)%val
-        return
-      end if
-    end do
-
-  end function get_aero_phase
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Add a aerosol phase to the model data
-  subroutine add_aero_phase(this, phase_name)
-
-    !> Model data
-    class(phlex_core_t), intent(inout) :: this
-    !> Aerosol phase name
-    character(len=:), allocatable, intent(in) :: phase_name
-
-    type(aero_phase_data_ptr), pointer :: new_aero_phase(:)
-
-    allocate(new_aero_phase(size(this%aero_phase)+1))
-
-    new_aero_phase(1:size(this%aero_phase)) = &
-            this%aero_phase(1:size(this%aero_phase))
-
-    new_aero_phase(size(new_aero_phase))%val => aero_phase_data_t(phase_name)
-
-    deallocate(this%aero_phase)
-    this%aero_phase => new_aero_phase
-
-  end subroutine add_aero_phase
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -850,17 +829,20 @@ contains
         spec_name = this%aero_rep(i_aero_rep)%val%spec_name( &
                   unique_names(i_spec)%string)
         call assert(709716453, &
-                this%chem_spec_data%get_abs_tol(spec_name, abs_tol(i_state_var)))
+                this%chem_spec_data%get_abs_tol(spec_name, &
+                abs_tol(i_state_var)))
         call assert(257084300, &
-                this%chem_spec_data%get_type(spec_name, var_type(i_state_var)))
+                this%chem_spec_data%get_type(spec_name, &
+                var_type(i_state_var)))
       end do
     end do
 
-    ! Make sure absolute tolerance and variable type arrays are completely filled
+    ! Make sure absolute tolerance and variable type arrays are completely
+    ! filled
     call assert_msg(501609702, i_state_var.eq.this%state_array_size, &
-            "Internal error. Filled "//trim(to_string(i_state_var))//" of "//&
-            trim(to_string(this%state_array_size))//" elements of absolute "//&
-            "tolerance and variable type arrays")
+            "Internal error. Filled "//trim(to_string(i_state_var))// &
+            " of "//trim(to_string(this%state_array_size))// &
+            " elements of absolute tolerance and variable type arrays")
 
     ! Set up either two solvers (gas and aerosol) or one solver (combined)
     if (this%split_gas_aero) then
@@ -877,22 +859,22 @@ contains
 
       ! Initialize the solvers
       call this%solver_data_gas%initialize( &
-                var_type,               & ! State array variable types
-                abs_tol,                & ! Absolute tolerances for each state variable
-                this%mechanism,         & ! Pointer to the mechanisms
-                this%aero_phase,        & ! Pointer to the aerosol phases
-                this%aero_rep,          & ! Pointer to the aerosol representations
-                this%sub_model,         & ! Pointer to the sub-models
-                GAS_RXN                 & ! Reaction phase
+                var_type,        & ! State array variable types
+                abs_tol,         & ! Absolute tolerances for each state var
+                this%mechanism,  & ! Pointer to the mechanisms
+                this%aero_phase, & ! Pointer to the aerosol phases
+                this%aero_rep,   & ! Pointer to the aerosol representations
+                this%sub_model,  & ! Pointer to the sub-models
+                GAS_RXN          & ! Reaction phase
                 )
       call this%solver_data_aero%initialize( &
-                var_type,               & ! State array variable types
-                abs_tol,                & ! Absolute tolerances for each state variable
-                this%mechanism,         & ! Pointer to the mechanisms
-                this%aero_phase,        & ! Pointer to the aerosol phases
-                this%aero_rep,          & ! Pointer to the aerosol representations
-                this%sub_model,         & ! Pointer to the sub-models
-                AERO_RXN                & ! Reaction phase
+                var_type,        & ! State array variable types
+                abs_tol,         & ! Absolute tolerances for each state var
+                this%mechanism,  & ! Pointer to the mechanisms
+                this%aero_phase, & ! Pointer to the aerosol phases
+                this%aero_rep,   & ! Pointer to the aerosol representations
+                this%sub_model,  & ! Pointer to the sub-models
+                AERO_RXN         & ! Reaction phase
                 )
     else
 
@@ -906,13 +888,13 @@ contains
     
       ! Initialize the solver
       call this%solver_data_gas_aero%initialize( &
-                var_type,               & ! State array variable types
-                abs_tol,                & ! Absolute tolerances for each state variable
-                this%mechanism,         & ! Pointer to the mechanisms
-                this%aero_phase,        & ! Pointer to the aerosol phases
-                this%aero_rep,          & ! Pointer to the aerosol representations
-                this%sub_model,         & ! Pointer to the sub-models
-                GAS_AERO_RXN            & ! Reaction phase
+                var_type,        & ! State array variable types
+                abs_tol,         & ! Absolute tolerances for each state var
+                this%mechanism,  & ! Pointer to the mechanisms
+                this%aero_phase, & ! Pointer to the aerosol phases
+                this%aero_rep,   & ! Pointer to the aerosol representations
+                this%sub_model,  & ! Pointer to the sub-models
+                GAS_AERO_RXN     & ! Reaction phase
                 )
       
     end if
@@ -922,6 +904,29 @@ contains
     deallocate(abs_tol)
 
   end subroutine solver_initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Update data associated with an aerosol representation. This function
+  !! should be called by an external aerosol microphysics model whenever
+  !! the aerosol condensed data needs updated based on changes in, e.g., 
+  !! particle size or number concentration. The update types are aerosol-
+  !! representation specific.
+  subroutine update_aero_rep_data(this, update_data)
+
+    !> Chemical model
+    class(phlex_core_t), intent(in) :: this
+    !> Update data
+    class(aero_rep_update_data_t), intent(in) :: update_data
+
+    if (associated(this%solver_data_gas)) &
+            call this%solver_data_gas%update_aero_rep_data(update_data)
+    if (associated(this%solver_data_aero)) &
+            call this%solver_data_aero%update_aero_rep_data(update_data)
+    if (associated(this%solver_data_gas_aero)) &
+            call this%solver_data_gas_aero%update_aero_rep_data(update_data)
+    
+  end subroutine update_aero_rep_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -967,29 +972,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Update data associated with an aerosol representation. This function
-  !! should be called by an external aerosol microphysics model whenever
-  !! the aerosol condensed data needs updated based on changes in, e.g., 
-  !! particle size or number concentration. The update types are aerosol-
-  !! representation specific.
-  subroutine update_aero_rep_data(this, update_data)
-
-    !> Chemical model
-    class(phlex_core_t), intent(in) :: this
-    !> Update data
-    class(aero_rep_update_data_t), intent(in) :: update_data
-
-    if (associated(this%solver_data_gas)) &
-            call this%solver_data_gas%update_aero_rep_data(update_data)
-    if (associated(this%solver_data_aero)) &
-            call this%solver_data_aero%update_aero_rep_data(update_data)
-    if (associated(this%solver_data_gas_aero)) &
-            call this%solver_data_gas_aero%update_aero_rep_data(update_data)
-    
-  end subroutine update_aero_rep_data
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Integrate the chemical mechanism
   subroutine solve(this, phlex_state, time_step, rxn_phase)
 
@@ -1032,7 +1014,7 @@ contains
     end if
 
     ! Update the environmental state array
-    ! TODO May move this into the solver functions to allow user vary
+    ! TODO May move this into the solver functions to allow user to vary
     ! environmental parameters with time during the chemistry time step
     call phlex_state%update_env_state()
 
@@ -1043,6 +1025,68 @@ contains
     call solver%solve(phlex_state, real(0.0, kind=dp), time_step)
 
   end subroutine solve
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the id of a sub-model parameter in the solver data
+  function get_sub_model_parameter_id(this, sub_model_type, identifiers) &
+      result (parameter_id)
+
+    use iso_c_binding
+
+    !> Parameter id
+    integer(kind=c_int) :: parameter_id
+    !> Core data
+    class(phlex_core_t), intent(in) :: this
+    !> Sub model type
+    integer(kind=i_kind), intent(in) :: sub_model_type
+    !> Identifiers needed by the sub-model to find a parameter
+    type(c_ptr), intent(in) :: identifiers
+
+    if (associated(this%solver_data_gas)) then
+      parameter_id = this%solver_data_gas%get_sub_model_parameter_id( &
+              sub_model_type, identifiers)
+    else if (associated(this%solver_data_aero)) then
+      parameter_id = this%solver_data_aero%get_sub_model_parameter_id( &
+              sub_model_type, identifiers)
+    else if (associated(this%solver_data_gas_aero)) then
+      parameter_id = this%solver_data_gas_aero%get_sub_model_parameter_id( &
+              sub_model_type, identifiers)
+    end if
+
+  end function get_sub_model_parameter_id
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the value associated with a sub-model parameter for the current
+  !! solver state
+  function get_sub_model_parameter_value(this, parameter_id) &
+      result (parameter_value)
+
+    use iso_c_binding
+
+    !> Parameter value
+    real(kind=dp) :: parameter_value
+    !> Core data
+    class(phlex_core_t), intent(in) :: this
+    !> Parameter id
+    integer(kind=c_int), intent(in) :: parameter_id
+
+    if (associated(this%solver_data_gas)) then
+      parameter_value = &
+              this%solver_data_gas%get_sub_model_parameter_value( &
+              parameter_id)
+    else if (associated(this%solver_data_aero)) then
+      parameter_value = &
+              this%solver_data_aero%get_sub_model_parameter_value( &
+              parameter_id)
+    else if (associated(this%solver_data_gas_aero)) then
+      parameter_value = &
+              this%solver_data_gas_aero%get_sub_model_parameter_value( &
+              parameter_id)
+    end if
+
+  end function get_sub_model_parameter_value
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1172,65 +1216,6 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the id of a sub-model parameter in the solver data
-  function get_sub_model_parameter_id(this, sub_model_type, identifiers) &
-      result (parameter_id)
-
-    use iso_c_binding
-
-    !> Parameter id
-    integer(kind=c_int) :: parameter_id
-    !> Core data
-    class(phlex_core_t), intent(in) :: this
-    !> Sub model type
-    integer(kind=i_kind), intent(in) :: sub_model_type
-    !> Identifiers needed by the sub-model to find a parameter
-    type(c_ptr), intent(in) :: identifiers
-
-    if (associated(this%solver_data_gas)) then
-      parameter_id = this%solver_data_gas%get_sub_model_parameter_id( &
-              sub_model_type, identifiers)
-    else if (associated(this%solver_data_aero)) then
-      parameter_id = this%solver_data_aero%get_sub_model_parameter_id( &
-              sub_model_type, identifiers)
-    else if (associated(this%solver_data_gas_aero)) then
-      parameter_id = this%solver_data_gas_aero%get_sub_model_parameter_id( &
-              sub_model_type, identifiers)
-    end if
-
-  end function get_sub_model_parameter_id
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Get the value associated with a sub-model parameter for the current
-  !! solver state
-  function get_sub_model_parameter_value(this, parameter_id) &
-      result (parameter_value)
-
-    use iso_c_binding
-
-    !> Parameter value
-    real(kind=dp) :: parameter_value
-    !> Core data
-    class(phlex_core_t), intent(in) :: this
-    !> Parameter id
-    integer(kind=c_int), intent(in) :: parameter_id
-
-    if (associated(this%solver_data_gas)) then
-      parameter_value = this%solver_data_gas%get_sub_model_parameter_value( &
-              parameter_id)
-    else if (associated(this%solver_data_aero)) then
-      parameter_value = this%solver_data_aero%get_sub_model_parameter_value( &
-              parameter_id)
-    else if (associated(this%solver_data_gas_aero)) then
-      parameter_value = this%solver_data_gas_aero%get_sub_model_parameter_value( &
-              parameter_id)
-    end if
-
-  end function get_sub_model_parameter_value
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   !> Print the core data
   subroutine do_print(this, file_unit)
 
@@ -1271,19 +1256,23 @@ contains
       call this%mechanism(i_mech)%val%print(f_unit)
     end do
     write(f_unit,*) "*** State Array ***"
-    write(f_unit,*) "Number of species on the state array: ", this%state_array_size
+    write(f_unit,*) "Number of species on the state array: ", &
+            this%state_array_size
     allocate(state_names(this%state_array_size))
     i_spec = 1
-    do i_gas_spec = 1, this%chem_spec_data%size(spec_phase=CHEM_SPEC_GAS_PHASE)
+    do i_gas_spec = 1, &
+            this%chem_spec_data%size(spec_phase=CHEM_SPEC_GAS_PHASE)
       i_spec = i_gas_spec
-      state_names(i_spec)%string = this%chem_spec_data%gas_state_name(i_gas_spec)
+      state_names(i_spec)%string = &
+              this%chem_spec_data%gas_state_name(i_gas_spec)
     end do
     write(f_unit,*) "Gas-phase species: ", i_spec
     do i_aero_rep = 1, size(this%aero_rep)
       rep_spec_names = this%aero_rep(i_aero_rep)%val%unique_names()
       state_names(i_spec+1:i_spec+size(rep_spec_names)) = rep_spec_names(:)
       i_spec = i_spec + size(rep_spec_names)
-      write(f_unit,*) "Aerosol rep ", this%aero_rep(i_aero_rep)%val%rep_name, &
+      write(f_unit,*) "Aerosol rep ", &
+              this%aero_rep(i_aero_rep)%val%rep_name, &
               " species: ", size(rep_spec_names)
       deallocate(rep_spec_names)
     end do
@@ -1292,8 +1281,10 @@ contains
     end do
     deallocate(state_names)
 
-    if (associated(this%solver_data_gas)) call this%solver_data_gas%print()
-    if (associated(this%solver_data_gas_aero)) call this%solver_data_gas_aero%print()
+    if (associated(this%solver_data_gas)) &
+            call this%solver_data_gas%print()
+    if (associated(this%solver_data_gas_aero)) &
+            call this%solver_data_gas_aero%print()
 
   end subroutine do_print
 
@@ -1305,16 +1296,123 @@ contains
     !> Phlex-core data
     type(phlex_core_t), intent(inout) :: this
 
-    if (associated(this%mechanism)) deallocate(this%mechanism)
-    if (associated(this%chem_spec_data)) deallocate(this%chem_spec_data)
-    if (associated(this%sub_model)) deallocate(this%sub_model)
-    if (associated(this%aero_rep)) deallocate(this%aero_rep)
-    if (associated(this%aero_phase)) deallocate(this%aero_phase)
-    if (associated(this%solver_data_gas)) deallocate(this%solver_data_gas)
-    if (associated(this%solver_data_aero)) deallocate(this%solver_data_aero)
-    if (associated(this%solver_data_gas_aero)) deallocate(this%solver_data_gas_aero)
+    if (associated(this%mechanism)) &
+            deallocate(this%mechanism)
+    if (associated(this%chem_spec_data)) &
+            deallocate(this%chem_spec_data)
+    if (associated(this%sub_model)) &
+            deallocate(this%sub_model)
+    if (associated(this%aero_rep)) &
+            deallocate(this%aero_rep)
+    if (associated(this%aero_phase)) &
+            deallocate(this%aero_phase)
+    if (associated(this%solver_data_gas)) &
+            deallocate(this%solver_data_gas)
+    if (associated(this%solver_data_aero)) &
+            deallocate(this%solver_data_aero)
+    if (associated(this%solver_data_gas_aero)) &
+            deallocate(this%solver_data_gas_aero)
 
   end subroutine finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Add a aerosol phase to the model data
+  subroutine add_aero_phase(this, phase_name)
+
+    !> Model data
+    class(phlex_core_t), intent(inout) :: this
+    !> Aerosol phase name
+    character(len=:), allocatable, intent(in) :: phase_name
+
+    type(aero_phase_data_ptr), pointer :: new_aero_phase(:)
+
+    allocate(new_aero_phase(size(this%aero_phase)+1))
+
+    new_aero_phase(1:size(this%aero_phase)) = &
+            this%aero_phase(1:size(this%aero_phase))
+
+    new_aero_phase(size(new_aero_phase))%val => aero_phase_data_t(phase_name)
+
+    deallocate(this%aero_phase)
+    this%aero_phase => new_aero_phase
+
+  end subroutine add_aero_phase
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Add a aerosol representation to the model data
+  subroutine add_aero_rep(this, rep_name)
+
+    !> Model data
+    class(phlex_core_t), intent(inout) :: this
+    !> Aerosol representation name
+    character(len=:), allocatable, intent(in) :: rep_name
+
+    type(aero_rep_data_ptr), pointer :: new_aero_rep(:)
+    type(aero_rep_factory_t) :: aero_rep_factory
+
+    allocate(new_aero_rep(size(this%aero_rep)+1))
+
+    new_aero_rep(1:size(this%aero_rep)) = &
+            this%aero_rep(1:size(this%aero_rep))
+    new_aero_rep(size(new_aero_rep))%val => aero_rep_factory%create(rep_name)
+
+    call this%aero_rep(:)%dereference()
+    deallocate(this%aero_rep)
+    this%aero_rep => new_aero_rep
+
+  end subroutine add_aero_rep
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Add a chemical mechanism to the model data
+  subroutine add_mechanism(this, mech_name)
+
+    !> Model data
+    class(phlex_core_t), intent(inout) :: this
+    !> Mechanism name
+    character(len=:), allocatable, intent(in) :: mech_name
+
+    type(mechanism_data_ptr), pointer :: new_mechanism(:)
+
+    allocate(new_mechanism(size(this%mechanism)+1))
+
+    new_mechanism(1:size(this%mechanism)) = &
+            this%mechanism(1:size(this%mechanism))
+
+    new_mechanism(size(new_mechanism))%val => mechanism_data_t(mech_name)
+
+    call this%mechanism(:)%dereference()
+    deallocate(this%mechanism)
+    this%mechanism => new_mechanism
+
+  end subroutine add_mechanism
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Add a sub-model to the model data
+  subroutine add_sub_model(this, sub_model_name)
+
+    !> Model data
+    class(phlex_core_t), intent(inout) :: this
+    !> Sub model name
+    character(len=:), allocatable, intent(in) :: sub_model_name
+
+    type(sub_model_data_ptr), pointer :: new_sub_model(:)
+    type(sub_model_factory_t) :: sub_model_factory
+
+    allocate(new_sub_model(size(this%sub_model)+1))
+
+    new_sub_model(1:size(this%sub_model)) = &
+            this%sub_model(1:size(this%sub_model))
+    new_sub_model(size(new_sub_model))%val => &
+            sub_model_factory%create(sub_model_name)
+
+    deallocate(this%sub_model)
+    this%sub_model => new_sub_model
+
+  end subroutine add_sub_model
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

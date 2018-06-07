@@ -10,17 +10,17 @@ module pmc_phlex_solver_data
 #define PHLEX_SOLVER_SUCCESS 0
 #define PHLEX_SOLVER_FAIL 1
 
-  use pmc_constants,                   only : i_kind, dp
-  use pmc_util,                        only : assert_msg, to_string, die_msg
-  use pmc_phlex_state
-  use pmc_mechanism_data
-  use pmc_rxn_data
-  use pmc_rxn_factory
   use pmc_aero_phase_data
   use pmc_aero_rep_data
   use pmc_aero_rep_factory
+  use pmc_constants,                   only : i_kind, dp
+  use pmc_mechanism_data
+  use pmc_phlex_state
+  use pmc_rxn_data
+  use pmc_rxn_factory
   use pmc_sub_model_data
   use pmc_sub_model_factory
+  use pmc_util,                        only : assert_msg, to_string, die_msg
 
   use iso_c_binding
 
@@ -363,7 +363,8 @@ contains
     ! Absolute tolerances
     real(kind=c_double), pointer :: abs_tol_c(:)
     ! Indices for iteration
-    integer(kind=i_kind) :: i_mech, i_rxn, i_aero_phase, i_aero_rep, i_sub_model
+    integer(kind=i_kind) :: i_mech, i_rxn, i_aero_phase, i_aero_rep, &
+            i_sub_model
     ! Reaction pointer
     class(rxn_data_t), pointer :: rxn
     ! Reaction factory object for getting reaction type

@@ -146,16 +146,16 @@
 !> The rxn_ZSR_aerosol_water_t type and associated functions. 
 module pmc_rxn_ZSR_aerosol_water
 
+  use pmc_aero_phase_data
+  use pmc_aero_rep_data
+  use pmc_chem_spec_data
   use pmc_constants,                        only: const
+  use pmc_phlex_state
+  use pmc_property
+  use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &
                                                   assert, assert_msg, &
                                                   die_msg, string_t
-  use pmc_rxn_data
-  use pmc_chem_spec_data
-  use pmc_property
-  use pmc_phlex_state
-  use pmc_aero_rep_data
-  use pmc_aero_phase_data
 
   implicit none
   private
@@ -309,7 +309,7 @@ contains
         key_name = "Y_j"
         call assert_msg(286454243, &
                 ion_pair%get_property_t(key_name, sub_props), &
-                "Missing Y_j parameters for Jacobson activity calculation "// &
+                "Missing Y_j parameters for Jacobson activity calculation "//&
                 "for ion pair '"//ion_pair_name//"'.")
 
         call assert_msg(495036486, sub_props%size().gt.0, &

@@ -9,13 +9,13 @@
 module pmc_phlex_state
 #define PHLEX_STATE_NUM_ENV_PARAM 2
 
-  use pmc_mpi
-  use pmc_util,                       only : die_msg, string_t
-  use pmc_env_state
-  use pmc_rand
 #ifdef PMC_USE_MPI
   use mpi
 #endif
+  use pmc_env_state
+  use pmc_mpi
+  use pmc_rand
+  use pmc_util,                       only : die_msg, string_t
 
   implicit none
   private

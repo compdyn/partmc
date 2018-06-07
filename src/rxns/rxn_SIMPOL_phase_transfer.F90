@@ -81,16 +81,16 @@
 !> The rxn_SIMPOL_phase_transfer_t type and associated functions. 
 module pmc_rxn_SIMPOL_phase_transfer
 
+  use pmc_aero_phase_data
+  use pmc_aero_rep_data
+  use pmc_chem_spec_data
   use pmc_constants,                        only: const
+  use pmc_phlex_state
+  use pmc_property
+  use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &
                                                   assert, assert_msg, &
                                                   die_msg, string_t
-  use pmc_rxn_data
-  use pmc_chem_spec_data
-  use pmc_property
-  use pmc_phlex_state
-  use pmc_aero_rep_data
-  use pmc_aero_phase_data
 
   implicit none
   private
@@ -316,8 +316,8 @@ contains
             "gas-phase species "//trim(spec_name))
 
     ! Get N* to calculate the mass accomodation coefficient. If it is not
-    ! present, set DELTA_H_ and DELTA_S_ to zero to indicate a mass accomodation
-    ! coefficient of 1.0
+    ! present, set DELTA_H_ and DELTA_S_ to zero to indicate a mass
+    ! accomodation coefficient of 1.0
     ! Mass accomodation equation is based on equations in:
     ! Ervens, B., et al., 2003. "CAPRAM 2.4 (MODAC mechanism): An extended
     ! and condensed tropospheric aqueous mechanism and its application."

@@ -8,12 +8,12 @@
 !> The property_t structure and associated subroutines.
 module pmc_property
 
-  use pmc_constants,                only : i_kind, dp
-  use pmc_util,                     only : die_msg, warn_msg, to_string, string_t
-
 #ifdef PMC_USE_JSON
   use json_module
 #endif
+  use pmc_constants,                only : i_kind, dp
+  use pmc_util,                     only : die_msg, warn_msg, to_string, string_t
+
 
   implicit none
   private
@@ -902,11 +902,14 @@ contains
     val => this%val
     select type(val)
       type is (integer(kind=i_kind))
-        write(f_unit,*) '"'//this%key_name//'" : '//trim(to_string(val))//suffix
+        write(f_unit,*) '"'//this%key_name//'" : '//trim(to_string(val))// &
+                suffix
       type is (real(kind=dp))
-        write(f_unit,*) '"'//this%key_name//'" : '//trim(to_string(val))//suffix
+        write(f_unit,*) '"'//this%key_name//'" : '//trim(to_string(val))// &
+                suffix
       type is (logical)
-        write(f_unit,*) '"'//this%key_name//'" : '//trim(to_string(val))//suffix
+        write(f_unit,*) '"'//this%key_name//'" : '//trim(to_string(val))// &
+                suffix
       type is (string_t)
         write(f_unit,*) '"'//this%key_name//'" : "'//val%string//'"'//suffix
       class is (property_t)

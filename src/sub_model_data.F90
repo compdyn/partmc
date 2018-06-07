@@ -22,16 +22,16 @@
 !> The abstract sub_model_data_t structure and associated subroutines.
 module pmc_sub_model_data
 
-  use pmc_constants,                    only : i_kind, dp
-  use pmc_mpi
-  use pmc_util,                         only : die_msg, string_t
-  use pmc_property
-#ifdef PMC_USE_MPI
-  use mpi
-#endif
 #ifdef PMC_USE_JSON
   use json_module
 #endif
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
+  use pmc_constants,                    only : i_kind, dp
+  use pmc_mpi
+  use pmc_property
+  use pmc_util,                         only : die_msg, string_t
 
   use iso_c_binding
 

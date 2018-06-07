@@ -32,15 +32,15 @@
 !> The aero_rep_single_particle_t type and associated subroutines.
 module pmc_aero_rep_single_particle
 
+  use pmc_aero_phase_data
+  use pmc_aero_rep_data
+  use pmc_chem_spec_data
+  use pmc_phlex_state
+  use pmc_property
   use pmc_util,                                  only: dp, i_kind, &
                                                        string_t, assert_msg, &
                                                        die_msg, to_string, &
                                                        assert
-  use pmc_property
-  use pmc_chem_spec_data
-  use pmc_aero_rep_data
-  use pmc_aero_phase_data
-  use pmc_phlex_state
 
   use iso_c_binding
 

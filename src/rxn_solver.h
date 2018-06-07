@@ -13,11 +13,10 @@
 */
 #ifndef RXN_SOLVER_H_
 #define RXN_SOLVER_H_
-#include "phlex_solver.h"
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-#include <xmmintrin.h>
+#include "phlex_solver.h"
 
 #ifdef PMC_USE_SUNDIALS
 

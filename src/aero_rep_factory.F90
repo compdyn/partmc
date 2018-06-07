@@ -186,21 +186,21 @@
 !> The aero_rep_factory_t type and associated subroutines.
 module pmc_aero_rep_factory
 
-  use pmc_constants,                  only : i_kind, dp
-  use pmc_util,                       only : die_msg, string_t, assert_msg, &
-                                             warn_msg
-  use pmc_aero_rep_data
-  use pmc_mpi
 #ifdef PMC_USE_JSON
   use json_module
 #endif
 #ifdef PMC_USE_MPI
   use mpi
 #endif
+  use pmc_aero_rep_data
+  use pmc_constants,                  only : i_kind, dp
+  use pmc_mpi
+  use pmc_util,                       only : die_msg, string_t, assert_msg, &
+                                             warn_msg
 
   ! Use all aerosol representation modules
-  use pmc_aero_rep_single_particle
   use pmc_aero_rep_modal_binned_mass
+  use pmc_aero_rep_single_particle
 
   use iso_c_binding
 

@@ -40,7 +40,8 @@ int sub_model_get_parameter_id_sd(void *solver_data, int sub_model_type,
  * \return Index of the requested parameter, or -1 if it was not found that can
  *         be passed to sub_model_get_parameter_value() during solving
  */
-int sub_model_get_parameter_id(ModelData *model_data, int type, void *identifiers)
+int sub_model_get_parameter_id(ModelData *model_data, int type, 
+          void *identifiers)
 {
  
   // Get the number of sub models
@@ -134,7 +135,8 @@ void sub_model_update_env_state(ModelData *model_data, double *env)
     // Call the appropriate function
     switch (sub_model_type) {
       case SUB_MODEL_UNIFAC :
-        sub_model_data = (int*) sub_model_UNIFAC_update_env_state((void*) sub_model_data, env);
+        sub_model_data = (int*) sub_model_UNIFAC_update_env_state(
+                  (void*) sub_model_data, env);
         break;
     }
   }
@@ -160,7 +162,8 @@ void sub_model_calculate(ModelData *model_data)
     // Call the appropriate function
     switch (sub_model_type) {
       case SUB_MODEL_UNIFAC :
-        sub_model_data = (int*) sub_model_UNIFAC_calculate((void*) sub_model_data, model_data);
+        sub_model_data = (int*) sub_model_UNIFAC_calculate(
+                  (void*) sub_model_data, model_data);
         break;
     }
   }
@@ -176,9 +179,11 @@ void sub_model_calculate(ModelData *model_data)
  * \param solver_data Pointer to solver data
  */
 void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
-		int n_float_param, int *int_param, double *float_param, void *solver_data)
+          int n_float_param, int *int_param, double *float_param,
+          void *solver_data)
 {
-  ModelData *model_data = (ModelData*) &(((SolverData*)solver_data)->model_data);
+  ModelData *model_data = 
+          (ModelData*) &(((SolverData*)solver_data)->model_data);
   int *sub_model_data = (int*) (model_data->nxt_sub_model);
 
 #ifdef PMC_USE_SUNDIALS
@@ -191,7 +196,8 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
 
   // Add floating-point parameters
   realtype *flt_ptr = (realtype*) sub_model_data;
-  for (; n_float_param>0; n_float_param--) *(flt_ptr++) = (realtype) *(float_param++);
+  for (; n_float_param>0; n_float_param--)
+          *(flt_ptr++) = (realtype) *(float_param++);
 
   // Set the pointer for the next free space in sub_model_data
   model_data->nxt_sub_model = (void*) flt_ptr;

@@ -26,19 +26,19 @@
 !> The abstract aero_rep_data_t structure and associated subroutines.
 module pmc_aero_rep_data
 
-  use pmc_constants,                  only : i_kind, dp
-  use pmc_mpi
-  use pmc_util,                       only : die_msg, string_t
-  use pmc_property
-  use pmc_chem_spec_data
-  use pmc_phlex_state
-  use pmc_aero_phase_data
-#ifdef PMC_USE_MPI
-  use mpi
-#endif
 #ifdef PMC_USE_JSON
   use json_module
 #endif
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
+  use pmc_aero_phase_data
+  use pmc_chem_spec_data
+  use pmc_constants,                  only : i_kind, dp
+  use pmc_mpi
+  use pmc_phlex_state
+  use pmc_property
+  use pmc_util,                       only : die_msg, string_t
 
   use iso_c_binding
 
@@ -503,9 +503,9 @@ contains
     write(f_unit,*) "*** Aerosol Representation: ",trim(this%rep_name)," ***"
     if (associated(this%property_set)) call this%property_set%print(f_unit)
     if (allocated(this%condensed_data_int)) &
-      write(f_unit,*) " *** condensed data int: ", this%condensed_data_int(:)
+      write(f_unit,*) " *** condensed data int: ",this%condensed_data_int(:)
     if (allocated(this%condensed_data_real)) &
-      write(f_unit,*) " *** condensed data real: ", this%condensed_data_real(:)
+      write(f_unit,*) " *** condensed data real: ",this%condensed_data_real(:)
 
   end subroutine do_print
 

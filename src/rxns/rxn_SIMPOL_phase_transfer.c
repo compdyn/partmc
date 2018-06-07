@@ -100,7 +100,7 @@ void * rxn_SIMPOL_phase_transfer_update_ids(ModelData *model_data,
     }
 
   // Find activity coefficient ids, if they exist
-  // TODO Don't hard-code sub model ids
+  // FIXME Don't hard-code sub model ids
   for (int i_aero_phase = 0; i_aero_phase < NUM_AERO_PHASE_; i_aero_phase++) {
     int aero_state_id = AERO_SPEC_(i_aero_phase);
     AERO_ACT_ID_(i_aero_phase) = 
@@ -154,8 +154,8 @@ void * rxn_SIMPOL_phase_transfer_update_env_state(realtype *env_data,
   EQUIL_CONST_ = vp                    // (Pa_x*mol_tot/mol_x)
                   / PRESSURE_PA_       // (1/Pa_air)
                   / MW_                // (mol_x/kg_x)  
-                  * 1.0e6;              // 1.0e6ppm_x*Pa_air/Pa_x * 
-                                        //  1.0e-9kg_x/ug_x * 1.0e9ug_tot/kg_tot
+                  * 1.0e6;             // 1.0e6ppm_x*Pa_air/Pa_x * 
+                                       //  1.0e-9kg_x/ug_x * 1.0e9ug_tot/kg_tot
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }

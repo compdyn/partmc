@@ -69,14 +69,14 @@
 !> The rxn_CMAQ_H2O2_t type and associated functions. 
 module pmc_rxn_CMAQ_H2O2
 
+  use pmc_aero_rep_data
+  use pmc_chem_spec_data
   use pmc_constants,                        only: const
+  use pmc_phlex_state
+  use pmc_property
+  use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &
                                                   assert, assert_msg, die_msg
-  use pmc_rxn_data
-  use pmc_chem_spec_data
-  use pmc_property
-  use pmc_phlex_state
-  use pmc_aero_rep_data
 
   implicit none
   private
@@ -155,10 +155,12 @@ contains
     if (.not. associated(this%property_set)) call die_msg(255324828, &
             "Missing property set needed to initialize reaction")
     key_name = "reactants"
-    call assert_msg(940945637, this%property_set%get_property_t(key_name, reactants), &
+    call assert_msg(940945637, &
+            this%property_set%get_property_t(key_name, reactants), &
             "CMAQ H2O2 reaction is missing reactants")
     key_name = "products"
-    call assert_msg(435739232, this%property_set%get_property_t(key_name, products), &
+    call assert_msg(435739232, &
+            this%property_set%get_property_t(key_name, products), &
             "CMAQ H2O2 reaction is missing products")
 
     ! Count the number of reactants (including those with a qty specified)
@@ -183,16 +185,17 @@ contains
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
 
-    ! Save the size of the reactant and product arrays (for reactions where these
-    ! can vary)
+    ! Save the size of the reactant and product arrays (for reactions where
+    ! these can vary)
     NUM_REACT_ = i_spec
     NUM_PROD_ = products%size()
 
     ! Set the #/cc -> ppm conversion prefactor
     CONV_ = const%avagadro / const%univ_gas_const * 10.0d0**(-12.0d0)
 
-    ! Get reaction parameters (it might be easiest to keep these at the beginning
-    ! of the condensed data array, so they can be accessed using compliler flags)
+    ! Get reaction parameters (it might be easiest to keep these at the
+    ! beginning of the condensed data array, so they can be accessed using
+    ! compliler flags)
     key_name = "k1_A"
     if (.not. this%property_set%get_real(key_name, k1_A_)) then
       k1_A_ = 1.0

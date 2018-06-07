@@ -312,7 +312,8 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   realtype time_step;
 
   // Update the state array with the current dependent variable values
-  // Signal a recoverable error (positive return value) for negative concentrations.
+  // Signal a recoverable error (positive return value) for negative 
+  // concentrations.
   for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
     if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
       if (NV_DATA_S(y)[i_dep_var] < 0.0) return 1;

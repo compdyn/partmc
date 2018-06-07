@@ -27,21 +27,20 @@
 !> The mechanism_data_t structure and associated subroutines.
 module pmc_mechanism_data
 
-  use pmc_constants,                  only : i_kind, dp
-  use pmc_mpi
-  use pmc_util,                       only : die_msg, string_t
-#ifdef PMC_USE_MPI
-  use mpi
-#endif
 #ifdef PMC_USE_JSON
   use json_module
 #endif
-  ! Reaction modules
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
+  use pmc_aero_rep_data
+  use pmc_chem_spec_data
+  use pmc_constants,                  only : i_kind, dp
+  use pmc_mpi
+  use pmc_phlex_state
   use pmc_rxn_data
   use pmc_rxn_factory
-  use pmc_chem_spec_data
-  use pmc_phlex_state
-  use pmc_aero_rep_data
+  use pmc_util,                       only : die_msg, string_t
 
   implicit none
   private

@@ -44,18 +44,18 @@
 !> The abstract aero_phase_data_t structure and associated subroutines.
 module pmc_aero_phase_data
 
-  use pmc_constants,                  only : i_kind, dp
-  use pmc_mpi
-  use pmc_util,                       only : die_msg, string_t
-  use pmc_property
-  use pmc_chem_spec_data
-  use pmc_phlex_state
-#ifdef PMC_USE_MPI
-  use mpi
-#endif
 #ifdef PMC_USE_JSON
   use json_module
 #endif
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
+  use pmc_chem_spec_data
+  use pmc_constants,                  only : i_kind, dp
+  use pmc_mpi
+  use pmc_phlex_state
+  use pmc_property
+  use pmc_util,                       only : die_msg, string_t
 
   implicit none
   private

@@ -8,16 +8,16 @@
 !> An interface between PartMC and the Phlexible Module for Chemistry 
 module pmc_phlex_interface
 
-  use pmc_constants,                  only : i_kind, dp
-  use pmc_util,                       only : die_msg, string_t
-  use pmc_rxn_data
-  use pmc_phlex_state
-  use pmc_phlex_core
   use pmc_aero_data
   use pmc_aero_particle
   use pmc_aero_state
+  use pmc_constants,                  only : i_kind, dp
   use pmc_gas_data
   use pmc_gas_state
+  use pmc_phlex_core
+  use pmc_phlex_state
+  use pmc_rxn_data
+  use pmc_util,                       only : die_msg, string_t
 
   implicit none
 
@@ -27,7 +27,7 @@ contains
 
   !> Run the Phlexible chemistry module for the current PartMC state
   subroutine pmc_phlex_interface_solve(phlex_core, phlex_state, aero_data, &
-                  aero_state, gas_data, gas_state, del_t)
+            aero_state, gas_data, gas_state, del_t)
 
     !> Phlexible chemistry core
     type(phlex_core_t), intent(in) :: phlex_core
@@ -81,8 +81,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Set the Phlexible chemistry aerosol-phase species concentrations
-  subroutine pmc_phlex_interface_set_phlex_conc(aero_data, aero_particle, phlex_core, &
-                  phlex_state, num_conc)
+  subroutine pmc_phlex_interface_set_phlex_conc(aero_data, aero_particle, &
+            phlex_core, phlex_state, num_conc)
 
     !> Aerosol particle
     type(aero_data_t), intent (in) :: aero_data
@@ -103,11 +103,13 @@ contains
     select type (aero_rep)
       type is (aero_rep_single_particle_t)
         do i_spec = 1, size(aero_data%phlex_spec_id)
-          phlex_state%state_var(aero_data%phlex_spec_id(i_spec)) = num_conc * &
-              aero_particle%vol(i_spec) * aero_data%density(i_spec)
+          phlex_state%state_var(aero_data%phlex_spec_id(i_spec)) = &
+                  num_conc * aero_particle%vol(i_spec) * &
+                  aero_data%density(i_spec)
         end do
       class default
-        call die_msg(780366884, "Wrong type for PartMC aerosol representation.")
+        call die_msg(780366884, &
+                "Wrong type for PartMC aerosol representation.")
     end select
 
     end associate
@@ -117,8 +119,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the Phlexible chemistry aerosol-phase species concentrations
-  subroutine pmc_phlex_interface_get_phlex_conc(aero_data, aero_particle, phlex_core, &
-                  phlex_state, num_conc)
+  subroutine pmc_phlex_interface_get_phlex_conc(aero_data, aero_particle, &
+            phlex_core, phlex_state, num_conc)
 
     !> Aerosol particle
     type(aero_data_t), intent (in) :: aero_data
@@ -144,7 +146,8 @@ contains
               aero_data%density(i_spec) / num_conc
         end do
       class default
-        call die_msg(773649338, "Wrong type for PartMC aerosol representation.")
+        call die_msg(773649338, &
+                "Wrong type for PartMC aerosol representation.")
     end select
 
     end associate

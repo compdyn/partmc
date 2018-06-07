@@ -187,7 +187,6 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     if (state[AERO_WATER_(i_phase)] < SMALL_NUMBER_) continue;
 
     // Get the particle effective radius (m)
-    // FIXME check whether effective radius is the correct radius to use
     realtype radius;
     aero_rep_get_effective_radius(
 		  model_data,			// model data
@@ -313,13 +312,15 @@ void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
     if (aero_conc_type==0) {
-      // Scale the changes to the gas-phase by the number of particles for per-particle 
-      // aerosol concentrations
+      // Scale the changes to the gas-phase by the number of particles for
+      // per-particle aerosol concentrations
       if (JAC_ID_(1+i_phase*5+1)>=0) 
-	      J[JAC_ID_(1+i_phase*5+1)] += number_conc * evap_rate * UGM3_TO_PPM_;
+	      J[JAC_ID_(1+i_phase*5+1)] += number_conc * evap_rate * 
+                      UGM3_TO_PPM_;
       if (JAC_ID_(1+i_phase*5+3)>=0) 
-	      J[JAC_ID_(1+i_phase*5+3)] += - number_conc * evap_rate * UGM3_TO_PPM_ * 
-	      state[AERO_SPEC_(i_phase)] / state[AERO_WATER_(i_phase)];
+	      J[JAC_ID_(1+i_phase*5+3)] += - number_conc * evap_rate * 
+                      UGM3_TO_PPM_ * state[AERO_SPEC_(i_phase)] / 
+                      state[AERO_WATER_(i_phase)];
       if (JAC_ID_(0)>=0) J[JAC_ID_(0)] -= number_conc * cond_rate;
     } else {
       // No scaling for aerosol concentrations with total mass per aerosol phase

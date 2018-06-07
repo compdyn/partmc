@@ -166,30 +166,30 @@
 !> The abstract rxn_factory_t structure and associated subroutines.
 module pmc_rxn_factory
 
-  use pmc_constants,                  only : i_kind, dp
-  use pmc_mpi
-  use pmc_util,                       only : die_msg, string_t, assert_msg, &
-                                             warn_msg
-  use pmc_rxn_data
-#ifdef PMC_USE_MPI
-  use mpi
-#endif
 #ifdef PMC_USE_JSON
   use json_module
 #endif
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
+  use pmc_constants,                  only : i_kind, dp
+  use pmc_mpi
+  use pmc_rxn_data
+  use pmc_util,                       only : die_msg, string_t, assert_msg, &
+                                             warn_msg
 
   ! Use all reaction modules
-  use pmc_rxn_PDFiTE_activity
   use pmc_rxn_aqueous_equilibrium
   use pmc_rxn_arrhenius
-  use pmc_rxn_troe
   use pmc_rxn_CMAQ_H2O2
   use pmc_rxn_CMAQ_OH_HNO3
-  use pmc_rxn_photolysis
-  use pmc_rxn_HL_phase_transfer
-  use pmc_rxn_ZSR_aerosol_water
-  use pmc_rxn_SIMPOL_phase_transfer
   use pmc_rxn_condensed_phase_arrhenius
+  use pmc_rxn_HL_phase_transfer
+  use pmc_rxn_PDFiTE_activity
+  use pmc_rxn_photolysis
+  use pmc_rxn_SIMPOL_phase_transfer
+  use pmc_rxn_troe
+  use pmc_rxn_ZSR_aerosol_water
 
   use iso_c_binding
 

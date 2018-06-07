@@ -31,16 +31,16 @@
 !> The chem_spec_data_t structure and associated subroutines.
 module pmc_chem_spec_data
 
-  use pmc_constants,                  only : i_kind
-  use pmc_mpi
-  use pmc_util,                       only : die_msg, string_t
-  use pmc_property
-#ifdef PMC_USE_MPI
-  use mpi
-#endif
 #ifdef PMC_USE_JSON
   use json_module
 #endif
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
+  use pmc_constants,                  only : i_kind
+  use pmc_mpi
+  use pmc_property
+  use pmc_util,                       only : die_msg, string_t
 
   use iso_c_binding
 
@@ -690,7 +690,8 @@ contains
     new_name(1:this%num_spec) = this%spec_name(1:this%num_spec)
     new_type(1:this%num_spec) = this%spec_type(1:this%num_spec)
     new_phase(1:this%num_spec) = this%spec_phase(1:this%num_spec)
-    call this%property_set(1:this%num_spec)%move(new_property_set(1:this%num_spec))
+    call this%property_set(1:this%num_spec)%move(new_property_set( &
+            1:this%num_spec))
     deallocate(this%spec_name)
     deallocate(this%spec_type)
     deallocate(this%spec_phase)

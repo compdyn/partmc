@@ -74,6 +74,8 @@ module pmc_monarch_interface
     procedure, private :: create_map
     !> Load the initial concentrations
     procedure, private :: load_init_conc
+    !> Finalize the interface
+    final :: finalize
   end type monarch_interface_t
 
   !> PartMC <-> MONARCH interface constructor
@@ -191,8 +193,7 @@ contains
     call new_obj%phlex_core%solver_initialize()
 
     ! Create a state variable on each node
-    allocate(new_obj%phlex_state)
-    new_obj%phlex_state = new_obj%phlex_core%new_state()
+    new_obj%phlex_state => new_obj%phlex_core%new_state()
 
     ! Calculate the intialization time
     if (MONARCH_NODE.eq.0) then
@@ -315,12 +316,9 @@ contains
     logical :: found
 
     ! Initialize the property sets
-    allocate(this%species_map_data)
-    allocate(this%init_conc_data)
-    allocate(this%property_set)
-    this%species_map_data = property_t()
-    this%init_conc_data = property_t()
-    this%property_set = property_t()
+    this%species_map_data => property_t()
+    this%init_conc_data => property_t()
+    this%property_set => property_t()
 
     ! Get a new json core
     allocate(json)
@@ -393,6 +391,7 @@ contains
     ! Clean up the json objects
     call j_file%destroy()
     call json%destroy()
+    deallocate(json)
 
 #else
     call die_msg(635417227, "PartMC-phlex <-> MONARCH interface requires "// &
@@ -708,6 +707,37 @@ contains
     call this%phlex_core%print()
 
   end subroutine do_print
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Finalize the interface
+  elemental subroutine finalize(this)
+
+    !> PartMC-phlex <-> MONARCH interface
+    type(monarch_interface_t), intent(inout) :: this
+
+    if (associated(this%phlex_core)) &
+            deallocate(this%phlex_core)
+    if (associated(this%phlex_state)) &
+            deallocate(this%phlex_state)
+    if (allocated(this%monarch_species_names)) &
+            deallocate(this%monarch_species_names)
+    if (allocated(this%map_monarch_id)) &
+            deallocate(this%map_monarch_id)
+    if (allocated(this%map_phlex_id)) &
+            deallocate(this%map_phlex_id)
+    if (allocated(this%init_conc_phlex_id)) &
+            deallocate(this%init_conc_phlex_id)
+    if (allocated(this%init_conc)) &
+            deallocate(this%init_conc)
+    if (associated(this%species_map_data)) &
+            deallocate(this%species_map_data)
+    if (associated(this%init_conc_data)) &
+            deallocate(this%init_conc_data)
+    if (associated(this%property_set)) &
+            deallocate(this%property_set)
+
+  end subroutine finalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

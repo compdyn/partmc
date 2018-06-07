@@ -17,9 +17,9 @@ program mock_monarch
   !> File unit for model run-time messages
   integer, parameter :: OUTPUT_FILE_UNIT = 6
   !> File unit for model results
-  integer, parameter :: RESULTS_FILE_UNIT = 15
+  integer, parameter :: RESULTS_FILE_UNIT = 7
   !> File unit for script generation
-  integer, parameter :: SCRIPTS_FILE_UNIT = 15
+  integer, parameter :: SCRIPTS_FILE_UNIT = 8
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! Parameters for mock MONARCH model !
@@ -118,6 +118,8 @@ program mock_monarch
   interface_input_file = trim(arg)
   pmc_interface => monarch_interface_t(phlex_input_file, interface_input_file, &
           START_PHLEX_ID, END_PHLEX_ID)
+  deallocate(phlex_input_file)
+  deallocate(interface_input_file)
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! **** end initialization modification **** !
@@ -139,7 +141,7 @@ program mock_monarch
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     call output_results(curr_time)
-    call pmc_interface%integrate(curr_time,        & ! Starting time (min)
+    call pmc_interface%integrate(curr_time,         & ! Starting time (min)
                                  TIME_STEP,         & ! Time step (min)
                                  I_W,               & ! Starting W->E grid cell
                                  I_E,               & ! Ending W->E grid cell
@@ -172,6 +174,13 @@ program mock_monarch
 
   write(*,*) "MONARCH interface tests - PASS"
 
+  ! close the output file
+  close(RESULTS_FILE_UNIT)
+  deallocate(output_file_prefix)
+
+  ! free the interface
+  deallocate(pmc_interface)
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -200,6 +209,8 @@ contains
     water_conc(:,:,:,WATER_VAPOR_ID) = 0.01
     air_density(:,:,:) = 1.225
     pressure(:,:,:) = 101325.0
+
+    deallocate(file_name)
 
   end subroutine model_initialize
 
@@ -271,6 +282,11 @@ contains
             trim(to_string(tracer_id))//" title 'H2O (MONARCH)'"
     close(SCRIPTS_FILE_UNIT)
     
+    deallocate(species_names)
+    deallocate(tracer_ids)
+    deallocate(file_name)
+    deallocate(spec_name)
+
   end subroutine create_gnuplot_script
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

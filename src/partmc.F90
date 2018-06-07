@@ -57,17 +57,17 @@
 !! Two types of \c json input files are used by \ref phlex_chem 
 !! "phlex-chem":
 !!
-!! \subpage input_format_phlex_file_list "Phlex-chem file list"
+!! \ref input_format_phlex_file_list "Phlex-chem file list"
 !!
-!! \subpage input_format_phlex_config "Phlex-chem configuration data"
+!! \ref input_format_phlex_config "Phlex-chem configuration data"
 !!
-!! Typically, one \subpage input_format_phlex_file_list "file list" file is 
-!! used for a PartMC run, which includes paths to multiple \subpage 
+!! Typically, one \ref input_format_phlex_file_list "file list" file is 
+!! used for a PartMC run, which includes paths to multiple \ref 
 !! input_format_phlex_config "configuration" files containing the \ref
 !! phlex_chem "phlex-chem" configuration data. When running stand-alone
-!! PartMC, the path to the \subpage input_format_phlex_file_list "file list"
+!! PartMC, the path to the \ref input_format_phlex_file_list "file list"
 !! file is included in the spec file. When  using the PartMC library, the path
-!! to the \subpage input_format_phlex_file_list "file list" file can be passed
+!! to the \ref input_format_phlex_file_list "file list" file can be passed
 !! as an argument to the \c pmc_phlex_core::phlex_core_t constructor.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

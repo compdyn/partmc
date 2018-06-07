@@ -66,6 +66,8 @@ program pmc_test_cb05cl_ae5
     write(*,*) "CB5 mechanism tests - FAIL"
   end if
 
+  deallocate(phlex_solver_data)
+
 #ifdef DEBUG
   close(DEBUG_UNIT)
 #endif
@@ -680,7 +682,21 @@ contains
               trim(spec_names(i_spec)%string)//" (phlex)'"
     end do
     close(PHLEX_FILE_UNIT)
-    
+  
+    deallocate(photo_rates)
+    deallocate(phlex_spec_names)
+    deallocate(ebi_rxn_map)
+    deallocate(kpp_rxn_map)
+    deallocate(kpp_rxn_labels)
+    deallocate(ebi_spec_map)
+    deallocate(kpp_spec_map)
+    deallocate(ebi_init)
+    deallocate(kpp_init)
+    deallocate(phlex_init)
+    deallocate(phlex_state_comp)
+    deallocate(phlex_state)
+    deallocate(phlex_core)
+
     passed = .true.
 
   end function run_standard_cb05cl_ae5_test

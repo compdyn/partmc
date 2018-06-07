@@ -224,8 +224,8 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     realtype aero_phase_avg_MW;
     aero_rep_get_aero_phase_mass(
                   model_data,                   // model data
-                  AERO_REP_ID_(i_phase),       // aerosol representation index
-                  AERO_PHASE_ID_(i_phase),     // aerosol phase index
+                  AERO_REP_ID_(i_phase),        // aerosol representation index
+                  AERO_PHASE_ID_(i_phase),      // aerosol phase index
                   &aero_phase_mass,             // total aerosol-phase mass
                   &aero_phase_avg_MW);          // avg MW in the aerosol phase
 

@@ -61,6 +61,8 @@ program pmc_test_eqsam_v03d
     write(*,*) "EQSAM tests - FAIL"
   end if
 
+  deallocate(phlex_solver_data)
+
 #ifdef DEBUG
   close(DEBUG_UNIT)
 #endif
@@ -85,9 +87,7 @@ contains
     ! Phlex-chem core
     type(phlex_core_t), pointer :: phlex_core
     ! Phlex-chem state
-    type(phlex_state_t), pointer :: phlex_state, phlex_state_comp
-    ! Phlex-chem species names
-    type(string_t), allocatable :: phlex_spec_names(:)
+    type(phlex_state_t), pointer :: phlex_state
 
     ! Computation timer variables
     real(kind=dp) :: comp_start, comp_end, comp_eqsam, comp_phlex
@@ -148,9 +148,6 @@ contains
     ! Get a state variable
     phlex_state => phlex_core%new_state()
 
-    ! Initialize the solver
-    call phlex_core%solver_initialize()
-
     call cpu_time(comp_end)
     write(*,*) "Phlex-chem initialization time: ", (comp_end-comp_start)
 
@@ -191,6 +188,7 @@ contains
                   "Cannot find aerosol-phase species "//spec_names(i_spec)%string)
           i_state_elem = aero_rep%spec_state_id(unique_names(1)%string)
           phlex_state%state_var(i_state_elem) = real_val
+          deallocate(unique_names)
         case default
           call die_msg(837607961, "Unknown type for species "//spec_names(i_spec)%string)
       end select
@@ -273,8 +271,9 @@ contains
 !            "Wrong number of phlex-chem reactions: "// &
 !            trim(to_string(phlex_core%mechanism(i_mech)%size())))
 
-    
-
+    deallocate(spec_names)
+    deallocate(phlex_state)
+    deallocate(phlex_core)
 
   end function run_standard_eqsam_test
 

@@ -511,7 +511,11 @@ contains
     ! reactions of the specified phase
     do i_mech=1, size(mechanisms)
       do i_rxn=1, mechanisms(i_mech)%val%size()
-        
+       
+        ! FIXME Put ZSR aerosol water first, so water is available for other
+        ! reactions - and find a better way to account for inter-dependence 
+        ! of reactions/sub-models
+
         ! Assign rxn to the current reaction
         associate (rxn => mechanisms(i_mech)%val%get_rxn(i_rxn))
         

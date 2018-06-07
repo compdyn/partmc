@@ -34,6 +34,15 @@
 !! models to choose which mechanisms to solve based on model conditions, and
 !! allows multiple mechanisms to be solved simultaneously.
 !!
+!! # Phlex-Chem Input Classes #
+!!
+!!  - \subpage phlex_aero_phase "Aerosol Phases"
+!!  - \subpage phlex_aero_rep "Aerosol Representations"
+!!  - \subpage phlex_species "Chemical Species"
+!!  - \subpage phlex_mechanism "Mechanisms"
+!!  - \subpage phlex_rxn "Reactions"
+!!  - \subpage phlex_sub_model "Sub-Models"
+!!
 !! # Usage #
 !! 
 !! ## Compiling ##
@@ -44,6 +53,22 @@
 !! <a href="https://github.com/jacobwilliams/json-fortran">json-fortran</a>
 !! must be installed).
 !!
+!! ## Input files ##
+!!
+!! The \ref phlex_chem "phlex-chem" module uses two types of input files:
+!!
+!!  - \subpage input_format_phlex_file_list "File List" A \c json file 
+!!             containing a list of \ref phlex_chem "phlex-chem" configuration 
+!!             file names.
+!!  - \subpage input_format_phlex_config "Configuration File" One or more
+!!             \c json files containing all the \ref phlex_chem "phlex-chem"
+!!             configuration data.
+!!
+!! To initialize the \ref phlex_chem "phlex-chem" module, the path to the
+!! \ref input_format_phlex_file_list "file list" must be passed to the
+!! \ref pmc_phlex_core::phlex_core_t constructor. The method by which this is
+!! done depends on the host model configuration.
+!!
 !! ## PartMC scenarios ##
 !!
 !! Using \ref phlex_chem "phlex-chem" in a PartMC scenario requires modifying
@@ -52,7 +77,7 @@
 !! \ref input_format_phlex_config "phlex-chem configuration" files that 
 !! describe the \ref phlex_species "chemical species", \ref phlex_mechanism
 !! "mechanism(s)", \ref phlex_aero_phase "aerosol phase(s)", \ref
-!! phlex_aero_rep "aerosol representation(s)", and \ref phlex_sub_model
+!! phlex_aero_rep "aerosol representation", and \ref phlex_sub_model
 !! "sub-model(s)". A description of the input files required for a PartMC run
 !! can be found \ref input_format "here".
 !!
@@ -120,6 +145,10 @@ module pmc_phlex_core
     type(phlex_solver_data_t), pointer :: solver_data_aero => null()
     !> Solver data (mixed gas- and aerosol-phase reactions)
     type(phlex_solver_data_t), pointer :: solver_data_gas_aero => null()
+    !> Flag indicating the model data has been initialized
+    logical :: is_initialized = .false.
+    !> Flag indicating the solver has been initialized
+    logical :: solver_is_initialized = .false.
   contains
     !> Load a set of configuration files
     procedure :: load_files
@@ -567,6 +596,10 @@ contains
     ! Species name for looking up properties
     character(len=:), allocatable :: spec_name
 
+    ! make sure the core has not already been initialized
+    call assert_msg(157261665, .not.this%is_initialized, &
+            "Attempting to initialize a phlex_core_t object twice.")
+
     ! Initialize the species database
     call this%chem_spec_data%initialize()
 
@@ -602,6 +635,8 @@ contains
       call this%mechanism(i_mech)%val%initialize(this%chem_spec_data, &
               this%aero_rep)
     end do
+
+    this%is_initialized = .true.
 
   end subroutine initialize
 
@@ -795,6 +830,8 @@ contains
     ! Aerosol species
     type(string_t), allocatable :: unique_names(:)
 
+    call assert_msg(662920365, .not.this%solver_is_initialized, &
+            "Attempting to initialize the solver twice.")
 
     ! Allocate space for the variable types and absolute tolerances
     allocate(abs_tol(this%state_array_size))
@@ -902,6 +939,8 @@ contains
     ! Free allocated memory
     deallocate(var_type)
     deallocate(abs_tol)
+
+    this%solver_is_initialized = .true.
 
   end subroutine solver_initialize
 

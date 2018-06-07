@@ -114,6 +114,9 @@ contains
     ! Initialize the model
     call phlex_core%initialize()
 
+    ! Initialize the solver
+    call phlex_core%solver_initialize()
+
     ! Get a model state variable
     phlex_state => phlex_core%new_state()
 

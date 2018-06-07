@@ -13,6 +13,7 @@ program pmc_test_chem_mech_solver
                                               warn_msg
   use pmc_phlex_core
   use pmc_phlex_state
+  use pmc_chem_spec_data
 #ifdef PMC_USE_JSON
   use json_module
 #endif
@@ -54,6 +55,8 @@ contains
       passed = .true.
     end if
 
+    deallocate(phlex_solver_data)
+
   end function run_pmc_chem_mech_solver_tests
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -73,7 +76,8 @@ contains
     use pmc_constants
 
     type(phlex_core_t), pointer :: phlex_core
-    type(phlex_state_t), target :: phlex_state
+    type(phlex_state_t), pointer :: phlex_state
+    type(chem_spec_data_t), pointer :: chem_spec_data
     character(len=:), allocatable :: input_file_path
     type(string_t), allocatable, dimension(:) :: output_file_path
 
@@ -111,19 +115,22 @@ contains
     call phlex_core%initialize()
 
     ! Get a model state variable
-    phlex_state = phlex_core%new_state()
+    phlex_state => phlex_core%new_state()
 
     ! Set the environmental conditions
     phlex_state%env_state%temp = temp
     phlex_state%env_state%pressure = pressure
 
+    ! Get the chemical species data
+    call assert(343598584, phlex_core%get_chem_spec_data(chem_spec_data))
+
     ! Get species indices
     key = "A"
-    idx_A = phlex_core%chem_spec_data%gas_state_id(key);
+    idx_A = chem_spec_data%gas_state_id(key);
     key = "B"
-    idx_B = phlex_core%chem_spec_data%gas_state_id(key);
+    idx_B = chem_spec_data%gas_state_id(key);
     key = "C"
-    idx_C = phlex_core%chem_spec_data%gas_state_id(key);
+    idx_C = chem_spec_data%gas_state_id(key);
 
     ! Make sure the expected species are in the model
     call assert(629811894, idx_A.gt.0)
@@ -176,6 +183,9 @@ contains
           "; true: "//to_string(true_conc(i_time, i_spec)))
       end do
     end do
+
+    deallocate(phlex_state)
+    deallocate(phlex_core)
 
     run_consecutive_mech_test = .true.
 

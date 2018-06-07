@@ -154,6 +154,7 @@ contains
     ! Computation timer variables
     real(kind=dp) :: comp_start, comp_end, comp_ebi, comp_kpp, comp_phlex
 
+    type(chem_spec_data_t), pointer :: chem_spec_data
     class(rxn_data_t), pointer :: rxn
     type(property_t), pointer :: prop_set
     character(len=:), allocatable :: key, spec_name, string_val, phlex_input_file
@@ -292,19 +293,22 @@ contains
     phlex_state_comp%env_state%pressure = phlex_state%env_state%pressure
     call phlex_state_comp%update_env_state()
   
+    ! Get the chemical species data
+    call assert(298481296, phlex_core%get_chem_spec_data(chem_spec_data))
+
     ! Find the constant species in the CB5 mechanism
     spec_name = "M"
-    i_M = phlex_core%chem_spec_data%gas_state_id(spec_name)
+    i_M   = chem_spec_data%gas_state_id(spec_name)
     spec_name = "O2"
-    i_O2 = phlex_core%chem_spec_data%gas_state_id(spec_name)
+    i_O2  = chem_spec_data%gas_state_id(spec_name)
     spec_name = "N2"
-    i_N2 = phlex_core%chem_spec_data%gas_state_id(spec_name)
+    i_N2  = chem_spec_data%gas_state_id(spec_name)
     spec_name = "H2O"
-    i_H2O = phlex_core%chem_spec_data%gas_state_id(spec_name)
+    i_H2O = chem_spec_data%gas_state_id(spec_name)
     spec_name = "CH4"
-    i_CH4 = phlex_core%chem_spec_data%gas_state_id(spec_name)
+    i_CH4 = chem_spec_data%gas_state_id(spec_name)
     spec_name = "H2"
-    i_H2 = phlex_core%chem_spec_data%gas_state_id(spec_name)
+    i_H2  = chem_spec_data%gas_state_id(spec_name)
 
     ! Set the photolysis rates (dummy values for solver comparison)
     is_sunny = .true.
@@ -335,7 +339,7 @@ contains
     do i_spec = 1, NUM_EBI_SPEC
 
       ! Get initial concentrations from phlex-chem input data
-      call assert(787326679, phlex_core%chem_spec_data%get_property_set( &
+      call assert(787326679, chem_spec_data%get_property_set( &
               ebi_spec_names(i_spec)%string, prop_set))
       if (prop_set%get_real(key, real_val)) then
         
@@ -344,11 +348,11 @@ contains
 
         ! Set the phlex-chem concetration (ppm)
         phlex_state%state_var( &
-                phlex_core%chem_spec_data%gas_state_id( &
+                chem_spec_data%gas_state_id( &
                 ebi_spec_names(i_spec)%string)) = real_val
 #ifdef DEBUG
         write(DEBUG_UNIT,*) "Species ", ebi_spec_names(i_spec)%string, &
-                ", Phlex-chem id: ", phlex_core%chem_spec_data%gas_state_id( &
+                ", Phlex-chem id: ", chem_spec_data%gas_state_id( &
                 ebi_spec_names(i_spec)%string), ", init conc: ", real_val
       else
         write(DEBUG_UNIT,*) "No initial concentration for species ", &
@@ -366,13 +370,13 @@ contains
     
     ! Set EBI solver constant species concentrations in Phlex-chem
     spec_name = "M"
-    call assert(273497194, phlex_core%chem_spec_data%get_property_set(spec_name, prop_set))
+    call assert(273497194, chem_spec_data%get_property_set(spec_name, prop_set))
     call assert(740666066, associated(prop_set))
     call assert(907464197, prop_set%get_real(key, real_val))
     phlex_state%state_var(i_M) = real_val
     KPP_M = real_val / conv
     spec_name = "O2"
-    call assert(557877977, phlex_core%chem_spec_data%get_property_set(spec_name, prop_set))
+    call assert(557877977, chem_spec_data%get_property_set(spec_name, prop_set))
     call assert(729136508, associated(prop_set))
     call assert(223930103, prop_set%get_real(key, real_val))
     phlex_state%state_var(i_O2) = real_val
@@ -385,19 +389,19 @@ contains
       end if
     end do
     spec_name = "N2"
-    call assert(329882514, phlex_core%chem_spec_data%get_property_set(spec_name, prop_set))
+    call assert(329882514, chem_spec_data%get_property_set(spec_name, prop_set))
     call assert(553715297, associated(prop_set))
     call assert(666033642, prop_set%get_real(key, real_val))
     phlex_state%state_var(i_N2) = real_val
     KPP_N2 = real_val / conv
     spec_name = "H2O"
-    call assert(101887051, phlex_core%chem_spec_data%get_property_set(spec_name, prop_set))
+    call assert(101887051, chem_spec_data%get_property_set(spec_name, prop_set))
     call assert(160827237, associated(prop_set))
     call assert(273145582, prop_set%get_real(key, real_val))
     phlex_state%state_var(i_H2O) = real_val
     KPP_H2O = real_val / conv
     spec_name = "CH4"
-    call assert(208941089, phlex_core%chem_spec_data%get_property_set(spec_name, prop_set))
+    call assert(208941089, chem_spec_data%get_property_set(spec_name, prop_set))
     call assert(667939176, associated(prop_set))
     call assert(780257521, prop_set%get_real(key, real_val))
     phlex_state%state_var(i_CH4) = real_val
@@ -409,7 +413,7 @@ contains
       end if
     end do
     spec_name = "H2"
-    call assert(663478776, phlex_core%chem_spec_data%get_property_set(spec_name, prop_set))
+    call assert(663478776, chem_spec_data%get_property_set(spec_name, prop_set))
     call assert(892575866, associated(prop_set))
     call assert(722418962, prop_set%get_real(key, real_val))
     phlex_state%state_var(i_H2) = real_val
@@ -436,10 +440,10 @@ contains
             action="write")
     open(PHLEX_FILE_UNIT, file="out/cb05cl_ae5_phlex_results.txt", status="replace", &
             action="write")
-    n_gas_spec = phlex_core%chem_spec_data%size(spec_phase=CHEM_SPEC_GAS_PHASE)
+    n_gas_spec = chem_spec_data%size(spec_phase=CHEM_SPEC_GAS_PHASE)
     allocate(phlex_spec_names(n_gas_spec))
     do i_spec = 1, n_gas_spec
-      phlex_spec_names(i_spec)%string = phlex_core%chem_spec_data%gas_state_name(i_spec)
+      phlex_spec_names(i_spec)%string = chem_spec_data%gas_state_name(i_spec)
     end do
     write(EBI_FILE_UNIT,*) "time ", (ebi_spec_names(i_spec)%string//" ", i_spec=1, &
             NUM_EBI_SPEC)
@@ -478,18 +482,18 @@ contains
     end do
   
     ! Set up the species map between phlex-chem, kpp and ebi solvers
-    allocate(ebi_spec_map(phlex_core%chem_spec_data%size()))
-    allocate(kpp_spec_map(phlex_core%chem_spec_data%size()))
+    allocate(ebi_spec_map(chem_spec_data%size()))
+    allocate(kpp_spec_map(chem_spec_data%size()))
     ebi_spec_map(:) = 0
     kpp_spec_map(:) = 0
     do i_spec = 1, NUM_EBI_SPEC
-      j_spec = phlex_core%chem_spec_data%gas_state_id(ebi_spec_names(i_spec)%string)
+      j_spec = chem_spec_data%gas_state_id(ebi_spec_names(i_spec)%string)
       call assert_msg(194404050, j_spec.gt.0, "Missing EBI species: "//trim(ebi_spec_names(i_spec)%string))
       ebi_spec_map(j_spec) = i_spec
     end do
     do i_spec = 1, KPP_NSPEC
       spec_name = trim(KPP_SPC_NAMES(i_spec))
-      j_spec = phlex_core%chem_spec_data%gas_state_id(spec_name)
+      j_spec = chem_spec_data%gas_state_id(spec_name)
       call assert_msg(194404050, j_spec.gt.0, "Missing KPP species: "//trim(KPP_SPC_NAMES(i_spec)))
       kpp_spec_map(j_spec) = i_spec
     end do
@@ -582,7 +586,7 @@ contains
             end if
           end do
           phlex_state%state_var( &
-                  phlex_core%chem_spec_data%gas_state_id( &
+                  chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)) = YC(i_spec)
         end do
       end if
@@ -622,13 +626,13 @@ contains
     do i_spec = 1, NUM_EBI_SPEC
       call warn_assert_msg(749090387, almost_equal(real(YC(i_spec), kind=dp), &
           phlex_state%state_var( &
-                  phlex_core%chem_spec_data%gas_state_id( &
+                  chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)), 5.0d-2), &
           "Species "//ebi_spec_names(i_spec)%string//" has different result. "// &
           "EBI solver: "//trim(to_string(real(YC(i_spec), kind=dp)))// &
           "; Phlex-chem: "// &
           trim(to_string( phlex_state%state_var( &
-                  phlex_core%chem_spec_data%gas_state_id( &
+                  chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)))))
     end do
     ! KPP <-> Phlex-chem
@@ -636,13 +640,13 @@ contains
       str_temp%string = trim(KPP_SPC_NAMES(i_spec))
       call warn_assert_msg(749090436, almost_equal(real(KPP_C(i_spec)*conv, kind=dp), &
           phlex_state%state_var( &
-                  phlex_core%chem_spec_data%gas_state_id( &
+                  chem_spec_data%gas_state_id( &
                   str_temp%string)), 5.0d-2), &
           "Species "//str_temp%string//" has different result. "// &
           "KPP solver: "//trim(to_string(real(KPP_C(i_spec)*conv, kind=dp)))// &
           "; Phlex-chem: "// &
           trim(to_string( phlex_state%state_var( &
-                  phlex_core%chem_spec_data%gas_state_id( &
+                  chem_spec_data%gas_state_id( &
                   str_temp%string)))))
     end do
 
@@ -657,7 +661,7 @@ contains
     write(PHLEX_FILE_UNIT,*) "# Run as: gnuplot plot_cb05cl_ae5.conf"
     write(PHLEX_FILE_UNIT,*) "set terminal png truecolor"
     write(PHLEX_FILE_UNIT,*) "set autoscale"
-    spec_names = phlex_core%chem_spec_data%get_spec_names()
+    spec_names = chem_spec_data%get_spec_names()
     do i_spec = 1, size(spec_names)
       write(PHLEX_FILE_UNIT,*) "set output 'cb05cl_ae5_"//trim(spec_names(i_spec)%string)//".png'"
       write(PHLEX_FILE_UNIT,*) "plot\"

@@ -52,11 +52,17 @@ contains
     !> Phlexible chemistry core
     class(phlex_core_t), intent(in) :: phlex_core
 
+    type(chem_spec_data_t), pointer :: chem_spec_data
     integer :: i_spec, i_gas_spec, spec_type
     type(string_t), allocatable :: gas_spec_names(:)
 
+    ! Get the chemical species data
+    call assert_msg(139566827, &
+            phlex_core%get_chem_spec_data(chem_spec_data), &
+            "No chemical species data in phlex core.")
+
     ! Get the gas-phase species names
-    gas_spec_names = phlex_core%chem_spec_data%get_spec_names( &
+    gas_spec_names = chem_spec_data%get_spec_names( &
             spec_phase = CHEM_SPEC_GAS_PHASE)
 
     ! Allocate space for the gas-phase species

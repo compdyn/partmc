@@ -15,6 +15,7 @@ program pmc_test_photolysis
   use pmc_rxn_photolysis
   use pmc_rxn_factory
   use pmc_mechanism_data
+  use pmc_chem_spec_data
   use pmc_phlex_core
   use pmc_phlex_state
 #ifdef PMC_USE_JSON
@@ -84,6 +85,7 @@ contains
     integer(kind=i_kind) :: idx_A, idx_B, idx_C, i_time, i_spec, &
             i_rxn_photo_A, i_rxn, i_photo_A
     real(kind=dp) :: time_step, time, k1, k2, temp, pressure, photo_rate_1
+    type(chem_spec_data_t), pointer :: chem_spec_data
     class(rxn_data_t), pointer :: rxn
 
     ! For setting rates
@@ -145,13 +147,16 @@ contains
     phlex_state%env_state%pressure = pressure
     call phlex_state%update_env_state()
 
+    ! Get the chemical species data
+    call assert(109337870, phlex_core%get_chem_spec_data(chem_spec_data))
+
     ! Get species indices
     key = "A"
-    idx_A = phlex_core%chem_spec_data%gas_state_id(key);
+    idx_A = chem_spec_data%gas_state_id(key);
     key = "B"
-    idx_B = phlex_core%chem_spec_data%gas_state_id(key);
+    idx_B = chem_spec_data%gas_state_id(key);
     key = "C"
-    idx_C = phlex_core%chem_spec_data%gas_state_id(key);
+    idx_C = chem_spec_data%gas_state_id(key);
 
     ! Make sure the expected species are in the model
     call assert(629811894, idx_A.gt.0)

@@ -14,6 +14,7 @@ module pmc_aero_data
   use pmc_fractal
   use pmc_netcdf
   use pmc_phlex_core
+  use pmc_chem_spec_data
   use pmc_aero_rep_data
   use pmc_aero_rep_single_particle
   use pmc_property
@@ -823,6 +824,7 @@ contains
     character(len=:), allocatable :: rep_name, prop_name, source_name
     type(string_t), allocatable :: spec_names(:)
     integer :: num_spec, i_spec
+    type(chem_spec_data_t), pointer :: chem_spec_data
     type(property_t), pointer :: property_set
     integer(kind=i_kind), allocatable :: phlex_id(:)
 
@@ -831,6 +833,10 @@ contains
       call die_msg(418509983, "Missing 'PartMC single particle' aerosol "// &
               "representation.")
     end if
+
+    call assert_msg(935419266, &
+            phlex_core%get_chem_spec_data(chem_spec_data), &
+            "No chemical species data in phlex_core.")
 
     spec_names = this%aero_rep_ptr%unique_names()
     num_spec = size(spec_names)
@@ -845,7 +851,7 @@ contains
 
     do i_spec = 1, num_spec
       this%name(i_spec) = spec_names(i_spec)%string
-      if (.not.phlex_core%chem_spec_data%get_property_set( &
+      if (.not.chem_spec_data%get_property_set( &
         spec_names(i_spec)%string, property_set)) then
         call die_msg(934844845, "Missing property set for aerosol species "//&
              spec_names(i_spec)%string)

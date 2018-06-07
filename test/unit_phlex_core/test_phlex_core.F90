@@ -11,6 +11,7 @@ program pmc_test_phlex_core
   use pmc_util,                         only: i_kind, dp, assert, &
                                               almost_equal, string_t
   use pmc_phlex_core
+  use pmc_chem_spec_data
   use pmc_mechanism_data
 #ifdef PMC_USE_JSON
   use json_module
@@ -45,6 +46,7 @@ contains
 
     type(phlex_core_t), pointer :: phlex_core
     type(mechanism_data_t), pointer :: mechanism
+    type(chem_spec_data_t), pointer :: chem_spec_data
     character(len=:), allocatable :: input_file_path
     character(len=:), allocatable :: key_name
 
@@ -54,8 +56,11 @@ contains
 
     phlex_core => phlex_core_t(input_file_path)
 
+    ! Get the chemical species data
+    call assert(974584023, phlex_core%get_chem_spec_data(chem_spec_data))
+
     ! Check the number of species in the model
-    call assert(822520018, phlex_core%chem_spec_data%size().eq.7)
+    call assert(822520018, chem_spec_data%size().eq.7)
 
     ! Get the mechanism index
     key_name = "lunch mechanism"

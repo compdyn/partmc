@@ -15,6 +15,7 @@ program pmc_test_HL_phase_transfer
                                               warn_msg
   use pmc_phlex_core
   use pmc_phlex_state
+  use pmc_chem_spec_data
   use pmc_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_aero_rep_single_particle
@@ -79,6 +80,7 @@ contains
     character(len=:), allocatable :: input_file_path
     type(string_t), allocatable, dimension(:) :: output_file_path
 
+    type(chem_spec_data_t), pointer :: chem_spec_data
     class(aero_rep_data_t), pointer :: aero_rep_ptr
     real(kind=dp), dimension(0:NUM_TIME_STEP, 11) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_phase, idx_aero_rep, idx_O3, idx_O3_aq, &
@@ -151,13 +153,16 @@ contains
     call phlex_core%update_aero_rep_data(radius_update)
     call phlex_core%update_aero_rep_data(number_update)
     
+    ! Get the chemical species data
+    call assert(191714381, phlex_core%get_chem_spec_data(chem_spec_data))
+
     ! Get species indices
     key = "O3"
-    idx_O3 = phlex_core%chem_spec_data%gas_state_id(key);
+    idx_O3 = chem_spec_data%gas_state_id(key);
     key = "aqueous aerosol.O3_aq"
     idx_O3_aq = aero_rep_ptr%spec_state_id(key);
     key = "H2O2"
-    idx_H2O2 = phlex_core%chem_spec_data%gas_state_id(key);
+    idx_H2O2 = chem_spec_data%gas_state_id(key);
     key = "aqueous aerosol.H2O2_aq"
     idx_H2O2_aq = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.H2O_aq"

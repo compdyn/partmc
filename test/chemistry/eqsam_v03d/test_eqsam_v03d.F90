@@ -100,6 +100,7 @@ contains
     ! Phlex-chem configuration file
     character(len=:), allocatable :: phlex_input_file
 
+    type(chem_spec_data_t), pointer :: chem_spec_data
     character(len=:), allocatable :: key, str_val, spec_name, phase_name, rep_name
     integer(kind=i_kind) :: i_mech, i_spec, n_spec, int_val, i_state_elem
     real(kind=dp) :: real_val, init_conc
@@ -161,22 +162,25 @@ contains
     phlex_state%env_state%temp = temperature
     phlex_state%env_state%pressure = pressure * const%air_std_press
     call phlex_state%update_env_state()
-    
+   
+    ! Get the chemical species data
+    call assert(410085820, phlex_core%get_chem_spec_data(chem_spec_data))
+
     ! Phlex-chem species concentrations
     key = "init conc"
     phase_name = "aqueous aerosol"
     rep_name = "single particle"
     call assert(522998221, phlex_core%get_aero_rep(rep_name, aero_rep))
-    spec_names = phlex_core%chem_spec_data%get_spec_names()
+    spec_names = chem_spec_data%get_spec_names()
     do i_spec = 1, size(spec_names)
-      call assert(929748071, phlex_core%chem_spec_data%get_property_set( &
+      call assert(929748071, chem_spec_data%get_property_set( &
               spec_names(i_spec)%string, prop_set))
       call assert(368608641, prop_set%get_real(key, real_val))
-      call assert(514801839, phlex_core%chem_spec_data%get_phase( &
+      call assert(514801839, chem_spec_data%get_phase( &
               spec_names(i_spec)%string, int_val))
       select case (int_val)
         case (CHEM_SPEC_GAS_PHASE)
-          int_val = phlex_core%chem_spec_data%gas_state_id(spec_names(i_spec)%string)
+          int_val = chem_spec_data%gas_state_id(spec_names(i_spec)%string)
           call assert_msg(891348329, int_val.gt.0, "Cannot find gas-phase species "// &
                   spec_names(i_spec)%string)
           phlex_state%state_var(int_val) = real_val
@@ -316,12 +320,15 @@ contains
     !> Species name
     character(len=*), intent(in) :: spec_name
 
+    type(chem_spec_data_t), pointer :: chem_spec_data
     character(len=:), allocatable :: spec_name_def
     integer(kind=i_kind) :: spec_id
 
     spec_name_def = spec_name
 
-    spec_id = phlex_core%chem_spec_data%gas_state_id(spec_name_def)
+    call assert(285785622, phlex_core%get_chem_spec_data(chem_spec_data))
+
+    spec_id = chem_spec_data%gas_state_id(spec_name_def)
     call assert_msg(326761745, spec_id.gt.0, &
             "Error getting gas-phase concentration for "//trim(spec_name))
     get_eqsam_gas_conc = phlex_state%state_var(spec_id) * &

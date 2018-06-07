@@ -15,6 +15,7 @@ program pmc_test_SIMPOL_phase_transfer
                                               warn_msg
   use pmc_phlex_core
   use pmc_phlex_state
+  use pmc_chem_spec_data
   use pmc_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_aero_rep_single_particle
@@ -86,6 +87,7 @@ contains
     character(len=:), allocatable :: input_file_path, key
     type(string_t), allocatable, dimension(:) :: output_file_path
 
+    type(chem_spec_data_t), pointer :: chem_spec_data
     class(aero_rep_data_t), pointer :: aero_rep_ptr
     real(kind=dp), dimension(0:NUM_TIME_STEP, 7) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_phase, idx_aero_rep
@@ -165,9 +167,12 @@ contains
     call phlex_core%update_aero_rep_data(radius_update)
     call phlex_core%update_aero_rep_data(number_update)
 
+    ! Get chemical species data
+    call assert(250292358, phlex_core%get_chem_spec_data(chem_spec_data))
+
     ! Get species indices
     key = "ethanol"
-    idx_ethanol = phlex_core%chem_spec_data%gas_state_id(key);
+    idx_ethanol = chem_spec_data%gas_state_id(key);
     key = "aqueous aerosol.ethanol_aq"
     idx_ethanol_aq = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.H2O_aq"

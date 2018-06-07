@@ -15,6 +15,7 @@ program pmc_test_ZSR_aerosol_water
                                               warn_msg
   use pmc_phlex_core
   use pmc_phlex_state
+  use pmc_chem_spec_data
   use pmc_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_aero_rep_single_particle
@@ -78,6 +79,7 @@ contains
     character(len=:), allocatable :: input_file_path, key
     type(string_t), allocatable, dimension(:) :: output_file_path
 
+    type(chem_spec_data_t), pointer :: chem_spec_data
     class(aero_rep_data_t), pointer :: aero_rep_ptr
     real(kind=dp), dimension(0:NUM_RH_STEP, 13) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_H2O, idx_Na_p, idx_Na_p_act, idx_Cl_m, &
@@ -115,13 +117,16 @@ contains
     phlex_state%env_state%pressure = pressure
     call phlex_state%update_env_state()
 
+    ! Get the chemical species data
+    call assert(604467956, phlex_core%get_chem_spec_data(chem_spec_data))
+
     ! Find the aerosol representation
     key = "my aero rep 2"
     call assert(110830690, phlex_core%get_aero_rep(key, aero_rep_ptr))
 
     ! Get species indices
     key = "H2O"
-    idx_H2O = phlex_core%chem_spec_data%gas_state_id(key);
+    idx_H2O = chem_spec_data%gas_state_id(key);
     key = "aqueous aerosol.H2O_aq"
     idx_H2O_aq = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.Na_p"

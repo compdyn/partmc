@@ -409,6 +409,7 @@ contains
     !> PartMC-phlex <-> MONARCH interface
     class(monarch_interface_t) :: this
 
+    type(chem_spec_data_t), pointer :: chem_spec_data
     class(aero_rep_data_t), pointer :: aero_rep_ptr
     type(property_t), pointer :: gas_species_list, aero_species_list, species_data
     character(len=:), allocatable :: key_name, spec_name, rep_name
@@ -433,13 +434,17 @@ contains
     allocate(this%map_monarch_id(num_spec))
     allocate(this%map_phlex_id(num_spec))
 
+    ! Get the chemical species data
+    call assert_msg(731700229, &
+            this%phlex_core%get_chem_spec_data(chem_spec_data), &
+            "No chemical species data in phlex_core.")
+
     ! Set the gas-phase water id
     key_name = "gas-phase water"
     call assert_msg(413656652, &
             this%species_map_data%get_string(key_name, spec_name), &
             "Missing gas-phase water species for MONARCH interface.")
-    this%gas_phase_water_id = &
-            this%phlex_core%chem_spec_data%gas_state_id(spec_name)
+    this%gas_phase_water_id = chem_spec_data%gas_state_id(spec_name)
     call assert_msg(910692272, this%gas_phase_water_id.gt.0, &
             "Could not find gas-phase water species '"//spec_name//"'.")
 
@@ -467,8 +472,7 @@ contains
               "Monarch id for species '"//spec_name//"' out of specified "// &
               "tracer array bounds.")
         
-      this%map_phlex_id(i_spec) = &
-              this%phlex_core%chem_spec_data%gas_state_id(spec_name)
+      this%map_phlex_id(i_spec) = chem_spec_data%gas_state_id(spec_name)
       call assert_msg(916977002, this%map_phlex_id(i_spec).gt.0, &
                 "Could not find species '"//spec_name//"' in PartMC-phlex.")
       
@@ -532,6 +536,7 @@ contains
     !> PartMC-phlex <-> MONARCH interface
     class(monarch_interface_t) :: this
 
+    type(chem_spec_data_t), pointer :: chem_spec_data
     class(aero_rep_data_t), pointer :: aero_rep_ptr
     type(property_t), pointer :: gas_species_list, aero_species_list, species_data
     character(len=:), allocatable :: key_name, spec_name, rep_name
@@ -550,6 +555,11 @@ contains
     if (this%init_conc_data%get_property_t(key_name, aero_species_list)) then
       num_spec = num_spec + aero_species_list%size()
     end if
+
+    ! Get the chemical species data
+    call assert_msg(885063268, &
+            this%phlex_core%get_chem_spec_data(chem_spec_data), &
+            "No chemical species data in phlex_core.")
 
     ! Allocate space for the initial concentrations and indices
     allocate(this%init_conc_phlex_id(num_spec))
@@ -575,7 +585,7 @@ contains
                 "PartMC-phlex initial concentrations.")
         
         this%init_conc_phlex_id(i_spec) = &
-                this%phlex_core%chem_spec_data%gas_state_id(spec_name)
+                chem_spec_data%gas_state_id(spec_name)
         call assert_msg(940200584, this%init_conc_phlex_id(i_spec).gt.0, &
                 "Could not find species '"//spec_name//"' in PartMC-phlex.")
       

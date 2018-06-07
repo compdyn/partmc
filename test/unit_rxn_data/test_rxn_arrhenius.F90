@@ -13,6 +13,7 @@ program pmc_test_arrhenius
                                               warn_msg
   use pmc_phlex_core
   use pmc_phlex_state
+  use pmc_chem_spec_data
 #ifdef PMC_USE_JSON
   use json_module
 #endif
@@ -75,6 +76,7 @@ contains
     character(len=:), allocatable :: input_file_path
     type(string_t), allocatable, dimension(:) :: output_file_path
 
+    type(chem_spec_data_t), pointer :: chem_spec_data
     real(kind=dp), dimension(0:NUM_TIME_STEP, 4) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_A, idx_B, idx_C, idx_D
     character(len=:), allocatable :: key
@@ -121,15 +123,18 @@ contains
     phlex_state%env_state%pressure = pressure
     call phlex_state%update_env_state()
 
+    ! Get the chemical species data
+    call assert(657781626, phlex_core%get_chem_spec_data(chem_spec_data))
+
     ! Get species indices
     key = "A"
-    idx_A = phlex_core%chem_spec_data%gas_state_id(key);
+    idx_A = chem_spec_data%gas_state_id(key);
     key = "B"
-    idx_B = phlex_core%chem_spec_data%gas_state_id(key);
+    idx_B = chem_spec_data%gas_state_id(key);
     key = "C"
-    idx_C = phlex_core%chem_spec_data%gas_state_id(key);
+    idx_C = chem_spec_data%gas_state_id(key);
     key = "D"
-    idx_D = phlex_core%chem_spec_data%gas_state_id(key);
+    idx_D = chem_spec_data%gas_state_id(key);
 
     ! Make sure the expected species are in the model
     call assert(629811894, idx_A.gt.0)

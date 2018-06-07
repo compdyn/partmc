@@ -18,6 +18,7 @@ program pmc_test_PDFiTE_activity
   use pmc_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_aero_rep_single_particle
+  use pmc_chem_spec_data
 #ifdef PMC_USE_JSON
   use json_module
 #endif
@@ -76,6 +77,7 @@ contains
     character(len=:), allocatable :: input_file_path, key
     type(string_t), allocatable, dimension(:) :: output_file_path
 
+    type(chem_spec_data_t), pointer :: chem_spec_data
     class(aero_rep_data_t), pointer :: aero_rep_ptr
     real(kind=dp), dimension(0:NUM_RH_STEP, 28) :: model_conc, true_conc
     integer(kind=i_kind) :: idx_H2O, idx_H2O_aq, idx_H_p, idx_NH4_p, &
@@ -119,13 +121,16 @@ contains
     phlex_state%env_state%pressure = pressure
     call phlex_state%update_env_state()
 
+    ! Get the chemical species data
+    call assert(585768557, phlex_core%get_chem_spec_data(chem_spec_data))
+
     ! Find the aerosol representation
     key = "my aero rep 2"
     call assert(917299782, phlex_core%get_aero_rep(key, aero_rep_ptr))
 
     ! Get species indices
     key = "H2O"
-    idx_H2O = phlex_core%chem_spec_data%gas_state_id(key);
+    idx_H2O = chem_spec_data%gas_state_id(key);
     key = "aqueous aerosol.H2O_aq"
     idx_H2O_aq = aero_rep_ptr%spec_state_id(key);
     key = "aqueous aerosol.H_p"

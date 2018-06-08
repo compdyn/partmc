@@ -340,7 +340,7 @@ contains
     class(phlex_solver_data_t), intent(inout) :: this
     !> Variable type for each species in the state array. This array must be
     !! of the same length as the state array.
-    integer(kind=i_kind), pointer, intent(in) :: var_type(:)
+    integer(kind=i_kind), allocatable, intent(in) :: var_type(:)
     !> Absolute tolerance for each species in the state array. This array must
     !! be of the same length as the state array. Values for CONST and PSSA
     !! species will be ignored by the solver.

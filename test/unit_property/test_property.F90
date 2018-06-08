@@ -8,22 +8,29 @@
 !> Unit tests for the pmc_property module.
 program pmc_property_test 
 
-  use pmc_util
-  use pmc_property
 #ifdef PMC_USE_JSON
   use json_module
 #endif
+  use pmc_mpi
+  use pmc_property
+  use pmc_util
 
   implicit none
 
   ! New-line character
   character(len=*), parameter :: new_line = char(10)
 
-  if (run_pmc_property_tests()) then
+  !> initialize mpi
+  call pmc_mpi_init()
+
+  if (run_pmc_property_tests() .and. pmc_mpi_rank().eq.0) then
     write(*,*) "Property tests - PASS"
   else
     write(*,*) "Property tests - FAIL"
   end if
+
+  !> finalize mpi
+  call pmc_mpi_finalize()
 
 contains
 

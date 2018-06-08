@@ -139,6 +139,11 @@ module pmc_phlex_core
     logical :: split_gas_aero = .false.
     !> Relative integration tolerance 
     real(kind=dp) :: rel_tol = 0.0
+    ! Absolute integration tolerances
+    ! (Values for non-solver species will be ignored)
+    real(kind=dp), allocatable :: abs_tol(:)
+    ! Variable types
+    integer(kind=i_kind), allocatable :: var_type(:)
     !> Solver data (gas-phase reactions)
     type(phlex_solver_data_t), pointer :: solver_data_gas => null()
     !> Solver data (aerosol-phase reactions)
@@ -595,6 +600,10 @@ contains
    
     ! Species name for looking up properties
     character(len=:), allocatable :: spec_name
+    ! Gas-phase species names
+    type(string_t), allocatable :: gas_spec_names(:)
+    ! Aerosol species
+    type(string_t), allocatable :: unique_names(:)
 
     ! make sure the core has not already been initialized
     call assert_msg(157261665, .not.this%is_initialized, &
@@ -635,6 +644,54 @@ contains
       call this%mechanism(i_mech)%val%initialize(this%chem_spec_data, &
               this%aero_rep)
     end do
+
+    ! Allocate space for the variable types and absolute tolerances
+    allocate(this%abs_tol(this%state_array_size))
+    allocate(this%var_type(this%state_array_size))
+    
+    ! Start at the first state array element
+    i_state_var = 0
+
+    ! Add gas-phase species variable types and absolute tolerances
+    gas_spec_names = &
+            this%chem_spec_data%get_spec_names(spec_phase = &
+            CHEM_SPEC_GAS_PHASE)
+    do i_spec = 1, size(gas_spec_names)
+      i_state_var = i_state_var + 1
+      call assert(716433999, &
+              this%chem_spec_data%get_abs_tol(gas_spec_names(i_spec)%string, &
+              this%abs_tol(i_state_var)))
+      call assert(888496437, &
+              this%chem_spec_data%get_type(gas_spec_names(i_spec)%string, &
+              this%var_type(i_state_var)))
+    end do
+
+    ! Loop through aerosol representations
+    do i_aero_rep = 1, size(this%aero_rep)
+      ! Set aerosol-phase species variable types and absolute tolerances
+      ! TODO Move this to the aerosol representations, so they have control
+      ! of their portion on the state array and what is stored there
+      call assert(666823548, associated(this%aero_rep(i_aero_rep)%val))
+      unique_names = this%aero_rep(i_aero_rep)%val%unique_names()
+      do i_spec = 1, this%aero_rep(i_aero_rep)%val%size()
+        i_state_var = i_state_var + 1
+        spec_name = this%aero_rep(i_aero_rep)%val%spec_name( &
+                  unique_names(i_spec)%string)
+        call assert(709716453, &
+                this%chem_spec_data%get_abs_tol(spec_name, &
+                this%abs_tol(i_state_var)))
+        call assert(257084300, &
+                this%chem_spec_data%get_type(spec_name, &
+                this%var_type(i_state_var)))
+      end do
+    end do
+
+    ! Make sure absolute tolerance and variable type arrays are completely
+    ! filled
+    call assert_msg(501609702, i_state_var.eq.this%state_array_size, &
+            "Internal error. Filled "//trim(to_string(i_state_var))// &
+            " of "//trim(to_string(this%state_array_size))// &
+            " elements of absolute tolerance and variable type arrays")
 
     this%is_initialized = .true.
 
@@ -818,68 +875,11 @@ contains
  
     ! Indices for loops
     integer(kind=i_kind) :: i_state_var, i_aero_rep, i_spec, i_sub_model
-    ! Absolute integration tolerances
-    ! (Values for non-solver species will be ignored)
-    real(kind=dp), allocatable :: abs_tol(:)
-    ! Variable types
-    integer(kind=i_kind), pointer :: var_type(:)
     ! Current species name
     character(len=:), allocatable :: spec_name
-    ! Gas-phase species names
-    type(string_t), allocatable :: gas_spec_names(:)
-    ! Aerosol species
-    type(string_t), allocatable :: unique_names(:)
 
     call assert_msg(662920365, .not.this%solver_is_initialized, &
             "Attempting to initialize the solver twice.")
-
-    ! Allocate space for the variable types and absolute tolerances
-    allocate(abs_tol(this%state_array_size))
-    allocate(var_type(this%state_array_size))
-    
-    ! Start at the first state array element
-    i_state_var = 0
-
-    ! Add gas-phase species variable types and absolute tolerances
-    gas_spec_names = &
-            this%chem_spec_data%get_spec_names(spec_phase = &
-            CHEM_SPEC_GAS_PHASE)
-    do i_spec = 1, size(gas_spec_names)
-      i_state_var = i_state_var + 1
-      call assert(716433999, &
-              this%chem_spec_data%get_abs_tol(gas_spec_names(i_spec)%string, &
-              abs_tol(i_state_var)))
-      call assert(888496437, &
-              this%chem_spec_data%get_type(gas_spec_names(i_spec)%string, &
-              var_type(i_state_var)))
-    end do
-
-    ! Loop through aerosol representations
-    do i_aero_rep = 1, size(this%aero_rep)
-      ! Set aerosol-phase species variable types and absolute tolerances
-      ! TODO Move this to the aerosol representations, so they have control
-      ! of their portion on the state array and what is stored there
-      call assert(666823548, associated(this%aero_rep(i_aero_rep)%val))
-      unique_names = this%aero_rep(i_aero_rep)%val%unique_names()
-      do i_spec = 1, this%aero_rep(i_aero_rep)%val%size()
-        i_state_var = i_state_var + 1
-        spec_name = this%aero_rep(i_aero_rep)%val%spec_name( &
-                  unique_names(i_spec)%string)
-        call assert(709716453, &
-                this%chem_spec_data%get_abs_tol(spec_name, &
-                abs_tol(i_state_var)))
-        call assert(257084300, &
-                this%chem_spec_data%get_type(spec_name, &
-                var_type(i_state_var)))
-      end do
-    end do
-
-    ! Make sure absolute tolerance and variable type arrays are completely
-    ! filled
-    call assert_msg(501609702, i_state_var.eq.this%state_array_size, &
-            "Internal error. Filled "//trim(to_string(i_state_var))// &
-            " of "//trim(to_string(this%state_array_size))// &
-            " elements of absolute tolerance and variable type arrays")
 
     ! Set up either two solvers (gas and aerosol) or one solver (combined)
     if (this%split_gas_aero) then
@@ -896,8 +896,8 @@ contains
 
       ! Initialize the solvers
       call this%solver_data_gas%initialize( &
-                var_type,        & ! State array variable types
-                abs_tol,         & ! Absolute tolerances for each state var
+                this%var_type,   & ! State array variable types
+                this%abs_tol,    & ! Absolute tolerances for each state var
                 this%mechanism,  & ! Pointer to the mechanisms
                 this%aero_phase, & ! Pointer to the aerosol phases
                 this%aero_rep,   & ! Pointer to the aerosol representations
@@ -905,8 +905,8 @@ contains
                 GAS_RXN          & ! Reaction phase
                 )
       call this%solver_data_aero%initialize( &
-                var_type,        & ! State array variable types
-                abs_tol,         & ! Absolute tolerances for each state var
+                this%var_type,   & ! State array variable types
+                this%abs_tol,    & ! Absolute tolerances for each state var
                 this%mechanism,  & ! Pointer to the mechanisms
                 this%aero_phase, & ! Pointer to the aerosol phases
                 this%aero_rep,   & ! Pointer to the aerosol representations
@@ -925,8 +925,8 @@ contains
     
       ! Initialize the solver
       call this%solver_data_gas_aero%initialize( &
-                var_type,        & ! State array variable types
-                abs_tol,         & ! Absolute tolerances for each state var
+                this%var_type,   & ! State array variable types
+                this%abs_tol,    & ! Absolute tolerances for each state var
                 this%mechanism,  & ! Pointer to the mechanisms
                 this%aero_phase, & ! Pointer to the aerosol phases
                 this%aero_rep,   & ! Pointer to the aerosol representations
@@ -935,10 +935,6 @@ contains
                 )
       
     end if
-
-    ! Free allocated memory
-    deallocate(var_type)
-    deallocate(abs_tol)
 
     this%solver_is_initialized = .true.
 
@@ -1139,6 +1135,9 @@ contains
     type(sub_model_factory_t) :: sub_model_factory
     integer(kind=i_kind) :: i_mech, i_rep, i_sub_model
 
+    call assert_msg(143374295, this%is_initialized, &
+            "Trying to get the buffer size of an uninitialized core.")
+
     pack_size =  pmc_mpi_pack_size_integer(size(this%mechanism)) + &
                  pmc_mpi_pack_size_integer(size(this%aero_rep)) + &
                  pmc_mpi_pack_size_integer(size(this%sub_model))
@@ -1157,7 +1156,9 @@ contains
     end do
     pack_size = pack_size + &
                 pmc_mpi_pack_size_integer(this%state_array_size) + &
-                pmc_mpi_pack_size_logical(this%split_gas_aero)
+                pmc_mpi_pack_size_logical(this%split_gas_aero) + &
+                pmc_mpi_pack_size_real_array(this%abs_tol) + &
+                pmc_mpi_pack_size_integer_array(this%var_type)
 
   end function pack_size
 
@@ -1178,6 +1179,9 @@ contains
     type(sub_model_factory_t) :: sub_model_factory
     integer(kind=i_kind) :: i_mech, i_rep, i_sub_model, prev_position
 
+    call assert_msg(143374295, this%is_initialized, &
+            "Trying to pack an uninitialized core.")
+
     prev_position = pos
     call pmc_mpi_pack_integer(buffer, pos, size(this%mechanism))
     call pmc_mpi_pack_integer(buffer, pos, size(this%aero_rep))
@@ -1195,8 +1199,10 @@ contains
       call sub_model_factory%bin_pack(sub_model, buffer, pos)
       end associate
     end do
-    call pmc_mpi_pack_integer(this%state_array_size, buffer, pos)
-    call pmc_mpi_pack_logical(this%split_gas_aero, buffer, pos)
+    call pmc_mpi_pack_integer(buffer, pos, this%state_array_size)
+    call pmc_mpi_pack_logical(buffer, pos, this%split_gas_aero)
+    call pmc_mpi_pack_real_array(buffer, pos, this%abs_tol)
+    call pmc_mpi_pack_integer_array(buffer, pos, this%var_type)
     call assert(184050835, &
          pos - prev_position <= this%pack_size())
 #endif
@@ -1221,6 +1227,10 @@ contains
     integer(kind=i_kind) :: i_mech, i_rep, i_sub_model, prev_position
     integer(kind=i_kind) :: num_mech, num_rep, num_sub_model
 
+    call finalize(this)
+    this%chem_spec_data => chem_spec_data_t()
+    allocate(this%aero_phase(0))
+
     prev_position = pos
     call pmc_mpi_unpack_integer(buffer, pos, num_mech)
     call pmc_mpi_unpack_integer(buffer, pos, num_rep)
@@ -1229,7 +1239,7 @@ contains
     allocate(this%aero_rep(num_rep))
     allocate(this%sub_model(num_sub_model))
     do i_mech = 1, num_mech
-      allocate(this%mechanism(i_mech)%val)
+      this%mechanism(i_mech)%val => mechanism_data_t()
       call this%mechanism(i_mech)%val%bin_unpack(buffer, pos)
     end do
     do i_rep = 1, num_rep
@@ -1239,11 +1249,14 @@ contains
       this%sub_model(i_sub_model)%val => &
               sub_model_factory%bin_unpack(buffer, pos)
     end do
-    call pmc_mpi_unpack_integer(this%state_array_size, buffer, pos)
-    call pmc_mpi_unpack_logical(this%split_gas_aero, buffer, pos)
+    call pmc_mpi_unpack_integer(buffer, pos, this%state_array_size)
+    call pmc_mpi_unpack_logical(buffer, pos, this%split_gas_aero)
+    call pmc_mpi_unpack_real_array(buffer, pos, this%abs_tol)
+    call pmc_mpi_unpack_integer_array(buffer, pos, this%var_type)
+    this%is_initialized = .true.
     call assert(291557168, &
          pos - prev_position <= this%pack_size())
-
+    
     ! Initialize the solver
     ! TODO figure out how to pack the solver - could be the only thing
     ! that needs to be passed to other nodes
@@ -1345,6 +1358,10 @@ contains
             deallocate(this%aero_rep)
     if (associated(this%aero_phase)) &
             deallocate(this%aero_phase)
+    if (allocated(this%abs_tol)) &
+            deallocate(this%abs_tol)
+    if (allocated(this%var_type)) &
+            deallocate(this%var_type)
     if (associated(this%solver_data_gas)) &
             deallocate(this%solver_data_gas)
     if (associated(this%solver_data_aero)) &

@@ -2,7 +2,7 @@
 	"pmc-data" : [
 		{ "name" : "peanut butter", "type" : "CHEM_SPEC", "MW" : 12.75},
 		{ "name" : "jelly", "type" : "CHEM_SPEC", "MW" : 42.5},
-		{ "name" : "sanwich", "type" : "CHEM_SPEC", "MW" : 13.58},
+		{ "name" : "sandwich", "type" : "CHEM_SPEC", "MW" : 13.58},
 		{ "name" : "snack", "type" : "CHEM_SPEC", "MW" : 185.39},
 		{ "name" : "oreo", "type" : "CHEM_SPEC", "MW" : 12.45},
 		{ "name" : "extra lid", "type" : "CHEM_SPEC"},
@@ -18,7 +18,7 @@
 						"jelly" : {}
 					},
 					"products" : {
-						"sanwich" : {}
+						"sandwich" : {}
 					},
 					"A" : 1.2e3,
 					"Ea" : 3256.1

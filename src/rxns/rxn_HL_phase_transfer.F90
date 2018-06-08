@@ -320,7 +320,7 @@ contains
     GAS_SPEC_ = chem_spec_data%gas_state_id(spec_name)
 
     ! Make sure the species exists
-    call assert_msg(751684145, GAS_SPEC_.gt.0, &
+    call assert_msg(955306778, GAS_SPEC_.gt.0, &
             "Missing phase-transfer gas-phase species: "//spec_name)
 
     ! Get the required properties for the gas-phase species

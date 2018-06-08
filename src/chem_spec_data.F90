@@ -34,13 +34,9 @@ module pmc_chem_spec_data
 #ifdef PMC_USE_JSON
   use json_module
 #endif
-#ifdef PMC_USE_MPI
-  use mpi
-#endif
-  use pmc_constants,                  only : i_kind
-  use pmc_mpi
+  use pmc_constants,                  only : dp, i_kind
   use pmc_property
-  use pmc_util,                       only : die_msg, string_t
+  use pmc_util,                       only : die_msg, string_t, assert_msg
 
   use iso_c_binding
 

@@ -8,25 +8,32 @@
 !> Test class for the phlex_core_t type
 program pmc_test_phlex_core
 
-  use pmc_util,                         only: i_kind, dp, assert, &
-                                              almost_equal, string_t
-  use pmc_phlex_core
-  use pmc_chem_spec_data
-  use pmc_mechanism_data
 #ifdef PMC_USE_JSON
   use json_module
 #endif
+  use pmc_chem_spec_data
+  use pmc_mechanism_data
+  use pmc_mpi
+  use pmc_phlex_core
+  use pmc_util,                         only: i_kind, dp, assert, &
+                                              almost_equal, string_t
 
   implicit none
 
   ! New-line character
   character(len=*), parameter :: new_line = char(10)
 
-  if (run_pmc_phlex_core_tests()) then
+  !> initialize mpi
+  call pmc_mpi_init()
+
+  if (run_pmc_phlex_core_tests() .and. pmc_mpi_rank().eq.0) then
     write(*,*) "Model data tests - PASS"
   else
     write(*,*) "Model data tests - FAIL"
   end if
+
+  !> finalize mpi
+  call pmc_mpi_finalize()
 
 contains
 
@@ -49,6 +56,11 @@ contains
     type(chem_spec_data_t), pointer :: chem_spec_data
     character(len=:), allocatable :: input_file_path
     character(len=:), allocatable :: key_name
+#ifdef PMC_USE_MPI
+    type(phlex_core_t), pointer :: passed_core
+    character, allocatable :: buffer(:)
+    integer(kind=i_kind) :: pos, pack_size
+#endif
 
     load_phlex_core_test = .false.
 
@@ -71,6 +83,22 @@ contains
 
     ! Make sure all three reactions were loaded
     call assert(360948482, mechanism%size().eq.3)
+
+#ifdef PMC_USE_MPI
+    call phlex_core%initialize()
+    pack_size = phlex_core%pack_size()
+    allocate(buffer(pack_size))
+    pos = 0
+    call phlex_core%bin_pack(buffer, pos)
+    call assert(738553750, pos.eq.pack_size)
+    passed_core => phlex_core_t()
+    pos = 0
+    call passed_core%bin_unpack(buffer, pos)
+    call assert(614253552, pos.eq.pack_size)
+    call assert(893370028, passed_core%pack_size().eq.phlex_core%pack_size())
+    deallocate(buffer)
+    deallocate(passed_core)
+#endif
 
     deallocate(phlex_core)
 

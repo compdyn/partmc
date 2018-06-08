@@ -142,7 +142,11 @@ endif()
 # Unit test macro
 
 macro(do_unit_test test_name result)
-  add_test(unit_test_${test_name} ${CMAKE_BINARY_DIR}/unit_test_${test_name})
+  if(ENABLE_MPI)
+    add_test(unit_test_${test_name} mpirun -v -np 2 ${CMAKE_BINARY_DIR}/unit_test_${test_name})
+  else()
+    add_test(unit_test_${test_name} ${CMAKE_BINARY_DIR}/unit_test_${test_name})
+  endif()
   set_tests_properties(unit_test_${test_name}
 	  PROPERTIES PASS_REGULAR_EXPRESSION ${result})
 endmacro(do_unit_test)

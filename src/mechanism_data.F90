@@ -120,7 +120,7 @@ contains
     !> Chemical mechanism
     type(mechanism_data_t), pointer :: new_obj
     !> Name of the mechanism
-    character(len=:), allocatable, intent(in) :: mech_name
+    character(len=:), allocatable, intent(in), optional :: mech_name
     !> Number of reactions to allocate space for initially
     integer(i_kind), intent(in), optional :: init_size
 
@@ -128,7 +128,11 @@ contains
 
     allocate(new_obj)
     if (present(init_size)) alloc_size = init_size
-    new_obj%mech_name = mech_name
+    if (present(mech_name)) then
+      new_obj%mech_name = mech_name
+    else
+      new_obj%mech_name = ""
+    endif
     allocate(new_obj%rxn_ptr(alloc_size))
 
   end function constructor
@@ -315,8 +319,7 @@ contains
     type(rxn_factory_t) :: rxn_factory 
     integer(kind=i_kind) :: i_rxn
 
-    pack_size =  pmc_mpi_pack_size_integer(this%num_rxn) + &
-                 pmc_mpi_pack_size_string(this%mech_name)
+    pack_size =  pmc_mpi_pack_size_integer(this%num_rxn)
     do i_rxn = 1, this%num_rxn
       associate (rxn => this%rxn_ptr(i_rxn)%val)
       pack_size = pack_size + rxn_factory%pack_size(rxn)
@@ -343,7 +346,6 @@ contains
 
     prev_position = pos
     call pmc_mpi_pack_integer(buffer, pos, this%num_rxn)
-    call pmc_mpi_pack_string(buffer, pos, this%mech_name)
     do i_rxn = 1, this%num_rxn
       associate (rxn => this%rxn_ptr(i_rxn)%val)
       call rxn_factory%bin_pack(rxn, buffer, pos)
@@ -369,12 +371,12 @@ contains
 
 #ifdef PMC_USE_MPI
     type(rxn_factory_t) :: rxn_factory 
-    integer :: i_rxn, prev_position
+    integer :: i_rxn, prev_position, num_rxn
 
     prev_position = pos
-    call pmc_mpi_unpack_integer(buffer, pos, this%num_rxn)
-    call pmc_mpi_unpack_string(buffer, pos, this%mech_name)
-    call this%ensure_size(this%num_rxn)
+    call pmc_mpi_unpack_integer(buffer, pos, num_rxn)
+    call this%ensure_size(num_rxn)
+    this%num_rxn = num_rxn
     do i_rxn = 1, this%num_rxn
       this%rxn_ptr(i_rxn)%val => rxn_factory%bin_unpack(buffer, pos)
     end do

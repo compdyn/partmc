@@ -26,11 +26,14 @@ program pmc_test_aero_phase_data
   !> initialize mpi
   call pmc_mpi_init()
 
-  if (run_pmc_aero_phase_data_tests()) then
+  if (run_pmc_aero_phase_data_tests() .and. pmc_mpi_rank().eq.0) then
     write(*,*) "Aerosol phase data tests - PASS"
   else
     write(*,*) "Aerosol phase data tests - FAIL"
   end if
+
+  !> finalize mpi
+  call pmc_mpi_finalize()
 
 contains
 
@@ -50,7 +53,6 @@ contains
 
     type(aero_phase_data_t), pointer :: aero_phase_data
     type(aero_phase_data_ptr), allocatable :: aero_phase_data_set(:)
-    type(aero_phase_data_ptr), allocatable :: aero_phase_passed_data_set(:)
     type(chem_spec_data_t), pointer :: chem_spec_data
 #ifdef PMC_USE_JSON
     type(json_file) :: j_file
@@ -62,10 +64,11 @@ contains
     character(len=:), allocatable :: key
     real(kind=dp) :: temp_real
     logical :: temp_logical
-
+#ifdef PMC_USE_MPI
+    type(aero_phase_data_ptr), allocatable :: aero_phase_passed_data_set(:)
     character, allocatable :: buffer(:)
-    integer(kind=i_kind) :: pos, pack_size
-
+    integer(kind=i_kind) :: pos, pack_size, i_prop
+#endif
     allocate(json)
     call j_file%initialize()
     call j_file%get_core(json)
@@ -144,7 +147,7 @@ contains
     end do
     do i_phase = 1, 3
       call assert(165060871, &
-        size(aero_phase_data_set(i_phase)%val%condensed_data_real).eq.
+        size(aero_phase_data_set(i_phase)%val%condensed_data_real).eq. &
         size(aero_phase_passed_data_set(i_phase)%val%condensed_data_real))
       do i_prop = 1, size(aero_phase_data_set(i_phase)%val%condensed_data_real)
         call assert(513997759, &
@@ -152,7 +155,7 @@ contains
           aero_phase_passed_data_set(i_phase)%val%condensed_data_real(i_prop))
       end do
       call assert(104315834, &
-        size(aero_phase_data_set(i_phase)%val%condensed_data_int).eq.
+        size(aero_phase_data_set(i_phase)%val%condensed_data_int).eq. &
         size(aero_phase_passed_data_set(i_phase)%val%condensed_data_int))
       do i_prop = 1, size(aero_phase_data_set(i_phase)%val%condensed_data_int)
         call assert(834158929, &
@@ -161,6 +164,7 @@ contains
       end do
     end do
     deallocate(aero_phase_passed_data_set)
+    deallocate(buffer)
 #endif
 
 

@@ -8,23 +8,30 @@
 !> Unit tests for the pmc_chem_spec_data module.
 program pmc_chem_spec_data_test
 
-  use pmc_chem_spec_data
-  use pmc_util
-  use pmc_property
 #ifdef PMC_USE_JSON
   use json_module
 #endif
+  use pmc_chem_spec_data
+  use pmc_mpi
+  use pmc_property
+  use pmc_util
 
   implicit none
 
   ! New-line character
   character(len=*), parameter :: new_line = char(10)
 
-  if (run_pmc_chem_spec_data_tests()) then
+  !> initialize mpi
+  call pmc_mpi_init()
+
+  if (run_pmc_chem_spec_data_tests() .and. pmc_mpi_rank().eq.0) then
     write(*,*) "Chemical species data tests - PASS"
   else
     write(*,*) "Chemical species data tests - FAIL"
   end if
+
+  !> finalize mpi
+  call pmc_mpi_finalize()
 
 contains
 

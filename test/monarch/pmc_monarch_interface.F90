@@ -114,7 +114,7 @@ contains
     integer, optional :: ending_id
 
     type(phlex_solver_data_t), pointer :: phlex_solver_data
-    character(len=:), allocatable :: buffer
+    character, allocatable :: buffer(:)
     integer(kind=i_kind) :: pos, pack_size
     integer(kind=i_kind) :: i_spec
     type(string_t), allocatable :: unique_names(:)
@@ -165,27 +165,27 @@ contains
       call new_obj%load_init_conc()
 #ifdef PMC_USE_MPI
       pack_size = new_obj%phlex_core%pack_size() + &
-              pmc_mpi_pack_size_int_array(new_obj%map_monarch_id) + &
-              pmc_mpi_pack_size_int_array(new_obj%map_phlex_id) + &
-              pmc_mpi_pack_size_int_array(new_obj%init_conc_phlex_id) + &
+              pmc_mpi_pack_size_integer_array(new_obj%map_monarch_id) + &
+              pmc_mpi_pack_size_integer_array(new_obj%map_phlex_id) + &
+              pmc_mpi_pack_size_integer_array(new_obj%init_conc_phlex_id) + &
               pmc_mpi_pack_size_real_array(new_obj%init_conc)
       allocate(buffer(pack_size))
       pos = 0
       call new_obj%phlex_core%bin_pack(buffer, pos)
-      call pmc_mpi_pack_int_array(new_obj%map_monarch_id)
-      call pmc_mpi_pack_int_array(new_obj%map_phlex_id)
-      call pmc_mpi_pack_int_array(new_obj%init_conc_phlex_id)
-      call pmc_mpi_pack_real_array(new_obj%init_conc)
+      call pmc_mpi_pack_integer_array(buffer, pos, new_obj%map_monarch_id)
+      call pmc_mpi_pack_integer_array(buffer, pos, new_obj%map_phlex_id)
+      call pmc_mpi_pack_integer_array(buffer, pos, new_obj%init_conc_phlex_id)
+      call pmc_mpi_pack_real_array(buffer, pos, new_obj%init_conc)
       ! TODO send buffer to all the other nodes
     else
       new_obj%phlex_core => phlex_core_t()
       ! TODO get buffer from the primary node
       pos = 0
       call new_obj%phlex_core%bin_unpack(buffer, pos)
-      call pmc_mpi_unpack_int_array(new_obj%map_monarch_id)
-      call pmc_mpi_unpack_int_array(new_obj%map_phlex_id)
-      call pmc_mpi_unpack_int_array(new_obj%init_conc_phlex_id)
-      call pmc_mpi_unpack_real_array(new_obj%init_conc)
+      call pmc_mpi_unpack_integer_array(buffer, pos, new_obj%map_monarch_id)
+      call pmc_mpi_unpack_integer_array(buffer, pos, new_obj%map_phlex_id)
+      call pmc_mpi_unpack_integer_array(buffer, pos, new_obj%init_conc_phlex_id)
+      call pmc_mpi_unpack_real_array(buffer, pos, new_obj%init_conc)
 #endif
     end if
 

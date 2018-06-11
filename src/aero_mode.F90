@@ -73,6 +73,8 @@ module pmc_aero_mode
      real(kind=dp), allocatable :: vol_frac_std(:)
      !> Source number.
      integer :: source
+     !> Class number.
+     integer :: weight_class
   end type aero_mode_t
 
 contains
@@ -662,6 +664,18 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Get the weight class for an aero_mode.
+  integer function aero_mode_get_weight_class(aero_mode)
+
+    !> Aero_mode to get weight class for.
+    type(aero_mode_t) :: aero_mode
+
+    aero_mode_get_weight_class = aero_mode%weight_class
+
+  end function aero_mode_get_weight_class
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Read volume fractions from a data file.
   subroutine spec_file_read_vol_frac(file, aero_data, vol_frac, vol_frac_std)
 
@@ -876,6 +890,7 @@ contains
     character(len=SPEC_LINE_MAX_VAR_LEN) :: tmp_str, mode_type, diam_type_str
     character(len=SPEC_LINE_MAX_VAR_LEN) :: mass_frac_filename
     character(len=SPEC_LINE_MAX_VAR_LEN) :: size_dist_filename
+    character(len=SPEC_LINE_MAX_VAR_LEN) :: weight_class_name
     type(spec_line_t) :: line
     type(spec_file_t) :: mass_frac_file, size_dist_file
     real(kind=dp) :: diam, temp, pressure
@@ -983,7 +998,9 @@ contains
        tmp_str = line%data(1) ! hack to avoid gfortran warning
        aero_mode%name = tmp_str(1:AERO_MODE_NAME_LEN)
        aero_mode%source = aero_data_source_by_name(aero_data, aero_mode%name)
-
+       call spec_file_read_string(file, 'weight_class_name', weight_class_name)
+       aero_mode%weight_class = aero_data_weight_class_by_name(aero_data, &
+            weight_class_name)
        call spec_file_read_string(file, 'mass_frac', mass_frac_filename)
        call spec_file_open(mass_frac_filename, mass_frac_file)
        call spec_file_read_vol_frac(mass_frac_file, aero_data, &
@@ -1113,7 +1130,8 @@ contains
          + pmc_mpi_pack_size_real(val%num_conc) &
          + pmc_mpi_pack_size_real_array(val%vol_frac) &
          + pmc_mpi_pack_size_real_array(val%vol_frac_std) &
-         + pmc_mpi_pack_size_integer(val%source)
+         + pmc_mpi_pack_size_integer(val%source) &
+         + pmc_mpi_pack_size_integer(val%weight_class)
 
   end function pmc_mpi_pack_size_aero_mode
 
@@ -1143,6 +1161,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%vol_frac)
     call pmc_mpi_pack_real_array(buffer, position, val%vol_frac_std)
     call pmc_mpi_pack_integer(buffer, position, val%source)
+    call pmc_mpi_pack_integer(buffer, position, val%weight_class)
     call assert(497092471, &
          position - prev_position <= pmc_mpi_pack_size_aero_mode(val))
 #endif
@@ -1175,6 +1194,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%vol_frac)
     call pmc_mpi_unpack_real_array(buffer, position, val%vol_frac_std)
     call pmc_mpi_unpack_integer(buffer, position, val%source)
+    call pmc_mpi_unpack_integer(buffer, position, val%weight_class)
     call assert(874467577, &
          position - prev_position <= pmc_mpi_pack_size_aero_mode(val))
 #endif

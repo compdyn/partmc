@@ -43,12 +43,12 @@ module pmc_aero_state
   integer, parameter :: AERO_STATE_WEIGHT_POWER = 3
   !> Coupled number/mass weighting scheme.
   integer, parameter :: AERO_STATE_WEIGHT_NUMMASS = 4
-  !> Flat weighting by source.
-  integer, parameter :: AERO_STATE_WEIGHT_FLAT_SOURCE = 5
-  !> Power-law weighting by source.
-  integer, parameter :: AERO_STATE_WEIGHT_POWER_SOURCE = 6
-  !> Coupled number/mass weighting by source.
-  integer, parameter :: AERO_STATE_WEIGHT_NUMMASS_SOURCE = 7
+  !> Flat weighting by specified weight classes.
+  integer, parameter :: AERO_STATE_WEIGHT_FLAT_SPECIFIED = 5
+  !> Power-law weighting by specified weight classes.
+  integer, parameter :: AERO_STATE_WEIGHT_POWER_SPECIFIED = 6
+  !> Coupled number/mass weighting by specific weight classes.
+  integer, parameter :: AERO_STATE_WEIGHT_NUMMASS_SPECIFIED = 7
 
   !> The current collection of aerosol particles.
   !!
@@ -133,13 +133,13 @@ contains
        call spec_file_read_real(file, 'weighting_exponent', exponent)
     elseif (trim(weighting_name) == 'nummass') then
        weighting_type = AERO_STATE_WEIGHT_NUMMASS
-    elseif (trim(weighting_name) == 'flat_source') then
-       weighting_type = AERO_STATE_WEIGHT_FLAT_SOURCE
-    elseif (trim(weighting_name) == 'power_source') then
-       weighting_type = AERO_STATE_WEIGHT_POWER_SOURCE
+    elseif (trim(weighting_name) == 'flat_specified') then
+       weighting_type = AERO_STATE_WEIGHT_FLAT_SPECIFIED
+    elseif (trim(weighting_name) == 'power_specified') then
+       weighting_type = AERO_STATE_WEIGHT_POWER_SPECIFIED
        call spec_file_read_real(file, 'weighting_exponent', exponent)
-    elseif (trim(weighting_name) == 'nummass_source') then
-       weighting_type = AERO_STATE_WEIGHT_NUMMASS_SOURCE
+    elseif (trim(weighting_name) == 'nummass_specified') then
+       weighting_type = AERO_STATE_WEIGHT_NUMMASS_SPECIFIED
     else
        call spec_file_die_msg(920321729, file, &
             "Unknown weighting type: " // trim(weighting_name))
@@ -165,7 +165,7 @@ contains
 
   !> Sets the weighting functions for an \c aero_state.
   subroutine aero_state_set_weight(aero_state, aero_data, weight_type, &
-       exponent)
+       exponent, num_weight_classes)
 
     !> Aerosol to set the weights on.
     type(aero_state_t), intent(inout) :: aero_state
@@ -176,6 +176,8 @@ contains
     !> Exponent for power-law weighting (only used if \c weight_type
     !> is \c AERO_STATE_WEIGHT_POWER).
     real(kind=dp), intent(in), optional :: exponent
+    !> Number of weight classes.
+    integer, intent(in), optional :: num_weight_classes
 
     aero_state%valid_sort = .false.
     select case(weight_type)
@@ -188,17 +190,17 @@ contains
        call aero_weight_array_set_power(aero_state%awa, 1, exponent)
     case(AERO_STATE_WEIGHT_NUMMASS)
        call aero_weight_array_set_nummass(aero_state%awa, 1)
-    case(AERO_STATE_WEIGHT_FLAT_SOURCE)
+    case(AERO_STATE_WEIGHT_FLAT_SPECIFIED)
        call aero_weight_array_set_flat(aero_state%awa, &
-            aero_data_n_source(aero_data))
-    case(AERO_STATE_WEIGHT_POWER_SOURCE)
+            aero_data_n_weight_class(aero_data))
+    case(AERO_STATE_WEIGHT_POWER_SPECIFIED)
        call assert_msg(102143848, present(exponent), &
             "exponent parameter required for AERO_STATE_WEIGHT_POWER")
        call aero_weight_array_set_power(aero_state%awa, &
-            aero_data_n_source(aero_data), exponent)
-    case(AERO_STATE_WEIGHT_NUMMASS_SOURCE)
+            aero_data_n_weight_class(aero_data), exponent)
+    case(AERO_STATE_WEIGHT_NUMMASS_SPECIFIED)
        call aero_weight_array_set_nummass(aero_state%awa, &
-            aero_data_n_source(aero_data))
+            aero_data_n_weight_class(aero_data))
     case default
        call die_msg(969076992, "unknown weight_type: " &
             // trim(integer_to_string(weight_type)))
@@ -750,8 +752,7 @@ contains
     do i_group = 1,n_group
        do i_mode = 1,aero_dist_n_mode(aero_dist)
           i_class = aero_state_weight_class_for_source(aero_state, &
-               aero_dist%mode(i_mode)%source)
-
+               aero_mode_get_weight_class(aero_dist%mode(i_mode)))
           ! adjust weight if necessary
           n_samp_avg = sample_prop * aero_mode_number(aero_dist%mode(i_mode), &
                aero_state%awa%weight(i_group, i_class))
@@ -776,9 +777,8 @@ contains
              call aero_particle_set_vols(aero_particle, vols)
              call aero_particle_new_id(aero_particle)
              call aero_particle_set_weight(aero_particle, i_group, i_class)
-             call aero_particle_set_create_time(aero_particle, create_time)
-             call aero_particle_set_source(aero_particle, &
-                  aero_dist%mode(i_mode)%source)
+             call aero_particle_set_component(aero_particle, &
+                  aero_dist%mode(i_mode)%source, create_time)
              call aero_state_add_particle(aero_state, aero_particle, aero_data)
           end do
        end do
@@ -2363,6 +2363,39 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the aero removed dimension to the given NetCDF file if it
+  !> is not already present and in any case return the associated
+  !> dimid.
+  subroutine aero_state_netcdf_dim_aero_components(aero_state, ncid, &
+       dimid_aero_components)
+
+    !> aero_state structure.
+    type(aero_state_t), intent(in) :: aero_state
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Dimid of the aero component dimension.
+    integer, intent(out) :: dimid_aero_components
+
+    integer :: status, dim_size
+
+    ! try to get the dimension ID
+    status = nf90_inq_dimid(ncid, "aero_components", dimid_aero_components)
+    if (status == NF90_NOERR) return
+    if (status /= NF90_EBADDIM) call pmc_nc_check(status)
+
+    ! dimension not defined, so define now define it
+    call pmc_nc_check(nf90_redef(ncid))
+
+    dim_size = aero_state_n_components(aero_state)
+    call pmc_nc_check(nf90_def_dim(ncid, "aero_components", &
+         dim_size, dimid_aero_components))
+
+    call pmc_nc_check(nf90_enddef(ncid))
+
+  end subroutine aero_state_netcdf_dim_aero_components
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Write full state.
   subroutine aero_state_output_netcdf(aero_state, ncid, aero_data, &
        record_removals, record_optical)
@@ -2380,9 +2413,11 @@ contains
 
     integer :: dimid_aero_particle, dimid_aero_species, dimid_aero_source
     integer :: dimid_aero_removed
+    integer :: dimid_aero_components
     integer :: i_part, i_remove
     real(kind=dp) :: aero_particle_mass(aero_state_n_part(aero_state), &
          aero_data_n_spec(aero_data))
+    ! FIXME: Change dimension
     integer :: aero_n_orig_part(aero_state_n_part(aero_state), &
          aero_data_n_source(aero_data))
     integer :: aero_particle_weight_group(aero_state_n_part(aero_state))
@@ -2406,6 +2441,11 @@ contains
          max(1, aero_info_array_n_item(aero_state%aero_info_array)))
     integer :: aero_removed_other_id( &
          max(1, aero_info_array_n_item(aero_state%aero_info_array)))
+    integer :: aero_component_particle_num(aero_state_n_components(aero_state))
+    integer :: aero_component_source_num(aero_state_n_components(aero_state))
+    integer :: aero_component_len(aero_state_n_part(aero_state))
+    integer :: aero_component_start_ind(aero_state_n_part(aero_state))
+    integer :: array_position, i_comp
 
     !> \page output_format_aero_state Output File Format: Aerosol Particle State
     !!
@@ -2510,12 +2550,28 @@ contains
     if (aero_state_n_part(aero_state) > 0) then
        call aero_state_netcdf_dim_aero_particle(aero_state, ncid, &
             dimid_aero_particle)
-
+       call aero_state_netcdf_dim_aero_components(aero_state, ncid, &
+            dimid_aero_components)
        do i_part = 1,aero_state_n_part(aero_state)
           aero_particle_mass(i_part, :) &
                = aero_state%apa%particle(i_part)%vol * aero_data%density
-          aero_n_orig_part(i_part, :) &
-               = aero_state%apa%particle(i_part)%n_orig_part
+          aero_component_len(i_part) = aero_particle_n_components( &
+              aero_state%apa%particle(i_part))
+          if (i_part == 1) then
+             aero_component_start_ind(i_part) = 1
+          else
+             aero_component_start_ind(i_part) = &
+                  aero_component_start_ind(i_part - 1) &
+                  + aero_component_len(i_part - 1)
+          end if
+          do i_comp = 1, aero_component_len(i_part)
+             array_position = aero_component_start_ind(i_part) + i_comp - 1
+             aero_component_particle_num(array_position) = i_part
+             aero_component_source_num(array_position) =  &
+                  aero_state%apa%particle(i_part)%component(i_comp)%source_id
+          end do
+          call aero_particle_get_component_sources( &
+               aero_state%apa%particle(i_part), aero_n_orig_part(i_part, :))
           aero_particle_weight_group(i_part) &
                = aero_state%apa%particle(i_part)%weight_group
           aero_particle_weight_class(i_part) &
@@ -2526,6 +2582,7 @@ contains
                = aero_state_particle_num_conc(aero_state, &
                aero_state%apa%particle(i_part), aero_data)
           aero_id(i_part) = aero_state%apa%particle(i_part)%id
+          ! FIXME:
           aero_least_create_time(i_part) &
                = aero_state%apa%particle(i_part)%least_create_time
           aero_greatest_create_time(i_part) &
@@ -2551,6 +2608,19 @@ contains
             "aero_particle_mass", (/ dimid_aero_particle, &
             dimid_aero_species /), unit="kg", &
             long_name="constituent masses of each aerosol particle")
+
+       call pmc_nc_write_integer_1d(ncid, aero_component_len, &
+            "aero_component_len", (/ dimid_aero_particle /), &
+            long_name="number of aero_components for each aerosol particle")
+       call pmc_nc_write_integer_1d(ncid, aero_component_start_ind, &
+            "aero_component_start_ind", (/ dimid_aero_particle /), &
+            long_name="start index of aero_component for each aerosol particle")
+       call pmc_nc_write_integer_1d(ncid, aero_component_particle_num, &
+            "aero_component_particle_num", (/ dimid_aero_components /), &
+            long_name="associated aerosol particle number for each component")
+       call pmc_nc_write_integer_1d(ncid, aero_component_source_num, &
+            "aero_component_source_num", (/ dimid_aero_components /), &
+            long_name="associated source number for each component")
        call pmc_nc_write_integer_2d(ncid, aero_n_orig_part, &
             "aero_n_orig_part", (/ dimid_aero_particle, &
             dimid_aero_source /), &
@@ -2768,6 +2838,12 @@ contains
     integer, allocatable :: aero_removed_id(:)
     integer, allocatable :: aero_removed_action(:)
     integer, allocatable :: aero_removed_other_id(:)
+    integer, allocatable :: aero_component_particle_num(:)
+    integer, allocatable :: aero_component_source_num(:)
+    integer, allocatable :: aero_component_len(:)
+    integer, allocatable :: aero_component_start_ind(:)
+    integer :: i_comp
+
 
     call aero_state_zero(aero_state)
 
@@ -2785,6 +2861,13 @@ contains
          "aero_particle_mass")
     call pmc_nc_read_integer_2d(ncid, aero_n_orig_part, &
          "aero_n_orig_part")
+    call pmc_nc_read_integer_1d(ncid, aero_component_particle_num, &
+         "aero_component_particle_num")
+    call pmc_nc_read_integer_1d(ncid, aero_component_source_num, &
+         "aero_component_source_num")
+    call pmc_nc_read_integer_1d(ncid, aero_component_len, "aero_component_len")
+    call pmc_nc_read_integer_1d(ncid, aero_component_start_ind, &
+         "aero_component_start_ind")
     call pmc_nc_read_integer_1d(ncid, aero_particle_weight_group, &
          "aero_particle_weight_group")
     call pmc_nc_read_integer_1d(ncid, aero_particle_weight_class, &
@@ -2821,7 +2904,12 @@ contains
 
     do i_part = 1,n_part
        aero_particle%vol = aero_particle_mass(i_part, :) / aero_data%density
-       aero_particle%n_orig_part = aero_n_orig_part(i_part, :)
+       allocate(aero_particle%component(aero_component_len(i_part)))
+       do i_comp = 1,aero_component_len(i_part)
+          aero_particle%component(i_comp)%source_id = &
+               aero_component_source_num(aero_component_start_ind(i_part) &
+               + i_comp - 1)
+       end do
        aero_particle%weight_group = aero_particle_weight_group(i_part)
        aero_particle%weight_class = aero_particle_weight_class(i_part)
        if (size(aero_absorb_cross_sect) == n_part) then
@@ -2857,6 +2945,7 @@ contains
             aero_data)))
 
        call aero_state_add_particle(aero_state, aero_particle, aero_data)
+       deallocate(aero_particle%component)
     end do
 
     call pmc_nc_read_integer_1d(ncid, aero_removed_id, &
@@ -2927,6 +3016,18 @@ contains
     end if
 
   end subroutine aero_state_check
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the number of components for all particles in an aero_state.
+  elemental integer function aero_state_n_components(aero_state)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+
+    aero_state_n_components = aero_particle_array_n_components(aero_state%apa)
+
+  end function aero_state_n_components
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

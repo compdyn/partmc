@@ -9,6 +9,7 @@
 module pmc_aero_particle
 
   use pmc_util
+  use pmc_aero_component
   use pmc_aero_data
   use pmc_spec_file
   use pmc_env_state
@@ -26,9 +27,6 @@ module pmc_aero_particle
   type aero_particle_t
      !> Constituent species volumes [length aero_data_n_spec()] (m^3).
      real(kind=dp), allocatable :: vol(:)
-     !> Number of original particles from each source that coagulated
-     !> to form this one [length aero_data_n_source()].
-     integer, allocatable :: n_orig_part(:)
      !> Weighting function group number (see \c aero_weight_array_t).
      integer :: weight_group
      !> Weighting function class number (see \c aero_weight_array_t).
@@ -49,6 +47,8 @@ module pmc_aero_particle
      integer :: water_hyst_leg
      !> Unique ID number.
      integer :: id
+     !> Array of aerosol components.
+     type(aero_component_t), allocatable :: component(:)
      !> First time a constituent was created (s).
      real(kind=dp) :: least_create_time
      !> Last time a constituent was created (s).
@@ -72,8 +72,6 @@ contains
     type(aero_particle_t), intent(inout) :: aero_particle_to
 
     call move_alloc(aero_particle_from%vol, aero_particle_to%vol)
-    call move_alloc(aero_particle_from%n_orig_part, &
-         aero_particle_to%n_orig_part)
     aero_particle_to%weight_group = aero_particle_from%weight_group
     aero_particle_to%weight_class = aero_particle_from%weight_class
     aero_particle_to%absorb_cross_sect = aero_particle_from%absorb_cross_sect
@@ -85,6 +83,7 @@ contains
     aero_particle_to%core_vol = aero_particle_from%core_vol
     aero_particle_to%water_hyst_leg = aero_particle_from%water_hyst_leg
     aero_particle_to%id = aero_particle_from%id
+    call move_alloc(aero_particle_from%component, aero_particle_to%component)
     aero_particle_to%least_create_time = aero_particle_from%least_create_time
     aero_particle_to%greatest_create_time = &
          aero_particle_from%greatest_create_time
@@ -103,9 +102,6 @@ contains
 
     call ensure_real_array_size(aero_particle%vol, aero_data_n_spec(aero_data))
     aero_particle%vol = 0d0
-    call ensure_integer_array_size(aero_particle%n_orig_part, &
-         aero_data_n_source(aero_data))
-    aero_particle%n_orig_part = 0
     aero_particle%weight_group = 0
     aero_particle%weight_class = 0
     aero_particle%absorb_cross_sect = 0d0
@@ -116,6 +112,7 @@ contains
     aero_particle%core_vol = 0d0
     aero_particle%water_hyst_leg = 0
     aero_particle%id = 0
+    if (allocated(aero_particle%component)) deallocate(aero_particle%component)
     aero_particle%least_create_time = 0d0
     aero_particle%greatest_create_time = 0d0
 
@@ -144,10 +141,45 @@ contains
     !> Creation time.
     real(kind=dp), intent(in) :: create_time
 
-    aero_particle%least_create_time = create_time
+    aero_particle%component(1)%create_time = create_time
     aero_particle%greatest_create_time = create_time
 
   end subroutine aero_particle_set_create_time
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_particle_set_component(aero_particle, i_source, create_time)
+
+    !> Particle to set time for.
+    type(aero_particle_t), intent(inout) :: aero_particle
+    !> Source number for the particle.
+    integer, intent(in) :: i_source
+    !> Creation time.
+    real(kind=dp), intent(in) :: create_time
+
+    allocate(aero_particle%component(1))
+    call aero_particle_set_source(aero_particle, i_source)
+    call aero_particle_set_create_time(aero_particle, create_time)
+
+  end subroutine aero_particle_set_component
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine aero_particle_get_component_sources(aero_particle, source_list)
+
+    !> Particle.
+    type(aero_particle_t), intent(in) :: aero_particle
+    !> Number of components from each source.
+    integer, intent(inout) :: source_list(:)
+
+    integer :: i_comp, i_source
+
+    do i_comp = 1,aero_particle_n_components(aero_particle)
+       i_source = aero_particle%component(i_comp)%source_id
+       source_list(i_source) = source_list(i_source) + 1
+    end do
+
+  end subroutine aero_particle_get_component_sources
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -173,8 +205,7 @@ contains
     !> Source number for the particle.
     integer, intent(in) :: i_source
 
-    aero_particle%n_orig_part = 0
-    aero_particle%n_orig_part(i_source) = 1
+    aero_particle%component(1)%source_id = i_source
 
   end subroutine aero_particle_set_source
 
@@ -856,13 +887,11 @@ contains
     !> Result particle.
     type(aero_particle_t), intent(inout) :: aero_particle_new
 
+    integer :: n_comp_1, n_comp_2
+
     call assert(203741686, size(aero_particle_1%vol) &
          == size(aero_particle_2%vol))
-    call assert(483452167, size(aero_particle_1%n_orig_part) &
-         == size(aero_particle_2%n_orig_part))
     aero_particle_new%vol = aero_particle_1%vol + aero_particle_2%vol
-    aero_particle_new%n_orig_part = aero_particle_1%n_orig_part &
-         + aero_particle_2%n_orig_part
     aero_particle_new%weight_group = 0
     aero_particle_new%weight_class = 0
     aero_particle_new%absorb_cross_sect = 0d0
@@ -878,14 +907,33 @@ contains
        aero_particle_new%water_hyst_leg = 0
     end if
     aero_particle_new%id = 0
-    aero_particle_new%least_create_time = &
-         min(aero_particle_1%least_create_time, &
-         aero_particle_2%least_create_time)
+    n_comp_1 = aero_particle_n_components(aero_particle_1)
+    n_comp_2 = aero_particle_n_components(aero_particle_2)
+    allocate(aero_particle_new%component(n_comp_1 + n_comp_2))
+    aero_particle_new%component(1:n_comp_1) = aero_particle_1%component
+    aero_particle_new%component(n_comp_1+1:n_comp_1 + n_comp_2) &
+         = aero_particle_2%component
     aero_particle_new%greatest_create_time = &
          max(aero_particle_1%greatest_create_time, &
          aero_particle_2%greatest_create_time)
 
   end subroutine aero_particle_coagulate
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Return the number of aerosol components, or -1 if uninitialized.
+  elemental integer function aero_particle_n_components(particle)
+
+    !> Value to pack.
+    type(aero_particle_t), intent(in) :: particle
+
+    if (allocated(particle%component)) then
+       aero_particle_n_components = size(particle%component)
+    else
+       aero_particle_n_components = -1
+    end if
+
+  end function aero_particle_n_components
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -895,9 +943,10 @@ contains
     !> Value to pack.
     type(aero_particle_t), intent(in) :: val
 
+    integer :: i
+
     pmc_mpi_pack_size_aero_particle = &
          pmc_mpi_pack_size_real_array(val%vol) &
-         + pmc_mpi_pack_size_integer_array(val%n_orig_part) &
          + pmc_mpi_pack_size_integer(val%weight_group) &
          + pmc_mpi_pack_size_integer(val%weight_class) &
          + pmc_mpi_pack_size_real(val%absorb_cross_sect) &
@@ -908,8 +957,14 @@ contains
          + pmc_mpi_pack_size_real(val%core_vol) &
          + pmc_mpi_pack_size_integer(val%water_hyst_leg) &
          + pmc_mpi_pack_size_integer(val%id) &
+         + pmc_mpi_pack_size_integer(aero_particle_n_components(val)) &
          + pmc_mpi_pack_size_real(val%least_create_time) &
          + pmc_mpi_pack_size_real(val%greatest_create_time)
+
+    do i = 1, aero_particle_n_components(val)
+       pmc_mpi_pack_size_aero_particle = pmc_mpi_pack_size_aero_particle &
+            + pmc_mpi_pack_size_aero_component(val%component(i))
+    end do
 
   end function pmc_mpi_pack_size_aero_particle
 
@@ -926,11 +981,10 @@ contains
     type(aero_particle_t), intent(in) :: val
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position
+    integer :: prev_position, i
 
     prev_position = position
     call pmc_mpi_pack_real_array(buffer, position, val%vol)
-    call pmc_mpi_pack_integer_array(buffer, position, val%n_orig_part)
     call pmc_mpi_pack_integer(buffer, position, val%weight_group)
     call pmc_mpi_pack_integer(buffer, position, val%weight_class)
     call pmc_mpi_pack_real(buffer, position, val%absorb_cross_sect)
@@ -941,6 +995,11 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%core_vol)
     call pmc_mpi_pack_integer(buffer, position, val%water_hyst_leg)
     call pmc_mpi_pack_integer(buffer, position, val%id)
+    call pmc_mpi_pack_integer(buffer, position, &
+         aero_particle_n_components(val))
+    do i = 1, aero_particle_n_components(val)
+       call pmc_mpi_pack_aero_component(val%component(i))
+    end do
     call pmc_mpi_pack_real(buffer, position, val%least_create_time)
     call pmc_mpi_pack_real(buffer, position, val%greatest_create_time)
     call assert(810223998, position - prev_position &
@@ -962,11 +1021,10 @@ contains
     type(aero_particle_t), intent(inout) :: val
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position
+    integer :: prev_position, n_components, i
 
     prev_position = position
     call pmc_mpi_unpack_real_array(buffer, position, val%vol)
-    call pmc_mpi_unpack_integer_array(buffer, position, val%n_orig_part)
     call pmc_mpi_unpack_integer(buffer, position, val%weight_group)
     call pmc_mpi_unpack_integer(buffer, position, val%weight_class)
     call pmc_mpi_unpack_real(buffer, position, val%absorb_cross_sect)
@@ -977,6 +1035,13 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%core_vol)
     call pmc_mpi_unpack_integer(buffer, position, val%water_hyst_leg)
     call pmc_mpi_unpack_integer(buffer, position, val%id)
+    call pmc_mpi_unpack_integer(buffer, position, n_components)
+    if (n_components > -1) then
+       allocate(val%component(n_components))
+    end if
+    do i = 1,n_components
+       call pmc_mpi_unpack_aero_component(val%component(i))
+    end do
     call pmc_mpi_unpack_real(buffer, position, val%least_create_time)
     call pmc_mpi_unpack_real(buffer, position, val%greatest_create_time)
     call assert(287447241, position - prev_position &
@@ -1005,17 +1070,6 @@ contains
           write(0, *) 'aero_data_n_spec(aero_data)', &
                aero_data_n_spec(aero_data)
           call assert(185878626, continue_on_error)
-       end if
-    end if
-    if (allocated(aero_particle%n_orig_part)) then
-       if (size(aero_particle%n_orig_part) &
-            /= aero_data_n_source(aero_data)) then
-          write(0, *) 'ERROR aero_particle A:'
-          write(0, *) 'size(aero_particle%n_orig_part)', &
-               size(aero_particle%n_orig_part)
-          write(0, *) 'aero_data_n_source(aero_data)', &
-               aero_data_n_source(aero_data)
-          call assert(625490639, continue_on_error)
        end if
     end if
 

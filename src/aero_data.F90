@@ -56,6 +56,8 @@ module pmc_aero_data
      real(kind=dp), allocatable :: kappa(:)
      !> Length \c aero_data_n_source(aero_data), source names.
      character(len=AERO_SOURCE_NAME_LEN), allocatable :: source_name(:)
+     !> Length \c aero_data_n_weight_classes, weight class names.
+     character(len=AERO_SOURCE_NAME_LEN), allocatable :: weight_class_name(:)
      !> Fractal particle parameters.
      type(fractal_t) :: fractal
   end type aero_data_t
@@ -241,6 +243,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Return the number of aerosol sources, or -1 if uninitialized.
+  elemental integer function aero_data_n_weight_class(aero_data)
+
+    !> Aero data structure.
+    type(aero_data_t), intent(in) :: aero_data
+
+    if (allocated(aero_data%weight_class_name)) then
+       aero_data_n_weight_class = size(aero_data%weight_class_name)
+    else
+       aero_data_n_weight_class = -1
+    end if
+
+  end function aero_data_n_weight_class
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Returns the number of the species in aero_data with the given name, or
   !> returns 0 if there is no such species.
   integer function aero_data_spec_by_name(aero_data, name)
@@ -291,6 +309,31 @@ contains
     aero_data_source_by_name = size(aero_data%source_name)
 
   end function aero_data_source_by_name
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Returns the number of the weight class with the given name, or
+  !> adds the weight class if it doesn't exist yet.
+  integer function aero_data_weight_class_by_name(aero_data, name)
+
+    !> Aero_data data.
+    type(aero_data_t), intent(inout) :: aero_data
+    !> Name of source to find.
+    character(len=*), intent(in) :: name
+
+    if (.not. allocated(aero_data%weight_class_name)) then
+       aero_data%weight_class_name = [name(1:AERO_SOURCE_NAME_LEN)]
+       aero_data_weight_class_by_name = 1
+       return
+    end if
+    aero_data_weight_class_by_name= string_array_find(aero_data%weight_class_name, &
+         name)
+    if (aero_data_weight_class_by_name > 0) return
+    aero_data%weight_class_name = [aero_data%weight_class_name, &
+         name(1:AERO_SOURCE_NAME_LEN)]
+    aero_data_weight_class_by_name = size(aero_data%weight_class_name)
+
+  end function aero_data_weight_class_by_name
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

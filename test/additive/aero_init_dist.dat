@@ -1,4 +1,5 @@
 mode_name init1                 # name of mode source
+weight_class_name init1
 mass_frac aero_comp_water.dat   # species mass fractions
 diam_type geometric             # type of diameter specified
 mode_type exp                   # type of mode

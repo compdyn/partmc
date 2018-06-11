@@ -477,7 +477,8 @@ contains
             run_part_opt%do_nucleation)
        if (run_part_opt%do_nucleation) then
           call spec_file_read_nucleate_type(file, aero_data, &
-               run_part_opt%nucleate_type, run_part_opt%nucleate_source)
+               run_part_opt%nucleate_type, run_part_opt%nucleate_source, &
+               run_part_opt%nucleate_weight_class)
        else
           run_part_opt%nucleate_type = NUCLEATE_TYPE_INVALID
        end if
@@ -494,7 +495,7 @@ contains
              call spec_file_read_aero_state_weighting_type(file, &
                   run_part_opt%weighting_type, run_part_opt%weighting_exponent)
           else
-             run_part_opt%weighting_type = AERO_STATE_WEIGHT_NUMMASS_SOURCE
+             run_part_opt%weighting_type = AERO_STATE_WEIGHT_NUMMASS_SPECIFIED
              run_part_opt%weighting_exponent = 0.0d0
           end if
        end if

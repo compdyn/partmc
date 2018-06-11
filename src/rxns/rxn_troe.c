@@ -8,8 +8,6 @@
 /** \file
  * \brief Troe reaction solver functions
 */
-#ifdef PMC_USE_SUNDIALS
-
 #include "../rxn_solver.h"
 
 // TODO Lookup environmental indicies during initialization
@@ -49,7 +47,7 @@
 void * rxn_troe_get_used_jac_elem(void *rxn_data, bool **jac_struct)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   for (int i_ind = 0; i_ind < NUM_REACT_; i_ind++) {
     for (int i_dep = 0; i_dep < NUM_REACT_; i_dep++) {
@@ -75,7 +73,7 @@ void * rxn_troe_update_ids(ModelData *model_data, int *deriv_ids,
           int **jac_ids, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Update the time derivative ids
   for (int i=0; i < NUM_REACT_; i++)
@@ -105,27 +103,27 @@ void * rxn_troe_update_ids(ModelData *model_data, int *deriv_ids,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_troe_update_env_state(realtype *env_data, void *rxn_data)
+void * rxn_troe_update_env_state(double *env_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the rate constant in (#/cc)
   // k = (k0[M] / (1 + k0[M]/kinf)) * Fc^(1/(1+(1/N*log(k0[M]/kinf))^2))
-  realtype conv = CONV_ * PRESSURE_PA_ / TEMPERATURE_K_;
-  realtype k0 = K0_A_ // [M] is included in K0_A_
-	  * (K0_C_==ZERO ? ONE : SUNRexp(K0_C_/TEMPERATURE_K_))
-	  * (K0_B_==ZERO ? ONE : 
-                    SUNRpowerR(TEMPERATURE_K_/((realtype)300.0), K0_B_))
+  double conv = CONV_ * PRESSURE_PA_ / TEMPERATURE_K_;
+  double k0 = K0_A_ // [M] is included in K0_A_
+	  * (K0_C_==0.0 ? 1.0 : exp(K0_C_/TEMPERATURE_K_))
+	  * (K0_B_==0.0 ? 1.0 : 
+                    pow(TEMPERATURE_K_/((double)300.0), K0_B_))
 	  * conv;
-  realtype kinf = k0 / (KINF_A_
-	  * (KINF_C_==ZERO ? ONE : SUNRexp(KINF_C_/TEMPERATURE_K_))
-	  * (KINF_B_==ZERO ? ONE : 
-                  SUNRpowerR(TEMPERATURE_K_/((realtype)300.0), KINF_B_))
+  double kinf = k0 / (KINF_A_
+	  * (KINF_C_==0.0 ? 1.0 : exp(KINF_C_/TEMPERATURE_K_))
+	  * (KINF_B_==0.0 ? 1.0 : 
+                  pow(TEMPERATURE_K_/((double)300.0), KINF_B_))
 	  );
-  RATE_CONSTANT_ = (k0 / (ONE + kinf))
-	  * SUNRpowerR(FC_, (ONE / (ONE + SUNRpowerI(log10(kinf)/N_,2))))
-	  * SUNRpowerI(conv, NUM_REACT_-1)
+  RATE_CONSTANT_ = (k0 / (1.0 + kinf))
+	  * pow(FC_, (1.0 / (1.0 + pow(log10(kinf)/N_,2))))
+	  * pow(conv, NUM_REACT_-1)
 	  * SCALING_;
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
@@ -142,7 +140,7 @@ void * rxn_troe_update_env_state(realtype *env_data, void *rxn_data)
 void * rxn_troe_pre_calc(ModelData *model_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -156,6 +154,7 @@ void * rxn_troe_pre_calc(ModelData *model_data, void *rxn_data)
  * \param time_step Current time step being computed (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
+#ifdef PMC_USE_SUNDIALS
 void * rxn_troe_calc_deriv_contrib(ModelData *model_data, realtype *deriv,
           void *rxn_data, double time_step)
 {
@@ -184,6 +183,7 @@ void * rxn_troe_calc_deriv_contrib(ModelData *model_data, realtype *deriv,
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
 }
+#endif
 
 /** \brief Calculate contributions to the Jacobian from this reaction
  *
@@ -193,6 +193,7 @@ void * rxn_troe_calc_deriv_contrib(ModelData *model_data, realtype *deriv,
  * \param time_step Current time step being calculated (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
+#ifdef PMC_USE_SUNDIALS
 void * rxn_troe_calc_jac_contrib(ModelData *model_data, realtype *J,
           void *rxn_data, double time_step)
 {
@@ -223,6 +224,7 @@ void * rxn_troe_calc_jac_contrib(ModelData *model_data, realtype *J,
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
 }
+#endif
 
 /** \brief Advance the reaction data pointer to the next reaction
  * 
@@ -232,7 +234,7 @@ void * rxn_troe_calc_jac_contrib(ModelData *model_data, realtype *J,
 void * rxn_troe_skip(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -245,7 +247,7 @@ void * rxn_troe_skip(void *rxn_data)
 void * rxn_troe_print(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   printf("\n\nTroe reaction\n");
   for (int i=0; i<INT_DATA_SIZE_; i++) 
@@ -281,5 +283,3 @@ void * rxn_troe_print(void *rxn_data)
 #undef YIELD_
 #undef INT_DATA_SIZE_
 #undef FLOAT_DATA_SIZE_
-
-#endif

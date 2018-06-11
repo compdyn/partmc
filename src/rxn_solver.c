@@ -24,8 +24,6 @@
 #define RXN_SIMPOL_PHASE_TRANSFER 10
 #define RXN_CONDENSED_PHASE_ARRHENIUS 11
 
-#ifdef PMC_USE_SUNDIALS
-
 /** \brief Get the Jacobian elements used by a particular reaction
  *
  * \param model_data A pointer to the model data
@@ -317,7 +315,8 @@ void rxn_pre_calc(ModelData *model_data)
  * \param deriv NVector to hold the calculated vector
  * \param time_step Current model time step (s)
  */
-void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, double time_step)
+#ifdef PMC_USE_SUNDIALS
+void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
 {
   
   // Get a pointer to the derivative data
@@ -382,6 +381,7 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, double time_step)
     }
   } 
 }
+#endif
 
 /** \brief Calculate the Jacobian
  *
@@ -389,7 +389,8 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, double time_step)
  * \param J Jacobian to be calculated
  * \param time_step Current model time step (s)
  */
-void rxn_calc_jac(ModelData *model_data, SUNMatrix J, double time_step)
+#ifdef PMC_USE_SUNDIALS
+void rxn_calc_jac(ModelData *model_data, SUNMatrix J, realtype time_step)
 {
 
   // Get a pointer to the Jacobian data
@@ -454,7 +455,6 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J, double time_step)
     }
   }  
 }
-
 #endif
 
 
@@ -475,8 +475,6 @@ void rxn_add_condensed_data(int rxn_type, int n_int_param, int n_float_param,
           (ModelData*) &(((SolverData*)solver_data)->model_data);
   int *rxn_data = (int*) (model_data->nxt_rxn);
 
-#ifdef PMC_USE_SUNDIALS
-
   // Add the reaction type
   *(rxn_data++) = rxn_type;
 
@@ -484,14 +482,12 @@ void rxn_add_condensed_data(int rxn_type, int n_int_param, int n_float_param,
   for (; n_int_param>0; n_int_param--) *(rxn_data++) = *(int_param++);
 
   // Add floating-point parameters
-  realtype *flt_ptr = (realtype*) rxn_data;
+  double *flt_ptr = (double*) rxn_data;
   for (; n_float_param>0; n_float_param--)
-          *(flt_ptr++) = (realtype) *(float_param++);
+          *(flt_ptr++) = (double) *(float_param++);
 
   // Set the pointer for the next free space in rxn_data
   model_data->nxt_rxn = (void*) flt_ptr;
-
-#endif
 }
 
 /** \brief Update reaction data
@@ -509,8 +505,6 @@ void rxn_update_data(int update_rxn_type, void *update_data, void *solver_data)
 {
   ModelData *model_data =
           (ModelData*) &(((SolverData*)solver_data)->model_data);
-
-#ifdef PMC_USE_SUNDIALS
 
   // Get the number of reactions
   int *rxn_data = (int*) (model_data->rxn_data);
@@ -621,7 +615,6 @@ void rxn_update_data(int update_rxn_type, void *update_data, void *solver_data)
       }
     }
   }
-#endif 
 }
 
 /** \brief Print the reaction data
@@ -636,8 +629,6 @@ void rxn_print_data(void *solver_data)
   // Get the number of reactions
   int *rxn_data = (int*) (model_data->rxn_data);
   int n_rxn = *(rxn_data++);
-
-#ifdef PMC_USE_SUNDIALS
 
   printf("\n\nReaction data\n\nnumber of reactions: %d\n\n", n_rxn);
 
@@ -695,7 +686,6 @@ void rxn_print_data(void *solver_data)
 	break;
     }
   }
-#endif
 }
 
 /** \brief Free an update data object

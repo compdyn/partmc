@@ -13,8 +13,6 @@
  * Equation references are to Marcolli and Peter, ACP 5(2), 1501-1527, 2005.
  *
  */
-#ifdef PMC_USE_SUNDIALS
-
 #include "../sub_model_solver.h"
 
 // TODO Lookup environmental indicies during initialization
@@ -65,7 +63,7 @@
 void * sub_model_UNIFAC_get_used_jac_elem(void *sub_model_data, bool *jac_row)
 {
   int *int_data = (int*) sub_model_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -79,7 +77,7 @@ void * sub_model_UNIFAC_get_used_jac_elem(void *sub_model_data, bool *jac_row)
 void * sub_model_UNIFAC_update_ids(void *sub_model_data, int *jac_row)
 {
   int *int_data = (int*) sub_model_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -98,7 +96,7 @@ void * sub_model_UNIFAC_get_parameter_id(void *sub_model_data,
           void *identifiers, int *parameter_id)
 {
   int *int_data = (int*) sub_model_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   for (int i_phase=0; i_phase<NUM_UNIQUE_PHASE_; i_phase++) {
     for (int i_instance=0; i_instance<NUM_PHASE_INSTANCE_(i_phase);
@@ -123,10 +121,10 @@ void * sub_model_UNIFAC_get_parameter_id(void *sub_model_data,
  * \return The sub_model_data pointer advanced by the size of the sub model
  */
 void * sub_model_UNIFAC_update_env_state(void *sub_model_data,
-          realtype *env_data)
+          double *env_data)
 {
   int *int_data = (int*) sub_model_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Update the interaction parameters
   for (int m=0; m<NUM_GROUP_; m++)
@@ -140,7 +138,7 @@ void * sub_model_UNIFAC_update_env_state(void *sub_model_data,
       
       // Calculate the sum (Q_n * X_n) in the denominator of Eq. 9 for the
       // pure liquid
-      realtype sum_Qn_Xn = 0.0;
+      double sum_Qn_Xn = 0.0;
       for (int i_group=0; i_group<NUM_GROUP_; i_group++)
         sum_Qn_Xn += Q_K_(i_group) * V_IK_(i_phase, i_spec, i_group);
 
@@ -150,11 +148,11 @@ void * sub_model_UNIFAC_update_env_state(void *sub_model_data,
 
       // Calculate ln(GAMMA_k^(i))
       for (int k=0; k<NUM_GROUP_; k++) {
-        realtype sum_m_A = 0.0; // ln( sum_m_A ) term in Eq. 8
-        realtype sum_m_B = 0.0; // last term in Eq. 8
+        double sum_m_A = 0.0; // ln( sum_m_A ) term in Eq. 8
+        double sum_m_B = 0.0; // last term in Eq. 8
         for (int m=0; m<NUM_GROUP_; m++) {
           sum_m_A += THETA_M_(m) * PSI_MN_(m,k);
-          realtype sum_n = 0.0;
+          double sum_n = 0.0;
           for (int n=0; n<NUM_GROUP_; n++)
             sum_n += THETA_M_(n) * PSI_MN_(n,m);
           sum_m_B += THETA_M_(m) * PSI_MN_(k,m) / sum_n;
@@ -178,7 +176,7 @@ void * sub_model_UNIFAC_update_env_state(void *sub_model_data,
 void * sub_model_UNIFAC_calculate(void *sub_model_data, ModelData *model_data)
 {
   int *int_data = (int*) sub_model_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Loop through each instance of each phase to calculate activity
   for (int i_phase=0; i_phase<NUM_UNIQUE_PHASE_; i_phase++) {
@@ -186,7 +184,7 @@ void * sub_model_UNIFAC_calculate(void *sub_model_data, ModelData *model_data)
         i_instance++) {
 
       // Get the total number of moles of species in this phase instance
-      realtype total_umoles = 0.0;
+      double total_umoles = 0.0;
       for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); i_spec++) {
         total_umoles += model_data->state[PHASE_INST_ID_(i_phase, i_instance)
           + SPEC_ID_(i_phase, i_spec)] / MW_I_(i_phase, i_spec);
@@ -209,7 +207,7 @@ void * sub_model_UNIFAC_calculate(void *sub_model_data, ModelData *model_data)
 
       // Calcualte the sum (Q_n * X_n) in the denominator of Eq. 9 for the
       // mixture
-      realtype sum_Qn_Xn_mixture = 0.0;
+      double sum_Qn_Xn_mixture = 0.0;
       for (int n=0; n<NUM_GROUP_; n++) {
         for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); i_spec++) {
           sum_Qn_Xn_mixture += Q_K_(n) * X_I_(i_phase, i_spec) 
@@ -231,19 +229,19 @@ void * sub_model_UNIFAC_calculate(void *sub_model_data, ModelData *model_data)
       for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); i_spec++) {
 
         // Calculate PHI_i (Eq. 4)
-        realtype PHI_i = 0.0;
+        double PHI_i = 0.0;
         for (int j_spec=0; j_spec<NUM_SPEC_(i_phase); j_spec++)
           PHI_i += R_I_(i_phase, j_spec) * X_I_(i_phase, j_spec);
         PHI_i = R_I_(i_phase, i_spec) * X_I_(i_phase, i_spec) / PHI_i;
 
         // Calculate THETA_i (Eq. 4)
-        realtype THETA_i = 0.0;
+        double THETA_i = 0.0;
         for (int j_spec=0; j_spec<NUM_SPEC_(i_phase); j_spec++)
           THETA_i += Q_I_(i_phase, j_spec) * X_I_(i_phase, j_spec);
         THETA_i = Q_I_(i_phase, i_spec) * X_I_(i_phase, i_spec) / THETA_i;
 
         // Calculate the combinatorial term ln(gamma_i^C) Eq. 3
-        realtype lnGAMMA_I_C = 0.0;
+        double lnGAMMA_I_C = 0.0;
         if (X_I_(i_phase, i_spec) > 0.0) {
           for (int j_spec=0; j_spec<NUM_SPEC_(i_phase); j_spec++)
             lnGAMMA_I_C += L_I_(i_phase, j_spec) * X_I_(i_phase, j_spec);
@@ -254,19 +252,19 @@ void * sub_model_UNIFAC_calculate(void *sub_model_data, ModelData *model_data)
         }
 
         // Calculate the residual term ln(gamma_i^R) Eq. 7
-        realtype lnGAMMA_I_R = 0.0;
+        double lnGAMMA_I_R = 0.0;
         for (int k=0; k<NUM_GROUP_; k++) {
-          realtype sum_m_A = 0.0; // ln( sum_m_A ) term in Eq. 8
-          realtype sum_m_B = 0.0; // last term in Eq. 8
+          double sum_m_A = 0.0; // ln( sum_m_A ) term in Eq. 8
+          double sum_m_B = 0.0; // last term in Eq. 8
           for (int m=0; m<NUM_GROUP_; m++) {
             sum_m_A += THETA_M_(m) * PSI_MN_(m,k);
-            realtype sum_n = 0.0;
+            double sum_n = 0.0;
             for (int n=0; n<NUM_GROUP_; n++)
               sum_n += THETA_M_(n) * PSI_MN_(n,m);
             sum_m_B += THETA_M_(m) * PSI_MN_(k,m) / sum_n;
           }
           // calculate ln(GAMMA_k) Eq. 8
-          realtype ln_GAMMA_k = Q_K_(k) * (1.0 - log(sum_m_A) - sum_m_B);
+          double ln_GAMMA_k = Q_K_(k) * (1.0 - log(sum_m_A) - sum_m_B);
           lnGAMMA_I_R += V_IK_(i_phase, i_spec, k) 
                        * ( ln_GAMMA_k - LN_GAMMA_IK_(i_phase, i_spec, k));
         }
@@ -297,10 +295,10 @@ void * sub_model_UNIFAC_calculate(void *sub_model_data, ModelData *model_data)
  * \param jac_row Pointer to the Jacobian row to modify 
  */
 void * sub_model_UNIFAC_add_jac_contrib(void *sub_model_data,
-         realtype base_val, realtype *jac_row)
+         double base_val, double *jac_row)
 {
   int *int_data = (int*) sub_model_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -313,7 +311,7 @@ void * sub_model_UNIFAC_add_jac_contrib(void *sub_model_data,
 void * sub_model_UNIFAC_skip(void *sub_model_data)
 {
   int *int_data = (int*) sub_model_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -326,7 +324,7 @@ void * sub_model_UNIFAC_skip(void *sub_model_data)
 void * sub_model_UNIFAC_print(void *sub_model_data)
 {
   int *int_data = (int*) sub_model_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   printf("\n\nUNIFAC sub model\n\n");
   printf("\nint_data");
@@ -370,5 +368,3 @@ void * sub_model_UNIFAC_print(void *sub_model_data)
 
 #undef INT_DATA_SIZE_
 #undef FLOAT_DATA_SIZE_
-
-#endif

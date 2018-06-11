@@ -26,10 +26,12 @@ program pmc_test_phlex_core
   !> initialize mpi
   call pmc_mpi_init()
 
-  if (run_pmc_phlex_core_tests() .and. pmc_mpi_rank().eq.0) then
-    write(*,*) "Model data tests - PASS"
-  else
-    write(*,*) "Model data tests - FAIL"
+  if (pmc_mpi_rank().eq.0) then
+    if (run_pmc_phlex_core_tests()) then
+      write(*,*) "Phlex-core tests - PASS"
+    else
+      write(*,*) "Phlex-core tests - FAIL"
+    end if
   end if
 
   !> finalize mpi
@@ -58,8 +60,8 @@ contains
     character(len=:), allocatable :: key_name
 #ifdef PMC_USE_MPI
     type(phlex_core_t), pointer :: passed_core
-    character, allocatable :: buffer(:)
-    integer(kind=i_kind) :: pos, pack_size
+    character, allocatable :: buffer(:), buffer_copy(:)
+    integer(kind=i_kind) :: pos, pack_size, i_elem
 #endif
 
     load_phlex_core_test = .false.
@@ -96,7 +98,15 @@ contains
     call passed_core%bin_unpack(buffer, pos)
     call assert(614253552, pos.eq.pack_size)
     call assert(893370028, passed_core%pack_size().eq.phlex_core%pack_size())
+    allocate(buffer_copy(pack_size))
+    pos = 0
+    call passed_core%bin_pack(buffer_copy, pos)
+    do i_elem = 1, pack_size
+      call assert_msg(303337336, buffer(i_elem).eq.buffer_copy(i_elem), &
+              "Mismatch in element "//trim(to_string(i_elem)))
+    end do
     deallocate(buffer)
+    deallocate(buffer_copy)
     deallocate(passed_core)
 #endif
 

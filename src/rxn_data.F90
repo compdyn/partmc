@@ -180,7 +180,7 @@ interface
     !> Chemical species data
     type(chem_spec_data_t), intent(in) :: chem_spec_data
     !> Aerosol representations
-    class(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
+    type(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
 
   end subroutine initialize
 

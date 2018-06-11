@@ -157,7 +157,7 @@ contains
     !> Chemical species data
     type(chem_spec_data_t), intent(in) :: chem_spec_data
     !> Aerosol representations
-    class(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
+    type(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
 
     type(property_t), pointer :: spec_props, reactants, products
     character(len=:), allocatable :: key_name, spec_name, water_name, &
@@ -165,8 +165,8 @@ contains
     integer(kind=i_kind) :: i_spec, i_phase_inst, i_qty, i_aero_rep, &
             i_aero_phase, n_aero_ids, i_aero_id, num_spec_per_phase, &
             num_phase, num_react, num_prod
-    class(string_t), allocatable :: unique_names(:)
-    class(string_t), allocatable :: react_names(:), prod_names(:)
+    type(string_t), allocatable :: unique_names(:)
+    type(string_t), allocatable :: react_names(:), prod_names(:)
     integer(kind=i_kind), allocatable :: aero_spec_ids(:)
     integer(kind=i_kind), allocatable :: water_spec_ids(:)
 

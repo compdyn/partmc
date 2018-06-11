@@ -251,7 +251,7 @@ contains
     !> Chemical species data
     type(chem_spec_data_t), intent(in) :: chem_spec_data
     !> Aerosol representation data
-    class(aero_rep_data_ptr), pointer, intent(in) :: aero_rep_data(:)
+    type(aero_rep_data_ptr), pointer, intent(in) :: aero_rep_data(:)
 
     integer(kind=i_kind) :: i_rxn
 

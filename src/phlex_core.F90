@@ -834,7 +834,7 @@ contains
     class(phlex_core_t), intent(in) :: this
 
     class(aero_rep_data_t), pointer :: rep
-    class(string_t), allocatable :: unique_names(:)
+    type(string_t), allocatable :: unique_names(:)
     integer(kind=i_kind) :: i_state_elem, i_rep, i_name
 
     new_state => phlex_state_t()

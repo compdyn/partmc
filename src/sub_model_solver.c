@@ -13,7 +13,6 @@
 // Sub model types (Must match parameters in pmc_sub_model_factory)
 #define SUB_MODEL_UNIFAC 1
 
-#ifdef PMC_USE_SUNDIALS
 
 /** \brief Get a pointer to a calcualted sub model parameter
  * \param solver_data Pointer to the solver data
@@ -87,7 +86,6 @@ int sub_model_get_parameter_id(ModelData *model_data, int type,
       curr_id += (int) (sub_model_data - (int*) (model_data->sub_model_data));
     }
   }
-
   return -1;
 }
 
@@ -107,11 +105,11 @@ double sub_model_get_parameter_value_sd(void *solver_data, int parameter_id)
  * \param parameter_id Index of the parameter in the data block
  * \return The parameter value
  */
-realtype sub_model_get_parameter_value(ModelData *model_data, int parameter_id)
+double sub_model_get_parameter_value(ModelData *model_data, int parameter_id)
 {
   int *sub_model_data = (int*) (model_data->sub_model_data);
   sub_model_data += parameter_id;
-  return *((realtype*) sub_model_data);
+  return *((double*) sub_model_data);
 }
 
 /** \brief Update sub model data for a new environmental state
@@ -186,8 +184,6 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
           (ModelData*) &(((SolverData*)solver_data)->model_data);
   int *sub_model_data = (int*) (model_data->nxt_sub_model);
 
-#ifdef PMC_USE_SUNDIALS
-
   // Add the sub model type
   *(sub_model_data++) = sub_model_type;
 
@@ -195,14 +191,12 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
   for (; n_int_param>0; n_int_param--) *(sub_model_data++) = *(int_param++);
 
   // Add floating-point parameters
-  realtype *flt_ptr = (realtype*) sub_model_data;
+  double *flt_ptr = (double*) sub_model_data;
   for (; n_float_param>0; n_float_param--)
-          *(flt_ptr++) = (realtype) *(float_param++);
+          *(flt_ptr++) = (double) *(float_param++);
 
   // Set the pointer for the next free space in sub_model_data
   model_data->nxt_sub_model = (void*) flt_ptr;
-
-#endif
 }
 
 /** \brief Update sub-model data
@@ -221,8 +215,6 @@ void sub_model_update_data(int update_sub_model_type, void *update_data,
 {
   ModelData *model_data = 
           (ModelData*) &(((SolverData*)solver_data)->model_data);
-
-#ifdef PMC_USE_SUNDIALS
 
   // Get the number of sub models
   int *sub_model_data = (int*) (model_data->sub_model_data);
@@ -252,7 +244,6 @@ void sub_model_update_data(int update_sub_model_type, void *update_data,
       }
     }
   }
-#endif
 }
 
 /** \brief Print the sub model data
@@ -281,4 +272,3 @@ void sub_model_print(ModelData *model_data)
   }
 }
 
-#endif

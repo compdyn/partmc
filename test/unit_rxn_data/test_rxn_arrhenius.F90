@@ -20,18 +20,23 @@ program pmc_test_arrhenius
   use pmc_mpi
 
   implicit none
-
+  
   ! Number of timesteps to output in mechanisms
   integer(kind=i_kind) :: NUM_TIME_STEP = 100
 
   ! initialize mpi
   call pmc_mpi_init()
 
-  if (run_arrhenius_tests()) then
-    write(*,*) "Arrhenius reaction tests - PASS"
-  else
-    write(*,*) "Arrhenius reaction tests - FAIL"
+  if (pmc_mpi_rank().eq.0) then
+    if (run_arrhenius_tests()) then
+      write(*,*) "Arrhenius reaction tests - PASS"
+    else
+      write(*,*) "Arrhenius reaction tests - FAIL"
+    end if
   end if
+
+  ! finalize mpi
+  call pmc_mpi_finalize()
 
 contains
 
@@ -46,7 +51,7 @@ contains
 
     phlex_solver_data => phlex_solver_data_t()
 
-    if (phlex_solver_data%is_solver_available()) then
+    if (phlex_solver_data%is_solver_available().and.pmc_mpi_rank().eq.0) then
       passed = run_arrhenius_test()
     else
       call warn_msg(398972036, "No solver available")
@@ -82,6 +87,10 @@ contains
     character(len=:), allocatable :: key
     integer(kind=i_kind) :: i_time, i_spec
     real(kind=dp) :: conc_D, time_step, time
+#ifdef PMC_USE_MPI
+    character, allocatable :: buffer(:), buffer_copy(:)
+    integer(kind=i_kind) :: pack_size, pos, i_elem
+#endif
 
     ! Parameters for calculating true concentrations
     real(kind=dp) :: k1, k2, temp, pressure, conv
@@ -103,14 +112,61 @@ contains
     ! Set output time step (s)
     time_step = 1.0
 
+#ifdef PMC_USE_MPI
+    ! Load the model data on process 1 and pass it to process 0 for solving
+    if (pmc_mpi_rank().eq.1) then
+#endif
+
     ! Get the arrhenius reaction mechanism json file
     input_file_path = 'test_arrhenius_config.json'
 
     ! Construct a phlex_core variable
     phlex_core => phlex_core_t(input_file_path)
 
+    deallocate(input_file_path)
+
     ! Initialize the model
     call phlex_core%initialize()
+
+#ifdef PMC_USE_MPI
+      ! pack the phlex core
+      pack_size = phlex_core%pack_size()
+      allocate(buffer(pack_size))
+      pos = 0
+      call phlex_core%bin_pack(buffer, pos)
+      call assert(829435797, pos.eq.pack_size)
+      deallocate(buffer)
+    end if
+
+    ! broadcast the buffer size
+    call pmc_mpi_bcast_integer(pack_size)
+
+    if (pmc_mpi_rank().eq.0) then
+      ! allocate the buffer to receive data
+      allocate(buffer(pack_size))
+    end if
+
+    ! broadcast the data
+    call pmc_mpi_bcast_packed(buffer)
+
+    if (pmc_mpi_rank().eq.0) then
+      ! unpack the data
+      phlex_core => phlex_core_t()
+      pos = 0
+      call phlex_core%bin_unpack(buffer, pos)
+      call assert(201834728, pos.eq.pack_size)
+      allocate(buffer_copy(pack_size))
+      pos = 0
+      call phlex_core%bin_pack(buffer_copy, pos)
+      call assert(412584031, pos.eq.pack_size)
+      do i_elem = 1, pack_size
+        call assert_msg(414489565, buffer(i_elem).eq.buffer_copy(i_elem), &
+                "Mismatch in element :"//trim(to_string(i_elem)))
+      end do
+      deallocate(buffer)
+
+      ! solve and evaluate results on root process
+#endif
 
     ! Initialize the solver
     call phlex_core%solver_initialize()
@@ -194,6 +250,11 @@ contains
     end do
 
     deallocate(phlex_state)
+
+#ifdef PMC_USE_MPI
+    end if
+#endif
+
     deallocate(phlex_core)
 
     run_arrhenius_test = .true.

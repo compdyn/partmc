@@ -15,8 +15,6 @@
 #define AERO_REP_SINGLE_PARTICLE   1
 #define AERO_REP_MODAL_BINNED_MASS 2
 
-#ifdef PMC_USE_SUNDIALS
-
 /** \brief Get state array elements used by aerosol representation functions
  *
  * \param model_data A pointer to the model data
@@ -371,7 +369,6 @@ void * aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
   }
   return partial_deriv;
 }
-#endif
 
 /** \brief Add condensed data to the condensed data block for aerosol representations
  *
@@ -390,8 +387,6 @@ void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
           &(((SolverData*)solver_data)->model_data);
   int *aero_rep_data = (int*) (model_data->nxt_aero_rep);
 
-#ifdef PMC_USE_SUNDIALS
-
   // Add the aerosol representation type
   *(aero_rep_data++) = aero_rep_type;
 
@@ -399,14 +394,12 @@ void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
   for (; n_int_param>0; n_int_param--) *(aero_rep_data++) = *(int_param++);
 
   // Add floating-point parameters
-  realtype *flt_ptr = (realtype*) aero_rep_data;
+  double *flt_ptr = (double*) aero_rep_data;
   for (; n_float_param>0; n_float_param--)
-          *(flt_ptr++) = (realtype) *(float_param++);
+          *(flt_ptr++) = (double) *(float_param++);
 
   // Set the pointer for the next free space in aero_rep_data
   model_data->nxt_aero_rep = (void*) flt_ptr;
-
-#endif
 }
 
 /** \brief Update aerosol representation data
@@ -420,8 +413,6 @@ void aero_rep_update_data(int update_aero_rep_type, void *update_data,
 {
   ModelData *model_data = (ModelData*)
           &(((SolverData*)solver_data)->model_data);
-
-#ifdef PMC_USE_SUNDIALS
 
   // Get the number of aerosol representations
   int *aero_rep_data = (int*) (model_data->aero_rep_data);
@@ -460,7 +451,6 @@ void aero_rep_update_data(int update_aero_rep_type, void *update_data,
       }
     }
   }
-#endif
 }
 
 /** \brief Print the aerosol representation data
@@ -475,8 +465,6 @@ void aero_rep_print_data(void *solver_data)
   // Get the number of aerosol representations
   int *aero_rep_data = (int*) (model_data->aero_rep_data);
   int n_aero_rep = *(aero_rep_data++);
-
-#ifdef PMC_USE_SUNDIALS
 
   printf("\n\nAerosol representation data\n\nnumber of aerosol "
             "representations: %d\n\n", n_aero_rep);
@@ -499,7 +487,6 @@ void aero_rep_print_data(void *solver_data)
 	break;
     }
   }
-#endif
 }
 
 /** \brief Free an update data object

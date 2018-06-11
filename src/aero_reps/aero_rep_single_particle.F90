@@ -210,7 +210,7 @@ module pmc_aero_rep_single_particle
     pure subroutine aero_rep_free_update_data(update_data) bind (c)
       use iso_c_binding
       !> Update data
-      type(c_ptr), value :: update_data
+      type(c_ptr), value, intent(in) :: update_data
     end subroutine aero_rep_free_update_data
 
   end interface

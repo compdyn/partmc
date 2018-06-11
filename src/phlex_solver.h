@@ -134,21 +134,24 @@ SUNMatrix get_jac_init(SolverData *solver_data);
 int check_flag(void *flag_value, char *func_name, int opt);
 void check_flag_fail(void *flag_value, char *func_name, int opt);
 static void solver_print_stats(void *cvode_mem);
+#endif
 
 /* Reaction solver functions */
 void * rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct);
 void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids); 
 void rxn_update_env_state(ModelData *model_data, double *env);
 void rxn_pre_calc(ModelData *model_data);
+void rxn_print_data(void *solver_data);
+#ifdef PMC_USE_SUNDIALS
 void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, double time_step);
 void rxn_calc_jac(ModelData *model_data, SUNMatrix J, double time_step);
-void rxn_print_data(void *solver_data);
+#endif
 
 /* Aerosol phase solver functions */
 void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
-          realtype *state_var, realtype *mass, realtype *MW);
+          double *state_var, double *mass, double *MW);
 void * aero_phase_get_volume(ModelData *model_data, int aero_phase_idx,
-          realtype *state_var, realtype *volume);
+          double *state_var, double *volume);
 void * aero_phase_find(ModelData *model_data, int int_aero_phase_idx);
 void * aero_phase_skip(void *aero_phase_data);
 
@@ -171,10 +174,9 @@ void aero_rep_print_data(void *solver_data);
 void sub_model_update_env_state(ModelData *model_data, double *env);
 int sub_model_get_parameter_id(ModelData *model_data, int type,
           void *identifiers);
-realtype sub_model_get_parameter_value(ModelData *model_data, int parameter_id);
+double sub_model_get_parameter_value(ModelData *model_data, int parameter_id);
 void sub_model_calculate(ModelData *model_data);
 void sub_model_print(ModelData *model_data);
 
-#endif
 
 #endif

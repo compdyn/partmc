@@ -8,8 +8,6 @@
 /** \file
  * \brief Modal mass aerosol representation functions
  */
-#ifdef PMC_USE_SUNDIALS
-
 #include "../aero_rep_solver.h"
 
 // TODO Lookup environmental indicies during initialization
@@ -74,7 +72,7 @@ void * aero_rep_modal_binned_mass_get_dependencies(void *aero_rep_data,
           bool *state_flags)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -93,7 +91,7 @@ void * aero_rep_modal_binned_mass_update_env_state(double *env_data,
           void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -112,13 +110,13 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data,
           void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Loop through the modes and calculate effective radius and number
   // concentration
   for (int i_section=0; i_section<NUM_SECTION_; i_section++) {
 
-    realtype volume, mass, moles;
+    double volume, mass, moles;
     switch (SECTION_TYPE_(i_section)) {
       
       // Mode
@@ -129,7 +127,7 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data,
         for (int i_phase=0; i_phase<NUM_PHASE_(i_section); i_phase++) {
           
           // Get a pointer to the phase on the state array
-          realtype *state = (realtype*) (model_data->state);
+          double *state = (double*) (model_data->state);
           state += PHASE_STATE_ID_(i_section, i_phase, 0);
 
           // Set the aerosol-phase mass and average MW
@@ -139,7 +137,7 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data,
                     &(PHASE_AVG_MW_(i_section, i_phase, 0)));
           
           // Get the phase volume
-          realtype phase_volume = 0.0;
+          double phase_volume = 0.0;
           aero_phase_get_volume(model_data,
                     PHASE_MODEL_DATA_ID_(i_section, i_phase, 0),
                     state, &phase_volume);
@@ -166,7 +164,7 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data,
           for (int i_phase=0; i_phase<NUM_PHASE_(i_section); i_phase++) {
           
             // Get a pointer to the phase on the state array
-            realtype *state = (realtype*) (model_data->state);
+            double *state = (double*) (model_data->state);
             state += PHASE_STATE_ID_(i_section, i_phase, i_bin);
 
             // Set the aerosol-phase mass and average MW
@@ -176,7 +174,7 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data,
                       &(PHASE_AVG_MW_(i_section, i_phase, i_bin)));
           
             // Get the phase volume
-            realtype phase_volume = 0.0;
+            double phase_volume = 0.0;
             aero_phase_get_volume(model_data,
                       PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
                       state, &phase_volume);
@@ -228,7 +226,7 @@ void * aero_rep_modal_binned_mass_get_effective_radius(int aero_phase_idx,
           double *radius, double *partial_deriv, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   for (int i_section=0; i_section<NUM_SECTION_; i_section++) {
     for (int i_bin=0; i_bin<NUM_BINS_(i_section); i_bin++) {
@@ -275,7 +273,7 @@ void * aero_rep_modal_binned_mass_get_number_conc(int aero_phase_idx,
           double *number_conc, double *partial_deriv, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   for (int i_section=0; i_section<NUM_SECTION_; i_section++) {
     for (int i_bin=0; i_bin<NUM_BINS_(i_section); i_bin++) {
@@ -306,7 +304,7 @@ void * aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx,
           int *aero_conc_type, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   *aero_conc_type = 1;
 
@@ -331,7 +329,7 @@ void * aero_rep_modal_binned_mass_get_aero_phase_mass(int aero_phase_idx,
           double *partial_deriv, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   for (int i_section=0; i_section<NUM_SECTION_ && aero_phase_idx>=0; 
             i_section++) {
@@ -373,7 +371,7 @@ void * aero_rep_modal_binned_mass_update_data(void *update_data,
           void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   int *aero_rep_id = (int*) update_data;
   int *update_type = (int*) &(aero_rep_id[1]);
@@ -383,9 +381,9 @@ void * aero_rep_modal_binned_mass_update_data(void *update_data,
   // Set the new GMD or GSD for matching aerosol representations
   if (*aero_rep_id==AERO_REP_ID_ && AERO_REP_ID_!=0) {
     if (*update_type==UPDATE_GMD) {
-      GMD_(*section_id,0) = (realtype) *new_value;
+      GMD_(*section_id,0) = (double) *new_value;
     } else if (*update_type==UPDATE_GSD) {
-      GSD_(*section_id,0) = (realtype) *new_value;
+      GSD_(*section_id,0) = (double) *new_value;
     }
   }
 
@@ -401,7 +399,7 @@ void * aero_rep_modal_binned_mass_update_data(void *update_data,
 void * aero_rep_modal_binned_mass_print(void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   printf("\n\nModal/binned mass-only aerosol representation\n");
   for (int i=0; i<INT_DATA_SIZE_; i++)
@@ -421,7 +419,7 @@ void * aero_rep_modal_binned_mass_print(void *aero_rep_data)
 void * aero_rep_modal_binned_mass_skip(void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -523,5 +521,3 @@ void aero_rep_modal_binned_mass_set_gsd_update_data(void *update_data,
 #undef EFFECTIVE_RADIUS_
 #undef PHASE_MASS_
 #undef PHASE_AVG_MW_
-
-#endif

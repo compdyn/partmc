@@ -8,8 +8,6 @@
 /** \file
  * \brief Phase Transfer reaction solver functions
 */
-#ifdef PMC_USE_SUNDIALS
-
 #include "../rxn_solver.h"
 
 // TODO Lookup environmental indices during initialization
@@ -58,7 +56,7 @@ void * rxn_SIMPOL_phase_transfer_get_used_jac_elem(void *rxn_data,
           bool **jac_struct)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   jac_struct[GAS_SPEC_][GAS_SPEC_] = true;
   for (int i_aero_phase = 0; i_aero_phase < NUM_AERO_PHASE_; i_aero_phase++) {
@@ -82,7 +80,7 @@ void * rxn_SIMPOL_phase_transfer_update_ids(ModelData *model_data,
           int *deriv_ids, int **jac_ids, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Update the time derivative ids
   DERIV_ID_(0) = deriv_ids[GAS_SPEC_];
@@ -119,17 +117,17 @@ void * rxn_SIMPOL_phase_transfer_update_ids(ModelData *model_data,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_SIMPOL_phase_transfer_update_env_state(realtype *env_data,
+void * rxn_SIMPOL_phase_transfer_update_env_state(double *env_data,
           void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the mass accomodation coefficient if the N* parameter
   // was provided, otherwise set it to 1.0
-  realtype mass_acc = 1.0;
+  double mass_acc = 1.0;
   if (DELTA_H_!=0.0 || DELTA_S_!=0.0) {
-    realtype del_G = DELTA_H_ - TEMPERATURE_K_ * DELTA_S_; 
+    double del_G = DELTA_H_ - TEMPERATURE_K_ * DELTA_S_; 
     mass_acc = exp(-del_G/(UNIV_GAS_CONST_ * TEMPERATURE_K_));
     mass_acc = mass_acc / (1.0 + mass_acc);
   }
@@ -138,7 +136,7 @@ void * rxn_SIMPOL_phase_transfer_update_env_state(realtype *env_data,
   C_AVG_ALHPA_ = PRE_C_AVG_ * sqrt(TEMPERATURE_K_) * mass_acc;
 
   // SIMPOL.1 vapor pressure (Pa)
-  realtype vp = B1_ / TEMPERATURE_K_
+  double vp = B1_ / TEMPERATURE_K_
                 + B2_ + B3_ * TEMPERATURE_K_
                 + B4_ * log(TEMPERATURE_K_);
   vp = 101325.0 * pow(10, vp);
@@ -171,7 +169,7 @@ void * rxn_SIMPOL_phase_transfer_update_env_state(realtype *env_data,
 void * rxn_SIMPOL_phase_transfer_pre_calc(ModelData *model_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -185,6 +183,7 @@ void * rxn_SIMPOL_phase_transfer_pre_calc(ModelData *model_data, void *rxn_data)
  * \param time_step Current time step being computed (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
+#ifdef PMC_USE_SUNDIALS
 void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
           realtype *deriv, void *rxn_data, double time_step)
 {
@@ -277,6 +276,7 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
 }
+#endif
 
 /** \brief Calculate contributions to the Jacobian from this reaction
  *
@@ -286,6 +286,7 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
  * \param time_step Current time step being calculated (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
+#ifdef PMC_USE_SUNDIALS
 void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
           realtype *J, void *rxn_data, double time_step)
 {
@@ -376,6 +377,7 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
 }
+#endif
 
 /** \brief Advance the reaction data pointer to the next reaction
  * 
@@ -385,7 +387,7 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
 void * rxn_SIMPOL_phase_transfer_skip(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -398,7 +400,7 @@ void * rxn_SIMPOL_phase_transfer_skip(void *rxn_data)
 void * rxn_SIMPOL_phase_transfer_print(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   printf("\n\nSIMPOL.1 Phase Transfer reaction\n");
   for (int i=0; i<INT_DATA_SIZE_; i++) 
@@ -440,5 +442,3 @@ void * rxn_SIMPOL_phase_transfer_print(void *rxn_data)
 #undef JAC_ID_
 #undef INT_DATA_SIZE_
 #undef FLOAT_DATA_SIZE_
-
-#endif

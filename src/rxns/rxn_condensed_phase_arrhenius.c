@@ -8,8 +8,6 @@
 /** \file
  * \brief Condensed Phase Arrhenius reaction solver functions
 */
-#ifdef PMC_USE_SUNDIALS
-
 #include "../rxn_solver.h"
 
 // TODO Lookup environmental indices during initialization
@@ -51,7 +49,7 @@ void * rxn_condensed_phase_arrhenius_get_used_jac_elem(void *rxn_data,
           bool **jac_struct)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Loop over all the instances of the specified phase
   for (int i_phase = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
@@ -95,7 +93,7 @@ void * rxn_condensed_phase_arrhenius_update_ids(ModelData *model_data,
           int *deriv_ids, int **jac_ids, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Update the time derivative ids
   for (int i_phase = 0, i_deriv = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
@@ -150,17 +148,17 @@ void * rxn_condensed_phase_arrhenius_update_ids(ModelData *model_data,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_condensed_phase_arrhenius_update_env_state(realtype *env_data,
+void * rxn_condensed_phase_arrhenius_update_env_state(double *env_data,
           void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the rate constant in (M or mol/m3)
   // k = A*exp(C/T) * (T/D)^B * (1+E*P)
-  RATE_CONSTANT_ = A_ * SUNRexp(C_/TEMPERATURE_K_)
-          * (B_==ZERO ? ONE : SUNRpowerR(TEMPERATURE_K_/D_, B_))
-          * (E_==ZERO ? ONE : (ONE + E_*PRESSURE_PA_));
+  RATE_CONSTANT_ = A_ * exp(C_/TEMPERATURE_K_)
+          * (B_==0.0 ? 1.0 : pow(TEMPERATURE_K_/D_, B_))
+          * (E_==0.0 ? 1.0 : (1.0 + E_*PRESSURE_PA_));
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -177,7 +175,7 @@ void * rxn_condensed_phase_arrhenius_pre_calc(ModelData *model_data,
           void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -191,6 +189,7 @@ void * rxn_condensed_phase_arrhenius_pre_calc(ModelData *model_data,
  * \param time_step Current time step of the itegrator (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
+#ifdef PMC_USE_SUNDIALS
 void * rxn_condensed_phase_arrhenius_calc_deriv_contrib(ModelData *model_data,
           realtype *deriv, void *rxn_data, double time_step)
 {
@@ -242,6 +241,7 @@ void * rxn_condensed_phase_arrhenius_calc_deriv_contrib(ModelData *model_data,
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
 }
+#endif
 
 /** \brief Calculate contributions to the Jacobian from this reaction
  *
@@ -251,6 +251,7 @@ void * rxn_condensed_phase_arrhenius_calc_deriv_contrib(ModelData *model_data,
  * \param time_step Current time step of the itegrator (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
+#ifdef PMC_USE_SUNDIALS
 void * rxn_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data,
           realtype *J, void *rxn_data, double time_step)
 {
@@ -324,6 +325,7 @@ void * rxn_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data,
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
 }
+#endif
 
 /** \brief Advance the reaction data pointer to the next reaction
  * 
@@ -333,7 +335,7 @@ void * rxn_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data,
 void * rxn_condensed_phase_arrhenius_skip(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -346,7 +348,7 @@ void * rxn_condensed_phase_arrhenius_skip(void *rxn_data)
 void * rxn_condensed_phase_arrhenius_print(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   printf("\n\nCondensed Phase Arrhenius reaction\n");
   for (int i=0; i<INT_DATA_SIZE_; i++) 
@@ -382,5 +384,3 @@ void * rxn_condensed_phase_arrhenius_print(void *rxn_data)
 #undef UGM3_TO_MOLM3_
 #undef INT_DATA_SIZE_
 #undef FLOAT_DATA_SIZE_
-
-#endif

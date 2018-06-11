@@ -253,7 +253,7 @@ contains
     !> Chemical species data
     type(chem_spec_data_t), intent(in) :: chem_spec_data
     !> Aerosol representations
-    class(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
+    type(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
 
     type(property_t), pointer :: spec_props, ion_pairs, ion_pair, &
             sub_props, ions, interactions, interaction, poly_coeffs
@@ -264,7 +264,7 @@ contains
             i_poly_coeff, i_interaction, j_ion_pair, j_interaction
     integer(kind=i_kind) :: qty, int_val, charge, total_charge, tracer_type
     real(kind=dp) :: real_val, molecular_weight, min_RH, max_RH
-    class(string_t), allocatable :: unique_spec_names(:)
+    type(string_t), allocatable :: unique_spec_names(:)
     character(len=:), allocatable :: ion_pair_name, ion_name
     type(string_t), allocatable :: ion_pair_names(:), temp_ion_pair_names(:)
     integer(kind=i_kind), allocatable :: num_inter(:)

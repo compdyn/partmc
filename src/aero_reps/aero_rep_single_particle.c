@@ -8,8 +8,6 @@
 /** \file
  * \brief Single particle aerosol representation functions
  */
-#ifdef PMC_USE_SUNDIALS
-
 #include "../aero_rep_solver.h"
 
 // TODO Lookup environmental indicies during initialization
@@ -46,7 +44,7 @@ void * aero_rep_single_particle_get_dependencies(void *aero_rep_data,
           bool *state_flags)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -65,7 +63,7 @@ void * aero_rep_single_particle_update_env_state(double *env_data,
           void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -85,13 +83,13 @@ void * aero_rep_single_particle_update_state(ModelData *model_data,
           void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the total aerosol phase masses
   for (int i_phase=0; i_phase<NUM_PHASE_; i_phase++) {
 
     // Get a pointer to the phase on the state array
-    realtype *state_var = (realtype*) (model_data->state);
+    double *state_var = (double*) (model_data->state);
     state_var += PHASE_STATE_ID_(i_phase);
 
     // Get the mass and average MW
@@ -122,7 +120,7 @@ void * aero_rep_single_particle_get_effective_radius(int aero_phase_idx,
           double *radius, double *partial_deriv, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   *radius = RADIUS_;
 
@@ -150,7 +148,7 @@ void * aero_rep_single_particle_get_number_conc(int aero_phase_idx,
           double *number_conc, double *partial_deriv, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   *number_conc = NUMBER_CONC_;
 
@@ -172,7 +170,7 @@ void * aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx,
           int *aero_conc_type, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   *aero_conc_type = 0;
 
@@ -200,7 +198,7 @@ void * aero_rep_single_particle_get_aero_phase_mass(int aero_phase_idx,
           double *partial_deriv, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   *aero_phase_mass = PHASE_MASS_(aero_phase_idx);
   *aero_phase_avg_MW = PHASE_AVG_MW_(aero_phase_idx);
@@ -230,7 +228,7 @@ void * aero_rep_single_particle_update_data(void *update_data,
           void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   int *aero_rep_id = (int*) update_data;
   int *update_type = (int*) &(aero_rep_id[1]);
@@ -240,9 +238,9 @@ void * aero_rep_single_particle_update_data(void *update_data,
   // representations
   if (*aero_rep_id==AERO_REP_ID_ && AERO_REP_ID_!=0) {
     if (*update_type==UPDATE_RADIUS) {
-      RADIUS_ = (realtype) *new_value;
+      RADIUS_ = (double) *new_value;
     } else if (*update_type==UPDATE_NUMBER) {
-      NUMBER_CONC_ = (realtype) *new_value;
+      NUMBER_CONC_ = (double) *new_value;
     }
   }
 
@@ -258,7 +256,7 @@ void * aero_rep_single_particle_update_data(void *update_data,
 void * aero_rep_single_particle_print(void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   printf("\n\nSingle particle aerosol representation\n");
   for (int i=0; i<INT_DATA_SIZE_; i++)
@@ -278,7 +276,7 @@ void * aero_rep_single_particle_print(void *aero_rep_data)
 void * aero_rep_single_particle_skip(void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -363,5 +361,3 @@ void aero_rep_single_particle_set_number_update_data(void *update_data,
 #undef PHASE_AVG_MW_
 #undef INT_DATA_SIZE_
 #undef FLOAT_DATA_SIZE_
-
-#endif

@@ -233,7 +233,7 @@ contains
     !> Chemical species data
     type(chem_spec_data_t), intent(in) :: chem_spec_data
     !> Aerosol representations
-    class(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
+    type(aero_rep_data_ptr), pointer, intent(in) :: aero_rep(:)
 
     type(property_t), pointer :: spec_props, ion_pairs, ion_pair, sub_props, &
             ions
@@ -243,7 +243,7 @@ contains
             i_aero_rep, i_phase, i_ion_pair, i_ion, i_spec, i_sub_prop, &
             qty, int_val, charge, total_charge
     real(kind=dp) :: real_val, molecular_weight
-    class(string_t), allocatable :: unique_spec_names(:)
+    type(string_t), allocatable :: unique_spec_names(:)
     character(len=:), allocatable :: str_type, ion_pair_name, ion_name
 
     ! Get the reaction property set

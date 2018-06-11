@@ -169,8 +169,14 @@ if(ENABLE_JSON)
   do_unit_test(phlex_core "PASS")
 endif()
 
+if (ENABLE_MPI) 
+  set(MPI_TEST_FLAG MPI)
+else()
+  set(MPI_TEST_FLAG serial)
+endif()
+
 if (ENABLE_JSON AND ENABLE_SUNDIALS)
-  add_test(test_rxn_aqueous_equilibrium ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_aqueous_equilibrium.sh)
+  add_test(test_rxn_aqueous_equilibrium ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_aqueous_equilibrium.sh ${MPI_TEST_FLAG})
   add_test(test_rxn_arrhenius ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_arrhenius.sh)
   add_test(test_rxn_CMAQ_H2O2 ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_CMAQ_H2O2.sh)
   add_test(test_rxn_CMAQ_OH_HNO3 ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_CMAQ_OH_HNO3.sh)
@@ -356,7 +362,7 @@ endif()
 set_source_files_properties(${REACTIONS_F_SRC} PROPERTIES COMPILE_FLAGS
 	${REACTIONS_F_FLAGS})
 
-set(REACTIONS_SRC ${REACTIONS_F_SRC}
+  set(REACTIONS_SRC ${REACTIONS_F_SRC}
 	src/rxns/rxn_PDFiTE_activity.c
 	src/rxns/rxn_aqueous_equilibrium.c
 	src/rxns/rxn_arrhenius.c

@@ -8,8 +8,6 @@
 /** \file
  * \brief Aqueous Equilibrium reaction solver functions
 */
-#ifdef PMC_USE_SUNDIALS
-
 #include "../rxn_solver.h"
 
 // TODO Lookup environmental indices during initialization
@@ -49,7 +47,7 @@ void * rxn_aqueous_equilibrium_get_used_jac_elem(void *rxn_data,
           bool **jac_struct)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Loop over all the instances of the specified phase
   for (int i_phase = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
@@ -101,7 +99,7 @@ void * rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
           int **jac_ids, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Update the time derivative ids
   for (int i_phase = 0, i_deriv = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
@@ -159,15 +157,15 @@ void * rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_aqueous_equilibrium_update_env_state(realtype *env_data,
+void * rxn_aqueous_equilibrium_update_env_state(double *env_data,
           void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the equilibrium constant 
   // (assumes reactant and product concentrations in M)
-  realtype equil_const;
+  double equil_const;
   if (C_==0.0) {
     equil_const = A_;
   } else {
@@ -191,7 +189,7 @@ void * rxn_aqueous_equilibrium_update_env_state(realtype *env_data,
 void * rxn_aqueous_equilibrium_pre_calc(ModelData *model_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -205,6 +203,7 @@ void * rxn_aqueous_equilibrium_pre_calc(ModelData *model_data, void *rxn_data)
  * \param time_step Current time step of the itegrator (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
+#ifdef PMC_USE_SUNDIALS
 void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
           realtype *deriv, void *rxn_data, double time_step)
 {
@@ -257,6 +256,7 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
 }
+#endif
 
 /** \brief Calculate contributions to the Jacobian from this reaction
  *
@@ -266,6 +266,7 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
  * \param time_step Current time step of the itegrator (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
+#ifdef PMC_USE_SUNDIALS
 void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
           realtype *J, void *rxn_data, double time_step)
 {
@@ -360,6 +361,7 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
 }
+#endif
 
 /** \brief Advance the reaction data pointer to the next reaction
  * 
@@ -369,7 +371,7 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
 void * rxn_aqueous_equilibrium_skip(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -382,7 +384,7 @@ void * rxn_aqueous_equilibrium_skip(void *rxn_data)
 void * rxn_aqueous_equilibrium_print(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   printf("\n\nAqueous Equilibrium reaction\n");
   for (int i=0; i<INT_DATA_SIZE_; i++) 
@@ -416,5 +418,3 @@ void * rxn_aqueous_equilibrium_print(void *rxn_data)
 #undef MASS_FRAC_TO_M_
 #undef INT_DATA_SIZE_
 #undef FLOAT_DATA_SIZE_
-
-#endif

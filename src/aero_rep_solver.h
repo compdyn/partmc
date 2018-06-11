@@ -15,8 +15,6 @@
 #include <stdlib.h>
 #include "phlex_solver.h"
 
-#ifdef PMC_USE_SUNDIALS
-
 // binned/modal mass
 void * aero_rep_modal_binned_mass_get_dependencies(
           void *aero_rep_data, bool *state_flags);
@@ -69,5 +67,4 @@ void * aero_rep_single_particle_print(
 void * aero_rep_single_particle_skip(
           void *aero_rep_data);
 
-#endif
 #endif

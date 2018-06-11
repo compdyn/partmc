@@ -26,8 +26,6 @@
 #define INT_DATA_SIZE_ (NUM_INT_PROP_+NUM_STATE_VAR_)
 #define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+2*NUM_STATE_VAR_)
 
-#ifdef PMC_USE_SUNDIALS
-
 /** \brief Get the mass and average MW in an aerosol phase
  *
  * \param model_data Pointer to the model data (state, env, aero_phase)
@@ -42,7 +40,7 @@
  *         NULL pointer if no partial derivatives exist
  */
 void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx, 
-        realtype *state_var, realtype *mass, realtype *MW)
+        double *state_var, double *mass, double *MW)
 {
 
   // Set up a pointer for the partial derivatives
@@ -50,7 +48,7 @@ void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
 
   // Get the requested aerosol phase data
   int *int_data = (int*) aero_phase_find(model_data, aero_phase_idx);
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Sum the mass and MW
   *mass = 0.0;
@@ -80,7 +78,7 @@ void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
  *         a NULL pointer if no partial derivatives exist
  */
 void * aero_phase_get_volume(ModelData *model_data, int aero_phase_idx, 
-          realtype *state_var, realtype *volume)
+          double *state_var, double *volume)
 {
 
   // Set up a pointer for the partial derivatives
@@ -88,7 +86,7 @@ void * aero_phase_get_volume(ModelData *model_data, int aero_phase_idx,
 
   // Get the requested aerosol phase data
   int *int_data = (int*) aero_phase_find(model_data, aero_phase_idx);
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Sum the mass and MW
   *volume = 0.0;
@@ -137,12 +135,10 @@ void * aero_phase_find(ModelData *model_data, int aero_phase_idx)
 void * aero_phase_skip(void *aero_phase_data)
 {
   int *int_data = (int*) aero_phase_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
-
-#endif
 
 /** \brief Add condensed data to the condensed data block for aerosol phases
  *
@@ -159,20 +155,16 @@ void aero_phase_add_condensed_data(int n_int_param, int n_float_param,
           (ModelData*) &(((SolverData*)solver_data)->model_data);
   int *aero_phase_data = (int*) (model_data->nxt_aero_phase);
 
-#ifdef PMC_USE_SUNDIALS
-
   // Add the integer parameters
   for (; n_int_param>0; n_int_param--) *(aero_phase_data++) = *(int_param++);
 
   // Add the floating-point parameters
-  realtype *flt_ptr = (realtype*) aero_phase_data;
+  double *flt_ptr = (double*) aero_phase_data;
   for (; n_float_param>0; n_float_param--) 
-          *(flt_ptr++) = (realtype) *(float_param++);
+          *(flt_ptr++) = (double) *(float_param++);
 
   // Set the pointer for the next free space in aero_phase_data;
   model_data->nxt_aero_phase = (void*) flt_ptr;
-
-#endif
 }
 
 #undef NUM_STATE_VAR_

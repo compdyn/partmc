@@ -24,10 +24,12 @@ program pmc_chem_spec_data_test
   !> initialize mpi
   call pmc_mpi_init()
 
-  if (run_pmc_chem_spec_data_tests() .and. pmc_mpi_rank().eq.0) then
-    write(*,*) "Chemical species data tests - PASS"
-  else
-    write(*,*) "Chemical species data tests - FAIL"
+  if (pmc_mpi_rank().eq.0) then
+    if (run_pmc_chem_spec_data_tests()) then
+      write(*,*) "Chemical species tests - PASS"
+    else
+      write(*,*) "Chemical species tests - FAIL"
+    end if
   end if
 
   !> finalize mpi

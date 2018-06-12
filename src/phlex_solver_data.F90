@@ -369,6 +369,8 @@ contains
     class(rxn_data_t), pointer :: rxn
     ! Reaction factory object for getting reaction type
     type(rxn_factory_t) :: rxn_factory
+    ! Aerosol phase pointer
+    type(aero_phase_data_t), pointer :: aero_phase
     ! Aerosol representation pointer
     class(aero_rep_data_t), pointer :: aero_rep
     ! Aerosol representation factory object for getting aerosol 
@@ -428,7 +430,7 @@ contains
     ! Calculate the number of reactions and the size of the condensed data
     do i_mech=1, size(mechanisms)
       do i_rxn=1, mechanisms(i_mech)%val%size()
-        associate (rxn => mechanisms(i_mech)%val%get_rxn(i_rxn))
+        rxn => mechanisms(i_mech)%val%get_rxn(i_rxn)
         select case (rxn%rxn_phase)
           case (GAS_RXN)
             if (rxn_phase.eq.AERO_RXN) cycle
@@ -440,9 +442,9 @@ contains
         n_rxn = n_rxn + 1
         n_rxn_int_param = n_rxn_int_param + size(rxn%condensed_data_int)
         n_rxn_float_param = n_rxn_float_param + size(rxn%condensed_data_real)
-        end associate
       end do
     end do
+    rxn => null()
 
     ! Initialize the aerosol phase counters
     n_aero_phase = size(aero_phases)
@@ -451,13 +453,13 @@ contains
 
     ! Calculate the size of the aerosol phases condensed data
     do i_aero_phase=1, n_aero_phase
-      associate (aero_phase => aero_phases(i_aero_phase)%val)
+      aero_phase => aero_phases(i_aero_phase)%val
       n_aero_phase_int_param = n_aero_phase_int_param + &
               size(aero_phase%condensed_data_int)
       n_aero_phase_float_param = n_aero_phase_float_param + &
               size(aero_phase%condensed_data_real)
-      end associate
     end do
+    aero_phase => null()
 
     ! Initialize the aerosol representation counters
     n_aero_rep = size(aero_reps)
@@ -466,13 +468,13 @@ contains
 
     ! Calculate the size of the aerosol representations condensed data
     do i_aero_rep=1, n_aero_rep
-      associate (aero_rep => aero_reps(i_aero_rep)%val)
+      aero_rep => aero_reps(i_aero_rep)%val
       n_aero_rep_int_param = n_aero_rep_int_param + &
               size(aero_rep%condensed_data_int)
       n_aero_rep_float_param = n_aero_rep_float_param + &
               size(aero_rep%condensed_data_real)
-      end associate
     end do
+    aero_rep => null()
 
     ! Initialize the sub model counters
     n_sub_model = size(sub_models)
@@ -481,13 +483,13 @@ contains
 
     ! Calculate the size of the sub model condensed data
     do i_sub_model=1, n_sub_model
-      associate (sub_model => sub_models(i_sub_model)%val)
+      sub_model => sub_models(i_sub_model)%val
       n_sub_model_int_param = n_sub_model_int_param + &
               size(sub_model%condensed_data_int)
       n_sub_model_float_param = n_sub_model_float_param + &
               size(sub_model%condensed_data_real)
-      end associate
     end do
+    sub_model => null()
 
     ! Get a new solver object
     this%solver_c_ptr = solver_new( &
@@ -517,7 +519,7 @@ contains
         ! of reactions/sub-models
 
         ! Assign rxn to the current reaction
-        associate (rxn => mechanisms(i_mech)%val%get_rxn(i_rxn))
+        rxn => mechanisms(i_mech)%val%get_rxn(i_rxn)
         
         ! Check reaction phase
         select case (rxn%rxn_phase)
@@ -549,15 +551,15 @@ contains
         deallocate(int_param)
         deallocate(float_param)
 
-        end associate
       end do
     end do
+    rxn => null()
 
     ! Add all the condensed aerosol phase data to the solver data block
     do i_aero_phase=1, size(aero_phases)
 
       ! Assign aero_phase to the current aerosol phase
-      associate (aero_phase => aero_phases(i_aero_phase)%val)
+      aero_phase => aero_phases(i_aero_phase)%val
 
       ! Load temporary data arrays
       allocate(int_param(size(aero_phase%condensed_data_int)))
@@ -578,15 +580,15 @@ contains
       deallocate(int_param)
       deallocate(float_param)
 
-      end associate
     end do
+    aero_phase => null()
 
     ! Add all the condensed aerosol representation data to the solver data
     ! block
     do i_aero_rep=1, size(aero_reps)
 
       ! Assign aero_rep to the current aerosol representation
-      associate (aero_rep => aero_reps(i_aero_rep)%val)
+      aero_rep => aero_reps(i_aero_rep)%val
 
       ! Load temporary data arrays
       allocate(int_param(size(aero_rep%condensed_data_int)))
@@ -609,14 +611,14 @@ contains
       deallocate(int_param)
       deallocate(float_param)
 
-      end associate
     end do
+    aero_rep => null()
 
     ! Add all the condensed sub model data to the solver data block
     do i_sub_model=1, size(sub_models)
 
       ! Assign sub_model to the current sub model
-      associate (sub_model => sub_models(i_sub_model)%val)
+      sub_model => sub_models(i_sub_model)%val
 
       ! Load temporary data arrays
       allocate(int_param(size(sub_model%condensed_data_int)))
@@ -639,8 +641,8 @@ contains
       deallocate(int_param)
       deallocate(float_param)
 
-      end associate
     end do
+    sub_model => null()
 
     ! Initialize the solver
     call solver_initialize( &

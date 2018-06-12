@@ -1133,6 +1133,8 @@ contains
     
     type(aero_rep_factory_t) :: aero_rep_factory
     type(sub_model_factory_t) :: sub_model_factory
+    class(aero_rep_data_t), pointer :: aero_rep
+    class(sub_model_data_t), pointer :: sub_model
     integer(kind=i_kind) :: i_mech, i_rep, i_sub_model
 
     call assert_msg(143374295, this%is_initialized, &
@@ -1145,14 +1147,14 @@ contains
       pack_size = pack_size + this%mechanism(i_mech)%val%pack_size()
     end do
     do i_rep = 1, size(this%aero_rep)
-      associate (aero_rep => this%aero_rep(i_rep)%val)
+      aero_rep => this%aero_rep(i_rep)%val
       pack_size = pack_size + aero_rep_factory%pack_size(aero_rep)
-      end associate
+      aero_rep => null()
     end do
     do i_sub_model = 1, size(this%sub_model)
-      associate (sub_model => this%sub_model(i_sub_model)%val)
+      sub_model => this%sub_model(i_sub_model)%val
       pack_size = pacK_size + sub_model_factory%pack_size(sub_model)
-      end associate
+      sub_model => null() 
     end do
     pack_size = pack_size + &
                 pmc_mpi_pack_size_integer(this%state_array_size) + &
@@ -1177,6 +1179,8 @@ contains
 #ifdef PMC_USE_MPI
     type(aero_rep_factory_t) :: aero_rep_factory
     type(sub_model_factory_t) :: sub_model_factory
+    class(aero_rep_data_t), pointer :: aero_rep
+    class(sub_model_data_t), pointer :: sub_model
     integer(kind=i_kind) :: i_mech, i_rep, i_sub_model, prev_position
 
     call assert_msg(143374295, this%is_initialized, &
@@ -1190,14 +1194,14 @@ contains
       call this%mechanism(i_mech)%val%bin_pack(buffer, pos)
     end do
     do i_rep = 1, size(this%aero_rep)
-      associate (aero_rep => this%aero_rep(i_rep)%val)
+      aero_rep => this%aero_rep(i_rep)%val
       call aero_rep_factory%bin_pack(aero_rep, buffer, pos)
-      end associate
+      aero_rep => null()
     end do
     do i_sub_model = 1, size(this%sub_model)
-      associate (sub_model => this%sub_model(i_sub_model)%val)
+      sub_model => this%sub_model(i_sub_model)%val
       call sub_model_factory%bin_pack(sub_model, buffer, pos)
-      end associate
+      sub_model => null()
     end do
     call pmc_mpi_pack_integer(buffer, pos, this%state_array_size)
     call pmc_mpi_pack_logical(buffer, pos, this%split_gas_aero)

@@ -56,7 +56,6 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
           int n_aero_rep, int n_aero_rep_int_param, int n_aero_rep_float_param,
           int n_sub_model, int n_sub_model_int_param, int n_sub_model_float_param)
 {
-#ifdef PMC_USE_SUNDIALS
   // Create the SolverData object
   SolverData *sd = (SolverData*) malloc(sizeof(SolverData));
   if (sd==NULL) {
@@ -81,15 +80,17 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   for (int i=0; i<n_state_var; i++) 
     if (var_type[i]==CHEM_SPEC_VARIABLE) n_dep_var++;
 
+#ifdef PMC_USE_SUNDIALS
   // Set up the solver variable array
   sd->y = N_VNew_Serial(n_dep_var);
+#endif
 
   // Allocate space for the reaction data and set the number
   // of reactions (including one int for the number of reactions
   // and one int per reaction to store the reaction type)
   sd->model_data.rxn_data = (void*) malloc(
 		  (n_rxn_int_param + 1 + n_rxn) * sizeof(int) 
-		  + n_rxn_float_param * sizeof(realtype));
+		  + n_rxn_float_param * sizeof(double));
   if (sd->model_data.rxn_data==NULL) {
     printf("\n\nERROR allocating space for reaction data\n\n");
     exit(1);
@@ -106,7 +107,7 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   // phases)
   sd->model_data.aero_phase_data = (void*) malloc(
                   (n_aero_phase_int_param + 1) * sizeof(int)
-                  + n_aero_phase_float_param * sizeof(realtype));
+                  + n_aero_phase_float_param * sizeof(double));
   if (sd->model_data.aero_phase_data==NULL) {
     printf("\n\nERROR allocating space for aerosol phase data\n\n");
     exit(1);
@@ -122,7 +123,7 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   // type)
   sd->model_data.aero_rep_data = (void*) malloc(
 		  (n_aero_rep_int_param + 1 + n_aero_rep) * sizeof(int)
-		  + n_aero_rep_float_param * sizeof(realtype));
+		  + n_aero_rep_float_param * sizeof(double));
   if (sd->model_data.aero_rep_data==NULL) {
     printf("\n\nERROR allocating space for aerosol representation data\n\n");
     exit(1);
@@ -136,7 +137,7 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   // model to store the sub model type)
   sd->model_data.sub_model_data = (void*) malloc(
                   (n_sub_model_int_param + 1 + n_sub_model) * sizeof(int)
-                  + n_sub_model_float_param * sizeof(realtype));
+                  + n_sub_model_float_param * sizeof(double));
   if (sd->model_data.sub_model_data==NULL) {
     printf("\n\nERROR allocating space for sub model data\n\n");
     exit(1);
@@ -147,9 +148,6 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
 
   // Return a pointer to the new SolverData object
   return (void*) sd;
-#else
-  return NULL;
-#endif
 }
 
 /** \brief Solver initialization

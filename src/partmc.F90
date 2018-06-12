@@ -658,8 +658,10 @@ contains
             + pmc_mpi_pack_size_logical(do_init_equilibriate)
        max_buffer_size = max_buffer_size &
             + pmc_mpi_pack_size_aero_state(aero_state_init)
-       max_buffer_size = max_buffer_size &
-            + phlex_core%pack_size()
+       if (run_part_opt%do_phlex_chem) then
+         max_buffer_size = max_buffer_size &
+              + phlex_core%pack_size()
+       end if
 
        allocate(buffer(max_buffer_size))
 
@@ -676,7 +678,9 @@ contains
        call pmc_mpi_pack_logical(buffer, position, do_restart)
        call pmc_mpi_pack_logical(buffer, position, do_init_equilibriate)
        call pmc_mpi_pack_aero_state(buffer, position, aero_state_init)
-       call phlex_core%bin_pack(buffer, position)
+       if (run_part_opt%do_phlex_chem) then
+         call phlex_core%bin_pack(buffer, position)
+       end if
        call assert(181905491, position <= max_buffer_size)
        buffer_size = position ! might be less than we allocated
     end if
@@ -693,8 +697,6 @@ contains
     call pmc_mpi_bcast_packed(buffer)
 
     if (pmc_mpi_rank() /= 0) then
-       ! set up the phlex chem core
-       phlex_core => phlex_core_t()
        ! non-root processes unpack data
        position = 0
        call pmc_mpi_unpack_run_part_opt(buffer, position, run_part_opt)
@@ -709,7 +711,12 @@ contains
        call pmc_mpi_unpack_logical(buffer, position, do_restart)
        call pmc_mpi_unpack_logical(buffer, position, do_init_equilibriate)
        call pmc_mpi_unpack_aero_state(buffer, position, aero_state_init)
-       call phlex_core%bin_unpack(buffer, position)
+       if (run_part_opt%do_phlex_chem) then
+         ! set up the phlex chem core
+         phlex_core => phlex_core_t()
+         ! upack the phlex chem core
+         call phlex_core%bin_unpack(buffer, position)
+       end if
        call assert(143770146, position == buffer_size)
     end if
 

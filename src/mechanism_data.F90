@@ -321,9 +321,7 @@ contains
 
     pack_size =  pmc_mpi_pack_size_integer(this%num_rxn)
     do i_rxn = 1, this%num_rxn
-      associate (rxn => this%rxn_ptr(i_rxn)%val)
-      pack_size = pack_size + rxn_factory%pack_size(rxn)
-      end associate
+      pack_size = pack_size + rxn_factory%pack_size(this%rxn_ptr(i_rxn)%val)
     end do
 
   end function pack_size

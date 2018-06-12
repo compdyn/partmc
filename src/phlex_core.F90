@@ -708,7 +708,7 @@ contains
     !> Aerosol phase name to search for
     character(len=:), allocatable, intent(in) :: aero_phase_name
     !> Pointer to the aerosol phase
-    type(aero_phase_data_t), pointer, intent(out) :: aero_phase
+    class(aero_phase_data_t), pointer, intent(out) :: aero_phase
 
     integer(kind=i_kind) :: i_aero_phase
 

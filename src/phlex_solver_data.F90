@@ -263,7 +263,7 @@ module pmc_phlex_solver_data
     pure subroutine solver_free(solver_data) bind(c)
       use iso_c_binding
       !> Pointer to the solver data
-      type(c_ptr), value :: solver_data
+      type(c_ptr), value, intent(in) :: solver_data
     end subroutine solver_free
 
   end interface

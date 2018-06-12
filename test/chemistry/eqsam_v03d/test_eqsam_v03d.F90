@@ -107,7 +107,7 @@ contains
     type(property_t), pointer :: prop_set
     class(aero_rep_data_t), pointer :: aero_rep
     integer(kind=i_kind), allocatable :: spec_ids(:)
-    class(string_t), allocatable :: spec_names(:), unique_names(:)
+    type(string_t), allocatable :: spec_names(:), unique_names(:)
 
     !!!!!!!!!!!!!!!!!!!!!!!
     !!! EQSAM variables !!!
@@ -352,7 +352,7 @@ contains
     character(len=*), intent(in) :: spec_name
 
     character(len=:), allocatable :: spec_name_def
-    class(string_t), allocatable :: unique_names(:)
+    type(string_t), allocatable :: unique_names(:)
     integer(kind=i_kind) :: i_state_elem
 
     spec_name_def = spec_name

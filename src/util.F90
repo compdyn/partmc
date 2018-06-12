@@ -39,7 +39,7 @@ module pmc_util
     !> String value
     character(len=:), allocatable :: string
   contains
-    !> Finalize a string object
+    !> Finalize the string
     final :: string_t_finalize
   end type string_t
 
@@ -67,10 +67,10 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Finalize a string object
+  !> Finalize a string
   elemental subroutine string_t_finalize(this)
 
-    !> String
+    !> String to finalize
     type(string_t), intent(inout) :: this
 
     if (allocated(this%string)) deallocate(this%string)

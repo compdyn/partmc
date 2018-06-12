@@ -340,6 +340,14 @@ set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 ######################################################################
 # partmc library
 
+set(STD_C_FLAGS "-std=c99")
+
+if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
+  set(STD_F_FLAGS "-extend_source -warn truncated_source")
+elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
+  set(STD_F_FLAGS "-ffree-line-length-none")
+endif()
+
 set(REACTIONS_F_SRC 
 	src/rxns/rxn_PDFiTE_activity.F90
 	src/rxns/rxn_aqueous_equilibrium.F90
@@ -353,16 +361,7 @@ set(REACTIONS_F_SRC
 	src/rxns/rxn_troe.F90
 	src/rxns/rxn_ZSR_aerosol_water.F90)
 
-if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
-	set(REACTIONS_F_FLAGS "-extend_source -warn truncated_source")
-elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
-	set(REACTIONS_F_FLAGS "-ffree-line-length-none")
-endif()
-
-set_source_files_properties(${REACTIONS_F_SRC} PROPERTIES COMPILE_FLAGS
-	${REACTIONS_F_FLAGS})
-
-  set(REACTIONS_SRC ${REACTIONS_F_SRC}
+set(REACTIONS_C_SRC 
 	src/rxns/rxn_PDFiTE_activity.c
 	src/rxns/rxn_aqueous_equilibrium.c
 	src/rxns/rxn_arrhenius.c
@@ -375,37 +374,50 @@ set_source_files_properties(${REACTIONS_F_SRC} PROPERTIES COMPILE_FLAGS
 	src/rxns/rxn_troe.c
 	src/rxns/rxn_ZSR_aerosol_water.c)
 
+set_source_files_properties(${REACTIONS_F_SRC} PROPERTIES COMPILE_FLAGS
+        ${STD_F_FLAGS})
+
+set_source_files_properties(${REACTIONS_C_SRC} PROPERTIES COMPILE_FLAGS
+        ${STD_C_FLAGS})
+
+set(REACTIONS_SRC ${REACTIONS_F_SRC} ${REACTIONS_C_SRC})
+
 set(AEROSOL_REPS_F_SRC
         src/aero_reps/aero_rep_modal_binned_mass.F90
         src/aero_reps/aero_rep_single_particle.F90)
 
-if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
-        set(AEROSOL_REPS_F_FLAGS "-extend_source -warn truncated_source")
-elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
-        set(AEROSOL_REPS_F_FLAGS "-ffree-line-length-none")
-endif()
-
-set_source_files_properties(${AEROSOL_REPS_F_SRC} PROPERTIES COMPILE_FLAGS
-        ${AEROSOL_REPS_F_FLAGS})
-
-      set(AEROSOL_REPS_SRC ${AEROSOL_REPS_F_SRC}
+set(AEROSOL_REPS_C_SRC
         src/aero_reps/aero_rep_modal_binned_mass.c
         src/aero_reps/aero_rep_single_particle.c)	
 
-      set(SUB_MODELS_F_SRC
+set_source_files_properties(${AEROSOL_REPS_F_SRC} PROPERTIES COMPILE_FLAGS
+        ${STD_F_FLAGS})
+
+set_source_files_properties(${AEROSOL_REPS_C_SRC} PROPERTIES COMPILE_FLAGS
+        ${STD_C_FLAGS})
+
+set(AEROSOL_REPS_SRC ${AEROSOL_REPS_F_SRC} ${AEROSOL_REPS_C_SRC})
+      
+set(SUB_MODELS_F_SRC
         src/sub_models/sub_model_UNIFAC.F90)
 
-if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
-        set(SUB_MODELS_F_FLAGS "-extend_source -warn truncated_source")
-elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
-        set(SUB_MODELS_F_FLAGS "-ffree-line-length-none")
-endif()
+set(SUB_MODELS_C_SRC
+        src/sub_models/sub_model_UNIFAC.c)	
 
 set_source_files_properties(${SUB_MODELS_F_SRC} PROPERTIES COMPILE_FLAGS
-        ${SUB_MODELS_F_FLAGS})
+        ${STD_F_FLAGS})
 
-      set(SUB_MODELS_SRC ${SUB_MODELS_F_SRC}
-        src/sub_models/sub_model_UNIFAC.c)	
+set_source_files_properties(${SUB_MODELS_C_SRC} PROPERTIES COMPILE_FLAGS
+        ${STD_C_FLAGS})
+
+set(SUB_MODELS_SRC ${SUB_MODELS_F_SRC} ${SUB_MODELS_C_SRC})
+
+set(PHLEX_C_SRC
+        src/phlex_solver.c src/rxn_solver.c src/aero_phase_solver.c
+        src/aero_rep_solver.c src/sub_model_solver.c)
+
+set_source_files_properties(${PHLEX_C_SRC} PROPERTIES COMPILE_FLAGS
+        ${STD_C_FLAGS})
 
 add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/integer_rmap.F90 src/integer_rmap2.F90 src/aero_sorted.F90
@@ -426,15 +438,10 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/property.F90 src/chem_spec_data.F90
   src/rxn_data.F90 src/phlex_state.F90 src/mechanism_data.F90
   src/phlex_core.F90 src/phlex_solver_data.F90 src/aero_rep_data.F90
-  src/aero_phase_data.F90 src/aero_phase_solver.c src/aero_rep_factory.F90 
-  src/phlex_interface.F90 src/rxn_factory.F90 src/rxn_solver.c
-  src/aero_rep_solver.c src/phlex_solver.c src/sub_model_data.F90
-  src/sub_model_factory.F90 src/sub_model_solver.c
-  ${AEROSOL_REPS_SRC}
-  ${SUB_MODELS_SRC}
-  ${REACTIONS_SRC}
-  ${SUNDIALS_SRC} ${GSL_SRC}
-  ${C_SORT_SRC})
+  src/aero_phase_data.F90 src/aero_rep_factory.F90 src/phlex_interface.F90
+  src/rxn_factory.F90 src/sub_model_data.F90 src/sub_model_factory.F90
+  ${PHLEX_C_SRC} ${AEROSOL_REPS_SRC} ${SUB_MODELS_SRC} ${REACTIONS_SRC}
+  ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC})
 
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
   ${MOSAIC_LIB} ${GSL_LIBS} ${JSON_LIB})

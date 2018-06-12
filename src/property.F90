@@ -39,9 +39,7 @@ module pmc_property
   contains
     !> Load input data
     procedure :: load
-    !> Put a string in the data set
-    procedure :: put_string
-    !> Put a non-string value in the data set
+    !> Put a value in the data set
     procedure :: put
     !> Get the current key name
     procedure :: get_key
@@ -242,26 +240,6 @@ contains
     call warn_msg(733896496, "No support for input files.")
 #endif
   end subroutine load
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Put an element in the property data set
-  subroutine put_string(this, key, val)
-
-    !> Property data set
-    class(property_t), intent(inout) :: this
-    !> New key
-    character(len=:), allocatable, intent(in) :: key
-    !> New value
-    character(len=:), allocatable, intent(in) :: val
-
-    type(string_t) :: str_val
-
-    str_val%string = val
-
-    call this%put(key, str_val)
-
-  end subroutine put_string
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -643,14 +621,13 @@ contains
     !> Property dataset
     type(property_t), intent(inout) :: this
 
-    type(property_link_t), pointer :: curr, next
-    class(*), pointer :: curr_val
+    type(property_link_t), pointer :: next
 
-    next => this%first_link
-    do while (associated(next))
-      curr => next
-      next => curr%next_link 
-      deallocate(curr)
+    next => null()
+    do while (associated(this%first_link))
+      next => this%first_link%next_link 
+      deallocate(this%first_link)
+      this%first_link => next
     end do
 
   end subroutine finalize
@@ -752,8 +729,7 @@ contains
       type is (character(len=*))
         allocate(str_val)
         str_val%string = val
-        allocate(this%val, source=str_val)
-        deallocate(str_val)
+        this%val => str_val
         return
 
       ! error on unsupported types
@@ -930,11 +906,7 @@ contains
     !> Property key-value pair
     type(property_link_t), intent(inout) :: this
 
-    class(*), pointer :: this_val
-
-    this_val => this%val
-    deallocate(this_val)
-    if (allocated(this%key_name)) deallocate(this%key_name)
+    if (associated(this%val)) deallocate(this%val)
 
   end subroutine link_finalize
 

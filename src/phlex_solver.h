@@ -25,8 +25,11 @@
 #endif
 
 /* Math constants */
-#define ZERO RCONST(0.0)
-#define ONE RCONST(1.0)
+#define ZERO 0.0
+#define ONE 1.0
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
 
 /* boolean definition */
 typedef enum {false, true} bool;

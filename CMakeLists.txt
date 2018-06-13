@@ -106,6 +106,14 @@ endif()
 # SUNDIALS
 
 if(ENABLE_SUNDIALS)
+  find_path(SUITE_SPARSE_INCLUDE_DIR klu.h
+    DOC "SuiteSparse include directory (must have klu.h)"
+    PATHS $ENV{SUITE_SPARSE_HOME}/include $ENV{SUNDIALS_HOME}/include
+          /opt/local/include /usr/local/include)
+  find_library(SUITE_SPARSE_KLU_LIB klu
+    DOC "SuiteSparse klu library"
+    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib 
+          /opt/local/lib /usr/local/lib)
   find_path(SUNDIALS_INCLUDE_DIR cvodes/cvodes.h
     DOC "SUNDIALS include directory (must have cvodes/, sundials/, nvector/ subdirs)"
     PATHS $ENV{SUNDIALS_HOME}/include /opt/local/include /usr/local/include)
@@ -117,10 +125,16 @@ if(ENABLE_SUNDIALS)
     PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib /usr/local/lib)
   find_library(SUNDIALS_KLU_LIB sundials_sunlinsolklu
     DOC "SUNDIALS KLU library"
-    PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib /usr/local/lib)
-  set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB} ${SUNDIALS_KLU_LIB})
+    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib 
+          /opt/local/lib /usr/local/lib)
+  find_library(SUNDIALS_SUNMATRIX_SPARSE_LIB sundials_sunmatrixsparse
+    DOC "SUNDIALS SUNMatrixSparse library"
+    PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib 
+          /opt/local/lib /usr/local/lib)
+  set(SUNDIALS_LIBS ${SUNDIALS_NVECSERIAL_LIB} ${SUNDIALS_CVODE_LIB} 
+    ${SUITE_SPARSE_KLU_LIB} ${SUNDIALS_KLU_LIB} ${SUNDIALS_SUNMATRIX_SPARSE_LIB})
   set(SUNDIALS_SRC src/condense_solver.c)
-  include_directories(${SUNDIALS_INCLUDE_DIR})
+  include_directories(${SUNDIALS_INCLUDE_DIR} ${SUITE_SPARSE_INCLUDE_DIR})
   add_definitions(-DPMC_USE_SUNDIALS)
 endif()
 
@@ -129,11 +143,11 @@ endif()
 
 if (ENABLE_JSON)
   find_path(JSON_INCLUDE_DIR json_module.mod
-    DOC "json-fortran include directory (must have json_module.mod)"
-    PATHS /opt/local/include /usr/local/include /usr/local/jsonfortran-gnu-6.1.0/lib)
+    DOC "json-fortran include directory (must include json_*.mod files)"
+    PATHS $ENV{JSON_FORTRAN_HOME}/lib /opt/local/lib /usr/local/lib)
   find_library(JSON_LIB jsonfortran
     DOC "json-fortran library"
-    PATHS /opt/local/lib /usr/local/lib /usr/local/jsonfortran-gnu-6.1.0/lib)
+    PATHS $ENV{JSON_FORTRAN_HOME}/lib /opt/local/lib /usr/local/lib)
   include_directories(${JSON_INCLUDE_DIR})
   add_definitions(-DPMC_USE_JSON)
 endif()

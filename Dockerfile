@@ -45,6 +45,7 @@ COPY . /partmc/
 
 RUN mkdir build \
     && cd build \
+    && export JSON_FORTRAN_HOME="/usr/local/jsonfortran-gnu-6.1.0" \
     && cmake -D CMAKE_BUILD_TYPE=debug -D CMAKE_C_FLAGS_DEBUG="-g -pg" -D CMAKE_Fortran_FLAGS_DEBUG="-g -pg" -D CMAKE_MODULE_LINKER_FLAGS="-pg" \
     -D ENABLE_SUNDIALS:BOOL=TRUE -D SUNDIALS_CVODE_LIB=/usr/local/lib/libsundials_cvodes.so -D SUNDIALS_INCLUDE_DIR=/usr/local/include /partmc \
     && make

@@ -13,7 +13,7 @@ do
   echo Attempt $counter
 
 if ! ../../extract_aero_particles out/average_compsizenum_0001_00000001.nc || \
-   ! sort out/average_compsizenum_0001_00000001_aero_particles.txt > out/average_compsizenum_aero_particles_sorted.txt || \
+   ! sort out/average_compsizenum_0001_00000001_aero_particles.txt | grep -v '^[[:blank:]]*$' > out/average_compsizenum_aero_particles_sorted.txt || \
    ! ../../numeric_diff --by elem --min-col 3 --max-col 4 --rel-tol 3 out/average_aero_particles_sorted.txt out/average_compsizenum_aero_particles_sorted.txt; then
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]

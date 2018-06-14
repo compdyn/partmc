@@ -32,10 +32,13 @@ program pmc_test_condensed_phase_arrhenius
   call pmc_mpi_init()
 
   if (run_condensed_phase_arrhenius_tests()) then
-    write(*,*) "Condensed-phase Arrhenius reaction tests - PASS"
+    if (pmc_mpi_rank().eq.0) write(*,*) "Condensed-phase Arrhenius reaction tests - PASS"
   else
-    write(*,*) "Condensed-phase Arrhenius reaction tests - FAIL"
+    if (pmc_mpi_rank().eq.0) write(*,*) "Condensed-phase Arrhenius reaction tests - FAIL"
   end if
+
+  ! finalize mpi
+  call pmc_mpi_finalize()
 
 contains
 

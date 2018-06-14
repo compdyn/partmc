@@ -1260,12 +1260,6 @@ contains
     this%is_initialized = .true.
     call assert(291557168, &
          pos - prev_position <= this%pack_size())
-    
-    ! Initialize the solver
-    ! TODO figure out how to pack the solver - could be the only thing
-    ! that needs to be passed to other nodes
-    call this%solver_initialize()
- 
 #endif
 
   end subroutine bin_unpack

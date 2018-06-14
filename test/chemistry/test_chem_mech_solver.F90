@@ -30,10 +30,13 @@ program pmc_test_chem_mech_solver
   call pmc_mpi_init()
 
   if (run_pmc_chem_mech_solver_tests()) then
-    write(*,*) "Mechanism solver tests - PASS"
+    if (pmc_mpi_rank().eq.0) write(*,*) "Mechanism solver tests - PASS"
   else
-    write(*,*) "Mechanism solver tests - FAIL"
+    if (pmc_mpi_rank().eq.0) write(*,*) "Mechanism solver tests - FAIL"
   end if
+
+  ! finalize mpi
+  call pmc_mpi_finalize()
 
 contains
 

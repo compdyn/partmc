@@ -27,12 +27,10 @@ program pmc_test_arrhenius
   ! initialize mpi
   call pmc_mpi_init()
 
-  if (pmc_mpi_rank().eq.0) then
-    if (run_arrhenius_tests()) then
-      write(*,*) "Arrhenius reaction tests - PASS"
-    else
-      write(*,*) "Arrhenius reaction tests - FAIL"
-    end if
+  if (run_arrhenius_tests()) then
+    if (pmc_mpi_rank().eq.0) write(*,*) "Arrhenius reaction tests - PASS"
+  else
+    if (pmc_mpi_rank().eq.0) write(*,*) "Arrhenius reaction tests - FAIL"
   end if
 
   ! finalize mpi
@@ -51,7 +49,7 @@ contains
 
     phlex_solver_data => phlex_solver_data_t()
 
-    if (phlex_solver_data%is_solver_available().and.pmc_mpi_rank().eq.0) then
+    if (phlex_solver_data%is_solver_available()) then
       passed = run_arrhenius_test()
     else
       call warn_msg(398972036, "No solver available")
@@ -89,7 +87,7 @@ contains
     real(kind=dp) :: conc_D, time_step, time
 #ifdef PMC_USE_MPI
     character, allocatable :: buffer(:), buffer_copy(:)
-    integer(kind=i_kind) :: pack_size, pos, i_elem
+    integer(kind=i_kind) :: pack_size, pos, i_elem, results
 #endif
 
     ! Parameters for calculating true concentrations
@@ -113,20 +111,39 @@ contains
     time_step = 1.0
 
 #ifdef PMC_USE_MPI
-    ! Load the model data on process 1 and pass it to process 0 for solving
-    if (pmc_mpi_rank().eq.1) then
+    ! Load the model data on root process and pass it to process 1 for solving
+    if (pmc_mpi_rank().eq.0) then
 #endif
 
-    ! Get the arrhenius reaction mechanism json file
-    input_file_path = 'test_arrhenius_config.json'
+      ! Get the arrhenius reaction mechanism json file
+      input_file_path = 'test_arrhenius_config.json'
 
-    ! Construct a phlex_core variable
-    phlex_core => phlex_core_t(input_file_path)
+      ! Construct a phlex_core variable
+      phlex_core => phlex_core_t(input_file_path)
 
-    deallocate(input_file_path)
+      deallocate(input_file_path)
 
-    ! Initialize the model
-    call phlex_core%initialize()
+      ! Initialize the model
+      call phlex_core%initialize()
+
+      ! Get the chemical species data
+      call assert(657781626, phlex_core%get_chem_spec_data(chem_spec_data))
+
+      ! Get species indices
+      key = "A"
+      idx_A = chem_spec_data%gas_state_id(key);
+      key = "B"
+      idx_B = chem_spec_data%gas_state_id(key);
+      key = "C"
+      idx_C = chem_spec_data%gas_state_id(key);
+      key = "D"
+      idx_D = chem_spec_data%gas_state_id(key);
+
+      ! Make sure the expected species are in the model
+      call assert(629811894, idx_A.gt.0)
+      call assert(226395220, idx_B.gt.0)
+      call assert(338713565, idx_C.gt.0)
+      call assert(714734564, idx_D.gt.0)
 
 #ifdef PMC_USE_MPI
       ! pack the phlex core
@@ -135,13 +152,18 @@ contains
       pos = 0
       call phlex_core%bin_pack(buffer, pos)
       call assert(829435797, pos.eq.pack_size)
-      deallocate(buffer)
     end if
+
+    ! broadcast the species ids
+    call pmc_mpi_bcast_integer(idx_A)
+    call pmc_mpi_bcast_integer(idx_B)
+    call pmc_mpi_bcast_integer(idx_C)
+    call pmc_mpi_bcast_integer(idx_D)
 
     ! broadcast the buffer size
     call pmc_mpi_bcast_integer(pack_size)
 
-    if (pmc_mpi_rank().eq.0) then
+    if (pmc_mpi_rank().eq.1) then
       ! allocate the buffer to receive data
       allocate(buffer(pack_size))
     end if
@@ -149,7 +171,7 @@ contains
     ! broadcast the data
     call pmc_mpi_bcast_packed(buffer)
 
-    if (pmc_mpi_rank().eq.0) then
+    if (pmc_mpi_rank().eq.1) then
       ! unpack the data
       phlex_core => phlex_core_t()
       pos = 0
@@ -163,101 +185,102 @@ contains
         call assert_msg(414489565, buffer(i_elem).eq.buffer_copy(i_elem), &
                 "Mismatch in element :"//trim(to_string(i_elem)))
       end do
-      deallocate(buffer)
 
-      ! solve and evaluate results on root process
+      ! solve and evaluate results on process 1
 #endif
 
-    ! Initialize the solver
-    call phlex_core%solver_initialize()
+      ! Initialize the solver
+      call phlex_core%solver_initialize()
 
-    ! Get a model state variable
-    phlex_state => phlex_core%new_state()
+      ! Get a model state variable
+      phlex_state => phlex_core%new_state()
 
-    ! Set the environmental conditions
-    phlex_state%env_state%temp = temp
-    phlex_state%env_state%pressure = pressure
-    call phlex_state%update_env_state()
+      ! Set the environmental conditions
+      phlex_state%env_state%temp = temp
+      phlex_state%env_state%pressure = pressure
+      call phlex_state%update_env_state()
 
-    ! Get the chemical species data
-    call assert(657781626, phlex_core%get_chem_spec_data(chem_spec_data))
+      ! Save the initial concentrations
+      true_conc(0,idx_A) = 1.0
+      true_conc(0,idx_B) = 0.0
+      true_conc(0,idx_C) = 0.0
+      true_conc(0,idx_D) = conc_D
+      model_conc(0,:) = true_conc(0,:)
 
-    ! Get species indices
-    key = "A"
-    idx_A = chem_spec_data%gas_state_id(key);
-    key = "B"
-    idx_B = chem_spec_data%gas_state_id(key);
-    key = "C"
-    idx_C = chem_spec_data%gas_state_id(key);
-    key = "D"
-    idx_D = chem_spec_data%gas_state_id(key);
+      ! Set the initial concentrations in the model
+      phlex_state%state_var(:) = model_conc(0,:)
 
-    ! Make sure the expected species are in the model
-    call assert(629811894, idx_A.gt.0)
-    call assert(226395220, idx_B.gt.0)
-    call assert(338713565, idx_C.gt.0)
-    call assert(714734564, idx_D.gt.0)
+      ! Integrate the mechanism
+      do i_time = 1, NUM_TIME_STEP
 
-    ! Save the initial concentrations
-    true_conc(0,idx_A) = 1.0
-    true_conc(0,idx_B) = 0.0
-    true_conc(0,idx_C) = 0.0
-    true_conc(0,idx_D) = conc_D
-    model_conc(0,:) = true_conc(0,:)
+        ! Get the modeled conc
+        call phlex_core%solve(phlex_state, time_step)
+        model_conc(i_time,:) = phlex_state%state_var(:)
 
-    ! Set the initial concentrations in the model
-    phlex_state%state_var(:) = model_conc(0,:)
-
-    ! Integrate the mechanism
-    do i_time = 1, NUM_TIME_STEP
-
-      ! Get the modeled conc
-      call phlex_core%solve(phlex_state, time_step)
-      model_conc(i_time,:) = phlex_state%state_var(:)
-
-      ! Get the analytic conc
-      time = i_time * time_step
-      true_conc(i_time,idx_A) = true_conc(0,idx_A) * exp(-(k1)*time)
-      true_conc(i_time,idx_B) = true_conc(0,idx_A) * (k1/(k2-k1)) * &
-              (exp(-k1*time) - exp(-k2*time))
-      true_conc(i_time,idx_C) = true_conc(0,idx_A) * &
-             (1.0 + (k1*exp(-k2*time) - k2*exp(-k1*time))/(k2-k1))
-      true_conc(i_time,idx_D) = true_conc(0,idx_D)
-    end do
-
-    ! Save the results
-    open(unit=7, file="out/arrhenius_results.txt", status="replace", &
-            action="write")
-    do i_time = 0, NUM_TIME_STEP
-      write(7,*) i_time*time_step, &
-            ' ', true_conc(i_time, idx_A),' ', model_conc(i_time, idx_A), &
-            ' ', true_conc(i_time, idx_B),' ', model_conc(i_time, idx_B), &
-            ' ', true_conc(i_time, idx_C),' ', model_conc(i_time, idx_C), &
-            ' ', true_conc(i_time, idx_D),' ', model_conc(i_time, idx_D)
-    end do
-    close(7)
-
-    ! Analyze the results
-    do i_time = 1, NUM_TIME_STEP
-      do i_spec = 1, size(model_conc, 2)
-        call assert_msg(848069355, &
-          almost_equal(model_conc(i_time, i_spec), &
-          true_conc(i_time, i_spec), real(1.0e-2, kind=dp)), "time: "// &
-          to_string(i_time)//"; species: "//to_string(i_spec)//"; mod: "// &
-          to_string(model_conc(i_time, i_spec))//"; true: "// &
-          to_string(true_conc(i_time, i_spec)))
+        ! Get the analytic conc
+        time = i_time * time_step
+        true_conc(i_time,idx_A) = true_conc(0,idx_A) * exp(-(k1)*time)
+        true_conc(i_time,idx_B) = true_conc(0,idx_A) * (k1/(k2-k1)) * &
+                (exp(-k1*time) - exp(-k2*time))
+        true_conc(i_time,idx_C) = true_conc(0,idx_A) * &
+               (1.0 + (k1*exp(-k2*time) - k2*exp(-k1*time))/(k2-k1))
+        true_conc(i_time,idx_D) = true_conc(0,idx_D)
       end do
-    end do
 
-    deallocate(phlex_state)
+      ! Save the results
+      open(unit=7, file="out/arrhenius_results.txt", status="replace", &
+              action="write")
+      do i_time = 0, NUM_TIME_STEP
+        write(7,*) i_time*time_step, &
+              ' ', true_conc(i_time, idx_A),' ', model_conc(i_time, idx_A), &
+              ' ', true_conc(i_time, idx_B),' ', model_conc(i_time, idx_B), &
+              ' ', true_conc(i_time, idx_C),' ', model_conc(i_time, idx_C), &
+              ' ', true_conc(i_time, idx_D),' ', model_conc(i_time, idx_D)
+      end do
+      close(7)
+
+      ! Analyze the results
+      do i_time = 1, NUM_TIME_STEP
+        do i_spec = 1, size(model_conc, 2)
+          call assert_msg(848069355, &
+            almost_equal(model_conc(i_time, i_spec), &
+            true_conc(i_time, i_spec), real(1.0e-2, kind=dp)).or. &
+            (model_conc(i_time, i_spec).lt.1e-5*model_conc(1, i_spec).and. &
+            true_conc(i_time, i_spec).lt.1e-5*true_conc(1, i_spec)), &
+            "time: "//trim(to_string(i_time))//"; species: "// &
+            trim(to_string(i_spec))//"; mod: "// &
+            trim(to_string(model_conc(i_time, i_spec)))//"; true: "// &
+            trim(to_string(true_conc(i_time, i_spec))))
+        end do
+      end do
+
+      deallocate(phlex_state)
 
 #ifdef PMC_USE_MPI
+      ! convert the results to an integer
+      if (run_arrhenius_test) then
+        results = 0
+      else
+        results = 1
+      end if
     end if
+    
+    ! Send the results back to the primary process
+    call pmc_mpi_transfer_integer(results, results, 1, 0)
+
+    ! convert the results back to a logical value
+    if (pmc_mpi_rank().eq.0) then
+      if (results.eq.0) then
+        run_arrhenius_test = .true.
+      else
+        run_arrhenius_test = .false.
+      end if
+    end if
+
+    deallocate(buffer)
 #endif
 
     deallocate(phlex_core)
-
-    run_arrhenius_test = .true.
 
   end function run_arrhenius_test
 

@@ -26,12 +26,10 @@ program pmc_test_phlex_core
   !> initialize mpi
   call pmc_mpi_init()
 
-  if (pmc_mpi_rank().eq.0) then
-    if (run_pmc_phlex_core_tests()) then
-      write(*,*) "Phlex-core tests - PASS"
-    else
-      write(*,*) "Phlex-core tests - FAIL"
-    end if
+  if (run_pmc_phlex_core_tests()) then
+    if (pmc_mpi_rank().eq.0) write(*,*) "Phlex-core tests - PASS"
+  else
+    if (pmc_mpi_rank().eq.0) write(*,*) "Phlex-core tests - FAIL"
   end if
 
   !> finalize mpi

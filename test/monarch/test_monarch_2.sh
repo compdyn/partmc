@@ -14,7 +14,13 @@ while [ true ]
 do
   echo Attempt $counter
 
-  if ! ../../mock_monarch config_monarch_mod37.json interface_monarch_mod37.json out/monarch_mod37; then 
+if [[ $1 == "MPI" ]]; then
+  exec_str="mpirun -v -np 2 ../../mock_monarch config_monarch_mod37.json interface_monarch_mod37.json out/monarch_mod37"
+else
+  exec_str="../../mock_monarch config_monarch_mod37.json interface_monarch_mod37.json out/monarch_mod37"
+fi
+
+  if ! $exec_str; then
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then

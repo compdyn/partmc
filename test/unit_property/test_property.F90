@@ -23,12 +23,10 @@ program pmc_property_test
   !> initialize mpi
   call pmc_mpi_init()
 
-  if (pmc_mpi_rank().eq.0) then
-    if (run_pmc_property_tests()) then
-      write(*,*) "Property tests - PASS"
-    else
-      write(*,*) "Property tests - FAIL"
-    end if
+  if (run_pmc_property_tests()) then
+    if (pmc_mpi_rank().eq.0) write(*,*) "Property tests - PASS"
+  else
+    if (pmc_mpi_rank().eq.0) write(*,*) "Property tests - FAIL"
   end if
 
   !> finalize mpi

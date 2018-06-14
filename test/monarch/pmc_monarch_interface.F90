@@ -176,10 +176,22 @@ contains
       call pmc_mpi_pack_integer_array(buffer, pos, new_obj%map_phlex_id)
       call pmc_mpi_pack_integer_array(buffer, pos, new_obj%init_conc_phlex_id)
       call pmc_mpi_pack_real_array(buffer, pos, new_obj%init_conc)
-      ! TODO send buffer to all the other nodes
-    else
+    endif
+       
+    ! broadcast the buffer size
+    call pmc_mpi_bcast_integer(pack_size)
+
+    if (pmc_mpi_rank().eq.1) then
+      ! allocate the buffer to receive data
+      allocate(buffer(pack_size))
+    end if
+
+    ! boradcast the buffer
+    call pmc_mpi_bcast_packed(buffer)
+
+    if (pmc_mpi_rank().eq.1) then
+      ! unpack the data
       new_obj%phlex_core => phlex_core_t()
-      ! TODO get buffer from the primary node
       pos = 0
       call new_obj%phlex_core%bin_unpack(buffer, pos)
       call pmc_mpi_unpack_integer_array(buffer, pos, new_obj%map_monarch_id)
@@ -188,6 +200,10 @@ contains
       call pmc_mpi_unpack_real_array(buffer, pos, new_obj%init_conc)
 #endif
     end if
+
+#ifdef PMC_USE_MPI
+    deallocate(buffer)
+#endif
 
     ! Initialize the solver on all nodes
     call new_obj%phlex_core%solver_initialize()

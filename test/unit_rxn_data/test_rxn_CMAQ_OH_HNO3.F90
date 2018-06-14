@@ -28,10 +28,13 @@ program pmc_test_CMAQ_OH_HNO3
   call pmc_mpi_init()
 
   if (run_CMAQ_OH_HNO3_tests()) then
-    write(*,*) "CMAQ_OH_HNO3 reaction tests - PASS"
+    if (pmc_mpi_rank().eq.0) write(*,*) "CMAQ_OH_HNO3 reaction tests - PASS"
   else
-    write(*,*) "CMAQ_OH_HNO3 reaction tests - FAIL"
+    if (pmc_mpi_rank().eq.0) write(*,*) "CMAQ_OH_HNO3 reaction tests - FAIL"
   end if
+
+  ! finalize mpi
+  call pmc_mpi_finalize()
 
 contains
 

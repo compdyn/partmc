@@ -33,10 +33,13 @@ program pmc_test_PDFiTE_activity
   call pmc_mpi_init()
 
   if (run_PDFiTE_activity_tests()) then
-    write(*,*) " PD-FiTE activity reaction tests - PASS"
+    if (pmc_mpi_rank().eq.0) write(*,*) " PD-FiTE activity reaction tests - PASS"
   else
-    write(*,*) " PD-FiTE activity reaction tests - FAIL"
+    if (pmc_mpi_rank().eq.0) write(*,*) " PD-FiTE activity reaction tests - FAIL"
   end if
+
+  ! finalize mpi
+  call pmc_mpi_finalize()
 
 contains
 

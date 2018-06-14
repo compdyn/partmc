@@ -103,6 +103,9 @@ program mock_monarch
           "./mock_monarch phlex_input_file_list.json "// &
           "interface_input_file.json output_file_prefix")
 
+  ! initialize mpi (to take the place of a similar MONARCH call)
+  call pmc_mpi_init()
+
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! **** Add to MONARCH during initialization **** !
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -181,6 +184,9 @@ program mock_monarch
   ! free the interface
   deallocate(pmc_interface)
 
+  ! finalize mpi
+  call pmc_mpi_finalize()
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -198,9 +204,6 @@ contains
 
     ! Open the output file
     open(RESULTS_FILE_UNIT, file=file_name, status="replace", action="write")
-
-    ! Initialize MPI
-    call pmc_mpi_init()
 
     ! TODO refine initial model conditions
     temperature(:,:,:) = 298.0

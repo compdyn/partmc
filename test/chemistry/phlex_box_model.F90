@@ -57,6 +57,9 @@ program pmc_phlex_box_model
   ! Run the phlex-chem box model
   call run_phlex_box(file_list, output_file)
 
+  ! finalize mpi
+  call pmc_mpi_finalize()
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

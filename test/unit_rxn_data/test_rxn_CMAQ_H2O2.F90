@@ -28,10 +28,13 @@ program pmc_test_CMAQ_H2O2
   call pmc_mpi_init()
 
   if (run_CMAQ_H2O2_tests()) then
-    write(*,*) "CMAQ_H2O2 reaction tests - PASS"
+    if (pmc_mpi_rank().eq.0) write(*,*) "CMAQ_H2O2 reaction tests - PASS"
   else
-    write(*,*) "CMAQ_H2O2 reaction tests - FAIL"
+    if (pmc_mpi_rank().eq.0) write(*,*) "CMAQ_H2O2 reaction tests - FAIL"
   end if
+
+  ! finalize mpi
+  call pmc_mpi_finalize()
 
 contains
 
@@ -81,6 +84,10 @@ contains
     character(len=:), allocatable :: key
     integer(kind=i_kind) :: i_time, i_spec
     real(kind=dp) :: time_step, time
+#ifdef PMC_USE_MPI
+    character, allocatable :: buffer(:), buffer_copy(:)
+    integer(kind=i_kind) :: pack_size, pos, i_elem, results
+#endif
 
     ! Parameters for calculating true concentrations
     real(kind=dp) :: k1, k2, air_conc, temp, pressure, conv
@@ -101,95 +108,171 @@ contains
     ! Set output time step (s)
     time_step = 1.0
 
-    ! Get the CMAQ_H2O2 reaction mechanism json file
-    input_file_path = 'test_CMAQ_H2O2_config.json'
+#ifdef PMC_USE_MPI
+    ! Load the model data on the root process and pass it to process 1 for solving
+    if (pmc_mpi_rank().eq.0) then
+#endif
 
-    ! Construct a phlex_core variable
-    phlex_core => phlex_core_t(input_file_path)
+      ! Get the CMAQ_H2O2 reaction mechanism json file
+      input_file_path = 'test_CMAQ_H2O2_config.json'
 
-    ! Initialize the model
-    call phlex_core%initialize()
+      ! Construct a phlex_core variable
+      phlex_core => phlex_core_t(input_file_path)
 
-    ! Initialize the solver
-    call phlex_core%solver_initialize()
+      deallocate(input_file_path)
 
-    ! Get a model state variable
-    phlex_state => phlex_core%new_state()
+      ! Initialize the model
+      call phlex_core%initialize()
 
-    ! Set the environmental conditions
-    phlex_state%env_state%temp = temp
-    phlex_state%env_state%pressure = pressure
-    call phlex_state%update_env_state()
+      ! Get the chemical species data
+      call assert(159292767, phlex_core%get_chem_spec_data(chem_spec_data))
 
-    ! Get the chemical species data
-    call assert(159292767, phlex_core%get_chem_spec_data(chem_spec_data))
+      ! Get species indices
+      key = "A"
+      idx_A = chem_spec_data%gas_state_id(key);
+      key = "B"
+      idx_B = chem_spec_data%gas_state_id(key);
+      key = "C"
+      idx_C = chem_spec_data%gas_state_id(key);
 
-    ! Get species indices
-    key = "A"
-    idx_A = chem_spec_data%gas_state_id(key);
-    key = "B"
-    idx_B = chem_spec_data%gas_state_id(key);
-    key = "C"
-    idx_C = chem_spec_data%gas_state_id(key);
+      ! Make sure the expected species are in the model
+      call assert(715485073, idx_A.gt.0)
+      call assert(545328169, idx_B.gt.0)
+      call assert(375171265, idx_C.gt.0)
 
-    ! Make sure the expected species are in the model
-    call assert(715485073, idx_A.gt.0)
-    call assert(545328169, idx_B.gt.0)
-    call assert(375171265, idx_C.gt.0)
+#ifdef PMC_USE_MPI
+      ! pack the phlex core
+      pack_size = phlex_core%pack_size()
+      allocate(buffer(pack_size))
+      pos = 0
+      call phlex_core%bin_pack(buffer, pos)
+      call assert(296902147, pos.eq.pack_size)
+    end if
 
-    ! Save the initial concentrations
-    true_conc(0,idx_A) = 1.0
-    true_conc(0,idx_B) = 0.0
-    true_conc(0,idx_C) = 0.0
-    model_conc(0,:) = true_conc(0,:)
+    ! broadcast the species ids
+    call pmc_mpi_bcast_integer(idx_A)
+    call pmc_mpi_bcast_integer(idx_B)
+    call pmc_mpi_bcast_integer(idx_C)
 
-    ! Set the initial concentrations in the model
-    phlex_state%state_var(:) = model_conc(0,:)
+    ! broadcast the buffer size
+    call pmc_mpi_bcast_integer(pack_size)
 
-    ! Integrate the mechanism
-    do i_time = 1, NUM_TIME_STEP
+    if (pmc_mpi_rank().eq.1) then
+      ! allocate the buffer to receive data
+      allocate(buffer(pack_size))
+    end if
 
-      ! Get the modeled conc
-      call phlex_core%solve(phlex_state, time_step)
-      model_conc(i_time,:) = phlex_state%state_var(:)
+    ! broadcast the data
+    call pmc_mpi_bcast_packed(buffer)
 
-      ! Get the analytic conc
-      time = i_time * time_step
-      true_conc(i_time,idx_A) = true_conc(0,idx_A) * exp(-(k1)*time)
-      true_conc(i_time,idx_B) = true_conc(0,idx_A) * (k1/(k2-k1)) * &
-              (exp(-k1*time) - exp(-k2*time))
-      true_conc(i_time,idx_C) = true_conc(0,idx_A) * &
-             (1.0 + (k1*exp(-k2*time) - k2*exp(-k1*time))/(k2-k1))
+    if (pmc_mpi_rank().eq.1) then
+      ! unpack the data
+      phlex_core => phlex_core_t()
+      pos = 0
+      call phlex_core%bin_unpack(buffer, pos)
+      call assert(109951378, pos.eq.pack_size)
+      allocate(buffer_copy(pack_size))
+      pos = 0
+      call phlex_core%bin_pack(buffer_copy, pos)
+      call assert(422968304, pos.eq.pack_size)
+      do i_elem = 1, pack_size
+        call assert_msg(159166857, buffer(i_elem).eq.buffer_copy(i_elem), &
+                "Mismatch in element: "//trim(to_string(i_elem)))
+      end do
 
-    end do
+      ! solve and evaluate results on process 1
+#endif
 
-    ! Save the results
-    open(unit=7, file="out/CMAQ_H2O2_results.txt", status="replace", &
-            action="write")
-    do i_time = 0, NUM_TIME_STEP
+      ! Initialize the solver
+      call phlex_core%solver_initialize()
+
+      ! Get a model state variable
+      phlex_state => phlex_core%new_state()
+
+      ! Set the environmental conditions
+      phlex_state%env_state%temp = temp
+      phlex_state%env_state%pressure = pressure
+      call phlex_state%update_env_state()
+
+      ! Save the initial concentrations
+      true_conc(0,idx_A) = 1.0
+      true_conc(0,idx_B) = 0.0
+      true_conc(0,idx_C) = 0.0
+      model_conc(0,:) = true_conc(0,:)
+
+      ! Set the initial concentrations in the model
+      phlex_state%state_var(:) = model_conc(0,:)
+
+      ! Integrate the mechanism
+      do i_time = 1, NUM_TIME_STEP
+
+        ! Get the modeled conc
+        call phlex_core%solve(phlex_state, time_step)
+        model_conc(i_time,:) = phlex_state%state_var(:)
+
+        ! Get the analytic conc
+        time = i_time * time_step
+        true_conc(i_time,idx_A) = true_conc(0,idx_A) * exp(-(k1)*time)
+        true_conc(i_time,idx_B) = true_conc(0,idx_A) * (k1/(k2-k1)) * &
+                (exp(-k1*time) - exp(-k2*time))
+        true_conc(i_time,idx_C) = true_conc(0,idx_A) * &
+               (1.0 + (k1*exp(-k2*time) - k2*exp(-k1*time))/(k2-k1))
+
+      end do
+
+      ! Save the results
+      open(unit=7, file="out/CMAQ_H2O2_results.txt", status="replace", &
+              action="write")
+      do i_time = 0, NUM_TIME_STEP
       write(7,*) i_time*time_step, &
             ' ', true_conc(i_time, idx_A),' ', model_conc(i_time, idx_A), &
             ' ', true_conc(i_time, idx_B),' ', model_conc(i_time, idx_B), &
             ' ', true_conc(i_time, idx_C),' ', model_conc(i_time, idx_C)
-    end do
-    close(7)
-
-    ! Analyze the results
-    do i_time = 1, NUM_TIME_STEP
-      do i_spec = 1, size(model_conc, 2)
-        call assert_msg(630036912, &
-          almost_equal(model_conc(i_time, i_spec), &
-          true_conc(i_time, i_spec), real(1.0e-2, kind=dp)), "time: "// &
-          to_string(i_time)//"; species: "//to_string(i_spec)//"; mod: "// &
-          to_string(model_conc(i_time, i_spec))//"; true: "// &
-          to_string(true_conc(i_time, i_spec)))
       end do
-    end do
+      close(7)
 
-    deallocate(phlex_state)
+      ! Analyze the results
+      do i_time = 1, NUM_TIME_STEP
+        do i_spec = 1, size(model_conc, 2)
+          call assert_msg(911807542, &
+            almost_equal(model_conc(i_time, i_spec), &
+            true_conc(i_time, i_spec), real(1.0e-2, kind=dp)).or. &
+            (model_conc(i_time, i_spec).lt.1e-5*model_conc(1, i_spec).and. &
+            true_conc(i_time, i_spec).lt.1e-5*true_conc(1, i_spec)), &
+            "time: "//trim(to_string(i_time))//"; species: "// &
+            trim(to_string(i_spec))//"; mod: "// &
+            trim(to_string(model_conc(i_time, i_spec)))//"; true: "// &
+            trim(to_string(true_conc(i_time, i_spec))))
+        end do
+      end do
+
+      deallocate(phlex_state)
+
+#ifdef PMC_USE_MPI
+      ! convert the results to an integer
+      if (run_CMAQ_H2O2_test) then
+        results = 0
+      else
+        results = 1
+      end if
+    end if
+    
+    ! Send the results back to the primary process
+    call pmc_mpi_transfer_integer(results, results, 1, 0)
+
+    ! convert the results back to a logical value
+    if (pmc_mpi_rank().eq.0) then
+      if (results.eq.0) then
+        run_CMAQ_H2O2_test = .true.
+      else
+        run_CMAQ_H2O2_test = .false.
+      end if
+    end if
+
+    deallocate(buffer)
+#endif
+
     deallocate(phlex_core)
-
-    run_CMAQ_H2O2_test = .true.
 
   end function run_CMAQ_H2O2_test
 

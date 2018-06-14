@@ -29,12 +29,10 @@ program pmc_test_aero_rep_data
   !> initialize mpi
   call pmc_mpi_init()
 
-  if (pmc_mpi_rank().eq.0) then
-    if (run_pmc_aero_rep_data_tests()) then
-      write(*,*) "Aerosol representation tests - PASS"
-    else
-      write(*,*) "Aerosol representation tests - FAIL"
-    end if
+  if (run_pmc_aero_rep_data_tests()) then
+    if (pmc_mpi_rank().eq.0) write(*,*) "Aerosol representation tests - PASS"
+  else
+    if (pmc_mpi_rank().eq.0) write(*,*) "Aerosol representation tests - FAIL"
   end if
 
   !> finalize mpi

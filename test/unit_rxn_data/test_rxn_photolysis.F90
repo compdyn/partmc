@@ -34,10 +34,13 @@ program pmc_test_photolysis
   call pmc_mpi_init()
 
   if (run_photolysis_tests()) then
-    write(*,*) "Photolysis reaction tests - PASS"
+    if (pmc_mpi_rank().eq.0) write(*,*) "Photolysis reaction tests - PASS"
   else
-    write(*,*) "Photolysis reaction tests - FAIL"
+    if (pmc_mpi_rank().eq.0) write(*,*) "Photolysis reaction tests - FAIL"
   end if
+
+  ! finalize mpi
+  call pmc_mpi_finalize()
 
 contains
 

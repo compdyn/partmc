@@ -28,10 +28,13 @@ program pmc_test_sub_module_UNIFAC
   call pmc_mpi_init()
 
   if (run_UNIFAC_tests()) then
-    write(*,*) "UNIFAC activity sub module tests - PASS"
+    if (pmc_mpi_rank().eq.0) write(*,*) "UNIFAC activity sub module tests - PASS"
   else
-    write(*,*) "UNIFAC activity sub module tests - FAIL"
+    if (pmc_mpi_rank().eq.0) write(*,*) "UNIFAC activity sub module tests - FAIL"
   end if
+
+  ! finalize mpi
+  call pmc_mpi_finalize()
 
 contains
 

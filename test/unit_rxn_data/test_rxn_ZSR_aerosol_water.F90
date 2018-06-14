@@ -33,10 +33,13 @@ program pmc_test_ZSR_aerosol_water
   call pmc_mpi_init()
 
   if (run_ZSR_aerosol_water_tests()) then
-    write(*,*) "ZSR aerosol water reaction tests - PASS"
+    if (pmc_mpi_rank().eq.0) write(*,*) "ZSR aerosol water reaction tests - PASS"
   else
-    write(*,*) "ZSR aerosol water reaction tests - FAIL"
+    if (pmc_mpi_rank().eq.0) write(*,*) "ZSR aerosol water reaction tests - FAIL"
   end if
+
+  ! finalize mpi
+  call pmc_mpi_finalize()
 
 contains
 

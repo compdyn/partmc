@@ -28,10 +28,13 @@ program pmc_test_troe
   call pmc_mpi_init()
 
   if (run_troe_tests()) then
-    write(*,*) "Troe reaction tests - PASS"
+    if (pmc_mpi_rank().eq.0) write(*,*) "Troe reaction tests - PASS"
   else
-    write(*,*) "Troe reaction tests - FAIL"
+    if (pmc_mpi_rank().eq.0) write(*,*) "Troe reaction tests - FAIL"
   end if
+
+  ! finalize mpi
+  call pmc_mpi_finalize()
 
 contains
 

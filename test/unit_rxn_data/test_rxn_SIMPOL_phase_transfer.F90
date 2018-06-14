@@ -33,10 +33,13 @@ program pmc_test_SIMPOL_phase_transfer
   call pmc_mpi_init()
 
   if (run_SIMPOL_phase_transfer_tests()) then
-    write(*,*) "SIMPOL phase transfer reaction tests - PASS"
+    if (pmc_mpi_rank().eq.0) write(*,*) "SIMPOL phase transfer reaction tests - PASS"
   else
-    write(*,*) "SIMPOL phase transfer reaction tests - FAIL"
+    if (pmc_mpi_rank().eq.0) write(*,*) "SIMPOL phase transfer reaction tests - FAIL"
   end if
+
+  ! finalize mpi
+  call pmc_mpi_finalize()
 
 contains
 

@@ -320,7 +320,7 @@ contains
     ! Set O2 + hv rate constant to 0 in KPP (not present in ebi version)
     KPP_PHOTO_RATES(1) = 0.0
     ! Set the phlex-chem photolysis rate constants
-    call rxn_factory%new_update_data(rate_update)
+    call rxn_factory%initialize_update_data(rate_update)
     call rate_update%set_rate(1, real(0.0001, kind=dp))
     call phlex_core%update_rxn_data(rate_update)
 

@@ -49,7 +49,7 @@ module pmc_sub_model_factory
     !> Get the aerosol representation type
     procedure :: get_type
     !> Get a new update data object
-    procedure :: new_update_data
+    procedure :: initialize_update_data
     !> Determine the number of bytes required to pack a given sub-model
     procedure :: pack_size
     !> Pack a given sub-model onto the buffer, advancing position
@@ -153,8 +153,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get a new update data object
-  subroutine new_update_data(this, update_data)
+  !> Initialize an update data object
+  subroutine initialize_update_data(this, update_data)
 
     !> Sub-model factory
     class(sub_model_factory_t), intent(in) :: this
@@ -166,7 +166,7 @@ contains
         call die_msg(245232793, "Internal error - update data type missing")
     end select
 
-  end subroutine new_update_data
+  end subroutine initialize_update_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

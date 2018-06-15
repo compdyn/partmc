@@ -180,6 +180,13 @@ module pmc_phlex_solver_data
       type(c_ptr), value :: solver_data
     end subroutine sub_model_update_data
 
+    !> Print the solver data
+    subroutine sub_model_print_data(solver_data) bind(c)
+      use iso_c_binding
+      !> Solver data
+      type(c_ptr), value :: solver_data
+    end subroutine sub_model_print_data
+
     !> Get a sub model parameter id
     function sub_model_get_parameter_id_sd(solver_data, sub_model_type, &
                   identifiers) bind (c)
@@ -221,6 +228,13 @@ module pmc_phlex_solver_data
       !> Pointer to the solver data
       type(c_ptr), value :: solver_data
     end subroutine aero_phase_add_condensed_data
+
+    !> Print the solver data
+    subroutine aero_phase_print_data(solver_data) bind(c)
+      use iso_c_binding
+      !> Solver data
+      type(c_ptr), value :: solver_data
+    end subroutine aero_phase_print_data
 
     !> Add condensed aerosol representation data to the solver data block
     subroutine aero_rep_add_condensed_data(aero_rep_type, n_int_param, &
@@ -379,7 +393,7 @@ contains
     ! Sub model pointer
     class(sub_model_data_t), pointer :: sub_model
     ! Sub model factory for getting sub model type
-    type(sub_model_factory_t), pointer :: sub_model_factory
+    type(sub_model_factory_t) :: sub_model_factory
     ! Integer parameters being transfered
     integer(kind=c_int), pointer :: int_param(:)
     ! Floating point parameters being transfered
@@ -828,7 +842,9 @@ contains
     class(phlex_solver_data_t), intent(in) :: this
 
     call rxn_print_data(this%solver_c_ptr)
+    call aero_phase_print_data(this%solver_c_ptr)
     call aero_rep_print_data(this%solver_c_ptr)
+    call sub_model_print_data(this%solver_c_ptr)
 
   end subroutine do_print
 

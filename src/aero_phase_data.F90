@@ -457,7 +457,6 @@ contains
     class(aero_phase_data_t), intent(in) :: this
     
     pack_size = &
-            pmc_mpi_pack_size_integer(this%num_spec) + &
             pmc_mpi_pack_size_real_array(this%condensed_data_real) + &
             pmc_mpi_pack_size_integer_array(this%condensed_data_int)
 
@@ -479,7 +478,6 @@ contains
     integer :: prev_position
 
     prev_position = pos
-    call pmc_mpi_pack_integer(buffer, pos, this%num_spec)
     call pmc_mpi_pack_real_array(buffer, pos, this%condensed_data_real)
     call pmc_mpi_pack_integer_array(buffer, pos, this%condensed_data_int)
     call assert(561436372, &
@@ -504,7 +502,6 @@ contains
     integer :: prev_position
 
     prev_position = pos
-    call pmc_mpi_unpack_integer(buffer, pos, this%num_spec)
     call pmc_mpi_unpack_real_array(buffer, pos, this%condensed_data_real)
     call pmc_mpi_unpack_integer_array(buffer, pos, this%condensed_data_int)
     call assert(219217030, &

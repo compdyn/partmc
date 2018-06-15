@@ -249,7 +249,7 @@ void sub_model_update_data(int update_sub_model_type, void *update_data,
 /** \brief Print the sub model data
  * \param model_data Pointer to the model data
  */
-void sub_model_print(ModelData *model_data)
+void sub_model_print_data(ModelData *model_data)
 {
 
   // Get the number of sub models

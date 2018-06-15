@@ -14,7 +14,13 @@ while [ true ]
 do
   echo Attempt $counter
 
-if ! ../../test_rxn_CMAQ_OH_HNO3; then 
+if [[ $1 = "MPI" ]]; then
+  exec_str="mpirun -v -np 2 ../../test_rxn_CMAQ_OH_HNO3"
+else
+  exec_str="../../test_rxn_CMAQ_OH_HNO3"
+fi
+
+if ! $exec_str; then 
 	  echo Failure "$counter"
 	  if [ "$counter" -gt 10 ]
 	  then

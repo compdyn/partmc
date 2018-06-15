@@ -157,6 +157,7 @@ void * aero_phase_get_volume(ModelData *model_data, int aero_phase_idx,
           double *state_var, double *volume);
 void * aero_phase_find(ModelData *model_data, int int_aero_phase_idx);
 void * aero_phase_skip(void *aero_phase_data);
+void aero_phase_print_data(void *solver_data);
 
 /* Aerosol representation solver functions */
 void * aero_rep_get_dependencies(ModelData *model_data, bool *state_flags);
@@ -179,7 +180,6 @@ int sub_model_get_parameter_id(ModelData *model_data, int type,
           void *identifiers);
 double sub_model_get_parameter_value(ModelData *model_data, int parameter_id);
 void sub_model_calculate(ModelData *model_data);
-void sub_model_print(ModelData *model_data);
-
+void sub_model_print_data(ModelData *model_data);
 
 #endif

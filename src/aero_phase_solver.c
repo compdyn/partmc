@@ -167,6 +167,34 @@ void aero_phase_add_condensed_data(int n_int_param, int n_float_param,
   model_data->nxt_aero_phase = (void*) flt_ptr;
 }
 
+/** \brief Print the aerosol phase data
+ * \param solver_data Pointer to the solver data
+ */
+void aero_phase_print_data(void *solver_data)
+{
+  ModelData *model_data = 
+          (ModelData*) &(((SolverData*)solver_data)->model_data);
+  int *aero_phase_data = (int*) (model_data->aero_phase_data);
+  
+  // Get the number of aerosol phases
+  int n_aero_phase = *(aero_phase_data++);
+
+  // Loop through the aerosol phases and print their data
+  // advancing the aero_phase_data pointer each time
+  for (int i_aero_phase=0; i_aero_phase<n_aero_phase; i_aero_phase++) {
+    int *int_data = (int*) aero_phase_data;
+    double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+
+    printf("\n\nAerosol Phase %d\n\n", i_aero_phase);
+    printf("\nint_data");
+    for (int i=0; i<INT_DATA_SIZE_; i++) printf(" %d", int_data[i]);
+    printf("\nfloat_data");
+    for (int i=0; i<FLOAT_DATA_SIZE_; i++) printf(" %le", float_data[i]);
+    
+    aero_phase_data = (int*) &(float_data[FLOAT_DATA_SIZE_]);
+  }
+}
+
 #undef NUM_STATE_VAR_
 #undef NUM_INT_PROP_
 #undef NUM_FLOAT_PROP_

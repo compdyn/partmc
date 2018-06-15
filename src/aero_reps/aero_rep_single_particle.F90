@@ -133,16 +133,13 @@ module pmc_aero_rep_single_particle
   private
     logical :: is_malloced = .false.
   contains
+    !> Initialize the update data
+    procedure :: initialize => update_data_init_radius
     !> Update the radius
     procedure :: set_radius => update_data_set_radius
     !> Finalize the radius update data
     final :: update_data_radius_finalize
   end type aero_rep_update_data_single_particle_radius_t
-
-  !> Constructor for aero_rep_update_data_single_particle_radius_t
-  interface aero_rep_update_data_single_particle_radius_t
-    procedure :: update_data_radius_constructor
-  end interface aero_rep_update_data_single_particle_radius_t
 
   !> Single particle update number concentration object
   type, extends(aero_rep_update_data_t) :: &
@@ -150,16 +147,13 @@ module pmc_aero_rep_single_particle
   private
     logical :: is_malloced = .false.
   contains
+    !> Initialize the update data
+    procedure :: initialize => update_data_init_number
     !> Update the number
     procedure :: set_number => update_data_set_number
     !> Finalize the number update data
     final :: update_data_number_finalize
   end type aero_rep_update_data_single_particle_number_t
-
-  !> Constructor for aero_rep_update_data_single_particle_number_t
-  interface aero_rep_update_data_single_particle_number_t
-    procedure :: update_data_number_constructor
-  end interface aero_rep_update_data_single_particle_number_t
 
   !> Interface to c aerosol representation functions
   interface
@@ -535,19 +529,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Constructor for aero_rep_update_data_single_particle_radius_t
-  function update_data_radius_constructor(aero_rep_type) result(new_obj)
+  !> Initialize radius update data object
+  subroutine update_data_init_radius(this, aero_rep_type)
 
-    !> New update data object
-    type(aero_rep_update_data_single_particle_radius_t) :: new_obj
+    !> Update data object
+    class(aero_rep_update_data_single_particle_radius_t) :: this
     !> Aerosol representaiton id
     integer(kind=i_kind), intent(in) :: aero_rep_type
 
-    new_obj%aero_rep_type = int(aero_rep_type, kind=c_int)
-    new_obj%update_data = aero_rep_single_particle_create_radius_update_data()
-    new_obj%is_malloced = .true.
+    call assert_msg(954504234, .not.this%is_malloced, &
+            "Trying to re-initializea radius update object.")
 
-  end function update_data_radius_constructor
+    this%aero_rep_type = int(aero_rep_type, kind=c_int)
+    this%update_data = aero_rep_single_particle_create_radius_update_data()
+    this%is_malloced = .true.
+
+  end subroutine update_data_init_radius
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -563,6 +560,8 @@ contains
     !> Updated radius
     real(kind=dp), intent(in) :: radius
 
+    call assert_msg(228446610, this%is_malloced, &
+            "Trying to set radius of uninitialized update object.")
     call aero_rep_single_particle_set_radius_update_data(this%get_data(), &
             aero_rep_id, radius)
 
@@ -582,19 +581,22 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Constructor for aero_rep_update_data_single_particle_number_t
-  function update_data_number_constructor(aero_rep_type) result(new_obj)
+  !> Initialize an update data object
+  subroutine update_data_init_number(this, aero_rep_type)
 
-    !> New update data object
-    type(aero_rep_update_data_single_particle_number_t) :: new_obj
+    !> Update data object
+    class(aero_rep_update_data_single_particle_number_t) :: this
     !> Aerosol representaiton id
     integer(kind=i_kind), intent(in) :: aero_rep_type
 
-    new_obj%aero_rep_type = int(aero_rep_type, kind=c_int)
-    new_obj%update_data = aero_rep_single_particle_create_number_update_data()
-    new_obj%is_malloced = .true.
+    call assert_msg(886589356, .not.this%is_malloced, &
+            "Trying to re-initializea number update object.")
 
-  end function update_data_number_constructor
+    this%aero_rep_type = int(aero_rep_type, kind=c_int)
+    this%update_data = aero_rep_single_particle_create_number_update_data()
+    this%is_malloced = .true.
+
+  end subroutine update_data_init_number
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -610,6 +612,8 @@ contains
     !> Updated number
     real(kind=dp), intent(in) :: number_conc
 
+    call assert_msg(897092373, this%is_malloced, &
+            "Trying to set number of uninitialized update object.")
     call aero_rep_single_particle_set_number_update_data(this%get_data(), &
             aero_rep_id, number_conc)
 

@@ -225,7 +225,7 @@ module pmc_rxn_factory
     !> Get the reaction type
     procedure :: get_type
     !> Get a new update data object
-    procedure :: new_update_data
+    procedure :: initialize_update_data
     !> Determine the number of bytes required to pack a given reaction
     procedure :: pack_size
     !> Pack a given reaction to the buffer, advancing the position
@@ -370,8 +370,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get a new update data object
-  subroutine new_update_data(this, update_data) 
+  !> Initialize an update data object
+  subroutine initialize_update_data(this, update_data) 
 
     !> Reaction factory
     class(rxn_factory_t), intent(in) :: this
@@ -380,12 +380,12 @@ contains
 
     select type (update_data)
       type is (rxn_update_data_photolysis_rate_t)
-        update_data = rxn_update_data_photolysis_rate_t(RXN_PHOTOLYSIS)
+        call update_data%initialize(RXN_PHOTOLYSIS)
       class default
         call die_msg(239438576, "Internal error - update data type missing.")
     end select
 
-  end subroutine new_update_data
+  end subroutine initialize_update_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

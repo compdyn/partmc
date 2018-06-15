@@ -116,16 +116,13 @@ public :: rxn_photolysis_t, rxn_update_data_photolysis_rate_t
   private
     logical :: is_malloced = .false.
   contains
+    !> Initialize update data
+    procedure :: initialize => update_data_rate_initialize
     !> Update the rate data
     procedure :: set_rate => update_data_rate_set
     !> Finalize the rate update data
     final :: update_data_rate_finalize
   end type rxn_update_data_photolysis_rate_t
-
-  !> Constructor for rxn_update_data_photolysis_rate_t
-  interface rxn_update_data_photolysis_rate_t
-    procedure :: update_data_rate_constructor
-  end interface rxn_update_data_photolysis_rate_t
 
   !> Interface to c reaction functions
   interface
@@ -368,19 +365,19 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Constructor for rxn_update_data_photolysis_rate_t
-  function update_data_rate_constructor(rxn_type) result(new_obj)
+  !> Initialize update data
+  subroutine update_data_rate_initialize(this, rxn_type)
 
-    !> New update data object
-    type(rxn_update_data_photolysis_rate_t) :: new_obj
+    !> Update data object
+    class(rxn_update_data_photolysis_rate_t) :: this
     !> Reaction type id
     integer(kind=i_kind), intent(in) :: rxn_type
 
-    new_obj%rxn_type = int(rxn_type, kind=c_int)
-    new_obj%update_data = rxn_photolysis_create_rate_update_data()
-    new_obj%is_malloced = .true.
+    this%rxn_type = int(rxn_type, kind=c_int)
+    this%update_data = rxn_photolysis_create_rate_update_data()
+    this%is_malloced = .true.
 
-  end function update_data_rate_constructor
+  end subroutine update_data_rate_initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

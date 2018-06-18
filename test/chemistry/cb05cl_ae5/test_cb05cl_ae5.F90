@@ -130,6 +130,8 @@ contains
     type(string_t), allocatable :: kpp_rxn_labels(:)
     ! KPP rstate
     real(kind=dp) :: KPP_RSTATE(20)
+    ! KPP control variables
+    integer :: KPP_ICNTRL(20) = 0
     ! #/cc -> ppm conversion factor
     real(kind=dp) :: conv
 
@@ -600,7 +602,7 @@ contains
       KPP_PRESS = pressure * 1013.25 ! KPP pressure in hPa
       CALL KPP_Update_RCONST()
       CALL KPP_INTEGRATE( TIN = KPP_TIME, TOUT = (KPP_TIME+KPP_DT), &
-              RSTATUS_U = KPP_RSTATE, ICNTRL_U = (/ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /) )
+              RSTATUS_U = KPP_RSTATE, ICNTRL_U = KPP_ICNTRL )
       call cpu_time(comp_end)
       comp_kpp = comp_kpp + (comp_end-comp_start)
 
@@ -626,30 +628,48 @@ contains
     ! Compare the results
     ! EBI <-> Phlex-chem
     do i_spec = 1, NUM_EBI_SPEC
-      call warn_assert_msg(749090387, almost_equal(real(YC(i_spec), kind=dp), &
+      call assert_msg(749090387, almost_equal(real(YC(i_spec), kind=dp), &
           phlex_state%state_var( &
                   chem_spec_data%gas_state_id( &
-                  ebi_spec_names(i_spec)%string)), 5.0d-2), &
+                  ebi_spec_names(i_spec)%string)), 5.0d-2) .or. &
+          (YC(i_spec).lt.ebi_init(i_spec)*1.0d-2 .and. &
+           phlex_state%state_var(chem_spec_data%gas_state_id( &
+                  ebi_spec_names(i_spec)%string)) .lt. &
+           phlex_init(chem_spec_data%gas_state_id( &
+                  ebi_spec_names(i_spec)%string))*1.0d-2), &
           "Species "//ebi_spec_names(i_spec)%string//" has different result. "// &
           "EBI solver: "//trim(to_string(real(YC(i_spec), kind=dp)))// &
           "; Phlex-chem: "// &
           trim(to_string( phlex_state%state_var( &
                   chem_spec_data%gas_state_id( &
+                  ebi_spec_names(i_spec)%string)))) // "; ebi init: "// &
+          trim(to_string(real(ebi_init(i_spec), kind=dp)))//"; phlex init: "// &
+          trim(to_string(phlex_init(chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)))))
     end do
     ! KPP <-> Phlex-chem
     do i_spec = 1, KPP_NSPEC
       str_temp%string = trim(KPP_SPC_NAMES(i_spec))
-      call warn_assert_msg(749090436, almost_equal(real(KPP_C(i_spec)*conv, kind=dp), &
+      call assert_msg(749090436, almost_equal(real(KPP_C(i_spec)*conv, kind=dp), &
           phlex_state%state_var( &
                   chem_spec_data%gas_state_id( &
-                  str_temp%string)), 5.0d-2), &
+                  str_temp%string)), 5.0d-2) .or. &
+          (KPP_C(i_spec) .lt. KPP_init(i_spec)*1.0d-2 .and. &
+           phlex_state%state_var(chem_spec_data%gas_state_id( &
+                  str_temp%string)) .lt. &
+           phlex_init(chem_spec_data%gas_state_id( &
+                  str_temp%string))*1.0d-2), &
           "Species "//str_temp%string//" has different result. "// &
           "KPP solver: "//trim(to_string(real(KPP_C(i_spec)*conv, kind=dp)))// &
           "; Phlex-chem: "// &
           trim(to_string( phlex_state%state_var( &
                   chem_spec_data%gas_state_id( &
+                  str_temp%string))))//"; KPP init: "// &
+          trim(to_string(real(kpp_init(i_spec)*conv, kind=dp)))// &
+          "; phlex init: "//trim(to_string(phlex_init( &
+                  chem_spec_data%gas_state_id( &
                   str_temp%string)))))
+
     end do
 
     ! Close the output files

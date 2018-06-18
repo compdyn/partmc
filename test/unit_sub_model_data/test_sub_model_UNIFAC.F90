@@ -87,6 +87,10 @@ contains
             idx_butanol_act_c, idx_water_act_c
     real(kind=dp) :: mass_frac_step, mole_frac, mass_frac
     type(c_ptr) :: identifiers
+#ifdef PMC_USE_MPI
+    character, allocatable :: buffer(:), buffer_copy(:)
+    integer(kind=i_kind) :: pack_size, pos, i_elem, results
+#endif
 
     ! Parameters for calculating true concentrations
     real(kind=dp) :: temperature, pressure
@@ -218,201 +222,275 @@ contains
     ! Set output mole faction step (unitless)
     mass_frac_step = 1.0d0 / real(NUM_MASS_FRAC_STEP, kind=dp)
 
-    ! Get the UNIFAC sub module json file
-    input_file_path = 'test_UNIFAC_config.json'
+#ifdef PMC_USE_MPI
+    ! Load the model data on root process and pass it to process 1 for solving
+    if (pmc_mpi_rank().eq.0) then
+#endif
 
-    ! Construct a phlex_core variable
-    phlex_core => phlex_core_t(input_file_path)
+      ! Get the UNIFAC sub module json file
+      input_file_path = 'test_UNIFAC_config.json'
 
-    ! Initialize the model
-    call phlex_core%initialize()
+      ! Construct a phlex_core variable
+      phlex_core => phlex_core_t(input_file_path)
 
-    ! Initialize the solver
-    call phlex_core%solver_initialize()
+      deallocate(input_file_path)
 
-    ! Get a model state variable
-    phlex_state => phlex_core%new_state()
+      ! Initialize the model
+      call phlex_core%initialize()
 
-    ! Set the environmental conditions
-    phlex_state%env_state%temp = temperature
-    phlex_state%env_state%pressure = pressure
-    call phlex_state%update_env_state()
+      ! Find the aerosol representation
+      key = "my second aero rep"
+      call assert(217936937, phlex_core%get_aero_rep(key, aero_rep_ptr))
 
-    ! Find the aerosol representation
-    key = "my second aero rep"
-    call assert(217936937, phlex_core%get_aero_rep(key, aero_rep_ptr))
+      ! Get species indices
+      key = "n-butanol/water mixture.n-butanol"
+      idx_butanol = aero_rep_ptr%spec_state_id(key);
+      key = "n-butanol/water mixture.water"
+      idx_water = aero_rep_ptr%spec_state_id(key);
 
-    ! Get species indices
-    key = "n-butanol/water mixture.n-butanol"
-    idx_butanol = aero_rep_ptr%spec_state_id(key);
-    key = "n-butanol/water mixture.water"
-    idx_water = aero_rep_ptr%spec_state_id(key);
+      ! Make sure the expected species are in the model
+      call assert(486977094, idx_butanol.gt.0)
+      call assert(881770688, idx_water.gt.0)
 
-    ! Make sure the expected species are in the model
-    call assert(486977094, idx_butanol.gt.0)
-    call assert(881770688, idx_water.gt.0)
+#ifdef PMC_USE_MPI
+      ! pack the phlex core
+      pack_size = phlex_core%pack_size()
+      allocate(buffer(pack_size))
+      pos = 0
+      call phlex_core%bin_pack(buffer, pos)
+      call assert(993651418, pos.eq.pack_size)
+    end if
 
-    ! Get the parameter id for the activity coefficients
-    idx_butanol_c = int(idx_butanol-1, kind=c_int)
-    identifiers = c_loc(idx_butanol_c)
-    idx_butanol_act_c = phlex_core%get_sub_model_parameter_id(SUB_MODEL_UNIFAC, &
-              identifiers)
-    idx_water_c = int(idx_water-1, kind=c_int)
-    identifiers = c_loc(idx_water_c)
-    idx_water_act_c = phlex_core%get_sub_model_parameter_id(SUB_MODEL_UNIFAC, &
-              identifiers)
-    call assert(875073956, idx_butanol_act_c.gt.-1)
-    call assert(703463813, idx_water_act_c.gt.-1)
+    ! broadcast the species ids
+    call pmc_mpi_bcast_integer(idx_butanol)
+    call pmc_mpi_bcast_integer(idx_water)
 
-    ! Integrate the mechanism
-    do i_mass_frac = 0, NUM_MASS_FRAC_STEP
+    ! broadcast the buffer size
+    call pmc_mpi_bcast_integer(pack_size)
 
-      ! Update the concentrations
-      mass_frac = i_mass_frac * mass_frac_step
-      mole_frac = (1.0d0-mass_frac)/mw_water / &
-        ((1.0d0-mass_frac)/mw_water + mass_frac/mw_butanol)
-      calc_conc(i_mass_frac, :) = 0.0d0
-      calc_conc(i_mass_frac, idx_butanol) = (1.0d0 - mole_frac) * mw_butanol
-      calc_conc(i_mass_frac, idx_water)   = mole_frac * mw_water
-      model_conc(i_mass_frac,:) = calc_conc(i_mass_frac,:)
+    if (pmc_mpi_rank().eq.1) then
+      ! allocate the buffer to receive data
+      allocate(buffer(pack_size))
+    end if
+
+    ! broadcast the data
+    call pmc_mpi_bcast_packed(buffer)
+
+    if (pmc_mpi_rank().eq.1) then
+      ! unpack the data
+      phlex_core => phlex_core_t()
+      pos = 0
+      call phlex_core%bin_unpack(buffer, pos)
+      call assert(425342147, pos.eq.pack_size)
+      allocate(buffer_copy(pack_size))
+      pos = 0
+      call phlex_core%bin_pack(buffer_copy, pos)
+      call assert(432511988, pos.eq.pack_size)
+      do i_elem = 1, pack_size
+        call assert_msg(879879834, buffer(i_elem).eq.buffer_copy(i_elem), &
+                "Mismatch in element :"//trim(to_string(i_elem)))
+      end do
+
+      ! solve and evaluate results on process 1
+#endif
+
+      ! Initialize the solver
+      call phlex_core%solver_initialize()
+
+      ! Get a model state variable
+      phlex_state => phlex_core%new_state()
+
+      ! Set the environmental conditions
+      phlex_state%env_state%temp = temperature
+      phlex_state%env_state%pressure = pressure
+      call phlex_state%update_env_state()
+
+      ! Get the parameter id for the activity coefficients
+      idx_butanol_c = int(idx_butanol-1, kind=c_int)
+      identifiers = c_loc(idx_butanol_c)
+      idx_butanol_act_c = phlex_core%get_sub_model_parameter_id(SUB_MODEL_UNIFAC, &
+                identifiers)
+      idx_water_c = int(idx_water-1, kind=c_int)
+      identifiers = c_loc(idx_water_c)
+      idx_water_act_c = phlex_core%get_sub_model_parameter_id(SUB_MODEL_UNIFAC, &
+                identifiers)
+      call assert(875073956, idx_butanol_act_c.gt.-1)
+      call assert(703463813, idx_water_act_c.gt.-1)
+
+      ! Integrate the mechanism
+      do i_mass_frac = 0, NUM_MASS_FRAC_STEP
+
+        ! Update the concentrations
+        mass_frac = i_mass_frac * mass_frac_step
+        mole_frac = (1.0d0-mass_frac)/mw_water / &
+          ((1.0d0-mass_frac)/mw_water + mass_frac/mw_butanol)
+        calc_conc(i_mass_frac, :) = 0.0d0
+        calc_conc(i_mass_frac, idx_butanol) = (1.0d0 - mole_frac) * mw_butanol
+        calc_conc(i_mass_frac, idx_water)   = mole_frac * mw_water
+        model_conc(i_mass_frac,:) = calc_conc(i_mass_frac,:)
       
-      ! Set the concentrations in the model
-      phlex_state%state_var(:) = model_conc(i_mass_frac,:)
+        ! Set the concentrations in the model
+        phlex_state%state_var(:) = model_conc(i_mass_frac,:)
 
-      ! Get the modeled conc
-      call phlex_core%solve(phlex_state, real(1.0, kind=dp))
-      model_activity(i_mass_frac,:) = 0.0d0
-      model_activity(i_mass_frac, idx_butanol) = &
-              real(phlex_core%get_sub_model_parameter_value(idx_butanol_act_c), kind=dp) &
-              * phlex_state%state_var(idx_butanol)
-      model_activity(i_mass_frac, idx_water) = &
-              real(phlex_core%get_sub_model_parameter_value(idx_water_act_c), kind=dp) &
-              * phlex_state%state_var(idx_water)
+        ! Get the modeled conc
+        call phlex_core%solve(phlex_state, real(1.0, kind=dp))
+        model_activity(i_mass_frac,:) = 0.0d0
+        model_activity(i_mass_frac, idx_butanol) = &
+                real(phlex_core%get_sub_model_parameter_value(idx_butanol_act_c), kind=dp) &
+                * phlex_state%state_var(idx_butanol)
+        model_activity(i_mass_frac, idx_water) = &
+                real(phlex_core%get_sub_model_parameter_value(idx_water_act_c), kind=dp) &
+                * phlex_state%state_var(idx_water)
 
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      !!! Get the UNIFAC activities !!!
-      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !!! Get the UNIFAC activities !!!
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
-      ! Equation 4
-      PHI_butanol = r_butanol * (1.0d0 - mole_frac) / &
-              (r_butanol * (1.0d0 - mole_frac) + r_water * mole_frac)
-      PHI_water   = r_water * mole_frac / &
-              (r_butanol * (1.0d0 - mole_frac) + r_water * mole_frac)
-      THETA_butanol = q_butanol * (1.0d0 - mole_frac) / &
-              (q_butanol * (1.0d0 - mole_frac) + q_water * mole_frac)
-      THETA_water   = q_water * mole_frac / &
-              (q_butanol * (1.0d0 - mole_frac) + q_water * mole_frac)
+        ! Equation 4
+        PHI_butanol = r_butanol * (1.0d0 - mole_frac) / &
+                (r_butanol * (1.0d0 - mole_frac) + r_water * mole_frac)
+        PHI_water   = r_water * mole_frac / &
+                (r_butanol * (1.0d0 - mole_frac) + r_water * mole_frac)
+        THETA_butanol = q_butanol * (1.0d0 - mole_frac) / &
+                (q_butanol * (1.0d0 - mole_frac) + q_water * mole_frac)
+        THETA_water   = q_water * mole_frac / &
+                (q_butanol * (1.0d0 - mole_frac) + q_water * mole_frac)
      
-      ! Combinatorial portion (ln(gamma_i^C)) Eq. 3
-      if (i_mass_frac.eq.NUM_MASS_FRAC_STEP) then
-        ln_gamma_C_butanol = 0.0d0
-      else
-        ln_gamma_C_butanol = log(PHI_butanol / (1.0d0 - mole_frac)) &
-                           + 5.0d0 * q_butanol * log(THETA_butanol/PHI_butanol) &
-                           + l_butanol &
-                           - PHI_butanol / (1.0d0 - mole_frac) &
-                              * ((1.0d0 - mole_frac) * l_butanol + mole_frac * l_water)
-      end if
-      if (i_mass_frac.eq.0) then
-        ln_gamma_C_water = 0.0d0
-      else
-        ln_gamma_C_water   = log(PHI_water / mole_frac) &
-                           + 5.0d0 * q_water * log(THETA_water/PHI_water) &
-                           + l_water &
-                           - PHI_water / mole_frac &
-                              * ((1.0d0 - mole_frac) * l_butanol + mole_frac * l_water) 
-      end if
+        ! Combinatorial portion (ln(gamma_i^C)) Eq. 3
+        if (i_mass_frac.eq.NUM_MASS_FRAC_STEP) then
+          ln_gamma_C_butanol = 0.0d0
+        else
+          ln_gamma_C_butanol = log(PHI_butanol / (1.0d0 - mole_frac)) &
+                             + 5.0d0 * q_butanol * log(THETA_butanol/PHI_butanol) &
+                             + l_butanol &
+                             - PHI_butanol / (1.0d0 - mole_frac) &
+                                * ((1.0d0 - mole_frac) * l_butanol + mole_frac * l_water)
+        end if
+        if (i_mass_frac.eq.0) then
+          ln_gamma_C_water = 0.0d0
+        else
+          ln_gamma_C_water   = log(PHI_water / mole_frac) &
+                             + 5.0d0 * q_water * log(THETA_water/PHI_water) &
+                             + l_water &
+                             - PHI_water / mole_frac &
+                                * ((1.0d0 - mole_frac) * l_butanol + mole_frac * l_water) 
+        end if
 
-      ! Calculate the sum (Q_n * X_n) in the denominator of eq 9 for the mixture
-      sum_Qn_Xn_mixture = 0.0d0
-      do n = 1, num_group
-        sum_Qn_Xn_mixture = sum_Qn_Xn_mixture &
-                            + Q_k(n) &
-                            * ( (1.0d0 - mole_frac) * real(butanol_grps(n), kind=dp) &
-                                 + mole_frac * real(water_grps(n), kind=dp) )
-      end do
-
-      ! Group surface area fraction (Eq. 9)
-      do m = 1, num_group
-        THETA_m(m) = Q_k(m) &
-                     * ( (1.0d0 - mole_frac) * real(butanol_grps(m), kind=dp) &
-                          + mole_frac * real(water_grps(m), kind=dp) ) &
-                     / sum_Qn_Xn_mixture
-      end do
-      
-      ! Group residual activity coefficients (ln(GAMMA_k)) Eq. 8
-      do k = 1, num_group
-        sum_m_A = 0.0d0 ! ln( sum_m_A  ) term in eq 8
-        sum_m_B = 0.0d0 ! last term in eq 8
-        do m = 1, num_group
-          sum_m_A = sum_m_A + THETA_m(m) * PSI_mn(m,k)
-          sum_n = 0.0d0
-          do n = 1, num_group
-            sum_n = sum_n + THETA_m(n) * PSI_mn(n,m)
-          end do
-          sum_m_B = sum_m_B + THETA_m(m) * PSI_mn(k,m) / sum_n
+        ! Calculate the sum (Q_n * X_n) in the denominator of eq 9 for the mixture
+        sum_Qn_Xn_mixture = 0.0d0
+        do n = 1, num_group
+          sum_Qn_Xn_mixture = sum_Qn_Xn_mixture &
+                              + Q_k(n) &
+                              * ( (1.0d0 - mole_frac) * real(butanol_grps(n), kind=dp) &
+                                   + mole_frac * real(water_grps(n), kind=dp) )
         end do
-        ln_GAMMA_mixture(k) = Q_k(k) * (1.0d0 - log(sum_m_A) - sum_m_B)
+
+        ! Group surface area fraction (Eq. 9)
+        do m = 1, num_group
+          THETA_m(m) = Q_k(m) &
+                       * ( (1.0d0 - mole_frac) * real(butanol_grps(m), kind=dp) &
+                            + mole_frac * real(water_grps(m), kind=dp) ) &
+                       / sum_Qn_Xn_mixture
+        end do
+      
+        ! Group residual activity coefficients (ln(GAMMA_k)) Eq. 8
+        do k = 1, num_group
+          sum_m_A = 0.0d0 ! ln( sum_m_A  ) term in eq 8
+          sum_m_B = 0.0d0 ! last term in eq 8
+          do m = 1, num_group
+            sum_m_A = sum_m_A + THETA_m(m) * PSI_mn(m,k)
+            sum_n = 0.0d0
+            do n = 1, num_group
+              sum_n = sum_n + THETA_m(n) * PSI_mn(n,m)
+            end do
+            sum_m_B = sum_m_B + THETA_m(m) * PSI_mn(k,m) / sum_n
+          end do
+          ln_GAMMA_mixture(k) = Q_k(k) * (1.0d0 - log(sum_m_A) - sum_m_B)
+        end do
+
+        ! Residual term (ln(gamma_i^C)) in Eq. 7
+        ln_gamma_R_butanol = 0.0d0
+        ln_gamma_R_water = 0.0d0
+        do k = 1, num_group
+          ln_gamma_R_butanol = ln_gamma_R_butanol &
+                               + real(butanol_grps(k), kind=dp) &
+                               * ( ln_GAMMA_mixture(k) - ln_GAMMA_butanol_pure(k) )
+          ln_gamma_R_water   = ln_gamma_R_water &
+                               + real(water_grps(k), kind=dp) &
+                               * ( ln_GAMMA_mixture(k) - ln_GAMMA_water_pure(k) )
+        end do
+
+        ! Save activities
+        calc_activity(i_mass_frac,idx_butanol) = (1.0d0 - mole_frac) &
+                                               * exp( ln_gamma_C_butanol + ln_gamma_R_butanol )
+        calc_activity(i_mass_frac,idx_water)   = mole_frac &
+                                               * exp( ln_gamma_C_water + ln_gamma_R_water )
+
       end do
 
-      ! Residual term (ln(gamma_i^C)) in Eq. 7
-      ln_gamma_R_butanol = 0.0d0
-      ln_gamma_R_water = 0.0d0
-      do k = 1, num_group
-        ln_gamma_R_butanol = ln_gamma_R_butanol &
-                             + real(butanol_grps(k), kind=dp) &
-                             * ( ln_GAMMA_mixture(k) - ln_GAMMA_butanol_pure(k) )
-        ln_gamma_R_water   = ln_gamma_R_water &
-                             + real(water_grps(k), kind=dp) &
-                             * ( ln_GAMMA_mixture(k) - ln_GAMMA_water_pure(k) )
+      ! Save the results
+      open(unit=7, file="out/UNIFAC_activity_results.txt", status="replace", action="write")
+      do i_mass_frac = 0, NUM_MASS_FRAC_STEP
+        mass_frac = i_mass_frac * mass_frac_step
+        write(7,*) mass_frac, &
+              ' ', calc_conc(i_mass_frac, idx_butanol),    ' ', model_conc(i_mass_frac, idx_butanol), &
+              ' ', calc_conc(i_mass_frac, idx_water),      ' ', model_conc(i_mass_frac, idx_water), &
+              ' ', calc_activity(i_mass_frac, idx_butanol),' ', model_activity(i_mass_frac, idx_butanol), &
+              ' ', calc_activity(i_mass_frac, idx_water),  ' ', model_activity(i_mass_frac, idx_water)
       end do
+      close(7)
 
-      ! Save activities
-      calc_activity(i_mass_frac,idx_butanol) = (1.0d0 - mole_frac) &
-                                             * exp( ln_gamma_C_butanol + ln_gamma_R_butanol )
-      calc_activity(i_mass_frac,idx_water)   = mole_frac &
-                                             * exp( ln_gamma_C_water + ln_gamma_R_water )
-
-    end do
-
-    ! Save the results
-    open(unit=7, file="out/UNIFAC_activity_results.txt", status="replace", action="write")
-    do i_mass_frac = 0, NUM_MASS_FRAC_STEP
-      mass_frac = i_mass_frac * mass_frac_step
-      write(7,*) mass_frac, &
-            ' ', calc_conc(i_mass_frac, idx_butanol),    ' ', model_conc(i_mass_frac, idx_butanol), &
-            ' ', calc_conc(i_mass_frac, idx_water),      ' ', model_conc(i_mass_frac, idx_water), &
-            ' ', calc_activity(i_mass_frac, idx_butanol),' ', model_activity(i_mass_frac, idx_butanol), &
-            ' ', calc_activity(i_mass_frac, idx_water),  ' ', model_activity(i_mass_frac, idx_water)
-    end do
-    close(7)
-
-    ! Analyze the results
-    do i_mass_frac = 1, NUM_MASS_FRAC_STEP
-      mass_frac = i_mass_frac * mass_frac_step
+      ! Analyze the results
+      do i_mass_frac = 1, NUM_MASS_FRAC_STEP
+        mass_frac = i_mass_frac * mass_frac_step
      
-      ! Check these calculations against the digitized plot for n-butanol/water @ 25C 
-      ! (The digitized plot is noisy close to butanol mass fraction = 1.0)
-      if (mass_frac < 0.97d0) then
-        call assert_msg(666095395, &
-          almost_equal(get_water_activity_fig3a(mass_frac), calc_activity(i_mass_frac, idx_water), &
-          real(1.0e-1, kind=dp)), "mole_frac: "//trim(to_string(i_mass_frac))//"; species: water"// &
-          "; from plot: "//trim(to_string(get_water_activity_fig3a(mass_frac)))// &
-          "; calc: "//trim(to_string(calc_activity(i_mass_frac, idx_water))))
-        call assert_msg(744508507, &
-          almost_equal(model_activity(i_mass_frac, idx_water), calc_activity(i_mass_frac, idx_water), &
-          real(1.0e-2, kind=dp)), "mole_frac: "//trim(to_string(i_mass_frac))//"; species: water"// &
-          "; mod: "//trim(to_string(model_activity(i_mass_frac, idx_water)))// &
-          "; calc: "//trim(to_string(calc_activity(i_mass_frac, idx_water))))
-        call assert_msg(222508237, &
-          almost_equal(model_activity(i_mass_frac, idx_butanol), calc_activity(i_mass_frac, idx_butanol), &
-          real(1.0e-2, kind=dp)), "mole_frac: "//trim(to_string(i_mass_frac))//"; species: butanol"// &
-          "; mod: "//trim(to_string(model_activity(i_mass_frac, idx_butanol)))// &
-          "; calc: "//trim(to_string(calc_activity(i_mass_frac, idx_butanol))))
-      end if
-    end do
+        ! Check these calculations against the digitized plot for n-butanol/water @ 25C 
+        ! (The digitized plot is noisy close to butanol mass fraction = 1.0)
+        if (mass_frac < 0.97d0) then
+          call assert_msg(666095395, &
+            almost_equal(get_water_activity_fig3a(mass_frac), calc_activity(i_mass_frac, idx_water), &
+            real(1.0e-1, kind=dp)), "mole_frac: "//trim(to_string(i_mass_frac))//"; species: water"// &
+            "; from plot: "//trim(to_string(get_water_activity_fig3a(mass_frac)))// &
+            "; calc: "//trim(to_string(calc_activity(i_mass_frac, idx_water))))
+          call assert_msg(744508507, &
+            almost_equal(model_activity(i_mass_frac, idx_water), calc_activity(i_mass_frac, idx_water), &
+            real(1.0e-2, kind=dp)), "mole_frac: "//trim(to_string(i_mass_frac))//"; species: water"// &
+            "; mod: "//trim(to_string(model_activity(i_mass_frac, idx_water)))// &
+            "; calc: "//trim(to_string(calc_activity(i_mass_frac, idx_water))))
+          call assert_msg(222508237, &
+            almost_equal(model_activity(i_mass_frac, idx_butanol), calc_activity(i_mass_frac, idx_butanol), &
+            real(1.0e-2, kind=dp)), "mole_frac: "//trim(to_string(i_mass_frac))//"; species: butanol"// &
+            "; mod: "//trim(to_string(model_activity(i_mass_frac, idx_butanol)))// &
+            "; calc: "//trim(to_string(calc_activity(i_mass_frac, idx_butanol))))
+        end if
+      end do
 
-    deallocate(phlex_state)
+      deallocate(phlex_state)
+
+#ifdef PMC_USE_MPI
+      ! convert the results to an integer
+      if (run_UNIFAC_test) then
+        results = 0
+      else
+        results = 1
+      end if
+    end if
+    
+    ! Send the results back to the primary process
+    call pmc_mpi_transfer_integer(results, results, 1, 0)
+
+    ! convert the results back to a logical value
+    if (pmc_mpi_rank().eq.0) then
+      if (results.eq.0) then
+        run_UNIFAC_test = .true.
+      else
+        run_UNIFAC_test = .false.
+      end if
+    end if
+
+    deallocate(buffer)
+#endif
+    
     deallocate(phlex_core)
 
     run_UNIFAC_test = .true.

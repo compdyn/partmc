@@ -6,6 +6,7 @@ RM      =       rm -f
 
 PMC_MODULES =                           \
   aero_binned.o                 \
+  aero_component.o              \
   aero_data.o                   \
   aero_dist.o                   \
   aero_info.o                   \
@@ -72,6 +73,8 @@ clean:
 aero_binned.o: bin_grid.o aero_particle.o spec_file.o \
      util.o aero_dist.o mpi.o aero_data.o
 
+aero_component.o: util.o mpi.o
+
 aero_data.o: spec_file.o mpi.o util.o fractal.o netcdf.o
 
 aero_dist.o: bin_grid.o util.o constants.o spec_file.o \
@@ -85,7 +88,7 @@ aero_mode.o: bin_grid.o util.o constants.o spec_file.o \
      aero_data.o aero_weight.o mpi.o rand.o
 
 aero_particle.o: util.o aero_data.o spec_file.o env_state.o \
-     mpi.o
+     mpi.o aero_component.o
 
 aero_particle_array.o: aero_particle.o util.o spec_file.o mpi.o
 

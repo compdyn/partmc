@@ -3031,4 +3031,24 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Returns the number of components of all particles.
+  function aero_state_num_components(aero_state)
+
+    !> Aerosol state.
+    type(aero_state_t), intent(in) :: aero_state
+
+    !> Return number concentrations array (m^{-3}).
+    real(kind=dp) :: aero_state_num_components(aero_state_n_part(aero_state))
+
+    integer :: i_part
+
+    do i_part = 1,aero_state_n_part(aero_state)
+       aero_state_num_components(i_part) = aero_particle_n_components( &
+            aero_state%apa%particle(i_part))
+    end do
+
+  end function aero_state_num_components
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_aero_state

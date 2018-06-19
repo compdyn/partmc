@@ -998,7 +998,7 @@ contains
     call pmc_mpi_pack_integer(buffer, position, &
          aero_particle_n_components(val))
     do i = 1, aero_particle_n_components(val)
-       call pmc_mpi_pack_aero_component(val%component(i))
+       call pmc_mpi_pack_aero_component(buffer, position, val%component(i))
     end do
     call pmc_mpi_pack_real(buffer, position, val%least_create_time)
     call pmc_mpi_pack_real(buffer, position, val%greatest_create_time)
@@ -1040,7 +1040,7 @@ contains
        allocate(val%component(n_components))
     end if
     do i = 1,n_components
-       call pmc_mpi_unpack_aero_component(val%component(i))
+       call pmc_mpi_unpack_aero_component(buffer, position, val%component(i))
     end do
     call pmc_mpi_unpack_real(buffer, position, val%least_create_time)
     call pmc_mpi_unpack_real(buffer, position, val%greatest_create_time)

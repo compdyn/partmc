@@ -115,7 +115,7 @@ contains
     !> Spec file.
     type(spec_file_t), intent(out) :: file
 
-    integer :: ios, unit
+    integer :: ios
 
     file%name = trim(filename)
     file%unit = get_unit()
@@ -153,7 +153,7 @@ contains
     !> True if at EOF.
     logical, intent(out) :: eof
 
-    integer :: ios, n_read
+    integer :: ios
 
     file%line_num = file%line_num + 1
     eof = .false.
@@ -324,7 +324,7 @@ contains
     type(spec_line_t), allocatable :: line_list(:)
 
     logical :: eof
-    integer :: i, num_lines
+    integer :: num_lines
     type(spec_line_t) :: temp_line_list(SPEC_FILE_MAX_LIST_LINES)
 
     ! read file, working out how many lines we have
@@ -414,8 +414,6 @@ contains
     !> Name that we do have.
     character(len=*), intent(in) :: read_name
 
-    integer name_len, read_name_len
-
     if (name /= read_name) then
        call spec_file_die_msg(683719069, file, &
             'line must begin with: ' // trim(name) &
@@ -457,7 +455,8 @@ contains
 
     if (ios /= 0) then
        call spec_file_die_msg(704342497, file, &
-            'error reading: IOSTAT = ' // trim(integer_to_string(ios)))
+            'error reading: IOSTAT = ' // trim(integer_to_string(ios)) // &
+            '; type = ' // trim(type))
     end if
 
   end subroutine spec_file_check_read_iostat
@@ -511,7 +510,6 @@ contains
     character(len=*), intent(in) :: string
 
     logical :: val
-    integer :: ios
 
     val = .false.
     if ((trim(string) == 'yes') &

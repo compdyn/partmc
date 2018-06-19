@@ -149,7 +149,6 @@ contains
     integer(i_kind), intent(in) :: num_rxn
 
     integer(kind=i_kind) :: new_size
-    integer(kind=i_kind), allocatable :: new_rxn_type(:)
     type(rxn_data_ptr), pointer :: new_rxn_ptr(:)
 
     if (size(this%rxn_ptr) .ge. this%num_rxn + num_rxn) return

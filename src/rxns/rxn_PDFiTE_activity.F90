@@ -257,8 +257,8 @@ contains
 
     type(property_t), pointer :: spec_props, ion_pairs, ion_pair, &
             sub_props, ions, interactions, interaction, poly_coeffs
-    character(len=:), allocatable :: key_name, water_name, spec_name, &
-            phase_name, string_val, inter_spec_name
+    character(len=:), allocatable :: key_name, spec_name, phase_name, &
+            string_val, inter_spec_name
     integer(kind=i_kind) :: n_phase, n_ion_pair, n_int_param, n_float_param
     integer(kind=i_kind) :: i_aero_rep, i_phase, i_ion_pair, i_ion, i_spec, &
             i_poly_coeff, i_interaction, j_ion_pair, j_interaction

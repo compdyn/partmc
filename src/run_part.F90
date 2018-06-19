@@ -272,7 +272,7 @@ contains
 #ifdef PMC_USE_SUNDIALS
        if (run_part_opt%do_phlex_chem) then
           call pmc_phlex_interface_solve(phlex_core, phlex_state, aero_data, &
-               aero_state, gas_data, gas_state, run_part_opt%del_t)
+               aero_state, gas_state, run_part_opt%del_t)
        end if
 #endif
 

@@ -114,7 +114,7 @@ contains
     !> Array to shrink.
     type(integer_varray_t), intent(inout) :: integer_varray
 
-    integer :: length, new_length
+    integer :: new_length
 
     if (.not. allocated(integer_varray%entry)) return
 

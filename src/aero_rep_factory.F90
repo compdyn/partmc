@@ -281,8 +281,7 @@ contains
     !> JSON object
     type(json_value), pointer, intent(in) :: j_obj
 
-    type(json_value), pointer :: child
-    character(kind=json_ck, len=:), allocatable :: key, unicode_name
+    character(kind=json_ck, len=:), allocatable :: unicode_name
     character(len=:), allocatable :: type_name
     logical(kind=json_lk) :: found
 
@@ -364,8 +363,6 @@ contains
     class(aero_rep_factory_t), intent(in) :: this
     !> Aerosol representation to pack
     class(aero_rep_data_t), intent(in) :: aero_rep
-
-    integer(kind=i_kind) :: i_aero_rep
 
     pack_size =  pmc_mpi_pack_size_integer(int(1, kind=i_kind)) + &
                  aero_rep%pack_size()

@@ -401,7 +401,7 @@ contains
     !> Factor to scale grid by before output.
     real(kind=dp), intent(in), optional :: scale
 
-    integer :: status, varid, dimid_edges, varid_edges, varid_widths, i
+    integer :: status, dimid_edges
     real(kind=dp) :: centers(size(bin_grid%centers))
     real(kind=dp) :: edges(size(bin_grid%edges))
     real(kind=dp) :: widths(size(bin_grid%widths))

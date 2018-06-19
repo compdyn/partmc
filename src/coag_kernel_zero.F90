@@ -121,7 +121,7 @@ contains
     type(aero_binned_t), intent(inout) :: aero_binned
 
     integer :: i
-    real(kind=dp) :: emission_rate_scale, dilution_rate, p
+    real(kind=dp) :: emission_rate_scale, dilution_rate
     real(kind=dp), allocatable :: loss_array(:)
     type(aero_dist_t) :: emissions, background
     type(aero_binned_t) :: background_binned, aero_binned_limit

@@ -188,8 +188,6 @@ contains
     !> Value to pack.
     type(chamber_t), intent(in) :: val
 
-    integer :: total_size, i, n
-
     pmc_mpi_pack_size_chamber = &
          pmc_mpi_pack_size_real(val%volume) &
          + pmc_mpi_pack_size_real(val%area_diffuse) &

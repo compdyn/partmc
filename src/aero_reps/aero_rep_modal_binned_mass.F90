@@ -313,8 +313,7 @@ contains
   !! each aerosol representation at the beginning of a model run after all
   !! the input files have been read in. It ensures all data required during
   !! the model run are included in the condensed data arrays.
-  subroutine initialize(this, aero_phase_set, &
-                  spec_state_id, chem_spec_data)
+  subroutine initialize(this, aero_phase_set, spec_state_id)
 
     !> Aerosol representation data
     class(aero_rep_modal_binned_mass_t), intent(inout) :: this
@@ -323,16 +322,13 @@ contains
     !> Beginning state id for this aerosol representationin the model species
     !! state array
     integer(kind=i_kind), intent(in) :: spec_state_id
-    !> Chemical species data
-    type(chem_spec_data_t), intent(in) :: chem_spec_data
 
-    type(property_t), pointer :: sections, section, phases, spec_props
-    integer(kind=i_kind) :: i_section, i_phase, j_phase, k_phase, i_spec, &
+    type(property_t), pointer :: sections, section, phases
+    integer(kind=i_kind) :: i_section, i_phase, j_phase, k_phase, &
                             i_bin
     integer(kind=i_kind) :: curr_spec_state_id
     integer(kind=i_kind) :: num_phase, num_bin
     integer(kind=i_kind) :: n_int_param, n_float_param
-    integer(kind=i_kind) :: spec_type
     character(len=:), allocatable :: key_name, phase_name, sect_type, str_val
     real(kind=dp) :: min_Dp, max_Dp, d_log_Dp
 

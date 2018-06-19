@@ -445,7 +445,6 @@ contains
     real(kind=dp) :: R_s, R_a
     real(kind=dp) :: alpha, beta, gamma, A, eps_0
     real(kind=dp) :: diff_p
-    real(kind=dp) :: von_karman
     real(kind=dp) :: St, Sc, u_star
     real(kind=dp) :: E_B, E_IM, E_IN, R1
     real(kind=dp) :: u_mean, z_ref, z_rough
@@ -986,7 +985,7 @@ contains
     !> Value to pack.
     type(scenario_t), intent(in) :: val
 
-    integer :: total_size, i, n
+    integer :: total_size, i
 
     total_size = &
          pmc_mpi_pack_size_real_array(val%temp_time) &

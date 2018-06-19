@@ -162,8 +162,7 @@ interface
   !! each aerosol representation at the beginning of a model run after all
   !! the input files have been read in. It ensures all data required during
   !! the model run are included in the condensed data arrays.
-  subroutine initialize(this, aero_phase_set, &
-                spec_state_id, chem_spec_data)
+  subroutine initialize(this, aero_phase_set, spec_state_id)
     use pmc_util,                                     only : i_kind
     use pmc_chem_spec_data
     use pmc_aero_phase_data
@@ -177,8 +176,6 @@ interface
     !> Beginning state id for this aerosol representation in the
     !! \c pmc_phlex_state::phlex_state_t::state_var array
     integer(kind=i_kind), intent(in) :: spec_state_id
-    !> Chemical species data
-    type(chem_spec_data_t), intent(in) :: chem_spec_data
 
   end subroutine initialize
 

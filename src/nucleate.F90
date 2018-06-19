@@ -106,7 +106,7 @@ contains
     real(kind=dp), parameter :: nucleate_diam = 1d-9   ! diameter of new
                                                        ! particles (m)
 
-    integer :: i_gas_h2so4, i_aero_so4, n_samp, i_samp, i_bin, i_group, n_group
+    integer :: i_gas_h2so4, i_aero_so4, n_samp, i_samp, i_group
     integer :: i_class
     real(kind=dp) :: sulf_acid_conc, nucleate_rate, n_samp_avg
     real(kind=dp) :: total_so4_vol, so4_vol, h2so4_removed_conc

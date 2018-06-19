@@ -53,7 +53,7 @@ contains
     class(phlex_core_t), intent(in) :: phlex_core
 
     type(chem_spec_data_t), pointer :: chem_spec_data
-    integer :: i_spec, i_gas_spec, spec_type
+    integer :: i_spec
     type(string_t), allocatable :: gas_spec_names(:)
 
     ! Get the chemical species data
@@ -185,7 +185,7 @@ contains
     !> Gas data.
     type(gas_data_t), intent(inout) :: gas_data
 
-    integer :: n_species, species, i
+    integer :: n_species, i
     character(len=SPEC_LINE_MAX_VAR_LEN), allocatable :: species_name(:)
     real(kind=dp), allocatable :: species_data(:,:)
 

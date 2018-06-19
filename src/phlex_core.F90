@@ -278,7 +278,7 @@ contains
     type(json_value), pointer :: j_obj, j_next
 
     logical(kind=json_lk) :: found
-    character(kind=json_ck, len=:), allocatable :: key, unicode_str_val
+    character(kind=json_ck, len=:), allocatable :: unicode_str_val
     integer(kind=json_ik) :: i_file, num_files
     type(string_t), allocatable :: file_list(:)
     logical :: file_exists
@@ -395,7 +395,7 @@ contains
     type(json_file) :: j_file
     type(json_value), pointer :: j_obj, j_next
 
-    character(kind=json_ck, len=:), allocatable :: key, unicode_str_val
+    character(kind=json_ck, len=:), allocatable :: unicode_str_val
     character(len=:), allocatable :: str_val
     real(kind=json_rk) :: real_val
     logical :: file_exists, found
@@ -631,7 +631,7 @@ contains
     do i_aero_rep = 1, size(this%aero_rep)
       call assert(251590193, associated(this%aero_rep(i_aero_rep)%val))
       call this%aero_rep(i_aero_rep)%val%initialize(this%aero_phase, &
-              i_state_var, this%chem_spec_data)
+              i_state_var)
       i_state_var = i_state_var + this%aero_rep(i_aero_rep)%val%size()
     end do
 
@@ -879,11 +879,6 @@ contains
     !> Chemical model
     class(phlex_core_t), intent(inout) :: this
  
-    ! Indices for loops
-    integer(kind=i_kind) :: i_state_var, i_aero_rep, i_spec, i_sub_model
-    ! Current species name
-    character(len=:), allocatable :: spec_name
-
     call assert_msg(662920365, .not.this%solver_is_initialized, &
             "Attempting to initialize the solver twice.")
 

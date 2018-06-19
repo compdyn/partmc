@@ -188,8 +188,7 @@ contains
     !> Current rate (s^{-1}).
     real(kind=dp), intent(out) :: rate
 
-    integer :: n, p, n_bin, n_spec, i, i_new
-    real(kind=dp) :: y, alpha
+    integer :: n, p
 
     n = size(aero_dist_list)
     p = find_1d(n, time_list, time)

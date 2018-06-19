@@ -168,13 +168,11 @@ contains
 
     type(property_t), pointer :: spec_props
     character(len=:), allocatable :: key_name, spec_name, water_name, &
-            phase_name, string_val
-    integer(kind=i_kind) :: i_spec, i_qty, i_aero_rep, i_aero_phase, &
-            n_aero_ids, i_aero_id, temp_int
+            phase_name
+    integer(kind=i_kind) :: i_spec, i_aero_rep, n_aero_ids, i_aero_id
     type(string_t), allocatable :: unique_spec_names(:), &
             unique_water_names(:)
-    integer(kind=i_kind), allocatable :: aero_spec_ids(:), &
-            water_spec_ids(:), phase_ids(:)
+    integer(kind=i_kind), allocatable :: phase_ids(:)
     real(kind=dp) :: temp_real, N_star
 
     ! Get the property set

@@ -98,8 +98,7 @@ contains
     !> JSON object
     type(json_value), pointer, intent(in) :: j_obj
 
-    type(json_value), pointer :: child
-    character(kind=json_ck, len=:), allocatable :: key, unicode_type_name
+    character(kind=json_ck, len=:), allocatable :: unicode_type_name
     character(len=:), allocatable :: type_name
     logical(kind=json_lk) :: found
 
@@ -177,8 +176,6 @@ contains
     class(sub_model_factory_t) :: this
     !> Sub-model to pack
     class(sub_model_data_t), intent(in) :: sub_model
-
-    integer(kind=i_kind) :: i_sub_model
 
     pack_size =  pmc_mpi_pack_size_integer(int(1, kind=i_kind)) + &
                  sub_model%pack_size()

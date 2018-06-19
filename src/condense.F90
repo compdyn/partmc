@@ -162,7 +162,6 @@ contains
 
     integer :: i_part, n_eqn, i_eqn
     real(kind=dp) :: state(aero_state_n_part(aero_state) + 1)
-    real(kind=dp) :: init_time, final_time
     real(kind=dp) :: abs_tol_vector(aero_state_n_part(aero_state) + 1)
     real(kind=dp) :: num_conc
     real(kind=dp) :: reweight_num_conc(aero_state_n_part(aero_state))

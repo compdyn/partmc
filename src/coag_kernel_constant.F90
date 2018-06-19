@@ -107,7 +107,7 @@ contains
     !> Output state.
     type(aero_binned_t), intent(inout) :: aero_binned
 
-    real(kind=dp) :: tau, T, rat_v, nn, b, sigma, mean_vol
+    real(kind=dp) :: tau, rat_v, nn, mean_vol
     integer :: k
 
     real(kind=dp), parameter :: lambda = 1d0

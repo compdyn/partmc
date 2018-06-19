@@ -312,8 +312,6 @@ contains
     !> Aero_data data.
     type(aero_data_t), intent(inout) :: aero_data
 
-    integer :: i
-
     aero_data%i_water = string_array_find(aero_data%name, "H2O")
 
   end subroutine aero_data_set_water_index
@@ -334,7 +332,7 @@ contains
          "LIM2  ", "CO3   ", "Na    ", "Ca    ", "OIN   ", "OC    ", &
          "BC    "]
 
-    integer :: i_spec, i_mosaic_spec, i
+    integer :: i_spec
 
     aero_data%mosaic_index = 0
     do i_spec = 1,aero_data_n_spec(aero_data)
@@ -354,7 +352,7 @@ contains
     !> Aero_data data.
     type(aero_data_t), intent(inout) :: aero_data
 
-    integer :: n_species, species, i
+    integer :: n_species, i
     character(len=SPEC_LINE_MAX_VAR_LEN), allocatable :: species_name(:)
     real(kind=dp), allocatable :: species_data(:,:)
 
@@ -826,7 +824,6 @@ contains
     integer :: num_spec, i_spec
     type(chem_spec_data_t), pointer :: chem_spec_data
     type(property_t), pointer :: property_set
-    integer(kind=i_kind), allocatable :: phlex_id(:)
 
     rep_name = "PartMC single particle"
     if (.not.phlex_core%get_aero_rep(rep_name, this%aero_rep_ptr)) then

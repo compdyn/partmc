@@ -146,12 +146,11 @@ contains
     character(len=:), allocatable :: key_name, spec_name, water_name, &
             phase_name, string_val, ion_pair_name
     integer(kind=i_kind) :: i_phase_inst, j_spec, i_qty, i_aero_rep, &
-            i_aero_phase, n_aero_ids, i_aero_id, num_spec_per_phase, &
-            num_phase, num_react, num_prod, temp_int, tracer_type
-    real(kind=dp) :: temp_real, N_star
+            i_aero_phase, num_spec_per_phase, num_phase, num_react, &
+            num_prod, temp_int, tracer_type
+    real(kind=dp) :: temp_real
     type(string_t), allocatable :: unique_names(:), react_names(:), &
             prod_names(:)
-    integer(kind=i_kind), allocatable :: aero_spec_ids(:), water_spec_ids(:)
 
     ! Get the property set
     if (.not. associated(this%property_set)) call die_msg(206493887, &

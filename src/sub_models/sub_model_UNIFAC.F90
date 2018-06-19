@@ -229,7 +229,7 @@ contains
     type(property_t), pointer :: main_groups, main_group
     type(property_t), pointer :: spec_groups, interactions
     character(len=:), allocatable :: key_name, phase_name
-    character(len=:), allocatable :: string_val, inter_group_name
+    character(len=:), allocatable :: inter_group_name
     character(len=:), allocatable :: main_group_name, spec_group_name
     integer(kind=i_kind) :: i_spec, i_phase, i_rep, i_main_group, i_group
     integer(kind=i_kind) :: i_instance, i_inter, i_phase_inst, i_spec_group

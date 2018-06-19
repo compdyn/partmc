@@ -27,7 +27,7 @@ contains
 
   !> Run the Phlexible chemistry module for the current PartMC state
   subroutine pmc_phlex_interface_solve(phlex_core, phlex_state, aero_data, &
-            aero_state, gas_data, gas_state, del_t)
+            aero_state, gas_state, del_t)
 
     !> Phlexible chemistry core
     type(phlex_core_t), intent(in) :: phlex_core
@@ -37,8 +37,6 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state
     type(aero_state_t), intent(inout) :: aero_state
-    !> Gas data
-    type(gas_data_t), intent(in) :: gas_data
     !> Gas state
     type(gas_state_t), intent(inout) :: gas_state
     !> Time step (s)
@@ -60,15 +58,15 @@ contains
 
       ! Set the Phlex chem aerosol state        
       num_conc = aero_weight_array_num_conc(aero_state%awa, part, aero_data)
-      call pmc_phlex_interface_set_phlex_conc(aero_data, part, phlex_core, &
-              phlex_state, num_conc)
+      call pmc_phlex_interface_set_phlex_conc(aero_data, part, phlex_state, &
+              num_conc)
       
       ! Solve the phase-transfer and aerosol-phase chemistry for this particle
       call phlex_core%solve(phlex_state, del_t, AERO_RXN)
 
       ! Update the PartMC aerosol state
-      call pmc_phlex_interface_get_phlex_conc(aero_data, part, phlex_core, &
-              phlex_state, num_conc)
+      call pmc_phlex_interface_get_phlex_conc(aero_data, part, phlex_state, &
+              num_conc)
 
       end associate
     end do
@@ -82,14 +80,12 @@ contains
 
   !> Set the Phlexible chemistry aerosol-phase species concentrations
   subroutine pmc_phlex_interface_set_phlex_conc(aero_data, aero_particle, &
-            phlex_core, phlex_state, num_conc)
+            phlex_state, num_conc)
 
     !> Aerosol particle
     type(aero_data_t), intent (in) :: aero_data
     !> Aerosol data
     type(aero_particle_t), intent(in) :: aero_particle
-    !> Phlexible chemistry core
-    type(phlex_core_t), intent(in) :: phlex_core
     !> Phlexible chemistry state
     type(phlex_state_t), intent(inout) :: phlex_state
     !> Number concentration particle weighting
@@ -120,14 +116,12 @@ contains
 
   !> Get the Phlexible chemistry aerosol-phase species concentrations
   subroutine pmc_phlex_interface_get_phlex_conc(aero_data, aero_particle, &
-            phlex_core, phlex_state, num_conc)
+            phlex_state, num_conc)
 
     !> Aerosol particle
     type(aero_data_t), intent (in) :: aero_data
     !> Aerosol data
     type(aero_particle_t), intent(inout) :: aero_particle
-    !> Phlexible chemistry core
-    type(phlex_core_t), intent(in) :: phlex_core
     !> Phlexible chemistry state
     type(phlex_state_t), intent(inout) :: phlex_state
     !> Number concentration particle weighting

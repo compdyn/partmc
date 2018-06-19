@@ -369,7 +369,7 @@ contains
     real(kind=dp) :: vol_cv(aero_data_n_spec(aero_data)), vol_cv_max
     real(kind=dp) :: mean_95_conf_cv
     integer :: n_samp_remove, n_samp_extra, n_samp_total, n_avg, i_samp
-    integer :: i_unif_entry, i_part, target_id, new_bin, ct
+    integer :: i_unif_entry, i_part, target_id, ct
     type(aero_info_t) :: aero_info
 
     if (integer_varray_n_entry( &
@@ -891,7 +891,6 @@ contains
     integer, intent(in) :: cc
 
     type(aero_particle_t) :: ptc
-    integer :: bn
     type(aero_info_t) :: aero_info_1, aero_info_2
     logical :: remove_1, remove_2, create_new, id_1_lost, id_2_lost
 

@@ -222,7 +222,7 @@ contains
     !> Number of processes to write into file.
     integer, intent(in), optional :: write_n_proc
 
-    integer :: ncid, use_rank, use_n_proc
+    integer :: use_rank, use_n_proc
     character(len=100) :: proc_string, index_string, repeat_string
 
     if (present(write_rank)) then

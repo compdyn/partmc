@@ -59,7 +59,7 @@ contains
     !> Options.
     type(run_exact_opt_t), intent(in) :: run_exact_opt
 
-    integer :: i_time, n_time, ncid
+    integer :: i_time, n_time
     type(aero_binned_t) :: aero_binned
     real(kind=dp) :: time
     type(gas_state_t) :: gas_state

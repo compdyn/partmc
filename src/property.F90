@@ -818,7 +818,7 @@ contains
   function value_string(this) result(val)
 
     !> Value
-    character(:), pointer :: val
+    character(len=:), allocatable :: val
     !> Property key-value pair
     class(property_link_t), intent(in) :: this
 
@@ -827,7 +827,7 @@ contains
     this_val => this%val
     select type (this_val)
       type is (string_t)
-        val => this_val%string
+        val = this_val%string
       class default
         call die_msg(153505401, "Property type mismatch for key "//&
                 trim(this%key_name))

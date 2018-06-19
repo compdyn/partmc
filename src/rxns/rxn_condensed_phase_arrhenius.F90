@@ -163,14 +163,11 @@ contains
     character(len=:), allocatable :: key_name, spec_name, water_name, &
             phase_name, temp_string
     integer(kind=i_kind) :: i_spec, i_phase_inst, i_qty, i_aero_rep, &
-            i_aero_phase, n_aero_ids, i_aero_id, num_spec_per_phase, &
-            num_phase, num_react, num_prod
+            i_aero_phase, num_spec_per_phase, num_phase, num_react, num_prod
     type(string_t), allocatable :: unique_names(:)
     type(string_t), allocatable :: react_names(:), prod_names(:)
-    integer(kind=i_kind), allocatable :: aero_spec_ids(:)
-    integer(kind=i_kind), allocatable :: water_spec_ids(:)
 
-    integer(kind=i_kind) :: temp_int, tracer_type
+    integer(kind=i_kind) :: temp_int
     real(kind=dp) :: temp_real
     logical :: is_aqueous = .false.
 

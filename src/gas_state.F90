@@ -240,7 +240,6 @@ contains
     real(kind=dp), intent(out) :: rate
 
     integer :: n, p
-    real(kind=dp) :: y, alpha
 
     n = size(gas_state_list)
     p = find_1d(n, time_list, time)

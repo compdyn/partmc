@@ -273,7 +273,7 @@ contains
     !> JSON object
     type(json_value), pointer, intent(in) :: j_obj
 
-    type(json_value), pointer :: child, next, species
+    type(json_value), pointer :: child, next
     character(kind=json_ck, len=:), allocatable :: key
 
     ! allocate space for the reaction property set

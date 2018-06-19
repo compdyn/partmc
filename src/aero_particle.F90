@@ -716,7 +716,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
 
-    real(kind=dp) :: kappa, diam, C, A
+    real(kind=dp) :: kappa, diam, C
 
     kappa = aero_particle_solute_kappa(aero_particle, aero_data)
     C = sqrt(4d0 * env_state_A(env_state)**3 / 27d0)

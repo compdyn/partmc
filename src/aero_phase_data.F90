@@ -231,7 +231,7 @@ contains
     character(kind=json_ck, len=:), allocatable :: key, unicode_str_val
     integer(kind=i_kind) :: var_type
 
-    character(len=:), allocatable :: phase_name, str_val
+    character(len=:), allocatable :: str_val
     type(property_t), pointer :: property_set
 
     ! allocate space for the phase property set

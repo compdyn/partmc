@@ -296,8 +296,7 @@ contains
     !> JSON object
     type(json_value), pointer, intent(in) :: j_obj
 
-    type(json_value), pointer :: child
-    character(kind=json_ck, len=:), allocatable :: key, unicode_type_name
+    character(kind=json_ck, len=:), allocatable :: unicode_type_name
     character(len=:), allocatable :: type_name
     logical(kind=json_lk) :: found
 
@@ -396,8 +395,6 @@ contains
     class(rxn_factory_t) :: this
     !> Reaction to pack
     class(rxn_data_t), intent(in) :: rxn
-
-    integer(kind=i_kind) :: i_rxn
 
     pack_size =  pmc_mpi_pack_size_integer(int(1, kind=i_kind)) + &
                  rxn%pack_size()

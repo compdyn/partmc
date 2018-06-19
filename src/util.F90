@@ -128,9 +128,9 @@ contains
     logical, intent(in) :: condition_ok
     !> Msg if assertion fails.
     character(len=*), intent(in) :: error_msg
-
+#ifdef PMC_USE_MPI
     integer :: ierr
-
+#endif
     if (.not. condition_ok) then
        write(0,'(a)') 'ERROR (PartMC-' // trim(integer_to_string(code)) &
             // '): ' // trim(error_msg)
@@ -742,7 +742,6 @@ contains
 
     integer :: val
     integer :: ios
-    character(len=len(string)+300) :: error_msg
 
     call assert_msg(447772570, len_trim(string) <= 20, &
          'error converting "' // trim(string) &
@@ -765,7 +764,6 @@ contains
 
     real(kind=dp) :: val
     integer :: ios
-    character(len=len(string)+300) :: error_msg
 
     call assert_msg(733728030, len_trim(string) <= 30, &
          'error converting "' // trim(string) // '" to real: string too long')
@@ -786,8 +784,6 @@ contains
     character(len=*), intent(in) :: string
 
     logical :: val
-    integer :: ios
-    character(len=len(string)+300) :: error_msg
 
     val = .false.
     if ((trim(string) == 'yes') &
@@ -1548,7 +1544,7 @@ contains
     !> True if at EOF (end of file).
     logical, intent(out) :: eof
 
-    integer :: ios, n_read
+    integer :: ios
     character(len=1) :: read_char
 
     eol = .false.

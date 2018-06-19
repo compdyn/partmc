@@ -321,8 +321,6 @@ contains
     !> State to zero.
     type(aero_state_t), intent(inout) :: aero_state
 
-    integer :: i, n_bin
-
     call aero_particle_array_zero(aero_state%apa)
     aero_state%valid_sort = .false.
     call aero_info_array_zero(aero_state%aero_info_array)
@@ -649,7 +647,7 @@ contains
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
 
-    integer :: i_part, i_bin
+    integer :: i_part
 
     do i_part = 1,aero_state_delta%apa%n_part
        call aero_state_add_particle(aero_state, &
@@ -894,8 +892,7 @@ contains
     integer, intent(in) :: removal_action
 
     integer :: n_transfer, i_transfer, i_part
-    logical :: do_add, do_remove, overwrite_to
-    real(kind=dp) :: num_conc_from, num_conc_to
+    logical :: overwrite_to
     type(aero_info_t) :: aero_info
 
     call assert(393205561, (sample_prob >= 0d0) .and. (sample_prob <= 1d0))
@@ -1617,7 +1614,6 @@ contains
     !> Whether to allow halving of the population.
     logical, intent(in) :: allow_halving
 
-    real(kind=dp) :: ratio
     integer :: i_part, i_remove, n_remove, i_entry, n_part
     type(aero_info_t) :: aero_info
 
@@ -1827,7 +1823,7 @@ contains
 
     real(kind=dp) :: species_volume_conc(aero_data_n_spec(aero_data))
     real(kind=dp) :: total_volume_conc, particle_volume, num_conc
-    integer :: i_bin, i_class, i_entry, i_part, i_spec
+    integer :: i_bin, i_class, i_entry, i_part
 
     call aero_state_sort(aero_state, aero_data, bin_grid)
 
@@ -2111,7 +2107,7 @@ contains
     !> Value to pack.
     type(aero_state_t), intent(in) :: val
 
-    integer :: total_size, i_group
+    integer :: total_size
 
     total_size = 0
     total_size = total_size + pmc_mpi_pack_size_apa(val%apa)
@@ -2262,7 +2258,6 @@ contains
     integer, intent(out) :: dimid_aero_particle
 
     integer :: status, i_part
-    integer :: varid_aero_particle
     integer :: aero_particle_centers(aero_state_n_part(aero_state))
 
     ! try to get the dimension ID
@@ -2303,7 +2298,6 @@ contains
     integer, intent(out) :: dimid_aero_removed
 
     integer :: status, i_remove, dim_size
-    integer :: varid_aero_removed
     integer :: aero_removed_centers( &
          max(1, aero_info_array_n_item(aero_state%aero_info_array)))
 
@@ -2712,8 +2706,8 @@ contains
     !> aero_data structure.
     type(aero_data_t), intent(in) :: aero_data
 
-    integer :: dimid_aero_particle, dimid_aero_removed, n_info_item, n_part
-    integer :: i_bin, i_part_in_bin, i_part, i_remove, status
+    integer :: dimid_aero_particle, n_info_item, n_part
+    integer :: i_part, i_remove, status
     type(aero_particle_t) :: aero_particle
     character(len=1000) :: name
 

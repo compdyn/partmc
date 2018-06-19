@@ -129,8 +129,10 @@ contains
     allocate(new_obj)
 
     ! Check for an available solver
+    phlex_solver_data => phlex_solver_data_t()
     call assert_msg(332298164, phlex_solver_data%is_solver_available(), &
             "No solver available")
+    deallocate(phlex_solver_data)
 
     ! Initialize the time-invariant model data on each node
     if (MONARCH_NODE.eq.0) then
@@ -168,7 +170,8 @@ contains
               pmc_mpi_pack_size_integer_array(new_obj%map_monarch_id) + &
               pmc_mpi_pack_size_integer_array(new_obj%map_phlex_id) + &
               pmc_mpi_pack_size_integer_array(new_obj%init_conc_phlex_id) + &
-              pmc_mpi_pack_size_real_array(new_obj%init_conc)
+              pmc_mpi_pack_size_real_array(new_obj%init_conc) + &
+              pmc_mpi_pack_size_integer(new_obj%gas_phase_water_id)
       allocate(buffer(pack_size))
       pos = 0
       call new_obj%phlex_core%bin_pack(buffer, pos)
@@ -176,6 +179,7 @@ contains
       call pmc_mpi_pack_integer_array(buffer, pos, new_obj%map_phlex_id)
       call pmc_mpi_pack_integer_array(buffer, pos, new_obj%init_conc_phlex_id)
       call pmc_mpi_pack_real_array(buffer, pos, new_obj%init_conc)
+      call pmc_mpi_pack_integer(buffer, pos, new_obj%gas_phase_water_id)
     endif
        
     ! broadcast the buffer size
@@ -198,6 +202,7 @@ contains
       call pmc_mpi_unpack_integer_array(buffer, pos, new_obj%map_phlex_id)
       call pmc_mpi_unpack_integer_array(buffer, pos, new_obj%init_conc_phlex_id)
       call pmc_mpi_unpack_real_array(buffer, pos, new_obj%init_conc)
+      call pmc_mpi_unpack_integer(buffer, pos, new_obj%gas_phase_water_id)
 #endif
     end if
 
@@ -653,7 +658,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get initial concentrations for the moch MONARCH model (for testing only)
+  !> Get initial concentrations for the mock MONARCH model (for testing only)
   subroutine get_init_conc(this, MONARCH_conc, MONARCH_water_conc, &
       WATER_VAPOR_ID, MONARCH_air_density)
 

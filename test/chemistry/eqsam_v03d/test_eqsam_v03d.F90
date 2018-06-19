@@ -262,6 +262,8 @@ contains
     !!! Verify model data !!!
     !!!!!!!!!!!!!!!!!!!!!!!!!
 
+    ! TODO finish building full eqsam mechanism for test
+
     ! Find the mechanism
 !    key = "eqsam"
 !    call assert(369786347, phlex_core%find_mechanism(key, i_mech))

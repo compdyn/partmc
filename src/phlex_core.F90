@@ -134,6 +134,8 @@ module pmc_phlex_core
     type(aero_phase_data_ptr), pointer :: aero_phase(:) => null()
     !> Size of the state array
     integer(kind=i_kind) :: state_array_size
+    !> Initial state values
+    real(kind=dp), allocatable :: init_state(:)
     !> Flag to split gas- and aerosol-phase reactions
     !! (for large aerosol representations, like single-particle)
     logical :: split_gas_aero = .false.
@@ -597,7 +599,11 @@ contains
     ! Indices for iteration
     integer(kind=i_kind) :: i_mech, i_phase, i_aero_rep, i_sub_model
     integer(kind=i_kind) :: i_state_var, i_spec
-   
+  
+    ! Variables for setting initial state values 
+    class(aero_rep_data_t), pointer :: rep
+    integer(kind=i_kind) :: i_state_elem, i_name
+
     ! Species name for looking up properties
     character(len=:), allocatable :: spec_name
     ! Gas-phase species names
@@ -684,6 +690,7 @@ contains
                 this%chem_spec_data%get_type(spec_name, &
                 this%var_type(i_state_var)))
       end do
+      deallocate(unique_names)
     end do
 
     ! Make sure absolute tolerance and variable type arrays are completely
@@ -694,6 +701,30 @@ contains
             " elements of absolute tolerance and variable type arrays")
 
     this%is_initialized = .true.
+
+    ! Set the initial state values
+    allocate(this%init_state(this%state_array_size))
+
+    ! Set species concentrations to zero
+    this%init_state(:) = 0.0
+
+    ! Set activity coefficients to 1.0
+    do i_aero_rep = 1, size(this%aero_rep)
+      
+      rep => this%aero_rep(i_aero_rep)%val
+
+      ! Get the ion pairs for which activity coefficients can be calculated
+      unique_names = rep%unique_names(tracer_type = CHEM_SPEC_ACTIVITY_COEFF)
+
+      ! Set the activity coefficients to 1.0 as default
+      do i_name = 1, size(unique_names)
+        i_state_elem = rep%spec_state_id(unique_names(i_name)%string)
+        this%init_state(i_state_elem) = real(1.0d0, kind=dp)
+      end do
+
+      deallocate(unique_names)
+
+    end do
 
   end subroutine initialize
 
@@ -833,35 +864,10 @@ contains
     !> Chemical model
     class(phlex_core_t), intent(in) :: this
 
-    class(aero_rep_data_t), pointer :: rep
-    type(string_t), allocatable :: unique_names(:)
-    integer(kind=i_kind) :: i_state_elem, i_rep, i_name
-
     new_state => phlex_state_t()
 
     ! Set up the state variable array
-    allocate(new_state%state_var(this%state_array_size))
-
-    ! Set species concentrations to zero
-    new_state%state_var(:) = 0.0
-
-    ! Set activity coefficients to 1.0
-    do i_rep = 1, size(this%aero_rep)
-      
-      rep => this%aero_rep(i_rep)%val
-
-      ! Get the ion pairs for which activity coefficients can be calculated
-      unique_names = rep%unique_names(tracer_type = CHEM_SPEC_ACTIVITY_COEFF)
-
-      ! Set the activity coefficients to 1.0 as default
-      do i_name = 1, size(unique_names)
-        i_state_elem = rep%spec_state_id(unique_names(i_name)%string)
-        new_state%state_var(i_state_elem) = real(1.0d0, kind=dp)
-      end do
-
-      deallocate(unique_names)
-
-    end do
+    allocate(new_state%state_var, source=this%init_state)
 
   end function new_state
 
@@ -1165,7 +1171,8 @@ contains
                 pmc_mpi_pack_size_logical(this%split_gas_aero) + &
                 pmc_mpi_pack_size_real(this%rel_tol) + &
                 pmc_mpi_pack_size_real_array(this%abs_tol) + &
-                pmc_mpi_pack_size_integer_array(this%var_type)
+                pmc_mpi_pack_size_integer_array(this%var_type) + &
+                pmc_mpi_pack_size_real_array(this%init_state)
 
   end function pack_size
 
@@ -1218,6 +1225,7 @@ contains
     call pmc_mpi_pack_real(buffer, pos, this%rel_tol)
     call pmc_mpi_pack_real_array(buffer, pos, this%abs_tol)
     call pmc_mpi_pack_integer_array(buffer, pos, this%var_type)
+    call pmc_mpi_pack_real_array(buffer, pos, this%init_state)
     call assert(184050835, &
          pos - prev_position <= this%pack_size())
 #endif
@@ -1274,6 +1282,7 @@ contains
     call pmc_mpi_unpack_real(buffer, pos, this%rel_tol)
     call pmc_mpi_unpack_real_array(buffer, pos, this%abs_tol)
     call pmc_mpi_unpack_integer_array(buffer, pos, this%var_type)
+    call pmc_mpi_unpack_real_array(buffer, pos, this%init_state)
     this%is_initialized = .true.
     call assert(291557168, &
          pos - prev_position <= this%pack_size())

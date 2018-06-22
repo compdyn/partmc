@@ -517,6 +517,7 @@ contains
          + pmc_mpi_pack_size_real_array(val%molec_weight) &
          + pmc_mpi_pack_size_real_array(val%kappa) &
          + pmc_mpi_pack_size_string_array(val%source_name) &
+         + pmc_mpi_pack_size_string_array(val%weight_class_name) &
          + pmc_mpi_pack_size_fractal(val%fractal)
 
   end function pmc_mpi_pack_size_aero_data
@@ -545,6 +546,7 @@ contains
     call pmc_mpi_pack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_pack_real_array(buffer, position, val%kappa)
     call pmc_mpi_pack_string_array(buffer, position, val%source_name)
+    call pmc_mpi_pack_string_array(buffer, position, val%weight_class_name)
     call pmc_mpi_pack_fractal(buffer, position, val%fractal)
     call assert(183834856, &
          position - prev_position <= pmc_mpi_pack_size_aero_data(val))
@@ -576,6 +578,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, position, val%molec_weight)
     call pmc_mpi_unpack_real_array(buffer, position, val%kappa)
     call pmc_mpi_unpack_string_array(buffer, position, val%source_name)
+    call pmc_mpi_unpack_string_array(buffer, position, val%weight_class_name)
     call pmc_mpi_unpack_fractal(buffer, position, val%fractal)
     call assert(188522823, &
          position - prev_position <= pmc_mpi_pack_size_aero_data(val))

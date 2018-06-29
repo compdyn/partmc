@@ -284,17 +284,25 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Broadcast the given value from process 0 to all other processes.
-  subroutine pmc_mpi_bcast_integer(val)
+  subroutine pmc_mpi_bcast_integer(val, comm)
 
     !> Value to broadcast.
     integer, intent(inout) :: val
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: root, ierr
+    integer :: root, ierr, local_comm
+
+    if (present(comm)) then
+      local_comm = comm
+    else
+      local_comm = MPI_COMM_WORLD
+    endif
 
     root = 0 ! source of data to broadcast
     call mpi_bcast(val, 1, MPI_INTEGER, root, &
-         MPI_COMM_WORLD, ierr)
+         local_comm, ierr)
     call pmc_mpi_check_ierr(ierr)
 #endif
 
@@ -303,17 +311,25 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Broadcast the given value from process 0 to all other processes.
-  subroutine pmc_mpi_bcast_string(val)
+  subroutine pmc_mpi_bcast_string(val, comm)
 
     !> Value to broadcast.
     character(len=*), intent(inout) :: val
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: root, ierr
+    integer :: root, ierr, local_comm
+
+    if (present(comm)) then
+      local_comm = comm
+    else
+      local_comm = MPI_COMM_WORLD
+    endif
 
     root = 0 ! source of data to broadcast
     call mpi_bcast(val, len(val), MPI_CHARACTER, root, &
-         MPI_COMM_WORLD, ierr)
+         local_comm, ierr)
     call pmc_mpi_check_ierr(ierr)
 #endif
 
@@ -322,17 +338,25 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Broadcast the given value from process 0 to all other processes.
-  subroutine pmc_mpi_bcast_packed(val)
+  subroutine pmc_mpi_bcast_packed(val, comm)
 
     !> Value to broadcast.
     character, intent(inout) :: val(:)
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: root, ierr
+    integer :: root, ierr, local_comm
+
+    if (present(comm)) then
+      local_comm = comm
+    else
+      local_comm = MPI_COMM_WORLD
+    endif
 
     root = 0 ! source of data to broadcast
     call mpi_bcast(val, size(val), MPI_CHARACTER, root, &
-         MPI_COMM_WORLD, ierr)
+         local_comm, ierr)
     call pmc_mpi_check_ierr(ierr)
 #endif
 

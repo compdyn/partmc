@@ -100,7 +100,7 @@ contains
   !! configuration file and the starting and ending indices for chemical
   !! species in the tracer array.
   function constructor(phlex_config_file, interface_config_file, &
-                       starting_id, ending_id) result (new_obj)
+                       starting_id, ending_id, mpi_comm) result (new_obj)
 
     !> A new MONARCH interface
     type(monarch_interface_t), pointer :: new_obj
@@ -112,15 +112,27 @@ contains
     integer, optional :: starting_id
     !> Ending index for chemical species in the MONARCH tracer array
     integer, optional :: ending_id
+    !> MPI communicator
+    integer, intent(in), optional :: mpi_comm
 
     type(phlex_solver_data_t), pointer :: phlex_solver_data
     character, allocatable :: buffer(:)
     integer(kind=i_kind) :: pos, pack_size
     integer(kind=i_kind) :: i_spec
     type(string_t), allocatable :: unique_names(:)
-
+    
     ! Computation time variable
     real(kind=dp) :: comp_start, comp_end
+
+#ifdef PMC_USE_MPI
+    integer :: local_comm
+
+    if (present(mpi_comm)) then
+      local_comm = mpi_comm
+    else
+      local_comm = MPI_COMM_WORLD
+    endif
+#endif
 
     ! Set the MPI rank (TODO replace with MONARCH param)
     MONARCH_NODE = pmc_mpi_rank()
@@ -183,7 +195,7 @@ contains
     endif
        
     ! broadcast the buffer size
-    call pmc_mpi_bcast_integer(pack_size)
+    call pmc_mpi_bcast_integer(pack_size, local_comm)
 
     if (pmc_mpi_rank().eq.1) then
       ! allocate the buffer to receive data
@@ -191,7 +203,7 @@ contains
     end if
 
     ! boradcast the buffer
-    call pmc_mpi_bcast_packed(buffer)
+    call pmc_mpi_bcast_packed(buffer, local_comm)
 
     if (pmc_mpi_rank().eq.1) then
       ! unpack the data

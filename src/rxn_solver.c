@@ -338,10 +338,16 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
         rxn_data = (int*) rxn_aqueous_equilibrium_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
+#ifndef PMC_USE_GPU
       case RXN_ARRHENIUS :
         rxn_data = (int*) rxn_arrhenius_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
+#else
+      case RXN_ARRHENIUS :
+        rxn_data = (int*) rxn_arrhenius_skip();
+        break;
+#endif
       case RXN_CMAQ_H2O2 :
         rxn_data = (int*) rxn_CMAQ_H2O2_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);

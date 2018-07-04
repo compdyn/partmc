@@ -20,6 +20,7 @@ option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
 option(ENABLE_JSON "Enable json-fortran support" ON)
+option(ENABLE_GPU "Enable use of GPUs in chemistry solving" OFF)
 
 ######################################################################
 # CPack
@@ -150,6 +151,13 @@ if (ENABLE_JSON)
     PATHS $ENV{JSON_FORTRAN_HOME}/lib /opt/local/lib /usr/local/lib)
   include_directories(${JSON_INCLUDE_DIR})
   add_definitions(-DPMC_USE_JSON)
+endif()
+
+######################################################################
+# GPU support
+
+if (ENABLE_GPU)
+  add_definitions(-DPMC_USE_GPU)
 endif()
 
 ######################################################################
@@ -354,12 +362,21 @@ set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 ######################################################################
 # partmc library
 
+set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
+include_directories(${CMAKE_BINARY_DIR}/include)
+
 set(STD_C_FLAGS "-std=c99")
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
   set(STD_F_FLAGS "-extend_source -warn truncated_source")
 elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
   set(STD_F_FLAGS "-ffree-line-length-none")
+elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "XL" OR 
+       ${CMAKE_Fortran_COMPILER_ID} MATCHES "VisualAge" OR
+       ${CMAKE_Fortran_COMPILER_ID} MATCHES "zOS" )
+  set(STD_F_FLAGS " ")
+else()
+  set(STD_F_FLAGS " ")
 endif()
 
 set(REACTIONS_F_SRC 
@@ -498,7 +515,7 @@ set(CB5_KPP_SOLVER
 	test/chemistry/cb05cl_ae5/cb05cl_ae5_Function.f90
 	test/chemistry/cb05cl_ae5/cb05cl_ae5_Global.f90
 	test/chemistry/cb05cl_ae5/cb05cl_ae5_Initialize.f90
-	test/chemistry/cb05cl_ae5/cb05cl_ae5_Integrator.F90
+        test/chemistry/cb05cl_ae5/cb05cl_ae5_Integrator.F90
 	test/chemistry/cb05cl_ae5/cb05cl_ae5_Jacobian.f90
 	test/chemistry/cb05cl_ae5/cb05cl_ae5_JacobianSP.f90
 	test/chemistry/cb05cl_ae5/cb05cl_ae5_LinearAlgebra.f90
@@ -514,6 +531,12 @@ if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
 	set(CB5_EBI_FLAGS "-fixed -extend_source -warn truncated_source")
 elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
 	set(CB5_EBI_FLAGS "-ffixed-form -ffixed-line-length-none")
+elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "XL" OR 
+       ${CMAKE_Fortran_COMPILER_ID} MATCHES "VisualAge" OR
+       ${CMAKE_Fortran_COMPILER_ID} MATCHES "zOS" )
+  set(CB5_EBI_FLAGS " ")
+else()
+  set(CB5_EBI_FLAGS " ")
 endif()
 
 set_source_files_properties(${CB5_EBI_SOLVER} PROPERTIES COMPILE_FLAGS

@@ -24,6 +24,11 @@
 #include <sunmatrix/sunmatrix_sparse.h>  /* sparse SUNMatrix                    */
 #endif
 
+/* Header files with GPU structures and functions */
+#ifdef PMC_USE_GPU
+#include "rxn_gpu_solver.h"
+#endif
+
 /* Math constants */
 #define ZERO 0.0
 #define ONE 1.0

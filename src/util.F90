@@ -16,6 +16,14 @@ module pmc_util
   use iso_c_binding
 #endif
 
+#ifdef PMC_USE_GPU
+  !> Ratio of size(double)/size(int) for aligning mixed data blocks
+  integer, parameter :: align_ratio = 4
+#else
+  !> No alignment needed for non-GPU solving
+  integer, parameter :: align_ratio = 4 ! FIXME set to 1 after testing
+#endif
+
   !> Maximum number of IO units usable simultaneously.
   integer, parameter :: max_units = 200
   !> Minimum unit number to allocate.

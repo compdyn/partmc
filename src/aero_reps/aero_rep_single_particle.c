@@ -19,16 +19,16 @@
 
 #define NUM_PHASE_ int_data[0]
 #define AERO_REP_ID_ int_data[1]
+#define INT_DATA_SIZE_ int_data[2]
+#define FLOAT_DATA_SIZE_ int_data[3]
 #define RADIUS_ float_data[0]
 #define NUMBER_CONC_ float_data[1]
-#define NUM_INT_PROP_ 2
+#define NUM_INT_PROP_ 4
 #define NUM_FLOAT_PROP_ 2
 #define PHASE_STATE_ID_(x) (int_data[NUM_INT_PROP_+x]-1)
 #define PHASE_MODEL_DATA_ID_(x) (int_data[NUM_INT_PROP_+NUM_PHASE_+x]-1)
 #define PHASE_MASS_(x) (float_data[NUM_FLOAT_PROP_+x])
 #define PHASE_AVG_MW_(x) (float_data[NUM_FLOAT_PROP_+NUM_PHASE_+x])
-#define INT_DATA_SIZE_ (NUM_INT_PROP_+2*NUM_PHASE_)
-#define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+2*NUM_PHASE_)
 
 /** \brief Flag elements on the state array used by this aerosol representation
  *

@@ -155,7 +155,8 @@ module pmc_rxn_ZSR_aerosol_water
   use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &
                                                   assert, assert_msg, &
-                                                  die_msg, string_t
+                                                  die_msg, string_t, &
+                                                  align_ratio
 
   implicit none
   private
@@ -167,8 +168,10 @@ module pmc_rxn_ZSR_aerosol_water
 #define NUM_ION_PAIR_ this%condensed_data_int(3)
 #define TOTAL_INT_PARAM_ this%condensed_data_int(4)
 #define TOTAL_FLOAT_PARAM_ this%condensed_data_int(5)
+#define INT_DATA_SIZE_ this%condensed_data_int(6)
+#define FLOAT_DATA_SIZE_ this%condensed_data_int(7)
 #define PPM_TO_RH_ this%condensed_data_real(1)
-#define NUM_INT_PROP_ 5
+#define NUM_INT_PROP_ 7
 #define NUM_REAL_PROP_ 1
 #define PHASE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define PAIR_INT_PARAM_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_PHASE_+x)
@@ -244,6 +247,7 @@ contains
     real(kind=dp) :: real_val, molecular_weight
     type(string_t), allocatable :: unique_spec_names(:)
     character(len=:), allocatable :: str_type, ion_pair_name, ion_name
+    integer(kind=i_kind) :: int_data_size, float_data_size
 
     ! Get the reaction property set
     if (.not. associated(this%property_set)) call die_msg(344693903, &
@@ -345,12 +349,18 @@ contains
       call ion_pairs%iter_next()
     end do
 
+    ! Calculate int and float array sizes with alignment spacing
+    int_data_size = n_int_param
+    int_data_size = int_data_size + mod(int_data_size, align_ratio)
+    float_data_size = n_float_param
 
     ! Allocate space in the condensed data arrays
-    allocate(this%condensed_data_int(n_int_param))
-    allocate(this%condensed_data_real(n_float_param))
+    allocate(this%condensed_data_int(int_data_size))
+    allocate(this%condensed_data_real(float_data_size))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
+    INT_DATA_SIZE_ = int_data_size
+    FLOAT_DATA_SIZE_ = float_data_size
 
     ! Set some data dimensions
     NUM_PHASE_  = n_phase

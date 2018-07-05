@@ -20,13 +20,15 @@
 #define NUM_REACT_ (int_data[0])
 #define NUM_PROD_ (int_data[1])
 #define NUM_AERO_PHASE_ (int_data[2])
+#define INT_DATA_SIZE_ (int_data[3])
+#define FLOAT_DATA_SIZE_ (int_data[4])
 #define A_ (float_data[0])
 #define B_ (float_data[1])
 #define C_ (float_data[2])
 #define D_ (float_data[3])
 #define E_ (float_data[4])
 #define RATE_CONSTANT_ (float_data[5])
-#define NUM_INT_PROP_ 3
+#define NUM_INT_PROP_ 5
 #define NUM_FLOAT_PROP_ 6
 #define REACT_(x) (int_data[NUM_INT_PROP_+x]-1)
 #define PROD_(x) (int_data[NUM_INT_PROP_+NUM_REACT_*NUM_AERO_PHASE_+x]-1)
@@ -35,8 +37,6 @@
 #define JAC_ID_(x) (int_data[NUM_INT_PROP_+(2*(NUM_REACT_+NUM_PROD_)+1)*NUM_AERO_PHASE_+x])
 #define YIELD_(x) (float_data[NUM_FLOAT_PROP_+x])
 #define UGM3_TO_MOLM3_(x) (float_data[NUM_FLOAT_PROP_+NUM_PROD_+x])
-#define INT_DATA_SIZE_ (NUM_INT_PROP_+((NUM_REACT_+NUM_PROD_)*(NUM_REACT_+3)+1)*NUM_AERO_PHASE_)
-#define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+2*NUM_PROD_+NUM_REACT_)
 
 /** \brief Flag Jacobian elements used by this reaction
  *

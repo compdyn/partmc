@@ -20,11 +20,13 @@
 #define NUM_REACT_ (int_data[0])
 #define NUM_PROD_ (int_data[1])
 #define NUM_AERO_PHASE_ (int_data[2])
+#define INT_DATA_SIZE_ (int_data[3])
+#define FLOAT_DATA_SIZE_ (int_data[4])
 #define A_ (float_data[0])
 #define C_ (float_data[1])
 #define RATE_CONST_REVERSE_ (float_data[2])
 #define RATE_CONST_FORWARD_ (float_data[3])
-#define NUM_INT_PROP_ 3
+#define NUM_INT_PROP_ 5
 #define NUM_FLOAT_PROP_ 4
 #define REACT_(x) (int_data[NUM_INT_PROP_+x]-1)
 #define PROD_(x) (int_data[NUM_INT_PROP_+NUM_REACT_*NUM_AERO_PHASE_+x]-1)
@@ -33,8 +35,6 @@
 #define DERIV_ID_(x) (int_data[NUM_INT_PROP_+(NUM_REACT_+NUM_PROD_+2)*NUM_AERO_PHASE_+x])
 #define JAC_ID_(x) (int_data[NUM_INT_PROP_+(2*(NUM_REACT_+NUM_PROD_)+2)*NUM_AERO_PHASE_+x])
 #define MASS_FRAC_TO_M_(x) (float_data[NUM_FLOAT_PROP_+x])
-#define INT_DATA_SIZE_ (NUM_INT_PROP_+((NUM_REACT_+NUM_PROD_)*(NUM_REACT_+NUM_PROD_+3)+2)*NUM_AERO_PHASE_)
-#define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+NUM_PROD_+NUM_REACT_)
 
 /** \brief Flag Jacobian elements used by this reaction
  *

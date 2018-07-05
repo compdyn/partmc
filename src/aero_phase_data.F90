@@ -55,13 +55,15 @@ module pmc_aero_phase_data
   use pmc_mpi
   use pmc_phlex_state
   use pmc_property
-  use pmc_util,                       only : die_msg, string_t
+  use pmc_util,                       only : die_msg, string_t, align_ratio
 
   implicit none
   private
 
 #define NUM_STATE_VAR_ this%condensed_data_int(1)
-#define NUM_INT_PROP_ 1
+#define INT_DATA_SIZE_ this%condensed_data_int(2)
+#define FLOAT_DATA_SIZE_ this%condensed_data_int(3)
+#define NUM_INT_PROP_ 3
 #define NUM_REAL_PROP_ 0
 #define SPEC_TYPE_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define MW_(x) this%condensed_data_real(NUM_REAL_PROP_+x)
@@ -307,10 +309,18 @@ contains
     type(property_t), pointer :: spec_props
     integer(kind=i_kind) :: i_spec
     character(len=:), allocatable :: key_name
+    integer(kind=i_kind) :: int_data_size, float_data_size
+
+    ! Calculate int and float array sizes with alignment spacing
+    int_data_size = NUM_INT_PROP_+this%num_spec
+    int_data_size = int_data_size + mod(int_data_size, align_ratio)
+    float_data_size = NUM_REAL_PROP_+2*this%num_spec
 
     ! Allocate space for the condensed data arrays
-    allocate(this%condensed_data_int(NUM_INT_PROP_+this%num_spec))
-    allocate(this%condensed_data_real(NUM_REAL_PROP_+2*this%num_spec))
+    allocate(this%condensed_data_int(int_data_size))
+    allocate(this%condensed_data_real(float_data_size))
+    INT_DATA_SIZE_ = int_data_size
+    FLOAT_DATA_SIZE_ = float_data_size
 
     ! Set the number of species
     NUM_STATE_VAR_ = this%num_spec

@@ -94,11 +94,16 @@ module pmc_rxn_HL_phase_transfer
   use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &
                                                   assert, assert_msg, &
-                                                  die_msg, string_t
+                                                  die_msg, string_t, &
+                                                  align_ratio
 
   implicit none
   private
 
+#define NUM_AERO_PHASE_ this%condensed_data_int(1)
+#define GAS_SPEC_ this%condensed_data_int(2)
+#define INT_DATA_SIZE_ this%condensed_data_int(3)
+#define FLOAT_DATA_SIZE_ this%condensed_data_int(4)
 #define DELTA_H_ this%condensed_data_real(1)
 #define DELTA_S_ this%condensed_data_real(2)
 #define DIFF_COEFF_ this%condensed_data_real(3)
@@ -110,9 +115,7 @@ module pmc_rxn_HL_phase_transfer
 #define CONV_ this%condensed_data_real(9)
 #define MW_ this%condensed_data_real(10)
 #define UGM3_TO_PPM_ this%condensed_data_real(11)
-#define NUM_AERO_PHASE_ this%condensed_data_int(1)
-#define GAS_SPEC_ this%condensed_data_int(2)
-#define NUM_INT_PROP_ 2
+#define NUM_INT_PROP_ 4
 #define NUM_REAL_PROP_ 11
 #define AERO_SPEC_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define AERO_WATER_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_AERO_PHASE_+x)
@@ -174,6 +177,7 @@ contains
             unique_water_names(:)
     integer(kind=i_kind), allocatable :: phase_ids(:)
     real(kind=dp) :: temp_real, N_star
+    integer(kind=i_kind) :: int_data_size, float_data_size
 
     ! Get the property set
     if (.not. associated(this%property_set)) call die_msg(318525776, &
@@ -232,11 +236,18 @@ contains
 
     end do
 
+    ! Calculate int and float array sizes with alignment spacing
+    int_data_size = NUM_INT_PROP_ + 2 + n_aero_ids * 10
+    int_data_size = int_data_size + mod(int_data_size, align_ratio)
+    float_data_size = NUM_REAL_PROP_
+
     ! Allocate space in the condensed data arrays
-    allocate(this%condensed_data_int(NUM_INT_PROP_ + 2 + n_aero_ids * 10))
-    allocate(this%condensed_data_real(NUM_REAL_PROP_))
+    allocate(this%condensed_data_int(int_data_size))
+    allocate(this%condensed_data_real(float_data_size))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
+    INT_DATA_SIZE_ = int_data_size
+    FLOAT_DATA_SIZE_ = float_data_size
 
     ! Set the number of aerosol-species instances
     NUM_AERO_PHASE_ = n_aero_ids

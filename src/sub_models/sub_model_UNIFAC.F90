@@ -132,7 +132,7 @@ module pmc_sub_model_UNIFAC
   use pmc_util,                                 only : dp, i_kind, &
                                                        string_t, assert_msg, &
                                                        die_msg, to_string, &
-                                                       assert
+                                                       assert, align_ratio
 
   implicit none
   private
@@ -141,7 +141,9 @@ module pmc_sub_model_UNIFAC
 #define NUM_GROUP_ this%condensed_data_int(2)
 #define TOTAL_INT_PROP_ this%condensed_data_int(3)
 #define TOTAL_REAL_PROP_ this%condensed_data_int(4)
-#define NUM_INT_PROP_ 4
+#define INT_DATA_SIZE_ this%condensed_data_int(5)
+#define FLOAT_DATA_SIZE_ this%condensed_data_int(6)
+#define NUM_INT_PROP_ 6
 #define NUM_REAL_PROP_ 0
 #define PHASE_INT_LOC_(p) this%condensed_data_int(NUM_INT_PROP_+p)
 #define PHASE_FLOAT_LOC_(p) this%condensed_data_int(NUM_INT_PROP_+NUM_UNIQUE_PHASE_+p)
@@ -252,6 +254,7 @@ contains
     real(kind=dp) :: inter_param
     real(kind=dp), allocatable :: main_group_interactions(:,:)
     logical :: found, phase_ids_set
+    integer(kind=i_kind) :: int_data_size, float_data_size
 
     ! Get the property set
     call assert_msg(403771584, associated(this%property_set), &
@@ -346,11 +349,18 @@ contains
                      + num_phase_spec(i_UNIFAC_phase) * num_phase_inst(i_UNIFAC_phase)    ! gamma
     end do
 
+    ! Calculate int and float array sizes with alignment spacing
+    int_data_size = num_int_data
+    int_data_size = int_data_size + mod(int_data_size, align_ratio)
+    float_data_size = num_real_data
+
     ! Allocate condensed data arrays
-    allocate(this%condensed_data_int(num_int_data))
-    allocate(this%condensed_data_real(num_real_data))
+    allocate(this%condensed_data_int(int_data_size))
+    allocate(this%condensed_data_real(float_data_size))
     this%condensed_data_int(:) = int(999999, kind=i_kind)
     this%condensed_data_real(:) = real(999999.0, kind=dp)
+    INT_DATA_SIZE_ = int_data_size
+    FLOAT_DATA_SIZE_ = float_data_size
 
     ! Set sub model dimensions
     NUM_UNIQUE_PHASE_ = num_unique_phase

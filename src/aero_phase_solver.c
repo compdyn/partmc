@@ -18,13 +18,13 @@
 #define CHEM_SPEC_ACTIVITY_COEFF 4
 
 #define NUM_STATE_VAR_ (int_data[0])
-#define NUM_INT_PROP_ 1
+#define INT_DATA_SIZE_ (int_data[1])
+#define FLOAT_DATA_SIZE_ (int_data[2])
+#define NUM_INT_PROP_ 3
 #define NUM_FLOAT_PROP_ 0
 #define SPEC_TYPE_(x) (int_data[NUM_INT_PROP_+x])
 #define MW_(x) (float_data[NUM_FLOAT_PROP_+x])
 #define DENSITY_(x) (float_data[NUM_FLOAT_PROP_+NUM_STATE_VAR_+x])
-#define INT_DATA_SIZE_ (NUM_INT_PROP_+NUM_STATE_VAR_)
-#define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+2*NUM_STATE_VAR_)
 
 /** \brief Get the mass and average MW in an aerosol phase
  *

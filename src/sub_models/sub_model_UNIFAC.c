@@ -23,7 +23,9 @@
 #define NUM_GROUP_ (int_data[1])
 #define TOTAL_INT_PROP_ (int_data[2])
 #define TOTAL_FLOAT_PROP_ (int_data[3])
-#define NUM_INT_PROP_ 4
+#define INT_DATA_SIZE_ (int_data[4])
+#define FLOAT_DATA_SIZE_ (int_data[5])
+#define NUM_INT_PROP_ 6
 #define NUM_FLOAT_PROP_ 0
 #define PHASE_INT_LOC_(p) (int_data[NUM_INT_PROP_+p]-1)
 #define PHASE_FLOAT_LOC_(p) (int_data[NUM_INT_PROP_+NUM_UNIQUE_PHASE_+p]-1)
@@ -46,9 +48,6 @@
 #define X_I_(p,i) (float_data[PHASE_FLOAT_LOC_(p)+4*NUM_SPEC_(p)+i])
 #define LN_GAMMA_IK_(p,i,k) (float_data[PHASE_FLOAT_LOC_(p)+i*NUM_GROUP_+5*NUM_SPEC_(p)+k])
 #define GAMMA_I_(p,c,i) (float_data[PHASE_INST_FLOAT_LOC_(p,c)+i])
-
-#define INT_DATA_SIZE_ (TOTAL_INT_PROP_)
-#define FLOAT_DATA_SIZE_ (TOTAL_FLOAT_PROP_)
 
 // Update types (These must match values in sub_model_UNIFAC.F90)
 // (none right now)

@@ -16,6 +16,8 @@
 
 #define NUM_REACT_ int_data[0]
 #define NUM_PROD_ int_data[1]
+#define INT_DATA_SIZE_ int_data[2]
+#define FLOAT_DATA_SIZE_ int_data[3]
 #define k1_A_ float_data[0]
 #define k1_B_ float_data[1]
 #define k1_C_ float_data[2]
@@ -24,15 +26,13 @@
 #define k2_C_ float_data[5]
 #define CONV_ float_data[6]
 #define RATE_CONSTANT_ float_data[7]
-#define NUM_INT_PROP_ 2
+#define NUM_INT_PROP_ 4
 #define NUM_FLOAT_PROP_ 8
 #define REACT_(x) (int_data[NUM_INT_PROP_ + x]-1)
 #define PROD_(x) (int_data[NUM_INT_PROP_ + NUM_REACT_ + x]-1)
 #define DERIV_ID_(x) int_data[NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x]
 #define JAC_ID_(x) int_data[NUM_INT_PROP_ + 2*(NUM_REACT_+NUM_PROD_) + x]
 #define YIELD_(x) float_data[NUM_FLOAT_PROP_ + x]
-#define INT_DATA_SIZE_ (NUM_INT_PROP_+(NUM_REACT_+2)*(NUM_REACT_+NUM_PROD_))
-#define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+NUM_PROD_)
 
 /** \brief Flag Jacobian elements used by this reaction
  *

@@ -71,7 +71,8 @@ module pmc_aero_rep_modal_binned_mass
   use pmc_property
   use pmc_util,                               only: dp, i_kind, &
                                                     string_t, assert_msg, &
-                                                    assert, die_msg, to_string
+                                                    assert, die_msg, &
+                                                    to_string, align_ratio
 
   use iso_c_binding
 
@@ -83,7 +84,7 @@ module pmc_aero_rep_modal_binned_mass
 
 #define NUM_SECTION_ this%condensed_data_int(1)
 #define INT_DATA_SIZE_ this%condensed_data_int(2)
-#define REAL_DATA_SIZE_ this%condensed_data_int(3)
+#define FLOAT_DATA_SIZE_ this%condensed_data_int(3)
 #define AERO_REP_ID_ this%condensed_data_int(4)
 #define NUM_INT_PROP_ 4
 #define NUM_REAL_PROP_ 0
@@ -331,6 +332,7 @@ contains
     integer(kind=i_kind) :: n_int_param, n_float_param
     character(len=:), allocatable :: key_name, phase_name, sect_type, str_val
     real(kind=dp) :: min_Dp, max_Dp, d_log_Dp
+    integer(kind=i_kind) :: int_data_size, float_data_size
 
     ! Determine the size of the condensed data arrays
     n_int_param = NUM_INT_PROP_
@@ -459,13 +461,18 @@ contains
     allocate(this%aero_phase(num_phase))
     allocate(this%phase_state_id(size(this%aero_phase)))
 
+    ! Calculate int and float array sizes with alignment spacing
+    int_data_size = n_int_param
+    int_data_size = int_data_size + mod(int_data_size, align_ratio)
+    float_data_size = n_float_param
+
     ! Allocate condensed data arrays
-    allocate(this%condensed_data_int(n_int_param))
-    allocate(this%condensed_data_real(n_float_param))
+    allocate(this%condensed_data_int(int_data_size))
+    allocate(this%condensed_data_real(float_data_size))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
-    INT_DATA_SIZE_ = n_int_param
-    REAL_DATA_SIZE_ = n_float_param
+    INT_DATA_SIZE_ = int_data_size
+    FLOAT_DATA_SIZE_ = float_data_size
 
     ! Set the number of sections
     NUM_SECTION_ = sections%size()
@@ -647,9 +654,11 @@ contains
     end do
 
     ! Check the data sizes
-    call assert(951534966, i_phase-1.eq.num_phase)
-    call assert(951534966, n_int_param.eq.INT_DATA_SIZE_+1)
-    call assert(325387136, n_float_param.eq.REAL_DATA_SIZE_+1)
+    call assert(831761020, i_phase-1.eq.num_phase)
+    int_data_size = n_int_param - 1 + mod(n_int_param - 1, align_ratio)
+    float_data_size = n_float_param - 1
+    call assert(951534966, int_data_size.eq.INT_DATA_SIZE_)
+    call assert(325387136, float_data_size.eq.FLOAT_DATA_SIZE_)
 
   end subroutine initialize
 
@@ -1092,7 +1101,7 @@ contains
 #undef MODAL
 #undef NUM_SECTION_
 #undef INT_DATA_SIZE_
-#undef REAL_DATA_SIZE_
+#undef FLOAT_DATA_SIZE_
 #undef AERO_REP_ID_
 #undef NUM_INT_PROP_
 #undef NUM_REAL_PROP_

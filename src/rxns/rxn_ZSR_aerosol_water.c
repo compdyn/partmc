@@ -20,10 +20,12 @@
 #define NUM_PHASE_ (int_data[0])
 #define GAS_WATER_ID_ (int_data[1]-1)
 #define NUM_ION_PAIR_ (int_data[2])
-#define INT_DATA_SIZE_ (int_data[3])
-#define FLOAT_DATA_SIZE_ (int_data[4])
+#define TOTAL_INT_PARAM_ (int_data[3])
+#define TOTAL_FLOAT_PARAM_ (int_data[4])
+#define INT_DATA_SIZE_ int_data[5]
+#define FLOAT_DATA_SIZE_ int_data[6]
 #define PPM_TO_RH_ (float_data[0])
-#define NUM_INT_PROP_ 5
+#define NUM_INT_PROP_ 7
 #define NUM_REAL_PROP_ 1
 #define PHASE_ID_(x) (int_data[NUM_INT_PROP_+x]-1)
 #define PAIR_INT_PARAM_LOC_(x) (int_data[NUM_INT_PROP_+NUM_PHASE_+x]-1)

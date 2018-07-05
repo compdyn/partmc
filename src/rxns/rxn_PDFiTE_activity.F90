@@ -177,7 +177,7 @@ module pmc_rxn_PDFiTE_activity
   use pmc_util,                             only: i_kind, dp, to_string, &
                                                   assert, assert_msg, &
                                                   die_msg, string_t, &
-                                                  warn_assert_msg
+                                                  warn_assert_msg, align_ratio
 
   implicit none
   private
@@ -187,8 +187,10 @@ module pmc_rxn_PDFiTE_activity
 #define NUM_ION_PAIRS_ this%condensed_data_int(3)
 #define TOTAL_INT_PARAM_ this%condensed_data_int(4)
 #define TOTAL_FLOAT_PARAM_ this%condensed_data_int(5)
+#define INT_DATA_SIZE_ this%condensed_data_int(6)
+#define FLOAT_DATA_SIZE_ this%condensed_data_int(7)
 #define PPM_TO_RH_ this%condensed_data_real(1)
-#define NUM_INT_PROP_ 5
+#define NUM_INT_PROP_ 7
 #define NUM_REAL_PROP_ 1
 #define PHASE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define PAIR_INT_PARAM_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_PHASE_+x)
@@ -269,6 +271,7 @@ contains
     type(string_t), allocatable :: ion_pair_names(:), temp_ion_pair_names(:)
     integer(kind=i_kind), allocatable :: num_inter(:)
     real(kind=dp), allocatable :: rh_range(:)
+    integer(kind=i_kind) :: int_data_size, float_data_size
 
     ! Get the reaction property set
     if (.not. associated(this%property_set)) call die_msg(101529793, &
@@ -418,17 +421,24 @@ contains
     ! Adding space for MW of the cation and anion, and cation and anion
     ! concentrations (for use during solving)
     n_float_param = n_float_param + 4*n_ion_pair
-    
+   
+    ! Adjust int and float arrays for alignment spacing
+    int_data_size = n_int_param
+    int_data_size = int_data_size + mod(int_data_size, align_ratio)
+    float_data_size = n_float_param
+
     ! Allocate space for an array used to make sure all ion pair interactions
     ! are included and the RH range is covered for each
     allocate(num_inter(n_ion_pair))
     allocate(rh_range(n_ion_pair))
 
     ! Allocate space in the condensed data arrays
-    allocate(this%condensed_data_int(n_int_param))
-    allocate(this%condensed_data_real(n_float_param))
+    allocate(this%condensed_data_int(int_data_size))
+    allocate(this%condensed_data_real(float_data_size))
     this%condensed_data_int(:) = int(9999, kind=i_kind)
     this%condensed_data_real(:) = real(9999.0, kind=dp)
+    INT_DATA_SIZE_ = int_data_size
+    FLOAT_DATA_SIZE_ = float_data_size
 
     ! Set some data dimensions
     NUM_PHASE_  = n_phase

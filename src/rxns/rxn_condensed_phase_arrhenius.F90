@@ -90,7 +90,8 @@ module pmc_rxn_condensed_phase_arrhenius
   use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &
                                                   assert, assert_msg, &
-                                                  die_msg, string_t
+                                                  die_msg, string_t, &
+                                                  align_ratio
 
   implicit none
   private
@@ -98,13 +99,15 @@ module pmc_rxn_condensed_phase_arrhenius
 #define NUM_REACT_ this%condensed_data_int(1)
 #define NUM_PROD_ this%condensed_data_int(2)
 #define NUM_AERO_PHASE_ this%condensed_data_int(3)
+#define INT_DATA_SIZE_ this%condensed_data_int(4)
+#define FLOAT_DATA_SIZE_ this%condensed_data_int(5)
 #define A_ this%condensed_data_real(1)
 #define B_ this%condensed_data_real(2)
 #define C_ this%condensed_data_real(3)
 #define D_ this%condensed_data_real(4)
 #define E_ this%condensed_data_real(5)
 #define RATE_CONSTANT_ this%condensed_data_real(6)
-#define NUM_INT_PROP_ 3
+#define NUM_INT_PROP_ 5
 #define NUM_REAL_PROP_ 6
 #define REACT_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define PROD_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_REACT_*NUM_AERO_PHASE_+x)
@@ -166,6 +169,7 @@ contains
             i_aero_phase, num_spec_per_phase, num_phase, num_react, num_prod
     type(string_t), allocatable :: unique_names(:)
     type(string_t), allocatable :: react_names(:), prod_names(:)
+    integer(kind=i_kind) :: int_data_size, float_data_size
 
     integer(kind=i_kind) :: temp_int
     real(kind=dp) :: temp_real
@@ -224,13 +228,19 @@ contains
               aero_rep(i_aero_rep)%val%num_phase_instances(phase_name)
     end do
 
+    ! Calculate int and float array sizes with alignment spacing
+    int_data_size = NUM_INT_PROP_ + &
+            num_phase * (num_spec_per_phase * (num_react + 3) + 1)
+    int_data_size = int_data_size + mod(int_data_size, align_ratio)
+    float_data_size = NUM_REAL_PROP_ + num_spec_per_phase + num_prod
+
     ! Allocate space in the condensed data arrays
-    allocate(this%condensed_data_int(NUM_INT_PROP_ + &
-            num_phase * (num_spec_per_phase * (num_react + 3) + 1)))
-    allocate(this%condensed_data_real(NUM_REAL_PROP_ + &
-            num_spec_per_phase + num_prod))
+    allocate(this%condensed_data_int(int_data_size))
+    allocate(this%condensed_data_real(float_data_size))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
+    INT_DATA_SIZE_ = int_data_size
+    FLOAT_DATA_SIZE_ = float_data_size
 
     ! Set the number of products, reactants and aerosol phase instances
     NUM_REACT_ = num_react

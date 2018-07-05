@@ -19,6 +19,10 @@
 // Small number
 #define SMALL_NUMBER_ 1.0e-30
 
+#define NUM_AERO_PHASE_ int_data[0]
+#define GAS_SPEC_ (int_data[1]-1)
+#define INT_DATA_SIZE_ int_data[2]
+#define FLOAT_DATA_SIZE_ int_data[3]
 #define DELTA_H_ float_data[0]
 #define DELTA_S_ float_data[1]
 #define DIFF_COEFF_ float_data[2]
@@ -30,9 +34,7 @@
 #define CONV_ float_data[8]
 #define MW_ float_data[9]
 #define UGM3_TO_PPM_ float_data[10]
-#define NUM_AERO_PHASE_ int_data[0]
-#define GAS_SPEC_ (int_data[1]-1)
-#define NUM_INT_PROP_ 2
+#define NUM_INT_PROP_ 4
 #define NUM_FLOAT_PROP_ 11
 #define AERO_SPEC_(x) (int_data[NUM_INT_PROP_ + x]-1)
 #define AERO_WATER_(x) (int_data[NUM_INT_PROP_ + NUM_AERO_PHASE_ + x]-1)
@@ -40,8 +42,6 @@
 #define AERO_REP_ID_(x) (int_data[NUM_INT_PROP_ + 3*(NUM_AERO_PHASE_) + x]-1)
 #define DERIV_ID_(x) int_data[NUM_INT_PROP_ + 4*(NUM_AERO_PHASE_) + x]
 #define JAC_ID_(x) int_data[NUM_INT_PROP_ + 1 + 5*(NUM_AERO_PHASE_) + x]
-#define INT_DATA_SIZE_ (NUM_INT_PROP_+2+(10*NUM_AERO_PHASE_))
-#define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_)
 
 /** \brief Flag Jacobian elements used by this reaction
  *

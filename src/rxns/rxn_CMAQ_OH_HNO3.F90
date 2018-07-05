@@ -78,13 +78,16 @@ module pmc_rxn_CMAQ_OH_HNO3
   use pmc_property
   use pmc_rxn_data
   use pmc_util,                             only: i_kind, dp, to_string, &
-                                                  assert, assert_msg, die_msg
+                                                  assert, assert_msg, &
+                                                  die_msg, align_ratio
 
   implicit none
   private
 
 #define NUM_REACT_ this%condensed_data_int(1)
 #define NUM_PROD_ this%condensed_data_int(2)
+#define INT_DATA_SIZE_ this%condensed_data_int(3)
+#define FLOAT_DATA_SIZE_ this%condensed_data_int(4)
 #define k0_A_ this%condensed_data_real(1)
 #define k0_B_ this%condensed_data_real(2)
 #define k0_C_ this%condensed_data_real(3)
@@ -97,7 +100,7 @@ module pmc_rxn_CMAQ_OH_HNO3
 #define SCALING_ this%condensed_data_real(10)
 #define CONV_ this%condensed_data_real(11)
 #define RATE_CONSTANT_ this%condensed_data_real(12)
-#define NUM_INT_PROP_ 2
+#define NUM_INT_PROP_ 4
 #define NUM_REAL_PROP_ 12
 #define REACT_(x) this%condensed_data_int(NUM_INT_PROP_ + x)
 #define PROD_(x) this%condensed_data_int(NUM_INT_PROP_ + NUM_REACT_ + x)
@@ -154,6 +157,7 @@ contains
     character(len=:), allocatable :: key_name, spec_name, string_val
     integer(kind=i_kind) :: i_spec, i_qty
 
+    integer(kind=i_kind) :: int_data_size, float_data_size
     integer(kind=i_kind) :: temp_int
     real(kind=dp) :: temp_real
 
@@ -181,15 +185,21 @@ contains
       i_spec = i_spec + 1
     end do
 
+    ! Calculate int and float array sizes with alignment spacing
+    int_data_size = NUM_INT_PROP_ + (i_spec + 2) * (i_spec + products%size())
+    int_data_size = int_data_size + mod(int_data_size, align_ratio)
+    float_data_size = NUM_REAL_PROP_ + products%size()
+
     ! Allocate space in the condensed data arrays
     ! Space in this example is allocated for two sets of inidices for the 
     ! reactants and products, one molecular property for each reactant, 
     ! yields for the products and three reaction parameters.
-    allocate(this%condensed_data_int(NUM_INT_PROP_ + &
-            (i_spec + 2) * (i_spec + products%size())))
-    allocate(this%condensed_data_real(NUM_REAL_PROP_ + products%size()))
+    allocate(this%condensed_data_int(int_data_size))
+    allocate(this%condensed_data_real(float_data_size))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
+    INT_DATA_SIZE_ = int_data_size
+    FLOAT_DATA_SIZE_ = float_data_size
     
     ! Save the size of the reactant and product arrays (for reactions where
     ! these can vary)

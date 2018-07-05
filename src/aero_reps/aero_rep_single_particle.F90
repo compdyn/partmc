@@ -40,7 +40,7 @@ module pmc_aero_rep_single_particle
   use pmc_util,                                  only: dp, i_kind, &
                                                        string_t, assert_msg, &
                                                        die_msg, to_string, &
-                                                       assert
+                                                       assert, align_ratio
 
   use iso_c_binding
 
@@ -49,9 +49,11 @@ module pmc_aero_rep_single_particle
 
 #define NUM_PHASE_ this%condensed_data_int(1)
 #define AERO_REP_ID_ this%condensed_data_int(2)
+#define INT_DATA_SIZE_ this%condensed_data_int(3)
+#define FLOAT_DATA_SIZE_ this%condensed_data_int(4)
 #define RADIUS_ this%condensed_data_real(1)
 #define NUMBER_CONC_ this%condensed_data_real(2)
-#define NUM_INT_PROP_ 2
+#define NUM_INT_PROP_ 4
 #define NUM_REAL_PROP_ 2
 #define PHASE_STATE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define PHASE_MODEL_DATA_ID_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_PHASE_+x)
@@ -243,6 +245,7 @@ contains
 
     integer(kind=i_kind) :: i_phase, curr_id
     integer(kind=i_kind) :: num_int_param, num_float_param
+    integer(kind=i_kind) :: int_data_size, float_data_size
 
     ! Start off the counters
     num_int_param = NUM_INT_PROP_ + 2*size(aero_phase_set)
@@ -254,11 +257,18 @@ contains
       this%aero_phase(i_phase) = aero_phase_set(i_phase)
     end do
 
+    ! Calculate int and float array sizes with alignment spacing
+    int_data_size = num_int_param
+    int_data_size = int_data_size + mod(int_data_size, align_ratio)
+    float_data_size = num_float_param
+
     ! Allocate condensed data arrays
-    allocate(this%condensed_data_int(num_int_param))
-    allocate(this%condensed_data_real(num_float_param))
+    allocate(this%condensed_data_int(int_data_size))
+    allocate(this%condensed_data_real(float_data_size))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
+    INT_DATA_SIZE_ = int_data_size
+    FLOAT_DATA_SIZE_ = float_data_size
 
     ! Set phase state and model data ids
     NUM_PHASE_ = size(this%aero_phase)

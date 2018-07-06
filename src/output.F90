@@ -830,11 +830,11 @@ contains
     !> Prefix of state file.
     character(len=*), intent(in) :: prefix
     !> Aerosol data.
-    type(aero_data_t), dimension(nz), intent(in) :: aero_data
+    type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state.
     type(aero_state_t), dimension(nz), intent(in) :: aero_state
     !> Gas data.
-    type(gas_data_t), dimension(nz), intent(in) :: gas_data
+    type(gas_data_t), intent(in) :: gas_data
     !> Gas state.
     type(gas_state_t), dimension(nz), intent(in) :: gas_state
     !> Environment state.
@@ -875,8 +875,8 @@ contains
           write_n_proc)
     call write_time(ncid, time, del_t, index)
 
-    call gas_data_output_netcdf(gas_data(1), ncid)
-    call aero_data_output_netcdf(aero_data(1), ncid)
+    call gas_data_output_netcdf(gas_data, ncid)
+    call aero_data_output_netcdf(aero_data, ncid)
 
     do k = 1, nz
        call pmc_nc_check_msg(nf90_redef(ncid),'in define mode for level')
@@ -884,8 +884,8 @@ contains
        call pmc_nc_check_msg(nf90_def_grp(ncid, group_name, ncid_group), &
             'creating level group')
        call pmc_nc_check_msg(nf90_enddef(ncid),'end define mode for level')
-       call gas_state_output_netcdf(gas_state(k), ncid_group, gas_data(k))
-       call aero_state_output_netcdf(aero_state(k), ncid_group, aero_data(k), &
+       call gas_state_output_netcdf(gas_state(k), ncid_group, gas_data)
+       call aero_state_output_netcdf(aero_state(k), ncid_group, aero_data, &
             record_removals, record_optical)
     end do
 

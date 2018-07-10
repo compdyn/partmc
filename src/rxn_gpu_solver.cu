@@ -28,19 +28,18 @@
 /** \brief Assemble a set of indices for each reaction to solve with GPUs
  *
  * \param model_data A pointer to the model data
- * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * gpu_set_rxn_ptrs(ModelData *model_data)
+void gpu_set_rxn_ptrs(ModelData *model_data)
 {
   // Get the number of reactions
   int *rxn_data = (int*) (model_data->rxn_data);
   int n_rxn = *(rxn_data++);
 
   // Get the GPU solving info
-  DeviceData *device_data = model_data->device_data;
+  DeviceData *device_data = (DeviceData*) model_data->device_data;
 
   // Allocate space for the reaction 
-  device_data->gpu_rxn_ptr = malloc(n_rxn * sizeof(void*));
+  device_data->dev_rxn_data = malloc(n_rxn * sizeof(void*));
 
   // Loop through the reactions and save the pointers to those with GPU
   // solver functions
@@ -95,3 +94,5 @@ void * gpu_set_rxn_ptrs(ModelData *model_data)
                     (void*) rxn_data);
           break;
       }
+  }
+}

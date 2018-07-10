@@ -24,11 +24,6 @@
 #include <sunmatrix/sunmatrix_sparse.h>  /* sparse SUNMatrix                    */
 #endif
 
-/* Header files with GPU structures and functions */
-#ifdef PMC_USE_GPU
-#include "rxn_gpu_solver.h"
-#endif
-
 /* Math constants */
 #define ZERO 0.0
 #define ONE 1.0
@@ -62,6 +57,9 @@ typedef struct {
   void *sub_model_data; // Pointer to the sub model parameters
   void *nxt_sub_model;  // Pointer to the element of sub_model_data in which to
                         // store the next set of sub model data
+#ifdef PMC_USE_GPU
+  void *device_data;    // Pointer to GPU device data
+#endif
 } ModelData;
 
 /* Solver data structure */

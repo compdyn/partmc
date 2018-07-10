@@ -14,6 +14,11 @@
 */
 #include "phlex_solver.h"
 
+/* Header files with GPU structures and functions */
+#ifdef PMC_USE_GPU
+#include "rxn_gpu_solver.h"
+#endif
+
 #define PHLEX_SOLVER_SUCCESS 0
 #define PHLEX_SOLVER_FAIL 1
 

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.6.4)
 # http://www.cmake.org/Bug/view.php?id=8598
 # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=35707
 # http://www.cmake.org/Bug/view.php?id=8408
-project(PARTMC Fortran C)
+project(PARTMC LANGUAGES Fortran C)
 
 set(PACKAGE_BUGREPORT "mwest@illinois.edu")
 set(PACKAGE_NAME "PartMC")
@@ -158,6 +158,7 @@ endif()
 
 if (ENABLE_GPU)
   add_definitions(-DPMC_USE_GPU)
+  enable_language(CUDA)
 endif()
 
 ######################################################################
@@ -366,6 +367,7 @@ set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
 include_directories(${CMAKE_BINARY_DIR}/include)
 
 set(STD_C_FLAGS "-std=c99")
+set(STD_CUDA_FLAGS " ")
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
   set(STD_F_FLAGS "-extend_source -warn truncated_source")
@@ -450,6 +452,16 @@ set(PHLEX_C_SRC
 set_source_files_properties(${PHLEX_C_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_C_FLAGS})
 
+if(ENABLE_GPU)
+  set(PHLEX_CUDA_SRC
+        src/rxn_gpu_solver.cu)
+  set_source_files_properties(${PHLEX_CUDA_SRC} PROPERTIES COMPILE_FLAGS
+        ${STD_CUDA_FLAGS})
+  set_source_files_properties(${PHLEX_CUDA_SRC} PROPERTIES LANGUAGE CUDA)
+else()
+  set(PHLEX_CUDA_SRC "")
+endif()
+
 add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/integer_rmap.F90 src/integer_rmap2.F90 src/aero_sorted.F90
   src/aero_binned.F90 src/bin_grid.F90 src/constants.F90
@@ -472,7 +484,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/aero_phase_data.F90 src/aero_rep_factory.F90 src/phlex_interface.F90
   src/rxn_factory.F90 src/sub_model_data.F90 src/sub_model_factory.F90
   ${PHLEX_C_SRC} ${AEROSOL_REPS_SRC} ${SUB_MODELS_SRC} ${REACTIONS_SRC}
-  ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC})
+  ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC} ${PHLEX_CUDA_SRC})
 
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
   ${MOSAIC_LIB} ${GSL_LIBS} ${JSON_LIB})

@@ -24,10 +24,10 @@ typedef struct {
                                         // data block
   void *host_rxn_data;                  // host pointer to rxn data
   void *dev_rxn_data;                   // device pointer to rxn data
-} GpuData;
+} DeviceData;
 
 // arrhenius
-void * rxn_gpu_arrhenius_get_data_size( ModelData *model_data );
+void * rxn_gpu_arrhenius_get_data_size( void *rxn_data );
 void * rxn_gpu_arrhenius_calc_deriv_contrib( void *rxn_data, 
           const realtype *state, realtype *deriv );
 #endif

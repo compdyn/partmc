@@ -345,7 +345,7 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
         break;
 #else
       case RXN_ARRHENIUS :
-        rxn_data = (int*) rxn_arrhenius_skip();
+        rxn_data = (int*) rxn_arrhenius_skip( (void*) rxn_data );
         break;
 #endif
       case RXN_CMAQ_H2O2 :

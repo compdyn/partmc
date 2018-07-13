@@ -2552,6 +2552,7 @@ contains
             dimid_aero_particle)
        call aero_state_netcdf_dim_aero_components(aero_state, ncid, &
             dimid_aero_components)
+       aero_n_orig_part = 0
        do i_part = 1,aero_state_n_part(aero_state)
           aero_particle_mass(i_part, :) &
                = aero_state%apa%particle(i_part)%vol * aero_data%density

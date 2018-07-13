@@ -25,6 +25,9 @@ module pmc_aero_component
      real(kind=dp) :: create_time     
   end type aero_component_t
 
+  !> Maximum size of aero_components for a single particle.
+  integer, parameter :: MAX_AERO_COMPONENT_SIZE = 10
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

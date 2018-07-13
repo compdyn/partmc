@@ -169,7 +169,6 @@ contains
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
-    !> Number of components from each source.
     integer, intent(inout) :: source_list(:)
 
     integer :: i_comp, i_source
@@ -878,7 +877,7 @@ contains
   !> Coagulate two particles together to make a new one. The new
   !> particle will not have its ID set.
   subroutine aero_particle_coagulate(aero_particle_1, &
-       aero_particle_2, aero_particle_new)
+       aero_particle_2, aero_particle_new, component_flag)
 
     !> First particle.
     type(aero_particle_t), intent(in) :: aero_particle_1
@@ -888,6 +887,7 @@ contains
     type(aero_particle_t), intent(inout) :: aero_particle_new
 
     integer :: n_comp_1, n_comp_2
+    logical, intent(in) :: component_flag
 
     call assert(203741686, size(aero_particle_1%vol) &
          == size(aero_particle_2%vol))
@@ -907,12 +907,18 @@ contains
        aero_particle_new%water_hyst_leg = 0
     end if
     aero_particle_new%id = 0
-    n_comp_1 = aero_particle_n_components(aero_particle_1)
-    n_comp_2 = aero_particle_n_components(aero_particle_2)
-    allocate(aero_particle_new%component(n_comp_1 + n_comp_2))
-    aero_particle_new%component(1:n_comp_1) = aero_particle_1%component
-    aero_particle_new%component(n_comp_1+1:n_comp_1 + n_comp_2) &
-         = aero_particle_2%component
+    if (component_flag) then
+       n_comp_1 = aero_particle_n_components(aero_particle_1)
+       n_comp_2 = aero_particle_n_components(aero_particle_2)
+       if (n_comp_1 + n_comp_2 >  MAX_AERO_COMPONENT_SIZE) then
+          aero_particle_new%component = aero_particle_1%component
+       else
+          allocate(aero_particle_new%component(n_comp_1 + n_comp_2))
+          aero_particle_new%component(1:n_comp_1) = aero_particle_1%component
+          aero_particle_new%component(n_comp_1+1:n_comp_1 + n_comp_2) = &
+               aero_particle_2%component
+       end if
+    end if
     aero_particle_new%greatest_create_time = &
          max(aero_particle_1%greatest_create_time, &
          aero_particle_2%greatest_create_time)

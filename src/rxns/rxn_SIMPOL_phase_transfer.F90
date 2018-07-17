@@ -88,10 +88,10 @@ module pmc_rxn_SIMPOL_phase_transfer
   use pmc_phlex_state
   use pmc_property
   use pmc_rxn_data
-  use pmc_util,                             only: i_kind, dp, to_string, &
-                                                  assert, assert_msg, &
-                                                  die_msg, string_t, &
-                                                  align_ratio
+  use pmc_util,                             only: phlex_real, phlex_int, &
+                                                  to_string, assert, &
+                                                  assert_msg, die_msg, &
+                                                  string_t, align_ratio
 
   implicit none
   private
@@ -169,11 +169,11 @@ contains
 
     type(property_t), pointer :: spec_props, b_params
     character(len=:), allocatable :: key_name, spec_name, phase_name
-    integer(kind=i_kind) :: i_spec, i_aero_rep, n_aero_ids, i_aero_id
+    integer(kind=phlex_int) :: i_spec, i_aero_rep, n_aero_ids, i_aero_id
     type(string_t), allocatable :: unique_spec_names(:)
-    integer(kind=i_kind), allocatable :: phase_ids(:)
-    real(kind=dp) :: temp_real, N_star
-    integer(kind=i_kind) :: int_data_size, float_data_size
+    integer(kind=phlex_int), allocatable :: phase_ids(:)
+    real(kind=phlex_real) :: temp_real, N_star
+    integer(kind=phlex_int) :: int_data_size, float_data_size
 
     ! Get the property set
     if (.not. associated(this%property_set)) call die_msg(382913491, &
@@ -224,8 +224,8 @@ contains
     ! Allocate space in the condensed data arrays
     allocate(this%condensed_data_int(int_data_size))
     allocate(this%condensed_data_real(float_data_size))
-    this%condensed_data_int(:) = int(0, kind=i_kind)
-    this%condensed_data_real(:) = real(0.0, kind=dp)
+    this%condensed_data_int(:) = int(0, kind=phlex_int)
+    this%condensed_data_real(:) = real(0.0, kind=phlex_real)
     INT_DATA_SIZE_ = int_data_size
     FLOAT_DATA_SIZE_ = float_data_size
 
@@ -335,16 +335,16 @@ contains
     if (spec_props%get_real(key_name, N_star)) then     
       ! enthalpy change (kcal mol-1)
       DELTA_H_ = real(- 10.0d0*(N_star-1.0d0) + &
-              7.53d0*(N_star**(2.0d0/3.0d0)-1.0d0) - 1.0d0, kind=dp)
+              7.53d0*(N_star**(2.0d0/3.0d0)-1.0d0) - 1.0d0, kind=phlex_real)
       ! entropy change (cal mol-1)
       DELTA_S_ = real(- 32.0d0*(N_star-1.0d0) + &
-              9.21d0*(N_star**(2.0d0/3.0d0)-1.0d0) - 1.3d0, kind=dp)
+              9.21d0*(N_star**(2.0d0/3.0d0)-1.0d0) - 1.3d0, kind=phlex_real)
       ! Convert dH and dS to (J mol-1)
-      DELTA_H_ = real(DELTA_H_ * 4184.0d0, kind=dp)
-      DELTA_S_ = real(DELTA_S_ * 4.184d0, kind=dp)
+      DELTA_H_ = real(DELTA_H_ * 4184.0d0, kind=phlex_real)
+      DELTA_S_ = real(DELTA_S_ * 4.184d0, kind=phlex_real)
     else
-      DELTA_H_ = real(0.0, kind=dp)
-      DELTA_S_ = real(0.0, kind=dp)
+      DELTA_H_ = real(0.0, kind=phlex_real)
+      DELTA_S_ = real(0.0, kind=phlex_real)
     end if
 
     ! Get the diffusion coefficient (m^2/s)

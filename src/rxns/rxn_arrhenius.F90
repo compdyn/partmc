@@ -71,9 +71,10 @@ module pmc_rxn_arrhenius
   use pmc_phlex_state
   use pmc_property
   use pmc_rxn_data
-  use pmc_util,                             only: i_kind, dp, to_string, &
-                                                  assert, assert_msg, &
-                                                  die_msg, align_ratio
+  use pmc_util,                             only: phlex_real, phlex_int, &
+                                                  to_string, assert, &
+                                                  assert_msg, die_msg, &
+                                                  align_ratio
 
   implicit none
   private
@@ -144,11 +145,11 @@ contains
 
     type(property_t), pointer :: spec_props, reactants, products
     character(len=:), allocatable :: key_name, spec_name, string_val
-    integer(kind=i_kind) :: i_spec, i_qty
-    integer(kind=i_kind) :: int_data_size, float_data_size
+    integer(kind=phlex_int) :: i_spec, i_qty
+    integer(kind=phlex_int) :: int_data_size, float_data_size
 
-    integer(kind=i_kind) :: temp_int
-    real(kind=dp) :: temp_real
+    integer(kind=phlex_int) :: temp_int
+    real(kind=phlex_real) :: temp_real
 
     ! Get the species involved
     if (.not. associated(this%property_set)) call die_msg(255324828, &
@@ -182,8 +183,8 @@ contains
     ! Allocate space in the condensed data arrays
     allocate(this%condensed_data_int(int_data_size))
     allocate(this%condensed_data_real(float_data_size))
-    this%condensed_data_int(:) = int(0, kind=i_kind)
-    this%condensed_data_real(:) = real(0.0, kind=dp)
+    this%condensed_data_int(:) = int(0, kind=phlex_int)
+    this%condensed_data_real(:) = real(0.0, kind=phlex_real)
     INT_DATA_SIZE_ = int_data_size
     FLOAT_DATA_SIZE_ = float_data_size
 
@@ -234,8 +235,8 @@ contains
       E_ = 0.0
     end if
 
-    call assert_msg(344705857, .not. ((B_.ne.real(0.0, kind=dp)) &
-            .and.(D_.eq.real(0.0, kind=dp))), &
+    call assert_msg(344705857, .not. ((B_.ne.real(0.0, kind=phlex_real)) &
+            .and.(D_.eq.real(0.0, kind=phlex_real))), &
             "D cannot be zero if B is non-zero in Arrhenius reaction.")
 
     ! Get the indices and chemical properties for the reactants

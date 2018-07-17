@@ -8,9 +8,9 @@
 !> Test of photolysis reaction module
 program pmc_test_photolysis
 
-  use pmc_util,                         only: i_kind, dp, assert, &
-                                              almost_equal, string_t, &
-                                              warn_msg
+  use pmc_util,                         only: phlex_real, phlex_int, &
+                                              assert, almost_equal, &
+                                              string_t, warn_msg
   use pmc_rxn_data
   use pmc_rxn_photolysis
   use pmc_rxn_factory
@@ -28,7 +28,7 @@ program pmc_test_photolysis
   implicit none
 
   ! Number of timesteps to output in mechanisms
-  integer(kind=i_kind) :: NUM_TIME_STEP = 100
+  integer(kind=phlex_int) :: NUM_TIME_STEP = 100
 
   ! initialize mpi
   call pmc_mpi_init()
@@ -84,15 +84,15 @@ contains
     character(len=:), allocatable :: input_file_path, key, str_val
     type(string_t), allocatable, dimension(:) :: output_file_path
 
-    real(kind=dp), dimension(0:NUM_TIME_STEP, 3) :: model_conc, true_conc
-    integer(kind=i_kind) :: idx_A, idx_B, idx_C, i_time, i_spec, &
+    real(kind=phlex_real), dimension(0:NUM_TIME_STEP, 3) :: model_conc, true_conc
+    integer(kind=phlex_int) :: idx_A, idx_B, idx_C, i_time, i_spec, &
             i_rxn_photo_A, i_rxn, i_photo_A
-    real(kind=dp) :: time_step, time, k1, k2, temp, pressure, photo_rate_1
+    real(kind=phlex_real) :: time_step, time, k1, k2, temp, pressure, photo_rate_1
     type(chem_spec_data_t), pointer :: chem_spec_data
     class(rxn_data_t), pointer :: rxn
 #ifdef PMC_USE_MPI
     character, allocatable :: buffer(:), buffer_copy(:)
-    integer(kind=i_kind) :: pack_size, pos, i_elem, results
+    integer(kind=phlex_int) :: pack_size, pos, i_elem, results
 #endif
 
     ! For setting rates
@@ -268,7 +268,7 @@ contains
         do i_spec = 1, size(model_conc, 2)
           call assert_msg(911807542, &
             almost_equal(model_conc(i_time, i_spec), &
-            true_conc(i_time, i_spec), real(1.0e-2, kind=dp)).or. &
+            true_conc(i_time, i_spec), real(1.0e-2, kind=phlex_real)).or. &
             (model_conc(i_time, i_spec).lt.1e-5*model_conc(1, i_spec).and. &
             true_conc(i_time, i_spec).lt.1e-5*true_conc(1, i_spec)), &
             "time: "//trim(to_string(i_time))//"; species: "// &

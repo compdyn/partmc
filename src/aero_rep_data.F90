@@ -34,7 +34,7 @@ module pmc_aero_rep_data
 #endif
   use pmc_aero_phase_data
   use pmc_chem_spec_data
-  use pmc_constants,                  only : i_kind, dp
+  use pmc_constants,                  only : phlex_real, phlex_int
   use pmc_mpi
   use pmc_phlex_state
   use pmc_property
@@ -71,12 +71,12 @@ module pmc_aero_rep_data
     !! solving, and should contain any information required by the
     !! functions of the aerosol representation that cannot be obtained
     !! from the pmc_phlex_state::phlex_state_t object. (floating-point)
-    real(kind=dp), allocatable, public :: condensed_data_real(:)
+    real(kind=phlex_real), allocatable, public :: condensed_data_real(:)
     !> Condensed representation data. Theses arrays will be available during
     !! solving, and should contain any information required by the
     !! functions of the aerosol representation that cannot be obtained
     !! from the pmc_phlex_state::phlex_state_t object. (integer)
-    integer(kind=i_kind), allocatable, public ::  condensed_data_int(:)
+    integer(kind=phlex_int), allocatable, public ::  condensed_data_int(:)
   contains
     !> Initialize the aerosol representation data, validating component data and
     !! loading any required information from the \c
@@ -163,7 +163,7 @@ interface
   !! the input files have been read in. It ensures all data required during
   !! the model run are included in the condensed data arrays.
   subroutine initialize(this, aero_phase_set, spec_state_id)
-    use pmc_util,                                     only : i_kind
+    use pmc_util,                                     only : phlex_int
     use pmc_chem_spec_data
     use pmc_aero_phase_data
     import :: aero_rep_data_t
@@ -175,7 +175,7 @@ interface
     type(aero_phase_data_ptr), pointer, intent(in) :: aero_phase_set(:)
     !> Beginning state id for this aerosol representation in the
     !! \c pmc_phlex_state::phlex_state_t::state_var array
-    integer(kind=i_kind), intent(in) :: spec_state_id
+    integer(kind=phlex_int), intent(in) :: spec_state_id
 
   end subroutine initialize
 
@@ -185,11 +185,11 @@ interface
   !! \c pmc_phlex_state::phlex_state_t::state_var array required for this
   !! aerosol representation
   function get_size(this) result (state_size)
-    use pmc_util,                                     only : i_kind
+    use pmc_util,                                     only : phlex_int
     import :: aero_rep_data_t
 
     !> Size of the state array section
-    integer(kind=i_kind) :: state_size
+    integer(kind=phlex_int) :: state_size
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
 
@@ -201,7 +201,7 @@ interface
   !! \c pmc_phlex_state::phlex_state_t::state_var array for this aerosol
   !! representation.
   function unique_names(this, phase_name, tracer_type, spec_name)
-    use pmc_util,                                     only : string_t, i_kind
+    use pmc_util,                                     only : string_t, phlex_int
     import :: aero_rep_data_t
 
     !> List of unique names
@@ -211,7 +211,7 @@ interface
     !> Aerosol phase name
     character(len=:), allocatable, optional, intent(in) :: phase_name
     !> Tracer type
-    integer(kind=i_kind), optional, intent(in) :: tracer_type
+    integer(kind=phlex_int), optional, intent(in) :: tracer_type
     !> Aerosol-phase species name
     character(len=:), allocatable, optional, intent(in) :: spec_name
 
@@ -235,11 +235,11 @@ interface
   !!
   !! If the name is not found, the return value is 0.
   function spec_state_id(this, unique_name) result (spec_id)
-    use pmc_util,                                     only : i_kind
+    use pmc_util,                                     only : phlex_int
     import :: aero_rep_data_t
 
     !> Species state id
-    integer(kind=i_kind) :: spec_id
+    integer(kind=phlex_int) :: spec_id
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
     !> Unique name
@@ -251,7 +251,7 @@ interface
 
   !> Get the non-unique name of a chemical species by its unique name
   function spec_name(this, unique_name)
-    use pmc_util,                                       only : i_kind
+    use pmc_util,                                       only : phlex_int
     import :: aero_rep_data_t
 
     !> Chemical species name
@@ -267,11 +267,11 @@ interface
 
   !> Get the number of instances of a specified aerosol phase
   function num_phase_instances(this, phase_name)
-    use pmc_util,                                       only : i_kind
+    use pmc_util,                                       only : phlex_int
     import :: aero_rep_data_t
 
     !> Number of instances of the aerosol phase
-    integer(kind=i_kind) :: num_phase_instances
+    integer(kind=phlex_int) :: num_phase_instances
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
     !> Aerosol phase name
@@ -401,13 +401,13 @@ contains
   function phase_ids(this, phase_name)
 
     !> List of phase ids
-    integer(kind=i_kind), allocatable :: phase_ids(:)
+    integer(kind=phlex_int), allocatable :: phase_ids(:)
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
     !> Aerosol phase name
     character(len=:), allocatable, intent(in) :: phase_name
 
-    integer(kind=i_kind) :: num_instances, i_instance, i_phase
+    integer(kind=phlex_int) :: num_instances, i_instance, i_phase
 
     num_instances = this%num_phase_instances(phase_name)
     allocate(phase_ids(num_instances))
@@ -425,7 +425,7 @@ contains
 
   !> Determine the size of a binary required to pack the aerosol 
   !! representation data
-  integer(kind=i_kind) function pack_size(this)
+  integer(kind=phlex_int) function pack_size(this)
 
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
@@ -492,9 +492,9 @@ contains
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
     !> File unit for output
-    integer(kind=i_kind), optional :: file_unit
+    integer(kind=phlex_int), optional :: file_unit
 
-    integer(kind=i_kind) :: f_unit = 6
+    integer(kind=phlex_int) :: f_unit = 6
 
     if (present(file_unit)) f_unit = file_unit
     write(f_unit,*) "*** Aerosol Representation: ",trim(this%rep_name)," ***"

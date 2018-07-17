@@ -37,17 +37,17 @@
  *                   Jacobian elements
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_photolysis_get_used_jac_elem(void *rxn_data, bool **jac_struct)
+void * rxn_photolysis_get_used_jac_elem(void *rxn_data, pmc_bool **jac_struct)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   for (int i_ind = 0; i_ind < NUM_REACT_; i_ind++) {
     for (int i_dep = 0; i_dep < NUM_REACT_; i_dep++) {
-      jac_struct[REACT_(i_dep)][REACT_(i_ind)] = true;
+      jac_struct[REACT_(i_dep)][REACT_(i_ind)] = pmc_true;
     }
     for (int i_dep = 0; i_dep < NUM_PROD_; i_dep++) {
-      jac_struct[PROD_(i_dep)][REACT_(i_ind)] = true;
+      jac_struct[PROD_(i_dep)][REACT_(i_ind)] = pmc_true;
     }
   }
 
@@ -66,7 +66,7 @@ void * rxn_photolysis_update_ids(ModelData *model_data, int *deriv_ids,
           int **jac_ids, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Update the time derivative ids
   for (int i=0; i < NUM_REACT_; i++)
@@ -96,7 +96,7 @@ void * rxn_photolysis_update_ids(ModelData *model_data, int *deriv_ids,
  *  - \b int photo_id (Id of one or more photolysis reactions set by the host
  *       model using the pmc_rxn_photolysis::rxn_photolysis_t::set_photo_id
  *       function prior to initializing the solver.)
- *  - \b double rate_const (New pre-scaling rate constant.)
+ *  - \b PMC_C_FLOAT rate_const (New pre-scaling rate constant.)
  *
  * \param update_data Pointer to the updated reaction data
  * \param rxn_data Pointer to the reaction data
@@ -105,14 +105,14 @@ void * rxn_photolysis_update_ids(ModelData *model_data, int *deriv_ids,
 void * rxn_photolysis_update_data(void *update_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   int *photo_id = (int*) update_data;
-  double *base_rate = (double*) &(photo_id[1]);
+  PMC_C_FLOAT *base_rate = (PMC_C_FLOAT*) &(photo_id[1]);
 
   // Set the base photolysis rate constants for matching reactions
   if (*photo_id==PHOTO_ID_ && PHOTO_ID_!=0) 
-          BASE_RATE_ = (double) *base_rate;
+          BASE_RATE_ = (PMC_C_FLOAT) *base_rate;
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -126,10 +126,10 @@ void * rxn_photolysis_update_data(void *update_data, void *rxn_data)
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_photolysis_update_env_state(double *env_data, void *rxn_data)
+void * rxn_photolysis_update_env_state(PMC_C_FLOAT *env_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the rate constant in (#/cc)
   RATE_CONSTANT_ = SCALING_ * BASE_RATE_;
@@ -148,7 +148,7 @@ void * rxn_photolysis_update_env_state(double *env_data, void *rxn_data)
 void * rxn_photolysis_pre_calc(ModelData *model_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -164,14 +164,14 @@ void * rxn_photolysis_pre_calc(ModelData *model_data, void *rxn_data)
  */
 #ifdef PMC_USE_SUNDIALS
 void * rxn_photolysis_calc_deriv_contrib(ModelData *model_data,
-          realtype *deriv, void *rxn_data, double time_step)
+          PMC_SOLVER_C_FLOAT *deriv, void *rxn_data, PMC_C_FLOAT time_step)
 {
-  realtype *state = model_data->state;
+  PMC_C_FLOAT *state = model_data->state;
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the reaction rate
-  realtype rate = RATE_CONSTANT_;
+  PMC_C_FLOAT rate = RATE_CONSTANT_;
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) 
           rate *= state[REACT_(i_spec)];
 
@@ -180,11 +180,12 @@ void * rxn_photolysis_calc_deriv_contrib(ModelData *model_data,
     int i_dep_var = 0;
     for (int i_spec=0; i_spec<NUM_REACT_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue; 
-      deriv[DERIV_ID_(i_dep_var)] -= rate;
+      deriv[DERIV_ID_(i_dep_var)] -= (PMC_SOLVER_C_FLOAT) rate;
     }
     for (int i_spec=0; i_spec<NUM_PROD_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue; 
-      deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
+      deriv[DERIV_ID_(i_dep_var)] += (PMC_SOLVER_C_FLOAT)
+              (rate*YIELD_(i_spec));
     }
   }
 
@@ -202,15 +203,15 @@ void * rxn_photolysis_calc_deriv_contrib(ModelData *model_data,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_photolysis_calc_jac_contrib(ModelData *model_data, realtype *J,
-          void *rxn_data, double time_step)
+void * rxn_photolysis_calc_jac_contrib(ModelData *model_data,
+          PMC_SOLVER_C_FLOAT *J, void *rxn_data, PMC_C_FLOAT time_step)
 {
-  realtype *state = model_data->state;
+  PMC_C_FLOAT *state = model_data->state;
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the reaction rate
-  realtype rate = RATE_CONSTANT_;
+  PMC_C_FLOAT rate = RATE_CONSTANT_;
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) 
           rate *= state[REACT_(i_spec)];
 
@@ -220,11 +221,13 @@ void * rxn_photolysis_calc_jac_contrib(ModelData *model_data, realtype *J,
     for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
       for (int i_dep=0; i_dep<NUM_REACT_; i_dep++, i_elem++) {
 	if (JAC_ID_(i_elem) < 0) continue;
-	J[JAC_ID_(i_elem)] -= rate / state[REACT_(i_ind)];
+	J[JAC_ID_(i_elem)] -= (PMC_SOLVER_C_FLOAT)
+                (rate / state[REACT_(i_ind)]);
       }
       for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
 	if (JAC_ID_(i_elem) < 0) continue;
-	J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate / state[REACT_(i_ind)];
+	J[JAC_ID_(i_elem)] += (PMC_SOLVER_C_FLOAT)
+                (YIELD_(i_dep) * rate / state[REACT_(i_ind)]);
       }
     }
   }
@@ -242,7 +245,7 @@ void * rxn_photolysis_calc_jac_contrib(ModelData *model_data, realtype *J,
 void * rxn_photolysis_skip(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -255,7 +258,7 @@ void * rxn_photolysis_skip(void *rxn_data)
 void * rxn_photolysis_print(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   printf("\n\nPhotolysis reaction\n");
   for (int i=0; i<INT_DATA_SIZE_; i++) 
@@ -272,7 +275,7 @@ void * rxn_photolysis_print(void *rxn_data)
  */
 void * rxn_photolysis_create_rate_update_data()
 {
-  int *update_data = (int*) malloc(sizeof(int) + sizeof(double));
+  int *update_data = (int*) malloc(sizeof(int) + sizeof(PMC_C_FLOAT));
   if (update_data==NULL) {
     printf("\n\nERROR allocating space for photolysis update data\n\n");
     exit(1);
@@ -287,10 +290,10 @@ void * rxn_photolysis_create_rate_update_data()
  * \param base_rate New pre-scaling photolysis rate
  */
 void rxn_photolysis_set_rate_update_data(void *update_data, int photo_id,
-          double base_rate)
+          PMC_C_FLOAT base_rate)
 {
   int *new_photo_id = (int*) update_data;
-  double *new_base_rate = (double*) &(new_photo_id[1]);
+  PMC_C_FLOAT *new_base_rate = (PMC_C_FLOAT*) &(new_photo_id[1]);
   *new_photo_id = photo_id;
   *new_base_rate = base_rate;
 }

@@ -32,7 +32,7 @@
 #endif
 
 /* boolean definition */
-typedef enum {false, true} bool;
+typedef enum {pmc_false, pmc_true} pmc_bool;
 
 /* Model data structure */
 typedef struct {
@@ -43,8 +43,8 @@ typedef struct {
   SUNMatrix J_init;	// sparse Jacobian matrix with used elements
                         // initialized to 1.0
 #endif
-  double *state;	// Pointer to the state array
-  double *env;		// Pointer to the environmental state array
+  PMC_C_FLOAT *state;	// Pointer to the state array
+  PMC_C_FLOAT *env;	// Pointer to the environmental state array
   void *rxn_data;	// Pointer to reaction parameters
   void *nxt_rxn;	// Pointer to element of rxn_data in which to store next
  			// set of reaction data
@@ -57,8 +57,14 @@ typedef struct {
   void *sub_model_data; // Pointer to the sub model parameters
   void *nxt_sub_model;  // Pointer to the element of sub_model_data in which to
                         // store the next set of sub model data
+#ifndef PMC_USE_DOUBLE_PRECISION
+  PMC_SOLVER_C_FLOAT *deriv;   // Pointer to the working derivative array
+  PMC_SOLVER_C_FLOAT *jac;     // Pointer to the working Jacobian array
+  int deriv_size;       // Size of the derivative array
+  int jac_size;         // Size of the Jacobian data array
+#endif
 #ifdef PMC_USE_GPU
-  void *device_data;    // Pointer to GPU device data
+  void *model_dev_data; // Pointer to GPU device data
 #endif
 } ModelData;
 
@@ -70,9 +76,11 @@ typedef struct {
   SUNLinearSolver ls;   // linear solver
   SUNMatrix J;          // Jacobian matrix
 #endif
+  PMC_C_FLOAT *deriv;   // Working derivative array
+  PMC_C_FLOAT *jac;     // Working sparse Jacobian data array
   void *cvode_mem;	// CVodeMem object
   ModelData model_data; // Model data (used during initialization and solving)
-  bool no_solve;        // Flag to indicate whether to run the solver needs to be
+  pmc_bool no_solve;    // Flag to indicate whether to run the solver needs to be
                         // run. Set to true when no reactions are present.
 } SolverData;
 
@@ -83,26 +91,26 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
           int n_aero_rep, int n_aero_rep_int_param, int n_aero_rep_float_param,
           int n_sub_model, int n_sub_model_int_param,
           int n_sub_model_float_param);
-void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
+void solver_initialize(void *solver_data, PMC_C_FLOAT *abs_tol, PMC_C_FLOAT rel_tol,
           int max_steps, int max_conv_fails); 
-int solver_run(void *solver_data, double *state, double *env, double t_initial,
-	  double t_final);
+int solver_run(void *solver_data, PMC_C_FLOAT *state, PMC_C_FLOAT *env, PMC_C_FLOAT t_initial,
+	  PMC_C_FLOAT t_final);
 void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
-	  int n_float_param, int *int_param, double *float_param,
+	  int n_float_param, int *int_param, PMC_C_FLOAT *float_param,
           void *solver_data);
 void sub_model_update_data(int update_sub_model_type, void *update_data,
           void *solver_data);
 int sub_model_get_parameter_id_sd(void *solver_data, int sub_model_type,
           void *identifiers);
-double sub_model_get_parameter_value_sd(void *solver_data, int parameter_id);
+PMC_C_FLOAT sub_model_get_parameter_value_sd(void *solver_data, int parameter_id);
 void rxn_add_condensed_data(int rxn_type, int n_int_param, 
-	  int n_float_param, int *int_param, double *float_param,
+	  int n_float_param, int *int_param, PMC_C_FLOAT *float_param,
           void *solver_data);
 void rxn_update_data(int update_rxn_type, void *update_data, void *solver_data);
 void aero_phase_add_condensed_data(int n_int_param, int n_float_param,
-          int *int_param, double *float_param, void *solver_data);
+          int *int_param, PMC_C_FLOAT *float_param, void *solver_data);
 void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
-	  int n_float_param, int *int_param, double *float_param,
+	  int n_float_param, int *int_param, PMC_C_FLOAT *float_param,
           void *solver_data);
 void aero_rep_update_data(int update_aero_rep_type, void *update_data,
           void *solver_data);
@@ -113,21 +121,21 @@ void model_free(ModelData model_data);
 void rxn_free_update_data(void *update_data); 
 void * rxn_photolysis_create_rate_update_data();
 void rxn_photolysis_set_rate_update_data(void *update_data, int photo_id,
-          double base_rate);
+          PMC_C_FLOAT base_rate);
 
 void aero_rep_free_update_data(void *update_data); 
 void * aero_rep_single_particle_create_radius_update_data();
 void aero_rep_single_particle_set_radius_update_data(void *update_data,
-          int aero_rep_id, double radius);
+          int aero_rep_id, PMC_C_FLOAT radius);
 void * aero_rep_single_particle_create_number_update_data();
 void aero_rep_single_particle_set_number_update_data(void *update_data,
-          int aero_rep_id, double number_conc);
+          int aero_rep_id, PMC_C_FLOAT number_conc);
 void * aero_rep_modal_binned_mass_create_gmd_update_data();
 void aero_rep_modal_binned_mass_set_gmd_update_data(void *update_data,
-          int aero_rep_id, int section_id, double gmd);
+          int aero_rep_id, int section_id, PMC_C_FLOAT gmd);
 void * aero_rep_modal_binned_mass_create_gsd_update_data();
 void aero_rep_modal_binned_mass_set_gsd_update_data(void *update_data,
-          int aero_rep_id, int section_id, double gsd);
+          int aero_rep_id, int section_id, PMC_C_FLOAT gsd);
 
 #ifdef PMC_USE_SUNDIALS
 /* Functions called by the solver */
@@ -143,45 +151,43 @@ static void solver_print_stats(void *cvode_mem);
 #endif
 
 /* Reaction solver functions */
-void * rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct);
+void * rxn_get_used_jac_elem(ModelData *model_data, pmc_bool **jac_struct);
 void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids); 
-void rxn_update_env_state(ModelData *model_data, double *env);
+void rxn_update_env_state(ModelData *model_data, PMC_C_FLOAT *env);
 void rxn_pre_calc(ModelData *model_data);
 void rxn_print_data(void *solver_data);
-#ifdef PMC_USE_SUNDIALS
-void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, double time_step);
-void rxn_calc_jac(ModelData *model_data, SUNMatrix J, double time_step);
-#endif
+void rxn_calc_deriv(ModelData *model_data, PMC_SOLVER_C_FLOAT *deriv_data, PMC_C_FLOAT time_step);
+void rxn_calc_jac(ModelData *model_data, PMC_SOLVER_C_FLOAT *J_data, PMC_C_FLOAT time_step);
 
 /* Aerosol phase solver functions */
 void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
-          double *state_var, double *mass, double *MW);
+          PMC_C_FLOAT *state_var, PMC_C_FLOAT *mass, PMC_C_FLOAT *MW);
 void * aero_phase_get_volume(ModelData *model_data, int aero_phase_idx,
-          double *state_var, double *volume);
+          PMC_C_FLOAT *state_var, PMC_C_FLOAT *volume);
 void * aero_phase_find(ModelData *model_data, int int_aero_phase_idx);
 void * aero_phase_skip(void *aero_phase_data);
 void aero_phase_print_data(void *solver_data);
 
 /* Aerosol representation solver functions */
-void * aero_rep_get_dependencies(ModelData *model_data, bool *state_flags);
-void aero_rep_update_env_state(ModelData *model_data, double *env);
+void * aero_rep_get_dependencies(ModelData *model_data, pmc_bool *state_flags);
+void aero_rep_update_env_state(ModelData *model_data, PMC_C_FLOAT *env);
 void aero_rep_update_state(ModelData *model_data);
 void * aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
-          int aero_phase_idx, double *radius);
+          int aero_phase_idx, PMC_C_FLOAT *radius);
 void * aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
-          int aero_phase_idx, double *number_conc);
+          int aero_phase_idx, PMC_C_FLOAT *number_conc);
 int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
           int aero_phase_idx);
 void * aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
-          int aero_phase_idx, double *aero_phase_mass,
-          double *aero_phase_avg_MW);
+          int aero_phase_idx, PMC_C_FLOAT *aero_phase_mass,
+          PMC_C_FLOAT *aero_phase_avg_MW);
 void aero_rep_print_data(void *solver_data);
 
 /* Sub model solver functions */
-void sub_model_update_env_state(ModelData *model_data, double *env);
+void sub_model_update_env_state(ModelData *model_data, PMC_C_FLOAT *env);
 int sub_model_get_parameter_id(ModelData *model_data, int type,
           void *identifiers);
-double sub_model_get_parameter_value(ModelData *model_data, int parameter_id);
+PMC_C_FLOAT sub_model_get_parameter_value(ModelData *model_data, int parameter_id);
 void sub_model_calculate(ModelData *model_data);
 void sub_model_print_data(ModelData *model_data);
 

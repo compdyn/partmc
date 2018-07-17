@@ -2,12 +2,12 @@
   "pmc-data" : [
   {
     "type" : "RELATIVE_TOLERANCE",
-    "value" : 1.0e-30
+    "value" : 1.0e-6
   },
   {
     "name" : "A",
     "type" : "CHEM_SPEC",
-    "absolute tolerance" : 1.0e-30
+    "absolute tolerance" : 1.0e-6
   },
   {
     "name" : "D",
@@ -17,12 +17,12 @@
   {
     "name" : "B",
     "type" : "CHEM_SPEC",
-    "absolute tolerance" : 1.0e-30
+    "absolute tolerance" : 1.0e-6
   },
   {
     "name" : "C",
     "type" : "CHEM_SPEC",
-    "absolute tolerance" : 1.0e-30
+    "absolute tolerance" : 1.0e-6
   },
   {
     "name" : "arrhenius",

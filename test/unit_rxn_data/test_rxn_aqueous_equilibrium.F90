@@ -10,9 +10,9 @@ program pmc_test_aqueous_equilibrium
 
   use iso_c_binding
 
-  use pmc_util,                         only: i_kind, dp, assert, &
-                                              almost_equal, string_t, &
-                                              warn_msg
+  use pmc_util,                         only: phlex_real, phlex_int, &
+                                              assert, almost_equal, &
+                                              string_t, warn_msg
   use pmc_phlex_core
   use pmc_phlex_state
   use pmc_aero_rep_data
@@ -26,7 +26,7 @@ program pmc_test_aqueous_equilibrium
   implicit none
 
   ! Number of timesteps to output in mechanisms
-  integer(kind=i_kind) :: NUM_TIME_STEP = 100
+  integer(kind=phlex_int) :: NUM_TIME_STEP = 100
 
   ! initialize mpi
   call pmc_mpi_init()
@@ -79,17 +79,17 @@ contains
     type(string_t), allocatable, dimension(:) :: output_file_path
 
     class(aero_rep_data_t), pointer :: aero_rep_ptr
-    real(kind=dp), dimension(0:NUM_TIME_STEP, 30) :: model_conc, true_conc
-    integer(kind=i_kind) :: idx_A, idx_B, idx_C, idx_D, idx_E, idx_F, idx_G, &
+    real(kind=phlex_real), dimension(0:NUM_TIME_STEP, 30) :: model_conc, true_conc
+    integer(kind=phlex_int) :: idx_A, idx_B, idx_C, idx_D, idx_E, idx_F, idx_G, &
             idx_H, idx_BC_act, idx_H2O, idx_phase, i_time, i_spec
-    real(kind=dp) :: time_step, time, Keq_1, Keq_2, Keq_3, k1_forward, &
+    real(kind=phlex_real) :: time_step, time, Keq_1, Keq_2, Keq_3, k1_forward, &
             k2_forward, k3_forward, k1_reverse, k2_reverse, k3_reverse, &
             total_init, equil_A, equil_B, equil_C, equil_D, equil_E, &
             equil_F, equil_G, equil_H, x, x0, temp, pressure
-    real(kind=dp), target :: radius, number_conc
+    real(kind=phlex_real), target :: radius, number_conc
 #ifdef PMC_USE_MPI
     character, allocatable :: buffer(:), buffer_copy(:)
-    integer(kind=i_kind) :: pack_size, pos, i_elem, results
+    integer(kind=phlex_int) :: pack_size, pos, i_elem, results
 #endif
 
     run_aqueous_equilibrium_test = .true.
@@ -362,7 +362,7 @@ contains
           if (i_spec.ne.idx_G.and.i_spec.ne.idx_H) cycle
           call assert_msg(703162515, &
             almost_equal(model_conc(i_time, i_spec), &
-            true_conc(i_time, i_spec), real(1.0e-2, kind=dp)).or. &
+            true_conc(i_time, i_spec), real(1.0e-2, kind=phlex_real)).or. &
             (model_conc(i_time, i_spec).lt.1e-5*model_conc(1, i_spec).and. &
             true_conc(i_time, i_spec).lt.1e-5*true_conc(1, i_spec)), &
             "time: "//trim(to_string(i_time))//"; species: "// &

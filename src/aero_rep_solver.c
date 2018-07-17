@@ -23,7 +23,7 @@
  * \return The aero_rep_data pointer advanced by the size of the aerosol
  *         representation data
  */
-void * aero_rep_get_dependencies(ModelData *model_data, bool *state_flags)
+void * aero_rep_get_dependencies(ModelData *model_data, pmc_bool *state_flags)
 {
 
   // Get the number of aerosol representations
@@ -57,7 +57,7 @@ void * aero_rep_get_dependencies(ModelData *model_data, bool *state_flags)
  * \param model_data Pointer to the model data
  * \param env Pointer to the environmental state array
  */
-void aero_rep_update_env_state(ModelData *model_data, double *env)
+void aero_rep_update_env_state(ModelData *model_data, PMC_C_FLOAT *env)
 {
 
   // Get the number of aerosol representations
@@ -133,7 +133,7 @@ void aero_rep_update_state(ModelData *model_data)
  *         partial derivatives exist
  */
 void * aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
-         int aero_phase_idx, double *radius)
+         int aero_phase_idx, PMC_C_FLOAT *radius)
 {
 
   // Set up a pointer for the partial derivatives
@@ -197,7 +197,7 @@ void * aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
  *         derivatives exist
  */
 void * aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
-          int aero_phase_idx, double *number_conc)
+          int aero_phase_idx, PMC_C_FLOAT *number_conc)
 {
 
   // Set up a pointer for the partial derivatives
@@ -321,8 +321,8 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
  *         derivatives exist
  */
 void * aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
-          int aero_phase_idx, double *aero_phase_mass,
-          double *aero_phase_avg_MW)
+          int aero_phase_idx, PMC_C_FLOAT *aero_phase_mass,
+          PMC_C_FLOAT *aero_phase_avg_MW)
 {
 
   // Set up a pointer for the partial derivatives
@@ -380,7 +380,7 @@ void * aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
  * \param solver_data Pointer to solver data
  */
 void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
-          int n_float_param, int *int_param, double *float_param,
+          int n_float_param, int *int_param, PMC_C_FLOAT *float_param,
           void *solver_data)
 {
   ModelData *model_data = (ModelData*)
@@ -394,9 +394,9 @@ void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
   for (; n_int_param>0; n_int_param--) *(aero_rep_data++) = *(int_param++);
 
   // Add floating-point parameters
-  double *flt_ptr = (double*) aero_rep_data;
+  PMC_C_FLOAT *flt_ptr = (PMC_C_FLOAT*) aero_rep_data;
   for (; n_float_param>0; n_float_param--)
-          *(flt_ptr++) = (double) *(float_param++);
+          *(flt_ptr++) = (PMC_C_FLOAT) *(float_param++);
 
   // Set the pointer for the next free space in aero_rep_data
   model_data->nxt_aero_rep = (void*) flt_ptr;

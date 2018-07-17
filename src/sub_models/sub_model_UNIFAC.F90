@@ -129,7 +129,7 @@ module pmc_sub_model_UNIFAC
   use pmc_phlex_state
   use pmc_property
   use pmc_sub_model_data
-  use pmc_util,                                 only : dp, i_kind, &
+  use pmc_util,                                 only : phlex_real, phlex_int, &
                                                        string_t, assert_msg, &
                                                        die_msg, to_string, &
                                                        assert, align_ratio
@@ -233,28 +233,28 @@ contains
     character(len=:), allocatable :: key_name, phase_name
     character(len=:), allocatable :: inter_group_name
     character(len=:), allocatable :: main_group_name, spec_group_name
-    integer(kind=i_kind) :: i_spec, i_phase, i_rep, i_main_group, i_group
-    integer(kind=i_kind) :: i_instance, i_inter, i_phase_inst, i_spec_group
-    integer(kind=i_kind) :: i_inter_group
-    integer(kind=i_kind) :: i_UNIFAC_phase
-    integer(kind=i_kind) :: num_unique_phase, num_group, num_main_group
-    integer(kind=i_kind) :: num_int_data, num_real_data, num_spec_group
-    integer(kind=i_kind) :: curr_spec_id, curr_phase_inst_id
-    integer(kind=i_kind) :: m, n
-    integer(kind=i_kind), allocatable :: num_phase_inst(:)
-    integer(kind=i_kind), allocatable :: num_phase_spec(:)
-    integer(kind=i_kind), allocatable :: unique_phase_set_id(:)
-    integer(kind=i_kind), allocatable :: main_group_id(:)
+    integer(kind=phlex_int) :: i_spec, i_phase, i_rep, i_main_group, i_group
+    integer(kind=phlex_int) :: i_instance, i_inter, i_phase_inst, i_spec_group
+    integer(kind=phlex_int) :: i_inter_group
+    integer(kind=phlex_int) :: i_UNIFAC_phase
+    integer(kind=phlex_int) :: num_unique_phase, num_group, num_main_group
+    integer(kind=phlex_int) :: num_int_data, num_real_data, num_spec_group
+    integer(kind=phlex_int) :: curr_spec_id, curr_phase_inst_id
+    integer(kind=phlex_int) :: m, n
+    integer(kind=phlex_int), allocatable :: num_phase_inst(:)
+    integer(kind=phlex_int), allocatable :: num_phase_spec(:)
+    integer(kind=phlex_int), allocatable :: unique_phase_set_id(:)
+    integer(kind=phlex_int), allocatable :: main_group_id(:)
     type(string_t), allocatable :: phase_names(:)
     type(string_t), allocatable :: main_group_names(:)
     type(string_t), allocatable :: group_names(:)
     type(string_t), allocatable :: unique_names(:)
     type(string_t), allocatable :: spec_names(:)
-    real(kind=dp) :: q_i, r_i
-    real(kind=dp) :: inter_param
-    real(kind=dp), allocatable :: main_group_interactions(:,:)
+    real(kind=phlex_real) :: q_i, r_i
+    real(kind=phlex_real) :: inter_param
+    real(kind=phlex_real), allocatable :: main_group_interactions(:,:)
     logical :: found, phase_ids_set
-    integer(kind=i_kind) :: int_data_size, float_data_size
+    integer(kind=phlex_int) :: int_data_size, float_data_size
 
     ! Get the property set
     call assert_msg(403771584, associated(this%property_set), &
@@ -357,8 +357,8 @@ contains
     ! Allocate condensed data arrays
     allocate(this%condensed_data_int(int_data_size))
     allocate(this%condensed_data_real(float_data_size))
-    this%condensed_data_int(:) = int(999999, kind=i_kind)
-    this%condensed_data_real(:) = real(999999.0, kind=dp)
+    this%condensed_data_int(:) = int(999999, kind=phlex_int)
+    this%condensed_data_real(:) = real(999999.0, kind=phlex_real)
     INT_DATA_SIZE_ = int_data_size
     FLOAT_DATA_SIZE_ = float_data_size
 
@@ -410,7 +410,7 @@ contains
 
     ! Set the main group interaction parameter matrix
     allocate(main_group_interactions(main_groups%size(), main_groups%size()))
-    main_group_interactions(:,:) = real(0.0, kind=dp)
+    main_group_interactions(:,:) = real(0.0, kind=phlex_real)
     call main_groups%iter_reset()
     do i_main_group = 1, main_groups%size()
 
@@ -586,15 +586,15 @@ contains
 
             ! Set the surface area (q_i) and volume (r_i) parameter for this
             ! species
-            r_i = real(0.0, kind=dp)
-            q_i = real(0.0, kind=dp)
+            r_i = real(0.0, kind=phlex_real)
+            q_i = real(0.0, kind=phlex_real)
             do i_group = 1, NUM_GROUP_
               r_i = r_i + R_K_(i_group) &
                       * real(V_IK_(i_UNIFAC_phase ,curr_spec_id, i_group), &
-                             kind=dp)
+                             kind=phlex_real)
               q_i = q_i + Q_K_(i_group) &
                       * real(V_IK_(i_UNIFAC_phase, curr_spec_id, i_group), &
-                             kind=dp)
+                             kind=phlex_real)
             end do
             R_I_(i_UNIFAC_phase, curr_spec_id) = r_i
             Q_I_(i_UNIFAC_phase, curr_spec_id) = q_i

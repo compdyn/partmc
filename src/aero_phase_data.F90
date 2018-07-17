@@ -51,7 +51,7 @@ module pmc_aero_phase_data
   use mpi
 #endif
   use pmc_chem_spec_data
-  use pmc_constants,                  only : i_kind, dp
+  use pmc_constants,                  only : phlex_real, phlex_int
   use pmc_mpi
   use pmc_phlex_state
   use pmc_property
@@ -72,7 +72,7 @@ module pmc_aero_phase_data
   public :: aero_phase_data_t, aero_phase_data_ptr
 
   !> Reallocation increment
-  integer(kind=i_kind), parameter :: REALLOC_INC = 50
+  integer(kind=phlex_int), parameter :: REALLOC_INC = 50
 
   !> Aerosol phase data type
   !!
@@ -82,7 +82,7 @@ module pmc_aero_phase_data
     !> Name of the aerosol phase
     character(len=:), allocatable :: phase_name
     !> Number of species in the phase
-    integer(kind=i_kind) :: num_spec = 0
+    integer(kind=phlex_int) :: num_spec = 0
     !> Species names. These are species that are present in the aerosol
     !! phase. These species must exist in the \c
     !! pmc_phlex_core::phlex_core_t::chem_spec_data variable during
@@ -95,12 +95,12 @@ module pmc_aero_phase_data
     !! solving, and should contain any information required by the
     !! functions of the aerosol phase that cannot be obtained
     !! from the \c pmc_phlex_state::phlex_state_t object. (floating-point)
-    real(kind=dp), allocatable, public :: condensed_data_real(:)
+    real(kind=phlex_real), allocatable, public :: condensed_data_real(:)
     !> Condensed phase data. Theses arrays will be available during
     !! solving, and should contain any information required by the
     !! functions of the aerosol phase that cannot be obtained
     !! from the \c pmc_phlex_state::phlex_state_t object. (integer)
-    integer(kind=i_kind), allocatable, public ::  condensed_data_int(:)
+    integer(kind=phlex_int), allocatable, public ::  condensed_data_int(:)
     !> Pointer to the set of chemical species data
     type(chem_spec_data_t), pointer :: chem_spec_data
   contains
@@ -166,9 +166,9 @@ contains
     !> Name of the aerosol phase
     character(len=:), allocatable, intent(in), optional :: phase_name
     !> Number of species to allocate space for initially
-    integer(kind=i_kind), intent(in), optional :: init_size
+    integer(kind=phlex_int), intent(in), optional :: init_size
 
-    integer(kind=i_kind) :: alloc_size = REALLOC_INC
+    integer(kind=phlex_int) :: alloc_size = REALLOC_INC
 
     if (present(init_size)) alloc_size = init_size
     allocate(new_obj)
@@ -231,7 +231,7 @@ contains
 
     type(json_value), pointer :: child, next, species
     character(kind=json_ck, len=:), allocatable :: key, unicode_str_val
-    integer(kind=i_kind) :: var_type
+    integer(kind=phlex_int) :: var_type
 
     character(len=:), allocatable :: str_val
     type(property_t), pointer :: property_set
@@ -307,9 +307,9 @@ contains
     type(chem_spec_data_t), target, intent(in) :: chem_spec_data
 
     type(property_t), pointer :: spec_props
-    integer(kind=i_kind) :: i_spec
+    integer(kind=phlex_int) :: i_spec
     character(len=:), allocatable :: key_name
-    integer(kind=i_kind) :: int_data_size, float_data_size
+    integer(kind=phlex_int) :: int_data_size, float_data_size
 
     ! Calculate int and float array sizes with alignment spacing
     int_data_size = NUM_INT_PROP_+this%num_spec
@@ -396,7 +396,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the number of species in the phase
-  integer(kind=i_kind) function get_size(this) result(num_spec)
+  integer(kind=phlex_int) function get_size(this) result(num_spec)
 
     !> Aerosol phase data
     class(aero_phase_data_t), intent(in) :: this
@@ -429,7 +429,7 @@ contains
     !> Aerosol phase data
     class(aero_phase_data_t), intent(in) :: this
 
-    integer(kind=i_kind) :: i_spec
+    integer(kind=phlex_int) :: i_spec
 
     allocate(spec_names(this%num_spec))
     do i_spec = 1, this%num_spec
@@ -444,7 +444,7 @@ contains
   function get_species_type(this, spec_name) result (spec_type)
 
     !> The type of a species in this phase
-    integer(kind=i_kind) :: spec_type
+    integer(kind=phlex_int) :: spec_type
     !> Aerosol phase data
     class(aero_phase_data_t), intent(in) :: this
     !> Name of the species
@@ -461,7 +461,7 @@ contains
 
   !> Determine the size of a binary required to pack the aerosol 
   !! representation data
-  integer(kind=i_kind) function pack_size(this)
+  integer(kind=phlex_int) function pack_size(this)
 
     !> Aerosol representation data
     class(aero_phase_data_t), intent(in) :: this
@@ -528,10 +528,10 @@ contains
     !> Aerosol phase data
     class(aero_phase_data_t), intent(in) :: this
     !> File unit for output
-    integer(kind=i_kind), optional :: file_unit
+    integer(kind=phlex_int), optional :: file_unit
 
-    integer(kind=i_kind) :: f_unit = 6
-    integer(kind=i_kind) :: i_spec
+    integer(kind=phlex_int) :: f_unit = 6
+    integer(kind=phlex_int) :: i_spec
 
     if (present(file_unit)) f_unit = file_unit
     write(f_unit,*) "Aerosol phase: ", this%phase_name
@@ -573,7 +573,7 @@ contains
     !> Aerosol phase data
     class(aero_phase_data_t), intent(inout) :: this
     !> Number of new species to ensure space for
-    integer(kind=i_kind), intent(in) :: num_spec
+    integer(kind=phlex_int), intent(in) :: num_spec
 
     integer :: new_size
     type(string_t), pointer :: new_name(:)
@@ -597,7 +597,7 @@ contains
     !> Name of the species to add
     character(len=:), allocatable, intent(in) :: spec_name
 
-    integer(kind=i_kind) :: i_spec
+    integer(kind=phlex_int) :: i_spec
 
     i_spec = this%find(spec_name)
     if (i_spec.ne.0) then
@@ -615,7 +615,7 @@ contains
 
   !> Get the index of an aerosol-phase species by name. Return 0 if the
   !! species is not found
-  integer(kind=i_kind) function find(this, spec_name) &
+  integer(kind=phlex_int) function find(this, spec_name) &
                   result (spec_id)
 
     !> Aerosol phase data
@@ -623,7 +623,7 @@ contains
     !> Species name
     character(len=:), allocatable, intent(in) :: spec_name
 
-    integer(kind=i_kind) :: i_spec
+    integer(kind=phlex_int) :: i_spec
 
     spec_id = 0
     do i_spec = 1, this%num_spec

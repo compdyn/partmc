@@ -69,9 +69,10 @@ module pmc_rxn_photolysis
   use pmc_phlex_state
   use pmc_property
   use pmc_rxn_data
-  use pmc_util,                             only: i_kind, dp, to_string, &
-                                                  assert, assert_msg, &
-                                                  die_msg, align_ratio
+  use pmc_util,                             only: phlex_real, phlex_int, &
+                                                  to_string, assert, &
+                                                  assert_msg, die_msg, &
+                                                  align_ratio
 
   use iso_c_binding
 
@@ -147,7 +148,7 @@ public :: rxn_photolysis_t, rxn_update_data_photolysis_rate_t
       !> Photo id from pmc_rxn_photolysis::rxn_photolysis_t::set_photo_id
       integer(kind=c_int), value :: photo_id
       !> New pre-scaling base photolysis rate
-      real(kind=c_double), value :: base_rate
+      real(kind=PMC_F90_C_FLOAT), value :: base_rate
     end subroutine rxn_photolysis_set_rate_update_data
   
     !> Free an update rate data object
@@ -190,11 +191,11 @@ contains
 
     type(property_t), pointer :: spec_props, reactants, products
     character(len=:), allocatable :: key_name, spec_name
-    integer(kind=i_kind) :: i_spec, i_qty
-    integer(kind=i_kind) :: int_data_size, float_data_size
+    integer(kind=phlex_int) :: i_spec, i_qty
+    integer(kind=phlex_int) :: int_data_size, float_data_size
 
-    integer(kind=i_kind) :: temp_int
-    real(kind=dp) :: temp_real
+    integer(kind=phlex_int) :: temp_int
+    real(kind=phlex_real) :: temp_real
 
     ! Get the species involved
     if (.not. associated(this%property_set)) call die_msg(408416753, &
@@ -232,8 +233,8 @@ contains
     ! yields for the products and three reaction parameters.
     allocate(this%condensed_data_int(int_data_size))
     allocate(this%condensed_data_real(float_data_size))
-    this%condensed_data_int(:) = int(0, kind=i_kind)
-    this%condensed_data_real(:) = real(0.0, kind=dp)
+    this%condensed_data_int(:) = int(0, kind=phlex_int)
+    this%condensed_data_real(:) = real(0.0, kind=phlex_real)
     INT_DATA_SIZE_ = int_data_size
     FLOAT_DATA_SIZE_ = float_data_size
     
@@ -247,11 +248,11 @@ contains
     ! compliler flags)
     key_name = "rate const"
     if (.not. this%property_set%get_real(key_name, BASE_RATE_)) then
-      BASE_RATE_ = real(0.0, kind=dp)
+      BASE_RATE_ = real(0.0, kind=phlex_real)
     end if
     key_name = "scaling factor"
     if (.not. this%property_set%get_real(key_name, SCALING_)) then
-      SCALING_ = real(1.0, kind=dp)
+      SCALING_ = real(1.0, kind=phlex_real)
     end if
 
     ! Get the indices and chemical properties for the reactants
@@ -320,7 +321,7 @@ contains
     !> Reaction data 
     class(rxn_photolysis_t), intent(inout) :: this
     !> Photo id
-    integer(kind=i_kind), intent(in) :: photo_id
+    integer(kind=phlex_int), intent(in) :: photo_id
 
     PHOTO_ID_ = photo_id
 
@@ -365,9 +366,9 @@ contains
     !> Update data
     class(rxn_update_data_photolysis_rate_t), intent(inout) :: this
     !> Photo id from pmc_rxn_photolysis::rxn_photolysis_t::set_photo_id
-    integer(kind=i_kind), intent(in) :: photo_id
+    integer(kind=phlex_int), intent(in) :: photo_id
     !> Updated pre-scaling photolysis rate
-    real(kind=dp), intent(in) :: base_rate
+    real(kind=phlex_real), intent(in) :: base_rate
 
     call rxn_photolysis_set_rate_update_data(this%get_data(), photo_id, &
             base_rate)
@@ -382,7 +383,7 @@ contains
     !> Update data object
     class(rxn_update_data_photolysis_rate_t) :: this
     !> Reaction type id
-    integer(kind=i_kind), intent(in) :: rxn_type
+    integer(kind=phlex_int), intent(in) :: rxn_type
 
     this%rxn_type = int(rxn_type, kind=c_int)
     this%update_data = rxn_photolysis_create_rate_update_data()

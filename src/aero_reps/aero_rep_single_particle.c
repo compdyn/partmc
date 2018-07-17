@@ -41,10 +41,10 @@
  *         representation data
  */
 void * aero_rep_single_particle_get_dependencies(void *aero_rep_data,
-          bool *state_flags)
+          pmc_bool *state_flags)
 {
   int *int_data = (int*) aero_rep_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -59,11 +59,11 @@ void * aero_rep_single_particle_get_dependencies(void *aero_rep_data,
  * \return The aero_rep_data pointer advanced by the size of the aerosol
  *         representation
  */
-void * aero_rep_single_particle_update_env_state(double *env_data,
+void * aero_rep_single_particle_update_env_state(PMC_C_FLOAT *env_data,
           void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -83,13 +83,13 @@ void * aero_rep_single_particle_update_state(ModelData *model_data,
           void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the total aerosol phase masses
   for (int i_phase=0; i_phase<NUM_PHASE_; i_phase++) {
 
     // Get a pointer to the phase on the state array
-    double *state_var = (double*) (model_data->state);
+    PMC_C_FLOAT *state_var = (PMC_C_FLOAT*) (model_data->state);
     state_var += PHASE_STATE_ID_(i_phase);
 
     // Get the mass and average MW
@@ -117,10 +117,10 @@ void * aero_rep_single_particle_update_state(ModelData *model_data,
  *         representation
  */
 void * aero_rep_single_particle_get_effective_radius(int aero_phase_idx,
-          double *radius, double *partial_deriv, void *aero_rep_data)
+          PMC_C_FLOAT *radius, PMC_C_FLOAT *partial_deriv, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   *radius = RADIUS_;
 
@@ -145,10 +145,10 @@ void * aero_rep_single_particle_get_effective_radius(int aero_phase_idx,
  *         representation
  */
 void * aero_rep_single_particle_get_number_conc(int aero_phase_idx,
-          double *number_conc, double *partial_deriv, void *aero_rep_data)
+          PMC_C_FLOAT *number_conc, PMC_C_FLOAT *partial_deriv, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   *number_conc = NUMBER_CONC_;
 
@@ -170,7 +170,7 @@ void * aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx,
           int *aero_conc_type, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   *aero_conc_type = 0;
 
@@ -194,11 +194,11 @@ void * aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx,
  *         representation
  */
 void * aero_rep_single_particle_get_aero_phase_mass(int aero_phase_idx,
-          double *aero_phase_mass, double *aero_phase_avg_MW,
-          double *partial_deriv, void *aero_rep_data)
+          PMC_C_FLOAT *aero_phase_mass, PMC_C_FLOAT *aero_phase_avg_MW,
+          PMC_C_FLOAT *partial_deriv, void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   *aero_phase_mass = PHASE_MASS_(aero_phase_idx);
   *aero_phase_avg_MW = PHASE_AVG_MW_(aero_phase_idx);
@@ -216,7 +216,7 @@ void * aero_rep_single_particle_get_aero_phase_mass(int aero_phase_idx,
  *       function prior to initializing the solver.)
  *  - \b int update_type (Type of update to perform. Can be UPDATE_RADIUS or
  *       UPDATE_NUMBER.)
- *  - \b double new_value (Either the new radius (m) or the new number
+ *  - \b PMC_C_FLOAT new_value (Either the new radius (m) or the new number
  *       concentration (\f$\mbox{\si{\#\per\cubic\centi\metre}}\f$).)
  *
  * \param update_data Pointer to the updated aerosol representation data
@@ -228,19 +228,19 @@ void * aero_rep_single_particle_update_data(void *update_data,
           void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   int *aero_rep_id = (int*) update_data;
   int *update_type = (int*) &(aero_rep_id[1]);
-  double *new_value = (double*) &(update_type[1]);
+  PMC_C_FLOAT *new_value = (PMC_C_FLOAT*) &(update_type[1]);
 
   // Set the new radius or number concentration for matching aerosol
   // representations
   if (*aero_rep_id==AERO_REP_ID_ && AERO_REP_ID_!=0) {
     if (*update_type==UPDATE_RADIUS) {
-      RADIUS_ = (double) *new_value;
+      RADIUS_ = (PMC_C_FLOAT) *new_value;
     } else if (*update_type==UPDATE_NUMBER) {
-      NUMBER_CONC_ = (double) *new_value;
+      NUMBER_CONC_ = (PMC_C_FLOAT) *new_value;
     }
   }
 
@@ -256,7 +256,7 @@ void * aero_rep_single_particle_update_data(void *update_data,
 void * aero_rep_single_particle_print(void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   printf("\n\nSingle particle aerosol representation\n");
   for (int i=0; i<INT_DATA_SIZE_; i++)
@@ -276,7 +276,7 @@ void * aero_rep_single_particle_print(void *aero_rep_data)
 void * aero_rep_single_particle_skip(void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -287,7 +287,7 @@ void * aero_rep_single_particle_skip(void *aero_rep_data)
  */
 void * aero_rep_single_particle_create_radius_update_data()
 {
-  int *update_data = (int*) malloc(2*sizeof(int) + sizeof(double));
+  int *update_data = (int*) malloc(2*sizeof(int) + sizeof(PMC_C_FLOAT));
   if (update_data==NULL) {
     printf("\n\nERROR allocating space for radius update data\n\n");
     exit(1);
@@ -302,11 +302,11 @@ void * aero_rep_single_particle_create_radius_update_data()
  * \param radius New particle radius
  */
 void aero_rep_single_particle_set_radius_update_data(void *update_data,
-          int aero_rep_id, double radius)
+          int aero_rep_id, PMC_C_FLOAT radius)
 {
   int *new_aero_rep_id = (int*) update_data;
   int *update_type = (int*) &(new_aero_rep_id[1]);
-  double *new_radius = (double*) &(update_type[1]);
+  PMC_C_FLOAT *new_radius = (PMC_C_FLOAT*) &(update_type[1]);
   *new_aero_rep_id = aero_rep_id;
   *update_type = UPDATE_RADIUS;
   *new_radius = radius;
@@ -318,7 +318,7 @@ void aero_rep_single_particle_set_radius_update_data(void *update_data,
  */
 void * aero_rep_single_particle_create_number_update_data()
 {
-  int *update_data = (int*) malloc(2*sizeof(int) + sizeof(double));
+  int *update_data = (int*) malloc(2*sizeof(int) + sizeof(PMC_C_FLOAT));
   if (update_data==NULL) {
     printf("\n\nERROR allocating space for number update data\n\n");
     exit(1);
@@ -333,11 +333,11 @@ void * aero_rep_single_particle_create_number_update_data()
  * \param number_conc New particle number
  */
 void aero_rep_single_particle_set_number_update_data(void *update_data,
-          int aero_rep_id, double number_conc)
+          int aero_rep_id, PMC_C_FLOAT number_conc)
 {
   int *new_aero_rep_id = (int*) update_data;
   int *update_type = (int*) &(new_aero_rep_id[1]);
-  double *new_number_conc = (double*) &(update_type[1]);
+  PMC_C_FLOAT *new_number_conc = (PMC_C_FLOAT*) &(update_type[1]);
   *new_aero_rep_id = aero_rep_id;
   *update_type = UPDATE_NUMBER;
   *new_number_conc = number_conc;

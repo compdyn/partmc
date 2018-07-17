@@ -11,7 +11,7 @@ module pmc_phlex_interface
   use pmc_aero_data
   use pmc_aero_particle
   use pmc_aero_state
-  use pmc_constants,                  only : i_kind, dp
+  use pmc_constants,                  only : phlex_real, phlex_int, dp
   use pmc_gas_data
   use pmc_gas_state
   use pmc_phlex_core
@@ -42,14 +42,15 @@ contains
     !> Time step (s)
     real(kind=dp), intent(in) :: del_t
 
-    integer(kind=i_kind) :: i_part
-    real(kind=dp) :: num_conc
+    integer(kind=phlex_int) :: i_part
+    real(kind=phlex_real) :: num_conc
 
     ! Set the phlex chem  gas-phase species
     call gas_state%set_phlex_conc(phlex_state)
 
     ! Solve gas-phase chemistry
-    call phlex_core%solve(phlex_state, del_t, GAS_RXN)
+    call phlex_core%solve(phlex_state, real(del_t, kind=phlex_real), &
+            GAS_RXN)
 
     ! Do phase-transfer and aerosol-phase chemistry for each particle
     ! in the particle array
@@ -57,12 +58,15 @@ contains
       associate (part => aero_state%apa%particle(i_part))
 
       ! Set the Phlex chem aerosol state        
-      num_conc = aero_weight_array_num_conc(aero_state%awa, part, aero_data)
+      num_conc = real( &
+              aero_weight_array_num_conc(aero_state%awa, part, aero_data), &
+              kind=phlex_real)
       call pmc_phlex_interface_set_phlex_conc(aero_data, part, phlex_state, &
               num_conc)
       
       ! Solve the phase-transfer and aerosol-phase chemistry for this particle
-      call phlex_core%solve(phlex_state, del_t, AERO_RXN)
+      call phlex_core%solve(phlex_state, real(del_t, kind=phlex_real), &
+              AERO_RXN)
 
       ! Update the PartMC aerosol state
       call pmc_phlex_interface_get_phlex_conc(aero_data, part, phlex_state, &
@@ -89,9 +93,9 @@ contains
     !> Phlexible chemistry state
     type(phlex_state_t), intent(inout) :: phlex_state
     !> Number concentration particle weighting
-    real(kind=dp), intent(in) :: num_conc
+    real(kind=phlex_real), intent(in) :: num_conc
 
-    integer(kind=i_kind) :: i_spec
+    integer(kind=phlex_int) :: i_spec
 
     ! Set the aerosol representation state in phlex chem
     associate (aero_rep => aero_data%aero_rep_ptr)
@@ -100,8 +104,8 @@ contains
       type is (aero_rep_single_particle_t)
         do i_spec = 1, size(aero_data%phlex_spec_id)
           phlex_state%state_var(aero_data%phlex_spec_id(i_spec)) = &
-                  num_conc * aero_particle%vol(i_spec) * &
-                  aero_data%density(i_spec)
+                  real(num_conc * aero_particle%vol(i_spec) * &
+                  aero_data%density(i_spec), kind=phlex_real)
         end do
       class default
         call die_msg(780366884, &
@@ -125,9 +129,9 @@ contains
     !> Phlexible chemistry state
     type(phlex_state_t), intent(inout) :: phlex_state
     !> Number concentration particle weighting
-    real(kind=dp), intent(in) :: num_conc
+    real(kind=phlex_real), intent(in) :: num_conc
 
-    integer(kind=i_kind) :: i_spec
+    integer(kind=phlex_int) :: i_spec
 
     ! Disassociate the aerosol representation state in phlex chem
     associate (aero_rep => aero_data%aero_rep_ptr)
@@ -135,9 +139,9 @@ contains
     select type (aero_rep)
       type is (aero_rep_single_particle_t)
         do i_spec = 1, size(aero_data%phlex_spec_id)
-          aero_particle%vol(i_spec) = & 
+          aero_particle%vol(i_spec) = real( & 
               phlex_state%state_var(aero_data%phlex_spec_id(i_spec)) / &
-              aero_data%density(i_spec) / num_conc
+              aero_data%density(i_spec) / num_conc, kind=dp)
         end do
       class default
         call die_msg(773649338, &

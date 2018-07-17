@@ -46,10 +46,10 @@
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 void * rxn_condensed_phase_arrhenius_get_used_jac_elem(void *rxn_data,
-          bool **jac_struct)
+          pmc_bool **jac_struct)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Loop over all the instances of the specified phase
   for (int i_phase = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
@@ -59,10 +59,10 @@ void * rxn_condensed_phase_arrhenius_get_used_jac_elem(void *rxn_data,
               i_react_ind < (i_phase+1)*NUM_REACT_; i_react_ind++) {
       for (int i_react_dep = i_phase*NUM_REACT_;
                 i_react_dep < (i_phase+1)*NUM_REACT_; i_react_dep++)
-        jac_struct[REACT_(i_react_dep)][REACT_(i_react_ind)] = true;
+        jac_struct[REACT_(i_react_dep)][REACT_(i_react_ind)] = pmc_true;
       for (int i_prod_dep = i_phase*NUM_PROD_;
                 i_prod_dep < (i_phase+1)*NUM_PROD_; i_prod_dep++)
-        jac_struct[PROD_(i_prod_dep)][REACT_(i_react_ind)] = true;
+        jac_struct[PROD_(i_prod_dep)][REACT_(i_react_ind)] = pmc_true;
     }
 
     // Add dependence on aerosol-phase water for reactants and products in
@@ -70,10 +70,10 @@ void * rxn_condensed_phase_arrhenius_get_used_jac_elem(void *rxn_data,
     if (WATER_(i_phase)>=0) {
       for (int i_react_dep = i_phase*NUM_REACT_;
                 i_react_dep < (i_phase+1)*NUM_REACT_; i_react_dep++)
-        jac_struct[REACT_(i_react_dep)][WATER_(i_phase)] = true;
+        jac_struct[REACT_(i_react_dep)][WATER_(i_phase)] = pmc_true;
       for (int i_prod_dep = i_phase*NUM_PROD_;
                 i_prod_dep < (i_phase+1)*NUM_PROD_; i_prod_dep++)
-        jac_struct[PROD_(i_prod_dep)][WATER_(i_phase)] = true;
+        jac_struct[PROD_(i_prod_dep)][WATER_(i_phase)] = pmc_true;
     }
 
   }
@@ -93,7 +93,7 @@ void * rxn_condensed_phase_arrhenius_update_ids(ModelData *model_data,
           int *deriv_ids, int **jac_ids, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Update the time derivative ids
   for (int i_phase = 0, i_deriv = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
@@ -148,11 +148,11 @@ void * rxn_condensed_phase_arrhenius_update_ids(ModelData *model_data,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_condensed_phase_arrhenius_update_env_state(double *env_data,
+void * rxn_condensed_phase_arrhenius_update_env_state(PMC_C_FLOAT *env_data,
           void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the rate constant in (M or mol/m3)
   // k = A*exp(C/T) * (T/D)^B * (1+E*P)
@@ -175,7 +175,7 @@ void * rxn_condensed_phase_arrhenius_pre_calc(ModelData *model_data,
           void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -191,18 +191,18 @@ void * rxn_condensed_phase_arrhenius_pre_calc(ModelData *model_data,
  */
 #ifdef PMC_USE_SUNDIALS
 void * rxn_condensed_phase_arrhenius_calc_deriv_contrib(ModelData *model_data,
-          realtype *deriv, void *rxn_data, double time_step)
+          PMC_SOLVER_C_FLOAT *deriv, void *rxn_data, PMC_C_FLOAT time_step)
 {
-  realtype *state = model_data->state;
-  realtype *env_data = model_data->env;
+  PMC_C_FLOAT *state = model_data->state;
+  PMC_C_FLOAT *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase=0, i_deriv = 0; i_phase<NUM_AERO_PHASE_; i_phase++) {
 
     // If this is an aqueous reaction, get the unit conversion from mol/m3 -> M
-    realtype unit_conv = 1.0;
+    PMC_C_FLOAT unit_conv = 1.0;
     if (WATER_(i_phase)>=0) {
       unit_conv = state[WATER_(i_phase)] * 1.0e-9; // convert from ug/m3->L/m3
 
@@ -216,7 +216,7 @@ void * rxn_condensed_phase_arrhenius_calc_deriv_contrib(ModelData *model_data,
     }
 
     // Calculate the reaction rate rate (M/s or mol/m3/s)
-    realtype rate = RATE_CONSTANT_;
+    PMC_C_FLOAT rate = RATE_CONSTANT_;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] * 
               UGM3_TO_MOLM3_(i_react) * unit_conv;
@@ -225,15 +225,16 @@ void * rxn_condensed_phase_arrhenius_calc_deriv_contrib(ModelData *model_data,
     // Reactant change
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       if (DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
-      deriv[DERIV_ID_(i_deriv++)] -= rate /
-	      (UGM3_TO_MOLM3_(i_react) * unit_conv);
+      deriv[DERIV_ID_(i_deriv++)] -= (PMC_SOLVER_C_FLOAT) (rate /
+	      (UGM3_TO_MOLM3_(i_react) * unit_conv));
     }
 
     // Products change
     for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) {
       if (DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
-      deriv[DERIV_ID_(i_deriv++)] += rate * YIELD_(i_prod) /
-	      (UGM3_TO_MOLM3_(NUM_REACT_+i_prod) * unit_conv);
+      deriv[DERIV_ID_(i_deriv++)] += (PMC_SOLVER_C_FLOAT)
+              (rate * YIELD_(i_prod) /
+	      (UGM3_TO_MOLM3_(NUM_REACT_+i_prod) * unit_conv));
     }
 
   }
@@ -253,18 +254,18 @@ void * rxn_condensed_phase_arrhenius_calc_deriv_contrib(ModelData *model_data,
  */
 #ifdef PMC_USE_SUNDIALS
 void * rxn_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data,
-          realtype *J, void *rxn_data, double time_step)
+          PMC_SOLVER_C_FLOAT *J, void *rxn_data, PMC_C_FLOAT time_step)
 {
-  realtype *state = model_data->state;
-  realtype *env_data = model_data->env;
+  PMC_C_FLOAT *state = model_data->state;
+  PMC_C_FLOAT *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate Jacobian contributions for each aerosol phase
   for (int i_phase=0, i_jac = 0; i_phase<NUM_AERO_PHASE_; i_phase++) {
 
     // If this is an aqueous reaction, get the unit conversion from mol/m3 -> M
-    realtype unit_conv = 1.0;
+    PMC_C_FLOAT unit_conv = 1.0;
     if (WATER_(i_phase)>=0) {
       unit_conv = state[WATER_(i_phase)] * 1.0e-9; // convert from ug/m3->L/m3
 
@@ -278,7 +279,7 @@ void * rxn_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data,
     }
 
     // Calculate the reaction rate rate (M/s or mol/m3/s)
-    realtype rate = RATE_CONSTANT_;
+    PMC_C_FLOAT rate = RATE_CONSTANT_;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] * 
               UGM3_TO_MOLM3_(i_react) * unit_conv;
@@ -294,15 +295,16 @@ void * rxn_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data,
     for (int i_react_ind = 0; i_react_ind < NUM_REACT_; i_react_ind++) {
       for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {
 	if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
-        J[JAC_ID_(i_jac++)] -= rate /
+        J[JAC_ID_(i_jac++)] -= (PMC_SOLVER_C_FLOAT) (rate /
                 state[REACT_(i_phase*NUM_REACT_+i_react_ind)] / 
-	        (UGM3_TO_MOLM3_(i_react_dep) * unit_conv);
+	        (UGM3_TO_MOLM3_(i_react_dep) * unit_conv));
       }
       for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
 	if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
-        J[JAC_ID_(i_jac++)] += rate * YIELD_(i_prod_dep) / 
+        J[JAC_ID_(i_jac++)] += (PMC_SOLVER_C_FLOAT)
+                (rate * YIELD_(i_prod_dep) / 
                 state[REACT_(i_phase*NUM_REACT_+i_react_ind)] / 
-	        (UGM3_TO_MOLM3_(NUM_REACT_+i_prod_dep) * unit_conv);
+	        (UGM3_TO_MOLM3_(NUM_REACT_+i_prod_dep) * unit_conv));
       }
     }
 
@@ -310,14 +312,16 @@ void * rxn_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data,
     // aqueous reactions
     for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {
       if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
-      J[JAC_ID_(i_jac++)] += (NUM_REACT_-1) * rate / state[WATER_(i_phase)] /
-	        (UGM3_TO_MOLM3_(i_react_dep) * unit_conv);
+      J[JAC_ID_(i_jac++)] += (PMC_SOLVER_C_FLOAT)
+                ((NUM_REACT_-1) * rate / state[WATER_(i_phase)] /
+	        (UGM3_TO_MOLM3_(i_react_dep) * unit_conv));
     }
     for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
       if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
-      J[JAC_ID_(i_jac++)] -= (NUM_REACT_-1) * rate * YIELD_(i_prod_dep) / 
+      J[JAC_ID_(i_jac++)] -= (PMC_SOLVER_C_FLOAT)
+                ((NUM_REACT_-1) * rate * YIELD_(i_prod_dep) / 
                 state[WATER_(i_phase)] /
-	        (UGM3_TO_MOLM3_(NUM_REACT_+i_prod_dep) * unit_conv);
+	        (UGM3_TO_MOLM3_(NUM_REACT_+i_prod_dep) * unit_conv));
     }
 
   }
@@ -335,7 +339,7 @@ void * rxn_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data,
 void * rxn_condensed_phase_arrhenius_skip(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -348,7 +352,7 @@ void * rxn_condensed_phase_arrhenius_skip(void *rxn_data)
 void * rxn_condensed_phase_arrhenius_print(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   printf("\n\nCondensed Phase Arrhenius reaction\n");
   for (int i=0; i<INT_DATA_SIZE_; i++) 

@@ -64,7 +64,7 @@ module pmc_rxn_data
 #endif
   use pmc_aero_rep_data
   use pmc_chem_spec_data
-  use pmc_constants,                  only : i_kind, dp
+  use pmc_constants,                  only : phlex_real, phlex_int
   use pmc_mpi
   use pmc_phlex_state
   use pmc_property
@@ -78,11 +78,11 @@ module pmc_rxn_data
   public :: rxn_data_t, rxn_data_ptr, rxn_update_data_t
 
   !> Gas-phase reaction
-  integer(kind=i_kind), parameter, public :: GAS_RXN = 1
+  integer(kind=phlex_int), parameter, public :: GAS_RXN = 1
   !> Mixed-phase (gas and aerosol) reaction
-  integer(kind=i_kind), parameter, public :: GAS_AERO_RXN = 2
+  integer(kind=phlex_int), parameter, public :: GAS_AERO_RXN = 2
   !> Aerosol-phase reaction
-  integer(kind=i_kind), parameter, public :: AERO_RXN = 3
+  integer(kind=phlex_int), parameter, public :: AERO_RXN = 3
 
   !> Abstract reaction data type
   !!
@@ -95,7 +95,7 @@ module pmc_rxn_data
   type, abstract :: rxn_data_t
     private
     !> Reaction phase
-    integer(kind=i_kind), public :: rxn_phase
+    integer(kind=phlex_int), public :: rxn_phase
     !> Reaction parameters. These will be available during initialization,
     !! but not during integration. All information required to calculate
     !! the time derivatives and Jacobian matrix constributions must be
@@ -105,12 +105,12 @@ module pmc_rxn_data
     !! integration, and should contain any information required by the
     !! rate and Jacobian constribution functions that cannot be obtained
     !! from the \c pmc_phlex_state::phlex_state_t object. (floating-point)
-    real(kind=dp), allocatable, public :: condensed_data_real(:)
+    real(kind=phlex_real), allocatable, public :: condensed_data_real(:)
     !> Condensed reaction data. Theses arrays will be available during
     !! integration, and should contain any information required by the
     !! rate and Jacobian constribution functions that cannot be obtained
     !! from the \c pmc_phlex_state::phlex_state_t object. (integer)
-    integer(kind=i_kind), allocatable, public :: condensed_data_int(:)
+    integer(kind=phlex_int), allocatable, public :: condensed_data_int(:)
   contains
     !> Reaction initialization. Takes species, phase and reaction parameters
     !! and packs required information into the condensed data arrays for use
@@ -313,7 +313,7 @@ contains
     !> Reaction data
     class(rxn_data_t), intent(in) :: this
     !> Phase being solved
-    integer(kind=i_kind), intent(in) :: rxn_phase
+    integer(kind=phlex_int), intent(in) :: rxn_phase
 
     if (rxn_phase.eq.GAS_AERO_RXN .or. &
         rxn_phase.eq.this%rxn_phase .or. &
@@ -328,7 +328,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack the reaction data
-  integer(kind=i_kind) function pack_size(this)
+  integer(kind=phlex_int) function pack_size(this)
 
     !> Reaction data
     class(rxn_data_t), intent(in) :: this
@@ -395,9 +395,9 @@ contains
     !> Reaction data
     class(rxn_data_t), intent(in) :: this
     !> File unit for output
-    integer(kind=i_kind), optional :: file_unit
+    integer(kind=phlex_int), optional :: file_unit
 
-    integer(kind=i_kind) :: f_unit = 6
+    integer(kind=phlex_int) :: f_unit = 6
 
     if (present(file_unit)) f_unit = file_unit
     write(f_unit,*) "*** Rxn ***"

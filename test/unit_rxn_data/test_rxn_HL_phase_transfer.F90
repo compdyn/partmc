@@ -10,9 +10,9 @@ program pmc_test_HL_phase_transfer
 
   use iso_c_binding
 
-  use pmc_util,                         only: i_kind, dp, assert, &
-                                              almost_equal, string_t, &
-                                              warn_msg
+  use pmc_util,                         only: phlex_real, phlex_int, &
+                                              assert, almost_equal, &
+                                              string_t, warn_msg
   use pmc_phlex_core
   use pmc_phlex_state
   use pmc_chem_spec_data
@@ -27,7 +27,7 @@ program pmc_test_HL_phase_transfer
   implicit none
 
   ! Number of timesteps to output in mechanisms
-  integer(kind=i_kind) :: NUM_TIME_STEP = 100
+  integer(kind=phlex_int) :: NUM_TIME_STEP = 100
 
   ! initialize mpi
   call pmc_mpi_init()
@@ -85,25 +85,25 @@ contains
 
     type(chem_spec_data_t), pointer :: chem_spec_data
     class(aero_rep_data_t), pointer :: aero_rep_ptr
-    real(kind=dp), dimension(0:NUM_TIME_STEP, 11) :: model_conc, true_conc
-    integer(kind=i_kind) :: idx_phase, idx_aero_rep, idx_O3, idx_O3_aq, &
+    real(kind=phlex_real), dimension(0:NUM_TIME_STEP, 11) :: model_conc, true_conc
+    integer(kind=phlex_int) :: idx_phase, idx_aero_rep, idx_O3, idx_O3_aq, &
             idx_H2O2, idx_H2O2_aq, idx_H2O_aq, i_time, i_spec
     character(len=:), allocatable :: key
-    real(kind=dp) :: time_step, time, n_star, del_H, del_S, del_G, alpha, &
+    real(kind=phlex_real) :: time_step, time, n_star, del_H, del_S, del_G, alpha, &
             crms, M_to_ppm, ugm3_to_ppm, K_eq_O3, K_eq_H2O2, k_O3_forward, &
             k_O3_backward, k_H2O2_forward, k_H2O2_backward, equil_O3, &
             equil_O3_aq, equil_H2O2, equil_H2O2_aq, temp, pressure
-    real(kind=dp), target :: radius, number_conc
+    real(kind=phlex_real), target :: radius, number_conc
 #ifdef PMC_USE_MPI
     character, allocatable :: buffer(:), buffer_copy(:)
-    integer(kind=i_kind) :: pack_size, pos, i_elem, results
+    integer(kind=phlex_int) :: pack_size, pos, i_elem, results
 #endif
 
     ! For setting particle radius and number concentration
     type(aero_rep_factory_t) :: aero_rep_factory
     type(aero_rep_update_data_single_particle_radius_t) :: radius_update
     type(aero_rep_update_data_single_particle_number_t) :: number_update
-    integer(kind=i_kind), parameter :: aero_rep_external_id = 12
+    integer(kind=phlex_int), parameter :: aero_rep_external_id = 12
 
     run_HL_phase_transfer_test = .true.
 
@@ -350,7 +350,7 @@ contains
           if (i_spec.ge.2.and.i_spec.le.8) cycle
           call assert_msg(848069355, &
             almost_equal(model_conc(i_time, i_spec), &
-            true_conc(i_time, i_spec), real(1.0e-2, kind=dp)).or. &
+            true_conc(i_time, i_spec), real(1.0e-2, kind=phlex_real)).or. &
             (model_conc(i_time, i_spec).lt.1e-5*model_conc(1, i_spec).and. &
             true_conc(i_time, i_spec).lt.1e-5*true_conc(1, i_spec)), &
             "time: "//trim(to_string(i_time))//"; species: "// &

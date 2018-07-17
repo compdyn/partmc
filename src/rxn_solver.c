@@ -31,7 +31,7 @@
  *                   may be used
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct)
+void * rxn_get_used_jac_elem(ModelData *model_data, pmc_bool **jac_struct)
 {
 
   // Get the number of reactions
@@ -170,7 +170,7 @@ void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids)
  * \param model_data Pointer to the model data
  * \param env Pointer to the environmental state array
  */
-void rxn_update_env_state(ModelData *model_data, double *env)
+void rxn_update_env_state(ModelData *model_data, PMC_C_FLOAT *env)
 {
 
   // Get the number of reactions
@@ -316,12 +316,9 @@ void rxn_pre_calc(ModelData *model_data)
  * \param time_step Current model time step (s)
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
+void rxn_calc_deriv(ModelData *model_data, PMC_SOLVER_C_FLOAT *deriv_data, 
+    PMC_C_FLOAT time_step)
 {
-  
-  // Get a pointer to the derivative data
-  realtype *deriv_data = N_VGetArrayPointer(deriv);
-  
   // Get the number of reactions
   int *rxn_data = (int*) (model_data->rxn_data);
   int n_rxn = *(rxn_data++);
@@ -396,12 +393,9 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
  * \param time_step Current model time step (s)
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_calc_jac(ModelData *model_data, SUNMatrix J, realtype time_step)
+void rxn_calc_jac(ModelData *model_data, PMC_SOLVER_C_FLOAT *J_data,
+    PMC_C_FLOAT time_step)
 {
-
-  // Get a pointer to the Jacobian data
-  realtype *J_data = SM_DATA_S(J);
-  
   // Get the number of reactions
   int *rxn_data = (int*) (model_data->rxn_data);
   int n_rxn = *(rxn_data++);
@@ -475,7 +469,7 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J, realtype time_step)
  * \param solver_data Pointer to solver data
  */
 void rxn_add_condensed_data(int rxn_type, int n_int_param, int n_float_param,
-          int *int_param, double *float_param, void *solver_data)
+          int *int_param, PMC_C_FLOAT *float_param, void *solver_data)
 {
   ModelData *model_data =
           (ModelData*) &(((SolverData*)solver_data)->model_data);
@@ -488,9 +482,9 @@ void rxn_add_condensed_data(int rxn_type, int n_int_param, int n_float_param,
   for (; n_int_param>0; n_int_param--) *(rxn_data++) = *(int_param++);
 
   // Add floating-point parameters
-  double *flt_ptr = (double*) rxn_data;
+  PMC_C_FLOAT *flt_ptr = (PMC_C_FLOAT*) rxn_data;
   for (; n_float_param>0; n_float_param--)
-          *(flt_ptr++) = (double) *(float_param++);
+          *(flt_ptr++) = (PMC_C_FLOAT) *(float_param++);
 
   // Set the pointer for the next free space in rxn_data
   model_data->nxt_rxn = (void*) flt_ptr;

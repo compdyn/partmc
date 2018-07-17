@@ -53,8 +53,8 @@ contains
     type(property_t), pointer :: prop_set, sub_set
     character(len=:), allocatable :: key_name
 
-    integer(kind=i_kind) :: temp_int
-    real(kind=dp) :: temp_real
+    integer(kind=phlex_int) :: temp_int
+    real(kind=phlex_real) :: temp_real
     logical :: temp_logical
     character(len=:), allocatable :: temp_string
 
@@ -67,7 +67,7 @@ contains
     key_name = "bool_prop"
     call prop_set%put(key_name, .true.)
     key_name = "real_prop"
-    call prop_set%put(key_name, 12.32d0)
+    call prop_set%put(key_name, real(12.32e0, kind=phlex_real))
     key_name = "string_prop"
     call prop_set%put(key_name, "kd ks8*2alf  s")
 
@@ -78,7 +78,7 @@ contains
     key_name = "sub_bool"
     call sub_set%put(key_name, .false.)
     key_name = "sub_real"
-    call sub_set%put(key_name, 593.d12)
+    call sub_set%put(key_name, real(593.e12, kind=phlex_real))
     key_name = "sub_string"
     call sub_set%put(key_name, "nlsd98*)@ur soi87")
     key_name = "sub_prop"
@@ -94,7 +94,7 @@ contains
     call assert(375307967, temp_logical.eqv..true.)
     key_name = "real_prop"
     call assert(872474416, prop_set%get_real(key_name, temp_real))
-    call assert(848067695, temp_real.eq.12.32d0)
+    call assert(848067695, almost_equal(temp_real, real(12.32e0, kind=phlex_real), real(1.0e-6, kind=phlex_real)))
     key_name = "string_prop"
     call assert(984792761, prop_set%get_string(key_name, temp_string))
     call assert(137439884, temp_string.eq."kd ks8*2alf  s")
@@ -111,7 +111,7 @@ contains
     call assert(888112914, temp_logical.eqv..false.)
     key_name = "sub_real"
     call assert(319053476, sub_set%get_real(key_name, temp_real))
-    call assert(265323857, temp_real.eq.593.d12)
+    call assert(265323857, almost_equal(temp_real, real(593.e12, kind=phlex_real), real(1.0e-6, kind=phlex_real)))
     key_name = "sub_string"
     call assert(433277355, sub_set%get_string(key_name, temp_string))
     call assert(154911046, temp_string.eq."nlsd98*)@ur soi87")
@@ -168,8 +168,8 @@ contains
     character(:), allocatable :: key_name
     character(kind=json_ck, len=:), allocatable :: unicode_key_name
 
-    integer(kind=i_kind) :: temp_int
-    real(kind=dp) :: temp_real
+    integer(kind=phlex_int) :: temp_int
+    real(kind=phlex_real) :: temp_real
     logical :: temp_logical
     character(len=:), allocatable :: temp_string
 
@@ -194,8 +194,8 @@ contains
     call assert(152703199, temp_int.eq.429)
     
     key_name = "real_prop"
-    call assert(320245189, props%get_real(key_name, temp_real)) 
-    call assert(432563534, temp_real.eq.124.3d7)
+    call assert(320245189, props%get_real(key_name, temp_real))
+    call assert(432563534, almost_equal(temp_real, real(124.3e7, kind=phlex_real), real(1.0e-6, kind=phlex_real)))
     
     key_name = "bool_prop"
     call assert(429914141, props%get_logical(key_name, temp_logical))
@@ -207,7 +207,7 @@ contains
     
     key_name = "other_real"
     call assert(373981116, props%get_real(key_name, temp_real))
-    call assert(768774710, temp_real.eq.129523.23d3)
+    call assert(768774710, almost_equal(temp_real, real(129523.23e3, kind=phlex_real), real(1.0e-6, kind=phlex_real)))
     
     ! Make sure the subset of properties is accessible and correct
     key_name = "sub_props"
@@ -218,11 +218,11 @@ contains
 
     key_name = "other_real"
     call assert(935572841, sub_props%get_real(key_name, temp_real))
-    call assert(365358036, temp_real.eq.123.4591d0)
+    call assert(365358036, almost_equal(temp_real, real(123.4591e0, kind=phlex_real), real(1.0e-6, kind=phlex_real)))
     
     key_name = "sub_real"
     call assert(142626880, sub_props%get_real(key_name, temp_real))
-    call assert(537420474, temp_real.eq.417d-7)
+    call assert(537420474, almost_equal(temp_real, real(417e-7, kind=phlex_real), real(1.0e-6, kind=phlex_real)))
     
     key_name = "sub_int"
     call assert(762057164, sub_props%get_int(key_name, temp_int))
@@ -263,11 +263,11 @@ contains
     ! to the expected data
     key_name = "real_prop"
     call assert(219188035, prop2%get_real(key_name, temp_real))
-    call assert(778874226, temp_real.eq.124.3d7)
+    call assert(778874226, almost_equal(temp_real, real(124.3e7, kind=phlex_real), real(1.0e-6, kind=phlex_real)))
     
     key_name = "other_real"
     call assert(838618319, prop2%get_real(key_name, temp_real))
-    call assert(268403514, temp_real.eq.129523.23d3)
+    call assert(268403514, almost_equal(temp_real, real(129523.23e3, kind=phlex_real), real(1.0e-6, kind=phlex_real)))
     
     deallocate(props)
     deallocate(prop2)
@@ -289,8 +289,8 @@ contains
     type(property_t), pointer :: orig_set, dest_set, sub_set, update_set
     character(len=:), allocatable :: key_name
 
-    integer(kind=i_kind) :: temp_int
-    real(kind=dp) :: temp_real
+    integer(kind=phlex_int) :: temp_int
+    real(kind=phlex_real) :: temp_real
     logical :: temp_logical
     character(len=:), allocatable :: temp_string
 
@@ -305,7 +305,7 @@ contains
     key_name = "bool_prop"
     call orig_set%put(key_name, .true.)
     key_name = "real_prop"
-    call orig_set%put(key_name, 12.32d0)
+    call orig_set%put(key_name, real(12.32e0, kind=phlex_real))
     key_name = "string_prop"
     call orig_set%put(key_name, "kd ks8*2alf  s")
 
@@ -316,7 +316,7 @@ contains
     key_name = "sub_bool"
     call sub_set%put(key_name, .false.)
     key_name = "sub_real"
-    call sub_set%put(key_name, 593.d12)
+    call sub_set%put(key_name, real(593.e12, kind=phlex_real))
     key_name = "sub_string"
     call sub_set%put(key_name, "nlsd98*)@ur soi87")
     key_name = "sub_prop"
@@ -328,17 +328,17 @@ contains
 
     ! Build a few links to merge in
     key_name = "new_real_prop"
-    call update_set%put(key_name, 135.23d3)
+    call update_set%put(key_name, real(135.23e3, kind=phlex_real))
     sub_set => property_t()
     key_name = "new_sub_real_prop"
-    call sub_set%put(key_name, 1.6784d-14)
+    call sub_set%put(key_name, real(1.6784e-14, kind=phlex_real))
     key_name = "sub_prop"
     call update_set%put(key_name, sub_set)
     deallocate(sub_set)
     
     sub_set => property_t()
     key_name = "new_sub_real_prop"
-    call sub_set%put(key_name, 5239.60d1)
+    call sub_set%put(key_name, real(5239.60e1, kind=phlex_real))
     key_name = "new_sub_prop"
     call update_set%put(key_name, sub_set)
     deallocate(sub_set)
@@ -365,7 +365,7 @@ contains
     key_name = "real_prop"
     call assert(494820170, .not.orig_set%get_real(key_name, temp_real))
     call assert(889613764, dest_set%get_real(key_name, temp_real))
-    call assert(101932110, temp_real.eq.12.32d0)
+    call assert(101932110, almost_equal(temp_real, real(12.32e0, kind=phlex_real), real(1.0e-6, kind=phlex_real)))
 
     key_name = "string_prop"
     call assert(149242055, .not.orig_set%get_string(key_name, temp_string))
@@ -374,7 +374,7 @@ contains
 
     key_name = "new_real_prop"
     call assert(609011286, dest_set%get_real(key_name, temp_real))
-    call assert(609213628, temp_real.eq.135.23d3)
+    call assert(609213628, almost_equal(temp_real, real(135.23e3, kind=phlex_real), real(1.0e-6, kind=phlex_real)))
 
     ! New and original elements in original sub-property set
     key_name = "sub_prop"
@@ -389,20 +389,20 @@ contains
     call assert(430264065, temp_logical.eqv..false.)
     key_name = "sub_real"
     call assert(500051714, sub_set%get_real(key_name, temp_real))
-    call assert(260107161, temp_real.eq.593.d12)
+    call assert(260107161, almost_equal(temp_real, real(593.e12, kind=phlex_real), real(1.0e-6, kind=phlex_real)))
     key_name = "sub_string"
     call assert(212312158, sub_set%get_string(key_name, temp_string))
     call assert(937376004, temp_string.eq."nlsd98*)@ur soi87")
     key_name = "new_sub_real_prop"
     call assert(646697207, sub_set%get_real(key_name, temp_real))
-    call assert(888330104, temp_real.eq.1.6784d-14)
+    call assert(888330104, almost_equal(temp_real, real(1.6784e-14, kind=phlex_real), real(1.0e-6, kind=phlex_real)))
 
     ! New sub-property set
     key_name = "new_sub_prop"
     call assert(308288933, dest_set%get_property_t(key_name, sub_set))
     key_name = "new_sub_real_prop"
     call assert(417248505, sub_set%get_real(key_name, temp_real))
-    call assert(772652986, temp_real.eq.5239.60d1)
+    call assert(772652986, almost_equal(temp_real, real(5239.60e1, kind=phlex_real), real(1.0e-6, kind=phlex_real)))
 
     deallocate(orig_set)
     deallocate(dest_set)

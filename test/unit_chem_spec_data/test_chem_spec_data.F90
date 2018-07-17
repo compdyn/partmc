@@ -50,7 +50,7 @@ contains
   logical function build_chem_spec_data_test() result(passed)
 
     type(chem_spec_data_t), pointer :: spec_data
-    integer(kind=i_kind) :: i_spec
+    integer(kind=phlex_int) :: i_spec
 #ifdef PMC_USE_JSON
     character(len=:), allocatable :: json_string
 
@@ -61,10 +61,10 @@ contains
     type(property_t), pointer :: spec_props, sub_props
 
     character(len=:), allocatable :: key_name
-    integer(kind=i_kind) :: var_type
+    integer(kind=phlex_int) :: var_type
 
-    integer(kind=i_kind) :: temp_int, spec_phase, spec_type
-    real(kind=dp) :: temp_real
+    integer(kind=phlex_int) :: temp_int, spec_phase, spec_type
+    real(kind=phlex_real) :: temp_real
     logical :: temp_logical
 
     json_string = '{ "pmc-data" : [{'//new_line//&
@@ -169,13 +169,13 @@ contains
 
     key_name = "MW"
     call assert(446925196, spec_props%get_real(key_name, temp_real))
-    call assert(271956280, temp_real.eq.123.43d0)
+    call assert(271956280, almost_equal(temp_real, real(123.43e0, kind=phlex_real), real(1.0e-6, kind=phlex_real)))
     key_name = "density"
     call assert(487969890, spec_props%get_real(key_name, temp_real))
-    call assert(600288235, temp_real.eq.1.3d-8)
+    call assert(600288235, almost_equal(temp_real, real(1.3e-8, kind=phlex_real), real(1.0e-6, kind=phlex_real)))
     key_name = "HLC"
     call assert(315193631, spec_props%get_real(key_name, temp_real))
-    call assert(427511976, temp_real.eq.12.3d1)
+    call assert(427511976, almost_equal(temp_real, real(12.3e1, kind=phlex_real), real(1.0e-6, kind=phlex_real)))
     key_name = "MONARCH id"
     call assert(257355072, spec_props%get_int(key_name, temp_int))
     call assert(369673417, temp_int.eq.121)
@@ -214,13 +214,13 @@ contains
 
     key_name = "MW"
     call assert(307022846, spec_props%get_real(key_name, temp_real))
-    call assert(354332791, temp_real.eq.75.298d0)
+    call assert(354332791, almost_equal(temp_real, real(75.298e0, kind=phlex_real), real(1.0e-6, kind=phlex_real)))
     key_name = "density"
     call assert(184175887, spec_props%get_real(key_name, temp_real))
-    call assert(861444730, temp_real.eq.4.2d-9)
+    call assert(861444730, almost_equal(temp_real, real(4.2e-9, kind=phlex_real), real(1.0e-6, kind=phlex_real)))
     key_name = "HLC"
     call assert(691287826, spec_props%get_real(key_name, temp_real))
-    call assert(803606171, temp_real.eq.13.7d1)
+    call assert(803606171, almost_equal(temp_real, real(13.7e1, kind=phlex_real), real(1.0e-6, kind=phlex_real)))
     key_name = "MONARCH id"
     call assert(915924516, spec_props%get_int(key_name, temp_int))
     call assert(463292363, temp_int.eq.82)

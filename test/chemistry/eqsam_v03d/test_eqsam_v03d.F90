@@ -12,7 +12,8 @@ program pmc_test_eqsam_v03d
 #define DEBUG
      
   use pmc_constants,                    only: const
-  use pmc_util,                         only: i_kind, dp, assert, assert_msg, &
+  use pmc_util,                         only: phlex_real, phlex_int, &
+                                              assert, assert_msg, &
                                               almost_equal, string_t, &
                                               to_string, warn_assert_msg, &
                                               die_msg
@@ -35,18 +36,18 @@ program pmc_test_eqsam_v03d
   ! New-line character
   character(len=*), parameter :: new_line = char(10)
   ! EQSAM output file unit
-  integer(kind=i_kind), parameter :: EQSAM_FILE_UNIT = 10
+  integer(kind=phlex_int), parameter :: EQSAM_FILE_UNIT = 10
   ! Phlex-chem output file unit
-  integer(kind=i_kind), parameter :: PHLEX_FILE_UNIT = 12
+  integer(kind=phlex_int), parameter :: PHLEX_FILE_UNIT = 12
   ! Number of timesteps to integrate over
-  integer(kind=i_kind), parameter :: NUM_TIME_STEPS = 100
+  integer(kind=phlex_int), parameter :: NUM_TIME_STEPS = 100
   ! Small number for minimum concentrations
-  real(kind=dp), parameter :: SMALL_NUM = 1.0d-30
+  real(kind=phlex_real), parameter :: SMALL_NUM = 1.0d-30
   ! Used to check availability of a solver  
   type(phlex_solver_data_t), pointer :: phlex_solver_data
 
 #ifdef DEBUG
-  integer(kind=i_kind), parameter :: DEBUG_UNIT = 13
+  integer(kind=phlex_int), parameter :: DEBUG_UNIT = 13
    
   open(unit=DEBUG_UNIT, file="out/debug_eqsam.txt", status="replace", action="write")
 #endif
@@ -90,7 +91,7 @@ contains
     type(phlex_state_t), pointer :: phlex_state
 
     ! Computation timer variables
-    real(kind=dp) :: comp_start, comp_end, comp_eqsam, comp_phlex
+    real(kind=phlex_real) :: comp_start, comp_end, comp_eqsam, comp_phlex
 
     ! Temperature (K)
     real :: temperature = 272.5
@@ -102,11 +103,11 @@ contains
 
     type(chem_spec_data_t), pointer :: chem_spec_data
     character(len=:), allocatable :: key, str_val, spec_name, phase_name, rep_name
-    integer(kind=i_kind) :: i_mech, i_spec, n_spec, int_val, i_state_elem
-    real(kind=dp) :: real_val, init_conc
+    integer(kind=phlex_int) :: i_mech, i_spec, n_spec, int_val, i_state_elem
+    real(kind=phlex_real) :: real_val, init_conc
     type(property_t), pointer :: prop_set
     class(aero_rep_data_t), pointer :: aero_rep
-    integer(kind=i_kind), allocatable :: spec_ids(:)
+    integer(kind=phlex_int), allocatable :: spec_ids(:)
     type(string_t), allocatable :: spec_names(:), unique_names(:)
 
     !!!!!!!!!!!!!!!!!!!!!!!
@@ -202,7 +203,7 @@ contains
     
     ! RH
     eqsam_yi(1:eqsam_imax, 2) = water_conc_to_RH( &
-            real(temperature, kind=dp), real(pressure, kind=dp), &
+            real(temperature, kind=phlex_real), real(pressure, kind=phlex_real), &
             get_eqsam_gas_conc(phlex_core, phlex_state, "H2O"))
     ! Ammonium
     eqsam_yi(1:eqsam_imax, 3) = &
@@ -283,16 +284,16 @@ contains
 
   ! Convert [H2O] (ppm) to RH (0-1)
   ! from https://www.vaisala.com/sites/default/fiels/documents/Humidity_Conversion_Formulas_B210973EN-F.pdf
-  real(kind=dp) function water_conc_to_RH(temperature, pressure, water_conc)
+  real(kind=phlex_real) function water_conc_to_RH(temperature, pressure, water_conc)
 
     !> Temperature (K)
-    real(kind=dp), intent(in) :: temperature
+    real(kind=phlex_real), intent(in) :: temperature
     !> Pressure (Pa)
-    real(kind=dp), intent(in) :: pressure
+    real(kind=phlex_real), intent(in) :: pressure
     !> Water concentration (ppm)
-    real(kind=dp), intent(in) :: water_conc
+    real(kind=phlex_real), intent(in) :: water_conc
 
-    real(kind=dp) :: v
+    real(kind=phlex_real) :: v
 
     v = 1.0d0 - temperature / 647.096d0
 
@@ -312,7 +313,7 @@ contains
 
   !> Get gas-phase species concentration for eqsam from phlex-chem
   !! EQSAM units : umol/m^3; phlex-chem units : ppm
-  real(kind=dp) function get_eqsam_gas_conc(phlex_core, phlex_state, spec_name)
+  real(kind=phlex_real) function get_eqsam_gas_conc(phlex_core, phlex_state, spec_name)
 
     !> Phlex-chem core
     type(phlex_core_t), pointer, intent(in) :: phlex_core
@@ -323,7 +324,7 @@ contains
 
     type(chem_spec_data_t), pointer :: chem_spec_data
     character(len=:), allocatable :: spec_name_def
-    integer(kind=i_kind) :: spec_id
+    integer(kind=phlex_int) :: spec_id
 
     spec_name_def = spec_name
 
@@ -342,7 +343,7 @@ contains
 
   !> Get aerosol-phase species concentration for eqsam from phlex-chem
   !! EQSAM units: umol/m^3; phlex-chem units: umol/m^3
-  real(kind=dp) function get_eqsam_aero_conc(aero_rep, phase_name, phlex_state, spec_name)
+  real(kind=phlex_real) function get_eqsam_aero_conc(aero_rep, phase_name, phlex_state, spec_name)
 
     !> Aerosol representation
     class(aero_rep_data_t), pointer, intent(in) :: aero_rep
@@ -355,7 +356,7 @@ contains
 
     character(len=:), allocatable :: spec_name_def
     type(string_t), allocatable :: unique_names(:)
-    integer(kind=i_kind) :: i_state_elem
+    integer(kind=phlex_int) :: i_state_elem
 
     spec_name_def = spec_name
 

@@ -10,9 +10,9 @@ program pmc_test_SIMPOL_phase_transfer
 
   use iso_c_binding
 
-  use pmc_util,                         only: i_kind, dp, assert, &
-                                              almost_equal, string_t, &
-                                              warn_msg
+  use pmc_util,                         only: phlex_real, phlex_int, &
+                                              assert, almost_equal, &
+                                              string_t, warn_msg
   use pmc_phlex_core
   use pmc_phlex_state
   use pmc_chem_spec_data
@@ -27,7 +27,7 @@ program pmc_test_SIMPOL_phase_transfer
   implicit none
 
   ! Number of timesteps to output in mechanisms
-  integer(kind=i_kind) :: NUM_TIME_STEP = 100
+  integer(kind=phlex_int) :: NUM_TIME_STEP = 100
 
   ! initialize mpi
   call pmc_mpi_init()
@@ -94,32 +94,32 @@ contains
 
     type(chem_spec_data_t), pointer :: chem_spec_data
     class(aero_rep_data_t), pointer :: aero_rep_ptr
-    real(kind=dp), dimension(0:NUM_TIME_STEP, 7) :: model_conc, true_conc
-    integer(kind=i_kind) :: idx_phase, idx_aero_rep
-    integer(kind=i_kind) :: idx_ethanol, idx_ethanol_aq, idx_H2O_aq
-    integer(kind=i_kind) :: i_time, i_spec
-    real(kind=dp) :: time_step, time
-    real(kind=dp) :: n_star, del_H, del_S, del_G, alpha, crms, ugm3_to_ppm
-    real(kind=dp) :: VP_ethanol, k_forward, k_backward
-    real(kind=dp) :: equil_ethanol, equil_ethanol_aq
-    real(kind=dp) :: total_mass, water_mass, VP_0_mass
+    real(kind=phlex_real), dimension(0:NUM_TIME_STEP, 7) :: model_conc, true_conc
+    integer(kind=phlex_int) :: idx_phase, idx_aero_rep
+    integer(kind=phlex_int) :: idx_ethanol, idx_ethanol_aq, idx_H2O_aq
+    integer(kind=phlex_int) :: i_time, i_spec
+    real(kind=phlex_real) :: time_step, time
+    real(kind=phlex_real) :: n_star, del_H, del_S, del_G, alpha, crms, ugm3_to_ppm
+    real(kind=phlex_real) :: VP_ethanol, k_forward, k_backward
+    real(kind=phlex_real) :: equil_ethanol, equil_ethanol_aq
+    real(kind=phlex_real) :: total_mass, water_mass, VP_0_mass
 #ifdef PMC_USE_MPI
     character, allocatable :: buffer(:), buffer_copy(:)
-    integer(kind=i_kind) :: pack_size, pos, i_elem, results
+    integer(kind=phlex_int) :: pack_size, pos, i_elem, results
 #endif
 
     ! Parameters for calculating true concentrations
-    real(kind=dp) :: temperature, pressure 
-    real(kind=dp), target :: radius, number_conc
-    real(kind=dp), parameter :: MW_ethanol = 0.04607
-    real(kind=dp), parameter :: MW_H2O = 0.01801
-    real(kind=dp), parameter :: Dg_ethanol = 9.50d-6
+    real(kind=phlex_real) :: temperature, pressure 
+    real(kind=phlex_real), target :: radius, number_conc
+    real(kind=phlex_real), parameter :: MW_ethanol = 0.04607
+    real(kind=phlex_real), parameter :: MW_H2O = 0.01801
+    real(kind=phlex_real), parameter :: Dg_ethanol = 9.50d-6
 
     ! For setting particle radius and number concentration
     type(aero_rep_factory_t) :: aero_rep_factory
     type(aero_rep_update_data_single_particle_radius_t) :: radius_update
     type(aero_rep_update_data_single_particle_number_t) :: number_update
-    integer(kind=i_kind), parameter :: aero_rep_external_id = 42
+    integer(kind=phlex_int), parameter :: aero_rep_external_id = 42
 
     run_SIMPOL_phase_transfer_test = .true.
 
@@ -328,7 +328,7 @@ contains
           if (i_spec.ge.2.and.i_spec.le.3) cycle
           call assert_msg(848069355, &
             almost_equal(model_conc(i_time, i_spec), &
-            true_conc(i_time, i_spec), real(1.0e-2, kind=dp)).or. &
+            true_conc(i_time, i_spec), real(1.0e-2, kind=phlex_real)).or. &
             (model_conc(i_time, i_spec).lt.1e-5*model_conc(1, i_spec).and. &
             true_conc(i_time, i_spec).lt.1e-5*true_conc(1, i_spec)), &
             "time: "//trim(to_string(i_time))//"; species: "// &

@@ -3,7 +3,7 @@
   "pmc-data" : [
    {
     "type" : "RELATIVE_TOLERANCE",
-    "value" : 1.0e-15
+    "value" : 1.0e-6
   },
   {
     "name" : "A",
@@ -11,7 +11,7 @@
     "phase" : "AEROSOL",
     "molecular weight" : 0.1572,
     "density" : 1.0,
-    "absolute tolerance" : 1.0e-20
+    "absolute tolerance" : 1.0e-6
   },
   {
     "name" : "B",
@@ -19,7 +19,7 @@
     "phase" : "AEROSOL",
     "molecular weight" : 0.0219,
     "density" : 1.0,
-    "absolute tolerance" : 1.0e-20
+    "absolute tolerance" : 1.0e-6
   },
   {
     "name" : "C",
@@ -27,7 +27,7 @@
     "phase" : "AEROSOL",
     "molecular weight" : 0.2049,
     "density" : 1.0,
-    "absolute tolerance" : 1.0e-20
+    "absolute tolerance" : 1.0e-6
   },
   {
     "name" : "D",

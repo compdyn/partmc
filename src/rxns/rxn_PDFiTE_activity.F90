@@ -174,10 +174,11 @@ module pmc_rxn_PDFiTE_activity
   use pmc_phlex_state
   use pmc_property
   use pmc_rxn_data
-  use pmc_util,                             only: i_kind, dp, to_string, &
-                                                  assert, assert_msg, &
-                                                  die_msg, string_t, &
-                                                  warn_assert_msg, align_ratio
+  use pmc_util,                             only: phlex_real, phlex_int, &
+                                                  to_string, assert, &
+                                                  assert_msg, die_msg, &
+                                                  string_t, warn_assert_msg, &
+                                                  align_ratio
 
   implicit none
   private
@@ -261,17 +262,17 @@ contains
             sub_props, ions, interactions, interaction, poly_coeffs
     character(len=:), allocatable :: key_name, spec_name, phase_name, &
             string_val, inter_spec_name
-    integer(kind=i_kind) :: n_phase, n_ion_pair, n_int_param, n_float_param
-    integer(kind=i_kind) :: i_aero_rep, i_phase, i_ion_pair, i_ion, i_spec, &
+    integer(kind=phlex_int) :: n_phase, n_ion_pair, n_int_param, n_float_param
+    integer(kind=phlex_int) :: i_aero_rep, i_phase, i_ion_pair, i_ion, i_spec, &
             i_poly_coeff, i_interaction, j_ion_pair, j_interaction
-    integer(kind=i_kind) :: qty, int_val, charge, total_charge, tracer_type
-    real(kind=dp) :: real_val, molecular_weight, min_RH, max_RH
+    integer(kind=phlex_int) :: qty, int_val, charge, total_charge, tracer_type
+    real(kind=phlex_real) :: real_val, molecular_weight, min_RH, max_RH
     type(string_t), allocatable :: unique_spec_names(:)
     character(len=:), allocatable :: ion_pair_name, ion_name
     type(string_t), allocatable :: ion_pair_names(:), temp_ion_pair_names(:)
-    integer(kind=i_kind), allocatable :: num_inter(:)
-    real(kind=dp), allocatable :: rh_range(:)
-    integer(kind=i_kind) :: int_data_size, float_data_size
+    integer(kind=phlex_int), allocatable :: num_inter(:)
+    real(kind=phlex_real), allocatable :: rh_range(:)
+    integer(kind=phlex_int) :: int_data_size, float_data_size
 
     ! Get the reaction property set
     if (.not. associated(this%property_set)) call die_msg(101529793, &
@@ -435,8 +436,8 @@ contains
     ! Allocate space in the condensed data arrays
     allocate(this%condensed_data_int(int_data_size))
     allocate(this%condensed_data_real(float_data_size))
-    this%condensed_data_int(:) = int(9999, kind=i_kind)
-    this%condensed_data_real(:) = real(9999.0, kind=dp)
+    this%condensed_data_int(:) = int(9999, kind=phlex_int)
+    this%condensed_data_real(:) = real(9999.0, kind=phlex_real)
     INT_DATA_SIZE_ = int_data_size
     FLOAT_DATA_SIZE_ = float_data_size
 
@@ -714,8 +715,8 @@ contains
                   "' in PD-FiTE activity reaction.")
           min_RH = MIN_RH_(i_ion_pair, i_interaction)
           call assert_msg(294172408, &
-                  min_RH.ge.real(0.0, kind=dp).and. &
-                  min_RH.lt.real(1.0, kind=dp), &
+                  min_RH.ge.real(0.0, kind=phlex_real).and. &
+                  min_RH.lt.real(1.0, kind=phlex_real), &
                   "Invalid value for minimum RH for ion pair '"// &
                   ion_pair_name//"' interaction with '"//inter_spec_name// &
                   "' in PD-FiTE activity reaction: "//to_string(min_RH))
@@ -730,8 +731,8 @@ contains
                   "' in PD-FiTE activity reaction.")
           max_RH = MAX_RH_(i_ion_pair, i_interaction)
           call assert_msg(840423507, &
-                  max_RH.gt.real(0.0, kind=dp).and. &
-                  max_RH.le.real(1.0, kind=dp), &
+                  max_RH.gt.real(0.0, kind=phlex_real).and. &
+                  max_RH.le.real(1.0, kind=phlex_real), &
                   "Invalid value for maximum RH for ion pair '"// &
                   ion_pair_name//"' interaction with '"//inter_spec_name// &
                   "' in PD-FiTE activity reaction: "//to_string(max_RH))
@@ -799,7 +800,7 @@ contains
         ! Make sure the entire RH range is covered
         do i_spec = 1, size(rh_range)
           call assert_msg(370258071, &
-                  rh_range(i_spec).eq.real(1.0, kind=dp).or. &
+                  rh_range(i_spec).eq.real(1.0, kind=phlex_real).or. &
                   num_inter(i_spec).eq.0, &
                   "Incomplete RH coverage for interaction with ion pair '"// &
                   ion_pair_names(i_spec)%string//"' for '"//ion_pair_name// &

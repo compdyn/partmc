@@ -69,7 +69,7 @@ module pmc_aero_rep_modal_binned_mass
   use pmc_chem_spec_data
   use pmc_phlex_state
   use pmc_property
-  use pmc_util,                               only: dp, i_kind, &
+  use pmc_util,                               only: phlex_real, phlex_int, &
                                                     string_t, assert_msg, &
                                                     assert, die_msg, &
                                                     to_string, align_ratio
@@ -122,8 +122,8 @@ module pmc_aero_rep_modal_binned_mass
 #define PHASE_AVG_MW_(x,y,b) this%condensed_data_real(MODE_REAL_PROP_LOC_(x)+(4+NUM_PHASE_(x))*NUM_BINS_(x)+(b-1)*NUM_PHASE_(x)+y-1)
 
   ! Update types (These must match values in aero_rep_modal_binned_mass.c)
-  integer(kind=i_kind), parameter, public :: UPDATE_GMD = 0
-  integer(kind=i_kind), parameter, public :: UPDATE_GSD = 1
+  integer(kind=phlex_int), parameter, public :: UPDATE_GMD = 0
+  integer(kind=phlex_int), parameter, public :: UPDATE_GSD = 1
 
   public :: aero_rep_modal_binned_mass_t, &
             aero_rep_update_data_modal_binned_mass_GMD_t, &
@@ -136,7 +136,7 @@ module pmc_aero_rep_modal_binned_mass
     !> Mode names (only used during initialization)
     type(string_t), allocatable :: section_name(:)
     !> Phase state id (only used during initialization)
-    integer(kind=i_kind), allocatable :: phase_state_id(:)
+    integer(kind=phlex_int), allocatable :: phase_state_id(:)
   contains
     !> Initialize the aerosol representation data, validating component data and
     !! loading any required information from the \c
@@ -256,7 +256,7 @@ module pmc_aero_rep_modal_binned_mass
       !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::get_section_id
       integer(kind=c_int), value :: section_id
       !> New GMD (m)
-      real(kind=c_double), value :: gmd
+      real(kind=PMC_F90_C_FLOAT), value :: gmd
     end subroutine aero_rep_modal_binned_mass_set_gmd_update_data
 
     !> Allocate space for a GSD update object
@@ -280,7 +280,7 @@ module pmc_aero_rep_modal_binned_mass
       !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::get_section_id
       integer(kind=c_int), value :: section_id
       !> New GSD (m)
-      real(kind=c_double), value :: gsd
+      real(kind=PMC_F90_C_FLOAT), value :: gsd
     end subroutine aero_rep_modal_binned_mass_set_gsd_update_data
 
     !> Free an update data object
@@ -322,17 +322,17 @@ contains
     type(aero_phase_data_ptr), pointer, intent(in) :: aero_phase_set(:)
     !> Beginning state id for this aerosol representationin the model species
     !! state array
-    integer(kind=i_kind), intent(in) :: spec_state_id
+    integer(kind=phlex_int), intent(in) :: spec_state_id
 
     type(property_t), pointer :: sections, section, phases
-    integer(kind=i_kind) :: i_section, i_phase, j_phase, k_phase, &
+    integer(kind=phlex_int) :: i_section, i_phase, j_phase, k_phase, &
                             i_bin
-    integer(kind=i_kind) :: curr_spec_state_id
-    integer(kind=i_kind) :: num_phase, num_bin
-    integer(kind=i_kind) :: n_int_param, n_float_param
+    integer(kind=phlex_int) :: curr_spec_state_id
+    integer(kind=phlex_int) :: num_phase, num_bin
+    integer(kind=phlex_int) :: n_int_param, n_float_param
     character(len=:), allocatable :: key_name, phase_name, sect_type, str_val
-    real(kind=dp) :: min_Dp, max_Dp, d_log_Dp
-    integer(kind=i_kind) :: int_data_size, float_data_size
+    real(kind=phlex_real) :: min_Dp, max_Dp, d_log_Dp
+    integer(kind=phlex_int) :: int_data_size, float_data_size
 
     ! Determine the size of the condensed data arrays
     n_int_param = NUM_INT_PROP_
@@ -469,8 +469,8 @@ contains
     ! Allocate condensed data arrays
     allocate(this%condensed_data_int(int_data_size))
     allocate(this%condensed_data_real(float_data_size))
-    this%condensed_data_int(:) = int(0, kind=i_kind)
-    this%condensed_data_real(:) = real(0.0, kind=dp)
+    this%condensed_data_int(:) = int(0, kind=phlex_int)
+    this%condensed_data_real(:) = real(0.0, kind=phlex_real)
     INT_DATA_SIZE_ = int_data_size
     FLOAT_DATA_SIZE_ = float_data_size
 
@@ -671,7 +671,7 @@ contains
     !> Aerosol representation data
     class(aero_rep_modal_binned_mass_t), intent(inout) :: this
     !> New id
-    integer(kind=i_kind), intent(in) :: new_id
+    integer(kind=phlex_int), intent(in) :: new_id
 
     AERO_REP_ID_ = new_id
 
@@ -690,9 +690,9 @@ contains
     !> Section name
     character(len=:), allocatable, intent(in) :: section_name
     !> Section id
-    integer(kind=i_kind), intent(out) :: section_id
+    integer(kind=phlex_int), intent(out) :: section_id
 
-    integer(kind=i_kind) :: i_section
+    integer(kind=phlex_int) :: i_section
 
     call assert_msg(194186171, allocated(this%section_name), &
             "Trying to get section id of uninitialized aerosol "// &
@@ -721,11 +721,11 @@ contains
   function get_size(this) result (state_size)
 
     !> Size on the state array
-    integer(kind=i_kind) :: state_size
+    integer(kind=phlex_int) :: state_size
     !> Aerosol representation data
     class(aero_rep_modal_binned_mass_t), intent(in) :: this
 
-    integer(kind=i_kind) :: i_phase
+    integer(kind=phlex_int) :: i_phase
 
     ! Get the total number of species across all phases
     state_size = 0
@@ -756,13 +756,13 @@ contains
     !> Aerosol phase name
     character(len=:), allocatable, optional, intent(in) :: phase_name
     !> Aerosol-phase species tracer type
-    integer(kind=i_kind), optional, intent(in) :: tracer_type
+    integer(kind=phlex_int), optional, intent(in) :: tracer_type
     !> Aerosol-phase species name
     character(len=:), allocatable, optional, intent(in) :: spec_name
 
-    integer(kind=i_kind) :: num_spec, i_spec, j_spec, i_phase, j_phase, &
+    integer(kind=phlex_int) :: num_spec, i_spec, j_spec, i_phase, j_phase, &
                             i_section, i_bin
-    integer(kind=i_kind) :: curr_tracer_type
+    integer(kind=phlex_int) :: curr_tracer_type
     character(len=:), allocatable :: curr_section_name, curr_phase_name, &
                                      curr_bin_str
     type(string_t), allocatable :: spec_names(:)
@@ -891,14 +891,14 @@ contains
   function spec_state_id(this, unique_name) result (spec_id)
 
     !> Species state id
-    integer(kind=i_kind) :: spec_id
+    integer(kind=phlex_int) :: spec_id
     !> Aerosol representation data
     class(aero_rep_modal_binned_mass_t), intent(in) :: this
     !> Unique name
     character(len=:), allocatable, intent(in) :: unique_name
 
     type(string_t), allocatable, save :: unique_names(:)
-    integer(kind=i_kind) :: i_spec
+    integer(kind=phlex_int) :: i_spec
 
     spec_id = 0
     if (.not.allocated(unique_names)) unique_names = this%unique_names()
@@ -924,7 +924,7 @@ contains
     character(len=:), allocatable :: unique_name
 
     ! Indices for iterators
-    integer(kind=i_kind) :: i_spec, j_spec, i_phase
+    integer(kind=phlex_int) :: i_spec, j_spec, i_phase
    
     ! species names in the aerosol phase
     type(string_t), allocatable :: spec_names(:)
@@ -956,13 +956,13 @@ contains
   function num_phase_instances(this, phase_name)
 
     !> Number of instances of the aerosol phase
-    integer(kind=i_kind) :: num_phase_instances
+    integer(kind=phlex_int) :: num_phase_instances
     !> Aerosol representation data
     class(aero_rep_modal_binned_mass_t), intent(in) :: this
     !> Aerosol phase name
     character(len=:), allocatable, intent(in) :: phase_name
 
-    integer(kind=i_kind) :: i_phase
+    integer(kind=phlex_int) :: i_phase
 
     num_phase_instances = 0
     do i_phase = 1, size(this%aero_phase)
@@ -1005,7 +1005,7 @@ contains
     !> New update data object
     type(aero_rep_update_data_modal_binned_mass_GMD_t) :: new_obj
     !> Aerosol representation id
-    integer(kind=i_kind), intent(in) :: aero_rep_type
+    integer(kind=phlex_int), intent(in) :: aero_rep_type
 
     new_obj%aero_rep_type = int(aero_rep_type, kind=c_int)
     new_obj%update_data = aero_rep_modal_binned_mass_create_gmd_update_data()
@@ -1022,12 +1022,12 @@ contains
     class(aero_rep_update_data_modal_binned_mass_GMD_t), intent(inout) :: this
     !> Aerosol representation id from
     !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::set_id
-    integer(kind=i_kind), intent(in) :: aero_rep_id
+    integer(kind=phlex_int), intent(in) :: aero_rep_id
     !> Aerosol section id from
     !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::get_section_id
-    integer(kind=i_kind), intent(in) :: section_id
+    integer(kind=phlex_int), intent(in) :: section_id
     !> Updated GMD (m)
-    real(kind=dp), intent(in) :: GMD
+    real(kind=phlex_real), intent(in) :: GMD
 
     call aero_rep_modal_binned_mass_set_gmd_update_data(this%get_data(), &
             aero_rep_id, section_id, GMD)
@@ -1054,7 +1054,7 @@ contains
     !> New update data object
     type(aero_rep_update_data_modal_binned_mass_GSD_t) :: new_obj
     !> Aerosol representation id
-    integer(kind=i_kind), intent(in) :: aero_rep_type
+    integer(kind=phlex_int), intent(in) :: aero_rep_type
 
     new_obj%aero_rep_type = int(aero_rep_type, kind=c_int)
     new_obj%update_data = aero_rep_modal_binned_mass_create_gsd_update_data()
@@ -1071,12 +1071,12 @@ contains
     class(aero_rep_update_data_modal_binned_mass_GSD_t), intent(inout) :: this
     !> Aerosol representation id from
     !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::set_id
-    integer(kind=i_kind), intent(in) :: aero_rep_id
+    integer(kind=phlex_int), intent(in) :: aero_rep_id
     !> Aerosol section id from
     !! pmc_aero_rep_modal_binned_mass::aero_rep_modal_binned_mass_t::get_section_id
-    integer(kind=i_kind), intent(in) :: section_id
+    integer(kind=phlex_int), intent(in) :: section_id
     !> Updated GSD (m)
-    real(kind=dp), intent(in) :: GSD
+    real(kind=phlex_real), intent(in) :: GSD
 
     call aero_rep_modal_binned_mass_set_gsd_update_data(this%get_data(), &
             aero_rep_id, section_id, GSD)

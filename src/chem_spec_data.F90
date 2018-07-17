@@ -34,7 +34,7 @@ module pmc_chem_spec_data
 #ifdef PMC_USE_JSON
   use json_module
 #endif
-  use pmc_constants,                  only : dp, i_kind
+  use pmc_constants,                  only : phlex_real, phlex_int
   use pmc_property
   use pmc_util,                       only : die_msg, string_t, assert_msg
 
@@ -46,21 +46,21 @@ module pmc_chem_spec_data
   public :: chem_spec_data_t 
 
   !> State variable types (Must match values in phlex_solver.c)
-  integer(kind=i_kind), parameter, public :: CHEM_SPEC_UNKNOWN_TYPE = 0
-  integer(kind=i_kind), parameter, public :: CHEM_SPEC_VARIABLE = 1
-  integer(kind=i_kind), parameter, public :: CHEM_SPEC_CONSTANT = 2
-  integer(kind=i_kind), parameter, public :: CHEM_SPEC_PSSA = 3
-  integer(kind=i_kind), parameter, public :: CHEM_SPEC_ACTIVITY_COEFF = 4
+  integer(kind=phlex_int), parameter, public :: CHEM_SPEC_UNKNOWN_TYPE = 0
+  integer(kind=phlex_int), parameter, public :: CHEM_SPEC_VARIABLE = 1
+  integer(kind=phlex_int), parameter, public :: CHEM_SPEC_CONSTANT = 2
+  integer(kind=phlex_int), parameter, public :: CHEM_SPEC_PSSA = 3
+  integer(kind=phlex_int), parameter, public :: CHEM_SPEC_ACTIVITY_COEFF = 4
 
   !> Species phase
-  integer(kind=i_kind), parameter, public :: CHEM_SPEC_UNKNOWN_PHASE = 0
-  integer(kind=i_kind), parameter, public :: CHEM_SPEC_GAS_PHASE = 1
-  integer(kind=i_kind), parameter, public :: CHEM_SPEC_AERO_PHASE = 2
+  integer(kind=phlex_int), parameter, public :: CHEM_SPEC_UNKNOWN_PHASE = 0
+  integer(kind=phlex_int), parameter, public :: CHEM_SPEC_GAS_PHASE = 1
+  integer(kind=phlex_int), parameter, public :: CHEM_SPEC_AERO_PHASE = 2
 
   !> Reallocation increment
-  integer(kind=i_kind), parameter :: REALLOC_INC = 50
+  integer(kind=phlex_int), parameter :: REALLOC_INC = 50
   !> Default absolute integration tolerance
-  real(kind=dp), parameter :: DEFAULT_ABS_TOL = 1.0e-14
+  real(kind=phlex_real), parameter :: DEFAULT_ABS_TOL = 1.0e-14
 
   !> Chemical species data
   !!
@@ -68,13 +68,13 @@ module pmc_chem_spec_data
   type chem_spec_data_t
     private
     !> Number of species
-    integer(kind=i_kind) :: num_spec = 0
+    integer(kind=phlex_int) :: num_spec = 0
     !> Species name
     type(string_t), pointer :: spec_name(:) => null()
     !> Species type
-    integer(kind=i_kind), pointer :: spec_type(:) => null()
+    integer(kind=phlex_int), pointer :: spec_type(:) => null()
     !> Species phase
-    integer(kind=i_kind), pointer :: spec_phase(:) => null()
+    integer(kind=phlex_int), pointer :: spec_phase(:) => null()
     !> Species property set
     type(property_t), pointer :: property_set(:) => null()
   contains
@@ -140,9 +140,9 @@ contains
     !> A new set of chemical species
     type(chem_spec_data_t), pointer :: new_obj
     !> Number of species to allocate space for initially
-    integer(i_kind), intent(in), optional :: init_size
+    integer(kind=phlex_int), intent(in), optional :: init_size
 
-    integer(i_kind) :: alloc_size = REALLOC_INC
+    integer(kind=phlex_int) :: alloc_size = REALLOC_INC
 
     if (present(init_size)) alloc_size = init_size
     allocate(new_obj)
@@ -221,7 +221,7 @@ contains
     integer(kind=json_ik) :: var_type
 
     character(len=:), allocatable :: spec_name, str_val
-    integer(kind=i_kind) :: spec_type, spec_phase
+    integer(kind=phlex_int) :: spec_type, spec_phase
     type(property_t), pointer :: property_set
 
     ! allocate space for the species property set
@@ -316,7 +316,7 @@ contains
     class(chem_spec_data_t), intent(inout) :: this
 
     ! Species index
-    integer(kind=i_kind) :: i_spec
+    integer(kind=phlex_int) :: i_spec
 
     do i_spec = 1, this%num_spec
 
@@ -336,18 +336,18 @@ contains
 
   !> Get the number of species with the given properties. If no properties
   !! are specified, return the total number of species. 
-  integer(kind=i_kind) function get_size(this, spec_type, spec_phase) &
+  integer(kind=phlex_int) function get_size(this, spec_type, spec_phase) &
                   result (num_spec)
 
     !> Species database
     class(chem_spec_data_t), intent(in) :: this
     !> State variable type for the species
-    integer(kind=i_kind), intent(in), optional :: spec_type
+    integer(kind=phlex_int), intent(in), optional :: spec_type
     !> Phase of the species
-    integer(kind=i_kind), intent(in), optional :: spec_phase
+    integer(kind=phlex_int), intent(in), optional :: spec_phase
 
     ! species index
-    integer(kind=i_kind) :: i_spec
+    integer(kind=phlex_int) :: i_spec
 
     ! add up the number of species
     if (present(spec_type).or.present(spec_phase)) then
@@ -378,7 +378,7 @@ contains
     character(len=:), allocatable, intent(in) :: spec_name
 
     ! Index of species
-    integer(kind=i_kind) :: i_spec
+    integer(kind=phlex_int) :: i_spec
 
     found = this%find(spec_name, i_spec)
 
@@ -397,12 +397,12 @@ contains
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
     !> State variable type for the species
-    integer(kind=i_kind), intent(in), optional :: spec_type
+    integer(kind=phlex_int), intent(in), optional :: spec_type
     !> Phase of the species
-    integer(kind=i_kind), intent(in), optional :: spec_phase
+    integer(kind=phlex_int), intent(in), optional :: spec_phase
 
     ! species index and counter
-    integer(kind=i_kind) :: i_spec, num_spec
+    integer(kind=phlex_int) :: i_spec, num_spec
 
     ! add up the number of species
     if (present(spec_type).or.present(spec_phase)) then
@@ -452,7 +452,7 @@ contains
     !> Pointer to species properties
     type(property_t), pointer, intent(out) :: property_set
 
-    integer(i_kind) :: spec_id
+    integer(kind=phlex_int) :: spec_id
 
     property_set => null()
     found = this%find(spec_name, spec_id)
@@ -471,9 +471,9 @@ contains
     !> Species name to find properties of
     character(len=:), allocatable, intent(in) :: spec_name
     !> Species type
-    integer(kind=i_kind), intent(out) :: spec_type
+    integer(kind=phlex_int), intent(out) :: spec_type
 
-    integer(i_kind) :: spec_id
+    integer(kind=phlex_int) :: spec_id
 
     spec_type = CHEM_SPEC_UNKNOWN_TYPE
     found = this%find(spec_name, spec_id)
@@ -493,9 +493,9 @@ contains
     !> Species name to find properties of
     character(len=:), allocatable, intent(in) :: spec_name
     !> Species phase
-    integer(kind=i_kind), intent(out) :: spec_phase
+    integer(kind=phlex_int), intent(out) :: spec_phase
 
-    integer(i_kind) :: spec_id
+    integer(kind=phlex_int) :: spec_id
 
     spec_phase = CHEM_SPEC_UNKNOWN_PHASE
     found = this%find(spec_name, spec_id)
@@ -515,11 +515,11 @@ contains
     !> Species name
     character(len=:), allocatable, intent(in) :: spec_name
     !> Absolute integration tolerance
-    real(kind=dp), intent(out) :: abs_tol
+    real(kind=phlex_real), intent(out) :: abs_tol
 
     character(len=:), allocatable :: key
-    integer(kind=i_kind) :: spec_id
-    real(kind=dp) :: val
+    integer(kind=phlex_int) :: spec_id
+    real(kind=phlex_real) :: val
 
     abs_tol = DEFAULT_ABS_TOL
     key = "absolute integration tolerance"
@@ -541,14 +541,14 @@ contains
   !! \c pmc_aero_rep_data::aero_rep_data_t::spec_state_id() for a
   !! particular \ref phlex_aero_rep "aerosol representation". Returns a valid
   !! state array index if the species is found, or 0 otherwise
-  integer(kind=i_kind) function gas_state_id(this, spec_name)
+  integer(kind=phlex_int) function gas_state_id(this, spec_name)
 
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
     !> Species name
     character(len=:), allocatable, intent(in) :: spec_name
 
-    integer(kind=i_kind) :: i_spec
+    integer(kind=phlex_int) :: i_spec
     
     gas_state_id = 0
     do i_spec = 1, this%num_spec
@@ -577,9 +577,9 @@ contains
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
     !> Species id
-    integer(kind=i_kind), intent(in) :: spec_id
+    integer(kind=phlex_int), intent(in) :: spec_id
 
-    integer(kind=i_kind) :: gas_state_id, i_spec
+    integer(kind=phlex_int) :: gas_state_id, i_spec
     
     gas_state_id = 0
     do i_spec = 1, this%num_spec
@@ -602,10 +602,10 @@ contains
     !> Chemical species data
     class(chem_spec_data_t), intent(in) :: this
     !> File unit for output
-    integer(kind=i_kind), optional, intent(in) :: file_unit
+    integer(kind=phlex_int), optional, intent(in) :: file_unit
 
-    integer(kind=i_kind) :: i_spec
-    integer(kind=i_kind) :: f_unit
+    integer(kind=phlex_int) :: i_spec
+    integer(kind=phlex_int) :: f_unit
     character(len=:), allocatable :: spec_phase, spec_type
 
     f_unit = 6
@@ -669,12 +669,12 @@ contains
     !> Species dataset
     class(chem_spec_data_t), intent(inout) :: this
     !> Number of new species to ensure space for
-    integer(i_kind), intent(in) :: num_spec
+    integer(kind=phlex_int), intent(in) :: num_spec
 
     integer :: new_size
     type(string_t), pointer :: new_name(:)
-    integer(kind=i_kind), pointer :: new_type(:)
-    integer(kind=i_kind), pointer :: new_phase(:)
+    integer(kind=phlex_int), pointer :: new_type(:)
+    integer(kind=phlex_int), pointer :: new_phase(:)
     type(property_t), pointer :: new_property_set(:)
 
     if (size(this%spec_name) .ge. this%num_spec + num_spec) return
@@ -709,13 +709,13 @@ contains
     !> Name of species to add
     character(len=:), allocatable, intent(in) :: spec_name
     !> State variable type
-    integer(kind=i_kind), intent(inout) :: spec_type
+    integer(kind=phlex_int), intent(inout) :: spec_type
     !> Species phase
-    integer(kind=i_kind), intent(inout) :: spec_phase
+    integer(kind=phlex_int), intent(inout) :: spec_phase
     !> Property set for new species
     type(property_t), intent(inout), optional :: property_set
 
-    integer(kind=i_kind) :: i_spec
+    integer(kind=phlex_int) :: i_spec
 
     ! if the species exists, append the new data
     if (this%find(spec_name, i_spec)) then
@@ -768,7 +768,7 @@ contains
     !> Species name
     character(len=:), allocatable, intent(in) :: spec_name
     !> Species id
-    integer(kind=i_kind), intent(out) :: spec_id
+    integer(kind=phlex_int), intent(out) :: spec_id
 
     find = .true.
     do spec_id = 1, this%num_spec

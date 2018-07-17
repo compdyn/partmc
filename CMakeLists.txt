@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 2.6.4)
 # http://www.cmake.org/Bug/view.php?id=8598
 # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=35707
 # http://www.cmake.org/Bug/view.php?id=8408
+include( CMakeDependentOption )
+
 project(PARTMC LANGUAGES Fortran C)
 
 set(PACKAGE_BUGREPORT "mwest@illinois.edu")
@@ -20,7 +22,10 @@ option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
 option(ENABLE_JSON "Enable json-fortran support" ON)
-option(ENABLE_GPU "Enable use of GPUs in chemistry solving" OFF)
+CMAKE_DEPENDENT_OPTION(ENABLE_GPU "Enable use of GPUs in chemistry solving" OFF
+        "ENABLE_SUNDIALS" OFF)
+CMAKE_DEPENDENT_OPTION(ENABLE_DOUBLE_PRECISION "Enable use of double precision" ON
+        "NOT ENABLE_GPU" OFF)
 
 ######################################################################
 # CPack
@@ -159,6 +164,22 @@ endif()
 if (ENABLE_GPU)
   add_definitions(-DPMC_USE_GPU)
   enable_language(CUDA)
+endif()
+
+######################################################################
+# Double-Precision
+
+if (ENABLE_DOUBLE_PRECISION)
+  add_definitions("-DPMC_USE_DOUBLE_PRECISION")
+  add_definitions("-DPMC_SOLVER_C_FLOAT=double")
+  add_definitions("-DPMC_C_FLOAT=double")
+  add_definitions("-DPMC_F90_C_FLOAT=c_double")
+  add_definitions("-DPMC_F90_FLOAT=0.0d0")
+else()
+  add_definitions("-DPMC_SOLVER_C_FLOAT=float")
+  add_definitions("-DPMC_C_FLOAT=double")
+  add_definitions("-DPMC_F90_C_FLOAT=c_double")
+  add_definitions("-DPMC_F90_FLOAT=0.0d0")
 endif()
 
 ######################################################################
@@ -454,7 +475,9 @@ set_source_files_properties(${PHLEX_C_SRC} PROPERTIES COMPILE_FLAGS
 
 if(ENABLE_GPU)
   set(PHLEX_CUDA_SRC
-        src/rxn_gpu_solver.cu)
+        src/phlex_gpu_solver.cu
+        src/rxn_gpu_solver.cu
+        src/rxns/rxn_gpu_arrhenius.cu)
   set_source_files_properties(${PHLEX_CUDA_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_CUDA_FLAGS})
   set_source_files_properties(${PHLEX_CUDA_SRC} PROPERTIES LANGUAGE CUDA)

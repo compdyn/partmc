@@ -8,6 +8,7 @@
 !> Mock version of the MONARCH model for testing integration with PartMC
 program mock_monarch
 
+  use pmc_constants,                            only : phlex_real, phlex_int
   use pmc_util,                                 only : assert_msg
   use pmc_monarch_interface
   use pmc_mpi
@@ -247,9 +248,9 @@ contains
     real :: end_time
 
     type(string_t), allocatable :: species_names(:)
-    integer(kind=i_kind), allocatable :: tracer_ids(:)
+    integer(kind=phlex_int), allocatable :: tracer_ids(:)
     character(len=:), allocatable :: file_name, spec_name
-    integer(kind=i_kind) :: i_char, i_spec, tracer_id
+    integer(kind=phlex_int) :: i_char, i_spec, tracer_id
 
     ! Get the species names and ids
     call pmc_interface%get_MONARCH_species(species_names, tracer_ids)

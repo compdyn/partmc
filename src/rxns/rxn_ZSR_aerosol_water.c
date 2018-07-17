@@ -58,10 +58,10 @@
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 void * rxn_ZSR_aerosol_water_get_used_jac_elem(void *rxn_data,
-          bool **jac_struct)
+          pmc_bool **jac_struct)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }  
@@ -80,7 +80,7 @@ void * rxn_ZSR_aerosol_water_update_ids(ModelData *model_data, int *deriv_ids,
           int **jac_ids, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -91,20 +91,20 @@ void * rxn_ZSR_aerosol_water_update_ids(ModelData *model_data, int *deriv_ids,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_ZSR_aerosol_water_update_env_state(double *env_data,
+void * rxn_ZSR_aerosol_water_update_env_state(PMC_C_FLOAT *env_data,
           void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate PPM_TO_RH_
   // From MOSAIC code - reference to Seinfeld & Pandis page 181
   // TODO Figure out how to have consistent RH<->ppm conversions
-  double t_steam = 373.15; 		// steam temperature (K)
-  double a = 1.0 - t_steam/TEMPERATURE_K_;
+  PMC_C_FLOAT t_steam = 373.15; 		// steam temperature (K)
+  PMC_C_FLOAT a = 1.0 - t_steam/TEMPERATURE_K_;
 
   a = (((-0.1299*a - 0.6445)*a - 1.976)*a + 13.3185)*a;
-  double water_vp = 101325.0 * exp(a); 		// (Pa)
+  PMC_C_FLOAT water_vp = 101325.0 * exp(a); 		// (Pa)
   
   PPM_TO_RH_ = PRESSURE_PA_ / water_vp / 1.0e6;	// (1/ppm)
 
@@ -119,24 +119,24 @@ void * rxn_ZSR_aerosol_water_update_env_state(double *env_data,
  */
 void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
 {
-  double *state = model_data->state;
+  PMC_C_FLOAT *state = model_data->state;
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the water activity---i.e., relative humidity (0-1)
-  double a_w = PPM_TO_RH_ * state[GAS_WATER_ID_];
+  PMC_C_FLOAT a_w = PPM_TO_RH_ * state[GAS_WATER_ID_];
 
   // Calculate the total aerosol water for each instance of the aerosol phase
   for (int i_phase=0; i_phase<NUM_PHASE_; i_phase++) {
-    double *water = &(state[PHASE_ID_(i_phase)]);
+    PMC_C_FLOAT *water = &(state[PHASE_ID_(i_phase)]);
     *water = 0.0;
 
     // Get the contribution from each ion pair
     for (int i_ion_pair=0; i_ion_pair<NUM_ION_PAIR_; i_ion_pair++) {
       
-      double molality;
-      double j_aw;
-      double conc;
+      PMC_C_FLOAT molality;
+      PMC_C_FLOAT j_aw, e_aw;
+      PMC_C_FLOAT conc;
 
       // Determine which type of activity calculation should be used
       switch (TYPE_(i_ion_pair)) {
@@ -156,26 +156,30 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
           molality *= molality; // (mol/kg)
 
 	  // Calculate the water associated with this ion pair
-          double cation = state[PHASE_ID_(i_phase) + 
+          PMC_C_FLOAT cation = state[PHASE_ID_(i_phase) + 
                   JACOB_CATION_ID_(i_ion_pair)] /
 		  JACOB_NUM_CATION_(i_ion_pair) /
                   JACOB_CATION_MW_(i_ion_pair);
-          double anion = state[PHASE_ID_(i_phase) + 
+          PMC_C_FLOAT anion = state[PHASE_ID_(i_phase) + 
                   JACOB_ANION_ID_(i_ion_pair)] /
 		  JACOB_NUM_ANION_(i_ion_pair) /
                   JACOB_ANION_MW_(i_ion_pair); // (umol/m3)
 	  conc = (cation>anion ? anion : cation);
           conc = (conc>0.0 ? conc : 0.0);
           *water += conc / molality * 1000.0; // (ug/m3)
-          
+
 	  break;
 
 	// EQSAM (Metger et al., 2002)
 	case ACT_TYPE_EQSAM :
 
+          // Keep the water activity within the RH range specified in EQSAM
+          e_aw = a_w > 0.99 ? 0.99 : a_w;
+          e_aw = e_aw < 0.001 ? 0.001 : e_aw;
+
 	  // Calculate the molality of the ion pair
 	  molality = (EQSAM_NW_(i_ion_pair) * 55.51 * 18.01 / 
-                    EQSAM_ION_PAIR_MW_(i_ion_pair) * (1.0/a_w-1.0));
+                    EQSAM_ION_PAIR_MW_(i_ion_pair) * (1.0/e_aw-1.0));
 	  molality = pow(molality, EQSAM_ZW_(i_ion_pair)); // (mol/kg)
 
 	  // Calculate the water associated with this ion pair
@@ -205,11 +209,11 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
  */
 #ifdef PMC_USE_SUNDIALS
 void * rxn_ZSR_aerosol_water_calc_deriv_contrib(ModelData *model_data,
-          realtype *deriv, void *rxn_data, double time_step)
+          PMC_SOLVER_C_FLOAT *deriv, void *rxn_data, PMC_C_FLOAT time_step)
 {
-  realtype *state = model_data->state;
+  PMC_C_FLOAT *state = model_data->state;
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
@@ -226,11 +230,11 @@ void * rxn_ZSR_aerosol_water_calc_deriv_contrib(ModelData *model_data,
  */
 #ifdef PMC_USE_SUNDIALS
 void * rxn_ZSR_aerosol_water_calc_jac_contrib(ModelData *model_data,
-          realtype *J, void *rxn_data, double time_step)
+          PMC_SOLVER_C_FLOAT *J, void *rxn_data, PMC_C_FLOAT time_step)
 {
-  realtype *state = model_data->state;
+  PMC_C_FLOAT *state = model_data->state;
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
@@ -245,7 +249,7 @@ void * rxn_ZSR_aerosol_water_calc_jac_contrib(ModelData *model_data,
 void * rxn_ZSR_aerosol_water_skip(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -258,7 +262,7 @@ void * rxn_ZSR_aerosol_water_skip(void *rxn_data)
 void * rxn_ZSR_aerosol_water_print(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   printf("\n\nZSR Aerosol Water reaction\n");
   for (int i=0; i<INT_DATA_SIZE_; i++) 

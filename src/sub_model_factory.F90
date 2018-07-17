@@ -19,7 +19,7 @@ module pmc_sub_model_factory
 #ifdef PMC_USE_MPI
   use mpi
 #endif
-  use pmc_constants,                    only : i_kind, dp
+  use pmc_constants,                    only : phlex_real, phlex_int
   use pmc_mpi
   use pmc_sub_model_data
   use pmc_util,                         only : die_msg, string_t, assert_msg, &
@@ -34,7 +34,7 @@ module pmc_sub_model_factory
   public :: sub_model_factory_t
 
   !> Identifiers for sub-models - used by binary packing/unpacking functions
-  integer(kind=i_kind), parameter, public :: SUB_MODEL_UNIFAC = 1
+  integer(kind=phlex_int), parameter, public :: SUB_MODEL_UNIFAC = 1
 
   !> Factory type for sub-models
   !!
@@ -133,7 +133,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the sub-model type as a constant
-  integer(kind=i_kind) function get_type(this, sub_model) &
+  integer(kind=phlex_int) function get_type(this, sub_model) &
             result (sub_model_data_type)
 
     !> Sub-model factory
@@ -170,14 +170,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack a sub-model
-  integer(kind=i_kind) function pack_size(this, sub_model)
+  integer(kind=phlex_int) function pack_size(this, sub_model)
 
     !> Sub-model factory
     class(sub_model_factory_t) :: this
     !> Sub-model to pack
     class(sub_model_data_t), intent(in) :: sub_model
 
-    pack_size =  pmc_mpi_pack_size_integer(int(1, kind=i_kind)) + &
+    pack_size =  pmc_mpi_pack_size_integer(int(1, kind=phlex_int)) + &
                  sub_model%pack_size()
 
   end function pack_size

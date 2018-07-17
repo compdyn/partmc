@@ -9,9 +9,9 @@
 !> mechanisms.
 program pmc_phlex_box_model
 
-  use pmc_util,                         only: i_kind, dp, assert, &
-                                              almost_equal, string_t, &
-                                              warn_msg
+  use pmc_util,                         only: phlex_real, phlex_int, &
+                                              assert, almost_equal, &
+                                              string_t, warn_msg
   use pmc_phlex_core
   use pmc_phlex_state
   use pmc_chem_spec_data
@@ -26,11 +26,11 @@ program pmc_phlex_box_model
   ! New-line character
   character(len=*), parameter :: new_line = char(10)
   ! Number of timesteps to output in mechanisms
-  integer(kind=i_kind), parameter :: NUM_TIME_STEP = 100
+  integer(kind=phlex_int), parameter :: NUM_TIME_STEP = 100
   ! Time step (s)
-  real(kind=dp), parameter :: TIME_STEP = 0.1
+  real(kind=phlex_real), parameter :: TIME_STEP = 0.1
   ! Temperature (K)
-  real(kind=dp), parameter :: ENV_TEMP = 298.0
+  real(kind=phlex_real), parameter :: ENV_TEMP = 298.0
 
   ! Config file list path
   character(len=300) :: file_list_arg
@@ -79,18 +79,18 @@ contains
     type(integration_data_t), pointer :: integration_data
 
     character, allocatable :: buffer(:)
-    integer(kind=i_kind) :: buffer_size, pos
+    integer(kind=phlex_int) :: buffer_size, pos
  
     type(string_t), allocatable :: species_names(:)
     type(property_t), pointer :: prop_set
     character(len=:), allocatable :: key
-    real(kind=dp) :: real_val
+    real(kind=phlex_real) :: real_val
 
     character(len=:), allocatable :: file_row
-    real(kind=dp), allocatable :: model_conc(:,:)
-    integer(kind=i_kind) :: i_time, i_spec, row_size, row_pos, row_end
+    real(kind=phlex_real), allocatable :: model_conc(:,:)
+    integer(kind=phlex_int) :: i_time, i_spec, row_size, row_pos, row_end
 
-    real(kind=dp) :: comp_start, comp_end
+    real(kind=phlex_real) :: comp_start, comp_end
 
     ! Check for an available solver
     integration_data => integration_data_t()
@@ -116,7 +116,7 @@ contains
       phlex_state%env_state%temp = ENV_TEMP
 
       ! Set the initial conditions
-      phlex_state%state_var(:) = real(0.0, kind=dp)
+      phlex_state%state_var(:) = real(0.0, kind=phlex_real)
       key = "init conc"
       species_names = phlex_core%chem_spec_data%spec_names_by_type(GAS_SPEC)
       do i_spec = 1, size(species_names)

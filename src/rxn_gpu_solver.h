@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2017 Matthew Dawson
+/* Copyright (C) 2015-2018 Matthew Dawson
  * Licensed under the GNU General Public License version 2 or (at your
  * option) any later version. See the file COPYING for details.
  *
@@ -10,24 +10,24 @@
 */
 #ifndef RXN_GPU_SOLVER_H_
 #define RXN_GPU_SOLVER_H_
+#include <cuda.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "phlex_gpu_solver.h"
 #include "rxn_solver.h"
 
 /* GPU solver data */
 typedef struct {
-  unsigned int num_rxn;                 // number of rxns with GPU functions
-  unsigned int *rxn_data_start;         // id (in bytes) of each rxn's data 
-                                        // block in the rxn data
-  unsigned int *rxn_data_end;           // last element (in bytes) of each rxn's
-                                        // data block
+  unsigned int *host_rxn_data_start;    // id (in bytes) of each rxn's data 
+                                        // block in the rxn data on the host
+  unsigned int *dev_rxn_data_start;     // id (in bytes) of each rxn's data 
+                                        // block in the rxn data on the device
   void *host_rxn_data;                  // host pointer to rxn data
   void *dev_rxn_data;                   // device pointer to rxn data
-} DeviceData;
+} RxnDeviceData;
 
-// arrhenius
-void * rxn_gpu_arrhenius_get_data_size( void *rxn_data );
-void * rxn_gpu_arrhenius_calc_deriv_contrib( void *rxn_data, 
-          const realtype *state, realtype *deriv );
+void rxn_gpu_solver_new( RxnDeviceData * rxn_dev_data, void * rxn_data );
+__global__ void rxn_gpu_calc_deriv( ModelDeviceData mdd, PMC_C_FLOAT time_step );
+
 #endif

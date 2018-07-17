@@ -13,8 +13,10 @@ module pmc_constants
   !> Kind of a double precision complex number.
   integer, parameter :: dc = dp
 
-  !> Kind of an integer
-  integer, parameter :: i_kind = kind(1)
+  !> Real number kind for phlex-chem
+  integer, parameter :: phlex_real = kind(PMC_F90_FLOAT)
+  !> Integer kind for phlex-chem
+  integer, parameter :: phlex_int = kind(1)
 
   !> Physical constants.
   !!

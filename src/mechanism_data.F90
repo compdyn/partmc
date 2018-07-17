@@ -35,7 +35,7 @@ module pmc_mechanism_data
 #endif
   use pmc_aero_rep_data
   use pmc_chem_spec_data
-  use pmc_constants,                  only : i_kind, dp
+  use pmc_constants,                  only : phlex_real, phlex_int
   use pmc_mpi
   use pmc_phlex_state
   use pmc_rxn_data
@@ -48,9 +48,9 @@ module pmc_mechanism_data
   public :: mechanism_data_t, mechanism_data_ptr
 
   !> Reallocation increment
-  integer(kind=i_kind), parameter :: REALLOC_INC = 50
+  integer(kind=phlex_int), parameter :: REALLOC_INC = 50
   !> Fixed module file unit
-  integer(kind=i_kind), parameter :: MECH_FILE_UNIT = 16
+  integer(kind=phlex_int), parameter :: MECH_FILE_UNIT = 16
 
   !> A chemical mechanism
   !!
@@ -60,7 +60,7 @@ module pmc_mechanism_data
   type :: mechanism_data_t
     private
     !> Number of reactions
-    integer(kind=i_kind) :: num_rxn = 0
+    integer(kind=phlex_int) :: num_rxn = 0
     !> Mechanism name
     character(len=:), allocatable :: mech_name
     !> Path and prefix for fixed module output
@@ -122,9 +122,9 @@ contains
     !> Name of the mechanism
     character(len=:), allocatable, intent(in), optional :: mech_name
     !> Number of reactions to allocate space for initially
-    integer(i_kind), intent(in), optional :: init_size
+    integer(phlex_int), intent(in), optional :: init_size
 
-    integer(i_kind) :: alloc_size = REALLOC_INC
+    integer(phlex_int) :: alloc_size = REALLOC_INC
 
     allocate(new_obj)
     if (present(init_size)) alloc_size = init_size
@@ -146,9 +146,9 @@ contains
     !> Chemical mechanism
     class(mechanism_data_t), intent(inout) :: this
     !> Number of new reactions to ensure space for
-    integer(i_kind), intent(in) :: num_rxn
+    integer(phlex_int), intent(in) :: num_rxn
 
-    integer(kind=i_kind) :: new_size
+    integer(kind=phlex_int) :: new_size
     type(rxn_data_ptr), pointer :: new_rxn_ptr(:)
 
     if (size(this%rxn_ptr) .ge. this%num_rxn + num_rxn) return
@@ -252,7 +252,7 @@ contains
     !> Aerosol representation data
     type(aero_rep_data_ptr), pointer, intent(in) :: aero_rep_data(:)
 
-    integer(kind=i_kind) :: i_rxn
+    integer(kind=phlex_int) :: i_rxn
 
     do i_rxn = 1, this%num_rxn
       call assert(340397127, associated(this%rxn_ptr(i_rxn)%val))
@@ -264,7 +264,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the current size of the chemical mechanism
-  integer(kind=i_kind) function get_size(this)
+  integer(kind=phlex_int) function get_size(this)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
@@ -283,7 +283,7 @@ contains
     !> Mechanism data
     class(mechanism_data_t), intent(in) :: this
     !> Reaction index
-    integer(kind=i_kind), intent(in) :: rxn_id
+    integer(kind=phlex_int), intent(in) :: rxn_id
 
     call assert_msg(129484547, rxn_id.gt.0 .and. rxn_id .le. this%num_rxn, &
             "Invalid reaction id: "//trim(to_string(rxn_id))//&
@@ -310,13 +310,13 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack the mechanism
-  integer(kind=i_kind) function pack_size(this)
+  integer(kind=phlex_int) function pack_size(this)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
    
     type(rxn_factory_t) :: rxn_factory 
-    integer(kind=i_kind) :: i_rxn
+    integer(kind=phlex_int) :: i_rxn
 
     pack_size =  pmc_mpi_pack_size_integer(this%num_rxn)
     do i_rxn = 1, this%num_rxn
@@ -391,10 +391,10 @@ contains
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
     !> File unit for output
-    integer(kind=i_kind), optional :: file_unit
+    integer(kind=phlex_int), optional :: file_unit
 
     integer :: i_rxn
-    integer(kind=i_kind) :: f_unit = 6
+    integer(kind=phlex_int) :: f_unit = 6
 
     if (present(file_unit)) f_unit = file_unit
 

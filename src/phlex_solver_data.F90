@@ -13,7 +13,7 @@ module pmc_phlex_solver_data
   use pmc_aero_phase_data
   use pmc_aero_rep_data
   use pmc_aero_rep_factory
-  use pmc_constants,                   only : i_kind, dp
+  use pmc_constants,                   only : phlex_real, phlex_int
   use pmc_mechanism_data
   use pmc_phlex_state
   use pmc_rxn_data
@@ -30,11 +30,11 @@ module pmc_phlex_solver_data
   public :: phlex_solver_data_t
 
   !> Default relative tolerance for integration
-  real(kind=dp), parameter :: PMC_SOLVER_DEFAULT_REL_TOL = 1.0D-8
+  real(kind=phlex_real), parameter :: PMC_SOLVER_DEFAULT_REL_TOL = 1.0D-8
   !> Default max number of integration steps
-  integer(kind=i_kind), parameter :: PMC_SOLVER_DEFAULT_MAX_STEPS = 10000000
+  integer(kind=phlex_int), parameter :: PMC_SOLVER_DEFAULT_MAX_STEPS = 10000000
   !> Default maximum number of integration convergence failures
-  integer(kind=i_kind), parameter :: PMC_SOLVER_DEFAULT_MAX_CONV_FAILS = 10000
+  integer(kind=phlex_int), parameter :: PMC_SOLVER_DEFAULT_MAX_CONV_FAILS = 10000
 
   !> Result code indicating successful completion
   integer, parameter :: PMC_SOLVER_SUCCESS = 0
@@ -90,7 +90,7 @@ module pmc_phlex_solver_data
       !> Pointer to array of absolute toleracnes
       type(c_ptr), value :: abs_tol
       !> Relative integration tolerance
-      real(kind=c_double), value :: rel_tol
+      real(kind=PMC_F90_C_FLOAT), value :: rel_tol
       !> Maximum number of internal integration steps
       integer(kind=c_int), value :: max_steps
       !> Maximum number of convergence failures
@@ -108,9 +108,9 @@ module pmc_phlex_solver_data
       !> Pointer to the environmental state array
       type(c_ptr), value :: env
       !> Initial time (s)
-      real(kind=c_double), value :: t_initial
+      real(kind=PMC_F90_C_FLOAT), value :: t_initial
       !> Final time (s)
-      real(kind=c_double), value :: t_final
+      real(kind=PMC_F90_C_FLOAT), value :: t_final
     end function solver_run
 
     !> Add condensed reaction data to the solver data block
@@ -206,7 +206,7 @@ module pmc_phlex_solver_data
                   bind (c)
       use iso_c_binding
       !> Parameter value
-      real(kind=c_double) :: sub_model_get_parameter_value_sd
+      real(kind=PMC_F90_C_FLOAT) :: sub_model_get_parameter_value_sd
       !> Solver data
       type(c_ptr), value :: solver_data
       !> Parameter id
@@ -293,11 +293,11 @@ module pmc_phlex_solver_data
     !> C Solver object
     type(c_ptr), public :: solver_c_ptr
     !> Relative tolerance for the integration
-    real(kind=dp), public :: rel_tol = PMC_SOLVER_DEFAULT_REL_TOL
+    real(kind=phlex_real), public :: rel_tol = PMC_SOLVER_DEFAULT_REL_TOL
     !> Maximum number of timesteps
-    integer(kind=i_kind), public :: max_steps = PMC_SOLVER_DEFAULT_MAX_STEPS
+    integer(kind=phlex_int), public :: max_steps = PMC_SOLVER_DEFAULT_MAX_STEPS
     !> Maximum number of convergence failures
-    integer(kind=i_kind), public :: max_conv_fails = &
+    integer(kind=phlex_int), public :: max_conv_fails = &
             PMC_SOLVER_DEFAULT_MAX_CONV_FAILS
     !> Flag indicating whether the solver was intialized
     logical :: initialized = .false.
@@ -354,11 +354,11 @@ contains
     class(phlex_solver_data_t), intent(inout) :: this
     !> Variable type for each species in the state array. This array must be
     !! of the same length as the state array.
-    integer(kind=i_kind), allocatable, intent(in) :: var_type(:)
+    integer(kind=phlex_int), allocatable, intent(in) :: var_type(:)
     !> Absolute tolerance for each species in the state array. This array must
     !! be of the same length as the state array. Values for CONST and PSSA
     !! species will be ignored by the solver.
-    real(kind=dp), allocatable, intent(in) :: abs_tol(:)
+    real(kind=phlex_real), allocatable, intent(in) :: abs_tol(:)
     !> Mechanisms to include in solver
     type(mechanism_data_ptr), pointer, intent(in) :: mechanisms(:)
     !> Aerosol phases to include
@@ -370,14 +370,14 @@ contains
     !> Reactions phase to solve -- gas, aerosol, or both (default)
     !! Use parameters in pmc_rxn_data to specify phase:
     !! GAS_RXN, AERO_RXN, GAS_AERO_RXN
-    integer(kind=i_kind), intent(in) :: rxn_phase
+    integer(kind=phlex_int), intent(in) :: rxn_phase
 
     ! Variable types
     integer(kind=c_int), pointer :: var_type_c(:)
     ! Absolute tolerances
-    real(kind=c_double), pointer :: abs_tol_c(:)
+    real(kind=PMC_F90_C_FLOAT), pointer :: abs_tol_c(:)
     ! Indices for iteration
-    integer(kind=i_kind) :: i_mech, i_rxn, i_aero_phase, i_aero_rep, &
+    integer(kind=phlex_int) :: i_mech, i_rxn, i_aero_phase, i_aero_rep, &
             i_sub_model
     ! Reaction pointer
     class(rxn_data_t), pointer :: rxn
@@ -397,7 +397,7 @@ contains
     ! Integer parameters being transfered
     integer(kind=c_int), pointer :: int_param(:)
     ! Floating point parameters being transfered
-    real(kind=c_double), pointer :: float_param(:)
+    real(kind=PMC_F90_C_FLOAT), pointer :: float_param(:)
     ! Number of reactions
     integer(kind=c_int) :: n_rxn
     ! Number of integer reaction parameters
@@ -434,7 +434,7 @@ contains
     allocate(var_type_c(size(var_type)))
     allocate(abs_tol_c(size(abs_tol)))
     var_type_c(:) = int(var_type(:), kind=c_int)
-    abs_tol_c(:) = real(abs_tol(:), kind=c_double)
+    abs_tol_c(:) = real(abs_tol(:), kind=PMC_F90_C_FLOAT)
 
     ! Initialize the counters
     n_rxn = 0
@@ -549,7 +549,7 @@ contains
         allocate(int_param(size(rxn%condensed_data_int)))
         allocate(float_param(size(rxn%condensed_data_real)))
         int_param(:) = int(rxn%condensed_data_int(:), kind=c_int)
-        float_param(:) = real(rxn%condensed_data_real(:), kind=c_double)
+        float_param(:) = real(rxn%condensed_data_real(:), kind=PMC_F90_C_FLOAT)
       
         ! Send the condensed data to the solver
         call rxn_add_condensed_data ( &
@@ -579,7 +579,7 @@ contains
       allocate(int_param(size(aero_phase%condensed_data_int)))
       allocate(float_param(size(aero_phase%condensed_data_real)))
       int_param(:) = int(aero_phase%condensed_data_int(:), kind=c_int)
-      float_param(:) = real(aero_phase%condensed_data_real(:), kind=c_double)
+      float_param(:) = real(aero_phase%condensed_data_real(:), kind=PMC_F90_C_FLOAT)
 
       ! Send the condensed data to the solver
       call aero_phase_add_condensed_data ( &
@@ -608,7 +608,7 @@ contains
       allocate(int_param(size(aero_rep%condensed_data_int)))
       allocate(float_param(size(aero_rep%condensed_data_real)))
       int_param(:) = int(aero_rep%condensed_data_int(:), kind=c_int)
-      float_param(:) = real(aero_rep%condensed_data_real(:), kind=c_double)
+      float_param(:) = real(aero_rep%condensed_data_real(:), kind=PMC_F90_C_FLOAT)
 
       ! Send the condensed data to the solver
       call aero_rep_add_condensed_data ( &
@@ -638,7 +638,7 @@ contains
       allocate(int_param(size(sub_model%condensed_data_int)))
       allocate(float_param(size(sub_model%condensed_data_real)))
       int_param(:) = int(sub_model%condensed_data_int(:), kind=c_int)
-      float_param(:) = real(sub_model%condensed_data_real(:), kind=c_double)
+      float_param(:) = real(sub_model%condensed_data_real(:), kind=PMC_F90_C_FLOAT)
 
       ! Send the condensed data to the solver
       call sub_model_add_condensed_data ( &
@@ -662,7 +662,7 @@ contains
     call solver_initialize( &
             this%solver_c_ptr,                  & ! Pointer to solver data
             c_loc(abs_tol_c),                   & ! Absolute tolerances
-            real(this%rel_tol, kind=c_double),  & ! Relative tolerance
+            real(this%rel_tol, kind=PMC_F90_C_FLOAT),  & ! Relative tolerance
             int(this%max_steps, kind=c_int),    & ! Max # of integration steps
             int(this%max_conv_fails, kind=c_int)& ! Max # of convergence fails
             )
@@ -741,9 +741,9 @@ contains
     !> Model state
     type(phlex_state_t), target, intent(inout) :: phlex_state
     !> Start time (s)
-    real(kind=dp), intent(in) :: t_initial
+    real(kind=phlex_real), intent(in) :: t_initial
     !> End time (s)
-    real(kind=dp), intent(in) :: t_final
+    real(kind=phlex_real), intent(in) :: t_final
 
     integer(kind=c_int) :: solver_status
     
@@ -752,8 +752,8 @@ contains
             this%solver_c_ptr,              & ! Pointer to intialized solver
             c_loc(phlex_state%state_var),   & ! Pointer to state array
             c_loc(phlex_state%env_var),     & ! Pointer to environmental vars
-            real(t_initial, kind=c_double), & ! Start time (s)
-            real(t_final, kind=c_double)    & ! Final time (s)
+            real(t_initial, kind=PMC_F90_C_FLOAT), & ! Start time (s)
+            real(t_final, kind=PMC_F90_C_FLOAT)    & ! Final time (s)
             )
 
     call assert_msg(997420005, solver_status.eq.0, "Solver failed");
@@ -790,7 +790,7 @@ contains
     !> Solver data
     class(phlex_solver_data_t), intent(in) :: this
     !> Sub-model type
-    integer(kind=i_kind), intent(in) :: sub_model_type
+    integer(kind=phlex_int), intent(in) :: sub_model_type
     !> Identifiers required by the sub-model
     type(c_ptr), intent(in) :: identifiers
 
@@ -816,20 +816,20 @@ contains
       result (parameter_value)
 
     !> Value of the parameter
-    real(kind=dp) :: parameter_value
+    real(kind=phlex_real) :: parameter_value
     !> Solver data
     class(phlex_solver_data_t), intent(in) :: this
     !> Parameter id
     integer(kind=c_int), intent(in) :: parameter_id
 
-    real(kind=c_double) :: parameter_value_c
+    real(kind=PMC_F90_C_FLOAT) :: parameter_value_c
 
     parameter_value_c = sub_model_get_parameter_value_sd( &
             this%solver_c_ptr,          & ! Pointer to solver data
             parameter_id                & ! Id of the parameter
             )
 
-    parameter_value = real(parameter_value_c, kind=dp)
+    parameter_value = real(parameter_value_c, kind=phlex_real)
 
   end function get_sub_model_parameter_value
 

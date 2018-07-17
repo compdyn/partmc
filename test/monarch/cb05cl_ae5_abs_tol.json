@@ -2,7 +2,7 @@
   "pmc-data" : [
     {
       "type" : "RELATIVE_TOLERANCE",
-      "value" : 1.0E-04
+      "value" : 1.0E-06
     },
     {
       "name" : "NO2",

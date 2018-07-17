@@ -54,10 +54,10 @@
  *                   Jacobian elements
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_PDFiTE_activity_get_used_jac_elem(void *rxn_data, bool **jac_struct)
+void * rxn_PDFiTE_activity_get_used_jac_elem(void *rxn_data, pmc_bool **jac_struct)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }  
@@ -76,7 +76,7 @@ void * rxn_PDFiTE_activity_update_ids(ModelData *model_data, int *deriv_ids,
           int **jac_ids, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -87,19 +87,19 @@ void * rxn_PDFiTE_activity_update_ids(ModelData *model_data, int *deriv_ids,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_PDFiTE_activity_update_env_state(double *env_data, void *rxn_data)
+void * rxn_PDFiTE_activity_update_env_state(PMC_C_FLOAT *env_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate PPM_TO_RH_
   // From MOSAIC code - reference to Seinfeld & Pandis page 181
   // TODO Figure out how to have consistent RH<->ppm conversions
-  double t_steam = 373.15; 				// steam temperature (K)
-  double a = 1.0 - t_steam/TEMPERATURE_K_;
+  PMC_C_FLOAT t_steam = 373.15; 				// steam temperature (K)
+  PMC_C_FLOAT a = 1.0 - t_steam/TEMPERATURE_K_;
 
   a = (((-0.1299*a - 0.6445)*a - 1.976)*a + 13.3185)*a;
-  double water_vp = 101325.0 * exp(a); 			// (Pa)
+  PMC_C_FLOAT water_vp = 101325.0 * exp(a); 			// (Pa)
   
   PPM_TO_RH_ = PRESSURE_PA_ / water_vp / 1.0e6;		// (1/ppm)
 
@@ -114,12 +114,12 @@ void * rxn_PDFiTE_activity_update_env_state(double *env_data, void *rxn_data)
  */
 void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
 {
-  double *state = model_data->state;
+  PMC_C_FLOAT *state = model_data->state;
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the water activity---i.e., relative humidity (0-1)
-  double a_w = PPM_TO_RH_ * state[GAS_WATER_ID_];
+  PMC_C_FLOAT a_w = PPM_TO_RH_ * state[GAS_WATER_ID_];
 
   // Keep a_w within 0-1
   // TODO Filter =( try to remove
@@ -130,7 +130,7 @@ void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
   for (int i_phase=0; i_phase<NUM_PHASE_; i_phase++) {
 
     // Initialize omega' (defined below)
-    double omega_prime = 0.0;
+    PMC_C_FLOAT omega_prime = 0.0;
     
     // Calculate the number of moles of each ion and omega' for the phase
     for (int i_ion_pair=0; i_ion_pair<NUM_ION_PAIRS_; i_ion_pair++) {
@@ -164,12 +164,12 @@ void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
 
       // Calculate omega for this ion_pair
       // (eq. 15 in \cite{Topping2009})
-      double omega = omega_prime - 2.0 * ( NUM_CATION_(i_ion_pair) + 
+      PMC_C_FLOAT omega = omega_prime - 2.0 * ( NUM_CATION_(i_ion_pair) + 
       NUM_ANION_(i_ion_pair) ) * CATION_N_(i_ion_pair) * 
       ANION_N_(i_ion_pair);
 
       // Initialize ln(gamma)
-      double ln_gamma = 0.0;
+      PMC_C_FLOAT ln_gamma = 0.0;
 
       // Add contributions from each interacting ion_pair
       for (int i_inter=0; i_inter<NUM_INTER_(i_ion_pair); i_inter++) {
@@ -188,7 +188,7 @@ void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
         int j_ion_pair = INTER_SPEC_ID_(i_ion_pair, i_inter);
 
         // Calculate ln_gamma_inter
-        double ln_gamma_inter = 0.0;
+        PMC_C_FLOAT ln_gamma_inter = 0.0;
         for (int i_B=0; i_B<NUM_B_(i_ion_pair, i_inter); i_B++) {
           ln_gamma_inter += B_Z_(i_ion_pair, i_inter, i_B) * pow(a_w, i_B);
         }
@@ -238,10 +238,10 @@ void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
  */
 #ifdef PMC_USE_SUNDIALS
 void * rxn_PDFiTE_activity_calc_deriv_contrib(ModelData *model_data,
-          realtype *deriv, void *rxn_data, double time_step)
+          PMC_SOLVER_C_FLOAT *deriv, void *rxn_data, PMC_C_FLOAT time_step)
 {
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
@@ -257,12 +257,12 @@ void * rxn_PDFiTE_activity_calc_deriv_contrib(ModelData *model_data,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_PDFiTE_activity_calc_jac_contrib(ModelData *model_data, realtype *J,
-          void *rxn_data, double time_step)
+void * rxn_PDFiTE_activity_calc_jac_contrib(ModelData *model_data,
+          PMC_SOLVER_C_FLOAT *J, void *rxn_data, PMC_C_FLOAT time_step)
 {
-  realtype *state = model_data->state;
+  PMC_C_FLOAT *state = model_data->state;
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
@@ -277,7 +277,7 @@ void * rxn_PDFiTE_activity_calc_jac_contrib(ModelData *model_data, realtype *J,
 void * rxn_PDFiTE_activity_skip(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -290,7 +290,7 @@ void * rxn_PDFiTE_activity_skip(void *rxn_data)
 void * rxn_PDFiTE_activity_print(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   printf("\n\nPDFiTE Activity reaction\n");
   for (int i=0; i<INT_DATA_SIZE_; i++) 

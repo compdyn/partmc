@@ -10,9 +10,9 @@ program pmc_test_condensed_phase_arrhenius
 
   use iso_c_binding
 
-  use pmc_util,                         only: i_kind, dp, assert, &
-                                              almost_equal, string_t, &
-                                              warn_msg
+  use pmc_util,                         only: phlex_real, phlex_int, &
+                                              assert, almost_equal, &
+                                              string_t, warn_msg
   use pmc_phlex_core
   use pmc_phlex_state
   use pmc_aero_rep_data
@@ -26,7 +26,7 @@ program pmc_test_condensed_phase_arrhenius
   implicit none
 
   ! Number of timesteps to output in mechanisms
-  integer(kind=i_kind) :: NUM_TIME_STEP = 100
+  integer(kind=phlex_int) :: NUM_TIME_STEP = 100
 
   ! initialize mpi
   call pmc_mpi_init()
@@ -85,17 +85,17 @@ contains
     type(string_t), allocatable, dimension(:) :: output_file_path
 
     class(aero_rep_data_t), pointer :: aero_rep_ptr
-    integer(kind=i_kind), parameter :: NUM_STATE_VAR = 27
-    real(kind=dp), dimension(0:NUM_TIME_STEP, NUM_STATE_VAR) :: model_conc, &
+    integer(kind=phlex_int), parameter :: NUM_STATE_VAR = 27
+    real(kind=phlex_real), dimension(0:NUM_TIME_STEP, NUM_STATE_VAR) :: model_conc, &
             true_conc
-    integer(kind=i_kind) :: idx_A_aq, idx_B_aq, idx_C_aq, idx_D_aq, idx_H2O, &
+    integer(kind=phlex_int) :: idx_A_aq, idx_B_aq, idx_C_aq, idx_D_aq, idx_H2O, &
             idx_A_org, idx_B_org, idx_C_org, idx_D_org, idx_aq_phase, &
             idx_org_phase, i_time, i_spec
-    real(kind=dp) :: time_step, time, conc_D, conc_water, MW_A, MW_B, MW_C, &
+    real(kind=phlex_real) :: time_step, time, conc_D, conc_water, MW_A, MW_B, MW_C, &
             MW_D, k1_aq, k2_aq, k1_org, k2_org, temp, pressure
 #ifdef PMC_USE_MPI
     character, allocatable :: buffer(:), buffer_copy(:)
-    integer(kind=i_kind) :: pack_size, pos, i_elem, results
+    integer(kind=phlex_int) :: pack_size, pos, i_elem, results
 #endif
 
     run_condensed_phase_arrhenius_test = .true.
@@ -315,7 +315,7 @@ contains
         do i_spec = 1, size(model_conc, 2)
           call assert_msg(848069355, &
             almost_equal(model_conc(i_time, i_spec), &
-            true_conc(i_time, i_spec), real(1.0e-2, kind=dp)).or. &
+            true_conc(i_time, i_spec), real(1.0e-2, kind=phlex_real)).or. &
             (model_conc(i_time, i_spec).lt.1e-5*model_conc(1, i_spec).and. &
             true_conc(i_time, i_spec).lt.1e-5*true_conc(1, i_spec)), &
             "time: "//trim(to_string(i_time))//"; species: "// &

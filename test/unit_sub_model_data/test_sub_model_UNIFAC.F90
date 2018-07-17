@@ -8,7 +8,7 @@
 !> Test of UNIFAC activity sub module
 program pmc_test_sub_module_UNIFAC
 
-  use pmc_util,                         only: i_kind, dp, assert, &
+  use pmc_util,                         only: phlex_real, phlex_int, assert, &
                                               almost_equal, string_t, &
                                               warn_msg
   use pmc_phlex_core
@@ -22,7 +22,7 @@ program pmc_test_sub_module_UNIFAC
   implicit none
 
   ! Number of mole_fracsteps to output in mechanisms
-  integer(kind=i_kind) :: NUM_MASS_FRAC_STEP = 100
+  integer(kind=phlex_int) :: NUM_MASS_FRAC_STEP = 100
 
   ! initialize mpi
   call pmc_mpi_init()
@@ -80,35 +80,35 @@ contains
     type(string_t), allocatable, dimension(:) :: output_file_path
 
     class(aero_rep_data_t), pointer :: aero_rep_ptr
-    real(kind=dp), dimension(0:NUM_MASS_FRAC_STEP, 15) :: model_conc, &
+    real(kind=phlex_real), dimension(0:NUM_MASS_FRAC_STEP, 15) :: model_conc, &
             calc_conc, model_activity, calc_activity
-    integer(kind=i_kind) :: idx_butanol, idx_water, i_mass_frac, i_spec
+    integer(kind=phlex_int) :: idx_butanol, idx_water, i_mass_frac, i_spec
     integer(kind=c_int), target :: idx_butanol_c, idx_water_c, &
             idx_butanol_act_c, idx_water_act_c
-    real(kind=dp) :: mass_frac_step, mole_frac, mass_frac
+    real(kind=phlex_real) :: mass_frac_step, mole_frac, mass_frac
     type(c_ptr) :: identifiers
 #ifdef PMC_USE_MPI
     character, allocatable :: buffer(:), buffer_copy(:)
-    integer(kind=i_kind) :: pack_size, pos, i_elem, results
+    integer(kind=phlex_int) :: pack_size, pos, i_elem, results
 #endif
 
     ! Parameters for calculating true concentrations
-    real(kind=dp) :: temperature, pressure
+    real(kind=phlex_real) :: temperature, pressure
 
     ! Molecular weights
-    real(kind=dp), parameter :: mw_butanol = 74.12
-    real(kind=dp), parameter :: mw_water = 18.01
+    real(kind=phlex_real), parameter :: mw_butanol = 74.12
+    real(kind=phlex_real), parameter :: mw_water = 18.01
     
     ! Number of functional groups
-    integer(kind=i_kind), parameter :: num_group = 5
+    integer(kind=phlex_int), parameter :: num_group = 5
 
     ! Volume parameters (R_k in eq. 6)                       CH2(-OH) CH2(phb) CH3(phb)  OH     H2O
-    real(kind=dp), parameter, dimension(num_group) :: R_k = [ 0.6744, 0.6744, 0.9011, 1.0000, 0.9200 ]
+    real(kind=phlex_real), parameter, dimension(num_group) :: R_k = [ 0.6744, 0.6744, 0.9011, 1.0000, 0.9200 ]
     ! Surface parameters (Q_k in eq. 6)
-    real(kind=dp), parameter, dimension(num_group) :: Q_k = [ 0.540,  0.540,  0.848,  1.200,  1.400  ]
+    real(kind=phlex_real), parameter, dimension(num_group) :: Q_k = [ 0.540,  0.540,  0.848,  1.200,  1.400  ]
 
     ! Group interactions (a_mn in eq. 9)
-    real(kind=dp), parameter, dimension(num_group, num_group) :: a_mn = reshape( [&
+    real(kind=phlex_real), parameter, dimension(num_group, num_group) :: a_mn = reshape( [&
             ! CH2(-OH) CH2(phb) CH3(phb)      OH      H2O
                   0.0,     0.0,     0.0,   156.4,  -89.71,   & ! CH2(-OH)
                   0.0,     0.0,     0.0,   156.4,   362.1,   & ! CH2(phb)
@@ -118,28 +118,28 @@ contains
             [num_group, num_group] )
 
     ! Number of groups in each species
-    integer(kind=i_kind), parameter :: num_grps_butanol = 5
-    integer(kind=i_kind), parameter :: num_grps_water = 1
-    integer(kind=i_kind), parameter, dimension(num_group) :: butanol_grps =  [ 1, 2, 1, 1, 0 ]
-    integer(kind=i_kind), parameter, dimension(num_group) :: water_grps   =  [ 0, 0, 0, 0, 1 ]
+    integer(kind=phlex_int), parameter :: num_grps_butanol = 5
+    integer(kind=phlex_int), parameter :: num_grps_water = 1
+    integer(kind=phlex_int), parameter, dimension(num_group) :: butanol_grps =  [ 1, 2, 1, 1, 0 ]
+    integer(kind=phlex_int), parameter, dimension(num_group) :: water_grps   =  [ 0, 0, 0, 0, 1 ]
 
     ! Variables used in UNIFAC calculations
-    real(kind=dp) :: r_butanol, r_water
-    real(kind=dp) :: q_butanol, q_water
-    real(kind=dp) :: l_butanol, l_water
-    real(kind=dp), dimension(num_group, num_group) :: PSI_mn
-    real(kind=dp), dimension(num_group) :: ln_GAMMA_butanol_pure, ln_GAMMA_water_pure
-    real(kind=dp), dimension(num_group) :: ln_GAMMA_mixture
-    real(kind=dp) :: sum_Qn_Xn_butanol, sum_Qn_Xn_water, sum_Qn_Xn_mixture
-    real(kind=dp) :: PHI_butanol, PHI_water
-    real(kind=dp) :: THETA_butanol, THETA_water
-    real(kind=dp) :: ln_gamma_C_butanol, ln_gamma_C_water
-    real(kind=dp) :: ln_gamma_R_butanol, ln_gamma_R_water
+    real(kind=phlex_real) :: r_butanol, r_water
+    real(kind=phlex_real) :: q_butanol, q_water
+    real(kind=phlex_real) :: l_butanol, l_water
+    real(kind=phlex_real), dimension(num_group, num_group) :: PSI_mn
+    real(kind=phlex_real), dimension(num_group) :: ln_GAMMA_butanol_pure, ln_GAMMA_water_pure
+    real(kind=phlex_real), dimension(num_group) :: ln_GAMMA_mixture
+    real(kind=phlex_real) :: sum_Qn_Xn_butanol, sum_Qn_Xn_water, sum_Qn_Xn_mixture
+    real(kind=phlex_real) :: PHI_butanol, PHI_water
+    real(kind=phlex_real) :: THETA_butanol, THETA_water
+    real(kind=phlex_real) :: ln_gamma_C_butanol, ln_gamma_C_water
+    real(kind=phlex_real) :: ln_gamma_R_butanol, ln_gamma_R_water
 
-    real(kind=dp), dimension(num_group) :: THETA_m
-    real(kind=dp) :: sum_m_A, sum_m_B, sum_n 
+    real(kind=phlex_real), dimension(num_group) :: THETA_m
+    real(kind=phlex_real) :: sum_m_A, sum_m_B, sum_n 
 
-    integer(kind=i_kind) :: i, k, m, n
+    integer(kind=phlex_int) :: i, k, m, n
 
     run_UNIFAC_test = .true.
 
@@ -157,10 +157,10 @@ contains
     q_butanol = 0.0d0
     q_water   = 0.0d0
     do k = 1, num_group
-      r_butanol = r_butanol + real(butanol_grps(k), kind=dp) * R_k(k)
-      r_water   = r_water   + real(water_grps(k),   kind=dp) * R_k(k)
-      q_butanol = q_butanol + real(butanol_grps(k), kind=dp) * Q_k(k)
-      q_water   = q_water   + real(water_grps(k),   kind=dp) * Q_k(k)
+      r_butanol = r_butanol + real(butanol_grps(k), kind=phlex_real) * R_k(k)
+      r_water   = r_water   + real(water_grps(k),   kind=phlex_real) * R_k(k)
+      q_butanol = q_butanol + real(butanol_grps(k), kind=phlex_real) * Q_k(k)
+      q_water   = q_water   + real(water_grps(k),   kind=phlex_real) * Q_k(k)
     end do
 
     ! Calculate l_i (eq. 5)
@@ -174,15 +174,15 @@ contains
     sum_Qn_Xn_butanol = 0.0d0
     sum_Qn_Xn_water   = 0.0d0
     do n = 1, num_group
-      sum_Qn_Xn_butanol = sum_Qn_Xn_butanol + Q_k(n) * real(butanol_grps(n), kind=dp) 
-      sum_Qn_Xn_water   = sum_Qn_Xn_water   + Q_k(n) * real(water_grps(n),   kind=dp)
+      sum_Qn_Xn_butanol = sum_Qn_Xn_butanol + Q_k(n) * real(butanol_grps(n), kind=phlex_real) 
+      sum_Qn_Xn_water   = sum_Qn_Xn_water   + Q_k(n) * real(water_grps(n),   kind=phlex_real)
     end do
 
     ! Calculate group residual acitivty coefficient for pure liquids (ln(GAMMA_k^(i)) in eq 7 & 8)
     ! ... for butanol
     do m = 1, num_group
       THETA_m(m) = Q_k(m) &
-                   * real(butanol_grps(m), kind=dp) &
+                   * real(butanol_grps(m), kind=phlex_real) &
                    / sum_Qn_Xn_butanol
     end do
     do k = 1, num_group
@@ -202,7 +202,7 @@ contains
     ! ... for water
     do m = 1, num_group
       THETA_m(m) = Q_k(m) &
-                   * real(water_grps(m), kind=dp) & 
+                   * real(water_grps(m), kind=phlex_real) & 
                    / sum_Qn_Xn_water
     end do
     do k = 1, num_group
@@ -220,7 +220,7 @@ contains
     end do
 
     ! Set output mole faction step (unitless)
-    mass_frac_step = 1.0d0 / real(NUM_MASS_FRAC_STEP, kind=dp)
+    mass_frac_step = 1.0d0 / real(NUM_MASS_FRAC_STEP, kind=phlex_real)
 
 #ifdef PMC_USE_MPI
     ! Load the model data on root process and pass it to process 1 for solving
@@ -333,13 +333,13 @@ contains
         phlex_state%state_var(:) = model_conc(i_mass_frac,:)
 
         ! Get the modeled conc
-        call phlex_core%solve(phlex_state, real(1.0, kind=dp))
+        call phlex_core%solve(phlex_state, real(1.0, kind=phlex_real))
         model_activity(i_mass_frac,:) = 0.0d0
         model_activity(i_mass_frac, idx_butanol) = &
-                real(phlex_core%get_sub_model_parameter_value(idx_butanol_act_c), kind=dp) &
+                real(phlex_core%get_sub_model_parameter_value(idx_butanol_act_c), kind=phlex_real) &
                 * phlex_state%state_var(idx_butanol)
         model_activity(i_mass_frac, idx_water) = &
-                real(phlex_core%get_sub_model_parameter_value(idx_water_act_c), kind=dp) &
+                real(phlex_core%get_sub_model_parameter_value(idx_water_act_c), kind=phlex_real) &
                 * phlex_state%state_var(idx_water)
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -381,15 +381,15 @@ contains
         do n = 1, num_group
           sum_Qn_Xn_mixture = sum_Qn_Xn_mixture &
                               + Q_k(n) &
-                              * ( (1.0d0 - mole_frac) * real(butanol_grps(n), kind=dp) &
-                                   + mole_frac * real(water_grps(n), kind=dp) )
+                              * ( (1.0d0 - mole_frac) * real(butanol_grps(n), kind=phlex_real) &
+                                   + mole_frac * real(water_grps(n), kind=phlex_real) )
         end do
 
         ! Group surface area fraction (Eq. 9)
         do m = 1, num_group
           THETA_m(m) = Q_k(m) &
-                       * ( (1.0d0 - mole_frac) * real(butanol_grps(m), kind=dp) &
-                            + mole_frac * real(water_grps(m), kind=dp) ) &
+                       * ( (1.0d0 - mole_frac) * real(butanol_grps(m), kind=phlex_real) &
+                            + mole_frac * real(water_grps(m), kind=phlex_real) ) &
                        / sum_Qn_Xn_mixture
         end do
       
@@ -413,10 +413,10 @@ contains
         ln_gamma_R_water = 0.0d0
         do k = 1, num_group
           ln_gamma_R_butanol = ln_gamma_R_butanol &
-                               + real(butanol_grps(k), kind=dp) &
+                               + real(butanol_grps(k), kind=phlex_real) &
                                * ( ln_GAMMA_mixture(k) - ln_GAMMA_butanol_pure(k) )
           ln_gamma_R_water   = ln_gamma_R_water &
-                               + real(water_grps(k), kind=dp) &
+                               + real(water_grps(k), kind=phlex_real) &
                                * ( ln_GAMMA_mixture(k) - ln_GAMMA_water_pure(k) )
         end do
 
@@ -449,17 +449,17 @@ contains
         if (mass_frac < 0.97d0) then
           call assert_msg(666095395, &
             almost_equal(get_water_activity_fig3a(mass_frac), calc_activity(i_mass_frac, idx_water), &
-            real(1.0e-1, kind=dp)), "mole_frac: "//trim(to_string(i_mass_frac))//"; species: water"// &
+            real(1.0e-1, kind=phlex_real)), "mole_frac: "//trim(to_string(i_mass_frac))//"; species: water"// &
             "; from plot: "//trim(to_string(get_water_activity_fig3a(mass_frac)))// &
             "; calc: "//trim(to_string(calc_activity(i_mass_frac, idx_water))))
           call assert_msg(744508507, &
             almost_equal(model_activity(i_mass_frac, idx_water), calc_activity(i_mass_frac, idx_water), &
-            real(1.0e-2, kind=dp)), "mole_frac: "//trim(to_string(i_mass_frac))//"; species: water"// &
+            real(1.0e-2, kind=phlex_real)), "mole_frac: "//trim(to_string(i_mass_frac))//"; species: water"// &
             "; mod: "//trim(to_string(model_activity(i_mass_frac, idx_water)))// &
             "; calc: "//trim(to_string(calc_activity(i_mass_frac, idx_water))))
           call assert_msg(222508237, &
             almost_equal(model_activity(i_mass_frac, idx_butanol), calc_activity(i_mass_frac, idx_butanol), &
-            real(1.0e-2, kind=dp)), "mole_frac: "//trim(to_string(i_mass_frac))//"; species: butanol"// &
+            real(1.0e-2, kind=phlex_real)), "mole_frac: "//trim(to_string(i_mass_frac))//"; species: butanol"// &
             "; mod: "//trim(to_string(model_activity(i_mass_frac, idx_butanol)))// &
             "; calc: "//trim(to_string(calc_activity(i_mass_frac, idx_butanol))))
         end if
@@ -506,13 +506,13 @@ contains
   function get_water_activity_fig3a(mass_frac_butanol) result (water_activity)
 
     !> Water activity (unitless)
-    real(kind=dp) :: water_activity
+    real(kind=phlex_real) :: water_activity
     !> Mass fraction of butanol (unitless)
-    real(kind=dp), intent(in) :: mass_frac_butanol
+    real(kind=phlex_real), intent(in) :: mass_frac_butanol
     !> Number of digitized points
-    integer(kind=i_kind), parameter :: NUM_POINTS = 101
+    integer(kind=phlex_int), parameter :: NUM_POINTS = 101
     !> Digitized water activities (unitless)
-    real(kind=dp), parameter, dimension(NUM_POINTS) :: a_w = [ &
+    real(kind=phlex_real), parameter, dimension(NUM_POINTS) :: a_w = [ &
       0.995733, 0.994375, 0.993023, 0.991684, 0.990363, 0.989068, 0.987805, &
       0.986579, 0.985398, 0.984267, 0.983193, 0.982182, 0.981240, 0.980375, &
       0.979592, 0.978898, 0.978295, 0.977784, 0.977369, 0.977051, 0.976832, &
@@ -529,9 +529,9 @@ contains
       0.644058, 0.601906, 0.557361, 0.510599, 0.461815, 0.411277, 0.359302, &
       0.306229, 0.252423, 0.198251 ]
 
-    integer(kind=i_kind) :: i_a_w
+    integer(kind=phlex_int) :: i_a_w
 
-    i_a_w = int(mass_frac_butanol*100.0d0, kind=i_kind) + 1
+    i_a_w = int(mass_frac_butanol*100.0d0, kind=phlex_int) + 1
 
     water_activity = a_w(i_a_w)
 

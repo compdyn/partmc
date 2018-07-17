@@ -8,8 +8,8 @@
 !> Test class for the aero_rep_data_t extending types
 program pmc_test_aero_rep_data
 
-  use pmc_util,                         only: i_kind, dp, assert, &
-                                              almost_equal
+  use pmc_util,                         only: phlex_real, phlex_int, &
+                                              assert, almost_equal
   use pmc_property
   use pmc_phlex_core
   use pmc_phlex_state
@@ -73,7 +73,7 @@ contains
 
 #ifdef PMC_USE_JSON
 
-    integer(kind=i_kind) :: i_spec, j_spec, i_phase
+    integer(kind=phlex_int) :: i_spec, j_spec, i_phase
     character(len=:), allocatable :: rep_name, spec_name, phase_name
     type(string_t), allocatable :: file_list(:), unique_names(:)
 #ifdef PMC_USE_MPI
@@ -81,7 +81,7 @@ contains
     type(aero_rep_factory_t) :: aero_rep_factory
     type(aero_rep_data_ptr), allocatable :: aero_rep_passed_data_set(:)
     character, allocatable :: buffer(:)
-    integer(kind=i_kind) :: pos, pack_size, i_prop, i_rep
+    integer(kind=phlex_int) :: pos, pack_size, i_prop, i_rep
 #endif
     build_aero_rep_data_set_test = .false.
 

@@ -45,17 +45,17 @@
  *                   Jacobian elements
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_CMAQ_OH_HNO3_get_used_jac_elem(void *rxn_data, bool **jac_struct)
+void * rxn_CMAQ_OH_HNO3_get_used_jac_elem(void *rxn_data, pmc_bool **jac_struct)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   for (int i_ind = 0; i_ind < NUM_REACT_; i_ind++) {
     for (int i_dep = 0; i_dep < NUM_REACT_; i_dep++) {
-      jac_struct[REACT_(i_dep)][REACT_(i_ind)] = true;
+      jac_struct[REACT_(i_dep)][REACT_(i_ind)] = pmc_true;
     }
     for (int i_dep = 0; i_dep < NUM_PROD_; i_dep++) {
-      jac_struct[PROD_(i_dep)][REACT_(i_ind)] = true;
+      jac_struct[PROD_(i_dep)][REACT_(i_ind)] = pmc_true;
     }
   }
 
@@ -74,7 +74,7 @@ void * rxn_CMAQ_OH_HNO3_update_ids(ModelData *model_data, int *deriv_ids,
           int **jac_ids, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Update the time derivative ids
   for (int i=0; i < NUM_REACT_; i++)
@@ -104,27 +104,27 @@ void * rxn_CMAQ_OH_HNO3_update_ids(ModelData *model_data, int *deriv_ids,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_CMAQ_OH_HNO3_update_env_state(double *env_data, void *rxn_data)
+void * rxn_CMAQ_OH_HNO3_update_env_state(PMC_C_FLOAT *env_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the rate constant in (#/cc)
-  double conv = CONV_ * PRESSURE_PA_ / TEMPERATURE_K_;
-  double k2 = k2_A_
+  PMC_C_FLOAT conv = CONV_ * PRESSURE_PA_ / TEMPERATURE_K_;
+  PMC_C_FLOAT k2 = k2_A_
 	  * (k2_C_==0.0 ? 1.0 : exp(k2_C_/TEMPERATURE_K_))
 	  * (k2_B_==0.0 ? 1.0 : 
-                    pow(TEMPERATURE_K_/((double)300.0), k2_B_));
-  double k3 = k3_A_ // [M] is included in k3_A_
+                    pow(TEMPERATURE_K_/((PMC_C_FLOAT)300.0), k2_B_));
+  PMC_C_FLOAT k3 = k3_A_ // [M] is included in k3_A_
 	  * (k3_C_==0.0 ? 1.0 : exp(k3_C_/TEMPERATURE_K_))
 	  * (k3_B_==0.0 ? 1.0 : 
-                    pow(TEMPERATURE_K_/((double)300.0), k3_B_))
+                    pow(TEMPERATURE_K_/((PMC_C_FLOAT)300.0), k3_B_))
 	  * conv;
   RATE_CONSTANT_ = (k0_A_
 	  * (k0_C_==0.0 ? 1.0 : exp(k0_C_/TEMPERATURE_K_))
 	  * (k0_B_==0.0 ? 1.0 : 
-                  pow(TEMPERATURE_K_/((double)300.0), k0_B_))
-	  + k3 / (((double)1.0) + k3 / k2)
+                  pow(TEMPERATURE_K_/((PMC_C_FLOAT)300.0), k0_B_))
+	  + k3 / (((PMC_C_FLOAT)1.0) + k3 / k2)
 	  ) * pow(conv, NUM_REACT_-1) * SCALING_;
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
@@ -141,7 +141,7 @@ void * rxn_CMAQ_OH_HNO3_update_env_state(double *env_data, void *rxn_data)
 void * rxn_CMAQ_OH_HNO3_pre_calc(ModelData *model_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -157,14 +157,14 @@ void * rxn_CMAQ_OH_HNO3_pre_calc(ModelData *model_data, void *rxn_data)
  */
 #ifdef PMC_USE_SUNDIALS
 void * rxn_CMAQ_OH_HNO3_calc_deriv_contrib(ModelData *model_data,
-          realtype *deriv, void *rxn_data, double time_step)
+          PMC_SOLVER_C_FLOAT *deriv, void *rxn_data, PMC_C_FLOAT time_step)
 {
-  realtype *state = model_data->state;
+  PMC_C_FLOAT *state = model_data->state;
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the reaction rate
-  realtype rate = RATE_CONSTANT_;
+  PMC_C_FLOAT rate = RATE_CONSTANT_;
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
           rate *= state[REACT_(i_spec)];
 
@@ -173,11 +173,12 @@ void * rxn_CMAQ_OH_HNO3_calc_deriv_contrib(ModelData *model_data,
     int i_dep_var = 0;
     for (int i_spec=0; i_spec<NUM_REACT_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue; 
-      deriv[DERIV_ID_(i_dep_var)] -= rate;
+      deriv[DERIV_ID_(i_dep_var)] -= (PMC_SOLVER_C_FLOAT) rate;
     }
     for (int i_spec=0; i_spec<NUM_PROD_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue; 
-      deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
+      deriv[DERIV_ID_(i_dep_var)] += (PMC_SOLVER_C_FLOAT)
+            (rate*YIELD_(i_spec));
     }
   }
 
@@ -195,15 +196,15 @@ void * rxn_CMAQ_OH_HNO3_calc_deriv_contrib(ModelData *model_data,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_CMAQ_OH_HNO3_calc_jac_contrib(ModelData *model_data, realtype *J,
-          void *rxn_data, double time_step)
+void * rxn_CMAQ_OH_HNO3_calc_jac_contrib(ModelData *model_data,
+          PMC_SOLVER_C_FLOAT *J, void *rxn_data, PMC_C_FLOAT time_step)
 {
-  realtype *state = model_data->state;
+  PMC_C_FLOAT *state = model_data->state;
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the reaction rate
-  realtype rate = RATE_CONSTANT_;
+  PMC_C_FLOAT rate = RATE_CONSTANT_;
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
           rate *= state[REACT_(i_spec)];
 
@@ -213,11 +214,13 @@ void * rxn_CMAQ_OH_HNO3_calc_jac_contrib(ModelData *model_data, realtype *J,
     for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
       for (int i_dep=0; i_dep<NUM_REACT_; i_dep++, i_elem++) {
 	if (JAC_ID_(i_elem) < 0) continue;
-	J[JAC_ID_(i_elem)] -= rate / state[REACT_(i_ind)];
+	J[JAC_ID_(i_elem)] -= (PMC_SOLVER_C_FLOAT)
+              (rate / state[REACT_(i_ind)]);
       }
       for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
 	if (JAC_ID_(i_elem) < 0) continue;
-	J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate / state[REACT_(i_ind)];
+	J[JAC_ID_(i_elem)] += (PMC_SOLVER_C_FLOAT)
+              (YIELD_(i_dep) * rate / state[REACT_(i_ind)]);
       }
     }
   }
@@ -235,7 +238,7 @@ void * rxn_CMAQ_OH_HNO3_calc_jac_contrib(ModelData *model_data, realtype *J,
 void * rxn_CMAQ_OH_HNO3_skip(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -248,7 +251,7 @@ void * rxn_CMAQ_OH_HNO3_skip(void *rxn_data)
 void * rxn_CMAQ_OH_HNO3_print(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   printf("\n\nCMAQ_OH_HNO3 reaction\n");
   for (int i=0; i<INT_DATA_SIZE_; i++) 

@@ -66,7 +66,7 @@
 !!  !> Identifiers for reaction types - used by binary packing/unpacking 
 !!  !! functions
 !!  ...
-!!  integer(kind=i_kind), parameter :: RXN_FOO = 32
+!!  integer(kind=phlex_int), parameter :: RXN_FOO = 32
 !!
 !!  ...
 !!
@@ -172,7 +172,7 @@ module pmc_rxn_factory
 #ifdef PMC_USE_MPI
   use mpi
 #endif
-  use pmc_constants,                  only : i_kind, dp
+  use pmc_constants,                  only : phlex_real, phlex_int
   use pmc_mpi
   use pmc_rxn_data
   use pmc_util,                       only : die_msg, string_t, assert_msg, &
@@ -200,17 +200,17 @@ module pmc_rxn_factory
 
   !> Identifiers for reaction types - used by binary packing/unpacking 
   !! functions 
-  integer(kind=i_kind), parameter, public :: RXN_ARRHENIUS = 1
-  integer(kind=i_kind), parameter, public :: RXN_TROE = 2
-  integer(kind=i_kind), parameter, public :: RXN_CMAQ_H2O2 = 3
-  integer(kind=i_kind), parameter, public :: RXN_CMAQ_OH_HNO3 = 4
-  integer(kind=i_kind), parameter, public :: RXN_PHOTOLYSIS = 5
-  integer(kind=i_kind), parameter, public :: RXN_HL_PHASE_TRANSFER = 6
-  integer(kind=i_kind), parameter, public :: RXN_AQUEOUS_EQUILIBRIUM = 7
-  integer(kind=i_kind), parameter, public :: RXN_ZSR_AEROSOL_WATER = 8
-  integer(kind=i_kind), parameter, public :: RXN_PDFITE_ACTIVITY = 9
-  integer(kind=i_kind), parameter, public :: RXN_SIMPOL_PHASE_TRANSFER = 10
-  integer(kind=i_kind), parameter, public :: RXN_CONDENSED_PHASE_ARRHENIUS = 11
+  integer(kind=phlex_int), parameter, public :: RXN_ARRHENIUS = 1
+  integer(kind=phlex_int), parameter, public :: RXN_TROE = 2
+  integer(kind=phlex_int), parameter, public :: RXN_CMAQ_H2O2 = 3
+  integer(kind=phlex_int), parameter, public :: RXN_CMAQ_OH_HNO3 = 4
+  integer(kind=phlex_int), parameter, public :: RXN_PHOTOLYSIS = 5
+  integer(kind=phlex_int), parameter, public :: RXN_HL_PHASE_TRANSFER = 6
+  integer(kind=phlex_int), parameter, public :: RXN_AQUEOUS_EQUILIBRIUM = 7
+  integer(kind=phlex_int), parameter, public :: RXN_ZSR_AEROSOL_WATER = 8
+  integer(kind=phlex_int), parameter, public :: RXN_PDFITE_ACTIVITY = 9
+  integer(kind=phlex_int), parameter, public :: RXN_SIMPOL_PHASE_TRANSFER = 10
+  integer(kind=phlex_int), parameter, public :: RXN_CONDENSED_PHASE_ARRHENIUS = 11
 
   !> Factory type for chemical reactions
   !!
@@ -331,7 +331,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the reaction type as a RxnType
-  integer(kind=i_kind) function get_type(this, rxn) result (rxn_type)
+  integer(kind=phlex_int) function get_type(this, rxn) result (rxn_type)
 
     !> Reaction factory
     class(rxn_factory_t), intent(in) :: this
@@ -389,14 +389,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack a reaction
-  integer(kind=i_kind) function pack_size(this, rxn)
+  integer(kind=phlex_int) function pack_size(this, rxn)
 
     !> Reaction factory
     class(rxn_factory_t) :: this
     !> Reaction to pack
     class(rxn_data_t), intent(in) :: rxn
 
-    pack_size =  pmc_mpi_pack_size_integer(int(1, kind=i_kind)) + &
+    pack_size =  pmc_mpi_pack_size_integer(int(1, kind=phlex_int)) + &
                  rxn%pack_size()
 
   end function pack_size

@@ -3,7 +3,7 @@
   "pmc-data" : [
    {
     "type" : "RELATIVE_TOLERANCE",
-    "value" : 1.0e-15
+    "value" : 1.0e-6
   },
   {
     "name" : "A",
@@ -11,7 +11,7 @@
     "phase" : "AEROSOL",
     "molecular weight" : 48.0,
     "density" : 1.0,
-    "absolute tolerance" : 1.0e-20
+    "absolute tolerance" : 1.0e-6
   },
   {
     "name" : "B",
@@ -19,7 +19,7 @@
     "phase" : "AEROSOL",
     "molecular weight" : 32.67,
     "density" : 1.0,
-    "absolute tolerance" : 1.0e-20
+    "absolute tolerance" : 1.0e-6
   },
   {
     "name" : "C",
@@ -27,7 +27,7 @@
     "phase" : "AEROSOL",
     "molecular weight" : 114.3,
     "density" : 1.0,
-    "absolute tolerance" : 1.0e-20
+    "absolute tolerance" : 1.0e-6
   },
   {
     "name" : "D",
@@ -35,7 +35,7 @@
     "phase" : "AEROSOL",
     "molecular weight" : 27.6,
     "density" : 1.0,
-    "absolute tolerance" : 1.0e-20
+    "absolute tolerance" : 1.0e-6
   },
   {
     "name" : "E",
@@ -43,7 +43,7 @@
     "phase" : "AEROSOL",
     "molecular weight" : 202.4,
     "density" : 1.0,
-    "absolute tolerance" : 1.0e-20
+    "absolute tolerance" : 1.0e-6
   },
   {
     "name" : "F",
@@ -51,7 +51,7 @@
     "phase" : "AEROSOL",
     "molecular weight" : 28,
     "density" : 1.0,
-    "absolute tolerance" : 1.0e-20
+    "absolute tolerance" : 1.0e-6
   },
   {
     "name" : "G",
@@ -59,7 +59,7 @@
     "phase" : "AEROSOL",
     "molecular weight" : 35.67,
     "density" : 1.0,
-    "absolute tolerance" : 1.0e-20
+    "absolute tolerance" : 1.0e-6
   },
   {
     "name" : "H",
@@ -67,7 +67,7 @@
     "phase" : "AEROSOL",
     "molecular weight" : 284.2,
     "density" : 1.0,
-    "absolute tolerance" : 1.0e-20
+    "absolute tolerance" : 1.0e-6
   },
   {
     "name" : "H2O_aq",

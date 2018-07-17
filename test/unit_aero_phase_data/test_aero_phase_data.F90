@@ -8,8 +8,8 @@
 !> Test class for the aero_phase_data_t type
 program pmc_test_aero_phase_data
 
-  use pmc_util,                         only: i_kind, dp, assert, &
-                                              almost_equal
+  use pmc_util,                         only: phlex_real, phlex_int, &
+                                              assert, almost_equal
   use pmc_property
   use pmc_aero_phase_data
   use pmc_chem_spec_data
@@ -59,15 +59,15 @@ contains
     type(json_core), pointer :: json
     type(json_value), pointer :: j_obj, j_next
 
-    integer(kind=i_kind) :: i_phase, i_spec
+    integer(kind=phlex_int) :: i_phase, i_spec
     type(property_t), pointer :: property_set
     character(len=:), allocatable :: key
-    real(kind=dp) :: temp_real
+    real(kind=phlex_real) :: temp_real
     logical :: temp_logical
 #ifdef PMC_USE_MPI
     type(aero_phase_data_ptr), allocatable :: aero_phase_passed_data_set(:)
     character, allocatable :: buffer(:)
-    integer(kind=i_kind) :: pos, pack_size, i_prop
+    integer(kind=phlex_int) :: pos, pack_size, i_prop
 #endif
     allocate(json)
     call j_file%initialize()
@@ -105,7 +105,7 @@ contains
     property_set => aero_phase_data_set(1)%val%get_property_set()
     key = "some property"
     call assert(313789343, property_set%get_real(key, temp_real))
-    call assert(364910356, almost_equal(temp_real, real(12.2, kind=dp)))
+    call assert(364910356, almost_equal(temp_real, real(12.2, kind=phlex_real)))
 
     property_set => aero_phase_data_set(2)%val%get_property_set()
     key = "some other property"
@@ -115,7 +115,7 @@ contains
     property_set => aero_phase_data_set(3)%val%get_property_set()
     key = "some property"
     call assert(191846974, property_set%get_real(key, temp_real))
-    call assert(304165319, almost_equal(temp_real, real(13.75, kind=dp)))
+    call assert(304165319, almost_equal(temp_real, real(13.75, kind=phlex_real)))
 
     call aero_phase_data_set(1)%val%initialize(chem_spec_data)
     call aero_phase_data_set(2)%val%initialize(chem_spec_data)

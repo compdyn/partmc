@@ -100,7 +100,7 @@
 !!  !> Identifiers for aerosol representations - used by binary packing/unpacking 
 !!  !! functions
 !!  ...
-!!  integer(kind=i_kind), parameter :: AERO_REP_FOO = 32
+!!  integer(kind=phlex_int), parameter :: AERO_REP_FOO = 32
 !!
 !!  ...
 !!
@@ -193,7 +193,7 @@ module pmc_aero_rep_factory
   use mpi
 #endif
   use pmc_aero_rep_data
-  use pmc_constants,                  only : i_kind, dp
+  use pmc_constants,                  only : phlex_real, phlex_int
   use pmc_mpi
   use pmc_util,                       only : die_msg, string_t, assert_msg, &
                                              warn_msg
@@ -211,8 +211,8 @@ module pmc_aero_rep_factory
 
   !> Identifiers for aerosol representations - used by binary
   !! packing/unpacking functions
-  integer(kind=i_kind), parameter :: AERO_REP_SINGLE_PARTICLE   = 1
-  integer(kind=i_kind), parameter :: AERO_REP_MODAL_BINNED_MASS = 2
+  integer(kind=phlex_int), parameter :: AERO_REP_SINGLE_PARTICLE   = 1
+  integer(kind=phlex_int), parameter :: AERO_REP_MODAL_BINNED_MASS = 2
 
   !> Factory type for aerosol representations
   !!
@@ -315,7 +315,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the aerosol reaction type
-  integer(kind=i_kind) function get_type(this, aero_rep) result(aero_rep_type)
+  integer(kind=phlex_int) function get_type(this, aero_rep) result(aero_rep_type)
 
     !> Aerosol representation factory
     class(aero_rep_factory_t), intent(in) :: this
@@ -357,14 +357,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack an aerosol representation
-  integer(kind=i_kind) function pack_size(this, aero_rep)
+  integer(kind=phlex_int) function pack_size(this, aero_rep)
 
     !> Aerosol representation factory
     class(aero_rep_factory_t), intent(in) :: this
     !> Aerosol representation to pack
     class(aero_rep_data_t), intent(in) :: aero_rep
 
-    pack_size =  pmc_mpi_pack_size_integer(int(1, kind=i_kind)) + &
+    pack_size =  pmc_mpi_pack_size_integer(int(1, kind=phlex_int)) + &
                  aero_rep%pack_size()
 
   end function pack_size

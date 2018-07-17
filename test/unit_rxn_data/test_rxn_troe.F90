@@ -8,9 +8,9 @@
 !> Test of troe reaction module
 program pmc_test_troe
 
-  use pmc_util,                         only: i_kind, dp, assert, &
-                                              almost_equal, string_t, &
-                                              warn_msg
+  use pmc_util,                         only: phlex_real, phlex_int, &
+                                              assert, almost_equal, &
+                                              string_t, warn_msg
   use pmc_phlex_core
   use pmc_phlex_state
   use pmc_chem_spec_data
@@ -22,7 +22,7 @@ program pmc_test_troe
   implicit none
 
   ! Number of timesteps to output in mechanisms
-  integer(kind=i_kind) :: NUM_TIME_STEP = 100
+  integer(kind=phlex_int) :: NUM_TIME_STEP = 100
 
   ! initialize mpi
   call pmc_mpi_init()
@@ -79,13 +79,13 @@ contains
     type(string_t), allocatable, dimension(:) :: output_file_path
 
     type(chem_spec_data_t), pointer :: chem_spec_data
-    real(kind=dp), dimension(0:NUM_TIME_STEP, 3) :: model_conc, true_conc
-    integer(kind=i_kind) :: idx_A, idx_B, idx_C, i_time, i_spec
-    real(kind=dp) :: time_step, time, k1, k2, air_conc, temp, pressure, k_0, &
+    real(kind=phlex_real), dimension(0:NUM_TIME_STEP, 3) :: model_conc, true_conc
+    integer(kind=phlex_int) :: idx_A, idx_B, idx_C, i_time, i_spec
+    real(kind=phlex_real) :: time_step, time, k1, k2, air_conc, temp, pressure, k_0, &
             k_inf, conv
 #ifdef PMC_USE_MPI
     character, allocatable :: buffer(:), buffer_copy(:)
-    integer(kind=i_kind) :: pack_size, pos, i_elem, results
+    integer(kind=phlex_int) :: pack_size, pos, i_elem, results
 #endif
 
     run_troe_test = .true.
@@ -236,7 +236,7 @@ contains
         do i_spec = 1, size(model_conc, 2)
           call assert_msg(911807542, &
             almost_equal(model_conc(i_time, i_spec), &
-            true_conc(i_time, i_spec), real(1.0e-2, kind=dp)).or. &
+            true_conc(i_time, i_spec), real(1.0e-2, kind=phlex_real)).or. &
             (model_conc(i_time, i_spec).lt.1e-5*model_conc(1, i_spec).and. &
             true_conc(i_time, i_spec).lt.1e-5*true_conc(1, i_spec)), &
             "time: "//trim(to_string(i_time))//"; species: "// &

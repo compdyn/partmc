@@ -37,7 +37,7 @@ module pmc_aero_rep_single_particle
   use pmc_chem_spec_data
   use pmc_phlex_state
   use pmc_property
-  use pmc_util,                                  only: dp, i_kind, &
+  use pmc_util,                                  only: phlex_real, phlex_int, &
                                                        string_t, assert_msg, &
                                                        die_msg, to_string, &
                                                        assert, align_ratio
@@ -61,8 +61,8 @@ module pmc_aero_rep_single_particle
 #define PHASE_AVG_MW_(x) this%condensed_data_real(NUM_REAL_PROP_+NUM_PHASE_+x)
 
   ! Update types (These must match values in aero_rep_single_particle.c)
-  integer(kind=i_kind), parameter, public :: UPDATE_RADIUS = 0
-  integer(kind=i_kind), parameter, public :: UPDATE_NUMBER_CONC = 1
+  integer(kind=phlex_int), parameter, public :: UPDATE_RADIUS = 0
+  integer(kind=phlex_int), parameter, public :: UPDATE_NUMBER_CONC = 1
 
   public :: aero_rep_single_particle_t, &
             aero_rep_update_data_single_particle_radius_t, &
@@ -73,7 +73,7 @@ module pmc_aero_rep_single_particle
   !! Time-invariant data related to a single particle aerosol representation. 
   type, extends(aero_rep_data_t) :: aero_rep_single_particle_t
     !> Phase state id (only used during initialization
-    integer(kind=i_kind), allocatable :: phase_state_id(:)
+    integer(kind=phlex_int), allocatable :: phase_state_id(:)
   contains
     !> Initialize the aerosol representation data, validating component data and
     !! loading any required information from the \c
@@ -178,7 +178,7 @@ module pmc_aero_rep_single_particle
       !! pmc_aero_rep_single_particle::aero_rep_single_particle_t::set_id
       integer(kind=c_int), value :: aero_rep_id
       !> New radius (m)
-      real(kind=c_double), value :: radius
+      real(kind=PMC_F90_C_FLOAT), value :: radius
     end subroutine aero_rep_single_particle_set_radius_update_data
 
     !> Allocate space for a number update
@@ -199,7 +199,7 @@ module pmc_aero_rep_single_particle
       !! pmc_aero_rep_single_particle::aero_rep_single_particle_t::set_id
       integer(kind=c_int), value :: aero_rep_id
       !> New number (m)
-      real(kind=c_double), value :: number_conc
+      real(kind=PMC_F90_C_FLOAT), value :: number_conc
     end subroutine aero_rep_single_particle_set_number_update_data
 
     !> Free an update data object
@@ -241,11 +241,11 @@ contains
     type(aero_phase_data_ptr), pointer, intent(in) :: aero_phase_set(:)
     !> Beginning state id for this aerosol representationin the model species
     !! state array
-    integer(kind=i_kind), intent(in) :: spec_state_id
+    integer(kind=phlex_int), intent(in) :: spec_state_id
 
-    integer(kind=i_kind) :: i_phase, curr_id
-    integer(kind=i_kind) :: num_int_param, num_float_param
-    integer(kind=i_kind) :: int_data_size, float_data_size
+    integer(kind=phlex_int) :: i_phase, curr_id
+    integer(kind=phlex_int) :: num_int_param, num_float_param
+    integer(kind=phlex_int) :: int_data_size, float_data_size
 
     ! Start off the counters
     num_int_param = NUM_INT_PROP_ + 2*size(aero_phase_set)
@@ -265,8 +265,8 @@ contains
     ! Allocate condensed data arrays
     allocate(this%condensed_data_int(int_data_size))
     allocate(this%condensed_data_real(float_data_size))
-    this%condensed_data_int(:) = int(0, kind=i_kind)
-    this%condensed_data_real(:) = real(0.0, kind=dp)
+    this%condensed_data_int(:) = int(0, kind=phlex_int)
+    this%condensed_data_real(:) = real(0.0, kind=phlex_real)
     INT_DATA_SIZE_ = int_data_size
     FLOAT_DATA_SIZE_ = float_data_size
 
@@ -292,7 +292,7 @@ contains
     !> Aerosol representation data
     class(aero_rep_single_particle_t), intent(inout) :: this
     !> New id
-    integer(kind=i_kind), intent(in) :: new_id
+    integer(kind=phlex_int), intent(in) :: new_id
 
     AERO_REP_ID_ = new_id
 
@@ -310,11 +310,11 @@ contains
   function get_size(this) result (state_size)
 
     !> Size on the state array
-    integer(kind=i_kind) :: state_size
+    integer(kind=phlex_int) :: state_size
     !> Aerosol representation data
     class(aero_rep_single_particle_t), intent(in) :: this
 
-    integer(kind=i_kind) :: i_phase
+    integer(kind=phlex_int) :: i_phase
 
     ! Get the total number of species across all phases
     state_size = 0
@@ -342,12 +342,12 @@ contains
     !> Aerosol phase name
     character(len=:), allocatable, optional, intent(in) :: phase_name
     !> Aerosol-phase species tracer type
-    integer(kind=i_kind), optional, intent(in) :: tracer_type
+    integer(kind=phlex_int), optional, intent(in) :: tracer_type
     !> Aerosol-phase species name
     character(len=:), allocatable, optional, intent(in) :: spec_name
 
-    integer(kind=i_kind) :: num_spec, i_spec, j_spec, i_phase
-    integer(kind=i_kind) :: curr_tracer_type
+    integer(kind=phlex_int) :: num_spec, i_spec, j_spec, i_phase
+    integer(kind=phlex_int) :: curr_tracer_type
     character(len=:), allocatable :: curr_phase_name
     type(string_t), allocatable :: spec_names(:)
 
@@ -425,14 +425,14 @@ contains
   function spec_state_id(this, unique_name) result (spec_id)
 
     !> Species state id
-    integer(kind=i_kind) :: spec_id
+    integer(kind=phlex_int) :: spec_id
     !> Aerosol representation data
     class(aero_rep_single_particle_t), intent(in) :: this
     !> Unique name
     character(len=:), allocatable, intent(in) :: unique_name
 
     type(string_t), allocatable :: unique_names(:)
-    integer(kind=i_kind) :: i_spec
+    integer(kind=phlex_int) :: i_spec
 
     spec_id = 0
     unique_names = this%unique_names()
@@ -459,7 +459,7 @@ contains
     character(len=:), allocatable :: unique_name
 
     ! Indices for iterators
-    integer(kind=i_kind) :: i_spec, j_spec, i_phase
+    integer(kind=phlex_int) :: i_spec, j_spec, i_phase
    
     ! Species in aerosol phase
     type(string_t), allocatable :: spec_names(:)
@@ -493,13 +493,13 @@ contains
   function num_phase_instances(this, phase_name)
 
     !> Number of instances of the aerosol phase
-    integer(kind=i_kind) :: num_phase_instances
+    integer(kind=phlex_int) :: num_phase_instances
     !> Aerosol representation data
     class(aero_rep_single_particle_t), intent(in) :: this
     !> Aerosol phase name
     character(len=:), allocatable, intent(in) :: phase_name
 
-    integer(kind=i_kind) :: i_phase
+    integer(kind=phlex_int) :: i_phase
 
     num_phase_instances = 0
     do i_phase = 1, size(this%aero_phase)
@@ -539,7 +539,7 @@ contains
     !> Update data object
     class(aero_rep_update_data_single_particle_radius_t) :: this
     !> Aerosol representaiton id
-    integer(kind=i_kind), intent(in) :: aero_rep_type
+    integer(kind=phlex_int), intent(in) :: aero_rep_type
 
     call assert_msg(954504234, .not.this%is_malloced, &
             "Trying to re-initializea radius update object.")
@@ -560,9 +560,9 @@ contains
             this
     !> Aerosol representation id from
     !! pmc_aero_rep_single_particle::aero_rep_single_particle_t::set_id
-    integer(kind=i_kind), intent(in) :: aero_rep_id
+    integer(kind=phlex_int), intent(in) :: aero_rep_id
     !> Updated radius
-    real(kind=dp), intent(in) :: radius
+    real(kind=phlex_real), intent(in) :: radius
 
     call assert_msg(228446610, this%is_malloced, &
             "Trying to set radius of uninitialized update object.")
@@ -591,7 +591,7 @@ contains
     !> Update data object
     class(aero_rep_update_data_single_particle_number_t) :: this
     !> Aerosol representaiton id
-    integer(kind=i_kind), intent(in) :: aero_rep_type
+    integer(kind=phlex_int), intent(in) :: aero_rep_type
 
     call assert_msg(886589356, .not.this%is_malloced, &
             "Trying to re-initializea number update object.")
@@ -612,9 +612,9 @@ contains
             this
     !> Aerosol representation id from
     !! pmc_aero_rep_single_particle::aero_rep_single_particle_t::set_id
-    integer(kind=i_kind), intent(in) :: aero_rep_id
+    integer(kind=phlex_int), intent(in) :: aero_rep_id
     !> Updated number
-    real(kind=dp), intent(in) :: number_conc
+    real(kind=phlex_real), intent(in) :: number_conc
 
     call assert_msg(897092373, this%is_malloced, &
             "Trying to set number of uninitialized update object.")

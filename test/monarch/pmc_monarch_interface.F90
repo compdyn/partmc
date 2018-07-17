@@ -8,7 +8,7 @@
 !> Interface for the MONACH model and PartMC-phlex
 module pmc_monarch_interface
 
-  use pmc_constants,                  only : i_kind
+  use pmc_constants,                  only : phlex_real, phlex_int
   use pmc_mpi
   use pmc_util,                       only : assert_msg, string_t
   use pmc_phlex_core
@@ -42,19 +42,19 @@ module pmc_monarch_interface
     !> MONARCH species names
     type(string_t), allocatable :: monarch_species_names(:)
     !> MONARCH <-> PartMC species map
-    integer(kind=i_kind), allocatable :: map_monarch_id(:), map_phlex_id(:)
+    integer(kind=phlex_int), allocatable :: map_monarch_id(:), map_phlex_id(:)
     !> PartMC-phlex ids for initial concentrations
-    integer(kind=i_kind), allocatable :: init_conc_phlex_id(:)
+    integer(kind=phlex_int), allocatable :: init_conc_phlex_id(:)
     !> Initial species concentrations
-    real(kind=dp), allocatable :: init_conc(:)
+    real(kind=phlex_real), allocatable :: init_conc(:)
     !> Starting index for PartMC species on the MONARCH tracer array
-    integer(kind=i_kind) :: tracer_starting_id
+    integer(kind=phlex_int) :: tracer_starting_id
     !> Ending index for PartMC species on the MONARCH tracer array
-    integer(kind=i_kind) :: tracer_ending_id
+    integer(kind=phlex_int) :: tracer_ending_id
     !> PartMC-phlex <-> MONARCH species map input data
     type(property_t), pointer :: species_map_data
     !> Gas-phase water id in PartMC-phlex
-    integer(kind=i_kind) :: gas_phase_water_id
+    integer(kind=phlex_int) :: gas_phase_water_id
     !> Initial concentration data
     type(property_t), pointer :: init_conc_data
     !> Interface input data
@@ -84,9 +84,9 @@ module pmc_monarch_interface
   end interface monarch_interface_t
 
   !> MPI node id from MONARCH
-  integer(kind=i_kind) :: MONARCH_NODE ! TODO replace with MONARCH param
+  integer(kind=phlex_int) :: MONARCH_NODE ! TODO replace with MONARCH param
   ! TEMPORARY
-  real(kind=dp), public, save :: comp_time = 0.0d0
+  real(kind=phlex_real), public, save :: comp_time = 0.0d0
 
 contains
 
@@ -117,12 +117,12 @@ contains
 
     type(phlex_solver_data_t), pointer :: phlex_solver_data
     character, allocatable :: buffer(:)
-    integer(kind=i_kind) :: pos, pack_size
-    integer(kind=i_kind) :: i_spec
+    integer(kind=phlex_int) :: pos, pack_size
+    integer(kind=phlex_int) :: i_spec
     type(string_t), allocatable :: unique_names(:)
     
     ! Computation time variable
-    real(kind=dp) :: comp_start, comp_end
+    real(kind=phlex_real) :: comp_start, comp_end
 
 #ifdef PMC_USE_MPI
     integer :: local_comm
@@ -277,7 +277,7 @@ contains
     integer :: i, j, k, k_flip, i_spec
 
     ! Computation time variables
-    real(kind=dp) :: comp_start, comp_end
+    real(kind=phlex_real) :: comp_start, comp_end
 
     ! Loop through the grid cells
     do i=i_start, i_end
@@ -308,7 +308,7 @@ contains
 
           ! Integrate the PMC mechanism
           call this%phlex_core%solve(this%phlex_state, &
-                  real(time_step, kind=dp))
+                  real(time_step, kind=phlex_real))
 
           ! Calculate the computation time
           if (MONARCH_NODE.eq.0 .and. i.eq.i_start .and. j.eq.j_start &
@@ -345,7 +345,7 @@ contains
     character(kind=json_ck, len=:), allocatable :: key, unicode_str_val
 
     character(len=:), allocatable :: str_val
-    integer(kind=i_kind) :: var_type
+    integer(kind=phlex_int) :: var_type
     logical :: found
 
     ! Initialize the property sets
@@ -445,7 +445,7 @@ contains
     class(aero_rep_data_t), pointer :: aero_rep_ptr
     type(property_t), pointer :: gas_species_list, aero_species_list, species_data
     character(len=:), allocatable :: key_name, spec_name, rep_name
-    integer(kind=i_kind) :: i_spec, num_spec
+    integer(kind=phlex_int) :: i_spec, num_spec
 
     ! Get the gas-phase species ids
     key_name = "gas-phase species"
@@ -572,7 +572,7 @@ contains
     class(aero_rep_data_t), pointer :: aero_rep_ptr
     type(property_t), pointer :: gas_species_list, aero_species_list, species_data
     character(len=:), allocatable :: key_name, spec_name, rep_name
-    integer(kind=i_kind) :: i_spec, num_spec
+    integer(kind=phlex_int) :: i_spec, num_spec
 
     num_spec = 0
 
@@ -685,7 +685,7 @@ contains
     !> Air density (kg_air/m^3)
     real, intent(out) :: MONARCH_air_density(:,:,:)
 
-    integer(kind=i_kind) :: i_spec, water_id
+    integer(kind=phlex_int) :: i_spec, water_id
 
     ! Reset the species concentrations in PMC and MONARCH
     this%phlex_state%state_var(:) = 0.0
@@ -722,7 +722,7 @@ contains
     !> Set of MONARCH species names
     type(string_t), allocatable, intent(out) :: species_names(:)
     !> MONARCH tracer ids
-    integer(kind=i_kind), allocatable, intent(out) :: MONARCH_ids(:)
+    integer(kind=phlex_int), allocatable, intent(out) :: MONARCH_ids(:)
 
     species_names = this%monarch_species_names
     MONARCH_ids = this%map_monarch_id

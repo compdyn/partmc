@@ -94,10 +94,10 @@ int sub_model_get_parameter_id(ModelData *model_data, int type,
  * \param parameter_id Index of the parameter in the data block
  * \return The parameter value
  */
-double sub_model_get_parameter_value_sd(void *solver_data, int parameter_id)
+PMC_C_FLOAT sub_model_get_parameter_value_sd(void *solver_data, int parameter_id)
 {
   ModelData *model_data = &(((SolverData*)solver_data)->model_data);
-  return (double) sub_model_get_parameter_value(model_data, parameter_id);
+  return (PMC_C_FLOAT) sub_model_get_parameter_value(model_data, parameter_id);
 }
 
 /** \brief Return a parameter by its index in the sub model data block
@@ -105,18 +105,18 @@ double sub_model_get_parameter_value_sd(void *solver_data, int parameter_id)
  * \param parameter_id Index of the parameter in the data block
  * \return The parameter value
  */
-double sub_model_get_parameter_value(ModelData *model_data, int parameter_id)
+PMC_C_FLOAT sub_model_get_parameter_value(ModelData *model_data, int parameter_id)
 {
   int *sub_model_data = (int*) (model_data->sub_model_data);
   sub_model_data += parameter_id;
-  return *((double*) sub_model_data);
+  return *((PMC_C_FLOAT*) sub_model_data);
 }
 
 /** \brief Update sub model data for a new environmental state
  * \param model_data Pointer to the model data
  * \param env Pointer to the environmental state array
  */
-void sub_model_update_env_state(ModelData *model_data, double *env)
+void sub_model_update_env_state(ModelData *model_data, PMC_C_FLOAT *env)
 {
   
   // Get the number of sub models
@@ -177,7 +177,7 @@ void sub_model_calculate(ModelData *model_data)
  * \param solver_data Pointer to solver data
  */
 void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
-          int n_float_param, int *int_param, double *float_param,
+          int n_float_param, int *int_param, PMC_C_FLOAT *float_param,
           void *solver_data)
 {
   ModelData *model_data = 
@@ -191,9 +191,9 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
   for (; n_int_param>0; n_int_param--) *(sub_model_data++) = *(int_param++);
 
   // Add floating-point parameters
-  double *flt_ptr = (double*) sub_model_data;
+  PMC_C_FLOAT *flt_ptr = (PMC_C_FLOAT*) sub_model_data;
   for (; n_float_param>0; n_float_param--)
-          *(flt_ptr++) = (double) *(float_param++);
+          *(flt_ptr++) = (PMC_C_FLOAT) *(float_param++);
 
   // Set the pointer for the next free space in sub_model_data
   model_data->nxt_sub_model = (void*) flt_ptr;

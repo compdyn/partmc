@@ -2,13 +2,19 @@
   "note" : "Test data for ZSR aerosol water calculation. Parameters for JACOBSON molality calculation are from Jacobson et al., 1996 Table 2 for NaCl (CaCl2 is used in the test just to test the code when different numbers of cations and anions are present.) Parameters for EQSAM molality calculation are from EQSAM_v03d for NaCl",
   "pmc-data" : [
   {
+    "type" : "RELATIVE_TOLERANCE",
+    "value" : 1.0e-6
+  },
+  {
     "name" : "H2O",
-    "type" : "CHEM_SPEC"
+    "type" : "CHEM_SPEC",
+    "absolute tolerance" : 1.0e-6
   },
   {
     "name" : "Na_p",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
+    "absolute tolerance" : 1.0e-6,
     "charge" : 1,
     "density" : 1.0,
     "molecular weight" : 22.9898
@@ -17,6 +23,7 @@
     "name" : "Cl_m",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
+    "absolute tolerance" : 1.0e-6,
     "charge" : -1,
     "density" : 1.0,
     "molecular weight" : 35.453
@@ -25,6 +32,7 @@
     "name" : "Ca_pp",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
+    "absolute tolerance" : 1.0e-6,
     "charge" : 2,
     "density" : 1.0,
     "molecular weight" : 40.078
@@ -33,6 +41,7 @@
     "name" : "H2O_aq",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
+    "absolute tolerance" : 1.0e-6,
     "density" : 1.0,
     "molecular weight" : 18.01
   },

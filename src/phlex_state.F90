@@ -29,11 +29,11 @@ module pmc_phlex_state
     !> Environmental state array. This array will include one entry
     !! for every environmental variable requried to solve the 
     !! chemical mechanism(s)
-    real(kind=dp), allocatable :: env_var(:)
+    real(kind=phlex_real), allocatable :: env_var(:)
     !> State variable array. This array includes one entry for each
     !! variable whose state will be solved for during the mechanism
     !! integration.
-    real(kind=dp), allocatable :: state_var(:)
+    real(kind=phlex_real), allocatable :: state_var(:)
     !> Environmental conditions
     type(env_state_t), pointer :: env_state => null()
     !> Flag indicating whether the env_state object is owned by the
@@ -102,7 +102,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack a given variable
-  integer(kind=i_kind) function pack_size(this)
+  integer(kind=phlex_int) function pack_size(this)
 
     !> Chemical species states
     class(phlex_state_t), intent(in) :: this

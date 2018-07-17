@@ -77,9 +77,10 @@ module pmc_rxn_CMAQ_OH_HNO3
   use pmc_phlex_state
   use pmc_property
   use pmc_rxn_data
-  use pmc_util,                             only: i_kind, dp, to_string, &
-                                                  assert, assert_msg, &
-                                                  die_msg, align_ratio
+  use pmc_util,                             only: phlex_real, phlex_int, &
+                                                  to_string, assert, &
+                                                  assert_msg, die_msg, &
+                                                  align_ratio
 
   implicit none
   private
@@ -155,11 +156,11 @@ contains
 
     type(property_t), pointer :: spec_props, reactants, products
     character(len=:), allocatable :: key_name, spec_name, string_val
-    integer(kind=i_kind) :: i_spec, i_qty
+    integer(kind=phlex_int) :: i_spec, i_qty
 
-    integer(kind=i_kind) :: int_data_size, float_data_size
-    integer(kind=i_kind) :: temp_int
-    real(kind=dp) :: temp_real
+    integer(kind=phlex_int) :: int_data_size, float_data_size
+    integer(kind=phlex_int) :: temp_int
+    real(kind=phlex_real) :: temp_real
 
     ! Get the species involved
     if (.not. associated(this%property_set)) call die_msg(141282130, &
@@ -196,8 +197,8 @@ contains
     ! yields for the products and three reaction parameters.
     allocate(this%condensed_data_int(int_data_size))
     allocate(this%condensed_data_real(float_data_size))
-    this%condensed_data_int(:) = int(0, kind=i_kind)
-    this%condensed_data_real(:) = real(0.0, kind=dp)
+    this%condensed_data_int(:) = int(0, kind=phlex_int)
+    this%condensed_data_real(:) = real(0.0, kind=phlex_real)
     INT_DATA_SIZE_ = int_data_size
     FLOAT_DATA_SIZE_ = float_data_size
     
@@ -249,15 +250,15 @@ contains
       k3_C_ = 0.0
     end if
     key_name = "time unit"
-    SCALING_ = real(1.0, kind=dp)
+    SCALING_ = real(1.0, kind=phlex_real)
     if (this%property_set%get_string(key_name, string_val)) then
       if (trim(string_val).eq."MIN") then
-        SCALING_ = real(1.0d0/60.0d0, kind=dp)
+        SCALING_ = real(1.0d0/60.0d0, kind=phlex_real)
       end if
     endif
   
     ! Include the multiplication [M]*k3 in k3_A_
-    k3_A_ = k3_A_ * real(1.0d6, kind=dp)
+    k3_A_ = k3_A_ * real(1.0d6, kind=phlex_real)
 
     ! Get the indices and chemical properties for the reactants
     call reactants%iter_reset()

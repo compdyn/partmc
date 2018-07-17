@@ -44,10 +44,10 @@
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 void * rxn_aqueous_equilibrium_get_used_jac_elem(void *rxn_data,
-          bool **jac_struct)
+          pmc_bool **jac_struct)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Loop over all the instances of the specified phase
   for (int i_phase = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
@@ -57,10 +57,10 @@ void * rxn_aqueous_equilibrium_get_used_jac_elem(void *rxn_data,
               i_react_ind < (i_phase+1)*NUM_REACT_; i_react_ind++) {
       for (int i_react_dep = i_phase*NUM_REACT_; 
                 i_react_dep < (i_phase+1)*NUM_REACT_; i_react_dep++)
-        jac_struct[REACT_(i_react_dep)][REACT_(i_react_ind)] = true;
+        jac_struct[REACT_(i_react_dep)][REACT_(i_react_ind)] = pmc_true;
       for (int i_prod_dep = i_phase*NUM_PROD_; 
                 i_prod_dep < (i_phase+1)*NUM_PROD_; i_prod_dep++)
-        jac_struct[PROD_(i_prod_dep)][REACT_(i_react_ind)] = true;
+        jac_struct[PROD_(i_prod_dep)][REACT_(i_react_ind)] = pmc_true;
     }
 
     // Add dependence on products for reactants and products (reverse reaction) 
@@ -68,19 +68,19 @@ void * rxn_aqueous_equilibrium_get_used_jac_elem(void *rxn_data,
               i_prod_ind < (i_phase+1)*NUM_PROD_; i_prod_ind++) {
       for (int i_react_dep = i_phase*NUM_REACT_; 
                 i_react_dep < (i_phase+1)*NUM_REACT_; i_react_dep++)
-        jac_struct[REACT_(i_react_dep)][PROD_(i_prod_ind)] = true;
+        jac_struct[REACT_(i_react_dep)][PROD_(i_prod_ind)] = pmc_true;
       for (int i_prod_dep = i_phase*NUM_PROD_; 
                 i_prod_dep < (i_phase+1)*NUM_PROD_; i_prod_dep++)
-        jac_struct[PROD_(i_prod_dep)][PROD_(i_prod_ind)] = true;
+        jac_struct[PROD_(i_prod_dep)][PROD_(i_prod_ind)] = pmc_true;
     }
 
     // Add dependence on aerosol-phase water for reactants and products
     for (int i_react_dep = i_phase*NUM_REACT_; 
               i_react_dep < (i_phase+1)*NUM_REACT_; i_react_dep++)
-      jac_struct[REACT_(i_react_dep)][WATER_(i_phase)] = true;
+      jac_struct[REACT_(i_react_dep)][WATER_(i_phase)] = pmc_true;
     for (int i_prod_dep = i_phase*NUM_PROD_; 
               i_prod_dep < (i_phase+1)*NUM_PROD_; i_prod_dep++)
-      jac_struct[PROD_(i_prod_dep)][WATER_(i_phase)] = true;
+      jac_struct[PROD_(i_prod_dep)][WATER_(i_phase)] = pmc_true;
 
   }
 
@@ -99,7 +99,7 @@ void * rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
           int **jac_ids, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Update the time derivative ids
   for (int i_phase = 0, i_deriv = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
@@ -157,15 +157,15 @@ void * rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_aqueous_equilibrium_update_env_state(double *env_data,
+void * rxn_aqueous_equilibrium_update_env_state(PMC_C_FLOAT *env_data,
           void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the equilibrium constant 
   // (assumes reactant and product concentrations in M)
-  double equil_const;
+  PMC_C_FLOAT equil_const;
   if (C_==0.0) {
     equil_const = A_;
   } else {
@@ -189,7 +189,7 @@ void * rxn_aqueous_equilibrium_update_env_state(double *env_data,
 void * rxn_aqueous_equilibrium_pre_calc(ModelData *model_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -205,12 +205,12 @@ void * rxn_aqueous_equilibrium_pre_calc(ModelData *model_data, void *rxn_data)
  */
 #ifdef PMC_USE_SUNDIALS
 void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
-          realtype *deriv, void *rxn_data, double time_step)
+          PMC_SOLVER_C_FLOAT *deriv, void *rxn_data, PMC_C_FLOAT time_step)
 {
-  realtype *state = model_data->state;
-  realtype *env_data = model_data->env;
+  PMC_C_FLOAT *state = model_data->state;
+  PMC_C_FLOAT *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase=0, i_deriv = 0; i_phase<NUM_AERO_PHASE_; i_phase++) {
@@ -222,14 +222,14 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
     }
 
     // Calculate the forward rate (M/s)
-    realtype forward_rate = RATE_CONST_FORWARD_;
+    PMC_C_FLOAT forward_rate = RATE_CONST_FORWARD_;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       forward_rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] * 
               MASS_FRAC_TO_M_(i_react) / state[WATER_(i_phase)];
     }
 
     // Calculate the reverse rate (M/s)
-    realtype reverse_rate = RATE_CONST_REVERSE_;
+    PMC_C_FLOAT reverse_rate = RATE_CONST_REVERSE_;
     for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) {
       reverse_rate *= state[PROD_(i_phase*NUM_PROD_+i_prod)] * 
               MASS_FRAC_TO_M_(NUM_REACT_+i_prod) / state[WATER_(i_phase)];
@@ -240,15 +240,17 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
     // Reactants change as (reverse - forward) (ug/m3/s)
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       if (DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
-      deriv[DERIV_ID_(i_deriv++)] += (reverse_rate - forward_rate) /
-	      MASS_FRAC_TO_M_(i_react) * state[WATER_(i_phase)];
+      deriv[DERIV_ID_(i_deriv++)] += (PMC_SOLVER_C_FLOAT) 
+              ((reverse_rate - forward_rate) /
+	      MASS_FRAC_TO_M_(i_react) * state[WATER_(i_phase)]);
     }
 
     // Products change as (forward - reverse) (ug/m3/s)
     for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) {
       if (DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
-      deriv[DERIV_ID_(i_deriv++)] += (forward_rate - reverse_rate) /
-	      MASS_FRAC_TO_M_(NUM_REACT_+i_prod) * state[WATER_(i_phase)];
+      deriv[DERIV_ID_(i_deriv++)] += (PMC_SOLVER_C_FLOAT)
+              ((forward_rate - reverse_rate) /
+	      MASS_FRAC_TO_M_(NUM_REACT_+i_prod) * state[WATER_(i_phase)]);
     }
 
   }
@@ -268,12 +270,12 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
  */
 #ifdef PMC_USE_SUNDIALS
 void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
-          realtype *J, void *rxn_data, double time_step)
+          PMC_SOLVER_C_FLOAT *J, void *rxn_data, PMC_C_FLOAT time_step)
 {
-  realtype *state = model_data->state;
-  realtype *env_data = model_data->env;
+  PMC_C_FLOAT *state = model_data->state;
+  PMC_C_FLOAT *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate Jacobian contributions for each aerosol phase
   for (int i_phase=0, i_jac = 0; i_phase<NUM_AERO_PHASE_; i_phase++) {
@@ -285,14 +287,14 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
     }
 
     // Calculate the forward rate (M/s)
-    realtype forward_rate = RATE_CONST_FORWARD_;
+    PMC_C_FLOAT forward_rate = RATE_CONST_FORWARD_;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       forward_rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] * 
               MASS_FRAC_TO_M_(i_react) / state[WATER_(i_phase)];
     }
 
     // Calculate the reverse rate (M/s)
-    realtype reverse_rate = RATE_CONST_REVERSE_;
+    PMC_C_FLOAT reverse_rate = RATE_CONST_REVERSE_;
     for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) {
       reverse_rate *= state[PROD_(i_phase*NUM_PROD_+i_prod)] * 
               MASS_FRAC_TO_M_(NUM_REACT_+i_prod) / state[WATER_(i_phase)];
@@ -310,16 +312,18 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
     for (int i_react_ind = 0; i_react_ind < NUM_REACT_; i_react_ind++) {
       for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {
 	if (JAC_ID_(i_jac)<0 || forward_rate==0.0) {i_jac++; continue;}
-        J[JAC_ID_(i_jac++)] += (-forward_rate) /
+        J[JAC_ID_(i_jac++)] += (PMC_SOLVER_C_FLOAT)
+                ((-forward_rate) /
                 state[REACT_(i_phase*NUM_REACT_+i_react_ind)] / 
-		MASS_FRAC_TO_M_(i_react_dep) * state[WATER_(i_phase)];
+		MASS_FRAC_TO_M_(i_react_dep) * state[WATER_(i_phase)]);
       }
       for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
 	if (JAC_ID_(i_jac)<0 || forward_rate==0.0) {i_jac++; continue;}
-        J[JAC_ID_(i_jac++)] += (forward_rate) /
+        J[JAC_ID_(i_jac++)] += (PMC_SOLVER_C_FLOAT)
+                ((forward_rate) /
                 state[REACT_(i_phase*NUM_REACT_+i_react_ind)] / 
 		MASS_FRAC_TO_M_(NUM_REACT_ + i_prod_dep) *
-                state[WATER_(i_phase)];
+                state[WATER_(i_phase)]);
       }
     }
 
@@ -327,33 +331,37 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
     for (int i_prod_ind = 0; i_prod_ind < NUM_PROD_; i_prod_ind++) {
       for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {
 	if (JAC_ID_(i_jac)<0 || reverse_rate==0.0) {i_jac++; continue;}
-        J[JAC_ID_(i_jac++)] += (reverse_rate) /
+        J[JAC_ID_(i_jac++)] += (PMC_SOLVER_C_FLOAT)
+                ((reverse_rate) /
                 state[PROD_(i_phase*NUM_PROD_+i_prod_ind)] / 
-		MASS_FRAC_TO_M_(i_react_dep) * state[WATER_(i_phase)];
+		MASS_FRAC_TO_M_(i_react_dep) * state[WATER_(i_phase)]);
       }
       for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
 	if (JAC_ID_(i_jac)<0 || reverse_rate==0.0) {i_jac++; continue;}
-        J[JAC_ID_(i_jac++)] += (-reverse_rate) /
+        J[JAC_ID_(i_jac++)] += (PMC_SOLVER_C_FLOAT)
+                ((-reverse_rate) /
                 state[PROD_(i_phase*NUM_PROD_+i_prod_ind)] / 
 		MASS_FRAC_TO_M_(NUM_REACT_ + i_prod_dep) *
-                state[WATER_(i_phase)];
+                state[WATER_(i_phase)]);
       }
     }
 
     // Add dependence on aerosol-phase water for reactants and products
     for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {
       if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
-      J[JAC_ID_(i_jac++)] += ( forward_rate * (NUM_REACT_-1) 
+      J[JAC_ID_(i_jac++)] += (PMC_SOLVER_C_FLOAT)
+                                (( forward_rate * (NUM_REACT_-1) 
                                 - reverse_rate * (NUM_PROD_-1) )
                                 / state[WATER_(i_phase)]
-                                / MASS_FRAC_TO_M_(i_react_dep);
+                                / MASS_FRAC_TO_M_(i_react_dep));
     }
     for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
       if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
-      J[JAC_ID_(i_jac++)] -= ( forward_rate * (NUM_REACT_-1)
+      J[JAC_ID_(i_jac++)] -= (PMC_SOLVER_C_FLOAT)
+                                (( forward_rate * (NUM_REACT_-1)
                                 - reverse_rate * (NUM_PROD_-1) )
                                 / state[WATER_(i_phase)]
-                                / MASS_FRAC_TO_M_(NUM_REACT_ + i_prod_dep);
+                                / MASS_FRAC_TO_M_(NUM_REACT_ + i_prod_dep));
     }
 
   }
@@ -371,7 +379,7 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
 void * rxn_aqueous_equilibrium_skip(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -384,7 +392,7 @@ void * rxn_aqueous_equilibrium_skip(void *rxn_data)
 void * rxn_aqueous_equilibrium_print(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
   printf("\n\nAqueous Equilibrium reaction\n");
   for (int i=0; i<INT_DATA_SIZE_; i++) 

@@ -153,10 +153,10 @@ module pmc_rxn_ZSR_aerosol_water
   use pmc_phlex_state
   use pmc_property
   use pmc_rxn_data
-  use pmc_util,                             only: i_kind, dp, to_string, &
-                                                  assert, assert_msg, &
-                                                  die_msg, string_t, &
-                                                  align_ratio
+  use pmc_util,                             only: phlex_real, phlex_int, &
+                                                  to_string, assert, &
+                                                  assert_msg, die_msg, &
+                                                  string_t, align_ratio
 
   implicit none
   private
@@ -241,13 +241,13 @@ contains
     type(property_t), pointer :: spec_props, ion_pairs, ion_pair, sub_props, &
             ions
     character(len=:), allocatable :: key_name, spec_name, phase_name
-    integer(kind=i_kind) :: n_phase, n_ion_pair, n_int_param, n_float_param, &
+    integer(kind=phlex_int) :: n_phase, n_ion_pair, n_int_param, n_float_param, &
             i_aero_rep, i_phase, i_ion_pair, i_ion, i_spec, i_sub_prop, &
             qty, int_val, charge, total_charge
-    real(kind=dp) :: real_val, molecular_weight
+    real(kind=phlex_real) :: real_val, molecular_weight
     type(string_t), allocatable :: unique_spec_names(:)
     character(len=:), allocatable :: str_type, ion_pair_name, ion_name
-    integer(kind=i_kind) :: int_data_size, float_data_size
+    integer(kind=phlex_int) :: int_data_size, float_data_size
 
     ! Get the reaction property set
     if (.not. associated(this%property_set)) call die_msg(344693903, &
@@ -357,8 +357,8 @@ contains
     ! Allocate space in the condensed data arrays
     allocate(this%condensed_data_int(int_data_size))
     allocate(this%condensed_data_real(float_data_size))
-    this%condensed_data_int(:) = int(0, kind=i_kind)
-    this%condensed_data_real(:) = real(0.0, kind=dp)
+    this%condensed_data_int(:) = int(0, kind=phlex_int)
+    this%condensed_data_real(:) = real(0.0, kind=phlex_real)
     INT_DATA_SIZE_ = int_data_size
     FLOAT_DATA_SIZE_ = float_data_size
 

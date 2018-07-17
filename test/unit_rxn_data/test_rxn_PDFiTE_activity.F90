@@ -10,9 +10,9 @@ program pmc_test_PDFiTE_activity
 
   use iso_c_binding
 
-  use pmc_util,                         only: i_kind, dp, assert, &
-                                              almost_equal, string_t, &
-                                              warn_msg
+  use pmc_util,                         only: phlex_real, phlex_int, &
+                                              assert, almost_equal, &
+                                              string_t, warn_msg
   use pmc_phlex_core
   use pmc_phlex_state
   use pmc_aero_rep_data
@@ -27,7 +27,7 @@ program pmc_test_PDFiTE_activity
   implicit none
 
   ! Number of timesteps to output in mechanisms
-  integer(kind=i_kind) :: NUM_RH_STEP = 101
+  integer(kind=phlex_int) :: NUM_RH_STEP = 101
 
   ! initialize mpi
   call pmc_mpi_init()
@@ -82,11 +82,11 @@ contains
 
     type(chem_spec_data_t), pointer :: chem_spec_data
     class(aero_rep_data_t), pointer :: aero_rep_ptr
-    real(kind=dp), dimension(0:NUM_RH_STEP, 28) :: model_conc, true_conc
-    integer(kind=i_kind) :: idx_H2O, idx_H2O_aq, idx_H_p, idx_NH4_p, &
+    real(kind=phlex_real), dimension(0:NUM_RH_STEP, 28) :: model_conc, true_conc
+    integer(kind=phlex_int) :: idx_H2O, idx_H2O_aq, idx_H_p, idx_NH4_p, &
             idx_SO4_mm, idx_NO3_m, idx_NH42_SO4, idx_NH4_NO3, idx_H_NO3, &
             idx_H2_SO4,  idx_phase, i_RH, i_spec
-    real(kind=dp) :: time_step, time, ppm_to_RH, omega, ln_gamma, &
+    real(kind=phlex_real) :: time_step, time, ppm_to_RH, omega, ln_gamma, &
             HNO3_LRH_B0, HNO3_LRH_B1, HNO3_LRH_B2, HNO3_LRH_B3, HNO3_LRH_B4, &
             HNO3_HRH_B0, HNO3_HRH_B1, HNO3_HRH_B2, HNO3_HRH_B3, &
             HNO3_SHRH_B0, HNO3_SHRH_B1, HNO3_SHRH_B2, HNO3_SHRH_B3, &
@@ -96,7 +96,7 @@ contains
             NO3_m_mol_m3, temp, pressure, a_w 
 #ifdef PMC_USE_MPI
     character, allocatable :: buffer(:), buffer_copy(:)
-    integer(kind=i_kind) :: pack_size, pos, i_elem, results
+    integer(kind=phlex_int) :: pack_size, pos, i_elem, results
 #endif
 
     run_PDFiTE_activity_test = .true.
@@ -295,7 +295,7 @@ contains
 
         ! Set the RH (Stay slightly away from transitions to avoid
         ! discrepancies in RH calc from [H2O]_g (ppm)
-        a_w = real(1.0, kind=dp)/(NUM_RH_STEP-1)*(i_RH-1) + 1.0d-10
+        a_w = real(1.0, kind=phlex_real)/(NUM_RH_STEP-1)*(i_RH-1) + 1.0d-10
         true_conc(i_RH, idx_H2O) = a_w / ppm_to_RH
         phlex_state%state_var(idx_H2O) = true_conc(i_RH, idx_H2O)
 
@@ -389,7 +389,7 @@ contains
       open(unit=7, file="out/PDFiTE_activity_results.txt", status="replace", &
               action="write")
       do i_RH = 0, NUM_RH_STEP
-        a_w = real(1.0, kind=dp)/(NUM_RH_STEP-1)*(i_RH-1) + 1.0d-10
+        a_w = real(1.0, kind=phlex_real)/(NUM_RH_STEP-1)*(i_RH-1) + 1.0d-10
         write(7,*) a_w, &
               ' ', true_conc(i_RH, idx_H2O),      &
               ' ', model_conc(i_RH, idx_H2O),     &
@@ -420,7 +420,7 @@ contains
           if (i_spec.ne.1.and.(i_spec.lt.11.or.i_spec.gt.19)) cycle 
           call assert_msg(848069355, &
             almost_equal(model_conc(i_RH, i_spec), &
-            true_conc(i_RH, i_spec), real(1.0e-2, kind=dp)).or. &
+            true_conc(i_RH, i_spec), real(1.0e-2, kind=phlex_real)).or. &
             (model_conc(i_RH, i_spec).lt.1e-5*model_conc(1, i_spec).and. &
             true_conc(i_RH, i_spec).lt.1e-5*true_conc(1, i_spec)), &
             "time: "//trim(to_string(i_RH))//"; species: "// &

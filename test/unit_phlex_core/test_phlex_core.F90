@@ -15,8 +15,8 @@ program pmc_test_phlex_core
   use pmc_mechanism_data
   use pmc_mpi
   use pmc_phlex_core
-  use pmc_util,                         only: i_kind, dp, assert, &
-                                              almost_equal, string_t
+  use pmc_util,                         only: phlex_real, phlex_int, &
+                                              assert, almost_equal, string_t
 
   implicit none
 
@@ -59,7 +59,7 @@ contains
 #ifdef PMC_USE_MPI
     type(phlex_core_t), pointer :: passed_core
     character, allocatable :: buffer(:), buffer_copy(:)
-    integer(kind=i_kind) :: pos, pack_size, i_elem
+    integer(kind=phlex_int) :: pos, pack_size, i_elem
 #endif
 
     load_phlex_core_test = .false.

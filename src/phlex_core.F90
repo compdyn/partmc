@@ -102,7 +102,7 @@ module pmc_phlex_core
   use pmc_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_chem_spec_data
-  use pmc_constants,                  only : i_kind, dp
+  use pmc_constants,                  only : phlex_real, phlex_int
   use pmc_mechanism_data
   use pmc_mpi
   use pmc_phlex_solver_data
@@ -133,19 +133,19 @@ module pmc_phlex_core
     !> Aerosol phases
     type(aero_phase_data_ptr), pointer :: aero_phase(:) => null()
     !> Size of the state array
-    integer(kind=i_kind) :: state_array_size
+    integer(kind=phlex_int) :: state_array_size
     !> Initial state values
-    real(kind=dp), allocatable :: init_state(:)
+    real(kind=phlex_real), allocatable :: init_state(:)
     !> Flag to split gas- and aerosol-phase reactions
     !! (for large aerosol representations, like single-particle)
     logical :: split_gas_aero = .false.
     !> Relative integration tolerance 
-    real(kind=dp) :: rel_tol = 0.0
+    real(kind=phlex_real) :: rel_tol = 0.0
     ! Absolute integration tolerances
     ! (Values for non-solver species will be ignored)
-    real(kind=dp), allocatable :: abs_tol(:)
+    real(kind=phlex_real), allocatable :: abs_tol(:)
     ! Variable types
-    integer(kind=i_kind), allocatable :: var_type(:)
+    integer(kind=phlex_int), allocatable :: var_type(:)
     !> Solver data (gas-phase reactions)
     type(phlex_solver_data_t), pointer :: solver_data_gas => null()
     !> Solver data (aerosol-phase reactions)
@@ -389,7 +389,7 @@ contains
     !> Part-MC input file paths
     type(string_t), allocatable, intent(in) :: input_file_path(:)
 
-    integer(kind=i_kind) :: i_file
+    integer(kind=phlex_int) :: i_file
 #ifdef PMC_USE_JSON
     type(json_core), pointer :: json
     type(json_file) :: j_file
@@ -551,8 +551,8 @@ contains
                   "Missing value for relative tolerance")
           call assert_msg(162564706, real_val.gt.0.0.and.real_val.lt.1.0, &
                   "Invalid relative tolerance: "// &
-                  trim(to_string(real(real_val, kind=dp))))
-          this%rel_tol = real(real_val, kind=dp)
+                  trim(to_string(real(real_val, kind=phlex_real))))
+          this%rel_tol = real(real_val, kind=phlex_real)
         
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !!! set whether to solve gas and aerosol phases separately !!!
@@ -597,12 +597,12 @@ contains
     class(phlex_core_t), target, intent(inout) :: this
 
     ! Indices for iteration
-    integer(kind=i_kind) :: i_mech, i_phase, i_aero_rep, i_sub_model
-    integer(kind=i_kind) :: i_state_var, i_spec
+    integer(kind=phlex_int) :: i_mech, i_phase, i_aero_rep, i_sub_model
+    integer(kind=phlex_int) :: i_state_var, i_spec
   
     ! Variables for setting initial state values 
     class(aero_rep_data_t), pointer :: rep
-    integer(kind=i_kind) :: i_state_elem, i_name
+    integer(kind=phlex_int) :: i_state_elem, i_name
 
     ! Species name for looking up properties
     character(len=:), allocatable :: spec_name
@@ -719,7 +719,7 @@ contains
       ! Set the activity coefficients to 1.0 as default
       do i_name = 1, size(unique_names)
         i_state_elem = rep%spec_state_id(unique_names(i_name)%string)
-        this%init_state(i_state_elem) = real(1.0d0, kind=dp)
+        this%init_state(i_state_elem) = 1.0d0
       end do
 
       deallocate(unique_names)
@@ -741,7 +741,7 @@ contains
     !> Pointer to the aerosol phase
     class(aero_phase_data_t), pointer, intent(out) :: aero_phase
 
-    integer(kind=i_kind) :: i_aero_phase
+    integer(kind=phlex_int) :: i_aero_phase
 
     found = .false.
     aero_phase => null()
@@ -768,7 +768,7 @@ contains
     !> Aerosol representation
     class(aero_rep_data_t), pointer, intent(out) :: aero_rep
 
-    integer(kind=i_kind) :: i_aero_rep
+    integer(kind=phlex_int) :: i_aero_rep
 
     found = .false.
     aero_rep => null()
@@ -811,7 +811,7 @@ contains
     !> Pointer to the mechanism
     type(mechanism_data_t), pointer, intent(out) :: mechanism
 
-    integer(kind=i_kind) :: i_mech
+    integer(kind=phlex_int) :: i_mech
 
     found = .false.
     mechanism => null()
@@ -839,7 +839,7 @@ contains
     !> Sub model
     class(sub_model_data_t), pointer, intent(out) :: sub_model
 
-    integer(kind=i_kind) :: i_sub_model
+    integer(kind=phlex_int) :: i_sub_model
 
     found = .false.
     sub_model => null()
@@ -890,7 +890,7 @@ contains
       this%solver_data_aero => phlex_solver_data_t()
     
       ! Set custom relative integration tolerance, if present
-      if (this%rel_tol.ne.real(0.0, kind=dp)) then
+      if (this%rel_tol.ne.real(0.0, kind=phlex_real)) then
         this%solver_data_gas%rel_tol = this%rel_tol
         this%solver_data_aero%rel_tol = this%rel_tol
       end if
@@ -1019,14 +1019,14 @@ contains
     !> Current model state
     type(phlex_state_t), intent(inout), target :: phlex_state
     !> Time step over which to integrate (s)
-    real(kind=dp), intent(in) :: time_step
+    real(kind=phlex_real), intent(in) :: time_step
     !> Phase to solve - gas, aerosol, or both (default)
     !! Use parameters in pmc_rxn_data to specify phase:
     !! GAS_RXN, AERO_RXN, GAS_AERO_RXN
-    integer(kind=i_kind), intent(in), optional :: rxn_phase
+    integer(kind=phlex_int), intent(in), optional :: rxn_phase
 
     ! Phase to solve
-    integer(kind=i_kind) :: phase
+    integer(kind=phlex_int) :: phase
     ! Pointer to solver data
     type(phlex_solver_data_t), pointer :: solver
 
@@ -1058,7 +1058,7 @@ contains
     call assert_msg(730097030, associated(solver), "Invalid solver requested")
 
     ! Run the integration
-    call solver%solve(phlex_state, real(0.0, kind=dp), time_step)
+    call solver%solve(phlex_state, real(0.0, kind=phlex_real), time_step)
 
   end subroutine solve
 
@@ -1075,7 +1075,7 @@ contains
     !> Core data
     class(phlex_core_t), intent(in) :: this
     !> Sub model type
-    integer(kind=i_kind), intent(in) :: sub_model_type
+    integer(kind=phlex_int), intent(in) :: sub_model_type
     !> Identifiers needed by the sub-model to find a parameter
     type(c_ptr), intent(in) :: identifiers
 
@@ -1102,7 +1102,7 @@ contains
     use iso_c_binding
 
     !> Parameter value
-    real(kind=dp) :: parameter_value
+    real(kind=phlex_real) :: parameter_value
     !> Core data
     class(phlex_core_t), intent(in) :: this
     !> Parameter id
@@ -1127,7 +1127,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack the mechanism
-  integer(kind=i_kind) function pack_size(this)
+  integer(kind=phlex_int) function pack_size(this)
 
     !> Chemical model
     class(phlex_core_t), intent(in) :: this
@@ -1136,7 +1136,7 @@ contains
     type(sub_model_factory_t) :: sub_model_factory
     class(aero_rep_data_t), pointer :: aero_rep
     class(sub_model_data_t), pointer :: sub_model
-    integer(kind=i_kind) :: i_mech, i_phase, i_rep, i_sub_model
+    integer(kind=phlex_int) :: i_mech, i_phase, i_rep, i_sub_model
 
     call assert_msg(143374295, this%is_initialized, &
             "Trying to get the buffer size of an uninitialized core.")
@@ -1188,7 +1188,7 @@ contains
     type(sub_model_factory_t) :: sub_model_factory
     class(aero_rep_data_t), pointer :: aero_rep
     class(sub_model_data_t), pointer :: sub_model
-    integer(kind=i_kind) :: i_mech, i_phase, i_rep, i_sub_model, &
+    integer(kind=phlex_int) :: i_mech, i_phase, i_rep, i_sub_model, &
             prev_position
 
     call assert_msg(143374295, this%is_initialized, &
@@ -1242,7 +1242,7 @@ contains
 #ifdef PMC_USE_MPI
     type(aero_rep_factory_t) :: aero_rep_factory
     type(sub_model_factory_t) :: sub_model_factory
-    integer(kind=i_kind) :: i_mech, i_phase, i_rep, i_sub_model, &
+    integer(kind=phlex_int) :: i_mech, i_phase, i_rep, i_sub_model, &
             prev_position, num_mech, num_phase, num_rep, num_sub_model
 
     call finalize(this)
@@ -1293,11 +1293,11 @@ contains
     !> Core data
     class(phlex_core_t), intent(in) :: this
     !> File unit for output
-    integer(kind=i_kind), intent(in), optional :: file_unit
+    integer(kind=phlex_int), intent(in), optional :: file_unit
 
-    integer(kind=i_kind) :: i_gas_spec, i_spec, i_phase, i_aero_rep, i_mech
-    integer(kind=i_kind) :: i_sub_model
-    integer(kind=i_kind) :: f_unit=6
+    integer(kind=phlex_int) :: i_gas_spec, i_spec, i_phase, i_aero_rep, i_mech
+    integer(kind=phlex_int) :: i_sub_model
+    integer(kind=phlex_int) :: f_unit=6
     type(string_t), allocatable :: state_names(:), rep_spec_names(:)
 
     if (present(file_unit)) f_unit = file_unit

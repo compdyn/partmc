@@ -10,7 +10,8 @@
 program pmc_test_cb05cl_ae5
 
   use pmc_constants,                    only: const
-  use pmc_util,                         only: i_kind, dp, assert, assert_msg, &
+  use pmc_util,                         only: phlex_real, phlex_int, &
+                                              assert, assert_msg, &
                                               almost_equal, string_t, &
                                               to_string, warn_assert_msg
   use pmc_phlex_core
@@ -34,24 +35,24 @@ program pmc_test_cb05cl_ae5
   ! New-line character
   character(len=*), parameter :: new_line = char(10)
   ! EBI solver output file unit
-  integer(kind=i_kind), parameter :: EBI_FILE_UNIT = 10
+  integer(kind=phlex_int), parameter :: EBI_FILE_UNIT = 10
   ! KPP solver output file unit
-  integer(kind=i_kind), parameter :: KPP_FILE_UNIT = 11
+  integer(kind=phlex_int), parameter :: KPP_FILE_UNIT = 11
   ! Phlex-chem output file unit
-  integer(kind=i_kind), parameter :: PHLEX_FILE_UNIT = 12
+  integer(kind=phlex_int), parameter :: PHLEX_FILE_UNIT = 12
   ! Number of timesteps to integrate over
-  integer(kind=i_kind), parameter :: NUM_TIME_STEPS = 100
+  integer(kind=phlex_int), parameter :: NUM_TIME_STEPS = 100
   ! Number of EBI-solver species
-  integer(kind=i_kind), parameter :: NUM_EBI_SPEC = 72
+  integer(kind=phlex_int), parameter :: NUM_EBI_SPEC = 72
   ! Number of EBI-solever photolysis reactions
-  integer(kind=i_kind), parameter :: NUM_EBI_PHOTO_RXN = 23
+  integer(kind=phlex_int), parameter :: NUM_EBI_PHOTO_RXN = 23
   ! Small number for minimum concentrations
-  real(kind=dp), parameter :: SMALL_NUM = 1.0d-30
+  real(kind=phlex_real), parameter :: SMALL_NUM = 1.0d-30
   ! Used to check availability of a solver  
   type(phlex_solver_data_t), pointer :: phlex_solver_data
 
 #ifdef DEBUG
-  integer(kind=i_kind), parameter :: DEBUG_UNIT = 13
+  integer(kind=phlex_int), parameter :: DEBUG_UNIT = 13
    
   open(unit=DEBUG_UNIT, file="out/debug_cb05cl_ae.txt", status="replace", action="write")
 #endif
@@ -94,6 +95,7 @@ contains
     use EXT_RXCM,                               only : NRXNS, RXLABEL
 
     ! KPP Solver
+    use cb05cl_ae5_Precision,                   only : KPP_dp => dp
     use cb05cl_ae5_Initialize,                  only : KPP_Initialize => Initialize
     use cb05cl_ae5_Model,                       only : KPP_NSPEC => NSPEC, &
                                                        KPP_STEPMIN => STEPMIN, &
@@ -129,11 +131,11 @@ contains
     ! KPP reaction labels
     type(string_t), allocatable :: kpp_rxn_labels(:)
     ! KPP rstate
-    real(kind=dp) :: KPP_RSTATE(20)
+    real(kind=KPP_dp) :: KPP_RSTATE(20)
     ! KPP control variables
     integer :: KPP_ICNTRL(20) = 0
     ! #/cc -> ppm conversion factor
-    real(kind=dp) :: conv
+    real(kind=phlex_real) :: conv
 
     ! Flag for sunlight
     logical :: is_sunny
@@ -153,22 +155,22 @@ contains
     ! Phlex-chem species names
     type(string_t), allocatable :: phlex_spec_names(:)
     ! EBI -> Phlex-chem species map
-    integer(kind=i_kind), dimension(NUM_EBI_SPEC) :: spec_map
+    integer(kind=phlex_int), dimension(NUM_EBI_SPEC) :: spec_map
 
     ! Computation timer variables
-    real(kind=dp) :: comp_start, comp_end, comp_ebi, comp_kpp, comp_phlex
+    real(kind=phlex_real) :: comp_start, comp_end, comp_ebi, comp_kpp, comp_phlex
 
     type(chem_spec_data_t), pointer :: chem_spec_data
     class(rxn_data_t), pointer :: rxn
     type(property_t), pointer :: prop_set
     character(len=:), allocatable :: key, spec_name, string_val, phlex_input_file
-    real(kind=dp) :: real_val, phlex_rate, phlex_rate_const
-    integer(kind=i_kind) :: i_spec, j_spec, i_rxn, i_ebi_rxn, i_kpp_rxn, &
+    real(kind=phlex_real) :: real_val, phlex_rate, phlex_rate_const
+    integer(kind=phlex_int) :: i_spec, j_spec, i_rxn, i_ebi_rxn, i_kpp_rxn, &
             i_time, i_repeat, n_gas_spec
 
-    integer(kind=i_kind) :: i_M, i_O2, i_N2, i_H2O, i_CH4, i_H2
-    integer(kind=i_kind), allocatable :: ebi_rxn_map(:), kpp_rxn_map(:)
-    integer(kind=i_kind), allocatable :: ebi_spec_map(:), kpp_spec_map(:)
+    integer(kind=phlex_int) :: i_M, i_O2, i_N2, i_H2O, i_CH4, i_H2
+    integer(kind=phlex_int), allocatable :: ebi_rxn_map(:), kpp_rxn_map(:)
+    integer(kind=phlex_int), allocatable :: ebi_spec_map(:), kpp_spec_map(:)
     type(string_t) :: str_temp
     type(string_t), allocatable :: spec_names(:)
 
@@ -180,7 +182,7 @@ contains
     type(rxn_update_data_photolysis_rate_t) :: rate_update
 
     ! Arrays to hold starting concentrations
-    real(kind=dp), allocatable :: ebi_init(:), kpp_init(:), phlex_init(:)
+    real(kind=phlex_real), allocatable :: ebi_init(:), kpp_init(:), phlex_init(:)
 
     ! D
     passed = .false.
@@ -323,7 +325,7 @@ contains
     KPP_PHOTO_RATES(1) = 0.0
     ! Set the phlex-chem photolysis rate constants
     call rxn_factory%initialize_update_data(rate_update)
-    call rate_update%set_rate(1, real(0.0001, kind=dp))
+    call rate_update%set_rate(1, real(0.0001, kind=phlex_real))
     call phlex_core%update_rxn_data(rate_update)
 
     ! Make sure the right number of reactions is present
@@ -608,7 +610,7 @@ contains
 
       ! Phlex-chem
       call cpu_time(comp_start)
-      call phlex_core%solve(phlex_state, real(EBI_TMSTEP*60.0, kind=dp))
+      call phlex_core%solve(phlex_state, real(EBI_TMSTEP*60.0, kind=phlex_real))
       call cpu_time(comp_end)
       comp_phlex = comp_phlex + (comp_end-comp_start)
 
@@ -628,44 +630,44 @@ contains
     ! Compare the results
     ! EBI <-> Phlex-chem
     do i_spec = 1, NUM_EBI_SPEC
-      call assert_msg(749090387, almost_equal(real(YC(i_spec), kind=dp), &
+      call assert_msg(749090387, almost_equal(real(YC(i_spec), kind=phlex_real), &
           phlex_state%state_var( &
                   chem_spec_data%gas_state_id( &
-                  ebi_spec_names(i_spec)%string)), 5.0d-2) .or. &
+                  ebi_spec_names(i_spec)%string)), real(5.0e-2, kind=phlex_real)) .or. &
           (YC(i_spec).lt.ebi_init(i_spec)*1.0d-2 .and. &
            phlex_state%state_var(chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)) .lt. &
            phlex_init(chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string))*1.0d-2), &
           "Species "//ebi_spec_names(i_spec)%string//" has different result. "// &
-          "EBI solver: "//trim(to_string(real(YC(i_spec), kind=dp)))// &
+          "EBI solver: "//trim(to_string(real(YC(i_spec), kind=phlex_real)))// &
           "; Phlex-chem: "// &
           trim(to_string( phlex_state%state_var( &
                   chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)))) // "; ebi init: "// &
-          trim(to_string(real(ebi_init(i_spec), kind=dp)))//"; phlex init: "// &
+          trim(to_string(real(ebi_init(i_spec), kind=phlex_real)))//"; phlex init: "// &
           trim(to_string(phlex_init(chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)))))
     end do
     ! KPP <-> Phlex-chem
     do i_spec = 1, KPP_NSPEC
       str_temp%string = trim(KPP_SPC_NAMES(i_spec))
-      call assert_msg(749090436, almost_equal(real(KPP_C(i_spec)*conv, kind=dp), &
+      call assert_msg(749090436, almost_equal(real(KPP_C(i_spec)*conv, kind=phlex_real), &
           phlex_state%state_var( &
                   chem_spec_data%gas_state_id( &
-                  str_temp%string)), 5.0d-2) .or. &
+                  str_temp%string)), real(5.0e-2, kind=phlex_real)) .or. &
           (KPP_C(i_spec) .lt. KPP_init(i_spec)*1.0d-2 .and. &
            phlex_state%state_var(chem_spec_data%gas_state_id( &
                   str_temp%string)) .lt. &
            phlex_init(chem_spec_data%gas_state_id( &
                   str_temp%string))*1.0d-2), &
           "Species "//str_temp%string//" has different result. "// &
-          "KPP solver: "//trim(to_string(real(KPP_C(i_spec)*conv, kind=dp)))// &
+          "KPP solver: "//trim(to_string(real(KPP_C(i_spec)*conv, kind=phlex_real)))// &
           "; Phlex-chem: "// &
           trim(to_string( phlex_state%state_var( &
                   chem_spec_data%gas_state_id( &
                   str_temp%string))))//"; KPP init: "// &
-          trim(to_string(real(kpp_init(i_spec)*conv, kind=dp)))// &
+          trim(to_string(real(kpp_init(i_spec)*conv, kind=phlex_real)))// &
           "; phlex init: "//trim(to_string(phlex_init( &
                   chem_spec_data%gas_state_id( &
                   str_temp%string)))))
@@ -812,7 +814,7 @@ contains
     use cb05cl_ae5_Model,                       only : NREACT
 
     type(string_t), allocatable :: kpp_rxn_labels(:)
-    integer(kind=i_kind) :: i_rxn = 1
+    integer(kind=phlex_int) :: i_rxn = 1
  
     allocate(kpp_rxn_labels(NREACT))
 
@@ -1203,6 +1205,7 @@ contains
   subroutine compare_rates(phlex_core, phlex_state, ebi_spec_names, conv, &
                   ebi_rxn_map, kpp_rxn_map)
 
+    use cb05cl_ae5_Precision,                   only : KPP_dp => dp
     use EXT_RXCM,                               only : NRXNS, RXLABEL
     use EXT_HRDATA,                             only : EBI_PROD => PROD, &
                                                        EBI_LOSS => LOSS, &
@@ -1223,14 +1226,14 @@ contains
     !> Species map Phlex-chem <-> EBI
     type(string_t), intent(in) :: ebi_spec_names(:)
     !> Coversion factor #/cc -> ppm
-    real(kind=dp), intent(in) :: conv
+    real(kind=phlex_real), intent(in) :: conv
     !> Reaction map EBI <-> phlex
-    integer(kind=i_kind), allocatable :: ebi_rxn_map(:)
+    integer(kind=phlex_int), allocatable :: ebi_rxn_map(:)
     !> Reaction map KPP <-> phlex
-    integer(kind=i_kind), allocatable :: kpp_rxn_map(:)
+    integer(kind=phlex_int), allocatable :: kpp_rxn_map(:)
 
-    real(kind=dp) :: KPP_VDOT(KPP_NVAR)               
-    integer(kind=i_kind) :: i_ebi_spec, i_kpp_spec, i_phlex_spec, i_rxn
+    real(kind=KPP_dp) :: KPP_VDOT(KPP_NVAR)               
+    integer(kind=phlex_int) :: i_ebi_spec, i_kpp_spec, i_phlex_spec, i_rxn
     type(string_t) :: spec_name
 
     character(len=:), allocatable :: key
@@ -1261,11 +1264,11 @@ contains
             trim(ebi_spec_names(i_ebi_spec)%string).eq.'PAN' .or. &    
             trim(ebi_spec_names(i_ebi_spec)%string).eq.'PNA') cycle
         if (trim(ebi_spec_names(i_ebi_spec)%string).eq.trim(KPP_SPC_NAMES(i_kpp_spec))) then
-          call warn_assert_msg(616862348, almost_equal(real(KPP_VDOT(i_kpp_spec)*60.0d0*conv, kind=dp), &
-              real(EBI_PROD(i_ebi_spec)-EBI_LOSS(i_ebi_spec), kind=dp), 1.0d-2), &
+          call warn_assert_msg(616862348, almost_equal(real(KPP_VDOT(i_kpp_spec)*60.0d0*conv, kind=phlex_real), &
+              real(EBI_PROD(i_ebi_spec)-EBI_LOSS(i_ebi_spec), kind=phlex_real), real(1.0e-2, kind=phlex_real)), &
               "Species "//ebi_spec_names(i_ebi_spec)%string//" has different time deriv. "// &
-              "EBI solver: "//trim(to_string(real((EBI_PROD(i_ebi_spec)-EBI_LOSS(i_ebi_spec))/60.0d0, kind=dp)))// &
-              "; KPP solver: "//trim(to_string(real(KPP_VDOT(i_kpp_spec)*conv, kind=dp))))
+              "EBI solver: "//trim(to_string(real((EBI_PROD(i_ebi_spec)-EBI_LOSS(i_ebi_spec))/60.0d0, kind=phlex_real)))// &
+              "; KPP solver: "//trim(to_string(real(KPP_VDOT(i_kpp_spec)*conv, kind=phlex_real))))
         end if
       end do
     end do

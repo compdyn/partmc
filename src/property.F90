@@ -11,7 +11,7 @@ module pmc_property
 #ifdef PMC_USE_JSON
   use json_module
 #endif
-  use pmc_constants,                only : i_kind, dp
+  use pmc_constants,                only : phlex_int, phlex_real
   use pmc_util,                     only : die_msg, warn_msg, to_string, string_t
 
 
@@ -29,7 +29,7 @@ module pmc_property
   type property_t
     private
     !> Number of elements
-    integer(kind=i_kind) :: num_elem = 0
+    integer(kind=phlex_int) :: num_elem = 0
     !> First element in the set
     type(property_link_t), pointer :: first_link => null()
     !> Last element in the set
@@ -189,12 +189,12 @@ contains
         ! integer
         case (json_integer)
           call json%get(child, int_val)
-          call this%put(prop_key, int(int_val, i_kind))
+          call this%put(prop_key, int(int_val, phlex_int))
        
         ! double
         case (json_double)
           call json%get(child, real_val)
-          call this%put(prop_key, real(real_val, dp))
+          call this%put(prop_key, real(real_val, phlex_real))
         
         ! boolean
         case (json_logical)
@@ -353,7 +353,7 @@ contains
     !> Key name to search for
     character(len=:), allocatable, intent(in), optional :: key
     !> Property value
-    integer(kind=i_kind), intent(out) :: val
+    integer(kind=phlex_int), intent(out) :: val
 
     type(property_link_t), pointer :: link
 
@@ -384,7 +384,7 @@ contains
     !> Key name to search for
     character(len=:), allocatable, intent(in), optional :: key
     !> Property value
-    real(kind=dp), intent(out) :: val
+    real(kind=phlex_real), intent(out) :: val
 
     type(property_link_t), pointer :: link
 
@@ -501,7 +501,7 @@ contains
   function get_size(this)
 
     !> Number of elements in the property set
-    integer(kind=i_kind) :: get_size
+    integer(kind=phlex_int) :: get_size
     !> Property dataset
     class(property_t), intent(in) :: this
     
@@ -594,10 +594,10 @@ contains
     !> Property dataset
     class(property_t), intent(in) :: this
     !> File unit for output
-    integer(kind=i_kind), optional, intent(in) :: file_unit
+    integer(kind=phlex_int), optional, intent(in) :: file_unit
 
     type(property_link_t), pointer :: curr_link
-    integer(kind=i_kind) :: f_unit = 6
+    integer(kind=phlex_int) :: f_unit = 6
 
     if (present(file_unit)) f_unit = file_unit
 
@@ -713,8 +713,8 @@ contains
     select type(val)
       
       ! add integers, reals, logicals, and string_t as-is
-      type is (integer(kind=i_kind))
-      type is (real(kind=dp))
+      type is (integer(kind=phlex_int))
+      type is (real(kind=phlex_real))
       type is (logical)
       type is (string_t)
 
@@ -747,7 +747,7 @@ contains
   function value_int(this) result(val)
 
     !> Value
-    integer(kind=i_kind) :: val
+    integer(kind=phlex_int) :: val
     !> Property key-value pair
     class(property_link_t), intent(in) :: this
 
@@ -755,7 +755,7 @@ contains
 
     this_val => this%val
     select type(this_val)
-      type is (integer(kind=i_kind))
+      type is (integer(kind=phlex_int))
         val = this_val
       class default
         call die_msg(509101133, "Property type mismatch for key "//&
@@ -770,7 +770,7 @@ contains
   function value_real(this) result(val)
 
     !> Value
-    real(kind=dp) :: val
+    real(kind=phlex_real) :: val
     !> Property key-value pair
     class(property_link_t), intent(in) :: this
 
@@ -778,9 +778,9 @@ contains
 
     this_val => this%val
     select type(this_val)
-      type is (integer(kind=i_kind))
-        val = real(this_val, kind=dp)
-      type is (real(kind=dp))
+      type is (integer(kind=phlex_int))
+        val = real(this_val, kind=phlex_real)
+      type is (real(kind=phlex_real))
         val = this_val
       class default
         call die_msg(151463892, "Property type mismatch for key "//&
@@ -868,19 +868,19 @@ contains
     !> Text to append to the end of the line
     character(len=*), intent(in) :: suffix
     !> File unit for output
-    integer(kind=i_kind), optional, intent(in) :: file_unit
+    integer(kind=phlex_int), optional, intent(in) :: file_unit
 
     class(*), pointer :: val
-    integer(kind=i_kind) :: f_unit = 6
+    integer(kind=phlex_int) :: f_unit = 6
 
     if (present(file_unit)) f_unit = file_unit
 
     val => this%val
     select type(val)
-      type is (integer(kind=i_kind))
+      type is (integer(kind=phlex_int))
         write(f_unit,*) '"'//this%key_name//'" : '//trim(to_string(val))// &
                 suffix
-      type is (real(kind=dp))
+      type is (real(kind=phlex_real))
         write(f_unit,*) '"'//this%key_name//'" : '//trim(to_string(val))// &
                 suffix
       type is (logical)

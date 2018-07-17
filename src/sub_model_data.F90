@@ -28,7 +28,7 @@ module pmc_sub_model_data
 #ifdef PMC_USE_MPI
   use mpi
 #endif
-  use pmc_constants,                    only : i_kind, dp
+  use pmc_constants,                    only : phlex_real, phlex_int
   use pmc_mpi
   use pmc_property
   use pmc_util,                         only : die_msg, string_t
@@ -63,12 +63,12 @@ module pmc_sub_model_data
     !! integration, and should contain any information required by the
     !! sub-model that cannot be obtained from the 
     !! pmc_phlex_state::phlex_state_t object. (floating point)
-    real(kind=dp), allocatable, public :: condensed_data_real(:)
+    real(kind=phlex_real), allocatable, public :: condensed_data_real(:)
     !> Condensed sub-model data. These arrays will be available during 
     !! integration, and should contain any information required by the
     !! sub-model that cannot be obtained from the 
     !! pmc_phlex_state::phlex_state_t object. (integer)
-    integer(kind=i_kind), allocatable, public :: condensed_data_int(:)
+    integer(kind=phlex_int), allocatable, public :: condensed_data_int(:)
   contains
     !> Initialize the sub-model data, validating input parameters and
     !! loading any required information form the \c
@@ -247,7 +247,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack the reaction data
-  integer(kind=i_kind) function pack_size(this)
+  integer(kind=phlex_int) function pack_size(this)
 
     !> Sub model data
     class(sub_model_data_t), intent(in) :: this
@@ -315,9 +315,9 @@ contains
     !> Sub model data
     class(sub_model_data_t), intent(in) :: this
     !> File unit for output
-    integer(kind=i_kind), optional :: file_unit
+    integer(kind=phlex_int), optional :: file_unit
 
-    integer(kind=i_kind) :: f_unit = 6
+    integer(kind=phlex_int) :: f_unit = 6
 
     if (present(file_unit)) f_unit = file_unit
     write(f_unit,*) "*** Sub Model ***"

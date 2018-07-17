@@ -10,9 +10,9 @@ program pmc_test_ZSR_aerosol_water
 
   use iso_c_binding
 
-  use pmc_util,                         only: i_kind, dp, assert, &
-                                              almost_equal, string_t, &
-                                              warn_msg
+  use pmc_util,                         only: phlex_real, phlex_int, &
+                                              assert, almost_equal, &
+                                              string_t, warn_msg
   use pmc_phlex_core
   use pmc_phlex_state
   use pmc_chem_spec_data
@@ -27,7 +27,7 @@ program pmc_test_ZSR_aerosol_water
   implicit none
 
   ! Number of RHs to calculate aerosol water for
-  integer(kind=i_kind) :: NUM_RH_STEP = 100
+  integer(kind=phlex_int) :: NUM_RH_STEP = 100
 
   ! initialize mpi
   call pmc_mpi_init()
@@ -86,15 +86,15 @@ contains
 
     type(chem_spec_data_t), pointer :: chem_spec_data
     class(aero_rep_data_t), pointer :: aero_rep_ptr
-    real(kind=dp), dimension(0:NUM_RH_STEP, 13) :: model_conc, true_conc
-    integer(kind=i_kind) :: idx_H2O, idx_Na_p, idx_Na_p_act, idx_Cl_m, &
+    real(kind=phlex_real), dimension(0:NUM_RH_STEP, 13) :: model_conc, true_conc
+    integer(kind=phlex_int) :: idx_H2O, idx_Na_p, idx_Na_p_act, idx_Cl_m, &
             idx_Cl_m_act, idx_Ca_pp, idx_Ca_pp_act, idx_H2O_aq, idx_H2O_act, &
             i_RH, i_spec, idx_phase
-    real(kind=dp) :: RH_step, RH, ppm_to_RH, molal_NaCl, molal_CaCl2, &
+    real(kind=phlex_real) :: RH_step, RH, ppm_to_RH, molal_NaCl, molal_CaCl2, &
             NaCl_conc, CaCl2_conc, water_NaCl, water_CaCl2, temp, pressure 
 #ifdef PMC_USE_MPI
     character, allocatable :: buffer(:), buffer_copy(:)
-    integer(kind=i_kind) :: pack_size, pos, i_elem, results
+    integer(kind=phlex_int) :: pack_size, pos, i_elem, results
 #endif
 
     run_ZSR_aerosol_water_test = .true.
@@ -233,7 +233,7 @@ contains
 
         ! Get the modeled conc
         ! time step is arbitrary - equilibrium calculatuions only
-        call phlex_core%solve(phlex_state, real(1.0, kind=dp)) 
+        call phlex_core%solve(phlex_state, real(1.0, kind=phlex_real)) 
         model_conc(i_RH,:) = phlex_state%state_var(:)
 
         ! Get the analytic conc
@@ -285,7 +285,7 @@ contains
           if (i_spec.ge.2.and.i_spec.le.9) cycle
           call assert_msg(221026833, &
             almost_equal(model_conc(i_RH, i_spec), &
-            true_conc(i_RH, i_spec), real(1.0e-2, kind=dp)).or. &
+            true_conc(i_RH, i_spec), real(1.0e-2, kind=phlex_real)).or. &
             (model_conc(i_RH, i_spec).lt.1e-5*model_conc(1, i_spec).and. &
             true_conc(i_RH, i_spec).lt.1e-5*true_conc(1, i_spec)), &
             "time: "//trim(to_string(i_RH))//"; species: "// &

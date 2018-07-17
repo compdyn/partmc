@@ -133,7 +133,7 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
     for (int i_ion_pair=0; i_ion_pair<NUM_ION_PAIR_; i_ion_pair++) {
       
       double molality;
-      double j_aw;
+      double j_aw, e_aw;
       double conc;
 
       // Determine which type of activity calculation should be used
@@ -171,9 +171,13 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
 	// EQSAM (Metger et al., 2002)
 	case ACT_TYPE_EQSAM :
 
+          // Keep the water activity within the range specified in EQSAM
+          e_aw = a_w > 0.99 ? 0.99 : a_w;
+          e_aw = e_aw < 0.001 ? 0.001 : e_aw;
+
 	  // Calculate the molality of the ion pair
 	  molality = (EQSAM_NW_(i_ion_pair) * 55.51 * 18.01 / 
-                    EQSAM_ION_PAIR_MW_(i_ion_pair) * (1.0/a_w-1.0));
+                    EQSAM_ION_PAIR_MW_(i_ion_pair) * (1.0/e_aw-1.0));
 	  molality = pow(molality, EQSAM_ZW_(i_ion_pair)); // (mol/kg)
 
 	  // Calculate the water associated with this ion pair

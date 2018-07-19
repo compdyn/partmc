@@ -271,10 +271,16 @@ void rxn_pre_calc(ModelData *model_data)
         rxn_data = (int*) rxn_aqueous_equilibrium_pre_calc(
                   model_data, (void*) rxn_data);
         break;
+#ifndef PMC_USE_GPU
       case RXN_ARRHENIUS :
         rxn_data = (int*) rxn_arrhenius_pre_calc(
                   model_data, (void*) rxn_data);
         break;
+#else
+      case RXN_ARRHENIUS :
+        rxn_data = (int*) rxn_arrhenius_skip( (void*) rxn_data );
+        break;
+#endif
       case RXN_CMAQ_H2O2 :
         rxn_data = (int*) rxn_CMAQ_H2O2_pre_calc(
                   model_data, (void*) rxn_data);
@@ -418,10 +424,16 @@ void rxn_calc_jac(ModelData *model_data, PMC_SOLVER_C_FLOAT *J_data,
         rxn_data = (int*) rxn_aqueous_equilibrium_calc_jac_contrib(
                   model_data, J_data, (void*) rxn_data, time_step);
         break;
+#ifndef PMC_USE_GPU
       case RXN_ARRHENIUS :
         rxn_data = (int*) rxn_arrhenius_calc_jac_contrib(
                   model_data, J_data, (void*) rxn_data, time_step);
         break;
+#else
+      case RXN_ARRHENIUS :
+        rxn_data = (int*) rxn_arrhenius_skip( (void*) rxn_data );
+        break;
+#endif
       case RXN_CMAQ_H2O2 :
         rxn_data = (int*) rxn_CMAQ_H2O2_calc_jac_contrib(
                   model_data, J_data, (void*) rxn_data, time_step);

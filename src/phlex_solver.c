@@ -252,7 +252,11 @@ void solver_initialize(void *solver_data, PMC_C_FLOAT *abs_tol, PMC_C_FLOAT rel_
   check_flag_fail(&flag, "CVDlsSetLinearSolver", 1);
 
   // Set the Jacobian function to Jac
+#ifdef PMC_USE_GPU
+  flag = CVDlsSetJacFn(sd->cvode_mem, phlex_gpu_solver_Jac);
+#else
   flag = CVDlsSetJacFn(sd->cvode_mem, Jac);
+#endif
   check_flag_fail(&flag, "CVDlsSetJacFn", 1);
 
 #ifndef PMC_USE_DOUBLE_PRECISION

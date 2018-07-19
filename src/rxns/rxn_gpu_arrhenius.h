@@ -19,5 +19,7 @@ __device__ void * rxn_gpu_arrhenius_update_env_state( void *rxn_data,
          ModelDeviceData mdd );
 __device__ void * rxn_gpu_arrhenius_calc_deriv_contrib( void *rxn_data, 
          ModelDeviceData mdd, PMC_SOLVER_C_FLOAT *deriv );
+__device__ void * rxn_gpu_arrhenius_calc_jac_contrib( void *rxn_data, 
+         ModelDeviceData mdd, PMC_SOLVER_C_FLOAT *J );
 
 #endif

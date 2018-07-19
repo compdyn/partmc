@@ -120,6 +120,46 @@ __device__ void * rxn_gpu_arrhenius_calc_deriv_contrib( void *rxn_data,
 
 }
 
+/** \brief Calculate contributions to the Jacobian from this reaction
+ *
+ * \param rxn_data Pointer to the reaction data
+ * \param mdd Model device data
+ * \param J Pointer to the Jacobian data array
+ * \return The rxn_data pointer advanced by the size of the reaction data
+ */
+extern "C"
+__device__ void * rxn_gpu_arrhenius_calc_jac_contrib( void *rxn_data, 
+         ModelDeviceData mdd, PMC_SOLVER_C_FLOAT *J )
+{
+  PMC_C_FLOAT *state = mdd.dev_state;
+  int *int_data = (int*) rxn_data;
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
+
+  // Calculate the reaction rate
+  PMC_C_FLOAT rate = RATE_CONSTANT_;
+  for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
+
+  // Add contributions to the Jacobian
+  if (rate!=ZERO) {
+    int i_elem = 0;
+    for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
+      for (int i_dep=0; i_dep<NUM_REACT_; i_dep++, i_elem++) {
+	if (JAC_ID_(i_elem) < 0) continue;
+	atomicAdd( &( J[JAC_ID_(i_elem)] ), (PMC_SOLVER_C_FLOAT) 
+                (-rate / state[REACT_(i_ind)]));
+      }
+      for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
+	if (JAC_ID_(i_elem) < 0) continue;
+	atomicAdd( &( J[JAC_ID_(i_elem)] ), (PMC_SOLVER_C_FLOAT)
+                (YIELD_(i_dep) * rate / state[REACT_(i_ind)]));
+      }
+    }
+  }
+
+  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+
+}
+
 #undef TEMPERATURE_K_
 #undef PRESSURE_PA_
 

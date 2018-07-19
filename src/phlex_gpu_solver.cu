@@ -184,6 +184,94 @@ int phlex_gpu_solver_f(realtype t, N_Vector y, N_Vector deriv, void *solver_data
 
 }
 
+/** \brief Compute the Jacobian
+ *
+ * \param t Current model time (s)
+ * \param y Dependent variable array
+ * \param deriv Time derivative vector f(t,y)
+ * \param J Jacobian to calculate
+ * \param solver_data Pointer to the solver data
+ * \param tmp1 Unused vector
+ * \param tmp2 Unused vector
+ * \param tmp3 Unused vector
+ * \return Status code
+ */
+int phlex_gpu_solver_Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J,
+        void *solver_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)
+{
+  SolverData *sd = (SolverData*) solver_data;
+  ModelData *md = &(sd->model_data);
+  ModelDeviceData *mdd = ( ModelDeviceData* ) ( md->model_dev_data );
+  realtype time_step;
+  PMC_SOLVER_C_FLOAT *J_data;
+
+  // Update the state array with the current dependent variable values
+  for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
+    if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
+      if (NV_DATA_S(y)[i_dep_var] < 0.0) return 1;
+      mdd->host_state[i_spec] = md->state[i_spec] = (PMC_C_FLOAT) (NV_DATA_S(y)[i_dep_var++]);
+    } else {
+      mdd->host_state[i_spec] = md->state[i_spec];
+    }
+  }
+
+  // Get a pointer to the working Jacobian data array
+  J_data = mdd->host_jac;
+  
+  // TODO Figure out how to keep the Jacobian from being redimensioned
+  // Reset the Jacobian dimensions
+  if (SM_NNZ_S(J)<SM_NNZ_S(md->J_init)) {
+    SM_INDEXVALS_S(J) = (sunindextype*) realloc(SM_INDEXVALS_S(J),
+              SM_NNZ_S(md->J_init)*sizeof(sunindextype));
+    if (SM_INDEXVALS_S(J)==NULL) {
+      printf("\n\nERROR allocating space for sparse matrix index values\n\n");
+      exit(1);
+    }
+    SM_DATA_S(J) = (realtype*) realloc(SM_DATA_S(J),
+              SM_NNZ_S(md->J_init)*sizeof(realtype));
+    if (SM_DATA_S(J)==NULL) {
+      printf("\n\nERROR allocating space for sparse matrix data\n\n");
+      exit(1);
+    }
+  }
+  SM_NNZ_S(J) = SM_NNZ_S(md->J_init);
+  for (int i=0; i<SM_NNZ_S(J); i++) {
+    J_data[i] = (PMC_SOLVER_C_FLOAT) 0.0;
+    (SM_INDEXVALS_S(J))[i] = (SM_INDEXVALS_S(md->J_init))[i];
+  }
+  for (int i=0; i<=SM_NP_S(J); i++) {
+    (SM_INDEXPTRS_S(J))[i] = (SM_INDEXPTRS_S(md->J_init))[i];
+  } 
+
+  // Update the aerosol representations
+  aero_rep_update_state(md);
+
+  // Run the sub models
+  sub_model_calculate(md);
+
+  // Run pre-Jacobian calculations
+  rxn_pre_calc(md);
+
+  // Get the current integrator time step (s)
+  CVodeGetCurrentStep(sd->cvode_mem, &time_step);
+  
+  // Calculate the Jacobian for GPU rxns
+  dim3 dimGrid( mdd->num_blocks );
+  dim3 dimBlock( mdd->num_threads );
+  rxn_gpu_calc_jac<<< dimGrid, dimBlock >>>(*mdd, (PMC_C_FLOAT) time_step);
+  cudaDeviceSynchronize();
+
+  // Calculate the Jacobian for the remaining rxns
+  rxn_calc_jac(md, J_data, time_step);
+
+  // Copy the working Jacobian back into the solver Jacobian
+  for (int i=0; i<SM_NNZ_S(J); i++)
+    SM_DATA_S(J)[i] = (realtype) (J_data[i]);
+
+  return (0);
+
+}
+
 /** \brief Free GPU solver memory
   */
 extern "C"

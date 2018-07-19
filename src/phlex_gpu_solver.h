@@ -36,6 +36,8 @@ typedef struct {
 void phlex_gpu_solver_new( ModelData * model_data );
 void phlex_gpu_solver_update_env_state(ModelData *model_data, PMC_C_FLOAT *env);
 int phlex_gpu_solver_f(realtype t, N_Vector y, N_Vector deriv, void *solver_data);
+int phlex_gpu_solver_Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J,
+        void *solver_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
 void phlex_gpu_solver_free(ModelDeviceData * model_device_data);
 
 #endif

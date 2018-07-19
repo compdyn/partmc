@@ -18,6 +18,7 @@ extern "C" {
 
 // TODO Figure out how to use allocatable shared derivative array
 #define MAX_DERIV_SIZE_ 500
+#define MAX_JAC_SIZE_ 5000
 
 // Reaction types (Must match parameters defined in pmc_rxn_factory)
 #define RXN_ARRHENIUS 1
@@ -353,6 +354,75 @@ __global__ void rxn_gpu_calc_deriv( ModelDeviceData mdd, PMC_C_FLOAT time_step)
   // Add derivative contributions from this block to the primary deriv array
   for( int i_spec = threadIdx.x; i_spec < mdd.deriv_size; i_spec += blockDim.x )
     atomicAdd( &( mdd.dev_deriv[ i_spec ] ), shr_dev_deriv[ i_spec ] );
+
+}
+
+/** \brief Calculate the Jacobian for reactions with GPU solver functions
+ * 
+ * \param device_data Device data needed for solving
+ * \param time_step Current solver time step (s)
+ */
+__global__ void rxn_gpu_calc_jac( ModelDeviceData mdd, PMC_C_FLOAT time_step)
+{
+  // Get the reaction data
+  RxnDeviceData * rd = ( RxnDeviceData* ) ( mdd.dev_rxn_dev_data );
+
+  // Get a unique device index
+  int dev_id = blockIdx.x * blockDim.x + threadIdx.x;
+  int dev_total = gridDim.x * blockDim.x;
+
+  // Set up a shared derivative array
+  __shared__ PMC_SOLVER_C_FLOAT shr_dev_jac[ MAX_JAC_SIZE_ ];
+
+  // Initialize the Jacobian data array
+  for( int i_elem = threadIdx.x; i_elem < mdd.jac_size; i_elem += blockDim.x )
+    shr_dev_jac[ i_elem ] = 0.0;
+  __syncthreads();
+
+  // Get the number of reactions
+  int * rxn_data = (int*) (*rd).dev_rxn_data;
+  int n_rxn = *(rxn_data);
+
+  // Return if there are no reactions to solve
+  if( n_rxn == 0 ) return;
+
+  // Figure out what reactions to solve on this thread
+  int rxn_start = dev_id * ( n_rxn / dev_total ) + 
+                  ( dev_id > n_rxn % dev_total ? n_rxn % dev_total : dev_id );
+  int rxns_to_solve = n_rxn / dev_total +
+                  ( dev_id < n_rxn % dev_total ? 1 : 0 );
+
+  if ( rxns_to_solve > 0 ) {
+    // Advance the rxn data pointer to the first reaction's data
+    char *first_rxn = ( (char*) rxn_data ) + 
+                     (*rd).dev_rxn_data_start[ rxn_start ];
+    rxn_data = (int*) first_rxn;
+    for( int i_rxn = 0; i_rxn < rxns_to_solve; i_rxn++ ) {
+
+      // Get the reaction type
+      int rxn_type = *(rxn_data);
+
+      // Advance by the size of a double to maintain alignment
+      rxn_data += sizeof(PMC_C_FLOAT) / sizeof(int);
+
+      // Add derivative contribution from appropriate reaction type
+      switch (rxn_type) {
+        case RXN_ARRHENIUS :
+          rxn_data = (int*) rxn_gpu_arrhenius_calc_jac_contrib( 
+                              (void*) rxn_data, mdd, shr_dev_jac );
+          break;
+        default :
+          printf("\nPartMC Internal Error: invalid rxn type in GPU Jac function.\n"
+                 "block: %d thread: %d rxn: %d rxn_type: %d\n",
+                 blockIdx.x, threadIdx.x, i_rxn, rxn_type);
+      }
+    }
+  }
+  __syncthreads();
+
+  // Add Jacobian contributions from this block to the primary Jacobian data array
+  for( int i_elem = threadIdx.x; i_elem < mdd.jac_size; i_elem += blockDim.x )
+    atomicAdd( &( mdd.dev_jac[ i_elem ] ), shr_dev_jac[ i_elem ] );
 
 }
 

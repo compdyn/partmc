@@ -42,7 +42,7 @@ module pmc_phlex_solver_data
   !> Interface to c ODE solver functions
   interface
     !> Get a new solver 
-    type(c_ptr) function solver_new(n_state_var, var_type, &
+    type(c_ptr) function solver_new(n_state_var, n_env_var, var_type, &
                     n_rxn, n_rxn_int_param, n_rxn_float_param, &
                     n_aero_phase, n_aero_phase_int_param, &
                     n_aero_phase_float_param, n_aero_rep, &
@@ -52,6 +52,8 @@ module pmc_phlex_solver_data
       use iso_c_binding
       !> Number of variables on the state array (including const, PSSA, etc.)
       integer(kind=c_int), value :: n_state_var
+      !> Number of variables on the environmental state array
+      integer(kind=c_int), value :: n_env_var
       !> Pointer to array of state variable types (solver, constant, PSSA)
       type(c_ptr), value :: var_type
       !> Number of reactions to solve
@@ -508,6 +510,8 @@ contains
     ! Get a new solver object
     this%solver_c_ptr = solver_new( &
             int(size(var_type_c), kind=c_int), & ! Size of the state variable
+            int(phlex_state_num_env_param(),   &
+                  kind=c_int),                 & ! Number of environmental variables
             c_loc(var_type_c),                 & ! Variable types
             n_rxn,                             & ! # of reactions
             n_rxn_int_param,                   & ! # of rxn data int params

@@ -37,6 +37,7 @@ typedef enum {pmc_false, pmc_true} pmc_bool;
 /* Model data structure */
 typedef struct {
   int n_state_var;	// number of state variables (>=NV_LENGTH_S(y))
+  int n_env_var;        // number of environmental variables
   int *var_type;	// pointer to array of state variable types (solver,
                         // constant, PSSA)
 #ifdef PMC_USE_SUNDIALS
@@ -85,7 +86,7 @@ typedef struct {
 } SolverData;
 
 /* Functions called by phlex-chem */
-void * solver_new(int n_state_var, int *var_type, int n_rxn,
+void * solver_new(int n_state_var, int n_env_var, int *var_type, int n_rxn,
           int n_rxn_int_param, int n_rxn_float_param, int n_aero_phase,
           int n_aero_phase_int_param, int n_aero_phase_float_param,
           int n_aero_rep, int n_aero_rep_int_param, int n_aero_rep_float_param,

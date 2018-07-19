@@ -8,12 +8,14 @@
 /** \file
  * \brief GPU solver functions
 */
-#include "aero_rep_solver.h"
 #include "cuda_util.h"
+extern "C" {
+#include "aero_rep_solver.h"
 #include "phlex_gpu_solver.h"
 #include "rxn_gpu_solver.h"
 #include "rxn_solver.h"
 #include "sub_model_solver.h"
+}
 
 // TODO Should this be input data?
 #define NUM_BLOCKS_  5
@@ -30,8 +32,13 @@
  *
  * \param model_data Pointer to the model data to use to build GPU solver data
  */
+extern "C"
 void phlex_gpu_solver_new( ModelData * model_data )
 {
+  // Allocate a new ModelDeviceData object
+  model_data->model_dev_data = (ModelDeviceData*) 
+                                  malloc( sizeof(ModelDeviceData) );
+
   // Get the device data object
   ModelDeviceData * model_dev_data = 
           (ModelDeviceData*) (model_data->model_dev_data);
@@ -40,43 +47,82 @@ void phlex_gpu_solver_new( ModelData * model_data )
   (*model_dev_data).num_blocks  = NUM_BLOCKS_;
   (*model_dev_data).num_threads = NUM_THREADS_;
 
-  // Get a device pointer to the working state array
-  HANDLE_ERROR( cudaHostRegister( model_data->state, 
-                                  model_data->n_state_var * sizeof(int),
-                                  0
-                                ) );
+  // Set up the working state array
+  HANDLE_ERROR( cudaHostAlloc( (void**) &(model_dev_data->host_state), 
+                               model_data->n_state_var * sizeof(PMC_C_FLOAT),
+                               cudaHostAllocWriteCombined |
+                                  cudaHostAllocMapped
+                             ) );
   HANDLE_ERROR( cudaHostGetDevicePointer( 
-                                  (void**) &(model_dev_data->dev_state), 
-                                  model_data->state,
-                                  0
-                                ) );
+                               (void**) &(model_dev_data->dev_state), 
+                               (void*) model_dev_data->host_state,
+                               0
+                             ) );
+
+  // Set up the working environmental array
+  HANDLE_ERROR( cudaHostAlloc( (void**) &(model_dev_data->host_env), 
+                               model_data->n_env_var * sizeof(PMC_C_FLOAT),
+                               cudaHostAllocWriteCombined |
+                                  cudaHostAllocMapped
+                             ) );
+  HANDLE_ERROR( cudaHostGetDevicePointer( 
+                               (void**) &(model_dev_data->dev_env), 
+                               (void*) model_dev_data->host_env,
+                               0
+                             ) );
 
   // Set up the working derivative array
-  HANDLE_ERROR( cudaHostRegister( (void**) &(model_data->deriv),
-                               model_data->deriv_size * sizeof(PMC_C_FLOAT),
-                               0
+  HANDLE_ERROR( cudaHostAlloc( (void**) &(model_dev_data->host_deriv),
+                               model_data->deriv_size * sizeof(PMC_SOLVER_C_FLOAT),
+                               cudaHostAllocMapped
                              ) );
   HANDLE_ERROR( cudaHostGetDevicePointer( 
                                (void**) &(model_dev_data->dev_deriv),
-                               model_data->deriv,
+                               (void*) model_dev_data->host_deriv,
                                0
                              ) );
-  
+  (*model_dev_data).deriv_size = model_data->deriv_size;
+
   // Set up the working Jacobian data array
-  HANDLE_ERROR( cudaHostRegister( (void**) &(model_data->jac),
-                               model_data->jac_size * sizeof(PMC_C_FLOAT),
-                               0
+  HANDLE_ERROR( cudaHostAlloc( (void**) &(model_dev_data->host_jac),
+                               ( model_data->jac_size > 0 ? model_data->jac_size : 1 ) 
+                                    * sizeof(PMC_SOLVER_C_FLOAT),
+                               cudaHostAllocMapped
                              ) );
   HANDLE_ERROR( cudaHostGetDevicePointer( 
                                (void**) &(model_dev_data->dev_jac),
-                               model_data->jac,
+                               (void*) model_dev_data->host_jac,
                                0
                              ) );
+  (*model_dev_data).jac_size = model_data->jac_size;
 
   // Initialize the reaction data
-  rxn_gpu_solver_new( 
-          ( RxnDeviceData* )( ( *model_dev_data ).rxn_dev_data ),
-          model_data->rxn_data );
+  rxn_gpu_solver_new( model_dev_data, model_data->rxn_data );
+
+}
+
+/** \brief Update the environmental state
+ *
+ * \param model_data Pointer to the model data
+ * \param env Pointer to the environmental state array
+ */
+extern "C"
+void phlex_gpu_solver_update_env_state(ModelData *model_data, PMC_C_FLOAT *env)
+{
+  ModelDeviceData *mdd = ( ModelDeviceData* ) ( model_data->model_dev_data );
+
+  // Update the environmental state for GPU functions
+  for( int i_var = 0; i_var < model_data->n_env_var; i_var++ )
+    mdd->host_env[ i_var ] = env[ i_var ];
+
+  // Update the environmental state for reactions with GPU functions
+  dim3 dimGrid( mdd->num_blocks );
+  dim3 dimBlock( mdd->num_threads );
+  rxn_gpu_update_env_state<<< dimGrid, dimBlock >>>( *mdd );
+  cudaDeviceSynchronize();
+
+  // Update the remaining reactions
+  rxn_update_env_state( model_data, env );
 
 }
 
@@ -88,6 +134,7 @@ void phlex_gpu_solver_new( ModelData * model_data )
  * \param solver_data Pointer to the solver data
  * \return Status code
  */
+extern "C"
 int phlex_gpu_solver_f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 {
   SolverData *sd = (SolverData*) solver_data;
@@ -101,7 +148,10 @@ int phlex_gpu_solver_f(realtype t, N_Vector y, N_Vector deriv, void *solver_data
   for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
     if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
       if (NV_DATA_S(y)[i_dep_var] < 0.0) return 1;
-      md->state[i_spec] = (PMC_C_FLOAT) (NV_DATA_S(y)[i_dep_var++]);
+      mdd->host_state[i_spec] = md->state[i_spec] = (PMC_C_FLOAT) (NV_DATA_S(y)[i_dep_var]);
+      mdd->host_deriv[i_dep_var++] = 0.0;     
+    } else {
+      mdd->host_state[i_spec] = md->state[i_spec];
     }
   }
 
@@ -121,20 +171,27 @@ int phlex_gpu_solver_f(realtype t, N_Vector y, N_Vector deriv, void *solver_data
   dim3 dimGrid( mdd->num_blocks );
   dim3 dimBlock( mdd->num_threads );
   rxn_gpu_calc_deriv<<< dimGrid, dimBlock >>>(*mdd, (PMC_C_FLOAT) time_step);
+  cudaDeviceSynchronize();
 
+  // Calculate the remaining time derivatives f(t,y)
+  rxn_calc_deriv(md, mdd->host_deriv, (PMC_C_FLOAT) time_step);
+  
   // Copy working derivative array to solver derivative
-  // TODO eliminate copying
   for (int i_spec=0; i_spec<NV_LENGTH_S(deriv); i_spec++)
           NV_DATA_S(deriv)[i_spec] = (realtype) mdd->host_deriv[i_spec];
 
-  // Calculate the remaining time derivatives f(t,y)
-  rxn_calc_deriv(md, deriv, (PMC_C_FLOAT) time_step);
-  
   return (0);
 
 }
 
+/** \brief Free GPU solver memory
+  */
+extern "C"
 void phlex_gpu_solver_free(ModelDeviceData * model_device_data)
 {
+  rxn_gpu_solver_free( model_device_data->host_rxn_dev_data );
+  HANDLE_ERROR( cudaFreeHost( model_device_data->host_state ) );
+  HANDLE_ERROR( cudaFreeHost( model_device_data->host_deriv ) );
+  HANDLE_ERROR( cudaFreeHost( model_device_data->host_jac ) );
   free( model_device_data );
 }

@@ -189,10 +189,16 @@ void rxn_update_env_state(ModelData *model_data, PMC_C_FLOAT *env)
         rxn_data = (int*) rxn_aqueous_equilibrium_update_env_state(
                   env, (void*) rxn_data);
         break;
+#ifndef PMC_USE_GPU
       case RXN_ARRHENIUS :
         rxn_data = (int*) rxn_arrhenius_update_env_state(
                   env, (void*) rxn_data);
         break;
+#else
+      case RXN_ARRHENIUS :
+        rxn_data = (int*) rxn_arrhenius_skip( (void*) rxn_data );
+        break;
+#endif
       case RXN_CMAQ_H2O2 :
         rxn_data = (int*) rxn_CMAQ_H2O2_update_env_state(
                   env, (void*) rxn_data);

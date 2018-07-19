@@ -10,9 +10,14 @@
 */
 #ifndef RXN_GPU_ARRHENIUS_H_
 #define RXN_GPU_ARRHENIUS_H_
+#include <cuda.h>
 #include "../phlex_gpu_solver.h"
 
-void * rxn_gpu_arrhenius_calc_deriv_contrib( void *rxn_data, 
-         ModelDeviceData mdd, realtype *deriv );
+__host__ void rxn_gpu_arrhenius_copy_data( void *orig_rxn_data,
+         void *new_rxn_data );
+__device__ void * rxn_gpu_arrhenius_update_env_state( void *rxn_data,
+         ModelDeviceData mdd );
+__device__ void * rxn_gpu_arrhenius_calc_deriv_contrib( void *rxn_data, 
+         ModelDeviceData mdd, PMC_SOLVER_C_FLOAT *deriv );
 
 #endif

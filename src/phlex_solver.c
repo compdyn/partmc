@@ -34,6 +34,7 @@
  * Return a pointer to a new SolverData object
  *
  * \param n_state_var Number of variables on the state array
+ * \param n_env_var Number of variables on the environmental state array
  * \param var_type Pointer to array of state variable types (solver, constant,
  *                 PSSA)
  * \param n_rxn Number of reactions to include
@@ -55,7 +56,7 @@
  *                                parameters
  * \return Pointer to the new SolverData object
  */
-void * solver_new(int n_state_var, int *var_type, int n_rxn,
+void * solver_new(int n_state_var, int n_env_var, int *var_type, int n_rxn,
           int n_rxn_int_param, int n_rxn_float_param, int n_aero_phase,
           int n_aero_phase_int_param, int n_aero_phase_float_param,
           int n_aero_rep, int n_aero_rep_int_param, int n_aero_rep_float_param,
@@ -70,6 +71,9 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
 
   // Save the number of state variables
   sd->model_data.n_state_var = n_state_var;
+
+  // Save the number of environmental variables
+  sd->model_data.n_env_var = n_env_var;
 
   // Add the variable types to the solver data
   sd->model_data.var_type = (int*) malloc(n_state_var * sizeof(int));
@@ -301,7 +305,11 @@ int solver_run(void *solver_data, PMC_C_FLOAT *state, PMC_C_FLOAT *env, PMC_C_FL
   //  solving. This can be changed in the future if necessary.)
   aero_rep_update_env_state(&(sd->model_data), env);
   sub_model_update_env_state(&(sd->model_data), env);
+#ifdef PMC_USE_GPU
+  phlex_gpu_solver_update_env_state(&(sd->model_data), env);
+#else
   rxn_update_env_state(&(sd->model_data), env);
+#endif
 
   // Reinitialize the solver
   int flag = CVodeReInit(sd->cvode_mem, t_initial, sd->y);
@@ -732,7 +740,9 @@ void model_free(ModelData model_data)
   free(model_data.jac);
 #endif
 #ifdef PMC_USE_GPU
-  phlex_gpu_solver_free( model_data.model_dev_data );
+  // FIXME For some reason, freeing host pointers causes a segmentation
+  // fault when no reactions are solved on the GPUs
+  //phlex_gpu_solver_free( model_data.model_dev_data );
 #endif
 }
 

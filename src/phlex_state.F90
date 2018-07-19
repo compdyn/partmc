@@ -20,7 +20,7 @@ module pmc_phlex_state
   implicit none
   private
 
-  public :: phlex_state_t
+  public :: phlex_state_t, phlex_state_num_env_param
 
   !> Model state
   !!
@@ -172,6 +172,15 @@ contains
             deallocate(this%env_state)
 
   end subroutine finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Return the number of environmental parameters
+  integer(kind=phlex_int) function phlex_state_num_env_param()
+
+    phlex_state_num_env_param = PHLEX_STATE_NUM_ENV_PARAM
+
+  end function phlex_state_num_env_param
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

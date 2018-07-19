@@ -388,7 +388,7 @@ set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
 include_directories(${CMAKE_BINARY_DIR}/include)
 
 set(STD_C_FLAGS "-std=c99")
-set(STD_CUDA_FLAGS " ")
+set(STD_CUDA_FLAGS "-dc")
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
   set(STD_F_FLAGS "-extend_source -warn truncated_source")
@@ -476,8 +476,8 @@ set_source_files_properties(${PHLEX_C_SRC} PROPERTIES COMPILE_FLAGS
 if(ENABLE_GPU)
   set(PHLEX_CUDA_SRC
         src/phlex_gpu_solver.cu
-        src/rxn_gpu_solver.cu
-        src/rxns/rxn_gpu_arrhenius.cu)
+        src/rxns/rxn_gpu_arrhenius.cu
+        src/rxn_gpu_solver.cu)
   set_source_files_properties(${PHLEX_CUDA_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_CUDA_FLAGS})
   set_source_files_properties(${PHLEX_CUDA_SRC} PROPERTIES LANGUAGE CUDA)

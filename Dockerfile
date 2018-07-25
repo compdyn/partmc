@@ -23,6 +23,7 @@ RUN curl -LO http://faculty.cse.tamu.edu/davis/SuiteSparse/SuiteSparse-5.1.0.tar
 RUN curl -LO https://computation.llnl.gov/projects/sundials/download/cvodes-3.1.1.tar.gz \
     && tar -zxvf cvodes-3.1.1.tar.gz \
     && cd cvodes-3.1.1 \
+    && sed -i s/"MAX_ITERS[ ]*4"/"MAX_ITERS  400"/g src/cvodes/cvodes.c \
     && mkdir build \
     && cd build \
     && cmake -D CMAKE_BUILD_TYPE=release \

@@ -14,6 +14,8 @@
 */
 #include "phlex_solver.h"
 
+#define SMALL_NUMBER 1.1E-30
+
 #define PHLEX_SOLVER_SUCCESS 0
 #define PHLEX_SOLVER_FAIL 1
 
@@ -212,6 +214,10 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   flag = CVodeSetMaxConvFails(sd->cvode_mem, max_conv_fails);
   check_flag_fail(&flag, "CVodeSetMaxConvFails", 1);
 
+  // Set the maximum number of error test failures (TODO make separate input?)
+  flag = CVodeSetMaxErrTestFails(sd->cvode_mem, max_conv_fails);
+  check_flag_fail(&flag, "CVodeSetMaxErrTestFails", 1);
+
   // Get the structure of the Jacobian matrix
   sd->J = get_jac_init(sd);
   sd->model_data.J_init = SUNMatClone(sd->J);
@@ -272,6 +278,13 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   if (!sd->no_solve) {
     flag = CVode(sd->cvode_mem, (realtype) t_final, sd->y, &t_rt, CV_NORMAL);
     if (check_flag(&flag, "CVode", 1)==PHLEX_SOLVER_FAIL) {
+      printf("\ntemp = %le pressure = %le\n", env[0], env[1]);
+      for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++)
+        if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) {
+          printf("spec %d = %le\n", i_spec, NV_Ith_S(sd->y,i_dep_var++));
+        } else {
+          printf("spec %d = %le\n", i_spec, state[i_spec]);
+        }
       solver_print_stats(sd->cvode_mem);
       return PHLEX_SOLVER_FAIL;
     }
@@ -314,6 +327,9 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   // concentrations.
   for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
     if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
+      if (NV_DATA_S(y)[i_dep_var] <= SMALL_NUMBER &&
+          NV_DATA_S(y)[i_dep_var] >= - SMALL_NUMBER)
+          NV_DATA_S(y)[i_dep_var] = 0.0;
       if (NV_DATA_S(y)[i_dep_var] < 0.0) return 1;
       md->state[i_spec] = NV_DATA_S(y)[i_dep_var++];
     }
@@ -364,8 +380,15 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   // Update the state array with the current dependent variable values
   for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
     if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
+      if (NV_DATA_S(y)[i_dep_var] <= SMALL_NUMBER &&
+          NV_DATA_S(y)[i_dep_var] >= - SMALL_NUMBER)
+          NV_DATA_S(y)[i_dep_var] = 0.0;
       if (NV_DATA_S(y)[i_dep_var] < 0.0) return 1;
-      md->state[i_spec] = NV_DATA_S(y)[i_dep_var++];
+      // Advance the state by a small amount to get more accurate Jac values
+      // for species that are currently at zero concentration
+      md->state[i_spec] = NV_DATA_S(y)[i_dep_var] + 
+                          NV_DATA_S(deriv)[i_dep_var] * SMALL_NUMBER;
+      i_dep_var++;
     }
   }
 
@@ -572,6 +595,7 @@ void check_flag_fail(void *flag_value, char *func_name, int opt)
 static void solver_print_stats(void *cvode_mem)
 {
   long int nst, nfe, nsetups, nje, nfeLS, nni, ncfn, netf, nge;
+  realtype last_h, curr_h;
   int flag;
 
   flag = CVodeGetNumSteps(cvode_mem, &nst);
@@ -601,14 +625,21 @@ static void solver_print_stats(void *cvode_mem)
   flag = CVodeGetNumGEvals(cvode_mem, &nge);
   if (check_flag(&flag, "CVodeGetNumGEvals", 1)==PHLEX_SOLVER_FAIL)
           return;
+  flag = CVodeGetLastStep(cvode_mem, &last_h);
+  if (check_flag(&flag, "CVodeGetLastStep", 1)==PHLEX_SOLVER_FAIL)
+          return;
+  flag = CVodeGetCurrentStep(cvode_mem, &curr_h);
+  if (check_flag(&flag, "CVodeGetCurrentStep", 1)==PHLEX_SOLVER_FAIL)
+          return;
 
   printf("\nSUNDIALS Solver Statistics:\n");
   printf("number of steps = %-6ld RHS evals = %-6ld LS setups = %-6ld\n", nst,
             nfe, nsetups);
   printf("error test fails = %-6ld LS iters = %-6ld NLS iters = %-6ld\n", netf,
             nni, ncfn);
-  printf("NL conv fails = %-6ld Jac evals = %-6ld RHS evals = %-6ld G evals ="
+  printf("NL conv fails = %-6ld Dls Jac evals = %-6ld Dls RHS evals = %-6ld G evals ="
             " %-6ld\n", ncfn, nje, nfeLS, nge);
+  printf("Last time step = %le Next time step = %le\n", last_h, curr_h);
 }
 
 #endif

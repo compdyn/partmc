@@ -234,6 +234,8 @@ contains
       write(*,*) "Initialization time: ", comp_end-comp_start, " s"
     end if
 
+    call new_obj%phlex_core%print()
+
   end function constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

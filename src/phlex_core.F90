@@ -1295,7 +1295,7 @@ contains
     !> File unit for output
     integer(kind=i_kind), intent(in), optional :: file_unit
 
-    integer(kind=i_kind) :: i_gas_spec, i_spec, i_phase, i_aero_rep, i_mech
+    integer(kind=i_kind) :: i_gas_spec, i_spec, j_spec, i_phase, i_aero_rep, i_mech
     integer(kind=i_kind) :: i_sub_model
     integer(kind=i_kind) :: f_unit=6
     type(string_t), allocatable :: state_names(:), rep_spec_names(:)
@@ -1340,7 +1340,9 @@ contains
     write(f_unit,*) "Gas-phase species: ", i_spec
     do i_aero_rep = 1, size(this%aero_rep)
       rep_spec_names = this%aero_rep(i_aero_rep)%val%unique_names()
-      state_names(i_spec+1:i_spec+size(rep_spec_names)) = rep_spec_names(:)
+      forall (j_spec=1:size(rep_spec_names)) &
+          state_names(i_spec+j_spec)%string = &
+              rep_spec_names(j_spec)%string
       i_spec = i_spec + size(rep_spec_names)
       write(f_unit,*) "Aerosol rep ", &
               this%aero_rep(i_aero_rep)%val%rep_name, &
@@ -1351,6 +1353,8 @@ contains
       write(f_unit,*) i_spec, state_names(i_spec)%string
     end do
     deallocate(state_names)
+
+    flush(f_unit)
 
     if (associated(this%solver_data_gas)) &
             call this%solver_data_gas%print()

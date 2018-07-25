@@ -611,7 +611,9 @@ contains
     f_unit = 6
     if (present(file_unit)) f_unit = file_unit
 
-    write(f_unit,*) "Number of species: ", this%num_spec
+    write(f_unit,*) "Number of unique chemical species: ", this%num_spec
+    write(f_unit,*) "(The number of state variables may differ when a ", &
+                    "species is present in more than one aerosol phase.)"
     do i_spec = 1, this%num_spec
       select case (this%spec_type(i_spec))
         case (CHEM_SPEC_UNKNOWN_TYPE)

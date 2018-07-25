@@ -16,8 +16,8 @@
 #include "../sub_model_solver.h"
 
 // TODO Lookup environmental indicies during initialization
-#define TEMPERATURE_K_ env_data[0]
-#define PRESSURE_PA_ env_data[1]
+#define TEMPERATURE_K_ env_data[ENV_OFFSET_ + 0]
+#define PRESSURE_PA_ env_data[ENV_OFFSET_ + 1]
 
 #define NUM_UNIQUE_PHASE_ (int_data[0])
 #define NUM_GROUP_ (int_data[1])
@@ -25,7 +25,8 @@
 #define TOTAL_FLOAT_PROP_ (int_data[3])
 #define INT_DATA_SIZE_ (int_data[4])
 #define FLOAT_DATA_SIZE_ (int_data[5])
-#define NUM_INT_PROP_ 6
+#define ENV_OFFSET_ (int_data[6])
+#define NUM_INT_PROP_ 7
 #define NUM_FLOAT_PROP_ 0
 #define PHASE_INT_LOC_(p) (int_data[NUM_INT_PROP_+p]-1)
 #define PHASE_FLOAT_LOC_(p) (int_data[NUM_INT_PROP_+NUM_UNIQUE_PHASE_+p]-1)
@@ -67,16 +68,23 @@ void * sub_model_UNIFAC_get_used_jac_elem(void *sub_model_data, pmc_bool *jac_ro
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
-/** \brief Update stored ids for elements used within a row of the Jacobian matrix
+/** \brief Update the time derivative and Jacbobian array indices
  *
- * \param sub_model_data Pointer to the sub-model data
- * \param jac_row An array of new ids for one row of the Jacobian matrix
- * \return The sub_model_data pointer advanced by the size of the sub model
+ * \param model_data Pointer to the model data
+ * \param deriv_ids Id of each state variable in the derivative array
+ * \param jac_ids Id of each state variable combo in the Jacobian array
+ * \param env_offset Offset for the state being solved for in the env array
+ * \param sub_model_data Pointer to the sub model data
+ * \return The sub_model_data pointer advanced by the size of the sub model data
  */
-void * sub_model_UNIFAC_update_ids(void *sub_model_data, int *jac_row)
+void * sub_model_UNIFAC_update_ids(ModelData *model_data, int *deriv_ids,
+          int **jac_ids, int env_offset, void *sub_model_data)
 {
   int *int_data = (int*) sub_model_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
+
+  // Update the environmental array offset
+  ENV_OFFSET_ = env_offset;
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }

@@ -210,11 +210,11 @@ contains
       ! solve and evaluate results on process 1
 #endif
 
-      ! Initialize the solver
-      call phlex_core%solver_initialize()
-
       ! Get a model state variable
       phlex_state => phlex_core%new_state()
+
+      ! Initialize the solver
+      call phlex_core%solver_initialize(phlex_state)
 
       ! Set the environmental conditions
       phlex_state%env_state%temp = temp
@@ -233,7 +233,7 @@ contains
       ! Set the photo B rate
       call rxn_factory%initialize_update_data(rate_update)
       call rate_update%set_rate(i_photo_A, photo_rate_1)
-      call phlex_core%update_rxn_data(rate_update)
+      call phlex_core%update_rxn_data(1, rate_update)
 
       ! Integrate the mechanism
       do i_time = 1, NUM_TIME_STEP

@@ -84,6 +84,7 @@ module pmc_rxn_troe
 #define NUM_PROD_ this%condensed_data_int(2)
 #define INT_DATA_SIZE_ this%condensed_data_int(3)
 #define FLOAT_DATA_SIZE_ this%condensed_data_int(4)
+#define ENV_OFFSET_ this%condensed_data_int(5)
 #define K0_A_ this%condensed_data_real(1)
 #define K0_B_ this%condensed_data_real(2)
 #define K0_C_ this%condensed_data_real(3)
@@ -95,7 +96,7 @@ module pmc_rxn_troe
 #define SCALING_ this%condensed_data_real(9)
 #define CONV_ this%condensed_data_real(10)
 #define RATE_CONSTANT_ this%condensed_data_real(11)
-#define NUM_INT_PROP_ 4
+#define NUM_INT_PROP_ 5
 #define NUM_REAL_PROP_ 11
 #define REACT_(x) this%condensed_data_int(NUM_INT_PROP_ + x)
 #define PROD_(x) this%condensed_data_int(NUM_INT_PROP_ + NUM_REACT_ + x)

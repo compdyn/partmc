@@ -42,8 +42,8 @@ module pmc_phlex_solver_data
   !> Interface to c ODE solver functions
   interface
     !> Get a new solver 
-    type(c_ptr) function solver_new(n_state_var, n_env_var, var_type, &
-                    n_rxn, n_rxn_int_param, n_rxn_float_param, &
+    type(c_ptr) function solver_new(n_state_var, n_env_var, n_states, &
+                    var_type, n_rxn, n_rxn_int_param, n_rxn_float_param, &
                     n_aero_phase, n_aero_phase_int_param, &
                     n_aero_phase_float_param, n_aero_rep, &
                     n_aero_rep_int_param, n_aero_rep_float_param, &
@@ -54,6 +54,8 @@ module pmc_phlex_solver_data
       integer(kind=c_int), value :: n_state_var
       !> Number of variables on the environmental state array
       integer(kind=c_int), value :: n_env_var
+      !> Number of states to solve simultaneously
+      integer(kind=c_int), value :: n_states
       !> Pointer to array of state variable types (solver, constant, PSSA)
       type(c_ptr), value :: var_type
       !> Number of reactions to solve
@@ -135,8 +137,11 @@ module pmc_phlex_solver_data
     end subroutine rxn_add_condensed_data
 
     !> Update reaction data
-    subroutine rxn_update_data(rxn_type, update_data, solver_data) bind(c)
+    subroutine rxn_update_data(state_id, rxn_type, update_data, solver_data) &
+                bind(c)
       use iso_c_binding
+      !> Index of unique state to update
+      integer(kind=c_int), value :: state_id
       !> Reaction type to updateto update
       integer(kind=c_int), value :: rxn_type
       !> Data required by reaction for updates
@@ -171,9 +176,11 @@ module pmc_phlex_solver_data
     end subroutine sub_model_add_condensed_data
 
     !> Update reaction data
-    subroutine sub_model_update_data(sub_model_type, update_data, &
-              solver_data) bind(c)
+    subroutine sub_model_update_data(state_id, sub_model_type, &
+              update_data, solver_data) bind(c)
       use iso_c_binding
+      !> Index of unique state to update
+      integer(kind=c_int), value :: state_id
       !> Reaction type to updateto update
       integer(kind=c_int), value :: sub_model_type
       !> Data required by reaction for updates
@@ -204,13 +211,15 @@ module pmc_phlex_solver_data
     end function sub_model_get_parameter_id_sd
 
     !> Get a sub model parameter value
-    function sub_model_get_parameter_value_sd(solver_data, parameter_id) &
-                  bind (c)
+    function sub_model_get_parameter_value_sd(solver_data, state_id, &
+                  parameter_id) bind (c)
       use iso_c_binding
       !> Parameter value
       real(kind=PMC_F90_C_FLOAT) :: sub_model_get_parameter_value_sd
       !> Solver data
       type(c_ptr), value :: solver_data
+      !> Index of unique state to update
+      integer(kind=c_int), value :: state_id
       !> Parameter id
       integer(kind=c_int), value :: parameter_id
     end function sub_model_get_parameter_value_sd
@@ -257,9 +266,11 @@ module pmc_phlex_solver_data
     end subroutine aero_rep_add_condensed_data
 
     !> Update aerosol representation data
-    subroutine aero_rep_update_data(aero_rep_type, update_data, solver_data) &
-              bind(c)
+    subroutine aero_rep_update_data(state_id, aero_rep_type, update_data, &
+                solver_data) bind(c)
       use iso_c_binding
+      !> Index of unique state to update
+      integer(kind=c_int), value :: state_id
       !> Aerosol representation type to updateto update
       integer(kind=c_int), value :: aero_rep_type
       !> Data required by aerosol representation for updates
@@ -303,6 +314,8 @@ module pmc_phlex_solver_data
             PMC_SOLVER_DEFAULT_MAX_CONV_FAILS
     !> Flag indicating whether the solver was intialized
     logical :: initialized = .false.
+    !> Number of unique states to solve simultaneously
+    integer(kind=phlex_int) :: n_states
   contains
     !> Initialize the solver
     procedure :: initialize
@@ -350,7 +363,7 @@ contains
 
   !> Initialize the solver
   subroutine initialize(this, var_type, abs_tol, mechanisms, aero_phases, &
-                  aero_reps, sub_models, rxn_phase)
+                  aero_reps, sub_models, rxn_phase, phlex_state)
 
     !> Solver data
     class(phlex_solver_data_t), intent(inout) :: this
@@ -373,6 +386,9 @@ contains
     !! Use parameters in pmc_rxn_data to specify phase:
     !! GAS_RXN, AERO_RXN, GAS_AERO_RXN
     integer(kind=phlex_int), intent(in) :: rxn_phase
+    !> State(s) to solve - used to get number of uniqie states and 
+    !! state array dimensions
+    type(phlex_state_t), intent(in) :: phlex_state
 
     ! Variable types
     integer(kind=c_int), pointer :: var_type_c(:)
@@ -437,6 +453,9 @@ contains
     allocate(abs_tol_c(size(abs_tol)))
     var_type_c(:) = int(var_type(:), kind=c_int)
     abs_tol_c(:) = real(abs_tol(:), kind=PMC_F90_C_FLOAT)
+
+    ! Save the number of unique states
+    this%n_states = phlex_state%n_unique_states
 
     ! Initialize the counters
     n_rxn = 0
@@ -512,6 +531,8 @@ contains
             int(size(var_type_c), kind=c_int), & ! Size of the state variable
             int(phlex_state_num_env_param(),   &
                   kind=c_int),                 & ! Number of environmental variables
+            int(phlex_state%n_unique_states,   &
+                  kind=c_int),                 & ! Number of states to solve at once
             c_loc(var_type_c),                 & ! Variable types
             n_rxn,                             & ! # of reactions
             n_rxn_int_param,                   & ! # of rxn data int params
@@ -683,14 +704,17 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update sub-model data
-  subroutine update_sub_model_data(this, update_data)
+  subroutine update_sub_model_data(this, state_id, update_data)
 
     !> Solver data
     class(phlex_solver_data_t), intent(inout) :: this
+    !> Index of unique state to update
+    integer(kind=phlex_int), intent(in) :: state_id
     !> Update data
     class(sub_model_update_data_t), intent(in) :: update_data
 
     call sub_model_update_data( &
+            int(state_id-1, kind=c_int),& ! Unique state to update
             update_data%get_type(),     & ! Sub-model type to update
             update_data%get_data(),     & ! Data needed to perform update
             this%solver_c_ptr           & ! Pointer to solver data
@@ -701,14 +725,17 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update reaction data
-  subroutine update_rxn_data(this, update_data)
+  subroutine update_rxn_data(this, state_id, update_data)
 
     !> Solver data
     class(phlex_solver_data_t), intent(inout) :: this
+    !> Index of unique state to update
+    integer(kind=phlex_int), intent(in) :: state_id
     !> Update data
     class(rxn_update_data_t), intent(in) :: update_data
 
     call rxn_update_data( &
+            int(state_id-1, kind=c_int),& ! Unique state to update
             update_data%get_type(),     & ! Reaction type to update
             update_data%get_data(),     & ! Data needed to perform update 
             this%solver_c_ptr           & ! Pointer to solver data
@@ -720,14 +747,17 @@ contains
 
   !> Update aerosol representation data based on data passed from the host
   !! model related to aerosol properties
-  subroutine update_aero_rep_data(this, update_data)
+  subroutine update_aero_rep_data(this, state_id, update_data)
 
     !> Solver data
     class(phlex_solver_data_t), intent(inout) :: this
+    !> Index of unique state to update
+    integer(kind=phlex_int), intent(in) :: state_id
     !> Update data
     class(aero_rep_update_data_t), intent(in) :: update_data
 
     call aero_rep_update_data( &
+            int(state_id-1, kind=c_int),& ! Unique state to update
             update_data%get_type(),     & ! Aerosol representation type
             update_data%get_data(),     & ! Data needed to perform update
             this%solver_c_ptr           & ! Pointer to solver data
@@ -751,6 +781,11 @@ contains
 
     integer(kind=c_int) :: solver_status
     
+    ! Check the number of states to solve
+    call assert_msg(207872388, phlex_state%n_unique_states .eq. this%n_states, &
+                    "Solver expected "//trim(to_string(this%n_states))// &
+                    " states but got "//trim(to_string(phlex_state%n_unique_states)))
+
     ! Run the solver
     solver_status = solver_run( &
             this%solver_c_ptr,              & ! Pointer to intialized solver
@@ -816,13 +851,15 @@ contains
   !!
   !! Returns the value associate with a sub model output, based on the current
   !! solver state.
-  function get_sub_model_parameter_value(this, parameter_id) &
+  function get_sub_model_parameter_value(this, state_id, parameter_id) &
       result (parameter_value)
 
     !> Value of the parameter
     real(kind=phlex_real) :: parameter_value
     !> Solver data
     class(phlex_solver_data_t), intent(in) :: this
+    !> State id to get value for
+    integer(kind=phlex_int), intent(in) :: state_id
     !> Parameter id
     integer(kind=c_int), intent(in) :: parameter_id
 
@@ -830,6 +867,7 @@ contains
 
     parameter_value_c = sub_model_get_parameter_value_sd( &
             this%solver_c_ptr,          & ! Pointer to solver data
+            int(state_id-1, kind=c_int),& ! Unique state to get value for
             parameter_id                & ! Id of the parameter
             )
 

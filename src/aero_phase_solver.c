@@ -153,15 +153,25 @@ void aero_phase_add_condensed_data(int n_int_param, int n_float_param,
 {
   ModelData *model_data = 
           (ModelData*) &(((SolverData*)solver_data)->model_data);
-  int *aero_phase_data = (int*) (model_data->nxt_aero_phase);
+  int *aero_phase_data;
+  PMC_C_FLOAT *flt_ptr;
 
-  // Add the integer parameters
-  for (; n_int_param>0; n_int_param--) *(aero_phase_data++) = *(int_param++);
+  // Loop backwards through the unique states
+  for (int i_state=model_data->n_states-1; i_state >= 0; i_state--) {
 
-  // Add the floating-point parameters
-  PMC_C_FLOAT *flt_ptr = (PMC_C_FLOAT*) aero_phase_data;
-  for (; n_float_param>0; n_float_param--) 
-          *(flt_ptr++) = (PMC_C_FLOAT) *(float_param++);
+    // Point to the next aerosol phase's space for this state
+    aero_phase_data = (int*) (model_data->nxt_aero_phase);
+    aero_phase_data += (model_data->aero_phase_data_size / sizeof(int)) * i_state;
+
+    // Add the integer parameters
+    for (; n_int_param>0; n_int_param--) *(aero_phase_data++) = *(int_param++);
+
+    // Add the floating-point parameters
+    flt_ptr = (PMC_C_FLOAT*) aero_phase_data;
+    for (; n_float_param>0; n_float_param--) 
+            *(flt_ptr++) = (PMC_C_FLOAT) *(float_param++);
+
+  }
 
   // Set the pointer for the next free space in aero_phase_data;
   model_data->nxt_aero_phase = (void*) flt_ptr;

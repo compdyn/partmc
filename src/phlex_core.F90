@@ -103,6 +103,7 @@ module pmc_phlex_core
   use pmc_aero_rep_factory
   use pmc_chem_spec_data
   use pmc_constants,                  only : phlex_real, phlex_int
+  use pmc_env_state,                  only : env_state_t
   use pmc_mechanism_data
   use pmc_mpi
   use pmc_phlex_solver_data
@@ -857,27 +858,49 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a model state variable based on the this set of model data
-  function new_state(this)
+  function new_state(this, n_unique_states, env_state)
 
     !> New model state
     type(phlex_state_t), pointer :: new_state
     !> Chemical model
     class(phlex_core_t), intent(in) :: this
+    !> Number of unique states per state object
+    integer(kind=phlex_int), intent(in), optional :: n_unique_states
+    !> Environmental state
+    type(env_state_t), target, intent(in), optional :: env_state
 
-    new_state => phlex_state_t()
+    integer(kind=phlex_int) :: n_states, i_state, state_size
 
-    ! Set up the state variable array
-    allocate(new_state%state_var, source=this%init_state)
+    if (present(n_unique_states)) then
+      n_states = n_unique_states
+    else
+      n_states = 1
+    endif
+
+    state_size = size(this%init_state)
+
+    if (present(env_state)) then
+      new_state => phlex_state_t(state_size, n_states, env_state)
+    else
+      new_state => phlex_state_t(state_size, n_states)
+    end if
+
+    forall (i_state = 1 : n_states)
+      new_state%state_var((i_state-1)*state_size+1 : i_state*state_size) = &
+            this%init_state(:)
+    end forall
 
   end function new_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize the solver
-  subroutine solver_initialize(this)
+  subroutine solver_initialize(this, phlex_state)
 
     !> Chemical model
     class(phlex_core_t), intent(inout) :: this
+    !> Array of states to solve as a single system
+    class(phlex_state_t), intent(in) :: phlex_state
  
     call assert_msg(662920365, .not.this%solver_is_initialized, &
             "Attempting to initialize the solver twice.")
@@ -897,22 +920,24 @@ contains
 
       ! Initialize the solvers
       call this%solver_data_gas%initialize( &
-                this%var_type,   & ! State array variable types
-                this%abs_tol,    & ! Absolute tolerances for each state var
-                this%mechanism,  & ! Pointer to the mechanisms
-                this%aero_phase, & ! Pointer to the aerosol phases
-                this%aero_rep,   & ! Pointer to the aerosol representations
-                this%sub_model,  & ! Pointer to the sub-models
-                GAS_RXN          & ! Reaction phase
+                this%var_type,  & ! State array variable types
+                this%abs_tol,   & ! Absolute tolerances for each state var
+                this%mechanism, & ! Pointer to the mechanisms
+                this%aero_phase,& ! Pointer to the aerosol phases
+                this%aero_rep,  & ! Pointer to the aerosol representations
+                this%sub_model, & ! Pointer to the sub-models
+                GAS_RXN,        & ! Reaction phase
+                phlex_state     & ! States to solve
                 )
       call this%solver_data_aero%initialize( &
-                this%var_type,   & ! State array variable types
-                this%abs_tol,    & ! Absolute tolerances for each state var
-                this%mechanism,  & ! Pointer to the mechanisms
-                this%aero_phase, & ! Pointer to the aerosol phases
-                this%aero_rep,   & ! Pointer to the aerosol representations
-                this%sub_model,  & ! Pointer to the sub-models
-                AERO_RXN         & ! Reaction phase
+                this%var_type,  & ! State array variable types
+                this%abs_tol,   & ! Absolute tolerances for each state var
+                this%mechanism, & ! Pointer to the mechanisms
+                this%aero_phase,& ! Pointer to the aerosol phases
+                this%aero_rep,  & ! Pointer to the aerosol representations
+                this%sub_model, & ! Pointer to the sub-models
+                AERO_RXN,       & ! Reaction phase
+                phlex_state     & ! States to solve
                 )
     else
 
@@ -926,13 +951,14 @@ contains
     
       ! Initialize the solver
       call this%solver_data_gas_aero%initialize( &
-                this%var_type,   & ! State array variable types
-                this%abs_tol,    & ! Absolute tolerances for each state var
-                this%mechanism,  & ! Pointer to the mechanisms
-                this%aero_phase, & ! Pointer to the aerosol phases
-                this%aero_rep,   & ! Pointer to the aerosol representations
-                this%sub_model,  & ! Pointer to the sub-models
-                GAS_AERO_RXN     & ! Reaction phase
+                this%var_type,  & ! State array variable types
+                this%abs_tol,   & ! Absolute tolerances for each state var
+                this%mechanism, & ! Pointer to the mechanisms
+                this%aero_phase,& ! Pointer to the aerosol phases
+                this%aero_rep,  & ! Pointer to the aerosol representations
+                this%sub_model, & ! Pointer to the sub-models
+                GAS_AERO_RXN,   & ! Reaction phase
+                phlex_state     & ! States to solve
                 )
       
     end if
@@ -948,19 +974,24 @@ contains
   !! the aerosol condensed data needs updated based on changes in, e.g., 
   !! particle size or number concentration. The update types are aerosol-
   !! representation specific.
-  subroutine update_aero_rep_data(this, update_data)
+  subroutine update_aero_rep_data(this, state_id, update_data)
 
     !> Chemical model
     class(phlex_core_t), intent(in) :: this
+    !> Index of unique state to update data for
+    integer(kind=phlex_int), intent(in) :: state_id
     !> Update data
     class(aero_rep_update_data_t), intent(in) :: update_data
 
     if (associated(this%solver_data_gas)) &
-            call this%solver_data_gas%update_aero_rep_data(update_data)
+            call this%solver_data_gas%update_aero_rep_data( &
+                    state_id, update_data)
     if (associated(this%solver_data_aero)) &
-            call this%solver_data_aero%update_aero_rep_data(update_data)
+            call this%solver_data_aero%update_aero_rep_data( &
+                    state_id, update_data)
     if (associated(this%solver_data_gas_aero)) &
-            call this%solver_data_gas_aero%update_aero_rep_data(update_data)
+            call this%solver_data_gas_aero%update_aero_rep_data( &
+                    state_id, update_data)
     
   end subroutine update_aero_rep_data
 
@@ -970,19 +1001,24 @@ contains
   !! when reaction parameters need updated from the host model. For example,
   !! this function can be called to update photolysis rates from a host
   !! model's photolysis module.
-  subroutine update_rxn_data(this, update_data)
+  subroutine update_rxn_data(this, state_id, update_data)
 
     !> Chemical model
     class(phlex_core_t), intent(in) :: this
+    !> Index of unique state to update data for
+    integer(kind=phlex_int), intent(in) :: state_id
     !> Update data
     class(rxn_update_data_t), intent(in) :: update_data
 
     if (associated(this%solver_data_gas)) &
-            call this%solver_data_gas%update_rxn_data(update_data)
+            call this%solver_data_gas%update_rxn_data( &
+                    state_id, update_data)
     if (associated(this%solver_data_aero)) &
-            call this%solver_data_aero%update_rxn_data(update_data)
+            call this%solver_data_aero%update_rxn_data( &
+                    state_id, update_data)
     if (associated(this%solver_data_gas_aero)) &
-            call this%solver_data_gas_aero%update_rxn_data(update_data)
+            call this%solver_data_gas_aero%update_rxn_data( &
+                    state_id, update_data)
 
   end subroutine update_rxn_data
 
@@ -990,19 +1026,24 @@ contains
 
   !> Update data associated with a sub-model. This function should be called
   !! when sub-model parameters need updated from the host model.
-  subroutine update_sub_model_data(this, update_data)
+  subroutine update_sub_model_data(this, state_id, update_data)
 
     !> Chemical model
     class(phlex_core_t), intent(in) :: this
+    !> Index of the unique state to update
+    integer(kind=phlex_int), intent(in) :: state_id
     !> Update data
     class(sub_model_update_data_t), intent(in) :: update_data
 
     if (associated(this%solver_data_gas)) &
-            call this%solver_data_gas%update_sub_model_data(update_data)
+            call this%solver_data_gas%update_sub_model_data( &
+                  state_id, update_data)
     if (associated(this%solver_data_aero)) &
-            call this%solver_data_aero%update_sub_model_data(update_data)
+            call this%solver_data_aero%update_sub_model_data( &
+                  state_id, update_data)
     if (associated(this%solver_data_gas_aero)) &
-            call this%solver_data_gas_aero%update_sub_model_data(update_data)
+            call this%solver_data_gas_aero%update_sub_model_data( &
+                  state_id, update_data)
 
   end subroutine update_sub_model_data
 
@@ -1096,7 +1137,7 @@ contains
 
   !> Get the value associated with a sub-model parameter for the current
   !! solver state
-  function get_sub_model_parameter_value(this, parameter_id) &
+  function get_sub_model_parameter_value(this, state_id, parameter_id) &
       result (parameter_value)
 
     use iso_c_binding
@@ -1105,21 +1146,23 @@ contains
     real(kind=phlex_real) :: parameter_value
     !> Core data
     class(phlex_core_t), intent(in) :: this
+    !> Id of unique state to return parameter for
+    integer(kind=phlex_int), intent(in) :: state_id
     !> Parameter id
     integer(kind=c_int), intent(in) :: parameter_id
 
     if (associated(this%solver_data_gas)) then
       parameter_value = &
               this%solver_data_gas%get_sub_model_parameter_value( &
-              parameter_id)
+              state_id, parameter_id)
     else if (associated(this%solver_data_aero)) then
       parameter_value = &
               this%solver_data_aero%get_sub_model_parameter_value( &
-              parameter_id)
+              state_id, parameter_id)
     else if (associated(this%solver_data_gas_aero)) then
       parameter_value = &
               this%solver_data_gas_aero%get_sub_model_parameter_value( &
-              parameter_id)
+              state_id, parameter_id)
     end if
 
   end function get_sub_model_parameter_value

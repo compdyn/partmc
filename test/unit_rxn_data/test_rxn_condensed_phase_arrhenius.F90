@@ -225,11 +225,11 @@ contains
       ! solve and evaluate results on process 1
 #endif
 
-      ! Initialize the solver
-      call phlex_core%solver_initialize()
-
       ! Get a model state variable
       phlex_state => phlex_core%new_state()
+
+      ! Initialize the solver
+      call phlex_core%solver_initialize(phlex_state)
 
       ! Check the size of the state array
       call assert(235226766, size(phlex_state%state_var).eq.NUM_STATE_VAR)

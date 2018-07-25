@@ -18,7 +18,8 @@
 void * sub_model_UNIFAC_get_used_jac_elem(
           void *sub_model_data, pmc_bool *jac_row);
 void * sub_model_UNIFAC_update_ids(
-          void *sub_model_data, int *jac_row);
+          ModelData *model_data, int *deriv_ids, int **jac_ids, int env_offset,
+          void *sub_model_data);
 void * sub_model_UNIFAC_get_parameter_id(
           void *sub_model_data, void* identifiers, int *parameter_id);
 void * sub_model_UNIFAC_update_env_state(

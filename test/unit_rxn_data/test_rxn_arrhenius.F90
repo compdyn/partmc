@@ -189,11 +189,11 @@ contains
       ! solve and evaluate results on process 1
 #endif
 
-      ! Initialize the solver
-      call phlex_core%solver_initialize()
-
       ! Get a model state variable
       phlex_state => phlex_core%new_state()
+
+      ! Initialize the solver
+      call phlex_core%solver_initialize(phlex_state)
 
       ! Set the environmental conditions
       phlex_state%env_state%temp = temp

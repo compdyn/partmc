@@ -11,6 +11,8 @@
 #include "phlex_solver.h"
 #include "rxn_solver.h"
 
+#define NUM_ENV_VAR 2
+
 // Reaction types (Must match parameters defined in pmc_rxn_factory)
 #define RXN_ARRHENIUS 1
 #define RXN_TROE 2
@@ -40,6 +42,7 @@ void * rxn_get_used_jac_elem(ModelData *model_data, pmc_bool **jac_struct)
 
   // Loop through the reactions to determine the Jacobian elements used
   // advancing the rxn_data pointer each time
+  // (only need to do this on the first unique state)
   for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
 
     // Get the reaction type
@@ -99,70 +102,104 @@ void * rxn_get_used_jac_elem(ModelData *model_data, pmc_bool **jac_struct)
 /** \brief Update the time derivative and Jacobian array ids
  *
  * \param model_data Pointer to the model data
+ * \param deriv_size Number of elements per state on the derivative array
+ * \param jac_size Number of elements per state on the Jacobian array
  * \param deriv_ids Ids for state variables on the time derivative array
  * \param jac_ids Ids for state variables on the Jacobian array
  */
-void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids)
+void rxn_update_ids(ModelData *model_data, int deriv_size, int jac_size, 
+            int *deriv_ids, int **jac_ids)
 {
 
-  // Get the number of reactions
-  int *rxn_data = (int*) (model_data->rxn_data);
-  int n_rxn = *(rxn_data++);
+  int *rxn_data;
+  int env_offset = 0;
 
-  // Loop through the reactions advancing the rxn_data pointer each time
-  for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
+  // Loop through the unique states
+  for (int i_state = 0; i_state < model_data-> n_states; i_state++) {
 
-    // Get the reaction type
-    int rxn_type = *(rxn_data++);
+    // Point to the reaction data for this state
+    rxn_data = (int*) (model_data->rxn_data);
+    rxn_data += (model_data->rxn_data_size / sizeof(int)) * i_state;
 
-    // Call the appropriate function
-    switch (rxn_type) {
-      case RXN_AQUEOUS_EQUILIBRIUM :
-        rxn_data = (int*) rxn_aqueous_equilibrium_update_ids(
-                  model_data, deriv_ids, jac_ids, (void*) rxn_data);
-        break;
-      case RXN_ARRHENIUS :
-        rxn_data = (int*) rxn_arrhenius_update_ids(
-                  model_data, deriv_ids, jac_ids, (void*) rxn_data);
-        break;
-      case RXN_CMAQ_H2O2 :
-        rxn_data = (int*) rxn_CMAQ_H2O2_update_ids(
-                  model_data, deriv_ids, jac_ids, (void*) rxn_data);
-        break;
-      case RXN_CMAQ_OH_HNO3 :
-        rxn_data = (int*) rxn_CMAQ_OH_HNO3_update_ids(
-                  model_data, deriv_ids, jac_ids, (void*) rxn_data);
-        break;
-      case RXN_CONDENSED_PHASE_ARRHENIUS :
-        rxn_data = (int*) rxn_condensed_phase_arrhenius_update_ids(
-                  model_data, deriv_ids, jac_ids, (void*) rxn_data);
-        break;
-      case RXN_HL_PHASE_TRANSFER :
-        rxn_data = (int*) rxn_HL_phase_transfer_update_ids(
-                  model_data, deriv_ids, jac_ids, (void*) rxn_data);
-        break;
-      case RXN_PDFITE_ACTIVITY :
-        rxn_data = (int*) rxn_PDFiTE_activity_update_ids(
-                  model_data, deriv_ids, jac_ids, (void*) rxn_data);
-        break;
-      case RXN_PHOTOLYSIS :
-        rxn_data = (int*) rxn_photolysis_update_ids(
-                  model_data, deriv_ids, jac_ids, (void*) rxn_data);
-        break;
-      case RXN_SIMPOL_PHASE_TRANSFER :
-        rxn_data = (int*) rxn_SIMPOL_phase_transfer_update_ids(
-                  model_data, deriv_ids, jac_ids, (void*) rxn_data);
-        break;
-      case RXN_TROE :
-        rxn_data = (int*) rxn_troe_update_ids(
-                  model_data, deriv_ids, jac_ids, (void*) rxn_data);
-        break;
-      case RXN_ZSR_AEROSOL_WATER :
-        rxn_data = (int*) rxn_ZSR_aerosol_water_update_ids(
-                  model_data, deriv_ids, jac_ids, (void*) rxn_data);
-        break;
+    // Get the number of reactions
+    int n_rxn = *(rxn_data++);
+
+    // Loop through the reactions advancing the rxn_data pointer each time
+    for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
+
+      // Get the reaction type
+      int rxn_type = *(rxn_data++);
+
+      // Call the appropriate function
+      switch (rxn_type) {
+        case RXN_AQUEOUS_EQUILIBRIUM :
+          rxn_data = (int*) rxn_aqueous_equilibrium_update_ids(
+                    model_data, deriv_ids, jac_ids, env_offset, i_state, (void*) rxn_data);
+          break;
+        case RXN_ARRHENIUS :
+          rxn_data = (int*) rxn_arrhenius_update_ids(
+                    model_data, deriv_ids, jac_ids, env_offset, i_state, (void*) rxn_data);
+          break;
+        case RXN_CMAQ_H2O2 :
+          rxn_data = (int*) rxn_CMAQ_H2O2_update_ids(
+                    model_data, deriv_ids, jac_ids, env_offset, i_state, (void*) rxn_data);
+          break;
+        case RXN_CMAQ_OH_HNO3 :
+          rxn_data = (int*) rxn_CMAQ_OH_HNO3_update_ids(
+                    model_data, deriv_ids, jac_ids, env_offset, i_state, (void*) rxn_data);
+          break;
+        case RXN_CONDENSED_PHASE_ARRHENIUS :
+          rxn_data = (int*) rxn_condensed_phase_arrhenius_update_ids(
+                    model_data, deriv_ids, jac_ids, env_offset, i_state, (void*) rxn_data);
+          break;
+        case RXN_HL_PHASE_TRANSFER :
+          rxn_data = (int*) rxn_HL_phase_transfer_update_ids(
+                    model_data, deriv_ids, jac_ids, env_offset, i_state, (void*) rxn_data);
+          break;
+        case RXN_PDFITE_ACTIVITY :
+          rxn_data = (int*) rxn_PDFiTE_activity_update_ids(
+                    model_data, deriv_ids, jac_ids, env_offset, i_state, (void*) rxn_data);
+          break;
+        case RXN_PHOTOLYSIS :
+          rxn_data = (int*) rxn_photolysis_update_ids(
+                    model_data, deriv_ids, jac_ids, env_offset, i_state, (void*) rxn_data);
+          break;
+       case RXN_SIMPOL_PHASE_TRANSFER :
+          rxn_data = (int*) rxn_SIMPOL_phase_transfer_update_ids(
+                    model_data, deriv_ids, jac_ids, env_offset, i_state, (void*) rxn_data);
+          break;
+        case RXN_TROE :
+          rxn_data = (int*) rxn_troe_update_ids(
+                    model_data, deriv_ids, jac_ids, env_offset, i_state, (void*) rxn_data);
+          break;
+        case RXN_ZSR_AEROSOL_WATER :
+          rxn_data = (int*) rxn_ZSR_aerosol_water_update_ids(
+                    model_data, deriv_ids, jac_ids, env_offset, i_state, (void*) rxn_data);
+          break;
+      }
     }
+    
+    // Update the derivative and Jacobian ids for the next state
+    for (int i_elem = 0; i_elem < model_data->n_state_var; i_elem++)
+      if (deriv_ids[i_elem]>=0) deriv_ids[i_elem] += deriv_size;
+    for (int i_elem = 0; i_elem < model_data->n_state_var; i_elem++)
+      for (int j_elem = 0; j_elem < model_data->n_state_var; j_elem++)
+        if (jac_ids[i_elem][j_elem]>=0) jac_ids[i_elem][j_elem] += jac_size;
+
+    // Update the environmental array offset for the next state
+    env_offset += NUM_ENV_VAR;
+
   }
+
+    // Reset the indices to the first state's values
+    for (int i_elem = 0; i_elem < model_data->n_state_var; i_elem++)
+      if (deriv_ids[i_elem]>=0) deriv_ids[i_elem] -= 
+              (model_data->n_states) * deriv_size;
+    for (int i_elem = 0; i_elem < model_data->n_state_var; i_elem++)
+      for (int j_elem = 0; j_elem < model_data->n_state_var; j_elem++)
+        if (jac_ids[i_elem][j_elem]>=0) jac_ids[i_elem][j_elem] -=
+                (model_data->n_states) * jac_size;
+
 }
 
 /** \brief Update reaction data for new environmental state
@@ -173,8 +210,12 @@ void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids)
 void rxn_update_env_state(ModelData *model_data, PMC_C_FLOAT *env)
 {
 
-  // Get the number of reactions
   int *rxn_data = (int*) (model_data->rxn_data);
+
+  // Loop through the unique states to solve
+  for (int i_state = 0; i_state < model_data->n_states; i_state++) {
+
+  // Get the number of reactions
   int n_rxn = *(rxn_data++);
 
   // Loop through the reactions advancing the rxn_data pointer each time
@@ -236,6 +277,7 @@ void rxn_update_env_state(ModelData *model_data, PMC_C_FLOAT *env)
                   env, (void*) rxn_data);
         break;
     }
+  }
   } 
 }
 
@@ -255,8 +297,12 @@ void rxn_update_env_state(ModelData *model_data, PMC_C_FLOAT *env)
 void rxn_pre_calc(ModelData *model_data)
 {
   
-  // Get the number of reactions
   int *rxn_data = (int*) (model_data->rxn_data);
+  
+  // Loop through the unique states to solve
+  for (int i_state = 0; i_state < model_data->n_states; i_state++) {
+
+  // Get the number of reactions
   int n_rxn = *(rxn_data++);
 
   // Loop through the reactions advancing the rxn_data pointer each time
@@ -318,6 +364,7 @@ void rxn_pre_calc(ModelData *model_data)
                   model_data, (void*) rxn_data);
         break;
     }
+  }
   } 
 }
 
@@ -331,8 +378,12 @@ void rxn_pre_calc(ModelData *model_data)
 void rxn_calc_deriv(ModelData *model_data, PMC_SOLVER_C_FLOAT *deriv_data, 
     PMC_C_FLOAT time_step)
 {
-  // Get the number of reactions
   int *rxn_data = (int*) (model_data->rxn_data);
+  
+  // Loop through the unique states to solve
+  for (int i_state = 0; i_state < model_data->n_states; i_state++) {
+
+  // Get the number of reactions
   int n_rxn = *(rxn_data++);
 
   // Loop through the reactions advancing the rxn_data pointer each time
@@ -394,6 +445,7 @@ void rxn_calc_deriv(ModelData *model_data, PMC_SOLVER_C_FLOAT *deriv_data,
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
     }
+  }
   } 
 }
 #endif
@@ -408,8 +460,12 @@ void rxn_calc_deriv(ModelData *model_data, PMC_SOLVER_C_FLOAT *deriv_data,
 void rxn_calc_jac(ModelData *model_data, PMC_SOLVER_C_FLOAT *J_data,
     PMC_C_FLOAT time_step)
 {
-  // Get the number of reactions
   int *rxn_data = (int*) (model_data->rxn_data);
+  
+  // Loop through the unique states to solve
+  for (int i_state = 0; i_state < model_data->n_states; i_state++) {
+
+  // Get the number of reactions
   int n_rxn = *(rxn_data++);
 
   // Loop through the reactions advancing the rxn_data pointer each time
@@ -471,6 +527,7 @@ void rxn_calc_jac(ModelData *model_data, PMC_SOLVER_C_FLOAT *J_data,
                   model_data, J_data, (void*) rxn_data, time_step);
         break;
     }
+  }
   }  
 }
 #endif
@@ -491,20 +548,31 @@ void rxn_add_condensed_data(int rxn_type, int n_int_param, int n_float_param,
 {
   ModelData *model_data =
           (ModelData*) &(((SolverData*)solver_data)->model_data);
-  int *rxn_data = (int*) (model_data->nxt_rxn);
+  int *rxn_data;
+  PMC_C_FLOAT *flt_ptr;
 
-  // Add the reaction type
-  *(rxn_data++) = rxn_type;
+  // Loop backwards through the unique states
+  for (int i_state=model_data->n_states-1; i_state >= 0; i_state--) {
 
-  // Add integer parameters
-  for (; n_int_param>0; n_int_param--) *(rxn_data++) = *(int_param++);
+    // Point to the next reaction space for this state
+    rxn_data = (int*) (model_data->nxt_rxn);
+    rxn_data += (model_data->rxn_data_size / sizeof(int)) * i_state;
+    
+    // Add the reaction type
+    *(rxn_data++) = rxn_type;
 
-  // Add floating-point parameters
-  PMC_C_FLOAT *flt_ptr = (PMC_C_FLOAT*) rxn_data;
-  for (; n_float_param>0; n_float_param--)
-          *(flt_ptr++) = (PMC_C_FLOAT) *(float_param++);
+    // Add integer parameters
+    for (; n_int_param>0; n_int_param--) *(rxn_data++) = *(int_param++);
+
+    // Add floating-point parameters
+    flt_ptr = (PMC_C_FLOAT*) rxn_data;
+    for (; n_float_param>0; n_float_param--)
+            *(flt_ptr++) = (PMC_C_FLOAT) *(float_param++);
+
+  }
 
   // Set the pointer for the next free space in rxn_data
+  // (for the first unique state)
   model_data->nxt_rxn = (void*) flt_ptr;
 }
 
@@ -515,17 +583,20 @@ void rxn_add_condensed_data(int rxn_type, int n_int_param, int n_float_param,
  * by the reaction type. This data could be used to find specific reactions of
  * the specified type and, for example, update rate constants.
  *
+ * \param state_id Index of the unique state to update
  * \param update_rxn_type Type of the reaction
  * \param update_data Pointer to updated data to pass to the reaction
  * \param solver_data Pointer to solver data
  */
-void rxn_update_data(int update_rxn_type, void *update_data, void *solver_data)
+void rxn_update_data(int state_id, int update_rxn_type, void *update_data,
+            void *solver_data)
 {
   ModelData *model_data =
           (ModelData*) &(((SolverData*)solver_data)->model_data);
 
   // Get the number of reactions
   int *rxn_data = (int*) (model_data->rxn_data);
+  rxn_data += (model_data->rxn_data_size / sizeof(int)) * state_id;
   int n_rxn = *(rxn_data++);
 
   // Loop through the reactions advancing the rxn_data pointer each time
@@ -644,11 +715,15 @@ void rxn_print_data(void *solver_data)
   ModelData *model_data =
           (ModelData*) &(((SolverData*)solver_data)->model_data);
 
-  // Get the number of reactions
   int *rxn_data = (int*) (model_data->rxn_data);
+  
+  // Loop through the unique states to solve
+  for (int i_state = 0; i_state < model_data->n_states; i_state++) {
+
+  // Get the number of reactions
   int n_rxn = *(rxn_data++);
 
-  printf("\n\nReaction data\n\nnumber of reactions: %d\n\n", n_rxn);
+  printf("\n\nReaction data for state %d\n\nnumber of reactions: %d\n\n", i_state, n_rxn);
 
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
@@ -703,6 +778,7 @@ void rxn_print_data(void *solver_data)
                   (void*) rxn_data);
 	break;
     }
+  }
   }
 }
 

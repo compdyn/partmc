@@ -26,6 +26,12 @@ module pmc_phlex_state
   !!
   !! Temporal state of the model
   type phlex_state_t
+    !> Number of state variables
+    integer(kind=phlex_int) :: n_state_vars
+    !> Number of environmental variables
+    integer(kind=phlex_int) :: n_env_vars
+    !> Number of unique states held by this state object
+    integer(kind=phlex_int) :: n_unique_states
     !> Environmental state array. This array will include one entry
     !! for every environmental variable requried to solve the 
     !! chemical mechanism(s)
@@ -62,10 +68,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for phlex_state_t
-  function constructor(env_state) result (new_obj)
+  function constructor(n_state_vars, n_unique_states, env_state) result (new_obj)
 
     !> New model state
     type(phlex_state_t), pointer :: new_obj
+    !> Number of state variables
+    integer(kind=phlex_int), intent(in) :: n_state_vars
+    !> Number of unique states to hold
+    integer(kind=phlex_int), intent(in) :: n_unique_states
     !> Environmental state
     type(env_state_t), target, intent(in), optional :: env_state
 
@@ -80,8 +90,14 @@ contains
       new_obj%owns_env_state = .true.
     end if
 
-    ! Set up the environmental state array
-    allocate(new_obj%env_var(PHLEX_STATE_NUM_ENV_PARAM))
+    ! Save the dimensions of the state
+    new_obj%n_state_vars = n_state_vars
+    new_obj%n_env_vars = PHLEX_STATE_NUM_ENV_PARAM
+    new_obj%n_unique_states = n_unique_states
+
+    ! Set up the state arrays
+    allocate(new_obj%env_var(new_obj%n_env_vars * new_obj%n_unique_states))
+    allocate(new_obj%state_var(new_obj%n_state_vars * new_obj%n_unique_states))
   
   end function constructor
 

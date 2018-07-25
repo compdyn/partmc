@@ -222,11 +222,11 @@ contains
     deallocate(buffer)
 #endif
 
-    ! Initialize the solver on all nodes
-    call new_obj%phlex_core%solver_initialize()
-
     ! Create a state variable on each node
     new_obj%phlex_state => new_obj%phlex_core%new_state()
+
+    ! Initialize the solver on all nodes
+    call new_obj%phlex_core%solver_initialize(new_obj%phlex_state)
 
     ! Calculate the intialization time
     if (MONARCH_NODE.eq.0) then

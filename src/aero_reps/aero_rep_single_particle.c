@@ -11,8 +11,8 @@
 #include "../aero_rep_solver.h"
 
 // TODO Lookup environmental indicies during initialization
-#define TEMPERATURE_K_ env_data[0]
-#define PRESSURE_PA_ env_data[1]
+#define TEMPERATURE_K_ env_data[ENV_OFFSET_ + 0]
+#define PRESSURE_PA_ env_data[ENV_OFFSET_ + 1]
 
 #define UPDATE_RADIUS 0
 #define UPDATE_NUMBER 1
@@ -21,9 +21,10 @@
 #define AERO_REP_ID_ int_data[1]
 #define INT_DATA_SIZE_ int_data[2]
 #define FLOAT_DATA_SIZE_ int_data[3]
+#define ENV_OFFSET_ int_data[4]
 #define RADIUS_ float_data[0]
 #define NUMBER_CONC_ float_data[1]
-#define NUM_INT_PROP_ 4
+#define NUM_INT_PROP_ 5
 #define NUM_FLOAT_PROP_ 2
 #define PHASE_STATE_ID_(x) (int_data[NUM_INT_PROP_+x]-1)
 #define PHASE_MODEL_DATA_ID_(x) (int_data[NUM_INT_PROP_+NUM_PHASE_+x]-1)
@@ -45,6 +46,28 @@ void * aero_rep_single_particle_get_dependencies(void *aero_rep_data,
 {
   int *int_data = (int*) aero_rep_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
+
+  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+}
+
+/** \brief Update the time derivative and Jacbobian array indices
+ *
+ * \param model_data Pointer to the model data
+ * \param deriv_ids Id of each state variable in the derivative array
+ * \param jac_ids Id of each state variable combo in the Jacobian array
+ * \param env_offset Offset for the state being solved for in the env array
+ * \param aero_rep_data Pointer to the aerosol representation data
+ * \return The aero_rep_data pointer advanced by the size of the aerosol
+ *         representation data
+ */
+void * aero_rep_single_particle_update_ids(ModelData *model_data, int *deriv_ids,
+          int **jac_ids, int env_offset, void *aero_rep_data)
+{
+  int *int_data = (int*) aero_rep_data;
+  PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
+
+  // Update the environmental array offset
+  ENV_OFFSET_ = env_offset;
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }

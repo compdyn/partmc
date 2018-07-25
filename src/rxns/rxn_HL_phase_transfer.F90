@@ -104,6 +104,8 @@ module pmc_rxn_HL_phase_transfer
 #define GAS_SPEC_ this%condensed_data_int(2)
 #define INT_DATA_SIZE_ this%condensed_data_int(3)
 #define FLOAT_DATA_SIZE_ this%condensed_data_int(4)
+#define ENV_OFFSET_ this%condensed_data_int(5)
+#define STATE_ID_ this%condensed_data_int(6)
 #define DELTA_H_ this%condensed_data_real(1)
 #define DELTA_S_ this%condensed_data_real(2)
 #define DIFF_COEFF_ this%condensed_data_real(3)
@@ -115,7 +117,7 @@ module pmc_rxn_HL_phase_transfer
 #define CONV_ this%condensed_data_real(9)
 #define MW_ this%condensed_data_real(10)
 #define UGM3_TO_PPM_ this%condensed_data_real(11)
-#define NUM_INT_PROP_ 4
+#define NUM_INT_PROP_ 6
 #define NUM_REAL_PROP_ 11
 #define AERO_SPEC_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define AERO_WATER_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_AERO_PHASE_+x)

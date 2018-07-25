@@ -223,11 +223,11 @@ contains
       ! solve and evaluate results on process 1
 #endif
 
-      ! Initialize the solver
-      call phlex_core%solver_initialize()
-
       ! Get a model state variable
       phlex_state => phlex_core%new_state()
+
+      ! Initialize the solver
+      call phlex_core%solver_initialize(phlex_state)
 
       ! Set the environmental conditions
       phlex_state%env_state%temp = temperature
@@ -239,8 +239,8 @@ contains
       call aero_rep_factory%initialize_update_data(number_update)
       call radius_update%set_radius(aero_rep_external_id, radius)
       call number_update%set_number(aero_rep_external_id, number_conc)
-      call phlex_core%update_aero_rep_data(radius_update)
-      call phlex_core%update_aero_rep_data(number_update)
+      call phlex_core%update_aero_rep_data(1, radius_update)
+      call phlex_core%update_aero_rep_data(1, number_update)
 
       ! Save the initial concentrations
       true_conc(:,:) = 0.0

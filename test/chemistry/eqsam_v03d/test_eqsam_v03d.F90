@@ -143,12 +143,12 @@ contains
     ! Initialize the model
     call phlex_core%initialize()
 
-    ! Initialize the solver
-    call phlex_core%solver_initialize()
-    
     ! Get a state variable
     phlex_state => phlex_core%new_state()
 
+    ! Initialize the solver
+    call phlex_core%solver_initialize(phlex_state)
+    
     call cpu_time(comp_end)
     write(*,*) "Phlex-chem initialization time: ", (comp_end-comp_start)
 

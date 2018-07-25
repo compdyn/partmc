@@ -279,12 +279,12 @@ contains
       end select
     end do
 
-    ! Initialize the solver
-    call phlex_core%solver_initialize()
-
     ! Get an new state variable
     phlex_state => phlex_core%new_state()
     
+    ! Initialize the solver
+    call phlex_core%solver_initialize(phlex_state)
+
     ! Set the environmental conditions
     phlex_state%env_state%temp = temperature
     phlex_state%env_state%pressure = pressure * const%air_std_press
@@ -326,7 +326,7 @@ contains
     ! Set the phlex-chem photolysis rate constants
     call rxn_factory%initialize_update_data(rate_update)
     call rate_update%set_rate(1, real(0.0001, kind=phlex_real))
-    call phlex_core%update_rxn_data(rate_update)
+    call phlex_core%update_rxn_data(1, rate_update)
 
     ! Make sure the right number of reactions is present
     ! (KPP includes two Cl rxns with rate constants set to zero that are not

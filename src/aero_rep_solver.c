@@ -11,6 +11,8 @@
 #include "aero_rep_solver.h"
 #include "phlex_solver.h"
 
+#define NUM_ENV_VAR 2
+
 // Aerosol representations (Must match parameters defined in pmc_aero_rep_factory
 #define AERO_REP_SINGLE_PARTICLE   1
 #define AERO_REP_MODAL_BINNED_MASS 2
@@ -52,6 +54,73 @@ void * aero_rep_get_dependencies(ModelData *model_data, pmc_bool *state_flags)
   return aero_rep_data;
 }
 
+/** \brief Update the time derivative and Jacobian array ids
+ *
+ * \param model_data Pointer to the model data
+ * \param deriv_size Number of elements per state on the derivative array
+ * \param jac_size Number of elements per state on the Jacobian array
+ * \param deriv_ids Ids for state variables on the time derivative array
+ * \param jac_ids Ids for state variables on the Jacobian array
+ */
+void aero_rep_update_ids(ModelData *model_data, int deriv_size, int jac_size, 
+            int *deriv_ids, int **jac_ids)
+{
+
+  int *aero_rep_data;
+  int env_offset = 0;
+
+  // Loop through the unique states
+  for (int i_state = 0; i_state < model_data->n_states; i_state++) {
+
+    // Point to the aerosol representation data for this state
+    aero_rep_data = (int*) (model_data->aero_rep_data);
+    aero_rep_data += (model_data->aero_rep_data_size / sizeof(int)) * i_state;
+
+    // Get the number of aerosol representations
+    int n_aero_rep = *(aero_rep_data++);
+
+    // Loop through the aerosol representations advancing the aero_rep_data pointer each time
+    for (int i_aero_rep=0; i_aero_rep<n_aero_rep; i_aero_rep++) {
+
+      // Get the aerosol representation type
+      int aero_rep_type = *(aero_rep_data++);
+
+      // Call the appropriate function
+      switch (aero_rep_type) {
+        case AERO_REP_MODAL_BINNED_MASS :
+          aero_rep_data = (int*) aero_rep_modal_binned_mass_update_ids(
+                    model_data, deriv_ids, jac_ids, env_offset, (void*) aero_rep_data);
+          break;
+        case AERO_REP_SINGLE_PARTICLE :
+          aero_rep_data = (int*) aero_rep_single_particle_update_ids(
+                    model_data, deriv_ids, jac_ids, env_offset, (void*) aero_rep_data);
+          break;
+      }
+    }
+    
+    // Update the derivative and Jacobian ids for the next state
+    for (int i_elem = 0; i_elem < model_data->n_state_var; i_elem++)
+      if (deriv_ids[i_elem]>=0) deriv_ids[i_elem] += deriv_size;
+    for (int i_elem = 0; i_elem < model_data->n_state_var; i_elem++)
+      for (int j_elem = 0; j_elem < model_data->n_state_var; j_elem++)
+        if (jac_ids[i_elem][j_elem]>=0) jac_ids[i_elem][j_elem] += jac_size;
+
+    // Update the environmental array offset for the next state
+    env_offset += NUM_ENV_VAR;
+
+  }
+
+    // Reset the indices to the first state's values
+    for (int i_elem = 0; i_elem < model_data->n_state_var; i_elem++)
+      if (deriv_ids[i_elem]>=0) deriv_ids[i_elem] -= 
+              (model_data->n_states) * deriv_size;
+    for (int i_elem = 0; i_elem < model_data->n_state_var; i_elem++)
+      for (int j_elem = 0; j_elem < model_data->n_state_var; j_elem++)
+        if (jac_ids[i_elem][j_elem]>=0) jac_ids[i_elem][j_elem] -=
+                (model_data->n_states) * jac_size;
+
+}
+
 /** \brief Update the aerosol representations for new environmental conditions
  *
  * \param model_data Pointer to the model data
@@ -60,8 +129,12 @@ void * aero_rep_get_dependencies(ModelData *model_data, pmc_bool *state_flags)
 void aero_rep_update_env_state(ModelData *model_data, PMC_C_FLOAT *env)
 {
 
-  // Get the number of aerosol representations
   int *aero_rep_data = (int*) (model_data->aero_rep_data);
+  
+  // Loop through the unique states to solve
+  for (int i_state = 0; i_state < model_data->n_states; i_state++) {
+
+  // Get the number of aerosol representations
   int n_aero_rep = *(aero_rep_data++);
 
   // Loop through the aerosol representations to update the environmental
@@ -83,6 +156,7 @@ void aero_rep_update_env_state(ModelData *model_data, PMC_C_FLOAT *env)
         break;
     }
   }
+  }
 }
 
 /** \brief Update the aerosol representations for a new state
@@ -92,8 +166,12 @@ void aero_rep_update_env_state(ModelData *model_data, PMC_C_FLOAT *env)
 void aero_rep_update_state(ModelData *model_data)
 {
 
-  // Get the number of aerosol representations
   int *aero_rep_data = (int*) (model_data->aero_rep_data);
+  
+  // Loop through the unique states to solve
+  for (int i_state = 0; i_state < model_data->n_states; i_state++) {
+
+  // Get the number of aerosol representations
   int n_aero_rep = *(aero_rep_data++);
 
   // Loop through the aerosol representations to update the state
@@ -115,6 +193,7 @@ void aero_rep_update_state(ModelData *model_data)
         break;
     }
   }
+  }
 }
 
 /** \brief Get the effective particle radius, \f$r_{eff}\f$ (m)
@@ -124,6 +203,7 @@ void aero_rep_update_state(ModelData *model_data)
  * solver state array.
  *
  * \param model_data Pointer to the model data
+ * \param state_id Id of the unique state to get data for
  * \param aero_rep_idx Index of aerosol representation to use for calculation
  * \param aero_phase_idx Index of the aerosol phase within the aerosol
  *                       representation
@@ -132,15 +212,18 @@ void aero_rep_update_state(ModelData *model_data)
  *         \f$\frac{\partial r_{eff}}{\partial y}\f$, or a NULL pointer if no
  *         partial derivatives exist
  */
-void * aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
-         int aero_phase_idx, PMC_C_FLOAT *radius)
+void * aero_rep_get_effective_radius(ModelData *model_data, int state_id, 
+          int aero_rep_idx, int aero_phase_idx, PMC_C_FLOAT *radius)
 {
 
   // Set up a pointer for the partial derivatives
   void *partial_deriv = NULL;
 
-  // Get the number of aerosol representations
+  // Get a pointer to the unique states data
   int *aero_rep_data = (int*) (model_data->aero_rep_data);
+  aero_rep_data += (model_data->aero_rep_data_size / sizeof(int)) * state_id;
+
+  // Get the number of aerosol representations
   int n_aero_rep = *(aero_rep_data++);
 
   // Loop through the aerosol representations to find the one requested
@@ -187,6 +270,7 @@ void * aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
  * solver state array.
  *
  * \param model_data Pointer to the model data
+ * \param state_id Id of the unique state to get data for
  * \param aero_rep_idx Index of aerosol representation to use for calculation
  * \param aero_phase_idx Index of the aerosol phase within the aerosol
  *                       representation
@@ -196,15 +280,18 @@ void * aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
  *         \f$\frac{\partial n}{\partial y}\f$, or a NULL pointer if no partial
  *         derivatives exist
  */
-void * aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
-          int aero_phase_idx, PMC_C_FLOAT *number_conc)
+void * aero_rep_get_number_conc(ModelData *model_data, int state_id,
+          int aero_rep_idx, int aero_phase_idx, PMC_C_FLOAT *number_conc)
 {
 
   // Set up a pointer for the partial derivatives
   void *partial_deriv = NULL;
 
-  // Get the number of aerosol representations
+  // Get a pointer to the unique states data
   int *aero_rep_data = (int*) (model_data->aero_rep_data);
+  aero_rep_data += (model_data->aero_rep_data_size / sizeof(int)) * state_id;
+  
+  // Get the number of aerosol representations
   int n_aero_rep = *(aero_rep_data++);
 
   // Loop through the aerosol representations to find the one requested
@@ -248,20 +335,24 @@ void * aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
 /** \brief Check whether aerosol concentrations are per-particle or total for each phase
  *
  * \param model_data Pointer to the model data
+ * \param state_id Id of the unique state to get data for
  * \param aero_rep_idx Index of aerosol representation to use for calculation
  * \param aero_phase_idx Index of the aerosol phase within the aerosol
  *                       representation
  * \return 0 for per-particle; 1 for total for each phase
  */
-int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
-          int aero_phase_idx)
+int aero_rep_get_aero_conc_type(ModelData *model_data, int state_id,
+          int aero_rep_idx, int aero_phase_idx)
 {
 
   // Initialize the aerosol concentration type
   int aero_conc_type = 0;
 
-  // Get the number of aerosol representations
+  // Get a pointer to the unique states data
   int *aero_rep_data = (int*) (model_data->aero_rep_data);
+  aero_rep_data += (model_data->aero_rep_data_size / sizeof(int)) * state_id;
+  
+  // Get the number of aerosol representations
   int n_aero_rep = *(aero_rep_data++);
 
   // Loop through the aerosol representations to find the one requested
@@ -308,6 +399,7 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
  * solver state array.
  *
  * \param model_data Pointer to the model data
+ * \param state_id Id of the unique state to get data for
  * \param aero_rep_idx Index of aerosol representation to use for calculation
  * \param aero_phase_idx Index of the aerosol phase within the aerosol 
  *                       representation
@@ -320,16 +412,19 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
  *         \f$\frac{\partial m}{\partial y}\f$, or a NULL pointer if no partial
  *         derivatives exist
  */
-void * aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
-          int aero_phase_idx, PMC_C_FLOAT *aero_phase_mass,
+void * aero_rep_get_aero_phase_mass(ModelData *model_data, int state_id,
+          int aero_rep_idx, int aero_phase_idx, PMC_C_FLOAT *aero_phase_mass,
           PMC_C_FLOAT *aero_phase_avg_MW)
 {
 
   // Set up a pointer for the partial derivatives
   void *partial_deriv = NULL;
 
-  // Get the number of aerosol representations
+  // Get a pointer to the unique states data
   int *aero_rep_data = (int*) (model_data->aero_rep_data);
+  aero_rep_data += (model_data->aero_rep_data_size / sizeof(int)) * state_id;
+  
+  // Get the number of aerosol representations
   int n_aero_rep = *(aero_rep_data++);
 
   // Loop through the aerosol representations to find the one requested
@@ -385,18 +480,28 @@ void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
 {
   ModelData *model_data = (ModelData*)
           &(((SolverData*)solver_data)->model_data);
-  int *aero_rep_data = (int*) (model_data->nxt_aero_rep);
+  int *aero_rep_data;
+  PMC_C_FLOAT *flt_ptr;
 
-  // Add the aerosol representation type
-  *(aero_rep_data++) = aero_rep_type;
+  // Loop backwards through the unique states
+  for (int i_state=model_data->n_states-1; i_state >= 0; i_state--) {
 
-  // Add integer parameters
-  for (; n_int_param>0; n_int_param--) *(aero_rep_data++) = *(int_param++);
+    // Point to the next aerosol representation's space for this state
+    aero_rep_data = (int*) (model_data->nxt_aero_rep);
+    aero_rep_data += (model_data->aero_rep_data_size / sizeof(int)) * i_state;
 
-  // Add floating-point parameters
-  PMC_C_FLOAT *flt_ptr = (PMC_C_FLOAT*) aero_rep_data;
-  for (; n_float_param>0; n_float_param--)
-          *(flt_ptr++) = (PMC_C_FLOAT) *(float_param++);
+    // Add the aerosol representation type
+    *(aero_rep_data++) = aero_rep_type;
+
+    // Add integer parameters
+    for (; n_int_param>0; n_int_param--) *(aero_rep_data++) = *(int_param++);
+
+    // Add floating-point parameters
+    flt_ptr = (PMC_C_FLOAT*) aero_rep_data;
+    for (; n_float_param>0; n_float_param--)
+            *(flt_ptr++) = (PMC_C_FLOAT) *(float_param++);
+
+  }
 
   // Set the pointer for the next free space in aero_rep_data
   model_data->nxt_aero_rep = (void*) flt_ptr;
@@ -404,18 +509,20 @@ void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
 
 /** \brief Update aerosol representation data
  *
+ * \param state_id Index of unique state to update
  * \param update_aero_rep_type Aerosol representation type to update
  * \param update_data Pointer to data needed for update
  * \param solver_data Pointer to solver data
  */
-void aero_rep_update_data(int update_aero_rep_type, void *update_data,
-		void *solver_data)
+void aero_rep_update_data(int state_id, int update_aero_rep_type,
+            void *update_data, void *solver_data)
 {
   ModelData *model_data = (ModelData*)
           &(((SolverData*)solver_data)->model_data);
 
   // Get the number of aerosol representations
   int *aero_rep_data = (int*) (model_data->aero_rep_data);
+  aero_rep_data += (model_data->aero_rep_data_size / sizeof(int)) * state_id;
   int n_aero_rep = *(aero_rep_data++);
 
   // Loop through the aerosol representations advancing the pointer each time
@@ -462,8 +569,12 @@ void aero_rep_print_data(void *solver_data)
   ModelData *model_data = (ModelData*)
           &(((SolverData*)solver_data)->model_data);
 
-  // Get the number of aerosol representations
   int *aero_rep_data = (int*) (model_data->aero_rep_data);
+  
+  // Loop through the unique states to solve
+  for (int i_state = 0; i_state < model_data->n_states; i_state++) {
+
+  // Get the number of aerosol representations
   int n_aero_rep = *(aero_rep_data++);
 
   printf("\n\nAerosol representation data\n\nnumber of aerosol "
@@ -486,6 +597,7 @@ void aero_rep_print_data(void *solver_data)
                   (void*)aero_rep_data);
 	break;
     }
+  }
   }
 }
 

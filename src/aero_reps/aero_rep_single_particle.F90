@@ -51,9 +51,10 @@ module pmc_aero_rep_single_particle
 #define AERO_REP_ID_ this%condensed_data_int(2)
 #define INT_DATA_SIZE_ this%condensed_data_int(3)
 #define FLOAT_DATA_SIZE_ this%condensed_data_int(4)
+#define ENV_OFFSET_ this%condensed_data_int(5)
 #define RADIUS_ this%condensed_data_real(1)
 #define NUMBER_CONC_ this%condensed_data_real(2)
-#define NUM_INT_PROP_ 4
+#define NUM_INT_PROP_ 5
 #define NUM_REAL_PROP_ 2
 #define PHASE_STATE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define PHASE_MODEL_DATA_ID_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_PHASE_+x)

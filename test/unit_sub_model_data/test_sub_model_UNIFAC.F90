@@ -294,11 +294,11 @@ contains
       ! solve and evaluate results on process 1
 #endif
 
-      ! Initialize the solver
-      call phlex_core%solver_initialize()
-
       ! Get a model state variable
       phlex_state => phlex_core%new_state()
+
+      ! Initialize the solver
+      call phlex_core%solver_initialize(phlex_state)
 
       ! Set the environmental conditions
       phlex_state%env_state%temp = temperature
@@ -336,10 +336,10 @@ contains
         call phlex_core%solve(phlex_state, real(1.0, kind=phlex_real))
         model_activity(i_mass_frac,:) = 0.0d0
         model_activity(i_mass_frac, idx_butanol) = &
-                real(phlex_core%get_sub_model_parameter_value(idx_butanol_act_c), kind=phlex_real) &
+                real(phlex_core%get_sub_model_parameter_value(1, idx_butanol_act_c), kind=phlex_real) &
                 * phlex_state%state_var(idx_butanol)
         model_activity(i_mass_frac, idx_water) = &
-                real(phlex_core%get_sub_model_parameter_value(idx_water_act_c), kind=phlex_real) &
+                real(phlex_core%get_sub_model_parameter_value(1, idx_water_act_c), kind=phlex_real) &
                 * phlex_state%state_var(idx_water)
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

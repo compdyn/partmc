@@ -33,8 +33,10 @@
  *
  * Return a pointer to a new SolverData object
  *
- * \param n_state_var Number of variables on the state array
- * \param n_env_var Number of variables on the environmental state array
+ * \param n_state_var Number of variables per state on the state array
+ * \param n_env_var Number of variables per state on the environmental state
+ *                  array
+ * \param n_states Number of states to solve simultaneously
  * \param var_type Pointer to array of state variable types (solver, constant,
  *                 PSSA)
  * \param n_rxn Number of reactions to include
@@ -56,8 +58,8 @@
  *                                parameters
  * \return Pointer to the new SolverData object
  */
-void * solver_new(int n_state_var, int n_env_var, int *var_type, int n_rxn,
-          int n_rxn_int_param, int n_rxn_float_param, int n_aero_phase,
+void * solver_new(int n_state_var, int n_env_var, int n_states, int *var_type,
+          int n_rxn, int n_rxn_int_param, int n_rxn_float_param, int n_aero_phase,
           int n_aero_phase_int_param, int n_aero_phase_float_param,
           int n_aero_rep, int n_aero_rep_int_param, int n_aero_rep_float_param,
           int n_sub_model, int n_sub_model_int_param, int n_sub_model_float_param)
@@ -75,6 +77,9 @@ void * solver_new(int n_state_var, int n_env_var, int *var_type, int n_rxn,
   // Save the number of environmental variables
   sd->model_data.n_env_var = n_env_var;
 
+  // Save the number of states to solve simultaneously
+  sd->model_data.n_states = n_states;
+
   // Add the variable types to the solver data
   sd->model_data.var_type = (int*) malloc(n_state_var * sizeof(int));
   if (sd->model_data.var_type==NULL) {
@@ -91,12 +96,13 @@ void * solver_new(int n_state_var, int n_env_var, int *var_type, int n_rxn,
 
 #ifdef PMC_USE_SUNDIALS
   // Set up the solver variable array
-  sd->y = N_VNew_Serial(n_dep_var);
+  sd->y = N_VNew_Serial(n_dep_var * n_states);
 #endif
 
 #ifndef PMC_USE_DOUBLE_PRECISION
   // Set up a working derivative array
   sd->model_data.deriv = (PMC_SOLVER_C_FLOAT*) malloc(n_dep_var * 
+                                        n_states *
                                         sizeof(PMC_SOLVER_C_FLOAT));
   if (sd->model_data.deriv==NULL) {
     printf("\n\nERROR allocating space for working derivative\n\n");
@@ -104,15 +110,17 @@ void * solver_new(int n_state_var, int n_env_var, int *var_type, int n_rxn,
   }
 
   // Save the size of the derivative array
-  sd->model_data.deriv_size = n_dep_var;
+  sd->model_data.deriv_size = n_dep_var * n_states;
 #endif
 
   // Allocate space for the reaction data and set the number
   // of reactions (including one int for the number of reactions
   // and one int per reaction to store the reaction type)
+  sd->model_data.rxn_data_size = 
+	          (n_rxn_int_param + 1 + n_rxn) * sizeof(int) 
+		  + n_rxn_float_param * sizeof(PMC_C_FLOAT);
   sd->model_data.rxn_data = (void*) malloc(
-		  (n_rxn_int_param + 1 + n_rxn) * sizeof(int) 
-		  + n_rxn_float_param * sizeof(PMC_C_FLOAT));
+                  sd->model_data.rxn_data_size * n_states);
   if (sd->model_data.rxn_data==NULL) {
     printf("\n\nERROR allocating space for reaction data\n\n");
     exit(1);
@@ -127,9 +135,11 @@ void * solver_new(int n_state_var, int n_env_var, int *var_type, int n_rxn,
   // Allocate space for the aerosol phase data and st the number
   // of aerosol phases (including one int for the number of
   // phases)
-  sd->model_data.aero_phase_data = (void*) malloc(
+  sd->model_data.aero_phase_data_size = 
                   (n_aero_phase_int_param + 1) * sizeof(int)
-                  + n_aero_phase_float_param * sizeof(PMC_C_FLOAT));
+                  + n_aero_phase_float_param * sizeof(PMC_C_FLOAT);
+  sd->model_data.aero_phase_data = (void*) malloc(
+                  sd->model_data.aero_phase_data_size * n_states);
   if (sd->model_data.aero_phase_data==NULL) {
     printf("\n\nERROR allocating space for aerosol phase data\n\n");
     exit(1);
@@ -143,9 +153,11 @@ void * solver_new(int n_state_var, int n_env_var, int *var_type, int n_rxn,
   // for the number of aerosol representations and one int per
   // aerosol representation to store the aerosol representation
   // type)
-  sd->model_data.aero_rep_data = (void*) malloc(
+  sd->model_data.aero_rep_data_size = 
 		  (n_aero_rep_int_param + 1 + n_aero_rep) * sizeof(int)
-		  + n_aero_rep_float_param * sizeof(PMC_C_FLOAT));
+		  + n_aero_rep_float_param * sizeof(PMC_C_FLOAT);
+  sd->model_data.aero_rep_data = (void*) malloc(
+                  sd->model_data.aero_rep_data_size * n_states);
   if (sd->model_data.aero_rep_data==NULL) {
     printf("\n\nERROR allocating space for aerosol representation data\n\n");
     exit(1);
@@ -157,9 +169,11 @@ void * solver_new(int n_state_var, int n_env_var, int *var_type, int n_rxn,
   // Allocate space for the sub model data and set the number of sub models
   // (including one int for the number of sub models and one int per sub
   // model to store the sub model type)
-  sd->model_data.sub_model_data = (void*) malloc(
+  sd->model_data.sub_model_data_size = 
                   (n_sub_model_int_param + 1 + n_sub_model) * sizeof(int)
-                  + n_sub_model_float_param * sizeof(PMC_C_FLOAT));
+                  + n_sub_model_float_param * sizeof(PMC_C_FLOAT);
+  sd->model_data.sub_model_data = (void*) malloc(
+                  sd->model_data.sub_model_data_size * n_states);
   if (sd->model_data.sub_model_data==NULL) {
     printf("\n\nERROR allocating space for sub model data\n\n");
     exit(1);
@@ -193,6 +207,7 @@ void solver_initialize(void *solver_data, PMC_C_FLOAT *abs_tol, PMC_C_FLOAT rel_
   int i_dep_var; 		// index of dependent variables in loops
   int n_state_var; 		// number of variables on the state array
   int *var_type;		// state variable types
+  int n_states;                 // number of states to solve at once
 
   // Get a pointer to the SolverData
   sd = (SolverData*) solver_data;
@@ -206,6 +221,7 @@ void solver_initialize(void *solver_data, PMC_C_FLOAT *abs_tol, PMC_C_FLOAT rel_
   n_state_var = sd->model_data.n_state_var;
   n_dep_var = NV_LENGTH_S(sd->y);
   var_type = sd->model_data.var_type;
+  n_states = sd->model_data.n_states;
 
   // Set the solver data
   flag = CVodeSetUserData(sd->cvode_mem, sd);
@@ -222,11 +238,12 @@ void solver_initialize(void *solver_data, PMC_C_FLOAT *abs_tol, PMC_C_FLOAT rel_
   check_flag_fail(&flag, "CVodeInit", 1);
 
   // Set the relative and absolute tolerances
-  sd->abs_tol_nv = N_VNew_Serial(n_dep_var);
   i_dep_var = 0;
-  for (int i=0; i<n_state_var; i++)
-    if (var_type[i]==CHEM_SPEC_VARIABLE)
-            NV_Ith_S(sd->abs_tol_nv, i_dep_var++) = (realtype) abs_tol[i];
+  sd->abs_tol_nv = N_VNew_Serial(n_dep_var);
+  for (int i_state=0; i_state<n_states; i_state++)
+    for (int i_var=0; i_var<n_state_var; i_var++)
+      if (var_type[i_var]==CHEM_SPEC_VARIABLE)
+              NV_Ith_S(sd->abs_tol_nv, i_dep_var++) = (realtype) abs_tol[i_var];
   flag = CVodeSVtolerances(sd->cvode_mem, (realtype) rel_tol, sd->abs_tol_nv);
   check_flag_fail(&flag, "CVodeSVtolerances", 1);
 
@@ -289,16 +306,18 @@ void solver_initialize(void *solver_data, PMC_C_FLOAT *abs_tol, PMC_C_FLOAT rel_
  * \param t_final (s)
  * \return Flag indicating PHLEX_SOLVER_SUCCESS or PHLEX_SOLVER_FAIL
  */
-int solver_run(void *solver_data, PMC_C_FLOAT *state, PMC_C_FLOAT *env, PMC_C_FLOAT t_initial,
-		PMC_C_FLOAT t_final)
+int solver_run(void *solver_data, PMC_C_FLOAT *state, PMC_C_FLOAT *env,
+                PMC_C_FLOAT t_initial, PMC_C_FLOAT t_final)
 {
 #ifdef PMC_USE_SUNDIALS
   SolverData *sd = (SolverData*) solver_data;
 
   // Update the dependent variables
-  for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++)
-    if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) 
-      NV_Ith_S(sd->y,i_dep_var++) = (realtype) state[i_spec];
+  for (int i_spec=0, i_dep_var=0, i_state=0; i_state < sd->model_data.n_states;
+      i_state++)
+    for (int j_spec=0; j_spec<sd->model_data.n_state_var; i_spec++, j_spec++)
+      if (sd->model_data.var_type[j_spec]==CHEM_SPEC_VARIABLE) 
+        NV_Ith_S(sd->y,i_dep_var++) = (realtype) state[i_spec];
 
   // Update model data pointers
   sd->model_data.state = state;
@@ -332,9 +351,11 @@ int solver_run(void *solver_data, PMC_C_FLOAT *state, PMC_C_FLOAT *env, PMC_C_FL
   }
 
   // Update the species concentrations on the state array
-  for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++)
-    if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) 
-            state[i_spec] = (PMC_C_FLOAT) NV_Ith_S(sd->y,i_dep_var++);
+  for (int i_spec=0, i_dep_var=0, i_state=0; i_state < sd->model_data.n_states;
+      i_state++)
+    for (int j_spec=0; j_spec<sd->model_data.n_state_var; i_spec++, j_spec++)
+      if (sd->model_data.var_type[j_spec]==CHEM_SPEC_VARIABLE) 
+        state[i_spec] = (PMC_C_FLOAT) NV_Ith_S(sd->y,i_dep_var++);
 
   // Re-run the pre-derivative calculations to update equilibrium species
   sub_model_calculate(&(sd->model_data));
@@ -537,24 +558,29 @@ SUNMatrix get_jac_init(SolverData *solver_data)
 	  solver_data->model_data.var_type[i]==CHEM_SPEC_VARIABLE &&
 	  solver_data->model_data.var_type[j]==CHEM_SPEC_VARIABLE) n_jac_elem++;
 
+  // Scale the number of Jacobian elements by the number of states to solve at once
+  n_jac_elem *= solver_data->model_data.n_states;
+
   // Initialize the sparse matrix
   int n_dep_var = NV_LENGTH_S(solver_data->y);
   SUNMatrix M = SUNSparseMatrix(n_dep_var, n_dep_var, n_jac_elem, CSC_MAT);
 
   // Set the column and row indices
   int i_col=0, i_elem=0;
-  for (int i=0; i<n_state_var; i++) {
-    if (solver_data->model_data.var_type[i]!=CHEM_SPEC_VARIABLE) continue;
-    (SM_INDEXPTRS_S(M))[i_col] = i_elem;
-    for (int j=0, i_row=0; j<n_state_var; j++) {
-      if (solver_data->model_data.var_type[j]!=CHEM_SPEC_VARIABLE) continue;
-      if (jac_struct[j][i]==pmc_true) {
-	(SM_DATA_S(M))[i_elem] = (realtype) 1.0;
-	(SM_INDEXVALS_S(M))[i_elem++] = i_row;
+  for (int i_state=0; i_state<solver_data->model_data.n_states; i_state++) {
+    for (int i=0; i<n_state_var; i++) {
+      if (solver_data->model_data.var_type[i]!=CHEM_SPEC_VARIABLE) continue;
+      (SM_INDEXPTRS_S(M))[i_col] = i_elem;
+      for (int j=0, i_row=0; j<n_state_var; j++) {
+        if (solver_data->model_data.var_type[j]!=CHEM_SPEC_VARIABLE) continue;
+        if (jac_struct[j][i]==pmc_true) {
+	  (SM_DATA_S(M))[i_elem] = (realtype) 1.0;
+	  (SM_INDEXVALS_S(M))[i_elem++] = i_row;
+        }
+        i_row++;
       }
-      i_row++;
+      i_col++;
     }
-    i_col++;
   }
   (SM_INDEXPTRS_S(M))[i_col] = i_elem;
 
@@ -583,8 +609,10 @@ SUNMatrix get_jac_init(SolverData *solver_data)
 	jac_ids[i_dep][i_ind] = -1;
       }
 
-  // Update the ids in the reaction data
-  rxn_update_ids(&(solver_data->model_data), deriv_ids, jac_ids);
+  // Update the ids in the data blocks
+  rxn_update_ids(&(solver_data->model_data), n_dep_var, n_jac_elem, deriv_ids, jac_ids);
+  aero_rep_update_ids(&(solver_data->model_data), n_dep_var, n_jac_elem, deriv_ids, jac_ids);
+  sub_model_update_ids(&(solver_data->model_data), n_dep_var, n_jac_elem, deriv_ids, jac_ids);
 
   // Free the memory used
   for (int i_spec=0; i_spec<n_state_var; i_spec++) free(jac_struct[i_spec]);

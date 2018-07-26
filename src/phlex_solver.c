@@ -291,9 +291,13 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   }
 
   // Update the species concentrations on the state array
-  for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++)
-    if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) 
-            state[i_spec] = (double) NV_Ith_S(sd->y,i_dep_var++);
+  for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++) {
+    if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) {
+      state[i_spec] = (double) ( NV_Ith_S(sd->y, i_dep_var) > 0.0 ? 
+                                 NV_Ith_S(sd->y, i_dep_var) : 0.0 );
+      i_dep_var++;
+    }
+  }
 
   // Re-run the pre-derivative calculations to update equilibrium species
   sub_model_calculate(&(sd->model_data));

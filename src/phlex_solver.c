@@ -326,22 +326,20 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   ModelData *md = &(sd->model_data);
   realtype time_step;
 
+  // Get the current integrator time step (s)
+  CVodeGetCurrentStep(sd->cvode_mem, &time_step);
+  
   // Update the state array with the current dependent variable values
+  // and initialize the derivative.
   // Signal a recoverable error (positive return value) for negative 
   // concentrations.
   for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
     if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
-      if (NV_DATA_S(y)[i_dep_var] <= SMALL_NUMBER &&
-          NV_DATA_S(y)[i_dep_var] >= - SMALL_NUMBER)
-          NV_DATA_S(y)[i_dep_var] = 0.0;
       if (NV_DATA_S(y)[i_dep_var] < 0.0) return 1;
+      NV_DATA_S(deriv)[i_dep_var] = ZERO;
       md->state[i_spec] = NV_DATA_S(y)[i_dep_var++];
     }
   }
-
-  // Initialize the derivative
-  for (int i_spec=0; i_spec<NV_LENGTH_S(deriv); i_spec++)
-          NV_DATA_S(deriv)[i_spec] = ZERO;
 
   // Update the aerosol representations
   aero_rep_update_state(md);
@@ -352,9 +350,6 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   // Run pre-derivative calculations
   rxn_pre_calc(md);
 
-  // Get the current integrator time step (s)
-  CVodeGetCurrentStep(sd->cvode_mem, &time_step);
-  
   // Calculate the time derivative f(t,y)
   rxn_calc_deriv(md, deriv, (double) time_step);
 
@@ -384,9 +379,6 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   // Update the state array with the current dependent variable values
   for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
     if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
-      if (NV_DATA_S(y)[i_dep_var] <= SMALL_NUMBER &&
-          NV_DATA_S(y)[i_dep_var] >= - SMALL_NUMBER)
-          NV_DATA_S(y)[i_dep_var] = 0.0;
       if (NV_DATA_S(y)[i_dep_var] < 0.0) return 1;
       // Advance the state by a small amount to get more accurate Jac values
       // for species that are currently at zero concentration

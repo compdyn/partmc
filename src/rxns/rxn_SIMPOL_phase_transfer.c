@@ -230,8 +230,7 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
 
     // If the radius, number concentration, or aerosol-phase mass are zero,
     // no transfer occurs
-    if (radius < SMALL_NUMBER_ || number_conc < SMALL_NUMBER_
-        || aero_phase_mass < SMALL_NUMBER_) continue;
+    if (radius <= ZERO || number_conc <= ZERO || aero_phase_mass <= ZERO) continue;
 
     // Calculate the rate constant for diffusion limited mass transfer to the 
     // aerosol phase (1/s)
@@ -332,8 +331,7 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
 
     // If the radius, number concentration, or aerosol-phase mass are zero,
     // no transfer occurs
-    if (radius < SMALL_NUMBER_ || number_conc < SMALL_NUMBER_
-        || aero_phase_mass < SMALL_NUMBER_) continue;
+    if (radius <= ZERO || number_conc <= ZERO || aero_phase_mass <= ZERO) continue;
 
     // Calculate the rate constant for diffusion limited mass transfer to the
     // aerosol phase (1/s)

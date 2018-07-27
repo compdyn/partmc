@@ -23,7 +23,12 @@ RUN curl -LO http://faculty.cse.tamu.edu/davis/SuiteSparse/SuiteSparse-5.1.0.tar
 RUN curl -LO https://computation.llnl.gov/projects/sundials/download/cvodes-3.1.1.tar.gz \
     && tar -zxvf cvodes-3.1.1.tar.gz \
     && cd cvodes-3.1.1 \
+    # Increase number of iterations for initial timestep calculation in cvodes
+    # to allow for RHS function failures due to concentrations < zero at coarse time steps
     && sed -i s/"MAX_ITERS[ ]*4"/"MAX_ITERS  400"/g src/cvodes/cvodes.c \
+    # Add a condition to the cvodes error test to disallow negative concentrations
+    && sed -i s/"realtype dsm;"/"realtype dsm, min_conc; N_VLinearSum(cv_mem->cv_l[0], cv_mem->cv_acor, ONE, cv_mem->cv_zn[0], cv_mem->cv_ftemp); min_conc = N_VMin(cv_mem->cv_ftemp);"/g src/cvodes/cvodes.c \
+    && sed -i s/"dsm <= ONE"/"dsm <= ONE \&\& min_conc >= ZERO"/g src/cvodes/cvodes.c \
     && mkdir build \
     && cd build \
     && cmake -D CMAKE_BUILD_TYPE=release \

@@ -46,7 +46,7 @@ program mock_monarch
   !> Ending index for phlex-chem species in tracer array
   integer, parameter :: END_PHLEX_ID = 650
   !> Time step (min)
-  real, parameter :: TIME_STEP = 0.1
+  real, parameter :: TIME_STEP = 5
   !> Number of time steps to integrate over
   integer, parameter :: NUM_TIME_STEP = 100
   !> Index for water vapor in water_conc()

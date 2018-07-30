@@ -32,9 +32,9 @@ module pmc_phlex_solver_data
   !> Default relative tolerance for integration
   real(kind=dp), parameter :: PMC_SOLVER_DEFAULT_REL_TOL = 1.0D-8
   !> Default max number of integration steps
-  integer(kind=i_kind), parameter :: PMC_SOLVER_DEFAULT_MAX_STEPS = 10000000
+  integer(kind=i_kind), parameter :: PMC_SOLVER_DEFAULT_MAX_STEPS = 100000
   !> Default maximum number of integration convergence failures
-  integer(kind=i_kind), parameter :: PMC_SOLVER_DEFAULT_MAX_CONV_FAILS = 1000000
+  integer(kind=i_kind), parameter :: PMC_SOLVER_DEFAULT_MAX_CONV_FAILS = 10000
 
   !> Result code indicating successful completion
   integer, parameter :: PMC_SOLVER_SUCCESS = 0

@@ -278,10 +278,14 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   if (!sd->no_solve) {
     flag = CVode(sd->cvode_mem, (realtype) t_final, sd->y, &t_rt, CV_NORMAL);
     if (check_flag(&flag, "CVode", 1)==PHLEX_SOLVER_FAIL) {
+      N_Vector deriv = N_VClone(sd->y);
+      flag = f(t_initial, sd->y, deriv, sd);
+      if (flag!=0) printf("\nCall to f() at failed state failed with flag %d\n", flag);
       printf("\ntemp = %le pressure = %le\n", env[0], env[1]);
       for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++)
         if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) {
-          printf("spec %d = %le\n", i_spec, NV_Ith_S(sd->y,i_dep_var++));
+          printf("spec %d = %le deriv = %le\n", i_spec, NV_Ith_S(sd->y,i_dep_var), NV_Ith_S(deriv, i_dep_var));
+          i_dep_var++;
         } else {
           printf("spec %d = %le\n", i_spec, state[i_spec]);
         }
@@ -303,7 +307,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   sub_model_calculate(&(sd->model_data));
   rxn_pre_calc(&(sd->model_data));
 
-  //solver_print_stats(sd->cvode_mem);
+#ifdef PMC_DEBUG
+  solver_print_stats(sd->cvode_mem);
+#endif
 
   return PHLEX_SOLVER_SUCCESS;
 #else
@@ -335,9 +341,15 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   // concentrations.
   for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
     if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
-      if (NV_DATA_S(y)[i_dep_var] < 0.0) return 1;
+      if (NV_DATA_S(y)[i_dep_var] < -SMALL_NUMBER) {
+#ifdef PMC_DEBUG
+        printf("\n f() fail [spec %d] = %le", i_dep_var, NV_DATA_S(y)[i_dep_var]);
+#endif
+        return 1;
+      }
       NV_DATA_S(deriv)[i_dep_var] = ZERO;
-      md->state[i_spec] = NV_DATA_S(y)[i_dep_var++];
+      md->state[i_spec] = NV_DATA_S(y)[i_dep_var] > SMALL_NUMBER ? NV_DATA_S(y)[i_dep_var] : 0.0;
+      i_dep_var++;
     }
   }
 
@@ -379,10 +391,15 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   // Update the state array with the current dependent variable values
   for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
     if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
-      if (NV_DATA_S(y)[i_dep_var] < 0.0) return 1;
+      if (NV_DATA_S(y)[i_dep_var] < -SMALL_NUMBER) {
+#ifdef PMC_DEBUG
+        printf("\n Jac() fail [spec %d] = %le", i_dep_var, NV_DATA_S(y)[i_dep_var]);
+#endif
+        return 1;
+      }
       // Advance the state by a small amount to get more accurate Jac values
       // for species that are currently at zero concentration
-      md->state[i_spec] = NV_DATA_S(y)[i_dep_var] + 
+      md->state[i_spec] = (NV_DATA_S(y)[i_dep_var] > 0.0 ? NV_DATA_S(y)[i_dep_var] : 0.0) +
                           NV_DATA_S(deriv)[i_dep_var] * SMALL_NUMBER;
       i_dep_var++;
     }

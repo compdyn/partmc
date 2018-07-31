@@ -17,6 +17,9 @@
 // Small number
 #define SMALL_NUMBER_ 1.0e-30
 
+// Minimum water concentration for aqueous reactions (ug/m3)
+#define MIN_WATER_ 1.0e-20
+
 #define NUM_REACT_ (int_data[0])
 #define NUM_PROD_ (int_data[1])
 #define NUM_AERO_PHASE_ (int_data[2])
@@ -216,7 +219,7 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
   for (int i_phase=0, i_deriv = 0; i_phase<NUM_AERO_PHASE_; i_phase++) {
 
     // If no aerosol water is present, no reaction occurs
-    if (state[WATER_(i_phase)] < SMALL_NUMBER_) {
+    if (state[WATER_(i_phase)] < MIN_WATER_) {
       i_deriv += NUM_REACT_ + NUM_PROD_;
       continue;
     }
@@ -279,7 +282,7 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
   for (int i_phase=0, i_jac = 0; i_phase<NUM_AERO_PHASE_; i_phase++) {
 
     // If not aerosol water is present, no reaction occurs
-    if (state[WATER_(i_phase)] < SMALL_NUMBER_) {
+    if (state[WATER_(i_phase)] < MIN_WATER_) {
       i_jac += (NUM_REACT_ + NUM_PROD_) * (NUM_REACT_ + NUM_PROD_ + 1);
       continue;
     }
@@ -399,6 +402,8 @@ void * rxn_aqueous_equilibrium_print(void *rxn_data)
 #undef PRESSURE_PA_
 
 #undef SMALL_NUMBER_
+
+#undef MIN_WATER_
 
 #undef NUM_REACT_
 #undef NUM_PROD_

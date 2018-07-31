@@ -182,9 +182,6 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase=0; i_phase<NUM_AERO_PHASE_; i_phase++) {
 
-    // If not aerosol water is present, no transfer occurs
-    if (state[AERO_WATER_(i_phase)] < SMALL_NUMBER_) continue;
-
     // Get the particle effective radius (m)
     realtype radius;
     aero_rep_get_effective_radius(
@@ -209,8 +206,12 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase));	// aerosol phase index
 
+    // If no aerosol water is present, no transfer occurs
+    if (state[AERO_WATER_(i_phase)] / 
+        (aero_conc_type==0?1.0:number_conc) < SMALL_NUMBER_) continue;
+
     // If the radius or number concentration are zero, no transfer occurs
-    if (radius < SMALL_NUMBER_ || number_conc < SMALL_NUMBER_) continue;
+    if (radius < SMALL_NUMBER_ || number_conc < 1.0) continue;
 
     // Calculate the rate constant for diffusion limited mass transfer to the
     // aerosol phase (1/s)
@@ -225,7 +226,15 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     cond_rate *= state[GAS_SPEC_];
 
     // Calculate aerosol-phase evaporation rate (ug/m^3/s)
-    evap_rate *= state[AERO_SPEC_(i_phase)];
+    // (If a very small aerosol-phase concentration results in a net
+    //  evaporation and the actual concentration is small or zero, 
+    //  assume equilibrium conditions.)
+    realtype aero_phase_conc = state[AERO_SPEC_(i_phase)];
+    if (aero_phase_conc < SMALL_NUMBER_) {
+      aero_phase_conc = SMALL_NUMBER_;
+      if (evap_rate * aero_phase_conc > cond_rate / UGM3_TO_PPM_) continue;
+    }
+    evap_rate *= aero_phase_conc;
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
     if (DERIV_ID_(0)>=0) {
@@ -273,9 +282,6 @@ void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase=0; i_phase<NUM_AERO_PHASE_; i_phase++) {
 
-    // If not aerosol water is present, no transfer occurs
-    if (state[AERO_WATER_(i_phase)] < SMALL_NUMBER_) continue;
-
     // Get the particle effective radius (m)
     realtype radius;
     aero_rep_get_effective_radius(
@@ -299,8 +305,12 @@ void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase));	// aerosol phase index
 
+    // If no aerosol water is present, no transfer occurs
+    if (state[AERO_WATER_(i_phase)] / 
+        (aero_conc_type==0?1.0:number_conc) < SMALL_NUMBER_) continue;
+
     // If the radius or number concentration are zero, no transfer occurs
-    if (radius < SMALL_NUMBER_ || number_conc < SMALL_NUMBER_) continue;
+    if (radius < SMALL_NUMBER_ || number_conc < 1.0) continue;
 
     // Calculate the rate constant for diffusion limited mass transfer to the
     // aerosol phase (1/s)

@@ -180,6 +180,6 @@ int sub_model_get_parameter_id(ModelData *model_data, int type,
           void *identifiers);
 double sub_model_get_parameter_value(ModelData *model_data, int parameter_id);
 void sub_model_calculate(ModelData *model_data);
-void sub_model_print_data(ModelData *model_data);
+void sub_model_print_data(void *solver_data);
 
 #endif

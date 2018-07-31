@@ -249,8 +249,10 @@ void sub_model_update_data(int update_sub_model_type, void *update_data,
 /** \brief Print the sub model data
  * \param model_data Pointer to the model data
  */
-void sub_model_print_data(ModelData *model_data)
+void sub_model_print_data(void *solver_data)
 {
+  ModelData *model_data = (ModelData*)
+          &(((SolverData*)solver_data)->model_data);
 
   // Get the number of sub models
   int *sub_model_data = (int*) (model_data->sub_model_data);

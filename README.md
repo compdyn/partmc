@@ -62,6 +62,28 @@ References:
      impacts on cloud microphysical properties: Effects of aerosol
      plume and environmental conditions, _J. Geophys. Res._ 121(10),
      5990-6013, 2016 <http://dx.doi.org/10.1002/2016JD024851>
+   * J. Ching, J. Fast, M. West, and N. Riemer, Metrics to quantify
+     the importance of mixing state for CCN activity, _Atmos.
+     Chem. and Phys._ 17, 7445-7458, 2017
+     <http://dx.doi.org/10.5194/acp-17-7445-2017>
+   * J. Tian, B. T. Brem, M. West, T. C. Bond, M. J. Rood, and
+     N. Riemer, Simulating aerosol chamber experiments with the
+     particle-resolved aerosol model PartMC, _Aerosol Sci. Technol._
+     51(7), 856-867, 2017
+     <http://dx.doi.org/10.1080/02786826.2017.1311988>
+   * J. H. Curtis, N. Riemer, and M. West, A single-column
+     particle-resolved model for simulating the vertical distribution
+     of aerosol mixing state: WRF-PartMC-MOSAIC-SCM v1.0,
+     _Geosci. Model Dev._ 10, 4057-4079, 2017
+     <http://dx.doi.org/10.5194/gmd-10-4057-2017>
+   * J. Ching, M. West, and N. Riemer, Quantifying impacts of aerosol
+     mixing state on nucleation-scavenging of black carbon aerosol
+     particles, _Atmosphere_ 9(1), 17, 2018
+     <http://dx.doi.org/10.3390/atmos9010017>
+   * M. Hughes, J. K. Kodros, J. R. Pierce, M. West, and N. Riemer,
+     Machine learning to predict the global distribution of aerosol
+     mixing state metrics, _Atmosphere_ 9(1), 15, 2018
+     <http://dx.doi.org/10.3390/atmos9010015>
 
 Copyright (C) 2005-2017 Nicole Riemer and Matthew West  
 Portions copyright (C) Andreas Bott, Richard Easter, Jeffrey Curtis,

@@ -1,4 +1,4 @@
-! Copyright (C) 2007-2012, 2016, 2017 Nicole Riemer and Matthew West
+! Copyright (C) 2007-2012, 2016, 2017, 2018 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -83,6 +83,33 @@
 
 !> \page publications PartMC Publications
 !!
+!!   - M.&nbsp;Hughes, J.&nbsp;K.&nbsp;Kodros, J.&nbsp;R.&nbsp;Pierce,
+!!     M.&nbsp;West, and N.&nbsp;Riemer (2018) Machine learning to
+!!     predict the global distribution of aerosol mixing state
+!!     metrics, <i>Atmosphere</i> <b>9</b>(1), 15, DOI: <a
+!!     href="http://dx.doi.org/10.3390/atmos9010015">10.3390/atmos9010015</a>.
+!!   - J.&nbsp;Ching, M.&nbsp;West, and N.&nbsp;Riemer (2018)
+!!     Quantifying impacts of aerosol mixing state on
+!!     nucleation-scavenging of black carbon aerosol particles,
+!!     <i>Atmosphere</i> <b>9</b>(1), 17, DOI: <a
+!!     href="http://dx.doi.org/10.3390/atmos9010017">10.3390/atmos9010017</a>.
+!!   - J.&nbsp;H.&nbsp;Curtis, N.&nbsp;Riemer, and M.&nbsp;West,
+!!     (2017) A single-column particle-resolved model for simulating
+!!     the vertical distribution of aerosol mixing state:
+!!     WRF-PartMC-MOSAIC-SCM v1.0, <i>Geoscientific Model
+!!     Development</i> <b>10</b>, 4057-4079, DOI: <a
+!!     href="http://dx.doi.org/10.5194/gmd-10-4057-2017">10.5194/gmd-10-4057-2017</a>.
+!!   - J.&nbsp;Tian, B.&nbsp;T.&nbsp;Brem, M.&nbsp;West,
+!!     T.&nbsp;C.&nbsp;Bond, M.&nbsp;J.&nbsp;Rood, and N.&nbsp;Riemer
+!!     (2017) Simulating aerosol chamber experiments with the
+!!     particle-resolved aerosol model PartMC, <i>Aerosol Science and
+!!     Technology</i> <b>51</b>(7), 856-867, DOI: <a
+!!     href="http://dx.doi.org/10.1080/02786826.2017.1311988">10.1080/02786826.2017.1311988</a>.
+!!   - J.&nbsp;Ching, J.&nbsp;Fast, M.&nbsp;West, and N.&nbsp;Riemer
+!!     (2017) Metrics to quantify the importance of mixing state for
+!!     CCN activity, <i>Atmospheric Chemistry and Physics</i>
+!!     <b>17</b>, 7445-7458, DOI: <a
+!!     href="http://dx.doi.org/10.5194/acp-17-7445-2017">10.5194/acp-17-7445-2017</a>.
 !!   - J.&nbsp;Ching, N.&nbsp;Riemer, and M.&nbsp;West (2016) Black
 !!     carbon mixing state impacts on cloud microphysical properties:
 !!     Effects of aerosol plume and environmental conditions,
@@ -107,49 +134,49 @@
 !!     L.&nbsp;Pfaffenberger, H.&nbsp;Schlager, and A.&nbsp;Petzold
 !!     (2014) Modeling the evolution of aerosol particles in a ship
 !!     plume using PartMC-MOSAIC, <i>Atmospheric Chemistry and
-!!     Physics</i> 14, 5327-5347, DOI: <a
+!!     Physics</i> <b>14</b>, 5327-5347, DOI: <a
 !!     href="http://dx.doi.org/10.5194/acp-14-5327-2014">10.5194/acp-14-5327-2014</a>.
 !!   - N.&nbsp;Riemer and M.&nbsp;West (2013) Quantifying aerosol mixing
 !!     state with entropy and diversity measures, <i>Atmospheric
-!!     Chemistry and Physics</i> 13, 11423-11439, DOI: <a
+!!     Chemistry and Physics</i> <b>13</b>, 11423-11439, DOI: <a
 !!     href="http://dx.doi.org/10.5194/acp-13-11423-2013">10.5194/acp-13-11423-2013</a>.
 !!   - M.&nbsp;D.&nbsp;Michelotti, M.&nbsp;T.&nbsp;Heath, and
 !!     M.&nbsp;West (2013) Binning for efficient stochastic multiscale
 !!     particle simulations, <i>Atmospheric Chemistry and Physics</i>
-!!     11(4), 1071-1096, DOI: <a
+!!     <b>11</b>(4), 1071-1096, DOI: <a
 !!     href="http://dx.doi.org/10.1137/130908038">10.1137/130908038</a>.
 !!   - J.&nbsp;Ching, N.&nbsp;Riemer, and M.&nbsp;West (2012) Impacts of
 !!     black carbon mixing state on black carbon nucleation scavenging:
 !!     Insights from a particle-resolved model, <i>Journal of
-!!     Geophysical Research</i> 117(D23209), DOI: <a
+!!     Geophysical Research</i> <b>117</b>(D23209), DOI: <a
 !!     href="http://dx.doi.org/10.1029/2012JD018269">10.1029/2012JD018269</a>.
 !!   - R.&nbsp;E.&nbsp;L.&nbsp;DeVille, N.&nbsp;Riemer, and
 !!     M.&nbsp;West (2011) Weighted Flow Algorithms (WFA) for
 !!     stochastic particle coagulation, <i>Journal of Computational
-!!     Physics</i> 230(23), 8427-8451, DOI: <a
+!!     Physics</i> <b>230</b>(23), 8427-8451, DOI: <a
 !!     href="http://dx.doi.org/10.1016/j.jcp.2011.07.027">10.1016/j.jcp.2011.07.027</a>.
 !!   - R.&nbsp;A.&nbsp;Zaveri, J.&nbsp;C.&nbsp;Barnard,
 !!     R.&nbsp;C.&nbsp;Easter, N.&nbsp;Riemer, and M.&nbsp;West (2010)
 !!     Particle-resolved simulation of aerosol size, composition,
 !!     mixing state, and the associated optical and cloud condensation
 !!     nuclei activation properties in an evolving urban plume,
-!!     <i>Journal of Geophysical Research</i> 115(D17210), DOI: <a
+!!     <i>Journal of Geophysical Research</i> <b>115</b>(D17210), DOI: <a
 !!     href="http://dx.doi.org/10.1029/2009JD013616">10.1029/2009JD013616</a>.
 !!   - N.&nbsp;Riemer, M.&nbsp;West, R.&nbsp;A.&nbsp;Zaveri, and
 !!     R.&nbsp;C.&nbsp;Easter (2010) Estimating black carbon aging
 !!     time-scales with a particle-resolved aerosol model, <i>Journal
-!!     of Aerosol Science</i> 41(1), 143-158, DOI: <a
+!!     of Aerosol Science</i> <b>41</b>(1), 143-158, DOI: <a
 !!     href="http://dx.doi.org/10.1016/j.jaerosci.2009.08.009">10.1016/j.jaerosci.2009.08.009</a>
 !!   - N.&nbsp;Riemer, M.&nbsp;West, R.&nbsp;A.&nbsp;Zaveri, and
 !!     R.&nbsp;C.&nbsp;Easter (2009) Simulating the evolution of soot
 !!     mixing state with a particle-resolved aerosol model, <i>Journal
-!!     of Geophysical Research</i> 114(D09202), DOI: <a
+!!     of Geophysical Research</i> <b>114</b>(D09202), DOI: <a
 !!     href="http://dx.doi.org/10.1029/2008JD011073">10.1029/2008JD011073</a>
 !!   - R.&nbsp;McGraw, L.&nbsp;Leng, W.&nbsp;Zhu, N.&nbsp;Riemer, and
 !!     M.&nbsp;West (2008) Aerosol dynamics using the quadrature
 !!     method of moments: Comparing several quadrature schemes with
 !!     particle-resolved simulation, <i>Journal of Physics: Conference
-!!     Series</i> 125(012020), DOI: <a
+!!     Series</i> <b>125</b>(012020), DOI: <a
 !!     href="http://dx.doi.org/10.1088/1742-6596/125/1/012020">10.1088/1742-6596/125/1/012020</a>
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

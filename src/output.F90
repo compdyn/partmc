@@ -1,4 +1,4 @@
-! Copyright (C) 2005-2015, 2017 Nicole Riemer and Matthew West
+! Copyright (C) 2005-2018 Nicole Riemer and Matthew West
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -82,7 +82,7 @@ module pmc_output
 #endif
 
   !> PartMC verson number.
-  character(len=100), parameter :: PARTMC_VERSION = "2.4.0"
+  character(len=100), parameter :: PARTMC_VERSION = "2.5.0"
 
   !> Type code for undefined or invalid output.
   integer, parameter :: OUTPUT_TYPE_INVALID = 0

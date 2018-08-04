@@ -1,5 +1,5 @@
 
-2.5.0 - XXXX-XX-XX
+2.5.0 - 2018-11-17
 
   * Shift NetCDF CMake rules to `tool/netcdf.cmake` (Matt West).
 

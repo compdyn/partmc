@@ -8,8 +8,8 @@ PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 
 [![CI Status](https://img.shields.io/travis/compdyn/partmc/master.svg)](https://travis-ci.org/compdyn/partmc)
 
-Version 2.4.0  
-Released 2017-02-14
+Version 2.5.0  
+Released 2018-11-17
 
 <http://lagrange.mechse.illinois.edu/partmc/>
 
@@ -85,7 +85,7 @@ References:
      mixing state metrics, _Atmosphere_ 9(1), 15, 2018
      <http://dx.doi.org/10.3390/atmos9010015>
 
-Copyright (C) 2005-2017 Nicole Riemer and Matthew West  
+Copyright (C) 2005-2018 Nicole Riemer and Matthew West  
 Portions copyright (C) Andreas Bott, Richard Easter, Jeffrey Curtis,
 and Jian Tian  
 Licensed under the GNU General Public License version 2 or (at your
@@ -166,12 +166,12 @@ Installation
 
 2. Unpack PartMC:
 
-        tar xzvf partmc-2.4.0.tar.gz
+        tar xzvf partmc-2.5.0.tar.gz
 
 3. Change into the main PartMC directory (where this README file is
    located):
 
-        cd partmc-2.4.0
+        cd partmc-2.5.0
 
 4. Make a directory called `build` and change into it:
 

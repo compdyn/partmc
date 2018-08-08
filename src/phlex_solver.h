@@ -37,6 +37,8 @@ typedef enum {false, true} bool;
 /* Model data structure */
 typedef struct {
   int n_state_var;	// number of state variables (>=NV_LENGTH_S(y))
+  double *abs_tol;      // pointer to array of state variable absolute
+                        // integration tolerances
   int *var_type;	// pointer to array of state variable types (solver,
                         // constant, PSSA)
 #ifdef PMC_USE_SUNDIALS

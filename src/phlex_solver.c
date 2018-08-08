@@ -206,6 +206,10 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   flag = CVodeSVtolerances(sd->cvode_mem, (realtype) rel_tol, sd->abs_tol_nv);
   check_flag_fail(&flag, "CVodeSVtolerances", 1);
 
+  // Add a pointer in the model data to the absolute tolerances for use during
+  // solving. TODO find a better way to do this
+  sd->model_data.abs_tol = abs_tol;
+
   // Set the maximum number of iterations
   flag = CVodeSetMaxNumSteps(sd->cvode_mem, max_steps);
   check_flag_fail(&flag, "CVodeSetMaxNumSteps", 1);

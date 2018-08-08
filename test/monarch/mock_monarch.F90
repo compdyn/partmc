@@ -206,12 +206,12 @@ contains
     open(RESULTS_FILE_UNIT, file=file_name, status="replace", action="write")
 
     ! TODO refine initial model conditions
-    temperature(:,:,:) = 307.662445068359
+    temperature(:,:,:) = 207.097488403320
     species_conc(:,:,:,:) = 0.0
     water_conc(:,:,:,:) = 0.0
     water_conc(:,:,:,WATER_VAPOR_ID) = 0.01
     air_density(:,:,:) = 1.225
-    pressure(:,:,:) = 97540.5625
+    pressure(:,:,:) = 14760.8105468750
 
     deallocate(file_name)
 

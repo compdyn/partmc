@@ -16,8 +16,6 @@
 
 // Universal gas constant (J/mol/K)
 #define UNIV_GAS_CONST_ 8.314472
-// Small number
-#define SMALL_NUMBER_ 1.0e-30
 
 #define DELTA_H_ float_data[0]
 #define DELTA_S_ float_data[1]
@@ -32,10 +30,11 @@
 #define CONV_ float_data[10]
 #define MW_ float_data[11]
 #define UGM3_TO_PPM_ float_data[12]
+#define SMALL_NUMBER_ float_data[13]
 #define NUM_AERO_PHASE_ int_data[0]
 #define GAS_SPEC_ (int_data[1]-1)
 #define NUM_INT_PROP_ 2
-#define NUM_FLOAT_PROP_ 13
+#define NUM_FLOAT_PROP_ 14
 #define AERO_SPEC_(x) (int_data[NUM_INT_PROP_ + x]-1)
 #define AERO_ACT_ID_(x) (int_data[NUM_INT_PROP_ + NUM_AERO_PHASE_ + x])
 #define AERO_PHASE_ID_(x) (int_data[NUM_INT_PROP_ + 2*(NUM_AERO_PHASE_) + x]-1)
@@ -104,6 +103,12 @@ void * rxn_SIMPOL_phase_transfer_update_ids(ModelData *model_data,
     AERO_ACT_ID_(i_aero_phase) = 
       sub_model_get_parameter_id(model_data, 1, (void*) (&aero_state_id));
   }
+  
+  // Calculate a small number based on the integration tolerances to use
+  // during solving. TODO find a better place to do this
+  realtype *abs_tol = model_data->abs_tol;
+  SMALL_NUMBER_ = ( abs_tol[GAS_SPEC_] > abs_tol[AERO_SPEC_(0)] ? 
+                    abs_tol[AERO_SPEC_(0)] / 10.0 : abs_tol[GAS_SPEC_] / 10.0 );
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -160,7 +165,7 @@ void * rxn_SIMPOL_phase_transfer_update_env_state(double *env_data,
 
 /** \brief Do pre-derivative calculations
  *
- * Nothing to do for phase_transfer reactions
+ * Nothing to do for SIMPOL phase transfer reactions
  *
  * \param model_data Pointer to the model data, including the state array
  * \param rxn_data Pointer to the reaction data
@@ -242,7 +247,10 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
               aero_phase_mass);
 
     // Calculate gas-phase condensation rate (ppm/s)
-    cond_rate *= state[GAS_SPEC_];
+    // (Slow down condensation as gas-phase concentrations approach zero to
+    //  help out the solver.)
+    cond_rate *= ( state[GAS_SPEC_] > SMALL_NUMBER_ ? 
+                   state[GAS_SPEC_] - SMALL_NUMBER_ : 0.0 );
 
     // Get the activity coefficient (if one exists)
     realtype act_coeff = 1.0;
@@ -252,7 +260,10 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     }
 
     // Calculate aerosol-phase evaporation rate (ppm/s)
-    evap_rate *= state[AERO_SPEC_(i_phase)] * act_coeff;
+    // (Slow down evaporation as aerosol-phase concentrations approach zero
+    //  to help out the solver.)
+    evap_rate *= (state[AERO_SPEC_(i_phase)] > SMALL_NUMBER_ ?
+                  state[AERO_SPEC_(i_phase)] - SMALL_NUMBER_ : 0.0 ) * act_coeff;
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
     if (DERIV_ID_(0)>=0) deriv[DERIV_ID_(0)] += evap_rate - cond_rate;
@@ -342,6 +353,10 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
     realtype evap_rate = cond_rate * (EQUIL_CONST_ * aero_phase_avg_MW /
               aero_phase_mass);
 
+    // Adjust rates for lower threshholds (see derivative calculation)
+    cond_rate *= ( state[GAS_SPEC_] > SMALL_NUMBER_ ? 1.0 : 0.0 );
+    evap_rate *= ( state[AERO_SPEC_(i_phase)] > SMALL_NUMBER_ ? 1.0 : 0.0 );
+
     // Get the activity coefficient (if one exists)
     realtype act_coeff = 1.0;
     if (AERO_ACT_ID_(i_phase)>-1) {
@@ -413,7 +428,6 @@ void * rxn_SIMPOL_phase_transfer_print(void *rxn_data)
 #undef PRESSURE_PA_
 
 #undef UNIV_GAS_CONST_
-#undef SMALL_NUMBER_
 
 #undef DELTA_H_
 #undef DELTA_S_
@@ -428,6 +442,7 @@ void * rxn_SIMPOL_phase_transfer_print(void *rxn_data)
 #undef CONV_
 #undef MW_
 #undef UGM3_TO_PPM_
+#undef SMALL_NUMBER_
 #undef NUM_AERO_PHASE_
 #undef GAS_SPEC_
 #undef NUM_INT_PROP_

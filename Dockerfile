@@ -20,9 +20,9 @@ RUN curl -LO http://faculty.cse.tamu.edu/davis/SuiteSparse/SuiteSparse-5.1.0.tar
     && make install INSTALL=/usr/local BLAS="-L/lib64 -lopenblas"
 
 # Install SUNDIALS with sparse matrix functionality
-RUN curl -LO https://computation.llnl.gov/projects/sundials/download/cvodes-3.1.1.tar.gz \
-    && tar -zxvf cvodes-3.1.1.tar.gz \
-    && cd cvodes-3.1.1 \
+RUN curl -LO https://computation.llnl.gov/projects/sundials/download/sundials-3.1.1.tar.gz \
+    && tar -zxvf sundials-3.1.1.tar.gz \
+    && cd sundials-3.1.1 \
     # Increase number of iterations for initial timestep calculation in cvodes
     # to allow for RHS function failures due to concentrations < zero at coarse time steps
     && sed -i s/"MAX_ITERS[ ]*4"/"MAX_ITERS  400"/g src/cvodes/cvodes.c \

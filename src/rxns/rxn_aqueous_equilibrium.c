@@ -303,12 +303,6 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
     if (ACTIVITY_COEFF_(i_phase)>=0) reverse_rate *= 
             state[ACTIVITY_COEFF_(i_phase)];
 
-    // No Jac contributions to add if the rates are zero
-    if ((forward_rate - reverse_rate)==0.0) {
-      i_jac += (NUM_REACT_ + NUM_PROD_) * (NUM_REACT_ + NUM_PROD_ + 1);
-      continue;
-    }
-
     // Add dependence on reactants for reactants and products (forward reaction) 
     for (int i_react_ind = 0; i_react_ind < NUM_REACT_; i_react_ind++) {
       for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {

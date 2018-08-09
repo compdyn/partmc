@@ -1296,7 +1296,7 @@ contains
     integer(kind=i_kind), intent(in), optional :: file_unit
 
     integer(kind=i_kind) :: i_gas_spec, i_spec, j_spec, i_phase, i_aero_rep, i_mech
-    integer(kind=i_kind) :: i_sub_model
+    integer(kind=i_kind) :: i_sub_model, i_solver_spec
     integer(kind=i_kind) :: f_unit=6
     type(string_t), allocatable :: state_names(:), rep_spec_names(:)
 
@@ -1352,8 +1352,19 @@ contains
     do i_spec = 1, size(state_names)
       write(f_unit,*) i_spec, state_names(i_spec)%string
     end do
-    deallocate(state_names)
 
+    write(f_unit,*) "*** Solver Data ***"
+    write(f_unit,*) "Solver variables:"
+    i_solver_spec = 0
+    do i_spec = 1, size(state_names)
+      if (this%var_type(i_spec).eq.CHEM_SPEC_VARIABLE) then
+        write(f_unit,*) "solver spec", i_solver_spec, state_names(i_spec)%string
+        i_solver_spec = i_solver_spec + 1
+      end if
+    end do
+    write(f_unit,*) ""
+    deallocate(state_names)
+    
     flush(f_unit)
 
     if (associated(this%solver_data_gas)) &

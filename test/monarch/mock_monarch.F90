@@ -46,7 +46,7 @@ program mock_monarch
   !> Ending index for phlex-chem species in tracer array
   integer, parameter :: END_PHLEX_ID = 650
   !> Time step (min)
-  real, parameter :: TIME_STEP = 5
+  real, parameter :: TIME_STEP = 1.6
   !> Number of time steps to integrate over
   integer, parameter :: NUM_TIME_STEP = 100
   !> Index for water vapor in water_conc()
@@ -206,12 +206,12 @@ contains
     open(RESULTS_FILE_UNIT, file=file_name, status="replace", action="write")
 
     ! TODO refine initial model conditions
-    temperature(:,:,:) = 207.097488403320
+    temperature(:,:,:) = 221.690872192383
     species_conc(:,:,:,:) = 0.0
     water_conc(:,:,:,:) = 0.0
     water_conc(:,:,:,WATER_VAPOR_ID) = 0.01
     air_density(:,:,:) = 1.225
-    pressure(:,:,:) = 14760.8105468750
+    pressure(:,:,:) = 10224.0166015625
 
     deallocate(file_name)
 

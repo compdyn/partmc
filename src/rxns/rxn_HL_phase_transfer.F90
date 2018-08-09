@@ -110,10 +110,11 @@ module pmc_rxn_HL_phase_transfer
 #define CONV_ this%condensed_data_real(9)
 #define MW_ this%condensed_data_real(10)
 #define UGM3_TO_PPM_ this%condensed_data_real(11)
+#define SMALL_NUMBER_ this%condensed_data_real(12)
 #define NUM_AERO_PHASE_ this%condensed_data_int(1)
 #define GAS_SPEC_ this%condensed_data_int(2)
 #define NUM_INT_PROP_ 2
-#define NUM_REAL_PROP_ 11
+#define NUM_REAL_PROP_ 12
 #define AERO_SPEC_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define AERO_WATER_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_AERO_PHASE_+x)
 #define AERO_PHASE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+2*NUM_AERO_PHASE_+x)
@@ -393,6 +394,7 @@ contains
 #undef CONV_
 #undef MW_
 #undef UGM3_TO_PPM_
+#undef SMALL_NUMBER_
 #undef NUM_AERO_PHASE_
 #undef GAS_SPEC_
 #undef NUM_INT_PROP_

@@ -16,8 +16,6 @@
 
 // Universal gas constant (J/mol/K)
 #define UNIV_GAS_CONST_ 8.314472
-// Small number
-#define SMALL_NUMBER_ 1.0e-30
 
 #define DELTA_H_ float_data[0]
 #define DELTA_S_ float_data[1]
@@ -30,10 +28,11 @@
 #define CONV_ float_data[8]
 #define MW_ float_data[9]
 #define UGM3_TO_PPM_ float_data[10]
+#define SMALL_NUMBER_ float_data[11]
 #define NUM_AERO_PHASE_ int_data[0]
 #define GAS_SPEC_ (int_data[1]-1)
 #define NUM_INT_PROP_ 2
-#define NUM_FLOAT_PROP_ 11
+#define NUM_FLOAT_PROP_ 12
 #define AERO_SPEC_(x) (int_data[NUM_INT_PROP_ + x]-1)
 #define AERO_WATER_(x) (int_data[NUM_INT_PROP_ + NUM_AERO_PHASE_ + x]-1)
 #define AERO_PHASE_ID_(x) (int_data[NUM_INT_PROP_ + 2*NUM_AERO_PHASE_ + x]-1)
@@ -99,6 +98,12 @@ void * rxn_HL_phase_transfer_update_ids(ModelData *model_data, int *deriv_ids,
       JAC_ID_(i_jac++) = 
               jac_ids[AERO_SPEC_(i_aero_phase)][AERO_WATER_(i_aero_phase)];
     }
+
+  // Calculate a small number based on the integration tolerances to use
+  // during solving. TODO find a better place to do this
+  realtype *abs_tol = model_data->abs_tol;
+  SMALL_NUMBER_ = ( abs_tol[GAS_SPEC_] > abs_tol[AERO_SPEC_(0)] ?
+                    abs_tol[AERO_SPEC_(0)] / 10.0 : abs_tol[GAS_SPEC_] / 10.0 );
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -211,7 +216,7 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
         (aero_conc_type==0?1.0:number_conc) < SMALL_NUMBER_) continue;
 
     // If the radius or number concentration are zero, no transfer occurs
-    if (radius < SMALL_NUMBER_ || number_conc < 1.0) continue;
+    if (radius <= ZERO || number_conc <= ZERO) continue;
 
     // Calculate the rate constant for diffusion limited mass transfer to the
     // aerosol phase (1/s)
@@ -223,18 +228,16 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
 	    EQUIL_CONST_ * state[AERO_WATER_(i_phase)]);
 
     // Calculate gas-phase condensation rate (ppm/s)
-    cond_rate *= state[GAS_SPEC_];
+    // (Slow down the condensation as gas-phase concentrations approach zero to
+    //  help out the solver.)
+    cond_rate *= ( state[GAS_SPEC_] > SMALL_NUMBER_ ?
+                   state[GAS_SPEC_] - SMALL_NUMBER_ : 0.0 );
 
     // Calculate aerosol-phase evaporation rate (ug/m^3/s)
-    // (If a very small aerosol-phase concentration results in a net
-    //  evaporation and the actual concentration is small or zero, 
-    //  assume equilibrium conditions.)
-    realtype aero_phase_conc = state[AERO_SPEC_(i_phase)];
-    if (aero_phase_conc < SMALL_NUMBER_) {
-      aero_phase_conc = SMALL_NUMBER_;
-      if (evap_rate * aero_phase_conc > cond_rate / UGM3_TO_PPM_) continue;
-    }
-    evap_rate *= aero_phase_conc;
+    // (Slow down the condensation as gas-phase concentrations approach zero to
+    //  help out the solver.)
+    evap_rate *= ( state[AERO_SPEC_(i_phase)] > SMALL_NUMBER_ ?
+                   state[AERO_SPEC_(i_phase)] - SMALL_NUMBER_ : 0.0 );
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
     if (DERIV_ID_(0)>=0) {
@@ -310,7 +313,7 @@ void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
         (aero_conc_type==0?1.0:number_conc) < SMALL_NUMBER_) continue;
 
     // If the radius or number concentration are zero, no transfer occurs
-    if (radius < SMALL_NUMBER_ || number_conc < 1.0) continue;
+    if (radius <= ZERO || number_conc <= ZERO) continue;
 
     // Calculate the rate constant for diffusion limited mass transfer to the
     // aerosol phase (1/s)
@@ -320,6 +323,10 @@ void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
     // Calculate the evaporation rate constant (1/s)
     realtype evap_rate = cond_rate / (UGM3_TO_PPM_ *
 	    EQUIL_CONST_ * state[AERO_WATER_(i_phase)]);
+
+    // Adjust rates for lower threshholds (see derivative calculation)
+    cond_rate *= ( state[GAS_SPEC_] > SMALL_NUMBER_ ? 1.0 : 0.0 );
+    evap_rate *= ( state[AERO_SPEC_(i_phase)] > SMALL_NUMBER_ ? 1.0 : 0.0 );
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
     if (aero_conc_type==0) {
@@ -394,7 +401,6 @@ void * rxn_HL_phase_transfer_print(void *rxn_data)
 #undef PRESSURE_PA_
 
 #undef UNIV_GAS_CONST_
-#undef SMALL_NUMBER_
 
 #undef DELTA_H_
 #undef DELTA_S_

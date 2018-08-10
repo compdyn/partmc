@@ -164,12 +164,12 @@ void aero_phase_add_condensed_data(int n_int_param, int n_float_param,
     aero_phase_data += (model_data->aero_phase_data_size / sizeof(int)) * i_state;
 
     // Add the integer parameters
-    for (; n_int_param>0; n_int_param--) *(aero_phase_data++) = *(int_param++);
+    for (int i=0; i<n_int_param; i++) *(aero_phase_data++) = int_param[i];
 
     // Add the floating-point parameters
     flt_ptr = (PMC_C_FLOAT*) aero_phase_data;
-    for (; n_float_param>0; n_float_param--) 
-            *(flt_ptr++) = (PMC_C_FLOAT) *(float_param++);
+    for (int i=0; i<n_float_param; i++) 
+            *(flt_ptr++) = (PMC_C_FLOAT) float_param[i];
 
   }
 

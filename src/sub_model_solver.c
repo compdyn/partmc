@@ -277,12 +277,12 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
     *(sub_model_data++) = sub_model_type;
 
     // Add integer parameters
-    for (; n_int_param>0; n_int_param--) *(sub_model_data++) = *(int_param++);
+    for (int i=0; i<n_int_param; i++) *(sub_model_data++) = int_param[i];
 
     // Add floating-point parameters
     flt_ptr = (PMC_C_FLOAT*) sub_model_data;
-    for (; n_float_param>0; n_float_param--)
-            *(flt_ptr++) = (PMC_C_FLOAT) *(float_param++);
+    for (int i=0; i<n_float_param; i++)
+            *(flt_ptr++) = (PMC_C_FLOAT) float_param[i];
 
   }
 
@@ -342,8 +342,10 @@ void sub_model_update_data(int state_id, int update_sub_model_type,
 /** \brief Print the sub model data
  * \param model_data Pointer to the model data
  */
-void sub_model_print_data(ModelData *model_data)
+void sub_model_print_data(void *solver_data)
 {
+  ModelData *model_data = (ModelData*)
+          &(((SolverData*)solver_data)->model_data);
 
   int *sub_model_data = (int*) (model_data->sub_model_data);
   

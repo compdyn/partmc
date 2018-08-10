@@ -206,6 +206,6 @@ int sub_model_get_parameter_id(ModelData *model_data, int type,
 PMC_C_FLOAT sub_model_get_parameter_value(ModelData *model_data, int state_id,
           int parameter_id);
 void sub_model_calculate(ModelData *model_data);
-void sub_model_print_data(ModelData *model_data);
+void sub_model_print_data(void *solver_data);
 
 #endif

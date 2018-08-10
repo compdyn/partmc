@@ -562,12 +562,12 @@ void rxn_add_condensed_data(int rxn_type, int n_int_param, int n_float_param,
     *(rxn_data++) = rxn_type;
 
     // Add integer parameters
-    for (; n_int_param>0; n_int_param--) *(rxn_data++) = *(int_param++);
+    for (int i=0; i<n_int_param; i++) *(rxn_data++) = int_param[i];
 
     // Add floating-point parameters
     flt_ptr = (PMC_C_FLOAT*) rxn_data;
-    for (; n_float_param>0; n_float_param--)
-            *(flt_ptr++) = (PMC_C_FLOAT) *(float_param++);
+    for (int i=0; i<n_float_param; i++)
+            *(flt_ptr++) = (PMC_C_FLOAT) float_param[i];
 
   }
 

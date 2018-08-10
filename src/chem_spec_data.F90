@@ -541,7 +541,7 @@ contains
   !! \c pmc_aero_rep_data::aero_rep_data_t::spec_state_id() for a
   !! particular \ref phlex_aero_rep "aerosol representation". Returns a valid
   !! state array index if the species is found, or 0 otherwise
-  integer(kind=phlex_int) function gas_state_id(this, spec_name)
+  pure integer(kind=phlex_int) function gas_state_id(this, spec_name)
 
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this

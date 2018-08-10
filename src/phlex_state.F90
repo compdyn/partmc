@@ -105,13 +105,29 @@ contains
 
   !> Update the environmental state array
   !! TODO make the environmental parameters part of the input data
-  subroutine update_env_state(this)
+  subroutine update_env_state(this, unique_state_id)
 
     !> Model state
     class(phlex_state_t), intent(inout) :: this
+    !> Unique state id to update. If omitted, update all states
+    integer(kind=phlex_int), optional, intent(in) :: unique_state_id
 
-    this%env_var(1) = this%env_state%temp               ! Temperature (K)
-    this%env_var(2) = this%env_state%pressure           ! Pressure (Pa)
+    integer(kind=phlex_int) :: offset = 0
+
+    if ( present( unique_state_id ) ) then
+      call assert_msg(422082493, unique_state_id .le. this%n_unique_states, &
+              "Attempting to update environmental state "// &
+              trim(to_string(unique_state_id))//" when only "// &
+              trim(to_string(this%n_unique_states))//" state are present.")
+      offset = (unique_state_id-1) * this%n_env_vars
+      this%env_var(offset + 1) = this%env_state%temp       ! Temperature (K)
+      this%env_var(offset + 2) = this%env_state%pressure   ! Pressure (Pa)
+    else
+      do offset = 0, (this%n_unique_states-1)*this%n_env_vars, this%n_env_vars
+        this%env_var(offset + 1) = this%env_state%temp     ! Temperature (K)
+        this%env_var(offset + 2) = this%env_state%pressure ! Pressure (Pa)
+      end do
+    end if
 
   end subroutine update_env_state
 

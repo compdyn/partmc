@@ -494,12 +494,12 @@ void aero_rep_add_condensed_data(int aero_rep_type, int n_int_param,
     *(aero_rep_data++) = aero_rep_type;
 
     // Add integer parameters
-    for (; n_int_param>0; n_int_param--) *(aero_rep_data++) = *(int_param++);
+    for (int i=0; i<n_int_param; i++) *(aero_rep_data++) = int_param[i];
 
     // Add floating-point parameters
     flt_ptr = (PMC_C_FLOAT*) aero_rep_data;
-    for (; n_float_param>0; n_float_param--)
-            *(flt_ptr++) = (PMC_C_FLOAT) *(float_param++);
+    for (int i=0; i<n_float_param; i++)
+            *(flt_ptr++) = (PMC_C_FLOAT) float_param[i];
 
   }
 

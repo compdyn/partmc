@@ -126,7 +126,8 @@ void * solver_new(int n_state_var, int n_env_var, int n_states, int *var_type,
     exit(1);
   }
   int *ptr = sd->model_data.rxn_data;
-  ptr[0] = n_rxn;
+  for (int i=0; i<n_states; i++) 
+    ptr[i*sd->model_data.rxn_data_size/sizeof(int)] = n_rxn;
   sd->model_data.nxt_rxn = (void*) &(ptr[1]);
 
   // If there are no reactions, flag the solver not to run
@@ -145,7 +146,8 @@ void * solver_new(int n_state_var, int n_env_var, int n_states, int *var_type,
     exit(1);
   }
   ptr = sd->model_data.aero_phase_data;
-  ptr[0] = n_aero_phase;
+  for (int i=0; i<n_states; i++) 
+    ptr[i*sd->model_data.aero_phase_data_size/sizeof(int)] = n_aero_phase;
   sd->model_data.nxt_aero_phase = (void*) &(ptr[1]);
 
   // Allocate space for the aerosol representation data and set
@@ -163,7 +165,8 @@ void * solver_new(int n_state_var, int n_env_var, int n_states, int *var_type,
     exit(1);
   }
   ptr = sd->model_data.aero_rep_data;
-  ptr[0] = n_aero_rep;
+  for (int i=0; i<n_states; i++) 
+    ptr[i*sd->model_data.aero_rep_data_size/sizeof(int)] = n_aero_rep;
   sd->model_data.nxt_aero_rep = (void*) &(ptr[1]);
 
   // Allocate space for the sub model data and set the number of sub models
@@ -179,7 +182,8 @@ void * solver_new(int n_state_var, int n_env_var, int n_states, int *var_type,
     exit(1);
   }
   ptr = sd->model_data.sub_model_data;
-  ptr[0] = n_sub_model;
+  for (int i=0; i<n_states; i++) 
+    ptr[i*sd->model_data.sub_model_data_size/sizeof(int)] = n_sub_model;
   sd->model_data.nxt_sub_model = (void*) &(ptr[1]);
 
   // Return a pointer to the new SolverData object
@@ -343,7 +347,8 @@ int solver_run(void *solver_data, PMC_C_FLOAT *state, PMC_C_FLOAT *env,
   if (!sd->no_solve) {
     flag = CVode(sd->cvode_mem, (realtype) t_final, sd->y, &t_rt, CV_NORMAL);
     if (check_flag(&flag, "CVode", 1)==PHLEX_SOLVER_FAIL) {
-      for( int i_spec=0; i_spec<sd->model_data.n_state_var; i_spec++ )
+      for( int i_spec=0; i_spec<sd->model_data.n_state_var *
+                         sd->model_data.n_states; i_spec++ )
         printf("\nspec %d conc = %le", i_spec, state[i_spec]);
       solver_print_stats(sd->cvode_mem);
       return PHLEX_SOLVER_FAIL;
@@ -388,10 +393,13 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   // Update the state array with the current dependent variable values
   // Signal a recoverable error (positive return value) for negative 
   // concentrations.
-  for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
-    if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
-      if (NV_DATA_S(y)[i_dep_var] < 0.0) return 1;
-      md->state[i_spec] = (PMC_C_FLOAT) (NV_DATA_S(y)[i_dep_var++]);
+  for (int i_spec=0, i_dep_var=0, i_state=0; i_state < sd->model_data.n_states;
+      i_state++) {
+    for (int j_spec=0; j_spec<sd->model_data.n_state_var; i_spec++, j_spec++) {
+      if (md->var_type[j_spec]==CHEM_SPEC_VARIABLE) {
+        if (NV_DATA_S(y)[i_dep_var] < 0.0) return 1;
+        md->state[i_spec] = (PMC_C_FLOAT) (NV_DATA_S(y)[i_dep_var++]);
+      }
     }
   }
 
@@ -450,10 +458,13 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   PMC_SOLVER_C_FLOAT *J_data;
 
   // Update the state array with the current dependent variable values
-  for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
-    if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
-      if (NV_DATA_S(y)[i_dep_var] < 0.0) return 1;
-      md->state[i_spec] = NV_DATA_S(y)[i_dep_var++];
+  for (int i_spec=0, i_dep_var=0, i_state=0; i_state < sd->model_data.n_states;
+      i_state++) {
+    for (int j_spec=0; j_spec<sd->model_data.n_state_var; i_spec++, j_spec++) {
+      if (md->var_type[j_spec]==CHEM_SPEC_VARIABLE) {
+        if (NV_DATA_S(y)[i_dep_var] < 0.0) return 1;
+        md->state[i_spec] = NV_DATA_S(y)[i_dep_var++];
+      }
     }
   }
 
@@ -571,7 +582,8 @@ SUNMatrix get_jac_init(SolverData *solver_data)
     for (int i=0; i<n_state_var; i++) {
       if (solver_data->model_data.var_type[i]!=CHEM_SPEC_VARIABLE) continue;
       (SM_INDEXPTRS_S(M))[i_col] = i_elem;
-      for (int j=0, i_row=0; j<n_state_var; j++) {
+      for (int j=0, i_row=i_state*(n_dep_var/solver_data->model_data.n_states); 
+          j<n_state_var; j++) {
         if (solver_data->model_data.var_type[j]!=CHEM_SPEC_VARIABLE) continue;
         if (jac_struct[j][i]==pmc_true) {
 	  (SM_DATA_S(M))[i_elem] = (realtype) 1.0;
@@ -610,6 +622,8 @@ SUNMatrix get_jac_init(SolverData *solver_data)
       }
 
   // Update the ids in the data blocks
+  n_dep_var /= solver_data->model_data.n_states;
+  n_jac_elem /= solver_data->model_data.n_states;
   rxn_update_ids(&(solver_data->model_data), n_dep_var, n_jac_elem, deriv_ids, jac_ids);
   aero_rep_update_ids(&(solver_data->model_data), n_dep_var, n_jac_elem, deriv_ids, jac_ids);
   sub_model_update_ids(&(solver_data->model_data), n_dep_var, n_jac_elem, deriv_ids, jac_ids);

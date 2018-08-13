@@ -11,8 +11,8 @@
 #include "../rxn_solver.h"
 
 // TODO Lookup environmental indices during initialization
-#define TEMPERATURE_K_ env_data[ENV_OFFSET_ + 0]
-#define PRESSURE_PA_ env_data[ENV_OFFSET_ + 1]
+#define TEMPERATURE_K_ env_data[0]
+#define PRESSURE_PA_ env_data[1]
 
 // Small number
 #define SMALL_NUMBER_ 1.0e-30
@@ -22,12 +22,11 @@
 #define NUM_AERO_PHASE_ (int_data[2])
 #define INT_DATA_SIZE_ (int_data[3])
 #define FLOAT_DATA_SIZE_ (int_data[4])
-#define ENV_OFFSET_ (int_data[5])
 #define A_ (float_data[0])
 #define C_ (float_data[1])
 #define RATE_CONST_REVERSE_ (float_data[2])
 #define RATE_CONST_FORWARD_ (float_data[3])
-#define NUM_INT_PROP_ 6
+#define NUM_INT_PROP_ 5
 #define NUM_FLOAT_PROP_ 4
 #define REACT_(x) (int_data[NUM_INT_PROP_+x]-1)
 #define PROD_(x) (int_data[NUM_INT_PROP_+NUM_REACT_*NUM_AERO_PHASE_+x]-1)
@@ -93,19 +92,14 @@ void * rxn_aqueous_equilibrium_get_used_jac_elem(void *rxn_data,
  * \param model_data Pointer to the model data
  * \param deriv_ids Id of each state variable in the derivative array
  * \param jac_ids Id of each state variable combo in the Jacobian array
- * \param env_offset Offset for the state being solved for in the env array
- * \param state_id Index of the state being solved for
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_aqueous_equilibrium_update_ids(ModelData *model_data, int *deriv_ids,
-          int **jac_ids, int env_offset, int state_id, void *rxn_data)
+void * rxn_aqueous_equilibrium_update_ids(ModelData model_data, int *deriv_ids,
+          int **jac_ids, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
-
-  // Update the environmental array offset
-  ENV_OFFSET_ = env_offset;
 
   // Update the time derivative ids
   for (int i_phase = 0, i_deriv = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
@@ -192,7 +186,7 @@ void * rxn_aqueous_equilibrium_update_env_state(PMC_C_FLOAT *env_data,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_aqueous_equilibrium_pre_calc(ModelData *model_data, void *rxn_data)
+void * rxn_aqueous_equilibrium_pre_calc(ModelData model_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
@@ -210,11 +204,11 @@ void * rxn_aqueous_equilibrium_pre_calc(ModelData *model_data, void *rxn_data)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
+void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData model_data,
           PMC_SOLVER_C_FLOAT *deriv, void *rxn_data, PMC_C_FLOAT time_step)
 {
-  PMC_C_FLOAT *state = model_data->state;
-  PMC_C_FLOAT *env_data = model_data->env;
+  PMC_C_FLOAT *state = model_data.state;
+  PMC_C_FLOAT *env_data = model_data.env;
   int *int_data = (int*) rxn_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
@@ -275,11 +269,11 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
+void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData model_data,
           PMC_SOLVER_C_FLOAT *J, void *rxn_data, PMC_C_FLOAT time_step)
 {
-  PMC_C_FLOAT *state = model_data->state;
-  PMC_C_FLOAT *env_data = model_data->env;
+  PMC_C_FLOAT *state = model_data.state;
+  PMC_C_FLOAT *env_data = model_data.env;
   int *int_data = (int*) rxn_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 

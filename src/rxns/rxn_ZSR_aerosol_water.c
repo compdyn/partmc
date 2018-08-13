@@ -11,8 +11,8 @@
 #include "../rxn_solver.h"
 
 // TODO Lookup environmental indices during initialization
-#define TEMPERATURE_K_ env_data[ENV_OFFSET_ + 0]
-#define PRESSURE_PA_ env_data[ENV_OFFSET_ + 1]
+#define TEMPERATURE_K_ env_data[0]
+#define PRESSURE_PA_ env_data[1]
 
 #define ACT_TYPE_JACOBSON 1
 #define ACT_TYPE_EQSAM 2
@@ -24,9 +24,8 @@
 #define TOTAL_FLOAT_PARAM_ (int_data[4])
 #define INT_DATA_SIZE_ int_data[5]
 #define FLOAT_DATA_SIZE_ int_data[6]
-#define ENV_OFFSET_ (int_data[7])
 #define PPM_TO_RH_ (float_data[0])
-#define NUM_INT_PROP_ 8
+#define NUM_INT_PROP_ 7
 #define NUM_REAL_PROP_ 1
 #define PHASE_ID_(x) (int_data[NUM_INT_PROP_+x]-1)
 #define PAIR_INT_PARAM_LOC_(x) (int_data[NUM_INT_PROP_+NUM_PHASE_+x]-1)
@@ -74,19 +73,14 @@ void * rxn_ZSR_aerosol_water_get_used_jac_elem(void *rxn_data,
  * \param model_data Pointer to the model data
  * \param deriv_ids Id of each state variable in the derivative array
  * \param jac_ids Id of each state variable combo in the Jacobian array
- * \param env_offset Offset for the state being solved for in the env array
- * \param state_id Index of the state being solved for
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_ZSR_aerosol_water_update_ids(ModelData *model_data, int *deriv_ids,
-          int **jac_ids, int env_offset, int state_id, void *rxn_data)
+void * rxn_ZSR_aerosol_water_update_ids(ModelData model_data, int *deriv_ids,
+          int **jac_ids, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
-
-  // Update the environmental array offset
-  ENV_OFFSET_ = env_offset;
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -123,9 +117,9 @@ void * rxn_ZSR_aerosol_water_update_env_state(PMC_C_FLOAT *env_data,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
+void * rxn_ZSR_aerosol_water_pre_calc(ModelData model_data, void *rxn_data)
 {
-  PMC_C_FLOAT *state = model_data->state;
+  PMC_C_FLOAT *state = model_data.state;
   int *int_data = (int*) rxn_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
@@ -214,10 +208,10 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_ZSR_aerosol_water_calc_deriv_contrib(ModelData *model_data,
+void * rxn_ZSR_aerosol_water_calc_deriv_contrib(ModelData model_data,
           PMC_SOLVER_C_FLOAT *deriv, void *rxn_data, PMC_C_FLOAT time_step)
 {
-  PMC_C_FLOAT *state = model_data->state;
+  PMC_C_FLOAT *state = model_data.state;
   int *int_data = (int*) rxn_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
@@ -235,10 +229,10 @@ void * rxn_ZSR_aerosol_water_calc_deriv_contrib(ModelData *model_data,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_ZSR_aerosol_water_calc_jac_contrib(ModelData *model_data,
+void * rxn_ZSR_aerosol_water_calc_jac_contrib(ModelData model_data,
           PMC_SOLVER_C_FLOAT *J, void *rxn_data, PMC_C_FLOAT time_step)
 {
-  PMC_C_FLOAT *state = model_data->state;
+  PMC_C_FLOAT *state = model_data.state;
   int *int_data = (int*) rxn_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 

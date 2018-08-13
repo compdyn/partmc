@@ -11,8 +11,8 @@
 #include "../rxn_solver.h"
 
 // TODO Lookup environmental indices during initialization
-#define TEMPERATURE_K_ env_data[ENV_OFFSET_ + 0]
-#define PRESSURE_PA_ env_data[ENV_OFFSET_ + 1]
+#define TEMPERATURE_K_ env_data[0]
+#define PRESSURE_PA_ env_data[1]
 
 // Universal gas constant (J/mol/K)
 #define UNIV_GAS_CONST_ 8.314472
@@ -23,8 +23,6 @@
 #define GAS_SPEC_ (int_data[1]-1)
 #define INT_DATA_SIZE_ int_data[2]
 #define FLOAT_DATA_SIZE_ int_data[3]
-#define ENV_OFFSET_ int_data[4]
-#define STATE_ID_ int_data[5]
 #define DELTA_H_ float_data[0]
 #define DELTA_S_ float_data[1]
 #define DIFF_COEFF_ float_data[2]
@@ -38,7 +36,7 @@
 #define CONV_ float_data[10]
 #define MW_ float_data[11]
 #define UGM3_TO_PPM_ float_data[12]
-#define NUM_INT_PROP_ 6
+#define NUM_INT_PROP_ 4
 #define NUM_FLOAT_PROP_ 13
 #define AERO_SPEC_(x) (int_data[NUM_INT_PROP_ + x]-1)
 #define AERO_ACT_ID_(x) (int_data[NUM_INT_PROP_ + NUM_AERO_PHASE_ + x])
@@ -75,23 +73,14 @@ void * rxn_SIMPOL_phase_transfer_get_used_jac_elem(void *rxn_data,
  * \param model_data Pointer to the model data for finding sub model ids
  * \param deriv_ids Id of each state variable in the derivative array
  * \param jac_ids Id of each state variable combo in the Jacobian array
- * \param env_offset Offset for the state being solved for in the env array
- * \param state_id Index of the state being solved for
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_SIMPOL_phase_transfer_update_ids(ModelData *model_data,
-          int *deriv_ids, int **jac_ids, int env_offset, int state_id,
-          void *rxn_data)
+void * rxn_SIMPOL_phase_transfer_update_ids(ModelData model_data,
+          int *deriv_ids, int **jac_ids, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
-
-  // Update the environmental array offset
-  ENV_OFFSET_ = env_offset;
-
-  // Update the state being solved for
-  STATE_ID_ = state_id;
 
   // Update the time derivative ids
   DERIV_ID_(0) = deriv_ids[GAS_SPEC_];
@@ -177,7 +166,7 @@ void * rxn_SIMPOL_phase_transfer_update_env_state(PMC_C_FLOAT *env_data,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_SIMPOL_phase_transfer_pre_calc(ModelData *model_data, void *rxn_data)
+void * rxn_SIMPOL_phase_transfer_pre_calc(ModelData model_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
@@ -195,11 +184,11 @@ void * rxn_SIMPOL_phase_transfer_pre_calc(ModelData *model_data, void *rxn_data)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
+void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData model_data,
           PMC_SOLVER_C_FLOAT *deriv, void *rxn_data, PMC_C_FLOAT time_step)
 {
-  PMC_C_FLOAT *state = model_data->state;
-  PMC_C_FLOAT *env_data = model_data->env;
+  PMC_C_FLOAT *state = model_data.state;
+  PMC_C_FLOAT *env_data = model_data.env;
   int *int_data = (int*) rxn_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
@@ -210,7 +199,6 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     PMC_C_FLOAT radius;
     aero_rep_get_effective_radius(
 		  model_data,			// model data
-		  STATE_ID_,                    // Uniaue state id
                   AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
 		  &radius);			// particle effective radius (m)
@@ -219,7 +207,6 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     PMC_C_FLOAT number_conc;
     aero_rep_get_number_conc(
 		  model_data,			// model data
-		  STATE_ID_,                    // Uniaue state id
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
 		  &number_conc);		// particle number conc (#/cc)
@@ -228,7 +215,6 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     // mass)
     int aero_conc_type = aero_rep_get_aero_conc_type(
 		  model_data,			// model data
-		  STATE_ID_,                    // Uniaue state id
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase));	// aerosol phase index
 
@@ -237,7 +223,6 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     PMC_C_FLOAT aero_phase_avg_MW;
     aero_rep_get_aero_phase_mass(
                   model_data,                   // model data
-		  STATE_ID_,                    // Uniaue state id
                   AERO_REP_ID_(i_phase),        // aerosol representation index
                   AERO_PHASE_ID_(i_phase),      // aerosol phase index
                   &aero_phase_mass,             // total aerosol-phase mass
@@ -261,7 +246,7 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     PMC_C_FLOAT act_coeff = 1.0;
     if (AERO_ACT_ID_(i_phase)>-1) {
       act_coeff = sub_model_get_parameter_value(model_data, 
-                STATE_ID_, AERO_ACT_ID_(i_phase));
+                AERO_ACT_ID_(i_phase));
     }
 
     // Calculate gas-phase condensation rate (ppm/s)
@@ -303,11 +288,11 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
+void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData model_data,
           PMC_SOLVER_C_FLOAT *J, void *rxn_data, PMC_C_FLOAT time_step)
 {
-  PMC_C_FLOAT *state = model_data->state;
-  PMC_C_FLOAT *env_data = model_data->env;
+  PMC_C_FLOAT *state = model_data.state;
+  PMC_C_FLOAT *env_data = model_data.env;
   int *int_data = (int*) rxn_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
@@ -318,7 +303,6 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
     PMC_C_FLOAT radius;
     aero_rep_get_effective_radius(
 		  model_data,			// model data
-		  STATE_ID_,                    // Uniaue state id
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
 		  &radius);			// particle effective radius (m)
@@ -327,7 +311,6 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
     PMC_C_FLOAT number_conc;
     aero_rep_get_number_conc(
 		  model_data,			// model data
-		  STATE_ID_,                    // Uniaue state id
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
 		  &number_conc);		// particle number conc (#/cc)
@@ -335,7 +318,6 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
     // Check the aerosol concentration type (per-particle or total per-phase mass)
     int aero_conc_type = aero_rep_get_aero_conc_type(
 		  model_data,			// model data
-		  STATE_ID_,                    // Uniaue state id
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase));	// aerosol phase index
 
@@ -344,7 +326,6 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
     PMC_C_FLOAT aero_phase_avg_MW;
     aero_rep_get_aero_phase_mass(
                   model_data,                   // model data
-		  STATE_ID_,                    // Uniaue state id
                   AERO_REP_ID_(i_phase),        // aerosol representation index
                   AERO_PHASE_ID_(i_phase),      // aerosol phase index
                   &aero_phase_mass,             // total aerosol-phase mass
@@ -368,7 +349,7 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
     PMC_C_FLOAT act_coeff = 1.0;
     if (AERO_ACT_ID_(i_phase)>-1) {
       act_coeff = sub_model_get_parameter_value(model_data,
-                STATE_ID_, AERO_ACT_ID_(i_phase));
+                AERO_ACT_ID_(i_phase));
     }
     
     // Update the evaporation rate

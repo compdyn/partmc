@@ -28,7 +28,7 @@
 
 /** \brief Get the mass and average MW in an aerosol phase
  *
- * \param model_data Pointer to the model data (state, env, aero_phase)
+ * \param model_data Model data (state, env, aero_phase)
  * \param aero_phase_idx Index of the aerosol phase to use in the calculation
  * \param state_var Pointer the aerosol phase on the state variable array
  * \param mass Pointer to hold total aerosol phase mass 
@@ -39,7 +39,7 @@
  * \return A pointer to a set of partial derivatives \f$\frac{dm}{dy}\f$, or a
  *         NULL pointer if no partial derivatives exist
  */
-void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx, 
+void * aero_phase_get_mass(ModelData model_data, int aero_phase_idx, 
         PMC_C_FLOAT *state_var, PMC_C_FLOAT *mass, PMC_C_FLOAT *MW)
 {
 
@@ -68,7 +68,7 @@ void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
 
 /** \brief Get the volume of an aerosol phase
  *
- * \param model_data Pointer to the model data (state, env, aero_phase)
+ * \param model_data Model data (state, env, aero_phase)
  * \param aero_phase_idx Index of the aerosol phase to use in the calculation
  * \param state_var Pointer to the aerosol phase on the state variable array
  * \param volume Pointer to hold the aerosol phase volume 
@@ -77,7 +77,7 @@ void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
  * \return A pointer to a set of partial derivatives \f$\frac{dv}{dy}\f$, or
  *         a NULL pointer if no partial derivatives exist
  */
-void * aero_phase_get_volume(ModelData *model_data, int aero_phase_idx, 
+void * aero_phase_get_volume(ModelData model_data, int aero_phase_idx, 
           PMC_C_FLOAT *state_var, PMC_C_FLOAT *volume)
 {
 
@@ -103,15 +103,15 @@ void * aero_phase_get_volume(ModelData *model_data, int aero_phase_idx,
 
 /** \brief Find an aerosol phase in the list
  *
- * \param model_data Pointer to the model data (state, env, aero_phase)
+ * \param model_data Model data (state, env, aero_phase)
  * \param aero_phase_idx Index of the desired aerosol phase
  * \return A pointer to the requested aerosol phase
  */
-void * aero_phase_find(ModelData *model_data, int aero_phase_idx)
+void * aero_phase_find(ModelData model_data, int aero_phase_idx)
 {
 
   // Get the number of aerosol phases
-  int *aero_phase_data = (int*) (model_data->aero_phase_data);
+  int *aero_phase_data = (int*) (model_data.aero_phase_data);
   int n_aero_phase = *(aero_phase_data++);
 
   // Loop through the aerosol phases to find the one requested
@@ -151,30 +151,28 @@ void * aero_phase_skip(void *aero_phase_data)
 void aero_phase_add_condensed_data(int n_int_param, int n_float_param,
               int *int_param, PMC_C_FLOAT *float_param, void *solver_data)
 {
-  ModelData *model_data = 
-          (ModelData*) &(((SolverData*)solver_data)->model_data);
-  int *aero_phase_data;
-  PMC_C_FLOAT *flt_ptr;
+  SolverData *sd = (SolverData*) solver_data;
 
-  // Loop backwards through the unique states
-  for (int i_state=model_data->n_states-1; i_state >= 0; i_state--) {
+  // Save aerosol phase data for each state's ModelData object
+  for( int i_state = 0; i_state < sd->n_states; i_state++ ) {
 
-    // Point to the next aerosol phase's space for this state
-    aero_phase_data = (int*) (model_data->nxt_aero_phase);
-    aero_phase_data += (model_data->aero_phase_data_size / sizeof(int)) * i_state;
+    ModelData *model_data = &( sd->model_data[ i_state ] );
+
+    // Point to the next aerosol phase's data space
+    int *aero_phase_data = (int*) (model_data->nxt_aero_phase);
 
     // Add the integer parameters
     for (int i=0; i<n_int_param; i++) *(aero_phase_data++) = int_param[i];
 
     // Add the floating-point parameters
-    flt_ptr = (PMC_C_FLOAT*) aero_phase_data;
+    PMC_C_FLOAT *flt_ptr = (PMC_C_FLOAT*) aero_phase_data;
     for (int i=0; i<n_float_param; i++) 
             *(flt_ptr++) = (PMC_C_FLOAT) float_param[i];
 
-  }
+    // Set the pointer for the next free space in aero_phase_data;
+    model_data->nxt_aero_phase = (void*) flt_ptr;
 
-  // Set the pointer for the next free space in aero_phase_data;
-  model_data->nxt_aero_phase = (void*) flt_ptr;
+  }
 }
 
 /** \brief Print the aerosol phase data
@@ -182,26 +180,31 @@ void aero_phase_add_condensed_data(int n_int_param, int n_float_param,
  */
 void aero_phase_print_data(void *solver_data)
 {
-  ModelData *model_data = 
-          (ModelData*) &(((SolverData*)solver_data)->model_data);
-  int *aero_phase_data = (int*) (model_data->aero_phase_data);
-  
-  // Get the number of aerosol phases
-  int n_aero_phase = *(aero_phase_data++);
+  SolverData *sd = (SolverData*) solver_data;
 
-  // Loop through the aerosol phases and print their data
-  // advancing the aero_phase_data pointer each time
-  for (int i_aero_phase=0; i_aero_phase<n_aero_phase; i_aero_phase++) {
-    int *int_data = (int*) aero_phase_data;
-    PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
+  // Save aerosol phase data for each state's ModelData object
+  for( int i_state = 0; i_state < sd->n_states; i_state++ ) {
 
-    printf("\n\nAerosol Phase %d\n\n", i_aero_phase);
-    printf("\nint_data");
-    for (int i=0; i<INT_DATA_SIZE_; i++) printf(" %d", int_data[i]);
-    printf("\nfloat_data");
-    for (int i=0; i<FLOAT_DATA_SIZE_; i++) printf(" %le", float_data[i]);
+    ModelData *model_data = &( sd->model_data[ i_state ] );
+
+    // Get the aerosol phase data
+    int *aero_phase_data = (int*) (model_data->aero_phase_data);
+    int n_aero_phase = *(aero_phase_data++);
+
+    // Loop through the aerosol phases and print their data
+    // advancing the aero_phase_data pointer each time
+    for (int i_aero_phase=0; i_aero_phase<n_aero_phase; i_aero_phase++) {
+      int *int_data = (int*) aero_phase_data;
+      PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
+
+      printf("\n\nAerosol Phase %d in state %d\n\n", i_aero_phase, i_state);
+      printf("\nint_data");
+      for (int i=0; i<INT_DATA_SIZE_; i++) printf(" %d", int_data[i]);
+      printf("\nfloat_data");
+      for (int i=0; i<FLOAT_DATA_SIZE_; i++) printf(" %le", float_data[i]);
     
-    aero_phase_data = (int*) &(float_data[FLOAT_DATA_SIZE_]);
+      aero_phase_data = (int*) &(float_data[FLOAT_DATA_SIZE_]);
+    }
   }
 }
 

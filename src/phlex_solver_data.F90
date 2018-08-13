@@ -197,13 +197,15 @@ module pmc_phlex_solver_data
     end subroutine sub_model_print_data
 
     !> Get a sub model parameter id
-    function sub_model_get_parameter_id_sd(solver_data, sub_model_type, &
-                  identifiers) bind (c)
+    function sub_model_get_parameter_id_sd(solver_data, state_id, &
+                  sub_model_type, identifiers) bind (c)
       use iso_c_binding
       !> Parameter id
       integer(kind=c_int) :: sub_model_get_parameter_id_sd
       !> Solver data
       type(c_ptr), value :: solver_data
+      !> State id to get parameter for
+      integer(kind=c_int), value :: state_id
       !> Sub model type
       integer(kind=c_int), value :: sub_model_type
       !> Sub model identifiers
@@ -835,10 +837,15 @@ contains
 
     integer(kind=c_int) :: sub_model_type_c
 
+    ! TODO For now, assuming all states being solved have the same
+    !      sub model parameter ids
+    integer(kind=c_int) :: state_id_c = 0
+
     sub_model_type_c = int(sub_model_type, kind=c_int)
 
     parameter_id = sub_model_get_parameter_id_sd( &
             this%solver_c_ptr,          & ! Pointer to solver data
+            state_id_c,                 & ! State id to get parameter for
             sub_model_type_c,           & ! Sub model type
             identifiers                 & ! Indentifiers needed
             )

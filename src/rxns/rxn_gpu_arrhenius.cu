@@ -15,14 +15,13 @@ extern "C" {
 }
 
 // TODO Lookup environmental indices during initialization
-#define TEMPERATURE_K_ env_data[ENV_OFFSET_ + 0]
-#define PRESSURE_PA_ env_data[ENV_OFFSET_ + 1]
+#define TEMPERATURE_K_ env_data[0]
+#define PRESSURE_PA_ env_data[1]
 
 #define NUM_REACT_ int_data[0]
 #define NUM_PROD_ int_data[1]
 #define INT_DATA_SIZE_ int_data[2]
 #define FLOAT_DATA_SIZE_ int_data[3]
-#define ENV_OFFSET_ int_data[4]
 #define A_ float_data[0]
 #define B_ float_data[1]
 #define C_ float_data[2]
@@ -30,7 +29,7 @@ extern "C" {
 #define E_ float_data[4]
 #define CONV_ float_data[5]
 #define RATE_CONSTANT_ float_data[6]
-#define NUM_INT_PROP_ 5
+#define NUM_INT_PROP_ 4
 #define NUM_FLOAT_PROP_ 7
 #define REACT_(x) (int_data[NUM_INT_PROP_ + x]-1)
 #define PROD_(x) (int_data[NUM_INT_PROP_ + NUM_REACT_ + x]-1)

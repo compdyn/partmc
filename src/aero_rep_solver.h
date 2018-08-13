@@ -19,12 +19,12 @@
 void * aero_rep_modal_binned_mass_get_dependencies(
           void *aero_rep_data, pmc_bool *state_flags);
 void * aero_rep_modal_binned_mass_update_ids(
-          ModelData *model_data, int *deriv_ids,
-          int **jac_ids, int env_offset, void *aero_rep_data);
+          ModelData model_data, int *deriv_ids,
+          int **jac_ids, void *aero_rep_data);
 void * aero_rep_modal_binned_mass_update_env_state(
           PMC_C_FLOAT *env_data, void *aero_rep_data);
 void * aero_rep_modal_binned_mass_update_state(
-          ModelData *model_data, void *aero_rep_data);
+          ModelData model_data, void *aero_rep_data);
 void * aero_rep_modal_binned_mass_get_effective_radius(
           int aero_phase_idx, PMC_C_FLOAT *radius, PMC_C_FLOAT *partial_deriv, 
           void *aero_rep_data);
@@ -48,12 +48,12 @@ void * aero_rep_modal_binned_mass_skip(
 void * aero_rep_single_particle_get_dependencies(
           void *aero_rep_data, pmc_bool *state_flags);
 void * aero_rep_single_particle_update_ids(
-          ModelData *model_data, int *deriv_ids,
-          int **jac_ids, int env_offset, void *aero_rep_data);
+          ModelData model_data, int *deriv_ids,
+          int **jac_ids, void *aero_rep_data);
 void * aero_rep_single_particle_update_env_state(
           PMC_C_FLOAT *env_data, void *aero_rep_data);
 void * aero_rep_single_particle_update_state(
-          ModelData *model_data, void *aero_rep_data);
+          ModelData model_data, void *aero_rep_data);
 void * aero_rep_single_particle_get_effective_radius(
           int aero_phase_idx, PMC_C_FLOAT *radius, PMC_C_FLOAT *partial_deriv,
           void *aero_rep_data);

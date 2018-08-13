@@ -28,6 +28,10 @@ program pmc_test_PDFiTE_activity
 
   ! Number of timesteps to output in mechanisms
   integer(kind=phlex_int) :: NUM_RH_STEP = 101
+  ! Number of states to solve simultaneously
+  integer(kind=phlex_int) :: NUM_STATE = 5
+  ! Index of state to use in the analysis
+  integer(kind=phlex_int) :: STATE_TO_CHECK = 3
 
   ! initialize mpi
   call pmc_mpi_init()
@@ -85,7 +89,7 @@ contains
     real(kind=phlex_real), dimension(0:NUM_RH_STEP, 28) :: model_conc, true_conc
     integer(kind=phlex_int) :: idx_H2O, idx_H2O_aq, idx_H_p, idx_NH4_p, &
             idx_SO4_mm, idx_NO3_m, idx_NH42_SO4, idx_NH4_NO3, idx_H_NO3, &
-            idx_H2_SO4,  idx_phase, i_RH, i_spec
+            idx_H2_SO4,  idx_phase, i_RH, i_spec, i_state
     real(kind=phlex_real) :: time_step, time, ppm_to_RH, omega, ln_gamma, &
             HNO3_LRH_B0, HNO3_LRH_B1, HNO3_LRH_B2, HNO3_LRH_B3, HNO3_LRH_B4, &
             HNO3_HRH_B0, HNO3_HRH_B1, HNO3_HRH_B2, HNO3_HRH_B3, &
@@ -216,7 +220,7 @@ contains
 #endif
 
       ! Get a model state variable
-      phlex_state => phlex_core%new_state()
+      phlex_state => phlex_core%new_state(NUM_STATE)
 
       ! Initialize the solver
       call phlex_core%solver_initialize(phlex_state)
@@ -288,7 +292,11 @@ contains
       ppm_to_RH = (pressure/101325.0d0) / ppm_to_RH * 1.0d-6 ! ppm -> RH (0-1)
 
       ! Set the initial state in the model
-      phlex_state%state_var(:) = model_conc(0,:)
+      do i_state = 1, NUM_STATE
+        phlex_state%state_var((i_state-1)*phlex_state%n_state_vars+1: &
+                              i_state*phlex_state%n_state_vars       ) = &
+                              model_conc(0,:)
+      end do
 
       ! Integrate the mechanism
       do i_RH = 1, NUM_RH_STEP
@@ -297,11 +305,16 @@ contains
         ! discrepancies in RH calc from [H2O]_g (ppm)
         a_w = real(1.0, kind=phlex_real)/(NUM_RH_STEP-1)*(i_RH-1) + 1.0d-10
         true_conc(i_RH, idx_H2O) = a_w / ppm_to_RH
-        phlex_state%state_var(idx_H2O) = true_conc(i_RH, idx_H2O)
+        do i_state = 1, NUM_STATE
+          phlex_state%state_var((i_state-1)*phlex_state%n_state_vars+idx_H2O) = &
+                  true_conc(i_RH, idx_H2O)
+        end do
 
         ! Get the modeled conc
         call phlex_core%solve(phlex_state, time_step)
-        model_conc(i_RH,:) = phlex_state%state_var(:)
+        model_conc(i_RH,:) = phlex_state%state_var( &
+                             (STATE_TO_CHECK-1) * phlex_state%n_state_vars + 1 : &
+                             STATE_TO_CHECK * phlex_state%n_state_vars )
 
         ! Calculate the mean binary activity for H-NO3
 

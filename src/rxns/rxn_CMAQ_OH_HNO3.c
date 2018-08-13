@@ -11,14 +11,13 @@
 #include "../rxn_solver.h"
 
 // TODO Lookup environmental indicies during initialization
-#define TEMPERATURE_K_ env_data[ENV_OFFSET_ + 0]
-#define PRESSURE_PA_ env_data[ENV_OFFSET_ + 1]
+#define TEMPERATURE_K_ env_data[0]
+#define PRESSURE_PA_ env_data[1]
 
 #define NUM_REACT_ int_data[0]
 #define NUM_PROD_ int_data[1]
 #define INT_DATA_SIZE_ int_data[2]
 #define FLOAT_DATA_SIZE_ int_data[3]
-#define ENV_OFFSET_ int_data[4]
 #define k0_A_ float_data[0]
 #define k0_B_ float_data[1]
 #define k0_C_ float_data[2]
@@ -31,7 +30,7 @@
 #define SCALING_ float_data[9]
 #define CONV_ float_data[10]
 #define RATE_CONSTANT_ float_data[11]
-#define NUM_INT_PROP_ 5
+#define NUM_INT_PROP_ 4
 #define NUM_FLOAT_PROP_ 12
 #define REACT_(x) (int_data[NUM_INT_PROP_ + x]-1)
 #define PROD_(x) (int_data[NUM_INT_PROP_ + NUM_REACT_ + x]-1)
@@ -68,19 +67,14 @@ void * rxn_CMAQ_OH_HNO3_get_used_jac_elem(void *rxn_data, pmc_bool **jac_struct)
  * \param model_data Pointer to the model data
  * \param deriv_ids Id of each state variable in the derivative array
  * \param jac_ids Id of each state variable combo in the Jacobian array
- * \param env_offset Offset for the state being solved for in the env array
- * \param state_id Index of the state being solved for
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_CMAQ_OH_HNO3_update_ids(ModelData *model_data, int *deriv_ids,
-          int **jac_ids, int env_offset, int state_id, void *rxn_data)
+void * rxn_CMAQ_OH_HNO3_update_ids(ModelData model_data, int *deriv_ids,
+          int **jac_ids, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
-
-  // Update the environmental array offset
-  ENV_OFFSET_ = env_offset;
 
   // Update the time derivative ids
   for (int i=0; i < NUM_REACT_; i++)
@@ -144,7 +138,7 @@ void * rxn_CMAQ_OH_HNO3_update_env_state(PMC_C_FLOAT *env_data, void *rxn_data)
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_CMAQ_OH_HNO3_pre_calc(ModelData *model_data, void *rxn_data)
+void * rxn_CMAQ_OH_HNO3_pre_calc(ModelData model_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
@@ -162,10 +156,10 @@ void * rxn_CMAQ_OH_HNO3_pre_calc(ModelData *model_data, void *rxn_data)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_CMAQ_OH_HNO3_calc_deriv_contrib(ModelData *model_data,
+void * rxn_CMAQ_OH_HNO3_calc_deriv_contrib(ModelData model_data,
           PMC_SOLVER_C_FLOAT *deriv, void *rxn_data, PMC_C_FLOAT time_step)
 {
-  PMC_C_FLOAT *state = model_data->state;
+  PMC_C_FLOAT *state = model_data.state;
   int *int_data = (int*) rxn_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 
@@ -202,10 +196,10 @@ void * rxn_CMAQ_OH_HNO3_calc_deriv_contrib(ModelData *model_data,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_CMAQ_OH_HNO3_calc_jac_contrib(ModelData *model_data,
+void * rxn_CMAQ_OH_HNO3_calc_jac_contrib(ModelData model_data,
           PMC_SOLVER_C_FLOAT *J, void *rxn_data, PMC_C_FLOAT time_step)
 {
-  PMC_C_FLOAT *state = model_data->state;
+  PMC_C_FLOAT *state = model_data.state;
   int *int_data = (int*) rxn_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
 

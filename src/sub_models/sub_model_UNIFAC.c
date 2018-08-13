@@ -16,8 +16,8 @@
 #include "../sub_model_solver.h"
 
 // TODO Lookup environmental indicies during initialization
-#define TEMPERATURE_K_ env_data[ENV_OFFSET_ + 0]
-#define PRESSURE_PA_ env_data[ENV_OFFSET_ + 1]
+#define TEMPERATURE_K_ env_data[0]
+#define PRESSURE_PA_ env_data[1]
 
 #define NUM_UNIQUE_PHASE_ (int_data[0])
 #define NUM_GROUP_ (int_data[1])
@@ -25,8 +25,7 @@
 #define TOTAL_FLOAT_PROP_ (int_data[3])
 #define INT_DATA_SIZE_ (int_data[4])
 #define FLOAT_DATA_SIZE_ (int_data[5])
-#define ENV_OFFSET_ (int_data[6])
-#define NUM_INT_PROP_ 7
+#define NUM_INT_PROP_ 6
 #define NUM_FLOAT_PROP_ 0
 #define PHASE_INT_LOC_(p) (int_data[NUM_INT_PROP_+p]-1)
 #define PHASE_FLOAT_LOC_(p) (int_data[NUM_INT_PROP_+NUM_UNIQUE_PHASE_+p]-1)
@@ -73,18 +72,14 @@ void * sub_model_UNIFAC_get_used_jac_elem(void *sub_model_data, pmc_bool *jac_ro
  * \param model_data Pointer to the model data
  * \param deriv_ids Id of each state variable in the derivative array
  * \param jac_ids Id of each state variable combo in the Jacobian array
- * \param env_offset Offset for the state being solved for in the env array
  * \param sub_model_data Pointer to the sub model data
  * \return The sub_model_data pointer advanced by the size of the sub model data
  */
-void * sub_model_UNIFAC_update_ids(ModelData *model_data, int *deriv_ids,
-          int **jac_ids, int env_offset, void *sub_model_data)
+void * sub_model_UNIFAC_update_ids(ModelData model_data, int *deriv_ids,
+          int **jac_ids, void *sub_model_data)
 {
   int *int_data = (int*) sub_model_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
-
-  // Update the environmental array offset
-  ENV_OFFSET_ = env_offset;
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -180,7 +175,7 @@ void * sub_model_UNIFAC_update_env_state(void *sub_model_data,
  *                   environmental conditions
  * \return The sub_model_data pointer advanced by the size of the sub model
  */
-void * sub_model_UNIFAC_calculate(void *sub_model_data, ModelData *model_data)
+void * sub_model_UNIFAC_calculate(void *sub_model_data, ModelData model_data)
 {
   int *int_data = (int*) sub_model_data;
   PMC_C_FLOAT *float_data = (PMC_C_FLOAT*) &(int_data[INT_DATA_SIZE_]);
@@ -193,7 +188,7 @@ void * sub_model_UNIFAC_calculate(void *sub_model_data, ModelData *model_data)
       // Get the total number of moles of species in this phase instance
       PMC_C_FLOAT total_umoles = 0.0;
       for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); i_spec++) {
-        total_umoles += model_data->state[PHASE_INST_ID_(i_phase, i_instance)
+        total_umoles += model_data.state[PHASE_INST_ID_(i_phase, i_instance)
           + SPEC_ID_(i_phase, i_spec)] / MW_I_(i_phase, i_spec);
       }
 
@@ -207,7 +202,7 @@ void * sub_model_UNIFAC_calculate(void *sub_model_data, ModelData *model_data)
       
       // Update the mole fractions X_i
       for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); i_spec++) {
-        X_I_(i_phase, i_spec) = model_data->state[
+        X_I_(i_phase, i_spec) = model_data.state[
           PHASE_INST_ID_(i_phase, i_instance) + SPEC_ID_(i_phase, i_spec)]
           / MW_I_(i_phase, i_spec) / total_umoles;
       }

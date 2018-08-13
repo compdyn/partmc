@@ -27,6 +27,10 @@ program pmc_test_aqueous_equilibrium
 
   ! Number of timesteps to output in mechanisms
   integer(kind=phlex_int) :: NUM_TIME_STEP = 100
+  ! Number of states to solve simultaneously
+  integer(kind=phlex_int) :: NUM_STATE = 5
+  ! Index of state to use in the analysis
+  integer(kind=phlex_int) :: STATE_TO_CHECK = 3
 
   ! initialize mpi
   call pmc_mpi_init()
@@ -81,7 +85,7 @@ contains
     class(aero_rep_data_t), pointer :: aero_rep_ptr
     real(kind=phlex_real), dimension(0:NUM_TIME_STEP, 30) :: model_conc, true_conc
     integer(kind=phlex_int) :: idx_A, idx_B, idx_C, idx_D, idx_E, idx_F, idx_G, &
-            idx_H, idx_BC_act, idx_H2O, idx_phase, i_time, i_spec
+            idx_H, idx_BC_act, idx_H2O, idx_phase, i_time, i_spec, i_state
     real(kind=phlex_real) :: time_step, time, Keq_1, Keq_2, Keq_3, k1_forward, &
             k2_forward, k3_forward, k1_reverse, k2_reverse, k3_reverse, &
             total_init, equil_A, equil_B, equil_C, equil_D, equil_E, &
@@ -206,7 +210,7 @@ contains
 #endif
 
       ! Get a model state variable
-      phlex_state => phlex_core%new_state()
+      phlex_state => phlex_core%new_state(NUM_STATE)
 
       ! Initialize the solver
       call phlex_core%solver_initialize(phlex_state)
@@ -288,14 +292,20 @@ contains
               true_conc(0,idx_H2O) * 35.67d0 / 1000.0d0
 
       ! Set the initial state in the model
-      phlex_state%state_var(:) = model_conc(0,:)
+      do i_state = 1, NUM_STATE
+        phlex_state%state_var((i_state-1)*phlex_state%n_state_vars+1: &
+                              i_state*phlex_state%n_state_vars       ) = &
+                              model_conc(0,:)
+      end do
 
       ! Integrate the mechanism
       do i_time = 1, NUM_TIME_STEP
 
         ! Get the modeled conc
         call phlex_core%solve(phlex_state, time_step)
-        model_conc(i_time,:) = phlex_state%state_var(:)
+        model_conc(i_time,:) = phlex_state%state_var( &
+                               (STATE_TO_CHECK-1) * phlex_state%n_state_vars + 1 : &
+                               STATE_TO_CHECK * phlex_state%n_state_vars )
 
         ! Get the analytic concentrations
         !

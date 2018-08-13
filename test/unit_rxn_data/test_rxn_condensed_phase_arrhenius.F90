@@ -27,6 +27,10 @@ program pmc_test_condensed_phase_arrhenius
 
   ! Number of timesteps to output in mechanisms
   integer(kind=phlex_int) :: NUM_TIME_STEP = 100
+  ! Number of states to solve simultaneously
+  integer(kind=phlex_int) :: NUM_STATE = 5
+  ! Index of state to use in the analysis
+  integer(kind=phlex_int) :: STATE_TO_CHECK = 3
 
   ! initialize mpi
   call pmc_mpi_init()
@@ -90,7 +94,7 @@ contains
             true_conc
     integer(kind=phlex_int) :: idx_A_aq, idx_B_aq, idx_C_aq, idx_D_aq, idx_H2O, &
             idx_A_org, idx_B_org, idx_C_org, idx_D_org, idx_aq_phase, &
-            idx_org_phase, i_time, i_spec
+            idx_org_phase, i_time, i_spec, i_state
     real(kind=phlex_real) :: time_step, time, conc_D, conc_water, MW_A, MW_B, MW_C, &
             MW_D, k1_aq, k2_aq, k1_org, k2_org, temp, pressure
 #ifdef PMC_USE_MPI
@@ -226,13 +230,14 @@ contains
 #endif
 
       ! Get a model state variable
-      phlex_state => phlex_core%new_state()
+      phlex_state => phlex_core%new_state(NUM_STATE)
 
       ! Initialize the solver
       call phlex_core%solver_initialize(phlex_state)
 
       ! Check the size of the state array
-      call assert(235226766, size(phlex_state%state_var).eq.NUM_STATE_VAR)
+      call assert(235226766, size(phlex_state%state_var).eq. &
+                             NUM_STATE_VAR * NUM_STATE)
 
       ! Set the environmental conditions
       phlex_state%env_state%temp = temp
@@ -253,14 +258,20 @@ contains
       model_conc(0,:) = true_conc(0,:)
 
       ! Set the initial state in the model
-      phlex_state%state_var(:) = model_conc(0,:)
+      do i_state = 1, NUM_STATE
+        phlex_state%state_var((i_state-1)*phlex_state%n_state_vars+1: &
+                              i_state*phlex_state%n_state_vars       ) = &
+                              model_conc(0,:)
+      end do
 
       ! Integrate the mechanism
       do i_time = 1, NUM_TIME_STEP
 
         ! Get the modeled conc
         call phlex_core%solve(phlex_state, time_step)
-        model_conc(i_time,:) = phlex_state%state_var(:)
+        model_conc(i_time,:) = phlex_state%state_var( &
+                               (STATE_TO_CHECK-1) * phlex_state%n_state_vars + 1 : &
+                               STATE_TO_CHECK * phlex_state%n_state_vars )
 
         ! Get the analytic concentrations
         time = i_time * time_step

@@ -86,8 +86,7 @@ module pmc_aero_rep_modal_binned_mass
 #define INT_DATA_SIZE_ this%condensed_data_int(2)
 #define FLOAT_DATA_SIZE_ this%condensed_data_int(3)
 #define AERO_REP_ID_ this%condensed_data_int(4)
-#define ENV_OFFSET_ this%condensed_data_int(5)
-#define NUM_INT_PROP_ 5
+#define NUM_INT_PROP_ 4
 #define NUM_REAL_PROP_ 0
 #define MODE_INT_PROP_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define MODE_REAL_PROP_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_SECTION_+x)

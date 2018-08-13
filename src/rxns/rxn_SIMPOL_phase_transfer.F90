@@ -100,7 +100,6 @@ module pmc_rxn_SIMPOL_phase_transfer
 #define GAS_SPEC_ this%condensed_data_int(2)
 #define INT_DATA_SIZE_ this%condensed_data_int(3)
 #define FLOAT_DATA_SIZE_ this%condensed_data_int(4)
-#define ENV_OFFSET_ this%condensed_data_int(5)
 #define STATE_ID_ this%condensed_data_int(6)
 #define DELTA_H_ this%condensed_data_real(1)
 #define DELTA_S_ this%condensed_data_real(2)
@@ -115,7 +114,7 @@ module pmc_rxn_SIMPOL_phase_transfer
 #define CONV_ this%condensed_data_real(11)
 #define MW_ this%condensed_data_real(12)
 #define UGM3_TO_PPM_ this%condensed_data_real(13)
-#define NUM_INT_PROP_ 6
+#define NUM_INT_PROP_ 4
 #define NUM_REAL_PROP_ 13
 #define AERO_SPEC_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define AERO_ACT_ID_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_AERO_PHASE_+x)

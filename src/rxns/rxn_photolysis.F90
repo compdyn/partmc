@@ -84,11 +84,10 @@ module pmc_rxn_photolysis
 #define PHOTO_ID_ this%condensed_data_int(3)
 #define INT_DATA_SIZE_ this%condensed_data_int(4)
 #define FLOAT_DATA_SIZE_ this%condensed_data_int(5)
-#define ENV_OFFSET_ this%condensed_data_int(6)
 #define BASE_RATE_ this%condensed_data_real(1)
 #define SCALING_ this%condensed_data_real(2)
 #define RATE_CONSTANT_ this%condensed_data_real(3)
-#define NUM_INT_PROP_ 6
+#define NUM_INT_PROP_ 5
 #define NUM_REAL_PROP_ 3
 #define REACT_(x) this%condensed_data_int(NUM_INT_PROP_ + x)
 #define PROD_(x) this%condensed_data_int(NUM_INT_PROP_ + NUM_REACT_ + x)

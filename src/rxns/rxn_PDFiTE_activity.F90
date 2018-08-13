@@ -190,9 +190,8 @@ module pmc_rxn_PDFiTE_activity
 #define TOTAL_FLOAT_PARAM_ this%condensed_data_int(5)
 #define INT_DATA_SIZE_ this%condensed_data_int(6)
 #define FLOAT_DATA_SIZE_ this%condensed_data_int(7)
-#define ENV_OFFSET_ this%condensed_data_int(8)
 #define PPM_TO_RH_ this%condensed_data_real(1)
-#define NUM_INT_PROP_ 8
+#define NUM_INT_PROP_ 7
 #define NUM_REAL_PROP_ 1
 #define PHASE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define PAIR_INT_PARAM_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_PHASE_+x)

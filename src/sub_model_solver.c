@@ -18,69 +18,42 @@
 
 /** \brief Update the time derivative and Jacobian array ids
  *
- * \param model_data Pointer to the model data
+ * \param model_data Model data
  * \param deriv_size Number of elements per state on the derivative array
  * \param jac_size Number of elements per state on the Jacobian array
  * \param deriv_ids Ids for state variables on the time derivative array
  * \param jac_ids Ids for state variables on the Jacobian array
  */
-void sub_model_update_ids(ModelData *model_data, int deriv_size, int jac_size, 
+void sub_model_update_ids(ModelData model_data, int deriv_size, int jac_size, 
             int *deriv_ids, int **jac_ids)
 {
 
-  int *sub_model_data;
-  int env_offset = 0;
+  // Get a pointer to the sub model data
+  int *sub_model_data = (int*) (model_data.sub_model_data);
 
-  // Loop through the unique states
-  for (int i_state = 0; i_state < model_data->n_states; i_state++) {
+  // Get the number of sub models
+  int n_sub_model = *(sub_model_data++);
 
-    // Point to the sub model data for this state
-    sub_model_data = (int*) (model_data->sub_model_data);
-    sub_model_data += (model_data->sub_model_data_size / sizeof(int)) * i_state;
+  // Loop through the sub models advancing the sub_model_data pointer each time
+  for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
 
-    // Get the number of sub models
-    int n_sub_model = *(sub_model_data++);
+    // Get the sub_model type
+    int sub_model_type = *(sub_model_data++);
 
-    // Loop through the sub models advancing the sub_model_data pointer each time
-    for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
+    // Call the appropriate function
+    switch (sub_model_type) {
+      case SUB_MODEL_UNIFAC :
+        sub_model_data = (int*) sub_model_UNIFAC_update_ids(
+                  model_data, deriv_ids, jac_ids, (void*) sub_model_data);
+        break;
 
-      // Get the sub_model type
-      int sub_model_type = *(sub_model_data++);
-
-      // Call the appropriate function
-      switch (sub_model_type) {
-        case SUB_MODEL_UNIFAC :
-          sub_model_data = (int*) sub_model_UNIFAC_update_ids(
-                    model_data, deriv_ids, jac_ids, env_offset, (void*) sub_model_data);
-          break;
-      }
     }
-    
-    // Update the derivative and Jacobian ids for the next state
-    for (int i_elem = 0; i_elem < model_data->n_state_var; i_elem++)
-      if (deriv_ids[i_elem]>=0) deriv_ids[i_elem] += deriv_size;
-    for (int i_elem = 0; i_elem < model_data->n_state_var; i_elem++)
-      for (int j_elem = 0; j_elem < model_data->n_state_var; j_elem++)
-        if (jac_ids[i_elem][j_elem]>=0) jac_ids[i_elem][j_elem] += jac_size;
-
-    // Update the environmental array offset for the next state
-    env_offset += NUM_ENV_VAR;
-
   }
-
-    // Reset the indices to the first state's values
-    for (int i_elem = 0; i_elem < model_data->n_state_var; i_elem++)
-      if (deriv_ids[i_elem]>=0) deriv_ids[i_elem] -= 
-              (model_data->n_states) * deriv_size;
-    for (int i_elem = 0; i_elem < model_data->n_state_var; i_elem++)
-      for (int j_elem = 0; j_elem < model_data->n_state_var; j_elem++)
-        if (jac_ids[i_elem][j_elem]>=0) jac_ids[i_elem][j_elem] -=
-                (model_data->n_states) * jac_size;
-
 }
 
 /** \brief Get a pointer to a calcualted sub model parameter
  * \param solver_data Pointer to the solver data
+ * \param state_id Index of the unique state
  * \param sub_model_type Sub model type
  * \param identifiers Pointer to information needed by the sub-model to idenify
  *                    the parameter requested. These must be in the format
@@ -88,15 +61,16 @@ void sub_model_update_ids(ModelData *model_data, int deriv_size, int jac_size,
  * \return Index of the requested parameter, or -1 if it was not found that can
  *         be passed to sub_model_get_parameter_value() during solving
  */
-int sub_model_get_parameter_id_sd(void *solver_data, int sub_model_type, 
-    void *identifiers)
+int sub_model_get_parameter_id_sd(void *solver_data, int state_id, 
+          int sub_model_type, void *identifiers)
 {
-  ModelData *model_data = &(((SolverData*)solver_data)->model_data);
-  return sub_model_get_parameter_id(model_data, sub_model_type, identifiers);
+  SolverData *sd = (SolverData*) solver_data;
+  ModelData *model_data = &( sd->model_data[ state_id ] );
+  return sub_model_get_parameter_id(*model_data, sub_model_type, identifiers);
 }
 
 /** \brief Get a pointer to a calcualted sub model parameter
- * \param model_data Pointer to the model data
+ * \param model_data Model data
  * \param type Sub model type
  * \param identifiers Pointer to information needed by the sub-model to idenify
  *                    the parameter requested. These must be in the format
@@ -104,12 +78,12 @@ int sub_model_get_parameter_id_sd(void *solver_data, int sub_model_type,
  * \return Index of the requested parameter, or -1 if it was not found that can
  *         be passed to sub_model_get_parameter_value() during solving
  */
-int sub_model_get_parameter_id(ModelData *model_data, int type, 
+int sub_model_get_parameter_id(ModelData model_data, int type, 
           void *identifiers)
 {
  
   // Get the number of sub models
-  int *sub_model_data = (int*) (model_data->sub_model_data);
+  int *sub_model_data = (int*) (model_data.sub_model_data);
   int n_sub_model = *(sub_model_data++);
 
   // Initialize the parameter id
@@ -148,7 +122,7 @@ int sub_model_get_parameter_id(ModelData *model_data, int type,
       return parameter_id;
     // ... if not, advance the index to the next sub model
     } else {
-      curr_id += (int) (sub_model_data - (int*) (model_data->sub_model_data));
+      curr_id += (int) (sub_model_data - (int*) (model_data.sub_model_data));
     }
   }
   return -1;
@@ -163,22 +137,21 @@ int sub_model_get_parameter_id(ModelData *model_data, int type,
 PMC_C_FLOAT sub_model_get_parameter_value_sd(void *solver_data, int state_id,
           int parameter_id)
 {
-  ModelData *model_data = &(((SolverData*)solver_data)->model_data);
-  return (PMC_C_FLOAT) sub_model_get_parameter_value(model_data, state_id,
-            parameter_id);
+  SolverData *sd = (SolverData*) solver_data;
+  ModelData *model_data = &( sd->model_data[ state_id ] );
+  return (PMC_C_FLOAT) sub_model_get_parameter_value( *model_data,
+            parameter_id );
 }
 
 /** \brief Return a parameter by its index in the sub model data block
- * \param model_data Pointer to the model data
- * \param state_id Index of unique state to get value for
+ * \param model_data Model data
  * \param parameter_id Index of the parameter in the data block
  * \return The parameter value
  */
-PMC_C_FLOAT sub_model_get_parameter_value(ModelData *model_data, int state_id,
+PMC_C_FLOAT sub_model_get_parameter_value(ModelData model_data,
           int parameter_id)
 {
-  int *sub_model_data = (int*) (model_data->sub_model_data);
-  sub_model_data += (model_data->sub_model_data_size / sizeof(int)) * state_id;
+  int *sub_model_data = (int*) (model_data.sub_model_data);
   sub_model_data += parameter_id;
   return *((PMC_C_FLOAT*) sub_model_data);
 }
@@ -187,14 +160,11 @@ PMC_C_FLOAT sub_model_get_parameter_value(ModelData *model_data, int state_id,
  * \param model_data Pointer to the model data
  * \param env Pointer to the environmental state array
  */
-void sub_model_update_env_state(ModelData *model_data, PMC_C_FLOAT *env)
+void sub_model_update_env_state(ModelData model_data)
 {
+  PMC_C_FLOAT *env = model_data.env;
+  int *sub_model_data = (int*) (model_data.sub_model_data);
   
-  int *sub_model_data = (int*) (model_data->sub_model_data);
-  
-  // Loop through the unique states to solve
-  for (int i_state = 0; i_state < model_data->n_states; i_state++) {
-
   // Get the number of sub models
   int n_sub_model = *(sub_model_data++);
 
@@ -213,20 +183,16 @@ void sub_model_update_env_state(ModelData *model_data, PMC_C_FLOAT *env)
         break;
     }
   }
-  }
 }
 
 /** \brief Perform the sub model calculations for the current model state
- * \param model_data Pointer to the model data
+ * \param model_data Model data
  */
-void sub_model_calculate(ModelData *model_data)
+void sub_model_calculate(ModelData model_data)
 {
 
-  int *sub_model_data = (int*) (model_data->sub_model_data);
+  int *sub_model_data = (int*) (model_data.sub_model_data);
   
-  // Loop through the unique states to solve
-  for (int i_state = 0; i_state < model_data->n_states; i_state++) {
-
   // Get the number of sub models
   int n_sub_model = *(sub_model_data++);
 
@@ -245,7 +211,6 @@ void sub_model_calculate(ModelData *model_data)
         break;
     }
   }
-  }
 }
 
 /** \brief Add condensed data to the condensed data block for sub models
@@ -261,17 +226,14 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
           int n_float_param, int *int_param, PMC_C_FLOAT *float_param,
           void *solver_data)
 {
-  ModelData *model_data = 
-          (ModelData*) &(((SolverData*)solver_data)->model_data);
-  int *sub_model_data;
-  PMC_C_FLOAT *flt_ptr;
 
-  // Loop backwards through the unique states
-  for (int i_state=model_data->n_states-1; i_state >= 0; i_state--) {
+  SolverData * sd = (SolverData*) solver_data;
 
-    // Point to the next sub model's space for this state
-    sub_model_data = (int*) (model_data->nxt_sub_model);
-    sub_model_data += (model_data->sub_model_data_size / sizeof(int)) * i_state;
+  // Add condensed data for each state's ModelData object
+  for( int i_state = 0; i_state < sd->n_states; i_state++ ) {
+
+    ModelData *md = &( sd->model_data[ i_state ] );
+    int *sub_model_data = (int*) (md->nxt_sub_model);
 
     // Add the sub model type
     *(sub_model_data++) = sub_model_type;
@@ -280,14 +242,14 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
     for (int i=0; i<n_int_param; i++) *(sub_model_data++) = int_param[i];
 
     // Add floating-point parameters
-    flt_ptr = (PMC_C_FLOAT*) sub_model_data;
+    PMC_C_FLOAT *flt_ptr = (PMC_C_FLOAT*) sub_model_data;
     for (int i=0; i<n_float_param; i++)
             *(flt_ptr++) = (PMC_C_FLOAT) float_param[i];
 
-  }
+    // Set the pointer for the next free space in sub_model_data
+    md->nxt_sub_model = (void*) flt_ptr;
 
-  // Set the pointer for the next free space in sub_model_data
-  model_data->nxt_sub_model = (void*) flt_ptr;
+  }
 }
 
 /** \brief Update sub-model data
@@ -306,11 +268,10 @@ void sub_model_update_data(int state_id, int update_sub_model_type,
           void *update_data, void *solver_data)
 {
   ModelData *model_data = 
-          (ModelData*) &(((SolverData*)solver_data)->model_data);
+          (ModelData*) &(((SolverData*)solver_data)->model_data[state_id]);
 
   // Get the number of sub models
   int *sub_model_data = (int*) (model_data->sub_model_data);
-  sub_model_data += (model_data->sub_model_data_size / sizeof(int)) * state_id;
   int n_sub_model = *(sub_model_data++);
 
   // Loop through the sub models advancing the sub_model_data pointer each time
@@ -344,33 +305,34 @@ void sub_model_update_data(int state_id, int update_sub_model_type,
  */
 void sub_model_print_data(void *solver_data)
 {
-  ModelData *model_data = (ModelData*)
-          &(((SolverData*)solver_data)->model_data);
 
-  int *sub_model_data = (int*) (model_data->sub_model_data);
-  
+  SolverData *sd = (SolverData*) solver_data;
+
   // Loop through the unique states to solve
-  for (int i_state = 0; i_state < model_data->n_states; i_state++) {
+  for (int i_state = 0; i_state < sd->n_states; i_state++) {
+  
+    ModelData *model_data = &( sd->model_data[ i_state ] );
+    int *sub_model_data = (int*) (model_data->sub_model_data);
+  
+    // Get the number of sub models
+    int n_sub_model = *(sub_model_data++);
 
-  // Get the number of sub models
-  int n_sub_model = *(sub_model_data++);
+    printf("\nSub-Models in state %d\n", i_state);
 
-  printf("\nSub-Models in state %d\n", i_state);
+    // Loop through the sub models to print their data
+    // advancing the sub_model_data pointer each time
+    for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
 
-  // Loop through the sub models to print their data
-  // advancing the sub_model_data pointer each time
-  for (int i_sub_model=0; i_sub_model<n_sub_model; i_sub_model++) {
+      // Get the sub model type
+      int sub_model_type = *(sub_model_data++);
 
-    // Get the sub model type
-    int sub_model_type = *(sub_model_data++);
-
-    // Call the appropriate function
-    switch (sub_model_type) {
-      case SUB_MODEL_UNIFAC :
-        sub_model_data = (int*) sub_model_UNIFAC_print((void*) sub_model_data);
-        break;
+      // Call the appropriate function
+      switch (sub_model_type) {
+        case SUB_MODEL_UNIFAC :
+          sub_model_data = (int*) sub_model_UNIFAC_print((void*) sub_model_data);
+          break;
+      }
     }
-  }
   }
 }
 

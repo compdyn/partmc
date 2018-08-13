@@ -89,7 +89,6 @@ module pmc_rxn_CMAQ_OH_HNO3
 #define NUM_PROD_ this%condensed_data_int(2)
 #define INT_DATA_SIZE_ this%condensed_data_int(3)
 #define FLOAT_DATA_SIZE_ this%condensed_data_int(4)
-#define ENV_OFFSET_ this%condensed_data_int(5)
 #define k0_A_ this%condensed_data_real(1)
 #define k0_B_ this%condensed_data_real(2)
 #define k0_C_ this%condensed_data_real(3)
@@ -102,7 +101,7 @@ module pmc_rxn_CMAQ_OH_HNO3
 #define SCALING_ this%condensed_data_real(10)
 #define CONV_ this%condensed_data_real(11)
 #define RATE_CONSTANT_ this%condensed_data_real(12)
-#define NUM_INT_PROP_ 5
+#define NUM_INT_PROP_ 4
 #define NUM_REAL_PROP_ 12
 #define REACT_(x) this%condensed_data_int(NUM_INT_PROP_ + x)
 #define PROD_(x) this%condensed_data_int(NUM_INT_PROP_ + NUM_REACT_ + x)

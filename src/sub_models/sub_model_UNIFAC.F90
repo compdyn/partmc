@@ -143,8 +143,7 @@ module pmc_sub_model_UNIFAC
 #define TOTAL_REAL_PROP_ this%condensed_data_int(4)
 #define INT_DATA_SIZE_ this%condensed_data_int(5)
 #define FLOAT_DATA_SIZE_ this%condensed_data_int(6)
-#define ENV_OFFSET_ this%condensed_data_int(7)
-#define NUM_INT_PROP_ 7
+#define NUM_INT_PROP_ 6
 #define NUM_REAL_PROP_ 0
 #define PHASE_INT_LOC_(p) this%condensed_data_int(NUM_INT_PROP_+p)
 #define PHASE_FLOAT_LOC_(p) this%condensed_data_int(NUM_INT_PROP_+NUM_UNIQUE_PHASE_+p)

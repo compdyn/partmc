@@ -137,7 +137,7 @@ contains
 
   !> Load a property set from input data
 #ifdef PMC_USE_JSON
-  recursive subroutine load(this, json, j_obj, as_object)
+  recursive subroutine load(this, json, j_obj, as_object, allow_duplicates)
 
     !> Property dataset
     class(property_t), intent(inout) :: this
@@ -149,11 +149,14 @@ contains
     !! key-value pairs to the data set, or false if j_obj is a single
     !! key-value pair to add to the data set
     logical, intent(in) :: as_object
+    !> Flag to indicate whether to allow duplicate keys. Defaults to false
+    logical, intent(in), optional :: allow_duplicates
 
     type(json_value), pointer :: child, next
     type(property_t), pointer :: sub_prop
     character(kind=json_ck, len=:), allocatable :: unicode_prop_key
     character(len=:), allocatable :: prop_key
+    logical :: allow_dup = .false.
 
     character(kind=json_ck, len=:), allocatable :: unicode_val
     character(len=:), allocatable :: str_val
@@ -162,6 +165,8 @@ contains
     integer(json_ik)     :: int_val
 
     integer(json_ik)     :: var_type
+
+    if (present(allow_duplicates)) allow_dup = allow_duplicates
 
     ! initialize pointer to next object to parse
     next => null()
@@ -189,36 +194,36 @@ contains
         ! integer
         case (json_integer)
           call json%get(child, int_val)
-          call this%put(prop_key, int(int_val, i_kind))
+          call this%put(prop_key, int(int_val, i_kind), allow_dup)
        
         ! double
         case (json_double)
           call json%get(child, real_val)
-          call this%put(prop_key, real(real_val, dp))
+          call this%put(prop_key, real(real_val, dp), allow_dup)
         
         ! boolean
         case (json_logical)
           call json%get(child, bool_val)
-          call this%put(prop_key, logical(bool_val))
+          call this%put(prop_key, logical(bool_val), allow_dup)
         
         ! string
         case (json_string)
           call json%get(child, unicode_val)
           str_val = unicode_val
-          call this%put(prop_key, str_val)
+          call this%put(prop_key, str_val, allow_dup)
         
         ! sub-set of key-value pairs
         case (json_object)
           sub_prop => property_t()
           call sub_prop%load(json, child, .true.)
-          call this%put(prop_key, sub_prop)
+          call this%put(prop_key, sub_prop, allow_dup)
           deallocate(sub_prop)
         
         ! sub-set of values
         case (json_array)
           sub_prop => property_t()
           call sub_prop%load(json, child, .true.)
-          call this%put(prop_key, sub_prop)
+          call this%put(prop_key, sub_prop, allow_dup)
           deallocate(sub_prop)
         
         ! skip other types
@@ -244,7 +249,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Put an element in the property data set
-  recursive subroutine put(this, key, val)
+  recursive subroutine put(this, key, val, allow_duplicates)
 
     !> Property data set
     class(property_t), intent(inout) :: this
@@ -252,6 +257,8 @@ contains
     character(len=:), allocatable, intent(in) :: key
     !> New value
     class(*), intent(in) :: val
+    !> Flag indicating whether to allow duplicate keys
+    logical, intent(in) :: allow_duplicates
 
     type(property_link_t), pointer :: new_link, sub_link
     type(property_t), allocatable :: sub_prop_set
@@ -260,29 +267,33 @@ contains
     ! if this is an array element, the key will be empty
     if (allocated(key).and.len(key).ge.1) then
    
-      ! look for the key in the existing properties
-      new_link => this%get(key)
+      ! look for the key in the existing properties if disallowing duplictes
+      if (.not.allow_duplicates) then
+        
+        new_link => this%get(key)
 
-      ! do not allow overwrites of existing properties, but allow sub-sets
-      ! of properties to be appended
-      if (associated(new_link)) then
-        curr_val => new_link%val
-        select type (curr_val)
-        class is (property_t)
-          select type (val)
+        ! do not allow overwrites of existing properties, but allow sub-sets
+        ! of properties to be appended
+        if (associated(new_link)) then
+          curr_val => new_link%val
+          select type (curr_val)
           class is (property_t)
-            sub_link => val%first_link
-            do while (associated(sub_link))
-              call curr_val%put(sub_link%key_name, sub_link%val)
-              sub_link => sub_link%next_link
-            end do
+            select type (val)
+            class is (property_t)
+              sub_link => val%first_link
+              do while (associated(sub_link))
+                call curr_val%put(sub_link%key_name, sub_link%val, .false.)
+                sub_link => sub_link%next_link
+              end do
+            class default
+              call die_msg(698012538, "Property type mismatch for "//key)
+            end select
           class default
-            call die_msg(698012538, "Property type mismatch for "//key)
+            call die_msg(359604264, "Trying to overwrite property "//key)
           end select
-        class default
-          call die_msg(359604264, "Trying to overwrite property "//key)
-        end select
-        return
+          return
+        end if
+
       end if
 
     end if
@@ -294,7 +305,8 @@ contains
       allocate(sub_prop_set)
       sub_link => val%first_link
       do while (associated(sub_link))
-        call sub_prop_set%put(sub_link%key_name, sub_link%val)
+        call sub_prop_set%put(sub_link%key_name, sub_link%val, &
+                              allow_duplicates)
         sub_link => sub_link%next_link
       end do
       new_link => property_link_t(key, sub_prop_set)
@@ -580,7 +592,7 @@ contains
 
     curr_prop => source%first_link
     do while (associated(curr_prop))
-      call this%put(curr_prop%key_name, curr_prop%val)
+      call this%put(curr_prop%key_name, curr_prop%val, .false.)
       curr_prop => curr_prop%next_link
     end do
 

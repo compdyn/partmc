@@ -297,6 +297,7 @@ contains
           ! Update species concentrations in PMC
           this%phlex_state%state_var(:) = 0.0
           this%phlex_state%state_var(this%map_phlex_id(:)) = &
+                  this%phlex_state%state_var(this%map_phlex_id(:)) + &
                   MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
           this%phlex_state%state_var(this%gas_phase_water_id) = &
                   water_conc(i,j,k_flip,water_vapor_index) * &

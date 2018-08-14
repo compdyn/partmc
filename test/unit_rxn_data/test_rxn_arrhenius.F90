@@ -23,10 +23,8 @@ program pmc_test_arrhenius
   
   ! Number of timesteps to output in mechanisms
   integer(kind=phlex_int) :: NUM_TIME_STEP = 100
-
   ! Number of states to solve simultaneously
-  integer(kind=phlex_int) :: NUM_STATE = 3
-
+  integer(kind=phlex_int) :: NUM_STATE = 5
   ! Index of state to use in analysis
   integer(kind=phlex_int) :: STATE_TO_CHECK = 2
 

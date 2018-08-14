@@ -51,10 +51,10 @@ program pmc_test_cb05cl_ae5
   integer(kind=phlex_int), parameter :: NUM_EBI_PHOTO_RXN = 23
   ! Small number for minimum concentrations
   real(kind=phlex_real), parameter :: SMALL_NUM = 1.0d-30
-  ! Number of 'grid cells' to solve
-  integer(kind=phlex_int), parameter :: N_GRID_CELLS = 1
-  ! 'grid cell' to use in result comparison
-  integer(kind=phlex_int), parameter :: GRID_CELL_TO_CHECK = 1
+  ! Number of states to solve simultaneously
+  integer(kind=phlex_int), parameter :: NUM_STATE = 5
+  ! Index of state to use in the analysis
+  integer(kind=phlex_int), parameter :: STATE_TO_CHECK = 3
   ! Used to check availability of a solver  
   type(phlex_solver_data_t), pointer :: phlex_solver_data
 
@@ -173,7 +173,7 @@ contains
     character(len=:), allocatable :: key, spec_name, string_val, phlex_input_file
     real(kind=phlex_real) :: real_val, phlex_rate, phlex_rate_const
     integer(kind=phlex_int) :: i_spec, j_spec, i_rxn, i_ebi_rxn, i_kpp_rxn, &
-            i_time, i_repeat, n_gas_spec, i_cell
+            i_time, i_state, j_state, n_gas_spec, index_offset
 
     integer(kind=phlex_int) :: i_M, i_O2, i_N2, i_H2O, i_CH4, i_H2
     integer(kind=phlex_int), allocatable :: ebi_rxn_map(:), kpp_rxn_map(:)
@@ -286,7 +286,7 @@ contains
     end do
 
     ! Get an new state variable that will hold the state of every 'grid cell'
-    phlex_state => phlex_core%new_state(n_unique_states = N_GRID_CELLS)
+    phlex_state => phlex_core%new_state(NUM_STATE)
     
     ! Initialize the solver
     call phlex_core%solver_initialize(phlex_state)
@@ -300,7 +300,7 @@ contains
     write(*,*) "Phlex-chem initialization time: ", comp_end-comp_start," s"
 
     ! Get a phlex-state for rate comparisons
-    phlex_state_comp => phlex_core%new_state(n_unique_states = N_GRID_CELLS)
+    phlex_state_comp => phlex_core%new_state(NUM_STATE)
     phlex_state_comp%env_state%temp = phlex_state%env_state%temp
     phlex_state_comp%env_state%pressure = phlex_state%env_state%pressure
     call phlex_state_comp%update_env_state()
@@ -332,8 +332,8 @@ contains
     ! Set the phlex-chem photolysis rate constants
     call rxn_factory%initialize_update_data(rate_update)
     call rate_update%set_rate(1, real(0.0001, kind=phlex_real))
-    do i_cell = 1, N_GRID_CELLS
-      call phlex_core%update_rxn_data(i_cell, rate_update)
+    do i_state = 1, NUM_STATE
+      call phlex_core%update_rxn_data(i_state, rate_update)
     end do
 
     ! Make sure the right number of reactions is present
@@ -361,11 +361,11 @@ contains
         YC(i_spec) = real_val
 
         ! Set the phlex-chem concetration (ppm)
-        forall ( i_cell = 1:N_GRID_CELLS )
+        forall ( i_state = 1:NUM_STATE )
           phlex_state%state_var( &
                   chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string) + &
-                  (i_cell-1) * phlex_state%n_state_vars) = real_val
+                  (i_state-1) * phlex_state%n_state_vars) = real_val
         end forall 
 
 #ifdef DEBUG
@@ -391,15 +391,15 @@ contains
     call assert(273497194, chem_spec_data%get_property_set(spec_name, prop_set))
     call assert(740666066, associated(prop_set))
     call assert(907464197, prop_set%get_real(key, real_val))
-    forall(i_cell=1:N_GRID_CELLS) &
-        phlex_state%state_var(i_M+(i_cell-1)*phlex_state%n_state_vars) = real_val
+    forall(i_state=1:NUM_STATE) &
+        phlex_state%state_var(i_M+(i_state-1)*phlex_state%n_state_vars) = real_val
     KPP_M = real_val / conv
     spec_name = "O2"
     call assert(557877977, chem_spec_data%get_property_set(spec_name, prop_set))
     call assert(729136508, associated(prop_set))
     call assert(223930103, prop_set%get_real(key, real_val))
-    forall(i_cell=1:N_GRID_CELLS) &
-        phlex_state%state_var(i_O2+(i_cell-1)*phlex_state%n_state_vars) = real_val
+    forall(i_state=1:NUM_STATE) &
+        phlex_state%state_var(i_O2+(i_state-1)*phlex_state%n_state_vars) = real_val
     KPP_O2 = real_val / conv
     KPP_C(KPP_IND_O2) = real_val / conv
     ! KPP has variable O2 concentration  
@@ -412,22 +412,22 @@ contains
     call assert(329882514, chem_spec_data%get_property_set(spec_name, prop_set))
     call assert(553715297, associated(prop_set))
     call assert(666033642, prop_set%get_real(key, real_val))
-    forall(i_cell=1:N_GRID_CELLS) &
-        phlex_state%state_var(i_N2+(i_cell-1)*phlex_state%n_state_vars) = real_val
+    forall(i_state=1:NUM_STATE) &
+        phlex_state%state_var(i_N2+(i_state-1)*phlex_state%n_state_vars) = real_val
     KPP_N2 = real_val / conv
     spec_name = "H2O"
     call assert(101887051, chem_spec_data%get_property_set(spec_name, prop_set))
     call assert(160827237, associated(prop_set))
     call assert(273145582, prop_set%get_real(key, real_val))
-    forall(i_cell=1:N_GRID_CELLS) &
-        phlex_state%state_var(i_H2O+(i_cell-1)*phlex_state%n_state_vars) = real_val
+    forall(i_state=1:NUM_STATE) &
+        phlex_state%state_var(i_H2O+(i_state-1)*phlex_state%n_state_vars) = real_val
     KPP_H2O = real_val / conv
     spec_name = "CH4"
     call assert(208941089, chem_spec_data%get_property_set(spec_name, prop_set))
     call assert(667939176, associated(prop_set))
     call assert(780257521, prop_set%get_real(key, real_val))
-    forall(i_cell=1:N_GRID_CELLS) &
-        phlex_state%state_var(i_CH4+(i_cell-1)*phlex_state%n_state_vars) = real_val
+    forall(i_state=1:NUM_STATE) &
+        phlex_state%state_var(i_CH4+(i_state-1)*phlex_state%n_state_vars) = real_val
     KPP_CH4 = real_val / conv
     ! KPP has variable CH4 concentration  
     do j_spec = 1, KPP_NSPEC
@@ -439,8 +439,8 @@ contains
     call assert(663478776, chem_spec_data%get_property_set(spec_name, prop_set))
     call assert(892575866, associated(prop_set))
     call assert(722418962, prop_set%get_real(key, real_val))
-    forall(i_cell=1:N_GRID_CELLS) &
-        phlex_state%state_var(i_H2+(i_cell-1)*phlex_state%n_state_vars) = real_val
+    forall(i_state=1:NUM_STATE) &
+        phlex_state%state_var(i_H2+(i_state-1)*phlex_state%n_state_vars) = real_val
     KPP_H2 = real_val / conv
 
     ! Set the water concentration for EBI solver (ppmV)
@@ -449,12 +449,12 @@ contains
 #ifdef DEBUG
     call phlex_core%print(DEBUG_UNIT)
     write(DEBUG_UNIT,*) "*** Constant species concentrations ***"
-    write(DEBUG_UNIT,*) "[M] = ", phlex_state%state_var(i_M+(GRID_CELL_TO_CHECK-1)*phlex_state%n_state_vars), i_M
-    write(DEBUG_UNIT,*) "[O2] = ", phlex_state%state_var(i_O2+(GRID_CELL_TO_CHECK-1)*phlex_state%n_state_vars), i_O2
-    write(DEBUG_UNIT,*) "[N2] = ", phlex_state%state_var(i_N2+(GRID_CELL_TO_CHECK-1)*phlex_state%n_state_vars), i_N2
-    write(DEBUG_UNIT,*) "[H2O] = ", phlex_state%state_var(i_H2O+(GRID_CELL_TO_CHECK-1)*phlex_state%n_state_vars), i_H2O
-    write(DEBUG_UNIT,*) "[CH4] = ", phlex_state%state_var(i_CH4+(GRID_CELL_TO_CHECK-1)*phlex_state%n_state_vars), i_CH4
-    write(DEBUG_UNIT,*) "[H2] = ", phlex_state%state_var(i_H2+(GRID_CELL_TO_CHECK-1)*phlex_state%n_state_vars), i_H2
+    write(DEBUG_UNIT,*) "[M] = ", phlex_state%state_var(i_M+(STATE_TO_CHECK-1)*phlex_state%n_state_vars), i_M
+    write(DEBUG_UNIT,*) "[O2] = ", phlex_state%state_var(i_O2+(STATE_TO_CHECK-1)*phlex_state%n_state_vars), i_O2
+    write(DEBUG_UNIT,*) "[N2] = ", phlex_state%state_var(i_N2+(STATE_TO_CHECK-1)*phlex_state%n_state_vars), i_N2
+    write(DEBUG_UNIT,*) "[H2O] = ", phlex_state%state_var(i_H2O+(STATE_TO_CHECK-1)*phlex_state%n_state_vars), i_H2O
+    write(DEBUG_UNIT,*) "[CH4] = ", phlex_state%state_var(i_CH4+(STATE_TO_CHECK-1)*phlex_state%n_state_vars), i_CH4
+    write(DEBUG_UNIT,*) "[H2] = ", phlex_state%state_var(i_H2+(STATE_TO_CHECK-1)*phlex_state%n_state_vars), i_H2
 #endif
 
     ! Set up the output files
@@ -513,13 +513,13 @@ contains
     do i_spec = 1, NUM_EBI_SPEC
       j_spec = chem_spec_data%gas_state_id(ebi_spec_names(i_spec)%string)
       call assert_msg(194404050, j_spec.gt.0, "Missing EBI species: "//trim(ebi_spec_names(i_spec)%string))
-      ebi_spec_map(j_spec) = i_spec
+      ebi_spec_map(j_spec) = i_spec + (STATE_TO_CHECK-1) * phlex_state%n_state_vars
     end do
     do i_spec = 1, KPP_NSPEC
       spec_name = trim(KPP_SPC_NAMES(i_spec))
       j_spec = chem_spec_data%gas_state_id(spec_name)
       call assert_msg(194404050, j_spec.gt.0, "Missing KPP species: "//trim(KPP_SPC_NAMES(i_spec)))
-      kpp_spec_map(j_spec) = i_spec
+      kpp_spec_map(j_spec) = i_spec + (STATE_TO_CHECK-1) * phlex_state%n_state_vars
     end do
 
     ! Reset the computation timers
@@ -553,7 +553,7 @@ contains
     phlex_init(:) = phlex_state%state_var(1:phlex_state%n_state_vars)
 
     ! Repeatedly solve the mechanism
-    do i_repeat = 1, N_GRID_CELLS
+    do i_state = 1, NUM_STATE
 
     YC(:) = ebi_init(:)
     KPP_C(:) = kpp_init(:)
@@ -562,30 +562,32 @@ contains
     do i_time = 1, NUM_TIME_STEPS
 
 #ifdef DEBUG
-      if (i_repeat.eq.1) then
+      if (i_state.eq.STATE_TO_CHECK) then
       write(DEBUG_UNIT,*) "Time step: ", i_time
       write(DEBUG_UNIT,*) "EBI state: ", (ebi_spec_names(i_spec)%string, &
               YC(i_spec), i_spec=1,size(YC))
       write(DEBUG_UNIT,*) "KPP state: ", (TRIM(KPP_SPC_NAMES(i_spec)), &
               KPP_C(i_spec)*conv, i_spec=1,size(KPP_C))
       write(DEBUG_UNIT,*) "Phlex state: ", (phlex_spec_names(i_spec)%string, &
-              phlex_state%state_var(i_spec+(GRID_CELL_TO_CHECK-1)*phlex_state%n_state_var), &
-              i_spec=1,phlex_state%n_state_var)
+              phlex_state%state_var(i_spec+(i_state-1)*phlex_state%n_state_vars), &
+              i_spec=1,phlex_state%n_state_vars)
       end if
 #endif
 
       ! Set minimum concentrations in all solvers
       YC(:) = MAX(YC(:), SMALL_NUM)
       KPP_C(:) = MAX(KPP_C(:), SMALL_NUM/conv)
-      phlex_state%state_var(:) = max(phlex_state%state_var(:), SMALL_NUM)
+      if (i_state.eq.1) then
+        phlex_state%state_var(:) = max(phlex_state%state_var(:), SMALL_NUM)
+      end if
 
       ! Output current time step
-      if (i_repeat.eq.1) then
+      if (i_state.eq.STATE_TO_CHECK) then
       write(EBI_FILE_UNIT,*) i_time*EBI_TMSTEP, YC(:)
       write(KPP_FILE_UNIT,*) i_time*KPP_DT/60.0d0, KPP_C(:)*conv
       write(PHLEX_FILE_UNIT,*) i_time*EBI_TMSTEP, &
-              phlex_state%state_var((GRID_CELL_TO_CHECK-1)*phlex_state%n_state_vars+1: &
-                                    GRID_CELL_TO_CHECK*phlex_state%n_state_vars)
+              phlex_state%state_var((i_state-1)*phlex_state%n_state_vars+1: &
+                                    i_state*phlex_state%n_state_vars)
       end if
 
       ! EBI solver
@@ -611,11 +613,13 @@ contains
               KPP_C(j_spec) = YC(i_spec) / conv
             end if
           end do
-          do i_cell = 1, N_GRID_CELLS
-            phlex_state%state_var( (i_cell-1)*phlex_state%n_state_vars + &
-                  chem_spec_data%gas_state_id( &
-                  ebi_spec_names(i_spec)%string)) = YC(i_spec)
-          end do
+          if (i_state.eq.1) then
+            do j_state = 1, NUM_STATE
+              phlex_state%state_var( (j_state-1)*phlex_state%n_state_vars + &
+                    chem_spec_data%gas_state_id( &
+                    ebi_spec_names(i_spec)%string)) = YC(i_spec)
+            end do
+          end if
         end do
       end if
 
@@ -632,7 +636,7 @@ contains
 
       ! Phlex-chem
       ! (solve all grid cells at once at first repeat
-      if (i_repeat.eq.1) then
+      if (i_state.eq.1) then
         call cpu_time(comp_start)
         call phlex_core%solve(phlex_state, real(EBI_TMSTEP*60.0, kind=phlex_real))
         call cpu_time(comp_end)
@@ -646,8 +650,8 @@ contains
     write(EBI_FILE_UNIT,*) i_time*EBI_TMSTEP, YC(:)
     write(KPP_FILE_UNIT,*) i_time*EBI_TMSTEP, KPP_C(:)*conv
     write(PHLEX_FILE_UNIT,*) i_time*EBI_TMSTEP, &
-              phlex_state%state_var((GRID_CELL_TO_CHECK-1)*phlex_state%n_state_vars+1: &
-                                    GRID_CELL_TO_CHECK*phlex_state%n_state_vars)
+              phlex_state%state_var((STATE_TO_CHECK-1)*phlex_state%n_state_vars+1: &
+                                    STATE_TO_CHECK*phlex_state%n_state_vars)
 
     ! Output the computational time
     write(*,*) "EBI calculation time: ", comp_ebi," s"
@@ -656,23 +660,25 @@ contains
 
     ! Compare the results
     associate (phlex_comp_state_var => phlex_state%state_var( &
-                                      (GRID_CELL_TO_CHECK-1)*phlex_state%n_state_vars+1: &
-                                      GRID_CELL_TO_CHECK*phlex_state%n_state_vars) )
+                                      (STATE_TO_CHECK-1)*phlex_state%n_state_vars+1: &
+                                      STATE_TO_CHECK*phlex_state%n_state_vars) )
+    index_offset = (STATE_TO_CHECK-1) * phlex_state%n_state_vars
     ! EBI <-> Phlex-chem
     do i_spec = 1, NUM_EBI_SPEC
       call assert_msg(749090387, almost_equal(real(YC(i_spec), kind=phlex_real), &
-          phlex_comp_state_var( &
+          phlex_comp_state_var( index_offset + &
                   chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)), real(5.0e-2, kind=phlex_real)) .or. &
           (YC(i_spec).lt.ebi_init(i_spec)*1.0d-2 .and. &
-           phlex_comp_state_var(chem_spec_data%gas_state_id( &
+           phlex_comp_state_var( index_offset + &
+                  chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)) .lt. &
            phlex_init(chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string))*1.0d-2), &
           "Species "//ebi_spec_names(i_spec)%string//" has different result. "// &
           "EBI solver: "//trim(to_string(real(YC(i_spec), kind=phlex_real)))// &
           "; Phlex-chem: "// &
-          trim(to_string( phlex_comp_state_var( &
+          trim(to_string( phlex_comp_state_var( index_offset + &
                   chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)))) // "; ebi init: "// &
           trim(to_string(real(ebi_init(i_spec), kind=phlex_real)))//"; phlex init: "// &

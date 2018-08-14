@@ -51,6 +51,8 @@ module pmc_monarch_interface
     integer(kind=phlex_int) :: tracer_starting_id
     !> Ending index for PartMC species on the MONARCH tracer array
     integer(kind=phlex_int) :: tracer_ending_id
+    !> Number of grid cells per task
+    integer(kind=phlex_int) :: cells_per_task
     !> PartMC-phlex <-> MONARCH species map input data
     type(property_t), pointer :: species_map_data
     !> Gas-phase water id in PartMC-phlex
@@ -100,7 +102,8 @@ contains
   !! configuration file and the starting and ending indices for chemical
   !! species in the tracer array.
   function constructor(phlex_config_file, interface_config_file, &
-                       starting_id, ending_id, mpi_comm) result (new_obj)
+                       starting_id, ending_id, cells_per_task, mpi_comm &
+                       ) result (new_obj)
 
     !> A new MONARCH interface
     type(monarch_interface_t), pointer :: new_obj
@@ -112,6 +115,8 @@ contains
     integer, optional :: starting_id
     !> Ending index for chemical species in the MONARCH tracer array
     integer, optional :: ending_id
+    !> Grid cells to solve simultaneously
+    integer, optional :: cells_per_task
     !> MPI communicator
     integer, intent(in), optional :: mpi_comm
 
@@ -160,6 +165,8 @@ contains
               "Missing starting tracer index for chemical species")
       call assert_msg(593895016, present(ending_id), &
               "Missing ending tracer index for chemical species")
+      call assert_msg(832854276, present(cells_per_task), &
+              "Missing number of grid cells per task")
 
       ! Load the interface data
       call new_obj%load(interface_config_file)
@@ -172,6 +179,9 @@ contains
       new_obj%tracer_starting_id = starting_id
       new_obj%tracer_ending_id = ending_id
 
+      ! Set the number of grid cells to be solved per task
+      new_obj%cells_per_task = cells_per_task
+
       ! Generate the PartMC-phlex <-> MONARCH species map
       call new_obj%create_map()      
 
@@ -183,7 +193,8 @@ contains
               pmc_mpi_pack_size_integer_array(new_obj%map_phlex_id) + &
               pmc_mpi_pack_size_integer_array(new_obj%init_conc_phlex_id) + &
               pmc_mpi_pack_size_real_array(new_obj%init_conc) + &
-              pmc_mpi_pack_size_integer(new_obj%gas_phase_water_id)
+              pmc_mpi_pack_size_integer(new_obj%gas_phase_water_id) + &
+              pmc_mpi_pack_size_integer(new_obj%cells_per_task)
       allocate(buffer(pack_size))
       pos = 0
       call new_obj%phlex_core%bin_pack(buffer, pos)
@@ -192,6 +203,7 @@ contains
       call pmc_mpi_pack_integer_array(buffer, pos, new_obj%init_conc_phlex_id)
       call pmc_mpi_pack_real_array(buffer, pos, new_obj%init_conc)
       call pmc_mpi_pack_integer(buffer, pos, new_obj%gas_phase_water_id)
+      call pmc_mpi_pack_integer(buffer, pos, new_obj%cells_per_task)
     endif
        
     ! broadcast the buffer size
@@ -215,6 +227,7 @@ contains
       call pmc_mpi_unpack_integer_array(buffer, pos, new_obj%init_conc_phlex_id)
       call pmc_mpi_unpack_real_array(buffer, pos, new_obj%init_conc)
       call pmc_mpi_unpack_integer(buffer, pos, new_obj%gas_phase_water_id)
+      call pmc_mpi_unpack_integer(buffer, pos, new_obj%cells_per_task)
 #endif
     end if
 
@@ -223,7 +236,7 @@ contains
 #endif
 
     ! Create a state variable on each node
-    new_obj%phlex_state => new_obj%phlex_core%new_state()
+    new_obj%phlex_state => new_obj%phlex_core%new_state(new_obj%cells_per_task)
 
     ! Initialize the solver on all nodes
     call new_obj%phlex_core%solver_initialize(new_obj%phlex_state)
@@ -274,15 +287,32 @@ contains
     !> Pressure (Pa)
     real, intent(in) :: pressure(:,:,:)
 
-    integer :: i, j, k, k_flip, i_spec
+    integer :: i, j, k, k_flip, i_spec, grid_dim, i_state, index_offset
 
     ! Computation time variables
     real(kind=phlex_real) :: comp_start, comp_end
 
-    ! Loop through the grid cells
-    do i=i_start, i_end
-      do j=j_start, j_end
-        do k=1, size(MONARCH_conc,3)
+    ! Make sure the number of cells to solve matches the system dimensions
+    grid_dim = (i_end - i_start + 1) * (j_end - j_start + 1) * &
+               size( MONARCH_conc, 3 )
+    call assert_msg(328387289, grid_dim .eq. this%cells_per_task, &
+                    "Mismatch of cells to solve. Expected "// &
+                    trim( to_string( this%cells_per_task ) )//" but got "// &
+                    trim( to_string( grid_dim ) ) )
+
+    ! Initialize the state array
+    this%phlex_state%state_var(:) = 0.0
+    
+    ! Loop through the grid cells to update the PMC state
+    do i = i_start, i_end
+      do j = j_start, j_end
+        do k = 1, size( MONARCH_conc, 3 )
+
+          ! Get an index for the current state
+          i_state = ( i - i_start ) * ( j_end - j_start + 1 ) * &
+                                      size( MONARCH_conc, 3 ) + &
+                    ( j - j_start ) * size( MONARCH_conc, 3 ) + k
+          index_offset = (i_state - 1) * this%phlex_state%n_state_vars
 
           ! Calculate the vertical index for NMMB-style arrays
           k_flip = size(MONARCH_conc,3) - k + 1
@@ -290,36 +320,44 @@ contains
           ! Update the environmental state
           this%phlex_state%env_state%temp = temperature(i,j,k_flip)
           this%phlex_state%env_state%pressure = pressure(i,k,j)
-          ! TODO finish environmental state setup
+          call this%phlex_state%update_env_state( i_state )
 
           ! Update species concentrations in PMC
-          this%phlex_state%state_var(:) = 0.0
-          this%phlex_state%state_var(this%map_phlex_id(:)) = &
+          this%phlex_state%state_var(index_offset + this%map_phlex_id(:)) = &
                   MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
-          this%phlex_state%state_var(this%gas_phase_water_id) = &
+          this%phlex_state%state_var(index_offset + this%gas_phase_water_id) = &
                   water_conc(i,j,k_flip,water_vapor_index) * &
                   air_density(i,k,j) * 1.0d9
+    
+        end do
+      end do
+    end do
 
-          ! Start the computation timer
-          if (MONARCH_NODE.eq.0 .and. i.eq.i_start .and. j.eq.j_start &
-                  .and. k.eq.1) then
-            call cpu_time(comp_start)
-          end if
+    ! Start the computation timer
+    call cpu_time(comp_start)
 
-          ! Integrate the PMC mechanism
-          call this%phlex_core%solve(this%phlex_state, &
-                  real(time_step, kind=phlex_real))
+    ! Integrate the PMC mechanism
+    call this%phlex_core%solve(this%phlex_state, &
+                               real(time_step, kind=phlex_real))
 
-          ! Calculate the computation time
-          if (MONARCH_NODE.eq.0 .and. i.eq.i_start .and. j.eq.j_start &
-                  .and. k.eq.1) then
-            call cpu_time(comp_end)
-            comp_time = comp_time + (comp_end-comp_start)
-          end if
+    ! Calculate the computation time
+    call cpu_time(comp_end)
+    comp_time = comp_time + (comp_end-comp_start)
+
+    ! Loop through the grid cells to update the MONARCH state
+    do i = i_start, i_end
+      do j = j_start, j_end
+        do k = 1, size( MONARCH_conc, 3 )
+
+          ! Get an index for the current state
+          i_state = ( i - i_start ) * ( j_end - j_start + 1 ) * &
+                                      size( MONARCH_conc, 3 ) + &
+                    ( j - j_start ) * size( MONARCH_conc, 3 ) + k
+          index_offset = (i_state - 1) * this%phlex_state%n_state_vars
 
           ! Update the MONARCH tracer array with new species concentrations
           MONARCH_conc(i,j,k_flip,this%map_monarch_id(:)) = &
-                  this%phlex_state%state_var(this%map_phlex_id(:))
+                  this%phlex_state%state_var(index_offset + this%map_phlex_id(:))
 
         end do
       end do

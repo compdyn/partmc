@@ -81,6 +81,9 @@ program mock_monarch
   !! concentrations do not affect y-axis scaling
   real :: plot_start_time = START_TIME + TIME_STEP
 
+  !> Number of grid cells to solve simultaneously
+  integer :: num_grid_cells = (I_E - I_W + 1) * (I_N - I_S + 1) * NUM_VERT_CELLS
+
   !> !!! Add to MONARCH variables !!!
   type(monarch_interface_t), pointer :: pmc_interface
 
@@ -121,7 +124,7 @@ program mock_monarch
           "<-> MONARCH interface configuration file name")
   interface_input_file = trim(arg)
   pmc_interface => monarch_interface_t(phlex_input_file, interface_input_file, &
-          START_PHLEX_ID, END_PHLEX_ID)
+          START_PHLEX_ID, END_PHLEX_ID, num_grid_cells)
   deallocate(phlex_input_file)
   deallocate(interface_input_file)
 

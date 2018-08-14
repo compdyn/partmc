@@ -29,6 +29,10 @@ program pmc_test_photolysis
 
   ! Number of timesteps to output in mechanisms
   integer(kind=phlex_int) :: NUM_TIME_STEP = 100
+  ! Number of states to solve simultaneously
+  integer(kind=phlex_int) :: NUM_STATE = 5
+  ! Index of state to use in the analysis
+  integer(kind=phlex_int) :: STATE_TO_CHECK = 3
 
   ! initialize mpi
   call pmc_mpi_init()
@@ -86,7 +90,7 @@ contains
 
     real(kind=phlex_real), dimension(0:NUM_TIME_STEP, 3) :: model_conc, true_conc
     integer(kind=phlex_int) :: idx_A, idx_B, idx_C, i_time, i_spec, &
-            i_rxn_photo_A, i_rxn, i_photo_A
+            i_rxn_photo_A, i_rxn, i_photo_A, i_state
     real(kind=phlex_real) :: time_step, time, k1, k2, temp, pressure, photo_rate_1
     type(chem_spec_data_t), pointer :: chem_spec_data
     class(rxn_data_t), pointer :: rxn
@@ -211,7 +215,7 @@ contains
 #endif
 
       ! Get a model state variable
-      phlex_state => phlex_core%new_state()
+      phlex_state => phlex_core%new_state(NUM_STATE)
 
       ! Initialize the solver
       call phlex_core%solver_initialize(phlex_state)
@@ -228,19 +232,27 @@ contains
       model_conc(0,:) = true_conc(0,:)
 
       ! Set the initial concentrations in the model
-      phlex_state%state_var(:) = model_conc(0,:)
+      do i_state = 1, NUM_STATE
+        phlex_state%state_var((i_state-1)*phlex_state%n_state_vars+1: &
+                              i_state*phlex_state%n_state_vars       ) = &
+                              model_conc(0,:)
+      end do
 
       ! Set the photo B rate
       call rxn_factory%initialize_update_data(rate_update)
       call rate_update%set_rate(i_photo_A, photo_rate_1)
-      call phlex_core%update_rxn_data(1, rate_update)
+      do i_state = 1, NUM_STATE
+        call phlex_core%update_rxn_data(i_state, rate_update)
+      end do
 
       ! Integrate the mechanism
       do i_time = 1, NUM_TIME_STEP
 
         ! Get the modeled conc
         call phlex_core%solve(phlex_state, time_step)
-        model_conc(i_time,:) = phlex_state%state_var(:)
+        model_conc(i_time,:) = phlex_state%state_var( &
+                               (STATE_TO_CHECK-1) * phlex_state%n_state_vars + 1 : &
+                               STATE_TO_CHECK * phlex_state%n_state_vars )
 
         ! Get the analytic conc
         time = i_time * time_step

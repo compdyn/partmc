@@ -29,7 +29,7 @@ typedef struct {
   void *dev_rxn_data;                   // device pointer to rxn data
 } RxnDeviceData;
 
-void rxn_gpu_solver_new( ModelDeviceData * model_dev_data, void * rxn_data );
+void rxn_gpu_solver_new( ModelDeviceData model_dev_data, void * rxn_data );
 __global__ void rxn_gpu_update_env_state( ModelDeviceData mdd );
 __global__ void rxn_gpu_calc_deriv( ModelDeviceData mdd, PMC_C_FLOAT time_step); 
 __global__ void rxn_gpu_calc_jac( ModelDeviceData mdd, PMC_C_FLOAT time_step); 

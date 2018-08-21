@@ -35,22 +35,22 @@ extern "C" {
 
 /** \brief Assemble a set of indices for each reaction to solve with GPUs
  *
- * \param rxn_dev_data Pointer to the device reaction data to set
+ * \param model_dev_data Model device data
  * \param host_rxn_data Pointer to the host reaction data
  */
-void rxn_gpu_solver_new( ModelDeviceData * model_dev_data, void * orig_rxn_data )
+void rxn_gpu_solver_new( ModelDeviceData model_dev_data, void * orig_rxn_data )
 {
   // Allocate space for a new RxnDeviceData object
-  HANDLE_ERROR( cudaHostAlloc( (void**) &(model_dev_data->host_rxn_dev_data),
+  HANDLE_ERROR( cudaHostAlloc( (void**) &(model_dev_data.host_rxn_dev_data),
                                sizeof(RxnDeviceData),
                                cudaHostAllocWriteCombined |
                                   cudaHostAllocMapped
                              ) );
-  HANDLE_ERROR( cudaHostGetDevicePointer( (void**) &(model_dev_data->dev_rxn_dev_data),
-                                          (void*) model_dev_data->host_rxn_dev_data,
+  HANDLE_ERROR( cudaHostGetDevicePointer( (void**) &(model_dev_data.dev_rxn_dev_data),
+                                          (void*) model_dev_data.host_rxn_dev_data,
                                           0 
                                         ) );
-  RxnDeviceData *rxn_dev_data = (RxnDeviceData*) model_dev_data->host_rxn_dev_data;
+  RxnDeviceData *rxn_dev_data = (RxnDeviceData*) model_dev_data.host_rxn_dev_data;
 
   // Get the number of reactions
   int *rxn_data = (int*) (orig_rxn_data);
@@ -234,20 +234,25 @@ void rxn_gpu_solver_new( ModelDeviceData * model_dev_data, void * orig_rxn_data 
 
 /** \brief Update the environmental state for reactions with GPU solver functions
   *
-  * \param mdd Model device data
+  * \param sdd Solver device data
   * \param env New environmental state
   */
-__global__ void rxn_gpu_update_env_state( ModelDeviceData mdd )
+__global__ void rxn_gpu_update_env_state( SolverDeviceData sdd )
 {
-  // Get the reaction data
-  RxnDeviceData * rd = ( RxnDeviceData* ) ( mdd.dev_rxn_dev_data );
-
   // Get a unique device index
   int dev_id = blockIdx.x * blockDim.x + threadIdx.x;
-  int dev_total = gridDim.x * blockDim.x;
+  int dev_total = ( gridDim.x * blockDim.x ) / sdd.n_states;
+
+  // Get the state to solve for
+  int i_state = dev_id / dev_total;
+  dev_id = dev_id % dev_total;
+  ModelDeviceData * mdd = sdd.model_device_data[ i_state ];
+
+  // Get the reaction data
+  RxnDeviceData * rd = ( RxnDeviceData* ) ( mdd->dev_rxn_dev_data );
 
   // Get the number of reactions
-  int * rxn_data = (int*) (*rd).dev_rxn_data;
+  int * rxn_data = (int*) rd->dev_rxn_data;
   int n_rxn = *(rxn_data);
 
   // Return if there are no reactions to update
@@ -262,7 +267,7 @@ __global__ void rxn_gpu_update_env_state( ModelDeviceData mdd )
   if ( rxns_to_update > 0 ) {
     // Advance the rxn data pointer to the first reaction's data
     char *first_rxn = ( (char*) rxn_data ) + 
-                     (*rd).dev_rxn_data_start[ rxn_start ];
+                     rd->dev_rxn_data_start[ rxn_start ];
     rxn_data = (int*) first_rxn;
     for( int i_rxn = 0; i_rxn < rxns_to_update; i_rxn++ ) {
 
@@ -275,7 +280,7 @@ __global__ void rxn_gpu_update_env_state( ModelDeviceData mdd )
       // Add derivative contribution from appropriate reaction type
       switch (rxn_type) {
         case RXN_ARRHENIUS :
-          rxn_data = (int*) rxn_gpu_arrhenius_update_env_state( (void*) rxn_data, mdd );
+          rxn_data = (int*) rxn_gpu_arrhenius_update_env_state( (void*) rxn_data, *mdd );
           break;
         default :
           printf("\nPartMC Internal Error: invalid rxn type in GPU update env state.\n"
@@ -290,28 +295,33 @@ __global__ void rxn_gpu_update_env_state( ModelDeviceData mdd )
 
 /** \brief Calculate the time derivative for reactions with GPU solver functions
  * 
- * \param device_data Device data needed for solving
+ * \param sdd Device data needed for solving
  * \param time_step Current solver time step (s)
  */
-__global__ void rxn_gpu_calc_deriv( ModelDeviceData mdd, PMC_C_FLOAT time_step)
+__global__ void rxn_gpu_calc_deriv( SolverDeviceData sdd, PMC_C_FLOAT time_step)
 {
-  // Get the reaction data
-  RxnDeviceData * rd = ( RxnDeviceData* ) ( mdd.dev_rxn_dev_data );
-
   // Get a unique device index
   int dev_id = blockIdx.x * blockDim.x + threadIdx.x;
-  int dev_total = gridDim.x * blockDim.x;
+  int dev_total = ( gridDim.x * blockDim.x ) / sdd.n_states;
+
+  // Get the state to solve for
+  int i_state = dev_id / dev_total;
+  dev_id = dev_id % dev_total;
+  ModelDeviceData * mdd = sdd.model_device_data[ i_state ];
+
+  // Get the reaction data
+  RxnDeviceData * rd = ( RxnDeviceData* ) ( mdd->dev_rxn_dev_data );
 
   // Set up a shared derivative array
   __shared__ PMC_SOLVER_C_FLOAT shr_dev_deriv[ MAX_DERIV_SIZE_ ];
 
   // Initialize the derivative array
-  for( int i_spec = threadIdx.x; i_spec < mdd.deriv_size; i_spec += blockDim.x )
+  for( int i_spec = threadIdx.x; i_spec < mdd->deriv_size; i_spec += blockDim.x )
     shr_dev_deriv[ i_spec ] = 0.0;
   __syncthreads();
 
   // Get the number of reactions
-  int * rxn_data = (int*) (*rd).dev_rxn_data;
+  int * rxn_data = (int*) rd->dev_rxn_data;
   int n_rxn = *(rxn_data);
 
   // Return if there are no reactions to solve
@@ -340,7 +350,7 @@ __global__ void rxn_gpu_calc_deriv( ModelDeviceData mdd, PMC_C_FLOAT time_step)
       switch (rxn_type) {
         case RXN_ARRHENIUS :
           rxn_data = (int*) rxn_gpu_arrhenius_calc_deriv_contrib( 
-                              (void*) rxn_data, mdd, shr_dev_deriv );
+                              (void*) rxn_data, *mdd, shr_dev_deriv );
           break;
         default :
           printf("\nPartMC Internal Error: invalid rxn type in GPU solver.\n"
@@ -352,35 +362,40 @@ __global__ void rxn_gpu_calc_deriv( ModelDeviceData mdd, PMC_C_FLOAT time_step)
   __syncthreads();
 
   // Add derivative contributions from this block to the primary deriv array
-  for( int i_spec = threadIdx.x; i_spec < mdd.deriv_size; i_spec += blockDim.x )
-    atomicAdd( &( mdd.dev_deriv[ i_spec ] ), shr_dev_deriv[ i_spec ] );
+  for( int i_spec = threadIdx.x; i_spec < mdd->deriv_size; i_spec += blockDim.x )
+    atomicAdd( &( mdd->dev_deriv[ i_spec ] ), shr_dev_deriv[ i_spec ] );
 
 }
 
 /** \brief Calculate the Jacobian for reactions with GPU solver functions
  * 
- * \param device_data Device data needed for solving
+ * \param sdd Device data needed for solving
  * \param time_step Current solver time step (s)
  */
-__global__ void rxn_gpu_calc_jac( ModelDeviceData mdd, PMC_C_FLOAT time_step)
+__global__ void rxn_gpu_calc_jac( SolverDeviceData sdd, PMC_C_FLOAT time_step)
 {
-  // Get the reaction data
-  RxnDeviceData * rd = ( RxnDeviceData* ) ( mdd.dev_rxn_dev_data );
-
   // Get a unique device index
   int dev_id = blockIdx.x * blockDim.x + threadIdx.x;
-  int dev_total = gridDim.x * blockDim.x;
+  int dev_total = ( gridDim.x * blockDim.x ) / sdd.n_states;
+
+  // Get the state to solve for
+  int i_state = dev_id / dev_total;
+  dev_id = dev_id % dev_total;
+  ModelDeviceData * mdd = sdd.model_device_data[ i_state ];
+
+  // Get the reaction data
+  RxnDeviceData * rd = ( RxnDeviceData* ) ( mdd->dev_rxn_dev_data );
 
   // Set up a shared derivative array
   __shared__ PMC_SOLVER_C_FLOAT shr_dev_jac[ MAX_JAC_SIZE_ ];
 
   // Initialize the Jacobian data array
-  for( int i_elem = threadIdx.x; i_elem < mdd.jac_size; i_elem += blockDim.x )
+  for( int i_elem = threadIdx.x; i_elem < mdd->jac_size; i_elem += blockDim.x )
     shr_dev_jac[ i_elem ] = 0.0;
   __syncthreads();
 
   // Get the number of reactions
-  int * rxn_data = (int*) (*rd).dev_rxn_data;
+  int * rxn_data = (int*) rd->dev_rxn_data;
   int n_rxn = *(rxn_data);
 
   // Return if there are no reactions to solve
@@ -395,7 +410,7 @@ __global__ void rxn_gpu_calc_jac( ModelDeviceData mdd, PMC_C_FLOAT time_step)
   if ( rxns_to_solve > 0 ) {
     // Advance the rxn data pointer to the first reaction's data
     char *first_rxn = ( (char*) rxn_data ) + 
-                     (*rd).dev_rxn_data_start[ rxn_start ];
+                     rd->dev_rxn_data_start[ rxn_start ];
     rxn_data = (int*) first_rxn;
     for( int i_rxn = 0; i_rxn < rxns_to_solve; i_rxn++ ) {
 
@@ -409,7 +424,7 @@ __global__ void rxn_gpu_calc_jac( ModelDeviceData mdd, PMC_C_FLOAT time_step)
       switch (rxn_type) {
         case RXN_ARRHENIUS :
           rxn_data = (int*) rxn_gpu_arrhenius_calc_jac_contrib( 
-                              (void*) rxn_data, mdd, shr_dev_jac );
+                              (void*) rxn_data, *mdd, shr_dev_jac );
           break;
         default :
           printf("\nPartMC Internal Error: invalid rxn type in GPU Jac function.\n"
@@ -421,8 +436,8 @@ __global__ void rxn_gpu_calc_jac( ModelDeviceData mdd, PMC_C_FLOAT time_step)
   __syncthreads();
 
   // Add Jacobian contributions from this block to the primary Jacobian data array
-  for( int i_elem = threadIdx.x; i_elem < mdd.jac_size; i_elem += blockDim.x )
-    atomicAdd( &( mdd.dev_jac[ i_elem ] ), shr_dev_jac[ i_elem ] );
+  for( int i_elem = threadIdx.x; i_elem < mdd->jac_size; i_elem += blockDim.x )
+    atomicAdd( &( mdd->dev_jac[ i_elem ] ), shr_dev_jac[ i_elem ] );
 
 }
 

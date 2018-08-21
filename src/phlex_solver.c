@@ -285,7 +285,7 @@ void solver_initialize( void *solver_data, PMC_C_FLOAT *abs_tol, PMC_C_FLOAT rel
 
 #ifdef PMC_USE_GPU
   // Set up the device data for solving with GPUs
-  phlex_gpu_solver_new( sd->model_data, sd->n_states );
+  phlex_gpu_solver_new( *sd );
 #endif
 
 #endif
@@ -327,7 +327,7 @@ int solver_run( void *solver_data, PMC_C_FLOAT *state, PMC_C_FLOAT *env,
     sub_model_update_env_state( *md );
   }
 #ifdef PMC_USE_GPU
-  phlex_gpu_solver_update_env_state( sd->model_data, sd->n_states );
+  phlex_gpu_solver_update_env_state( *sd );
 #else
   for( int i_state = 0; i_state < sd->n_states; i_state++ ) {
     ModelData *md = &( sd->model_data[ i_state ] );
@@ -507,7 +507,7 @@ int Jac( realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   } 
 
   // Get a pointer to the Jacobian data
-  PMC_SOLVER_C_FLOAT *J_ptr = SM_DATA_S( J );
+  realtype *J_ptr = SM_DATA_S( J );
  
   // Loop through the states to solve addimng Jacobian contributions for each
   for( int i_state = 0; i_state < sd->n_states; i_state++ ) {
@@ -674,7 +674,7 @@ SUNMatrix get_jac_init(SolverData *solver_data)
     // Set up a working Jacobian data array
     md->jac = (PMC_SOLVER_C_FLOAT*) malloc( n_jac_elem *
                                             sizeof( PMC_SOLVER_C_FLOAT ) );
-    if( sd->model_data.jac == NULL ) {
+    if( solver_data->model_data->jac == NULL ) {
       printf( "\n\nERROR allocating space for working Jacobian\n\n" );
       exit( 1 );
     }
@@ -818,6 +818,12 @@ void solver_free( void *solver_data )
   SUNMatDestroy( sd->J_init );
 #endif
 
+#ifdef PMC_USE_GPU
+  // FIXME For some reason, freeing host pointers causes a segmentation
+  // fault when no reactions are solved on the GPUs
+  phlex_gpu_solver_solver_device_data_free( sd->solver_dev_data );
+#endif
+
   // Free the allocated ModelData
   for( int i_state = 0; i_state < sd->n_states; i_state++ ) {
     model_free( sd->model_data[ i_state ] );
@@ -844,11 +850,6 @@ void model_free(ModelData model_data)
 #ifndef PMC_USE_DOUBLE_PRECISION
   free(model_data.deriv);
   free(model_data.jac);
-#endif
-#ifdef PMC_USE_GPU
-  // FIXME For some reason, freeing host pointers causes a segmentation
-  // fault when no reactions are solved on the GPUs
-  //phlex_gpu_solver_free( model_data.model_dev_data );
 #endif
 }
 

@@ -67,9 +67,6 @@ typedef struct {
 #endif
   int deriv_size;               // Size of the derivative array
   int jac_size;                 // Size of the Jacobian data array
-#ifdef PMC_USE_GPU
-  void *model_dev_data;         // Pointer to GPU device data
-#endif
 } ModelData;
 
 /* Solver data structure 
@@ -91,6 +88,9 @@ typedef struct {
                                 //      (used during initialization and solving)
   pmc_bool no_solve;            // Flag to indicate whether to run the solver needs to be
                                 //      run. Set to true when no reactions are present.
+#ifdef PMC_USE_GPU
+  void *solver_device_data;     // Pointer to the GPU solver data
+#endif
 } SolverData;
 
 /* Functions called by phlex-chem */

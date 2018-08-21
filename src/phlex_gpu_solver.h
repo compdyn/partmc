@@ -17,8 +17,6 @@
 #include "phlex_solver.h"
 
 typedef struct {
-  unsigned int num_blocks;              // number of blocks to use during solving
-  unsigned int num_threads;             // number of threads to use during solving
   PMC_C_FLOAT * host_state;             // host pointer to the working state array
   PMC_C_FLOAT * dev_state;              // device pointer to the working state array
   PMC_C_FLOAT * host_env;               // host pointer to the working environmental state
@@ -33,11 +31,20 @@ typedef struct {
   void * dev_rxn_dev_data;              // device pointer to reaction device data
 } ModelDeviceData;
 
-void phlex_gpu_solver_new( ModelData * model_data );
-void phlex_gpu_solver_update_env_state(ModelData *model_data, int n_states);
-int phlex_gpu_solver_f(realtype t, N_Vector y, N_Vector deriv, void *solver_data);
-int phlex_gpu_solver_Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J,
-        void *solver_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
-void phlex_gpu_solver_free(ModelDeviceData * model_device_data);
+typedef struct {
+  unsigned int num_blocks;              // number of blocks to use during solving
+  unsigned int num_threads;             // number of threads to use during solving
+  int n_states;                         // number of states to solve simultaneously
+  ModelDeviceData * model_device_data;  // model device data array - one for each state
+} SolverDeviceData;
+
+void phlex_gpu_solver_new( SolverData solver_data );
+void phlex_gpu_solver_update_env_state( SolverData solver_data );
+int phlex_gpu_solver_f( realtype t, N_Vector y, N_Vector deriv, void *solver_data );
+int phlex_gpu_solver_Jac( realtype t, N_Vector y, N_Vector deriv, SUNMatrix J,
+        void *solver_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3 );
+void phlex_gpu_solver_solver_device_data_free_vp( void * solver_device_data );
+void phlex_gpu_solver_solver_device_data_free( SolverDeviceData solver_device_data );
+void phlex_gpu_solver_model_device_data_free( ModelDeviceData model_device_data );
 
 #endif

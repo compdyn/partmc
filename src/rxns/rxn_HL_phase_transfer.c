@@ -234,7 +234,7 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     //  help out the solver.)
     cond_rate *= ( state[GAS_SPEC_] > SMALL_NUMBER_ ?
                      0.999  * ( state[GAS_SPEC_] - SMALL_NUMBER_ ) +
-                     1.0e-6 * ( SMALL_NUMBER_ - VERY_SMALL_NUMBER_ )
+                     1.0e-6 * ( state[GAS_SPEC_] - VERY_SMALL_NUMBER_ )
                    : ( state[GAS_SPEC_] > VERY_SMALL_NUMBER_ ?
                          1.0e-6 * ( state[GAS_SPEC_] - VERY_SMALL_NUMBER_ )
                        : 0.0
@@ -246,7 +246,7 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     //  help out the solver.)
     evap_rate *= ( state[AERO_SPEC_(i_phase)] > SMALL_NUMBER_ ?
                      0.999  * ( state[AERO_SPEC_(i_phase)] - SMALL_NUMBER_ ) +
-                     1.0e-6 * ( SMALL_NUMBER_ - VERY_SMALL_NUMBER_ )
+                     1.0e-6 * ( state[AERO_SPEC_(i_phase)] - VERY_SMALL_NUMBER_ )
                    : ( state[AERO_SPEC_(i_phase)] > VERY_SMALL_NUMBER_ ?
                          1.0e-6 * ( state[AERO_SPEC_(i_phase)] - VERY_SMALL_NUMBER_ )
                        : 0.0
@@ -339,10 +339,11 @@ void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
 	    EQUIL_CONST_ * state[AERO_WATER_(i_phase)]);
 
     // Adjust rates for lower threshholds (see derivative calculation)
-    cond_rate *= ( state[GAS_SPEC_] > SMALL_NUMBER_ ? 0.999 : 0.0 ) +
-                 ( state[GAS_SPEC_] > VERY_SMALL_NUMBER_ ? 1.0e-6 : 0.0 );
-    evap_rate *= ( state[AERO_SPEC_(i_phase)] > SMALL_NUMBER_ ? 1.0 : 0.0 ) +
-                 ( state[AERO_SPEC_(i_phase)] > VERY_SMALL_NUMBER_ ? 1.0e-6 : 0.0 );
+    cond_rate *= ( state[GAS_SPEC_] > SMALL_NUMBER_ ? 1.0 : 
+                 ( state[GAS_SPEC_] > VERY_SMALL_NUMBER_ ? 1.0e-6 : 0.0 ) );
+    evap_rate *= ( state[AERO_SPEC_(i_phase)] > SMALL_NUMBER_ ? 1.0 : 
+                 ( state[AERO_SPEC_(i_phase)] > VERY_SMALL_NUMBER_ ? 
+                                                           1.0e-6 : 0.0 ) );
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
     if (aero_conc_type==0) {

@@ -96,6 +96,7 @@ module pmc_rxn_aqueous_equilibrium
 #define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_+(NUM_REACT_+NUM_PROD_+2)*NUM_AERO_PHASE_+x)
 #define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+(2*(NUM_REACT_+NUM_PROD_)+2)*NUM_AERO_PHASE_+x)
 #define MASS_FRAC_TO_M_(x) this%condensed_data_real(NUM_REAL_PROP_+x)
+#define SMALL_WATER_CONC_(x) this%condensed_data_real(NUM_REAL_PROP_+NUM_REACT_+NUM_PROD_+x)
 
   public :: rxn_aqueous_equilibrium_t
 
@@ -241,7 +242,7 @@ contains
     allocate(this%condensed_data_int(NUM_INT_PROP_ + &
             num_phase * (num_spec_per_phase * (num_spec_per_phase + 3) + 2)))
     allocate(this%condensed_data_real(NUM_REAL_PROP_ + &
-            num_spec_per_phase))
+            num_spec_per_phase + num_phase))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
 
@@ -513,4 +514,5 @@ contains
 #undef DERIV_ID_
 #undef JAC_ID_
 #undef MASS_FRAC_TO_M_
+#undef SMALL_WATER_CONC_
 end module pmc_rxn_aqueous_equilibrium

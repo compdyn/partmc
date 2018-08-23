@@ -7,6 +7,13 @@
   ],
   "pmc-data" : [
     {
+      "name" : "SULF",
+      "type" : "CHEM_SPEC",
+      "diffusion coeff" : 1.30e-5,
+      "N star" : 1.83,
+      "molecular weight" : 98.1
+    },
+    {
       "name" : "HNO3",
       "type" : "CHEM_SPEC",
       "diffusion coeff" : 1.32e-5,
@@ -24,6 +31,15 @@
       "name" : "MONARCH mod37",
       "type" : "MECHANISM",
       "reactions" : [
+        {
+         "type" : "HL_PHASE_TRANSFER",
+         "gas-phase species" : "SULF",
+         "aerosol phase" : "aqueous sulfate",
+          "aerosol-phase species" : "H2SO4_aq",
+          "aerosol-phase water" : "H2O_aq",
+          "A" : 8.7e11,
+          "C" : 0.0
+        },
         {
          "type" : "HL_PHASE_TRANSFER",
          "gas-phase species" : "HNO3",

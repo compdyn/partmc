@@ -18,6 +18,8 @@
 #define UNIV_GAS_CONST_ 8.314472
 // Small number for ignoring low concentrations
 #define VERY_SMALL_NUMBER_ 1.0e-30
+// Minimum water concentration for HL partitioning (ug/m3)
+#define MIN_WATER_ 1.0e-20
 
 #define DELTA_H_ float_data[0]
 #define DELTA_S_ float_data[1]
@@ -41,8 +43,9 @@
 #define AERO_REP_ID_(x) (int_data[NUM_INT_PROP_ + 3*(NUM_AERO_PHASE_) + x]-1)
 #define DERIV_ID_(x) int_data[NUM_INT_PROP_ + 4*(NUM_AERO_PHASE_) + x]
 #define JAC_ID_(x) int_data[NUM_INT_PROP_ + 1 + 5*(NUM_AERO_PHASE_) + x]
+#define SMALL_WATER_CONC_(x) (float_data[NUM_FLOAT_PROP_ + x])
 #define INT_DATA_SIZE_ (NUM_INT_PROP_+2+(10*NUM_AERO_PHASE_))
-#define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_)
+#define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+NUM_AERO_PHASE_)
 
 /** \brief Flag Jacobian elements used by this reaction
  *
@@ -106,6 +109,13 @@ void * rxn_HL_phase_transfer_update_ids(ModelData *model_data, int *deriv_ids,
   realtype *abs_tol = model_data->abs_tol;
   SMALL_NUMBER_ = ( abs_tol[GAS_SPEC_] > abs_tol[AERO_SPEC_(0)] ?
                     abs_tol[AERO_SPEC_(0)] / 10.0 : abs_tol[GAS_SPEC_] / 10.0 );
+
+  // Calculate a small concentration for aerosol-phase water based on the
+  // integration tolerances to use during solving. TODO find a better place
+  // to do this
+  for (int i_aero_phase = 0; i_aero_phase < NUM_AERO_PHASE_; i_aero_phase++) {
+    SMALL_WATER_CONC_(i_aero_phase) = abs_tol[AERO_WATER_(i_aero_phase)] / 10.0;
+  }
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -213,12 +223,17 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase));	// aerosol phase index
 
-    // If no aerosol water is present, no transfer occurs
-    if (state[AERO_WATER_(i_phase)] / 
-        (aero_conc_type==0?1.0:number_conc) < SMALL_NUMBER_) continue;
-
     // If the radius or number concentration are zero, no transfer occurs
     if (radius <= ZERO || number_conc <= ZERO) continue;
+
+    // If no aerosol water is present, no transfer occurs
+    if (state[AERO_WATER_(i_phase)] * 
+        (aero_conc_type==0?number_conc:1.0) < MIN_WATER_) continue;
+
+    // Slow down rates as water approaches the minimum value
+    realtype rate_scaling = 
+      1.0 - 1.0 / ( 1.0 + ( state[AERO_WATER_(i_phase)] - MIN_WATER_ ) /
+                          SMALL_WATER_CONC_(i_phase) );
 
     // Calculate the rate constant for diffusion limited mass transfer to the
     // aerosol phase (1/s)
@@ -239,7 +254,7 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
                          1.0e-6 * ( state[GAS_SPEC_] - VERY_SMALL_NUMBER_ )
                        : 0.0
                      )
-                 );
+                 ) * rate_scaling;
 
     // Calculate aerosol-phase evaporation rate (ug/m^3/s)
     // (Slow down the condensation as gas-phase concentrations approach zero to
@@ -251,7 +266,7 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
                          1.0e-6 * ( state[AERO_SPEC_(i_phase)] - VERY_SMALL_NUMBER_ )
                        : 0.0
                      )
-                 );
+                 ) * rate_scaling;
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
     if (DERIV_ID_(0)>=0) {
@@ -322,12 +337,17 @@ void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase));	// aerosol phase index
 
-    // If no aerosol water is present, no transfer occurs
-    if (state[AERO_WATER_(i_phase)] / 
-        (aero_conc_type==0?1.0:number_conc) < SMALL_NUMBER_) continue;
-
     // If the radius or number concentration are zero, no transfer occurs
     if (radius <= ZERO || number_conc <= ZERO) continue;
+
+    // If no aerosol water is present, no transfer occurs
+    if (state[AERO_WATER_(i_phase)] * 
+        (aero_conc_type==0?number_conc:1.0) < MIN_WATER_) continue;
+
+    // Slow down rates as water approaches the minimum value
+    realtype rate_scaling = 
+      1.0 - 1.0 / ( 1.0 + ( state[AERO_WATER_(i_phase)] - MIN_WATER_ ) /
+                          SMALL_WATER_CONC_(i_phase) );
 
     // Calculate the rate constant for diffusion limited mass transfer to the
     // aerosol phase (1/s)
@@ -345,35 +365,55 @@ void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
                  ( state[AERO_SPEC_(i_phase)] > VERY_SMALL_NUMBER_ ? 
                                                            1.0e-6 : 0.0 ) );
 
+    realtype adj_water = state[AERO_WATER_(i_phase)] - MIN_WATER_;
+
     // Change in the gas-phase is evaporation - condensation (ppm/s)
     if (aero_conc_type==0) {
       // Scale the changes to the gas-phase by the number of particles for
       // per-particle aerosol concentrations
       if (JAC_ID_(1+i_phase*5+1)>=0) 
 	      J[JAC_ID_(1+i_phase*5+1)] += number_conc * evap_rate * 
-                      UGM3_TO_PPM_;
+                      rate_scaling * UGM3_TO_PPM_;
       if (JAC_ID_(1+i_phase*5+3)>=0) 
-	      J[JAC_ID_(1+i_phase*5+3)] += - number_conc * evap_rate * 
-                      UGM3_TO_PPM_ * state[AERO_SPEC_(i_phase)] / 
-                      state[AERO_WATER_(i_phase)];
-      if (JAC_ID_(0)>=0) J[JAC_ID_(0)] -= number_conc * cond_rate;
+	      J[JAC_ID_(1+i_phase*5+3)] -= number_conc * evap_rate * 
+                      UGM3_TO_PPM_ * rate_scaling * state[AERO_SPEC_(i_phase)] / 
+                      state[AERO_WATER_(i_phase)] +
+                      number_conc * evap_rate * UGM3_TO_PPM_ * 
+                      state[AERO_SPEC_(i_phase)] *
+                      ( 1.0 / ( SMALL_WATER_CONC_(i_phase) + 
+                            2.0 * adj_water +
+                            adj_water * adj_water / SMALL_WATER_CONC_(i_phase) ) );
+      if (JAC_ID_(0)>=0) J[JAC_ID_(0)] -= number_conc * cond_rate * rate_scaling;
     } else {
       // No scaling for aerosol concentrations with total mass per aerosol phase
-      if (JAC_ID_(1+i_phase*5+1)>=0) J[JAC_ID_(1+i_phase*5+1)] +=
-              evap_rate * UGM3_TO_PPM_;
-      if (JAC_ID_(1+i_phase*5+3)>=0) J[JAC_ID_(1+i_phase*5+3)] -= 
-              evap_rate * UGM3_TO_PPM_ * state[AERO_SPEC_(i_phase)] /
-              state[AERO_WATER_(i_phase)];
-      if (JAC_ID_(0)>=0) J[JAC_ID_(0)] -= cond_rate;
+      if (JAC_ID_(1+i_phase*5+1)>=0)
+              J[JAC_ID_(1+i_phase*5+1)] += evap_rate * rate_scaling * 
+                      UGM3_TO_PPM_;
+      if (JAC_ID_(1+i_phase*5+3)>=0) 
+              J[JAC_ID_(1+i_phase*5+3)] -= evap_rate *
+                      UGM3_TO_PPM_ * rate_scaling * state[AERO_SPEC_(i_phase)] /
+                      state[AERO_WATER_(i_phase)] +
+                      evap_rate * UGM3_TO_PPM_ * 
+                      state[AERO_SPEC_(i_phase)] *
+                      ( 1.0 / ( SMALL_WATER_CONC_(i_phase) + 
+                            2.0 * adj_water +
+                            adj_water * adj_water / SMALL_WATER_CONC_(i_phase) ) );
+      if (JAC_ID_(0)>=0) J[JAC_ID_(0)] -= cond_rate * rate_scaling;
     }
 
     // Change in the aerosol-phase species is condensation - evaporation
     // (ug/m^3/s)
     if (JAC_ID_(1+i_phase*5)>=0) J[JAC_ID_(1+i_phase*5)] +=
-            cond_rate / UGM3_TO_PPM_;
-    if (JAC_ID_(1+i_phase*5+2)>=0) J[JAC_ID_(1+i_phase*5+2)] -= evap_rate; 
-    if (JAC_ID_(1+i_phase*5+4)>=0) J[JAC_ID_(1+i_phase*5+4)] -= - evap_rate * 
-	    state[AERO_SPEC_(i_phase)] / state[AERO_WATER_(i_phase)];
+            cond_rate * rate_scaling / UGM3_TO_PPM_;
+    if (JAC_ID_(1+i_phase*5+2)>=0) J[JAC_ID_(1+i_phase*5+2)] -= evap_rate * 
+            rate_scaling; 
+    if (JAC_ID_(1+i_phase*5+4)>=0) J[JAC_ID_(1+i_phase*5+4)] += evap_rate * 
+	    rate_scaling * state[AERO_SPEC_(i_phase)] / 
+            state[AERO_WATER_(i_phase)] +
+            evap_rate * state[AERO_SPEC_(i_phase)] *
+            ( 1.0 / ( SMALL_WATER_CONC_(i_phase) + 
+                  2.0 * adj_water +
+                  adj_water * adj_water / SMALL_WATER_CONC_(i_phase) ) );
   
   }
 
@@ -441,5 +481,6 @@ void * rxn_HL_phase_transfer_print(void *rxn_data)
 #undef AERO_REP_ID_
 #undef DERIV_ID_
 #undef JAC_ID_
+#undef SMALL_WATER_CONC_
 #undef INT_DATA_SIZE_
 #undef FLOAT_DATA_SIZE_

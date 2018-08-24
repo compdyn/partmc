@@ -19,8 +19,12 @@ extern "C" {
 #include "rxn_solver.h"
 }
 
+// TODO Figure out what this should be
+#define MAX_SHARED_ARRAY_SIZE_ 1000
+
 /* GPU solver data */
 typedef struct {
+  int n_rxn;                            // Number of reactions to solve
   int *host_rxn_data_start;             // id (in bytes) of each rxn's data 
                                         // block in the rxn data on the host
   int *dev_rxn_data_start;              // id (in bytes) of each rxn's data 
@@ -29,10 +33,10 @@ typedef struct {
   void *dev_rxn_data;                   // device pointer to rxn data
 } RxnDeviceData;
 
-void rxn_gpu_solver_new( ModelDeviceData model_dev_data, void * rxn_data );
-__global__ void rxn_gpu_update_env_state( ModelDeviceData mdd );
-__global__ void rxn_gpu_calc_deriv( ModelDeviceData mdd, PMC_C_FLOAT time_step); 
-__global__ void rxn_gpu_calc_jac( ModelDeviceData mdd, PMC_C_FLOAT time_step); 
+void rxn_gpu_solver_new( ModelDeviceData * model_dev_data, void * rxn_data );
+__global__ void rxn_gpu_update_env_state( SolverDeviceData sdd );
+__global__ void rxn_gpu_calc_deriv( SolverDeviceData sdd, PMC_C_FLOAT time_step); 
+__global__ void rxn_gpu_calc_jac( SolverDeviceData sdd, PMC_C_FLOAT time_step); 
 void rxn_gpu_solver_print( void * rxn_data );
 void rxn_gpu_solver_free( void * rxn_dev_data );
 

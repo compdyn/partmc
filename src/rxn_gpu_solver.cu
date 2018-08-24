@@ -16,10 +16,6 @@ extern "C" {
 #include "rxns/rxn_gpu_arrhenius.h"
 }
 
-// TODO Figure out how to use allocatable shared derivative array
-#define MAX_DERIV_SIZE_ 500
-#define MAX_JAC_SIZE_ 5000
-
 // Reaction types (Must match parameters defined in pmc_rxn_factory)
 #define RXN_ARRHENIUS 1
 #define RXN_TROE 2
@@ -38,19 +34,19 @@ extern "C" {
  * \param model_dev_data Model device data
  * \param host_rxn_data Pointer to the host reaction data
  */
-void rxn_gpu_solver_new( ModelDeviceData model_dev_data, void * orig_rxn_data )
+void rxn_gpu_solver_new( ModelDeviceData * model_dev_data, void * orig_rxn_data )
 {
   // Allocate space for a new RxnDeviceData object
-  HANDLE_ERROR( cudaHostAlloc( (void**) &(model_dev_data.host_rxn_dev_data),
+  HANDLE_ERROR( cudaHostAlloc( (void**) &(model_dev_data->host_rxn_dev_data),
                                sizeof(RxnDeviceData),
                                cudaHostAllocWriteCombined |
                                   cudaHostAllocMapped
                              ) );
-  HANDLE_ERROR( cudaHostGetDevicePointer( (void**) &(model_dev_data.dev_rxn_dev_data),
-                                          (void*) model_dev_data.host_rxn_dev_data,
+  HANDLE_ERROR( cudaHostGetDevicePointer( (void**) &(model_dev_data->dev_rxn_dev_data),
+                                          (void*) model_dev_data->host_rxn_dev_data,
                                           0 
                                         ) );
-  RxnDeviceData *rxn_dev_data = (RxnDeviceData*) model_dev_data.host_rxn_dev_data;
+  RxnDeviceData *rxn_dev_data = (RxnDeviceData*) model_dev_data->host_rxn_dev_data;
 
   // Get the number of reactions
   int *rxn_data = (int*) (orig_rxn_data);
@@ -153,7 +149,7 @@ void rxn_gpu_solver_new( ModelDeviceData model_dev_data, void * orig_rxn_data )
   int * host_rxn_data_start = rxn_dev_data->host_rxn_data_start;
  
   // Set the number of reactions
-  *(host_rxn_data) = n_gpu_rxn;
+  rxn_dev_data->n_rxn = *(host_rxn_data) = n_gpu_rxn;
   
   // Advance by size of a double to maintain alignment
   host_rxn_data += sizeof(PMC_C_FLOAT) / sizeof(int);
@@ -239,55 +235,47 @@ void rxn_gpu_solver_new( ModelDeviceData model_dev_data, void * orig_rxn_data )
   */
 __global__ void rxn_gpu_update_env_state( SolverDeviceData sdd )
 {
-  // Get a unique device index
-  int dev_id = blockIdx.x * blockDim.x + threadIdx.x;
-  int dev_total = ( gridDim.x * blockDim.x ) / sdd.n_states;
-
-  // Get the state to solve for
-  int i_state = dev_id / dev_total;
-  dev_id = dev_id % dev_total;
-  ModelDeviceData * mdd = sdd.model_device_data[ i_state ];
-
-  // Get the reaction data
-  RxnDeviceData * rd = ( RxnDeviceData* ) ( mdd->dev_rxn_dev_data );
+  
+  // Get the state and reaction to solve for
+  int i_state = 0;
+  int i_rxn = blockIdx.x * blockDim.x + threadIdx.x;
+  ModelDeviceData * mdd;
+  RxnDeviceData * rdd;
+  for( ; i_state < sdd.n_states; i_state++ ) {
+    mdd = &( sdd.dev_model_dev_data[ i_state ] );
+    rdd = ( RxnDeviceData* ) ( mdd->dev_rxn_dev_data );
+    if( i_rxn < rdd->n_rxn ) break;
+    i_rxn -= rdd->n_rxn;
+  }
+  if( i_rxn >= rdd->n_rxn ) return; 
 
   // Get the number of reactions
-  int * rxn_data = (int*) rd->dev_rxn_data;
+  int * rxn_data = (int*) rdd->dev_rxn_data;
   int n_rxn = *(rxn_data);
 
   // Return if there are no reactions to update
   if( n_rxn == 0 ) return;
 
-  // Figure out what reactions to update on this thread
-  int rxn_start = dev_id * ( n_rxn / dev_total )  + 
-                  ( dev_id > n_rxn % dev_total ? n_rxn % dev_total : dev_id );
-  int rxns_to_update = n_rxn / dev_total +
-                  ( dev_id < n_rxn % dev_total ? 1 : 0 );
+  // Advance the rxn data pointer to the reaction's data
+  char *curr_rxn = ( (char*) rxn_data ) + 
+                   rdd->dev_rxn_data_start[ i_rxn ];
+  rxn_data = (int*) curr_rxn;
 
-  if ( rxns_to_update > 0 ) {
-    // Advance the rxn data pointer to the first reaction's data
-    char *first_rxn = ( (char*) rxn_data ) + 
-                     rd->dev_rxn_data_start[ rxn_start ];
-    rxn_data = (int*) first_rxn;
-    for( int i_rxn = 0; i_rxn < rxns_to_update; i_rxn++ ) {
+  // Get the reaction type
+  int rxn_type = *(rxn_data);
 
-      // Get the reaction type
-      int rxn_type = *(rxn_data);
+  // Advance by the size of a double to maintain alignment
+  rxn_data += sizeof(PMC_C_FLOAT) / sizeof(int);
 
-      // Advance by the size of a double to maintain alignment
-      rxn_data += sizeof(PMC_C_FLOAT) / sizeof(int);
-
-      // Add derivative contribution from appropriate reaction type
-      switch (rxn_type) {
-        case RXN_ARRHENIUS :
-          rxn_data = (int*) rxn_gpu_arrhenius_update_env_state( (void*) rxn_data, *mdd );
-          break;
-        default :
-          printf("\nPartMC Internal Error: invalid rxn type in GPU update env state.\n"
-                 "block: %d thread: %d rxn: %d rxn_type: %d\n",
-                 blockIdx.x, threadIdx.x, i_rxn, rxn_type);
-      }
-    }
+  // Update environmental state for appropriate reaction type
+  switch (rxn_type) {
+    case RXN_ARRHENIUS :
+      rxn_data = (int*) rxn_gpu_arrhenius_update_env_state( (void*) rxn_data, *mdd );
+      break;
+    default :
+      printf("\nPartMC Internal Error: invalid rxn type in GPU update env state.\n"
+             "block: %d thread: %d rxn: %d rxn_type: %d\n",
+             blockIdx.x, threadIdx.x, i_rxn, rxn_type);
   }
   __syncthreads();
 
@@ -300,70 +288,67 @@ __global__ void rxn_gpu_update_env_state( SolverDeviceData sdd )
  */
 __global__ void rxn_gpu_calc_deriv( SolverDeviceData sdd, PMC_C_FLOAT time_step)
 {
-  // Get a unique device index
-  int dev_id = blockIdx.x * blockDim.x + threadIdx.x;
-  int dev_total = ( gridDim.x * blockDim.x ) / sdd.n_states;
-
-  // Get the state to solve for
-  int i_state = dev_id / dev_total;
-  dev_id = dev_id % dev_total;
-  ModelDeviceData * mdd = sdd.model_device_data[ i_state ];
-
-  // Get the reaction data
-  RxnDeviceData * rd = ( RxnDeviceData* ) ( mdd->dev_rxn_dev_data );
+  
+  // Get the state and reaction to solve for
+  int i_state = 0;
+  int i_rxn = threadIdx.x;
+  int rxns_to_solve = 0;
+  ModelDeviceData * mdd;
+  RxnDeviceData * rdd;
+  for( ; i_state < sdd.n_states; i_state++ ) {
+    mdd = &( sdd.dev_model_dev_data[ i_state ] );
+    if( mdd->deriv_block != blockIdx.x ) continue;
+    rdd = ( RxnDeviceData* ) ( mdd->dev_rxn_dev_data );
+    if( i_rxn < rdd->n_rxn ) { rxns_to_solve = 1; break; }
+    i_rxn -= rdd->n_rxn;
+  }
 
   // Set up a shared derivative array
-  __shared__ PMC_SOLVER_C_FLOAT shr_dev_deriv[ MAX_DERIV_SIZE_ ];
+  __shared__ PMC_SOLVER_C_FLOAT shr_dev_deriv[ MAX_SHARED_ARRAY_SIZE_ ];
+  PMC_SOLVER_C_FLOAT * state_deriv = &( shr_dev_deriv[ mdd->deriv_start_id ] );
 
   // Initialize the derivative array
-  for( int i_spec = threadIdx.x; i_spec < mdd->deriv_size; i_spec += blockDim.x )
-    shr_dev_deriv[ i_spec ] = 0.0;
+  for( int i_spec = i_rxn; i_spec < mdd->deriv_size; i_spec += rdd->n_rxn )
+    state_deriv[ i_spec ] = 0.0;
   __syncthreads();
 
   // Get the number of reactions
-  int * rxn_data = (int*) rd->dev_rxn_data;
+  int * rxn_data = (int*) rdd->dev_rxn_data;
   int n_rxn = *(rxn_data);
 
   // Return if there are no reactions to solve
   if( n_rxn == 0 ) return;
 
-  // Figure out what reactions to solve on this thread
-  int rxn_start = dev_id * ( n_rxn / dev_total ) + 
-                  ( dev_id > n_rxn % dev_total ? n_rxn % dev_total : dev_id );
-  int rxns_to_solve = n_rxn / dev_total +
-                  ( dev_id < n_rxn % dev_total ? 1 : 0 );
-
   if ( rxns_to_solve > 0 ) {
-    // Advance the rxn data pointer to the first reaction's data
-    char *first_rxn = ( (char*) rxn_data ) + 
-                     (*rd).dev_rxn_data_start[ rxn_start ];
-    rxn_data = (int*) first_rxn;
-    for( int i_rxn = 0; i_rxn < rxns_to_solve; i_rxn++ ) {
+    
+    // Advance the rxn data pointer to the reaction's data
+    char *curr_rxn = ( (char*) rxn_data ) + 
+                     rdd->dev_rxn_data_start[ i_rxn ];
+    rxn_data = (int*) curr_rxn;
 
-      // Get the reaction type
-      int rxn_type = *(rxn_data);
+    // Get the reaction type
+    int rxn_type = *(rxn_data);
 
-      // Advance by the size of a double to maintain alignment
-      rxn_data += sizeof(PMC_C_FLOAT) / sizeof(int);
+    // Advance by the size of a double to maintain alignment
+    rxn_data += sizeof(PMC_C_FLOAT) / sizeof(int);
 
-      // Add derivative contribution from appropriate reaction type
-      switch (rxn_type) {
-        case RXN_ARRHENIUS :
-          rxn_data = (int*) rxn_gpu_arrhenius_calc_deriv_contrib( 
-                              (void*) rxn_data, *mdd, shr_dev_deriv );
-          break;
-        default :
-          printf("\nPartMC Internal Error: invalid rxn type in GPU solver.\n"
-                 "block: %d thread: %d rxn: %d rxn_type: %d\n",
-                 blockIdx.x, threadIdx.x, i_rxn, rxn_type);
-      }
+    // Add derivative contribution from appropriate reaction type
+    switch (rxn_type) {
+      case RXN_ARRHENIUS :
+        rxn_data = (int*) rxn_gpu_arrhenius_calc_deriv_contrib( 
+                            (void*) rxn_data, *mdd, state_deriv );
+        break;
+      default :
+        printf("\nPartMC Internal Error: invalid rxn type in GPU solver.\n"
+               "block: %d thread: %d rxn: %d rxn_type: %d\n",
+               blockIdx.x, threadIdx.x, i_rxn, rxn_type);
     }
   }
   __syncthreads();
 
   // Add derivative contributions from this block to the primary deriv array
-  for( int i_spec = threadIdx.x; i_spec < mdd->deriv_size; i_spec += blockDim.x )
-    atomicAdd( &( mdd->dev_deriv[ i_spec ] ), shr_dev_deriv[ i_spec ] );
+  for( int i_spec = i_rxn; i_spec < mdd->deriv_size; i_spec += rdd->n_rxn )
+    atomicAdd( &( mdd->dev_deriv[ i_spec ] ), state_deriv[ i_spec ] );
 
 }
 
@@ -374,70 +359,67 @@ __global__ void rxn_gpu_calc_deriv( SolverDeviceData sdd, PMC_C_FLOAT time_step)
  */
 __global__ void rxn_gpu_calc_jac( SolverDeviceData sdd, PMC_C_FLOAT time_step)
 {
-  // Get a unique device index
-  int dev_id = blockIdx.x * blockDim.x + threadIdx.x;
-  int dev_total = ( gridDim.x * blockDim.x ) / sdd.n_states;
+  
+  // Get the state and reaction to solve for
+  int i_state = 0;
+  int i_rxn = threadIdx.x;
+  int rxns_to_solve = 0;
+  ModelDeviceData * mdd;
+  RxnDeviceData * rdd;
+  for( ; i_state < sdd.n_states; i_state++ ) {
+    mdd = &( sdd.dev_model_dev_data[ i_state ] );
+    if( mdd->jac_block != blockIdx.x ) continue;
+    rdd = ( RxnDeviceData* ) ( mdd->dev_rxn_dev_data );
+    if( i_rxn < rdd->n_rxn ) { rxns_to_solve = 1; break; }
+    i_rxn -= rdd->n_rxn;
+  }
 
-  // Get the state to solve for
-  int i_state = dev_id / dev_total;
-  dev_id = dev_id % dev_total;
-  ModelDeviceData * mdd = sdd.model_device_data[ i_state ];
+  // Set up a shared Jacobian array
+  __shared__ PMC_SOLVER_C_FLOAT shr_dev_jac[ MAX_SHARED_ARRAY_SIZE_ ];
+  PMC_SOLVER_C_FLOAT * state_jac = &( shr_dev_jac[ mdd->jac_start_id ] );
 
-  // Get the reaction data
-  RxnDeviceData * rd = ( RxnDeviceData* ) ( mdd->dev_rxn_dev_data );
-
-  // Set up a shared derivative array
-  __shared__ PMC_SOLVER_C_FLOAT shr_dev_jac[ MAX_JAC_SIZE_ ];
-
-  // Initialize the Jacobian data array
-  for( int i_elem = threadIdx.x; i_elem < mdd->jac_size; i_elem += blockDim.x )
-    shr_dev_jac[ i_elem ] = 0.0;
+  // Initialize the Jacobian array
+  for( int i_elem = i_rxn; i_elem < mdd->jac_size; i_elem += rdd->n_rxn )
+    state_jac[ i_elem ] = 0.0;
   __syncthreads();
 
   // Get the number of reactions
-  int * rxn_data = (int*) rd->dev_rxn_data;
+  int * rxn_data = (int*) rdd->dev_rxn_data;
   int n_rxn = *(rxn_data);
 
   // Return if there are no reactions to solve
   if( n_rxn == 0 ) return;
 
-  // Figure out what reactions to solve on this thread
-  int rxn_start = dev_id * ( n_rxn / dev_total ) + 
-                  ( dev_id > n_rxn % dev_total ? n_rxn % dev_total : dev_id );
-  int rxns_to_solve = n_rxn / dev_total +
-                  ( dev_id < n_rxn % dev_total ? 1 : 0 );
-
   if ( rxns_to_solve > 0 ) {
-    // Advance the rxn data pointer to the first reaction's data
-    char *first_rxn = ( (char*) rxn_data ) + 
-                     rd->dev_rxn_data_start[ rxn_start ];
-    rxn_data = (int*) first_rxn;
-    for( int i_rxn = 0; i_rxn < rxns_to_solve; i_rxn++ ) {
+    
+    // Advance the rxn data pointer to the reaction's data
+    char *curr_rxn = ( (char*) rxn_data ) + 
+                     rdd->dev_rxn_data_start[ i_rxn ];
+    rxn_data = (int*) curr_rxn;
 
-      // Get the reaction type
-      int rxn_type = *(rxn_data);
+    // Get the reaction type
+    int rxn_type = *(rxn_data);
 
-      // Advance by the size of a double to maintain alignment
-      rxn_data += sizeof(PMC_C_FLOAT) / sizeof(int);
+    // Advance by the size of a double to maintain alignment
+    rxn_data += sizeof(PMC_C_FLOAT) / sizeof(int);
 
-      // Add derivative contribution from appropriate reaction type
-      switch (rxn_type) {
-        case RXN_ARRHENIUS :
-          rxn_data = (int*) rxn_gpu_arrhenius_calc_jac_contrib( 
-                              (void*) rxn_data, *mdd, shr_dev_jac );
-          break;
-        default :
-          printf("\nPartMC Internal Error: invalid rxn type in GPU Jac function.\n"
-                 "block: %d thread: %d rxn: %d rxn_type: %d\n",
-                 blockIdx.x, threadIdx.x, i_rxn, rxn_type);
-      }
+    // Add Jacobian contribution from appropriate reaction type
+    switch (rxn_type) {
+      case RXN_ARRHENIUS :
+        rxn_data = (int*) rxn_gpu_arrhenius_calc_jac_contrib( 
+                            (void*) rxn_data, *mdd, state_jac );
+        break;
+      default :
+        printf("\nPartMC Internal Error: invalid rxn type in GPU Jac function.\n"
+               "block: %d thread: %d rxn: %d rxn_type: %d\n",
+               blockIdx.x, threadIdx.x, i_rxn, rxn_type);
     }
   }
   __syncthreads();
 
   // Add Jacobian contributions from this block to the primary Jacobian data array
-  for( int i_elem = threadIdx.x; i_elem < mdd->jac_size; i_elem += blockDim.x )
-    atomicAdd( &( mdd->dev_jac[ i_elem ] ), shr_dev_jac[ i_elem ] );
+  for( int i_elem = i_rxn; i_elem < mdd->jac_size; i_elem += rdd->n_rxn )
+    atomicAdd( &( mdd->dev_jac[ i_elem ] ), state_jac[ i_elem ] );
 
 }
 

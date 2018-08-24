@@ -285,7 +285,7 @@ void solver_initialize( void *solver_data, PMC_C_FLOAT *abs_tol, PMC_C_FLOAT rel
 
 #ifdef PMC_USE_GPU
   // Set up the device data for solving with GPUs
-  phlex_gpu_solver_new( *sd );
+  phlex_gpu_solver_new( sd );
 #endif
 
 #endif
@@ -327,7 +327,7 @@ int solver_run( void *solver_data, PMC_C_FLOAT *state, PMC_C_FLOAT *env,
     sub_model_update_env_state( *md );
   }
 #ifdef PMC_USE_GPU
-  phlex_gpu_solver_update_env_state( *sd );
+  phlex_gpu_solver_update_env_state( sd );
 #else
   for( int i_state = 0; i_state < sd->n_states; i_state++ ) {
     ModelData *md = &( sd->model_data[ i_state ] );
@@ -346,7 +346,7 @@ int solver_run( void *solver_data, PMC_C_FLOAT *state, PMC_C_FLOAT *env,
     if( check_flag( &flag, "CVode", 1 ) == PHLEX_SOLVER_FAIL ) {
       for( int i_state = 0, i_spec = 0; i_state < sd->n_states; i_state++ ) {
         ModelData *md = &( sd->model_data[ i_state ] );
-        for( int j_spec = 0; j_spec < md->n_state_var; j_spec++ )
+        for( int j_spec = 0; j_spec < md->n_state_var; j_spec++, i_spec++ )
           printf( "\nstate %d spec %d conc = %le", i_state, j_spec, state[ i_spec ] );
       }
       solver_print_stats( sd->cvode_mem );
@@ -821,7 +821,7 @@ void solver_free( void *solver_data )
 #ifdef PMC_USE_GPU
   // FIXME For some reason, freeing host pointers causes a segmentation
   // fault when no reactions are solved on the GPUs
-  phlex_gpu_solver_solver_device_data_free( sd->solver_dev_data );
+  phlex_gpu_solver_solver_device_data_free_vp( sd->solver_device_data );
 #endif
 
   // Free the allocated ModelData

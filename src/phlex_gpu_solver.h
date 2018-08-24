@@ -27,19 +27,30 @@ typedef struct {
   PMC_SOLVER_C_FLOAT * dev_jac;         // device pointer to the working Jacobian data
   int deriv_size;                       // size of the derivative array
   int jac_size;                         // size of the Jacobian data array
+  int deriv_block;                      // block to calculate derivative for this state
+  int jac_block;                        // block to calculate Jacobian for this state
+  int deriv_start_id;                   // id of the first species in this state on the
+                                        // shared derivative array
+  int jac_start_id;                     // id of the first species in this state on the
+                                        // shared Jacobian array
   void * host_rxn_dev_data;             // host pointer to reaction device data
   void * dev_rxn_dev_data;              // device pointer to reaction device data
 } ModelDeviceData;
 
 typedef struct {
-  unsigned int num_blocks;              // number of blocks to use during solving
-  unsigned int num_threads;             // number of threads to use during solving
+  int deriv_blocks;                     // number of blocks to use during deriv calc
+  int jac_blocks;                       // number of blocks to use during jac calc
+  int env_blocks;                       // number of blocks to use during env update
+  int deriv_threads;                    // number of threads to use during deriv calc
+  int jac_threads;                      // number of threads to use during jac calc
+  int env_threads;                      // number of threads to use during env update
   int n_states;                         // number of states to solve simultaneously
-  ModelDeviceData * model_device_data;  // model device data array - one for each state
+  ModelDeviceData * host_model_dev_data;// model device data array - one for each state
+  ModelDeviceData * dev_model_dev_data; // model device data array - one for each state
 } SolverDeviceData;
 
-void phlex_gpu_solver_new( SolverData solver_data );
-void phlex_gpu_solver_update_env_state( SolverData solver_data );
+void phlex_gpu_solver_new( SolverData *solver_data );
+void phlex_gpu_solver_update_env_state( SolverData *solver_data );
 int phlex_gpu_solver_f( realtype t, N_Vector y, N_Vector deriv, void *solver_data );
 int phlex_gpu_solver_Jac( realtype t, N_Vector y, N_Vector deriv, SUNMatrix J,
         void *solver_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3 );

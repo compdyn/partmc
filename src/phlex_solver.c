@@ -347,7 +347,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
     if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
       if (NV_DATA_S(y)[i_dep_var] < -SMALL_NUMBER) {
 #ifdef PMC_DEBUG
-        printf("\n f() fail [spec %d] = %le", i_dep_var, NV_DATA_S(y)[i_dep_var]);
+        printf("\n f() fail [spec %d] = %le", i_spec, NV_DATA_S(y)[i_dep_var]);
 #endif
         return 1;
       }

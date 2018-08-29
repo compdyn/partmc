@@ -14,6 +14,8 @@
 #define TEMPERATURE_K_ env_data[0]
 #define PRESSURE_PA_ env_data[1]
 
+#define SMALL_NUMBER_ 1.0e-30
+
 #define ACT_TYPE_JACOBSON 1
 #define ACT_TYPE_EQSAM 2
 
@@ -191,6 +193,7 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
 	  break;
       }
     }
+    *water = (*water > SMALL_NUMBER_) ? *water : 0.0;
   }
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
@@ -273,6 +276,8 @@ void * rxn_ZSR_aerosol_water_print(void *rxn_data)
 
 #undef TEMPERATURE_K_
 #undef PRESSURE_PA_
+
+#undef SMALL_NUMBER_
 
 #undef ACT_TYPE_JACOBSON
 #undef ACT_TYPE_EQSAM

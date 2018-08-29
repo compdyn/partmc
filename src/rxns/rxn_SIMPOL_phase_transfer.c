@@ -253,6 +253,7 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     gas_adj = ( gas_adj > ZERO ) ? gas_adj : ZERO;
     realtype cond_scaling = 
       2.0 / ( 1.0 + exp( -gas_adj / SMALL_NUMBER_ ) ) - 1.0;
+    cond_scaling *= cond_scaling;
 
     // Calculate gas-phase condensation rate (ppm/s)
     cond_rate *= state[GAS_SPEC_] * cond_scaling;
@@ -270,6 +271,7 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     aero_adj = ( aero_adj > ZERO ) ? aero_adj : ZERO;
     realtype evap_scaling = 
       2.0 / ( 1.0 + exp( -aero_adj / SMALL_NUMBER_ ) ) - 1.0;
+    evap_scaling *= evap_scaling;
 
     // Calculate aerosol-phase evaporation rate (ppm/s)
     // (Slow down evaporation as aerosol-phase concentrations approach zero
@@ -372,6 +374,8 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
     realtype cond_scaling_deriv =
       2.0 / ( SMALL_NUMBER_ * ( exp(  gas_adj / SMALL_NUMBER_ ) + 2.0 +
                                 exp( -gas_adj / SMALL_NUMBER_ ) ) );
+    cond_scaling_deriv *= 2.0 * cond_scaling;
+    cond_scaling *= cond_scaling;
 
     // Get the activity coefficient (if one exists)
     realtype act_coeff = 1.0;
@@ -389,6 +393,8 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
     realtype evap_scaling_deriv = 
       2.0 / ( SMALL_NUMBER_ * ( exp(  aero_adj / SMALL_NUMBER_ ) + 2.0 +
                                 exp( -aero_adj / SMALL_NUMBER_ ) ) );
+    evap_scaling_deriv *= 2.0 * evap_scaling;
+    evap_scaling *= evap_scaling;
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
       if (JAC_ID_(1+i_phase*3+1)>=0) 

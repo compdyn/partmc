@@ -238,6 +238,7 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     water_adj = ( water_adj > ZERO ) ? water_adj : ZERO;
     realtype water_scaling = 
       2.0 / ( 1.0 + exp( -water_adj / SMALL_WATER_CONC_(i_phase) ) ) - 1.0;
+    water_scaling *= water_scaling;
 
     // Calculate the rate constant for diffusion limited mass transfer to the
     // aerosol phase (1/s)
@@ -253,6 +254,7 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     gas_adj = ( gas_adj > ZERO ) ? gas_adj : ZERO;
     realtype cond_scaling =
       2.0 / ( 1.0 + exp( -gas_adj / SMALL_NUMBER_ ) ) - 1.0;
+    cond_scaling *= cond_scaling;
 
     // Calculate gas-phase condensation rate (ppm/s)
     cond_rate *= state[GAS_SPEC_] * cond_scaling * water_scaling;
@@ -262,6 +264,7 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     aero_adj = ( aero_adj > ZERO ) ? aero_adj : ZERO;
     realtype evap_scaling =
       2.0 / ( 1.0 + exp( -aero_adj / SMALL_NUMBER_ ) ) - 1.0;
+    evap_scaling *= evap_scaling;
 
     // Calculate aerosol-phase evaporation rate (ug/m^3/s)
     evap_rate *= state[AERO_SPEC_(i_phase)] * evap_scaling * water_scaling;
@@ -353,6 +356,8 @@ void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
       2.0 / ( SMALL_WATER_CONC_(i_phase) * 
               ( exp(  water_adj / SMALL_WATER_CONC_(i_phase) ) + 2.0 +
                 exp( -water_adj / SMALL_WATER_CONC_(i_phase) ) ) );
+    water_scaling_deriv *= 2.0 * water_scaling;
+    water_scaling *= water_scaling;
 
     // Calculate the rate constant for diffusion limited mass transfer to the
     // aerosol phase (1/s)
@@ -371,6 +376,8 @@ void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
     realtype cond_scaling_deriv =
       2.0 / ( SMALL_NUMBER_ * ( exp(  gas_adj / SMALL_NUMBER_ ) + 2.0 +
                                 exp( -gas_adj / SMALL_NUMBER_ ) ) );
+    cond_scaling_deriv *= 2.0 * cond_scaling;
+    cond_scaling *= cond_scaling;
 
     // Slow down evaporation as aerosol-phase concentrations become small
     realtype aero_adj = state[AERO_SPEC_(i_phase)] - VERY_SMALL_NUMBER_;
@@ -380,6 +387,8 @@ void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
     realtype evap_scaling_deriv =
       2.0 / ( SMALL_NUMBER_ * ( exp(  aero_adj / SMALL_NUMBER_ ) + 2.0 +
                                 exp( -aero_adj / SMALL_NUMBER_ ) ) );
+    evap_scaling_deriv *= 2.0 * evap_scaling;
+    evap_scaling *= evap_scaling;
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
     if (aero_conc_type==0) {

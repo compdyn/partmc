@@ -71,8 +71,10 @@ void phlex_gpu_solver_new( SolverData *solver_data )
   sdd->env_threads       = 0;
   int curr_deriv_block   = 0;
   int curr_jac_block     = 0;
+  int curr_env_block     = 0;
   int curr_deriv_threads = 0;
   int curr_jac_threads   = 0;
+  int curr_env_threads   = 0;
   int curr_deriv_id      = 0;
   int curr_jac_id        = 0;
 
@@ -141,43 +143,54 @@ void phlex_gpu_solver_new( SolverData *solver_data )
     // Set ids for this state //
     ////////////////////////////
     
+    int n_rxn = ( (RxnDeviceData*)(mdd->host_rxn_dev_data) )->n_rxn;
+    
     // Advance to the next block once the deriv or jac array is too large 
-    if( curr_deriv_id + mdd->deriv_size > MAX_SHARED_ARRAY_SIZE_ ) {
+    if( curr_deriv_id + mdd->deriv_size > MAX_SHARED_ARRAY_SIZE_ ||
+        curr_deriv_threads + n_rxn > CUDA_MAX_THREADS ) {
       curr_deriv_block++;
       if( curr_deriv_threads > sdd->deriv_threads ) 
         sdd->deriv_threads = curr_deriv_threads;
       curr_deriv_threads = curr_deriv_id = 0;
     }
-    if( curr_jac_id + mdd->jac_size > MAX_SHARED_ARRAY_SIZE_ ) {
+    if( curr_jac_id + mdd->jac_size > MAX_SHARED_ARRAY_SIZE_ ||
+        curr_jac_threads + n_rxn > CUDA_MAX_THREADS ) {
       curr_jac_block++;
       if( curr_jac_threads > sdd->jac_threads ) 
         sdd->jac_threads = curr_jac_threads;
       curr_jac_threads = curr_jac_id = 0;
     }
+    if( curr_env_threads + n_rxn > CUDA_MAX_THREADS ) {
+      curr_env_block++;
+      if( curr_env_threads > sdd->env_threads )
+        sdd->env_threads = curr_env_threads;
+      curr_env_threads = 0;
+    }
 
     // Set the current state ids
     mdd->deriv_block    = curr_deriv_block;
     mdd->jac_block      = curr_jac_block;
+    mdd->env_block      = curr_env_block;
     mdd->deriv_start_id = curr_deriv_id;
     mdd->jac_start_id   = curr_jac_id;
 
     // Advance the number of threads and array elements
-    int n_rxn = ( (RxnDeviceData*)(mdd->host_rxn_dev_data) )->n_rxn;
     curr_deriv_threads += n_rxn;
     curr_jac_threads   += n_rxn;
+    curr_env_threads   += n_rxn;
     curr_deriv_id      += mdd->deriv_size;
     curr_jac_id        += mdd->jac_size;
-
-    sdd->env_threads += n_rxn;
   }
 
   if( curr_deriv_threads > sdd->deriv_threads )
     sdd->deriv_threads = curr_deriv_threads;
   if( curr_jac_threads > sdd->jac_threads )
     sdd->jac_threads   = curr_jac_threads;
+  if( curr_env_threads > sdd->env_threads )
+    sdd->env_threads   = curr_env_threads;
   sdd->deriv_blocks    = curr_deriv_block + 1;
   sdd->jac_blocks      = curr_jac_block + 1;
-  sdd->env_blocks      = 1;
+  sdd->env_blocks      = curr_env_block + 1;
 }
 
 /** \brief Update the environmental state
@@ -242,11 +255,9 @@ int phlex_gpu_solver_f( realtype t, N_Vector y, N_Vector deriv,
     for( int j_spec = 0, j_dep_var = 0; j_spec < md->n_state_var; j_spec++ ) {
       if( md->var_type[ j_spec ] == CHEM_SPEC_VARIABLE ) {
         if( NV_DATA_S( y )[ i_dep_var ] < 0.0 ) return 1;
-        mdd->host_state[ j_spec ] = md->state[ j_spec ] = 
+        md->state[ j_spec ] = 
                 ( PMC_C_FLOAT ) ( NV_DATA_S( y )[ i_dep_var++ ] );
         mdd->host_deriv[ j_dep_var++ ] = 0.0;     
-      } else {
-        mdd->host_state[ j_spec ] = md->state[ j_spec ];
       }
     }
 
@@ -258,6 +269,10 @@ int phlex_gpu_solver_f( realtype t, N_Vector y, N_Vector deriv,
 
     // Run pre-derivative calculations
     rxn_pre_calc( *md );
+
+    // Update the state array for use on the GPUs
+    for( int j_spec = 0; j_spec < md->n_state_var; j_spec++ )
+        mdd->host_state[ j_spec ] = md->state[ j_spec ];
 
   }
 
@@ -350,10 +365,8 @@ int phlex_gpu_solver_Jac( realtype t, N_Vector y, N_Vector deriv, SUNMatrix J,
     for( int j_spec = 0; j_spec < md->n_state_var; j_spec++ ) {
       if( md->var_type[ j_spec ] == CHEM_SPEC_VARIABLE ) {
         if( NV_DATA_S( y )[ i_dep_var ] < 0.0 ) return 1;
-        mdd->host_state[ j_spec ] = md->state[ j_spec ] = 
+        md->state[ j_spec ] = 
                 ( PMC_C_FLOAT ) ( NV_DATA_S( y )[ i_dep_var++ ] );
-      } else {
-        mdd->host_state[ j_spec ] = md->state[ j_spec ];
       }
     }
 
@@ -365,6 +378,10 @@ int phlex_gpu_solver_Jac( realtype t, N_Vector y, N_Vector deriv, SUNMatrix J,
 
     // Run pre-derivative calculations
     rxn_pre_calc( *md );
+
+    // Update the state array for use on the GPUs
+    for( int j_spec = 0; j_spec < md->n_state_var; j_spec++ )
+        mdd->host_state[ j_spec ] = md->state[ j_spec ];
 
   }
 

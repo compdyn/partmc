@@ -16,6 +16,8 @@
 #include <stdlib.h>
 #include "phlex_solver.h"
 
+#define CUDA_MAX_THREADS 1024
+
 typedef struct {
   PMC_C_FLOAT * host_state;             // host pointer to the working state array
   PMC_C_FLOAT * dev_state;              // device pointer to the working state array
@@ -29,6 +31,7 @@ typedef struct {
   int jac_size;                         // size of the Jacobian data array
   int deriv_block;                      // block to calculate derivative for this state
   int jac_block;                        // block to calculate Jacobian for this state
+  int env_block;                        // block to update environmental state
   int deriv_start_id;                   // id of the first species in this state on the
                                         // shared derivative array
   int jac_start_id;                     // id of the first species in this state on the

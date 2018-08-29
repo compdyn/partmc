@@ -52,9 +52,9 @@ program pmc_test_cb05cl_ae5
   ! Small number for minimum concentrations
   real(kind=phlex_real), parameter :: SMALL_NUM = 1.0d-30
   ! Number of states to solve simultaneously
-  integer(kind=phlex_int), parameter :: NUM_STATE = 5
+  integer(kind=phlex_int), parameter :: NUM_STATE = 20
   ! Index of state to use in the analysis
-  integer(kind=phlex_int), parameter :: STATE_TO_CHECK = 3
+  integer(kind=phlex_int), parameter :: STATE_TO_CHECK = 17
   ! Used to check availability of a solver  
   type(phlex_solver_data_t), pointer :: phlex_solver_data
 
@@ -662,15 +662,14 @@ contains
     associate (phlex_comp_state_var => phlex_state%state_var( &
                                       (STATE_TO_CHECK-1)*phlex_state%n_state_vars+1: &
                                       STATE_TO_CHECK*phlex_state%n_state_vars) )
-    index_offset = (STATE_TO_CHECK-1) * phlex_state%n_state_vars
     ! EBI <-> Phlex-chem
     do i_spec = 1, NUM_EBI_SPEC
       call assert_msg(749090387, almost_equal(real(YC(i_spec), kind=phlex_real), &
-          phlex_comp_state_var( index_offset + &
+          phlex_comp_state_var( &
                   chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)), real(5.0e-2, kind=phlex_real)) .or. &
           (YC(i_spec).lt.ebi_init(i_spec)*1.0d-2 .and. &
-           phlex_comp_state_var( index_offset + &
+           phlex_comp_state_var( &
                   chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)) .lt. &
            phlex_init(chem_spec_data%gas_state_id( &
@@ -678,7 +677,7 @@ contains
           "Species "//ebi_spec_names(i_spec)%string//" has different result. "// &
           "EBI solver: "//trim(to_string(real(YC(i_spec), kind=phlex_real)))// &
           "; Phlex-chem: "// &
-          trim(to_string( phlex_comp_state_var( index_offset + &
+          trim(to_string( phlex_comp_state_var( &
                   chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)))) // "; ebi init: "// &
           trim(to_string(real(ebi_init(i_spec), kind=phlex_real)))//"; phlex init: "// &

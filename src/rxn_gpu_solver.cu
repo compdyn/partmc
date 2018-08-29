@@ -238,16 +238,18 @@ __global__ void rxn_gpu_update_env_state( SolverDeviceData sdd )
   
   // Get the state and reaction to solve for
   int i_state = 0;
-  int i_rxn = blockIdx.x * blockDim.x + threadIdx.x;
+  int i_rxn = threadIdx.x;
+  int rxns_to_solve = 0;
   ModelDeviceData * mdd;
   RxnDeviceData * rdd;
   for( ; i_state < sdd.n_states; i_state++ ) {
     mdd = &( sdd.dev_model_dev_data[ i_state ] );
+    if( mdd->env_block != blockIdx.x ) continue;
     rdd = ( RxnDeviceData* ) ( mdd->dev_rxn_dev_data );
-    if( i_rxn < rdd->n_rxn ) break;
+    if( i_rxn < rdd->n_rxn ) { rxns_to_solve = 1; break; }
     i_rxn -= rdd->n_rxn;
   }
-  if( i_rxn >= rdd->n_rxn ) return; 
+  if( rxns_to_solve == 0 ) return;
 
   // Get the number of reactions
   int * rxn_data = (int*) rdd->dev_rxn_data;
@@ -302,6 +304,7 @@ __global__ void rxn_gpu_calc_deriv( SolverDeviceData sdd, PMC_C_FLOAT time_step)
     if( i_rxn < rdd->n_rxn ) { rxns_to_solve = 1; break; }
     i_rxn -= rdd->n_rxn;
   }
+  if( rxns_to_solve == 0 ) return;
 
   // Set up a shared derivative array
   __shared__ PMC_SOLVER_C_FLOAT shr_dev_deriv[ MAX_SHARED_ARRAY_SIZE_ ];
@@ -373,6 +376,7 @@ __global__ void rxn_gpu_calc_jac( SolverDeviceData sdd, PMC_C_FLOAT time_step)
     if( i_rxn < rdd->n_rxn ) { rxns_to_solve = 1; break; }
     i_rxn -= rdd->n_rxn;
   }
+  if( rxns_to_solve == 0 ) return;
 
   // Set up a shared Jacobian array
   __shared__ PMC_SOLVER_C_FLOAT shr_dev_jac[ MAX_SHARED_ARRAY_SIZE_ ];

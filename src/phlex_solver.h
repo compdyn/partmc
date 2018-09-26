@@ -59,6 +59,16 @@ typedef struct {
   void *sub_model_data; // Pointer to the sub model parameters
   void *nxt_sub_model;  // Pointer to the element of sub_model_data in which to
                         // store the next set of sub model data
+  bool use_adj;         // Flag to indicate whether state adjustments exist
+  double *state_adj;    // Adjustments to the state array applied prior to
+                        // calculating rates, derivatives, etc. Used for fast
+                        // reactions that essentially go to completion during
+                        // the solver timestep.
+  bool scale_adj;       // Flag to indicate state adjustments in state_adj should
+                        // be scaled by relative contributions from multiple rxns.
+  double *rel_flux;     // Used to calculate relative contributions of each rxn
+                        // to state adjustments. (For scaling when more than one
+                        // rxn rapidly depletes the same species.)
 } ModelData;
 
 /* Solver data structure */
@@ -73,6 +83,7 @@ typedef struct {
   ModelData model_data; // Model data (used during initialization and solving)
   bool no_solve;        // Flag to indicate whether to run the solver needs to be
                         // run. Set to true when no reactions are present.
+  double init_time_step;// Initial time step (s)
 } SolverData;
 
 /* Functions called by phlex-chem */
@@ -135,6 +146,10 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *model_data,
 		N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
 
 /* SUNDIALS support functions */
+int phlex_solver_update_model_state(N_Vector solver_state,
+          ModelData *model_data);
+int phlex_solver_update_solver_state(N_Vector solver_state,
+          ModelData *model_data);
 SUNMatrix get_jac_init(SolverData *solver_data);
 int check_flag(void *flag_value, char *func_name, int opt);
 void check_flag_fail(void *flag_value, char *func_name, int opt);
@@ -145,7 +160,9 @@ static void solver_print_stats(void *cvode_mem);
 void * rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct);
 void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids); 
 void rxn_update_env_state(ModelData *model_data, double *env);
-void rxn_pre_calc(ModelData *model_data);
+void rxn_pre_calc(ModelData *model_data, double time_step);
+void rxn_reset_state_adjustments(ModelData *model_data);
+void rxn_adjust_state(ModelData *model_data);
 void rxn_print_data(void *solver_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, double time_step);

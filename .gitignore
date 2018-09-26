@@ -19,3 +19,4 @@ scenarios/3_condense/spec/
 scenarios/3_condense/temp/
 scenarios/3_condense/out/
 scenarios/4_chamber/out/
+cvode*/

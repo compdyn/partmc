@@ -122,6 +122,8 @@ module pmc_rxn_HL_phase_transfer
 #define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_+4*NUM_AERO_PHASE_+x)
 #define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+1+5*NUM_AERO_PHASE_+x)
 #define SMALL_WATER_CONC_(x) this%condensed_data_real(NUM_REAL_PROP_+x)
+#define FAST_FLUX_(x) this%condensed_data_real(NUM_REAL_PROP_+NUM_AERO_PHASE_+x)
+#define AERO_ADJ_(x) this%condensed_data_real(NUM_REAL_PROP_+2*NUM_AERO_PHASE_+x)
 
   public :: rxn_HL_phase_transfer_t
 
@@ -236,7 +238,7 @@ contains
 
     ! Allocate space in the condensed data arrays
     allocate(this%condensed_data_int(NUM_INT_PROP_ + 2 + n_aero_ids * 10))
-    allocate(this%condensed_data_real(NUM_REAL_PROP_ + n_aero_ids))
+    allocate(this%condensed_data_real(NUM_REAL_PROP_ + n_aero_ids * 3))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
 
@@ -407,4 +409,6 @@ contains
 #undef DERIV_ID_
 #undef JAC_ID_
 #undef SMALL_WATER_CONC_
+#undef FAST_FLUX_
+#undef AERO_ADJ_
 end module pmc_rxn_HL_phase_transfer

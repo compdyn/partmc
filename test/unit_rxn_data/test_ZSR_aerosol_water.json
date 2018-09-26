@@ -32,6 +32,7 @@
   {
     "name" : "H2O_aq",
     "type" : "CHEM_SPEC",
+    "tracer type" : "CONSTANT",
     "phase" : "AEROSOL",
     "density" : 1.0,
     "molecular weight" : 18.01

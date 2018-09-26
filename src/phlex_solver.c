@@ -14,6 +14,7 @@
 */
 #include "phlex_solver.h"
 
+#define DEFAULT_TIME_STEP 1.0e-3
 #define SMALL_NUMBER 1.1E-30
 
 #define PHLEX_SOLVER_SUCCESS 0
@@ -76,6 +77,16 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   }
   for (int i=0; i<n_state_var; i++)
     sd->model_data.var_type[i] = var_type[i];
+
+  // Create arrays for adjustments to the state array from fast rxns applied
+  // during calculations of derivatives and Jacobian
+  sd->model_data.state_adj     = (double*) malloc(n_state_var * sizeof(double));
+  sd->model_data.rel_flux      = (double*) malloc(n_state_var * sizeof(double));
+  if (sd->model_data.state_adj == NULL ||
+      sd->model_data.rel_flux  == NULL) {
+    printf("\n\nERROR allocating space for state adjustment arrays\n\n");
+    exit(1);
+  }
 
   // Get the number of solver variables
   int n_dep_var = 0;
@@ -277,6 +288,15 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   int flag = CVodeReInit(sd->cvode_mem, t_initial, sd->y);
   check_flag_fail(&flag, "CVodeReInit", 1);
 
+  // Set the initial time step
+  sd->init_time_step = (t_final - t_initial) * DEFAULT_TIME_STEP;
+  flag = CVodeSetInitStep(sd->cvode_mem, sd->init_time_step);
+  check_flag_fail(&flag, "CVodeSetInitStep", 1);
+
+  // Reset the state adjustment arrays
+  sd->model_data.use_adj = true;
+  rxn_reset_state_adjustments(&(sd->model_data));
+
   // Run the solver
   realtype t_rt = (realtype) t_initial;
   if (!sd->no_solve) {
@@ -308,8 +328,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   }
 
   // Re-run the pre-derivative calculations to update equilibrium species
+  // and apply adjustments to final state
   sub_model_calculate(&(sd->model_data));
-  rxn_pre_calc(&(sd->model_data));
+  rxn_pre_calc(&(sd->model_data), 0.0);
 
 #ifdef PMC_DEBUG
   solver_print_stats(sd->cvode_mem);
@@ -322,6 +343,61 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 }
 
 #ifdef PMC_USE_SUNDIALS
+/** \brief Update the model state from the current solver state
+ *
+ * \param solver_state Solver state vector
+ * \param model_data Pointer to the model data (including the state array)
+ * \return PHLEX_SOLVER_SUCCESS for successful update or
+ *         PHLEX_SOLVER_FAIL for negative concentration
+ */
+int phlex_solver_update_model_state(N_Vector solver_state,
+          ModelData *model_data)
+{
+  for (int i_spec=0, i_dep_var=0; i_spec<model_data->n_state_var; i_spec++) {
+    if (model_data->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
+      if (NV_DATA_S(solver_state)[i_dep_var] < -SMALL_NUMBER) {
+#ifdef PMC_DEBUG
+        printf("\nFailed model state update: [spec %d] = %le", i_spec,
+            NV_DATA_S(solver_state)[i_dep_var]);
+#endif
+        return PHLEX_SOLVER_FAIL;
+      }
+      model_data->state[i_spec] =
+        NV_DATA_S(solver_state)[i_dep_var] > SMALL_NUMBER ?
+        NV_DATA_S(solver_state)[i_dep_var] : ZERO;
+      i_dep_var++;
+    }
+  }
+  return PHLEX_SOLVER_SUCCESS;
+}
+
+/** \brief Update the solver state from the current model state
+ *
+ * \param solver_state Solver state vector
+ * \param model_data Pointer to the model data (including the state array)
+ * \return PHLEX_SOLVER_SUCCESS for successful update
+ */
+int phlex_solver_update_solver_state(N_Vector solver_state,
+          ModelData *model_data)
+{
+  for (int i_spec=0, i_dep_var=0; i_spec<model_data->n_state_var; i_spec++) {
+    if (model_data->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
+      
+      if (model_data->state[i_spec] > SMALL_NUMBER ||
+          NV_DATA_S(solver_state)[i_dep_var] > SMALL_NUMBER)
+        NV_DATA_S(solver_state)[i_dep_var] = model_data->state[i_spec];
+#ifdef PMC_DEBUG
+      if (NV_DATA_S(solver_state)[i_dep_var] < ZERO) {
+        printf("\nTrying to save negative concentration to solver state: "
+               "[spec %d] = %le", i_spec, NV_DATA_S(solver_state)[i_dep_var]);
+      }
+#endif
+      i_dep_var++;
+    }
+  }
+  return PHLEX_SOLVER_SUCCESS;
+}
+
 /** \brief Compute the time derivative f(t,y)
  *
  * \param t Current model time (s)
@@ -339,23 +415,17 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   // Get the current integrator time step (s)
   CVodeGetCurrentStep(sd->cvode_mem, &time_step);
   
-  // Update the state array with the current dependent variable values
-  // and initialize the derivative.
+  // On the first call to f(), the time step hasn't been set yet, so use the
+  // default value
+  time_step = time_step > ZERO ? time_step : sd->init_time_step;
+
+  // Update the state array with the current dependent variable values.
   // Signal a recoverable error (positive return value) for negative 
   // concentrations.
-  for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
-    if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
-      if (NV_DATA_S(y)[i_dep_var] < -SMALL_NUMBER) {
-#ifdef PMC_DEBUG
-        printf("\n f() fail [spec %d] = %le", i_spec, NV_DATA_S(y)[i_dep_var]);
-#endif
-        return 1;
-      }
-      NV_DATA_S(deriv)[i_dep_var] = ZERO;
-      md->state[i_spec] = NV_DATA_S(y)[i_dep_var] > SMALL_NUMBER ? NV_DATA_S(y)[i_dep_var] : 0.0;
-      i_dep_var++;
-    }
-  }
+  if (phlex_solver_update_model_state(y, md) != PHLEX_SOLVER_SUCCESS) return 1;
+
+  // Reset the derivative vector
+  N_VConst(ZERO, deriv);
 
   // Update the aerosol representations
   aero_rep_update_state(md);
@@ -364,10 +434,13 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   sub_model_calculate(md);
 
   // Run pre-derivative calculations
-  rxn_pre_calc(md);
+  rxn_pre_calc(md, (double) time_step);
 
   // Calculate the time derivative f(t,y)
   rxn_calc_deriv(md, deriv, (double) time_step);
+
+  // Update the solver state to reflect fast reactions
+  phlex_solver_update_solver_state(y, md);
 
   return (0);
 
@@ -393,18 +466,15 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   realtype time_step;
 
   // Update the state array with the current dependent variable values
+  // Signal a recoverable error (positive return value) for negative 
+  // concentrations.
+  if (phlex_solver_update_model_state(y, md) != PHLEX_SOLVER_SUCCESS) return 1;
+      
+  // Advance the state by a small amount to get more accurate Jac values
+  // for species that are currently at zero concentration
   for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
     if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
-      if (NV_DATA_S(y)[i_dep_var] < -SMALL_NUMBER) {
-#ifdef PMC_DEBUG
-        printf("\n Jac() fail [spec %d] = %le", i_dep_var, NV_DATA_S(y)[i_dep_var]);
-#endif
-        return 1;
-      }
-      // Advance the state by a small amount to get more accurate Jac values
-      // for species that are currently at zero concentration
-      md->state[i_spec] = (NV_DATA_S(y)[i_dep_var] > 0.0 ? NV_DATA_S(y)[i_dep_var] : 0.0) +
-                          NV_DATA_S(deriv)[i_dep_var] * SMALL_NUMBER;
+      md->state[i_spec] += NV_DATA_S(deriv)[i_dep_var] * SMALL_NUMBER;
       i_dep_var++;
     }
   }
@@ -439,14 +509,17 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   // Run the sub models
   sub_model_calculate(md);
 
-  // Run pre-Jacobian calculations
-  rxn_pre_calc(md);
-
   // Get the current integrator time step (s)
   CVodeGetCurrentStep(sd->cvode_mem, &time_step);
   
+  // Run pre-Jacobian calculations
+  rxn_pre_calc(md, (double) time_step);
+
   // Calculate the Jacobian
   rxn_calc_jac(md, J, time_step);
+
+  // Update the solver state to reflect fast reactions
+  phlex_solver_update_solver_state(y, md);
 
   return (0);
 

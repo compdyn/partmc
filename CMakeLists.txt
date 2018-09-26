@@ -114,13 +114,13 @@ if(ENABLE_SUNDIALS)
     DOC "SuiteSparse klu library"
     PATHS $ENV{SUITE_SPARSE_HOME}/lib $ENV{SUNDIALS_HOME}/lib 
           /opt/local/lib /usr/local/lib)
-  find_path(SUNDIALS_INCLUDE_DIR cvodes/cvodes.h
-    DOC "SUNDIALS include directory (must have cvodes/, sundials/, nvector/ subdirs)"
+  find_path(SUNDIALS_INCLUDE_DIR cvode/cvode.h
+    DOC "SUNDIALS include directory (must have cvode/, sundials/, nvector/ subdirs)"
     PATHS $ENV{SUNDIALS_HOME}/include /opt/local/include /usr/local/include)
   find_library(SUNDIALS_NVECSERIAL_LIB sundials_nvecserial
     DOC "SUNDIALS serial vector library"
     PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib /usr/local/lib)
-  find_library(SUNDIALS_CVODE_LIB sundials_cvodes
+  find_library(SUNDIALS_CVODE_LIB sundials_cvode
     DOC "SUNDIALS CVODE library"
     PATHS $ENV{SUNDIALS_HOME}/lib /opt/local/lib /usr/local/lib)
   find_library(SUNDIALS_KLU_LIB sundials_sunlinsolklu

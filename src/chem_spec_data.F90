@@ -231,6 +231,9 @@ contains
     spec_type = CHEM_SPEC_UNKNOWN_TYPE
     spec_phase = CHEM_SPEC_UNKNOWN_PHASE
    
+    ! initialize species name in case of errors
+    spec_name = "unknown"
+
     ! cycle through the species properties to find the name, type and phase
     ! and load the remaining data into the species property set
     next => null()
@@ -285,7 +288,7 @@ contains
 
       ! load remaining properties into the species property set
       else if (key.ne."type") then
-        call property_set%load(json, child, .false.)
+        call property_set%load(json, child, .false., spec_name)
       end if
 
       call json%get_next(child, next)
@@ -741,7 +744,7 @@ contains
       ! Update the species properties
       this%spec_type(i_spec) = spec_type
       this%spec_phase(i_spec) = spec_phase
-      call this%property_set(i_spec)%update(property_set)
+      call this%property_set(i_spec)%update(property_set, spec_name)
 
     ! ... otherwise, create a new species
     else

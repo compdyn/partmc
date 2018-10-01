@@ -213,6 +213,7 @@ contains
 
     this%property_set => property_t()
 
+    if (.not.allocated(this%model_name)) this%model_name = "unknown model"
     found_name = .false.
 
     next => null()
@@ -226,7 +227,7 @@ contains
         this%model_name = unicode_str_val
         found_name = .true.
       else if (key.ne."type") then
-        call this%property_set%load(json, child, .false.)
+        call this%property_set%load(json, child, .false., this%model_name)
       end if
       call json%get_next(child, next)
       child => next

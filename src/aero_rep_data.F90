@@ -342,6 +342,8 @@ contains
     ! allocate space for the aerosol representation property set
     this%property_set => property_t()
 
+    if (.not.allocated(this%rep_name)) &
+      this%rep_name = "unknown aerosol representation"
     found_name = .false.
 
     ! cycle through the aerosol representation properties to find the name and
@@ -361,7 +363,7 @@ contains
 
       ! load remaining data tinto the property set
       else if (key.ne."type") then
-        call this%property_set%load(json, child, .false.)
+        call this%property_set%load(json, child, .false., this%rep_name)
       end if
 
       call json%get_next(child, next)

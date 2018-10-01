@@ -397,7 +397,7 @@ contains
         do while (associated(j_child))
           call json%info(j_child, name=key, var_type=var_type)
           if (key.ne."type".and.key.ne."name") then
-            call this%species_map_data%load(json, j_child, .false.)
+            call this%species_map_data%load(json, j_child, .false., key)
           end if
           j_next => j_child
           call json%get_next(j_next, j_child)
@@ -409,7 +409,7 @@ contains
         do while (associated(j_child))
           call json%info(j_child, name=key, var_type=var_type)
           if (key.ne."type".and.key.ne."name") then
-            call this%init_conc_data%load(json, j_child, .false.)
+            call this%init_conc_data%load(json, j_child, .false., key)
           end if
           j_next => j_child
           call json%get_next(j_next, j_child)
@@ -417,7 +417,7 @@ contains
 
       ! Data of unknown type
       else
-        call this%property_set%load(json, j_obj, .false.)
+        call this%property_set%load(json, j_obj, .false., str_val)
       end if
 
       j_next => j_obj

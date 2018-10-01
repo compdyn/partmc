@@ -170,7 +170,11 @@ contains
 
     if (present(init_size)) alloc_size = init_size
     allocate(new_obj)
-    if (present(phase_name)) new_obj%phase_name = phase_name
+    if (present(phase_name)) then
+      new_obj%phase_name = phase_name
+    else
+      new_obj%phase_name = ""
+    endif
     allocate(new_obj%spec_name(alloc_size))
 
   end function constructor
@@ -270,7 +274,7 @@ contains
 
       ! load remaining properties into the phase property set
       else if (key.ne."type") then
-        call property_set%load(json, child, .false.)
+        call property_set%load(json, child, .false., this%phase_name)
       end if 
 
       call json%get_next(child, next)
@@ -279,7 +283,7 @@ contains
   
     ! save the property set
     if (associated(this%property_set)) then
-      call this%property_set%update(property_set)
+      call this%property_set%update(property_set, this%phase_name)
       deallocate (property_set)
     else 
       this%property_set => property_set

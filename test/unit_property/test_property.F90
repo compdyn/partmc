@@ -56,33 +56,34 @@ contains
     integer(kind=i_kind) :: temp_int
     real(kind=dp) :: temp_real
     logical :: temp_logical
-    character(len=:), allocatable :: temp_string
+    character(len=:), allocatable :: temp_string, owner_name
 
     build_property_set_test = .false.
+    owner_name = "build_property_set_test()"
 
     ! Build individual property links
     prop_set => property_t()
     key_name = "int_prop"
-    call prop_set%put(key_name, 27, .false.)
+    call prop_set%put(key_name, 27, .false., owner_name)
     key_name = "bool_prop"
-    call prop_set%put(key_name, .true., .false.)
+    call prop_set%put(key_name, .true., .false., owner_name)
     key_name = "real_prop"
-    call prop_set%put(key_name, 12.32d0, .false.)
+    call prop_set%put(key_name, 12.32d0, .false., owner_name)
     key_name = "string_prop"
-    call prop_set%put(key_name, "kd ks8*2alf  s", .false.)
+    call prop_set%put(key_name, "kd ks8*2alf  s", .false., owner_name)
 
     ! Build a property subset
     sub_set => property_t()
     key_name = "sub_int"
-    call sub_set%put(key_name, 832, .false.)
+    call sub_set%put(key_name, 832, .false., owner_name)
     key_name = "sub_bool"
-    call sub_set%put(key_name, .false., .false.)
+    call sub_set%put(key_name, .false., .false., owner_name)
     key_name = "sub_real"
-    call sub_set%put(key_name, 593.d12, .false.)
+    call sub_set%put(key_name, 593.d12, .false., owner_name)
     key_name = "sub_string"
-    call sub_set%put(key_name, "nlsd98*)@ur soi87", .false.)
+    call sub_set%put(key_name, "nlsd98*)@ur soi87", .false., owner_name)
     key_name = "sub_prop"
-    call prop_set%put(key_name, sub_set, .false.)
+    call prop_set%put(key_name, sub_set, .false., owner_name)
     deallocate(sub_set)
 
     ! Check the values of the individual links
@@ -133,21 +134,21 @@ contains
     deallocate(prop_set)
     prop_set => property_t()
     key_name = "my first key"
-    call prop_set%put(key_name, 123.45d0, .true.)
+    call prop_set%put(key_name, 123.45d0, .true., owner_name)
     key_name = "my duplicate key"
-    call prop_set%put(key_name, 482.41d0, .true.)
+    call prop_set%put(key_name, 482.41d0, .true., owner_name)
     key_name = "my duplicate key"
-    call prop_set%put(key_name, 92.30412d0, .true.)
+    call prop_set%put(key_name, 92.30412d0, .true., owner_name)
     
     sub_set => property_t()
     key_name = "sub key one"
-    call sub_set%put(key_name, 512.42d0, .true.)
+    call sub_set%put(key_name, 512.42d0, .true., owner_name)
     key_name = "sub key duplicate"
-    call sub_set%put(key_name, 142.3d0, .true.)
+    call sub_set%put(key_name, 142.3d0, .true., owner_name)
     key_name = "sub key duplicate"
-    call sub_set%put(key_name, 5324.12d0, .true.)
+    call sub_set%put(key_name, 5324.12d0, .true., owner_name)
     key_name = "my sub set"
-    call prop_set%put(key_name, sub_set, .true.)
+    call prop_set%put(key_name, sub_set, .true., owner_name)
     deallocate(sub_set)
 
     call assert(147253076, prop_set%size().eq.4)
@@ -240,7 +241,9 @@ contains
     integer(kind=i_kind) :: temp_int
     real(kind=dp) :: temp_real
     logical :: temp_logical
-    character(len=:), allocatable :: temp_string
+    character(len=:), allocatable :: temp_string, owner_name
+
+    owner_name = "load_property_set_test()"
 
     ! Set up the JSON core
     allocate(json)
@@ -251,7 +254,7 @@ contains
 
     ! Load the property set with data in the JSON string
     ! passed as a JSON object so that all the data is loaded
-    call props%load(json, j_obj, .true.)
+    call props%load(json, j_obj, .true., owner_name)
 
     ! Make sure the property set contains the right number of elements
     call assert(874625445, props%size().eq.6)
@@ -319,7 +322,7 @@ contains
     do while (associated(child))
       call json%info(child, name=unicode_key_name)
       if (unicode_key_name.eq."real_prop" .or. unicode_key_name.eq."other_real") then
-        call prop2%load(json, child, .false.)
+        call prop2%load(json, child, .false., owner_name)
       end if
       call json%get_next(child, next)
       child => next
@@ -360,7 +363,7 @@ contains
     ! Load the property set with data in the JSON string
     ! passed as a JSON object so that all the data is loaded
     ! and the allow duplicates flag set to true
-    call props%load(json, j_obj, .true., .true.)
+    call props%load(json, j_obj, .true., owner_name, .true.)
 
     ! Make sure the property set contains the right number of elements
     call assert(252427177, props%size().eq.4)
@@ -420,35 +423,36 @@ contains
     integer(kind=i_kind) :: temp_int
     real(kind=dp) :: temp_real
     logical :: temp_logical
-    character(len=:), allocatable :: temp_string
+    character(len=:), allocatable :: temp_string, owner_name
 
     move_update_property_set_test = .false.
+    owner_name = "move_update_property_set_test()"
 
     ! Create original property set
     orig_set => property_t()
 
     ! Build individual property links
     key_name = "int_prop"
-    call orig_set%put(key_name, 27, .false.)
+    call orig_set%put(key_name, 27, .false., owner_name)
     key_name = "bool_prop"
-    call orig_set%put(key_name, .true., .false.)
+    call orig_set%put(key_name, .true., .false., owner_name)
     key_name = "real_prop"
-    call orig_set%put(key_name, 12.32d0, .false.)
+    call orig_set%put(key_name, 12.32d0, .false., owner_name)
     key_name = "string_prop"
-    call orig_set%put(key_name, "kd ks8*2alf  s", .false.)
+    call orig_set%put(key_name, "kd ks8*2alf  s", .false., owner_name)
 
     ! Build a property subset
     sub_set => property_t()
     key_name = "sub_int"
-    call sub_set%put(key_name, 832, .false.)
+    call sub_set%put(key_name, 832, .false., owner_name)
     key_name = "sub_bool"
-    call sub_set%put(key_name, .false., .false.)
+    call sub_set%put(key_name, .false., .false., owner_name)
     key_name = "sub_real"
-    call sub_set%put(key_name, 593.d12, .false.)
+    call sub_set%put(key_name, 593.d12, .false., owner_name)
     key_name = "sub_string"
-    call sub_set%put(key_name, "nlsd98*)@ur soi87", .false.)
+    call sub_set%put(key_name, "nlsd98*)@ur soi87", .false., owner_name)
     key_name = "sub_prop"
-    call orig_set%put(key_name, sub_set, .false.)
+    call orig_set%put(key_name, sub_set, .false., owner_name)
     deallocate(sub_set)
 
     ! Create a property set to update with
@@ -456,23 +460,23 @@ contains
 
     ! Build a few links to merge in
     key_name = "new_real_prop"
-    call update_set%put(key_name, 135.23d3, .false.)
+    call update_set%put(key_name, 135.23d3, .false., owner_name)
     sub_set => property_t()
     key_name = "new_sub_real_prop"
-    call sub_set%put(key_name, 1.6784d-14, .false.)
+    call sub_set%put(key_name, 1.6784d-14, .false., owner_name)
     key_name = "sub_prop"
-    call update_set%put(key_name, sub_set, .false.)
+    call update_set%put(key_name, sub_set, .false., owner_name)
     deallocate(sub_set)
     
     sub_set => property_t()
     key_name = "new_sub_real_prop"
-    call sub_set%put(key_name, 5239.60d1, .false.)
+    call sub_set%put(key_name, 5239.60d1, .false., owner_name)
     key_name = "new_sub_prop"
-    call update_set%put(key_name, sub_set, .false.)
+    call update_set%put(key_name, sub_set, .false., owner_name)
     deallocate(sub_set)
 
     ! Update the original property data set
-    call orig_set%update(update_set)
+    call orig_set%update(update_set, owner_name)
     deallocate(update_set)
 
     ! Move the property set to the destination variable

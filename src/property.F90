@@ -137,7 +137,8 @@ contains
 
   !> Load a property set from input data
 #ifdef PMC_USE_JSON
-  recursive subroutine load(this, json, j_obj, as_object, allow_duplicates)
+  recursive subroutine load(this, json, j_obj, as_object, owner_name, &
+            allow_duplicates)
 
     !> Property dataset
     class(property_t), intent(inout) :: this
@@ -149,6 +150,8 @@ contains
     !! key-value pairs to the data set, or false if j_obj is a single
     !! key-value pair to add to the data set
     logical, intent(in) :: as_object
+    !> Name of the owner of the property set. For use in error messages
+    character(len=:), allocatable :: owner_name
     !> Flag to indicate whether to allow duplicate keys. Defaults to false
     logical, intent(in), optional :: allow_duplicates
 
@@ -194,36 +197,39 @@ contains
         ! integer
         case (json_integer)
           call json%get(child, int_val)
-          call this%put(prop_key, int(int_val, i_kind), allow_dup)
+          call this%put(prop_key, int(int_val, i_kind), allow_dup, &
+                        owner_name)
        
         ! double
         case (json_double)
           call json%get(child, real_val)
-          call this%put(prop_key, real(real_val, dp), allow_dup)
+          call this%put(prop_key, real(real_val, dp), allow_dup, &
+                        owner_name)
         
         ! boolean
         case (json_logical)
           call json%get(child, bool_val)
-          call this%put(prop_key, logical(bool_val), allow_dup)
+          call this%put(prop_key, logical(bool_val), allow_dup, &
+                        owner_name)
         
         ! string
         case (json_string)
           call json%get(child, unicode_val)
           str_val = unicode_val
-          call this%put(prop_key, str_val, allow_dup)
+          call this%put(prop_key, str_val, allow_dup, owner_name)
         
         ! sub-set of key-value pairs
         case (json_object)
           sub_prop => property_t()
-          call sub_prop%load(json, child, .true.)
-          call this%put(prop_key, sub_prop, allow_dup)
+          call sub_prop%load(json, child, .true., owner_name)
+          call this%put(prop_key, sub_prop, allow_dup, owner_name)
           deallocate(sub_prop)
         
         ! sub-set of values
         case (json_array)
           sub_prop => property_t()
-          call sub_prop%load(json, child, .true.)
-          call this%put(prop_key, sub_prop, allow_dup)
+          call sub_prop%load(json, child, .true., owner_name)
+          call this%put(prop_key, sub_prop, allow_dup, owner_name)
           deallocate(sub_prop)
         
         ! skip other types
@@ -249,7 +255,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Put an element in the property data set
-  recursive subroutine put(this, key, val, allow_duplicates)
+  recursive subroutine put(this, key, val, allow_duplicates, owner_name)
 
     !> Property data set
     class(property_t), intent(inout) :: this
@@ -259,6 +265,8 @@ contains
     class(*), intent(in) :: val
     !> Flag indicating whether to allow duplicate keys
     logical, intent(in) :: allow_duplicates
+    !> Name of owner of the property set. For use in error messages
+    character(len=:), allocatable :: owner_name
 
     type(property_link_t), pointer :: new_link, sub_link
     type(property_t), allocatable :: sub_prop_set
@@ -282,14 +290,19 @@ contains
             class is (property_t)
               sub_link => val%first_link
               do while (associated(sub_link))
-                call curr_val%put(sub_link%key_name, sub_link%val, .false.)
+                call curr_val%put(sub_link%key_name, sub_link%val, .false., &
+                                  owner_name)
                 sub_link => sub_link%next_link
               end do
             class default
-              call die_msg(698012538, "Property type mismatch for "//key)
+              call new_link%print("")
+              call die_msg(698012538, "Property type mismatch for "//key// &
+                           " in property set of "//owner_name)
             end select
           class default
-            call die_msg(359604264, "Trying to overwrite property "//key)
+            call new_link%print("")
+            call die_msg(359604264, "Trying to overwrite property "//key// &
+                         " in property set of "//owner_name)
           end select
           return
         end if
@@ -306,7 +319,7 @@ contains
       sub_link => val%first_link
       do while (associated(sub_link))
         call sub_prop_set%put(sub_link%key_name, sub_link%val, &
-                              allow_duplicates)
+                              allow_duplicates, owner_name)
         sub_link => sub_link%next_link
       end do
       new_link => property_link_t(key, sub_prop_set)
@@ -581,18 +594,20 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update this property_t instance with data from another instance
-  subroutine update(this, source)
+  subroutine update(this, source, owner_name)
 
     !> Property dataset to update
     class(property_t), intent(inout) :: this
     !> Property dataset to update from
     class(property_t), intent(inout) :: source
+    !> Name of owner of the property set. For use in error messages
+    character(len=:), allocatable :: owner_name
 
     type(property_link_t), pointer :: curr_prop
 
     curr_prop => source%first_link
     do while (associated(curr_prop))
-      call this%put(curr_prop%key_name, curr_prop%val, .false.)
+      call this%put(curr_prop%key_name, curr_prop%val, .false., owner_name)
       curr_prop => curr_prop%next_link
     end do
 

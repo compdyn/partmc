@@ -275,9 +275,13 @@ contains
 
     type(json_value), pointer :: child, next
     character(kind=json_ck, len=:), allocatable :: key
+    character(len=:), allocatable :: owner_name
 
     ! allocate space for the reaction property set
     this%property_set => property_t()
+
+    ! No names currently for reactions, so use generic label
+    owner_name = "reaction"
 
     ! cycle through the reaction properties, loading them into the reaction
     ! property set
@@ -285,7 +289,8 @@ contains
     call json%get_child(j_obj, child)
     do while (associated(child))
       call json%info(child, name=key)
-      if (key.ne."rxn type") call this%property_set%load(json, child, .false.)
+      if (key.ne."rxn type") call this%property_set%load(json, child, &
+                                     .false., owner_name)
       
       call json%get_next(child, next)
       child => next

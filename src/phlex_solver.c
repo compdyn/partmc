@@ -440,7 +440,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   rxn_calc_deriv(md, deriv, (double) time_step);
 
   // Update the solver state to reflect fast reactions
-  phlex_solver_update_solver_state(y, md);
+  // phlex_solver_update_solver_state(y, md);
 
   return (0);
 
@@ -519,7 +519,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   rxn_calc_jac(md, J, time_step);
 
   // Update the solver state to reflect fast reactions
-  phlex_solver_update_solver_state(y, md);
+  // phlex_solver_update_solver_state(y, md);
 
   return (0);
 

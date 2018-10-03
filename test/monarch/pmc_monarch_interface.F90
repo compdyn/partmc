@@ -84,7 +84,7 @@ module pmc_monarch_interface
   end interface monarch_interface_t
 
   !> MPI node id from MONARCH
-  integer(kind=i_kind) :: MONARCH_NODE ! TODO replace with MONARCH param
+  integer(kind=i_kind) :: MONARCH_PROCESS ! TODO replace with MONARCH param
   ! TEMPORARY
   real(kind=dp), public, save :: comp_time = 0.0d0
 
@@ -135,7 +135,7 @@ contains
 #endif
 
     ! Set the MPI rank (TODO replace with MONARCH param)
-    MONARCH_NODE = pmc_mpi_rank()
+    MONARCH_PROCESS = pmc_mpi_rank()
 
     ! Create a new interface object
     allocate(new_obj)
@@ -147,7 +147,7 @@ contains
     deallocate(phlex_solver_data)
 
     ! Initialize the time-invariant model data on each node
-    if (MONARCH_NODE.eq.0) then
+    if (MONARCH_PROCESS.eq.0) then
       
       ! Start the computation timer on the primary node
       call cpu_time(comp_start)
@@ -197,7 +197,7 @@ contains
     ! broadcast the buffer size
     call pmc_mpi_bcast_integer(pack_size, local_comm)
 
-    if (pmc_mpi_rank().eq.1) then
+    if (MONARCH_PROCESS.ne.0) then
       ! allocate the buffer to receive data
       allocate(buffer(pack_size))
     end if
@@ -205,7 +205,7 @@ contains
     ! boradcast the buffer
     call pmc_mpi_bcast_packed(buffer, local_comm)
 
-    if (pmc_mpi_rank().eq.1) then
+    if (MONARCH_PROCESS.ne.0) then
       ! unpack the data
       new_obj%phlex_core => phlex_core_t()
       pos = 0
@@ -229,12 +229,11 @@ contains
     new_obj%phlex_state => new_obj%phlex_core%new_state()
 
     ! Calculate the intialization time
-    if (MONARCH_NODE.eq.0) then
+    if (MONARCH_PROCESS.eq.0) then
       call cpu_time(comp_end)
       write(*,*) "Initialization time: ", comp_end-comp_start, " s"
+      call new_obj%phlex_core%print()
     end if
-
-    call new_obj%phlex_core%print()
 
   end function constructor
 
@@ -304,7 +303,7 @@ contains
                   air_density(i,k,j) * 1.0d9
 
           ! Start the computation timer
-          if (MONARCH_NODE.eq.0 .and. i.eq.i_start .and. j.eq.j_start &
+          if (MONARCH_PROCESS.eq.0 .and. i.eq.i_start .and. j.eq.j_start &
                   .and. k.eq.1) then
             call cpu_time(comp_start)
           end if
@@ -314,7 +313,7 @@ contains
                   real(time_step, kind=dp))
 
           ! Calculate the computation time
-          if (MONARCH_NODE.eq.0 .and. i.eq.i_start .and. j.eq.j_start &
+          if (MONARCH_PROCESS.eq.0 .and. i.eq.i_start .and. j.eq.j_start &
                   .and. k.eq.1) then
             call cpu_time(comp_end)
             comp_time = comp_time + (comp_end-comp_start)

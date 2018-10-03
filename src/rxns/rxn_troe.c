@@ -176,7 +176,11 @@ void * rxn_troe_calc_deriv_contrib(ModelData *model_data, realtype *deriv,
     }
     for (int i_spec=0; i_spec<NUM_PROD_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue; 
-      deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
+      // Negative yields are allowed, but prevented from causing negative 
+      // concentrations that lead to solver failures
+      if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
+        deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
+      }
     }
   }
 
@@ -216,7 +220,11 @@ void * rxn_troe_calc_jac_contrib(ModelData *model_data, realtype *J,
       }
       for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
 	if (JAC_ID_(i_elem) < 0) continue;
-	J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate / state[REACT_(i_ind)];
+        // Negative yields are allowed, but prevented from causing negative 
+        // concentrations that lead to solver failures
+        if (-rate*YIELD_(i_dep)*time_step <= state[PROD_(i_dep)]) {
+	  J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate / state[REACT_(i_ind)];
+        }
       }
     }
   }

@@ -8,6 +8,10 @@
 !> Physical constants.
 module pmc_constants
 
+  !> Kind of a single precision real number.
+  integer, parameter :: sp = kind(0.0)
+  !> Kind of a single precision complex number.
+  integer, parameter :: sc = sp
   !> Kind of a double precision real number.
   integer, parameter :: dp = kind(0.d0)
   !> Kind of a double precision complex number.

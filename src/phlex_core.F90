@@ -123,7 +123,9 @@ module pmc_phlex_core
   type :: phlex_core_t
   private
     !> Chemical mechanisms
-    type(mechanism_data_ptr), pointer :: mechanism(:) => null()
+    !! FIXME set up an iterator for external modules to use and
+    !! make mechanisms private
+    type(mechanism_data_ptr), pointer, public :: mechanism(:) => null()
     !> Chemical species data
     type(chem_spec_data_t), pointer :: chem_spec_data => null()
     !> Sub models

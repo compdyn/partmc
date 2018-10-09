@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -15,7 +15,7 @@
 !! the host model.
 !!
 !! The primary function of a reaction in the \ref phlex_chem "phlex-chem"
-!! model is to provide the solver with contributions to the time derivative 
+!! model is to provide the solver with contributions to the time derivative
 !! and Jacobian matrix for \ref phlex_species "chemical species"
 !! concentrations based on the current model state described in a \c
 !! pmc_phlex_state::phlex_state_t object.
@@ -32,7 +32,7 @@
 !! to the time derivatve and Jacobian matrix must therefore be packed into
 !! the condensed data arrays of the \c pmc_rxn_data::rxn_data_t object during
 !! intialization.
-!!  
+!!
 !! Valid reaction types include:
 !!
 !!   - \subpage phlex_rxn_aqueous_equilibrium "Aqueous-phase Equilibrium"
@@ -125,7 +125,7 @@ module pmc_rxn_data
     !> Check the phase of the reaction against the phase being solved for.
     !! During GAS_RXN integrations, only GAS_RXN reactions are solved.
     !! During AERO_RXN integrations, only AERO_RXN and GAS_AERO_RXN
-    !! reactions are solved. During GAS_AERO_RXN integrations, all 
+    !! reactions are solved. During GAS_AERO_RXN integrations, all
     !! reactions are solved.
     procedure :: check_phase
     !> Determine the number of bytes required to pack the given value
@@ -193,9 +193,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> \page input_format_rxn Input JSON Object Format: Reaction (general)
-  !! 
-  !! A \c json object containing information about a chemical reaction or 
-  !! physical process in the gas phase, in an \ref phlex_aero_phase 
+  !!
+  !! A \c json object containing information about a chemical reaction or
+  !! physical process in the gas phase, in an \ref phlex_aero_phase
   !! "aerosol phase", or between two phases (phase-transfer). \ref phlex_rxn
   !! "Reactions" are used to build \ref phlex_mechanism "mechanisms" and are
   !! only found within an input \ref input_format_mechanism "mechanism object"
@@ -251,13 +251,13 @@ contains
   !!   - \subpage phlex_rxn_photolysis "PHOTOLYSIS"
   !!   - \subpage phlex_rxn_troe "TROE"
   !!   - \subpage phlex_rxn_ZSR_aerosol_water "ZSR_AEROSOL_WATER"
-  !! 
-  !! All remaining data are optional and may include any valid \c json value, 
+  !!
+  !! All remaining data are optional and may include any valid \c json value,
   !! including nested objects. However, extending types (i.e. reactions) will
   !! have specific requirements for the remaining data. Additionally it is
   !! recommended to use the above format for reactants and products when
   !! developing derived types that extend \c rxn_data_t, and to use \b type
-  !! values that match the name of the extending derived-type. For example, the 
+  !! values that match the name of the extending derived-type. For example, the
   !! reaction type \c rxn_photolysis_t would have a \b type of \b PHOTOLYSIS.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -291,7 +291,7 @@ contains
       call json%info(child, name=key)
       if (key.ne."rxn type") call this%property_set%load(json, child, &
                                      .false., owner_name)
-      
+
       call json%get_next(child, next)
       child => next
     end do
@@ -311,7 +311,7 @@ contains
   !> Check the phase of the reaction against the phase being solved for.
   !! During GAS_RXN integrations, only GAS_RXN reactions are solved.
   !! During AERO_RXN integrations, only AERO_RXN and GAS_AERO_RXN
-  !! reactions are solved. During GAS_AERO_RXN integrations, all 
+  !! reactions are solved. During GAS_AERO_RXN integrations, all
   !! reactions are solved.
   logical function check_phase(this, rxn_phase) result (valid_rxn)
 
@@ -337,7 +337,7 @@ contains
 
     !> Reaction data
     class(rxn_data_t), intent(in) :: this
-    
+
     pack_size = &
             pmc_mpi_pack_size_real_array(this%condensed_data_real) + &
             pmc_mpi_pack_size_integer_array(this%condensed_data_int)
@@ -431,7 +431,7 @@ contains
 
   !> Finalize a pointer to a reaction
   elemental subroutine ptr_finalize(this)
-    
+
     !> Pointer to a reaction
     type(rxn_data_ptr), intent(inout) :: this
 

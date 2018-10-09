@@ -313,7 +313,7 @@ contains
     ! particle loss function
     call scenario_particle_loss(scenario, delta_t, aero_data, aero_state, &
          env_state)
-    
+
     ! update computational volume
     call aero_weight_array_scale(aero_state%awa, &
          old_env_state%temp * env_state%pressure &

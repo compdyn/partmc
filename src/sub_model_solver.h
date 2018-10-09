@@ -1,35 +1,37 @@
-/* Copyright (C) 2015-2018 Matthew Dawson
+/* Copyright (C) 2018 Matthew Dawson
  * Licensed under the GNU General Public License version 1 or (at your
  * option) any later version. See the file COPYING for details.
  *
- * Header file for sub model calculations
+ * Header file for sub_model_solver.c
+ *
  */
 /** \file
- * \brief Header file for sub model functions
+ * \brief Header file for abstract sub model functions
  */
-#ifndef SUB_MODEL_SOLVER_H_
-#define SUB_MODEL_SOLVER_H_
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include "phlex_solver.h"
+#ifndef SUB_MODEL_SOLVER_H
+#define SUB_MODEL_SOLVER_H
+#include "phlex_common.h"
 
-// UNIFAC
-void * sub_model_UNIFAC_get_used_jac_elem(
-          void *sub_model_data, bool *jac_row);
-void * sub_model_UNIFAC_update_ids(
-          void *sub_model_data, int *jac_row);
-void * sub_model_UNIFAC_get_parameter_id(
-          void *sub_model_data, void* identifiers, int *parameter_id);
-void * sub_model_UNIFAC_update_env_state(
-          void *sub_model_data, double *env_data);
-void * sub_model_UNIFAC_calculate(
-          void *sub_model_data, ModelData *model_data);
-void * sub_model_UNIFAC_add_jac_contrib(
-          void *sub_model_data, double base_val, double *jac_row);
-void * sub_model_UNIFAC_skip(
-          void *sub_model_data);
-void * sub_model_UNIFAC_print(
-          void *sub_model_data);
+/** Public sub model functions **/
+
+/* Solver functions */
+void sub_model_update_env_state(ModelData *model_data, double *env);
+int sub_model_get_parameter_id(ModelData *model_data, int type,
+          void *identifiers);
+double sub_model_get_parameter_value(ModelData *model_data, int parameter_id);
+void sub_model_calculate(ModelData *model_data);
+void sub_model_print_data(void *solver_data);
+
+/* Setup functions */
+void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
+	  int n_float_param, int *int_param, double *float_param,
+          void *solver_data);
+void sub_model_update_data(int update_sub_model_type, void *update_data,
+          void *solver_data);
+
+/* Update data functions */
+int sub_model_get_parameter_id_sd(void *solver_data, int sub_model_type,
+          void *identifiers);
+double sub_model_get_parameter_value_sd(void *solver_data, int parameter_id);
 
 #endif

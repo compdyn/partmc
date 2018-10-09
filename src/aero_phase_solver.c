@@ -8,7 +8,7 @@
 /** \file
  * \brief Aerosol phase functions
  */
-#include "phlex_solver.h"
+#include "aero_phase_solver.h"
 
 // TODO move all shared constants to a common header file
 #define CHEM_SPEC_UNKNOWN_TYPE 0
@@ -31,15 +31,15 @@
  * \param model_data Pointer to the model data (state, env, aero_phase)
  * \param aero_phase_idx Index of the aerosol phase to use in the calculation
  * \param state_var Pointer the aerosol phase on the state variable array
- * \param mass Pointer to hold total aerosol phase mass 
+ * \param mass Pointer to hold total aerosol phase mass
  *             (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$ or
  *              \f$\mbox{\si{\micro\gram\per particle}}\f$)
- * \param MW Pointer to hold average MW of the aerosol phase 
+ * \param MW Pointer to hold average MW of the aerosol phase
  *           (\f$\mbox{\si{\kilogram\per\mol}}\f$)
  * \return A pointer to a set of partial derivatives \f$\frac{dm}{dy}\f$, or a
  *         NULL pointer if no partial derivatives exist
  */
-void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx, 
+void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
         double *state_var, double *mass, double *MW)
 {
 
@@ -71,13 +71,13 @@ void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
  * \param model_data Pointer to the model data (state, env, aero_phase)
  * \param aero_phase_idx Index of the aerosol phase to use in the calculation
  * \param state_var Pointer to the aerosol phase on the state variable array
- * \param volume Pointer to hold the aerosol phase volume 
- *               (\f$\mbox{\si{\cubic\metre\per\cubic\metre}}\f$ or 
+ * \param volume Pointer to hold the aerosol phase volume
+ *               (\f$\mbox{\si{\cubic\metre\per\cubic\metre}}\f$ or
  *                \f$\mbox{\si{\cubic\metre\per particle}}\f$)
  * \return A pointer to a set of partial derivatives \f$\frac{dv}{dy}\f$, or
  *         a NULL pointer if no partial derivatives exist
  */
-void * aero_phase_get_volume(ModelData *model_data, int aero_phase_idx, 
+void * aero_phase_get_volume(ModelData *model_data, int aero_phase_idx,
           double *state_var, double *volume)
 {
 
@@ -151,7 +151,7 @@ void * aero_phase_skip(void *aero_phase_data)
 void aero_phase_add_condensed_data(int n_int_param, int n_float_param,
               int *int_param, double *float_param, void *solver_data)
 {
-  ModelData *model_data = 
+  ModelData *model_data =
           (ModelData*) &(((SolverData*)solver_data)->model_data);
   int *aero_phase_data = (int*) (model_data->nxt_aero_phase);
 
@@ -160,7 +160,7 @@ void aero_phase_add_condensed_data(int n_int_param, int n_float_param,
 
   // Add the floating-point parameters
   double *flt_ptr = (double*) aero_phase_data;
-  for (; n_float_param>0; n_float_param--) 
+  for (; n_float_param>0; n_float_param--)
           *(flt_ptr++) = (double) *(float_param++);
 
   // Set the pointer for the next free space in aero_phase_data;
@@ -172,10 +172,10 @@ void aero_phase_add_condensed_data(int n_int_param, int n_float_param,
  */
 void aero_phase_print_data(void *solver_data)
 {
-  ModelData *model_data = 
+  ModelData *model_data =
           (ModelData*) &(((SolverData*)solver_data)->model_data);
   int *aero_phase_data = (int*) (model_data->aero_phase_data);
-  
+
   // Get the number of aerosol phases
   int n_aero_phase = *(aero_phase_data++);
 
@@ -190,7 +190,7 @@ void aero_phase_print_data(void *solver_data)
     for (int i=0; i<INT_DATA_SIZE_; i++) printf(" %d", int_data[i]);
     printf("\nfloat_data");
     for (int i=0; i<FLOAT_DATA_SIZE_; i++) printf(" %le", float_data[i]);
-    
+
     aero_phase_data = (int*) &(float_data[FLOAT_DATA_SIZE_]);
   }
 }

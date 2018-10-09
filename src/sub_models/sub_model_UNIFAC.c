@@ -13,7 +13,10 @@
  * Equation references are to Marcolli and Peter, ACP 5(2), 1501-1527, 2005.
  *
  */
-#include "../sub_model_solver.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "../sub_models.h"
 
 // TODO Lookup environmental indicies during initialization
 #define TEMPERATURE_K_ env_data[0]
@@ -102,9 +105,9 @@ void * sub_model_UNIFAC_get_parameter_id(void *sub_model_data,
     for (int i_instance=0; i_instance<NUM_PHASE_INSTANCE_(i_phase);
         i_instance++) {
       for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); i_spec++) {
-        if (*((int*)identifiers) == SPEC_ID_(i_phase, i_spec) 
+        if (*((int*)identifiers) == SPEC_ID_(i_phase, i_spec)
             + PHASE_INST_ID_(i_phase, i_instance)) {
-          *parameter_id = (int) (((int*) 
+          *parameter_id = (int) (((int*)
                 (&(GAMMA_I_(i_phase, i_instance, i_spec)))) - int_data);
           return (void*) &(float_data[FLOAT_DATA_SIZE_]);
         }
@@ -135,7 +138,7 @@ void * sub_model_UNIFAC_update_env_state(void *sub_model_data,
   // terms. Eq. 7 & 8
   for (int i_phase=0; i_phase<NUM_UNIQUE_PHASE_; i_phase++) {
     for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); i_spec++) {
-      
+
       // Calculate the sum (Q_n * X_n) in the denominator of Eq. 9 for the
       // pure liquid
       double sum_Qn_Xn = 0.0;
@@ -157,10 +160,10 @@ void * sub_model_UNIFAC_update_env_state(void *sub_model_data,
             sum_n += THETA_M_(n) * PSI_MN_(n,m);
           sum_m_B += THETA_M_(m) * PSI_MN_(k,m) / sum_n;
         }
-        LN_GAMMA_IK_(i_phase, i_spec, k) = Q_K_(k) * 
+        LN_GAMMA_IK_(i_phase, i_spec, k) = Q_K_(k) *
                   (1.0 - log(sum_m_A) - sum_m_B);
       }
-    } 
+    }
   }
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
@@ -197,7 +200,7 @@ void * sub_model_UNIFAC_calculate(void *sub_model_data, ModelData *model_data)
         }
         continue;
       }
-      
+
       // Update the mole fractions X_i
       for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); i_spec++) {
         X_I_(i_phase, i_spec) = model_data->state[
@@ -210,7 +213,7 @@ void * sub_model_UNIFAC_calculate(void *sub_model_data, ModelData *model_data)
       double sum_Qn_Xn_mixture = 0.0;
       for (int n=0; n<NUM_GROUP_; n++) {
         for (int i_spec=0; i_spec<NUM_SPEC_(i_phase); i_spec++) {
-          sum_Qn_Xn_mixture += Q_K_(n) * X_I_(i_phase, i_spec) 
+          sum_Qn_Xn_mixture += Q_K_(n) * X_I_(i_phase, i_spec)
             * V_IK_(i_phase, i_spec, n);
         }
       }
@@ -265,15 +268,15 @@ void * sub_model_UNIFAC_calculate(void *sub_model_data, ModelData *model_data)
           }
           // calculate ln(GAMMA_k) Eq. 8
           double ln_GAMMA_k = Q_K_(k) * (1.0 - log(sum_m_A) - sum_m_B);
-          lnGAMMA_I_R += V_IK_(i_phase, i_spec, k) 
+          lnGAMMA_I_R += V_IK_(i_phase, i_spec, k)
                        * ( ln_GAMMA_k - LN_GAMMA_IK_(i_phase, i_spec, k));
         }
 
         // Calculate gamma_i Eq. 1 and convert to units of (m^3/ug)
-        GAMMA_I_(i_phase, i_instance, i_spec) = 
-          exp( lnGAMMA_I_C + lnGAMMA_I_R ) / total_umoles 
+        GAMMA_I_(i_phase, i_instance, i_spec) =
+          exp( lnGAMMA_I_C + lnGAMMA_I_R ) / total_umoles
           / MW_I_(i_phase, i_spec);
- 
+
       }
     }
   }
@@ -292,7 +295,7 @@ void * sub_model_UNIFAC_calculate(void *sub_model_data, ModelData *model_data)
  *
  * \param sub_model_data Pointer to the sub-model data
  * \param base_val The derivative
- * \param jac_row Pointer to the Jacobian row to modify 
+ * \param jac_row Pointer to the Jacobian row to modify
  */
 void * sub_model_UNIFAC_add_jac_contrib(void *sub_model_data,
          double base_val, double *jac_row)

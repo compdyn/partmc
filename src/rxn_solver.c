@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2017 Matthew Dawson
+/* Copyright (C) 2015-2018 Matthew Dawson
  * Licensed under the GNU General Public License version 2 or (at your
  * option) any later version. See the file COPYING for details.
  *
@@ -10,8 +10,8 @@
 */
 #define PMC_DEBUG_SPEC_ 118
 
-#include "phlex_solver.h"
 #include "rxn_solver.h"
+#include "rxns.h"
 
 // Reaction types (Must match parameters defined in pmc_rxn_factory)
 #define RXN_ARRHENIUS 1
@@ -232,7 +232,7 @@ void rxn_update_env_state(ModelData *model_data, double *env)
                   env, (void*) rxn_data);
         break;
     }
-  } 
+  }
 }
 
 /** \brief Do pre-derivative/Jacobian calculations
@@ -259,13 +259,13 @@ void rxn_update_env_state(ModelData *model_data, double *env)
  */
 void rxn_pre_calc(ModelData *model_data, double time_step)
 {
-  // If called with time_step = 0, update the state based on the last 
+  // If called with time_step = 0, update the state based on the last
   // calculated adjustments
   if (time_step==0.0 && model_data->use_adj) rxn_adjust_state(model_data);
 
   // Start with no state adjustments
   rxn_reset_state_adjustments(model_data);
- 
+
   // Get the number of reactions
   int *rxn_data = (int*) (model_data->rxn_data);
   int n_rxn = *(rxn_data++);
@@ -324,7 +324,7 @@ void rxn_pre_calc(ModelData *model_data, double time_step)
         break;
     }
   }
-  
+
   // Update the state array (if called during solving)
   if (time_step > 0.0 && model_data->use_adj) rxn_adjust_state(model_data);
 
@@ -352,7 +352,7 @@ void rxn_adjust_state(ModelData *model_data)
 {
   // First check whether the adjustments need scaled
   if (model_data->scale_adj) {
-      
+
     // Get the number of reactions
     int *rxn_data = (int*) (model_data->rxn_data);
     int n_rxn = *(rxn_data++);
@@ -435,10 +435,10 @@ void rxn_adjust_state(ModelData *model_data)
 #ifdef PMC_USE_SUNDIALS
 void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
 {
-  
+
   // Get a pointer to the derivative data
   realtype *deriv_data = N_VGetArrayPointer(deriv);
-  
+
   // Get the number of reactions
   int *rxn_data = (int*) (model_data->rxn_data);
   int n_rxn = *(rxn_data++);
@@ -496,7 +496,7 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
     }
-  } 
+  }
 }
 #endif
 
@@ -512,7 +512,7 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J, realtype time_step)
 
   // Get a pointer to the Jacobian data
   realtype *J_data = SM_DATA_S(J);
-  
+
   // Get the number of reactions
   int *rxn_data = (int*) (model_data->rxn_data);
   int n_rxn = *(rxn_data++);
@@ -570,7 +570,7 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J, realtype time_step)
                   model_data, J_data, (void*) rxn_data, time_step);
         break;
     }
-  }  
+  }
 }
 #endif
 

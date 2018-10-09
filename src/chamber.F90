@@ -76,7 +76,7 @@ contains
     real(kind=dp) :: D
 
     D = chamber_diff_coef(vol, aero_data, temp, pressure)
-    
+
     chamber_diff_BL_thick = chamber%prefactor_BL &
          * (D / CHAMBER_UNIT_DIFF_COEF)**chamber%exponent_BL
 

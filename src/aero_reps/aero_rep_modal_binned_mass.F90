@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -16,9 +16,9 @@
 !!    {
 !!      "name" : "my modal/binned aero rep",
 !!      "type" : "AERO_REP_MODAL_BINNED_MASS",
-!!      "modes/bins" : 
+!!      "modes/bins" :
 !!      {
-!!        "dust" : 
+!!        "dust" :
 !!        {
 !!          "type" : "BINNED",
 !!          "phases" : [ "insoluble", "organic", "aqueous" ],
@@ -50,13 +50,13 @@
 !!
 !! Modes must also specify a distribution \b shape which must be \b LOG_NORMAL
 !! (the available shapes may be expanded in the future). Log-normal sections
-!! must include a \b geometric \b mean \b diameter (m) and a \b geometric 
+!! must include a \b geometric \b mean \b diameter (m) and a \b geometric
 !! \b standard \b deviation (unitless) that will be used along with the mass
 !! concentration of species in each phase and their densities to calculate a
 !! lognormal distribution for each mode at runtime.
 !!
 !! Bin sets must specify the number of \b bins, a \b minimum \b diameter (m),
-!! a \b maximum \b diameter (m) and a \b scale, which must be \b LOG or 
+!! a \b maximum \b diameter (m) and a \b scale, which must be \b LOG or
 !! \b LINEAR. The number concentration will be calculated at run-time based on
 !! the total mass of each bin, the species densities and the diameter of
 !! particles in that bin.
@@ -130,7 +130,7 @@ module pmc_aero_rep_modal_binned_mass
 
   !> Modal mass aerosol representation
   !!
-  !! Time-invariant data related to a modal/binned mass aerosol representation. 
+  !! Time-invariant data related to a modal/binned mass aerosol representation.
   type, extends(aero_rep_data_t) :: aero_rep_modal_binned_mass_t
     !> Mode names (only used during initialization)
     type(string_t), allocatable :: section_name(:)
@@ -162,7 +162,7 @@ module pmc_aero_rep_modal_binned_mass
     !! \c pmc_phlex_state::phlex_state_t::state_var array for this aerosol
     !! representation. The list may be restricted to a particular phase and/or
     !! aerosol species by including the phase_name and spec_name arguments.
-    !! 
+    !!
     !! For a modal/binned mass representation, the unique names for bins are:
     !!   - "bin name.bin #.phase name.species name"
     !!
@@ -354,7 +354,7 @@ contains
     num_phase = 0
     call sections%iter_reset()
     do i_section = 1, sections%size()
-    
+
       ! Get the mode/bin name
       call assert(867378489, sections%get_key(key_name))
       call assert_msg(234513113, len(key_name).gt.0, "Missing mode/bin "// &
@@ -382,18 +382,18 @@ contains
               this%section_name(i_section)%string// &
               "' in modal/binned mass aerosol representation '"// &
               this%rep_name//"'")
-      
-      ! Get the number of bins (or set to 1 for a mode)      
+
+      ! Get the number of bins (or set to 1 for a mode)
       num_bin = 1
       if (sect_type.eq."BINNED") then
-      
+
         key_name = "bins"
         call assert_msg(824494286, section%get_int(key_name, num_bin), &
                 "Missing number of bins in bin '"// &
               this%section_name(i_section)%string// &
               "' in modal/binned mass aerosol representation '"// &
               this%rep_name//"'")
-      end if 
+      end if
 
       ! Add space for the mode/bin type, number of bins, and phase count
       ! and parameter locations
@@ -401,7 +401,7 @@ contains
 
       ! Add space for the GMD, GSD, number concentration, and effective radius
       n_float_param = n_float_param + 4*num_bin
- 
+
       ! Get the set of phases
       key_name = "phases"
       call assert_msg(815518058, section%get_property_t(key_name, phases), &
@@ -428,11 +428,11 @@ contains
                 this%section_name(i_section)%string// &
                 "' in modal/binned mass aerosol representation '"// &
                 this%rep_name//"'")
-        
+
         ! Find the aerosol phase and add space for its variables
         do j_phase = 1, size(aero_phase_set)
           if (phase_name.eq.aero_phase_set(j_phase)%val%name()) then
-            
+
             ! Add space for the phase state and model data ids
             n_int_param = n_int_param + 2 * num_bin
 
@@ -448,7 +448,7 @@ contains
                     this%rep_name//"'")
           end if
         end do
-        
+
         call phases%iter_next()
       end do
 
@@ -478,7 +478,7 @@ contains
     n_float_param = NUM_REAL_PROP_+1
     call sections%iter_reset()
     do i_section = 1, NUM_SECTION_
-    
+
       ! Set the data locations for this mode
       MODE_INT_PROP_LOC_(i_section) = n_int_param
       MODE_REAL_PROP_LOC_(i_section) = n_float_param
@@ -497,7 +497,7 @@ contains
         call die_msg(256924433, "Internal error")
       end if
 
-      ! Get the number of bins (or set to 1 for a mode)      
+      ! Get the number of bins (or set to 1 for a mode)
       NUM_BINS_(i_section) = 1
       if (SECTION_TYPE_(i_section).eq.BINNED) then
         key_name = "bins"
@@ -506,7 +506,7 @@ contains
 
       ! Get mode parameters
       if (SECTION_TYPE_(i_section).eq.MODAL) then
-        
+
         ! Get the geometric mean diameter
         key_name = "geometric mean diameter"
         call assert_msg(414771933, &
@@ -531,7 +531,7 @@ contains
         ! (See aero_rep_modal_binned_mass_get_effective_radius for details)
         EFFECTIVE_RADIUS_(i_section, NUM_BINS_(i_section)) = &
                 GMD_(i_section, NUM_BINS_(i_section)) / 2.0d0 * &
-                exp(5.0d0/2.0d0*(GSD_(i_section, NUM_BINS_(i_section)))**2) 
+                exp(5.0d0/2.0d0*(GSD_(i_section, NUM_BINS_(i_section)))**2)
 
       ! Get bin parameters
       else if (SECTION_TYPE_(i_section).eq.BINNED) then
@@ -576,7 +576,7 @@ contains
           call die_msg(236797392, "Invalid scale specified for bin '"// &
                 this%section_name(i_section)%string// &
                 "' in modal/binned mass aerosol representation '"// &
-                this%rep_name//"'")         
+                this%rep_name//"'")
         end if
 
         ! Set the effective radius
@@ -603,11 +603,11 @@ contains
 
         ! Get the phase name
         call assert(775801035, phases%get_string(val=phase_name))
-        
+
         ! Find the aerosol phase and add it to the list
         do k_phase = 1, size(aero_phase_set)
           if (phase_name.eq.aero_phase_set(k_phase)%val%name()) then
-            
+
             ! Loop through the bins
             do i_bin = 1, NUM_BINS_(i_section)
 
@@ -732,7 +732,7 @@ contains
   !! \c pmc_phlex_state::phlex_state_t::state_var array for this aerosol
   !! representation. The list may be restricted to a particular phase and/or
   !! aerosol species by including the phase_name and spec_name arguments.
-  !! 
+  !!
   !! For a modal/binned mass representation, the unique names for bins are:
   !!   - "bin name.bin #.phase name.species name"
   !!
@@ -757,7 +757,7 @@ contains
     character(len=:), allocatable :: curr_section_name, curr_phase_name, &
                                      curr_bin_str
     type(string_t), allocatable :: spec_names(:)
-    
+
     ! Count the number of unique names
     num_spec = 0
     do i_phase = 1, size(this%aero_phase)
@@ -805,7 +805,7 @@ contains
 
         ! Set the current phase name
         curr_phase_name = this%aero_phase(i_phase)%val%name()
-      
+
         ! Filter by phase name
         if (present(phase_name)) then
           if (phase_name.ne.curr_phase_name) then
@@ -848,13 +848,13 @@ contains
             unique_names(i_spec)%string = curr_section_name//"."// &
                   curr_bin_str//curr_phase_name//'.'// &
                   spec_names(j_spec)%string
-          
+
             i_spec = i_spec + 1
           end do
-          
+
           ! Move to the next phase instance
           i_phase = i_phase + 1
-        
+
         end do
 
         deallocate(spec_names)
@@ -916,7 +916,7 @@ contains
 
     ! Indices for iterators
     integer(kind=i_kind) :: i_spec, j_spec, i_phase
-   
+
     ! species names in the aerosol phase
     type(string_t), allocatable :: spec_names(:)
 

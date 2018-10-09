@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -43,7 +43,7 @@ module pmc_chem_spec_data
   implicit none
   private
 
-  public :: chem_spec_data_t 
+  public :: chem_spec_data_t
 
   !> State variable types (Must match values in phlex_solver.c)
   integer(kind=i_kind), parameter, public :: CHEM_SPEC_UNKNOWN_TYPE = 0
@@ -159,7 +159,7 @@ contains
   !!
   !! A \c json object containing information about a \ref phlex_species
   !! "chemical species" has the following format:
-  !! \code{.json} 
+  !! \code{.json}
   !! { "pmc-data" : [
   !!   {
   !!     "name" : "my species name",
@@ -230,7 +230,7 @@ contains
     ! initialize type and phase
     spec_type = CHEM_SPEC_UNKNOWN_TYPE
     spec_phase = CHEM_SPEC_UNKNOWN_PHASE
-   
+
     ! initialize species name in case of errors
     spec_name = "unknown"
 
@@ -240,14 +240,14 @@ contains
     call json%get_child(j_obj, child)
     do while (associated(child))
       call json%info(child, name=key, var_type=var_type)
-      
+
       ! species name
       if (key.eq."name") then
         if (var_type.ne.json_string) call die_msg(181339359, &
                 "Received non-string species name")
         call json%get(child, unicode_str_val)
         spec_name = unicode_str_val
-      
+
       ! variable type
       else if (key.eq."tracer type") then
         if (var_type.ne.json_string) call die_msg(249541360, &
@@ -267,7 +267,7 @@ contains
           call die_msg(171550163, "Unknown chemical species type: "// &
                   str_val)
         end if
-      
+
       ! species phase
       else if (key.eq."phase") then
         if (var_type.ne.json_string) call die_msg(273466657, &
@@ -326,7 +326,7 @@ contains
       ! Set default value for type
       if (this%spec_type(i_spec).eq.CHEM_SPEC_UNKNOWN_TYPE) &
               this%spec_type(i_spec) = CHEM_SPEC_VARIABLE
-      
+
       ! Set default value for phase
       if (this%spec_phase(i_spec).eq.CHEM_SPEC_UNKNOWN_PHASE) &
               this%spec_phase(i_spec) = CHEM_SPEC_GAS_PHASE
@@ -338,7 +338,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the number of species with the given properties. If no properties
-  !! are specified, return the total number of species. 
+  !! are specified, return the total number of species.
   integer(kind=i_kind) function get_size(this, spec_type, spec_phase) &
                   result (num_spec)
 
@@ -508,7 +508,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the absolute integration tolerance of a species by name. Returns 
+  !> Get the absolute integration tolerance of a species by name. Returns
   !! true if the species is found, or false otherwise.
   logical function get_abs_tol(this, spec_name, abs_tol) &
                   result (found)
@@ -552,7 +552,7 @@ contains
     character(len=:), allocatable, intent(in) :: spec_name
 
     integer(kind=i_kind) :: i_spec
-    
+
     gas_state_id = 0
     do i_spec = 1, this%num_spec
       if (this%spec_phase(i_spec).eq.CHEM_SPEC_GAS_PHASE) then
@@ -583,7 +583,7 @@ contains
     integer(kind=i_kind), intent(in) :: spec_id
 
     integer(kind=i_kind) :: gas_state_id, i_spec
-    
+
     gas_state_id = 0
     do i_spec = 1, this%num_spec
       if (this%spec_phase(i_spec).eq.CHEM_SPEC_GAS_PHASE) &
@@ -724,7 +724,7 @@ contains
 
     ! if the species exists, append the new data
     if (this%find(spec_name, i_spec)) then
-     
+
       ! Check for a type mismatch
       if (spec_type.eq.CHEM_SPEC_UNKNOWN_TYPE) &
               spec_type = this%spec_type(i_spec)
@@ -761,7 +761,7 @@ contains
     end if
 
   end subroutine add
-          
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the index of a chemical species by name. Returns true if the species

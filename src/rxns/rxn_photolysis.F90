@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -22,7 +22,7 @@
 !! External modules can use the
 !! \c pmc_rxn_photolysis::rxn_photolysis_t::get_property_set() function during
 !! initilialization to access any needed reaction parameters to identify
-!! certain photolysis reactions. The 
+!! certain photolysis reactions. The
 !! \c pmc_rxn_photolysis::rxn_photolysis_t::set_photo_id() function can be
 !! used during initialization to set an integer id for a particular reaction
 !! that can be used during solving to update the photolysis rate from an
@@ -55,12 +55,12 @@
 !! optional, and can be used to set a constant scaling factor for the rate
 !! constant. When the \b scaling \b factor is not provided, it is assumed to
 !! be 1.0. All other data is optional and will be available to external
-!! photolysis modules during initialization. Rate constants are in units of 
+!! photolysis modules during initialization. Rate constants are in units of
 !! \f$s^{-1}\f$.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!> The rxn_photolysis_t type and associated functions. 
+!> The rxn_photolysis_t type and associated functions.
 module pmc_rxn_photolysis
 
   use pmc_aero_rep_data
@@ -146,7 +146,7 @@ public :: rxn_photolysis_t, rxn_update_data_photolysis_rate_t
       !> New pre-scaling base photolysis rate
       real(kind=c_double), value :: base_rate
     end subroutine rxn_photolysis_set_rate_update_data
-  
+
     !> Free an update rate data object
     pure subroutine rxn_free_update_data(update_data) bind (c)
       use iso_c_binding
@@ -177,7 +177,7 @@ contains
   !! any required information into the condensed data arrays for use during
   !! solving
   subroutine initialize(this, chem_spec_data, aero_rep)
-    
+
     !> Reaction data
     class(rxn_photolysis_t), intent(inout) :: this
     !> Chemical species data
@@ -217,22 +217,22 @@ contains
     end do
 
     ! Allocate space in the condensed data arrays
-    ! Space in this example is allocated for two sets of inidices for the 
-    ! reactants and products, one molecular property for each reactant, 
+    ! Space in this example is allocated for two sets of inidices for the
+    ! reactants and products, one molecular property for each reactant,
     ! yields for the products and three reaction parameters.
     allocate(this%condensed_data_int(NUM_INT_PROP_ + &
             (i_spec + 2) * (i_spec + products%size())))
     allocate(this%condensed_data_real(NUM_REAL_PROP_ + products%size()))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
-    
+
     ! Save the size of the reactant and product arrays (for reactions where
     ! these can vary)
     NUM_REACT_ = i_spec
     NUM_PROD_ = products%size()
 
     ! Get reaction parameters (it might be easiest to keep these at the
-    ! beginning of the condensed data array, so they can be accessed using 
+    ! beginning of the condensed data array, so they can be accessed using
     ! compliler flags)
     key_name = "rate const"
     if (.not. this%property_set%get_real(key_name, BASE_RATE_)) then
@@ -306,7 +306,7 @@ contains
   !! module to update the base (unscaled) rate constant during the model run.
   subroutine set_photo_id(this, photo_id)
 
-    !> Reaction data 
+    !> Reaction data
     class(rxn_photolysis_t), intent(inout) :: this
     !> Photo id
     integer(kind=i_kind), intent(in) :: photo_id

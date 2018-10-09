@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -7,9 +7,9 @@
 
 !> \page phlex_rxn_SIMPOL_phase_transfer Phlexible Module for Chemistry: SIMPOL.1 Phase-Transfer Reaction
 !!
-!! SIMPOL phase transfer reactions are based on the SIMPOL.1 model 
+!! SIMPOL phase transfer reactions are based on the SIMPOL.1 model
 !! calculations of vapor pressure described by Pankow and Asher (2008)
-!! \cite Pankow2008. 
+!! \cite Pankow2008.
 !!
 !! Mass accomodation coefficients and condensation rate constants are
 !! calculated using the method of Ervans et al. (2003) \cite Ervens2003 and
@@ -30,7 +30,7 @@
 !! \f[
 !!   k_{f} = (\frac{r^2}{3D_g} + \frac{4r}{3 \langle c \rangle \alpha})
 !! \f]
-!! where \f$r\f$ is the particle radius (\f$\mbox{m}\f$) and 
+!! where \f$r\f$ is the particle radius (\f$\mbox{m}\f$) and
 !! \f$\langle c \rangle \f$ is the mean speed of the gas-phase molecules:
 !! \f[
 !!   \langle c \rangle = \sqrt{\frac{8RT}{\pi MW}}
@@ -52,13 +52,13 @@
 !!       ...
 !!   }
 !! \endcode
-!! The key-value pairs \b gas-phase \b species, \b aerosol \b phase and 
-!! \b aerosol-phase \b species are required. Only one gas- and one 
-!! aerosol-phase species are allowed per phase-transfer reaction. 
-!! Additionally, gas-phase species must include parameters named 
+!! The key-value pairs \b gas-phase \b species, \b aerosol \b phase and
+!! \b aerosol-phase \b species are required. Only one gas- and one
+!! aerosol-phase species are allowed per phase-transfer reaction.
+!! Additionally, gas-phase species must include parameters named
 !! \b diffusion \b coeff, which specifies the diffusion coefficient in
 !! \f$\mbox{\si{\square\metre\per\second}}\f$, and \b molecular \b weight,
-!! which specifies the molecular weight of the species in 
+!! which specifies the molecular weight of the species in
 !! \f$\mbox{\si{\kilo\gram\per\mole}}\f$. They may optionally include the
 !! parameter \b N \b star, which will be used to calculate the mass
 !! accomodation coefficient. When this parameter is not included, the mass
@@ -78,7 +78,7 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!> The rxn_SIMPOL_phase_transfer_t type and associated functions. 
+!> The rxn_SIMPOL_phase_transfer_t type and associated functions.
 module pmc_rxn_SIMPOL_phase_transfer
 
   use pmc_aero_phase_data
@@ -159,7 +159,7 @@ contains
   !! any required information into the condensed data arrays for use during
   !! solving
   subroutine initialize(this, chem_spec_data, aero_rep)
-    
+
     !> Reaction data
     class(rxn_SIMPOL_phase_transfer_t), intent(inout) :: this
     !> Chemical species data
@@ -195,20 +195,20 @@ contains
             "Missing aerosol representation for phase transfer reaction")
     call assert_msg(590304021, size(aero_rep).gt.0, &
             "Missing aerosol representation for phase transfer reaction")
-    
+
     ! Count the instances of this phase/species pair
     n_aero_ids = 0
     do i_aero_rep = 1, size(aero_rep)
 
-      ! Get the unique names in this aerosol representation for the 
-      ! partitioning species 
+      ! Get the unique names in this aerosol representation for the
+      ! partitioning species
       unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
               phase_name = phase_name, spec_name = spec_name)
 
       ! Skip aerosol representations that do not contain this phase
       if (.not.allocated(unique_spec_names)) cycle
 
-      ! Add these instances to the list     
+      ! Add these instances to the list
       n_aero_ids = n_aero_ids + size(unique_spec_names)
 
       deallocate(unique_spec_names)
@@ -236,26 +236,26 @@ contains
             "Missing property 'MW' for aerosol species "//trim(spec_name)// &
             " required for phase-transfer reaction")
 
-    ! Set the ug/m3 -> ppm conversion prefactor (multiply by T/P to get 
+    ! Set the ug/m3 -> ppm conversion prefactor (multiply by T/P to get
     ! conversion)
-    ! (ppm_x*Pa_air*m^3/K/ug_x) = Pa_air*m^3/mol_air/K * mol_x/kg_x * 
+    ! (ppm_x*Pa_air*m^3/K/ug_x) = Pa_air*m^3/mol_air/K * mol_x/kg_x *
     !                   1.0e-9kg_x/ug_x * 1.0e6ppm_x*mol_air/mol_x
     CONV_ = const%univ_gas_const / MW_ / 1.0e3
 
     ! Set the ids of each aerosol-phase species instance
     i_aero_id = 1
     do i_aero_rep = 1, size(aero_rep)
-        
-      ! Get the unique names in this aerosol representation for the 
+
+      ! Get the unique names in this aerosol representation for the
       ! partitioning species
       unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
               phase_name = phase_name, spec_name = spec_name)
-     
+
       ! Get the phase ids for this aerosol phase
       phase_ids = aero_rep(i_aero_rep)%val%phase_ids(phase_name)
 
       ! Add the species concentration and activity coefficient ids to
-      ! the condensed data 
+      ! the condensed data
       do i_spec = 1, size(unique_spec_names)
         AERO_SPEC_(i_aero_id) = &
               aero_rep(i_aero_rep)%val%spec_state_id( &
@@ -269,7 +269,7 @@ contains
 
     end do
 
-    ! Get the SIMPOL.1 parameters 
+    ! Get the SIMPOL.1 parameters
     key_name = "B"
     call assert_msg(882881186, &
             this%property_set%get_property_t(key_name, b_params), &
@@ -324,7 +324,7 @@ contains
     ! and condensed tropospheric aqueous mechanism and its application."
     ! J. Geophys. Res. 108, 4426. doi:10.1029/2002JD002202
     key_name = "N star"
-    if (spec_props%get_real(key_name, N_star)) then     
+    if (spec_props%get_real(key_name, N_star)) then
       ! enthalpy change (kcal mol-1)
       DELTA_H_ = real(- 10.0d0*(N_star-1.0d0) + &
               7.53d0*(N_star**(2.0d0/3.0d0)-1.0d0) - 1.0d0, kind=dp)
@@ -343,7 +343,7 @@ contains
     key_name = "diffusion coeff"
     call assert_msg(948176709, spec_props%get_real(key_name, DIFF_COEFF_), &
             "Missing diffusion coefficient for species "//spec_name)
-    
+
     ! Calculate the constant portion of c_rms [m/(K^2*s)]
     key_name = "molecular weight"
     call assert_msg(272813400, spec_props%get_real(key_name, temp_real), &

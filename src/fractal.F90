@@ -83,7 +83,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert mass-equivalent volume \f$V\f$ (m^3) to number of 
+  !> Convert mass-equivalent volume \f$V\f$ (m^3) to number of
   !> monomers \f$N\f$ in a fractal particle cluster.
   !!
   !! Based on Eq. 5 in Naumann [2003].

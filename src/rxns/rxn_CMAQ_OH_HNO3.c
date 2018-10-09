@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2017 Matthew Dawson
+/* Copyright (C) 2015-2018 Matthew Dawson
  * Licensed under the GNU General Public License version 2 or (at your
  * option) any later version. See the file COPYING for details.
  *
@@ -8,7 +8,10 @@
 /** \file
  * \brief CMAQ_OH_HNO3 reaction solver functions
 */
-#include "../rxn_solver.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "../rxns.h"
 
 // TODO Lookup environmental indicies during initialization
 #define TEMPERATURE_K_ env_data[0]
@@ -41,7 +44,7 @@
 /** \brief Flag Jacobian elements used by this reaction
  *
  * \param rxn_data A pointer to the reaction data
- * \param jac_struct 2D array of flags indicating potentially non-zero 
+ * \param jac_struct 2D array of flags indicating potentially non-zero
  *                   Jacobian elements
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
@@ -60,7 +63,7 @@ void * rxn_CMAQ_OH_HNO3_get_used_jac_elem(void *rxn_data, bool **jac_struct)
   }
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}  
+}
 
 /** \brief Update the time derivative and Jacbobian array indices
  *
@@ -97,7 +100,7 @@ void * rxn_CMAQ_OH_HNO3_update_ids(ModelData *model_data, int *deriv_ids,
 
 /** \brief Update reaction data for new environmental conditions
  *
- * For CMAQ_OH_HNO3 reaction this only involves recalculating the rate 
+ * For CMAQ_OH_HNO3 reaction this only involves recalculating the rate
  * constant.
  *
  * \param env_data Pointer to the environmental state array
@@ -113,16 +116,16 @@ void * rxn_CMAQ_OH_HNO3_update_env_state(double *env_data, void *rxn_data)
   double conv = CONV_ * PRESSURE_PA_ / TEMPERATURE_K_;
   double k2 = k2_A_
 	  * (k2_C_==0.0 ? 1.0 : exp(k2_C_/TEMPERATURE_K_))
-	  * (k2_B_==0.0 ? 1.0 : 
+	  * (k2_B_==0.0 ? 1.0 :
                     pow(TEMPERATURE_K_/((double)300.0), k2_B_));
   double k3 = k3_A_ // [M] is included in k3_A_
 	  * (k3_C_==0.0 ? 1.0 : exp(k3_C_/TEMPERATURE_K_))
-	  * (k3_B_==0.0 ? 1.0 : 
+	  * (k3_B_==0.0 ? 1.0 :
                     pow(TEMPERATURE_K_/((double)300.0), k3_B_))
 	  * conv;
   RATE_CONSTANT_ = (k0_A_
 	  * (k0_C_==0.0 ? 1.0 : exp(k0_C_/TEMPERATURE_K_))
-	  * (k0_B_==0.0 ? 1.0 : 
+	  * (k0_B_==0.0 ? 1.0 :
                   pow(TEMPERATURE_K_/((double)300.0), k0_B_))
 	  + k3 / (((double)1.0) + k3 / k2)
 	  ) * pow(conv, NUM_REACT_-1) * SCALING_;
@@ -172,12 +175,12 @@ void * rxn_CMAQ_OH_HNO3_calc_deriv_contrib(ModelData *model_data,
   if (rate!=ZERO) {
     int i_dep_var = 0;
     for (int i_spec=0; i_spec<NUM_REACT_; i_spec++, i_dep_var++) {
-      if (DERIV_ID_(i_dep_var) < 0) continue; 
+      if (DERIV_ID_(i_dep_var) < 0) continue;
       deriv[DERIV_ID_(i_dep_var)] -= rate;
     }
     for (int i_spec=0; i_spec<NUM_PROD_; i_spec++, i_dep_var++) {
-      if (DERIV_ID_(i_dep_var) < 0) continue; 
-      // Negative yields are allowed, but prevented from causing negative 
+      if (DERIV_ID_(i_dep_var) < 0) continue;
+      // Negative yields are allowed, but prevented from causing negative
       // concentrations that lead to solver failures
       if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
         deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
@@ -221,7 +224,7 @@ void * rxn_CMAQ_OH_HNO3_calc_jac_contrib(ModelData *model_data, realtype *J,
       }
       for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
 	if (JAC_ID_(i_elem) < 0) continue;
-        // Negative yields are allowed, but prevented from causing negative 
+        // Negative yields are allowed, but prevented from causing negative
         // concentrations that lead to solver failures
         if (-rate*YIELD_(i_dep)*time_step <= state[PROD_(i_dep)]) {
 	  J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate / state[REACT_(i_ind)];
@@ -236,7 +239,7 @@ void * rxn_CMAQ_OH_HNO3_calc_jac_contrib(ModelData *model_data, realtype *J,
 #endif
 
 /** \brief Advance the reaction data pointer to the next reaction
- * 
+ *
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
@@ -259,11 +262,11 @@ void * rxn_CMAQ_OH_HNO3_print(void *rxn_data)
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   printf("\n\nCMAQ_OH_HNO3 reaction\n");
-  for (int i=0; i<INT_DATA_SIZE_; i++) 
+  for (int i=0; i<INT_DATA_SIZE_; i++)
     printf("  int param %d = %d\n", i, int_data[i]);
   for (int i=0; i<FLOAT_DATA_SIZE_; i++)
     printf("  float param %d = %le\n", i, float_data[i]);
- 
+
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 

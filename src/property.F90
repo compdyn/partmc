@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matthew Dawson
+! Copyright (C) 2017-2018 Matthew Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -67,7 +67,7 @@ module pmc_property
     procedure :: print => do_print
     !> Finalize
     final :: finalize
-    
+
     !> Private functions
     !> Find a key-value pair by key name
     procedure, private :: get
@@ -146,7 +146,7 @@ contains
     type(json_core), pointer, intent(in) :: json
     !> JSON object
     type(json_value), pointer, intent(in) :: j_obj
-    !> Set to true if j_obj is a json object to parse, adding all child 
+    !> Set to true if j_obj is a json object to parse, adding all child
     !! key-value pairs to the data set, or false if j_obj is a single
     !! key-value pair to add to the data set
     logical, intent(in) :: as_object
@@ -175,12 +175,12 @@ contains
     next => null()
 
     ! determine whether to add parent or children key-value pairs
-    if (as_object) then 
+    if (as_object) then
       call json%get_child(j_obj, child)
-    else 
+    else
       child => j_obj
     end if
-    
+
     ! loop through set of json objects to add to the property set
     do while (associated(child))
 
@@ -199,39 +199,39 @@ contains
           call json%get(child, int_val)
           call this%put(prop_key, int(int_val, i_kind), allow_dup, &
                         owner_name)
-       
+
         ! double
         case (json_double)
           call json%get(child, real_val)
           call this%put(prop_key, real(real_val, dp), allow_dup, &
                         owner_name)
-        
+
         ! boolean
         case (json_logical)
           call json%get(child, bool_val)
           call this%put(prop_key, logical(bool_val), allow_dup, &
                         owner_name)
-        
+
         ! string
         case (json_string)
           call json%get(child, unicode_val)
           str_val = unicode_val
           call this%put(prop_key, str_val, allow_dup, owner_name)
-        
+
         ! sub-set of key-value pairs
         case (json_object)
           sub_prop => property_t()
           call sub_prop%load(json, child, .true., owner_name)
           call this%put(prop_key, sub_prop, allow_dup, owner_name)
           deallocate(sub_prop)
-        
+
         ! sub-set of values
         case (json_array)
           sub_prop => property_t()
           call sub_prop%load(json, child, .true., owner_name)
           call this%put(prop_key, sub_prop, allow_dup, owner_name)
           deallocate(sub_prop)
-        
+
         ! skip other types
         case default
       end select
@@ -239,7 +239,7 @@ contains
       ! get the next object to add
       if (as_object) call json%get_next(child, next)
       child => next
-    
+
     end do
 
 #else
@@ -274,10 +274,10 @@ contains
 
     ! if this is an array element, the key will be empty
     if (allocated(key).and.len(key).ge.1) then
-   
+
       ! look for the key in the existing properties if disallowing duplictes
       if (.not.allow_duplicates) then
-        
+
         new_link => this%get(key)
 
         ! do not allow overwrites of existing properties, but allow sub-sets
@@ -346,7 +346,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Get the key name of the element currently pointed to by the iterator. 
+  !> Get the key name of the element currently pointed to by the iterator.
   !! Returns true if the iterator points to a key-value pair; false indicates
   !! the list is empty, the iterator was never reset, or the end of the list
   !! has been reached. Array elements return true, but have an empty key name.
@@ -368,7 +368,7 @@ contains
 
   !> Get an integer value. The return value is true if the key-value pair
   !! was found, and false otherwise. If no key name is specified, the current
-  !! value of the iterator is returned. In this case true indicates a current 
+  !! value of the iterator is returned. In this case true indicates a current
   !! key-value exists; false indicates the list is empty, the iterator was
   !! never reset, or the end of the list has been reached.
   logical function get_int(this, key, val) result(found)
@@ -399,7 +399,7 @@ contains
 
   !> Get a real value. The return value is true if the key-value pair
   !! was found, and false otherwise. If no key name is specified, the current
-  !! value of the iterator is returned. In this case true indicates a current 
+  !! value of the iterator is returned. In this case true indicates a current
   !! key-value exists; false indicates the list is empty, the iterator was
   !! never reset, or the end of the list has been reached.
   logical function get_real(this, key, val) result(found)
@@ -430,7 +430,7 @@ contains
 
   !> Get a logical value. The return value is true if the key-value pair
   !! was found, and false otherwise. If no key name is specified, the current
-  !! value of the iterator is returned. In this case true indicates a current 
+  !! value of the iterator is returned. In this case true indicates a current
   !! key-value exists; false indicates the list is empty, the iterator was
   !! never reset, or the end of the list has been reached.
   logical function get_logical(this, key, val) result(found)
@@ -461,7 +461,7 @@ contains
 
   !> Get a string value. The return value is true if the key-value pair
   !! was found, and false otherwise. If no key name is specified, the current
-  !! value of the iterator is returned. In this case true indicates a current 
+  !! value of the iterator is returned. In this case true indicates a current
   !! key-value exists; false indicates the list is empty, the iterator was
   !! never reset, or the end of the list has been reached.
   logical function get_string(this, key, val) result(found)
@@ -492,7 +492,7 @@ contains
 
   !> Get a property sub-set. The return value is true if the key-value pair
   !! was found, and false otherwise. If no key name is specified, the current
-  !! value of the iterator is returned. In this case true indicates a current 
+  !! value of the iterator is returned. In this case true indicates a current
   !! key-value exists; false indicates the list is empty, the iterator was
   !! never reset, or the end of the list has been reached.
   logical function get_property_t(this, key, val) result(found)
@@ -529,7 +529,7 @@ contains
     integer(kind=i_kind) :: get_size
     !> Property dataset
     class(property_t), intent(in) :: this
-    
+
     type(property_link_t), pointer :: curr_link
 
     get_size = 0
@@ -537,7 +537,7 @@ contains
     do while (associated(curr_link))
       get_size = get_size + 1
       curr_link => curr_link%next_link
-    end do 
+    end do
 
   end function get_size
 
@@ -652,7 +652,7 @@ contains
 
     next => null()
     do while (associated(this%first_link))
-      next => this%first_link%next_link 
+      next => this%first_link%next_link
       deallocate(this%first_link)
       this%first_link => next
     end do
@@ -719,7 +719,7 @@ contains
     character(:), allocatable :: key
     !> Property key-value pair
     class(property_link_t), intent(in) :: this
-    
+
     key = this%key_name
 
   end function key
@@ -738,7 +738,7 @@ contains
 
     ! determine the value type
     select type(val)
-      
+
       ! add integers, reals, logicals, and string_t as-is
       type is (integer(kind=i_kind))
       type is (real(kind=dp))

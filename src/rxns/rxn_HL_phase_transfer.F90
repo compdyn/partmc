@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -14,14 +14,14 @@
 !!   Ae^{C({1/T-1/298})}
 !! \f]
 !!
-!! where \f$A\f$ is the pre-exponential factor 
+!! where \f$A\f$ is the pre-exponential factor
 !! (\f$\mbox{\si{M.atm^{-1} s^{-1}}}\f$), \f$C\f$ is a constant (unitless) and
 !! \f$T\f$ is the temperature (\f$\mbox{K}\f$). Uptake kinetics are based on
 !! the particle effective radius, \f$r_{eff}\f$ (\f$\mbox{m}\f$), the
-!! condensing species gas-phase diffusion coefficient, \f$D_g\f$ 
+!! condensing species gas-phase diffusion coefficient, \f$D_g\f$
 !! (\f$\mbox{\si{\square\metre\per\second}}\f$), its molecular weight \f$MW\f$
 !! (\f$\mbox{\si{\kilo\gram\per\mole}}\f$), and \f$N^{*}\f$, which is
-!! used to calculate the mass accomodation coefficient. 
+!! used to calculate the mass accomodation coefficient.
 !!
 !! Mass accomodation coefficients and condensation rate constants are
 !! calculated using the method of Ervans et al. (2003) \cite Ervens2003 and
@@ -42,7 +42,7 @@
 !! \f[
 !!   k_{f} = (\frac{r^2}{3D_g} + \frac{4r}{3 \langle c \rangle \alpha})
 !! \f]
-!! where \f$r\f$ is the particle radius (\f$\mbox{m}\f$) and 
+!! where \f$r\f$ is the particle radius (\f$\mbox{m}\f$) and
 !! \f$\langle c \rangle \f$ is the mean speed of the gas-phase molecules:
 !! \f[
 !!   \langle c \rangle = \sqrt{\frac{8RT}{\pi MW}}
@@ -82,7 +82,7 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!> The rxn_HL_phase_transfer_t type and associated functions. 
+!> The rxn_HL_phase_transfer_t type and associated functions.
 module pmc_rxn_HL_phase_transfer
 
   use pmc_aero_phase_data
@@ -162,7 +162,7 @@ contains
   !! any required information into the condensed data arrays for use during
   !! solving
   subroutine initialize(this, chem_spec_data, aero_rep)
-    
+
     !> Reaction data
     class(rxn_HL_phase_transfer_t), intent(inout) :: this
     !> Chemical species data
@@ -206,12 +206,12 @@ contains
             "Missing aerosol representation for phase transfer reaction")
     call assert_msg(207961800, size(aero_rep).gt.0, &
             "Missing aerosol representation for phase transfer reaction")
-    
+
     ! Count the instances of this phase/species pair
     n_aero_ids = 0
     do i_aero_rep = 1, size(aero_rep)
 
-      ! Get the unique names in this aerosol representation for the 
+      ! Get the unique names in this aerosol representation for the
       ! partitioning species and aerosol-phase water
       unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
               phase_name = phase_name, spec_name = spec_name)
@@ -227,8 +227,8 @@ contains
               spec_name//" or "//water_name//" in phase "//phase_name// &
               " or improper implementation of aerosol phase in aerosol "// &
               "representation")
- 
-      ! Add these instances to the list     
+
+      ! Add these instances to the list
       n_aero_ids = n_aero_ids + size(unique_spec_names)
 
       deallocate(unique_spec_names)
@@ -257,7 +257,7 @@ contains
             "Missing property 'MW' for aerosol species "//trim(spec_name)// &
             " required for phase-transfer reaction")
 
-    ! Set the ug/m3 -> ppm conversion prefactor (multiply by T/P to get 
+    ! Set the ug/m3 -> ppm conversion prefactor (multiply by T/P to get
     ! conversion)
     CONV_ = const%univ_gas_const / MW_ / 1.0d3
 
@@ -270,19 +270,19 @@ contains
     ! Set the ids of each aerosol-phase species instance
     i_aero_id = 1
     do i_aero_rep = 1, size(aero_rep)
-        
-      ! Get the unique names in this aerosol representation for the 
+
+      ! Get the unique names in this aerosol representation for the
       ! partitioning species and aerosol-phase water
       unique_spec_names = aero_rep(i_aero_rep)%val%unique_names( &
               phase_name = phase_name, spec_name = spec_name)
       unique_water_names = aero_rep(i_aero_rep)%val%unique_names( &
               phase_name = phase_name, spec_name = water_name)
-    
+
       ! Get the phase ids for this aerosol phase
       phase_ids = aero_rep(i_aero_rep)%val%phase_ids(phase_name)
 
       ! Add the species concentration and activity coefficient ids to
-      ! the condensed data 
+      ! the condensed data
       do i_spec = 1, size(unique_spec_names)
         AERO_SPEC_(i_aero_id) = &
               aero_rep(i_aero_rep)%val%spec_state_id( &
@@ -300,7 +300,7 @@ contains
 
     end do
 
-    ! Get reaction parameters 
+    ! Get reaction parameters
     key_name = "A"
     if (.not. this%property_set%get_real(key_name, A_)) then
       A_ = 1.0
@@ -339,7 +339,7 @@ contains
     ! and condensed tropospheric aqueous mechanism and its application."
     ! J. Geophys. Res. 108, 4426. doi:10.1029/2002JD002202
     key_name = "N star"
-    if (spec_props%get_real(key_name, N_star)) then     
+    if (spec_props%get_real(key_name, N_star)) then
       ! enthalpy change (kcal mol-1)
       DELTA_H_ = real(- 10.0d0*(N_star-1.0d0) + &
               7.53d0*(N_star**(2.0d0/3.0d0)-1.0d0) - 1.0d0, kind=dp)
@@ -358,7 +358,7 @@ contains
     key_name = "diffusion coeff"
     call assert_msg(100205531, spec_props%get_real(key_name, DIFF_COEFF_), &
             "Missing diffusion coefficient for species "//spec_name)
-    
+
     ! Calculate the constant portion of c_rms [m/(K^2*s)]
     key_name = "molecular weight"
     call assert_msg(469582180, spec_props%get_real(key_name, temp_real), &

@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -63,7 +63,7 @@
 !!
 !!  ...
 !!
-!!  !> Identifiers for reaction types - used by binary packing/unpacking 
+!!  !> Identifiers for reaction types - used by binary packing/unpacking
 !!  !! functions
 !!  ...
 !!  integer(kind=i_kind), parameter :: RXN_FOO = 32
@@ -115,8 +115,8 @@
 !! ...
 !!
 !! # partmc library
-!! 
-!! set(REACTIONS 
+!!
+!! set(REACTIONS
 !!     ...
 !!     src/rxns/pmc_foo.F90
 !! )
@@ -198,8 +198,8 @@ module pmc_rxn_factory
 
   public :: rxn_factory_t
 
-  !> Identifiers for reaction types - used by binary packing/unpacking 
-  !! functions 
+  !> Identifiers for reaction types - used by binary packing/unpacking
+  !! functions
   integer(kind=i_kind), parameter, public :: RXN_ARRHENIUS = 1
   integer(kind=i_kind), parameter, public :: RXN_TROE = 2
   integer(kind=i_kind), parameter, public :: RXN_CMAQ_H2O2 = 3
@@ -276,7 +276,7 @@ contains
         new_obj => rxn_condensed_phase_arrhenius_t()
       case default
         call die_msg(367114278, "Unknown chemical reaction type: " &
-                //type_name) 
+                //type_name)
     end select
 
   end function create
@@ -306,9 +306,9 @@ contains
     call json%get(j_obj, "type", unicode_type_name, found)
     call assert_msg(137665576, found, 'Missing chemical reaction type.')
     type_name = unicode_type_name
-    
+
     ! Create a new reaction instance of the type specified
-    new_obj => this%create(type_name)    
+    new_obj => this%create(type_name)
 
     ! Load reaction parameters from the json object
     call new_obj%load(json, j_obj)
@@ -370,7 +370,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize an update data object
-  subroutine initialize_update_data(this, update_data) 
+  subroutine initialize_update_data(this, update_data)
 
     !> Reaction factory
     class(rxn_factory_t), intent(in) :: this

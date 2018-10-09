@@ -54,15 +54,15 @@
 !!
 !! <a href="https://www.json.org">www.json.org</a>
 !!
-!! Two types of \c json input files are used by \ref phlex_chem 
+!! Two types of \c json input files are used by \ref phlex_chem
 !! "phlex-chem":
 !!
 !! \ref input_format_phlex_file_list "Phlex-chem file list"
 !!
 !! \ref input_format_phlex_config "Phlex-chem configuration data"
 !!
-!! Typically, one \ref input_format_phlex_file_list "file list" file is 
-!! used for a PartMC run, which includes paths to multiple \ref 
+!! Typically, one \ref input_format_phlex_file_list "file list" file is
+!! used for a PartMC run, which includes paths to multiple \ref
 !! input_format_phlex_config "configuration" files containing the \ref
 !! phlex_chem "phlex-chem" configuration data. When running stand-alone
 !! PartMC, the path to the \ref input_format_phlex_file_list "file list"
@@ -107,16 +107,16 @@
 !! parameters are discouraged, as are \c public derived-type variables.
 !!
 !! Constructors that return a pointer to a newly allocated instance of a
-!! module's primary derived type are typically included in each module. In 
+!! module's primary derived type are typically included in each module. In
 !! addition to the primary derived type, a pointer type may be included for
 !! building arrays of pointers to the primary derived type. For example, the
 !! \c my_type_t type may have an associated \c my_type_ptr type in the same
-!! module whose only member is a pointer to a \c my_type_t object named \c 
+!! module whose only member is a pointer to a \c my_type_t object named \c
 !! val. (This helps, in particular, with building arrays of mixed extending
 !! types of an abstract type.) When abstract types are used, for example \c
-!! my_general_data_t, a factory type in a separate module, \c 
+!! my_general_data_t, a factory type in a separate module, \c
 !! my_general_factory_t, is provided to create instances of extending types
-!! by name or from input files. Extending types are located in a \c 
+!! by name or from input files. Extending types are located in a \c
 !! \\my_general folder in the \c \\src directory.
 !!
 !! \section mem_manage Memory Management
@@ -351,16 +351,16 @@ contains
     !!   output data to disk (see \ref output_format)
     !! - \b t_progress (real, unit s): the interval on which to
     !!   write summary information to the screen while running
-    !! - \b do_phlex_chem (logical): whether to run the <b>Phlexible module 
+    !! - \b do_phlex_chem (logical): whether to run the <b>Phlexible module
     !!   for Chemistry</b> (requires JSON and SUNDIALS support to be compiled
-    !!   in). If \c do_phlex_chem is \c yes, then the following parameters 
+    !!   in). If \c do_phlex_chem is \c yes, then the following parameters
     !!   must also be provided:
-    !!   - \b phlex_config (string): name of file containing a list of \b 
-    !!     phlex-chem configuration files. File format should be \ref 
+    !!   - \b phlex_config (string): name of file containing a list of \b
+    !!     phlex-chem configuration files. File format should be \ref
     !!     input_format_phlex_config
     !! - \b gas_data (string): name of file from which to read the gas
     !!   material data (only provide if \c restart and \c do_phlex_chem
-    !!   are \c no) --- the file format should be \subpage 
+    !!   are \c no) --- the file format should be \subpage
     !!   input_format_gas_data
     !! - \b gas_init (string): name of file from which to read the
     !!   initial gas state at the start of the simulation (only
@@ -457,7 +457,7 @@ contains
        call spec_file_read_real(file, 'del_t', run_part_opt%del_t)
        call spec_file_read_real(file, 't_output', run_part_opt%t_output)
        call spec_file_read_real(file, 't_progress', run_part_opt%t_progress)
-       
+
        call spec_file_read_logical(file, 'do_phlex_chem', &
                run_part_opt%do_phlex_chem)
        if (run_part_opt%do_phlex_chem) then

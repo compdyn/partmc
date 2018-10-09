@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -108,9 +108,9 @@ contains
     call json%get(j_obj, "type", unicode_type_name, found)
     call assert_msg(447218460, found, 'Missing sub-model type.')
     type_name = unicode_type_name
-    
+
     ! Create a new sub-model instance of the type specified
-    new_obj => this%create(type_name)    
+    new_obj => this%create(type_name)
 
     ! Load sub-model parameters from the json object
     call new_obj%load(json, j_obj)

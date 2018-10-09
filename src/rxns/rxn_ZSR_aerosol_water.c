@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2017 Matthew Dawson
+/* Copyright (C) 2015-2018 Matthew Dawson
  * Licensed under the GNU General Public License version 2 or (at your
  * option) any later version. See the file COPYING for details.
  *
@@ -8,7 +8,10 @@
 /** \file
  * \brief ZSR Aerosol Water reaction solver functions
 */
-#include "../rxn_solver.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "../rxns.h"
 
 // TODO Lookup environmental indices during initialization
 #define TEMPERATURE_K_ env_data[0]
@@ -53,7 +56,7 @@
  * ZSR aerosol water reactions are assumed to be at equilibrium
  *
  * \param rxn_data A pointer to the reaction data
- * \param jac_struct 2D array of flags indicating potentially non-zero 
+ * \param jac_struct 2D array of flags indicating potentially non-zero
  *                   Jacobian elements
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
@@ -64,7 +67,7 @@ void * rxn_ZSR_aerosol_water_get_used_jac_elem(void *rxn_data,
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}  
+}
 
 /** \brief Update the time derivative and Jacbobian array indices
  *
@@ -105,7 +108,7 @@ void * rxn_ZSR_aerosol_water_update_env_state(double *env_data,
 
   a = (((-0.1299*a - 0.6445)*a - 1.976)*a + 13.3185)*a;
   double water_vp = 101325.0 * exp(a); 		// (Pa)
-  
+
   PPM_TO_RH_ = PRESSURE_PA_ / water_vp / 1.0e6;	// (1/ppm)
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
@@ -133,7 +136,7 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
 
     // Get the contribution from each ion pair
     for (int i_ion_pair=0; i_ion_pair<NUM_ION_PAIR_; i_ion_pair++) {
-      
+
       double molality;
       double j_aw, e_aw;
       double conc;
@@ -145,29 +148,29 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
 	case ACT_TYPE_JACOBSON :
 
           // Determine whether to use the minimum RH in the calculation
-          j_aw = a_w>JACOB_low_RH_(i_ion_pair) ? a_w : 
+          j_aw = a_w>JACOB_low_RH_(i_ion_pair) ? a_w :
                   JACOB_low_RH_(i_ion_pair);
 
           // Calculate the molality of the pure binary ion pair solution
 	  molality = 0.0;
-          for (int i_order=0; i_order<JACOB_NUM_Y_(i_ion_pair); i_order++) 
-		  molality += JACOB_Y_(i_ion_pair, i_order) * 
+          for (int i_order=0; i_order<JACOB_NUM_Y_(i_ion_pair); i_order++)
+		  molality += JACOB_Y_(i_ion_pair, i_order) *
                           pow(j_aw,i_order);
           molality *= molality; // (mol/kg)
 
 	  // Calculate the water associated with this ion pair
-          double cation = state[PHASE_ID_(i_phase) + 
+          double cation = state[PHASE_ID_(i_phase) +
                   JACOB_CATION_ID_(i_ion_pair)] /
 		  JACOB_NUM_CATION_(i_ion_pair) /
                   JACOB_CATION_MW_(i_ion_pair);
-          double anion = state[PHASE_ID_(i_phase) + 
+          double anion = state[PHASE_ID_(i_phase) +
                   JACOB_ANION_ID_(i_ion_pair)] /
 		  JACOB_NUM_ANION_(i_ion_pair) /
                   JACOB_ANION_MW_(i_ion_pair); // (umol/m3)
 	  conc = (cation>anion ? anion : cation);
           conc = (conc>0.0 ? conc : 0.0);
           *water += conc / molality * 1000.0; // (ug/m3)
-          
+
 	  break;
 
 	// EQSAM (Metger et al., 2002)
@@ -178,7 +181,7 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
           e_aw = e_aw < 0.001 ? 0.001 : e_aw;
 
 	  // Calculate the molality of the ion pair
-	  molality = (EQSAM_NW_(i_ion_pair) * 55.51 * 18.01 / 
+	  molality = (EQSAM_NW_(i_ion_pair) * 55.51 * 18.01 /
                     EQSAM_ION_PAIR_MW_(i_ion_pair) * (1.0/e_aw-1.0));
 	  molality = pow(molality, EQSAM_ZW_(i_ion_pair)); // (mol/kg)
 
@@ -186,7 +189,7 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
 	  for (int i_ion=0; i_ion<EQSAM_NUM_ION_(i_ion_pair); i_ion++) {
 	    conc = state[PHASE_ID_(i_phase)+EQSAM_ION_ID_(i_ion_pair,i_ion)];
             conc = (conc>0.0 ? conc : 0.0);
-            *water += conc / EQSAM_ION_MW_(i_ion_pair,i_ion) / 
+            *water += conc / EQSAM_ION_MW_(i_ion_pair,i_ion) /
                     molality * 1000.0; // (ug/m3);
 	  }
 
@@ -243,7 +246,7 @@ void * rxn_ZSR_aerosol_water_calc_jac_contrib(ModelData *model_data,
 #endif
 
 /** \brief Advance the reaction data pointer to the next reaction
- * 
+ *
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
@@ -266,11 +269,11 @@ void * rxn_ZSR_aerosol_water_print(void *rxn_data)
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   printf("\n\nZSR Aerosol Water reaction\n");
-  for (int i=0; i<INT_DATA_SIZE_; i++) 
+  for (int i=0; i<INT_DATA_SIZE_; i++)
     printf("  int param %d = %d\n", i, int_data[i]);
   for (int i=0; i<FLOAT_DATA_SIZE_; i++)
     printf("  float param %d = %le\n", i, float_data[i]);
- 
+
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 

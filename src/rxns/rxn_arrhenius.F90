@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -13,7 +13,7 @@
 !!   Ae^{(\frac{-E_a}{k_bT})}(\frac{T}{D})^B(1.0+E*P)
 !! \f]
 !!
-!! where \f$A\f$ is the pre-exponential factor 
+!! where \f$A\f$ is the pre-exponential factor
 !! (\f$(\mbox{\si{\#.cm^{-3}}})^{-(n-1)}\mbox{\si{\per\second}}\f$),
 !! \f$n\f$ is the number of reactants, \f$E_a\f$ is the activation energy (J),
 !! \f$k_b\f$ is the Boltzmann constant (J/K), \f$D\f$ (K), \f$B\f$ (unitless)
@@ -62,7 +62,7 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!> The rxn_arrhenius_t type and associated functions. 
+!> The rxn_arrhenius_t type and associated functions.
 module pmc_rxn_arrhenius
 
   use pmc_aero_rep_data
@@ -131,7 +131,7 @@ contains
   !! any required information into the condensed data arrays for use during
   !! solving
   subroutine initialize(this, chem_spec_data, aero_rep)
-    
+
     !> Reaction data
     class(rxn_arrhenius_t), intent(inout) :: this
     !> Chemical species data

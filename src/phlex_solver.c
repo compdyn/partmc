@@ -1,8 +1,8 @@
-/* Copyright (C) 2015-2017 Matthew Dawson
+/* Copyright (C) 2015-2018 Matthew Dawson
  * Licensed under the GNU General Public License version 2 or (at your
  * option) any later version. See the file COPYING for details.
  *
- * This is the c ODE solver for the chemistry module 
+ * This is the c ODE solver for the chemistry module
  * It is currently set up to use the SUNDIALS BDF method, Newton
  * iteration with the KLU sparse linear solver.
  *
@@ -12,7 +12,12 @@
 /** \file
  * \brief Interface to c solvers for chemistry
 */
+#include <stdio.h>
+#include <stdlib.h>
 #include "phlex_solver.h"
+#include "aero_rep_solver.h"
+#include "rxn_solver.h"
+#include "sub_model_solver.h"
 
 #define DEFAULT_TIME_STEP 1.0e-3
 #define SMALL_NUMBER 1.1E-30
@@ -90,7 +95,7 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
 
   // Get the number of solver variables
   int n_dep_var = 0;
-  for (int i=0; i<n_state_var; i++) 
+  for (int i=0; i<n_state_var; i++)
     if (var_type[i]==CHEM_SPEC_VARIABLE) n_dep_var++;
 
 #ifdef PMC_USE_SUNDIALS
@@ -102,7 +107,7 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   // of reactions (including one int for the number of reactions
   // and one int per reaction to store the reaction type)
   sd->model_data.rxn_data = (void*) malloc(
-		  (n_rxn_int_param + 1 + n_rxn) * sizeof(int) 
+		  (n_rxn_int_param + 1 + n_rxn) * sizeof(int)
 		  + n_rxn_float_param * sizeof(double));
   if (sd->model_data.rxn_data==NULL) {
     printf("\n\nERROR allocating space for reaction data\n\n");
@@ -166,7 +171,7 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
 /** \brief Solver initialization
  *
  * Allocate and initialize solver objects
- * 
+ *
  * \param solver_data Pointer to a SolverData object
  * \param abs_tol Pointer to array of absolute tolerances
  * \param rel_tol Relative integration tolerance
@@ -270,7 +275,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 
   // Update the dependent variables
   for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++)
-    if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) 
+    if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE)
       NV_Ith_S(sd->y,i_dep_var++) = (realtype) state[i_spec];
 
   // Update model data pointers
@@ -321,7 +326,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // Update the species concentrations on the state array
   for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++) {
     if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) {
-      state[i_spec] = (double) ( NV_Ith_S(sd->y, i_dep_var) > 0.0 ? 
+      state[i_spec] = (double) ( NV_Ith_S(sd->y, i_dep_var) > 0.0 ?
                                  NV_Ith_S(sd->y, i_dep_var) : 0.0 );
       i_dep_var++;
     }
@@ -382,7 +387,7 @@ int phlex_solver_update_solver_state(N_Vector solver_state,
 {
   for (int i_spec=0, i_dep_var=0; i_spec<model_data->n_state_var; i_spec++) {
     if (model_data->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
-      
+
       if (model_data->state[i_spec] > SMALL_NUMBER ||
           NV_DATA_S(solver_state)[i_dep_var] > SMALL_NUMBER)
         NV_DATA_S(solver_state)[i_dep_var] = model_data->state[i_spec];
@@ -414,13 +419,13 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 
   // Get the current integrator time step (s)
   CVodeGetCurrentStep(sd->cvode_mem, &time_step);
-  
+
   // On the first call to f(), the time step hasn't been set yet, so use the
   // default value
   time_step = time_step > ZERO ? time_step : sd->init_time_step;
 
   // Update the state array with the current dependent variable values.
-  // Signal a recoverable error (positive return value) for negative 
+  // Signal a recoverable error (positive return value) for negative
   // concentrations.
   if (phlex_solver_update_model_state(y, md) != PHLEX_SOLVER_SUCCESS) return 1;
 
@@ -466,10 +471,10 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   realtype time_step;
 
   // Update the state array with the current dependent variable values
-  // Signal a recoverable error (positive return value) for negative 
+  // Signal a recoverable error (positive return value) for negative
   // concentrations.
   if (phlex_solver_update_model_state(y, md) != PHLEX_SOLVER_SUCCESS) return 1;
-      
+
   // Advance the state by a small amount to get more accurate Jac values
   // for species that are currently at zero concentration
   for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
@@ -501,7 +506,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   }
   for (int i=0; i<=SM_NP_S(J); i++) {
     (SM_INDEXPTRS_S(J))[i] = (SM_INDEXPTRS_S(md->J_init))[i];
-  } 
+  }
 
   // Update the aerosol representations
   aero_rep_update_state(md);
@@ -511,7 +516,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
   // Get the current integrator time step (s)
   CVodeGetCurrentStep(sd->cvode_mem, &time_step);
-  
+
   // Run pre-Jacobian calculations
   rxn_pre_calc(md, (double) time_step);
 
@@ -533,7 +538,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
  */
 SUNMatrix get_jac_init(SolverData *solver_data)
 {
-  int n_rxn;			/* number of reactions in the mechanism 
+  int n_rxn;			/* number of reactions in the mechanism
   				 * (stored in first position in *rxn_data) */
   bool **jac_struct;		/* structure of Jacobian with flags to indicate
 				 * elements that could be used. */
@@ -628,7 +633,7 @@ SUNMatrix get_jac_init(SolverData *solver_data)
   free(deriv_ids);
 
   return M;
-    
+
 }
 
 /** \brief Check the return value of a SUNDIALS function
@@ -741,7 +746,7 @@ static void solver_print_stats(void *cvode_mem)
 void solver_free(void *solver_data)
 {
   SolverData *sd = (SolverData*) solver_data;
- 
+
 #ifdef PMC_USE_SUNDIALS
   // free the SUNDIALS solver
   CVodeFree(&(sd->cvode_mem));

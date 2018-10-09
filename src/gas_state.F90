@@ -50,7 +50,7 @@ contains
     !> Phlexible chemisty state
     type(phlex_state_t), intent(inout) :: phlex_state
 
-    phlex_state%state_var(1:size(this%mix_rat)) = this%mix_rat(:) 
+    phlex_state%state_var(1:size(this%mix_rat)) = this%mix_rat(:)
 
   end subroutine gas_state_set_phlex_conc
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2017 Matthew Dawson
+/* Copyright (C) 2015-2018 Matthew Dawson
  * Licensed under the GNU General Public License version 2 or (at your
  * option) any later version. See the file COPYING for details.
  *
@@ -8,7 +8,10 @@
 /** \file
  * \brief PDFiTE Activity reaction solver functions
 */
-#include "../rxn_solver.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "../rxns.h"
 
 // TODO Lookup environmental indices during initialization
 #define TEMPERATURE_K_ env_data[0]
@@ -48,7 +51,7 @@
  * activity reactions are assumed to be at equilibrium
  *
  * \param rxn_data A pointer to the reaction data
- * \param jac_struct 2D array of flags indicating potentially non-zero 
+ * \param jac_struct 2D array of flags indicating potentially non-zero
  *                   Jacobian elements
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
@@ -58,7 +61,7 @@ void * rxn_PDFiTE_activity_get_used_jac_elem(void *rxn_data, bool **jac_struct)
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}  
+}
 
 /** \brief Update the time derivative and Jacbobian array indices
  *
@@ -98,7 +101,7 @@ void * rxn_PDFiTE_activity_update_env_state(double *env_data, void *rxn_data)
 
   a = (((-0.1299*a - 0.6445)*a - 1.976)*a + 13.3185)*a;
   double water_vp = 101325.0 * exp(a); 			// (Pa)
-  
+
   PPM_TO_RH_ = PRESSURE_PA_ / water_vp / 1.0e6;		// (1/ppm)
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
@@ -129,11 +132,11 @@ void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
 
     // Initialize omega' (defined below)
     double omega_prime = 0.0;
-    
+
     // Calculate the number of moles of each ion and omega' for the phase
     for (int i_ion_pair=0; i_ion_pair<NUM_ION_PAIRS_; i_ion_pair++) {
-      
-      // N (mol_i/m3) = c_i (ug/m3) / 10^6 (ug/g) / MW_i (ug/umol) 
+
+      // N (mol_i/m3) = c_i (ug/m3) / 10^6 (ug/g) / MW_i (ug/umol)
       CATION_N_(i_ion_pair) = state[PHASE_ID_(i_phase)+CATION_ID_(i_ion_pair)]
 	      /CATION_MW_(i_ion_pair)/1000000.0;
       ANION_N_(i_ion_pair) = state[PHASE_ID_(i_phase)+ANION_ID_(i_ion_pair)]
@@ -147,10 +150,10 @@ void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
       // For each activity coefficient
       //   omega = omega' - omega_x
       // where omega_x is the contribution of ion_pair x to omega'
-      omega_prime += 2.0 * ( NUM_CATION_(i_ion_pair) + 
-          NUM_ANION_(i_ion_pair) ) * CATION_N_(i_ion_pair) * 
+      omega_prime += 2.0 * ( NUM_CATION_(i_ion_pair) +
+          NUM_ANION_(i_ion_pair) ) * CATION_N_(i_ion_pair) *
           ANION_N_(i_ion_pair);
-    
+
     } // Loop on primary ion_pair
 
     // Calculate the activity coefficient
@@ -162,8 +165,8 @@ void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
 
       // Calculate omega for this ion_pair
       // (eq. 15 in \cite{Topping2009})
-      double omega = omega_prime - 2.0 * ( NUM_CATION_(i_ion_pair) + 
-      NUM_ANION_(i_ion_pair) ) * CATION_N_(i_ion_pair) * 
+      double omega = omega_prime - 2.0 * ( NUM_CATION_(i_ion_pair) +
+      NUM_ANION_(i_ion_pair) ) * CATION_N_(i_ion_pair) *
       ANION_N_(i_ion_pair);
 
       // Initialize ln(gamma)
@@ -175,10 +178,10 @@ void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
         // Only include interactions in the correct RH range
         // where the range is in (minRH, maxRH] except when a_w = 0.0
         // where the range is in [0.0, maxRH]
-        if ((a_w<=MIN_RH_(i_ion_pair, i_inter) || 
+        if ((a_w<=MIN_RH_(i_ion_pair, i_inter) ||
              a_w>MAX_RH_(i_ion_pair, i_inter))
             &&
-            !(a_w<=0.0 && 
+            !(a_w<=0.0 &&
              MIN_RH_(i_ion_pair, i_inter)<=0.0)
            ) continue;
 
@@ -194,7 +197,7 @@ void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
         // If this is the "self" interaction, ln_gamma_inter is ln(gamma_0A)
         // (eq. 15 in \cite{Topping2009})
         if (i_ion_pair == j_ion_pair) {
-         
+
           // Add contribution to ln(gamma_A) from ln(gamma_0A)
           ln_gamma += ln_gamma_inter;
         }
@@ -205,7 +208,7 @@ void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
           // Add contribution to ln(gamma_A) from interacting ion_pair.
           // When omega == 0, N_cation or N_anion must be 0, so
           // skip to avoid divide by zero errors
-          if (omega>0.0) {      
+          if (omega>0.0) {
             ln_gamma += ln_gamma_inter * CATION_N_(j_ion_pair) *
                      ANION_N_(j_ion_pair) / omega;
           }
@@ -215,7 +218,7 @@ void * rxn_PDFiTE_activity_pre_calc(ModelData *model_data, void *rxn_data)
       } // Loop on interacting ion_pairs
 
       // Set the ion_pair activity
-      state[PHASE_ID_(i_phase) + ION_PAIR_ACT_ID_(i_ion_pair)] = 
+      state[PHASE_ID_(i_phase) + ION_PAIR_ACT_ID_(i_ion_pair)] =
               exp(ln_gamma);
 
     } // Loop on primary ion_pairs
@@ -268,7 +271,7 @@ void * rxn_PDFiTE_activity_calc_jac_contrib(ModelData *model_data, realtype *J,
 #endif
 
 /** \brief Advance the reaction data pointer to the next reaction
- * 
+ *
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
@@ -291,11 +294,11 @@ void * rxn_PDFiTE_activity_print(void *rxn_data)
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   printf("\n\nPDFiTE Activity reaction\n");
-  for (int i=0; i<INT_DATA_SIZE_; i++) 
+  for (int i=0; i<INT_DATA_SIZE_; i++)
     printf("  int param %d = %d\n", i, int_data[i]);
   for (int i=0; i<FLOAT_DATA_SIZE_; i++)
     printf("  float param %d = %le\n", i, float_data[i]);
- 
+
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 

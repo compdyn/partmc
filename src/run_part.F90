@@ -127,8 +127,8 @@ contains
     type(run_part_opt_t), intent(in) :: run_part_opt
     !> Phlexible chemistry core
     type(phlex_core_t), pointer, intent(in), optional :: phlex_core
-    
-    
+
+
     type(phlex_state_t), pointer :: phlex_state
     real(kind=dp) :: time, pre_time, pre_del_t, prop_done
     real(kind=dp) :: last_output_time, last_progress_time

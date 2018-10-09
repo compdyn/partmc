@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -27,7 +27,7 @@ module pmc_phlex_state
   !! Temporal state of the model
   type phlex_state_t
     !> Environmental state array. This array will include one entry
-    !! for every environmental variable requried to solve the 
+    !! for every environmental variable requried to solve the
     !! chemical mechanism(s)
     real(kind=dp), allocatable :: env_var(:)
     !> State variable array. This array includes one entry for each
@@ -82,7 +82,7 @@ contains
 
     ! Set up the environmental state array
     allocate(new_obj%env_var(PHLEX_STATE_NUM_ENV_PARAM))
-  
+
   end function constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

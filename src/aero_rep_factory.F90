@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -6,7 +6,7 @@
 !> The pmc_aero_rep_factory module.
 
 !> \page phlex_aero_rep_add Phlexible Module for Chemistry: Adding an Aerosol Representation
-!! 
+!!
 !! NOTE: These instructions are out-of-date. TODO update
 !!
 !! Adding an \ref phlex_aero_rep "aerosol representation" to the \ref
@@ -32,7 +32,7 @@
 !!   contains
 !!     ... (all deferred functions) ...
 !!   end type :: aero_rep_foo_t
-!!   
+!!
 !!   ! Constructor
 !!   interface aero_rep_foo_t
 !!     procedure :: constructor
@@ -68,7 +68,7 @@
 !!   contains
 !!     ... (all deferred functions) ...
 !!   end type :: aero_rep_foo_state_t
-!!   
+!!
 !!   ! Constructor
 !!   interface aero_rep_foo_state_t
 !!     procedure :: constructor
@@ -97,7 +97,7 @@
 !!
 !!  ...
 !!
-!!  !> Identifiers for aerosol representations - used by binary packing/unpacking 
+!!  !> Identifiers for aerosol representations - used by binary packing/unpacking
 !!  !! functions
 !!  ...
 !!  integer(kind=i_kind), parameter :: AERO_REP_FOO = 32
@@ -137,7 +137,7 @@
 !!        aero_rep => aero_rep_foo_t()
 !!    ...
 !!  end function bin_unpack
-!!  
+!!
 !! ...
 !! end module pmc_aero_rep_factory
 !! \endcode
@@ -154,7 +154,7 @@
 !!   src/aero_reps/aero_rep_foo.F90
 !!   src/aero_reps/aero_rep_foo_state.F90
 !! )
-!! 
+!!
 !! ...
 !! \endcode
 !!
@@ -168,7 +168,7 @@
 !! The new \ref phlex_aero_rep "aerosol representation" is now ready to use.
 !! To include it in a \c pmc_phlex_core::phlex_core_t instance, add an \ref
 !! input_format_aero_rep "aerosol representation object" to a new or existing
-!! \ref input_format_phlex_config "phlex-chem configuration file" with a 
+!! \ref input_format_phlex_config "phlex-chem configuration file" with a
 !! \b type corresponding to the newly created type, along with any required
 !! parameters:
 !!
@@ -231,7 +231,7 @@ module pmc_aero_rep_factory
     !> Determine the number of bytes required to pack an given aerosol
     !! representation
     procedure :: pack_size
-    !> Pack a given aerosol representation to the buffer, advancing the 
+    !> Pack a given aerosol representation to the buffer, advancing the
     !! position
     procedure :: bin_pack
     !> Unpack a aerosol representation from the buffer, advancing the position
@@ -261,7 +261,7 @@ contains
         new_obj => aero_rep_single_particle_t()
       case default
         call die_msg(792930166, "Unknown aerosol representation type: " &
-                //type_name) 
+                //type_name)
     end select
 
   end function create
@@ -293,7 +293,7 @@ contains
     type_name = unicode_name
 
     ! create a new aerosol representation
-    new_obj => this%create(type_name)    
+    new_obj => this%create(type_name)
 
     ! load aerosol representation parameters from the json object
     call new_obj%load(json, j_obj)

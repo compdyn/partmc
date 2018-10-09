@@ -883,7 +883,7 @@ contains
           this%aero_rep_ptr%spec_state_id(spec_names(i_spec)%string)
     end do
 
-  end subroutine aero_data_initialize 
+  end subroutine aero_data_initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

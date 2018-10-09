@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2017 Matthew Dawson
+/* Copyright (C) 2015-2018 Matthew Dawson
  * Licensed under the GNU General Public License version 2 or (at your
  * option) any later version. See the file COPYING for details.
  *
@@ -8,7 +8,10 @@
 /** \file
  * \brief Condensed Phase Arrhenius reaction solver functions
 */
-#include "../rxn_solver.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "../rxns.h"
 
 // TODO Lookup environmental indices during initialization
 #define TEMPERATURE_K_ env_data[0]
@@ -41,7 +44,7 @@
 /** \brief Flag Jacobian elements used by this reaction
  *
  * \param rxn_data A pointer to the reaction data
- * \param jac_struct 2D array of flags indicating potentially non-zero 
+ * \param jac_struct 2D array of flags indicating potentially non-zero
  *                   Jacobian elements
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
@@ -53,7 +56,7 @@ void * rxn_condensed_phase_arrhenius_get_used_jac_elem(void *rxn_data,
 
   // Loop over all the instances of the specified phase
   for (int i_phase = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
-    
+
     // Add dependence on reactants for reactants and products
     for (int i_react_ind = i_phase*NUM_REACT_;
               i_react_ind < (i_phase+1)*NUM_REACT_; i_react_ind++) {
@@ -79,7 +82,7 @@ void * rxn_condensed_phase_arrhenius_get_used_jac_elem(void *rxn_data,
   }
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-}  
+}
 
 /** \brief Update the time derivative and Jacbobian array indices
  *
@@ -105,8 +108,8 @@ void * rxn_condensed_phase_arrhenius_update_ids(ModelData *model_data,
 
   // Update the Jacobian ids
   for (int i_phase = 0, i_jac = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
-    
-    // Add dependence on reactants for reactants and products 
+
+    // Add dependence on reactants for reactants and products
     for (int i_react_ind = i_phase*NUM_REACT_;
               i_react_ind < (i_phase+1)*NUM_REACT_; i_react_ind++) {
       for (int i_react_dep = i_phase*NUM_REACT_;
@@ -134,14 +137,14 @@ void * rxn_condensed_phase_arrhenius_update_ids(ModelData *model_data,
       }
 
   }
-  
+
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
 }
 
 /** \brief Update reaction data for new environmental conditions
  *
- * For Condensed Phase Arrhenius reaction this only involves recalculating the 
+ * For Condensed Phase Arrhenius reaction this only involves recalculating the
  * forward rate constant.
  *
  * \param env_data Pointer to the environmental state array
@@ -218,7 +221,7 @@ void * rxn_condensed_phase_arrhenius_calc_deriv_contrib(ModelData *model_data,
     // Calculate the reaction rate rate (M/s or mol/m3/s)
     realtype rate = RATE_CONSTANT_;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
-      rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] * 
+      rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
               UGM3_TO_MOLM3_(i_react) * unit_conv;
     }
 
@@ -280,7 +283,7 @@ void * rxn_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data,
     // Calculate the reaction rate rate (M/s or mol/m3/s)
     realtype rate = RATE_CONSTANT_;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
-      rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] * 
+      rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
               UGM3_TO_MOLM3_(i_react) * unit_conv;
     }
 
@@ -290,18 +293,18 @@ void * rxn_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data,
       continue;
     }
 
-    // Add dependence on reactants for reactants and products 
+    // Add dependence on reactants for reactants and products
     for (int i_react_ind = 0; i_react_ind < NUM_REACT_; i_react_ind++) {
       for (int i_react_dep = 0; i_react_dep < NUM_REACT_; i_react_dep++) {
 	if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
         J[JAC_ID_(i_jac++)] -= rate /
-                state[REACT_(i_phase*NUM_REACT_+i_react_ind)] / 
+                state[REACT_(i_phase*NUM_REACT_+i_react_ind)] /
 	        (UGM3_TO_MOLM3_(i_react_dep) * unit_conv);
       }
       for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
 	if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
-        J[JAC_ID_(i_jac++)] += rate * YIELD_(i_prod_dep) / 
-                state[REACT_(i_phase*NUM_REACT_+i_react_ind)] / 
+        J[JAC_ID_(i_jac++)] += rate * YIELD_(i_prod_dep) /
+                state[REACT_(i_phase*NUM_REACT_+i_react_ind)] /
 	        (UGM3_TO_MOLM3_(NUM_REACT_+i_prod_dep) * unit_conv);
       }
     }
@@ -315,7 +318,7 @@ void * rxn_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data,
     }
     for (int i_prod_dep = 0; i_prod_dep < NUM_PROD_; i_prod_dep++) {
       if (JAC_ID_(i_jac)<0) {i_jac++; continue;}
-      J[JAC_ID_(i_jac++)] -= (NUM_REACT_-1) * rate * YIELD_(i_prod_dep) / 
+      J[JAC_ID_(i_jac++)] -= (NUM_REACT_-1) * rate * YIELD_(i_prod_dep) /
                 state[WATER_(i_phase)] /
 	        (UGM3_TO_MOLM3_(NUM_REACT_+i_prod_dep) * unit_conv);
     }
@@ -328,7 +331,7 @@ void * rxn_condensed_phase_arrhenius_calc_jac_contrib(ModelData *model_data,
 #endif
 
 /** \brief Advance the reaction data pointer to the next reaction
- * 
+ *
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
@@ -351,11 +354,11 @@ void * rxn_condensed_phase_arrhenius_print(void *rxn_data)
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   printf("\n\nCondensed Phase Arrhenius reaction\n");
-  for (int i=0; i<INT_DATA_SIZE_; i++) 
+  for (int i=0; i<INT_DATA_SIZE_; i++)
     printf("  int param %d = %d\n", i, int_data[i]);
   for (int i=0; i<FLOAT_DATA_SIZE_; i++)
     printf("  float param %d = %le\n", i, float_data[i]);
- 
+
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 

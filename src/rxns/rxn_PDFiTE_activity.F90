@@ -48,7 +48,7 @@
 !!             "ion pair" : "H-NO3",
 !!             "min RH" : 0.9,
 !!             "max RH" : 1.0,
-!!             "B" : [ -0.3506505 ] 
+!!             "B" : [ -0.3506505 ]
 !!           },
 !!           {
 !!             "ion pair" : "NH4-NO3",
@@ -66,7 +66,7 @@
 !!             "ion pair" : "NH4-NO3",
 !!             "min RH" : 0.99,
 !!             "max RH" : 1.0,
-!!             "B" : [ -0.2599432 ] 
+!!             "B" : [ -0.2599432 ]
 !!           }
 !!         ]
 !!       }
@@ -110,12 +110,12 @@
 !!   "name" : "H2O",
 !!   "type" : "CHEM_SPEC",
 !!   "phase" : "GAS",
-!! },  
+!! },
 !! {
 !!   "name" : "H2O_aq",
 !!   "type" : "CHEM_SPEC",
 !!   "phase" : "AEROSOL",
-!! },  
+!! },
 !! {
 !!   "name" : "H_p",
 !!   "type" : "CHEM_SPEC",
@@ -164,7 +164,7 @@
 !!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!> The rxn_PDFiTE_activity_t type and associated functions. 
+!> The rxn_PDFiTE_activity_t type and associated functions.
 module pmc_rxn_PDFiTE_activity
 
   use pmc_aero_phase_data
@@ -247,7 +247,7 @@ contains
   !! any required information into the condensed data arrays for use during
   !! solving
   subroutine initialize(this, chem_spec_data, aero_rep)
-    
+
     !> Reaction data
     class(rxn_PDFiTE_activity_t), intent(inout) :: this
     !> Chemical species data
@@ -329,7 +329,7 @@ contains
     n_float_param = NUM_REAL_PROP_
     call ion_pairs%iter_reset()
     do i_ion_pair = 1, n_ion_pair
-  
+
       ! Get the name of the ion_pair
       call assert(680654801, ion_pairs%get_key(ion_pair_name))
 
@@ -375,7 +375,7 @@ contains
 
         ! Adding space for minRH, maxRH, B[]
         n_float_param = n_float_param + 2 + poly_coeffs%size()
-        
+
         ! Adding space for size(B[]), interacting species id, location of
         ! interaction parameters
         n_int_param = n_int_param + 3
@@ -418,7 +418,7 @@ contains
     ! Adding space for MW of the cation and anion, and cation and anion
     ! concentrations (for use during solving)
     n_float_param = n_float_param + 4*n_ion_pair
-    
+
     ! Allocate space for an array used to make sure all ion pair interactions
     ! are included and the RH range is covered for each
     allocate(num_inter(n_ion_pair))
@@ -444,11 +444,11 @@ contains
             "reaction.")
 
     GAS_WATER_ID_ = chem_spec_data%gas_state_id(spec_name)
-    
+
     call assert_msg(442608616, GAS_WATER_ID_ .gt. 0, &
             "Cannot find gas-phase water species '"//spec_name//"' for "// &
             "PDFiTE activity reaction.")
-    
+
     ! Set the aerosol-water species
     key_name = "aerosol-phase water"
     call assert_msg(214613153, &
@@ -483,7 +483,7 @@ contains
     n_float_param = NUM_REAL_PROP_
     call ion_pairs%iter_reset()
     do i_ion_pair = 1, n_ion_pair
-   
+
       ! Get the name of the ion_pair
       ion_pair_name = ion_pair_names(i_ion_pair)%string
 
@@ -520,7 +520,7 @@ contains
               ion_pair_name//"' in PDFiTE activity reaction. Expected "// &
               trim(to_string(NUM_PHASE_))//" but got "// &
               trim(to_string(i_phase)))
-        
+
       ! Get the ion_pair species properties
       call assert_msg(737691158, &
               chem_spec_data%get_property_set(ion_pair_name, ion_pair), &
@@ -550,7 +550,7 @@ contains
       call ions%iter_reset()
       total_charge = 0
       do i_ion = 1, 2
-        
+
         ! Get the ion name
         call assert(622753458, ions%get_key(ion_name))
 
@@ -558,15 +558,15 @@ contains
         qty = 1
         if (ions%get_property_t(val=sub_props)) then
           key_name = "qty"
-          if (sub_props%get_int(key_name, int_val)) qty = int_val 
-        end if 
+          if (sub_props%get_int(key_name, int_val)) qty = int_val
+        end if
 
         ! Get the species properties
         call assert_msg(619394685, &
                 chem_spec_data%get_property_set(ion_name, spec_props), &
                 "Missing species properties for ion '"//ion_name// &
                 "' in PDFiTE activity reaction.")
-          
+
         ! Get the molecular weight
         key_name = "molecular weight"
         call assert_msg(951085413, &
@@ -641,7 +641,7 @@ contains
         call ions%iter_next()
 
       end do
-    
+
       call assert_msg(415650051, total_charge.eq.0, &
               "Charge imbalance for ion_pair '"//ion_pair_name// &
               " in PDFiTE activity reaction. Total charge: "// &
@@ -658,7 +658,7 @@ contains
 
         ! Get the ion_pair properties
         call assert(520886936, ion_pairs%get_property_t(val=ion_pair))
-      
+
         ! Get the interactions
         key_name = "interactions"
         call assert(216229321, ion_pair%get_property_t(key_name,interactions))
@@ -729,9 +729,9 @@ contains
           ! Get the number of B_z parameters
           key_name = "B"
           call assert(981216440, &
-                  interaction%get_property_t(key_name, poly_coeffs)) 
+                  interaction%get_property_t(key_name, poly_coeffs))
           NUM_B_(i_ion_pair, i_interaction) = poly_coeffs%size()
-         
+
           ! Get the B_z parameters
           call poly_coeffs%iter_reset()
           do i_poly_coeff = 1, poly_coeffs%size()
@@ -742,13 +742,13 @@ contains
             B_Z_(i_ion_pair, i_interaction, i_poly_coeff) = real_val
             call poly_coeffs%iter_next()
           end do
-  
+
           n_float_param = n_float_param + 2 + NUM_B_(i_ion_pair, i_interaction)
           n_int_param = n_int_param + 3
 
           call interactions%iter_next()
         end do
-      
+
         ! Check that all the interactions were included at least once
         do i_spec = 1, size(num_inter)
           call warn_assert_msg(793223082, num_inter(i_spec).ge.1, &
@@ -758,12 +758,12 @@ contains
                   trim(to_string(num_inter(i_spec)))//".")
         end do
 
-        ! Make sure no interactions with the same ion pair overlap in 
+        ! Make sure no interactions with the same ion pair overlap in
         ! their RH ranges and that the entire RH range (0.0-1.0) is covered.
         ! Treat ranges as R = (minRH,maxRH] to avoid overlap at boundaries
         rh_range(:) = 0.0
         do i_interaction = 1, NUM_INTER_(i_ion_pair)
-          
+
           ! Check for RH range overlaps with other interactions with this
           ! ion pair
           do j_interaction = i_interaction+1, NUM_INTER_(i_ion_pair)
@@ -795,7 +795,7 @@ contains
                   ion_pair_names(i_spec)%string//"' for '"//ion_pair_name// &
                   "' PD-FiTE activity coefficient calculation.")
         end do
-      
+
         call ion_pairs%iter_next()
 
       ! The last portion of ion_pair_names includes ion pairs that are
@@ -813,7 +813,7 @@ contains
 
     call assert(938415336, n_int_param.eq.TOTAL_INT_PARAM_)
     call assert(433208931, n_float_param.eq.TOTAL_FLOAT_PARAM_)
-      
+
     deallocate(ion_pair_names)
     deallocate(num_inter)
     deallocate(rh_range)

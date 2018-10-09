@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -9,7 +9,7 @@
 !!
 !! The UNIFAC activity coefficient sub model calculates activity coefficients
 !! for species in an aerosol phase based on the current aerosol phase
-!! composition \cite Marcolli2005. The \c json object for this 
+!! composition \cite Marcolli2005. The \c json object for this
 !! \ref phlex_sub_model "sub model" has the following format :
 !! \code{.json}
 !!  { "pmc-data" : [
@@ -54,14 +54,14 @@
 !! \endcode
 !! The key-value pair \b type is required and must be \b SUB_MODEL_UNIFAC.
 !! The key-value pair \b phases is also required, and its value must be an
-!! array of strings that correspond to valid 
+!! array of strings that correspond to valid
 !! \ref phlex_aero_phase "aerosol phases". The key-value pair \b functional
 !! \b groups is also required, and must contain a set of key-value pairs whose
 !! keys are the names of UNIFAC functions groups, and whose values are a set
 !! of key value pairs that contain, at minimum:
 !!   - \b main \b group : a string that corresponds to a key in the \b
 !!                       main \b groups set.
-!!   - \b volume \b param : the floating-point volume parameter for this 
+!!   - \b volume \b param : the floating-point volume parameter for this
 !!                         functional group.
 !!   - \b surface \b param : this floating-point surface parameter for this
 !!                          functional group.
@@ -118,7 +118,7 @@
 !! module is part of the Model to Predict the Multi-phase Partitioning of
 !! Organics (Griffin et al., JGR 110, D05304, 2005 doi: 10.1029/2004JD005219)
 !!
-!! Equations referenced are from Marcolli and Peter, ACP 5(2), 1501-1527, 
+!! Equations referenced are from Marcolli and Peter, ACP 5(2), 1501-1527,
 !! 2005, and variable names roughly follow their naming scheme.
 !!
 module pmc_sub_model_UNIFAC
@@ -206,7 +206,7 @@ contains
   end function constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    
+
   !> Initialize the sub model data, validating input parameters and
   !! loading any required information form the \c
   !! sub_model_data_t::property_set. This routine should be called
@@ -284,7 +284,7 @@ contains
     call assert_msg(556532380, num_main_group.gt.0, &
             "Received empty set of main groups for UNIFAC model.")
 
-    ! Count the species in each phase, and the number of instances of each 
+    ! Count the species in each phase, and the number of instances of each
     ! phase
     allocate(num_phase_inst(num_unique_phase))
     allocate(num_phase_spec(num_unique_phase))
@@ -483,7 +483,7 @@ contains
               func_group%get_string(key_name, main_group_name), &
               "Missing main group name in functional group '"// &
               group_names(i_group)%string//"' in UNIFAC model.")
-            
+
       ! Set the main group id
       do i_main_group = 1, num_main_group
         found = .false.
@@ -518,12 +518,12 @@ contains
       phase_ids_set = .false.
       spec_names = aero_phase_set(i_phase)%val%get_species_names()
       do i_spec = 1, size(spec_names)
-        
+
         ! Get the species properties
         call assert(698678581, &
                 chem_spec_data%get_property_set( &
                 spec_names(i_spec)%string, spec_props))
-        
+
         ! Check if this is a UNIFAC species, and get its groups
         key_name = "UNIFAC groups"
         if (spec_props%get_property_t(key_name, spec_groups)) then
@@ -554,7 +554,7 @@ contains
 
             ! Get the group name
             call assert(649713038, spec_groups%get_key(spec_group_name))
-            
+
             ! Get the number of this group for this species
             call assert_msg(429888360, spec_groups%get_int(val = num_spec_group), &
                     "Received non-integer number of UNIFAC groups for '"// &
@@ -625,12 +625,12 @@ contains
                         PHASE_INST_ID_(i_UNIFAC_phase, 1)
                 exit
               end if
-            end do 
+            end do
           end if
         end if
       end do
-    end do 
-      
+    end do
+
     ! Clean up
     deallocate(num_phase_inst)
     deallocate(num_phase_spec)
@@ -641,7 +641,7 @@ contains
     deallocate(group_names)
 
   end subroutine initialize
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Finalize the sub-model

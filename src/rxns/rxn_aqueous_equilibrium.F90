@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -57,13 +57,13 @@
 !! included, it is assumed to be 0.0. The reverse reaction rate constant
 !! \b k_reverse is required.
 !!
-!! The unit for time is assumed to be s, but inclusion of the optional 
+!! The unit for time is assumed to be s, but inclusion of the optional
 !! key-value pair \b time \b unit = \b MIN can be used to indicate a rate with
 !! min as the time unit.
 !!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!> The rxn_aqueous_equilibrium_t type and associated functions. 
+!> The rxn_aqueous_equilibrium_t type and associated functions.
 module pmc_rxn_aqueous_equilibrium
 
   use pmc_aero_phase_data
@@ -136,7 +136,7 @@ contains
   !! any required information into the condensed data arrays for use during
   !! solving
   subroutine initialize(this, chem_spec_data, aero_rep)
-    
+
     !> Reaction data
     class(rxn_aqueous_equilibrium_t), intent(inout) :: this
     !> Chemical species data
@@ -213,7 +213,7 @@ contains
             "Missing aerosol representation for aqueous equilibrium reaction")
     call assert_msg(868319733, size(aero_rep).gt.0, &
             "Missing aerosol representation for aqueous equilibrium reaction")
-    
+
     ! Count the instances of this phase/species pair
     num_phase = 0
     do i_aero_rep = 1, size(aero_rep)
@@ -292,7 +292,7 @@ contains
       call assert_msg(332898361, spec_props%get_real(key_name, temp_real), &
            "Missing 'molecular weight' for species '"//trim(spec_name)// &
            "' in aqueous equilibrium reaction.")
-      
+
       ! Set properties for each occurance of a reactant in the rxn equation
       call assert(971363961, reactants%get_property_t(val=spec_props))
       key_name = "qty"
@@ -368,7 +368,7 @@ contains
       unique_names = aero_rep(i_aero_rep)%val%unique_names( &
               phase_name = phase_name, spec_name = water_name)
 
-      ! Save the number of instances to check for the presence of 
+      ! Save the number of instances to check for the presence of
       ! each product and reactant
       num_phase = size(unique_names)
 
@@ -383,7 +383,7 @@ contains
 
       ! If an ion pair was specified, save its id for each phase instance
       if (ion_pair_name.ne."") then
-     
+
         ! Get the unique names for the ion pair
         unique_names = aero_rep(i_aero_rep)%val%unique_names( &
                 phase_name = phase_name, spec_name = ion_pair_name)
@@ -433,14 +433,14 @@ contains
                 "' in an aqueous equilibrium reaction")
 
         ! Save the state ids for the reactant concentration
-        ! IDs are grouped by phase instance: 
+        ! IDs are grouped by phase instance:
         !    R1(phase1), R2(phase1), ..., R1(phase2)...
         do j_spec = 1, num_phase
           REACT_((i_aero_phase+j_spec-1)*NUM_REACT_ + i_phase_inst) = &
                   aero_rep(i_aero_rep)%val%spec_state_id( &
                   unique_names(j_spec)%string)
         end do
-        
+
         deallocate(unique_names)
 
       end do

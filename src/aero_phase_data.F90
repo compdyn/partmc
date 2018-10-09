@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -19,7 +19,7 @@
 !! "chemical species" associated with a particular phase are constant
 !! throughout the model run. Once loaded, \ref phlex_aero_phase
 !! "aerosol phases" are made available to any \ref input_format_aero_rep
-!! "aerosol representations" that want to implement them. 
+!! "aerosol representations" that want to implement them.
 !! \ref phlex_aero_rep "Aerosol representations" are able to specify which
 !! phases they implement and how many instances of that phase are present in
 !! the \ref phlex_aero_rep "aerosol representation". For example, a binned
@@ -35,7 +35,7 @@
 !! (How they decide this is up to the particular \ref  phlex_rxn
 !! "reaction type".)  Any physical aerosol parameters, such as the surface
 !! area between phases, the particle radius, or the number concentration,
-!! required by a chemical reaction will be provided by the \ref phlex_aero_rep 
+!! required by a chemical reaction will be provided by the \ref phlex_aero_rep
 !! "aerosol representation" at run time.
 !!
 !! The input format for an aerosol phase can be found \ref
@@ -74,7 +74,7 @@ module pmc_aero_phase_data
 
   !> Aerosol phase data type
   !!
-  !! \ref phlex_aero_phase "Aerosol phase" information. 
+  !! \ref phlex_aero_phase "Aerosol phase" information.
   type :: aero_phase_data_t
     private
     !> Name of the aerosol phase
@@ -86,8 +86,8 @@ module pmc_aero_phase_data
     !! pmc_phlex_core::phlex_core_t::chem_spec_data variable during
     !! initialization.
     type(string_t), pointer :: spec_name(:) => null()
-    !> Aerosol phase parameters. These will be available during 
-    !! initialization, but not during solving. 
+    !> Aerosol phase parameters. These will be available during
+    !! initialization, but not during solving.
     type(property_t), pointer :: property_set => null()
     !> Condensed phase data. Theses arrays will be available during
     !! solving, and should contain any information required by the
@@ -201,9 +201,9 @@ contains
   !! ]}
   !! \endcode
   !! The key-value pair \b name is required and must contain the unique name
-  !! used for this \ref phlex_aero_phase "aerosol phase" in the \ref 
+  !! used for this \ref phlex_aero_phase "aerosol phase" in the \ref
   !! input_format_mechanism "mechanism". The key-value pair \b type is also
-  !! required and its value must be \b AERO_PHASE. 
+  !! required and its value must be \b AERO_PHASE.
   !!
   !! A list of species names should be included in a key-value pair named
   !! \b species whose value is an array of species names. These names must
@@ -247,14 +247,14 @@ contains
     call json%get_child(j_obj, child)
     do while (associated(child))
       call json%info(child, name=key, var_type=var_type)
-      
+
       ! phase name
       if (key.eq."name") then
         if (var_type.ne.json_string) call die_msg(429142134, &
                 "Received non-string aerosol phase name.")
         call json%get(child, unicode_str_val)
         this%phase_name = unicode_str_val
-      
+
       ! chemical species in the phase
       else if (key.eq."species") then
         if (var_type.ne.json_array) call die_msg(293312378, &
@@ -275,17 +275,17 @@ contains
       ! load remaining properties into the phase property set
       else if (key.ne."type") then
         call property_set%load(json, child, .false., this%phase_name)
-      end if 
+      end if
 
       call json%get_next(child, next)
       child => next
     end do
-  
+
     ! save the property set
     if (associated(this%property_set)) then
       call this%property_set%update(property_set, this%phase_name)
       deallocate (property_set)
-    else 
+    else
       this%property_set => property_set
     end if
 #else
@@ -297,7 +297,7 @@ contains
     call warn_msg(236665532, "No support for input files.")
 #endif
   end subroutine load
-   
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize the aerosol phase data, validating species names.
@@ -319,9 +319,9 @@ contains
     ! Set the number of species
     NUM_STATE_VAR_ = this%num_spec
 
-    ! Find the aerosol-phase species, and save their needed properties    
+    ! Find the aerosol-phase species, and save their needed properties
     do i_spec = 1, NUM_STATE_VAR_
-    
+
       ! Get the species properties
       call assert_msg(140971956, chem_spec_data%get_property_set( &
               this%spec_name(i_spec)%string, spec_props), &
@@ -341,7 +341,7 @@ contains
       if (SPEC_TYPE_(i_spec).eq.CHEM_SPEC_VARIABLE .or. &
           SPEC_TYPE_(i_spec).eq.CHEM_SPEC_CONSTANT .or. &
           SPEC_TYPE_(i_spec).eq.CHEM_SPEC_PSSA) then
-          
+
         ! Get the molecular weight
         key_name = "molecular weight"
         call assert_msg(512254139, &
@@ -357,10 +357,10 @@ contains
                 "Missing density for species '"// &
                 this%spec_name(i_spec)%string// &
                 "' in aerosol phase '"//this%phase_name//"'")
-      
+
       ! activity coefficients do not need molecular weight or density
       else
-        
+
         MW_(i_spec) = 0.0
         DENSITY_(i_spec) = 0.0
 
@@ -453,13 +453,13 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Determine the size of a binary required to pack the aerosol 
+  !> Determine the size of a binary required to pack the aerosol
   !! representation data
   integer(kind=i_kind) function pack_size(this)
 
     !> Aerosol representation data
     class(aero_phase_data_t), intent(in) :: this
-    
+
     pack_size = &
             pmc_mpi_pack_size_real_array(this%condensed_data_real) + &
             pmc_mpi_pack_size_integer_array(this%condensed_data_int)
@@ -531,7 +531,7 @@ contains
     write(f_unit,*) "Aerosol phase: ", this%phase_name
     write(f_unit,*) "Number of species: ", this%num_spec
     write(f_unit,*) "Species: ["
-    do i_spec = 1, this%num_spec 
+    do i_spec = 1, this%num_spec
       write(*,*) this%spec_name(i_spec)%string
     end do
     write(f_unit,*) "]"
@@ -560,7 +560,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Ensure there is enough room in the species dataset to add a specified 
+  !> Ensure there is enough room in the species dataset to add a specified
   !! number of species
   subroutine ensure_size(this, num_spec)
 

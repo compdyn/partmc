@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -44,11 +44,11 @@
 !!  - \subpage phlex_sub_model "Sub-Models"
 !!
 !! # Usage #
-!! 
+!!
 !! ## Compiling ##
 !!
 !! To include the \ref phlex_chem "phlex-chem" module in the PartMC library,
-!! set the ccmake flags \c ENABLE_JSON and \c ENABLE_SUNDIALS to \c ON. 
+!! set the ccmake flags \c ENABLE_JSON and \c ENABLE_SUNDIALS to \c ON.
 !! (<a href="http://www.llnl.gov/casc/sundials/">SUNDIALS</a> and
 !! <a href="https://github.com/jacobwilliams/json-fortran">json-fortran</a>
 !! must be installed).
@@ -57,8 +57,8 @@
 !!
 !! The \ref phlex_chem "phlex-chem" module uses two types of input files:
 !!
-!!  - \subpage input_format_phlex_file_list "File List" A \c json file 
-!!             containing a list of \ref phlex_chem "phlex-chem" configuration 
+!!  - \subpage input_format_phlex_file_list "File List" A \c json file
+!!             containing a list of \ref phlex_chem "phlex-chem" configuration
 !!             file names.
 !!  - \subpage input_format_phlex_config "Configuration File" One or more
 !!             \c json files containing all the \ref phlex_chem "phlex-chem"
@@ -74,7 +74,7 @@
 !! Using \ref phlex_chem "phlex-chem" in a PartMC scenario requires modifying
 !! the \ref input_format "spec file" and providing a \ref
 !! input_format_phlex_file_list "phlex-chem file list" file and one or more
-!! \ref input_format_phlex_config "phlex-chem configuration" files that 
+!! \ref input_format_phlex_config "phlex-chem configuration" files that
 !! describe the \ref phlex_species "chemical species", \ref phlex_mechanism
 !! "mechanism(s)", \ref phlex_aero_phase "aerosol phase(s)", \ref
 !! phlex_aero_rep "aerosol representation", and \ref phlex_sub_model
@@ -141,7 +141,7 @@ module pmc_phlex_core
     !> Flag to split gas- and aerosol-phase reactions
     !! (for large aerosol representations, like single-particle)
     logical :: split_gas_aero = .false.
-    !> Relative integration tolerance 
+    !> Relative integration tolerance
     real(kind=dp) :: rel_tol = 0.0
     ! Absolute integration tolerances
     ! (Values for non-solver species will be ignored)
@@ -201,7 +201,7 @@ module pmc_phlex_core
     procedure :: print => do_print
     !> Finalize the core
     final :: finalize
-    
+
     ! Private functions
     !> Add an aerosol phase to the model
     procedure, private :: add_aero_phase
@@ -247,7 +247,7 @@ contains
 
   !> \page input_format_phlex_file_list Input File Format: Phlex-Chem Configuration File List
   !!
-  !! A list of files containing configuration data for the \ref phlex_chem 
+  !! A list of files containing configuration data for the \ref phlex_chem
   !! "Phlexible Module for Chemistry". The file should be in \c json format
   !! and the general structure should be the following:
   !! \code{.json}
@@ -261,10 +261,10 @@ contains
   !! value is an array of \b strings with paths to the set of \ref
   !! input_format_phlex_config "configuration" files to load. Input files
   !! should be in \c json format.
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Load a set of model data files. 
+  !> Load a set of model data files.
   !!
   !! See \ref input_format_phlex_file_list for the input file format.
   subroutine load_files(this, input_file_path)
@@ -331,12 +331,12 @@ contains
 #endif
 
   end subroutine load_files
-    
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> \page input_format_phlex_config Input File Format: Phlex-Chem Configuration Data
   !!
-  !! Configuration data for the 
+  !! Configuration data for the
   !! \ref phlex_chem "Phlexible Module for Chemistry". The files are in
   !! \c json format and their general structure should be the following:
   !! \code{.json}
@@ -367,20 +367,20 @@ contains
   !!   - \subpage input_format_sub_model "SUB_MODEL_*"
   !!
   !! The arrangement of objects within the \b pmc-data array and between input
-  !! files is arbitrary. Additionally, some objects, such as \ref 
+  !! files is arbitrary. Additionally, some objects, such as \ref
   !! input_format_species "chemical species" and \ref input_format_mechanism
   !! "mechanisms" may be split into multiple objects within the \b pmc-data
   !! array and/or between files, and will be combined based on their unique
   !! name. This flexibility is provided so that the chemical mechanism data
-  !! can be organized in a way that makes sense to the designer of the 
-  !! mechanism. For example, files could be split based on species source 
+  !! can be organized in a way that makes sense to the designer of the
+  !! mechanism. For example, files could be split based on species source
   !! (biogenic, fossil fuel, etc.) or based on properties (molecular weight,
   !! density, etc.) or any combination of criteria. However, if a single
   !! property of an object (e.g., the molecular weight of a chemical species)
   !! is set in more than one location, this will cause an error.
-  
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+
   !> Load model data from input files
   !!
   !! See \ref input_format_phlex_config for the input file format.
@@ -428,7 +428,7 @@ contains
     j_next => null()
     allocate(json)
     do i_file = 1, size(input_file_path)
-      
+
       ! load the configuration file
       call j_file%initialize()
       call j_file%get_core(json)
@@ -482,7 +482,7 @@ contains
           aero_rep_ptr%val => aero_rep_factory%load(json, j_obj)
           str_val = aero_rep_ptr%val%name()
 
-          ! if an aerosol representation with the same name already exists, 
+          ! if an aerosol representation with the same name already exists,
           ! add data to it. otherwise, add a new aerosol representation
           if (this%get_aero_rep(str_val, existing_aero_rep_ptr)) then
             deallocate(aero_rep_ptr%val)
@@ -505,7 +505,7 @@ contains
           aero_phase => aero_phase_data_t()
           call aero_phase%load(json, j_obj)
           str_val = aero_phase%name()
-          
+
           ! if an aerosol phase with the same name already exists, add data to
           ! it. otherwise, add a new aerosol phase
           if (this%get_aero_phase(str_val, existing_aero_phase)) then
@@ -527,7 +527,7 @@ contains
         else if (str_val(1:9).eq.'SUB_MODEL') then
           sub_model_ptr%val => sub_model_factory%load(json, j_obj)
           str_val = sub_model_ptr%val%name()
-          
+
           ! if an sub-model with the same name already exists, add data to it.
           ! otherwise, add a new sub-model
           if (this%get_sub_model(str_val, existing_sub_model_ptr)) then
@@ -555,13 +555,13 @@ contains
                   "Invalid relative tolerance: "// &
                   trim(to_string(real(real_val, kind=dp))))
           this%rel_tol = real(real_val, kind=dp)
-        
+
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !!! set whether to solve gas and aerosol phases separately !!!
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         else if (str_val.eq.'SPLIT_GAS_AERO') then
           this%split_gas_aero = .true.
-        
+
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !!! fail on invalid object type !!!
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -569,7 +569,7 @@ contains
           call die_msg(448039776, &
                   "Received invalid json input object type: "//str_val)
         end if
-        
+
         ! get the next object
         j_next => j_obj
         call json%get_next(j_next, j_obj)
@@ -594,15 +594,15 @@ contains
   subroutine initialize(this)
 
     use iso_c_binding
-          
+
     !> Model data
     class(phlex_core_t), target, intent(inout) :: this
 
     ! Indices for iteration
     integer(kind=i_kind) :: i_mech, i_phase, i_aero_rep, i_sub_model
     integer(kind=i_kind) :: i_state_var, i_spec
-  
-    ! Variables for setting initial state values 
+
+    ! Variables for setting initial state values
     class(aero_rep_data_t), pointer :: rep
     integer(kind=i_kind) :: i_state_elem, i_name
 
@@ -656,7 +656,7 @@ contains
     ! Allocate space for the variable types and absolute tolerances
     allocate(this%abs_tol(this%state_array_size))
     allocate(this%var_type(this%state_array_size))
-    
+
     ! Start at the first state array element
     i_state_var = 0
 
@@ -712,7 +712,7 @@ contains
 
     ! Set activity coefficients to 1.0
     do i_aero_rep = 1, size(this%aero_rep)
-      
+
       rep => this%aero_rep(i_aero_rep)%val
 
       ! Get the ion pairs for which activity coefficients can be calculated
@@ -880,7 +880,7 @@ contains
 
     !> Chemical model
     class(phlex_core_t), intent(inout) :: this
- 
+
     call assert_msg(662920365, .not.this%solver_is_initialized, &
             "Attempting to initialize the solver twice.")
 
@@ -890,7 +890,7 @@ contains
       ! Create the new solver data objects
       this%solver_data_gas => phlex_solver_data_t()
       this%solver_data_aero => phlex_solver_data_t()
-    
+
       ! Set custom relative integration tolerance, if present
       if (this%rel_tol.ne.real(0.0, kind=dp)) then
         this%solver_data_gas%rel_tol = this%rel_tol
@@ -925,7 +925,7 @@ contains
       if (this%rel_tol.ne.0.0) then
         this%solver_data_gas_aero%rel_tol = this%rel_tol
       end if
-    
+
       ! Initialize the solver
       call this%solver_data_gas_aero%initialize( &
                 this%var_type,   & ! State array variable types
@@ -936,7 +936,7 @@ contains
                 this%sub_model,  & ! Pointer to the sub-models
                 GAS_AERO_RXN     & ! Reaction phase
                 )
-      
+
     end if
 
     this%solver_is_initialized = .true.
@@ -947,7 +947,7 @@ contains
 
   !> Update data associated with an aerosol representation. This function
   !! should be called by an external aerosol microphysics model whenever
-  !! the aerosol condensed data needs updated based on changes in, e.g., 
+  !! the aerosol condensed data needs updated based on changes in, e.g.,
   !! particle size or number concentration. The update types are aerosol-
   !! representation specific.
   subroutine update_aero_rep_data(this, update_data)
@@ -963,7 +963,7 @@ contains
             call this%solver_data_aero%update_aero_rep_data(update_data)
     if (associated(this%solver_data_gas_aero)) &
             call this%solver_data_gas_aero%update_aero_rep_data(update_data)
-    
+
   end subroutine update_aero_rep_data
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1013,7 +1013,7 @@ contains
   !> Integrate the chemical mechanism
   subroutine solve(this, phlex_state, time_step, rxn_phase)
 
-    use pmc_rxn_data 
+    use pmc_rxn_data
     use iso_c_binding
 
     !> Chemical model
@@ -1133,7 +1133,7 @@ contains
 
     !> Chemical model
     class(phlex_core_t), intent(in) :: this
-    
+
     type(aero_rep_factory_t) :: aero_rep_factory
     type(sub_model_factory_t) :: sub_model_factory
     class(aero_rep_data_t), pointer :: aero_rep
@@ -1161,7 +1161,7 @@ contains
     do i_sub_model = 1, size(this%sub_model)
       sub_model => this%sub_model(i_sub_model)%val
       pack_size = pacK_size + sub_model_factory%pack_size(sub_model)
-      sub_model => null() 
+      sub_model => null()
     end do
     pack_size = pack_size + &
                 pmc_mpi_pack_size_integer(this%state_array_size) + &
@@ -1366,7 +1366,7 @@ contains
     end do
     write(f_unit,*) ""
     deallocate(state_names)
-    
+
     flush(f_unit)
 
     if (associated(this%solver_data_gas)) &

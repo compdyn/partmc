@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 201-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -11,14 +11,14 @@
 !! \ref phlex_rxn "reactions" that occur in the gas-phase or within one of
 !! several \ref phlex_aero_phase "aerosol phases" or across an interface
 !! between two phases (gas or aerosol). One or several mechanisms may be
-!! included in a \ref phlex_chem "phlex-chem" model run. 
+!! included in a \ref phlex_chem "phlex-chem" model run.
 !!
 !! Every mechanism in a \ref phlex_chem "phlex-chem" run will have access to
 !! the same set of \ref phlex_species "chemical species" and \ref
-!! phlex_aero_phase "aerosol phases", so phase and species names must be 
+!! phlex_aero_phase "aerosol phases", so phase and species names must be
 !! consistent across all concurrently loaded mechanisms. The division of \ref
 !! phlex_rxn "reactions" into distinct mechanisms permits a host model to
-!! specificy which mechanisms should be solved during a call to 
+!! specificy which mechanisms should be solved during a call to
 !! \c pmc_phlex_core::phlex_core_t::solve().
 !!
 !! The input format for mechanism data can be found \ref
@@ -54,7 +54,7 @@ module pmc_mechanism_data
 
   !> A chemical mechanism
   !!
-  !! Instances of mechanism_data_t represent complete \ref phlex_mechanism 
+  !! Instances of mechanism_data_t represent complete \ref phlex_mechanism
   !! chemical mechanism. Multiple mechanisms  may be used during one model run
   !! and will be solved simultaneously.
   type :: mechanism_data_t
@@ -178,7 +178,7 @@ contains
   !!   }
   !! ]}
   !! \endcode
-  !! A \ref phlex_mechanism "mechanism" object must have a unique \b name, 
+  !! A \ref phlex_mechanism "mechanism" object must have a unique \b name,
   !! a \b type of \b MECHANISM and an array of \ref input_format_rxn
   !! "reaction objects" labelled \b reactions. Mechanism data may be split
   !! into multiple mechanism objects across input files - they will be
@@ -204,7 +204,7 @@ contains
 
     ! Cycle through the set of reactions in the json file
     next => null()
-   
+
     ! Get the reaction set
     call json%get(j_obj, 'reactions(1)', child, found)
     do while (associated(child) .and. found)
@@ -212,10 +212,10 @@ contains
       ! Increase the size of the mechanism
       call this%ensure_size(1)
       this%num_rxn = this%num_rxn + 1
-      
+
       ! Load the reaction into the mechanism
       this%rxn_ptr(this%num_rxn)%val => rxn_factory%load(json, child)
-      
+
       ! Get the next reaction in the json file
       call json%get_next(child, next)
       child => next
@@ -239,7 +239,7 @@ contains
 #endif
 
   end subroutine load
-    
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Initialize the mechanism
@@ -314,8 +314,8 @@ contains
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
-   
-    type(rxn_factory_t) :: rxn_factory 
+
+    type(rxn_factory_t) :: rxn_factory
     integer(kind=i_kind) :: i_rxn
 
     pack_size =  pmc_mpi_pack_size_integer(this%num_rxn)
@@ -338,7 +338,7 @@ contains
     integer, intent(inout) :: pos
 
 #ifdef PMC_USE_MPI
-    type(rxn_factory_t) :: rxn_factory 
+    type(rxn_factory_t) :: rxn_factory
     integer :: i_rxn, prev_position
 
     prev_position = pos
@@ -367,7 +367,7 @@ contains
     integer, intent(inout) :: pos
 
 #ifdef PMC_USE_MPI
-    type(rxn_factory_t) :: rxn_factory 
+    type(rxn_factory_t) :: rxn_factory
     integer :: i_rxn, prev_position, num_rxn
 
     prev_position = pos

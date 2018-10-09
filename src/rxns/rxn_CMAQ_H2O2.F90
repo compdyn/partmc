@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -66,7 +66,7 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!> The rxn_CMAQ_H2O2_t type and associated functions. 
+!> The rxn_CMAQ_H2O2_t type and associated functions.
 module pmc_rxn_CMAQ_H2O2
 
   use pmc_aero_rep_data
@@ -136,7 +136,7 @@ contains
   !! any required information into the condensed data arrays for use during
   !! solving
   subroutine initialize(this, chem_spec_data, aero_rep)
-    
+
     !> Reaction data
     class(rxn_CMAQ_H2O2_t), intent(inout) :: this
     !> Chemical species data
@@ -176,8 +176,8 @@ contains
     end do
 
     ! Allocate space in the condensed data arrays
-    ! Space in this example is allocated for two sets of inidices for the 
-    ! reactants and products, one molecular property for each reactant, 
+    ! Space in this example is allocated for two sets of inidices for the
+    ! reactants and products, one molecular property for each reactant,
     ! yields for the products and three reaction parameters.
     allocate(this%condensed_data_int(NUM_INT_PROP_ + &
             (i_spec + 2) * (i_spec + products%size())))

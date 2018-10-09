@@ -7,8 +7,8 @@
 /** \file
  * \brief Sub model solver functions
  */
-#include "phlex_solver.h"
 #include "sub_model_solver.h"
+#include "sub_models.h"
 
 // Sub model types (Must match parameters in pmc_sub_model_factory)
 #define SUB_MODEL_UNIFAC 1
@@ -23,7 +23,7 @@
  * \return Index of the requested parameter, or -1 if it was not found that can
  *         be passed to sub_model_get_parameter_value() during solving
  */
-int sub_model_get_parameter_id_sd(void *solver_data, int sub_model_type, 
+int sub_model_get_parameter_id_sd(void *solver_data, int sub_model_type,
     void *identifiers)
 {
   ModelData *model_data = &(((SolverData*)solver_data)->model_data);
@@ -39,10 +39,10 @@ int sub_model_get_parameter_id_sd(void *solver_data, int sub_model_type,
  * \return Index of the requested parameter, or -1 if it was not found that can
  *         be passed to sub_model_get_parameter_value() during solving
  */
-int sub_model_get_parameter_id(ModelData *model_data, int type, 
+int sub_model_get_parameter_id(ModelData *model_data, int type,
           void *identifiers)
 {
- 
+
   // Get the number of sub models
   int *sub_model_data = (int*) (model_data->sub_model_data);
   int n_sub_model = *(sub_model_data++);
@@ -118,7 +118,7 @@ double sub_model_get_parameter_value(ModelData *model_data, int parameter_id)
  */
 void sub_model_update_env_state(ModelData *model_data, double *env)
 {
-  
+
   // Get the number of sub models
   int *sub_model_data = (int*) (model_data->sub_model_data);
   int n_sub_model = *(sub_model_data++);
@@ -180,7 +180,7 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
           int n_float_param, int *int_param, double *float_param,
           void *solver_data)
 {
-  ModelData *model_data = 
+  ModelData *model_data =
           (ModelData*) &(((SolverData*)solver_data)->model_data);
   int *sub_model_data = (int*) (model_data->nxt_sub_model);
 
@@ -210,10 +210,10 @@ void sub_model_add_condensed_data(int sub_model_type, int n_int_param,
  * \param update_data Pointer to updated data to pass to the sub-model
  * \param solver_data Pointer to solver data
  */
-void sub_model_update_data(int update_sub_model_type, void *update_data, 
+void sub_model_update_data(int update_sub_model_type, void *update_data,
           void *solver_data)
 {
-  ModelData *model_data = 
+  ModelData *model_data =
           (ModelData*) &(((SolverData*)solver_data)->model_data);
 
   // Get the number of sub models
@@ -234,7 +234,7 @@ void sub_model_update_data(int update_sub_model_type, void *update_data,
           break;
       }
 
-    // ... otherwise, call the update function for sub-model types that have 
+    // ... otherwise, call the update function for sub-model types that have
     // then
     } else {
       switch (sub_model_type) {

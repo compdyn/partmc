@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2017 Matthew Dawson
+/* Copyright (C) 2017-2018 Matthew Dawson
  * Licensed under the GNU General Public License version 2 or (at your
  * option) any later version. See the file COPYING for details.
  *
@@ -8,7 +8,10 @@
 /** \file
  * \brief Modal mass aerosol representation functions
  */
-#include "../aero_rep_solver.h"
+#include <math.h>
+#include "../aero_phase_solver.h"
+#include "../aero_reps.h"
+#include "../phlex_solver.h"
 
 // TODO Lookup environmental indicies during initialization
 #define TEMPERATURE_K_ env_data[0]
@@ -99,7 +102,7 @@ void * aero_rep_modal_binned_mass_update_env_state(double *env_data,
 /** \brief Update aerosol representation data for a new state
  *
  * The modal mass aerosol representation recalculates effective radius and
- * number concentration for each new state. 
+ * number concentration for each new state.
  *
  * \param model_data Pointer to the model data, including the state array
  * \param aero_rep_data Pointer to the aerosol representation data
@@ -118,14 +121,14 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data,
 
     double volume, mass, moles;
     switch (SECTION_TYPE_(i_section)) {
-      
+
       // Mode
-      case (MODAL) : 
-    
+      case (MODAL) :
+
         // Sum the volumes of each species in the mode
         volume = 0.0;
         for (int i_phase=0; i_phase<NUM_PHASE_(i_section); i_phase++) {
-          
+
           // Get a pointer to the phase on the state array
           double *state = (double*) (model_data->state);
           state += PHASE_STATE_ID_(i_section, i_phase, 0);
@@ -135,20 +138,20 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data,
                     PHASE_MODEL_DATA_ID_(i_section, i_phase, 0),
                     state, &(PHASE_MASS_(i_section, i_phase, 0)),
                     &(PHASE_AVG_MW_(i_section, i_phase, 0)));
-          
+
           // Get the phase volume
           double phase_volume = 0.0;
           aero_phase_get_volume(model_data,
                     PHASE_MODEL_DATA_ID_(i_section, i_phase, 0),
                     state, &phase_volume);
           volume += phase_volume;
-        
+
         }
- 
+
         // Calculate the number concentration based on the total mode volume
         // (see aero_rep_modal_binned_mass_get_number_conc for details)
-        NUMBER_CONC_(i_section,0) = volume * 6.0 /  
-                (M_PI * pow(GMD_(i_section,0),3) * 
+        NUMBER_CONC_(i_section,0) = volume * 6.0 /
+                (M_PI * pow(GMD_(i_section,0),3) *
                 exp(9.0/2.0*pow(GSD_(i_section,0),2)));
 
         break;
@@ -158,11 +161,11 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data,
 
         // Loop through the bins
         for (int i_bin=0; i_bin<NUM_BINS_(i_section); i_bin++) {
-          
+
           // Sum the volumes of each species in the bin
           volume = 0.0;
           for (int i_phase=0; i_phase<NUM_PHASE_(i_section); i_phase++) {
-          
+
             // Get a pointer to the phase on the state array
             double *state = (double*) (model_data->state);
             state += PHASE_STATE_ID_(i_section, i_phase, i_bin);
@@ -172,14 +175,14 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data,
                       PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
                       state, &(PHASE_MASS_(i_section, i_phase, i_bin)),
                       &(PHASE_AVG_MW_(i_section, i_phase, i_bin)));
-          
+
             // Get the phase volume
             double phase_volume = 0.0;
             aero_phase_get_volume(model_data,
                       PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
                       state, &phase_volume);
             volume += phase_volume;
-        
+
           }
 
           // Calculate the number concentration based on the total bin volume
@@ -247,7 +250,7 @@ void * aero_rep_modal_binned_mass_get_effective_radius(int aero_phase_idx,
  * The modal mass number concentration is calculated for a log-normal
  * distribution where the geometric mean diameter (\f$\tilde{D}_n\f$) and
  * geometric standard deviation (\f$\tilde{\sigma}_g\f$) are set by the aerosol
- * model prior to solving the chemistry. Thus, all 
+ * model prior to solving the chemistry. Thus, all
  * \f$\frac{\partial n}{\partial y}\f$ are zero. The number concentration is
  * calculated according to the equation given in Table 1 of Zender
  * \cite Zender2002 :
@@ -310,7 +313,7 @@ void * aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx,
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
-  
+
 /** \brief Get the total mass in an aerosol phase \f$m\f$ (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
  *
  * \param aero_phase_idx Index of the aerosol phase within the representation
@@ -331,11 +334,11 @@ void * aero_rep_modal_binned_mass_get_aero_phase_mass(int aero_phase_idx,
   int *int_data = (int*) aero_rep_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
-  for (int i_section=0; i_section<NUM_SECTION_ && aero_phase_idx>=0; 
+  for (int i_section=0; i_section<NUM_SECTION_ && aero_phase_idx>=0;
             i_section++) {
-    for (int i_phase=0; i_phase<NUM_PHASE_(i_section) && aero_phase_idx>=0; 
+    for (int i_phase=0; i_phase<NUM_PHASE_(i_section) && aero_phase_idx>=0;
               i_phase++) {
-      for (int i_bin=0; i_bin<NUM_BINS_(i_section) && aero_phase_idx>=0; 
+      for (int i_bin=0; i_bin<NUM_BINS_(i_section) && aero_phase_idx>=0;
                 i_bin++) {
         if (aero_phase_idx==0) {
           *aero_phase_mass = PHASE_MASS_(i_section, i_phase, i_bin);

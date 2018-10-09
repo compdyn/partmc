@@ -1,11 +1,11 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
 !> \file
 !> The pmc_phlex_interface module.
 
-!> An interface between PartMC and the Phlexible Module for Chemistry 
+!> An interface between PartMC and the Phlexible Module for Chemistry
 module pmc_phlex_interface
 
   use pmc_aero_data
@@ -56,11 +56,11 @@ contains
     do i_part = 1, aero_state%n_part()
       associate (part => aero_state%apa%particle(i_part))
 
-      ! Set the Phlex chem aerosol state        
+      ! Set the Phlex chem aerosol state
       num_conc = aero_weight_array_num_conc(aero_state%awa, part, aero_data)
       call pmc_phlex_interface_set_phlex_conc(aero_data, part, phlex_state, &
               num_conc)
-      
+
       ! Solve the phase-transfer and aerosol-phase chemistry for this particle
       call phlex_core%solve(phlex_state, del_t, AERO_RXN)
 
@@ -135,7 +135,7 @@ contains
     select type (aero_rep)
       type is (aero_rep_single_particle_t)
         do i_spec = 1, size(aero_data%phlex_spec_id)
-          aero_particle%vol(i_spec) = & 
+          aero_particle%vol(i_spec) = &
               phlex_state%state_var(aero_data%phlex_spec_id(i_spec)) / &
               aero_data%density(i_spec) / num_conc
         end do
@@ -145,7 +145,7 @@ contains
     end select
 
     end associate
-    
+
   end subroutine pmc_phlex_interface_get_phlex_conc
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

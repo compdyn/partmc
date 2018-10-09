@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -41,7 +41,7 @@ module pmc_phlex_solver_data
 
   !> Interface to c ODE solver functions
   interface
-    !> Get a new solver 
+    !> Get a new solver
     type(c_ptr) function solver_new(n_state_var, var_type, &
                     n_rxn, n_rxn_int_param, n_rxn_float_param, &
                     n_aero_phase, n_aero_phase_int_param, &
@@ -60,7 +60,7 @@ module pmc_phlex_solver_data
       integer(kind=c_int), value :: n_rxn_int_param
       !> Total number of floating-point parameters for all reactions
       integer(kind=c_int), value :: n_rxn_float_param
-      !> Number of aerosol phases 
+      !> Number of aerosol phases
       integer(kind=c_int), value :: n_aero_phase
       !> Total number of integer parameters for all aerosol phases
       integer(kind=c_int), value :: n_aero_phase_int_param
@@ -96,7 +96,7 @@ module pmc_phlex_solver_data
       !> Maximum number of convergence failures
       integer(kind=c_int), value :: max_conv_fails
     end subroutine solver_initialize
-  
+
     !> Run the solver
     integer(kind=c_int) function solver_run(solver_data, state, env, &
                     t_initial, t_final) bind (c)
@@ -284,7 +284,7 @@ module pmc_phlex_solver_data
 
   !> Solver data
   !!
-  !! Acts as the interface between the phlex-chem module and the solver. 
+  !! Acts as the interface between the phlex-chem module and the solver.
   !! Instances of the type hold a pointer to a solver c object and provide
   !! functions to initialize the solver with model data and run the solver
   !! over a specified time step.
@@ -335,7 +335,7 @@ contains
 
   !> Constructor for phlex_solver_data_t
   function constructor() result (new_obj)
-    
+
     !> New solver variable
     type(phlex_solver_data_t), pointer :: new_obj
 
@@ -387,7 +387,7 @@ contains
     type(aero_phase_data_t), pointer :: aero_phase
     ! Aerosol representation pointer
     class(aero_rep_data_t), pointer :: aero_rep
-    ! Aerosol representation factory object for getting aerosol 
+    ! Aerosol representation factory object for getting aerosol
     ! representation type
     type(aero_rep_factory_t) :: aero_rep_factory
     ! Sub model pointer
@@ -423,7 +423,7 @@ contains
     ! Number of floating-point sub model parameters
     integer(kind=c_int) :: n_sub_model_float_param
 
-    ! Make sure the variable type and absolute tolerance arrays are of 
+    ! Make sure the variable type and absolute tolerance arrays are of
     ! equal length
     call assert_msg(825843466, size(abs_tol).eq.size(var_type), &
             "Mismatched absolute tolerance and variable type arrays: "// &
@@ -527,14 +527,14 @@ contains
     ! reactions of the specified phase
     do i_mech=1, size(mechanisms)
       do i_rxn=1, mechanisms(i_mech)%val%size()
-       
+
         ! FIXME Put ZSR aerosol water first, so water is available for other
-        ! reactions - and find a better way to account for inter-dependence 
+        ! reactions - and find a better way to account for inter-dependence
         ! of reactions/sub-models
 
         ! Assign rxn to the current reaction
         rxn => mechanisms(i_mech)%val%get_rxn(i_rxn)
-        
+
         ! Check reaction phase
         select case (rxn%rxn_phase)
           case (GAS_RXN)
@@ -550,7 +550,7 @@ contains
         allocate(float_param(size(rxn%condensed_data_real)))
         int_param(:) = int(rxn%condensed_data_int(:), kind=c_int)
         float_param(:) = real(rxn%condensed_data_real(:), kind=c_double)
-      
+
         ! Send the condensed data to the solver
         call rxn_add_condensed_data ( &
                 int(rxn_factory%get_type(rxn), kind=c_int),& ! Rxn type
@@ -612,7 +612,7 @@ contains
 
       ! Send the condensed data to the solver
       call aero_rep_add_condensed_data ( &
-              int(aero_rep_factory%get_type(aero_rep), kind=c_int), & 
+              int(aero_rep_factory%get_type(aero_rep), kind=c_int), &
                                                     ! Aero rep type
               int(size(int_param), kind=c_int),   & ! Int array size
               int(size(float_param), kind=c_int), & ! Real array size
@@ -642,7 +642,7 @@ contains
 
       ! Send the condensed data to the solver
       call sub_model_add_condensed_data ( &
-              int(sub_model_factory%get_type(sub_model), kind=c_int), & 
+              int(sub_model_factory%get_type(sub_model), kind=c_int), &
                                                     ! Sub model type
               int(size(int_param), kind=c_int),   & ! Int array size
               int(size(float_param), kind=c_int), & ! Real array size
@@ -706,7 +706,7 @@ contains
 
     call rxn_update_data( &
             update_data%get_type(),     & ! Reaction type to update
-            update_data%get_data(),     & ! Data needed to perform update 
+            update_data%get_data(),     & ! Data needed to perform update
             this%solver_c_ptr           & ! Pointer to solver data
             )
 
@@ -746,7 +746,7 @@ contains
     real(kind=dp), intent(in) :: t_final
 
     integer(kind=c_int) :: solver_status
-    
+
     ! Run the solver
     solver_status = solver_run( &
             this%solver_c_ptr,              & ! Pointer to intialized solver
@@ -762,7 +762,7 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Check whether a solver is available for the integration 
+  !> Check whether a solver is available for the integration
   logical function is_solver_available(this)
 
     !> Solver data

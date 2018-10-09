@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -18,11 +18,11 @@
 !!   W = \sum\limits_{i=0}^{n}\frac{1000 M_i}{MW_i m_{i}(a_w)}
 !! \f]
 !!
-!! where \f$M\f$ is the concentration of binary electrolyte \f$i\f$ 
+!! where \f$M\f$ is the concentration of binary electrolyte \f$i\f$
 !! (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$) with molecular weight
 !! \f$MW_i\f$ (\f$\mbox{\si{\kilo\gram\per\mole}}\f$) and molality
 !! \f$m_{i}\f$ at a given water activity \f$a_w\f$ (RH; 0--1)
-!! contributing to the total aerosol water content \f$W\f$ 
+!! contributing to the total aerosol water content \f$W\f$
 !! (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$).
 !!
 !! Input data for ZSR aerosol water calculations have the following format :
@@ -56,7 +56,7 @@
 !!   }
 !! \endcode
 !! The key-value pair \b aerosol \b phase is required to specify the aerosol
-!! phase for which to calculate water content. Key-value pairs 
+!! phase for which to calculate water content. Key-value pairs
 !! \b gas-phase \b water and \b aerosol-phase \b water must also be present
 !! and specify the names for the water species in each phase. The final
 !! required key-value pair is \b ion \b pairs which should contain a set of
@@ -83,15 +83,15 @@
 !! must be included in a key-value pair \b Y_j whose value is an array
 !! with the \f$Y_j\f$ parameters. The size of the array corresponds to the
 !! order of the polynomial equation, which must be greater than 1. The
-!! key-value pair \b low \b RH is required to specify the lowest RH (0--1) 
+!! key-value pair \b low \b RH is required to specify the lowest RH (0--1)
 !! for which this fit is valid. This value for RH will be used for all lower
-!! RH in calculations of \f$m_i(a_w)\f$ as per Jacobson et al. (1996) 
+!! RH in calculations of \f$m_i(a_w)\f$ as per Jacobson et al. (1996)
 !! \cite Jacobson1996.
 !!
 !! The key-value pair \b ions must contain the set of ions this binary
 !! electrolyte includes. Each species must correspond to a species present in
 !! \b aerosol \b phase and  have a \b charge parameter that specifies their
-!! charge (uncharged species are not permitted in this set) and a 
+!! charge (uncharged species are not permitted in this set) and a
 !! \b molecular \b weight (\f$\mbox{\si{\kilo\gram\per\mole}}\f$) property.
 !! Ions without a \b qty specified are assumed to appear once in the binary
 !! electrolyte. The total molecular weight for the binary electroly
@@ -105,7 +105,7 @@
 !!   "name" : "H2O",
 !!   "type" : "CHEM_SPEC",
 !!   "phase" : "GAS",
-!! },  
+!! },
 !! {
 !!   "name" : "Nap",
 !!   "type" : "CHEM_SPEC",
@@ -143,7 +143,7 @@
 
 ! TODO Find a way to incorporate the "regimes" in EQSAM
 
-!> The rxn_ZSR_aerosol_water_t type and associated functions. 
+!> The rxn_ZSR_aerosol_water_t type and associated functions.
 module pmc_rxn_ZSR_aerosol_water
 
   use pmc_aero_phase_data
@@ -227,7 +227,7 @@ contains
   !! any required information into the condensed data arrays for use during
   !! solving
   subroutine initialize(this, chem_spec_data, aero_rep)
-    
+
     !> Reaction data
     class(rxn_ZSR_aerosol_water_t), intent(inout) :: this
     !> Chemical species data
@@ -286,7 +286,7 @@ contains
     n_float_param = NUM_REAL_PROP_
     call ion_pairs%iter_reset()
     do i_ion_pair = 1, n_ion_pair
-  
+
       ! Get the name of the ion pair
       call assert(476976534, ion_pairs%get_key(ion_pair_name))
 
@@ -303,7 +303,7 @@ contains
 
       ! Get the number of parameters according to activity calculation type
       if (str_type.eq."JACOBSON") then
-        
+
         ! Get the number of Y_j parameters
         key_name = "Y_j"
         call assert_msg(286454243, &
@@ -328,7 +328,7 @@ contains
                 "Mission ions for EQSAM activity calculation for ion "// &
                 "pair '"//ion_pair_name//"' in ZSR aerosol water "// &
                 "reaction.")
-        
+
         call assert_msg(849524804, sub_props%size().gt.0, &
                 "Insufficient ions specified for EQSAM activity "// &
                 "calculation for ion pair '"//ion_pair_name// &
@@ -366,11 +366,11 @@ contains
             "reaction.")
 
     GAS_WATER_ID_ = chem_spec_data%gas_state_id(spec_name)
-    
+
     call assert_msg(709909577, GAS_WATER_ID_ .gt. 0, &
             "Cannot find gas-phase water species '"//spec_name//"' for "// &
             "ZSR aerosol water reaction.")
-    
+
     ! Set the aerosol-water species
     key_name = "aerosol-phase water"
     call assert_msg(771445226, &
@@ -405,7 +405,7 @@ contains
     n_float_param = NUM_REAL_PROP_
     call ion_pairs%iter_reset()
     do i_ion_pair = 1, n_ion_pair
-   
+
       ! Get the name of the ion pair
       call assert(476976534, ion_pairs%get_key(ion_pair_name))
 
@@ -423,7 +423,7 @@ contains
 
       ! Get the number of parameters according to activity calculation type
       if (str_type.eq."JACOBSON") then
-       
+
         ! Set the type
         TYPE_(i_ion_pair) = ACT_CALCJACOBSON
 
@@ -462,7 +462,7 @@ contains
         call ions%iter_reset()
         total_charge = 0
         do i_ion = 1, 2
-        
+
           ! Get the ion name
           call assert(849711956, ions%get_key(ion_name))
 
@@ -470,15 +470,15 @@ contains
           qty = 1
           if (ions%get_property_t(val=sub_props)) then
             key_name = "qty"
-            if (sub_props%get_int(key_name, int_val)) qty = int_val 
-          end if 
+            if (sub_props%get_int(key_name, int_val)) qty = int_val
+          end if
 
           ! Get the species properties
           call assert_msg(315479897, &
                   chem_spec_data%get_property_set(ion_name, spec_props), &
                   "Missing species properties for ion '"//ion_name// &
                   "' in ZSR aerosol water reaction.")
-          
+
           ! Add the molecular weight
           key_name = "molecular weight"
           call assert_msg(897812513, &
@@ -553,7 +553,7 @@ contains
           call ions%iter_next()
 
         end do
-    
+
         call assert_msg(319151390, total_charge.eq.0, &
                 "Charge imbalance for ion pair '"//ion_pair_name// &
                 " in ZSR aerosol water reaction. Total charge: "// &
@@ -592,7 +592,7 @@ contains
         EQSAM_NUM_ION_(i_ion_pair) = ions%size()
         call ions%iter_reset()
         do i_ion = 1, ions%size()
-          
+
           ! Get the ion name
           call assert(849711956, ions%get_key(ion_name))
 
@@ -601,7 +601,7 @@ contains
                   chem_spec_data%get_property_set(ion_name, spec_props), &
                   "Missing species properties for ion '"//ion_name// &
                   "' in ZSR aerosol water reaction.")
-          
+
           ! Add the molecular weight
           key_name = "molecular weight"
           call assert_msg(598142298, &
@@ -656,7 +656,7 @@ contains
 
     call assert(859412771, n_int_param.eq.TOTAL_INT_PARAM_)
     call assert(568314442, n_float_param.eq.TOTAL_FLOAT_PARAM_)
-      
+
   end subroutine initialize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

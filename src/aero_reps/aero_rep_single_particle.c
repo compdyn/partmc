@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2017 Matthew Dawson
+/* Copyright (C) 2017-2018 Matthew Dawson
  * Licensed under the GNU General Public License version 2 or (at your
  * option) any later version. See the file COPYING for details.
  *
@@ -8,7 +8,9 @@
 /** \file
  * \brief Single particle aerosol representation functions
  */
-#include "../aero_rep_solver.h"
+#include "../aero_phase_solver.h"
+#include "../aero_reps.h"
+#include "../phlex_solver.h"
 
 // TODO Lookup environmental indicies during initialization
 #define TEMPERATURE_K_ env_data[0]
@@ -93,7 +95,7 @@ void * aero_rep_single_particle_update_state(ModelData *model_data,
     state_var += PHASE_STATE_ID_(i_phase);
 
     // Get the mass and average MW
-    aero_phase_get_mass(model_data, PHASE_MODEL_DATA_ID_(i_phase), state_var, 
+    aero_phase_get_mass(model_data, PHASE_MODEL_DATA_ID_(i_phase), state_var,
                &(PHASE_MASS_(i_phase)), &(PHASE_AVG_MW_(i_phase)));
   }
 
@@ -136,12 +138,12 @@ void * aero_rep_single_particle_get_effective_radius(int aero_phase_idx,
  *
  * \param aero_phase_idx Index of the aerosol phase within the representation
  *                       (not used)
- * \param number_conc Particle number concentration, \f$n\f$ 
+ * \param number_conc Particle number concentration, \f$n\f$
  *                    (\f$\mbox{\si{\#\per\cubic\centi\metre}}\f$)
  * \param partial_deriv \f$\frac{\partial n}{\partial y}\f$ where \f$y\f$ are
  *                      the species on the state array
  * \param aero_rep_data Pointer to the aerosol representation data
- * \return The aero_rep_data pointer advanced by the size of the aerosol 
+ * \return The aero_rep_data pointer advanced by the size of the aerosol
  *         representation
  */
 void * aero_rep_single_particle_get_number_conc(int aero_phase_idx,
@@ -176,7 +178,7 @@ void * aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx,
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
-  
+
 /** \brief Get the total mass in an aerosol phase \f$m\f$ (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
  *
  * The single particle mass is set for each new state as the sum of the masses
@@ -211,7 +213,7 @@ void * aero_rep_single_particle_get_aero_phase_mass(int aero_phase_idx,
  * Single particle aerosol representation update data is structured as follows:
  *
  *  - \b int aero_rep_id (Id of one or more aerosol representations set by the
- *       host model using the 
+ *       host model using the
  *       pmc_aero_rep_single_particle::aero_rep_single_particle_t::set_id
  *       function prior to initializing the solver.)
  *  - \b int update_type (Type of update to perform. Can be UPDATE_RADIUS or
@@ -311,7 +313,7 @@ void aero_rep_single_particle_set_radius_update_data(void *update_data,
   *update_type = UPDATE_RADIUS;
   *new_radius = radius;
 }
-          
+
 /** \brief Create update data for new particle number
  *
  * \return Pointer to a new number update data object
@@ -342,7 +344,7 @@ void aero_rep_single_particle_set_number_update_data(void *update_data,
   *update_type = UPDATE_NUMBER;
   *new_number_conc = number_conc;
 }
-          
+
 #undef TEMPERATURE_K_
 #undef PRESSURE_PA_
 

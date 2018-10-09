@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -59,14 +59,14 @@ module pmc_sub_model_data
     !! model during solving must be saved by the extending type to the
     !! condensed data arrays.
     type(property_t), pointer, public :: property_set => null()
-    !> Condensed sub-model data. These arrays will be available during 
+    !> Condensed sub-model data. These arrays will be available during
     !! integration, and should contain any information required by the
-    !! sub-model that cannot be obtained from the 
+    !! sub-model that cannot be obtained from the
     !! pmc_phlex_state::phlex_state_t object. (floating point)
     real(kind=dp), allocatable, public :: condensed_data_real(:)
-    !> Condensed sub-model data. These arrays will be available during 
+    !> Condensed sub-model data. These arrays will be available during
     !! integration, and should contain any information required by the
-    !! sub-model that cannot be obtained from the 
+    !! sub-model that cannot be obtained from the
     !! pmc_phlex_state::phlex_state_t object. (integer)
     integer(kind=i_kind), allocatable, public :: condensed_data_int(:)
   contains
@@ -125,7 +125,7 @@ interface
   !! the input files have been read in. It ensures all data required
   !! during the model run are included in the condensed data arrays.
   subroutine initialize(this, aero_rep_set, aero_phase_set, chem_spec_data)
-    
+
     use pmc_chem_spec_data
     use pmc_aero_rep_data
     use pmc_aero_phase_data
@@ -141,7 +141,7 @@ interface
     type(chem_spec_data_t), intent(in) :: chem_spec_data
 
   end subroutine initialize
- 
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 end interface
@@ -252,7 +252,7 @@ contains
 
     !> Sub model data
     class(sub_model_data_t), intent(in) :: this
-    
+
     pack_size = &
             pmc_mpi_pack_size_real_array(this%condensed_data_real) + &
             pmc_mpi_pack_size_integer_array(this%condensed_data_int)

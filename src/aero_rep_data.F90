@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -62,7 +62,7 @@ module pmc_aero_rep_data
     !!
     !! See \ref phlex_aero_phase "Aerosol Phases" for details.
     type(aero_phase_data_ptr), allocatable, public :: aero_phase(:)
-    !> Aerosol representation parameters. These will be available during 
+    !> Aerosol representation parameters. These will be available during
     !! initialization, but not during solving. All information required
     !! by functions of the aerosol representation  must be saved by the
     !! exdending type in the condensed data arrays.
@@ -255,7 +255,7 @@ interface
     import :: aero_rep_data_t
 
     !> Chemical species name
-    character(len=:), allocatable :: spec_name 
+    character(len=:), allocatable :: spec_name
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
     !> Unique name of the species  in this aerosol representation
@@ -315,11 +315,11 @@ contains
   !!
   !!   - \subpage phlex_aero_rep_single_particle "AERO_REP_SINGLE_PARTICLE"
   !!   - \subpage phlex_aero_rep_modal_binned_mass
-  !!                    "AERO_REP_MODAL_BINNED_MASS" 
+  !!                    "AERO_REP_MODAL_BINNED_MASS"
   !!
-  !! All remaining data are optional and may include any valid \c json value. 
+  !! All remaining data are optional and may include any valid \c json value.
   !! However, extending types will have specific requirements for the
-  !! remaining data. 
+  !! remaining data.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -352,7 +352,7 @@ contains
     call json%get_child(j_obj, child)
     do while (associated(child))
       call json%info(child, name=key, var_type=var_type)
-      
+
       ! aerosol representation name
       if (key.eq."name") then
         call assert_msg(196193896, var_type.eq.json_string, &
@@ -425,16 +425,16 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Determine the size of a binary required to pack the aerosol 
+  !> Determine the size of a binary required to pack the aerosol
   !! representation data
   integer(kind=i_kind) function pack_size(this)
 
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
-    
+
     pack_size = &
             pmc_mpi_pack_size_real_array(this%condensed_data_real) + &
-            pmc_mpi_pack_size_integer_array(this%condensed_data_int) 
+            pmc_mpi_pack_size_integer_array(this%condensed_data_int)
 
   end function pack_size
 

@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -14,9 +14,9 @@
 !!   Ae^{(\frac{-E_a}{k_bT})}(\frac{T}{D})^B(1.0+E*P)
 !! \f]
 !!
-!! where \f$A\f$ is the pre-exponential factor 
+!! where \f$A\f$ is the pre-exponential factor
 !! (\f$[\mbox{U}]^{-(n-1)} s^{-1}\f$), \f$U\f$ is the unit of the reactants
-!! and products, which can be \f$M\f$ for aqueous-phase reactions or 
+!! and products, which can be \f$M\f$ for aqueous-phase reactions or
 !! \f$\mbox{\si{\mole\per\cubic\metre}}\f$ for all other condensed-phase
 !! reactions, \f$n\f$ is the number of reactants, \f$E_a\f$ is the activation
 !! energy (J), \f$k_b\f$ is the Boltzmann constant (J/K), \f$D\f$ (K), \f$B\f$
@@ -78,7 +78,7 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!> The rxn_condensed_phase_arrhenius_t type and associated functions. 
+!> The rxn_condensed_phase_arrhenius_t type and associated functions.
 module pmc_rxn_condensed_phase_arrhenius
 
   use pmc_aero_phase_data
@@ -151,7 +151,7 @@ contains
   !! any required information into the condensed data arrays for use during
   !! solving
   subroutine initialize(this, chem_spec_data, aero_rep)
-    
+
     !> Reaction data
     class(rxn_condensed_phase_arrhenius_t), intent(inout) :: this
     !> Chemical species data
@@ -216,7 +216,7 @@ contains
     call assert_msg(483073737, size(aero_rep).gt.0, &
             "Missing aerosol representation for condensed-phase "// &
             "Arrhenius reaction")
-    
+
     ! Count the instances of the specified aerosol phase
     num_phase = 0
     do i_aero_rep = 1, size(aero_rep)
@@ -300,7 +300,7 @@ contains
       call assert_msg(409180731, spec_props%get_real(key_name, temp_real), &
            "Missing 'molecular weight' for species '"//trim(spec_name)// &
            "' in condensed-phase Arrhenius reaction.")
-      
+
       ! Set properties for each occurance of a reactant in the rxn equation
       call assert(186449575, reactants%get_property_t(val=spec_props))
       key_name = "qty"
@@ -334,7 +334,7 @@ contains
 
       ! Increment the product counter
       i_spec = i_spec + 1
-      
+
       ! Get the molecular weight
       key_name = "molecular weight"
       call assert_msg(504705211, spec_props%get_real(key_name, temp_real), &
@@ -442,7 +442,7 @@ contains
                 "' in a condensed-phase Arrhenius reaction")
 
         ! Save the state ids for the reactant concentration
-        ! IDs are grouped by phase instance: 
+        ! IDs are grouped by phase instance:
         !   R1(phase1), R2(phase1), ..., R1(phase2)...
         do i_phase_inst = 1, num_phase
           REACT_((i_aero_phase+i_phase_inst-1)*NUM_REACT_ + i_spec) = &
@@ -468,7 +468,7 @@ contains
                 "' in a condensed-phase Arrhenius reaction")
 
         ! Save the state ids for the product concentration
-        ! IDs are grouped by phase instance: 
+        ! IDs are grouped by phase instance:
         !   P1(phase1), P2(phase1), ..., P1(phase2)...
         do i_phase_inst = 1, num_phase
           PROD_((i_aero_phase+i_phase_inst-1)*NUM_PROD_ + i_spec) = &

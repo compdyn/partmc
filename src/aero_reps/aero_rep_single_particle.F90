@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -19,7 +19,7 @@
 !!    ...
 !!  ]}
 !! \endcode
-!! The key-value pair \b type is required and must be \b 
+!! The key-value pair \b type is required and must be \b
 !! AERO_REP_SINGLE_PARTICLE. This representation assumes that every \ref
 !! input_format_aero_phase "aerosol phase" available will be present
 !! once in each particle, and that the \ref input_format_mechanism
@@ -68,7 +68,7 @@ module pmc_aero_rep_single_particle
 
   !> Single particle aerosol representation
   !!
-  !! Time-invariant data related to a single particle aerosol representation. 
+  !! Time-invariant data related to a single particle aerosol representation.
   type, extends(aero_rep_data_t) :: aero_rep_single_particle_t
     !> Phase state id (only used during initialization
     integer(kind=i_kind), allocatable :: phase_state_id(:)
@@ -95,7 +95,7 @@ module pmc_aero_rep_single_particle
     !! \c pmc_phlex_state::phlex_state_t::state_var array for this aerosol
     !! representation. The list may be restricted to a particular phase and/or
     !! aerosol species by including the phase_name and spec_name arguments.
-    !! 
+    !!
     !! For a single particle representation, the unique names will be the
     !! phase name with the species name separated by a '.'
     procedure :: unique_names
@@ -119,7 +119,7 @@ module pmc_aero_rep_single_particle
     procedure :: num_phase_instances
     !> Finalize the aerosol representation
     final :: finalize
-  
+
   end type aero_rep_single_particle_t
 
   ! Constructor for aero_rep_single_particle_t
@@ -172,7 +172,7 @@ module pmc_aero_rep_single_particle
       use iso_c_binding
       !> Update data
       type(c_ptr), value :: update_data
-      !> Aerosol representation id from 
+      !> Aerosol representation id from
       !! pmc_aero_rep_single_particle::aero_rep_single_particle_t::set_id
       integer(kind=c_int), value :: aero_rep_id
       !> New radius (m)
@@ -193,7 +193,7 @@ module pmc_aero_rep_single_particle
       use iso_c_binding
       !> Update data
       type(c_ptr), value :: update_data
-      !> Aerosol representation id from 
+      !> Aerosol representation id from
       !! pmc_aero_rep_single_particle::aero_rep_single_particle_t::set_id
       integer(kind=c_int), value :: aero_rep_id
       !> New number (m)
@@ -268,7 +268,7 @@ contains
       this%phase_state_id(i_phase) = curr_id
       curr_id = curr_id + aero_phase_set(i_phase)%val%size()
       PHASE_STATE_ID_(i_phase) = this%phase_state_id(i_phase)
-      PHASE_MODEL_DATA_ID_(i_phase) = i_phase     
+      PHASE_MODEL_DATA_ID_(i_phase) = i_phase
     end do
 
   end subroutine initialize
@@ -320,7 +320,7 @@ contains
   !! \c pmc_phlex_state::phlex_state_t::state_var array for this aerosol
   !! representation. The list may be restricted to a particular phase and/or
   !! aerosol species by including the phase_name and spec_name arguments.
-  !! 
+  !!
   !! For a single particle representation, the unique names will be the
   !! phase name with the species name separated by a '.'
   function unique_names(this, phase_name, tracer_type, spec_name)
@@ -450,7 +450,7 @@ contains
 
     ! Indices for iterators
     integer(kind=i_kind) :: i_spec, j_spec, i_phase
-   
+
     ! Species in aerosol phase
     type(string_t), allocatable :: spec_names(:)
 

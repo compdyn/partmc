@@ -1,4 +1,4 @@
-! Copyright (C) 2017 Matt Dawson
+! Copyright (C) 2017-2018 Matt Dawson
 ! Licensed under the GNU General Public License version 2 or (at your
 ! option) any later version. See the file COPYING for details.
 
@@ -16,8 +16,8 @@
 !! where \f$k_0\f$ is the low-pressure limiting rate constant, \f$k_{\inf}\f$
 !! is the high-pressure limiting rate constant, \f$[\mbox{M}]\f$ is the
 !! density of air (\f$10^6\f$ ppm), and \f$F_C\f$ and \f$N\f$ are parameters
-!! that determine the shape of the fall-off curve, and are typically 0.6 and 
-!! 1.0, respectively \cite Finlayson-Pitts2000 \cite Gipson. \f$k_0\f$ and 
+!! that determine the shape of the fall-off curve, and are typically 0.6 and
+!! 1.0, respectively \cite Finlayson-Pitts2000 \cite Gipson. \f$k_0\f$ and
 !! \f$k_{\inf}\f$ are calculated as \ref phlex_rxn_arrhenius "Arrhenius" rate
 !! constants with \f$D=300\f$ and \f$E=0\f$.
 !!
@@ -63,7 +63,7 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!> The rxn_troe_t type and associated functions. 
+!> The rxn_troe_t type and associated functions.
 module pmc_rxn_troe
 
   use pmc_aero_rep_data
@@ -136,7 +136,7 @@ contains
   !! any required information into the condensed data arrays for use during
   !! solving
   subroutine initialize(this, chem_spec_data, aero_rep)
-    
+
     !> Reaction data
     class(rxn_troe_t), intent(inout) :: this
     !> Chemical species data
@@ -176,15 +176,15 @@ contains
     end do
 
     ! Allocate space in the condensed data arrays
-    ! Space in this example is allocated for two sets of inidices for the 
-    ! reactants and products, one molecular property for each reactant, 
+    ! Space in this example is allocated for two sets of inidices for the
+    ! reactants and products, one molecular property for each reactant,
     ! yields for the products and three reaction parameters.
     allocate(this%condensed_data_int(NUM_INT_PROP_ + &
             (i_spec + 2) * (i_spec + products%size())))
     allocate(this%condensed_data_real(NUM_REAL_PROP_ + products%size()))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
-    
+
     ! Save the size of the reactant and product arrays (for reactions where
     ! these can vary)
     NUM_REACT_ = i_spec
@@ -235,7 +235,7 @@ contains
         SCALING_ = real(1.0d0/60.0d0, kind=dp)
       end if
     endif
-  
+
     ! Include [M] in K0_A_
     K0_A_ = K0_A_ * real(1.0d6, kind=dp)
 

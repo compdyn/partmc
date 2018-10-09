@@ -8,8 +8,11 @@
 /** \file
  * \brief Aerosol representation functions
  */
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "aero_rep_solver.h"
-#include "phlex_solver.h"
+#include "aero_reps.h"
 
 // Aerosol representations (Must match parameters defined in pmc_aero_rep_factory
 #define AERO_REP_SINGLE_PARTICLE   1
@@ -106,11 +109,11 @@ void aero_rep_update_state(ModelData *model_data)
     // Call the appropriate function
     switch (aero_rep_type) {
       case AERO_REP_MODAL_BINNED_MASS :
-	aero_rep_data = (int*) aero_rep_modal_binned_mass_update_state(model_data, 
+	aero_rep_data = (int*) aero_rep_modal_binned_mass_update_state(model_data,
                   (void*) aero_rep_data);
         break;
       case AERO_REP_SINGLE_PARTICLE :
-	aero_rep_data = (int*) aero_rep_single_particle_update_state(model_data, 
+	aero_rep_data = (int*) aero_rep_single_particle_update_state(model_data,
                   (void*) aero_rep_data);
         break;
     }
@@ -237,7 +240,7 @@ void * aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
                 (void*) aero_rep_data);
       break;
     case AERO_REP_SINGLE_PARTICLE :
-      aero_rep_data = (int*) aero_rep_single_particle_get_number_conc( 
+      aero_rep_data = (int*) aero_rep_single_particle_get_number_conc(
 		aero_phase_idx, number_conc, partial_deriv,
                 (void*) aero_rep_data);
       break;
@@ -293,7 +296,7 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
                 aero_phase_idx, &aero_conc_type, (void*) aero_rep_data);
       break;
     case AERO_REP_SINGLE_PARTICLE :
-      aero_rep_data = (int*) aero_rep_single_particle_get_aero_conc_type( 
+      aero_rep_data = (int*) aero_rep_single_particle_get_aero_conc_type(
 		aero_phase_idx, &aero_conc_type, (void*) aero_rep_data);
       break;
   }
@@ -309,14 +312,14 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
  *
  * \param model_data Pointer to the model data
  * \param aero_rep_idx Index of aerosol representation to use for calculation
- * \param aero_phase_idx Index of the aerosol phase within the aerosol 
+ * \param aero_phase_idx Index of the aerosol phase within the aerosol
  *                       representation
  * \param aero_phase_mass Pointer to hold calculated aerosol-phase mass,
  *                        \f$m\f$
  *                        (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
  * \param aero_phase_avg_MW Pointer to hold calculated average MW in the
  *                          aerosol phase (\f$\mbox{\si{\kilogram\per\mole}}\f$)
- * \return A pointer to a set of partial derivatives 
+ * \return A pointer to a set of partial derivatives
  *         \f$\frac{\partial m}{\partial y}\f$, or a NULL pointer if no partial
  *         derivatives exist
  */
@@ -357,13 +360,13 @@ void * aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
   // Get the particle number concentration
   switch (aero_rep_type) {
     case AERO_REP_MODAL_BINNED_MASS :
-      aero_rep_data = (int*) aero_rep_modal_binned_mass_get_aero_phase_mass( 
-		      aero_phase_idx, aero_phase_mass, aero_phase_avg_MW, 
+      aero_rep_data = (int*) aero_rep_modal_binned_mass_get_aero_phase_mass(
+		      aero_phase_idx, aero_phase_mass, aero_phase_avg_MW,
                       partial_deriv, (void*) aero_rep_data);
       break;
     case AERO_REP_SINGLE_PARTICLE :
-      aero_rep_data = (int*) aero_rep_single_particle_get_aero_phase_mass( 
-		      aero_phase_idx, aero_phase_mass, aero_phase_avg_MW, 
+      aero_rep_data = (int*) aero_rep_single_particle_get_aero_phase_mass(
+		      aero_phase_idx, aero_phase_mass, aero_phase_avg_MW,
                       partial_deriv, (void*) aero_rep_data);
       break;
   }
@@ -441,11 +444,11 @@ void aero_rep_update_data(int update_aero_rep_type, void *update_data,
     } else {
       switch (aero_rep_type) {
         case AERO_REP_MODAL_BINNED_MASS :
-          aero_rep_data = (int*) aero_rep_modal_binned_mass_update_data( 
+          aero_rep_data = (int*) aero_rep_modal_binned_mass_update_data(
 	    		  (void*)update_data, (void*)aero_rep_data);
           break;
         case AERO_REP_SINGLE_PARTICLE :
-          aero_rep_data = (int*) aero_rep_single_particle_update_data( 
+          aero_rep_data = (int*) aero_rep_single_particle_update_data(
 	    		  (void*)update_data, (void*)aero_rep_data);
           break;
       }

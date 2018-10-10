@@ -25,6 +25,7 @@
 #define RXN_PDFITE_ACTIVITY 9
 #define RXN_SIMPOL_PHASE_TRANSFER 10
 #define RXN_CONDENSED_PHASE_ARRHENIUS 11
+#define RXN_FIRST_ORDER_LOSS 12
 
 /** \brief Get the Jacobian elements used by a particular reaction
  *
@@ -67,6 +68,10 @@ void * rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct)
         break;
       case RXN_CONDENSED_PHASE_ARRHENIUS :
         rxn_data = (int*) rxn_condensed_phase_arrhenius_get_used_jac_elem(
+                  (void*) rxn_data, jac_struct);
+        break;
+      case RXN_FIRST_ORDER_LOSS :
+        rxn_data = (int*) rxn_first_order_loss_get_used_jac_elem(
                   (void*) rxn_data, jac_struct);
         break;
       case RXN_HL_PHASE_TRANSFER :
@@ -139,6 +144,10 @@ void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids)
         rxn_data = (int*) rxn_condensed_phase_arrhenius_update_ids(
                   model_data, deriv_ids, jac_ids, (void*) rxn_data);
         break;
+      case RXN_FIRST_ORDER_LOSS :
+        rxn_data = (int*) rxn_first_order_loss_update_ids(
+                  model_data, deriv_ids, jac_ids, (void*) rxn_data);
+        break;
       case RXN_HL_PHASE_TRANSFER :
         rxn_data = (int*) rxn_HL_phase_transfer_update_ids(
                   model_data, deriv_ids, jac_ids, (void*) rxn_data);
@@ -205,6 +214,10 @@ void rxn_update_env_state(ModelData *model_data, double *env)
         break;
       case RXN_CONDENSED_PHASE_ARRHENIUS :
         rxn_data = (int*) rxn_condensed_phase_arrhenius_update_env_state(
+                  env, (void*) rxn_data);
+        break;
+      case RXN_FIRST_ORDER_LOSS :
+        rxn_data = (int*) rxn_first_order_loss_update_env_state(
                   env, (void*) rxn_data);
         break;
       case RXN_HL_PHASE_TRANSFER :
@@ -298,6 +311,10 @@ void rxn_pre_calc(ModelData *model_data, double time_step)
         rxn_data = (int*) rxn_condensed_phase_arrhenius_pre_calc(
                   model_data, (void*) rxn_data);
         break;
+      case RXN_FIRST_ORDER_LOSS :
+        rxn_data = (int*) rxn_first_order_loss_pre_calc(
+                  model_data, (void*) rxn_data);
+        break;
       case RXN_HL_PHASE_TRANSFER :
         rxn_data = (int*) rxn_HL_phase_transfer_pre_calc(
                   model_data, (void*) rxn_data, time_step);
@@ -383,6 +400,10 @@ void rxn_adjust_state(ModelData *model_data)
           break;
         case RXN_CONDENSED_PHASE_ARRHENIUS :
           rxn_data = (int*) rxn_condensed_phase_arrhenius_skip(
+                     (void*) rxn_data);
+          break;
+        case RXN_FIRST_ORDER_LOSS :
+          rxn_data = (int*) rxn_first_order_loss_skip(
                      (void*) rxn_data);
           break;
         case RXN_HL_PHASE_TRANSFER :
@@ -471,6 +492,10 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
         rxn_data = (int*) rxn_condensed_phase_arrhenius_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
+      case RXN_FIRST_ORDER_LOSS :
+        rxn_data = (int*) rxn_first_order_loss_calc_deriv_contrib(
+                  model_data, deriv_data, (void*) rxn_data, time_step);
+        break;
       case RXN_HL_PHASE_TRANSFER :
         rxn_data = (int*) rxn_HL_phase_transfer_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
@@ -543,6 +568,10 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J, realtype time_step)
         break;
       case RXN_CONDENSED_PHASE_ARRHENIUS :
         rxn_data = (int*) rxn_condensed_phase_arrhenius_calc_jac_contrib(
+                  model_data, J_data, (void*) rxn_data, time_step);
+        break;
+      case RXN_FIRST_ORDER_LOSS :
+        rxn_data = (int*) rxn_first_order_loss_calc_jac_contrib(
                   model_data, J_data, (void*) rxn_data, time_step);
         break;
       case RXN_HL_PHASE_TRANSFER :
@@ -656,6 +685,10 @@ void rxn_update_data(int update_rxn_type, void *update_data, void *solver_data)
           rxn_data = (int*) rxn_condensed_phase_arrhenius_skip(
                     (void*) rxn_data);
           break;
+        case RXN_FIRST_ORDER_LOSS :
+          rxn_data = (int*) rxn_first_order_loss_skip(
+                    (void*) rxn_data);
+          break;
         case RXN_HL_PHASE_TRANSFER :
           rxn_data = (int*) rxn_HL_phase_transfer_skip(
                     (void*) rxn_data);
@@ -704,6 +737,10 @@ void rxn_update_data(int update_rxn_type, void *update_data, void *solver_data)
         case RXN_CONDENSED_PHASE_ARRHENIUS :
           rxn_data = (int*) rxn_condensed_phase_arrhenius_skip(
                     (void*) rxn_data);
+          break;
+        case RXN_FIRST_ORDER_LOSS :
+          rxn_data = (int*) rxn_first_order_loss_update_data(
+                    (void*) update_data, (void*) rxn_data);
           break;
         case RXN_HL_PHASE_TRANSFER :
           rxn_data = (int*) rxn_HL_phase_transfer_skip(
@@ -757,10 +794,6 @@ void rxn_print_data(void *solver_data)
 
     // Call the appropriate function
     switch (rxn_type) {
-      case RXN_PDFITE_ACTIVITY :
-        rxn_data = (int*) rxn_PDFiTE_activity_print(
-                  (void*) rxn_data);
-	break;
       case RXN_AQUEOUS_EQUILIBRIUM :
         rxn_data = (int*) rxn_aqueous_equilibrium_print(
                   (void*) rxn_data);
@@ -781,10 +814,18 @@ void rxn_print_data(void *solver_data)
         rxn_data = (int*) rxn_condensed_phase_arrhenius_print(
                   (void*) rxn_data);
 	break;
+      case RXN_FIRST_ORDER_LOSS :
+        rxn_data = (int*) rxn_first_order_loss_print(
+                  (void*) rxn_data);
+	break;
       case RXN_HL_PHASE_TRANSFER :
         rxn_data = (int*) rxn_HL_phase_transfer_print(
                   (void*) rxn_data);
 	break;
+      case RXN_PDFITE_ACTIVITY :
+        rxn_data = (int*) rxn_PDFiTE_activity_print(
+                   (void*) rxn_data);
+        break;
       case RXN_PHOTOLYSIS :
         rxn_data = (int*) rxn_photolysis_print(
                   (void*) rxn_data);

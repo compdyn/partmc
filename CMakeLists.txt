@@ -195,8 +195,9 @@ if (ENABLE_JSON AND ENABLE_SUNDIALS)
   add_test(test_rxn_CMAQ_H2O2 ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_CMAQ_H2O2.sh ${MPI_TEST_FLAG})
   add_test(test_rxn_CMAQ_OH_HNO3 ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_CMAQ_OH_HNO3.sh ${MPI_TEST_FLAG})
   add_test(test_rxn_condensed_phase_arrhenius ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_condensed_phase_arrhenius.sh ${MPI_TEST_FLAG})
-  add_test(test_rxn_PDFiTE_activity ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_PDFiTE_activity.sh ${MPI_TEST_FLAG})
+  add_test(test_rxn_first_order_loss ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_first_order_loss.sh ${MPI_TEST_FLAG})
   add_test(test_rxn_HL_phase_transfer ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_HL_phase_transfer.sh ${MPI_TEST_FLAG})
+  add_test(test_rxn_PDFiTE_activity ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_PDFiTE_activity.sh ${MPI_TEST_FLAG})
   add_test(test_rxn_photolysis ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_photolysis.sh ${MPI_TEST_FLAG})
   add_test(test_rxn_SIMPOL_phase_transfer ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_SIMPOL_phase_transfer.sh ${MPI_TEST_FLAG})
   add_test(test_rxn_troe ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_troe.sh ${MPI_TEST_FLAG})
@@ -362,27 +363,29 @@ elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
   set(STD_F_FLAGS "-ffree-line-length-none")
 endif()
 
-set(REACTIONS_F_SRC 
-	src/rxns/rxn_PDFiTE_activity.F90
+set(REACTIONS_F_SRC
 	src/rxns/rxn_aqueous_equilibrium.F90
 	src/rxns/rxn_arrhenius.F90
 	src/rxns/rxn_CMAQ_H2O2.F90
 	src/rxns/rxn_CMAQ_OH_HNO3.F90
 	src/rxns/rxn_condensed_phase_arrhenius.F90
+	src/rxns/rxn_first_order_loss.F90
 	src/rxns/rxn_HL_phase_transfer.F90
+	src/rxns/rxn_PDFiTE_activity.F90
 	src/rxns/rxn_photolysis.F90
         src/rxns/rxn_SIMPOL_phase_transfer.F90
 	src/rxns/rxn_troe.F90
 	src/rxns/rxn_ZSR_aerosol_water.F90)
 
-set(REACTIONS_C_SRC 
-	src/rxns/rxn_PDFiTE_activity.c
+set(REACTIONS_C_SRC
 	src/rxns/rxn_aqueous_equilibrium.c
 	src/rxns/rxn_arrhenius.c
 	src/rxns/rxn_CMAQ_H2O2.c
 	src/rxns/rxn_CMAQ_OH_HNO3.c
 	src/rxns/rxn_condensed_phase_arrhenius.c
+	src/rxns/rxn_first_order_loss.c
 	src/rxns/rxn_HL_phase_transfer.c
+	src/rxns/rxn_PDFiTE_activity.c
 	src/rxns/rxn_photolysis.c
         src/rxns/rxn_SIMPOL_phase_transfer.c
 	src/rxns/rxn_troe.c
@@ -573,10 +576,12 @@ add_executable(test_rxn_CMAQ_OH_HNO3 test/unit_rxn_data/test_rxn_CMAQ_OH_HNO3.F9
 target_link_libraries(test_rxn_CMAQ_OH_HNO3 partmclib)
 add_executable(test_rxn_condensed_phase_arrhenius test/unit_rxn_data/test_rxn_condensed_phase_arrhenius.F90)
 target_link_libraries(test_rxn_condensed_phase_arrhenius partmclib)
-add_executable(test_rxn_PDFiTE_activity test/unit_rxn_data/test_rxn_PDFiTE_activity.F90)
-target_link_libraries(test_rxn_PDFiTE_activity partmclib)
+add_executable(test_rxn_first_order_loss test/unit_rxn_data/test_rxn_first_order_loss.F90)
+target_link_libraries(test_rxn_first_order_loss partmclib)
 add_executable(test_rxn_HL_phase_transfer test/unit_rxn_data/test_rxn_HL_phase_transfer.F90)
 target_link_libraries(test_rxn_HL_phase_transfer partmclib)
+add_executable(test_rxn_PDFiTE_activity test/unit_rxn_data/test_rxn_PDFiTE_activity.F90)
+target_link_libraries(test_rxn_PDFiTE_activity partmclib)
 add_executable(test_rxn_photolysis test/unit_rxn_data/test_rxn_photolysis.F90)
 target_link_libraries(test_rxn_photolysis partmclib)
 add_executable(test_rxn_SIMPOL_phase_transfer test/unit_rxn_data/test_rxn_SIMPOL_phase_transfer.F90)

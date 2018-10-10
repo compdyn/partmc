@@ -3,16 +3,16 @@
 ! option) any later version. See the file COPYING for details.
 
 !> \file
-!> The pmc_test_first_order_loss program
+!> The pmc_test_emission program
 
-!> Test of first_order_loss reaction module
-program pmc_test_first_order_loss
+!> Test of emission reaction module
+program pmc_test_emission
 
   use pmc_util,                         only: i_kind, dp, assert, &
                                               almost_equal, string_t, &
                                               warn_msg
   use pmc_rxn_data
-  use pmc_rxn_first_order_loss
+  use pmc_rxn_emission
   use pmc_rxn_factory
   use pmc_mechanism_data
   use pmc_chem_spec_data
@@ -33,12 +33,12 @@ program pmc_test_first_order_loss
   ! initialize mpi
   call pmc_mpi_init()
 
-  if (run_first_order_loss_tests()) then
+  if (run_emission_tests()) then
     if (pmc_mpi_rank().eq.0) write(*,*) &
-          "First-Order loss reaction tests - PASS"
+          "Emission reaction tests - PASS"
   else
     if (pmc_mpi_rank().eq.0) write(*,*) &
-          "First-Order loss reaction tests - FAIL"
+          "Emission reaction tests - FAIL"
   end if
 
   ! finalize mpi
@@ -49,7 +49,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Run all pmc_chem_mech_solver tests
-  logical function run_first_order_loss_tests() result(passed)
+  logical function run_emission_tests() result(passed)
 
     use pmc_phlex_solver_data
 
@@ -58,15 +58,15 @@ contains
     phlex_solver_data => phlex_solver_data_t()
 
     if (phlex_solver_data%is_solver_available()) then
-      passed = run_first_order_loss_test()
+      passed = run_emission_test()
     else
-      call warn_msg(366534359, "No solver available")
+      call warn_msg(599253453, "No solver available")
       passed = .true.
     end if
 
     deallocate(phlex_solver_data)
 
-  end function run_first_order_loss_tests
+  end function run_emission_tests
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -74,11 +74,11 @@ contains
   !!
   !! The mechanism is of the form:
   !!
-  !!   A -k1->
-  !!   B -k2->
+  !!   -k1-> A
+  !!   -k2-> B
   !!
-  !! where k1 and k2 are first-order loss reaction rate constants.
-  logical function run_first_order_loss_test()
+  !! where k1 and k2 are emission reaction rate constants.
+  logical function run_emission_test()
 
     use pmc_constants
 
@@ -101,9 +101,9 @@ contains
     ! For setting rates
     type(mechanism_data_t), pointer :: mechanism
     type(rxn_factory_t) :: rxn_factory
-    type(rxn_update_data_first_order_loss_rate_t) :: rate_update
+    type(rxn_update_data_emission_rate_t) :: rate_update
 
-    run_first_order_loss_test = .true.
+    run_emission_test = .true.
 
     ! Set the rate constants (for calculating the true value)
     temp = 272.5d0
@@ -120,8 +120,8 @@ contains
     if (pmc_mpi_rank().eq.0) then
 #endif
 
-      ! Get the first_order_loss reaction mechanism json file
-      input_file_path = 'test_first_order_loss_config.json'
+      ! Get the emission reaction mechanism json file
+      input_file_path = 'test_emission_config.json'
 
       ! Construct a phlex_core variable
       phlex_core => phlex_core_t(input_file_path)
@@ -132,10 +132,10 @@ contains
       call phlex_core%initialize()
 
       ! Find the mechanism
-      key = "first order loss"
-      call assert(158978657, phlex_core%get_mechanism(key, mechanism))
+      key = "emissions"
+      call assert(260845179, phlex_core%get_mechanism(key, mechanism))
 
-      ! Find the A loss reaction
+      ! Find the A emission reaction
       key = "rxn id"
       i_rxn_A = 342
       i_mech_rxn_A = 0
@@ -145,16 +145,16 @@ contains
           if (trim(str_val).eq."rxn A") then
             i_mech_rxn_A = i_rxn
             select type (rxn_loss => rxn)
-              class is (rxn_first_order_loss_t)
+              class is (rxn_emission_t)
                 call rxn_loss%set_rxn_id(i_rxn_A)
             end select
           end if
         end if
       end do
-      call assert(873933421, i_mech_rxn_A.eq.1)
+      call assert(262750713, i_mech_rxn_A.eq.1)
 
       ! Get the chemical species data
-      call assert(533619613, phlex_core%get_chem_spec_data(chem_spec_data))
+      call assert(310060658, phlex_core%get_chem_spec_data(chem_spec_data))
 
       ! Get species indices
       key = "A"
@@ -163,8 +163,8 @@ contains
       idx_B = chem_spec_data%gas_state_id(key);
 
       ! Make sure the expected species are in the model
-      call assert(870574648, idx_A.gt.0)
-      call assert(982892993, idx_B.gt.0)
+      call assert(369804751, idx_A.gt.0)
+      call assert(199647847, idx_B.gt.0)
 
 #ifdef PMC_USE_MPI
       ! pack the phlex core
@@ -172,7 +172,7 @@ contains
       allocate(buffer(pack_size))
       pos = 0
       call phlex_core%bin_pack(buffer, pos)
-      call assert(642579185, pos.eq.pack_size)
+      call assert(194383540, pos.eq.pack_size)
     end if
 
     ! broadcast the species ids
@@ -196,13 +196,13 @@ contains
       phlex_core => phlex_core_t()
       pos = 0
       call phlex_core%bin_unpack(buffer, pos)
-      call assert(320136977, pos.eq.pack_size)
+      call assert(, pos.eq.pack_size)
       allocate(buffer_copy(pack_size))
       pos = 0
       call phlex_core%bin_pack(buffer_copy, pos)
-      call assert(356745163, pos.eq.pack_size)
+      call assert(, pos.eq.pack_size)
       do i_elem = 1, pack_size
-        call assert_msg(981439754, buffer(i_elem).eq.buffer_copy(i_elem), &
+        call assert_msg(819078131, buffer(i_elem).eq.buffer_copy(i_elem), &
                 "Mismatch in element: "//trim(to_string(i_elem)))
       end do
 
@@ -242,13 +242,13 @@ contains
 
         ! Get the analytic conc
         time = i_time * time_step
-        true_conc(i_time,idx_A) = true_conc(0,idx_A) * exp(-(k1)*time)
-        true_conc(i_time,idx_B) = true_conc(0,idx_B) * exp(-(k2)*time)
+        true_conc(i_time,idx_A) = true_conc(0,idx_A) + (k1)*time
+        true_conc(i_time,idx_B) = true_conc(0,idx_B) + (k2)*time
 
       end do
 
       ! Save the results
-      open(unit=7, file="out/first_order_loss_results.txt", status="replace", &
+      open(unit=7, file="out/emission_results.txt", status="replace", &
               action="write")
       do i_time = 0, NUM_TIME_STEP
         write(7,*) i_time*time_step, &
@@ -260,7 +260,7 @@ contains
       ! Analyze the results
       do i_time = 1, NUM_TIME_STEP
         do i_spec = 1, size(model_conc, 2)
-          call assert_msg(704515935, &
+          call assert_msg(870199144, &
             almost_equal(model_conc(i_time, i_spec), &
             true_conc(i_time, i_spec), real(1.0e-2, kind=dp)).or. &
             (model_conc(i_time, i_spec).lt.1e-5*model_conc(1, i_spec).and. &
@@ -276,7 +276,7 @@ contains
 
 #ifdef PMC_USE_MPI
       ! convert the results to an integer
-      if (run_first_order_loss_test) then
+      if (run_emission_test) then
         results = 0
       else
         results = 1
@@ -289,9 +289,9 @@ contains
     ! convert the results back to a logical value
     if (pmc_mpi_rank().eq.0) then
       if (results.eq.0) then
-        run_first_order_loss_test = .true.
+        run_emission_test = .true.
       else
-        run_first_order_loss_test = .false.
+        run_emission_test = .false.
       end if
     end if
 
@@ -300,8 +300,8 @@ contains
 
     deallocate(phlex_core)
 
-  end function run_first_order_loss_test
+  end function run_emission_test
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end program pmc_test_first_order_loss
+end program pmc_test_emission

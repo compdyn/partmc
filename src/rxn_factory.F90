@@ -184,6 +184,7 @@ module pmc_rxn_factory
   use pmc_rxn_CMAQ_H2O2
   use pmc_rxn_CMAQ_OH_HNO3
   use pmc_rxn_condensed_phase_arrhenius
+  use pmc_rxn_emission
   use pmc_rxn_first_order_loss
   use pmc_rxn_HL_phase_transfer
   use pmc_rxn_PDFiTE_activity
@@ -213,6 +214,7 @@ module pmc_rxn_factory
   integer(kind=i_kind), parameter, public :: RXN_SIMPOL_PHASE_TRANSFER = 10
   integer(kind=i_kind), parameter, public :: RXN_CONDENSED_PHASE_ARRHENIUS = 11
   integer(kind=i_kind), parameter, public :: RXN_FIRST_ORDER_LOSS = 12
+  integer(kind=i_kind), parameter, public :: RXN_EMISSION = 13
 
   !> Factory type for chemical reactions
   !!
@@ -278,6 +280,8 @@ contains
         new_obj => rxn_condensed_phase_arrhenius_t()
       case ("FIRST_ORDER_LOSS")
         new_obj => rxn_first_order_loss_t()
+      case ("EMISSION")
+        new_obj => rxn_emission_t()
       case default
         call die_msg(367114278, "Unknown chemical reaction type: " &
                 //type_name)
@@ -367,6 +371,8 @@ contains
         rxn_type = RXN_CONDENSED_PHASE_ARRHENIUS
       type is (rxn_first_order_loss_t)
         rxn_type = RXN_FIRST_ORDER_LOSS
+      type is (rxn_emission_t)
+        rxn_type = RXN_EMISSION
       class default
         call die_msg(343941184, "Unknown reaction type.")
     end select
@@ -384,6 +390,8 @@ contains
     class(rxn_update_data_t), intent(out) :: update_data
 
     select type (update_data)
+      type is (rxn_update_data_emission_rate_t)
+        call update_data%initialize(RXN_EMISSION)
       type is (rxn_update_data_first_order_loss_rate_t)
         call update_data%initialize(RXN_FIRST_ORDER_LOSS)
       type is (rxn_update_data_photolysis_rate_t)
@@ -452,6 +460,8 @@ contains
         rxn_type = RXN_CONDENSED_PHASE_ARRHENIUS
       type is (rxn_first_order_loss_t)
         rxn_type = RXN_FIRST_ORDER_LOSS
+      type is (rxn_emission_t)
+        rxn_type = RXN_EMISSION
       class default
         call die_msg(343941184, "Trying to pack reaction of unknown type.")
     end select
@@ -507,6 +517,8 @@ contains
         rxn => rxn_condensed_phase_arrhenius_t()
       case (RXN_FIRST_ORDER_LOSS)
         rxn => rxn_first_order_loss_t()
+      case (RXN_EMISSION)
+        rxn => rxn_emission_t()
       case default
         call die_msg(659290342, &
                 "Trying to unpack reaction of unknown type:"// &

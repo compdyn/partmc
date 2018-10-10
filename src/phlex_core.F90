@@ -155,7 +155,7 @@ module pmc_phlex_core
     !> Solver data (mixed gas- and aerosol-phase reactions)
     type(phlex_solver_data_t), pointer :: solver_data_gas_aero => null()
     !> Flag indicating the model data has been initialized
-    logical :: is_initialized = .false.
+    logical :: core_is_initialized = .false.
     !> Flag indicating the solver has been initialized
     logical :: solver_is_initialized = .false.
   contains
@@ -165,6 +165,8 @@ module pmc_phlex_core
     procedure :: load
     !> Initialize the model
     procedure :: initialize
+    !> Indicate whether the core has been initialized
+    procedure :: is_initialized
     !> Get a pointer to an aerosol phase by name
     procedure :: get_aero_phase
     !> Get a pointer to an aerosol representation by name
@@ -614,7 +616,7 @@ contains
     type(string_t), allocatable :: unique_names(:)
 
     ! make sure the core has not already been initialized
-    call assert_msg(157261665, .not.this%is_initialized, &
+    call assert_msg(157261665, .not.this%core_is_initialized, &
             "Attempting to initialize a phlex_core_t object twice.")
 
     ! Initialize the species database
@@ -702,7 +704,7 @@ contains
             " of "//trim(to_string(this%state_array_size))// &
             " elements of absolute tolerance and variable type arrays")
 
-    this%is_initialized = .true.
+    this%core_is_initialized = .true.
 
     ! Set the initial state values
     allocate(this%init_state(this%state_array_size))
@@ -729,6 +731,18 @@ contains
     end do
 
   end subroutine initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Inidicate whether the core has been initialized
+  logical function is_initialized(this)
+
+    !> Model data
+    class(phlex_core_t), intent(in) :: this
+
+    is_initialized = this%core_is_initialized
+
+  end function is_initialized
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1140,7 +1154,7 @@ contains
     class(sub_model_data_t), pointer :: sub_model
     integer(kind=i_kind) :: i_mech, i_phase, i_rep, i_sub_model
 
-    call assert_msg(143374295, this%is_initialized, &
+    call assert_msg(143374295, this%core_is_initialized, &
             "Trying to get the buffer size of an uninitialized core.")
 
     pack_size =  pmc_mpi_pack_size_integer(size(this%mechanism)) + &
@@ -1193,7 +1207,7 @@ contains
     integer(kind=i_kind) :: i_mech, i_phase, i_rep, i_sub_model, &
             prev_position
 
-    call assert_msg(143374295, this%is_initialized, &
+    call assert_msg(143374295, this%core_is_initialized, &
             "Trying to pack an uninitialized core.")
 
     prev_position = pos
@@ -1280,7 +1294,7 @@ contains
     call pmc_mpi_unpack_real_array(buffer, pos, this%abs_tol)
     call pmc_mpi_unpack_integer_array(buffer, pos, this%var_type)
     call pmc_mpi_unpack_real_array(buffer, pos, this%init_state)
-    this%is_initialized = .true.
+    this%core_is_initialized = .true.
     call assert(291557168, &
          pos - prev_position <= this%pack_size())
 #endif

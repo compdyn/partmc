@@ -196,11 +196,11 @@ contains
       phlex_core => phlex_core_t()
       pos = 0
       call phlex_core%bin_unpack(buffer, pos)
-      call assert(, pos.eq.pack_size)
+      call assert(785350501, pos.eq.pack_size)
       allocate(buffer_copy(pack_size))
       pos = 0
       call phlex_core%bin_pack(buffer_copy, pos)
-      call assert(, pos.eq.pack_size)
+      call assert(215135696, pos.eq.pack_size)
       do i_elem = 1, pack_size
         call assert_msg(819078131, buffer(i_elem).eq.buffer_copy(i_elem), &
                 "Mismatch in element: "//trim(to_string(i_elem)))

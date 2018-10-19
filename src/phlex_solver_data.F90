@@ -20,7 +20,8 @@ module pmc_phlex_solver_data
   use pmc_rxn_factory
   use pmc_sub_model_data
   use pmc_sub_model_factory
-  use pmc_util,                        only : assert_msg, to_string, die_msg
+  use pmc_util,                        only : assert_msg, to_string, &
+                                              warn_assert_msg, die_msg
 
   use iso_c_binding
 
@@ -756,7 +757,7 @@ contains
             real(t_final, kind=c_double)    & ! Final time (s)
             )
 
-    call assert_msg(997420005, solver_status.eq.0, "Solver failed");
+    call warn_assert_msg(997420005, solver_status.eq.0, "Solver failed");
 
   end subroutine solve
 

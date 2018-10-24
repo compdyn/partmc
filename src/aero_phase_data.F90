@@ -309,7 +309,7 @@ contains
     type(chem_spec_data_t), target, intent(in) :: chem_spec_data
 
     type(property_t), pointer :: spec_props
-    integer(kind=i_kind) :: i_spec
+    integer(kind=i_kind) :: i_spec, i_spec_phase_type
     character(len=:), allocatable :: key_name
 
     ! Allocate space for the condensed data arrays
@@ -335,6 +335,15 @@ contains
               "Missing type for species '"// &
               this%spec_name(i_spec)%string// &
               "' in aerosol phase '"//this%phase_name//"'")
+
+      ! Make sure the species is an aerosol-phase species
+      call assert_msg(136357145, chem_spec_data%get_phase( &
+              this%spec_name(i_spec)%string, i_spec_phase_type ), &
+              "Error getting phase for species "// &
+              this%spec_name(i_spec)%string)
+      call assert_msg(861388228, i_spec_phase_type.eq.CHEM_SPEC_AERO_PHASE, &
+              "Trying to add non-aerosol phase species to aerosol phase "// &
+              this%phase_name//"; species: "//this%spec_name(i_spec)%string)
 
       ! get the molecular weight and density of species
       ! present in the phase

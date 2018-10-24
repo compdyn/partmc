@@ -27,6 +27,7 @@
 #define RXN_CONDENSED_PHASE_ARRHENIUS 11
 #define RXN_FIRST_ORDER_LOSS 12
 #define RXN_EMISSION 13
+#define RXN_WET_DEPOSITION 14
 
 /** \brief Get the Jacobian elements used by a particular reaction
  *
@@ -97,6 +98,10 @@ void * rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct)
         break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_get_used_jac_elem(
+                  (void*) rxn_data, jac_struct);
+        break;
+      case RXN_WET_DEPOSITION :
+        rxn_data = (int*) rxn_wet_deposition_get_used_jac_elem(
                   (void*) rxn_data, jac_struct);
         break;
       case RXN_ZSR_AEROSOL_WATER :
@@ -177,6 +182,10 @@ void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids)
         rxn_data = (int*) rxn_troe_update_ids(
                   model_data, deriv_ids, jac_ids, (void*) rxn_data);
         break;
+      case RXN_WET_DEPOSITION :
+        rxn_data = (int*) rxn_wet_deposition_update_ids(
+                  model_data, deriv_ids, jac_ids, (void*) rxn_data);
+        break;
       case RXN_ZSR_AEROSOL_WATER :
         rxn_data = (int*) rxn_ZSR_aerosol_water_update_ids(
                   model_data, deriv_ids, jac_ids, (void*) rxn_data);
@@ -251,6 +260,10 @@ void rxn_update_env_state(ModelData *model_data, double *env)
         break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_update_env_state(
+                  env, (void*) rxn_data);
+        break;
+      case RXN_WET_DEPOSITION :
+        rxn_data = (int*) rxn_wet_deposition_update_env_state(
                   env, (void*) rxn_data);
         break;
       case RXN_ZSR_AEROSOL_WATER :
@@ -352,6 +365,10 @@ void rxn_pre_calc(ModelData *model_data, double time_step)
         rxn_data = (int*) rxn_troe_pre_calc(
                   model_data, (void*) rxn_data);
         break;
+      case RXN_WET_DEPOSITION :
+        rxn_data = (int*) rxn_wet_deposition_pre_calc(
+                  model_data, (void*) rxn_data);
+        break;
       case RXN_ZSR_AEROSOL_WATER :
         rxn_data = (int*) rxn_ZSR_aerosol_water_pre_calc(
                   model_data, (void*) rxn_data);
@@ -445,6 +462,10 @@ void rxn_adjust_state(ModelData *model_data)
           break;
         case RXN_TROE :
           rxn_data = (int*) rxn_troe_skip(
+                     (void*) rxn_data);
+          break;
+        case RXN_WET_DEPOSITION :
+          rxn_data = (int*) rxn_wet_deposition_skip(
                      (void*) rxn_data);
           break;
         case RXN_ZSR_AEROSOL_WATER :
@@ -541,6 +562,10 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
         rxn_data = (int*) rxn_troe_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
+      case RXN_WET_DEPOSITION :
+        rxn_data = (int*) rxn_wet_deposition_calc_deriv_contrib(
+                  model_data, deriv_data, (void*) rxn_data, time_step);
+        break;
       case RXN_ZSR_AEROSOL_WATER :
         rxn_data = (int*) rxn_ZSR_aerosol_water_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
@@ -621,6 +646,10 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J, realtype time_step)
         break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_calc_jac_contrib(
+                  model_data, J_data, (void*) rxn_data, time_step);
+        break;
+      case RXN_WET_DEPOSITION :
+        rxn_data = (int*) rxn_wet_deposition_calc_jac_contrib(
                   model_data, J_data, (void*) rxn_data, time_step);
         break;
       case RXN_ZSR_AEROSOL_WATER :
@@ -742,6 +771,10 @@ void rxn_update_data(int update_rxn_type, void *update_data, void *solver_data)
           rxn_data = (int*) rxn_troe_skip(
                     (void*) rxn_data);
           break;
+        case RXN_WET_DEPOSITION :
+          rxn_data = (int*) rxn_wet_deposition_skip(
+                    (void*) rxn_data);
+          break;
         case RXN_ZSR_AEROSOL_WATER :
           rxn_data = (int*) rxn_ZSR_aerosol_water_skip(
                     (void*) rxn_data);
@@ -798,6 +831,10 @@ void rxn_update_data(int update_rxn_type, void *update_data, void *solver_data)
         case RXN_TROE :
           rxn_data = (int*) rxn_troe_skip(
                     (void*) rxn_data);
+          break;
+        case RXN_WET_DEPOSITION :
+          rxn_data = (int*) rxn_wet_deposition_update_data(
+                    (void*) update_data, (void*) rxn_data);
           break;
         case RXN_ZSR_AEROSOL_WATER :
           rxn_data = (int*) rxn_ZSR_aerosol_water_skip(
@@ -877,6 +914,10 @@ void rxn_print_data(void *solver_data)
 	break;
       case RXN_TROE :
         rxn_data = (int*) rxn_troe_print(
+                  (void*) rxn_data);
+	break;
+      case RXN_WET_DEPOSITION :
+        rxn_data = (int*) rxn_wet_deposition_print(
                   (void*) rxn_data);
 	break;
       case RXN_ZSR_AEROSOL_WATER :

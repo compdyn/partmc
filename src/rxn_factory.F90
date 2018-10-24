@@ -191,6 +191,7 @@ module pmc_rxn_factory
   use pmc_rxn_photolysis
   use pmc_rxn_SIMPOL_phase_transfer
   use pmc_rxn_troe
+  use pmc_rxn_wet_deposition
   use pmc_rxn_ZSR_aerosol_water
 
   use iso_c_binding
@@ -215,6 +216,7 @@ module pmc_rxn_factory
   integer(kind=i_kind), parameter, public :: RXN_CONDENSED_PHASE_ARRHENIUS = 11
   integer(kind=i_kind), parameter, public :: RXN_FIRST_ORDER_LOSS = 12
   integer(kind=i_kind), parameter, public :: RXN_EMISSION = 13
+  integer(kind=i_kind), parameter, public :: RXN_WET_DEPOSITION = 14
 
   !> Factory type for chemical reactions
   !!
@@ -282,6 +284,8 @@ contains
         new_obj => rxn_first_order_loss_t()
       case ("EMISSION")
         new_obj => rxn_emission_t()
+      case ("WET_DEPOSITION")
+        new_obj => rxn_wet_deposition_t()
       case default
         call die_msg(367114278, "Unknown chemical reaction type: " &
                 //type_name)
@@ -373,6 +377,8 @@ contains
         rxn_type = RXN_FIRST_ORDER_LOSS
       type is (rxn_emission_t)
         rxn_type = RXN_EMISSION
+      type is (rxn_wet_deposition_t)
+        rxn_type = RXN_WET_DEPOSITION
       class default
         call die_msg(343941184, "Unknown reaction type.")
     end select
@@ -390,6 +396,8 @@ contains
     class(rxn_update_data_t), intent(out) :: update_data
 
     select type (update_data)
+      type is (rxn_update_data_wet_deposition_rate_t)
+        call update_data%initialize(RXN_WET_DEPOSITION)
       type is (rxn_update_data_emission_rate_t)
         call update_data%initialize(RXN_EMISSION)
       type is (rxn_update_data_first_order_loss_rate_t)
@@ -462,6 +470,8 @@ contains
         rxn_type = RXN_FIRST_ORDER_LOSS
       type is (rxn_emission_t)
         rxn_type = RXN_EMISSION
+      type is (rxn_wet_deposition_t)
+        rxn_type = RXN_WET_DEPOSITION
       class default
         call die_msg(343941184, "Trying to pack reaction of unknown type.")
     end select
@@ -519,6 +529,8 @@ contains
         rxn => rxn_first_order_loss_t()
       case (RXN_EMISSION)
         rxn => rxn_emission_t()
+      case (RXN_WET_DEPOSITION)
+        rxn => rxn_wet_deposition_t()
       case default
         call die_msg(659290342, &
                 "Trying to unpack reaction of unknown type:"// &

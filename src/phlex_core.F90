@@ -1346,7 +1346,7 @@ contains
     write(f_unit,*) "Number of species on the state array: ", &
             this%state_array_size
     allocate(state_names(this%state_array_size))
-    i_spec = 1
+    i_spec = 0
     do i_gas_spec = 1, &
             this%chem_spec_data%size(spec_phase=CHEM_SPEC_GAS_PHASE)
       i_spec = i_gas_spec
@@ -1356,6 +1356,8 @@ contains
     write(f_unit,*) "Gas-phase species: ", i_spec
     do i_aero_rep = 1, size(this%aero_rep)
       rep_spec_names = this%aero_rep(i_aero_rep)%val%unique_names()
+      call assert(620697091, allocated(rep_spec_names))
+      call assert(787495222, size(rep_spec_names).gt.0)
       forall (j_spec=1:size(rep_spec_names)) &
           state_names(i_spec+j_spec)%string = &
               rep_spec_names(j_spec)%string

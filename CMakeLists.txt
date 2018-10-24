@@ -202,6 +202,7 @@ if (ENABLE_JSON AND ENABLE_SUNDIALS)
   add_test(test_rxn_photolysis ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_photolysis.sh ${MPI_TEST_FLAG})
   add_test(test_rxn_SIMPOL_phase_transfer ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_SIMPOL_phase_transfer.sh ${MPI_TEST_FLAG})
   add_test(test_rxn_troe ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_troe.sh ${MPI_TEST_FLAG})
+  add_test(test_rxn_wet_deposition ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_wet_deposition.sh ${MPI_TEST_FLAG})
   add_test(test_rxn_ZSR_aerosol_water ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_ZSR_aerosol_water.sh ${MPI_TEST_FLAG})
   add_test(test_sub_model_UNIFAC ${CMAKE_BINARY_DIR}/test_run/unit_sub_model_data/test_UNIFAC.sh ${MPI_TEST_FLAG})
   add_test(test_chem_mech_solver ${CMAKE_BINARY_DIR}/test_run/chemistry/test_chemistry_1.sh ${MPI_TEST_FLAG})
@@ -377,6 +378,7 @@ set(REACTIONS_F_SRC
 	src/rxns/rxn_photolysis.F90
         src/rxns/rxn_SIMPOL_phase_transfer.F90
 	src/rxns/rxn_troe.F90
+        src/rxns/rxn_wet_deposition.F90
 	src/rxns/rxn_ZSR_aerosol_water.F90)
 
 set(REACTIONS_C_SRC
@@ -392,6 +394,7 @@ set(REACTIONS_C_SRC
 	src/rxns/rxn_photolysis.c
         src/rxns/rxn_SIMPOL_phase_transfer.c
 	src/rxns/rxn_troe.c
+        src/rxns/rxn_wet_deposition.c
 	src/rxns/rxn_ZSR_aerosol_water.c)
 
 set_source_files_properties(${REACTIONS_F_SRC} PROPERTIES COMPILE_FLAGS
@@ -593,6 +596,8 @@ add_executable(test_rxn_SIMPOL_phase_transfer test/unit_rxn_data/test_rxn_SIMPOL
 target_link_libraries(test_rxn_SIMPOL_phase_transfer partmclib)
 add_executable(test_rxn_troe test/unit_rxn_data/test_rxn_troe.F90)
 target_link_libraries(test_rxn_troe partmclib)
+add_executable(test_rxn_wet_deposition test/unit_rxn_data/test_rxn_wet_deposition.F90)
+target_link_libraries(test_rxn_wet_deposition partmclib)
 add_executable(test_rxn_ZSR_aerosol_water test/unit_rxn_data/test_rxn_ZSR_aerosol_water.F90)
 target_link_libraries(test_rxn_ZSR_aerosol_water partmclib)
 

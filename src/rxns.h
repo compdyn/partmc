@@ -286,6 +286,32 @@ void * rxn_troe_calc_jac_contrib(
           ModelData *model_data, realtype *J, void *rxn_data, realtype time_step);
 #endif
 
+// wet_deposition
+void * rxn_wet_deposition_get_used_jac_elem(
+          void *rxn_data, bool **jac_struct);
+void * rxn_wet_deposition_update_ids(
+          ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
+void * rxn_wet_deposition_update_env_state(
+          double *env_data, void *rxn_data);
+void * rxn_wet_deposition_pre_calc(
+          ModelData *model_data, void *rxn_data);
+void * rxn_wet_deposition_update_data(
+          void *update_data, void *rxn_data);
+void * rxn_wet_deposition_skip(
+          void *rxn_data);
+void * rxn_wet_deposition_print(
+          void *rxn_data);
+#ifdef PMC_USE_SUNDIALS
+void * rxn_wet_deposition_calc_deriv_contrib(
+          ModelData *model_data, realtype *deriv, void *rxn_data,
+          realtype time_step);
+void * rxn_wet_deposition_calc_jac_contrib(
+          ModelData *model_data, realtype *J, void *rxn_data, realtype time_step);
+#endif
+void * rxn_wet_deposition_create_rate_update_data();
+void rxn_wet_deposition_set_rate_update_data(
+          void *update_data, int rxn_id, double base_rate);
+
 // ZSR_aerosol_water
 void * rxn_ZSR_aerosol_water_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);

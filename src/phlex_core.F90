@@ -179,6 +179,8 @@ module pmc_phlex_core
     procedure :: get_sub_model
     !> Get a new model state variable
     procedure :: new_state
+    !> Get the size of the state array
+    procedure :: state_size
     !> Initialize the solver
     procedure :: solver_initialize
     !> Update aerosol representation data
@@ -886,6 +888,24 @@ contains
     allocate(new_state%state_var, source=this%init_state)
 
   end function new_state
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the size of the state array
+  function state_size(this)
+
+    !> State size
+    integer(kind=i_kind) :: state_size
+    !> Chemical model
+    class(phlex_core_t), intent(in) :: this
+
+    call assert_msg(629102639, allocated(this%init_state), &
+                    "Trying to get the size of the state array before "// &
+                    "initializing the phlex_core")
+
+    state_size = size(this%init_state)
+
+  end function state_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

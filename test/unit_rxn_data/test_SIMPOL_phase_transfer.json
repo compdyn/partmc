@@ -8,25 +8,25 @@
   {
     "name" : "ethanol",
     "type" : "CHEM_SPEC",
-    "diffusion coeff" : 0.95E-05,
+    "diffusion coeff [m2 s-1]" : 0.95E-05,
     "N star" : 2.55,
-    "molecular weight" : 0.04607,
+    "molecular weight [kg mol-1]" : 0.04607,
     "absolute tolerance" : 1.0e-20
   },
   {
     "name" : "ethanol_aq",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
-    "molecular weight" : 0.04607,
-    "density" : 1.0,
+    "molecular weight [kg mol-1]" : 0.04607,
+    "density [kg m-3]" : 1.0,
     "absolute tolerance" : 1.0e-20
   },
   {
     "name" : "H2O_aq",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
-    "molecular weight" : 0.01801,
-    "density" : 1.0,
+    "molecular weight [kg mol-1]" : 0.01801,
+    "density [kg m-3]" : 1.0,
     "absolute tolerance" : 1.0e-20
   },
   {

@@ -80,10 +80,10 @@
         "BNZHRXN" : { "monarch id" : 71 },
         "SESQRXN" : { "monarch id" : 72 },
         "NH3"     : { "monarch id" : 73 },
-        "ISOPP1G" : { "monarch id" : 74 },
-        "ISOPP2G" : { "monarch id" : 75 },
-        "APINP1G" : { "monarch id" : 76 },
-        "APINP2G" : { "monarch id" : 77 },
+        "ISOP-P1" : { "monarch id" : 74 },
+        "ISOP-P2" : { "monarch id" : 75 },
+        "TERP-P1" : { "monarch id" : 76 },
+        "TERP-P2" : { "monarch id" : 77 },
         "DMS"     : { "monarch id" : 78 }
       },
       "aerosol-phase species" : {

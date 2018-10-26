@@ -12,8 +12,8 @@
     "name" : "n-butanol",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
-    "molecular weight" : 74.12,
-    "density" : 1.0,
+    "molecular weight [kg mol-1]" : 74.12,
+    "density [kg m-3]" : 1.0,
     "UNIFAC groups" : {
       "OH" : 1,
       "CH2(-OH)" : 1,
@@ -25,8 +25,8 @@
     "name" : "water",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
-    "molecular weight" : 18.01,
-    "density" : 1.0,
+    "molecular weight [kg mol-1]" : 18.01,
+    "density [kg m-3]" : 1.0,
     "UNIFAC groups" : {
       "H2O" : 1
     }
@@ -35,8 +35,8 @@
     "name" : "methanol",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
-    "molecular weight" : 32.04,
-    "density" : 1.0,
+    "molecular weight [kg mol-1]" : 32.04,
+    "density [kg m-3]" : 1.0,
     "notes" : "just here for testing multiple phase calculations"
   },
   {

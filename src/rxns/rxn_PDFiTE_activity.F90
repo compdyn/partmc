@@ -121,7 +121,7 @@
 !!   "type" : "CHEM_SPEC",
 !!   "phase" : "AEROSOL",
 !!   "charge" : 1,
-!!   "molecular weight" : 1.008
+!!   "molecular weight [kg mol-1]" : 1.008
 !! },
 !! {
 !!   "name" : "NH4_p",
@@ -135,7 +135,7 @@
 !!   "type" : "CHEM_SPEC",
 !!   "phase" : "AEROSOL",
 !!   "charge" : -1
-!!   "molecular weight" : 62.0049
+!!   "molecular weight [kg mol-1]" : 62.0049
 !! },
 !! {
 !!   "name" : "NH4-NO3",
@@ -568,7 +568,7 @@ contains
                 "' in PDFiTE activity reaction.")
 
         ! Get the molecular weight
-        key_name = "molecular weight"
+        key_name = "molecular weight [kg mol-1]"
         call assert_msg(951085413, &
                 spec_props%get_real(key_name, molecular_weight), &
                 "Missing molecular weight for ion '"//ion_name// &

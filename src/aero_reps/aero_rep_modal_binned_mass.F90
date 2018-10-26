@@ -23,8 +23,8 @@
 !!          "type" : "BINNED",
 !!          "phases" : [ "insoluble", "organic", "aqueous" ],
 !!          "bins" : 8,
-!!          "minimum diameter" : 0.8e-9,
-!!          "maximum deviation" : 1.0e-6,
+!!          "minimum diameter [m]" : 0.8e-9,
+!!          "maximum diameter [m]" : 1.0e-6,
 !!          "scale" : "LOG"
 !!        },
 !!        "depeche" :
@@ -32,7 +32,7 @@
 !!          "type" : "MODAL",
 !!          "phases" : [ "moody", "listless" ],
 !!          "shape" : "LOG_NORMAL",
-!!          "geometric mean diameter" : 1.2e-6,
+!!          "geometric mean diameter [m]" : 1.2e-6,
 !!          "geometric standard deviation" : 1.2
 !!        }
 !!      }
@@ -508,7 +508,7 @@ contains
       if (SECTION_TYPE_(i_section).eq.MODAL) then
 
         ! Get the geometric mean diameter
-        key_name = "geometric mean diameter"
+        key_name = "geometric mean diameter [m]"
         call assert_msg(414771933, &
                 section%get_real(key_name, &
                 GMD_(i_section, NUM_BINS_(i_section))), &
@@ -537,7 +537,7 @@ contains
       else if (SECTION_TYPE_(i_section).eq.BINNED) then
 
         ! Get the minimum diameter (m)
-        key_name = "minimum diameter"
+        key_name = "minimum diameter [m]"
         call assert_msg(548762180, section%get_real(key_name, min_Dp), &
                 "Missing minimum diameter for bin '"// &
                 this%section_name(i_section)%string// &
@@ -545,7 +545,7 @@ contains
                 this%rep_name//"'")
 
         ! Get the maximum diameter (m)
-        key_name = "maximum diameter"
+        key_name = "maximum diameter [m]"
         call assert_msg(288632226, section%get_real(key_name, max_Dp), &
                 "Missing maximum diameter for bin '"// &
                 this%section_name(i_section)%string// &

@@ -10,32 +10,32 @@
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
     "charge" : 1,
-    "density" : 1.0,
-    "molecular weight" : 22.9898
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 22.9898
   },
   {
     "name" : "Cl_m",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
     "charge" : -1,
-    "density" : 1.0,
-    "molecular weight" : 35.453
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 35.453
   },
   {
     "name" : "Ca_pp",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
     "charge" : 2,
-    "density" : 1.0,
-    "molecular weight" : 40.078
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 40.078
   },
   {
     "name" : "H2O_aq",
     "type" : "CHEM_SPEC",
     "tracer type" : "CONSTANT",
     "phase" : "AEROSOL",
-    "density" : 1.0,
-    "molecular weight" : 18.01
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 18.01
   },
   {
     "name" : "aqueous aerosol",

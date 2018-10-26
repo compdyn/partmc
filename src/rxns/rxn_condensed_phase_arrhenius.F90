@@ -296,7 +296,7 @@ contains
            "reaction involving species '"//trim(spec_name)//"'")
 
       ! Get the molecular weight
-      key_name = "molecular weight"
+      key_name = "molecular weight [kg mol-1]"
       call assert_msg(409180731, spec_props%get_real(key_name, temp_real), &
            "Missing 'molecular weight' for species '"//trim(spec_name)// &
            "' in condensed-phase Arrhenius reaction.")
@@ -336,7 +336,7 @@ contains
       i_spec = i_spec + 1
 
       ! Get the molecular weight
-      key_name = "molecular weight"
+      key_name = "molecular weight [kg mol-1]"
       call assert_msg(504705211, spec_props%get_real(key_name, temp_real), &
            "Missing 'molecular weight' for species '"//trim(spec_name)// &
            "' in condensed phase Arrhenius reaction.")

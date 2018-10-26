@@ -31,7 +31,7 @@
       "name" : "aqueous sulfate",
       "type" : "AERO_PHASE",
       "species" : [ "H2O_aq", "H_p", "OH_m",
-                    "H2SO4_aq", "SO4_mm", "HSO4_m", 
+                    "H2SO4_aq", "SO4_mm", "HSO4_m",
                     "HNO3_aq", "NO3_m",
                     "NH3_aq", "NH4_p",
                     "(NH4)2-SO4", "NH4-NO3", "H-NO3", "H2-SO4", "H-HSO4", "NH4/H"

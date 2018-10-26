@@ -46,7 +46,8 @@
 !! The key-value pairs \b reactants and \b products are required. Reactants
 !! and products without a \b qty value are assumed to appear once in the
 !! reaction equation. Reactant and product species must be present in the
-!! specified phase and include a \b molecular \b weight parameter. The
+!! specified phase and include a \b molecular \b weight \b [kg \b mol-1]
+!! in \f$\mbox{\si{\kilo\gram\per\mole}}\f$ parameter. The
 !! parameter \b aqueous-phase \b water is required and must be the name of the
 !! aerosol-phase species that is used for water. The parameter \b ion \b pair
 !! is optional. When it is included its value must be the name of an ion pair
@@ -288,7 +289,7 @@ contains
            "reaction involving species '"//trim(spec_name)//"'")
 
       ! Get the molecular weight
-      key_name = "molecular weight"
+      key_name = "molecular weight [kg mol-1]"
       call assert_msg(332898361, spec_props%get_real(key_name, temp_real), &
            "Missing 'molecular weight' for species '"//trim(spec_name)// &
            "' in aqueous equilibrium reaction.")
@@ -325,7 +326,7 @@ contains
            "reaction involving species '"//trim(spec_name)//"'")
 
       ! Get the molecular weight
-      key_name = "molecular weight"
+      key_name = "molecular weight [kg mol-1]"
       call assert_msg(332898361, spec_props%get_real(key_name, temp_real), &
            "Missing 'molecular weight' for species '"//trim(spec_name)// &
            "' in aqueous equilibrium reaction.")

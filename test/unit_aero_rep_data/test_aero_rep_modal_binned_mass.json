@@ -3,14 +3,14 @@
 {
 	"type" : "AERO_REP_MODAL_BINNED_MASS",
 	"name" : "my modal/binned mass aerosol rep",
-        "modes/bins" : 
+        "modes/bins" :
         {
           "mixed mode" :
           {
             "type" : "MODAL",
             "phases" : [ "my test phase one", "my test phase two" ],
             "shape" : "LOG_NORMAL",
-            "geometric mean diameter" : 1.2e-6,
+            "geometric mean diameter [m]" : 1.2e-6,
             "geometric standard deviation" : 1.2
           },
           "single phase mode" :
@@ -18,7 +18,7 @@
             "type" : "MODAL",
             "phases" : [ "my last test phase" ],
             "shape" : "LOG_NORMAL",
-            "geometric mean diameter" : 9.3e-7,
+            "geometric mean diameter [m]" : 9.3e-7,
             "geometric standard deviation" : 0.9
           },
           "binned aerosol" :
@@ -26,8 +26,8 @@
             "type" : "BINNED",
             "phases" : [ "my test phase one", "my last test phase" ],
             "bins" : 8,
-            "minimum diameter" : 8.0e-9,
-            "maximum diameter" : 1.0e-6,
+            "minimum diameter [m]" : 8.0e-9,
+            "maximum diameter [m]" : 1.0e-6,
             "scale" : "LOG"
           }
         }
@@ -54,50 +54,50 @@
 	"name" : "species a",
 	"type" : "CHEM_SPEC",
 	"phase" : "AEROSOL",
-        "molecular weight" : 11.2,
-        "density" : 1.0
+        "molecular weight [kg mol-1]" : 11.2,
+        "density [kg m-3]" : 1.0
 },
 {
 	"name" : "species b",
 	"type" : "CHEM_SPEC",
 	"phase" : "AEROSOL",
-        "molecular weight" : 21.2,
-	"density" : 2.0
+        "molecular weight [kg mol-1]" : 21.2,
+	"density [kg m-3]" : 2.0
 },
 {
 	"name" : "species c",
 	"type" : "CHEM_SPEC",
 	"phase" : "AEROSOL",
-        "molecular weight" : 31.2,
-	"density" : 3.0
+        "molecular weight [kg mol-1]" : 31.2,
+	"density [kg m-3]" : 3.0
 },
 {
 	"name" : "species d",
 	"type" : "CHEM_SPEC",
 	"phase" : "AEROSOL",
-        "molecular weight" : 41.2,
-	"density" : 4.0
+        "molecular weight [kg mol-1]" : 41.2,
+	"density [kg m-3]" : 4.0
 },
 {
 	"name" : "species e",
 	"type" : "CHEM_SPEC",
 	"phase" : "AEROSOL",
-        "molecular weight" : 51.2,
-	"density" : 5.0
+        "molecular weight [kg mol-1]" : 51.2,
+	"density [kg m-3]" : 5.0
 },
 {
 	"name" : "species f",
 	"type" : "CHEM_SPEC",
 	"phase" : "AEROSOL",
-        "molecular weight" : 61.2,
-	"density" : 6.0
+        "molecular weight [kg mol-1]" : 61.2,
+	"density [kg m-3]" : 6.0
 },
 {
 	"name" : "species g",
 	"type" : "CHEM_SPEC",
 	"phase" : "AEROSOL",
-        "molecular weight" : 71.2,
-	"density" : 7.0
+        "molecular weight [kg mol-1]" : 71.2,
+	"density [kg m-3]" : 7.0
 }
 	]
 }

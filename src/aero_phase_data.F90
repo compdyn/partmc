@@ -210,8 +210,9 @@ contains
   !! correspond to \ref input_format_species "chemcical species" names.
   !! \ref input_format_species "Chemical species" included in the \b species
   !! array must have a \b phase of \b AEROSOL and must include key value pairs
-  !! \b molecular \b weight (\f$\mbox{\si{\kilogram\per\mole}}\f$) and \b
-  !! density (\f$\mbox{\si{\kilogram\per\cubic\metre}}\f$).
+  !! \b molecular \b weight \b [kg \b mol-1]
+  !! (\f$\mbox{\si{\kilogram\per\mole}}\f$) and \b density \b [kg \m-3]
+  !! (\f$\mbox{\si{\kilogram\per\cubic\metre}}\f$).
   !!
   !! All other data is optional and may include any valid \c json value.
   !! Multiple entries with the same aerosol phase \b name will be merged into
@@ -352,7 +353,7 @@ contains
           SPEC_TYPE_(i_spec).eq.CHEM_SPEC_PSSA) then
 
         ! Get the molecular weight
-        key_name = "molecular weight"
+        key_name = "molecular weight [kg mol-1]"
         call assert_msg(512254139, &
                 spec_props%get_real(key_name, MW_(i_spec)), &
                 "Missing molecular weight for species '"// &
@@ -360,7 +361,7 @@ contains
                 "' in aerosol phase '"//this%phase_name//"'")
 
         ! Get the density
-        key_name = "density"
+        key_name = "density [kg m-3]"
         call assert_msg(224966878, &
                 spec_props%get_real(key_name, DENSITY_(i_spec)), &
                 "Missing density for species '"// &

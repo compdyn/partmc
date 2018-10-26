@@ -5,72 +5,72 @@
 		"name" : "Na_p",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 2200,
-                "molecular weight" : 0.022989769,
+		"density [kg m-3]" : 2200,
+                "molecular weight [kg mol-1]" : 0.022989769,
                 "description" : "sodium ion"
 	},
 	{
 		"name" : "HSO4_m",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 1800,
-	        "molecular weight" : 0.097071,
+		"density [kg m-3]" : 1800,
+	        "molecular weight [kg mol-1]" : 0.097071,
                 "description" : "bisulfate ion"
 	},
 	{
 		"name" : "SO4_mm",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 1800,
-                "molecular weight" : 0.096063,
+		"density [kg m-3]" : 1800,
+                "molecular weight [kg mol-1]" : 0.096063,
 		"description" : "sulfate ion"
 	},
 	{
 		"name" : "NH4_p",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 1800,
-	        "molecular weight" : 0.01804,
+		"density [kg m-3]" : 1800,
+	        "molecular weight [kg mol-1]" : 0.01804,
                 "description" : "ammonium ion"
 	},
 	{
 		"name" : "NO3_m",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 1800,
-	        "molecular weight" : 0.0620049,
+		"density [kg m-3]" : 1800,
+	        "molecular weight [kg mol-1]" : 0.0620049,
                 "description" : "nitrate ion"
 	},
 	{
 		"name" : "Cl_m",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 2200,
-	        "molecular weight" : 0.035453,
+		"density [kg m-3]" : 2200,
+	        "molecular weight [kg mol-1]" : 0.035453,
                 "description" : "chloride ion"
 	},
 	{
 		"name" : "K_p",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 2600,
-	        "molecular weight" : 0.0390983,
+		"density [kg m-3]" : 2600,
+	        "molecular weight [kg mol-1]" : 0.0390983,
                 "description" : "potassium ion"
 	},
 	{
 		"name" : "Ca_pp",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 2600,
-	        "molecular weight" : 0.040078,
+		"density [kg m-3]" : 2600,
+	        "molecular weight [kg mol-1]" : 0.040078,
                 "description" : "calcium ion"
 	},
 	{
 		"name" : "Mg_pp",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 2600,
-	        "molecular weight" : 24.305,
+		"density [kg m-3]" : 2600,
+	        "molecular weight [kg mol-1]" : 24.305,
                 "description" : "magnesium ion"
 	},
 	{
@@ -107,129 +107,128 @@
 		"name" : "H2O_aq",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 1000,
-                "molecular weight" : 0.01801528,
+		"density [kg m-3]" : 1000,
+                "molecular weight [kg mol-1]" : 0.01801528,
                 "description" : "aerosol water"
 	},
 	{
 		"name" : "H_p",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 1000,
-	        "molecular weight" : 0.001008,
+		"density [kg m-3]" : 1000,
+	        "molecular weight [kg mol-1]" : 0.001008,
                 "description" : "hydronium ion"
 	},
 	{
 		"name" : "OH_m",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 1000,
-	        "molecular weight" : 0.017008,
+		"density [kg m-3]" : 1000,
+	        "molecular weight [kg mol-1]" : 0.017008,
                 "description" : "hydroxide ion"
 	},
 	{
 		"name" : "NaCl",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 2200,
-	        "molecular weight" : 0.0584,
+		"density [kg m-3]" : 2200,
+	        "molecular weight [kg mol-1]" : 0.0584,
                 "description" : "sodium chloride"
 	},
 	{
 		"name" : "(Na)2SO4",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 2200,
-	        "molecular weight" : 0.14204,
+		"density [kg m-3]" : 2200,
+	        "molecular weight [kg mol-1]" : 0.14204,
                 "description" : "sodium sulfate"
 	},
 	{
 		"name" : "NaNO3",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 2200,
-	        "molecular weight" : 0.0849947,
+		"density [kg m-3]" : 2200,
+	        "molecular weight [kg mol-1]" : 0.0849947,
                 "description" : "sodium nitrate"
 	},
 	{
 		"name" : "(NH4)2SO4",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 2200,
-	        "molecular weight" : 0.13214,
+		"density [kg m-3]" : 2200,
+	        "molecular weight [kg mol-1]" : 0.13214,
                 "description" : "ammonium sulfate"
 	},
 	{
 		"name" : "NH4NO3",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 2200,
-	        "molecular weight" : 0.080043,
+		"density [kg m-3]" : 2200,
+	        "molecular weight [kg mol-1]" : 0.080043,
                 "description" : "ammonium nitrate"
 	},
 	{
 		"name" : "NH4Cl",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 2200,
-	        "molecular weight" : 0.053491,
+		"density [kg m-3]" : 2200,
+	        "molecular weight [kg mol-1]" : 0.053491,
                 "description" : "ammonium chloride"
 	},
 	{
 		"name" : "H2SO4_aq",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 1800,
-	        "molecular weight" : 0.098079,
+		"density [kg m-3]" : 1800,
+	        "molecular weight [kg mol-1]" : 0.098079,
                 "description" : "condensed sulfuric acid"
 	},
 	{
 		"name" : "NH3_aq",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 1800,
-	        "molecular weight" : 0.017031,
+		"density [kg m-3]" : 1800,
+	        "molecular weight [kg mol-1]" : 0.017031,
                 "description" : "condensed ammonia"
 	},
 	{
 		"name" : "HNO3_aq",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 1800,
-	        "molecular weight" : 0.06301,
+		"density [kg m-3]" : 1800,
+	        "molecular weight [kg mol-1]" : 0.06301,
                 "description" : "condensed nitric acid"
 	},
 	{
 		"name" : "HCl_aq",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 1800,
-	        "molecular weight" : 0.03646,
+		"density [kg m-3]" : 1800,
+	        "molecular weight [kg mol-1]" : 0.03646,
                 "description" : "condensed hydrochloric acid"
 	},
 	{
 		"name" : "NH4HSO4",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 2200,
-                "molecular weight" : 0.11511,
+		"density [kg m-3]" : 2200,
+                "molecular weight [kg mol-1]" : 0.11511,
                 "description" : "ammonium bisulfate"
 	},
 	{
 		"name" : "NaHSO4",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 2200,
-	        "molecular weight" : 0.12006,
+		"density [kg m-3]" : 2200,
+	        "molecular weight [kg mol-1]" : 0.12006,
                 "description" : "sodium bisulfate"
 	},
 	{
 		"name" : "(NH4)3H(SO4)2",
 		"type" : "CHEM_SPEC",
 		"phase" : "AEROSOL",
-		"density" : 2200,
-                "molecular weight" : 0.157254, 
+		"density [kg m-3]" : 2200,
+                "molecular weight [kg mol-1]" : 0.157254,
                 "description" : "ammonium sulfate salt"
 	}
-		
 ]}

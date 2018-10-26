@@ -10,18 +10,18 @@
     "type" : "CHEM_SPEC",
     "HLC(298K) [M Pa-1]" : 1.12509e-7,
     "HLC exp factor [K]" : 2300.0,
-    "diffusion coeff" : 1.48E-05,
+    "diffusion coeff [m2 s-1]" : 1.48E-05,
     "N star" : 1.89,
-    "molecular weight" : 0.048,
-    "density" : 1.0,
+    "molecular weight [kg mol-1]" : 0.048,
+    "density [kg m-3]" : 1.0,
     "absolute tolerance" : 1.0e-10
   },
   {
     "name" : "O3_aq",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
-    "molecular weight" : 0.048,
-    "density" : 1.0,
+    "molecular weight [kg mol-1]" : 0.048,
+    "density [kg m-3]" : 1.0,
     "absolute tolerance" : 1.0e-10
   },
   {
@@ -29,26 +29,26 @@
     "type" : "CHEM_SPEC",
     "HLC(298K) [M Pa-1]" : 1.011596348,
     "HLC exp factor [K]" : 6340,
-    "diffusion coeff" : 1.46E-05,
+    "diffusion coeff [m2 s-1]" : 1.46E-05,
     "N star" : 1.74,
-    "molecular weight" : 0.0340147,
-    "density" : 1.0,
+    "molecular weight [kg mol-1]" : 0.0340147,
+    "density [kg m-3]" : 1.0,
     "absolute tolerance" : 1.0e-10
   },
   {
     "name" : "H2O2_aq",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
-    "molecular weight" : 0.0340147,
-    "density" : 1.0,
+    "molecular weight [kg mol-1]" : 0.0340147,
+    "density [kg m-3]" : 1.0,
     "absolute tolerance" : 1.0e-10
   },
   {
     "name" : "H2O_aq",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
-    "density" : 1.0,
-    "molecular weight" : 0.01801
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 0.01801
   },
   {
     "name" : "aqueous aerosol",

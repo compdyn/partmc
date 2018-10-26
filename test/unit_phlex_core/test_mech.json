@@ -7,8 +7,8 @@
 		{ "name" : "oreo", "type" : "CHEM_SPEC", "MW" : 12.45},
 		{ "name" : "extra lid", "type" : "CHEM_SPEC"},
 		{ "name" : "lunch", "type" : "CHEM_SPEC"},
-		{ 
-			"name" : "lunch mechanism", 
+		{
+			"name" : "lunch mechanism",
 			"type" : "MECHANISM",
 			"reactions" : [
 				{

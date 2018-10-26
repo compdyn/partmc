@@ -12,30 +12,6 @@
       "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03,
       "description" : "dimethylsulfide"
-    },
-    {
-      "name" : "ISOPP1G",
-      "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03,
-      "description" : "1st product of isoprene oxidation in 2-product SOA scheme."
-    },
-    {
-      "name" : "ISOPP2G",
-      "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03,
-      "description" : "2nd product of isoprene oxidation in 2-product SOA scheme."
-    },
-    {
-      "name" : "APINP1G",
-      "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03,
-      "description" : "1st product of alpha-pinene oxidation in 2-product SOA scheme."
-    },
-    {
-      "name" : "APINP2G",
-      "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03,
-      "description" : "2nd product of alpha-pinene oxidation in 2-product SOA scheme."
     }
   ]
 }

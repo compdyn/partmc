@@ -11,8 +11,8 @@
       "name" : "ISOP-P1",
       "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03,
-      "molecular weight" : 0.08806,
-      "diffusion coeff" : 1.2e-5,
+      "molecular weight [kg mol-1]" : 0.08806,
+      "diffusion coeff [m2 s-1]" : 1.2e-5,
       "description" : "gas-phase product from isoprene oxidation by OH",
       "notes" : [
         "TODO get actual gas-phase diffusion coefficient",
@@ -23,8 +23,8 @@
       "name" : "ISOP-P2",
       "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03,
-      "molecular weight" : 0.09003,
-      "diffusion coeff" : 1.2e-5,
+      "molecular weight [kg mol-1]" : 0.09003,
+      "diffusion coeff [m2 s-1]" : 1.2e-5,
       "description" : "gas-phase product from isoprene oxidation by O3",
       "notes" : [
         "TODO get actual gas-phase diffusion coefficient",
@@ -35,8 +35,8 @@
       "name" : "TERP-P1",
       "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03,
-      "molecular weight" : 0.17025,
-      "diffusion coeff" : 1.2e-5,
+      "molecular weight [kg mol-1]" : 0.17025,
+      "diffusion coeff [m2 s-1]" : 1.2e-5,
       "description" : "gas-phase product from monoterpene oxidation by OH",
       "notes" : [
         "TODO get actual gas-phase diffusion coefficient",
@@ -47,8 +47,8 @@
       "name" : "TERP-P2",
       "type" : "CHEM_SPEC",
       "absolute integration tolerance" : 1.0E-03,
-      "molecular weight" : 0.202162,
-      "diffusion coeff" : 1.2e-5,
+      "molecular weight [kg mol-1]" : 0.202162,
+      "diffusion coeff [m2 s-1]" : 1.2e-5,
       "description" : "gas-phase product from monoterpene oxidation by O3",
       "notes" : [
         "TODO get actual gas-phase diffusion coefficient",

@@ -530,7 +530,7 @@ contains
           curr_spec_id = curr_spec_id + 1
 
           ! Get the molecular weight
-          key_name = "molecular weight"
+          key_name = "molecular weight [kg mol-1]"
           call assert_msg(421151319, &
                   spec_props%get_real(key_name, &
                   MW_I_(i_UNIFAC_phase, curr_spec_id)), &

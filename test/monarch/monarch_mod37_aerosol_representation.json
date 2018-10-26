@@ -15,25 +15,25 @@
           "type" : "BINNED",
           "phases" : [ "dust" ],
           "bins" : 8,
-          "minimum diameter" : 1.0e-7,
-          "maximum diameter" : 1.0e-5,
+          "minimum diameter [m]" : 1.0e-7,
+          "maximum diameter [m]" : 1.0e-5,
           "scale" : "LOG"
         },
-        "sea salt" : 
+        "sea salt" :
         {
           "type" : "BINNED",
           "phases" : [ "sea salt" ],
           "bins" : 8,
-          "minimum diameter" : 1.0e-7,
-          "maximum diameter" : 1.5e-5,
+          "minimum diameter [m]" : 1.0e-7,
+          "maximum diameter [m]" : 1.5e-5,
           "scale" : "LOG"
         },
-        "organic matter" : 
+        "organic matter" :
         {
           "type" : "MODAL",
           "phases" : [ "organic matter" ],
           "shape" : "LOG_NORMAL",
-          "geometric mean diameter" : 2.12e-8,
+          "geometric mean diameter [m]" : 2.12e-8,
           "geometric standard deviation" : 2.24
         },
         "black carbon" :
@@ -41,7 +41,7 @@
           "type" : "MODAL",
           "phases" : [ "black carbon" ],
           "shape" : "LOG_NORMAL",
-          "geometric mean diameter" : 1.18e-8,
+          "geometric mean diameter [m]" : 1.18e-8,
           "geometric standard deviation" : 2.00
         },
         "sulfate" :
@@ -49,15 +49,15 @@
           "type" : "MODAL",
           "phases" : [ "aqueous sulfate" ],
           "shape" : "LOG_NORMAL",
-          "geometric mean diameter" : 6.95e-8,
+          "geometric mean diameter [m]" : 6.95e-8,
           "geometric standard deviation" : 2.03
         },
-        "other PM" : 
+        "other PM" :
         {
           "type" : "MODAL",
           "phases" : [ "other PM" ],
           "shape" : "LOG_NORMAL",
-          "geometric mean diameter" : 2.12e-8,
+          "geometric mean diameter [m]" : 2.12e-8,
           "geometric standard deviation" : 2.24,
           "notes" : "FIXME - other PM not in manuscript, using parameters for organic aerosol"
         }

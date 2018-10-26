@@ -8,24 +8,24 @@
     "name" : "A",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
-    "molecular weight" : 48.0,
-    "density" : 1.0,
+    "molecular weight [kg mol-1]" : 48.0,
+    "density [kg m-3]" : 1.0,
     "absolute tolerance" : 1.0e-8
   },
   {
     "name" : "B",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
-    "molecular weight" : 18.3,
-    "density" : 1.0,
+    "molecular weight [kg mol-1]" : 18.3,
+    "density [kg m-3]" : 1.0,
     "absolute tolerance" : 1.0e-8
   },
   {
     "name" : "C",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
-    "molecular weight" : 82.3,
-    "density" : 1.0,
+    "molecular weight [kg mol-1]" : 82.3,
+    "density [kg m-3]" : 1.0,
     "absolute tolerance" : 1.0e-8
   },
   {

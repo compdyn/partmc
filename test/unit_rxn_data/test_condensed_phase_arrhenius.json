@@ -9,40 +9,40 @@
     "name" : "A",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
-    "molecular weight" : 0.1572,
-    "density" : 1.0,
+    "molecular weight [kg mol-1]" : 0.1572,
+    "density [kg m-3]" : 1.0,
     "absolute tolerance" : 1.0e-20
   },
   {
     "name" : "B",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
-    "molecular weight" : 0.0219,
-    "density" : 1.0,
+    "molecular weight [kg mol-1]" : 0.0219,
+    "density [kg m-3]" : 1.0,
     "absolute tolerance" : 1.0e-20
   },
   {
     "name" : "C",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
-    "molecular weight" : 0.2049,
-    "density" : 1.0,
+    "molecular weight [kg mol-1]" : 0.2049,
+    "density [kg m-3]" : 1.0,
     "absolute tolerance" : 1.0e-20
   },
   {
     "name" : "D",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
-    "molecular weight" : 0.0345,
-    "density" : 1.0,
+    "molecular weight [kg mol-1]" : 0.0345,
+    "density [kg m-3]" : 1.0,
     "tracer type" : "CONSTANT"
   },
   {
     "name" : "H2O_aq",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
-    "density" : 1.0,
-    "molecular weight" : 0.01801
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 0.01801
   },
   {
     "name" : "aqueous aerosol",
@@ -74,7 +74,7 @@
 	"type" : "CONDENSED_PHASE_ARRHENIUS",
         "aerosol phase" : "aqueous aerosol",
         "aerosol-phase water" : "H2O_aq",
-        "units" : "M", 
+        "units" : "M",
         "reactants" : {
 	  "A" : {},
 	  "D" : {}
@@ -87,7 +87,7 @@
 	"type" : "CONDENSED_PHASE_ARRHENIUS",
         "aerosol phase" : "aqueous aerosol",
         "aerosol-phase water" : "H2O_aq",
-        "units" : "M", 
+        "units" : "M",
 	"reactants" : {
 	  "A" : {}
 	},
@@ -104,7 +104,7 @@
 	"type" : "CONDENSED_PHASE_ARRHENIUS",
         "aerosol phase" : "aqueous aerosol",
         "aerosol-phase water" : "H2O_aq",
-        "units" : "M", 
+        "units" : "M",
 	"reactants" : {
 	  "B" : {}
 	},
@@ -121,7 +121,7 @@
       {
 	"type" : "CONDENSED_PHASE_ARRHENIUS",
         "aerosol phase" : "organic aerosol",
-        "units" : "mol m-3", 
+        "units" : "mol m-3",
         "reactants" : {
 	  "A" : {},
 	  "D" : {}
@@ -133,7 +133,7 @@
       {
 	"type" : "CONDENSED_PHASE_ARRHENIUS",
         "aerosol phase" : "organic aerosol",
-        "units" : "mol m-3", 
+        "units" : "mol m-3",
 	"reactants" : {
 	  "A" : {}
 	},
@@ -149,7 +149,7 @@
       {
 	"type" : "CONDENSED_PHASE_ARRHENIUS",
         "aerosol phase" : "organic aerosol",
-        "units" : "mol m-3", 
+        "units" : "mol m-3",
 	"reactants" : {
 	  "B" : {}
 	},

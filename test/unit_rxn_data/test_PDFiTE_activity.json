@@ -10,40 +10,40 @@
     "name" : "H2O_aq",
     "type" : "CHEM_SPEC",
     "phase" : "AEROSOL",
-    "density" : 1.0,
-    "molecular weight" : 18.01
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 18.01
   },
   {
     "name" : "H_p",
     "type" : "CHEM_SPEC",
     "charge" : 1,
     "phase" : "AEROSOL",
-    "density" : 1.0,
-    "molecular weight" : 1.008
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 1.008
   },
   {
     "name" : "NH4_p",
     "type" : "CHEM_SPEC",
     "charge" : 1,
     "phase" : "AEROSOL",
-    "density" : 1.0,
-    "molecular weight" : 18.04
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 18.04
   },
   {
     "name" : "SO4_mm",
     "type" : "CHEM_SPEC",
     "charge" : -2,
     "phase" : "AEROSOL",
-    "density" : 1.0,
-    "molecular weight" : 96.06
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 96.06
   },
   {
     "name" : "NO3_m",
     "type" : "CHEM_SPEC",
     "charge" : -1,
     "phase" : "AEROSOL",
-    "density" : 1.0,
-    "molecular weight" : 62.0049
+    "density [kg m-3]" : 1.0,
+    "molecular weight [kg mol-1]" : 62.0049
   },
   {
     "name" : "(NH4)2-SO4",

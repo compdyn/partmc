@@ -69,10 +69,10 @@
 !! allowed per phase-transfer reaction. Additionally, gas-phase species must
 !! include parameters named \b HLC(298K) \b [M \b Pa-1], which is the Henry's
 !! Law constant at 298 K, \b HLC \b exp \b factor \b [K], which is the
-!! Henry's Law constant exponential factor "C", \b diffusion \b coeff, which
-!! specifies the diffusion coefficient in
-!! \f$\mbox{\si{\square\metre\per\second}}\f$, and \b molecular \b weight,
-!! which specifies the molecular weight of the species in
+!! Henry's Law constant exponential factor "C", \b diffusion \b coeff \b [m2
+!! \b s-1], which specifies the diffusion coefficient in
+!! \f$\mbox{\si{\square\metre\per\second}}\f$, and \b molecular \b weight
+!! \b [kg \b mol-1], which specifies the molecular weight of the species in
 !! \f$\mbox{\si{\kilo\gram\per\mole}}\f$. They may optionally include the
 !! parameter \b N \b star, which will be used to calculate the mass
 !! accomodation coefficient. When this parameter is not included, the mass
@@ -250,7 +250,7 @@ contains
             "aerosol-phase species "//trim(spec_name))
 
     ! Get the aerosol species molecular weight
-    key_name = "molecular weight"
+    key_name = "molecular weight [kg mol-1]"
     call assert_msg(209812557, spec_props%get_real(key_name, MW_), &
             "Missing property 'MW' for aerosol species "//trim(spec_name)// &
             " required for phase-transfer reaction")
@@ -354,12 +354,12 @@ contains
     end if
 
     ! Get the diffusion coefficient (m^2/s)
-    key_name = "diffusion coeff"
+    key_name = "diffusion coeff [m2 s-1]"
     call assert_msg(100205531, spec_props%get_real(key_name, DIFF_COEFF_), &
             "Missing diffusion coefficient for species "//spec_name)
 
     ! Calculate the constant portion of c_rms [m/(K^2*s)]
-    key_name = "molecular weight"
+    key_name = "molecular weight [kg mol-1]"
     call assert_msg(469582180, spec_props%get_real(key_name, temp_real), &
             "Missing molecular weight for species "//spec_name)
     PRE_C_AVG_ = sqrt(8.0*const%univ_gas_const/(const%pi*temp_real))

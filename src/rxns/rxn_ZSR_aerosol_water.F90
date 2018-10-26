@@ -92,7 +92,8 @@
 !! electrolyte includes. Each species must correspond to a species present in
 !! \b aerosol \b phase and  have a \b charge parameter that specifies their
 !! charge (uncharged species are not permitted in this set) and a
-!! \b molecular \b weight (\f$\mbox{\si{\kilo\gram\per\mole}}\f$) property.
+!! \b molecular \b weight \b [kg \b mol-1]
+!! (\f$\mbox{\si{\kilo\gram\per\mole}}\f$) property.
 !! Ions without a \b qty specified are assumed to appear once in the binary
 !! electrolyte. The total molecular weight for the binary electroly
 !! \f$MW_i\f$ is calculated as a sum of its ionic components, and the ion
@@ -111,14 +112,14 @@
 !!   "type" : "CHEM_SPEC",
 !!   "phase" : "AEROSOL",
 !!   "charge" : 1,
-!!   "molecular weight" : 0.0229898
+!!   "molecular weight [kg mol-1]" : 0.0229898
 !! },
 !! {
 !!   "name" : "SO4mm",
 !!   "type" : "CHEM_SPEC",
 !!   "phase" : "AEROSOL",
 !!   "charge" : -2,
-!!   "molecular weight" : 0.09606
+!!   "molecular weight [kg mol-1]" : 0.09606
 !! },
 !! {
 !!   "name" : "my aero phase",
@@ -480,7 +481,7 @@ contains
                   "' in ZSR aerosol water reaction.")
 
           ! Add the molecular weight
-          key_name = "molecular weight"
+          key_name = "molecular weight [kg mol-1]"
           call assert_msg(897812513, &
                   spec_props%get_real(key_name, molecular_weight), &
                   "Missing molecular weight for ion '"//ion_name// &
@@ -603,7 +604,7 @@ contains
                   "' in ZSR aerosol water reaction.")
 
           ! Add the molecular weight
-          key_name = "molecular weight"
+          key_name = "molecular weight [kg mol-1]"
           call assert_msg(598142298, &
                   spec_props%get_real(key_name, molecular_weight), &
                   "Missing molecular weight for ion '"//ion_name// &

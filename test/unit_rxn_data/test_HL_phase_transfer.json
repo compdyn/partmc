@@ -8,6 +8,8 @@
   {
     "name" : "O3",
     "type" : "CHEM_SPEC",
+    "HLC(298K) [M Pa-1]" : 1.12509e-7,
+    "HLC exp factor [K]" : 2300.0,
     "diffusion coeff" : 1.48E-05,
     "N star" : 1.89,
     "molecular weight" : 0.048,
@@ -25,6 +27,8 @@
   {
     "name" : "H2O2",
     "type" : "CHEM_SPEC",
+    "HLC(298K) [M Pa-1]" : 1.011596348,
+    "HLC exp factor [K]" : 6340,
     "diffusion coeff" : 1.46E-05,
     "N star" : 1.74,
     "molecular weight" : 0.0340147,
@@ -72,18 +76,14 @@
 	"gas-phase species" : "O3",
 	"aerosol phase" : "aqueous aerosol",
 	"aerosol-phase species" : "O3_aq",
-	"aerosol-phase water" : "H2O_aq",
-	"A" : 1.14e-2,
-	"C" : 2300.0
+	"aerosol-phase water" : "H2O_aq"
       },
       {
 	"type" : "HL_PHASE_TRANSFER",
 	"gas-phase species" : "H2O2",
 	"aerosol phase" : "aqueous aerosol",
 	"aerosol-phase species" : "H2O2_aq",
-	"aerosol-phase water" : "H2O_aq",
-	"A" : 1.025e5,
-	"C" : 6340
+	"aerosol-phase water" : "H2O_aq"
       }
     ]
   }

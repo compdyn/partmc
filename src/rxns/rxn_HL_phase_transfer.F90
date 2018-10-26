@@ -11,16 +11,16 @@
 !! are calculated as:
 !!
 !! \f[
-!!   Ae^{C({1/T-1/298})}
+!!   HLC(298K) * e^{C({1/T-1/298})}
 !! \f]
 !!
-!! where \f$A\f$ is the pre-exponential factor
-!! (\f$\mbox{\si{M.atm^{-1} s^{-1}}}\f$), \f$C\f$ is a constant (unitless) and
-!! \f$T\f$ is the temperature (\f$\mbox{K}\f$). Uptake kinetics are based on
-!! the particle effective radius, \f$r_{eff}\f$ (\f$\mbox{m}\f$), the
+!! where \f$HLC(298K)\f$ is the Henry's Law constant at 298 K
+!! [\f$\mbox{\si{M Pa^{-1}}}\f$], \f$C\f$ is a constant [\f$\mbox{K}\f$] and
+!! \f$T\f$ is the temperature [\f$\mbox{K}\f$]. Uptake kinetics are based on
+!! the particle effective radius, \f$r_{eff}\f$ [\f$\mbox{m}\f$], the
 !! condensing species gas-phase diffusion coefficient, \f$D_g\f$
-!! (\f$\mbox{\si{\square\metre\per\second}}\f$), its molecular weight \f$MW\f$
-!! (\f$\mbox{\si{\kilo\gram\per\mole}}\f$), and \f$N^{*}\f$, which is
+!! [\f$\mbox{\si{\square\metre\per\second}}\f$], its molecular weight \f$MW\f$
+!! [\f$\mbox{\si{\kilo\gram\per\mole}}\f$], and \f$N^{*}\f$, which is
 !! used to calculate the mass accomodation coefficient.
 !!
 !! Mass accomodation coefficients and condensation rate constants are
@@ -48,8 +48,8 @@
 !!   \langle c \rangle = \sqrt{\frac{8RT}{\pi MW}}
 !! \f]
 !! where \f$R\f$ is the ideal gas constant
-!! (\f$\mbox{\si{\joule\per\kelvin\per\mole}}\f$). The particle radius used
-!! to calculate \f$k_{f}\f$ is the effective radius (\f$r_{eff}\f$), which is
+!! [\f$\mbox{\si{\joule\per\kelvin\per\mole}}\f$]. The particle radius used
+!! to calculate \f$k_{f}\f$ is the effective radius [\f$r_{eff}\f$], which is
 !! taken as the "least-wrong" choice for condensation rates, as it is weighted
 !! to surface area \cite Zender2002 .
 !!
@@ -61,24 +61,22 @@
 !!     "aerosol-phase species" : "my aero spec",
 !!     "areosol phase" : "my aqueous phase",
 !!     "aerosol-phase water" : "H2O_aq",
-!!     "A" : 123.45,
-!!     "C" : 123.45,
 !!       ...
 !!   }
 !! \endcode
 !! The key-value pairs \b gas-phase \b species, and \b aerosol-phase
 !! \b species are required. Only one gas- and one aerosol-phase species are
 !! allowed per phase-transfer reaction. Additionally, gas-phase species must
-!! include parameters named \b diffusion \b coeff, which specifies the
-!! diffusion coefficient in \f$\mbox{\si{\square\metre\per\second}}\f$, and
-!! \b molecular \b weight, which specifies the molecular weight of the species
-!! in \f$\mbox{\si{\kilo\gram\per\mole}}\f$. They may optionally include the
+!! include parameters named \b HLC(298K) \b [M \b Pa-1], which is the Henry's
+!! Law constant at 298 K, \b HLC \b exp \b factor \b [K], which is the
+!! Henry's Law constant exponential factor "C", \b diffusion \b coeff, which
+!! specifies the diffusion coefficient in
+!! \f$\mbox{\si{\square\metre\per\second}}\f$, and \b molecular \b weight,
+!! which specifies the molecular weight of the species in
+!! \f$\mbox{\si{\kilo\gram\per\mole}}\f$. They may optionally include the
 !! parameter \b N \b star, which will be used to calculate the mass
 !! accomodation coefficient. When this parameter is not included, the mass
 !! accomodation coefficient is assumed to be 1.0.
-!!
-!! When \b A is not included, it is assumed to be 1.0, when \b C is not
-!! included, it is assumed to be 0.0.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -300,17 +298,6 @@ contains
 
     end do
 
-    ! Get reaction parameters
-    key_name = "A"
-    if (.not. this%property_set%get_real(key_name, A_)) then
-      A_ = 1.0
-    end if
-    A_ = A_ * 1.0d-6; ! save A in (M/ppm)
-    key_name = "C"
-    if (.not. this%property_set%get_real(key_name, C_)) then
-      C_ = 0.0
-    end if
-
     ! Get the gas-phase species and find the required species properties and
     ! index
     key_name = "gas-phase species"
@@ -330,6 +317,18 @@ contains
             chem_spec_data%get_property_set(spec_name, spec_props), &
             "Missing properties required for phase-transfer of "// &
             "gas-phase species "//trim(spec_name))
+
+    ! Get Henry's Law constant parameters
+    key_name = "HLC(298K) [M Pa-1]"
+    call assert_msg(637925661, spec_props%get_real(key_name, A_), &
+                    "Missing Henry's Law constant at 298 K for "// &
+                    "partitioning species "//trim(spec_name))
+    A_ = A_ * 101325.0 * 1.0d-6; ! save A in (M/ppm)
+
+    key_name = "HLC exp factor [K]"
+    call assert_msg(801365019, spec_props%get_real(key_name, C_), &
+                    "Missing Henry's Law constant exponential factor "// &
+                    "for partitioning species "//trim(spec_name))
 
     ! Get N* to calculate the mass accomodation coefficient. If it is not
     ! present, set DELTA_H_ and DELTA_S_ to zero to indicate a mass accomodation

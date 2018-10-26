@@ -9,6 +9,8 @@
     {
       "name" : "SULF",
       "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" : 8.586232e6,
+      "HLC exp factor [K]" : 0.0,
       "diffusion coeff" : 1.30e-5,
       "N star" : 1.83,
       "molecular weight" : 98.1
@@ -16,6 +18,8 @@
     {
       "name" : "HNO3",
       "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" : 2.0725389,
+      "HLC exp factor [K]" : 8700.0,
       "diffusion coeff" : 1.32e-5,
       "N star" : 1.94,
       "molecular weight" : 63.01
@@ -23,6 +27,8 @@
     {
       "name" : "NH3",
       "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" : 5.990624e-4,
+      "HLC exp factor [K]" : 3920.0,
       "diffusion coeff" : 2.3e-5,
       "N star" : 1.92,
       "molecular weight" : 17.031
@@ -36,27 +42,21 @@
          "gas-phase species" : "SULF",
          "aerosol phase" : "aqueous sulfate",
           "aerosol-phase species" : "H2SO4_aq",
-          "aerosol-phase water" : "H2O_aq",
-          "A" : 8.7e11,
-          "C" : 0.0
+          "aerosol-phase water" : "H2O_aq"
         },
         {
          "type" : "HL_PHASE_TRANSFER",
          "gas-phase species" : "HNO3",
          "aerosol phase" : "aqueous sulfate",
           "aerosol-phase species" : "HNO3_aq",
-          "aerosol-phase water" : "H2O_aq",
-          "A" : 2.1e5,
-          "C" : 8700.0
+          "aerosol-phase water" : "H2O_aq"
         },
         {
           "type" : "HL_PHASE_TRANSFER",
           "gas-phase species" : "NH3",
           "aerosol phase" : "aqueous sulfate",
           "aerosol-phase species" : "NH3_aq",
-          "aerosol-phase water" : "H2O_aq",
-          "A" : 60.7,
-          "C" : 3920.0
+          "aerosol-phase water" : "H2O_aq"
         },
         {
           "type" : "ZSR_AEROSOL_WATER",

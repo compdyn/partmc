@@ -20,7 +20,7 @@ module pmc_phlex_state
   implicit none
   private
 
-  public :: phlex_state_t
+  public :: phlex_state_t, phlex_state_ptr
 
   !> Model state
   !!
@@ -56,6 +56,16 @@ module pmc_phlex_state
   interface phlex_state_t
     procedure :: constructor
   end interface phlex_state_t
+
+  !> Pointer type for building arrays
+  type phlex_state_ptr
+    type(phlex_state_t), pointer :: val => null()
+  contains
+    !> Dereference the pointer
+    procedure :: dereference
+    !> Finalize the pointer
+    final :: ptr_finalize
+  end type phlex_state_ptr
 
 contains
 
@@ -172,6 +182,30 @@ contains
             deallocate(this%env_state)
 
   end subroutine finalize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Deference a pointer to a phlex state
+  elemental subroutine dereference(this)
+
+    !> Pointer to the phlex state
+    class(phlex_state_ptr), intent(inout) :: this
+
+    this%val => null()
+
+  end subroutine dereference
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Finalize a pointer to a phlex state
+  elemental subroutine ptr_finalize(this)
+
+    !> Pointer to the phlex state
+    type(phlex_state_ptr), intent(inout) :: this
+
+    if (associated(this%val)) deallocate(this%val)
+
+  end subroutine ptr_finalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

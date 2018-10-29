@@ -13,7 +13,7 @@
       "HLC exp factor [K]" : 0.0,
       "diffusion coeff [m2 s-1]" : 1.30e-5,
       "N star" : 1.83,
-      "molecular weight [kg mol-1]" : 98.1
+      "molecular weight [kg mol-1]" : 0.0981
     },
     {
       "name" : "HNO3",
@@ -22,7 +22,7 @@
       "HLC exp factor [K]" : 8700.0,
       "diffusion coeff [m2 s-1]" : 1.32e-5,
       "N star" : 1.94,
-      "molecular weight [kg mol-1]" : 63.01
+      "molecular weight [kg mol-1]" : 0.06301
     },
     {
       "name" : "NH3",
@@ -31,7 +31,7 @@
       "HLC exp factor [K]" : 3920.0,
       "diffusion coeff [m2 s-1]" : 2.3e-5,
       "N star" : 1.92,
-      "molecular weight [kg mol-1]" : 17.031
+      "molecular weight [kg mol-1]" : 0.017031
     },
     {
       "name" : "MONARCH mod37",

@@ -237,9 +237,9 @@ contains
     if (pmc_mpi_rank() /= 0) then
        call assert_msg(567548916, recv_real == test_real, &
             "MPI test failure: real recv " &
-            // trim(real_to_string(recv_real)) &
+            // trim(to_string(recv_real)) &
             // " not equal to " &
-            // trim(real_to_string(test_real)))
+            // trim(to_string(test_real)))
        call assert_msg(653908509, recv_complex == test_complex, &
             "MPI test failure: complex recv " &
             // trim(complex_to_string(recv_complex)) &
@@ -267,15 +267,15 @@ contains
        call assert_msg(744394323, &
             recv_real_array(1) == real(test_complex), &
             "MPI test failure: real array recv index 1 " &
-            // trim(real_to_string(recv_real_array(1))) &
+            // trim(to_string(recv_real_array(1))) &
             // " not equal to " &
-            // trim(real_to_string(real(test_complex))))
+            // trim(to_string(real(test_complex))))
        call assert_msg(858902527, &
             recv_real_array(2) == aimag(test_complex), &
             "MPI test failure: real array recv index 2 " &
-            // trim(real_to_string(recv_real_array(2))) &
+            // trim(to_string(recv_real_array(2))) &
             // " not equal to " &
-            // trim(real_to_string(aimag(test_complex))))
+            // trim(to_string(aimag(test_complex))))
     end if
 #endif
 

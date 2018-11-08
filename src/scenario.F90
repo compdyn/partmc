@@ -715,8 +715,8 @@ contains
     prob = 1d0 - exp(-delta_t * rate)
     call warn_assert_msg(295846288, prob <= over_prob, &
          "particle loss upper bound estimation is too tight: " &
-         // trim(real_to_string(prob)) // " > " &
-         // trim(real_to_string(over_prob)) )
+         // trim(to_string(prob)) // " > " &
+         // trim(to_string(over_prob)) )
     if (pmc_random() * over_prob > prob) return
 
     aero_info%id = aero_state%apa%particle(i_part)%id

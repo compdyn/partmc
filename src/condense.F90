@@ -315,7 +315,7 @@ contains
          / (vapor_vol_conc_final + water_vol_conc_final)
     call warn_assert_msg(477865387, abs(water_rel_error) < 1d-6, &
          "condensation water imbalance too high: " &
-         // trim(real_to_string(water_rel_error)))
+         // trim(to_string(water_rel_error)))
 
     deallocate(condense_saved_kappa)
     deallocate(condense_saved_D_dry)

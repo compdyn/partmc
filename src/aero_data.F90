@@ -421,14 +421,14 @@ contains
           call warn_assert_msg(945800387, &
                aero_data%density(i) == const%water_density, &
                "input H2O density not equal to const%water_density (" &
-               // trim(real_to_string(aero_data%density(i))) // " /= " &
-               // trim(real_to_string(const%water_density)) // ")")
+               // trim(to_string(aero_data%density(i))) // " /= " &
+               // trim(to_string(const%water_density)) // ")")
           call warn_assert_msg(233517437, &
                aero_data%molec_weight(i) == const%water_molec_weight, &
                "input H2O molec_weight not equal " &
                // "to const%water_molec_weight (" &
-               // trim(real_to_string(aero_data%molec_weight(i))) // " /= " &
-               // trim(real_to_string(const%water_molec_weight)) // ")")
+               // trim(to_string(aero_data%molec_weight(i))) // " /= " &
+               // trim(to_string(const%water_molec_weight)) // ")")
        end if
     end do
     call aero_data_set_water_index(aero_data)

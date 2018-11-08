@@ -103,12 +103,12 @@ contains
        if (type == BIN_GRID_TYPE_LOG) then
           call assert_msg(966541762, min > 0d0, &
                "log bin_grid requires a positive min value, not: " &
-               // trim(real_to_string(min)))
+               // trim(to_string(min)))
        end if
        call assert_msg(711537859, min < max, &
             "bin_grid requires min < max, not: " &
-            // trim(real_to_string(min)) // " and " &
-            // trim(real_to_string(max)))
+            // trim(to_string(min)) // " and " &
+            // trim(to_string(max)))
     end if
     bin_grid%type = type
     if (n_bin == 0) return

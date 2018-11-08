@@ -71,7 +71,7 @@ program extract_aero_particles
 
   write(*,'(a)') "Output file: " // trim(out_filename)
   write(*,'(a)') "  Output data is for time = " &
-       // trim(real_to_string(time)) // " (s)"
+       // trim(to_string(time)) // " (s)"
   write(*,'(a)') "  Each row of output is one particle."
   write(*,'(a)') "  The columns of output are:"
   write(*,'(a)') "    column  1: particle ID number"

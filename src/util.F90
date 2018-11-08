@@ -30,8 +30,8 @@ module pmc_util
 
   !> Interface for to_string functions
   interface to_string
-    module procedure integer_to_string, real_to_string, logical_to_string, &
-                    complex_to_string
+    module procedure integer_to_string, real_dp_to_string, real_sp_to_string, &
+                     logical_to_string, complex_to_string
   end interface to_string
 
   !> String type for building arrays of string of various size
@@ -824,8 +824,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Convert a real to a string format.
-  character(len=PMC_UTIL_CONVERT_STRING_LEN) function real_to_string(val)
+!> Convert a double precision real to a string format.
+  character(len=PMC_UTIL_CONVERT_STRING_LEN) function real_dp_to_string(val)
 
     !> Value to convert.
     real(kind=dp), intent(in) :: val
@@ -834,9 +834,25 @@ contains
 
     ret_val = ""
     write(ret_val, '(g30.20)') val
-    real_to_string = adjustl(ret_val)
+    real_dp_to_string = adjustl(ret_val)
 
-  end function real_to_string
+  end function real_dp_to_string
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Convert a single precision real to a string format.
+  character(len=PMC_UTIL_CONVERT_STRING_LEN) function real_sp_to_string(val)
+
+    !> Value to convert.
+    real(kind=sp), intent(in) :: val
+
+    character(len=PMC_UTIL_CONVERT_STRING_LEN) :: ret_val
+
+    ret_val = ""
+    write(ret_val, '(g30.20)') val
+    real_sp_to_string = adjustl(ret_val)
+
+  end function real_sp_to_string
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -869,8 +885,8 @@ contains
     character(len=PMC_UTIL_CONVERT_STRING_LEN) :: ret_val
 
     ret_val = ""
-    ret_val = "(" // trim(real_to_string(real(val))) &
-         // ", " // trim(real_to_string(aimag(val))) // ")"
+    ret_val = "(" // trim(to_string(real(val))) &
+         // ", " // trim(to_string(aimag(val))) // ")"
     complex_to_string = adjustl(ret_val)
 
   end function complex_to_string
@@ -927,7 +943,7 @@ contains
     exp_val = floor(log10(abs(val)))
     frac_val = val / 10d0**exp_val
     exp_str = integer_to_string(exp_val)
-    frac_str = real_to_string(frac_val)
+    frac_str = real_dp_to_string(frac_val)
 
     exp_len = len_trim(exp_str)
     frac_len = len_trim(frac_str)

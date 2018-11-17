@@ -3,6 +3,7 @@
 
 # whitelist things to copy
 !CMakeLists.txt
+!netcdf.cmake
 !docker/
 !src/
 !test/

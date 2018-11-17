@@ -27,6 +27,11 @@ git clone ~/git/partmc
 cd ~/t/partmc
 git checkout 2.1
 
+cd ~/t/partmc
+# do the same thing as in partmc/.travis.yml as follows:
+docker build -t partmc-test .
+docker run -it partmc-test bash -c 'cd /build; make test'
+
 cd ~/t/partmc/doc
 make
 check README.html, ChangeLog.html and html/index.html look ok

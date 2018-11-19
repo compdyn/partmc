@@ -8,6 +8,7 @@ Make sure files are up to date:
 README:
   Version
   Released date
+  Year in "cite as"
   Change version in build instructions (2 places)
 ChangeLog: update release info (plus release date)
 CMakeLists.txt:

@@ -9,13 +9,21 @@ PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 Version 2.5.0  
 Released 2018-11-17
 
-Source: <https://github.com/compdyn/partmc>
+**Source:** <https://github.com/compdyn/partmc>
 
-Homepage: <http://lagrange.mechse.illinois.edu/partmc/>
+**Homepage:** <http://lagrange.mechse.illinois.edu/partmc/>
 
-Cite as: M. West, N. Riemer, J. Curtis, M. Michelotti, and J. Tian (2018) PartMC, [![version](https://img.shields.io/github/release/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc), [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
+**Cite as:** M. West, N. Riemer, J. Curtis, M. Michelotti, and J. Tian (2018) PartMC, [![version](https://img.shields.io/github/release/compdyn/partmc.svg?label=version)](https://github.com/compdyn/partmc), [![DOI](https://zenodo.org/badge/24058992.svg)](https://zenodo.org/badge/latestdoi/24058992)
 
-References:
+Copyright (C) 2005-2018 Nicole Riemer and Matthew West  
+Portions copyright (C) Andreas Bott, Richard Easter, Jeffrey Curtis,
+Matthew Michelotti, and Jian Tian  
+Licensed under the GNU General Public License version 2 or (at your
+option) any later version.  
+For details see the file COPYING or
+<http://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
+
+**References:**
 
    * N. Riemer, M. West, R. A. Zaveri, and R. C. Easter (2009),
      Simulating the evolution of soot mixing state with a
@@ -86,14 +94,6 @@ References:
      Machine learning to predict the global distribution of aerosol
      mixing state metrics, _Atmosphere_ 9(1), 15, 2018
      <http://dx.doi.org/10.3390/atmos9010015>
-
-Copyright (C) 2005-2018 Nicole Riemer and Matthew West  
-Portions copyright (C) Andreas Bott, Richard Easter, Jeffrey Curtis,
-and Jian Tian  
-Licensed under the GNU General Public License version 2 or (at your
-option) any later version.  
-For details see the file COPYING or
-<http://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
 
 
 Running PartMC with Docker

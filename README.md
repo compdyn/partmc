@@ -11,7 +11,9 @@ PartMC: Particle-resolved Monte Carlo code for atmospheric aerosol simulation
 Version 2.5.0  
 Released 2018-11-17
 
-<http://lagrange.mechse.illinois.edu/partmc/>
+Source: <https://github.com/compdyn/partmc>
+
+Homepage: <http://lagrange.mechse.illinois.edu/partmc/>
 
 References:
 
@@ -105,16 +107,12 @@ This is the fastest way to get running.
 
 * **_Step 2:_** (Optional) Run the PartMC test suite with:
 
-```text
-docker run -it --rm compdyn/partmc bash -c 'cd /build; make test'
-```
+        docker run -it --rm compdyn/partmc bash -c 'cd /build; make test'
 
 * **_Step 3:_** Run a scenario like the following. This example uses `partmc/scenarios/4_chamber`. This mounts the current directory (`$PWD`, replace with `%cd%` on Windows) into `/run` inside the container, changes into that directory, and then runs PartMC.
 
-```text
-cd partmc/scenarios/4_chamber
-docker run -it --rm -v $PWD:/run compdyn/partmc bash -c 'cd /run; /build/partmc chamber.spec'
-```
+        cd partmc/scenarios/4_chamber
+        docker run -it --rm -v $PWD:/run compdyn/partmc bash -c 'cd /run; /build/partmc chamber.spec'
 
 In the above `docker run` command the arguments are:
 
@@ -126,12 +124,10 @@ In the above `docker run` command the arguments are:
 
 The directory structure inside the docker container is:
 
-```text
-/partmc           # a copy of the partmc git source code repository
-/build            # the diretory in which partmc was compiled
-/build/partmc     # the compiled partmc executable
-/run              # the default diretory to run in
-```
+    /partmc           # a copy of the partmc git source code repository
+    /build            # the diretory in which partmc was compiled
+    /build/partmc     # the compiled partmc executable
+    /run              # the default diretory to run in
 
 
 Dependencies

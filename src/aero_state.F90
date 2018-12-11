@@ -966,7 +966,7 @@ contains
             aero_particle_radius(aero_state%apa%particle(i_part), aero_data))
        if ((i_bin < 1) .or. (i_bin > bin_grid_size(bin_grid))) then
           call warn_msg(980232449, "particle ID " &
-               // trim(integer_to_string(aero_state%apa%particle(i_part)%id)) &
+               // trim(integer64_to_string(aero_state%apa%particle(i_part)%id)) &
                // " outside of bin_grid, discarding")
        else
           factor = aero_weight_array_num_conc(aero_state%awa, &
@@ -1465,7 +1465,7 @@ contains
             aero_data))
        if ((i_bin < 1) .or. (i_bin > bin_grid_size(bin_grid))) then
           call warn_msg(503871022, "particle ID " &
-               // trim(integer_to_string(aero_state%apa%particle(i_part)%id)) &
+               // trim(integer64_to_string(aero_state%apa%particle(i_part)%id)) &
                // " outside of bin_grid, discarding")
        else
           factor = aero_weight_array_num_conc(aero_state%awa, &
@@ -2432,14 +2432,14 @@ contains
     real(kind=dp) :: aero_core_vol(aero_state_n_part(aero_state))
     integer :: aero_water_hyst_leg(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_num_conc(aero_state_n_part(aero_state))
-    integer :: aero_id(aero_state_n_part(aero_state))
+    integer(kind=8) :: aero_id(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_least_create_time(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_greatest_create_time(aero_state_n_part(aero_state))
-    integer :: aero_removed_id( &
+    integer(kind=8) :: aero_removed_id( &
          max(1, aero_info_array_n_item(aero_state%aero_info_array)))
     integer :: aero_removed_action( &
          max(1, aero_info_array_n_item(aero_state%aero_info_array)))
-    integer :: aero_removed_other_id( &
+    integer(kind=8) :: aero_removed_other_id( &
          max(1, aero_info_array_n_item(aero_state%aero_info_array)))
     integer :: aero_component_particle_num(aero_state_n_components(aero_state))
     integer :: aero_component_source_num(aero_state_n_components(aero_state))
@@ -2640,7 +2640,7 @@ contains
        call pmc_nc_write_real_1d(ncid, aero_num_conc, &
             "aero_num_conc", (/ dimid_aero_particle /), unit="m^{-3}", &
             long_name="number concentration for each particle")
-       call pmc_nc_write_integer_1d(ncid, aero_id, &
+       call pmc_nc_write_integer64_1d(ncid, aero_id, &
             "aero_id", (/ dimid_aero_particle /), &
             long_name="unique ID number of each aerosol particle")
        call pmc_nc_write_real_1d(ncid, aero_least_create_time, &
@@ -2717,7 +2717,7 @@ contains
           aero_removed_action(1) = AERO_INFO_NONE
           aero_removed_other_id(1) = 0
        end if
-       call pmc_nc_write_integer_1d(ncid, aero_removed_id, &
+       call pmc_nc_write_integer64_1d(ncid, aero_removed_id, &
             "aero_removed_id", (/ dimid_aero_removed /), &
             long_name="ID of removed particles")
        call pmc_nc_write_integer_1d(ncid, aero_removed_action, &
@@ -2728,7 +2728,7 @@ contains
             // "particle ID is in \c aero_removed_other_id), 3 (removed " &
             // "due to populating halving), or 4 (removed due to " &
             // "weighting changes")
-       call pmc_nc_write_integer_1d(ncid, aero_removed_other_id, &
+       call pmc_nc_write_integer64_1d(ncid, aero_removed_other_id, &
             "aero_removed_other_id", (/ dimid_aero_removed /), &
             long_name="ID of other particle involved in removal", &
             description="if <tt>aero_removed_action(i)</tt> is 2 " &
@@ -2833,7 +2833,7 @@ contains
     real(kind=dp), allocatable :: aero_core_vol(:)
     integer, allocatable :: aero_water_hyst_leg(:)
     real(kind=dp), allocatable :: aero_num_conc(:)
-    integer, allocatable :: aero_id(:)
+    integer(kind=8), allocatable :: aero_id(:)
     real(kind=dp), allocatable :: aero_least_create_time(:)
     real(kind=dp), allocatable :: aero_greatest_create_time(:)
     integer, allocatable :: aero_removed_id(:)
@@ -2893,7 +2893,7 @@ contains
          "aero_water_hyst_leg")
     call pmc_nc_read_real_1d(ncid, aero_num_conc, &
          "aero_num_conc")
-    call pmc_nc_read_integer_1d(ncid, aero_id, &
+    call pmc_nc_read_integer64_1d(ncid, aero_id, &
          "aero_id")
     call pmc_nc_read_real_1d(ncid, aero_least_create_time, &
          "aero_least_create_time")

@@ -46,7 +46,7 @@ module pmc_aero_particle
      !> Water hysteresis curve section (0 = lower, 1 = upper)
      integer :: water_hyst_leg
      !> Unique ID number.
-     integer :: id
+     integer(kind=8) :: id
      !> Array of aerosol components.
      type(aero_component_t), allocatable :: component(:)
      !> First time a constituent was created (s).
@@ -56,7 +56,7 @@ module pmc_aero_particle
   end type aero_particle_t
 
   !> Next unique ID number to use for a particle.
-  integer, save :: next_id = 1
+  integer(kind=8), save :: next_id = 1
 
 contains
 
@@ -962,7 +962,7 @@ contains
          + pmc_mpi_pack_size_complex(val%refract_core) &
          + pmc_mpi_pack_size_real(val%core_vol) &
          + pmc_mpi_pack_size_integer(val%water_hyst_leg) &
-         + pmc_mpi_pack_size_integer(val%id) &
+         + pmc_mpi_pack_size_integer64(val%id) &
          + pmc_mpi_pack_size_integer(aero_particle_n_components(val)) &
          + pmc_mpi_pack_size_real(val%least_create_time) &
          + pmc_mpi_pack_size_real(val%greatest_create_time)
@@ -1000,7 +1000,7 @@ contains
     call pmc_mpi_pack_complex(buffer, position, val%refract_core)
     call pmc_mpi_pack_real(buffer, position, val%core_vol)
     call pmc_mpi_pack_integer(buffer, position, val%water_hyst_leg)
-    call pmc_mpi_pack_integer(buffer, position, val%id)
+    call pmc_mpi_pack_integer64(buffer, position, val%id)
     call pmc_mpi_pack_integer(buffer, position, &
          aero_particle_n_components(val))
     do i = 1, aero_particle_n_components(val)
@@ -1040,7 +1040,7 @@ contains
     call pmc_mpi_unpack_complex(buffer, position, val%refract_core)
     call pmc_mpi_unpack_real(buffer, position, val%core_vol)
     call pmc_mpi_unpack_integer(buffer, position, val%water_hyst_leg)
-    call pmc_mpi_unpack_integer(buffer, position, val%id)
+    call pmc_mpi_unpack_integer64(buffer, position, val%id)
     call pmc_mpi_unpack_integer(buffer, position, n_components)
     if (n_components > -1) then
        allocate(val%component(n_components))

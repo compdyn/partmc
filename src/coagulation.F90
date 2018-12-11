@@ -370,7 +370,8 @@ contains
     real(kind=dp) :: vol_cv(aero_data_n_spec(aero_data)), vol_cv_max
     real(kind=dp) :: mean_95_conf_cv
     integer :: n_samp_remove, n_samp_extra, n_samp_total, n_avg, i_samp
-    integer :: i_unif_entry, i_part, target_id, new_bin, ct
+    integer :: i_unif_entry, i_part, new_bin, ct
+    integer(kind=8) :: target_id
     type(aero_info_t) :: aero_info
 
     if (integer_varray_n_entry( &
@@ -488,7 +489,8 @@ contains
     !> Weight class for coagulated particle.
     integer, intent(in) :: cc
 
-    integer :: target_part, target_id, new_bin, new_group
+    integer :: target_part, new_bin, new_group
+    integer(kind=8) :: target_id
     real(kind=dp) :: old_num_conc_target, new_num_conc_target
 
     target_part = aero_state%aero_sorted%size_class%inverse(bt, &
@@ -795,7 +797,8 @@ contains
 
     real(kind=dp) :: r1, r2, rc, nc_min, nc1, nc2, ncc
     real(kind=dp) :: prob_remove_1, prob_remove_2, prob_create_new
-    integer :: info_other_id, new_group
+    integer(kind=8) :: info_other_id
+    integer :: new_group
 
     call assert(371947172, pt1%id /= pt2%id)
 

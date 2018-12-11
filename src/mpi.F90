@@ -361,6 +361,25 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
+  integer function pmc_mpi_pack_size_integer64(val)
+
+    !> Value to pack.
+    integer(kind=8), intent(in) :: val
+
+    integer :: ierr
+
+#ifdef PMC_USE_MPI
+    call mpi_sizeof(val,pmc_mpi_pack_size_integer64,ierr)
+    call pmc_mpi_check_ierr(ierr)
+#else
+    pmc_mpi_pack_size_integer64 = 0
+#endif
+
+  end function pmc_mpi_pack_size_integer64
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Determines the number of bytes required to pack the given value.
   integer function pmc_mpi_pack_size_real(val)
 
     !> Value to pack.
@@ -644,6 +663,32 @@ contains
 #endif
 
   end subroutine pmc_mpi_pack_integer
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Packs the given value into the buffer, advancing position.
+  subroutine pmc_mpi_pack_integer64(buffer, position, val)
+
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    integer(kind=8), intent(in) :: val
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, ierr, integer64_type
+
+    prev_position = position
+    call MPI_Type_create_f90_integer(19, integer64_type,ierr)
+    call mpi_pack(val, 1, integer64_type, buffer, size(buffer), &
+         position, MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    call assert(929176455, &
+         position - prev_position <= pmc_mpi_pack_size_integer64(val))
+#endif
+
+  end subroutine pmc_mpi_pack_integer64
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -977,6 +1022,32 @@ contains
 #endif
 
   end subroutine pmc_mpi_unpack_integer
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Unpacks the given value from the buffer, advancing position.
+  subroutine pmc_mpi_unpack_integer64(buffer, position, val)
+
+    !> Memory buffer.
+    character, intent(inout) :: buffer(:)
+    !> Current buffer position.
+    integer, intent(inout) :: position
+    !> Value to pack.
+    integer(kind=8), intent(out) :: val
+
+#ifdef PMC_USE_MPI
+    integer :: prev_position, ierr, integer64_type
+
+    prev_position = position
+    call MPI_Type_create_f90_integer(19, integer64_type,ierr)
+    call mpi_unpack(buffer, size(buffer), position, val, 1, integer64_type, &
+         MPI_COMM_WORLD, ierr)
+    call pmc_mpi_check_ierr(ierr)
+    call assert(752979474, &
+         position - prev_position <= pmc_mpi_pack_size_integer64(val))
+#endif
+
+  end subroutine pmc_mpi_unpack_integer64
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

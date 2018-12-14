@@ -427,21 +427,23 @@ contains
 
   !> Determine the size of a binary required to pack the aerosol
   !! representation data
-  integer(kind=i_kind) function pack_size(this)
+  integer(kind=i_kind) function pack_size(this, comm)
 
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
+    !> MPI communicator
+    integer, intent(in) :: comm
 
     pack_size = &
-            pmc_mpi_pack_size_real_array(this%condensed_data_real) + &
-            pmc_mpi_pack_size_integer_array(this%condensed_data_int)
+            pmc_mpi_pack_size_real_array(this%condensed_data_real, comm) + &
+            pmc_mpi_pack_size_integer_array(this%condensed_data_int, comm)
 
   end function pack_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Pack the given value to the buffer, advancing position
-  subroutine bin_pack(this, buffer, pos)
+  subroutine bin_pack(this, buffer, pos, comm)
 
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
@@ -449,15 +451,17 @@ contains
     character, intent(inout) :: buffer(:)
     !> Current buffer position
     integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
 
     prev_position = pos
-    call pmc_mpi_pack_real_array(buffer, pos, this%condensed_data_real)
-    call pmc_mpi_pack_integer_array(buffer, pos, this%condensed_data_int)
+    call pmc_mpi_pack_real_array(buffer, pos, this%condensed_data_real, comm)
+    call pmc_mpi_pack_integer_array(buffer, pos, this%condensed_data_int,comm)
     call assert(257024095, &
-         pos - prev_position <= this%pack_size())
+         pos - prev_position <= this%pack_size(comm))
 #endif
 
   end subroutine bin_pack
@@ -465,7 +469,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpack the given value from the buffer, advancing position
-  subroutine bin_unpack(this, buffer, pos)
+  subroutine bin_unpack(this, buffer, pos, comm)
 
     !> Aerosol representation data
     class(aero_rep_data_t), intent(out) :: this
@@ -473,15 +477,18 @@ contains
     character, intent(inout) :: buffer(:)
     !> Current buffer position
     integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
 
 #ifdef PMC_USE_MPI
     integer :: prev_position
 
     prev_position = pos
-    call pmc_mpi_unpack_real_array(buffer, pos, this%condensed_data_real)
-    call pmc_mpi_unpack_integer_array(buffer, pos, this%condensed_data_int)
+    call pmc_mpi_unpack_real_array(buffer, pos, this%condensed_data_real,comm)
+    call pmc_mpi_unpack_integer_array(buffer, pos, this%condensed_data_int,  &
+                                                                         comm)
     call assert(954732699, &
-         pos - prev_position <= this%pack_size())
+         pos - prev_position <= this%pack_size(comm))
 #endif
 
   end subroutine bin_unpack

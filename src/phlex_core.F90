@@ -1163,54 +1163,65 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack the mechanism
-  integer(kind=i_kind) function pack_size(this)
+  integer(kind=i_kind) function pack_size(this, comm)
 
     !> Chemical model
     class(phlex_core_t), intent(in) :: this
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
     type(aero_rep_factory_t) :: aero_rep_factory
     type(sub_model_factory_t) :: sub_model_factory
     class(aero_rep_data_t), pointer :: aero_rep
     class(sub_model_data_t), pointer :: sub_model
-    integer(kind=i_kind) :: i_mech, i_phase, i_rep, i_sub_model
+    integer(kind=i_kind) :: i_mech, i_phase, i_rep, i_sub_model, l_comm
+
+#ifdef PMC_USE_MPI
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     call assert_msg(143374295, this%core_is_initialized, &
             "Trying to get the buffer size of an uninitialized core.")
 
-    pack_size =  pmc_mpi_pack_size_integer(size(this%mechanism)) + &
-                 pmc_mpi_pack_size_integer(size(this%aero_phase)) + &
-                 pmc_mpi_pack_size_integer(size(this%aero_rep)) + &
-                 pmc_mpi_pack_size_integer(size(this%sub_model))
+    pack_size =  pmc_mpi_pack_size_integer(size(this%mechanism),  l_comm) + &
+                 pmc_mpi_pack_size_integer(size(this%aero_phase), l_comm) + &
+                 pmc_mpi_pack_size_integer(size(this%aero_rep),   l_comm) + &
+                 pmc_mpi_pack_size_integer(size(this%sub_model),  l_comm)
     do i_mech = 1, size(this%mechanism)
-      pack_size = pack_size + this%mechanism(i_mech)%val%pack_size()
+      pack_size = pack_size + this%mechanism(i_mech)%val%pack_size(l_comm)
     end do
     do i_phase = 1, size(this%aero_phase)
-      pack_size = pack_size + this%aero_phase(i_phase)%val%pack_size()
+      pack_size = pack_size + this%aero_phase(i_phase)%val%pack_size(l_comm)
     end do
     do i_rep = 1, size(this%aero_rep)
       aero_rep => this%aero_rep(i_rep)%val
-      pack_size = pack_size + aero_rep_factory%pack_size(aero_rep)
+      pack_size = pack_size + aero_rep_factory%pack_size(aero_rep, l_comm)
       aero_rep => null()
     end do
     do i_sub_model = 1, size(this%sub_model)
       sub_model => this%sub_model(i_sub_model)%val
-      pack_size = pacK_size + sub_model_factory%pack_size(sub_model)
+      pack_size = pacK_size + sub_model_factory%pack_size(sub_model, l_comm)
       sub_model => null()
     end do
     pack_size = pack_size + &
-                pmc_mpi_pack_size_integer(this%state_array_size) + &
-                pmc_mpi_pack_size_logical(this%split_gas_aero) + &
-                pmc_mpi_pack_size_real(this%rel_tol) + &
-                pmc_mpi_pack_size_real_array(this%abs_tol) + &
-                pmc_mpi_pack_size_integer_array(this%var_type) + &
-                pmc_mpi_pack_size_real_array(this%init_state)
-
+                pmc_mpi_pack_size_integer(this%state_array_size, l_comm) + &
+                pmc_mpi_pack_size_logical(this%split_gas_aero, l_comm) + &
+                pmc_mpi_pack_size_real(this%rel_tol, l_comm) + &
+                pmc_mpi_pack_size_real_array(this%abs_tol, l_comm) + &
+                pmc_mpi_pack_size_integer_array(this%var_type, l_comm) + &
+                pmc_mpi_pack_size_real_array(this%init_state, l_comm)
+#else
+    pack_size = 0
+#endif
   end function pack_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Pack the given value to the buffer, advancing position
-  subroutine bin_pack(this, buffer, pos)
+  subroutine bin_pack(this, buffer, pos, comm)
 
     !> Chemical model
     class(phlex_core_t), intent(in) :: this
@@ -1218,6 +1229,8 @@ contains
     character, intent(inout) :: buffer(:)
     !> Current buffer position
     integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
     type(aero_rep_factory_t) :: aero_rep_factory
@@ -1225,40 +1238,46 @@ contains
     class(aero_rep_data_t), pointer :: aero_rep
     class(sub_model_data_t), pointer :: sub_model
     integer(kind=i_kind) :: i_mech, i_phase, i_rep, i_sub_model, &
-            prev_position
+            prev_position, l_comm
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     call assert_msg(143374295, this%core_is_initialized, &
             "Trying to pack an uninitialized core.")
 
     prev_position = pos
-    call pmc_mpi_pack_integer(buffer, pos, size(this%mechanism))
-    call pmc_mpi_pack_integer(buffer, pos, size(this%aero_phase))
-    call pmc_mpi_pack_integer(buffer, pos, size(this%aero_rep))
-    call pmc_mpi_pack_integer(buffer, pos, size(this%sub_model))
+    call pmc_mpi_pack_integer(buffer, pos, size(this%mechanism),  l_comm)
+    call pmc_mpi_pack_integer(buffer, pos, size(this%aero_phase), l_comm)
+    call pmc_mpi_pack_integer(buffer, pos, size(this%aero_rep),   l_comm)
+    call pmc_mpi_pack_integer(buffer, pos, size(this%sub_model),  l_comm)
     do i_mech = 1, size(this%mechanism)
-      call this%mechanism(i_mech)%val%bin_pack(buffer, pos)
+      call this%mechanism(i_mech)%val%bin_pack(buffer, pos, l_comm)
     end do
     do i_phase = 1, size(this%aero_phase)
-      call this%aero_phase(i_phase)%val%bin_pack(buffer, pos)
+      call this%aero_phase(i_phase)%val%bin_pack(buffer, pos, l_comm)
     end do
     do i_rep = 1, size(this%aero_rep)
       aero_rep => this%aero_rep(i_rep)%val
-      call aero_rep_factory%bin_pack(aero_rep, buffer, pos)
+      call aero_rep_factory%bin_pack(aero_rep, buffer, pos, l_comm)
       aero_rep => null()
     end do
     do i_sub_model = 1, size(this%sub_model)
       sub_model => this%sub_model(i_sub_model)%val
-      call sub_model_factory%bin_pack(sub_model, buffer, pos)
+      call sub_model_factory%bin_pack(sub_model, buffer, pos, l_comm)
       sub_model => null()
     end do
-    call pmc_mpi_pack_integer(buffer, pos, this%state_array_size)
-    call pmc_mpi_pack_logical(buffer, pos, this%split_gas_aero)
-    call pmc_mpi_pack_real(buffer, pos, this%rel_tol)
-    call pmc_mpi_pack_real_array(buffer, pos, this%abs_tol)
-    call pmc_mpi_pack_integer_array(buffer, pos, this%var_type)
-    call pmc_mpi_pack_real_array(buffer, pos, this%init_state)
+    call pmc_mpi_pack_integer(buffer, pos, this%state_array_size, l_comm)
+    call pmc_mpi_pack_logical(buffer, pos, this%split_gas_aero, l_comm)
+    call pmc_mpi_pack_real(buffer, pos, this%rel_tol, l_comm)
+    call pmc_mpi_pack_real_array(buffer, pos, this%abs_tol, l_comm)
+    call pmc_mpi_pack_integer_array(buffer, pos, this%var_type, l_comm)
+    call pmc_mpi_pack_real_array(buffer, pos, this%init_state, l_comm)
     call assert(184050835, &
-         pos - prev_position <= this%pack_size())
+         pos - prev_position <= this%pack_size(l_comm))
 #endif
 
   end subroutine bin_pack
@@ -1266,7 +1285,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpack the given value from the buffer, advancing position
-  subroutine bin_unpack(this, buffer, pos)
+  subroutine bin_unpack(this, buffer, pos, comm)
 
     !> Chemical model
     class(phlex_core_t), intent(inout) :: this
@@ -1274,49 +1293,58 @@ contains
     character, intent(inout) :: buffer(:)
     !> Current buffer position
     integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
     type(aero_rep_factory_t) :: aero_rep_factory
     type(sub_model_factory_t) :: sub_model_factory
     integer(kind=i_kind) :: i_mech, i_phase, i_rep, i_sub_model, &
-            prev_position, num_mech, num_phase, num_rep, num_sub_model
+            prev_position, num_mech, num_phase, num_rep, num_sub_model, &
+            l_comm
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     call finalize(this)
     this%chem_spec_data => chem_spec_data_t()
 
     prev_position = pos
-    call pmc_mpi_unpack_integer(buffer, pos, num_mech)
-    call pmc_mpi_unpack_integer(buffer, pos, num_phase)
-    call pmc_mpi_unpack_integer(buffer, pos, num_rep)
-    call pmc_mpi_unpack_integer(buffer, pos, num_sub_model)
+    call pmc_mpi_unpack_integer(buffer, pos, num_mech,      l_comm)
+    call pmc_mpi_unpack_integer(buffer, pos, num_phase,     l_comm)
+    call pmc_mpi_unpack_integer(buffer, pos, num_rep,       l_comm)
+    call pmc_mpi_unpack_integer(buffer, pos, num_sub_model, l_comm)
     allocate(this%mechanism(num_mech))
     allocate(this%aero_phase(num_phase))
     allocate(this%aero_rep(num_rep))
     allocate(this%sub_model(num_sub_model))
     do i_mech = 1, num_mech
       this%mechanism(i_mech)%val => mechanism_data_t()
-      call this%mechanism(i_mech)%val%bin_unpack(buffer, pos)
+      call this%mechanism(i_mech)%val%bin_unpack(buffer, pos, l_comm)
     end do
     do i_phase = 1, num_phase
       this%aero_phase(i_phase)%val => aero_phase_data_t()
-      call this%aero_phase(i_phase)%val%bin_unpack(buffer, pos)
+      call this%aero_phase(i_phase)%val%bin_unpack(buffer, pos, l_comm)
     end do
     do i_rep = 1, num_rep
-      this%aero_rep(i_rep)%val => aero_rep_factory%bin_unpack(buffer, pos)
+      this%aero_rep(i_rep)%val => aero_rep_factory%bin_unpack(buffer, pos, l_comm)
     end do
     do i_sub_model = 1, num_sub_model
       this%sub_model(i_sub_model)%val => &
-              sub_model_factory%bin_unpack(buffer, pos)
+              sub_model_factory%bin_unpack(buffer, pos, l_comm)
     end do
-    call pmc_mpi_unpack_integer(buffer, pos, this%state_array_size)
-    call pmc_mpi_unpack_logical(buffer, pos, this%split_gas_aero)
-    call pmc_mpi_unpack_real(buffer, pos, this%rel_tol)
-    call pmc_mpi_unpack_real_array(buffer, pos, this%abs_tol)
-    call pmc_mpi_unpack_integer_array(buffer, pos, this%var_type)
-    call pmc_mpi_unpack_real_array(buffer, pos, this%init_state)
+    call pmc_mpi_unpack_integer(buffer, pos, this%state_array_size, l_comm)
+    call pmc_mpi_unpack_logical(buffer, pos, this%split_gas_aero, l_comm)
+    call pmc_mpi_unpack_real(buffer, pos, this%rel_tol, l_comm)
+    call pmc_mpi_unpack_real_array(buffer, pos, this%abs_tol, l_comm)
+    call pmc_mpi_unpack_integer_array(buffer, pos, this%var_type, l_comm)
+    call pmc_mpi_unpack_real_array(buffer, pos, this%init_state, l_comm)
     this%core_is_initialized = .true.
     call assert(291557168, &
-         pos - prev_position <= this%pack_size())
+         pos - prev_position <= this%pack_size(l_comm))
 #endif
 
   end subroutine bin_unpack

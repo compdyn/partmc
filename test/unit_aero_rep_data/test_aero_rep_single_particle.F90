@@ -11,6 +11,9 @@ program pmc_test_aero_rep_data
 #ifdef PMC_USE_JSON
   use json_module
 #endif
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
   use pmc_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_aero_rep_single_particle
@@ -193,20 +196,20 @@ contains
     do i_rep = 1, size(rep_names)
       call assert(778520709, &
               phlex_core%get_aero_rep(rep_names(i_rep)%string, aero_rep))
-      pack_size = pack_size + aero_rep_factory%pack_size(aero_rep)
+      pack_size = pack_size + aero_rep_factory%pack_size(aero_rep, MPI_COMM_WORLD)
     end do
     allocate(buffer(pack_size))
     pos = 0
     do i_rep = 1, size(rep_names)
       call assert(543807700, &
               phlex_core%get_aero_rep(rep_names(i_rep)%string, aero_rep))
-      call aero_rep_factory%bin_pack(aero_rep, buffer, pos)
+      call aero_rep_factory%bin_pack(aero_rep, buffer, pos, MPI_COMM_WORLD)
     end do
     allocate(aero_rep_passed_data_set(size(rep_names)))
     pos = 0
     do i_rep = 1, size(rep_names)
       aero_rep_passed_data_set(i_rep)%val => &
-              aero_rep_factory%bin_unpack(buffer, pos)
+              aero_rep_factory%bin_unpack(buffer, pos, MPI_COMM_WORLD)
     end do
     do i_rep = 1, size(rep_names)
       associate (passed_aero_rep => aero_rep_passed_data_set(i_rep)%val)

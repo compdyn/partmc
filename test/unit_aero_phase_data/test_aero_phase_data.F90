@@ -17,6 +17,9 @@ program pmc_test_aero_phase_data
   use json_module
 #endif
   use pmc_mpi
+#ifdef PMC_USE_MPI
+  use mpi
+#endif
 
   implicit none
 
@@ -132,18 +135,18 @@ contains
 #ifdef PMC_USE_MPI
     pack_size = 0
     do i_phase = 1, 3
-      pack_size = pack_size + aero_phase_data_set(i_phase)%val%pack_size()
+      pack_size = pack_size + aero_phase_data_set(i_phase)%val%pack_size(MPI_COMM_WORLD)
     end do
     allocate(buffer(pack_size))
     pos = 0
     do i_phase = 1, 3
-      call aero_phase_data_set(i_phase)%val%bin_pack(buffer, pos)
+      call aero_phase_data_set(i_phase)%val%bin_pack(buffer, pos, MPI_COMM_WORLD)
     end do
     allocate(aero_phase_passed_data_set(3))
     pos = 0
     do i_phase = 1, 3
       aero_phase_passed_data_set(i_phase)%val => aero_phase_data_t()
-      call aero_phase_passed_data_set(i_phase)%val%bin_unpack(buffer, pos)
+      call aero_phase_passed_data_set(i_phase)%val%bin_unpack(buffer, pos, MPI_COMM_WORLD)
     end do
     do i_phase = 1, 3
       call assert(165060871, &

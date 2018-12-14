@@ -413,22 +413,24 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack a reaction
-  integer(kind=i_kind) function pack_size(this, rxn)
+  integer(kind=i_kind) function pack_size(this, rxn, comm)
 
     !> Reaction factory
     class(rxn_factory_t) :: this
     !> Reaction to pack
     class(rxn_data_t), intent(in) :: rxn
+    !> MPI communicator
+    integer, intent(in) :: comm
 
-    pack_size =  pmc_mpi_pack_size_integer(int(1, kind=i_kind)) + &
-                 rxn%pack_size()
+    pack_size =  pmc_mpi_pack_size_integer(int(1, kind=i_kind), comm) + &
+                 rxn%pack_size(comm)
 
   end function pack_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Pack the given value to the buffer, advancing position
-  subroutine bin_pack(this, rxn, buffer, pos)
+  subroutine bin_pack(this, rxn, buffer, pos, comm)
 
     !> Reaction factory
     class(rxn_factory_t), intent(in) :: this
@@ -438,6 +440,8 @@ contains
     character, intent(inout) :: buffer(:)
     !> Current buffer position
     integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
 
 #ifdef PMC_USE_MPI
     integer :: rxn_type, i_rxn, prev_position
@@ -475,10 +479,10 @@ contains
       class default
         call die_msg(343941184, "Trying to pack reaction of unknown type.")
     end select
-    call pmc_mpi_pack_integer(buffer, pos, rxn_type)
-    call rxn%bin_pack(buffer, pos)
+    call pmc_mpi_pack_integer(buffer, pos, rxn_type, comm)
+    call rxn%bin_pack(buffer, pos, comm)
     call assert(194676336, &
-         pos - prev_position <= this%pack_size(rxn))
+         pos - prev_position <= this%pack_size(rxn, comm))
 #endif
 
   end subroutine bin_pack
@@ -486,7 +490,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpack the given value to the buffer, advancing position
-  function bin_unpack(this, buffer, pos) result (rxn)
+  function bin_unpack(this, buffer, pos, comm) result (rxn)
 
     !> Unpacked reaction
     class(rxn_data_t), pointer :: rxn
@@ -496,12 +500,14 @@ contains
     character, intent(inout) :: buffer(:)
     !> Current buffer position
     integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
 
 #ifdef PMC_USE_MPI
     integer :: rxn_type, i_rxn, prev_position
 
     prev_position = pos
-    call pmc_mpi_unpack_integer(buffer, pos, rxn_type)
+    call pmc_mpi_unpack_integer(buffer, pos, rxn_type, comm)
     select case (rxn_type)
       case (RXN_ARRHENIUS)
         rxn => rxn_arrhenius_t()
@@ -536,9 +542,9 @@ contains
                 "Trying to unpack reaction of unknown type:"// &
                 to_string(rxn_type))
     end select
-    call rxn%bin_unpack(buffer, pos)
+    call rxn%bin_unpack(buffer, pos, comm)
     call assert(880568259, &
-         pos - prev_position <= this%pack_size(rxn))
+         pos - prev_position <= this%pack_size(rxn, comm))
 #endif
 
   end function bin_unpack

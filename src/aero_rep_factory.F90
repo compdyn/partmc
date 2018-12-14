@@ -357,22 +357,24 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack an aerosol representation
-  integer(kind=i_kind) function pack_size(this, aero_rep)
+  integer(kind=i_kind) function pack_size(this, aero_rep, comm)
 
     !> Aerosol representation factory
     class(aero_rep_factory_t), intent(in) :: this
     !> Aerosol representation to pack
     class(aero_rep_data_t), intent(in) :: aero_rep
+    !> MPI communicator
+    integer, intent(in) :: comm
 
-    pack_size =  pmc_mpi_pack_size_integer(int(1, kind=i_kind)) + &
-                 aero_rep%pack_size()
+    pack_size =  pmc_mpi_pack_size_integer(int(1, kind=i_kind), comm) + &
+                 aero_rep%pack_size(comm)
 
   end function pack_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Pack the given value to the buffer, advancing position
-  subroutine bin_pack(this, aero_rep, buffer, pos)
+  subroutine bin_pack(this, aero_rep, buffer, pos, comm)
 
     !> Aerosol representation factory
     class(aero_rep_factory_t), intent(in) :: this
@@ -382,6 +384,8 @@ contains
     character, intent(inout) :: buffer(:)
     !> Current buffer position
     integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
 
 #ifdef PMC_USE_MPI
     integer :: aero_rep_type, i_aero_rep, prev_position
@@ -396,10 +400,10 @@ contains
         call die_msg(278244560, &
                 "Trying to pack aerosol representation of unknown type.")
     end select
-    call pmc_mpi_pack_integer(buffer, pos, aero_rep_type)
-    call aero_rep%bin_pack(buffer, pos)
+    call pmc_mpi_pack_integer(buffer, pos, aero_rep_type, comm)
+    call aero_rep%bin_pack(buffer, pos, comm)
     call assert(897674844, &
-         pos - prev_position <= this%pack_size(aero_rep))
+         pos - prev_position <= this%pack_size(aero_rep, comm))
 #endif
 
   end subroutine bin_pack
@@ -407,7 +411,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpack the given value to the buffer, advancing position
-  function bin_unpack(this, buffer, pos) result (aero_rep)
+  function bin_unpack(this, buffer, pos, comm) result (aero_rep)
 
     !> Unpacked aerosol representation
     class(aero_rep_data_t), pointer :: aero_rep
@@ -417,12 +421,14 @@ contains
     character, intent(inout) :: buffer(:)
     !> Current buffer position
     integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
 
 #ifdef PMC_USE_MPI
     integer :: aero_rep_type, i_aero_rep, prev_position
 
     prev_position = pos
-    call pmc_mpi_unpack_integer(buffer, pos, aero_rep_type)
+    call pmc_mpi_unpack_integer(buffer, pos, aero_rep_type, comm)
     select case (aero_rep_type)
       case (AERO_REP_MODAL_BINNED_MASS)
         aero_rep => aero_rep_modal_binned_mass_t()
@@ -433,9 +439,9 @@ contains
                 "Trying to unpack aerosol representation of unknown type:"// &
                 to_string(aero_rep_type))
     end select
-    call aero_rep%bin_unpack(buffer, pos)
+    call aero_rep%bin_unpack(buffer, pos, comm)
     call assert(948795857, &
-         pos - prev_position <= this%pack_size(aero_rep))
+         pos - prev_position <= this%pack_size(aero_rep, comm))
 #endif
 
   end function bin_unpack

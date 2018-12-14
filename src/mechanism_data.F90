@@ -310,17 +310,20 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack the mechanism
-  integer(kind=i_kind) function pack_size(this)
+  integer(kind=i_kind) function pack_size(this, comm)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
+    !> MPI communicator
+    integer, intent(in) :: comm
 
     type(rxn_factory_t) :: rxn_factory
     integer(kind=i_kind) :: i_rxn
 
-    pack_size =  pmc_mpi_pack_size_integer(this%num_rxn)
+    pack_size =  pmc_mpi_pack_size_integer(this%num_rxn, comm)
     do i_rxn = 1, this%num_rxn
-      pack_size = pack_size + rxn_factory%pack_size(this%rxn_ptr(i_rxn)%val)
+      pack_size = pack_size + rxn_factory%pack_size(this%rxn_ptr(i_rxn)%val, &
+                                                    comm)
     end do
 
   end function pack_size
@@ -328,7 +331,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Pack the given value to the buffer, advancing position
-  subroutine bin_pack(this, buffer, pos)
+  subroutine bin_pack(this, buffer, pos, comm)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(in) :: this
@@ -336,20 +339,22 @@ contains
     character, intent(inout) :: buffer(:)
     !> Current buffer position
     integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
 
 #ifdef PMC_USE_MPI
     type(rxn_factory_t) :: rxn_factory
     integer :: i_rxn, prev_position
 
     prev_position = pos
-    call pmc_mpi_pack_integer(buffer, pos, this%num_rxn)
+    call pmc_mpi_pack_integer(buffer, pos, this%num_rxn, comm)
     do i_rxn = 1, this%num_rxn
       associate (rxn => this%rxn_ptr(i_rxn)%val)
-      call rxn_factory%bin_pack(rxn, buffer, pos)
+      call rxn_factory%bin_pack(rxn, buffer, pos, comm)
       end associate
     end do
     call assert(669506045, &
-         pos - prev_position <= this%pack_size())
+         pos - prev_position <= this%pack_size(comm))
 #endif
 
   end subroutine bin_pack
@@ -357,7 +362,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpack the given value to the buffer, advancing position
-  subroutine bin_unpack(this, buffer, pos)
+  subroutine bin_unpack(this, buffer, pos, comm)
 
     !> Chemical mechanism
     class(mechanism_data_t), intent(inout) :: this
@@ -365,20 +370,22 @@ contains
     character, intent(inout) :: buffer(:)
     !> Current buffer position
     integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
 
 #ifdef PMC_USE_MPI
     type(rxn_factory_t) :: rxn_factory
     integer :: i_rxn, prev_position, num_rxn
 
     prev_position = pos
-    call pmc_mpi_unpack_integer(buffer, pos, num_rxn)
+    call pmc_mpi_unpack_integer(buffer, pos, num_rxn, comm)
     call this%ensure_size(num_rxn)
     this%num_rxn = num_rxn
     do i_rxn = 1, this%num_rxn
-      this%rxn_ptr(i_rxn)%val => rxn_factory%bin_unpack(buffer, pos)
+      this%rxn_ptr(i_rxn)%val => rxn_factory%bin_unpack(buffer, pos, comm)
     end do
     call assert(360900030, &
-         pos - prev_position <= this%pack_size())
+         pos - prev_position <= this%pack_size(comm))
 #endif
 
   end subroutine bin_unpack

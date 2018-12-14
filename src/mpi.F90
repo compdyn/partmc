@@ -18,6 +18,8 @@ module pmc_mpi
   use mpi
 #endif
 
+  implicit none
+
 contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -99,12 +101,21 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Synchronize all processes.
-  subroutine pmc_mpi_barrier()
+  subroutine pmc_mpi_barrier( comm )
+
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: ierr
+    integer :: ierr, l_comm
 
-    call mpi_barrier(MPI_COMM_WORLD, ierr)
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
+    call mpi_barrier(l_comm, ierr)
     call pmc_mpi_check_ierr(ierr)
 #endif
 
@@ -113,12 +124,21 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the rank of the current process.
-  integer function pmc_mpi_rank()
+  integer function pmc_mpi_rank( comm )
+
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: rank, ierr
+    integer :: rank, ierr, l_comm
 
-    call mpi_comm_rank(MPI_COMM_WORLD, rank, ierr)
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
+    call mpi_comm_rank(l_comm, rank, ierr)
     call pmc_mpi_check_ierr(ierr)
     pmc_mpi_rank = rank
 #else
@@ -130,12 +150,21 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the total number of processes.
-  integer function pmc_mpi_size()
+  integer function pmc_mpi_size( comm )
+
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: size, ierr
+    integer :: size, ierr, l_comm
 
-    call mpi_comm_size(MPI_COMM_WORLD, size, ierr)
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
+    call mpi_comm_size(l_comm, size, ierr)
     call pmc_mpi_check_ierr(ierr)
     pmc_mpi_size = size
 #else
@@ -292,17 +321,17 @@ contains
     integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: root, ierr, local_comm
+    integer :: root, ierr, l_comm
 
     if (present(comm)) then
-      local_comm = comm
+      l_comm = comm
     else
-      local_comm = MPI_COMM_WORLD
+      l_comm = MPI_COMM_WORLD
     endif
 
     root = 0 ! source of data to broadcast
     call mpi_bcast(val, 1, MPI_INTEGER, root, &
-         local_comm, ierr)
+         l_comm, ierr)
     call pmc_mpi_check_ierr(ierr)
 #endif
 
@@ -319,17 +348,17 @@ contains
     integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: root, ierr, local_comm
+    integer :: root, ierr, l_comm
 
     if (present(comm)) then
-      local_comm = comm
+      l_comm = comm
     else
-      local_comm = MPI_COMM_WORLD
+      l_comm = MPI_COMM_WORLD
     endif
 
     root = 0 ! source of data to broadcast
     call mpi_bcast(val, len(val), MPI_CHARACTER, root, &
-         local_comm, ierr)
+         l_comm, ierr)
     call pmc_mpi_check_ierr(ierr)
 #endif
 
@@ -346,17 +375,17 @@ contains
     integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: root, ierr, local_comm
+    integer :: root, ierr, l_comm
 
     if (present(comm)) then
-      local_comm = comm
+      l_comm = comm
     else
-      local_comm = MPI_COMM_WORLD
+      l_comm = MPI_COMM_WORLD
     endif
 
     root = 0 ! source of data to broadcast
     call mpi_bcast(val, size(val), MPI_CHARACTER, root, &
-         local_comm, ierr)
+         l_comm, ierr)
     call pmc_mpi_check_ierr(ierr)
 #endif
 
@@ -365,15 +394,23 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
-  integer function pmc_mpi_pack_size_integer(val)
+  integer function pmc_mpi_pack_size_integer(val, comm)
 
     !> Value to pack.
     integer, intent(in) :: val
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
-    integer :: ierr
+    integer :: ierr, l_comm
 
 #ifdef PMC_USE_MPI
-    call mpi_pack_size(1, MPI_INTEGER, MPI_COMM_WORLD, &
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
+    call mpi_pack_size(1, MPI_INTEGER, l_comm, &
          pmc_mpi_pack_size_integer, ierr)
     call pmc_mpi_check_ierr(ierr)
 #else
@@ -385,15 +422,23 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
-  integer function pmc_mpi_pack_size_real(val)
+  integer function pmc_mpi_pack_size_real(val, comm)
 
     !> Value to pack.
     real(kind=dp), intent(in) :: val
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
-    integer :: ierr
+    integer :: ierr, l_comm
 
 #ifdef PMC_USE_MPI
-    call mpi_pack_size(1, MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, &
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
+    call mpi_pack_size(1, MPI_DOUBLE_PRECISION, l_comm, &
          pmc_mpi_pack_size_real, ierr)
     call pmc_mpi_check_ierr(ierr)
 #else
@@ -405,15 +450,23 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
-  integer function pmc_mpi_pack_size_string(val)
+  integer function pmc_mpi_pack_size_string(val, comm)
 
     !> Value to pack.
     character(len=*), intent(in) :: val
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
-    integer :: ierr
+    integer :: ierr, l_comm
 
 #ifdef PMC_USE_MPI
-    call mpi_pack_size(len_trim(val), MPI_CHARACTER, MPI_COMM_WORLD, &
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
+    call mpi_pack_size(len_trim(val), MPI_CHARACTER, l_comm, &
          pmc_mpi_pack_size_string, ierr)
     call pmc_mpi_check_ierr(ierr)
     pmc_mpi_pack_size_string = pmc_mpi_pack_size_string &
@@ -427,15 +480,23 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
-  integer function pmc_mpi_pack_size_logical(val)
+  integer function pmc_mpi_pack_size_logical(val, comm)
 
     !> Value to pack.
     logical, intent(in) :: val
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
-    integer :: ierr
+    integer :: ierr, l_comm
 
 #ifdef PMC_USE_MPI
-    call mpi_pack_size(1, MPI_LOGICAL, MPI_COMM_WORLD, &
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
+    call mpi_pack_size(1, MPI_LOGICAL, l_comm, &
          pmc_mpi_pack_size_logical, ierr)
     call pmc_mpi_check_ierr(ierr)
 #else
@@ -447,15 +508,23 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
-  integer function pmc_mpi_pack_size_complex(val)
+  integer function pmc_mpi_pack_size_complex(val, comm)
 
     !> Value to pack.
     complex(kind=dc), intent(in) :: val
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
-    integer :: ierr
+    integer :: ierr, l_comm
 
 #ifdef PMC_USE_MPI
-    call mpi_pack_size(1, MPI_DOUBLE_COMPLEX, MPI_COMM_WORLD, &
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
+    call mpi_pack_size(1, MPI_DOUBLE_COMPLEX, l_comm, &
          pmc_mpi_pack_size_complex, ierr)
     call pmc_mpi_check_ierr(ierr)
 #else
@@ -467,25 +536,33 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
-  integer function pmc_mpi_pack_size_integer_array(val)
+  integer function pmc_mpi_pack_size_integer_array(val, comm)
 
     !> Value to pack.
     integer, allocatable, intent(in) :: val(:)
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
-    integer :: total_size, ierr
+    integer :: total_size, ierr, l_comm
 
 #ifdef PMC_USE_MPI
     logical :: is_allocated
 
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
     total_size = 0
     is_allocated = allocated(val)
     if (is_allocated) then
-       call mpi_pack_size(size(val), MPI_INTEGER, MPI_COMM_WORLD, &
+       call mpi_pack_size(size(val), MPI_INTEGER, l_comm, &
             total_size, ierr)
        call pmc_mpi_check_ierr(ierr)
-       total_size = total_size + pmc_mpi_pack_size_integer(size(val))
+       total_size = total_size + pmc_mpi_pack_size_integer(size(val), l_comm)
     end if
-    total_size = total_size + pmc_mpi_pack_size_logical(is_allocated)
+    total_size = total_size + pmc_mpi_pack_size_logical(is_allocated, l_comm)
 #else
     total_size = 0
 #endif
@@ -497,25 +574,33 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
-  integer function pmc_mpi_pack_size_real_array(val)
+  integer function pmc_mpi_pack_size_real_array(val, comm)
 
     !> Value to pack.
     real(kind=dp), allocatable, intent(in) :: val(:)
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
-    integer :: total_size, ierr
+    integer :: total_size, ierr, l_comm
 
 #ifdef PMC_USE_MPI
     logical :: is_allocated
 
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
     total_size = 0
     is_allocated = allocated(val)
     if (is_allocated) then
-       call mpi_pack_size(size(val), MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, &
+       call mpi_pack_size(size(val), MPI_DOUBLE_PRECISION, l_comm, &
             total_size, ierr)
        call pmc_mpi_check_ierr(ierr)
-       total_size = total_size + pmc_mpi_pack_size_integer(size(val))
+       total_size = total_size + pmc_mpi_pack_size_integer(size(val), l_comm)
     end if
-    total_size = total_size + pmc_mpi_pack_size_logical(is_allocated)
+    total_size = total_size + pmc_mpi_pack_size_logical(is_allocated, l_comm)
 #else
     total_size = 0
 #endif
@@ -527,49 +612,70 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
-  integer function pmc_mpi_pack_size_string_array(val)
+  integer function pmc_mpi_pack_size_string_array(val, comm)
 
     !> Value to pack.
     character(len=*), allocatable, intent(in) :: val(:)
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
-    integer :: i, total_size
+    integer :: i, total_size, l_comm
+#ifdef PMC_USE_MPI
     logical :: is_allocated
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     is_allocated = allocated(val)
     if (is_allocated) then
-       total_size = pmc_mpi_pack_size_integer(size(val))
+       total_size = pmc_mpi_pack_size_integer(size(val), l_comm)
        do i = 1,size(val)
-          total_size = total_size + pmc_mpi_pack_size_string(val(i))
+          total_size = total_size + pmc_mpi_pack_size_string(val(i), l_comm)
        end do
     end if
-    total_size = total_size + pmc_mpi_pack_size_logical(is_allocated)
+    total_size = total_size + pmc_mpi_pack_size_logical(is_allocated, l_comm)
     pmc_mpi_pack_size_string_array = total_size
+#else
+    total_size = 0
+#endif
 
   end function pmc_mpi_pack_size_string_array
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determines the number of bytes required to pack the given value.
-  integer function pmc_mpi_pack_size_real_array_2d(val)
+  integer function pmc_mpi_pack_size_real_array_2d(val, comm)
 
     !> Value to pack.
     real(kind=dp), allocatable, intent(in) :: val(:,:)
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
-    integer :: total_size, ierr
+    integer :: total_size, ierr, l_comm
 
 #ifdef PMC_USE_MPI
     logical :: is_allocated
 
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
     total_size = 0
     is_allocated = allocated(val)
     if (is_allocated) then
-       call mpi_pack_size(size(val), MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, &
+       call mpi_pack_size(size(val), MPI_DOUBLE_PRECISION, l_comm, &
             total_size, ierr)
        call pmc_mpi_check_ierr(ierr)
-       total_size = total_size + pmc_mpi_pack_size_integer(size(val,1)) &
-            + pmc_mpi_pack_size_integer(size(val,2))
+       total_size = total_size &
+            + pmc_mpi_pack_size_integer(size(val,1), l_comm) &
+            + pmc_mpi_pack_size_integer(size(val,2), l_comm)
     end if
-    total_size = total_size + pmc_mpi_pack_size_logical(is_allocated)
+    total_size = total_size + pmc_mpi_pack_size_logical(is_allocated, l_comm)
 #else
     total_size = 0
 #endif
@@ -581,7 +687,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
-  subroutine pmc_mpi_pack_integer(buffer, position, val)
+  subroutine pmc_mpi_pack_integer(buffer, position, val, comm)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -589,16 +695,24 @@ contains
     integer, intent(inout) :: position
     !> Value to pack.
     integer, intent(in) :: val
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, ierr
+    integer :: prev_position, ierr, l_comm
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     prev_position = position
     call mpi_pack(val, 1, MPI_INTEGER, buffer, size(buffer), &
-         position, MPI_COMM_WORLD, ierr)
+         position, l_comm, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(913495993, &
-         position - prev_position <= pmc_mpi_pack_size_integer(val))
+         position - prev_position <= pmc_mpi_pack_size_integer(val, l_comm))
 #endif
 
   end subroutine pmc_mpi_pack_integer
@@ -606,7 +720,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
-  subroutine pmc_mpi_pack_real(buffer, position, val)
+  subroutine pmc_mpi_pack_real(buffer, position, val, comm)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -614,16 +728,24 @@ contains
     integer, intent(inout) :: position
     !> Value to pack.
     real(kind=dp), intent(in) :: val
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, ierr
+    integer :: prev_position, ierr, l_comm
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     prev_position = position
     call mpi_pack(val, 1, MPI_DOUBLE_PRECISION, buffer, size(buffer), &
-         position, MPI_COMM_WORLD, ierr)
+         position, l_comm, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(395354132, &
-         position - prev_position <= pmc_mpi_pack_size_real(val))
+         position - prev_position <= pmc_mpi_pack_size_real(val, l_comm))
 #endif
 
   end subroutine pmc_mpi_pack_real
@@ -631,7 +753,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
-  subroutine pmc_mpi_pack_string(buffer, position, val)
+  subroutine pmc_mpi_pack_string(buffer, position, val, comm)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -639,18 +761,26 @@ contains
     integer, intent(inout) :: position
     !> Value to pack.
     character(len=*), intent(in) :: val
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, length, ierr
+    integer :: prev_position, length, ierr, l_comm
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     prev_position = position
     length = len_trim(val)
-    call pmc_mpi_pack_integer(buffer, position, length)
+    call pmc_mpi_pack_integer(buffer, position, length, l_comm)
     call mpi_pack(val, length, MPI_CHARACTER, buffer, size(buffer), &
-         position, MPI_COMM_WORLD, ierr)
+         position, l_comm, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(607212018, &
-         position - prev_position <= pmc_mpi_pack_size_string(val))
+         position - prev_position <= pmc_mpi_pack_size_string(val, l_comm))
 #endif
 
   end subroutine pmc_mpi_pack_string
@@ -658,7 +788,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
-  subroutine pmc_mpi_pack_logical(buffer, position, val)
+  subroutine pmc_mpi_pack_logical(buffer, position, val, comm)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -666,16 +796,24 @@ contains
     integer, intent(inout) :: position
     !> Value to pack.
     logical, intent(in) :: val
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, ierr
+    integer :: prev_position, ierr, l_comm
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     prev_position = position
     call mpi_pack(val, 1, MPI_LOGICAL, buffer, size(buffer), &
-         position, MPI_COMM_WORLD, ierr)
+         position, l_comm, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(104535200, &
-         position - prev_position <= pmc_mpi_pack_size_logical(val))
+         position - prev_position <= pmc_mpi_pack_size_logical(val, l_comm))
 #endif
 
   end subroutine pmc_mpi_pack_logical
@@ -683,7 +821,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
-  subroutine pmc_mpi_pack_complex(buffer, position, val)
+  subroutine pmc_mpi_pack_complex(buffer, position, val, comm)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -691,16 +829,24 @@ contains
     integer, intent(inout) :: position
     !> Value to pack.
     complex(kind=dc), intent(in) :: val
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, ierr
+    integer :: prev_position, ierr, l_comm
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     prev_position = position
     call mpi_pack(val, 1, MPI_DOUBLE_COMPLEX, buffer, size(buffer), &
-         position, MPI_COMM_WORLD, ierr)
+         position, l_comm, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(640416372, &
-         position - prev_position <= pmc_mpi_pack_size_complex(val))
+         position - prev_position <= pmc_mpi_pack_size_complex(val, l_comm))
 #endif
 
   end subroutine pmc_mpi_pack_complex
@@ -708,7 +854,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
-  subroutine pmc_mpi_pack_integer_array(buffer, position, val)
+  subroutine pmc_mpi_pack_integer_array(buffer, position, val, comm)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -716,23 +862,32 @@ contains
     integer, intent(inout) :: position
     !> Value to pack.
     integer, allocatable, intent(in) :: val(:)
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, n, ierr
+    integer :: prev_position, n, ierr, l_comm
     logical :: is_allocated
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     prev_position = position
     is_allocated = allocated(val)
-    call pmc_mpi_pack_logical(buffer, position, is_allocated)
+    call pmc_mpi_pack_logical(buffer, position, is_allocated, l_comm)
     if (is_allocated) then
        n = size(val)
-       call pmc_mpi_pack_integer(buffer, position, n)
+       call pmc_mpi_pack_integer(buffer, position, n, l_comm)
        call mpi_pack(val, n, MPI_INTEGER, buffer, size(buffer), &
-            position, MPI_COMM_WORLD, ierr)
+            position, l_comm, ierr)
        call pmc_mpi_check_ierr(ierr)
     end if
     call assert(698601296, &
-         position - prev_position <= pmc_mpi_pack_size_integer_array(val))
+         position - prev_position <= &
+             pmc_mpi_pack_size_integer_array(val, l_comm))
 #endif
 
   end subroutine pmc_mpi_pack_integer_array
@@ -740,7 +895,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
-  subroutine pmc_mpi_pack_real_array(buffer, position, val)
+  subroutine pmc_mpi_pack_real_array(buffer, position, val, comm)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -748,23 +903,31 @@ contains
     integer, intent(inout) :: position
     !> Value to pack.
     real(kind=dp), allocatable, intent(in) :: val(:)
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, n, ierr
+    integer :: prev_position, n, ierr, l_comm
     logical :: is_allocated
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     prev_position = position
     is_allocated = allocated(val)
-    call pmc_mpi_pack_logical(buffer, position, is_allocated)
+    call pmc_mpi_pack_logical(buffer, position, is_allocated, l_comm)
     if (is_allocated) then
        n = size(val)
-       call pmc_mpi_pack_integer(buffer, position, n)
+       call pmc_mpi_pack_integer(buffer, position, n, l_comm)
        call mpi_pack(val, n, MPI_DOUBLE_PRECISION, buffer, size(buffer), &
-            position, MPI_COMM_WORLD, ierr)
+            position, l_comm, ierr)
        call pmc_mpi_check_ierr(ierr)
     end if
     call assert(825718791, &
-         position - prev_position <= pmc_mpi_pack_size_real_array(val))
+         position - prev_position <= pmc_mpi_pack_size_real_array(val,l_comm))
 #endif
 
   end subroutine pmc_mpi_pack_real_array
@@ -772,7 +935,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
-  subroutine pmc_mpi_pack_string_array(buffer, position, val)
+  subroutine pmc_mpi_pack_string_array(buffer, position, val, comm)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -780,23 +943,32 @@ contains
     integer, intent(inout) :: position
     !> Value to pack.
     character(len=*), allocatable, intent(in) :: val(:)
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, i, n
+    integer :: prev_position, i, n, l_comm
     logical :: is_allocated
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     prev_position = position
     is_allocated = allocated(val)
-    call pmc_mpi_pack_logical(buffer, position, is_allocated)
+    call pmc_mpi_pack_logical(buffer, position, is_allocated, l_comm)
     if (is_allocated) then
        n = size(val)
-       call pmc_mpi_pack_integer(buffer, position, n)
+       call pmc_mpi_pack_integer(buffer, position, n, l_comm)
        do i = 1,n
-          call pmc_mpi_pack_string(buffer, position, val(i))
+          call pmc_mpi_pack_string(buffer, position, val(i), l_comm)
        end do
     end if
     call assert(630900704, &
-         position - prev_position <= pmc_mpi_pack_size_string_array(val))
+         position - prev_position <= &
+             pmc_mpi_pack_size_string_array(val, l_comm))
 #endif
 
   end subroutine pmc_mpi_pack_string_array
@@ -804,7 +976,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Packs the given value into the buffer, advancing position.
-  subroutine pmc_mpi_pack_real_array_2d(buffer, position, val)
+  subroutine pmc_mpi_pack_real_array_2d(buffer, position, val, comm)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -812,25 +984,34 @@ contains
     integer, intent(inout) :: position
     !> Value to pack.
     real(kind=dp), allocatable, intent(in) :: val(:,:)
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, n1, n2, ierr
+    integer :: prev_position, n1, n2, ierr, l_comm
     logical :: is_allocated
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     prev_position = position
     is_allocated = allocated(val)
-    call pmc_mpi_pack_logical(buffer, position, is_allocated)
+    call pmc_mpi_pack_logical(buffer, position, is_allocated, l_comm)
     if (is_allocated) then
        n1 = size(val, 1)
        n2 = size(val, 2)
-       call pmc_mpi_pack_integer(buffer, position, n1)
-       call pmc_mpi_pack_integer(buffer, position, n2)
+       call pmc_mpi_pack_integer(buffer, position, n1, l_comm)
+       call pmc_mpi_pack_integer(buffer, position, n2, l_comm)
        call mpi_pack(val, n1*n2, MPI_DOUBLE_PRECISION, buffer, size(buffer), &
-            position, MPI_COMM_WORLD, ierr)
+            position, l_comm, ierr)
        call pmc_mpi_check_ierr(ierr)
     end if
     call assert(567349745, &
-         position - prev_position <= pmc_mpi_pack_size_real_array_2d(val))
+         position - prev_position <= &
+             pmc_mpi_pack_size_real_array_2d(val, l_comm))
 #endif
 
   end subroutine pmc_mpi_pack_real_array_2d
@@ -838,7 +1019,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
-  subroutine pmc_mpi_unpack_integer(buffer, position, val)
+  subroutine pmc_mpi_unpack_integer(buffer, position, val, comm)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -846,16 +1027,24 @@ contains
     integer, intent(inout) :: position
     !> Value to pack.
     integer, intent(out) :: val
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, ierr
+    integer :: prev_position, ierr, l_comm
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     prev_position = position
     call mpi_unpack(buffer, size(buffer), position, val, 1, MPI_INTEGER, &
-         MPI_COMM_WORLD, ierr)
+         l_comm, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(890243339, &
-         position - prev_position <= pmc_mpi_pack_size_integer(val))
+         position - prev_position <= pmc_mpi_pack_size_integer(val, l_comm))
 #else
     val = 0
 #endif
@@ -865,7 +1054,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
-  subroutine pmc_mpi_unpack_real(buffer, position, val)
+  subroutine pmc_mpi_unpack_real(buffer, position, val, comm)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -873,16 +1062,24 @@ contains
     integer, intent(inout) :: position
     !> Value to pack.
     real(kind=dp), intent(out) :: val
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, ierr
+    integer :: prev_position, ierr, l_comm
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     prev_position = position
     call mpi_unpack(buffer, size(buffer), position, val, 1, &
-         MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr)
+         MPI_DOUBLE_PRECISION, l_comm, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(570771632, &
-         position - prev_position <= pmc_mpi_pack_size_real(val))
+         position - prev_position <= pmc_mpi_pack_size_real(val, l_comm))
 #else
     val = real(0.0, kind=dp)
 #endif
@@ -892,7 +1089,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
-  subroutine pmc_mpi_unpack_string(buffer, position, val)
+  subroutine pmc_mpi_unpack_string(buffer, position, val, comm)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -900,19 +1097,27 @@ contains
     integer, intent(inout) :: position
     !> Value to pack.
     character(len=*), intent(out) :: val
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, length, ierr
+    integer :: prev_position, length, ierr, l_comm
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     prev_position = position
-    call pmc_mpi_unpack_integer(buffer, position, length)
+    call pmc_mpi_unpack_integer(buffer, position, length, l_comm)
     call assert(946399479, length <= len(val))
     val = ''
     call mpi_unpack(buffer, size(buffer), position, val, length, &
-         MPI_CHARACTER, MPI_COMM_WORLD, ierr)
+         MPI_CHARACTER, l_comm, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(503378058, &
-         position - prev_position <= pmc_mpi_pack_size_string(val))
+         position - prev_position <= pmc_mpi_pack_size_string(val, l_comm))
 #else
     val = ''
 #endif
@@ -922,7 +1127,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
-  subroutine pmc_mpi_unpack_logical(buffer, position, val)
+  subroutine pmc_mpi_unpack_logical(buffer, position, val, comm)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -930,16 +1135,24 @@ contains
     integer, intent(inout) :: position
     !> Value to pack.
     logical, intent(out) :: val
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, ierr
+    integer :: prev_position, ierr, l_comm
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     prev_position = position
     call mpi_unpack(buffer, size(buffer), position, val, 1, MPI_LOGICAL, &
-         MPI_COMM_WORLD, ierr)
+         l_comm, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(694750528, &
-         position - prev_position <= pmc_mpi_pack_size_logical(val))
+         position - prev_position <= pmc_mpi_pack_size_logical(val, l_comm))
 #else
     val = .false.
 #endif
@@ -949,7 +1162,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
-  subroutine pmc_mpi_unpack_complex(buffer, position, val)
+  subroutine pmc_mpi_unpack_complex(buffer, position, val, comm)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -957,16 +1170,24 @@ contains
     integer, intent(inout) :: position
     !> Value to pack.
     complex(kind=dc), intent(out) :: val
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, ierr
+    integer :: prev_position, ierr, l_comm
+
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
 
     prev_position = position
     call mpi_unpack(buffer, size(buffer), position, val, 1, &
-         MPI_DOUBLE_COMPLEX, MPI_COMM_WORLD, ierr)
+         MPI_DOUBLE_COMPLEX, l_comm, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(969672634, &
-         position - prev_position <= pmc_mpi_pack_size_complex(val))
+         position - prev_position <= pmc_mpi_pack_size_complex(val, l_comm))
 #else
     val = cmplx(0)
 #endif
@@ -976,7 +1197,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
-  subroutine pmc_mpi_unpack_integer_array(buffer, position, val)
+  subroutine pmc_mpi_unpack_integer_array(buffer, position, val, comm)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -984,23 +1205,32 @@ contains
     integer, intent(inout) :: position
     !> Value to pack.
     integer, allocatable, intent(inout) :: val(:)
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, n, ierr
+    integer :: prev_position, n, ierr, l_comm
     logical :: is_allocated
 
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
     prev_position = position
-    call pmc_mpi_unpack_logical(buffer, position, is_allocated)
+    call pmc_mpi_unpack_logical(buffer, position, is_allocated, l_comm)
     if (allocated(val)) deallocate(val)
     if (is_allocated) then
-       call pmc_mpi_unpack_integer(buffer, position, n)
+       call pmc_mpi_unpack_integer(buffer, position, n, l_comm)
        allocate(val(n))
        call mpi_unpack(buffer, size(buffer), position, val, n, MPI_INTEGER, &
-            MPI_COMM_WORLD, ierr)
+            l_comm, ierr)
        call pmc_mpi_check_ierr(ierr)
     end if
     call assert(565840919, &
-         position - prev_position <= pmc_mpi_pack_size_integer_array(val))
+         position - prev_position <= &
+             pmc_mpi_pack_size_integer_array(val, l_comm))
 #endif
 
   end subroutine pmc_mpi_unpack_integer_array
@@ -1008,7 +1238,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
-  subroutine pmc_mpi_unpack_real_array(buffer, position, val)
+  subroutine pmc_mpi_unpack_real_array(buffer, position, val, comm)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -1016,23 +1246,32 @@ contains
     integer, intent(inout) :: position
     !> Value to pack.
     real(kind=dp), allocatable, intent(inout) :: val(:)
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, n, ierr
+    integer :: prev_position, n, ierr, l_comm
     logical :: is_allocated
 
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
     prev_position = position
-    call pmc_mpi_unpack_logical(buffer, position, is_allocated)
+    call pmc_mpi_unpack_logical(buffer, position, is_allocated, l_comm)
     if (allocated(val)) deallocate(val)
     if (is_allocated) then
-       call pmc_mpi_unpack_integer(buffer, position, n)
+       call pmc_mpi_unpack_integer(buffer, position, n, l_comm)
        allocate(val(n))
        call mpi_unpack(buffer, size(buffer), position, val, n, &
-            MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr)
+            MPI_DOUBLE_PRECISION, l_comm, ierr)
        call pmc_mpi_check_ierr(ierr)
     end if
     call assert(782875761, &
-         position - prev_position <= pmc_mpi_pack_size_real_array(val))
+         position - prev_position <= &
+           pmc_mpi_pack_size_real_array(val, l_comm))
 #endif
 
   end subroutine pmc_mpi_unpack_real_array
@@ -1040,7 +1279,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
-  subroutine pmc_mpi_unpack_string_array(buffer, position, val)
+  subroutine pmc_mpi_unpack_string_array(buffer, position, val, comm)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -1048,23 +1287,32 @@ contains
     integer, intent(inout) :: position
     !> Value to pack.
     character(len=*), allocatable, intent(inout) :: val(:)
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, i, n
+    integer :: prev_position, i, n, l_comm
     logical :: is_allocated
 
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
     prev_position = position
-    call pmc_mpi_unpack_logical(buffer, position, is_allocated)
+    call pmc_mpi_unpack_logical(buffer, position, is_allocated, l_comm)
     if (allocated(val)) deallocate(val)
     if (is_allocated) then
-       call pmc_mpi_unpack_integer(buffer, position, n)
+       call pmc_mpi_unpack_integer(buffer, position, n, l_comm)
        allocate(val(n))
        do i = 1,n
-          call pmc_mpi_unpack_string(buffer, position, val(i))
+          call pmc_mpi_unpack_string(buffer, position, val(i), l_comm)
        end do
     end if
     call assert(320065648, &
-         position - prev_position <= pmc_mpi_pack_size_string_array(val))
+         position - prev_position <= &
+             pmc_mpi_pack_size_string_array(val, l_comm))
 #endif
 
   end subroutine pmc_mpi_unpack_string_array
@@ -1072,7 +1320,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpacks the given value from the buffer, advancing position.
-  subroutine pmc_mpi_unpack_real_array_2d(buffer, position, val)
+  subroutine pmc_mpi_unpack_real_array_2d(buffer, position, val, comm)
 
     !> Memory buffer.
     character, intent(inout) :: buffer(:)
@@ -1080,24 +1328,32 @@ contains
     integer, intent(inout) :: position
     !> Value to pack.
     real(kind=dp), allocatable, intent(inout) :: val(:,:)
+    !> MPI communicator
+    integer, intent(in), optional :: comm
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, n1, n2, ierr
+    integer :: prev_position, n1, n2, ierr, l_comm
     logical :: is_allocated
 
+    if (present(comm)) then
+      l_comm = comm
+    else
+      l_comm = MPI_COMM_WORLD
+    endif
+
     prev_position = position
-    call pmc_mpi_unpack_logical(buffer, position, is_allocated)
+    call pmc_mpi_unpack_logical(buffer, position, is_allocated, l_comm)
     if (allocated(val)) deallocate(val)
     if (is_allocated) then
-       call pmc_mpi_unpack_integer(buffer, position, n1)
-       call pmc_mpi_unpack_integer(buffer, position, n2)
+       call pmc_mpi_unpack_integer(buffer, position, n1, l_comm)
+       call pmc_mpi_unpack_integer(buffer, position, n2, l_comm)
        allocate(val(n1,n2))
        call mpi_unpack(buffer, size(buffer), position, val, n1*n2, &
-            MPI_DOUBLE_PRECISION, MPI_COMM_WORLD, ierr)
+            MPI_DOUBLE_PRECISION, l_comm, ierr)
        call pmc_mpi_check_ierr(ierr)
     end if
     call assert(781681739, position - prev_position &
-         <= pmc_mpi_pack_size_real_array_2d(val))
+         <= pmc_mpi_pack_size_real_array_2d(val, l_comm))
 #endif
 
   end subroutine pmc_mpi_unpack_real_array_2d

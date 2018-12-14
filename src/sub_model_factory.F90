@@ -170,22 +170,24 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack a sub-model
-  integer(kind=i_kind) function pack_size(this, sub_model)
+  integer(kind=i_kind) function pack_size(this, sub_model, comm)
 
     !> Sub-model factory
     class(sub_model_factory_t) :: this
     !> Sub-model to pack
     class(sub_model_data_t), intent(in) :: sub_model
+    !> MPI communicator
+    integer, intent(in) :: comm
 
-    pack_size =  pmc_mpi_pack_size_integer(int(1, kind=i_kind)) + &
-                 sub_model%pack_size()
+    pack_size =  pmc_mpi_pack_size_integer(int(1, kind=i_kind), comm) + &
+                 sub_model%pack_size(comm)
 
   end function pack_size
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Pack the given value to the buffer, advancing position
-  subroutine bin_pack(this, sub_model, buffer, pos)
+  subroutine bin_pack(this, sub_model, buffer, pos, comm)
 
     !> Sub-model factory
     class(sub_model_factory_t), intent(in) :: this
@@ -195,6 +197,8 @@ contains
     character, intent(inout) :: buffer(:)
     !> Current buffer position
     integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
 
 #ifdef PMC_USE_MPI
     integer :: sub_model_data_type, i_sub_model, prev_position
@@ -206,10 +210,10 @@ contains
       class default
         call die_msg(850922257, "Trying to pack sub-model of unknown type.")
     end select
-    call pmc_mpi_pack_integer(buffer, pos, sub_model_data_type)
-    call sub_model%bin_pack(buffer, pos)
+    call pmc_mpi_pack_integer(buffer, pos, sub_model_data_type, comm)
+    call sub_model%bin_pack(buffer, pos, comm)
     call assert(340451545, &
-         pos - prev_position <= this%pack_size(sub_model))
+         pos - prev_position <= this%pack_size(sub_model, comm))
 #endif
 
   end subroutine bin_pack
@@ -217,7 +221,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Unpack the given value to the buffer, advancing position
-  function bin_unpack(this, buffer, pos) result (sub_model)
+  function bin_unpack(this, buffer, pos, comm) result (sub_model)
 
     !> Unpacked sub-model
     class(sub_model_data_t), pointer :: sub_model
@@ -227,12 +231,14 @@ contains
     character, intent(inout) :: buffer(:)
     !> Current buffer position
     integer, intent(inout) :: pos
+    !> MPI communicator
+    integer, intent(in) :: comm
 
 #ifdef PMC_USE_MPI
     integer :: sub_model_data_type, i_sub_model, prev_position
 
     prev_position = pos
-    call pmc_mpi_unpack_integer(buffer, pos, sub_model_data_type)
+    call pmc_mpi_unpack_integer(buffer, pos, sub_model_data_type, comm)
     select case (sub_model_data_type)
       case (SUB_MODEL_UNIFAC)
         sub_model => sub_model_UNIFAC_t()
@@ -240,9 +246,9 @@ contains
         call die_msg(786366152, "Trying to unpack sub-model of unknown "// &
                 "type: "//trim(to_string(sub_model_data_type)))
     end select
-    call sub_model%bin_unpack(buffer, pos)
+    call sub_model%bin_unpack(buffer, pos, comm)
     call assert(209433801, &
-         pos - prev_position <= this%pack_size(sub_model))
+         pos - prev_position <= this%pack_size(sub_model, comm))
 #endif
 
   end function bin_unpack

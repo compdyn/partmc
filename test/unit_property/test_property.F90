@@ -6,7 +6,7 @@
 !> The pmc_property_test program.
 
 !> Unit tests for the pmc_property module.
-program pmc_property_test 
+program pmc_property_test
 
 #ifdef PMC_USE_JSON
   use json_module
@@ -116,7 +116,7 @@ contains
     key_name = "sub_string"
     call assert(433277355, sub_set%get_string(key_name, temp_string))
     call assert(154911046, temp_string.eq."nlsd98*)@ur soi87")
-    
+
     ! Make sure that requests for a key that is not present in the set
     ! are returned a null pointer
     key_name = "bad_key"
@@ -139,7 +139,7 @@ contains
     call prop_set%put(key_name, 482.41d0, .true., owner_name)
     key_name = "my duplicate key"
     call prop_set%put(key_name, 92.30412d0, .true., owner_name)
-    
+
     sub_set => property_t()
     key_name = "sub key one"
     call sub_set%put(key_name, 512.42d0, .true., owner_name)
@@ -262,25 +262,25 @@ contains
     ! Make sure requests for all the top-level elements return pointers
     ! to the expected data
     key_name = "int_prop"
-    call assert(775492256, props%get_int(key_name, temp_int)) 
+    call assert(775492256, props%get_int(key_name, temp_int))
     call assert(152703199, temp_int.eq.429)
-    
+
     key_name = "real_prop"
-    call assert(320245189, props%get_real(key_name, temp_real)) 
+    call assert(320245189, props%get_real(key_name, temp_real))
     call assert(432563534, temp_real.eq.124.3d7)
-    
+
     key_name = "bool_prop"
     call assert(429914141, props%get_logical(key_name, temp_logical))
     call assert(207182985, temp_logical.eqv..true.)
-    
+
     key_name = "string_prop"
-    call assert(201918678, props%get_string(key_name, temp_string)) 
+    call assert(201918678, props%get_string(key_name, temp_string))
     call assert(596712272, temp_string.eq."nd*oi 2l3j(")
-    
+
     key_name = "other_real"
     call assert(373981116, props%get_real(key_name, temp_real))
     call assert(768774710, temp_real.eq.129523.23d3)
-    
+
     ! Make sure the subset of properties is accessible and correct
     key_name = "sub_props"
     call assert(198559905, props%get_property_t(key_name, sub_props))
@@ -291,23 +291,23 @@ contains
     key_name = "other_real"
     call assert(935572841, sub_props%get_real(key_name, temp_real))
     call assert(365358036, temp_real.eq.123.4591d0)
-    
+
     key_name = "sub_real"
     call assert(142626880, sub_props%get_real(key_name, temp_real))
     call assert(537420474, temp_real.eq.417d-7)
-    
+
     key_name = "sub_int"
     call assert(762057164, sub_props%get_int(key_name, temp_int))
     call assert(256850759, temp_int.eq.10294)
-    
+
     key_name = "sub_bool"
     call assert(986693854, sub_props%get_logical(key_name, temp_logical))
     call assert(698954298, temp_logical.eqv..false.)
-    
+
     key_name = "sub_str"
     call assert(476223142, sub_props%get_string(key_name, temp_string))
     call assert(135909334, temp_string.eq."kdm2i308vona aoid8$")
- 
+
     ! Reload the JSON string to try passing individual key-value pairs to the
     ! property_t%load function
     call json%destroy(j_obj)
@@ -336,11 +336,11 @@ contains
     key_name = "real_prop"
     call assert(219188035, prop2%get_real(key_name, temp_real))
     call assert(778874226, temp_real.eq.124.3d7)
-    
+
     key_name = "other_real"
     call assert(838618319, prop2%get_real(key_name, temp_real))
     call assert(268403514, temp_real.eq.129523.23d3)
-    
+
     deallocate(props)
     deallocate(prop2)
     deallocate(key_name)
@@ -467,7 +467,7 @@ contains
     key_name = "sub_prop"
     call update_set%put(key_name, sub_set, .false., owner_name)
     deallocate(sub_set)
-    
+
     sub_set => property_t()
     key_name = "new_sub_real_prop"
     call sub_set%put(key_name, 5239.60d1, .false., owner_name)
@@ -486,7 +486,7 @@ contains
     ! Check that the properties have moved
     key_name = "int_prop"
     call assert(443699157, .not.orig_set%get_int(key_name, temp_int))
-    call assert(103385349, dest_set%get_int(key_name, temp_int)) 
+    call assert(103385349, dest_set%get_int(key_name, temp_int))
     call assert(498178943, temp_int.eq.27)
 
     key_name = "bool_prop"
@@ -543,7 +543,7 @@ contains
 
     move_update_property_set_test = .true.
 
- end function move_update_property_set_test 
+ end function move_update_property_set_test
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

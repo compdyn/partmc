@@ -990,7 +990,7 @@ contains
     type(aero_state_t), intent(in) :: aero_state
 
     !> Return value.
-    integer :: aero_state_ids(aero_state_n_part(aero_state))
+    integer(kind=8) :: aero_state_ids(aero_state_n_part(aero_state))
 
     integer :: i_part
 

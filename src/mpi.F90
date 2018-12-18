@@ -369,7 +369,8 @@ contains
     integer :: ierr
 
 #ifdef PMC_USE_MPI
-    call mpi_sizeof(val,pmc_mpi_pack_size_integer64,ierr)
+    call mpi_pack_size(1, MPI_INTEGER8, MPI_COMM_WORLD, &
+         pmc_mpi_pack_size_integer64, ierr)
     call pmc_mpi_check_ierr(ierr)
 #else
     pmc_mpi_pack_size_integer64 = 0
@@ -677,11 +678,10 @@ contains
     integer(kind=8), intent(in) :: val
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, ierr, integer64_type
+    integer :: prev_position, ierr
 
     prev_position = position
-    call MPI_Type_create_f90_integer(19, integer64_type,ierr)
-    call mpi_pack(val, 1, integer64_type, buffer, size(buffer), &
+    call mpi_pack(val, 1, MPI_INTEGER8, buffer, size(buffer), &
          position, MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(929176455, &
@@ -1036,11 +1036,10 @@ contains
     integer(kind=8), intent(out) :: val
 
 #ifdef PMC_USE_MPI
-    integer :: prev_position, ierr, integer64_type
+    integer :: prev_position, ierr
 
     prev_position = position
-    call MPI_Type_create_f90_integer(19, integer64_type,ierr)
-    call mpi_unpack(buffer, size(buffer), position, val, 1, integer64_type, &
+    call mpi_unpack(buffer, size(buffer), position, val, 1, MPI_INTEGER8, &
          MPI_COMM_WORLD, ierr)
     call pmc_mpi_check_ierr(ierr)
     call assert(752979474, &

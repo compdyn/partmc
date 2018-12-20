@@ -26,6 +26,36 @@
 #define INT_DATA_SIZE_ (NUM_INT_PROP_+NUM_STATE_VAR_)
 #define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+2*NUM_STATE_VAR_)
 
+/** \brief Flag Jacobian elements used in calculations of mass and volume
+ *
+ * \param model_data Pointer to the model data(state, env, aero_phase)
+ * \param aero_phase_idx Index of the aerosol phase to find elements for
+ * \param state_var_id Index in the state array for this aerosol phase
+ * \param jac_struct 1D array of flags indicating potentially non-zero
+ *                   Jacobian elements. (The dependent variable should have
+ *                   been chosen by the calling function.)
+ * \return Number of Jacobian elements flagged
+ */
+int aero_phase_get_used_jac_elem(ModelData *model_data, int aero_phase_idx,
+          int state_var_id, bool *jac_struct)
+{
+
+  // Get the requested aerosol phase data
+  int *int_data = (int*) aero_phase_find(model_data, aero_phase_idx);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+
+  int flagged_elem = 0;
+
+  for (int i_spec=0; i_spec<NUM_STATE_VAR_; i_spec++) {
+    if (SPEC_TYPE_(i_spec)==CHEM_SPEC_VARIABLE) {
+      jac_struct[state_var_id+i_spec] = true;
+      flagged_elem++;
+    }
+  }
+
+  return flagged_elem;
+}
+
 /** \brief Get the mass and average MW in an aerosol phase
  *
  * \param model_data Pointer to the model data (state, env, aero_phase)
@@ -36,11 +66,23 @@
  *              \f$\mbox{\si{\micro\gram\per particle}}\f$)
  * \param MW Pointer to hold average MW of the aerosol phase
  *           (\f$\mbox{\si{\kilogram\per\mol}}\f$)
- * \return A pointer to a set of partial derivatives \f$\frac{dm}{dy}\f$, or a
- *         NULL pointer if no partial derivatives exist
+ * \param jac_elem_mass When not NULL, a pointer to an array whose length is the
+ *                 number of Jacobian elements used in calculations of mass and
+ *                 volume of this aerosol phase returned by
+ *                 \c aero_phase_get_used_jac_elem and whose contents will be
+ *                 set to the partial derivatives of mass by concentration
+ *                 \f$\frac{dm}{dy_i}\f$ of each component species \f$y_i\f$.
+ * \param jac_elem_MW When not NULL, a pointer to an array whose length is the
+ *                 number of Jacobian elements used in calculations of mass and
+ *                 volume of this aerosol phase returned by
+ *                 \c aero_phase_get_used_jac_elem and whose contents will be
+ *                 set to the partial derivatives of total molecular weight by
+ *                 concentration \f$\frac{dMW}{dy_i}\f$ of each component
+ *                 species \f$y_i\f$.
  */
-void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
-        double *state_var, double *mass, double *MW)
+void aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
+        double *state_var, double *mass, double *MW, double *jac_elem_mass,
+        double *jac_elem_MW)
 {
 
   // Set up a pointer for the partial derivatives
@@ -52,18 +94,27 @@ void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
 
   // Sum the mass and MW
   *mass = 0.0;
-  *MW = 0.0;
+  double moles = 0.0;
+  int i_jac = 0;
   for (int i_spec=0; i_spec<NUM_STATE_VAR_; i_spec++) {
     if (SPEC_TYPE_(i_spec)==CHEM_SPEC_VARIABLE ||
         SPEC_TYPE_(i_spec)==CHEM_SPEC_CONSTANT ||
         SPEC_TYPE_(i_spec)==CHEM_SPEC_PSSA) {
       *mass += state_var[i_spec];
-      *MW += state_var[i_spec] / MW_(i_spec);
+      moles += state_var[i_spec] / MW_(i_spec);
+      if (jac_elem_mass) jac_elem_mass[i_jac] = 1.0;
+      if (jac_elem_MW)   jac_elem_MW[i_jac]   = 1.0 / MW_(i_spec);
+      i_jac++;
     }
   }
-  *MW = *mass / *MW;
+  *MW = *mass / moles;
+  if (jac_elem_MW) {
+    for (int j_jac=0; j_jac<i_jac; j_jac++) {
+      jac_elem_MW[j_jac] = (moles - jac_elem_MW[j_jac] * *mass)
+                           / (moles * moles);
+    }
+  }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
 /** \brief Get the volume of an aerosol phase
@@ -74,11 +125,16 @@ void * aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
  * \param volume Pointer to hold the aerosol phase volume
  *               (\f$\mbox{\si{\cubic\metre\per\cubic\metre}}\f$ or
  *                \f$\mbox{\si{\cubic\metre\per particle}}\f$)
- * \return A pointer to a set of partial derivatives \f$\frac{dv}{dy}\f$, or
- *         a NULL pointer if no partial derivatives exist
+ * \param jac_elem When not NULL, a pointer to an array whose length is the
+ *                 number of Jacobian elements used in calculations of mass and
+ *                 volume of this aerosol phase returned by
+ *                 \c aero_phase_get_used_jac_elem and whose contents will be
+ *                 set to the partial derivatives of total phase volume by
+ *                 concentration \f$\frac{dv}{dy_i}\f$ of each component
+ *                 species \f$y_i\f$.
  */
-void * aero_phase_get_volume(ModelData *model_data, int aero_phase_idx,
-          double *state_var, double *volume)
+void aero_phase_get_volume(ModelData *model_data, int aero_phase_idx,
+          double *state_var, double *volume, double *jac_elem)
 {
 
   // Set up a pointer for the partial derivatives
@@ -90,15 +146,16 @@ void * aero_phase_get_volume(ModelData *model_data, int aero_phase_idx,
 
   // Sum the mass and MW
   *volume = 0.0;
+  int i_jac = 0;
   for (int i_spec=0; i_spec<NUM_STATE_VAR_; i_spec++) {
     if (SPEC_TYPE_(i_spec)==CHEM_SPEC_VARIABLE ||
         SPEC_TYPE_(i_spec)==CHEM_SPEC_CONSTANT ||
         SPEC_TYPE_(i_spec)==CHEM_SPEC_PSSA) {
-      *volume += state_var[i_spec] / 1.0e9 / DENSITY_(i_spec);;
+      *volume += state_var[i_spec] * 1.0e-9 / DENSITY_(i_spec);
+      if (jac_elem) jac_elem[i_jac++] = 1.0e-9 / DENSITY_(i_spec);
     }
   }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
 /** \brief Find an aerosol phase in the list

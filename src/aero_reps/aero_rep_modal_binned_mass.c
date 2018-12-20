@@ -119,7 +119,7 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data,
   // concentration
   for (int i_section=0; i_section<NUM_SECTION_; i_section++) {
 
-    double volume, mass, moles;
+    double volume, mass;
     switch (SECTION_TYPE_(i_section)) {
 
       // Mode
@@ -134,16 +134,18 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data,
           state += PHASE_STATE_ID_(i_section, i_phase, 0);
 
           // Set the aerosol-phase mass and average MW
+            // FIXME get partial derivs
           aero_phase_get_mass(model_data,
                     PHASE_MODEL_DATA_ID_(i_section, i_phase, 0),
                     state, &(PHASE_MASS_(i_section, i_phase, 0)),
-                    &(PHASE_AVG_MW_(i_section, i_phase, 0)));
+                    &(PHASE_AVG_MW_(i_section, i_phase, 0)), NULL, NULL);
 
           // Get the phase volume
+            // FIXME get partial derivs
           double phase_volume = 0.0;
           aero_phase_get_volume(model_data,
                     PHASE_MODEL_DATA_ID_(i_section, i_phase, 0),
-                    state, &phase_volume);
+                    state, &phase_volume, NULL);
           volume += phase_volume;
 
         }
@@ -171,16 +173,18 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data,
             state += PHASE_STATE_ID_(i_section, i_phase, i_bin);
 
             // Set the aerosol-phase mass and average MW
+            // FIXME get partial derivs
             aero_phase_get_mass(model_data,
                       PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
                       state, &(PHASE_MASS_(i_section, i_phase, i_bin)),
-                      &(PHASE_AVG_MW_(i_section, i_phase, i_bin)));
+                      &(PHASE_AVG_MW_(i_section, i_phase, i_bin)), NULL, NULL);
 
             // Get the phase volume
+            // FIXME get partial derivs
             double phase_volume = 0.0;
             aero_phase_get_volume(model_data,
                       PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
-                      state, &phase_volume);
+                      state, &phase_volume, NULL);
             volume += phase_volume;
 
           }

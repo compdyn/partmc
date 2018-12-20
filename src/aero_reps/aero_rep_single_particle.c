@@ -95,8 +95,9 @@ void * aero_rep_single_particle_update_state(ModelData *model_data,
     state_var += PHASE_STATE_ID_(i_phase);
 
     // Get the mass and average MW
+    // FIXME get partial derivs
     aero_phase_get_mass(model_data, PHASE_MODEL_DATA_ID_(i_phase), state_var,
-               &(PHASE_MASS_(i_phase)), &(PHASE_AVG_MW_(i_phase)));
+               &(PHASE_MASS_(i_phase)), &(PHASE_AVG_MW_(i_phase)), NULL, NULL);
   }
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);

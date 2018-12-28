@@ -9,6 +9,8 @@
  * \brief Modal mass aerosol representation functions
  */
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "../aero_phase_solver.h"
 #include "../aero_reps.h"
 #include "../phlex_solver.h"
@@ -61,6 +63,41 @@
 
 // Real-time phase average MW (kg/mol) - used for modes and bins - for modes, b=0
 #define PHASE_AVG_MW_(x,y,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+(4+NUM_PHASE_(x))*NUM_BINS_(x)+b*NUM_PHASE_(x)+y])
+
+/** \brief Flag Jacobian elements used in calcualtions of mass and volume
+ *
+ * \param aero_rep_data A pointer to the aerosol representation data
+ * \param aero_phase_idx Index of the aerosol phase to find elements for
+ * \param jac_struct 1D array of flags indicating potentially non-zero
+ *                   Jacobian elements. (The dependent variable should have
+ *                   been chosen by the calling function.)
+ * \return Number of Jacobian elements flagged
+ */
+int aero_rep_modal_binned_mass_get_used_jac_elem(ModelData *model_data,
+          int aero_phase_idx, void *aero_rep_data, bool *jac_struct)
+{
+  int *int_data = (int*) aero_rep_data;
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+
+  int num_flagged_elem = 0;
+
+  // Loop through the modes/bins flagging Jacobian elements used by each
+  // aerosol phase
+  for (int i_section=0; i_section<NUM_SECTION_; i_section++) {
+    for (int i_bin=0; i_bin<NUM_BINS_(i_section); i_bin++) {
+      if (aero_phase_idx<NUM_PHASE_(i_section)) {
+        num_flagged_elem =
+            aero_phase_get_used_jac_elem( model_data,
+                  PHASE_MODEL_DATA_ID_(i_section, aero_phase_idx, i_bin),
+                  PHASE_STATE_ID_(i_section, aero_phase_idx, i_bin), jac_struct );
+        break;
+      }
+      aero_phase_idx-=NUM_PHASE_(i_section);
+    }
+  }
+
+  return num_flagged_elem;
+}
 
 /** \brief Flag elements on the state array used by this aerosol representation
  *

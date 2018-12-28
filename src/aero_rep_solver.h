@@ -15,6 +15,8 @@
 /** Public aerosol representation functions **/
 
 /* Solver functions */
+int aero_rep_get_used_jac_elem(ModelData *model_data, int aero_rep_idx,
+        int aero_phase_idx, bool *jac_struct);
 void * aero_rep_get_dependencies(ModelData *model_data, bool *state_flags);
 void aero_rep_update_env_state(ModelData *model_data, double *env);
 void aero_rep_update_state(ModelData *model_data);

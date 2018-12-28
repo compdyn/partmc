@@ -8,6 +8,8 @@
 /** \file
  * \brief Single particle aerosol representation functions
  */
+#include <stdio.h>
+#include <stdlib.h>
 #include "../aero_phase_solver.h"
 #include "../aero_reps.h"
 #include "../phlex_solver.h"
@@ -31,6 +33,27 @@
 #define PHASE_AVG_MW_(x) (float_data[NUM_FLOAT_PROP_+NUM_PHASE_+x])
 #define INT_DATA_SIZE_ (NUM_INT_PROP_+2*NUM_PHASE_)
 #define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+2*NUM_PHASE_)
+
+/** \brief Flag Jacobian elements used in calcualtions of mass and volume
+ *
+ * \param aero_rep_data A pointer to the aerosol representation data
+ * \param aero_phase_idx Index of the aerosol phase to find elements for
+ * \param jac_struct 1D array of flags indicating potentially non-zero
+ *                   Jacobian elements. (The dependent variable should have
+ *                   been chosen by the calling function.)
+ * \return Number of Jacobian elements flagged
+ */
+int aero_rep_single_particle_get_used_jac_elem(ModelData *model_data,
+          int aero_phase_idx, void *aero_rep_data, bool *jac_struct)
+{
+  int *int_data = (int*) aero_rep_data;
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+
+  return aero_phase_get_used_jac_elem( model_data,
+              PHASE_MODEL_DATA_ID_(aero_phase_idx),
+              PHASE_STATE_ID_(aero_phase_idx), jac_struct );
+
+}
 
 /** \brief Flag elements on the state array used by this aerosol representation
  *

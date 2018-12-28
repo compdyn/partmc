@@ -10,6 +10,8 @@
 */
 #define PMC_DEBUG_SPEC_ 118
 
+#include <stdio.h>
+#include <stdlib.h>
 #include "rxn_solver.h"
 #include "rxns.h"
 

@@ -187,6 +187,9 @@ module pmc_aero_rep_modal_binned_mass
     procedure :: spec_name
     !> Get the number of instances of an aerosol phase in this representation
     procedure :: num_phase_instances
+    !> Get the number of Jacobian elements used in calculations of aerosol mass,
+    !! volume, number, etc. for a particular phase
+    procedure :: num_jac_elem
     !> Finalize the aerosol representation
     final :: finalize
 
@@ -964,6 +967,48 @@ contains
     end do
 
   end function num_phase_instances
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the number of Jacobian elements used in calculations of aerosol mass,
+  !! volume, number, etc. for a particular phase
+  function num_jac_elem(this, phase_id)
+
+    !> Number of Jacobian elements used
+    integer(kind=i_kind) :: num_jac_elem
+    !> Aerosol respresentation data
+    class(aero_rep_modal_binned_mass_t), intent(in) :: this
+    !> Aerosol phase id
+    integer(kind=i_kind), intent(in) :: phase_id
+
+    integer(kind=i_kind) :: i_section, i_phase, i_bin, j_phase, &
+                            phase_id_to_find
+
+    i_bin = 0
+    j_phase = 1
+    num_jac_elem = 0
+    phase_id_to_find = phase_id
+    do i_section = 1, NUM_SECTION_
+      do i_phase = 1, NUM_PHASE_(i_section)
+        if( phase_id_to_find .le. NUM_BINS_(i_section) ) then
+          i_bin = phase_id_to_find
+          exit
+        end if
+      end do
+      if( i_bin .gt. 0 ) then
+        do i_phase = j_phase, &
+           j_phase + NUM_PHASE_(i_section) * NUM_BINS_(i_section) - 1, &
+           NUM_BINS_(i_section)
+          num_jac_elem = num_jac_elem + this%aero_phase(i_phase)%val%size()
+        end do
+        return
+      end if
+      phase_id_to_find = phase_id_to_find - NUM_BINS_(i_section) * &
+                                            NUM_PHASE_(i_section)
+      j_phase = j_phase + NUM_BINS_(i_section) * NUM_PHASE_(i_section)
+    end do
+
+  end function num_jac_elem
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

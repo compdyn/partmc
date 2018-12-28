@@ -117,6 +117,9 @@ module pmc_aero_rep_single_particle
     procedure :: spec_name
     !> Get the number of instances of an aerosol phase in this representation
     procedure :: num_phase_instances
+    !> Get the number of Jacobian elements used in calculations of aerosol
+    !! mass, volume, number, etc. for a particular phase
+    procedure :: num_jac_elem
     !> Finalize the aerosol representation
     final :: finalize
 
@@ -500,6 +503,28 @@ contains
     end do
 
   end function num_phase_instances
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the number of Jacobian elements used in calculations of aerosol mass,
+  !! volume, number, etc. for a particular phase
+  function num_jac_elem(this, phase_id)
+
+    !> Number of Jacobian elements used
+    integer(kind=i_kind) :: num_jac_elem
+    !> Aerosol respresentation data
+    class(aero_rep_single_particle_t), intent(in) :: this
+    !> Aerosol phase id
+    integer(kind=i_kind), intent(in) :: phase_id
+
+    integer(kind=i_kind) :: i_phase
+
+    num_jac_elem = 0
+    do i_phase = 1, size(this%aero_phase)
+      num_jac_elem = num_jac_elem + this%aero_phase(i_phase)%val%size()
+    end do
+
+  end function num_jac_elem
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

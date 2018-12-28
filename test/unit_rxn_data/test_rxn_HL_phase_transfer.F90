@@ -117,8 +117,8 @@ contains
     ! O3 HLC Equil Const (M/ppm)
     K_eq_O3 = 1.14d-2 * exp(2300.0d0 * (1.0d0/temp - 1.0d0/298.0d0)) / 1.0d6
     ! H2O2 HLC Equil Const (M/ppm)
-    K_eq_H2O2 = 1.025d5 * exp(6340.0d0 * (1.0d0/temp - 1.0d0/298.0d0)) / 1.0d6 
-    
+    K_eq_H2O2 = 1.025d5 * exp(6340.0d0 * (1.0d0/temp - 1.0d0/298.0d0)) / 1.0d6
+
     ! Set output time step (s)
     time_step = 1.0d-13
 
@@ -233,7 +233,7 @@ contains
       call number_update%set_number(aero_rep_external_id, number_conc)
       call phlex_core%update_aero_rep_data(radius_update)
       call phlex_core%update_aero_rep_data(number_update)
-    
+
       ! Save the initial concentrations
       true_conc(:,:) = 0.0
       true_conc(0,idx_O3) = 0.0
@@ -285,7 +285,7 @@ contains
       equil_O3_aq = (true_conc(0,idx_O3)/ugm3_to_ppm/number_conc + &
               true_conc(0,idx_O3_aq)) / &
               (1.0d0 + 1.0d0/(K_eq_O3*M_to_ppm))
-    
+
       ugm3_to_ppm = const%univ_gas_const * temp / (34.0d0 * pressure)
       equil_H2O2 = (true_conc(0,idx_H2O2) + &
               true_conc(0,idx_H2O2_aq)*number_conc*ugm3_to_ppm) / &
@@ -309,17 +309,17 @@ contains
         ! x0 = [A_init_gas] - [A_eq_gas]
         ! [A_gas] = x + [A_eq_gas] = x0exp(-t/tau) + [A_eq_gas]
         ! 1/tau = k_f + k_b
-        ! [A_gas] = ([A_init_gas] - [A_eq_gas]) 
+        ! [A_gas] = ([A_init_gas] - [A_eq_gas])
         !     * exp(-t *(k_f + k_b)) + [A_eq_gas]
-        ! [A_aero] = ([A_init_aero] - [A_eq_aero]) 
+        ! [A_aero] = ([A_init_aero] - [A_eq_aero])
         !     * exp(-t * (k_f + k_b)) + [A_eq_aero]
         time = i_time * time_step
         true_conc(i_time,idx_O3) = (true_conc(0,idx_O3) - equil_O3) * &
-                exp(-time * (k_O3_forward + k_O3_backward)) + equil_O3 
+                exp(-time * (k_O3_forward + k_O3_backward)) + equil_O3
         true_conc(i_time,idx_O3_aq) = (true_conc(0,idx_O3_aq) - equil_O3_aq) * &
                 exp(-time * (k_O3_forward + k_O3_backward)) + equil_O3_aq
         true_conc(i_time,idx_H2O2) = (true_conc(0,idx_H2O2) - equil_H2O2) * &
-                exp(-time * (k_H2O2_forward + k_H2O2_backward)) + equil_H2O2 
+                exp(-time * (k_H2O2_forward + k_H2O2_backward)) + equil_H2O2
         true_conc(i_time,idx_H2O2_aq) = &
                 (true_conc(0,idx_H2O2_aq) - equil_H2O2_aq) * &
                 exp(-time * (k_H2O2_forward + k_H2O2_backward)) + equil_H2O2_aq
@@ -370,7 +370,7 @@ contains
         results = 1
       end if
     end if
-    
+
     ! Send the results back to the primary process
     call pmc_mpi_transfer_integer(results, results, 1, 0)
 

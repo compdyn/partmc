@@ -18,6 +18,62 @@
 #define AERO_REP_SINGLE_PARTICLE   1
 #define AERO_REP_MODAL_BINNED_MASS 2
 
+/** \brief Flag Jacobian elements used to calculated mass, volume, etc.
+ *
+ * \param model_data A pointer to the model data
+ * \param aero_rep_idx Index of aerosol representation to use for calculation
+ * \param aero_phase_idx Index of the aerosol phase within the aerosol
+ *                       representation
+ * \param jac_struct 1D array of flags indicating potentially non-zero
+ *                   Jacobian elements. (The dependent variable should have
+ *                   been chosen by the calling function.)
+ * \return Number of Jacobian elements flagged
+ */
+int aero_rep_get_used_jac_elem(ModelData *model_data, int aero_rep_idx,
+        int aero_phase_idx, bool *jac_struct)
+{
+
+  int num_flagged_elem = 0;
+
+  // Get the number of aerosol representations
+  int *aero_rep_data = (int*) (model_data->aero_rep_data);
+
+  // Loop through the aerosol representations to find the one requested
+  for (int i_aero_rep=0; i_aero_rep<aero_rep_idx; i_aero_rep++) {
+
+    // Get the aerosol representation type
+    int aero_rep_type = *(aero_rep_data++);
+
+    // Advance the pointer to the next aerosol representation
+    switch (aero_rep_type) {
+      case AERO_REP_MODAL_BINNED_MASS :
+	aero_rep_data = (int*) aero_rep_modal_binned_mass_skip(
+                  (void*) aero_rep_data);
+        break;
+      case AERO_REP_SINGLE_PARTICLE :
+	aero_rep_data = (int*) aero_rep_single_particle_skip(
+                  (void*) aero_rep_data);
+        break;
+    }
+  }
+
+  // Get the aerosol representation type
+  int aero_rep_type = *(aero_rep_data++);
+
+  // Get the particle radius and set of partial derivatives
+  switch (aero_rep_type) {
+    case AERO_REP_MODAL_BINNED_MASS :
+      num_flagged_elem = aero_rep_modal_binned_mass_get_used_jac_elem(
+                model_data, aero_phase_idx, (void*) aero_rep_data, jac_struct);
+      break;
+    case AERO_REP_SINGLE_PARTICLE :
+      num_flagged_elem = aero_rep_single_particle_get_used_jac_elem(
+                model_data, aero_phase_idx, (void*) aero_rep_data, jac_struct);
+      break;
+  }
+
+  return num_flagged_elem;
+}
 /** \brief Get state array elements used by aerosol representation functions
  *
  * \param model_data A pointer to the model data

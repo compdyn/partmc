@@ -113,15 +113,21 @@ module pmc_rxn_HL_phase_transfer
 #define GAS_SPEC_ this%condensed_data_int(2)
 #define NUM_INT_PROP_ 2
 #define NUM_REAL_PROP_ 12
-#define AERO_SPEC_(x) this%condensed_data_int(NUM_INT_PROP_+x)
-#define AERO_WATER_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_AERO_PHASE_+x)
-#define AERO_PHASE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+2*NUM_AERO_PHASE_+x)
-#define AERO_REP_ID_(x) this%condensed_data_int(NUM_INT_PROP_+3*NUM_AERO_PHASE_+x)
-#define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_+4*NUM_AERO_PHASE_+x)
-#define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+1+5*NUM_AERO_PHASE_+x)
-#define SMALL_WATER_CONC_(x) this%condensed_data_real(NUM_REAL_PROP_+x)
-#define FAST_FLUX_(x) this%condensed_data_real(NUM_REAL_PROP_+NUM_AERO_PHASE_+x)
-#define AERO_ADJ_(x) this%condensed_data_real(NUM_REAL_PROP_+2*NUM_AERO_PHASE_+x)
+#define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_+x)
+#define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+1+NUM_AERO_PHASE_+x)
+#define PHASE_INT_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+2+6*NUM_AERO_PHASE_+x)
+#define PHASE_REAL_LOC_(x) this%condensed_data_int(NUM_INT_PROP_+2+7*NUM_AERO_PHASE_+x)
+#define AERO_SPEC_(x) this%condensed_data_int(PHASE_INT_LOC_(x))
+#define AERO_WATER_(x) this%condensed_data_int(PHASE_INT_LOC_(x)+1)
+#define AERO_PHASE_ID_(x) this%condensed_data_int(PHASE_INT_LOC_(x)+2)
+#define AERO_REP_ID_(x) this%condensed_data_int(PHASE_INT_LOC_(x)+3)
+#define NUM_AERO_PHASE_JAC_ELEM_(x) this%condensed_data_int(PHASE_INT_LOC_(x)+4)
+#define PHASE_JAC_ID_(x,e) this%condensed_data_int(PHASE_INT_LOC_(x)+5+e)
+#define SMALL_WATER_CONC_(x) this%condensed_data_real(PHASE_REAL_LOC_(x))
+#define FAST_FLUX_(x) this%condensed_data_real(PHASE_REAL_LOC_(x)+1)
+#define AERO_ADJ_(x) this%condensed_data_real(PHASE_REAL_LOC_(x)+2)
+#define EFF_RAD_JAC_ELEM_(x,e) this%condensed_data_real(PHASE_REAL_LOC_(x)+2+e)
+#define NUM_CONC_JAC_ELEM_(x,e) this%condensed_data_real(PHASE_REAL_LOC_(x)+2+NUM_AERO_PHASE_JAC_ELEM_(x,e)+e)
 
   public :: rxn_HL_phase_transfer_t
 
@@ -171,7 +177,8 @@ contains
     type(property_t), pointer :: spec_props
     character(len=:), allocatable :: key_name, spec_name, water_name, &
             phase_name
-    integer(kind=i_kind) :: i_spec, i_aero_rep, n_aero_ids, i_aero_id
+    integer(kind=i_kind) :: i_spec, i_aero_rep, n_aero_ids, i_aero_id, &
+            n_aero_jac_elem, i_phase
     type(string_t), allocatable :: unique_spec_names(:), &
             unique_water_names(:)
     integer(kind=i_kind), allocatable :: phase_ids(:)
@@ -205,8 +212,10 @@ contains
     call assert_msg(207961800, size(aero_rep).gt.0, &
             "Missing aerosol representation for phase transfer reaction")
 
-    ! Count the instances of this phase/species pair
+    ! Count the instances of this phase/species pair, and the number of
+    ! Jacobian elements needed in calculations of mass, volume, etc.
     n_aero_ids = 0
+    n_aero_jac_elem = 0
     do i_aero_rep = 1, size(aero_rep)
 
       ! Get the unique names in this aerosol representation for the
@@ -229,14 +238,26 @@ contains
       ! Add these instances to the list
       n_aero_ids = n_aero_ids + size(unique_spec_names)
 
+      ! Get the number of Jacobian elements for calculations of mass, volume,
+      ! number, etc. for this partitioning into this phase
+      phase_ids = aero_rep(i_aero_rep)%val%phase_ids(phase_name)
+      do i_phase = 1, size(phase_ids)
+        n_aero_jac_elem = n_aero_jac_elem + &
+                2*aero_rep(i_aero_rep)%val%num_jac_elem(phase_ids(i_phase))
+      end do
+
       deallocate(unique_spec_names)
       deallocate(unique_water_names)
 
     end do
 
+    write(*,*) NUM_INT_PROP_, n_aero_ids, n_aero_jac_elem, NUM_REAL_PROP_
+
     ! Allocate space in the condensed data arrays
-    allocate(this%condensed_data_int(NUM_INT_PROP_ + 2 + n_aero_ids * 10))
-    allocate(this%condensed_data_real(NUM_REAL_PROP_ + n_aero_ids * 3))
+    allocate(this%condensed_data_int(NUM_INT_PROP_ + 2 + n_aero_ids * 13 + &
+                                      n_aero_jac_elem))
+    allocate(this%condensed_data_real(NUM_REAL_PROP_ + n_aero_ids * 3 + &
+                                      n_aero_jac_elem * 2))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
 
@@ -267,6 +288,8 @@ contains
 
     ! Set the ids of each aerosol-phase species instance
     i_aero_id = 1
+    PHASE_INT_LOC_(i_aero_id)  = NUM_INT_PROP_+8*NUM_AERO_PHASE_+3
+    PHASE_REAL_LOC_(i_aero_id) = NUM_REAL_PROP_+1
     do i_aero_rep = 1, size(aero_rep)
 
       ! Get the unique names in this aerosol representation for the
@@ -280,8 +303,11 @@ contains
       phase_ids = aero_rep(i_aero_rep)%val%phase_ids(phase_name)
 
       ! Add the species concentration and activity coefficient ids to
-      ! the condensed data
+      ! the condensed data, and set the number of jacobian elements for
+      ! the aerosol representations and the locations of the real data
       do i_spec = 1, size(unique_spec_names)
+        NUM_AERO_PHASE_JAC_ELEM_(i_aero_id) = &
+              2*aero_rep(i_aero_rep)%val%num_jac_elem(phase_ids(i_spec))
         AERO_SPEC_(i_aero_id) = &
               aero_rep(i_aero_rep)%val%spec_state_id( &
               unique_spec_names(i_spec)%string)
@@ -291,6 +317,12 @@ contains
         AERO_PHASE_ID_(i_aero_id) = phase_ids(i_spec)
         AERO_REP_ID_(i_aero_id) = i_aero_rep
         i_aero_id = i_aero_id + 1
+        if (i_aero_id .le. NUM_AERO_PHASE_) then
+          PHASE_INT_LOC_(i_aero_id)  = PHASE_INT_LOC_(i_aero_id - 1) + 5 + &
+                                       NUM_AERO_PHASE_JAC_ELEM_(i_aero_id - 1)
+          PHASE_REAL_LOC_(i_aero_id) = PHASE_REAL_LOC_(i_aero_id - 1) + 3 + &
+                                     2*NUM_AERO_PHASE_JAC_ELEM_(i_aero_id - 1)
+        end if
       end do
 
       deallocate(unique_spec_names)
@@ -385,29 +417,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#undef DELTA_H_
-#undef DELTA_S_
-#undef DIFF_COEFF_
-#undef PRE_C_AVG_
-#undef A_
-#undef C_
-#undef C_AVG_ALPHA_
-#undef EQUIL_CONST_
-#undef CONV_
-#undef MW_
-#undef UGM3_TO_PPM_
-#undef SMALL_NUMBER_
-#undef NUM_AERO_PHASE_
-#undef GAS_SPEC_
-#undef NUM_INT_PROP_
-#undef NUM_REAL_PROP_
-#undef AERO_SPEC_
-#undef AERO_WATER_
-#undef AERO_PHASE_ID_
-#undef AERO_REP_ID_
-#undef DERIV_ID_
-#undef JAC_ID_
-#undef SMALL_WATER_CONC_
-#undef FAST_FLUX_
-#undef AERO_ADJ_
 end module pmc_rxn_HL_phase_transfer

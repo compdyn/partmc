@@ -42,17 +42,23 @@
 #define GAS_SPEC_ (int_data[1]-1)
 #define NUM_INT_PROP_ 2
 #define NUM_FLOAT_PROP_ 12
-#define AERO_SPEC_(x) (int_data[NUM_INT_PROP_ + x]-1)
-#define AERO_WATER_(x) (int_data[NUM_INT_PROP_ + NUM_AERO_PHASE_ + x]-1)
-#define AERO_PHASE_ID_(x) (int_data[NUM_INT_PROP_ + 2*NUM_AERO_PHASE_ + x]-1)
-#define AERO_REP_ID_(x) (int_data[NUM_INT_PROP_ + 3*(NUM_AERO_PHASE_) + x]-1)
-#define DERIV_ID_(x) int_data[NUM_INT_PROP_ + 4*(NUM_AERO_PHASE_) + x]
-#define JAC_ID_(x) int_data[NUM_INT_PROP_ + 1 + 5*(NUM_AERO_PHASE_) + x]
-#define SMALL_WATER_CONC_(x) (float_data[NUM_FLOAT_PROP_ + x])
-#define FAST_FLUX_(x) (float_data[NUM_FLOAT_PROP_ + NUM_AERO_PHASE_ + x])
-#define AERO_ADJ_(x) (float_data[NUM_FLOAT_PROP_ + 2*(NUM_AERO_PHASE_) + x])
-#define INT_DATA_SIZE_ (NUM_INT_PROP_+2+10*(NUM_AERO_PHASE_))
-#define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+3*(NUM_AERO_PHASE_))
+#define DERIV_ID_(x) int_data[NUM_INT_PROP_ + x]
+#define JAC_ID_(x) int_data[NUM_INT_PROP_ + 1 + NUM_AERO_PHASE_ + x]
+#define PHASE_INT_LOC_(x) (int_data[NUM_INT_PROP_ + 2 + 6*NUM_AERO_PHASE_ + x]-1)
+#define PHASE_REAL_LOC_(x) (int_data[NUM_INT_PROP_ + 2 + 7*NUM_AERO_PHASE_ + x]-1)
+#define AERO_SPEC_(x) (int_data[PHASE_INT_LOC_(x)]-1)
+#define AERO_WATER_(x) (int_data[PHASE_INT_LOC_(x) + 1]-1)
+#define AERO_PHASE_ID_(x) (int_data[PHASE_INT_LOC_(x) + 2]-1)
+#define AERO_REP_ID_(x) (int_data[PHASE_INT_LOC_(x) + 3]-1)
+#define NUM_AERO_PHASE_JAC_ELEM_(x) (int_data[PHASE_INT_LOC_(x) + 4])
+#define PHASE_JAC_ID_(x,e) int_data[PHASE_INT_LOC_(x) + 5 + e]
+#define SMALL_WATER_CONC_(x) (float_data[PHASE_REAL_LOC_(x)])
+#define FAST_FLUX_(x) (float_data[PHASE_REAL_LOC_(x) + 1])
+#define AERO_ADJ_(x) (float_data[PHASE_REAL_LOC_(x) + 2])
+#define EFF_RAD_JAC_ELEM_(x,e) float_data[PHASE_REAL_LOC_(x) + 3 + e]
+#define NUM_CONC_JAC_ELEM_(x,e) float_data[PHASE_REAL_LOC_(x) + 3 + NUM_AERO_PHASE_JAC_ELEM_(x) + e]
+#define INT_DATA_SIZE_ (PHASE_INT_LOC_(NUM_AERO_PHASE_-1)+5+NUM_AERO_PHASE_JAC_ELEM_(NUM_AERO_PHASE_-1))
+#define FLOAT_DATA_SIZE_ (PHASE_REAL_LOC_(NUM_AERO_PHASE_-1)+3+2*NUM_AERO_PHASE_JAC_ELEM_(NUM_AERO_PHASE_-1))
 
 /** \brief Flag Jacobian elements used by this reaction
  *
@@ -655,37 +661,3 @@ void * rxn_HL_phase_transfer_print(void *rxn_data)
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
-
-#undef TEMPERATURE_K_
-#undef PRESSURE_PA_
-
-#undef UNIV_GAS_CONST_
-#undef VERY_SMALL_NUMBER_
-#undef MIN_WATER_
-
-#undef DELTA_H_
-#undef DELTA_S_
-#undef DIFF_COEFF_
-#undef PRE_C_AVG_
-#undef A_
-#undef C_
-#undef C_AVG_ALPHA_
-#undef EQUIL_CONST_
-#undef CONV_
-#undef MW_
-#undef UGM3_TO_PPM_
-#undef NUM_AERO_PHASE_
-#undef GAS_SPEC_
-#undef NUM_INT_PROP_
-#undef NUM_FLOAT_PROP_
-#undef AERO_SPEC_
-#undef AERO_WATER_
-#undef AERO_PHASE_ID_
-#undef AERO_REP_ID_
-#undef DERIV_ID_
-#undef JAC_ID_
-#undef SMALL_WATER_CONC_
-#undef FAST_FLUX_
-#undef AERO_ADJ_
-#undef INT_DATA_SIZE_
-#undef FLOAT_DATA_SIZE_

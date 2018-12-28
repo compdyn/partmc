@@ -8,6 +8,8 @@
 /** \file
  * \brief Aerosol phase functions
  */
+#include <stdio.h>
+#include <stdlib.h>
 #include "aero_phase_solver.h"
 
 // TODO move all shared constants to a common header file
@@ -44,16 +46,16 @@ int aero_phase_get_used_jac_elem(ModelData *model_data, int aero_phase_idx,
   int *int_data = (int*) aero_phase_find(model_data, aero_phase_idx);
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
-  int flagged_elem = 0;
+  int num_flagged_elem = 0;
 
   for (int i_spec=0; i_spec<NUM_STATE_VAR_; i_spec++) {
     if (SPEC_TYPE_(i_spec)==CHEM_SPEC_VARIABLE) {
       jac_struct[state_var_id+i_spec] = true;
-      flagged_elem++;
+      num_flagged_elem++;
     }
   }
 
-  return flagged_elem;
+  return num_flagged_elem;
 }
 
 /** \brief Get the mass and average MW in an aerosol phase

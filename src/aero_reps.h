@@ -13,6 +13,9 @@
 #include "phlex_common.h"
 
 // binned/modal mass
+int aero_rep_modal_binned_mass_get_used_jac_elem(
+          ModelData *model_data, int aero_phase_idx,
+          void *aero_rep_data, bool *jac_struct);
 void * aero_rep_modal_binned_mass_get_dependencies(
           void *aero_rep_data, bool *state_flags);
 void * aero_rep_modal_binned_mass_update_env_state(
@@ -45,6 +48,9 @@ void aero_rep_modal_binned_mass_set_gsd_update_data(void *update_data,
           int aero_rep_id, int section_id, double gsd);
 
 // single particle
+int aero_rep_single_particle_get_used_jac_elem(
+          ModelData *model_data, int aero_phase_idx,
+          void *aero_rep_data, bool *jac_struct);
 void * aero_rep_single_particle_get_dependencies(
           void *aero_rep_data, bool *state_flags);
 void * aero_rep_single_particle_update_env_state(

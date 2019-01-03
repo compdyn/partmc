@@ -84,7 +84,7 @@ void * rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct)
         break;
       case RXN_HL_PHASE_TRANSFER :
         rxn_data = (int*) rxn_HL_phase_transfer_get_used_jac_elem(
-                  (void*) rxn_data, jac_struct);
+                  model_data, (void*) rxn_data, jac_struct);
         break;
       case RXN_PDFITE_ACTIVITY:
         rxn_data = (int*) rxn_PDFiTE_activity_get_used_jac_elem(

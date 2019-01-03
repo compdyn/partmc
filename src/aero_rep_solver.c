@@ -37,6 +37,7 @@ int aero_rep_get_used_jac_elem(ModelData *model_data, int aero_rep_idx,
 
   // Get the number of aerosol representations
   int *aero_rep_data = (int*) (model_data->aero_rep_data);
+  int n_aero_rep = *(aero_rep_data++);
 
   // Loop through the aerosol representations to find the one requested
   for (int i_aero_rep=0; i_aero_rep<aero_rep_idx; i_aero_rep++) {

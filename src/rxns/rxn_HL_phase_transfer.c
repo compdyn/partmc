@@ -51,13 +51,13 @@
 #define AERO_PHASE_ID_(x) (int_data[PHASE_INT_LOC_(x) + 2]-1)
 #define AERO_REP_ID_(x) (int_data[PHASE_INT_LOC_(x) + 3]-1)
 #define NUM_AERO_PHASE_JAC_ELEM_(x) (int_data[PHASE_INT_LOC_(x) + 4])
-#define PHASE_JAC_ID_(x,e) int_data[PHASE_INT_LOC_(x) + 5 + e]
+#define PHASE_JAC_ID_(x,s,e) int_data[PHASE_INT_LOC_(x) + 5 + s*NUM_AERO_PHASE_JAC_ELEM_(x) + e]
 #define SMALL_WATER_CONC_(x) (float_data[PHASE_REAL_LOC_(x)])
 #define FAST_FLUX_(x) (float_data[PHASE_REAL_LOC_(x) + 1])
 #define AERO_ADJ_(x) (float_data[PHASE_REAL_LOC_(x) + 2])
 #define EFF_RAD_JAC_ELEM_(x,e) float_data[PHASE_REAL_LOC_(x) + 3 + e]
 #define NUM_CONC_JAC_ELEM_(x,e) float_data[PHASE_REAL_LOC_(x) + 3 + NUM_AERO_PHASE_JAC_ELEM_(x) + e]
-#define INT_DATA_SIZE_ (PHASE_INT_LOC_(NUM_AERO_PHASE_-1)+5+NUM_AERO_PHASE_JAC_ELEM_(NUM_AERO_PHASE_-1))
+#define INT_DATA_SIZE_ (PHASE_INT_LOC_(NUM_AERO_PHASE_-1)+5+2*NUM_AERO_PHASE_JAC_ELEM_(NUM_AERO_PHASE_-1))
 #define FLOAT_DATA_SIZE_ (PHASE_REAL_LOC_(NUM_AERO_PHASE_-1)+3+2*NUM_AERO_PHASE_JAC_ELEM_(NUM_AERO_PHASE_-1))
 
 /** \brief Flag Jacobian elements used by this reaction
@@ -67,11 +67,18 @@
  *                   Jacobian elements
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_HL_phase_transfer_get_used_jac_elem(void *rxn_data,
-          bool **jac_struct)
+void * rxn_HL_phase_transfer_get_used_jac_elem(ModelData *model_data,
+          void *rxn_data, bool **jac_struct)
 {
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+
+  bool *aero_jac_elem = (bool*) malloc(sizeof(bool) * model_data->n_state_var);
+  if (aero_jac_elem==NULL) {
+    printf("\n\nERROR allocating space for 1D jacobian structure array for HL "
+           "partitioning reaction\n\n");
+    exit(1);
+  }
 
   jac_struct[GAS_SPEC_][GAS_SPEC_] = true;
   for (int i_aero_phase = 0; i_aero_phase < NUM_AERO_PHASE_; i_aero_phase++) {
@@ -80,7 +87,34 @@ void * rxn_HL_phase_transfer_get_used_jac_elem(void *rxn_data,
     jac_struct[AERO_SPEC_(i_aero_phase)][AERO_SPEC_(i_aero_phase)] = true;
     jac_struct[GAS_SPEC_][AERO_WATER_(i_aero_phase)] = true;
     jac_struct[AERO_SPEC_(i_aero_phase)][AERO_WATER_(i_aero_phase)] = true;
+
+    for (int i_elem = 0; i_elem < model_data->n_state_var; i_elem++)
+      aero_jac_elem[i_elem] = false;
+
+    int n_jac_elem = aero_rep_get_used_jac_elem( model_data,
+                                                 AERO_REP_ID_(i_aero_phase),
+                                                 AERO_PHASE_ID_(i_aero_phase),
+                                                 aero_jac_elem );
+    int i_used_elem = 0;
+    for (int i_elem = 0; i_elem < model_data->n_state_var; i_elem++) {
+      if (aero_jac_elem[i_elem] == true) {
+        jac_struct[GAS_SPEC_][i_elem] = true;
+        jac_struct[AERO_SPEC_(i_aero_phase)][i_elem] = true;
+        PHASE_JAC_ID_(i_aero_phase,0,i_used_elem) = i_elem;
+        PHASE_JAC_ID_(i_aero_phase,1,i_used_elem) = i_elem;
+        i_used_elem++;
+      }
+    }
+    if (i_used_elem != n_jac_elem) {
+      printf("\n\nERROR Error setting used Jacobian elements in HL "
+             "partitioning reaction %d %d\n\n", i_used_elem, n_jac_elem);
+      rxn_HL_phase_transfer_print(rxn_data);
+      exit(1);
+    }
+
   }
+
+  free(aero_jac_elem);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -108,14 +142,24 @@ void * rxn_HL_phase_transfer_update_ids(ModelData *model_data, int *deriv_ids,
   int i_jac = 0;
   JAC_ID_(i_jac++) = jac_ids[GAS_SPEC_][GAS_SPEC_];
   for (int i_aero_phase = 0; i_aero_phase < NUM_AERO_PHASE_; i_aero_phase++) {
-      JAC_ID_(i_jac++) = jac_ids[AERO_SPEC_(i_aero_phase)][GAS_SPEC_];
-      JAC_ID_(i_jac++) = jac_ids[GAS_SPEC_][AERO_SPEC_(i_aero_phase)];
-      JAC_ID_(i_jac++) =
-              jac_ids[AERO_SPEC_(i_aero_phase)][AERO_SPEC_(i_aero_phase)];
-      JAC_ID_(i_jac++) = jac_ids[GAS_SPEC_][AERO_WATER_(i_aero_phase)];
-      JAC_ID_(i_jac++) =
-              jac_ids[AERO_SPEC_(i_aero_phase)][AERO_WATER_(i_aero_phase)];
+    JAC_ID_(i_jac++) = jac_ids[AERO_SPEC_(i_aero_phase)][GAS_SPEC_];
+    JAC_ID_(i_jac++) = jac_ids[GAS_SPEC_][AERO_SPEC_(i_aero_phase)];
+    JAC_ID_(i_jac++) =
+            jac_ids[AERO_SPEC_(i_aero_phase)][AERO_SPEC_(i_aero_phase)];
+    JAC_ID_(i_jac++) = jac_ids[GAS_SPEC_][AERO_WATER_(i_aero_phase)];
+    JAC_ID_(i_jac++) =
+            jac_ids[AERO_SPEC_(i_aero_phase)][AERO_WATER_(i_aero_phase)];
+    for (int i_elem = 0; i_elem < NUM_AERO_PHASE_JAC_ELEM_(i_aero_phase);
+         i_elem++) {
+      if (PHASE_JAC_ID_(i_aero_phase,0,i_elem) > 0) {
+        PHASE_JAC_ID_(i_aero_phase,0,i_elem) = jac_ids[GAS_SPEC_][i_elem];
+      }
+      if (PHASE_JAC_ID_(i_aero_phase,1,i_elem) > 0) {
+        PHASE_JAC_ID_(i_aero_phase,1,i_elem) =
+              jac_ids[AERO_SPEC_(i_aero_phase)][i_elem];
+      }
     }
+  }
 
   // Calculate a small number based on the integration tolerances to use
   // during solving. TODO find a better place to do this

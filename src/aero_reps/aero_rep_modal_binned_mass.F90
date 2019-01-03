@@ -996,8 +996,8 @@ contains
         end if
       end do
       if( i_bin .gt. 0 ) then
-        do i_phase = j_phase, &
-           j_phase + NUM_PHASE_(i_section) * NUM_BINS_(i_section) - 1, &
+        do i_phase = j_phase + i_bin, &
+           j_phase + i_bin + NUM_PHASE_(i_section)*NUM_BINS_(i_section) - 1, &
            NUM_BINS_(i_section)
           num_jac_elem = num_jac_elem + this%aero_phase(i_phase)%val%size()
         end do

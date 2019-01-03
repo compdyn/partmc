@@ -83,16 +83,22 @@ int aero_rep_modal_binned_mass_get_used_jac_elem(ModelData *model_data,
 
   // Loop through the modes/bins flagging Jacobian elements used by each
   // aerosol phase
-  for (int i_section=0; i_section<NUM_SECTION_; i_section++) {
-    for (int i_bin=0; i_bin<NUM_BINS_(i_section); i_bin++) {
-      if (aero_phase_idx<NUM_PHASE_(i_section)) {
-        num_flagged_elem =
-            aero_phase_get_used_jac_elem( model_data,
-                  PHASE_MODEL_DATA_ID_(i_section, aero_phase_idx, i_bin),
-                  PHASE_STATE_ID_(i_section, aero_phase_idx, i_bin), jac_struct );
-        break;
+  for (int i_section=0; i_section<NUM_SECTION_ && aero_phase_idx>=0;
+            i_section++) {
+    for (int i_phase=0; i_phase<NUM_PHASE_(i_section) && aero_phase_idx>=0;
+              i_phase++) {
+      for (int i_bin=0; i_bin<NUM_BINS_(i_section) && aero_phase_idx>=0;
+                i_bin++) {
+        if (aero_phase_idx==0) {
+          for (int j_phase=0; j_phase<NUM_PHASE_(i_section); j_phase++) {
+            num_flagged_elem +=
+              aero_phase_get_used_jac_elem( model_data,
+                  PHASE_MODEL_DATA_ID_(i_section, j_phase, i_bin),
+                  PHASE_STATE_ID_(i_section, j_phase, i_bin), jac_struct );
+          }
+        }
+        aero_phase_idx-=1;
       }
-      aero_phase_idx-=NUM_PHASE_(i_section);
     }
   }
 
@@ -319,8 +325,10 @@ void * aero_rep_modal_binned_mass_get_number_conc(int aero_phase_idx,
   int *int_data = (int*) aero_rep_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
-  for (int i_section=0; i_section<NUM_SECTION_; i_section++) {
-    for (int i_bin=0; i_bin<NUM_BINS_(i_section); i_bin++) {
+  for (int i_section=0; i_section<NUM_SECTION_ && aero_phase_idx>=0;
+       i_section++) {
+    for (int i_bin=0; i_bin<NUM_BINS_(i_section) && aero_phase_idx>=0;
+         i_bin++) {
       aero_phase_idx-=NUM_PHASE_(i_section);
       if (aero_phase_idx<0) {
         *number_conc = NUMBER_CONC_(i_section, i_bin);

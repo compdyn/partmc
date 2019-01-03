@@ -122,7 +122,7 @@ module pmc_rxn_HL_phase_transfer
 #define AERO_PHASE_ID_(x) this%condensed_data_int(PHASE_INT_LOC_(x)+2)
 #define AERO_REP_ID_(x) this%condensed_data_int(PHASE_INT_LOC_(x)+3)
 #define NUM_AERO_PHASE_JAC_ELEM_(x) this%condensed_data_int(PHASE_INT_LOC_(x)+4)
-#define PHASE_JAC_ID_(x,e) this%condensed_data_int(PHASE_INT_LOC_(x)+5+e)
+#define PHASE_JAC_ID_(x,s,e) this%condensed_data_int(PHASE_INT_LOC_(x)+5+s*NUM_AERO_PHASE_JAC_ELEM_(x)+e)
 #define SMALL_WATER_CONC_(x) this%condensed_data_real(PHASE_REAL_LOC_(x))
 #define FAST_FLUX_(x) this%condensed_data_real(PHASE_REAL_LOC_(x)+1)
 #define AERO_ADJ_(x) this%condensed_data_real(PHASE_REAL_LOC_(x)+2)
@@ -255,7 +255,7 @@ contains
 
     ! Allocate space in the condensed data arrays
     allocate(this%condensed_data_int(NUM_INT_PROP_ + 2 + n_aero_ids * 13 + &
-                                      n_aero_jac_elem))
+                                      n_aero_jac_elem * 2))
     allocate(this%condensed_data_real(NUM_REAL_PROP_ + n_aero_ids * 3 + &
                                       n_aero_jac_elem * 2))
     this%condensed_data_int(:) = int(0, kind=i_kind)
@@ -319,7 +319,7 @@ contains
         i_aero_id = i_aero_id + 1
         if (i_aero_id .le. NUM_AERO_PHASE_) then
           PHASE_INT_LOC_(i_aero_id)  = PHASE_INT_LOC_(i_aero_id - 1) + 5 + &
-                                       NUM_AERO_PHASE_JAC_ELEM_(i_aero_id - 1)
+                                     2*NUM_AERO_PHASE_JAC_ELEM_(i_aero_id - 1)
           PHASE_REAL_LOC_(i_aero_id) = PHASE_REAL_LOC_(i_aero_id - 1) + 3 + &
                                      2*NUM_AERO_PHASE_JAC_ELEM_(i_aero_id - 1)
         end if

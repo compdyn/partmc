@@ -9,9 +9,9 @@
 !!
 !! Emission reactions take the form:
 !!
-!! \f[\mbox{\ch{
-!!   -> X
-!! }}\f]
+!! \f[
+!!   \rightarrow \mbox{X}
+!! \f]
 !!
 !! where \f$\mbox{\ch{X}}\f$ is the species being emitted.
 !!
@@ -43,7 +43,7 @@
 !! factor for the rate. When a \b scaling \b factor is not provided, it is
 !! assumed to be 1.0. All other data is optional and will be available to
 !! external modules during initialization. Rates are in units of
-!! \f$concentraction_unit s^{-1}\f$.
+!! \f$\mbox{concentration units} \quad s^{-1}\f$.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -123,8 +123,7 @@ public :: rxn_emission_t, rxn_update_data_emission_rate_t
       use iso_c_binding
       !> Update data
       type(c_ptr), value :: update_data
-      !> Reaction id from
-      !! \c pmc_rxn_emission::rxn_emission_t::set_rxn_id
+      !> Reaction id from pmc_rxn_emission::rxn_emission_t::set_rxn_id
       integer(kind=c_int), value :: rxn_id
       !> New pre-scaling base emission rate
       real(kind=c_double), value :: base_rate

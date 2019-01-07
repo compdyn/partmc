@@ -297,6 +297,7 @@ void rxn_update_env_state(ModelData *model_data, double *env)
  * change and the order can be determined from this at run time.
  *
  * \param model_data Pointer to the model data
+ * \param time_step The current solver time step [s]
  */
 void rxn_pre_calc(ModelData *model_data, double time_step)
 {

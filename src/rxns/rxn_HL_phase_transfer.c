@@ -62,6 +62,7 @@
 
 /** \brief Flag Jacobian elements used by this reaction
  *
+ * \param model_data Pointer to the model data
  * \param rxn_data A pointer to the reaction data
  * \param jac_struct 2D array of flags indicating potentially non-zero
  *                   Jacobian elements

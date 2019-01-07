@@ -9,9 +9,9 @@
 !!
 !! First-Order Loss reactions take the form:
 !!
-!! \f[\mbox{\ch{
-!!   X ->
-!! }}\f]
+!! \f[
+!!   \mbox{X} \rightarrow
+!! \f]
 !!
 !! where \f$\mbox{\ch{X}}\f$ is the species being lost.
 !!
@@ -125,8 +125,7 @@ public :: rxn_first_order_loss_t, rxn_update_data_first_order_loss_rate_t
       use iso_c_binding
       !> Update data
       type(c_ptr), value :: update_data
-      !> Reaction id from
-      !! \c pmc_rxn_first_order_loss::rxn_first_order_loss_t::set_rxn_id
+      !> Reaction id from pmc_rxn_first_order_loss::rxn_first_order_loss_t::set_rxn_id
       integer(kind=c_int), value :: rxn_id
       !> New pre-scaling base first_order_loss rate
       real(kind=c_double), value :: base_rate

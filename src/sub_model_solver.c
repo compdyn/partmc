@@ -247,7 +247,7 @@ void sub_model_update_data(int update_sub_model_type, void *update_data,
 }
 
 /** \brief Print the sub model data
- * \param model_data Pointer to the model data
+ * \param solver_data Pointer to the solver data
  */
 void sub_model_print_data(void *solver_data)
 {

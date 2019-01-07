@@ -36,6 +36,7 @@
 
 /** \brief Flag Jacobian elements used in calcualtions of mass and volume
  *
+ * \param model_data Pointer to the model data
  * \param aero_rep_data A pointer to the aerosol representation data
  * \param aero_phase_idx Index of the aerosol phase to find elements for
  * \param jac_struct 1D array of flags indicating potentially non-zero

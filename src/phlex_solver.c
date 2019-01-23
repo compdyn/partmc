@@ -19,7 +19,7 @@
 #include "rxn_solver.h"
 #include "sub_model_solver.h"
 
-#define DEFAULT_TIME_STEP 1.0e-3
+#define DEFAULT_TIME_STEP 1.0
 #define SMALL_NUMBER 1.1E-30
 
 #define PHLEX_SOLVER_SUCCESS 0
@@ -237,6 +237,10 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   // Set the maximum number of error test failures (TODO make separate input?)
   flag = CVodeSetMaxErrTestFails(sd->cvode_mem, max_conv_fails);
   check_flag_fail(&flag, "CVodeSetMaxErrTestFails", 1);
+
+  // Set the maximum number of warnings about a too-small time step
+  flag = CVodeSetMaxHnilWarns(sd->cvode_mem, 1);
+  check_flag_fail(&flag, "CVodeSetMaxHnilWarns", 1);
 
   // Get the structure of the Jacobian matrix
   sd->J = get_jac_init(sd);

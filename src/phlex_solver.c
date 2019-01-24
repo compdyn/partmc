@@ -99,8 +99,9 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
     if (var_type[i]==CHEM_SPEC_VARIABLE) n_dep_var++;
 
 #ifdef PMC_USE_SUNDIALS
-  // Set up the solver variable array
-  sd->y = N_VNew_Serial(n_dep_var);
+  // Set up the solver variable array and helper derivative array
+  sd->y     = N_VNew_Serial(n_dep_var);
+  sd->deriv = N_VNew_Serial(n_dep_var);
 #endif
 
   // Allocate space for the reaction data and set the number
@@ -292,6 +293,11 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   aero_rep_update_env_state(&(sd->model_data), env);
   sub_model_update_env_state(&(sd->model_data), env);
   rxn_update_env_state(&(sd->model_data), env);
+
+  // Check whether there is anything to solve (filters empty air masses with no
+  // emissions)
+  if( is_anything_going_on_here( sd, t_initial, t_final ) == false )
+    return PHLEX_SOLVER_SUCCESS;
 
   // Reinitialize the solver
   int flag = CVodeReInit(sd->cvode_mem, t_initial, sd->y);
@@ -775,6 +781,31 @@ void solver_free(void *solver_data)
   free(sd);
 
 }
+
+#ifdef PMC_USE_SUNDIALS
+/** \brief Determine if there is anything to solve
+ *
+ * If the solver state concentrations and the derivative vector are very small,
+ * there is no point running the solver
+ */
+bool is_anything_going_on_here(SolverData *sd, realtype t_initial, realtype t_final) {
+
+  if( f(t_initial, sd->y, sd->deriv, sd) ) {
+    for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++) {
+      if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) {
+        if( NV_Ith_S(sd->y, i_dep_var) >
+            NV_Ith_S(sd->abs_tol_nv, i_dep_var) * 1.0e-10 ) return true;
+        if( NV_Ith_S(sd->deriv, i_dep_var) * ( t_final - t_initial ) >
+            NV_Ith_S(sd->abs_tol_nv, i_dep_var) * 1.0e-10 ) return true;
+        i_dep_var++;
+      }
+    }
+    return false;
+  }
+
+  return true;
+}
+#endif
 
 /** \brief Free a ModelData object
  *

@@ -75,6 +75,7 @@ typedef struct {
   N_Vector abs_tol_nv;  // abosolute tolerance vector
   N_Vector y;		// vector of solver variables
   SUNLinearSolver ls;   // linear solver
+  N_Vector deriv;       // used to calculate the derivative outside the solver
   SUNMatrix J;          // Jacobian matrix
 #endif
   void *cvode_mem;	// CVodeMem object

@@ -41,6 +41,8 @@ SUNMatrix get_jac_init(SolverData *solver_data);
 int check_flag(void *flag_value, char *func_name, int opt);
 void check_flag_fail(void *flag_value, char *func_name, int opt);
 static void solver_print_stats(void *cvode_mem);
+bool is_anything_going_on_here(SolverData *sd, realtype t_initial,
+          realtype t_final);
 #endif
 
 #endif

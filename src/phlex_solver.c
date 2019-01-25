@@ -21,6 +21,9 @@
 
 #define DEFAULT_TIME_STEP 1.0
 #define SMALL_NUMBER 1.1E-30
+// Set MAX_TIMESTEP_WARNINGS to a negative number to prevent output
+#define MAX_TIMESTEP_WARNINGS -1
+// Define FAILURE_DETAIL to print out conditions before and after solver failures
 
 #define PHLEX_SOLVER_SUCCESS 0
 #define PHLEX_SOLVER_FAIL 1
@@ -240,7 +243,7 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   check_flag_fail(&flag, "CVodeSetMaxErrTestFails", 1);
 
   // Set the maximum number of warnings about a too-small time step
-  flag = CVodeSetMaxHnilWarns(sd->cvode_mem, 1);
+  flag = CVodeSetMaxHnilWarns(sd->cvode_mem, MAX_TIMESTEP_WARNINGS);
   check_flag_fail(&flag, "CVodeSetMaxHnilWarns", 1);
 
   // Get the structure of the Jacobian matrix
@@ -317,10 +320,11 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   if (!sd->no_solve) {
     flag = CVode(sd->cvode_mem, (realtype) t_final, sd->y, &t_rt, CV_NORMAL);
     if (check_flag(&flag, "CVode", 1)==PHLEX_SOLVER_FAIL) {
+#ifdef FAILURE_DETAIL
       N_Vector deriv = N_VClone(sd->y);
       flag = f(t_initial, sd->y, deriv, sd);
       if (flag!=0) printf("\nCall to f() at failed state failed with flag %d\n", flag);
-      printf("\ntemp = %le pressure = %le\n", env[0], env[1]);
+      printf("temp = %le pressure = %le\n", env[0], env[1]);
       for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++)
         if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE) {
           printf("spec %d = %le deriv = %le\n", i_spec, NV_Ith_S(sd->y,i_dep_var), NV_Ith_S(deriv, i_dep_var));
@@ -329,6 +333,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
           printf("spec %d = %le\n", i_spec, state[i_spec]);
         }
       solver_print_stats(sd->cvode_mem);
+#endif
       return PHLEX_SOLVER_FAIL;
     }
   }
@@ -346,10 +351,6 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // and apply adjustments to final state
   sub_model_calculate(&(sd->model_data));
   rxn_pre_calc(&(sd->model_data), 0.0);
-
-#ifdef PMC_DEBUG
-  solver_print_stats(sd->cvode_mem);
-#endif
 
   return PHLEX_SOLVER_SUCCESS;
 #else
@@ -371,7 +372,7 @@ int phlex_solver_update_model_state(N_Vector solver_state,
   for (int i_spec=0, i_dep_var=0; i_spec<model_data->n_state_var; i_spec++) {
     if (model_data->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
       if (NV_DATA_S(solver_state)[i_dep_var] < -SMALL_NUMBER) {
-#ifdef PMC_DEBUG
+#ifdef FAILURE_DETAIL
         printf("\nFailed model state update: [spec %d] = %le", i_spec,
             NV_DATA_S(solver_state)[i_dep_var]);
 #endif
@@ -401,7 +402,7 @@ int phlex_solver_update_solver_state(N_Vector solver_state,
       if (model_data->state[i_spec] > SMALL_NUMBER ||
           NV_DATA_S(solver_state)[i_dep_var] > SMALL_NUMBER)
         NV_DATA_S(solver_state)[i_dep_var] = model_data->state[i_spec];
-#ifdef PMC_DEBUG
+#ifdef FAILURE_DETAIL
       if (NV_DATA_S(solver_state)[i_dep_var] < ZERO) {
         printf("\nTrying to save negative concentration to solver state: "
                "[spec %d] = %le", i_spec, NV_DATA_S(solver_state)[i_dep_var]);

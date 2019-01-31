@@ -982,30 +982,27 @@ contains
     integer(kind=i_kind), intent(in) :: phase_id
 
     integer(kind=i_kind) :: i_section, i_phase, i_bin, j_phase, &
-                            phase_id_to_find
+                            phase_id_to_find, section_size,     &
+                            section_start
 
-    i_bin = 0
-    j_phase = 1
-    num_jac_elem = 0
     phase_id_to_find = phase_id
+    section_start = 1
     do i_section = 1, NUM_SECTION_
-      do i_phase = 1, NUM_PHASE_(i_section)
-        if( phase_id_to_find .le. NUM_BINS_(i_section) ) then
-          i_bin = phase_id_to_find
-          exit
-        end if
-      end do
-      if( i_bin .gt. 0 ) then
-        do i_phase = j_phase + i_bin, &
-           j_phase + i_bin + NUM_PHASE_(i_section)*NUM_BINS_(i_section) - 1, &
-           NUM_BINS_(i_section)
-          num_jac_elem = num_jac_elem + this%aero_phase(i_phase)%val%size()
+      section_size = NUM_PHASE_(i_section) * NUM_BINS_(i_section)
+      if( phase_id_to_find .le. section_size ) then
+        i_phase      = ( phase_id_to_find - 1 ) / NUM_BINS_(i_section) + 1
+        i_bin        = mod( phase_id_to_find - 1, NUM_BINS_(i_section) ) + 1
+        num_jac_elem = 0
+        do j_phase = section_start + i_bin - 1,                              &
+                     section_start + i_bin - 1 +                             &
+                       ( NUM_PHASE_(i_section) - 1 ) * NUM_BINS_(i_section), &
+                     NUM_BINS_(i_section)
+          num_jac_elem = num_jac_elem + this%aero_phase( j_phase )%val%size( )
         end do
         return
       end if
-      phase_id_to_find = phase_id_to_find - NUM_BINS_(i_section) * &
-                                            NUM_PHASE_(i_section)
-      j_phase = j_phase + NUM_BINS_(i_section) * NUM_PHASE_(i_section)
+      phase_id_to_find = phase_id_to_find - section_size
+      section_start = section_start + section_size
     end do
 
   end function num_jac_elem

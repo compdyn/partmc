@@ -172,9 +172,18 @@ contains
     call assert_msg(539884723, i_spec.gt.0, rep_name)
     phlex_state%state_var(i_spec) = 8.5
 
+    ! Check jacobian sizes
+    call assert(734627842, aero_rep%num_jac_elem( 1 ) .eq. 6 )
+    call assert(564470938, aero_rep%num_jac_elem( 2 ) .eq. 6 )
+    call assert(676789283, aero_rep%num_jac_elem( 3 ) .eq. 2 )
+    do i_phase = 4, 19
+      call assert(239497756, aero_rep%num_jac_elem( i_phase ) .eq. 5 )
+    end do
+
     rep_name = "AERO_REP_BAD_NAME"
     call assert(654108602, .not.phlex_core%get_aero_rep(rep_name, aero_rep))
     call assert(366369046, .not.associated(aero_rep))
+
 
 #ifdef PMC_USE_MPI
     allocate(rep_names(1))

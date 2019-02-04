@@ -297,6 +297,13 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   sub_model_update_env_state(&(sd->model_data), env);
   rxn_update_env_state(&(sd->model_data), env);
 
+  // Reset the state adjustment arrays
+  sd->model_data.use_adj = true;
+  rxn_reset_state_adjustments(&(sd->model_data));
+
+  // Set the initial time step
+  sd->init_time_step = (t_final - t_initial) * DEFAULT_TIME_STEP;
+
   // Check whether there is anything to solve (filters empty air masses with no
   // emissions)
   if( is_anything_going_on_here( sd, t_initial, t_final ) == false )
@@ -305,15 +312,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // Reinitialize the solver
   int flag = CVodeReInit(sd->cvode_mem, t_initial, sd->y);
   check_flag_fail(&flag, "CVodeReInit", 1);
-
-  // Set the initial time step
-  sd->init_time_step = (t_final - t_initial) * DEFAULT_TIME_STEP;
   flag = CVodeSetInitStep(sd->cvode_mem, sd->init_time_step);
   check_flag_fail(&flag, "CVodeSetInitStep", 1);
-
-  // Reset the state adjustment arrays
-  sd->model_data.use_adj = true;
-  rxn_reset_state_adjustments(&(sd->model_data));
 
   // Run the solver
   realtype t_rt = (realtype) t_initial;

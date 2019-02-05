@@ -157,7 +157,7 @@ void * rxn_first_order_loss_calc_deriv_contrib(ModelData *model_data,
   realtype rate = RATE_CONSTANT_ * state[REACT_];
 
   // Add contributions to the time derivative
-  deriv[DERIV_ID_] -= rate;
+  if (DERIV_ID_ >= 0) deriv[DERIV_ID_] -= rate;
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
@@ -181,7 +181,7 @@ void * rxn_first_order_loss_calc_jac_contrib(ModelData *model_data, realtype *J,
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
 
   // Add contributions to the Jacobian
-  J[JAC_ID_] -= RATE_CONSTANT_;
+  if (JAC_ID_ >= 0) J[JAC_ID_] -= RATE_CONSTANT_;
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 

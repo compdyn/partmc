@@ -147,7 +147,7 @@ void * rxn_emission_calc_deriv_contrib(ModelData *model_data,
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
 
   // Add contributions to the time derivative
-  deriv[DERIV_ID_] += RATE_;
+  if (DERIV_ID_ >= 0) deriv[DERIV_ID_] += RATE_;
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 

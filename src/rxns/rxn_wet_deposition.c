@@ -162,7 +162,8 @@ void * rxn_wet_deposition_calc_deriv_contrib(ModelData *model_data,
 
   // Add contributions to the time derivative
   for (int i_spec = 0; i_spec < NUM_SPEC_; i_spec++) {
-    deriv[DERIV_ID_(i_spec)] -= RATE_CONSTANT_ * state[REACT_(i_spec)];
+    if (DERIV_ID_(i_spec) >= 0 )
+        deriv[DERIV_ID_(i_spec)] -= RATE_CONSTANT_ * state[REACT_(i_spec)];
   }
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
@@ -188,7 +189,7 @@ void * rxn_wet_deposition_calc_jac_contrib(ModelData *model_data, realtype *J,
 
   // Add contributions to the Jacobian
   for (int i_spec = 0; i_spec < NUM_SPEC_; i_spec++) {
-    J[JAC_ID_(i_spec)] -= RATE_CONSTANT_;
+    if (JAC_ID_(i_spec) >= 0) J[JAC_ID_(i_spec)] -= RATE_CONSTANT_;
   }
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);

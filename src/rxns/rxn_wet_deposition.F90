@@ -236,6 +236,7 @@ contains
         i_spec = i_spec + 1
         REACT_(i_spec) = aero_rep(i_rep)%val%spec_state_id( &
                                          unique_names( i_rep_spec )%string )
+        call assert( 702159475, REACT_(i_spec) .gt. 0 )
       end do
     end do
     call assert(312643342, i_spec .eq. NUM_SPEC_)

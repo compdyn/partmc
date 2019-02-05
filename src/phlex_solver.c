@@ -358,6 +358,84 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 #endif
 }
 
+/** \brief Get solver statistics after an integration attempt
+ *
+ * \param solver_data           Pointer to the solver data
+ * \param num_steps             Pointer to set to the number of integration
+ *                              steps
+ * \param RHS_evals             Pointer to set to the number of right-hand side
+ *                              evaluations
+ * \param LS_setups             Pointer to set to the number of linear solver
+ *                              setups
+ * \param error_test_fails      Pointer to set to the number of error test
+ *                              failures
+ * \param NLS_iters             Pointer to set to the non-linear solver
+ *                              iterations
+ * \param NLS_convergence_fails Pointer to set to the non-linear solver
+ *                              convergence failures
+ * \param DLS_Jac_evals         Pointer to set to the direct linear solver
+ *                              Jacobian evaluations
+ * \param DLS_RHS_evals         Pointer to set to the direct linear solver
+ *                              right-hand side evaluations
+ * \param last_time_step__s     Pointer to set to the last time step size [s]
+ * \param next_time_step__s     Pointer to set to the next time step size [s]
+ */
+void solver_get_statistics( void *solver_data, int *num_steps, int *RHS_evals,
+                    int *LS_setups, int *error_test_fails,
+                    int *NLS_iters, int *NLS_convergence_fails,
+                    int *DLS_Jac_evals, int *DLS_RHS_evals,
+                    double *last_time_step__s, double *next_time_step__s ) {
+
+#ifdef PMC_USE_SUNDIALS
+  SolverData *sd = (SolverData*) solver_data;
+  long int nst, nfe, nsetups, nje, nfeLS, nni, ncfn, netf, nge;
+  realtype last_h, curr_h;
+  int flag;
+
+  flag = CVodeGetNumSteps(sd->cvode_mem, &nst);
+  if (check_flag(&flag, "CVodeGetNumSteps", 1)==PHLEX_SOLVER_FAIL)
+          return;
+  *num_steps = (int) nst;
+  flag = CVodeGetNumRhsEvals(sd->cvode_mem, &nfe);
+  if (check_flag(&flag, "CVodeGetNumRhsEvals", 1)==PHLEX_SOLVER_FAIL)
+          return;
+  *RHS_evals = (int) nfe;
+  flag = CVodeGetNumLinSolvSetups(sd->cvode_mem, &nsetups);
+  if (check_flag(&flag, "CVodeGetNumLinSolveSetups", 1)==PHLEX_SOLVER_FAIL)
+          return;
+  *LS_setups = (int) nsetups;
+  flag = CVodeGetNumErrTestFails(sd->cvode_mem, &netf);
+  if (check_flag(&flag, "CVodeGetNumErrTestFails", 1)==PHLEX_SOLVER_FAIL)
+          return;
+  *error_test_fails = (int) netf;
+  flag = CVodeGetNumNonlinSolvIters(sd->cvode_mem, &nni);
+  if (check_flag(&flag, "CVodeGetNonlinSolvIters", 1)==PHLEX_SOLVER_FAIL)
+          return;
+  *NLS_iters = (int) nni;
+  flag = CVodeGetNumNonlinSolvConvFails(sd->cvode_mem, &ncfn);
+  if (check_flag(&flag, "CVodeGetNumNonlinSolvConvFails", 1)==PHLEX_SOLVER_FAIL)
+          return;
+  *NLS_convergence_fails = ncfn;
+  flag = CVDlsGetNumJacEvals(sd->cvode_mem, &nje);
+  if (check_flag(&flag, "CVDlsGetNumJacEvals", 1)==PHLEX_SOLVER_FAIL)
+          return;
+  *DLS_Jac_evals = (int) nje;
+  flag = CVDlsGetNumRhsEvals(sd->cvode_mem, &nfeLS);
+  if (check_flag(&flag, "CVDlsGetNumRhsEvals", 1)==PHLEX_SOLVER_FAIL)
+          return;
+  *DLS_RHS_evals = (int) nfeLS;
+  flag = CVodeGetLastStep(sd->cvode_mem, &last_h);
+  if (check_flag(&flag, "CVodeGetLastStep", 1)==PHLEX_SOLVER_FAIL)
+          return;
+  *last_time_step__s = (double) last_h;
+  flag = CVodeGetCurrentStep(sd->cvode_mem, &curr_h);
+  if (check_flag(&flag, "CVodeGetCurrentStep", 1)==PHLEX_SOLVER_FAIL)
+          return;
+  *next_time_step__s = (double) curr_h;
+
+#endif
+}
+
 #ifdef PMC_USE_SUNDIALS
 /** \brief Update the model state from the current solver state
  *

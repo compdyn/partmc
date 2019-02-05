@@ -18,6 +18,7 @@ module pmc_phlex_solver_data
   use pmc_phlex_state
   use pmc_rxn_data
   use pmc_rxn_factory
+  use pmc_solver_stats
   use pmc_sub_model_data
   use pmc_sub_model_factory
   use pmc_util,                        only : assert_msg, to_string, &
@@ -113,6 +114,36 @@ module pmc_phlex_solver_data
       !> Final time (s)
       real(kind=c_double), value :: t_final
     end function solver_run
+
+    !> Get the solver statistics
+    subroutine solver_get_statistics( solver_data, num_steps, RHS_evals, &
+                    LS_setups, error_test_fails, NLS_iters, &
+                    NLS_convergence_fails, DLS_Jac_evals, DLS_RHS_evals, &
+                    last_time_step__s, next_time_step__s ) bind (c)
+      use iso_c_binding
+      !> Pointer to the solver data
+      type(c_ptr), value :: solver_data
+      !> Number of stesp
+      type(c_ptr), value :: num_steps
+      !> Right-hand side evaluations
+      type(c_ptr), value :: RHS_evals
+      !> Linear solver setups
+      type(c_ptr), value :: LS_setups
+      !> Error test failures
+      type(c_ptr), value :: error_test_fails
+      !> Non-Linear solver iterations
+      type(c_ptr), value :: NLS_iters
+      !> Non-Linear solver failures
+      type(c_ptr), value :: NLS_convergence_fails
+      !> Direct Linear Solver Jacobian evaluations
+      type(c_ptr), value :: DLS_Jac_evals
+      !> Direct Linear Solver right-hand side evaluations
+      type(c_ptr), value :: DLS_RHS_evals
+      !> Last time step [s]
+      type(c_ptr), value :: last_time_step__s
+      !> Next time step [s]
+      type(c_ptr), value :: next_time_step__s
+    end subroutine solver_get_statistics
 
     !> Add condensed reaction data to the solver data block
     subroutine rxn_add_condensed_data(rxn_type, n_int_param, &
@@ -313,6 +344,8 @@ module pmc_phlex_solver_data
     procedure :: update_aero_rep_data
     !> Integrate over a given time step
     procedure :: solve
+    !> Get the solver statistics from the last run
+    procedure, private :: get_solver_stats
     !> Checks whether a solver is available
     procedure :: is_solver_available
     !> Get a parameter id
@@ -735,7 +768,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Solve the mechanism(s) for a specified timestep
-  subroutine solve(this, phlex_state, t_initial, t_final)
+  subroutine solve(this, phlex_state, t_initial, t_final, solver_stats)
 
     !> Solver data
     class(phlex_solver_data_t), intent(inout) :: this
@@ -745,6 +778,8 @@ contains
     real(kind=dp), intent(in) :: t_initial
     !> End time (s)
     real(kind=dp), intent(in) :: t_final
+    !> Solver statistics
+    type(solver_stats_t), intent(out), optional, target :: solver_stats
 
     integer(kind=c_int) :: solver_status
 
@@ -757,9 +792,42 @@ contains
             real(t_final, kind=c_double)    & ! Final time (s)
             )
 
-    call warn_assert_msg(997420005, solver_status.eq.0, "Solver failed");
+    ! Get the solver statistics
+    if (present(solver_stats)) then
+      call this%get_solver_stats( solver_stats )
+      solver_stats%status_code   = solver_status
+      solver_stats%start_time__s = t_initial
+      solver_stats%end_time__s   = t_final
+    else
+      call warn_assert_msg(997420005, solver_status.eq.0, "Solver failed");
+    end if
 
   end subroutine solve
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get solver statistics
+  subroutine get_solver_stats( this, solver_stats )
+
+    !> Solver data
+    class(phlex_solver_data_t), intent(inout) :: this
+    !> Solver statistics
+    type(solver_stats_t), intent(out), target :: solver_stats
+
+    call solver_get_statistics( &
+            this%solver_c_ptr,                             & ! Solver data
+            c_loc( solver_stats%num_steps             ),   & ! Number of steps
+            c_loc( solver_stats%RHS_evals             ),   & ! Right-hand side evals
+            c_loc( solver_stats%LS_setups             ),   & ! Linear solver setups
+            c_loc( solver_stats%error_test_fails      ),   & ! Error test failures
+            c_loc( solver_stats%NLS_iters             ),   & ! Non-Linear solver interations
+            c_loc( solver_stats%NLS_convergence_fails ),   & ! Non-Linear solver fails
+            c_loc( solver_stats%DLS_Jac_evals         ),   & ! Jacobian evals
+            c_loc( solver_stats%DLS_RHS_evals         ),   & ! DLS Right-hand side evals
+            c_loc( solver_stats%last_time_step__s     ),   & ! Last time step [s]
+            c_loc( solver_stats%next_time_step__s     ) )    ! Next time step [s]
+
+  end subroutine get_solver_stats
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

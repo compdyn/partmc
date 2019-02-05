@@ -463,6 +463,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/phlex_core.F90 src/phlex_solver_data.F90 src/aero_rep_data.F90
   src/aero_phase_data.F90 src/aero_rep_factory.F90 src/phlex_interface.F90
   src/rxn_factory.F90 src/sub_model_data.F90 src/sub_model_factory.F90
+  src/solver_stats.F90
   ${PHLEX_C_SRC} ${AEROSOL_REPS_SRC} ${SUB_MODELS_SRC} ${REACTIONS_SRC}
   ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC})
 

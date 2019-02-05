@@ -108,6 +108,7 @@ module pmc_phlex_core
   use pmc_phlex_solver_data
   use pmc_phlex_state
   use pmc_rxn_data
+  use pmc_solver_stats
   use pmc_sub_model_data
   use pmc_sub_model_factory
   use pmc_util,                       only : die_msg, string_t
@@ -1045,9 +1046,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Integrate the chemical mechanism
-  subroutine solve(this, phlex_state, time_step, rxn_phase)
+  subroutine solve(this, phlex_state, time_step, rxn_phase, solver_stats)
 
     use pmc_rxn_data
+    use pmc_solver_stats
     use iso_c_binding
 
     !> Chemical model
@@ -1060,6 +1062,8 @@ contains
     !! Use parameters in pmc_rxn_data to specify phase:
     !! GAS_RXN, AERO_RXN, GAS_AERO_RXN
     integer(kind=i_kind), intent(in), optional :: rxn_phase
+    !> Return solver statistics to the host model
+    type(solver_stats_t), intent(out), optional, target :: solver_stats
 
     ! Phase to solve
     integer(kind=i_kind) :: phase
@@ -1094,8 +1098,12 @@ contains
     call assert_msg(730097030, associated(solver), "Invalid solver requested")
 
     ! Run the integration
-    call solver%solve(phlex_state, real(0.0, kind=dp), time_step)
-
+    if (present(solver_stats)) then
+      call solver%solve(phlex_state, real(0.0, kind=dp), time_step,          &
+                        solver_stats)
+    else
+      call solver%solve(phlex_state, real(0.0, kind=dp), time_step)
+    end if
   end subroutine solve
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

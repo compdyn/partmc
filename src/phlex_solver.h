@@ -23,6 +23,11 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
           int max_steps, int max_conv_fails);
 int solver_run(void *solver_data, double *state, double *env, double t_initial,
 	  double t_final);
+void solver_get_statistics( void *solver_data, int *num_steps, int *RHS_evals,
+          int *LS_setups, int *error_test_fails,
+          int *NLS_iters, int *NLS_convergence_fails,
+          int *DLS_Jac_evals, int *DLS_RHS_evals,
+          double *last_time_step__s, double *next_time_step__s );
 void solver_free(void *solver_data);
 void model_free(ModelData model_data);
 

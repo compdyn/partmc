@@ -17,6 +17,7 @@ module pmc_monarch_interface
   use pmc_chem_spec_data
   use pmc_property
   use pmc_phlex_solver_data
+  use pmc_solver_stats
 #ifdef PMC_USE_MPI
   use mpi
 #endif
@@ -280,6 +281,8 @@ contains
     ! Computation time variables
     real(kind=dp) :: comp_start, comp_end
 
+    type(solver_stats_t), target :: solver_stats
+
     ! Loop through the grid cells
     do i=i_start, i_end
       do j=j_start, j_end
@@ -310,7 +313,7 @@ contains
 
           ! Integrate the PMC mechanism
           call this%phlex_core%solve(this%phlex_state, &
-                  real(time_step, kind=dp))
+                  real(time_step, kind=dp), solver_stats = solver_stats)
 
           ! Calculate the computation time
           if (MONARCH_PROCESS.eq.0 .and. i.eq.i_start .and. j.eq.j_start &
@@ -326,6 +329,8 @@ contains
         end do
       end do
     end do
+
+    call solver_stats%print( )
 
   end subroutine integrate
 

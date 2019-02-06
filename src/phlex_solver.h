@@ -35,7 +35,9 @@ void model_free(ModelData model_data);
 /* Functions called by the solver */
 int f(realtype t, N_Vector y, N_Vector deriv, void *model_data);
 int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *model_data,
-		N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
+  	  N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
+void error_handler(int error_code, const char *module,
+          const char *function, char *msg, void *sd);
 
 /* SUNDIALS support functions */
 int phlex_solver_update_model_state(N_Vector solver_state,

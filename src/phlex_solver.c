@@ -263,6 +263,12 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   flag = CVDlsSetJacFn(sd->cvode_mem, Jac);
   check_flag_fail(&flag, "CVDlsSetJacFn", 1);
 
+#ifndef FAILURE_DETAIL
+  // Set a custom error handling function
+  flag = CVodeSetErrHandlerFn(sd->cvode_mem, error_handler, (void*) sd );
+  check_flag_fail(&flag, "CVodeSetErrHandlerFn", 0);
+#endif
+
 #endif
 }
 
@@ -319,8 +325,10 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   realtype t_rt = (realtype) t_initial;
   if (!sd->no_solve) {
     flag = CVode(sd->cvode_mem, (realtype) t_final, sd->y, &t_rt, CV_NORMAL);
+#ifndef FAILURE_DETAIL
+    if (flag < 0 ) {
+#else
     if (check_flag(&flag, "CVode", 1)==PHLEX_SOLVER_FAIL) {
-#ifdef FAILURE_DETAIL
       N_Vector deriv = N_VClone(sd->y);
       flag = f(t_initial, sd->y, deriv, sd);
       if (flag!=0) printf("\nCall to f() at failed state failed with flag %d\n", flag);
@@ -885,6 +893,16 @@ bool is_anything_going_on_here(SolverData *sd, realtype t_initial, realtype t_fi
   return true;
 }
 #endif
+
+/** \brief Custom error handling function
+ *
+ * This is used for quiet operation. Solver failures are returned with a flag
+ * from the solver_run() function.
+ */
+void error_handler(int error_code, const char *module,
+      const char *function, char *msg, void *sd) {
+  // Do nothing
+}
 
 /** \brief Free a ModelData object
  *

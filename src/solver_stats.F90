@@ -48,6 +48,9 @@ module pmc_solver_stats
   contains
     !> Print the solver statistics
     procedure :: print => do_print
+    !> Assignment
+    procedure :: assignValue
+    generic :: assignment(=) => assignValue
   end type solver_stats_t
 
 contains
@@ -81,6 +84,32 @@ contains
     write(f_unit,*) "Next time step [s]:          ", this%next_time_step__s
 
   end subroutine do_print
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Assign a value to all members of solver stats
+  subroutine assignValue( this, new_value )
+
+    !> Solver statistics
+    class(solver_stats_t), intent(out) :: this
+    !> Value to assign
+    integer(kind=i_kind), intent(in) :: new_value
+
+    this%status_code           = new_value
+    this%start_time__s         = real( new_value, kind=dp )
+    this%end_time__s           = real( new_value, kind=dp )
+    this%num_steps             = new_value
+    this%RHS_evals             = new_value
+    this%LS_setups             = new_value
+    this%error_test_fails      = new_value
+    this%NLS_iters             = new_value
+    this%NLS_convergence_fails = new_value
+    this%DLS_Jac_evals         = new_value
+    this%DLS_RHS_evals         = new_value
+    this%last_time_step__s     = real( new_value, kind=dp )
+    this%next_time_step__s     = real( new_value, kind=dp )
+
+  end subroutine assignValue
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

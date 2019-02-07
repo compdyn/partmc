@@ -252,6 +252,7 @@ void aero_phase_print_data(void *solver_data)
 
     aero_phase_data = (int*) &(float_data[FLOAT_DATA_SIZE_]);
   }
+  fflush(stdout);
 }
 
 #undef NUM_STATE_VAR_

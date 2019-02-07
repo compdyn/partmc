@@ -272,5 +272,6 @@ void sub_model_print_data(void *solver_data)
         break;
     }
   }
+  fflush(stdout);
 }
 

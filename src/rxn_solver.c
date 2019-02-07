@@ -929,6 +929,7 @@ void rxn_print_data(void *solver_data)
 	break;
     }
   }
+  fflush(stdout);
 }
 
 /** \brief Free an update data object

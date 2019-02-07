@@ -1360,84 +1360,90 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Print the core data
-  subroutine do_print(this, file_unit)
+  subroutine do_print(this, file_unit, solver_data_only)
 
     !> Core data
     class(phlex_core_t), intent(in) :: this
     !> File unit for output
     integer(kind=i_kind), intent(in), optional :: file_unit
+    !> Print only the solver data (can be used during runtime for debugging)
+    logical, intent(in), optional :: solver_data_only
 
     integer(kind=i_kind) :: i_gas_spec, i_spec, j_spec, i_phase, i_aero_rep, i_mech
     integer(kind=i_kind) :: i_sub_model, i_solver_spec
     integer(kind=i_kind) :: f_unit=6
     type(string_t), allocatable :: state_names(:), rep_spec_names(:)
+    logical :: sd_only = .false.
 
     if (present(file_unit)) f_unit = file_unit
+    if (present(solver_data_only)) sd_only = solver_data_only
 
     write(f_unit,*) "*********************"
     write(f_unit,*) "** Phlex core data **"
     write(f_unit,*) "*********************"
-    write(f_unit,*) "Relative integration tolerance: ", this%rel_tol
-    call this%chem_spec_data%print(f_unit)
-    write(f_unit,*) "*** Aerosol Phases ***"
-    do i_phase=1, size(this%aero_phase)
-      call this%aero_phase(i_phase)%val%print(f_unit)
-    end do
-    write(f_unit,*) "*** Aerosol Representations ***"
-    do i_aero_rep=1, size(this%aero_rep)
-      write(f_unit,*) "Aerosol representation ", i_aero_rep
-      call this%aero_rep(i_aero_rep)%val%print(f_unit)
-    end do
-    write(f_unit,*) "*** Sub Models ***"
-    do i_sub_model=1, size(this%sub_model)
-      write(f_unit,*) "Sub model: ", i_sub_model
-      call this%sub_model(i_sub_model)%val%print(f_unit)
-    end do
-    write(f_unit,*) "*** Mechanisms ***"
-    write(f_unit,*) "Number of mechanisms: ", size(this%mechanism)
-    do i_mech=1, size(this%mechanism)
-      call this%mechanism(i_mech)%val%print(f_unit)
-    end do
-    write(f_unit,*) "*** State Array ***"
-    write(f_unit,*) "Number of species on the state array: ", &
-            this%state_array_size
-    allocate(state_names(this%state_array_size))
-    i_spec = 0
-    do i_gas_spec = 1, &
-            this%chem_spec_data%size(spec_phase=CHEM_SPEC_GAS_PHASE)
-      i_spec = i_gas_spec
-      state_names(i_spec)%string = &
-              this%chem_spec_data%gas_state_name(i_gas_spec)
-    end do
-    write(f_unit,*) "Gas-phase species: ", i_spec
-    do i_aero_rep = 1, size(this%aero_rep)
-      rep_spec_names = this%aero_rep(i_aero_rep)%val%unique_names()
-      call assert(620697091, allocated(rep_spec_names))
-      call assert(787495222, size(rep_spec_names).gt.0)
-      forall (j_spec=1:size(rep_spec_names)) &
-          state_names(i_spec+j_spec)%string = &
-              rep_spec_names(j_spec)%string
-      i_spec = i_spec + size(rep_spec_names)
-      write(f_unit,*) "Aerosol rep ", &
-              this%aero_rep(i_aero_rep)%val%rep_name, &
-              " species: ", size(rep_spec_names)
-      deallocate(rep_spec_names)
-    end do
-    do i_spec = 1, size(state_names)
-      write(f_unit,*) i_spec, state_names(i_spec)%string
-    end do
+    if (.not.sd_only ) then
+      write(f_unit,*) "Relative integration tolerance: ", this%rel_tol
+      call this%chem_spec_data%print(f_unit)
+      write(f_unit,*) "*** Aerosol Phases ***"
+      do i_phase=1, size(this%aero_phase)
+        call this%aero_phase(i_phase)%val%print(f_unit)
+      end do
+      write(f_unit,*) "*** Aerosol Representations ***"
+      do i_aero_rep=1, size(this%aero_rep)
+        write(f_unit,*) "Aerosol representation ", i_aero_rep
+        call this%aero_rep(i_aero_rep)%val%print(f_unit)
+      end do
+      write(f_unit,*) "*** Sub Models ***"
+      do i_sub_model=1, size(this%sub_model)
+        write(f_unit,*) "Sub model: ", i_sub_model
+        call this%sub_model(i_sub_model)%val%print(f_unit)
+      end do
+      write(f_unit,*) "*** Mechanisms ***"
+      write(f_unit,*) "Number of mechanisms: ", size(this%mechanism)
+      do i_mech=1, size(this%mechanism)
+        call this%mechanism(i_mech)%val%print(f_unit)
+      end do
+      write(f_unit,*) "*** State Array ***"
+      write(f_unit,*) "Number of species on the state array: ", &
+              this%state_array_size
+      allocate(state_names(this%state_array_size))
+      i_spec = 0
+      do i_gas_spec = 1, &
+              this%chem_spec_data%size(spec_phase=CHEM_SPEC_GAS_PHASE)
+        i_spec = i_gas_spec
+        state_names(i_spec)%string = &
+                this%chem_spec_data%gas_state_name(i_gas_spec)
+      end do
+      write(f_unit,*) "Gas-phase species: ", i_spec
+      do i_aero_rep = 1, size(this%aero_rep)
+        rep_spec_names = this%aero_rep(i_aero_rep)%val%unique_names()
+        call assert(620697091, allocated(rep_spec_names))
+        call assert(787495222, size(rep_spec_names).gt.0)
+        forall (j_spec=1:size(rep_spec_names)) &
+            state_names(i_spec+j_spec)%string = &
+                rep_spec_names(j_spec)%string
+        i_spec = i_spec + size(rep_spec_names)
+        write(f_unit,*) "Aerosol rep ", &
+                this%aero_rep(i_aero_rep)%val%rep_name, &
+                " species: ", size(rep_spec_names)
+        deallocate(rep_spec_names)
+      end do
+      do i_spec = 1, size(state_names)
+        write(f_unit,*) i_spec, state_names(i_spec)%string
+      end do
 
-    write(f_unit,*) "*** Solver Data ***"
-    write(f_unit,*) "Solver variables:"
-    i_solver_spec = 0
-    do i_spec = 1, size(state_names)
-      if (this%var_type(i_spec).eq.CHEM_SPEC_VARIABLE) then
-        write(f_unit,*) "solver spec", i_solver_spec, state_names(i_spec)%string
-        i_solver_spec = i_solver_spec + 1
-      end if
-    end do
-    write(f_unit,*) ""
-    deallocate(state_names)
+      write(f_unit,*) "*** Solver Data ***"
+      write(f_unit,*) "Solver variables:"
+      i_solver_spec = 0
+      do i_spec = 1, size(state_names)
+        if (this%var_type(i_spec).eq.CHEM_SPEC_VARIABLE) then
+          write(f_unit,*) "solver spec", i_solver_spec, state_names(i_spec)%string
+          i_solver_spec = i_solver_spec + 1
+        end if
+      end do
+      write(f_unit,*) ""
+      deallocate(state_names)
+    end if
 
     flush(f_unit)
 
@@ -1445,6 +1451,8 @@ contains
             call this%solver_data_gas%print()
     if (associated(this%solver_data_gas_aero)) &
             call this%solver_data_gas_aero%print()
+
+    flush(f_unit)
 
   end subroutine do_print
 

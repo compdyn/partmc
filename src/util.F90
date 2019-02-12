@@ -361,19 +361,21 @@ contains
 
   !> Tests whether two real numbers are almost equal using only a
   !> relative tolerance.
-  logical function almost_equal(d1, d2, tol)
+  logical function almost_equal(d1, d2, rel_tol, abs_tol)
 
     !> First number to compare.
     real(kind=dp), intent(in) :: d1
     !> Second number to compare.
     real(kind=dp), intent(in) :: d2
     !> User-defined relative tolerance
-    real(kind=dp), intent(in), optional :: tol
+    real(kind=dp), intent(in), optional :: rel_tol
+    !> User-defined absolute tolerance
+    real(kind=dp), intent(in), optional :: abs_tol
 
     !> Relative tolerance.
     real(kind=dp) :: eps = 1d-8
 
-    if (present(tol)) eps = tol
+    if (present(rel_tol)) eps = rel_tol
 
     ! handle the 0.0 case
     if (d1 .eq. d2) then
@@ -382,7 +384,13 @@ contains
        if (abs(d1 - d2) / (abs(d1) + abs(d2)) .lt. eps) then
           almost_equal = .true.
        else
-          almost_equal = .false.
+         if (present(abs_tol)) then
+           if (abs(d1 - d2) .le. abs_tol) then
+             almost_equal = .true.
+             return
+           end if
+         end if
+         almost_equal = .false.
        end if
     end if
 

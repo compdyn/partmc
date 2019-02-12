@@ -631,7 +631,7 @@ contains
       call assert_msg(749090387, almost_equal(real(YC(i_spec), kind=dp), &
           phlex_state%state_var( &
                   chem_spec_data%gas_state_id( &
-                  ebi_spec_names(i_spec)%string)), 5.0d-2) .or. &
+                  ebi_spec_names(i_spec)%string)), 1.0d-4, 1.0d-3) .or. &
           (YC(i_spec).lt.ebi_init(i_spec)*1.0d-2 .and. &
            phlex_state%state_var(chem_spec_data%gas_state_id( &
                   ebi_spec_names(i_spec)%string)) .lt. &
@@ -653,7 +653,7 @@ contains
       call assert_msg(749090436, almost_equal(real(KPP_C(i_spec)*conv, kind=dp), &
           phlex_state%state_var( &
                   chem_spec_data%gas_state_id( &
-                  str_temp%string)), 5.0d-2) .or. &
+                  str_temp%string)), 1.0d-4, 1.0d-3) .or. &
           (KPP_C(i_spec) .lt. KPP_init(i_spec)*1.0d-2 .and. &
            phlex_state%state_var(chem_spec_data%gas_state_id( &
                   str_temp%string)) .lt. &

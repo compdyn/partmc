@@ -19,12 +19,20 @@
 #include "rxn_solver.h"
 #include "sub_model_solver.h"
 
+// Define FAILURE_DETAIL to print out conditions before and after solver failures
+
+
+// Default solver initial time step relative to total integration time
 #define DEFAULT_TIME_STEP 1.0
+// Small number used in filtering
 #define SMALL_NUMBER 1.1E-30
 // Set MAX_TIMESTEP_WARNINGS to a negative number to prevent output
 #define MAX_TIMESTEP_WARNINGS -1
-// Define FAILURE_DETAIL to print out conditions before and after solver failures
+// Solver timestep size threshhold relative to total integration time for
+// trying to improve guesses sent to linear solver
+#define GUESS_THRESHHOLD 5e-2
 
+// Status codes for calls to phlex_solver functions
 #define PHLEX_SOLVER_SUCCESS 0
 #define PHLEX_SOLVER_FAIL 1
 
@@ -263,6 +271,10 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   flag = CVDlsSetJacFn(sd->cvode_mem, Jac);
   check_flag_fail(&flag, "CVDlsSetJacFn", 1);
 
+  // Set a function to improve guesses for y sent to the linear solver
+  flag = CVodeSetDlsGuessHelper(sd->cvode_mem, GuessHelper);
+  check_flag_fail(&flag, "CVodeSetDlsGuessHelper", 1);
+
 #ifndef FAILURE_DETAIL
   // Set a custom error handling function
   flag = CVodeSetErrHandlerFn(sd->cvode_mem, error_handler, (void*) sd );
@@ -318,6 +330,12 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // Reinitialize the solver
   int flag = CVodeReInit(sd->cvode_mem, t_initial, sd->y);
   check_flag_fail(&flag, "CVodeReInit", 1);
+
+  // Reinitialize the linear solver
+  flag = SUNKLUReInit(sd->ls, sd->J, SM_NNZ_S(sd->J), SUNKLU_REINIT_PARTIAL);
+  check_flag_fail(&flag, "SUNKLUReInit", 1);
+
+  // Set the inital time step
   flag = CVodeSetInitStep(sd->cvode_mem, sd->init_time_step);
   check_flag_fail(&flag, "CVodeSetInitStep", 1);
 
@@ -625,6 +643,46 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
   return (0);
 
+}
+
+/** \brief Try to improve guesses of y sent to the linear solver
+ *
+ * \param t_n Current time [s]
+ * \param h_n Current time step [s]
+ * \param y_n Current guess for y_n
+ * \param hf Current guess for change in y from t_n-1 to t_n
+ * \param solver_data Solver data
+ * \param tmp1 Temporary vector for calculations
+ * \param tmp2 Temporary vector for calculations
+ */
+void GuessHelper(const realtype t_n, const realtype h_n, N_Vector y_n,
+                 N_Vector hf, void *solver_data, N_Vector tmp1, N_Vector tmp2)
+{
+  SolverData *sd = (SolverData*) solver_data;
+
+  // Wait for an indication that fast rates are involved before making this
+  // somewhat costly guess improvement
+  if (h_n > sd->init_time_step * GUESS_THRESHHOLD) return;
+
+  // Only try improvements when negative concentrations are predicted
+  if (N_VMin(y_n) > -SMALL_NUMBER) return;
+
+  // Get a vector of all negative concentrations as positive values
+  N_VAbs(y_n, tmp1);
+  N_VLinearSum(-HALF, y_n, HALF, tmp1, tmp1);
+
+  // Calculate the Jacobian
+  if (Jac(t_n, y_n, NULL, sd->J, solver_data, NULL, NULL, NULL) != 0) return;
+
+  // Get changes in hf from reversing negative concentrations
+  SUNMatScaleAddI(ONE, sd->J);
+  SUNMatMatvec(sd->J, tmp1, tmp2);
+
+  // Adjust prediction vectors
+  N_VLinearSum(ONE, y_n, ONE, tmp2, y_n);
+  N_VLinearSum(ONE, hf,  ONE, tmp2, hf );
+
+  return;
 }
 
 /** \brief Create a sparse Jacobian matrix based on model data

@@ -25,6 +25,7 @@
 /* Math constants */
 #define ZERO 0.0
 #define ONE 1.0
+#define HALF 0.5
 #ifndef M_PI
     #define M_PI 3.14159265358979323846
 #endif

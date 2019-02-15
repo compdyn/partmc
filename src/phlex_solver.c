@@ -19,8 +19,42 @@
 #include "rxn_solver.h"
 #include "sub_model_solver.h"
 
+// Define PMC_DEBUG to turn on output of debug info
+
 // Define FAILURE_DETAIL to print out conditions before and after solver failures
 
+#ifdef PMC_DEBUG
+#define PMC_DEBUG_SPEC_ 0
+#define PMC_DEBUG_PRINT(x) pmc_debug_print(sd->cvode_mem, x, false, 0, __LINE__, __func__)
+#define PMC_DEBUG_PRINT_INT(x,y) pmc_debug_print(sd->cvode_mem, x, false, y, __LINE__, __func__)
+#define PMC_DEBUG_PRINT_FULL(x) pmc_debug_print(sd->cvode_mem, x, true, 0, __LINE__, __func__)
+void pmc_debug_print(void *cvode_mem, const char *message, bool do_full, 
+    const int int_val, const int line, const char *func)
+{
+  CVodeMem cv_mem = (CVodeMem) cvode_mem;
+  printf("\n[DEBUG] line %4d in %-20s(): %-25s %-4.0d t_n = %le h = %le q = %d"
+         "hin = %le species %d(zn[0] = %le zn[1] = %le tempv = %le tempv2 = %le)", 
+         line, func, message, int_val, cv_mem->cv_tn, cv_mem->cv_h, cv_mem->cv_q,
+         cv_mem->cv_hin, PMC_DEBUG_SPEC_,
+         NV_DATA_S(cv_mem->cv_zn[0])[PMC_DEBUG_SPEC_],
+         NV_DATA_S(cv_mem->cv_zn[1])[PMC_DEBUG_SPEC_],
+         NV_DATA_S(cv_mem->cv_tempv)[PMC_DEBUG_SPEC_],
+         NV_DATA_S(cv_mem->cv_tempv1)[PMC_DEBUG_SPEC_]);
+  if (do_full) {
+    for (int i=0; i<NV_LENGTH_S(cv_mem->cv_y); i++) {
+      printf("\n  zn[0][%d] = %le zn[1][%d] = %le tempv[%d] = %le tempv2[%d] = %le",
+         i, NV_DATA_S(cv_mem->cv_zn[0])[i],
+         i, NV_DATA_S(cv_mem->cv_zn[1])[i],
+         i, NV_DATA_S(cv_mem->cv_tempv)[i],
+         i, NV_DATA_S(cv_mem->cv_tempv1)[i]);
+    }
+  }
+}
+#else
+#define PMC_DEBUG_PRINT(x)
+#define PMC_DEBUG_PRINT_INT(x,y)
+#define PMC_DEBUG_PRINT_FULL(x)
+#endif
 
 // Default solver initial time step relative to total integration time
 #define DEFAULT_TIME_STEP 1.0
@@ -28,9 +62,8 @@
 #define SMALL_NUMBER 1.1E-30
 // Set MAX_TIMESTEP_WARNINGS to a negative number to prevent output
 #define MAX_TIMESTEP_WARNINGS -1
-// Solver timestep size threshhold relative to total integration time for
-// trying to improve guesses sent to linear solver
-#define GUESS_THRESHHOLD 5e-2
+// Relative time step size threshhold for trying to improve guess of yn
+#define GUESS_THRESHHOLD 1e-2
 
 // Status codes for calls to phlex_solver functions
 #define PHLEX_SOLVER_SUCCESS 0
@@ -648,7 +681,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 /** \brief Try to improve guesses of y sent to the linear solver
  *
  * \param t_n Current time [s]
- * \param h_n Current time step [s]
+ * \param h_n Current time step size [s]
  * \param y_n Current guess for y_n
  * \param hf Current guess for change in y from t_n-1 to t_n
  * \param solver_data Solver data
@@ -658,29 +691,55 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 void GuessHelper(const realtype t_n, const realtype h_n, N_Vector y_n,
                  N_Vector hf, void *solver_data, N_Vector tmp1, N_Vector tmp2)
 {
-  SolverData *sd = (SolverData*) solver_data;
+  SolverData *sd  = (SolverData*) solver_data;
+  realtype *ay_n  = NV_DATA_S(y_n);
+  realtype *ahf   = NV_DATA_S(hf);
+  realtype *atmp1 = NV_DATA_S(tmp1);
+  realtype *atmp2 = NV_DATA_S(tmp2);
+  int n_elem      = NV_LENGTH_S(y_n);
 
-  // Wait for an indication that fast rates are involved before making this
-  // somewhat costly guess improvement
+  // FIXME This guess messes up the history arrays when q > 1. Figure out how to
+  // fix this.
+  if (((CVodeMem)sd->cvode_mem)->cv_q > 1) return;
+
+  // Only perform this kind-of expensive guess improvement if the step size is
+  // getting really small
   if (h_n > sd->init_time_step * GUESS_THRESHHOLD) return;
 
   // Only try improvements when negative concentrations are predicted
   if (N_VMin(y_n) > -SMALL_NUMBER) return;
 
-  // Get a vector of all negative concentrations as positive values
-  N_VAbs(y_n, tmp1);
-  N_VLinearSum(-HALF, y_n, HALF, tmp1, tmp1);
+  PMC_DEBUG_PRINT_FULL("Trying to improve guess");
 
   // Calculate the Jacobian
-  if (Jac(t_n, y_n, NULL, sd->J, solver_data, NULL, NULL, NULL) != 0) return;
+  N_VLinearSum(ONE, y_n, -ONE, hf, tmp1);
+  PMC_DEBUG_PRINT_FULL("Got y0");
+  N_VScale(ONE/h_n, hf, tmp2);
+  PMC_DEBUG_PRINT_FULL("Got f0");
+  if (Jac(t_n-h_n, tmp1, tmp2, sd->J, solver_data, NULL, NULL, NULL) != 0) return;
+  PMC_DEBUG_PRINT_FULL("Calculated Jacobian");
 
-  // Get changes in hf from reversing negative concentrations
+  // Estimate change in y0 needed to keep values in yn positive
+  // assuming that f0(y) ~ y * f0' where df0'/dy = 0
+  for (int i = 0; i < n_elem; i++) {
+    if (ay_n[i] >= ZERO) {
+      atmp1[i] = ZERO;
+    } else {
+      atmp1[i] = atmp1[i] * (ay_n[i] / (atmp1[i] - ay_n[i]));
+    }
+  }
+  PMC_DEBUG_PRINT_FULL("Estimated primary adjustments in y0");
+
+  // Get changes in hf from adjustments to y0
   SUNMatScaleAddI(ONE, sd->J);
   SUNMatMatvec(sd->J, tmp1, tmp2);
+  N_VScale(h_n, tmp2, tmp2);
+  PMC_DEBUG_PRINT_FULL("Applied Jacobian to adjustments");
 
   // Adjust prediction vectors
   N_VLinearSum(ONE, y_n, ONE, tmp2, y_n);
   N_VLinearSum(ONE, hf,  ONE, tmp2, hf );
+  PMC_DEBUG_PRINT_FULL("Adjusted predictions");
 
   return;
 }

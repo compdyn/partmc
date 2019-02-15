@@ -37,7 +37,7 @@ module pmc_monarch_interface
   type :: monarch_interface_t
     private
     !> Phlex-chem core
-    type(phlex_core_t), pointer :: phlex_core 
+    type(phlex_core_t), pointer :: phlex_core
     !> Phlex-chem state
     type(phlex_state_t), pointer :: phlex_state
     !> MONARCH species names
@@ -121,7 +121,7 @@ contains
     integer(kind=i_kind) :: pos, pack_size
     integer(kind=i_kind) :: i_spec
     type(string_t), allocatable :: unique_names(:)
-    
+
     ! Computation time variable
     real(kind=dp) :: comp_start, comp_end
 
@@ -149,7 +149,7 @@ contains
 
     ! Initialize the time-invariant model data on each node
     if (MONARCH_PROCESS.eq.0) then
-      
+
       ! Start the computation timer on the primary node
       call cpu_time(comp_start)
 
@@ -174,7 +174,7 @@ contains
       new_obj%tracer_ending_id = ending_id
 
       ! Generate the PartMC-phlex <-> MONARCH species map
-      call new_obj%create_map()      
+      call new_obj%create_map()
 
       ! Load the initial concentrations
       call new_obj%load_init_conc()
@@ -194,7 +194,7 @@ contains
       call pmc_mpi_pack_real_array(buffer, pos, new_obj%init_conc)
       call pmc_mpi_pack_integer(buffer, pos, new_obj%gas_phase_water_id)
     endif
-       
+
     ! broadcast the buffer size
     call pmc_mpi_bcast_integer(pack_size, local_comm)
 
@@ -233,7 +233,7 @@ contains
     if (MONARCH_PROCESS.eq.0) then
       call cpu_time(comp_end)
       write(*,*) "Initialization time: ", comp_end-comp_start, " s"
-      call new_obj%phlex_core%print()
+      ! call new_obj%phlex_core%print()
     end if
 
   end function constructor
@@ -330,7 +330,7 @@ contains
       end do
     end do
 
-    call solver_stats%print( )
+    ! call solver_stats%print( )
 
   end subroutine integrate
 
@@ -362,11 +362,11 @@ contains
 
     ! Get a new json core
     allocate(json)
-    
+
     ! Initialize the json objects
     j_obj => null()
     j_next => null()
-      
+
     ! Initialize the json file
     call j_file%initialize()
     call j_file%get_core(json)
@@ -390,11 +390,11 @@ contains
       call assert_msg(236838162, found, "Missing type in json input file "// &
               config_file)
       str_val = unicode_str_val
-      
+
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !!! Load property sets according to type !!!
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      
+
       ! Species Map data
       if (str_val.eq."SPECIES_MAP") then
         call json%get_child(j_obj, j_child)
@@ -406,7 +406,7 @@ contains
           j_next => j_child
           call json%get_next(j_next, j_child)
         end do
-      
+
       ! Initial concentration data
       else if (str_val.eq."INIT_CONC") then
         call json%get_child(j_obj, j_child)
@@ -487,7 +487,7 @@ contains
     call assert_msg(910692272, this%gas_phase_water_id.gt.0, &
             "Could not find gas-phase water species '"//spec_name//"'.")
 
-    ! Loop through the gas-phase species and set up the map      
+    ! Loop through the gas-phase species and set up the map
     call gas_species_list%iter_reset()
     i_spec = 1
     do while (gas_species_list%get_key(spec_name))
@@ -510,23 +510,23 @@ contains
               this%map_monarch_id(i_spec).le.this%tracer_ending_id, &
               "Monarch id for species '"//spec_name//"' out of specified "// &
               "tracer array bounds.")
-        
+
       this%map_phlex_id(i_spec) = chem_spec_data%gas_state_id(spec_name)
       call assert_msg(916977002, this%map_phlex_id(i_spec).gt.0, &
                 "Could not find species '"//spec_name//"' in PartMC-phlex.")
-      
+
       call gas_species_list%iter_next()
       i_spec = i_spec + 1
     end do
 
     ! Loop through the aerosol-phase species and add them to the map
     if (associated(aero_species_list)) then
-      
+
       call aero_species_list%iter_reset()
       do while(aero_species_list%get_key(spec_name))
 
         this%monarch_species_names(i_spec)%string = spec_name
-        
+
         call assert_msg(567689501, &
                 aero_species_list%get_property_t(val=species_data), &
                 "Missing species data for '"//spec_name//"' in " //&
@@ -564,7 +564,7 @@ contains
         i_spec = i_spec + 1
       end do
     end if
-    
+
   end subroutine create_map
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -607,7 +607,7 @@ contains
     ! Add the gas-phase initial concentrations
     if (associated(gas_species_list)) then
 
-      ! Loop through the gas-phase species and load the initial concentrations 
+      ! Loop through the gas-phase species and load the initial concentrations
       call gas_species_list%iter_reset()
       i_spec = 1
       do while (gas_species_list%get_key(spec_name))
@@ -622,21 +622,21 @@ contains
                 species_data%get_real(key_name, this%init_conc(i_spec)), &
                 "Missing 'init conc' for species '"//spec_name//" for "// &
                 "PartMC-phlex initial concentrations.")
-        
+
         this%init_conc_phlex_id(i_spec) = &
                 chem_spec_data%gas_state_id(spec_name)
         call assert_msg(940200584, this%init_conc_phlex_id(i_spec).gt.0, &
                 "Could not find species '"//spec_name//"' in PartMC-phlex.")
-      
+
         call gas_species_list%iter_next()
         i_spec = i_spec + 1
       end do
 
     end if
-    
+
     ! Add the aerosol-phase species initial concentrations
     if (associated(aero_species_list)) then
-      
+
       call aero_species_list%iter_reset()
       do while(aero_species_list%get_key(spec_name))
 

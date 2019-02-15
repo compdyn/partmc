@@ -75,8 +75,8 @@ program mock_monarch
   !> Starting time for mock model run (min since midnight) TODO check how time
   !! is tracked in MONARCH
   real :: curr_time = START_TIME
-  
-  !> Plot start time is after first call to solve chemistry, so initial 
+
+  !> Plot start time is after first call to solve chemistry, so initial
   !! concentrations do not affect y-axis scaling
   real :: plot_start_time = START_TIME + TIME_STEP
 
@@ -93,7 +93,7 @@ program mock_monarch
   character(len=:), allocatable :: interface_input_file
   !> Results file prefix
   character(len=:), allocatable :: output_file_prefix
- 
+
   character(len=500) :: arg
   integer :: status_code, i_time
 
@@ -138,7 +138,7 @@ program mock_monarch
 
   ! Run the model
   do i_time=0, NUM_TIME_STEP
-  
+
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! **** Add to MONARCH during runtime for each time step **** !
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -155,13 +155,13 @@ program mock_monarch
                                  water_conc,        & ! Water concentrations (kg_H2O/kg_air)
                                  WATER_VAPOR_ID,    & ! Index in water_conc() corresponding to water vapor
                                  air_density,       & ! Air density (kg_air/m^3)
-                                 pressure)            ! Air pressure (Pa)   
+                                 pressure)            ! Air pressure (Pa)
     curr_time = curr_time + TIME_STEP
-  
+
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! **** end runtime modification **** !
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    
+
   end do
 
   write(*,*) "Model run time: ", comp_time, " s"
@@ -232,7 +232,7 @@ contains
   end subroutine output_results
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    
+
   !> Create a gnuplot script for viewing species concentrations
   subroutine create_gnuplot_script(pmc_interface, file_prefix, start_time, &
             end_time)
@@ -284,7 +284,7 @@ contains
     write(SCRIPTS_FILE_UNIT,*) " using 1:"// &
             trim(to_string(tracer_id))//" title 'H2O (MONARCH)'"
     close(SCRIPTS_FILE_UNIT)
-    
+
     deallocate(species_names)
     deallocate(tracer_ids)
     deallocate(file_name)
@@ -294,4 +294,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end program mock_monarch 
+end program mock_monarch

@@ -14,6 +14,7 @@
 /* SUNDIALS Header files with a description of contents used */
 #ifdef PMC_USE_SUNDIALS
 #include <cvode/cvode.h>                 /* Protoypes for CVODE fcts., consts.  */
+#include <cvode/cvode_impl.h>            /* CVodeMem structure                  */
 #include <cvode/cvode_direct.h>          /* CVDls interface                     */
 #include <nvector/nvector_serial.h>      /* Serial N_Vector types, fcts, macros */
 #include <sundials/sundials_math.h>      /* SUNDIALS math function macros       */

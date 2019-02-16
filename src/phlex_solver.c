@@ -28,12 +28,12 @@
 #define PMC_DEBUG_PRINT(x) pmc_debug_print(sd->cvode_mem, x, false, 0, __LINE__, __func__)
 #define PMC_DEBUG_PRINT_INT(x,y) pmc_debug_print(sd->cvode_mem, x, false, y, __LINE__, __func__)
 #define PMC_DEBUG_PRINT_FULL(x) pmc_debug_print(sd->cvode_mem, x, true, 0, __LINE__, __func__)
-void pmc_debug_print(void *cvode_mem, const char *message, bool do_full, 
+void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
     const int int_val, const int line, const char *func)
 {
   CVodeMem cv_mem = (CVodeMem) cvode_mem;
   printf("\n[DEBUG] line %4d in %-20s(): %-25s %-4.0d t_n = %le h = %le q = %d"
-         "hin = %le species %d(zn[0] = %le zn[1] = %le tempv = %le tempv2 = %le)", 
+         "hin = %le species %d(zn[0] = %le zn[1] = %le tempv = %le tempv2 = %le)",
          line, func, message, int_val, cv_mem->cv_tn, cv_mem->cv_h, cv_mem->cv_q,
          cv_mem->cv_hin, PMC_DEBUG_SPEC_,
          NV_DATA_S(cv_mem->cv_zn[0])[PMC_DEBUG_SPEC_],
@@ -42,7 +42,7 @@ void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
          NV_DATA_S(cv_mem->cv_tempv1)[PMC_DEBUG_SPEC_]);
   if (do_full) {
     for (int i=0; i<NV_LENGTH_S(cv_mem->cv_y); i++) {
-      printf("\n  zn[0][%d] = %le zn[1][%d] = %le tempv[%d] = %le tempv2[%d] = %le",
+      printf("\n  zn[0][%3d] = % -le zn[1][%3d] = % -le tempv[%3d] = % -le tempv2[%3d] = % -le",
          i, NV_DATA_S(cv_mem->cv_zn[0])[i],
          i, NV_DATA_S(cv_mem->cv_zn[1])[i],
          i, NV_DATA_S(cv_mem->cv_tempv)[i],
@@ -305,7 +305,7 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   check_flag_fail(&flag, "CVDlsSetJacFn", 1);
 
   // Set a function to improve guesses for y sent to the linear solver
-  flag = CVodeSetDlsGuessHelper(sd->cvode_mem, GuessHelper);
+  flag = CVodeSetDlsGuessHelper(sd->cvode_mem, guess_helper);
   check_flag_fail(&flag, "CVodeSetDlsGuessHelper", 1);
 
 #ifndef FAILURE_DETAIL
@@ -524,33 +524,6 @@ int phlex_solver_update_model_state(N_Vector solver_state,
   return PHLEX_SOLVER_SUCCESS;
 }
 
-/** \brief Update the solver state from the current model state
- *
- * \param solver_state Solver state vector
- * \param model_data Pointer to the model data (including the state array)
- * \return PHLEX_SOLVER_SUCCESS for successful update
- */
-int phlex_solver_update_solver_state(N_Vector solver_state,
-          ModelData *model_data)
-{
-  for (int i_spec=0, i_dep_var=0; i_spec<model_data->n_state_var; i_spec++) {
-    if (model_data->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
-
-      if (model_data->state[i_spec] > SMALL_NUMBER ||
-          NV_DATA_S(solver_state)[i_dep_var] > SMALL_NUMBER)
-        NV_DATA_S(solver_state)[i_dep_var] = model_data->state[i_spec];
-#ifdef FAILURE_DETAIL
-      if (NV_DATA_S(solver_state)[i_dep_var] < ZERO) {
-        printf("\nTrying to save negative concentration to solver state: "
-               "[spec %d] = %le", i_spec, NV_DATA_S(solver_state)[i_dep_var]);
-      }
-#endif
-      i_dep_var++;
-    }
-  }
-  return PHLEX_SOLVER_SUCCESS;
-}
-
 /** \brief Compute the time derivative f(t,y)
  *
  * \param t Current model time (s)
@@ -592,9 +565,6 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   // Calculate the time derivative f(t,y)
   rxn_calc_deriv(md, deriv, (double) time_step);
 
-  // Update the solver state to reflect fast reactions
-  // phlex_solver_update_solver_state(y, md);
-
   return (0);
 
 }
@@ -632,21 +602,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     }
   }
 
-  // TODO Figure out how to keep the Jacobian from being redimensioned
-  // Reset the Jacobian dimensions
-  if (SM_NNZ_S(J)<SM_NNZ_S(md->J_init)) {
-    SM_INDEXVALS_S(J) = realloc(SM_INDEXVALS_S(J),
-              SM_NNZ_S(md->J_init)*sizeof(sunindextype));
-    if (SM_INDEXVALS_S(J)==NULL) {
-      printf("\n\nERROR allocating space for sparse matrix index values\n\n");
-      exit(1);
-    }
-    SM_DATA_S(J) = realloc(SM_DATA_S(J), SM_NNZ_S(md->J_init)*sizeof(realtype));
-    if (SM_DATA_S(J)==NULL) {
-      printf("\n\nERROR allocating space for sparse matrix data\n\n");
-      exit(1);
-    }
-  }
+  // Reset the Jacobian
   SM_NNZ_S(J) = SM_NNZ_S(md->J_init);
   for (int i=0; i<SM_NNZ_S(J); i++) {
     (SM_DATA_S(J))[i] = (realtype)0.0;
@@ -655,6 +611,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   for (int i=0; i<=SM_NP_S(J); i++) {
     (SM_INDEXPTRS_S(J))[i] = (SM_INDEXPTRS_S(md->J_init))[i];
   }
+
 
   // Update the aerosol representations
   aero_rep_update_state(md);
@@ -671,9 +628,6 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   // Calculate the Jacobian
   rxn_calc_jac(md, J, time_step);
 
-  // Update the solver state to reflect fast reactions
-  // phlex_solver_update_solver_state(y, md);
-
   return (0);
 
 }
@@ -688,7 +642,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
  * \param tmp1 Temporary vector for calculations
  * \param tmp2 Temporary vector for calculations
  */
-void GuessHelper(const realtype t_n, const realtype h_n, N_Vector y_n,
+void guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
                  N_Vector hf, void *solver_data, N_Vector tmp1, N_Vector tmp2)
 {
   SolverData *sd  = (SolverData*) solver_data;
@@ -697,6 +651,9 @@ void GuessHelper(const realtype t_n, const realtype h_n, N_Vector y_n,
   realtype *atmp1 = NV_DATA_S(tmp1);
   realtype *atmp2 = NV_DATA_S(tmp2);
   int n_elem      = NV_LENGTH_S(y_n);
+  int i_min_val;
+  realtype min_val;
+  realtype scale_factor;
 
   // FIXME This guess messes up the history arrays when q > 1. Figure out how to
   // fix this.
@@ -707,7 +664,8 @@ void GuessHelper(const realtype t_n, const realtype h_n, N_Vector y_n,
   if (h_n > sd->init_time_step * GUESS_THRESHHOLD) return;
 
   // Only try improvements when negative concentrations are predicted
-  if (N_VMin(y_n) > -SMALL_NUMBER) return;
+  min_val = N_VMin(y_n);
+  if (min_val > -SMALL_NUMBER) return;
 
   PMC_DEBUG_PRINT_FULL("Trying to improve guess");
 
@@ -727,14 +685,24 @@ void GuessHelper(const realtype t_n, const realtype h_n, N_Vector y_n,
     } else {
       atmp1[i] = atmp1[i] * (ay_n[i] / (atmp1[i] - ay_n[i]));
     }
+    if (ay_n[i] == min_val) i_min_val = i;
   }
   PMC_DEBUG_PRINT_FULL("Estimated primary adjustments in y0");
 
   // Get changes in hf from adjustments to y0
-  SUNMatScaleAddI(ONE, sd->J);
   SUNMatMatvec(sd->J, tmp1, tmp2);
   N_VScale(h_n, tmp2, tmp2);
   PMC_DEBUG_PRINT_FULL("Applied Jacobian to adjustments");
+
+  // Scale adjustments so largest negative value becomes zero
+  // FIXME This filter shouldn't be needed - could be a problem in the
+  //       Jacobian calculation for mass transfer (not accounting for
+  //       contribution of other condensed species)?
+  if (atmp2[i_min_val] > ZERO) {
+    scale_factor = -min_val / atmp2[i_min_val];
+    N_VScale(scale_factor, tmp2, tmp2);
+    PMC_DEBUG_PRINT_FULL("Scaled adjustments");
+  }
 
   // Adjust prediction vectors
   N_VLinearSum(ONE, y_n, ONE, tmp2, y_n);

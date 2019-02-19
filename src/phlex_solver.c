@@ -23,6 +23,7 @@
 
 // Define FAILURE_DETAIL to print out conditions before and after solver failures
 
+
 #ifdef PMC_DEBUG
 #define PMC_DEBUG_SPEC_ 0
 #define PMC_DEBUG_PRINT(x) pmc_debug_print(sd->cvode_mem, x, false, 0, __LINE__, __func__)
@@ -63,7 +64,7 @@ void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
 // Set MAX_TIMESTEP_WARNINGS to a negative number to prevent output
 #define MAX_TIMESTEP_WARNINGS -1
 // Relative time step size threshhold for trying to improve guess of yn
-#define GUESS_THRESHHOLD 1e-2
+#define GUESS_THRESHHOLD 1.0
 
 // Status codes for calls to phlex_solver functions
 #define PHLEX_SOLVER_SUCCESS 0
@@ -291,6 +292,11 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   sd->J = get_jac_init(sd);
   sd->model_data.J_init = SUNMatClone(sd->J);
   SUNMatCopy(sd->J, sd->model_data.J_init);
+
+  // Create a Jacobian matrix for correcting negative predicted concentrations
+  // during solving
+  sd->J_guess = SUNMatClone(sd->J);
+  SUNMatCopy(sd->J, sd->J_guess);
 
   // Create a KLU SUNLinearSolver
   sd->ls = SUNKLU(sd->y, sd->J);
@@ -640,41 +646,36 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
  * \param hf Current guess for change in y from t_n-1 to t_n
  * \param solver_data Solver data
  * \param tmp1 Temporary vector for calculations
- * \param tmp2 Temporary vector for calculations
+ * \param corr Vector of calculated adjustments to y [output]
+ * \return 1 if corrections were calculated, 0 if not
  */
-void guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
-                 N_Vector hf, void *solver_data, N_Vector tmp1, N_Vector tmp2)
+int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
+                 N_Vector hf, void *solver_data, N_Vector tmp1, N_Vector corr)
 {
   SolverData *sd  = (SolverData*) solver_data;
   realtype *ay_n  = NV_DATA_S(y_n);
-  realtype *ahf   = NV_DATA_S(hf);
   realtype *atmp1 = NV_DATA_S(tmp1);
-  realtype *atmp2 = NV_DATA_S(tmp2);
+  realtype *acorr = NV_DATA_S(corr);
   int n_elem      = NV_LENGTH_S(y_n);
-  int i_min_val;
-  realtype min_val;
-  realtype scale_factor;
 
-  // FIXME This guess messes up the history arrays when q > 1. Figure out how to
-  // fix this.
-  if (((CVodeMem)sd->cvode_mem)->cv_q > 1) return;
+  // TODO Figure out if/how to make this work with q > 1
+  if (((CVodeMem)sd->cvode_mem)->cv_q > 1) return 0;
 
   // Only perform this kind-of expensive guess improvement if the step size is
   // getting really small
-  if (h_n > sd->init_time_step * GUESS_THRESHHOLD) return;
+  if (h_n == ZERO || h_n > sd->init_time_step * GUESS_THRESHHOLD) return 0;
 
   // Only try improvements when negative concentrations are predicted
-  min_val = N_VMin(y_n);
-  if (min_val > -SMALL_NUMBER) return;
+  if (N_VMin(y_n) > -SMALL_NUMBER) return 0;
 
   PMC_DEBUG_PRINT_FULL("Trying to improve guess");
 
   // Calculate the Jacobian
   N_VLinearSum(ONE, y_n, -ONE, hf, tmp1);
   PMC_DEBUG_PRINT_FULL("Got y0");
-  N_VScale(ONE/h_n, hf, tmp2);
+  N_VScale(ONE/h_n, hf, corr);
   PMC_DEBUG_PRINT_FULL("Got f0");
-  if (Jac(t_n-h_n, tmp1, tmp2, sd->J, solver_data, NULL, NULL, NULL) != 0) return;
+  if (Jac(t_n-h_n, tmp1, corr, sd->J_guess, solver_data, NULL, NULL, NULL) != 0) return 0;
   PMC_DEBUG_PRINT_FULL("Calculated Jacobian");
 
   // Estimate change in y0 needed to keep values in yn positive
@@ -685,31 +686,23 @@ void guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
     } else {
       atmp1[i] = atmp1[i] * (ay_n[i] / (atmp1[i] - ay_n[i]));
     }
-    if (ay_n[i] == min_val) i_min_val = i;
   }
   PMC_DEBUG_PRINT_FULL("Estimated primary adjustments in y0");
 
   // Get changes in hf from adjustments to y0
-  SUNMatMatvec(sd->J, tmp1, tmp2);
-  N_VScale(h_n, tmp2, tmp2);
+  SUNMatMatvec(sd->J_guess, tmp1, corr);
+  N_VScale(h_n, corr, corr);
   PMC_DEBUG_PRINT_FULL("Applied Jacobian to adjustments");
 
-  // Scale adjustments so largest negative value becomes zero
-  // FIXME This filter shouldn't be needed - could be a problem in the
-  //       Jacobian calculation for mass transfer (not accounting for
-  //       contribution of other condensed species)?
-  if (atmp2[i_min_val] > ZERO) {
-    scale_factor = -min_val / atmp2[i_min_val];
-    N_VScale(scale_factor, tmp2, tmp2);
-    PMC_DEBUG_PRINT_FULL("Scaled adjustments");
-  }
+  // Recalculate adjustments to y0
+  for (int i = 0; i < n_elem; i++)
+    if (ay_n[i] < ZERO && acorr[i] > ZERO)
+      atmp1[i] *= (-ay_n[i]/acorr[i]);
+  SUNMatMatvec(sd->J_guess, tmp1, corr);
+  N_VScale(h_n, corr, corr);
+  PMC_DEBUG_PRINT_FULL("Applied Jacobian to recalculated adjustments");
 
-  // Adjust prediction vectors
-  N_VLinearSum(ONE, y_n, ONE, tmp2, y_n);
-  N_VLinearSum(ONE, hf,  ONE, tmp2, hf );
-  PMC_DEBUG_PRINT_FULL("Adjusted predictions");
-
-  return;
+  return 1;
 }
 
 /** \brief Create a sparse Jacobian matrix based on model data
@@ -941,6 +934,9 @@ void solver_free(void *solver_data)
 
   // destroy the Jacobian marix
   SUNMatDestroy(sd->J);
+
+  // destroy Jacobian matrix for guessing state
+  SUNMatDestroy(sd->J_guess);
 
   // free the linear solver
   SUNLinSolFree(sd->ls);

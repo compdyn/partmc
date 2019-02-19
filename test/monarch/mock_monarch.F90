@@ -136,6 +136,8 @@ program mock_monarch
   call pmc_interface%get_init_conc(species_conc, water_conc, WATER_VAPOR_ID, &
           air_density)
 
+  ! call pmc_interface%print( )
+
   ! Run the model
   do i_time=0, NUM_TIME_STEP
 

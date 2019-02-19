@@ -91,6 +91,7 @@ contains
     integer(kind=i_kind) :: i_time, i_spec, row_size, row_pos, row_end
 
     real(kind=dp) :: comp_start, comp_end
+    type(solver_stats_t), target :: solver_stats
 
     ! Check for an available solver
     integration_data => integration_data_t()
@@ -183,10 +184,13 @@ contains
     do i_time = 1, NUM_TIME_STEP
 
       ! Get the modeled conc
-      call phlex_core%solve(phlex_state, TIME_STEP)
+      call phlex_core%solve(phlex_state, TIME_STEP, &
+                            solver_stats = solver_stats)
 
       ! Save the modeled conc
       model_conc(i_time,:) = phlex_state%state_var(:)
+
+      call solver_stats%print()
 
     end do
 

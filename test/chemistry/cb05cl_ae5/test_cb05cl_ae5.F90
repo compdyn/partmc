@@ -16,6 +16,7 @@ program pmc_test_cb05cl_ae5
   use pmc_phlex_core
   use pmc_phlex_state
   use pmc_phlex_solver_data
+  use pmc_solver_stats
   use pmc_chem_spec_data
   use pmc_mechanism_data
   use pmc_rxn_data
@@ -171,6 +172,7 @@ contains
     integer(kind=i_kind), allocatable :: ebi_spec_map(:), kpp_spec_map(:)
     type(string_t) :: str_temp
     type(string_t), allocatable :: spec_names(:)
+    type(solver_stats_t), target :: solver_stats
 
     ! Pointer to the mechanism
     type(mechanism_data_t), pointer :: mechanism
@@ -608,9 +610,14 @@ contains
 
       ! Phlex-chem
       call cpu_time(comp_start)
-      call phlex_core%solve(phlex_state, real(EBI_TMSTEP*60.0, kind=dp))
+      call phlex_core%solve(phlex_state, real(EBI_TMSTEP*60.0, kind=dp), &
+                            solver_stats = solver_stats)
       call cpu_time(comp_end)
       comp_phlex = comp_phlex + (comp_end-comp_start)
+
+#ifdef DEBUG
+      if (i_repeat.eq.1) call solver_stats%print()
+#endif
 
     end do 
     end do

@@ -79,6 +79,8 @@ typedef struct {
   SUNLinearSolver ls;   // linear solver
   N_Vector deriv;       // used to calculate the derivative outside the solver
   SUNMatrix J;          // Jacobian matrix
+  SUNMatrix J_guess;    // Jacobian matrix for improving guesses sent to linear
+                        // solver
 #endif
   void *cvode_mem;	// CVodeMem object
   ModelData model_data; // Model data (used during initialization and solving)

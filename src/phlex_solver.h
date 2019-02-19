@@ -36,8 +36,8 @@ void model_free(ModelData model_data);
 int f(realtype t, N_Vector y, N_Vector deriv, void *model_data);
 int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *model_data,
   	  N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
-void guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
-                 N_Vector hf, void *solver_data, N_Vector tmp1, N_Vector tmp2);
+int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
+                 N_Vector hf, void *solver_data, N_Vector tmp1, N_Vector corr);
 void error_handler(int error_code, const char *module,
           const char *function, char *msg, void *sd);
 

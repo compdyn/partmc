@@ -690,6 +690,7 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
   PMC_DEBUG_PRINT_FULL("Estimated primary adjustments in y0");
 
   // Get changes in hf from adjustments to y0
+  SUNMatScaleAddI(ONE, sd->J_guess);
   SUNMatMatvec(sd->J_guess, tmp1, corr);
   N_VScale(h_n, corr, corr);
   PMC_DEBUG_PRINT_FULL("Applied Jacobian to adjustments");
@@ -737,8 +738,9 @@ SUNMatrix get_jac_init(SolverData *solver_data)
                 "row %d\n\n", i_spec);
       exit(1);
     }
+    // Add diagnonal elements by default
     for (int j_spec=0; j_spec < n_state_var; j_spec++)
-            jac_struct[i_spec][j_spec] = false;
+            jac_struct[i_spec][j_spec] = i_spec==j_spec ? true : false;
   }
 
   // Fill in the 2D array of flags with Jacobian elements used by the

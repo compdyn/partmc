@@ -81,6 +81,9 @@ typedef struct {
   SUNMatrix J;          // Jacobian matrix
   SUNMatrix J_guess;    // Jacobian matrix for improving guesses sent to linear
                         // solver
+  bool curr_J_guess;    // Flag indicating the Jacobian used by the guess helper
+                        // is current
+  realtype J_guess_t;   // Last time (t) for which J_guess was calculated
 #endif
   void *cvode_mem;	// CVodeMem object
   ModelData model_data; // Model data (used during initialization and solving)

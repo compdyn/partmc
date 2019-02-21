@@ -358,6 +358,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   sd->model_data.use_adj = true;
   rxn_reset_state_adjustments(&(sd->model_data));
 
+  // Reset the flag indicating a current J_guess
+  sd->curr_J_guess = false;
+
   // Set the initial time step
   sd->init_time_step = (t_final - t_initial) * DEFAULT_TIME_STEP;
 
@@ -670,12 +673,22 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
 
   PMC_DEBUG_PRINT_FULL("Trying to improve guess");
 
+  // Determine if J_guess is current
+  if (sd->curr_J_guess)
+    if ( ((t_n - h_n) - sd->J_guess_t) > SMALL_NUMBER )
+      sd->curr_J_guess = false;
+
   // Calculate the Jacobian
   N_VLinearSum(ONE, y_n, -ONE, hf, tmp1);
   PMC_DEBUG_PRINT_FULL("Got y0");
   N_VScale(ONE/h_n, hf, corr);
   PMC_DEBUG_PRINT_FULL("Got f0");
-  if (Jac(t_n-h_n, tmp1, corr, sd->J_guess, solver_data, NULL, NULL, NULL) != 0) return 0;
+  if (!(sd->curr_J_guess)) {
+    if (Jac(t_n-h_n, tmp1, corr, sd->J_guess, solver_data,
+            NULL, NULL, NULL) != 0) return 0;
+    sd->curr_J_guess = true;
+    sd->J_guess_t    = (t_n - h_n); // J is calculatd for t_(n-1)
+  }
   PMC_DEBUG_PRINT_FULL("Calculated Jacobian");
 
   // Estimate change in y0 needed to keep values in yn positive

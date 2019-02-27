@@ -71,6 +71,8 @@ module pmc_aero_mode
      !> Species fraction standard deviation
      !> [length \c aero_data_n_spec(aero_data)] (1).
      real(kind=dp), allocatable :: vol_frac_std(:)
+     !> Fractal particle parameters.
+     type(fractal_t) :: fractal
      !> Source number.
      integer :: source
   end type aero_mode_t
@@ -1091,6 +1093,7 @@ contains
           call spec_file_die_msg(729472928, file, &
                "Unknown distribution mode type: " // trim(mode_type))
        end if
+       call spec_file_read_fractal(file, aero_mode%fractal)
     end if
 
   end subroutine spec_file_read_aero_mode
@@ -1113,6 +1116,7 @@ contains
          + pmc_mpi_pack_size_real(val%num_conc) &
          + pmc_mpi_pack_size_real_array(val%vol_frac) &
          + pmc_mpi_pack_size_real_array(val%vol_frac_std) &
+         + pmc_mpi_pack_size_fractal(val%fractal) &
          + pmc_mpi_pack_size_integer(val%source)
 
   end function pmc_mpi_pack_size_aero_mode
@@ -1142,6 +1146,7 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%num_conc)
     call pmc_mpi_pack_real_array(buffer, position, val%vol_frac)
     call pmc_mpi_pack_real_array(buffer, position, val%vol_frac_std)
+    call pmc_mpi_pack_fractal(buffer, position, val%fractal)
     call pmc_mpi_pack_integer(buffer, position, val%source)
     call assert(497092471, &
          position - prev_position <= pmc_mpi_pack_size_aero_mode(val))
@@ -1174,6 +1179,7 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%num_conc)
     call pmc_mpi_unpack_real_array(buffer, position, val%vol_frac)
     call pmc_mpi_unpack_real_array(buffer, position, val%vol_frac_std)
+    call pmc_mpi_unpack_fractal(buffer, position, val%fractal)
     call pmc_mpi_unpack_integer(buffer, position, val%source)
     call assert(874467577, &
          position - prev_position <= pmc_mpi_pack_size_aero_mode(val))

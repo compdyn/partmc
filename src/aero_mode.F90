@@ -163,7 +163,7 @@ contains
 
   !> Compute a log-normal distribution in volume.
   subroutine vol_conc_log_normal(total_num_conc, &
-       geom_mean_radius, log10_sigma_g, bin_grid, aero_data, vol_conc)
+       geom_mean_radius, log10_sigma_g, bin_grid, fractal, vol_conc)
 
     !> Total number concentration of the mode (m^{-3}).
     real(kind=dp), intent(in) :: total_num_conc
@@ -173,8 +173,8 @@ contains
     real(kind=dp), intent(in) :: log10_sigma_g
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    !> Fractal parameters.
+    type(fractal_t), intent(in) :: fractal
     !> Volume concentration (V(ln(r))d(ln(r))).
     real(kind=dp), intent(out) :: vol_conc(bin_grid_size(bin_grid))
 
@@ -183,7 +183,7 @@ contains
     call num_conc_log_normal(total_num_conc, geom_mean_radius, &
          log10_sigma_g, bin_grid, num_conc)
 
-    vol_conc = num_conc * aero_data_rad2vol(aero_data, bin_grid%centers)
+    vol_conc = num_conc * fractal_rad2vol(fractal, bin_grid%centers)
 
   end subroutine vol_conc_log_normal
 
@@ -194,7 +194,7 @@ contains
   !! \f[ n(v) = \frac{1}{\rm mean-vol} \exp(- v / {\rm mean-vol}) \f]
   !! Normalized so that sum(num_conc(k) * log_width) = 1
   subroutine num_conc_exp(total_num_conc, radius_at_mean_vol, &
-       bin_grid, aero_data, num_conc)
+       bin_grid, fractal, num_conc)
 
     !> Total number concentration of the mode (m^{-3}).
     real(kind=dp), intent(in) :: total_num_conc
@@ -202,18 +202,18 @@ contains
     real(kind=dp), intent(in) :: radius_at_mean_vol
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    !> Fractal parameters.
+    type(fractal_t), intent(in) :: fractal
     !> Number concentration (#(ln(r))d(ln(r))).
     real(kind=dp), intent(out) :: num_conc(bin_grid_size(bin_grid))
 
     integer :: k
     real(kind=dp) :: mean_vol, num_conc_vol
 
-    mean_vol = aero_data_rad2vol(aero_data, radius_at_mean_vol)
+    mean_vol = fractal_rad2vol(fractal, radius_at_mean_vol)
     do k = 1,bin_grid_size(bin_grid)
        num_conc_vol = total_num_conc / mean_vol &
-            * exp(-(aero_data_rad2vol(aero_data, bin_grid%centers(k)) &
+            * exp(-(fractal_rad2vol(fractal, bin_grid%centers(k)) &
             / mean_vol))
        call vol_to_lnr(bin_grid%centers(k), num_conc_vol, num_conc(k))
     end do
@@ -224,7 +224,7 @@ contains
 
   !> Exponential distribution in volume.
   subroutine vol_conc_exp(total_num_conc, radius_at_mean_vol, &
-       bin_grid, aero_data, vol_conc)
+       bin_grid, fractal, vol_conc)
 
     !> Total number concentration of the mode (m^{-3}).
     real(kind=dp), intent(in) :: total_num_conc
@@ -232,16 +232,16 @@ contains
     real(kind=dp), intent(in) :: radius_at_mean_vol
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    !> Fractal parameters.
+    type(fractal_t), intent(in) :: fractal
     !> Volume concentration (V(ln(r))d(ln(r))).
     real(kind=dp), intent(out) :: vol_conc(bin_grid_size(bin_grid))
 
     real(kind=dp) :: num_conc(bin_grid_size(bin_grid))
 
     call num_conc_exp(total_num_conc, radius_at_mean_vol, &
-         bin_grid, aero_data, num_conc)
-    vol_conc = num_conc * aero_data_rad2vol(aero_data, bin_grid%centers)
+         bin_grid, fractal, num_conc)
+    vol_conc = num_conc * fractal_rad2vol(fractal, bin_grid%centers)
 
   end subroutine vol_conc_exp
 
@@ -276,7 +276,7 @@ contains
 
   !> Mono-disperse distribution in volume.
   subroutine vol_conc_mono(total_num_conc, radius, &
-       bin_grid, aero_data, vol_conc)
+       bin_grid, fractal, vol_conc)
 
     !> Total number concentration of the mode (m^{-3}).
     real(kind=dp), intent(in) :: total_num_conc
@@ -284,8 +284,8 @@ contains
     real(kind=dp), intent(in) :: radius
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    !> Fractal parameters.
+    type(fractal_t), intent(in) :: fractal
     !> Volume concentration (V(ln(r))d(ln(r))).
     real(kind=dp), intent(out) :: vol_conc(bin_grid_size(bin_grid))
 
@@ -297,7 +297,7 @@ contains
        call warn_msg(420930707, "monodisperse radius outside of bin_grid")
     else
        vol_conc(k) = total_num_conc / bin_grid%widths(k) &
-            * aero_data_rad2vol(aero_data, radius)
+            * fractal_rad2vol(fractal, radius)
     end if
 
   end subroutine vol_conc_mono
@@ -352,7 +352,7 @@ contains
 
   !> Sampled distribution in volume.
   subroutine vol_conc_sampled(sample_radius, sample_num_conc, &
-       bin_grid, aero_data, vol_conc)
+       bin_grid, fractal, vol_conc)
 
     !> Sampled radius bin edges (m).
     real(kind=dp), intent(in) :: sample_radius(:)
@@ -360,15 +360,15 @@ contains
     real(kind=dp), intent(in) :: sample_num_conc(:)
     !> Bin grid.
     type(bin_grid_t), intent(in) :: bin_grid
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    !> Fractal parameters.
+    type(fractal_t), intent(in) :: fractal
     !> Volume concentration (V(ln(r))d(ln(r))).
     real(kind=dp), intent(out) :: vol_conc(bin_grid_size(bin_grid))
 
     real(kind=dp) :: num_conc(bin_grid_size(bin_grid))
 
     call num_conc_sampled(sample_radius, sample_num_conc, bin_grid, num_conc)
-    vol_conc = num_conc * aero_data_rad2vol(aero_data, bin_grid%centers)
+    vol_conc = num_conc * fractal_rad2vol(fractal, bin_grid%centers)
 
   end subroutine vol_conc_sampled
 
@@ -392,7 +392,7 @@ contains
             aero_mode%log10_std_dev_radius, bin_grid, num_conc)
     elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
        call num_conc_exp(aero_mode%num_conc, &
-            aero_mode%char_radius, bin_grid, aero_data, num_conc)
+            aero_mode%char_radius, bin_grid, aero_mode%fractal, num_conc)
     elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
        call num_conc_mono(aero_mode%num_conc, aero_mode%char_radius, &
             bin_grid, num_conc)
@@ -429,16 +429,17 @@ contains
     if (aero_mode%type == AERO_MODE_TYPE_LOG_NORMAL) then
        call vol_conc_log_normal(aero_mode%num_conc, &
             aero_mode%char_radius, aero_mode%log10_std_dev_radius, &
-            bin_grid, aero_data, vol_conc_total)
+            bin_grid, aero_mode%fractal, vol_conc_total)
     elseif (aero_mode%type == AERO_MODE_TYPE_EXP) then
        call vol_conc_exp(aero_mode%num_conc, &
-            aero_mode%char_radius, bin_grid, aero_data, vol_conc_total)
+            aero_mode%char_radius, bin_grid, aero_mode%fractal, vol_conc_total)
     elseif (aero_mode%type == AERO_MODE_TYPE_MONO) then
        call vol_conc_mono(aero_mode%num_conc, &
-            aero_mode%char_radius, bin_grid, aero_data, vol_conc_total)
+            aero_mode%char_radius, bin_grid, aero_mode%fractal, vol_conc_total)
     elseif (aero_mode%type == AERO_MODE_TYPE_SAMPLED) then
        call vol_conc_sampled(aero_mode%sample_radius, &
-            aero_mode%sample_num_conc, bin_grid, aero_data, vol_conc_total)
+            aero_mode%sample_num_conc, bin_grid, aero_mode%fractal, &
+            vol_conc_total)
     else
        call die_msg(314169653, "Unknown aero_mode type: " &
             // trim(integer_to_string(aero_mode%type)))

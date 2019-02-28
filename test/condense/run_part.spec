@@ -37,6 +37,7 @@ do_condensation yes             # whether to do condensation (yes/no)
 do_init_equilibriate yes        # whether to initially equilibriate water (yes/no)
 do_mosaic no                    # whether to do MOSAIC (yes/no)
 do_nucleation no                # whether to do nucleation (yes/no)
+do_collapse no                  # whether to do particle collapse (yes/no)
 
 rand_init 0                     # random initialization (0 to use time)
 allow_doubling no               # whether to allow doubling (yes/no)

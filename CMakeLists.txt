@@ -265,7 +265,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/coag_kernel_zero.F90 src/coag_kernel_brown_free.F90
   src/coag_kernel_brown_cont.F90 src/aero_data.F90 src/run_exact.F90
   src/run_part.F90 src/util.F90 src/stats.F90 src/run_sect.F90 src/output.F90
-  src/mosaic.F90 src/gas_data.F90 src/gas_state.F90
+  src/mosaic.F90 src/gas_data.F90 src/gas_state.F90 src/collapse.F90
   src/coagulation.F90 src/exact_soln.F90 src/coagulation_dist.F90
   src/coag_kernel.F90 src/spec_line.F90 src/spec_file.F90 src/rand.F90
   src/aero_particle.F90 src/aero_particle_array.F90 src/mpi.F90

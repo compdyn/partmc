@@ -508,6 +508,8 @@ contains
        else
           run_part_opt%nucleate_type = NUCLEATE_TYPE_INVALID
        end if
+       call spec_file_read_logical(file, 'do_collapse', &
+            run_part_opt%do_collapse)
 
        call spec_file_read_integer(file, 'rand_init', rand_init)
        call spec_file_read_logical(file, 'allow_doubling', &

@@ -20,6 +20,7 @@ module pmc_run_part
   use pmc_coagulation
   use pmc_coagulation_dist
   use pmc_coag_kernel
+  use pmc_collapse
   use pmc_nucleate
   use pmc_mpi
 #ifdef PMC_USE_SUNDIALS
@@ -56,6 +57,8 @@ module pmc_run_part
      integer :: nucleate_source
      !> Whether to do coagulation.
      logical :: do_coagulation
+     !> Whether to do particle collapse.
+     logical :: do_collapse
      !> Whether to do nucleation.
      logical :: do_nucleation
      !> Allow doubling if needed.
@@ -239,6 +242,10 @@ contains
           end if
           progress_n_samp = progress_n_samp + n_samp
           progress_n_coag = progress_n_coag + n_coag
+       end if
+
+       if (run_part_opt%do_collapse) then
+          call collapse()
        end if
 
 #ifdef PMC_USE_SUNDIALS

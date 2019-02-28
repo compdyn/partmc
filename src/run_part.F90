@@ -245,7 +245,7 @@ contains
        end if
 
        if (run_part_opt%do_collapse) then
-          call collapse()
+          call collapse(env_state, aero_data, aero_state, gas_data, gas_state)
        end if
 
 #ifdef PMC_USE_SUNDIALS

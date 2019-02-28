@@ -30,6 +30,8 @@ module pmc_gas_state
   type gas_state_t
      !> Length n_spec, mixing ratio (ppb).
      real(kind=dp), allocatable :: mix_rat(:)
+     !> Vapor pressure (Pa).
+     real(kind=dp), allocatable :: sat_vapor_pressure(:)
   end type gas_state_t
 
 contains
@@ -58,6 +60,9 @@ contains
 
     if (allocated(gas_state%mix_rat)) deallocate(gas_state%mix_rat)
     allocate(gas_state%mix_rat(n_spec))
+    if (allocated(gas_state%sat_vapor_pressure)) &
+         deallocate(gas_state%sat_vapor_pressure)
+    allocate(gas_state%sat_vapor_pressure(n_spec))
     call gas_state_zero(gas_state)
 
   end subroutine gas_state_set_size
@@ -72,6 +77,7 @@ contains
 
     if (gas_state_is_allocated(gas_state)) then
        gas_state%mix_rat = 0d0
+       gas_state%sat_vapor_pressure = 0d0
     end if
 
   end subroutine gas_state_zero

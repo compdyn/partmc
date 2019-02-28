@@ -2368,6 +2368,9 @@ contains
     real(kind=dp) :: aero_refract_core_real(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_refract_core_imag(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_core_vol(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_fractal_dim(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_prime_radius(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_vol_fill_factor(aero_state_n_part(aero_state))
     integer :: aero_water_hyst_leg(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_num_conc(aero_state_n_part(aero_state))
     integer :: aero_id(aero_state_n_part(aero_state))
@@ -2493,6 +2496,12 @@ contains
                = aero_state%apa%particle(i_part)%weight_group
           aero_particle_weight_class(i_part) &
                = aero_state%apa%particle(i_part)%weight_class
+          aero_fractal_dim(i_part) = &
+               aero_state%apa%particle(i_part)%fractal%frac_dim
+          aero_prime_radius(i_part) = &
+               aero_state%apa%particle(i_part)%fractal%prime_radius
+          aero_vol_fill_factor(i_part) = &
+               aero_state%apa%particle(i_part)%fractal%vol_fill_factor
           aero_water_hyst_leg(i_part) &
                = aero_state%apa%particle(i_part)%water_hyst_leg
           aero_num_conc(i_part) &
@@ -2539,6 +2548,15 @@ contains
             "aero_water_hyst_leg", (/ dimid_aero_particle /), &
             long_name="leg of the water hysteresis curve leg of each "&
             // "aerosol particle")
+       call pmc_nc_write_real_1d(ncid, aero_fractal_dim, &
+            "aero_fractal_dim", (/ dimid_aero_particle /), unit="(1)", &
+            long_name="fractal dimension for each particle")
+       call pmc_nc_write_real_1d(ncid, aero_prime_radius, &
+            "aero_prime_radius", (/ dimid_aero_particle /), unit="m", &
+            long_name="radius of primary particles of each aerosol particle")
+       call pmc_nc_write_real_1d(ncid, aero_vol_fill_factor, &
+            "aero_vol_fill_factor", (/ dimid_aero_particle /), unit="(1)", &
+            long_name="volume filling factor of each aerosol particle")
        call pmc_nc_write_real_1d(ncid, aero_num_conc, &
             "aero_num_conc", (/ dimid_aero_particle /), unit="m^{-3}", &
             long_name="number concentration for each particle")

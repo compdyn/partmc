@@ -45,6 +45,8 @@ module pmc_aero_particle
      complex(kind=dc) :: refract_core
      !> Volume of the core (m^3).
      real(kind=dp) :: core_vol
+     !> Fractal parameters.
+     type(fractal_t) :: fractal
      !> Water hysteresis curve section (0 = lower, 1 = upper)
      integer :: water_hyst_leg
      !> Unique ID number.
@@ -83,6 +85,7 @@ contains
     aero_particle_to%refract_shell = aero_particle_from%refract_shell
     aero_particle_to%refract_core = aero_particle_from%refract_core
     aero_particle_to%core_vol = aero_particle_from%core_vol
+    aero_particle_to%fractal = aero_particle_from%fractal
     aero_particle_to%water_hyst_leg = aero_particle_from%water_hyst_leg
     aero_particle_to%id = aero_particle_from%id
     aero_particle_to%least_create_time = aero_particle_from%least_create_time
@@ -114,6 +117,7 @@ contains
     aero_particle%refract_shell = (0d0, 0d0)
     aero_particle%refract_core = (0d0, 0d0)
     aero_particle%core_vol = 0d0
+    call fractal_set_spherical(aero_particle%fractal) 
     aero_particle%water_hyst_leg = 0
     aero_particle%id = 0
     aero_particle%least_create_time = 0d0
@@ -871,6 +875,12 @@ contains
     aero_particle_new%refract_shell = (0d0, 0d0)
     aero_particle_new%refract_core = (0d0, 0d0)
     aero_particle_new%core_vol = 0d0
+    if (aero_particle_volume(aero_particle_1) > &
+         aero_particle_volume(aero_particle_2)) then
+       aero_particle_new%fractal = aero_particle_1%fractal
+    else
+       aero_particle_new%fractal = aero_particle_2%fractal
+    end if
     if ((aero_particle_1%water_hyst_leg == 1) &
          .and. (aero_particle_2%water_hyst_leg == 1)) then
        aero_particle_new%water_hyst_leg = 1
@@ -906,6 +916,7 @@ contains
          + pmc_mpi_pack_size_complex(val%refract_shell) &
          + pmc_mpi_pack_size_complex(val%refract_core) &
          + pmc_mpi_pack_size_real(val%core_vol) &
+         + pmc_mpi_pack_size_fractal(val%fractal) &
          + pmc_mpi_pack_size_integer(val%water_hyst_leg) &
          + pmc_mpi_pack_size_integer(val%id) &
          + pmc_mpi_pack_size_real(val%least_create_time) &
@@ -939,6 +950,7 @@ contains
     call pmc_mpi_pack_complex(buffer, position, val%refract_shell)
     call pmc_mpi_pack_complex(buffer, position, val%refract_core)
     call pmc_mpi_pack_real(buffer, position, val%core_vol)
+    call pmc_mpi_pack_fractal(buffer, position, val%fractal)
     call pmc_mpi_pack_integer(buffer, position, val%water_hyst_leg)
     call pmc_mpi_pack_integer(buffer, position, val%id)
     call pmc_mpi_pack_real(buffer, position, val%least_create_time)
@@ -975,6 +987,7 @@ contains
     call pmc_mpi_unpack_complex(buffer, position, val%refract_shell)
     call pmc_mpi_unpack_complex(buffer, position, val%refract_core)
     call pmc_mpi_unpack_real(buffer, position, val%core_vol)
+    call pmc_mpi_unpack_fractal(buffer, position, val%fractal)
     call pmc_mpi_unpack_integer(buffer, position, val%water_hyst_leg)
     call pmc_mpi_unpack_integer(buffer, position, val%id)
     call pmc_mpi_unpack_real(buffer, position, val%least_create_time)

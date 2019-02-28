@@ -44,7 +44,8 @@ contains
     d1 = aero_particle_density(aero_particle_1, aero_data)
     d2 = aero_particle_density(aero_particle_2, aero_data)
 
-    call kernel_brown_helper(v1, d1, v2, d2, aero_data, env_state%temp, &
+    call kernel_brown_helper(v1, d1, aero_particle_1%fractal, v2, d2, &
+         aero_particle_2%fractal, aero_data, env_state%temp, &
          env_state%pressure, k)
 
   end subroutine kernel_brown
@@ -85,8 +86,9 @@ contains
        do j = 1,n_sample
           d1 = interp_linear_disc(d_min, d_max, n_sample, i)
           d2 = interp_linear_disc(d_min, d_max, n_sample, j)
-          call kernel_brown_helper(v1, d1, v2, d2, aero_data, &
-               env_state%temp, env_state%pressure, k)
+          call kernel_brown_helper(v1, d1, aero_data%fractal, v2, d2, &
+               aero_data%fractal, aero_data, env_state%temp, &
+               env_state%pressure, k)
           if (first) then
              first = .false.
              k_min = k
@@ -108,17 +110,21 @@ contains
   !!
   !! Uses equation (15.33) of M. Z. Jacobson, Fundamentals of Atmospheric
   !! Modeling Second Edition, Cambridge University Press, 2005.
-  subroutine kernel_brown_helper(vol_i, den_i, vol_j, den_j, aero_data, &
-       temp, pressure, bckernel)
+  subroutine kernel_brown_helper(vol_i, den_i, fractal_i, vol_j, den_j, &
+       fractal_j, aero_data, temp, pressure, bckernel)
 
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: vol_i
     !> Density of first particle (kg/m^3).
     real(kind=dp), intent(in) :: den_i
+    !> Fractal parameters of first particle.
+    type(fractal_t), intent(in) :: fractal_i
     !> Volume of second particle (m^3).
     real(kind=dp), intent(in) :: vol_j
     !> Density of second particle (kg/m^3).
     real(kind=dp), intent(in) :: den_j
+    !> Fractal parameters of second particle.
+    type(fractal_t), intent(in) :: fractal_j
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Temperature (K).
@@ -160,8 +166,8 @@ contains
     !
     ! bckernel   = brownian coagulation kernel (m3/s)
 
-    rad_i     = aero_data_vol2rad(aero_data, vol_i)
-    Rme_i     = aero_data_vol_to_mobility_rad(aero_data, vol_i, &
+    rad_i     = fractal_vol2rad(fractal_i, vol_i)
+    Rme_i     = fractal_vol_to_mobility_rad(fractal_i, vol_i, &
          temp, pressure)
 
     knud      = gasfreepath/Rme_i
@@ -174,8 +180,8 @@ contains
     tmp2      = (4d0*Rme_i*Rme_i + freepath*freepath)**1.5d0
     deltasq_i = ( (tmp1-tmp2)/(6d0*Rme_i*freepath) - 2d0*Rme_i )**2
 
-    rad_j     = aero_data_vol2rad(aero_data, vol_j)
-    Rme_j     = aero_data_vol_to_mobility_rad(aero_data, vol_j, &
+    rad_j     = fractal_vol2rad(fractal_j, vol_j)
+    Rme_j     = fractal_vol_to_mobility_rad(fractal_j, vol_j, &
          temp, pressure)
 
     knud      = gasfreepath/Rme_j

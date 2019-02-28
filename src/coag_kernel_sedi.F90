@@ -41,8 +41,8 @@ contains
     real(kind=dp), intent(out) :: k
 
     call kernel_sedi_helper(aero_particle_volume(aero_particle_1), &
-         aero_particle_volume(aero_particle_2), aero_data, env_state%temp, &
-         env_state%pressure, k)
+         aero_particle_1%fractal, aero_particle_volume(aero_particle_2), &
+         aero_particle_2%fractal, env_state%temp, env_state%pressure, k)
 
   end subroutine kernel_sedi
 
@@ -64,8 +64,8 @@ contains
     !> Maximum kernel \c k(a,b) (m^3/s).
     real(kind=dp), intent(out) :: k_max
 
-    call kernel_sedi_helper(v1, v2, aero_data, env_state%temp, &
-         env_state%pressure, k_min)
+    call kernel_sedi_helper(v1, aero_data%fractal, v2, aero_data%fractal, &
+         env_state%temp, env_state%pressure, k_min) 
     k_max = k_min
 
   end subroutine kernel_sedi_minmax
@@ -75,14 +75,16 @@ contains
   !> Helper function that does the actual sedimentation kernel computation.
   !!
   !! Helper function. Do not call directly. Instead use kernel_sedi().
-  subroutine kernel_sedi_helper(v1, v2, aero_data, temp, pressure, k)
+  subroutine kernel_sedi_helper(v1, f1, v2, f2, temp, pressure, k)
 
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
+    !> Fractal parameters of the first particle.
+    type(fractal_t), intent(in) :: f1
     !> Volume of second particle (m^3).
     real(kind=dp), intent(in) :: v2
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    !> Fractal parameters of second particle.
+    type(fractal_t), intent(in) :: f2
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp
     !> Pressure (Pa).
@@ -92,11 +94,11 @@ contains
 
     real(kind=dp) r1, r2, winf1, winf2, ec
 
-    r1 = aero_data_vol2rad(aero_data, v1) ! m
-    r2 = aero_data_vol2rad(aero_data, v2) ! m
-    call fall_g(aero_data_vol_to_mobility_rad(aero_data, v1, temp, pressure), &
+    r1 = fractal_vol2rad(f1, v1) ! m
+    r2 = fractal_vol2rad(f2, v2) ! m
+    call fall_g(fractal_vol_to_mobility_rad(f1, v1, temp, pressure), &
          winf1) ! winf1 in m/s
-    call fall_g(aero_data_vol_to_mobility_rad(aero_data, v2, temp, pressure), &
+    call fall_g(fractal_vol_to_mobility_rad(f2, v2, temp, pressure), &
          winf2) ! winf2 in m/s
     call effic(r1, r2, ec) ! ec is dimensionless
     k = ec * const%pi * (r1 + r2)**2 * abs(winf1 - winf2)

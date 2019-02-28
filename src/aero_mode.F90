@@ -1014,11 +1014,12 @@ contains
           call spec_file_read_real(file, 'geom_mean_diam', diam)
           call spec_file_read_real(file, 'log10_geom_std_dev', &
                aero_mode%log10_std_dev_radius)
+          call spec_file_read_fractal(file, aero_mode%fractal)
           if (diam_type == AERO_MODE_DIAM_TYPE_GEOMETRIC) then
              aero_mode%char_radius = diam2rad(diam)
           elseif (diam_type == AERO_MODE_DIAM_TYPE_MOBILITY) then
              aero_mode%char_radius &
-                  = aero_data_mobility_rad_to_geometric_rad(aero_data, &
+                  = fractal_mobility_rad_to_geometric_rad(aero_mode%fractal, &
                   diam2rad(diam), temp, pressure)
 
              ! Convert log10_std_dev_radius from mobility to geometric radius.
@@ -1031,10 +1032,10 @@ contains
              log10_r2_mob = log10_r1_mob + aero_mode%log10_std_dev_radius
              r0_mob = 10**log10_r0_mob
              r2_mob = 10**log10_r2_mob
-             r0_geom = aero_data_mobility_rad_to_geometric_rad(aero_data, &
-                  r0_mob, temp, pressure)
-             r2_geom = aero_data_mobility_rad_to_geometric_rad(aero_data, &
-                  r2_mob, temp, pressure)
+             r0_geom = fractal_mobility_rad_to_geometric_rad( &
+                  aero_mode%fractal, r0_mob, temp, pressure)
+             r2_geom = fractal_mobility_rad_to_geometric_rad( &
+                  aero_mode%fractal, r2_mob, temp, pressure)
              log10_r0_geom = log10(r0_geom)
              log10_r2_geom = log10(r2_geom)
              aero_mode%log10_std_dev_radius &
@@ -1047,11 +1048,12 @@ contains
           aero_mode%type = AERO_MODE_TYPE_EXP
           call spec_file_read_real(file, 'num_conc', aero_mode%num_conc)
           call spec_file_read_real(file, 'diam_at_mean_vol', diam)
+          call spec_file_read_fractal(file, aero_mode%fractal)
           if (diam_type == AERO_MODE_DIAM_TYPE_GEOMETRIC) then
              aero_mode%char_radius = diam2rad(diam)
           elseif (diam_type == AERO_MODE_DIAM_TYPE_MOBILITY) then
              aero_mode%char_radius &
-                  = aero_data_mobility_rad_to_geometric_rad(aero_data, &
+                  = fractal_mobility_rad_to_geometric_rad(aero_mode%fractal, &
                   diam2rad(diam), temp, pressure)
           else
              call die_msg(585104460, "Diameter type not handled: " &
@@ -1061,11 +1063,12 @@ contains
           aero_mode%type = AERO_MODE_TYPE_MONO
           call spec_file_read_real(file, 'num_conc', aero_mode%num_conc)
           call spec_file_read_real(file, 'diam', diam)
+          call spec_file_read_fractal(file, aero_mode%fractal)
           if (diam_type == AERO_MODE_DIAM_TYPE_GEOMETRIC) then
              aero_mode%char_radius = diam2rad(diam)
           elseif (diam_type == AERO_MODE_DIAM_TYPE_MOBILITY) then
              aero_mode%char_radius &
-                  = aero_data_mobility_rad_to_geometric_rad(aero_data, &
+                  = fractal_mobility_rad_to_geometric_rad(aero_mode%fractal, &
                   diam2rad(diam), temp, pressure)
           else
              call die_msg(902864269, "Diameter type not handled: " &
@@ -1078,13 +1081,15 @@ contains
           call spec_file_read_size_dist(size_dist_file, &
                aero_mode%sample_radius, aero_mode%sample_num_conc)
           call spec_file_close(size_dist_file)
+          call spec_file_read_fractal(file, aero_mode%fractal)
           if (diam_type == AERO_MODE_DIAM_TYPE_GEOMETRIC) then
              ! do nothing
           elseif (diam_type == AERO_MODE_DIAM_TYPE_MOBILITY) then
              do i_radius = 1,size(aero_mode%sample_radius)
                 aero_mode%sample_radius(i_radius) &
-                     = aero_data_mobility_rad_to_geometric_rad(aero_data, &
-                     aero_mode%sample_radius(i_radius), temp, pressure)
+                     = fractal_mobility_rad_to_geometric_rad( &
+                     aero_mode%fractal, aero_mode%sample_radius(i_radius), &
+                     temp, pressure)
              end do
           else
              call die_msg(239088838, "Diameter type not handled: " &
@@ -1094,7 +1099,6 @@ contains
           call spec_file_die_msg(729472928, file, &
                "Unknown distribution mode type: " // trim(mode_type))
        end if
-       call spec_file_read_fractal(file, aero_mode%fractal)
     end if
 
   end subroutine spec_file_read_aero_mode

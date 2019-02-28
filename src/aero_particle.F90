@@ -417,19 +417,17 @@ contains
 
   !> Mobility diameter of the particle (m).
   real(kind=dp) function aero_particle_mobility_diameter(aero_particle, &
-       aero_data, env_state)
+       env_state)
 
     !> Particle.
     type(aero_particle_t), intent(in) :: aero_particle
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
 
     real(kind=dp) :: volume, mobility_radius
 
     volume = aero_particle_volume(aero_particle)
-    mobility_radius = fractal_vol_to_mobility_rad(aero_data%fractal, &
+    mobility_radius = fractal_vol_to_mobility_rad(aero_particle%fractal, &
          volume, env_state%temp, env_state%pressure)
     aero_particle_mobility_diameter = rad2diam(mobility_radius)
 

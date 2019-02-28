@@ -162,8 +162,8 @@ contains
 
        do i = 1,bin_grid_size(bin_grid)
           loss_array(i) = dilution_rate + scenario_loss_rate(scenario, &
-               aero_data_rad2vol(aero_data, bin_grid%centers(i)), &
-               const%water_density, aero_data, env_state)
+               fractal_rad2vol(aero_data%fractal, bin_grid%centers(i)), &
+               const%water_density, aero_data%fractal, aero_data, env_state)
           call assert_msg(181676342, loss_array(i) > 0, &
                "non-positive loss rate")
           loss_array(i) = 1d0 / loss_array(i)

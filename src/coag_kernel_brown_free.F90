@@ -49,8 +49,8 @@ contains
     d1 = aero_particle_density(aero_particle_1, aero_data)
     d2 = aero_particle_density(aero_particle_2, aero_data)
 
-    call kernel_brown_free_helper(v1, d1, v2, d2, aero_data, &
-         env_state%temp, k)
+    call kernel_brown_free_helper(v1, d1, aero_data%fractal, v2, d2, &
+         aero_data%fractal, env_state%temp, k)
 
   end subroutine kernel_brown_free
 
@@ -92,8 +92,8 @@ contains
        do j = 1,n_sample
           d1 = interp_linear_disc(d_min, d_max, n_sample, i)
           d2 = interp_linear_disc(d_min, d_max, n_sample, j)
-          call kernel_brown_free_helper(v1, d1, v2, d2, aero_data, &
-               env_state%temp, k)
+          call kernel_brown_free_helper(v1, d1, aero_data%fractal, v2, d2, &
+               aero_data%fractal, env_state%temp, k)
           if (first) then
              first = .false.
              k_min = k
@@ -114,19 +114,21 @@ contains
   !! Helper function. Do not call directly. Instead use kernel_brown_free().
   !!
   !! Use Eq. 4 of Vemury and Pratsinis [1995].
-  subroutine kernel_brown_free_helper(v1, d1, v2, d2, aero_data, &
+  subroutine kernel_brown_free_helper(v1, d1, f1, v2, d2, f2, &
        temp, bckernel)
 
     !> Volume of first particle (m^3).
     real(kind=dp), intent(in) :: v1
     !> Density of first particle (kg/m^3).
     real(kind=dp), intent(in) :: d1
+    !> Fractal parameters of first particle.
+    type(fractal_t), intent(in) :: f1
     !> Volume of second particle (m^3).
     real(kind=dp), intent(in) :: v2
     !> Density of second particle (kg/m^3).
     real(kind=dp), intent(in) :: d2
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    !> Fractal parameters of second particle.
+    type(fractal_t), intent(in) :: f2
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp
     !> Kernel k(a,b) (m^3/s).
@@ -135,12 +137,11 @@ contains
     real(kind=dp) :: rho, N_i, N_j, df, R0, N_i_inv_df, N_j_inv_df
 
     rho = (v1 / (v1 + v2)) * d1 + (v2 / (v1 + v2)) * d2
-    N_i = aero_data_vol_to_num_of_monomers(aero_data, v1)
-    N_j = aero_data_vol_to_num_of_monomers(aero_data, v2)
-    df = aero_data%fractal%frac_dim
-    R0 = aero_data%fractal%prime_radius
-    N_i_inv_df = N_i**(1d0 / df)
-    N_j_inv_df = N_j**(1d0 / df)
+    N_i = fractal_vol_to_num_of_monomers(f1, v1)
+    N_j = fractal_vol_to_num_of_monomers(f2, v2)
+    R0 = f1%prime_radius
+    N_i_inv_df = N_i**(1d0 / f1%frac_dim)
+    N_j_inv_df = N_j**(1d0 / f2%frac_dim)
     bckernel = sqrt(6d0 * const%boltzmann * temp * R0 / rho &
          * (1d0 / N_i + 1d0 / N_j)) * (N_i_inv_df + N_j_inv_df)**2d0
 

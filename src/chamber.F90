@@ -33,12 +33,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Based on Eq. 23 in Naumann 2003 J. Aerosol. Sci.
-  real(kind=dp) function chamber_diff_coef(vol, aero_data, temp, pressure)
+  real(kind=dp) function chamber_diff_coef(vol, fractal, temp, pressure)
 
     !> Particle volume (m^3).
     real(kind=dp), intent(in) :: vol
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    !> Fractal data.
+    type(fractal_t), intent(in) :: fractal
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp
     !> Pressure (Pa).
@@ -46,8 +46,8 @@ contains
 
     real(kind=dp) :: R_eff, R_me_c, C
 
-    R_eff = fractal_vol_to_effective_rad(aero_data%fractal, vol)
-    R_me_c = fractal_vol_to_mobility_rad_in_continuum(aero_data%fractal, vol)
+    R_eff = fractal_vol_to_effective_rad(fractal, vol)
+    R_me_c = fractal_vol_to_mobility_rad_in_continuum(fractal, vol)
     C = fractal_slip_correct(R_eff, temp, pressure)
 
     chamber_diff_coef = (const%boltzmann * temp * C) &
@@ -59,15 +59,15 @@ contains
 
   !> Calculate diffusional boundary layer thickness.
   !> Based on Eq. 40 in Naumann 2003 J. Aerosol. Sci.
-  real(kind=dp) function chamber_diff_BL_thick(chamber, vol, aero_data, temp, &
+  real(kind=dp) function chamber_diff_BL_thick(chamber, vol, fractal, temp, &
        pressure)
 
     !> Chamber parameters.
     type(chamber_t) :: chamber
     !> Particle volume (m^3).
     real(kind=dp), intent(in) :: vol
-    !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    !> Fractal data.
+    type(fractal_t), intent(in) :: fractal
     !> Temperature (K).
     real(kind=dp), intent(in) :: temp
     !> Pressure (Pa).
@@ -75,7 +75,7 @@ contains
 
     real(kind=dp) :: D
 
-    D = chamber_diff_coef(vol, aero_data, temp, pressure)
+    D = chamber_diff_coef(vol, fractal, temp, pressure)
     
     chamber_diff_BL_thick = chamber%prefactor_BL &
          * (D / CHAMBER_UNIT_DIFF_COEF)**chamber%exponent_BL
@@ -86,7 +86,7 @@ contains
 
   !> Calculate the loss rate due to wall diffusion in chamber.
   !> Based on Eq. 37a in Naumann 2003 J. Aerosol. Sci.
-  real(kind=dp) function chamber_loss_rate_wall(chamber, vol, aero_data, &
+  real(kind=dp) function chamber_loss_rate_wall(chamber, vol, fractal, &
        env_state)
 
     !> Chamber parameters.
@@ -94,14 +94,14 @@ contains
     !> Particle volume (m^3).
     real(kind=dp), intent(in) :: vol
     !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    type(fractal_t), intent(in) :: fractal
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
 
     real(kind=dp) :: D, delta
 
-    D = chamber_diff_coef(vol, aero_data, env_state%temp, env_state%pressure)
-    delta = chamber_diff_BL_thick(chamber, vol, aero_data, env_state%temp, &
+    D = chamber_diff_coef(vol, fractal, env_state%temp, env_state%pressure)
+    delta = chamber_diff_BL_thick(chamber, vol, fractal, env_state%temp, &
          env_state%pressure)
 
     chamber_loss_rate_wall = (D * chamber%area_diffuse) &
@@ -114,7 +114,7 @@ contains
   !> Calculate the loss rate due to sedimentation in chamber.
   !> Based on Eq. 37b in Naumann 2003 J. Aerosol. Sci.
   real(kind=dp) function chamber_loss_rate_sedi(chamber, vol, density, &
-       aero_data, env_state)
+       fractal, env_state)
 
     !> Chamber parameters.
     type(chamber_t), intent(in) :: chamber
@@ -123,13 +123,13 @@ contains
     !> Particle density (kg/m^3).
     real(kind=dp), intent(in) :: density
     !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    type(fractal_t), intent(in) :: fractal
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
 
     real(kind=dp) :: D
 
-    D = chamber_diff_coef(vol, aero_data, env_state%temp, env_state%pressure)
+    D = chamber_diff_coef(vol, fractal, env_state%temp, env_state%pressure)
 
     chamber_loss_rate_sedi &
          = (density * vol * const%std_grav * D * chamber%area_sedi) &

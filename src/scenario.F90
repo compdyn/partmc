@@ -377,7 +377,7 @@ contains
 
   !> Evaluate a loss rate function.
   real(kind=dp) function scenario_loss_rate(scenario, vol, density, &
-       aero_data, env_state)
+       fractal, aero_data, env_state)
 
     !> Scenario data.
     type(scenario_t), intent(in) :: scenario
@@ -385,6 +385,8 @@ contains
     real(kind=dp), intent(in) :: vol
     !> Density of particle (kg/m^3).
     real(kind=dp), intent(in) :: density
+    !> Fractal data.
+    type(fractal_t), intent(in) :: fractal
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
@@ -403,13 +405,13 @@ contains
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_DRYDEP) &
          then
        scenario_loss_rate = scenario_loss_rate_dry_dep(vol, density, &
-            aero_data, env_state)
+            fractal, env_state)
     else if (scenario%loss_function_type == SCENARIO_LOSS_FUNCTION_CHAMBER) &
          then
        scenario_loss_rate = chamber_loss_rate_wall(scenario%chamber, vol, &
-            aero_data, env_state) &
+            fractal, env_state) &
             + chamber_loss_rate_sedi(scenario%chamber, vol, density, &
-            aero_data, env_state)
+            fractal, env_state)
     else
        call die_msg(201594391, "Unknown loss function id: " &
             // trim(integer_to_string(scenario%loss_function_type)))
@@ -422,7 +424,7 @@ contains
   !> Compute and return the dry deposition rate for a given particle.
   !! All equations used here are written in detail in the file
   !! \c doc/deposition/deposition.tex.
-  real(kind=dp) function scenario_loss_rate_dry_dep(vol, density, aero_data, &
+  real(kind=dp) function scenario_loss_rate_dry_dep(vol, density, fractal, &
       env_state)
 
     !> Particle volume (m^3).
@@ -430,7 +432,7 @@ contains
     !> Particle density (kg m^-3).
     real(kind=dp), intent(in) :: density
     !> Aerosol data.
-    type(aero_data_t), intent(in) :: aero_data
+    type(fractal_t), intent(in) :: fractal
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
 
@@ -461,7 +463,7 @@ contains
     gamma = .54d0 ! From table
 
     ! particle diameter
-    d_p = aero_data_vol2diam(aero_data, vol)
+    d_p = fractal_vol2diam(fractal, vol)
     ! density of air
     density_air = (const%air_molec_weight * env_state%pressure) &
          / (const%univ_gas_const * env_state%temp)
@@ -521,13 +523,15 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute and return the max loss rate function for a given volume.
-  real(kind=dp) function scenario_loss_rate_max(scenario, vol, aero_data, &
-       env_state)
+  real(kind=dp) function scenario_loss_rate_max(scenario, vol, fractal,  &
+       aero_data, env_state)
 
     !> Scenario data.
     type(scenario_t), intent(in) :: scenario
     !> Particle volume (m^3).
     real(kind=dp), intent(in) :: vol
+    !> Fractal parameters.
+    type(fractal_t), intent(in) :: fractal
     !> Aerosol data.
     type(aero_data_t), intent(in) :: aero_data
     !> Environment state.
@@ -545,7 +549,7 @@ contains
     scenario_loss_rate_max = 0d0
     do i = 1,n_sample
        d = interp_linear_disc(d_min, d_max, n_sample, i)
-       loss = scenario_loss_rate(scenario, vol, d, aero_data, env_state)
+       loss = scenario_loss_rate(scenario, vol, d, fractal, aero_data, env_state)
        scenario_loss_rate_max = max(scenario_loss_rate_max, loss)
     end do
 
@@ -586,7 +590,8 @@ contains
        r_max = 0d0
        do i = 1,n_sample
           vol = interp_linear_disc(v_low, v_high, n_sample, i)
-          r = scenario_loss_rate_max(scenario, vol, aero_data, env_state)
+          r = scenario_loss_rate_max(scenario, vol, aero_data%fractal, &
+               aero_data, env_state)
           r_max = max(r_max, r)
        end do
        loss_max(b) = r_max * over_scale
@@ -712,7 +717,8 @@ contains
 
     vol = aero_particle_volume(aero_state%apa%particle(i_part))
     density = aero_particle_density(aero_state%apa%particle(i_part), aero_data)
-    rate = scenario_loss_rate(scenario, vol, density, aero_data, env_state)
+    rate = scenario_loss_rate(scenario, vol, density, &
+         aero_state%apa%particle(i_part)%fractal, aero_data, env_state)
     prob = 1d0 - exp(-delta_t * rate)
     call warn_assert_msg(295846288, prob <= over_prob, &
          "particle loss upper bound estimation is too tight: " &

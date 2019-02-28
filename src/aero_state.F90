@@ -1048,7 +1048,7 @@ contains
     do i_part = 1,aero_state_n_part(aero_state)
        aero_state_mobility_diameters(i_part) &
             = aero_particle_mobility_diameter( &
-            aero_state%apa%particle(i_part), aero_data, env_state)
+            aero_state%apa%particle(i_part), env_state)
     end do
 
   end function aero_state_mobility_diameters
@@ -2754,6 +2754,9 @@ contains
     real(kind=dp), allocatable :: aero_refract_core_imag(:)
     real(kind=dp), allocatable :: aero_core_vol(:)
     integer, allocatable :: aero_water_hyst_leg(:)
+    real(kind=dp), allocatable :: aero_fractal_dim(:)
+    real(kind=dp), allocatable :: aero_prime_radius(:)
+    real(kind=dp), allocatable :: aero_vol_fill_factor(:)
     real(kind=dp), allocatable :: aero_num_conc(:)
     integer, allocatable :: aero_id(:)
     real(kind=dp), allocatable :: aero_least_create_time(:)
@@ -2800,6 +2803,12 @@ contains
          "aero_core_vol", must_be_present=.false.)
     call pmc_nc_read_integer_1d(ncid, aero_water_hyst_leg, &
          "aero_water_hyst_leg")
+    call pmc_nc_read_real_1d(ncid, aero_fractal_dim, &
+         "aero_fractal_dim")
+    call pmc_nc_read_real_1d(ncid, aero_prime_radius, &
+         "aero_prime_radius")
+    call pmc_nc_read_real_1d(ncid, aero_vol_fill_factor, &
+         "aero_vol_fill_factor")
     call pmc_nc_read_real_1d(ncid, aero_num_conc, &
          "aero_num_conc")
     call pmc_nc_read_integer_1d(ncid, aero_id, &
@@ -2840,6 +2849,9 @@ contains
        if (size(aero_core_vol) == n_part) then
           aero_particle%core_vol = aero_core_vol(i_part)
        end if
+       aero_particle%fractal%frac_dim = aero_fractal_dim(i_part)
+       aero_particle%fractal%prime_radius = aero_prime_radius(i_part)
+       aero_particle%fractal%vol_fill_factor = aero_vol_fill_factor(i_part)
        aero_particle%water_hyst_leg = aero_water_hyst_leg(i_part)
        aero_particle%id = aero_id(i_part)
        aero_particle%least_create_time = aero_least_create_time(i_part)

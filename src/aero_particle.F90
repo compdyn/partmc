@@ -184,6 +184,20 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Sets the aerosol particle fractal parameters.
+  subroutine aero_particle_set_fractal(aero_particle, fractal)
+
+    !> Particle.
+    type(aero_particle_t), intent(inout) :: aero_particle
+    !> Fractal parameters.
+    type(fractal_t), intent(in) :: fractal
+
+    aero_particle%fractal = fractal
+
+  end subroutine aero_particle_set_fractal
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Sets the aerosol particle weight group.
   subroutine aero_particle_set_weight(aero_particle, i_group, i_class)
 

@@ -4,3 +4,7 @@ diam_type geometric             # type of diameter specified
 mode_type mono                  # type of distribution
 num_conc 1e14                   # particle number concentration (#/m^3)
 diam 1e-9                       # the diameter D0 of the particle (m)
+do_fractal yes                  # whether to do fractal treatment
+frac_dim 2.4                    # fractal dimension
+prime_radius 5e-10              # radius of monomer
+vol_fill_factor 1               # volume filling factor

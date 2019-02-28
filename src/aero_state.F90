@@ -765,6 +765,8 @@ contains
              call aero_mode_sample_vols(aero_dist%mode(i_mode), total_vol, &
                   vols)
              call aero_particle_set_vols(aero_particle, vols)
+             call aero_particle_set_fractal(aero_particle, &
+                  aero_dist%mode(i_mode)%fractal)
              call aero_particle_new_id(aero_particle)
              call aero_particle_set_weight(aero_particle, i_group, i_class)
              call aero_particle_set_create_time(aero_particle, create_time)

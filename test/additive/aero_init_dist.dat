@@ -4,3 +4,4 @@ diam_type geometric             # type of diameter specified
 mode_type exp                   # type of mode
 num_conc 1e9                    # particle number concentration (#/m^3)
 diam_at_mean_vol 2e-5           # diameter at the mean volume (m)
+do_fractal no                   # whether to do fractal treatment

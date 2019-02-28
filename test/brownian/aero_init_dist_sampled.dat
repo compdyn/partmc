@@ -3,3 +3,4 @@ mass_frac aero_init_comp.dat       # species mass fractions
 diam_type geometric             # type of diameter specified
 mode_type sampled                  # type of distribution
 size_dist aero_init_size_dist.dat  # filename for the sample distribution
+do_fractal no                   # whether to do fractal treatment

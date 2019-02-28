@@ -4,3 +4,4 @@ diam_type geometric             # type of diameter specified
 mode_type mono                  # type of distribution
 num_conc 1e8                    # particle number concentration (#/m^3)
 diam 2e-7                       # diameter (m)
+do_fractal no                   # whether to do fractal treatment

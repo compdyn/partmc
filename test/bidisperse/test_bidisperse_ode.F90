@@ -134,6 +134,8 @@ contains
     n_source = 1
     aero_particle_1%vol = [v_small]
     aero_particle_2%vol = [v_big]
+    call fractal_set_spherical(aero_particle_1%fractal)
+    call fractal_set_spherical(aero_particle_2%fractal)
     call kernel_sedi(aero_particle_1, aero_particle_2, aero_data, &
          env_state, k)
     n_small_dot = - k / comp_vol * n_small

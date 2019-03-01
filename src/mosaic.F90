@@ -274,7 +274,7 @@ contains
 
 #ifdef PMC_USE_MOSAIC
     use module_data_mosaic_aero, only: nbin_a, aer, num_a, jhyst_leg, &
-         jtotal, water_a
+         jtotal, water_a, sigma_soln, sigma_water
 
     use module_data_mosaic_main, only: tbeg_sec, tcur_sec, tmid_sec, &
          dt_sec, dt_min, dt_aeroptic_min, RH, te, pr_atm, cnn, cair_mlc, &
@@ -338,6 +338,8 @@ contains
        ! convert kg(water)/m^3(air) to m^3(water)
        aero_state%apa%particle(i_part)%vol(aero_data%i_water) = &
             water_a(i_part) / aero_data%density(aero_data%i_water) / num_conc
+       ! Surface tension
+       aero_state%apa%particle(i_part)%surface_tension = sigma_soln(i_part)
     end do
     ! adjust particles to account for weight changes
     call aero_state_reweight(aero_state, aero_data, reweight_num_conc)
@@ -350,6 +352,7 @@ contains
           gas_state%mix_rat(i_spec) = cnn(i_spec_mosaic) / cair_mlc * ppb
        end if
     end do
+    ! gas chemistry: map condensable species saturation vapor pressure
 #endif
 
   end subroutine mosaic_to_partmc

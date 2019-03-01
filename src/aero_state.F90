@@ -2374,6 +2374,7 @@ contains
     real(kind=dp) :: aero_prime_radius(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_vol_fill_factor(aero_state_n_part(aero_state))
     integer :: aero_water_hyst_leg(aero_state_n_part(aero_state))
+    real(kind=dp) :: aero_surface_tension(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_num_conc(aero_state_n_part(aero_state))
     integer :: aero_id(aero_state_n_part(aero_state))
     real(kind=dp) :: aero_least_create_time(aero_state_n_part(aero_state))
@@ -2506,6 +2507,8 @@ contains
                aero_state%apa%particle(i_part)%fractal%vol_fill_factor
           aero_water_hyst_leg(i_part) &
                = aero_state%apa%particle(i_part)%water_hyst_leg
+          aero_surface_tension(i_part) = &
+               aero_state%apa%particle(i_part)%surface_tension
           aero_num_conc(i_part) &
                = aero_state_particle_num_conc(aero_state, &
                aero_state%apa%particle(i_part), aero_data)
@@ -2559,6 +2562,10 @@ contains
        call pmc_nc_write_real_1d(ncid, aero_vol_fill_factor, &
             "aero_vol_fill_factor", (/ dimid_aero_particle /), unit="(1)", &
             long_name="volume filling factor of each aerosol particle")
+       call pmc_nc_write_real_1d(ncid, aero_surface_tension, &
+            "aero_surface_tension", (/ dimid_aero_particle /), &
+            unit="dyn cm^{-1}", long_name="surface tension of each"&
+            // "aerosol particle")
        call pmc_nc_write_real_1d(ncid, aero_num_conc, &
             "aero_num_conc", (/ dimid_aero_particle /), unit="m^{-3}", &
             long_name="number concentration for each particle")
@@ -2757,6 +2764,7 @@ contains
     real(kind=dp), allocatable :: aero_fractal_dim(:)
     real(kind=dp), allocatable :: aero_prime_radius(:)
     real(kind=dp), allocatable :: aero_vol_fill_factor(:)
+    real(kind=dp), allocatable :: aero_surface_tension(:)
     real(kind=dp), allocatable :: aero_num_conc(:)
     integer, allocatable :: aero_id(:)
     real(kind=dp), allocatable :: aero_least_create_time(:)
@@ -2809,6 +2817,8 @@ contains
          "aero_prime_radius")
     call pmc_nc_read_real_1d(ncid, aero_vol_fill_factor, &
          "aero_vol_fill_factor")
+    call pmc_nc_read_real_1d(ncid, aero_surface_tension, &
+         "aero_surface_tension")
     call pmc_nc_read_real_1d(ncid, aero_num_conc, &
          "aero_num_conc")
     call pmc_nc_read_integer_1d(ncid, aero_id, &
@@ -2853,6 +2863,7 @@ contains
        aero_particle%fractal%prime_radius = aero_prime_radius(i_part)
        aero_particle%fractal%vol_fill_factor = aero_vol_fill_factor(i_part)
        aero_particle%water_hyst_leg = aero_water_hyst_leg(i_part)
+       aero_particle%surface_tension = aero_surface_tension(i_part)
        aero_particle%id = aero_id(i_part)
        aero_particle%least_create_time = aero_least_create_time(i_part)
        aero_particle%greatest_create_time = aero_greatest_create_time(i_part)

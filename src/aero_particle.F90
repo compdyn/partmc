@@ -49,6 +49,8 @@ module pmc_aero_particle
      type(fractal_t) :: fractal
      !> Water hysteresis curve section (0 = lower, 1 = upper)
      integer :: water_hyst_leg
+     !> Surface tension.
+     real(kind=dp) :: surface_tension
      !> Unique ID number.
      integer :: id
      !> First time a constituent was created (s).
@@ -87,6 +89,7 @@ contains
     aero_particle_to%core_vol = aero_particle_from%core_vol
     aero_particle_to%fractal = aero_particle_from%fractal
     aero_particle_to%water_hyst_leg = aero_particle_from%water_hyst_leg
+    aero_particle_to%surface_tension = aero_particle_from%surface_tension
     aero_particle_to%id = aero_particle_from%id
     aero_particle_to%least_create_time = aero_particle_from%least_create_time
     aero_particle_to%greatest_create_time = &
@@ -119,6 +122,7 @@ contains
     aero_particle%core_vol = 0d0
     call fractal_set_spherical(aero_particle%fractal) 
     aero_particle%water_hyst_leg = 0
+    aero_particle%surface_tension = 0d0
     aero_particle%id = 0
     aero_particle%least_create_time = 0d0
     aero_particle%greatest_create_time = 0d0
@@ -899,6 +903,7 @@ contains
     else
        aero_particle_new%water_hyst_leg = 0
     end if
+    aero_particle_new%surface_tension = 0d0
     aero_particle_new%id = 0
     aero_particle_new%least_create_time = &
          min(aero_particle_1%least_create_time, &
@@ -930,6 +935,7 @@ contains
          + pmc_mpi_pack_size_real(val%core_vol) &
          + pmc_mpi_pack_size_fractal(val%fractal) &
          + pmc_mpi_pack_size_integer(val%water_hyst_leg) &
+         + pmc_mpi_pack_size_real(val%surface_tension) &
          + pmc_mpi_pack_size_integer(val%id) &
          + pmc_mpi_pack_size_real(val%least_create_time) &
          + pmc_mpi_pack_size_real(val%greatest_create_time)
@@ -964,6 +970,7 @@ contains
     call pmc_mpi_pack_real(buffer, position, val%core_vol)
     call pmc_mpi_pack_fractal(buffer, position, val%fractal)
     call pmc_mpi_pack_integer(buffer, position, val%water_hyst_leg)
+    call pmc_mpi_pack_real(buffer, position, val%surface_tension)
     call pmc_mpi_pack_integer(buffer, position, val%id)
     call pmc_mpi_pack_real(buffer, position, val%least_create_time)
     call pmc_mpi_pack_real(buffer, position, val%greatest_create_time)
@@ -1001,6 +1008,7 @@ contains
     call pmc_mpi_unpack_real(buffer, position, val%core_vol)
     call pmc_mpi_unpack_fractal(buffer, position, val%fractal)
     call pmc_mpi_unpack_integer(buffer, position, val%water_hyst_leg)
+    call pmc_mpi_unpack_real(buffer, position, val%surface_tension)
     call pmc_mpi_unpack_integer(buffer, position, val%id)
     call pmc_mpi_unpack_real(buffer, position, val%least_create_time)
     call pmc_mpi_unpack_real(buffer, position, val%greatest_create_time)

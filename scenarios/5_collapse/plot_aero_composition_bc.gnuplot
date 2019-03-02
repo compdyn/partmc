@@ -39,13 +39,11 @@ set ylabel "BC dry mass fraction / %"
 set multiplot layout 2,3
 
 set title "BC composition (with coag) at 0 hours"
-plot "out/ogo_test_0001_00000001_aero_particles.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
+plot "out/collapse_0001_00000001_aero_particles.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
+set title "BC composition (with coag) at 6 hours"
+plot "out/collapse_0001_00000006_aero_particles.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
 set title "BC composition (with coag) at 12 hours"
-plot "out/ogo_test_0001_00000012_aero_particles.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
-set title "BC composition (with coag) at 30 hours"
-plot "out/ogo_test_0001_00000030_aero_particles.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
-set title "BC composition (with coag) at 54 hours"
-plot "out/ogo_test_0001_00000054_aero_particles.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
-set title "BC composition (with coag) at 72 hours"
-plot "out/ogo_test_0001_00000073_aero_particles.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
-unset multiplot
+plot "out/collapse_0001_00000012_aero_particles.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
+set title "BC composition (with coag) at 24 hours"
+plot "out/collapse_0001_00000024_aero_particles.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
+

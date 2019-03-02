@@ -1,5 +1,5 @@
 run_type particle               # particle-resolved run
-output_prefix out/ogo_test      # prefix of output files
+output_prefix out/collapse      # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 500                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)

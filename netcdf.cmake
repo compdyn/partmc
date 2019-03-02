@@ -11,8 +11,8 @@ find_library(NETCDF_C_LIB netcdf
 find_library(NETCDF_FORTRAN_LIB netcdff
   DOC "NetCDF Fortran library"
   PATHS $ENV{NETCDF_HOME}/lib /opt/local/lib)
-set(NETCDF_LIBS ${NETCDF_C_LIB})
 if(NETCDF_FORTRAN_LIB)
-  set(NETCDF_LIBS ${NETCDF_LIBS} ${NETCDF_FORTRAN_LIB})
+  set(NETCDF_LIBS ${NETCDF_FORTRAN_LIB})
 endif()
+set(NETCDF_LIBS ${NETCDF_LIBS} ${NETCDF_C_LIB})
 include_directories(${NETCDF_INCLUDE_DIR})

@@ -117,7 +117,7 @@ contains
   !> Determine characteristic Kelvin length.
   !!
   !! Based on Equation 6 in Chen et al [2018].
-  real(kind=dp) function kelvin_length(surface_tension, density,
+  real(kind=dp) function kelvin_length(surface_tension, density, &
        molec_weight, temperature)
 
     !> Surface tension of species.

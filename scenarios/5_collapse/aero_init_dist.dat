@@ -1,0 +1,11 @@
+mode_name init_soot
+mass_frac aero_init_comp.dat      # composition proportions of species
+diam_type geometric               # type of diameter specified
+mode_type log_normal              # type of distribution
+num_conc 9.93e10                  # particle number concentration (#/m^3)
+geom_mean_diam 1.0e-7             # geometric mean diameter (m)
+log10_geom_std_dev 0.245          # log_10 of geometric std dev of diameter
+do_fractal yes
+frac_dim 1.8
+prime_radius 1.4e-9
+vol_fill_factor 1.6

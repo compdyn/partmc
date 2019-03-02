@@ -19,7 +19,7 @@ module pmc_collapse
 
 contains
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Checks for collapse of fractal black carbon particles based on coating.
   subroutine collapse(env_state, aero_data, aero_state, gas_data, gas_state)
@@ -117,8 +117,8 @@ contains
   !> Determine characteristic Kelvin length.
   !!
   !! Based on Equation 6 in Chen et al [2018].
-  real(kind=dp) function kelvin_length(surface_tension, density, molec_weight, &
-       temperature)
+  real(kind=dp) function kelvin_length(surface_tension, density,
+       molec_weight, temperature)
 
     !> Surface tension of species.
     real(kind=dp) :: surface_tension

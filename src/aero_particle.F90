@@ -120,7 +120,7 @@ contains
     aero_particle%refract_shell = (0d0, 0d0)
     aero_particle%refract_core = (0d0, 0d0)
     aero_particle%core_vol = 0d0
-    call fractal_set_spherical(aero_particle%fractal) 
+    call fractal_set_spherical(aero_particle%fractal)
     aero_particle%water_hyst_leg = 0
     aero_particle%surface_tension = 0d0
     aero_particle%id = 0

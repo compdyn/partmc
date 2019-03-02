@@ -65,7 +65,7 @@ contains
     real(kind=dp), intent(out) :: k_max
 
     call kernel_sedi_helper(v1, aero_data%fractal, v2, aero_data%fractal, &
-         env_state%temp, env_state%pressure, k_min) 
+         env_state%temp, env_state%pressure, k_min)
     k_max = k_min
 
   end subroutine kernel_sedi_minmax

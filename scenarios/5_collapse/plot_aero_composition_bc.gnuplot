@@ -1,10 +1,11 @@
 # run from inside gnuplot with:
+
 # load "<filename>.gnuplot"
 # or from the commandline with:
 # gnuplot -persist <filename>.gnuplot
 
-set xrange [0.01:1]
-set yrange [0:80]
+set xrange [0.01:100]
+set yrange [0:100]
 
 set logscale x
 
@@ -36,14 +37,14 @@ set ylabel "BC dry mass fraction / %"
 #    column 23: BC mass (kg) - density = 0.1800E+04 (kg/m^3)
 #    column 24: H2O mass (kg) - density = 0.1000E+04 (kg/m^3)
 
-set multiplot layout 2,3
+#set multiplot layout 2,2
 
 set title "BC composition (with coag) at 0 hours"
-plot "out/collapse_0001_00000001_aero_particles.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
-set title "BC composition (with coag) at 6 hours"
 plot "out/collapse_0001_00000006_aero_particles.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
-set title "BC composition (with coag) at 12 hours"
-plot "out/collapse_0001_00000012_aero_particles.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
-set title "BC composition (with coag) at 24 hours"
-plot "out/collapse_0001_00000024_aero_particles.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
+#set title "BC composition (with coag) at 6 hours"
+#plot "out/collapse_0001_00000006_aero_particles.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
+#set title "BC composition (with coag) at 12 hours"
+#plot "out/collapse_0001_00000012_aero_particles.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
+#set title "BC composition (with coag) at 24 hours"
+#plot "out/collapse_0001_00000024_aero_particles.txt" using ($3*1e6):(($23/($4-$24))*100) with points notitle
 

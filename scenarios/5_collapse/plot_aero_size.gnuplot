@@ -22,13 +22,13 @@ set ylabel "number concentration / (#/cm^3)"
 plot "out/collapse_0001_aero_size_num.txt" using ($1*1e6):($2/1e6) axes x1y1 with lines title "0 hours", \
      "out/collapse_0001_aero_size_num.txt" using ($1*1e6):($8/1e6) axes x1y1 with lines title "6 hours", \
      "out/collapse_0001_aero_size_num.txt" using ($1*1e6):($14/1e6) axes x1y1 with lines title "12 hours", \
-     "out/collapse_0001_aero_size_num.txt" using ($1*1e6):($26/1e6) axes x1y1 with lines title "24 hours", \
+     "out/collapse_0001_aero_size_num.txt" using ($1*1e6):($26/1e6) axes x1y1 with lines title "24 hours"
 
 set ylabel "mass concentration / (ug/m^3)"
 
 plot "out/collapse_0001_aero_size_mass.txt" using ($1*1e6):($2*1e9) axes x1y1 with lines title "0 hours", \
      "out/collapse_0001_aero_size_mass.txt" using ($1*1e6):($8*1e9) axes x1y1 with lines title "6 hours", \
      "out/collapse_0001_aero_size_mass.txt" using ($1*1e6):($14*1e9) axes x1y1 with lines title "12 hours", \
-     "out/collapse_0001_aero_size_mass.txt" using ($1*1e6):($26*1e9) axes x1y1 with lines title "24 hours", \
+     "out/collapse_0001_aero_size_mass.txt" using ($1*1e6):($26*1e9) axes x1y1 with lines title "24 hours"
 
 unset multiplot

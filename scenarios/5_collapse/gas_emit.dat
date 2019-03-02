@@ -2,4 +2,6 @@
 # rate = scaling parameter
 # emissions (mol m^{-2} s^{-1})
 time 0
-rate 0
+rate 1
+H2SO4 1e-06
+ARO1 1e-06

@@ -30,7 +30,7 @@ module pmc_gas_state
   type gas_state_t
      !> Length n_spec, mixing ratio (ppb).
      real(kind=dp), allocatable :: mix_rat(:)
-     !> Vapor pressure (Pa).
+     !> Saturation vapor pressure (Pa).
      real(kind=dp), allocatable :: sat_vapor_pressure(:)
   end type gas_state_t
 

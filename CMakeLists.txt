@@ -421,3 +421,9 @@ add_executable(chamber_process
 target_link_libraries(chamber_process partmclib)
 
 ######################################################################
+# scenarios/5_collapse/collapse_process
+
+add_executable(collapse_process
+  scenarios/5_collapse/collapse_process.F90)
+target_link_libraries(collapse_process partmclib)
+

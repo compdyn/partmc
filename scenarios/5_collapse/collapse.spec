@@ -1,5 +1,5 @@
 run_type particle               # particle-resolved run
-output_prefix out/ogo_test      # prefix of output files
+output_prefix out/collapse      # prefix of output files
 n_repeat 1                      # number of Monte Carlo repeats
 n_part 500                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
@@ -46,6 +46,7 @@ do_collapse yes
 rand_init 0                     # random initialization (0 to use time)
 allow_doubling yes              # whether to allow doubling (yes/no)
 allow_halving yes               # whether to allow halving (yes/no)
-do_select_weighting no          # whether to select weighting explicitly (yes/no)
+do_select_weighting yes          # whether to select weighting explicitly (yes/no)
+weight_type flat
 record_removals yes             # whether to record particle removals (yes/no)
 do_parallel no                  # whether to run in parallel (yes/no)

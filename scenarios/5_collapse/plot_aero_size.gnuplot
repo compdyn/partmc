@@ -19,18 +19,16 @@ set multiplot layout 2,1
 
 set ylabel "number concentration / (#/cm^3)"
 
-plot "out/ogo_test_0001_aero_size_num.txt" using ($1*1e6):($2/1e6) axes x1y1 with lines title "0 hours", \
-     "out/ogo_test_0001_aero_size_num.txt" using ($1*1e6):($14/1e6) axes x1y1 with lines title "12 hours", \
-     "out/ogo_test_0001_aero_size_num.txt" using ($1*1e6):($32/1e6) axes x1y1 with lines title "30 hours", \
-     "out/ogo_test_0001_aero_size_num.txt" using ($1*1e6):($56/1e6) axes x1y1 with lines title "54 hours", \
-     "out/ogo_test_0001_aero_size_num.txt" using ($1*1e6):($74/1e6) axes x1y1 with lines title "72 hours"
+plot "out/collapse_0001_aero_size_num.txt" using ($1*1e6):($2/1e6) axes x1y1 with lines title "0 hours", \
+     "out/collapse_0001_aero_size_num.txt" using ($1*1e6):($8/1e6) axes x1y1 with lines title "6 hours", \
+     "out/collapse_0001_aero_size_num.txt" using ($1*1e6):($14/1e6) axes x1y1 with lines title "12 hours", \
+     "out/collapse_0001_aero_size_num.txt" using ($1*1e6):($26/1e6) axes x1y1 with lines title "24 hours"
 
 set ylabel "mass concentration / (ug/m^3)"
 
-plot "out/ogo_test_0001_aero_size_mass.txt" using ($1*1e6):($2*1e9) axes x1y1 with lines title "0 hours", \
-     "out/ogo_test_0001_aero_size_mass.txt" using ($1*1e6):($14*1e9) axes x1y1 with lines title "12 hours", \
-     "out/ogo_test_0001_aero_size_mass.txt" using ($1*1e6):($32*1e9) axes x1y1 with lines title "30 hours", \
-     "out/ogo_test_0001_aero_size_mass.txt" using ($1*1e6):($56*1e9) axes x1y1 with lines title "54 hours", \
-     "out/ogo_test_0001_aero_size_mass.txt" using ($1*1e6):($74*1e9) axes x1y1 with lines title "72 hours"
+plot "out/collapse_0001_aero_size_mass.txt" using ($1*1e6):($2*1e9) axes x1y1 with lines title "0 hours", \
+     "out/collapse_0001_aero_size_mass.txt" using ($1*1e6):($8*1e9) axes x1y1 with lines title "6 hours", \
+     "out/collapse_0001_aero_size_mass.txt" using ($1*1e6):($14*1e9) axes x1y1 with lines title "12 hours", \
+     "out/collapse_0001_aero_size_mass.txt" using ($1*1e6):($26*1e9) axes x1y1 with lines title "24 hours"
 
 unset multiplot

@@ -94,12 +94,12 @@ set ylabel "gas mixing ratio / ppb"
 #    column 77: gas CH3SO2CH2OO mixing ratio (ppb)
 #    column 78: gas SULFHOX mixing ratio (ppb)
 
-plot "out/ogo_test_0001_gas.txt" using ($1/3600):12 axes x1y1 with lines title "O3", \
-     "out/ogo_test_0001_gas.txt" using ($1/3600):7 axes x1y1 with lines title "NO2"
+plot "out/collapse_0001_gas.txt" using ($1/3600):12 axes x1y1 with lines title "O3", \
+     "out/collapse_0001_gas.txt" using ($1/3600):7 axes x1y1 with lines title "NO2"
 
-plot "out/ogo_test_0001_gas.txt" using ($1/3600):3 axes x1y1 with lines title "HNO3", \
-     "out/ogo_test_0001_gas.txt" using ($1/3600):24 axes x1y1 with lines title "HCHO", \
-     "out/ogo_test_0001_gas.txt" using ($1/3600):19 axes x1y1 with lines title "SO2", \
-     "out/ogo_test_0001_gas.txt" using ($1/3600):5 axes x1y1 with lines title "NH3"
+plot "out/collapse_0001_gas.txt" using ($1/3600):3 axes x1y1 with lines title "HNO3", \
+     "out/collapse_0001_gas.txt" using ($1/3600):24 axes x1y1 with lines title "HCHO", \
+     "out/collapse_0001_gas.txt" using ($1/3600):19 axes x1y1 with lines title "SO2", \
+     "out/collapse_0001_gas.txt" using ($1/3600):5 axes x1y1 with lines title "NH3"
 
 unset multiplot

@@ -12,7 +12,7 @@ program process
   use pmc_stats
 
   character(len=PMC_MAX_FILENAME_LEN), parameter :: prefix &
-       = "out/ogo_test"
+       = "out/collapse"
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename
   type(bin_grid_t) :: diam_grid, bc_grid, sc_grid

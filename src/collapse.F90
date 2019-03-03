@@ -112,9 +112,6 @@ contains
                   i_part), i_aero, aero_data) / bc_mass) &
                   * ((2d0 * aero_data%density(bc_index)) &
                   / (N * aero_data%density(i_aero)))
-             if (F*Q > 1.0d0) then
-                Q = (.99d0 / F)
-             end if
              theta = fill_angle(F, Q)
              ! Test for collapse based on filling angle
              if (theta > 45.0d0) then
@@ -196,26 +193,40 @@ contains
     !>
     real(kind=dp), intent(in) :: Q_val
 
-    real(kind=dp) :: f, df, x
+    real(kind=dp) :: f, df, x, fill_angle_newton
     real(kind=dp), parameter :: NEWTON_REL_TOL = 1d-4
     integer, parameter :: NEWTON_MAX_STEPS = 20
 
+    call assert_msg(589404526, (F_val * Q_val >= 0d0), &
+      "constant too high in collapse")
+
+    if (F_val * Q_val > 1.0d0) then
+      fill_angle = const%pi / 2d0
+      return
+    end if
+
     ! Set initial guess
-    x = 1.0d0
-    do newton_step = 1,NEWTON_MAX_STEPS
-       f = (2.*cos(x)**3 - 3.0*cos(x)**2 + 1 - F_val *Q_val)
-       df = -6.0*cos(x)**2*sin(x) + 3*sin(2*x)
-       x = x - f / df
-       if (abs(f / df) / (abs(x + f / df) + abs(x)) &
-            < NEWTON_REL_TOL) exit
-       if (x < .01) exit
-       !print*, 'f =', f, 'theta =', x * 180d0 / const%pi
-    end do
+    !x = 1.0d0
+    !do newton_step = 1,NEWTON_MAX_STEPS
+    !   f = (2.*cos(x)**3 - 3.0*cos(x)**2 + 1 - F_val *Q_val)
+    !   df = -6.0*cos(x)**2*sin(x) + 3*sin(2*x)
+    !   x = x - f / df
+    !   if (abs(f / df) / (abs(x + f / df) + abs(x)) &
+    !        < NEWTON_REL_TOL) exit
+    !   if (x < .01) exit
+    !   !print*, 'f =', f, 'theta =', x * 180d0 / const%pi
+    !end do
 
-    call assert_msg(589404526, newton_step < NEWTON_MAX_STEPS, &
-         "collapse Newton loop failed to converge")
+    !call assert_msg(589404526, newton_step < NEWTON_MAX_STEPS, &
+    !     "collapse Newton loop failed to converge")
+    !fill_angle_newton = x * 180d0 / const%pi
 
-    fill_angle = x * 180d0 / const%pi
+    x = cos((1d0/3d0) * acos(2d0 *F_val*Q_val - 1d0) - (2d0/3d0)*const%pi) + 0.5
+    fill_angle = acos(x) * 180d0 / const%pi
+    call assert_msg(660326482, (x <= 1d0), &
+      "fill angle too large")
+
+    !print*, fill_angle_newton, fill_angle
 
   end function fill_angle
 

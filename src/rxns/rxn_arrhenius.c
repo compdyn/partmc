@@ -198,20 +198,18 @@ void * rxn_arrhenius_calc_jac_contrib(ModelData *model_data, realtype *J,
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
 
   // Add contributions to the Jacobian
-  if (rate!=ZERO) {
-    int i_elem = 0;
-    for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
-      for (int i_dep=0; i_dep<NUM_REACT_; i_dep++, i_elem++) {
-	if (JAC_ID_(i_elem) < 0) continue;
-	J[JAC_ID_(i_elem)] -= rate / state[REACT_(i_ind)];
-      }
-      for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
-	if (JAC_ID_(i_elem) < 0) continue;
-        // Negative yields are allowed, but prevented from causing negative
-        // concentrations that lead to solver failures
-        if (-rate*YIELD_(i_dep)*time_step <= state[PROD_(i_dep)]) {
-	  J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate / state[REACT_(i_ind)];
-        }
+  int i_elem = 0;
+  for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
+    for (int i_dep=0; i_dep<NUM_REACT_; i_dep++, i_elem++) {
+      if (JAC_ID_(i_elem) < 0) continue;
+      J[JAC_ID_(i_elem)] -= rate / state[REACT_(i_ind)];
+    }
+    for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
+      if (JAC_ID_(i_elem) < 0) continue;
+      // Negative yields are allowed, but prevented from causing negative
+      // concentrations that lead to solver failures
+      if (-rate*YIELD_(i_dep)*time_step <= state[PROD_(i_dep)]) {
+	J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate / state[REACT_(i_ind)];
       }
     }
   }

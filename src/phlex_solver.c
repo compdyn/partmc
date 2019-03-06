@@ -29,6 +29,7 @@
 #define PMC_DEBUG_PRINT(x) pmc_debug_print(sd->cvode_mem, x, false, 0, __LINE__, __func__)
 #define PMC_DEBUG_PRINT_INT(x,y) pmc_debug_print(sd->cvode_mem, x, false, y, __LINE__, __func__)
 #define PMC_DEBUG_PRINT_FULL(x) pmc_debug_print(sd->cvode_mem, x, true, 0, __LINE__, __func__)
+#define PMC_DEBUG_JAC_STRUCT(x) pmc_debug_print_jac_struct((void*)sd, x)
 void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
     const int int_val, const int line, const char *func)
 {
@@ -51,10 +52,34 @@ void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
     }
   }
 }
+void pmc_debug_print_jac_struct(void *solver_data, const char *message)
+{
+  SolverData *sd = (SolverData*) solver_data;
+
+  int n_state_var = NV_LENGTH_S(sd->deriv);
+  int i_elem = 0;
+  int next_col = 0;
+  printf("\n\n   Jacobian structure - %s\n     ", message);
+  for (int i_dep=0; i_dep < n_state_var; i_dep++)
+    printf("[%3d]", i_dep);
+  for (int i_ind=0; i_ind < n_state_var; i_ind++) {
+    printf("\n[%3d]", i_ind);
+    next_col = SM_INDEXPTRS_S(sd->model_data.J_init)[i_ind+1];
+    for (int i_dep=0; i_dep < n_state_var; i_dep++) {
+      if (i_dep == SM_INDEXVALS_S(sd->model_data.J_init)[i_elem] &&
+          i_elem < next_col) {
+        printf(" %3d ", i_elem++);
+      } else {
+        printf("  -  ");
+      }
+    }
+  }
+}
 #else
 #define PMC_DEBUG_PRINT(x)
 #define PMC_DEBUG_PRINT_INT(x,y)
 #define PMC_DEBUG_PRINT_FULL(x)
+#define PMC_DEBUG_JAC_STRUCT(x)
 #endif
 
 // Default solver initial time step relative to total integration time
@@ -358,6 +383,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   sd->model_data.use_adj = true;
   rxn_reset_state_adjustments(&(sd->model_data));
 
+  PMC_DEBUG_JAC_STRUCT("Begin solving");
+
   // Reset the flag indicating a current J_guess
   sd->curr_J_guess = false;
 
@@ -509,11 +536,15 @@ void solver_get_statistics( void *solver_data, int *num_steps, int *RHS_evals,
  *
  * \param solver_state Solver state vector
  * \param model_data Pointer to the model data (including the state array)
+ * \param threshhold A lower limit for model concentrations below which the
+ *                   solver value is replaced with a replacement value
+ * \param replacement_value Replacement value for low concentrations
  * \return PHLEX_SOLVER_SUCCESS for successful update or
  *         PHLEX_SOLVER_FAIL for negative concentration
  */
 int phlex_solver_update_model_state(N_Vector solver_state,
-          ModelData *model_data)
+          ModelData *model_data, realtype threshhold,
+          realtype replacement_value)
 {
   for (int i_spec=0, i_dep_var=0; i_spec<model_data->n_state_var; i_spec++) {
     if (model_data->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
@@ -525,8 +556,8 @@ int phlex_solver_update_model_state(N_Vector solver_state,
         return PHLEX_SOLVER_FAIL;
       }
       model_data->state[i_spec] =
-        NV_DATA_S(solver_state)[i_dep_var] > SMALL_NUMBER ?
-        NV_DATA_S(solver_state)[i_dep_var] : ZERO;
+        NV_DATA_S(solver_state)[i_dep_var] > threshhold ?
+        NV_DATA_S(solver_state)[i_dep_var] : replacement_value;
       i_dep_var++;
     }
   }
@@ -557,7 +588,8 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   // Update the state array with the current dependent variable values.
   // Signal a recoverable error (positive return value) for negative
   // concentrations.
-  if (phlex_solver_update_model_state(y, md) != PHLEX_SOLVER_SUCCESS) return 1;
+  if (phlex_solver_update_model_state(y, md, SMALL, ZERO)
+      != PHLEX_SOLVER_SUCCESS) return 1;
 
   // Reset the derivative vector
   N_VConst(ZERO, deriv);
@@ -600,7 +632,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   // Update the state array with the current dependent variable values
   // Signal a recoverable error (positive return value) for negative
   // concentrations.
-  if (phlex_solver_update_model_state(y, md) != PHLEX_SOLVER_SUCCESS) return 1;
+  if (phlex_solver_update_model_state(y, md, TINY, TINY)
+      != PHLEX_SOLVER_SUCCESS) return 1;
 
   // Advance the state by a small amount to get more accurate Jac values
   // for species that are currently at zero concentration

@@ -43,7 +43,8 @@ void error_handler(int error_code, const char *module,
 
 /* SUNDIALS support functions */
 int phlex_solver_update_model_state(N_Vector solver_state,
-          ModelData *model_data);
+          ModelData *model_data, realtype threshhold,
+          realtype replacement_value);
 SUNMatrix get_jac_init(SolverData *solver_data);
 int check_flag(void *flag_value, char *func_name, int opt);
 void check_flag_fail(void *flag_value, char *func_name, int opt);

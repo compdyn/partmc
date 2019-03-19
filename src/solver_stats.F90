@@ -45,6 +45,11 @@ module pmc_solver_stats
     real(kind=dp) :: last_time_step__s
     !> Next time step [s]
     real(kind=dp) :: next_time_step__s
+#ifdef PMC_DEBUG
+    !> Flag to output debugging info during solving
+    !! THIS PRINTS A LOT OF TEXT TO THE STANDARD OUTPUT
+    logical :: debug_out = .false.
+#endif
   contains
     !> Print the solver statistics
     procedure :: print => do_print
@@ -82,6 +87,9 @@ contains
     write(f_unit,*) "DLS Right-hand side evals:   ", this%DLS_RHS_evals
     write(f_unit,*) "Last time step [s]:          ", this%last_time_step__s
     write(f_unit,*) "Next time step [s]:          ", this%next_time_step__s
+#ifdef PMC_DEBUG
+    write(f_unit,*) "Output debugging info:       ", this%debug_out
+#endif
 
   end subroutine do_print
 
@@ -108,6 +116,9 @@ contains
     this%DLS_RHS_evals         = new_value
     this%last_time_step__s     = real( new_value, kind=dp )
     this%next_time_step__s     = real( new_value, kind=dp )
+#ifdef PMC_DEBUG
+    this%debug_out             = .false.
+#endif
 
   end subroutine assignValue
 

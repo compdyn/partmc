@@ -20,6 +20,10 @@ option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
 option(ENABLE_JSON "Enable json-fortran support" ON)
+option(ENABLE_DEBUG "Compile debugging functions" OFF)
+option(FAILURE_DETAIL "Output conditions before and after solver failures" OFF)
+
+mark_as_advanced(FORCE ENABLE_DEBUG FAILURE_DETAIL)
 
 ######################################################################
 # CPack
@@ -150,6 +154,16 @@ if (ENABLE_JSON)
     PATHS $ENV{JSON_FORTRAN_HOME}/lib /opt/local/lib /usr/local/lib)
   include_directories(${JSON_INCLUDE_DIR})
   add_definitions(-DPMC_USE_JSON)
+endif()
+
+######################################################################
+# debugging options
+
+if (ENABLE_DEBUG)
+  add_definitions(-DPMC_DEBUG)
+endif()
+if (FAILURE_DETAIL)
+  add_definitions(-DFAILURE_DETAIL)
 endif()
 
 ######################################################################

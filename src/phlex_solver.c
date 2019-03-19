@@ -19,11 +19,6 @@
 #include "rxn_solver.h"
 #include "sub_model_solver.h"
 
-// Define PMC_DEBUG to turn on output of debug info
-
-// Define FAILURE_DETAIL to print out conditions before and after solver failures
-
-
 #ifdef PMC_DEBUG
 #define PMC_DEBUG_SPEC_ 0
 #define PMC_DEBUG_PRINT(x) pmc_debug_print(sd->cvode_mem, x, false, 0, __LINE__, __func__)
@@ -34,6 +29,7 @@ void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
     const int int_val, const int line, const char *func)
 {
   CVodeMem cv_mem = (CVodeMem) cvode_mem;
+  if( !(cv_mem->cv_debug_out) ) return;
   printf("\n[DEBUG] line %4d in %-20s(): %-25s %-4.0d t_n = %le h = %le q = %d"
          "hin = %le species %d(zn[0] = %le zn[1] = %le tempv = %le tempv2 = %le)",
          line, func, message, int_val, cv_mem->cv_tn, cv_mem->cv_h, cv_mem->cv_q,
@@ -56,6 +52,7 @@ void pmc_debug_print_jac_struct(void *solver_data, const char *message)
 {
   SolverData *sd = (SolverData*) solver_data;
 
+  if( !(sd->debug_out) ) return;
   int n_state_var = NV_LENGTH_S(sd->deriv);
   int i_elem = 0;
   int next_col = 0;
@@ -140,6 +137,11 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
     printf("\n\nERROR allocating space for SolverData\n\n");
     exit(1);
   }
+
+#ifdef PMC_DEBUG
+  // Default to no debugging output
+  sd->debug_out = SUNFALSE;
+#endif
 
   // Save the number of state variables
   sd->model_data.n_state_var = n_state_var;
@@ -348,6 +350,27 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
 #endif
 }
 
+/** \brief Set the flag indicating whether to output debugging information
+ *
+ * \param solver_data A pointer to the solver data
+ * \param do_output Whether to output debugging information during solving
+ */
+#ifdef PMC_DEBUG
+int solver_set_debug_out(void *solver_data, bool do_output)
+{
+#ifdef PMC_USE_SUNDIALS
+  SolverData *sd = (SolverData*) solver_data;
+
+  if (do_output == true) {
+    sd->debug_out = SUNTRUE;
+  } else {
+    sd->debug_out = SUNFALSE;
+  }
+  return PHLEX_SOLVER_SUCCESS;
+#endif
+}
+#endif
+
 /** \brief Solve for a given timestep
  *
  * \param solver_data A pointer to the initialized solver data
@@ -362,6 +385,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 {
 #ifdef PMC_USE_SUNDIALS
   SolverData *sd = (SolverData*) solver_data;
+  int flag;
 
   // Update the dependent variables
   for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++)
@@ -371,6 +395,14 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // Update model data pointers
   sd->model_data.state = state;
   sd->model_data.env = env;
+
+#ifdef PMC_DEBUG
+  // Update the debug output flag in CVODES and the linear solver
+  flag = CVodeSetDebugOut(sd->cvode_mem, sd->debug_out);
+  check_flag_fail(&flag, "CVodeSetDebugOut", 1);
+  flag = SUNKLUSetDebugOut(sd->ls, sd->debug_out);
+  check_flag_fail(&flag, "SUNKLUSetDebugOut", 1);
+#endif
 
   // Update data for new environmental state
   // (This is set up to assume the environmental variables do not change during
@@ -397,7 +429,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
     return PHLEX_SOLVER_SUCCESS;
 
   // Reinitialize the solver
-  int flag = CVodeReInit(sd->cvode_mem, t_initial, sd->y);
+  flag = CVodeReInit(sd->cvode_mem, t_initial, sd->y);
   check_flag_fail(&flag, "CVodeReInit", 1);
 
   // Reinitialize the linear solver

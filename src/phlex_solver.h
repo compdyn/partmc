@@ -21,6 +21,9 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
           int n_sub_model_float_param);
 void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
           int max_steps, int max_conv_fails);
+#ifdef PMC_DEBUG
+int solver_set_debug_out(void *solver_data, bool do_output);
+#endif
 int solver_run(void *solver_data, double *state, double *env, double t_initial,
 	  double t_final);
 void solver_get_statistics( void *solver_data, int *num_steps, int *RHS_evals,

@@ -99,6 +99,18 @@ module pmc_phlex_solver_data
       integer(kind=c_int), value :: max_conv_fails
     end subroutine solver_initialize
 
+#ifdef PMC_DEBUG
+    !> Set the debug output flag for the solver
+    integer(kind=c_int) function solver_set_debug_out(solver_data, &
+                    do_output) bind (c)
+      use iso_c_binding
+      !> Pointer to a SolverData object
+      type(c_ptr), value :: solver_data
+      !> Flag indicating whether to output debugging information
+      integer(kind=c_int), value :: do_output
+    end function solver_set_debug_out
+#endif
+
     !> Run the solver
     integer(kind=c_int) function solver_run(solver_data, state, env, &
                     t_initial, t_final) bind (c)
@@ -779,9 +791,26 @@ contains
     !> End time (s)
     real(kind=dp), intent(in) :: t_final
     !> Solver statistics
-    type(solver_stats_t), intent(out), optional, target :: solver_stats
+    type(solver_stats_t), intent(inout), optional, target :: solver_stats
 
     integer(kind=c_int) :: solver_status
+
+#ifdef PMC_DEBUG
+    if (present(solver_stats)) then
+      ! Update the debugging output flag in the solver data
+      if (solver_stats%debug_out) then
+        solver_status = solver_set_debug_out( &
+            this%solver_c_ptr,              & ! Pointer to the solver data
+            int(1, kind=c_int)              & ! Debug flag
+            )
+      else
+        solver_status = solver_set_debug_out( &
+            this%solver_c_ptr,              & ! Pointer to the solver data
+            int(0, kind=c_int)              & ! Debug flag
+            )
+      end if
+    end if
+#endif
 
     ! Run the solver
     solver_status = solver_run( &

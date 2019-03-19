@@ -1063,7 +1063,7 @@ contains
     !! GAS_RXN, AERO_RXN, GAS_AERO_RXN
     integer(kind=i_kind), intent(in), optional :: rxn_phase
     !> Return solver statistics to the host model
-    type(solver_stats_t), intent(out), optional, target :: solver_stats
+    type(solver_stats_t), intent(inout), optional, target :: solver_stats
 
     ! Phase to solve
     integer(kind=i_kind) :: phase

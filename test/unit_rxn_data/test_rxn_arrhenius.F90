@@ -8,16 +8,17 @@
 !> Test of arrhenius reaction module
 program pmc_test_arrhenius
 
+  use pmc_chem_spec_data
+  use pmc_mpi
+  use pmc_phlex_core
+  use pmc_phlex_state
+  use pmc_solver_stats
   use pmc_util,                         only: i_kind, dp, assert, &
                                               almost_equal, string_t, &
                                               warn_msg
-  use pmc_phlex_core
-  use pmc_phlex_state
-  use pmc_chem_spec_data
 #ifdef PMC_USE_JSON
   use json_module
 #endif
-  use pmc_mpi
 
   implicit none
   
@@ -89,6 +90,7 @@ contains
     character, allocatable :: buffer(:), buffer_copy(:)
     integer(kind=i_kind) :: pack_size, pos, i_elem, results
 #endif
+    type(solver_stats_t) :: solver_stats
 
     ! Parameters for calculating true concentrations
     real(kind=dp) :: k1, k2, temp, pressure, conv
@@ -213,8 +215,13 @@ contains
       ! Integrate the mechanism
       do i_time = 1, NUM_TIME_STEP
 
+#ifdef PMC_DEBUG
+        ! Set to true for debug output
+        solver_stats%debug_out = .false.
+#endif
+
         ! Get the modeled conc
-        call phlex_core%solve(phlex_state, time_step)
+        call phlex_core%solve(phlex_state, time_step, solver_stats=solver_stats)
         model_conc(i_time,:) = phlex_state%state_var(:)
 
         ! Get the analytic conc

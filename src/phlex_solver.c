@@ -711,6 +711,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
  * \param t_n Current time [s]
  * \param h_n Current time step size [s]
  * \param y_n Current guess for y_n
+ * \param y_n1 y at t_(n-1)
  * \param hf Current guess for change in y from t_n-1 to t_n
  * \param solver_data Solver data
  * \param tmp1 Temporary vector for calculations
@@ -718,10 +719,12 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
  * \return 1 if corrections were calculated, 0 if not
  */
 int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
-                 N_Vector hf, void *solver_data, N_Vector tmp1, N_Vector corr)
+                 N_Vector y_n1, N_Vector hf, void *solver_data, N_Vector tmp1,
+                 N_Vector corr)
 {
   SolverData *sd  = (SolverData*) solver_data;
   realtype *ay_n  = NV_DATA_S(y_n);
+  realtype *ay_n1 = NV_DATA_S(y_n1);
   realtype *atmp1 = NV_DATA_S(tmp1);
   realtype *acorr = NV_DATA_S(corr);
   int n_elem      = NV_LENGTH_S(y_n);
@@ -744,17 +747,15 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
       sd->curr_J_guess = false;
 
   // Calculate the Jacobian
-  N_VLinearSum(ONE, y_n, -ONE, hf, tmp1);
-  PMC_DEBUG_PRINT_FULL("Got y0");
   N_VScale(ONE/h_n, hf, corr);
-  PMC_DEBUG_PRINT_FULL("Got f0");
+  PMC_DEBUG_PRINT("Got f0");
   if (!(sd->curr_J_guess)) {
     if (Jac(t_n-h_n, tmp1, corr, sd->J_guess, solver_data,
             NULL, NULL, NULL) != 0) return 0;
     sd->curr_J_guess = true;
     sd->J_guess_t    = (t_n - h_n); // J is calculatd for t_(n-1)
   }
-  PMC_DEBUG_PRINT_FULL("Calculated Jacobian");
+  PMC_DEBUG_PRINT("Calculated Jacobian");
 
   // Estimate change in y0 needed to keep values in yn positive
   // assuming that f0(y) ~ y * f0' where df0'/dy = 0
@@ -762,16 +763,16 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
     if (ay_n[i] >= ZERO) {
       atmp1[i] = ZERO;
     } else {
-      atmp1[i] = atmp1[i] * (ay_n[i] / (atmp1[i] - ay_n[i]));
+      atmp1[i] = ay_n1[i] * (ay_n[i] / (ay_n1[i] - ay_n[i]));
     }
   }
-  PMC_DEBUG_PRINT_FULL("Estimated primary adjustments in y0");
+  PMC_DEBUG_PRINT("Estimated primary adjustments in y0");
 
   // Get changes in hf from adjustments to y0
   SUNMatScaleAddI(ONE, sd->J_guess);
   SUNMatMatvec(sd->J_guess, tmp1, corr);
   N_VScale(h_n, corr, corr);
-  PMC_DEBUG_PRINT_FULL("Applied Jacobian to adjustments");
+  PMC_DEBUG_PRINT("Applied Jacobian to adjustments");
 
   // Recalculate adjustments to y0
   for (int i = 0; i < n_elem; i++)
@@ -779,7 +780,7 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
       atmp1[i] *= (-ay_n[i]/acorr[i]);
   SUNMatMatvec(sd->J_guess, tmp1, corr);
   N_VScale(h_n, corr, corr);
-  PMC_DEBUG_PRINT_FULL("Applied Jacobian to recalculated adjustments");
+  PMC_DEBUG_PRINT("Applied Jacobian to recalculated adjustments");
 
   return 1;
 }

@@ -30,21 +30,27 @@ void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
 {
   CVodeMem cv_mem = (CVodeMem) cvode_mem;
   if( !(cv_mem->cv_debug_out) ) return;
-  printf("\n[DEBUG] line %4d in %-20s(): %-25s %-4.0d t_n = %le h = %le q = %d"
-         "hin = %le species %d(zn[0] = %le zn[1] = %le tempv = %le tempv2 = %le)",
+  printf("\n[DEBUG] line %4d in %-20s(): %-25s %-4.0d t_n = %le h = %le q = %d "
+         "hin = %le species %d(zn[0] = %le zn[1] = %le tempv = %le tempv2 = %le "
+         "acor_init = %le last_yn = %le",
          line, func, message, int_val, cv_mem->cv_tn, cv_mem->cv_h, cv_mem->cv_q,
          cv_mem->cv_hin, PMC_DEBUG_SPEC_,
          NV_DATA_S(cv_mem->cv_zn[0])[PMC_DEBUG_SPEC_],
          NV_DATA_S(cv_mem->cv_zn[1])[PMC_DEBUG_SPEC_],
          NV_DATA_S(cv_mem->cv_tempv)[PMC_DEBUG_SPEC_],
-         NV_DATA_S(cv_mem->cv_tempv1)[PMC_DEBUG_SPEC_]);
+         NV_DATA_S(cv_mem->cv_tempv1)[PMC_DEBUG_SPEC_],
+         NV_DATA_S(cv_mem->cv_acor_init)[PMC_DEBUG_SPEC_],
+         NV_DATA_S(cv_mem->cv_last_yn)[PMC_DEBUG_SPEC_]);
   if (do_full) {
     for (int i=0; i<NV_LENGTH_S(cv_mem->cv_y); i++) {
-      printf("\n  zn[0][%3d] = % -le zn[1][%3d] = % -le tempv[%3d] = % -le tempv2[%3d] = % -le",
+      printf("\n  zn[0][%3d] = % -le zn[1][%3d] = % -le tempv[%3d] = % -le "
+             "tempv2[%3d] = % -le acor_init[%3d] = % -le last_yn[%3d] = % -le",
          i, NV_DATA_S(cv_mem->cv_zn[0])[i],
          i, NV_DATA_S(cv_mem->cv_zn[1])[i],
          i, NV_DATA_S(cv_mem->cv_tempv)[i],
-         i, NV_DATA_S(cv_mem->cv_tempv1)[i]);
+         i, NV_DATA_S(cv_mem->cv_tempv1)[i],
+         i, NV_DATA_S(cv_mem->cv_acor_init)[i],
+         i, NV_DATA_S(cv_mem->cv_last_yn)[i]);
     }
   }
 }
@@ -778,6 +784,8 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
   for (int i = 0; i < n_elem; i++)
     if (ay_n[i] < ZERO && acorr[i] > ZERO)
       atmp1[i] *= (-ay_n[i]/acorr[i]);
+
+  // Get the correction to y_n
   SUNMatMatvec(sd->J_guess, tmp1, corr);
   N_VScale(h_n, corr, corr);
   PMC_DEBUG_PRINT("Applied Jacobian to recalculated adjustments");

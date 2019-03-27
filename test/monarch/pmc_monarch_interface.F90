@@ -311,6 +311,8 @@ contains
             call cpu_time(comp_start)
           end if
 
+          ! solver_stats%debug_out = .true.
+
           ! Integrate the PMC mechanism
           call this%phlex_core%solve(this%phlex_state, &
                   real(time_step, kind=dp), solver_stats = solver_stats)

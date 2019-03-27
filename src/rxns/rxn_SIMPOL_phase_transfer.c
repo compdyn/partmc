@@ -237,12 +237,6 @@ void * rxn_SIMPOL_phase_transfer_pre_calc(ModelData *model_data, void *rxn_data,
     if (radius <= ZERO || number_conc <= ZERO || aero_phase_mass <= ZERO) {
       FAST_FLUX_(i_phase) = ZERO;
       AERO_ADJ_(i_phase)  = ZERO;
-#ifdef PMC_DEBUG
-      printf("\n[DEBUG] SIMPOL Phase transfer - phase %d skipping - no aero mass"
-             "[%d]g = %le, [%d]a = %le radius = %le number_conc = %le mass = %le",
-             i_phase, GAS_SPEC_, state[GAS_SPEC_], AERO_SPEC_(i_phase),
-             state[AERO_SPEC_(i_phase)], radius, number_conc, aero_phase_mass);
-#endif
       continue;
     }
 
@@ -260,23 +254,8 @@ void * rxn_SIMPOL_phase_transfer_pre_calc(ModelData *model_data, void *rxn_data,
          ONE / evap_rate > time_step / 1000.0 ) {
       FAST_FLUX_(i_phase) = ZERO;
       AERO_ADJ_(i_phase)  = ZERO;
-#ifdef PMC_DEBUG
-      printf("\n[DEBUG] SIMPOL Phase transfer - phase %d treating kinetically "
-             "[%d]g = %le, [%d]a = %le cond_rate = %le evap_rate = %le "
-             "time_step = %le", i_phase, GAS_SPEC_, state[GAS_SPEC_],
-             AERO_SPEC_(i_phase), state[AERO_SPEC_(i_phase)], cond_rate,
-             evap_rate, time_step);
-#endif
       continue;
     }
-
-#ifdef PMC_DEBUG
-      printf("\n[DEBUG] SIMPOL Phase transfer - phase %d treating at equilibrium "
-             "[%d]g = %le, [%d]a = %le cond_rate = %le evap_rate = %le "
-             "time_step = %le", i_phase, GAS_SPEC_, state[GAS_SPEC_],
-             AERO_SPEC_(i_phase), state[AERO_SPEC_(i_phase)], cond_rate,
-             evap_rate, time_step);
-#endif
 
     // Add the mass in this phase to the total mass available for transfer
     total_mass += state[AERO_SPEC_(i_phase)] * UGM3_TO_PPM_;

@@ -93,6 +93,8 @@ void pmc_debug_print_jac_struct(void *solver_data, const char *message)
 #define MAX_TIMESTEP_WARNINGS -1
 // Relative time step size threshhold for trying to improve guess of yn
 #define GUESS_THRESHHOLD 1.0
+// Maximum number of steps in discreet addition guess helper
+#define GUESS_MAX_ITER 50
 
 // Status codes for calls to phlex_solver functions
 #define PHLEX_SOLVER_SUCCESS 0
@@ -714,14 +716,30 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
 /** \brief Try to improve guesses of y sent to the linear solver
  *
+ * This function checks if there are any negative guessed concentrations,
+ * and if there are it calculates a set of initial corrections to the
+ * guessed state using the state at time \f$t_{n-1}\f$ and the derivative
+ * \f$f_{n-1} and advancing the state according to:
+ * \f[
+ *   y_n = y_{n-1} + \sum_{j=1}^m h_j * f_j
+ * \f]
+ * where \f$h_j\f$ is the largest timestep possible where
+ * \f[
+ *   y_{j-1} + h_j * f_j > 0
+ * \f]
+ * and
+ * \f[
+ *   t_n = t_{n-1} + \sum_{j=1}^m h_j
+ * \f]
+ *
  * \param t_n Current time [s]
  * \param h_n Current time step size [s]
- * \param y_n Current guess for y_n
- * \param y_n1 y at t_(n-1)
- * \param hf Current guess for change in y from t_n-1 to t_n
+ * \param y_n Current guess for \f$y(t_n)\f$
+ * \param y_n1 \f$y(t_{n-1})\f$
+ * \param hf Current guess for change in \f$y\f$ from \f$t_{n-1}\f$ to \f$t_n\f$
  * \param solver_data Solver data
  * \param tmp1 Temporary vector for calculations
- * \param corr Vector of calculated adjustments to y [output]
+ * \param corr Vector of calculated adjustments to \f$y(t_n)\f$ [output]
  * \return 1 if corrections were calculated, 0 if not
  */
 int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
@@ -747,48 +765,45 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
 
   PMC_DEBUG_PRINT_FULL("Trying to improve guess");
 
-  // Determine if J_guess is current
-  if (sd->curr_J_guess)
-    if ( ((t_n - h_n) - sd->J_guess_t) > SMALL_NUMBER )
-      sd->curr_J_guess = false;
+  // Copy \f$y(t_{n-1})\f$ to working array
+  N_VScale(ONE, y_n1, tmp1);
 
-  // Calculate the Jacobian
+  // Get  \f$f(t_{n-1})\f$
   N_VScale(ONE/h_n, hf, corr);
   PMC_DEBUG_PRINT("Got f0");
-  if (!(sd->curr_J_guess)) {
-    if (Jac(t_n-h_n, tmp1, corr, sd->J_guess, solver_data,
-            NULL, NULL, NULL) != 0) return 0;
-    sd->curr_J_guess = true;
-    sd->J_guess_t    = (t_n - h_n); // J is calculatd for t_(n-1)
-  }
-  PMC_DEBUG_PRINT("Calculated Jacobian");
 
-  // Estimate change in y0 needed to keep values in yn positive
-  // assuming that f0(y) ~ y * f0' where df0'/dy = 0
-  for (int i = 0; i < n_elem; i++) {
-    if (ay_n[i] >= ZERO) {
-      atmp1[i] = ZERO;
-    } else {
-      atmp1[i] = ay_n1[i] * (ay_n[i] / (ay_n1[i] - ay_n[i]));
+  // Advance state interatively
+  realtype t_j = t_n - h_n;
+  for (int iter = 0; iter < GUESS_MAX_ITER && t_j < t_n; iter++) {
+
+    // Calculate \f$h_j\f$
+    realtype h_j = t_n - t_j;
+    for (int i = 0; i < n_elem; i++) {
+      realtype t_star = - atmp1[i] / acorr[i];
+      h_j = t_star > ZERO && t_star < h_j ? t_star : h_j;
     }
+
+    // Advance the state
+    N_VLinearSum(ONE, tmp1, h_j, corr, tmp1);
+    t_j += h_j;
+
+    // Recalculate the time derivative \f$f(t_j)\f$
+    if (f(t_j, tmp1, corr, solver_data) != 0) {
+      return 0;
+      PMC_DEBUG_PRINT("Unexpected failure in guess helper!");
+    }
+
+#ifdef PMC_DEBUG
+    if (iter == GUESS_MAX_ITER-1 && t_j < t_n)
+      PMC_DEBUG_PRINT("Max guess iterations reached!");
+#endif
   }
-  PMC_DEBUG_PRINT("Estimated primary adjustments in y0");
 
-  // Get changes in hf from adjustments to y0
-  SUNMatScaleAddI(ONE, sd->J_guess);
-  SUNMatMatvec(sd->J_guess, tmp1, corr);
-  N_VScale(h_n, corr, corr);
-  PMC_DEBUG_PRINT("Applied Jacobian to adjustments");
+  // Set the correction vector
+  N_VLinearSum(ONE, tmp1, -ONE, y_n, corr);
 
-  // Recalculate adjustments to y0
-  for (int i = 0; i < n_elem; i++)
-    if (ay_n[i] < ZERO && acorr[i] > ZERO)
-      atmp1[i] *= (-ay_n[i]/acorr[i]);
-
-  // Get the correction to y_n
-  SUNMatMatvec(sd->J_guess, tmp1, corr);
-  N_VScale(h_n, corr, corr);
-  PMC_DEBUG_PRINT("Applied Jacobian to recalculated adjustments");
+  // Update the hf vector
+  N_VLinearSum(ONE, tmp1, -ONE, y_n1, hf);
 
   return 1;
 }

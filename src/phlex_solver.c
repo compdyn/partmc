@@ -91,8 +91,6 @@ void pmc_debug_print_jac_struct(void *solver_data, const char *message)
 #define SMALL_NUMBER 1.1E-30
 // Set MAX_TIMESTEP_WARNINGS to a negative number to prevent output
 #define MAX_TIMESTEP_WARNINGS -1
-// Relative time step size threshhold for trying to improve guess of yn
-#define GUESS_THRESHHOLD 1.0
 // Maximum number of steps in discreet addition guess helper
 #define GUESS_MAX_ITER 50
 
@@ -756,10 +754,6 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
   // TODO Figure out if/how to make this work with q > 1
   if (((CVodeMem)sd->cvode_mem)->cv_q > 1) return 0;
 
-  // Only perform this kind-of expensive guess improvement if the step size is
-  // getting really small
-  if (h_n == ZERO || h_n > sd->init_time_step * GUESS_THRESHHOLD) return 0;
-
   // Only try improvements when negative concentrations are predicted
   if (N_VMin(y_n) > -SMALL_NUMBER) return 0;
 
@@ -774,7 +768,8 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
 
   // Advance state interatively
   realtype t_j = t_n - h_n;
-  for (int iter = 0; iter < GUESS_MAX_ITER && t_j < t_n; iter++) {
+  int iter = 0;
+  for (; iter < GUESS_MAX_ITER && t_j < t_n; iter++) {
 
     // Calculate \f$h_j\f$
     realtype h_j = t_n - t_j;
@@ -789,15 +784,19 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
 
     // Recalculate the time derivative \f$f(t_j)\f$
     if (f(t_j, tmp1, corr, solver_data) != 0) {
-      return 0;
       PMC_DEBUG_PRINT("Unexpected failure in guess helper!");
+      return 0;
     }
+    ((CVodeMem)sd->cvode_mem)->cv_nfe++;
+
 
 #ifdef PMC_DEBUG
     if (iter == GUESS_MAX_ITER-1 && t_j < t_n)
       PMC_DEBUG_PRINT("Max guess iterations reached!");
 #endif
   }
+
+  PMC_DEBUG_PRINT_INT("Guessed y_h in steps:", iter);
 
   // Set the correction vector
   N_VLinearSum(ONE, tmp1, -ONE, y_n, corr);

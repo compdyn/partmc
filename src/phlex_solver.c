@@ -14,6 +14,7 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "phlex_solver.h"
 #include "aero_rep_solver.h"
 #include "rxn_solver.h"
@@ -93,6 +94,8 @@ void pmc_debug_print_jac_struct(void *solver_data, const char *message)
 #define MAX_TIMESTEP_WARNINGS -1
 // Maximum number of steps in discreet addition guess helper
 #define GUESS_MAX_ITER 50
+// Guess advance scaling factor
+#define GUESS_ADV_SCALE 0.618
 
 // Status codes for calls to phlex_solver functions
 #define PHLEX_SOLVER_SUCCESS 0
@@ -767,23 +770,45 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
   PMC_DEBUG_PRINT("Got f0");
 
   // Advance state interatively
-  realtype t_j = t_n - h_n;
+  realtype t_0 = t_n - h_n;
+  realtype t_j = ZERO;
   int iter = 0;
-  for (; iter < GUESS_MAX_ITER && t_j < t_n; iter++) {
+  for (; iter < GUESS_MAX_ITER && t_0 + t_j < t_n; iter++) {
 
     // Calculate \f$h_j\f$
-    realtype h_j = t_n - t_j;
+    realtype h_j = ( t_n - ( t_0 + t_j ) );
+    int i_fast = -1;
     for (int i = 0; i < n_elem; i++) {
       realtype t_star = - atmp1[i] / acorr[i];
-      h_j = t_star > ZERO && t_star < h_j ? t_star : h_j;
+      if( t_star > ZERO && t_star < h_j ) {
+        h_j = t_star;
+        i_fast = i;
+      }
     }
+
+    // Scale h_j unless t_n can be reached
+    if( i_fast >= 0 ) h_j *= GUESS_ADV_SCALE;
+
+    // Avoid advancing state past zero
+    h_j = nextafter(h_j, ZERO);
 
     // Advance the state
     N_VLinearSum(ONE, tmp1, h_j, corr, tmp1);
+
+    // Adjust h_j to be the lifetime of the fastest depleting species
+    // assuming approximate first order decay
+    if( i_fast >= 0 ) {
+      h_j = - ONE / acorr[i_fast];
+    } else {
+      h_j = nextafter(h_j, HUGE_VAL);
+    }
+    h_j = t_0 + t_j + h_j > t_n ? t_n - (t_0 + t_j) : h_j;
+
+    // Advance t_j
     t_j += h_j;
 
     // Recalculate the time derivative \f$f(t_j)\f$
-    if (f(t_j, tmp1, corr, solver_data) != 0) {
+    if (f(t_0 + t_j, tmp1, corr, solver_data) != 0) {
       PMC_DEBUG_PRINT("Unexpected failure in guess helper!");
       return 0;
     }
@@ -791,8 +816,9 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
 
 
 #ifdef PMC_DEBUG
-    if (iter == GUESS_MAX_ITER-1 && t_j < t_n)
+    if (iter == GUESS_MAX_ITER-1 && t_0 + t_j < t_n) {
       PMC_DEBUG_PRINT("Max guess iterations reached!");
+    }
 #endif
   }
 

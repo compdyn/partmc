@@ -734,10 +734,12 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
  * \f]
  *
  * \param t_n Current time [s]
- * \param h_n Current time step size [s]
+ * \param h_n Current time step size [s] If this is set to zero, the change hf
+ *            is assumed to be an adjustment where y_n = y_n1 + hf
  * \param y_n Current guess for \f$y(t_n)\f$
  * \param y_n1 \f$y(t_{n-1})\f$
- * \param hf Current guess for change in \f$y\f$ from \f$t_{n-1}\f$ to \f$t_n\f$
+ * \param hf Current guess for change in \f$y\f$ from \f$t_{n-1}\f$ to
+ *            \f$t_n\f$ [input/output]
  * \param solver_data Solver data
  * \param tmp1 Temporary vector for calculations
  * \param corr Vector of calculated adjustments to \f$y(t_n)\f$ [output]
@@ -766,7 +768,7 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
   N_VScale(ONE, y_n1, tmp1);
 
   // Get  \f$f(t_{n-1})\f$
-  N_VScale(ONE/h_n, hf, corr);
+  if (h_n > ZERO) N_VScale(ONE/h_n, hf, corr);
   PMC_DEBUG_PRINT("Got f0");
 
   // Advance state interatively
@@ -776,7 +778,7 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
   for (; iter < GUESS_MAX_ITER && t_0 + t_j < t_n; iter++) {
 
     // Calculate \f$h_j\f$
-    realtype h_j = ( t_n - ( t_0 + t_j ) );
+    realtype h_j = h_n > ZERO ? ( t_n - ( t_0 + t_j ) ) : ONE;
     int i_fast = -1;
     for (int i = 0; i < n_elem; i++) {
       realtype t_star = - atmp1[i] / acorr[i];
@@ -787,13 +789,16 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
     }
 
     // Scale h_j unless t_n can be reached
-    if( i_fast >= 0 ) h_j *= GUESS_ADV_SCALE;
+    if( i_fast >= 0 && h_n > ZERO ) h_j *= GUESS_ADV_SCALE;
 
     // Avoid advancing state past zero
-    h_j = nextafter(h_j, ZERO);
+    if( h_n > ZERO ) h_j = nextafter(h_j, ZERO);
 
     // Advance the state
     N_VLinearSum(ONE, tmp1, h_j, corr, tmp1);
+
+    // If just scaling an adjustment vector, exit the loop
+    if( h_n == ZERO ) break;
 
     // Adjust h_j to be the lifetime of the fastest depleting species
     // assuming approximate first order decay

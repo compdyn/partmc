@@ -756,9 +756,6 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
   realtype *acorr = NV_DATA_S(corr);
   int n_elem      = NV_LENGTH_S(y_n);
 
-  // TODO Figure out if/how to make this work with q > 1
-  if (((CVodeMem)sd->cvode_mem)->cv_q > 1) return 0;
-
   // Only try improvements when negative concentrations are predicted
   if (N_VMin(y_n) > -SMALL_NUMBER) return 0;
 

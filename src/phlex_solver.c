@@ -765,7 +765,11 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
   N_VScale(ONE, y_n1, tmp1);
 
   // Get  \f$f(t_{n-1})\f$
-  if (h_n > ZERO) N_VScale(ONE/h_n, hf, corr);
+  if (h_n > ZERO) {
+    N_VScale(ONE/h_n, hf, corr);
+  } else {
+    N_VScale(ONE, hf, corr);
+  }
   PMC_DEBUG_PRINT("Got f0");
 
   // Advance state interatively

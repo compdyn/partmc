@@ -754,12 +754,16 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
   realtype *ay_n1 = NV_DATA_S(y_n1);
   realtype *atmp1 = NV_DATA_S(tmp1);
   realtype *acorr = NV_DATA_S(corr);
+  realtype *ahf   = NV_DATA_S(hf);
   int n_elem      = NV_LENGTH_S(y_n);
 
   // Only try improvements when negative concentrations are predicted
   if (N_VMin(y_n) > -SMALL_NUMBER) return 0;
 
   PMC_DEBUG_PRINT_FULL("Trying to improve guess");
+
+  // skip adjustment problems for now TODO revisit this later
+  if (h_n == ZERO) return 1;
 
   // Copy \f$y(t_{n-1})\f$ to working array
   N_VScale(ONE, y_n1, tmp1);
@@ -773,7 +777,7 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
   PMC_DEBUG_PRINT("Got f0");
 
   // Advance state interatively
-  realtype t_0 = t_n - h_n;
+  realtype t_0 = h_n > ZERO ? t_n - h_n : t_n - ONE;
   realtype t_j = ZERO;
   int iter = 0;
   for (; iter < GUESS_MAX_ITER && t_0 + t_j < t_n; iter++) {

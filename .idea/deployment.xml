@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" showNewOnSourceInSync="false">
+    <serverData>
+      <paths name="cte-power (bac33227-1ac8-4dd9-a40b-c84ba2fb9aea)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/" local="$PROJECT_DIR$" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath path="/gpfs/scratch/bsc32/bsc32815/gpupartmc/partmc/build" />
+            <excludedPath local="true" path="$PROJECT_DIR$/sundials-3.1.2" />
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>

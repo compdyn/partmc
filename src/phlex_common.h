@@ -21,6 +21,7 @@
 #include <sundials/sundials_types.h>     /* definition of types                 */
 #include <sunlinsol/sunlinsol_klu.h>     /* KLU SUNLinearSolver                 */
 #include <sunmatrix/sunmatrix_sparse.h>  /* sparse SUNMatrix                    */
+//#include <stdbool.h> //This produces segmentation fault on comment typedef
 #endif
 
 /* Math constants */
@@ -32,7 +33,17 @@
 #endif
 
 /* boolean definition */
+
+//#include <stdbool.h> //This produces segmentation fault on comment typedef
+//TODO DESCOMENTAR Y ARREGLAR
+//extern "C"{
 typedef enum {false, true} bool;
+//enum {false, true} bool;
+//}
+
+//#define bool        _Bool
+//#define true        1
+//#define false        0
 
 /* Model data structure */
 typedef struct {

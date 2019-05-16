@@ -1,0 +1,1254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated>
+      <config projectName="sundials" targetName="sundials_ida_static" />
+      <config projectName="sundials" targetName="test_sunlinsol_pcg_serial" />
+      <config projectName="sundials" targetName="cvsAdvDiff_ASAi_bnd" />
+      <config projectName="sundials" targetName="sundials_sunlinsolspfgmr_shared" />
+      <config projectName="sundials" targetName="cvDiurnal_kry" />
+      <config projectName="sundials" targetName="sundials_kinsol_shared" />
+      <config projectName="sundials" targetName="idasKrylovDemo_ls" />
+      <config projectName="sundials" targetName="cvsDiurnal_FSA_kry" />
+      <config projectName="sundials" targetName="test_sunlinsol_spbcgs_serial" />
+      <config projectName="sundials" targetName="cvDisc_dns" />
+      <config projectName="sundials" targetName="kinKrylovDemo_ls" />
+      <config projectName="sundials" targetName="ark_brusselator" />
+      <config projectName="sundials" targetName="sundials_sunlinsolsptfqmr_static" />
+      <config projectName="sundials" targetName="cvsDiurnal_kry_bp" />
+      <config projectName="sundials" targetName="ark_analytic" />
+      <config projectName="sundials" targetName="ark_heat1D_adapt" />
+      <config projectName="sundials" targetName="cvsDiurnal_kry" />
+      <config projectName="sundials" targetName="cvRoberts_dns" />
+      <config projectName="sundials" targetName="sundials_sunlinsolpcg_shared" />
+      <config projectName="sundials" targetName="sundials_cvode_shared" />
+      <config projectName="sundials" targetName="sundials_arkode_shared" />
+      <config projectName="sundials" targetName="sundials_nvecserial_static" />
+      <config projectName="sundials" targetName="cvDiurnal_kry_bp" />
+      <config projectName="sundials" targetName="cvKrylovDemo_prec" />
+      <config projectName="sundials" targetName="kinsol_test_install" />
+      <config projectName="sundials" targetName="ark_brusselator1D" />
+      <config projectName="sundials" targetName="sundials_sunlinsolspfgmr_static" />
+      <config projectName="sundials" targetName="cvsRoberts_dns" />
+      <config projectName="sundials" targetName="cvode_test_install" />
+      <config projectName="sundials" targetName="test_sunlinsol_spfgmr_serial" />
+      <config projectName="sundials" targetName="kinFerTron_dns" />
+      <config projectName="sundials" targetName="sundials_sunmatrixdense_static" />
+      <config projectName="sundials" targetName="idas_test_install" />
+      <config projectName="sundials" targetName="kinFoodWeb_kry" />
+      <config projectName="sundials" targetName="sundials_sunlinsolpcg_static" />
+      <config projectName="sundials" targetName="sundials_sunmatrixband_shared" />
+      <config projectName="sundials" targetName="ark_robertson_root" />
+      <config projectName="sundials" targetName="kinRoberts_fp" />
+      <config projectName="sundials" targetName="sundials_idas_shared" />
+      <config projectName="sundials" targetName="sundials_sunmatrixdense_shared" />
+      <config projectName="sundials" targetName="sundials_arkode_static" />
+      <config projectName="sundials" targetName="test_sunmatrix_sparse" />
+      <config projectName="sundials" targetName="sundials_cvodes_static" />
+      <config projectName="sundials" targetName="ark_brusselator_fp" />
+      <config projectName="sundials" targetName="cvsDirectDemo_ls" />
+      <config projectName="sundials" targetName="test_nvector_serial" />
+      <config projectName="sundials" targetName="idasRoberts_ASAi_dns" />
+      <config projectName="sundials" targetName="arkode_test_install" />
+      <config projectName="sundials" targetName="sundials_sunmatrixsparse_shared" />
+      <config projectName="sundials" targetName="test_sunlinsol_dense" />
+      <config projectName="sundials" targetName="kinLaplace_bnd" />
+      <config projectName="sundials" targetName="sundials_sunlinsoldense_shared" />
+      <config projectName="sundials" targetName="cvsRoberts_FSA_dns_Switch" />
+      <config projectName="sundials" targetName="sundials_sunmatrixband_static" />
+      <config projectName="sundials" targetName="idasRoberts_FSA_dns" />
+      <config projectName="sundials" targetName="idaRoberts_dns" />
+      <config projectName="sundials" targetName="idaFoodWeb_kry" />
+      <config projectName="sundials" targetName="sundials_idas_static" />
+      <config projectName="sundials" targetName="test_sunlinsol_band" />
+      <config projectName="sundials" targetName="cvsKrylovDemo_prec" />
+      <config projectName="sundials" targetName="idaHeat2D_bnd" />
+      <config projectName="sundials" targetName="idasAkzoNob_ASAi_dns" />
+      <config projectName="sundials" targetName="sundials_sunlinsolspgmr_shared" />
+      <config projectName="sundials" targetName="cvsHessian_ASA_FSA" />
+      <config projectName="sundials" targetName="sundials_sunlinsolspbcgs_shared" />
+      <config projectName="sundials" targetName="idaHeat2D_kry" />
+      <config projectName="sundials" targetName="test_sunmatrix_band" />
+      <config projectName="sundials" targetName="idasFoodWeb_bnd" />
+      <config projectName="sundials" targetName="sundials_sunlinsolspgmr_static" />
+      <config projectName="sundials" targetName="sundials_cvodes_shared" />
+      <config projectName="sundials" targetName="idasHessian_ASA_FSA" />
+      <config projectName="sundials" targetName="idasRoberts_dns" />
+      <config projectName="sundials" targetName="sundials_sunmatrixsparse_static" />
+      <config projectName="sundials" targetName="test_sunlinsol_sptfqmr_serial" />
+      <config projectName="sundials" targetName="cvsRoberts_FSA_dns" />
+      <config projectName="sundials" targetName="cvRoberts_dns_negsol" />
+      <config projectName="sundials" targetName="ida_test_install" />
+      <config projectName="sundials" targetName="sundials_sunlinsolband_shared" />
+      <config projectName="sundials" targetName="cvsFoodWeb_ASAp_kry" />
+      <config projectName="sundials" targetName="kinLaplace_picard_bnd" />
+      <config projectName="sundials" targetName="sundials_kinsol_static" />
+      <config projectName="sundials" targetName="ark_robertson" />
+      <config projectName="sundials" targetName="sundials_sunlinsolspbcgs_static" />
+      <config projectName="sundials" targetName="kinRoboKin_dns" />
+      <config projectName="sundials" targetName="idasSlCrank_dns" />
+      <config projectName="sundials" targetName="cvsFoodWeb_ASAi_kry" />
+      <config projectName="sundials" targetName="cvDirectDemo_ls" />
+      <config projectName="sundials" targetName="sundials_cvode_static" />
+      <config projectName="sundials" targetName="cvsRoberts_dns_uw" />
+      <config projectName="sundials" targetName="idaKrylovDemo_ls" />
+      <config projectName="sundials" targetName="sundials_ida_shared" />
+      <config projectName="sundials" targetName="sundials_sunlinsolband_static" />
+      <config projectName="sundials" targetName="cvodes_test_install" />
+      <config projectName="sundials" targetName="test_sunlinsol_spgmr_serial" />
+      <config projectName="sundials" targetName="sundials_sunlinsoldense_static" />
+      <config projectName="sundials" targetName="idasAkzoNob_dns" />
+      <config projectName="sundials" targetName="idaFoodWeb_bnd" />
+      <config projectName="sundials" targetName="cvAdvDiff_bnd" />
+      <config projectName="sundials" targetName="cvsRoberts_ASAi_dns" />
+      <config projectName="sundials" targetName="idasHeat2D_bnd" />
+      <config projectName="sundials" targetName="cvRoberts_dns_uw" />
+      <config projectName="sundials" targetName="cvsKrylovDemo_ls" />
+      <config projectName="sundials" targetName="idaSlCrank_dns" />
+      <config projectName="sundials" targetName="sundials_sunlinsolsptfqmr_shared" />
+      <config projectName="sundials" targetName="ark_KrylovDemo_prec" />
+      <config projectName="sundials" targetName="idasHeat2D_kry" />
+      <config projectName="sundials" targetName="cvKrylovDemo_ls" />
+      <config projectName="sundials" targetName="idasSlCrank_FSA_dns" />
+      <config projectName="sundials" targetName="test_sunmatrix_dense" />
+      <config projectName="sundials" targetName="cvsAdvDiff_bnd" />
+      <config projectName="sundials" targetName="test_install" />
+      <config projectName="sundials" targetName="cvsAdvDiff_FSA_non" />
+      <config projectName="sundials" targetName="ark_heat1D" />
+      <config projectName="sundials" targetName="sundials_nvecserial_shared" />
+      <config projectName="sundials" targetName="ark_analytic_nonlin" />
+    </generated>
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="acd2055c-b754-44c6-9923-554a8f88d83d" name="Default Changelist" comment="" />
+    <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/cvode/cvode.c">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="211">
+              <caret line="2601" column="12" lean-forward="true" selection-start-line="2601" selection-start-column="12" selection-end-line="2601" selection-end-column="12" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/cvode/cvode_direct.c">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1522">
+              <caret line="722" column="29" selection-start-line="722" selection-start-column="20" selection-end-line="722" selection-end-column="29" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/examples/cvode/cuda/cvAdvDiff_kry_cuda.cu">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="131">
+              <caret line="172" column="42" selection-start-line="172" selection-start-column="42" selection-end-line="172" selection-end-column="42" />
+              <folding>
+                <element signature="e#1462#1480#0" expanded="true" />
+                <element signature="e#2391#3264#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/nvec_cuda/nvector_cuda.cu">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="315">
+              <caret line="33" column="28" lean-forward="true" selection-start-line="33" selection-start-column="28" selection-end-line="33" selection-end-column="28" />
+              <folding>
+                <element signature="e#844#862#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/examples/cvode/cuda/CMakeLists.txt">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="255">
+              <caret line="17" selection-start-line="17" selection-end-line="17" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>nni</find>
+      <find>fy</find>
+      <find>dgamma</find>
+      <find>set</find>
+      <find>setIC</find>
+      <find>neq</find>
+      <find>jtv(</find>
+      <find>jac</find>
+      <find>jtsetup =</find>
+      <find>jtsetup</find>
+      <find>jtsetup(</find>
+      <find>jtv</find>
+      <find>cuda</find>
+      <find>printf</find>
+      <find>c++</find>
+      <find>CXX_LIBS</find>
+      <find>cuda_enable</find>
+      <find>find_package</find>
+      <find>CXX_FOUND</find>
+      <find>CXX</find>
+      <find>CUDA</find>
+      <find>cxx_f</find>
+      <find>FORTRAN</find>
+      <find>cxx</find>
+      <find>else</find>
+      <find>CMAKE_CXX_COMPILER</find>
+      <find>print_warning</find>
+      <find>setup</find>
+      <find>cv_lsetup</find>
+      <find>callSet</find>
+    </findStrings>
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/src/cvode/cvode.c" />
+        <option value="$PROJECT_DIR$/examples/cvode/serial/cvRoberts_dns.c" />
+        <option value="$PROJECT_DIR$/src/cvode/CMakeLists.txt" />
+        <option value="$PROJECT_DIR$/src/cvode/cvode_spils.c" />
+        <option value="$PROJECT_DIR$/examples/cvode/cuda/cvAdvDiff_kry_cuda.cu" />
+        <option value="$PROJECT_DIR$/CMakeLists.txt" />
+        <option value="$PROJECT_DIR$/src/cvode/cvode_direct.c" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds">
+    <option name="x" value="85" />
+    <option name="y" value="139" />
+    <option name="width" value="987" />
+    <option name="height" value="659" />
+  </component>
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="sundials" type="b2602c69:ProjectViewProjectNode" />
+              <item name="sundials-3.1.2" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="sundials" type="b2602c69:ProjectViewProjectNode" />
+              <item name="sundials-3.1.2" type="462c0819:PsiDirectoryNode" />
+              <item name="examples" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="sundials" type="b2602c69:ProjectViewProjectNode" />
+              <item name="sundials-3.1.2" type="462c0819:PsiDirectoryNode" />
+              <item name="examples" type="462c0819:PsiDirectoryNode" />
+              <item name="cvode" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="sundials" type="b2602c69:ProjectViewProjectNode" />
+              <item name="sundials-3.1.2" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="sundials" type="b2602c69:ProjectViewProjectNode" />
+              <item name="sundials-3.1.2" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="cvode" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="sundials" type="b2602c69:ProjectViewProjectNode" />
+              <item name="sundials-3.1.2" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="nvec_cuda" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="settings.editor.selected.configurable" value="configurable.group.build" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="CMake Application.cvRoberts_dns">
+    <configuration name="ark_KrylovDemo_prec" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="ark_KrylovDemo_prec" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="ark_KrylovDemo_prec">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ark_analytic" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="ark_analytic" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="ark_analytic">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ark_analytic_nonlin" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="ark_analytic_nonlin" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="ark_analytic_nonlin">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ark_brusselator" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="ark_brusselator" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="ark_brusselator">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ark_brusselator1D" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="ark_brusselator1D" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="ark_brusselator1D">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ark_brusselator_fp" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="ark_brusselator_fp" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="ark_brusselator_fp">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ark_heat1D" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="ark_heat1D" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="ark_heat1D">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ark_heat1D_adapt" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="ark_heat1D_adapt" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="ark_heat1D_adapt">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ark_robertson" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="ark_robertson" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="ark_robertson">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ark_robertson_root" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="ark_robertson_root" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="ark_robertson_root">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="arkode_test_install" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="arkode_test_install" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvAdvDiff_bnd" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvAdvDiff_bnd" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvAdvDiff_bnd">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvDirectDemo_ls" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvDirectDemo_ls" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvDirectDemo_ls">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvDisc_dns" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvDisc_dns" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvDisc_dns">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvDiurnal_kry" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvDiurnal_kry" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvDiurnal_kry">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvDiurnal_kry_bp" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvDiurnal_kry_bp" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvDiurnal_kry_bp">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvKrylovDemo_ls" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvKrylovDemo_ls" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvKrylovDemo_ls">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvKrylovDemo_prec" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvKrylovDemo_prec" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvKrylovDemo_prec">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvRoberts_dns" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvRoberts_dns" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvRoberts_dns">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvRoberts_dns_negsol" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvRoberts_dns_negsol" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvRoberts_dns_negsol">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvRoberts_dns_uw" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvRoberts_dns_uw" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvRoberts_dns_uw">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvode_test_install" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvode_test_install" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvodes_test_install" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvodes_test_install" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvsAdvDiff_ASAi_bnd" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvsAdvDiff_ASAi_bnd" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvsAdvDiff_ASAi_bnd">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvsAdvDiff_FSA_non" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvsAdvDiff_FSA_non" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvsAdvDiff_FSA_non">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvsAdvDiff_bnd" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvsAdvDiff_bnd" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvsAdvDiff_bnd">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvsDirectDemo_ls" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvsDirectDemo_ls" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvsDirectDemo_ls">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvsDiurnal_FSA_kry" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvsDiurnal_FSA_kry" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvsDiurnal_FSA_kry">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvsDiurnal_kry" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvsDiurnal_kry" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvsDiurnal_kry">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvsDiurnal_kry_bp" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvsDiurnal_kry_bp" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvsDiurnal_kry_bp">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvsFoodWeb_ASAi_kry" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvsFoodWeb_ASAi_kry" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvsFoodWeb_ASAi_kry">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvsFoodWeb_ASAp_kry" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvsFoodWeb_ASAp_kry" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvsFoodWeb_ASAp_kry">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvsHessian_ASA_FSA" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvsHessian_ASA_FSA" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvsHessian_ASA_FSA">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvsKrylovDemo_ls" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvsKrylovDemo_ls" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvsKrylovDemo_ls">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvsKrylovDemo_prec" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvsKrylovDemo_prec" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvsKrylovDemo_prec">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvsRoberts_ASAi_dns" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvsRoberts_ASAi_dns" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvsRoberts_ASAi_dns">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvsRoberts_FSA_dns" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvsRoberts_FSA_dns" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvsRoberts_FSA_dns">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvsRoberts_FSA_dns_Switch" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvsRoberts_FSA_dns_Switch" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvsRoberts_FSA_dns_Switch">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvsRoberts_dns" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvsRoberts_dns" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvsRoberts_dns">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="cvsRoberts_dns_uw" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="cvsRoberts_dns_uw" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="cvsRoberts_dns_uw">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idaFoodWeb_bnd" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idaFoodWeb_bnd" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="idaFoodWeb_bnd">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idaFoodWeb_kry" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idaFoodWeb_kry" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="idaFoodWeb_kry">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idaHeat2D_bnd" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idaHeat2D_bnd" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="idaHeat2D_bnd">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idaHeat2D_kry" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idaHeat2D_kry" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="idaHeat2D_kry">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idaKrylovDemo_ls" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idaKrylovDemo_ls" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="idaKrylovDemo_ls">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idaRoberts_dns" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idaRoberts_dns" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="idaRoberts_dns">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idaSlCrank_dns" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idaSlCrank_dns" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="idaSlCrank_dns">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ida_test_install" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="ida_test_install" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idasAkzoNob_ASAi_dns" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idasAkzoNob_ASAi_dns" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="idasAkzoNob_ASAi_dns">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idasAkzoNob_dns" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idasAkzoNob_dns" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="idasAkzoNob_dns">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idasFoodWeb_bnd" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idasFoodWeb_bnd" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="idasFoodWeb_bnd">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idasHeat2D_bnd" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idasHeat2D_bnd" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="idasHeat2D_bnd">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idasHeat2D_kry" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idasHeat2D_kry" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="idasHeat2D_kry">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idasHessian_ASA_FSA" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idasHessian_ASA_FSA" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="idasHessian_ASA_FSA">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idasKrylovDemo_ls" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idasKrylovDemo_ls" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="idasKrylovDemo_ls">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idasRoberts_ASAi_dns" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idasRoberts_ASAi_dns" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="idasRoberts_ASAi_dns">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idasRoberts_FSA_dns" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idasRoberts_FSA_dns" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="idasRoberts_FSA_dns">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idasRoberts_dns" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idasRoberts_dns" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="idasRoberts_dns">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idasSlCrank_FSA_dns" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idasSlCrank_FSA_dns" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="idasSlCrank_FSA_dns">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idasSlCrank_dns" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idasSlCrank_dns" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="idasSlCrank_dns">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="idas_test_install" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="idas_test_install" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="kinFerTron_dns" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="kinFerTron_dns" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="kinFerTron_dns">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="kinFoodWeb_kry" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="kinFoodWeb_kry" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="kinFoodWeb_kry">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="kinKrylovDemo_ls" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="kinKrylovDemo_ls" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="kinKrylovDemo_ls">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="kinLaplace_bnd" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="kinLaplace_bnd" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="kinLaplace_bnd">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="kinLaplace_picard_bnd" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="kinLaplace_picard_bnd" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="kinLaplace_picard_bnd">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="kinRoberts_fp" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="kinRoberts_fp" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="kinRoberts_fp">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="kinRoboKin_dns" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="kinRoboKin_dns" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="kinRoboKin_dns">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="kinsol_test_install" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="kinsol_test_install" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_arkode_shared" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_arkode_shared" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_arkode_static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_arkode_static" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_cvode_shared" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_cvode_shared" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_cvode_static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_cvode_static" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_cvodes_shared" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_cvodes_shared" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_cvodes_static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_cvodes_static" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_ida_shared" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_ida_shared" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_ida_static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_ida_static" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_idas_shared" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_idas_shared" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_idas_static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_idas_static" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_kinsol_shared" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_kinsol_shared" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_kinsol_static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_kinsol_static" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_nvecserial_shared" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_nvecserial_shared" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_nvecserial_static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_nvecserial_static" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunlinsolband_shared" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunlinsolband_shared" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunlinsolband_static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunlinsolband_static" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunlinsoldense_shared" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunlinsoldense_shared" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunlinsoldense_static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunlinsoldense_static" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunlinsolpcg_shared" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunlinsolpcg_shared" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunlinsolpcg_static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunlinsolpcg_static" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunlinsolspbcgs_shared" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunlinsolspbcgs_shared" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunlinsolspbcgs_static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunlinsolspbcgs_static" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunlinsolspfgmr_shared" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunlinsolspfgmr_shared" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunlinsolspfgmr_static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunlinsolspfgmr_static" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunlinsolspgmr_shared" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunlinsolspgmr_shared" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunlinsolspgmr_static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunlinsolspgmr_static" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunlinsolsptfqmr_shared" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunlinsolsptfqmr_shared" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunlinsolsptfqmr_static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunlinsolsptfqmr_static" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunmatrixband_shared" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunmatrixband_shared" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunmatrixband_static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunmatrixband_static" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunmatrixdense_shared" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunmatrixdense_shared" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunmatrixdense_static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunmatrixdense_static" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunmatrixsparse_shared" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunmatrixsparse_shared" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="sundials_sunmatrixsparse_static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="sundials_sunmatrixsparse_static" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="test_install" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="test_install" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="test_nvector_serial" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="test_nvector_serial" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="test_nvector_serial">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="test_sunlinsol_band" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="test_sunlinsol_band" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="test_sunlinsol_band">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="test_sunlinsol_dense" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="test_sunlinsol_dense" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="test_sunlinsol_dense">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="test_sunlinsol_pcg_serial" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="test_sunlinsol_pcg_serial" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="test_sunlinsol_pcg_serial">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="test_sunlinsol_spbcgs_serial" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="test_sunlinsol_spbcgs_serial" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="test_sunlinsol_spbcgs_serial">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="test_sunlinsol_spfgmr_serial" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="test_sunlinsol_spfgmr_serial" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="test_sunlinsol_spfgmr_serial">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="test_sunlinsol_spgmr_serial" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="test_sunlinsol_spgmr_serial" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="test_sunlinsol_spgmr_serial">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="test_sunlinsol_sptfqmr_serial" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="test_sunlinsol_sptfqmr_serial" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="test_sunlinsol_sptfqmr_serial">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="test_sunmatrix_band" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="test_sunmatrix_band" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="test_sunmatrix_band">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="test_sunmatrix_dense" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="test_sunmatrix_dense" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="test_sunmatrix_dense">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="test_sunmatrix_sparse" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="sundials" TARGET_NAME="test_sunmatrix_sparse" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="sundials" RUN_TARGET_NAME="test_sunmatrix_sparse">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="CMake Application.ark_KrylovDemo_prec" />
+      <item itemvalue="CMake Application.ark_analytic" />
+      <item itemvalue="CMake Application.ark_analytic_nonlin" />
+      <item itemvalue="CMake Application.ark_brusselator1D" />
+      <item itemvalue="CMake Application.ark_brusselator" />
+      <item itemvalue="CMake Application.ark_brusselator_fp" />
+      <item itemvalue="CMake Application.ark_heat1D" />
+      <item itemvalue="CMake Application.ark_heat1D_adapt" />
+      <item itemvalue="CMake Application.ark_robertson" />
+      <item itemvalue="CMake Application.ark_robertson_root" />
+      <item itemvalue="CMake Application.arkode_test_install" />
+      <item itemvalue="CMake Application.cvAdvDiff_bnd" />
+      <item itemvalue="CMake Application.cvDirectDemo_ls" />
+      <item itemvalue="CMake Application.cvDisc_dns" />
+      <item itemvalue="CMake Application.cvDiurnal_kry" />
+      <item itemvalue="CMake Application.cvDiurnal_kry_bp" />
+      <item itemvalue="CMake Application.cvKrylovDemo_ls" />
+      <item itemvalue="CMake Application.cvKrylovDemo_prec" />
+      <item itemvalue="CMake Application.cvRoberts_dns" />
+      <item itemvalue="CMake Application.cvRoberts_dns_negsol" />
+      <item itemvalue="CMake Application.cvRoberts_dns_uw" />
+      <item itemvalue="CMake Application.cvode_test_install" />
+      <item itemvalue="CMake Application.cvodes_test_install" />
+      <item itemvalue="CMake Application.cvsAdvDiff_ASAi_bnd" />
+      <item itemvalue="CMake Application.cvsAdvDiff_FSA_non" />
+      <item itemvalue="CMake Application.cvsAdvDiff_bnd" />
+      <item itemvalue="CMake Application.cvsDirectDemo_ls" />
+      <item itemvalue="CMake Application.cvsDiurnal_FSA_kry" />
+      <item itemvalue="CMake Application.cvsDiurnal_kry" />
+      <item itemvalue="CMake Application.cvsDiurnal_kry_bp" />
+      <item itemvalue="CMake Application.cvsFoodWeb_ASAi_kry" />
+      <item itemvalue="CMake Application.cvsFoodWeb_ASAp_kry" />
+      <item itemvalue="CMake Application.cvsHessian_ASA_FSA" />
+      <item itemvalue="CMake Application.cvsKrylovDemo_ls" />
+      <item itemvalue="CMake Application.cvsKrylovDemo_prec" />
+      <item itemvalue="CMake Application.cvsRoberts_ASAi_dns" />
+      <item itemvalue="CMake Application.cvsRoberts_FSA_dns" />
+      <item itemvalue="CMake Application.cvsRoberts_FSA_dns_Switch" />
+      <item itemvalue="CMake Application.cvsRoberts_dns" />
+      <item itemvalue="CMake Application.cvsRoberts_dns_uw" />
+      <item itemvalue="CMake Application.idaFoodWeb_bnd" />
+      <item itemvalue="CMake Application.idaFoodWeb_kry" />
+      <item itemvalue="CMake Application.idaHeat2D_bnd" />
+      <item itemvalue="CMake Application.idaHeat2D_kry" />
+      <item itemvalue="CMake Application.idaKrylovDemo_ls" />
+      <item itemvalue="CMake Application.idaRoberts_dns" />
+      <item itemvalue="CMake Application.idaSlCrank_dns" />
+      <item itemvalue="CMake Application.ida_test_install" />
+      <item itemvalue="CMake Application.idasAkzoNob_ASAi_dns" />
+      <item itemvalue="CMake Application.idasAkzoNob_dns" />
+      <item itemvalue="CMake Application.idasFoodWeb_bnd" />
+      <item itemvalue="CMake Application.idasHeat2D_bnd" />
+      <item itemvalue="CMake Application.idasHeat2D_kry" />
+      <item itemvalue="CMake Application.idasHessian_ASA_FSA" />
+      <item itemvalue="CMake Application.idasKrylovDemo_ls" />
+      <item itemvalue="CMake Application.idasRoberts_ASAi_dns" />
+      <item itemvalue="CMake Application.idasRoberts_FSA_dns" />
+      <item itemvalue="CMake Application.idasRoberts_dns" />
+      <item itemvalue="CMake Application.idasSlCrank_FSA_dns" />
+      <item itemvalue="CMake Application.idasSlCrank_dns" />
+      <item itemvalue="CMake Application.idas_test_install" />
+      <item itemvalue="CMake Application.kinFerTron_dns" />
+      <item itemvalue="CMake Application.kinFoodWeb_kry" />
+      <item itemvalue="CMake Application.kinKrylovDemo_ls" />
+      <item itemvalue="CMake Application.kinLaplace_bnd" />
+      <item itemvalue="CMake Application.kinLaplace_picard_bnd" />
+      <item itemvalue="CMake Application.kinRoberts_fp" />
+      <item itemvalue="CMake Application.kinRoboKin_dns" />
+      <item itemvalue="CMake Application.kinsol_test_install" />
+      <item itemvalue="CMake Application.sundials_arkode_shared" />
+      <item itemvalue="CMake Application.sundials_arkode_static" />
+      <item itemvalue="CMake Application.sundials_cvode_shared" />
+      <item itemvalue="CMake Application.sundials_cvode_static" />
+      <item itemvalue="CMake Application.sundials_cvodes_shared" />
+      <item itemvalue="CMake Application.sundials_cvodes_static" />
+      <item itemvalue="CMake Application.sundials_ida_shared" />
+      <item itemvalue="CMake Application.sundials_ida_static" />
+      <item itemvalue="CMake Application.sundials_idas_shared" />
+      <item itemvalue="CMake Application.sundials_idas_static" />
+      <item itemvalue="CMake Application.sundials_kinsol_shared" />
+      <item itemvalue="CMake Application.sundials_kinsol_static" />
+      <item itemvalue="CMake Application.sundials_nvecserial_shared" />
+      <item itemvalue="CMake Application.sundials_nvecserial_static" />
+      <item itemvalue="CMake Application.sundials_sunlinsolband_shared" />
+      <item itemvalue="CMake Application.sundials_sunlinsolband_static" />
+      <item itemvalue="CMake Application.sundials_sunlinsoldense_shared" />
+      <item itemvalue="CMake Application.sundials_sunlinsoldense_static" />
+      <item itemvalue="CMake Application.sundials_sunlinsolpcg_shared" />
+      <item itemvalue="CMake Application.sundials_sunlinsolpcg_static" />
+      <item itemvalue="CMake Application.sundials_sunlinsolspbcgs_shared" />
+      <item itemvalue="CMake Application.sundials_sunlinsolspbcgs_static" />
+      <item itemvalue="CMake Application.sundials_sunlinsolspfgmr_shared" />
+      <item itemvalue="CMake Application.sundials_sunlinsolspfgmr_static" />
+      <item itemvalue="CMake Application.sundials_sunlinsolspgmr_shared" />
+      <item itemvalue="CMake Application.sundials_sunlinsolspgmr_static" />
+      <item itemvalue="CMake Application.sundials_sunlinsolsptfqmr_shared" />
+      <item itemvalue="CMake Application.sundials_sunlinsolsptfqmr_static" />
+      <item itemvalue="CMake Application.sundials_sunmatrixband_shared" />
+      <item itemvalue="CMake Application.sundials_sunmatrixband_static" />
+      <item itemvalue="CMake Application.sundials_sunmatrixdense_shared" />
+      <item itemvalue="CMake Application.sundials_sunmatrixdense_static" />
+      <item itemvalue="CMake Application.sundials_sunmatrixsparse_shared" />
+      <item itemvalue="CMake Application.sundials_sunmatrixsparse_static" />
+      <item itemvalue="CMake Application.test_install" />
+      <item itemvalue="CMake Application.test_nvector_serial" />
+      <item itemvalue="CMake Application.test_sunlinsol_band" />
+      <item itemvalue="CMake Application.test_sunlinsol_dense" />
+      <item itemvalue="CMake Application.test_sunlinsol_pcg_serial" />
+      <item itemvalue="CMake Application.test_sunlinsol_spbcgs_serial" />
+      <item itemvalue="CMake Application.test_sunlinsol_spfgmr_serial" />
+      <item itemvalue="CMake Application.test_sunlinsol_spgmr_serial" />
+      <item itemvalue="CMake Application.test_sunlinsol_sptfqmr_serial" />
+      <item itemvalue="CMake Application.test_sunmatrix_band" />
+      <item itemvalue="CMake Application.test_sunmatrix_dense" />
+      <item itemvalue="CMake Application.test_sunmatrix_sparse" />
+    </list>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="acd2055c-b754-44c6-9923-554a8f88d83d" name="Default Changelist" comment="" />
+      <created>1556269588406</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1556269588406</updated>
+      <workItem from="1556269590628" duration="15879000" />
+      <workItem from="1556525036211" duration="16541000" />
+      <workItem from="1556609380033" duration="3892000" />
+      <workItem from="1556635859056" duration="6832000" />
+      <workItem from="1556788951724" duration="9316000" />
+      <workItem from="1556867697969" duration="10163000" />
+      <workItem from="1557127940680" duration="762000" />
+      <workItem from="1557139316143" duration="1424000" />
+      <workItem from="1557141394958" duration="1409000" />
+      <workItem from="1557142936181" duration="578000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="66796000" />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="85" y="139" width="987" height="659" extended-state="0" />
+    <editor active="true" />
+    <layout>
+      <window_info id="Favorites" order="0" side_tool="true" />
+      <window_info content_ui="combo" id="Project" order="1" weight="0.28064844" />
+      <window_info id="Structure" order="2" side_tool="true" weight="0.25" />
+      <window_info anchor="bottom" id="CMake" order="0" />
+      <window_info anchor="bottom" id="Terminal" order="1" />
+      <window_info anchor="bottom" id="Event Log" order="2" sideWeight="0.5010352" side_tool="true" weight="0.39783785" />
+      <window_info anchor="bottom" id="Version Control" order="3" />
+      <window_info anchor="bottom" id="Messages" order="4" weight="0.26" />
+      <window_info anchor="bottom" id="Message" order="5" />
+      <window_info anchor="bottom" id="Find" order="6" />
+      <window_info anchor="bottom" id="Run" order="7" sideWeight="0.49896482" visible="true" weight="0.057361376" />
+      <window_info anchor="bottom" id="Database Changes" order="8" />
+      <window_info anchor="bottom" id="Debug" order="9" sideWeight="0.49896482" weight="0.3986135" />
+      <window_info anchor="bottom" id="Cvs" order="10" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="11" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="12" />
+      <window_info anchor="bottom" id="File Transfer" order="13" visible="true" weight="0.15963303" />
+      <window_info anchor="right" id="Remote Host" order="0" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="1" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Database" order="2" />
+      <window_info anchor="right" id="Ant Build" order="3" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="4" weight="0.25" />
+    </layout>
+    <layout-to-restore>
+      <window_info id="Favorites" order="0" side_tool="true" />
+      <window_info active="true" content_ui="combo" id="Project" order="1" visible="true" weight="0.28064844" />
+      <window_info id="Structure" order="2" side_tool="true" weight="0.25" />
+      <window_info anchor="bottom" id="CMake" order="0" />
+      <window_info anchor="bottom" id="Terminal" order="1" />
+      <window_info anchor="bottom" id="Event Log" order="2" sideWeight="0.5010352" side_tool="true" weight="0.39783785" />
+      <window_info anchor="bottom" id="Version Control" order="3" />
+      <window_info anchor="bottom" id="Messages" order="4" weight="0.26" />
+      <window_info anchor="bottom" id="Message" order="5" />
+      <window_info anchor="bottom" id="Find" order="6" />
+      <window_info anchor="bottom" id="Run" order="7" sideWeight="0.49896482" visible="true" weight="0.057361376" />
+      <window_info anchor="bottom" id="Database Changes" order="8" />
+      <window_info anchor="bottom" id="Debug" order="9" sideWeight="0.49896482" weight="0.3986135" />
+      <window_info anchor="bottom" id="Cvs" order="10" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="11" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="12" />
+      <window_info anchor="bottom" id="File Transfer" order="13" visible="true" weight="0.15963303" />
+      <window_info anchor="right" id="Remote Host" order="0" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="1" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Database" order="2" />
+      <window_info anchor="right" id="Ant Build" order="3" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="4" weight="0.25" />
+    </layout-to-restore>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/examples/cvode/serial/cvRoberts_dnsL.c">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/examples/cvode/serial/CMakeLists.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="42" column="22" selection-start-line="42" selection-start-column="22" selection-end-line="42" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/cvodes/CMakeLists.txt">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/cvode/CMakeLists.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1470">
+          <caret line="98" column="1" selection-start-line="98" selection-start-column="1" selection-end-line="98" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/examples/cvode/serial/cvRoberts_klu.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3795">
+          <caret line="253" column="51" selection-start-line="253" selection-start-column="51" selection-end-line="253" selection-end-column="51" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ida/ida_spils.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4590">
+          <caret line="306" column="38" selection-start-line="306" selection-start-column="38" selection-end-line="306" selection-end-column="38" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/examples/nvector/test_nvector.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="12" column="49" selection-start-line="12" selection-start-column="49" selection-end-line="12" selection-end-column="49" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="646">
+          <caret line="1299" selection-start-line="1299" selection-end-line="1299" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/examples/nvector/cuda/test_nvector_cuda.cu">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="30" column="10" selection-start-line="30" selection-start-column="10" selection-end-line="30" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/examples/cvode/fcmix_parallel/fcvDiag_non_p.f">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-285">
+          <caret line="59" column="21" lean-forward="true" selection-start-line="59" selection-start-column="21" selection-end-line="59" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/config/SundialsCXX.cmake">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="8" column="68" selection-start-line="8" selection-start-column="68" selection-end-line="8" selection-end-column="68" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/config/SundialsMPICXX.cmake">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="55" column="55" selection-start-line="55" selection-start-column="55" selection-end-line="55" selection-end-column="55" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/examples/cvode/cuda/CMakeLists.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="17" selection-start-line="17" selection-end-line="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/cvode/cvode_spils.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="13815">
+          <caret line="921" column="3" selection-start-line="921" selection-start-column="3" selection-end-line="921" selection-end-column="3" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/examples/cvode/serial/cvRoberts_dns.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="457">
+          <caret line="268" column="5" selection-start-line="268" selection-start-column="5" selection-end-line="268" selection-end-column="5" />
+          <folding>
+            <element signature="e#1243#1261#0" expanded="true" />
+            <element signature="e#8363#8629#0" />
+            <element signature="e#9198#9712#0" />
+            <element signature="e#9714#9840#0" />
+            <element signature="e#11156#12277#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/nvec_cuda/CMakeLists.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="485">
+          <caret line="72" column="35" selection-start-line="72" selection-start-column="35" selection-end-line="72" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/examples/cvode/cuda/cvAdvDiff_kry_cuda.cu">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="131">
+          <caret line="172" column="42" selection-start-line="172" selection-start-column="42" selection-end-line="172" selection-end-column="42" />
+          <folding>
+            <element signature="e#1462#1480#0" expanded="true" />
+            <element signature="e#2391#3264#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/nvec_cuda/nvector_cuda.cu">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="315">
+          <caret line="33" column="28" lean-forward="true" selection-start-line="33" selection-start-column="28" selection-end-line="33" selection-end-column="28" />
+          <folding>
+            <element signature="e#844#862#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/cvode/cvode_direct.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1522">
+          <caret line="722" column="29" selection-start-line="722" selection-start-column="20" selection-end-line="722" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/cvode/cvode.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="211">
+          <caret line="2601" column="12" lean-forward="true" selection-start-line="2601" selection-start-column="12" selection-end-line="2601" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+  </component>
+  <component name="masterDetails">
+    <states>
+      <state key="ScopeChooserConfigurable.UI">
+        <settings>
+          <last-edited>monarch</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+    </states>
+  </component>
+</project>

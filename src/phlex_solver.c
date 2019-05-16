@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "phlex_solver.h"
+#include "cuda/phlex_gpu_solver.h"
 #include "aero_rep_solver.h"
 #include "rxn_solver.h"
 #include "sub_model_solver.h"
@@ -115,6 +116,8 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
     printf("\n\nERROR allocating space for SolverData\n\n");
     exit(1);
   }
+  
+  printfCUDA(n_state_var);
 
   // Save the number of state variables
   sd->model_data.n_state_var = n_state_var;
@@ -209,6 +212,9 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   ptr = sd->model_data.sub_model_data;
   ptr[0] = n_sub_model;
   sd->model_data.nxt_sub_model = (void*) &(ptr[1]);
+
+  //GPU
+  solver_new_gpu_cu((void*) sd);
 
   // Return a pointer to the new SolverData object
   return (void*) sd;

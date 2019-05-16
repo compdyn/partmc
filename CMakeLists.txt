@@ -17,9 +17,15 @@ set(PACKAGE_VERSION "2.4.0")
 option(ENABLE_GSL "Enable GSL library for random number generation" OFF)
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
-option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" OFF)
+option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" ON)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
 option(ENABLE_JSON "Enable json-fortran support" ON)
+option(ENABLE_DEBUG "Compile debugging functions" ON)
+option(FAILURE_DETAIL "Output conditions before and after solver failures" OFF)
+option(ENABLE_CXX "Enable C++" ON)
+option(ENABLE_GPU "Enable use of GPUs in chemistry solving" ON)
+
+mark_as_advanced(FORCE ENABLE_DEBUG FAILURE_DETAIL)
 
 ######################################################################
 # CPack
@@ -150,6 +156,35 @@ if (ENABLE_JSON)
     PATHS $ENV{JSON_FORTRAN_HOME}/lib /opt/local/lib /usr/local/lib)
   include_directories(${JSON_INCLUDE_DIR})
   add_definitions(-DPMC_USE_JSON)
+endif()
+
+##CXX
+
+if(ENABLE_CXX)
+add_definitions(-DPMC_USE_CXX)
+enable_language(CXX)
+#set(STD_CXX_FLAGS "-O3 -fpermissive")#-std=c++11
+else()
+message([WARNING] "CXX NOT ENABLE")
+endif()
+
+######################################################################
+# GPU support
+
+if (ENABLE_GPU)
+  add_definitions(-DPMC_USE_GPU)
+  enable_language(CUDA)
+endif()
+
+
+######################################################################
+# debugging options
+
+if (ENABLE_DEBUG)
+  add_definitions(-DPMC_DEBUG)
+endif()
+if (FAILURE_DETAIL)
+  add_definitions(-DFAILURE_DETAIL)
 endif()
 
 ######################################################################
@@ -357,12 +392,16 @@ set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 ######################################################################
 # partmc library
 
-set(STD_C_FLAGS "-std=c99")
+#set(STD_C_FLAGS "-std=c++11 -fpermissive")
+set(STD_C_FLAGS "-g -O3 -std=c99") #"-g -O3 -std=c99"
+set(STD_CUDA_FLAGS "-dc")
+#set(STD_CUDA_FLAGS "-O3")
+set(STD_CXX_FLAGS "-dc -std=c++11 -fpermissive")
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
   set(STD_F_FLAGS "-extend_source -warn truncated_source")
 elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
-  set(STD_F_FLAGS "-ffree-line-length-none")
+  set(STD_F_FLAGS "-ffree-line-length-none -g -O3")
 endif()
 
 set(REACTIONS_F_SRC
@@ -442,6 +481,44 @@ set(PHLEX_C_SRC
 set_source_files_properties(${PHLEX_C_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_C_FLAGS})
 
+if(ENABLE_CXX)
+  set(PHLEX_CXX_SRC
+        src/phlex_gpu_solver.cpp)
+  set_source_files_properties(${PHLEX_CXX_SRC} PROPERTIES COMPILE_FLAGS
+        ${STD_CXX_FLAGS})
+  set_source_files_properties(${PHLEX_CXX_SRC} PROPERTIES LANGUAGE CXX)
+else()
+  set(PHLEX_CXX_SRC "")
+endif()
+
+if(ENABLE_GPU)
+  set(PHLEX_CUDA_SRC
+          src/cuda/phlex_gpu_solver.cu
+          src/cuda/rxns_gpu/rxn_aqueous_equilibrium.cu
+          src/cuda/rxns_gpu/rxn_arrhenius.cu
+          src/cuda/rxns_gpu/rxn_CMAQ_H2O2.cu
+          src/cuda/rxns_gpu/rxn_CMAQ_OH_HNO3.cu
+          src/cuda/rxns_gpu/rxn_condensed_phase_arrhenius.cu
+          src/cuda/rxns_gpu/rxn_emission.cu
+          src/cuda/rxns_gpu/rxn_first_order_loss.cu
+          src/cuda/rxns_gpu/rxn_HL_phase_transfer.cu
+          #src/cuda/rxns_gpu/rxn_PDFiTE_activity.cu
+          #src/cuda/rxns_gpu/rxn_photolysis.cu
+          #src/cuda/rxns_gpu/rxn_SIMPOL_phase_transfer.cu
+          #src/cuda/rxns_gpu/rxn_troe.cu
+          #src/cuda/rxns_gpu/rxn_wet_deposition.cu
+          #src/cuda/rxns_gpu/rxn_ZSR_aerosol_water.cu
+          src/cuda/aeros_gpu/aero_phase_solver.cu
+          src/cuda/aeros_gpu/aero_rep_solver.cu
+          src/cuda/aeros_gpu/sub_model_solver.cu)
+  set_source_files_properties(${PHLEX_CUDA_SRC} PROPERTIES COMPILE_FLAGS
+        ${STD_CUDA_FLAGS})
+  set_source_files_properties(${PHLEX_CUDA_SRC} PROPERTIES LANGUAGE CUDA)
+else()
+  set(PHLEX_CUDA_SRC "")
+endif()
+
+
 add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/integer_rmap.F90 src/integer_rmap2.F90 src/aero_sorted.F90
   src/aero_binned.F90 src/bin_grid.F90 src/constants.F90
@@ -465,7 +542,7 @@ add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/rxn_factory.F90 src/sub_model_data.F90 src/sub_model_factory.F90
   src/solver_stats.F90
   ${PHLEX_C_SRC} ${AEROSOL_REPS_SRC} ${SUB_MODELS_SRC} ${REACTIONS_SRC}
-  ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC})
+  ${SUNDIALS_SRC} ${GSL_SRC} ${C_SORT_SRC} ${PHLEX_CUDA_SRC} ${PHLEX_CXX_SRC} )
 
 target_link_libraries(partmclib ${NETCDF_LIBS} ${SUNDIALS_LIBS}
   ${MOSAIC_LIB} ${GSL_LIBS} ${JSON_LIB})

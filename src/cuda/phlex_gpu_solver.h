@@ -54,14 +54,14 @@ typedef struct {
     void *rxn_data;	// Pointer to reaction parameters
     void *nxt_rxn;	// Pointer to element of rxn_data in which to store next
     // set of reaction data
-    void *aero_phase_data;// Pointer to aerosol phase parameters
-    void *nxt_aero_phase; // Pointer to element of aero_phase_data in which to store
+    void *aero_phase_gpu_data;// Pointer to aerosol phase parameters
+    void *nxt_aero_phase; // Pointer to element of aero_phase_gpu_data in which to store
     // the next set of aerosol phase data
-    void *aero_rep_data;	// Pointer to aerosol representation parameters
-    void *nxt_aero_rep;	// Pointer to element of aero_rep_data in which to store
+    void *aero_rep_gpu_data;	// Pointer to aerosol representation parameters
+    void *nxt_aero_rep;	// Pointer to element of aero_rep_gpu_data in which to store
     // the next set of aerosol representation data
-    void *sub_model_data; // Pointer to the sub model parameters
-    void *nxt_sub_model;  // Pointer to the element of sub_model_data in which to
+    void *sub_model_gpu_data; // Pointer to the sub model parameters
+    void *nxt_sub_model;  // Pointer to the element of sub_model_gpu_data in which to
     // store the next set of sub model data
     bool use_adj;         // Flag to indicate whether state adjustments exist
     double *state_adj;    // Adjustments to the state array applied prior to

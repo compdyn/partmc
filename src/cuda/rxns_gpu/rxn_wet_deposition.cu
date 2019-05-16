@@ -251,7 +251,7 @@ void * rxn_gpu_wet_deposition_create_rate_update_data()
  * \param rxn_id Id of wet deposition reactions to update
  * \param base_rate New pre-scaling wet deposition rate
  */
-void rxn_wet_deposition_set_rate_update_data(void *update_data, int rxn_id,
+void rxn_gpu_wet_deposition_set_rate_update_data(void *update_data, int rxn_id,
           double base_rate)
 {
   int *new_rxn_id = (int*) update_data;

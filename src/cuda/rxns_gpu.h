@@ -145,7 +145,7 @@ void * rxn_gpu_emission_calc_jac_contrib(
           ModelDatagpu *model_data, realtype *J, void *rxn_data, realtype time_step);
 #endif
 void * rxn_gpu_emission_create_rate_update_data();
-void rxn_emission_set_rate_update_data(
+void rxn_gpu_emission_set_rate_update_data(
           void *update_data, int rxn_id, double base_rate);
 
 // first_order_loss
@@ -171,7 +171,7 @@ void * rxn_gpu_first_order_loss_calc_jac_contrib(
           ModelDatagpu *model_data, realtype *J, void *rxn_data, realtype time_step);
 #endif
 void * rxn_gpu_first_order_loss_create_rate_update_data();
-void rxn_first_order_loss_set_rate_update_data(
+void rxn_gpu_first_order_loss_set_rate_update_data(
           void *update_data, int rxn_id, double base_rate);
 
 // HL_phase_transfer
@@ -241,7 +241,7 @@ void * rxn_gpu_photolysis_calc_jac_contrib(
           ModelDatagpu *model_data, realtype *J, void *rxn_data, realtype time_step);
 #endif
 void * rxn_gpu_photolysis_create_rate_update_data();
-void rxn_photolysis_set_rate_update_data(
+void rxn_gpu_photolysis_set_rate_update_data(
           void *update_data, int photo_id, double base_rate);
 
 
@@ -311,7 +311,7 @@ void * rxn_gpu_wet_deposition_calc_jac_contrib(
           ModelDatagpu *model_data, realtype *J, void *rxn_data, realtype time_step);
 #endif
 void * rxn_gpu_wet_deposition_create_rate_update_data();
-void rxn_wet_deposition_set_rate_update_data(
+void rxn_gpu_wet_deposition_set_rate_update_data(
           void *update_data, int rxn_id, double base_rate);
 
 // ZSR_aerosol_water
@@ -353,10 +353,10 @@ void * rxn_gpu_HL_phase_transfer_skip(
 void * rxn_gpu_HL_phase_transfer_print(
         void *rxn_data);
 #ifdef PMC_USE_SUNDIALS
-void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(
+__device__ void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(
           ModelDatagpu *model_data, realtype *deriv, void *rxn_data,
           realtype time_step);
-void * rxn_gpu_HL_phase_transfer_calc_jac_contrib(
+__device__ void * rxn_gpu_HL_phase_transfer_calc_jac_contrib(
           ModelDatagpu *model_data, realtype *J, void *rxn_data, realtype time_step);
 #endif
 

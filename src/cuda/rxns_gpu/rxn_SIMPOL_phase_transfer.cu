@@ -110,7 +110,7 @@ void * rxn_gpu_SIMPOL_phase_transfer_update_ids(ModelDatagpu *model_data,
   for (int i_aero_phase = 0; i_aero_phase < NUM_AERO_PHASE_; i_aero_phase++) {
     int aero_state_id = AERO_SPEC_(i_aero_phase);
     AERO_ACT_ID_(i_aero_phase) =
-      sub_model_get_parameter_id(model_data, 1, (void*) (&aero_state_id));
+      sub_model_gpu_get_parameter_id(model_data, 1, (void*) (&aero_state_id));
   }
 
   // Calculate a small number based on the integration tolerances to use
@@ -201,7 +201,7 @@ void * rxn_gpu_SIMPOL_phase_transfer_pre_calc(ModelDatagpu *model_data, void *rx
 
     // Get the particle effective radius (m)
     realtype radius;
-    aero_rep_get_effective_radius(
+    aero_rep_gpu_get_effective_radius(
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
@@ -209,7 +209,7 @@ void * rxn_gpu_SIMPOL_phase_transfer_pre_calc(ModelDatagpu *model_data, void *rx
 
     // Get the particle number concentration (#/cc)
     realtype number_conc;
-    aero_rep_get_number_conc(
+    aero_rep_gpu_get_number_conc(
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
@@ -217,31 +217,31 @@ void * rxn_gpu_SIMPOL_phase_transfer_pre_calc(ModelDatagpu *model_data, void *rx
 
     // Check the aerosol concentration type (per-particle or total per-phase
     // mass)
-    int aero_conc_type = aero_rep_get_aero_conc_type(
+    int aero_conc_type = aero_rep_gpu_get_aero_conc_type(
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase));	// aerosol phase index
 
     // Get the total mass of the aerosol phase
-    realtype aero_phase_mass;
-    realtype aero_phase_avg_MW;
-    aero_rep_get_aero_phase_mass(
+    realtype aero_phase_gpu_mass;
+    realtype aero_phase_gpu_avg_MW;
+    aero_rep_gpu_get_aero_phase_gpu_mass(
                   model_data,                   // model data
                   AERO_REP_ID_(i_phase),        // aerosol representation index
                   AERO_PHASE_ID_(i_phase),      // aerosol phase index
-                  &aero_phase_mass,             // total aerosol-phase mass
-                  &aero_phase_avg_MW);          // avg MW in the aerosol phase
+                  &aero_phase_gpu_mass,             // total aerosol-phase mass
+                  &aero_phase_gpu_avg_MW);          // avg MW in the aerosol phase
 
     // If the radius, number concentration, or aerosol-phase mass are zero,
     // no transfer occurs
-    if (radius <= ZERO || number_conc <= ZERO || aero_phase_mass <= ZERO) {
+    if (radius <= ZERO || number_conc <= ZERO || aero_phase_gpu_mass <= ZERO) {
       FAST_FLUX_(i_phase) = ZERO;
       AERO_ADJ_(i_phase)  = ZERO;
 #ifdef PMC_DEBUG
       printf("\n[DEBUG] SIMPOL Phase transfer - phase %d skipping - no aero mass"
              "[%d]g = %le, [%d]a = %le radius = %le number_conc = %le mass = %le",
              i_phase, GAS_SPEC_, state[GAS_SPEC_], AERO_SPEC_(i_phase),
-             state[AERO_SPEC_(i_phase)], radius, number_conc, aero_phase_mass);
+             state[AERO_SPEC_(i_phase)], radius, number_conc, aero_phase_gpu_mass);
 #endif
       continue;
     }
@@ -252,8 +252,8 @@ void * rxn_gpu_SIMPOL_phase_transfer_pre_calc(ModelDatagpu *model_data, void *rx
               4.0*radius/(3.0*C_AVG_ALHPA_));
 
     // Calculate the evaporation rate constant (ppm_x*m^3/ug_x/s)
-    realtype evap_rate = cond_rate * (EQUIL_CONST_ * aero_phase_avg_MW /
-              aero_phase_mass);
+    realtype evap_rate = cond_rate * (EQUIL_CONST_ * aero_phase_gpu_avg_MW /
+              aero_phase_gpu_mass);
 
     // Determine if transfer is fast enough to treat as being at equilibrium
     if ( ONE / cond_rate > time_step / 1000.0 &&
@@ -293,7 +293,7 @@ void * rxn_gpu_SIMPOL_phase_transfer_pre_calc(ModelDatagpu *model_data, void *rx
     // Get the activity coefficient (if one exists)
     realtype act_coeff = 1.0;
     if (AERO_ACT_ID_(i_phase)>-1) {
-      act_coeff = sub_model_get_parameter_value(model_data,
+      act_coeff = sub_model_gpu_get_parameter_value(model_data,
                 AERO_ACT_ID_(i_phase));
     }
 
@@ -410,7 +410,7 @@ __device__ void rxn_gpu_SIMPOL_phase_transfer_calc_deriv_contrib(ModelDatagpu *m
 
     // Get the particle effective radius (m)
     realtype radius;
-    aero_rep_get_effective_radius(
+    aero_rep_gpu_get_effective_radius(
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
@@ -418,7 +418,7 @@ __device__ void rxn_gpu_SIMPOL_phase_transfer_calc_deriv_contrib(ModelDatagpu *m
 
     // Get the particle number concentration (#/cc)
     realtype number_conc;
-    aero_rep_get_number_conc(
+    aero_rep_gpu_get_number_conc(
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
@@ -426,24 +426,24 @@ __device__ void rxn_gpu_SIMPOL_phase_transfer_calc_deriv_contrib(ModelDatagpu *m
 
     // Check the aerosol concentration type (per-particle or total per-phase
     // mass)
-    int aero_conc_type = aero_rep_get_aero_conc_type(
+    int aero_conc_type = aero_rep_gpu_get_aero_conc_type(
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase));	// aerosol phase index
 
     // Get the total mass of the aerosol phase
-    realtype aero_phase_mass;
-    realtype aero_phase_avg_MW;
-    aero_rep_get_aero_phase_mass(
+    realtype aero_phase_gpu_mass;
+    realtype aero_phase_gpu_avg_MW;
+    aero_rep_gpu_get_aero_phase_gpu_mass(
                   model_data,                   // model data
                   AERO_REP_ID_(i_phase),        // aerosol representation index
                   AERO_PHASE_ID_(i_phase),      // aerosol phase index
-                  &aero_phase_mass,             // total aerosol-phase mass
-                  &aero_phase_avg_MW);          // avg MW in the aerosol phase
+                  &aero_phase_gpu_mass,             // total aerosol-phase mass
+                  &aero_phase_gpu_avg_MW);          // avg MW in the aerosol phase
 
     // If the radius, number concentration, or aerosol-phase mass are zero,
     // no transfer occurs
-    if (radius <= ZERO || number_conc <= ZERO || aero_phase_mass <= ZERO) continue;
+    if (radius <= ZERO || number_conc <= ZERO || aero_phase_gpu_mass <= ZERO) continue;
 
     // Calculate the rate constant for diffusion limited mass transfer to the
     // aerosol phase (1/s)
@@ -451,8 +451,8 @@ __device__ void rxn_gpu_SIMPOL_phase_transfer_calc_deriv_contrib(ModelDatagpu *m
               4.0*radius/(3.0*C_AVG_ALHPA_));
 
     // Calculate the evaporation rate constant (ppm_x*m^3/ug_x/s)
-    realtype evap_rate = cond_rate * (EQUIL_CONST_ * aero_phase_avg_MW /
-              aero_phase_mass);
+    realtype evap_rate = cond_rate * (EQUIL_CONST_ * aero_phase_gpu_avg_MW /
+              aero_phase_gpu_mass);
 
     // Slow down condensation rate as gas-phase concentrations become small
     realtype gas_adj = state[GAS_SPEC_] - VERY_SMALL_NUMBER_;
@@ -467,7 +467,7 @@ __device__ void rxn_gpu_SIMPOL_phase_transfer_calc_deriv_contrib(ModelDatagpu *m
     // Get the activity coefficient (if one exists)
     realtype act_coeff = 1.0;
     if (AERO_ACT_ID_(i_phase)>-1) {
-      act_coeff = sub_model_get_parameter_value(model_data,
+      act_coeff = sub_model_gpu_get_parameter_value(model_data,
                 AERO_ACT_ID_(i_phase));
     }
 
@@ -538,7 +538,7 @@ void * rxn_gpu_SIMPOL_phase_transfer_calc_jac_contrib(ModelDatagpu *model_data,
 
     // Get the particle effective radius (m)
     realtype radius;
-    aero_rep_get_effective_radius(
+    aero_rep_gpu_get_effective_radius(
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
@@ -546,31 +546,31 @@ void * rxn_gpu_SIMPOL_phase_transfer_calc_jac_contrib(ModelDatagpu *model_data,
 
     // Get the particle number concentration (#/cc)
     realtype number_conc;
-    aero_rep_get_number_conc(
+    aero_rep_gpu_get_number_conc(
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
 		  &number_conc);		// particle number conc (#/cc)
 
     // Check the aerosol concentration type (per-particle or total per-phase mass)
-    int aero_conc_type = aero_rep_get_aero_conc_type(
+    int aero_conc_type = aero_rep_gpu_get_aero_conc_type(
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase));	// aerosol phase index
 
     // Get the total mass of the aerosol phase
-    realtype aero_phase_mass;
-    realtype aero_phase_avg_MW;
-    aero_rep_get_aero_phase_mass(
+    realtype aero_phase_gpu_mass;
+    realtype aero_phase_gpu_avg_MW;
+    aero_rep_gpu_get_aero_phase_gpu_mass(
                   model_data,                   // model data
                   AERO_REP_ID_(i_phase),       // aerosol representation index
                   AERO_PHASE_ID_(i_phase),     // aerosol phase index
-                  &aero_phase_mass,             // total aerosol-phase mass
-                  &aero_phase_avg_MW);          // avg MW in the aerosol phase
+                  &aero_phase_gpu_mass,             // total aerosol-phase mass
+                  &aero_phase_gpu_avg_MW);          // avg MW in the aerosol phase
 
     // If the radius, number concentration, or aerosol-phase mass are zero,
     // no transfer occurs
-    if (radius <= ZERO || number_conc <= ZERO || aero_phase_mass <= ZERO) continue;
+    if (radius <= ZERO || number_conc <= ZERO || aero_phase_gpu_mass <= ZERO) continue;
 
     // Calculate the rate constant for diffusion limited mass transfer to the
     // aerosol phase (1/s)
@@ -578,8 +578,8 @@ void * rxn_gpu_SIMPOL_phase_transfer_calc_jac_contrib(ModelDatagpu *model_data,
               4.0*radius/(3.0*C_AVG_ALHPA_));
 
     // Calculate the evaporation rate constant (ppm_x*m^3/ug_x/s)
-    realtype evap_rate = cond_rate * (EQUIL_CONST_ * aero_phase_avg_MW /
-              aero_phase_mass);
+    realtype evap_rate = cond_rate * (EQUIL_CONST_ * aero_phase_gpu_avg_MW /
+              aero_phase_gpu_mass);
 
     // Slow down condensation rate as gas-phase concentrations become small
     realtype gas_adj = state[GAS_SPEC_] - VERY_SMALL_NUMBER_;
@@ -595,7 +595,7 @@ void * rxn_gpu_SIMPOL_phase_transfer_calc_jac_contrib(ModelDatagpu *model_data,
     // Get the activity coefficient (if one exists)
     realtype act_coeff = 1.0;
     if (AERO_ACT_ID_(i_phase)>-1) {
-      act_coeff = sub_model_get_parameter_value(model_data,
+      act_coeff = sub_model_gpu_get_parameter_value(model_data,
                 AERO_ACT_ID_(i_phase));
     }
 

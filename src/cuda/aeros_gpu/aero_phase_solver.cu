@@ -32,18 +32,18 @@ extern "C" {
 /** \brief Flag Jacobian elements used in calculations of mass and volume
  *
  * \param model_data Pointer to the model data(state, env, aero_phase)
- * \param aero_phase_idx Index of the aerosol phase to find elements for
+ * \param aero_phase_gpu_idx Index of the aerosol phase to find elements for
  * \param state_var_id Index in the state array for this aerosol phase
  * \param jac_struct 1D array of flags indicating potentially non-zero
  *                   Jacobian elements. (The dependent variable should have
  *                   been chosen by the calling function.)
  * \return Number of Jacobian elements flagged
  */
-int aero_phase_get_used_jac_elem(ModelDatagpu *model_data, int aero_phase_idx,
+int aero_phase_gpu_get_used_jac_elem(ModelDatagpu *model_data, int aero_phase_gpu_idx,
                                  int state_var_id, bool *jac_struct) {
 
   // Get the requested aerosol phase data
-  int *int_data = (int *) aero_phase_find(model_data, aero_phase_idx);
+  int *int_data = (int *) aero_phase_gpu_find(model_data, aero_phase_gpu_idx);
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
   int num_flagged_elem = 0;
@@ -61,7 +61,7 @@ int aero_phase_get_used_jac_elem(ModelDatagpu *model_data, int aero_phase_idx,
 /** \brief Get the mass and average MW in an aerosol phase
  *
  * \param model_data Pointer to the model data (state, env, aero_phase)
- * \param aero_phase_idx Index of the aerosol phase to use in the calculation
+ * \param aero_phase_gpu_idx Index of the aerosol phase to use in the calculation
  * \param state_var Pointer the aerosol phase on the state variable array
  * \param mass Pointer to hold total aerosol phase mass
  *             (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$ or
@@ -71,18 +71,18 @@ int aero_phase_get_used_jac_elem(ModelDatagpu *model_data, int aero_phase_idx,
  * \param jac_elem_mass When not NULL, a pointer to an array whose length is the
  *                 number of Jacobian elements used in calculations of mass and
  *                 volume of this aerosol phase returned by
- *                 \c aero_phase_get_used_jac_elem and whose contents will be
+ *                 \c aero_phase_gpu_get_used_jac_elem and whose contents will be
  *                 set to the partial derivatives of mass by concentration
  *                 \f$\frac{dm}{dy_i}\f$ of each component species \f$y_i\f$.
  * \param jac_elem_MW When not NULL, a pointer to an array whose length is the
  *                 number of Jacobian elements used in calculations of mass and
  *                 volume of this aerosol phase returned by
- *                 \c aero_phase_get_used_jac_elem and whose contents will be
+ *                 \c aero_phase_gpu_get_used_jac_elem and whose contents will be
  *                 set to the partial derivatives of total molecular weight by
  *                 concentration \f$\frac{dMW}{dy_i}\f$ of each component
  *                 species \f$y_i\f$.
  */
-void aero_phase_get_mass(ModelDatagpu *model_data, int aero_phase_idx,
+void aero_phase_gpu_get_mass(ModelDatagpu *model_data, int aero_phase_gpu_idx,
                          double *state_var, double *mass, double *MW, double *jac_elem_mass,
                          double *jac_elem_MW) {
 
@@ -90,7 +90,7 @@ void aero_phase_get_mass(ModelDatagpu *model_data, int aero_phase_idx,
   void *partial_deriv = NULL;
 
   // Get the requested aerosol phase data
-  int *int_data = (int *) aero_phase_find(model_data, aero_phase_idx);
+  int *int_data = (int *) aero_phase_gpu_find(model_data, aero_phase_gpu_idx);
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
   // Sum the mass and MW
@@ -121,7 +121,7 @@ void aero_phase_get_mass(ModelDatagpu *model_data, int aero_phase_idx,
 /** \brief Get the volume of an aerosol phase
  *
  * \param model_data Pointer to the model data (state, env, aero_phase)
- * \param aero_phase_idx Index of the aerosol phase to use in the calculation
+ * \param aero_phase_gpu_idx Index of the aerosol phase to use in the calculation
  * \param state_var Pointer to the aerosol phase on the state variable array
  * \param volume Pointer to hold the aerosol phase volume
  *               (\f$\mbox{\si{\cubic\metre\per\cubic\metre}}\f$ or
@@ -129,19 +129,19 @@ void aero_phase_get_mass(ModelDatagpu *model_data, int aero_phase_idx,
  * \param jac_elem When not NULL, a pointer to an array whose length is the
  *                 number of Jacobian elements used in calculations of mass and
  *                 volume of this aerosol phase returned by
- *                 \c aero_phase_get_used_jac_elem and whose contents will be
+ *                 \c aero_phase_gpu_get_used_jac_elem and whose contents will be
  *                 set to the partial derivatives of total phase volume by
  *                 concentration \f$\frac{dv}{dy_i}\f$ of each component
  *                 species \f$y_i\f$.
  */
-void aero_phase_get_volume(ModelDatagpu *model_data, int aero_phase_idx,
+void aero_phase_gpu_get_volume(ModelDatagpu *model_data, int aero_phase_gpu_idx,
                            double *state_var, double *volume, double *jac_elem) {
 
   // Set up a pointer for the partial derivatives
   void *partial_deriv = NULL;
 
   // Get the requested aerosol phase data
-  int *int_data = (int *) aero_phase_find(model_data, aero_phase_idx);
+  int *int_data = (int *) aero_phase_gpu_find(model_data, aero_phase_gpu_idx);
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
   // Sum the mass and MW
@@ -161,35 +161,35 @@ void aero_phase_get_volume(ModelDatagpu *model_data, int aero_phase_idx,
 /** \brief Find an aerosol phase in the list
  *
  * \param model_data Pointer to the model data (state, env, aero_phase)
- * \param aero_phase_idx Index of the desired aerosol phase
+ * \param aero_phase_gpu_idx Index of the desired aerosol phase
  * \return A pointer to the requested aerosol phase
  */
-void * aero_phase_find(ModelDatagpu *model_data, int aero_phase_idx) {
+void * aero_phase_gpu_find(ModelDatagpu *model_data, int aero_phase_gpu_idx) {
 
   // Get the number of aerosol phases
-  int *aero_phase_data = (int *) (model_data->aero_phase_data);
-  int n_aero_phase = *(aero_phase_data++);
+  int *aero_phase_gpu_data = (int *) (model_data->aero_phase_gpu_data);
+  int n_aero_phase = *(aero_phase_gpu_data++);
 
   // Loop through the aerosol phases to find the one requested
-  for (int i_aero_phase = 0; i_aero_phase < aero_phase_idx; i_aero_phase++) {
+  for (int i_aero_phase = 0; i_aero_phase < aero_phase_gpu_idx; i_aero_phase++) {
 
     // Advance the pointer to the next aerosol phase
-    aero_phase_data = (int *) aero_phase_skip((void *) aero_phase_data);
+    aero_phase_gpu_data = (int *) aero_phase_gpu_skip((void *) aero_phase_gpu_data);
 
   }
 
-  return (void *) aero_phase_data;
+  return (void *) aero_phase_gpu_data;
 
 }
 
 /** \brief Skip over an aerosol phase
  *
- * \param aero_phase_data Pointer to the aerosol phase to skip over
- * \return The aero_phase_data pointer advanced by the size of the aerosol
+ * \param aero_phase_gpu_data Pointer to the aerosol phase to skip over
+ * \return The aero_phase_gpu_data pointer advanced by the size of the aerosol
  *         phase
  */
-void * aero_phase_skip(void *aero_phase_data) {
-  int *int_data = (int *) aero_phase_data;
+void * aero_phase_gpu_skip(void *aero_phase_gpu_data) {
+  int *int_data = (int *) aero_phase_gpu_data;
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
   return (void *) &(float_data[FLOAT_DATA_SIZE_]);
@@ -203,39 +203,39 @@ void * aero_phase_skip(void *aero_phase_data) {
  * \param float_param Pointer to the floating-point parameter array
  * \param solver_data Pointer to the solver data
  */
-void aero_phase_add_condensed_data(int n_int_param, int n_float_param,
+void aero_phase_gpu_add_condensed_data(int n_int_param, int n_float_param,
                                    int *int_param, double *float_param, void *solver_data) {
   ModelDatagpu *model_data =
           (ModelDatagpu * ) & (((SolverDatagpu *) solver_data)->model_data);
-  int *aero_phase_data = (int *) (model_data->nxt_aero_phase);
+  int *aero_phase_gpu_data = (int *) (model_data->nxt_aero_phase);
 
   // Add the integer parameters
-  for (; n_int_param > 0; n_int_param--) *(aero_phase_data++) = *(int_param++);
+  for (; n_int_param > 0; n_int_param--) *(aero_phase_gpu_data++) = *(int_param++);
 
   // Add the floating-point parameters
-  double *flt_ptr = (double *) aero_phase_data;
+  double *flt_ptr = (double *) aero_phase_gpu_data;
   for (; n_float_param > 0; n_float_param--)
     *(flt_ptr++) = (double) *(float_param++);
 
-  // Set the pointer for the next free space in aero_phase_data;
+  // Set the pointer for the next free space in aero_phase_gpu_data;
   model_data->nxt_aero_phase = (void *) flt_ptr;
 }
 
 /** \brief Print the aerosol phase data
  * \param solver_data Pointer to the solver data
  */
-void aero_phase_print_data(void *solver_data) {
+void aero_phase_gpu_print_data(void *solver_data) {
   ModelDatagpu *model_data =
           (ModelDatagpu * ) & (((SolverDatagpu *) solver_data)->model_data);
-  int *aero_phase_data = (int *) (model_data->aero_phase_data);
+  int *aero_phase_gpu_data = (int *) (model_data->aero_phase_gpu_data);
 
   // Get the number of aerosol phases
-  int n_aero_phase = *(aero_phase_data++);
+  int n_aero_phase = *(aero_phase_gpu_data++);
 
   // Loop through the aerosol phases and print their data
-  // advancing the aero_phase_data pointer each time
+  // advancing the aero_phase_gpu_data pointer each time
   for (int i_aero_phase = 0; i_aero_phase < n_aero_phase; i_aero_phase++) {
-    int *int_data = (int *) aero_phase_data;
+    int *int_data = (int *) aero_phase_gpu_data;
     double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
     printf("\n\nAerosol Phase %d\n\n", i_aero_phase);
@@ -244,7 +244,7 @@ void aero_phase_print_data(void *solver_data) {
     printf("\nfloat_data");
     for (int i = 0; i < FLOAT_DATA_SIZE_; i++) printf(" %le", float_data[i]);
 
-    aero_phase_data = (int *) &(float_data[FLOAT_DATA_SIZE_]);
+    aero_phase_gpu_data = (int *) &(float_data[FLOAT_DATA_SIZE_]);
   }
   fflush(stdout);
 }

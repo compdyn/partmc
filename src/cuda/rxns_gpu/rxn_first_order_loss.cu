@@ -242,7 +242,7 @@ void * rxn_gpu_first_order_loss_create_rate_update_data()
  * \param rxn_id Id of first-order loss reactions to update
  * \param base_rate New pre-scaling first-order loss rate
  */
-void rxn_first_order_loss_set_rate_update_data(void *update_data, int rxn_id,
+void rxn_gpu_first_order_loss_set_rate_update_data(void *update_data, int rxn_id,
           double base_rate)
 {
   int *new_rxn_id = (int*) update_data;

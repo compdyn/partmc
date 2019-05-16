@@ -93,7 +93,7 @@ void * rxn_gpu_HL_phase_transfer_get_used_jac_elem(ModelDatagpu *model_data,
     for (int i_elem = 0; i_elem < model_data->n_state_var; i_elem++)
       aero_jac_elem[i_elem] = false;
 
-    int n_jac_elem = aero_rep_get_used_jac_elem( model_data,
+    int n_jac_elem = aero_rep_gpu_get_used_jac_elem( model_data,
                                                  AERO_REP_ID_(i_aero_phase),
                                                  AERO_PHASE_ID_(i_aero_phase),
                                                  aero_jac_elem );
@@ -232,7 +232,7 @@ void * rxn_gpu_HL_phase_transfer_update_env_state(double *env_data,
  * \param time_step Current solver time step (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_gpu_HL_phase_transfer_pre_calc(ModelDatagpu *model_data, void *rxn_data,
+__device__ void * rxn_gpu_HL_phase_transfer_pre_calc(ModelDatagpu *model_data, void *rxn_data,
           double time_step)
 {
   realtype *state = model_data->state;
@@ -251,7 +251,7 @@ void * rxn_gpu_HL_phase_transfer_pre_calc(ModelDatagpu *model_data, void *rxn_da
 
     // Get the particle effective radius (m)
     realtype radius;
-    aero_rep_get_effective_radius(
+    aero_rep_gpu_get_effective_radius(
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
@@ -259,7 +259,7 @@ void * rxn_gpu_HL_phase_transfer_pre_calc(ModelDatagpu *model_data, void *rxn_da
 
     // Get the particle number concentration (#/cc)
     realtype number_conc;
-    aero_rep_get_number_conc(
+    aero_rep_gpu_get_number_conc(
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
@@ -268,7 +268,7 @@ void * rxn_gpu_HL_phase_transfer_pre_calc(ModelDatagpu *model_data, void *rxn_da
 
     // Check the aerosol concentration type (per-particle or total per-phase
     // mass)
-    int aero_conc_type = aero_rep_get_aero_conc_type(
+    int aero_conc_type = aero_rep_gpu_get_aero_conc_type(
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase));	// aerosol phase index
@@ -419,6 +419,8 @@ void * rxn_gpu_HL_phase_transfer_scale_adj(ModelDatagpu *model_data, void *rxn_d
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(ModelDatagpu *model_data,
           realtype *deriv, void *rxn_data, double time_step)
+  //void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(ModelDatagpu *model_data,
+  //        realtype *deriv, void *rxn_data, double time_step)
 {
   realtype *state = model_data->state;
   realtype *env_data = model_data->env;
@@ -433,7 +435,7 @@ __device__ void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(ModelDatagpu *model
 
     // Get the particle effective radius (m)
     realtype radius;
-    aero_rep_get_effective_radius(
+    aero_rep_gpu_get_effective_radius(
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
@@ -441,7 +443,7 @@ __device__ void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(ModelDatagpu *model
 
     // Get the particle number concentration (#/cc)
     realtype number_conc;
-    aero_rep_get_number_conc(
+    aero_rep_gpu_get_number_conc(
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
@@ -450,7 +452,7 @@ __device__ void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(ModelDatagpu *model
 
     // Check the aerosol concentration type (per-particle or total per-phase
     // mass)
-    int aero_conc_type = aero_rep_get_aero_conc_type(
+    int aero_conc_type = aero_rep_gpu_get_aero_conc_type(
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase));	// aerosol phase index
@@ -540,7 +542,7 @@ __device__ void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(ModelDatagpu *model
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_gpu_HL_phase_transfer_calc_jac_contrib(ModelDatagpu *model_data,
+__device__ void * rxn_gpu_HL_phase_transfer_calc_jac_contrib(ModelDatagpu *model_data,
           realtype *J, void *rxn_data, double time_step)
 {
   realtype *state = model_data->state;
@@ -556,7 +558,7 @@ void * rxn_gpu_HL_phase_transfer_calc_jac_contrib(ModelDatagpu *model_data,
 
     // Get the particle effective radius (m)
     realtype radius;
-    aero_rep_get_effective_radius(
+    aero_rep_gpu_get_effective_radius(
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
@@ -564,7 +566,7 @@ void * rxn_gpu_HL_phase_transfer_calc_jac_contrib(ModelDatagpu *model_data,
 
     // Get the particle number concentration (#/cc)
     realtype number_conc;
-    aero_rep_get_number_conc(
+    aero_rep_gpu_get_number_conc(
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
@@ -572,7 +574,7 @@ void * rxn_gpu_HL_phase_transfer_calc_jac_contrib(ModelDatagpu *model_data,
                                                 // (#/cc)
 
     // Check the aerosol concentration type (per-particle or total per-phase mass)
-    int aero_conc_type = aero_rep_get_aero_conc_type(
+    int aero_conc_type = aero_rep_gpu_get_aero_conc_type(
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase));	// aerosol phase index

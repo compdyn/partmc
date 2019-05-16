@@ -38,16 +38,16 @@ extern "C" {
 /** \brief Flag Jacobian elements used in calcualtions of mass and volume
  *
  * \param model_data Pointer to the model data
- * \param aero_rep_data A pointer to the aerosol representation data
+ * \param aero_rep_gpu_data A pointer to the aerosol representation data
  * \param aero_phase_idx Index of the aerosol phase to find elements for
  * \param jac_struct 1D array of flags indicating potentially non-zero
  *                   Jacobian elements. (The dependent variable should have
  *                   been chosen by the calling function.)
  * \return Number of Jacobian elements flagged
  */
-int aero_rep_single_particle_get_used_jac_elem(ModelDatagpu *model_data,
-                                               int aero_phase_idx, void *aero_rep_data, bool *jac_struct) {
-  int *int_data = (int *) aero_rep_data;
+int aero_rep_gpu_single_particle_get_used_jac_elem(ModelDatagpu *model_data,
+                                               int aero_phase_idx, void *aero_rep_gpu_data, bool *jac_struct) {
+  int *int_data = (int *) aero_rep_gpu_data;
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
   return aero_phase_get_used_jac_elem(model_data,
@@ -61,14 +61,14 @@ int aero_rep_single_particle_get_used_jac_elem(ModelDatagpu *model_data,
  * The single particle aerosol representation functions do not use state array
  * values
  *
- * \param aero_rep_data A pointer to the aerosol representation data
+ * \param aero_rep_gpu_data A pointer to the aerosol representation data
  * \param state_flags Array of flags indicating state array elements used
- * \return The aero_rep_data pointer advanced by the size of the aerosol
+ * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
  *         representation data
  */
-void *aero_rep_single_particle_get_dependencies(void *aero_rep_data,
+void *aero_rep_gpu_single_particle_get_dependencies(void *aero_rep_gpu_data,
                                                 bool *state_flags) {
-  int *int_data = (int *) aero_rep_data;
+  int *int_data = (int *) aero_rep_gpu_data;
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
   return (void *) &(float_data[FLOAT_DATA_SIZE_]);
@@ -80,13 +80,13 @@ void *aero_rep_single_particle_get_dependencies(void *aero_rep_data,
  * conditions
  *
  * \param env_data Pointer to the environmental state array
- * \param aero_rep_data Pointer to the aerosol representation data
- * \return The aero_rep_data pointer advanced by the size of the aerosol
+ * \param aero_rep_gpu_data Pointer to the aerosol representation data
+ * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
  *         representation
  */
-void *aero_rep_single_particle_update_env_state(double *env_data,
-                                                void *aero_rep_data) {
-  int *int_data = (int *) aero_rep_data;
+void *aero_rep_gpu_single_particle_update_env_state(double *env_data,
+                                                void *aero_rep_gpu_data) {
+  int *int_data = (int *) aero_rep_gpu_data;
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
   return (void *) &(float_data[FLOAT_DATA_SIZE_]);
@@ -99,13 +99,13 @@ void *aero_rep_single_particle_update_env_state(double *env_data,
  * the particle
  *
  * \param model_data Pointer to the model data, include the state array
- * \param aero_rep_data Pointer to the aerosol representation data
- * \return The aero_rep_data pointer advanced by the size of the aerosol
+ * \param aero_rep_gpu_data Pointer to the aerosol representation data
+ * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
  *         representation
  */
-void *aero_rep_single_particle_update_state(ModelDatagpu *model_data,
-                                            void *aero_rep_data) {
-  int *int_data = (int *) aero_rep_data;
+void *aero_rep_gpu_single_particle_update_state(ModelDatagpu *model_data,
+                                            void *aero_rep_gpu_data) {
+  int *int_data = (int *) aero_rep_gpu_data;
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the total aerosol phase masses
@@ -136,13 +136,13 @@ void *aero_rep_single_particle_update_state(ModelDatagpu *model_data,
  * \param radius Effective particle radius (m)
  * \param partial_deriv \f$\frac{\partial r_{eff}}{\partial y}\f$ where \f$y\f$
  *                      are species on the state array
- * \param aero_rep_data Pointer to the aerosol representation data
- * \return The aero_rep_data pointer advanced by the size of the aerosol
+ * \param aero_rep_gpu_data Pointer to the aerosol representation data
+ * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
  *         representation
  */
-void *aero_rep_single_particle_get_effective_radius(int aero_phase_idx,
-                                                    double *radius, double *partial_deriv, void *aero_rep_data) {
-  int *int_data = (int *) aero_rep_data;
+__device__ void *aero_rep_gpu_single_particle_get_effective_radius(int aero_phase_idx,
+                                                    double *radius, double *partial_deriv, void *aero_rep_gpu_data) {
+  int *int_data = (int *) aero_rep_gpu_data;
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
   *radius = RADIUS_;
@@ -163,13 +163,13 @@ void *aero_rep_single_particle_get_effective_radius(int aero_phase_idx,
  *                    (\f$\mbox{\si{\#\per\cubic\centi\metre}}\f$)
  * \param partial_deriv \f$\frac{\partial n}{\partial y}\f$ where \f$y\f$ are
  *                      the species on the state array
- * \param aero_rep_data Pointer to the aerosol representation data
- * \return The aero_rep_data pointer advanced by the size of the aerosol
+ * \param aero_rep_gpu_data Pointer to the aerosol representation data
+ * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
  *         representation
  */
-void *aero_rep_single_particle_get_number_conc(int aero_phase_idx,
-                                               double *number_conc, double *partial_deriv, void *aero_rep_data) {
-  int *int_data = (int *) aero_rep_data;
+__device__ void *aero_rep_gpu_single_particle_get_number_conc(int aero_phase_idx,
+                                               double *number_conc, double *partial_deriv, void *aero_rep_gpu_data) {
+  int *int_data = (int *) aero_rep_gpu_data;
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
   *number_conc = NUMBER_CONC_;
@@ -184,13 +184,13 @@ void *aero_rep_single_particle_get_number_conc(int aero_phase_idx,
  * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param aero_conc_type Pointer to int that will hold the concentration type
  *                       code
- * \param aero_rep_data Pointer to the aerosol representation data
- * \return The aero_rep_data pointer advanced by the size of the aerosol
+ * \param aero_rep_gpu_data Pointer to the aerosol representation data
+ * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
  *         representation
  */
-void *aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx,
-                                                  int *aero_conc_type, void *aero_rep_data) {
-  int *int_data = (int *) aero_rep_data;
+__device__ void *aero_rep_gpu_single_particle_get_aero_conc_type(int aero_phase_idx,
+                                                  int *aero_conc_type, void *aero_rep_gpu_data) {
+  int *int_data = (int *) aero_rep_gpu_data;
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
   *aero_conc_type = 0;
@@ -210,14 +210,14 @@ void *aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx,
  *                          (\f$\mbox{\si{\kilogram\per\mole}}\f$)
  * \param partial_deriv \f$\frac{\partial m}{\partial y}\f$ where \f$y\f$ are
  *                      the species on the state array
- * \param aero_rep_data Pointer to the aerosol representation data
- * \return The aero_rep_data pointer advanced by the size of the aerosol
+ * \param aero_rep_gpu_data Pointer to the aerosol representation data
+ * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
  *         representation
  */
-void *aero_rep_single_particle_get_aero_phase_mass(int aero_phase_idx,
+void *aero_rep_gpu_single_particle_get_aero_phase_mass(int aero_phase_idx,
                                                    double *aero_phase_mass, double *aero_phase_avg_MW,
-                                                   double *partial_deriv, void *aero_rep_data) {
-  int *int_data = (int *) aero_rep_data;
+                                                   double *partial_deriv, void *aero_rep_gpu_data) {
+  int *int_data = (int *) aero_rep_gpu_data;
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
   *aero_phase_mass = PHASE_MASS_(aero_phase_idx);
@@ -230,9 +230,9 @@ void *aero_rep_single_particle_get_aero_phase_mass(int aero_phase_idx,
  *
  * Single particle aerosol representation update data is structured as follows:
  *
- *  - \b int aero_rep_id (Id of one or more aerosol representations set by the
+ *  - \b int aero_rep_gpu_id (Id of one or more aerosol representations set by the
  *       host model using the
- *       pmc_aero_rep_single_particle::aero_rep_single_particle_t::set_id
+ *       pmc_aero_rep_gpu_single_particle::aero_rep_gpu_single_particle_t::set_id
  *       function prior to initializing the solver.)
  *  - \b int update_type (Type of update to perform. Can be UPDATE_RADIUS or
  *       UPDATE_NUMBER.)
@@ -240,22 +240,22 @@ void *aero_rep_single_particle_get_aero_phase_mass(int aero_phase_idx,
  *       concentration (\f$\mbox{\si{\#\per\cubic\centi\metre}}\f$).)
  *
  * \param update_data Pointer to the updated aerosol representation data
- * \param aero_rep_data Pointer to the aerosol representation data
- * \return The aero_rep_data pointer advanced by the size of the aerosol
+ * \param aero_rep_gpu_data Pointer to the aerosol representation data
+ * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
  *        representaiton data
  */
-void *aero_rep_single_particle_update_data(void *update_data,
-                                           void *aero_rep_data) {
-  int *int_data = (int *) aero_rep_data;
+void *aero_rep_gpu_single_particle_update_data(void *update_data,
+                                           void *aero_rep_gpu_data) {
+  int *int_data = (int *) aero_rep_gpu_data;
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
-  int *aero_rep_id = (int *) update_data;
-  int *update_type = (int *) &(aero_rep_id[1]);
+  int *aero_rep_gpu_id = (int *) update_data;
+  int *update_type = (int *) &(aero_rep_gpu_id[1]);
   double *new_value = (double *) &(update_type[1]);
 
   // Set the new radius or number concentration for matching aerosol
   // representations
-  if (*aero_rep_id == AERO_REP_ID_ && AERO_REP_ID_ != 0) {
+  if (*aero_rep_gpu_id == AERO_REP_ID_ && AERO_REP_ID_ != 0) {
     if (*update_type == UPDATE_RADIUS) {
       RADIUS_ = (double) *new_value;
     } else if (*update_type == UPDATE_NUMBER) {
@@ -268,12 +268,12 @@ void *aero_rep_single_particle_update_data(void *update_data,
 
 /** \brief Print the Single Particle reaction parameters
  *
- * \param aero_rep_data Pointer to the aerosol representation data
- * \return The aero_rep_data pointer advanced by the size of the aerosol
+ * \param aero_rep_gpu_data Pointer to the aerosol representation data
+ * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
  *         representation data
  */
-void *aero_rep_single_particle_print(void *aero_rep_data) {
-  int *int_data = (int *) aero_rep_data;
+void *aero_rep_gpu_single_particle_print(void *aero_rep_gpu_data) {
+  int *int_data = (int *) aero_rep_gpu_data;
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
   printf("\n\nSingle particle aerosol representation\n");
@@ -287,12 +287,12 @@ void *aero_rep_single_particle_print(void *aero_rep_data) {
 
 /** \brief Advance the aerosol representation data pointer to the next aerosol representation
  *
- * \param aero_rep_data Pointer to the aerosol representation data
- * \return The aero_rep_data pointer advanced by the size of the aerosol
+ * \param aero_rep_gpu_data Pointer to the aerosol representation data
+ * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
  *         representation data
  */
-void *aero_rep_single_particle_skip(void *aero_rep_data) {
-  int *int_data = (int *) aero_rep_data;
+__device__ void *aero_rep_gpu_single_particle_skip(void *aero_rep_gpu_data) {
+  int *int_data = (int *) aero_rep_gpu_data;
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 
   return (void *) &(float_data[FLOAT_DATA_SIZE_]);
@@ -302,7 +302,7 @@ void *aero_rep_single_particle_skip(void *aero_rep_data) {
  *
  * \return Pointer to a new radius update data object
  */
-void *aero_rep_single_particle_create_radius_update_data() {
+void *aero_rep_gpu_single_particle_create_radius_update_data() {
   int *update_data = (int *) malloc(2 * sizeof(int) + sizeof(double));
   if (update_data == NULL) {
     printf("\n\nERROR allocating space for radius update data\n\n");
@@ -314,15 +314,15 @@ void *aero_rep_single_particle_create_radius_update_data() {
 /** \brief Set radius update data
  *
  * \param update_data Pointer to an allocated radius update data object
- * \param aero_rep_id Id of the aerosol representation(s) to update
+ * \param aero_rep_gpu_id Id of the aerosol representation(s) to update
  * \param radius New particle radius
  */
-void aero_rep_single_particle_set_radius_update_data(void *update_data,
-                                                     int aero_rep_id, double radius) {
-  int *new_aero_rep_id = (int *) update_data;
-  int *update_type = (int *) &(new_aero_rep_id[1]);
+void aero_rep_gpu_single_particle_set_radius_update_data(void *update_data,
+                                                     int aero_rep_gpu_id, double radius) {
+  int *new_aero_rep_gpu_id = (int *) update_data;
+  int *update_type = (int *) &(new_aero_rep_gpu_id[1]);
   double *new_radius = (double *) &(update_type[1]);
-  *new_aero_rep_id = aero_rep_id;
+  *new_aero_rep_gpu_id = aero_rep_gpu_id;
   *update_type = UPDATE_RADIUS;
   *new_radius = radius;
 }
@@ -331,7 +331,7 @@ void aero_rep_single_particle_set_radius_update_data(void *update_data,
  *
  * \return Pointer to a new number update data object
  */
-void *aero_rep_single_particle_create_number_update_data() {
+void *aero_rep_gpu_single_particle_create_number_update_data() {
   int *update_data = (int *) malloc(2 * sizeof(int) + sizeof(double));
   if (update_data == NULL) {
     printf("\n\nERROR allocating space for number update data\n\n");
@@ -343,15 +343,15 @@ void *aero_rep_single_particle_create_number_update_data() {
 /** \brief Set number update data
  *
  * \param update_data Pointer to an allocated number update data object
- * \param aero_rep_id Id of the aerosol representation(s) to update
+ * \param aero_rep_gpu_id Id of the aerosol representation(s) to update
  * \param number_conc New particle number
  */
-void aero_rep_single_particle_set_number_update_data(void *update_data,
-                                                     int aero_rep_id, double number_conc) {
-  int *new_aero_rep_id = (int *) update_data;
-  int *update_type = (int *) &(new_aero_rep_id[1]);
+void aero_rep_gpu_single_particle_set_number_update_data(void *update_data,
+                                                     int aero_rep_gpu_id, double number_conc) {
+  int *new_aero_rep_gpu_id = (int *) update_data;
+  int *update_type = (int *) &(new_aero_rep_gpu_id[1]);
   double *new_number_conc = (double *) &(update_type[1]);
-  *new_aero_rep_id = aero_rep_id;
+  *new_aero_rep_gpu_id = aero_rep_gpu_id;
   *update_type = UPDATE_NUMBER;
   *new_number_conc = number_conc;
 }

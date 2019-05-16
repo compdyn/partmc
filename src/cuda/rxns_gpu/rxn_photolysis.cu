@@ -292,7 +292,7 @@ void * rxn_gpu_photolysis_create_rate_update_data()
  * \param photo_id Id of photolysis reactions to update
  * \param base_rate New pre-scaling photolysis rate
  */
-void rxn_photolysis_set_rate_update_data(void *update_data, int photo_id,
+void rxn_gpu_photolysis_set_rate_update_data(void *update_data, int photo_id,
           double base_rate)
 {
   int *new_photo_id = (int*) update_data;

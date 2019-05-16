@@ -231,7 +231,7 @@ void * rxn_gpu_emission_create_rate_update_data()
  * \param rxn_id Id of emission reactions to update
  * \param base_rate New pre-scaling emission rate
  */
-void rxn_emission_set_rate_update_data(void *update_data, int rxn_id,
+void rxn_gpu_emission_set_rate_update_data(void *update_data, int rxn_id,
           double base_rate)
 {
   int *new_rxn_id = (int*) update_data;

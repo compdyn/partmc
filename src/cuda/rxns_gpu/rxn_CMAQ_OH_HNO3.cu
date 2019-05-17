@@ -178,7 +178,7 @@ __device__ void rxn_gpu_CMAQ_OH_HNO3_calc_deriv_contrib(ModelDatagpu *model_data
     for (int i_spec=0; i_spec<NUM_REACT_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue;
       //deriv[DERIV_ID_(i_dep_var)] -= rate;
-      atomicAdd((float*)&(deriv[DERIV_ID_(i_dep_var)]),-rate);
+      atomicAdd((double*)&(deriv[DERIV_ID_(i_dep_var)]),-rate);
     }
     for (int i_spec=0; i_spec<NUM_PROD_; i_spec++, i_dep_var++) {
       if (DERIV_ID_(i_dep_var) < 0) continue;
@@ -186,7 +186,7 @@ __device__ void rxn_gpu_CMAQ_OH_HNO3_calc_deriv_contrib(ModelDatagpu *model_data
       // concentrations that lead to solver failures
       if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
         //deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
-        atomicAdd((float*)&(deriv[DERIV_ID_(i_dep_var)]),rate*YIELD_(i_spec));
+        atomicAdd((double*)&(deriv[DERIV_ID_(i_dep_var)]),rate*YIELD_(i_spec));
       }
     }
   }
@@ -205,7 +205,7 @@ __device__ void rxn_gpu_CMAQ_OH_HNO3_calc_deriv_contrib(ModelDatagpu *model_data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_gpu_CMAQ_OH_HNO3_calc_jac_contrib(ModelDatagpu *model_data, realtype *J,
+__device__ void rxn_gpu_CMAQ_OH_HNO3_calc_jac_contrib(ModelDatagpu *model_data, realtype *J,
           void *rxn_data, double time_step)
 {
   realtype *state = model_data->state;
@@ -236,7 +236,7 @@ void * rxn_gpu_CMAQ_OH_HNO3_calc_jac_contrib(ModelDatagpu *model_data, realtype 
     }
   }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
 }
 #endif

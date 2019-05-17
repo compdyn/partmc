@@ -575,6 +575,7 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
         break;
     }
   }
+
 }
 #endif
 

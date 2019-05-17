@@ -10,7 +10,7 @@
 #ifndef SUB_MODELS_H
 #define SUB_MODELS_H
 #include "../phlex_gpu_solver.h"
-
+/*
 // UNIFAC
 void * sub_model_gpu_UNIFAC_get_used_jac_elem(
           void *sub_model_gpu_data, bool *jac_row);
@@ -28,5 +28,5 @@ void * sub_model_gpu_UNIFAC_skip(
           void *sub_model_gpu_data);
 void * sub_model_gpu_UNIFAC_print(
           void *sub_model_gpu_data);
-
+*/
 #endif

@@ -116,8 +116,6 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
     printf("\n\nERROR allocating space for SolverData\n\n");
     exit(1);
   }
-  
-  printfCUDA(n_state_var);
 
   // Save the number of state variables
   sd->model_data.n_state_var = n_state_var;
@@ -214,7 +212,8 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   sd->model_data.nxt_sub_model = (void*) &(ptr[1]);
 
   //GPU
-  solver_new_gpu_cu((void*) sd);
+  printfCUDA(n_state_var);
+  solver_new_gpu_cu((void*) sd, n_dep_var);
 
   // Return a pointer to the new SolverData object
   return (void*) sd;
@@ -509,7 +508,7 @@ void solver_get_statistics( void *solver_data, int *num_steps, int *RHS_evals,
 
 #endif
 }
-
+//f and jac
 #ifdef PMC_USE_SUNDIALS
 /** \brief Update the model state from the current solver state
  *
@@ -576,6 +575,11 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 
   // Run pre-derivative calculations
   rxn_pre_calc(md, (double) time_step);
+
+  // Calculate the time derivative f(t,y) on GPU
+  //Save deriv
+  N_Vector derivgpu = N_VClone(deriv);
+  rxn_calc_deriv_gpu_cu(md, derivgpu, (double) time_step);
 
   // Calculate the time derivative f(t,y)
   rxn_calc_deriv(md, deriv, (double) time_step);

@@ -306,16 +306,16 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *mod
       if (DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
       //deriv[DERIV_ID_(i_deriv++)] += (reverse_rate - forward_rate) /
 	      //MASS_FRAC_TO_M_(i_react) * state[WATER_(i_phase)];
-	      atomicAdd( (float*) &( deriv[DERIV_ID_(i_deriv++)] ),(reverse_rate - forward_rate) /
+	      atomicAdd( (double*) &( deriv[DERIV_ID_(i_deriv++)] ),(reverse_rate - forward_rate) /
 	        MASS_FRAC_TO_M_(i_react) * state[WATER_(i_phase)]);
-    }//TODO: Maybe the cast to (float*) is wrong, who knows, the deriv is initialised at realtype
+    }
 
     // Products change as (forward - reverse) (ug/m3/s)
     for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) {
       if (DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
       //deriv[DERIV_ID_(i_deriv++)] += (forward_rate - reverse_rate) /
 	      //MASS_FRAC_TO_M_(NUM_REACT_+i_prod) * state[WATER_(i_phase)];
-      atomicAdd((float*)&(deriv[DERIV_ID_(i_deriv++)]),(forward_rate - reverse_rate) /
+      atomicAdd((double*)&(deriv[DERIV_ID_(i_deriv++)]),(forward_rate - reverse_rate) /
 	      MASS_FRAC_TO_M_(NUM_REACT_+i_prod) * state[WATER_(i_phase)]);
     }
 
@@ -335,7 +335,7 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *mod
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_gpu_aqueous_equilibrium_calc_jac_contrib(ModelDatagpu *model_data,
+__device__ void rxn_gpu_aqueous_equilibrium_calc_jac_contrib(ModelDatagpu *model_data,
           realtype *J, void *rxn_data, double time_step)
 {
   realtype *state = model_data->state;
@@ -482,7 +482,7 @@ void * rxn_gpu_aqueous_equilibrium_calc_jac_contrib(ModelDatagpu *model_data,
 
   }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
 }
 #endif

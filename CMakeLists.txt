@@ -394,7 +394,7 @@ set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 
 #set(STD_C_FLAGS "-std=c++11 -fpermissive")
 set(STD_C_FLAGS "-g -O3 -std=c99") #"-g -O3 -std=c99"
-set(STD_CUDA_FLAGS "-dc")
+set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70")
 #set(STD_CUDA_FLAGS "-O3")
 set(STD_CXX_FLAGS "-dc -std=c++11 -fpermissive")
 
@@ -502,15 +502,18 @@ if(ENABLE_GPU)
           src/cuda/rxns_gpu/rxn_emission.cu
           src/cuda/rxns_gpu/rxn_first_order_loss.cu
           src/cuda/rxns_gpu/rxn_HL_phase_transfer.cu
-          #src/cuda/rxns_gpu/rxn_PDFiTE_activity.cu
-          #src/cuda/rxns_gpu/rxn_photolysis.cu
-          #src/cuda/rxns_gpu/rxn_SIMPOL_phase_transfer.cu
-          #src/cuda/rxns_gpu/rxn_troe.cu
-          #src/cuda/rxns_gpu/rxn_wet_deposition.cu
-          #src/cuda/rxns_gpu/rxn_ZSR_aerosol_water.cu
+          src/cuda/rxns_gpu/rxn_PDFiTE_activity.cu
+          src/cuda/rxns_gpu/rxn_photolysis.cu
+          src/cuda/rxns_gpu/rxn_SIMPOL_phase_transfer.cu
+          src/cuda/rxns_gpu/rxn_troe.cu
+          src/cuda/rxns_gpu/rxn_wet_deposition.cu
+          src/cuda/rxns_gpu/rxn_ZSR_aerosol_water.cu
           src/cuda/aeros_gpu/aero_phase_solver.cu
           src/cuda/aeros_gpu/aero_rep_solver.cu
-          src/cuda/aeros_gpu/sub_model_solver.cu)
+          src/cuda/aeros_gpu/sub_model_solver.cu
+          src/cuda/aero_reps_gpu/aero_rep_modal_binned_mass.cu
+          src/cuda/aero_reps_gpu/aero_rep_single_particle.cu)
+
   set_source_files_properties(${PHLEX_CUDA_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_CUDA_FLAGS})
   set_source_files_properties(${PHLEX_CUDA_SRC} PROPERTIES LANGUAGE CUDA)

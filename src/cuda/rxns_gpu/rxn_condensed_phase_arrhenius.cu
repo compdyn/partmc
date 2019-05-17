@@ -231,7 +231,7 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelDatagp
       if (DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
       //deriv[DERIV_ID_(i_deriv++)] -= rate /
 	 //     (UGM3_TO_MOLM3_(i_react) * unit_conv);
-      atomicAdd((float*)&(deriv[DERIV_ID_(i_deriv++)]), -(rate /
+      atomicAdd((double*)&(deriv[DERIV_ID_(i_deriv++)]), -(rate /
       (UGM3_TO_MOLM3_(i_react) * unit_conv)));
     }
 
@@ -240,7 +240,7 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelDatagp
       if (DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
       //deriv[DERIV_ID_(i_deriv++)] += rate * YIELD_(i_prod) /
       //  (UGM3_TO_MOLM3_(NUM_REACT_+i_prod) * unit_conv);
-      atomicAdd((float*)&(deriv[DERIV_ID_(i_deriv++)]),rate * YIELD_(i_prod) /
+      atomicAdd((double*)&(deriv[DERIV_ID_(i_deriv++)]),rate * YIELD_(i_prod) /
 	      (UGM3_TO_MOLM3_(NUM_REACT_+i_prod) * unit_conv));
     }
 
@@ -260,7 +260,7 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelDatagp
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(ModelDatagpu *model_data,
+__device__ void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(ModelDatagpu *model_data,
           realtype *J, void *rxn_data, double time_step)
 {
   realtype *state = model_data->state;
@@ -330,7 +330,7 @@ void * rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(ModelDatagpu *model_da
 
   }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
 }
 #endif

@@ -65,184 +65,6 @@ extern "C" {
 // Real-time phase average MW (kg/mol) - used for modes and bins - for modes, b=0
 #define PHASE_AVG_MW_(x, y, b) (float_data[MODE_FLOAT_PROP_LOC_(x)+(4+NUM_PHASE_(x))*NUM_BINS_(x)+b*NUM_PHASE_(x)+y])
 
-/** \brief Flag Jacobian elements used in calcualtions of mass and volume
- *
- * \param model_data Pointer to the model data
- * \param aero_rep_gpu_data A pointer to the aerosol representation data
- * \param aero_phase_idx Index of the aerosol phase to find elements for
- * \param jac_struct 1D array of flags indicating potentially non-zero
- *                   Jacobian elements. (The dependent variable should have
- *                   been chosen by the calling function.)
- * \return Number of Jacobian elements flagged
- */
-int aero_rep_gpu_modal_binned_mass_get_used_jac_elem(ModelDatagpu *model_data,
-                                                 int aero_phase_idx, void *aero_rep_gpu_data, bool *jac_struct) {
-  int *int_data = (int *) aero_rep_gpu_data;
-  double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
-
-  int num_flagged_elem = 0;
-
-  // Loop through the modes/bins flagging Jacobian elements used by each
-  // aerosol phase
-  for (int i_section = 0; i_section < NUM_SECTION_ && aero_phase_idx >= 0;
-       i_section++) {
-    for (int i_phase = 0; i_phase < NUM_PHASE_(i_section) && aero_phase_idx >= 0;
-         i_phase++) {
-      for (int i_bin = 0; i_bin < NUM_BINS_(i_section) && aero_phase_idx >= 0;
-           i_bin++) {
-        if (aero_phase_idx == 0) {
-          for (int j_phase = 0; j_phase < NUM_PHASE_(i_section); j_phase++) {
-            num_flagged_elem +=
-                    aero_phase_get_used_jac_elem(model_data,
-                                                 PHASE_MODEL_DATA_ID_(i_section, j_phase, i_bin),
-                                                 PHASE_STATE_ID_(i_section, j_phase, i_bin), jac_struct);
-          }
-        }
-        aero_phase_idx -= 1;
-      }
-    }
-  }
-
-  return num_flagged_elem;
-}
-
-/** \brief Flag elements on the state array used by this aerosol representation
- *
- * The modal mass aerosol representation functions do not use state array values
- *
- * \param aero_rep_gpu_data A pointer to the aerosol representation data
- * \param state_flags Array of flags indicating state array elements used
- * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
- *         representation data
- */
-void *aero_rep_gpu_modal_binned_mass_get_dependencies(void *aero_rep_gpu_data,
-                                                  bool *state_flags) {
-  int *int_data = (int *) aero_rep_gpu_data;
-  double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
-
-  return (void *) &(float_data[FLOAT_DATA_SIZE_]);
-}
-
-/** \brief Update aerosol representation data for new environmental conditions
- *
- * The modal mass aerosol representation is not updated for new environmental
- * conditions
- *
- * \param env_data Pointer to the environmental state array
- * \param aero_rep_gpu_data Pointer to the aerosol representation data
- * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
- *         representation
- */
-void *aero_rep_gpu_modal_binned_mass_update_env_state(double *env_data,
-                                                  void *aero_rep_gpu_data) {
-  int *int_data = (int *) aero_rep_gpu_data;
-  double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
-
-  return (void *) &(float_data[FLOAT_DATA_SIZE_]);
-}
-
-/** \brief Update aerosol representation data for a new state
- *
- * The modal mass aerosol representation recalculates effective radius and
- * number concentration for each new state.
- *
- * \param model_data Pointer to the model data, including the state array
- * \param aero_rep_gpu_data Pointer to the aerosol representation data
- * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
- *         representation
- */
-void *aero_rep_gpu_modal_binned_mass_update_state(ModelDatagpu *model_data,
-                                              void *aero_rep_gpu_data) {
-  int *int_data = (int *) aero_rep_gpu_data;
-  double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
-
-  // Loop through the modes and calculate effective radius and number
-  // concentration
-  for (int i_section = 0; i_section < NUM_SECTION_; i_section++) {
-
-    double volume, mass;
-    switch (SECTION_TYPE_(i_section)) {
-
-      // Mode
-      case (MODAL) :
-
-        // Sum the volumes of each species in the mode
-        volume = 0.0;
-        for (int i_phase = 0; i_phase < NUM_PHASE_(i_section); i_phase++) {
-
-          // Get a pointer to the phase on the state array
-          double *state = (double *) (model_data->state);
-          state += PHASE_STATE_ID_(i_section, i_phase, 0);
-
-          // Set the aerosol-phase mass and average MW
-          // FIXME get partial derivs
-          aero_phase_get_mass(model_data,
-                              PHASE_MODEL_DATA_ID_(i_section, i_phase, 0),
-                              state, &(PHASE_MASS_(i_section, i_phase, 0)),
-                              &(PHASE_AVG_MW_(i_section, i_phase, 0)), NULL, NULL);
-
-          // Get the phase volume
-          // FIXME get partial derivs
-          double phase_volume = 0.0;
-          aero_phase_get_volume(model_data,
-                                PHASE_MODEL_DATA_ID_(i_section, i_phase, 0),
-                                state, &phase_volume, NULL);
-          volume += phase_volume;
-
-        }
-
-        // Calculate the number concentration based on the total mode volume
-        // (see aero_rep_gpu_modal_binned_mass_get_number_conc for details)
-        NUMBER_CONC_(i_section, 0) = volume * 6.0 /
-                                     (M_PI * pow(GMD_(i_section, 0), 3) *
-                                      exp(9.0 / 2.0 * pow(GSD_(i_section, 0), 2)));
-
-        break;
-
-        // Bins
-      case (BINNED) :
-
-        // Loop through the bins
-        for (int i_bin = 0; i_bin < NUM_BINS_(i_section); i_bin++) {
-
-          // Sum the volumes of each species in the bin
-          volume = 0.0;
-          for (int i_phase = 0; i_phase < NUM_PHASE_(i_section); i_phase++) {
-
-            // Get a pointer to the phase on the state array
-            double *state = (double *) (model_data->state);
-            state += PHASE_STATE_ID_(i_section, i_phase, i_bin);
-
-            // Set the aerosol-phase mass and average MW
-            // FIXME get partial derivs
-            aero_phase_get_mass(model_data,
-                                PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
-                                state, &(PHASE_MASS_(i_section, i_phase, i_bin)),
-                                &(PHASE_AVG_MW_(i_section, i_phase, i_bin)), NULL, NULL);
-
-            // Get the phase volume
-            // FIXME get partial derivs
-            double phase_volume = 0.0;
-            aero_phase_get_volume(model_data,
-                                  PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
-                                  state, &phase_volume, NULL);
-            volume += phase_volume;
-
-          }
-
-          // Calculate the number concentration based on the total bin volume
-          // (see aero_rep_gpu_modal_binned_mass_get_number_conc for details)
-          NUMBER_CONC_(i_section, i_bin) = volume * 3.0 / (4.0 * M_PI) *
-                                           pow(BIN_DP_(i_section, i_bin) / 1.0, 3);
-        }
-
-        break;
-    }
-
-  }
-
-  return (void *) &(float_data[FLOAT_DATA_SIZE_]);
-}
 
 /** \brief Get the effective particle radius \f$r_{eff}\f$ (m)
  *
@@ -367,91 +189,33 @@ __device__ void *aero_rep_gpu_modal_binned_mass_get_aero_conc_type(int aero_phas
  *                          (\f$\mbox{\si{\kilogram\per\mole}}\f$)
  * \param partial_deriv \f$\frac{\partial m}{\partial y}\f$ where \f$y\f$ are
  *                      the species on the state array
- * \param aero_rep_gpu_data Pointer to the aerosol representation data
- * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
+ * \param aero_rep_data Pointer to the aerosol representation data
+ * \return The aero_rep_data pointer advanced by the size of the aerosol
  *         representation
  */
-void *aero_rep_gpu_modal_binned_mass_get_aero_phase_mass(int aero_phase_idx,
-                                                     double *aero_phase_mass, double *aero_phase_avg_MW,
-                                                     double *partial_deriv, void *aero_rep_gpu_data) {
-  int *int_data = (int *) aero_rep_gpu_data;
-  double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
+__device__ void * aero_rep_gpu_modal_binned_mass_get_aero_phase_mass(int aero_phase_idx,
+                                                      double *aero_phase_mass, double *aero_phase_avg_MW,
+                                                      double *partial_deriv, void *aero_rep_data)
+{
+  int *int_data = (int*) aero_rep_data;
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
-  for (int i_section = 0; i_section < NUM_SECTION_ && aero_phase_idx >= 0;
+  for (int i_section=0; i_section<NUM_SECTION_ && aero_phase_idx>=0;
        i_section++) {
-    for (int i_phase = 0; i_phase < NUM_PHASE_(i_section) && aero_phase_idx >= 0;
+    for (int i_phase=0; i_phase<NUM_PHASE_(i_section) && aero_phase_idx>=0;
          i_phase++) {
-      for (int i_bin = 0; i_bin < NUM_BINS_(i_section) && aero_phase_idx >= 0;
+      for (int i_bin=0; i_bin<NUM_BINS_(i_section) && aero_phase_idx>=0;
            i_bin++) {
-        if (aero_phase_idx == 0) {
+        if (aero_phase_idx==0) {
           *aero_phase_mass = PHASE_MASS_(i_section, i_phase, i_bin);
           *aero_phase_avg_MW = PHASE_AVG_MW_(i_section, i_phase, i_bin);
         }
-        aero_phase_idx -= 1;
+        aero_phase_idx-=1;
       }
     }
   }
 
-  return (void *) &(float_data[FLOAT_DATA_SIZE_]);
-}
-
-/** \brief Update the aerosol representation data
- *
- * The model mass aerosol representation update data is structured as follows:
- *
- *  - \b int aero_rep_gpu_id (Id of one or more aerosol representations set by the
- *       host model using the
- *       pmc_aero_rep_gpu_modal_binned_mass::aero_rep_gpu_modal_binned_mass_t::set_id
- *       function prior to initializing the solver.)
- *  - \b int update_type (Type of update to perform. Can be UPDATE_GMD or
- *       UPDATE_GSD.)
- *  - \b int section_id (Index of the mode to update.)
- *  - \b double new_value (Either the new GMD (m) or the new GSD (unitless).)
- *
- * \param update_data Pointer to the updated aerosol representation data
- * \param aero_rep_gpu_data Pointer to the aerosol representation data
- * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
- *        representation data
- */
-void *aero_rep_gpu_modal_binned_mass_update_data(void *update_data,
-                                             void *aero_rep_gpu_data) {
-  int *int_data = (int *) aero_rep_gpu_data;
-  double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
-
-  int *aero_rep_gpu_id = (int *) update_data;
-  int *update_type = (int *) &(aero_rep_gpu_id[1]);
-  int *section_id = (int *) &(update_type[1]);
-  double *new_value = (double *) &(section_id[1]);
-
-  // Set the new GMD or GSD for matching aerosol representations
-  if (*aero_rep_gpu_id == AERO_REP_ID_ && AERO_REP_ID_ != 0) {
-    if (*update_type == UPDATE_GMD) {
-      GMD_(*section_id, 0) = (double) *new_value;
-    } else if (*update_type == UPDATE_GSD) {
-      GSD_(*section_id, 0) = (double) *new_value;
-    }
-  }
-
-  return (void *) &(float_data[FLOAT_DATA_SIZE_]);
-}
-
-/** \brief Print the mass-only modal/binned reaction parameters
- *
- * \param aero_rep_gpu_data Pointer to the aerosol representation data
- * \return The aero_rep_gpu_data pointer advanced by the size of the aerosol
- *         representation data
- */
-void *aero_rep_gpu_modal_binned_mass_print(void *aero_rep_gpu_data) {
-  int *int_data = (int *) aero_rep_gpu_data;
-  double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
-
-  printf("\n\nModal/binned mass-only aerosol representation\n");
-  for (int i = 0; i < INT_DATA_SIZE_; i++)
-    printf("  int param %d = %d\n", i, int_data[i]);
-  for (int i = 0; i < FLOAT_DATA_SIZE_; i++)
-    printf("  float param %d = %le\n", i, float_data[i]);
-
-  return (void *) &(float_data[FLOAT_DATA_SIZE_]);
+  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
 /** \brief Advance the aerosol representation data pointer to the next aerosol representation
@@ -467,69 +231,6 @@ __device__ void *aero_rep_gpu_modal_binned_mass_skip(void *aero_rep_gpu_data) {
   return (void *) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
-/** \brief Create update data for new GMD
- *
- * \return Pointer to a new GMD update data object
- */
-void *aero_rep_gpu_modal_binned_mass_create_gmd_update_data() {
-  int *update_data = (int *) malloc(3 * sizeof(int) + sizeof(double));
-  if (update_data == NULL) {
-    printf("\n\nERROR allocating space for GMD update data.\n\n");
-    exit(1);
-  }
-  return (void *) update_data;
-}
-
-/** \brief Set GMD update data
- *
- * \param update_data Pointer to an allocated GMD update data object
- * \param aero_rep_gpu_id Id of the aerosol representation(s) to update
- * \param section_id Id of the mode to update
- * \param gmd New mode GMD (m)
- */
-void aero_rep_gpu_modal_binned_mass_set_gmd_update_data(void *update_data,
-                                                    int aero_rep_gpu_id, int section_id, double gmd) {
-  int *new_aero_rep_gpu_id = (int *) update_data;
-  int *update_type = (int *) &(new_aero_rep_gpu_id[1]);
-  int *new_section_id = (int *) &(update_type[1]);
-  double *new_GMD = (double *) &(new_section_id[1]);
-  *new_aero_rep_gpu_id = aero_rep_gpu_id;
-  *update_type = UPDATE_GMD;
-  *new_section_id = section_id;
-  *new_GMD = gmd;
-}
-
-/** \brief Create update data for new GSD
- *
- * \return Pointer to a new GSD update data object
- */
-void *aero_rep_gpu_modal_binned_mass_create_gsd_update_data() {
-  int *update_data = (int *) malloc(3 * sizeof(int) + sizeof(double));
-  if (update_data == NULL) {
-    printf("\n\nERROR allocating space for GSD update data.\n\n");
-    exit(1);
-  }
-  return (void *) update_data;
-}
-
-/** \brief Set GSD update data
- *
- * \param update_data Pointer to an allocated GSD update data object
- * \param aero_rep_gpu_id Id of the aerosol representation(s) to update
- * \param section_id Id of the mode to update
- * \param gsd New mode GSD (unitless)
- */
-void aero_rep_gpu_modal_binned_mass_set_gsd_update_data(void *update_data,
-                                                    int aero_rep_gpu_id, int section_id, double gsd) {
-  int *new_aero_rep_gpu_id = (int *) update_data;
-  int *update_type = (int *) &(new_aero_rep_gpu_id[1]);
-  int *new_section_id = (int *) &(update_type[1]);
-  double *new_GSD = (double *) &(new_section_id[1]);
-  *new_aero_rep_gpu_id = aero_rep_gpu_id;
-  *update_type = UPDATE_GSD;
-  *new_section_id = section_id;
-  *new_GSD = gsd;
-}
 
 #undef BINNED
 #undef MODAL

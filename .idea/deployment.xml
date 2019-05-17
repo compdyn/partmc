@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" showNewOnSourceInSync="false">
+  <component name="PublishConfigData" autoUpload="Always">
     <serverData>
       <paths name="cte-power (bac33227-1ac8-4dd9-a40b-c84ba2fb9aea)">
         <serverdata>
           <mappings>
-            <mapping deploy="/" local="$PROJECT_DIR$" />
+            <mapping deploy="/gpfs/scratch/bsc32/bsc32815/gpupartmc/partmc" local="$PROJECT_DIR$" />
           </mappings>
           <excludedPaths>
             <excludedPath path="/gpfs/scratch/bsc32/bsc32815/gpupartmc/partmc/build" />

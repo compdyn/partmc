@@ -165,7 +165,7 @@ __device__ void rxn_gpu_wet_deposition_calc_deriv_contrib(ModelDatagpu *model_da
   for (int i_spec = 0; i_spec < NUM_SPEC_; i_spec++) {
     if (DERIV_ID_(i_spec) >= 0 )
         //deriv[DERIV_ID_(i_spec)] -= RATE_CONSTANT_ * state[REACT_(i_spec)];
-      atomicAdd((float*)&(deriv[DERIV_ID_(i_spec)]),-(RATE_CONSTANT_ * state[REACT_(i_spec)]));
+      atomicAdd((double*)&(deriv[DERIV_ID_(i_spec)]),-(RATE_CONSTANT_ * state[REACT_(i_spec)]));
   }
 
   //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
@@ -182,7 +182,7 @@ __device__ void rxn_gpu_wet_deposition_calc_deriv_contrib(ModelDatagpu *model_da
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_gpu_wet_deposition_calc_jac_contrib(ModelDatagpu *model_data, realtype *J,
+__device__ void rxn_gpu_wet_deposition_calc_jac_contrib(ModelDatagpu *model_data, realtype *J,
           void *rxn_data, double time_step)
 {
   realtype *state = model_data->state;
@@ -194,7 +194,7 @@ void * rxn_gpu_wet_deposition_calc_jac_contrib(ModelDatagpu *model_data, realtyp
     if (JAC_ID_(i_spec) >= 0) J[JAC_ID_(i_spec)] -= RATE_CONSTANT_;
   }
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
 }
 #endif

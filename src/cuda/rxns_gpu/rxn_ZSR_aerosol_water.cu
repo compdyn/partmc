@@ -236,14 +236,14 @@ __device__ void rxn_gpu_ZSR_aerosol_water_calc_deriv_contrib(ModelDatagpu *model
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_gpu_ZSR_aerosol_water_calc_jac_contrib(ModelDatagpu *model_data,
+__device__ void rxn_gpu_ZSR_aerosol_water_calc_jac_contrib(ModelDatagpu *model_data,
           realtype *J, void *rxn_data, double time_step)
 {
   realtype *state = model_data->state;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
 }
 #endif

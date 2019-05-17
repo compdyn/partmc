@@ -149,7 +149,7 @@ __device__ void rxn_gpu_emission_calc_deriv_contrib(ModelDatagpu *model_data,
 
   // Add contributions to the time derivative
   //if (DERIV_ID_ >= 0) deriv[DERIV_ID_] += RATE_;
-  if (DERIV_ID_ >= 0) atomicAdd((float*)&(deriv[DERIV_ID_]),RATE_);
+  if (DERIV_ID_ >= 0) atomicAdd((double*)&(deriv[DERIV_ID_]),RATE_);
 
   //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
@@ -165,7 +165,7 @@ __device__ void rxn_gpu_emission_calc_deriv_contrib(ModelDatagpu *model_data,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_gpu_emission_calc_jac_contrib(ModelDatagpu *model_data, realtype *J,
+__device__ void rxn_gpu_emission_calc_jac_contrib(ModelDatagpu *model_data, realtype *J,
           void *rxn_data, double time_step)
 {
   realtype *state = model_data->state;
@@ -174,7 +174,7 @@ void * rxn_gpu_emission_calc_jac_contrib(ModelDatagpu *model_data, realtype *J,
 
   // No Jacobian contributions from 0th order emissions
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
 }
 #endif

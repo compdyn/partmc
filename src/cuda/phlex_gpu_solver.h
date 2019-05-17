@@ -11,8 +11,6 @@
 //#include "phlex_solver.h"
 //#include "phlex_common.h"
 
-
-
 /* SUNDIALS Header files with a description of contents used */
 #ifdef PMC_USE_SUNDIALS
 #include <cvode/cvode.h>                 /* Protoypes for CVODE fcts., consts.  */
@@ -35,6 +33,14 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+//TTODO: Try change max shared memory per block allowed on cuda config
+// with cudaDeviceSetCacheConfig, maybe we can reach improvement using 16kb
+//instead of default 48kb
+
+#define MAX_N_GPU_THREAD 1024
+#define MAX_SHARED_MEMORY_BLOCK_DOUBLE 1000
+
+//#define MAX_N_GPU_BLOCK 10
 
 #define HANDLE_ERROR( err ) (HandleError( err, __FILE__, __LINE__ ))
 
@@ -99,7 +105,7 @@ typedef struct {
 
 //void printfCPP();
 void printfCUDA(int aggg);
-void solver_new_gpu_cu(SolverDatagpu *sd);
+void solver_new_gpu_cu(SolverDatagpu *sd, int n_dep_var);
 void solver_initialize_gpu_cu(void *sd);
 void solver_run_gpu_cu(void *sd);
 void rxn_calc_deriv_gpu_cu(ModelDatagpu *model_data, N_Vector deriv, realtype time_step);

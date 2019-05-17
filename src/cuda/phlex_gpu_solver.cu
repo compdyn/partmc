@@ -166,67 +166,77 @@ __global__ void solveRxnBlock(ModelDatagpu *model_data, double *deriv,
     int rxn_type = *(rxn_data++);
 
     //Notice till this, without executing calc_deriv switch, gpu version takes 2 secs more
-    /*
+/*
     // Call the appropriate function
     switch (rxn_type) {
       case RXN_AQUEOUS_EQUILIBRIUM :
-        rxn_data = (int*) rxn_aqueous_equilibrium_calc_deriv_contrib(
+        rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
       case RXN_ARRHENIUS :
-        rxn_data = (int*) rxn_arrhenius_calc_deriv_contrib(
+        rxn_gpu_arrhenius_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
       case RXN_CMAQ_H2O2 :
-        rxn_data = (int*) rxn_CMAQ_H2O2_calc_deriv_contrib(
+        rxn_gpu_CMAQ_H2O2_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
       case RXN_CMAQ_OH_HNO3 :
-        rxn_data = (int*) rxn_CMAQ_OH_HNO3_calc_deriv_contrib(
+        rxn_gpu_CMAQ_OH_HNO3_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
       case RXN_CONDENSED_PHASE_ARRHENIUS :
-        rxn_data = (int*) rxn_condensed_phase_arrhenius_calc_deriv_contrib(
+        rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
       case RXN_EMISSION :
-        rxn_data = (int*) rxn_emission_calc_deriv_contrib(
+        rxn_gpu_emission_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
       case RXN_FIRST_ORDER_LOSS :
-        rxn_data = (int*) rxn_first_order_loss_calc_deriv_contrib(
+        rxn_gpu_first_order_loss_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
       case RXN_HL_PHASE_TRANSFER :
-        rxn_data = (int*) rxn_HL_phase_transfer_calc_deriv_contrib(
+        rxn_gpu_HL_phase_transfer_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
       case RXN_PDFITE_ACTIVITY :
-        rxn_data = (int*) rxn_PDFiTE_activity_calc_deriv_contrib(
+        rxn_gpu_PDFiTE_activity_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
       case RXN_PHOTOLYSIS :
-        rxn_data = (int*) rxn_photolysis_calc_deriv_contrib(
+        rxn_gpu_photolysis_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
       case RXN_SIMPOL_PHASE_TRANSFER :
-        rxn_data = (int*) rxn_SIMPOL_phase_transfer_calc_deriv_contrib(
+        rxn_gpu_SIMPOL_phase_transfer_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
       case RXN_TROE :
-        rxn_data = (int*) rxn_troe_calc_deriv_contrib(
+        rxn_gpu_troe_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
       case RXN_WET_DEPOSITION :
-        rxn_data = (int*) rxn_wet_deposition_calc_deriv_contrib(
+        rxn_gpu_wet_deposition_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
       case RXN_ZSR_AEROSOL_WATER :
-        rxn_data = (int*) rxn_ZSR_aerosol_water_calc_deriv_contrib(
+        rxn_gpu_ZSR_aerosol_water_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
         break;
     }
-     */
+*/
+    switch (rxn_type) {
+      case RXN_AQUEOUS_EQUILIBRIUM :
+        rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(
+                model_data, deriv_data, (void *) rxn_data, time_step);
+        break;
+      case RXN_ARRHENIUS :
+        rxn_gpu_arrhenius_calc_deriv_contrib(
+                model_data, deriv_data, (void*) rxn_data, time_step);
+        break;
+    }
   }
 
   __syncthreads();
@@ -264,6 +274,7 @@ void rxn_calc_deriv_gpu_cu(ModelDatagpu *model_data, N_Vector deriv, realtype ti
     start_rxn_param[i_rxn]=(unsigned int) ( (int*) rxn_data - (int*) rxn_param );
     // Get the reaction type
     int rxn_type = *(rxn_data++);
+
 
     // Call the appropriate function
     switch (rxn_type) {

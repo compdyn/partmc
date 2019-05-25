@@ -709,9 +709,11 @@ contains
     call aero_data_netcdf_dim_aero_source(aero_data, ncid, &
          dimid_aero_source)
 
-    call pmc_nc_write_integer_1d(ncid, aero_data%mosaic_index, &
-         "aero_mosaic_index", (/ dimid_aero_species /), &
-         long_name="MOSAIC indices of aerosol species")
+    if (allocated(aero_data%mosaic_index)) then
+       call pmc_nc_write_integer_1d(ncid, aero_data%mosaic_index, &
+            "aero_mosaic_index", (/ dimid_aero_species /), &
+             long_name="MOSAIC indices of aerosol species")
+    end if
     call pmc_nc_write_real_1d(ncid, aero_data%density, &
          "aero_density", (/ dimid_aero_species /), unit="kg/m^3", &
          long_name="densities of aerosol species")
@@ -847,12 +849,14 @@ contains
 
     do i_spec = 1, num_spec
       this%name(i_spec) = spec_names(i_spec)%string
+      print*, 'in loop:', this%name(i_spec)
       if (.not.chem_spec_data%get_property_set( &
         this%aero_rep_ptr%spec_name(spec_names(i_spec)%string), &
         property_set)) then
         call die_msg(934844845, "Missing property set for aerosol species "//&
              spec_names(i_spec)%string)
       end if
+      print*, 'in this loop', this%aero_rep_ptr%spec_name(spec_names(i_spec)%string)
       prop_name = "density [kg m-3]"
       if (.not. property_set%get_real(prop_name, this%density(i_spec))) then
         call die_msg(547508215, "Missing density for aerosol species "//&

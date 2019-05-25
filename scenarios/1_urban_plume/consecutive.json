@@ -23,7 +23,7 @@
       "molecular weight [kg mol-1]" : 0.1572,
       "density [kg m-3]" : 1.0,
       "num_ions" : 1,
-      "kappa" : .65
+      "kappa" : 0.65
     },
     {
       "name" : "aqueous aerosol",

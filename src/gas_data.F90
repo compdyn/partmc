@@ -377,9 +377,11 @@ contains
     call gas_data_netcdf_dim_gas_species(gas_data, ncid, &
          dimid_gas_species)
 
-    call pmc_nc_write_integer_1d(ncid, gas_data%mosaic_index, &
-         "gas_mosaic_index", (/ dimid_gas_species /), &
-         long_name="MOSAIC indices of gas species")
+    if (allocated(gas_data%mosaic_index)) then
+       call pmc_nc_write_integer_1d(ncid, gas_data%mosaic_index, &
+            "gas_mosaic_index", (/ dimid_gas_species /), &
+            long_name="MOSAIC indices of gas species")
+     end if
 
   end subroutine gas_data_output_netcdf
 

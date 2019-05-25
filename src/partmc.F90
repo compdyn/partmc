@@ -473,6 +473,8 @@ contains
                  phlex_config_filename)
          phlex_core => phlex_core_t(phlex_config_filename)
          call phlex_core%initialize()
+         ! FIXME: Temporary print state of the data
+         call phlex_core%print()
        end if
 
        if (do_restart) then

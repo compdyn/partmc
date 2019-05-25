@@ -22,7 +22,7 @@ module pmc_aero_data
   use mpi
 #endif
 
-  integer, parameter :: AERO_NAME_LEN = 15
+  integer, parameter :: AERO_NAME_LEN = 30
   integer, parameter :: AERO_SOURCE_NAME_LEN = 100
 
   !> Aerosol material properties and associated data.

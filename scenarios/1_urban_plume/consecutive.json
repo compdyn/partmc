@@ -26,9 +26,18 @@
       "kappa" : 0.65
     },
     {
-      "name" : "aqueous aerosol",
+      "name" : "E",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "molecular weight [kg mol-1]" : 0.1572,
+      "density [kg m-3]" : 1.2,
+      "num_ions" : 1,
+      "kappa" : 0.65
+    },
+    {
+      "name" : "aqueous_aerosol",
       "type" : "AERO_PHASE",
-      "species" : ["D"]
+      "species" : ["D", "E"]
     },
     {
       "name" : "consecutive",

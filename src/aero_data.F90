@@ -819,7 +819,7 @@ contains
     !> Phlexible chemistry core
     type(phlex_core_t), intent(in) :: phlex_core
 
-    character(len=:), allocatable :: rep_name, prop_name, source_name
+    character(len=:), allocatable :: rep_name, prop_name
     type(string_t), allocatable :: spec_names(:)
     integer :: num_spec, i_spec
     type(chem_spec_data_t), pointer :: chem_spec_data
@@ -843,19 +843,19 @@ contains
     allocate(this%num_ions(num_spec))
     allocate(this%molec_weight(num_spec))
     allocate(this%kappa(num_spec))
-    allocate(this%source_name(num_spec))
     allocate(this%phlex_spec_id(num_spec))
 
     do i_spec = 1, num_spec
       this%name(i_spec) = spec_names(i_spec)%string
       if (.not.chem_spec_data%get_property_set( &
-        spec_names(i_spec)%string, property_set)) then
+        this%aero_rep_ptr%spec_name(spec_names(i_spec)%string), &
+        property_set)) then
         call die_msg(934844845, "Missing property set for aerosol species "//&
              spec_names(i_spec)%string)
       end if
-      prop_name = "density"
+      prop_name = "density [kg m-3]"
       if (.not. property_set%get_real(prop_name, this%density(i_spec))) then
-        call die_msg(547508215, "Missing  for aerosol species "//&
+        call die_msg(547508215, "Missing density for aerosol species "//&
              spec_names(i_spec)%string)
       end if
       prop_name = "num_ions"
@@ -863,7 +863,7 @@ contains
         call die_msg(324777059, "Missing num_ions for aerosol species "//&
              spec_names(i_spec)%string)
       end if
-      prop_name = "molec_weight"
+      prop_name = "molecular weight [kg mol-1]"
       if (.not. property_set%get_real(prop_name, this%molec_weight(i_spec))) then
         call die_msg(549413749, "Missing molec_weight for aerosol species "//&
              spec_names(i_spec)%string)
@@ -872,12 +872,6 @@ contains
       if (.not. property_set%get_real(prop_name, this%kappa(i_spec))) then
         call die_msg(944207343, "Missing kappa for aerosol species "//&
              spec_names(i_spec)%string)
-      end if
-      prop_name = "source_name"
-      if (property_set%get_string(prop_name, source_name)) then
-        this%source_name(i_spec) = source_name
-      else
-        this%source_name(i_spec) = ""
       end if
       this%phlex_spec_id(i_spec) = &
           this%aero_rep_ptr%spec_state_id(spec_names(i_spec)%string)

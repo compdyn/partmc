@@ -233,7 +233,7 @@ contains
     !> A new set of model parameters
     type(phlex_core_t), pointer :: new_obj
     !> Part-MC input file paths
-    character(len=:), allocatable, intent(in), optional :: input_file_path
+    character(len=PMC_MAX_FILENAME_LEN), intent(in), optional :: input_file_path
 
     allocate(new_obj)
     allocate(new_obj%mechanism(0))
@@ -277,7 +277,7 @@ contains
     !> Model data
     class(phlex_core_t), intent(inout) :: this
     !> Part-MC input file paths
-    character(len=:), allocatable, intent(in) :: input_file_path
+    character(len=PMC_MAX_FILENAME_LEN), intent(in) :: input_file_path
 
 #ifdef PMC_USE_JSON
     type(json_core), target :: json
@@ -293,8 +293,6 @@ contains
     ! load the file containing the paths to the configuration files
     call j_file%initialize()
     call j_file%get_core(json)
-    call assert_msg(394951135, allocated(input_file_path), &
-            "Received non-allocated string for file path")
     call assert_msg(600888426, trim(input_file_path).ne."", &
             "Received empty string for file path")
     inquire( file=input_file_path, exist=file_exists )

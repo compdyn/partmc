@@ -325,7 +325,7 @@ contains
     real(kind=dp) :: dummy_time, dummy_del_t, n_part
     character(len=PMC_MAX_FILENAME_LEN) :: sub_filename
     type(spec_file_t) :: sub_file
-    character(len=:), allocatable :: phlex_config_filename
+    character(len=PMC_MAX_FILENAME_LEN) :: phlex_config_filename
 
     !> \page input_format_particle Input File Format: Particle-Resolved Simulation
     !!
@@ -469,14 +469,6 @@ contains
          call spec_file_die_msg(905205341, file, &
                  'cannot do phlex chem, SUNDIALS support not compiled in')
 #endif
-         if (run_part_opt%do_mosaic) then
-           call spec_file_die_msg(952967581, file, &
-                 'cannot use MOSAIC with phlex chem')
-         end if
-         if (run_part_opt%do_condensation) then
-           call spec_file_die_msg(556720748, file, &
-                   'cannot do condensation with phlex chem')
-         end if
          call spec_file_read_string(file, 'phlex_config', &
                  phlex_config_filename)
          phlex_core => phlex_core_t(phlex_config_filename)
@@ -543,6 +535,10 @@ contains
             run_part_opt%do_condensation .eqv. .false., &
             "cannot use condensation, SUNDIALS support is not compiled in")
 #endif
+       if (run_part_opt%do_condensation .and. run_part_opt%do_phlex_chem) then
+          call spec_file_die_msg(556720748, file, &
+              'cannot do condensation with phlex chem')
+       end if
        if (run_part_opt%do_condensation) then
           call spec_file_read_logical(file, 'do_init_equilibriate', &
                do_init_equilibriate)
@@ -558,6 +554,10 @@ contains
        if (run_part_opt%do_mosaic .and. run_part_opt%do_condensation) then
           call spec_file_die_msg(599877804, file, &
                'cannot use MOSAIC and condensation simultaneously')
+       end if
+       if (run_part_opt%do_mosaic .and. run_part_opt%do_phlex_chem) then
+          call spec_file_die_msg(952967581, file, &
+               'cannot use MOSAIC with phlex chem')
        end if
        if (run_part_opt%do_mosaic) then
           call spec_file_read_logical(file, 'do_optical', &

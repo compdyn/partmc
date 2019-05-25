@@ -769,10 +769,13 @@ contains
           call condense_equilib_particles(env_state, aero_data, aero_state)
        end if
 #endif
-
-       call run_part(scenario, env_state, aero_data, aero_state, gas_data, &
-            gas_state, run_part_opt)
-
+       if (run_part_opt%do_phlex_chem) then
+          call run_part(scenario, env_state, aero_data, aero_state, gas_data, &
+               gas_state, run_part_opt, phlex_core=phlex_core)
+       else
+          call run_part(scenario, env_state, aero_data, aero_state, gas_data, &
+               gas_state, run_part_opt)
+       end if
     end do
 
     call pmc_rand_finalize()

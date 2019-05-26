@@ -726,6 +726,11 @@ contains
     deallocate(buffer)
 #endif
 
+    ! initialize the chemistry solver
+    if (run_part_opt%do_phlex_chem) then
+      call phlex_core%solver_initialize()
+    end if
+
     ! re-initialize RNG with the given seed
     call pmc_rand_finalize()
     call pmc_srand(rand_init, pmc_mpi_rank())

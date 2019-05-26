@@ -1068,6 +1068,9 @@ contains
     ! Pointer to solver data
     type(phlex_solver_data_t), pointer :: solver
 
+    call assert_msg(593328365, this%solver_is_initialized,                   &
+                    "Trying to solve system with uninitialized solver" )
+
     ! Get the phase(s) to solve for
     if (present(rxn_phase)) then
       phase = rxn_phase

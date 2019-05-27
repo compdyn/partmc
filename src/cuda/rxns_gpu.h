@@ -15,6 +15,8 @@
 #define RXNS_H_
 #include "phlex_gpu_solver.h"
 
+//#define PMC_USE_SUNDIALS
+
 // aqueous_equilibrium
 void * rxn_gpu_aqueous_equilibrium_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);

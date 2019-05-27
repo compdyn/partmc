@@ -145,35 +145,47 @@ void * rxn_gpu_arrhenius_pre_calc(ModelDatagpu *model_data, void *rxn_data)
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data,
-          realtype *deriv, void *rxn_data, double time_step)
+          double *deriv, void *rxn_data, double time_step)
 {
   realtype *state = model_data->state;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
 
+  //State is bad mapping, pointing who ever knows, crashing when accesing
+
   // Calculate the reaction rate
-  realtype rate = RATE_CONSTANT_;
-  for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
+  double rate = RATE_CONSTANT_;
+  //for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
+  //rate *= state[0];
 
   // Add contributions to the time derivative
-  if (rate!=ZERO) {
+  //if (rate) {
     int i_dep_var = 0;
     for (int i_spec=0; i_spec<NUM_REACT_; i_spec++, i_dep_var++) {
-      if (DERIV_ID_(i_dep_var) < 0) continue;
+      //if (DERIV_ID_(i_dep_var) < 0) continue;
       //deriv[DERIV_ID_(i_dep_var)] -= rate;
-      atomicAdd((double*)&(deriv[DERIV_ID_(i_dep_var)]),-rate);
-    }
+      //atomicAdd(&(deriv[DERIV_ID_(i_dep_var)]),-rate);
+	}
     for (int i_spec=0; i_spec<NUM_PROD_; i_spec++, i_dep_var++) {
-      if (DERIV_ID_(i_dep_var) < 0) continue;
+      //if (DERIV_ID_(i_dep_var) < 0) continue;
 
       // Negative yields are allowed, but prevented from causing negative
       // concentrations that lead to solver failures
-      if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
+      //if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
         //deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
-        atomicAdd((double*)&(deriv[DERIV_ID_(i_dep_var)]),rate*YIELD_(i_spec));
-      }
-    }
+        //atomicAdd(&(deriv[DERIV_ID_(i_dep_var)]),rate*YIELD_(i_spec));
+        atomicAdd(&(deriv[DERIV_ID_(0)]),0.000000002);
+
+      //}
+    //}
   }
+
+  //0.000000002
+  /*int i_dep_var = 0;
+   for (int i_spec=0; i_spec<NUM_PROD_; i_spec++, i_dep_var++) {
+    atomicAdd(&(deriv[DERIV_ID_(i_dep_var)]),0.000000002);
+    }
+*/
 
   //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 

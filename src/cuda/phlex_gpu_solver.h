@@ -8,6 +8,7 @@
 //#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+//#include "../rxns.h"
 //#include "phlex_solver.h"
 //#include "phlex_common.h"
 
@@ -105,9 +106,14 @@ typedef struct {
 
 //void printfCPP();
 void printfCUDA(int aggg);
-void solver_new_gpu_cu(SolverDatagpu *sd, int n_dep_var);
-void solver_initialize_gpu_cu(void *sd);
-void solver_run_gpu_cu(void *sd);
+void solver_new_gpu_cu(SolverDatagpu *sd, int n_dep_var,
+     int n_state_var, int *var_type, int n_rxn,
+     int n_rxn_int_param, int n_rxn_float_param, int n_aero_phase,
+     int n_aero_phase_int_param, int n_aero_phase_float_param,
+     int n_aero_rep, int n_aero_rep_int_param, int n_aero_rep_float_param,
+     int n_sub_model, int n_sub_model_int_param, int n_sub_model_float_param);
+void solver_update_gpu(ModelDatagpu *md);
 void rxn_calc_deriv_gpu_cu(ModelDatagpu *model_data, N_Vector deriv, realtype time_step);
+void free_gpu_cu();
 
 #endif

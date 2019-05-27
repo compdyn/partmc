@@ -20,6 +20,10 @@
 #include "rxn_solver.h"
 #include "sub_model_solver.h"
 
+unsigned short counter=0;
+unsigned short deriv_size0;
+
+
 // Define PMC_DEBUG to turn on output of debug info
 
 // Define FAILURE_DETAIL to print out conditions before and after solver failures
@@ -144,6 +148,8 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   for (int i=0; i<n_state_var; i++)
     if (var_type[i]==CHEM_SPEC_VARIABLE) n_dep_var++;
 
+  //deriv_size0 = n_dep_var;
+
 #ifdef PMC_USE_SUNDIALS
   // Set up the solver variable array and helper derivative array
   sd->y     = N_VNew_Serial(n_dep_var);
@@ -213,7 +219,12 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
 
   //GPU
   printfCUDA(n_state_var);
-  solver_new_gpu_cu((void*) sd, n_dep_var);
+  solver_new_gpu_cu((void*) sd, n_dep_var,
+  n_state_var, var_type, n_rxn,
+  n_rxn_int_param, n_rxn_float_param, n_aero_phase,
+  n_aero_phase_int_param, n_aero_phase_float_param,
+  n_aero_rep, n_aero_rep_int_param, n_aero_rep_float_param,
+  n_sub_model, n_sub_model_int_param, n_sub_model_float_param);
 
   // Return a pointer to the new SolverData object
   return (void*) sd;
@@ -374,6 +385,10 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   if( is_anything_going_on_here( sd, t_initial, t_final ) == false )
     return PHLEX_SOLVER_SUCCESS;
 
+  // Update GPU input values (model_data)
+  //TODO: doubt: state changes every time-domain iteration or is constant?
+  solver_update_gpu(&(sd->model_data));
+
   // Reinitialize the solver
   int flag = CVodeReInit(sd->cvode_mem, t_initial, sd->y);
   check_flag_fail(&flag, "CVodeReInit", 1);
@@ -424,6 +439,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // and apply adjustments to final state
   sub_model_calculate(&(sd->model_data));
   rxn_pre_calc(&(sd->model_data), 0.0);
+
+  //free gpu memory
+  free_gpu_cu();
 
   return PHLEX_SOLVER_SUCCESS;
 #else
@@ -578,11 +596,53 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 
   // Calculate the time derivative f(t,y) on GPU
   //Save deriv
-  N_Vector derivgpu = N_VClone(deriv);
+  //N_Vector derivgpu = N_VClone(deriv);//dont work clone
+
+  N_Vector derivgpu = N_VNew_Serial(NV_LENGTH_S(deriv));
+  N_VConst(ZERO, derivgpu);
   rxn_calc_deriv_gpu_cu(md, derivgpu, (double) time_step);
+
+//  double deriv2[NV_LENGTH_S(deriv)];
+//  for (int i=0; i<NV_LENGTH_S(deriv); i++)
+//  deriv2[i]=NV_DATA_S(deriv)[i];
 
   // Calculate the time derivative f(t,y)
   rxn_calc_deriv(md, deriv, (double) time_step);
+  //rxn_calc_deriv(md, deriv2, (double) time_step);
+ 
+
+  //rxn_calc_deriv_gpu_cu(md, deriv, (double) time_step);
+  if(counter==29){
+    //printf(" deriv length: %d\n", NV_LENGTH_S(deriv));
+    for (int i=0; i<NV_LENGTH_S(deriv); i++) {
+
+      printf(" deriv cpu: %le \n", NV_DATA_S(deriv)[i]);
+
+      //deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
+      //atomicAdd((double*)&(deriv[DERIV_ID_(i_dep_var)]),rate*YIELD_(i_spec));
+
+      //realtype * derivi=(realtype*) derivgpu;
+      //derivi[i]=0.01; //Da seg. fault, y quiza algo asi pase en gpu nu se, sobretodo por el shr
+      //printf(" derivile: % -le\n", derivi[i]);
+      //printf(" deriv gpu mapped: % -le\n", ((realtype*) derivgpu)[i]);  
+      //NV_DATA_S(derivgpu)[i]=0.01;
+
+	printf(" deriv gpu: % -le\n", NV_DATA_S(derivgpu)[i]);
+
+    }
+  }
+
+//Deriv length=74
+/*if(counter==29){
+  //printf(" deriv size: %d\n", deriv_size0);
+  for(int i=0;i<200;i++){
+    //printf(" deriv gpu: %f\n", derivgpu[i]);
+    printf(" deriv cpu: %lf\n", deriv[i]);
+    //printf(" soy yo el test01: %f\n", derivgpu[5]);
+  }
+}*/
+
+  counter++;
 
   return (0);
 

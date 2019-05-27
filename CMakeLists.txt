@@ -19,10 +19,10 @@ option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" ON)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
-option(ENABLE_JSON "Enable json-fortran support" ON)
-option(ENABLE_DEBUG "Compile debugging functions" ON)
+option(ENABLE_JSON "Enable json-fortran support" OFF)#ON
+option(ENABLE_DEBUG "Compile debugging functions" ON)#ON
 option(FAILURE_DETAIL "Output conditions before and after solver failures" OFF)
-option(ENABLE_CXX "Enable C++" ON)
+option(ENABLE_CXX "Enable C++" OFF)
 option(ENABLE_GPU "Enable use of GPUs in chemistry solving" ON)
 
 mark_as_advanced(FORCE ENABLE_DEBUG FAILURE_DETAIL)
@@ -165,7 +165,7 @@ add_definitions(-DPMC_USE_CXX)
 enable_language(CXX)
 #set(STD_CXX_FLAGS "-O3 -fpermissive")#-std=c++11
 else()
-message([WARNING] "CXX NOT ENABLE")
+#message([WARNING] "CXX NOT ENABLE")
 endif()
 
 ######################################################################
@@ -393,7 +393,7 @@ set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 # partmc library
 
 #set(STD_C_FLAGS "-std=c++11 -fpermissive")
-set(STD_C_FLAGS "-g -O3 -std=c99") #"-g -O3 -std=c99"
+set(STD_C_FLAGS "-Wall -O3 -std=c99") #"-g -O3 -std=c99"
 set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70")
 #set(STD_CUDA_FLAGS "-O3")
 set(STD_CXX_FLAGS "-dc -std=c++11 -fpermissive")

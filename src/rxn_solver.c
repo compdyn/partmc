@@ -509,6 +509,7 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
   int *rxn_data = (int*) (model_data->rxn_data);
   int n_rxn = *(rxn_data++);
 
+
   // Loop through the reactions advancing the rxn_data pointer each time
   for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
 
@@ -524,6 +525,8 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
       case RXN_ARRHENIUS :
         rxn_data = (int*) rxn_arrhenius_calc_deriv_contrib(
                   model_data, deriv_data, (void*) rxn_data, time_step);
+        //rxn_data = (int*) rxn_arrhenius_skip(
+          //      (void*) rxn_data);
         break;
       case RXN_CMAQ_H2O2 :
         rxn_data = (int*) rxn_CMAQ_H2O2_calc_deriv_contrib(
@@ -567,7 +570,7 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
         break;
       case RXN_WET_DEPOSITION :
         rxn_data = (int*) rxn_wet_deposition_calc_deriv_contrib(
-                  model_data, deriv_data, (void*) rxn_data, time_step);
+                  model_data, deriv_data, (void*) rxn_data, time_step);;
         break;
       case RXN_ZSR_AEROSOL_WATER :
         rxn_data = (int*) rxn_ZSR_aerosol_water_calc_deriv_contrib(
@@ -576,6 +579,38 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
     }
   }
 
+
+/*
+  // Loop through the reactions advancing the rxn_data pointer each time
+  for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
+
+    // Get the reaction type
+    int rxn_type = *(rxn_data++);
+
+    switch (rxn_type) {
+      case RXN_ARRHENIUS :
+        rxn_gpu_arrhenius_calc_deriv_contrib(
+                model_data, deriv_data, (void*) rxn_data, time_step);
+        break;
+      case RXN_CMAQ_H2O2 :
+        rxn_gpu_CMAQ_H2O2_calc_deriv_contrib(
+                model_data, deriv_data, (void*) rxn_data, time_step);
+        break;
+      case RXN_CMAQ_OH_HNO3 :
+        rxn_gpu_CMAQ_OH_HNO3_calc_deriv_contrib(
+                model_data, deriv_data, (void*) rxn_data, time_step);
+        break;
+      case RXN_PHOTOLYSIS :
+        rxn_gpu_photolysis_calc_deriv_contrib(
+                model_data, deriv_data, (void*) rxn_data, time_step);
+        break;
+      case RXN_TROE :
+        rxn_gpu_troe_calc_deriv_contrib(
+                model_data, deriv_data, (void*) rxn_data, time_step);
+        break;
+    }
+  }
+*/
 }
 #endif
 

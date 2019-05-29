@@ -44,6 +44,13 @@ contains
 
     integer(kind=i_kind) :: i_part
     real(kind=dp) :: num_conc
+    integer :: phlex_state_size
+
+    ! Allocate the size of phlex_state
+    if (allocated(phlex_state%state_var)) deallocate(phlex_state%state_var)
+    phlex_state_size = size(gas_state%mix_rat) + &
+       aero_data_n_spec(aero_data) * aero_state%n_part()
+    allocate(phlex_state%state_var(phlex_state_size))
 
     ! Set the phlex chem  gas-phase species
     call gas_state%set_phlex_conc(phlex_state)
@@ -59,14 +66,14 @@ contains
       ! Set the Phlex chem aerosol state
       num_conc = aero_weight_array_num_conc(aero_state%awa, part, aero_data)
       call pmc_phlex_interface_set_phlex_conc(aero_data, part, phlex_state, &
-              num_conc)
+           num_conc)
 
       ! Solve the phase-transfer and aerosol-phase chemistry for this particle
       call phlex_core%solve(phlex_state, del_t, AERO_RXN)
 
       ! Update the PartMC aerosol state
       call pmc_phlex_interface_get_phlex_conc(aero_data, part, phlex_state, &
-              num_conc)
+           num_conc)
 
       end associate
     end do

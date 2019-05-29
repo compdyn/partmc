@@ -291,7 +291,7 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
     // Slow rates as concentrations become low
     realtype min_conc =
       (forward_rate > reverse_rate) ? min_react_conc : min_prod_conc;
-    min_conc -= SMALL_NUMBER_;
+    //min_conc -= SMALL_NUMBER_;
     if (min_conc <= ZERO) continue;
     realtype spec_scaling =
       2.0 / ( 1.0 + exp( -min_conc / SMALL_CONC_(i_phase) ) ) - 1.0;
@@ -396,7 +396,7 @@ void * rxn_aqueous_equilibrium_calc_jac_contrib(ModelData *model_data,
       min_conc = min_prod_conc;
       low_spec_id = low_prod_id;
     }
-    min_conc -= SMALL_NUMBER_;
+    //min_conc -= SMALL_NUMBER_;
     if (min_conc <= ZERO) continue;
     realtype spec_scaling =
       2.0 / ( 1.0 + exp( -min_conc / SMALL_CONC_(i_phase) ) ) - 1.0;

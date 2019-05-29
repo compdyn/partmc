@@ -8,7 +8,8 @@
 !> Mock version of the MONARCH model for testing integration with PartMC
 program mock_monarch
 
-  use pmc_util,                                 only : assert_msg
+  use pmc_util,                          only : assert_msg, almost_equal, &
+                                                to_string
   use pmc_monarch_interface
   use pmc_mpi
 
@@ -20,6 +21,8 @@ program mock_monarch
   integer, parameter :: RESULTS_FILE_UNIT = 7
   !> File unit for script generation
   integer, parameter :: SCRIPTS_FILE_UNIT = 8
+  !> File unit for results comparison
+  integer, parameter :: COMPARE_FILE_UNIT = 9
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! Parameters for mock MONARCH model !
@@ -72,6 +75,9 @@ program mock_monarch
   !> Air pressure (Pa)
   real :: pressure(NUM_WE_CELLS, NUM_VERT_CELLS, NUM_SN_CELLS)
 
+  !> Comparison values
+  real :: comp_species_conc(0:NUM_TIME_STEP, NUM_MONARCH_SPEC)
+
   !> Starting time for mock model run (min since midnight) TODO check how time
   !! is tracked in MONARCH
   real :: curr_time = START_TIME
@@ -95,7 +101,7 @@ program mock_monarch
   character(len=:), allocatable :: output_file_prefix
 
   character(len=500) :: arg
-  integer :: status_code, i_time
+  integer :: status_code, i_time, i_spec
 
 
   ! Check the command line arguments
@@ -175,8 +181,22 @@ program mock_monarch
             plot_start_time, curr_time)
   end if
 
-  ! TODO evaluate results
-
+  ! The evaluation is based on a run with reasonable seeming values and
+  ! few solver modifications. It is used to make sure future modifications
+  ! to the solver do not affect the results
+#if 0
+  do i_spec = START_PHLEX_ID, END_PHLEX_ID
+    call assert_msg( 394742768, &
+        almost_equal( real( species_conc(10,15,1,i_spec), kind=dp ), &
+                      real( comp_species_conc(i_time,i_spec), kind=dp ), &
+                      1.d-4, 1d-3 ), &
+        "Concentration species mismatch for species "// &
+        trim( to_string( i_spec ) )//" at time step "// &
+        trim( to_string( i_time ) )//". Expected: "// &
+        trim( to_string( comp_species_conc(i_time,i_spec) ) )//", got: "// &
+        trim( to_string( species_conc(10,15,1,i_spec) ) ) )
+  end do
+#endif
   write(*,*) "MONARCH interface tests - PASS"
 
   ! close the output file
@@ -202,10 +222,13 @@ contains
     integer :: i_spec
     character(len=:), allocatable :: file_name
 
-    file_name = file_prefix//"_results.txt"
-
     ! Open the output file
+    file_name = file_prefix//"_results.txt"
     open(RESULTS_FILE_UNIT, file=file_name, status="replace", action="write")
+
+    ! Open the compare file
+    file_name = file_prefix//"_comp.txt"
+    open(COMPARE_FILE_UNIT, file=file_name, action="read")
 
     ! TODO refine initial model conditions
     temperature(:,:,:) = 300.614166259766
@@ -217,7 +240,27 @@ contains
 
     deallocate(file_name)
 
+    ! Read the compare file
+    call read_comp_file()
+    close(COMPARE_FILE_UNIT)
+
   end subroutine model_initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read the comparison file (must have same dimensions as current config)
+  subroutine read_comp_file()
+
+    integer :: i_time
+    real :: time, water
+
+    do i_time = 0, NUM_TIME_STEP + 1
+      read(COMPARE_FILE_UNIT, *) time, &
+             comp_species_conc(i_time, START_PHLEX_ID:END_PHLEX_ID), &
+             water
+    end do
+
+  end subroutine read_comp_file
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

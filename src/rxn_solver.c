@@ -301,13 +301,6 @@ void rxn_update_env_state(ModelData *model_data, double *env)
  */
 void rxn_pre_calc(ModelData *model_data, double time_step)
 {
-  // If called with time_step = 0, update the state based on the last
-  // calculated adjustments
-  if (time_step==0.0 && model_data->use_adj) rxn_adjust_state(model_data);
-
-  // Start with no state adjustments
-  rxn_reset_state_adjustments(model_data);
-
   // Get the number of reactions
   int *rxn_data = (int*) (model_data->rxn_data);
   int n_rxn = *(rxn_data++);
@@ -321,56 +314,56 @@ void rxn_pre_calc(ModelData *model_data, double time_step)
     // Call the appropriate function
     switch (rxn_type) {
       case RXN_AQUEOUS_EQUILIBRIUM :
-        rxn_data = (int*) rxn_aqueous_equilibrium_pre_calc(
-                  model_data, (void*) rxn_data);
+        rxn_data = (int*) rxn_aqueous_equilibrium_skip(
+                  (void*) rxn_data);
         break;
       case RXN_ARRHENIUS :
-        rxn_data = (int*) rxn_arrhenius_pre_calc(
-                  model_data, (void*) rxn_data);
+        rxn_data = (int*) rxn_arrhenius_skip(
+                  (void*) rxn_data);
         break;
       case RXN_CMAQ_H2O2 :
-        rxn_data = (int*) rxn_CMAQ_H2O2_pre_calc(
-                  model_data, (void*) rxn_data);
+        rxn_data = (int*) rxn_CMAQ_H2O2_skip(
+                  (void*) rxn_data);
         break;
       case RXN_CMAQ_OH_HNO3 :
-        rxn_data = (int*) rxn_CMAQ_OH_HNO3_pre_calc(
-                  model_data, (void*) rxn_data);
+        rxn_data = (int*) rxn_CMAQ_OH_HNO3_skip(
+                  (void*) rxn_data);
         break;
       case RXN_CONDENSED_PHASE_ARRHENIUS :
-        rxn_data = (int*) rxn_condensed_phase_arrhenius_pre_calc(
-                  model_data, (void*) rxn_data);
+        rxn_data = (int*) rxn_condensed_phase_arrhenius_skip(
+                  (void*) rxn_data);
         break;
       case RXN_EMISSION :
-        rxn_data = (int*) rxn_emission_pre_calc(
-                  model_data, (void*) rxn_data);
+        rxn_data = (int*) rxn_emission_skip(
+                  (void*) rxn_data);
         break;
       case RXN_FIRST_ORDER_LOSS :
-        rxn_data = (int*) rxn_first_order_loss_pre_calc(
-                  model_data, (void*) rxn_data);
+        rxn_data = (int*) rxn_first_order_loss_skip(
+                  (void*) rxn_data);
         break;
       case RXN_HL_PHASE_TRANSFER :
-        rxn_data = (int*) rxn_HL_phase_transfer_pre_calc(
-                  model_data, (void*) rxn_data, time_step);
+        rxn_data = (int*) rxn_HL_phase_transfer_skip(
+                  (void*) rxn_data);
         break;
       case RXN_PDFITE_ACTIVITY :
         rxn_data = (int*) rxn_PDFiTE_activity_pre_calc(
                   model_data, (void*) rxn_data);
         break;
       case RXN_PHOTOLYSIS :
-        rxn_data = (int*) rxn_photolysis_pre_calc(
-                  model_data, (void*) rxn_data);
+        rxn_data = (int*) rxn_photolysis_skip(
+                  (void*) rxn_data);
         break;
       case RXN_SIMPOL_PHASE_TRANSFER :
-        rxn_data = (int*) rxn_SIMPOL_phase_transfer_pre_calc(
-                  model_data, (void*) rxn_data, time_step);
+        rxn_data = (int*) rxn_SIMPOL_phase_transfer_skip(
+                  (void*) rxn_data);
         break;
       case RXN_TROE :
-        rxn_data = (int*) rxn_troe_pre_calc(
-                  model_data, (void*) rxn_data);
+        rxn_data = (int*) rxn_troe_skip(
+                  (void*) rxn_data);
         break;
       case RXN_WET_DEPOSITION :
-        rxn_data = (int*) rxn_wet_deposition_pre_calc(
-                  model_data, (void*) rxn_data);
+        rxn_data = (int*) rxn_wet_deposition_skip(
+                  (void*) rxn_data);
         break;
       case RXN_ZSR_AEROSOL_WATER :
         rxn_data = (int*) rxn_ZSR_aerosol_water_pre_calc(
@@ -378,10 +371,6 @@ void rxn_pre_calc(ModelData *model_data, double time_step)
         break;
     }
   }
-
-  // Update the state array (if called during solving)
-  if (time_step > 0.0 && model_data->use_adj) rxn_adjust_state(model_data);
-
 }
 
 /** \brief Reset the state adjustments

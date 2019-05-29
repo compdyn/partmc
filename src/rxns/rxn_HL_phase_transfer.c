@@ -223,6 +223,9 @@ void * rxn_HL_phase_transfer_update_env_state(double *env_data,
 
 /** \brief Do pre-derivative calculations
  *
+ * TODO This is no longer called. PreCalc is being eliminated and moved
+ *      to sub-models`
+ *
  * Check whether phase transfer is fast enough at this timestep to treat
  * it as essentially going to completion
  *
@@ -428,7 +431,7 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
   for (int i_phase=0; i_phase<NUM_AERO_PHASE_; i_phase++) {
 
     // Skip reactions that are being treated as instantaneous
-    if (FAST_FLUX_(i_phase) != 0.0) continue;
+    //if (FAST_FLUX_(i_phase) != 0.0) continue;
 
     // Get the particle effective radius (m)
     realtype radius;
@@ -546,7 +549,7 @@ void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
   for (int i_phase=0; i_phase<NUM_AERO_PHASE_; i_phase++) {
 
     // Skip reactions that are being treated as instantaneous
-    if (FAST_FLUX_(i_phase) != 0.0) continue;
+    //if (FAST_FLUX_(i_phase) != 0.0) continue;
 
     // Get the particle effective radius (m)
     realtype radius;

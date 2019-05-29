@@ -7,6 +7,8 @@
 /** \file
  * \brief Sub model solver functions
  */
+#include <stdio.h>
+#include <stdlib.h>
 #include "sub_model_solver.h"
 #include "sub_models.h"
 

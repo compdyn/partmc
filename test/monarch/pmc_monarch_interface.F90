@@ -309,9 +309,11 @@ contains
           if (MONARCH_PROCESS.eq.0 .and. i.eq.i_start .and. j.eq.j_start &
                   .and. k.eq.1) then
             call cpu_time(comp_start)
+            !solver_stats%debug_out = .false.
+          else
+            !solver_stats%debug_out = .false.
           end if
 
-          ! solver_stats%debug_out = .true.
 
           ! Integrate the PMC mechanism
           call this%phlex_core%solve(this%phlex_state, &

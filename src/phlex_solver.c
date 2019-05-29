@@ -32,24 +32,27 @@ void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
   CVodeMem cv_mem = (CVodeMem) cvode_mem;
   if( !(cv_mem->cv_debug_out) ) return;
   printf("\n[DEBUG] line %4d in %-20s(): %-25s %-4.0d t_n = %le h = %le q = %d "
-         "hin = %le species %d(zn[0] = %le zn[1] = %le tempv = %le tempv2 = %le "
-         "acor_init = %le last_yn = %le",
+         "hin = %le species %d(zn[0] = %le zn[1] = %le tempv = %le tempv1 = %le "
+         "tempv2 = %le acor_init = %le last_yn = %le",
          line, func, message, int_val, cv_mem->cv_tn, cv_mem->cv_h, cv_mem->cv_q,
          cv_mem->cv_hin, PMC_DEBUG_SPEC_,
          NV_DATA_S(cv_mem->cv_zn[0])[PMC_DEBUG_SPEC_],
          NV_DATA_S(cv_mem->cv_zn[1])[PMC_DEBUG_SPEC_],
          NV_DATA_S(cv_mem->cv_tempv)[PMC_DEBUG_SPEC_],
          NV_DATA_S(cv_mem->cv_tempv1)[PMC_DEBUG_SPEC_],
+         NV_DATA_S(cv_mem->cv_tempv2)[PMC_DEBUG_SPEC_],
          NV_DATA_S(cv_mem->cv_acor_init)[PMC_DEBUG_SPEC_],
          NV_DATA_S(cv_mem->cv_last_yn)[PMC_DEBUG_SPEC_]);
   if (do_full) {
     for (int i=0; i<NV_LENGTH_S(cv_mem->cv_y); i++) {
       printf("\n  zn[0][%3d] = % -le zn[1][%3d] = % -le tempv[%3d] = % -le "
-             "tempv2[%3d] = % -le acor_init[%3d] = % -le last_yn[%3d] = % -le",
+             "tempv1[%3d] = % -le tempv2[%3d] = % -le acor_init[%3d] = % -le "
+             "last_yn[%3d] = % -le",
          i, NV_DATA_S(cv_mem->cv_zn[0])[i],
          i, NV_DATA_S(cv_mem->cv_zn[1])[i],
          i, NV_DATA_S(cv_mem->cv_tempv)[i],
          i, NV_DATA_S(cv_mem->cv_tempv1)[i],
+         i, NV_DATA_S(cv_mem->cv_tempv2)[i],
          i, NV_DATA_S(cv_mem->cv_acor_init)[i],
          i, NV_DATA_S(cv_mem->cv_last_yn)[i]);
     }
@@ -421,7 +424,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   rxn_update_env_state(&(sd->model_data), env);
 
   // Reset the state adjustment arrays
-  sd->model_data.use_adj = true;
+  sd->model_data.use_adj = false;
   rxn_reset_state_adjustments(&(sd->model_data));
 
   PMC_DEBUG_JAC_STRUCT("Begin solving");
@@ -762,9 +765,6 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
 
   PMC_DEBUG_PRINT_FULL("Trying to improve guess");
 
-  // skip adjustment problems for now TODO revisit this later
-  if (h_n == ZERO) return 1;
-
   // Copy \f$y(t_{n-1})\f$ to working array
   N_VScale(ONE, y_n1, tmp1);
 
@@ -783,11 +783,12 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
   for (; iter < GUESS_MAX_ITER && t_0 + t_j < t_n; iter++) {
 
     // Calculate \f$h_j\f$
-    realtype h_j = h_n > ZERO ? ( t_n - ( t_0 + t_j ) ) : ONE;
+    realtype h_j = t_n - ( t_0 + t_j );
     int i_fast = -1;
     for (int i = 0; i < n_elem; i++) {
       realtype t_star = - atmp1[i] / acorr[i];
-      if( t_star > ZERO && t_star < h_j ) {
+      if( ( t_star > ZERO || (t_star == ZERO && acorr[i] < ZERO) )
+          && t_star < h_j ) {
         h_j = t_star;
         i_fast = i;
       }
@@ -796,22 +797,21 @@ int guess_helper(const realtype t_n, const realtype h_n, N_Vector y_n,
     // Scale h_j unless t_n can be reached
     if( i_fast >= 0 && h_n > ZERO ) h_j *= GUESS_ADV_SCALE;
 
+    // Only make small changes to adjustment vectors used in Newton iteration
+    if( h_n == ZERO && ONE - h_j > ((CVodeMem)sd->cvode_mem)->cv_reltol ) return 0;
+
     // Avoid advancing state past zero
     if( h_n > ZERO ) h_j = nextafter(h_j, ZERO);
 
     // Advance the state
     N_VLinearSum(ONE, tmp1, h_j, corr, tmp1);
 
+    PMC_DEBUG_PRINT_FULL("Advanced state");
+
     // If just scaling an adjustment vector, exit the loop
     if( h_n == ZERO ) break;
 
-    // Adjust h_j to be the lifetime of the fastest depleting species
-    // assuming approximate first order decay
-    if( i_fast >= 0 ) {
-      h_j = - ONE / acorr[i_fast];
-    } else {
-      h_j = nextafter(h_j, HUGE_VAL);
-    }
+    h_j = nextafter(h_j, HUGE_VAL);
     h_j = t_0 + t_j + h_j > t_n ? t_n - (t_0 + t_j) : h_j;
 
     // Advance t_j

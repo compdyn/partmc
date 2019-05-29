@@ -8,6 +8,8 @@ set -v
 cd ${0%/*}
 # make the output directory if it doesn't exist
 mkdir -p out
+# copy the compare file to the output directory
+cp simple_comp.txt out/simple_comp.txt
 
 ((counter = 1))
 while [ true ]

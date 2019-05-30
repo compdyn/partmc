@@ -184,6 +184,8 @@ module pmc_phlex_core
     procedure :: state_size
     !> Initialize the solver
     procedure :: solver_initialize
+    !> Free the solver
+    procedure :: free_solver
     !> Update aerosol representation data
     procedure :: update_aero_rep_data
     !> Update reaction data
@@ -975,6 +977,23 @@ contains
     this%solver_is_initialized = .true.
 
   end subroutine solver_initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Free the solver memory
+  subroutine free_solver(this)
+
+    !> Phlex-core
+    class(phlex_core_t), intent(inout) :: this
+
+    if( associated( this%solver_data_gas ) )  &
+        deallocate( this%solver_data_gas )
+    if( associated( this%solver_data_aero ) ) &
+        deallocate( this%solver_data_aero )
+    if( associated( this%solver_data_gas_aero ) ) &
+        deallocate( this%solver_data_gas_aero )
+
+  end subroutine free_solver
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

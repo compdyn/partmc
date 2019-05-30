@@ -82,9 +82,9 @@ program mock_monarch
   !! is tracked in MONARCH
   real :: curr_time = START_TIME
 
-  !> Plot start time is after first call to solve chemistry, so initial
-  !! concentrations do not affect y-axis scaling
-  real :: plot_start_time = START_TIME + TIME_STEP
+  !> Set starting time for gnuplot scripts (includes initial conditions as first
+  !! data point)
+  real :: plot_start_time = START_TIME
 
   !> !!! Add to MONARCH variables !!!
   type(monarch_interface_t), pointer :: pmc_interface
@@ -227,8 +227,8 @@ contains
     open(RESULTS_FILE_UNIT, file=file_name, status="replace", action="write")
 
     ! Open the compare file
-    file_name = file_prefix//"_comp.txt"
-    open(COMPARE_FILE_UNIT, file=file_name, action="read")
+!    file_name = file_prefix//"_comp.txt"
+!    open(COMPARE_FILE_UNIT, file=file_name, action="read")
 
     ! TODO refine initial model conditions
     temperature(:,:,:) = 300.614166259766
@@ -241,8 +241,8 @@ contains
     deallocate(file_name)
 
     ! Read the compare file
-    call read_comp_file()
-    close(COMPARE_FILE_UNIT)
+!    call read_comp_file()
+!    close(COMPARE_FILE_UNIT)
 
   end subroutine model_initialize
 

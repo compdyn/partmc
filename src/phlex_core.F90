@@ -103,6 +103,7 @@ module pmc_phlex_core
   use pmc_aero_rep_factory
   use pmc_chem_spec_data
   use pmc_constants,                  only : i_kind, dp
+  use pmc_env_state
   use pmc_mechanism_data
   use pmc_mpi
   use pmc_phlex_solver_data
@@ -876,14 +877,15 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a model state variable based on the this set of model data
-  function new_state(this)
+  function new_state(this, env_state)
 
     !> New model state
     type(phlex_state_t), pointer :: new_state
     !> Chemical model
     class(phlex_core_t), intent(in) :: this
+    type(env_state_t), optional, target, intent(in) :: env_state
 
-    new_state => phlex_state_t()
+    new_state => phlex_state_t(env_state)
 
     ! Set up the state variable array
     allocate(new_state%state_var, source=this%init_state)

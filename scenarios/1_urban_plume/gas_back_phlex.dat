@@ -1,8 +1,0 @@
-# time (s)
-# rate (s^{-1})
-# concentrations (ppb)
-time            0
-rate         1.5e-5
-B          0.1E+00
-C          1.0E+00
-A          0.8E+00

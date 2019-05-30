@@ -60,7 +60,7 @@ contains
 
     ! Do phase-transfer and aerosol-phase chemistry for each particle
     ! in the particle array
-    do i_part = 1, aero_state%n_part()
+    do i_part = 1, 0 !aero_state%n_part()
       associate (part => aero_state%apa%particle(i_part))
 
       ! Set the Phlex chem aerosol state

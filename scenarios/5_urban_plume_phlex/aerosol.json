@@ -1,23 +1,8 @@
 {
   "pmc-data" : [
     {
-      "type" : "SPLIT_GAS_AERO"
-    },
-    {
       "name" : "PartMC single particle",
       "type" : "AERO_REP_SINGLE_PARTICLE"
-    },
-    {
-      "name" : "A",
-      "type" : "CHEM_SPEC"
-    },
-    {
-      "name" : "B",
-      "type" : "CHEM_SPEC"
-    },
-    {
-      "name" : "C",
-      "type" : "CHEM_SPEC"
     },
     {
       "name" : "D",
@@ -26,21 +11,12 @@
       "molecular weight [kg mol-1]" : 0.1572,
       "density [kg m-3]" : 1.0,
       "num_ions" : 1,
-      "kappa" : 0.65
+      "kappa" : .65
     },
     {
-      "name" : "E",
-      "type" : "CHEM_SPEC",
-      "phase" : "AEROSOL",
-      "molecular weight [kg mol-1]" : 0.1572,
-      "density [kg m-3]" : 1.2,
-      "num_ions" : 1,
-      "kappa" : 0.65
-    },
-    {
-      "name" : "aqueous_aerosol",
+      "name" : "aqueous aerosol",
       "type" : "AERO_PHASE",
-      "species" : ["D", "E"]
+      "species" : ["D"]
     },
     {
       "name" : "consecutive",
@@ -54,7 +30,7 @@
 	  "products" : {
 	    "B" : {}
 	  },
-	  "A" : 0.01,
+	  "A" : 12.0,
 	  "Ea" : 1.0e-20
 	},
 	{
@@ -65,8 +41,8 @@
 	  "products" : {
 	    "C" : {}
 	  },
-	  "A" : 0.01,
-	  "Ea" : 1.0e-20
+	  "A" : 13.0,
+	  "Ea" : 2.0e-20
 	}
       ]
     }

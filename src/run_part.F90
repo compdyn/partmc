@@ -147,8 +147,6 @@ contains
     integer :: n_time, i_time, i_time_start, pre_i_time
     integer :: i_state, i_state_netcdf, i_output
 
-    phlex_state => phlex_core%new_state(env_state)
-
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()
 
@@ -170,6 +168,10 @@ contains
          "del_t", run_part_opt%del_t)
     call check_time_multiple("t_progress", run_part_opt%t_progress, &
          "del_t", run_part_opt%del_t)
+
+    if (run_part_opt%do_phlex_chem) then
+       phlex_state => phlex_core%new_state(env_state)
+    end if
 
     if (run_part_opt%do_mosaic) then
        call mosaic_init(env_state, aero_data, run_part_opt%del_t, &

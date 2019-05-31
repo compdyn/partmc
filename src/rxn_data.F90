@@ -270,7 +270,7 @@ contains
   subroutine load(this, json, j_obj)
 
     !> Reaction data
-    class(rxn_data_t), intent(out) :: this
+    class(rxn_data_t), intent(inout) :: this
     !> JSON core
     type(json_core), pointer, intent(in) :: json
     !> JSON object

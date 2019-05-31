@@ -17,7 +17,11 @@
     },
     {
       "name" : "C",
-      "type" : "CHEM_SPEC"
+      "type" : "CHEM_SPEC",
+      "diffusion coeff [m2 s-1]" : 0.95E-05,
+      "N star" : 2.55,
+      "molecular weight [kg mol-1]" : 0.04607,
+      "absolute tolerance" : 1.0e-20
     },
     {
       "name" : "D",
@@ -54,7 +58,7 @@
 	  "products" : {
 	    "B" : {}
 	  },
-	  "A" : 12.0,
+	  "A" : 0.01,
 	  "Ea" : 1.0e-20
 	},
 	{
@@ -65,9 +69,16 @@
 	  "products" : {
 	    "C" : {}
 	  },
-	  "A" : 13.0,
-	  "Ea" : 2.0e-20
-	}
+	  "A" : 0.01,
+	  "Ea" : 1.0e-20
+	},
+       {
+        "type" : "SIMPOL_PHASE_TRANSFER",
+        "gas-phase species" : "C",
+        "aerosol phase" : "aqueous_aerosol",
+        "aerosol-phase species" : "E",
+        "B" : [ -1.97E+03, 2.91E+00, 1.96E-03, -4.96E-01 ]
+       }
       ]
     }
   ]

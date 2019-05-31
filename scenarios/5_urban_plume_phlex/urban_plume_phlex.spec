@@ -1,13 +1,13 @@
 run_type particle               # particle-resolved run
 output_prefix out/urban_plume   # prefix of output files
-n_repeat 3                      # number of Monte Carlo repeats
+n_repeat 1                      # number of Monte Carlo repeats
 n_part 1000                     # total number of particles
 restart no                      # whether to restart from saved state (yes/no)
 
-t_max 86400                     # total simulation time (s)
+t_max 3600                     # total simulation time (s)
 del_t 60                        # timestep (s)
-t_output 3600                   # output interval (0 disables) (s)
-t_progress 600                  # progress printing interval (0 disables) (s)
+t_output 60                   # output interval (0 disables) (s)
+t_progress 60                  # progress printing interval (0 disables) (s)
 
 do_phlex_chem yes
 phlex_config config_1.json
@@ -16,9 +16,9 @@ gas_init gas_init_phlex.dat           # initial gas concentrations
 do_fractal no                   # whether to do fractal treatment
 aerosol_init aero_init_dist_phlex.dat # aerosol initial condition file
 
-temp_profile temp.dat           # temperature profile file
+temp_profile temp_phlex.dat           # temperature profile file
 pressure_profile pres.dat       # pressure profile file
-height_profile height.dat       # height profile file
+height_profile height_phlex.dat       # height profile file
 gas_emissions gas_emit_phlex.dat      # gas emissions file
 gas_background gas_back_phlex.dat     # background gas concentrations file
 aero_emissions aero_emit_phlex.dat    # aerosol emissions file

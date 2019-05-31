@@ -147,7 +147,7 @@ contains
     integer :: n_time, i_time, i_time_start, pre_i_time
     integer :: i_state, i_state_netcdf, i_output
 
-    phlex_state => phlex_state_t(env_state)
+    phlex_state => phlex_core%new_state(env_state)
 
     rank = pmc_mpi_rank()
     n_proc = pmc_mpi_size()

@@ -46,12 +46,6 @@ contains
     real(kind=dp) :: num_conc
     integer :: phlex_state_size
 
-    ! Allocate the size of phlex_state
-    if (allocated(phlex_state%state_var)) deallocate(phlex_state%state_var)
-    phlex_state_size = size(gas_state%mix_rat) + &
-       aero_data_n_spec(aero_data) * aero_state%n_part()
-    allocate(phlex_state%state_var(phlex_state_size))
-
     ! Set the phlex chem  gas-phase species
     call gas_state%set_phlex_conc(phlex_state)
 
@@ -60,7 +54,7 @@ contains
 
     ! Do phase-transfer and aerosol-phase chemistry for each particle
     ! in the particle array
-    do i_part = 1, aero_state%n_part()
+    do i_part = 1,aero_state%n_part()
       associate (part => aero_state%apa%particle(i_part))
 
       ! Set the Phlex chem aerosol state

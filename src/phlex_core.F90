@@ -286,8 +286,9 @@ contains
     type(json_file) :: j_file
     type(json_value), pointer :: j_obj, j_next
 
-    logical(kind=json_lk) :: found
+    logical(kind=json_lk) :: found, valid
     character(kind=json_ck, len=:), allocatable :: unicode_str_val
+    character(kind=json_ck, len=:), allocatable :: json_err_msg
     integer(kind=json_ik) :: i_file, num_files
     type(string_t), allocatable :: file_list(:)
     logical :: file_exists
@@ -307,6 +308,11 @@ contains
     call assert_msg(405149265, found, &
             "Could not find pmc-files object in input file: "// &
             input_file_path)
+    call json%validate(j_obj, valid, json_err_msg)
+    if(.not.valid) then
+      call die_msg(959537834, "Bad JSON format in file '"// &
+                   trim(input_file_path)//"': "//trim(json_err_msg))
+    end if
     call j_file%info('pmc-files', n_children = num_files)
     call assert_msg(411804027, num_files.gt.0, &
             "No file names were found in "//input_file_path)
@@ -402,7 +408,9 @@ contains
     type(json_file) :: j_file
     type(json_value), pointer :: j_obj, j_next
 
+    logical(kind=json_lk) :: valid
     character(kind=json_ck, len=:), allocatable :: unicode_str_val
+    character(kind=json_ck, len=:), allocatable :: json_err_msg
     character(len=:), allocatable :: str_val
     real(kind=json_rk) :: real_val
     logical :: file_exists, found
@@ -448,6 +456,12 @@ contains
 
       ! get the phlex-chem objects
       call j_file%get('pmc-data(1)', j_obj)
+      call json%validate(j_obj, valid, json_err_msg)
+      if (.not.valid) then
+        call die_msg(560270545, "Bad JSON format in file '"// &
+                     trim(input_file_path(i_file)%string)//"': "// &
+                     trim(json_err_msg))
+      end if
       do while (associated(j_obj))
 
         ! get the object type and load data into the appropriate phlex-chem

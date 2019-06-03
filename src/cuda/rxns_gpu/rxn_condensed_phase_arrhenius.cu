@@ -195,12 +195,12 @@ void * rxn_gpu_condensed_phase_arrhenius_pre_calc(ModelDatagpu *model_data,
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data,
-          realtype *deriv, void *rxn_data, double time_step)
+          realtype *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
 {
   realtype *state = model_data->state;
   realtype *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = double_pointer_gpu;
 
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase=0, i_deriv = 0; i_phase<NUM_AERO_PHASE_; i_phase++) {
@@ -261,12 +261,12 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelDatagp
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(ModelDatagpu *model_data,
-          realtype *J, void *rxn_data, double time_step)
+          realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step)
 {
   realtype *state = model_data->state;
   realtype *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = double_pointer_gpu;
 
   // Calculate Jacobian contributions for each aerosol phase
   for (int i_phase=0, i_jac = 0; i_phase<NUM_AERO_PHASE_; i_phase++) {
@@ -334,6 +334,19 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(ModelDatagpu 
 
 }
 #endif
+
+/** \brief Retrieve Int data size
+ *
+ * \param rxn_data Pointer to the reaction data
+ * \return The data size of int array
+ */
+void * rxn_gpu_condensed_phase_arrhenius_int_size(void *rxn_data)
+{
+  int *int_data = (int*) rxn_data;
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+
+  return (void*) float_data;
+}
 
 /** \brief Advance the reaction data pointer to the next reaction
  *

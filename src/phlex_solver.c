@@ -20,9 +20,8 @@
 #include "rxn_solver.h"
 #include "sub_model_solver.h"
 
-unsigned short counter=0;
-unsigned short deriv_size0;
-
+unsigned int counter=0;
+unsigned int deriv_size0;
 
 // Define PMC_DEBUG to turn on output of debug info
 
@@ -385,10 +384,6 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   if( is_anything_going_on_here( sd, t_initial, t_final ) == false )
     return PHLEX_SOLVER_SUCCESS;
 
-  // Update GPU input values (model_data)
-  //TODO: doubt: state changes every time-domain iteration or is constant?
-  solver_update_gpu(&(sd->model_data));
-
   // Reinitialize the solver
   int flag = CVodeReInit(sd->cvode_mem, t_initial, sd->y);
   check_flag_fail(&flag, "CVodeReInit", 1);
@@ -400,6 +395,10 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // Set the inital time step
   flag = CVodeSetInitStep(sd->cvode_mem, sd->init_time_step);
   check_flag_fail(&flag, "CVodeSetInitStep", 1);
+
+  //Set gpu values
+  //TODO: This increase execution time so much
+  solver_set_data_gpu(&(sd->model_data));
 
   // Run the solver
   realtype t_rt = (realtype) t_initial;
@@ -598,9 +597,13 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   //Save deriv
   //N_Vector derivgpu = N_VClone(deriv);//dont work clone
 
+  // Update GPU input values (model_data)
+  //TODO: only state changes on every jac iteration, modify and move accordingly
+  solver_update_gpu(&(sd->model_data));
+
   N_Vector derivgpu = N_VNew_Serial(NV_LENGTH_S(deriv));
   N_VConst(ZERO, derivgpu);
-  rxn_calc_deriv_gpu_cu(md, derivgpu, (double) time_step);
+  //rxn_calc_deriv_gpu_cu(md, derivgpu, (double) time_step);
 
 //  double deriv2[NV_LENGTH_S(deriv)];
 //  for (int i=0; i<NV_LENGTH_S(deriv); i++)
@@ -874,7 +877,8 @@ SUNMatrix get_jac_init(SolverData *solver_data)
 
   // Build the set of Jacobian ids
   int **jac_ids = (int**) jac_struct;
-  for (int i_ind=0, i_jac_elem=0; i_ind < n_state_var; i_ind++)
+  for (int
+  i_ind=0, i_jac_elem=0; i_ind < n_state_var; i_ind++)
     for (int i_dep=0; i_dep < n_state_var; i_dep++)
       if (solver_data->model_data.var_type[i_dep]==CHEM_SPEC_VARIABLE &&
           solver_data->model_data.var_type[i_ind]==CHEM_SPEC_VARIABLE &&

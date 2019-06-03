@@ -25,7 +25,6 @@
 //#include <stdbool.h> //This produces segmentation fault on comment typedef
 #endif
 
-
 /* Math constants */
 #define ZERO 0.0
 #define ONE 1.0
@@ -44,6 +43,7 @@
 //#define MAX_N_GPU_BLOCK 10
 
 #define HANDLE_ERROR( err ) (HandleError( err, __FILE__, __LINE__ ))
+
 
 /* Model data structure */
 typedef struct {
@@ -115,5 +115,6 @@ void solver_new_gpu_cu(SolverDatagpu *sd, int n_dep_var,
 void solver_update_gpu(ModelDatagpu *md);
 void rxn_calc_deriv_gpu_cu(ModelDatagpu *model_data, N_Vector deriv, realtype time_step);
 void free_gpu_cu();
+void solver_set_data_gpu(ModelDatagpu *model_data);
 
 #endif

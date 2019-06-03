@@ -145,40 +145,41 @@ void * rxn_gpu_arrhenius_pre_calc(ModelDatagpu *model_data, void *rxn_data)
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double time_step)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
 {
-  realtype *state = model_data->state;
+  double *state = model_data->state;
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
-
-  //State is bad mapping, pointing who ever knows, crashing when accesing
+  double *float_data = double_pointer_gpu;
 
   // Calculate the reaction rate
   double rate = RATE_CONSTANT_;
-  //for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
+  for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
   //rate *= state[0];
 
   // Add contributions to the time derivative
-  //if (rate) {
+  if (rate!=ZERO) {
     int i_dep_var = 0;
     for (int i_spec=0; i_spec<NUM_REACT_; i_spec++, i_dep_var++) {
-      //if (DERIV_ID_(i_dep_var) < 0) continue;
+      if (DERIV_ID_(i_dep_var) < 0) continue;
       //deriv[DERIV_ID_(i_dep_var)] -= rate;
-      //atomicAdd(&(deriv[DERIV_ID_(i_dep_var)]),-rate);
+      atomicAdd(&(deriv[DERIV_ID_(i_dep_var)]),-rate);
 	}
     for (int i_spec=0; i_spec<NUM_PROD_; i_spec++, i_dep_var++) {
-      //if (DERIV_ID_(i_dep_var) < 0) continue;
+      if (DERIV_ID_(i_dep_var) < 0) continue;
 
       // Negative yields are allowed, but prevented from causing negative
       // concentrations that lead to solver failures
-      //if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
+      if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
         //deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
         //atomicAdd(&(deriv[DERIV_ID_(i_dep_var)]),rate*YIELD_(i_spec));
-        atomicAdd(&(deriv[DERIV_ID_(0)]),0.000000002);
-
-      //}
-    //}
+        atomicAdd(&(deriv[DERIV_ID_(i_dep_var)]),rate*YIELD_(i_spec));
+        //atomicAdd(&(deriv[DERIV_ID_(0)]),0.000000002);
+          //atomicAdd(&(deriv[DERIV_ID_(0)]),rate);
+      }
+    }
   }
+
+  //atomicAdd(&(deriv[0]),rate);
 
   //0.000000002
   /*int i_dep_var = 0;
@@ -202,11 +203,11 @@ __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data,
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_arrhenius_calc_jac_contrib(ModelDatagpu *model_data, realtype *J,
-          void *rxn_data, double time_step)
+          void *rxn_data, double * double_pointer_gpu, double time_step)
 {
   realtype *state = model_data->state;
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = double_pointer_gpu;
 
   // Calculate the reaction rate
   realtype rate = RATE_CONSTANT_;
@@ -235,6 +236,19 @@ __device__ void rxn_gpu_arrhenius_calc_jac_contrib(ModelDatagpu *model_data, rea
 
 }
 #endif
+
+/** \brief Retrieve Int data size
+ *
+ * \param rxn_data Pointer to the reaction data
+ * \return The data size of int array
+ */
+void * rxn_gpu_arrhenius_int_size(void *rxn_data)
+{
+  int *int_data = (int*) rxn_data;
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+
+  return (void*) float_data;
+}
 
 /** \brief Advance the reaction data pointer to the next reaction
  *

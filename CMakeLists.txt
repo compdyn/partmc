@@ -393,15 +393,16 @@ set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 # partmc library
 
 #set(STD_C_FLAGS "-std=c++11 -fpermissive")
-set(STD_C_FLAGS "-Wall -O3 -std=c99") #"-g -O3 -std=c99"
-set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70")
+set(STD_C_FLAGS "-O3 -std=c99") #"-g -O3 -std=c99 -g"
+set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70")#-dc -arch=compute_70 -code=sm_70
 #set(STD_CUDA_FLAGS "-O3")
-set(STD_CXX_FLAGS "-dc -std=c++11 -fpermissive")
+set(STD_CXX_FLAGS "-fpermissive")#-std=c++11
+
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
   set(STD_F_FLAGS "-extend_source -warn truncated_source")
 elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
-  set(STD_F_FLAGS "-ffree-line-length-none -g -O3")
+  set(STD_F_FLAGS "-ffree-line-length-none")
 endif()
 
 set(REACTIONS_F_SRC
@@ -518,7 +519,7 @@ if(ENABLE_GPU)
         ${STD_CUDA_FLAGS})
   set_source_files_properties(${PHLEX_CUDA_SRC} PROPERTIES LANGUAGE CUDA)
 else()
-  set(PHLEX_CUDA_SRC "")
+  set(PHLEX_CUDA_SRC "" src/cuda/rxns_gpu/aaa.cpp)
 endif()
 
 

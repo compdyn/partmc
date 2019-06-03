@@ -161,11 +161,11 @@ void * rxn_gpu_CMAQ_OH_HNO3_pre_calc(ModelDatagpu *model_data, void *rxn_data)
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_CMAQ_OH_HNO3_calc_deriv_contrib(ModelDatagpu *model_data,
-          realtype *deriv, void *rxn_data, double time_step)
+          realtype *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
 {
   realtype *state = model_data->state;
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = double_pointer_gpu;
 
   // Calculate the reaction rate
   realtype rate = RATE_CONSTANT_;
@@ -206,11 +206,11 @@ __device__ void rxn_gpu_CMAQ_OH_HNO3_calc_deriv_contrib(ModelDatagpu *model_data
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_CMAQ_OH_HNO3_calc_jac_contrib(ModelDatagpu *model_data, realtype *J,
-          void *rxn_data, double time_step)
+          void *rxn_data, double * double_pointer_gpu, double time_step)
 {
   realtype *state = model_data->state;
   int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = double_pointer_gpu;
 
   // Calculate the reaction rate
   realtype rate = RATE_CONSTANT_;
@@ -241,6 +241,19 @@ __device__ void rxn_gpu_CMAQ_OH_HNO3_calc_jac_contrib(ModelDatagpu *model_data, 
 }
 #endif
 
+/** \brief Retrieve Int data size
+ *
+ * \param rxn_data Pointer to the reaction data
+ * \return The data size of int array
+ */
+void * rxn_gpu_CMAQ_OH_HNO3_int_size(void *rxn_data)
+{
+  int *int_data = (int*) rxn_data;
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+
+  return (void*) float_data;
+}
+
 /** \brief Advance the reaction data pointer to the next reaction
  *
  * \param rxn_data Pointer to the reaction data
@@ -249,7 +262,7 @@ __device__ void rxn_gpu_CMAQ_OH_HNO3_calc_jac_contrib(ModelDatagpu *model_data, 
 void * rxn_gpu_CMAQ_OH_HNO3_skip(void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }

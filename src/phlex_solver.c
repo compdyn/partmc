@@ -603,7 +603,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 
   N_Vector derivgpu = N_VNew_Serial(NV_LENGTH_S(deriv));
   N_VConst(ZERO, derivgpu);
-  //rxn_calc_deriv_gpu_cu(md, derivgpu, (double) time_step);
+  rxn_calc_deriv_gpu_cu(md, derivgpu, (double) time_step);
 
 //  double deriv2[NV_LENGTH_S(deriv)];
 //  for (int i=0; i<NV_LENGTH_S(deriv); i++)

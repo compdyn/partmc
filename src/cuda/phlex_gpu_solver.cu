@@ -80,8 +80,8 @@ int * short_pointer;
 double * double_pointer;
 int * short_pointer_gpu;
 double * double_pointer_gpu;
-unsigned int *start_rxn_param;
-unsigned int *dev_start_rxn_param;
+unsigned int * start_rxn_param;
+unsigned int * dev_start_rxn_param;
 unsigned int * int_sizes;
 unsigned int * int_sizes_gpu;
 unsigned int * double_sizes;
@@ -92,9 +92,6 @@ __global__ void hello(char *a, int *b)
 {
 	a[threadIdx.x] += b[threadIdx.x];
 }
-
-//Planning: Add pointer to gpu data allocated in sd pointer
-//or call a new gpu_new function on fortran, which call to a .c function and this function to cu (I prefer this in fact instead of be annoying with sd pointers, more modular)
 
 static void HandleError( cudaError_t err,
                          const char *file,
@@ -194,27 +191,27 @@ void solver_update_gpu(ModelDatagpu *md){
 
 void solver_set_data_gpu(ModelDatagpu *model_data) {
 
-  // Get the number of reactions
-  int *rxn_data = (int*) (model_data->rxn_data);
-  int n_rxn = *(rxn_data++);
-  void * rxn_param = (void*)rxn_data;
-  int * float_data = (int*)rxn_data;
-  unsigned int int_size = 0;
-  unsigned int int_total_size = 0;
-  unsigned int double_size=0;
-  unsigned int double_total_size = 0;
-  size_t start_size = n_rxn * sizeof(unsigned int);
-
   //Get rxn sizes
   if(solver_set_gpu_sizes){
+
+    // Get the number of reactions
+    int *rxn_data = (int*) (model_data->rxn_data);
+    int n_rxn = *(rxn_data++);
+    void * rxn_param = (void*)rxn_data;
+    int * float_data = (int*)rxn_data;
+    unsigned int int_size = 0;
+    unsigned int int_total_size = 0;
+    unsigned int double_size=0;
+    unsigned int double_total_size = 0;
+    size_t start_size = n_rxn * sizeof(unsigned int);
 
     //Create started indexes of arrays
     //TTODO: Check cudahostalloc instead of alloc and memcpy
     start_rxn_param=(unsigned int*)malloc(start_size);
-    cudaMalloc((void**) &dev_start_rxn_param, start_size);
     int_sizes=(unsigned int*)malloc(start_size);
-    cudaMalloc((void**) &int_sizes_gpu, start_size);
     double_sizes=(unsigned int*)malloc(start_size);
+    cudaMalloc((void**) &dev_start_rxn_param, start_size);
+    cudaMalloc((void**) &int_sizes_gpu, start_size);
     cudaMalloc((void**) &double_sizes_gpu, start_size);
 
     for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
@@ -316,11 +313,11 @@ void solver_set_data_gpu(ModelDatagpu *model_data) {
           break;
       }
 
-      int_size = (unsigned int) ( (int*) float_data - (int*) rxn_start );
+      int_size = (unsigned int)((int*) float_data - (int*) rxn_start );
       int_total_size += int_size;
       int_sizes[i_rxn]=int_total_size;
 
-      double_size=(unsigned int) ( (double*) rxn_data - (double*) float_data);
+      double_size=(unsigned int)((double*) rxn_data - (double*) float_data);
       double_total_size += double_size;
       double_sizes[i_rxn]=double_total_size;
 
@@ -333,10 +330,13 @@ void solver_set_data_gpu(ModelDatagpu *model_data) {
     cudaMalloc((void**) &double_pointer_gpu, double_total_size * sizeof(double));
 
     for (int j = 0; j < int_sizes[0]; j++)
-      short_pointer[j] = ((int *) rxn_param)[j];
+      short_pointer[j] = ((int*) rxn_param)[j];
 
-    for (int j = 0; j < double_sizes[0]; j++)
-      double_pointer[j] = ((int *) rxn_param)[int_sizes[0]+j];;
+    for (int j = 0; j < double_sizes[0]; j++){
+      double *float_data = (double*) &(((int*)rxn_param)[
+              int_sizes[0]]);
+      double_pointer[j] = float_data[j];
+    }
 
     for (int i_rxn=1; i_rxn<n_rxn; i_rxn++) {
       //Get rxn data
@@ -346,18 +346,19 @@ void solver_set_data_gpu(ModelDatagpu *model_data) {
       double_size= double_sizes[i_rxn]-double_sizes[i_rxn-1];
 
       for (int j = 0; j < int_size; j++)
-        short_pointer[int_sizes[i_rxn-1] + j] = ((int *) rxn_param)[start_rxn_param[i_rxn] + j];
+        short_pointer[int_sizes[i_rxn-1] + j] = ((int *) rxn_param)[start_rxn_param[i_rxn]+j];
 
-      for (int j = 0; j < double_size; j++)
-        double_pointer[double_sizes[i_rxn-1] + j] =
-                ((int *) rxn_param)[start_rxn_param[i_rxn]+int_sizes[i_rxn-1]+j];
-
+      for (int j = 0; j < double_size; j++){
+        double *float_data = (double*) &(((int*)rxn_param)[start_rxn_param[i_rxn]+int_size]);
+        double_pointer[double_sizes[i_rxn-1] + j] = float_data[j];
+      }
     }
 
-    HANDLE_ERROR(cudaMemcpy( short_pointer_gpu, short_pointer, int_total_size, cudaMemcpyHostToDevice ));
-    HANDLE_ERROR(cudaMemcpy( double_pointer_gpu, double_pointer, double_total_size, cudaMemcpyHostToDevice ));
-    HANDLE_ERROR(cudaMemcpy( int_sizes_gpu, int_sizes, start_size, cudaMemcpyHostToDevice ));
-    HANDLE_ERROR(cudaMemcpy( double_sizes_gpu, double_sizes, start_size, cudaMemcpyHostToDevice ));
+    HANDLE_ERROR(cudaMemcpy( short_pointer_gpu, short_pointer, int_total_size * sizeof(int), cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy( double_pointer_gpu, double_pointer, double_total_size * sizeof(double), cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy( int_sizes_gpu, int_sizes, n_rxn*sizeof(unsigned int), cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy( double_sizes_gpu, double_sizes, n_rxn*sizeof(unsigned int), cudaMemcpyHostToDevice));
+
 
     //TTODO: Create global size arrays (int and float) with each size for reaction instead the defines
     //TODO: Secure 100% size not changes on every iteration on monarch, it shouldn't since in new solver we allocate rxn one time
@@ -369,59 +370,36 @@ void solver_set_data_gpu(ModelDatagpu *model_data) {
 __global__ void solveRxnBlock(ModelDatagpu *model_data, double *deriv,//double *deriv
         double time_step,
         int deriv_length, void * rxn_data_gpu2, int n_rxn,
-        int * short_pointer_gpu, double * double_pointer_gpu,
-        unsigned int * int_sizes_gpu, unsigned int * double_sizes_gpu) //Interface CPU/GPU
+        int * short_pointer, double * double_pointer,
+        unsigned int * int_sizes, unsigned int * double_sizes) //Interface CPU/GPU
 {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
   int * int_data;
   double *float_data;
 
-  // Get the number of reactions
-  //int *rxn_data_gpu0 = (int*) (model_data->rxn_data);
-  //int n_rxn = *(dev_rxn_param++);
-  //int n_rxn = *((int*)(model_data->rxn_data));
-  //int n_rxn = *((int*)(rxn_data_gpu0));
-  //void *rxn_data_gpu2 = (void*)&(dev_rxn_param[1]);
- // int * rxn_data_gpu2 = (int*) &(((int*) rxn_data_gpu0)[1] );//no works...
-
   __shared__ double deriv_data[ MAX_SHARED_MEMORY_BLOCK_DOUBLE ];
 
-  //for ( int i_spec = threadIdx.x; i_spec < MAX_SHARED_MEMORY_BLOCK_DOUBLE; i_spec ++ )
-    //deriv_data[ i_spec ] = 0.01;
-  //TTODO: Check if works fusioning this two fors
+  //if(index==2)
+  //for (int i=0; i<deriv_length; i++)
+    //deriv_data[i]=model_data->state[0];
 
-  if(index==2)
-  for (int i=0; i<deriv_length; i++)
-    //deriv_data[i]=0.0;
-    deriv_data[i]=model_data->state[0];
+  if(index<deriv_length)
+    deriv_data[index]=deriv[index];
 
   __syncthreads();
-   
-  for ( int i_spec = threadIdx.x; i_spec < deriv_length; i_spec += blockDim.x )
-    atomicAdd( &( deriv_data[ i_spec ] ), deriv[ i_spec ] );
-
-  __syncthreads();
-
-  //if(index<deriv_length){
-  //atomicAdd(&(deriv[index]),dev_start_rxn_param[ index ]);//fine
-
-  // Get the reaction type
-  //This don't need to work since the data type is different
-  //int * rxn_data = (int*) dev_rxn_param[dev_start_rxn_param[ index ]];
-  //int * rxn_data = (int*) &(((int*) dev_rxn_param)[dev_start_rxn_param[ 2 ]] );
 
   if(index==0){
-    int_data  = (int*) short_pointer_gpu;
-    float_data = (double*) double_pointer_gpu;
+    int_data  = (int*) short_pointer;
+    float_data = (double*) double_pointer;
 
   }else {
     if (index < n_rxn) {
-      int_data = (int *) &(((int *) short_pointer_gpu)[int_sizes_gpu[index - 1]]);
-      float_data = (double *) &(((double *) double_pointer_gpu)[double_sizes_gpu[index - 1]]);
+      int_data = (int *) &(((int *) short_pointer)[int_sizes[index - 1]]);
+      float_data = (double *) &(((double *) double_pointer)[double_sizes[index - 1]]);
     }
   }
 
-  if(index<n_rxn){
+  if(index < n_rxn){
 
     int rxn_type = int_data[0];
     int *rxn_data = (int *) &(int_data[1]);
@@ -438,15 +416,8 @@ __global__ void solveRxnBlock(ModelDatagpu *model_data, double *deriv,//double *
     //int * rxn_data = (int*)&(rxn_data2[1]);
     //int rxn_type = *(((int*)dev_rxn_param)+dev_start_rxn_param[index]);
 
-    //if(index<deriv_length){
-    //atomicAdd(&(deriv[index]),dev_start_rxn_param[ index ]);//fine
-    //double mems= model_data->state[ index ];
-    //atomicAdd(&(deriv[0]),mems);
-
     //double *float_data =  (double*) &(((int*)rxn_data)[
     //      2+(((int*)rxn_data)[0]+2)*(((int*)rxn_data)[0]+((int*)rxn_data)[1]) ]);
-    //double rate = float_data[6];
-
 
     //atomicAdd(&(deriv_data[0]),float_data[6]);
     //}
@@ -511,56 +482,23 @@ __global__ void solveRxnBlock(ModelDatagpu *model_data, double *deriv,//double *
                   model_data, deriv_data, (void*) rxn_data, double_pointer_gpu, time_step);
         break;*/
       case RXN_ARRHENIUS :
-        //rxn_gpu_arrhenius_calc_deriv_contrib(
-        //       model_data, deriv_data, (void*) rxn_data, float_data, time_step);
-
-        //rxn_gpu_arrhenius_calc_deriv_contrib<<<1, 1>>>(
-        //      model_data, deriv_data, (void*) rxn_data, time_step);
+        rxn_gpu_arrhenius_calc_deriv_contrib(
+              model_data, deriv_data, (void*) rxn_data, float_data, time_step);
 
 
-        //int *int_data = (int*) rxn_data;
-        //double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
-        //double rate = RATE_CONSTANT_;
-
-        //int *int_data = (int*) rxn_data;
         //double *float_data =  (double*) &(rxn_data[
         //        2+(rxn_data[0]+2)*(rxn_data[0]+rxn_data[1]) ]);//fine
-        //double rate = float_data[6];
 
         //if (rate)
         //if(index<deriv_length)
-        //atomicAdd(&(deriv[0]), float_data[6]);
+        //for ( int i_spec = threadIdx.x; i_spec < deriv_length; i_spec += blockDim.x )
+        //atomicAdd(&(deriv[index]), float_data[6]);
         break;
-
     }
   }
   __syncthreads();
   for (int i_spec = threadIdx.x; i_spec < deriv_length; i_spec += blockDim.x)// add also the
     atomicAdd(&( deriv[ i_spec ] ), deriv_data[ i_spec ] );
-}
-
-void solveRxnBlockCpu(ModelDatagpu *model_data, double *deriv,//double *deriv
-                              double time_step,unsigned int * dev_start_rxn_param,
-                              int deriv_length, void * rxn_data_gpu2,
-                      int * short_pointer_gpu, double * double_pointer_gpu,
-                      unsigned int * int_sizes_gpu, unsigned int * double_sizes_gpu) //Interface CPU/GPU
-{
-  // Get the number of reactions
-  int *dev_rxn_param = (int*) (rxn_data_gpu2);
-  int n_rxn = *(dev_rxn_param);//++
-  deriv[0]=0.0;
-/*
-    for (int i=1; i<deriv_length; i++){
-
-      int_data = (int *) &(((int *) short_pointer_gpu)[int_sizes_gpu[2]]);
-      float_data = (double *) &(((double *) double_pointer_gpu)[double_sizes_gpu[2]]);
-
-      int * rxn_data = int_data;
-      int rxn_type = *(rxn_data++);
-
-      deriv[0]+=float_data[6];
-    }*/
-
 }
 
 void rxn_calc_deriv_gpu_cu(ModelDatagpu *model_data, N_Vector deriv, realtype time_step){
@@ -571,38 +509,28 @@ void rxn_calc_deriv_gpu_cu(ModelDatagpu *model_data, N_Vector deriv, realtype ti
   // Get the number of reactions
   int *rxn_data = (int*) (model_data->rxn_data);
   int n_rxn = *(rxn_data++);
-
   void * rxn_param = (void*)rxn_data;
 
   //TODO: Only 1 time call reaction_int_size,get int sizes, assign values to rxn_datagpu with only doubles (no array of ints and doubles)
   //y refactor de int *int_data = (int*) rxn_data; a cast de double para k cuadre en gpu
 
-
-    //Reaction distances between pointers rows
-    // Get the reaction type
-
-  if(countergpu==29) {
+  /*if(countergpu==29) {
     for (int i_rxn=1; i_rxn<n_rxn; i_rxn++) {
 
       int * int_data = (int*) &(((int*) rxn_param)[start_rxn_param[ i_rxn ]] );
       int rxn_type = int_data[0];
       int * rxn_data = (int*)&(int_data[1]);
-      ////
      // int int_data = *((int *) &(((int *) short_pointer)[int_sizes[i_rxn - 1]]));
 
       if(rxn_type==RXN_ARRHENIUS){
         double *float_data =  (double*) &(((int*)rxn_data)[
                 2+(((int*)rxn_data)[0]+2)*(((int*)rxn_data)[0]+((int*)rxn_data)[1]) ]);
-        double * float_data2 = (double *) &(((double *) double_pointer)[double_sizes[i_rxn- 1]]);
-
+        double * float_data2 = (double *) &(((double *) double_pointer)[double_sizes[i_rxn-1]]);
         printf(" type1: %f  ", float_data[6]);
         printf(" type2: %f\n", float_data2[6]);
-
       }
     }
-  }
-
-
+  }*/
   countergpu++;
 
 //TODO: Init deriv to 0 inside gpu instead of memcpy
@@ -614,7 +542,6 @@ void rxn_calc_deriv_gpu_cu(ModelDatagpu *model_data, N_Vector deriv, realtype ti
   //void * rxn_data_gpu;
   //cudaMalloc((void**)&(rxn_data_gpu), rxn_data_size);
   //HANDLE_ERROR(cudaMemcpy( rxn_data_gpu, (void*)rxn_param, rxn_data_size, cudaMemcpyHostToDevice ));//fix this size
-
 
   //cudaMemcpy( mdgpu->rxn_data, model_data->rxn_data, rxn_data_size, cudaMemcpyHostToDevice );
   //HANDLE_ERROR(cudaMemcpy( mdgpu->state, mdcpu->state, state_size, cudaMemcpyHostToDevice));
@@ -633,8 +560,8 @@ void rxn_calc_deriv_gpu_cu(ModelDatagpu *model_data, N_Vector deriv, realtype ti
   cudaMemcpy( derivgpu_data, deriv_data, deriv_size, cudaMemcpyHostToDevice );
   solveRxnBlock<<< (n_rxn+MAX_N_GPU_THREAD-1)/MAX_N_GPU_THREAD, MAX_N_GPU_THREAD >>>
       ( mdgpu, derivgpu_data, time_step, NV_LENGTH_S(deriv), //deriv_size/sizeof(double)//rxn_data_gpu
-              (void*)rxn_data_gpu, n_rxn, short_pointer_gpu, double_pointer_gpu,
-              int_sizes_gpu, double_sizes_gpu);
+      (void*)rxn_data_gpu, n_rxn, short_pointer_gpu, double_pointer_gpu,
+      int_sizes_gpu, double_sizes_gpu);
   //cudaDeviceSynchronize();//retrieve errors (But don't retrieve anything for me)
   cudaMemcpy( deriv_data, derivgpu_data, deriv_size, cudaMemcpyDeviceToHost );
 

@@ -11,6 +11,7 @@
             <excludedPath path="/gpfs/scratch/bsc32/bsc32815/gpupartmc/partmc/build" />
             <excludedPath local="true" path="$PROJECT_DIR$/sundials-3.1.2" />
             <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug" />
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug-1" />
           </excludedPaths>
         </serverdata>
       </paths>

@@ -379,6 +379,10 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // Set the initial time step
   sd->init_time_step = (t_final - t_initial) * DEFAULT_TIME_STEP;
 
+    //Set gpu values
+  //TODO: This increase execution time so much
+  solver_set_data_gpu(&(sd->model_data)); //Don't move this forward, calc_deriv is call somewhere in the next instructions
+
   // Check whether there is anything to solve (filters empty air masses with no
   // emissions)
   if( is_anything_going_on_here( sd, t_initial, t_final ) == false )
@@ -395,10 +399,6 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // Set the inital time step
   flag = CVodeSetInitStep(sd->cvode_mem, sd->init_time_step);
   check_flag_fail(&flag, "CVodeSetInitStep", 1);
-
-  //Set gpu values
-  //TODO: This increase execution time so much
-  solver_set_data_gpu(&(sd->model_data));
 
   // Run the solver
   realtype t_rt = (realtype) t_initial;
@@ -619,7 +619,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
     //printf(" deriv length: %d\n", NV_LENGTH_S(deriv));
     for (int i=0; i<NV_LENGTH_S(deriv); i++) {
 
-      printf(" deriv cpu: %le \n", NV_DATA_S(deriv)[i]);
+      printf(" deriv cpu: %le  ", NV_DATA_S(deriv)[i]);
 
       //deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
       //atomicAdd((double*)&(deriv[DERIV_ID_(i_dep_var)]),rate*YIELD_(i_spec));

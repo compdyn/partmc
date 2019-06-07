@@ -451,7 +451,7 @@ contains
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
     !> Species name to find properties of
-    character(len=:), allocatable, intent(in) :: spec_name
+    character(len=*), intent(in) :: spec_name
     !> Pointer to species properties
     type(property_t), pointer, intent(out) :: property_set
 
@@ -771,7 +771,7 @@ contains
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
     !> Species name
-    character(len=:), allocatable, intent(in) :: spec_name
+    character(len=*), intent(in) :: spec_name
     !> Species id
     integer(kind=i_kind), intent(out) :: spec_id
 

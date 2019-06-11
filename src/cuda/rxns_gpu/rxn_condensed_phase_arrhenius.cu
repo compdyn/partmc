@@ -195,10 +195,10 @@ void * rxn_gpu_condensed_phase_arrhenius_pre_calc(ModelDatagpu *model_data,
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data,
-          realtype *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
 {
-  realtype *state = model_data->state;
-  realtype *env_data = model_data->env;
+  double *state = model_data->state;
+  double *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 
@@ -206,7 +206,7 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelDatagp
   for (int i_phase=0, i_deriv = 0; i_phase<NUM_AERO_PHASE_; i_phase++) {
 
     // If this is an aqueous reaction, get the unit conversion from mol/m3 -> M
-    realtype unit_conv = 1.0;
+    double unit_conv = 1.0;
     if (WATER_(i_phase)>=0) {
       unit_conv = state[WATER_(i_phase)] * 1.0e-9; // convert from ug/m3->L/m3
 
@@ -220,7 +220,7 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelDatagp
     }
 
     // Calculate the reaction rate rate (M/s or mol/m3/s)
-    realtype rate = RATE_CONSTANT_;
+    double rate = RATE_CONSTANT_;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
               UGM3_TO_MOLM3_(i_react) * unit_conv;
@@ -246,7 +246,67 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelDatagp
 
   }
 
-  //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+}
+#endif
+
+
+/** \brief Calculate contributions to the time derivative f(t,y) from this
+ * reaction.
+ *
+ * \param model_data Pointer to the model data, including the state array
+ * \param deriv Pointer to the time derivative to add contributions to
+ * \param rxn_data Pointer to the reaction data
+ * \param time_step Current time step of the itegrator (s)
+ * \return The rxn_data pointer advanced by the size of the reaction data
+ */
+#ifdef PMC_USE_SUNDIALS
+void rxn_cpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data,
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
+{
+  double *state = model_data->state;
+  double *env_data = model_data->env;
+  int *int_data = (int*) rxn_data;
+  double *float_data = double_pointer_gpu;
+
+  // Calculate derivative contributions for each aerosol phase
+  for (int i_phase=0, i_deriv = 0; i_phase<NUM_AERO_PHASE_; i_phase++) {
+
+    // If this is an aqueous reaction, get the unit conversion from mol/m3 -> M
+    double unit_conv = 1.0;
+    if (WATER_(i_phase)>=0) {
+      unit_conv = state[WATER_(i_phase)] * 1.0e-9; // convert from ug/m3->L/m3
+
+      // For aqueous reactions, if no aerosol water is present, no reaction
+      // occurs
+      if (unit_conv < SMALL_NUMBER_) {
+        i_deriv += NUM_REACT_ + NUM_PROD_;
+        continue;
+      }
+      unit_conv = 1.0/unit_conv;
+    }
+
+    // Calculate the reaction rate rate (M/s or mol/m3/s)
+    double rate = RATE_CONSTANT_;
+    for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
+      rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
+              UGM3_TO_MOLM3_(i_react) * unit_conv;
+    }
+
+    // Reactant change
+    for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
+      if (DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
+      deriv[DERIV_ID_(i_deriv++)] -= rate /
+	      (UGM3_TO_MOLM3_(i_react) * unit_conv);
+    }
+
+    // Products change
+    for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) {
+      if (DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
+      deriv[DERIV_ID_(i_deriv++)] += rate * YIELD_(i_prod) /
+        (UGM3_TO_MOLM3_(NUM_REACT_+i_prod) * unit_conv);
+    }
+
+  }
 
 }
 #endif
@@ -261,10 +321,10 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelDatagp
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(ModelDatagpu *model_data,
-          realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step)
+          double *J, void *rxn_data, double * double_pointer_gpu, double time_step)
 {
-  realtype *state = model_data->state;
-  realtype *env_data = model_data->env;
+  double *state = model_data->state;
+  double *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 
@@ -272,7 +332,7 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(ModelDatagpu 
   for (int i_phase=0, i_jac = 0; i_phase<NUM_AERO_PHASE_; i_phase++) {
 
     // If this is an aqueous reaction, get the unit conversion from mol/m3 -> M
-    realtype unit_conv = 1.0;
+    double unit_conv = 1.0;
     if (WATER_(i_phase)>=0) {
       unit_conv = state[WATER_(i_phase)] * 1.0e-9; // convert from ug/m3->L/m3
 
@@ -286,7 +346,7 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(ModelDatagpu 
     }
 
     // Calculate the reaction rate rate (M/s or mol/m3/s)
-    realtype rate = RATE_CONSTANT_;
+    double rate = RATE_CONSTANT_;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
               UGM3_TO_MOLM3_(i_react) * unit_conv;

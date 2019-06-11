@@ -14,6 +14,7 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>s
 #include "phlex_solver.h"
 #include "cuda/phlex_gpu_solver.h"
 #include "aero_rep_solver.h"
@@ -21,7 +22,8 @@
 #include "sub_model_solver.h"
 
 unsigned int counter=0;
-unsigned int deriv_size0;
+double timeDerivgpu=0;
+double timeDeriv=0;
 
 // Define PMC_DEBUG to turn on output of debug info
 
@@ -147,8 +149,6 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   for (int i=0; i<n_state_var; i++)
     if (var_type[i]==CHEM_SPEC_VARIABLE) n_dep_var++;
 
-  //deriv_size0 = n_dep_var;
-
 #ifdef PMC_USE_SUNDIALS
   // Set up the solver variable array and helper derivative array
   sd->y     = N_VNew_Serial(n_dep_var);
@@ -217,13 +217,9 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   sd->model_data.nxt_sub_model = (void*) &(ptr[1]);
 
   //GPU
-  printfCUDA(n_state_var);
   solver_new_gpu_cu((void*) sd, n_dep_var,
   n_state_var, var_type, n_rxn,
-  n_rxn_int_param, n_rxn_float_param, n_aero_phase,
-  n_aero_phase_int_param, n_aero_phase_float_param,
-  n_aero_rep, n_aero_rep_int_param, n_aero_rep_float_param,
-  n_sub_model, n_sub_model_int_param, n_sub_model_float_param);
+  n_rxn_int_param, n_rxn_float_param);
 
   // Return a pointer to the new SolverData object
   return (void*) sd;
@@ -271,6 +267,7 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
   /* Call CVodeInit to initialize the integrator memory and specify the
    * right-hand side function in y'=f(t,y), the initial time t0, and
    * the initial dependent variable vector y. */
+  //TODO: sd->y is deriv for cvode calculations(jac and f)
   flag = CVodeInit(sd->cvode_mem, f, (realtype) 0.0, sd->y);
   check_flag_fail(&flag, "CVodeInit", 1);
 
@@ -385,8 +382,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 
   // Check whether there is anything to solve (filters empty air masses with no
   // emissions)
-  if( is_anything_going_on_here( sd, t_initial, t_final ) == false )
-    return PHLEX_SOLVER_SUCCESS;
+  //if( is_anything_going_on_here( sd, t_initial, t_final ) == false )
+    //return PHLEX_SOLVER_SUCCESS; //TTodo: Not necessary
 
   // Reinitialize the solver
   int flag = CVodeReInit(sd->cvode_mem, t_initial, sd->y);
@@ -597,53 +594,41 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   //Save deriv
   //N_Vector derivgpu = N_VClone(deriv);//dont work clone
 
-  // Update GPU input values (model_data)
-  //TODO: only state changes on every jac iteration, modify and move accordingly
-  solver_update_gpu(&(sd->model_data));
+  // Update GPU input values (model_data) (state/env)
 
   N_Vector derivgpu = N_VNew_Serial(NV_LENGTH_S(deriv));
   N_VConst(ZERO, derivgpu);
-  rxn_calc_deriv_gpu_cu(md, derivgpu, (double) time_step);
 
-//  double deriv2[NV_LENGTH_S(deriv)];
-//  for (int i=0; i<NV_LENGTH_S(deriv); i++)
-//  deriv2[i]=NV_DATA_S(deriv)[i];
+  clock_t start = clock();
+
+  //solver_update_state_gpu(md);TTodo: not working, ask guillermo
+  //rxn_calc_deriv_gpu(md, derivgpu, (double) time_step);
+  rxn_calc_deriv_gpu(md, derivgpu, (double) time_step);// it takes x0.3 speedup
+
+  clock_t end = clock();
+  timeDerivgpu+= ((double) (end - start));
+
+  clock_t start2 = clock();
 
   // Calculate the time derivative f(t,y)
   rxn_calc_deriv(md, deriv, (double) time_step);
-  //rxn_calc_deriv(md, deriv2, (double) time_step);
- 
 
-  //rxn_calc_deriv_gpu_cu(md, deriv, (double) time_step);
+  clock_t end2 = clock();
+  timeDeriv+= ((double) (end2 - start2));
+
+  //rxn_calc_deriv_no_arrhenius(md, derivgpu, (double) time_step);
+
+  //Print deriv (Debug purpose)
   if(counter==29){
     //printf(" deriv length: %d\n", NV_LENGTH_S(deriv));
     for (int i=0; i<NV_LENGTH_S(deriv); i++) {
 
       printf(" deriv cpu: %le  ", NV_DATA_S(deriv)[i]);
 
-      //deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
-      //atomicAdd((double*)&(deriv[DERIV_ID_(i_dep_var)]),rate*YIELD_(i_spec));
-
-      //realtype * derivi=(realtype*) derivgpu;
-      //derivi[i]=0.01; //Da seg. fault, y quiza algo asi pase en gpu nu se, sobretodo por el shr
-      //printf(" derivile: % -le\n", derivi[i]);
-      //printf(" deriv gpu mapped: % -le\n", ((realtype*) derivgpu)[i]);  
-      //NV_DATA_S(derivgpu)[i]=0.01;
-
-	printf(" deriv gpu: % -le\n", NV_DATA_S(derivgpu)[i]);
+	  printf(" deriv gpu: % -le\n", NV_DATA_S(derivgpu)[i]);
 
     }
   }
-
-//Deriv length=74
-/*if(counter==29){
-  //printf(" deriv size: %d\n", deriv_size0);
-  for(int i=0;i<200;i++){
-    //printf(" deriv gpu: %f\n", derivgpu[i]);
-    printf(" deriv cpu: %lf\n", deriv[i]);
-    //printf(" soy yo el test01: %f\n", derivgpu[5]);
-  }
-}*/
 
   counter++;
 
@@ -693,7 +678,6 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   for (int i=0; i<=SM_NP_S(J); i++) {
     (SM_INDEXPTRS_S(J))[i] = (SM_INDEXPTRS_S(md->J_init))[i];
   }
-
 
   // Update the aerosol representations
   aero_rep_update_state(md);
@@ -1080,6 +1064,13 @@ void error_handler(int error_code, const char *module,
  */
 void model_free(ModelData model_data)
 {
+
+  timeDerivgpu= timeDerivgpu / CLOCKS_PER_SEC;
+  timeDeriv= timeDeriv / CLOCKS_PER_SEC;
+  printf ("Total Time Derivgpu= %f",timeDerivgpu);
+  printf (", Total Time Deriv= %f\n",timeDeriv);
+
+
 
 #ifdef PMC_USE_SUNDIALS
   // Destroy the initialized Jacbobian matrix

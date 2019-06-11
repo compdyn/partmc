@@ -148,20 +148,45 @@ void * rxn_gpu_first_order_loss_pre_calc(ModelDatagpu *model_data, void *rxn_dat
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_first_order_loss_calc_deriv_contrib(ModelDatagpu *model_data,
-          realtype *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
 {
-  realtype *state = model_data->state;
+  double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 
   // Calculate the reaction rate
-  realtype rate = RATE_CONSTANT_ * state[REACT_];
+  double rate = RATE_CONSTANT_ * state[REACT_];
 
   // Add contributions to the time derivative
   //if (DERIV_ID_ >= 0) deriv[DERIV_ID_] -= rate;
   if (DERIV_ID_ >= 0) atomicAdd((double*)&(deriv[DERIV_ID_]),-rate);
 
-  //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+}
+#endif
+
+
+/** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
+ * this reaction.
+ *
+ * \param model_data Pointer to the model data, including the state array
+ * \param deriv Pointer to the time derivative to add contributions to
+ * \param rxn_data Pointer to the reaction data
+ * \param time_step Current time step being computed (s)
+ * \return The rxn_data pointer advanced by the size of the reaction data
+ */
+#ifdef PMC_USE_SUNDIALS
+void rxn_cpu_first_order_loss_calc_deriv_contrib(ModelDatagpu *model_data,
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
+{
+  double *state = model_data->state;
+  int *int_data = (int*) rxn_data;
+  double *float_data = double_pointer_gpu;
+
+  // Calculate the reaction rate
+  double rate = RATE_CONSTANT_ * state[REACT_];
+
+  // Add contributions to the time derivative
+  if (DERIV_ID_ >= 0) deriv[DERIV_ID_] -= rate;
 
 }
 #endif
@@ -175,10 +200,10 @@ __device__ void rxn_gpu_first_order_loss_calc_deriv_contrib(ModelDatagpu *model_
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_first_order_loss_calc_jac_contrib(ModelDatagpu *model_data, realtype *J,
+__device__ void rxn_gpu_first_order_loss_calc_jac_contrib(ModelDatagpu *model_data, double *J,
           void *rxn_data, double * double_pointer_gpu, double time_step)
 {
-  realtype *state = model_data->state;
+  double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 

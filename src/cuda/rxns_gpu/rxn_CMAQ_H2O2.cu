@@ -153,15 +153,15 @@ void * rxn_gpu_CMAQ_H2O2_pre_calc(ModelDatagpu *model_data, void *rxn_data)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_CMAQ_H2O2_calc_deriv_contrib(ModelDatagpu *model_data, realtype *deriv,
+__device__ void rxn_gpu_CMAQ_H2O2_calc_deriv_contrib(ModelDatagpu *model_data, double *deriv,
           void *rxn_data, double * double_pointer_gpu, double time_step)
 {
-  realtype *state = model_data->state;
+  double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;;
 
   // Calculate the reaction rate
-  realtype rate = RATE_CONSTANT_;
+  double rate = RATE_CONSTANT_;
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
 
   // Add contributions to the time derivative
@@ -183,7 +183,48 @@ __device__ void rxn_gpu_CMAQ_H2O2_calc_deriv_contrib(ModelDatagpu *model_data, r
     }
   }
 
-  //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+
+}
+#endif
+
+
+/** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
+ * this reaction.
+ *
+ * \param model_data Pointer to the model data
+ * \param deriv Pointer to the time derivative to add contributions to
+ * \param rxn_data Pointer to the reaction data
+ * \param time_step Current time step being computed (s)
+ * \return The rxn_data pointer advanced by the size of the reaction data
+ */
+#ifdef PMC_USE_SUNDIALS
+void rxn_cpu_CMAQ_H2O2_calc_deriv_contrib(ModelDatagpu *model_data, double *deriv,
+          void *rxn_data, double * double_pointer_gpu, double time_step)
+{
+  double *state = model_data->state;
+  int *int_data = (int*) rxn_data;
+  double *float_data = double_pointer_gpu;;
+
+  // Calculate the reaction rate
+  double rate = RATE_CONSTANT_;
+  for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
+
+  // Add contributions to the time derivative
+  if (rate!=ZERO) {
+    int i_dep_var = 0;
+    for (int i_spec=0; i_spec<NUM_REACT_; i_spec++, i_dep_var++) {
+      if (DERIV_ID_(i_dep_var) < 0) continue;
+      deriv[DERIV_ID_(i_dep_var)] -= rate;
+    }
+    for (int i_spec=0; i_spec<NUM_PROD_; i_spec++, i_dep_var++) {
+      if (DERIV_ID_(i_dep_var) < 0) continue;
+      // Negative yields are allowed, but prevented from causing negative
+      // concentrations that lead to solver failures
+      if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
+        deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
+      }
+    }
+  }
 
 }
 #endif
@@ -197,15 +238,15 @@ __device__ void rxn_gpu_CMAQ_H2O2_calc_deriv_contrib(ModelDatagpu *model_data, r
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_CMAQ_H2O2_calc_jac_contrib(ModelDatagpu *model_data, realtype *J,
+__device__ void rxn_gpu_CMAQ_H2O2_calc_jac_contrib(ModelDatagpu *model_data, double *J,
           void *rxn_data, double * double_pointer_gpu, double time_step)
 {
-  realtype *state = model_data->state;
+  double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 
   // Calculate the reaction rate
-  realtype rate = RATE_CONSTANT_;
+  double rate = RATE_CONSTANT_;
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
 
   // Add contributions to the Jacobian

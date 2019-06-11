@@ -25,6 +25,7 @@ void rxn_print_data(void *solver_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, double time_step);
 void rxn_calc_jac(ModelData *model_data, SUNMatrix J, double time_step);
+void rxn_calc_deriv_no_arrhenius(ModelData *model_data, N_Vector deriv, double time_step);
 #endif
 
 /* Setup functions */

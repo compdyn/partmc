@@ -21,7 +21,7 @@ extern "C"{
 #define PRESSURE_PA_ env_data[1]
 
 // Small number
-#define SMALL_NUMBER_ 1.0e-30
+#define SMALL_NUMBER_ 1.0e-10//1.0e-30
 
 // Factor used to calculate minimum water concentration for aqueous
 // phase equilibrium reactions
@@ -159,7 +159,7 @@ void * rxn_gpu_aqueous_equilibrium_update_ids(ModelDatagpu *model_data, int *der
   // Calculate a small concentration for aerosol-phase species based on the
   // integration tolerances to use during solving. TODO find a better place
   // to do this
-  realtype *abs_tol = model_data->abs_tol;
+  double *abs_tol = model_data->abs_tol;
   for (int i_phase = 0; i_phase < NUM_AERO_PHASE_; i_phase++ ) {
     SMALL_CONC_(i_phase) = 99999.0;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
@@ -244,10 +244,10 @@ void * rxn_gpu_aqueous_equilibrium_pre_calc(ModelDatagpu *model_data, void *rxn_
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *model_data,
-          realtype *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
 {
-  realtype *state = model_data->state;
-  realtype *env_data = model_data->env;
+  double *state = model_data->state;
+  double *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 
@@ -261,42 +261,57 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *mod
     }
 
     // Slow down rates as water approaches the minimum value
-    realtype water_adj = state[WATER_(i_phase)] -
+    double water_adj = state[WATER_(i_phase)] -
                          MIN_WATER_ * SMALL_WATER_CONC_(i_phase);
     water_adj = ( water_adj > ZERO ) ? water_adj : ZERO;
-    realtype water_scaling =
+    double water_scaling =
       2.0 / ( 1.0 + exp( -water_adj / SMALL_WATER_CONC_(i_phase) ) ) - 1.0;
 
     // Get the lowest concentration to use in slowing rates
-    realtype min_react_conc = 1.0e100;
-    realtype min_prod_conc  = 1.0e100;
+    double min_react_conc = 1.0e100;
+    double min_prod_conc  = 1.0e100;
 
     // Calculate the forward rate (M/s)
-    realtype forward_rate = RATE_CONST_FORWARD_ * water_scaling;
+    double forward_rate = RATE_CONST_FORWARD_ * water_scaling;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
-      forward_rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
-              MASS_FRAC_TO_M_(i_react) / state[WATER_(i_phase)];
+      //forward_rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
+      //        MASS_FRAC_TO_M_(i_react) / state[WATER_(i_phase)];
+      forward_rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *MASS_FRAC_TO_M_(i_react);
       if (min_react_conc > state[REACT_(i_phase*NUM_REACT_+i_react)])
         min_react_conc = state[REACT_(i_phase*NUM_REACT_+i_react)];
     }
 
+    for (int i_react = 0; i_react < NUM_REACT_; i_react++) forward_rate *= state[WATER_(i_phase)];
+
     // Calculate the reverse rate (M/s)
-    realtype reverse_rate = RATE_CONST_REVERSE_ * water_scaling;
+    double reverse_rate = RATE_CONST_REVERSE_ * water_scaling;
     for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) {
-      reverse_rate *= state[PROD_(i_phase*NUM_PROD_+i_prod)] *
-              MASS_FRAC_TO_M_(NUM_REACT_+i_prod) / state[WATER_(i_phase)];
+      //reverse_rate *= state[PROD_(i_phase*NUM_PROD_+i_prod)] *
+      //        MASS_FRAC_TO_M_(NUM_REACT_+i_prod) / state[WATER_(i_phase)];
+            reverse_rate *= state[PROD_(i_phase*NUM_PROD_+i_prod)];
+            //reverse_rate /= state[WATER_(i_phase)];
+            reverse_rate *= MASS_FRAC_TO_M_(NUM_REACT_+i_prod);
+
       if (min_prod_conc > state[PROD_(i_phase*NUM_PROD_+i_prod)])
         min_prod_conc = state[PROD_(i_phase*NUM_PROD_+i_prod)];
     }
     if (ACTIVITY_COEFF_(i_phase)>=0) reverse_rate *=
             state[ACTIVITY_COEFF_(i_phase)];
 
+    //TODO: Comment this to guillermo, that move this into previous loop make it crash when acces
+    // doesnt depend on declare state with memcpy or in host
+    for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) reverse_rate /= state[WATER_(i_phase)];
+
     // Slow rates as concentrations become low
-    realtype min_conc =
+
+    double min_conc = 0.1;//fail on foreard o reverse
       (forward_rate > reverse_rate) ? min_react_conc : min_prod_conc;
     min_conc -= SMALL_NUMBER_;
+
     if (min_conc <= ZERO) continue;
-    realtype spec_scaling =
+
+    //continue is causing fail
+    double spec_scaling =
       2.0 / ( 1.0 + exp( -min_conc / SMALL_CONC_(i_phase) ) ) - 1.0;
     forward_rate *= spec_scaling;
     reverse_rate *= spec_scaling;
@@ -306,8 +321,8 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *mod
       if (DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
       //deriv[DERIV_ID_(i_deriv++)] += (reverse_rate - forward_rate) /
 	      //MASS_FRAC_TO_M_(i_react) * state[WATER_(i_phase)];
-	      atomicAdd( (double*) &( deriv[DERIV_ID_(i_deriv++)] ),(reverse_rate - forward_rate) /
-	        MASS_FRAC_TO_M_(i_react) * state[WATER_(i_phase)]);
+	      atomicAdd(&( deriv[DERIV_ID_(i_deriv++)] ),((reverse_rate - forward_rate) /
+	        MASS_FRAC_TO_M_(i_react) * state[WATER_(i_phase)]));
     }
 
     // Products change as (forward - reverse) (ug/m3/s)
@@ -315,13 +330,107 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *mod
       if (DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
       //deriv[DERIV_ID_(i_deriv++)] += (forward_rate - reverse_rate) /
 	      //MASS_FRAC_TO_M_(NUM_REACT_+i_prod) * state[WATER_(i_phase)];
-      atomicAdd((double*)&(deriv[DERIV_ID_(i_deriv++)]),(forward_rate - reverse_rate) /
-	      MASS_FRAC_TO_M_(NUM_REACT_+i_prod) * state[WATER_(i_phase)]);
+      atomicAdd(&(deriv[DERIV_ID_(i_deriv++)]),((forward_rate - reverse_rate) /
+	      MASS_FRAC_TO_M_(NUM_REACT_+i_prod) * state[WATER_(i_phase)]));
     }
 
   }
 
-  //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  //atomicAdd((double*)&(deriv[DERIV_ID_(0)]), state[WATER_(0)]);
+
+}
+#endif
+
+
+/** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
+ * this reaction.
+ *
+ * \param model_data Pointer to the model data, including the state array
+ * \param deriv Pointer to the time derivative to add contributions to
+ * \param rxn_data Pointer to the reaction data
+ * \param time_step Current time step of the itegrator (s)
+ * \return The rxn_data pointer advanced by the size of the reaction data
+ */
+#ifdef PMC_USE_SUNDIALS
+void rxn_cpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *model_data,
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
+{
+  double *state = model_data->state;
+  double *env_data = model_data->env;
+  int *int_data = (int*) rxn_data;
+  double *float_data = double_pointer_gpu;
+
+  // Calculate derivative contributions for each aerosol phase
+  for (int i_phase=0, i_deriv = 0; i_phase<NUM_AERO_PHASE_; i_phase++) {
+
+    // If no aerosol water is present, no reaction occurs
+    if (state[WATER_(i_phase)] < MIN_WATER_ * SMALL_WATER_CONC_(i_phase)) {
+      i_deriv += NUM_REACT_ + NUM_PROD_;
+      continue;
+    }
+
+    // Slow down rates as water approaches the minimum value
+    double water_adj = state[WATER_(i_phase)] -
+                         MIN_WATER_ * SMALL_WATER_CONC_(i_phase);
+    water_adj = ( water_adj > ZERO ) ? water_adj : ZERO;
+    double water_scaling =
+      2.0 / ( 1.0 + exp( -water_adj / SMALL_WATER_CONC_(i_phase) ) ) - 1.0;
+
+    // Get the lowest concentration to use in slowing rates
+    double min_react_conc = 1.0e100;
+    double min_prod_conc  = 1.0e100;
+
+    // Calculate the forward rate (M/s)
+    double forward_rate = RATE_CONST_FORWARD_ * water_scaling;
+    for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
+      forward_rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
+              MASS_FRAC_TO_M_(i_react) / state[WATER_(i_phase)];
+      if (min_react_conc > state[REACT_(i_phase*NUM_REACT_+i_react)])
+        min_react_conc = state[REACT_(i_phase*NUM_REACT_+i_react)];
+    }
+
+    // Calculate the reverse rate (M/s)
+    double reverse_rate = RATE_CONST_REVERSE_ * water_scaling;
+    for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) {
+      reverse_rate *= state[PROD_(i_phase*NUM_PROD_+i_prod)] *
+              MASS_FRAC_TO_M_(NUM_REACT_+i_prod) / state[WATER_(i_phase)];
+
+      if (min_prod_conc > state[PROD_(i_phase*NUM_PROD_+i_prod)])
+        min_prod_conc = state[PROD_(i_phase*NUM_PROD_+i_prod)];
+    }
+    if (ACTIVITY_COEFF_(i_phase)>=0) reverse_rate *=
+            state[ACTIVITY_COEFF_(i_phase)];
+
+    // Slow rates as concentrations become low
+
+    double min_conc = 0.1;//fail on foreard o reverse
+      (forward_rate > reverse_rate) ? min_react_conc : min_prod_conc;
+    min_conc -= SMALL_NUMBER_;
+
+    if (min_conc <= ZERO) continue;
+
+    //continue is causing fail
+    double spec_scaling =
+      2.0 / ( 1.0 + exp( -min_conc / SMALL_CONC_(i_phase) ) ) - 1.0;
+    forward_rate *= spec_scaling;
+    reverse_rate *= spec_scaling;
+
+    // Reactants change as (reverse - forward) (ug/m3/s)
+    for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
+      if (DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
+      deriv[DERIV_ID_(i_deriv++)] += (reverse_rate - forward_rate) /
+	      MASS_FRAC_TO_M_(i_react) * state[WATER_(i_phase)];
+    }
+
+    // Products change as (forward - reverse) (ug/m3/s)
+    for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) {
+      if (DERIV_ID_(i_deriv)<0) {i_deriv++; continue;}
+      deriv[DERIV_ID_(i_deriv++)] += (forward_rate - reverse_rate) /
+	      MASS_FRAC_TO_M_(NUM_REACT_+i_prod) * state[WATER_(i_phase)];
+
+    }
+
+  }
 
 }
 #endif
@@ -336,10 +445,10 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *mod
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_aqueous_equilibrium_calc_jac_contrib(ModelDatagpu *model_data,
-          realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step)
+          double *J, void *rxn_data, double * double_pointer_gpu, double time_step)
 {
-  realtype *state = model_data->state;
-  realtype *env_data = model_data->env;
+  double *state = model_data->state;
+  double *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 
@@ -353,24 +462,24 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_jac_contrib(ModelDatagpu *model
     }
 
     // Slow down rates as water approaches the minimum value
-    realtype water_adj = state[WATER_(i_phase)] -
+    double water_adj = state[WATER_(i_phase)] -
                          MIN_WATER_ * SMALL_WATER_CONC_(i_phase);
     water_adj = ( water_adj > ZERO ) ? water_adj : ZERO;
-    realtype water_scaling =
+    double water_scaling =
       2.0 / ( 1.0 + exp( -water_adj / SMALL_WATER_CONC_(i_phase) ) ) - 1.0;
-    realtype water_scaling_deriv =
+    double water_scaling_deriv =
       2.0 / ( SMALL_WATER_CONC_(i_phase) *
               ( exp(  water_adj / SMALL_WATER_CONC_(i_phase) ) + 2.0 +
                 exp( -water_adj / SMALL_WATER_CONC_(i_phase) ) ) );
 
     // Get the lowest concentration to use in slowing rates
-    realtype min_react_conc = 1.0e100;
-    realtype min_prod_conc  = 1.0e100;
+    double min_react_conc = 1.0e100;
+    double min_prod_conc  = 1.0e100;
     int low_react_id = 0;
     int low_prod_id  = 0;
 
     // Calculate the forward rate (M/s)
-    realtype forward_rate = RATE_CONST_FORWARD_;
+    double forward_rate = RATE_CONST_FORWARD_;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       forward_rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
               MASS_FRAC_TO_M_(i_react) / state[WATER_(i_phase)];
@@ -381,7 +490,7 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_jac_contrib(ModelDatagpu *model
     }
 
     // Calculate the reverse rate (M/s)
-    realtype reverse_rate = RATE_CONST_REVERSE_;
+    double reverse_rate = RATE_CONST_REVERSE_;
     for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) {
       reverse_rate *= state[PROD_(i_phase*NUM_PROD_+i_prod)] *
               MASS_FRAC_TO_M_(NUM_REACT_+i_prod) / state[WATER_(i_phase)];
@@ -394,7 +503,7 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_jac_contrib(ModelDatagpu *model
             state[ACTIVITY_COEFF_(i_phase)];
 
     // Slow rates as concentrations become low
-    realtype min_conc;
+    double min_conc;
     int low_spec_id;
     if (forward_rate > reverse_rate) {
       min_conc = min_react_conc;
@@ -405,9 +514,9 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_jac_contrib(ModelDatagpu *model
     }
     min_conc -= SMALL_NUMBER_;
     if (min_conc <= ZERO) continue;
-    realtype spec_scaling =
+    double spec_scaling =
       2.0 / ( 1.0 + exp( -min_conc / SMALL_CONC_(i_phase) ) ) - 1.0;
-    realtype spec_scaling_deriv =
+    double spec_scaling_deriv =
       2.0 / ( SMALL_CONC_(i_phase) *
               ( exp(  min_conc / SMALL_CONC_(i_phase) ) + 2.0 +
                 exp( -min_conc / SMALL_CONC_(i_phase) ) ) );

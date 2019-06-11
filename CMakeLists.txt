@@ -19,7 +19,7 @@ option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" ON)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
-option(ENABLE_JSON "Enable json-fortran support" OFF)#ON
+option(ENABLE_JSON "Enable json-fortran support" ON)#ON
 option(ENABLE_DEBUG "Compile debugging functions" ON)#ON
 option(FAILURE_DETAIL "Output conditions before and after solver failures" OFF)
 option(ENABLE_CXX "Enable C++" OFF)
@@ -242,6 +242,7 @@ if (ENABLE_JSON AND ENABLE_SUNDIALS)
   add_test(test_sub_model_UNIFAC ${CMAKE_BINARY_DIR}/test_run/unit_sub_model_data/test_UNIFAC.sh ${MPI_TEST_FLAG})
   add_test(test_chem_mech_solver ${CMAKE_BINARY_DIR}/test_run/chemistry/test_chemistry_1.sh ${MPI_TEST_FLAG})
   add_test(test_chemistry_cb05cl_ae5 ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5.sh ${MPI_TEST_FLAG})
+  add_test(test_chemistry_cb05cl_ae5_big ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5_big.sh ${MPI_TEST_FLAG})
   add_test(test_chemistry_eqsam_v03d ${CMAKE_BINARY_DIR}/test_run/chemistry/eqsam_v03d/test_chemistry_eqsam_v03d.sh ${MPI_TEST_FLAG})
   add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh ${MPI_TEST_FLAG})
   add_test(test_MONARCH_2 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_2.sh ${MPI_TEST_FLAG})
@@ -402,7 +403,7 @@ set(STD_CXX_FLAGS "-fpermissive")#-std=c++11
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
   set(STD_F_FLAGS "-extend_source -warn truncated_source")
 elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
-  set(STD_F_FLAGS "-ffree-line-length-none")
+  set(STD_F_FLAGS "-O3 -ffree-line-length-none")
 endif()
 
 set(REACTIONS_F_SRC
@@ -519,7 +520,7 @@ if(ENABLE_GPU)
         ${STD_CUDA_FLAGS})
   set_source_files_properties(${PHLEX_CUDA_SRC} PROPERTIES LANGUAGE CUDA)
 else()
-  set(PHLEX_CUDA_SRC "" src/cuda/rxns_gpu/aaa.cpp)
+  set(PHLEX_CUDA_SRC "" src/cuda/rxns_gpu/aaa.cpp src/cuda/rxns_gpu/mmm.cpp src/cuda/rxns_gpu/mmm.h)
 endif()
 
 
@@ -616,6 +617,13 @@ add_executable(test_chemistry_cb05cl_ae5 test/chemistry/cb05cl_ae5/test_cb05cl_a
 	test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
 
 target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
+
+add_executable(test_chemistry_cb05cl_ae5_big test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
+        ${CB5_EBI_SOLVER}
+        ${CB5_KPP_SOLVER}
+        test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
+
+target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
 
 ######################################################################
 # test_chemistry_eqsam_v03d

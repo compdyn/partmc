@@ -215,16 +215,36 @@ void * rxn_gpu_ZSR_aerosol_water_pre_calc(ModelDatagpu *model_data, void *rxn_da
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_ZSR_aerosol_water_calc_deriv_contrib(ModelDatagpu *model_data,
-          realtype *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
 {
-  realtype *state = model_data->state;
+  double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 
-  //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+}
+#endif
+
+
+/** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
+ * this reaction.
+ *
+ * \param model_data Pointer to the model data, including the state array
+ * \param deriv Pointer to the time derivative to add contributions to
+ * \param rxn_data Pointer to the reaction data
+ * \param time_step Current time step being computed (s)
+ * \return The rxn_data pointer advanced by the size of the reaction data
+ */
+#ifdef PMC_USE_SUNDIALS
+void rxn_cpu_ZSR_aerosol_water_calc_deriv_contrib(ModelDatagpu *model_data,
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
+{
+  double *state = model_data->state;
+  int *int_data = (int*) rxn_data;
+  double *float_data = double_pointer_gpu;
 
 }
 #endif
+
 
 /** \brief Calculate contributions to the Jacobian from this reaction
  *
@@ -236,9 +256,9 @@ __device__ void rxn_gpu_ZSR_aerosol_water_calc_deriv_contrib(ModelDatagpu *model
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_ZSR_aerosol_water_calc_jac_contrib(ModelDatagpu *model_data,
-          realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step)
+          double *J, void *rxn_data, double * double_pointer_gpu, double time_step)
 {
-  realtype *state = model_data->state;
+  double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 

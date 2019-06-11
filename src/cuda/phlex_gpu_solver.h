@@ -104,16 +104,15 @@ typedef struct {
 } SolverDatagpu;
 
 
-//void printfCPP();
-void printfCUDA(int aggg);
 void solver_new_gpu_cu(SolverDatagpu *sd, int n_dep_var,
      int n_state_var, int *var_type, int n_rxn,
-     int n_rxn_int_param, int n_rxn_float_param, int n_aero_phase,
-     int n_aero_phase_int_param, int n_aero_phase_float_param,
-     int n_aero_rep, int n_aero_rep_int_param, int n_aero_rep_float_param,
-     int n_sub_model, int n_sub_model_int_param, int n_sub_model_float_param);
-void solver_update_gpu(ModelDatagpu *md);
-void rxn_calc_deriv_gpu_cu(ModelDatagpu *model_data, N_Vector deriv, realtype time_step);
+     int n_rxn_int_param, int n_rxn_float_param);
+void solver_update_state_gpu(ModelDatagpu *md);
+void get_rxn_pointers (int *short_pointer0, double *double_pointer0,
+                       unsigned int *int_sizes0, unsigned int *double_sizes0);
+void solveRxncpu(ModelDatagpu *model_data, double *deriv_data,
+                 double time_step, int *int_data, double *float_data);
+void rxn_calc_deriv_gpu(ModelDatagpu *model_data, N_Vector deriv, realtype time_step);
 void free_gpu_cu();
 void solver_set_data_gpu(ModelDatagpu *model_data);
 

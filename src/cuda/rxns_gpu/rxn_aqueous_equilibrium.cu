@@ -242,6 +242,7 @@ void * rxn_gpu_aqueous_equilibrium_pre_calc(ModelDatagpu *model_data, void *rxn_
  * \param time_step Current time step of the itegrator (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
+//TODO: Dont work properly in tests, fix it
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *model_data,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
@@ -304,8 +305,13 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *mod
 
     // Slow rates as concentrations become low
 
-    double min_conc = 0.1;//fail on foreard o reverse
-      (forward_rate > reverse_rate) ? min_react_conc : min_prod_conc;
+    double min_conc;
+    min_conc= min_prod_conc;
+    //if(forward_rate > reverse_rate) min_conc= min_react_conc;//Not working on gpu
+
+
+    //double min_conc = min_prod_conc;
+    //        (forward_rate > reverse_rate) ? min_react_conc : min_prod_conc;
     min_conc -= SMALL_NUMBER_;
 
     if (min_conc <= ZERO) continue;
@@ -335,6 +341,7 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *mod
     }
 
   }
+
 
   //atomicAdd((double*)&(deriv[DERIV_ID_(0)]), state[WATER_(0)]);
 
@@ -403,7 +410,7 @@ void rxn_cpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *model_data,
 
     // Slow rates as concentrations become low
 
-    double min_conc = 0.1;//fail on foreard o reverse
+    double min_conc =
       (forward_rate > reverse_rate) ? min_react_conc : min_prod_conc;
     min_conc -= SMALL_NUMBER_;
 

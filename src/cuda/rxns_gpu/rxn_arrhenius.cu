@@ -143,11 +143,16 @@ void * rxn_gpu_arrhenius_pre_calc(ModelDatagpu *model_data, void *rxn_data)
  * \param time_step Current time step being computed (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
+
+//TODO: 1- encontrar max number of INT_SIZE y double size (max_chunk_size lo llamo). Restar el maximo con el actual int_size para
+//para saber cuantos ceros añadir a cada row restando el max y el actual int_size.Añadimos los ceros y ponemos un -1 en el int
+//cuando sea cero para poner un if y que no haga nada si sale -1.
+
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
 {
-  double *state = model_data->state;
+  double *state = model_data->state;//TODO: model_data->state[i] to calculate independent domains simultaneous
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 
@@ -259,8 +264,6 @@ __device__ void rxn_gpu_arrhenius_calc_jac_contrib(ModelDatagpu *model_data, dou
       }
     }
   }
-
-  //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
 }
 #endif

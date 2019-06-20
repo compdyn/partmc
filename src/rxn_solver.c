@@ -694,7 +694,6 @@ void rxn_calc_deriv_no_arrhenius(ModelData *model_data, N_Vector deriv, realtype
         rxn_data = (int*) rxn_aqueous_equilibrium_calc_deriv_contrib(
                  model_data, deriv_data, (void*) rxn_data, time_step);
         //rxn_data = (int*) rxn_aqueous_equilibrium_skip((void*) rxn_data);
-
         break;
       case RXN_ARRHENIUS :
           rxn_data = (int*) rxn_arrhenius_skip(

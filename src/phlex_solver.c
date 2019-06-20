@@ -122,6 +122,8 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
     exit(1);
   }
 
+  //TODO:Increase state array adding all the states arrays of each column from monarch
+
   // Save the number of state variables
   sd->model_data.n_state_var = n_state_var;
 
@@ -436,9 +438,6 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   sub_model_calculate(&(sd->model_data));
   rxn_pre_calc(&(sd->model_data), 0.0);
 
-  //free gpu memory
-  free_gpu_cu();
-
   return PHLEX_SOLVER_SUCCESS;
 #else
   return PHLEX_SOLVER_FAIL;
@@ -602,7 +601,6 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   clock_t start = clock();
 
   //solver_update_state_gpu(md);TTodo: not working, ask guillermo
-  //rxn_calc_deriv_gpu(md, derivgpu, (double) time_step);
   rxn_calc_deriv_gpu(md, derivgpu, (double) time_step);// it takes x0.3 speedup
 
   clock_t end = clock();
@@ -616,7 +614,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   clock_t end2 = clock();
   timeDeriv+= ((double) (end2 - start2));
 
-  //rxn_calc_deriv_no_arrhenius(md, derivgpu, (double) time_step);
+  //rxn_calc_deriv_no_arrhenius(md, deriv, (double) time_step);
 
   //Print deriv (Debug purpose)
   if(counter==29){
@@ -1070,7 +1068,7 @@ void model_free(ModelData model_data)
   printf ("Total Time Derivgpu= %f",timeDerivgpu);
   printf (", Total Time Deriv= %f\n",timeDeriv);
 
-
+  free_gpu_cu();
 
 #ifdef PMC_USE_SUNDIALS
   // Destroy the initialized Jacbobian matrix

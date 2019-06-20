@@ -254,7 +254,7 @@ contains
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     
     call cpu_time(comp_start)
-    phlex_input_file = "config_cb05cl_ae5.json"
+    phlex_input_file = "config_cb05cl_ae5_big.json"
     phlex_core => phlex_core_t(phlex_input_file)
     
     ! Initialize the model

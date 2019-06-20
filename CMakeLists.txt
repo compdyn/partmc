@@ -16,7 +16,7 @@ set(PACKAGE_VERSION "2.4.0")
 
 option(ENABLE_GSL "Enable GSL library for random number generation" OFF)
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
-option(ENABLE_MPI "Enable MPI parallel support" OFF)
+option(ENABLE_MPI "Enable MPI parallel support" OFF) #OFF
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" ON)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
 option(ENABLE_JSON "Enable json-fortran support" ON)#ON
@@ -523,7 +523,6 @@ else()
   set(PHLEX_CUDA_SRC "" src/cuda/rxns_gpu/aaa.cpp src/cuda/rxns_gpu/mmm.cpp src/cuda/rxns_gpu/mmm.h)
 endif()
 
-
 add_library(partmclib src/aero_state.F90 src/integer_varray.F90
   src/integer_rmap.F90 src/integer_rmap2.F90 src/aero_sorted.F90
   src/aero_binned.F90 src/bin_grid.F90 src/constants.F90
@@ -612,18 +611,13 @@ set_source_files_properties(${CB5_EBI_SOLVER} PROPERTIES COMPILE_FLAGS
 	${CB5_EBI_FLAGS})
 
 add_executable(test_chemistry_cb05cl_ae5 test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
-	${CB5_EBI_SOLVER}
-	${CB5_KPP_SOLVER}
-	test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-
+	${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}	 test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
 target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
 
-add_executable(test_chemistry_cb05cl_ae5_big test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
-        ${CB5_EBI_SOLVER}
-        ${CB5_KPP_SOLVER}
-        test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
+#add_executable(test_chemistry_cb05cl_ae5_big test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
+#        ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER} test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
+#target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
 
-target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
 
 ######################################################################
 # test_chemistry_eqsam_v03d
@@ -869,3 +863,5 @@ add_executable(chamber_process
 target_link_libraries(chamber_process partmclib)
 
 ######################################################################
+
+#TODO: Change add_executable for add_library to fix a bug with make -j 4

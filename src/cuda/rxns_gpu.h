@@ -33,12 +33,12 @@ void * rxn_gpu_aqueous_equilibrium_print(
           void *rxn_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step);
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(
           ModelDatagpu *model_data, realtype *deriv, void *rxn_data,
-          double * double_pointer_gpu, realtype time_step);
+          double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_aqueous_equilibrium_calc_jac_contrib(
-          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, realtype time_step);
+          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 #endif
 
 // arrhenius
@@ -57,12 +57,12 @@ void * rxn_gpu_arrhenius_print(
           void *rxn_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step);
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(
           ModelDatagpu *model_data, realtype *deriv, void *rxn_data,
-          double * double_pointer_gpu, realtype time_step);
+          double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_arrhenius_calc_jac_contrib(
-          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, realtype time_step);
+          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 #endif
 
 // CMAQ_H2O2
@@ -81,12 +81,12 @@ void * rxn_gpu_CMAQ_H2O2_print(
           void *rxn_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_CMAQ_H2O2_calc_deriv_contrib(ModelDatagpu *model_data, double *deriv,
-          void *rxn_data, double * double_pointer_gpu, double time_step);
+          void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_CMAQ_H2O2_calc_deriv_contrib(
           ModelDatagpu *model_data, realtype *deriv, void *rxn_data,
-          double * double_pointer_gpu, realtype time_step);
+          double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_CMAQ_H2O2_calc_jac_contrib(
-          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, realtype time_step);
+          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 #endif
 
 // CMAQ_OH_HNO3
@@ -105,12 +105,12 @@ void * rxn_gpu_CMAQ_OH_HNO3_print(
           void *rxn_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_CMAQ_OH_HNO3_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step);
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_CMAQ_OH_HNO3_calc_deriv_contrib(
           ModelDatagpu *model_data, realtype *deriv, void *rxn_data,
-          double * double_pointer_gpu, realtype time_step);
+          double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_CMAQ_OH_HNO3_calc_jac_contrib(
-          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, realtype time_step);
+          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 #endif
 
 // condensed_phase_arrhenius
@@ -129,12 +129,12 @@ void * rxn_gpu_condensed_phase_arrhenius_print(
           void *rxn_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step);
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(
           ModelDatagpu *model_data, realtype *deriv, void *rxn_data,
-          double * double_pointer_gpu, realtype time_step);
+          double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(
-          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, realtype time_step);
+          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 #endif
 
 // emission
@@ -155,12 +155,12 @@ void * rxn_gpu_emission_print(
           void *rxn_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_emission_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step);
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_emission_calc_deriv_contrib(
           ModelDatagpu *model_data, realtype *deriv, void *rxn_data,
-          double * double_pointer_gpu, realtype time_step);
+          double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_emission_calc_jac_contrib(
-          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, realtype time_step);
+          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 #endif
 void * rxn_gpu_emission_create_rate_update_data();
 void rxn_gpu_emission_set_rate_update_data(
@@ -184,12 +184,12 @@ void * rxn_gpu_first_order_loss_print(
           void *rxn_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_first_order_loss_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step);
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_first_order_loss_calc_deriv_contrib(
           ModelDatagpu *model_data, realtype *deriv, void *rxn_data,
-          double * double_pointer_gpu, realtype time_step);
+          double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_first_order_loss_calc_jac_contrib(
-          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, realtype time_step);
+          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 #endif
 void * rxn_gpu_first_order_loss_create_rate_update_data();
 void rxn_gpu_first_order_loss_set_rate_update_data(
@@ -203,12 +203,12 @@ void * rxn_gpu_HL_phase_transfer_print(
           void *rxn_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_HL_phase_transfer_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step);
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(
           ModelDatagpu *model_data, realtype *deriv, void *rxn_data,
-          double * double_pointer_gpu, realtype time_step);
+          double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_HL_phase_transfer_calc_jac_contrib(
-          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, realtype time_step);
+          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 #endif
 
 // PD-FiTE activity
@@ -227,12 +227,12 @@ void * rxn_gpu_PDFiTE_activity_print(
           void *rxn_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_PDFiTE_activity_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step);
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_PDFiTE_activity_calc_deriv_contrib(
           ModelDatagpu *model_data, realtype *deriv, void *rxn_data,
-          double * double_pointer_gpu, realtype time_step);
+          double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_PDFiTE_activity_calc_jac_contrib(
-          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, realtype time_step);
+          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 #endif
 
 // photolysis
@@ -253,12 +253,12 @@ void * rxn_gpu_photolysis_print(
           void *rxn_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_photolysis_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step);
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_photolysis_calc_deriv_contrib(
           ModelDatagpu *model_data, realtype *deriv, void *rxn_data,
-          double * double_pointer_gpu, realtype time_step);
+          double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_photolysis_calc_jac_contrib(
-          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, realtype time_step);
+          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 #endif
 void * rxn_gpu_photolysis_create_rate_update_data();
 void rxn_gpu_photolysis_set_rate_update_data(
@@ -273,12 +273,12 @@ void * rxn_gpu_SIMPOL_phase_transfer_print(
           void *rxn_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_SIMPOL_phase_transfer_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step);
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_SIMPOL_phase_transfer_calc_deriv_contrib(
           ModelDatagpu *model_data, realtype *deriv, void *rxn_data,
-          double * double_pointer_gpu, realtype time_step);
+          double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_SIMPOL_phase_transfer_calc_jac_contrib(
-          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, realtype time_step);
+          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 #endif
 
 // troe
@@ -296,12 +296,12 @@ void * rxn_gpu_troe_print(
           void *rxn_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_troe_calc_deriv_contrib(ModelDatagpu *model_data, double *deriv,
-          void *rxn_data, double * double_pointer_gpu, double time_step);
+          void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_troe_calc_deriv_contrib(
           ModelDatagpu *model_data, realtype *deriv, void *rxn_data,
-          double * double_pointer_gpu, realtype time_step);
+          double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_troe_calc_jac_contrib(
-          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, realtype time_step);
+          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 #endif
 
 // wet_deposition
@@ -322,12 +322,12 @@ void * rxn_gpu_wet_deposition_print(
           void *rxn_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_wet_deposition_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step);
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_wet_deposition_calc_deriv_contrib(
           ModelDatagpu *model_data, realtype *deriv, void *rxn_data,
-          double * double_pointer_gpu, realtype time_step);
+          double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_wet_deposition_calc_jac_contrib(
-          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, realtype time_step);
+          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 #endif
 void * rxn_gpu_wet_deposition_create_rate_update_data();
 void rxn_gpu_wet_deposition_set_rate_update_data(
@@ -341,12 +341,12 @@ void * rxn_gpu_ZSR_aerosol_water_print(
           void *rxn_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_ZSR_aerosol_water_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step);
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_ZSR_aerosol_water_calc_deriv_contrib(
           ModelDatagpu *model_data, realtype *deriv, void *rxn_data,
-          double * double_pointer_gpu, realtype time_step);
+          double * double_pointer_gpu, double time_step, int deriv_length);
 __device__ void rxn_gpu_ZSR_aerosol_water_calc_jac_contrib(
-          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, realtype time_step);
+          ModelDatagpu *model_data, realtype *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length);
 #endif
 
 

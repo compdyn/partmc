@@ -64,7 +64,7 @@ extern "C"{
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_SIMPOL_phase_transfer_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
 {
   double *state = model_data->state;
   double *env_data = model_data->env;
@@ -193,7 +193,7 @@ __device__ void rxn_gpu_SIMPOL_phase_transfer_calc_deriv_contrib(ModelDatagpu *m
  /*
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_SIMPOL_phase_transfer_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
 {
   double *state = model_data->state;
   double *env_data = model_data->env;
@@ -318,7 +318,7 @@ void rxn_cpu_SIMPOL_phase_transfer_calc_deriv_contrib(ModelDatagpu *model_data,
 
 #ifdef PMC_USE_SUNDIALS
 __device__ void * rxn_gpu_SIMPOL_phase_transfer_calc_jac_contrib(ModelDatagpu *model_data,
-          double *J, void *rxn_data, double * double_pointer_gpu, double time_step)
+          double *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
 {
   double *state = model_data->state;
   double *env_data = model_data->env;

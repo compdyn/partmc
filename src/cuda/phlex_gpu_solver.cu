@@ -101,12 +101,6 @@ void solver_new_gpu_cu(SolverDatagpu *sd, int n_dep_var,
   int_sizes = (unsigned int *) malloc(start_size);
   double_sizes = (unsigned int *) malloc(start_size);
 
-  //Allocate int and double rxn data separately
-  short_pointer = (int *) malloc((n_rxn_int_param + 1 + n_rxn) * sizeof(int));
-  double_pointer = (double *) malloc(n_rxn_float_param * sizeof(double) * sizeof(double));
-  cudaMalloc((void **) &short_pointer_gpu, (n_rxn_int_param + 1 + n_rxn) * sizeof(int) * sizeof(int));
-  cudaMalloc((void **) &double_pointer_gpu, n_rxn_float_param * sizeof(double) * sizeof(double));
-
   //GPU allocation
   cudaMalloc((void **) &dev_start_rxn_param, start_size);
   cudaMalloc((void **) &int_sizes_gpu, start_size);
@@ -266,6 +260,13 @@ void solver_set_data_gpu(ModelDatagpu *model_data) {
     int_sizes[0]=0;
     double_sizes[0]=0;
 
+    //Allocate int and double rxn data separately
+    short_pointer = (int *) malloc(n_rxn*int_max_size * sizeof(int));
+    double_pointer = (double *) malloc(n_rxn*double_max_size * sizeof(double));
+    cudaMalloc((void **) &short_pointer_gpu, n_rxn*int_max_size  * sizeof(int));
+    cudaMalloc((void **) &double_pointer_gpu, n_rxn*double_max_size  * sizeof(double));
+
+    //TODO: Transporse rxn matrix to better memory acces
     for (int i_rxn = 0; i_rxn < n_rxn; i_rxn++) {
       //TTODO: use short_pointer in reactions
 
@@ -274,11 +275,20 @@ void solver_set_data_gpu(ModelDatagpu *model_data) {
 
       for (int j = 0; j < int_size; j++)
         short_pointer[int_sizes[i_rxn] + j] = ((int *) rxn_param)[start_rxn_param[i_rxn] + j];
+      for (int j = int_size; j < (int_max_size-int_size); j++)
+        short_pointer[int_sizes[i_rxn] + j] = -1;
 
       for (int j = 0; j < double_size; j++) {
         double *float_data = (double *) &(((int *) rxn_param)[start_rxn_param[i_rxn] + int_size]);
         double_pointer[double_sizes[i_rxn] + j] = float_data[j];
       }
+      for (int j = double_size; j < (double_max_size-double_size); j++)
+        double_pointer[double_sizes[i_rxn] + j] = 0;
+
+      printf(" int_offset: %d ", (int_max_size-int_size));
+      printf(" double_offset: %d  \n", (double_max_size-double_size));
+
+      //Ttodo: Quick sort to reorganize rows starting with low number of zeros to a lot of zeros in row
     }
 
     HANDLE_ERROR(cudaMemcpy(short_pointer_gpu, short_pointer, int_total_size*sizeof(int), cudaMemcpyHostToDevice));
@@ -290,7 +300,6 @@ void solver_set_data_gpu(ModelDatagpu *model_data) {
     //TODO: Some rxn values changes on monarch each iteration(temperature/pressure-update function) by update functions
     solver_set_gpu_sizes = 0;
   }
-
 }
 
 __global__ void solveRxnBlock(ModelDatagpu *model_data, double *deriv,
@@ -328,65 +337,65 @@ __global__ void solveRxnBlock(ModelDatagpu *model_data, double *deriv,
     switch (rxn_type) {
       case RXN_AQUEOUS_EQUILIBRIUM :
         //rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(
-        //        model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+        //        model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
         //atomicAdd(&(deriv[0]), 1);
         break;
       case RXN_ARRHENIUS :
         rxn_gpu_arrhenius_calc_deriv_contrib(
-                  model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+                  model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
         break;
       case RXN_CMAQ_H2O2 :
         rxn_gpu_CMAQ_H2O2_calc_deriv_contrib(
-                  model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+                  model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
         break;
       case RXN_CMAQ_OH_HNO3 :
         rxn_gpu_CMAQ_OH_HNO3_calc_deriv_contrib(
-                  model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+                  model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
         break;
       case RXN_CONDENSED_PHASE_ARRHENIUS :
         rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(
-                model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+                model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
         break;
       case RXN_EMISSION :
         rxn_gpu_emission_calc_deriv_contrib(
-                model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+                model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
         break;
       case RXN_FIRST_ORDER_LOSS :
         rxn_gpu_first_order_loss_calc_deriv_contrib(
-                model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+                model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
         break;
       case RXN_HL_PHASE_TRANSFER :
         //rxn_gpu_HL_phase_transfer_calc_deriv_contrib(
-        //        model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+        //        model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
         break;
       case RXN_PDFITE_ACTIVITY :
         rxn_gpu_PDFiTE_activity_calc_deriv_contrib(
-                model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+                model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
         break;
       case RXN_PHOTOLYSIS :
         rxn_gpu_photolysis_calc_deriv_contrib(
-                model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+                model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
         break;
       case RXN_SIMPOL_PHASE_TRANSFER :
         //rxn_gpu_SIMPOL_phase_transfer_calc_deriv_contrib(
-        //        model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+        //        model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
         break;
       case RXN_TROE :
         rxn_gpu_troe_calc_deriv_contrib(
-                model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+                model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
         break;
       case RXN_WET_DEPOSITION :
         rxn_gpu_wet_deposition_calc_deriv_contrib(
-               model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+               model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
         break;
       case RXN_ZSR_AEROSOL_WATER :
         rxn_gpu_ZSR_aerosol_water_calc_deriv_contrib(
-               model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+               model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
         break;
 
       //case RXN_ARRHENIUS :
       //  rxn_gpu_arrhenius_calc_deriv_contrib(
-      //          model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+      //          model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
       //break;
 
 //atomicAdd(&(deriv[index]), float_data[0]);
@@ -397,7 +406,6 @@ __global__ void solveRxnBlock(ModelDatagpu *model_data, double *deriv,
   if (index < deriv_length){//seems better but i think dont work for large values
     deriv[index] = deriv_data[index];
   }
-
   //for (int i_spec = threadIdx.x; i_spec < deriv_length; i_spec += blockDim.x)
     //atomicAdd(&(deriv[i_spec]), deriv_data[i_spec]);
 }
@@ -451,7 +459,7 @@ solveRxnBlock << < (n_rxn + MAX_N_GPU_THREAD - 1) / MAX_N_GPU_THREAD, MAX_N_GPU_
 }
 
 void solveRxncpu(ModelDatagpu *model_data, double *deriv_data,
-                   double time_step, int *int_data, double *float_data)
+                   double time_step, int *int_data, double *float_data, int deriv_length)
 {
 
   int rxn_type = int_data[0];
@@ -460,59 +468,59 @@ void solveRxncpu(ModelDatagpu *model_data, double *deriv_data,
   switch (rxn_type) {
     case RXN_AQUEOUS_EQUILIBRIUM :
       rxn_cpu_aqueous_equilibrium_calc_deriv_contrib(
-              model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+              model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
       break;
     case RXN_ARRHENIUS :
       rxn_cpu_arrhenius_calc_deriv_contrib(
-              model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+              model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
       break;
     case RXN_CMAQ_H2O2 :
       rxn_cpu_CMAQ_H2O2_calc_deriv_contrib(
-              model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+              model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
       break;
     case RXN_CMAQ_OH_HNO3 :
       rxn_cpu_CMAQ_OH_HNO3_calc_deriv_contrib(
-              model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+              model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
       break;
     case RXN_CONDENSED_PHASE_ARRHENIUS :
       rxn_cpu_condensed_phase_arrhenius_calc_deriv_contrib(
-              model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+              model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
       break;
     case RXN_EMISSION :
       rxn_cpu_emission_calc_deriv_contrib(
-              model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+              model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
       break;
     case RXN_FIRST_ORDER_LOSS :
       rxn_cpu_first_order_loss_calc_deriv_contrib(
-              model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+              model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
       break;
     case RXN_HL_PHASE_TRANSFER :
 //rxn_cpu_HL_phase_transfer_calc_deriv_contrib(
-//        model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+//        model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
       break;
     case RXN_PDFITE_ACTIVITY :
       rxn_cpu_PDFiTE_activity_calc_deriv_contrib(
-              model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+              model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
       break;
     case RXN_PHOTOLYSIS :
       rxn_cpu_photolysis_calc_deriv_contrib(
-              model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+              model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
       break;
     case RXN_SIMPOL_PHASE_TRANSFER :
 //rxn_cpu_SIMPOL_phase_transfer_calc_deriv_contrib(
-//        model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+//        model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
       break;
     case RXN_TROE :
       rxn_cpu_troe_calc_deriv_contrib(
-              model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+              model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
       break;
     case RXN_WET_DEPOSITION :
       rxn_cpu_wet_deposition_calc_deriv_contrib(
-              model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+              model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
       break;
     case RXN_ZSR_AEROSOL_WATER :
       rxn_cpu_ZSR_aerosol_water_calc_deriv_contrib(
-              model_data, deriv_data, (void *) rxn_data, float_data, time_step);
+              model_data, deriv_data, (void *) rxn_data, float_data, time_step, deriv_length);
       break;
 
   }
@@ -527,14 +535,14 @@ void rxn_calc_deriv_cpu(ModelDatagpu *model_data, N_Vector deriv, realtype time_
   int n_rxn = rxn_data[0];
 
   //Case i_rxn=0
-  solveRxncpu(model_data, deriv_data, time_step, short_pointer, double_pointer);
+  solveRxncpu(model_data, deriv_data, time_step, short_pointer, double_pointer, NV_LENGTH_S(deriv));
 
   for (int i_rxn = 1; i_rxn < n_rxn; i_rxn++) {
 
     int *int_data = (int *) &(((int *) short_pointer)[int_sizes[i_rxn - 1]]);
     double *float_data = (double *) &(((double *) double_pointer)[double_sizes[i_rxn - 1]]);
 
-    solveRxncpu(model_data, deriv_data, time_step, int_data, float_data);
+    solveRxncpu(model_data, deriv_data, time_step, int_data, float_data, NV_LENGTH_S(deriv));
   }
 }
 

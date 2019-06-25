@@ -111,7 +111,7 @@ void solver_update_state_gpu(ModelDatagpu *md);
 void get_rxn_pointers (int *short_pointer0, double *double_pointer0,
                        unsigned int *int_sizes0, unsigned int *double_sizes0);
 void solveRxncpu(ModelDatagpu *model_data, double *deriv_data,
-                 double time_step, int *int_data, double *float_data);
+                 double time_step, int *int_data, double *float_data, int deriv_length);
 void rxn_calc_deriv_gpu(ModelDatagpu *model_data, N_Vector deriv, realtype time_step);
 void free_gpu_cu();
 void solver_set_data_gpu(ModelDatagpu *model_data);

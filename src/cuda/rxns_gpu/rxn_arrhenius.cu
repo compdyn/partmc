@@ -37,6 +37,8 @@ extern "C"{
 #define INT_DATA_SIZE_ (NUM_INT_PROP_+(NUM_REACT_+2)*(NUM_REACT_+NUM_PROD_))
 #define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+NUM_PROD_)
 
+
+
 /** \brief Flag Jacobian elements used by this reaction
  *
  * \param rxn_data A pointer to the reaction data
@@ -150,7 +152,7 @@ void * rxn_gpu_arrhenius_pre_calc(ModelDatagpu *model_data, void *rxn_data)
 
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
 {
   double *state = model_data->state;//TODO: model_data->state[i] to calculate independent domains simultaneous
   int *int_data = (int*) rxn_data;
@@ -176,7 +178,6 @@ __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data,
       if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
         //deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
         atomicAdd(&(deriv[DERIV_ID_(i_dep_var)]),rate*YIELD_(i_spec));
-
       }
     }
   }
@@ -195,7 +196,7 @@ __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data,
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
 {
   double *state = model_data->state;
   int *int_data = (int*) rxn_data;
@@ -236,7 +237,7 @@ void rxn_cpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data,
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_arrhenius_calc_jac_contrib(ModelDatagpu *model_data, double *J,
-          void *rxn_data, double * double_pointer_gpu, double time_step)
+          void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
 {
   double *state = model_data->state;
   int *int_data = (int*) rxn_data;

@@ -15,16 +15,16 @@ extern "C"{
 #include "../rxns_gpu.h"
 
 // TODO Lookup environmental indicies during initialization
-#define TEMPERATURE_K_ env_data[0]
-#define PRESSURE_PA_ env_data[1]
+#define TEMPERATURE_K_ env_data[0*n_rxn]
+#define PRESSURE_PA_ env_data[1*n_rxn]
 
-#define RXN_ID_ (int_data[0])
-#define REACT_ (int_data[1]-1)
-#define DERIV_ID_ int_data[2]
-#define JAC_ID_ int_data[3]
-#define BASE_RATE_ float_data[0]
-#define SCALING_ float_data[1]
-#define RATE_CONSTANT_ float_data[2]
+#define RXN_ID_ (int_data[0*n_rxn])
+#define REACT_ (int_data[1*n_rxn]-1)
+#define DERIV_ID_ int_data[2*n_rxn]
+#define JAC_ID_ int_data[3*n_rxn]
+#define BASE_RATE_ float_data[0*n_rxn]
+#define SCALING_ float_data[1*n_rxn]
+#define RATE_CONSTANT_ float_data[n_rxn*2]
 #define NUM_INT_PROP_ 4
 #define NUM_FLOAT_PROP_ 3
 #define INT_DATA_SIZE_ (NUM_INT_PROP_)
@@ -39,6 +39,7 @@ extern "C"{
  */
 void * rxn_gpu_first_order_loss_get_used_jac_elem(void *rxn_data, bool **jac_struct)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -58,6 +59,7 @@ void * rxn_gpu_first_order_loss_get_used_jac_elem(void *rxn_data, bool **jac_str
 void * rxn_gpu_first_order_loss_update_ids(ModelDatagpu *model_data, int *deriv_ids,
           int **jac_ids, void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -88,6 +90,7 @@ void * rxn_gpu_first_order_loss_update_ids(ModelDatagpu *model_data, int *deriv_
  */
 void * rxn_gpu_first_order_loss_update_data(void *update_data, void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -112,6 +115,7 @@ void * rxn_gpu_first_order_loss_update_data(void *update_data, void *rxn_data)
  */
 void * rxn_gpu_first_order_loss_update_env_state(double *env_data, void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -131,6 +135,7 @@ void * rxn_gpu_first_order_loss_update_env_state(double *env_data, void *rxn_dat
  */
 void * rxn_gpu_first_order_loss_pre_calc(ModelDatagpu *model_data, void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -148,8 +153,9 @@ void * rxn_gpu_first_order_loss_pre_calc(ModelDatagpu *model_data, void *rxn_dat
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_first_order_loss_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
+  int n_rxn=n_rxn2;
   double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
@@ -176,8 +182,9 @@ __device__ void rxn_gpu_first_order_loss_calc_deriv_contrib(ModelDatagpu *model_
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_first_order_loss_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
+  int n_rxn=n_rxn2;
   double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
@@ -201,8 +208,9 @@ void rxn_cpu_first_order_loss_calc_deriv_contrib(ModelDatagpu *model_data,
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_first_order_loss_calc_jac_contrib(ModelDatagpu *model_data, double *J,
-          void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
+          void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
+  int n_rxn=n_rxn2;
   double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
@@ -222,6 +230,7 @@ __device__ void rxn_gpu_first_order_loss_calc_jac_contrib(ModelDatagpu *model_da
  */
 void * rxn_gpu_first_order_loss_int_size(void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -235,6 +244,7 @@ void * rxn_gpu_first_order_loss_int_size(void *rxn_data)
  */
 void * rxn_gpu_first_order_loss_skip(void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -248,6 +258,7 @@ void * rxn_gpu_first_order_loss_skip(void *rxn_data)
  */
 void * rxn_gpu_first_order_loss_print(void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 

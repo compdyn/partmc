@@ -15,41 +15,41 @@ extern "C"{
 #include "../rxns_gpu.h"
 
 // TODO Lookup environmental indices during initialization
-#define TEMPERATURE_K_ env_data[0]
-#define PRESSURE_PA_ env_data[1]
+#define TEMPERATURE_K_ env_data[0*n_rxn]
+#define PRESSURE_PA_ env_data[1*n_rxn]
 
 #define SMALL_NUMBER_ 1.0e-30
 
 #define ACT_TYPE_JACOBSON 1
 #define ACT_TYPE_EQSAM 2
 
-#define NUM_PHASE_ (int_data[0])
-#define GAS_WATER_ID_ (int_data[1]-1)
-#define NUM_ION_PAIR_ (int_data[2])
-#define INT_DATA_SIZE_ (int_data[3])
-#define FLOAT_DATA_SIZE_ (int_data[4])
-#define PPM_TO_RH_ (float_data[0])
+#define NUM_PHASE_ (int_data[0*n_rxn])
+#define GAS_WATER_ID_ (int_data[1*n_rxn]-1)
+#define NUM_ION_PAIR_ (int_data[2*n_rxn])
+#define INT_DATA_SIZE_ (int_data[3*n_rxn])
+#define FLOAT_DATA_SIZE_ (int_data[4*n_rxn])
+#define PPM_TO_RH_ (float_data[0*n_rxn])
 #define NUM_INT_PROP_ 5
 #define NUM_REAL_PROP_ 1
-#define PHASE_ID_(x) (int_data[NUM_INT_PROP_+x]-1)
-#define PAIR_INT_PARAM_LOC_(x) (int_data[NUM_INT_PROP_+NUM_PHASE_+x]-1)
-#define PAIR_FLOAT_PARAM_LOC_(x) (int_data[NUM_INT_PROP_+NUM_PHASE_+NUM_ION_PAIR_+x]-1)
-#define TYPE_(x) (int_data[PAIR_INT_PARAM_LOC_(x)])
-#define JACOB_NUM_CATION_(x) (int_data[PAIR_INT_PARAM_LOC_(x)+1])
-#define JACOB_NUM_ANION_(x) (int_data[PAIR_INT_PARAM_LOC_(x)+2])
-#define JACOB_CATION_ID_(x) (int_data[PAIR_INT_PARAM_LOC_(x)+3])
-#define JACOB_ANION_ID_(x) (int_data[PAIR_INT_PARAM_LOC_(x)+4])
-#define JACOB_NUM_Y_(x) (int_data[PAIR_INT_PARAM_LOC_(x)+5])
-#define EQSAM_NUM_ION_(x) (int_data[PAIR_INT_PARAM_LOC_(x)+1])
-#define EQSAM_ION_ID_(x,y) (int_data[PAIR_INT_PARAM_LOC_(x)+2+y])
-#define JACOB_low_RH_(x) (float_data[PAIR_FLOAT_PARAM_LOC_(x)])
-#define JACOB_CATION_MW_(x) (float_data[PAIR_FLOAT_PARAM_LOC_(x)+1])
-#define JACOB_ANION_MW_(x) (float_data[PAIR_FLOAT_PARAM_LOC_(x)+2])
-#define JACOB_Y_(x,y) (float_data[PAIR_FLOAT_PARAM_LOC_(x)+3+y])
-#define EQSAM_NW_(x) (float_data[PAIR_FLOAT_PARAM_LOC_(x)])
-#define EQSAM_ZW_(x) (float_data[PAIR_FLOAT_PARAM_LOC_(x)+1])
-#define EQSAM_ION_PAIR_MW_(x) (float_data[PAIR_FLOAT_PARAM_LOC_(x)+2])
-#define EQSAM_ION_MW_(x,y) (float_data[PAIR_FLOAT_PARAM_LOC_(x)+3+y])
+#define PHASE_ID_(x) (int_data[(NUM_INT_PROP_+x)*n_rxn]-1)
+#define PAIR_INT_PARAM_LOC_(x) (int_data[(NUM_INT_PROP_+NUM_PHASE_+x)*n_rxn]-1)
+#define PAIR_FLOAT_PARAM_LOC_(x) (int_data[(NUM_INT_PROP_+NUM_PHASE_+NUM_ION_PAIR_+x)*n_rxn]-1)
+#define TYPE_(x) (int_data[(PAIR_INT_PARAM_LOC_(x))*n_rxn])
+#define JACOB_NUM_CATION_(x) (int_data[(PAIR_INT_PARAM_LOC_(x)+1)*n_rxn])
+#define JACOB_NUM_ANION_(x) (int_data[(PAIR_INT_PARAM_LOC_(x)+2)*n_rxn])
+#define JACOB_CATION_ID_(x) (int_data[(PAIR_INT_PARAM_LOC_(x)+3)*n_rxn])
+#define JACOB_ANION_ID_(x) (int_data[(PAIR_INT_PARAM_LOC_(x)+4)*n_rxn])
+#define JACOB_NUM_Y_(x) (int_data[(PAIR_INT_PARAM_LOC_(x)+5)*n_rxn])
+#define EQSAM_NUM_ION_(x) (int_data[(PAIR_INT_PARAM_LOC_(x)+1)*n_rxn])
+#define EQSAM_ION_ID_(x,y) (int_data[(PAIR_INT_PARAM_LOC_(x)+2+y)*n_rxn])
+#define JACOB_low_RH_(x) (float_data[(PAIR_FLOAT_PARAM_LOC_(x))*n_rxn])
+#define JACOB_CATION_MW_(x) (float_data[(PAIR_FLOAT_PARAM_LOC_(x)+1)*n_rxn])
+#define JACOB_ANION_MW_(x) (float_data[(PAIR_FLOAT_PARAM_LOC_(x)+2)*n_rxn])
+#define JACOB_Y_(x,y) (float_data[(PAIR_FLOAT_PARAM_LOC_(x)+3+y)*n_rxn])
+#define EQSAM_NW_(x) (float_data[(PAIR_FLOAT_PARAM_LOC_(x))*n_rxn])
+#define EQSAM_ZW_(x) (float_data[(PAIR_FLOAT_PARAM_LOC_(x)+1)*n_rxn])
+#define EQSAM_ION_PAIR_MW_(x) (float_data[(PAIR_FLOAT_PARAM_LOC_(x)+2)*n_rxn])
+#define EQSAM_ION_MW_(x,y) (float_data[(PAIR_FLOAT_PARAM_LOC_(x)+3+y)*n_rxn])
 
 /** \brief Flag Jacobian elements used by this reaction
  *
@@ -63,6 +63,7 @@ extern "C"{
 void * rxn_gpu_ZSR_aerosol_water_get_used_jac_elem(void *rxn_data,
           bool **jac_struct)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -82,6 +83,7 @@ void * rxn_gpu_ZSR_aerosol_water_get_used_jac_elem(void *rxn_data,
 void * rxn_gpu_ZSR_aerosol_water_update_ids(ModelDatagpu *model_data, int *deriv_ids,
           int **jac_ids, void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -97,6 +99,7 @@ void * rxn_gpu_ZSR_aerosol_water_update_ids(ModelDatagpu *model_data, int *deriv
 void * rxn_gpu_ZSR_aerosol_water_update_env_state(double *env_data,
           void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -122,6 +125,7 @@ void * rxn_gpu_ZSR_aerosol_water_update_env_state(double *env_data,
  */
 void * rxn_gpu_ZSR_aerosol_water_pre_calc(ModelDatagpu *model_data, void *rxn_data)
 {
+  int n_rxn=1;
   double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
@@ -215,8 +219,9 @@ void * rxn_gpu_ZSR_aerosol_water_pre_calc(ModelDatagpu *model_data, void *rxn_da
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_ZSR_aerosol_water_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
+  int n_rxn=n_rxn2;
   double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
@@ -236,8 +241,9 @@ __device__ void rxn_gpu_ZSR_aerosol_water_calc_deriv_contrib(ModelDatagpu *model
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_ZSR_aerosol_water_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
+  int n_rxn=n_rxn2;
   double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
@@ -256,13 +262,12 @@ void rxn_cpu_ZSR_aerosol_water_calc_deriv_contrib(ModelDatagpu *model_data,
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_ZSR_aerosol_water_calc_jac_contrib(ModelDatagpu *model_data,
-          double *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
+          double *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
+  int n_rxn=n_rxn2;
   double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
-
-  //return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 
 }
 #endif
@@ -274,6 +279,7 @@ __device__ void rxn_gpu_ZSR_aerosol_water_calc_jac_contrib(ModelDatagpu *model_d
  */
 void * rxn_gpu_ZSR_aerosol_water_int_size(void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -287,6 +293,7 @@ void * rxn_gpu_ZSR_aerosol_water_int_size(void *rxn_data)
  */
 void * rxn_gpu_ZSR_aerosol_water_skip(void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -300,6 +307,7 @@ void * rxn_gpu_ZSR_aerosol_water_skip(void *rxn_data)
  */
 void * rxn_gpu_ZSR_aerosol_water_print(void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 

@@ -15,19 +15,19 @@ extern "C"{
 #include "../rxns_gpu.h"
 
 // TODO Lookup environmental indicies during initialization
-#define TEMPERATURE_K_ env_data[0]
-#define PRESSURE_PA_ env_data[1]
+#define TEMPERATURE_K_ env_data[0*n_rxn]
+#define PRESSURE_PA_ env_data[1*n_rxn]
 
-#define RXN_ID_ (int_data[0])
-#define NUM_SPEC_ (int_data[1])
-#define BASE_RATE_ float_data[0]
-#define SCALING_ float_data[1]
-#define RATE_CONSTANT_ float_data[2]
+#define RXN_ID_ (int_data[0*n_rxn])
+#define NUM_SPEC_ (int_data[1*n_rxn])
+#define BASE_RATE_ float_data[0*n_rxn]
+#define SCALING_ float_data[1*n_rxn]
+#define RATE_CONSTANT_ float_data[n_rxn*2]
 #define NUM_INT_PROP_ 2
 #define NUM_FLOAT_PROP_ 3
-#define REACT_(s) (int_data[NUM_INT_PROP_+s]-1)
-#define DERIV_ID_(s) int_data[NUM_INT_PROP_+NUM_SPEC_+s]
-#define JAC_ID_(s) int_data[NUM_INT_PROP_+2*NUM_SPEC_+s]
+#define REACT_(s) (int_data[(NUM_INT_PROP_+s)*n_rxn]-1)
+#define DERIV_ID_(s) int_data[(NUM_INT_PROP_+NUM_SPEC_+s)*n_rxn]
+#define JAC_ID_(s) int_data[(NUM_INT_PROP_+2*NUM_SPEC_+s)*n_rxn]
 #define INT_DATA_SIZE_ (NUM_INT_PROP_+3*NUM_SPEC_)
 #define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_)
 
@@ -40,6 +40,7 @@ extern "C"{
  */
 void * rxn_gpu_wet_deposition_get_used_jac_elem(void *rxn_data, bool **jac_struct)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -61,6 +62,7 @@ void * rxn_gpu_wet_deposition_get_used_jac_elem(void *rxn_data, bool **jac_struc
 void * rxn_gpu_wet_deposition_update_ids(ModelDatagpu *model_data, int *deriv_ids,
           int **jac_ids, void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -95,6 +97,7 @@ void * rxn_gpu_wet_deposition_update_ids(ModelDatagpu *model_data, int *deriv_id
  */
 void * rxn_gpu_wet_deposition_update_data(void *update_data, void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -119,6 +122,7 @@ void * rxn_gpu_wet_deposition_update_data(void *update_data, void *rxn_data)
  */
 void * rxn_gpu_wet_deposition_update_env_state(double *env_data, void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -138,6 +142,7 @@ void * rxn_gpu_wet_deposition_update_env_state(double *env_data, void *rxn_data)
  */
 void * rxn_gpu_wet_deposition_pre_calc(ModelDatagpu *model_data, void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -155,8 +160,9 @@ void * rxn_gpu_wet_deposition_pre_calc(ModelDatagpu *model_data, void *rxn_data)
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_wet_deposition_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
+  int n_rxn=n_rxn2;
   double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
@@ -183,8 +189,9 @@ __device__ void rxn_gpu_wet_deposition_calc_deriv_contrib(ModelDatagpu *model_da
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_wet_deposition_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
+  int n_rxn=n_rxn2;
   double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
@@ -209,8 +216,9 @@ void rxn_cpu_wet_deposition_calc_deriv_contrib(ModelDatagpu *model_data,
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_wet_deposition_calc_jac_contrib(ModelDatagpu *model_data, double *J,
-          void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
+          void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
+  int n_rxn=n_rxn2;
   double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
@@ -232,6 +240,7 @@ __device__ void rxn_gpu_wet_deposition_calc_jac_contrib(ModelDatagpu *model_data
  */
 void * rxn_gpu_wet_deposition_int_size(void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -245,6 +254,7 @@ void * rxn_gpu_wet_deposition_int_size(void *rxn_data)
  */
 void * rxn_gpu_wet_deposition_skip(void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -258,6 +268,7 @@ void * rxn_gpu_wet_deposition_skip(void *rxn_data)
  */
 void * rxn_gpu_wet_deposition_print(void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 

@@ -15,29 +15,29 @@ extern "C"{
 #include "../rxns_gpu.h"
 
 // TODO Lookup environmental indicies during initialization
-#define TEMPERATURE_K_ env_data[0]
-#define PRESSURE_PA_ env_data[1]
+#define TEMPERATURE_K_ env_data[0*n_rxn]
+#define PRESSURE_PA_ env_data[1*n_rxn]
 
-#define NUM_REACT_ int_data[0]
-#define NUM_PROD_ int_data[1]
-#define K0_A_ float_data[0]
-#define K0_B_ float_data[1]
-#define K0_C_ float_data[2]
-#define KINF_A_ float_data[3]
-#define KINF_B_ float_data[4]
-#define KINF_C_ float_data[5]
-#define FC_ float_data[6]
-#define N_ float_data[7]
-#define SCALING_ float_data[8]
-#define CONV_ float_data[9]
-#define RATE_CONSTANT_ float_data[10]
+#define NUM_REACT_ int_data[0*n_rxn]
+#define NUM_PROD_ int_data[1*n_rxn]
+#define K0_A_ float_data[0*n_rxn]
+#define K0_B_ float_data[1*n_rxn]
+#define K0_C_ float_data[2*n_rxn]
+#define KINF_A_ float_data[3*n_rxn]
+#define KINF_B_ float_data[4*n_rxn]
+#define KINF_C_ float_data[5*n_rxn]
+#define FC_ float_data[6*n_rxn]
+#define N_ float_data[7*n_rxn]
+#define SCALING_ float_data[8*n_rxn]
+#define CONV_ float_data[9*n_rxn]
+#define RATE_CONSTANT_ float_data[n_rxn*10]
 #define NUM_INT_PROP_ 2
 #define NUM_FLOAT_PROP_ 11
-#define REACT_(x) (int_data[NUM_INT_PROP_ + x]-1)
-#define PROD_(x) (int_data[NUM_INT_PROP_ + NUM_REACT_ + x]-1)
-#define DERIV_ID_(x) int_data[NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x]
-#define JAC_ID_(x) int_data[NUM_INT_PROP_ + 2*(NUM_REACT_+NUM_PROD_) + x]
-#define YIELD_(x) float_data[NUM_FLOAT_PROP_ + x]
+#define REACT_(x) (int_data[(NUM_INT_PROP_ + x)*n_rxn]-1)
+#define PROD_(x) (int_data[(NUM_INT_PROP_ + NUM_REACT_ + x)*n_rxn]-1)
+#define DERIV_ID_(x) int_data[(NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x)*n_rxn]
+#define JAC_ID_(x) int_data[(NUM_INT_PROP_ + 2*(NUM_REACT_+NUM_PROD_) + x)*n_rxn]
+#define YIELD_(x) float_data[(NUM_FLOAT_PROP_ + x)*n_rxn]
 #define INT_DATA_SIZE_ (NUM_INT_PROP_+(NUM_REACT_+2)*(NUM_REACT_+NUM_PROD_))
 #define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+NUM_PROD_)
 
@@ -50,6 +50,7 @@ extern "C"{
  */
 void * rxn_gpu_troe_get_used_jac_elem(void *rxn_data, bool **jac_struct)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -76,6 +77,7 @@ void * rxn_gpu_troe_get_used_jac_elem(void *rxn_data, bool **jac_struct)
 void * rxn_gpu_troe_update_ids(ModelDatagpu *model_data, int *deriv_ids,
           int **jac_ids, void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -109,6 +111,7 @@ void * rxn_gpu_troe_update_ids(ModelDatagpu *model_data, int *deriv_ids,
  */
 void * rxn_gpu_troe_update_env_state(double *env_data, void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -143,6 +146,7 @@ void * rxn_gpu_troe_update_env_state(double *env_data, void *rxn_data)
  */
 void * rxn_gpu_troe_pre_calc(ModelDatagpu *model_data, void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -160,8 +164,9 @@ void * rxn_gpu_troe_pre_calc(ModelDatagpu *model_data, void *rxn_data)
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_troe_calc_deriv_contrib(ModelDatagpu *model_data, double *deriv,
-          void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
+          void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
+  int n_rxn=n_rxn2;
   double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
@@ -204,8 +209,9 @@ __device__ void rxn_gpu_troe_calc_deriv_contrib(ModelDatagpu *model_data, double
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_troe_calc_deriv_contrib(ModelDatagpu *model_data, double *deriv,
-          void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
+          void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
+  int n_rxn=n_rxn2;
   double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
@@ -245,8 +251,9 @@ void rxn_cpu_troe_calc_deriv_contrib(ModelDatagpu *model_data, double *deriv,
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_troe_calc_jac_contrib(ModelDatagpu *model_data, double *J,
-          void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
+          void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
+  int n_rxn=n_rxn2;
   double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
@@ -287,6 +294,7 @@ __device__ void rxn_gpu_troe_calc_jac_contrib(ModelDatagpu *model_data, double *
  */
 void * rxn_gpu_troe_int_size(void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -300,6 +308,7 @@ void * rxn_gpu_troe_int_size(void *rxn_data)
  */
 void * rxn_gpu_troe_skip(void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
 double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -313,6 +322,7 @@ double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
  */
 void * rxn_gpu_troe_print(void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 

@@ -16,8 +16,8 @@ extern "C" {
 #include "../rxns_gpu.h"
 
 // TODO Lookup environmental indices during initialization
-#define TEMPERATURE_K_ env_data[0]
-#define PRESSURE_PA_ env_data[1]
+#define TEMPERATURE_K_ env_data[0*n_rxn]
+#define PRESSURE_PA_ env_data[1*n_rxn]
 
 // Universal gas constant (J/mol/K)
 #define UNIV_GAS_CONST_ 8.314472
@@ -27,37 +27,37 @@ extern "C" {
 // HL phase transfer
 #define MIN_WATER_ 1.0e-4
 
-#define DELTA_H_ float_data[0]
-#define DELTA_S_ float_data[1]
-#define DIFF_COEFF_ float_data[2]
-#define PRE_C_AVG_ float_data[3]
-#define A_ float_data[4]
-#define C_ float_data[5]
-#define C_AVG_ALPHA_ float_data[6]
-#define EQUIL_CONST_ float_data[7]
-#define CONV_ float_data[8]
-#define MW_ float_data[9]
-#define UGM3_TO_PPM_ float_data[10]
-#define SMALL_NUMBER_ float_data[11]
-#define NUM_AERO_PHASE_ int_data[0]
-#define GAS_SPEC_ (int_data[1]-1)
+#define DELTA_H_ float_data[0*n_rxn]
+#define DELTA_S_ float_data[1*n_rxn]
+#define DIFF_COEFF_ float_data[2*n_rxn]
+#define PRE_C_AVG_ float_data[3*n_rxn]
+#define A_ float_data[4*n_rxn]
+#define C_ float_data[5*n_rxn]
+#define C_AVG_ALPHA_ float_data[6*n_rxn]
+#define EQUIL_CONST_ float_data[7*n_rxn]
+#define CONV_ float_data[8*n_rxn]
+#define MW_ float_data[9*n_rxn]
+#define UGM3_TO_PPM_ float_data[10*n_rxn]
+#define SMALL_NUMBER_ float_data[11*n_rxn]
+#define NUM_AERO_PHASE_ int_data[0*n_rxn]
+#define GAS_SPEC_ (int_data[1*n_rxn]-1)
 #define NUM_INT_PROP_ 2
 #define NUM_FLOAT_PROP_ 12
-#define DERIV_ID_(x) int_data[NUM_INT_PROP_ + x]
-#define JAC_ID_(x) int_data[NUM_INT_PROP_ + 1 + NUM_AERO_PHASE_ + x]
-#define PHASE_INT_LOC_(x) (int_data[NUM_INT_PROP_ + 2 + 6*NUM_AERO_PHASE_ + x]-1)
-#define PHASE_REAL_LOC_(x) (int_data[NUM_INT_PROP_ + 2 + 7*NUM_AERO_PHASE_ + x]-1)
-#define AERO_SPEC_(x) (int_data[PHASE_INT_LOC_(x)]-1)
-#define AERO_WATER_(x) (int_data[PHASE_INT_LOC_(x) + 1]-1)
-#define AERO_PHASE_ID_(x) (int_data[PHASE_INT_LOC_(x) + 2]-1)
-#define AERO_REP_ID_(x) (int_data[PHASE_INT_LOC_(x) + 3]-1)
-#define NUM_AERO_PHASE_JAC_ELEM_(x) (int_data[PHASE_INT_LOC_(x) + 4])
-#define PHASE_JAC_ID_(x, s, e) int_data[PHASE_INT_LOC_(x) + 5 + s*NUM_AERO_PHASE_JAC_ELEM_(x) + e]
-#define SMALL_WATER_CONC_(x) (float_data[PHASE_REAL_LOC_(x)])
-#define FAST_FLUX_(x) (float_data[PHASE_REAL_LOC_(x) + 1])
-#define AERO_ADJ_(x) (float_data[PHASE_REAL_LOC_(x) + 2])
-#define EFF_RAD_JAC_ELEM_(x, e) float_data[PHASE_REAL_LOC_(x) + 3 + e]
-#define NUM_CONC_JAC_ELEM_(x, e) float_data[PHASE_REAL_LOC_(x) + 3 + NUM_AERO_PHASE_JAC_ELEM_(x) + e]
+#define DERIV_ID_(x) int_data[(NUM_INT_PROP_ + x)*n_rxn]
+#define JAC_ID_(x) int_data[(NUM_INT_PROP_ + 1 + NUM_AERO_PHASE_ + x)*n_rxn]
+#define PHASE_INT_LOC_(x) (int_data[(NUM_INT_PROP_ + 2 + 6*NUM_AERO_PHASE_ + x)*n_rxn]-1)
+#define PHASE_REAL_LOC_(x) (int_data[(NUM_INT_PROP_ + 2 + 7*NUM_AERO_PHASE_ + x)*n_rxn]-1)
+#define AERO_SPEC_(x) (int_data[(PHASE_INT_LOC_(x))*n_rxn]-1)
+#define AERO_WATER_(x) (int_data[(PHASE_INT_LOC_(x) + 1)*n_rxn]-1)
+#define AERO_PHASE_ID_(x) (int_data[(PHASE_INT_LOC_(x) + 2)*n_rxn]-1)
+#define AERO_REP_ID_(x) (int_data[(PHASE_INT_LOC_(x) + 3)*n_rxn]-1)
+#define NUM_AERO_PHASE_JAC_ELEM_(x) (int_data[(PHASE_INT_LOC_(x) + 4)*n_rxn])
+#define PHASE_JAC_ID_(x, s, e) int_data[(PHASE_INT_LOC_(x) + 5 + s*NUM_AERO_PHASE_JAC_ELEM_(x) + e)*n_rxn]
+#define SMALL_WATER_CONC_(x) (float_data[(PHASE_REAL_LOC_(x))*n_rxn])
+#define FAST_FLUX_(x) (float_data[(PHASE_REAL_LOC_(x) + 1)*n_rxn])
+#define AERO_ADJ_(x) (float_data[(PHASE_REAL_LOC_(x) + 2)*n_rxn])
+#define EFF_RAD_JAC_ELEM_(x, e) float_data[(PHASE_REAL_LOC_(x) + 3 + e)*n_rxn]
+#define NUM_CONC_JAC_ELEM_(x, e) float_data[(PHASE_REAL_LOC_(x) + 3 + NUM_AERO_PHASE_JAC_ELEM_(x) + e)*n_rxn]
 #define INT_DATA_SIZE_ (PHASE_INT_LOC_(NUM_AERO_PHASE_-1)+5+2*NUM_AERO_PHASE_JAC_ELEM_(NUM_AERO_PHASE_-1))
 #define FLOAT_DATA_SIZE_ (PHASE_REAL_LOC_(NUM_AERO_PHASE_-1)+3+2*NUM_AERO_PHASE_JAC_ELEM_(NUM_AERO_PHASE_-1))
 
@@ -72,10 +72,11 @@ extern "C" {
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
   //void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(ModelDatagpu *model_data,
   //        double *deriv, void *rxn_data, double time_step)
 {
+  int n_rxn=n_rxn2;
   double *state = model_data->state;
   double *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
@@ -199,8 +200,9 @@ __device__ void rxn_gpu_HL_phase_transfer_calc_deriv_contrib(ModelDatagpu *model
 /*
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_HL_phase_transfer_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
+  int n_rxn=n_rxn2;
   double *state = model_data->state;
   double *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
@@ -317,8 +319,9 @@ void rxn_cpu_HL_phase_transfer_calc_deriv_contrib(ModelDatagpu *model_data,
 
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_HL_phase_transfer_calc_jac_contrib(ModelDatagpu *model_data,
-          double *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
+          double *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
+  int n_rxn=n_rxn2;
   double *state = model_data->state;
   double *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
@@ -465,6 +468,7 @@ __device__ void rxn_gpu_HL_phase_transfer_calc_jac_contrib(ModelDatagpu *model_d
  */
 void * rxn_gpu_HL_phase_transfer_int_size(void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -477,8 +481,10 @@ void * rxn_gpu_HL_phase_transfer_int_size(void *rxn_data)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 void *rxn_gpu_HL_phase_transfer_skip(void *rxn_data) {
+
+  int n_rxn=1;
   int *int_data = (int *) rxn_data;
-double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void *) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -489,6 +495,7 @@ double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 void *rxn_gpu_HL_phase_transfer_print(void *rxn_data) {
+  int n_rxn=1;
   int *int_data = (int *) rxn_data;
   double *float_data = (double *) &(int_data[INT_DATA_SIZE_]);
 

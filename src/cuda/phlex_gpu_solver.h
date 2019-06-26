@@ -37,8 +37,10 @@
 // with cudaDeviceSetCacheConfig, maybe we can reach improvement using 16kb
 //instead of default 48kb
 
-#define MAX_N_GPU_THREAD 1024
-#define MAX_SHARED_MEMORY_BLOCK_DOUBLE 1000
+//TODO: GUILLERMO WTF IS HAPPENING WITH THE THREADS?
+//Knowed bug: Don't increase threads to 1024 or it crash with rxn_data flipped
+#define MAX_N_GPU_THREAD 512
+#define MAX_SHARED_MEMORY_BLOCK_DOUBLE 1024
 
 //#define MAX_N_GPU_BLOCK 10
 
@@ -108,10 +110,16 @@ void solver_new_gpu_cu(SolverDatagpu *sd, int n_dep_var,
      int n_state_var, int *var_type, int n_rxn,
      int n_rxn_int_param, int n_rxn_float_param);
 void solver_update_state_gpu(ModelDatagpu *md);
-void get_rxn_pointers (int *short_pointer0, double *double_pointer0,
+void get_rxn_pointers (int *int_pointer0, double *double_pointer0,
                        unsigned int *int_sizes0, unsigned int *double_sizes0);
 void solveRxncpu(ModelDatagpu *model_data, double *deriv_data,
-                 double time_step, int *int_data, double *float_data, int deriv_length);
+                 double time_step, int *int_data, double *float_data, int deriv_length, int n_rxn);
+//__device__ void rxn_gpu_tmp_arrhenius2(ModelDatagpu *model_data,
+//  double *deriv, int *rxn_data, double * double_pointer_gpu, double time_step, int n_rxn);
+/*__global__ void solveRxnBlock(ModelDatagpu *model_data, double *deriv,
+          double time_step, int deriv_length, int n_rxn, int *int_pointer, double *double_pointer,
+          unsigned int *int_sizes, unsigned int *double_sizes,
+          unsigned int int_max_size, unsigned int double_max_size);*/
 void rxn_calc_deriv_gpu(ModelDatagpu *model_data, N_Vector deriv, realtype time_step);
 void free_gpu_cu();
 void solver_set_data_gpu(ModelDatagpu *model_data);

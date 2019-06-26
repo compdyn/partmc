@@ -510,6 +510,7 @@ if(ENABLE_GPU)
           src/cuda/rxns_gpu/rxn_troe.cu
           src/cuda/rxns_gpu/rxn_wet_deposition.cu
           src/cuda/rxns_gpu/rxn_ZSR_aerosol_water.cu
+          src/cuda/rxns_gpu/rxn_tmp.cu
           src/cuda/aeros_gpu/aero_phase_solver.cu
           src/cuda/aeros_gpu/aero_rep_solver.cu
           src/cuda/aeros_gpu/sub_model_solver.cu
@@ -618,13 +619,13 @@ target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
 #        ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER} test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
 #target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
 
+#[[
 
 ######################################################################
 # test_chemistry_eqsam_v03d
 
 set(EQSAM_V03D
-	test/chemistry/eqsam_v03d/eqsam_v03d.F90
-	)
+	test/chemistry/eqsam_v03d/eqsam_v03d.F90)
 
 add_executable(test_chemistry_eqsam_v03d test/chemistry/eqsam_v03d/test_eqsam_v03d.F90
 	${EQSAM_V03D})
@@ -863,5 +864,6 @@ add_executable(chamber_process
 target_link_libraries(chamber_process partmclib)
 
 ######################################################################
+]]
 
 #TODO: Change add_executable for add_library to fix a bug with make -j 4

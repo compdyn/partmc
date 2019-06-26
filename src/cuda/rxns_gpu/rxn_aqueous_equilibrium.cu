@@ -17,8 +17,8 @@ extern "C"{
 #include "../rxns_gpu.h"
 
 // TODO Lookup environmental indices during initialization
-#define TEMPERATURE_K_ env_data[0]
-#define PRESSURE_PA_ env_data[1]
+#define TEMPERATURE_K_ env_data[0*n_rxn]
+#define PRESSURE_PA_ env_data[1*n_rxn]
 
 // Small number
 #define SMALL_NUMBER_ 1.0e-10//1.0e-30
@@ -58,6 +58,7 @@ extern "C"{
 void * rxn_gpu_aqueous_equilibrium_get_used_jac_elem(void *rxn_data,
           bool **jac_struct)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -110,6 +111,7 @@ void * rxn_gpu_aqueous_equilibrium_get_used_jac_elem(void *rxn_data,
 void * rxn_gpu_aqueous_equilibrium_update_ids(ModelDatagpu *model_data, int *deriv_ids,
           int **jac_ids, void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -199,6 +201,7 @@ void * rxn_gpu_aqueous_equilibrium_update_ids(ModelDatagpu *model_data, int *der
 void * rxn_gpu_aqueous_equilibrium_update_env_state(double *env_data,
           void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -227,6 +230,7 @@ void * rxn_gpu_aqueous_equilibrium_update_env_state(double *env_data,
  */
 void * rxn_gpu_aqueous_equilibrium_pre_calc(ModelDatagpu *model_data, void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -245,8 +249,9 @@ void * rxn_gpu_aqueous_equilibrium_pre_calc(ModelDatagpu *model_data, void *rxn_
 //TODO: Dont work properly in tests, fix it
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
+  int n_rxn=n_rxn2;
   double *state = model_data->state;
   double *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
@@ -360,8 +365,9 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *mod
  */
 #ifdef PMC_USE_SUNDIALS
 void rxn_cpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *model_data,
-          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
+          double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
+  int n_rxn=n_rxn2;
   double *state = model_data->state;
   double *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
@@ -452,8 +458,9 @@ void rxn_cpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *model_data,
  */
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_aqueous_equilibrium_calc_jac_contrib(ModelDatagpu *model_data,
-          double *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length)
+          double *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
+  int n_rxn=n_rxn2;
   double *state = model_data->state;
   double *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
@@ -610,6 +617,7 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_jac_contrib(ModelDatagpu *model
  */
 void * rxn_gpu_aqueous_equilibrium_int_size(void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -623,6 +631,7 @@ void * rxn_gpu_aqueous_equilibrium_int_size(void *rxn_data)
  */
 void * rxn_gpu_aqueous_equilibrium_skip(void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
@@ -636,6 +645,7 @@ void * rxn_gpu_aqueous_equilibrium_skip(void *rxn_data)
  */
 void * rxn_gpu_aqueous_equilibrium_print(void *rxn_data)
 {
+  int n_rxn=1;
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 

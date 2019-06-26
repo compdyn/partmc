@@ -14,7 +14,7 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>s
+#include <time.h>
 #include "phlex_solver.h"
 #include "cuda/phlex_gpu_solver.h"
 #include "aero_rep_solver.h"
@@ -614,7 +614,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   clock_t end2 = clock();
   timeDeriv+= ((double) (end2 - start2));
 
-  //rxn_calc_deriv_no_arrhenius(md, deriv, (double) time_step);
+  //rxn_calc_deriv_no_arrhenius(md, derivgpu, (double) time_step);
 
   //Print deriv (Debug purpose)
   if(counter==29){

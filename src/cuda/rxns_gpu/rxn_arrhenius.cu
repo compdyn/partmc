@@ -38,31 +38,6 @@ extern "C"{
 #define INT_DATA_SIZE_ (NUM_INT_PROP_+(NUM_REACT_+2)*(NUM_REACT_+NUM_PROD_))
 #define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+NUM_PROD_)
 
-
-/*
-#define TEMPERATURE_K_ env_data[0*n_rxn]
-#define PRESSURE_PA_ env_data[1*n_rxn]
-
-#define NUM_REACT_ int_data[0*n_rxn]
-#define NUM_PROD_ int_data[1*n_rxn]
-#define A_ float_data[0]
-#define B_ float_data[1]
-#define C_ float_data[2]
-#define D_ float_data[3]
-#define E_ float_data[4]
-#define CONV_ float_data[5]
-#define RATE_CONSTANT_ float_data[n_rxn*6]
-#define NUM_INT_PROP_ 2
-#define NUM_FLOAT_PROP_ 7
-#define REACT_(x) (int_data[(NUM_INT_PROP_ + x)*n_rxn]-1)
-#define PROD_(x) (int_data[(NUM_INT_PROP_ + NUM_REACT_ + x)*n_rxn]-1)
-#define DERIV_ID_(x) int_data[(NUM_INT_PROP_ + NUM_REACT_ + NUM_PROD_ + x)*n_rxn]
-#define JAC_ID_(x) int_data[(NUM_INT_PROP_ + 2*(NUM_REACT_+NUM_PROD_) + x)*n_rxn]
-#define YIELD_(x) float_data[(NUM_FLOAT_PROP_ + x)*n_rxn]
-#define INT_DATA_SIZE_ (NUM_INT_PROP_+(NUM_REACT_+2)*(NUM_REACT_+NUM_PROD_))
-#define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+NUM_PROD_)
-*/
-
 /** \brief Flag Jacobian elements used by this reaction
  *
  * \param rxn_data A pointer to the reaction data

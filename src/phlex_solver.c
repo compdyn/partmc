@@ -93,6 +93,10 @@ void pmc_debug_print_jac_struct(void *solver_data, const char *message)
 #define DEFAULT_TIME_STEP 1.0
 // Small number used in filtering
 #define SMALL_NUMBER 1.1E-30
+// State advancement factor for Jacobian element evaluation
+#define JAC_CHECK_ADV 1.0E-8
+// Tolerance for Jacobian element evaluation
+#define JAC_CHECK_TOL 1.0E-15
 // Set MAX_TIMESTEP_WARNINGS to a negative number to prevent output
 #define MAX_TIMESTEP_WARNINGS -1
 // Maximum number of steps in discreet addition guess helper
@@ -718,12 +722,68 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
 }
 
+/** \brief Check a Jacobian for accuracy
+ *
+ * This function compares Jacobian elements against differences in derivative
+ * calculations for small changes to the state array:
+ * \f[
+ *   J_{ij}(x) = \frac{f_i(x+\sum_j e_j) - f_i(x)}{\epsilon}
+ * \f]
+ * where \f$\epsilon_j = 10^{-8} \left|x_j\right|\f$
+ *
+ * \param t Current time [s]
+ * \param y Current state array
+ * \param J Jacobian matrix to evaluate
+ * \param deriv Current derivative \f$f(y)\f$
+ * \param tmp Working array the size of \f$y\f$
+ * \param tmp1 Working array the size of \f$y\f$
+ * \param solver_data Solver data
+ * \return True if Jacobian values are accurate, false otherwise
+ */
+bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
+    N_Vector tmp, N_Vector tmp1, void *solver_data) {
+
+  realtype * d_state     = NV_DATA_S(y);
+  realtype * d_deriv     = NV_DATA_S(deriv);
+  realtype * d_adj_state = NV_DATA_S(tmp);
+  realtype * d_adj_deriv = NV_DATA_S(tmp1);
+
+  N_VScale(ONE, y, tmp);
+  for (int i_ind = 0; i_ind < NV_LENGTH_S(y); ++i_ind) {
+    d_adj_state[i_ind] += JAC_CHECK_ADV * fabs(d_state[i_ind]);
+    if (f(t, tmp, tmp1, solver_data)!=0) {
+      return false;
+    }
+    for (int i_elem = SM_INDEXPTRS_S(J)[i_ind];
+         i_elem < SM_INDEXPTRS_S(J)[i_ind+1]; ++i_elem ) {
+      int i_dep = SM_INDEXVALS_S(J)[i_elem];
+      realtype deriv_diff = (d_deriv[i_dep] - d_adj_deriv[i_dep]) /
+                            JAC_CHECK_ADV;
+      if (SM_DATA_S(J)[i_elem] == ZERO) {
+        if (deriv_diff != ZERO) {
+          printf("\n Error in Jacobian[%d][%d] = %le; expected zero\n",
+                  i_ind, i_dep, deriv_diff);
+          return false;
+        }
+      } else {
+        realtype J_diff = (SM_DATA_S(J)[i_elem] - deriv_diff) /
+                           SM_DATA_S(J)[i_elem];
+        if (fabs(J_diff) < JAC_CHECK_TOL) {
+          printf("\n Error in Jacobian[%d][%d] = %le\n", i_ind, i_dep, J_diff);
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
 /** \brief Try to improve guesses of y sent to the linear solver
  *
  * This function checks if there are any negative guessed concentrations,
  * and if there are it calculates a set of initial corrections to the
  * guessed state using the state at time \f$t_{n-1}\f$ and the derivative
- * \f$f_{n-1} and advancing the state according to:
+ * \f$f_{n-1}\f$ and advancing the state according to:
  * \f[
  *   y_n = y_{n-1} + \sum_{j=1}^m h_j * f_j
  * \f]

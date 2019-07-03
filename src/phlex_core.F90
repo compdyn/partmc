@@ -246,7 +246,7 @@ contains
     allocate(new_obj%sub_model(0))
 
     if (present(input_file_path)) then
-      call new_obj%load_files(input_file_path)
+      call new_obj%load_files(trim(input_file_path))
     end if
 
   end function constructor

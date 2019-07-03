@@ -283,6 +283,12 @@ contains
 
     type(solver_stats_t), target :: solver_stats
 
+
+    !    i=2
+    !    j=2
+    !    k=1 !Ttodo:this gives same results
+
+    !j=11 end
     ! Loop through the grid cells
     do i=i_start, i_end
       do j=j_start, j_end
@@ -297,7 +303,8 @@ contains
           ! TODO finish environmental state setup
 
           ! Update species concentrations in PMC
-          this%phlex_state%state_var(:) = 0.0
+          this%phlex_state%state_var(:) = 0.0+0.001 !Test with some state values
+          !this%phlex_state%state_var(:) = 0.0
           this%phlex_state%state_var(this%map_phlex_id(:)) = &
                   this%phlex_state%state_var(this%map_phlex_id(:)) + &
                   MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))

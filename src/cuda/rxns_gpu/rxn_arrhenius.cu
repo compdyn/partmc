@@ -121,6 +121,8 @@ void * rxn_gpu_arrhenius_update_env_state(double *env_data, void *rxn_data)
                    * (E_==0.0 ? 1.0 : (1.0 + E_*PRESSURE_PA_))
                    * pow(CONV_*PRESSURE_PA_/TEMPERATURE_K_, NUM_REACT_-1);
 
+  //TODO: Check if is necessary update gpu here too
+
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
@@ -151,15 +153,15 @@ void * rxn_gpu_arrhenius_pre_calc(ModelDatagpu *model_data, void *rxn_data)
  * \param time_step Current time step being computed (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
+//TODO: model_data->state[i] to calculate independent domains simultaneous
 
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data,
+__device__ void rxn_gpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu,
           double time_step, int deriv_length,int n_rxn2)
 {
 
   int n_rxn=n_rxn2;
-  double *state = model_data->state;//TODO: model_data->state[i] to calculate independent domains simultaneous
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 
@@ -229,12 +231,11 @@ __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_cpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data,
+void rxn_cpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu,
           double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
-  double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 
@@ -273,11 +274,10 @@ void rxn_cpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_arrhenius_calc_jac_contrib(ModelDatagpu *model_data, double *J,
+__device__ void rxn_gpu_arrhenius_calc_jac_contrib(ModelDatagpu *model_data, double *state, double *J,
           void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
-  double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 

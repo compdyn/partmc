@@ -164,11 +164,10 @@ void * rxn_gpu_CMAQ_OH_HNO3_pre_calc(ModelDatagpu *model_data, void *rxn_data)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_CMAQ_OH_HNO3_calc_deriv_contrib(ModelDatagpu *model_data,
+__device__ void rxn_gpu_CMAQ_OH_HNO3_calc_deriv_contrib(ModelDatagpu *model_data, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
-  double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 
@@ -210,11 +209,10 @@ __device__ void rxn_gpu_CMAQ_OH_HNO3_calc_deriv_contrib(ModelDatagpu *model_data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_cpu_CMAQ_OH_HNO3_calc_deriv_contrib(ModelDatagpu *model_data,
+void rxn_cpu_CMAQ_OH_HNO3_calc_deriv_contrib(ModelDatagpu *model_data, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
-  double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 
@@ -253,11 +251,10 @@ void rxn_cpu_CMAQ_OH_HNO3_calc_deriv_contrib(ModelDatagpu *model_data,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_CMAQ_OH_HNO3_calc_jac_contrib(ModelDatagpu *model_data, double *J,
+__device__ void rxn_gpu_CMAQ_OH_HNO3_calc_jac_contrib(ModelDatagpu *model_data, double *state, double *J,
           void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
-  double *state = model_data->state;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 

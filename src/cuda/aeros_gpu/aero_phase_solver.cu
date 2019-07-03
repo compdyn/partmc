@@ -138,7 +138,7 @@ void aero_phase_gpu_get_volume(ModelDatagpu *model_data, int aero_phase_gpu_idx,
                            double *state_var, double *volume, double *jac_elem) {
 
   // Set up a pointer for the partial derivatives
-  void *partial_deriv = NULL;
+  //void *partial_deriv = NULL;
 
   // Get the requested aerosol phase data
   int *int_data = (int *) aero_phase_gpu_find(model_data, aero_phase_gpu_idx);

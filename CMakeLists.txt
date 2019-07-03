@@ -228,6 +228,10 @@ endif()
 if (ENABLE_JSON AND ENABLE_SUNDIALS)
     add_test(test_chemistry_cb05cl_ae5 ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5.sh ${MPI_TEST_FLAG})
     add_test(test_chemistry_cb05cl_ae5_big ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5_big.sh ${MPI_TEST_FLAG})
+
+    add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh ${MPI_TEST_FLAG})
+    add_test(test_MONARCH_2 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_2.sh ${MPI_TEST_FLAG})
+
 endif()
 
 if (ENABLE_TESTS)
@@ -403,6 +407,7 @@ endif()
 ######################################################################
 # partmc library
 
+#Some test fails without -O3 (mock_monarch), maybe because in developing
 #set(STD_C_FLAGS "-std=c++11 -fpermissive")
 set(STD_C_FLAGS "-O3 -std=c99") #"-g -O3 -std=c99 -g"
 set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70")#-dc -arch=compute_70 -code=sm_70
@@ -413,7 +418,7 @@ set(STD_CXX_FLAGS "-fpermissive")#-std=c++11
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
   set(STD_F_FLAGS "-extend_source -warn truncated_source")
 elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
-  set(STD_F_FLAGS "-O3 -ffree-line-length-none")
+  set(STD_F_FLAGS "-O0 -ffree-line-length-none") #-O3
 endif()
 
 set(REACTIONS_F_SRC
@@ -520,7 +525,7 @@ if(ENABLE_GPU)
           src/cuda/rxns_gpu/rxn_troe.cu
           src/cuda/rxns_gpu/rxn_wet_deposition.cu
           src/cuda/rxns_gpu/rxn_ZSR_aerosol_water.cu
-          #src/cuda/rxns_gpu/rxn_tmp.cu
+          src/cuda/rxns_gpu/rxn_tmp.cu
           src/cuda/aeros_gpu/aero_phase_solver.cu
           src/cuda/aeros_gpu/aero_rep_solver.cu
           src/cuda/aeros_gpu/sub_model_solver.cu
@@ -628,6 +633,13 @@ target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
 #add_executable(test_chemistry_cb05cl_ae5_big test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
 #        ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER} test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
 #target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
+
+######################################################################
+# MONARCH interface
+add_executable(mock_monarch test/monarch/mock_monarch.F90
+        test/monarch/pmc_monarch_interface.F90)
+
+target_link_libraries(mock_monarch partmclib)
 
 if (ENABLE_TESTS)
 

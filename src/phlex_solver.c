@@ -385,7 +385,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // Check whether there is anything to solve (filters empty air masses with no
   // emissions)
   //if( is_anything_going_on_here( sd, t_initial, t_final ) == false )
-    //return PHLEX_SOLVER_SUCCESS; //TTodo: Not necessary
+    //return PHLEX_SOLVER_SUCCESS; //TTodo: Not necessary, it calls to calc deriv and is worst
 
   // Reinitialize the solver
   int flag = CVodeReInit(sd->cvode_mem, t_initial, sd->y);
@@ -589,24 +589,28 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   // Run pre-derivative calculations
   rxn_pre_calc(md, (double) time_step);
 
-  // Calculate the time derivative f(t,y) on GPU
-  //Save deriv
-  //N_Vector derivgpu = N_VClone(deriv);//dont work clone
+  //Test purposes
+  for (int i=NV_LENGTH_S(deriv)/2; i<NV_LENGTH_S(deriv); i++){
+      //state[i]=0;
+      realtype *deriv_data = N_VGetArrayPointer(deriv);
+      //deriv_data[i]=0.5;
+  }
 
-  // Update GPU input values (model_data) (state/env)
+  //N_Vector derivtest = N_VClone(deriv);//dont work clone
 
-  N_Vector derivgpu = N_VNew_Serial(NV_LENGTH_S(deriv));
-  N_VConst(ZERO, derivgpu);
+  N_Vector derivtest = N_VNew_Serial(NV_LENGTH_S(deriv));
+  N_VConst(ZERO, derivtest);
 
   clock_t start = clock();
 
   //solver_update_state_gpu(md);TTodo: not working, ask guillermo
-  rxn_calc_deriv_gpu(md, derivgpu, (double) time_step);// it takes x0.3 speedup
+  rxn_calc_deriv_gpu(md, derivtest, (double) time_step);// it takes x0.3 speedup
 
   clock_t end = clock();
   timeDerivgpu+= ((double) (end - start));
 
   clock_t start2 = clock();
+
 
   // Calculate the time derivative f(t,y)
   rxn_calc_deriv(md, deriv, (double) time_step);
@@ -614,7 +618,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   clock_t end2 = clock();
   timeDeriv+= ((double) (end2 - start2));
 
-  //rxn_calc_deriv_no_arrhenius(md, derivgpu, (double) time_step);
+  //rxn_calc_deriv_no_arrhenius(md, derivtest, (double) time_step);
 
   //Print deriv (Debug purpose)
   if(counter==29){
@@ -623,7 +627,10 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 
       printf(" deriv cpu: %le  ", NV_DATA_S(deriv)[i]);
 
-	  printf(" deriv gpu: % -le\n", NV_DATA_S(derivgpu)[i]);
+	  printf(" deriv gpu: % -le", NV_DATA_S(derivtest)[i]);
+
+      double *state = md->state;
+      printf(" state: %f  \n", state[i]);
 
     }
   }
@@ -667,6 +674,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     }
   }
 
+
   // Reset the Jacobian
   SM_NNZ_S(J) = SM_NNZ_S(md->J_init);
   for (int i=0; i<SM_NNZ_S(J); i++) {
@@ -688,6 +696,11 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
   // Run pre-Jacobian calculations
   rxn_pre_calc(md, (double) time_step);
+
+  /*  for (int i=NV_LENGTH_S(deriv)/2; i<NV_LENGTH_S(deriv); i++){
+      double *state = md->state;
+      state[i]=0;
+  }*/
 
   // Calculate the Jacobian
   rxn_calc_jac(md, J, time_step);

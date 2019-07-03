@@ -37,14 +37,15 @@
 // with cudaDeviceSetCacheConfig, maybe we can reach improvement using 16kb
 //instead of default 48kb
 
-//TODO: GUILLERMO WTF IS HAPPENING WITH THE THREADS?
+
 //Knowed bug: Don't increase threads to 1024 or it crash with rxn_data flipped
-#define MAX_N_GPU_THREAD 512
+#define MAX_N_GPU_THREAD 512//512
 #define MAX_SHARED_MEMORY_BLOCK_DOUBLE 1024
 
 //#define MAX_N_GPU_BLOCK 10
 
 #define HANDLE_ERROR( err ) (HandleError( err, __FILE__, __LINE__ ))
+#define HANDLE_ERROR2( ) (HandleError2( __FILE__, __LINE__ ))
 
 
 /* Model data structure */

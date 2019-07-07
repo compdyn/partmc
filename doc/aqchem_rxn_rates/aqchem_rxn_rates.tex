@@ -1,0 +1,56 @@
+\documentclass{article}
+\usepackage[margin=3cm]{geometry}
+\usepackage{amsmath}
+
+\begin{document}
+
+\section{Variables for aqueous chemistry reactions}
+
+For a single reaction the variables are:
+
+\begin{tabular}{ll}
+  $R_f$ & forward rate \\
+  $R_b$ & backward rate \\
+  $C$ & conversion factor (only for \texttt{HENRY} reactions) \\
+  $Y_i$ & yield factor (1, 2, \ldots) for product $i$ \\
+  $w_i$ & mixing ratio for species $i$
+\end{tabular}
+
+\section{Aqueous chemistry reaction rates}
+
+For a single reaction, the production rate of reactant $i$ is:
+\begin{equation}
+  \dot{w}_i^{\text{reactant}} = C(R_b - R_r)
+\end{equation}
+and the production rate of product $i$ is
+\begin{equation}
+  \dot{w}_i^{\text{product}} = Y_i R_f - R_b.
+\end{equation}
+These rates are summed over all reactions for reactants and products
+to give the total rate for each species.
+
+\section{Reaction-string format}
+
+Reactions are output as strings like:
+\begin{verbatim}
+ 88: AQUA: HSO5m(76) + HSO3m(102) + Hp(108) ==> 2*SO4mm(97) + 3*Hp(108) ; rate TEMP3:: 7140000, 0
+\end{verbatim}
+This means that reaction number \texttt{88} is of type \texttt{AQUA}
+and has reactants \texttt{HSO5m}, \texttt{HSO3m}, and \texttt{Hp}. It
+has products \texttt{BRm} (with a yield of $Y_1 = 2$) and \texttt{Hp}
+(with a yield of $Y_2 = 3$). The information after \texttt{rate}
+indicates the type of rate function and the parameters for it.
+
+\section{Notes}
+
+We don't have ``yield'' factors for reactants, but they can be
+repeated like in:
+\begin{verbatim}
+ 123: AQUA: O2CH2COOm(55) + O2CH2COOm(55) ==> 2*CHOH2COOm(32) + aH2O2(98) ; rate TEMP3:: 20000000, 0
+\end{verbatim}
+
+A single species can appear as both a product and reactant in the same
+reaction, so its total production rate for that reaction will be the
+sum of its product rate and reactant rate.
+
+\end{document}

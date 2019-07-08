@@ -120,16 +120,14 @@ void * rxn_gpu_wet_deposition_update_data(void *update_data, void *rxn_data)
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_gpu_wet_deposition_update_env_state(double *env_data, void *rxn_data)
+__device__ void rxn_gpu_wet_deposition_update_env_state(int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data)
 {
-  int n_rxn=1;
+  int n_rxn=n_rxn2;
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = double_pointer_gpu;
 
   // Calculate the rate constant in (1/s)
   RATE_CONSTANT_ = SCALING_ * BASE_RATE_;
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
 /** \brief Do pre-derivative calculations

@@ -336,11 +336,8 @@ __device__ void rxn_gpu_tmp_arrhenius2(
   }
 }
 
-//TODO: Create matrix state/deriv and update offset pointer each thread with % n_rxn
-//TODO: Create array of updated rates(photolysis, emission...) for each domain, acces with % n_rxn
-
 __global__ void solveRxnBlock(ModelDatagpu *model_data, double *state, double *deriv,
-          double time_step, int deriv_length, int n_rxn_total_domains, int num_domains,
+          double time_step, int deriv_length, int n_rxn_total_domains, int num_cells,
           int *int_pointer, double *double_pointer,
           unsigned int int_max_size, unsigned int double_max_size) //Interface CPU/GPU
 {
@@ -367,8 +364,8 @@ __global__ void solveRxnBlock(ModelDatagpu *model_data, double *state, double *d
 
   if (index < n_rxn_total_domains) {
 
-    int deriv_domain_length = deriv_length/num_domains;
-    int n_rxn = n_rxn_total_domains/num_domains;
+    int deriv_domain_length = deriv_length/num_cells;
+    int n_rxn = n_rxn_total_domains/num_cells;
     int domain=index/n_rxn;
 
     int *int_data = (int *) &(((int *) int_pointer)[index%n_rxn]);
@@ -462,10 +459,10 @@ __global__ void solveRxnBlock(ModelDatagpu *model_data, double *state, double *d
 void rxn_calc_deriv_gpu(ModelDatagpu *model_data, N_Vector deriv, realtype time_step) {
 
   // Get a pointer to the derivative data
+  int num_cells = 2;
   realtype *deriv_data = N_VGetArrayPointer(deriv);
   int *rxn_data = (int *) (model_data->rxn_data);
-  int num_domains = 1;
-  int n_rxn_total_domains = rxn_data[0]*num_domains;
+  int n_rxn_total_domains = rxn_data[0]*num_cells;
   double *state = model_data->state;
 
   /*if(countergpu==29) {
@@ -483,6 +480,7 @@ void rxn_calc_deriv_gpu(ModelDatagpu *model_data, N_Vector deriv, realtype time_
   //mdgpu = model_data; //Faster, use for few values
   state_gpu= state; //Faster, use for few values
 
+  //Test to solve a bug with operations
   //rxn_gpu_tmp_arrhenius << < (n_rxn + MAX_N_GPU_THREAD - 1) / MAX_N_GPU_THREAD, MAX_N_GPU_THREAD >> >
    //(
    //mdgpu, derivgpu_data,int_pointer_gpu, double_pointer_gpu, time_step, n_rxn
@@ -493,7 +491,7 @@ void rxn_calc_deriv_gpu(ModelDatagpu *model_data, N_Vector deriv, realtype time_
 
   solveRxnBlock << < (n_rxn_total_domains + MAX_N_GPU_THREAD - 1) / MAX_N_GPU_THREAD, MAX_N_GPU_THREAD >> >
     (mdgpu, state_gpu, derivgpu_data, time_step, NV_LENGTH_S(deriv),
-    n_rxn_total_domains, num_domains, int_pointer_gpu, double_pointer_gpu, int_max_size, double_max_size);
+    n_rxn_total_domains, num_cells, int_pointer_gpu, double_pointer_gpu, int_max_size, double_max_size);
 
   cudaDeviceSynchronize();//retrieve errors (But don't retrieve anything for me)
   HANDLE_ERROR2();//0.5secs

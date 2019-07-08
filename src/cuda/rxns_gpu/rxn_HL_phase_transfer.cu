@@ -16,6 +16,8 @@ extern "C" {
 #include "../rxns_gpu.h"
 
 // TODO Lookup environmental indices during initialization
+#define TEMPERATURE_K_ env_data[0*n_rxn]
+#define PRESSURE_PA_ env_data[1*n_rxn]
 
 // Universal gas constant (J/mol/K)
 #define UNIV_GAS_CONST_ 8.314472
@@ -58,6 +60,48 @@ extern "C" {
 #define NUM_CONC_JAC_ELEM_(x, e) float_data[(PHASE_REAL_LOC_(x) + 3 + NUM_AERO_PHASE_JAC_ELEM_(x) + e)*n_rxn]
 #define INT_DATA_SIZE_ (PHASE_INT_LOC_(NUM_AERO_PHASE_-1)+5+2*NUM_AERO_PHASE_JAC_ELEM_(NUM_AERO_PHASE_-1))
 #define FLOAT_DATA_SIZE_ (PHASE_REAL_LOC_(NUM_AERO_PHASE_-1)+3+2*NUM_AERO_PHASE_JAC_ELEM_(NUM_AERO_PHASE_-1))
+
+/** \brief Update reaction data for new environmental conditions
+ *
+ * For Phase Transfer reaction this only involves recalculating the rate
+ * constant.
+ *
+ * \param env_data Pointer to the environmental state array
+ * \param rxn_data Pointer to the reaction data
+ * \return The rxn_data pointer advanced by the size of the reaction data
+ */
+__device__ void rxn_gpu_HL_phase_transfer_update_env_state(int n_rxn2, double *double_pointer_gpu, double *env_data,
+                                              void *rxn_data)
+{
+  int n_rxn=n_rxn2;
+  int *int_data = (int*) rxn_data;
+  double *float_data = double_pointer_gpu;
+
+  // Calculate the mass accomodation coefficient if the N* parameter
+  // was provided, otherwise set it to 1.0
+  double mass_acc = 1.0;
+  if (DELTA_H_!=0.0 || DELTA_S_!=0.0) {
+    double del_G = DELTA_H_ - TEMPERATURE_K_ * DELTA_S_;
+    mass_acc = exp(-del_G/(UNIV_GAS_CONST_ * TEMPERATURE_K_));
+    mass_acc = mass_acc / (1.0 + mass_acc);
+  }
+
+  // Save c_rms * mass_acc for use in mass transfer rate calc
+  C_AVG_ALPHA_ = PRE_C_AVG_ * sqrt(TEMPERATURE_K_) * mass_acc;
+
+  // Calculate the Henry's Law equilibrium rate constant in units of
+  // (ug_x/ug_H2O/ppm) where x is the aerosol-phase species. (A was saved in
+  // units of M/ppm.)
+  if (C_==0.0) {
+    EQUIL_CONST_ = A_ * MW_;
+  } else {
+    EQUIL_CONST_ = A_ * exp(C_ * (1.0/TEMPERATURE_K_ - 1.0/298.0)) * MW_;
+  }
+
+  // Calculate the conversion from ug/m^3 -> ppm
+  UGM3_TO_PPM_ = CONV_ * TEMPERATURE_K_ / PRESSURE_PA_;
+
+}
 
 /** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
  * this reaction.

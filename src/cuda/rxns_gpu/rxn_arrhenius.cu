@@ -100,18 +100,18 @@ void * rxn_gpu_arrhenius_update_ids(ModelDatagpu *model_data, int *deriv_ids,
 
 /** \brief Update reaction data for new environmental conditions
  *
- * For Arrhenius reaction this only involves recalculating the rate
+ * For Arrhenius reaction this only involves recalculating the r0ate
  * constant.
  *
  * \param env_data Pointer to the environmental state array
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_gpu_arrhenius_update_env_state(double *env_data, void *rxn_data)
+__device__ void rxn_gpu_arrhenius_update_env_state(int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data)
 {
-  int n_rxn=1;
+  int n_rxn=n_rxn2;
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = double_pointer_gpu;
 
 
   // Calculate the rate constant in (#/cc)
@@ -121,9 +121,9 @@ void * rxn_gpu_arrhenius_update_env_state(double *env_data, void *rxn_data)
                    * (E_==0.0 ? 1.0 : (1.0 + E_*PRESSURE_PA_))
                    * pow(CONV_*PRESSURE_PA_/TEMPERATURE_K_, NUM_REACT_-1);
 
-  //TODO: Check if is necessary update gpu here too
+  //TODO: if (multiple_domains) save on array rate_constant structure
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+  //TODO: Comment Matt, to eliminate pre_calc or join it with this update
 }
 
 /** \brief Do pre-derivative calculations
@@ -140,7 +140,6 @@ void * rxn_gpu_arrhenius_pre_calc(ModelDatagpu *model_data, void *rxn_data)
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
-
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
@@ -153,7 +152,6 @@ void * rxn_gpu_arrhenius_pre_calc(ModelDatagpu *model_data, void *rxn_data)
  * \param time_step Current time step being computed (s)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-//TODO: model_data->state[i] to calculate independent domains simultaneous
 
 #ifdef PMC_USE_SUNDIALS
 __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data, double *state,

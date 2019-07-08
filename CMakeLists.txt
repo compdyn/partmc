@@ -18,6 +18,7 @@ option(ENABLE_GSL "Enable GSL library for random number generation" OFF)
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF) #OFF
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" ON)
+option(ENABLE_MULTIPLE_CELLS "Enable using multiple cells on the solver " OFF)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
 option(ENABLE_JSON "Enable json-fortran support" ON)#ON
 option(ENABLE_TESTS "Enable tests" OFF)#ON
@@ -143,6 +144,13 @@ if(ENABLE_SUNDIALS)
   set(SUNDIALS_SRC src/condense_solver.c)
   include_directories(${SUNDIALS_INCLUDE_DIR} ${SUITE_SPARSE_INCLUDE_DIR})
   add_definitions(-DPMC_USE_SUNDIALS)
+endif()
+
+######################################################################
+# Multiple Cells on solving
+
+if(ENABLE_ENABLE_MULTIPLE_CELLS)
+    add_definitions(-DMULTIPLE_CELLS)
 endif()
 
 ######################################################################

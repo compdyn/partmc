@@ -22,7 +22,7 @@ void * rxn_gpu_aqueous_equilibrium_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_aqueous_equilibrium_update_ids(
           ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
-void * rxn_gpu_aqueous_equilibrium_update_env_state(
+__device__ void rxn_gpu_aqueous_equilibrium_update_env_state(int n_rxn2, double *double_pointer_gpu,
           double *env_data, void *rxn_data);
 void * rxn_gpu_aqueous_equilibrium_pre_calc(
           ModelDatagpu *model_data, void *rxn_data);
@@ -46,7 +46,7 @@ void * rxn_gpu_arrhenius_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_arrhenius_update_ids(
           ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
-void * rxn_gpu_arrhenius_update_env_state(
+__device__ void rxn_gpu_arrhenius_update_env_state(int n_rxn2, double *double_pointer_gpu,
           double *env_data, void *rxn_data);
 void * rxn_gpu_arrhenius_pre_calc(
           ModelDatagpu *model_data, void *rxn_data);
@@ -70,7 +70,7 @@ void * rxn_gpu_CMAQ_H2O2_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_CMAQ_H2O2_update_ids(
           ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
-void * rxn_gpu_CMAQ_H2O2_update_env_state(
+__device__ void rxn_gpu_CMAQ_H2O2_update_env_state(int n_rxn2, double *double_pointer_gpu,
           double *env_data, void *rxn_data);
 void * rxn_gpu_CMAQ_H2O2_pre_calc(
           ModelDatagpu *model_data, void *rxn_data);
@@ -94,7 +94,7 @@ void * rxn_gpu_CMAQ_OH_HNO3_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_CMAQ_OH_HNO3_update_ids(
           ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
-void * rxn_gpu_CMAQ_OH_HNO3_update_env_state(
+__device__ void rxn_gpu_CMAQ_OH_HNO3_update_env_state(int n_rxn2, double *double_pointer_gpu,
           double *env_data, void *rxn_data);
 void * rxn_gpu_CMAQ_OH_HNO3_pre_calc(
           ModelDatagpu *model_data, void *rxn_data);
@@ -118,7 +118,7 @@ void * rxn_gpu_condensed_phase_arrhenius_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_condensed_phase_arrhenius_update_ids(
           ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
-void * rxn_gpu_condensed_phase_arrhenius_update_env_state(
+__device__ void rxn_gpu_condensed_phase_arrhenius_update_env_state(int n_rxn2, double *double_pointer_gpu,
           double *env_data, void *rxn_data);
 void * rxn_gpu_condensed_phase_arrhenius_pre_calc(
           ModelDatagpu *model_data, void *rxn_data);
@@ -142,7 +142,7 @@ void * rxn_gpu_emission_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_emission_update_ids(
           ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
-void * rxn_gpu_emission_update_env_state(
+__device__ void rxn_gpu_emission_update_env_state(int n_rxn2, double *double_pointer_gpu,
           double *env_data, void *rxn_data);
 void * rxn_gpu_emission_pre_calc(
           ModelDatagpu *model_data, void *rxn_data);
@@ -171,7 +171,7 @@ void * rxn_gpu_first_order_loss_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_first_order_loss_update_ids(
           ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
-void * rxn_gpu_first_order_loss_update_env_state(
+__device__ void rxn_gpu_first_order_loss_update_env_state(int n_rxn2, double *double_pointer_gpu,
           double *env_data, void *rxn_data);
 void * rxn_gpu_first_order_loss_pre_calc(
           ModelDatagpu *model_data, void *rxn_data);
@@ -196,6 +196,8 @@ void rxn_gpu_first_order_loss_set_rate_update_data(
           void *update_data, int rxn_id, double base_rate);
 
 // HL_phase_transfer
+__device__ void rxn_gpu_HL_phase_transfer_update_env_state(int n_rxn2, double *double_pointer_gpu, double *env_data,
+                                                           void *rxn_data);
 void * rxn_gpu_HL_phase_transfer_int_size(void *rxn_data);
 void * rxn_gpu_HL_phase_transfer_skip(
           void *rxn_data);
@@ -216,7 +218,7 @@ void * rxn_gpu_PDFiTE_activity_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_PDFiTE_activity_update_ids(
           ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
-void * rxn_gpu_PDFiTE_activity_update_env_state(double *env_data,
+__device__ void rxn_gpu_PDFiTE_activity_update_env_state(int n_rxn2, double *double_pointer_gpu, double *env_data,
           void *rxn_data);
 void * rxn_gpu_PDFiTE_activity_pre_calc(
           ModelDatagpu *model_data, void *rxn_data);
@@ -240,7 +242,7 @@ void * rxn_gpu_photolysis_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_photolysis_update_ids(
           ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
-void * rxn_gpu_photolysis_update_env_state(
+__device__ void rxn_gpu_photolysis_update_env_state(int n_rxn2, double *double_pointer_gpu,
           double *env_data, void *rxn_data);
 void * rxn_gpu_photolysis_pre_calc(
           ModelDatagpu *model_data, void *rxn_data);
@@ -266,6 +268,8 @@ void rxn_gpu_photolysis_set_rate_update_data(
 
 
 // SIMPOL_phase_transfer
+__device__ void rxn_gpu_SIMPOL_phase_transfer_update_env_state(int n_rxn2, double *double_pointer_gpu, double *env_data,
+                                                           void *rxn_data);
 void * rxn_gpu_SIMPOL_phase_transfer_int_size(void *rxn_data);
 void * rxn_gpu_SIMPOL_phase_transfer_skip(
           void *rxn_data);
@@ -286,7 +290,7 @@ void * rxn_gpu_troe_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_troe_update_ids(
           ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
-void * rxn_gpu_troe_update_env_state(
+__device__ void rxn_gpu_troe_update_env_state(int n_rxn2, double *double_pointer_gpu,
           double *env_data, void *rxn_data);
 void * rxn_gpu_troe_pre_calc(ModelDatagpu *model_data, void *rxn_data);
 void * rxn_gpu_troe_int_size(void *rxn_data);
@@ -309,7 +313,7 @@ void * rxn_gpu_wet_deposition_get_used_jac_elem(
           void *rxn_data, bool **jac_struct);
 void * rxn_gpu_wet_deposition_update_ids(
           ModelDatagpu *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
-void * rxn_gpu_wet_deposition_update_env_state(
+__device__ void rxn_gpu_wet_deposition_update_env_state(int n_rxn2, double *double_pointer_gpu,
           double *env_data, void *rxn_data);
 void * rxn_gpu_wet_deposition_pre_calc(
           ModelDatagpu *model_data, void *rxn_data);
@@ -334,6 +338,8 @@ void rxn_gpu_wet_deposition_set_rate_update_data(
           void *update_data, int rxn_id, double base_rate);
 
 // ZSR_aerosol_water
+__device__ void rxn_gpu_ZSR_aerosol_water_update_env_state(int n_rxn2, double *double_pointer_gpu, double *env_data,
+                                                           void *rxn_data);
 void * rxn_gpu_ZSR_aerosol_water_int_size(void *rxn_data);
 void * rxn_gpu_ZSR_aerosol_water_skip(
           void *rxn_data);

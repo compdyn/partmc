@@ -95,7 +95,7 @@ program mock_monarch
   character(len=:), allocatable :: output_file_prefix
 
   character(len=500) :: arg
-  integer :: status_code, i_time
+  integer :: status_code, i_time, num_cells
 
 
   ! Check the command line arguments
@@ -119,8 +119,12 @@ program mock_monarch
   call assert_msg(664104564, status_code.eq.0, "Error getting PartMC-phlex "//&
           "<-> MONARCH interface configuration file name")
   interface_input_file = trim(arg)
+
+  !Cells to solve simultaneously
+  num_cells = I_E - I_W
+
   pmc_interface => monarch_interface_t(phlex_input_file, interface_input_file, &
-          START_PHLEX_ID, END_PHLEX_ID)
+          START_PHLEX_ID, END_PHLEX_ID, num_cells)
   deallocate(phlex_input_file)
   deallocate(interface_input_file)
 
@@ -141,9 +145,11 @@ program mock_monarch
   ! Run the model
   do i_time=0, NUM_TIME_STEP
 
+    
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! **** Add to MONARCH during runtime for each time step **** !
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
     call output_results(curr_time)
     call pmc_interface%integrate(curr_time,         & ! Starting time (min)

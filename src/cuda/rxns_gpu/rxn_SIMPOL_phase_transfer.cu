@@ -16,6 +16,9 @@ extern "C"{
 #include "../aeros_gpu/sub_model_solver_gpu.h"
 
 // TODO Lookup environmental indices during initialization
+#define TEMPERATURE_K_ env_data[0*n_rxn]
+#define PRESSURE_PA_ env_data[1*n_rxn]
+
 // Universal gas constant (J/mol/K)
 #define UNIV_GAS_CONST_ 8.314472
 // Small number for ignoring low concentrations
@@ -49,6 +52,59 @@ extern "C"{
 #define AERO_ADJ_(x) (float_data[(NUM_FLOAT_PROP_ + NUM_AERO_PHASE_ + x)*n_rxn])
 #define INT_DATA_SIZE_ (NUM_INT_PROP_+2+8*(NUM_AERO_PHASE_))
 #define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+2*(NUM_AERO_PHASE_))
+
+
+/** \brief Update reaction data for new environmental conditions
+ *
+ * For Phase Transfer reaction this only involves recalculating the rate
+ * constant.
+ *
+ * \param env_data Pointer to the environmental state array
+ * \param rxn_data Pointer to the reaction data
+ * \return The rxn_data pointer advanced by the size of the reaction data
+ */
+__device__ void rxn_gpu_SIMPOL_phase_transfer_update_env_state(int n_rxn2, double *double_pointer_gpu, double *env_data,
+                                                  void *rxn_data)
+{
+  int n_rxn=n_rxn2;
+  int *int_data = (int*) rxn_data;
+  double *float_data = double_pointer_gpu;
+
+  // Calculate the mass accomodation coefficient if the N* parameter
+  // was provided, otherwise set it to 1.0
+  double mass_acc = 1.0;
+  if (DELTA_H_!=0.0 || DELTA_S_!=0.0) {
+    double del_G = DELTA_H_ - TEMPERATURE_K_ * DELTA_S_;
+    mass_acc = exp(-del_G/(UNIV_GAS_CONST_ * TEMPERATURE_K_));
+    mass_acc = mass_acc / (1.0 + mass_acc);
+  }
+
+  // Save c_rms * mass_acc for use in mass transfer rate calc
+  C_AVG_ALHPA_ = PRE_C_AVG_ * sqrt(TEMPERATURE_K_) * mass_acc;
+
+  // SIMPOL.1 vapor pressure (Pa)
+  double vp = B1_ / TEMPERATURE_K_
+              + B2_ + B3_ * TEMPERATURE_K_
+              + B4_ * log(TEMPERATURE_K_);
+  vp = 101325.0 * pow(10, vp);
+
+  // Calculate the conversion from ug_x/m^3 -> ppm_x
+  UGM3_TO_PPM_ = CONV_ * TEMPERATURE_K_ / PRESSURE_PA_;
+
+  // Calculate the partitioning coefficient K_eq (ppm_x/ug_x*ug_tot/kg_tot)
+  // such that for partitioning species X at equilibrium:
+  //   [X]_gas = [X]_aero * activity_coeff_X * K_eq * MW_tot_aero / [tot]_aero
+  // where 'tot' indicates all species within an aerosol phase combined
+  // with []_gas in (ppm) and []_aero in (ug/m^3)
+  EQUIL_CONST_ = vp                    // (Pa_x*mol_tot/mol_x)
+                 / PRESSURE_PA_       // (1/Pa_air)
+                 / MW_                // (mol_x/kg_x)
+                 * 1.0e6;             // 1.0e6ppm_x*Pa_air/Pa_x *
+  //  1.0e-9kg_x/ug_x * 1.0e9ug_tot/kg_tot
+
+}
+
+
 
 /** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
  * this reaction.

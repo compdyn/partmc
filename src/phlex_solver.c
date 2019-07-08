@@ -150,6 +150,7 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   int n_dep_var = 0;
   for (int i=0; i<n_state_var; i++)
     if (var_type[i]==CHEM_SPEC_VARIABLE) n_dep_var++;
+    //n_dep_var++;
 
 #ifdef PMC_USE_SUNDIALS
   // Set up the solver variable array and helper derivative array
@@ -352,6 +353,8 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 #ifdef PMC_USE_SUNDIALS
   SolverData *sd = (SolverData*) solver_data;
 
+    //TtODO: When jacobian gpu coded, update rates only on gpu, for the moment update on cpu too
+
   // Update the dependent variables
   for (int i_spec=0, i_dep_var=0; i_spec<sd->model_data.n_state_var; i_spec++)
     if (sd->model_data.var_type[i_spec]==CHEM_SPEC_VARIABLE)
@@ -378,9 +381,11 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // Set the initial time step
   sd->init_time_step = (t_final - t_initial) * DEFAULT_TIME_STEP;
 
-    //Set gpu values
-  //TODO: This increase execution time so much
-  solver_set_data_gpu(&(sd->model_data)); //Don't move this forward, calc_deriv is call somewhere in the next instructions
+    //Set gpu values only 1 time
+  solver_set_data_gpu(&(sd->model_data));
+
+  //TODO:Gpu Update
+  //rxn_update_env_state_gpu(&(sd->model_data), env);
 
   // Check whether there is anything to solve (filters empty air masses with no
   // emissions)
@@ -604,7 +609,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   clock_t start = clock();
 
   //solver_update_state_gpu(md);TTodo: not working, ask guillermo
-  rxn_calc_deriv_gpu(md, derivtest, (double) time_step);// it takes x0.3 speedup
+  rxn_calc_deriv_gpu(md, deriv, (double) time_step);// it takes x0.3 speedup
 
   clock_t end = clock();
   timeDerivgpu+= ((double) (end - start));
@@ -613,7 +618,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 
 
   // Calculate the time derivative f(t,y)
-  rxn_calc_deriv(md, deriv, (double) time_step);
+  rxn_calc_deriv(md, derivtest, (double) time_step);
 
   clock_t end2 = clock();
   timeDeriv+= ((double) (end2 - start2));
@@ -625,9 +630,9 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
     //printf(" deriv length: %d\n", NV_LENGTH_S(deriv));
     for (int i=0; i<NV_LENGTH_S(deriv); i++) {
 
-      printf(" deriv cpu: %le  ", NV_DATA_S(deriv)[i]);
+      printf(" deriv cpu: %le  ", NV_DATA_S(derivtest)[i]);
 
-	  printf(" deriv gpu: % -le", NV_DATA_S(derivtest)[i]);
+	  printf(" deriv gpu: % -le", NV_DATA_S(deriv)[i]);
 
       double *state = md->state;
       printf(" state: %f  \n", state[i]);
@@ -660,6 +665,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   ModelData *md = &(sd->model_data);
   realtype time_step;
 
+  //TODO: Try calculate jac and deriv outside this functions, and sending the same deriv and jac on cvode iters
+
   // Update the state array with the current dependent variable values
   // Signal a recoverable error (positive return value) for negative
   // concentrations.
@@ -669,11 +676,10 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   // for species that are currently at zero concentration
   for (int i_spec=0, i_dep_var=0; i_spec<md->n_state_var; i_spec++) {
     if (md->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
-      md->state[i_spec] += NV_DATA_S(deriv)[i_dep_var] * SMALL_NUMBER;
+      md->state[i_spec] += NV_DATA_S(deriv)[i_dep_var] * SMALL_NUMBER;//TODO:Matt explain me this +=
       i_dep_var++;
     }
   }
-
 
   // Reset the Jacobian
   SM_NNZ_S(J) = SM_NNZ_S(md->J_init);

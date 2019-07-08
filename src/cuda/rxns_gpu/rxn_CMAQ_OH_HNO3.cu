@@ -110,11 +110,11 @@ void * rxn_gpu_CMAQ_OH_HNO3_update_ids(ModelDatagpu *model_data, int *deriv_ids,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_gpu_CMAQ_OH_HNO3_update_env_state(double *env_data, void *rxn_data)
+__device__ void rxn_gpu_CMAQ_OH_HNO3_update_env_state(int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data)
 {
-  int n_rxn=1;
+  int n_rxn=n_rxn2;
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = double_pointer_gpu;
 
   // Calculate the rate constant in (#/cc)
   double conv = CONV_ * PRESSURE_PA_ / TEMPERATURE_K_;
@@ -134,7 +134,6 @@ void * rxn_gpu_CMAQ_OH_HNO3_update_env_state(double *env_data, void *rxn_data)
 	  + k3 / (((double)1.0) + k3 / k2)
 	  ) * pow(conv, NUM_REACT_-1) * SCALING_;
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
 /** \brief Do pre-derivative calculations

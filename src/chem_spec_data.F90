@@ -77,6 +77,14 @@ module pmc_chem_spec_data
     integer(kind=i_kind), pointer :: spec_phase(:) => null()
     !> Species property set
     type(property_t), pointer :: property_set(:) => null()
+    !> Species name first cell
+    type(string_t), pointer :: spec_name_1_cell(:) => null()
+    !> Species type first cell
+    integer(kind=i_kind), pointer :: spec_type_1_cell(:) => null()
+    !> Species phase first cell
+    integer(kind=i_kind), pointer :: spec_phase_1_cell(:) => null()
+    !> Species property set first cell
+    type(property_t), pointer :: property_set_1_cell(:) => null()
   contains
     !> Load species from an input file
     procedure :: load
@@ -112,6 +120,8 @@ module pmc_chem_spec_data
     procedure :: gas_state_name
     !> Print out the species data
     procedure :: print => do_print
+    !> Add multiple data cells common data
+    procedure :: add_multiple_cells
     !> Finalize the chemical species data
     final :: finalize
 
@@ -150,6 +160,10 @@ contains
     allocate(new_obj%spec_type(alloc_size))
     allocate(new_obj%spec_phase(alloc_size))
     allocate(new_obj%property_set(alloc_size))
+    allocate(new_obj%spec_name_1_cell(alloc_size))
+    allocate(new_obj%spec_type_1_cell(alloc_size))
+    allocate(new_obj%spec_phase_1_cell(alloc_size))
+    allocate(new_obj%property_set_1_cell(alloc_size))
 
   end function constructor
 
@@ -237,6 +251,7 @@ contains
     ! cycle through the species properties to find the name, type and phase
     ! and load the remaining data into the species property set
     next => null()
+    !child => null()
     call json%get_child(j_obj, child)
     do while (associated(child))
       call json%info(child, name=key, var_type=var_type)
@@ -295,7 +310,10 @@ contains
       child => next
     end do
 
+    !print*,'chem_load'
+
     ! Add or update the species data
+    ! in each cell data
     call this%add(spec_name, spec_type, spec_phase, property_set)
 
     ! deallocate the temporary property set
@@ -720,7 +738,7 @@ contains
     !> Property set for new species
     type(property_t), intent(inout), optional :: property_set
 
-    integer(kind=i_kind) :: i_spec
+    integer(kind=i_kind) :: i_spec, i
 
     ! if the species exists, append the new data
     if (this%find(spec_name, i_spec)) then
@@ -746,21 +764,61 @@ contains
       this%spec_phase(i_spec) = spec_phase
       call this%property_set(i_spec)%update(property_set, spec_name)
 
+      !print*,'O claro'
+
     ! ... otherwise, create a new species
     else
       call this%ensure_size(1)
+      !print*,'add chem_spec_data else call'
       this%num_spec = this%num_spec + 1
       this%spec_name(this%num_spec)%string = spec_name
       this%spec_type(this%num_spec) = spec_type
       this%spec_phase(this%num_spec) = spec_phase
       if (present(property_set)) then
-        call property_set%move(this%property_set(this%num_spec))
+          call property_set%move(this%property_set(this%num_spec))
       else
-        this%property_set(this%num_spec) = property_t()
+          this%property_set(this%num_spec) = property_t()
       end if
+      !end do
+
     end if
 
   end subroutine add
+
+  !> Duplicate chemical species common data per num cells
+  subroutine add_multiple_cells(this, num_cells_to_add)
+
+    !> Species dataset
+    class(chem_spec_data_t), intent(inout) :: this
+
+    !Num cells to add
+    integer(kind=i_kind), intent(inout) :: num_cells_to_add
+
+    integer(kind=i_kind) :: i_spec, i, j
+
+    this%spec_name_1_cell(:) = this%spec_name(:)
+    this%spec_type_1_cell(:) = this%spec_type(:)
+    this%spec_phase_1_cell(:) = this%spec_phase(:)
+
+    ! Duplicate species common data for all cells
+    do i=1, num_cells_to_add
+      do j=1, size(this%spec_name_1_cell)
+      call this%ensure_size(1)
+      !print*,'add_mult chem_spec_data else call'
+      this%num_spec = this%num_spec + 1
+      this%spec_name(this%num_spec)%string = this%spec_name_1_cell(j)%string
+      this%spec_type(this%num_spec) = this%spec_type_1_cell(j)
+      this%spec_phase(this%num_spec) = this%spec_phase_1_cell(j)
+      !if (present(property_set)) then
+      !  call property_set%move(this%property_set(this%num_spec))
+      !else
+      this%property_set(this%num_spec) = this%property_set_1_cell(j)
+      !end if
+      end do
+    end do
+
+    end subroutine add_multiple_cells
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

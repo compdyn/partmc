@@ -137,6 +137,8 @@ module pmc_phlex_core
     type(aero_phase_data_ptr), pointer :: aero_phase(:) => null()
     !> Size of the state array
     integer(kind=i_kind) :: state_array_size
+    !> Number of cells to compute
+    integer(kind=i_kind) :: num_cells = 1
     !> Initial state values
     real(kind=dp), allocatable :: init_state(:)
     !> Flag to split gas- and aerosol-phase reactions
@@ -228,12 +230,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for phlex_core_t
-  function constructor(input_file_path) result(new_obj)
+  function constructor(input_file_path, num_cells_aux) result(new_obj)
 
     !> A new set of model parameters
     type(phlex_core_t), pointer :: new_obj
     !> Part-MC input file paths
     character(len=:), allocatable, intent(in), optional :: input_file_path
+    !> Num cells to compute simulatenously
+    integer(kind=i_kind), optional :: num_cells_aux
 
     allocate(new_obj)
     allocate(new_obj%mechanism(0))
@@ -241,6 +245,10 @@ contains
     allocate(new_obj%aero_phase(0))
     allocate(new_obj%aero_rep(0))
     allocate(new_obj%sub_model(0))
+
+    if (present(num_cells_aux)) then
+      new_obj%num_cells=num_cells_aux
+    end if
 
     if (present(input_file_path)) then
       call new_obj%load_files(input_file_path)
@@ -286,7 +294,7 @@ contains
 
     logical(kind=json_lk) :: found
     character(kind=json_ck, len=:), allocatable :: unicode_str_val
-    integer(kind=json_ik) :: i_file, num_files
+    integer(kind=json_ik) :: i_file, num_files, i, num_cells_to_add
     type(string_t), allocatable :: file_list(:)
     logical :: file_exists
 
@@ -329,7 +337,14 @@ contains
     call j_file%destroy()
 
     ! load all the configuration files
+    !  print*, "num_cells iter"
     call this%load(file_list)
+
+    !num_cells=2
+
+    ! TODO: add multiple cells
+    num_cells_to_add=this%num_cells-1
+    call this%chem_spec_data%add_multiple_cells(num_cells_to_add)
 
 #else
     call warn_msg(171627969, "No support for input files.");
@@ -396,7 +411,7 @@ contains
     !> Part-MC input file paths
     type(string_t), allocatable, intent(in) :: input_file_path(:)
 
-    integer(kind=i_kind) :: i_file
+    integer(kind=i_kind) :: i_file, cell
 #ifdef PMC_USE_JSON
     type(json_core), pointer :: json
     type(json_file) :: j_file
@@ -478,6 +493,9 @@ contains
 
         ! load a chemical species
         else if (str_val.eq.'CHEM_SPEC') then
+          !if (cell.eq.2) then
+          !  print*,'numcell 2'
+          !end if
           call this%chem_spec_data%load(json, j_obj)
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -652,6 +670,8 @@ contains
     ! Set the size of the state array
     this%state_array_size = i_state_var - 1
 
+    !this%state_array_size = this%state_array_size*2
+
     ! Initialize the mechanisms
     do i_mech = 1, size(this%mechanism)
       call this%mechanism(i_mech)%val%initialize(this%chem_spec_data, &
@@ -702,12 +722,17 @@ contains
 
     ! Make sure absolute tolerance and variable type arrays are completely
     ! filled
-    call assert_msg(501609702, i_state_var.eq.this%state_array_size, &
-            "Internal error. Filled "//trim(to_string(i_state_var))// &
-            " of "//trim(to_string(this%state_array_size))// &
-            " elements of absolute tolerance and variable type arrays")
+    !call assert_msg(501609702, i_state_var.eq.this%state_array_size, &
+    !        "Internal error. Filled "//trim(to_string(i_state_var))// &
+    !        " of "//trim(to_string(this%state_array_size))// &
+    !        " elements of absolute tolerance and variable type arrays")
 
     this%core_is_initialized = .true.
+
+    !If multiple_cells allowed increase size of state array
+    !Ifdef MULTIPLE_CELLS
+    !this%state_array_size = this%state_array_size * 2
+    !Endif
 
     ! Set the initial state values
     allocate(this%init_state(this%state_array_size))
@@ -1170,6 +1195,21 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+!> Set number of cells to compute simultaneously
+  subroutine set_num_cells(this, num_cells_aux)
+
+    !> Core data
+    class(phlex_core_t), intent(inout) :: this
+    !> Parameter id
+    integer(kind=i_kind) :: num_cells_aux
+
+    this%num_cells = num_cells_aux
+
+  end subroutine set_num_cells
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
   !> Determine the size of a binary required to pack the mechanism
   integer(kind=i_kind) function pack_size(this, comm)
 
@@ -1524,6 +1564,7 @@ contains
     type(aero_rep_data_ptr), pointer :: new_aero_rep(:)
     type(aero_rep_factory_t) :: aero_rep_factory
 
+    !TODO: Improve this multiple reallocation !cguzman
     allocate(new_aero_rep(size(this%aero_rep)+1))
 
     new_aero_rep(1:size(this%aero_rep)) = &

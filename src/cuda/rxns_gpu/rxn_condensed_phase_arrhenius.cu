@@ -154,12 +154,12 @@ void * rxn_gpu_condensed_phase_arrhenius_update_ids(ModelDatagpu *model_data,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_gpu_condensed_phase_arrhenius_update_env_state(double *env_data,
+__device__ void rxn_gpu_condensed_phase_arrhenius_update_env_state(int n_rxn2, double *double_pointer_gpu, double *env_data,
           void *rxn_data)
 {
-  int n_rxn=1;
+  int n_rxn=n_rxn2;
   int *int_data = (int*) rxn_data;
-  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+  double *float_data = double_pointer_gpu;
 
   // Calculate the rate constant in (M or mol/m3)
   // k = A*exp(C/T) * (T/D)^B * (1+E*P)
@@ -167,7 +167,6 @@ void * rxn_gpu_condensed_phase_arrhenius_update_env_state(double *env_data,
           * (B_==0.0 ? 1.0 : pow(TEMPERATURE_K_/D_, B_))
           * (E_==0.0 ? 1.0 : (1.0 + E_*PRESSURE_PA_));
 
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
 /** \brief Do pre-derivative calculations

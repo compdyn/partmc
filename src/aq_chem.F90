@@ -40,7 +40,7 @@ contains
     !> Aqueous chemistry state
     type(aq_state_t), intent(inout) :: aq_state
     !> Aqueous chemistry state containing initial and constant species concentrations
-    type(aq_state_t), intent(inout) :: aq_state_init
+    type(aq_state_t), intent(in) :: aq_state_init
     !> Gas data
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state
@@ -138,15 +138,15 @@ contains
     !> Aqueous chemistry related species data
     type(aq_spec_data_t), intent(in), target :: aq_spec_data
     !> Aqueous chemistry state containing initial and constant species concentrations
-    type(aq_state_t), intent(inout) :: aq_state_init
+    type(aq_state_t), intent(in) :: aq_state_init
     !> Gas data
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state
-    type(gas_state_t), intent(inout) :: gas_state
+    type(gas_state_t), intent(in) :: gas_state
     !> Aerosol data
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state
-    type(aero_state_t), intent(inout) :: aero_state
+    type(aero_state_t), intent(in) :: aero_state
     !> NetCDF file ID, in data mode.
     integer, intent(in) :: ncid
 
@@ -162,14 +162,15 @@ contains
 
     
     
-  end subroutine aq_chem_compute_rates
+  end subroutine aq_chem_rates_output_netcdf
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Compute instantaneous rates for aqueous chemistry.
   subroutine aq_chem_compute_rates(env_state, aq_mech_data, aq_spec_data, &
        aq_state_init, gas_data, gas_state, aero_data, aero_state, &
-       aq_chem_rates)
+       aq_chem_rates_forward, aq_chem_rates_backward, &
+       aq_chem_rates_conv_factors)
 
     !> Environment state
     type(env_state_t), intent(in) :: env_state
@@ -178,15 +179,15 @@ contains
     !> Aqueous chemistry related species data
     type(aq_spec_data_t), intent(in), target :: aq_spec_data
     !> Aqueous chemistry state containing initial and constant species concentrations
-    type(aq_state_t), intent(inout) :: aq_state_init
+    type(aq_state_t), intent(in) :: aq_state_init
     !> Gas data
     type(gas_data_t), intent(in) :: gas_data
     !> Gas state
-    type(gas_state_t), intent(inout) :: gas_state
+    type(gas_state_t), intent(in) :: gas_state
     !> Aerosol data
     type(aero_data_t), intent(in) :: aero_data
     !> Aerosol state
-    type(aero_state_t), intent(inout) :: aero_state
+    type(aero_state_t), intent(in) :: aero_state
     !> Aqueous chemistry reaction forward rates
     real(kind=dp), intent(inout), allocatable :: aq_chem_rates_forward(:,:)
     !> Aqueous chemistry reaction backward rates
@@ -221,6 +222,7 @@ contains
 
     ! Reset the aqueous chemistry species concentrations to start
     ! with initial and constant concentrations
+    call aq_state_allocate(aq_state)
     call aq_state_copy(aq_state_init, aq_state)
 
     ! Map PMC gas-phase species to aqueous chemistry species
@@ -263,7 +265,7 @@ contains
     !> Aqueous chemistry state
     type(aq_state_t), intent(inout) :: aq_state
     !> Gas state
-    type(gas_state_t), intent(inout) :: gas_state
+    type(gas_state_t), intent(in) :: gas_state
 
     ! Convert gas-phase species from ppb (PMC) to atm (aq. chemistry)
     where (aq_spec_data%pmc_gas_index.ne.0)

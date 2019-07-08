@@ -31,6 +31,10 @@ program bin_average_comp
   character(len=1000) :: tmp_str
   logical :: record_removals, dry_volume, record_optical
   character(len=PMC_UUID_LEN) :: uuid
+  logical :: do_output_aq_rates
+  type(aq_mech_data_t), target :: aq_mech_data
+  type(aq_spec_data_t), target :: aq_spec_data
+  type(aq_state_t) :: aq_state_init
 
   ! process commandline arguments
   if (command_argument_count() .ne. 6) then
@@ -88,8 +92,10 @@ program bin_average_comp
   output_type = OUTPUT_TYPE_SINGLE
   record_removals = .false.
   record_optical = .true.
+  do_output_aq_rates = .false.
   call output_state(out_prefix, output_type, aero_data, aero_state, &
-       gas_data, gas_state, env_state, index, time, del_t, i_repeat, &
+       gas_data, gas_state, env_state, do_output_aq_rates, aq_mech_data, &
+       aq_spec_data, aq_state_init, index, time, del_t, i_repeat, &
        record_removals, record_optical, uuid)
 
   call bin_grid_deallocate(bin_grid)

@@ -557,7 +557,8 @@ contains
 
   !> Compute the reaction rates for a single particle.
   subroutine aq_rates_for_particle(aq_state, aq_mech_data, aq_spec_data, &
-       env_state, aq_chem_rates)
+       env_state, aq_chem_rates_forward, aq_chem_rates_backward, &
+       aq_chem_rates_conv_factor)
 
     !> Aq. Phase Species State
     type(aq_state_t), intent(inout) :: aq_state

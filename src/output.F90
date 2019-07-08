@@ -70,6 +70,9 @@ module pmc_output
   use pmc_bin_grid
   use pmc_aero_data
   use pmc_aero_state
+  use pmc_aq_state
+  use pmc_aq_mech_data
+  use pmc_aq_chem
   use pmc_aero_binned
   use pmc_netcdf
   use pmc_gas_state
@@ -107,7 +110,8 @@ contains
 
   !> Write the current state.
   subroutine output_state(prefix, output_type, aero_data, aero_state, &
-       gas_data, gas_state, env_state, index, time, del_t, i_repeat, &
+       gas_data, gas_state, env_state, do_output_aq_rates, aq_mech_data, &
+       aq_spec_data, aq_state_init, index, time, del_t, i_repeat, &
        record_removals, record_optical, uuid)
 
     !> Prefix of state file.
@@ -124,6 +128,14 @@ contains
     type(gas_state_t), intent(in) :: gas_state
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
+    !> Whether to output aqueous chemistry rates.
+    logical, intent(in) :: do_output_aq_rates
+    !> Aqueous chemistry mechanism
+    type(aq_mech_data_t), intent(in), target :: aq_mech_data
+    !> Aqueous chemistry related species data
+    type(aq_spec_data_t), intent(in), target :: aq_spec_data
+    !> Aqueous chemistry state containing initial and constant species concentrations
+    type(aq_state_t), intent(in) :: aq_state_init
     !> Filename index.
     integer, intent(in) :: index
     !> Current time (s).
@@ -155,13 +167,15 @@ contains
        ! transferring data to process 0 and having it do the writes
        if (rank == 0) then
           call output_state_to_file(prefix, aero_data, aero_state, gas_data, &
-               gas_state, env_state, index, time, del_t, i_repeat, &
+               gas_state, env_state, do_output_aq_rates, aq_mech_data, &
+               aq_spec_data, aq_state_init, index, time, del_t, i_repeat, &
                record_removals, record_optical, uuid, rank, n_proc)
 #ifdef PMC_USE_MPI
           do i_proc = 1,(n_proc - 1)
              call recv_output_state_central(prefix, aero_data, gas_data, &
-                  index, time, del_t, i_repeat, record_removals, &
-                  record_optical, uuid, i_proc)
+                  do_output_aq_rates, aq_mech_data, aq_spec_data, &
+                  aq_state_init, index, time, del_t, i_repeat, &
+                  record_removals, record_optical, uuid, i_proc)
           end do
 #endif
        else ! rank /= 0
@@ -170,12 +184,14 @@ contains
     elseif (output_type == OUTPUT_TYPE_DIST) then
        ! have each process write its own data directly
        call output_state_to_file(prefix, aero_data, aero_state, gas_data, &
-            gas_state, env_state, index, time, del_t, i_repeat, &
+            gas_state, env_state, do_output_aq_rates, aq_mech_data, &
+            aq_spec_data, aq_state_init, index, time, del_t, i_repeat, &
             record_removals, record_optical, uuid, rank, n_proc)
     elseif (output_type == OUTPUT_TYPE_SINGLE) then
        if (n_proc == 1) then
           call output_state_to_file(prefix, aero_data, aero_state, gas_data, &
-               gas_state, env_state, index, time, del_t, i_repeat, &
+               gas_state, env_state, do_output_aq_rates, aq_mech_data, &
+               aq_spec_data, aq_state_init, index, time, del_t, i_repeat, &
                record_removals, record_optical, uuid, rank, n_proc)
        else
 #ifdef PMC_USE_MPI
@@ -190,10 +206,14 @@ contains
           call aero_state_allocate(aero_state_write)
           call aero_state_mpi_gather(aero_state, aero_state_write)
           if (rank == 0) then
+             if (do_output_aq_rates) then
+                  call die_msg(592092983, "Cannot output aq_rates in parallel")
+             end if
              call output_state_to_file(prefix, aero_data, aero_state_write, &
-                  gas_data, gas_state_write, env_state_write, index, time, &
-                  del_t, i_repeat, record_removals, record_optical, uuid, &
-                  rank, 1)
+                  gas_data, gas_state_write, env_state_write, &
+                  do_output_aq_rates, aq_mech_data, aq_spec_data, &
+                  aq_state_init, index, time, del_t, i_repeat, &
+                  record_removals, record_optical, uuid, rank, 1)
           end if
           call aero_state_deallocate(aero_state_write)
           call env_state_deallocate(env_state_write)
@@ -299,7 +319,7 @@ contains
     !> Environment state.
     type(env_state_t), intent(in) :: env_state
     !> Whether to output aqueous chemistry rates.
-    logical :: do_output_aq_rates
+    logical, intent(in) :: do_output_aq_rates
     !> Aqueous chemistry mechanism
     type(aq_mech_data_t), intent(in), target :: aq_mech_data
     !> Aqueous chemistry related species data
@@ -444,7 +464,8 @@ contains
 
   !> Receive the state for the "central" output method on the root
   !> process.
-  subroutine recv_output_state_central(prefix, aero_data, gas_data, index, &
+  subroutine recv_output_state_central(prefix, aero_data, gas_data, &
+       do_output_aq_rates, aq_mech_data, aq_spec_data, aq_state_init, index, &
        time, del_t, i_repeat, record_removals, record_optical, uuid, &
        remote_proc)
 
@@ -454,6 +475,14 @@ contains
     type(aero_data_t), intent(in) :: aero_data
     !> Gas data.
     type(gas_data_t), intent(in) :: gas_data
+    !> Whether to output aqueous chemistry rates.
+    logical, intent(in) :: do_output_aq_rates
+    !> Aqueous chemistry mechanism
+    type(aq_mech_data_t), intent(in), target :: aq_mech_data
+    !> Aqueous chemistry related species data
+    type(aq_spec_data_t), intent(in), target :: aq_spec_data
+    !> Aqueous chemistry state containing initial and constant species concentrations
+    type(aq_state_t), intent(in) :: aq_state_init
     !> Filename index.
     integer, intent(in) :: index
     !> Current time (s).
@@ -507,7 +536,8 @@ contains
     deallocate(buffer)
 
     call output_state_to_file(prefix, aero_data, aero_state, gas_data, &
-         gas_state, env_state, index, time, del_t, i_repeat, &
+         gas_state, env_state, do_output_aq_rates, aq_mech_data, &
+         aq_spec_data, aq_state_init, index, time, del_t, i_repeat, &
          record_removals, record_optical, uuid, remote_proc, n_proc)
 
     call env_state_deallocate(env_state)

@@ -138,8 +138,8 @@ contains
     type(aq_state_t), intent(inout) :: aq_state
     !> Aq. Phase Species State containing initial and 
     !! constant species concentrations
-    type(aq_state_t), intent(inout) :: aq_state_init
-
+    type(aq_state_t), intent(in) :: aq_state_init
+    
     real(kind=dp) :: time, pre_time, pre_del_t, prop_done
     real(kind=dp) :: last_output_time, last_progress_time
     integer :: rank, n_proc, pre_index, ncid
@@ -196,9 +196,11 @@ contains
     if (run_part_opt%t_output > 0d0) then
        call output_state(run_part_opt%output_prefix, &
             run_part_opt%output_type, aero_data, aero_state, gas_data, &
-            gas_state, env_state, i_state, time, run_part_opt%del_t, &
-            run_part_opt%i_repeat, run_part_opt%record_removals, &
-            run_part_opt%do_optical, run_part_opt%uuid)
+            gas_state, env_state, run_part_opt%do_output_aq_rates, &
+            aq_mech_data, aq_spec_data, aq_state_init, i_state, time, &
+            run_part_opt%del_t, run_part_opt%i_repeat, &
+            run_part_opt%record_removals, run_part_opt%do_optical, &
+            run_part_opt%uuid)
        call aero_info_array_zero(aero_state%aero_info_array)
     end if
 
@@ -329,9 +331,11 @@ contains
              i_output = i_output + 1
              call output_state(run_part_opt%output_prefix, &
                   run_part_opt%output_type, aero_data, aero_state, gas_data, &
-                  gas_state, env_state, i_output, time, run_part_opt%del_t, &
-                  run_part_opt%i_repeat, run_part_opt%record_removals, &
-                  run_part_opt%do_optical, run_part_opt%uuid)
+                  gas_state, env_state, run_part_opt%do_output_aq_rates, &
+                  aq_mech_data, aq_spec_data, aq_state_init, i_output, time, &
+                  run_part_opt%del_t, run_part_opt%i_repeat, &
+                  run_part_opt%record_removals, run_part_opt%do_optical, &
+                  run_part_opt%uuid)
              call aero_info_array_zero(aero_state%aero_info_array)
           end if
        end if

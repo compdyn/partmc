@@ -286,7 +286,7 @@ contains
     !> Aq. chemistry state data to read.
     type(aq_state_t), intent(inout) :: aq_state
 
-    real :: n_charge ! (mol/L)
+    real(kind=dp) :: n_charge ! (mol/L)
     integer :: i_OH, i
 
     i_OH = aq_spec_data_spec_by_name(aq_spec_data, trim(AQ_STATE_OH_SPEC_NAME))

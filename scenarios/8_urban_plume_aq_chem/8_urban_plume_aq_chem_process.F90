@@ -33,7 +33,7 @@ program process
   type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_sc_dist
 
   integer :: i
-  real :: max_dp
+  real(kind=dp) :: max_dp
 
 
   call pmc_mpi_init()

@@ -321,7 +321,7 @@ contains
     type(aero_particle_t), pointer :: particle
     real(kind=dp) :: reweight_num_conc(aero_state%apa%n_part)
     integer :: i_Hp, i_HSO4m, i_SO4mm
-    real :: ratio_HSO4m_SULFATE
+    real(kind=dp) :: ratio_HSO4m_SULFATE
 
     ! compute aerosol conversion factors
     do i_spec = 1,aero_data%n_spec

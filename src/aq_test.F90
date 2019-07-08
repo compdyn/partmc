@@ -40,6 +40,7 @@ program test_aq
     real(kind=dp) :: del_t
 
     character(len=1000) :: temp_str
+    integer :: ios
 
     if (command_argument_count() /= 4) then
         write(*,*) "Invalid number of arguments"

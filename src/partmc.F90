@@ -550,6 +550,7 @@ contains
        end if
        call spec_file_read_logical(file, 'do_aq_chem', &
           run_part_opt%do_aq_chem)
+       run_part_opt%do_output_aq_rates = .false.
        if (run_part_opt%do_aq_chem) then
           if(.not.aq_integrate_is_solver_available()) then
             call spec_file_die_msg(616264836, file, &

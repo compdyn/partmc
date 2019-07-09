@@ -794,28 +794,30 @@ contains
     !Num cells to add
     integer(kind=i_kind), intent(inout) :: num_cells_to_add
 
-    integer(kind=i_kind) :: i_spec, i, j
+    integer(kind=i_kind) :: i_spec, i, j, num_spec_cell
 
+    num_spec_cell=this%num_spec
     this%spec_name_1_cell(:) = this%spec_name(:)
     this%spec_type_1_cell(:) = this%spec_type(:)
     this%spec_phase_1_cell(:) = this%spec_phase(:)
 
     ! Duplicate species common data for all cells
     do i=1, num_cells_to_add
-      do j=1, size(this%spec_name_1_cell)
+      do j=1, num_spec_cell
       call this%ensure_size(1)
       !print*,'add_mult chem_spec_data else call'
       this%num_spec = this%num_spec + 1
       this%spec_name(this%num_spec)%string = this%spec_name_1_cell(j)%string
       this%spec_type(this%num_spec) = this%spec_type_1_cell(j)
       this%spec_phase(this%num_spec) = this%spec_phase_1_cell(j)
-      !if (present(property_set)) then
-      !  call property_set%move(this%property_set(this%num_spec))
+      !if (present(this%property_set_1_cell)) then
+      !call this%property_set_1_cell%move(this%property_set(this%num_spec))
       !else
       this%property_set(this%num_spec) = this%property_set_1_cell(j)
       !end if
       end do
     end do
+
 
     end subroutine add_multiple_cells
 

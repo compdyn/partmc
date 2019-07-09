@@ -504,6 +504,7 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
 
     // Get a pointer to the derivative data
     realtype *deriv_data = N_VGetArrayPointer(deriv);
+    //int num_cells = model_data->num_cells;
 
     int num_cells = 1;
     int deriv_domain_length = NV_LENGTH_S(deriv)/num_cells;
@@ -513,7 +514,7 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
 
     for (int i=0; i<num_cells; i++){
 
-    deriv_data = (double *) &(((double *) deriv_data)[deriv_domain_length*i]);//&(deriv_data[deriv_domain_length*i]);
+    //deriv_data = (double *) &(((double *) deriv_data)[deriv_domain_length*i]);//&(deriv_data[deriv_domain_length*i]);
 
     //TODO: Need pass state as a parameter instead of model_data to work correctly
     //model_data->state = state;//model_data->state+(deriv_domain_length*i);

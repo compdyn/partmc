@@ -47,6 +47,8 @@ unsigned int double_max_size = 0;
 double *state_gpu;
 double *state_cpu;
 
+//int num_cells = 1;
+
 static void HandleError(cudaError_t err,
                         const char *file,
                         int line) {
@@ -69,7 +71,8 @@ static void HandleError2(const char *file,
 
 void solver_new_gpu_cu(SolverDatagpu *sd, int n_dep_var,
                        int n_state_var, int *var_type, int n_rxn,
-                       int n_rxn_int_param, int n_rxn_float_param) {
+                       int n_rxn_int_param, int n_rxn_float_param,
+                       int num_cells_aux) { //Ttodo: not necessary pass this parameters, there are on md
 
 
   /*HANDLE_ERROR(cudaHostAlloc((void **) &md,//no work well
@@ -96,12 +99,12 @@ void solver_new_gpu_cu(SolverDatagpu *sd, int n_dep_var,
 
   //Sizes
   size_t start_size = (n_rxn+1) * sizeof(unsigned int);
-  state_size = n_state_var * sizeof(double);
+  state_size = n_state_var * sizeof(double); //TODO: Adapt state to has the same size as deriv?
   deriv_size = n_dep_var * sizeof(sd->y);
   printf("n_rxn: %d " , n_rxn);
   //printf("n_rxn_float_param: %d ", n_rxn_float_param);
   //printf("n_rxn_int_param: %d ", n_rxn_int_param);
-  printf("n_state_var: %d" ,n_state_var);
+  printf("n_state_var: %d" ,n_state_var); //TODO: Fix n_state_var received is so big (47 when two cells)
 
   //Create started indexes of arrays
   start_rxn_param = (unsigned int *) malloc(start_size);
@@ -337,9 +340,9 @@ __device__ void rxn_gpu_tmp_arrhenius2(
 }
 
 __global__ void solveRxnBlock(ModelDatagpu *model_data, double *state, double *deriv,
-          double time_step, int deriv_length, int n_rxn_total_domains, int num_cells,
-          int *int_pointer, double *double_pointer,
-          unsigned int int_max_size, unsigned int double_max_size) //Interface CPU/GPU
+          double time_step, int deriv_length, int state_size, int n_rxn_total_cells,
+          int num_cells_gpu, int *int_pointer, double *double_pointer, unsigned int int_max_size,
+          unsigned int double_max_size) //Interface CPU/GPU
 {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -362,11 +365,13 @@ __global__ void solveRxnBlock(ModelDatagpu *model_data, double *state, double *d
       //deriv_data[index] = 0.0; }
   __syncthreads();
 
-  if (index < n_rxn_total_domains) {
+  if (index < n_rxn_total_cells) {
 
-    int deriv_domain_length = deriv_length/num_cells;
-    int n_rxn = n_rxn_total_domains/num_cells;
-    int domain=index/n_rxn;
+    int state_size_cell = state_size/num_cells_gpu;
+
+    int deriv_length_cell = deriv_length/num_cells_gpu;
+    int n_rxn = n_rxn_total_cells/num_cells_gpu;
+    int cell=index/n_rxn;
 
     int *int_data = (int *) &(((int *) int_pointer)[index%n_rxn]);
     double *float_data = (double *) &(((double *) double_pointer)[index%n_rxn]);
@@ -374,8 +379,9 @@ __global__ void solveRxnBlock(ModelDatagpu *model_data, double *state, double *d
     int rxn_type = int_data[0];
     int *rxn_data = (int *) &(int_data[n_rxn]);
 
-    double *deriv_data = &( deriv_data2[deriv_domain_length*domain]);
-    state= state+(deriv_domain_length*domain);
+    double *deriv_data = &( deriv_data2[deriv_length_cell*cell]);
+    //state= state+(deriv_length_cell*cell); //TODO: Fix this different size with deriv maybe?
+    state= state+(state_size_cell*cell);
 
     switch (rxn_type) {
       case RXN_AQUEOUS_EQUILIBRIUM :
@@ -459,11 +465,12 @@ __global__ void solveRxnBlock(ModelDatagpu *model_data, double *state, double *d
 void rxn_calc_deriv_gpu(ModelDatagpu *model_data, N_Vector deriv, realtype time_step) {
 
   // Get a pointer to the derivative data
-  int num_cells = 2;
+  int num_cells = model_data->num_cells;
   realtype *deriv_data = N_VGetArrayPointer(deriv);
   int *rxn_data = (int *) (model_data->rxn_data);
-  int n_rxn_total_domains = rxn_data[0]*num_cells;
+  int n_rxn_total_cells = rxn_data[0]*num_cells;
   double *state = model_data->state;
+
 
   /*if(countergpu==29) {
     for (int i_rxn=1; i_rxn<n_rxn; i_rxn++) {
@@ -489,9 +496,9 @@ void rxn_calc_deriv_gpu(ModelDatagpu *model_data, N_Vector deriv, realtype time_
    //     n_rxn, int_pointer_gpu, double_pointer_gpu, int_max_size, double_max_size
     //);
 
-  solveRxnBlock << < (n_rxn_total_domains + MAX_N_GPU_THREAD - 1) / MAX_N_GPU_THREAD, MAX_N_GPU_THREAD >> >
-    (mdgpu, state_gpu, derivgpu_data, time_step, NV_LENGTH_S(deriv),
-    n_rxn_total_domains, num_cells, int_pointer_gpu, double_pointer_gpu, int_max_size, double_max_size);
+  solveRxnBlock << < (n_rxn_total_cells + MAX_N_GPU_THREAD - 1) / MAX_N_GPU_THREAD, MAX_N_GPU_THREAD >> >
+    (mdgpu, state_gpu, derivgpu_data, time_step, NV_LENGTH_S(deriv), model_data->n_state_var,
+    n_rxn_total_cells, num_cells, int_pointer_gpu, double_pointer_gpu, int_max_size, double_max_size);
 
   cudaDeviceSynchronize();//retrieve errors (But don't retrieve anything for me)
   HANDLE_ERROR2();//0.5secs

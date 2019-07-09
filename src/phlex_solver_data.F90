@@ -50,7 +50,7 @@ module pmc_phlex_solver_data
                     n_aero_phase_float_param, n_aero_rep, &
                     n_aero_rep_int_param, n_aero_rep_float_param, &
                     n_sub_model, n_sub_model_int_param, &
-                    n_sub_model_float_param) bind (c)
+                    n_sub_model_float_param, num_cells) bind (c)
       use iso_c_binding
       !> Number of variables on the state array (including const, PSSA, etc.)
       integer(kind=c_int), value :: n_state_var
@@ -81,6 +81,8 @@ module pmc_phlex_solver_data
       integer(kind=c_int), value :: n_sub_model_int_param
       !> Total number of floating-point parameters for all sub models
       integer(kind=c_int), value :: n_sub_model_float_param
+      !> Number of cells to compute
+      integer(kind=c_int), value :: num_cells
     end function solver_new
 
     !> Solver initialization
@@ -382,7 +384,7 @@ contains
 
   !> Initialize the solver
   subroutine initialize(this, var_type, abs_tol, mechanisms, aero_phases, &
-                  aero_reps, sub_models, rxn_phase)
+                  aero_reps, sub_models, rxn_phase, num_cells)
 
     !> Solver data
     class(phlex_solver_data_t), intent(inout) :: this
@@ -410,6 +412,8 @@ contains
     integer(kind=c_int), pointer :: var_type_c(:)
     ! Absolute tolerances
     real(kind=c_double), pointer :: abs_tol_c(:)
+    !> Number of cells to compute
+    integer(kind=i_kind), optional :: num_cells
     ! Indices for iteration
     integer(kind=i_kind) :: i_mech, i_rxn, i_aero_phase, i_aero_rep, &
             i_sub_model
@@ -456,6 +460,10 @@ contains
     integer(kind=c_int) :: n_sub_model_int_param
     ! Number of floating-point sub model parameters
     integer(kind=c_int) :: n_sub_model_float_param
+
+    if (.not.present(num_cells)) then
+      num_cells = 1
+    end if
 
     ! Make sure the variable type and absolute tolerance arrays are of
     ! equal length
@@ -554,7 +562,8 @@ contains
             n_aero_rep_float_param,            & ! # of aero rep real params
             n_sub_model,                       & ! # of sub models
             n_sub_model_int_param,             & ! # of sub model int params
-            n_sub_model_float_param            & ! # of sub model real params
+            n_sub_model_float_param,           & ! # of sub model real params
+            num_cells                          & ! # of cells computed simultaneosly
             )
 
     ! Add all the condensed reaction data to the solver data block for

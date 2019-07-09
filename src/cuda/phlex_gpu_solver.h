@@ -51,6 +51,7 @@
 /* Model data structure */
 typedef struct {
     int n_state_var;	// number of state variables (>=NV_LENGTH_S(y))
+    int num_cells;        // Number of cells to compute simultaneously
     double *abs_tol;      // pointer to array of state variable absolute
     // integration tolerances
     int *var_type;	// pointer to array of state variable types (solver,
@@ -109,7 +110,7 @@ typedef struct {
 
 void solver_new_gpu_cu(SolverDatagpu *sd, int n_dep_var,
      int n_state_var, int *var_type, int n_rxn,
-     int n_rxn_int_param, int n_rxn_float_param);
+     int n_rxn_int_param, int n_rxn_float_param, int num_cells_aux);
 void solver_update_state_gpu(ModelDatagpu *md);
 void solveRxncpu(ModelDatagpu *model_data, double *deriv_data,
                  double time_step, int *int_data, double *float_data, int deriv_length, int n_rxn);

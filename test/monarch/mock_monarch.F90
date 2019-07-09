@@ -95,7 +95,8 @@ program mock_monarch
   character(len=:), allocatable :: output_file_prefix
 
   character(len=500) :: arg
-  integer :: status_code, i_time, num_cells
+  integer :: status_code, i_time
+  integer :: num_cells = 1
 
 
   ! Check the command line arguments
@@ -121,10 +122,12 @@ program mock_monarch
   interface_input_file = trim(arg)
 
   !Cells to solve simultaneously
-  num_cells = I_E - I_W
+  num_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
 
   pmc_interface => monarch_interface_t(phlex_input_file, interface_input_file, &
           START_PHLEX_ID, END_PHLEX_ID, num_cells)
+  !pmc_interface => monarch_interface_t(phlex_input_file, interface_input_file, &
+  !        START_PHLEX_ID, END_PHLEX_ID)
   deallocate(phlex_input_file)
   deallocate(interface_input_file)
 
@@ -238,7 +241,7 @@ contains
             water_conc(10,15,1,WATER_VAPOR_ID)
 
   end subroutine output_results
-
+!Tolerance -E4
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Create a gnuplot script for viewing species concentrations

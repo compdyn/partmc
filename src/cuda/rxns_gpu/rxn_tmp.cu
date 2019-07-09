@@ -50,7 +50,7 @@ __global__ void rxn_gpu_tmp_arrhenius
 
 
         //int n_rxn=n_rxn2;
-        //double *state = model_data->state;//TODO: model_data->state[i] to calculate independent domains simultaneous
+        //double *state = model_data->state;//TODO: model_data->state[i] to calculate independent cells simultaneous
 
 
 /*

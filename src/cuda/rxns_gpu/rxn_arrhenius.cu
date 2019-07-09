@@ -121,7 +121,7 @@ __device__ void rxn_gpu_arrhenius_update_env_state(int n_rxn2, double *double_po
                    * (E_==0.0 ? 1.0 : (1.0 + E_*PRESSURE_PA_))
                    * pow(CONV_*PRESSURE_PA_/TEMPERATURE_K_, NUM_REACT_-1);
 
-  //TODO: if (multiple_domains) save on array rate_constant structure
+  //TODO: if (multiple_cells) save on array rate_constant structure
 
   //TODO: Comment Matt, to eliminate pre_calc or join it with this update
 }

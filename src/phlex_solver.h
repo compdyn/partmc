@@ -12,13 +12,15 @@
 #define PHLEX_SOLVER_H_
 #include "phlex_common.h"
 
+int num_cells;
+
 /* Functions called by phlex-chem */
 void * solver_new(int n_state_var, int *var_type, int n_rxn,
           int n_rxn_int_param, int n_rxn_float_param, int n_aero_phase,
           int n_aero_phase_int_param, int n_aero_phase_float_param,
           int n_aero_rep, int n_aero_rep_int_param, int n_aero_rep_float_param,
           int n_sub_model, int n_sub_model_int_param,
-          int n_sub_model_float_param);
+          int n_sub_model_float_param, int num_cells_aux);
 void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
           int max_steps, int max_conv_fails);
 int solver_run(void *solver_data, double *state, double *env, double t_initial,

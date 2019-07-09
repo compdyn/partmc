@@ -48,6 +48,8 @@ module pmc_monarch_interface
     integer(kind=i_kind), allocatable :: init_conc_phlex_id(:)
     !> Initial species concentrations
     real(kind=dp), allocatable :: init_conc(:)
+    !> Number of cells to compute
+    integer(kind=i_kind) :: num_cells = 1
     !> Starting index for PartMC species on the MONARCH tracer array
     integer(kind=i_kind) :: tracer_starting_id
     !> Ending index for PartMC species on the MONARCH tracer array
@@ -101,7 +103,7 @@ contains
   !! configuration file and the starting and ending indices for chemical
   !! species in the tracer array.
   function constructor(phlex_config_file, interface_config_file, &
-                       starting_id, ending_id, num_cells, mpi_comm) result (new_obj)
+                       starting_id, ending_id, num_cells_aux, mpi_comm) result (new_obj)
 
     !> A new MONARCH interface
     type(monarch_interface_t), pointer :: new_obj
@@ -116,7 +118,8 @@ contains
     !> MPI communicator
     integer, intent(in), optional :: mpi_comm
     !> Num cells to compute simulatenously
-    integer :: num_cells
+    !integer, optional :: num_cells_aux
+    integer, optional :: num_cells_aux
 
     type(phlex_solver_data_t), pointer :: phlex_solver_data
     character, allocatable :: buffer(:)
@@ -136,12 +139,15 @@ contains
       local_comm = MPI_COMM_WORLD
     endif
 #endif
-
     ! Set the MPI rank (TODO replace with MONARCH param)
     MONARCH_PROCESS = pmc_mpi_rank()
 
     ! Create a new interface object
     allocate(new_obj)
+
+    if (present(num_cells_aux)) then
+      new_obj%num_cells=num_cells_aux
+    end if
 
     ! Check for an available solver
     phlex_solver_data => phlex_solver_data_t()
@@ -168,7 +174,7 @@ contains
       call new_obj%load(interface_config_file)
 
       ! Initialize the phlex-chem core
-      new_obj%phlex_core => phlex_core_t(phlex_config_file, num_cells)
+      new_obj%phlex_core => phlex_core_t(phlex_config_file, new_obj%num_cells)
       call new_obj%phlex_core%initialize()
 
       ! Set the MONARCH tracer array bounds
@@ -278,7 +284,7 @@ contains
     !> Pressure (Pa)
     real, intent(in) :: pressure(:,:,:)
 
-    integer :: i, j, k, k_flip, i_spec, z
+    integer :: i, j, k, k_flip, i_spec, z, state_size, state_size_total, i2, original_method
 
     ! Computation time variables
     real(kind=dp) :: comp_start, comp_end
@@ -289,8 +295,33 @@ contains
     !    j=2
     !    k=1 !Ttodo:this gives same results
 
-    !j=11 end
-    ! Loop through the grid cells
+    state_size_total = size(this%phlex_state%state_var)!size(this%map_monarch_id)
+    state_size = state_size_total/this%num_cells
+    !print*,'state_size_m_interface=', state_size
+
+    i=1
+    j=1
+    k=1
+    original_method=1
+
+    do i=i_start, i_end
+        MONARCH_conc(i,:,:,this%map_monarch_id(:)) = &
+                MONARCH_conc(i,:,:,this%map_monarch_id(:)) + 0.000001*i
+    end do
+
+    do j=j_start, j_end
+      MONARCH_conc(:,j,:,this%map_monarch_id(:)) = &
+              MONARCH_conc(:,j,:,this%map_monarch_id(:)) + 0.000003*j
+    end do
+
+    do k=1, size(MONARCH_conc,3)
+      MONARCH_conc(:,:,k,this%map_monarch_id(:)) = &
+              MONARCH_conc(:,:,k,this%map_monarch_id(:)) + 0.000006*k
+    end do
+
+    call cpu_time(comp_start)
+
+    if(original_method.eq.1) then
     do i=i_start, i_end
       do j=j_start, j_end
         do k=1, size(MONARCH_conc,3)
@@ -301,45 +332,18 @@ contains
           ! Update the environmental state
           this%phlex_state%env_state%temp = temperature(i,j,k_flip)
           this%phlex_state%env_state%pressure = pressure(i,k,j)
-          ! TODO finish environmental state setup
 
-          this%phlex_state%state_var(:) = 0.0!+0.001 !Test with some state values
-          !this%phlex_state%state_var(:) = 0.0
+          this%phlex_state%state_var(:) = 0.0
 
-          do z=1, 2 !TODO: num_cells
-            ! Update species concentrations in PMC
-
-            this%phlex_state%state_var(this%map_phlex_id(:)+((z-1)*3)) = &
-                    this%phlex_state%state_var(this%map_phlex_id(:)) + &
-                            MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
-
-            this%phlex_state%state_var(this%gas_phase_water_id+((z-1)*3)) = &
-                    water_conc(i,j,k_flip,water_vapor_index) * &
-                            air_density(i,k,j) * 1.0d9
-          end do
-
-
-
-#ifdef MULTIPLE_CELLS
-          print*,'num_time_step=', this%phlex_state%state_var
-# endif
-
-          ! Start the computation timer
-          if (MONARCH_PROCESS.eq.0 .and. i.eq.i_start .and. j.eq.j_start &
-                  .and. k.eq.1) then
-            call cpu_time(comp_start)
-          end if
+          this%phlex_state%state_var(this%map_phlex_id(:)) = &
+                  this%phlex_state%state_var(this%map_phlex_id(:)) + &
+                          MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
+          this%phlex_state%state_var(this%gas_phase_water_id) = &
+                  water_conc(i,j,k_flip,water_vapor_index) *air_density(i,k,j) * 1.0d9
 
           ! Integrate the PMC mechanism
           call this%phlex_core%solve(this%phlex_state, &
                   real(time_step, kind=dp), solver_stats = solver_stats)
-
-          ! Calculate the computation time
-          if (MONARCH_PROCESS.eq.0 .and. i.eq.i_start .and. j.eq.j_start &
-                  .and. k.eq.1) then
-            call cpu_time(comp_end)
-            comp_time = comp_time + (comp_end-comp_start)
-          end if
 
           ! Update the MONARCH tracer array with new species concentrations
           MONARCH_conc(i,j,k_flip,this%map_monarch_id(:)) = &
@@ -348,6 +352,96 @@ contains
         end do
       end do
     end do
+
+    else
+    ! Loop through the grid cells
+    !do i=i_start, i_end
+      !do j=j_start, j_end
+      !  do k=1, size(MONARCH_conc,3)
+
+          ! Calculate the vertical index for NMMB-style arrays
+
+          this%phlex_state%env_state%temp = temperature(1,1,1) !TODO: Set different env variables and accumulate them
+          this%phlex_state%env_state%pressure = pressure(1,1,1)
+          this%phlex_state%state_var(:) = 0.0
+
+          do i=i_start, i_end
+            do j=j_start, j_end
+              do k=1, size(MONARCH_conc,3)
+
+            z = (i-i_start)*(j-j_start)*(size(MONARCH_conc,3)) !Distance
+            k_flip = size(MONARCH_conc,3) - k + 1
+            !Monarch conc is size 1 cell
+            this%phlex_state%state_var(this%map_phlex_id(:)+(z*state_size)) = &
+                  this%phlex_state%state_var(this%map_phlex_id(:)+((z)*state_size)) + &
+                    MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))!+((z)*state_size)
+            this%phlex_state%state_var(this%gas_phase_water_id+(z*state_size)) = &
+                    water_conc(i,j,k_flip,water_vapor_index) *air_density(i,k,j) * 1.0d9
+              end do
+            end do
+          end do
+
+          ! Update the environmental state
+          !this%phlex_state%env_state%temp = temperature(i,j,k_flip)
+          !this%phlex_state%env_state%pressure = pressure(i,k,j)
+
+          ! TODO finish environmental state setup
+
+          !this%phlex_state%state_var(:) = 0.0!+0.001 !Test with some state values
+          !this%phlex_state%state_var(:) = 0.0
+
+          !do z=1, this%num_cells !TODO: num_cells
+            ! Update species concentrations in PMC
+            !this%phlex_state%state_var(this%map_phlex_id(:)+((z-1)*state_size)) = &
+            !        this%phlex_state%state_var(this%map_phlex_id(:)+((z-1)*state_size)) + &
+            !                MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))!+((z-1)*state_size)
+            !this%phlex_state%state_var(this%gas_phase_water_id+((z-1)*state_size)) = &
+            !      water_conc(i,j,k_flip,water_vapor_index) *air_density(i,k,j) * 1.0d9
+          !end do
+
+!ifdef MULTIPLE_CELLS
+          !print*,'num_time_step=', MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
+!# endif
+
+          ! Start the computation timer
+          !if (MONARCH_PROCESS.eq.0 .and. i.eq.i_start .and. j.eq.j_start &
+          !        .and. k.eq.1) then
+          !  call cpu_time(comp_start)
+          !end if
+
+          ! Integrate the PMC mechanism
+          call this%phlex_core%solve(this%phlex_state, &
+                  real(time_step, kind=dp), solver_stats = solver_stats)
+
+          ! Calculate the computation time
+          !if (MONARCH_PROCESS.eq.0 .and. i.eq.i_start .and. j.eq.j_start &
+          !        .and. k.eq.1) then
+          !  call cpu_time(comp_end)
+          !  comp_time = comp_time + (comp_end-comp_start)
+          !end if
+
+          do i=i_start, i_end
+            do j=j_start, j_end
+              do k=1, size(MONARCH_conc,3)
+            z = (i-i_start)*(j-j_start)*(size(MONARCH_conc,3))
+            k_flip = size(MONARCH_conc,3) - k + 1
+            MONARCH_conc(i,j,k_flip,this%map_monarch_id(:)) = &
+                    this%phlex_state%state_var(this%map_phlex_id(:)+(z*state_size))
+              end do
+            end do
+          end do
+
+          ! Update the MONARCH tracer array with new species concentrations
+          !MONARCH_conc(i,j,k_flip,this%map_monarch_id(:)) = &
+          !        this%phlex_state%state_var(this%map_phlex_id(:))
+
+        !end do
+      !end do
+    !end do
+    end if
+
+    call cpu_time(comp_end)
+    comp_time = comp_time + (comp_end-comp_start)
 
     ! call solver_stats%print( )
 
@@ -619,14 +713,9 @@ contains
             this%phlex_core%get_chem_spec_data(chem_spec_data), &
             "No chemical species data in phlex_core.")
 
-    !num_spec = num_spec * 2 !ADDED
-
     ! Allocate space for the initial concentrations and indices
     allocate(this%init_conc_phlex_id(num_spec))
     allocate(this%init_conc(num_spec))
-
-    !this%init_conc_phlex_id =-1 !ADDED
-    !this%init_conc(:) = 0 !ADDED
 
     ! Add the gas-phase initial concentrations
     if (associated(gas_species_list)) then

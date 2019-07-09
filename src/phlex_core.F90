@@ -340,8 +340,6 @@ contains
     !  print*, "num_cells iter"
     call this%load(file_list)
 
-    !num_cells=2
-
     ! TODO: add multiple cells
     num_cells_to_add=this%num_cells-1
     call this%chem_spec_data%add_multiple_cells(num_cells_to_add)
@@ -670,8 +668,6 @@ contains
     ! Set the size of the state array
     this%state_array_size = i_state_var - 1
 
-    !this%state_array_size = this%state_array_size*2
-
     ! Initialize the mechanisms
     do i_mech = 1, size(this%mechanism)
       call this%mechanism(i_mech)%val%initialize(this%chem_spec_data, &
@@ -728,11 +724,6 @@ contains
     !        " elements of absolute tolerance and variable type arrays")
 
     this%core_is_initialized = .true.
-
-    !If multiple_cells allowed increase size of state array
-    !Ifdef MULTIPLE_CELLS
-    !this%state_array_size = this%state_array_size * 2
-    !Endif
 
     ! Set the initial state values
     allocate(this%init_state(this%state_array_size))
@@ -965,7 +956,8 @@ contains
                 this%aero_phase, & ! Pointer to the aerosol phases
                 this%aero_rep,   & ! Pointer to the aerosol representations
                 this%sub_model,  & ! Pointer to the sub-models
-                GAS_RXN          & ! Reaction phase
+                GAS_RXN,         & ! Reaction phase
+                this%num_cells   & ! # of cells computed simultaneosly
                 )
       call this%solver_data_aero%initialize( &
                 this%var_type,   & ! State array variable types
@@ -974,7 +966,8 @@ contains
                 this%aero_phase, & ! Pointer to the aerosol phases
                 this%aero_rep,   & ! Pointer to the aerosol representations
                 this%sub_model,  & ! Pointer to the sub-models
-                AERO_RXN         & ! Reaction phase
+                AERO_RXN,        & ! Reaction phase
+                this%num_cells   & ! # of cells computed simultaneosly
                 )
     else
 
@@ -994,7 +987,8 @@ contains
                 this%aero_phase, & ! Pointer to the aerosol phases
                 this%aero_rep,   & ! Pointer to the aerosol representations
                 this%sub_model,  & ! Pointer to the sub-models
-                GAS_AERO_RXN     & ! Reaction phase
+                GAS_AERO_RXN,    & ! Reaction phase
+                this%num_cells   & ! # of cells computed simultaneosly
                 )
 
     end if

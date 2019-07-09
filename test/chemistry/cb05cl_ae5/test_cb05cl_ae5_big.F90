@@ -7,6 +7,11 @@
 
 !> Test for the cb05cl_ae5 mechanism from MONARCH. This program runs the
 !! MONARCH CB5 code and the Phlex-chem version and compares the output.
+
+!TODO: Create a matrix of states simulating the cells (adding 0.0001j each init state maybe),
+!and confirm updating an state array
+!with rows of this matrix is the same than calculating all the matrix
+
 program pmc_test_cb05cl_ae5
 
   use pmc_constants,                    only: const

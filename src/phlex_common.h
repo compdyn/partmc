@@ -48,6 +48,7 @@ typedef enum {false, true} bool;
 /* Model data structure */
 typedef struct {
   int n_state_var;	// number of state variables (>=NV_LENGTH_S(y))
+  int num_cells;        // Number of cells to compute simultaneously
   double *abs_tol;      // pointer to array of state variable absolute
                         // integration tolerances
   int *var_type;	// pointer to array of state variable types (solver,
@@ -80,6 +81,7 @@ typedef struct {
   double *rel_flux;     // Used to calculate relative contributions of each rxn
                         // to state adjustments. (For scaling when more than one
                         // rxn rapidly depletes the same species.)
+
 } ModelData;
 
 /* Solver data structure */

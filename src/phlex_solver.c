@@ -113,8 +113,10 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
           int n_rxn_int_param, int n_rxn_float_param, int n_aero_phase,
           int n_aero_phase_int_param, int n_aero_phase_float_param,
           int n_aero_rep, int n_aero_rep_int_param, int n_aero_rep_float_param,
-          int n_sub_model, int n_sub_model_int_param, int n_sub_model_float_param)
+          int n_sub_model, int n_sub_model_int_param, int n_sub_model_float_param,
+          int num_cells_aux)
 {
+
   // Create the SolverData object
   SolverData *sd = (SolverData*) malloc(sizeof(SolverData));
   if (sd==NULL) {
@@ -122,10 +124,11 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
     exit(1);
   }
 
-  //TODO:Increase state array adding all the states arrays of each column from monarch
-
   // Save the number of state variables
   sd->model_data.n_state_var = n_state_var;
+
+  // Set number of cells to compute simultaneously
+  sd->model_data.num_cells = num_cells_aux;
 
   // Add the variable types to the solver data
   sd->model_data.var_type = (int*) malloc(n_state_var * sizeof(int));
@@ -150,7 +153,6 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   int n_dep_var = 0;
   for (int i=0; i<n_state_var; i++)
     if (var_type[i]==CHEM_SPEC_VARIABLE) n_dep_var++;
-    //n_dep_var++;
 
 #ifdef PMC_USE_SUNDIALS
   // Set up the solver variable array and helper derivative array
@@ -222,7 +224,7 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   //GPU
   solver_new_gpu_cu((void*) sd, n_dep_var,
   n_state_var, var_type, n_rxn,
-  n_rxn_int_param, n_rxn_float_param);
+  n_rxn_int_param, n_rxn_float_param, num_cells_aux);
 
   // Return a pointer to the new SolverData object
   return (void*) sd;

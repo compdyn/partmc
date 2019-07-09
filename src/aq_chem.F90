@@ -152,15 +152,40 @@ contains
 
     real(kind=dp), allocatable :: aq_chem_rates_forward(:,:), &
          aq_chem_rates_backward(:,:), aq_chem_rates_conv_factors(:,:)
+    integer :: dimid_aero_particle, dimid_aq_rxn, dimid_aq_rxn_string
+    character(len=AQ_RXN_STRING_MAX_LEN), allocatable &
+         :: aq_mech_data_strings(:)
+
+    call aero_state_netcdf_dim_aero_particle(aero_state, ncid, &
+         dimid_aero_particle)
+    call aq_rxn_data_netcdf_dim_aq_rxn_string(ncid, dimid_aq_rxn_string)
+    call aq_mech_data_netcdf_dim_aq_rxn(aq_mech_data, ncid, &
+         dimid_aq_rxn)
+
+    call aq_mech_data_to_string_array(aq_mech_data, aq_spec_data, &
+         aq_mech_data_strings)
+
+    call pmc_nc_write_string_1d(ncid, aq_mech_data_strings, "aq_mech_data", &
+         (/ dimid_aq_rxn_string, dimid_aq_rxn /), unit="none", &
+         description="aqueous mechanism reactions as strings")
 
     call aq_chem_compute_rates(env_state, aq_mech_data, aq_spec_data, &
          aq_state_init, gas_data, gas_state, aero_data, aero_state, &
          aq_chem_rates_forward, aq_chem_rates_backward, &
          aq_chem_rates_conv_factors)
 
-    call aq_mech_data_to_string_array(aq_mech_data, aq_spec_data)
-
-    
+    call pmc_nc_write_real_2d(ncid, aq_chem_rates_forward, &
+         "aq_chem_rates_forward", (/ dimid_aero_particle, &
+         dimid_aq_rxn /), unit="FIXME", &
+         long_name="forward reaction rates for aqueous chemistry")
+    call pmc_nc_write_real_2d(ncid, aq_chem_rates_backward, &
+         "aq_chem_rates_backward", (/ dimid_aero_particle, &
+         dimid_aq_rxn /), unit="FIXME", &
+         long_name="backward reaction rates for aqueous chemistry")
+    call pmc_nc_write_real_2d(ncid, aq_chem_rates_conv_factors, &
+         "aq_chem_rates_conv_factors", (/ dimid_aero_particle, &
+         dimid_aq_rxn /), unit="FIXME", &
+         long_name="forward reaction rate conversion factors for aqueous chemistry")
     
   end subroutine aq_chem_rates_output_netcdf
 

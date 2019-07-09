@@ -598,6 +598,62 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write a 1D array of strings to a NetCDF file.
+  !! Note that two dimensions must be passed, the first of which is the
+  !! dimension corresponding to the length of the strings.
+  subroutine pmc_nc_write_string_1d(ncid, var, name, dimids, dim_name_1, &
+       dim_name_2, unit, long_name, standard_name, description)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Data to write.
+    character(len=*), intent(in) :: var(:)
+    !> Variable name in NetCDF file.
+    character(len=*), intent(in) :: name
+    !> NetCDF dimension IDs of the variable (either this or dim_name
+    !> must be present).
+    integer, optional, intent(in) :: dimids(2)
+    !> First NetCDF dimension name for the variable (either \c dimids
+    !> or both \c dim_name_1 and \c dim_name 2 must be present).
+    character(len=*), optional, intent(in) :: dim_name_1
+    !> Second NetCDF dimension name for the variable (either \c dimids
+    !> or both \c dim_name_1 and \c dim_name 2 must be present).
+    character(len=*), optional, intent(in) :: dim_name_2
+    !> Unit of variable.
+    character(len=*), optional, intent(in) :: unit
+    !> Long name of variable.
+    character(len=*), optional, intent(in) :: long_name
+    !> Standard name of variable.
+    character(len=*), optional, intent(in) :: standard_name
+    !> Description of variable.
+    character(len=*), optional, intent(in) :: description
+
+    integer :: varid, start(2), count(2), use_dimids(2)
+
+    if (present(dimids)) then
+       use_dimids = dimids
+    elseif (present(dim_name_1) .and. present(dim_name_2)) then
+       call pmc_nc_ensure_dim(ncid, dim_name_1, use_dimids(1), len(var), 1)
+       call pmc_nc_ensure_dim(ncid, dim_name_2, use_dimids(2), size(var, 1), 2)
+    else
+       call die_msg(874103981, &
+            "either dimids or both dim_name_1 and dim_name_2 must be present")
+    end if
+    call pmc_nc_check(nf90_redef(ncid))
+    call pmc_nc_check(nf90_def_var(ncid, name, NF90_CHAR, use_dimids, varid))
+    call pmc_nc_write_atts(ncid, varid, unit, long_name, standard_name, &
+         description)
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    start = (/ 1, 1 /)
+    count = (/ len(var), size(var, 1) /)
+    call pmc_nc_check(nf90_put_var(ncid, varid, var, &
+         start = start, count = count))
+
+  end subroutine pmc_nc_write_string_1d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Write a simple real 2D array to a NetCDF file.
   subroutine pmc_nc_write_real_2d(ncid, var, name, dimids, dim_name_1, &
        dim_name_2, unit, long_name, standard_name, description)

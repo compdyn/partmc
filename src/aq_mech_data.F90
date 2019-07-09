@@ -317,18 +317,27 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Determines the number of bytes required to pack the given value.
-  subroutine aq_mech_data_to_string_array(val, aq_spec_data)
+  !> Convert the mechanism data to an array of strings.
+  subroutine aq_mech_data_to_string_array(val, aq_spec_data, &
+         aq_mech_data_strings)
 
     !> Value to convert.
     type(aq_mech_data_t), intent(in) :: val
     !> Aqueous chemistry related species data.
     type(aq_spec_data_t), intent(in) :: aq_spec_data
+    !> Array of strings, each one describing one reaction.
+    character(len=AQ_RXN_STRING_MAX_LEN), allocatable, intent(inout) &
+         :: aq_mech_data_strings(:)
 
     integer :: i
 
+    if (allocated(aq_mech_data_strings)) then
+       deallocate(aq_mech_data_strings)
+    end if
+    allocate(aq_mech_data_strings(val%n_rxn))
     do i = 1,val%n_rxn
-       write(*,*) trim(integer_to_string(i)) // ": " &
+       aq_mech_data_strings(i) = "Reaction " &
+            // trim(integer_to_string(i)) // ": " &
             // trim(aq_rxn_to_string(val%rxn(i), aq_spec_data))
     end do
 
@@ -410,6 +419,47 @@ contains
 #endif
 
   end subroutine pmc_mpi_unpack_aq_mech_data
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Write the aq_rxn dimension to the given NetCDF file if it
+  !> is not already present and in any case return the associated
+  !> dimid.
+  subroutine aq_mech_data_netcdf_dim_aq_rxn(aq_mech_data, ncid, &
+         dimid_aq_rxn)
+
+    !> Aqueous chemistry mechanism.
+    type(aq_mech_data_t), intent(in) :: aq_mech_data
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Dimid of the aq_rxn dimension.
+    integer, intent(out) :: dimid_aq_rxn
+
+    integer :: status, i_aq_rxn
+    integer :: varid_aq_rxn
+    integer :: aq_rxn_centers(aq_mech_data%n_rxn)
+
+    ! try to get the dimension ID
+    status = nf90_inq_dimid(ncid, "aq_rxn", dimid_aq_rxn)
+    if (status == NF90_NOERR) return
+    if (status /= NF90_EBADDIM) call pmc_nc_check(status)
+
+    ! dimension not defined, so define now define it
+    call pmc_nc_check(nf90_redef(ncid))
+
+    call pmc_nc_check(nf90_def_dim(ncid, "aq_rxn", &
+         aq_mech_data%n_rxn, dimid_aq_rxn))
+
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    do i_aq_rxn = 1,aq_mech_data%n_rxn
+       aq_rxn_centers(i_aq_rxn) = i_aq_rxn
+    end do
+    call pmc_nc_write_integer_1d(ncid, aq_rxn_centers, &
+         "aq_rxn", (/ dimid_aq_rxn /), &
+         description="dummy dimension variable (no useful value)")
+
+  end subroutine aq_mech_data_netcdf_dim_aq_rxn
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

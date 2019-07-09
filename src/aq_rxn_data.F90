@@ -472,6 +472,44 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Write the aq_rxn_string dimension to the given NetCDF file if it
+  !> is not already present and in any case return the associated
+  !> dimid.
+  subroutine aq_rxn_data_netcdf_dim_aq_rxn_string(ncid, dimid_aq_rxn_string)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Dimid of the aq_rxn_string dimension.
+    integer, intent(out) :: dimid_aq_rxn_string
+
+    integer :: status, i_aq_rxn_string
+    integer :: varid_aq_rxn_string
+    integer :: aq_rxn_string_centers(AQ_RXN_STRING_MAX_LEN)
+
+    ! try to get the dimension ID
+    status = nf90_inq_dimid(ncid, "aq_rxn_string", dimid_aq_rxn_string)
+    if (status == NF90_NOERR) return
+    if (status /= NF90_EBADDIM) call pmc_nc_check(status)
+
+    ! dimension not defined, so define now define it
+    call pmc_nc_check(nf90_redef(ncid))
+
+    call pmc_nc_check(nf90_def_dim(ncid, "aq_rxn_string", &
+         AQ_RXN_STRING_MAX_LEN, dimid_aq_rxn_string))
+
+    call pmc_nc_check(nf90_enddef(ncid))
+
+    do i_aq_rxn_string = 1,AQ_RXN_STRING_MAX_LEN
+       aq_rxn_string_centers(i_aq_rxn_string) = i_aq_rxn_string
+    end do
+    call pmc_nc_write_integer_1d(ncid, aq_rxn_string_centers, &
+         "aq_rxn_string", (/ dimid_aq_rxn_string /), &
+         description="dummy dimension variable (no useful value)")
+
+  end subroutine aq_rxn_data_netcdf_dim_aq_rxn_string
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 end module pmc_aq_rxn_data
 
 

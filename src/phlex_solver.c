@@ -94,9 +94,9 @@ void pmc_debug_print_jac_struct(void *solver_data, const char *message)
 // Small number used in filtering
 #define SMALL_NUMBER 1.1E-30
 // State advancement factor for Jacobian element evaluation
-#define JAC_CHECK_ADV 1.0E-8
+#define JAC_CHECK_ADV 1.0E-5
 // Tolerance for Jacobian element evaluation
-#define JAC_CHECK_TOL 1.0E-15
+#define JAC_CHECK_TOL 1.0E-8
 // Set MAX_TIMESTEP_WARNINGS to a negative number to prevent output
 #define MAX_TIMESTEP_WARNINGS -1
 // Maximum number of steps in discreet addition guess helper
@@ -377,11 +377,25 @@ int solver_set_debug_out(void *solver_data, bool do_output)
 #ifdef PMC_USE_SUNDIALS
   SolverData *sd = (SolverData*) solver_data;
 
-  if (do_output == true) {
-    sd->debug_out = SUNTRUE;
-  } else {
-    sd->debug_out = SUNFALSE;
-  }
+  sd->debug_out = do_output == true ? SUNTRUE : SUNFALSE;
+  return PHLEX_SOLVER_SUCCESS;
+#endif
+}
+#endif
+
+/** \brief Set the flag indicating whether to evalute the Jacobian during
+ **        solving
+ *
+ * \param solver_data A pointer to the solver data
+ * \param do_output Whether to evaluate the Jacobian during solving
+ */
+#ifdef PMC_DEBUG
+int solver_set_eval_jac(void *solver_data, bool eval_Jac)
+{
+#ifdef PMC_USE_SUNDIALS
+  SolverData *sd = (SolverData*) solver_data;
+
+  sd->eval_Jac = eval_Jac == true ? SUNTRUE : SUNFALSE;
   return PHLEX_SOLVER_SUCCESS;
 #endif
 }
@@ -419,6 +433,9 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   flag = SUNKLUSetDebugOut(sd->ls, sd->debug_out);
   check_flag_fail(&flag, "SUNKLUSetDebugOut", 1);
 #endif
+
+  // Reset the counter of Jacobian evaluation failures
+  sd->Jac_eval_fails = 0;
 
   // Update data for new environmental state
   // (This is set up to assume the environmental variables do not change during
@@ -522,12 +539,14 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
  *                              right-hand side evaluations
  * \param last_time_step__s     Pointer to set to the last time step size [s]
  * \param next_time_step__s     Pointer to set to the next time step size [s]
+ * \param Jac_eval_fails        Number of Jacobian evaluation failures
  */
 void solver_get_statistics( void *solver_data, int *num_steps, int *RHS_evals,
                     int *LS_setups, int *error_test_fails,
                     int *NLS_iters, int *NLS_convergence_fails,
                     int *DLS_Jac_evals, int *DLS_RHS_evals,
-                    double *last_time_step__s, double *next_time_step__s ) {
+                    double *last_time_step__s, double *next_time_step__s,
+                    int *Jac_eval_fails ) {
 
 #ifdef PMC_USE_SUNDIALS
   SolverData *sd = (SolverData*) solver_data;
@@ -575,6 +594,7 @@ void solver_get_statistics( void *solver_data, int *num_steps, int *RHS_evals,
   if (check_flag(&flag, "CVodeGetCurrentStep", 1)==PHLEX_SOLVER_FAIL)
           return;
   *next_time_step__s = (double) curr_h;
+  *Jac_eval_fails = sd->Jac_eval_fails;
 
 #endif
 }
@@ -677,6 +697,9 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   ModelData *md = &(sd->model_data);
   realtype time_step;
 
+  // !!!! Do not use tmp2 - it is the same as y !!!! //
+  // FIXME Find out why cvode is sending tmp2 as y
+
   // Update the state array with the current dependent variable values
   // Signal a recoverable error (positive return value) for negative
   // concentrations.
@@ -718,6 +741,15 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   // Calculate the Jacobian
   rxn_calc_jac(md, J, time_step);
 
+#ifdef PMC_DEBUG
+  // Evaluate the Jacobian if flagged to do so
+  if (sd->eval_Jac==SUNTRUE) {
+    if (!check_Jac(t, y, J, deriv, tmp1, tmp3, solver_data)) {
+      ++(sd->Jac_eval_fails);
+    }
+  }
+#endif
+
   return (0);
 
 }
@@ -747,35 +779,39 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
   realtype * d_deriv     = NV_DATA_S(deriv);
   realtype * d_adj_state = NV_DATA_S(tmp);
   realtype * d_adj_deriv = NV_DATA_S(tmp1);
+  bool retval = true;
 
+  if (f(t, y, deriv, solver_data)!=0) {
+    printf("\n Derivative calculation failed.\n");
+    return false;
+  }
   N_VScale(ONE, y, tmp);
   for (int i_ind = 0; i_ind < NV_LENGTH_S(y); ++i_ind) {
     d_adj_state[i_ind] += JAC_CHECK_ADV * fabs(d_state[i_ind]);
     if (f(t, tmp, tmp1, solver_data)!=0) {
+      printf("\n Derivative calculation failed.\n");
       return false;
     }
     for (int i_elem = SM_INDEXPTRS_S(J)[i_ind];
          i_elem < SM_INDEXPTRS_S(J)[i_ind+1]; ++i_elem ) {
       int i_dep = SM_INDEXVALS_S(J)[i_elem];
-      realtype deriv_diff = (d_deriv[i_dep] - d_adj_deriv[i_dep]) /
-                            JAC_CHECK_ADV;
-      if (SM_DATA_S(J)[i_elem] == ZERO) {
-        if (deriv_diff != ZERO) {
-          printf("\n Error in Jacobian[%d][%d] = %le; expected zero\n",
-                  i_ind, i_dep, deriv_diff);
-          return false;
-        }
-      } else {
-        realtype J_diff = (SM_DATA_S(J)[i_elem] - deriv_diff) /
-                           SM_DATA_S(J)[i_elem];
-        if (fabs(J_diff) < JAC_CHECK_TOL) {
-          printf("\n Error in Jacobian[%d][%d] = %le\n", i_ind, i_dep, J_diff);
-          return false;
+      realtype jac_adj = (d_deriv[i_dep] +
+                          SM_DATA_S(J)[i_elem] * JAC_CHECK_ADV *
+                              fabs(d_state[i_ind]));
+      realtype jac_diff = d_adj_deriv[i_dep] - jac_adj;
+      if (jac_diff != ZERO) {
+        jac_diff /= (fabs(d_adj_deriv[i_dep]) + fabs(jac_adj)) / 2.0;
+        if (fabs(jac_diff) > JAC_CHECK_TOL) {
+          printf("\nError in Jacobian[%d][%d] of %le relative to f[%d] = %le",
+                 i_ind, i_dep, jac_diff, i_dep,
+                 (fabs(d_adj_deriv[i_dep]) + fabs(jac_adj)) / 2.0);
+          retval = false;
         }
       }
     }
+    d_adj_state[i_ind] = d_state[i_ind];
   }
-  return true;
+  return retval;
 }
 
 /** \brief Try to improve guesses of y sent to the linear solver

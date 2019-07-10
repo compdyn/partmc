@@ -45,10 +45,14 @@ module pmc_solver_stats
     real(kind=dp) :: last_time_step__s
     !> Next time step [s]
     real(kind=dp) :: next_time_step__s
+    !> Jacobian evaluation failures
+    integer(kind=i_kind) :: Jac_eval_fails
 #ifdef PMC_DEBUG
     !> Flag to output debugging info during solving
     !! THIS PRINTS A LOT OF TEXT TO THE STANDARD OUTPUT
     logical :: debug_out = .false.
+    !> Evalute the Jacobian during solving
+    logical :: eval_Jac = .false.
 #endif
   contains
     !> Print the solver statistics
@@ -89,6 +93,10 @@ contains
     write(f_unit,*) "Next time step [s]:          ", this%next_time_step__s
 #ifdef PMC_DEBUG
     write(f_unit,*) "Output debugging info:       ", this%debug_out
+    write(f_unit,*) "Evaluate Jacobian:           ", this%eval_Jac
+    if (this%eval_Jac) then
+      write(f_unit,*) "Jacobian evaluation failures:", this%Jac_eval_fails
+    end if
 #endif
 
   end subroutine do_print
@@ -99,7 +107,7 @@ contains
   subroutine assignValue( this, new_value )
 
     !> Solver statistics
-    class(solver_stats_t), intent(out) :: this
+    class(solver_stats_t), intent(inout) :: this
     !> Value to assign
     integer(kind=i_kind), intent(in) :: new_value
 
@@ -116,9 +124,7 @@ contains
     this%DLS_RHS_evals         = new_value
     this%last_time_step__s     = real( new_value, kind=dp )
     this%next_time_step__s     = real( new_value, kind=dp )
-#ifdef PMC_DEBUG
-    this%debug_out             = .false.
-#endif
+    this%Jac_eval_fails        = new_value
 
   end subroutine assignValue
 

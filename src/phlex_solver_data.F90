@@ -109,6 +109,16 @@ module pmc_phlex_solver_data
       !> Flag indicating whether to output debugging information
       integer(kind=c_int), value :: do_output
     end function solver_set_debug_out
+
+    !> Set the Jacobian evaluation flag for the solver
+    integer(kind=c_int) function solver_set_eval_jac(solver_data, &
+                    eval_Jac) bind (c)
+      use iso_c_binding
+      !> Pointer to a SolverData object
+      type(c_ptr), value :: solver_data
+      !> Flag indicating whether to evaluate the Jacobian during solving
+      integer(kind=c_int), value :: eval_Jac
+    end function solver_set_eval_jac
 #endif
 
     !> Run the solver
@@ -131,7 +141,8 @@ module pmc_phlex_solver_data
     subroutine solver_get_statistics( solver_data, num_steps, RHS_evals, &
                     LS_setups, error_test_fails, NLS_iters, &
                     NLS_convergence_fails, DLS_Jac_evals, DLS_RHS_evals, &
-                    last_time_step__s, next_time_step__s ) bind (c)
+                    last_time_step__s, next_time_step__s, Jac_eval_fails &
+                    ) bind (c)
       use iso_c_binding
       !> Pointer to the solver data
       type(c_ptr), value :: solver_data
@@ -155,6 +166,8 @@ module pmc_phlex_solver_data
       type(c_ptr), value :: last_time_step__s
       !> Next time step [s]
       type(c_ptr), value :: next_time_step__s
+      !> Number of Jacobian evaluation failures
+      type(c_ptr), value :: Jac_eval_fails
     end subroutine solver_get_statistics
 
     !> Add condensed reaction data to the solver data block
@@ -809,6 +822,18 @@ contains
             int(0, kind=c_int)              & ! Debug flag
             )
       end if
+      ! Update Jacobian evaluation flag in the solver data
+      if (solver_stats%eval_Jac) then
+        solver_stats = solver_set_eval_jac( &
+            this%solver_c_ptr,              & ! Pointer to the solver data
+            int(1, kind=c_int)              & ! Jac eval flag
+            )
+      else
+        solver_stats = solver_set_eval_jac( &
+            this%solver_c_ptr,              & ! Pointer to the solver data
+            int(0, kind=c_int)              & ! Jac eval flag
+            )
+      end if
     end if
 #endif
 
@@ -828,7 +853,7 @@ contains
       solver_stats%start_time__s = t_initial
       solver_stats%end_time__s   = t_final
     else
-      call warn_assert_msg(997420005, solver_status.eq.0, "Solver failed");
+      call warn_assert_msg(997420005, solver_status.eq.0, "Solver failed")
     end if
 
   end subroutine solve
@@ -841,7 +866,7 @@ contains
     !> Solver data
     class(phlex_solver_data_t), intent(inout) :: this
     !> Solver statistics
-    type(solver_stats_t), intent(out), target :: solver_stats
+    type(solver_stats_t), intent(inout), target :: solver_stats
 
     call solver_get_statistics( &
             this%solver_c_ptr,                             & ! Solver data
@@ -854,7 +879,8 @@ contains
             c_loc( solver_stats%DLS_Jac_evals         ),   & ! Jacobian evals
             c_loc( solver_stats%DLS_RHS_evals         ),   & ! DLS Right-hand side evals
             c_loc( solver_stats%last_time_step__s     ),   & ! Last time step [s]
-            c_loc( solver_stats%next_time_step__s     ) )    ! Next time step [s]
+            c_loc( solver_stats%next_time_step__s     ),   & ! Next time step [s]
+            c_loc( solver_stats%Jac_eval_fails        ) )    ! Number of Jac eval fails
 
   end subroutine get_solver_stats
 

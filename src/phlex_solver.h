@@ -23,14 +23,16 @@ void solver_initialize(void *solver_data, double *abs_tol, double rel_tol,
           int max_steps, int max_conv_fails);
 #ifdef PMC_DEBUG
 int solver_set_debug_out(void *solver_data, bool do_output);
+int solver_set_eval_jac(void *solver_data, bool eval_Jac);
 #endif
 int solver_run(void *solver_data, double *state, double *env, double t_initial,
 	  double t_final);
-void solver_get_statistics( void *solver_data, int *num_steps, int *RHS_evals,
-          int *LS_setups, int *error_test_fails,
-          int *NLS_iters, int *NLS_convergence_fails,
-          int *DLS_Jac_evals, int *DLS_RHS_evals,
-          double *last_time_step__s, double *next_time_step__s );
+void solver_get_statistics(void *solver_data, int *num_steps, int *RHS_evals,
+                           int *LS_setups, int *error_test_fails,
+                           int *NLS_iters, int *NLS_convergence_fails,
+                           int *DLS_Jac_evals, int *DLS_RHS_evals,
+                           double *last_time_step__s, double *next_time_step__s,
+                           int *Jac_eval_fails);
 void solver_free(void *solver_data);
 void model_free(ModelData model_data);
 

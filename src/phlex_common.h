@@ -86,8 +86,10 @@ typedef struct {
   bool curr_J_guess;    // Flag indicating the Jacobian used by the guess helper
                         // is current
   realtype J_guess_t;   // Last time (t) for which J_guess was calculated
+  int Jac_eval_fails;   // Number of Jacobian evaluation failures
 #ifdef PMC_DEBUG
   booleantype debug_out;// Output debugging information during solving
+  booleantype eval_Jac; // Evalute Jacobian data during solving
 #endif
 #endif
   void *cvode_mem;	// CVodeMem object

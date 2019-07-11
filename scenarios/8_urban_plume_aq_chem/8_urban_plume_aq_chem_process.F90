@@ -19,7 +19,8 @@ program process
   type(aero_data_t) :: aero_data
   type(aero_state_t) :: aero_state, aero_state_averaged
   type(env_state_t) :: env_state
-  integer :: ncid, index, repeat, i_index, i_repeat, n_index, n_repeat
+  integer :: ncid, index, repeat, i_index, i_repeat, n_index, n_repeat, i_rxn
+  integer :: out_unit
   real(kind=dp) :: time, del_t, tot_num_conc, tot_mass_conc, tot_entropy
   real(kind=dp) :: tot_entropy_averaged
   character(len=PMC_UUID_LEN) :: uuid
@@ -31,6 +32,10 @@ program process
   type(stats_1d_t) :: stats_num_dist, stats_entropy_dist, stats_tot_num_conc, &
        stats_tot_mass_conc, stats_tot_entropy, stats_tot_entropy_averaged
   type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_sc_dist
+  real(kind=dp), allocatable :: aq_chem_rates_forward(:,:)
+  real(kind=dp), allocatable :: aq_chem_rates_backward(:,:)
+  real(kind=dp), allocatable :: aq_chem_rates_conv_factors(:,:)
+  character(len=AQ_RXN_STRING_MAX_LEN), allocatable :: aq_mech_data(:)
 
   integer :: i
   real(kind=dp) :: max_dp
@@ -66,7 +71,20 @@ program process
         ! time or something? Or init to "" and check if not this.
         call input_state(in_filename, index, time, del_t, repeat, &
              uuid, aero_data=aero_data, aero_state=aero_state, &
-             env_state=env_state)
+             env_state=env_state, &
+             aq_chem_rates_forward=aq_chem_rates_forward, &
+             aq_chem_rates_backward=aq_chem_rates_backward, &
+             aq_chem_rates_conv_factors=aq_chem_rates_conv_factors, &
+             aq_mech_data=aq_mech_data)
+
+        if (i_index == 1 .and. i_repeat == 1) then
+             call make_filename(out_filename, prefix, "_aq_mech_data.txt")
+             call open_file_write(out_filename, out_unit)
+             do i_rxn = 1,size(aq_mech_data)
+                 write(out_unit,*) trim(aq_mech_data(i_rxn))
+             end do
+             call close_file(out_unit)
+        end if
 
         times(i_index) = time
 

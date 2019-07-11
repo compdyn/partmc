@@ -191,6 +191,67 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Input reaction rates from a NetCDF file.
+  subroutine aq_chem_rates_input_netcdf(rates_forward, rates_backward, &
+          conv_factors, aq_mech_data, ncid)
+
+    !> Forward reaction rates to input.
+    real(kind=dp), intent(inout), allocatable :: rates_forward(:,:)
+    !> Backward reaction rates to input.
+    real(kind=dp), intent(inout), allocatable :: rates_backward(:,:)
+    !> Conversion factors to input.
+    real(kind=dp), intent(inout), allocatable :: conv_factors(:,:)
+    !> Reaction descriptions to input.
+    character(len=AQ_RXN_STRING_MAX_LEN), intent(inout), allocatable &
+         :: aq_mech_data(:)
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+
+    integer :: dimid_aero_particle, dimid_aq_rxn
+    integer :: n_aero_particle, n_aq_rxn
+    character(len=1000) :: name
+
+    call pmc_nc_check(nf90_inq_dimid(ncid, "aero_particle", &
+         dimid_aero_particle))
+    call pmc_nc_check(nf90_Inquire_Dimension(ncid, &
+         dimid_aero_particle, name, n_aero_particle))
+
+    call pmc_nc_check(nf90_inq_dimid(ncid, "aq_rxn", &
+         dimid_aq_rxn))
+    call pmc_nc_check(nf90_Inquire_Dimension(ncid, &
+         dimid_aq_rxn, name, n_aq_rxn))
+
+    if (allocated(rates_forward)) then
+         deallocate(rates_forward)
+    end if
+    if (allocated(rates_backward)) then
+        deallocate(rates_backward)
+    end if
+    if (allocated(conv_factors)) then
+        deallocate(conv_factors)
+    end if
+    if (allocated(aq_mech_data)) then
+        deallocate(aq_mech_data)
+    end if
+
+    allocate(rates_forward(n_aero_particle, n_aq_rxn))
+    allocate(rates_backward(n_aero_particle, n_aq_rxn))
+    allocate(conv_factors(n_aero_particle, n_aq_rxn))
+    allocate(aq_mech_data(n_aq_rxn))
+
+    call pmc_nc_read_real_2d(ncid, rates_forward, &
+         "aq_chem_rates_forward")
+    call pmc_nc_read_real_2d(ncid, rates_backward, &
+         "aq_chem_rates_backward")
+    call pmc_nc_read_real_2d(ncid, conv_factors, &
+         "aq_chem_rates_conv_factors")
+    call pmc_nc_read_string_1d(ncid, aq_mech_data, &
+         "aq_mech_data")
+    
+  end subroutine aq_chem_rates_input_netcdf
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Compute instantaneous rates for aqueous chemistry.
   subroutine aq_chem_compute_rates(env_state, aq_mech_data, aq_spec_data, &
        aq_state_init, gas_data, gas_state, aero_data, aero_state, &

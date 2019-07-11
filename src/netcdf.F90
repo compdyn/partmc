@@ -284,6 +284,41 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Read a simple string array from a NetCDF file.
+  subroutine pmc_nc_read_string_1d(ncid, var, name, must_be_present)
+
+    !> NetCDF file ID, in data mode.
+    integer, intent(in) :: ncid
+    !> Data to read, must be correctly sized.
+    character(len=*), intent(out) :: var(:)
+    !> Variable name in NetCDF file.
+    character(len=*), intent(in) :: name
+    !> Whether the variable must be present in the NetCDF file
+    !> (default .true.).
+    logical, optional, intent(in) :: must_be_present
+
+    integer :: varid, status
+    logical :: use_must_be_present
+
+    if (present(must_be_present)) then
+       use_must_be_present = must_be_present
+    else
+       use_must_be_present = .true.
+    end if
+    status = nf90_inq_varid(ncid, name, varid)
+    if ((.not. use_must_be_present) .and. (status == NF90_ENOTVAR)) then
+       ! variable was not present, but that's ok
+       var = ""
+       return
+    end if
+    call pmc_nc_check_msg(status, "inquiring variable " // trim(name))
+    call pmc_nc_check_msg(nf90_get_var(ncid, varid, var), &
+         "getting variable " // trim(name))
+
+  end subroutine pmc_nc_read_string_1d
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Read a simple real 2D array from a NetCDF file.
   subroutine pmc_nc_read_real_2d(ncid, var, name, must_be_present)
 

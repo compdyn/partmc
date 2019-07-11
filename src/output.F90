@@ -551,7 +551,9 @@ contains
 
   !> Read the current state.
   subroutine input_state(filename, index, time, del_t, i_repeat, uuid, &
-       aero_data, aero_state, gas_data, gas_state, env_state)
+       aero_data, aero_state, gas_data, gas_state, env_state, &
+       aq_chem_rates_forward, aq_chem_rates_backward, aq_chem_rates_conv_factors, &
+       aq_mech_data)
 
     !> Prefix of state file.
     character(len=*), intent(in) :: filename
@@ -575,6 +577,18 @@ contains
     type(gas_state_t), optional, intent(inout) :: gas_state
     !> Environment state.
     type(env_state_t), optional, intent(inout) :: env_state
+    !> Forward reaction rates to input.
+    real(kind=dp), optional, intent(inout), allocatable &
+         :: aq_chem_rates_forward(:,:)
+    !> Backward reaction rates to input.
+    real(kind=dp), optional, intent(inout), allocatable &
+         :: aq_chem_rates_backward(:,:)
+    !> Conversion factors to input.
+    real(kind=dp), optional, intent(inout), allocatable &
+         :: aq_chem_rates_conv_factors(:,:)
+    !> Reaction descriptions to input.
+    character(len=AQ_RXN_STRING_MAX_LEN), optional, intent(inout), &
+         allocatable :: aq_mech_data(:)
 
     integer :: ncid
 
@@ -612,6 +626,16 @@ contains
 
     if (present(env_state)) then
        call env_state_input_netcdf(env_state, ncid)
+    end if
+
+    if (present(aq_chem_rates_forward)) then
+       call assert_msg(932782234, present(aq_chem_rates_backward) &
+           .and. present(aq_chem_rates_conv_factors) &
+           .and. present(aq_mech_data), &
+           "must supply all or no aq_chem rate arguments")
+       call aq_chem_rates_input_netcdf(aq_chem_rates_forward, &
+           aq_chem_rates_backward, aq_chem_rates_conv_factors, aq_mech_data, &
+           ncid)
     end if
 
     call pmc_nc_close(ncid)

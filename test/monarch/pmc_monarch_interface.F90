@@ -377,16 +377,17 @@ contains
 
           this%phlex_state%env_state%temp = temperature(1,1,1) !TODO: Set different env variables and accumulate them
           this%phlex_state%env_state%pressure = pressure(1,1,1)
-          this%phlex_state%state_var(:) = 0.0
+          !this%phlex_state%state_var(:) = 0.0
 
           do i=i_start, i_end
             do j=j_start, j_end
               do k=1, size(MONARCH_conc,3)
 
-            z = (i-i_start)+(j-j_start)+(k-1) !Distance
+            !z = (i-i_start)+(j-j_start)+(k-1) !Distance
+            z = (j-1)*(i_end)+(i-1) !TODO: k cells
             k_flip = size(MONARCH_conc,3) - k + 1
             this%phlex_state%state_var(this%map_phlex_id(:)+(z*state_size)) = 0.0
-            !Monarch conc is size 1 cell
+
             this%phlex_state%state_var(this%map_phlex_id(:)+(z*state_size)) = &
                   this%phlex_state%state_var(this%map_phlex_id(:)+(z*state_size)) + &
                     MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
@@ -438,7 +439,8 @@ contains
           do i=i_start, i_end
             do j=j_start, j_end
               do k=1, size(MONARCH_conc,3)
-            z = (i-i_start)+(j-j_start)+(k-1)
+            !z = (i-i_start)+(j-j_start)+(k-1)
+            z = (j-1)*(i_end)+(i-1)
             k_flip = size(MONARCH_conc,3) - k + 1
             MONARCH_conc(i,j,k_flip,this%map_monarch_id(:)) = &
                     this%phlex_state%state_var(this%map_phlex_id(:)+(z*state_size))

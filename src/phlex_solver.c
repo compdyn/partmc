@@ -625,8 +625,8 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 
   clock_t start2 = clock();
 
+  // Calculate the time derivative f(t,y)
   if (md->num_cells==1){
-    // Calculate the time derivative f(t,y)
     rxn_calc_deriv(md, deriv, (double) time_step);
   }
 
@@ -731,10 +731,10 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     //printf(" state: %f  \n", state[i]/NV_LENGTH_S(deriv));
 
     }
-    for (int i=0; i<NV_LENGTH_S(deriv); i++) {
-      double *state = md->state;
+    //for (int i=0; i<NV_LENGTH_S(deriv); i++) {
+    //  double *state = md->state;
       //printf(" state: %f  \n", state[i]/NV_LENGTH_S(deriv));
-    }
+    //}
 
   }
   counterJac++;

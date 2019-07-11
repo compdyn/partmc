@@ -616,15 +616,12 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J, realtype time_step)
   // Get a pointer to the Jacobian data
   realtype *J_data2 = SM_DATA_S(J);
   int num_cells = model_data->num_cells;
-  //printf(" hola: %d  \n", num_cells);
 
-  //int J_length_cell = model_data->n_dep_var*model_data->n_dep_var/model_data->num_cells;//model_data->num_cells;
-  int J_length_cell = SM_NNZ_S(J)/num_cells;///model_data->num_cells;//????TODO
-
+  int J_length_cell = SM_NNZ_S(J)/num_cells;
   int state_size_cell = model_data->n_state_var/num_cells;//model_data->n_state_var/num_cells;
   double *state2 = model_data->state;
 
-  //printf(" hola: %d  \n", num_cells);
+  //printf(" num_cells: %d  \n", num_cells);
 
   for (int i=0; i<num_cells; i++){
 

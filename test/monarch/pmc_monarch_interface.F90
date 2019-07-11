@@ -291,33 +291,47 @@ contains
 
     type(solver_stats_t), target :: solver_stats
 
-    !    i=2
-    !    j=2
-    !    k=1 !Ttodo:this gives same results
-
     state_size_total = size(this%phlex_state%state_var)!size(this%map_monarch_id)
     state_size = state_size_total/this%num_cells
     !print*,'state_size_m_interface=', state_size
 
+    !do i=i_start, i_end
+    !    MONARCH_conc(i,:,:,this%map_monarch_id(:)) = &
+    !            MONARCH_conc(i,:,:,this%map_monarch_id(:)) + 0.1*i!0.000001*i
+    !end do
+
+    !do j=j_start, j_end
+    !  MONARCH_conc(:,j,:,this%map_monarch_id(:)) = &
+    !          MONARCH_conc(:,j,:,this%map_monarch_id(:)) + 0.1*j!0.000003*j
+    !end do
+
+    !do k=1, size(MONARCH_conc,3)
+    !  MONARCH_conc(:,:,k,this%map_monarch_id(:)) = &
+    !          MONARCH_conc(:,:,k,this%map_monarch_id(:)) + 0.1*k!0.000006*k
+    !end do
+
     i=1
     j=1
     k=1
-    original_method=1
+    original_method=0
 
+    !Init concentrations to different values
     do i=i_start, i_end
         MONARCH_conc(i,:,:,this%map_monarch_id(:)) = &
-                MONARCH_conc(i,:,:,this%map_monarch_id(:)) + 0.000001*i
+                MONARCH_conc(i,:,:,this%map_monarch_id(:)) + 0.1*i!0.000001*i
     end do
 
     do j=j_start, j_end
       MONARCH_conc(:,j,:,this%map_monarch_id(:)) = &
-              MONARCH_conc(:,j,:,this%map_monarch_id(:)) + 0.000003*j
+              MONARCH_conc(:,j,:,this%map_monarch_id(:)) + 0.1*j!0.000003*j
     end do
 
     do k=1, size(MONARCH_conc,3)
       MONARCH_conc(:,:,k,this%map_monarch_id(:)) = &
-              MONARCH_conc(:,:,k,this%map_monarch_id(:)) + 0.000006*k
+              MONARCH_conc(:,:,k,this%map_monarch_id(:)) + 0.1*k!0.000006*k
     end do
+
+    !print*,'num_time_step=', MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
 
     call cpu_time(comp_start)
 
@@ -369,12 +383,13 @@ contains
             do j=j_start, j_end
               do k=1, size(MONARCH_conc,3)
 
-            z = (i-i_start)*(j-j_start)*(size(MONARCH_conc,3)) !Distance
+            z = (i-i_start)+(j-j_start)+(k-1) !Distance
             k_flip = size(MONARCH_conc,3) - k + 1
+            this%phlex_state%state_var(this%map_phlex_id(:)+(z*state_size)) = 0.0
             !Monarch conc is size 1 cell
             this%phlex_state%state_var(this%map_phlex_id(:)+(z*state_size)) = &
-                  this%phlex_state%state_var(this%map_phlex_id(:)+((z)*state_size)) + &
-                    MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))!+((z)*state_size)
+                  this%phlex_state%state_var(this%map_phlex_id(:)+(z*state_size)) + &
+                    MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
             this%phlex_state%state_var(this%gas_phase_water_id+(z*state_size)) = &
                     water_conc(i,j,k_flip,water_vapor_index) *air_density(i,k,j) * 1.0d9
               end do
@@ -400,7 +415,7 @@ contains
           !end do
 
 !ifdef MULTIPLE_CELLS
-          !print*,'num_time_step=', MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
+          !print*,'num_time_step=', MONARCH_conc(i,j,k_flip,:)
 !# endif
 
           ! Start the computation timer
@@ -423,10 +438,11 @@ contains
           do i=i_start, i_end
             do j=j_start, j_end
               do k=1, size(MONARCH_conc,3)
-            z = (i-i_start)*(j-j_start)*(size(MONARCH_conc,3))
+            z = (i-i_start)+(j-j_start)+(k-1)
             k_flip = size(MONARCH_conc,3) - k + 1
             MONARCH_conc(i,j,k_flip,this%map_monarch_id(:)) = &
                     this%phlex_state%state_var(this%map_phlex_id(:)+(z*state_size))
+                !!I think this is the problem
               end do
             end do
           end do

@@ -105,6 +105,7 @@ void solver_new_gpu_cu(SolverDatagpu *sd, int n_dep_var,
   //printf("n_rxn_float_param: %d ", n_rxn_float_param);
   //printf("n_rxn_int_param: %d ", n_rxn_int_param);
   printf("n_state_var: %d" ,n_state_var); //TODO: Fix n_state_var received is so big (47 when two cells)
+  printf("n_dep_var: %d" ,n_dep_var);
 
   //Create started indexes of arrays
   start_rxn_param = (unsigned int *) malloc(start_size);
@@ -129,7 +130,7 @@ void solver_new_gpu_cu(SolverDatagpu *sd, int n_dep_var,
 
   //HANDLE_ERROR(cudaHostGetDevicePointer((void**) &(derivgpu_data), (void*)deriv_data, 0));
 
-  if (deriv_size > MAX_SHARED_MEMORY_BLOCK_DOUBLE)
+  if (deriv_size/(sizeof(double)) > MAX_SHARED_MEMORY_BLOCK_DOUBLE)
 #ifndef FAILURE_DETAIL
     printf("\nMore solver variables(deriv): %d than maximum shared memory: %d",
            deriv_size, MAX_SHARED_MEMORY_BLOCK_DOUBLE);

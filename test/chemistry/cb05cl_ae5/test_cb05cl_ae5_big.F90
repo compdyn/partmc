@@ -190,6 +190,8 @@ contains
     ! Arrays to hold starting concentrations
     real(kind=dp), allocatable :: ebi_init(:), kpp_init(:), phlex_init(:)
 
+    integer(kind=i_kind) :: num_cells = 1
+
     ! D
     passed = .false.
    
@@ -253,14 +255,15 @@ contains
     call cpu_time(comp_end)
     write(*,*) "KPP initialization time: ", comp_end-comp_start," s"
 
-
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !!! Initialize phlex-chem !!!
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    
+
+    num_cells = 1
+
     call cpu_time(comp_start)
     phlex_input_file = "config_cb05cl_ae5_big.json"
-    phlex_core => phlex_core_t(phlex_input_file)
+    phlex_core => phlex_core_t(phlex_input_file, num_cells)
     
     ! Initialize the model
     call phlex_core%initialize()

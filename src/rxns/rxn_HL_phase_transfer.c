@@ -416,10 +416,10 @@ void * rxn_HL_phase_transfer_scale_adj(ModelData *model_data, void *rxn_data)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
+void * rxn_HL_phase_transfer_calc_deriv_contrib(double *state, ModelData *model_data,
           realtype *deriv, void *rxn_data, double time_step)
 {
-  realtype *state = model_data->state;
+  //realtype *state = model_data->state;
   realtype *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
@@ -534,10 +534,10 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
+void * rxn_HL_phase_transfer_calc_jac_contrib(double *state, ModelData *model_data,
           realtype *J, void *rxn_data, double time_step)
 {
-  realtype *state = model_data->state;
+  //realtype *state = model_data->state;
   realtype *env_data = model_data->env;
   int *int_data = (int*) rxn_data;
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);

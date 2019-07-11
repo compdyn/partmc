@@ -34,13 +34,13 @@ program mock_monarch
   !> Number of vertical cells in mock MONARCH
   integer, parameter :: NUM_VERT_CELLS = 1
   !> Starting W-E cell for phlex-chem call
-  integer, parameter :: I_W = 9
+  integer, parameter :: I_W = 1!9
   !> Ending W-E cell for phlex-chem call
-  integer, parameter :: I_E = 11
+  integer, parameter :: I_E = 15!15!11
   !> Starting S-N cell for phlex-chem call
-  integer, parameter :: I_S = 14
+  integer, parameter :: I_S = 1!14
   !> Ending S-N cell for phlex-chem call
-  integer, parameter :: I_N = 16
+  integer, parameter :: I_N = 15!15!16
   !> Starting index for phlex-chem species in tracer array
   integer, parameter :: START_PHLEX_ID = 100
   !> Ending index for phlex-chem species in tracer array
@@ -48,7 +48,7 @@ program mock_monarch
   !> Time step (min)
   real, parameter :: TIME_STEP = 1.6
   !> Number of time steps to integrate over
-  integer, parameter :: NUM_TIME_STEP = 100
+  integer, parameter :: NUM_TIME_STEP = 20!100
   !> Index for water vapor in water_conc()
   integer, parameter :: WATER_VAPOR_ID = 5
   !> Start time
@@ -123,6 +123,7 @@ program mock_monarch
 
   !Cells to solve simultaneously
   num_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
+  !num_cells = 1
 
   pmc_interface => monarch_interface_t(phlex_input_file, interface_input_file, &
           START_PHLEX_ID, END_PHLEX_ID, num_cells)
@@ -237,8 +238,10 @@ contains
     real, intent(in) :: curr_time
 
     write(RESULTS_FILE_UNIT, *) curr_time, &
-            species_conc(10,15,1,START_PHLEX_ID:END_PHLEX_ID), &
-            water_conc(10,15,1,WATER_VAPOR_ID)
+            species_conc(2,2,1,START_PHLEX_ID:END_PHLEX_ID), &
+            water_conc(2,2,1,WATER_VAPOR_ID)
+    !            species_conc(10,15,1,START_PHLEX_ID:END_PHLEX_ID), &
+    !        water_conc(10,15,1,WATER_VAPOR_ID)
 
   end subroutine output_results
 !Tolerance -E4

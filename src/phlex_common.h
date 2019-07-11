@@ -48,6 +48,7 @@ typedef enum {false, true} bool;
 /* Model data structure */
 typedef struct {
   int n_state_var;	// number of state variables (>=NV_LENGTH_S(y))
+  int n_dep_var;    // number of solver variables (==NV_LENGTH_S(y)) //ttodo: maybe not necessary
   int num_cells;        // Number of cells to compute simultaneously
   double *abs_tol;      // pointer to array of state variable absolute
                         // integration tolerances

@@ -22,6 +22,7 @@
 #include "sub_model_solver.h"
 
 unsigned int counter=0;
+unsigned int counterJac=0;
 double timeDerivgpu=0;
 double timeDeriv=0;
 
@@ -153,6 +154,9 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   int n_dep_var = 0;
   for (int i=0; i<n_state_var; i++)
     if (var_type[i]==CHEM_SPEC_VARIABLE) n_dep_var++;
+
+  // Save the number of solver variables
+  sd->model_data.n_dep_var = n_dep_var;
 
 #ifdef PMC_USE_SUNDIALS
   // Set up the solver variable array and helper derivative array
@@ -611,16 +615,22 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   clock_t start = clock();
 
   //solver_update_state_gpu(md);TTodo: not working, ask guillermo
-  rxn_calc_deriv_gpu(md, deriv, (double) time_step);// it takes x0.3 speedup
+  if (md->num_cells!=1) {
+    //rxn_calc_deriv_gpu(md, deriv, (double) time_step);
+    rxn_calc_deriv(md, deriv, (double) time_step);
+  }
 
   clock_t end = clock();
   timeDerivgpu+= ((double) (end - start));
 
   clock_t start2 = clock();
 
+  if (md->num_cells==1){
+    // Calculate the time derivative f(t,y)
+    rxn_calc_deriv(md, deriv, (double) time_step);
+  }
 
-  // Calculate the time derivative f(t,y)
-  rxn_calc_deriv(md, derivtest, (double) time_step);
+  //rxn_calc_deriv(md, derivtest, (double) time_step);
 
   clock_t end2 = clock();
   timeDeriv+= ((double) (end2 - start2));
@@ -632,12 +642,10 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
     //printf(" deriv length: %d\n", NV_LENGTH_S(deriv));
     for (int i=0; i<NV_LENGTH_S(deriv); i++) {
 
-      printf(" deriv cpu: %le  ", NV_DATA_S(derivtest)[i]);
-
-	  printf(" deriv gpu: % -le", NV_DATA_S(deriv)[i]);
-
+      //printf(" deriv test: %le  ", NV_DATA_S(derivtest)[i]);
+	  //printf(" deriv: % -le", NV_DATA_S(deriv)[i]);
       double *state = md->state;
-      printf(" state: %f  \n", state[i]);
+      //printf(" state: %f  \n", state[i]);
 
     }
   }
@@ -667,7 +675,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   ModelData *md = &(sd->model_data);
   realtype time_step;
 
-  //TODO: Try calculate jac and deriv outside this functions, and sending the same deriv and jac on cvode iters
+  //TODO: Jac with multiple cells
 
   // Update the state array with the current dependent variable values
   // Signal a recoverable error (positive return value) for negative
@@ -683,7 +691,7 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     }
   }
 
-  // Reset the Jacobian
+  // Reset the Jacobian //Ttodo: not necessary maybe: cvode reset jacobian before this call
   SM_NNZ_S(J) = SM_NNZ_S(md->J_init);
   for (int i=0; i<SM_NNZ_S(J); i++) {
     (SM_DATA_S(J))[i] = (realtype)0.0;
@@ -712,6 +720,24 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
   // Calculate the Jacobian
   rxn_calc_jac(md, J, time_step);
+  if(counterJac==29){
+    for (int i=0; i<SM_NNZ_S(J); i++) {
+
+    //printf(" jac test: %le  ", NV_DATA_S(derivtest)[i]);
+
+    //printf(" jac % -le \n",SM_DATA_S(J)[i]);
+
+    //double *state = md->state;
+    //printf(" state: %f  \n", state[i]/NV_LENGTH_S(deriv));
+
+    }
+    for (int i=0; i<NV_LENGTH_S(deriv); i++) {
+      double *state = md->state;
+      //printf(" state: %f  \n", state[i]/NV_LENGTH_S(deriv));
+    }
+
+  }
+  counterJac++;
 
   return (0);
 
@@ -807,8 +833,10 @@ SUNMatrix get_jac_init(SolverData *solver_data)
   				 * (stored in first position in *rxn_data) */
   bool **jac_struct;		/* structure of Jacobian with flags to indicate
 				 * elements that could be used. */
-  sunindextype n_jac_elem; 	/* number of potentially non-zero Jacobian
-                                   elements */
+  //sunindextype n_jac_elem; 	/* number of potentially non-zero Jacobian
+  //                                 elements */
+
+  int n_jac_elem;
 
   // Number of variables on the state array (these are the ids the reactions
   // are initialized with)
@@ -846,7 +874,12 @@ SUNMatrix get_jac_init(SolverData *solver_data)
 
   // Initialize the sparse matrix
   int n_dep_var = NV_LENGTH_S(solver_data->y);
-  SUNMatrix M = SUNSparseMatrix(n_dep_var, n_dep_var, n_jac_elem, CSC_MAT);
+  //TODO: n_jac_elem is > n_dep_var*n_dep_var, which has nosense. Check if equalizing n_jac_elem works
+  //For cb05 it works equalizing
+  //SUNMatrix M = SUNSparseMatrix(n_dep_var, n_dep_var, n_jac_elem, CSC_MAT);
+  SUNMatrix M = SUNSparseMatrix(n_dep_var, n_dep_var, n_dep_var*n_dep_var, CSC_MAT);
+
+  printf(" n_jac_elem: %d  \n", n_jac_elem);
 
   // Set the column and row indices
   int i_col=0, i_elem=0;

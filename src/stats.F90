@@ -556,6 +556,11 @@ contains
     !> Return offset from mean for the 95% confidence interval.
     real(kind=dp) :: conf_95_offset
 
+    if (n_sample <=1 ) then
+	 conf_95_offset = 0d0
+         return
+    endif
+
     conf_95_offset = student_t_95_coeff(n_sample) * sqrt(var) &
          / sqrt(real(n_sample, kind=dp))
 

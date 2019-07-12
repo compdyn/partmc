@@ -116,13 +116,15 @@ void * rxn_wet_deposition_update_data(void *update_data, void *rxn_data)
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_wet_deposition_update_env_state(double *env_data, void *rxn_data)
+void * rxn_wet_deposition_update_env_state(double *rate_constants, double *env_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the rate constant in (1/s)
   RATE_CONSTANT_ = SCALING_ * BASE_RATE_;
+
+  rate_constants[0] = RATE_CONSTANT_;
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -153,7 +155,7 @@ void * rxn_wet_deposition_pre_calc(ModelData *model_data, void *rxn_data)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_wet_deposition_calc_deriv_contrib(double *state, ModelData *model_data,
+void * rxn_wet_deposition_calc_deriv_contrib(double *rate_constants, double *state, ModelData *model_data,
           realtype *deriv, void *rxn_data, double time_step)
 {
   //realtype *state = model_data->state;
@@ -163,7 +165,8 @@ void * rxn_wet_deposition_calc_deriv_contrib(double *state, ModelData *model_dat
   // Add contributions to the time derivative
   for (int i_spec = 0; i_spec < NUM_SPEC_; i_spec++) {
     if (DERIV_ID_(i_spec) >= 0 )
-        deriv[DERIV_ID_(i_spec)] -= RATE_CONSTANT_ * state[REACT_(i_spec)];
+        //deriv[DERIV_ID_(i_spec)] -= RATE_CONSTANT_ * state[REACT_(i_spec)];
+      deriv[DERIV_ID_(i_spec)] -= rate_constants[0] * state[REACT_(i_spec)];
   }
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
@@ -180,7 +183,7 @@ void * rxn_wet_deposition_calc_deriv_contrib(double *state, ModelData *model_dat
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_wet_deposition_calc_jac_contrib(double *state, ModelData *model_data, realtype *J,
+void * rxn_wet_deposition_calc_jac_contrib(double *rate_constants, double *state, ModelData *model_data, realtype *J,
           void *rxn_data, double time_step)
 {
   //realtype *state = model_data->state;

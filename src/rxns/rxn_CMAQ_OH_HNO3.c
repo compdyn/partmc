@@ -107,7 +107,7 @@ void * rxn_CMAQ_OH_HNO3_update_ids(ModelData *model_data, int *deriv_ids,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_CMAQ_OH_HNO3_update_env_state(double *env_data, void *rxn_data)
+void * rxn_CMAQ_OH_HNO3_update_env_state(double *rate_constants, double *env_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
@@ -129,6 +129,8 @@ void * rxn_CMAQ_OH_HNO3_update_env_state(double *env_data, void *rxn_data)
                   pow(TEMPERATURE_K_/((double)300.0), k0_B_))
 	  + k3 / (((double)1.0) + k3 / k2)
 	  ) * pow(conv, NUM_REACT_-1) * SCALING_;
+
+  rate_constants[0] = RATE_CONSTANT_;
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -159,7 +161,7 @@ void * rxn_CMAQ_OH_HNO3_pre_calc(ModelData *model_data, void *rxn_data)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_CMAQ_OH_HNO3_calc_deriv_contrib(double *state, ModelData *model_data,
+void * rxn_CMAQ_OH_HNO3_calc_deriv_contrib(double *rate_constants, double *state, ModelData *model_data,
           realtype *deriv, void *rxn_data, double time_step)
 {
   //realtype *state = model_data->state;
@@ -167,7 +169,8 @@ void * rxn_CMAQ_OH_HNO3_calc_deriv_contrib(double *state, ModelData *model_data,
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the reaction rate
-  realtype rate = RATE_CONSTANT_;
+  //realtype rate = RATE_CONSTANT_;
+  realtype rate = rate_constants[0];
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
           rate *= state[REACT_(i_spec)];
 
@@ -202,7 +205,7 @@ void * rxn_CMAQ_OH_HNO3_calc_deriv_contrib(double *state, ModelData *model_data,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_CMAQ_OH_HNO3_calc_jac_contrib(double *state, ModelData *model_data, realtype *J,
+void * rxn_CMAQ_OH_HNO3_calc_jac_contrib(double *rate_constants, double *state, ModelData *model_data, realtype *J,
           void *rxn_data, double time_step)
 {
   //realtype *state = model_data->state;
@@ -210,7 +213,8 @@ void * rxn_CMAQ_OH_HNO3_calc_jac_contrib(double *state, ModelData *model_data, r
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the reaction rate
-  realtype rate = RATE_CONSTANT_;
+  //realtype rate = RATE_CONSTANT_;
+  realtype rate = rate_constants[0];
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
           rate *= state[REACT_(i_spec)];
 

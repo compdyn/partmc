@@ -109,13 +109,15 @@ void * rxn_first_order_loss_update_data(void *update_data, void *rxn_data)
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_first_order_loss_update_env_state(double *env_data, void *rxn_data)
+void * rxn_first_order_loss_update_env_state(double *rate_constants, double *env_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the rate constant in (1/s)
   RATE_CONSTANT_ = SCALING_ * BASE_RATE_;
+
+  rate_constants[0] = RATE_CONSTANT_;
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -146,7 +148,7 @@ void * rxn_first_order_loss_pre_calc(ModelData *model_data, void *rxn_data)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_first_order_loss_calc_deriv_contrib(double *state, ModelData *model_data,
+void * rxn_first_order_loss_calc_deriv_contrib(double *rate_constants, double *state, ModelData *model_data,
           realtype *deriv, void *rxn_data, double time_step)
 {
   //realtype *state = model_data->state;
@@ -154,7 +156,8 @@ void * rxn_first_order_loss_calc_deriv_contrib(double *state, ModelData *model_d
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the reaction rate
-  realtype rate = RATE_CONSTANT_ * state[REACT_];
+  //realtype rate = RATE_CONSTANT_ * state[REACT_];
+  realtype rate = rate_constants[0] * state[REACT_];
 
   // Add contributions to the time derivative
   if (DERIV_ID_ >= 0) deriv[DERIV_ID_] -= rate;
@@ -173,7 +176,7 @@ void * rxn_first_order_loss_calc_deriv_contrib(double *state, ModelData *model_d
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_first_order_loss_calc_jac_contrib(double *state, ModelData *model_data, realtype *J,
+void * rxn_first_order_loss_calc_jac_contrib(double *rate_constants, double *state, ModelData *model_data, realtype *J,
           void *rxn_data, double time_step)
 {
   //realtype *state = model_data->state;
@@ -181,7 +184,8 @@ void * rxn_first_order_loss_calc_jac_contrib(double *state, ModelData *model_dat
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
 
   // Add contributions to the Jacobian
-  if (JAC_ID_ >= 0) J[JAC_ID_] -= RATE_CONSTANT_;
+  //if (JAC_ID_ >= 0) J[JAC_ID_] -= RATE_CONSTANT_;
+  if (JAC_ID_ >= 0) J[JAC_ID_] -= rate_constants[0];
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 

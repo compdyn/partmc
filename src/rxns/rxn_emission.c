@@ -102,13 +102,15 @@ void * rxn_emission_update_data(void *update_data, void *rxn_data)
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_emission_update_env_state(double *env_data, void *rxn_data)
+void * rxn_emission_update_env_state(double *rate_constants, double *env_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the rate constant in (concentration_units/s)
   RATE_ = SCALING_ * BASE_RATE_;
+
+  rate_constants[0] = RATE_;
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -139,7 +141,7 @@ void * rxn_emission_pre_calc(ModelData *model_data, void *rxn_data)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_emission_calc_deriv_contrib(double *state, ModelData *model_data,
+void * rxn_emission_calc_deriv_contrib(double *rate_constants, double *state, ModelData *model_data,
           realtype *deriv, void *rxn_data, double time_step)
 {
   //realtype *state = model_data->state;
@@ -163,7 +165,7 @@ void * rxn_emission_calc_deriv_contrib(double *state, ModelData *model_data,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_emission_calc_jac_contrib(double *state, ModelData *model_data, realtype *J,
+void * rxn_emission_calc_jac_contrib(double *rate_constants, double *state, ModelData *model_data, realtype *J,
           void *rxn_data, double time_step)
 {
   //realtype *state = model_data->state;

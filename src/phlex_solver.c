@@ -181,6 +181,9 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   // If there are no reactions, flag the solver not to run
   sd->no_solve = (n_rxn==0);
 
+  sd->model_data.rate_constants = (void*) malloc(
+          (n_rxn*num_cells_aux)*sizeof(double));
+
   // Allocate space for the aerosol phase data and st the number
   // of aerosol phases (including one int for the number of
   // phases)
@@ -375,7 +378,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   //  solving. This can be changed in the future if necessary.)
   aero_rep_update_env_state(&(sd->model_data), env);
   sub_model_update_env_state(&(sd->model_data), env);
-  rxn_update_env_state(&(sd->model_data), env);
+  rxn_update_env_state(&(sd->model_data), env); //TODO: Rate_constant is the same for each time step?
 
   // Reset the state adjustment arrays
   sd->model_data.use_adj = true;

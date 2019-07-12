@@ -131,7 +131,7 @@ void * rxn_SIMPOL_phase_transfer_update_ids(ModelData *model_data,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_SIMPOL_phase_transfer_update_env_state(double *env_data,
+void * rxn_SIMPOL_phase_transfer_update_env_state(double *rate_constants, double *env_data,
           void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
@@ -168,6 +168,8 @@ void * rxn_SIMPOL_phase_transfer_update_env_state(double *env_data,
                   / MW_                // (mol_x/kg_x)
                   * 1.0e6;             // 1.0e6ppm_x*Pa_air/Pa_x *
                                        //  1.0e-9kg_x/ug_x * 1.0e9ug_tot/kg_tot
+
+  rate_constants[0] = EQUIL_CONST_; //TODO: Update all rate constants
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -394,7 +396,7 @@ void * rxn_SIMPOL_phase_transfer_scale_adj(ModelData *model_data, void *rxn_data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(double *state, ModelData *model_data,
+void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(double *rate_constants, double *state, ModelData *model_data,
           realtype *deriv, void *rxn_data, double time_step)
 {
   //realtype *state = model_data->state;
@@ -516,7 +518,7 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(double *state, ModelData *mo
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(double *state, ModelData *model_data,
+void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(double *rate_constants, double *state, ModelData *model_data,
           realtype *J, void *rxn_data, double time_step)
 {
   //realtype *state = model_data->state;

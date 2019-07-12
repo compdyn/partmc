@@ -60,6 +60,7 @@ typedef struct {
 #endif
   double *state;	// Pointer to the state array
   double *env;		// Pointer to the environmental state array
+  double *rate_constants; // Pointer to the rate constants state array
   void *rxn_data;	// Pointer to reaction parameters
   void *nxt_rxn;	// Pointer to element of rxn_data in which to store next
  			// set of reaction data

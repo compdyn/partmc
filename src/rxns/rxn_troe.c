@@ -106,7 +106,7 @@ void * rxn_troe_update_ids(ModelData *model_data, int *deriv_ids,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_troe_update_env_state(double *env_data, void *rxn_data)
+void * rxn_troe_update_env_state(double *rate_constants, double *env_data, void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
@@ -128,6 +128,8 @@ void * rxn_troe_update_env_state(double *env_data, void *rxn_data)
 	  * pow(FC_, (1.0 / (1.0 + pow(log10(kinf)/N_,2))))
 	  * pow(conv, NUM_REACT_-1)
 	  * SCALING_;
+
+  rate_constants[0] = RATE_CONSTANT_;
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -158,7 +160,7 @@ void * rxn_troe_pre_calc(ModelData *model_data, void *rxn_data)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_troe_calc_deriv_contrib(double *state, ModelData *model_data, realtype *deriv,
+void * rxn_troe_calc_deriv_contrib(double *rate_constants, double *state, ModelData *model_data, realtype *deriv,
           void *rxn_data, double time_step)
 {
   //realtype *state = model_data->state;
@@ -166,7 +168,8 @@ void * rxn_troe_calc_deriv_contrib(double *state, ModelData *model_data, realtyp
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the reaction rate
-  realtype rate = RATE_CONSTANT_;
+  //realtype rate = RATE_CONSTANT_;
+  realtype rate = rate_constants[0];
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
           rate *= state[REACT_(i_spec)];
 
@@ -201,7 +204,7 @@ void * rxn_troe_calc_deriv_contrib(double *state, ModelData *model_data, realtyp
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_troe_calc_jac_contrib(double *state, ModelData *model_data, realtype *J,
+void * rxn_troe_calc_jac_contrib(double *rate_constants, double *state, ModelData *model_data, realtype *J,
           void *rxn_data, double time_step)
 {
   //realtype *state = model_data->state;
@@ -209,7 +212,8 @@ void * rxn_troe_calc_jac_contrib(double *state, ModelData *model_data, realtype 
   realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the reaction rate
-  realtype rate = RATE_CONSTANT_;
+  //realtype rate = RATE_CONSTANT_;
+  realtype rate = rate_constants[0];
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
           rate *= state[REACT_(i_spec)];
 

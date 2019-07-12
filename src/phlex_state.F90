@@ -96,10 +96,10 @@ contains
       new_obj%owns_env_state = .true.
     end if
 
+    ! Set up the environmental state array
     if (present(num_cells)) then
       allocate(new_obj%env_var(PHLEX_STATE_NUM_ENV_PARAM*num_cells))
     else
-      ! Set up the environmental state array
       allocate(new_obj%env_var(PHLEX_STATE_NUM_ENV_PARAM))
     end if
 

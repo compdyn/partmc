@@ -151,7 +151,7 @@ void * rxn_condensed_phase_arrhenius_update_ids(ModelData *model_data,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-void * rxn_condensed_phase_arrhenius_update_env_state(double *env_data,
+void * rxn_condensed_phase_arrhenius_update_env_state(double *rate_constants, double *env_data,
           void *rxn_data)
 {
   int *int_data = (int*) rxn_data;
@@ -162,6 +162,8 @@ void * rxn_condensed_phase_arrhenius_update_env_state(double *env_data,
   RATE_CONSTANT_ = A_ * exp(C_/TEMPERATURE_K_)
           * (B_==0.0 ? 1.0 : pow(TEMPERATURE_K_/D_, B_))
           * (E_==0.0 ? 1.0 : (1.0 + E_*PRESSURE_PA_));
+
+  rate_constants[0] = RATE_CONSTANT_;
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -193,7 +195,7 @@ void * rxn_condensed_phase_arrhenius_pre_calc(ModelData *model_data,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_condensed_phase_arrhenius_calc_deriv_contrib(double *state, ModelData *model_data,
+void * rxn_condensed_phase_arrhenius_calc_deriv_contrib(double *rate_constants, double *state, ModelData *model_data,
           realtype *deriv, void *rxn_data, double time_step)
 {
   //realtype *state = model_data->state;
@@ -219,7 +221,8 @@ void * rxn_condensed_phase_arrhenius_calc_deriv_contrib(double *state, ModelData
     }
 
     // Calculate the reaction rate rate (M/s or mol/m3/s)
-    realtype rate = RATE_CONSTANT_;
+    //realtype rate = RATE_CONSTANT_;
+    realtype rate = rate_constants[0];
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
               UGM3_TO_MOLM3_(i_react) * unit_conv;
@@ -255,7 +258,7 @@ void * rxn_condensed_phase_arrhenius_calc_deriv_contrib(double *state, ModelData
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void * rxn_condensed_phase_arrhenius_calc_jac_contrib(double *state, ModelData *model_data,
+void * rxn_condensed_phase_arrhenius_calc_jac_contrib(double *rate_constants, double *state, ModelData *model_data,
           realtype *J, void *rxn_data, double time_step)
 {
   //realtype *state = model_data->state;
@@ -281,7 +284,8 @@ void * rxn_condensed_phase_arrhenius_calc_jac_contrib(double *state, ModelData *
     }
 
     // Calculate the reaction rate rate (M/s or mol/m3/s)
-    realtype rate = RATE_CONSTANT_;
+    //realtype rate = RATE_CONSTANT_;
+    realtype rate = rate_constants[0];
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
               UGM3_TO_MOLM3_(i_react) * unit_conv;

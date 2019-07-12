@@ -148,7 +148,7 @@ contains
     if (present(num_cells_aux)) then
       new_obj%num_cells=num_cells_aux
     end if
-
+    
     ! Check for an available solver
     phlex_solver_data => phlex_solver_data_t()
     call assert_msg(332298164, phlex_solver_data%is_solver_available(), &
@@ -270,7 +270,7 @@ contains
 
     !> NMMB style arrays (W->E, S->N, top->bottom, ...)
     !> Temperature (K)
-    real, intent(in) :: temperature(:,:,:)
+    real, intent(inout) :: temperature(:,:,:)
     !> MONARCH species concentration (ppm or ug/m^3)
     real, intent(inout) :: MONARCH_conc(:,:,:,:)
     !> Atmospheric water concentrations (kg_H2O/kg_air)
@@ -282,7 +282,7 @@ contains
     !> Air density (kg_air/m^3)
     real, intent(in) :: air_density(:,:,:)
     !> Pressure (Pa)
-    real, intent(in) :: pressure(:,:,:)
+    real, intent(inout) :: pressure(:,:,:)
 
     integer :: i, j, k, k_flip, i_spec, z, o, state_size, state_size_total, i2, original_method
     integer :: k_end
@@ -320,19 +320,24 @@ contains
 
     !Init concentrations to different values
     do i=i_start, i_end
-        MONARCH_conc(i,:,:,this%map_monarch_id(:)) = &
-                MONARCH_conc(i,:,:,this%map_monarch_id(:)) + 0.1*i!0.000001*i
-        !this%phlex_state%env_state%temp = temperature(1,1,1)
+      MONARCH_conc(i,:,:,this%map_monarch_id(:)) = &
+              MONARCH_conc(i,:,:,this%map_monarch_id(:)) + 0.1*i!0.000001*i
+      temperature(i,:,:) = temperature(i,:,:) + 0.001*i
+      pressure(i,:,:) = pressure(i,:,:) - 0.1*i
     end do
 
     do j=j_start, j_end
       MONARCH_conc(:,j,:,this%map_monarch_id(:)) = &
-              MONARCH_conc(:,j,:,this%map_monarch_id(:)) + 0.1*j!0.000003*j
+              MONARCH_conc(:,j,:,this%map_monarch_id(:)) + 0.3*j!0.000003*j
+      temperature(:,j,:) = temperature(:,j,:) + 0.003*j
+      pressure(:,:,j) = pressure(:,:,j) - 0.3*j
     end do
 
     do k=1, k_end
       MONARCH_conc(:,:,k,this%map_monarch_id(:)) = &
-              MONARCH_conc(:,:,k,this%map_monarch_id(:)) + 0.1*k!0.000006*k
+              MONARCH_conc(:,:,k,this%map_monarch_id(:)) + 0.6*k!0.000006*k
+      temperature(:,:,k) = temperature(:,:,k) + 0.006*k
+      pressure(:,k,:) = pressure(:,k,:) - 0.6*k
     end do
 
     !print*,'num_time_step=', this%phlex_state%env_state%temp
@@ -350,6 +355,7 @@ contains
           ! Update the environmental state
           this%phlex_state%env_state%temp = temperature(i,j,k_flip)
           this%phlex_state%env_state%pressure = pressure(i,k,j)
+          call this%phlex_state%update_env_state()
 
           this%phlex_state%state_var(:) = 0.0
 
@@ -378,9 +384,9 @@ contains
       !  do k=1, size(MONARCH_conc,3)
 
           ! Calculate the vertical index for NMMB-style arrays
-
-          this%phlex_state%env_state%temp = temperature(1,1,1) !TODO: Set different env variables and accumulate them
-          this%phlex_state%env_state%pressure = pressure(1,1,1)
+          !TODO: Set different env variables and accumulate them
+          !this%phlex_state%env_state%temp = temperature(1,1,1)
+          !this%phlex_state%env_state%pressure = pressure(1,1,1)
 
           do i=i_start, i_end
             do j=j_start, j_end

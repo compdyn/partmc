@@ -337,7 +337,6 @@ contains
     call j_file%destroy()
 
     ! load all the configuration files
-    !  print*, "num_cells iter"
     call this%load(file_list)
 
     ! TODO: add multiple cells
@@ -899,7 +898,8 @@ contains
     !> Chemical model
     class(phlex_core_t), intent(in) :: this
 
-    new_state => phlex_state_t()
+    !Initialize phlex_state passing only num_cells
+    new_state => phlex_state_t(NULL(),this%num_cells)
 
     ! Set up the state variable array
     allocate(new_state%state_var, source=this%init_state)
@@ -1111,7 +1111,10 @@ contains
     ! Update the environmental state array
     ! TODO May move this into the solver functions to allow user to vary
     ! environmental parameters with time during the chemistry time step
-    call phlex_state%update_env_state()
+    if (this%num_cells.eq.1) then ! Make this not necessary -> discuss with matt
+      call phlex_state%update_env_state()
+    end if
+
 
     ! Make sure the requested solver was loaded
     call assert_msg(730097030, associated(solver), "Invalid solver requested")
@@ -1202,7 +1205,6 @@ contains
   end subroutine set_num_cells
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 
   !> Determine the size of a binary required to pack the mechanism
   integer(kind=i_kind) function pack_size(this, comm)

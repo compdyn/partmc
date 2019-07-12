@@ -322,6 +322,7 @@ contains
     do i=i_start, i_end
         MONARCH_conc(i,:,:,this%map_monarch_id(:)) = &
                 MONARCH_conc(i,:,:,this%map_monarch_id(:)) + 0.1*i!0.000001*i
+        !this%phlex_state%env_state%temp = temperature(1,1,1)
     end do
 
     do j=j_start, j_end
@@ -334,7 +335,7 @@ contains
               MONARCH_conc(:,:,k,this%map_monarch_id(:)) + 0.1*k!0.000006*k
     end do
 
-    !print*,'num_time_step=', MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))
+    !print*,'num_time_step=', this%phlex_state%env_state%temp
 
     call cpu_time(comp_start)
 
@@ -380,19 +381,20 @@ contains
 
           this%phlex_state%env_state%temp = temperature(1,1,1) !TODO: Set different env variables and accumulate them
           this%phlex_state%env_state%pressure = pressure(1,1,1)
-          !this%phlex_state%state_var(:) = 0.0
 
           do i=i_start, i_end
             do j=j_start, j_end
               do k=1, k_end
-                !TODO: test multiple k cells
                 !Remember fortran read matrix in inverse order for optimization!
                 o = (j-1)*(i_end) + (i-1)
                 z = (k-1)*(i_end*j_end) + o
 
                 k_flip = size(MONARCH_conc,3) - k + 1
-                this%phlex_state%state_var(this%map_phlex_id(:)+(z*state_size)) = 0.0
 
+                call this%phlex_state%update_env_state_cell( &
+                        temperature(i,j,k_flip), pressure(i,k,j), z)
+
+                this%phlex_state%state_var(this%map_phlex_id(:)+(z*state_size)) = 0.0
                 this%phlex_state%state_var(this%map_phlex_id(:)+(z*state_size)) = &
                       this%phlex_state%state_var(this%map_phlex_id(:)+(z*state_size)) + &
                         MONARCH_conc(i,j,k_flip,this%map_monarch_id(:))

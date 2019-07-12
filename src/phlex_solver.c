@@ -601,13 +601,11 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   rxn_pre_calc(md, (double) time_step);
 
   //Test purposes
-  for (int i=NV_LENGTH_S(deriv)/2; i<NV_LENGTH_S(deriv); i++){
+  /*for (int i=NV_LENGTH_S(deriv)/2; i<NV_LENGTH_S(deriv); i++){
       //state[i]=0;
       realtype *deriv_data = N_VGetArrayPointer(deriv);
       //deriv_data[i]=0.5;
-  }
-
-  //N_Vector derivtest = N_VClone(deriv);//dont work clone
+  }*/
 
   N_Vector derivtest = N_VNew_Serial(NV_LENGTH_S(deriv));
   N_VConst(ZERO, derivtest);
@@ -713,14 +711,10 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   // Run pre-Jacobian calculations
   rxn_pre_calc(md, (double) time_step);
 
-  /*  for (int i=NV_LENGTH_S(deriv)/2; i<NV_LENGTH_S(deriv); i++){
-      double *state = md->state;
-      state[i]=0;
-  }*/
-
   // Calculate the Jacobian
   rxn_calc_jac(md, J, time_step);
-  if(counterJac==29){
+
+  /*if(counterJac==29){
     for (int i=0; i<SM_NNZ_S(J); i++) {
 
     //printf(" jac test: %le  ", NV_DATA_S(derivtest)[i]);
@@ -731,12 +725,8 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     //printf(" state: %f  \n", state[i]/NV_LENGTH_S(deriv));
 
     }
-    //for (int i=0; i<NV_LENGTH_S(deriv); i++) {
-    //  double *state = md->state;
-      //printf(" state: %f  \n", state[i]/NV_LENGTH_S(deriv));
-    //}
 
-  }
+  }*/
   counterJac++;
 
   return (0);
@@ -875,7 +865,7 @@ SUNMatrix get_jac_init(SolverData *solver_data)
   // Initialize the sparse matrix
   int n_dep_var = NV_LENGTH_S(solver_data->y);
   //TODO: n_jac_elem is > n_dep_var*n_dep_var, which has nosense. Check if equalizing n_jac_elem works
-  //For cb05 it works equalizing
+  //For cb05 it works equalizing, but create so much space on sparsematrix
   //SUNMatrix M = SUNSparseMatrix(n_dep_var, n_dep_var, n_jac_elem, CSC_MAT);
   SUNMatrix M = SUNSparseMatrix(n_dep_var, n_dep_var, n_dep_var*n_dep_var, CSC_MAT);
 

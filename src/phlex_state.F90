@@ -7,6 +7,8 @@
 
 !> The phlex_state_t structure and associated subroutines.
 module pmc_phlex_state
+
+! Define array size for contain temperature and pressure
 #define PHLEX_STATE_NUM_ENV_PARAM 2
 
 #ifdef PMC_USE_MPI
@@ -42,6 +44,8 @@ module pmc_phlex_state
   contains
     !> Update the environmental state array
     procedure :: update_env_state
+    !> Update the environmental state array cell
+    procedure :: update_env_state_cell
     !> Determine the size of a binary required to pack a given variable
     procedure :: pack_size
     !> Pack the given value to the buffer, advancing position
@@ -72,12 +76,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for phlex_state_t
-  function constructor(env_state) result (new_obj)
+  function constructor(env_state, num_cells) result (new_obj)
 
     !> New model state
     type(phlex_state_t), pointer :: new_obj
     !> Environmental state
     type(env_state_t), target, intent(in), optional :: env_state
+    !> Num cells to compute simulatenously
+    integer(kind=i_kind), optional :: num_cells
 
     ! Allocate space for the new object
     allocate(new_obj)
@@ -90,15 +96,19 @@ contains
       new_obj%owns_env_state = .true.
     end if
 
-    ! Set up the environmental state array
-    allocate(new_obj%env_var(PHLEX_STATE_NUM_ENV_PARAM))
+    if (present(num_cells)) then
+      allocate(new_obj%env_var(PHLEX_STATE_NUM_ENV_PARAM*num_cells))
+    else
+      ! Set up the environmental state array
+      allocate(new_obj%env_var(PHLEX_STATE_NUM_ENV_PARAM))
+    end if
 
   end function constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !! TODO make the environmental parameters part of the input data
 
   !> Update the environmental state array
-  !! TODO make the environmental parameters part of the input data
   subroutine update_env_state(this)
 
     !> Model state
@@ -110,6 +120,21 @@ contains
   end subroutine update_env_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Update the environmental state array cell
+  subroutine update_env_state_cell(this ,temp, pressure, cell)
+
+    !> Model state
+    class(phlex_state_t), intent(inout) :: this
+    integer :: cell
+    real :: temp, pressure
+
+    this%env_var(1+PHLEX_STATE_NUM_ENV_PARAM*cell) = temp               ! Temperature (K)
+    this%env_var(2+PHLEX_STATE_NUM_ENV_PARAM*cell) = pressure           ! Pressure (Pa)
+
+  end subroutine update_env_state_cell
+
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack a given variable
   integer(kind=i_kind) function pack_size(this)

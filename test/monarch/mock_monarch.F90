@@ -148,7 +148,6 @@ program mock_monarch
 
   ! Run the model
   do i_time=0, NUM_TIME_STEP
-
     
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! **** Add to MONARCH during runtime for each time step **** !

@@ -15,22 +15,25 @@ program process
        = "out/urban_plume_aq_chem_b"
 
   character(len=PMC_MAX_FILENAME_LEN) :: in_filename, out_filename
-  type(bin_grid_t) :: diam_grid, bc_grid, sc_grid, entropy_grid, avg_bin_grid
+  type(bin_grid_t) :: diam_grid, bc_grid, sc_grid, avg_bin_grid
   type(aero_data_t) :: aero_data
+  type(gas_data_t) :: gas_data
   type(aero_state_t) :: aero_state, aero_state_averaged
   type(env_state_t) :: env_state
+   type(gas_state_t) :: gas_state
   integer :: ncid, index, repeat, i_index, i_repeat, n_index, n_repeat, i_rxn
   integer :: out_unit
-  real(kind=dp) :: time, del_t, tot_num_conc, tot_mass_conc, tot_entropy
-  real(kind=dp) :: tot_entropy_averaged
+  real(kind=dp) :: time, del_t, tot_num_conc, tot_mass_conc, tot_dry_mass_conc 
   character(len=PMC_UUID_LEN) :: uuid
   real(kind=dp), allocatable :: times(:), wet_diameters(:), num_concs(:), &
        dry_masses(:), masses(:), bc_masses(:), bc_fracs(:), &
-       num_concs_averaged(:), dry_masses_averaged(:), masses_averaged(:), &
-       entropies(:), entropies_averaged(:), crit_rhs(:), scs(:), num_dist(:), &
-       diam_bc_dist(:,:), diam_sc_dist(:,:), entropy_dist(:)
-  type(stats_1d_t) :: stats_num_dist, stats_entropy_dist, stats_tot_num_conc, &
-       stats_tot_mass_conc, stats_tot_entropy, stats_tot_entropy_averaged
+       Hp_masses(:), h2o_masses(:), ph_particle(:), &
+       crit_rhs(:), scs(:), num_dist(:), &
+       diam_bc_dist(:,:), diam_sc_dist(:,:), &
+       temp(:), pressure(:)
+  real(kind=dp), allocatable :: o3(:), so2(:), oh(:), hno3(:), nh3(:), h2o2(:)
+  type(stats_1d_t) :: stats_num_dist, stats_tot_num_conc, &
+       stats_tot_mass_conc, stats_tot_dry_mass_conc
   type(stats_2d_t) :: stats_diam_bc_dist, stats_diam_sc_dist
   real(kind=dp), allocatable :: aq_chem_rates_forward(:,:)
   real(kind=dp), allocatable :: aq_chem_rates_backward(:,:)
@@ -46,9 +49,10 @@ program process
   call bin_grid_allocate(diam_grid)
   call bin_grid_allocate(bc_grid)
   call bin_grid_allocate(sc_grid)
-  call bin_grid_allocate(entropy_grid)
   call aero_data_allocate(aero_data)
+  call gas_data_allocate(gas_data)
   call aero_state_allocate(aero_state)
+  call gas_state_allocate(gas_state)
   call aero_state_allocate(aero_state_averaged)
   call bin_grid_allocate(avg_bin_grid)
   call env_state_allocate(env_state)
@@ -58,11 +62,18 @@ program process
   call bin_grid_make(diam_grid, BIN_GRID_TYPE_LOG, 180, 1d-9, 1d-3)
   call bin_grid_make(bc_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 1d0)
   call bin_grid_make(sc_grid, BIN_GRID_TYPE_LOG, 50, 1d-4, 1d0)
-  call bin_grid_make(entropy_grid, BIN_GRID_TYPE_LINEAR, 50, 0d0, 1d0)
   call bin_grid_make(avg_bin_grid, BIN_GRID_TYPE_LOG, 1, 1d-30, 1d10)
 
   allocate(times(n_index))
-
+  allocate(temp(n_index))
+  allocate(pressure(n_index))
+  allocate(o3(n_index))
+  allocate(hno3(n_index))
+  allocate(so2(n_index))
+  allocate(oh(n_index))
+  allocate(nh3(n_index))
+  allocate(h2o2(n_index))
+  
   do i_index = 1,n_index
      do i_repeat = 1,n_repeat
         call make_filename(in_filename, prefix, ".nc", i_index, i_repeat)
@@ -71,6 +82,7 @@ program process
         ! time or something? Or init to "" and check if not this.
         call input_state(in_filename, index, time, del_t, repeat, &
              uuid, aero_data=aero_data, aero_state=aero_state, &
+             gas_data=gas_data, gas_state=gas_state, &
              env_state=env_state, &
              aq_chem_rates_forward=aq_chem_rates_forward, &
              aq_chem_rates_backward=aq_chem_rates_backward, &
@@ -90,6 +102,25 @@ program process
 
         wet_diameters = aero_state_diameters(aero_state)
 
+        temp(i_index) = env_state%temp
+
+        pressure(i_index) = env_state%pressure
+        write(*,*) "time ",times(i_index),"pressure ", pressure(i_index)
+        
+        o3(i_index) = gas_state%mix_rat(11)
+        so2(i_index) = gas_state%mix_rat(18)
+        hno3(i_index) = gas_state%mix_rat(2)
+        nh3(i_index) = gas_state%mix_rat(4)
+        oh(i_index) = gas_state%mix_rat(14)
+        h2o2(i_index) = gas_state%mix_rat(16)
+        
+        write(*,*) "time ",times(i_index),"o3 ", o3(i_index)
+        write(*,*) "time ",times(i_index),"so2", so2(i_index)
+        write(*,*) "time ",times(i_index),"hno3 ", hno3(i_index)
+        write(*,*) "time ",times(i_index),"nh3 ", nh3(i_index)
+        write(*,*) "time ",times(i_index),"oh ", oh(i_index)
+        write(*,*) "time ",times(i_index),"h2o2 ", h2o2(i_index)
+        
         max_dp = 0.0
         do i=1,size(wet_diameters)
             if (wet_diameters(i).gt.max_dp) then
@@ -98,6 +129,7 @@ program process
         enddo
 
         write(*,*) "time ",times(i_index),"Max diameter ",max_dp
+        write(*,*) "time ",times(i_index),"wet diameter ",wet_diameters
 
 !        dry_diameters = aero_state_dry_diameters(aero_state, aero_data)
         num_concs = aero_state_num_concs(aero_state)
@@ -111,10 +143,16 @@ program process
         tot_mass_conc = sum(masses * num_concs)
         call stats_1d_add_entry(stats_tot_mass_conc, tot_mass_conc, i_index)
 
-        dry_masses = aero_state_masses(aero_state, aero_data, &
-             exclude=(/"H2O"/))
-        bc_masses = aero_state_masses(aero_state, aero_data, &
-             include=(/"BC"/))
+        dry_masses = aero_state_masses(aero_state, aero_data, exclude=(/"H2O"/))
+        write(*,*) "time ",times(i_index), "dry m ", dry_masses
+        
+        tot_dry_mass_conc = sum(dry_masses * num_concs)
+        call stats_1d_add_entry(stats_tot_dry_mass_conc, tot_dry_mass_conc, i_index)
+        
+        bc_masses = aero_state_masses(aero_state, aero_data, include=(/"BC"/))
+        
+        write(*,*) "time ",times(i_index), "BC ", bc_masses
+        
         bc_fracs = bc_masses / dry_masses
         diam_bc_dist = bin_grid_histogram_2d(diam_grid, wet_diameters, &
              bc_grid, bc_fracs, num_concs)
@@ -123,35 +161,22 @@ program process
         crit_rhs = aero_state_crit_rel_humids(aero_state, aero_data, &
              env_state)
         scs = crit_rhs - 1d0
+        write(*,*) "time ",times(i_index), "scs ", scs
+        
         diam_sc_dist = bin_grid_histogram_2d(diam_grid, wet_diameters, &
              sc_grid, scs, num_concs)
         call stats_2d_add(stats_diam_sc_dist, diam_sc_dist)
 
-        entropies = aero_state_mass_entropies(aero_state, aero_data) !, &
-             !exclude=["H2O"]) !, group=["BC"])
-        entropy_dist = bin_grid_histogram_1d(entropy_grid, entropies, &
-             num_concs)
-        call stats_1d_add(stats_entropy_dist, entropy_dist)
+        h2o_masses = aero_state_masses(aero_state, aero_data, include=(/"H2O"/))
+        write(*,*) "time ",times(i_index), "H2O ", h2o_masses
+        
+        Hp_masses = aero_state_masses(aero_state, aero_data, include=(/"Hp"/))
+        write(*,*) "time ",times(i_index), "Hp ", Hp_masses
 
-        tot_entropy = sum(entropies * masses * num_concs) &
-             / sum(masses * num_concs)
-        call stats_1d_add_entry(stats_tot_entropy, tot_entropy, i_index)
-
-        call aero_state_copy(aero_state, aero_state_averaged)
-        call aero_state_bin_average_comp(aero_state_averaged, avg_bin_grid, &
-             aero_data)
-        num_concs_averaged = aero_state_num_concs(aero_state_averaged)
-        masses_averaged = aero_state_masses(aero_state_averaged, aero_data)
-        dry_masses_averaged = aero_state_masses(aero_state_averaged, &
-             aero_data, exclude=(/"H2O"/))
-        entropies_averaged = aero_state_mass_entropies(aero_state_averaged, &
-             aero_data) !, exclude=["H2O"]) !, group=["BC"])
-        tot_entropy_averaged &
-             = sum(entropies_averaged * masses_averaged &
-             * num_concs_averaged) &
-             / sum(masses_averaged * num_concs_averaged)
-        call stats_1d_add_entry(stats_tot_entropy_averaged, &
-             tot_entropy_averaged, i_index)
+        ! pH is log10 of the molar concentration (mol / liter).
+        ! Molar mass of H+ is 1e-3 kg/mol, and 1 kg of water corresponds to 1 liter
+        ph_particle = -log10(Hp_masses * 1000 / h2o_masses)
+        write(*,*) "time", times(i_index), "pH ", ph_particle
      end do
 
      call make_filename(out_filename, prefix, "_process.nc", index)
@@ -160,8 +185,7 @@ program process
      call bin_grid_output_netcdf(diam_grid, ncid, "diam", unit="m")
      call bin_grid_output_netcdf(bc_grid, ncid, "bc_frac", unit="1")
      call bin_grid_output_netcdf(sc_grid, ncid, "sc", unit="1")
-     call bin_grid_output_netcdf(entropy_grid, ncid, "entropy", unit="1")
-
+     
      call stats_1d_output_netcdf(stats_num_dist, ncid, "num_dist", &
           dim_name="diam", unit="m^{-3}")
      call stats_1d_clear(stats_num_dist)
@@ -174,10 +198,6 @@ program process
           dim_name_1="diam", dim_name_2="sc", unit="m^{-3}")
      call stats_2d_clear(stats_diam_sc_dist)
 
-     call stats_1d_output_netcdf(stats_entropy_dist, ncid, "entropy_dist", &
-          dim_name="entropy", unit="m^{-3}")
-     call stats_1d_clear(stats_entropy_dist)
-
      call pmc_nc_close(ncid)
   end do
 
@@ -185,14 +205,21 @@ program process
   call pmc_nc_open_write(out_filename, ncid)
   call pmc_nc_write_info(ncid, uuid, "5_urban_plume_aq_chem process")
   call pmc_nc_write_real_1d(ncid, times, "time", dim_name="time", unit="s")
+  call pmc_nc_write_real_1d(ncid, temp, "temp", dim_name="time", unit="K")
+  call pmc_nc_write_real_1d(ncid, pressure, "pressure", dim_name="time", unit="Pa")
+  call pmc_nc_write_real_1d(ncid, o3, "o3", dim_name="time", unit="ppb")
+  call pmc_nc_write_real_1d(ncid, hno3, "hno3", dim_name="time", unit="ppb")
+  call pmc_nc_write_real_1d(ncid, so2, "so2", dim_name="time", unit="ppb")
+  call pmc_nc_write_real_1d(ncid, oh, "oh", dim_name="time", unit="ppb")
+  call pmc_nc_write_real_1d(ncid, nh3, "nh3", dim_name="time", unit="ppb")
+  call pmc_nc_write_real_1d(ncid, h2o2, "h2o2", dim_name="time", unit="ppb")
+  
   call stats_1d_output_netcdf(stats_tot_num_conc, ncid, "tot_num_conc", &
        dim_name="time", unit="m^{-3}")
   call stats_1d_output_netcdf(stats_tot_mass_conc, ncid, "tot_mass_conc", &
        dim_name="time", unit="m^{-3}")
-  call stats_1d_output_netcdf(stats_tot_entropy, ncid, "tot_entropy", &
+  call stats_1d_output_netcdf(stats_tot_dry_mass_conc, ncid, "tot_dry_mass_conc", &
        dim_name="time", unit="m^{-3}")
-  call stats_1d_output_netcdf(stats_tot_entropy_averaged, ncid, &
-       "tot_entropy_averaged", dim_name="time", unit="m^{-3}")
   call pmc_nc_close(ncid)
 
   call bin_grid_allocate(diam_grid)

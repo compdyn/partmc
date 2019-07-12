@@ -68,6 +68,10 @@ void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
 #define DEFAULT_TIME_STEP 1.0
 // Small number used in filtering
 #define SMALL_NUMBER 1.1E-30
+// State advancement factor for Jacobian element evaluation
+#define JAC_CHECK_ADV 1.0E-5
+// Tolerance for Jacobian element evaluation
+#define JAC_CHECK_TOL 1.0E-8
 // Set MAX_TIMESTEP_WARNINGS to a negative number to prevent output
 #define MAX_TIMESTEP_WARNINGS -1
 // Relative time step size threshhold for trying to improve guess of yn

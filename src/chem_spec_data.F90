@@ -310,8 +310,6 @@ contains
       child => next
     end do
 
-    !print*,'chem_load'
-
     ! Add or update the species data
     ! in each cell data
     call this%add(spec_name, spec_type, spec_phase, property_set)
@@ -764,12 +762,9 @@ contains
       this%spec_phase(i_spec) = spec_phase
       call this%property_set(i_spec)%update(property_set, spec_name)
 
-      !print*,'O claro'
-
     ! ... otherwise, create a new species
     else
       call this%ensure_size(1)
-      !print*,'add chem_spec_data else call'
       this%num_spec = this%num_spec + 1
       this%spec_name(this%num_spec)%string = spec_name
       this%spec_type(this%num_spec) = spec_type
@@ -807,7 +802,6 @@ contains
       do i=1, num_cells_to_add
         do j=1, num_spec_cell
           call this%ensure_size(1)
-          !print*,'add_mult chem_spec_data else call'
           this%num_spec = this%num_spec + 1
           this%spec_name(this%num_spec)%string = this%spec_name_1_cell(j)%string
           this%spec_type(this%num_spec) = this%spec_type_1_cell(j)

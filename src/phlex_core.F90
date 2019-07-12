@@ -339,7 +339,7 @@ contains
     ! load all the configuration files
     call this%load(file_list)
 
-    ! TODO: add multiple cells
+    !Add multiple cells
     num_cells_to_add=this%num_cells-1
     call this%chem_spec_data%add_multiple_cells(num_cells_to_add)
 
@@ -490,9 +490,6 @@ contains
 
         ! load a chemical species
         else if (str_val.eq.'CHEM_SPEC') then
-          !if (cell.eq.2) then
-          !  print*,'numcell 2'
-          !end if
           call this%chem_spec_data%load(json, j_obj)
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -717,10 +714,10 @@ contains
 
     ! Make sure absolute tolerance and variable type arrays are completely
     ! filled
-    !call assert_msg(501609702, i_state_var.eq.this%state_array_size, &
-    !        "Internal error. Filled "//trim(to_string(i_state_var))// &
-    !        " of "//trim(to_string(this%state_array_size))// &
-    !        " elements of absolute tolerance and variable type arrays")
+    call assert_msg(501609702, i_state_var.eq.this%state_array_size, &
+            "Internal error. Filled "//trim(to_string(i_state_var))// &
+            " of "//trim(to_string(this%state_array_size))// &
+            " elements of absolute tolerance and variable type arrays")
 
     this%core_is_initialized = .true.
 
@@ -1111,9 +1108,9 @@ contains
     ! Update the environmental state array
     ! TODO May move this into the solver functions to allow user to vary
     ! environmental parameters with time during the chemistry time step
-    !if (this%num_cells.eq.1) then ! Make this not necessary -> discuss with matt
-    !  call phlex_state%update_env_state()
-    !end if
+    if (this%num_cells.eq.1) then ! Make this not necessary -> discuss with matt
+      call phlex_state%update_env_state()
+    end if
 
     ! Make sure the requested solver was loaded
     call assert_msg(730097030, associated(solver), "Invalid solver requested")

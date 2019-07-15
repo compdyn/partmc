@@ -18,6 +18,7 @@ program pmc_test_aqueous_equilibrium
   use pmc_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_aero_rep_single_particle
+  use pmc_solver_stats
 #ifdef PMC_USE_JSON
   use json_module
 #endif
@@ -91,6 +92,8 @@ contains
     character, allocatable :: buffer(:), buffer_copy(:)
     integer(kind=i_kind) :: pack_size, pos, i_elem, results
 #endif
+
+    type(solver_stats_t), target :: solver_stats
 
     run_aqueous_equilibrium_test = .true.
 
@@ -248,7 +251,7 @@ contains
       k3_forward = Keq_3 * k3_reverse                                ! (1/s)
 
       ! Determine the equilibrium concentrations (ug/m3)
-      ! 
+      !
       ! Reaction 1 (equil values in M)
       !
       ! K_eq = ([B][C])/([A]^2)
@@ -290,12 +293,33 @@ contains
       ! Set the initial state in the model
       phlex_state%state_var(:) = model_conc(0,:)
 
+      call phlex_core%print()
+
+#if 0
+#ifdef PMC_DEBUG
+      ! Evaluate the Jacobian during solving
+      solver_stats%eval_Jac = .true.
+#endif
+#endif
+
       ! Integrate the mechanism
       do i_time = 1, NUM_TIME_STEP
 
         ! Get the modeled conc
-        call phlex_core%solve(phlex_state, time_step)
+        call phlex_core%solve(phlex_state, time_step, &
+                              solver_stats = solver_stats)
         model_conc(i_time,:) = phlex_state%state_var(:)
+
+        ! FIXME Finish debugging Jacobian calculations
+#if 0
+#ifdef PMC_DEBUG
+        ! Check the Jacobian evaluations
+        call assert_msg(164937823, solver_stats%Jac_eval_fails.eq.0, &
+                        trim( to_string( solver_stats%Jac_eval_fails ) )// &
+                        " Jacobian evaluation failures at time step "// &
+                        trim( to_string( i_time ) ) )
+#endif
+#endif
 
         ! Get the analytic concentrations
         !
@@ -382,7 +406,7 @@ contains
         results = 1
       end if
     end if
-    
+
     ! Send the results back to the primary process
     call pmc_mpi_transfer_integer(results, results, 1, 0)
 

@@ -14,6 +14,7 @@ program pmc_test_troe
   use pmc_phlex_core
   use pmc_phlex_state
   use pmc_chem_spec_data
+  use pmc_solver_stats
 #ifdef PMC_USE_JSON
   use json_module
 #endif
@@ -88,6 +89,8 @@ contains
     integer(kind=i_kind) :: pack_size, pos, i_elem, results
 #endif
 
+    type(solver_stats_t), target :: solver_stats
+
     run_troe_test = .true.
 
     ! Set the rate constants (for calculating the true value)
@@ -99,7 +102,7 @@ contains
     k_0 = air_conc * 4.0e-18 * conv
     k_inf = k_0 / 1.0d0
     k1 = k_0/(1+k_inf) * 0.6d0**(1.0d0/(1.0d0 + (log10(k_inf)/1.0)**(2)))
-    
+
     k_0 = air_conc * 1.2d-12 * exp( 3.0d0/temp) * (temp/300.0d0)**(167.0d0) &
             * conv
     k_inf = 136.0d0 * exp( 24.0d0/temp) * (temp/300.0d0)**(5.0d0)
@@ -203,12 +206,26 @@ contains
       ! Set the initial concentrations in the model
       phlex_state%state_var(:) = model_conc(0,:)
 
+#ifdef PMC_DEBUG
+      ! Evaluate the Jacobian during solving
+      solver_stats%eval_Jac = .true.
+#endif
+
       ! Integrate the mechanism
       do i_time = 1, NUM_TIME_STEP
 
         ! Get the modeled conc
-        call phlex_core%solve(phlex_state, time_step)
+        call phlex_core%solve(phlex_state, time_step, &
+                              solver_stats = solver_stats)
         model_conc(i_time,:) = phlex_state%state_var(:)
+
+#ifdef PMC_DEBUG
+        ! Check the Jacobian evaluations
+        call assert_msg(286166371, solver_stats%Jac_eval_fails.eq.0, &
+                        trim( to_string( solver_stats%Jac_eval_fails ) )// &
+                        " Jacobian evaluation failures at time step "// &
+                        trim( to_string( i_time ) ) )
+#endif
 
         ! Get the analytic conc
         time = i_time * time_step
@@ -256,7 +273,7 @@ contains
         results = 1
       end if
     end if
-    
+
     ! Send the results back to the primary process
     call pmc_mpi_transfer_integer(results, results, 1, 0)
 

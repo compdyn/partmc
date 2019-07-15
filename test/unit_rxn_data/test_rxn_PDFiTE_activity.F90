@@ -19,6 +19,7 @@ program pmc_test_PDFiTE_activity
   use pmc_aero_rep_factory
   use pmc_aero_rep_single_particle
   use pmc_chem_spec_data
+  use pmc_solver_stats
 #ifdef PMC_USE_JSON
   use json_module
 #endif
@@ -98,6 +99,8 @@ contains
     character, allocatable :: buffer(:), buffer_copy(:)
     integer(kind=i_kind) :: pack_size, pos, i_elem, results
 #endif
+
+    type(solver_stats_t), target :: solver_stats
 
     run_PDFiTE_activity_test = .true.
 
@@ -290,6 +293,11 @@ contains
       ! Set the initial state in the model
       phlex_state%state_var(:) = model_conc(0,:)
 
+#ifdef PMC_DEBUG
+      ! Evaluate the Jacobian during solving
+      solver_stats%eval_Jac = .true.
+#endif
+
       ! Integrate the mechanism
       do i_RH = 1, NUM_RH_STEP
 
@@ -300,8 +308,17 @@ contains
         phlex_state%state_var(idx_H2O) = true_conc(i_RH, idx_H2O)
 
         ! Get the modeled conc
-        call phlex_core%solve(phlex_state, time_step)
+        call phlex_core%solve(phlex_state, time_step, &
+                              solver_stats = solver_stats)
         model_conc(i_RH,:) = phlex_state%state_var(:)
+
+#ifdef PMC_DEBUG
+        ! Check the Jacobian evaluations
+        call assert_msg(404462844, solver_stats%Jac_eval_fails.eq.0, &
+                        trim( to_string( solver_stats%Jac_eval_fails ) )// &
+                        " Jacobian evaluation failures for i_RH "// &
+                        trim( to_string( i_RH ) ) )
+#endif
 
         ! Calculate the mean binary activity for H-NO3
 

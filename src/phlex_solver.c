@@ -94,9 +94,9 @@ void pmc_debug_print_jac_struct(void *solver_data, const char *message)
 // Small number used in filtering
 #define SMALL_NUMBER 1.1E-30
 // State advancement factor for Jacobian element evaluation
-#define JAC_CHECK_ADV 1.0E-5
+#define JAC_CHECK_ADV 1.0E-8
 // Tolerance for Jacobian element evaluation
-#define JAC_CHECK_TOL 1.0E-8
+#define JAC_CHECK_TOL 1.0E-6
 // Set MAX_TIMESTEP_WARNINGS to a negative number to prevent output
 #define MAX_TIMESTEP_WARNINGS -1
 // Maximum number of steps in discreet addition guess helper
@@ -781,34 +781,65 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
   realtype * d_adj_deriv = NV_DATA_S(tmp1);
   bool retval = true;
 
+  // Calculate the the derivative for the current state y
   if (f(t, y, deriv, solver_data)!=0) {
     printf("\n Derivative calculation failed.\n");
     return false;
   }
+
+  // Copy the current state into an array that will be used to make small
+  // adjustments to the state and recalculate the derivative
   N_VScale(ONE, y, tmp);
+
+  // Loop through the independent variables, adding a small amount to the
+  // state value for each, one at a time
   for (int i_ind = 0; i_ind < NV_LENGTH_S(y); ++i_ind) {
     d_adj_state[i_ind] += JAC_CHECK_ADV * fabs(d_state[i_ind]);
+
+    // Recalculate the derivative for the adjusted state
     if (f(t, tmp, tmp1, solver_data)!=0) {
       printf("\n Derivative calculation failed.\n");
       return false;
     }
+
+    // Loop through the Jacobian data and evaluate adjustments to f()
+    // based on adjustments to y(i_ind)
     for (int i_elem = SM_INDEXPTRS_S(J)[i_ind];
          i_elem < SM_INDEXPTRS_S(J)[i_ind+1]; ++i_elem ) {
       int i_dep = SM_INDEXVALS_S(J)[i_elem];
+
+      // Calculate f_adj(i_dep) = f(i_dep) + J(i_ind, i_dep) * dy(i_ind)
       realtype jac_adj = (d_deriv[i_dep] +
                           SM_DATA_S(J)[i_elem] * JAC_CHECK_ADV *
                               fabs(d_state[i_ind]));
+
+      // Determine the difference between f_adj(i_dep) from Jacobian-based
+      // calculations, and recalculations of f() from the adjusted state y_adj
       realtype jac_diff = d_adj_deriv[i_dep] - jac_adj;
       if (jac_diff != ZERO) {
-        jac_diff /= (fabs(d_adj_deriv[i_dep]) + fabs(jac_adj)) / 2.0;
-        if (fabs(jac_diff) > JAC_CHECK_TOL) {
-          printf("\nError in Jacobian[%d][%d] of %le relative to f[%d] = %le",
-                 i_ind, i_dep, jac_diff, i_dep,
+
+        // Use the average of the two f_adj(i_dep) to normalize the difference
+        realtype f_adj_avg = (fabs(d_adj_deriv[i_dep]) + fabs(jac_adj)) / 2.0;
+        jac_diff /= f_adj_avg;
+
+        // Evaluate the difference with a relative and absolute tolerance
+        if (fabs(jac_diff) > JAC_CHECK_TOL && fabs(f_adj_avg) > SMALL_NUMBER) {
+          printf("\nError in Jacobian[%d][%d]: factor of %le relative to f[%d]"
+                 " = %le", i_ind, i_dep, jac_diff, i_dep,
                  (fabs(d_adj_deriv[i_dep]) + fabs(jac_adj)) / 2.0);
+          printf("\n  f_J[%d] = %le f_adj[%d] = %le", i_dep, jac_adj, i_dep,
+                 d_adj_deriv[i_dep]);
+          printf("\n  df_J[%d] = %le df_adj[%d] = %le", i_dep,
+                 jac_adj - d_deriv[i_dep], i_dep,
+                 d_adj_deriv[i_dep] - d_deriv[i_dep]);
+          printf("\n  state[%d] = %le state_adj[%d] = %le", i_ind,
+                 d_state[i_ind], i_ind, d_adj_state[i_ind]);
           retval = false;
         }
       }
     }
+
+    // Reset the adjusted state y_adj
     d_adj_state[i_ind] = d_state[i_ind];
   }
   return retval;

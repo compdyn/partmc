@@ -280,7 +280,7 @@ contains
     !> Model data
     class(phlex_core_t), intent(inout) :: this
     !> Part-MC input file paths
-    character(len=PMC_MAX_FILENAME_LEN), intent(in) :: input_file_path
+    character(len=*), intent(in) :: input_file_path
 
 #ifdef PMC_USE_JSON
     type(json_core), target :: json
@@ -299,10 +299,10 @@ contains
     call j_file%get_core(json)
     call assert_msg(600888426, trim(input_file_path).ne."", &
             "Received empty string for file path")
-    inquire( file=input_file_path, exist=file_exists )
+    inquire( file=trim(input_file_path), exist=file_exists )
     call assert_msg(433777575, file_exists, "Cannot find file: "//&
-            input_file_path)
-    call j_file%load_file(filename = input_file_path)
+            trim(input_file_path))
+    call j_file%load_file(filename = trim(input_file_path))
 
     ! get the set of configuration file names
     call j_file%get('pmc-files(1)', j_obj, found)

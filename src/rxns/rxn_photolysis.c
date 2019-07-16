@@ -222,17 +222,15 @@ void * rxn_photolysis_calc_jac_contrib(double *rate_constants, double *state, Mo
           rate *= state[REACT_(i_spec)];
 
   // Add contributions to the Jacobian
-  if (rate!=ZERO) {
-    int i_elem = 0;
-    for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
-      for (int i_dep=0; i_dep<NUM_REACT_; i_dep++, i_elem++) {
-	if (JAC_ID_(i_elem) < 0) continue;
-	J[JAC_ID_(i_elem)] -= rate / state[REACT_(i_ind)];
-      }
-      for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
-	if (JAC_ID_(i_elem) < 0) continue;
-	J[JAC_ID_(i_elem)] += YIELD_(i_dep) * rate / state[REACT_(i_ind)];
-      }
+  int i_elem = 0;
+  for (int i_ind=0; i_ind<NUM_REACT_; i_ind++) {
+    for (int i_dep=0; i_dep<NUM_REACT_; i_dep++, i_elem++) {
+      if (JAC_ID_(i_elem) < 0) continue;
+      J[JAC_ID_(i_elem)] -= RATE_CONSTANT_;
+    }
+    for (int i_dep=0; i_dep<NUM_PROD_; i_dep++, i_elem++) {
+      if (JAC_ID_(i_elem) < 0) continue;
+      J[JAC_ID_(i_elem)] += YIELD_(i_dep) * RATE_CONSTANT_;
     }
   }
 

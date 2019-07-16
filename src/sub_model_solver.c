@@ -7,8 +7,12 @@
 /** \file
  * \brief Sub model solver functions
  */
+#include <stdio.h>
+#include <stdlib.h>
 #include "sub_model_solver.h"
 #include "sub_models.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 // Sub model types (Must match parameters in pmc_sub_model_factory)
 #define SUB_MODEL_UNIFAC 1

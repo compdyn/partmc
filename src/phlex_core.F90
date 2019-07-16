@@ -103,6 +103,7 @@ module pmc_phlex_core
   use pmc_aero_rep_factory
   use pmc_chem_spec_data
   use pmc_constants,                  only : i_kind, dp
+  use pmc_env_state
   use pmc_mechanism_data
   use pmc_mpi
   use pmc_phlex_solver_data
@@ -135,8 +136,8 @@ module pmc_phlex_core
     type(aero_rep_data_ptr), pointer :: aero_rep(:) => null()
     !> Aerosol phases
     type(aero_phase_data_ptr), pointer :: aero_phase(:) => null()
-    !> Size of the state array
-    integer(kind=i_kind) :: state_array_size
+    !> Size of the state array per grid cell
+    integer(kind=i_kind) :: size_state_per_cell
     !> Number of cells to compute
     integer(kind=i_kind) :: num_cells = 1
     !> Initial state values
@@ -184,8 +185,12 @@ module pmc_phlex_core
     procedure :: new_state
     !> Get the size of the state array
     procedure :: state_size
+    !> Get the size of the state array per grid cell
+    procedure :: state_size_per_cell
     !> Initialize the solver
     procedure :: solver_initialize
+    !> Free the solver
+    procedure :: free_solver
     !> Update aerosol representation data
     procedure :: update_aero_rep_data
     !> Update reaction data
@@ -230,14 +235,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for phlex_core_t
-  function constructor(input_file_path, num_cells_aux) result(new_obj)
+  function constructor(input_file_path, num_cells) result(new_obj)
 
     !> A new set of model parameters
     type(phlex_core_t), pointer :: new_obj
     !> Part-MC input file paths
-    character(len=:), allocatable, intent(in), optional :: input_file_path
+    character(len=*), intent(in), optional :: input_file_path
     !> Num cells to compute simulatenously
-    integer(kind=i_kind), optional :: num_cells_aux
+    integer(kind=i_kind), optional :: num_cells
 
     allocate(new_obj)
     allocate(new_obj%mechanism(0))
@@ -246,12 +251,12 @@ contains
     allocate(new_obj%aero_rep(0))
     allocate(new_obj%sub_model(0))
 
-    if (present(num_cells_aux)) then
-      new_obj%num_cells=num_cells_aux
+    if (present(num_cells)) then
+      new_obj%num_cells=num_cells
     end if
 
     if (present(input_file_path)) then
-      call new_obj%load_files(input_file_path)
+      call new_obj%load_files(trim(input_file_path))
     end if
 
   end function constructor
@@ -285,36 +290,40 @@ contains
     !> Model data
     class(phlex_core_t), intent(inout) :: this
     !> Part-MC input file paths
-    character(len=:), allocatable, intent(in) :: input_file_path
+    character(len=*), intent(in) :: input_file_path
 
 #ifdef PMC_USE_JSON
     type(json_core), target :: json
     type(json_file) :: j_file
     type(json_value), pointer :: j_obj, j_next
 
-    logical(kind=json_lk) :: found
+    logical(kind=json_lk) :: found, valid
     character(kind=json_ck, len=:), allocatable :: unicode_str_val
-    integer(kind=json_ik) :: i_file, num_files, i, num_cells_to_add
+    integer(kind=json_ik) :: i_file, num_files
+    character(kind=json_ck, len=:), allocatable :: json_err_msg
     type(string_t), allocatable :: file_list(:)
     logical :: file_exists
 
     ! load the file containing the paths to the configuration files
     call j_file%initialize()
     call j_file%get_core(json)
-    call assert_msg(394951135, allocated(input_file_path), &
-            "Received non-allocated string for file path")
     call assert_msg(600888426, trim(input_file_path).ne."", &
             "Received empty string for file path")
-    inquire( file=input_file_path, exist=file_exists )
+    inquire( file=trim(input_file_path), exist=file_exists )
     call assert_msg(433777575, file_exists, "Cannot find file: "//&
-            input_file_path)
-    call j_file%load_file(filename = input_file_path)
+            trim(input_file_path))
+    call j_file%load_file(filename = trim(input_file_path))
 
     ! get the set of configuration file names
     call j_file%get('pmc-files(1)', j_obj, found)
     call assert_msg(405149265, found, &
             "Could not find pmc-files object in input file: "// &
             input_file_path)
+    call json%validate(j_obj, valid, json_err_msg)
+    if(.not.valid) then
+      call die_msg(959537834, "Bad JSON format in file '"// &
+                   trim(input_file_path)//"': "//trim(json_err_msg))
+    end if
     call j_file%info('pmc-files', n_children = num_files)
     call assert_msg(411804027, num_files.gt.0, &
             "No file names were found in "//input_file_path)
@@ -338,10 +347,6 @@ contains
 
     ! load all the configuration files
     call this%load(file_list)
-
-    !Add multiple cells
-    num_cells_to_add=this%num_cells-1
-    call this%chem_spec_data%add_multiple_cells(num_cells_to_add)
 
 #else
     call warn_msg(171627969, "No support for input files.");
@@ -414,7 +419,9 @@ contains
     type(json_file) :: j_file
     type(json_value), pointer :: j_obj, j_next
 
+    logical(kind=json_lk) :: valid
     character(kind=json_ck, len=:), allocatable :: unicode_str_val
+    character(kind=json_ck, len=:), allocatable :: json_err_msg
     character(len=:), allocatable :: str_val
     real(kind=json_rk) :: real_val
     logical :: file_exists, found
@@ -460,6 +467,12 @@ contains
 
       ! get the phlex-chem objects
       call j_file%get('pmc-data(1)', j_obj)
+      call json%validate(j_obj, valid, json_err_msg)
+      if (.not.valid) then
+        call die_msg(560270545, "Bad JSON format in file '"// &
+                     trim(input_file_path(i_file)%string)//"': "// &
+                     trim(json_err_msg))
+      end if
       do while (associated(j_obj))
 
         ! get the object type and load data into the appropriate phlex-chem
@@ -617,7 +630,7 @@ contains
 
     ! Indices for iteration
     integer(kind=i_kind) :: i_mech, i_phase, i_aero_rep, i_sub_model
-    integer(kind=i_kind) :: i_state_var, i_spec
+    integer(kind=i_kind) :: i_state_var, i_spec, i_cell
 
     ! Variables for setting initial state values
     class(aero_rep_data_t), pointer :: rep
@@ -661,8 +674,8 @@ contains
                 this%aero_phase, this%chem_spec_data)
     end do
 
-    ! Set the size of the state array
-    this%state_array_size = i_state_var - 1
+    ! Set the size of the state array per grid cell
+    this%size_state_per_cell = i_state_var - 1
 
     ! Initialize the mechanisms
     do i_mech = 1, size(this%mechanism)
@@ -671,8 +684,8 @@ contains
     end do
 
     ! Allocate space for the variable types and absolute tolerances
-    allocate(this%abs_tol(this%state_array_size))
-    allocate(this%var_type(this%state_array_size))
+    allocate(this%abs_tol(this%size_state_per_cell))
+    allocate(this%var_type(this%size_state_per_cell))
 
     ! Start at the first state array element
     i_state_var = 0
@@ -714,35 +727,38 @@ contains
 
     ! Make sure absolute tolerance and variable type arrays are completely
     ! filled
-    call assert_msg(501609702, i_state_var.eq.this%state_array_size, &
+    call assert_msg(501609702, i_state_var.eq.this%size_state_per_cell, &
             "Internal error. Filled "//trim(to_string(i_state_var))// &
-            " of "//trim(to_string(this%state_array_size))// &
+            " of "//trim(to_string(this%size_state_per_cell))// &
             " elements of absolute tolerance and variable type arrays")
 
     this%core_is_initialized = .true.
 
     ! Set the initial state values
-    allocate(this%init_state(this%state_array_size))
+    allocate(this%init_state(this%size_state_per_cell * this%num_cells))
 
     ! Set species concentrations to zero
     this%init_state(:) = 0.0
 
     ! Set activity coefficients to 1.0
-    do i_aero_rep = 1, size(this%aero_rep)
+    do i_cell = 0, this%num_cells - 1
+      do i_aero_rep = 1, size(this%aero_rep)
 
-      rep => this%aero_rep(i_aero_rep)%val
+        rep => this%aero_rep(i_aero_rep)%val
 
-      ! Get the ion pairs for which activity coefficients can be calculated
-      unique_names = rep%unique_names(tracer_type = CHEM_SPEC_ACTIVITY_COEFF)
+        ! Get the ion pairs for which activity coefficients can be calculated
+        unique_names = rep%unique_names(tracer_type = CHEM_SPEC_ACTIVITY_COEFF)
 
-      ! Set the activity coefficients to 1.0 as default
-      do i_name = 1, size(unique_names)
-        i_state_elem = rep%spec_state_id(unique_names(i_name)%string)
-        this%init_state(i_state_elem) = real(1.0d0, kind=dp)
+        ! Set the activity coefficients to 1.0 as default
+        do i_name = 1, size(unique_names)
+          i_state_elem = rep%spec_state_id(unique_names(i_name)%string)
+          this%init_state(i_state_elem + i_cell * this%size_state_per_cell) = &
+              real(1.0d0, kind=dp)
+        end do
+
+        deallocate(unique_names)
+
       end do
-
-      deallocate(unique_names)
-
     end do
 
   end subroutine initialize
@@ -888,15 +904,18 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get a model state variable based on the this set of model data
-  function new_state(this)
+  function new_state(this, env_state)
 
     !> New model state
     type(phlex_state_t), pointer :: new_state
     !> Chemical model
     class(phlex_core_t), intent(in) :: this
+    !> Environmental state array
+    !! (one element per grid cell to solve simultaneously)
+    type(env_state_t), optional, target, intent(in) :: env_state
 
-    !Initialize phlex_state passing only num_cells
-    new_state => phlex_state_t(NULL(),this%num_cells)
+    ! Initialize phlex_state
+    new_state => phlex_state_t(this%num_cells, env_state)
 
     ! Set up the state variable array
     allocate(new_state%state_var, source=this%init_state)
@@ -920,6 +939,24 @@ contains
     state_size = size(this%init_state)
 
   end function state_size
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Get the size of the state array for each grid cell
+  function state_size_per_cell(this) result(state_size)
+
+    !> State size
+    integer(kind=i_kind) :: state_size
+    !> Chemical model
+    class(phlex_core_t), intent(in) :: this
+
+    call assert_msg(175845182, allocated(this%init_state), &
+                    "Trying to get the size of the state array before "// &
+                    "initializing the phlex_core")
+
+    state_size = this%size_state_per_cell
+
+  end function state_size_per_cell
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -993,6 +1030,23 @@ contains
     this%solver_is_initialized = .true.
 
   end subroutine solver_initialize
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Free the solver memory
+  subroutine free_solver(this)
+
+    !> Phlex-core
+    class(phlex_core_t), intent(inout) :: this
+
+    if( associated( this%solver_data_gas ) )  &
+        deallocate( this%solver_data_gas )
+    if( associated( this%solver_data_aero ) ) &
+        deallocate( this%solver_data_aero )
+    if( associated( this%solver_data_gas_aero ) ) &
+        deallocate( this%solver_data_gas_aero )
+
+  end subroutine free_solver
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1079,12 +1133,15 @@ contains
     !! GAS_RXN, AERO_RXN, GAS_AERO_RXN
     integer(kind=i_kind), intent(in), optional :: rxn_phase
     !> Return solver statistics to the host model
-    type(solver_stats_t), intent(out), optional, target :: solver_stats
+    type(solver_stats_t), intent(inout), optional, target :: solver_stats
 
     ! Phase to solve
     integer(kind=i_kind) :: phase
     ! Pointer to solver data
     type(phlex_solver_data_t), pointer :: solver
+
+    call assert_msg(593328365, this%solver_is_initialized,                   &
+                    "Trying to solve system with uninitialized solver" )
 
     ! Get the phase(s) to solve for
     if (present(rxn_phase)) then
@@ -1189,14 +1246,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !> Set number of cells to compute simultaneously
-  subroutine set_num_cells(this, num_cells_aux)
+  subroutine set_num_cells(this, num_cells)
 
     !> Core data
     class(phlex_core_t), intent(inout) :: this
     !> Parameter id
-    integer(kind=i_kind) :: num_cells_aux
+    integer(kind=i_kind) :: num_cells
 
-    this%num_cells = num_cells_aux
+    this%num_cells = num_cells
 
   end subroutine set_num_cells
 
@@ -1247,7 +1304,7 @@ contains
       sub_model => null()
     end do
     pack_size = pack_size + &
-                pmc_mpi_pack_size_integer(this%state_array_size, l_comm) + &
+                pmc_mpi_pack_size_integer(this%size_state_per_cell, l_comm) + &
                 pmc_mpi_pack_size_logical(this%split_gas_aero, l_comm) + &
                 pmc_mpi_pack_size_real(this%rel_tol, l_comm) + &
                 pmc_mpi_pack_size_real_array(this%abs_tol, l_comm) + &
@@ -1310,7 +1367,7 @@ contains
       call sub_model_factory%bin_pack(sub_model, buffer, pos, l_comm)
       sub_model => null()
     end do
-    call pmc_mpi_pack_integer(buffer, pos, this%state_array_size, l_comm)
+    call pmc_mpi_pack_integer(buffer, pos, this%size_state_per_cell, l_comm)
     call pmc_mpi_pack_logical(buffer, pos, this%split_gas_aero, l_comm)
     call pmc_mpi_pack_real(buffer, pos, this%rel_tol, l_comm)
     call pmc_mpi_pack_real_array(buffer, pos, this%abs_tol, l_comm)
@@ -1376,7 +1433,7 @@ contains
       this%sub_model(i_sub_model)%val => &
               sub_model_factory%bin_unpack(buffer, pos, l_comm)
     end do
-    call pmc_mpi_unpack_integer(buffer, pos, this%state_array_size, l_comm)
+    call pmc_mpi_unpack_integer(buffer, pos, this%size_state_per_cell, l_comm)
     call pmc_mpi_unpack_logical(buffer, pos, this%split_gas_aero, l_comm)
     call pmc_mpi_unpack_real(buffer, pos, this%rel_tol, l_comm)
     call pmc_mpi_unpack_real_array(buffer, pos, this%abs_tol, l_comm)
@@ -1414,6 +1471,8 @@ contains
     write(f_unit,*) "** Phlex core data **"
     write(f_unit,*) "*********************"
     if (.not.sd_only ) then
+      write(f_unit,*) "Number of grid cells to solve simultaneously: ", &
+                      this%num_cells
       write(f_unit,*) "Relative integration tolerance: ", this%rel_tol
       call this%chem_spec_data%print(f_unit)
       write(f_unit,*) "*** Aerosol Phases ***"
@@ -1436,9 +1495,9 @@ contains
         call this%mechanism(i_mech)%val%print(f_unit)
       end do
       write(f_unit,*) "*** State Array ***"
-      write(f_unit,*) "Number of species on the state array: ", &
-              this%state_array_size
-      allocate(state_names(this%state_array_size))
+      write(f_unit,*) "Number of species on the state array per grid cell: ", &
+                      this%size_state_per_cell
+      allocate(state_names(this%size_state_per_cell))
       i_spec = 0
       do i_gas_spec = 1, &
               this%chem_spec_data%size(spec_phase=CHEM_SPEC_GAS_PHASE)

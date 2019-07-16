@@ -449,7 +449,7 @@ contains
     !> Aerosol representation data
     class(aero_rep_single_particle_t), intent(in) :: this
     !> Unique name of the species in this aerosol representation
-    character(len=:), allocatable :: unique_name
+    character(len=*), intent(in) :: unique_name
 
     ! Indices for iterators
     integer(kind=i_kind) :: i_spec, j_spec, i_phase

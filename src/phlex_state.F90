@@ -44,8 +44,6 @@ module pmc_phlex_state
   contains
     !> Update the environmental state array
     procedure :: update_env_state
-    !> Update the environmental state array cell
-    procedure :: update_env_state_cell
     !> Determine the size of a binary required to pack a given variable
     procedure :: pack_size
     !> Pack the given value to the buffer, advancing position
@@ -76,14 +74,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for phlex_state_t
-  function constructor(env_state, num_cells) result (new_obj)
+  function constructor(num_cells, env_state) result (new_obj)
 
     !> New model state
     type(phlex_state_t), pointer :: new_obj
+    !> Num cells to compute simulatenously
+    integer(kind=i_kind) :: num_cells
     !> Environmental state
     type(env_state_t), target, intent(in), optional :: env_state
-    !> Num cells to compute simulatenously
-    integer(kind=i_kind), optional :: num_cells
 
     ! Allocate space for the new object
     allocate(new_obj)
@@ -97,44 +95,37 @@ contains
     end if
 
     ! Set up the environmental state array
-    if (present(num_cells)) then
-      allocate(new_obj%env_var(PHLEX_STATE_NUM_ENV_PARAM*num_cells))
-    else
-      allocate(new_obj%env_var(PHLEX_STATE_NUM_ENV_PARAM))
-    end if
+    allocate(new_obj%env_var(PHLEX_STATE_NUM_ENV_PARAM*num_cells))
 
   end function constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !! TODO make the environmental parameters part of the input data
 
   !> Update the environmental state array
-  subroutine update_env_state(this)
+  subroutine update_env_state(this, grid_cell)
 
     !> Model state
     class(phlex_state_t), intent(inout) :: this
+    !> Grid cell to update
+    integer, optional :: grid_cell
 
-    this%env_var(1) = this%env_state%temp               ! Temperature (K)
-    this%env_var(2) = this%env_state%pressure           ! Pressure (Pa)
+    integer :: grid_offset = 0
+
+    if (present(grid_cell)) &
+      grid_offset = (grid_cell-1)*PHLEX_STATE_NUM_ENV_PARAM
+
+#ifdef PMC_DEBUG
+    call assert_msg(618562571, grid_offset >= 0 .and. &
+                               grid_offset <= size(this%env_var)-2, &
+                    "Invalid env state offset: "//trim(to_string(grid_offset)))
+#endif
+
+    this%env_var(grid_offset+1) = this%env_state%temp     ! Temperature (K)
+    this%env_var(grid_offset+2) = this%env_state%pressure ! Pressure (Pa)
 
   end subroutine update_env_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  !> Update the environmental state array cell
-  subroutine update_env_state_cell(this ,temp, pressure, cell)
-
-    !> Model state
-    class(phlex_state_t), intent(inout) :: this
-    integer :: cell
-    real :: temp, pressure
-
-    this%env_var(1+PHLEX_STATE_NUM_ENV_PARAM*cell) = temp               ! Temperature (K)
-    this%env_var(2+PHLEX_STATE_NUM_ENV_PARAM*cell) = pressure           ! Pressure (Pa)
-
-  end subroutine update_env_state_cell
-
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Determine the size of a binary required to pack a given variable
   integer(kind=i_kind) function pack_size(this)

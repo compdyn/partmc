@@ -77,14 +77,6 @@ module pmc_chem_spec_data
     integer(kind=i_kind), pointer :: spec_phase(:) => null()
     !> Species property set
     type(property_t), pointer :: property_set(:) => null()
-    !> Species name first cell
-    type(string_t), pointer :: spec_name_1_cell(:) => null()
-    !> Species type first cell
-    integer(kind=i_kind), pointer :: spec_type_1_cell(:) => null()
-    !> Species phase first cell
-    integer(kind=i_kind), pointer :: spec_phase_1_cell(:) => null()
-    !> Species property set first cell
-    type(property_t), pointer :: property_set_1_cell(:) => null()
   contains
     !> Load species from an input file
     procedure :: load
@@ -120,8 +112,6 @@ module pmc_chem_spec_data
     procedure :: gas_state_name
     !> Print out the species data
     procedure :: print => do_print
-    !> Add multiple data cells common data
-    procedure :: add_multiple_cells
     !> Finalize the chemical species data
     final :: finalize
 
@@ -160,10 +150,6 @@ contains
     allocate(new_obj%spec_type(alloc_size))
     allocate(new_obj%spec_phase(alloc_size))
     allocate(new_obj%property_set(alloc_size))
-    allocate(new_obj%spec_name_1_cell(alloc_size))
-    allocate(new_obj%spec_type_1_cell(alloc_size))
-    allocate(new_obj%spec_phase_1_cell(alloc_size))
-    allocate(new_obj%property_set_1_cell(alloc_size))
 
   end function constructor
 
@@ -311,7 +297,6 @@ contains
     end do
 
     ! Add or update the species data
-    ! in each cell data
     call this%add(spec_name, spec_type, spec_phase, property_set)
 
     ! deallocate the temporary property set
@@ -467,7 +452,7 @@ contains
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
     !> Species name to find properties of
-    character(len=:), allocatable, intent(in) :: spec_name
+    character(len=*), intent(in) :: spec_name
     !> Pointer to species properties
     type(property_t), pointer, intent(out) :: property_set
 
@@ -780,47 +765,6 @@ contains
 
   end subroutine add
 
-  !> Duplicate chemical species common data per num cells
-  subroutine add_multiple_cells(this, num_cells_to_add)
-
-    !> Species dataset
-    class(chem_spec_data_t), intent(inout) :: this
-
-    !Num cells to add
-    integer(kind=i_kind), intent(inout) :: num_cells_to_add
-
-    integer(kind=i_kind) :: i_spec, i, j, num_spec_cell
-
-    if(num_cells_to_add.GT.0) then
-
-      num_spec_cell=this%num_spec
-      this%spec_name_1_cell(:) = this%spec_name(:)
-      this%spec_type_1_cell(:) = this%spec_type(:)
-      this%spec_phase_1_cell(:) = this%spec_phase(:)
-
-      ! Duplicate species common data for all cells
-      do i=1, num_cells_to_add
-        do j=1, num_spec_cell
-          call this%ensure_size(1)
-          this%num_spec = this%num_spec + 1
-          this%spec_name(this%num_spec)%string = this%spec_name_1_cell(j)%string
-          this%spec_type(this%num_spec) = this%spec_type_1_cell(j)
-          this%spec_phase(this%num_spec) = this%spec_phase_1_cell(j)
-          !if (present(this%property_set_1_cell)) then
-          !call this%property_set_1_cell%move(this%property_set(this%num_spec))
-          !else
-          this%property_set(this%num_spec) = this%property_set_1_cell(j)
-          !end if
-        end do
-      end do
-
-    end if
-
-
-
-    end subroutine add_multiple_cells
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Get the index of a chemical species by name. Returns true if the species
@@ -830,7 +774,7 @@ contains
     !> Species dataset
     class(chem_spec_data_t), intent(in) :: this
     !> Species name
-    character(len=:), allocatable, intent(in) :: spec_name
+    character(len=*), intent(in) :: spec_name
     !> Species id
     integer(kind=i_kind), intent(out) :: spec_id
 

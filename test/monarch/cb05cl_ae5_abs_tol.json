@@ -52,7 +52,7 @@
     {
       "name" : "HNO3",
       "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E-03
+      "absolute integration tolerance" : 1.0E-09
     },
     {
       "name" : "HONO",
@@ -267,7 +267,7 @@
     {
       "name" : "SULF",
       "type" : "CHEM_SPEC",
-      "absolute integration tolerance" : 1.0E+00
+      "absolute integration tolerance" : 1.0E-09
     },
     {
       "name" : "SULRXN",

@@ -14,6 +14,7 @@ program pmc_test_chem_mech_solver
   use pmc_phlex_core
   use pmc_phlex_state
   use pmc_chem_spec_data
+  use pmc_solver_stats
 #ifdef PMC_USE_JSON
   use json_module
 #endif
@@ -94,6 +95,8 @@ contains
     integer(kind=i_kind) :: pack_size, pos, i_elem, results
 #endif
 
+    type(solver_stats_t), target :: solver_stats
+
     ! Parameters for calculating true concentrations
     real(kind=dp) :: k1, k2, temp, pressure, Ea1, Ea2, A1, A2, time
 
@@ -118,7 +121,7 @@ contains
 #endif
 
       ! Get the consecutive-rxn mechanism json file
-      input_file_path = 'config_1.json'
+      input_file_path = "config_1.json"
 
       ! Construct a phlex_core variable
       phlex_core => phlex_core_t(input_file_path)
@@ -206,12 +209,26 @@ contains
       ! Set the initial concentrations in the model
       phlex_state%state_var(:) = model_conc(0,:)
 
+#ifdef PMC_DEBUG
+      ! Evaluate the Jacobian during solving
+      solver_stats%eval_Jac = .true.
+#endif
+
       ! Integrate the mechanism
       do i_time = 1, NUM_TIME_STEP
 
         ! Get the modeled conc
-        call phlex_core%solve(phlex_state, time_step)
+        call phlex_core%solve(phlex_state, time_step, &
+                              solver_stats = solver_stats)
         model_conc(i_time,:) = phlex_state%state_var(:)
+
+#ifdef PMC_DEBUG
+        ! Check the Jacobian evaluations
+        call assert_msg(954300655, solver_stats%Jac_eval_fails.eq.0, &
+                        trim( to_string( solver_stats%Jac_eval_fails ) )// &
+                        " Jacobian evaluation failures at time step "// &
+                        trim( to_string( i_time ) ) )
+#endif
 
         ! Get the analytic conc
         time = i_time * time_step
@@ -259,7 +276,7 @@ contains
         results = 1
       end if
     end if
-    
+
     ! Send the results back to the primary process
     call pmc_mpi_transfer_integer(results, results, 1, 0)
 

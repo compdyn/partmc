@@ -19,6 +19,7 @@ program pmc_test_SIMPOL_phase_transfer
   use pmc_aero_rep_data
   use pmc_aero_rep_factory
   use pmc_aero_rep_single_particle
+  use pmc_solver_stats
 #ifdef PMC_USE_JSON
   use json_module
 #endif
@@ -120,6 +121,8 @@ contains
     type(aero_rep_update_data_single_particle_radius_t) :: radius_update
     type(aero_rep_update_data_single_particle_number_t) :: number_update
     integer(kind=i_kind), parameter :: aero_rep_external_id = 42
+
+    type(solver_stats_t), target :: solver_stats
 
     run_SIMPOL_phase_transfer_test = .true.
 
@@ -277,16 +280,35 @@ contains
       ! Calculate the backwards rate constant based on the equilibrium
       ! conditions and the forward rate (1/s)
       k_backward = k_forward / ( equil_ethanol/ugm3_to_ppm/equil_ethanol_aq )
-    
+
       ! Set the initial state in the model
       phlex_state%state_var(:) = model_conc(0,:)
+
+#if 0
+#ifdef PMC_DEBUG
+      ! Evaluate the Jacobian during solving
+      solver_stats%eval_Jac = .true.
+#endif
+#endif
 
       ! Integrate the mechanism
       do i_time = 1, NUM_TIME_STEP
 
         ! Get the modeled conc
-        call phlex_core%solve(phlex_state, time_step)
+        call phlex_core%solve(phlex_state, time_step, &
+                              solver_stats = solver_stats)
         model_conc(i_time,:) = phlex_state%state_var(:)
+
+        ! FIXME Finish debugging Jacobian calculations
+#if 0
+#ifdef PMC_DEBUG
+        ! Check the Jacobian evaluations
+        call assert_msg(173108608, solver_stats%Jac_eval_fails.eq.0, &
+                        trim( to_string( solver_stats%Jac_eval_fails ) )// &
+                        " Jacobian evaluation failures at time step "// &
+                        trim( to_string( i_time ) ) )
+#endif
+#endif
 
         ! Get the analytic conc
         ! x = [A_gas] - [A_eq_gas]

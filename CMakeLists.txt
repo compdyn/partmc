@@ -16,16 +16,14 @@ set(PACKAGE_VERSION "2.4.0")
 
 option(ENABLE_GSL "Enable GSL library for random number generation" OFF)
 option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
-option(ENABLE_MPI "Enable MPI parallel support" OFF) #OFF
+option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" ON)
-option(ENABLE_MULTIPLE_CELLS "Enable using multiple cells on the solver " OFF)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
-option(ENABLE_JSON "Enable json-fortran support" ON)#ON
-option(ENABLE_TESTS "Enable tests" OFF)#ON
-option(ENABLE_DEBUG "Compile debugging functions" ON)#ON
+option(ENABLE_JSON "Enable json-fortran support" ON)
+option(ENABLE_DEBUG "Compile debugging functions" OFF)
 option(FAILURE_DETAIL "Output conditions before and after solver failures" OFF)
 option(ENABLE_CXX "Enable C++" OFF)
-option(ENABLE_GPU "Enable use of GPUs in chemistry solving" ON)
+option(ENABLE_GPU "Enable use of GPUs in chemistry solving" OFF)
 
 mark_as_advanced(FORCE ENABLE_DEBUG FAILURE_DETAIL)
 
@@ -147,13 +145,6 @@ if(ENABLE_SUNDIALS)
 endif()
 
 ######################################################################
-# Multiple Cells on solving
-
-if(ENABLE_ENABLE_MULTIPLE_CELLS)
-    add_definitions(-DMULTIPLE_CELLS)
-endif()
-
-######################################################################
 # json-fortran
 
 if (ENABLE_JSON)
@@ -167,6 +158,7 @@ if (ENABLE_JSON)
   add_definitions(-DPMC_USE_JSON)
 endif()
 
+######################################################################
 ##CXX
 
 if(ENABLE_CXX)
@@ -185,6 +177,16 @@ if (ENABLE_GPU)
   enable_language(CUDA)
 endif()
 
+
+######################################################################
+# debugging options
+
+if (ENABLE_DEBUG)
+  add_definitions(-DPMC_DEBUG)
+endif()
+if (FAILURE_DETAIL)
+  add_definitions(-DFAILURE_DETAIL)
+endif()
 
 ######################################################################
 # debugging options
@@ -234,199 +236,184 @@ else()
 endif()
 
 if (ENABLE_JSON AND ENABLE_SUNDIALS)
-    add_test(test_chemistry_cb05cl_ae5 ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5.sh ${MPI_TEST_FLAG})
-    add_test(test_chemistry_cb05cl_ae5_big ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5_big.sh ${MPI_TEST_FLAG})
-
-    add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh ${MPI_TEST_FLAG})
-    add_test(test_MONARCH_2 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_2.sh ${MPI_TEST_FLAG})
-
+  add_test(test_rxn_aqueous_equilibrium ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_aqueous_equilibrium.sh ${MPI_TEST_FLAG})
+  add_test(test_rxn_arrhenius ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_arrhenius.sh ${MPI_TEST_FLAG})
+  add_test(test_rxn_CMAQ_H2O2 ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_CMAQ_H2O2.sh ${MPI_TEST_FLAG})
+  add_test(test_rxn_CMAQ_OH_HNO3 ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_CMAQ_OH_HNO3.sh ${MPI_TEST_FLAG})
+  add_test(test_rxn_condensed_phase_arrhenius ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_condensed_phase_arrhenius.sh ${MPI_TEST_FLAG})
+  add_test(test_rxn_emission ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_emission.sh ${MPI_TEST_FLAG})
+  add_test(test_rxn_first_order_loss ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_first_order_loss.sh ${MPI_TEST_FLAG})
+  add_test(test_rxn_HL_phase_transfer ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_HL_phase_transfer.sh ${MPI_TEST_FLAG})
+  add_test(test_rxn_PDFiTE_activity ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_PDFiTE_activity.sh ${MPI_TEST_FLAG})
+  add_test(test_rxn_photolysis ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_photolysis.sh ${MPI_TEST_FLAG})
+  add_test(test_rxn_SIMPOL_phase_transfer ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_SIMPOL_phase_transfer.sh ${MPI_TEST_FLAG})
+  add_test(test_rxn_troe ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_troe.sh ${MPI_TEST_FLAG})
+  add_test(test_rxn_wet_deposition ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_wet_deposition.sh ${MPI_TEST_FLAG})
+  add_test(test_rxn_ZSR_aerosol_water ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_ZSR_aerosol_water.sh ${MPI_TEST_FLAG})
+  add_test(test_sub_model_UNIFAC ${CMAKE_BINARY_DIR}/test_run/unit_sub_model_data/test_UNIFAC.sh ${MPI_TEST_FLAG})
+  add_test(test_chem_mech_solver ${CMAKE_BINARY_DIR}/test_run/chemistry/test_chemistry_1.sh ${MPI_TEST_FLAG})
+  add_test(test_chemistry_cb05cl_ae5 ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5.sh ${MPI_TEST_FLAG})
+  add_test(test_chemistry_cb05cl_ae5_big ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5_big.sh ${MPI_TEST_FLAG})
+  add_test(test_chemistry_eqsam_v03d ${CMAKE_BINARY_DIR}/test_run/chemistry/eqsam_v03d/test_chemistry_eqsam_v03d.sh ${MPI_TEST_FLAG})
+  add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh ${MPI_TEST_FLAG})
+  # Disable full MONARCH test until solver strategy is finished
+  # add_test(test_MONARCH_2 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_2.sh ${MPI_TEST_FLAG})
 endif()
 
-if (ENABLE_TESTS)
-    if (ENABLE_JSON AND ENABLE_SUNDIALS)
-      add_test(test_rxn_aqueous_equilibrium ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_aqueous_equilibrium.sh ${MPI_TEST_FLAG})
-      add_test(test_rxn_arrhenius ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_arrhenius.sh ${MPI_TEST_FLAG})
-      add_test(test_rxn_CMAQ_H2O2 ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_CMAQ_H2O2.sh ${MPI_TEST_FLAG})
-      add_test(test_rxn_CMAQ_OH_HNO3 ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_CMAQ_OH_HNO3.sh ${MPI_TEST_FLAG})
-      add_test(test_rxn_condensed_phase_arrhenius ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_condensed_phase_arrhenius.sh ${MPI_TEST_FLAG})
-      add_test(test_rxn_emission ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_emission.sh ${MPI_TEST_FLAG})
-      add_test(test_rxn_first_order_loss ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_first_order_loss.sh ${MPI_TEST_FLAG})
-      add_test(test_rxn_HL_phase_transfer ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_HL_phase_transfer.sh ${MPI_TEST_FLAG})
-      add_test(test_rxn_PDFiTE_activity ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_PDFiTE_activity.sh ${MPI_TEST_FLAG})
-      add_test(test_rxn_photolysis ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_photolysis.sh ${MPI_TEST_FLAG})
-      add_test(test_rxn_SIMPOL_phase_transfer ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_SIMPOL_phase_transfer.sh ${MPI_TEST_FLAG})
-      add_test(test_rxn_troe ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_troe.sh ${MPI_TEST_FLAG})
-      add_test(test_rxn_wet_deposition ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_wet_deposition.sh ${MPI_TEST_FLAG})
-      add_test(test_rxn_ZSR_aerosol_water ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_ZSR_aerosol_water.sh ${MPI_TEST_FLAG})
-      add_test(test_sub_model_UNIFAC ${CMAKE_BINARY_DIR}/test_run/unit_sub_model_data/test_UNIFAC.sh ${MPI_TEST_FLAG})
-      add_test(test_chem_mech_solver ${CMAKE_BINARY_DIR}/test_run/chemistry/test_chemistry_1.sh ${MPI_TEST_FLAG})
-      add_test(test_chemistry_cb05cl_ae5 ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5.sh ${MPI_TEST_FLAG})
-      add_test(test_chemistry_cb05cl_ae5_big ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5_big.sh ${MPI_TEST_FLAG})
-      add_test(test_chemistry_eqsam_v03d ${CMAKE_BINARY_DIR}/test_run/chemistry/eqsam_v03d/test_chemistry_eqsam_v03d.sh ${MPI_TEST_FLAG})
-      add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh ${MPI_TEST_FLAG})
-      add_test(test_MONARCH_2 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_2.sh ${MPI_TEST_FLAG})
-    endif()
+add_test(test_additive_1 ${CMAKE_BINARY_DIR}/test_run/additive/test_additive_1.sh)
+add_test(test_additive_2 ${CMAKE_BINARY_DIR}/test_run/additive/test_additive_2.sh)
+set_tests_properties(test_additive_2 PROPERTIES DEPENDS test_additive_1)
 
+add_test(test_average_01 ${CMAKE_BINARY_DIR}/test_run/average/test_average_01.sh)
+add_test(test_average_02 ${CMAKE_BINARY_DIR}/test_run/average/test_average_02.sh)
+set_tests_properties(test_average_02 PROPERTIES DEPENDS test_average_01)
+add_test(test_average_03 ${CMAKE_BINARY_DIR}/test_run/average/test_average_03.sh)
+set_tests_properties(test_average_03 PROPERTIES DEPENDS test_average_02)
+add_test(test_average_04 ${CMAKE_BINARY_DIR}/test_run/average/test_average_04.sh)
+set_tests_properties(test_average_04 PROPERTIES DEPENDS test_average_03)
+add_test(test_average_05 ${CMAKE_BINARY_DIR}/test_run/average/test_average_05.sh)
+set_tests_properties(test_average_05 PROPERTIES DEPENDS test_average_04)
+add_test(test_average_06 ${CMAKE_BINARY_DIR}/test_run/average/test_average_06.sh)
+set_tests_properties(test_average_06 PROPERTIES DEPENDS test_average_05)
+add_test(test_average_07 ${CMAKE_BINARY_DIR}/test_run/average/test_average_07.sh)
+set_tests_properties(test_average_07 PROPERTIES DEPENDS test_average_06)
+add_test(test_average_08 ${CMAKE_BINARY_DIR}/test_run/average/test_average_08.sh)
+set_tests_properties(test_average_08 PROPERTIES DEPENDS test_average_07)
+add_test(test_average_09 ${CMAKE_BINARY_DIR}/test_run/average/test_average_09.sh)
+set_tests_properties(test_average_09 PROPERTIES DEPENDS test_average_08)
+add_test(test_average_10 ${CMAKE_BINARY_DIR}/test_run/average/test_average_10.sh)
+set_tests_properties(test_average_10 PROPERTIES DEPENDS test_average_09)
+add_test(test_average_11 ${CMAKE_BINARY_DIR}/test_run/average/test_average_11.sh)
+set_tests_properties(test_average_11 PROPERTIES DEPENDS test_average_10)
+add_test(test_average_12 ${CMAKE_BINARY_DIR}/test_run/average/test_average_12.sh)
+set_tests_properties(test_average_12 PROPERTIES DEPENDS test_average_11)
+add_test(test_average_13 ${CMAKE_BINARY_DIR}/test_run/average/test_average_13.sh)
+set_tests_properties(test_average_13 PROPERTIES DEPENDS test_average_12)
+add_test(test_average_14 ${CMAKE_BINARY_DIR}/test_run/average/test_average_14.sh)
+set_tests_properties(test_average_14 PROPERTIES DEPENDS test_average_13)
+add_test(test_average_15 ${CMAKE_BINARY_DIR}/test_run/average/test_average_15.sh)
+set_tests_properties(test_average_15 PROPERTIES DEPENDS test_average_14)
+add_test(test_average_16 ${CMAKE_BINARY_DIR}/test_run/average/test_average_16.sh)
+set_tests_properties(test_average_16 PROPERTIES DEPENDS test_average_15)
+add_test(test_average_17 ${CMAKE_BINARY_DIR}/test_run/average/test_average_17.sh)
+set_tests_properties(test_average_17 PROPERTIES DEPENDS test_average_16)
+add_test(test_average_18 ${CMAKE_BINARY_DIR}/test_run/average/test_average_18.sh)
+set_tests_properties(test_average_18 PROPERTIES DEPENDS test_average_17)
+add_test(test_average_19 ${CMAKE_BINARY_DIR}/test_run/average/test_average_19.sh)
+set_tests_properties(test_average_19 PROPERTIES DEPENDS test_average_18)
+add_test(test_average_20 ${CMAKE_BINARY_DIR}/test_run/average/test_average_20.sh)
+set_tests_properties(test_average_20 PROPERTIES DEPENDS test_average_19)
 
-    add_test(test_additive_1 ${CMAKE_BINARY_DIR}/test_run/additive/test_additive_1.sh)
-    add_test(test_additive_2 ${CMAKE_BINARY_DIR}/test_run/additive/test_additive_2.sh)
-    set_tests_properties(test_additive_2 PROPERTIES DEPENDS test_additive_1)
+add_test(test_bidisperse_1 ${CMAKE_BINARY_DIR}/test_run/bidisperse/test_bidisperse_1.sh)
 
-    add_test(test_average_01 ${CMAKE_BINARY_DIR}/test_run/average/test_average_01.sh)
-    add_test(test_average_02 ${CMAKE_BINARY_DIR}/test_run/average/test_average_02.sh)
-    set_tests_properties(test_average_02 PROPERTIES DEPENDS test_average_01)
-    add_test(test_average_03 ${CMAKE_BINARY_DIR}/test_run/average/test_average_03.sh)
-    set_tests_properties(test_average_03 PROPERTIES DEPENDS test_average_02)
-    add_test(test_average_04 ${CMAKE_BINARY_DIR}/test_run/average/test_average_04.sh)
-    set_tests_properties(test_average_04 PROPERTIES DEPENDS test_average_03)
-    add_test(test_average_05 ${CMAKE_BINARY_DIR}/test_run/average/test_average_05.sh)
-    set_tests_properties(test_average_05 PROPERTIES DEPENDS test_average_04)
-    add_test(test_average_06 ${CMAKE_BINARY_DIR}/test_run/average/test_average_06.sh)
-    set_tests_properties(test_average_06 PROPERTIES DEPENDS test_average_05)
-    add_test(test_average_07 ${CMAKE_BINARY_DIR}/test_run/average/test_average_07.sh)
-    set_tests_properties(test_average_07 PROPERTIES DEPENDS test_average_06)
-    add_test(test_average_08 ${CMAKE_BINARY_DIR}/test_run/average/test_average_08.sh)
-    set_tests_properties(test_average_08 PROPERTIES DEPENDS test_average_07)
-    add_test(test_average_09 ${CMAKE_BINARY_DIR}/test_run/average/test_average_09.sh)
-    set_tests_properties(test_average_09 PROPERTIES DEPENDS test_average_08)
-    add_test(test_average_10 ${CMAKE_BINARY_DIR}/test_run/average/test_average_10.sh)
-    set_tests_properties(test_average_10 PROPERTIES DEPENDS test_average_09)
-    add_test(test_average_11 ${CMAKE_BINARY_DIR}/test_run/average/test_average_11.sh)
-    set_tests_properties(test_average_11 PROPERTIES DEPENDS test_average_10)
-    add_test(test_average_12 ${CMAKE_BINARY_DIR}/test_run/average/test_average_12.sh)
-    set_tests_properties(test_average_12 PROPERTIES DEPENDS test_average_11)
-    add_test(test_average_13 ${CMAKE_BINARY_DIR}/test_run/average/test_average_13.sh)
-    set_tests_properties(test_average_13 PROPERTIES DEPENDS test_average_12)
-    add_test(test_average_14 ${CMAKE_BINARY_DIR}/test_run/average/test_average_14.sh)
-    set_tests_properties(test_average_14 PROPERTIES DEPENDS test_average_13)
-    add_test(test_average_15 ${CMAKE_BINARY_DIR}/test_run/average/test_average_15.sh)
-    set_tests_properties(test_average_15 PROPERTIES DEPENDS test_average_14)
-    add_test(test_average_16 ${CMAKE_BINARY_DIR}/test_run/average/test_average_16.sh)
-    set_tests_properties(test_average_16 PROPERTIES DEPENDS test_average_15)
-    add_test(test_average_17 ${CMAKE_BINARY_DIR}/test_run/average/test_average_17.sh)
-    set_tests_properties(test_average_17 PROPERTIES DEPENDS test_average_16)
-    add_test(test_average_18 ${CMAKE_BINARY_DIR}/test_run/average/test_average_18.sh)
-    set_tests_properties(test_average_18 PROPERTIES DEPENDS test_average_17)
-    add_test(test_average_19 ${CMAKE_BINARY_DIR}/test_run/average/test_average_19.sh)
-    set_tests_properties(test_average_19 PROPERTIES DEPENDS test_average_18)
-    add_test(test_average_20 ${CMAKE_BINARY_DIR}/test_run/average/test_average_20.sh)
-    set_tests_properties(test_average_20 PROPERTIES DEPENDS test_average_19)
+add_test(test_brownian_1 ${CMAKE_BINARY_DIR}/test_run/brownian/test_brownian_1.sh)
+add_test(test_brownian_2 ${CMAKE_BINARY_DIR}/test_run/brownian/test_brownian_2.sh)
+set_tests_properties(test_brownian_2 PROPERTIES DEPENDS test_brownian_1)
+add_test(test_brownian_3 ${CMAKE_BINARY_DIR}/test_run/brownian/test_brownian_3.sh)
+set_tests_properties(test_brownian_3 PROPERTIES DEPENDS test_brownian_2)
+add_test(test_brownian_4 ${CMAKE_BINARY_DIR}/test_run/brownian/test_brownian_4.sh)
+set_tests_properties(test_brownian_4 PROPERTIES DEPENDS test_brownian_3)
 
-    add_test(test_bidisperse_1 ${CMAKE_BINARY_DIR}/test_run/bidisperse/test_bidisperse_1.sh)
-
-    add_test(test_brownian_1 ${CMAKE_BINARY_DIR}/test_run/brownian/test_brownian_1.sh)
-    add_test(test_brownian_2 ${CMAKE_BINARY_DIR}/test_run/brownian/test_brownian_2.sh)
-    set_tests_properties(test_brownian_2 PROPERTIES DEPENDS test_brownian_1)
-    add_test(test_brownian_3 ${CMAKE_BINARY_DIR}/test_run/brownian/test_brownian_3.sh)
-    set_tests_properties(test_brownian_3 PROPERTIES DEPENDS test_brownian_2)
-    add_test(test_brownian_4 ${CMAKE_BINARY_DIR}/test_run/brownian/test_brownian_4.sh)
-    set_tests_properties(test_brownian_4 PROPERTIES DEPENDS test_brownian_3)
-
-    if(ENABLE_SUNDIALS)
-      add_test(test_condense_1 ${CMAKE_BINARY_DIR}/test_run/condense/test_condense_1.sh)
-      add_test(test_condense_2 ${CMAKE_BINARY_DIR}/test_run/condense/test_condense_2.sh)
-      set_tests_properties(test_condense_2 PROPERTIES DEPENDS test_condense_1)
-    endif()
-
-    add_test(test_emission_1 ${CMAKE_BINARY_DIR}/test_run/emission/test_emission_1.sh)
-    add_test(test_emission_2 ${CMAKE_BINARY_DIR}/test_run/emission/test_emission_2.sh)
-    set_tests_properties(test_emission_2 PROPERTIES DEPENDS test_emission_1)
-    add_test(test_emission_3 ${CMAKE_BINARY_DIR}/test_run/emission/test_emission_3.sh)
-    set_tests_properties(test_emission_3 PROPERTIES DEPENDS test_emission_2)
-
-    add_test(test_fractal_1 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_1.sh)
-    add_test(test_fractal_2 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_2.sh)
-    set_tests_properties(test_fractal_2 PROPERTIES DEPENDS test_fractal_1)
-    add_test(test_fractal_3 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_3.sh)
-    set_tests_properties(test_fractal_3 PROPERTIES DEPENDS test_fractal_2)
-
-    add_test(test_loss_01 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_01.sh)
-    add_test(test_loss_02 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_02.sh)
-    add_test(test_loss_03 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_03.sh)
-    set_tests_properties(test_loss_02 PROPERTIES DEPENDS test_loss_01)
-    set_tests_properties(test_loss_03 PROPERTIES DEPENDS test_loss_01)
-    add_test(test_loss_04 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_04.sh)
-    add_test(test_loss_05 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_05.sh)
-    add_test(test_loss_06 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_06.sh)
-    set_tests_properties(test_loss_05 PROPERTIES DEPENDS test_loss_04)
-    set_tests_properties(test_loss_06 PROPERTIES DEPENDS test_loss_04)
-    add_test(test_loss_07 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_07.sh)
-    add_test(test_loss_08 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_08.sh)
-    add_test(test_loss_09 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_09.sh)
-    set_tests_properties(test_loss_08 PROPERTIES DEPENDS test_loss_07)
-    set_tests_properties(test_loss_09 PROPERTIES DEPENDS test_loss_07)
-    add_test(test_loss_10 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_10.sh)
-    add_test(test_loss_11 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_11.sh)
-    add_test(test_loss_12 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_12.sh)
-    set_tests_properties(test_loss_11 PROPERTIES DEPENDS test_loss_10)
-    set_tests_properties(test_loss_12 PROPERTIES DEPENDS test_loss_10)
-
-    add_test(test_nucleate_1 ${CMAKE_BINARY_DIR}/test_run/nucleate/test_nucleate_1.sh)
-    add_test(test_nucleate_2 ${CMAKE_BINARY_DIR}/test_run/nucleate/test_nucleate_2.sh)
-    set_tests_properties(test_nucleate_2 PROPERTIES DEPENDS test_nucleate_1)
-
-    if(ENABLE_MOSAIC)
-      add_test(test_mosaic_1 ${CMAKE_BINARY_DIR}/test_run/mosaic/test_mosaic_1.sh)
-      add_test(test_mosaic_2 ${CMAKE_BINARY_DIR}/test_run/mosaic/test_mosaic_2.sh)
-      set_tests_properties(test_mosaic_2 PROPERTIES DEPENDS test_mosaic_1)
-      add_test(test_mosaic_3 ${CMAKE_BINARY_DIR}/test_run/mosaic/test_mosaic_3.sh)
-      set_tests_properties(test_mosaic_3 PROPERTIES DEPENDS test_mosaic_2)
-      add_test(test_mosaic_4 ${CMAKE_BINARY_DIR}/test_run/mosaic/test_mosaic_4.sh)
-      set_tests_properties(test_mosaic_4 PROPERTIES DEPENDS test_mosaic_3)
-      add_test(test_mosaic_5 ${CMAKE_BINARY_DIR}/test_run/mosaic/test_mosaic_5.sh)
-      set_tests_properties(test_mosaic_5 PROPERTIES DEPENDS test_mosaic_4)
-      add_test(test_mosaic_6 ${CMAKE_BINARY_DIR}/test_run/mosaic/test_mosaic_6.sh)
-      set_tests_properties(test_mosaic_6 PROPERTIES DEPENDS test_mosaic_5)
-    endif()
-
-    if(ENABLE_MPI)
-      add_test(test_parallel_1 ${CMAKE_BINARY_DIR}/test_run/parallel/test_parallel_1.sh)
-      #add_test(test_parallel_2 ${CMAKE_BINARY_DIR}/test_run/parallel/test_parallel_2.sh)
-      #set_tests_properties(test_parallel_2 PROPERTIES DEPENDS test_parallel_1)
-      add_test(test_parallel_3 ${CMAKE_BINARY_DIR}/test_run/parallel/test_parallel_3.sh)
-      set_tests_properties(test_parallel_3 PROPERTIES DEPENDS test_parallel_1)
-      #set_tests_properties(test_parallel_3 PROPERTIES DEPENDS test_parallel_2)
-      #add_test(test_parallel_4 ${CMAKE_BINARY_DIR}/test_run/parallel/test_parallel_4.sh)
-      #set_tests_properties(test_parallel_4 PROPERTIES DEPENDS test_parallel_3)
-    endif()
-
-    add_test(test_rand_1 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_1.sh)
-    add_test(test_rand_2 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_2.sh)
-    set_tests_properties(test_rand_2 PROPERTIES DEPENDS test_rand_1)
-    add_test(test_rand_3 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_3.sh)
-    set_tests_properties(test_rand_3 PROPERTIES DEPENDS test_rand_2)
-    add_test(test_rand_4 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_4.sh)
-    set_tests_properties(test_rand_4 PROPERTIES DEPENDS test_rand_3)
-    add_test(test_rand_5 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_5.sh)
-    set_tests_properties(test_rand_5 PROPERTIES DEPENDS test_rand_4)
-    add_test(test_rand_6 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_6.sh)
-    set_tests_properties(test_rand_6 PROPERTIES DEPENDS test_rand_5)
-    add_test(test_rand_7 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_7.sh)
-    set_tests_properties(test_rand_7 PROPERTIES DEPENDS test_rand_6)
-    add_test(test_rand_8 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_8.sh)
-    set_tests_properties(test_rand_8 PROPERTIES DEPENDS test_rand_7)
-
-    add_test(test_sedi_1 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_1.sh)
-    add_test(test_sedi_2 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_2.sh)
-    set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
+if(ENABLE_SUNDIALS)
+  add_test(test_condense_1 ${CMAKE_BINARY_DIR}/test_run/condense/test_condense_1.sh)
+  add_test(test_condense_2 ${CMAKE_BINARY_DIR}/test_run/condense/test_condense_2.sh)
+  set_tests_properties(test_condense_2 PROPERTIES DEPENDS test_condense_1)
 endif()
+
+add_test(test_emission_1 ${CMAKE_BINARY_DIR}/test_run/emission/test_emission_1.sh)
+add_test(test_emission_2 ${CMAKE_BINARY_DIR}/test_run/emission/test_emission_2.sh)
+set_tests_properties(test_emission_2 PROPERTIES DEPENDS test_emission_1)
+add_test(test_emission_3 ${CMAKE_BINARY_DIR}/test_run/emission/test_emission_3.sh)
+set_tests_properties(test_emission_3 PROPERTIES DEPENDS test_emission_2)
+
+add_test(test_fractal_1 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_1.sh)
+add_test(test_fractal_2 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_2.sh)
+set_tests_properties(test_fractal_2 PROPERTIES DEPENDS test_fractal_1)
+add_test(test_fractal_3 ${CMAKE_BINARY_DIR}/test_run/fractal/test_fractal_3.sh)
+set_tests_properties(test_fractal_3 PROPERTIES DEPENDS test_fractal_2)
+
+add_test(test_loss_01 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_01.sh)
+add_test(test_loss_02 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_02.sh)
+add_test(test_loss_03 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_03.sh)
+set_tests_properties(test_loss_02 PROPERTIES DEPENDS test_loss_01)
+set_tests_properties(test_loss_03 PROPERTIES DEPENDS test_loss_01)
+add_test(test_loss_04 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_04.sh)
+add_test(test_loss_05 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_05.sh)
+add_test(test_loss_06 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_06.sh)
+set_tests_properties(test_loss_05 PROPERTIES DEPENDS test_loss_04)
+set_tests_properties(test_loss_06 PROPERTIES DEPENDS test_loss_04)
+add_test(test_loss_07 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_07.sh)
+add_test(test_loss_08 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_08.sh)
+add_test(test_loss_09 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_09.sh)
+set_tests_properties(test_loss_08 PROPERTIES DEPENDS test_loss_07)
+set_tests_properties(test_loss_09 PROPERTIES DEPENDS test_loss_07)
+add_test(test_loss_10 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_10.sh)
+add_test(test_loss_11 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_11.sh)
+add_test(test_loss_12 ${CMAKE_BINARY_DIR}/test_run/loss/test_loss_12.sh)
+set_tests_properties(test_loss_11 PROPERTIES DEPENDS test_loss_10)
+set_tests_properties(test_loss_12 PROPERTIES DEPENDS test_loss_10)
+
+add_test(test_nucleate_1 ${CMAKE_BINARY_DIR}/test_run/nucleate/test_nucleate_1.sh)
+add_test(test_nucleate_2 ${CMAKE_BINARY_DIR}/test_run/nucleate/test_nucleate_2.sh)
+set_tests_properties(test_nucleate_2 PROPERTIES DEPENDS test_nucleate_1)
+
+if(ENABLE_MOSAIC)
+  add_test(test_mosaic_1 ${CMAKE_BINARY_DIR}/test_run/mosaic/test_mosaic_1.sh)
+  add_test(test_mosaic_2 ${CMAKE_BINARY_DIR}/test_run/mosaic/test_mosaic_2.sh)
+  set_tests_properties(test_mosaic_2 PROPERTIES DEPENDS test_mosaic_1)
+  add_test(test_mosaic_3 ${CMAKE_BINARY_DIR}/test_run/mosaic/test_mosaic_3.sh)
+  set_tests_properties(test_mosaic_3 PROPERTIES DEPENDS test_mosaic_2)
+  add_test(test_mosaic_4 ${CMAKE_BINARY_DIR}/test_run/mosaic/test_mosaic_4.sh)
+  set_tests_properties(test_mosaic_4 PROPERTIES DEPENDS test_mosaic_3)
+  add_test(test_mosaic_5 ${CMAKE_BINARY_DIR}/test_run/mosaic/test_mosaic_5.sh)
+  set_tests_properties(test_mosaic_5 PROPERTIES DEPENDS test_mosaic_4)
+  add_test(test_mosaic_6 ${CMAKE_BINARY_DIR}/test_run/mosaic/test_mosaic_6.sh)
+  set_tests_properties(test_mosaic_6 PROPERTIES DEPENDS test_mosaic_5)
+endif()
+
+if(ENABLE_MPI)
+  add_test(test_parallel_1 ${CMAKE_BINARY_DIR}/test_run/parallel/test_parallel_1.sh)
+  #add_test(test_parallel_2 ${CMAKE_BINARY_DIR}/test_run/parallel/test_parallel_2.sh)
+  #set_tests_properties(test_parallel_2 PROPERTIES DEPENDS test_parallel_1)
+  add_test(test_parallel_3 ${CMAKE_BINARY_DIR}/test_run/parallel/test_parallel_3.sh)
+  set_tests_properties(test_parallel_3 PROPERTIES DEPENDS test_parallel_1)
+  #set_tests_properties(test_parallel_3 PROPERTIES DEPENDS test_parallel_2)
+  #add_test(test_parallel_4 ${CMAKE_BINARY_DIR}/test_run/parallel/test_parallel_4.sh)
+  #set_tests_properties(test_parallel_4 PROPERTIES DEPENDS test_parallel_3)
+endif()
+
+add_test(test_rand_1 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_1.sh)
+add_test(test_rand_2 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_2.sh)
+set_tests_properties(test_rand_2 PROPERTIES DEPENDS test_rand_1)
+add_test(test_rand_3 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_3.sh)
+set_tests_properties(test_rand_3 PROPERTIES DEPENDS test_rand_2)
+add_test(test_rand_4 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_4.sh)
+set_tests_properties(test_rand_4 PROPERTIES DEPENDS test_rand_3)
+add_test(test_rand_5 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_5.sh)
+set_tests_properties(test_rand_5 PROPERTIES DEPENDS test_rand_4)
+add_test(test_rand_6 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_6.sh)
+set_tests_properties(test_rand_6 PROPERTIES DEPENDS test_rand_5)
+add_test(test_rand_7 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_7.sh)
+set_tests_properties(test_rand_7 PROPERTIES DEPENDS test_rand_6)
+add_test(test_rand_8 ${CMAKE_BINARY_DIR}/test_run/rand/test_rand_8.sh)
+set_tests_properties(test_rand_8 PROPERTIES DEPENDS test_rand_7)
+
+add_test(test_sedi_1 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_1.sh)
+add_test(test_sedi_2 ${CMAKE_BINARY_DIR}/test_run/sedi/test_sedi_2.sh)
+set_tests_properties(test_sedi_2 PROPERTIES DEPENDS test_sedi_1)
 
 
 ######################################################################
 # partmc library
 
-#Some test fails without -O3 (mock_monarch), maybe because in developing
-#set(STD_C_FLAGS "-std=c++11 -fpermissive")
-set(STD_C_FLAGS "-O3 -std=c99") #"-g -O3 -std=c99 -g"
-set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70")#-dc -arch=compute_70 -code=sm_70
-#set(STD_CUDA_FLAGS "-O3")
-set(STD_CXX_FLAGS "-fpermissive")#-std=c++11
-
+set(STD_C_FLAGS "-std=c99")
+set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70")
+set(STD_CXX_FLAGS "-fpermissive")
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
   set(STD_F_FLAGS "-extend_source -warn truncated_source")
 elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
-  set(STD_F_FLAGS "-O0 -ffree-line-length-none") #-O3
+  set(STD_F_FLAGS "-ffree-line-length-none")
 endif()
 
 set(REACTIONS_F_SRC
@@ -475,7 +462,7 @@ set(AEROSOL_REPS_F_SRC
 
 set(AEROSOL_REPS_C_SRC
         src/aero_reps/aero_rep_modal_binned_mass.c
-        src/aero_reps/aero_rep_single_particle.c)	
+        src/aero_reps/aero_rep_single_particle.c)
 
 set_source_files_properties(${AEROSOL_REPS_F_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_F_FLAGS})
@@ -484,12 +471,12 @@ set_source_files_properties(${AEROSOL_REPS_C_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_C_FLAGS})
 
 set(AEROSOL_REPS_SRC ${AEROSOL_REPS_F_SRC} ${AEROSOL_REPS_C_SRC})
-      
+
 set(SUB_MODELS_F_SRC
         src/sub_models/sub_model_UNIFAC.F90)
 
 set(SUB_MODELS_C_SRC
-        src/sub_models/sub_model_UNIFAC.c)	
+        src/sub_models/sub_model_UNIFAC.c)
 
 set_source_files_properties(${SUB_MODELS_F_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_F_FLAGS})
@@ -544,12 +531,12 @@ if(ENABLE_GPU)
         ${STD_CUDA_FLAGS})
   set_source_files_properties(${PHLEX_CUDA_SRC} PROPERTIES LANGUAGE CUDA)
 else()
-  set(PHLEX_CUDA_SRC "" src/cuda/rxns_gpu/aaa.cpp src/cuda/rxns_gpu/mmm.cpp src/cuda/rxns_gpu/mmm.h)
+  set(PHLEX_CUDA_SRC "")
 endif()
 
-add_library(partmclib src/aero_state.F90 src/integer_varray.F90
-  src/integer_rmap.F90 src/integer_rmap2.F90 src/aero_sorted.F90
+add_library(partmclib src/aero_state.F90 src/aero_sorted.F90
   src/aero_binned.F90 src/bin_grid.F90 src/constants.F90
+  src/integer_rmap.F90 src/integer_rmap2.F90 src/integer_varray.F90
   src/scenario.F90 src/env_state.F90 src/aero_mode.F90
   src/aero_dist.F90 src/aero_weight.F90 src/aero_weight_array.F90
   src/coag_kernel_additive.F90 src/coag_kernel_sedi.F90
@@ -634,266 +621,266 @@ endif()
 set_source_files_properties(${CB5_EBI_SOLVER} PROPERTIES COMPILE_FLAGS
 	${CB5_EBI_FLAGS})
 
-add_executable(test_chemistry_cb05cl_ae5 test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
-	${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}	 test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
+######################################################################
+# test_chemistry_cb05cl_ae5
+
+add_executable(test_chemistry_cb05cl_ae5
+        test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
+	${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
+        test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
+
 target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
 
-#add_executable(test_chemistry_cb05cl_ae5_big test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
-#        ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER} test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-#target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
+######################################################################
+# test_chemistry_cb05cl_ae5_big
+
+add_executable(test_chemistry_cb05cl_ae5_big
+         test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
+         ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
+         test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
+
+target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
+
+######################################################################
+# test_chemistry_eqsam_v03d
+
+set(EQSAM_V03D
+    test/chemistry/eqsam_v03d/eqsam_v03d.F90)
+
+add_executable(test_chemistry_eqsam_v03d test/chemistry/eqsam_v03d/test_eqsam_v03d.F90
+    ${EQSAM_V03D})
+
+target_link_libraries(test_chemistry_eqsam_v03d partmclib)
 
 ######################################################################
 # MONARCH interface
+
 add_executable(mock_monarch test/monarch/mock_monarch.F90
-        test/monarch/pmc_monarch_interface.F90)
+    test/monarch/pmc_monarch_interface.F90)
 
 target_link_libraries(mock_monarch partmclib)
 
-if (ENABLE_TESTS)
+######################################################################
+# test_property
 
-    ######################################################################
-    # test_chemistry_eqsam_v03d
+add_executable(unit_test_property test/unit_property/test_property.F90)
 
-    set(EQSAM_V03D
-        test/chemistry/eqsam_v03d/eqsam_v03d.F90)
+target_link_libraries(unit_test_property partmclib)
 
-    add_executable(test_chemistry_eqsam_v03d test/chemistry/eqsam_v03d/test_eqsam_v03d.F90
-        ${EQSAM_V03D})
+######################################################################
+# test_chem_spec_data
 
-    target_link_libraries(test_chemistry_eqsam_v03d partmclib)
+add_executable(unit_test_chem_spec_data test/unit_chem_spec_data/test_chem_spec_data.F90)
 
-    ######################################################################
-    # MONARCH interface
+target_link_libraries(unit_test_chem_spec_data partmclib)
 
-    add_executable(mock_monarch test/monarch/mock_monarch.F90
-        test/monarch/pmc_monarch_interface.F90)
+######################################################################
+# test_rxn_data
 
-    target_link_libraries(mock_monarch partmclib)
+add_executable(test_rxn_aqueous_equilibrium test/unit_rxn_data/test_rxn_aqueous_equilibrium.F90)
+target_link_libraries(test_rxn_aqueous_equilibrium partmclib)
+add_executable(test_rxn_arrhenius test/unit_rxn_data/test_rxn_arrhenius.F90)
+target_link_libraries(test_rxn_arrhenius partmclib)
+add_executable(test_rxn_CMAQ_H2O2 test/unit_rxn_data/test_rxn_CMAQ_H2O2.F90)
+target_link_libraries(test_rxn_CMAQ_H2O2 partmclib)
+add_executable(test_rxn_CMAQ_OH_HNO3 test/unit_rxn_data/test_rxn_CMAQ_OH_HNO3.F90)
+target_link_libraries(test_rxn_CMAQ_OH_HNO3 partmclib)
+add_executable(test_rxn_condensed_phase_arrhenius test/unit_rxn_data/test_rxn_condensed_phase_arrhenius.F90)
+target_link_libraries(test_rxn_condensed_phase_arrhenius partmclib)
+add_executable(test_rxn_emission test/unit_rxn_data/test_rxn_emission.F90)
+target_link_libraries(test_rxn_emission partmclib)
+add_executable(test_rxn_first_order_loss test/unit_rxn_data/test_rxn_first_order_loss.F90)
+target_link_libraries(test_rxn_first_order_loss partmclib)
+add_executable(test_rxn_HL_phase_transfer test/unit_rxn_data/test_rxn_HL_phase_transfer.F90)
+target_link_libraries(test_rxn_HL_phase_transfer partmclib)
+add_executable(test_rxn_PDFiTE_activity test/unit_rxn_data/test_rxn_PDFiTE_activity.F90)
+target_link_libraries(test_rxn_PDFiTE_activity partmclib)
+add_executable(test_rxn_photolysis test/unit_rxn_data/test_rxn_photolysis.F90)
+target_link_libraries(test_rxn_photolysis partmclib)
+add_executable(test_rxn_SIMPOL_phase_transfer test/unit_rxn_data/test_rxn_SIMPOL_phase_transfer.F90)
+target_link_libraries(test_rxn_SIMPOL_phase_transfer partmclib)
+add_executable(test_rxn_troe test/unit_rxn_data/test_rxn_troe.F90)
+target_link_libraries(test_rxn_troe partmclib)
+add_executable(test_rxn_wet_deposition test/unit_rxn_data/test_rxn_wet_deposition.F90)
+target_link_libraries(test_rxn_wet_deposition partmclib)
+add_executable(test_rxn_ZSR_aerosol_water test/unit_rxn_data/test_rxn_ZSR_aerosol_water.F90)
+target_link_libraries(test_rxn_ZSR_aerosol_water partmclib)
 
-    ######################################################################
-    # test_property
+######################################################################
+# test_sub_model_data
 
-    add_executable(unit_test_property test/unit_property/test_property.F90)
+add_executable(test_sub_model_UNIFAC test/unit_sub_model_data/test_sub_model_UNIFAC.F90)
+target_link_libraries(test_sub_model_UNIFAC partmclib)
 
-    target_link_libraries(unit_test_property partmclib)
+######################################################################
+# test_phlex_core
 
-    ######################################################################
-    # test_chem_spec_data
+add_executable(unit_test_phlex_core test/unit_phlex_core/test_phlex_core.F90)
 
-    add_executable(unit_test_chem_spec_data test/unit_chem_spec_data/test_chem_spec_data.F90)
+target_link_libraries(unit_test_phlex_core partmclib)
 
-    target_link_libraries(unit_test_chem_spec_data partmclib)
+######################################################################
+# test_aero_phase_data
 
-    ######################################################################
-    # test_rxn_data
+add_executable(unit_test_aero_phase_data test/unit_aero_phase_data/test_aero_phase_data.F90)
 
-    add_executable(test_rxn_aqueous_equilibrium test/unit_rxn_data/test_rxn_aqueous_equilibrium.F90)
-    target_link_libraries(test_rxn_aqueous_equilibrium partmclib)
-    add_executable(test_rxn_arrhenius test/unit_rxn_data/test_rxn_arrhenius.F90)
-    target_link_libraries(test_rxn_arrhenius partmclib)
-    add_executable(test_rxn_CMAQ_H2O2 test/unit_rxn_data/test_rxn_CMAQ_H2O2.F90)
-    target_link_libraries(test_rxn_CMAQ_H2O2 partmclib)
-    add_executable(test_rxn_CMAQ_OH_HNO3 test/unit_rxn_data/test_rxn_CMAQ_OH_HNO3.F90)
-    target_link_libraries(test_rxn_CMAQ_OH_HNO3 partmclib)
-    add_executable(test_rxn_condensed_phase_arrhenius test/unit_rxn_data/test_rxn_condensed_phase_arrhenius.F90)
-    target_link_libraries(test_rxn_condensed_phase_arrhenius partmclib)
-    add_executable(test_rxn_emission test/unit_rxn_data/test_rxn_emission.F90)
-    target_link_libraries(test_rxn_emission partmclib)
-    add_executable(test_rxn_first_order_loss test/unit_rxn_data/test_rxn_first_order_loss.F90)
-    target_link_libraries(test_rxn_first_order_loss partmclib)
-    add_executable(test_rxn_HL_phase_transfer test/unit_rxn_data/test_rxn_HL_phase_transfer.F90)
-    target_link_libraries(test_rxn_HL_phase_transfer partmclib)
-    add_executable(test_rxn_PDFiTE_activity test/unit_rxn_data/test_rxn_PDFiTE_activity.F90)
-    target_link_libraries(test_rxn_PDFiTE_activity partmclib)
-    add_executable(test_rxn_photolysis test/unit_rxn_data/test_rxn_photolysis.F90)
-    target_link_libraries(test_rxn_photolysis partmclib)
-    add_executable(test_rxn_SIMPOL_phase_transfer test/unit_rxn_data/test_rxn_SIMPOL_phase_transfer.F90)
-    target_link_libraries(test_rxn_SIMPOL_phase_transfer partmclib)
-    add_executable(test_rxn_troe test/unit_rxn_data/test_rxn_troe.F90)
-    target_link_libraries(test_rxn_troe partmclib)
-    add_executable(test_rxn_wet_deposition test/unit_rxn_data/test_rxn_wet_deposition.F90)
-    target_link_libraries(test_rxn_wet_deposition partmclib)
-    add_executable(test_rxn_ZSR_aerosol_water test/unit_rxn_data/test_rxn_ZSR_aerosol_water.F90)
-    target_link_libraries(test_rxn_ZSR_aerosol_water partmclib)
+target_link_libraries(unit_test_aero_phase_data partmclib)
 
-    ######################################################################
-    # test_sub_model_data
+######################################################################
+# test_aero_rep_single_particle
 
-    add_executable(test_sub_model_UNIFAC test/unit_sub_model_data/test_sub_model_UNIFAC.F90)
-    target_link_libraries(test_sub_model_UNIFAC partmclib)
+add_executable(unit_test_aero_rep_single_particle
+    test/unit_aero_rep_data/test_aero_rep_single_particle.F90)
 
-    ######################################################################
-    # test_phlex_core
+target_link_libraries(unit_test_aero_rep_single_particle partmclib)
 
-    add_executable(unit_test_phlex_core test/unit_phlex_core/test_phlex_core.F90)
+######################################################################
+# test_aero_rep_modal_binned_mass
 
-    target_link_libraries(unit_test_phlex_core partmclib)
+add_executable(unit_test_aero_rep_modal_binned_mass
+    test/unit_aero_rep_data/test_aero_rep_modal_binned_mass.F90)
 
-    ######################################################################
-    # test_aero_phase_data
+target_link_libraries(unit_test_aero_rep_modal_binned_mass partmclib)
 
-    add_executable(unit_test_aero_phase_data test/unit_aero_phase_data/test_aero_phase_data.F90)
+######################################################################
+# test_chem_mech_solver
 
-    target_link_libraries(unit_test_aero_phase_data partmclib)
+add_executable(test_chem_mech_solver test/chemistry/test_chem_mech_solver.F90)
 
-    ######################################################################
-    # test_aero_rep_single_particle
+target_link_libraries(test_chem_mech_solver partmclib)
 
-    add_executable(unit_test_aero_rep_single_particle
-        test/unit_aero_rep_data/test_aero_rep_single_particle.F90)
+######################################################################
+# test_bidisperse_ode
 
-    target_link_libraries(unit_test_aero_rep_single_particle partmclib)
+add_executable(test_bidisperse_ode
+  test/bidisperse/test_bidisperse_ode.F90)
 
-    ######################################################################
-    # test_aero_rep_modal_binned_mass
+target_link_libraries(test_bidisperse_ode partmclib)
 
-    add_executable(unit_test_aero_rep_modal_binned_mass
-        test/unit_aero_rep_data/test_aero_rep_modal_binned_mass.F90)
+######################################################################
+# test_bidisperse_extract
 
-    target_link_libraries(unit_test_aero_rep_modal_binned_mass partmclib)
+add_executable(test_bidisperse_extract
+  test/bidisperse/test_bidisperse_extract.F90)
 
-    ######################################################################
-    # test_chem_mech_solver
+target_link_libraries(test_bidisperse_extract ${NETCDF_LIBS})
 
-    add_executable(test_chem_mech_solver test/chemistry/test_chem_mech_solver.F90)
+######################################################################
+# test_nucleate_ode
 
-    target_link_libraries(test_chem_mech_solver partmclib)
+add_executable(test_nucleate_ode test/nucleate/test_nucleate_ode.F90
+  src/util.F90 src/constants.F90 ${C_SORT_SRC})
 
-    ######################################################################
-    # test_bidisperse_ode
+######################################################################
+# test_poisson_sample
 
-    add_executable(test_bidisperse_ode
-      test/bidisperse/test_bidisperse_ode.F90)
+add_executable(test_poisson_sample test/rand/test_poisson_sample.F90
+  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 ${GSL_SRC}
+  ${C_SORT_SRC})
 
-    target_link_libraries(test_bidisperse_ode partmclib)
+target_link_libraries(test_poisson_sample ${GSL_LIBS})
 
-    ######################################################################
-    # test_bidisperse_extract
+######################################################################
+# test_binomial_sample
 
-    add_executable(test_bidisperse_extract
-      test/bidisperse/test_bidisperse_extract.F90)
+add_executable(test_binomial_sample test/rand/test_binomial_sample.F90
+  src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 ${GSL_SRC}
+  ${C_SORT_SRC})
 
-    target_link_libraries(test_bidisperse_extract ${NETCDF_LIBS})
+target_link_libraries(test_binomial_sample ${GSL_LIBS})
 
-    ######################################################################
-    # test_nucleate_ode
+######################################################################
+# test_fractal_self_preserve
 
-    add_executable(test_nucleate_ode test/nucleate/test_nucleate_ode.F90
-      src/util.F90 src/constants.F90 ${C_SORT_SRC})
+add_executable(test_fractal_self_preserve
+  test/fractal/test_fractal_self_preserve.F90
+  src/getopt.F90)
 
-    ######################################################################
-    # test_poisson_sample
+target_link_libraries(test_fractal_self_preserve partmclib)
 
-    add_executable(test_poisson_sample test/rand/test_poisson_sample.F90
-      src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 ${GSL_SRC}
-      ${C_SORT_SRC})
+######################################################################
+# test_fractal_dimless_time
 
-    target_link_libraries(test_poisson_sample ${GSL_LIBS})
+add_executable(test_fractal_dimless_time
+  test/fractal/test_fractal_dimless_time.F90
+  src/getopt.F90)
 
-    ######################################################################
-    # test_binomial_sample
+target_link_libraries(test_fractal_dimless_time partmclib)
 
-    add_executable(test_binomial_sample test/rand/test_binomial_sample.F90
-      src/util.F90 src/rand.F90 src/constants.F90 src/mpi.F90 ${GSL_SRC}
-      ${C_SORT_SRC})
+######################################################################
+# test_fractal_radii_conversion
 
-    target_link_libraries(test_binomial_sample ${GSL_LIBS})
+add_executable(test_fractal_radii_conversion
+  test/fractal/test_fractal_radii_conversion.F90)
 
-    ######################################################################
-    # test_fractal_self_preserve
+target_link_libraries(test_fractal_radii_conversion partmclib)
 
-    add_executable(test_fractal_self_preserve
-      test/fractal/test_fractal_self_preserve.F90
-      src/getopt.F90)
+######################################################################
+# bin_average_comp
 
-    target_link_libraries(test_fractal_self_preserve partmclib)
+add_executable(bin_average_comp src/bin_average_comp.F90)
 
-    ######################################################################
-    # test_fractal_dimless_time
+target_link_libraries(bin_average_comp partmclib)
 
-    add_executable(test_fractal_dimless_time
-      test/fractal/test_fractal_dimless_time.F90
-      src/getopt.F90)
+######################################################################
+# bin_average_size
 
-    target_link_libraries(test_fractal_dimless_time partmclib)
+add_executable(bin_average_size src/bin_average_size.F90)
 
-    ######################################################################
-    # test_fractal_radii_conversion
+target_link_libraries(bin_average_size partmclib)
 
-    add_executable(test_fractal_radii_conversion
-      test/fractal/test_fractal_radii_conversion.F90)
+######################################################################
+# extract_aero_*
 
-    target_link_libraries(test_fractal_radii_conversion partmclib)
+add_executable(extract_aero_particles
+  src/extract_aero_particles.F90 src/getopt.F90)
+target_link_libraries(extract_aero_particles partmclib)
 
-    ######################################################################
-    # bin_average_comp
+add_executable(extract_aero_size src/extract_aero_size.F90
+  src/getopt.F90)
+target_link_libraries(extract_aero_size partmclib)
 
-    add_executable(bin_average_comp src/bin_average_comp.F90)
+add_executable(extract_aero_time src/extract_aero_time.F90
+  src/getopt.F90)
+target_link_libraries(extract_aero_time partmclib)
 
-    target_link_libraries(bin_average_comp partmclib)
+add_executable(extract_gas src/extract_gas.F90 src/getopt.F90)
+target_link_libraries(extract_gas partmclib)
 
-    ######################################################################
-    # bin_average_size
+add_executable(extract_env src/extract_env.F90 src/getopt.F90)
+target_link_libraries(extract_env partmclib)
 
-    add_executable(bin_average_size src/bin_average_size.F90)
+######################################################################
+# extract_sectional_*
 
-    target_link_libraries(bin_average_size partmclib)
+add_executable(extract_sectional_aero_size
+  src/extract_sectional_aero_size.F90 src/getopt.F90)
+target_link_libraries(extract_sectional_aero_size partmclib)
 
-    ######################################################################
-    # extract_aero_*
+add_executable(extract_sectional_aero_time
+  src/extract_sectional_aero_time.F90 src/getopt.F90)
+target_link_libraries(extract_sectional_aero_time partmclib)
 
-    add_executable(extract_aero_particles
-      src/extract_aero_particles.F90 src/getopt.F90)
-    target_link_libraries(extract_aero_particles partmclib)
+######################################################################
+# numeric_*
 
-    add_executable(extract_aero_size src/extract_aero_size.F90
-      src/getopt.F90)
-    target_link_libraries(extract_aero_size partmclib)
+add_executable(numeric_diff src/numeric_diff.F90 src/getopt.F90)
+target_link_libraries(numeric_diff partmclib)
 
-    add_executable(extract_aero_time src/extract_aero_time.F90
-      src/getopt.F90)
-    target_link_libraries(extract_aero_time partmclib)
+add_executable(numeric_average src/numeric_average.F90)
 
-    add_executable(extract_gas src/extract_gas.F90 src/getopt.F90)
-    target_link_libraries(extract_gas partmclib)
+######################################################################
+# scenarios/1_urban_plume/urban_plum_process
 
-    add_executable(extract_env src/extract_env.F90 src/getopt.F90)
-    target_link_libraries(extract_env partmclib)
+add_executable(urban_plume_process
+  scenarios/1_urban_plume/urban_plume_process.F90)
+target_link_libraries(urban_plume_process partmclib)
 
-    ######################################################################
-    # extract_sectional_*
+######################################################################
+# scenarios/4_chamber/chamber_process
 
-    add_executable(extract_sectional_aero_size
-      src/extract_sectional_aero_size.F90 src/getopt.F90)
-    target_link_libraries(extract_sectional_aero_size partmclib)
+add_executable(chamber_process
+  scenarios/4_chamber/chamber_process.F90)
+target_link_libraries(chamber_process partmclib)
 
-    add_executable(extract_sectional_aero_time
-      src/extract_sectional_aero_time.F90 src/getopt.F90)
-    target_link_libraries(extract_sectional_aero_time partmclib)
-
-    ######################################################################
-    # numeric_*
-
-    add_executable(numeric_diff src/numeric_diff.F90 src/getopt.F90)
-    target_link_libraries(numeric_diff partmclib)
-
-    add_executable(numeric_average src/numeric_average.F90)
-
-    ######################################################################
-    # scenarios/1_urban_plume/urban_plum_process
-
-    add_executable(urban_plume_process
-      scenarios/1_urban_plume/urban_plume_process.F90)
-    target_link_libraries(urban_plume_process partmclib)
-
-    ######################################################################
-    # scenarios/4_chamber/chamber_process
-
-    add_executable(chamber_process
-      scenarios/4_chamber/chamber_process.F90)
-    target_link_libraries(chamber_process partmclib)
-
-    ######################################################################
-endif()
-
-#TODO: Change add_executable for add_library to fix a bug with make -j 4
+######################################################################

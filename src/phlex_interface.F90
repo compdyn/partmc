@@ -44,6 +44,7 @@ contains
 
     integer(kind=i_kind) :: i_part
     real(kind=dp) :: num_conc
+    integer :: phlex_state_size
 
     ! Set the phlex chem  gas-phase species
     call gas_state%set_phlex_conc(phlex_state)
@@ -53,20 +54,20 @@ contains
 
     ! Do phase-transfer and aerosol-phase chemistry for each particle
     ! in the particle array
-    do i_part = 1, aero_state%n_part()
+    do i_part = 1,aero_state%n_part()
       associate (part => aero_state%apa%particle(i_part))
 
       ! Set the Phlex chem aerosol state
       num_conc = aero_weight_array_num_conc(aero_state%awa, part, aero_data)
       call pmc_phlex_interface_set_phlex_conc(aero_data, part, phlex_state, &
-              num_conc)
+           num_conc)
 
       ! Solve the phase-transfer and aerosol-phase chemistry for this particle
       call phlex_core%solve(phlex_state, del_t, AERO_RXN)
 
       ! Update the PartMC aerosol state
       call pmc_phlex_interface_get_phlex_conc(aero_data, part, phlex_state, &
-              num_conc)
+           num_conc)
 
       end associate
     end do

@@ -262,7 +262,7 @@ interface
     !> Aerosol representation data
     class(aero_rep_data_t), intent(in) :: this
     !> Unique name of the species  in this aerosol representation
-    character(len=:), allocatable :: unique_name
+    character(len=*), intent(in) :: unique_name
 
   end function spec_name
 

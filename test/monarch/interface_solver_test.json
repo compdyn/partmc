@@ -1,0 +1,51 @@
+{
+  "notes" : "Map for solver test",
+  "monarch-data" :
+  [
+    {
+      "name" : "Solver test species map",
+      "type" : "SPECIES_MAP",
+      "gas-phase water" : "H2O",
+      "gas-phase species" : {
+        "H2O"   : { "monarch id" : 1 },
+        "H2SO4" : { "monarch id" : 10 },
+        "HNO3"  : { "monarch id" : 14 },
+        "NH3"   : { "monarch id" : 11 }
+      },
+      "aerosol-phase species" : {
+        "the mode.aq inorg.H2O_aq"   : { "monarch id" : 2 , "aerosol representation name" : "one mode" },
+        "the mode.aq inorg.H_p"      : { "monarch id" : 3 , "aerosol representation name" : "one mode" },
+        "the mode.aq inorg.OH_m"     : { "monarch id" : 4 , "aerosol representation name" : "one mode" },
+        "the mode.aq inorg.H2SO4_aq" : { "monarch id" : 5 , "aerosol representation name" : "one mode" },
+        "the mode.aq inorg.HSO4_m"   : { "monarch id" : 6 , "aerosol representation name" : "one mode" },
+        "the mode.aq inorg.SO4_mm"   : { "monarch id" : 7 , "aerosol representation name" : "one mode" },
+        "the mode.aq inorg.NH3_aq"   : { "monarch id" : 8 , "aerosol representation name" : "one mode" },
+        "the mode.aq inorg.NH4_p"    : { "monarch id" : 9 , "aerosol representation name" : "one mode" },
+        "the mode.aq inorg.HNO3_aq"  : { "monarch id" : 12, "aerosol representation name" : "one mode" },
+        "the mode.aq inorg.NO3_m"    : { "monarch id" : 13, "aerosol representation name" : "one mode" }
+      }
+    },
+    {
+      "name" : "Initial concentrations for simple mechanism",
+      "type" : "INIT_CONC",
+      "gas-phase species" : {
+        "H2O"   : { "init conc" : 1.0E3 },
+        "H2SO4" : { "init conc" : 0.1 },
+        "HNO3"  : { "init conc" : 0.2 },
+        "NH3"   : { "init conc" : 1.0 }
+      },
+      "aerosol-phase species" : {
+        "the mode.aq inorg.H2O_aq"   : { "init conc" : 100.0, "aerosol representation name" : "one mode" },
+        "the mode.aq inorg.H_p"      : { "init conc" : 0.0, "aerosol representation name" : "one mode" },
+        "the mode.aq inorg.OH_m"     : { "init conc" : 0.0, "aerosol representation name" : "one mode" },
+        "the mode.aq inorg.H2SO4_aq" : { "init conc" : 0.0, "aerosol representation name" : "one mode" },
+        "the mode.aq inorg.HSO4_m"   : { "init conc" : 0.0001, "aerosol representation name" : "one mode" },
+        "the mode.aq inorg.SO4_mm"   : { "init conc" : 0.0, "aerosol representation name" : "one mode" },
+        "the mode.aq inorg.NH3_aq"   : { "init conc" : 0.0, "aerosol representation name" : "one mode" },
+        "the mode.aq inorg.NH4_p"    : { "init conc" : 0.0, "aerosol representation name" : "one mode" },
+        "the mode.aq inorg.HNO3_aq"  : { "init conc" : 0.0, "aerosol representation name" : "one mode" },
+        "the mode.aq inorg.NO3_m"    : { "init conc" : 0.0, "aerosol representation name" : "one mode" }
+      }
+    }
+  ]
+}

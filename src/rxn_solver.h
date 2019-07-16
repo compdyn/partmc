@@ -19,8 +19,6 @@ void * rxn_get_used_jac_elem(ModelData *model_data, bool **jac_struct);
 void rxn_update_ids(ModelData *model_data, int *deriv_ids, int **jac_ids);
 void rxn_update_env_state(ModelData *model_data, double *env);
 void rxn_pre_calc(ModelData *model_data, double time_step);
-void rxn_reset_state_adjustments(ModelData *model_data);
-void rxn_adjust_state(ModelData *model_data);
 void rxn_print_data(void *solver_data);
 #ifdef PMC_USE_SUNDIALS
 void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, double time_step);

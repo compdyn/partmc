@@ -64,7 +64,7 @@ contains
 
     load_phlex_core_test = .false.
 
-    input_file_path = 'test_run/unit_phlex_core/test_mech_config.json'
+    input_file_path = "test_run/unit_phlex_core/test_mech_config.json"
 
     phlex_core => phlex_core_t(input_file_path)
 

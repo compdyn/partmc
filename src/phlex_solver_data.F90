@@ -44,16 +44,19 @@ module pmc_phlex_solver_data
   !> Interface to c ODE solver functions
   interface
     !> Get a new solver
-    type(c_ptr) function solver_new(n_state_var, var_type, &
+    type(c_ptr) function solver_new(n_state_var, num_cells, var_type, &
                     n_rxn, n_rxn_int_param, n_rxn_float_param, &
                     n_aero_phase, n_aero_phase_int_param, &
                     n_aero_phase_float_param, n_aero_rep, &
                     n_aero_rep_int_param, n_aero_rep_float_param, &
                     n_sub_model, n_sub_model_int_param, &
-                    n_sub_model_float_param, num_cells) bind (c)
+                    n_sub_model_float_param) bind (c)
       use iso_c_binding
-      !> Number of variables on the state array (including const, PSSA, etc.)
+      !> Number of variables on the state array per grid cell
+      !! (including const, PSSA, etc.)
       integer(kind=c_int), value :: n_state_var
+      !> Number of cells to compute
+      integer(kind=c_int), value :: num_cells
       !> Pointer to array of state variable types (solver, constant, PSSA)
       type(c_ptr), value :: var_type
       !> Number of reactions to solve
@@ -81,8 +84,6 @@ module pmc_phlex_solver_data
       integer(kind=c_int), value :: n_sub_model_int_param
       !> Total number of floating-point parameters for all sub models
       integer(kind=c_int), value :: n_sub_model_float_param
-      !> Number of cells to compute
-      integer(kind=c_int), value :: num_cells
     end function solver_new
 
     !> Solver initialization
@@ -100,6 +101,28 @@ module pmc_phlex_solver_data
       !> Maximum number of convergence failures
       integer(kind=c_int), value :: max_conv_fails
     end subroutine solver_initialize
+
+#ifdef PMC_DEBUG
+    !> Set the debug output flag for the solver
+    integer(kind=c_int) function solver_set_debug_out(solver_data, &
+                    do_output) bind (c)
+      use iso_c_binding
+      !> Pointer to a SolverData object
+      type(c_ptr), value :: solver_data
+      !> Flag indicating whether to output debugging information
+      integer(kind=c_int), value :: do_output
+    end function solver_set_debug_out
+
+    !> Set the Jacobian evaluation flag for the solver
+    integer(kind=c_int) function solver_set_eval_jac(solver_data, &
+                    eval_Jac) bind (c)
+      use iso_c_binding
+      !> Pointer to a SolverData object
+      type(c_ptr), value :: solver_data
+      !> Flag indicating whether to evaluate the Jacobian during solving
+      integer(kind=c_int), value :: eval_Jac
+    end function solver_set_eval_jac
+#endif
 
     !> Run the solver
     integer(kind=c_int) function solver_run(solver_data, state, env, &
@@ -121,7 +144,8 @@ module pmc_phlex_solver_data
     subroutine solver_get_statistics( solver_data, num_steps, RHS_evals, &
                     LS_setups, error_test_fails, NLS_iters, &
                     NLS_convergence_fails, DLS_Jac_evals, DLS_RHS_evals, &
-                    last_time_step__s, next_time_step__s ) bind (c)
+                    last_time_step__s, next_time_step__s, Jac_eval_fails &
+                    ) bind (c)
       use iso_c_binding
       !> Pointer to the solver data
       type(c_ptr), value :: solver_data
@@ -145,6 +169,8 @@ module pmc_phlex_solver_data
       type(c_ptr), value :: last_time_step__s
       !> Next time step [s]
       type(c_ptr), value :: next_time_step__s
+      !> Number of Jacobian evaluation failures
+      type(c_ptr), value :: Jac_eval_fails
     end subroutine solver_get_statistics
 
     !> Add condensed reaction data to the solver data block
@@ -550,6 +576,7 @@ contains
     ! Get a new solver object
     this%solver_c_ptr = solver_new( &
             int(size(var_type_c), kind=c_int), & ! Size of the state variable
+            num_cells,                         & ! # of cells computed simultaneosly
             c_loc(var_type_c),                 & ! Variable types
             n_rxn,                             & ! # of reactions
             n_rxn_int_param,                   & ! # of rxn data int params
@@ -562,8 +589,7 @@ contains
             n_aero_rep_float_param,            & ! # of aero rep real params
             n_sub_model,                       & ! # of sub models
             n_sub_model_int_param,             & ! # of sub model int params
-            n_sub_model_float_param,           & ! # of sub model real params
-            num_cells                          & ! # of cells computed simultaneosly
+            n_sub_model_float_param            & ! # of sub model real params
             )
 
     ! Add all the condensed reaction data to the solver data block for
@@ -788,9 +814,38 @@ contains
     !> End time (s)
     real(kind=dp), intent(in) :: t_final
     !> Solver statistics
-    type(solver_stats_t), intent(out), optional, target :: solver_stats
+    type(solver_stats_t), intent(inout), optional, target :: solver_stats
 
     integer(kind=c_int) :: solver_status
+
+#ifdef PMC_DEBUG
+    if (present(solver_stats)) then
+      ! Update the debugging output flag in the solver data
+      if (solver_stats%debug_out) then
+        solver_status = solver_set_debug_out( &
+            this%solver_c_ptr,              & ! Pointer to the solver data
+            int(1, kind=c_int)              & ! Debug flag
+            )
+      else
+        solver_status = solver_set_debug_out( &
+            this%solver_c_ptr,              & ! Pointer to the solver data
+            int(0, kind=c_int)              & ! Debug flag
+            )
+      end if
+      ! Update Jacobian evaluation flag in the solver data
+      if (solver_stats%eval_Jac) then
+        solver_stats = solver_set_eval_jac( &
+            this%solver_c_ptr,              & ! Pointer to the solver data
+            int(1, kind=c_int)              & ! Jac eval flag
+            )
+      else
+        solver_stats = solver_set_eval_jac( &
+            this%solver_c_ptr,              & ! Pointer to the solver data
+            int(0, kind=c_int)              & ! Jac eval flag
+            )
+      end if
+    end if
+#endif
 
     ! Run the solver
     solver_status = solver_run( &
@@ -808,7 +863,7 @@ contains
       solver_stats%start_time__s = t_initial
       solver_stats%end_time__s   = t_final
     else
-      call warn_assert_msg(997420005, solver_status.eq.0, "Solver failed");
+      call warn_assert_msg(997420005, solver_status.eq.0, "Solver failed")
     end if
 
   end subroutine solve
@@ -821,7 +876,7 @@ contains
     !> Solver data
     class(phlex_solver_data_t), intent(inout) :: this
     !> Solver statistics
-    type(solver_stats_t), intent(out), target :: solver_stats
+    type(solver_stats_t), intent(inout), target :: solver_stats
 
     call solver_get_statistics( &
             this%solver_c_ptr,                             & ! Solver data
@@ -834,7 +889,8 @@ contains
             c_loc( solver_stats%DLS_Jac_evals         ),   & ! Jacobian evals
             c_loc( solver_stats%DLS_RHS_evals         ),   & ! DLS Right-hand side evals
             c_loc( solver_stats%last_time_step__s     ),   & ! Last time step [s]
-            c_loc( solver_stats%next_time_step__s     ) )    ! Next time step [s]
+            c_loc( solver_stats%next_time_step__s     ),   & ! Next time step [s]
+            c_loc( solver_stats%Jac_eval_fails        ) )    ! Number of Jac eval fails
 
   end subroutine get_solver_stats
 

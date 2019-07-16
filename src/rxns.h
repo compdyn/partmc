@@ -179,10 +179,6 @@ void * rxn_HL_phase_transfer_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_HL_phase_transfer_update_env_state(double *rate_constants,
           double *env_data, void *rxn_data);
-void * rxn_HL_phase_transfer_pre_calc(
-          ModelData *model_data, void *rxn_data, double time_step);
-void * rxn_HL_phase_transfer_scale_adj(
-          ModelData *model_data, void *rxn_data);
 void * rxn_HL_phase_transfer_skip(
           void *rxn_data);
 void * rxn_HL_phase_transfer_print(
@@ -250,10 +246,6 @@ void * rxn_SIMPOL_phase_transfer_update_ids(
           ModelData *model_data, int *deriv_ids, int **jac_ids, void *rxn_data);
 void * rxn_SIMPOL_phase_transfer_update_env_state(double *rate_constants, double *env_data,
           void *rxn_data);
-void * rxn_SIMPOL_phase_transfer_pre_calc(
-          ModelData *model_data, void *rxn_data, double time_step);
-void * rxn_SIMPOL_phase_transfer_scale_adj(
-          ModelData *model_data, void *rxn_data);
 void * rxn_SIMPOL_phase_transfer_skip(
           void *rxn_data);
 void * rxn_SIMPOL_phase_transfer_print(

@@ -1,0 +1,302 @@
+{
+  "pmc-data" : [
+    {
+      "name" : "H2O",
+      "type" : "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.01801528
+    },
+    {
+      "name" : "H2O_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "tracer type" : "CONSTANT",
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.01801528
+    },
+    {
+      "name" : "H2SO4",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" : 8.586232e6,
+      "HLC exp factor [K]" : 0.0,
+      "diffusion coeff [m2 s-1]" : 1.30e-5,
+      "N star" : 1.83,
+      "molecular weight [kg mol-1]" : 0.0981
+    },
+    {
+      "name" : "HNO3",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" : 2.0725389,
+      "HLC exp factor [K]" : 8700.0,
+      "diffusion coeff [m2 s-1]" : 1.32e-5,
+      "N star" : 1.94,
+      "molecular weight [kg mol-1]" : 0.06301
+    },
+    {
+      "name" : "NH3",
+      "type" : "CHEM_SPEC",
+      "HLC(298K) [M Pa-1]" : 5.990624e-4,
+      "HLC exp factor [K]" : 3920.0,
+      "diffusion coeff [m2 s-1]" : 2.3e-5,
+      "N star" : 1.92,
+      "molecular weight [kg mol-1]" : 0.017031
+    },
+    {
+      "name" : "H_p",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "charge" : 1,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.001008
+    },
+    {
+      "name" : "OH_m",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "charge" : -1,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.017008
+    },
+    {
+      "name" : "H2SO4_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.098079
+    },
+    {
+      "name" : "HSO4_m",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "charge" : -1,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.097069
+    },
+    {
+      "name" : "SO4_mm",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "charge" : -2,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.096063
+    },
+    {
+      "name" : "HNO3_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.0630129
+    },
+    {
+      "name" : "NO3_m",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "charge" : -1,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.0620049
+    },
+    {
+      "name" : "NH3_aq",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.017031
+    },
+    {
+      "name" : "NH4_p",
+      "type" : "CHEM_SPEC",
+      "phase" : "AEROSOL",
+      "charge" : 1,
+      "density [kg m-3]" : 1000.0,
+      "molecular weight [kg mol-1]" : 0.018039
+    },
+    {
+      "name" : "aq inorg",
+      "type" : "AERO_PHASE",
+      "species" : [ "H2O_aq", "H_p", "OH_m", "H2SO4_aq", "HSO4_m", "SO4_mm", "HNO3_aq", "NO3_m", "NH3_aq", "NH4_p" ]
+    },
+    {
+      "name" : "one mode",
+      "type" : "AERO_REP_MODAL_BINNED_MASS",
+      "modes/bins" :
+      {
+        "the mode" :
+        {
+          "type" : "MODAL",
+          "phases" : [ "aq inorg" ],
+          "shape" : "LOG_NORMAL",
+          "geometric mean diameter [m]" : 2.12e-8,
+          "geometric standard deviation" : 2.24
+        }
+      }
+    },
+    {
+      "name" : "MONARCH mod37",
+      "type" : "MECHANISM",
+      "reactions" : [
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "H2SO4",
+          "aerosol phase" : "aq inorg",
+          "aerosol-phase species" : "H2SO4_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+         "type" : "HL_PHASE_TRANSFER",
+         "gas-phase species" : "HNO3",
+         "aerosol phase" : "aq inorg",
+          "aerosol-phase species" : "HNO3_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "HL_PHASE_TRANSFER",
+          "gas-phase species" : "NH3",
+          "aerosol phase" : "aq inorg",
+          "aerosol-phase species" : "NH3_aq",
+          "aerosol-phase water" : "H2O_aq"
+        },
+        {
+          "type" : "AQUEOUS_EQUILIBRIUM",
+          "aerosol phase" : "aq inorg",
+          "aerosol-phase water" : "H2O_aq",
+          "A" : 1.8e-16,
+          "C" : -6800.0,
+          "k_reverse" : 1.3e11,
+          "reactants" : {
+            "H2O_aq" : {}
+          },
+          "products" : {
+            "H_p" : {},
+            "OH_m" : {}
+          }
+        },
+        {
+          "type" : "AQUEOUS_EQUILIBRIUM",
+          "aerosol phase" : "aq inorg",
+          "aerosol-phase water" : "H2O_aq",
+          "A" : 1.02e-2,
+          "C" : 2700.0,
+          "k_reverse" : 1.0e11,
+          "ion pair IDEAL" : "H2-SO4",
+          "reactants" : {
+            "HSO4_m" : {}
+          },
+          "products": {
+            "SO4_mm" : {},
+            "H_p" : {}
+          }
+        },
+        {
+          "type" : "AQUEOUS_EQUILIBRIUM",
+          "aerosol phase" : "aq inorg",
+          "aerosol-phase water" : "H2O_aq",
+          "A" : 1000.0,
+          "k_reverse" : 5.0e10,
+          "ion pair IDEAL" : "H-HSO4",
+          "reactants" : {
+            "H2SO4_aq" : {}
+          },
+          "products" : {
+            "HSO4_m" : {},
+            "H_p" : {}
+          }
+        },
+        {
+          "type" : "AQUEOUS_EQUILIBRIUM",
+          "aerosol phase" : "aq inorg",
+          "aerosol-phase water" : "H2O_aq",
+          "A" : 22.0,
+          "C" : 1800.0,
+          "k_reverse" : 5.0e10,
+          "ion pair IDEAL" : "H-NO3",
+          "reactants" : {
+            "HNO3_aq" : {}
+          },
+          "products" : {
+            "NO3_m" : {},
+            "H_p" : {}
+          }
+        },
+        {
+          "type" : "AQUEOUS_EQUILIBRIUM",
+          "aerosol phase" : "aq inorg",
+          "aerosol-phase water" : "H2O_aq",
+          "A" : 3.17e-7,
+          "C" : -560.0,
+          "k_reverse" : 3.4e10,
+          "ion pair IDEAL" : "NH4/H",
+          "reactants" : {
+            "NH3_aq" : {},
+            "H2O_aq" : {}
+          },
+          "products" : {
+            "NH4_p" : {},
+            "OH_m" : {}
+          }
+        },
+        {
+          "type" : "ZSR_AEROSOL_WATER",
+          "notes" : [ "Y_j parameters taken from Jacobson et al. (1996) Table 2" ],
+          "aerosol phase" : "aq inorg",
+          "gas-phase water" : "H2O",
+          "aerosol-phase water" : "H2O_aq",
+          "ion pairs" : {
+            "H-HSO4" : {
+              "type" : "JACOBSON",
+              "ions" : {
+                "H_p" : {},
+                "HSO4_m" : {}
+              },
+              "Y_j" : [5.611895, -1.387446e1, 1.750682e1, 7.138146e1, -3.109173e2, 4.662288e2, -3.128612e2, 7.767097e1],
+              "low RH" : 0.0
+            },
+            "H2-SO4" : {
+              "type" : "JACOBSON",
+              "ions" : {
+                "H_p" : { "qty" : 2 },
+                "SO4_mm" : {}
+              },
+              "Y_j" : [5.611895, -1.387446e1, 1.750682e1, 7.138146e1, -3.109173e2, 4.662288e2, -3.128612e2, 7.767097e1],
+              "low RH" : 0.0
+            },
+            "H-NO3" : {
+              "type" : "JACOBSON",
+              "ions" : {
+                "H_p" : {},
+                "NO3_m" : {}
+              },
+              "Y_j" : [4.852977, -6.621314, 3.390133e1, -1.985191e2, 6.281150e2, -1.038494e3, 8.498917e2, -2.729090e2],
+              "low RH" : 0.0
+            },
+            "NH4-HSO4" : {
+              "type" : "JACOBSON",
+              "ions" : {
+                "NH4_p" : {},
+                "HSO4_m" : {}
+              },
+              "Y_j" : [5.515580, 3.588744, -6.363443e1, 3.687630e2, -1.023972e3, 1.394436e3, -9.168213e2, 2.328726e2],
+              "low RH" : 0.0
+            },
+            "(NH4)2-SO4" : {
+              "type" : "JACOBSON",
+              "ions" : {
+                "NH4_p" : { "qty" : 2 },
+                "SO4_mm" : {}
+              },
+              "Y_j" : [4.363511e2, -4.947645e3, 2.399693e4, -6.364664e4, 9.952891e4, -9.179112e4, 4.626748e4, -9.844195e3],
+              "low RH" : 0.47
+            },
+            "NH4-NO3" : {
+              "type" : "JACOBSON",
+              "ions" : {
+                "NH4_p" : {},
+                "NO3_m" : {}
+              },
+              "Y_j" : [1.235157e4, -1.097966e5, 4.173924e5, -8.792165, 1.108433e6, -8.364973e5, 3.499527e5, -6.261910e4],
+              "low RH" : 0.62
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

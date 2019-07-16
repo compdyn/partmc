@@ -28,9 +28,14 @@
 #define ZERO 0.0
 #define ONE 1.0
 #define HALF 0.5
+#define SMALL 1.0e-30
+#define TINY 1.0e-60
 #ifndef M_PI
     #define M_PI 3.14159265358979323846
 #endif
+
+/* Number of environmental parameters */
+#define PMC_NUM_ENV_PARAM_ 2 // !!! Must match the value in phlex_state.f90 !!!
 
 /* boolean definition */
 
@@ -47,9 +52,11 @@ typedef enum {false, true} bool;
 
 /* Model data structure */
 typedef struct {
-  int n_state_var;	// number of state variables (>=NV_LENGTH_S(y))
-  int n_dep_var;    // number of solver variables (==NV_LENGTH_S(y)) //ttodo: maybe not necessary
-  int num_cells;        // Number of cells to compute simultaneously
+  int n_state_var;      // number of state variablesper grid cell
+  int n_dep_var;        // number of solver variables per grid cell
+  int n_jac_elem;       // number of potentially non-zero Jacobian elements
+                        // per grid cell
+  int n_cells;          // Number of cells to compute simultaneously
   double *abs_tol;      // pointer to array of state variable absolute
                         // integration tolerances
   int *var_type;	// pointer to array of state variable types (solver,
@@ -73,17 +80,6 @@ typedef struct {
   void *sub_model_data; // Pointer to the sub model parameters
   void *nxt_sub_model;  // Pointer to the element of sub_model_data in which to
                         // store the next set of sub model data
-  bool use_adj;         // Flag to indicate whether state adjustments exist
-  double *state_adj;    // Adjustments to the state array applied prior to
-                        // calculating rates, derivatives, etc. Used for fast
-                        // reactions that essentially go to completion during
-                        // the solver timestep.
-  bool scale_adj;       // Flag to indicate state adjustments in state_adj should
-                        // be scaled by relative contributions from multiple rxns.
-  double *rel_flux;     // Used to calculate relative contributions of each rxn
-                        // to state adjustments. (For scaling when more than one
-                        // rxn rapidly depletes the same species.)
-
 } ModelData;
 
 /* Solver data structure */
@@ -99,6 +95,11 @@ typedef struct {
   bool curr_J_guess;    // Flag indicating the Jacobian used by the guess helper
                         // is current
   realtype J_guess_t;   // Last time (t) for which J_guess was calculated
+  int Jac_eval_fails;   // Number of Jacobian evaluation failures
+#ifdef PMC_DEBUG
+  booleantype debug_out;// Output debugging information during solving
+  booleantype eval_Jac; // Evalute Jacobian data during solving
+#endif
 #endif
   void *cvode_mem;	// CVodeMem object
   ModelData model_data; // Model data (used during initialization and solving)

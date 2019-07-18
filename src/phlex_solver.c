@@ -96,7 +96,7 @@ void pmc_debug_print_jac_struct(void *solver_data, const char *message)
 // State advancement factor for Jacobian element evaluation
 #define JAC_CHECK_ADV 1.0E-8
 // Tolerance for Jacobian element evaluation
-#define JAC_CHECK_TOL 1.0E-8
+#define JAC_CHECK_TOL 1.0E-6
 // Set MAX_TIMESTEP_WARNINGS to a negative number to prevent output
 #define MAX_TIMESTEP_WARNINGS -1
 // Maximum number of steps in discreet addition guess helper
@@ -777,8 +777,6 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
 
   realtype * d_state     = NV_DATA_S(y);
   realtype * d_deriv     = NV_DATA_S(deriv);
-  realtype * d_adj_state = NV_DATA_S(tmp);
-  realtype * d_adj_deriv = NV_DATA_S(tmp1);
   bool retval = true;
 
   // Calculate the the derivative for the current state y
@@ -787,14 +785,25 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
     return false;
   }
 
-  // Copy the current state into an array that will be used to make small
-  // adjustments to the state and recalculate the derivative
-  N_VScale(ONE, y, tmp);
-
-  // Loop through the independent variables, adding a small amount to the
-  // state value for each, one at a time
+  // Loop through the independent variables, numerically calculating
+  // the partial derivatives d_fy/d_x
   for (int i_ind = 0; i_ind < NV_LENGTH_S(y); ++i_ind) {
-    d_adj_state[i_ind] += JAC_CHECK_ADV * fabs(d_state[i_ind]);
+
+    // If GSL is available, use their numerical differentiation to
+    // calculate the partial derivatives. Otherwise, estimate them by
+    // advancing the state.
+#ifdef PMC_USE_GSL
+
+#else
+    // Reset tmp to the initial state
+    N_VScale(ONE, y, tmp);
+
+    // Skip very low concentration species
+    if (d_state[i_ind] <= SMALL_NUMBER) continue;
+
+    // Advance the state for species i_ind
+    realtype d_ind = JAC_CHECK_ADV * fabs(d_state[i_ind]);
+    NV_DATA_S(tmp)[i_ind] += d_ind;
 
     // Recalculate the derivative for the adjusted state
     if (f(t, tmp, tmp1, solver_data)!=0) {
@@ -802,48 +811,32 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
       return false;
     }
 
+    // Estimate an absolute tolerance for the Jacobian elements
+    N_VScale(JAC_CHECK_TOL/d_ind, tmp1, tmp);
+
+    // Calculate the partial derivatives d_fy/d_x for comparison
+    // with J[x][y]
+    N_VLinearSum(ONE/d_ind, tmp1, -ONE/d_ind, deriv, tmp1);
+#endif
+
     // Loop through the Jacobian data and evaluate adjustments to f()
     // based on adjustments to y(i_ind)
     for (int i_elem = SM_INDEXPTRS_S(J)[i_ind];
          i_elem < SM_INDEXPTRS_S(J)[i_ind+1]; ++i_elem ) {
       int i_dep = SM_INDEXVALS_S(J)[i_elem];
 
-      // Calculate f_adj(i_dep) = f(i_dep) + J(i_ind, i_dep) * dy(i_ind)
-      realtype jac_adj = (d_deriv[i_dep] +
-                          SM_DATA_S(J)[i_elem] * JAC_CHECK_ADV *
-                              fabs(d_state[i_ind]));
-
-      // Determine the difference between f_adj(i_dep) from Jacobian-based
-      // calculations, and recalculations of f() from the adjusted state y_adj
-      realtype jac_diff = d_adj_deriv[i_dep] - jac_adj;
-      if (jac_diff != ZERO) {
-
-        // Use the average of the two f_adj(i_dep) to normalize the difference
-        realtype f_adj_avg = (fabs(d_adj_deriv[i_dep]) + fabs(jac_adj)) / 2.0;
-
-        // Evaluate the difference with a relative and absolute tolerance
-        // FIXME Check with Matt West whether this is a good way to evaluate
-        //       the difference
-        if (fabs(jac_diff / f_adj_avg) > JAC_CHECK_TOL &&
-            fabs(f_adj_avg) > SMALL_NUMBER &&
-            fabs(jac_diff) > fabs(d_state[i_dep]) * JAC_CHECK_TOL) {
-          printf("\nError in Jacobian[%d][%d]: factor of %le relative to f[%d]"
-                 " = %le", i_ind, i_dep, jac_diff / f_adj_avg, i_dep,
-                 (fabs(d_adj_deriv[i_dep]) + fabs(jac_adj)) / 2.0);
-          printf("\n  f_J[%d] = %le f_adj[%d] = %le", i_dep, jac_adj, i_dep,
-                 d_adj_deriv[i_dep]);
-          printf("\n  df_J[%d] = %le df_adj[%d] = %le", i_dep,
-                 jac_adj - d_deriv[i_dep], i_dep,
-                 d_adj_deriv[i_dep] - d_deriv[i_dep]);
-          printf("\n  state[%d] = %le state_adj[%d] = %le", i_ind,
-                 d_state[i_ind], i_ind, d_adj_state[i_ind]);
+      // Evaluate evalulate the Jacobian with the numerically calucalted
+      // partial derivatives
+      if (fabs(SM_DATA_S(J)[i_elem] - NV_DATA_S(tmp1)[i_dep]) >
+          fabs(NV_DATA_S(tmp)[i_dep])) {
+          printf("\nError in Jacobian[%d][%d]: Got %le; expected %le"
+                 "\n  difference %le is greater than tolerance %le",
+                 i_ind, i_dep, SM_DATA_S(J)[i_elem], NV_DATA_S(tmp1)[i_dep],
+                 fabs(SM_DATA_S(J)[i_elem] - NV_DATA_S(tmp1)[i_dep]),
+                 fabs(NV_DATA_S(tmp)[i_dep]));
           retval = false;
-        }
       }
     }
-
-    // Reset the adjusted state y_adj
-    d_adj_state[i_ind] = d_state[i_ind];
   }
   return retval;
 }

@@ -15,8 +15,8 @@ extern "C"{
 #include "../rxns_gpu.h"
 
 // TODO Lookup environmental indices during initialization
-#define TEMPERATURE_K_ env_data[0*n_rxn]
-#define PRESSURE_PA_ env_data[1*n_rxn]
+#define TEMPERATURE_K_ env_data[0]
+#define PRESSURE_PA_ env_data[1]
 
 #define NUM_PHASE_ (int_data[0*n_rxn])
 #define GAS_WATER_ID_ (int_data[1*n_rxn]-1)
@@ -90,7 +90,8 @@ void * rxn_gpu_PDFiTE_activity_update_ids(ModelDatagpu *model_data, int *deriv_i
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-__device__ void rxn_gpu_PDFiTE_activity_update_env_state(int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data)
+__device__ void rxn_gpu_PDFiTE_activity_update_env_state(double *rate_constants,
+   int n_rxn2,double *double_pointer_gpu, double *env_data, void *rxn_data)
 {
   int n_rxn=n_rxn2;
   int *int_data = (int*) rxn_data;
@@ -106,6 +107,8 @@ __device__ void rxn_gpu_PDFiTE_activity_update_env_state(int n_rxn2, double *dou
   double water_vp = 101325.0 * exp(a); 			// (Pa)
 
   PPM_TO_RH_ = PRESSURE_PA_ / water_vp / 1.0e6;		// (1/ppm)
+
+  rate_constants[0] = PPM_TO_RH_;
 
 }
 
@@ -242,7 +245,7 @@ void * rxn_gpu_PDFiTE_activity_pre_calc(ModelDatagpu *model_data, void *rxn_data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_PDFiTE_activity_calc_deriv_contrib(ModelDatagpu *model_data, double *state,
+__device__ void rxn_gpu_PDFiTE_activity_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
@@ -262,7 +265,7 @@ __device__ void rxn_gpu_PDFiTE_activity_calc_deriv_contrib(ModelDatagpu *model_d
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_cpu_PDFiTE_activity_calc_deriv_contrib(ModelDatagpu *model_data, double *state,
+void rxn_cpu_PDFiTE_activity_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
@@ -281,7 +284,7 @@ void rxn_cpu_PDFiTE_activity_calc_deriv_contrib(ModelDatagpu *model_data, double
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_PDFiTE_activity_calc_jac_contrib(ModelDatagpu *model_data, double *state, double *J,
+__device__ void rxn_gpu_PDFiTE_activity_calc_jac_contrib(double *rate_constants, double *state, double *J,
           void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;

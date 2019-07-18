@@ -74,12 +74,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for phlex_state_t
-  function constructor(num_cells, env_state) result (new_obj)
+  function constructor(n_cells, env_state) result (new_obj)
 
     !> New model state
     type(phlex_state_t), pointer :: new_obj
     !> Num cells to compute simulatenously
-    integer(kind=i_kind) :: num_cells
+    integer(kind=i_kind) :: n_cells
     !> Environmental state
     type(env_state_t), target, intent(in), optional :: env_state
 
@@ -95,7 +95,7 @@ contains
     end if
 
     ! Set up the environmental state array
-    allocate(new_obj%env_var(PHLEX_STATE_NUM_ENV_PARAM*num_cells))
+    allocate(new_obj%env_var(PHLEX_STATE_NUM_ENV_PARAM*n_cells))
 
   end function constructor
 

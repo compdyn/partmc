@@ -15,8 +15,8 @@ extern "C"{
 #include "../rxns_gpu.h"
 
 // TODO Lookup environmental indicies during initialization
-#define TEMPERATURE_K_ env_data[0*n_rxn]
-#define PRESSURE_PA_ env_data[1*n_rxn]
+#define TEMPERATURE_K_ env_data[0]
+#define PRESSURE_PA_ env_data[1]
 
 #define RXN_ID_ (int_data[0*n_rxn])
 #define NUM_SPEC_ (int_data[1*n_rxn])
@@ -120,7 +120,8 @@ void * rxn_gpu_wet_deposition_update_data(void *update_data, void *rxn_data)
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-__device__ void rxn_gpu_wet_deposition_update_env_state(int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data)
+__device__ void rxn_gpu_wet_deposition_update_env_state(double *rate_constants,
+   int n_rxn2,double *double_pointer_gpu, double *env_data, void *rxn_data)
 {
   int n_rxn=n_rxn2;
   int *int_data = (int*) rxn_data;
@@ -128,6 +129,8 @@ __device__ void rxn_gpu_wet_deposition_update_env_state(int n_rxn2, double *doub
 
   // Calculate the rate constant in (1/s)
   RATE_CONSTANT_ = SCALING_ * BASE_RATE_;
+
+  rate_constants[0] = RATE_CONSTANT_;
 }
 
 /** \brief Do pre-derivative calculations
@@ -157,7 +160,7 @@ void * rxn_gpu_wet_deposition_pre_calc(ModelDatagpu *model_data, void *rxn_data)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_wet_deposition_calc_deriv_contrib(ModelDatagpu *model_data, double *state,
+__device__ void rxn_gpu_wet_deposition_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
@@ -168,7 +171,7 @@ __device__ void rxn_gpu_wet_deposition_calc_deriv_contrib(ModelDatagpu *model_da
   for (int i_spec = 0; i_spec < NUM_SPEC_; i_spec++) {
     if (DERIV_ID_(i_spec) >= 0 )
         //deriv[DERIV_ID_(i_spec)] -= RATE_CONSTANT_ * state[REACT_(i_spec)];
-      atomicAdd((double*)&(deriv[DERIV_ID_(i_spec)]),-(RATE_CONSTANT_ * state[REACT_(i_spec)]));
+      atomicAdd((double*)&(deriv[DERIV_ID_(i_spec)]),-(rate_constants[0] * state[REACT_(i_spec)]));
   }
 
 }
@@ -185,7 +188,7 @@ __device__ void rxn_gpu_wet_deposition_calc_deriv_contrib(ModelDatagpu *model_da
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_cpu_wet_deposition_calc_deriv_contrib(ModelDatagpu *model_data, double *state,
+void rxn_cpu_wet_deposition_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
@@ -195,7 +198,7 @@ void rxn_cpu_wet_deposition_calc_deriv_contrib(ModelDatagpu *model_data, double 
   // Add contributions to the time derivative
   for (int i_spec = 0; i_spec < NUM_SPEC_; i_spec++) {
     if (DERIV_ID_(i_spec) >= 0 )
-        deriv[DERIV_ID_(i_spec)] -= RATE_CONSTANT_ * state[REACT_(i_spec)];
+        deriv[DERIV_ID_(i_spec)] -= rate_constants[0] * state[REACT_(i_spec)];
   }
 
 }
@@ -211,7 +214,7 @@ void rxn_cpu_wet_deposition_calc_deriv_contrib(ModelDatagpu *model_data, double 
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_wet_deposition_calc_jac_contrib(ModelDatagpu *model_data, double *state, double *J,
+__device__ void rxn_gpu_wet_deposition_calc_jac_contrib(double *rate_constants, double *state, double *J,
           void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
@@ -220,7 +223,7 @@ __device__ void rxn_gpu_wet_deposition_calc_jac_contrib(ModelDatagpu *model_data
 
   // Add contributions to the Jacobian
   for (int i_spec = 0; i_spec < NUM_SPEC_; i_spec++) {
-    if (JAC_ID_(i_spec) >= 0) J[JAC_ID_(i_spec)] -= RATE_CONSTANT_;
+    if (JAC_ID_(i_spec) >= 0) J[JAC_ID_(i_spec)] -= rate_constants[0];
   }
 
   //return (void*) &(float_data[FLOAT_DATA_SIZE_]);

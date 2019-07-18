@@ -16,8 +16,8 @@ extern "C"{
 #include "../aeros_gpu/sub_model_solver_gpu.h"
 
 // TODO Lookup environmental indices during initialization
-#define TEMPERATURE_K_ env_data[0*n_rxn]
-#define PRESSURE_PA_ env_data[1*n_rxn]
+#define TEMPERATURE_K_ env_data[0]
+#define PRESSURE_PA_ env_data[1]
 
 // Universal gas constant (J/mol/K)
 #define UNIV_GAS_CONST_ 8.314472
@@ -63,7 +63,8 @@ extern "C"{
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-__device__ void rxn_gpu_SIMPOL_phase_transfer_update_env_state(int n_rxn2, double *double_pointer_gpu, double *env_data,
+__device__ void rxn_gpu_SIMPOL_phase_transfer_update_env_state(double *rate_constants,
+   int n_rxn2,double *double_pointer_gpu, double *env_data,
                                                   void *rxn_data)
 {
   int n_rxn=n_rxn2;
@@ -116,7 +117,7 @@ __device__ void rxn_gpu_SIMPOL_phase_transfer_update_env_state(int n_rxn2, doubl
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_SIMPOL_phase_transfer_calc_deriv_contrib(ModelDatagpu *model_data, double *state,
+__device__ void rxn_gpu_SIMPOL_phase_transfer_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
@@ -255,7 +256,7 @@ __device__ void rxn_gpu_SIMPOL_phase_transfer_calc_deriv_contrib(ModelDatagpu *m
  */
 
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_SIMPOL_phase_transfer_calc_jac_contrib(ModelDatagpu *model_data, double *state,
+__device__ void rxn_gpu_SIMPOL_phase_transfer_calc_jac_contrib(double *rate_constants, double *state,
           double *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;

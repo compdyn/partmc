@@ -12,7 +12,7 @@
 #define PHLEX_SOLVER_H_
 #include "phlex_common.h"
 
-int num_cells;
+int n_cells;
 
 /* Functions called by phlex-chem */
 void *solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,

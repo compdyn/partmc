@@ -139,7 +139,7 @@ module pmc_phlex_core
     !> Size of the state array per grid cell
     integer(kind=i_kind) :: size_state_per_cell
     !> Number of cells to compute
-    integer(kind=i_kind) :: num_cells = 1
+    integer(kind=i_kind) :: n_cells = 1
     !> Initial state values
     real(kind=dp), allocatable :: init_state(:)
     !> Flag to split gas- and aerosol-phase reactions
@@ -235,14 +235,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for phlex_core_t
-  function constructor(input_file_path, num_cells) result(new_obj)
+  function constructor(input_file_path, n_cells) result(new_obj)
 
     !> A new set of model parameters
     type(phlex_core_t), pointer :: new_obj
     !> Part-MC input file paths
     character(len=*), intent(in), optional :: input_file_path
     !> Num cells to compute simulatenously
-    integer(kind=i_kind), optional :: num_cells
+    integer(kind=i_kind), optional :: n_cells
 
     allocate(new_obj)
     allocate(new_obj%mechanism(0))
@@ -251,8 +251,8 @@ contains
     allocate(new_obj%aero_rep(0))
     allocate(new_obj%sub_model(0))
 
-    if (present(num_cells)) then
-      new_obj%num_cells=num_cells
+    if (present(n_cells)) then
+      new_obj%n_cells=n_cells
     end if
 
     if (present(input_file_path)) then
@@ -735,13 +735,13 @@ contains
     this%core_is_initialized = .true.
 
     ! Set the initial state values
-    allocate(this%init_state(this%size_state_per_cell * this%num_cells))
+    allocate(this%init_state(this%size_state_per_cell * this%n_cells))
 
     ! Set species concentrations to zero
     this%init_state(:) = 0.0
 
     ! Set activity coefficients to 1.0
-    do i_cell = 0, this%num_cells - 1
+    do i_cell = 0, this%n_cells - 1
       do i_aero_rep = 1, size(this%aero_rep)
 
         rep => this%aero_rep(i_aero_rep)%val
@@ -915,7 +915,7 @@ contains
     type(env_state_t), optional, target, intent(in) :: env_state
 
     ! Initialize phlex_state
-    new_state => phlex_state_t(this%num_cells, env_state)
+    new_state => phlex_state_t(this%n_cells, env_state)
 
     ! Set up the state variable array
     allocate(new_state%state_var, source=this%init_state)
@@ -991,7 +991,7 @@ contains
                 this%aero_rep,   & ! Pointer to the aerosol representations
                 this%sub_model,  & ! Pointer to the sub-models
                 GAS_RXN,         & ! Reaction phase
-                this%num_cells   & ! # of cells computed simultaneosly
+                this%n_cells   & ! # of cells computed simultaneosly
                 )
       call this%solver_data_aero%initialize( &
                 this%var_type,   & ! State array variable types
@@ -1001,7 +1001,7 @@ contains
                 this%aero_rep,   & ! Pointer to the aerosol representations
                 this%sub_model,  & ! Pointer to the sub-models
                 AERO_RXN,        & ! Reaction phase
-                this%num_cells   & ! # of cells computed simultaneosly
+                this%n_cells   & ! # of cells computed simultaneosly
                 )
     else
 
@@ -1022,7 +1022,7 @@ contains
                 this%aero_rep,   & ! Pointer to the aerosol representations
                 this%sub_model,  & ! Pointer to the sub-models
                 GAS_AERO_RXN,    & ! Reaction phase
-                this%num_cells   & ! # of cells computed simultaneosly
+                this%n_cells   & ! # of cells computed simultaneosly
                 )
 
     end if
@@ -1165,7 +1165,7 @@ contains
     ! Update the environmental state array
     ! TODO May move this into the solver functions to allow user to vary
     ! environmental parameters with time during the chemistry time step
-    if (this%num_cells.eq.1) then ! Make this not necessary -> discuss with matt
+    if (this%n_cells.eq.1) then ! Make this not necessary -> discuss with matt
       call phlex_state%update_env_state()
     end if
 
@@ -1246,16 +1246,16 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !> Set number of cells to compute simultaneously
-  subroutine set_num_cells(this, num_cells)
+  subroutine set_n_cells(this, n_cells)
 
     !> Core data
     class(phlex_core_t), intent(inout) :: this
     !> Parameter id
-    integer(kind=i_kind) :: num_cells
+    integer(kind=i_kind) :: n_cells
 
-    this%num_cells = num_cells
+    this%n_cells = n_cells
 
-  end subroutine set_num_cells
+  end subroutine set_n_cells
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1472,7 +1472,7 @@ contains
     write(f_unit,*) "*********************"
     if (.not.sd_only ) then
       write(f_unit,*) "Number of grid cells to solve simultaneously: ", &
-                      this%num_cells
+                      this%n_cells
       write(f_unit,*) "Relative integration tolerance: ", this%rel_tol
       call this%chem_spec_data%print(f_unit)
       write(f_unit,*) "*** Aerosol Phases ***"

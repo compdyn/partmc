@@ -476,7 +476,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   //  solving. This can be changed in the future if necessary.)
   aero_rep_update_env_state(&(sd->model_data), env);
   sub_model_update_env_state(&(sd->model_data), env);
-  rxn_update_env_state(&(sd->model_data), env); //TODO: Rate_constant is the same for each time step?
+  //rxn_update_env_state(&(sd->model_data), env);
 
   PMC_DEBUG_JAC_STRUCT("Begin solving");
 
@@ -486,19 +486,19 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // Set the initial time step
   sd->init_time_step = (t_final - t_initial) * DEFAULT_TIME_STEP;
 
+
 #ifdef PMC_USE_GPU
-  //Set gpu values only 1 time
+  //Set gpu rxn values only 1 time
   solver_set_data_gpu(&(sd->model_data));
 
-  //TODO:Gpu Update
-  //rxn_update_env_state_gpu(&(sd->model_data), env);
+ // Update data for new environmental state on gpu
+  rxn_update_env_state_gpu(&(sd->model_data), env);
 #endif
-
   // Check whether there is anything to solve (filters empty air masses with no
   // emissions)
   if( is_anything_going_on_here( sd, t_initial, t_final ) == false )
     return PHLEX_SOLVER_SUCCESS;
-  // //TODO: Not necessary, it calls to calc deriv and is worst
+  //TODO: Update this function to avoid calculating concentrations that are nearly 0
   // CVODE makes 3+ calls to deriv before it decides there is nothing
   // to solve, so this could still be faster - we need to evaluate it
   // in the full MONARCH model
@@ -722,16 +722,21 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   // Run pre-derivative calculations
   rxn_pre_calc(md, (double) time_step);
 
+  //If compare_gpu_cpu
+  N_Vector derivtest = N_VNew_Serial(NV_LENGTH_S(deriv));
+  N_VConst(ZERO, derivtest);
+  //endif
+
   clock_t start = clock();
 
   // Calculate the time derivative f(t,y)
-  rxn_calc_deriv(md, deriv, (double) time_step);
+  //rxn_calc_deriv(md, deriv, (double) time_step);
 
 #ifdef PMC_USE_GPU
-  // FIXME solver_update_state_gpu(md);TTodo: not working, ask guillermo
-  //rxn_calc_deriv_gpu(md, deriv, (double) time_step);
+  rxn_calc_deriv_gpu(md, deriv, (double) time_step);
 #endif
 
+//Fix counters to compare_gpu_cpu
   clock_t end = clock();
   if (md->n_cells==1) {
     timeDeriv+= ((double) (end - start));
@@ -739,6 +744,18 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
     timeDerivgpu+= ((double) (end - start));
   }
 
+  //if debug
+  if(counter==29){
+    //printf(" deriv length: %d\n", NV_LENGTH_S(deriv));
+    for (int i=0; i<NV_LENGTH_S(deriv); i++) {
+      //printf(" deriv test: %le  ", NV_DATA_S(derivtest)[i]);
+	  //printf(" deriv: % -le", NV_DATA_S(deriv)[i]);
+      double *state = md->state;
+      //printf(" state: %f  \n", state[i]);
+    }
+  }
+
+  //todo: Update counters with cvode counters
   counter++;
 
   return (0);
@@ -764,8 +781,6 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   ModelData *md = &(sd->model_data);
   realtype time_step;
 
-  //TODO: Jac with multiple cells
-
   // !!!! Do not use tmp2 - it is the same as y !!!! //
   // FIXME Find out why cvode is sending tmp2 as y
 
@@ -777,11 +792,6 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
   // Advance the state by a small amount to get more accurate Jac values
   // for species that are currently at zero concentration
-  //TODO:Matt explain me this +=
-  //     This is for calculating the Jacobian at initial conditions when
-  //     many concentrations are zero, but their derivatives are not zero.
-  //     We advance the state by a very small amount based on the current
-  //     deriv[] so that the Jacobian elements can be calculated.
   int i_dep_var = 0;
   int n_state_var = md->n_state_var;
   int n_cells = md->n_cells;

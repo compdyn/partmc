@@ -15,8 +15,8 @@ extern "C"{
 #include "../rxns_gpu.h"
 
 // TODO Lookup environmental indicies during initialization
-#define TEMPERATURE_K_ env_data[0*n_rxn]
-#define PRESSURE_PA_ env_data[1*n_rxn]
+#define TEMPERATURE_K_ env_data[0]
+#define PRESSURE_PA_ env_data[1]
 
 #define NUM_REACT_ int_data[0*n_rxn]
 #define NUM_PROD_ int_data[1*n_rxn]
@@ -109,7 +109,8 @@ void * rxn_gpu_troe_update_ids(ModelDatagpu *model_data, int *deriv_ids,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-__device__ void rxn_gpu_troe_update_env_state(int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data)
+__device__ void rxn_gpu_troe_update_env_state(double *rate_constants,
+   int n_rxn2,double *double_pointer_gpu, double *env_data, void *rxn_data)
 {
   int n_rxn=n_rxn2;
   int *int_data = (int*) rxn_data;
@@ -132,6 +133,8 @@ __device__ void rxn_gpu_troe_update_env_state(int n_rxn2, double *double_pointer
 	  * pow(FC_, (1.0 / (1.0 + pow(log10(kinf)/N_,2))))
 	  * pow(conv, NUM_REACT_-1)
 	  * SCALING_;
+
+  rate_constants[0] = RATE_CONSTANT_;
 
 }
 
@@ -162,7 +165,7 @@ void * rxn_gpu_troe_pre_calc(ModelDatagpu *model_data, void *rxn_data)
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_troe_calc_deriv_contrib(ModelDatagpu *model_data, double *state, double *deriv,
+__device__ void rxn_gpu_troe_calc_deriv_contrib(double *rate_constants, double *state, double *deriv,
           void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
@@ -170,7 +173,8 @@ __device__ void rxn_gpu_troe_calc_deriv_contrib(ModelDatagpu *model_data, double
   double *float_data = double_pointer_gpu;
 
   // Calculate the reaction rate
-  double rate = RATE_CONSTANT_;
+  //double rate = RATE_CONSTANT_;
+  double rate = rate_constants[0];
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
           rate *= state[REACT_(i_spec)];
 
@@ -206,7 +210,7 @@ __device__ void rxn_gpu_troe_calc_deriv_contrib(ModelDatagpu *model_data, double
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_cpu_troe_calc_deriv_contrib(ModelDatagpu *model_data, double *state, double *deriv,
+void rxn_cpu_troe_calc_deriv_contrib(double *rate_constants, double *state, double *deriv,
           void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
@@ -214,7 +218,8 @@ void rxn_cpu_troe_calc_deriv_contrib(ModelDatagpu *model_data, double *state, do
   double *float_data = double_pointer_gpu;
 
   // Calculate the reaction rate
-  double rate = RATE_CONSTANT_;
+  //double rate = RATE_CONSTANT_;
+  double rate = rate_constants[0];
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
           rate *= state[REACT_(i_spec)];
 
@@ -247,7 +252,7 @@ void rxn_cpu_troe_calc_deriv_contrib(ModelDatagpu *model_data, double *state, do
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_troe_calc_jac_contrib(ModelDatagpu *model_data, double *state, double *J,
+__device__ void rxn_gpu_troe_calc_jac_contrib(double *rate_constants, double *state, double *J,
           void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
@@ -255,7 +260,8 @@ __device__ void rxn_gpu_troe_calc_jac_contrib(ModelDatagpu *model_data, double *
   double *float_data = double_pointer_gpu;
 
   // Calculate the reaction rate
-  double rate = RATE_CONSTANT_;
+  //double rate = RATE_CONSTANT_;
+  double rate = rate_constants[0];
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++)
           rate *= state[REACT_(i_spec)];
 

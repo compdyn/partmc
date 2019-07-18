@@ -16,8 +16,8 @@ extern "C"{
 
 // TODO Lookup environmental indices during initialization
 
-#define TEMPERATURE_K_ env_data[0*n_rxn]
-#define PRESSURE_PA_ env_data[1*n_rxn]
+#define TEMPERATURE_K_ env_data[0]
+#define PRESSURE_PA_ env_data[1]
 
 #define NUM_REACT_ int_data[0*n_rxn]
 #define NUM_PROD_ int_data[1*n_rxn]
@@ -107,12 +107,12 @@ void * rxn_gpu_arrhenius_update_ids(ModelDatagpu *model_data, int *deriv_ids,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-__device__ void rxn_gpu_arrhenius_update_env_state(int n_rxn2, double *double_pointer_gpu, double *env_data, void *rxn_data)
+__device__ void rxn_gpu_arrhenius_update_env_state(double *rate_constants,
+   int n_rxn2,double *double_pointer_gpu, double *env_data, void *rxn_data)
 {
   int n_rxn=n_rxn2;
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
-
 
   // Calculate the rate constant in (#/cc)
   // k = A*exp(C/T) * (T/D)^B * (1+E*P)
@@ -121,7 +121,7 @@ __device__ void rxn_gpu_arrhenius_update_env_state(int n_rxn2, double *double_po
                    * (E_==0.0 ? 1.0 : (1.0 + E_*PRESSURE_PA_))
                    * pow(CONV_*PRESSURE_PA_/TEMPERATURE_K_, NUM_REACT_-1);
 
-  //TODO: if (multiple_cells) save on array rate_constant structure
+  rate_constants[0] = RATE_CONSTANT_;
 
   //TODO: Comment Matt, to eliminate pre_calc or join it with this update
 }
@@ -154,7 +154,7 @@ void * rxn_gpu_arrhenius_pre_calc(ModelDatagpu *model_data, void *rxn_data)
  */
 
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data, double *state,
+__device__ void rxn_gpu_arrhenius_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu,
           double time_step, int deriv_length,int n_rxn2)
 {
@@ -163,7 +163,8 @@ __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data, d
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 
-  double rate = RATE_CONSTANT_;
+  //double rate = RATE_CONSTANT_;
+  double rate = rate_constants[0];
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
 
   // Add contributions to the time derivative
@@ -229,7 +230,7 @@ __device__ void rxn_gpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data, d
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_cpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data, double *state,
+void rxn_cpu_arrhenius_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu,
           double time_step, int deriv_length, int n_rxn2)
 {
@@ -237,9 +238,9 @@ void rxn_cpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data, double *stat
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 
-
   // Calculate the reaction rate
-  double rate = RATE_CONSTANT_;
+  //double rate = RATE_CONSTANT_;
+  double rate = rate_constants[0];
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
 
   // Add contributions to the time derivative
@@ -272,7 +273,7 @@ void rxn_cpu_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data, double *stat
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_arrhenius_calc_jac_contrib(ModelDatagpu *model_data, double *state, double *J,
+__device__ void rxn_gpu_arrhenius_calc_jac_contrib(double *rate_constants, double *state, double *J,
           void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
@@ -281,7 +282,8 @@ __device__ void rxn_gpu_arrhenius_calc_jac_contrib(ModelDatagpu *model_data, dou
 
 
   // Calculate the reaction rate
-  double rate = RATE_CONSTANT_;
+  //double rate = RATE_CONSTANT_;
+  double rate = rate_constants[0];
   for (int i_spec=0; i_spec<NUM_REACT_; i_spec++) rate *= state[REACT_(i_spec)];
 
   // Add contributions to the Jacobian

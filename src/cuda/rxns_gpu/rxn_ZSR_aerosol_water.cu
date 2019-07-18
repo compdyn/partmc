@@ -15,8 +15,8 @@ extern "C"{
 #include "../rxns_gpu.h"
 
 // TODO Lookup environmental indices during initialization
-#define TEMPERATURE_K_ env_data[0*n_rxn]
-#define PRESSURE_PA_ env_data[1*n_rxn]
+#define TEMPERATURE_K_ env_data[0]
+#define PRESSURE_PA_ env_data[1]
 
 #define SMALL_NUMBER_ 1.0e-30
 
@@ -96,7 +96,8 @@ void * rxn_gpu_ZSR_aerosol_water_update_ids(ModelDatagpu *model_data, int *deriv
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-__device__ void rxn_gpu_ZSR_aerosol_water_update_env_state(int n_rxn2, double *double_pointer_gpu, double *env_data,
+__device__ void rxn_gpu_ZSR_aerosol_water_update_env_state(double *rate_constants,
+   int n_rxn2,double *double_pointer_gpu, double *env_data,
           void *rxn_data)
 {
   int n_rxn=n_rxn2;
@@ -113,6 +114,9 @@ __device__ void rxn_gpu_ZSR_aerosol_water_update_env_state(int n_rxn2, double *d
   double water_vp = 101325.0 * exp(a); 		// (Pa)
 
   PPM_TO_RH_ = PRESSURE_PA_ / water_vp / 1.0e6;	// (1/ppm)
+
+  rate_constants[0] = PPM_TO_RH_;
+
 }
 //Remember we add some brackets in switch cases making independent variable declaration from each other
 /** \brief Do pre-derivative calculations
@@ -216,7 +220,7 @@ void * rxn_gpu_ZSR_aerosol_water_pre_calc(ModelDatagpu *model_data, void *rxn_da
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_ZSR_aerosol_water_calc_deriv_contrib(ModelDatagpu *model_data, double *state,
+__device__ void rxn_gpu_ZSR_aerosol_water_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
@@ -237,7 +241,7 @@ __device__ void rxn_gpu_ZSR_aerosol_water_calc_deriv_contrib(ModelDatagpu *model
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_cpu_ZSR_aerosol_water_calc_deriv_contrib(ModelDatagpu *model_data, double *state,
+void rxn_cpu_ZSR_aerosol_water_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
@@ -257,7 +261,7 @@ void rxn_cpu_ZSR_aerosol_water_calc_deriv_contrib(ModelDatagpu *model_data, doub
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_ZSR_aerosol_water_calc_jac_contrib(ModelDatagpu *model_data, double *state,
+__device__ void rxn_gpu_ZSR_aerosol_water_calc_jac_contrib(double *rate_constants, double *state,
           double *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;

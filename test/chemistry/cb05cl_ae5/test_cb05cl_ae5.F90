@@ -184,7 +184,7 @@ contains
     ! Arrays to hold starting concentrations
     real(kind=dp), allocatable :: ebi_init(:), kpp_init(:), phlex_init(:)
 
-    integer(kind=i_kind) :: num_cells = 1
+    integer(kind=i_kind) :: n_cells = 1
 
     ! D
     passed = .false.

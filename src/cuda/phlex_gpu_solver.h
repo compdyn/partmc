@@ -47,12 +47,15 @@
 #define HANDLE_ERROR( err ) (HandleError( err, __FILE__, __LINE__ ))
 #define HANDLE_ERROR2( ) (HandleError2( __FILE__, __LINE__ ))
 
+//Todo: use only one common structure fixing bug with enum bool
 
 /* Model data structure */
 typedef struct {
-    int n_state_var;	// number of state variables (>=NV_LENGTH_S(y))
-    int n_dep_var;      // number of solver variables (==NV_LENGTH_S(y))
-    int num_cells;        // Number of cells to compute simultaneously
+    int n_state_var;      // number of state variablesper grid cell
+    int n_dep_var;        // number of solver variables per grid cell
+    int n_jac_elem;       // number of potentially non-zero Jacobian elements
+    // per grid cell
+    int n_cells;          // Number of cells to compute simultaneously
     double *abs_tol;      // pointer to array of state variable absolute
     // integration tolerances
     int *var_type;	// pointer to array of state variable types (solver,
@@ -76,16 +79,6 @@ typedef struct {
     void *sub_model_gpu_data; // Pointer to the sub model parameters
     void *nxt_sub_model;  // Pointer to the element of sub_model_gpu_data in which to
     // store the next set of sub model data
-    bool use_adj;         // Flag to indicate whether state adjustments exist
-    double *state_adj;    // Adjustments to the state array applied prior to
-    // calculating rates, derivatives, etc. Used for fast
-    // reactions that essentially go to completion during
-    // the solver timestep.
-    bool scale_adj;       // Flag to indicate state adjustments in state_adj should
-    // be scaled by relative contributions from multiple rxns.
-    double *rel_flux;     // Used to calculate relative contributions of each rxn
-    // to state adjustments. (For scaling when more than one
-    // rxn rapidly depletes the same species.)
 } ModelDatagpu;
 
 /* Solver data structure */
@@ -101,6 +94,11 @@ typedef struct {
   bool curr_J_guess;    // Flag indicating the Jacobian used by the guess helper
                         // is current
   realtype J_guess_t;   // Last time (t) for which J_guess was calculated
+  int Jac_eval_fails;   // Number of Jacobian evaluation failures
+#ifdef PMC_DEBUG
+  booleantype debug_out;// Output debugging information during solving
+  booleantype eval_Jac; // Evalute Jacobian data during solving
+#endif
 #endif
     void *cvode_mem;	// CVodeMem object
     ModelDatagpu model_data; // Model data (used during initialization and solving)
@@ -112,8 +110,9 @@ typedef struct {
 
 void solver_new_gpu_cu(SolverDatagpu *sd, int n_dep_var,
      int n_state_var, int *var_type, int n_rxn,
-     int n_rxn_int_param, int n_rxn_float_param, int num_cells_aux);
+     int n_rxn_int_param, int n_rxn_float_param, int n_cells_aux);
 void solver_update_state_gpu(ModelDatagpu *md);
+void rxn_update_env_state_gpu(ModelDatagpu *model_data, double *env);
 void solveRxncpu(ModelDatagpu *model_data, double *deriv_data,
                  double time_step, int *int_data, double *float_data, int deriv_length, int n_rxn);
 void rxn_calc_deriv_gpu(ModelDatagpu *model_data, N_Vector deriv, realtype time_step);

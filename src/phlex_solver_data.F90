@@ -44,7 +44,7 @@ module pmc_phlex_solver_data
   !> Interface to c ODE solver functions
   interface
     !> Get a new solver
-    type(c_ptr) function solver_new(n_state_var, num_cells, var_type, &
+    type(c_ptr) function solver_new(n_state_var, n_cells, var_type, &
                     n_rxn, n_rxn_int_param, n_rxn_float_param, &
                     n_aero_phase, n_aero_phase_int_param, &
                     n_aero_phase_float_param, n_aero_rep, &
@@ -56,7 +56,7 @@ module pmc_phlex_solver_data
       !! (including const, PSSA, etc.)
       integer(kind=c_int), value :: n_state_var
       !> Number of cells to compute
-      integer(kind=c_int), value :: num_cells
+      integer(kind=c_int), value :: n_cells
       !> Pointer to array of state variable types (solver, constant, PSSA)
       type(c_ptr), value :: var_type
       !> Number of reactions to solve
@@ -410,7 +410,7 @@ contains
 
   !> Initialize the solver
   subroutine initialize(this, var_type, abs_tol, mechanisms, aero_phases, &
-                  aero_reps, sub_models, rxn_phase, num_cells)
+                  aero_reps, sub_models, rxn_phase, n_cells)
 
     !> Solver data
     class(phlex_solver_data_t), intent(inout) :: this
@@ -439,7 +439,7 @@ contains
     ! Absolute tolerances
     real(kind=c_double), pointer :: abs_tol_c(:)
     !> Number of cells to compute
-    integer(kind=i_kind), optional :: num_cells
+    integer(kind=i_kind), optional :: n_cells
     ! Indices for iteration
     integer(kind=i_kind) :: i_mech, i_rxn, i_aero_phase, i_aero_rep, &
             i_sub_model
@@ -487,8 +487,8 @@ contains
     ! Number of floating-point sub model parameters
     integer(kind=c_int) :: n_sub_model_float_param
 
-    if (.not.present(num_cells)) then
-      num_cells = 1
+    if (.not.present(n_cells)) then
+      n_cells = 1
     end if
 
     ! Make sure the variable type and absolute tolerance arrays are of
@@ -576,7 +576,7 @@ contains
     ! Get a new solver object
     this%solver_c_ptr = solver_new( &
             int(size(var_type_c), kind=c_int), & ! Size of the state variable
-            num_cells,                         & ! # of cells computed simultaneosly
+            n_cells,                         & ! # of cells computed simultaneosly
             c_loc(var_type_c),                 & ! Variable types
             n_rxn,                             & ! # of reactions
             n_rxn_int_param,                   & ! # of rxn data int params

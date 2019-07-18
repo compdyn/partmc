@@ -15,8 +15,8 @@ extern "C"{
 #include "../rxns_gpu.h"
 
 // TODO Lookup environmental indices during initialization
-#define TEMPERATURE_K_ env_data[0*n_rxn]
-#define PRESSURE_PA_ env_data[1*n_rxn]
+#define TEMPERATURE_K_ env_data[0]
+#define PRESSURE_PA_ env_data[1]
 
 // Small number
 #define SMALL_NUMBER_ 1.0e-30
@@ -154,7 +154,8 @@ void * rxn_gpu_condensed_phase_arrhenius_update_ids(ModelDatagpu *model_data,
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-__device__ void rxn_gpu_condensed_phase_arrhenius_update_env_state(int n_rxn2, double *double_pointer_gpu, double *env_data,
+__device__ void rxn_gpu_condensed_phase_arrhenius_update_env_state(double *rate_constants,
+   int n_rxn2,double *double_pointer_gpu, double *env_data,
           void *rxn_data)
 {
   int n_rxn=n_rxn2;
@@ -166,6 +167,8 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_update_env_state(int n_rxn2, d
   RATE_CONSTANT_ = A_ * exp(C_/TEMPERATURE_K_)
           * (B_==0.0 ? 1.0 : pow(TEMPERATURE_K_/D_, B_))
           * (E_==0.0 ? 1.0 : (1.0 + E_*PRESSURE_PA_));
+
+  rate_constants[0] = RATE_CONSTANT_;
 
 }
 
@@ -197,7 +200,7 @@ void * rxn_gpu_condensed_phase_arrhenius_pre_calc(ModelDatagpu *model_data,
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data, double *state,
+__device__ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
@@ -222,7 +225,8 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelDatagp
     }
 
     // Calculate the reaction rate rate (M/s or mol/m3/s)
-    double rate = RATE_CONSTANT_;
+    //double rate = RATE_CONSTANT_;
+    double rate = rate_constants[0];
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
               UGM3_TO_MOLM3_(i_react) * unit_conv;
@@ -262,7 +266,7 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelDatagp
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_cpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelDatagpu *model_data, double *state,
+void rxn_cpu_condensed_phase_arrhenius_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
@@ -287,7 +291,8 @@ void rxn_cpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelDatagpu *model_da
     }
 
     // Calculate the reaction rate rate (M/s or mol/m3/s)
-    double rate = RATE_CONSTANT_;
+    //double rate = RATE_CONSTANT_;
+  double rate = rate_constants[0];
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
               UGM3_TO_MOLM3_(i_react) * unit_conv;
@@ -321,7 +326,7 @@ void rxn_cpu_condensed_phase_arrhenius_calc_deriv_contrib(ModelDatagpu *model_da
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(ModelDatagpu *model_data, double *state,
+__device__ void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(double *rate_constants, double *state,
           double *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
@@ -346,7 +351,8 @@ __device__ void rxn_gpu_condensed_phase_arrhenius_calc_jac_contrib(ModelDatagpu 
     }
 
     // Calculate the reaction rate rate (M/s or mol/m3/s)
-    double rate = RATE_CONSTANT_;
+    //double rate = RATE_CONSTANT_;
+  double rate = rate_constants[0];
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       rate *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
               UGM3_TO_MOLM3_(i_react) * unit_conv;

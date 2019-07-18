@@ -102,7 +102,7 @@ program mock_monarch
 
   character(len=500) :: arg
   integer :: status_code, i_time, i_spec
-  integer :: num_cells = 1
+  integer :: n_cells = 1
 
 
   ! Check the command line arguments
@@ -128,11 +128,11 @@ program mock_monarch
   interface_input_file = trim(arg)
 
   !Cells to solve simultaneously
-  num_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
-  !num_cells = 1
+  n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
+  !n_cells = 1
 
   pmc_interface => monarch_interface_t(phlex_input_file, interface_input_file, &
-          START_PHLEX_ID, END_PHLEX_ID, num_cells)
+          START_PHLEX_ID, END_PHLEX_ID, n_cells)
   deallocate(phlex_input_file)
   deallocate(interface_input_file)
 

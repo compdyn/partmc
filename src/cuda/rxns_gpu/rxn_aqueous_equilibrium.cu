@@ -17,8 +17,8 @@ extern "C"{
 #include "../rxns_gpu.h"
 
 // TODO Lookup environmental indices during initialization
-#define TEMPERATURE_K_ env_data[0*n_rxn]
-#define PRESSURE_PA_ env_data[1*n_rxn]
+#define TEMPERATURE_K_ env_data[0]
+#define PRESSURE_PA_ env_data[1]
 
 // Small number
 #define SMALL_NUMBER_ 1.0e-10//1.0e-30
@@ -198,7 +198,8 @@ void * rxn_gpu_aqueous_equilibrium_update_ids(ModelDatagpu *model_data, int *der
  * \param rxn_data Pointer to the reaction data
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
-__device__ void rxn_gpu_aqueous_equilibrium_update_env_state(int n_rxn2, double *double_pointer_gpu, double *env_data,
+__device__ void rxn_gpu_aqueous_equilibrium_update_env_state(double *rate_constants,
+   int n_rxn2,double *double_pointer_gpu, double *env_data,
           void *rxn_data)
 {
   int n_rxn=n_rxn2;
@@ -216,6 +217,8 @@ __device__ void rxn_gpu_aqueous_equilibrium_update_env_state(int n_rxn2, double 
 
   // Set the forward rate constant
   RATE_CONST_FORWARD_ = equil_const * RATE_CONST_REVERSE_;
+
+  rate_constants[0] = RATE_CONST_FORWARD_;
 }
 
 /** \brief Do pre-derivative calculations
@@ -246,7 +249,7 @@ void * rxn_gpu_aqueous_equilibrium_pre_calc(ModelDatagpu *model_data, void *rxn_
  */
 //TODO: Dont work properly in tests, fix it
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *model_data, double *state,
+__device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
@@ -310,7 +313,6 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *mod
     min_conc= min_prod_conc;
     //if(forward_rate > reverse_rate) min_conc= min_react_conc;//Not working on gpu
 
-
     //double min_conc = min_prod_conc;
     //        (forward_rate > reverse_rate) ? min_react_conc : min_prod_conc;
     min_conc -= SMALL_NUMBER_;
@@ -343,7 +345,6 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *mod
 
   }
 
-
   //atomicAdd((double*)&(deriv[DERIV_ID_(0)]), state[WATER_(0)]);
 
 }
@@ -360,7 +361,7 @@ __device__ void rxn_gpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *mod
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-void rxn_cpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *model_data, double *state,
+void rxn_cpu_aqueous_equilibrium_calc_deriv_contrib(double *rate_constants, double *state,
           double *deriv, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;
@@ -451,7 +452,7 @@ void rxn_cpu_aqueous_equilibrium_calc_deriv_contrib(ModelDatagpu *model_data, do
  * \return The rxn_data pointer advanced by the size of the reaction data
  */
 #ifdef PMC_USE_SUNDIALS
-__device__ void rxn_gpu_aqueous_equilibrium_calc_jac_contrib(ModelDatagpu *model_data, double *state,
+__device__ void rxn_gpu_aqueous_equilibrium_calc_jac_contrib(double *rate_constants, double *state,
           double *J, void *rxn_data, double * double_pointer_gpu, double time_step, int deriv_length, int n_rxn2)
 {
   int n_rxn=n_rxn2;

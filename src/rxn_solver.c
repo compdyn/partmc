@@ -205,9 +205,9 @@ void rxn_update_env_state(ModelData *model_data, double *env)
 {
 
   int n_cells = model_data->n_cells;
-  double *rate_constants = (double *) (model_data->rate_constants);
+  double *rate_constants = model_data->rate_constants;
 
-  // Loop through the grid cells
+  // Loop through the grid cells //TODO:Why ++i_cell? it wont do nothing if i_cell is 1
   for (int i_cell=0; i_cell<n_cells; ++i_cell) {
 
     // Get the number of reactions
@@ -403,7 +403,7 @@ void rxn_calc_deriv(ModelData *model_data, N_Vector deriv, realtype time_step)
   int n_state_var = model_data->n_state_var;
 
   // FIXME Move the rate constants to rxn_data
-  double *rate_constants = (double *) (model_data->rate_constants);
+  double *rate_constants = model_data->rate_constants;
 
   // Loop through the grid cells
   for (int i_cell=0; i_cell<n_cells; ++i_cell) {
@@ -507,7 +507,7 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J, realtype time_step)
   int n_jac_elem = model_data->n_jac_elem;
 
   // FIXME Move the rate constants to rxn_data
-  double *rate_constants = (double *) (model_data->rate_constants);
+  double *rate_constants = model_data->rate_constants;
 
   //Loop through number of cells
   for (int i_cell=0; i_cell<n_cells; ++i_cell) {

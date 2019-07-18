@@ -49,7 +49,7 @@ module pmc_monarch_interface
     !> Initial species concentrations
     real(kind=dp), allocatable :: init_conc(:)
     !> Number of cells to compute simultaneously
-    integer(kind=i_kind) :: num_cells = 1
+    integer(kind=i_kind) :: n_cells = 1
     !> Starting index for PartMC species on the MONARCH tracer array
     integer(kind=i_kind) :: tracer_starting_id
     !> Ending index for PartMC species on the MONARCH tracer array
@@ -105,7 +105,7 @@ contains
   !! configuration file and the starting and ending indices for chemical
   !! species in the tracer array.
   function constructor(phlex_config_file, interface_config_file, &
-                       starting_id, ending_id, num_cells, mpi_comm) result (new_obj)
+                       starting_id, ending_id, n_cells, mpi_comm) result (new_obj)
 
     !> A new MONARCH interface
     type(monarch_interface_t), pointer :: new_obj
@@ -120,7 +120,7 @@ contains
     !> MPI communicator
     integer, intent(in), optional :: mpi_comm
     !> Num cells to compute simulatenously
-    integer, optional :: num_cells
+    integer, optional :: n_cells
 
     type(phlex_solver_data_t), pointer :: phlex_solver_data
     character, allocatable :: buffer(:)
@@ -146,9 +146,9 @@ contains
     ! Create a new interface object
     allocate(new_obj)
 
-    if (present(num_cells)) then
+    if (present(n_cells)) then
       new_obj%solve_multiple_cells = .true.
-      new_obj%num_cells=num_cells
+      new_obj%n_cells=n_cells
     end if
 
     ! Check for an available solver
@@ -176,7 +176,7 @@ contains
       call new_obj%load(interface_config_file)
 
       ! Initialize the phlex-chem core
-      new_obj%phlex_core => phlex_core_t(phlex_config_file, new_obj%num_cells)
+      new_obj%phlex_core => phlex_core_t(phlex_config_file, new_obj%n_cells)
       call new_obj%phlex_core%initialize()
 
       ! Set the MONARCH tracer array bounds
@@ -367,13 +367,13 @@ contains
       end do
 
     ! solve multiple grid cells at once
-    ! FIXME this only works if this%num_cells ==
+    ! FIXME this only works if this%n_cells ==
     !       (i_end - i_start + 1) * (j_end - j_start + 1 ) * k_end
     n_cell_check = (i_end - i_start + 1) * (j_end - j_start + 1 ) * k_end
-    call assert_msg(559245176, this%num_cells .eq. n_cell_check, &
+    call assert_msg(559245176, this%n_cells .eq. n_cell_check, &
                     "Grid cell number mismatch, got "// &
                     trim(to_string(n_cell_check))//", expected "// &
-                    trim(to_string(this%num_cells)))
+                    trim(to_string(this%n_cells)))
     else
 
       ! Set initial conditions and environmental parameters for each grid cell

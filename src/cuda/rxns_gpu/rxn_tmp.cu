@@ -4,7 +4,7 @@
 extern "C" {
 
   //Works calling as a global
-
+/*
 #define RXN_ARRHENIUS 1
 #include "../rxns_gpu.h"
 
@@ -83,6 +83,8 @@ __global__ void rxn_gpu_tmp_arrhenius
           }
         }
 */
+
+/*
         break;
     }
   }
@@ -93,5 +95,7 @@ __global__ void rxn_gpu_tmp_arrhenius
     deriv[index] = deriv_data[index];
 
 }
+
+*/
 
 }

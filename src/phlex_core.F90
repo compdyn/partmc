@@ -236,7 +236,7 @@ contains
     !> A new set of model parameters
     type(phlex_core_t), pointer :: new_obj
     !> Part-MC input file paths
-    character(len=PMC_MAX_FILENAME_LEN), intent(in), optional :: input_file_path
+    character(len=*), intent(in), optional :: input_file_path
 
     allocate(new_obj)
     allocate(new_obj%mechanism(0))

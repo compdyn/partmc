@@ -96,7 +96,7 @@ void pmc_debug_print_jac_struct(void *solver_data, const char *message)
 // State advancement factor for Jacobian element evaluation
 #define JAC_CHECK_ADV 1.0E-8
 // Tolerance for Jacobian element evaluation
-#define JAC_CHECK_TOL 1.0E-6
+#define JAC_CHECK_TOL 1.0E-8
 // Set MAX_TIMESTEP_WARNINGS to a negative number to prevent output
 #define MAX_TIMESTEP_WARNINGS -1
 // Maximum number of steps in discreet addition guess helper
@@ -820,12 +820,15 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
 
         // Use the average of the two f_adj(i_dep) to normalize the difference
         realtype f_adj_avg = (fabs(d_adj_deriv[i_dep]) + fabs(jac_adj)) / 2.0;
-        jac_diff /= f_adj_avg;
 
         // Evaluate the difference with a relative and absolute tolerance
-        if (fabs(jac_diff) > JAC_CHECK_TOL && fabs(f_adj_avg) > SMALL_NUMBER) {
+        // FIXME Check with Matt West whether this is a good way to evaluate
+        //       the difference
+        if (fabs(jac_diff / f_adj_avg) > JAC_CHECK_TOL &&
+            fabs(f_adj_avg) > SMALL_NUMBER &&
+            fabs(jac_diff) > fabs(d_state[i_dep]) * JAC_CHECK_TOL) {
           printf("\nError in Jacobian[%d][%d]: factor of %le relative to f[%d]"
-                 " = %le", i_ind, i_dep, jac_diff, i_dep,
+                 " = %le", i_ind, i_dep, jac_diff / f_adj_avg, i_dep,
                  (fabs(d_adj_deriv[i_dep]) + fabs(jac_adj)) / 2.0);
           printf("\n  f_J[%d] = %le f_adj[%d] = %le", i_dep, jac_adj, i_dep,
                  d_adj_deriv[i_dep]);

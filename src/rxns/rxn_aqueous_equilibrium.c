@@ -269,7 +269,7 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
     realtype min_react_conc = 1.0e100;
     realtype min_prod_conc  = 1.0e100;
 
-    // Calculate the overall rate
+    // Get the product of all reactants
     realtype react_fact = ONE;
     for (int i_react = 0; i_react < NUM_REACT_; i_react++) {
       react_fact *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
@@ -277,6 +277,8 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
       if (min_react_conc > state[REACT_(i_phase*NUM_REACT_+i_react)])
         min_react_conc = state[REACT_(i_phase*NUM_REACT_+i_react)];
     }
+
+    // Get the product of all products
     realtype prod_fact = ONE;
     for (int i_prod = 0; i_prod < NUM_PROD_; i_prod++) {
       prod_fact *= state[PROD_(i_phase*NUM_PROD_+i_prod)] *
@@ -286,18 +288,38 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
     }
     if (ACTIVITY_COEFF_(i_phase)>=0) prod_fact *=
             state[ACTIVITY_COEFF_(i_phase)];
+
+    // Calculate the overall rate
+    // (These equations are set up to try to avoid loss of accuracy from
+    //  subtracting two almost-equal numbers when rate_forward ~ rate_backward)
     realtype rate = ONE;
-    if (react_fact > ZERO) {
+    if (react_fact == ZERO || prod_fact == ZERO) {
+      rate = RATE_CONST_FORWARD_ * react_fact - RATE_CONST_REVERSE_ * prod_fact;
+#if 0
+    } else {
+      realtype mod_react = ONE;
+      for (int i_react = 1; i_react < NUM_REACT_; i_react++) {
+        mod_react *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
+                MASS_FRAC_TO_M_(i_react) / water;
+      }
+      realtype r1_eq = (prod_fact / mod_react) *
+                       (RATE_CONST_REVERSE_ / RATE_CONST_FORWARD_);
+      rate = (state[REACT_(i_phase*NUM_REACT_)] *
+              MASS_FRAC_TO_M_(0) / water - r1_eq) *
+             RATE_CONST_FORWARD_ * mod_react;
+    }
+#endif
+    } else if (RATE_CONST_FORWARD_ * react_fact >
+               RATE_CONST_REVERSE_ * prod_fact) {
       rate = RATE_CONST_FORWARD_ -
              RATE_CONST_REVERSE_ * ( prod_fact / react_fact );
       rate *= react_fact;
-    } else if (prod_fact > ZERO) {
+    } else {
       rate = RATE_CONST_FORWARD_ * ( react_fact / prod_fact ) -
              RATE_CONST_REVERSE_;
       rate *= prod_fact;
-    } else {
-      continue;
     }
+    if (rate == ZERO) continue;
 
     // Slow rates as concentrations become low
     realtype min_conc = (rate > ZERO) ? min_react_conc : min_prod_conc;

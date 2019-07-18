@@ -20,7 +20,7 @@ option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" ON)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
 option(ENABLE_JSON "Enable json-fortran support" ON)
-option(ENABLE_TESTS "Enable tests" OFF)
+option(ENABLE_TESTS "Enable tests" ON)
 option(ENABLE_DEBUG "Compile debugging functions" OFF)
 option(FAILURE_DETAIL "Output conditions before and after solver failures" OFF)
 option(ENABLE_CXX "Enable C++" OFF)
@@ -416,7 +416,7 @@ endif()
 # partmc library
 
 set(STD_C_FLAGS "-std=c99")
-set(STD_CUDA_FLAGS "-O3 -dc -arch=compute_70 -code=sm_70")
+set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70")
 set(STD_CXX_FLAGS "-fpermissive")
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
@@ -634,11 +634,11 @@ set_source_files_properties(${CB5_EBI_SOLVER} PROPERTIES COMPILE_FLAGS
 # test_chemistry_cb05cl_ae5
 
 #TODO: fix conflict error with maje -j 4 compiling test and test_big at same time
-#add_executable(test_chemistry_cb05cl_ae5
-#        test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
-#	${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
-#        test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-#target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
+add_executable(test_chemistry_cb05cl_ae5
+        test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
+	${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
+        test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
+target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
 
 ######################################################################
 # test_chemistry_cb05cl_ae5_big

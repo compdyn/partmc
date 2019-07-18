@@ -149,6 +149,9 @@ contains
     if (present(n_cells)) then
       new_obj%solve_multiple_cells = .true.
       new_obj%n_cells=n_cells
+    else
+      new_obj%solve_multiple_cells = .false.
+      new_obj%n_cells=1
     end if
 
     ! Check for an available solver
@@ -295,7 +298,11 @@ contains
     type(solver_stats_t), target :: solver_stats
     integer :: state_size_per_cell, n_cell_check
 
-    state_size_per_cell = this%phlex_core%state_size_per_cell()
+    if(this%n_cells.eq.1) then
+      state_size_per_cell = 0
+    else
+      state_size_per_cell = this%phlex_core%state_size_per_cell()
+    end if
 
     k_end = size(MONARCH_conc,3)
 
@@ -366,15 +373,16 @@ contains
         end do
       end do
 
-    ! solve multiple grid cells at once
-    ! FIXME this only works if this%n_cells ==
-    !       (i_end - i_start + 1) * (j_end - j_start + 1 ) * k_end
-    n_cell_check = (i_end - i_start + 1) * (j_end - j_start + 1 ) * k_end
-    call assert_msg(559245176, this%n_cells .eq. n_cell_check, &
-                    "Grid cell number mismatch, got "// &
-                    trim(to_string(n_cell_check))//", expected "// &
-                    trim(to_string(this%n_cells)))
     else
+
+      ! solve multiple grid cells at once
+      !  FIXME this only works if this%n_cells ==
+      !       (i_end - i_start + 1) * (j_end - j_start + 1 ) * k_end
+      !n_cell_check = (i_end - i_start + 1) * (j_end - j_start + 1 ) * k_end
+      !call assert_msg(559245176, this%n_cells .eq. n_cell_check, &
+      !        "Grid cell number mismatch, got "// &
+      !                trim(to_string(n_cell_check))//", expected "// &
+      !                trim(to_string(this%n_cells)))
 
       ! Set initial conditions and environmental parameters for each grid cell
       do i=i_start, i_end
@@ -383,8 +391,8 @@ contains
             !Remember fortran read matrix in inverse order for optimization!
             ! TODO add descriptions for o and z, or preferably use descriptive
             !      variable names
-            o = (j-1)*(i_end) + (i-1)
-            z = (k-1)*(i_end*j_end) + o
+            o = (j-1)*(i_end) + (i-1) !Index to 2D
+            z = (k-1)*(i_end*j_end) + o !Index for 1D
 
             ! Calculate the vertical index for NMMB-style arrays
             k_flip = size(MONARCH_conc,3) - k + 1
@@ -392,7 +400,7 @@ contains
             ! Update the environmental state
             this%phlex_state%env_state%temp = temperature(i,j,k_flip)
             this%phlex_state%env_state%pressure = pressure(i,k,j)
-            call this%phlex_state%update_env_state(z+1)
+            call this%phlex_state%update_env_state(z)
 
             this%phlex_state%state_var(this%map_phlex_id(:) + &
                                        (z*state_size_per_cell)) = 0.0
@@ -405,6 +413,7 @@ contains
                                        (z*state_size_per_cell)) = &
                     water_conc(i,j,k_flip,water_vapor_index) * &
                           air_density(i,k,j) * 1.0d9
+
           end do
         end do
       end do
@@ -416,8 +425,8 @@ contains
       do i=i_start, i_end
         do j=j_start, j_end
           do k=1, k_end
-            o = (j-1)*(i_end) + (i-1)
-            z = (k-1)*(i_end*j_end) + o
+            o = (j-1)*(i_end) + (i-1) !Index to 2D
+            z = (k-1)*(i_end*j_end) + o !Index for 1D
             k_flip = size(MONARCH_conc,3) - k + 1
             MONARCH_conc(i,j,k_flip,this%map_monarch_id(:)) = &
                     this%phlex_state%state_var(this%map_phlex_id(:) + &

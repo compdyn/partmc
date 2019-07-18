@@ -74,12 +74,12 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor for phlex_state_t
-  function constructor(n_cells, env_state) result (new_obj)
+  function constructor(env_state, n_cells) result (new_obj)
 
     !> New model state
     type(phlex_state_t), pointer :: new_obj
     !> Num cells to compute simulatenously
-    integer(kind=i_kind) :: n_cells
+    integer(kind=i_kind), optional :: n_cells
     !> Environmental state
     type(env_state_t), target, intent(in), optional :: env_state
 
@@ -112,7 +112,7 @@ contains
     integer :: grid_offset = 0
 
     if (present(grid_cell)) &
-      grid_offset = (grid_cell-1)*PHLEX_STATE_NUM_ENV_PARAM
+      grid_offset = (grid_cell)*PHLEX_STATE_NUM_ENV_PARAM
 
 #ifdef PMC_DEBUG
     call assert_msg(618562571, grid_offset >= 0 .and. &
@@ -120,8 +120,12 @@ contains
                     "Invalid env state offset: "//trim(to_string(grid_offset)))
 #endif
 
-    this%env_var(grid_offset+1) = this%env_state%temp     ! Temperature (K)
-    this%env_var(grid_offset+2) = this%env_state%pressure ! Pressure (Pa)
+    !Prevent grid_offsets greater than env size
+    if(grid_offset.lt.size(this%env_var)) then
+      this%env_var(grid_offset+1) = this%env_state%temp     ! Temperature (K)
+      this%env_var(grid_offset+2) = this%env_state%pressure ! Pressure (Pa)
+    end if
+
 
   end subroutine update_env_state
 

@@ -441,7 +441,8 @@ int solver_set_eval_jac(void *solver_data, bool eval_Jac)
 int solver_run(void *solver_data, double *state, double *env, double t_initial,
 		double t_final)
 {
-#ifdef PMC_USE_SUNDIALS
+
+  #ifdef PMC_USE_SUNDIALS
   SolverData *sd = (SolverData*) solver_data;
   int flag;
 
@@ -476,7 +477,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   //  solving. This can be changed in the future if necessary.)
   aero_rep_update_env_state(&(sd->model_data), env);
   sub_model_update_env_state(&(sd->model_data), env);
-  //rxn_update_env_state(&(sd->model_data), env);
+  rxn_update_env_state(&(sd->model_data), env);
 
   PMC_DEBUG_JAC_STRUCT("Begin solving");
 
@@ -492,16 +493,16 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   solver_set_data_gpu(&(sd->model_data));
 
  // Update data for new environmental state on gpu
-  rxn_update_env_state_gpu(&(sd->model_data), env);
+  //rxn_update_env_state_gpu(&(sd->model_data), env);
 #endif
   // Check whether there is anything to solve (filters empty air masses with no
   // emissions)
   if( is_anything_going_on_here( sd, t_initial, t_final ) == false )
     return PHLEX_SOLVER_SUCCESS;
-  //TODO: Update this function to avoid calculating concentrations that are nearly 0
   // CVODE makes 3+ calls to deriv before it decides there is nothing
   // to solve, so this could still be faster - we need to evaluate it
   // in the full MONARCH model
+  //TODO: Update this function to avoid calculating concentrations that are nearly 0
 
   // Reinitialize the solver
   flag = CVodeReInit(sd->cvode_mem, t_initial, sd->y);
@@ -730,19 +731,20 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   clock_t start = clock();
 
   // Calculate the time derivative f(t,y)
-  //rxn_calc_deriv(md, deriv, (double) time_step);
+  rxn_calc_deriv(md, deriv, (double) time_step);
 
+  clock_t end = clock();
+  timeDeriv+= ((double) (end - start));
+
+  //TODO: fix some little differences on last decimals for gpu
 #ifdef PMC_USE_GPU
-  rxn_calc_deriv_gpu(md, deriv, (double) time_step);
+  //rxn_calc_deriv_gpu(md, deriv, (double) time_step);
+  clock_t end2 = clock();
+  timeDerivgpu+= ((double) (end2 - start));
 #endif
 
 //Fix counters to compare_gpu_cpu
-  clock_t end = clock();
-  if (md->n_cells==1) {
-    timeDeriv+= ((double) (end - start));
-  } else {
-    timeDerivgpu+= ((double) (end - start));
-  }
+
 
   //if debug
   if(counter==29){
@@ -1121,6 +1123,8 @@ SUNMatrix get_jac_init(SolverData *solver_data)
   solver_data->model_data.n_jac_elem = (int) n_jac_elem;
   n_jac_elem_total = n_jac_elem * n_cells;
   SUNMatrix M = SUNSparseMatrix(n_dep_var, n_dep_var, n_jac_elem_total, CSC_MAT);
+
+  //TODO:Check if jacobian is the same for cb05 in other cells, since for mock_monarch is the same
 
   // Set the column and row indices
   int i_col=0, i_elem=0;

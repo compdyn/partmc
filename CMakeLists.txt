@@ -19,12 +19,12 @@ option(ENABLE_MOSAIC "Enable MOSAIC chemistry support" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_SUNDIALS "Enable SUNDIALS solver for condensation support" ON)
 option(ENABLE_C_SORT "Enable C sorting routines" OFF)
-option(ENABLE_JSON "Enable json-fortran support" ON)#ON
-option(ENABLE_TESTS "Enable tests" OFF)#ON
-option(ENABLE_DEBUG "Compile debugging functions" OFF)#ON
+option(ENABLE_JSON "Enable json-fortran support" ON)
+option(ENABLE_TESTS "Enable tests" OFF)
+option(ENABLE_DEBUG "Compile debugging functions" OFF)
 option(FAILURE_DETAIL "Output conditions before and after solver failures" OFF)
 option(ENABLE_CXX "Enable C++" OFF)
-option(ENABLE_GPU "Enable use of GPUs in chemistry solving" ON)
+option(ENABLE_GPU "Enable use of GPUs in chemistry solving" OFF)
 
 mark_as_advanced(FORCE ENABLE_DEBUG FAILURE_DETAIL)
 
@@ -415,8 +415,8 @@ endif()
 ######################################################################
 # partmc library
 
-set(STD_C_FLAGS "-O3 -std=c99")
-set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70")
+set(STD_C_FLAGS "-std=c99")
+set(STD_CUDA_FLAGS "-O3 -dc -arch=compute_70 -code=sm_70")
 set(STD_CXX_FLAGS "-fpermissive")
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")

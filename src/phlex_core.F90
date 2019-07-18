@@ -741,25 +741,25 @@ contains
     this%init_state(:) = 0.0
 
     ! Set activity coefficients to 1.0
-    do i_cell = 0, this%n_cells - 1
-      do i_aero_rep = 1, size(this%aero_rep)
+      do i_cell = 0, this%n_cells - 1
+        do i_aero_rep = 1, size(this%aero_rep)
 
-        rep => this%aero_rep(i_aero_rep)%val
+          rep => this%aero_rep(i_aero_rep)%val
 
-        ! Get the ion pairs for which activity coefficients can be calculated
-        unique_names = rep%unique_names(tracer_type = CHEM_SPEC_ACTIVITY_COEFF)
+          ! Get the ion pairs for which activity coefficients can be calculated
+          unique_names = rep%unique_names(tracer_type = CHEM_SPEC_ACTIVITY_COEFF)
 
-        ! Set the activity coefficients to 1.0 as default
-        do i_name = 1, size(unique_names)
-          i_state_elem = rep%spec_state_id(unique_names(i_name)%string)
-          this%init_state(i_state_elem + i_cell * this%size_state_per_cell) = &
-              real(1.0d0, kind=dp)
+          ! Set the activity coefficients to 1.0 as default
+          do i_name = 1, size(unique_names)
+            i_state_elem = rep%spec_state_id(unique_names(i_name)%string)
+            this%init_state(i_state_elem + i_cell * this%size_state_per_cell) = &
+                    real(1.0d0, kind=dp)
+          end do
+
+          deallocate(unique_names)
+
         end do
-
-        deallocate(unique_names)
-
       end do
-    end do
 
   end subroutine initialize
 
@@ -915,7 +915,7 @@ contains
     type(env_state_t), optional, target, intent(in) :: env_state
 
     ! Initialize phlex_state
-    new_state => phlex_state_t(this%n_cells, env_state)
+    new_state => phlex_state_t(env_state,this%n_cells)
 
     ! Set up the state variable array
     allocate(new_state%state_var, source=this%init_state)
@@ -965,6 +965,8 @@ contains
 
     !> Chemical model
     class(phlex_core_t), intent(inout) :: this
+
+
 
     call assert_msg(662920365, .not.this%solver_is_initialized, &
             "Attempting to initialize the solver twice.")
@@ -1166,7 +1168,7 @@ contains
     ! TODO May move this into the solver functions to allow user to vary
     ! environmental parameters with time during the chemistry time step
     if (this%n_cells.eq.1) then ! Make this not necessary -> discuss with matt
-      call phlex_state%update_env_state()
+      call phlex_state%update_env_state(0)
     end if
 
     ! Make sure the requested solver was loaded
@@ -1174,11 +1176,14 @@ contains
 
     ! Run the integration
     if (present(solver_stats)) then
+
       call solver%solve(phlex_state, real(0.0, kind=dp), time_step,          &
                         solver_stats)
     else
       call solver%solve(phlex_state, real(0.0, kind=dp), time_step)
     end if
+
+
   end subroutine solve
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

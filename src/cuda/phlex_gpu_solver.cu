@@ -95,9 +95,7 @@ void solver_new_gpu_cu(SolverDatagpu *sd, int n_dep_var,
 
   //Create started indexes of arrays
   start_rxn_param = (unsigned int *) malloc(start_size);
-
   rate_constants_cpu = (double *) malloc(rate_constants_size);
-
 
   //GPU allocation
   cudaMalloc((void **) &dev_start_rxn_param, start_size);
@@ -574,7 +572,7 @@ void rxn_calc_deriv_gpu(ModelDatagpu *model_data, N_Vector deriv, realtype time_
   //mdgpu = model_data;
   //Faster, use for few values
   state_gpu= state;
-  //rate_constants_gpu= rate_constants;
+  rate_constants_gpu= rate_constants;
 
   //Test to solve a bug with operations
   //rxn_gpu_tmp_arrhenius << < (n_rxn + MAX_N_GPU_THREAD - 1) / MAX_N_GPU_THREAD, MAX_N_GPU_THREAD >> >
@@ -607,11 +605,10 @@ void free_gpu_cu() {
   HANDLE_ERROR(cudaFree( double_pointer_gpu ));
   HANDLE_ERROR(cudaFree(derivgpu_data));
   HANDLE_ERROR(cudaFree(dev_start_rxn_param));
-  HANDLE_ERROR(cudaFree(rate_constants_gpu));
 
   //HANDLE_ERROR(cudaFree(state_gpu)); //Invalid device pointer
   //HANDLE_ERROR(cudaFree(env_gpu));
-  //
+  //HANDLE_ERROR(cudaFree(rate_constants_gpu));
 
   free(start_rxn_param);
 

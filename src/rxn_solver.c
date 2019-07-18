@@ -207,7 +207,7 @@ void rxn_update_env_state(ModelData *model_data, double *env)
   int n_cells = model_data->n_cells;
   double *rate_constants = model_data->rate_constants;
 
-  // Loop through the grid cells //TODO:Why ++i_cell? it wont do nothing if i_cell is 1
+  // Loop through the grid cells
   for (int i_cell=0; i_cell<n_cells; ++i_cell) {
 
     // Get the number of reactions
@@ -595,6 +595,7 @@ void rxn_calc_jac(ModelData *model_data, SUNMatrix J, realtype time_step)
  * \param deriv NVector to hold the calculated vector
  * \param time_step Current model time step (s)
  */
+ /*
 #ifdef PMC_USE_SUNDIALS
 void rxn_calc_deriv_no_arrhenius(ModelData *model_data, N_Vector deriv, realtype time_step)
 {
@@ -689,7 +690,7 @@ void rxn_calc_deriv_no_arrhenius(ModelData *model_data, N_Vector deriv, realtype
   }
 }
 #endif
-
+*/
 
 /** \brief Add condensed data to the condensed data block of memory
  *

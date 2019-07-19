@@ -59,6 +59,17 @@ void check_flag_fail(void *flag_value, char *func_name, int opt);
 static void solver_print_stats(void *cvode_mem);
 bool is_anything_going_on_here(SolverData *sd, realtype t_initial,
           realtype t_final);
+#ifdef PMC_USE_GSL
+double gsl_f(double x, void *param);
+typedef struct {
+  int ind_var;             // independent variable index
+  int dep_var;             // dependent variable index
+  realtype t;              // current model time (s)
+  N_Vector y;              // dependent variable array
+  N_Vector deriv;          // time derivative vector f(t,y)
+  SolverData *solver_data; // solver data
+} GSLParam;
+#endif
 #endif
 
 #endif

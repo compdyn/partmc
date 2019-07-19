@@ -19,6 +19,11 @@
 #include "aero_rep_solver.h"
 #include "rxn_solver.h"
 #include "sub_model_solver.h"
+#ifdef PMC_USE_GSL
+#include <gsl/gsl_deriv.h>
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_roots.h>
+#endif
 
 #ifdef PMC_DEBUG
 #define PMC_DEBUG_SPEC_ 0
@@ -779,6 +784,21 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
   realtype * d_deriv     = NV_DATA_S(deriv);
   bool retval = true;
 
+#ifdef PMC_USE_GSL
+  GSLParam gsl_param;
+  gsl_function gsl_func;
+
+  // Set up gsl parameters needed during numerical differentiation
+  gsl_param.t = t;
+  gsl_param.y = tmp;
+  gsl_param.deriv = tmp1;
+  gsl_param.solver_data = (SolverData*) solver_data;
+
+  // Set up the gsl function
+  gsl_func.function = &gsl_f;
+  gsl_func.params   = &gsl_param;
+#endif
+
   // Calculate the the derivative for the current state y
   if (f(t, y, deriv, solver_data)!=0) {
     printf("\n Derivative calculation failed.\n");
@@ -794,6 +814,43 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
     // advancing the state.
 #ifdef PMC_USE_GSL
 
+    // Reset tmp to the initial state
+    N_VScale(ONE, y, tmp);
+
+    // Guess the initial step size
+    double x = d_state[i_ind];
+    double h = x * JAC_CHECK_ADV;
+    h = (h < SMALL_NUMBER) ? SMALL_NUMBER : h;
+
+    gsl_param.ind_var = i_ind;
+
+    // Do the numerical differentiation for each potentially non-zero
+    // Jacobian element
+    for (int i_elem = SM_INDEXPTRS_S(J)[i_ind];
+         i_elem < SM_INDEXPTRS_S(J)[i_ind+1]; ++i_elem ) {
+      int i_dep = SM_INDEXVALS_S(J)[i_elem];
+
+      double abs_err;
+      double partial_deriv;
+
+      gsl_param.dep_var = i_dep;
+
+      // Get the partial derivative d_fy/dx
+      if (gsl_deriv_forward(&gsl_func, x, h, &partial_deriv, &abs_err) == 1) {
+        printf("\nERROR in numerical differentiation for J[%d][%d]",
+               i_ind, i_dep);
+      }
+
+      // Evaluate the results
+      if (fabs(SM_DATA_S(J)[i_elem] - partial_deriv) > fabs(abs_err)) {
+        printf("\nError in Jacobian[%d][%d]: Got %le; expected %le"
+               "\n  difference %le is greater than error %le",
+               i_ind, i_dep, SM_DATA_S(J)[i_elem], partial_deriv,
+               fabs(SM_DATA_S(J)[i_elem] - partial_deriv),
+               fabs(abs_err));
+          retval = false;
+      }
+    }
 #else
     // Reset tmp to the initial state
     N_VScale(ONE, y, tmp);
@@ -817,7 +874,6 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
     // Calculate the partial derivatives d_fy/d_x for comparison
     // with J[x][y]
     N_VLinearSum(ONE/d_ind, tmp1, -ONE/d_ind, deriv, tmp1);
-#endif
 
     // Loop through the Jacobian data and evaluate adjustments to f()
     // based on adjustments to y(i_ind)
@@ -837,9 +893,41 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
           retval = false;
       }
     }
+#endif
+
   }
   return retval;
 }
+
+#ifdef PMC_USE_GSL
+/** \brief Wrapper function for derivative calculations for numerical solving
+ *
+ * Wraps the f(t,y) function for use by the GSL numerical differentiation
+ * functions.
+ *
+ * \param x Independent variable \f$x\f$ for calculations of \f$df_y/dx\f$
+ * \param param Differentiation parameters
+ * \return Partial derivative \f$df_y/dx\f$
+ */
+double gsl_f(double x, void *param) {
+
+  GSLParam *gsl_param = (GSLParam*) param;
+  N_Vector y = gsl_param->y;
+  N_Vector deriv = gsl_param->deriv;
+  ModelData *md = &(gsl_param->solver_data->model_data);
+
+  // Set the independent variable
+  NV_DATA_S(y)[gsl_param->ind_var] = x;
+
+  // Calculate the derivative
+  if (f(gsl_param->t, y, deriv, (void*) md) != 0) {
+    return 0.0 / 0.0;
+  }
+
+  // Return the calculated derivative for the dependent variable
+  return NV_DATA_S(deriv)[gsl_param->dep_var];
+}
+#endif
 
 /** \brief Try to improve guesses of y sent to the linear solver
  *
@@ -1174,7 +1262,7 @@ static void solver_print_stats(void *cvode_mem)
   printf("Last time step = %le Next time step = %le\n", last_h, curr_h);
 }
 
-#endif
+#endif // PMC_USE_SUNDIALS
 
 /** \brief Free a SolverData object
  *

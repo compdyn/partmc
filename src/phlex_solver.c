@@ -30,6 +30,7 @@ unsigned int counter=0;
 unsigned int counterJac=0;
 double timeDerivgpu=0;
 double timeDeriv=0;
+int compare_gpu_cpu = 1;
 
 // Define PMC_DEBUG to turn on output of debug info
 
@@ -55,7 +56,7 @@ void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
          NV_DATA_S(cv_mem->cv_zn[1])[PMC_DEBUG_SPEC_],
          NV_DATA_S(cv_mem->cv_tempv)[PMC_DEBUG_SPEC_],
          NV_DATA_S(cv_mem->cv_tempv1)[PMC_DEBUG_SPEC_],
-         NV_DATA_S(cv_mem->cv_tempv2)[PMC_DEBUG_SPEC_],
+         //NV_DATA_S(cv_mem->cv_tempv2)[PMC_DEBUG_SPEC_],
          NV_DATA_S(cv_mem->cv_acor_init)[PMC_DEBUG_SPEC_],
          NV_DATA_S(cv_mem->cv_last_yn)[PMC_DEBUG_SPEC_]);
   if (do_full) {
@@ -67,7 +68,7 @@ void pmc_debug_print(void *cvode_mem, const char *message, bool do_full,
          i, NV_DATA_S(cv_mem->cv_zn[1])[i],
          i, NV_DATA_S(cv_mem->cv_tempv)[i],
          i, NV_DATA_S(cv_mem->cv_tempv1)[i],
-         i, NV_DATA_S(cv_mem->cv_tempv2)[i],
+         //i, NV_DATA_S(cv_mem->cv_tempv2)[i],
          i, NV_DATA_S(cv_mem->cv_acor_init)[i],
          i, NV_DATA_S(cv_mem->cv_last_yn)[i]);
     }
@@ -493,7 +494,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   solver_set_data_gpu(&(sd->model_data));
 
  // Update data for new environmental state on gpu
-  //rxn_update_env_state_gpu(&(sd->model_data), env);
+  rxn_update_env_state_gpu(&(sd->model_data), env);
 #endif
   // Check whether there is anything to solve (filters empty air masses with no
   // emissions)
@@ -684,6 +685,7 @@ int phlex_solver_update_model_state(N_Vector solver_state,
   return PHLEX_SOLVER_SUCCESS;
 }
 
+
 /** \brief Compute the time derivative f(t,y)
  *
  * \param t Current model time (s)
@@ -723,39 +725,42 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   // Run pre-derivative calculations
   rxn_pre_calc(md, (double) time_step);
 
-  //If compare_gpu_cpu
-  N_Vector derivtest = N_VNew_Serial(NV_LENGTH_S(deriv));
-  N_VConst(ZERO, derivtest);
-  //endif
+  N_VConst(ZERO, deriv);
 
-  clock_t start = clock();
+  if(compare_gpu_cpu){
 
-  // Calculate the time derivative f(t,y)
-  rxn_calc_deriv(md, deriv, (double) time_step);
+    N_Vector derivtest = N_VNew_Serial(NV_LENGTH_S(deriv));
+    N_VConst(ZERO, derivtest);
 
-  clock_t end = clock();
-  timeDeriv+= ((double) (end - start));
+    clock_t start = clock();
 
-  //TODO: fix some little differences on last decimals for gpu
-#ifdef PMC_USE_GPU
-  //rxn_calc_deriv_gpu(md, deriv, (double) time_step);
-  clock_t end2 = clock();
-  timeDerivgpu+= ((double) (end2 - start));
-#endif
+    // Calculate the time derivative f(t,y)
+    rxn_calc_deriv(md, deriv, (double) time_step);
 
-//Fix counters to compare_gpu_cpu
+    clock_t end = clock();
+    timeDeriv+= ((double) (end - start));
 
+    //TODO: fix some little differences on last decimals for gpu
+  #ifdef PMC_USE_GPU
+    clock_t start2 = clock();
+    //rxn_calc_deriv_gpu(md, deriv, (double) time_step);
+    clock_t end2 = clock();
+    timeDerivgpu+= ((double) (end2 - start2));
+  #endif
 
-  //if debug
-  if(counter==29){
-    //printf(" deriv length: %d\n", NV_LENGTH_S(deriv));
-    for (int i=0; i<NV_LENGTH_S(deriv); i++) {
-      //printf(" deriv test: %le  ", NV_DATA_S(derivtest)[i]);
-	  //printf(" deriv: % -le", NV_DATA_S(deriv)[i]);
-      double *state = md->state;
-      //printf(" state: %f  \n", state[i]);
+    //TODO: Fix counters to compare_gpu_cpu
+    if(counter==29){
+      //printf(" deriv length: %d\n", NV_LENGTH_S(deriv));
+      for (int i=0; i<6; i++) {//NV_LENGTH_S(deriv)
+        printf(" deriv test: %le  ", NV_DATA_S(derivtest)[i]);
+        printf(" deriv: % -le", NV_DATA_S(deriv)[i]);
+        double *state = md->state;
+        printf(" state: %f  \n", state[i]);
+      }
     }
-  }
+
+  }else
+    rxn_calc_deriv(md, deriv, (double) time_step);
 
   //todo: Update counters with cvode counters
   counter++;
@@ -831,7 +836,6 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
 
   // Calculate the Jacobian
   rxn_calc_jac(md, J, time_step);
-
 
   counterJac++;
 
@@ -1363,12 +1367,13 @@ void error_handler(int error_code, const char *module,
 void model_free(ModelData model_data)
 {
 
-#ifdef PMC_DEBUG
-  timeDerivgpu= timeDerivgpu / CLOCKS_PER_SEC;
-  timeDeriv= timeDeriv / CLOCKS_PER_SEC;
-  printf ("Total Time Derivgpu= %f",timeDerivgpu);
-  printf (", Total Time Deriv= %f\n",timeDeriv);
-#endif
+  if (compare_gpu_cpu){
+    timeDerivgpu= timeDerivgpu / CLOCKS_PER_SEC;
+    timeDeriv= timeDeriv / CLOCKS_PER_SEC;
+    printf ("Total Time Derivgpu= %f",timeDerivgpu);
+    printf (", Total Time Deriv= %f\n",timeDeriv);
+    printf ("counterDeriv: %d ", counter);
+  }
 
 #ifdef PMC_USE_GPU
   free_gpu_cu();

@@ -378,11 +378,11 @@ contains
       ! solve multiple grid cells at once
       !  FIXME this only works if this%n_cells ==
       !       (i_end - i_start + 1) * (j_end - j_start + 1 ) * k_end
-      !n_cell_check = (i_end - i_start + 1) * (j_end - j_start + 1 ) * k_end
-      !call assert_msg(559245176, this%n_cells .eq. n_cell_check, &
-      !        "Grid cell number mismatch, got "// &
-      !                trim(to_string(n_cell_check))//", expected "// &
-      !                trim(to_string(this%n_cells)))
+      n_cell_check = (i_end - i_start + 1) * (j_end - j_start + 1 ) * k_end
+      call assert_msg(559245176, this%n_cells .eq. n_cell_check, &
+              "Grid cell number mismatch, got "// &
+                      trim(to_string(n_cell_check))//", expected "// &
+                      trim(to_string(this%n_cells)))
 
       ! Set initial conditions and environmental parameters for each grid cell
       do i=i_start, i_end

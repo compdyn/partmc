@@ -38,11 +38,11 @@
 //instead of default 48kb
 
 
-//Knowed bug: Don't increase threads to 1024 or it crash with rxn_data flipped
-#define MAX_N_GPU_THREAD 512//512
-#define MAX_SHARED_MEMORY_BLOCK_DOUBLE 1024
+//Knowed bug: Don't increase threads to 1024 or it crash with rxn_data flipped (maybe because max_shared is 1024?)
+#define MAX_SHARED_MEMORY_BLOCK_DOUBLE 512//1024
 
-//#define MAX_N_GPU_BLOCK 10
+//TODO: get max number of blocks on runtime and return error if is set to maximum
+//#define MAX_N_GPU_BLOCKS 10
 
 #define HANDLE_ERROR( err ) (HandleError( err, __FILE__, __LINE__ ))
 #define HANDLE_ERROR2( ) (HandleError2( __FILE__, __LINE__ ))
@@ -51,7 +51,7 @@
 
 /* Model data structure */
 typedef struct {
-    int n_state_var;      // number of state variablesper grid cell
+    int n_state_var;      // number of state variables per grid cell
     int n_dep_var;        // number of solver variables per grid cell
     int n_jac_elem;       // number of potentially non-zero Jacobian elements
     // per grid cell

@@ -306,7 +306,6 @@ contains
                               solver_stats = solver_stats)
         model_conc(i_time,:) = phlex_state%state_var(:)
 
-        ! FIXME Finish debugging Jacobian calculations
 #ifdef PMC_DEBUG
         ! Check the Jacobian evaluations
         call assert_msg(164937823, solver_stats%Jac_eval_fails.eq.0, &

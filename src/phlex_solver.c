@@ -102,6 +102,8 @@ void pmc_debug_print_jac_struct(void *solver_data, const char *message)
 #define JAC_CHECK_ADV 1.0E-8
 // Tolerance for Jacobian element evaluation
 #define JAC_CHECK_TOL 1.0E-6
+// Tolerance for Jacobian element evaluation against GSL absolute errors
+#define JAC_CHECK_GSL_TOL 1.4
 // Set MAX_TIMESTEP_WARNINGS to a negative number to prevent output
 #define MAX_TIMESTEP_WARNINGS -1
 // Maximum number of steps in discreet addition guess helper
@@ -661,7 +663,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   // Update the state array with the current dependent variable values.
   // Signal a recoverable error (positive return value) for negative
   // concentrations.
-  if (phlex_solver_update_model_state(y, md, SMALL, ZERO)
+  if (phlex_solver_update_model_state(y, md, TINY, TINY)
       != PHLEX_SOLVER_SUCCESS) return 1;
 
   // Reset the derivative vector
@@ -820,7 +822,7 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
     // Guess the initial step size
     double x = d_state[i_ind];
     double h = x * JAC_CHECK_ADV;
-    h = (h < SMALL_NUMBER) ? SMALL_NUMBER : h;
+    h = (h < SMALL_NUMBER*10.0) ? SMALL_NUMBER*10.0 : h;
 
     gsl_param.ind_var = i_ind;
 
@@ -841,14 +843,19 @@ bool check_Jac(realtype t, N_Vector y, SUNMatrix J, N_Vector deriv,
                i_ind, i_dep);
       }
 
+      double abs_tol = fabs(abs_err) > SMALL_NUMBER ?
+                       fabs(abs_err) * JAC_CHECK_GSL_TOL : SMALL_NUMBER;
+
       // Evaluate the results
-      if (fabs(SM_DATA_S(J)[i_elem] - partial_deriv) > fabs(abs_err)) {
+      if (fabs(SM_DATA_S(J)[i_elem] - partial_deriv) > abs_tol) {
         printf("\nError in Jacobian[%d][%d]: Got %le; expected %le"
                "\n  difference %le is greater than error %le",
                i_ind, i_dep, SM_DATA_S(J)[i_elem], partial_deriv,
                fabs(SM_DATA_S(J)[i_elem] - partial_deriv),
-               fabs(abs_err));
-          retval = false;
+               abs_tol);
+        for( int i_spec=0; i_spec<NV_LENGTH_S(tmp); ++i_spec)
+          printf("\n species %d conc: %le", i_spec, NV_DATA_S(tmp)[i_spec]);
+        retval = false;
       }
     }
 #else
@@ -914,13 +921,15 @@ double gsl_f(double x, void *param) {
   GSLParam *gsl_param = (GSLParam*) param;
   N_Vector y = gsl_param->y;
   N_Vector deriv = gsl_param->deriv;
-  ModelData *md = &(gsl_param->solver_data->model_data);
 
   // Set the independent variable
   NV_DATA_S(y)[gsl_param->ind_var] = x;
 
   // Calculate the derivative
-  if (f(gsl_param->t, y, deriv, (void*) md) != 0) {
+  if (f(gsl_param->t, y, deriv, (void*) gsl_param->solver_data) != 0) {
+    printf("\nDerivative calculation failed!");
+    for( int i_spec=0; i_spec<NV_LENGTH_S(y); ++i_spec )
+      printf("\n species %d conc: %le", i_spec, NV_DATA_S(y)[i_spec]);
     return 0.0 / 0.0;
   }
 

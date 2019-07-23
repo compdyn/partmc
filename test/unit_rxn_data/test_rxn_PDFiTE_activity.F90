@@ -434,8 +434,8 @@ contains
       ! Analyze the results
       do i_RH = 1, NUM_RH_STEP
         do i_spec = 1, size(model_conc, 2)
-          if (i_spec.ne.1.and.(i_spec.lt.11.or.i_spec.gt.19)) cycle 
-          call assert_msg(848069355, &
+          if (i_spec.ne.1.and.(i_spec.lt.11.or.i_spec.gt.19)) cycle
+          call assert_msg(357068617, &
             almost_equal(model_conc(i_RH, i_spec), &
             true_conc(i_RH, i_spec), real(1.0e-2, kind=dp)).or. &
             (model_conc(i_RH, i_spec).lt.1e-5*model_conc(1, i_spec).and. &

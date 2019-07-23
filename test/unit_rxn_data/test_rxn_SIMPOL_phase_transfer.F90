@@ -348,7 +348,7 @@ contains
         do i_spec = 1, 5
           ! Only check the second phase
           if (i_spec.ge.2.and.i_spec.le.3) cycle
-          call assert_msg(848069355, &
+          call assert_msg(237580431, &
             almost_equal(model_conc(i_time, i_spec), &
             true_conc(i_time, i_spec), real(1.0e-2, kind=dp)).or. &
             (model_conc(i_time, i_spec).lt.1e-5*model_conc(1, i_spec).and. &

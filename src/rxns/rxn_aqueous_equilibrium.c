@@ -295,10 +295,10 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
     realtype rate = ONE;
     if (react_fact == ZERO || prod_fact == ZERO) {
       rate = RATE_CONST_FORWARD_ * react_fact - RATE_CONST_REVERSE_ * prod_fact;
-#if 0
-    } else {
+    } else if (RATE_CONST_FORWARD_ * react_fact >
+               RATE_CONST_REVERSE_ * prod_fact) {
       realtype mod_react = ONE;
-      for (int i_react = 1; i_react < NUM_REACT_; i_react++) {
+      for (int i_react = 1; i_react < NUM_REACT_; ++i_react) {
         mod_react *= state[REACT_(i_phase*NUM_REACT_+i_react)] *
                 MASS_FRAC_TO_M_(i_react) / water;
       }
@@ -307,8 +307,21 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
       rate = (state[REACT_(i_phase*NUM_REACT_)] *
               MASS_FRAC_TO_M_(0) / water - r1_eq) *
              RATE_CONST_FORWARD_ * mod_react;
+    } else {
+      realtype mod_prod = ONE;
+      for (int i_prod = 1; i_prod < NUM_PROD_; ++i_prod) {
+        mod_prod *= state[PROD_(i_phase*NUM_PROD_+i_prod)] *
+                MASS_FRAC_TO_M_(NUM_REACT_+i_prod) / water;
+      }
+      if (ACTIVITY_COEFF_(i_phase)>=0) mod_prod *=
+              state[ACTIVITY_COEFF_(i_phase)];
+      realtype p1_eq = (react_fact / mod_prod) *
+                       (RATE_CONST_FORWARD_ / RATE_CONST_REVERSE_);
+      rate = (p1_eq - state[PROD_(i_phase*NUM_PROD_)] *
+              MASS_FRAC_TO_M_(NUM_REACT_) / water) *
+             RATE_CONST_REVERSE_* mod_prod;
     }
-#endif
+#if 0
     } else if (RATE_CONST_FORWARD_ * react_fact >
                RATE_CONST_REVERSE_ * prod_fact) {
       rate = RATE_CONST_FORWARD_ -
@@ -319,6 +332,7 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
              RATE_CONST_REVERSE_;
       rate *= prod_fact;
     }
+#endif
     if (rate == ZERO) continue;
 
     // Slow rates as concentrations become low

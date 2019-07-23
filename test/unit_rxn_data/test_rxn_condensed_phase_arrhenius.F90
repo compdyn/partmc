@@ -330,11 +330,13 @@ contains
       ! Analyze the results
       do i_time = 1, NUM_TIME_STEP
         do i_spec = 1, size(model_conc, 2)
-          call assert_msg(848069355, &
+          call assert_msg(248109045, &
             almost_equal(model_conc(i_time, i_spec), &
             true_conc(i_time, i_spec), real(1.0e-2, kind=dp)).or. &
             (model_conc(i_time, i_spec).lt.1e-5*model_conc(1, i_spec).and. &
-            true_conc(i_time, i_spec).lt.1e-5*true_conc(1, i_spec)), &
+            true_conc(i_time, i_spec).lt.1e-5*true_conc(1, i_spec)).or. &
+            (model_conc(i_time, i_spec).lt.1.0e-30.and. &
+            true_conc(i_time, i_spec).lt.1.0e-30), &
             "time: "//trim(to_string(i_time))//"; species: "// &
             trim(to_string(i_spec))//"; mod: "// &
             trim(to_string(model_conc(i_time, i_spec)))//"; true: "// &

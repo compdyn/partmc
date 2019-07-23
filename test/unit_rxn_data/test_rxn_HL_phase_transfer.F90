@@ -370,7 +370,7 @@ contains
       do i_time = 1, NUM_TIME_STEP
         do i_spec = 1, size(model_conc, 2)
           if (i_spec.ge.2.and.i_spec.le.8) cycle
-          call assert_msg(848069355, &
+          call assert_msg(411096108, &
             almost_equal(model_conc(i_time, i_spec), &
             true_conc(i_time, i_spec), real(1.0e-2, kind=dp)).or. &
             (model_conc(i_time, i_spec).lt.1e-5*model_conc(1, i_spec).and. &

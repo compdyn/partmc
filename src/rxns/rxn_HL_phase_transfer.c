@@ -515,7 +515,7 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     } else if (evap_rate * aero_conc / aero_water <
                cond_rate * gas_conc) {
       realtype gas_eq = aero_conc * ( evap_rate / cond_rate );
-      rate = ( gas_eq - gas_conc * aero_water) * (cond_rate / aero_water);
+      rate = ( gas_eq - gas_conc * aero_water) * ( cond_rate / aero_water );
     } else {
       realtype aero_eq = gas_conc * aero_water * ( cond_rate / evap_rate );
       rate = ( aero_conc - aero_eq ) * ( evap_rate / aero_water );

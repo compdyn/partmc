@@ -441,7 +441,7 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     cond_scaling *= cond_scaling;
 
     // Calculate gas-phase condensation rate (ppm/s)
-    cond_rate *= state[GAS_SPEC_] * cond_scaling;
+    cond_rate *= cond_scaling;
 
     // Get the activity coefficient (if one exists)
     realtype act_coeff = 1.0;
@@ -461,22 +461,38 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     // Calculate aerosol-phase evaporation rate (ppm/s)
     // (Slow down evaporation as aerosol-phase concentrations approach zero
     //  to help out the solver.)
-    evap_rate *= state[AERO_SPEC_(i_phase)] * act_coeff * evap_scaling;
+    evap_rate *= act_coeff * evap_scaling;
+
+    // Calculate the overall rate.
+    // These equations are set up to try to avoid loss of accuracy from
+    // subtracting two almost-equal numbers when rate_cond ~ rate_evap.
+    // When modifying these calculations, be sure to use the Jacobian checker
+    // during unit testing.
+    realtype rate      = ZERO;
+    realtype aero_conc = state[AERO_SPEC_(i_phase)];
+    realtype gas_conc  = state[GAS_SPEC_];
+    if (evap_rate == ZERO || cond_rate == ZERO) {
+      rate = evap_rate * aero_conc - cond_rate * gas_conc;
+    } else if (evap_rate * aero_conc < cond_rate * gas_conc) {
+      realtype gas_eq = aero_conc * ( evap_rate / cond_rate );
+      rate = ( gas_eq - gas_conc ) * cond_rate;
+    } else {
+      realtype aero_eq = gas_conc * ( cond_rate / evap_rate );
+      rate = ( aero_conc - aero_eq ) * evap_rate;
+    }
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
-    if (DERIV_ID_(0)>=0) deriv[DERIV_ID_(0)] += evap_rate - cond_rate;
+    if (DERIV_ID_(0)>=0) deriv[DERIV_ID_(0)] += rate;
 
     // Change in the aerosol-phase species is condensation - evaporation
     // (ug/m^3/s)
     if (DERIV_ID_(1+i_phase)>=0) {
       if (aero_conc_type==0) {
         // Per-particle condensation
-        deriv[DERIV_ID_(1+i_phase)] += (cond_rate - evap_rate) /
-                UGM3_TO_PPM_ / number_conc;
+        deriv[DERIV_ID_(1+i_phase)] -= rate / UGM3_TO_PPM_ / number_conc;
       } else {
         // Total aerosol mass condensation
-        deriv[DERIV_ID_(1+i_phase)] += (cond_rate - evap_rate) /
-                UGM3_TO_PPM_;
+        deriv[DERIV_ID_(1+i_phase)] -= rate / UGM3_TO_PPM_;
       }
     }
   }

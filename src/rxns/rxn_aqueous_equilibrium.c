@@ -290,8 +290,10 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
             state[ACTIVITY_COEFF_(i_phase)];
 
     // Calculate the overall rate
-    // (These equations are set up to try to avoid loss of accuracy from
-    //  subtracting two almost-equal numbers when rate_forward ~ rate_backward)
+    // These equations are set up to try to avoid loss of accuracy from
+    // subtracting two almost-equal numbers when rate_forward ~ rate_backward.
+    // When modifying these calculations, be sure to use the Jacobian checker
+    // during unit testing.
     realtype rate = ONE;
     if (react_fact == ZERO || prod_fact == ZERO) {
       rate = RATE_CONST_FORWARD_ * react_fact - RATE_CONST_REVERSE_ * prod_fact;

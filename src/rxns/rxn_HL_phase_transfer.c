@@ -479,8 +479,7 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
               4.0*radius/(3.0*C_AVG_ALPHA_));
 
     // Calculate the evaporation rate constant (1/s)
-    realtype evap_rate = cond_rate / (UGM3_TO_PPM_ *
-	    EQUIL_CONST_ * state[AERO_WATER_(i_phase)]);
+    realtype evap_rate = cond_rate / (UGM3_TO_PPM_ * EQUIL_CONST_);
 
     // Slow down condensation rate as gas-phase concentrations become small
     realtype gas_adj = state[GAS_SPEC_] - VERY_SMALL_NUMBER_;
@@ -490,7 +489,7 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     cond_scaling *= cond_scaling;
 
     // Calculate gas-phase condensation rate (ppm/s)
-    cond_rate *= state[GAS_SPEC_] * cond_scaling * water_scaling;
+    cond_rate *= cond_scaling * water_scaling;
 
     // Slow down evaporation as aerosol-phase concentrations become small
     realtype aero_adj = state[AERO_SPEC_(i_phase)] - VERY_SMALL_NUMBER_;
@@ -500,26 +499,45 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
     evap_scaling *= evap_scaling;
 
     // Calculate aerosol-phase evaporation rate (ug/m^3/s)
-    evap_rate *= state[AERO_SPEC_(i_phase)] * evap_scaling * water_scaling;
+    evap_rate *= UGM3_TO_PPM_ * evap_scaling * water_scaling;
+
+    // Calculate the overall rate.
+    // These equations are set up to try to avoid loss of accuracy from
+    // subtracting two almost-equal numbers when rate_cond ~ rate_evap.
+    // When modifying these calculations, be sure to use the Jacobian checker
+    // during unit testing.
+    realtype rate       = ZERO;
+    realtype aero_conc  = state[AERO_SPEC_(i_phase)];
+    realtype aero_water = state[AERO_WATER_(i_phase)];
+    realtype gas_conc   = state[GAS_SPEC_];
+    if (evap_rate == ZERO || cond_rate == ZERO) {
+      rate = evap_rate * aero_conc / aero_water - cond_rate * gas_conc;
+    } else if (evap_rate * aero_conc / aero_water <
+               cond_rate * gas_conc) {
+      realtype gas_eq = aero_conc * ( evap_rate / cond_rate );
+      rate = ( gas_eq - gas_conc * aero_water) * (cond_rate / aero_water);
+    } else {
+      realtype aero_eq = gas_conc * aero_water * ( cond_rate / evap_rate );
+      rate = ( aero_conc - aero_eq ) * ( evap_rate / aero_water );
+    }
 
     // Change in the gas-phase is evaporation - condensation (ppm/s)
     if (DERIV_ID_(0)>=0) {
       if (aero_conc_type==0) {
         // Scale the changes to the gas-phase by the number of particles for
         // per-particle aerosol concentrations
-        deriv[DERIV_ID_(0)] += number_conc *
-                (evap_rate * UGM3_TO_PPM_ - cond_rate);
+        deriv[DERIV_ID_(0)] += number_conc * rate;
       } else {
         // No scaling for aerosol concentrations with total mass per aerosol
         // phase
-        deriv[DERIV_ID_(0)] += evap_rate * UGM3_TO_PPM_ - cond_rate;
+        deriv[DERIV_ID_(0)] += rate;
       }
     }
 
     // Change in the aerosol-phase species is condensation - evaporation
     // (ug/m^3/s)
-    if (DERIV_ID_(1+i_phase)>=0) deriv[DERIV_ID_(1+i_phase)] +=
-            cond_rate / UGM3_TO_PPM_ - evap_rate;
+    if (DERIV_ID_(1+i_phase)>=0)
+      deriv[DERIV_ID_(1+i_phase)] -= rate / UGM3_TO_PPM_;
 
   }
 

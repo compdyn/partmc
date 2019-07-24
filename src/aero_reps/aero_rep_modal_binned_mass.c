@@ -45,6 +45,9 @@
 #define PHASE_STATE_ID_(x,y,b) (int_data[MODE_INT_PROP_LOC_(x)+3+b*NUM_PHASE_(x)+y]-1)
 #define PHASE_MODEL_DATA_ID_(x,y,b) (int_data[MODE_INT_PROP_LOC_(x)+3+NUM_BINS_(x)*NUM_PHASE_(x)+b*NUM_PHASE_(x)+y]-1)
 
+// Number of Jacobian elements in a phase
+#define PHASE_NUM_JAC_ELEM_(x,y,b) int_data[MODE_INT_PROP_LOC_(x)+3+2*NUM_BINS_(x)*NUM_PHASE_(x)+b*NUM_PHASE_(x)+y]
+
 // GMD and bin diameter are stored in the same position - for modes, b=0
 #define GMD_(x,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+b*4])
 #define BIN_DP_(x,b) (float_data[MODE_FLOAT_PROP_LOC_(x)+b*4])
@@ -92,10 +95,11 @@ int aero_rep_modal_binned_mass_get_used_jac_elem(ModelData *model_data,
                 i_bin++) {
         if (aero_phase_idx==0) {
           for (int j_phase=0; j_phase<NUM_PHASE_(i_section); j_phase++) {
-            num_flagged_elem +=
+            PHASE_NUM_JAC_ELEM_(i_section, j_phase, i_bin) =
               aero_phase_get_used_jac_elem( model_data,
                   PHASE_MODEL_DATA_ID_(i_section, j_phase, i_bin),
                   PHASE_STATE_ID_(i_section, j_phase, i_bin), jac_struct );
+            num_flagged_elem += PHASE_NUM_JAC_ELEM_(i_section, j_phase, i_bin);
           }
         }
         aero_phase_idx-=1;
@@ -178,14 +182,12 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data,
           state += PHASE_STATE_ID_(i_section, i_phase, 0);
 
           // Set the aerosol-phase mass and average MW
-            // FIXME get partial derivs
           aero_phase_get_mass(model_data,
                     PHASE_MODEL_DATA_ID_(i_section, i_phase, 0),
                     state, &(PHASE_MASS_(i_section, i_phase, 0)),
                     &(PHASE_AVG_MW_(i_section, i_phase, 0)), NULL, NULL);
 
           // Get the phase volume
-            // FIXME get partial derivs
           double phase_volume = 0.0;
           aero_phase_get_volume(model_data,
                     PHASE_MODEL_DATA_ID_(i_section, i_phase, 0),
@@ -217,14 +219,12 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data,
             state += PHASE_STATE_ID_(i_section, i_phase, i_bin);
 
             // Set the aerosol-phase mass and average MW
-            // FIXME get partial derivs
             aero_phase_get_mass(model_data,
                       PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
                       state, &(PHASE_MASS_(i_section, i_phase, i_bin)),
                       &(PHASE_AVG_MW_(i_section, i_phase, i_bin)), NULL, NULL);
 
             // Get the phase volume
-            // FIXME get partial derivs
             double phase_volume = 0.0;
             aero_phase_get_volume(model_data,
                       PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),

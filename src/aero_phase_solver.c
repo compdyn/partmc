@@ -87,9 +87,6 @@ void aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
         double *jac_elem_MW)
 {
 
-  // Set up a pointer for the partial derivatives
-  void *partial_deriv = NULL;
-
   // Get the requested aerosol phase data
   int *int_data = (int*) aero_phase_find(model_data, aero_phase_idx);
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
@@ -138,9 +135,6 @@ void aero_phase_get_mass(ModelData *model_data, int aero_phase_idx,
 void aero_phase_get_volume(ModelData *model_data, int aero_phase_idx,
           double *state_var, double *volume, double *jac_elem)
 {
-
-  // Set up a pointer for the partial derivatives
-  void *partial_deriv = NULL;
 
   // Get the requested aerosol phase data
   int *int_data = (int*) aero_phase_find(model_data, aero_phase_idx);

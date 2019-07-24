@@ -103,7 +103,7 @@ void pmc_debug_print_jac_struct(void *solver_data, const char *message)
 // Tolerance for Jacobian element evaluation
 #define JAC_CHECK_TOL 1.0E-6
 // Tolerance for Jacobian element evaluation against GSL absolute errors
-#define JAC_CHECK_GSL_TOL 1.4
+#define JAC_CHECK_GSL_TOL 1.35
 // Set MAX_TIMESTEP_WARNINGS to a negative number to prevent output
 #define MAX_TIMESTEP_WARNINGS -1
 // Maximum number of steps in discreet addition guess helper

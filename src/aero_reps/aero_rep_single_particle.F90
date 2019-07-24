@@ -55,6 +55,7 @@ module pmc_aero_rep_single_particle
 #define NUM_REAL_PROP_ 2
 #define PHASE_STATE_ID_(x) this%condensed_data_int(NUM_INT_PROP_+x)
 #define PHASE_MODEL_DATA_ID_(x) this%condensed_data_int(NUM_INT_PROP_+NUM_PHASE_+x)
+#define PHASE_NUM_JAC_ELEM_(x) this%condensed_data_int(NUM_INT_PROP_+2*NUM_PHASE_+x)
 #define PHASE_MASS_(x) this%condensed_data_real(NUM_REAL_PROP_+x)
 #define PHASE_AVG_MW_(x) this%condensed_data_real(NUM_REAL_PROP_+NUM_PHASE_+x)
 
@@ -248,7 +249,7 @@ contains
     integer(kind=i_kind) :: num_int_param, num_float_param
 
     ! Start off the counters
-    num_int_param = NUM_INT_PROP_ + 2*size(aero_phase_set)
+    num_int_param = NUM_INT_PROP_ + 3*size(aero_phase_set)
     num_float_param = NUM_REAL_PROP_ + 2*size(aero_phase_set)
 
     ! Assume all phases will be applied once to each particle

@@ -29,9 +29,10 @@
 #define NUM_FLOAT_PROP_ 2
 #define PHASE_STATE_ID_(x) (int_data[NUM_INT_PROP_+x]-1)
 #define PHASE_MODEL_DATA_ID_(x) (int_data[NUM_INT_PROP_+NUM_PHASE_+x]-1)
+#define PHASE_NUM_JAC_ELEM_(x) int_data[NUM_INT_PROP_+2*NUM_PHASE_+x]
 #define PHASE_MASS_(x) (float_data[NUM_FLOAT_PROP_+x])
 #define PHASE_AVG_MW_(x) (float_data[NUM_FLOAT_PROP_+NUM_PHASE_+x])
-#define INT_DATA_SIZE_ (NUM_INT_PROP_+2*NUM_PHASE_)
+#define INT_DATA_SIZE_ (NUM_INT_PROP_+3*NUM_PHASE_)
 #define FLOAT_DATA_SIZE_ (NUM_FLOAT_PROP_+2*NUM_PHASE_)
 
 /** \brief Flag Jacobian elements used in calcualtions of mass and volume
@@ -50,10 +51,12 @@ int aero_rep_single_particle_get_used_jac_elem(ModelData *model_data,
   int *int_data = (int*) aero_rep_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
-  return aero_phase_get_used_jac_elem( model_data,
+  PHASE_NUM_JAC_ELEM_(aero_phase_idx) =
+      aero_phase_get_used_jac_elem( model_data,
               PHASE_MODEL_DATA_ID_(aero_phase_idx),
               PHASE_STATE_ID_(aero_phase_idx), jac_struct );
 
+  return PHASE_NUM_JAC_ELEM_(aero_phase_idx);
 }
 
 /** \brief Flag elements on the state array used by this aerosol representation

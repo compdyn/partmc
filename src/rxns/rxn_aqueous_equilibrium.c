@@ -321,7 +321,7 @@ void * rxn_aqueous_equilibrium_calc_deriv_contrib(ModelData *model_data,
                        (RATE_CONST_FORWARD_ / RATE_CONST_REVERSE_);
       rate = (p1_eq - state[PROD_(i_phase*NUM_PROD_)] *
               MASS_FRAC_TO_M_(NUM_REACT_) / water) *
-             RATE_CONST_REVERSE_* mod_prod;
+             RATE_CONST_REVERSE_ * mod_prod;
     }
 #if 0
     } else if (RATE_CONST_FORWARD_ * react_fact >

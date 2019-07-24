@@ -178,6 +178,7 @@ contains
 
       ! Load the initial concentrations
       call new_obj%load_init_conc()
+
 #ifdef PMC_USE_MPI
       pack_size = new_obj%phlex_core%pack_size() + &
               pmc_mpi_pack_size_integer_array(new_obj%map_monarch_id) + &
@@ -283,6 +284,11 @@ contains
 
     type(solver_stats_t), target :: solver_stats
 
+#ifdef PMC_DEBUG
+      ! Evaluate the Jacobian during solving
+      solver_stats%eval_Jac = .true.
+#endif
+
     ! Loop through the grid cells
     do i=i_start, i_end
       do j=j_start, j_end
@@ -325,6 +331,14 @@ contains
             call cpu_time(comp_end)
             comp_time = comp_time + (comp_end-comp_start)
           end if
+
+#ifdef PMC_DEBUG
+        ! Check the Jacobian evaluations
+        call assert_msg(611569150, solver_stats%Jac_eval_fails.eq.0, &
+                        trim( to_string( solver_stats%Jac_eval_fails ) )// &
+                        " Jacobian evaluation failures at time "// &
+                        trim( to_string( start_time ) ) )
+#endif
 
           ! Update the MONARCH tracer array with new species concentrations
           MONARCH_conc(i,j,k_flip,this%map_monarch_id(:)) = &

@@ -265,6 +265,7 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data,
  *
  * For bins, \f$r_{eff}\f$ is assumed to be the bin radius.
  *
+ * \param model_data Pointer to the model data, including the state array
  * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param radius Effective particle radius (m)
  * \param partial_deriv \f$\frac{\partial r_{eff}}{\partial y}\f$ where \f$y\f$
@@ -273,8 +274,9 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data,
  * \return The aero_rep_data pointer advanced by the size of the aerosol
  *         representation
  */
-void * aero_rep_modal_binned_mass_get_effective_radius(int aero_phase_idx,
-          double *radius, double *partial_deriv, void *aero_rep_data)
+void * aero_rep_modal_binned_mass_get_effective_radius(ModelData *model_data,
+          int aero_phase_idx, double *radius, double *partial_deriv,
+          void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
@@ -321,6 +323,7 @@ void * aero_rep_modal_binned_mass_get_effective_radius(int aero_phase_idx,
  * where \f$\rho_i\f$ and \f$m_i\f$ are the density and total mass of species
  * \f$i\f$ in the specified mode.
  *
+ * \param model_data Pointer to the model data, including the state array
  * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param number_conc Particle number concentration, \f$n\f$
  *                    (\f$\mbox{\si{\#\per\cubic\centi\metre}}\f$)
@@ -330,8 +333,9 @@ void * aero_rep_modal_binned_mass_get_effective_radius(int aero_phase_idx,
  * \return The aero_rep_data pointer advanced by the size of the aerosol
  *         representation
  */
-void * aero_rep_modal_binned_mass_get_number_conc(int aero_phase_idx,
-          double *number_conc, double *partial_deriv, void *aero_rep_data)
+void * aero_rep_modal_binned_mass_get_number_conc(ModelData *model_data,
+          int aero_phase_idx, double *number_conc, double *partial_deriv,
+          void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
@@ -376,20 +380,19 @@ void * aero_rep_modal_binned_mass_get_aero_conc_type(int aero_phase_idx,
 
 /** \brief Get the total mass in an aerosol phase \f$m\f$ (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
  *
+ * \param model_data Pointer to the model data, including the state array
  * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param aero_phase_mass Total mass in the aerosol phase, \f$m\f$
  *                        (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
- * \param aero_phase_avg_MW Average molecular weight in the aerosol phase
- *                          (\f$\mbox{\si{\kilogram\per\mole}}\f$)
  * \param partial_deriv \f$\frac{\partial m}{\partial y}\f$ where \f$y\f$ are
  *                      the species on the state array
  * \param aero_rep_data Pointer to the aerosol representation data
  * \return The aero_rep_data pointer advanced by the size of the aerosol
  *         representation
  */
-void * aero_rep_modal_binned_mass_get_aero_phase_mass(int aero_phase_idx,
-          double *aero_phase_mass, double *aero_phase_avg_MW,
-          double *partial_deriv, void *aero_rep_data)
+void * aero_rep_modal_binned_mass_get_aero_phase_mass(ModelData *model_data,
+          int aero_phase_idx, double *aero_phase_mass, double *partial_deriv,
+          void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
@@ -402,7 +405,55 @@ void * aero_rep_modal_binned_mass_get_aero_phase_mass(int aero_phase_idx,
                 i_bin++) {
         if (aero_phase_idx==0) {
           *aero_phase_mass = PHASE_MASS_(i_section, i_phase, i_bin);
+          if (partial_deriv) {
+            double *state = (double*) (model_data->state);
+            double mass, mw;
+            aero_phase_get_mass(model_data, aero_phase_idx, state, &mass, &mw,
+                                partial_deriv, NULL);
+          }
+        }
+        aero_phase_idx-=1;
+      }
+    }
+  }
+
+  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+}
+
+/** \brief Get the average molecular weight in an aerosol phase
+ **        \f$m\f$ (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
+ *
+ * \param model_data Pointer to the model data, including the state array
+ * \param aero_phase_idx Index of the aerosol phase within the representation
+ * \param aero_phase_avg_MW Average molecular weight in the aerosol phase
+ *                          (\f$\mbox{\si{\kilogram\per\mole}}\f$)
+ * \param partial_deriv \f$\frac{\partial m}{\partial y}\f$ where \f$y\f$ are
+ *                      the species on the state array
+ * \param aero_rep_data Pointer to the aerosol representation data
+ * \return The aero_rep_data pointer advanced by the size of the aerosol
+ *         representation
+ */
+void * aero_rep_modal_binned_mass_get_aero_phase_avg_MW(ModelData *model_data,
+          int aero_phase_idx, double *aero_phase_avg_MW, double *partial_deriv,
+          void *aero_rep_data)
+{
+  int *int_data = (int*) aero_rep_data;
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+
+  for (int i_section=0; i_section<NUM_SECTION_ && aero_phase_idx>=0;
+            i_section++) {
+    for (int i_phase=0; i_phase<NUM_PHASE_(i_section) && aero_phase_idx>=0;
+              i_phase++) {
+      for (int i_bin=0; i_bin<NUM_BINS_(i_section) && aero_phase_idx>=0;
+                i_bin++) {
+        if (aero_phase_idx==0) {
           *aero_phase_avg_MW = PHASE_AVG_MW_(i_section, i_phase, i_bin);
+          if (partial_deriv) {
+            double *state = (double*) (model_data->state);
+            double mass, mw;
+            aero_phase_get_mass(model_data, aero_phase_idx, state, &mass, &mw,
+                                NULL, partial_deriv);
+          }
         }
         aero_phase_idx-=1;
       }

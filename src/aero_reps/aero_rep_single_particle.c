@@ -137,6 +137,7 @@ void * aero_rep_single_particle_update_state(ModelData *model_data,
  * are zero. Also, there is only one set of particles in the single particle
  * representation, so the phase index is not used.
  *
+ * \param model_data Pointer to the model data, including the state array
  * \param aero_phase_idx Index of the aerosol phase within the representation
  *                       (not used)
  * \param radius Effective particle radius (m)
@@ -146,8 +147,9 @@ void * aero_rep_single_particle_update_state(ModelData *model_data,
  * \return The aero_rep_data pointer advanced by the size of the aerosol
  *         representation
  */
-void * aero_rep_single_particle_get_effective_radius(int aero_phase_idx,
-          double *radius, double *partial_deriv, void *aero_rep_data)
+void * aero_rep_single_particle_get_effective_radius(ModelData *model_data,
+          int aero_phase_idx, double *radius, double *partial_deriv,
+          void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
@@ -164,6 +166,7 @@ void * aero_rep_single_particle_get_effective_radius(int aero_phase_idx,
  * zero. Also, there is only one set of particles in the single particle
  * representation, so the phase index is not used.
  *
+ * \param model_data Pointer to the model data, including the state array
  * \param aero_phase_idx Index of the aerosol phase within the representation
  *                       (not used)
  * \param number_conc Particle number concentration, \f$n\f$
@@ -174,8 +177,9 @@ void * aero_rep_single_particle_get_effective_radius(int aero_phase_idx,
  * \return The aero_rep_data pointer advanced by the size of the aerosol
  *         representation
  */
-void * aero_rep_single_particle_get_number_conc(int aero_phase_idx,
-          double *number_conc, double *partial_deriv, void *aero_rep_data)
+void * aero_rep_single_particle_get_number_conc(ModelData *model_data,
+          int aero_phase_idx, double *number_conc, double *partial_deriv,
+          void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
@@ -212,9 +216,36 @@ void * aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx,
  * The single particle mass is set for each new state as the sum of the masses
  * of the aerosol phases that compose the particle
  *
+ * \param model_data Pointer to the model data, including the state array
  * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param aero_phase_mass Total mass in the aerosol phase, \f$m\f$
  *                        (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
+ * \param partial_deriv \f$\frac{\partial m}{\partial y}\f$ where \f$y\f$ are
+ *                      the species on the state array
+ * \param aero_rep_data Pointer to the aerosol representation data
+ * \return The aero_rep_data pointer advanced by the size of the aerosol
+ *         representation
+ */
+void * aero_rep_single_particle_get_aero_phase_mass(ModelData *model_data,
+          int aero_phase_idx, double *aero_phase_mass, double *partial_deriv,
+          void *aero_rep_data)
+{
+  int *int_data = (int*) aero_rep_data;
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+
+  *aero_phase_mass = PHASE_MASS_(aero_phase_idx);
+
+  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+}
+
+/** \brief Get the average molecular weight in an aerosol phase
+ **        \f$m\f$ (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
+ *
+ * The single particle mass is set for each new state as the sum of the masses
+ * of the aerosol phases that compose the particle
+ *
+ * \param model_data Pointer to the model data, including the state array
+ * \param aero_phase_idx Index of the aerosol phase within the representation
  * \param aero_phase_avg_MW Average molecular weight in the aerosol phase
  *                          (\f$\mbox{\si{\kilogram\per\mole}}\f$)
  * \param partial_deriv \f$\frac{\partial m}{\partial y}\f$ where \f$y\f$ are
@@ -223,14 +254,13 @@ void * aero_rep_single_particle_get_aero_conc_type(int aero_phase_idx,
  * \return The aero_rep_data pointer advanced by the size of the aerosol
  *         representation
  */
-void * aero_rep_single_particle_get_aero_phase_mass(int aero_phase_idx,
-          double *aero_phase_mass, double *aero_phase_avg_MW,
-          double *partial_deriv, void *aero_rep_data)
+void * aero_rep_single_particle_get_aero_phase_avg_MW(ModelData *model_data,
+          int aero_phase_idx, double *aero_phase_avg_MW, double *partial_deriv,
+          void *aero_rep_data)
 {
   int *int_data = (int*) aero_rep_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
-  *aero_phase_mass = PHASE_MASS_(aero_phase_idx);
   *aero_phase_avg_MW = PHASE_AVG_MW_(aero_phase_idx);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);

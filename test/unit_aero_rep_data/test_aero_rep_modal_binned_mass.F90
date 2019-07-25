@@ -298,6 +298,9 @@ contains
                          c_loc(phlex_state%env_var)                    &
                         ) .eq. 0
 
+    deallocate(phlex_state)
+    deallocate(phase_ids)
+
   end function eval_c_func
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

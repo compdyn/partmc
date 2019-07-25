@@ -251,8 +251,6 @@ contains
 
     end do
 
-    write(*,*) NUM_INT_PROP_, n_aero_ids, n_aero_jac_elem, NUM_REAL_PROP_
-
     ! Allocate space in the condensed data arrays
     allocate(this%condensed_data_int(NUM_INT_PROP_ + 2 + n_aero_ids * 13 + &
                                       n_aero_jac_elem * 2))

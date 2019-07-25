@@ -578,6 +578,9 @@ contains
           do i_bin = 1, NUM_BINS_(i_section)
             BIN_DP_(i_section,i_bin) = 10.0d0**( log10(min_Dp) + &
                     (i_bin-1) * d_log_Dp )
+
+            ! Set the effective radius
+            EFFECTIVE_RADIUS_(i_section,i_bin) = BIN_DP_(i_section,i_bin)
           end do
         else
           call die_msg(236797392, "Invalid scale specified for bin '"// &
@@ -585,9 +588,6 @@ contains
                 "' in modal/binned mass aerosol representation '"// &
                 this%rep_name//"'")
         end if
-
-        ! Set the effective radius
-        EFFECTIVE_RADIUS_(i_section,i_bin) = BIN_DP_(i_section,i_bin)
 
       end if
 

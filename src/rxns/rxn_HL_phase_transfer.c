@@ -257,7 +257,8 @@ void * rxn_HL_phase_transfer_pre_calc(ModelData *model_data, void *rxn_data,
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
-		  &radius);			// particle effective radius (m)
+		  &radius,                      // particle effective radius (m)
+                  NULL);                        // partial derivative
 
     // Get the particle number concentration (#/cc)
     realtype number_conc;
@@ -439,7 +440,8 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
-		  &radius);			// particle effective radius (m)
+		  &radius,                      // particle effective radius (m)
+                  NULL);                        // partial derivative
 
     // Get the particle number concentration (#/cc)
     realtype number_conc;
@@ -575,7 +577,8 @@ void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
 		  model_data,			// model data
 		  AERO_REP_ID_(i_phase),	// aerosol representation index
 		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
-		  &radius);			// particle effective radius (m)
+		  &radius,                      // particle effective radius (m)
+                  NULL);                        // partial derivative
 
     // Get the particle number concentration (#/cc)
     realtype number_conc;

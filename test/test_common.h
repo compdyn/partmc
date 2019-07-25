@@ -11,8 +11,8 @@
 #include "../src/phlex_common.h"
 
 // Assert function
-#define PMC_ASSERT_MSG(y, z) pmc_assert(__func__, __LINE__, y, z);
-#define PMC_ASSERT(y) pmc_assert(__func__, __LINE__, y, "Unknown error");
+#define ASSERT_MSG(y, z) pmc_assert(__func__, __LINE__, y, z);
+#define ASSERT(y) pmc_assert(__func__, __LINE__, y, "Unknown error");
 
 // Assert function def
 int pmc_assert(const char *func, const int line, bool eval,

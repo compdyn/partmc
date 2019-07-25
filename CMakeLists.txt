@@ -427,7 +427,7 @@ set(AEROSOL_REPS_F_SRC
 
 set(AEROSOL_REPS_C_SRC
         src/aero_reps/aero_rep_modal_binned_mass.c
-        src/aero_reps/aero_rep_single_particle.c)	
+        src/aero_reps/aero_rep_single_particle.c)
 
 set_source_files_properties(${AEROSOL_REPS_F_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_F_FLAGS})
@@ -436,12 +436,12 @@ set_source_files_properties(${AEROSOL_REPS_C_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_C_FLAGS})
 
 set(AEROSOL_REPS_SRC ${AEROSOL_REPS_F_SRC} ${AEROSOL_REPS_C_SRC})
-      
+
 set(SUB_MODELS_F_SRC
         src/sub_models/sub_model_UNIFAC.F90)
 
 set(SUB_MODELS_C_SRC
-        src/sub_models/sub_model_UNIFAC.c)	
+        src/sub_models/sub_model_UNIFAC.c)
 
 set_source_files_properties(${SUB_MODELS_F_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_F_FLAGS})
@@ -650,6 +650,7 @@ target_link_libraries(unit_test_aero_rep_single_particle partmclib)
 # test_aero_rep_modal_binned_mass
 
 add_executable(unit_test_aero_rep_modal_binned_mass
+        test/unit_aero_rep_data/test_aero_rep_modal_binned_mass.c
 	test/unit_aero_rep_data/test_aero_rep_modal_binned_mass.F90)
 
 target_link_libraries(unit_test_aero_rep_modal_binned_mass partmclib)

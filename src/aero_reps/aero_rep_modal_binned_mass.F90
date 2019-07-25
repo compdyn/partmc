@@ -966,8 +966,7 @@ contains
     num_phase_instances = 0
     do i_phase = 1, size(this%aero_phase)
       if (this%aero_phase(i_phase)%val%name().eq.phase_name) then
-        num_phase_instances = 1
-        return
+        num_phase_instances = num_phase_instances + 1
       end if
     end do
 

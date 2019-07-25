@@ -24,7 +24,23 @@ program pmc_test_aero_rep_data
 #endif
   use pmc_mpi
 
+  use iso_c_binding
   implicit none
+
+  !> Interface to c ODE solver and test functions
+  interface
+    !> Run the c function tests
+    integer(kind=c_int) function run_aero_rep_modal_c_tests(solver_data, &
+        state, env)  bind (c)
+      use iso_c_binding
+      !> Pointer to the initialized solver data
+      type(c_ptr), value :: solver_data
+      !> Pointer to the state array
+      type(c_ptr), value :: state
+      !> Pointer to the environmental state array
+      type(c_ptr), value :: env
+    end function run_aero_rep_modal_c_tests
+  end interface
 
   ! New-line character
   character(len=*), parameter :: new_line = char(10)
@@ -86,7 +102,7 @@ contains
     character, allocatable :: buffer(:)
     integer(kind=i_kind) :: pos, pack_size, i_prop, i_rep
 #endif
-    build_aero_rep_data_set_test = .false.
+    build_aero_rep_data_set_test = .true.
 
     phlex_core => phlex_core_t()
 
@@ -180,6 +196,8 @@ contains
       call assert(239497756, aero_rep%num_jac_elem( i_phase ) .eq. 5 )
     end do
 
+    aero_rep => null()
+
     rep_name = "AERO_REP_BAD_NAME"
     call assert(654108602, .not.phlex_core%get_aero_rep(rep_name, aero_rep))
     call assert(366369046, .not.associated(aero_rep))
@@ -225,19 +243,62 @@ contains
         end do
       end associate
     end do
+
+    aero_rep => null()
+
     deallocate(buffer)
     deallocate(rep_names)
     deallocate(aero_rep_passed_data_set)
 #endif
 
+    ! Evaluate the aerosol representation c functions
+    build_aero_rep_data_set_test = eval_c_func(phlex_core)
+
     deallocate(file_list)
     deallocate(phlex_state)
     deallocate(phlex_core)
-    
+
 #endif
-    build_aero_rep_data_set_test = .true.
 
   end function build_aero_rep_data_set_test
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Evaluate aerosol representation c functions
+  logical function eval_c_func(phlex_core) result(passed)
+
+    !> Phlex-core
+    type(phlex_core_t), intent(inout) :: phlex_core
+
+    class(aero_rep_data_t), pointer :: aero_rep
+    type(phlex_state_t), pointer :: phlex_state
+    integer(kind=i_kind), allocatable :: phase_ids(:)
+    character(len=:), allocatable :: rep_name, phase_name
+
+    rep_name = "my modal/binned mass aerosol rep"
+    call assert_msg(940125461, phlex_core%get_aero_rep(rep_name, aero_rep),  &
+                    rep_name)
+
+    call phlex_core%solver_initialize()
+
+    phlex_state => phlex_core%new_state()
+
+    ! Tests will use bin 4 phase one
+    phase_name = "my test phase one"
+    phase_ids = aero_rep%phase_ids(phase_name)
+
+    phlex_state%state_var(:) = 0.0;
+    phlex_state%env_state%temp = 298.0;
+    phlex_state%env_state%pressure = 101325.0;
+    call phlex_state%update_env_state()
+
+    passed = run_aero_rep_modal_c_tests(                               &
+                         phlex_core%solver_data_gas_aero%solver_c_ptr, &
+                         c_loc(phlex_state%state_var),                 &
+                         c_loc(phlex_state%env_var)                    &
+                        ) .eq. 0
+
+  end function eval_c_func
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -151,11 +151,11 @@ module pmc_phlex_core
     ! Variable types
     integer(kind=i_kind), allocatable :: var_type(:)
     !> Solver data (gas-phase reactions)
-    type(phlex_solver_data_t), pointer :: solver_data_gas => null()
+    type(phlex_solver_data_t), pointer, public :: solver_data_gas => null()
     !> Solver data (aerosol-phase reactions)
-    type(phlex_solver_data_t), pointer :: solver_data_aero => null()
+    type(phlex_solver_data_t), pointer, public :: solver_data_aero => null()
     !> Solver data (mixed gas- and aerosol-phase reactions)
-    type(phlex_solver_data_t), pointer :: solver_data_gas_aero => null()
+    type(phlex_solver_data_t), pointer, public :: solver_data_gas_aero => null()
     !> Flag indicating the model data has been initialized
     logical :: core_is_initialized = .false.
     !> Flag indicating the solver has been initialized

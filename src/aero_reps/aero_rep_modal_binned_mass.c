@@ -284,6 +284,19 @@ void * aero_rep_modal_binned_mass_get_effective_radius(int aero_phase_idx,
       aero_phase_idx-=NUM_PHASE_(i_section);
       if (aero_phase_idx<0) {
         *radius = EFFECTIVE_RADIUS_(i_section, i_bin);
+#if 0
+        // Effective radii are constant for bins and modes
+        if (partial_deriv) {
+          int i_phase = aero_phase_idx + NUM_PHASE_(i_section);
+          for (int j_bin = 0; j_bin < NUM_BINS_(i_section); ++j_bin) {
+            for (int i_elem = 0;
+                 i_elem < PHASE_NUM_JAC_ELEM_(i_section, i_phase, j_bin);
+                 ++i_elem) {
+              *(partial_deriv++) = ZERO;
+            }
+          }
+        }
+#endif
         i_section = NUM_SECTION_;
         break;
       }

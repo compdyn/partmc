@@ -40,6 +40,7 @@ void model_free(ModelData model_data);
 
 #ifdef PMC_USE_SUNDIALS
 /* Functions called by the solver */
+int pre_f(void *solver_data);
 int f(realtype t, N_Vector y, N_Vector deriv, void *model_data);
 int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *model_data,
   	  N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);

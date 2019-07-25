@@ -38,7 +38,7 @@
 //instead of default 48kb
 
 
-//Knowed bug: Don't increase threads to 1024 or it crash with rxn_data flipped (maybe because max_shared is 1024?)
+//Knowed bug: Don't increase threads to 1024 or it crash with rxn_data flipped
 #define MAX_SHARED_MEMORY_BLOCK_DOUBLE 512//1024
 
 //TODO: get max number of blocks on runtime and return error if is set to maximum
@@ -110,7 +110,7 @@ typedef struct {
 
 void solver_new_gpu_cu(SolverDatagpu *sd, int n_dep_var,
      int n_state_var, int *var_type, int n_rxn,
-     int n_rxn_int_param, int n_rxn_float_param, int n_cells_aux);
+     int n_rxn_int_param, int n_rxn_float_param, int n_cells);
 void solver_update_state_gpu(ModelDatagpu *md);
 void rxn_update_env_state_gpu(ModelDatagpu *model_data, double *env);
 void solveRxncpu(ModelDatagpu *model_data, double *deriv_data,

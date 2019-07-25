@@ -56,9 +56,6 @@ double *env_gpu;
 double *rate_constants_gpu;
 double *rate_constants_cpu;
 
-//unsigned int *int_sizes;
-//unsigned int *double_sizes;
-
 static void HandleError(cudaError_t err,
                         const char *file,
                         int line) {
@@ -82,26 +79,26 @@ static void HandleError2(const char *file,
 void solver_new_gpu_cu(SolverDatagpu *sd, int n_dep_var,
                        int n_state_var, int *var_type, int n_rxn,
                        int n_rxn_int_param, int n_rxn_float_param,
-                       int n_cells_aux) { //Ttodo: not necessary pass this parameters, there are on md
+                       int n_cells) { //Ttodo: not necessary pass this parameters, there are on md
 
   ModelDatagpu *md = &sd->model_data;
 
   //Sizes
   size_t start_size = (n_rxn+1) * sizeof(unsigned int);
-  state_size = n_state_var*n_cells_aux * sizeof(double); //TODO: Adapt state to has the same size as deriv?
-  deriv_size = n_dep_var*n_cells_aux * sizeof(sd->y);
-  env_size = 2*n_cells_aux * sizeof(double); //Temp and pressure
-  rate_constants_size = n_rxn * n_cells_aux * sizeof(double);
-
-  printf("n_rxn: %d " , n_rxn);
-  //printf("n_rxn_float_param: %d ", n_rxn_float_param);
-  //printf("n_rxn_int_param: %d ", n_rxn_int_param);
-  printf("n_state_var: %d" ,n_state_var*n_cells_aux);
-  printf("n_dep_var: %d" ,n_dep_var*n_cells_aux);
+  state_size = n_state_var*n_cells * sizeof(double); //TODO: Adapt state to has the same size as deriv?
+  deriv_size = n_dep_var*n_cells * sizeof(sd->y);
+  env_size = 2*n_cells * sizeof(double); //Temp and pressure
+  rate_constants_size = n_rxn * n_cells * sizeof(double);
 
   //Create started indexes of arrays
   start_rxn_param = (unsigned int *) malloc(start_size);
   rate_constants_cpu = (double *) malloc(rate_constants_size);
+
+#ifdef PMC_DEBUG
+  printf("n_rxn: %d " , n_rxn);
+  printf("n_state_var: %d" ,n_state_var*n_cells);
+  printf("n_dep_var: %d" ,n_dep_var*n_cells);
+#endif
 
   //GPU allocation
   cudaMalloc((void **) &dev_start_rxn_param, start_size);
@@ -118,7 +115,7 @@ void solver_new_gpu_cu(SolverDatagpu *sd, int n_dep_var,
   //HANDLE_ERROR(cudaHostRegister(deriv_data, deriv_size, cudaHostRegisterDefault));
   //HANDLE_ERROR(cudaHostGetDevicePointer((void**) &(derivgpu_data), (void*)deriv_data, 0));
 
-  //cudaMallocHost((void**)&deriv_cpu, deriv_size);//pinned
+  cudaMallocHost((void**)&deriv_cpu, deriv_size);//pinned
   //deriv_cpu = (double *) malloc(deriv_size);
   //cudaMallocHost((void**)&state_cpu, state_size);//pinned
 
@@ -163,12 +160,12 @@ void solver_new_gpu_cu(SolverDatagpu *sd, int n_dep_var,
 // Control exceding limits
 
   if( n_blocks > max_n_gpu_blocks){
-    printf("\nMore blocks assigned: %d than maximum block numbers: %d",
+    printf("\nWarning: More blocks assigned: %d than maximum block numbers: %d",
            n_blocks, max_n_gpu_blocks);
   }
 
   if (max_n_gpu_thread > MAX_SHARED_MEMORY_BLOCK_DOUBLE)
-    printf("\nMore threads assigned: %d than maximum shared memory: %d",
+    printf("\nWarning: More threads assigned: %d than maximum shared memory: %d",
            max_n_gpu_thread, MAX_SHARED_MEMORY_BLOCK_DOUBLE);
 
 }
@@ -415,7 +412,7 @@ void rxn_update_env_state_gpu(ModelDatagpu *model_data, double *env){
   int n_rxn_total_threads = rxn_data[0]*n_cells;
   double *rate_constants = model_data->rate_constants;
 
-  //ttodo: Make memcpy outside work fine
+  //TODO: Use cudamemcpy when multiple cells is large, if not use rate_constants_gpu=rate_constants
 
   HANDLE_ERROR(cudaMemcpy(env_gpu, env, env_size, cudaMemcpyHostToDevice));
 
@@ -426,9 +423,9 @@ void rxn_update_env_state_gpu(ModelDatagpu *model_data, double *env){
   (rate_constants_gpu,n_rxn_total_threads, n_cells, int_pointer_gpu, env_gpu, double_pointer_gpu);
   cudaDeviceSynchronize();
 
-  //HANDLE_ERROR(cudaMemcpy(model_data->rate_constants, rate_constants_gpu, rate_constants_size, cudaMemcpyDeviceToHost)); //this give error
+  HANDLE_ERROR(cudaMemcpy(model_data->rate_constants, rate_constants_gpu, rate_constants_size, cudaMemcpyDeviceToHost)); //this give error
 
-  //memcpy(model_data->rate_constants, rate_constants_cpu, rate_constants_size);
+  //memcpy(model_data->rate_constants, rate_constants_cpu, rate_constants_size);//TODO: Seems not working
 
 }
 
@@ -470,57 +467,53 @@ __device__ void rxn_gpu_tmp_arrhenius2(
   }
 }
 
-__global__ void solveRxnBlock(ModelDatagpu *model_data, double *state, double *deriv,
+__global__ void solveRxnBlock(ModelDatagpu *model_data, double *state_init, double *deriv,
           double time_step, int deriv_length_cell, int state_size_cell, int n_rxn,
           int n_cells_gpu, int *int_pointer, double *double_pointer,
           double *rate_constants2, int n_blocks) //Interface CPU/GPU
 {
-  int index = blockIdx.x * blockDim.x + threadIdx.x;
-
    //rxn_gpu_tmp_arrhenius( //To test the bug with large threads number
           //model_data, deriv, int_pointer, double_pointer, time_step, n_rxn
      //     );
 
-     //if excedeed shared memory iterate over
-  __shared__ double deriv_data2[MAX_SHARED_MEMORY_BLOCK_DOUBLE];//MAX_SHARED_MEMORY_BLOCK_DOUBLE
+  //Get thread id
+  int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+  __shared__ double deriv_init[MAX_SHARED_MEMORY_BLOCK_DOUBLE];
 
   int deriv_length = deriv_length_cell * n_cells_gpu;
-  int n_rxn_total_threads = n_rxn * n_cells_gpu;
+  //Repeat shared memory usage if is less than deriv_length
+  int repeat_shared = (deriv_length/MAX_SHARED_MEMORY_BLOCK_DOUBLE)+1;
+  int n_rxn_total_threads = n_rxn * n_cells_gpu / repeat_shared;
   //extern __shared__ double deriv_shr[];
-  //double *deriv_data2 = &deriv_shr[0];
+  //double *deriv_init = &deriv_shr[0];
 
-  //if (threadIdx.x < deriv_length)
-  //  deriv_data2[index] = 0.0;
-  //deriv[index] = 0.0;
+  if (tid < n_rxn_total_threads) {
 
+    for(int i=0;i<repeat_shared;i++){
 
+      //Update index to access data
+      int index = tid + i*n_rxn_total_threads;
 
-      //Need a method to profit shared memory or gpu is definitely not worth
-  //if (index < n_rxn_total_threads) {
-  if (index < MAX_SHARED_MEMORY_BLOCK_DOUBLE) {
+      //Cell corresponding acces deriv and state data
+      int cell=index/n_rxn;
 
-    for(int i=0;i<=deriv_length/MAX_SHARED_MEMORY_BLOCK_DOUBLE;i++){
+      //Index to access is less than shared deriv size
+      if (deriv_length_cell*cell < MAX_SHARED_MEMORY_BLOCK_DOUBLE){
 
-      if (index+i*MAX_SHARED_MEMORY_BLOCK_DOUBLE < deriv_length){
-
-        if (threadIdx.x < MAX_SHARED_MEMORY_BLOCK_DOUBLE)
-          deriv_data2[index] = 0.0;
-        //deriv[index] = 0.0;
+        if (tid < MAX_SHARED_MEMORY_BLOCK_DOUBLE)
+          deriv_init[tid] = 0.0;
 
         __syncthreads();
-        
-        int cell=(i*MAX_SHARED_MEMORY_BLOCK_DOUBLE+index)/n_rxn;
 
         int *int_data = (int *) &(((int *) int_pointer)[index%n_rxn]);
         double *float_data = (double *) &(((double *) double_pointer)[index%n_rxn]);
-
         int rxn_type = int_data[0];
         int *rxn_data = (int *) &(int_data[1*n_rxn]);
 
-        double *deriv_data = &( deriv_data2[deriv_length_cell*cell]);
-        //state= state+(deriv_length_cell*cell); //Fix this different size with deriv?
-        state= state+(state_size_cell*cell);
-        double *rate_constants = &( rate_constants2[i*MAX_SHARED_MEMORY_BLOCK_DOUBLE+index]);
+        double *deriv_data = &( deriv_init[deriv_length_cell*cell]);
+        double *state = &( state_init[state_size_cell*cell]);
+        double *rate_constants = &( rate_constants2[index]);
 
         switch (rxn_type) {
           case RXN_AQUEOUS_EQUILIBRIUM :
@@ -590,14 +583,16 @@ __global__ void solveRxnBlock(ModelDatagpu *model_data, double *state, double *d
             //break;
         }
         __syncthreads();
-        if (threadIdx.x < deriv_length)
-          deriv[index+i*MAX_SHARED_MEMORY_BLOCK_DOUBLE] = deriv_data2[index];
+
+        //Save in the big global memory the shared memory data
+          if (tid < MAX_SHARED_MEMORY_BLOCK_DOUBLE)
+            deriv[index] = deriv_init[tid];
       }
     }
   }
 
   //if (threadIdx.x < deriv_length)
-  //  deriv[index] = deriv_data2[index];
+  //  deriv[index] = deriv_init[index];
 
 }
 
@@ -622,17 +617,15 @@ void rxn_calc_deriv_gpu(ModelDatagpu *model_data, N_Vector deriv, realtype time_
   countergpu++;*/
 
 
-  HANDLE_ERROR(cudaMemcpy(state_gpu, state, state_size, cudaMemcpyHostToDevice));//Slower, use for large values
+  //HANDLE_ERROR(cudaMemcpy(state_gpu, state, state_size, cudaMemcpyHostToDevice));//Slower, use for large values
 
-  //mdgpu = model_data;
-
-  //state_gpu= state;//Faster, use for few values
-  //rate_constants_gpu= rate_constants;
+  state_gpu= state;//Faster, use for few values
+  rate_constants_gpu= rate_constants;
 
   HANDLE_ERROR2();
 //(n_rxn*n_cells + max_n_gpu_thread - 1) / max_n_gpu_thread
   int n_blocks = ((n_rxn_total_threads + max_n_gpu_thread - 1) / max_n_gpu_thread)+1;
-  solveRxnBlock << < (n_blocks-1), max_n_gpu_thread, 1200*sizeof(double) >> >
+  solveRxnBlock << < (n_blocks-1), max_n_gpu_thread >> >
     (mdgpu, state_gpu, derivgpu_data, time_step, model_data->n_dep_var, model_data->n_state_var,
     n_rxn, n_cells, int_pointer_gpu, double_pointer_gpu, rate_constants_gpu, n_blocks);
 

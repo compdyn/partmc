@@ -39,16 +39,7 @@
 
 /* boolean definition */
 
-//#include <stdbool.h> //This produces segmentation fault on comment typedef
-//TODO DESCOMENTAR Y ARREGLAR
-//extern "C"{
 typedef enum {false, true} bool;
-//enum {false, true} bool;
-//}
-
-//#define bool        _Bool
-//#define true        1
-//#define false        0
 
 /* Model data structure */
 typedef struct {

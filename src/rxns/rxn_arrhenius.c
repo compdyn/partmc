@@ -171,7 +171,8 @@ void * rxn_arrhenius_calc_deriv_contrib(double *rate_constants, double *state, M
 
       // Negative yields are allowed, but prevented from causing negative
       // concentrations that lead to solver failures
-      if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
+      //if (-rate*YIELD_(i_spec)*time_step <= state[PROD_(i_spec)]) {
+      if (-rate*YIELD_(i_spec) <= state[PROD_(i_spec)]) {
         deriv[DERIV_ID_(i_dep_var)] += rate*YIELD_(i_spec);
       }
     }

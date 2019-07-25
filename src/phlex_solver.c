@@ -25,12 +25,14 @@
 #include "rxn_solver.h"
 #include "sub_model_solver.h"
 
+//TODO: Check cvode version if is working with this partmc version
+
 // FIXME are these necessary? CVODE already has counters for these calls
 unsigned int counter=0;
 unsigned int counterJac=0;
 double timeDerivgpu=0;
 double timeDeriv=0;
-int compare_gpu_cpu = 1;
+double timeJac=0;
 
 // Define PMC_DEBUG to turn on output of debug info
 
@@ -478,7 +480,10 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   //  solving. This can be changed in the future if necessary.)
   aero_rep_update_env_state(&(sd->model_data), env);
   sub_model_update_env_state(&(sd->model_data), env);
+
+  //#ifndef PMC_USE_GPU
   rxn_update_env_state(&(sd->model_data), env);
+  //#endif
 
   PMC_DEBUG_JAC_STRUCT("Begin solving");
 
@@ -494,8 +499,11 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   solver_set_data_gpu(&(sd->model_data));
 
  // Update data for new environmental state on gpu
-  rxn_update_env_state_gpu(&(sd->model_data), env);
+  //rxn_update_env_state_gpu(&(sd->model_data), env);
 #endif
+
+
+
   // Check whether there is anything to solve (filters empty air masses with no
   // emissions)
   if( is_anything_going_on_here( sd, t_initial, t_final ) == false )
@@ -675,6 +683,7 @@ int phlex_solver_update_model_state(N_Vector solver_state,
 #endif
           return PHLEX_SOLVER_FAIL;
         }
+        //Assign model state to solver_state
         model_data->state[i_spec+i_cell*n_state_var] =
           NV_DATA_S(solver_state)[i_dep_var] > threshhold ?
           NV_DATA_S(solver_state)[i_dep_var] : replacement_value;
@@ -685,6 +694,32 @@ int phlex_solver_update_model_state(N_Vector solver_state,
   return PHLEX_SOLVER_SUCCESS;
 }
 
+int phlex_solver_update_model_deriv(N_Vector solver_state,
+          ModelData *model_data, realtype threshhold,
+          realtype replacement_value)
+{
+  int i_dep_var=0;
+  int n_state_var = model_data->n_state_var;
+  int n_cells = model_data->n_cells;
+  for (int i_cell=0; i_cell<n_cells; ++i_cell) {
+    for (int i_spec=0; i_spec<n_state_var; ++i_spec) {
+      if (model_data->var_type[i_spec]==CHEM_SPEC_VARIABLE) {
+        if (NV_DATA_S(solver_state)[i_dep_var] < -SMALL_NUMBER) {
+#ifdef FAILURE_DETAIL
+          printf("\nFailed model state update: [spec %d] = %le", i_spec,
+              NV_DATA_S(solver_state)[i_dep_var]);
+#endif
+          return PHLEX_SOLVER_FAIL;
+        }
+        model_data->state[i_spec+i_cell*n_state_var] =
+          NV_DATA_S(solver_state)[i_dep_var] > threshhold ?
+          NV_DATA_S(solver_state)[i_dep_var] : replacement_value;
+        ++i_dep_var;
+      }
+    }
+  }
+  return PHLEX_SOLVER_SUCCESS;
+}
 
 /** \brief Compute the time derivative f(t,y)
  *
@@ -713,60 +748,58 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   if (phlex_solver_update_model_state(y, md, SMALL, ZERO)
       != PHLEX_SOLVER_SUCCESS) return 1;
 
-  // Reset the derivative vector
-  N_VConst(ZERO, deriv);
-
   // Update the aerosol representations
   aero_rep_update_state(md);
 
   // Run the sub models
   sub_model_calculate(md);
 
+  // Reset the derivative vector
+  N_VConst(ZERO, deriv);
+
   // Run pre-derivative calculations
   rxn_pre_calc(md, (double) time_step);
 
-  N_VConst(ZERO, deriv);
+  N_Vector derivtest = N_VNew_Serial(NV_LENGTH_S(deriv));
+  N_VConst(ZERO, derivtest);
 
-  if(compare_gpu_cpu){
+//#ifndef PMC_USE_GPU
 
-    N_Vector derivtest = N_VNew_Serial(NV_LENGTH_S(deriv));
-    N_VConst(ZERO, derivtest);
+  clock_t start = clock();
+  // Calculate the time derivative f(t,y)
+  //rxn_calc_deriv(md, deriv, (double) time_step);
+  clock_t end = clock();
+  timeDeriv+= ((double) (end - start));
 
-    clock_t start = clock();
+//#endif
 
-    // Calculate the time derivative f(t,y)
-    rxn_calc_deriv(md, deriv, (double) time_step);
+#ifdef PMC_USE_GPU
+  clock_t start2 = clock();
+  rxn_calc_deriv_gpu(md, deriv, (double) time_step);
+  clock_t end2 = clock();
+  timeDerivgpu+= ((double) (end2 - start2));
+#endif
 
-    clock_t end = clock();
-    timeDeriv+= ((double) (end - start));
+  if(counter==29){
+    int n_cells = md->n_cells;
+    //printf(" deriv length: %d\n", NV_LENGTH_S(deriv));
+    for (int i=0; i<NV_LENGTH_S(deriv); i++) {//NV_LENGTH_S(deriv)
+      //printf(" deriv test: %le  ", NV_DATA_S(derivtest)[i]);
+      //printf(" deriv test: %le  ", NV_DATA_S(deriv)[NV_LENGTH_S(deriv)/n_cells+i]);
+      //printf(" deriv: % -le", NV_DATA_S(deriv)[i]);
 
-    //TODO: fix some little differences on last decimals for gpu
-  #ifdef PMC_USE_GPU
-    clock_t start2 = clock();
-    //rxn_calc_deriv_gpu(md, deriv, (double) time_step);
-    clock_t end2 = clock();
-    timeDerivgpu+= ((double) (end2 - start2));
-  #endif
+      double *state = md->state;
+      //printf(" state: %f \n", state[i]);
+      //Note y and state are the same mostly
 
-    //TODO: Fix counters to compare_gpu_cpu
-    if(counter==29){
-      //printf(" deriv length: %d\n", NV_LENGTH_S(deriv));
-      for (int i=0; i<6; i++) {//NV_LENGTH_S(deriv)
-        printf(" deriv test: %le  ", NV_DATA_S(derivtest)[i]);
-        printf(" deriv: % -le", NV_DATA_S(deriv)[i]);
-        double *state = md->state;
-        printf(" state: %f  \n", state[i]);
-      }
     }
-
-  }else
-    rxn_calc_deriv(md, deriv, (double) time_step);
+  }
 
   //todo: Update counters with cvode counters
   counter++;
 
+  //Return 0 if success
   return (0);
-
 }
 
 /** \brief Compute the Jacobian
@@ -834,8 +867,12 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   // Run pre-Jacobian calculations
   rxn_pre_calc(md, (double) time_step);
 
+  clock_t start = clock();
   // Calculate the Jacobian
   rxn_calc_jac(md, J, time_step);
+  clock_t end = clock();
+  timeJac+= ((double) (end - start));
+
 
   counterJac++;
 
@@ -1126,7 +1163,8 @@ SUNMatrix get_jac_init(SolverData *solver_data)
   int n_dep_var = NV_LENGTH_S(solver_data->y);
   solver_data->model_data.n_jac_elem = (int) n_jac_elem;
   n_jac_elem_total = n_jac_elem * n_cells;
-  SUNMatrix M = SUNSparseMatrix(n_dep_var, n_dep_var, n_jac_elem_total, CSC_MAT);
+  SUNMatrix M = SUNSparseMatrix(n_dep_var, n_dep_var,  n_jac_elem_total, CSC_MAT);
+
 
   //TODO:Check if jacobian is the same for cb05 in other cells, since for mock_monarch is the same
 
@@ -1366,14 +1404,16 @@ void error_handler(int error_code, const char *module,
  */
 void model_free(ModelData model_data)
 {
-
-  if (compare_gpu_cpu){
-    timeDerivgpu= timeDerivgpu / CLOCKS_PER_SEC;
-    timeDeriv= timeDeriv / CLOCKS_PER_SEC;
-    printf ("Total Time Derivgpu= %f",timeDerivgpu);
-    printf (", Total Time Deriv= %f\n",timeDeriv);
-    printf ("counterDeriv: %d ", counter);
-  }
+//#ifdef PMC_DEBUG_PRINT
+  timeDerivgpu= timeDerivgpu / CLOCKS_PER_SEC;
+  timeDeriv= timeDeriv / CLOCKS_PER_SEC;
+  timeJac= timeJac / CLOCKS_PER_SEC;
+  printf ("Total Time Derivgpu= %f",timeDerivgpu);
+  printf (", Total Time Deriv= %f",timeDeriv);
+  printf (", Total Time Jac= %f\n",timeJac);
+  printf ("counterDeriv: %d ", counter);
+  printf ("counterJac: %d ", counterJac);
+//#endif
 
 #ifdef PMC_USE_GPU
   free_gpu_cu();

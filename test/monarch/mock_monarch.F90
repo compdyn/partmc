@@ -39,11 +39,11 @@ program mock_monarch
   !> Starting W-E cell for phlex-chem call
   integer, parameter :: I_W = 1!9
   !> Ending W-E cell for phlex-chem call
-  integer, parameter :: I_E = 30!15!11
+  integer, parameter :: I_E = 15!15!11
   !> Starting S-N cell for phlex-chem call
   integer, parameter :: I_S = 1!14
   !> Ending S-N cell for phlex-chem call
-  integer, parameter :: I_N = 30!15!16
+  integer, parameter :: I_N = 15!15!16
   !> Starting index for phlex-chem species in tracer array
   integer, parameter :: START_PHLEX_ID = 100
   !> Ending index for phlex-chem species in tracer array
@@ -132,7 +132,7 @@ program mock_monarch
   !n_cells = 1
 
   pmc_interface => monarch_interface_t(phlex_input_file, interface_input_file, &
-          START_PHLEX_ID, END_PHLEX_ID, n_cells)!, n_cells
+          START_PHLEX_ID, END_PHLEX_ID,n_cells)!, n_cells
   deallocate(phlex_input_file)
   deallocate(interface_input_file)
 

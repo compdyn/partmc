@@ -188,9 +188,9 @@ void aero_rep_update_state(ModelData *model_data)
  * \param aero_phase_idx Index of the aerosol phase within the aerosol
  *                       representation
  * \param radius Pointer to hold effective particle radius (m)
- * \param Pointer to the set of calculated partial derivatives
+ * \param Pointer to the set of partial derivatives to be calculated
  *         \f$\frac{\partial r_{eff}}{\partial y}\f$, or a NULL pointer if no
- *         partial derivatives exist
+ *         partial derivatives are needed
  */
 void aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
          int aero_phase_idx, double *radius, double *partial_deriv)
@@ -374,16 +374,13 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
  * \param aero_phase_mass Pointer to hold calculated aerosol-phase mass,
  *                        \f$m\f$
  *                        (\f$\mbox{\si{\micro\gram\per\cubic\metre}}\f$)
- * \return A pointer to a set of partial derivatives
+ * \param Pointer to the set of partial derivatives to be calculated
  *         \f$\frac{\partial m}{\partial y}\f$, or a NULL pointer if no partial
- *         derivatives exist
+ *         derivatives are needed
  */
 void * aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
-          int aero_phase_idx, double *aero_phase_mass)
+          int aero_phase_idx, double *aero_phase_mass, double *partial_deriv)
 {
-
-  // Set up a pointer for the partial derivatives
-  void *partial_deriv = NULL;
 
   // Get the number of aerosol representations
   int *aero_rep_data = (int*) (model_data->aero_rep_data);

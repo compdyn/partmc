@@ -229,7 +229,8 @@ void * rxn_SIMPOL_phase_transfer_pre_calc(ModelData *model_data, void *rxn_data,
                   model_data,                   // model data
                   AERO_REP_ID_(i_phase),        // aerosol representation index
                   AERO_PHASE_ID_(i_phase),      // aerosol phase index
-                  &aero_phase_mass);            // total aerosol-phase mass
+                  &aero_phase_mass,             // total aerosol-phase mass
+                  NULL);                        // partial derivatives
 
     // Get the total mass of the aerosol phase
     realtype aero_phase_avg_MW;
@@ -424,7 +425,8 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
                   model_data,                   // model data
                   AERO_REP_ID_(i_phase),        // aerosol representation index
                   AERO_PHASE_ID_(i_phase),      // aerosol phase index
-                  &aero_phase_mass);            // total aerosol-phase mass
+                  &aero_phase_mass,             // total aerosol-phase mass
+                  NULL);                        // partial derivatives
 
     // Get the total mass of the aerosol phase
     realtype aero_phase_avg_MW;
@@ -568,7 +570,8 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
                   model_data,                   // model data
                   AERO_REP_ID_(i_phase),        // aerosol representation index
                   AERO_PHASE_ID_(i_phase),      // aerosol phase index
-                  &aero_phase_mass);            // total aerosol-phase mass
+                  &aero_phase_mass,             // total aerosol-phase mass
+                  NULL);                        // partial derivatives
 
     // Get the total mass of the aerosol phase
     realtype aero_phase_avg_MW;

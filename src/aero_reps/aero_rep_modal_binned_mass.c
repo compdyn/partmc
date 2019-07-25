@@ -399,10 +399,10 @@ void * aero_rep_modal_binned_mass_get_aero_phase_mass(ModelData *model_data,
 
   for (int i_section=0; i_section<NUM_SECTION_ && aero_phase_idx>=0;
             i_section++) {
-    for (int i_phase=0; i_phase<NUM_PHASE_(i_section) && aero_phase_idx>=0;
-              i_phase++) {
-      for (int i_bin=0; i_bin<NUM_BINS_(i_section) && aero_phase_idx>=0;
-                i_bin++) {
+    for (int i_bin=0; i_bin<NUM_BINS_(i_section) && aero_phase_idx>=0;
+              i_bin++) {
+      for (int i_phase=0; i_phase<NUM_PHASE_(i_section) && aero_phase_idx>=0;
+                i_phase++) {
         if (aero_phase_idx==0) {
           *aero_phase_mass = PHASE_MASS_(i_section, i_phase, i_bin);
           if (partial_deriv) {
@@ -442,10 +442,10 @@ void * aero_rep_modal_binned_mass_get_aero_phase_avg_MW(ModelData *model_data,
 
   for (int i_section=0; i_section<NUM_SECTION_ && aero_phase_idx>=0;
             i_section++) {
-    for (int i_phase=0; i_phase<NUM_PHASE_(i_section) && aero_phase_idx>=0;
-              i_phase++) {
-      for (int i_bin=0; i_bin<NUM_BINS_(i_section) && aero_phase_idx>=0;
-                i_bin++) {
+    for (int i_bin=0; i_bin<NUM_BINS_(i_section) && aero_phase_idx>=0;
+              i_bin++) {
+      for (int i_phase=0; i_phase<NUM_PHASE_(i_section) && aero_phase_idx>=0;
+                i_phase++) {
         if (aero_phase_idx==0) {
           *aero_phase_avg_MW = PHASE_AVG_MW_(i_section, i_phase, i_bin);
           if (partial_deriv) {

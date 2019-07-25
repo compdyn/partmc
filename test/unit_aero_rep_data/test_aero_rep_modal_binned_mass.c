@@ -59,6 +59,37 @@ int test_effective_radius(ModelData * model_data, N_Vector state) {
   return ret_val;
 }
 
+/** \brief Test the total aerosol phase mass function
+ *
+ * \param model_data Pointer to the model data
+ * \param state Solver state
+ */
+int test_aero_phase_mass(ModelData * model_data, N_Vector state) {
+
+  int ret_val = 0;
+  double partial_deriv[N_JAC_ELEM+2];
+  double phase_mass = -999.9;
+
+  for( int i = 0; i < N_JAC_ELEM+2; ++i ) partial_deriv[i] = 999.9;
+
+  aero_rep_get_aero_phase_mass(model_data, AERO_REP_IDX, AERO_PHASE_IDX,
+                               &phase_mass, &(partial_deriv[1]));
+
+  ret_val += ASSERT_MSG(fabs(phase_mass-6.0) < 1.0e-10, "Bad phase mass");
+
+  ret_val += ASSERT_MSG(partial_deriv[0] == 999.9,
+                        "Bad Jacobian index (-1)");
+  for( int i = 1; i < 4; ++i ) {
+    ret_val += ASSERT_MSG(partial_deriv[i] == ONE,
+                          "Bad Jacobian element");
+  }
+  for( int i = 4; i < N_JAC_ELEM+2; ++i )
+    ret_val += ASSERT_MSG(partial_deriv[i] == 999.9,
+                        "Bad Jacobian index (end+1)");
+
+  return ret_val;
+}
+
 /** \brief Run c function tests
  *
  * \param solver_data Pointer to solver data
@@ -92,11 +123,11 @@ int run_aero_rep_modal_c_tests(void *solver_data, double *state, double *env) {
   ret_val += ASSERT_MSG(n_jac_elem==N_JAC_ELEM, "Bad number of Jac elements");
 
   // tests are for bin 4
-  NV_DATA_S(solver_state)[17] = CONC_1A; // phase one, species a
-  NV_DATA_S(solver_state)[18] = CONC_1B; // phase one, species b
-  NV_DATA_S(solver_state)[19] = CONC_1C; // phase one, species c
-  NV_DATA_S(solver_state)[38] = CONC_3B; // last phase, species b
-  NV_DATA_S(solver_state)[39] = CONC_3E; // last phase, species e
+  NV_DATA_S(solver_state)[17] = state[17] = CONC_1A; // phase one, species a
+  NV_DATA_S(solver_state)[18] = state[18] = CONC_1B; // phase one, species b
+  NV_DATA_S(solver_state)[19] = state[19] = CONC_1C; // phase one, species c
+  NV_DATA_S(solver_state)[38] = state[38] = CONC_3B; // last phase, species b
+  NV_DATA_S(solver_state)[39] = state[39] = CONC_3E; // last phase, species e
 
   // Update the environmental and concentration states
   aero_rep_update_env_state(model_data, env);
@@ -104,6 +135,7 @@ int run_aero_rep_modal_c_tests(void *solver_data, double *state, double *env) {
 
   // Run the property tests
   ret_val += test_effective_radius(model_data, solver_state);
+  ret_val += test_aero_phase_mass(model_data, solver_state);
 
   return ret_val;
 }

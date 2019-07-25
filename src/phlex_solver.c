@@ -25,10 +25,12 @@
 #include "rxn_solver.h"
 #include "sub_model_solver.h"
 
-//TODO: Check cvode version if is working with this partmc version
+//TODO: Check cvode version is working with this partmc version
 
 // FIXME are these necessary? CVODE already has counters for these calls
-unsigned int counter=0;
+// CVODE counters reset each time we call solver_run, so we need to accumulate them
+// adding a extra counter to know the total iterations (since the iters can vary between solver_run iters)
+unsigned int counterDeriv=0;
 unsigned int counterJac=0;
 double timeDerivgpu=0;
 double timeDeriv=0;
@@ -275,7 +277,7 @@ void * solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
 
   //GPU
 #ifdef PMC_USE_GPU
-  solver_new_gpu_cu((void*) sd, n_dep_var,
+  solver_new_gpu_cu(n_dep_var,
   n_state_var, var_type, n_rxn,
   n_rxn_int_param, n_rxn_float_param, n_cells);
 #endif
@@ -449,8 +451,6 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   SolverData *sd = (SolverData*) solver_data;
   int flag;
 
-  //TODO: When jacobian gpu coded, update rates only on gpu, for the moment update on cpu too
-
   // Update the dependent variables
   int i_dep_var = 0;
   int n_state_var = sd->model_data.n_state_var;
@@ -480,10 +480,7 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   //  solving. This can be changed in the future if necessary.)
   aero_rep_update_env_state(&(sd->model_data), env);
   sub_model_update_env_state(&(sd->model_data), env);
-
-  //#ifndef PMC_USE_GPU
   rxn_update_env_state(&(sd->model_data), env);
-  //#endif
 
   PMC_DEBUG_JAC_STRUCT("Begin solving");
 
@@ -496,13 +493,13 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
 
 #ifdef PMC_USE_GPU
   //Set gpu rxn values only 1 time
+  //TODO: this should be reordering setting after initializations and before the run
   solver_set_data_gpu(&(sd->model_data));
 
  // Update data for new environmental state on gpu
+  //For the moment is inneficient since we are working with few data
   //rxn_update_env_state_gpu(&(sd->model_data), env);
 #endif
-
-
 
   // Check whether there is anything to solve (filters empty air masses with no
   // emissions)
@@ -767,7 +764,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 
   clock_t start = clock();
   // Calculate the time derivative f(t,y)
-  //rxn_calc_deriv(md, deriv, (double) time_step);
+  rxn_calc_deriv(md, deriv, (double) time_step);
   clock_t end = clock();
   timeDeriv+= ((double) (end - start));
 
@@ -775,12 +772,14 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 
 #ifdef PMC_USE_GPU
   clock_t start2 = clock();
-  rxn_calc_deriv_gpu(md, deriv, (double) time_step);
+  //rxn_calc_deriv_gpu(md, deriv, (double) time_step);
   clock_t end2 = clock();
   timeDerivgpu+= ((double) (end2 - start2));
 #endif
 
-  if(counter==29){
+
+#ifdef PMC_DEBUG
+  if(counterDeriv==29){
     int n_cells = md->n_cells;
     //printf(" deriv length: %d\n", NV_LENGTH_S(deriv));
     for (int i=0; i<NV_LENGTH_S(deriv); i++) {//NV_LENGTH_S(deriv)
@@ -794,9 +793,9 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 
     }
   }
+#endif
+  counterDeriv++;
 
-  //todo: Update counters with cvode counters
-  counter++;
 
   //Return 0 if success
   return (0);
@@ -845,15 +844,22 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     }
   }
 
-  // Reset the Jacobian //Ttodo: not necessary maybe: cvode reset jacobian before this call
-  SM_NNZ_S(J) = SM_NNZ_S(md->J_init);
-  for (int i=0; i<SM_NNZ_S(J); i++) {
+  // Reset the Jacobian (cvode reset data values before)
+  //TODO: THIS reset works well with 1 cell, but works very bad with multiple cells
+  
+  if (md->n_cells == 1 ){
+
+    SM_NNZ_S(J) = SM_NNZ_S(md->J_init);
+    for (int i=0; i<SM_NNZ_S(J); i++) {
     (SM_DATA_S(J))[i] = (realtype)0.0;
     (SM_INDEXVALS_S(J))[i] = (SM_INDEXVALS_S(md->J_init))[i];
+    }
+    for (int i=0; i<=SM_NP_S(J); i++) {
+      (SM_INDEXPTRS_S(J))[i] = (SM_INDEXPTRS_S(md->J_init))[i];
+    }
+
   }
-  for (int i=0; i<=SM_NP_S(J); i++) {
-    (SM_INDEXPTRS_S(J))[i] = (SM_INDEXPTRS_S(md->J_init))[i];
-  }
+
 
   // Update the aerosol representations
   aero_rep_update_state(md);
@@ -1166,7 +1172,8 @@ SUNMatrix get_jac_init(SolverData *solver_data)
   SUNMatrix M = SUNSparseMatrix(n_dep_var, n_dep_var,  n_jac_elem_total, CSC_MAT);
 
 
-  //TODO:Check if jacobian is the same for cb05 in other cells, since for mock_monarch is the same
+  //TODO: Check jacobian for multiple cells: initialization and jacobian retrieved:
+  //Note: on mock_monarch jacobian seems the same for n_cells than 1 cell
 
   // Set the column and row indices
   int i_col=0, i_elem=0;
@@ -1404,16 +1411,16 @@ void error_handler(int error_code, const char *module,
  */
 void model_free(ModelData model_data)
 {
-//#ifdef PMC_DEBUG_PRINT
+#ifdef PMC_DEBUG_PRINT
   timeDerivgpu= timeDerivgpu / CLOCKS_PER_SEC;
   timeDeriv= timeDeriv / CLOCKS_PER_SEC;
   timeJac= timeJac / CLOCKS_PER_SEC;
   printf ("Total Time Derivgpu= %f",timeDerivgpu);
   printf (", Total Time Deriv= %f",timeDeriv);
   printf (", Total Time Jac= %f\n",timeJac);
-  printf ("counterDeriv: %d ", counter);
+  printf ("counterDeriv: %d ", counterDeriv);
   printf ("counterJac: %d ", counterJac);
-//#endif
+#endif
 
 #ifdef PMC_USE_GPU
   free_gpu_cu();

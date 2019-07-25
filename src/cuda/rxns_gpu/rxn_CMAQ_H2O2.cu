@@ -118,15 +118,15 @@ __device__ void rxn_gpu_CMAQ_H2O2_update_env_state(double *rate_constants,
   // k = k1 + [M]*k2
   double conv = CONV_ * PRESSURE_PA_ / TEMPERATURE_K_;
   RATE_CONSTANT_ = (k1_A_
-	  * (k1_C_==0.0 ? 1.0 : exp(k1_C_/TEMPERATURE_K_))
-	  * (k1_B_==0.0 ? 1.0 :
-                  pow(TEMPERATURE_K_/((double)300.0), k1_B_))
-	  + k2_A_ // [M] is included in k2_A_
-	  * (k2_C_==0.0 ? 1.0 : exp(k2_C_/TEMPERATURE_K_))
-	  * (k2_B_==0.0 ? 1.0 :
-                  pow(TEMPERATURE_K_/((double)300.0), k2_B_))
-	  * conv
-	  ) * pow(conv, NUM_REACT_-1);
+      * (k1_C_==0.0 ? 1.0 : exp(k1_C_/TEMPERATURE_K_))
+      * (k1_B_==0.0 ? 1.0 :
+         pow(TEMPERATURE_K_/((double)300.0), k1_B_))
+      + k2_A_ // [M] is included in k2_A_
+        * (k2_C_==0.0 ? 1.0 : exp(k2_C_/TEMPERATURE_K_))
+        * (k2_B_==0.0 ? 1.0 :
+           pow(TEMPERATURE_K_/((double)300.0), k2_B_))
+        * conv
+     ) * pow(conv, NUM_REACT_-1);
 
   rate_constants[0] = RATE_CONSTANT_;
 

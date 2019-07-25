@@ -33,13 +33,19 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+/* Number of environmental parameters */
+#define PMC_NUM_ENV_PARAM_ 2 // !!! Must match the value in phlex_state.f90 !!!
+
 //TTODO: Try change max shared memory per block allowed on cuda config
 // with cudaDeviceSetCacheConfig, maybe we can reach improvement using 16kb
 //instead of default 48kb
 
+//Value to consider data size too big -> Memory optimization will change below and under the limit
+#define DATA_SIZE_LIMIT_OPT 1000
 
 //Knowed bug: Don't increase threads to 1024 or it crash with rxn_data flipped
-#define MAX_SHARED_MEMORY_BLOCK_DOUBLE 512//1024
+//Knowed bug: With some 2^n values (like 256) shared memory crash (However with 124 or 512 works fine)
+#define MAX_SHARED_MEMORY_BLOCK_DOUBLE 900//1024
 
 //TODO: get max number of blocks on runtime and return error if is set to maximum
 //#define MAX_N_GPU_BLOCKS 10
@@ -108,7 +114,7 @@ typedef struct {
 } SolverDatagpu;
 
 
-void solver_new_gpu_cu(SolverDatagpu *sd, int n_dep_var,
+void solver_new_gpu_cu(int n_dep_var,
      int n_state_var, int *var_type, int n_rxn,
      int n_rxn_int_param, int n_rxn_float_param, int n_cells);
 void solver_update_state_gpu(ModelDatagpu *md);

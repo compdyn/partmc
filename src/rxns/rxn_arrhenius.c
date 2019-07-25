@@ -107,8 +107,6 @@ void * rxn_arrhenius_update_env_state(double *rate_constants, double *env_data, 
   int *int_data = (int*) rxn_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
-  //TODO: safe different RATE_CONSTANTs
-
   // Calculate the rate constant in (#/cc)
   // k = A*exp(C/T) * (T/D)^B * (1+E*P)
   RATE_CONSTANT_ = A_ * exp(C_/TEMPERATURE_K_)

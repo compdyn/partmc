@@ -29,6 +29,11 @@
 #define CONC_3B 4.0
 #define CONC_3E 5.0
 
+// Molecular weight of test species (must match json file)
+#define MW_1A 11.2
+#define MW_1B 21.2
+#define MW_1C 31.2
+
 /** \brief Test the effective radius function
  *
  * \param model_data Pointer to the model data
@@ -75,7 +80,8 @@ int test_aero_phase_mass(ModelData * model_data, N_Vector state) {
   aero_rep_get_aero_phase_mass(model_data, AERO_REP_IDX, AERO_PHASE_IDX,
                                &phase_mass, &(partial_deriv[1]));
 
-  ret_val += ASSERT_MSG(fabs(phase_mass-6.0) < 1.0e-10, "Bad phase mass");
+  double mass = CONC_1A + CONC_1B + CONC_1C;
+  ret_val += ASSERT_MSG(fabs(phase_mass-mass) < 1.0e-10*mass, "Bad phase mass");
 
   ret_val += ASSERT_MSG(partial_deriv[0] == 999.9,
                         "Bad Jacobian index (-1)");
@@ -83,6 +89,47 @@ int test_aero_phase_mass(ModelData * model_data, N_Vector state) {
     ret_val += ASSERT_MSG(partial_deriv[i] == ONE,
                           "Bad Jacobian element");
   }
+  for( int i = 4; i < N_JAC_ELEM+2; ++i )
+    ret_val += ASSERT_MSG(partial_deriv[i] == 999.9,
+                        "Bad Jacobian index (end+1)");
+
+  return ret_val;
+}
+
+/** \brief Test the aerosol phase average molecular weight function
+ *
+ * \param model_data Pointer to the model data
+ * \param state Solver state
+ */
+int test_aero_phase_avg_MW(ModelData * model_data, N_Vector state) {
+
+  int ret_val = 0;
+  double partial_deriv[N_JAC_ELEM+2];
+  double avg_mw = -999.9;
+
+  for( int i = 0; i < N_JAC_ELEM+2; ++i ) partial_deriv[i] = 999.9;
+
+  aero_rep_get_aero_phase_avg_MW(model_data, AERO_REP_IDX, AERO_PHASE_IDX,
+                                 &avg_mw, &(partial_deriv[1]));
+
+  ret_val += ASSERT_MSG(fabs(avg_mw-21.44548402) < 1.0e-8, "Bad phase avg MW");
+
+  // MW = mass_total / moles_total
+  // d_MW / d_y = 1 / moles_total - mass_total / ( moles_total^2 * MW_y )
+  double mass = CONC_1A + CONC_1B + CONC_1C;
+  double moles = CONC_1A / MW_1A + CONC_1B / MW_1B + CONC_1C / MW_1C;
+  double dMW_dA = ONE / moles - mass / (moles * moles * MW_1A);
+  double dMW_dB = ONE / moles - mass / (moles * moles * MW_1B);
+  double dMW_dC = ONE / moles - mass / (moles * moles * MW_1C);
+
+  ret_val += ASSERT_MSG(partial_deriv[0] == 999.9,
+                        "Bad Jacobian index (-1)");
+  ret_val += ASSERT_MSG(fabs(partial_deriv[1]-dMW_dA) < fabs(1.0e-10*dMW_dA),
+                          "Bad Jacobian element");
+  ret_val += ASSERT_MSG(fabs(partial_deriv[2]-dMW_dB) < fabs(1.0e-10*dMW_dB),
+                          "Bad Jacobian element");
+  ret_val += ASSERT_MSG(fabs(partial_deriv[3]-dMW_dC) < fabs(1.0e-10*dMW_dC),
+                          "Bad Jacobian element");
   for( int i = 4; i < N_JAC_ELEM+2; ++i )
     ret_val += ASSERT_MSG(partial_deriv[i] == 999.9,
                         "Bad Jacobian index (end+1)");
@@ -136,6 +183,7 @@ int run_aero_rep_modal_c_tests(void *solver_data, double *state, double *env) {
   // Run the property tests
   ret_val += test_effective_radius(model_data, solver_state);
   ret_val += test_aero_phase_mass(model_data, solver_state);
+  ret_val += test_aero_phase_avg_MW(model_data, solver_state);
 
   return ret_val;
 }

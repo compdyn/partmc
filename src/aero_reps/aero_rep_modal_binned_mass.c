@@ -407,6 +407,7 @@ void * aero_rep_modal_binned_mass_get_aero_phase_mass(ModelData *model_data,
           *aero_phase_mass = PHASE_MASS_(i_section, i_phase, i_bin);
           if (partial_deriv) {
             double *state = (double*) (model_data->state);
+            state += PHASE_STATE_ID_(i_section, i_phase, i_bin);
             double mass, mw;
             aero_phase_get_mass(model_data, aero_phase_idx, state, &mass, &mw,
                                 partial_deriv, NULL);
@@ -450,6 +451,7 @@ void * aero_rep_modal_binned_mass_get_aero_phase_avg_MW(ModelData *model_data,
           *aero_phase_avg_MW = PHASE_AVG_MW_(i_section, i_phase, i_bin);
           if (partial_deriv) {
             double *state = (double*) (model_data->state);
+            state += PHASE_STATE_ID_(i_section, i_phase, i_bin);
             double mass, mw;
             aero_phase_get_mass(model_data, aero_phase_idx, state, &mass, &mw,
                                 NULL, partial_deriv);

@@ -27,12 +27,13 @@ void * aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
           int aero_phase_idx, double *number_conc);
 int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
           int aero_phase_idx);
-void *aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
-                                   int aero_phase_idx, double *aero_phase_mass,
-                                   double *partial_deriv);
-void *aero_rep_get_aero_phase_avg_MW(ModelData *model_data, int aero_rep_idx,
-                                     int aero_phase_idx,
-                                     double *aero_phase_avg_MW);
+void aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
+                                  int aero_phase_idx, double *aero_phase_mass,
+                                  double *partial_deriv);
+void aero_rep_get_aero_phase_avg_MW(ModelData *model_data, int aero_rep_idx,
+                                    int aero_phase_idx,
+                                    double *aero_phase_avg_MW,
+                                    double *partial_deriv);
 void aero_rep_print_data(void *solver_data);
 
 /* Setup functions */

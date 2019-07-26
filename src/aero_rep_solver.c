@@ -378,7 +378,7 @@ int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
  *         \f$\frac{\partial m}{\partial y}\f$, or a NULL pointer if no partial
  *         derivatives are needed
  */
-void * aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
+void aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
           int aero_phase_idx, double *aero_phase_mass, double *partial_deriv)
 {
 
@@ -421,7 +421,6 @@ void * aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
                       partial_deriv, (void*) aero_rep_data);
       break;
   }
-  return partial_deriv;
 }
 
 /** \brief Get the average molecular weight of an aerosol phase in this
@@ -438,16 +437,13 @@ void * aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,
  *                       representation
  * \param aero_phase_avg_MW Pointer to hold calculated average MW in the
  *                          aerosol phase (\f$\mbox{\si{\kilogram\per\mole}}\f$)
- * \return A pointer to a set of partial derivatives
+ * \param Pointer to the set of partial derivatives to be calculated
  *         \f$\frac{\partial m}{\partial y}\f$, or a NULL pointer if no partial
- *         derivatives exist
+ *         derivatives are needed
  */
-void * aero_rep_get_aero_phase_avg_MW(ModelData *model_data, int aero_rep_idx,
-          int aero_phase_idx, double *aero_phase_avg_MW)
+void aero_rep_get_aero_phase_avg_MW(ModelData *model_data, int aero_rep_idx,
+          int aero_phase_idx, double *aero_phase_avg_MW, double *partial_deriv)
 {
-
-  // Set up a pointer for the partial derivatives
-  void *partial_deriv = NULL;
 
   // Get the number of aerosol representations
   int *aero_rep_data = (int*) (model_data->aero_rep_data);
@@ -488,7 +484,6 @@ void * aero_rep_get_aero_phase_avg_MW(ModelData *model_data, int aero_rep_idx,
                       partial_deriv, (void*) aero_rep_data);
       break;
   }
-  return partial_deriv;
 }
 
 /** \brief Add condensed data to the condensed data block for aerosol representations

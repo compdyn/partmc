@@ -238,7 +238,8 @@ void * rxn_SIMPOL_phase_transfer_pre_calc(ModelData *model_data, void *rxn_data,
                   model_data,                   // model data
                   AERO_REP_ID_(i_phase),        // aerosol representation index
                   AERO_PHASE_ID_(i_phase),      // aerosol phase index
-                  &aero_phase_avg_MW);          // avg MW in the aerosol phase
+                  &aero_phase_avg_MW,           // avg MW in the aerosol phase
+                  NULL);                        // partial derivatives
 
     // If the radius, number concentration, or aerosol-phase mass are zero,
     // no transfer occurs
@@ -434,7 +435,8 @@ void * rxn_SIMPOL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
                   model_data,                   // model data
                   AERO_REP_ID_(i_phase),        // aerosol representation index
                   AERO_PHASE_ID_(i_phase),      // aerosol phase index
-                  &aero_phase_avg_MW);          // avg MW in the aerosol phase
+                  &aero_phase_avg_MW,           // avg MW in the aerosol phase
+                  NULL);                        // partial derivatives
 
     // If the radius, number concentration, or aerosol-phase mass are zero,
     // no transfer occurs
@@ -579,7 +581,8 @@ void * rxn_SIMPOL_phase_transfer_calc_jac_contrib(ModelData *model_data,
                   model_data,                   // model data
                   AERO_REP_ID_(i_phase),        // aerosol representation index
                   AERO_PHASE_ID_(i_phase),      // aerosol phase index
-                  &aero_phase_avg_MW);          // avg MW in the aerosol phase
+                  &aero_phase_avg_MW,           // avg MW in the aerosol phase
+                  NULL);                        // partial derivatives
 
     // If the radius, number concentration, or aerosol-phase mass are zero,
     // no transfer occurs

@@ -260,7 +260,7 @@ contains
     !!! Initialize phlex-chem !!!
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    n_cells = 2
+    n_cells = 100
 
     call cpu_time(comp_start)
     phlex_input_file = "config_cb05cl_ae5_big.json"
@@ -301,16 +301,12 @@ contains
 
     call phlex_state%update_env_state(0)
 
-    !TODO: updating_env_state(1) leading to a lot of time execution
-    call phlex_state%update_env_state(1)
-
-    !do cell = 0, n_cells-1
-      !call phlex_state%update_env_state(cell)
-    !end do
+    do cell = 0, n_cells-1
+      call phlex_state%update_env_state(cell)
+    end do
 
     call cpu_time(comp_end)
     write(*,*) "Phlex-chem initialization time: ", comp_end-comp_start," s"
-
 
 
     ! Get the chemical species data
@@ -522,9 +518,6 @@ contains
     KPP_PRESS = pressure * 1013.25 ! KPP pressure in hPa
     CALL KPP_Update_RCONST()
 
-    print*, "size", size(phlex_state%state_var)
-    print*, "size", size(YC)
-
     state_size_cell = size(phlex_state%state_var) / n_cells
     do i = 0, n_cells-1
       do j = 1, state_size_cell !80*n_cells
@@ -543,7 +536,7 @@ contains
     phlex_init(:) = phlex_state%state_var(:)
 
     ! Repeatedly solve the mechanism
-    do i_repeat = 1, 20!100
+    do i_repeat = 1, 100 /n_cells!100
 
       !print*, "running"
 
@@ -552,13 +545,12 @@ contains
       phlex_state%state_var(:) = phlex_init(:)
 
       ! Solve the mechanism
-      do i_time = 1, 2!NUM_TIME_STEPS
+      do i_time = 1, NUM_TIME_STEPS!NUM_TIME_STEPS
 
       ! Set minimum concentrations in all solvers
       YC(:) = MAX(YC(:), SMALL_NUM)
       KPP_C(:) = MAX(KPP_C(:), SMALL_NUM/conv)
       phlex_state%state_var(:) = max(phlex_state%state_var(:), SMALL_NUM)
-
 
       ! EBI solver
       call cpu_time(comp_start)

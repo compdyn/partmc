@@ -282,6 +282,12 @@ void * solver_new(int n_state_var, int n_cells, int *var_type, int n_rxn,
   n_rxn_int_param, n_rxn_float_param, n_cells);
 #endif
 
+#ifndef PMC_DEBUG
+  printf("n_rxn: %d " , n_rxn);
+  printf("n_state_var: %d" ,n_state_var*n_cells);
+  printf("n_dep_var: %d" ,n_dep_var*n_cells);
+#endif
+
   // Return a pointer to the new SolverData object
   return (void*) sd;
 }
@@ -508,7 +514,6 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   // CVODE makes 3+ calls to deriv before it decides there is nothing
   // to solve, so this could still be faster - we need to evaluate it
   // in the full MONARCH model
-  //TODO: Update this function to avoid calculating concentrations that are nearly 0
 
   // Reinitialize the solver
   flag = CVodeReInit(sd->cvode_mem, t_initial, sd->y);
@@ -735,7 +740,7 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
   // Get the current integrator time step (s)
   CVodeGetCurrentStep(sd->cvode_mem, &time_step);
 
-  // On the first call to f(), the time step hasn't been set yet, so use the
+  // On the first call to f(), the time step hasn't beRen set yet, so use the
   // default value
   time_step = time_step > ZERO ? time_step : sd->init_time_step;
 
@@ -763,23 +768,31 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
 //#ifndef PMC_USE_GPU
 
   clock_t start = clock();
+
   // Calculate the time derivative f(t,y)
   rxn_calc_deriv(md, deriv, (double) time_step);
+
+  #ifdef PMC_DEBUG_PRINT
   clock_t end = clock();
   timeDeriv+= ((double) (end - start));
+  #endif
 
 //#endif
 
 #ifdef PMC_USE_GPU
   clock_t start2 = clock();
+
   //rxn_calc_deriv_gpu(md, deriv, (double) time_step);
+
+  #ifdef PMC_DEBUG_PRINT
   clock_t end2 = clock();
   timeDerivgpu+= ((double) (end2 - start2));
+  counterDeriv++;
+  #endif
 #endif
 
-
 #ifdef PMC_DEBUG
-  if(counterDeriv==29){
+  if(counterDeriv==30){
     int n_cells = md->n_cells;
     //printf(" deriv length: %d\n", NV_LENGTH_S(deriv));
     for (int i=0; i<NV_LENGTH_S(deriv); i++) {//NV_LENGTH_S(deriv)
@@ -794,8 +807,6 @@ int f(realtype t, N_Vector y, N_Vector deriv, void *solver_data)
     }
   }
 #endif
-  counterDeriv++;
-
 
   //Return 0 if success
   return (0);
@@ -844,22 +855,15 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
     }
   }
 
-  // Reset the Jacobian (cvode reset data values before)
-  //TODO: THIS reset works well with 1 cell, but works very bad with multiple cells
-  
-  if (md->n_cells == 1 ){
-
-    SM_NNZ_S(J) = SM_NNZ_S(md->J_init);
-    for (int i=0; i<SM_NNZ_S(J); i++) {
-    (SM_DATA_S(J))[i] = (realtype)0.0;
-    (SM_INDEXVALS_S(J))[i] = (SM_INDEXVALS_S(md->J_init))[i];
-    }
-    for (int i=0; i<=SM_NP_S(J); i++) {
-      (SM_INDEXPTRS_S(J))[i] = (SM_INDEXPTRS_S(md->J_init))[i];
-    }
-
+  // Reset the Jacobian
+  SM_NNZ_S(J) = SM_NNZ_S(md->J_init);
+  for (int i=0; i<SM_NNZ_S(J); i++) {
+  (SM_DATA_S(J))[i] = (realtype)0.0;
+  (SM_INDEXVALS_S(J))[i] = (SM_INDEXVALS_S(md->J_init))[i];
   }
-
+  for (int i=0; i<=SM_NP_S(J); i++) {
+    (SM_INDEXPTRS_S(J))[i] = (SM_INDEXPTRS_S(md->J_init))[i];
+  }
 
   // Update the aerosol representations
   aero_rep_update_state(md);
@@ -874,13 +878,15 @@ int Jac(realtype t, N_Vector y, N_Vector deriv, SUNMatrix J, void *solver_data,
   rxn_pre_calc(md, (double) time_step);
 
   clock_t start = clock();
+
   // Calculate the Jacobian
   rxn_calc_jac(md, J, time_step);
+
+  #ifdef PMC_DEBUG_PRINT
   clock_t end = clock();
   timeJac+= ((double) (end - start));
-
-
   counterJac++;
+  #endif
 
 #ifdef PMC_DEBUG
   // Evaluate the Jacobian if flagged to do so
@@ -1132,6 +1138,9 @@ SUNMatrix get_jac_init(SolverData *solver_data)
   // (these are the ids the reactions are initialized with)
   int n_state_var = solver_data->model_data.n_state_var;
 
+  // Number of solver variables per grid cell
+  int n_dep_var = solver_data->model_data.n_dep_var;
+
   // Number of grid cells
   int n_cells = solver_data->model_data.n_cells;
 
@@ -1166,18 +1175,14 @@ SUNMatrix get_jac_init(SolverData *solver_data)
 	  solver_data->model_data.var_type[j]==CHEM_SPEC_VARIABLE) n_jac_elem++;
 
   // Initialize the sparse matrix
-  int n_dep_var = NV_LENGTH_S(solver_data->y);
+  int deriv_length = NV_LENGTH_S(solver_data->y);
   solver_data->model_data.n_jac_elem = (int) n_jac_elem;
   n_jac_elem_total = n_jac_elem * n_cells;
-  SUNMatrix M = SUNSparseMatrix(n_dep_var, n_dep_var,  n_jac_elem_total, CSC_MAT);
-
-
-  //TODO: Check jacobian for multiple cells: initialization and jacobian retrieved:
-  //Note: on mock_monarch jacobian seems the same for n_cells than 1 cell
+  SUNMatrix M = SUNSparseMatrix(deriv_length, deriv_length,  n_jac_elem_total, CSC_MAT);
 
   // Set the column and row indices
   int i_col=0, i_elem=0;
-  for (int i_cell=0; i_cell<n_cells; ++i_cell)
+  for (int i_cell=0; i_cell<n_cells; ++i_cell){
     for (int i=0; i<n_state_var; i++) {
       if (solver_data->model_data.var_type[i]!=CHEM_SPEC_VARIABLE) continue;
       (SM_INDEXPTRS_S(M))[i_col] = i_elem;
@@ -1185,12 +1190,13 @@ SUNMatrix get_jac_init(SolverData *solver_data)
         if (solver_data->model_data.var_type[j]!=CHEM_SPEC_VARIABLE) continue;
         if (jac_struct[j][i]==true) {
 	  (SM_DATA_S(M))[i_elem] = (realtype) 1.0;
-	  (SM_INDEXVALS_S(M))[i_elem++] = i_row;
+	  (SM_INDEXVALS_S(M))[i_elem++] = i_row+n_dep_var*i_cell;
         }
         i_row++;
       }
       i_col++;
     }
+  }
   (SM_INDEXPTRS_S(M))[i_col] = i_elem;
 
   // Build the set of time derivative ids
@@ -1221,6 +1227,19 @@ SUNMatrix get_jac_init(SolverData *solver_data)
 
   // Update the ids in the reaction data
   rxn_update_ids(&(solver_data->model_data), deriv_ids, jac_ids);
+
+  #ifdef PMC_DEBUG
+  printf("\n NNZ JAC:\n");
+  printf ("%d ", SM_NNZ_S(M));
+  printf("INDEXVALS:\n");
+  for (int i=0; i<SM_NNZ_S(M); i++) {
+    printf ("%d \n", (SM_INDEXVALS_S(M))[i]);
+  }
+  printf("PTRS:\n");
+  for (int i=0; i<=SM_NP_S(M); i++) {
+    printf ("%d \n", (SM_INDEXPTRS_S(M))[i]);
+  }
+  #endif
 
   // Free the memory used
   for (int i_spec=0; i_spec<n_state_var; i_spec++) free(jac_struct[i_spec]);
@@ -1435,6 +1454,7 @@ void model_free(ModelData model_data)
   free(model_data.aero_phase_data);
   free(model_data.aero_rep_data);
   free(model_data.sub_model_data);
+  free(model_data.rate_constants);
 
 }
 

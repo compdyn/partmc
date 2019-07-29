@@ -35,15 +35,15 @@ program mock_monarch
   !> Number of S-N cells in mock MONARCH
   integer, parameter :: NUM_SN_CELLS = 30
   !> Number of vertical cells in mock MONARCH
-  integer, parameter :: NUM_VERT_CELLS = 1
+  integer, parameter :: NUM_VERT_CELLS = 5
   !> Starting W-E cell for phlex-chem call
   integer, parameter :: I_W = 1!9
   !> Ending W-E cell for phlex-chem call
-  integer, parameter :: I_E = 35!15!11
+  integer, parameter :: I_E = 15!15!11
   !> Starting S-N cell for phlex-chem call
   integer, parameter :: I_S = 1!14
   !> Ending S-N cell for phlex-chem call
-  integer, parameter :: I_N = 35!15!16
+  integer, parameter :: I_N = 15!15!16
   !> Starting index for phlex-chem species in tracer array
   integer, parameter :: START_PHLEX_ID = 100
   !> Ending index for phlex-chem species in tracer array
@@ -104,7 +104,6 @@ program mock_monarch
   integer :: status_code, i_time, i_spec
   integer :: n_cells = 1
 
-
   ! Check the command line arguments
   call assert_msg(129432506, command_argument_count().eq.3, "Usage: "// &
           "./mock_monarch phlex_input_file_list.json "// &
@@ -132,7 +131,7 @@ program mock_monarch
   !n_cells = 1
 
   pmc_interface => monarch_interface_t(phlex_input_file, interface_input_file, &
-          START_PHLEX_ID, END_PHLEX_ID)!, n_cells
+          START_PHLEX_ID, END_PHLEX_ID, n_cells)!, n_cells
   deallocate(phlex_input_file)
   deallocate(interface_input_file)
 

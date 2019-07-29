@@ -166,6 +166,8 @@ if(ENABLE_CXX)
 add_definitions(-DPMC_USE_CXX)
 enable_language(CXX)
 #set(STD_CXX_FLAGS "-O3 -fpermissive")#-std=c++11
+#set(STD_CXX_FLAGS "-fpermissive -I /gpfs/scratch/bsc32/bsc32815/gpupartmc/partmc/src/solver_odeint/include/")
+
 else()
 #message([WARNING] "CXX NOT ENABLE")
 endif()
@@ -240,7 +242,7 @@ if (NOT ENABLE_TESTS AND ENABLE_JSON AND ENABLE_SUNDIALS)
     add_test(test_chemistry_cb05cl_ae5 ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5.sh ${MPI_TEST_FLAG})
     add_test(test_chemistry_cb05cl_ae5_big ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5_big.sh ${MPI_TEST_FLAG})
     add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh ${MPI_TEST_FLAG})
-
+    add_test(test_chemistry_cb05cl_ae5_big ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5_big.sh ${MPI_TEST_FLAG})
 endif()
 
 if (ENABLE_TESTS)
@@ -262,7 +264,6 @@ if (ENABLE_TESTS)
       add_test(test_sub_model_UNIFAC ${CMAKE_BINARY_DIR}/test_run/unit_sub_model_data/test_UNIFAC.sh ${MPI_TEST_FLAG})
       add_test(test_chem_mech_solver ${CMAKE_BINARY_DIR}/test_run/chemistry/test_chemistry_1.sh ${MPI_TEST_FLAG})
       add_test(test_chemistry_cb05cl_ae5 ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5.sh ${MPI_TEST_FLAG})
-      add_test(test_chemistry_cb05cl_ae5_big ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5_big.sh ${MPI_TEST_FLAG})
       add_test(test_chemistry_eqsam_v03d ${CMAKE_BINARY_DIR}/test_run/chemistry/eqsam_v03d/test_chemistry_eqsam_v03d.sh ${MPI_TEST_FLAG})
       add_test(test_MONARCH_1 ${CMAKE_BINARY_DIR}/test_run/monarch/test_monarch_1.sh ${MPI_TEST_FLAG})
       # Disable full MONARCH test until solver strategy is finished
@@ -417,7 +418,6 @@ endif()
 
 set(STD_C_FLAGS "-std=c99")
 set(STD_CUDA_FLAGS "-dc -arch=compute_70 -code=sm_70")
-set(STD_CXX_FLAGS "-fpermissive")
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
   set(STD_F_FLAGS "-extend_source -warn truncated_source")
@@ -504,7 +504,7 @@ set_source_files_properties(${PHLEX_C_SRC} PROPERTIES COMPILE_FLAGS
 
 if(ENABLE_CXX)
   set(PHLEX_CXX_SRC
-        src/phlex_gpu_solver.cpp)
+        src/solver_odeint/phlex_odeint.cpp)
   set_source_files_properties(${PHLEX_CXX_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_CXX_FLAGS})
   set_source_files_properties(${PHLEX_CXX_SRC} PROPERTIES LANGUAGE CXX)
@@ -635,23 +635,24 @@ set_source_files_properties(${CB5_EBI_SOLVER} PROPERTIES COMPILE_FLAGS
 
 add_executable(test_chemistry_cb05cl_ae5
         test/chemistry/cb05cl_ae5/test_cb05cl_ae5.F90
-	${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
+        ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
         test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
 target_link_libraries(test_chemistry_cb05cl_ae5 partmclib)
 
 ######################################################################
 # test_chemistry_cb05cl_ae5_big
 
-#add_executable(test_chemistry_cb05cl_ae5_big
-#         test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
-#         ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
-#         test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
-#target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
-
 if (NOT ENABLE_TESTS)
 add_executable(mock_monarch test/monarch/mock_monarch.F90
         test/monarch/pmc_monarch_interface.F90)
 target_link_libraries(mock_monarch partmclib)
+
+add_executable(test_chemistry_cb05cl_ae5_big
+        test/chemistry/cb05cl_ae5/test_cb05cl_ae5_big.F90
+        ${CB5_EBI_SOLVER} ${CB5_KPP_SOLVER}
+        test/chemistry/cb05cl_ae5/module_BSC_CHEM_DATA.F90)
+target_link_libraries(test_chemistry_cb05cl_ae5_big partmclib)
+
 endif()
 
 if (ENABLE_TESTS)

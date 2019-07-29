@@ -280,7 +280,6 @@ __device__ void rxn_gpu_arrhenius_calc_jac_contrib(double *rate_constants, doubl
   int *int_data = (int*) rxn_data;
   double *float_data = double_pointer_gpu;
 
-
   // Calculate the reaction rate
   //double rate = RATE_CONSTANT_;
   double rate = rate_constants[0];

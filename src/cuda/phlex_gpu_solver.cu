@@ -644,11 +644,11 @@ void rxn_calc_deriv_gpu(ModelDatagpu *model_data, N_Vector deriv, realtype time_
   cudaDeviceSynchronize();//retrieve errors (But don't retrieve anything for me)
 
   if (few_data){
-    HANDLE_ERROR(cudaMemcpy(deriv_cpu, derivgpu_data, deriv_size, cudaMemcpyDeviceToHost));//0.29secs
-    memcpy(deriv_data, deriv_cpu, deriv_size); //This is so fast(0.01secs)
+    HANDLE_ERROR(cudaMemcpy(deriv_cpu, derivgpu_data, deriv_size, cudaMemcpyDeviceToHost));
+    memcpy(deriv_data, deriv_cpu, deriv_size);
   }
   else {
-    HANDLE_ERROR(cudaMemcpy(deriv_data, derivgpu_data, deriv_size, cudaMemcpyDeviceToHost));//0.5secs
+    HANDLE_ERROR(cudaMemcpy(deriv_data, derivgpu_data, deriv_size, cudaMemcpyDeviceToHost));
   }
 
 }

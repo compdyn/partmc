@@ -310,24 +310,24 @@ contains
     ! TODO this should go in mock_monarch%model_initialize()
     do i=i_start, i_end
       MONARCH_conc(i,:,:,this%map_monarch_id(:)) = &
-              MONARCH_conc(i,:,:,this%map_monarch_id(:)) !+ 0.1*i
-      temperature(i,:,:) = temperature(i,:,:) !+ 0.001*i
+              MONARCH_conc(i,:,:,this%map_monarch_id(:)) + 0.01*i
+      temperature(i,:,:) = temperature(i,:,:) + 0.0001*i
       !Reduce slighty the pressure to avoid fails!
-      pressure(i,:,:) = pressure(i,:,:) !- 0.1*i
+      pressure(i,:,:) = pressure(i,:,:) - 0.0001*i
     end do
 
     do j=j_start, j_end
       MONARCH_conc(:,j,:,this%map_monarch_id(:)) = &
-              MONARCH_conc(:,j,:,this%map_monarch_id(:)) + 0.3*j
-      temperature(:,j,:) = temperature(:,j,:) !+ 0.003*j
-      pressure(:,:,j) = pressure(:,:,j) !- 0.3*j
+              MONARCH_conc(:,j,:,this%map_monarch_id(:)) + 0.03*j
+      temperature(:,j,:) = temperature(:,j,:) + 0.0003*j
+      pressure(:,:,j) = pressure(:,:,j) - 0.03*j
     end do
 
     do k=1, k_end
       MONARCH_conc(:,:,k,this%map_monarch_id(:)) = &
-              MONARCH_conc(:,:,k,this%map_monarch_id(:)) + 0.6*k
-      temperature(:,:,k) = temperature(:,:,k) !+ 0.006*k
-      pressure(:,k,:) = pressure(:,k,:) !- 0.6*k
+              MONARCH_conc(:,:,k,this%map_monarch_id(:)) + 0.06*k
+      temperature(:,:,k) = temperature(:,:,k) + 0.0006*k
+      pressure(:,k,:) = pressure(:,k,:) - 0.006*k
     end do
 
     call cpu_time(comp_start)

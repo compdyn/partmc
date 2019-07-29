@@ -24,7 +24,23 @@ program pmc_test_aero_rep_data
   use pmc_util,                         only: i_kind, dp, assert, &
                                               almost_equal
 
+  use iso_c_binding
   implicit none
+
+  !> Interface to c ODE solver and test functions
+  interface
+    !> Run the c function tests
+    integer(kind=c_int) function run_aero_rep_single_particle_c_tests(solver_data, &
+        state, env)  bind (c)
+      use iso_c_binding
+      !> Pointer to the initialized solver data
+      type(c_ptr), value :: solver_data
+      !> Pointer to the state array
+      type(c_ptr), value :: state
+      !> Pointer to the environmental state array
+      type(c_ptr), value :: env
+    end function run_aero_rep_single_particle_c_tests
+  end interface
 
   ! New-line character
   character(len=*), parameter :: new_line = char(10)
@@ -229,17 +245,60 @@ contains
         end do
       end associate
     end do
+
+    aero_rep => null()
+
     deallocate(buffer)
     deallocate(aero_rep_passed_data_set)
 #endif
 
+    ! Evaluate the aerosol representation c functions
+    build_aero_rep_data_set_test = eval_c_func(phlex_core)
+
     deallocate(phlex_state)
     deallocate(phlex_core)
 
-#endif  
-    build_aero_rep_data_set_test = .true.
+#endif
 
   end function build_aero_rep_data_set_test
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Evaluate the aerosol representation c functions
+  logical function eval_c_func(phlex_core) result(passed)
+
+    !> Phlex-core
+    type(phlex_core_t), intent(inout) :: phlex_core
+
+    class(aero_rep_data_t), pointer :: aero_rep
+    type(phlex_state_t), pointer :: phlex_state
+    integer(kind=i_kind), allocatable :: phase_ids(:)
+    character(len=:), allocatable :: rep_name, phase_name
+
+    rep_name = "AERO_REP_SINGLE_PARTICLE"
+
+    call assert_msg(264314298, phlex_core%get_aero_rep(rep_name, aero_rep), &
+                    rep_name)
+
+    call phlex_core%solver_initialize()
+
+    phlex_state => phlex_core%new_state()
+
+    phlex_state%state_var(:) = 0.0;
+    phlex_state%env_state%temp = 298.0;
+    phlex_state%env_state%pressure = 101325.0;
+
+    call phlex_state%update_env_state()
+
+    passed = run_aero_rep_single_particle_c_tests(                           &
+                 phlex_core%solver_data_gas_aero%solver_c_ptr,               &
+                 c_loc(phlex_state%state_var),                               &
+                 c_loc(phlex_state%env_var)                                  &
+                 ) .eq. 0
+
+    deallocate(phlex_state)
+
+  end function eval_c_func
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

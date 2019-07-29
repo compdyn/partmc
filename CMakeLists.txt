@@ -641,7 +641,8 @@ target_link_libraries(unit_test_aero_phase_data partmclib)
 ######################################################################
 # test_aero_rep_single_particle
 
-add_executable(unit_test_aero_rep_single_particle 
+add_executable(unit_test_aero_rep_single_particle
+	test/unit_aero_rep_data/test_aero_rep_single_particle.c
 	test/unit_aero_rep_data/test_aero_rep_single_particle.F90)
 
 target_link_libraries(unit_test_aero_rep_single_particle partmclib)

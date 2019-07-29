@@ -51,12 +51,19 @@ int aero_rep_single_particle_get_used_jac_elem(ModelData *model_data,
   int *int_data = (int*) aero_rep_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
-  PHASE_NUM_JAC_ELEM_(aero_phase_idx) =
-      aero_phase_get_used_jac_elem( model_data,
-              PHASE_MODEL_DATA_ID_(aero_phase_idx),
-              PHASE_STATE_ID_(aero_phase_idx), jac_struct );
+  int n_jac_elem = 0;
 
-  return PHASE_NUM_JAC_ELEM_(aero_phase_idx);
+  // Each phase in a single particle has the same jac elements
+  // (one for each species in each phase in the particle)
+  for (int i_phase = 0; i_phase < NUM_PHASE_; ++i_phase) {
+    PHASE_NUM_JAC_ELEM_(i_phase) =
+      aero_phase_get_used_jac_elem( model_data,
+              PHASE_MODEL_DATA_ID_(i_phase),
+              PHASE_STATE_ID_(i_phase), jac_struct );
+    n_jac_elem += PHASE_NUM_JAC_ELEM_(i_phase);
+  }
+
+  return n_jac_elem;
 }
 
 /** \brief Flag elements on the state array used by this aerosol representation

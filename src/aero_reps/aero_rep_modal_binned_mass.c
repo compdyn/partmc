@@ -235,8 +235,8 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data,
 
           // Calculate the number concentration based on the total bin volume
           // (see aero_rep_modal_binned_mass_get_number_conc for details)
-          NUMBER_CONC_(i_section, i_bin) = volume * 3.0 / (4.0*M_PI) *
-                  pow(BIN_DP_(i_section, i_bin)/1.0, 3);
+          NUMBER_CONC_(i_section, i_bin) = volume * 3.0 / (4.0*M_PI) /
+                  pow(BIN_DP_(i_section, i_bin)/2.0, 3);
         }
 
         break;
@@ -257,7 +257,7 @@ void * aero_rep_modal_binned_mass_update_state(ModelData *model_data,
  * in Table 1 of Zender \cite Zender2002 :
  *
  * \f[
- *      r_{eff} = \frac{\tilde{D}_n}{2}*exp(5\tilde{\sigma}_g^2/2)
+ *      r_{eff} = \frac{\tilde{D}_n}{2}*exp(9\tilde{\sigma}_g^2/2)
  * \f]
  * \f[
  *      r_{eff} = \frac{D_{eff}}{2}
@@ -310,18 +310,27 @@ void * aero_rep_modal_binned_mass_get_effective_radius(ModelData *model_data,
  * The modal mass number concentration is calculated for a log-normal
  * distribution where the geometric mean diameter (\f$\tilde{D}_n\f$) and
  * geometric standard deviation (\f$\tilde{\sigma}_g\f$) are set by the aerosol
- * model prior to solving the chemistry. Thus, all
- * \f$\frac{\partial n}{\partial y}\f$ are zero. The number concentration is
+ * model prior to solving the chemistry. The number concentration is
  * calculated according to the equation given in Table 1 of Zender
  * \cite Zender2002 :
  * \f[
  *      n = N_0 = \frac{6V_0}{\pi}\tilde{D}_n^{-3}e^{-9\tilde{\sigma}_g^2/2}
  * \f]
  * \f[
- *      V_0 = \sum_i{\rho_im_i}
+ *      V_0 = \sum_i{\m_i/rho_i}
  * \f]
  * where \f$\rho_i\f$ and \f$m_i\f$ are the density and total mass of species
  * \f$i\f$ in the specified mode.
+ *
+ * The binned number concentration is calculated according to:
+ * \f[
+ *     n = V_0 / V_p
+ * \f]
+ * \f[
+ *     V_p = \frac{4}{3}\pi r^{3}
+ * \f]
+ * where \f$r\f$ is the radius of the size bin and \f$V_0\f$ is defined as
+ * above.
  *
  * \param model_data Pointer to the model data, including the state array
  * \param aero_phase_idx Index of the aerosol phase within the representation
@@ -347,6 +356,30 @@ void * aero_rep_modal_binned_mass_get_number_conc(ModelData *model_data,
       aero_phase_idx-=NUM_PHASE_(i_section);
       if (aero_phase_idx<0) {
         *number_conc = NUMBER_CONC_(i_section, i_bin);
+        if (partial_deriv) {
+          for (int i_phase = 0; i_phase < NUM_PHASE_(i_section); ++i_phase) {
+            double *state = (double*) (model_data->state);
+            state += PHASE_STATE_ID_(i_section, i_phase, i_bin);
+            double phase_volume = 0.0;
+            aero_phase_get_volume(model_data,
+                      PHASE_MODEL_DATA_ID_(i_section, i_phase, i_bin),
+                      state, &phase_volume, partial_deriv);
+            for (int i_elem = 0;
+                 i_elem < PHASE_NUM_JAC_ELEM_(i_section, i_phase, i_bin);
+                 ++i_elem) {
+              switch (SECTION_TYPE_(i_section)) {
+                case (MODAL) :
+                  *(partial_deriv++) *= 6.0 / (M_PI * pow(GMD_(i_section,0),3) *
+                                        exp(9.0/2.0*pow(GSD_(i_section,0),2)));
+                  break;
+                case (BINNED) :
+                  *(partial_deriv++) *= 3.0 / (4.0*M_PI) /
+                                        pow(BIN_DP_(i_section, i_bin)/2.0, 3);
+                  break;
+              }
+            }
+          }
+        }
         i_section = NUM_SECTION_;
         break;
       }

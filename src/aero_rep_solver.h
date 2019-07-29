@@ -23,8 +23,9 @@ void aero_rep_update_state(ModelData *model_data);
 void aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
                                    int aero_phase_idx, double *radius,
                                    double *partial_deriv);
-void * aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
-          int aero_phase_idx, double *number_conc);
+void aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
+                              int aero_phase_idx, double *number_conc,
+                              double *partial_deriv);
 int aero_rep_get_aero_conc_type(ModelData *model_data, int aero_rep_idx,
           int aero_phase_idx);
 void aero_rep_get_aero_phase_mass(ModelData *model_data, int aero_rep_idx,

@@ -538,7 +538,7 @@ contains
         ! (See aero_rep_modal_binned_mass_get_effective_radius for details)
         EFFECTIVE_RADIUS_(i_section, NUM_BINS_(i_section)) = &
                 GMD_(i_section, NUM_BINS_(i_section)) / 2.0d0 * &
-                exp(5.0d0/2.0d0*(GSD_(i_section, NUM_BINS_(i_section)))**2)
+                exp(9.0d0/2.0d0*(GSD_(i_section, NUM_BINS_(i_section)))**2)
 
       ! Get bin parameters
       else if (SECTION_TYPE_(i_section).eq.BINNED) then
@@ -580,7 +580,8 @@ contains
                     (i_bin-1) * d_log_Dp )
 
             ! Set the effective radius
-            EFFECTIVE_RADIUS_(i_section,i_bin) = BIN_DP_(i_section,i_bin)
+            EFFECTIVE_RADIUS_(i_section,i_bin) = &
+                BIN_DP_(i_section,i_bin) / 2.0
           end do
         else
           call die_msg(236797392, "Invalid scale specified for bin '"// &

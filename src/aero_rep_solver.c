@@ -251,16 +251,13 @@ void aero_rep_get_effective_radius(ModelData *model_data, int aero_rep_idx,
  *                       representation
  * \param number_conc Pointer to hold calculated number concentration, \f$n\f$
  *                    (\f$\mbox{\si{\#\per\cubic\centi\metre}}\f$)
- * \return A pointer to a set of partial derivatives
+ * \param Pointer to the set of calculated partial derivatives
  *         \f$\frac{\partial n}{\partial y}\f$, or a NULL pointer if no partial
- *         derivatives exist
+ *         derivatives are required
  */
-void * aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
-          int aero_phase_idx, double *number_conc)
+void aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
+          int aero_phase_idx, double *number_conc, double *partial_deriv)
 {
-
-  // Set up a pointer for the partial derivatives
-  void *partial_deriv = NULL;
 
   // Get the number of aerosol representations
   int *aero_rep_data = (int*) (model_data->aero_rep_data);
@@ -301,7 +298,7 @@ void * aero_rep_get_number_conc(ModelData *model_data, int aero_rep_idx,
                 (void*) aero_rep_data);
       break;
   }
-  return partial_deriv;
+  return;
 }
 
 /** \brief Check whether aerosol concentrations are per-particle or total for each phase

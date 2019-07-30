@@ -189,7 +189,7 @@ contains
   !! sub-model type. These include:
   !!
   !!   - \subpage phlex_sub_model_UNIFAC "SUB_MODEL_UNIFAC"
-  !!   - \subpage phlex_sub_model_ZSR_aerosol_water "SUB_MODEL_ZSR_AEROSOL_WATER""
+  !!   - \subpage phlex_sub_model_ZSR_aerosol_water "SUB_MODEL_ZSR_AEROSOL_WATER"
   !!
   !! All remaining data are optional and may include and valid \b json value,
   !! including nested objects. However, extending types will have specific

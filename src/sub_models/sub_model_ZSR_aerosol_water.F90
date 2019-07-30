@@ -7,7 +7,7 @@
 
 ! TODO Incorporate deliquesence calculations
 
-!> \page phlex_sub_model_ZSR_aerosol_water Phlexible Module for Chemistry: ZSR Aerosol Water Reaction
+!> \page phlex_sub_model_ZSR_aerosol_water Phlexible Module for Chemistry: ZSR Aerosol Water
 !!
 !! ZSR aerosol water calculates equilibrium aerosol water content
 !! based on the Zdanovski-Stokes-Robinson mixing rule \cite Jacobson1996 in

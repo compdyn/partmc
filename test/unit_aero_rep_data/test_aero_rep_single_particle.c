@@ -50,6 +50,154 @@
 #define DENSITY_F 6.0
 #define DENSITY_G 7.0
 
+// Externally set properties
+#define PART_NUM_CONC 1.23e3
+#define PART_RADIUS 2.43e-7
+
+/** \brief Test the effective radius function
+ *
+ * \param model_data Pointer to the model data
+ * \param state Solver state
+ */
+int test_effective_radius(ModelData * model_data, N_Vector state) {
+
+  int ret_val = 0;
+  double partial_deriv[N_JAC_ELEM+2];
+  double eff_rad = -999.9;
+
+  for( int i = 0; i < N_JAC_ELEM+2; ++i ) partial_deriv[i] = 999.9;
+
+  aero_rep_get_effective_radius(model_data, AERO_REP_IDX,
+                                AERO_PHASE_IDX, &eff_rad, &(partial_deriv[1]));
+
+  ret_val += ASSERT_MSG(fabs(eff_rad-PART_RADIUS) < 1.0e-6*PART_RADIUS,
+                        "Bad effective radius");
+
+  ret_val += ASSERT_MSG(partial_deriv[0] = 999.9,
+                        "Bad Jacobian (-1)");
+  for( int i = 1; i < N_JAC_ELEM+1; ++i )
+    ret_val += ASSERT_MSG(partial_deriv[i] == ZERO,
+                          "Bad Jacobian element");
+  ret_val += ASSERT_MSG(partial_deriv[N_JAC_ELEM+1] = 999.9,
+                        "Bad Jacobian (end+1)");
+
+  return ret_val;
+}
+
+/** \brief Test the number concentration function
+ *
+ * \param model_data Pointer to the model data
+ * \param state Solver state
+ */
+int test_number_concentration(ModelData * model_data, N_Vector state) {
+
+  int ret_val = 0;
+  double partial_deriv[N_JAC_ELEM+2];
+  double num_conc = -999.9;
+
+  for( int i = 0; i < N_JAC_ELEM+2; ++i ) partial_deriv[i] = 999.9;
+
+  aero_rep_get_number_conc(model_data, AERO_REP_IDX,
+                           AERO_PHASE_IDX, &num_conc, &(partial_deriv[1]));
+
+  ret_val += ASSERT_MSG(fabs(num_conc-PART_NUM_CONC) < 1.0e-10*PART_NUM_CONC,
+                        "Bad number concentration");
+
+  ret_val += ASSERT_MSG(partial_deriv[0] = 999.9,
+                        "Bad Jacobian (-1)");
+  for( int i = 1; i < N_JAC_ELEM+1; ++i )
+    ret_val += ASSERT_MSG(partial_deriv[i] == ZERO,
+                          "Bad Jacobian element");
+  ret_val += ASSERT_MSG(partial_deriv[N_JAC_ELEM+1] = 999.9,
+                        "Bad Jacobian (end+1)");
+
+  return ret_val;
+}
+
+/** \brief Test the total aerosol phase mass function
+ *
+ * \param model_data Pointer to the model data
+ * \param state Solver state
+ */
+int test_aero_phase_mass(ModelData * model_data, N_Vector state) {
+
+  int ret_val = 0;
+  double partial_deriv[N_JAC_ELEM+2];
+  double phase_mass = -999.9;
+
+  for( int i = 0; i < N_JAC_ELEM+2; ++i ) partial_deriv[i] = 999.9;
+
+  aero_rep_get_aero_phase_mass(model_data, AERO_REP_IDX, AERO_PHASE_IDX,
+                               &phase_mass, &(partial_deriv[1]));
+
+  double mass = CONC_2C + CONC_2D + CONC_2E;
+
+  ret_val += ASSERT_MSG(fabs(phase_mass-mass) < 1.0e-10*mass,
+                        "Bad aerosol phase mass");
+
+  ret_val += ASSERT_MSG(partial_deriv[0] = 999.9,
+                        "Bad Jacobian (-1)");
+  for( int i = 1; i < 4; ++i )
+    ret_val += ASSERT_MSG(partial_deriv[i] == ZERO,
+                          "Bad Jacobian element");
+  for( int i = 4; i < 7; ++i )
+    ret_val += ASSERT_MSG(partial_deriv[i] == ONE,
+                          "Bad Jacobian element");
+  for( int i = 7; i < N_JAC_ELEM+1; ++i )
+    ret_val += ASSERT_MSG(partial_deriv[i] == ZERO,
+                          "Bad Jacobian element");
+  ret_val += ASSERT_MSG(partial_deriv[N_JAC_ELEM+1] = 999.9,
+                        "Bad Jacobian (end+1)");
+
+  return ret_val;
+}
+
+/** \brief Test the aerosol phase average molecular weight function
+ *
+ * \param model_data Pointer to the model data
+ * \param state Solver state
+ */
+int test_aero_phase_avg_MW(ModelData * model_data, N_Vector state) {
+
+  int ret_val = 0;
+  double partial_deriv[N_JAC_ELEM+2];
+  double avg_mw = -999.9;
+
+  for( int i = 0; i < N_JAC_ELEM+2; ++i ) partial_deriv[i] = 999.9;
+
+  aero_rep_get_aero_phase_avg_MW(model_data, AERO_REP_IDX, AERO_PHASE_IDX,
+                                 &avg_mw, &(partial_deriv[1]));
+
+  double mass = CONC_2C + CONC_2D + CONC_2E;
+  double moles = CONC_2C / MW_C + CONC_2D / MW_D + CONC_2E / MW_E;
+  double avg_mw_real = mass / moles;
+  double dMW_dC = ONE / moles - mass / (moles * moles * MW_C);
+  double dMW_dD = ONE / moles - mass / (moles * moles * MW_D);
+  double dMW_dE = ONE / moles - mass / (moles * moles * MW_E);
+
+  ret_val += ASSERT_MSG(fabs(avg_mw-avg_mw_real) < 1.0e-10*avg_mw_real,
+                        "Bad average MW");
+
+  ret_val += ASSERT_MSG(partial_deriv[0] = 999.9,
+                        "Bad Jacobian (-1)");
+  for( int i = 1; i < 4; ++i )
+    ret_val += ASSERT_MSG(partial_deriv[i] == ZERO,
+                          "Bad Jacobian element");
+  ret_val += ASSERT_MSG(fabs(partial_deriv[4]-dMW_dC) < 1.0e-10*fabs(dMW_dC),
+                        "Bad Jacobian (-1)");
+  ret_val += ASSERT_MSG(fabs(partial_deriv[5]-dMW_dD) < 1.0e-10*fabs(dMW_dD),
+                        "Bad Jacobian (-1)");
+  ret_val += ASSERT_MSG(fabs(partial_deriv[6]-dMW_dE) < 1.0e-10*fabs(dMW_dE),
+                        "Bad Jacobian (-1)");
+  for( int i = 7; i < N_JAC_ELEM+1; ++i )
+    ret_val += ASSERT_MSG(partial_deriv[i] == ZERO,
+                          "Bad Jacobian element");
+  ret_val += ASSERT_MSG(partial_deriv[N_JAC_ELEM+1] = 999.9,
+                        "Bad Jacobian (end+1)");
+
+  return ret_val;
+}
+
 /** \brief Run c function tests
  *
  * \param solver_data Pointer to the solver data
@@ -96,6 +244,10 @@ int run_aero_rep_single_particle_c_tests(void *solver_data, double *state, doubl
   aero_rep_update_state(model_data);
 
   // Run the property tests
+  ret_val += test_effective_radius(model_data, solver_state);
+  ret_val += test_aero_phase_mass(model_data, solver_state);
+  ret_val += test_aero_phase_avg_MW(model_data, solver_state);
+  ret_val += test_number_concentration(model_data, solver_state);
 
   return ret_val;
 }

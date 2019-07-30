@@ -27,6 +27,13 @@ program pmc_test_aero_rep_data
   use iso_c_binding
   implicit none
 
+  ! Externally set properties
+  real(kind=dp), parameter :: PART_NUM_CONC = 1.23e3
+  real(kind=dp), parameter :: PART_RADIUS   = 2.43e-7
+
+  ! Aerosol rep id for update functions
+  integer(kind=i_kind), parameter :: AERO_REP_ID = 234
+
   !> Interface to c ODE solver and test functions
   interface
     !> Run the c function tests
@@ -274,11 +281,21 @@ contains
     type(phlex_state_t), pointer :: phlex_state
     integer(kind=i_kind), allocatable :: phase_ids(:)
     character(len=:), allocatable :: rep_name, phase_name
+    type(aero_rep_factory_t) :: aero_rep_factory
+    type(aero_rep_update_data_single_particle_radius_t) :: update_radius
+    type(aero_rep_update_data_single_particle_number_t) :: update_number
 
     rep_name = "AERO_REP_SINGLE_PARTICLE"
 
     call assert_msg(264314298, phlex_core%get_aero_rep(rep_name, aero_rep), &
                     rep_name)
+
+    select type( aero_rep )
+      type is(aero_rep_single_particle_t)
+        call aero_rep%set_id( AERO_REP_ID )
+      class default
+        call die_msg(766425873, "Wrong aero rep type")
+    end select
 
     call phlex_core%solver_initialize()
 
@@ -287,6 +304,14 @@ contains
     phlex_state%state_var(:) = 0.0;
     phlex_state%env_state%temp = 298.0;
     phlex_state%env_state%pressure = 101325.0;
+
+    ! Update external properties
+    call aero_rep_factory%initialize_update_data( update_radius )
+    call aero_rep_factory%initialize_update_data( update_number )
+    call update_radius%set_radius( AERO_REP_ID, PART_RADIUS )
+    call update_number%set_number( AERO_REP_ID, PART_NUM_CONC )
+    call phlex_core%update_aero_rep_data( update_radius )
+    call phlex_core%update_aero_rep_data( update_number )
 
     call phlex_state%update_env_state()
 

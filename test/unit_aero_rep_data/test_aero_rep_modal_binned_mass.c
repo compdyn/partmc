@@ -227,8 +227,10 @@ int test_aero_phase_mass(ModelData * model_data, N_Vector state) {
     ret_val += ASSERT_MSG(partial_deriv[i] == ONE,
                           "Bad Jacobian element");
   }
-  for( int i = 4; i < N_JAC_ELEM+2; ++i )
-    ret_val += ASSERT_MSG(partial_deriv[i] == 999.9,
+  for( int i = 4; i < N_JAC_ELEM+1; ++i )
+    ret_val += ASSERT_MSG(partial_deriv[i] == ZERO,
+                        "Bad Jacobian index (end+1)");
+  ret_val += ASSERT_MSG(partial_deriv[N_JAC_ELEM+1] == 999.9,
                         "Bad Jacobian index (end+1)");
 
   return ret_val;
@@ -268,8 +270,10 @@ int test_aero_phase_avg_MW(ModelData * model_data, N_Vector state) {
                           "Bad Jacobian element");
   ret_val += ASSERT_MSG(fabs(partial_deriv[3]-dMW_dC) < fabs(1.0e-10*dMW_dC),
                           "Bad Jacobian element");
-  for( int i = 4; i < N_JAC_ELEM+2; ++i )
-    ret_val += ASSERT_MSG(partial_deriv[i] == 999.9,
+  for( int i = 4; i < N_JAC_ELEM+1; ++i )
+    ret_val += ASSERT_MSG(partial_deriv[i] == ZERO,
+                        "Bad Jacobian index");
+  ret_val += ASSERT_MSG(partial_deriv[N_JAC_ELEM+1] == 999.9,
                         "Bad Jacobian index (end+1)");
 
   return ret_val;

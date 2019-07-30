@@ -431,11 +431,14 @@ void * aero_rep_modal_binned_mass_get_aero_phase_mass(ModelData *model_data,
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   for (int i_section=0; i_section<NUM_SECTION_ && aero_phase_idx>=0;
-            i_section++) {
+       ++i_section) {
     for (int i_bin=0; i_bin<NUM_BINS_(i_section) && aero_phase_idx>=0;
-              i_bin++) {
-      for (int i_phase=0; i_phase<NUM_PHASE_(i_section) && aero_phase_idx>=0;
-                i_phase++) {
+         ++i_bin) {
+      if (aero_phase_idx<0 || aero_phase_idx>=NUM_PHASE_(i_section)) {
+        aero_phase_idx -= NUM_PHASE_(i_section);
+        continue;
+      }
+      for (int i_phase=0; i_phase<NUM_PHASE_(i_section); ++i_phase) {
         if (aero_phase_idx==0) {
           *aero_phase_mass = PHASE_MASS_(i_section, i_phase, i_bin);
           if (partial_deriv) {
@@ -444,6 +447,13 @@ void * aero_rep_modal_binned_mass_get_aero_phase_mass(ModelData *model_data,
             double mass, mw;
             aero_phase_get_mass(model_data, aero_phase_idx, state, &mass, &mw,
                                 partial_deriv, NULL);
+            partial_deriv += PHASE_NUM_JAC_ELEM_(i_section, i_phase, i_bin);
+          }
+        } else if (partial_deriv) {
+          for( int i_elem=0;
+               i_elem < PHASE_NUM_JAC_ELEM_(i_section, i_phase, i_bin);
+               ++i_elem) {
+            *(partial_deriv++) = ZERO;
           }
         }
         aero_phase_idx-=1;
@@ -475,11 +485,14 @@ void * aero_rep_modal_binned_mass_get_aero_phase_avg_MW(ModelData *model_data,
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   for (int i_section=0; i_section<NUM_SECTION_ && aero_phase_idx>=0;
-            i_section++) {
+       ++i_section) {
     for (int i_bin=0; i_bin<NUM_BINS_(i_section) && aero_phase_idx>=0;
-              i_bin++) {
-      for (int i_phase=0; i_phase<NUM_PHASE_(i_section) && aero_phase_idx>=0;
-                i_phase++) {
+         ++i_bin) {
+      if (aero_phase_idx<0 || aero_phase_idx>=NUM_PHASE_(i_section)) {
+        aero_phase_idx -= NUM_PHASE_(i_section);
+        continue;
+      }
+      for (int i_phase=0; i_phase<NUM_PHASE_(i_section); ++i_phase) {
         if (aero_phase_idx==0) {
           *aero_phase_avg_MW = PHASE_AVG_MW_(i_section, i_phase, i_bin);
           if (partial_deriv) {
@@ -488,6 +501,13 @@ void * aero_rep_modal_binned_mass_get_aero_phase_avg_MW(ModelData *model_data,
             double mass, mw;
             aero_phase_get_mass(model_data, aero_phase_idx, state, &mass, &mw,
                                 NULL, partial_deriv);
+            partial_deriv += PHASE_NUM_JAC_ELEM_(i_section, i_phase, i_bin);
+          }
+        } else if (partial_deriv) {
+          for( int i_elem=0;
+               i_elem < PHASE_NUM_JAC_ELEM_(i_section, i_phase, i_bin);
+               ++i_elem) {
+            *(partial_deriv++) = ZERO;
           }
         }
         aero_phase_idx-=1;

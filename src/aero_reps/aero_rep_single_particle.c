@@ -129,7 +129,6 @@ void * aero_rep_single_particle_update_state(ModelData *model_data,
     state_var += PHASE_STATE_ID_(i_phase);
 
     // Get the mass and average MW
-    // FIXME get partial derivs
     aero_phase_get_mass(model_data, PHASE_MODEL_DATA_ID_(i_phase), state_var,
                &(PHASE_MASS_(i_phase)), &(PHASE_AVG_MW_(i_phase)), NULL, NULL);
   }
@@ -163,6 +162,12 @@ void * aero_rep_single_particle_get_effective_radius(ModelData *model_data,
 
   *radius = RADIUS_;
 
+  if (partial_deriv) {
+    for (int i_phase = 0; i_phase < NUM_PHASE_; ++i_phase)
+      for (int i_spec = 0; i_spec < PHASE_NUM_JAC_ELEM_(i_phase); ++i_spec)
+        *(partial_deriv++) = ZERO;
+  }
+
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
@@ -192,6 +197,12 @@ void * aero_rep_single_particle_get_number_conc(ModelData *model_data,
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   *number_conc = NUMBER_CONC_;
+
+  if (partial_deriv) {
+    for (int i_phase = 0; i_phase < NUM_PHASE_; ++i_phase)
+      for (int i_spec = 0; i_spec < PHASE_NUM_JAC_ELEM_(i_phase); ++i_spec)
+        *(partial_deriv++) = ZERO;
+  }
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
@@ -242,6 +253,22 @@ void * aero_rep_single_particle_get_aero_phase_mass(ModelData *model_data,
 
   *aero_phase_mass = PHASE_MASS_(aero_phase_idx);
 
+  if (partial_deriv) {
+    for (int i_phase = 0; i_phase < NUM_PHASE_; ++i_phase) {
+      if (i_phase == aero_phase_idx) {
+        double *state = (double*) (model_data->state);
+        state += PHASE_STATE_ID_(i_phase);
+        double mass, mw;
+        aero_phase_get_mass(model_data, aero_phase_idx, state, &mass, &mw,
+                            partial_deriv, NULL);
+        partial_deriv += PHASE_NUM_JAC_ELEM_(i_phase);
+      } else {
+      for (int i_spec = 0; i_spec < PHASE_NUM_JAC_ELEM_(i_phase); ++i_spec)
+        *(partial_deriv++) = ZERO;
+      }
+    }
+  }
+
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
@@ -269,6 +296,22 @@ void * aero_rep_single_particle_get_aero_phase_avg_MW(ModelData *model_data,
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   *aero_phase_avg_MW = PHASE_AVG_MW_(aero_phase_idx);
+
+  if (partial_deriv) {
+    for (int i_phase = 0; i_phase < NUM_PHASE_; ++i_phase) {
+      if (i_phase == aero_phase_idx) {
+        double *state = (double*) (model_data->state);
+        state += PHASE_STATE_ID_(i_phase);
+        double mass, mw;
+        aero_phase_get_mass(model_data, aero_phase_idx, state, &mass, &mw,
+                            NULL, partial_deriv);
+        partial_deriv += PHASE_NUM_JAC_ELEM_(i_phase);
+      } else {
+      for (int i_spec = 0; i_spec < PHASE_NUM_JAC_ELEM_(i_phase); ++i_spec)
+        *(partial_deriv++) = ZERO;
+      }
+    }
+  }
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }

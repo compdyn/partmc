@@ -11,11 +11,11 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "../rxns.h"
+#include "../sub_models.h"
 
 // TODO Lookup environmental indices during initialization
-#define TEMPERATURE_K_ env_data[0]
-#define PRESSURE_PA_ env_data[1]
+#define TEMPERATURE_K_ env_state[0]
+#define PRESSURE_PA_ env_state[1]
 
 #define SMALL_NUMBER_ 1.0e-30
 
@@ -50,20 +50,22 @@
 #define EQSAM_ION_PAIR_MW_(x) (float_data[PAIR_FLOAT_PARAM_LOC_(x)+2])
 #define EQSAM_ION_MW_(x,y) (float_data[PAIR_FLOAT_PARAM_LOC_(x)+3+y])
 
+// Update types (These must match values in sub_model_UNIFAC.F90)
+// (none right now)
 
 /** \brief Flag Jacobian elements used by this reaction
  *
  * ZSR aerosol water reactions are assumed to be at equilibrium
  *
- * \param rxn_data A pointer to the reaction data
+ * \param sub_model_data A pointer to the reaction data
  * \param jac_struct 2D array of flags indicating potentially non-zero
  *                   Jacobian elements
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \return The sub_model_data pointer advanced by the size of the reaction data
  */
-void * rxn_ZSR_aerosol_water_get_used_jac_elem(void *rxn_data,
-          bool **jac_struct)
+void * sub_model_ZSR_aerosol_water_get_used_jac_elem(void *sub_model_data,
+          bool *jac_row)
 {
-  int *int_data = (int*) rxn_data;
+  int *int_data = (int*) sub_model_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
@@ -76,28 +78,52 @@ void * rxn_ZSR_aerosol_water_get_used_jac_elem(void *rxn_data,
  * \param model_data Pointer to the model data
  * \param deriv_ids Id of each state variable in the derivative array
  * \param jac_ids Id of each state variable combo in the Jacobian array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param sub_model_data Pointer to the reaction data
+ * \return The sub_model_data pointer advanced by the size of the reaction data
  */
-void * rxn_ZSR_aerosol_water_update_ids(ModelData *model_data, int *deriv_ids,
-          int **jac_ids, void *rxn_data)
+void * sub_model_ZSR_aerosol_water_update_ids(void *sub_model_data,
+          int *jac_row)
 {
-  int *int_data = (int*) rxn_data;
+  int *int_data = (int*) sub_model_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
+/** \brief Get the id of a parameter in the condensed data block
+ *
+ * \param sub_model_data Pointer to the sub-model data
+ * \param identifiers For the ZSR model, the identifer is just the id
+ *                    on the state array of the phase for which water is being
+ *                    calculated (not necessarily the state id of the water
+ *                    species).
+ * \param parameter_id Parameter id for the requested aerosol-phase water if
+ *                     found
+ * \return The sub_model_data pointer advanced by the size of the sub model
+ */
+void * sub_model_ZSR_aerosol_water_get_parameter_id(void *sub_model_data,
+          void *identifiers, int *parameter_id)
+{
+  int *int_data = (int*) sub_model_data;
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
+
+  for (int i_phase=0; i_phase<NUM_PHASE_; ++i_phase) {
+    if (*((int*)identifiers) == PHASE_ID_(i_phase)) {
+      *parameter_id = i_phase;
+    }
+  }
+  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
+}
 /** \brief Update reaction data for new environmental conditions
  *
  * \param env_data Pointer to the environmental state array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param sub_model_data Pointer to the reaction data
+ * \return The sub_model_data pointer advanced by the size of the reaction data
  */
-void * rxn_ZSR_aerosol_water_update_env_state(double *env_data,
-          void *rxn_data)
+void * sub_model_ZSR_aerosol_water_update_env_state(void *sub_model_data,
+          double *env_state)
 {
-  int *int_data = (int*) rxn_data;
+  int *int_data = (int*) sub_model_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate PPM_TO_RH_
@@ -117,13 +143,14 @@ void * rxn_ZSR_aerosol_water_update_env_state(double *env_data,
 /** \brief Do pre-derivative calculations
  *
  * \param model_data Pointer to the model data, including the state array
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param sub_model_data Pointer to the reaction data
+ * \return The sub_model_data pointer advanced by the size of the reaction data
  */
-void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
+void * sub_model_ZSR_aerosol_water_calculate(void *sub_model_data,
+          ModelData *model_data)
 {
   double *state = model_data->state;
-  int *int_data = (int*) rxn_data;
+  int *int_data = (int*) sub_model_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   // Calculate the water activity---i.e., relative humidity (0-1)
@@ -202,57 +229,29 @@ void * rxn_ZSR_aerosol_water_pre_calc(ModelData *model_data, void *rxn_data)
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
 }
 
-/** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
- * this reaction.
+// TODO finish adding J contributions
+/** \brief Add contributions to the Jacobian from derivates calculated using the output of this sub model
  *
- * \param model_data Pointer to the model data, including the state array
- * \param deriv Pointer to the time derivative to add contributions to
- * \param rxn_data Pointer to the reaction data
- * \param time_step Current time step being computed (s)
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param sub_model_data Pointer to the sub-model data
+ * \param jac_row Pointer to the Jacobian row to modify
  */
-#ifdef PMC_USE_SUNDIALS
-void * rxn_ZSR_aerosol_water_calc_deriv_contrib(ModelData *model_data,
-          realtype *deriv, void *rxn_data, double time_step)
+void * sub_model_ZSR_aerosol_water_get_jac_contrib(void *sub_model_data,
+          double *jac_row)
 {
-  realtype *state = model_data->state;
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
+  int *int_data = (int*) sub_model_data;
+  double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-
 }
-#endif
-
-/** \brief Calculate contributions to the Jacobian from this reaction
- *
- * \param model_data Pointer to the model data
- * \param J Pointer to the sparse Jacobian matrix to add contributions to
- * \param rxn_data Pointer to the reaction data
- * \param time_step Current time step being calculated (s)
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-#ifdef PMC_USE_SUNDIALS
-void * rxn_ZSR_aerosol_water_calc_jac_contrib(ModelData *model_data,
-          realtype *J, void *rxn_data, double time_step)
-{
-  realtype *state = model_data->state;
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-
-}
-#endif
 
 /** \brief Advance the reaction data pointer to the next reaction
  *
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param sub_model_data Pointer to the reaction data
+ * \return The sub_model_data pointer advanced by the size of the reaction data
  */
-void * rxn_ZSR_aerosol_water_skip(void *rxn_data)
+void * sub_model_ZSR_aerosol_water_skip(void *sub_model_data)
 {
-  int *int_data = (int*) rxn_data;
+  int *int_data = (int*) sub_model_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
   return (void*) &(float_data[FLOAT_DATA_SIZE_]);
@@ -260,15 +259,15 @@ void * rxn_ZSR_aerosol_water_skip(void *rxn_data)
 
 /** \brief Print the ZSR Aerosol Water reaction parameters
  *
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction data
+ * \param sub_model_data Pointer to the reaction data
+ * \return The sub_model_data pointer advanced by the size of the reaction data
  */
-void * rxn_ZSR_aerosol_water_print(void *rxn_data)
+void * sub_model_ZSR_aerosol_water_print(void *sub_model_data)
 {
-  int *int_data = (int*) rxn_data;
+  int *int_data = (int*) sub_model_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);
 
-  printf("\n\nZSR Aerosol Water reaction\n");
+  printf("\n\nZSR aerosol water sub model\n");
   for (int i=0; i<INT_DATA_SIZE_; i++)
     printf("  int param %d = %d\n", i, int_data[i]);
   for (int i=0; i<FLOAT_DATA_SIZE_; i++)

@@ -48,7 +48,6 @@
 !!   - \subpage phlex_rxn_SIMPOL_phase_transfer "SIMPOL.1 phase transfer"
 !!   - \subpage phlex_rxn_troe "Troe (fall-off)"
 !!   - \subpage phlex_rxn_wet_deposition "wet deposition"
-!!   - \subpage phlex_rxn_ZSR_aerosol_water "ZSR aerosol water"
 !!
 !! The general input format for a reaction can be found
 !! \subpage input_format_rxn "here".
@@ -253,7 +252,6 @@ contains
   !!   - \subpage phlex_rxn_SIMPOL_phase_transfer "SIMPOL_PHASE_TRANSFER"
   !!   - \subpage phlex_rxn_photolysis "PHOTOLYSIS"
   !!   - \subpage phlex_rxn_troe "TROE"
-  !!   - \subpage phlex_rxn_ZSR_aerosol_water "ZSR_AEROSOL_WATER"
   !!
   !! All remaining data are optional and may include any valid \c json value,
   !! including nested objects. However, extending types (i.e. reactions) will

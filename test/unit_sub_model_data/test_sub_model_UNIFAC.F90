@@ -65,7 +65,7 @@ contains
   !> Calculate UNIFAC acitivity coefficients for the n-butanol/water mixture
   !!
   !! Example is from Marcolli and Peter, ACP 5(2), 1501-1527, 2005. (fig 3a)
-  !! 
+  !!
   !! Equations in the test comments are from the same reference.
   !!
   logical function run_UNIFAC_test()
@@ -98,7 +98,7 @@ contains
     ! Molecular weights
     real(kind=dp), parameter :: mw_butanol = 74.12
     real(kind=dp), parameter :: mw_water = 18.01
-    
+
     ! Number of functional groups
     integer(kind=i_kind), parameter :: num_group = 5
 
@@ -137,7 +137,7 @@ contains
     real(kind=dp) :: ln_gamma_R_butanol, ln_gamma_R_water
 
     real(kind=dp), dimension(num_group) :: THETA_m
-    real(kind=dp) :: sum_m_A, sum_m_B, sum_n 
+    real(kind=dp) :: sum_m_A, sum_m_B, sum_n
 
     integer(kind=i_kind) :: i, k, m, n
 
@@ -174,7 +174,7 @@ contains
     sum_Qn_Xn_butanol = 0.0d0
     sum_Qn_Xn_water   = 0.0d0
     do n = 1, num_group
-      sum_Qn_Xn_butanol = sum_Qn_Xn_butanol + Q_k(n) * real(butanol_grps(n), kind=dp) 
+      sum_Qn_Xn_butanol = sum_Qn_Xn_butanol + Q_k(n) * real(butanol_grps(n), kind=dp)
       sum_Qn_Xn_water   = sum_Qn_Xn_water   + Q_k(n) * real(water_grps(n),   kind=dp)
     end do
 
@@ -202,7 +202,7 @@ contains
     ! ... for water
     do m = 1, num_group
       THETA_m(m) = Q_k(m) &
-                   * real(water_grps(m), kind=dp) & 
+                   * real(water_grps(m), kind=dp) &
                    / sum_Qn_Xn_water
     end do
     do k = 1, num_group
@@ -328,7 +328,7 @@ contains
         calc_conc(i_mass_frac, idx_butanol) = (1.0d0 - mole_frac) * mw_butanol
         calc_conc(i_mass_frac, idx_water)   = mole_frac * mw_water
         model_conc(i_mass_frac,:) = calc_conc(i_mass_frac,:)
-      
+
         ! Set the concentrations in the model
         phlex_state%state_var(:) = model_conc(i_mass_frac,:)
 
@@ -345,7 +345,7 @@ contains
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !!! Get the UNIFAC activities !!!
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      
+
         ! Equation 4
         PHI_butanol = r_butanol * (1.0d0 - mole_frac) / &
                 (r_butanol * (1.0d0 - mole_frac) + r_water * mole_frac)
@@ -355,7 +355,7 @@ contains
                 (q_butanol * (1.0d0 - mole_frac) + q_water * mole_frac)
         THETA_water   = q_water * mole_frac / &
                 (q_butanol * (1.0d0 - mole_frac) + q_water * mole_frac)
-     
+
         ! Combinatorial portion (ln(gamma_i^C)) Eq. 3
         if (i_mass_frac.eq.NUM_MASS_FRAC_STEP) then
           ln_gamma_C_butanol = 0.0d0
@@ -373,7 +373,7 @@ contains
                              + 5.0d0 * q_water * log(THETA_water/PHI_water) &
                              + l_water &
                              - PHI_water / mole_frac &
-                                * ((1.0d0 - mole_frac) * l_butanol + mole_frac * l_water) 
+                                * ((1.0d0 - mole_frac) * l_butanol + mole_frac * l_water)
         end if
 
         ! Calculate the sum (Q_n * X_n) in the denominator of eq 9 for the mixture
@@ -392,7 +392,7 @@ contains
                             + mole_frac * real(water_grps(m), kind=dp) ) &
                        / sum_Qn_Xn_mixture
         end do
-      
+
         ! Group residual activity coefficients (ln(GAMMA_k)) Eq. 8
         do k = 1, num_group
           sum_m_A = 0.0d0 ! ln( sum_m_A  ) term in eq 8
@@ -443,8 +443,8 @@ contains
       ! Analyze the results
       do i_mass_frac = 1, NUM_MASS_FRAC_STEP
         mass_frac = i_mass_frac * mass_frac_step
-     
-        ! Check these calculations against the digitized plot for n-butanol/water @ 25C 
+
+        ! Check these calculations against the digitized plot for n-butanol/water @ 25C
         ! (The digitized plot is noisy close to butanol mass fraction = 1.0)
         if (mass_frac < 0.97d0) then
           call assert_msg(666095395, &
@@ -475,7 +475,7 @@ contains
         results = 1
       end if
     end if
-    
+
     ! Send the results back to the primary process
     call pmc_mpi_transfer_integer(results, results, 1, 0)
 
@@ -490,7 +490,7 @@ contains
 
     deallocate(buffer)
 #endif
-    
+
     deallocate(phlex_core)
 
     run_UNIFAC_test = .true.

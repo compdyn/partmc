@@ -55,36 +55,31 @@
     "name" : "my aero rep 3"
   },
   {
-    "name" : "ZSR aerosol water",
-    "type" : "MECHANISM",
-    "reactions" : [
-      {
-	"type" : "ZSR_AEROSOL_WATER",
-	"aerosol phase" : "aqueous aerosol",
-	"gas-phase water" : "H2O",
-	"aerosol-phase water" : "H2O_aq",
-	"ion pairs" : {
-	  "NaCl" : {
-            "type" : "EQSAM",
-	    "ions" : {
-	      "Cl_m" : {}
-	    },
-	    "NW" : 2.0,
-	    "ZW" : 0.67,
-	    "MW" : 58.5
-	  },
-	  "CaCl2" : {
-	    "type" : "JACOBSON",
-	    "ions" : {
-	      "Ca_pp" : {},
-	      "Cl_m" : { "qty" : 2 }
-	    },
-	    "Y_j" : [-1.918004e2, 2.001540e3, -8.557205e3, 1.987670e4, -2.717192e4, 2.187103e4, -9.591577e3, 1.763672e3],
-	    "low RH" : 0.43
-	  }
-	}
+    "name" : "simple sea-salt aerosol water",
+    "type" : "SUB_MODEL_ZSR_AEROSOL_WATER",
+    "aerosol phase" : "aqueous aerosol",
+    "gas-phase water" : "H2O",
+    "aerosol-phase water" : "H2O_aq",
+    "ion pairs" : {
+      "NaCl" : {
+        "type" : "EQSAM",
+        "ions" : {
+          "Cl_m" : {}
+        },
+        "NW" : 2.0,
+        "ZW" : 0.67,
+        "MW" : 58.5
+      },
+      "CaCl2" : {
+        "type" : "JACOBSON",
+        "ions" : {
+          "Ca_pp" : {},
+          "Cl_m" : { "qty" : 2 }
+        },
+        "Y_j" : [-1.918004e2, 2.001540e3, -8.557205e3, 1.987670e4, -2.717192e4, 2.187103e4, -9.591577e3, 1.763672e3],
+        "low RH" : 0.43
       }
-    ]
+    }
   }
   ]
 }

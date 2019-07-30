@@ -16,6 +16,7 @@
 
 // Sub model types (Must match parameters in pmc_sub_model_factory)
 #define SUB_MODEL_UNIFAC 1
+#define SUB_MODEL_ZSR_AEROSOL_WATER 2
 
 
 /** \brief Get a pointer to a calcualted sub model parameter
@@ -71,12 +72,20 @@ int sub_model_get_parameter_id(ModelData *model_data, int type,
           sub_model_data = (int*) sub_model_UNIFAC_get_parameter_id(
               (void*) sub_model_data, identifiers, &parameter_id);
           break;
+        case SUB_MODEL_ZSR_AEROSOL_WATER :
+          sub_model_data = (int*) sub_model_ZSR_aerosol_water_get_parameter_id(
+              (void*) sub_model_data, identifiers, &parameter_id);
+          break;
       }
       // ... otherwise skip past it
     } else {
       switch (sub_model_type) {
         case SUB_MODEL_UNIFAC :
           sub_model_data = (int*) sub_model_UNIFAC_skip((void*) sub_model_data);
+          break;
+        case SUB_MODEL_ZSR_AEROSOL_WATER :
+          sub_model_data = (int*) sub_model_ZSR_aerosol_water_skip(
+                    (void*) sub_model_data);
           break;
       }
     }
@@ -140,6 +149,10 @@ void sub_model_update_env_state(ModelData *model_data, double *env)
         sub_model_data = (int*) sub_model_UNIFAC_update_env_state(
                   (void*) sub_model_data, env);
         break;
+      case SUB_MODEL_ZSR_AEROSOL_WATER :
+        sub_model_data = (int*) sub_model_ZSR_aerosol_water_update_env_state(
+                  (void*) sub_model_data, env);
+        break;
     }
   }
 }
@@ -165,6 +178,10 @@ void sub_model_calculate(ModelData *model_data)
     switch (sub_model_type) {
       case SUB_MODEL_UNIFAC :
         sub_model_data = (int*) sub_model_UNIFAC_calculate(
+                  (void*) sub_model_data, model_data);
+        break;
+      case SUB_MODEL_ZSR_AEROSOL_WATER :
+        sub_model_data = (int*) sub_model_ZSR_aerosol_water_calculate(
                   (void*) sub_model_data, model_data);
         break;
     }
@@ -236,6 +253,10 @@ void sub_model_update_data(int update_sub_model_type, void *update_data,
         case SUB_MODEL_UNIFAC :
           sub_model_data = (int*) sub_model_UNIFAC_skip((void*) sub_model_data);
           break;
+        case SUB_MODEL_ZSR_AEROSOL_WATER :
+          sub_model_data = (int*) sub_model_ZSR_aerosol_water_skip(
+                    (void*) sub_model_data);
+          break;
       }
 
     // ... otherwise, call the update function for sub-model types that have
@@ -244,6 +265,10 @@ void sub_model_update_data(int update_sub_model_type, void *update_data,
       switch (sub_model_type) {
         case SUB_MODEL_UNIFAC :
           sub_model_data = (int*) sub_model_UNIFAC_skip((void*) sub_model_data);
+          break;
+        case SUB_MODEL_ZSR_AEROSOL_WATER :
+          sub_model_data = (int*) sub_model_ZSR_aerosol_water_skip(
+                    (void*) sub_model_data);
           break;
       }
     }
@@ -273,6 +298,10 @@ void sub_model_print_data(void *solver_data)
     switch (sub_model_type) {
       case SUB_MODEL_UNIFAC :
         sub_model_data = (int*) sub_model_UNIFAC_print((void*) sub_model_data);
+        break;
+      case SUB_MODEL_ZSR_AEROSOL_WATER :
+        sub_model_data = (int*) sub_model_ZSR_aerosol_water_print(
+                  (void*) sub_model_data);
         break;
     }
   }

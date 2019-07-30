@@ -5,7 +5,7 @@
 !> \file
 !> The pmc_test_ZSR_aerosol_water program
 
-!> Test of ZSR_aerosol_water reaction module
+!> Test of ZSR_aerosol_water sub model
 program pmc_test_ZSR_aerosol_water
 
   use iso_c_binding
@@ -35,10 +35,10 @@ program pmc_test_ZSR_aerosol_water
 
   if (run_ZSR_aerosol_water_tests()) then
     if (pmc_mpi_rank().eq.0) write(*,*) &
-            "ZSR aerosol water reaction tests - PASS"
+            "ZSR aerosol water sub model tests - PASS"
   else
     if (pmc_mpi_rank().eq.0) write(*,*) &
-            "ZSR aerosol water reaction tests - FAIL"
+            "ZSR aerosol water sub model tests - FAIL"
   end if
 
   ! finalize mpi
@@ -72,7 +72,7 @@ contains
 
   !> Solve a mechanism consisting of one aersol water calculation with two ion pairs
   !!
-  !! JACOBSON molality parameters are for NaCl from Jacobson et al. 
+  !! JACOBSON molality parameters are for NaCl from Jacobson et al.
   !! \cite{Jacobson1996} Table 2. (CaCl2 is used in the test just to test code
   !! when the number of anions and cations differs.) EQSAM molality parameters
   !! are also for NaCl from EQSAM_v03d.
@@ -92,7 +92,7 @@ contains
             idx_Cl_m_act, idx_Ca_pp, idx_Ca_pp_act, idx_H2O_aq, idx_H2O_act, &
             i_RH, i_spec, idx_phase
     real(kind=dp) :: RH_step, RH, ppm_to_RH, molal_NaCl, molal_CaCl2, &
-            NaCl_conc, CaCl2_conc, water_NaCl, water_CaCl2, temp, pressure 
+            NaCl_conc, CaCl2_conc, water_NaCl, water_CaCl2, temp, pressure
 #ifdef PMC_USE_MPI
     character, allocatable :: buffer(:), buffer_copy(:)
     integer(kind=i_kind) :: pack_size, pos, i_elem, results
@@ -114,7 +114,7 @@ contains
     if (pmc_mpi_rank().eq.0) then
 #endif
 
-      ! Get the ZSR_aerosol_water reaction mechanism json file
+      ! Get the ZSR_aerosol_water sub model mechanism json file
       input_file_path = 'test_ZSR_aerosol_water_config.json'
 
       ! Construct a phlex_core variable
@@ -263,18 +263,18 @@ contains
               9.591577e3 * RH**6 + 1.763672e3 * RH**7
         molal_CaCl2 = molal_CaCl2**2
         ! EQSAM molality (from EQSAM_v03d)
-        !  m_i = (NW_i * MW_H2O/MW_i * (1.0/RH-1.0))^ZW_i   
+        !  m_i = (NW_i * MW_H2O/MW_i * (1.0/RH-1.0))^ZW_i
         !  where MW_H2O is defined as 55.51*18.01
         RH = i_RH * RH_step
         molal_NaCl = (2.0d0 * 55.51D0 * 18.01d0 / 58.5d0 * &
                 (1.0d0/RH - 1.0d0))**0.67d0
         CaCl2_conc = MIN(true_conc(i_RH,idx_Ca_pp)/40.078d0, &
-                true_conc(i_RH,idx_Cl_m)/2.0d0/35.453d0) 
+                true_conc(i_RH,idx_Cl_m)/2.0d0/35.453d0)
                 ! (umol/m^3_air = mol/cm^3_air)
-        NaCl_conc = true_conc(i_RH,idx_Cl_m)/35.453d0 
+        NaCl_conc = true_conc(i_RH,idx_Cl_m)/35.453d0
                 ! (umol/m^3_air = mol/cm^3_air)
         ! Water content is (eq 28 \cite{Jacobson1996}) :
-        ! cw = 1000 / MW_H2O * sum_i (c_i / m_i)   
+        ! cw = 1000 / MW_H2O * sum_i (c_i / m_i)
         !   with cw and c_i in (mol_i/cm^3_air) and m_i in (mol_i/kg_H2O)
         water_CaCl2 =  CaCl2_conc / molal_CaCl2 * 1000.0d0 ! (ug_H2O/m^3_air)
         water_NaCl = NaCl_conc / molal_NaCl * 1000.0d0 ! (ug_H2O/m^3_air)
@@ -322,7 +322,7 @@ contains
         results = 1
       end if
     end if
-    
+
     ! Send the results back to the primary process
     call pmc_mpi_transfer_integer(results, results, 1, 0)
 

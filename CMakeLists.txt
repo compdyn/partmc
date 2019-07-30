@@ -217,8 +217,8 @@ if (ENABLE_JSON AND ENABLE_SUNDIALS)
   add_test(test_rxn_SIMPOL_phase_transfer ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_SIMPOL_phase_transfer.sh ${MPI_TEST_FLAG})
   add_test(test_rxn_troe ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_troe.sh ${MPI_TEST_FLAG})
   add_test(test_rxn_wet_deposition ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_wet_deposition.sh ${MPI_TEST_FLAG})
-  add_test(test_rxn_ZSR_aerosol_water ${CMAKE_BINARY_DIR}/test_run/unit_rxn_data/test_ZSR_aerosol_water.sh ${MPI_TEST_FLAG})
   add_test(test_sub_model_UNIFAC ${CMAKE_BINARY_DIR}/test_run/unit_sub_model_data/test_UNIFAC.sh ${MPI_TEST_FLAG})
+  add_test(test_sub_model_ZSR_aerosol_water ${CMAKE_BINARY_DIR}/test_run/unit_sub_model_data/test_ZSR_aerosol_water.sh ${MPI_TEST_FLAG})
   add_test(test_chem_mech_solver ${CMAKE_BINARY_DIR}/test_run/chemistry/test_chemistry_1.sh ${MPI_TEST_FLAG})
   add_test(test_chemistry_cb05cl_ae5 ${CMAKE_BINARY_DIR}/test_run/chemistry/cb05cl_ae5/test_chemistry_cb05cl_ae5.sh ${MPI_TEST_FLAG})
   add_test(test_chemistry_eqsam_v03d ${CMAKE_BINARY_DIR}/test_run/chemistry/eqsam_v03d/test_chemistry_eqsam_v03d.sh ${MPI_TEST_FLAG})
@@ -394,8 +394,7 @@ set(REACTIONS_F_SRC
 	src/rxns/rxn_photolysis.F90
         src/rxns/rxn_SIMPOL_phase_transfer.F90
 	src/rxns/rxn_troe.F90
-        src/rxns/rxn_wet_deposition.F90
-	src/rxns/rxn_ZSR_aerosol_water.F90)
+        src/rxns/rxn_wet_deposition.F90)
 
 set(REACTIONS_C_SRC
 	src/rxns/rxn_aqueous_equilibrium.c
@@ -410,8 +409,7 @@ set(REACTIONS_C_SRC
 	src/rxns/rxn_photolysis.c
         src/rxns/rxn_SIMPOL_phase_transfer.c
 	src/rxns/rxn_troe.c
-        src/rxns/rxn_wet_deposition.c
-	src/rxns/rxn_ZSR_aerosol_water.c)
+        src/rxns/rxn_wet_deposition.c)
 
 set_source_files_properties(${REACTIONS_F_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_F_FLAGS})
@@ -438,10 +436,12 @@ set_source_files_properties(${AEROSOL_REPS_C_SRC} PROPERTIES COMPILE_FLAGS
 set(AEROSOL_REPS_SRC ${AEROSOL_REPS_F_SRC} ${AEROSOL_REPS_C_SRC})
 
 set(SUB_MODELS_F_SRC
-        src/sub_models/sub_model_UNIFAC.F90)
+        src/sub_models/sub_model_UNIFAC.F90
+        src/sub_models/sub_model_ZSR_aerosol_water.F90)
 
 set(SUB_MODELS_C_SRC
-        src/sub_models/sub_model_UNIFAC.c)
+        src/sub_models/sub_model_UNIFAC.c
+        src/sub_models/sub_model_ZSR_aerosol_water.c)
 
 set_source_files_properties(${SUB_MODELS_F_SRC} PROPERTIES COMPILE_FLAGS
         ${STD_F_FLAGS})
@@ -615,14 +615,14 @@ add_executable(test_rxn_troe test/unit_rxn_data/test_rxn_troe.F90)
 target_link_libraries(test_rxn_troe partmclib)
 add_executable(test_rxn_wet_deposition test/unit_rxn_data/test_rxn_wet_deposition.F90)
 target_link_libraries(test_rxn_wet_deposition partmclib)
-add_executable(test_rxn_ZSR_aerosol_water test/unit_rxn_data/test_rxn_ZSR_aerosol_water.F90)
-target_link_libraries(test_rxn_ZSR_aerosol_water partmclib)
 
 ######################################################################
 # test_sub_model_data
 
 add_executable(test_sub_model_UNIFAC test/unit_sub_model_data/test_sub_model_UNIFAC.F90)
 target_link_libraries(test_sub_model_UNIFAC partmclib)
+add_executable(test_sub_model_ZSR_aerosol_water test/unit_sub_model_data/test_sub_model_ZSR_aerosol_water.F90)
+target_link_libraries(test_sub_model_ZSR_aerosol_water partmclib)
 
 ######################################################################
 # test_phlex_core

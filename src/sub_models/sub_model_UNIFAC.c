@@ -287,18 +287,10 @@ void * sub_model_UNIFAC_calculate(void *sub_model_data, ModelData *model_data)
 // TODO finish adding J contributions
 /** \brief Add contributions to the Jacobian from derivates calculated using the output of this sub model
  *
- * Derivatives are assumed to be of the form \f$\frac{dy}{dt} = A*S\f$, where
- * \f$A\f$ is the value passed to this function as \b base_val and \f$S\f$ is
- * the sub-model parameter used in the calculation. The row of the Jacobian
- * should correspond to \f$\frac{dy'}{dx}\f$, where for each element \f$x\f$,
- * on the row, this function will add \f$A*\frac{dS}{dx}\f$.
- *
  * \param sub_model_data Pointer to the sub-model data
- * \param base_val The derivative
  * \param jac_row Pointer to the Jacobian row to modify
  */
-void * sub_model_UNIFAC_add_jac_contrib(void *sub_model_data,
-         double base_val, double *jac_row)
+void * sub_model_UNIFAC_get_jac_contrib(void *sub_model_data, double *jac_row)
 {
   int *int_data = (int*) sub_model_data;
   double *float_data = (double*) &(int_data[INT_DATA_SIZE_]);

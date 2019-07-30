@@ -119,8 +119,6 @@ module pmc_rxn_SIMPOL_phase_transfer
 #define AERO_REP_ID_(x) this%condensed_data_int(NUM_INT_PROP_+3*NUM_AERO_PHASE_+x)
 #define DERIV_ID_(x) this%condensed_data_int(NUM_INT_PROP_+4*NUM_AERO_PHASE_+x)
 #define JAC_ID_(x) this%condensed_data_int(NUM_INT_PROP_+1+5*NUM_AERO_PHASE_+x)
-#define FAST_FLUX_(x) this%condensed_data_real(NUM_REAL_PROP_+x)
-#define AERO_ADJ_(x) this%condensed_data_real(NUM_REAL_PROP_+NUM_AERO_PHASE_+x)
 
   public :: rxn_SIMPOL_phase_transfer_t
 
@@ -217,7 +215,7 @@ contains
 
     ! Allocate space in the condensed data arrays
     allocate(this%condensed_data_int(NUM_INT_PROP_ + 2 + n_aero_ids * 8))
-    allocate(this%condensed_data_real(NUM_REAL_PROP_ + n_aero_ids * 2))
+    allocate(this%condensed_data_real(NUM_REAL_PROP_))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)
 
@@ -395,6 +393,4 @@ contains
 #undef AERO_REP_ID_
 #undef DERIV_ID_
 #undef JAC_ID_
-#undef FAST_FLUX_
-#undef AERO_ADJ_
 end module pmc_rxn_SIMPOL_phase_transfer

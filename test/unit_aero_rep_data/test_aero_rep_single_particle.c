@@ -227,6 +227,8 @@ int run_aero_rep_single_particle_c_tests(void *solver_data, double *state, doubl
   int n_jac_elem = aero_rep_get_used_jac_elem(model_data, aero_rep_idx,
                        aero_phase_idx, jac_struct);
 
+  free(jac_struct);
+
   ret_val += ASSERT_MSG(n_jac_elem==N_JAC_ELEM, "Bad number of Jac elements");
 
   // tests are for bin 2
@@ -248,6 +250,8 @@ int run_aero_rep_single_particle_c_tests(void *solver_data, double *state, doubl
   ret_val += test_aero_phase_mass(model_data, solver_state);
   ret_val += test_aero_phase_avg_MW(model_data, solver_state);
   ret_val += test_number_concentration(model_data, solver_state);
+
+  N_VDestroy(solver_state);
 
   return ret_val;
 }

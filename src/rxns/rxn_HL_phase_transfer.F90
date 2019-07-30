@@ -124,10 +124,8 @@ module pmc_rxn_HL_phase_transfer
 #define NUM_AERO_PHASE_JAC_ELEM_(x) this%condensed_data_int(PHASE_INT_LOC_(x)+4)
 #define PHASE_JAC_ID_(x,s,e) this%condensed_data_int(PHASE_INT_LOC_(x)+5+s*NUM_AERO_PHASE_JAC_ELEM_(x)+e)
 #define SMALL_WATER_CONC_(x) this%condensed_data_real(PHASE_REAL_LOC_(x))
-#define FAST_FLUX_(x) this%condensed_data_real(PHASE_REAL_LOC_(x)+1)
-#define AERO_ADJ_(x) this%condensed_data_real(PHASE_REAL_LOC_(x)+2)
-#define EFF_RAD_JAC_ELEM_(x,e) this%condensed_data_real(PHASE_REAL_LOC_(x)+2+e)
-#define NUM_CONC_JAC_ELEM_(x,e) this%condensed_data_real(PHASE_REAL_LOC_(x)+2+NUM_AERO_PHASE_JAC_ELEM_(x,e)+e)
+#define EFF_RAD_JAC_ELEM_(x,e) this%condensed_data_real(PHASE_REAL_LOC_(x)+e)
+#define NUM_CONC_JAC_ELEM_(x,e) this%condensed_data_real(PHASE_REAL_LOC_(x)+NUM_AERO_PHASE_JAC_ELEM_(x,e)+e)
 
   public :: rxn_HL_phase_transfer_t
 
@@ -254,7 +252,7 @@ contains
     ! Allocate space in the condensed data arrays
     allocate(this%condensed_data_int(NUM_INT_PROP_ + 2 + n_aero_ids * 13 + &
                                       n_aero_jac_elem * 2))
-    allocate(this%condensed_data_real(NUM_REAL_PROP_ + n_aero_ids * 3 + &
+    allocate(this%condensed_data_real(NUM_REAL_PROP_ + n_aero_ids + &
                                       n_aero_jac_elem * 2))
     this%condensed_data_int(:) = int(0, kind=i_kind)
     this%condensed_data_real(:) = real(0.0, kind=dp)

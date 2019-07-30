@@ -338,5 +338,7 @@ int run_aero_rep_modal_c_tests(void *solver_data, double *state, double *env) {
   ret_val += test_aero_phase_avg_MW(model_data, solver_state);
   ret_val += test_number_conc(model_data, solver_state);
 
+  N_VDestroy(solver_state);
+
   return ret_val;
 }

@@ -178,16 +178,6 @@ void * solver_new(int n_state_var, int *var_type, int n_rxn,
   for (int i=0; i<n_state_var; i++)
     sd->model_data.var_type[i] = var_type[i];
 
-  // Create arrays for adjustments to the state array from fast rxns applied
-  // during calculations of derivatives and Jacobian
-  sd->model_data.state_adj     = (double*) malloc(n_state_var * sizeof(double));
-  sd->model_data.rel_flux      = (double*) malloc(n_state_var * sizeof(double));
-  if (sd->model_data.state_adj == NULL ||
-      sd->model_data.rel_flux  == NULL) {
-    printf("\n\nERROR allocating space for state adjustment arrays\n\n");
-    exit(1);
-  }
-
   // Get the number of solver variables
   int n_dep_var = 0;
   for (int i=0; i<n_state_var; i++)
@@ -450,10 +440,6 @@ int solver_run(void *solver_data, double *state, double *env, double t_initial,
   aero_rep_update_env_state(&(sd->model_data), env);
   sub_model_update_env_state(&(sd->model_data), env);
   rxn_update_env_state(&(sd->model_data), env);
-
-  // Reset the state adjustment arrays
-  sd->model_data.use_adj = false;
-  rxn_reset_state_adjustments(&(sd->model_data));
 
   PMC_DEBUG_JAC_STRUCT("Begin solving");
 
@@ -1288,8 +1274,9 @@ void solver_free(void *solver_data)
   // free the absolute tolerance vector
   N_VDestroy(sd->abs_tol_nv);
 
-  // free the derivative vector
+  // free the derivative vectors
   N_VDestroy(sd->y);
+  N_VDestroy(sd->deriv);
 
   // destroy the Jacobian marix
   SUNMatDestroy(sd->J);

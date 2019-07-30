@@ -61,16 +61,6 @@ typedef struct {
   void *sub_model_data; // Pointer to the sub model parameters
   void *nxt_sub_model;  // Pointer to the element of sub_model_data in which to
                         // store the next set of sub model data
-  bool use_adj;         // Flag to indicate whether state adjustments exist
-  double *state_adj;    // Adjustments to the state array applied prior to
-                        // calculating rates, derivatives, etc. Used for fast
-                        // reactions that essentially go to completion during
-                        // the solver timestep.
-  bool scale_adj;       // Flag to indicate state adjustments in state_adj should
-                        // be scaled by relative contributions from multiple rxns.
-  double *rel_flux;     // Used to calculate relative contributions of each rxn
-                        // to state adjustments. (For scaling when more than one
-                        // rxn rapidly depletes the same species.)
 } ModelData;
 
 /* Solver data structure */

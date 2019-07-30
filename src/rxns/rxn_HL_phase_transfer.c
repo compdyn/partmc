@@ -53,12 +53,10 @@
 #define NUM_AERO_PHASE_JAC_ELEM_(x) (int_data[PHASE_INT_LOC_(x) + 4])
 #define PHASE_JAC_ID_(x,s,e) int_data[PHASE_INT_LOC_(x) + 5 + s*NUM_AERO_PHASE_JAC_ELEM_(x) + e]
 #define SMALL_WATER_CONC_(x) (float_data[PHASE_REAL_LOC_(x)])
-#define FAST_FLUX_(x) (float_data[PHASE_REAL_LOC_(x) + 1])
-#define AERO_ADJ_(x) (float_data[PHASE_REAL_LOC_(x) + 2])
-#define EFF_RAD_JAC_ELEM_(x,e) float_data[PHASE_REAL_LOC_(x) + 3 + e]
-#define NUM_CONC_JAC_ELEM_(x,e) float_data[PHASE_REAL_LOC_(x) + 3 + NUM_AERO_PHASE_JAC_ELEM_(x) + e]
+#define EFF_RAD_JAC_ELEM_(x,e) float_data[PHASE_REAL_LOC_(x) + 1 + e]
+#define NUM_CONC_JAC_ELEM_(x,e) float_data[PHASE_REAL_LOC_(x) + 1 + NUM_AERO_PHASE_JAC_ELEM_(x) + e]
 #define INT_DATA_SIZE_ (PHASE_INT_LOC_(NUM_AERO_PHASE_-1)+5+2*NUM_AERO_PHASE_JAC_ELEM_(NUM_AERO_PHASE_-1))
-#define FLOAT_DATA_SIZE_ (PHASE_REAL_LOC_(NUM_AERO_PHASE_-1)+3+2*NUM_AERO_PHASE_JAC_ELEM_(NUM_AERO_PHASE_-1))
+#define FLOAT_DATA_SIZE_ (PHASE_REAL_LOC_(NUM_AERO_PHASE_-1)+1+2*NUM_AERO_PHASE_JAC_ELEM_(NUM_AERO_PHASE_-1))
 
 /** \brief Flag Jacobian elements used by this reaction
  *
@@ -221,196 +219,6 @@ void * rxn_HL_phase_transfer_update_env_state(double *env_data,
 
 }
 
-/** \brief Do pre-derivative calculations
- *
- * TODO This is no longer called. PreCalc is being eliminated and moved
- *      to sub-models`
- *
- * Check whether phase transfer is fast enough at this timestep to treat
- * it as essentially going to completion
- *
- * \param model_data Pointer to the model data, including the state array
- * \param rxn_data Pointer to the reaction data
- * \param time_step Current solver time step (s)
- * \return The rxn_data pointer advanced by the size of the reaction data
- */
-void * rxn_HL_phase_transfer_pre_calc(ModelData *model_data, void *rxn_data,
-          double time_step)
-{
-  realtype *state = model_data->state;
-  realtype *env_data = model_data->env;
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
-
-  // Get the total mass available for transfer (ppm)
-  realtype total_mass = state[GAS_SPEC_];
-
-  // Calculate the net equilibrium constant across all phases
-  realtype net_eq_const = ZERO;
-
-  // Calculate fast phase-transfer rates for each phase
-  for (int i_phase=0; i_phase<NUM_AERO_PHASE_; i_phase++) {
-
-    // Get the particle effective radius (m)
-    realtype radius;
-    aero_rep_get_effective_radius(
-		  model_data,			// model data
-		  AERO_REP_ID_(i_phase),	// aerosol representation index
-		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
-		  &radius,                      // particle effective radius (m)
-                  NULL);                        // partial derivative
-
-    // Get the particle number concentration (#/cc)
-    realtype number_conc;
-    aero_rep_get_number_conc(
-		  model_data,			// model data
-		  AERO_REP_ID_(i_phase),	// aerosol representation index
-		  AERO_PHASE_ID_(i_phase),	// aerosol phase index
-		  &number_conc, 		// particle number concentration
-                                                // (#/cc)
-                  NULL);                        // partial derivative
-
-    // Check the aerosol concentration type (per-particle or total per-phase
-    // mass)
-    int aero_conc_type = aero_rep_get_aero_conc_type(
-		  model_data,			// model data
-		  AERO_REP_ID_(i_phase),	// aerosol representation index
-		  AERO_PHASE_ID_(i_phase));	// aerosol phase index
-
-    // If the radius or number concentration are zero, no transfer occurs
-    if (radius <= ZERO || number_conc <= ZERO) {
-      FAST_FLUX_(i_phase) = ZERO;
-      AERO_ADJ_(i_phase)  = ZERO;
-      continue;
-    }
-
-    // If no aerosol water is present, no transfer occurs
-    if (state[AERO_WATER_(i_phase)] *
-        (aero_conc_type==0?number_conc:1.0) <
-        MIN_WATER_ * SMALL_WATER_CONC_(i_phase)) {
-      FAST_FLUX_(i_phase) = ZERO;
-      AERO_ADJ_(i_phase)  = ZERO;
-      continue;
-    }
-
-    // Calculate the rate constant for diffusion limited mass transfer to the
-    // aerosol phase (1/s)
-    realtype cond_rate = 1.0/(radius*radius/(3.0*DIFF_COEFF_) +
-              4.0*radius/(3.0*C_AVG_ALPHA_));
-
-    // Calculate the evaporation rate constant (1/s)
-    realtype evap_rate = cond_rate / (UGM3_TO_PPM_ *
-	    EQUIL_CONST_ * state[AERO_WATER_(i_phase)]);
-
-    // Determine if transfer is fast enough to treat as being at equilibrium
-    if ( ONE / cond_rate > time_step / 1000.0 &&
-         ONE / evap_rate > time_step / 1000.0 ) {
-      FAST_FLUX_(i_phase) = ZERO;
-      AERO_ADJ_(i_phase)  = ZERO;
-      continue;
-    }
-
-    // Add the mass in this phase to the total mass available for transfer
-    total_mass += state[AERO_SPEC_(i_phase)] * UGM3_TO_PPM_;
-
-    // Temporarily store the equilibrium constant for this phase
-    AERO_ADJ_(i_phase) = cond_rate / evap_rate;
-
-    // Add the equilibrium constant for this phase to the net value
-    net_eq_const += AERO_ADJ_(i_phase);
-
-    // Calculate gas-phase condensation rate (ppm/s)
-    cond_rate *= state[GAS_SPEC_];
-
-    // Calculate aerosol-phase evaporation rate (ug/m^3/s)
-    evap_rate *= state[AERO_SPEC_(i_phase)];
-
-    // Calculate the flux for this aerosol phase instance
-    FAST_FLUX_(i_phase) = (cond_rate / UGM3_TO_PPM_ - evap_rate);
-    model_data->rel_flux[AERO_SPEC_(i_phase)] += FAST_FLUX_(i_phase);
-    model_data->rel_flux[GAS_SPEC_] -= FAST_FLUX_(i_phase) * UGM3_TO_PPM_;
-
-  }
-
-  // Return if no rates are fast enough for equilibrium treatment
-  if (total_mass == ZERO) return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-
-  // Calculate the new gas-phase concentration
-  realtype gas_conc = total_mass / ( net_eq_const + ONE );
-  model_data->state_adj[GAS_SPEC_] = gas_conc - state[GAS_SPEC_];
-
-  // Calculate the new aerosol-phase concentrations
-  realtype total_aero_conc = (total_mass - gas_conc) / UGM3_TO_PPM_;
-  for (int i_phase=0; i_phase<NUM_AERO_PHASE_; i_phase++) {
-
-    // Skip slow phase transfer
-    if (AERO_ADJ_(i_phase)==ZERO) continue;
-
-    // Calculate the new aerosol conc for this phase
-    AERO_ADJ_(i_phase) = AERO_ADJ_(i_phase) / net_eq_const * total_aero_conc -
-                         state[AERO_SPEC_(i_phase)];
-    model_data->state_adj[AERO_SPEC_(i_phase)] += AERO_ADJ_(i_phase);
-
-  }
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-
-}
-
-/** \brief Scale state adjustments from this reaction
- *
- * \param model_data Pointer to the model data
- * \param rxn_data Pointer to the reaction data
- * \return The rxn_data pointer advanced by the size of the reaction
- */
-void * rxn_HL_phase_transfer_scale_adj(ModelData *model_data, void *rxn_data)
-{
-  realtype *state = model_data->state;
-  realtype *env_data = model_data->env;
-  int *int_data = (int*) rxn_data;
-  realtype *float_data = (realtype*) &(int_data[INT_DATA_SIZE_]);
-
-  // FIXME Figure out a better way to scale the adjustments
-
-  // Gas-phase over-depletion (ppm)
-  realtype gas_over_dep = -(state[GAS_SPEC_] +
-                            model_data->state_adj[GAS_SPEC_]);
-  if (gas_over_dep > ZERO) {
-
-    // Scale the adjustment for each aerosol phase
-    for (int i_phase = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
-      realtype scale_factor = FAST_FLUX_(i_phase) /
-                              model_data->rel_flux[GAS_SPEC_];
-      model_data->state_adj[GAS_SPEC_] += gas_over_dep * scale_factor;
-      model_data->state_adj[AERO_SPEC_(i_phase)] -= gas_over_dep *
-                                                    scale_factor /
-                                                    UGM3_TO_PPM_;
-    }
-
-  } else {
-
-    // Check and scale the adjustment for each aerosol phase
-    for (int i_phase = 0; i_phase < NUM_AERO_PHASE_; i_phase++) {
-
-      realtype aero_over_dep = -(state[AERO_SPEC_(i_phase)] +
-                                 model_data->state_adj[AERO_SPEC_(i_phase)]);
-
-      if (aero_over_dep < ZERO) continue;
-
-      realtype scale_factor = FAST_FLUX_(i_phase) /
-                              model_data->rel_flux[AERO_SPEC_(i_phase)];
-      model_data->state_adj[GAS_SPEC_] -= aero_over_dep * scale_factor *
-                                          UGM3_TO_PPM_;
-      model_data->state_adj[AERO_SPEC_(i_phase)] += aero_over_dep *
-                                                    scale_factor;
-    }
-
-  }
-
-  return (void*) &(float_data[FLOAT_DATA_SIZE_]);
-
-}
-
 /** \brief Calculate contributions to the time derivative \f$f(t,y)\f$ from
  * this reaction.
  *
@@ -431,9 +239,6 @@ void * rxn_HL_phase_transfer_calc_deriv_contrib(ModelData *model_data,
 
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase=0; i_phase<NUM_AERO_PHASE_; i_phase++) {
-
-    // Skip reactions that are being treated as instantaneous
-    //if (FAST_FLUX_(i_phase) != 0.0) continue;
 
     // Get the particle effective radius (m)
     realtype radius;
@@ -569,9 +374,6 @@ void * rxn_HL_phase_transfer_calc_jac_contrib(ModelData *model_data,
 
   // Calculate derivative contributions for each aerosol phase
   for (int i_phase=0; i_phase<NUM_AERO_PHASE_; i_phase++) {
-
-    // Skip reactions that are being treated as instantaneous
-    //if (FAST_FLUX_(i_phase) != 0.0) continue;
 
     // Get the particle effective radius (m)
     realtype radius;

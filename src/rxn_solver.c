@@ -282,15 +282,6 @@ void rxn_update_env_state(ModelData *model_data, double *env)
  * for example, update activity coefficients based on species concentrations,
  * calculate PSSA species concentrations, partition aerosol water, etc.
  *
- * Fast reactions can add contributions to state adjustments instead of to
- * the derivatives and Jacobian. These reactions should be fast enough that
- * they essentially go to completion over the model timestep. Absolute changes
- * in species concentrations should be added to the state_adj array and rates
- * of change (conc. units/s) to the rel_adj_cont. If adjustments to the state
- * result in negative species concentrations (depletion of a single species by
- * mutliple reactions), reactions will be asked to scale their net flux based
- * on the values in rel_adj_conc.
- *
  * TODO Unlike the derivative calculations, the order of these operations may
  * matter. Find a way to abstract operation order. Maybe during intialization
  * each reaction can specify it's dependencies and which state variables it will
@@ -371,114 +362,6 @@ void rxn_pre_calc(ModelData *model_data, double time_step)
         break;
     }
   }
-}
-
-/** \brief Reset the state adjustments
- *
- * \param model_data Pointer to the model data
- */
-void rxn_reset_state_adjustments(ModelData *model_data)
-{
-  if (model_data->use_adj) {
-    model_data->use_adj = false;
-    model_data->scale_adj = false;
-    for (int i_var = 0; i_var < model_data->n_state_var; i_var++)
-      model_data->state_adj[i_var] = model_data->rel_flux[i_var] = 0.0;
-  }
-}
-
-/** \brief Adjust the state for fast reactions
- *
- * \param model_data Pointer to the model data
- */
-void rxn_adjust_state(ModelData *model_data)
-{
-  // First check whether the adjustments need scaled
-  if (model_data->scale_adj) {
-
-    // Get the number of reactions
-    int *rxn_data = (int*) (model_data->rxn_data);
-    int n_rxn = *(rxn_data++);
-
-    // Loop through the reactions advancing the rxn_data pointer each time
-    for (int i_rxn=0; i_rxn<n_rxn; i_rxn++) {
-
-      // Get the reaction type
-      int rxn_type = *(rxn_data++);
-
-      // Scale adjustments based on relative contributions from each rxn
-      switch (rxn_type) {
-        case RXN_AQUEOUS_EQUILIBRIUM :
-          rxn_data = (int*) rxn_aqueous_equilibrium_skip(
-                     (void*) rxn_data);
-          break;
-        case RXN_ARRHENIUS :
-          rxn_data = (int*) rxn_arrhenius_skip(
-                     (void*) rxn_data);
-          break;
-        case RXN_CMAQ_H2O2 :
-          rxn_data = (int*) rxn_CMAQ_H2O2_skip(
-                     (void*) rxn_data);
-          break;
-        case RXN_CMAQ_OH_HNO3 :
-          rxn_data = (int*) rxn_CMAQ_OH_HNO3_skip(
-                     (void*) rxn_data);
-          break;
-        case RXN_CONDENSED_PHASE_ARRHENIUS :
-          rxn_data = (int*) rxn_condensed_phase_arrhenius_skip(
-                     (void*) rxn_data);
-          break;
-        case RXN_EMISSION :
-          rxn_data = (int*) rxn_emission_skip(
-                     (void*) rxn_data);
-          break;
-        case RXN_FIRST_ORDER_LOSS :
-          rxn_data = (int*) rxn_first_order_loss_skip(
-                     (void*) rxn_data);
-          break;
-        case RXN_HL_PHASE_TRANSFER :
-          rxn_data = (int*) rxn_HL_phase_transfer_scale_adj(
-                     model_data, (void*) rxn_data);
-          break;
-        case RXN_PDFITE_ACTIVITY :
-          rxn_data = (int*) rxn_PDFiTE_activity_skip(
-                     (void*) rxn_data);
-          break;
-        case RXN_PHOTOLYSIS :
-          rxn_data = (int*) rxn_photolysis_skip(
-                     (void*) rxn_data);
-          break;
-        case RXN_SIMPOL_PHASE_TRANSFER :
-          rxn_data = (int*) rxn_SIMPOL_phase_transfer_scale_adj(
-                     model_data, (void*) rxn_data);
-          break;
-        case RXN_TROE :
-          rxn_data = (int*) rxn_troe_skip(
-                     (void*) rxn_data);
-          break;
-        case RXN_WET_DEPOSITION :
-          rxn_data = (int*) rxn_wet_deposition_skip(
-                     (void*) rxn_data);
-          break;
-        case RXN_ZSR_AEROSOL_WATER :
-          rxn_data = (int*) rxn_ZSR_aerosol_water_skip(
-                     (void*) rxn_data);
-          break;
-      }
-    }
-  }
-  model_data->scale_adj = false;
-
-#ifdef PMC_DEBUG
-    printf("\nAdjusting state for species %d from %le by %le", PMC_DEBUG_SPEC_,
-        model_data->state[PMC_DEBUG_SPEC_],
-        model_data->state_adj[PMC_DEBUG_SPEC_]);
-#endif
-
-  // Update the state array based on the calculated adjustments
-  for (int i_var = 0; i_var < model_data->n_state_var; i_var++)
-    model_data->state[i_var] += model_data->state_adj[i_var];
-
 }
 
 /** \brief Calculate the time derivative \f$f(t,y)\f$

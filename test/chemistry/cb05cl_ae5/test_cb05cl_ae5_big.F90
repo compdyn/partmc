@@ -255,7 +255,6 @@ contains
     call cpu_time(comp_end)
     write(*,*) "KPP initialization time: ", comp_end-comp_start," s"
 
-
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !!! Initialize phlex-chem !!!
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!

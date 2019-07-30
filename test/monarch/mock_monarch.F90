@@ -28,22 +28,24 @@ program mock_monarch
   ! Parameters for mock MONARCH model !
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Check multiple cells results are correct?
+  logical :: check_multiple_cells = .true.
   !> Number of total species in mock MONARCH
   integer, parameter :: NUM_MONARCH_SPEC = 800
-  !> Number of W-E cells in mock MONARCH
-  integer, parameter :: NUM_WE_CELLS = 20
-  !> Number of S-N cells in mock MONARCH
-  integer, parameter :: NUM_SN_CELLS = 30
   !> Number of vertical cells in mock MONARCH
   integer, parameter :: NUM_VERT_CELLS = 5
   !> Starting W-E cell for phlex-chem call
   integer, parameter :: I_W = 1!9
   !> Ending W-E cell for phlex-chem call
-  integer, parameter :: I_E = 15!15!11
+  integer, parameter :: I_E = 10!15!11
   !> Starting S-N cell for phlex-chem call
   integer, parameter :: I_S = 1!14
   !> Ending S-N cell for phlex-chem call
-  integer, parameter :: I_N = 15!15!16
+  integer, parameter :: I_N = 10!15!16
+  !> Number of W-E cells in mock MONARCH
+  integer, parameter :: NUM_WE_CELLS = I_E-I_W+1 !20
+  !> Number of S-N cells in mock MONARCH
+  integer, parameter :: NUM_SN_CELLS = I_N-I_S+1 !30
   !> Starting index for phlex-chem species in tracer array
   integer, parameter :: START_PHLEX_ID = 100
   !> Ending index for phlex-chem species in tracer array
@@ -54,8 +56,11 @@ program mock_monarch
   integer, parameter :: NUM_TIME_STEP = 10!100
   !> Index for water vapor in water_conc()
   integer, parameter :: WATER_VAPOR_ID = 5
+  !> Number of cells to compute simultaneously
+  integer :: n_cells = 1
   !> Start time
   real, parameter :: START_TIME = 360.0
+
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! State variables for mock MONARCH model !
@@ -77,6 +82,7 @@ program mock_monarch
 
   !> Comparison values
   real :: comp_species_conc(0:NUM_TIME_STEP, NUM_MONARCH_SPEC)
+  real :: species_conc_copy(NUM_WE_CELLS, NUM_SN_CELLS, NUM_VERT_CELLS, NUM_MONARCH_SPEC)
 
   !> Starting time for mock model run (min since midnight) TODO check how time
   !! is tracked in MONARCH
@@ -101,8 +107,7 @@ program mock_monarch
   character(len=:), allocatable :: output_file_prefix
 
   character(len=500) :: arg
-  integer :: status_code, i_time, i_spec
-  integer :: n_cells = 1
+  integer :: status_code, i_time, i_spec, i, j, k, pmc_cases
 
   ! Check the command line arguments
   call assert_msg(129432506, command_argument_count().eq.3, "Usage: "// &
@@ -111,6 +116,15 @@ program mock_monarch
 
   ! initialize mpi (to take the place of a similar MONARCH call)
   call pmc_mpi_init()
+
+  !Cells to solve simultaneously
+  n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
+  !n_cells = 1
+
+  !Check if repeat program to compare n_cells=1 with n_cells=N
+  if(check_multiple_cells) then
+    pmc_cases=2
+  end if
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! **** Add to MONARCH during initialization **** !
@@ -126,59 +140,88 @@ program mock_monarch
           "<-> MONARCH interface configuration file name")
   interface_input_file = trim(arg)
 
-  !Cells to solve simultaneously
-  n_cells = (I_E - I_W+1)*(I_N - I_S+1)*NUM_VERT_CELLS
-  !n_cells = 1
-
-  pmc_interface => monarch_interface_t(phlex_input_file, interface_input_file, &
-          START_PHLEX_ID, END_PHLEX_ID, n_cells)!, n_cells
-  deallocate(phlex_input_file)
-  deallocate(interface_input_file)
-
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  ! **** end initialization modification **** !
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   ! Initialize the mock model
   call get_command_argument(3, arg, status=status_code)
   call assert_msg(234156729, status_code.eq.0, "Error getting output file prefix")
   output_file_prefix = trim(arg)
   call model_initialize(output_file_prefix)
-  call pmc_interface%get_init_conc(species_conc, water_conc, WATER_VAPOR_ID, &
-          air_density)
 
-  ! call pmc_interface%print( )
+  !Repeat in case we want create a checksum
+  do i=1, pmc_cases
 
-  ! Run the model
-  do i_time=0, NUM_TIME_STEP
-    
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ! **** Add to MONARCH during runtime for each time step **** !
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    pmc_interface => monarch_interface_t(phlex_input_file, interface_input_file, &
+            START_PHLEX_ID, END_PHLEX_ID, n_cells)!, n_cells
+
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! **** end initialization modification **** !
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    ! Set conc from mock_model
+    call pmc_interface%get_init_conc(species_conc, water_conc, WATER_VAPOR_ID, &
+            air_density)
+
+    ! call pmc_interface%print( )
+
+    ! Run the model
+    do i_time=0, NUM_TIME_STEP
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! **** Add to MONARCH during runtime for each time step **** !
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-    call output_results(curr_time)
-    call pmc_interface%integrate(curr_time,         & ! Starting time (min)
-                                 TIME_STEP,         & ! Time step (min)
-                                 I_W,               & ! Starting W->E grid cell
-                                 I_E,               & ! Ending W->E grid cell
-                                 I_S,               & ! Starting S->N grid cell
-                                 I_N,               & ! Ending S->N grid cell
-                                 temperature,       & ! Temperature (K)
-                                 species_conc,      & ! Tracer array
-                                 water_conc,        & ! Water concentrations (kg_H2O/kg_air)
-                                 WATER_VAPOR_ID,    & ! Index in water_conc() corresponding to water vapor
-                                 air_density,       & ! Air density (kg_air/m^3)
-                                 pressure)            ! Air pressure (Pa)
-    curr_time = curr_time + TIME_STEP
+      !call output_results(curr_time)
+      call pmc_interface%integrate(curr_time,         & ! Starting time (min)
+                                   TIME_STEP,         & ! Time step (min)
+                                   I_W,               & ! Starting W->E grid cell
+                                   I_E,               & ! Ending W->E grid cell
+                                   I_S,               & ! Starting S->N grid cell
+                                   I_N,               & ! Ending S->N grid cell
+                                   temperature,       & ! Temperature (K)
+                                   species_conc,      & ! Tracer array
+                                   water_conc,        & ! Water concentrations (kg_H2O/kg_air)
+                                   WATER_VAPOR_ID,    & ! Index in water_conc() corresponding to water vapor
+                                   air_density,       & ! Air density (kg_air/m^3)
+                                   pressure)            ! Air pressure (Pa)
+      curr_time = curr_time + TIME_STEP
 
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ! **** end runtime modification **** !
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! **** end runtime modification **** !
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    end do
+
+    write(*,*) "Model run time: ", comp_time, " s"
+
+    !Save results
+    if(i.eq.1) then
+      species_conc_copy(:,:,:,:) = species_conc(:,:,:,:)
+    end if
+
+    ! Set 1 cell to get a checksum case
+    n_cells = 1
 
   end do
 
-  write(*,*) "Model run time: ", comp_time, " s"
+  !Compare results
+  do i = I_W, I_E
+    do j = I_S, I_N
+      do k = 1, NUM_VERT_CELLS
+        do i_spec = START_PHLEX_ID, END_PHLEX_ID
+          call assert_msg( 394742768, &
+            almost_equal( real( species_conc(i,j,k,i_spec), kind=dp ), &
+                real( species_conc_copy(i,j,k,i_spec), kind=dp ), &
+                1.d-5, 1d-4 ), &
+            "Concentration species mismatch for species "// &
+                trim( to_string( i_spec ) )//". Expected: "// &
+                trim( to_string( species_conc_copy(i,j,k,i_spec) ) )//", got: "// &
+                trim( to_string( species_conc(i,j,k,i_spec) ) ) )
+        end do
+      end do
+    end do
+  end do
+
+  write(*,*) "MONARCH interface tests - PASS"
 
   ! Output results and scripts
   if (pmc_mpi_rank().eq.0) then
@@ -187,6 +230,7 @@ program mock_monarch
             plot_start_time, curr_time)
   end if
 
+  !TODO: Compare evaluations, the following is not working, should be revised
   ! The evaluation is based on a run with reasonable seeming values and
   ! few solver modifications. It is used to make sure future modifications
   ! to the solver do not affect the results
@@ -203,14 +247,21 @@ program mock_monarch
         trim( to_string( species_conc(10,15,1,i_spec) ) ) )
   end do
 #endif
-  write(*,*) "MONARCH interface tests - PASS"
+
+
+
+  !#ifdef DEBUG
+  !print*, "SPECIES CONC", species_conc(:,1,1,100)
+  !print*, "SPECIES CONC COPY", species_conc_copy(:,1,1,100)
+  !#endif
+
+  !Deallocation
+  deallocate(phlex_input_file)
+  deallocate(interface_input_file)
 
   ! close the output file
   close(RESULTS_FILE_UNIT)
   deallocate(output_file_prefix)
-
-  ! free the interface
-  deallocate(pmc_interface)
 
   ! finalize mpi
   call pmc_mpi_finalize()
@@ -243,6 +294,30 @@ contains
     water_conc(:,:,:,WATER_VAPOR_ID) = 0.01
     air_density(:,:,:) = 1.225
     pressure(:,:,:) = 94165.7187500000
+
+    !Initialize different axis values
+    !TODO: Varying the pressure is not affecting the system, is that normal?
+    do i=I_W, I_E
+      species_conc(i,:,:,:) = &
+              species_conc(i,:,:,:) + 0.01*i
+      temperature(i,:,:) = temperature(i,:,:) + 0.01*i
+      !Reduce slighty the pressure to avoid fails!
+      pressure(i,:,:) = pressure(i,:,:) - 0.01*i
+    end do
+
+    do j=I_S, I_N
+      species_conc(:,j,:,:) = &
+              species_conc(:,j,:,:) + 0.03*j
+      temperature(:,j,:) = temperature(:,j,:) + 0.3*j
+      pressure(:,:,j) = pressure(:,:,j) - 0.03*j
+    end do
+
+    do k=1, NUM_VERT_CELLS
+      species_conc(:,:,k,:) = &
+              species_conc(:,:,k,:) + 0.06*k
+      temperature(:,:,k) = temperature(:,:,k) + 0.06*k
+      pressure(:,k,:) = pressure(:,k,:) - 0.06*k
+    end do
 
     deallocate(file_name)
 

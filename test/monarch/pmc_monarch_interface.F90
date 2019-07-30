@@ -146,12 +146,11 @@ contains
     ! Create a new interface object
     allocate(new_obj)
 
-    if (present(n_cells)) then
+    if (.not.present(n_cells).or.n_cells.eq.1) then
+      new_obj%solve_multiple_cells = .false.
+    else
       new_obj%solve_multiple_cells = .true.
       new_obj%n_cells=n_cells
-    else
-      new_obj%solve_multiple_cells = .false.
-      new_obj%n_cells=1
     end if
 
     ! Check for an available solver
@@ -306,30 +305,6 @@ contains
 
     k_end = size(MONARCH_conc,3)
 
-    !Init concentrations to different values
-    ! TODO this should go in mock_monarch%model_initialize()
-    do i=i_start, i_end
-      MONARCH_conc(i,:,:,this%map_monarch_id(:)) = &
-              MONARCH_conc(i,:,:,this%map_monarch_id(:)) + 0.01*i
-      temperature(i,:,:) = temperature(i,:,:) + 0.0001*i
-      !Reduce slighty the pressure to avoid fails!
-      pressure(i,:,:) = pressure(i,:,:) - 0.0001*i
-    end do
-
-    do j=j_start, j_end
-      MONARCH_conc(:,j,:,this%map_monarch_id(:)) = &
-              MONARCH_conc(:,j,:,this%map_monarch_id(:)) + 0.03*j
-      temperature(:,j,:) = temperature(:,j,:) + 0.0003*j
-      pressure(:,:,j) = pressure(:,:,j) - 0.03*j
-    end do
-
-    do k=1, k_end
-      MONARCH_conc(:,:,k,this%map_monarch_id(:)) = &
-              MONARCH_conc(:,:,k,this%map_monarch_id(:)) + 0.06*k
-      temperature(:,:,k) = temperature(:,:,k) + 0.0006*k
-      pressure(:,k,:) = pressure(:,k,:) - 0.006*k
-    end do
-
     call cpu_time(comp_start)
 
     if(.not.this%solve_multiple_cells) then
@@ -392,8 +367,8 @@ contains
             !Remember fortran read matrix in inverse order for optimization!
             ! TODO add descriptions for o and z, or preferably use descriptive
             !      variable names
-            o = (j-1)*(i_end) + (i-1) !Index to 2D
-            z = (k-1)*(i_end*j_end) + o !Index for 1D
+            o = (j-1)*(i_end) + (i-1) !Index to 3D
+            z = (k-1)*(i_end*j_end) + o !Index for 2D
 
             ! Calculate the vertical index for NMMB-style arrays
             k_flip = size(MONARCH_conc,3) - k + 1
@@ -403,8 +378,10 @@ contains
             this%phlex_state%env_state%pressure = pressure(i,k,j)
             call this%phlex_state%update_env_state(z)
 
+            !Reset state conc
             this%phlex_state%state_var(this%map_phlex_id(:) + &
                                        (z*state_size_per_cell)) = 0.0
+
             this%phlex_state%state_var(this%map_phlex_id(:) + &
                                        (z*state_size_per_cell)) = &
                     this%phlex_state%state_var(this%map_phlex_id(:) + &
@@ -426,8 +403,9 @@ contains
       do i=i_start, i_end
         do j=j_start, j_end
           do k=1, k_end
-            o = (j-1)*(i_end) + (i-1) !Index to 2D
-            z = (k-1)*(i_end*j_end) + o !Index for 1D
+            o = (j-1)*(i_end) + (i-1) !Index to 3D
+            z = (k-1)*(i_end*j_end) + o !Index for 2D
+
             k_flip = size(MONARCH_conc,3) - k + 1
             MONARCH_conc(i,j,k_flip,this%map_monarch_id(:)) = &
                     this%phlex_state%state_var(this%map_phlex_id(:) + &
